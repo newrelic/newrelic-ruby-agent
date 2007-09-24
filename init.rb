@@ -5,8 +5,9 @@ require 'seldon/agent'
 config_file = File.read(RAILS_ROOT+"/config/seldon.yml")
 agent_config = YAML.load(config_file)[RAILS_ENV]
 
-p agent_config
-puts "Enabled: #{agent_config['enabled']}"
+::SELDON_AGENT_ENABLED = agent_config['enabled']
 if agent_config['enabled']
+  require 'seldon/agent/instrument_rails'
+  
   Seldon::Agent.instance.start(agent_config)
 end
