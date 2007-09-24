@@ -16,6 +16,12 @@ module Mongrel
 end
 
 module Seldon::Agent
+  # add some convenience methods for easy access to the Agent singleton.
+  # the following static methods all point to the same Agent instance:
+  #
+  # Seldon::Agent.agent
+  # Seldon::Agent.instance
+  # Seldon::Agent::Agent.instance
   class << self
     def agent
       Seldon::Agent::Agent.instance
@@ -25,6 +31,8 @@ module Seldon::Agent
   end
   
   class Agent
+    include Singleton
+    
     DEFAULT_HOST = 'localhost'
     DEFAULT_PORT = 3000
     
@@ -34,8 +42,6 @@ module Seldon::Agent
     attr_reader :log
     attr_reader :host
     attr_reader :port
-    
-    include Singleton
     
     class << self
       def in_rails_environment?
@@ -149,7 +155,7 @@ module Seldon::Agent
           port = mongrel.port
         end
       rescue NameError => e
-        puts "COULD NOT DETERMINE PORT! "
+        log.error "COULD NOT DETERMINE PORT! "
       ensure
         return port
       end

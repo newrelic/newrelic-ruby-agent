@@ -1,5 +1,6 @@
 require 'seldon/agent/stats_engine'
 
+SELDON_AGENT_ENABLED = true
 module Seldon
   module Agent
     
