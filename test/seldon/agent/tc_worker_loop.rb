@@ -55,20 +55,12 @@ module Seldon::Agent
       assert_equal @last_executed, 2      # 0.7 s
       check_test_timestamp(0.7)
     end
-    
-    def test_buggy_task
-      @worker_loop.add_task(0.5) do
-        raise Exception.new("buggy")
+
+    private
+      def check_test_timestamp(expected)
+        ts = Time.now - @test_start_time
+        delta = (expected - ts).abs
+        assert(delta < 0.05, "#{delta} exceeds 50 milliseconds")
       end
-      
-      # should not throw
-      @worker_loop.run_next_task
-    end
-    
-    def check_test_timestamp(expected)
-      ts = Time.now - @test_start_time
-      delta = (expected - ts).abs
-      assert(delta < 0.05, "#{delta} exceeds 50 milliseconds")
-    end
   end
 end

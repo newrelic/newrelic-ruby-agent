@@ -19,18 +19,15 @@ module Seldon::Agent
     end
 
     def run_next_task
-      return if @tasks.empty?
+      if @tasks.empty?
+        sleep 5.0
+        return
+      end
       
       # get the next task to be executed, which is the task with the lowest (ie, soonest)
       # next invocation time.
       task = get_next_task
 
-      # super defensive, shouldn't happen if we have a non-empty task list
-      if task.nil?
-        sleep 5.0
-        return
-      end
-      
       # sleep until this next task's scheduled invocation time
       sleep_time = task.next_invocation_time - Time.now
       sleep sleep_time unless sleep_time <= 0
@@ -39,13 +36,13 @@ module Seldon::Agent
         task.execute
       rescue Exception => e
         log.error "Error running task in Agent Worker Loop: #{e}" 
-        log.debug e.backtrace.to_s
+        log.debug e.backtrace.join("\n")
       end
     end
     
     MIN_CALL_PERIOD = 0.1
     def add_task(call_period, &task_proc)
-      if call_period <MIN_CALL_PERIOD
+      if call_period < MIN_CALL_PERIOD
         raise ArgumentError.new("Invalid Call Period (must be > #{MIN_CALL_PERIOD}): #{call_period}") 
       end
       

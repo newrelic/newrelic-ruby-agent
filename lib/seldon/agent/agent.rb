@@ -62,6 +62,16 @@ module Seldon::Agent
         raise Exception.new("Duplicate attempt to start the Seldon agent")
       end
       
+      # set the log level as specified in the config file
+      case config.fetch("log_level","info").downcase
+        when "debug": @log.level = Logger::DEBUG
+        when "info": @log.level = Logger::INFO
+        when "warn": @log.level = Logger::WARN
+        when "error": @log.level = Logger::ERROR
+        when "fatal": @log.level = Logger::FATAL
+        else @log.level = Logger::INFO
+      end
+    
       @started = true
       
       @host = config.fetch('host', 'localhost')
@@ -212,6 +222,7 @@ module Seldon::Agent
             log.debug("Received Message: #{message.to_yaml}")
           rescue Exception => e
             log.error "Error handling message: #{e}"
+            log.debug e.backtrace.join("\n")
           end
         end
       end

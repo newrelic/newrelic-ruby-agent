@@ -1,0 +1,22 @@
+#
+# This file configures the Seldon Agent.  Place a copy of this file
+# in RAILS_ROOT/config and edit the settings as appropriate.
+#
+common: &default_settings
+  application_name: Seldon
+  log_level: info
+  host: localhost
+  port: 3000
+
+development:
+  <<: *default_settings
+  enabled: false
+
+test:
+  <<: *default_settings
+  enabled: false
+  
+production:
+  <<: *default_settings
+  enabled: true
+
