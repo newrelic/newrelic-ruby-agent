@@ -17,7 +17,7 @@ module ActionController
     alias_method_chain :perform_action, :trace
     
     add_tracer_to_method :process, '#{metric_name_for_request(args.first)}'
-    add_tracer_to_method :render, 'Render/#{controller_name}/#{action_name}'
+    add_tracer_to_method :render, 'View/#{controller_name}/#{action_name}/Rendering'
     add_tracer_to_method :perform_invocation, 'WebService/#{controller_name}/#{args.first}'
     
     private
