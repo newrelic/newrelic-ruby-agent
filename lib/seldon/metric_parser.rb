@@ -17,7 +17,7 @@ module Seldon
     end
     
     def is_render?
-      segments[0] == "Render"
+      segments.last == "Rendering"
     end
     
     def is_database?
@@ -38,10 +38,6 @@ module Seldon
     
     # TODO fix me
     def short_name
-      # FIXME Hack
-      return "Rendering" if is_render?
-        
-      sn = ""
       segments[1..-1].join(SEPARATOR)
     end
     
@@ -55,7 +51,7 @@ module Seldon
     end
     
     def segments
-      @segments = name.split(SEPARATOR).freeze unless @segments
+      @segments ||= name.split(SEPARATOR).freeze
       @segments
     end
   end

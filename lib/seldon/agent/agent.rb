@@ -80,7 +80,7 @@ module Seldon::Agent
       # add tasks to the worker loop.
       # TODO figure out how we configure reporting frequency.  Should be Server based to 
       # prevent hackers from flooding the server with metric data
-      @worker_loop.add_task(15.0) do 
+      @worker_loop.add_task(30.0) do 
         harvest_and_send_timeslice_data
       end
       @worker_loop.add_task(5.0) do
