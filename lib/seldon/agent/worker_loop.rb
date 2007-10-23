@@ -36,7 +36,7 @@ module Seldon::Agent
         task.execute
       rescue Exception => e
         log.error "Error running task in Agent Worker Loop: #{e}" 
-        log.debug e.backtrace.join("\n")
+        log.error e.backtrace.join("\n")
       end
     end
     

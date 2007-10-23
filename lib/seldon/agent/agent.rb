@@ -124,16 +124,20 @@ module Seldon::Agent
           
           @agent_listener_service = ActionWebService::Client::XmlRpc.new(
                 Seldon::AgentListenerAPI, url)
-          
+
           @agent_id = @agent_listener_service.launch determine_host, 
                 determine_port, $$, @launch_time
           log.info "Connecting to Seldon Service at #{url}.  Agent ID = #{@agent_id}."
           
-          @connected = true
-          @last_harvest_time = Time.now
-        rescue Exception
+          # an agent id of 0 indicates an error occurring on the server
+          # TODO after some number of failures, stop trying to connect...
+          if (@agent_id > 0)
+            @connected = true
+            @last_harvest_time = Time.now
+          end
+        rescue Exception => e
           log.error "error attempting to connect: #{$!}"
-          log.error $@
+          log.error e.backtrace.join("\n")
         end
       end
     
