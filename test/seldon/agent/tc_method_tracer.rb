@@ -76,7 +76,7 @@ module Seldon
         assert x == 1
         assert y == 2
         assert z == 3
-        assert (expected_metric == @stats_engine.peek_scope) == is_traced
+        assert((expected_metric == @stats_engine.peek_scope) == is_traced)
       end
       
       def test_trace_module_method

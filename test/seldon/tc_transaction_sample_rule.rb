@@ -47,7 +47,7 @@ module Seldon
       assert !rule.has_expired?
       assert !rule.check("katelyn")
       
-      sleep (0.2)
+      sleep 0.2
       assert rule.has_expired?
       assert !rule.check("lew")
     end
