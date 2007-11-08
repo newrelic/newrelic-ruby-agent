@@ -1,9 +1,9 @@
 class Module
-  def trace_method_execution (metric_name)
+  def trace_method_execution (metric_name, push_scope = true)
     stats_engine = Seldon::Agent.agent.stats_engine
     stats = stats_engine.get_stats metric_name
   
-    stats_engine.push_scope metric_name 
+    stats_engine.push_scope metric_name if push_scope
     t0 = Time.now
 
     begin
@@ -11,7 +11,7 @@ class Module
     ensure
       t1 = Time.now
     
-      stats_engine.pop_scope
+      stats_engine.pop_scope if push_scope
       stats.trace_call t1-t0
     
       result 
@@ -30,30 +30,45 @@ class Module
   # statically defined metric names can be specified as regular strings
   def add_tracer_to_method (method_name, metric_name_code)
     return unless ::SELDON_AGENT_ENABLED
-    
+  
     klass = (self === Module) ? "self" : "self.class"
   
     code = <<-CODE
-    def #{method_name}_with_trace(*args)
+    def #{traced_method_name(method_name, metric_name_code)}(*args)
       metric_name = "#{metric_name_code}"
       #{klass}.trace_method_execution("\#{metric_name}") do
-        #{method_name}_without_trace *args
+        #{method_name}_without_trace_#{method_name_modifier} *args
       end
     end
     CODE
   
     class_eval code
   
-    alias_method "#{method_name}_without_trace", method_name
-    alias_method method_name, "#{method_name}_with_trace"
+    alias_method untraced_method_name(method_name, metric_name_code), method_name
+    alias_method method_name, "#{traced_method_name(method_name, metric_name_code)}"
   end
 
-  def remove_tracer_from_method(method_name)
+  def remove_tracer_from_method(method_name, metric_name_code)
     return unless ::SELDON_AGENT_ENABLED
     
-    if method_defined? "#{method_name}_with_trace"
-      alias_method method_name, "#{method_name}_without_trace"
-      undef_method "#{method_name}_with_trace"
+    if method_defined? "#{traced_method_name(method_name, metric_name_code)}"
+      alias_method method_name, "#{untraced_method_name(method_name, metric_name_code)}"
+      undef_method "#{traced_method_name(method_name, metric_name_code)}"
+    else
+      raise Exception.new("No tracer for '#{metric_name_code}' on method '#{method_name}'");
     end
+  end
+
+  def untraced_method_name(method_name, metric_name)
+    "#{method_name}_without_trace_#{method_name_modifier(metric_name)}" 
+  end
+  
+  def traced_method_name(method_name, metric_name)
+    "#{method_name}_with_trace_#{method_name_modifier(metric_name)}" 
+  end
+  
+  def method_name_modifier(metric_name)
+    # [\\\^\$\.\|\?\*\+\(\)-
+    metric_name.sub(/[\/ -]/,'_')
   end
 end

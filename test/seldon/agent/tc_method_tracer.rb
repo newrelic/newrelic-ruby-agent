@@ -28,7 +28,8 @@ module Seldon
       end
       
       def teardown
-        self.class.remove_tracer_from_method :method_to_be_traced
+        self.class.remove_tracer_from_method :method_to_be_traced, @metric_name if @metric_name
+        @metric_name = nil
       end
       
       def test_basic
@@ -47,7 +48,9 @@ module Seldon
       
       METRIC = "metric"
       def test_add_method_tracer
+        @metric_name = METRIC
         self.class.add_tracer_to_method :method_to_be_traced, METRIC
+        
         t1 = Time.now
         method_to_be_traced 1,2,3,true,METRIC
         elapsed = Time.now - t1
@@ -59,6 +62,7 @@ module Seldon
       
       def test_add_tracer_with_dynamic_metric
         metric_code = '#{args[0]}.#{args[1]}'
+        @metric_name = metric_code
         expected_metric = "1.2"
         self.class.add_tracer_to_method :method_to_be_traced, metric_code
         
@@ -82,7 +86,7 @@ module Seldon
       def test_trace_module_method
         Seldon::Agent.add_tracer_to_method :module_method_to_be_traced, '#{args[0]}'
         Seldon::Agent.module_method_to_be_traced "x", self
-        Seldon::Agent.remove_tracer_from_method :module_method_to_be_traced
+        Seldon::Agent.remove_tracer_from_method :module_method_to_be_traced, '#{args[0]}'
       end
       
       def test_remove
