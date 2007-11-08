@@ -68,11 +68,11 @@ module Seldon::Agent
     end
     
     def add_sampled_metric(metric_name, &sampler_callback)
-      stats = get_stats(metric_name)
+      stats = get_stats(metric_name, false)
       @sampled_items << SampledItem.new(stats, &sampler_callback)
     end
     
-    def get_stats(metric_name)
+    def get_stats(metric_name, use_scope)
       scope = peek_scope
       
       spec = Seldon::MetricSpec.new metric_name
@@ -82,7 +82,7 @@ module Seldon::Agent
         @stats_hash[spec] = stats
       end
       
-      unless scope.nil?
+      if scope && use_scope
         spec = Seldon::MetricSpec.new metric_name, scope
         
         scoped_stats = @stats_hash[spec]

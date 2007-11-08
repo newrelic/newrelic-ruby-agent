@@ -131,9 +131,28 @@ module Seldon
         assert stats.call_count == 1
       end
       
+      def test_add_multiple_tracers
+        self.class.add_tracer_to_method :method_to_be_traced, 'X', false
+        method_to_be_traced 1,2,3,true,nil
+        self.class.add_tracer_to_method :method_to_be_traced, 'Y'
+        method_to_be_traced 1,2,3,true,'Y'
+        self.class.remove_tracer_from_method :method_to_be_traced, 'Y'
+        method_to_be_traced 1,2,3,true,nil
+        self.class.remove_tracer_from_method :method_to_be_traced, 'X'
+        method_to_be_traced 1,2,3,false,'X'
+      end
+      
+      def trace_no_push_scope
+        self.class.add_tracer_to_method :method_to_be_traced, 'X', false
+        method_to_be_traced 1,2,3,true,nil
+        self.class.remove_tracer_from_method :method_to_be_traced, 'X'
+        method_to_be_traced 1,2,3,false,'X'
+      end
+      
       def check_time (t1, t2)
         assert((t2-t1).abs < 0.01)
       end
+      
     end
   end
 end

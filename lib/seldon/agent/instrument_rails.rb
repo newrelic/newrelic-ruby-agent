@@ -8,12 +8,16 @@ module ActionController
     def perform_action_with_trace
       # don't trace if this is a web service...
       return perform_action_without_trace if is_web_service_controller?
-      
-      metric_name = "Controller/#{controller_name}/#{action_name}"
-      self.class.trace_method_execution metric_name do 
-        perform_action_without_trace
+
+      # generate metrics for all all controllers (no scope)
+      self.class.trace_method_execution "Controller", false do 
+        # generate metrics for this specific action
+        self.class.trace_method_execution "Controller/#{controller_name}/#{action_name}" do 
+          perform_action_without_trace
+        end
       end
     end
+    
     alias_method_chain :perform_action, :trace
     
     add_tracer_to_method :process, '#{metric_name_for_request(args.first)}'
@@ -60,8 +64,10 @@ module ActiveRecord
   class Base
     class << self
       add_tracer_to_method :find, 'ActiveRecord/#{self.name}/find'
+      add_tracer_to_method :find, 'ActiveRecord/find', false
     end
     add_tracer_to_method :save, 'ActiveRecord/#{self.class.name}/save'
+    add_tracer_to_method :save, 'ActiveRecord/save', false
   end
 end
 

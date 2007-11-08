@@ -1,15 +1,17 @@
 module Seldon
   module MetricParser
+    # FIXME revisit this design - centralizing this stuff decouples metric name
+    # knowledge from the metrics themselves.
     SEPARATOR = '/'
     
     @segments = nil
 
     def is_web_service?
-      segments[0] == "WebService"
+      segments[0] == "WebService" && sements[1] != 'Soap' && segments[1] != 'Xml Rpc'
     end
     
     def is_controller?
-      segments[0] == "Controller"
+      segments[0] == "Controller"  && segments.length > 1
     end
     
     def is_url?
@@ -29,11 +31,11 @@ module Seldon
     end
     
     def is_database_read?
-      is_database? && segments[-1] == "find"
+      is_database? && segments[-1] == "find" && segments.length > 2
     end
     
     def is_database_write?
-      is_database? && segments[-1] == "save"
+      is_database? && segments[-1] == "save" && segments.length > 2
     end
     
     # TODO fix me
