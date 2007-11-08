@@ -91,7 +91,7 @@ module Seldon
       
       def test_remove
         self.class.add_tracer_to_method :method_to_be_traced, METRIC
-        self.class.remove_tracer_from_method :method_to_be_traced
+        self.class.remove_tracer_from_method :method_to_be_traced, METRIC
           
         t1 = Time.now
         method_to_be_traced 1,2,3,false,METRIC

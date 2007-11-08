@@ -37,7 +37,7 @@ class Module
     def #{traced_method_name(method_name, metric_name_code)}(*args)
       metric_name = "#{metric_name_code}"
       #{klass}.trace_method_execution("\#{metric_name}") do
-        #{method_name}_without_trace_#{method_name_modifier} *args
+        #{untraced_method_name(method_name, metric_name_code)} *args
       end
     end
     CODE
@@ -50,6 +50,8 @@ class Module
 
   def remove_tracer_from_method(method_name, metric_name_code)
     return unless ::SELDON_AGENT_ENABLED
+    
+    puts traced_method_name(method_name, metric_name_code)
     
     if method_defined? "#{traced_method_name(method_name, metric_name_code)}"
       alias_method method_name, "#{untraced_method_name(method_name, metric_name_code)}"
@@ -69,6 +71,6 @@ class Module
   
   def method_name_modifier(metric_name)
     # [\\\^\$\.\|\?\*\+\(\)-
-    metric_name.sub(/[\/ -]/,'_')
+    metric_name.sub(/[\/ -\#{}\[\]]/,'_')
   end
 end
