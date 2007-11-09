@@ -7,7 +7,7 @@ module Seldon
     @segments = nil
 
     def is_web_service?
-      segments[0] == "WebService" && sements[1] != 'Soap' && segments[1] != 'Xml Rpc'
+      segments[0] == "WebService" && segments[1] != 'Soap' && segments[1] != 'Xml Rpc'
     end
     
     def is_controller?
