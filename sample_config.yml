@@ -15,8 +15,8 @@ common: &default_settings
   log_level: info
   
   # specify the host and port of the server that the Seldon Agent communicates with
-  host: localhost
-  port: 3000
+  host: seldon.lkcllc.com 
+  port: 80
   
 development:
   <<: *default_settings
