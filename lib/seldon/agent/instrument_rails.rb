@@ -1,6 +1,6 @@
 require 'seldon/agent/agent'
 require 'seldon/agent/method_tracer'
-require 'seldon/agent/session_tracer'
+require 'seldon/agent/session_tracer' if true # turn off for now until we get it working
 
 # instrumentation for all controllers except webservice implementations
 module ActionController

@@ -31,16 +31,15 @@ module Seldon::Agent
       @start_time = Time.now
       @history = []
       @closed = false
-      @mutex = Mutex.new
       
       puts "NEW SESSION CAPTURE"
     end
     
     def << (request)
-      @mutex.synchronize do
+      mutex.synchronize do
         Thread::current[:traced_request] = nil
         if Time.now - @start_time > TIMEOUT
-          close  
+          do_close  
         end
   
         unless closed
@@ -53,12 +52,21 @@ module Seldon::Agent
     
     # stop tracing this session
     def close
-      @mutex.synchronize do
-        return if closed
-        Seldon::Agent.instance.send_traced_session(self)
-        @history = []
-        @closed = true
+      mutex.synchronize do
+        do_close
       end
+    end
+    
+  private
+    def mutex
+      @mutex ||= Mutex.new
+    end
+    
+    def do_close
+      return if closed
+#      Seldon::Agent.instance.send_traced_session(self)
+      @history = []
+      @closed = true
     end
     
     class << self
