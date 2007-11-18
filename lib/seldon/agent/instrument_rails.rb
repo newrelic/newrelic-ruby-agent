@@ -1,5 +1,6 @@
 require 'seldon/agent/agent'
 require 'seldon/agent/method_tracer'
+require 'seldon/agent/session_tracer'
 
 # instrumentation for all controllers except webservice implementations
 module ActionController
@@ -60,14 +61,19 @@ module Dependencies
 end
 
 # instrumentation for ActiveRecord
+# FIXME revisit metric names.  Consider: read/write/delete or select/update/insert/delete
 module ActiveRecord
   class Base
     class << self
       add_tracer_to_method :find, 'ActiveRecord/#{self.name}/find'
       add_tracer_to_method :find, 'ActiveRecord/find', false
     end
-    add_tracer_to_method :save, 'ActiveRecord/#{self.class.name}/save'
-    add_tracer_to_method :save, 'ActiveRecord/save', false
+    
+    add_tracer_to_method :create_or_update, 'ActiveRecord/#{self.class.name}/save'
+    add_tracer_to_method :create_or_update, 'ActiveRecord/save', false
+
+    add_tracer_to_method :destroy, 'ActiveRecord/#{self.class.name}/destroy'
+    add_tracer_to_method :destroy, 'ActiveRecord/destroy', false
   end
 end
 

@@ -2,13 +2,13 @@ require 'logger'
 
 # from Common
 require 'seldon/stats'
+require 'seldon/worker_loop'
 require 'seldon/agent_messages'
 require 'seldon/agent_listener_api'
 
 # from Agent
 require 'seldon/agent/stats_engine'
 require 'seldon/agent/transaction_sampler'
-require 'seldon/agent/worker_loop'
 
 # if Mongrel isn't present, we still need a class declaration
 module Mongrel
@@ -74,8 +74,8 @@ module Seldon::Agent
     
       @started = true
       
-      @host = config.fetch('host', 'localhost')
-      @port = config.fetch('port', '3000')
+      @host = config.fetch('host', 'seldon.lkcllc.com')
+      @port = config.fetch('port', '80')
       
       # add tasks to the worker loop.
       # TODO figure out how we configure reporting frequency.  Should be Server based to 
@@ -83,7 +83,7 @@ module Seldon::Agent
       @worker_loop.add_task(30.0) do 
         harvest_and_send_timeslice_data
       end
-      @worker_loop.add_task(5.0) do
+      @worker_loop.add_task(15.0) do
         harvest_and_send_sample_data
       end
       @worker_loop.add_task(5.0) do
@@ -97,8 +97,8 @@ module Seldon::Agent
   
     private
       def initialize
-        @log = Logger.new "log/seldon_agent.#{determine_port}.log"
-        @log.level = Logger::DEBUG
+        @log = Logger.new "#{RAILS_ROOT}/log/seldon_agent.#{determine_port}.log"
+        @log.level = Logger::INFO
         
         @connected = false
         @launch_time = Time.now
@@ -106,12 +106,12 @@ module Seldon::Agent
         @host = DEFAULT_HOST
         @port = DEFAULT_PORT
        
-        @worker_loop = WorkerLoop.new(@log)
+        @worker_loop = Seldon::WorkerLoop.new(@log)
         
         @stats_engine = StatsEngine.new(@log)
         @transaction_sampler = TransactionSampler.new(self)
         
-        log.info "\n\nSeldon Agent Initialized"
+        log.info "\n\nSeldon Agent Initialized: pid = #{$$}"
       end
       
       def connect

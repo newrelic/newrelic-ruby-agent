@@ -17,6 +17,10 @@ module Seldon
     # returns [(Serialized) [Seldon::AgentMessage]]
     api_method :transaction_sample_data, :expects => [:int, [Seldon::TransactionSample]], :returns => [[:string]]
     
+    # def session_capture_data([Hash(:uri => String, :timestamp => float])
+    # returns [(Serialized) [Seldon::AgentMessage]]
+    api_method :session_capture_data, :expects => [[:string]], :returns => [[:string]]
+    
     # def ping(agent_run_id) 
     # returns [(Serialized) [Seldon::AgentMessage]]
     api_method :ping, :expects => [:int], :returns => [[:string]]

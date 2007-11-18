@@ -72,7 +72,7 @@ module Seldon::Agent
       @sampled_items << SampledItem.new(stats, &sampler_callback)
     end
     
-    def get_stats(metric_name, use_scope)
+    def get_stats(metric_name, use_scope = true)
       scope = peek_scope
       
       spec = Seldon::MetricSpec.new metric_name

@@ -1,8 +1,12 @@
-require 'seldon/agent/worker_loop'
+require 'seldon/worker_loop'
 require 'test/unit'
 
-module Seldon::Agent
-  class TransationSamplerTests < Test::Unit::TestCase
+module Seldon
+  class WorkerLoop
+    public :run_next_task
+  end
+  
+  class WorkerLoopTests < Test::Unit::TestCase
     def setup
       @worker_loop = WorkerLoop.new
       @test_start_time = Time.now

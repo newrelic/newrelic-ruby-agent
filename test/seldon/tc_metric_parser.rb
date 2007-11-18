@@ -13,7 +13,7 @@ module Seldon
   
   class MetricParserTests < Test::Unit::TestCase
     def test_controller
-      ["Controller","Controller/1/2/3","Controller//!!#!//"].each do | metric_name |
+      ["Controller/1/2/3","Controller//!!#!//"].each do | metric_name |
         m = MyMetric.new(metric_name)
         
         assert m.is_controller?
