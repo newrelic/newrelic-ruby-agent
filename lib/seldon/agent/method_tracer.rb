@@ -26,9 +26,11 @@ class Module
   # at traced method execution time.
   # Example: tracing a method :foo, where the metric name is
   # the first argument converted to a string
-  #     add_tracer_to_method :foo, '#{args.first.to_s}
+  #     add_method_tracer :foo, '#{args.first.to_s}'
   # statically defined metric names can be specified as regular strings
-  def add_tracer_to_method (method_name, metric_name_code, push_scope = true)
+  # push_scope specifies whether this method tracer should push
+  # the metric name onto the scope stack.
+  def add_method_tracer (method_name, metric_name_code, push_scope = true)
     return unless ::SELDON_AGENT_ENABLED
   
     klass = (self === Module) ? "self" : "self.class"
@@ -51,7 +53,7 @@ class Module
   # Not recommended for production use, because tracers must be removed in reverse-order
   # from when they were added, or else other tracers that were added to the same method
   # may get removed as well.
-  def remove_tracer_from_method(method_name, metric_name_code)
+  def remove_method_tracer(method_name, metric_name_code)
     return unless ::SELDON_AGENT_ENABLED
     
     if method_defined? "#{traced_method_name(method_name, metric_name_code)}"
@@ -62,6 +64,7 @@ class Module
     end
   end
 
+private
   def untraced_method_name(method_name, metric_name)
     "#{method_name}_without_trace_#{method_name_modifier(metric_name)}" 
   end

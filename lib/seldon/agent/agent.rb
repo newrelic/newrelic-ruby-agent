@@ -126,7 +126,7 @@ module Seldon::Agent
                 Seldon::AgentListenerAPI, url)
 
           @agent_id = @agent_listener_service.launch determine_host, 
-                determine_port, $$, @launch_time
+                determine_port, determine_home_directory, $$, @launch_time
           log.info "Connecting to Seldon Service at #{url}.  Agent ID = #{@agent_id}."
           
           # an agent id of 0 indicates an error occurring on the server
@@ -157,7 +157,7 @@ module Seldon::Agent
       end
       
       def determine_port
-        port = DEFAULT_PORT
+        port = nil
         
         # OPTIONS is set by script/server
         port = OPTIONS.fetch :port, DEFAULT_PORT
@@ -169,9 +169,13 @@ module Seldon::Agent
           port = mongrel.port
         end
       rescue NameError => e
-        log.error "COULD NOT DETERMINE PORT! "
+        log.info "Could not determine port.  Likely running as a cgi"
       ensure
         return port
+      end
+      
+      def determine_home_directory
+        File.expand_path(RAILS_ROOT)
       end
       
       @last_harvest_time = Time.now

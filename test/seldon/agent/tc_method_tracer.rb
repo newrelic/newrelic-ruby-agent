@@ -28,7 +28,7 @@ module Seldon
       end
       
       def teardown
-        self.class.remove_tracer_from_method :method_to_be_traced, @metric_name if @metric_name
+        self.class.remove_method_tracer :method_to_be_traced, @metric_name if @metric_name
         @metric_name = nil
       end
       
@@ -49,7 +49,7 @@ module Seldon
       METRIC = "metric"
       def test_add_method_tracer
         @metric_name = METRIC
-        self.class.add_tracer_to_method :method_to_be_traced, METRIC
+        self.class.add_method_tracer :method_to_be_traced, METRIC
         
         t1 = Time.now
         method_to_be_traced 1,2,3,true,METRIC
@@ -64,7 +64,7 @@ module Seldon
         metric_code = '#{args[0]}.#{args[1]}'
         @metric_name = metric_code
         expected_metric = "1.2"
-        self.class.add_tracer_to_method :method_to_be_traced, metric_code
+        self.class.add_method_tracer :method_to_be_traced, metric_code
         
         t1 = Time.now
         method_to_be_traced 1,2,3,true,expected_metric
@@ -84,14 +84,14 @@ module Seldon
       end
       
       def test_trace_module_method
-        Seldon::Agent.add_tracer_to_method :module_method_to_be_traced, '#{args[0]}'
+        Seldon::Agent.add_method_tracer :module_method_to_be_traced, '#{args[0]}'
         Seldon::Agent.module_method_to_be_traced "x", self
-        Seldon::Agent.remove_tracer_from_method :module_method_to_be_traced, '#{args[0]}'
+        Seldon::Agent.remove_method_tracer :module_method_to_be_traced, '#{args[0]}'
       end
       
       def test_remove
-        self.class.add_tracer_to_method :method_to_be_traced, METRIC
-        self.class.remove_tracer_from_method :method_to_be_traced, METRIC
+        self.class.add_method_tracer :method_to_be_traced, METRIC
+        self.class.remove_method_tracer :method_to_be_traced, METRIC
           
         t1 = Time.now
         method_to_be_traced 1,2,3,false,METRIC
@@ -107,9 +107,9 @@ module Seldon
       end
 
       def trace_trace_static_method
-        self.add_tracer_to_method :static_method, '#{args[0]}'
+        self.add_method_tracer :static_method, '#{args[0]}'
         self.class.static_method "x", self, true
-        self.remove_tracer_from_method :static_method, '#{args[0]}'
+        self.remove_method_tracer :static_method, '#{args[0]}'
         self.class.static_method "x", self, false
       end
         
@@ -132,20 +132,20 @@ module Seldon
       end
       
       def test_add_multiple_tracers
-        self.class.add_tracer_to_method :method_to_be_traced, 'X', false
+        self.class.add_method_tracer :method_to_be_traced, 'X', false
         method_to_be_traced 1,2,3,true,nil
-        self.class.add_tracer_to_method :method_to_be_traced, 'Y'
+        self.class.add_method_tracer :method_to_be_traced, 'Y'
         method_to_be_traced 1,2,3,true,'Y'
-        self.class.remove_tracer_from_method :method_to_be_traced, 'Y'
+        self.class.remove_method_tracer :method_to_be_traced, 'Y'
         method_to_be_traced 1,2,3,true,nil
-        self.class.remove_tracer_from_method :method_to_be_traced, 'X'
+        self.class.remove_method_tracer :method_to_be_traced, 'X'
         method_to_be_traced 1,2,3,false,'X'
       end
       
       def trace_no_push_scope
-        self.class.add_tracer_to_method :method_to_be_traced, 'X', false
+        self.class.add_method_tracer :method_to_be_traced, 'X', false
         method_to_be_traced 1,2,3,true,nil
-        self.class.remove_tracer_from_method :method_to_be_traced, 'X'
+        self.class.remove_method_tracer :method_to_be_traced, 'X'
         method_to_be_traced 1,2,3,false,'X'
       end
       

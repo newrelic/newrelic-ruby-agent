@@ -2,7 +2,8 @@ require 'seldon/agent/agent'
 require 'seldon/agent/method_tracer'
 require 'seldon/agent/session_tracer' if false # turn off for now until we get it working
 
-# instrumentation for all controllers except webservice implementations
+# Instrumentation for the key code points inside rails for monitoring by Seldon.
+# note this file is loaded only if the seldon agent is enabled (through config/seldon.yml)
 module ActionController
   class Base
     
@@ -13,7 +14,7 @@ module ActionController
       # generate metrics for all all controllers (no scope)
       self.class.trace_method_execution "Controller", false do 
         # generate metrics for this specific action
-        self.class.trace_method_execution "Controller/#{controller_name}/#{action_name}" do 
+        self.class.trace_method_execution "Controller/#{controller_path}/#{action_name}" do 
           perform_action_without_trace
         end
       end
@@ -21,9 +22,9 @@ module ActionController
     
     alias_method_chain :perform_action, :trace
     
-    add_tracer_to_method :process, '#{metric_name_for_request(args.first)}'
-    add_tracer_to_method :render, 'View/#{controller_name}/#{action_name}/Rendering'
-    add_tracer_to_method :perform_invocation, 'WebService/#{controller_name}/#{args.first}'
+    # add_method_tracer :process, '#{metric_name_for_request(args.first)}'
+    add_method_tracer :render, 'View/#{controller_name}/#{action_name}/Rendering'
+    add_method_tracer :perform_invocation, 'WebService/#{controller_name}/#{args.first}'
     
     private
       def is_web_service_controller?
@@ -41,23 +42,23 @@ end
 
 # instrumentation for Web Service martialing - XML RPC
 class ActionWebService::Protocol::XmlRpc::XmlRpcProtocol
-  add_tracer_to_method :decode_request, "WebService/Xml Rpc/XML Decode"
-  add_tracer_to_method :encode_request, "WebService/Xml Rpc/XML Encode"
-  add_tracer_to_method :decode_response, "WebService/Xml Rpc/XML Decode"
-  add_tracer_to_method :encode_response, "WebService/Xml Rpc/XML Encode"
+  add_method_tracer :decode_request, "WebService/Xml Rpc/XML Decode"
+  add_method_tracer :encode_request, "WebService/Xml Rpc/XML Encode"
+  add_method_tracer :decode_response, "WebService/Xml Rpc/XML Decode"
+  add_method_tracer :encode_response, "WebService/Xml Rpc/XML Encode"
 end
 
 # instrumentation for Web Service martialing - Soap
 class ActionWebService::Protocol::Soap::SoapProtocol
-  add_tracer_to_method :decode_request, "WebService/Soap/XML Decode"
-  add_tracer_to_method :encode_request, "WebService/Soap/XML Encode"
-  add_tracer_to_method :decode_response, "WebService/Soap/XML Decode"
-  add_tracer_to_method :encode_response, "WebService/Soap/XML Encode"
+  add_method_tracer :decode_request, "WebService/Soap/XML Decode"
+  add_method_tracer :encode_request, "WebService/Soap/XML Encode"
+  add_method_tracer :decode_response, "WebService/Soap/XML Decode"
+  add_method_tracer :encode_response, "WebService/Soap/XML Encode"
 end
 
 # instrumentation for dynamic application code loading
 module Dependencies
-  add_tracer_to_method :load_file, "Rails/Application Code Loading"
+  add_method_tracer :load_file, "Rails/Application Code Loading"
 end
 
 # instrumentation for ActiveRecord
@@ -65,49 +66,17 @@ end
 module ActiveRecord
   class Base
     class << self
-      add_tracer_to_method :find, 'ActiveRecord/#{self.name}/find'
-      add_tracer_to_method :find, 'ActiveRecord/find', false
+      add_method_tracer :find, 'ActiveRecord/#{self.name}/find'
+      add_method_tracer :find, 'ActiveRecord/find', false
     end
     
-    add_tracer_to_method :create_or_update, 'ActiveRecord/#{self.class.name}/save'
-    add_tracer_to_method :create_or_update, 'ActiveRecord/save', false
+    add_method_tracer :create_or_update, 'ActiveRecord/#{self.class.name}/save'
+    add_method_tracer :create_or_update, 'ActiveRecord/save', false
 
-    add_tracer_to_method :destroy, 'ActiveRecord/#{self.class.name}/destroy'
-    add_tracer_to_method :destroy, 'ActiveRecord/destroy', false
+    add_method_tracer :destroy, 'ActiveRecord/#{self.class.name}/destroy'
+    add_method_tracer :destroy, 'ActiveRecord/destroy', false
   end
 end
-
-=begin
-Here is the stack trace for the web server CGI dispatcher
-
-
-/usr/local/lib/ruby/gems/1.8/gems/actionpack-1.13.3/lib/action_controller/base.rb:430:in `send'
-/usr/local/lib/ruby/gems/1.8/gems/actionpack-1.13.3/lib/action_controller/base.rb:430:in `process_without_filters'
-/usr/local/lib/ruby/gems/1.8/gems/actionpack-1.13.3/lib/action_controller/filters.rb:624:in `process_without_session_management_support'
-/usr/local/lib/ruby/gems/1.8/gems/actionpack-1.13.3/lib/action_controller/session_management.rb:114:in `process_without_trace'
-/usr/local/lib/ruby/gems/1.8/gems/actionpack-1.13.3/lib/action_controller/base.rb:330:in `process'
-/usr/local/lib/ruby/gems/1.8/gems/rails-1.2.3/lib/dispatcher.rb:41:in `dispatch'
-/usr/local/lib/ruby/gems/1.8/gems/mongrel-1.0.1/lib/mongrel/rails.rb:78:in `process'
-/usr/local/lib/ruby/gems/1.8/gems/mongrel-1.0.1/lib/mongrel/rails.rb:76:in `synchronize'
-/usr/local/lib/ruby/gems/1.8/gems/mongrel-1.0.1/lib/mongrel/rails.rb:76:in `process'
-/usr/local/lib/ruby/gems/1.8/gems/mongrel-1.0.1/lib/mongrel.rb:618:in `process_client'
-/usr/local/lib/ruby/gems/1.8/gems/mongrel-1.0.1/lib/mongrel.rb:617:in `each'
-/usr/local/lib/ruby/gems/1.8/gems/mongrel-1.0.1/lib/mongrel.rb:617:in `process_client'
-/usr/local/lib/ruby/gems/1.8/gems/mongrel-1.0.1/lib/mongrel.rb:736:in `run'
-/usr/local/lib/ruby/gems/1.8/gems/mongrel-1.0.1/lib/mongrel.rb:736:in `initialize'
-/usr/local/lib/ruby/gems/1.8/gems/mongrel-1.0.1/lib/mongrel.rb:736:in `new'
-/usr/local/lib/ruby/gems/1.8/gems/mongrel-1.0.1/lib/mongrel.rb:736:in `run'
-/usr/local/lib/ruby/gems/1.8/gems/mongrel-1.0.1/lib/mongrel.rb:720:in `initialize'
-/usr/local/lib/ruby/gems/1.8/gems/mongrel-1.0.1/lib/mongrel.rb:720:in `new'
-/usr/local/lib/ruby/gems/1.8/gems/mongrel-1.0.1/lib/mongrel.rb:720:in `run'
-/usr/local/lib/ruby/gems/1.8/gems/mongrel-1.0.1/lib/mongrel/configurator.rb:271:in `run'
-/usr/local/lib/ruby/gems/1.8/gems/mongrel-1.0.1/lib/mongrel/configurator.rb:270:in `each'
-/usr/local/lib/ruby/gems/1.8/gems/mongrel-1.0.1/lib/mongrel/configurator.rb:270:in `run'
-/usr/local/lib/ruby/gems/1.8/gems/mongrel-1.0.1/bin/mongrel_rails:127:in `run'
-/usr/local/lib/ruby/gems/1.8/gems/mongrel-1.0.1/lib/mongrel/command.rb:211:in `run'
-/usr/local/lib/ruby/gems/1.8/gems/mongrel-1.0.1/bin/mongrel_rails:243
-
-=end
 
 
 

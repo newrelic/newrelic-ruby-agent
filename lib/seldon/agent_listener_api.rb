@@ -6,8 +6,8 @@ require 'xmlrpc/utils'
 
 module Seldon
 	class AgentListenerAPI < ActionWebService::API::Base
-    # def launch(host, port, pid, launch_time) returns agent_run_id
-	  api_method :launch, :expects => [:string, :int, :int, Time], :returns => [:int]
+    # def launch(host, port, pid, home_directory launch_time) returns agent_run_id
+	  api_method :launch, :expects => [:string, :int, :string, :int, Time], :returns => [:int]
 
     # def metric_data(agent_run_id, begin_timeslice, end_timeslice, [Seldon::MetricData])
     # returns [(Serialized) [Seldon::AgentMessage]]
