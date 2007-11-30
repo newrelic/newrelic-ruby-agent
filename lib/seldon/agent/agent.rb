@@ -74,7 +74,7 @@ module Seldon::Agent
     
       @started = true
       
-      @host = config.fetch('host', 'seldon.lkcllc.com')
+      @host = config.fetch('host', '310new.pascal.hostingrails.com')
       @port = config.fetch('port', '80')
       
       # add tasks to the worker loop.
