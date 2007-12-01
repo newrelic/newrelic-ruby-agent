@@ -1,5 +1,10 @@
 module Seldon
   module MetricParser
+    # this exception is thrown if the caller inspects a metric
+    # improperly (for example, if a metric that measures database
+    # activity is called with :controller_name, a MetricException is thrown)
+    class MetricException < Exception; end
+      
     # FIXME revisit this design - centralizing this stuff decouples metric name
     # knowledge from the metrics themselves.
     SEPARATOR = '/'
@@ -12,10 +17,6 @@ module Seldon
     
     def is_controller?
       segments[0] == "Controller"  && segments.length > 1
-    end
-    
-    def is_url?
-      segments[0] == "URL"
     end
     
     def is_render?
@@ -38,18 +39,32 @@ module Seldon
       is_database? && segments[-1] == "save" && segments.length > 2
     end
     
-    # TODO fix me
+    def controller_name
+      raise MetricException.new unless is_controller?
+      name = ''
+      segments[1..-2].each do |s| 
+        name << s.camelize
+        name << '::' unless s == segments[-2]
+      end
+      name + "Controller"
+    end
+    
+    def action_name
+      raise MetricException.new unless is_controller?
+      segments[-1]
+    end
+    
+    def url
+      raise MetricException.new unless is_controller?
+      '/'+short_name
+    end
+    
     def short_name
       segments[1..-1].join(SEPARATOR)
     end
     
     def category
       segments[0]
-    end
-    
-    def parent(segment_count)
-      return name if segment_count >= segments.length
-      segments[0..segment_count].join(SEPARATOR)
     end
     
     def segments

@@ -22,7 +22,6 @@ module ActionController
     
     alias_method_chain :perform_action, :trace
     
-    # add_method_tracer :process, '#{metric_name_for_request(args.first)}'
     add_method_tracer :render, 'View/#{controller_name}/#{action_name}/Rendering'
     add_method_tracer :perform_invocation, 'WebService/#{controller_name}/#{args.first}'
     
@@ -30,12 +29,6 @@ module ActionController
       def is_web_service_controller?
         # TODO this only covers the case for Direct implementation.
         self.class.read_inheritable_attribute("web_service_api")
-      end
-      
-      # this utility determines the URL metric that should be used for a specific path.
-      # FIXME need to normalize this - right now, manually entered urls generate unique metrics
-      def metric_name_for_request(request)
-        "URL#{request.path}"
       end
   end
 end
