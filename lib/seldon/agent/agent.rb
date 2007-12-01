@@ -157,7 +157,8 @@ module Seldon::Agent
       end
       
       def determine_port
-        port = nil
+        # TODO I would like to make this nil, but that fails in XMLRPC.  Blegh.
+        port = -1
         
         # OPTIONS is set by script/server
         port = OPTIONS.fetch :port, DEFAULT_PORT
