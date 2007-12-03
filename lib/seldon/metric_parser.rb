@@ -26,10 +26,7 @@ module Seldon
     def is_database?
       segments[0] == "ActiveRecord"
     end
-    
-    def is_front_end?
-      is_url?
-    end
+    alias is_active_record? is_database?
     
     def is_database_read?
       is_database? && segments[-1] == "find" && segments.length > 2
