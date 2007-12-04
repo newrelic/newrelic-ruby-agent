@@ -29,7 +29,7 @@ module Seldon
     end
 
     def test_web_service
-      ["WebService","WebService/1/2/3","WebService//!!#!//"].each do | metric_name |
+      ["WebService/x/Controller/", "WebService","WebService/1/2/3","WebService//!!#!//"].each do | metric_name |
         m = MyMetric.new(metric_name)
         
         assert !m.is_controller?
@@ -58,6 +58,20 @@ module Seldon
         
         assert !m.is_database?
       end
+    end
+    
+    def test_error
+      ["Errors","Errors/Type/MyType","Errors/Controller/MyController/"].each do | metric_name |
+        m = MyMetric.new(metric_name)
+        
+        assert !m.is_database?
+        assert !m.is_controller?
+        assert !m.is_web_service?
+        assert m.is_error?
+      end
+      
+      m = MyMetric.new("Errors/Type/MyType")
+      assert_equal m.short_name, 'MyType'
     end
   end
 end

@@ -24,6 +24,11 @@ module ActionController
     
     add_method_tracer :render, 'View/#{controller_name}/#{action_name}/Rendering'
     add_method_tracer :perform_invocation, 'WebService/#{controller_name}/#{args.first}'
+   
+    # trace the number of exceptions encountered 
+    # TODO determine how to break these out: by error code, contoller class, error class? all of the above?
+    add_method_tracer :rescue_action, 'Errors/Type/#{args.first.class}'
+    add_method_tracer :rescue_action, 'Errors/Controller/#{self.class}'
     
     private
       def is_web_service_controller?

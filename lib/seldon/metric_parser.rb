@@ -36,6 +36,10 @@ module Seldon
       is_database? && segments[-1] == "save" && segments.length > 2
     end
     
+    def is_error?
+      segments[0] == 'Errors'
+    end
+    
     def controller_name
       raise MetricException.new unless is_controller?
       name = ''
@@ -52,12 +56,12 @@ module Seldon
     end
     
     def url
-      raise MetricException.new unless is_controller?
+      raise MetricException.new("Not a URL: #{name}") unless is_controller?
       '/'+short_name
     end
     
     def short_name
-      segments[1..-1].join(SEPARATOR)
+      segments[begin_short_name_segment..end_short_name_segment].join(SEPARATOR)
     end
     
     def category
@@ -67,6 +71,16 @@ module Seldon
     def segments
       @segments ||= name.split(SEPARATOR).freeze
       @segments
+    end
+    
+  private
+    def begin_short_name_segment
+      return 2 if is_error?
+      return 1
+    end
+    
+    def end_short_name_segment
+      return -1
     end
   end
 end

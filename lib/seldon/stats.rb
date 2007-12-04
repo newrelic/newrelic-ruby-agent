@@ -195,4 +195,16 @@ class Numeric
     end
     x
   end
+  
+  def round_to_1
+    round_to(1)
+  end
+
+  def round_to_2
+    round_to(2)
+  end
+
+  def round_to_3
+    round_to(3)
+  end
 end
