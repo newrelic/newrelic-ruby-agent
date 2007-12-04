@@ -86,9 +86,12 @@ module Seldon::Agent
       @worker_loop.add_task(15.0) do
         harvest_and_send_sample_data
       end
+      
+      # disabling ping - we don't use callbacks and therefore don't need it, and
+      # it's the number one CPU hog on the server
       @worker_loop.add_task(5.0) do
         ping
-      end
+      end if false
       
       @worker_thread = Thread.new do 
         run_worker_loop
