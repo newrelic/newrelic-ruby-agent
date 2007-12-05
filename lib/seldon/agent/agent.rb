@@ -1,3 +1,4 @@
+require 'net/http'
 require 'logger'
 
 # from Common
@@ -40,8 +41,6 @@ module Seldon::Agent
     attr_reader :transaction_sampler
     attr_reader :worker_loop
     attr_reader :log
-    attr_reader :remote_host
-    attr_reader :remote_port
     
     class << self
       def in_rails_environment?
@@ -100,10 +99,10 @@ module Seldon::Agent
   
     private
       def initialize
-        @port = determine_port
-        @host = DEFAULT_HOST
+        @my_port = determine_port
+        @my_host = determine_host
         
-        @log = Logger.new "#{RAILS_ROOT}/log/seldon_agent.#{@port}.log"
+        @log = Logger.new "#{RAILS_ROOT}/log/seldon_agent.#{@my_port}.log"
         @log.level = Logger::INFO
         
         @connected = false
@@ -122,14 +121,19 @@ module Seldon::Agent
           # wait a few seconds for the web server to boot
           sleep 5
           
-          # TODO make this configurable
-          url = "http://#{remote_host}:#{remote_port}/agent_listener/api"
+          if (false)
+            url = "http://#{@remote_host}:#{@remote_port}/agent_listener/api"
           
-          @agent_listener_service = ActionWebService::Client::XmlRpc.new(
-                Seldon::AgentListenerAPI, url)
+            @agent_listener_service = ActionWebService::Client::XmlRpc.new(
+                  Seldon::AgentListenerAPI, url)
 
-          @agent_id = @agent_listener_service.launch determine_host, 
-                @port, determine_home_directory, $$, @launch_time
+            @agent_id = @agent_listener_service.launch @my_host, 
+                  @my_port, determine_home_directory, $$, @launch_time
+          else
+            @agent_id = invoke_remote :launch, @my_host,
+              @my_port, determine_home_directory, $$, @launch_time
+          end
+          
           log.info "Connecting to Seldon Service at #{url}.  Agent ID = #{@agent_id}."
           
           # an agent id of 0 indicates an error occurring on the server
@@ -187,10 +191,13 @@ module Seldon::Agent
         now = Time.now
         @unsent_timeslice_data ||= {}
         @unsent_timeslice_data = @stats_engine.harvest_timeslice_data(@unsent_timeslice_data)
-        messages = @agent_listener_service.metric_data @agent_id, 
+        
+        messages = invoke_remote :metric_data, @agent_id, 
                   @last_harvest_time.to_f, 
                   now.to_f, 
                   @unsent_timeslice_data.values
+    
+        log.debug "#{Time.now}: sent #{@unsent_timeslice_data.length} timeslices (#{@agent_id})"
 
         # if we successfully invoked this web service, then clear the unsent message cache.
         @unsent_timeslice_data.clear
@@ -198,7 +205,7 @@ module Seldon::Agent
         
         handle_messages messages
       end
-      
+
       def harvest_and_send_sample_data
         @unsent_samples ||= []
         @unsent_samples = @transaction_sampler.harvest_samples(@unsent_samples)
@@ -237,6 +244,22 @@ module Seldon::Agent
             log.debug e.backtrace.join("\n")
           end
         end
+      end
+      
+      # send a message via post
+      def invoke_remote(method, *args)
+        post_data = [method, args]
+        post_data = Marshal.dump(post_data)
+
+        res = Net::HTTP.start(@remote_host, @remote_port) do |http|
+          http.post('/agent_listener/invoke_raw_method', post_data) 
+        end
+
+        
+        return Marshal.load(CGI::unescape(res.body))
+      rescue Exception => e
+        log.error("Error communicating with server: #{e}")
+        return []
       end
   end
 

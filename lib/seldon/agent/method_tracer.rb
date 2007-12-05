@@ -1,6 +1,6 @@
 class Module
-  def trace_method_execution (metric_name, push_scope = true)
-    stats_engine = Seldon::Agent.agent.stats_engine
+  def trace_method_execution (metric_name, push_scope = true, agent = Seldon::Agent.agent)
+    stats_engine = agent.stats_engine
     stats = stats_engine.get_stats metric_name, push_scope
   
     stats_engine.push_scope metric_name if push_scope
