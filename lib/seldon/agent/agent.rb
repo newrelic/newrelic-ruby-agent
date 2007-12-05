@@ -40,8 +40,8 @@ module Seldon::Agent
     attr_reader :transaction_sampler
     attr_reader :worker_loop
     attr_reader :log
-    attr_reader :host
-    attr_reader :port
+    attr_reader :remote_host
+    attr_reader :remote_port
     
     class << self
       def in_rails_environment?
@@ -74,8 +74,8 @@ module Seldon::Agent
     
       @started = true
       
-      @host = config.fetch('host', '310new.pascal.hostingrails.com')
-      @port = config.fetch('port', '80')
+      @remote_host = config.fetch('host', '310new.pascal.hostingrails.com')
+      @remote_port = config.fetch('port', '80')
       
       # add tasks to the worker loop.
       # TODO figure out how we configure reporting frequency.  Should be Server based to 
@@ -100,14 +100,14 @@ module Seldon::Agent
   
     private
       def initialize
-        @log = Logger.new "#{RAILS_ROOT}/log/seldon_agent.#{determine_port}.log"
+        @port = determine_port
+        @host = DEFAULT_HOST
+        
+        @log = Logger.new "#{RAILS_ROOT}/log/seldon_agent.#{@port}.log"
         @log.level = Logger::INFO
         
         @connected = false
         @launch_time = Time.now
-        
-        @host = DEFAULT_HOST
-        @port = DEFAULT_PORT
        
         @worker_loop = Seldon::WorkerLoop.new(@log)
         
@@ -123,13 +123,13 @@ module Seldon::Agent
           sleep 5
           
           # TODO make this configurable
-          url = "http://#{host}:#{port}/agent_listener/api"
+          url = "http://#{remote_host}:#{remote_port}/agent_listener/api"
           
           @agent_listener_service = ActionWebService::Client::XmlRpc.new(
                 Seldon::AgentListenerAPI, url)
 
           @agent_id = @agent_listener_service.launch determine_host, 
-                determine_port, determine_home_directory, $$, @launch_time
+                @port, determine_home_directory, $$, @launch_time
           log.info "Connecting to Seldon Service at #{url}.  Agent ID = #{@agent_id}."
           
           # an agent id of 0 indicates an error occurring on the server
