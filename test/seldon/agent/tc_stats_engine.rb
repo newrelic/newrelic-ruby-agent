@@ -36,7 +36,7 @@ module Seldon::Agent
       assert @engine.get_stats("c").call_count == 2
       assert @engine.get_stats("c").total_call_time == 4
       
-      metric_data = @engine.harvest_timeslice_data({}).values
+      metric_data = @engine.harvest_timeslice_data({}, {}).values
       
       # after harvest, all the metrics should be reset
       assert @engine.get_stats("a").call_count == 0
@@ -59,14 +59,14 @@ module Seldon::Agent
       
       assert @engine.get_stats("a").call_count == 1
       
-      harvest = @engine.harvest_timeslice_data({})
+      harvest = @engine.harvest_timeslice_data({}, {})
       assert s.call_count == 0
       s.trace_call 2
       assert s.call_count == 1
       
       # this calk should merge the contents of the previous harvest,
       # so the stats for metric "a" should have 2 data points
-      harvest = @engine.harvest_timeslice_data(harvest)
+      harvest = @engine.harvest_timeslice_data(harvest, {})
       stats = harvest.fetch(Seldon::MetricSpec.new("a")).stats
       assert stats.call_count == 2
       assert stats.total_call_time == 3

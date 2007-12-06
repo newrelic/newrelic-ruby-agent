@@ -47,11 +47,13 @@ module Seldon
 
   class MetricData
     attr_accessor :metric_spec
+    attr_accessor :metric_id
     attr_accessor :stats
     
-    def initialize(metric_spec, stats)
+    def initialize(metric_spec, stats, metric_id)
       self.metric_spec = metric_spec
       self.stats = stats
+      self.metric_id = metric_id
     end
     
     def eql?(o)

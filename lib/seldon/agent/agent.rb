@@ -110,6 +110,8 @@ module Seldon::Agent
        
         @worker_loop = Seldon::WorkerLoop.new(@log)
         
+        @metric_ids = {}
+        
         @stats_engine = StatsEngine.new(@log)
         @transaction_sampler = TransactionSampler.new(self)
         
@@ -121,24 +123,14 @@ module Seldon::Agent
           # wait a few seconds for the web server to boot
           sleep 5
           
-          if (false)
-            url = "http://#{@remote_host}:#{@remote_port}/agent_listener/api"
+          @agent_id = invoke_remote :launch, @my_host,
+            @my_port, determine_home_directory, $$, @launch_time
           
-            @agent_listener_service = ActionWebService::Client::XmlRpc.new(
-                  Seldon::AgentListenerAPI, url)
-
-            @agent_id = @agent_listener_service.launch @my_host, 
-                  @my_port, determine_home_directory, $$, @launch_time
-          else
-            @agent_id = invoke_remote :launch, @my_host,
-              @my_port, determine_home_directory, $$, @launch_time
-          end
-          
-          log.info "Connecting to Seldon Service at #{url}.  Agent ID = #{@agent_id}."
+          log.info "Connecting to Seldon Service at #{@remote_host}:#{@remote_port}.  Agent ID = #{@agent_id}."
           
           # an agent id of 0 indicates an error occurring on the server
           # TODO after some number of failures, stop trying to connect...
-          if (@agent_id > 0)
+          if (@agent_id && @agent_id > 0)
             @connected = true
             @last_harvest_time = Time.now
           end
@@ -190,20 +182,24 @@ module Seldon::Agent
       def harvest_and_send_timeslice_data
         now = Time.now
         @unsent_timeslice_data ||= {}
-        @unsent_timeslice_data = @stats_engine.harvest_timeslice_data(@unsent_timeslice_data)
+        @unsent_timeslice_data = @stats_engine.harvest_timeslice_data(@unsent_timeslice_data, @metric_ids)
         
-        messages = invoke_remote :metric_data, @agent_id, 
+        metric_ids = invoke_remote :metric_data, @agent_id, 
                   @last_harvest_time.to_f, 
                   now.to_f, 
                   @unsent_timeslice_data.values
-    
+        @metric_ids.merge! metric_ids
+        
         log.debug "#{Time.now}: sent #{@unsent_timeslice_data.length} timeslices (#{@agent_id})"
 
         # if we successfully invoked this web service, then clear the unsent message cache.
         @unsent_timeslice_data.clear
         @last_harvest_time = Time.now
         
-        handle_messages messages
+        # handle_messages messages
+      rescue Exception => e
+        puts e
+        puts e.backtrace[0..6].join("\n")
       end
 
       def harvest_and_send_sample_data
@@ -249,17 +245,17 @@ module Seldon::Agent
       # send a message via post
       def invoke_remote(method, *args)
         post_data = [method, args]
-        post_data = Marshal.dump(post_data)
+        post_data = CGI::escape(Marshal.dump(post_data))
 
         res = Net::HTTP.start(@remote_host, @remote_port) do |http|
           http.post('/agent_listener/invoke_raw_method', post_data) 
         end
 
-        
         return Marshal.load(CGI::unescape(res.body))
       rescue Exception => e
         log.error("Error communicating with server: #{e}")
-        return []
+        log.error(e.backtrace[0..7].join("\n"))
+        return nil
       end
   end
 
