@@ -2,6 +2,9 @@ require 'seldon/agent/agent'
 require 'seldon/agent/method_tracer'
 require 'seldon/agent/session_tracer' if false # turn off for now until we get it working
 
+require 'dispatcher'
+require 'erb'
+
 # Instrumentation for the key code points inside rails for monitoring by Seldon.
 # note this file is loaded only if the seldon agent is enabled (through config/seldon.yml)
 module ActionController
@@ -79,5 +82,15 @@ module ActiveRecord
   end
 end
 
+# instrumentation for core rails dispatching
+class Dispatcher
+  class << self
+    add_method_tracer :dispatch, 'Rails/HTTP Dispatch', true
+    add_method_tracer 'reset_application!', 'Rails/Application Reset', true
+  end
+end
 
+class ERB::Compiler
+  add_method_tracer :compile, 'ERB/rhtml compiling'
+end
 

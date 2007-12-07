@@ -66,11 +66,15 @@ class Module
 
 private
   def untraced_method_name(method_name, metric_name)
-    "#{method_name}_without_trace_#{method_name_modifier(metric_name)}" 
+    "#{clean_method_name(method_name)}_without_trace_#{method_name_modifier(metric_name)}" 
   end
   
   def traced_method_name(method_name, metric_name)
-    "#{method_name}_with_trace_#{method_name_modifier(metric_name)}" 
+    "#{clean_method_name(method_name)}_with_trace_#{method_name_modifier(metric_name)}" 
+  end
+  
+  def clean_method_name(method_name)
+    method_name.to_s.tr('^a-z,A-Z,0-9', '_')
   end
   
   def method_name_modifier(metric_name)
