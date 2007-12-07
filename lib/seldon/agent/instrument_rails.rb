@@ -85,8 +85,8 @@ end
 # instrumentation for core rails dispatching
 class Dispatcher
   class << self
-    add_method_tracer :dispatch, 'Rails/HTTP Dispatch', true
-    add_method_tracer 'reset_application!', 'Rails/Application Reset', true
+    add_method_tracer :dispatch, 'Rails/HTTP Dispatch', false
+    add_method_tracer 'reset_application!', 'Rails/Application Reset', false
   end
 end
 
