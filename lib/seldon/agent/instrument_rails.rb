@@ -91,6 +91,11 @@ class Dispatcher
 end
 
 class ERB::Compiler
-  add_method_tracer :compile, 'ERB/rhtml compiling'
+  add_method_tracer :compile, 'View/.rhtml Processing'
 end
+
+#class ActionView::Base
+#  This turns out to be nearly identical to View/(.*)/Rendering
+#  add_method_tracer :compile_and_render_template, "View/Page Compiling", false
+#end
 
