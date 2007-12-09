@@ -1,11 +1,11 @@
 require 'net/http'
 require 'logger'
+require 'singleton'
 
 # from Common
 require 'seldon/stats'
 require 'seldon/worker_loop'
 require 'seldon/agent_messages'
-require 'seldon/agent_listener_api'
 
 # from Agent
 require 'seldon/agent/stats_engine'
@@ -16,6 +16,8 @@ module Mongrel
   class HttpServer; end
 end
 
+# The Seldon Agent collects performance data from rails applications in realtime as the
+# application runs, and periodically sends that data to the Seldon server.  
 module Seldon::Agent
   # add some convenience methods for easy access to the Agent singleton.
   # the following static methods all point to the same Agent instance:
@@ -29,8 +31,24 @@ module Seldon::Agent
     end
     
     alias instance agent
+
+    # Get or create a statistics gatherer that will aggregate numerical data
+    # under a metric name.
+    #
+    # metric_name should follow a slash separated path convention.  Application
+    # specific metrics should begin with "Custom/".
+    #
+    # the statistical gatherer returned by get_stats accepts data
+    # via calls to add_data_point(value)
+    def get_stats(metric_name)
+      unless metric_name =~ /Custom\// 
+        raise Exception.new("Invalid Name for Application Custom Metric: #{metric_name}")
+      end
+      agent.stats_engine.get_stats(metric_name, false)
+    end
   end
   
+  # Implementation defail for the Seldon Agent
   class Agent
     include Singleton
     
@@ -41,16 +59,6 @@ module Seldon::Agent
     attr_reader :transaction_sampler
     attr_reader :worker_loop
     attr_reader :log
-    
-    class << self
-      def in_rails_environment?
-        # FIXME there must be a better way to determine this
-        OPTIONS.fetch :port
-        true
-      rescue Exception => e
-        false
-      end
-    end
     
     # Start up the agent, which will connect to the seldon server and start 
     # reporting performance information.  Typically this is done from the

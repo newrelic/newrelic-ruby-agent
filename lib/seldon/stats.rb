@@ -7,8 +7,6 @@ module Seldon
       total_call_time / call_count
     end
     
-    alias average_value average_call_time
-    
     def merge! (other_stats)
       Array(other_stats).each do |s|
         self.total_call_time += s.total_call_time
@@ -65,6 +63,8 @@ module Seldon
       total_call_time / duration
     end
 
+    alias average_value average_call_time
+    
     def to_s
       s = "Begin=#{begin_time}, "
       s << "Duration=#{duration} s, "
@@ -85,6 +85,8 @@ module Seldon
     attr_accessor :max_call_time
     attr_accessor :total_call_time
     attr_accessor :variance
+    
+    alias data_point_count call_count
     
     def initialize 
       reset
@@ -115,6 +117,9 @@ module Seldon
     #   Math.sqrt(variance(population))
     # end
         
+    # record a single data point into the statistical gatherer.  The gatherer
+    # will aggregate all data points collected over a specified period and upload
+    # its data to the Seldon server
     def record_data_point(value)
       # update the variance accumulator for calculating the standard deviation
       delta = value - average_value
