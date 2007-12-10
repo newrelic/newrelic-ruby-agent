@@ -1,7 +1,6 @@
 require 'seldon/agent/stats_engine'
 require File.join(File.dirname(__FILE__),'mock_agent')
 
-RAILS_ROOT ||= File.join(File.dirname(__FILE__), '../../../../../..')
 SELDON_AGENT_ENABLED = true
 module Seldon
   module Agent

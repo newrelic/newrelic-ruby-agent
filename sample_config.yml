@@ -7,15 +7,12 @@ common: &default_settings
   # the enabled setting is used to turn on the Seldon Agent.
   enabled: false
 
-  # this is the name of your application,
-  application_name: Seldon
-  
   # The seldon agent generates its own log file to keep its logging information
   # separate from that of your application.  Specify its log level here.
   log_level: info
   
   # specify the host and port of the server that the Seldon Agent communicates with
-  host: seldon.lkcllc.com 
+  host: 310new.pascal.hostingrails.com 
   port: 80
   
 development:

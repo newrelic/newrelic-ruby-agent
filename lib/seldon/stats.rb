@@ -150,11 +150,11 @@ module Seldon
     end
     
     def begin_time
-      Time.at(0)
+      0.0
     end
     
     def end_time
-      Time.at(0)
+      0.0
     end
   end
   
