@@ -48,7 +48,7 @@ module Seldon
 
     def calls_per_minute
       return 0 if duration.zero?
-      ((call_count / duration * 6000).round).to_f / 100
+      ((call_count / duration.to_f * 6000).round).to_f / 100
     end
     
     def standard_deviation
