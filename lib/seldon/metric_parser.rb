@@ -36,6 +36,10 @@ module Seldon
       is_database? && segments[-1] == "save" && segments.length > 2
     end
     
+    def is_backend?
+      is_database?
+    end
+    
     def model_class
       raise MetricException.new unless is_active_record?
       return segments[1]
