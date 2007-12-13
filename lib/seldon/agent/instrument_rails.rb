@@ -5,6 +5,8 @@ require 'seldon/agent/session_tracer' if false # turn off for now until we get i
 require 'dispatcher'
 require 'erb'
 
+Module.method_tracer_log = Seldon::Agent.instance.log
+
 # Instrumentation for the key code points inside rails for monitoring by Seldon.
 # note this file is loaded only if the seldon agent is enabled (through config/seldon.yml)
 module ActionController
@@ -41,20 +43,24 @@ module ActionController
   end
 end
 
-# instrumentation for Web Service martialing - XML RPC
-class ActionWebService::Protocol::XmlRpc::XmlRpcProtocol
-  add_method_tracer :decode_request, "WebService/Xml Rpc/XML Decode"
-  add_method_tracer :encode_request, "WebService/Xml Rpc/XML Encode"
-  add_method_tracer :decode_response, "WebService/Xml Rpc/XML Decode"
-  add_method_tracer :encode_response, "WebService/Xml Rpc/XML Encode"
-end
+# Note Action Web Service is removed from rails 2.0
 
-# instrumentation for Web Service martialing - Soap
-class ActionWebService::Protocol::Soap::SoapProtocol
-  add_method_tracer :decode_request, "WebService/Soap/XML Decode"
-  add_method_tracer :encode_request, "WebService/Soap/XML Encode"
-  add_method_tracer :decode_response, "WebService/Soap/XML Decode"
-  add_method_tracer :encode_response, "WebService/Soap/XML Encode"
+if defined? ActionWebService
+  # instrumentation for Web Service martialing - XML RPC
+  class ActionWebService::Protocol::XmlRpc::XmlRpcProtocol
+    add_method_tracer :decode_request, "WebService/Xml Rpc/XML Decode"
+    add_method_tracer :encode_request, "WebService/Xml Rpc/XML Encode"
+    add_method_tracer :decode_response, "WebService/Xml Rpc/XML Decode"
+    add_method_tracer :encode_response, "WebService/Xml Rpc/XML Encode"
+  end
+
+  # instrumentation for Web Service martialing - Soap
+  class ActionWebService::Protocol::Soap::SoapProtocol
+    add_method_tracer :decode_request, "WebService/Soap/XML Decode"
+    add_method_tracer :encode_request, "WebService/Soap/XML Encode"
+    add_method_tracer :decode_response, "WebService/Soap/XML Decode"
+    add_method_tracer :encode_response, "WebService/Soap/XML Encode"
+  end
 end
 
 # instrumentation for dynamic application code loading

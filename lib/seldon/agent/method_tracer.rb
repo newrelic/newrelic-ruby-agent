@@ -1,4 +1,6 @@
 class Module
+  cattr_accessor :method_tracer_log
+  
   def trace_method_execution (metric_name, push_scope = true, agent = Seldon::Agent.agent)
     stats_engine = agent.stats_engine
     stats = stats_engine.get_stats metric_name, push_scope
@@ -32,9 +34,13 @@ class Module
   # the metric name onto the scope stack.
   def add_method_tracer (method_name, metric_name_code, push_scope = true)
     return unless ::SELDON_AGENT_ENABLED
-  
     klass = (self === Module) ? "self" : "self.class"
-  
+    
+    unless method_defined?(method_name)
+      method_tracer_log.warn("Did not trace #{klass}##{method_name} because it does not exist")
+      return
+    end
+    
     code = <<-CODE
     def #{traced_method_name(method_name, metric_name_code)}(*args)
       metric_name = "#{metric_name_code}"
