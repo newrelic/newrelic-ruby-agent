@@ -1,5 +1,13 @@
 class Module
-  cattr_accessor :method_tracer_log
+  # cattr_accessor is missing from unit text context so we need to hand code
+  # the class accessor for the instrumentation log
+  def method_trace_log
+    @@method_trace_log || SyslogLogger.new
+  end
+  
+  def method_trace_log= (log)
+    @@method_trace_log = log
+  end
   
   def trace_method_execution (metric_name, push_scope = true, agent = Seldon::Agent.agent)
     stats_engine = agent.stats_engine
@@ -37,7 +45,9 @@ class Module
     klass = (self === Module) ? "self" : "self.class"
     
     unless method_defined?(method_name)
-      method_tracer_log.warn("Did not trace #{klass}##{method_name} because it does not exist")
+      if method_tracer_log
+        method_tracer_log.warn("Did not trace #{klass}##{method_name} because it does not exist")
+      end
       return
     end
     
