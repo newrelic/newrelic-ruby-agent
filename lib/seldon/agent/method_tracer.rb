@@ -1,11 +1,11 @@
 class Module
   # cattr_accessor is missing from unit text context so we need to hand code
   # the class accessor for the instrumentation log
-  def method_trace_log
+  def method_tracer_log
     @@method_trace_log || SyslogLogger.new
   end
   
-  def method_trace_log= (log)
+  def method_tracer_log= (log)
     @@method_trace_log = log
   end
   
@@ -52,18 +52,18 @@ class Module
     end
     
     code = <<-CODE
-    def #{traced_method_name(method_name, metric_name_code)}(*args)
+    def #{_traced_method_name(method_name, metric_name_code)}(*args, &block)
       metric_name = "#{metric_name_code}"
       #{klass}.trace_method_execution("\#{metric_name}", #{push_scope}) do
-        #{untraced_method_name(method_name, metric_name_code)} *args
+        #{_untraced_method_name(method_name, metric_name_code)}(*args, &block)
       end
     end
     CODE
   
     class_eval code
   
-    alias_method untraced_method_name(method_name, metric_name_code), method_name
-    alias_method method_name, "#{traced_method_name(method_name, metric_name_code)}"
+    alias_method _untraced_method_name(method_name, metric_name_code), method_name
+    alias_method method_name, "#{_traced_method_name(method_name, metric_name_code)}"
   end
 
   # Not recommended for production use, because tracers must be removed in reverse-order
@@ -72,28 +72,24 @@ class Module
   def remove_method_tracer(method_name, metric_name_code)
     return unless ::SELDON_AGENT_ENABLED
     
-    if method_defined? "#{traced_method_name(method_name, metric_name_code)}"
-      alias_method method_name, "#{untraced_method_name(method_name, metric_name_code)}"
-      undef_method "#{traced_method_name(method_name, metric_name_code)}"
+    if method_defined? "#{_traced_method_name(method_name, metric_name_code)}"
+      alias_method method_name, "#{_untraced_method_name(method_name, metric_name_code)}"
+      undef_method "#{_traced_method_name(method_name, metric_name_code)}"
     else
       raise Exception.new("No tracer for '#{metric_name_code}' on method '#{method_name}'");
     end
   end
 
 private
-  def untraced_method_name(method_name, metric_name)
-    "#{clean_method_name(method_name)}_without_trace_#{method_name_modifier(metric_name)}" 
+  def _untraced_method_name(method_name, metric_name)
+    "#{_sanitize_name(method_name)}_without_trace_#{_sanitize_name(metric_name)}" 
   end
   
-  def traced_method_name(method_name, metric_name)
-    "#{clean_method_name(method_name)}_with_trace_#{method_name_modifier(metric_name)}" 
+  def _traced_method_name(method_name, metric_name)
+    "#{_sanitize_name(method_name)}_with_trace_#{_sanitize_name(metric_name)}" 
   end
   
-  def clean_method_name(method_name)
-    method_name.to_s.tr('^a-z,A-Z,0-9', '_')
-  end
-  
-  def method_name_modifier(metric_name)
-    metric_name.tr('^a-z,A-Z,0-9', '_')
+  def _sanitize_name(name)
+    name.to_s.tr('^a-z,A-Z,0-9', '_')
   end
 end

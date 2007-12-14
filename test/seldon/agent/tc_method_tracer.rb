@@ -75,12 +75,18 @@ module Seldon
         assert stats.call_count == 1
       end
       
-      def method_to_be_traced(x, y, z, is_traced, expected_metric)
-        sleep 0.1
-        assert x == 1
-        assert y == 2
-        assert z == 3
-        assert((expected_metric == @stats_engine.peek_scope) == is_traced)
+      def test_trace_method_with_block
+        self.class.add_method_tracer :method_with_block, METRIC
+        
+        t1 = Time.now
+        method_with_block(1,2,3,true,METRIC) do |scope|
+          assert scope == METRIC
+        end
+        elapsed = Time.now - t1
+        
+        stats = @stats_engine.get_stats(METRIC)
+        check_time stats.total_call_time, elapsed
+        assert stats.call_count == 1
       end
       
       def test_trace_module_method
@@ -152,7 +158,26 @@ module Seldon
       def check_time (t1, t2)
         assert((t2-t1).abs < 0.01)
       end
+
+      # =======================================================
+      # test methods to be traced
+      def method_to_be_traced(x, y, z, is_traced, expected_metric)
+        sleep 0.1
+        assert x == 1
+        assert y == 2
+        assert z == 3
+        assert((expected_metric == @stats_engine.peek_scope) == is_traced)
+      end
       
+      def method_with_block(x, y, z, is_traced, expected_metric, &block)
+        sleep 0.1
+        assert x == 1
+        assert y == 2
+        assert z == 3
+        block.call(@stats_engine.peek_scope)
+        
+        assert((expected_metric == @stats_engine.peek_scope) == is_traced)
+      end
     end
   end
 end
