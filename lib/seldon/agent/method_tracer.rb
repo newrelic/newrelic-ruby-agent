@@ -44,9 +44,9 @@ class Module
     return unless ::SELDON_AGENT_ENABLED
     klass = (self === Module) ? "self" : "self.class"
     
-    unless method_defined?(method_name)
+    unless method_defined?(method_name) || private_method_defined?(method_name)
       if method_tracer_log
-        method_tracer_log.warn("Did not trace #{klass}##{method_name} because it does not exist")
+        method_tracer_log.warn("Did not trace #{self}##{method_name} because that method does not exist")
       end
       return
     end
