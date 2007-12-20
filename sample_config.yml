@@ -12,7 +12,7 @@ common: &default_settings
   log_level: info
   
   # specify the host and port of the server that the Seldon Agent communicates with
-  host: 310new.pascal.hostingrails.com 
+  host: www.newrelic.com
   port: 80
   
 development:
