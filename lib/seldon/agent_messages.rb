@@ -8,7 +8,6 @@ module Seldon
       end
       
       def execute(agent)
-        "ADDING TRANSACTION SAMPLE RULE: #{@rule}"
         agent.transaction_sampler.add_rule(@rule)
       end
     end
