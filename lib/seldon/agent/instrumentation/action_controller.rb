@@ -1,3 +1,4 @@
+require 'set'
 
 # Seldon instrumentation for controllers
 if defined? ActionController
@@ -6,13 +7,17 @@ module ActionController
   class Base
     
     def perform_action_with_trace
-#      # don't trace if this is a web service...
-#      return perform_action_without_trace if is_web_service_controller?
-
+      return perform_action_without_trace if self.class.read_inheritable_attribute('do_not_trace')
+      
       # generate metrics for all all controllers (no scope)
       self.class.trace_method_execution "Controller", false do 
         # generate metrics for this specific action
-        self.class.trace_method_execution "Controller/#{controller_path}/#{action_name}" do 
+        path = "#{controller_path}/#{action_name}"
+        self.class.trace_method_execution "Controller/#{path}" do 
+          # send request and parameter info to the transaction sampler
+          Seldon::Agent.instance.transaction_sampler.notice_transaction(path, params)
+          
+          # run the action
           perform_action_without_trace
         end
       end
@@ -37,7 +42,8 @@ module ActionController
         # TODO this only covers the case for Direct implementation.
         self.class.read_inheritable_attribute("web_service_api")
       end
+    end
   end
-end
-
 end  
+
+
