@@ -1,0 +1,7 @@
+<h3><%= @sample.params[:path]%></h3>
+<b>Time Stamp:</b> <%= @sample.start_time%><br/>
+<b>Duration:</b> <%= @sample.duration.to_ms%> ms<br/>
+<b>Serialized Size:</b> <%= Marshal.dump(@sample).length / 1024 %> kb
+<pre>
+<%= @sample.to_s %>
+</pre>
