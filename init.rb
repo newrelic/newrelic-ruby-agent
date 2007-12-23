@@ -13,7 +13,7 @@ if ::SELDON_AGENT_ENABLED
   
   Seldon::Agent.instance.start(agent_config)
   
-  if SELDON_DEVELOPER
+  if ::SELDON_DEVELOPER
     controller_path = File.join(File.dirname(__FILE__), 'ui', 'controllers')
     $LOAD_PATH << controller_path
     Dependencies.load_paths << controller_path
