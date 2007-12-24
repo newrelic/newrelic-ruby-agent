@@ -28,7 +28,7 @@ module ActionController
     add_method_tracer :render, 'View/#{controller_name}/#{action_name}/Rendering'
     
     # ActionWebService is now an optional part of Rails as of 2.0
-    if method_exists? :perform_invocation
+    if method_defined? :perform_invocation
       add_method_tracer :perform_invocation, 'WebService/#{controller_name}/#{args.first}'
     end
    

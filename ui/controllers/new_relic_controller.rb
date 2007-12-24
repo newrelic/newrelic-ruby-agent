@@ -1,8 +1,10 @@
 require 'seldon/agent'
 
 class NewRelicController < ActionController::Base
-  view_path = File.join(File.dirname(__FILE__), '..', 'views')
   
+  # for this controller, the views are located in a different directory from
+  # the application's views.
+  view_path = File.join(File.dirname(__FILE__), '..', 'views')
   if public_methods.include? "view_paths"   # rails 2.0+
     self.view_paths << view_path
   else                                      # rails <2.0
@@ -44,11 +46,11 @@ end
 # TODO move this sample analysis to a common library when we reuse it for the hosted version
 class Seldon::TransactionSample
   def database_read_time
-    time_percentage(/^ActiveRecord\/.*\/find$/)
+    time_percentage(/^Database\/.*\/.* Load$/)
   end
   
   def database_write_time
-    time_percentage(/^ActiveRecord\/.*\/save$/)
+    time_percentage(/^Database\/.*\/.* Update$/)
   end
   
   private 
