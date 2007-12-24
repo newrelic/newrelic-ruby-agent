@@ -1,0 +1,24 @@
+<table>
+	<tr>
+		<th>R/T</th>
+		<th>URL</th>
+		<th>Database</th>
+		<th>Render</th>
+	</tr>
+	<% @samples.each do |sample| %>
+		<tr>
+		<td align=left>
+			<%= sample.duration.to_ms %> ms
+		</td>
+		<td>
+			<%= link_to "/#{sample.params[:path]}", :action => :view_sample, :id => sample.sample_id %>
+		</td>
+		<td align=right>
+			<%= sample.database_time %> %
+		</td>
+		<td align=right>
+			<%= sample.render_time %> %
+		</td>
+		</tr>
+	<% end %>
+</table>

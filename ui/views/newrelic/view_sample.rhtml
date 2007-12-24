@@ -1,0 +1,66 @@
+<table>
+	<tr>
+		<td valign='middle' align='left'>
+		<b>Path:</b> /<%= @sample.params[:path]%><br/>
+		<b>Time Stamp:</b> <%= @sample.start_time%><br/>
+		<b>Duration:</b> <%= @sample.duration.to_ms%> ms<br/>
+		</td>
+		<td valign='middle' align='right'>
+		</td>
+	</tr>
+</table>
+
+<%
+def show_view(page, id)
+	['pie_chart', 'table', 'text_dump'].each do |view|
+		page[view].hide if page[view]
+	end
+
+	page[id].show if page[id]
+end
+%>
+
+<%= link_to_function "[Pie Chart]" do |page| 
+	show_view page, 'pie_chart'
+end
+%>
+<%= link_to_function "[Table]" do |page| 
+	show_view page, 'table'
+end
+%>
+<%= link_to_function "[Text Dump]" do |page| 
+	show_view page, 'text_dump'
+end
+%>
+<br/>
+
+<div id='pie_chart' align=center>
+	<h3>Performance Breakdown</h3>
+	<br/>
+	<% @pie_chart.width = 750; @pie_chart.height = 350 %>
+	<%= @pie_chart.render %>
+</div>
+
+<div id='table' align=left>
+	<table border=1>
+		<tr>
+		<th align=left>Metric</th>
+		<th>Count</th>
+		<th colspan=2>Exclusive</th>
+		<th></th>
+		<th colspan=2>Total</th>
+		</tr>
+			<%= render :partial => 'segment_row', :collection => @sample.breakdown_data %>
+		</tr>
+	</table>
+</div>
+
+<br/>
+<% link_to_function("Show Full Text Dump") {|page| page.toggle 'text-dump'} %>
+<div id='text_dump'>
+<pre>
+<%= @sample.to_s %>
+</pre>
+</div>
+
+<%= update_page_tag {|page| show_view page, 'pie_chart'} %>

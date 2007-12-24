@@ -1,0 +1,210 @@
+require 'seldon/agent'
+
+# TODO move to a helper.  Better yet, open source.
+class GooglePieChart
+  attr_accessor :width, :height
+  
+  def initialize
+    # an array of [label, value]
+    @data = []
+    
+    self.width = 300
+    self.height = 200
+  end
+  
+  def add_data_point(label, value)
+    @data << [label, value]
+  end
+  
+  # render the chart to html by creating an image object and
+  # placing the correct URL to the google charts api
+  def render
+    labels = ''
+    values = ''
+    @data.each do |label, value|
+      labels << CGI::escape(label) + '|'
+      values << value.to_s + ","
+    end
+    
+    # strip of the last separator char for labels and values
+    labels = labels[0..-2]
+    values = values[0..-2]
+    
+    @url = "http://chart.apis.google.com/chart?"
+    param "cht", "p"
+    param "chco", "557799"
+    param "chs", "#{width}x#{height}"
+    param "chd", "t:#{values}"
+    param "chl", labels    
+    
+    html = "<img src=#{@url} />"
+    return html       
+  end
+  
+private 
+  def param(key,value)
+    if @not_first_param
+      @url += "&amp;"
+    else
+      @not_first_param = true
+    end
+    @url += "#{key}=#{value}"
+  end
+  
+end
+
+class NewrelicController < ActionController::Base
+  
+  # for this controller, the views are located in a different directory from
+  # the application's views.
+  view_path = File.join(File.dirname(__FILE__), '..', 'views')
+  if public_methods.include? "view_paths"   # rails 2.0+
+    self.view_paths << view_path
+  else                                      # rails <2.0
+    self.template_root = view_path
+  end
+  
+  layout "default"
+  
+  write_inheritable_attribute('do_not_trace', true)
+  
+  def index
+    get_samples
+  end
+  
+  def view_sample
+    get_sample
+    unless @sample
+      render :action => "sample_not_found" 
+      return
+    end
+
+    # TODO move to a helper
+    @pie_chart = GooglePieChart.new
+    @pie_chart.width = 500
+    @pie_chart.height = 150
+    
+    chart_data = @sample.breakdown_data(6)
+    chart_data.each { |s| @pie_chart.add_data_point s.metric_name, s.exclusive_time }
+  end
+  
+private 
+  
+  def get_samples
+    @samples = Seldon::Agent.instance.transaction_sampler.get_samples.select do |sample|
+      sample.params[:path] != nil
+    end
+    
+    @samples
+  end
+  
+  def get_sample
+    get_samples
+    @samples.each do |s|
+      if s.sample_id == params[:id].to_i
+        @sample = s
+        return
+      end
+    end
+  end
+end
+
+# TODO move this sample analysis to a common library when we reuse it for the hosted version
+class Seldon::TransactionSample
+  def database_time
+    time_percentage(/^Database\/.*/)
+  end
+  
+  def render_time
+    time_percentage(/^View\/.*/)
+  end
+  
+  # summarizes performance data for all calls to segments
+  # with the same metric_name
+  class SegmentSummary
+    attr_accessor :metric_name, :total_time, :exclusive_time, :call_count
+    def initialize(metric_name, sample)
+      @metric_name = metric_name
+      @total_time, @exclusive_time, @call_count = 0,0,0
+      @sample = sample
+    end
+    
+    def <<(segment)
+      if metric_name != segment.metric_name
+        raise ArgumentError.new("Metric Name Mismatch: #{segment.metric_name} != #{metric_name}") 
+      end
+      
+      @total_time += segment.duration
+      @exclusive_time += segment.exclusive_duration
+      @call_count += 1
+    end
+    
+    def average_time
+      @total_time / @call_count
+    end
+    
+    def average_exclusive_time
+      @exclusive_time / @call_count
+    end
+    
+    def exclusive_time_percentage
+      @exclusive_time / @sample.duration
+    end
+    
+    def total_time_percentage
+      @total_time / @sample.duration
+    end
+  end
+  
+  # return the data that breaks down the performance of the transaction
+  # as an array of SegmentSummary objects.  If a limit is specified, then
+  # limit the data set to the top n
+  def breakdown_data(limit = nil)
+    metric_hash = {}
+    each_segment do |segment|
+      unless segment == root_segment
+        metric_name = segment.metric_name
+        metric_hash[metric_name] ||= SegmentSummary.new(metric_name, self)
+        metric_hash[metric_name] << segment
+      end
+    end
+    
+    data = metric_hash.values
+    
+    data.sort! do |x,y|
+      y.exclusive_time <=> x.exclusive_time
+    end
+    
+    if limit && data.length > limit
+      data = data[0..limit - 1]
+    end
+
+    # add one last segment for the remaining time if any
+    remainder = duration
+    data.each do |segment|
+      remainder -= segment.exclusive_time
+    end
+    
+    if remainder > 0.1
+      remainder_summary = SegmentSummary.new('Remainder', self)
+      remainder_summary.total_time = remainder_summary.exclusive_time = remainder
+      remainder_summary.call_count = 1
+      data << remainder_summary
+    end
+      
+    data
+  end
+  
+  private 
+    def time_percentage(regex)
+      total = 0
+      each_segment do |segment|
+        if regex =~ segment.metric_name
+          # TODO what if a find calls something else rather than going straight to the db?
+          total += segment.duration
+        end
+      end
+
+      return (total / duration).to_percentage
+    end
+end

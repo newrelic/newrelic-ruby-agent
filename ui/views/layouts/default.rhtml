@@ -1,0 +1,32 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+    xml:lang="en" lang="en">
+<head>
+<%= javascript_include_tag :defaults %>
+	<link href="http://www.newrelic.com/stylesheets/style.css?1198393656" media="screen" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="header">
+	<table width="100%">
+		<tr>
+			<td align='left'>
+<a href = "/newrelic"><img src="http://www.newrelic.com/images/new_relic.png"/></a>
+<p class="description">
+Rails Performance Management - Developer
+			</td>
+			<td align='right' valign='top'>
+				<small>
+Monitor your Rails Application in production.<br/> <%=link_to 'www.newrelic.com', 'http://www.newrelic.com' %>. 
+				</small>
+			</td>
+	</tr>
+</table>
+</p>
+</div>
+<div id='content'>
+	<%= yield %>
+</div>
+<div align=center id='footer'>
+Monitor your Rails Application in production: <%=link_to 'www.newrelic.com', 'http://www.newrelic.com' %>. 
+</div>
+</body>
+
