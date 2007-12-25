@@ -85,7 +85,7 @@ class NewrelicController < ActionController::Base
     @pie_chart.height = 150
     
     chart_data = @sample.breakdown_data(6)
-    chart_data.each { |s| @pie_chart.add_data_point s.metric_name, s.exclusive_time }
+    chart_data.each { |s| @pie_chart.add_data_point s.metric_name, s.exclusive_time.to_ms }
   end
   
 private 
@@ -185,7 +185,7 @@ class Seldon::TransactionSample
       remainder -= segment.exclusive_time
     end
     
-    if remainder > 0.1
+    if remainder.to_ms > 0.1
       remainder_summary = SegmentSummary.new('Remainder', self)
       remainder_summary.total_time = remainder_summary.exclusive_time = remainder
       remainder_summary.call_count = 1
@@ -193,6 +193,17 @@ class Seldon::TransactionSample
     end
       
     data
+  end
+  
+  # return an array of sql statements executed by this transaction
+  # each element in the array contains [sql, parent_segment_metric_name, duration]
+  def sql_summary
+    summary = []
+    each_segment do |segment|
+      sql = segment[:sql]
+      summary << [sql, segment.metric_name, segment.duration] if sql
+    end
+    summary
   end
   
   private 

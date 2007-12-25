@@ -12,7 +12,7 @@
 
 <%
 def show_view(page, id)
-	['pie_chart', 'table', 'text_dump'].each do |view|
+	['pie_chart', 'table', 'sql', 'text_dump'].each do |view|
 		page[view].hide if page[view]
 	end
 
@@ -20,38 +20,42 @@ def show_view(page, id)
 end
 %>
 
-<%= link_to_function "[Pie Chart]" do |page| 
-	show_view page, 'pie_chart'
-end
-%>
-<%= link_to_function "[Table]" do |page| 
-	show_view page, 'table'
-end
-%>
-<%= link_to_function "[Text Dump]" do |page| 
-	show_view page, 'text_dump'
-end
-%>
+<%= link_to_function("[Pie Chart]") { |page| show_view page, 'pie_chart' } %>
+<%= link_to_function("[Table]") { |page| show_view page, 'table' } %>
+<%= link_to_function("[SQL]") { |page| show_view page, 'sql' } %>
+<%= link_to_function("[Text Dump]") { |page| show_view page, 'text_dump' } %>
 <br/>
 
 <div id='pie_chart' align=center>
 	<h3>Performance Breakdown</h3>
 	<br/>
-	<% @pie_chart.width = 750; @pie_chart.height = 350 %>
+	<% @pie_chart.width = 800; @pie_chart.height = 300 %>
 	<%= @pie_chart.render %>
 </div>
 
 <div id='table' align=left>
-	<table border=1>
+	<table border>
 		<tr>
 		<th align=left>Metric</th>
 		<th>Count</th>
 		<th colspan=2>Exclusive</th>
 		<th></th>
 		<th colspan=2>Total</th>
+
+		<%= render :partial => 'segment_row', :collection => @sample.breakdown_data %>
+	</table>
+</div>
+
+<div id='sql'>
+	<table border=1>
+		<tr>
+			<th align=left>SQL</th>
+			<th>Duration</th>
 		</tr>
-			<%= render :partial => 'segment_row', :collection => @sample.breakdown_data %>
-		</tr>
+		
+		<% sql_summary = @sample.sql_summary %>
+		
+		<%= render :partial => 'sql_row', :collection => @sample.sql_summary %>
 	</table>
 </div>
 

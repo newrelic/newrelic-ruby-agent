@@ -3,7 +3,7 @@ require 'thread'
 
 module Seldon::Agent
   class TransactionSampler
-    def initialize(agent = nil, max_samples = 500)
+    def initialize(agent = nil, max_samples = 100)
       @rules = []
       @samples = []
       @mutex = Mutex.new
@@ -65,9 +65,6 @@ module Seldon::Agent
     end
     
     def notice_sql(sql)
-      # TODO Revisit.  We append multiple SQL statements into one string (separated by ;\n)
-      # in the :sql property.  Perhaps we should make the property an array of sql statements.
-      # perhaps we should actually just trace SQL statements as a layer below active record.
       with_builder do |builder|
         segment = builder.current_segment
         if segment
