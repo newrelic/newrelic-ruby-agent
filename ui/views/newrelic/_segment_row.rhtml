@@ -1,5 +1,8 @@
 <tr>
-	<td><%= segment_row.metric_name %></td>
+	<td><%= link_to segment_row.metric_name, 
+							:host => ::SELDON_HOST,
+							:port => ::SELDON_PORT,
+							:controller => :metric_doc, :metric => segment_row.metric_name %></td>
 	<td align=left> <%= segment_row.call_count %></td>
 	<td align=right><%= segment_row.exclusive_time.to_ms %> ms</td>
 	<td align=right><%= segment_row.exclusive_time_percentage.to_percentage(0) %>% </td>

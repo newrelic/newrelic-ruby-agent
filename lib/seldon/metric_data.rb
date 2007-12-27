@@ -1,11 +1,7 @@
-require 'seldon/metric_parser'
-
 module Seldon
   # this struct uniquely defines a metric, optionally inside
   # the call scope of another metric
   class MetricSpec
-    include MetricParser
-    
     attr_accessor   :name
     attr_accessor   :scope
     

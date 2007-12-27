@@ -1,7 +1,7 @@
-require 'seldon/worker_loop'
+require 'seldon/agent/worker_loop'
 require 'test/unit'
 
-module Seldon
+module Seldon::Agent
   class WorkerLoop
     public :run_next_task
   end

@@ -2,7 +2,7 @@ require 'thread'
 
 # A worker loop executes a set of registered tasks on a single thread.  
 # A task is a proc or block with a specified call period in seconds.  
-module Seldon
+module Seldon::Agent
   class WorkerLoop
     attr_reader :log
     

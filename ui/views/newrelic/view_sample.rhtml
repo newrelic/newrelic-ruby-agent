@@ -21,9 +21,10 @@ end
 %>
 
 <%= link_to_function("[Pie Chart]") { |page| show_view page, 'pie_chart' } %>
-<%= link_to_function("[Table]") { |page| show_view page, 'table' } %>
+<%= link_to_function("[Full Table]") { |page| show_view page, 'table' } %>
 <%= link_to_function("[SQL]") { |page| show_view page, 'sql' } %>
 <%= link_to_function("[Text Dump]") { |page| show_view page, 'text_dump' } %>
+<br/>
 <br/>
 
 <div id='pie_chart' align=center>
@@ -31,10 +32,21 @@ end
 	<br/>
 	<% @pie_chart.width = 800; @pie_chart.height = 300 %>
 	<%= @pie_chart.render %>
+	<br/>
+	<table>
+		<tr>
+		<th align=left>Metric</th>
+		<th>Count</th>
+		<th colspan=2>Exclusive</th>
+		<th></th>
+		<th colspan=2>Total</th>
+
+		<%= render :partial => 'segment_row', :collection => @sample.breakdown_data(6) %>
+	</table>
 </div>
 
 <div id='table' align=left>
-	<table border>
+	<table>
 		<tr>
 		<th align=left>Metric</th>
 		<th>Count</th>
@@ -59,8 +71,6 @@ end
 	</table>
 </div>
 
-<br/>
-<% link_to_function("Show Full Text Dump") {|page| page.toggle 'text-dump'} %>
 <div id='text_dump'>
 <pre>
 <%= @sample.to_s %>

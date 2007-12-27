@@ -4,7 +4,7 @@ require 'singleton'
 
 # from Common
 require 'seldon/stats'
-require 'seldon/worker_loop'
+require 'seldon/agent/worker_loop'
 require 'seldon/agent_messages'
 
 # from Agent
@@ -116,7 +116,7 @@ module Seldon::Agent
         @connected = false
         @launch_time = Time.now
        
-        @worker_loop = Seldon::WorkerLoop.new(@log)
+        @worker_loop = WorkerLoop.new(@log)
         
         @metric_ids = {}
         

@@ -3,7 +3,7 @@ require 'thread'
 
 module Seldon::Agent
   class TransactionSampler
-    def initialize(agent = nil, max_samples = 100)
+    def initialize(agent = nil, max_samples = 500)
       @rules = []
       @samples = []
       @mutex = Mutex.new
@@ -151,8 +151,7 @@ module Seldon::Agent
       end
       
       def is_developer_mode?
-        # TODO This should be set in Seldon.yml instead
-        RAILS_ENV == 'development'
+        defined?(::SELDON_DEVELOPER) && ::SELDON_DEVELOPER
       end
   end
 
