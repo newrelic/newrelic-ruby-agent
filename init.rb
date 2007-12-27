@@ -14,8 +14,7 @@ if ::SELDON_AGENT_ENABLED
   
   ::SELDON_HOST = seldon_agent_config['host']
   ::SELDON_PORT = seldon_agent_config['port']
-  
-  puts "HOST: #{::SELDON_HOST}"
+
   Seldon::Agent.instance.start(seldon_agent_config)
   
   if ::SELDON_DEVELOPER

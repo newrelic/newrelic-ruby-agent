@@ -135,11 +135,5 @@ module Seldon::Agent
         end
         s
       end
-      
-      def should_trace?
-        st = Thread::current[:should_trace]
-        return st unless st.nil?
-        return false
-      end
   end
 end
