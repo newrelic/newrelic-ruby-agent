@@ -13,10 +13,10 @@
 <%
 def show_view(page, id)
 	['pie_chart', 'table', 'sql', 'text_dump'].each do |view|
-		page[view].hide if page[view]
+		page[view].hide 
 	end
 
-	page[id].show if page[id]
+	page[id].show
 end
 %>
 
@@ -34,28 +34,12 @@ end
 	<%= @pie_chart.render %>
 	<br/>
 	<table>
-		<tr>
-		<th align=left>Metric</th>
-		<th>Count</th>
-		<th colspan=2>Exclusive</th>
-		<th></th>
-		<th colspan=2>Total</th>
-
-		<%= render :partial => 'segment_row', :collection => @sample.breakdown_data(6) %>
+		<%= render :partial => 'table', :object => @sample.breakdown_data(6) %>
 	</table>
 </div>
 
 <div id='table' align=left>
-	<table>
-		<tr>
-		<th align=left>Metric</th>
-		<th>Count</th>
-		<th colspan=2>Exclusive</th>
-		<th></th>
-		<th colspan=2>Total</th>
-
-		<%= render :partial => 'segment_row', :collection => @sample.breakdown_data %>
-	</table>
+	<%= render :partial => 'table', :object => @sample.breakdown_data %>
 </div>
 
 <div id='sql'>

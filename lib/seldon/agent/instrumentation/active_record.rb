@@ -30,7 +30,7 @@ module ActiveRecord
       end
       alias_method_chain :log, :capture_sql
       
-      add_method_tracer :log, 'Database/#{self.adapter_name}/#{args[1]}'
+      add_method_tracer :log, 'Database/#{self.adapter_name}/#{args[1] || "Custom SQL"}'
     end
   end
 end

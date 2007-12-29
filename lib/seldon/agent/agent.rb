@@ -50,6 +50,10 @@ module Seldon::Agent
   
   # Implementation defail for the Seldon Agent
   class Agent
+    # Specifies the version of the agent's communication protocol
+    # with the Seldon hosted site.
+    PROTOCOL_VERSION = 1
+    
     include Singleton
     
     DEFAULT_HOST = 'localhost'
@@ -164,19 +168,18 @@ module Seldon::Agent
       end
       
       def determine_port
-        # TODO I would like to make this nil, but that fails in XMLRPC.  Blegh.
-        port = -1
+        port = nil
         
-        # OPTIONS is set by script/server
+        # OPTIONS is set by script/server 
         port = OPTIONS.fetch :port, DEFAULT_PORT
-      rescue NameError => e
+      rescue NameError
         # this case covers starting by mongrel_rails
         # TODO review this approach.  There should be only one http server
         # allocated in a given rails process...
         ObjectSpace.each_object(Mongrel::HttpServer) do |mongrel|
           port = mongrel.port
         end
-      rescue NameError => e
+      rescue NameError
         log.info "Could not determine port.  Likely running as a cgi"
       ensure
         return port
@@ -252,7 +255,7 @@ module Seldon::Agent
       
       # send a message via post
       def invoke_remote(method, *args)
-        post_data = [method, args]
+        post_data = [method, PROTOCOL_VERSION, args]
         post_data = CGI::escape(Marshal.dump(post_data))
 
         res = Net::HTTP.start(@remote_host, @remote_port) do |http|
