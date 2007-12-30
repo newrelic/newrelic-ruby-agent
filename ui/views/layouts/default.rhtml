@@ -2,14 +2,15 @@
     xml:lang="en" lang="en">
 <head>
 <%= javascript_include_tag :defaults %>
-	<link href="http://www.newrelic.com/stylesheets/style.css?1198393656" media="screen" rel="stylesheet" type="text/css" />
+	<link href="http://<%= "#{::SELDON_HOST}:#{::SELDON_PORT}"%>/stylesheets/style.css?1198393656" 
+				media="screen" rel="stylesheet" type="text/css" />
 </head>
 <body>
 <div id="header">
 	<table width="100%">
 		<tr>
 			<td align='left'>
-<a href = "/newrelic"><img src="http://www.newrelic.com/images/new_relic.png"/></a>
+<a href = "/newrelic"><img src="http://<%= "#{::SELDON_HOST}:#{::SELDON_PORT}"%>/images/new_relic.png"/></a>
 <p class="description">
 Rails Performance Management - Developer
 			</td>
