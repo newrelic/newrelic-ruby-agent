@@ -10,9 +10,11 @@ module ActiveRecord
       add_method_tracer :find, 'ActiveRecord/all', false
     end
     
-    add_method_tracer :create_or_update, 'ActiveRecord/#{self.class.name}/save'
-    add_method_tracer :create_or_update, 'ActiveRecord/save', false
-    add_method_tracer :create_or_update, 'ActiveRecord/all', false
+    [:save, :save!].each do |save_method|
+      add_method_tracer save_method, 'ActiveRecord/#{self.class.name}/save'
+      add_method_tracer save_method, 'ActiveRecord/save', false
+      add_method_tracer save_method, 'ActiveRecord/all', false
+    end
 
     add_method_tracer :destroy, 'ActiveRecord/#{self.class.name}/destroy'
     add_method_tracer :destroy, 'ActiveRecord/destroy', false
@@ -30,7 +32,7 @@ module ActiveRecord
       end
       alias_method_chain :log, :capture_sql
       
-      add_method_tracer :log, 'Database/#{self.adapter_name}/#{args[1] || "Custom SQL"}'
+      # add_method_tracer :log, 'Database/#{self.adapter_name}/#{args[1] || "Custom SQL"}'
     end
   end
 end

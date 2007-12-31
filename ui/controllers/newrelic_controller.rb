@@ -14,6 +14,7 @@ class GooglePieChart
   
   def add_data_point(label, value)
     @data << [label, value]
+    @max = (@max.nil? || @max < value ? value : @max)
   end
   
   # render the chart to html by creating an image object and
@@ -23,7 +24,7 @@ class GooglePieChart
     values = ''
     @data.each do |label, value|
       labels << CGI::escape(label) + '|'
-      values << value.to_s + ","
+      values << (value * 100 / @max).round.to_s + ","
     end
     
     # strip of the last separator char for labels and values
@@ -76,7 +77,6 @@ class NewrelicController < ActionController::Base
   def view_sample
     get_sample
     
-    puts "HOST: #{::SELDON_HOST}"
     unless @sample
       render :action => "sample_not_found" 
       return
