@@ -19,6 +19,17 @@
 		<td align=right>
 			<%= sample.render_time %> %
 		</td>
+		
+		<td align=right>
+			<%= Marshal.dump(sample).length / 1024%> kb
+		</td>
+		<td align=right>
+			<%=
+			compressed = Zlib::Deflate.deflate(Marshal.dump(sample))
+			compressed.length / 1024
+			%> kb
+		</td>
+			
 		</tr>
 	<% end %>
 </table>

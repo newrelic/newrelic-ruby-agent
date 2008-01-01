@@ -9,7 +9,6 @@ module ActiveRecord
       add_method_tracer :find, 'ActiveRecord/find', false
       add_method_tracer :find, 'ActiveRecord/all', false
     end
-    
     [:save, :save!].each do |save_method|
       add_method_tracer save_method, 'ActiveRecord/#{self.class.name}/save'
       add_method_tracer save_method, 'ActiveRecord/save', false
@@ -31,8 +30,6 @@ module ActiveRecord
         log_without_capture_sql(sql, name, &block)
       end
       alias_method_chain :log, :capture_sql
-      
-      # add_method_tracer :log, 'Database/#{self.adapter_name}/#{args[1] || "Custom SQL"}'
     end
   end
 end

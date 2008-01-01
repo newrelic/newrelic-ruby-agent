@@ -4,6 +4,7 @@
 		<b>Path:</b> /<%= @sample.params[:path]%><br/>
 		<b>Time Stamp:</b> <%= @sample.start_time%><br/>
 		<b>Duration:</b> <%= @sample.duration.to_ms%> ms<br/>
+		<b>Serialized Size:</b> <%= Marshal.dump(@sample).length / 1024 %> kb<br/>
 		</td>
 		<td valign='middle' align='right'>
 		</td>
