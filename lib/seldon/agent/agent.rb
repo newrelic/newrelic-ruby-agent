@@ -227,7 +227,7 @@ module Seldon::Agent
             sample_data.push Marshal.dump(sample)
           end
           
-          messages = @agent_listener_service.transaction_sample_data @agent_id, sample_data
+          messages = invoke_remote :transaction_sample_data, @agent_id, sample_data
         
           # if we successfully invoked the web service, then clear the unsent sample cache
           @unsent_samples.clear
