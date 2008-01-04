@@ -1,4 +1,4 @@
-require 'seldon/agent'
+require 'newrelic/agent'
 
 # TODO move to a helper.  Better yet, open source.
 class GooglePieChart
@@ -93,7 +93,7 @@ class NewrelicController < ActionController::Base
 private 
   
   def get_samples
-    @samples = Seldon::Agent.instance.transaction_sampler.get_samples.select do |sample|
+    @samples = NewRelic::Agent.instance.transaction_sampler.get_samples.select do |sample|
       sample.params[:path] != nil
     end
     
@@ -112,7 +112,7 @@ private
 end
 
 # TODO move this sample analysis to a common library when we reuse it for the hosted version
-class Seldon::TransactionSample
+class NewRelic::TransactionSample
   def database_time
     time_percentage(/^Database\/.*/)
   end

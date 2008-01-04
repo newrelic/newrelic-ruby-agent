@@ -1,9 +1,9 @@
 require 'test/unit'
-require 'seldon/agent/stats_engine'
+require 'newrelic/agent/stats_engine'
 require File.join(File.dirname(__FILE__),'mock_agent')
 
 
-module Seldon::Agent
+module NewRelic::Agent
   class StatsEngineTests < Test::Unit::TestCase
     def setup
       @engine = StatsEngine.new
@@ -67,7 +67,7 @@ module Seldon::Agent
       # this calk should merge the contents of the previous harvest,
       # so the stats for metric "a" should have 2 data points
       harvest = @engine.harvest_timeslice_data(harvest, {})
-      stats = harvest.fetch(Seldon::MetricSpec.new("a")).stats
+      stats = harvest.fetch(NewRelic::MetricSpec.new("a")).stats
       assert stats.call_count == 2
       assert stats.total_call_time == 3
     end

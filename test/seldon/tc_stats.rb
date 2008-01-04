@@ -1,7 +1,7 @@
 require "test/unit"
-require "seldon/stats"
+require "newrelic/stats"
 
-module Seldon
+module NewRelic
   class StatsTests < Test::Unit::TestCase
     
     def test_simple
@@ -110,13 +110,13 @@ module Seldon
 
   class MetricSpecTest < Test::Unit::TestCase
     def test_compare
-      s1 = Seldon::MetricSpec.new "a"
-      s2 = Seldon::MetricSpec.new "b"
+      s1 = NewRelic::MetricSpec.new "a"
+      s2 = NewRelic::MetricSpec.new "b"
       
       assert_equal s1 <=> s2, -1
       assert_equal s2 <=> s1, 1
       
-      s3 = Seldon::MetricSpec.new "a"
+      s3 = NewRelic::MetricSpec.new "a"
       assert_equal s1 <=> s3, 0
     end
     
@@ -128,14 +128,14 @@ module Seldon
     end
     
     def test_eql
-      s1 = Seldon::MetricSpec.new "a"
-      s2 = Seldon::MetricSpec.new "a"
+      s1 = NewRelic::MetricSpec.new "a"
+      s2 = NewRelic::MetricSpec.new "a"
       
       assert s1.hash == s2.hash
       assert s1.eql?(s2)
       
-      s1 = Seldon::MetricSpec.new "a", "scope"
-      s2 = Seldon::MetricSpec.new "a", "scope"
+      s1 = NewRelic::MetricSpec.new "a", "scope"
+      s2 = NewRelic::MetricSpec.new "a", "scope"
       
       assert s1.hash == s2.hash
       assert s1.eql?(s2)

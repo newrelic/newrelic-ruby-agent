@@ -1,17 +1,17 @@
 #
-# This file configures the Seldon Agent.  
+# This file configures the NewRelic Agent.  
 #
 
 # here are the settings that are common to all environments
 common: &default_settings
-  # the enabled setting is used to turn on the Seldon Agent.
+  # the enabled setting is used to turn on the NewRelic Agent.
   enabled: false
 
-  # The seldon agent generates its own log file to keep its logging information
+  # The newrelic agent generates its own log file to keep its logging information
   # separate from that of your application.  Specify its log level here.
   log_level: info
   
-  # specify the host and port of the server that the Seldon Agent communicates with
+  # specify the host and port of the server that the NewRelic Agent communicates with
   host: www.newrelic.com
   port: 80
   

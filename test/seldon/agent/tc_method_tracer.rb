@@ -1,8 +1,8 @@
 require File.join(File.dirname(__FILE__),'mock_agent')
-require 'seldon/agent/method_tracer'
+require 'newrelic/agent/method_tracer'
 require 'test/unit'
 
-module Seldon
+module NewRelic
   module Agent
     
     # for testing, enable the stats engine to clear itself
@@ -90,9 +90,9 @@ module Seldon
       end
       
       def test_trace_module_method
-        Seldon::Agent.add_method_tracer :module_method_to_be_traced, '#{args[0]}'
-        Seldon::Agent.module_method_to_be_traced "x", self
-        Seldon::Agent.remove_method_tracer :module_method_to_be_traced, '#{args[0]}'
+        NewRelic::Agent.add_method_tracer :module_method_to_be_traced, '#{args[0]}'
+        NewRelic::Agent.module_method_to_be_traced "x", self
+        NewRelic::Agent.remove_method_tracer :module_method_to_be_traced, '#{args[0]}'
       end
       
       def test_remove

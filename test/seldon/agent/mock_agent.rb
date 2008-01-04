@@ -1,8 +1,8 @@
-require 'seldon/agent/stats_engine'
+require 'newrelic/agent/stats_engine'
 require File.join(File.dirname(__FILE__),'mock_agent')
 
 SELDON_AGENT_ENABLED = true
-module Seldon
+module NewRelic
   module Agent
     
     class Agent
@@ -23,7 +23,7 @@ module Seldon
     
     class << self
       def agent
-        Seldon::Agent::Agent.instance
+        NewRelic::Agent::Agent.instance
       end
     end
   end

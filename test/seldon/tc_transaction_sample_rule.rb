@@ -1,7 +1,7 @@
 require "test/unit"
-require "seldon/transaction_sample_rule"
+require "newrelic/transaction_sample_rule"
 
-module Seldon
+module NewRelic
   class TransactionSamplerRuleTests < Test::Unit::TestCase
     def test_sample_all_with_metric
       rule = TransactionSampleRule.new("lew", 10000000, 10000000)

@@ -1,7 +1,7 @@
-require 'seldon/agent/worker_loop'
+require 'newrelic/agent/worker_loop'
 require 'test/unit'
 
-module Seldon::Agent
+module NewRelic::Agent
   class WorkerLoop
     public :run_next_task
   end

@@ -1,6 +1,6 @@
-# run unit tests for the Seldon Agent
+# run unit tests for the NewRelic Agent
 namespace :test do
-  AGENT_HOME = "vendor/plugins/seldon"  
+  AGENT_HOME = "vendor/plugins/newrelic"  
   Rake::TestTask.new(:agent) do |t|
     t.libs << "#{AGENT_HOME}/test"
     t.libs << "#{AGENT_HOME}/lib"

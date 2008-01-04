@@ -1,7 +1,7 @@
-require 'seldon/agent/transaction_sampler'
+require 'newrelic/agent/transaction_sampler'
 require 'test/unit'
 
-module Seldon 
+module NewRelic 
   module Agent
     class TransationSampleBuilderTests < Test::Unit::TestCase
 

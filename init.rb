@@ -1,21 +1,21 @@
 require 'yaml'
-require 'seldon/agent'
+require 'newrelic/agent'
 
-# Initializer for the Seldon Agent
-seldon_config_file = File.read(RAILS_ROOT+"/config/seldon.yml")
-seldon_agent_config = YAML.load(seldon_config_file)[RAILS_ENV]
-seldon_agent_config.freeze
+# Initializer for the NewRelic Agent
+newrelic_config_file = File.read(RAILS_ROOT+"/config/newrelic.yml")
+newrelic_agent_config = YAML.load(newrelic_config_file)[RAILS_ENV]
+newrelic_agent_config.freeze
 
-::SELDON_AGENT_ENABLED = seldon_agent_config['enabled']
-::SELDON_DEVELOPER = seldon_agent_config['enabled'] && seldon_agent_config['developer']
+::SELDON_AGENT_ENABLED = newrelic_agent_config['enabled']
+::SELDON_DEVELOPER = newrelic_agent_config['enabled'] && newrelic_agent_config['developer']
 
 if ::SELDON_AGENT_ENABLED
-  require 'seldon/agent/instrument_rails'
+  require 'newrelic/agent/instrument_rails'
   
-  ::SELDON_HOST = seldon_agent_config['host']
-  ::SELDON_PORT = seldon_agent_config['port']
+  ::SELDON_HOST = newrelic_agent_config['host']
+  ::SELDON_PORT = newrelic_agent_config['port']
 
-  Seldon::Agent.instance.start(seldon_agent_config)
+  NewRelic::Agent.instance.start(newrelic_agent_config)
   
   if ::SELDON_DEVELOPER
     controller_path = File.join(File.dirname(__FILE__), 'ui', 'controllers')

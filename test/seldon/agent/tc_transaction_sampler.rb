@@ -1,8 +1,8 @@
-require 'seldon/agent/transaction_sampler'
-require 'seldon/transaction_sample_rule'
+require 'newrelic/agent/transaction_sampler'
+require 'newrelic/transaction_sample_rule'
 require 'test/unit'
 
-module Seldon 
+module NewRelic 
   module Agent
     class TransationSamplerTests < Test::Unit::TestCase
       
@@ -73,7 +73,7 @@ module Seldon
       
       def test_rule_removal
         @sampler = TransactionSampler.new
-        rule = Seldon::TransactionSampleRule.new("lew", 1, 10000)
+        rule = NewRelic::TransactionSampleRule.new("lew", 1, 10000)
         @sampler.add_rule(rule)
         
         run_sample_trace
@@ -85,7 +85,7 @@ module Seldon
         
       def new_rule(metric)
         @sampler = TransactionSampler.new
-        Seldon::TransactionSampleRule.new(metric,100,100)
+        NewRelic::TransactionSampleRule.new(metric,100,100)
       end
       
       def run_sample_trace(&proc)
