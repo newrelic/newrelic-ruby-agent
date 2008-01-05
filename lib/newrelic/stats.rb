@@ -27,16 +27,6 @@ module NewRelic
       stats.merge! other_stats
     end
     
-    # calculate this set of stats to be a percentage fraction 
-    # of the provided stats
-    def fraction(s, percentage)
-      self.total_call_time = s.total_call_time * percentage
-      self.min_call_time = s.min_call_time
-      self.max_call_time = s.max_call_time
-      self.call_count = s.call_count * percentage
-      self.variance = s.variance * percentage
-    end
-    
     # split into an array of timesclices whose
     # time boundaries start on (begin_time + (n * duration)) and whose
     # end time ends on (begin_time * (n + 1) * duration), except for the
@@ -45,29 +35,27 @@ module NewRelic
     # for the code that creates the actual stats instance
     def split(rollup_begin_time, rollup_period)
       rollup_begin_time = rollup_begin_time.to_f
-      
-      while (rollup_begin_time + rollup_period) < self.begin_time.to_f
-        rollup_begin_time += rollup_period
-      end
-      
+      rollup_begin_time += ((self.begin_time - rollup_begin_time) / rollup_period).floor * rollup_period
+
       current_begin_time = self.begin_time
       current_end_time = rollup_begin_time + rollup_period
-      
-      percentage = 1 - (current_begin_time - rollup_begin_time) / rollup_period
+
+      return [self] if current_end_time >= self.end_time
       
       timeslices = []
-      while current_begin_time < self.end_time do
+      while current_end_time < self.end_time do
         ts = yield(current_begin_time, current_end_time)
-        ts.fraction(self, percentage)
         
+        ts.fraction(self)
         timeslices << ts
         current_begin_time = current_end_time
         current_end_time = current_begin_time + rollup_period
       end
       
       if self.end_time > current_begin_time
+        percentage = rollup_period / self.duration + (self.begin_time - rollup_begin_time) / rollup_period
         ts = yield(current_begin_time, self.end_time)
-        ts.fraction(self, 1-percentage)
+        ts.fraction(self)
         timeslices << ts
       end
       
@@ -120,6 +108,21 @@ module NewRelic
       s << "Avg=#{average_call_time.to_ms}, "
       s << "Min=#{min_call_time.to_ms}, "
       s << "Max=#{max_call_time.to_ms}"
+    end
+
+    # calculate this set of stats to be a percentage fraction 
+    # of the provided stats, which has an overlapping time window.
+    # used as a key part of the split algorithm
+    def fraction(s)
+      min_end = (end_time < s.end_time ? end_time : s.end_time)
+      max_begin = (begin_time > s.begin_time ? begin_time : s.begin_time)
+      percentage = (min_end - max_begin) / s.duration
+      
+      self.total_call_time = s.total_call_time * percentage
+      self.min_call_time = s.min_call_time
+      self.max_call_time = s.max_call_time
+      self.call_count = s.call_count * percentage
+      self.variance = s.variance * percentage
     end
   end
   
