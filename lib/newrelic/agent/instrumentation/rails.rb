@@ -1,6 +1,7 @@
 # NewRelic Agent instrumentation for miscellaneous parts of the rails platform
 
-# instrumentation for dynamic application code loading
+# instrumentation for dynamic application code loading (usually only happens a lot
+# in developmetn environment)
 module Dependencies
   add_method_tracer :load_file, "Rails/Application Code Loading"
 end
@@ -9,7 +10,6 @@ end
 class Dispatcher
   class << self
     add_method_tracer :dispatch, 'Rails/HTTP Dispatch', false
-    add_method_tracer 'reset_application!', 'Rails/Application Reset', false
   end
 end
 
