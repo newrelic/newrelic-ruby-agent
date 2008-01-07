@@ -107,6 +107,12 @@ module NewRelic::Agent
       @worker_thread = Thread.new do 
         run_worker_loop
       end
+      
+      # When the VM shuts down, attempt to send a message to the server that
+      # this agent run is stopping
+      at_exit do
+        invoke_remote :shutdown, @agent_id, Time.now
+      end
     end
   
     private

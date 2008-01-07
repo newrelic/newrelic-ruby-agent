@@ -1,7 +1,7 @@
-======
-SELDON
-======
+=============
+NEW RELIC RPM
+=============
 
-NewRelic is the placeholder name for a rails application performance monitoring system, currently under development by New Relic Software LLC.
+NewRelic RPM the a rails application performance monitoring system, currently under development by New Relic, Inc.
 
-The NewRelic Agent is installed as a Rails plugin.  Configuration is trivial: simply edit a couple of properties in RAILS_ROOT/config/newrelic.yml.  When enabled, the NewRelic Agent will send performance metrics about your rails application to the NewRelic web site, which will collect this data and present it to you for your analysis.  The NewRelic Agent is designed to be extremely lightweight, and yields exceptionally deep and useful performance information at a very low response time and CPU overhead.
+The NewRelic Agent is installed as a Rails plugin.  Configuration is trivial: simply edit a couple of properties in RAILS_ROOT/config/newrelic.yml.  When enabled, the NewRelic Agent will send performance metrics about your rails application to the newrelic.com, which will collect this data and present it to you for your analysis.  The NewRelic Agent is designed to be extremely lightweight, and yields exceptionally deep and useful performance information at a very low response time and CPU overhead.

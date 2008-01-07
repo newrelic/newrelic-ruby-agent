@@ -4,7 +4,15 @@
 
 # here are the settings that are common to all environments
 common: &default_settings
-  # the enabled setting is used to turn on the NewRelic Agent.
+  # the enabled setting is used to turn on the NewRelic Agent.  When false,
+  # your application is not instrumented and the Agent does not start up or
+  # collect any data; it is a complete shut-off.
+  #
+  # when turned on, the agent collects performance data by inserting lightweight
+  # tracers on key methods inside the rails framework and asynchronously aggregating
+  # and reporting this performance data to the server sepecified at host and port
+  # below.  The agent is highly tuned and desgined to operate at very low overhead
+  # so you can run it all the time in production.
   enabled: false
 
   # The newrelic agent generates its own log file to keep its logging information
@@ -12,15 +20,25 @@ common: &default_settings
   log_level: info
   
   # specify the host and port of the server that the NewRelic Agent communicates with
+  # you shouldn't need to modify this.
   host: www.newrelic.com
   port: 80
-  
+
+# override default settings based on your application's environment
 development:
   <<: *default_settings
 
 test:
   <<: *default_settings
-  
+
+# we recommend that you define a load_test environment that has similar configuration for
+# production, (obviously with different database settings) and enable the NewRelic agent
+# in this environment, so you can perform pre-production peformance analysis with the
+# same tool that you use for production monitoring.   
+load_test:
+  <<: *default_settings
+  enabled: true
+    
 production:
   <<: *default_settings
   enabled: true
