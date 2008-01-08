@@ -108,8 +108,8 @@ module NewRelic
     attr_reader :params
     attr_reader :sample_id
     
-    def begin_building()
-      @start_time = Time.now
+    def begin_building(start_time = Time.now)
+      @start_time = start_time
       @root_segment = create_segment 0.0, "ROOT"
       @params = {}
       
@@ -140,6 +140,48 @@ module NewRelic
       "Transaction Sample collected at #{start_time}\n " + 
         "Path: #{params[:path]} \n" +
         @root_segment.to_debug_str(0)
+    end
+    
+    # return a new transaction sample that treats segments
+    # with the given regular expression in their name as if they
+    # were never called at all.  This allows us to strip out segments
+    # from traces captured in development environment that would not
+    # normally show up in production (like Rails/Application Code Loading)
+    def omit_segments_with(regex)
+      regex = Regexp.new(regex)
+      
+      sample = TransactionSample.new
+      sample.begin_building @start_time
+      
+      delta = build_segment_with_omissions (sample, 0.0, @root_segment, sample.root_segment, regex)
+      sample.root_segment.end_trace(@root_segment.exit_timestamp - delta) 
+      sample.freeze
+      sample
+    end
+    
+  private
+    def build_segment_with_omissions(new_sample, time_delta, source_segment, target_segment, regex)
+      source_segment.called_segments.each do |source_called_segment|
+        # if this segment's metric name matches the given regular expression, bail
+        # here and increase the amount of time that we reduce the target sample with
+        # by this omitted segment's duration.
+        do_omit = regex =~ source_called_segment.metric_name
+        
+        if do_omit
+          time_delta += source_called_segment.duration
+        else
+          target_called_segment = new_sample.create_segment(
+                source_called_segment.entry_timestamp - time_delta, 
+                source_called_segment.metric_name)
+          target_segment.add_called_segment (target_called_segment)
+            
+          time_delta = build_segment_with_omissions(
+                new_sample, time_delta, source_called_segment, target_called_segment, regex)
+          target_called_segment.end_trace(source_called_segment.exit_timestamp - time_delta)
+        end
+      end
+      
+      return time_delta
     end
   end
 end

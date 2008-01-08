@@ -105,6 +105,9 @@ private
     @samples.each do |s|
       if s.sample_id == params[:id].to_i
         @sample = s
+        if session[:newrelic_strip_code_loading] || true
+          @sample = s.omit_segments_with('Rails/Application Code Loading')
+        end
         return
       end
     end
