@@ -83,7 +83,7 @@ module NewRelic
       end
       
       def params
-        return params if params
+        return @params if @params
         {}
       end
       
@@ -153,7 +153,9 @@ module NewRelic
       sample = TransactionSample.new
       sample.begin_building @start_time
       
-      delta = build_segment_with_omissions (sample, 0.0, @root_segment, sample.root_segment, regex)
+      params.each {|k,v| sample.params[k] = v}
+        
+      delta = build_segment_with_omissions(sample, 0.0, @root_segment, sample.root_segment, regex)
       sample.root_segment.end_trace(@root_segment.exit_timestamp - delta) 
       sample.freeze
       sample
@@ -173,8 +175,12 @@ module NewRelic
           target_called_segment = new_sample.create_segment(
                 source_called_segment.entry_timestamp - time_delta, 
                 source_called_segment.metric_name)
-          target_segment.add_called_segment (target_called_segment)
-            
+          
+          target_segment.add_called_segment target_called_segment
+          source_called_segment.params.each do |k,v|
+            target_called_segment[k]=v
+          end
+          
           time_delta = build_segment_with_omissions(
                 new_sample, time_delta, source_called_segment, target_called_segment, regex)
           target_called_segment.end_trace(source_called_segment.exit_timestamp - time_delta)

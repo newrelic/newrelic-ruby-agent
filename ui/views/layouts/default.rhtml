@@ -1,17 +1,18 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
     xml:lang="en" lang="en">
 <head>
+<% server = "http://#{::SELDON_HOST}:#{::SELDON_PORT}"%>
 <%= javascript_include_tag :defaults %>
-	<link href="http://<%= "#{::SELDON_HOST}:#{::SELDON_PORT}"%>/stylesheets/style.css?1198393656" 
+	<link href="<%= server %>/stylesheets/style.css?1198393656" 
 				media="screen" rel="stylesheet" type="text/css" />
 </head>
 <body>
 <div id="header">
-	<image width=100% height=4 src=/images/bevel_bar.gif>
+	<image width=100% height=4 src="<%= server %>/images/bevel_bar.gif">
 	<table width="100%" height=72>
 		<tr>
 			<td align='left'>
-<a href = "/newrelic"><img src="http://<%= "#{::SELDON_HOST}:#{::SELDON_PORT}"%>/images/new_relic_rpm.gif"/></a>
+<a href = "/newrelic"><img src="<%= server %>/images/new_relic_rpm.gif"/></a>
 <p class="description">
 Developer Edition
 			</td>
@@ -20,9 +21,9 @@ Developer Edition
 Monitor your Rails Application in production.<br/> <%=link_to 'www.newrelic.com', 'http://www.newrelic.com' %>. 
 				</small>
 			</td>
-	</tr>
-</table>
-<image width=100% height=4 src=/images/bevel_bar.gif>
+		</tr>
+	</table>
+	<image width=100% height=4 src="<%= server %>/images/bevel_bar.gif">
 </p>
 </div>
 <div id='content'>
