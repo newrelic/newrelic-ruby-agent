@@ -63,6 +63,7 @@ module NewRelic::Agent
     attr_reader :transaction_sampler
     attr_reader :worker_loop
     attr_reader :log
+    attr_reader :license_key
     
     # Start up the agent, which will connect to the newrelic server and start 
     # reporting performance information.  Typically this is done from the
@@ -85,6 +86,7 @@ module NewRelic::Agent
     
       @started = true
       
+      @license_key = config.fetch('license_key')
       @remote_host = config.fetch('host', '310new.pascal.hostingrails.com')
       @remote_port = config.fetch('port', '80')
       
@@ -252,7 +254,7 @@ module NewRelic::Agent
       
       # send a message via post
       def invoke_remote(method, *args)
-        post_data = [method, PROTOCOL_VERSION, args]
+        post_data = [license_key, method, PROTOCOL_VERSION, args]
         post_data = CGI::escape(Marshal.dump(post_data))
 
         res = Net::HTTP.start(@remote_host, @remote_port) do |http|
