@@ -30,8 +30,30 @@ module ActiveRecord
         log_without_capture_sql(sql, name, &block)
       end
       alias_method_chain :log, :capture_sql
+      
+      add_method_tracer :log, 'Database/#{adapter_name}/#{args[1]}' if ::SELDON_DEVELOPER
     end
   end
+  
+  # instrumentation for associations
+  module Associations
+    class AssociationCollection
+      add_method_tracer :delete, 'ActiveRecord/#{@owner.class.name}/association delete'
+    end
+    
+    def HasAndBelongsToManyAssociation
+      add_method_tracer :find, 'ActiveRecord/#{@owner.class.name}/association find'
+      add_method_tracer :create_record, 'ActiveRecord/#{@owner.class.name}/association create'
+      add_method_tracer :insert_record, 'ActiveRecord/#{@owner.class.name}/association insert'
+    end
+    
+    class HasManyAssociation
+      # add_method_tracer :find, 'ActiveRecord/#{@owner.class.name}/association find'
+      # add_method_tracer :insert_record, 'ActiveRecord/#{@owner.class.name}/association insert'
+      # add_method_tracer :create_record, 'ActiveRecord/#{@owner.class.name}/association create'
+    end
+  end
+  
 end
 
 end

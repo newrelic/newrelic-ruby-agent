@@ -2,32 +2,14 @@
 	<tr>
 		<th>R/T</th>
 		<th>URL</th>
-		<th>Database</th>
-		<th>Render</th>
 	</tr>
 	<% @samples.each do |sample| %>
 		<tr>
 		<td align=left>
-			<%= sample.duration.to_ms %> ms
+			<%= stripped_sample(sample).duration.to_ms %> ms
 		</td>
 		<td>
 			<%= link_to "/#{sample.params[:path]}", :action => :view_sample, :id => sample.sample_id %>
-		</td>
-		<td align=right>
-			<%= sample.database_time %> %
-		</td>
-		<td align=right>
-			<%= sample.render_time %> %
-		</td>
-		
-		<td align=right>
-			<%= Marshal.dump(sample).length / 1024%> kb
-		</td>
-		<td align=right>
-			<%=
-			compressed = Zlib::Deflate.deflate(Marshal.dump(sample))
-			compressed.length / 1024
-			%> kb
 		</td>
 			
 		</tr>

@@ -19,8 +19,11 @@ if ::SELDON_AGENT_ENABLED
   
   if ::SELDON_DEVELOPER
     controller_path = File.join(File.dirname(__FILE__), 'ui', 'controllers')
+    helper_path = File.join(File.dirname(__FILE__), 'ui', 'helpers')
     $LOAD_PATH << controller_path
+    $LOAD_PATH << helper_path
     Dependencies.load_paths << controller_path
+    Dependencies.load_paths << helper_path
     config.controller_paths << controller_path
   end
 end
