@@ -34,7 +34,7 @@ class NewrelicController < ActionController::Base
     @pie_chart.color = '6688AA'
     
     chart_data = @sample.breakdown_data(6)
-    chart_data.each { |s| @pie_chart.add_data_point s.developer_name, s.exclusive_time.to_ms }
+    chart_data.each { |s| @pie_chart.add_data_point s.metric_name, s.exclusive_time.to_ms }
   end
   
 private 
@@ -107,7 +107,11 @@ class NewRelic::TransactionSample
     
     def developer_name
       return @metric_name if @metric_name == 'Remainder'
-      MetricParser.parse(@metric_name).developer_name
+      # This drags all of the metric parser into the agent which I would prefer
+      # not to do.  We could do a webservice that centralizes this but that might
+      # be expensive and not well received.
+      # MetricParser.parse(@metric_name).developer_name
+      @metric_name
     end
   end
   
