@@ -90,13 +90,6 @@ module NewRelic::Agent
       @remote_host = config.fetch('host', '310new.pascal.hostingrails.com')
       @remote_port = config.fetch('port', '80')
       
-      # add tasks to the worker loop.
-      # TODO figure out how we configure reporting frequency.  Should be Server based to 
-      # prevent hackers from flooding the server with metric data
-      @worker_loop.add_task(30.0) do 
-        harvest_and_send_timeslice_data
-      end
-
       @worker_thread = Thread.new do 
         run_worker_loop
       end
@@ -158,7 +151,16 @@ module NewRelic::Agent
         until @connected
           connect
         end
-        
+
+        # determine the reporting period (server based)
+        # note if the agent attempts to report more frequently than the specified
+        # report data, then it will be ignored.
+        report_period = invoke_remote :get_data_report_period, @agent_id
+        log.info "Reporting performance data every #{report_period} seconds"        
+        @worker_loop.add_task(report_period) do 
+          harvest_and_send_timeslice_data
+        end
+
         @worker_loop.run
       end
     

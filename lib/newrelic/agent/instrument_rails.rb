@@ -16,7 +16,7 @@ instrumentation_files = File.join(File.dirname(__FILE__), 'instrumentation', '*.
 Dir.glob(instrumentation_files) do |file|
   begin
     require file
-    log.info "Processed instrumentation file '#{file}'"
+    log.info "Processed instrumentation file '#{file.split('/').last}'"
   rescue Exception => e
     log.error "Error loading instrumentation file '#{file}': #{e}"
   end
