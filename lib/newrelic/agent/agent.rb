@@ -106,7 +106,8 @@ module NewRelic::Agent
         @my_port = determine_port
         @my_host = determine_host
         
-        @log = Logger.new "#{RAILS_ROOT}/log/newrelic_agent.#{@my_port}.log"
+        log_file = "log/newrelic_agent.#{@my_port}.log"
+        @log = Logger.new log_file
         @log.level = Logger::INFO
         
         @connected = false
@@ -119,7 +120,8 @@ module NewRelic::Agent
         @stats_engine = StatsEngine.new(@log)
         @transaction_sampler = TransactionSampler.new(self)
         
-        log.info "\n\nNewRelic Agent Initialized: pid = #{$$}"
+        log! "RPM Agent Initialized: pid = #{$$}"
+        to_stderr "Agent Log is found in #{log_file}"
       end
       
       def connect
@@ -130,11 +132,12 @@ module NewRelic::Agent
           @agent_id = invoke_remote :launch, @my_host,
             @my_port, determine_home_directory, $$, @launch_time
           
-          log.info "Connecting to NewRelic Service at #{@remote_host}:#{@remote_port}.  Agent ID = #{@agent_id}."
-          
           # an agent id of 0 indicates an error occurring on the server
           # TODO after some number of failures, stop trying to connect...
           if (@agent_id && @agent_id > 0)
+            log! "Connected to NewRelic Service at #{@remote_host}:#{@remote_port}."
+            log.debug "Agent ID = #{@agent_id}."
+
             @connected = true
             @last_harvest_time = Time.now
           end
@@ -156,7 +159,7 @@ module NewRelic::Agent
         # note if the agent attempts to report more frequently than the specified
         # report data, then it will be ignored.
         report_period = invoke_remote :get_data_report_period, @agent_id
-        log.info "Reporting performance data every #{report_period} seconds"        
+        log! "Reporting performance data every #{report_period} seconds"        
         @worker_loop.add_task(report_period) do 
           harvest_and_send_timeslice_data
         end
@@ -268,6 +271,17 @@ module NewRelic::Agent
         log.error("Error communicating with server: #{e}")
         log.error(e.backtrace[0..7].join("\n"))
         return nil
+      end
+      
+      # send the given message to STDERR as well as the agent log, so that it shows
+      # up in the console.  This should be used for important informational messages at boot
+      def log!(msg, level = :info)
+        to_stderr msg
+        log.send level, msg
+      end
+      
+      def to_stderr(msg)
+        STDERR.puts "** [NewRelic] " + msg
       end
   end
 
