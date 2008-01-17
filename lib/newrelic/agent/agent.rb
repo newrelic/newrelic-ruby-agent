@@ -2,12 +2,10 @@ require 'net/http'
 require 'logger'
 require 'singleton'
 
-# from Common
 require 'newrelic/stats'
 require 'newrelic/agent/worker_loop'
 require 'newrelic/agent_messages'
 
-# from Agent
 require 'newrelic/agent/stats_engine'
 require 'newrelic/agent/transaction_sampler'
 
@@ -86,7 +84,7 @@ module NewRelic::Agent
     
       @started = true
       
-      @license_key = config.fetch('license_key')
+      @license_key = config.fetch('license_key', '')
       @remote_host = config.fetch('host', '310new.pascal.hostingrails.com')
       @remote_port = config.fetch('port', '80')
       
@@ -203,7 +201,7 @@ module NewRelic::Agent
                   @last_harvest_time.to_f, 
                   now.to_f, 
                   @unsent_timeslice_data.values
-        @metric_ids.merge! metric_ids
+        @metric_ids.merge! metric_ids unless metric_ids.nil?
         
         log.debug "#{Time.now}: sent #{@unsent_timeslice_data.length} timeslices (#{@agent_id})"
 

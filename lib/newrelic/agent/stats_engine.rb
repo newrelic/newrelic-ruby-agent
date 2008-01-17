@@ -7,6 +7,8 @@ module NewRelic::Agent
     POLL_PERIOD = 1
     
     attr_reader :log
+
+    ScopeStackElement = Struct.new(:name, :timestamp, :exclusive_time)
     
     class SampledItem
       def initialize(stats, &callback)
@@ -51,16 +53,23 @@ module NewRelic::Agent
         l.notice_push_scope scope
       end
       
-      scope_stack.push scope
+      scope_stack.push ScopeStackElement.new(scope, Time.new, 0)
     end
     
     def pop_scope
-      scope = scope_stack.pop
+      stack = scope_stack
+      
+      scope = stack.pop
+      duration = Time.now - scope.timestamp
+      
+      stack.last.exclusive_time += duration unless stack.empty?
       
       @scope_stack_listeners.each do |l|
-        l.notice_pop_scope scope
+        l.notice_pop_scope scope.name
         l.notice_scope_empty if scope_stack.empty? 
       end
+      
+      scope
     end
     
     def peek_scope
@@ -83,7 +92,7 @@ module NewRelic::Agent
       end
       
       if scope && use_scope
-        spec = NewRelic::MetricSpec.new metric_name, scope
+        spec = NewRelic::MetricSpec.new metric_name, scope.name
         
         scoped_stats = @stats_hash[spec]
         if scoped_stats.nil?
@@ -104,6 +113,10 @@ module NewRelic::Agent
         # get a copy of the stats collected since the last harvest, and clear
         # the stats inside our hash table for the next time slice.
         stats = @stats_hash[metric_spec]
+        if stats.nil? 
+          puts "Nil stats for #{metric_spec.name} (#{metric_spec.scope})"
+        end
+        
         stats_copy = stats.clone
         stats.reset
         

@@ -18,7 +18,6 @@ module NewRelic
     
     def test_merge
       s1 = MethodTraceStats.new
-      
       s2 = MethodTraceStats.new
       
       s1.trace_call 10
@@ -34,6 +33,26 @@ module NewRelic
       s1.merge! s2
       validate s1, 2, (10+20), 10, 20
       validate s2, 1, 20, 20, 20
+    end
+    
+    def test_merge_with_exclusive
+      s1 = MethodTraceStats.new
+      
+      s2 = MethodTraceStats.new
+      
+      s1.trace_call 10, 5
+      s2.trace_call 20, 10
+      s2.freeze
+      
+      validate s2, 1, 20, 20, 20, 10
+      s3 = s1.merge s2
+      validate s3, 2, (10+20), 10, 20, (10+5)
+      validate s1, 1, 10, 10, 10, 5
+      validate s2, 1, 20, 20, 20, 10
+      
+      s1.merge! s2
+      validate s1, 2, (10+20), 10, 20, (5+10)
+      validate s2, 1, 20, 20, 20, 10
     end
     
     def test_merge_array
@@ -99,12 +118,13 @@ module NewRelic
     
     
     private
-      def validate (stats, count, total, min, max)
+      def validate (stats, count, total, min, max, exclusive = nil)
         assert_equal stats.call_count, count
         assert_equal stats.total_call_time, total
         assert_equal stats.average_call_time, (count > 0 ? total / count : 0)
         assert_equal stats.min_call_time, min
         assert_equal stats.max_call_time, max
+        assert_equal stats.total_exclusive_time, exclusive if exclusive
       end
   end
 

@@ -7,9 +7,15 @@ module NewRelic
       total_call_time / call_count
     end
     
+    def average_exclusive_time
+      return 0 if call_count == 0
+      total_exclusive_time / call_count
+    end
+    
     def merge! (other_stats)
       Array(other_stats).each do |s|
         self.total_call_time += s.total_call_time
+        self.total_exclusive_time += s.total_exclusive_time
         self.min_call_time = s.min_call_time if s.min_call_time < min_call_time || call_count == 0
         self.max_call_time = s.max_call_time if s.max_call_time > max_call_time
         self.call_count += s.call_count
@@ -65,6 +71,7 @@ module NewRelic
     def reset
       self.call_count = 0
       self.total_call_time = 0.0
+      self.total_exclusive_time = 0.0
       self.min_call_time = 0.0
       self.max_call_time = 0.0
       self.variance = 0.0
@@ -98,6 +105,11 @@ module NewRelic
       total_call_time / duration
     end
 
+    def exclusive_time_percentage
+      return 0 if duration == 0
+      total_exclusive_time / duration
+    end
+
     alias average_value average_call_time
     
     def to_s
@@ -105,6 +117,7 @@ module NewRelic
       s << "Duration=#{duration} s, "
       s << "Count=#{call_count}, "
       s << "Total=#{total_call_time.to_ms}, "
+      s << "Total Exclusive=#{total_exclusive_time.to_ms}, "
       s << "Avg=#{average_call_time.to_ms}, "
       s << "Min=#{min_call_time.to_ms}, "
       s << "Max=#{max_call_time.to_ms}"
@@ -134,6 +147,7 @@ module NewRelic
     attr_accessor :min_call_time
     attr_accessor :max_call_time
     attr_accessor :total_call_time
+    attr_accessor :total_exclusive_time
     attr_accessor :variance
     
     alias data_point_count call_count
@@ -170,7 +184,9 @@ module NewRelic
     # record a single data point into the statistical gatherer.  The gatherer
     # will aggregate all data points collected over a specified period and upload
     # its data to the NewRelic server
-    def record_data_point(value)
+    def record_data_point(value, exclusive_time = nil)
+      exclusive_time ||= value
+      
       # update the variance accumulator for calculating the standard deviation
       delta = value - average_value
       
@@ -178,6 +194,7 @@ module NewRelic
       @total_call_time += value
       @min_call_time = value if value < @min_call_time || @call_count == 1
       @max_call_time = value if value > @max_call_time
+      @total_exclusive_time += exclusive_time
 
       @variance += delta * (value - average_value)
       
@@ -215,9 +232,9 @@ module NewRelic
       @unscoped_stats = unscoped_stats
     end
     
-    def trace_call(call_time)
-      @unscoped_stats.trace_call call_time
-      super call_time
+    def trace_call(call_time, exclusive_time = nil)
+      @unscoped_stats.trace_call call_time, exclusive_time
+      super call_time, exclusive_time
     end
   end
 end

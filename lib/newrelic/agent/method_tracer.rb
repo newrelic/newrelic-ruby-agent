@@ -1,5 +1,5 @@
 class Module
-  # cattr_accessor is missing from unit text context so we need to hand code
+  # cattr_accessor is missing from unit test context so we need to hand code
   # the class accessor for the instrumentation log
   def method_tracer_log
     @@method_trace_log || SyslogLogger.new
@@ -21,8 +21,15 @@ class Module
     ensure
       t1 = Time.now
     
-      stats_engine.pop_scope if push_scope
-      stats.trace_call t1-t0
+      duration = t1 - t0
+      
+      if push_scope
+        scope = stats_engine.pop_scope 
+        exclusive = duration - scope.exclusive_time
+      else
+        exclusive = duration
+      end
+      stats.trace_call t1-t0, exclusive
     
       result 
     end

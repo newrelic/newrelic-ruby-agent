@@ -9,6 +9,9 @@ newrelic_agent_config.freeze
 ::SELDON_AGENT_ENABLED = newrelic_agent_config['enabled']
 ::SELDON_DEVELOPER = newrelic_agent_config['enabled'] && newrelic_agent_config['developer']
 
+# note if the agent is not turned on via the enabled flag in the 
+# configuration file, the application will be untouched, and it will
+# behave exaclty as if the agent were never installed in the first place.
 if ::SELDON_AGENT_ENABLED
   require 'newrelic/agent/instrument_rails'
   

@@ -16,7 +16,7 @@ module NewRelic
     extend self
     def module_method_to_be_traced (x, testcase)
       testcase.assert x == "x"
-      testcase.assert testcase.stats_engine.peek_scope == "x"
+      testcase.assert testcase.stats_engine.peek_scope.name == "x"
     end
     
     class MethodTracerTests < Test::Unit::TestCase
@@ -37,7 +37,7 @@ module NewRelic
         t1 = Time.now
         self.class.trace_method_execution metric do
           sleep 0.1
-          assert metric == @stats_engine.peek_scope
+          assert metric == @stats_engine.peek_scope.name
         end
         elapsed = Time.now - t1
         
@@ -109,7 +109,7 @@ module NewRelic
       
       def MethodTracerTests.static_method(x, testcase, is_traced)
         testcase.assert x == "x"
-        testcase.assert((testcase.stats_engine.peek_scope == "x") == is_traced)
+        testcase.assert((testcase.stats_engine.peek_scope.name == "x") == is_traced)
       end
 
       def trace_trace_static_method
@@ -123,7 +123,7 @@ module NewRelic
         begin
           metric = "hey there"
           self.class.trace_method_execution metric do
-            assert @stats_engine.peek_scope == metric
+            assert @stats_engine.peek_scope.name == metric
             throw Exception.new            
           end
           
@@ -166,7 +166,8 @@ module NewRelic
         assert x == 1
         assert y == 2
         assert z == 3
-        assert((expected_metric == @stats_engine.peek_scope) == is_traced)
+        scope_name = @stats_engine.peek_scope ? @stats_engine.peek_scope.name : nil
+        assert((expected_metric == scope_name) == is_traced)
       end
       
       def method_with_block(x, y, z, is_traced, expected_metric, &block)
@@ -174,9 +175,10 @@ module NewRelic
         assert x == 1
         assert y == 2
         assert z == 3
-        block.call(@stats_engine.peek_scope)
+        block.call(@stats_engine.peek_scope.name)
         
-        assert((expected_metric == @stats_engine.peek_scope) == is_traced)
+        scope_name = @stats_engine.peek_scope ? @stats_engine.peek_scope.name : nil
+        assert((expected_metric == scope_name) == is_traced)
       end
     end
   end
