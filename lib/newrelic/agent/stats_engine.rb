@@ -90,7 +90,7 @@ module NewRelic::Agent
     # names in the future if the traced application does more than service http request
     # via controller actions
     def transaction_name=(transaction)
-      Thread::current[:newrelic_transaction_name] ||= transaction
+      Thread::current[:newrelic_transaction_name] = transaction
     end
     
     def transaction_name
