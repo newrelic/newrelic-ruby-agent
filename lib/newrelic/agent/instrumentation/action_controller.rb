@@ -7,10 +7,16 @@ class ActionController::Base
   def perform_action_with_trace
     return perform_action_without_trace if self.class.read_inheritable_attribute('do_not_trace')
     
+    agent = NewRelic::Agent.instance
+    
     # generate metrics for all all controllers (no scope)
     self.class.trace_method_execution "Controller", false do 
       # generate metrics for this specific action
       path = "#{controller_path}/#{action_name}"
+      
+      # TODO should we just make the transaction name the path, or the metric name for the controller?
+      agent.stats_engine.transaction_name ||= "Controller/#{path}"
+      
       self.class.trace_method_execution "Controller/#{path}" do 
         # send request and parameter info to the transaction sampler
         NewRelic::Agent.instance.transaction_sampler.notice_transaction(path, params)
@@ -19,6 +25,10 @@ class ActionController::Base
         perform_action_without_trace
       end
     end
+    
+  ensure
+    # clear out the name of the traced transaction under all circumstances
+    agent.stats_engine.transaction_name = nil
   end
   
   alias_method_chain :perform_action, :trace

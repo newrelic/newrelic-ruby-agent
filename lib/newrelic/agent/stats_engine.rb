@@ -81,9 +81,23 @@ module NewRelic::Agent
       @sampled_items << SampledItem.new(stats, &sampler_callback)
     end
     
+    # set the name of the transaction for the current thread, which will be used
+    # to define the scope of all traced methods called on this thread until the
+    # scope stack is empty.  
+    #
+    # currently the transaction name is the name of the controller action that 
+    # is invoked via the dispatcher, but conceivably we could use other transaction
+    # names in the future if the traced application does more than service http request
+    # via controller actions
+    def transaction_name=(transaction)
+      Thread::current[:newrelic_transaction_name] ||= transaction
+    end
+    
+    def transaction_name
+      Thread::current[:newrelic_transaction_name]
+    end
+    
     def get_stats(metric_name, use_scope = true)
-      scope = peek_scope
-      
       spec = NewRelic::MetricSpec.new metric_name
       stats = @stats_hash[spec]
       if stats.nil?
@@ -91,8 +105,8 @@ module NewRelic::Agent
         @stats_hash[spec] = stats
       end
       
-      if scope && use_scope
-        spec = NewRelic::MetricSpec.new metric_name, scope.name
+      if use_scope && transaction_name
+        spec = NewRelic::MetricSpec.new metric_name, transaction_name
         
         scoped_stats = @stats_hash[spec]
         if scoped_stats.nil?
@@ -141,10 +155,10 @@ module NewRelic::Agent
     private
     
       def scope_stack
-        s = Thread::current[:scope_stack]
+        s = Thread::current[:newrelic_scope_stack]
         if s.nil?
           s = []
-          Thread::current[:scope_stack] = s
+          Thread::current[:newrelic_scope_stack] = s
         end
         s
       end
