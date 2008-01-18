@@ -62,11 +62,14 @@ module NewRelic::Agent
     attr_reader :worker_loop
     attr_reader :log
     attr_reader :license_key
+    attr_reader :config
     
     # Start up the agent, which will connect to the newrelic server and start 
     # reporting performance information.  Typically this is done from the
     # environment configuration file
     def start(config)
+      @config = config
+      
       if @started
         log.error "Agent Started Already!"
         raise Exception.new("Duplicate attempt to start the NewRelic agent")
@@ -193,7 +196,10 @@ module NewRelic::Agent
       end
       
       def determine_home_directory
-        File.expand_path(RAILS_ROOT)
+        home_dir = File.expand_path(RAILS_ROOT)
+        segment = config.fetch(:parent_directory_segment_index, 2).to_i
+
+        home_dir.split('/')[-segment]
       end
       
       @last_harvest_time = Time.now

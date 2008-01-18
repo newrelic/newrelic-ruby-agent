@@ -4,6 +4,11 @@
 
 # here are the settings that are common to all environments
 common: &default_settings
+  # LICENSE KEY
+  # You must provide the licesnse key sent to you by New Relic for your agent
+  # to communicate with ours service.  Paste the license key below.
+  license_key: 'PASTE_YOU_KEY_HERE'
+    
   # the enabled setting is used to turn on the NewRelic Agent.  When false,
   # your application is not instrumented and the Agent does not start up or
   # collect any data; it is a complete shut-off.
@@ -21,8 +26,9 @@ common: &default_settings
   
   # specify the host and port of the server that the NewRelic Agent communicates with
   # you shouldn't need to modify this.
-  host: www.newrelic.com
+  host: rpm.newrelic.com
   port: 80
+  
 
 # override default settings based on your application's environment
 development:
