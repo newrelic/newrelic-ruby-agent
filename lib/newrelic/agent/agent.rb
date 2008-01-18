@@ -199,7 +199,7 @@ module NewRelic::Agent
         home_dir = File.expand_path(RAILS_ROOT)
         segment = config.fetch(:parent_directory_segment_index, 2).to_i
 
-        home_dir.split('/')[0..-segment]
+        home_dir.split('/')[0..-segment].join('/')
       end
       
       @last_harvest_time = Time.now
