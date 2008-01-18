@@ -5,9 +5,8 @@ if defined? ActionController
 
 class ActionController::Base
   def perform_action_with_trace
-    return perform_action_without_trace if self.class.read_inheritable_attribute('do_not_trace')
-    
     agent = NewRelic::Agent.instance
+    return perform_action_without_trace if self.class.read_inheritable_attribute('do_not_trace')
     
     # generate metrics for all all controllers (no scope)
     self.class.trace_method_execution "Controller", false do 
@@ -15,7 +14,7 @@ class ActionController::Base
       path = "#{controller_path}/#{action_name}"
       
       # TODO should we just make the transaction name the path, or the metric name for the controller?
-      agent.stats_engine.transaction_name ||= "Controller/#{path}"
+      agent.stats_engine.transaction_name ||= "Controller/#{path}" if agent.stats_engine
       
       self.class.trace_method_execution "Controller/#{path}" do 
         # send request and parameter info to the transaction sampler
