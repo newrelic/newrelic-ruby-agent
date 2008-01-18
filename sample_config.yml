@@ -20,6 +20,14 @@ common: &default_settings
   # so you can run it all the time in production.
   enabled: false
 
+  # New Relic guesses your application's name by looking at your rails home and
+  # taking the name of its parent directory hierarchy.  Depending on how you deploy,
+  # you may have many builds or releases of your aplication in sibling directories.  Th
+  # for example, if your app's Rails home directory is in:
+  # /data/(your_app_name)/releases/(release_number) 
+  # then the name of the app is in the 3rd parent from the rails home directory.
+  parent_directory_segment_index: 3
+  
   # The newrelic agent generates its own log file to keep its logging information
   # separate from that of your application.  Specify its log level here.
   log_level: info
