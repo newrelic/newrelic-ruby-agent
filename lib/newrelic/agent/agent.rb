@@ -84,7 +84,12 @@ module NewRelic::Agent
     
       @started = true
       
-      @license_key = config.fetch('license_key', '')
+      @license_key = config.fetch('license_key', nil)
+      unless @license_key
+        log! "No license key found.  Please insert your license key into agent/new_relic.yml"
+        return
+      end
+      
       @remote_host = config.fetch('host', '310new.pascal.hostingrails.com')
       @remote_port = config.fetch('port', '80')
       
