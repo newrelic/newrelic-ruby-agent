@@ -4,10 +4,11 @@
 
 # here are the settings that are common to all environments
 common: &default_settings
-  # LICENSE KEY
-  # You must provide the licesnse key sent to you by New Relic for your agent
-  # to communicate with ours service.  Paste the license key below.
-  license_key: 'PASTE_YOU_KEY_HERE'
+  # ============================== LICENSE KEY ===============================
+  # You must provide the licence key sent to you by New Relic for your agent to
+  # communicate with the New Relic RPM service.  Paste the license key and,
+  # uncomment the line below.
+  # license_key: 'PASTE_YOU_KEY_HERE'
     
   # the enabled setting is used to turn on the NewRelic Agent.  When false,
   # your application is not instrumented and the Agent does not start up or
@@ -20,21 +21,14 @@ common: &default_settings
   # so you can run it all the time in production.
   enabled: false
 
-  # New Relic guesses your application's name by looking at your rails home and
-  # taking the name of its parent directory hierarchy.  Depending on how you deploy,
-  # you may have many builds or releases of your aplication in sibling directories.  Th
-  # for example, if your app's Rails home directory is in:
-  # /data/(your_app_name)/releases/(release_number) 
-  # then the name of the app is in the 3rd parent from the rails home directory.
-  parent_directory_segment_index: 3
-  
   # The newrelic agent generates its own log file to keep its logging information
   # separate from that of your application.  Specify its log level here.
   log_level: info
   
   # specify the host and port of the server that the NewRelic Agent communicates with
   # you shouldn't need to modify this.
-  host: rpm.newrelic.com
+  # TODO replace with rpm.newrelic.com when ready
+  host: 65.74.180.22
   port: 80
   
 
