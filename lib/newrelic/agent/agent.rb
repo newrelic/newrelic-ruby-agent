@@ -17,6 +17,10 @@ end
 # The NewRelic Agent collects performance data from rails applications in realtime as the
 # application runs, and periodically sends that data to the NewRelic server.  
 module NewRelic::Agent
+  
+  # an exception that is thrown by the server if the agent license is invalid
+  class LicenseException < Exception; end
+  
   # add some convenience methods for easy access to the Agent singleton.
   # the following static methods all point to the same Agent instance:
   #
@@ -68,12 +72,12 @@ module NewRelic::Agent
     # reporting performance information.  Typically this is done from the
     # environment configuration file
     def start(config)
-      @config = config
-      
       if @started
         log.error "Agent Started Already!"
         raise Exception.new("Duplicate attempt to start the NewRelic agent")
       end
+      
+      @config = config
       
       # set the log level as specified in the config file
       case config.fetch("log_level","info").downcase
@@ -93,7 +97,7 @@ module NewRelic::Agent
         return
       end
       
-      @remote_host = config.fetch('host', '310new.pascal.hostingrails.com')
+      @remote_host = config.fetch('host', 'rpm.newrelic.com')
       @remote_port = config.fetch('port', '80')
       
       @worker_thread = Thread.new do 
@@ -101,9 +105,9 @@ module NewRelic::Agent
       end
       
       # When the VM shuts down, attempt to send a message to the server that
-      # this agent run is stopping
+      # this agent run is stopping, assuming it has successfully connected
       at_exit do
-        invoke_remote :shutdown, @agent_id, Time.now
+        invoke_remote :shutdown, @agent_id, Time.now if @connected
       end
     end
   
@@ -112,9 +116,6 @@ module NewRelic::Agent
         @my_port = determine_port
         @my_host = determine_host
         
-        log_file = "log/newrelic_agent.#{@my_port}.log"
-        @log = Logger.new log_file
-        @log.level = Logger::INFO
         
         @connected = false
         @launch_time = Time.now
@@ -126,39 +127,31 @@ module NewRelic::Agent
         @stats_engine = StatsEngine.new(@log)
         @transaction_sampler = TransactionSampler.new(self)
         
-        log! "RPM Agent Initialized: pid = #{$$}"
-        to_stderr "Agent Log is found in #{log_file}"
+        if @my_port
+          log_file = "log/newrelic_agent.#{@my_port}.log"
+          @log = Logger.new log_file
+          @log.level = Logger::INFO
+        
+          log! "New Relic RPM Agent Initialized: pid = #{$$}"
+          to_stderr "Agent Log is found in #{log_file}"
+        else
+          @log = Logger.new STDOUT
+          @log.level = Logger::ERROR
+        end
+        
       end
       
-      def connect
-        begin
-          # wait a few seconds for the web server to boot
-          sleep 5
-          
-          @agent_id = invoke_remote :launch, @my_host,
-            @my_port, determine_home_directory, $$, @launch_time
-          
-          # an agent id of 0 indicates an error occurring on the server
-          # TODO after some number of failures, stop trying to connect...
-          if (@agent_id && @agent_id > 0)
-            log! "Connected to NewRelic Service at #{@remote_host}:#{@remote_port}."
-            log.debug "Agent ID = #{@agent_id}."
-
-            @connected = true
-            @last_harvest_time = Time.now
-          end
-        rescue Exception => e
-          log.error "error attempting to connect: #{$!}"
-          log.error e.backtrace.join("\n")
-        end
-      end
-    
-      # this loop will run forever on its own thread, reporting data to the 
-      # server
+      # Connect to the server, and run the worker loop forever
       def run_worker_loop
+        # bail if the application is not running in a mongrel process (ie, it's 
+        # a rake task, or a batch job, or perhaps it's running in an fcgi environment
+        # which is not yet supportedd)
         # attempt to connect to the server
+        return unless @my_port
+        
         until @connected
-          connect
+          should_retry = connect
+          return unless should_retry
         end
 
         # determine the reporting period (server based)
@@ -173,6 +166,49 @@ module NewRelic::Agent
         @worker_loop.run
       end
     
+      def connect
+        @connect_retry_period ||= 5
+        @connect_attempts ||= 0
+        
+        # wait a few seconds for the web server to boot
+        sleep @connect_retry_period
+        
+        @agent_id = invoke_remote :launch, @my_host,
+          @my_port, determine_home_directory, $$, @launch_time
+        
+        log! "Connected to NewRelic Service at #{@remote_host}:#{@remote_port}."
+        log.debug "Agent ID = #{@agent_id}."
+
+        @connected = true
+        @last_harvest_time = Time.now
+      
+      rescue LicenseException => e
+        log! e.message, :error
+        log! "Visit NewRelic.com to obtain a valid license key, or contact NewRelic support to recover your license key"
+        log! "Turning New Relic Agent off.  Restart your Mongrel after putting the correct license key in config/newrelic.yml"
+        return false
+        
+      rescue Exception => e
+        log.error "Error attempting to connect to New Relic RPM Service at #{@remote_host}:#{@remote_port}"
+        log.error e.message
+        log.debug e.backtrace.join("\n")
+      
+        # retry logic
+        @connect_attempts += 1
+        if @connect_attempts > 20
+          @connect_retry_period, period_msg = 10.minutes, "10 minutes"
+        elsif @connect_retry_period > 10
+          @connect_retry_period, period_msg = 1.minutes, "1 minute"
+        elsif @connect_retry_period > 5
+          @connect_retry_period, period_msg = 30, nil
+        else
+          @connect_retry_period, period_msg = 5, nil
+        end
+          
+        log.info "Will re-attempt in #{period_msg}" if period_msg
+        return true
+      end
+
       def determine_host
         Socket.gethostname
       end
@@ -217,7 +253,7 @@ module NewRelic::Agent
         @unsent_timeslice_data.clear
         @last_harvest_time = Time.now
         
-        # handle_messages messages
+        # handle_messages 
       rescue Exception => e
         puts e
         puts e.backtrace[0..6].join("\n")
@@ -272,11 +308,17 @@ module NewRelic::Agent
           http.post('/agent_listener/invoke_raw_method', post_data) 
         end
 
-        return Marshal.load(CGI::unescape(res.body))
+        return_value = Marshal.load(CGI::unescape(res.body))
       rescue Exception => e
-        log.error("Error communicating with server: #{e}")
-        log.error(e.backtrace[0..7].join("\n"))
-        return nil
+        log.error("Error communicating with RPM Service at #{@remote_port}:#{remote_port}: #{e}")
+        log.debug(e.backtrace.join("\n"))
+        return_value = e
+      ensure
+        if return_value.is_a? Exception
+          raise return_value
+        else
+          return return_value
+        end
       end
       
       # send the given message to STDERR as well as the agent log, so that it shows
