@@ -1,16 +1,18 @@
 #
-# This file configures the NewRelic Agent.  
+# This file configures the NewRelic RPM Agent, NewRelic RPM monitors Rails 
+# applications with deep visibility and low overhead.  For more information, 
+# visit www.newrelic.com.
 #
 
 # here are the settings that are common to all environments
 common: &default_settings
   # ============================== LICENSE KEY ===============================
-  # You must provide the licence key sent to you by New Relic for your agent to
-  # communicate with the New Relic RPM service.  Paste the license key and,
-  # uncomment the line below.
-  # license_key: 'PASTE_YOU_KEY_HERE'
+  # You must specify the licence key sent to you by New Relic for your agent to
+  # communicate with the New Relic RPM service.  Paste the license key in the
+  # line below
+  license_key: 'PASTE_YOUR_KEY_HERE'
     
-  # the enabled setting is used to turn on the NewRelic Agent.  When false,
+  # the 'enabled' setting is used to turn on the NewRelic Agent.  When false,
   # your application is not instrumented and the Agent does not start up or
   # collect any data; it is a complete shut-off.
   #
@@ -33,20 +35,23 @@ common: &default_settings
   
 
 # override default settings based on your application's environment
+
 development:
   <<: *default_settings
+  # turn off in development.
+  # NOTE: for initial evaluation purposes, you may want to temporarily turn
+  # the agent on in developmen mode.
+  enabled: false
 
 test:
   <<: *default_settings
+  # it almost never makes sense to turn on the agent when running unit, functional or
+  # integration tests or the like.
+  enabled: false
 
-# we recommend that you define a load_test environment that has similar configuration for
-# production, (obviously with different database settings) and enable the NewRelic agent
-# in this environment, so you can perform pre-production peformance analysis with the
-# same tool that you use for production monitoring.   
-load_test:
-  <<: *default_settings
-  enabled: true
-    
+# Turn on the agent in production for 24x7 monitoring.  NewRelic testing shows
+# an average performance impact of 1-2ms on a 30 ms transaction, you you can leave this on
+# all the time without incurring any user-visible performance degredation.
 production:
   <<: *default_settings
   enabled: true

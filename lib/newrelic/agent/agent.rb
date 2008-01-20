@@ -97,7 +97,8 @@ module NewRelic::Agent
         return
       end
       
-      @remote_host = config.fetch('host', 'rpm.newrelic.com')
+      # FIXME need to replace with rpm.newrelic.com.
+      @remote_host = config.fetch('host', '65.74.180.22')
       @remote_port = config.fetch('port', '80')
       
       @worker_thread = Thread.new do 
@@ -115,7 +116,6 @@ module NewRelic::Agent
       def initialize
         @my_port = determine_port
         @my_host = determine_host
-        
         
         @connected = false
         @launch_time = Time.now
