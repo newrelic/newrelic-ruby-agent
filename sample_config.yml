@@ -18,20 +18,13 @@ common: &default_settings
   #
   # when turned on, the agent collects performance data by inserting lightweight
   # tracers on key methods inside the rails framework and asynchronously aggregating
-  # and reporting this performance data to the server sepecified at host and port
-  # below.  The agent is highly tuned and desgined to operate at very low overhead
-  # so you can run it all the time in production.
+  # and reporting this performance data to the NewRelic RPM service at NewRelic.com.
+  # below.
   enabled: false
 
   # The newrelic agent generates its own log file to keep its logging information
   # separate from that of your application.  Specify its log level here.
   log_level: info
-  
-  # specify the host and port of the server that the NewRelic Agent communicates with
-  # you shouldn't need to modify this.
-  # TODO replace with rpm.newrelic.com when ready
-  host: 65.74.180.22
-  port: 80
   
 
 # override default settings based on your application's environment
@@ -50,7 +43,7 @@ test:
   enabled: false
 
 # Turn on the agent in production for 24x7 monitoring.  NewRelic testing shows
-# an average performance impact of 1-2ms on a 30 ms transaction, you you can leave this on
+# an average performance impact of < 5 ms per transaction, you you can leave this on
 # all the time without incurring any user-visible performance degredation.
 production:
   <<: *default_settings
