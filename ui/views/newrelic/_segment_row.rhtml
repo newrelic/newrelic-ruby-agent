@@ -1,7 +1,7 @@
 <tr>
 	<td><%= link_to segment_row.developer_name, 
-							:host => ::SELDON_HOST,
-							:port => ::SELDON_PORT,
+							:host => NewRelic::Agent.instance.remote_host,
+							:port => NewRelic::Agent.instance.remote_port,
 							:controller => :metric_doc, :metric => segment_row.metric_name %></td>
 	<td align=left> <%= segment_row.call_count %></td>
 	<td align=right><%= segment_row.exclusive_time.to_ms %> ms</td>

@@ -52,7 +52,7 @@ module NewRelic
       while current_end_time < self.end_time do
         ts = yield(current_begin_time, current_end_time)
         
-        ts.fraction(self)
+        ts.fraction_of(self)
         timeslices << ts
         current_begin_time = current_end_time
         current_end_time = current_begin_time + rollup_period
@@ -61,7 +61,7 @@ module NewRelic
       if self.end_time > current_begin_time
         percentage = rollup_period / self.duration + (self.begin_time - rollup_begin_time) / rollup_period
         ts = yield(current_begin_time, self.end_time)
-        ts.fraction(self)
+        ts.fraction_of(self)
         timeslices << ts
       end
       
@@ -126,7 +126,7 @@ module NewRelic
     # calculate this set of stats to be a percentage fraction 
     # of the provided stats, which has an overlapping time window.
     # used as a key part of the split algorithm
-    def fraction(s)
+    def fraction_of(s)
       min_end = (end_time < s.end_time ? end_time : s.end_time)
       max_begin = (begin_time > s.begin_time ? begin_time : s.begin_time)
       percentage = (min_end - max_begin) / s.duration
@@ -136,6 +136,15 @@ module NewRelic
       self.max_call_time = s.max_call_time
       self.call_count = s.call_count * percentage
       self.variance = s.variance * percentage
+    end
+    
+    # multiply the total time and rate by the given percentage 
+    def multiply_by(percentage)
+      self.total_call_time = total_call_time * percentage
+      self.call_count = call_count * percentage
+      self.variance = variance * percentage
+      
+      self
     end
   end
   

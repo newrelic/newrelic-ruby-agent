@@ -4,7 +4,7 @@ require 'logger'
 
 module NewRelic::Agent
   class StatsEngine
-    POLL_PERIOD = 1
+    POLL_PERIOD = 10
     
     attr_reader :log
 
@@ -33,11 +33,15 @@ module NewRelic::Agent
           begin
             sleep POLL_PERIOD
             @sampled_items.each do |sampled_item|
-              sampled_item.poll
+              begin 
+                sampled_item.poll
+              rescue Exception => e
+                log.error e
+                @sampled_items.delete sampled_item
+                log.error "Removing #{sampled_item} from list"
+                log.debug e.backtrace.to_s
+              end
             end
-          rescue Exception => e
-            log.error e
-            log.debug e.backtrace.to_s
           end
         end
       end

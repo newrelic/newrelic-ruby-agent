@@ -67,6 +67,8 @@ module NewRelic::Agent
     attr_reader :log
     attr_reader :license_key
     attr_reader :config
+    attr_reader :remote_host
+    attr_reader :remote_port
     
     # Start up the agent, which will connect to the newrelic server and start 
     # reporting performance information.  Typically this is done from the
@@ -357,6 +359,37 @@ module NewRelic::Agent
       end
     end
   end
+  
+  class MemorySampler
+    def initialize
+      # macos
+      if RUBY_PLATFORM =~ /darwin/
+        @ps = "ps -o rsz #{$$}"
+      elsif RUBY_PLATFORM =~ /linux/
+        @ps = "ps -o drs #{$$}"
+      end
+      
+      if @ps
+        agent = NewRelic::Agent.instance
+        agent.stats_engine.add_sampled_metric("Memory/Physical") do |stats|
+          return if @broken
+          memory = `#{@ps}`.split("\n")[1].to_f / 1024
+          
+          # if for some reason the ps command doesn't work on the resident os,
+          # then don't execute it any more.
+          if memory > 0
+            stats.record_data_point memory
+            
+          else 
+            NewRelic::Agent.instance.log.error "Error attempting to determine resident memory.  Disabling this metric."
+            NewRelic::Agent.instance.log.error "Faulty command: `#{@ps}`"
+            @broken = true
+          end
+        end
+      end
+    end
+  end
 end
 
 NewRelic::Agent::CPUSampler.new
+NewRelic::Agent::MemorySampler.new
