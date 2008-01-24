@@ -363,10 +363,8 @@ module NewRelic::Agent
   class MemorySampler
     def initialize
       # macos
-      if RUBY_PLATFORM =~ /darwin/
+      if RUBY_PLATFORM =~ /(darwin|linux)/
         @ps = "ps -o rsz #{$$}"
-      elsif RUBY_PLATFORM =~ /linux/
-        @ps = "ps -o drs #{$$}"
       end
       
       if @ps
