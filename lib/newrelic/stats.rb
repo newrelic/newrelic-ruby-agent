@@ -21,8 +21,8 @@ module NewRelic
         self.call_count += s.call_count
         # FIXME THIS IS BROKEN!  How do we merge variances?
         self.variance += s.variance
-        self.begin_time = s.begin_time if s.begin_time < begin_time || begin_time.to_f == 0.0
-        self.end_time = s.end_time if s.end_time > end_time
+        self.begin_time = s.begin_time if s.begin_time.to_f < begin_time.to_f || begin_time.to_f == 0.0
+        self.end_time = s.end_time if s.end_time.to_f > end_time.to_f
       end
       
       self
