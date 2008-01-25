@@ -1,0 +1,15 @@
+<b>Query:</b> <%= @sql %>
+<table>
+		<tr>
+			<td align=right>
+			<b>Duration</b>: 
+			</td>
+			<td><%= @duration %> ms</td>
+		</tr>
+	<% @explanation.each do |key, value| %>
+		<tr>
+			<td align = right><b><%= key %></b>: </td>
+			<td><%= @explanation[key] %></td>
+		</tr>
+	<% end %>
+</table>

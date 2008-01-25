@@ -1,5 +1,6 @@
 require 'newrelic/agent'
 require 'google_pie_chart'
+require 'active_record'
 
 class NewrelicController < ActionController::Base
   include NewrelicHelper
@@ -35,6 +36,12 @@ class NewrelicController < ActionController::Base
     
     chart_data = @sample.breakdown_data(6)
     chart_data.each { |s| @pie_chart.add_data_point s.metric_name, s.exclusive_time.to_ms }
+  end
+  
+  def explain_sql
+    @sql = params[:sql]
+    @duration = params[:duration]
+    @explanation = ActiveRecord::Base.connection.execute("EXPLAIN #{@sql}").fetch_hash
   end
   
 private 
