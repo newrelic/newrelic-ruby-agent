@@ -41,7 +41,22 @@ class NewrelicController < ActionController::Base
   def explain_sql
     @sql = params[:sql]
     @duration = params[:duration]
-    @explanation = ActiveRecord::Base.connection.execute("EXPLAIN #{@sql}").fetch_hash
+    @explanation = []
+    
+    @explanation = ActiveRecord::Base.connection.select_rows("EXPLAIN #{@sql}")
+    @row_headers = [
+      nil,
+      "Select Type",
+      "Table",
+      "Type",
+      "Possible Keys",
+      "Key",
+      "Key Length",
+      "Ref",
+      "Rows",
+      "Extra"
+    ];
+      
   end
   
 private 

@@ -1,15 +1,28 @@
-<b>Query:</b> <%= @sql %>
-<table>
-		<tr>
-			<td align=right>
-			<b>Duration</b>: 
-			</td>
-			<td><%= @duration %> ms</td>
-		</tr>
-	<% @explanation.each do |key, value| %>
-		<tr>
-			<td align = right><b><%= key %></b>: </td>
-			<td><%= @explanation[key] %></td>
-		</tr>
+<table>	
+	<tr>
+		<td align=right valign=top>
+		<b>Query</b>
+		</td>
+		<td colspan=<%= @explanation.length%>><%= @sql %></td>
+	</tr>
+	<tr>
+		<td align=right>
+		<b>Duration</b>
+		</td>
+		<td><%= @duration %> ms</td>
+	</tr>
+	<% @row_headers.length.times do |r| %>
+		<% if @row_headers[r] %>
+			<tr>
+				<td align=right nowrap>
+					<b><%= @row_headers[r]%></b>
+				</td>
+				<% @explanation.each do |exp| %>
+					<td>
+						<%= exp[r]%>
+					</td>
+				<% end %>
+			</tr>
+		<% end %>
 	<% end %>
 </table>
