@@ -73,7 +73,7 @@ class Module
     end
     CODE
   
-    class_eval code
+    class_eval code, __FILE__, __LINE__
   
     alias_method _untraced_method_name(method_name, metric_name_code), method_name
     alias_method method_name, "#{_traced_method_name(method_name, metric_name_code)}"
