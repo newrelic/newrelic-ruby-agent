@@ -1,8 +1,10 @@
+require 'logger'
+
 class Module
   # cattr_accessor is missing from unit test context so we need to hand code
   # the class accessor for the instrumentation log
   def method_tracer_log
-    @@method_trace_log || SyslogLogger.new
+    @@method_trace_log ||= Logger.new(STDERR)
   end
   
   def method_tracer_log= (log)
@@ -52,9 +54,13 @@ class Module
     klass = (self === Module) ? "self" : "self.class"
     
     unless method_defined?(method_name) || private_method_defined?(method_name)
-      if method_tracer_log
-        method_tracer_log.warn("Did not trace #{self}##{method_name} because that method does not exist")
-      end
+      method_tracer_log.warn("Did not trace #{self}##{method_name} because that method does not exist")
+      return
+    end
+    
+    traced_method_name = _traced_method_name(method_name, metric_name_code)
+    if method_defined? traced_method_name
+      method_tracer_log.warn("Attempt to trace a method twice with the same metric: Method = #{method_name}, Metric Name = #{metric_name_code}")
       return
     end
     

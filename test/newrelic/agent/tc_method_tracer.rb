@@ -60,6 +60,20 @@ module NewRelic
         assert stats.call_count == 1
       end
       
+      def test_add_same_tracer_twice
+        @metric_name = METRIC
+        self.class.add_method_tracer :method_to_be_traced, METRIC
+        self.class.add_method_tracer :method_to_be_traced, METRIC
+        
+        t1 = Time.now
+        method_to_be_traced 1,2,3,true,METRIC
+        elapsed = Time.now - t1
+        
+        stats = @stats_engine.get_stats(METRIC)
+        check_time stats.total_call_time, elapsed
+        assert stats.call_count == 1
+      end
+      
       def test_add_tracer_with_dynamic_metric
         metric_code = '#{args[0]}.#{args[1]}'
         @metric_name = metric_code
