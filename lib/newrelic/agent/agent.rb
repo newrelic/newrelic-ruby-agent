@@ -101,17 +101,19 @@ module NewRelic::Agent
       
       @remote_host = config.fetch('host', 'rpm.newrelic.com')
       @remote_port = config.fetch('port', '80')
+
+      if config['enabled']
+        load_samplers
       
-      load_samplers
+        @worker_thread = Thread.new do 
+          run_worker_loop
+        end
       
-      @worker_thread = Thread.new do 
-        run_worker_loop
-      end
-      
-      # When the VM shuts down, attempt to send a message to the server that
-      # this agent run is stopping, assuming it has successfully connected
-      at_exit do
-        invoke_remote :shutdown, @agent_id, Time.now if @connected
+        # When the VM shuts down, attempt to send a message to the server that
+        # this agent run is stopping, assuming it has successfully connected
+        at_exit do
+          invoke_remote :shutdown, @agent_id, Time.now if @connected
+        end
       end
     end
   

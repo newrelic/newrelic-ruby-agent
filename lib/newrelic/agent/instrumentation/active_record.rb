@@ -31,7 +31,7 @@ module ActiveRecord
       end
       alias_method_chain :log, :capture_sql
       
-      add_method_tracer :log, 'Database/#{adapter_name}/#{args[1]}' if ::SELDON_DEVELOPER
+      add_method_tracer :log, 'Database/#{adapter_name}/#{args[1]}' if ::RPM_DEVELOPER
     end
   end
   

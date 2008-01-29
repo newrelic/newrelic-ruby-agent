@@ -151,7 +151,7 @@ module NewRelic::Agent
       end
       
       def is_developer_mode?
-        defined?(::SELDON_DEVELOPER) && ::SELDON_DEVELOPER
+        defined?(::RPM_DEVELOPER) && ::RPM_DEVELOPER
       end
   end
 

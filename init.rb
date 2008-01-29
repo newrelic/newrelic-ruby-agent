@@ -9,19 +9,21 @@ begin
   newrelic_agent_config = YAML.load(newrelic_config_file)[RAILS_ENV]
   newrelic_agent_config.freeze
 
-  ::SELDON_AGENT_ENABLED = newrelic_agent_config['enabled']
-  ::SELDON_DEVELOPER = newrelic_agent_config['enabled'] && newrelic_agent_config['developer']
+  ::RPM_AGENT_ENABLED = newrelic_agent_config['enabled']
+  ::RPM_DEVELOPER = newrelic_agent_config['developer']
 
+  ::RPM_TRACERS_ENABLED = ::RPM_DEVELOPER || ::RPM_AGENT_ENABLED
+  
   # note if the agent is not turned on via the enabled flag in the 
   # configuration file, the application will be untouched, and it will
   # behave exaclty as if the agent were never installed in the first place.
-  if ::SELDON_AGENT_ENABLED
+  if ::RPM_AGENT_ENABLED || ::RPM_DEVELOPER
     require 'newrelic/agent'
     require 'newrelic/agent/instrument_rails'
   
     NewRelic::Agent.instance.start(newrelic_agent_config)
   
-    if ::SELDON_DEVELOPER
+    if ::RPM_DEVELOPER
       controller_path = File.join(File.dirname(__FILE__), 'ui', 'controllers')
       helper_path = File.join(File.dirname(__FILE__), 'ui', 'helpers')
       $LOAD_PATH << controller_path

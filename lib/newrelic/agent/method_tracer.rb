@@ -50,7 +50,7 @@ class Module
   # push_scope specifies whether this method tracer should push
   # the metric name onto the scope stack.
   def add_method_tracer (method_name, metric_name_code, push_scope = true)
-    return unless ::SELDON_AGENT_ENABLED
+    return unless ::RPM_TRACERS_ENABLED
     klass = (self === Module) ? "self" : "self.class"
     
     unless method_defined?(method_name) || private_method_defined?(method_name)
@@ -83,7 +83,7 @@ class Module
   # from when they were added, or else other tracers that were added to the same method
   # may get removed as well.
   def remove_method_tracer(method_name, metric_name_code)
-    return unless ::SELDON_AGENT_ENABLED
+    return unless ::RPM_TRACERS_ENABLED
     
     if method_defined? "#{_traced_method_name(method_name, metric_name_code)}"
       alias_method method_name, "#{_untraced_method_name(method_name, metric_name_code)}"
