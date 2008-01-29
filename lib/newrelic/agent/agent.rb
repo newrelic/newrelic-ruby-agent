@@ -102,6 +102,8 @@ module NewRelic::Agent
       @remote_host = config.fetch('host', 'rpm.newrelic.com')
       @remote_port = config.fetch('port', '80')
       
+      load_samplers
+      
       @worker_thread = Thread.new do 
         run_worker_loop
       end
@@ -208,6 +210,17 @@ module NewRelic::Agent
           
         log.info "Will re-attempt in #{period_msg}" if period_msg
         return true
+      end
+      
+      def load_samplers
+        sampler_files = File.join(File.dirname(__FILE__), 'samplers', '*.rb')
+        Dir.glob(sampler_files) do |file|
+          begin
+            require file
+          rescue Exception => e
+            log.error "Error loading sampler '#{file}': #{e}"
+          end
+        end
       end
 
       def determine_host
@@ -336,58 +349,3 @@ module NewRelic::Agent
 
 end
 
-# sampler for CPU Time
-module NewRelic::Agent
-  class CPUSampler
-    def initialize
-      t = Process.times
-      @last_utime = t.utime
-      @last_stime = t.stime
-  
-      agent = NewRelic::Agent.instance
-  
-      agent.stats_engine.add_sampled_metric("CPU/User Time") do | stats |
-        utime = Process.times.utime
-        stats.record_data_point utime - @last_utime
-        @last_utime = utime
-      end
-  
-      agent.stats_engine.add_sampled_metric("CPU/System Time") do | stats |
-        stime = Process.times.stime
-        stats.record_data_point stime - @last_stime
-        @last_stime = stime
-      end
-    end
-  end
-  
-  class MemorySampler
-    def initialize
-      # macos
-      if RUBY_PLATFORM =~ /(darwin|linux)/
-        @ps = "ps -o rsz #{$$}"
-      end
-      
-      if @ps
-        agent = NewRelic::Agent.instance
-        agent.stats_engine.add_sampled_metric("Memory/Physical") do |stats|
-          return if @broken
-          memory = `#{@ps}`.split("\n")[1].to_f / 1024
-          
-          # if for some reason the ps command doesn't work on the resident os,
-          # then don't execute it any more.
-          if memory > 0
-            stats.record_data_point memory
-            
-          else 
-            NewRelic::Agent.instance.log.error "Error attempting to determine resident memory.  Disabling this metric."
-            NewRelic::Agent.instance.log.error "Faulty command: `#{@ps}`"
-            @broken = true
-          end
-        end
-      end
-    end
-  end
-end
-
-NewRelic::Agent::CPUSampler.new
-NewRelic::Agent::MemorySampler.new
