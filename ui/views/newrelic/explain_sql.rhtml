@@ -4,7 +4,7 @@
 		<td align=right valign=top>
 		<b>Query</b>
 		</td>
-		<td colspan=<%= @explanation.length%>><%= @sql %></td>
+		<td colspan=<%= @explanation.length%>><%= line_wrap_sql(@sql) %></td>
 	</tr>
 	<tr>
 		<td align=right>

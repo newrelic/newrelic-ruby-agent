@@ -43,5 +43,8 @@ module NewrelicHelper
     link_to image_tag("/images/textmate.png"), url_for_textmate(sql_caller(trace))
   end
   
+  def line_wrap_sql(sql)
+    sql.gsub(/\,/,', ').squeeze
+  end
   
 end
