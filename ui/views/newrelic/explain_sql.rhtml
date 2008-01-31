@@ -10,7 +10,7 @@
 		<td align=right>
 		<b>Duration</b>
 		</td>
-		<td><%= @duration %> ms</td>
+		<td><%= @segment.duration.to_ms %> ms</td>
 	</tr>
 	<% @row_headers.length.times do |r| %>
 		<% if @row_headers[r] %>
