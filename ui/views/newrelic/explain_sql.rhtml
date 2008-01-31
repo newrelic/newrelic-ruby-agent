@@ -1,3 +1,4 @@
+<h3>Statement Analysis</h3>
 <table>	
 	<tr>
 		<td align=right valign=top>
@@ -27,8 +28,10 @@
 	<% end %>
 </table>
 
+<p/>
+<h3>Application Stack Trace</h3>
 <pre>
-	<% trace_without_agent(@trace).each do |trace_line| %>
-		<%= link_to trace_line, url_for_textmate(trace_line) %>
-	<% end %>
+<% trace_without_agent(@trace).each do |trace_line| -%>
+<%= link_to trace_line, url_for_textmate(trace_line) %>
+<% end -%>
 </pre>

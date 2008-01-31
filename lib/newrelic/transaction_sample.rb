@@ -8,11 +8,11 @@ module NewRelic
       attr_reader :called_segments
       attr_reader :segment_id
       
-      def initialize(timestamp, metric_name)
+      def initialize(timestamp, metric_name, segment_id)
         @entry_timestamp = timestamp
         @metric_name = metric_name
         @called_segments = []
-        @segment_id = object_id
+        @segment_id = segment_id || object_id
       end
       
       def end_trace(timestamp)
@@ -110,18 +110,19 @@ module NewRelic
     attr_reader :params
     attr_reader :sample_id
     
+    def initialize(sample_id = nil)
+      @sample_id = sample_id || object_id
+    end
+    
     def begin_building(start_time = Time.now)
       @start_time = start_time
       @root_segment = create_segment 0.0, "ROOT"
       @params = {}
-      
-      # FIXME use a different approach for id?
-      @sample_id = object_id
     end
 
-    def create_segment (relative_timestamp, metric_name)
+    def create_segment (relative_timestamp, metric_name, segment_id = nil)
       raise TypeError.new("Frozen Transaction Sample") if frozen?
-      NewRelic::TransactionSample::Segment.new(relative_timestamp, metric_name)    
+      NewRelic::TransactionSample::Segment.new(relative_timestamp, metric_name, segment_id)    
     end
     
     def freeze
@@ -152,7 +153,7 @@ module NewRelic
     def omit_segments_with(regex)
       regex = Regexp.new(regex)
       
-      sample = TransactionSample.new
+      sample = TransactionSample.new(sample_id)
       sample.begin_building @start_time
       
       params.each {|k,v| sample.params[k] = v}
@@ -176,7 +177,8 @@ module NewRelic
         else
           target_called_segment = new_sample.create_segment(
                 source_called_segment.entry_timestamp - time_delta, 
-                source_called_segment.metric_name)
+                source_called_segment.metric_name,
+                source_called_segment.segment_id)
           
           target_segment.add_called_segment target_called_segment
           source_called_segment.params.each do |k,v|

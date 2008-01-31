@@ -40,11 +40,10 @@ class NewrelicController < ActionController::Base
   
   def explain_sql
     get_segment
-    
-    @sql = params[:sql]
-    @duration = params[:duration]
-    @trace = params[:trace]
+
+    @sql = @segment[:sql]
     @explanation = []
+    @trace = @segment[:backtrace]
     
     @explanation = ActiveRecord::Base.connection.select_rows("EXPLAIN #{@sql}")
     @row_headers = [
@@ -74,11 +73,11 @@ private
   
   def get_sample
     get_samples
-    @sample_id = params[:id].to_i
+    sample_id = params[:id].to_i
     @samples.each do |s|
-      if s.sample_id == @sample_id
+      if s.sample_id == sample_id
         @sample = stripped_sample(s)
-        return
+        return 
       end
     end
   end
@@ -87,9 +86,11 @@ private
     get_sample
     return unless @sample
     
+    segment_id = params[:segment].to_i
     @sample.each_segment do |s|
-      if s.segment_id == params[:segment].to_i
+      if s.segment_id == segment_id
         @segment = s
+        return
       end
     end
   end
@@ -195,8 +196,9 @@ class NewRelic::TransactionSample
   def sql_segments
     segments = []
     each_segment do |segment|
-      sql = segment[:sql]
-      segments << segment if sql
+      if segment[:sql]
+        segments << segment
+      end
     end
     segments
   end

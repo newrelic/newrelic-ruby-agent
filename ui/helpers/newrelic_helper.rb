@@ -24,7 +24,10 @@ module NewrelicHelper
   
   def trace_without_agent(trace)
     trace.reject do |trace_line|
-      trace_line.split(':').first =~ /newrelic\/agent/
+      file = trace_line.split(':').first
+      file =~ /\/newrelic\/agent\// ||
+      file =~ /\/activerecord\// ||
+      file =~ /\/actionpack\//
     end
   end
   
@@ -39,4 +42,6 @@ module NewrelicHelper
   def link_to_textmate(trace)
     link_to image_tag("/images/textmate.png"), url_for_textmate(sql_caller(trace))
   end
+  
+  
 end
