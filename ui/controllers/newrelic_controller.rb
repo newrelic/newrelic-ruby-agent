@@ -39,8 +39,11 @@ class NewrelicController < ActionController::Base
   end
   
   def explain_sql
+    get_segment
+    
     @sql = params[:sql]
     @duration = params[:duration]
+    @trace = params[:trace]
     @explanation = []
     
     @explanation = ActiveRecord::Base.connection.select_rows("EXPLAIN #{@sql}")
@@ -71,14 +74,25 @@ private
   
   def get_sample
     get_samples
+    @sample_id = params[:id].to_i
     @samples.each do |s|
-      if s.sample_id == params[:id].to_i
+      if s.sample_id == @sample_id
         @sample = stripped_sample(s)
         return
       end
     end
   end
   
+  def get_segment
+    get_sample
+    return unless @sample
+    
+    @sample.each_segment do |s|
+      if s.segment_id == params[:segment].to_i
+        @segment = s
+      end
+    end
+  end
 end
 
 # TODO move this sample analysis to a common library when we reuse it for the hosted version
@@ -178,13 +192,13 @@ class NewRelic::TransactionSample
   
   # return an array of sql statements executed by this transaction
   # each element in the array contains [sql, parent_segment_metric_name, duration]
-  def sql_summary
-    summary = []
+  def sql_segments
+    segments = []
     each_segment do |segment|
       sql = segment[:sql]
-      summary << [sql, segment.metric_name, segment.duration] if sql
+      segments << segment if sql
     end
-    summary
+    segments
   end
   
   private 

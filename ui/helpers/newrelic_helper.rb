@@ -9,4 +9,34 @@ module NewrelicHelper
       sample
     end
   end
+  
+  def sql_caller(trace)
+    trace.each do |trace_line|
+      file = trace_line.split(':').first
+      if /activerecord/ =~ file
+      elsif /newrelic\/agent/ =~ file
+      else
+        return trace_line
+      end
+    end
+    trace.last
+  end
+  
+  def trace_without_agent(trace)
+    trace.reject do |trace_line|
+      trace_line.split(':').first =~ /newrelic\/agent/
+    end
+  end
+  
+  def url_for_textmate(trace_line)
+    s = trace_line.split(':')
+    file = s[0]
+    line = s[1]
+
+    "txmt://open?url=file://#{file}&line=#{line}"
+  end
+  
+  def link_to_textmate(trace)
+    link_to image_tag("/images/textmate.png"), url_for_textmate(sql_caller(trace))
+  end
 end

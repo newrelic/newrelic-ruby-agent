@@ -44,15 +44,14 @@ end
 </div>
 
 <div id='sql'>
-	<table border=1>
+	<table border=1 width=100%>
 		<tr>
-			<th align=left>SQL</th>
+			<th></th>
 			<th>Duration</th>
+			<th align=left>SQL</th>
 		</tr>
 		
-		<% sql_summary = @sample.sql_summary %>
-		
-		<%= render :partial => 'sql_row', :collection => @sample.sql_summary %>
+		<%= render :partial => 'sql_row', :collection => @sample.sql_segments %>
 	</table>
 </div>
 

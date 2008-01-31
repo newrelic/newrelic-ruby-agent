@@ -26,3 +26,9 @@
 		<% end %>
 	<% end %>
 </table>
+
+<pre>
+	<% trace_without_agent(@trace).each do |trace_line| %>
+		<%= link_to trace_line, url_for_textmate(trace_line) %>
+	<% end %>
+</pre>

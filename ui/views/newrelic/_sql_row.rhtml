@@ -1,5 +1,7 @@
+<% segment = sql_row %>
 <tr>
-	<td align=left><small><%= sql_row[0] %></small></td>
-	<td align=right><%= link_to "#{sql_row[2].to_ms} ms", :action => :explain_sql, 
-			:sql => sql_row[0], :duration => sql_row[2].to_ms %></td>
+	<td><%= link_to_textmate (segment[:backtrace]) %>
+	<td align=right><%= link_to "#{segment.duration.to_ms} ms", :action => :explain_sql, 
+			:id => @sample_id, :segment => segment.segment_id %> </td>
+	<td align=left><small><%= segment[:sql].gsub(',',', ').squeeze %></small></td>
 </tr>

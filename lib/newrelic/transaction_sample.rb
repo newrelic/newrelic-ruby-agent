@@ -6,11 +6,13 @@ module NewRelic
       attr_reader :parent_segment
       attr_reader :metric_name
       attr_reader :called_segments
+      attr_reader :segment_id
       
       def initialize(timestamp, metric_name)
         @entry_timestamp = timestamp
         @metric_name = metric_name
         @called_segments = []
+        @segment_id = object_id
       end
       
       def end_trace(timestamp)

@@ -31,6 +31,19 @@ module NewRelic::Agent
       with_builder do |builder|
         check_rules(scope)
         builder.trace_entry(scope)
+        
+        # in developer mode, capture the stack trace with the segment.
+        # this is cpu and memory expensive and therefore should not be
+        # turned on in production mode
+        if ::RPM_DEVELOPER
+          segment = builder.current_segment
+          if segment
+            trace = caller(8)
+            
+            trace = trace[0..40] if trace.length > 40
+            segment[:backtrace] = trace
+          end
+        end
       end
     end
   
