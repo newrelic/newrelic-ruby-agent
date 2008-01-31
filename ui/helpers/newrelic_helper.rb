@@ -40,7 +40,7 @@ module NewrelicHelper
   end
   
   def link_to_textmate(trace)
-    link_to image_tag("/images/textmate.png"), url_for_textmate(sql_caller(trace))
+    link_to image_tag("http://rpm.newrelic.com/images/textmate.png"), url_for_textmate(sql_caller(trace))
   end
   
   def line_wrap_sql(sql)
