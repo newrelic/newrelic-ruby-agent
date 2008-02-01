@@ -44,7 +44,7 @@ module NewrelicHelper
   end
   
   def line_wrap_sql(sql)
-    sql.gsub(/\,/,', ').squeeze
+    sql.gsub(/\,/,', ').squeeze(' ')
   end
   
 end

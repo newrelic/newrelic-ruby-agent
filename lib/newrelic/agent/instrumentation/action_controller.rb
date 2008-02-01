@@ -11,7 +11,7 @@ class ActionController::Base
     # generate metrics for all all controllers (no scope)
     self.class.trace_method_execution "Controller", false do 
       # generate metrics for this specific action
-      path = "#{controller_path}/#{action_name}"
+      path = _determine_metric_path
       
       # TODO should we just make the transaction name the path, or the metric name for the controller?
       agent.stats_engine.transaction_name ||= "Controller/#{path}" if agent.stats_engine
@@ -32,7 +32,7 @@ class ActionController::Base
   
   alias_method_chain :perform_action, :trace
   
-  add_method_tracer :render, 'View/#{controller_name}/#{action_name}/Rendering'
+  add_method_tracer :render, 'View/#{_determine_metric_path}/Rendering'
   
   # ActionWebService is now an optional part of Rails as of 2.0
   if method_defined? :perform_invocation
@@ -44,10 +44,11 @@ class ActionController::Base
   add_method_tracer :rescue_action, 'Errors/Type/#{args.first.class}', false
   add_method_tracer :rescue_action, 'Errors/Controller/#{self.class}', false
   
-  protected
-    def is_web_service_controller?
-      # TODO this only covers the case for Direct implementation.
-      self.class.read_inheritable_attribute("web_service_api")
+  private
+    # determine the path that is used in the metric name for
+    # the called controller action
+    def _determine_metric_path
+      "#{self.class.controller_path}/#{params[:action]}"
     end
   end
 end  

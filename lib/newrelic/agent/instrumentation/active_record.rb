@@ -5,9 +5,11 @@ if defined? ActiveRecord
 module ActiveRecord
   class Base
     class << self
-      add_method_tracer :find, 'ActiveRecord/#{self.name}/find'
-      add_method_tracer :find, 'ActiveRecord/find', false
-      add_method_tracer :find, 'ActiveRecord/all', false
+      [:find, :count].each do |find_method|
+        add_method_tracer find_method, 'ActiveRecord/#{self.name}/find'
+        add_method_tracer find_method, 'ActiveRecord/find', false
+        add_method_tracer find_method, 'ActiveRecord/all', false
+      end
     end
     [:save, :save!].each do |save_method|
       add_method_tracer save_method, 'ActiveRecord/#{self.class.name}/save'
