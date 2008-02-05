@@ -46,7 +46,11 @@ class NewrelicController < ActionController::Base
     @explanation = []
     @trace = @segment[:backtrace]
     
-    @explanation = ActiveRecord::Base.connection.select_rows("EXPLAIN #{@sql}")
+    result = ActiveRecord::Base.connection.execute("EXPLAIN #{@sql}")
+    @explanation = []
+    result.each {|row| @explanation << row }
+    
+    # @explanation = ActiveRecord::Base.connection.select_rows("EXPLAIN #{@sql}")
     @row_headers = [
       nil,
       "Select Type",
