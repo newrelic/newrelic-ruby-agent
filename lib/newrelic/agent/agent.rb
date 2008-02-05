@@ -270,9 +270,9 @@ module NewRelic::Agent
         @last_harvest_time = Time.now
         
         # handle_messages 
-      rescue Exception => e
-        puts e
-        puts e.backtrace[0..6].join("\n")
+        
+        # note - exceptions are logged in invoke_remote.  If an exception is encountered here,
+        # then the metric data is downsampled for another timeslices
       end
 
       def harvest_and_send_sample_data
