@@ -132,18 +132,17 @@ module NewRelic::Agent
         @stats_engine = StatsEngine.new(@log)
         @transaction_sampler = TransactionSampler.new(self)
         
-        if @my_port || config['monitor_daemons']
+        if @my_port
           log_file = "log/newrelic_agent.#{@my_port}.log"
-          @log = Logger.new log_file
-          @log.level = Logger::INFO
-        
-          log! "New Relic RPM Agent Initialized: pid = #{$$}"
-          to_stderr "Agent Log is found in #{log_file}"
         else
-          @log = Logger.new STDERR
-          @log.level = Logger::ERROR
+          log_file = "log/newrelic_agent.log"
         end
         
+        @log = Logger.new log_file
+        @log.level = Logger::INFO
+      
+        log! "New Relic RPM Agent Initialized: pid = #{$$}"
+        to_stderr "Agent Log is found in #{log_file}"
       end
       
       # Connect to the server, and run the worker loop forever
@@ -152,7 +151,7 @@ module NewRelic::Agent
         # a rake task, or a batch job, or perhaps it's running in an fcgi environment
         # which is not yet supportedd)
         # attempt to connect to the server
-        return unless @my_port || config['monitor_daemons']
+        return unless @my_port || @config['monitor_daemons']
         
         until @connected
           should_retry = connect
