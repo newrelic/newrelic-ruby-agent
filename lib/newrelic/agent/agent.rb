@@ -133,9 +133,9 @@ module NewRelic::Agent
         @transaction_sampler = TransactionSampler.new(self)
         
         if @my_port
-          log_file = "log/newrelic_agent.#{@my_port}.log"
+          log_file = "#{RAILS_ROOT}/log/newrelic_agent.#{@my_port}.log"
         else
-          log_file = "log/newrelic_agent.log"
+          log_file = "#{RAILS_ROOT}/log/newrelic_agent.log"
         end
         
         @log = Logger.new log_file

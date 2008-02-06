@@ -41,8 +41,8 @@ class ActionController::Base
  
   # trace the number of exceptions encountered 
   # TODO determine how to break these out: by error code, contoller class, error class? all of the above?
-  add_method_tracer :rescue_action, 'Errors/Type/#{args.first.class}', false
-  add_method_tracer :rescue_action, 'Errors/Controller/#{self.class}', false
+  # add_method_tracer :rescue_action, 'Errors/Type/#{args.first.class}', false
+  # add_method_tracer :rescue_action, 'Errors/Controller/#{self.class}', false
   
   private
     # determine the path that is used in the metric name for
