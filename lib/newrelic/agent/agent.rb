@@ -201,9 +201,9 @@ module NewRelic::Agent
         @connect_attempts += 1
         if @connect_attempts > 20
           @connect_retry_period, period_msg = 10.minutes, "10 minutes"
-        elsif @connect_retry_period > 2
+        elsif @connect_attempts > 10
           @connect_retry_period, period_msg = 1.minutes, "1 minute"
-        elsif @connect_retry_period > 5
+        elsif @connect_attempts > 5
           @connect_retry_period, period_msg = 30, nil
         else
           @connect_retry_period, period_msg = 5, nil
