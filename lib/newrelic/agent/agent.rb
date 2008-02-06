@@ -185,7 +185,8 @@ module NewRelic::Agent
 
         @connected = true
         @last_harvest_time = Time.now
-      
+        return true
+        
       rescue LicenseException => e
         log! e.message, :error
         log! "Visit NewRelic.com to obtain a valid license key, or contact NewRelic support to recover your license key"
