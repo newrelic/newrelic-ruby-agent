@@ -175,7 +175,7 @@ module NewRelic::Agent
         @connect_attempts ||= 0
         
         # wait a few seconds for the web server to boot
-        sleep @connect_retry_period
+        sleep @connect_retry_period.to_i
         
         @agent_id = invoke_remote :launch, @my_host,
           @my_port, determine_home_directory, $$, @launch_time
@@ -201,7 +201,7 @@ module NewRelic::Agent
         @connect_attempts += 1
         if @connect_attempts > 20
           @connect_retry_period, period_msg = 10.minutes, "10 minutes"
-        elsif @connect_retry_period > 10
+        elsif @connect_retry_period > 2
           @connect_retry_period, period_msg = 1.minutes, "1 minute"
         elsif @connect_retry_period > 5
           @connect_retry_period, period_msg = 30, nil
