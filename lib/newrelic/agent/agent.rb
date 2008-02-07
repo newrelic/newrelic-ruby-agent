@@ -125,8 +125,6 @@ module NewRelic::Agent
         @connected = false
         @launch_time = Time.now
        
-        @worker_loop = WorkerLoop.new(@log)
-        
         @metric_ids = {}
         
         @stats_engine = StatsEngine.new(@log)
@@ -141,6 +139,8 @@ module NewRelic::Agent
         @log = Logger.new log_file
         @log.level = Logger::INFO
       
+        @worker_loop = WorkerLoop.new(@log)
+        
         log! "New Relic RPM Agent Initialized: pid = #{$$}"
         to_stderr "Agent Log is found in #{log_file}"
       end
@@ -326,7 +326,7 @@ module NewRelic::Agent
 
         return_value = Marshal.load(CGI::unescape(res.body))
       rescue Exception => e
-        log.error("Error communicating with RPM Service at #{@remote_port}:#{remote_port}: #{e}")
+        log.error("Error communicating with RPM Service at #{@remote_host}:#{remote_port}: #{e}")
         log.debug(e.backtrace.join("\n"))
         return_value = e
       ensure

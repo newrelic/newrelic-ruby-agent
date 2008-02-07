@@ -6,7 +6,7 @@ module NewRelic::Agent
   class WorkerLoop
     attr_reader :log
     
-    def initialize(log = Logger.new(STDOUT))
+    def initialize(log = Logger.new(STDERR))
       @tasks = []
       @mutex = Mutex.new
       @log = log
@@ -61,8 +61,8 @@ module NewRelic::Agent
         begin
           task.execute
         rescue Exception => e
-          log.error "Error running task in Agent Worker Loop: #{e}" 
-          log.error e.backtrace.join("\n")
+          log.debug "Error running task in Agent Worker Loop: #{e}" 
+          log.debug e.backtrace.join("\n")
         end
       end
       
