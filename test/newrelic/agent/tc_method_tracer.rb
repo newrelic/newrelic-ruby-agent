@@ -2,6 +2,8 @@ require File.join(File.dirname(__FILE__),'mock_agent')
 require 'newrelic/agent/method_tracer'
 require 'test/unit'
 
+::RPM_TRACERS_ENABLED = true unless defined? ::RPM_TRACERS_ENABLED
+
 module NewRelic
   module Agent
     

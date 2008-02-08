@@ -2,6 +2,8 @@ require 'newrelic/agent/transaction_sampler'
 require 'newrelic/transaction_sample_rule'
 require 'test/unit'
 
+::RPM_DEVELOPER = false unless defined? ::RPM_DEVELOPER
+
 module NewRelic 
   module Agent
     class TransationSamplerTests < Test::Unit::TestCase
