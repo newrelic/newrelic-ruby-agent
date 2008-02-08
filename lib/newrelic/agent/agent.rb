@@ -156,11 +156,11 @@ module NewRelic::Agent
       
       # Connect to the server, and run the worker loop forever
       def run_worker_loop
-        # bail if the application is not running in a mongrel process (ie, it's 
-        # a rake task, or a batch job, or perhaps it's running in an fcgi environment
-        # which is not yet supportedd)
+        # bail if the application is not running in a mongrel process unless
+        # the user explicitly asks to monitor non-mongrel processes (assumed to 
+        # be daemons) by setting 'monitor_daemons' to true in newrelic.yaml
         # attempt to connect to the server
-        return unless @my_port || @config['monitor_daemons']
+        return unless @my_port || config['monitor_daemons']
         
         until @connected
           should_retry = connect
