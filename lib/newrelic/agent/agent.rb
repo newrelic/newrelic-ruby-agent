@@ -75,22 +75,18 @@ module NewRelic::Agent
     # environment configuration file
     def start(config)
       if @started
-        log.error "Agent Started Already!"
+        log! "Agent Started Already!"
         raise Exception.new("Duplicate attempt to start the NewRelic agent")
       end
       
       @config = config
       
-      # set the log level as specified in the config file
-      case config.fetch("log_level","info").downcase
-        when "debug": @log.level = Logger::DEBUG
-        when "info": @log.level = Logger::INFO
-        when "warn": @log.level = Logger::WARN
-        when "error": @log.level = Logger::ERROR
-        when "fatal": @log.level = Logger::FATAL
-        else @log.level = Logger::INFO
-      end
-    
+      @my_port = determine_port
+      @my_host = determine_host
+      
+      setup_log
+      
+      @worker_loop = WorkerLoop.new(@log)
       @started = true
       
       @license_key = config.fetch('license_key', nil)
@@ -102,34 +98,37 @@ module NewRelic::Agent
       @remote_host = config.fetch('host', 'rpm.newrelic.com')
       @remote_port = config.fetch('port', '80')
 
-      if config['enabled']
-        load_samplers
-      
-        @worker_thread = Thread.new do 
-          run_worker_loop
+      if config['enabled'] || config['developer']
+        instrument_rails
+
+        if config['enabled']
+          load_samplers
+          
+          @worker_thread = Thread.new do 
+            run_worker_loop
+          end
         end
       
         # When the VM shuts down, attempt to send a message to the server that
         # this agent run is stopping, assuming it has successfully connected
         at_exit do
-          invoke_remote :shutdown, @agent_id, Time.now if @connected
+          graceful_disconnect
         end
       end
     end
   
     private
       def initialize
-        @my_port = determine_port
-        @my_host = determine_host
-        
         @connected = false
         @launch_time = Time.now
        
         @metric_ids = {}
         
-        @stats_engine = StatsEngine.new(@log)
+        @stats_engine = StatsEngine.new
         @transaction_sampler = TransactionSampler.new(self)
-        
+      end
+      
+      def setup_log
         if @my_port
           log_file = "#{RAILS_ROOT}/log/newrelic_agent.#{@my_port}.log"
         else
@@ -138,8 +137,18 @@ module NewRelic::Agent
         
         @log = Logger.new log_file
         @log.level = Logger::INFO
-      
-        @worker_loop = WorkerLoop.new(@log)
+        
+        @stats_engine.log = @log
+        
+        # set the log level as specified in the config file
+        case config.fetch("log_level","info").downcase
+          when "debug": @log.level = Logger::DEBUG
+          when "info": @log.level = Logger::INFO
+          when "warn": @log.level = Logger::WARN
+          when "error": @log.level = Logger::ERROR
+          when "fatal": @log.level = Logger::FATAL
+          else @log.level = Logger::INFO
+        end
         
         log! "New Relic RPM Agent Initialized: pid = #{$$}"
         to_stderr "Agent Log is found in #{log_file}"
@@ -251,6 +260,22 @@ module NewRelic::Agent
         File.expand_path(RAILS_ROOT)
       end
       
+      def instrument_rails
+        Module.method_tracer_log = log
+
+        # Instrumentation for the key code points inside rails for monitoring by NewRelic.
+        # note this file is loaded only if the newrelic agent is enabled (through config/newrelic.yml)
+        instrumentation_files = File.join(File.dirname(__FILE__), 'instrumentation', '*.rb')
+        Dir.glob(instrumentation_files) do |file|
+          begin
+            require file
+            log.info "Processed instrumentation file '#{file.split('/').last}'"
+          rescue Exception => e
+            log.error "Error loading instrumentation file '#{file}': #{e}"
+          end
+        end
+      end
+
       @last_harvest_time = Time.now
       def harvest_and_send_timeslice_data
         now = Time.now
@@ -320,11 +345,15 @@ module NewRelic::Agent
         post_data = [license_key, method, PROTOCOL_VERSION, args]
         post_data = CGI::escape(Marshal.dump(post_data))
 
-        res = Net::HTTP.start(@remote_host, @remote_port) do |http|
+        response = Net::HTTP.start(@remote_host, @remote_port) do |http|
           http.post('/agent_listener/invoke_raw_method', post_data) 
         end
 
-        return_value = Marshal.load(CGI::unescape(res.body))
+        if response.is_a? Net::HTTPSuccess
+          return_value = Marshal.load(CGI::unescape(response.body))
+        else
+          raise Exception.new "#{response.code}: #{response.message}"
+        end
       rescue Exception => e
         log.error("Error communicating with RPM Service at #{@remote_host}:#{remote_port}: #{e}")
         log.debug(e.backtrace.join("\n"))
@@ -341,11 +370,24 @@ module NewRelic::Agent
       # up in the console.  This should be used for important informational messages at boot
       def log!(msg, level = :info)
         to_stderr msg
-        log.send level, msg
+        log.send level, msg if log
       end
       
       def to_stderr(msg)
         STDERR.puts "** [NewRelic] " + msg
+      end
+      
+      def graceful_disconnect
+        if @connected
+          begin
+            invoke_remote :shutdown, @agent_id, Time.now 
+            log.debug "Sent graceful shutdown message to #{remote_host}:#{remote_port}"
+          rescue Exception => e
+            log.warn "Error sending shutdown message to #{remote_host}:#{remote_port}:"
+            log.warn e
+            log.debug e.backtrace.join("\n")
+          end
+        end
       end
   end
 

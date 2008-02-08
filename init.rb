@@ -2,9 +2,9 @@ require 'yaml'
 require 'newrelic/agent/method_tracer'
 
 # Initializer for the NewRelic Agent
-config_filename = RAILS_ROOT+"/config/newrelic.yml"
+config_filename = File.join(File.dirname(__FILE__), '..','..','..','config','newrelic.yml')
 begin
-  newrelic_config_file = File.read(RAILS_ROOT+"/config/newrelic.yml")
+  newrelic_config_file = File.read(config_filename)
 
   newrelic_agent_config = YAML.load(newrelic_config_file)[RAILS_ENV]
   newrelic_agent_config.freeze
@@ -19,7 +19,6 @@ begin
   # behave exaclty as if the agent were never installed in the first place.
   if ::RPM_AGENT_ENABLED || ::RPM_DEVELOPER
     require 'newrelic/agent'
-    require 'newrelic/agent/instrument_rails'
   
     NewRelic::Agent.instance.start(newrelic_agent_config)
   

@@ -6,7 +6,7 @@ module NewRelic::Agent
   class StatsEngine
     POLL_PERIOD = 10
     
-    attr_reader :log
+    attr_accessor :log
 
     ScopeStackElement = Struct.new(:name, :timestamp, :exclusive_time)
     
@@ -21,7 +21,7 @@ module NewRelic::Agent
       end
     end
     
-    def initialize(log = Logger.new(STDOUT))
+    def initialize(log = Logger.new(STDERR))
       @stats_hash = {}
       @sampled_items = []
       @scope_stack_listeners = []
