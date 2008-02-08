@@ -374,7 +374,11 @@ module NewRelic::Agent
       end
       
       def to_stderr(msg)
-        STDERR.puts "** [NewRelic] " + msg
+        # only log to stderr when we are running as a mongrel process, so it doesn't
+        # muck with daemons and the like.
+        if @my_port
+          STDERR.puts "** [NewRelic] " + msg 
+        end
       end
       
       def graceful_disconnect
