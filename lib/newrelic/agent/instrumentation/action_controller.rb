@@ -50,7 +50,13 @@ module ActionController
       # determine the path that is used in the metric name for
       # the called controller action
       def _determine_metric_path
-        "#{self.class.controller_path}/#{params[:action]}"
+        if self.class.action_methods.include?(action_name)
+          "#{self.class.controller_path}/#{action_name}"
+        elsif respond_to? :method_missing
+          "#{self.class.controller_path}/(other)"
+        else
+          "#{self.class.controller_path}/#{action_name}"
+        end
       end
     end
   
