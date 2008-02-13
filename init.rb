@@ -41,14 +41,19 @@ begin
       Dependencies.load_paths << controller_path
       Dependencies.load_paths << helper_path
       config.controller_paths << controller_path
-      to_stderr "NewRelic Developer Edition enabled."
-      to_stderr "To view performance information, go to http://localhost:#{agent.local_port}/newrelic"
+      
+      # inform user that the dev edition is available if we are running inside
+      # a webserver process
+      if agent.local_port
+        to_stderr "NewRelic Developer Edition enabled."
+        to_stderr "To view performance information, go to http://localhost:#{agent.local_port}/newrelic"
+      end
     end
   end
 rescue Errno::ENOENT => e
   to_stderr "could not find configuration file #{config_filename}."
   to_stderr "be sure to put newrelic.yml into your config directory."
-  to_stderr "Agent is disable..d."
+  to_stderr "Agent is disabled."
 rescue Exception => e
   to_stderr "Error parsing #{config_filename}"
   to_stderr "#{e}"
