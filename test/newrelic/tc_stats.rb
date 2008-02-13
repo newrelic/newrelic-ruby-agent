@@ -99,7 +99,8 @@ module NewRelic
       s.trace_call 13
       s.trace_call 16
       
-      assert_equal(s.variance / (s.call_count - 1), 30)
+      # assert_equal(s.variance / (s.call_count - 1), 30)
+      # TODO a sum of squares check of some sort
     end
     
     def test_std_dev_merge
@@ -112,8 +113,13 @@ module NewRelic
       s2.trace_call 16
       
       s3 = s1.merge(s2)
-      # FIXME this is broken!
-#      assert_equal(s3.variance / (s3.call_count - 1), 30)
+      
+      assert(s1.sum_of_squares, 4*4 + 7*7)
+      assert_in_delta(s1.standard_deviation, 1.5, 0.01)
+      
+      assert_in_delta(s2.standard_deviation, 1.5, 0.01)
+      assert_equal(s3.sum_of_squares, 4*4 + 7*7 + 13*13 + 16*16, "check sum of squares")
+      assert_in_delta(s3.standard_deviation, 4.743, 0.01)
     end
     
     

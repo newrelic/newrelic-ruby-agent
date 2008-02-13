@@ -20,7 +20,7 @@ module NewRelic
         self.max_call_time = s.max_call_time if s.max_call_time > max_call_time
         self.call_count += s.call_count
         # FIXME THIS IS BROKEN!  How do we merge variances?
-        self.variance += s.variance
+        self.sum_of_squares += s.sum_of_squares
         self.begin_time = s.begin_time if s.begin_time.to_f < begin_time.to_f || begin_time.to_f == 0.0
         self.end_time = s.end_time if s.end_time.to_f > end_time.to_f
       end
@@ -74,7 +74,7 @@ module NewRelic
       self.total_exclusive_time = 0.0
       self.min_call_time = 0.0
       self.max_call_time = 0.0
-      self.variance = 0.0
+      self.sum_of_squares = 0.0
       self.begin_time = Time.at(0)
       self.end_time = Time.at(0)
     end
@@ -94,8 +94,10 @@ module NewRelic
     end
     
     def standard_deviation
-      return 0 if call_count < 2
-      Math.sqrt(variance / (call_count - 1))
+      return 0 if call_count < 2 || self.sum_of_squares.nil?
+      # Convert sum of squares into standard deviation based on
+      # formula for the standard deviation for the entire population
+      Math.sqrt((self.sum_of_squares - (self.call_count * (self.average_value**2))) / self.call_count)
     end
     
     # returns the time spent in this component as a percentage of the total
@@ -120,7 +122,8 @@ module NewRelic
       s << "Total Exclusive=#{total_exclusive_time.to_ms}, "
       s << "Avg=#{average_call_time.to_ms}, "
       s << "Min=#{min_call_time.to_ms}, "
-      s << "Max=#{max_call_time.to_ms}"
+      s << "Max=#{max_call_time.to_ms}, "
+      s << "StdDev=#{standard_deviation.to_ms}"
     end
 
     # calculate this set of stats to be a percentage fraction 
@@ -135,14 +138,14 @@ module NewRelic
       self.min_call_time = s.min_call_time
       self.max_call_time = s.max_call_time
       self.call_count = s.call_count * percentage
-      self.variance = s.variance * percentage
+      self.sum_of_squares = s.sum_of_squares * percentage
     end
     
     # multiply the total time and rate by the given percentage 
     def multiply_by(percentage)
       self.total_call_time = total_call_time * percentage
       self.call_count = call_count * percentage
-      self.variance = variance * percentage
+      self.sum_of_squares = sum_of_squares * percentage
       
       self
     end
@@ -157,7 +160,7 @@ module NewRelic
     attr_accessor :max_call_time
     attr_accessor :total_call_time
     attr_accessor :total_exclusive_time
-    attr_accessor :variance
+    attr_accessor :sum_of_squares
     
     alias data_point_count call_count
     
@@ -165,39 +168,11 @@ module NewRelic
       reset
     end
     
-    # This is the source code I found on a google search for standard deviation calculation.
-    # I need to convert the algorithm to accumulate on the fly rather than process
-    # the entire set.
-    # def variance(population)
-    #   n = 0
-    #   mean = 0.0
-    #   s = 0.0
-    #   population.each { |x|
-    #     n = n + 1
-    #     delta = x - mean
-    #     mean = mean + (delta / n)
-    #     s = s + delta * (x - mean)
-    #   }
-    #   # if you want to calculate std deviation
-    #   # of a sample change this to "s / (n-1)"
-    #   return s / n
-    # end
-    # 
-    # # calculate the standard deviation of a population
-    # # accepts: an array, the population
-    # # returns: the standard deviation
-    # def standard_deviation(population)
-    #   Math.sqrt(variance(population))
-    # end
-        
     # record a single data point into the statistical gatherer.  The gatherer
     # will aggregate all data points collected over a specified period and upload
     # its data to the NewRelic server
     def record_data_point(value, exclusive_time = nil)
       exclusive_time ||= value
-      
-      # update the variance accumulator for calculating the standard deviation
-      delta = value - average_value
       
       @call_count += 1
       @total_call_time += value
@@ -205,8 +180,7 @@ module NewRelic
       @max_call_time = value if value > @max_call_time
       @total_exclusive_time += exclusive_time
 
-      @variance += delta * (value - average_value)
-      
+      @sum_of_squares += value ** 2
       self
     end
 
