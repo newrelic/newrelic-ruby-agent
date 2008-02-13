@@ -1,7 +1,11 @@
 <tr>
-	<td><%= link_to segment_row.developer_name, 
-							"http://rpm.newrelic.com#{url_for :controller => :metric_doc, :metric => segment_row.metric_name }"
-							%></td>
+	<td>
+			<%= segment_row.metric_name %>
+			<small>
+			<%= link_to "?", 
+					"http://rpm.newrelic.com#{url_for :controller => :metric_doc, :metric => segment_row.metric_name }" %>
+					</small>
+	</td>
 	<td align=left> <%= segment_row.call_count %></td>
 	<td align=right><%= segment_row.exclusive_time.to_ms %> ms</td>
 	<td align=right><%= segment_row.exclusive_time_percentage.to_percentage(0) %>% </td>

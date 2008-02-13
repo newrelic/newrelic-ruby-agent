@@ -4,7 +4,9 @@
 		<b>URL:</b> /<%= @sample.params[:path]%><br/>
 		<b>Time Stamp:</b> <%= @sample.start_time%><br/>
 		<b>Duration:</b> <%= @sample.duration.to_ms%> ms<br/>
+		<% if false # turn on for debugging marshaled object size... %>
 		<b>Serialized Size:</b> <%= Marshal.dump(@sample).length / 1024 %> kb<br/>
+		<% end %>
 		</td>
 		<td valign='middle' align='right'>
 		</td>

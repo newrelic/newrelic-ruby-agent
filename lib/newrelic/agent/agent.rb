@@ -69,6 +69,7 @@ module NewRelic::Agent
     attr_reader :config
     attr_reader :remote_host
     attr_reader :remote_port
+    attr_reader :local_port
     
     # Start up the agent, which will connect to the newrelic server and start 
     # reporting performance information.  Typically this is done from the
@@ -81,8 +82,8 @@ module NewRelic::Agent
       
       @config = config
       
-      @my_port = determine_port
-      @my_host = determine_host
+      @local_port = determine_port
+      @local_host = determine_host
       
       setup_log
       
@@ -129,8 +130,8 @@ module NewRelic::Agent
       end
       
       def setup_log
-        if @my_port
-          log_file = "#{RAILS_ROOT}/log/newrelic_agent.#{@my_port}.log"
+        if @local_port
+          log_file = "#{RAILS_ROOT}/log/newrelic_agent.#{@local_port}.log"
         else
           log_file = "#{RAILS_ROOT}/log/newrelic_agent.log"
         end
@@ -160,7 +161,7 @@ module NewRelic::Agent
         # the user explicitly asks to monitor non-mongrel processes (assumed to 
         # be daemons) by setting 'monitor_daemons' to true in newrelic.yaml
         # attempt to connect to the server
-        return unless @my_port || config['monitor_daemons']
+        return unless @local_port || config['monitor_daemons']
         
         until @connected
           should_retry = connect
@@ -186,8 +187,8 @@ module NewRelic::Agent
         # wait a few seconds for the web server to boot
         sleep @connect_retry_period.to_i
         
-        @agent_id = invoke_remote :launch, @my_host,
-          @my_port, determine_home_directory, $$, @launch_time
+        @agent_id = invoke_remote :launch, @local_host,
+          @local_port, determine_home_directory, $$, @launch_time
         
         log! "Connected to NewRelic Service at #{@remote_host}:#{@remote_port}."
         log.debug "Agent ID = #{@agent_id}."
@@ -376,7 +377,7 @@ module NewRelic::Agent
       def to_stderr(msg)
         # only log to stderr when we are running as a mongrel process, so it doesn't
         # muck with daemons and the like.
-        if @my_port
+        if @local_port
           STDERR.puts "** [NewRelic] " + msg 
         end
       end

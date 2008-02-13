@@ -1,6 +1,10 @@
 require 'yaml'
 require 'newrelic/agent/method_tracer'
 
+def to_stderr(s)
+  STDERR.puts "** [NewRelic] " + s
+end
+
 # Initializer for the NewRelic Agent
 config_filename = File.join(File.dirname(__FILE__), '..','..','..','config','newrelic.yml')
 begin
@@ -20,8 +24,15 @@ begin
   if ::RPM_AGENT_ENABLED || ::RPM_DEVELOPER
     require 'newrelic/agent'
   
-    NewRelic::Agent.instance.start(newrelic_agent_config)
+    agent = NewRelic::Agent.instance
+    agent.start(newrelic_agent_config)
   
+    # When (and only when) RPM is running in developer mode, a few pages
+    # are added to your application that present performance information
+    # on the last 500 http requests your application has handled, allowing
+    # you to diagnose performance problems on your desktop.
+    #
+    # to see this information, visit http://localhost:3000/newrelic
     if ::RPM_DEVELOPER
       controller_path = File.join(File.dirname(__FILE__), 'ui', 'controllers')
       helper_path = File.join(File.dirname(__FILE__), 'ui', 'helpers')
@@ -30,14 +41,16 @@ begin
       Dependencies.load_paths << controller_path
       Dependencies.load_paths << helper_path
       config.controller_paths << controller_path
+      to_stderr "NewRelic Developer Edition enabled."
+      to_stderr "To view performance information, go to http://localhost:#{agent.local_port}/newrelic"
     end
   end
 rescue Errno::ENOENT => e
-  STDERR.puts "** [NewRelic] could not find configuration file #{config_filename}."
-  STDERR.puts "** [NewRelic] be sure to put newrelic.yml into your config directory."
-  STDERR.puts "** [NewRelic] Agent is disabled."
+  to_stderr "could not find configuration file #{config_filename}."
+  to_stderr "be sure to put newrelic.yml into your config directory."
+  to_stderr "Agent is disable..d."
 rescue Exception => e
-  STDERR.puts "** [NewRelic] Error parsing #{config_filename}"
-  STDERR.puts "** [NewRelic] #{e}"
-  STDERR.puts "** [NewRelic] Agent is disabled."
+  to_stderr "Error parsing #{config_filename}"
+  to_stderr "#{e}"
+  to_stderr "Agent is disabled."
 end
