@@ -19,8 +19,7 @@ module NewRelic
         self.min_call_time = s.min_call_time if s.min_call_time < min_call_time || call_count == 0
         self.max_call_time = s.max_call_time if s.max_call_time > max_call_time
         self.call_count += s.call_count
-        # FIXME THIS IS BROKEN!  How do we merge variances?
-        self.sum_of_squares += s.sum_of_squares
+        self.sum_of_squares += s.sum_of_squares if s.sum_of_squares
         self.begin_time = s.begin_time if s.begin_time.to_f < begin_time.to_f || begin_time.to_f == 0.0
         self.end_time = s.end_time if s.end_time.to_f > end_time.to_f
       end
@@ -138,7 +137,7 @@ module NewRelic
       self.min_call_time = s.min_call_time
       self.max_call_time = s.max_call_time
       self.call_count = s.call_count * percentage
-      self.sum_of_squares = s.sum_of_squares * percentage
+      self.sum_of_squares = (s.sum_of_squares || 0) * percentage
     end
     
     # multiply the total time and rate by the given percentage 
