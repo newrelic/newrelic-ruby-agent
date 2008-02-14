@@ -31,7 +31,7 @@ class Module
       else
         exclusive = duration
       end
-      stats.trace_call t1-t0, exclusive
+      stats.trace_call duration, exclusive
     
       result 
     end

@@ -98,9 +98,17 @@ module NewRelic
       s.trace_call 7
       s.trace_call 13
       s.trace_call 16
+      s.trace_call 8
+      s.trace_call 4
+      assert_equal(s.sum_of_squares, 4**2 + 7**2 + 13**2 + 16**2 + 8**2 + 4**2)
       
-      # assert_equal(s.variance / (s.call_count - 1), 30)
-      # TODO a sum of squares check of some sort
+      s.trace_call 9
+      s.trace_call 3
+      s.trace_call 1000
+      s.trace_call 4
+
+      # calculated stdev (population, not sample) from a spreadsheet.
+      assert_in_delta(s.standard_deviation, 297.76, 0.01)
     end
     
     def test_std_dev_merge
@@ -121,7 +129,6 @@ module NewRelic
       assert_equal(s3.sum_of_squares, 4*4 + 7*7 + 13*13 + 16*16, "check sum of squares")
       assert_in_delta(s3.standard_deviation, 4.743, 0.01)
     end
-    
     
     private
       def validate (stats, count, total, min, max, exclusive = nil)
