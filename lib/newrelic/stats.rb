@@ -94,9 +94,13 @@ module NewRelic
     
     def standard_deviation
       return 0 if call_count < 2 || self.sum_of_squares.nil?
+      
       # Convert sum of squares into standard deviation based on
       # formula for the standard deviation for the entire population
-      Math.sqrt((self.sum_of_squares - (self.call_count * (self.average_value**2))) / self.call_count)
+      x = self.sum_of_squares - (self.call_count * (self.average_value**2))
+      return 0 if x <= 0
+      
+      Math.sqrt(x / self.call_count)
     end
     
     # returns the time spent in this component as a percentage of the total
