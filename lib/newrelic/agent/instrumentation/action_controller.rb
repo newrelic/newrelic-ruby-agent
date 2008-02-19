@@ -5,9 +5,9 @@ if defined? ActionController
 
 module ActionController
   class Base
-    def perform_action_with_trace
+    def perform_action_with_newrelic_trace
       agent = NewRelic::Agent.instance
-      return perform_action_without_trace if self.class.read_inheritable_attribute('do_not_trace')
+      return perform_action_without_newrelic_trace if self.class.read_inheritable_attribute('do_not_trace')
     
       # generate metrics for all all controllers (no scope)
       self.class.trace_method_execution "Controller", false do 
@@ -22,7 +22,7 @@ module ActionController
           NewRelic::Agent.instance.transaction_sampler.notice_transaction(path, params)
         
           # run the action
-          perform_action_without_trace
+          perform_action_without_newrelic_trace
         end
       end
     
@@ -31,7 +31,7 @@ module ActionController
       agent.stats_engine.transaction_name = nil
     end
   
-    alias_method_chain :perform_action, :trace
+    alias_method_chain :perform_action, :newrelic_trace
   
     add_method_tracer :render, 'View/#{_determine_metric_path}/Rendering'
   
