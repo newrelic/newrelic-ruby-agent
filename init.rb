@@ -10,7 +10,7 @@ config_filename = File.join(File.dirname(__FILE__), '..','..','..','config','new
 begin
   newrelic_config_file = File.read(config_filename)
 
-  newrelic_agent_config = YAML.load(newrelic_config_file)[RAILS_ENV]
+  newrelic_agent_config = YAML.load(newrelic_config_file)[RAILS_ENV] || {}
   newrelic_agent_config.freeze
 
   ::RPM_AGENT_ENABLED = newrelic_agent_config['enabled']
