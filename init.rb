@@ -41,6 +41,7 @@ begin
       Dependencies.load_paths << controller_path
       Dependencies.load_paths << helper_path
       config.controller_paths << controller_path
+      require 'newrelic_routing'
       
       # inform user that the dev edition is available if we are running inside
       # a webserver process
