@@ -1,3 +1,4 @@
+require 'net/https' 
 require 'net/http'
 require 'logger'
 require 'singleton'
@@ -96,9 +97,12 @@ module NewRelic::Agent
         return
       end
       
-      @remote_host = config.fetch('host', 'rpm.newrelic.com')
-      @remote_port = config.fetch('port', '80')
+      @use_ssl = config.fetch('ssl', false)
+      default_port = @use_ssl ? 443 : 80
 
+      @remote_host = config.fetch('host', 'rpm.newrelic.com')
+      @remote_port = config.fetch('port', default_port)
+      
       if config['enabled'] || config['developer']
         instrument_rails
 
@@ -345,8 +349,14 @@ module NewRelic::Agent
       def invoke_remote(method, *args)
         post_data = [license_key, method, PROTOCOL_VERSION, args]
         post_data = CGI::escape(Marshal.dump(post_data))
+        
+        request = Net::HTTP.new(@remote_host, @remote_port.to_i) 
+        if @use_ssl
+          request.use_ssl = true 
+          request.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        end
 
-        response = Net::HTTP.start(@remote_host, @remote_port) do |http|
+        response = request.start do |http|
           http.post('/agent_listener/invoke_raw_method', post_data) 
         end
 
