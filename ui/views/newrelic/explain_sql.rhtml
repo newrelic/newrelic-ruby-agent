@@ -1,4 +1,5 @@
 <h3>Statement Analysis</h3>
+<% if @explanation %>
 <table>	
 	<tr>
 		<td align=right valign=top>
@@ -29,6 +30,10 @@
 		<% end %>
 	<% end %>
 </table>
+<% else %>
+<b>SQL </b>
+<%= line_wrap_sql(@sql)%>
+<% end %>
 
 <p/>
 <h3>Application Stack Trace</h3>

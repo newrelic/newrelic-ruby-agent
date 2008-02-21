@@ -43,27 +43,28 @@ class NewrelicController < ActionController::Base
     get_segment
 
     @sql = @segment[:sql]
-    @explanation = []
     @trace = @segment[:backtrace]
-    
-    result = ActiveRecord::Base.connection.execute("EXPLAIN #{@sql}")
-    @explanation = []
-    result.each {|row| @explanation << row }
-    
-    # @explanation = ActiveRecord::Base.connection.select_rows("EXPLAIN #{@sql}")
-    @row_headers = [
-      nil,
-      "Select Type",
-      "Table",
-      "Type",
-      "Possible Keys",
-      "Key",
-      "Key Length",
-      "Ref",
-      "Rows",
-      "Extra"
-    ];
+    if @sql.split($;, 2)[0].upcase == 'SELECT'
       
+      @explanation = []
+    
+      result = ActiveRecord::Base.connection.execute("EXPLAIN #{@sql}")
+      @explanation = []
+      result.each {|row| @explanation << row }
+    
+      @row_headers = [
+        nil,
+        "Select Type",
+        "Table",
+        "Type",
+        "Possible Keys",
+        "Key",
+        "Key Length",
+        "Ref",
+        "Rows",
+        "Extra"
+      ];
+    end
   end
   
 private 

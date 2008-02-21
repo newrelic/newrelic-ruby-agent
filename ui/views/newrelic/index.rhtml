@@ -1,17 +1,40 @@
 <table>
 	<tr>
-		<th>R/T</th>
-		<th>URL</th>
-	</tr>
-	<% @samples.each do |sample| %>
-		<tr>
-		<td align=left>
-			<%= stripped_sample(sample).duration.to_ms %> ms
-		</td>
-		<td>
-			<%= link_to "/#{sample.params[:path]}", :action => :view_sample, :id => sample.sample_id %>
-		</td>
+		<td valign=top>
+			<table>
+				<tr>
+					<th>R/T</th>
+					<th>URL</th>
+				</tr>
+				<% @samples.each do |sample| %>
+					<tr>
+					<td align=left nowrap=true>
+						<%= stripped_sample(sample).duration.to_ms %> ms
+					</td>
+					<td>
+						<%= link_to "/#{sample.params[:path]}", :action => :view_sample, :id => sample.sample_id %>
+					</td>
 			
-		</tr>
-	<% end %>
+					</tr>
+				<% end %>
+			</table>
+		</td>
+		<td width=15 />
+		<td valign=top>
+			<h3>Welcome</h3>
+			Welcome to <b>New Relic RPM Desktop Edition</b>.  This Rails extension traces the performance activity
+			of your 500 most recent controller actions in your rails application, and presents the performance
+			information for your analysis.
+			<p/>
+			The url's of the most recent transactions are presented to the left, most-recent first.  Click
+			on any one of these to drill down and inspect its performance information.
+			<p/>
+			The identical agent technology that provides this data is also capable of monitoring your application as it
+			runs in production.  For more information, visit <%= link_to "http://www.newrelic.com" %>.
+			<p/>
+			Note, to increase the accuracy of our performance measurement, we automatically "strip out" any
+			time spent in application code loading, which will not happen when your application runs in 
+			production mode.
+		</td>
+	<tr>
 </table>

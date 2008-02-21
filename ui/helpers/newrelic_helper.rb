@@ -1,3 +1,5 @@
+require 'pathname'
+
 module NewrelicHelper
   
   # return the sample but post processed to strip out segments that normally don't show
@@ -33,7 +35,7 @@ module NewrelicHelper
   
   def url_for_textmate(trace_line)
     s = trace_line.split(':')
-    file = s[0]
+    file = Pathname.new(s[0]).realpath
     line = s[1]
 
     "txmt://open?url=file://#{file}&line=#{line}"
