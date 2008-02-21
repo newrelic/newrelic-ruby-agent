@@ -92,6 +92,10 @@ module NewRelic
       ((call_count / duration.to_f * 6000).round).to_f / 100
     end
     
+    def calls_per_second
+      (calls_per_minute / 60).round_to(2)
+    end
+    
     def standard_deviation
       return 0 if call_count < 2 || self.sum_of_squares.nil?
       
