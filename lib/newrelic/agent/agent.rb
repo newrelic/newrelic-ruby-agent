@@ -100,7 +100,7 @@ module NewRelic::Agent
       @use_ssl = config.fetch('ssl', false)
       default_port = @use_ssl ? 443 : 80
 
-      @remote_host = config.fetch('host', 'rpm.newrelic.com')
+      @remote_host = config.fetch('host', 'collector.newrelic.com')
       @remote_port = config.fetch('port', default_port)
       
       if config['enabled'] || config['developer']
