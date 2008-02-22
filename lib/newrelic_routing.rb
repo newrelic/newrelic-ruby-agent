@@ -10,8 +10,14 @@ module ActionController
         map = Mapper.new(self)
         map.named_route 'newrelic_developer', '/newrelic', :controller => 'newrelic'
         yield map
-        install_helpers
-      end
+
+        # 2.0 rails draw method is just slightly different...
+        if Rails::VERSION::STRING.to_f >= 2.0
+          install_helpers                 
+        else
+          named_routes.install          
+        end
+      end      
     end
   end
 end
