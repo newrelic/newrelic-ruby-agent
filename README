@@ -2,10 +2,50 @@
 NEW RELIC RPM
 =============
 
-NewRelic RPM the a rails application performance monitoring system, currently under development by New Relic, Inc.
+NewRelic RPM a Rails performance management system, developed by New Relic, Inc.
+RPM provides you with deep information about the performance of your Ruby on
+Rail application as it runs in production. The New Relic Agent is distributed as
+a Rails Plugin, which is trivial to install and use.
 
-The NewRelic Agent is installed as a Rails plugin. Configuration is trivial: simply edit a couple of
-properties in RAILS_ROOT/config/newrelic.yml. When enabled, the NewRelic Agent will send performance
-metrics about your rails application to the newrelic.com, which will collect this data and present
-it to you for your analysis. The NewRelic Agent is designed to be extremely lightweight, and yields
-exceptionally deep and useful performance information at a very low response time and CPU overhead.
+Our testing shows that this agent introduces minimal overhead: in production, a
+typical controller action will be impacted impact by less than 2 milliseconds.
+So you can run RPM all the time, and always have access to the information you
+need to resolve performance problems and ensure your application can scale to
+meet the demands of your business.
+
+The New Relic Agent can run in two modes:
+
+DESKTOP MODE
+------------
+Desktop mode is on by default when you run your application in the development
+environment (but not when it runs in other environments.) When running in
+desktop mode, the NewRelic Agent Rails Extension will track the performance of
+every http request serviced by your application, and store in memory this
+information for the last 500 http transactions.
+
+The Desktop Edition will also add a few pages to your application that allow you
+to analyze this performance information. (Don't worry - those pages are not
+added to your application's routes when you run in production mode.)
+
+To view this performance information, including detailed SQL statement analysis,
+go to http://localhost:3000/newrelic and start drilling down.
+
+PRODUCTION MODE
+---------------
+When your application runs in the production environment, the NewRelic agent
+runs in production mode. It connects to the New Relic RPM service and sends deep
+performance data to the RPM service for your analysis. To view this data, login
+to http://rpm.newrelic.com.
+
+NOTE you must have a valid account and license key to view this data online.
+When you sign up for an account at newrelic.com, you will be provided with a
+license key, as well as a default configuration file for NewRelic RPM. You can
+either paste your license key into your existing configuration file,
+config/newrelic.yml, or you can replace that config file with the one include in
+your welcome email.
+
+Thank you, and and may you application scale to infinity plus one.  
+
+Lew Cirne, Founder and CEO
+New Relic, Inc.
+
