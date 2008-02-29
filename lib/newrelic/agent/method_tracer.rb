@@ -40,7 +40,7 @@ class Module
   # Add a method tracer to the specified method.  
   # metric_name_code is ruby code that determines the name of the
   # metric to be collected during tracing.  As such, the code
-  # should be provided in 'single quoute' strings rather than
+  # should be provided in 'single quote' strings rather than
   # "double quote" strings, so that #{} evaluation happens
   # at traced method execution time.
   # Example: tracing a method :foo, where the metric name is
