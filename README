@@ -8,10 +8,12 @@ Rail application as it runs in production. The New Relic Agent is distributed as
 a Rails Plugin, which is trivial to install and use.
 
 Our testing shows that this agent introduces minimal overhead: in production, a
-typical controller action will be impacted impact by less than 2 milliseconds.
-So you can run RPM all the time, and always have access to the information you
-need to resolve performance problems and ensure your application can scale to
-meet the demands of your business.
+typical controller action will be impacted by less than 2 milliseconds in
+response time. (That's significantly less time than is typically spent in mapping
+a request to the appropriate controller action.) So, you can run RPM all the
+time, and always have access to the information you need to resolve performance
+problems and ensure your application can scale to meet the demands of your
+business.
 
 The New Relic Agent can run in two modes:
 
