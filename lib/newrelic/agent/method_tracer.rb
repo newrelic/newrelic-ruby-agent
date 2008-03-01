@@ -77,6 +77,9 @@ class Module
   
     alias_method _untraced_method_name(method_name, metric_name_code), method_name
     alias_method method_name, "#{_traced_method_name(method_name, metric_name_code)}"
+    
+    @@method_trace_log.debug("Traced method: class = #{self}, method = #{method_name}, "+
+        "metric = '#{metric_name_code}', push scope=#{push_scope}")
   end
 
   # Not recommended for production use, because tracers must be removed in reverse-order

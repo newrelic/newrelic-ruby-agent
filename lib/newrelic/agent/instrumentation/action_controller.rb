@@ -3,6 +3,7 @@ require 'set'
 # NewRelic instrumentation for controllers
 if defined? ActionController
 
+
 module ActionController
   class Base
     def perform_action_with_newrelic_trace
@@ -58,16 +59,10 @@ module ActionController
           "#{self.class.controller_path}/#{action_name}"
         end
       end
-    end
-  
-    # instrumentation for http request dispatching (Routes mapping)
-    require 'action_controller/dispatcher'
-    class Dispatcher
-      class << self
-        add_method_tracer :dispatch, 'Rails/HTTP Dispatch', false
-      end
-    end
   end
+
+end
+
 end  
 
 
