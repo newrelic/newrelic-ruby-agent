@@ -26,9 +26,18 @@ common: &default_settings
   # separate from that of your application.  Specify its log level here.
   log_level: info
   
+  # The newrelic agent communicates with the RPM service via http by default.
+  # If you want to communicate via https to increase security, then turn on
+  # SSL by setting this value to true.  Note, this will result in increased
+  # CPU overhead to perform the encryption involved in SSL communication, but this
+  # work is done asynchronously to the threads that process your application code, so
+  # it should not impact response times.
+  ssl: false
 
 # override default settings based on your application's environment
 
+# NOTE if your application has other named environments, you should
+# provide newrelic conifguration settings for these enviromnents here.
 development:
   <<: *default_settings
   # turn off in development.
@@ -49,3 +58,9 @@ production:
   <<: *default_settings
   enabled: true
 
+# many applications have a staging environment which behaves identically to production.
+# Support for that environment is provided here.  By default, the staging environment has
+# the agent turned on.
+staging:
+  <<: *default_settings
+  enabled: true
