@@ -15,7 +15,7 @@ time, and always have access to the information you need to resolve performance
 problems and ensure your application can scale to meet the demands of your
 business.
 
-The New Relic Agent can run in two modes:
+The New Relic Agent runs in one of two modes:
 
 DESKTOP MODE
 ------------
@@ -43,7 +43,7 @@ NOTE you must have a valid account and license key to view this data online.
 When you sign up for an account at newrelic.com, you will be provided with a
 license key, as well as a default configuration file for NewRelic RPM. You can
 either paste your license key into your existing configuration file,
-config/newrelic.yml, or you can replace that config file with the one include in
+config/newrelic.yml, or you can replace that config file with the one included in
 your welcome email.
 
 Thank you, and and may you application scale to infinity plus one.  
