@@ -33,24 +33,42 @@ module NewrelicHelper
     end
   end
   
-  def url_for_textmate(trace_line)
+  def url_for_source(trace_line)
     s = trace_line.split(':')
-    file = Pathname.new(s[0]).realpath
+    
+    begin
+      file = Pathname.new(s[0]).realpath
+    rescue Errno::ENOENT
+      # we hit this exception when Pathame.realpaht fails for some reason; attempt a link to
+      # the file without a real path.  It may also fail, only when the user clicks on this specific
+      # entry in the stack trace
+      file = s[0]
+    end
+      
     line = s[1]
     
-    if false
+    if using_textmate?
       "txmt://open?url=file://#{file}&line=#{line}"
     else
       url_for :action => 'show_source', :file => file, :line => line, :anchor => 'selected_line'
     end
   end
   
-  def link_to_textmate(trace)
-    link_to image_tag("http://rpm.newrelic.com/images/textmate.png"), url_for_textmate(sql_caller(trace))
+  def link_to_source(trace)
+    image_url = "http://rpm.newrelic.com/images/"
+    # TODO need an image for regular text file
+    image_url << (using_textmate? ? "textmate.png" : "textmate.png")
+    
+    link_to image_tag(image_url), url_for_source(sql_caller(trace))
   end
   
   def line_wrap_sql(sql)
     sql.gsub(/\,/,', ').squeeze(' ')
   end
-  
+
+private
+  def using_textmate?
+    # TODO make this a preference
+    false
+  end
 end
