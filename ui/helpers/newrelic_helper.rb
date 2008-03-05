@@ -15,9 +15,7 @@ module NewrelicHelper
   def sql_caller(trace)
     trace.each do |trace_line|
       file = trace_line.split(':').first
-      if /activerecord/ =~ file
-      elsif /newrelic\/agent/ =~ file
-      else
+      unless exclude_file_from_stack_trace?(file)
         return trace_line
       end
     end
@@ -27,11 +25,10 @@ module NewrelicHelper
   def trace_without_agent(trace)
     trace.reject do |trace_line|
       file = trace_line.split(':').first
-      file =~ /\/newrelic\/agent\// ||
-      file =~ /\/activerecord\// ||
-      file =~ /\/actionpack\//
+      exclude_file_from_stack_trace?(file)
     end
   end
+  
   
   def url_for_source(trace_line)
     s = trace_line.split(':')
@@ -70,5 +67,13 @@ private
   def using_textmate?
     # TODO make this a preference
     false
+  end
+  
+  private 
+  def exclude_file_from_stack_trace?(file)
+      file =~ /\/newrelic\/agent\// ||
+      file =~ /\/activerecord\// ||
+      file =~ /\/activesupport\// ||
+      file =~ /\/actionpack\//
   end
 end
