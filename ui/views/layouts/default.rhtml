@@ -8,13 +8,14 @@
 </head>
 <body>
 <div id="header">
-	<image width=100% height=4 src="<%= server %>/images/bevel_bar.gif">
+	<img width=100% height=4 src="<%= server %>/images/bevel_bar.gif">
 	<table width="100%" height=72>
 		<tr>
 			<td align='left'>
 <a href = "/newrelic"><img src="<%= server %>/images/new_relic_rpm.gif"/></a>
 <p class="description">
 Desktop Edition
+</p>
 			</td>
 			<td align='right' valign='top'>
 				<small>
@@ -23,8 +24,7 @@ Monitor your Rails Application in production.<br/> <%=link_to 'www.newrelic.com'
 			</td>
 		</tr>
 	</table>
-	<image width=100% height=4 src="<%= server %>/images/bevel_bar.gif">
-</p>
+	<img width=100% height=4 src="<%= server %>/images/bevel_bar.gif">
 </div>
 <div id='content'>
 	<%= yield %>
@@ -33,4 +33,3 @@ Monitor your Rails Application in production.<br/> <%=link_to 'www.newrelic.com'
 Monitor your Rails Application in production: <%=link_to 'www.newrelic.com', 'http://www.newrelic.com' %>. 
 </div>
 </body>
-

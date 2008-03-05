@@ -37,8 +37,12 @@ module NewrelicHelper
     s = trace_line.split(':')
     file = Pathname.new(s[0]).realpath
     line = s[1]
-
-    "txmt://open?url=file://#{file}&line=#{line}"
+    
+    if false
+      "txmt://open?url=file://#{file}&line=#{line}"
+    else
+      url_for :action => 'show_source', :file => file, :line => line, :anchor => 'selected_line'
+    end
   end
   
   def link_to_textmate(trace)
