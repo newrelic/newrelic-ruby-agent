@@ -132,6 +132,17 @@ module NewRelic
       s << "Max=#{max_call_time.to_ms}, "
       s << "StdDev=#{standard_deviation.to_ms}"
     end
+    
+    # round all of the values to n decimal points
+    def round!(decimal_places = 3)
+      self.total_call_time = total_call_time.round_to(decimal_places)
+      self.total_exclusive_time = total_exclusive_time.round_to(decimal_places)
+      self.min_call_time = min_call_time.round_to(decimal_places)
+      self.max_call_time = max_call_time.round_to(decimal_places)
+      self.sum_of_squares = sum_of_squares.round_to(decimal_places)
+      self.begin_time = begin_time.round
+      self.end_time = end_time.round
+    end
 
     # calculate this set of stats to be a percentage fraction 
     # of the provided stats, which has an overlapping time window.

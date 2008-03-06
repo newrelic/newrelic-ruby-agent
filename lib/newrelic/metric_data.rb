@@ -27,7 +27,7 @@ module NewRelic
       namecmp = name <=> o.name
       return namecmp if namecmp != 0
       
-      # i'm sure there's a more elegant way to code this correctly, but at leat this passes
+      # i'm sure there's a more elegant way to code this correctly, but at least this passes
       # my unit test
       if scope.nil? && o.scope.nil?
         return 0
