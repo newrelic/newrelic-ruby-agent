@@ -54,7 +54,7 @@ module NewrelicHelper
   def link_to_source(trace)
     image_url = "http://rpm.newrelic.com/images/"
     # TODO need an image for regular text file
-    image_url << (using_textmate? ? "textmate.png" : "textmate.png")
+    image_url << (using_textmate? ? "textmate.png" : "file_icon.png")
     
     link_to image_tag(image_url), url_for_source(sql_caller(trace))
   end
