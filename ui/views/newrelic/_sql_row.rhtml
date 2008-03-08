@@ -1,7 +1,7 @@
 <% segment = sql_row %>
 <tr>
-	<td><%= link_to_source (segment[:backtrace]) %>
 	<td align=right><%= link_to "#{segment.duration.to_ms} ms", :action => :explain_sql, 
 			:id => @sample.sample_id, :segment => segment.segment_id %> </td>
+  <td> <%= link_to_source(segment[:backtrace]) %> </td>
 	<td align=left><small><%= line_wrap_sql(segment[:sql]) %></small></td>
 </tr>
