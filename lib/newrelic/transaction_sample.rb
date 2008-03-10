@@ -30,9 +30,9 @@ module NewRelic
         
         s = tab.clone
         s << ">> #{metric_name}: #{@entry_timestamp.to_ms}\n"
-        if @params
+        unless params.empty?
           s << "#{tab}#{tab}{\n"
-          @params.each do |k,v|
+          params.each do |k,v|
             s << "#{tab}#{tab}#{k}: #{v}\n"
           end
           s << "#{tab}#{tab}}\n"
@@ -50,7 +50,7 @@ module NewRelic
       end
       
       def freeze
-        @params.freeze if @params
+        params.freeze
         @called_segments.each do |s|
           s.freeze
         end
@@ -75,18 +75,15 @@ module NewRelic
       def []=(key, value)
         # only create a parameters field if a parameter is set; this will save
         # bandwidth etc as most segments have no parameters
-        @params ||= {}
-        @params[key] = value
+        params[key] = value
       end
         
       def [](key)
-        return nil unless @params
-        @params[key]
+        params[key]
       end
       
       def params
-        return @params if @params
-        {}
+        @params ||= {}
       end
       
       # call the provided block for this segment and each 
@@ -112,12 +109,12 @@ module NewRelic
     
     def initialize(sample_id = nil)
       @sample_id = sample_id || object_id
+      @params = {}
     end
     
     def begin_building(start_time = Time.now)
       @start_time = start_time
       @root_segment = create_segment 0.0, "ROOT"
-      @params = {}
     end
 
     def create_segment (relative_timestamp, metric_name, segment_id = nil)
@@ -127,7 +124,7 @@ module NewRelic
     
     def freeze
       @root_segment.freeze
-      @param.freeze
+      params.freeze
       super
     end
     
@@ -140,9 +137,15 @@ module NewRelic
     end
     
     def to_s
-      "Transaction Sample collected at #{start_time}\n " + 
-        "Path: #{params[:path]} \n" +
-        @root_segment.to_debug_str(0)
+      s = "Transaction Sample collected at #{start_time}\n"
+      s << "  {\n"
+      s << "  Path: #{params[:path]} \n"
+      
+      params.each do |k,v|
+        s << "  #{k}: #{v}\n" unless k == :path
+      end
+      s << "  }\n\n"
+      s <<  @root_segment.to_debug_str(0)
     end
     
     # return a new transaction sample that treats segments

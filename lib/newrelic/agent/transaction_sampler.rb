@@ -38,6 +38,10 @@ module NewRelic::Agent
         if ::RPM_DEVELOPER
           segment = builder.current_segment
           if segment
+            # NOTE we manually inspect stack traces to determine that the 
+            # agent consumes the last 8 frames.  Review after we make changes
+            # to transaction sampling or stats engine to make sure this remains
+            # a true assumption
             trace = caller(8)
             
             trace = trace[0..40] if trace.length > 40
@@ -71,9 +75,9 @@ module NewRelic::Agent
       end
     end
     
-    def notice_transaction(path, params)
+    def notice_transaction(path, request, params)
       with_builder do |builder|
-        builder.set_transaction_info(path, params)
+        builder.set_transaction_info(path, request, params)
       end
     end
     
@@ -208,9 +212,9 @@ module NewRelic::Agent
       Time.now - @sample.start_time
     end
     
-    def set_transaction_info(path, params)
-      @sample.params.merge(params)
-      @sample.params[:path] = path  
+    def set_transaction_info(path, request, params)
+      @sample.params.merge!(params)
+      @sample.params[:path] = request.path  
     end
     
     def sample

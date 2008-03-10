@@ -20,7 +20,7 @@ module ActionController
       
         self.class.trace_method_execution "Controller/#{path}" do 
           # send request and parameter info to the transaction sampler
-          NewRelic::Agent.instance.transaction_sampler.notice_transaction(path, params)
+          NewRelic::Agent.instance.transaction_sampler.notice_transaction(path, request, params)
         
           # run the action
           perform_action_without_newrelic_trace
