@@ -12,7 +12,7 @@
 						<%= stripped_sample(sample).duration.to_ms %> ms
 					</td>
 					<td>
-						<%= link_to "/#{sample.params[:path]}", :action => :view_sample, :id => sample.sample_id %>
+						<%= link_to "#{sample.params[:path]}", :action => :view_sample, :id => sample.sample_id %>
 					</td>
 			
 					</tr>

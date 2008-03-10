@@ -1,7 +1,8 @@
 module NewRelic::Agent
   class MemorySampler
     def initialize
-      # macos
+      # macos of linux
+      # TODO support solaris!!
       if RUBY_PLATFORM =~ /(darwin|linux)/
         @ps = "ps -o rsz #{$$}"
       end
