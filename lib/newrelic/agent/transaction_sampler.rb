@@ -4,11 +4,10 @@ require 'thread'
 module NewRelic::Agent
   class TransactionSampler
     def initialize(agent = nil, max_samples = 500)
-      @rules = []
       @samples = []
       @mutex = Mutex.new
       @max_samples = max_samples
-      
+
       # when the agent is nil, we are in a unit test.
       # don't hook into the stats engine, which owns
       # the scope stack
@@ -17,11 +16,6 @@ module NewRelic::Agent
       end
     end
     
-    def add_rule(rule)
-      @mutex.synchronize do 
-        @rules << rule
-      end
-    end
     
     def notice_first_scope_push
       get_or_create_builder
@@ -29,7 +23,7 @@ module NewRelic::Agent
     
     def notice_push_scope(scope)
       with_builder do |builder|
-        check_rules(scope)
+        check_rules(scope)      # TODO no longer necessary once we confirm overhead
         builder.trace_entry(scope)
         
         # in developer mode, capture the stack trace with the segment.
@@ -62,13 +56,16 @@ module NewRelic::Agent
         builder.finish_trace
       
         @mutex.synchronize do
-          @samples << builder.sample if should_collect_sample?
+          sample = builder.sample
         
           # ensure we don't collect more than a specified number of samples in memory
+          # TODO don't keep in memory for production mode; just keep the @slowest_sample
+          @samples << sample if should_collect_sample?
           @samples.shift while @samples.length > @max_samples
-        
-          # remove any rules that have expired
-          @rules.reject!{ |rule| rule.has_expired? }
+          
+          if @slowest_sample.nil? || @slowest_sample.duration < sample.duration
+            @slowest_sample = sample
+          end
         end
       
         reset_builder
@@ -93,16 +90,29 @@ module NewRelic::Agent
     end
     
     # get the set of collected samples, merging into previous samples,
-    # and clear the collected sample list
+    # and clear the collected sample list. 
+    # TODO remove me, and replace with 'harvest_slowest_sample'.  Remove
+    # the @samples array in production mode, too.
     def harvest_samples(previous_samples=[])
       @mutex.synchronize do 
         s = previous_samples
-      
+        
         @samples.each do |sample|
           s << sample
         end
         @samples = [] unless is_developer_mode?
         s
+      end
+    end
+    
+    def harvest_slowest_sample(previous_slowest = nil)
+      slowest = @slowest_sample
+      @slowest_sample = nil
+      
+      if previous_slowest.nil? || previous_slowest.duration < slowest.duration
+        slowest
+      else
+        previous_slowest
       end
     end
 
@@ -114,20 +124,17 @@ module NewRelic::Agent
     end
     
     private 
+      # TODO all of this goes away once we confirm that we can always measure samples
+      # at acceptable overhead.  Don't check rules, and remove shold_colelct_sample?
       def check_rules(scope)
         return if should_collect_sample?
-        set_should_collect_sample and return if is_developer_mode?
-        
-        @rules.each do |rule|
-          if rule.check(scope)
-            set_should_collect_sample
-          end
-        end
+        set_should_collect_sample and return #if is_developer_mode?
       end
     
       BUILDER_KEY = :transaction_sample_builder
       def get_or_create_builder
-        return nil if @rules.empty? && !is_developer_mode?
+        # Commenting out - see above.  We will leave sampling on all the time.
+#        return nil if @rules.empty? && !is_developer_mode?
         
         builder = get_builder
         if builder.nil?
@@ -168,7 +175,7 @@ module NewRelic::Agent
       end
       
       def is_developer_mode?
-        defined?(::RPM_DEVELOPER) && ::RPM_DEVELOPER
+        @developer_mode ||= (defined?(::RPM_DEVELOPER) && ::RPM_DEVELOPER)
       end
   end
 
@@ -214,7 +221,8 @@ module NewRelic::Agent
     
     def set_transaction_info(path, request, params)
       @sample.params.merge!(params)
-      @sample.params[:path] = request.path  
+      @sample.params[:path] = path
+      @sample.params[:uri] = request.path if request
     end
     
     def sample

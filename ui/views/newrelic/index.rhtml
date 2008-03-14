@@ -12,9 +12,15 @@
 						<%= stripped_sample(sample).duration.to_ms %> ms
 					</td>
 					<td>
-						<%= link_to "#{sample.params[:path]}", :action => :view_sample, :id => sample.sample_id %>
+						<%= link_to "#{sample.params[:uri]}", :action => :view_sample, :id => sample.sample_id %>
 					</td>
-			
+          <%if true %>
+					<td nowrap=true>
+						<%= Marshal.dump(sample).length / 1024 %> / 
+						<%= Zlib::Deflate.deflate(Marshal.dump(sample),Zlib::BEST_SPEED).length / 1024 %> / 
+						<%= Zlib::Deflate.deflate(Marshal.dump(sample),Zlib::BEST_COMPRESSION).length / 1024 %> kb
+					</td>
+          <% end %>
 					</tr>
 				<% end %>
 			</table>

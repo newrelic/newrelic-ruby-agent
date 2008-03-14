@@ -164,7 +164,22 @@ module NewRelic
       delta = build_segment_with_omissions(sample, 0.0, @root_segment, sample.root_segment, regex)
       sample.root_segment.end_trace(@root_segment.exit_timestamp - delta) 
       sample.freeze
-      sample
+    end
+    
+    # return a new transaction sample that can be sent to the RPM service.
+    # this involves potentially one or more of the following options 
+    #   :explain_sql : run EXPLAIN on all queries (extra overhead, deeper visibility)
+    #   :keep_backtraces : keep backtraces, significantly increasing size of trace (off by default)
+    #   :normalize_sql : clear sql fields of potentially sensitive values (higher overhead, better security
+    def prepare_to_send(options={})
+      sample = TransactionSample.new(sample_id)
+      sample.begin_building @start_time
+      
+      params.each {|k,v| sample.params[k] = v}
+        
+      build_segment_for_transfer(sample, @root_segment, sample.root_segment, options)
+      sample.root_segment.end_trace(@root_segment.exit_timestamp) 
+      sample.freeze
     end
     
   private
@@ -195,6 +210,35 @@ module NewRelic
       end
       
       return time_delta
+    end
+
+    # see prepare_to_send for what we do with options
+    # TODO support each of the above options before shipping (keep_backtraces is optional)
+    # TODO apply DRY to this and omit_segments_with
+    def build_segment_for_transfer(new_sample, source_segment, target_segment, options)
+      source_segment.called_segments.each do |source_called_segment|
+        target_called_segment = new_sample.create_segment(
+              source_called_segment.entry_timestamp,
+              source_called_segment.metric_name,
+              source_called_segment.segment_id)
+
+        target_segment.add_called_segment target_called_segment
+        source_called_segment.params.each do |k,v|
+          if k == :backtrace
+            target_called_segment[k]=v if options[:keep_backtraces]
+          elsif k == :sql
+            sql = v
+            # TODO normalize if requested
+            # TODO explain if requested
+            target_called_segment[k] = sql
+          else
+            target_called_segment[k]=v 
+          end
+        end
+
+        build_segment_for_transfer(new_sample, source_called_segment, target_called_segment, options)
+        target_called_segment.end_trace(source_called_segment.exit_timestamp)
+      end
     end
   end
 end

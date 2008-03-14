@@ -46,7 +46,7 @@ begin
       # inform user that the dev edition is available if we are running inside
       # a webserver process
       if agent.local_port
-        to_stderr "NewRelic Developer Edition enabled."
+        to_stderr "NewRelic Desktop Edition enabled."
         to_stderr "To view performance information, go to http://localhost:#{agent.local_port}/newrelic"
       end
     end

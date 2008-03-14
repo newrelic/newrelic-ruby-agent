@@ -5,7 +5,6 @@ require 'singleton'
 
 require 'newrelic/stats'
 require 'newrelic/agent/worker_loop'
-require 'newrelic/agent_messages'
 
 require 'newrelic/agent/stats_engine'
 require 'newrelic/agent/transaction_sampler'
@@ -61,6 +60,7 @@ module NewRelic::Agent
     
     DEFAULT_HOST = 'localhost'
     DEFAULT_PORT = 3000
+    SAMPLE_THRESHOLD = 2.seconds
     
     attr_reader :stats_engine
     attr_reader :transaction_sampler
@@ -180,7 +180,13 @@ module NewRelic::Agent
         @worker_loop.add_task(report_period) do 
           harvest_and_send_timeslice_data
         end
-
+        
+        if @should_send_samples
+          @worker_loop.add_task(report_period) do 
+            harvest_and_send_slowest_sample
+          end
+        end
+  
         @worker_loop.run
       end
     
@@ -197,6 +203,9 @@ module NewRelic::Agent
         log! "Connected to NewRelic Service at #{@remote_host}:#{@remote_port}."
         log.debug "Agent ID = #{@agent_id}."
 
+        # Ask the server for permission to send transaction samples.  determined by suvbscription license.
+        @should_send_samples = invoke_remote :should_collect_samples, @agent_id
+        
         @connected = true
         @last_harvest_time = Time.now
         return true
@@ -305,26 +314,18 @@ module NewRelic::Agent
         # then the metric data is downsampled for another timeslices
       end
 
-      def harvest_and_send_sample_data
-        @unsent_samples ||= []
-        @unsent_samples = @transaction_sampler.harvest_samples(@unsent_samples)
+      def harvest_and_send_slowest_sample
+        @slowest_sample = @transaction_sampler.harvest_slowest_sample(@slowest_sample)
         
-        # limit the sample data to 100 elements, to prevent server flooding
-        @unsent_samples = @unsent_samples[0..100] if @unsent_samples.length > 100
-        
-        # avoid the webservice call if there is no data to send
-        if @unsent_samples.length > 0
-          sample_data = []
-          @unsent_samples.each do |sample|
-            sample_data.push Marshal.dump(sample)
-          end
-          
-          messages = invoke_remote :transaction_sample_data, @agent_id, sample_data
-        
-          # if we successfully invoked the web service, then clear the unsent sample cache
-          @unsent_samples.clear
-          handle_messages messages
+        if @slowest_sample && @slowest_sample.duration > SAMPLE_THRESHOLD
+          log.debug "Sending Slowest Sample: #{@slowest_sample.params[:path]}, #{@slowest_sample.duration.to_ms} ms" if @slowest_sample
+          invoke_remote :transaction_sample_data, @agent_id, @slowest_sample 
         end
+        
+        # if we succeed sending this sample, then we don't need to keep the slowest sample
+        # around - it has been sent already and we can collect the next one
+        @slowest_sample = nil
+      rescue Exception => e
       end
 
       def ping
@@ -342,7 +343,7 @@ module NewRelic::Agent
             log.error "Error handling message: #{e}"
             log.debug e.backtrace.join("\n")
           end
-        end
+        end 
       end
       
       # send a message via post
