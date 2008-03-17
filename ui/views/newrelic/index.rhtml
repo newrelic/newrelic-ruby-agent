@@ -14,7 +14,7 @@
 					<td>
 						<%= link_to "#{sample.params[:uri]}", :action => :view_sample, :id => sample.sample_id %>
 					</td>
-          <%if true %>
+          <%if false %>
 					<td nowrap=true>
 						<%= Marshal.dump(sample).length / 1024 %> / 
 						<%= Zlib::Deflate.deflate(Marshal.dump(sample),Zlib::BEST_SPEED).length / 1024 %> / 

@@ -2,6 +2,7 @@ require 'net/https'
 require 'net/http'
 require 'logger'
 require 'singleton'
+require 'zlib'
 
 require 'newrelic/stats'
 require 'newrelic/agent/worker_loop'
@@ -54,7 +55,11 @@ module NewRelic::Agent
   class Agent
     # Specifies the version of the agent's communication protocol
     # with the NewRelic hosted site.
-    PROTOCOL_VERSION = 1
+    #
+    # VERSION HISTORY
+    # 1: Private Beta, Jan 10, 2008.  Serialized Marshalled Objects.  Unsupported after 5/29/2008.
+    # 2: Private Beta, March 15, 2008.  Compressed JSON (15-20x smaller, platform independant.)
+    PROTOCOL_VERSION = 2
     
     include Singleton
     
@@ -347,7 +352,50 @@ module NewRelic::Agent
       end
       
       # send a message via post
+      # As of Version 2, the agent-server protocol is:
+      # params[:method] => method name(string)
+      # params[:license_key] => license key(string)
+      # params[:version] => protocol version(integer, 2 or higher)
       def invoke_remote(method, *args)
+        # we currently optimize for CPU here since we get roughly a 10x reduction in
+        # message size with this, and CPU overhead is at a premium.  If we wanted
+        # to go for a 20x compression instead, we could use Zlib::BEST_COMPRESSION and 
+        # pay a little more CPU.
+        post_data = CGI::escape(Zlib::Deflate.deflate(Marshal.dump(args), Zlib::BEST_SPEED))
+        
+        request = Net::HTTP.new(@remote_host, @remote_port.to_i) 
+        if @use_ssl
+          request.use_ssl = true 
+          request.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        end
+
+        # FIXME for the life of me I cant find the API that assembles query parameters into a 
+        # URI, so I have to hard code it here. Ugly to say the least.
+        uri = "/agent_listener/invoke_raw_method?method=#{method}&license_key=#{license_key}&protocol_version=#{PROTOCOL_VERSION}"
+        response = request.start do |http|
+          http.post(uri, post_data) 
+        end
+
+        if response.is_a? Net::HTTPSuccess
+          return_value = Marshal.load(Zlib::Inflate.inflate(CGI::unescape(response.body)))
+        else
+          raise Exception.new("#{response.code}: #{response.message}")
+        end
+      rescue Exception => e
+        log.error("Error communicating with RPM Service at #{@remote_host}:#{remote_port}: #{e}")
+        log.debug(e.backtrace.join("\n"))
+        return_value = e
+      ensure
+        if return_value.is_a? Exception
+          raise return_value
+        else
+          return return_value
+        end
+      end
+      
+      # keeping this around for a little while
+      # TODO remove this dead code before GA.
+      def invoke_remote_v1(method, *args)
         post_data = [license_key, method, PROTOCOL_VERSION, args]
         post_data = CGI::escape(Marshal.dump(post_data))
         
@@ -364,7 +412,7 @@ module NewRelic::Agent
         if response.is_a? Net::HTTPSuccess
           return_value = Marshal.load(CGI::unescape(response.body))
         else
-          raise Exception.new "#{response.code}: #{response.message}"
+          raise Exception.new("#{response.code}: #{response.message}")
         end
       rescue Exception => e
         log.error("Error communicating with RPM Service at #{@remote_host}:#{remote_port}: #{e}")
