@@ -63,6 +63,12 @@ module NewrelicHelper
     sql.gsub(/\,/,', ').squeeze(' ')
   end
 
+  # the rows logger plugin disables the sql tracing functionality of the NewRelic agent -
+  # notify the user about this
+  def rows_logger_present?
+    File.exist?(File.join(File.dirname(__FILE__), "../../../rows_logger/init.rb"))
+  end
+  
 private
   def using_textmate?
     # TODO make this a preference
