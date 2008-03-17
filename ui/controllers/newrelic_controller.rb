@@ -2,6 +2,7 @@ require 'newrelic/agent'
 require 'google_pie_chart'
 require 'active_record'
 require 'transaction_analysis'
+require 'metric_parser'
 
 class NewrelicController < ActionController::Base
   include NewrelicHelper
@@ -31,6 +32,8 @@ class NewrelicController < ActionController::Base
       return
     end
 
+    controller_segment = @sample.root_segment.called_segments.first
+    @controller_metric = MetricParser.parse(controller_segment.metric_name)
     @pie_chart = GooglePieChart.new
     @pie_chart.color = '6688AA'
     

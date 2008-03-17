@@ -36,7 +36,7 @@ module NewrelicHelper
     begin
       file = Pathname.new(s[0]).realpath
     rescue Errno::ENOENT
-      # we hit this exception when Pathame.realpaht fails for some reason; attempt a link to
+      # we hit this exception when Pathame.realpath fails for some reason; attempt a link to
       # the file without a real path.  It may also fail, only when the user clicks on this specific
       # entry in the stack trace
       file = s[0]
