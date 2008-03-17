@@ -220,8 +220,10 @@ module NewRelic::Agent
     end
     
     def set_transaction_info(path, request, params)
-      @sample.params.merge!(params)
       @sample.params[:path] = path
+      @sample.params[:request_params] = params.clone
+      @sample.params[:request_params].delete :controller
+      @sample.params[:request_params].delete :action
       @sample.params[:uri] = request.path if request
     end
     

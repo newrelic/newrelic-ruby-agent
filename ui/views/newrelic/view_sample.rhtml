@@ -10,6 +10,16 @@
 		<% if false # turn on for debugging marshaled object size... %>
 		<b>Serialized Size:</b> <%= Marshal.dump(@sample).length / 1024 %> kb<br/>
 		<% end %>
+    <% unless (@sample.params[:request_params] || {}).empty? %>
+     <p>
+       <b>Params</b><br/>
+       <small>
+       <% (@sample.params[:request_params] || {}).each do |k,v| %>
+         <b>&nbsp &nbsp <%= k %>: </b><%=v%><br/>
+       <% end %>
+       </small>
+     </p>
+     <% end %>
 		</td>
 		<td valign='middle' align='right'>
 		</td>
@@ -26,6 +36,7 @@ def show_view(page, id)
 end
 %>
 
+<br/>
 <%= link_to_function("[Pie Chart]") { |page| show_view page, 'pie_chart' } %>
 <%= link_to_function("[Full Table]") { |page| show_view page, 'table' } %>
 <%= link_to_function("[SQL]") { |page| show_view page, 'sql' } %>
