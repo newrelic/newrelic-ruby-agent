@@ -217,8 +217,8 @@ module NewRelic::Agent
         
       rescue LicenseException => e
         log! e.message, :error
-        log! "Visit NewRelic.com to obtain a valid license key, or contact NewRelic support to recover your license key"
-        log! "Turning New Relic Agent off.  Restart your Mongrel after putting the correct license key in config/newrelic.yml"
+        log! "Visit NewRelic.com to obtain a valid license key, or to upgrade your account."
+        log! "Turning New Relic Agent off."
         return false
         
       rescue Exception => e
