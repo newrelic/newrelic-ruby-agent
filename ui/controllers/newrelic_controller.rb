@@ -2,7 +2,6 @@ require 'newrelic/agent'
 require 'google_pie_chart'
 require 'active_record'
 require 'transaction_analysis'
-require 'metric_parser'
 
 class NewrelicController < ActionController::Base
   include NewrelicHelper
