@@ -2,8 +2,8 @@
 	<tr>
 		<td valign='middle' align='left'>
 		<b>URL:</b> <%= @sample.params[:uri]%><br/>
-		<b>Controller:</b> <%= @controller_metric.controller_name %><br/>
-		<b>Action:</b> <%= @controller_metric.action_name %><br/>
+		<b>Controller:</b> <%= @sample_controller_name %><br/>
+		<b>Action:</b> <%= @sample_action_name %><br/>
 
 		<b>Time Stamp:</b> <%= @sample.start_time%><br/>
 		<b>Duration:</b> <%= @sample.duration.to_ms%> ms<br/>

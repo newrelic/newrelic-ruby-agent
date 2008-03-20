@@ -31,8 +31,13 @@ class NewrelicController < ActionController::Base
       return
     end
 
-    controller_segment = @sample.root_segment.called_segments.first
-    @controller_metric = MetricParser.parse(controller_segment.metric_name)
+    controller_metric = @sample.root_segment.called_segments.first.metric_name
+    
+    # TODO move metric parser into the developer edition (the agent?)
+    controller_segments = controller_metric.split('/')
+    @sample_controller_name = controller_segments[1..-2].join('/').camelize+"Controller"
+    @sample_action_name = controller_segments[-1].underscore
+    
     @pie_chart = GooglePieChart.new
     @pie_chart.color = '6688AA'
     

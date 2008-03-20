@@ -15,6 +15,11 @@ module Mongrel
   class HttpServer; end
 end
 
+# same for Thin HTTP Server
+module Thin
+  class Server; end
+end
+
 # The NewRelic Agent collects performance data from rails applications in realtime as the
 # application runs, and periodically sends that data to the NewRelic server.  
 module NewRelic::Agent
@@ -88,7 +93,7 @@ module NewRelic::Agent
       
       @config = config
       
-      @local_port = determine_port
+      @local_port = determine_environment_and_port
       @local_host = determine_host
       
       setup_log
@@ -98,7 +103,7 @@ module NewRelic::Agent
       
       @license_key = config.fetch('license_key', nil)
       unless @license_key
-        log! "No license key found.  Please insert your license key into agent/new_relic.yml"
+        log! "No license key found.  Please insert your license key into agent/newrelic.yml"
         return
       end
       
@@ -133,6 +138,7 @@ module NewRelic::Agent
         @launch_time = Time.now
        
         @metric_ids = {}
+        @environment = :unknown
         
         @stats_engine = StatsEngine.new
         @transaction_sampler = TransactionSampler.new(self)
@@ -162,6 +168,7 @@ module NewRelic::Agent
         
         log! "New Relic RPM Agent Initialized: pid = #{$$}"
         to_stderr "Agent Log is found in #{log_file}"
+        log.info "Runtime environment: #{@environment.to_s.titleize}"
       end
       
       # Connect to the server, and run the worker loop forever
@@ -170,7 +177,7 @@ module NewRelic::Agent
         # the user explicitly asks to monitor non-mongrel processes (assumed to 
         # be daemons) by setting 'monitor_daemons' to true in newrelic.yaml
         # attempt to connect to the server
-        return unless @local_port || config['monitor_daemons']
+        return unless should_run?
         
         until @connected
           should_retry = connect
@@ -193,6 +200,11 @@ module NewRelic::Agent
         end
   
         @worker_loop.run
+      end
+      
+      # return true if the agent should run the worker loop.
+      def should_run?
+        @local_port || config['monitor_daemons'] || @environment == :thin
       end
     
       def connect
@@ -256,21 +268,46 @@ module NewRelic::Agent
       def determine_host
         Socket.gethostname
       end
-      
-      def determine_port
+
+      # determine the environment we are running in (one of :webrick,
+      # :mongrel, :thin, or :unknown) and if the process is listening
+      # on a port, return the port # that we are listening on.
+      def determine_environment_and_port
         port = nil
         
         # OPTIONS is set by script/server 
         port = OPTIONS.fetch :port, DEFAULT_PORT
+        @environment = :webrick
+        
       rescue NameError
         # this case covers starting by mongrel_rails
         # TODO review this approach.  There should be only one http server
         # allocated in a given rails process...
         ObjectSpace.each_object(Mongrel::HttpServer) do |mongrel|
           port = mongrel.port
+          @environment = :mongrel
         end
+        
+        # this case covers the thin web server
+        # Same issue as above- we assume only one instance per process
+        # NOTE if a thin server and a mongrel server were to coexist in a single
+        # ruby process (no idea why that would ever happen) the thin server
+        # would "win out" as the determined runtime environment
+        ObjectSpace.each_object(Thin::Server) do |thin_server|
+          @environment = :thin
+          
+          # TODO when thin uses UNIX domain sockets, we likely don't have a port
+          # setting.  So therefore we need another way to uniquely define this
+          # "instance", otherwise, a host running >1 thin instances will appear
+          # as 1 agent to us, and we will have a license counting problem (as well
+          # as a data granularity problem).
+          port = thin_server.port
+        end
+        
       rescue NameError
         log.info "Could not determine port.  Likely running as a cgi"
+        @environment = :unknown
+        
       ensure
         return port
       end
@@ -291,6 +328,7 @@ module NewRelic::Agent
             log.info "Processed instrumentation file '#{file.split('/').last}'"
           rescue Exception => e
             log.error "Error loading instrumentation file '#{file}': #{e}"
+            log.debug e.backtrace.join("\n")
           end
         end
       end
