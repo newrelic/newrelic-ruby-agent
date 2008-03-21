@@ -8,7 +8,8 @@ module ActionController
       def draw
         clear!
         map = Mapper.new(self)
-        map.named_route 'newrelic_developer', '/newrelic', :controller => 'newrelic'
+        map.named_route 'newrelic_developer', '/newrelic/:action/:id', :controller => 'newrelic'
+        
         yield map
 
         # 2.0 rails draw method is just slightly different...

@@ -40,6 +40,9 @@ module ActionController
     if method_defined? :perform_invocation
       add_method_tracer :perform_invocation, 'WebService/#{controller_name}/#{args.first}'
     end
+    
+    add_method_tracer :run_before_filters, "Controller/Before Filters"
+    add_method_tracer :run_after_filters, "Controller/After Filters"
   
  
     # trace the number of exceptions encountered 

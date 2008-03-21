@@ -3,8 +3,8 @@
 			<%= segment_row.metric_name %>
 			<small>
 			<%= link_to "?", 
-					"http://rpm.newrelic.com#{url_for :controller => :metric_doc, :metric => segment_row.metric_name }" %>
-					</small>
+					"http://rpm.newrelic.com/metric_doc?metric=#{CGI::escape(segment_row.metric_name)}" %>
+      </small>
 	</td>
 	<td align=left> <%= segment_row.call_count %></td>
 	<td align=right><%= segment_row.exclusive_time.to_ms %> ms</td>
