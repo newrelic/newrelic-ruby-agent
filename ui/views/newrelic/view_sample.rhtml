@@ -1,5 +1,5 @@
 <div id='summary_table'>
-<table align=left>
+<table align=left width="100%">
   <tr>
     <th align="right">URL:</th>
     <td><%= @sample.params[:uri]%></td>
@@ -53,7 +53,7 @@ end
 %>
 
 <br/>
-<div align=center>
+<div align=center width="100%">
 <%= link_to_function("[Overview]") { |page| show_view page, 'pie_chart' } %>
 <%= link_to_function("[Details]") { |page| show_view page, 'details' } %>
 <%= link_to_function("[SQL]") { |page| show_view page, 'sql' } %>
