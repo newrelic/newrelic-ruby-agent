@@ -1,0 +1,30 @@
+<tr class='<%= cycle('even_row', 'odd_row') %>'>
+
+<td nowrap=true>
+<% indent.times do %>
+  &nbsp;&nbsp;
+<% end %>
+<%= link_to segment.metric_name, url_for_source(application_caller(segment[:backtrace])) %>
+<small><%= link_to '?', url_for_metric_doc(segment.metric_name)%></small>
+</td>
+
+<td nowrap=true align="right">
+  <%= segment.entry_timestamp.round_to(3) %>
+</td>
+<td nowrap=true align="right">
+  <%= segment.duration.to_ms %>
+</td>
+<td nowrap=true align="right">
+  <%= colorize(segment.exclusive_duration) %>
+</td>
+
+<td nowrap=true>
+  <small>
+  <% if segment[:sql] %>
+    <%= link_to "SQL", 
+      :action => :explain_sql, 
+      :id => @sample.sample_id, :segment => segment.segment_id %> 
+  <% end %>
+  </small>
+</td>
+</tr>

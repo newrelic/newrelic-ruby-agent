@@ -2,6 +2,12 @@ require 'pathname'
 
 module NewrelicHelper
   
+  # return the host that serves static content (css, metric documentation, images, etc)
+  # that supports the desktop edition.
+  def server
+    "http://rpm.newrelic.com"
+  end
+  
   # return the sample but post processed to strip out segments that normally don't show
   # up in production (after the first execution, at least) such as application code loading
   def stripped_sample(sample = @sample)
@@ -12,23 +18,28 @@ module NewrelicHelper
     end
   end
   
-  def sql_caller(trace)
+  # return the highest level in the call stack for the trace that is not rails or 
+  # newrelic agent code
+  def application_caller(trace)
     trace.each do |trace_line|
       file = trace_line.split(':').first
-      unless exclude_file_from_stack_trace?(file)
+      unless exclude_file_from_stack_trace?(file, false)
         return trace_line
       end
     end
     trace.last
   end
   
-  def trace_without_agent(trace)
+  def application_stack_trace(trace, include_rails = false)
     trace.reject do |trace_line|
       file = trace_line.split(':').first
-      exclude_file_from_stack_trace?(file)
+      exclude_file_from_stack_trace?(file, include_rails)
     end
   end
   
+  def url_for_metric_doc(metric_name)
+    "#{server}/metric_doc?metric=#{CGI::escape(metric_name)}"
+  end
   
   def url_for_source(trace_line)
     s = trace_line.split(':')
@@ -52,15 +63,29 @@ module NewrelicHelper
   end
   
   def link_to_source(trace)
-    image_url = "http://rpm.newrelic.com/images/"
+    image_url = "#{server}/images/"
     # TODO need an image for regular text file
     image_url << (using_textmate? ? "textmate.png" : "file_icon.png")
     
-    link_to image_tag(image_url), url_for_source(sql_caller(trace))
+    link_to image_tag(image_url), url_for_source(application_caller(trace))
+  end
+  
+  def colorize(value, yellow_threshold = 0.05, red_threshold = 0.15)
+    if value > yellow_threshold
+      color = (value > red_threshold ? 'red' : 'orange')
+      "<font color=#{color}>#{value.to_ms}</font>"
+    else
+      "#{value.to_ms}"
+    end
   end
   
   def line_wrap_sql(sql)
     sql.gsub(/\,/,', ').squeeze(' ')
+  end
+  
+  def render_sample_details(sample)
+    # skip past the root segments to the first child, which is always the controller
+    render_segment_details sample.root_segment.called_segments.first
   end
 
   # the rows logger plugin disables the sql tracing functionality of the NewRelic agent -
@@ -75,9 +100,21 @@ private
     false
   end
   
-  private 
-  def exclude_file_from_stack_trace?(file)
-      file =~ /\/newrelic\/agent\// ||
+  def render_segment_details(segment, depth=0)
+    html = render(:partial => "segment", :object => segment, :locals => {:indent => depth})
+    
+    segment.called_segments.each do |child|
+      html << render_segment_details(child, depth+1)
+    end
+    
+    html
+  end
+  
+  def exclude_file_from_stack_trace?(file, include_rails)
+    is_agent = file =~ /\/newrelic\/agent\//
+    return is_agent if include_rails
+    
+    is_agent ||
       file =~ /\/activerecord\// ||
       file =~ /\/activesupport\// ||
       file =~ /\/actionpack\//

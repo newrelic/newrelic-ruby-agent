@@ -31,6 +31,7 @@ class NewrelicController < ActionController::Base
       return
     end
 
+    @request_params = @sample.params[:request_params] || {}
     controller_metric = @sample.root_segment.called_segments.first.metric_name
     
     # TODO move metric parser into the developer edition (the agent?)

@@ -60,7 +60,7 @@ module NewRelic::Agent
         
           # ensure we don't collect more than a specified number of samples in memory
           # TODO don't keep in memory for production mode; just keep the @slowest_sample
-          @samples << sample if should_collect_sample?
+          @samples << sample if should_collect_sample? && sample.params[:path] != nil
           @samples.shift while @samples.length > @max_samples
           
           if @slowest_sample.nil? || @slowest_sample.duration < sample.duration
