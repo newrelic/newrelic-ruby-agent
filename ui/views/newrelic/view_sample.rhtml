@@ -54,14 +54,14 @@ end
 
 <br/>
 <div align=center width="100%">
-<%= link_to_function("[Overview]") { |page| show_view page, 'pie_chart' } %>
+<%= link_to_function("[Summary]") { |page| show_view page, 'pie_chart' } %>
 <%= link_to_function("[Details]") { |page| show_view page, 'details' } %>
 <%= link_to_function("[SQL]") { |page| show_view page, 'sql' } %>
 </div>
 <br/>
 
 <div id='pie_chart' align=center>
-	<h3>Performance Breakdown</h3>
+	<h3>Performance Summary</h3>
 	<br/>
 	<% @pie_chart.width = 800; @pie_chart.height = 300 %>
 	<%= @pie_chart.render %>

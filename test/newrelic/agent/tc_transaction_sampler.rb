@@ -59,6 +59,7 @@ module NewRelic
     private      
       def run_sample_trace(&proc)
         @sampler.notice_first_scope_push
+        @sampler.notice_transaction '/path', nil, {}
         @sampler.notice_push_scope "a"
         @sampler.notice_push_scope "ab"
         proc.call if proc
