@@ -1,5 +1,5 @@
 <% segment = sql_row %>
-<tr>
+<tr class='<%= cycle('even_row', 'odd_row') %>'>
   <td align=right><%= segment.entry_timestamp.to_ms %> ms</td>
 	<td align=right><%= link_to "#{segment.duration.to_ms} ms", :action => :explain_sql, 
 			:id => @sample.sample_id, :segment => segment.segment_id %> </td>

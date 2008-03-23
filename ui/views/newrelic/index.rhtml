@@ -3,13 +3,13 @@
 		<td valign=top>
 			<table>
 				<tr>
-					<th>R/T</th>
+          <th nowrap=true>Resp Time</th>
 					<th>URL</th>
 				</tr>
 				<% @samples.each do |sample| %>
 					<tr>
-					<td align=left nowrap=true>
-						<%= stripped_sample(sample).duration.to_ms %> ms
+					<td align=right nowrap=true>
+						<%= colorize(stripped_sample(sample).duration, 1, 2) %> ms
 					</td>
 					<td>
 						<%= link_to "#{sample.params[:uri]}", :action => :view_sample, :id => sample.sample_id %>

@@ -2,8 +2,7 @@
 	<td>
 			<%= segment_row.metric_name %>
 			<small>
-			<%= link_to "?", 
-					"http://rpm.newrelic.com/metric_doc?metric=#{CGI::escape(segment_row.metric_name)}" %>
+			<%= link_to "?", url_for_metric_doc(segment_row.metric_name) %>
       </small>
 	</td>
 	<td align=left> <%= segment_row.call_count %></td>

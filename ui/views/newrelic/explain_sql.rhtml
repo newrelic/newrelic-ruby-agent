@@ -1,26 +1,26 @@
 <h3>Statement Analysis</h3>
-<% if @explanation %>
 <table>	
+<% if @explanation %>
 	<tr>
-		<td align=right valign=top>
-		<b>Query</b>
-		</td>
+		<th align=right valign=top>
+		Query
+		</th>
 		<td colspan=<%= @explanation.length%>><small>
 			<%= line_wrap_sql(@sql) %>
 		</small></td>
 	</tr>
 	<tr>
-		<td align=right>
-		<b>Duration</b>
-		</td>
+		<th align=right>
+		Duration
+		</th>
 		<td><%= @segment.duration.to_ms %> ms</td>
 	</tr>
 	<% @row_headers.length.times do |r| %>
 		<% if @row_headers[r] %>
 			<tr>
-				<td align=right nowrap>
-					<b><%= @row_headers[r]%></b>
-				</td>
+				<th align=right nowrap>
+					<%= @row_headers[r]%>
+				</th>
 				<% @explanation.each do |exp| %>
 					<td>
 						<%= exp[r]%>
@@ -29,16 +29,18 @@
 			</tr>
 		<% end %>
 	<% end %>
-</table>
 <% else %>
-<b>SQL </b>
-<%= line_wrap_sql(@sql)%>
+  <tr>
+    <th align=right>SQL</th>
+    <td><%= line_wrap_sql(@sql)%></td>
+  </tr>
+  <tr>
+    <th align=right>Duration</th>
+    <td><%= @segment.duration.to_ms%> ms</td>
+  </tr>
 <% end %>
+</table>
 
 <p/>
 <h3>Application Stack Trace</h3>
-<pre>
-<% trace_without_agent(@trace).each do |trace_line| -%>
-  <%= link_to trace_line, url_for_source(trace_line) %>
-<% end -%>
-</pre>
+<%= render :partial => 'stack_trace', :locals => {:segment => @segment} %>

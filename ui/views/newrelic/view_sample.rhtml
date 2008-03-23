@@ -1,34 +1,50 @@
-<table>
-	<tr>
-		<td valign='middle' align='left'>
-		<b>URL:</b> <%= @sample.params[:uri]%><br/>
-		<b>Controller:</b> <%= @sample_controller_name %><br/>
-		<b>Action:</b> <%= @sample_action_name %><br/>
+<div id='summary_table'>
+<table align=left>
+  <tr>
+    <th align="right">URL:</th>
+    <td><%= @sample.params[:uri]%></td>
+  </tr>
+  <tr>
+    <th align="right">Controller:</th>
+    <td><%= @sample_controller_name%></td>
+  </tr>
+  <tr>
+    <th align="right">Action:</th>
+    <td><%= @sample_action_name%></td>
+  </tr>
+  <tr>
+    <th align="right">Timestamp:</th>
+    <td><%= @sample.start_time %></td>
+  </tr>
+  <tr>
+    <th align="right">Duration:</th>
+    <td><%= colorize(@sample.duration, 1, 2) %> ms</td>
+  </tr>
+  <% unless @request_params.empty? %>
+    <tr>
+      <th align="right" valign="top">Params:</th>
+      <td>
+        <%= link_to_function("#{@request_params.length}...", :id => "params_link") do |page| 
+              page[:request_params].show
+              page[:params_link].hide
+            end %>
 
-		<b>Time Stamp:</b> <%= @sample.start_time%><br/>
-		<b>Duration:</b> <%= @sample.duration.to_ms%> ms<br/>
-		<% if false # turn on for debugging marshaled object size... %>
-		<b>Serialized Size:</b> <%= Marshal.dump(@sample).length / 1024 %> kb<br/>
-		<% end %>
-    <% unless (@sample.params[:request_params] || {}).empty? %>
-     <p>
-       <b>Params</b><br/>
-       <small>
-       <% (@sample.params[:request_params] || {}).each do |k,v| %>
-         <b>&nbsp &nbsp <%= k %>: </b><%=v%><br/>
-       <% end %>
-       </small>
-     </p>
-     <% end %>
-		</td>
-		<td valign='middle' align='right'>
-		</td>
-	</tr>
+          <div id='request_params' style="display: none;">
+          <small>
+            <% @request_params.each do |k,v| %>
+              <b>&nbsp &nbsp <%= k %>: </b><%=v%><br/>
+            <% end %>
+          </small>
+        </div>
+      </td>
+    </tr>
+  <% end %>
 </table>
+</div>
 
 <%
 def show_view(page, id)
-	['pie_chart', 'table', 'sql', 'text_dump'].each do |view|
+	['pie_chart', 'table', 'sql', 'text_dump', 'details'].each do |view|
 		page[view].hide 
 	end
 
@@ -37,11 +53,11 @@ end
 %>
 
 <br/>
-<%= link_to_function("[Pie Chart]") { |page| show_view page, 'pie_chart' } %>
-<%= link_to_function("[Full Table]") { |page| show_view page, 'table' } %>
+<div align=center>
+<%= link_to_function("[Overview]") { |page| show_view page, 'pie_chart' } %>
+<%= link_to_function("[Details]") { |page| show_view page, 'details' } %>
 <%= link_to_function("[SQL]") { |page| show_view page, 'sql' } %>
-<%= link_to_function("[Text Dump]") { |page| show_view page, 'text_dump' } %>
-<br/>
+</div>
 <br/>
 
 <div id='pie_chart' align=center>
@@ -55,11 +71,11 @@ end
 	</table>
 </div>
 
-<div id='table' align=left>
+<div id='table' align=left style="display: none;">
 	<%= render :partial => 'table', :object => @sample.breakdown_data %>
 </div>
 
-<div id='sql'>
+<div id='sql' align=center style="display: none;">
   <% if rows_logger_present? %>
     <h3>Plugin Incompatibility</h3>
     The Rows Logger plugin rewrites part of Active Record, which in effect turns off the 
@@ -68,7 +84,7 @@ end
     so that the rows logger is loaded first.  
   <% else %>
 	<table width=100%>
-		<tr>
+		<tr class='table_header'>
 			<th>Timestamp</th>
 			<th>Duration</th>
 			<th></th>
@@ -80,10 +96,22 @@ end
   <% end %>
 </div>
 
-<div id='text_dump'>
+<div id='text_dump' style="display: none;" style="display: none;">
 <pre>
 <%= @sample.to_s %>
 </pre>
 </div>
 
-<%= update_page_tag {|page| show_view page, 'pie_chart'} %>
+<div id='details' align='center' style="display: none;">
+<table>
+  <tr class='table_header'>
+    <th>Metric</th>
+    <th>Timestamp<br/><small>seconds</small></th>
+    <th>Duration<br/><small>ms</small></th>
+    <th>Exclusive<br/><small>ms</small></th>
+    <th></th>
+  </tr>
+  <%= render_sample_details @sample %>
+</table>
+</div>
+
