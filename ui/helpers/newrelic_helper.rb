@@ -71,6 +71,14 @@ module NewrelicHelper
     link_to image_tag(image_url), url_for_source(application_caller(trace))
   end
   
+  def timestamp(segment)
+    sprintf("%1.3f", segment.entry_timestamp)
+  end
+  
+  def format_time(time)
+    time.strftime("%H:%M:%S") 
+  end
+
   def colorize(value, yellow_threshold = 0.05, red_threshold = 0.15)
     if value > yellow_threshold
       color = (value > red_threshold ? 'red' : 'orange')
