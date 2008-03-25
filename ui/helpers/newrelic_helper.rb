@@ -6,7 +6,6 @@ module NewrelicHelper
   # that supports the desktop edition.
   def server
     "http://rpm.newrelic.com"
-    "http://localhost:3000"
   end
   
   # return the sample but post processed to strip out segments that normally don't show
@@ -86,6 +85,12 @@ module NewrelicHelper
     else
       "#{value.to_ms}"
     end
+  end
+  
+  def explain_sql_url(segment)
+    url_for(:action => :explain_sql, 
+      :id => @sample.sample_id, 
+      :segment => segment.segment_id)
   end
   
   def line_wrap_sql(sql)
