@@ -63,13 +63,15 @@ module NewRelic::Agent
     #
     # VERSION HISTORY
     # 1: Private Beta, Jan 10, 2008.  Serialized Marshalled Objects.  Unsupported after 5/29/2008.
-    # 2: Private Beta, March 15, 2008.  Compressed JSON (15-20x smaller, platform independant.)
+    # 2: Private Beta, March 15, 2008.  Compressed Serialzed Marshalled Objects (15-20x smaller)
     PROTOCOL_VERSION = 2
     
     include Singleton
     
     DEFAULT_HOST = 'localhost'
     DEFAULT_PORT = 3000
+    
+    # FIXME must make this at least 2 seconds
     SAMPLE_THRESHOLD = 0
     
     attr_reader :stats_engine
