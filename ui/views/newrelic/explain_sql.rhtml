@@ -42,5 +42,7 @@
 </table>
 
 <p/>
-<h3>Application Stack Trace</h3>
-<%= render :partial => 'stack_trace', :locals => {:segment => @segment} %>
+<% if @segment[:backtrace] %>
+  <h3>Application Stack Trace</h3>
+  <%= render :partial => 'stack_trace', :locals => {:segment => @segment} %>
+<% end %>

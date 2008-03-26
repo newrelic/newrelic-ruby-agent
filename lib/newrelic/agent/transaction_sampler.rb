@@ -109,6 +109,8 @@ module NewRelic::Agent
       slowest = @slowest_sample
       @slowest_sample = nil
       
+      return nil unless slowest
+      
       if previous_slowest.nil? || previous_slowest.duration < slowest.duration
         slowest
       else

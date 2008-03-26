@@ -96,6 +96,28 @@ module NewRelic
         end
       end
       
+      # perform this in the runtime environment of a managed application, to explain the sql
+      # statement(s) executed within a segment of a transaciton sample.
+      # returns an array of explanations (which is an array of reqults from the explain query)
+      def explain_sql
+        sql = params[:sql]
+        return nil if sql.nil? 
+        statements = sql.split(';')
+        explanations = []
+        statements.each do |statement|
+          if statement.split($;, 2)[0].upcase == 'SELECT'
+            explanation = []
+            
+            result = ActiveRecord::Base.connection.execute("EXPLAIN #{sql}")
+            explanation = []
+            result.each {|row| explanation << row }
+            explanations << explanation
+          end
+        end
+
+        explanations
+      end
+      
       protected
         def parent_segment=(s)
           @parent_segment = s
@@ -168,9 +190,10 @@ module NewRelic
     
     # return a new transaction sample that can be sent to the RPM service.
     # this involves potentially one or more of the following options 
-    #   :explain_sql : run EXPLAIN on all queries (extra overhead, deeper visibility)
+    #   :explain_sql : run EXPLAIN on all queries whose response times equal the value for this key
+    #       (for example :explain_sql => 2.0 would explain everything over 2 seconds.  0.0 would explain everything.)
     #   :keep_backtraces : keep backtraces, significantly increasing size of trace (off by default)
-    #   :normalize_sql : clear sql fields of potentially sensitive values (higher overhead, better security
+    #   :normalize_sql : clear sql fields of potentially sensitive values (higher overhead, better security)
     def prepare_to_send(options={})
       sample = TransactionSample.new(sample_id)
       sample.begin_building @start_time
@@ -183,6 +206,12 @@ module NewRelic
     end
     
   private
+  
+    def normalize_sql(sql)
+      # TODO implement.s
+      sql
+    end
+    
     def build_segment_with_omissions(new_sample, time_delta, source_segment, target_segment, regex)
       source_segment.called_segments.each do |source_called_segment|
         # if this segment's metric name matches the given regular expression, bail
@@ -228,9 +257,14 @@ module NewRelic
             target_called_segment[k]=v if options[:keep_backtraces]
           elsif k == :sql
             sql = v
-            # TODO normalize if requested
-            # TODO explain if requested
-            target_called_segment[k] = sql
+
+            # run an EXPLAIN on this sql if specified.
+            if options[:explain_sql] && source_called_segment.duration > options[:explain_sql].to_f
+              target_called_segment[:explanation] = source_called_segment.explain_sql
+            end
+            
+            sql = normalize(sql) if options[:normalize_sql]
+            target_called_segment[k]=sql
           else
             target_called_segment[k]=v 
           end

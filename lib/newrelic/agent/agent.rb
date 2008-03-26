@@ -70,7 +70,7 @@ module NewRelic::Agent
     
     DEFAULT_HOST = 'localhost'
     DEFAULT_PORT = 3000
-    SAMPLE_THRESHOLD = 2.seconds
+    SAMPLE_THRESHOLD = 0
     
     attr_reader :stats_engine
     attr_reader :transaction_sampler
@@ -362,13 +362,21 @@ module NewRelic::Agent
         
         if @slowest_sample && @slowest_sample.duration > SAMPLE_THRESHOLD
           log.debug "Sending Slowest Sample: #{@slowest_sample.params[:path]}, #{@slowest_sample.duration.to_ms} ms" if @slowest_sample
-          invoke_remote :transaction_sample_data, @agent_id, @slowest_sample 
+          
+          # take the slowest sample, and prepare it for sending across the wire.  This includes
+          # gathering SQL explanations, stripping out stack traces, and normalizing SQL.
+          # note that we explain only the sql statements whose segments' execution times exceed 
+          # our threshold (to avoid unnecessary overhead of running explains on fast queries.)
+          sample = @slowest_sample.prepare_to_send(:explain_sql => 0.02)
+          invoke_remote :transaction_sample_data, @agent_id, sample
         end
         
         # if we succeed sending this sample, then we don't need to keep the slowest sample
         # around - it has been sent already and we can collect the next one
         @slowest_sample = nil
       rescue Exception => e
+          puts e
+          puts e.backtrace.join("\n")
       end
 
       def ping

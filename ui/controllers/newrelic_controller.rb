@@ -51,13 +51,9 @@ class NewrelicController < ActionController::Base
 
     @sql = @segment[:sql]
     @trace = @segment[:backtrace]
-    if @sql.split($;, 2)[0].upcase == 'SELECT'
-      
-      @explanation = []
-    
-      result = ActiveRecord::Base.connection.execute("EXPLAIN #{@sql}")
-      @explanation = []
-      result.each {|row| @explanation << row }
+    explanations = @segment.explain_sql
+    if explanations
+      @explanation = explanations.first 
     
       @row_headers = [
         nil,

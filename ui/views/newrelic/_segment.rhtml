@@ -4,7 +4,11 @@
 <% indent.times do %>
   &nbsp;&nbsp;
 <% end %>
+<% if segment[:backtrace] %>
 <%= link_to segment.metric_name, url_for_source(application_caller(segment[:backtrace])) %>
+<% else %>
+<%= segment.metric_name %>
+<% end%>
 <small><%= link_to '?', url_for_metric_doc(segment.metric_name)%></small>
 </td>
 
@@ -21,9 +25,7 @@
 <td nowrap=true>
   <small>
   <% if segment[:sql] %>
-    <%= link_to "SQL", 
-      :action => :explain_sql, 
-      :id => @sample.sample_id, :segment => segment.segment_id %> 
+    <%= link_to "SQL", explain_sql_url(segment) %> 
   <% end %>
   </small>
 </td>

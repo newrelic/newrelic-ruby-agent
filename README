@@ -2,9 +2,9 @@
 NEW RELIC RPM
 =============
 
-NewRelic RPM a Rails performance management system, developed by New Relic, Inc.
+NewRelic RPM is a Rails performance management system, developed by New Relic, Inc.
 RPM provides you with deep information about the performance of your Ruby on
-Rail application as it runs in production. The New Relic Agent is distributed as
+Rails application as it runs in production. The New Relic Agent is distributed as
 a Rails Plugin, which is trivial to install and use.
 
 Our testing shows that this agent introduces minimal overhead: in production, a
