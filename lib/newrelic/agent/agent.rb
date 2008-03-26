@@ -377,8 +377,8 @@ module NewRelic::Agent
         # around - it has been sent already and we can collect the next one
         @slowest_sample = nil
       rescue Exception => e
-          puts e
-          puts e.backtrace.join("\n")
+          log.error e
+          log.info e.backtrace.join("\n")
       end
 
       def ping
