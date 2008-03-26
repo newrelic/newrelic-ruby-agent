@@ -108,7 +108,7 @@ module NewRelic
           if statement.split($;, 2)[0].upcase == 'SELECT'
             explanation = []
             
-            result = ActiveRecord::Base.connection.execute("EXPLAIN #{sql}")
+            result = ActiveRecord::Base.connection.execute("EXPLAIN #{statement}")
             explanation = []
             result.each {|row| explanation << row }
             explanations << explanation
