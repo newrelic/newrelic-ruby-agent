@@ -71,8 +71,8 @@ module NewRelic::Agent
     DEFAULT_HOST = 'localhost'
     DEFAULT_PORT = 3000
     
-    # FIXME must make this at least 2 seconds
-    SAMPLE_THRESHOLD = 0
+    # This has to be at least 2 seconds
+    SAMPLE_THRESHOLD = 2
     
     attr_reader :stats_engine
     attr_reader :transaction_sampler
@@ -369,7 +369,7 @@ module NewRelic::Agent
           # gathering SQL explanations, stripping out stack traces, and normalizing SQL.
           # note that we explain only the sql statements whose segments' execution times exceed 
           # our threshold (to avoid unnecessary overhead of running explains on fast queries.)
-          sample = @slowest_sample.prepare_to_send(:explain_sql => 0.02)
+          sample = @slowest_sample.prepare_to_send(:explain_sql => 0.1)
           invoke_remote :transaction_sample_data, @agent_id, sample
         end
         
