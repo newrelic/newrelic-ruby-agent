@@ -59,7 +59,6 @@ module NewRelic::Agent
           sample = builder.sample
         
           # ensure we don't collect more than a specified number of samples in memory
-          # TODO don't keep in memory for production mode; just keep the @slowest_sample
           @samples << sample if ::RPM_DEVELOPER && sample.params[:path] != nil
           @samples.shift while @samples.length > @max_samples
           

@@ -1,7 +1,7 @@
 require 'newrelic/agent/transaction_sampler'
 require 'test/unit'
 
-::RPM_DEVELOPER = false unless defined? ::RPM_DEVELOPER
+::RPM_DEVELOPER = true unless defined? ::RPM_DEVELOPER
 
 module NewRelic 
   module Agent
