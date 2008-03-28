@@ -6,7 +6,6 @@ module NewrelicHelper
   # that supports the desktop edition.
   def server
     "http://rpm.newrelic.com"
-    "http://localhost:3000"
   end
   
   # return the sample but post processed to strip out segments that normally don't show
