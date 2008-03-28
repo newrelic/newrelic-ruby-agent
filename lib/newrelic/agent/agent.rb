@@ -71,9 +71,6 @@ module NewRelic::Agent
     DEFAULT_HOST = 'localhost'
     DEFAULT_PORT = 3000
     
-    # This has to be at least 2 seconds
-    SAMPLE_THRESHOLD = 2
-    
     attr_reader :stats_engine
     attr_reader :transaction_sampler
     attr_reader :worker_loop
@@ -103,6 +100,7 @@ module NewRelic::Agent
       @worker_loop = WorkerLoop.new(@log)
       @started = true
       
+      @sample_threshold = (config['sample_threshold'] || 2).to_i
       @license_key = config.fetch('license_key', nil)
       unless @license_key
         log! "No license key found.  Please insert your license key into agent/newrelic.yml"
@@ -362,7 +360,7 @@ module NewRelic::Agent
       def harvest_and_send_slowest_sample
         @slowest_sample = @transaction_sampler.harvest_slowest_sample(@slowest_sample)
         
-        if @slowest_sample && @slowest_sample.duration > SAMPLE_THRESHOLD
+        if @slowest_sample && @slowest_sample.duration > @sample_threshold
           log.debug "Sending Slowest Sample: #{@slowest_sample.params[:path]}, #{@slowest_sample.duration.to_ms} ms" if @slowest_sample
           
           # take the slowest sample, and prepare it for sending across the wire.  This includes
@@ -376,16 +374,12 @@ module NewRelic::Agent
         # if we succeed sending this sample, then we don't need to keep the slowest sample
         # around - it has been sent already and we can collect the next one
         @slowest_sample = nil
-      rescue Exception => e
-          log.error e
-          log.info e.backtrace.join("\n")
+        
+        # note - exceptions are logged in invoke_remote.  If an exception is encountered here,
+        # then the slowest sample of is determined of the entire period since the last
+        # reported sample.
       end
 
-      def ping
-        messages = @agent_listener_service.ping @agent_id
-        handle_messages messages
-      end
-      
       def handle_messages(messages)
         messages.each do |message|
           begin
@@ -426,39 +420,6 @@ module NewRelic::Agent
 
         if response.is_a? Net::HTTPSuccess
           return_value = Marshal.load(Zlib::Inflate.inflate(CGI::unescape(response.body)))
-        else
-          raise Exception.new("#{response.code}: #{response.message}")
-        end
-      rescue Exception => e
-        log.error("Error communicating with RPM Service at #{@remote_host}:#{remote_port}: #{e}")
-        log.debug(e.backtrace.join("\n"))
-        return_value = e
-      ensure
-        if return_value.is_a? Exception
-          raise return_value
-        else
-          return return_value
-        end
-      end
-      
-      # keeping this around for a little while
-      # TODO remove this dead code before GA.
-      def invoke_remote_v1(method, *args)
-        post_data = [license_key, method, PROTOCOL_VERSION, args]
-        post_data = CGI::escape(Marshal.dump(post_data))
-        
-        request = Net::HTTP.new(@remote_host, @remote_port.to_i) 
-        if @use_ssl
-          request.use_ssl = true 
-          request.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        end
-
-        response = request.start do |http|
-          http.post('/agent_listener/invoke_raw_method', post_data) 
-        end
-
-        if response.is_a? Net::HTTPSuccess
-          return_value = Marshal.load(CGI::unescape(response.body))
         else
           raise Exception.new("#{response.code}: #{response.message}")
         end
