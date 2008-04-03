@@ -27,6 +27,9 @@ module NewRelic::Agent
   # an exception that is thrown by the server if the agent license is invalid
   class LicenseException < Exception; end
   
+  # an exception that forces an agent to stop reporting until its mongrel is restarted
+  class ForceDisconnectException < Exception; end
+  
   # add some convenience methods for easy access to the Agent singleton.
   # the following static methods all point to the same Agent instance:
   #
@@ -424,6 +427,16 @@ module NewRelic::Agent
         else
           raise Exception.new("#{response.code}: #{response.message}")
         end
+      rescue ForceDisconnectException => e
+        log! "RPM forced this agent to disconnect", :error
+        log! e.message, :error
+        log! "Restart this process to resume RPM's agent communication with NewRelic.com"
+        
+        # when a disconnect is requested, stop the current thread, which is the worker thread that 
+        # gathers data and talks to the server. 
+        @connected = false
+        Thread.exit
+        
       rescue Exception => e
         log.error("Error communicating with RPM Service at #{@remote_host}:#{remote_port}: #{e}")
         log.debug(e.backtrace.join("\n"))
@@ -446,7 +459,7 @@ module NewRelic::Agent
       def to_stderr(msg)
         # only log to stderr when we are running as a mongrel process, so it doesn't
         # muck with daemons and the like.
-        if @local_port
+        unless @environment == :unknown
           STDERR.puts "** [NewRelic] " + msg 
         end
       end
