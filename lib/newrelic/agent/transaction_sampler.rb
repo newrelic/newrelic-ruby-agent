@@ -3,7 +3,7 @@ require 'thread'
 
 module NewRelic::Agent
   class TransactionSampler
-    def initialize(agent = nil, max_samples = 500)
+    def initialize(agent = nil, max_samples = 100)
       @samples = []
       @mutex = Mutex.new
       @max_samples = max_samples

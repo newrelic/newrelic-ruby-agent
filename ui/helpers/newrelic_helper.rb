@@ -5,7 +5,7 @@ module NewrelicHelper
   # return the host that serves static content (css, metric documentation, images, etc)
   # that supports the desktop edition.
   def server
-    "http://rpm.newrelic.com"
+    NewRelic::Agent.instance.config['desktop_server'] || "http://rpm.newrelic.com"
   end
   
   # return the sample but post processed to strip out segments that normally don't show
