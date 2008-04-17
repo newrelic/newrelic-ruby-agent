@@ -3,7 +3,7 @@ module NewRelic::Agent
     def initialize
       # macos of linux
       # TODO support solaris!!
-      if RUBY_PLATFORM =~ /(darwin|linux)/
+      if RUBY_PLATFORM =~ /(darwin|linux|solaris)/
         @ps = "ps -o rsz #{$$}"
       end
       
