@@ -8,7 +8,7 @@ Rails application as it runs in production. The New Relic Agent is distributed a
 a Rails Plugin, which is trivial to install and use.
 
 Our testing shows that this agent introduces minimal overhead: in production, a
-typical controller action will be impacted by less than 2 milliseconds in
+typical controller action will be impacted by less than 5 milliseconds in
 response time. (That's significantly less time than is typically spent in mapping
 a request to the appropriate controller action.) So, you can run RPM all the
 time, and always have access to the information you need to resolve performance
@@ -23,7 +23,7 @@ Desktop mode is on by default when you run your application in the development
 environment (but not when it runs in other environments.) When running in
 desktop mode, the NewRelic Agent Rails Extension will track the performance of
 every http request serviced by your application, and store in memory this
-information for the last 500 http transactions.
+information for the last 100 http transactions.
 
 The Desktop Edition will also add a few pages to your application that allow you
 to analyze this performance information. (Don't worry - those pages are not
