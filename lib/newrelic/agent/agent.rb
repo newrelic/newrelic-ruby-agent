@@ -306,6 +306,11 @@ module NewRelic::Agent
         # as 1 agent to us, and we will have a license counting problem (as well
         # as a data granularity problem).
         port = thin_server.port
+       
+        if port.nil? && false     # TODO we need to make mods on the server to accept port as a string
+          port = thin_server.socket
+        end
+        port
       end
       
     rescue NameError

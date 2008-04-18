@@ -1,7 +1,7 @@
 # NewRelic Agent instrumentation for miscellaneous parts of the rails platform
 
 # instrumentation for dynamic application code loading (usually only happens a lot
-# in developmetn environment)
+# in development environment)
 module Dependencies
   add_method_tracer :load_file, "Rails/Application Code Loading"
 end
