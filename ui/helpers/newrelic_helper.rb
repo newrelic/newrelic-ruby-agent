@@ -22,7 +22,7 @@ module NewrelicHelper
   # newrelic agent code
   def application_caller(trace)
     trace.each do |trace_line|
-      file = trace_line.split(':').first
+      file = file_and_line(trace_line).first
       unless exclude_file_from_stack_trace?(file, false)
         return trace_line
       end
@@ -32,7 +32,7 @@ module NewrelicHelper
   
   def application_stack_trace(trace, include_rails = false)
     trace.reject do |trace_line|
-      file = trace_line.split(':').first
+      file = file_and_line(trace_line).first
       exclude_file_from_stack_trace?(file, include_rails)
     end
   end
@@ -42,19 +42,16 @@ module NewrelicHelper
   end
   
   def url_for_source(trace_line)
-    s = trace_line.split(':')
+    file, line = file_and_line(trace_line)
     
     begin
-      file = Pathname.new(s[0]).realpath
+      file = Pathname.new(file).realpath
     rescue Errno::ENOENT
       # we hit this exception when Pathame.realpath fails for some reason; attempt a link to
       # the file without a real path.  It may also fail, only when the user clicks on this specific
       # entry in the stack trace
-      file = s[0]
     end
       
-    line = s[1]
-    
     if using_textmate?
       "txmt://open?url=file://#{file}&line=#{line}"
     else
@@ -109,6 +106,10 @@ module NewrelicHelper
   end
   
 private
+  def file_and_line(stack_trace_line)
+    stack_trace_line.match(/(.*):(\d+)/)[1..2]
+  end
+  
   def using_textmate?
     # TODO make this a preference
     false

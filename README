@@ -39,7 +39,7 @@ runs in production mode. It connects to the New Relic RPM service and sends deep
 performance data to the RPM service for your analysis. To view this data, login
 to http://rpm.newrelic.com.
 
-NOTE you must have a valid account and license key to view this data online.
+NOTE: you must have a valid account and license key to view this data online.
 When you sign up for an account at newrelic.com, you will be provided with a
 license key, as well as a default configuration file for NewRelic RPM. You can
 either paste your license key into your existing configuration file,
