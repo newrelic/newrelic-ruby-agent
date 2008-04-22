@@ -71,7 +71,7 @@ module NewrelicHelper
     sprintf("%1.3f", segment.entry_timestamp)
   end
   
-  def format_time(time)
+  def format_timestamp(time)
     time.strftime("%H:%M:%S") 
   end
 
