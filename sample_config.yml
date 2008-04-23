@@ -42,8 +42,14 @@ development:
   <<: *default_settings
   # turn off in development.
   # NOTE: for initial evaluation purposes, you may want to temporarily turn
-  # the agent on in developmen mode.
+  # the agent on in development mode.
   enabled: false
+
+  # the desktop edition is turned on in development mode.  The desktop edition
+  # will present performance information on the last 100 transactions you have 
+  # executed since starting the mongrel.  to view this data, go to 
+  # http://localhost:3000/developer
+  developer: true
 
 test:
   <<: *default_settings

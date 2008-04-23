@@ -106,13 +106,6 @@ module NewRelic::Agent
       @sample_threshold = (config['sample_threshold'] || 2).to_i
       @license_key = config.fetch('license_key', nil)
       
-      # make sure the license key exists and is likely to be really a license key
-      # by checking it's string length (license keys are 40 character strings.)
-      unless @license_key && @license_key.length == 40
-        log! "No license key found.  Please insert your license key into agent/newrelic.yml"
-        return
-      end
-      
       @use_ssl = config.fetch('ssl', false)
       default_port = @use_ssl ? 443 : 80
       
@@ -123,6 +116,13 @@ module NewRelic::Agent
         instrument_rails
         
         if config['enabled']
+          # make sure the license key exists and is likely to be really a license key
+          # by checking it's string length (license keys are 40 character strings.)
+          unless @license_key && @license_key.length == 40
+            log! "No license key found.  Please insert your license key into agent/newrelic.yml"
+            return
+          end
+
           load_samplers
           
           @worker_thread = Thread.new do 
