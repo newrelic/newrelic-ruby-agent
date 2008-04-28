@@ -133,7 +133,7 @@ module NewRelic::Agent
         # When the VM shuts down, attempt to send a message to the server that
         # this agent run is stopping, assuming it has successfully connected
         at_exit do
-          @worker_thread.terminate
+          @worker_thread.terminate if @worker_thread
           graceful_disconnect
         end
       end
