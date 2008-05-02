@@ -29,7 +29,7 @@ begin
   
     # When (and only when) RPM is running in developer mode, a few pages
     # are added to your application that present performance information
-    # on the last 500 http requests your application has handled, allowing
+    # on the last 100 http requests your application has handled, allowing
     # you to diagnose performance problems on your desktop.
     #
     # to see this information, visit http://localhost:3000/newrelic

@@ -302,15 +302,15 @@ module NewRelic::Agent
       # would "win out" as the determined runtime environment
       ObjectSpace.each_object(Thin::Server) do |thin_server|
         @environment = :thin
+        port = thin_server.port
         
-        # TODO when thin uses UNIX domain sockets, we likely don't have a port
+        # when thin uses UNIX domain sockets, we likely don't have a port
         # setting.  So therefore we need another way to uniquely define this
         # "instance", otherwise, a host running >1 thin instances will appear
         # as 1 agent to us, and we will have a license counting problem (as well
         # as a data granularity problem).
-        port = thin_server.port
        
-        if port.nil? && false     # TODO we need to make mods on the server to accept port as a string
+        if port.nil? 
           port = thin_server.socket
         end
         port
