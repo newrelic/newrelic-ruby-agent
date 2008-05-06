@@ -99,6 +99,8 @@ module NewRelic
       # perform this in the runtime environment of a managed application, to explain the sql
       # statement(s) executed within a segment of a transaciton sample.
       # returns an array of explanations (which is an array of reqults from the explain query)
+      # Note this happens only for statements whose execution time exceeds a threshold (e.g. 500ms)
+      # and only within the slowest transaction in a report period, selected for shipment to RPM
       def explain_sql
         sql = params[:sql]
         return nil if sql.nil? 
@@ -107,10 +109,14 @@ module NewRelic
         statements.each do |statement|
           if statement.split($;, 2)[0].upcase == 'SELECT'
             explanation = []
-            
-            result = ActiveRecord::Base.connection.execute("EXPLAIN #{statement}")
-            explanation = []
-            result.each {|row| explanation << row }
+            begin
+              result = ActiveRecord::Base.connection.execute("EXPLAIN #{statement}")
+              result.each {|row| explanation << row }
+            rescue Exception
+              # swallow failed attempts to run an explain.  One example of a failure is the
+              # connection for the sql statement is to a different db than the default connection
+              # specified in AR::Base
+            end
             explanations << explanation
           end
         end

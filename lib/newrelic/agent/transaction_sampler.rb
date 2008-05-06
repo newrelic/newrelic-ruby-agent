@@ -77,10 +77,16 @@ module NewRelic::Agent
       end
     end
     
+    # some statements (particularly INSERTS with large BLOBS
+    # may be very large; we should trim them to a maximum usable length
+    MAX_SQL_LENGTH = 8192
     def notice_sql(sql)
       with_builder do |builder|
         segment = builder.current_segment
         if segment
+          if sql.length > MAX_SQL_LENGTH
+            sql = sql[0..MAX_SQL_LENGTH] + '...'
+          end
           current_sql = segment[:sql]
           sql = current_sql + ";\n" + sql if current_sql
           segment[:sql] = sql
@@ -92,15 +98,17 @@ module NewRelic::Agent
     # and clear the collected sample list. 
     
     def harvest_slowest_sample(previous_slowest = nil)
-      slowest = @slowest_sample
-      @slowest_sample = nil
-      
-      return nil unless slowest
-      
-      if previous_slowest.nil? || previous_slowest.duration < slowest.duration
-        slowest
-      else
-        previous_slowest
+      @mutex.synchronize do
+        slowest = @slowest_sample
+        @slowest_sample = nil
+
+        return nil unless slowest
+
+        if previous_slowest.nil? || previous_slowest.duration < slowest.duration
+          slowest
+        else
+          previous_slowest
+        end
       end
     end
 

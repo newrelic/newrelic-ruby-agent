@@ -56,15 +56,35 @@ module NewRelic
         # TODO test for SQL cleansing, backtrace, etc.
       end
       
+      def test_multithread
+        @sampler = TransactionSampler.new
+        threads = []
+        
+        20.times do
+          t = Thread.new(@sampler) do |the_sampler|
+            @sampler = the_sampler
+            100.times do
+              run_sample_trace { sleep 0.01 }
+            end
+          end
+          
+          threads << t
+        end
+        threads.each {|t| t.join }
+      end
+      
     private      
       def run_sample_trace(&proc)
         @sampler.notice_first_scope_push
         @sampler.notice_transaction '/path', nil, {}
         @sampler.notice_push_scope "a"
+        @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'")
         @sampler.notice_push_scope "ab"
+        @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'white'")
         proc.call if proc
         @sampler.notice_pop_scope "ab"
         @sampler.notice_push_scope "lew"
+        @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'french'")
         @sampler.notice_pop_scope "lew"
         @sampler.notice_pop_scope "a"
         @sampler.notice_scope_empty

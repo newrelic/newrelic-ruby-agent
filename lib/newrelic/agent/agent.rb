@@ -429,7 +429,7 @@ module NewRelic::Agent
       response = request.start do |http|
         http.post(uri, post_data) 
       end
-      
+
       if response.is_a? Net::HTTPSuccess
         return_value = Marshal.load(Zlib::Inflate.inflate(CGI::unescape(response.body)))
         if return_value.is_a? Exception
