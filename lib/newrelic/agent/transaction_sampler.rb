@@ -79,7 +79,7 @@ module NewRelic::Agent
     
     # some statements (particularly INSERTS with large BLOBS
     # may be very large; we should trim them to a maximum usable length
-    MAX_SQL_LENGTH = 8192
+    MAX_SQL_LENGTH = 16384
     def notice_sql(sql)
       with_builder do |builder|
         segment = builder.current_segment
