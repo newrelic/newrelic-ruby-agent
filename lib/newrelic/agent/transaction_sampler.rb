@@ -1,5 +1,6 @@
 require 'newrelic/transaction_sample'
 require 'thread'
+require 'newrelic/agent/method_tracer'
 
 module NewRelic::Agent
   class TransactionSampler
@@ -54,6 +55,7 @@ module NewRelic::Agent
     def notice_scope_empty
       with_builder do |builder|
         builder.finish_trace
+        reset_builder
       
         @mutex.synchronize do
           sample = builder.sample
@@ -66,8 +68,6 @@ module NewRelic::Agent
             @slowest_sample = sample
           end
         end
-      
-        reset_builder
       end
     end
     
@@ -176,7 +176,8 @@ module NewRelic::Agent
   end
 
   # a builder is created with every sampled transaction, to dynamically
-  # generate the sampled data
+  # generate the sampled data.  It is a thread-local object, and is not
+  # accessed by any other thread so no need for synchronization.
   class TransactionSampleBuilder
     attr_reader :current_segment
     
@@ -203,8 +204,15 @@ module NewRelic::Agent
     
     def finish_trace
       # This should never get called twice, but in a rare case that we can't reproduce in house it does.
-      # for now, just bail if the sample is frozen already
-      return if @sample.frozen?
+      # log forensics and return gracefully
+      if @sample.frozen?
+        log = self.class.method_tracer_log
+        
+        log.warn "Unexpected double-freeze of Transaction Trace Object."
+        log.info "Please send this diagnostic data to New Relic"
+        log.info @sample.to_s
+        return
+      end
       
       @sample.root_segment.end_trace relative_timestamp
       @sample.freeze

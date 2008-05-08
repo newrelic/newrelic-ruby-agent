@@ -87,7 +87,21 @@ module NewRelic
         @sampler.notice_push_scope "a"
         @sampler.notice_pop_scope "a"
         @sampler.notice_scope_empty
+      end
+      
+      def test_double_scope_stack_empty
+        @sampler = TransactionSampler.new
         
+        @sampler.notice_first_scope_push
+        @sampler.notice_transaction "/path", nil, {}
+        @sampler.notice_push_scope "a"
+        @sampler.notice_pop_scope "a"
+        @sampler.notice_scope_empty
+        @sampler.notice_scope_empty
+        @sampler.notice_scope_empty
+        @sampler.notice_scope_empty
+        
+        assert_not_nil @sampler.harvest_slowest_sample(nil)
       end
       
     private      

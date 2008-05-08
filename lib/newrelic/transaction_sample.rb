@@ -1,3 +1,5 @@
+require 'newrelic/stats'
+
 module NewRelic
   class TransactionSample
     class Segment
@@ -41,7 +43,7 @@ module NewRelic
           s << cs.to_debug_str(depth + 1)
         end
         s << tab
-        s << "<< #{metric_name}: #{@exit_timestamp.to_ms}\n"
+        s << "<< #{metric_name}: #{@exit_timestamp ? @exit_timestamp.to_ms : 'n/a'}\n"
         s
       end
       
