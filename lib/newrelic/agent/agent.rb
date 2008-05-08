@@ -474,7 +474,7 @@ module NewRelic::Agent
       if @connected
         begin
           log.debug "Sending graceful shutdown message to #{remote_host}:#{remote_port}"
-          invoke_remote :shutdown, @agent_id, Time.now 
+          invoke_remote :shutdown, @agent_id, Time.now.to_f
           log.debug "Shutdown Complete"
         rescue Exception => e
           log.warn "Error sending shutdown message to #{remote_host}:#{remote_port}:"
