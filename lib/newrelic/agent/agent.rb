@@ -222,7 +222,7 @@ module NewRelic::Agent
       sleep @connect_retry_period.to_i
       
       @agent_id = invoke_remote :launch, @local_host,
-               @local_port, determine_home_directory, $$, @launch_time
+               @local_port, determine_home_directory, $$, @launch_time.to_f
       
       log! "Connected to NewRelic Service at #{@remote_host}:#{@remote_port}."
       log.debug "Agent ID = #{@agent_id}."
