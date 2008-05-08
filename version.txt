@@ -1,6 +1,4 @@
-2008-03-19 version 488 to 546
-2008-03-20 version 546 to 564
-2008-03-20 version 546 to 556
-2008-03-21 version 556 to 572
-2008-04-18 version 556 to 762
+2008-05-07 version 2.1.1
+  * bugfixes
 2008-04-25 version 2.1.0
+  * first versioned release
