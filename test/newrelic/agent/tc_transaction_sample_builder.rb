@@ -138,6 +138,16 @@ module NewRelic
         validate_segment(sample.root_segment)
       end
         
+      def test_parallel_first_level_segments
+        build_segment "a" do
+          build_segment "ab"
+        end
+        build_segment "b"
+        build_segment "c"
+        
+        @builder.finish_trace
+        validate_builder
+      end
       
       def validate_builder(check_names = true)
         validate_segment @builder.sample.root_segment, check_names

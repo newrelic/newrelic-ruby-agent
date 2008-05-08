@@ -202,6 +202,10 @@ module NewRelic::Agent
     end
     
     def finish_trace
+      # This should never get called twice, but in a rare case that we can't reproduce in house it does.
+      # for now, just bail if the sample is frozen already
+      return if @sample.frozen?
+      
       @sample.root_segment.end_trace relative_timestamp
       @sample.freeze
       @current_segment = nil

@@ -73,6 +73,23 @@ module NewRelic
         threads.each {|t| t.join }
       end
       
+      def test_sample_with_parallel_paths
+        @sampler = TransactionSampler.new
+        
+        @sampler.notice_first_scope_push
+        @sampler.notice_transaction "/path", nil, {}
+        @sampler.notice_push_scope "a"
+        @sampler.notice_pop_scope "a"
+        @sampler.notice_scope_empty
+        
+        @sampler.notice_first_scope_push
+        @sampler.notice_transaction "/path", nil, {}
+        @sampler.notice_push_scope "a"
+        @sampler.notice_pop_scope "a"
+        @sampler.notice_scope_empty
+        
+      end
+      
     private      
       def run_sample_trace(&proc)
         @sampler.notice_first_scope_push
