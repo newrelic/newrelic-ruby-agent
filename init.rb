@@ -12,7 +12,8 @@ begin
 
   newrelic_agent_config = YAML.load(newrelic_config_file)[RAILS_ENV] || {}
   newrelic_agent_config.freeze
-
+  ::NR_CONFIG_FILE = newrelic_agent_config
+  
   ::RPM_AGENT_ENABLED = newrelic_agent_config['enabled']
   ::RPM_DEVELOPER = newrelic_agent_config['developer']
 

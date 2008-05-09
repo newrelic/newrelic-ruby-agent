@@ -8,7 +8,7 @@ module ActionController
       def draw
         clear!
         map = Mapper.new(self)
-        map.named_route 'newrelic_developer', '/newrelic/:action/:id', :controller => 'newrelic'
+        map.named_route 'newrelic_developer', '/newrelic/:action/:id', :controller => 'newrelic' unless ::NR_CONFIG_FILE['skip_developer_route']
         
         yield map
 
