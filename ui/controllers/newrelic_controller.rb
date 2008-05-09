@@ -6,6 +6,9 @@ require 'transaction_analysis'
 class NewrelicController < ActionController::Base
   include NewrelicHelper
   
+  # do not include any filters inside the application since there might be a conflict
+  skip_filter filter_chain.collect(&:filter)
+  
   # for this controller, the views are located in a different directory from
   # the application's views.
   view_path = File.join(File.dirname(__FILE__), '..', 'views')
