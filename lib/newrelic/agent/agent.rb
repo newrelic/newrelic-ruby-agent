@@ -11,13 +11,17 @@ require 'newrelic/agent/stats_engine'
 require 'newrelic/agent/transaction_sampler'
 
 # if Mongrel isn't present, we still need a class declaration
-module Mongrel
-  class HttpServer; end
+unless defined? Mongrel
+  module Mongrel
+    class HttpServer; end
+  end
 end
 
 # same for Thin HTTP Server
-module Thin
-  class Server; end
+unless defined? Thin
+  module Thin
+    class Server; end
+  end
 end
 
 # The NewRelic Agent collects performance data from rails applications in realtime as the
