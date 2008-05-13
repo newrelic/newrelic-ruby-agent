@@ -79,7 +79,7 @@ end
   <% if rows_logger_present? %>
     <h3>Plugin Incompatibility</h3>
     The Rows Logger plugin rewrites part of Active Record, which in effect turns off the 
-    SQL statement tracing functionality of NewRelic RPM Desktop Edition. To gain SQL statement
+    SQL statement tracing functionality of NewRelic RPM Developer Mode. To gain SQL statement
     visibility, you must remove <samp>rows_logger_plugin</samp>, or change your plugin load order 
     so that the rows logger is loaded first.  
   <% else %>

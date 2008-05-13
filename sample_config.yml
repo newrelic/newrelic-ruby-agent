@@ -45,8 +45,8 @@ development:
   # the agent on in development mode.
   enabled: false
 
-  # the desktop edition is turned on in development mode.  The desktop edition
-  # will present performance information on the last 100 transactions you have 
+  # When running in Developer Mode, the New Relic Agent will present 
+  # performance information on the last 100 transactions you have 
   # executed since starting the mongrel.  to view this data, go to 
   # http://localhost:3000/newrelic
   developer: true
