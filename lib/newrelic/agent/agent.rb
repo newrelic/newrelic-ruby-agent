@@ -10,20 +10,6 @@ require 'newrelic/agent/worker_loop'
 require 'newrelic/agent/stats_engine'
 require 'newrelic/agent/transaction_sampler'
 
-# if Mongrel isn't present, we still need a class declaration
-unless defined? Mongrel
-  module Mongrel
-    class HttpServer; end
-  end
-end
-
-# same for Thin HTTP Server
-unless defined? Thin
-  module Thin
-    class Server; end
-  end
-end
-
 # The NewRelic Agent collects performance data from rails applications in realtime as the
 # application runs, and periodically sends that data to the NewRelic server.  
 module NewRelic::Agent
@@ -285,6 +271,7 @@ module NewRelic::Agent
     # on a port, return the port # that we are listening on.
     def determine_environment_and_port
       port = nil
+      @environment = :unknown
       
       # OPTIONS is set by script/server 
       port = OPTIONS.fetch :port, DEFAULT_PORT
@@ -292,11 +279,11 @@ module NewRelic::Agent
       
     rescue NameError
       # this case covers starting by mongrel_rails
-      # TODO review this approach.  There should be only one http server
-      # allocated in a given rails process...
-      ObjectSpace.each_object(Mongrel::HttpServer) do |mongrel|
-        port = mongrel.port
-        @environment = :mongrel
+      if defined? Mongrel::HttpServer
+        ObjectSpace.each_object(Mongrel::HttpServer) do |mongrel|
+          port = mongrel.port
+          @environment = :mongrel
+        end
       end
       
       # this case covers the thin web server
@@ -304,25 +291,26 @@ module NewRelic::Agent
       # NOTE if a thin server and a mongrel server were to coexist in a single
       # ruby process (no idea why that would ever happen) the thin server
       # would "win out" as the determined runtime environment
-      ObjectSpace.each_object(Thin::Server) do |thin_server|
-        @environment = :thin
-        port = thin_server.port
-        
-        # when thin uses UNIX domain sockets, we likely don't have a port
-        # setting.  So therefore we need another way to uniquely define this
-        # "instance", otherwise, a host running >1 thin instances will appear
-        # as 1 agent to us, and we will have a license counting problem (as well
-        # as a data granularity problem).
-       
-        if port.nil? 
-          port = thin_server.socket
+      if defined? Thin::Server
+        ObjectSpace.each_object(Thin::Server) do |thin_server|
+          @environment = :thin
+          port = thin_server.port
+
+          # when thin uses UNIX domain sockets, we likely don't have a port
+          # setting.  So therefore we need another way to uniquely define this
+          # "instance", otherwise, a host running >1 thin instances will appear
+          # as 1 agent to us, and we will have a license counting problem (as well
+          # as a data granularity problem).
+
+          if port.nil? 
+            port = thin_server.socket
+          end
+          port
         end
-        port
       end
       
     rescue NameError
       log.info "Could not determine port.  Likely running as a cgi"
-      @environment = :unknown
       
     ensure
       return port
@@ -383,7 +371,8 @@ module NewRelic::Agent
         # gathering SQL explanations, stripping out stack traces, and normalizing SQL.
         # note that we explain only the sql statements whose segments' execution times exceed 
         # our threshold (to avoid unnecessary overhead of running explains on fast queries.)
-        sample = @slowest_sample.prepare_to_send(:explain_sql => 0.5)
+        sample = @slowest_sample.prepare_to_send(:explain_sql => 0.01)
+
         invoke_remote :transaction_sample_data, @agent_id, sample
       end
       
