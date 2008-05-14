@@ -371,7 +371,7 @@ module NewRelic::Agent
         # gathering SQL explanations, stripping out stack traces, and normalizing SQL.
         # note that we explain only the sql statements whose segments' execution times exceed 
         # our threshold (to avoid unnecessary overhead of running explains on fast queries.)
-        sample = @slowest_sample.prepare_to_send(:explain_sql => 0.01)
+        sample = @slowest_sample.prepare_to_send(:explain_sql => 0.5)
 
         invoke_remote :transaction_sample_data, @agent_id, sample
       end
