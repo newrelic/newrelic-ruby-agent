@@ -33,9 +33,9 @@ class NewrelicController < ActionController::Base
   def forward_to_file(root_path = nil, content_type = nil)
     if root_path &&  file = params[:file]
       full_path = root_path + file
-      render (:file => full_path, :use_full_path => true, :content_type => content_type)
+      render :file => full_path, :use_full_path => true, :content_type => content_type
     else
-      render (:nothing => true, :status => 404)
+      render :nothing => true, :status => 404
     end
   end
   
