@@ -5,4 +5,4 @@
 2008-05-07 version 2.1.1
   * bugfixes
 2008-04-25 version 2.1.0
-  * first versioned release
+  * release for private beta
