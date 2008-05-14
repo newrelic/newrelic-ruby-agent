@@ -5,33 +5,41 @@
 <%= javascript_include_tag "#{server}/javascripts/effects" %>
 <%= javascript_include_tag "#{server}/javascripts/dragdrop" %>
 <%= javascript_include_tag "#{server}/javascripts/controls" %>
-	<link href="<%= server %>/stylesheets/style.css?1198393656" 
+	<link href="<%= url_for(:controller => :newrelic, :action => :css, :file => 'style.css') %>" 
 				media="screen" rel="stylesheet" type="text/css" />
 </head>
 <body>
-<div id="header">
-	<img width=100% height=4 src="<%= server %>/images/bevel_bar.gif">
-	<table width="100%" height=72>
-		<tr>
-			<td align='left'>
-<a href = "/newrelic"><img src="<%= server %>/images/new_relic_rpm_desktop.gif"/></a>
-<p class="description">
-Developer Mode
-</p>
-			</td>
-			<td align='right' valign='top'>
-				<small>
-Monitor your Rails Application in production.<br/> <%=link_to 'www.newrelic.com', 'http://www.newrelic.com' %>. 
-				</small>
-			</td>
-		</tr>
-	</table>
-	<img width=100% height=4 src="<%= server %>/images/bevel_bar.gif">
-</div>
-<div id='content'>
-	<%= yield %>
-</div>
-<div align=center id='footer'>
-Monitor your Rails Application in production: <%=link_to 'www.newrelic.com', 'http://www.newrelic.com' %>. 
-</div>
+	<div id="header">
+		<img width=100% height=4 src="<%= url_for(:controller => :newrelic, :action => :image, :file => 'blue_bar.gif', :content_type => 'image/gif') %>">
+		<table width="100%" height="60">
+			<tr>
+				<td valign="middle">
+					<a href='/newrelic'><img src="<%= server %>/images/new_relic_rpm_desktop.gif" hspace="10"/></a>
+				</td>
+				<td class="top_nav" valign="bottom">
+					<ul id="navlist">
+						<li>&raquo; <a href='/newrelic'>Home</a></li>
+					</ul>
+				</td>
+			</tr>
+		</table>
+		<div id="page_nav">
+			<table width="100%" height="100%">
+				<tr valign="middle" background="<%= url_for(:controller => :newrelic, :action => :image, :file => 'gray_bar.gif', :content_type => 'image/gif') %>">
+					<td>
+						DEVELOPER MODE
+					</td>
+					<td class="title_bar_right">
+						Monitor your Rails Application in production. <%=link_to 'Learn more.', 'http://www.newrelic.com' %>
+					</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+	<div id='content'>
+		<%= yield %>
+	</div>
+	<div align=center id='footer'>
+	Monitor your Rails Application in production: <%=link_to 'www.newrelic.com', 'http://www.newrelic.com' %>. 
+	</div>
 </body>
