@@ -40,16 +40,6 @@ module ActionController
     if method_defined? :perform_invocation
       add_method_tracer :perform_invocation, 'WebService/#{controller_name}/#{args.first}'
     end
-
-# This doesn't work well because around filters yield back to the action
-#    add_method_tracer :run_before_filters, "Controller/Before Filters"
-#    add_method_tracer :run_after_filters, "Controller/After Filters"
-  
- 
-    # trace the number of exceptions encountered 
-    # TODO determine how to break these out: by error code, contoller class, error class? all of the above?
-    # add_method_tracer :rescue_action, 'Errors/Type/#{args.first.class}', false
-    # add_method_tracer :rescue_action, 'Errors/Controller/#{self.class}', false
   
     private
       # determine the path that is used in the metric name for
