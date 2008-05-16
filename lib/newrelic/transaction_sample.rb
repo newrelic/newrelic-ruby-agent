@@ -216,7 +216,7 @@ module NewRelic
   private
   
     def normalize_sql(sql)
-      # TODO implement.s
+      # TODO 
       sql
     end
     
@@ -250,8 +250,6 @@ module NewRelic
     end
 
     # see prepare_to_send for what we do with options
-    # TODO support each of the above options before shipping (keep_backtraces is optional)
-    # TODO apply DRY to this and omit_segments_with
     def build_segment_for_transfer(new_sample, source_segment, target_segment, options)
       source_segment.called_segments.each do |source_called_segment|
         target_called_segment = new_sample.create_segment(

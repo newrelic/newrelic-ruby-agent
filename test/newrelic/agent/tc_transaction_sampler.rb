@@ -52,8 +52,6 @@ module NewRelic
         
         ready_to_send = sample.prepare_to_send
         assert sample.duration == ready_to_send.duration
-        
-        # TODO test for SQL cleansing, backtrace, etc.
       end
       
       def test_multithread

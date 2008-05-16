@@ -15,7 +15,6 @@ module ActionController
         # generate metrics for this specific action
         path = _determine_metric_path
       
-        # TODO should we just make the transaction name the path, or the metric name for the controller?
         agent.stats_engine.transaction_name ||= "Controller/#{path}" if agent.stats_engine
       
         self.class.trace_method_execution "Controller/#{path}" do 

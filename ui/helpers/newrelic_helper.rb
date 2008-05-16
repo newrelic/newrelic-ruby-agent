@@ -61,7 +61,6 @@ module NewrelicHelper
   
   def link_to_source(trace)
     image_url = "#{server}/images/"
-    # TODO need an image for regular text file
     image_url << (using_textmate? ? "textmate.png" : "file_icon.png")
     
     link_to image_tag(image_url), url_for_source(application_caller(trace))
@@ -111,7 +110,7 @@ private
   end
   
   def using_textmate?
-    # TODO make this a preference
+    # For now, disable textmate integration
     false
   end
   

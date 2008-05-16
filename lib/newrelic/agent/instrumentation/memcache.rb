@@ -1,9 +1,8 @@
 
 if defined? MemCache
 
-# FIXME there are multiple implementations of the MemCache client in Ruby,
-# each with slightly different API's and semantics.  Be sure we accurately
-# measure all implementations.
+# NOTE there are multiple implementations of the MemCache client in Ruby,
+# each with slightly different API's and semantics.  
 # Currently we only cover memcache-client.  Need to cover Ruby-MemCache.
 # See:
 #     http://www.deveiate.org/code/Ruby-MemCache/ (Gem: Ruby-MemCache)

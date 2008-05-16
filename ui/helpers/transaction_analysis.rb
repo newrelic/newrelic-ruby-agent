@@ -1,5 +1,4 @@
 # Add these methods to TransactionSample that enable performance analysis in the user interface.
-# TODO move this sample analysis to a common library when we reuse it for the hosted version
 class NewRelic::TransactionSample
   def database_time
     time_percentage(/^Database\/.*/)
@@ -111,7 +110,6 @@ class NewRelic::TransactionSample
       total = 0
       each_segment do |segment|
         if regex =~ segment.metric_name
-          # TODO what if a find calls something else rather than going straight to the db?
           total += segment.duration
         end
       end
