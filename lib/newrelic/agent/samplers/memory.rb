@@ -2,9 +2,9 @@ module NewRelic::Agent
   class MemorySampler
     def initialize
       # macos, linux, solaris
-      if RUBY_PLATFORM =~ /(darwin|linux|solaris)/
+      if RUBY_PLATFORM =~ /darwin|linux/
         @ps = "ps -o rsz #{$$}"
-      elsif RUBY_PLATFORM =~ /i386-freebsd6/
+      elsif RUBY_PLATFORM =~ /i386-freebsd6|solaris/
         @ps = "ps -o rss #{$$}"
       end
       
