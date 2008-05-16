@@ -24,7 +24,6 @@ module NewRelic::Agent
     
     def notice_push_scope(scope)
       with_builder do |builder|
-        check_rules(scope)      # TODO no longer necessary once we confirm overhead
         builder.trace_entry(scope)
         
         # in developer mode, capture the stack trace with the segment.
