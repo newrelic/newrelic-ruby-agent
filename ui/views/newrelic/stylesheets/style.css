@@ -17,7 +17,6 @@ body{
 	color:#333;
 	font-family: Verdana, Tahoma, Arial, Helvetica, sans-serif;
 	font-size:0.9em;
-	line-height:110%;
 	margin:0;
 	padding:0;
 	text-align:left;
@@ -76,6 +75,10 @@ h1, h2, h3{
 	margin-top:-0.1em;
 	margin-bottom:0.3em;
 }
+#header table
+{
+	padding: 0px 0px 0px 0px;
+}
 p{
 	font-size:0.9em;
 	margin-top:5px;
@@ -109,7 +112,7 @@ th.strong
 
 th
 {
-	font-size: .85em;
+	font-size: .95em;
 	text-align:left;
 	font-weight: normal;
 	line-height:100%;
@@ -119,7 +122,10 @@ th
 /*************************************
 +Seldon Specific - need to preserve
 *************************************/
-div.flash {margin-top: 8px;}
+div.flash {
+	margin: 8px 10px 8px 10px;
+	padding: 5px 5px 5px 5px;
+}
 
 div.flash.error, #errorExplanation {
    background: url(../images/false.png) 8px 5px no-repeat;
@@ -177,6 +183,11 @@ div.flash.notice {
 	height: 42px;
 }
 
+#page_nav tr
+{
+	vertical-align: middle;
+}
+
 #page_nav td
 {
 	padding-left: 20px;
@@ -184,14 +195,11 @@ div.flash.notice {
 	white-space: nowrap;
 }
 
-#header table
-{
-	padding: 0px 0px 0px 0px;
-}
 
 table
 {
-	border-spacing: 0;
+	border-collapse: collapse;
+	border-spacing: 0px;
 	padding: 5px 5px 5px 5px;
 }
 
@@ -204,7 +212,7 @@ tfoot
 {
 	
 	background-color: #EEEEEE;
-	font-size: .75em; 
+	font-size: .95em; 
 	color: #333;
 }
 
@@ -215,6 +223,7 @@ tfoot
 
 tfoot td
 {
+	font-size: .85em;
 	text-align:right;
 }
 
@@ -240,6 +249,8 @@ td.time_nav
 
 td
 {
+	border: 0px;
+	font-size: .95em;
 	text-align: left;
 	padding: 5px 5px 5px 5px;
 }

@@ -10,11 +10,11 @@
 </head>
 <body>
 	<div id="header">
-		<img width=100% height=4 src="<%= url_for(:controller => :newrelic, :action => :image, :file => 'blue_bar.gif', :content_type => 'image/gif') %>">
+		<img width="100%" height="4" src="<%= url_for(:controller => :newrelic, :action => :image, :file => 'blue_bar.gif', :content_type => 'image/gif') %>" alt="spacer"/>
 		<table width="100%" height="60">
 			<tr>
 				<td valign="middle">
-					<a href='/newrelic'><img src="<%= server %>/images/new_relic_rpm_desktop.gif" hspace="10"/></a>
+					<a href='/newrelic'><img src="<%= server %>/images/new_relic_rpm_desktop.gif" hspace="10" alt="New Relic RPM"/></a>
 				</td>
 				<td class="top_nav" valign="bottom">
 					<ul id="navlist">
@@ -24,8 +24,8 @@
 			</tr>
 		</table>
 		<div id="page_nav">
-			<table width="100%" height="100%">
-				<tr valign="middle" background="<%= url_for(:controller => :newrelic, :action => :image, :file => 'gray_bar.gif', :content_type => 'image/gif') %>">
+			<table width="100%" height="100%" background="<%= url_for(:controller => :newrelic, :action => :image, :file => 'gray_bar.gif', :content_type => 'image/gif') %>">
+				<tr valign="middle">
 					<td>
 						DEVELOPER MODE
 					</td>
@@ -39,7 +39,8 @@
 	<div id='content'>
 		<%= yield %>
 	</div>
-	<div align=center id='footer'>
+	<div align="center" id='footer'>
+		<img width="100%" height="4" src="<%= url_for(:controller => :newrelic, :action => :image, :file => 'blue_bar.gif', :content_type => 'image/gif') %>" alt="spacer"/>
 	Monitor your Rails Application in production: <%=link_to 'www.newrelic.com', 'http://www.newrelic.com' %>. 
 	</div>
 </body>
