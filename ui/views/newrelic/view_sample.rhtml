@@ -62,10 +62,8 @@ end
 
 <div id='pie_chart' align=center>
 	<h3>Performance Summary</h3>
-	<br/>
 	<% @pie_chart.width = 800; @pie_chart.height = 300 %>
 	<%= @pie_chart.render %>
-	<br/>
 	<%= render :partial => 'table', :object => @sample.breakdown_data(6) %>
 </div>
 

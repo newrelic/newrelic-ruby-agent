@@ -38,7 +38,11 @@ body{
 	color:#888;
 	clear:both;
 	font-size:0.75em;
-	padding:15px;
+	padding-top: 15px;
+}
+#footer p
+{
+	padding-left: 15px;
 }
 
 /*************************************
@@ -176,6 +180,11 @@ div.flash.notice {
 	font-size: .9em;
 }
 
+#pie_chart_image
+{
+	margin:  15px 0px 15px 0px;
+}
+
 #page_nav
 {
 	height: 42px;
@@ -221,11 +230,6 @@ tfoot
 	color: #333;
 }
 
-.threshold_controls
-{
-	background-color: white;
-}
-
 tfoot td
 {
 	font-size: .85em;
@@ -268,10 +272,6 @@ ul.tab_list li {
 }
 .selected {
 	background: url(../images/16-arrow-right.png) no-repeat;
-}
-
-.process_list {
-	padding-left: 10px;
 }
 
 .expand {
