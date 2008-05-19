@@ -105,19 +105,17 @@ var{
 	font-style: normal;
 	font-size: 1.1em;
 }
-th.strong
+
+th, td, thead, tfoot
 {
-	font-weight: bold;
+	font-size: .95em;	
 }
 
+/* regular tables use thead instead of th.  th is only used by name/value table layouts */
 th
 {
-	font-size: .95em;
-	text-align:left;
-	font-weight: normal;
-	line-height:100%;
-	background-color: #EEEEEE;
 	padding: 5px 5px 5px 5px;
+	text-align: right;
 }
 /*************************************
 +Seldon Specific - need to preserve
@@ -208,11 +206,18 @@ table.agents
 	width: 100%;
 }
 
+thead
+{
+	text-align:left;
+	font-weight: normal;
+	line-height:100%;
+	background-color: #EEEEEE;
+	padding: 5px 5px 5px 5px;
+}
+
 tfoot
 {
-	
-	background-color: #EEEEEE;
-	font-size: .95em; 
+	background-color: #EEEEEE; 
 	color: #333;
 }
 
@@ -249,8 +254,6 @@ td.time_nav
 
 td
 {
-	border: 0px;
-	font-size: .95em;
 	text-align: left;
 	padding: 5px 5px 5px 5px;
 }
