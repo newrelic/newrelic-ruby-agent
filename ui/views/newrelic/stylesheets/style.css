@@ -37,7 +37,7 @@ body{
 #footer{
 	color:#888;
 	clear:both;
-	font-size:0.75em;
+	font-size:0.9em;
 	padding-top: 15px;
 }
 #footer p
@@ -183,6 +183,17 @@ div.flash.notice {
 #pie_chart_image
 {
 	margin:  15px 0px 15px 0px;
+}
+
+#summary_table
+{
+	margin: 10px 0px 10px 20px;
+}
+
+#sql_statement
+{
+	width: 1200px;
+	overflow: auto;
 }
 
 #page_nav
