@@ -49,7 +49,7 @@ module NewRelic::Agent
     end
   end
   
-  # Implementation defail for the NewRelic Agent
+  # Implementation default for the NewRelic Agent
   class Agent
     # Specifies the version of the agent's communication protocol
     # with the NewRelic hosted site.
@@ -268,10 +268,16 @@ module NewRelic::Agent
     
     # determine the environment we are running in (one of :webrick,
     # :mongrel, :thin, or :unknown) and if the process is listening
-    # on a port, return the port # that we are listening on.
+    # on a port, return the port # that we are listening on.  When
+    # this returns nil for the port, then the agent will not run.
     def determine_environment_and_port
       port = nil
       @environment = :unknown
+      
+      # Disable the agent for rake, irb, ruby and console invocations:
+      if $0 =~ /rake$|irb$|ruby$/
+        return
+      end
       
       # OPTIONS is set by script/server 
       port = OPTIONS.fetch :port, DEFAULT_PORT
