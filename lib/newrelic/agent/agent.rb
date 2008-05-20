@@ -275,7 +275,7 @@ module NewRelic::Agent
       @environment = :unknown
       
       # Disable the agent for rake, irb, ruby and console invocations:
-      if $0 =~ /rake$|irb$|ruby$/
+      if $0 =~ /rake$|irb$/
         return
       end
       
