@@ -50,6 +50,8 @@ module NewrelicHelper
       # we hit this exception when Pathame.realpath fails for some reason; attempt a link to
       # the file without a real path.  It may also fail, only when the user clicks on this specific
       # entry in the stack trace
+    rescue 
+      # catch all other exceptions.  We're going to create an invalid link below, but that's okay.
     end
       
     if using_textmate?
