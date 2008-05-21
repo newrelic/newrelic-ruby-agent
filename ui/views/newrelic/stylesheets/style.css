@@ -32,9 +32,10 @@ body{
 	text-align:left;
 }
 #header{
-	padding: 0.0em 0em;
+	padding: 0.0em 0em 20px 0px;
 }
-#footer{
+#footer
+{
 	color:#888;
 	clear:both;
 	font-size:0.9em;
@@ -56,11 +57,36 @@ Navigation Bar (horizontal at top)
 /*************************************
 +Hn and p
 *************************************/
-h1, h2, h3{
+h1, h2, h3, p
+{
+	color:#333333;
 	font-family: Verdana, Tahoma, Arial, Helvetica, sans-serif;
-	letter-spacing: 0px;
-	margin:0;
 }
+
+h1, h2, h3
+{
+	margin-top:10px;
+    font-weight: normal;
+	letter-spacing: 0px;
+}
+
+h1 
+{
+    font-size: 1.4em;    
+    margin-bottom:10px;
+}
+
+h2 
+{
+    font-size: 1.2em;
+    margin-bottom:0px;
+}
+
+h3
+{
+	font-size: 1.1em;
+}
+
 #header h1{
 	font-family: Verdana, Tahoma, Arial, Helvetica, sans-serif;
 	font-size:1.2em;
@@ -73,7 +99,6 @@ h1, h2, h3{
 	color:#CC0000;
 }
 #header p{
-	color:#333;
 	font-size:1.1em;
 	margin:0;
 	margin-top:-0.1em;
@@ -84,10 +109,9 @@ h1, h2, h3{
 	padding: 0px 0px 0px 0px;
 }
 p{
-	font-size:0.9em;
-	margin-top:5px;
-	margin-bottom:10px;
-	color:#333
+    font-size:0.9em;
+    margin-top:0px;
+    margin-bottom:10px;
 }
 
 /*************************************
@@ -124,23 +148,34 @@ th
 /*************************************
 +Seldon Specific - need to preserve
 *************************************/
-div.flash {
+div.flash, #errorExplanation 
+{
 	margin: 8px 10px 8px 10px;
-	padding: 5px 5px 5px 5px;
+	border: 2px;
+	border-style: solid;
 }
 
-div.flash.error, #errorExplanation {
-   background: url(../images/false.png) 8px 5px no-repeat;
-	background-color: #ffe3e3;
-	border-color: #dd0000;
-	color: #550000;
+div.flash
+{
+	padding: 10px 5px 10px 20px;
 }
 
-div.flash.notice {
-   background: url(../images/true.png) 8px 5px no-repeat;
-	background-color: #dfffdf;
-	border-color: #9fcf9f;
-	color: #005f00;
+#errorExplanation
+{
+	padding: 5px 5px 5px 20px;
+	color: #bb0011;
+}
+
+div.flash.error 
+{
+	border-color: #bb0011;
+	color: #bb0011;
+}
+
+div.flash.notice 
+{
+	border-color: #eeaa33;
+	color: #eeaa33;
 }
 
 #metricsummary{
@@ -154,8 +189,9 @@ div.flash.notice {
 #navlist
 {
 	margin: 0px;
-	padding: 0px 10px 2px 0px;
+	padding: 0px 10px 15px 0px;
 	white-space: nowrap;
+	color: #333333;
 }
 
 #navlist li
@@ -164,6 +200,12 @@ div.flash.notice {
 	list-style-type: none;
 	padding: 0px 0px 0px 20px;
 	font-size: .9em;
+	color: #333333;
+}
+
+#navlist li a
+{
+	color: #333333;
 }
 
 #secondary_nav
@@ -183,6 +225,11 @@ div.flash.notice {
 #pie_chart_image
 {
 	margin:  15px 0px 15px 0px;
+}
+
+#view_sample
+{
+	width: 800px;
 }
 
 #summary_table
@@ -221,23 +268,19 @@ table
 	padding: 5px 5px 5px 5px;
 }
 
-table.agents
-{
-	width: 100%;
-}
 
 thead
 {
 	text-align:left;
 	font-weight: normal;
 	line-height:100%;
-	background-color: #EEEEEE;
+	background-color: #6688aa;
 	padding: 5px 5px 5px 5px;
 }
 
 tfoot
 {
-	background-color: #EEEEEE; 
+	background-color: #6688aa; 
 	color: #333;
 }
 
