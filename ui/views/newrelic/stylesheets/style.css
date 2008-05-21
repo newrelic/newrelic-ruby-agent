@@ -43,7 +43,8 @@ body{
 }
 #footer p
 {
-	padding-left: 15px;
+	margin-left: 15px;
+	margin-top: 10px;
 }
 
 /*************************************
