@@ -31,7 +31,11 @@ module ActionController
       agent.stats_engine.transaction_name = nil
     end
   
-    alias_method_chain :perform_action, :newrelic_trace
+    # Compare with #alias_method_chain, which is not available in 
+    # Rails 1.1:
+    alias_method :perform_action_without_newrelic_trace, :perform_action
+    alias_method :perform_action, :perform_action_with_newrelic_trace
+    private :perform_action
   
     add_method_tracer :render, 'View/#{_determine_metric_path}/Rendering'
   
