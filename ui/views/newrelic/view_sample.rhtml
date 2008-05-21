@@ -53,6 +53,7 @@ end
 %>
 
 <br/>
+<div id="view_sample">
 <div align=center width="100%">
 <%= link_to_function("[Summary]") { |page| show_view page, 'pie_chart' } %>
 <%= link_to_function("[Details]") { |page| show_view page, 'details' } %>
@@ -114,4 +115,4 @@ end
   <%= render_sample_details @sample %>
 </table>
 </div>
-
+</div>
