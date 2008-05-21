@@ -9,7 +9,7 @@
 				</tr>
 				</thead>
 				<% @samples.each do |sample| %>
-					<tr>
+					<tr class="<%= cycle('even_row', 'odd_row') %>">
 					<td align=right nowrap=true>
 						<%= colorize(stripped_sample(sample).duration, 1, 2) %> ms
 					</td>
