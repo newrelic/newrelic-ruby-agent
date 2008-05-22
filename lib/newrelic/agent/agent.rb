@@ -422,8 +422,10 @@ module NewRelic::Agent
         request.verify_mode = OpenSSL::SSL::VERIFY_NONE
       end
       
-      params = {:method => method, :license_key => license_key, :protocol_version => PROTOCOL_VERSION }
-      uri = "/agent_listener/invoke_raw_method?#{params.to_query}"
+      # we'd like to use to_query but it is not present in all supported rails platforms
+      # params = {:method => method, :license_key => license_key, :protocol_version => PROTOCOL_VERSION }
+      # uri = "/agent_listener/invoke_raw_method?#{params.to_query}"
+      uri = "/agent_listener/invoke_raw_method?method=#{method}&license_key=#{license_key}&protocol_version=#{PROTOCOL_VERSION}"
       response = request.start do |http|
         http.post(uri, post_data) 
       end
