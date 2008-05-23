@@ -133,6 +133,12 @@ module NewRelic
       s << "StdDev=#{standard_deviation.to_ms}"
     end
     
+    # Summary string to facilitate testing
+    def summary
+      format = "%m/%d %I:%M%p"
+      "[#{Time.at(begin_time).strftime(format)}, #{duration}s. #{call_count} calls; #{average_call_time.to_ms}ms]"
+    end
+    
     # round all of the values to n decimal points
     def round!(decimal_places = 3)
       self.total_call_time = total_call_time.round_to(decimal_places)
