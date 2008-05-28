@@ -42,9 +42,6 @@ module NewRelic::Agent
     # the statistical gatherer returned by get_stats accepts data
     # via calls to add_data_point(value)
     def get_stats(metric_name)
-      # unless metric_name =~ /Custom\// 
-      #   raise Exception.new("Invalid Name for Application Custom Metric: #{metric_name}")
-      # end
       agent.stats_engine.get_stats(metric_name, false)
     end
   end
