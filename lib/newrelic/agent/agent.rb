@@ -80,6 +80,10 @@ module NewRelic::Agent
     def start(config)
       if @started
         log! "Agent Started Already!"
+        # FIXME whk
+        # Better to just raise a RuntimeError I think. The Exception won't be caught by
+        # a default rescue clause.
+        # raise "Duplicate attempt to start the NewRelic agent"
         raise Exception.new("Duplicate attempt to start the NewRelic agent")
       end
       
@@ -87,7 +91,7 @@ module NewRelic::Agent
       
       @local_port = determine_environment_and_port
       @local_host = determine_host
-      
+
       setup_log
       
       @worker_loop = WorkerLoop.new(@log)
@@ -271,19 +275,30 @@ module NewRelic::Agent
     # on a port, return the port # that we are listening on.  When
     # this returns nil for the port, then the agent will not run.
     def determine_environment_and_port
+      # Note: log won't be available yet.
       port = nil
       @environment = :unknown
       
       # Disable the agent for rake, irb, ruby and console invocations:
       if $0 =~ /rake$|irb$/
-        return
+        return nil
       end
-      
-      # OPTIONS is set by script/server 
-      port = OPTIONS.fetch :port, DEFAULT_PORT
-      @environment = :webrick
-      
-    rescue NameError
+      begin
+        # OPTIONS is set by script/server 
+        port = OPTIONS.fetch :port, DEFAULT_PORT
+        @environment = :webrick
+        return port
+      rescue NameError; end # continue on if this didn't succeed...
+
+      # FIXME whk This next section used to have rescue clauses
+      # following it, then a return statement in the ensure clause.
+      # There were a couple of problems with that.  The rescue clauses
+      # would never be entered because they only rescued exceptions
+      # from the section above the first rescue clause, above.
+      # And even if they did get executed they would have raised
+      # errors themselves because they dereferenced log which is
+      # nil at this point.
+
       # this case covers starting by mongrel_rails
       if defined? Mongrel::HttpServer
         ObjectSpace.each_object(Mongrel::HttpServer) do |mongrel|
@@ -292,7 +307,7 @@ module NewRelic::Agent
         end
       end
       
-      # this case covers the thin web server
+      # This case covers the thin web server
       # Same issue as above- we assume only one instance per process
       # NOTE if a thin server and a mongrel server were to coexist in a single
       # ruby process (no idea why that would ever happen) the thin server
@@ -300,25 +315,31 @@ module NewRelic::Agent
       if defined? Thin::Server
         ObjectSpace.each_object(Thin::Server) do |thin_server|
           @environment = :thin
-          port = thin_server.port
-
-          # when thin uses UNIX domain sockets, we likely don't have a port
-          # setting.  So therefore we need another way to uniquely define this
-          # "instance", otherwise, a host running >1 thin instances will appear
-          # as 1 agent to us, and we will have a license counting problem (as well
-          # as a data granularity problem).
-
-          if port.nil? 
-            port = thin_server.socket
+          backend = thin_server.backend
+          # We need a way to uniquely identify and distinguish agents.  The port
+          # works for this.  When using sockets, use the socket file name.
+          if backend.respond_to? :port
+            port = backend.port
+          elsif backend.respond_to? :socket
+            # if the socket file ends with .NNN then use the NNN as the port #
+            # only take the last segment of the file name.  Thin auto-generates
+            # the names from the same directory.
+            if backend.socket =~ /\.([0-9])+$/
+              port = $1.to_i
+            elsif backend.socket =~ /^(.*\/)?([^\/]*)$/
+              # if the socket is /tmp/thin then set the port to "thin"
+              port = $2
+            else
+              port = ''
+            end
+          else
+            # Can't log this because the logger is not available.         
+#           log.error "Unknown backend for Thin has neither port nor socket: #{backend.class}"
+            port = "#{backend.class}"
           end
-          port
-        end
-      end
-      
-    rescue NameError
-      log.info "Could not determine port.  Likely running as a cgi"
-      
-    ensure
+        end # each thin instance
+      end # if thin server
+      # if we found the environment, this is non-nil.
       return port
     end
     

@@ -4,8 +4,10 @@ module NewRelic::Agent
       # macos, linux, solaris
       if RUBY_PLATFORM =~ /darwin|linux/
         @ps = "ps -o rsz #{$$}"
-      elsif RUBY_PLATFORM =~ /i386-freebsd6|solaris/
+      elsif RUBY_PLATFORM =~ /i386-freebsd6/
         @ps = "ps -o rss #{$$}"
+      elsif RUBY_PLATFORM =~ /solaris/
+        @ps = "ps -o rss -p #{$$}"
       end
       
       if @ps
