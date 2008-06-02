@@ -131,7 +131,8 @@ private
     return is_agent if include_rails
     
     is_agent ||
-      file =~ /\/activerecord\// ||
+      file =~ /\/active(_)*record\// ||
+      file =~ /\/action(_)*controller\// ||
       file =~ /\/activesupport\// ||
       file =~ /\/actionpack\//
   end
