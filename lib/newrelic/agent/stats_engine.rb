@@ -57,13 +57,21 @@ module NewRelic::Agent
         l.notice_push_scope scope
       end
       
-      scope_stack.push ScopeStackElement.new(scope, Time.new, 0)
+      nscope = ScopeStackElement.new(scope, Time.new, 0)
+      scope_stack.push nscope
+      
+      nscope
     end
     
-    def pop_scope
+    def pop_scope(expected_scope)
       stack = scope_stack
       
       scope = stack.pop
+      
+      if scope != expected_scope
+	      fail "unbalanced pop from blame stack: #{scope.name} != #{expected_scope.name}"
+      end
+      
       duration = Time.now - scope.timestamp
       
       stack.last.exclusive_time += duration unless stack.empty?

@@ -14,26 +14,36 @@ class Module
   end
   
   def trace_method_execution (metric_name, push_scope = true, agent = NewRelic::Agent.agent)
-    stats_engine = agent.stats_engine
-    stats = stats_engine.get_stats metric_name, push_scope
-  
-    stats_engine.push_scope metric_name if push_scope
+    
     t0 = Time.now
+    
+    begin
+      stats_engine = agent.stats_engine
+      stats = stats_engine.get_stats metric_name, push_scope
+    
+      expected_scope = stats_engine.push_scope metric_name if push_scope
+    rescue Exception => e
+      method_tracer_log.error("Caught exception in trace_method_execution header. Metric name = #{metric_name}, exception = #{e}")
+      method_tracer_log.info(e.backtrace.join("\n"))
+    end
 
     begin
       result = yield
     ensure
-      t1 = Time.now
-    
-      duration = t1 - t0
+      duration = Time.now - t0
       
-      if push_scope
-        scope = stats_engine.pop_scope 
-        exclusive = duration - scope.exclusive_time
-      else
-        exclusive = duration
+      begin
+        if push_scope
+          scope = stats_engine.pop_scope expected_scope
+          exclusive = duration - scope.exclusive_time
+        else
+          exclusive = duration
+        end
+        stats.trace_call duration, exclusive
+      rescue Exception => e
+        method_tracer_log.error("Caught exception in trace_method_execution footer. Metric name = #{metric_name}, exception = #{e}")
+        method_tracer_log.info(e.backtrace.join("\n"))
       end
-      stats.trace_call duration, exclusive
     
       result 
     end

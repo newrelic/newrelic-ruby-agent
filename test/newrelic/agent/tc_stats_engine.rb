@@ -76,8 +76,8 @@ module NewRelic::Agent
       @engine.push_scope "scope1"
       assert @engine.peek_scope.name == "scope1"
       
-      @engine.push_scope "scope2"
-      @engine.pop_scope
+      expected = @engine.push_scope "scope2"
+      @engine.pop_scope expected
       
       scoped = @engine.get_stats "a"
       scoped.trace_call 3
@@ -89,20 +89,51 @@ module NewRelic::Agent
       assert unscoped.total_call_time == 3
     end
     
+    
+    def simplethrowcase(depth=0)
+      
+      fail "doh" if depth == 10
+      
+      scope = @engine.push_scope "scope1"      
+      
+      begin
+        simplethrowcase(depth+1)
+      ensure
+        @engine.pop_scope scope        
+      end
+      
+      if depth == 0
+        assert @engine.peek_scope.nil?
+      end
+    end
+    
+    
+    def test_scope_failure
+      scope1 = @engine.push_scope "scope1"
+      @engine.push_scope "scope2"
+      
+      begin
+        @engine.pop_scope scope1
+        fail "Didn't throw when scope push/pop mismatched"
+      rescue
+        # success
+      end
+    end
+    
     def test_exclusive_time
       t1 = Time.now
       
-      @engine.push_scope "a"
+      expected1 = @engine.push_scope "a"
         sleep 0.1
         t2 = Time.now
 
-        @engine.push_scope "b"
+        expected2 = @engine.push_scope "b"
           sleep 0.2
           t3 = Time.now
           
-          @engine.push_scope "c"
+          expected = @engine.push_scope "c"
             sleep 0.3
-          scope = @engine.pop_scope
+          scope = @engine.pop_scope expected
           
           t4 = Time.now
     
@@ -112,20 +143,20 @@ module NewRelic::Agent
           sleep 0.1
           t5 = Time.now
     
-          @engine.push_scope "d"
+          expected = @engine.push_scope "d"
             sleep 0.2
-          scope = @engine.pop_scope
+          scope = @engine.pop_scope expected
           
           t6 = Time.now
 
           check_time_approximate 0, scope.exclusive_time
     
-        scope = @engine.pop_scope
+        scope = @engine.pop_scope expected2
         assert_equal scope.name, 'b'
         
         check_time_approximate (t4 - t3) + (t6 - t5), scope.exclusive_time
       
-      scope = @engine.pop_scope
+      scope = @engine.pop_scope expected1
       assert_equal scope.name, 'a'
       
       check_time_approximate (t6 - t2), scope.exclusive_time
