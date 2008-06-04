@@ -27,6 +27,9 @@ module NewRelic::Agent
       @scope_stack_listeners = []
       @log = log
       
+      # Makes the unit tests happy
+      Thread::current[:newrelic_scope_stack] = nil
+      
       # start up a thread that will periodically poll for metric samples
       @sampler_thread = Thread.new do
         while true do
@@ -165,6 +168,11 @@ module NewRelic::Agent
       end
       
       timeslice_data
+    end
+    
+    
+    def start_transaction
+      Thread::current[:newrelic_scope_stack] = []
     end
     
     private

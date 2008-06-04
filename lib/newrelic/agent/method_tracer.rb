@@ -61,7 +61,7 @@ class Module
   # statically defined metric names can be specified as regular strings
   # push_scope specifies whether this method tracer should push
   # the metric name onto the scope stack.
-  def add_method_tracer (method_name, metric_name_code, push_scope = true)
+  def add_method_tracer (method_name, metric_name_code, push_scope = true, code_header="", code_footer="")
     return unless ::RPM_TRACERS_ENABLED
     klass = (self === Module) ? "self" : "self.class"
     
@@ -78,10 +78,13 @@ class Module
     
     code = <<-CODE
     def #{_traced_method_name(method_name, metric_name_code)}(*args, &block)
+      #{code_header}
       metric_name = "#{metric_name_code}"
-      #{klass}.trace_method_execution("\#{metric_name}", #{push_scope}) do
+      traced_method_result = #{klass}.trace_method_execution("\#{metric_name}", #{push_scope}) do
         #{_untraced_method_name(method_name, metric_name_code)}(*args, &block)
       end
+      #{code_footer}
+      traced_method_result
     end
     CODE
   

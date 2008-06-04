@@ -19,7 +19,7 @@ module NewRelic::Agent
     
     
     def notice_first_scope_push
-      get_or_create_builder
+      create_builder
     end
     
     def notice_push_scope(scope)
@@ -120,14 +120,9 @@ module NewRelic::Agent
     
     private 
       BUILDER_KEY = :transaction_sample_builder
-      def get_or_create_builder
-        builder = get_builder
-        if builder.nil?
-          builder = TransactionSampleBuilder.new
-          Thread::current[BUILDER_KEY] = builder
-        end
-        
-        builder
+
+      def create_builder
+        Thread::current[BUILDER_KEY] = TransactionSampleBuilder.new
       end
       
       # most entry points into the transaction sampler take the current transaction

@@ -88,18 +88,22 @@ module NewRelic::Agent
       assert scoped == @engine.get_stats("a")
       assert unscoped.total_call_time == 3
     end
-    
-    
-    def simplethrowcase(depth=0)
+   
+
+    def test_simplethrowcase(depth=0)
       
       fail "doh" if depth == 10
       
-      scope = @engine.push_scope "scope1"      
-      
+      scope = @engine.push_scope "scope#{depth}"    
+            
       begin
-        simplethrowcase(depth+1)
+        test_simplethrowcase(depth+1)
+      rescue StandardError => e
+        if (depth != 0)
+          raise e
+        end
       ensure
-        @engine.pop_scope scope        
+        @engine.pop_scope scope
       end
       
       if depth == 0
@@ -162,9 +166,19 @@ module NewRelic::Agent
       check_time_approximate (t6 - t2), scope.exclusive_time
     end
     
+    def test_simple_start_transaction
+      @engine.push_scope "scope"
+      @engine.start_transaction
+      assert @engine.peek_scope.nil?
+    end 
+
     private 
       def check_time_approximate(expected, actual)
         assert((expected - actual).abs < 0.01, "Expected #{expected}, got #{actual}")
       end
+
   end
+  
+
+  
 end

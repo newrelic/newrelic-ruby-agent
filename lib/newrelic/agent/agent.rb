@@ -44,6 +44,10 @@ module NewRelic::Agent
     def get_stats(metric_name)
       agent.stats_engine.get_stats(metric_name, false)
     end
+    
+    def start_transaction
+      instance.start_transaction
+    end
   end
   
   # Implementation default for the NewRelic Agent
@@ -124,6 +128,10 @@ module NewRelic::Agent
           graceful_disconnect
         end
       end
+    end
+    
+    def start_transaction
+      @stats_engine.start_transaction
     end
     
     private
