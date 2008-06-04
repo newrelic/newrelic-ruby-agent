@@ -48,6 +48,7 @@ module NewRelic::Agent
     end
     
     def add_scope_stack_listener(l)
+      fail "Can't add a scope listener midflight in a transaction" if scope_stack.any?
       @scope_stack_listeners << l
     end
     
