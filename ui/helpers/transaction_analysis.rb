@@ -20,7 +20,7 @@ class NewRelic::TransactionSample
     
     def <<(segment)
       if metric_name != segment.metric_name
-        raise ArgumentError.new("Metric Name Mismatch: #{segment.metric_name} != #{metric_name}") 
+        raise ArgumentError, "Metric Name Mismatch: #{segment.metric_name} != #{metric_name}" 
       end
       
       @total_time += segment.duration
