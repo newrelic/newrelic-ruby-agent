@@ -107,7 +107,7 @@ class Module
       alias_method method_name, "#{_untraced_method_name(method_name, metric_name_code)}"
       undef_method "#{_traced_method_name(method_name, metric_name_code)}"
     else
-      raise Exception.new("No tracer for '#{metric_name_code}' on method '#{method_name}'");
+      raise "No tracer for '#{metric_name_code}' on method '#{method_name}'";
     end
   end
 

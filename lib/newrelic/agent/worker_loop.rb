@@ -27,7 +27,7 @@ module NewRelic::Agent
     # every call_period seconds.  The task is passed as a block
     def add_task(call_period, &task_proc)
       if call_period < MIN_CALL_PERIOD
-        raise ArgumentError.new("Invalid Call Period (must be > #{MIN_CALL_PERIOD}): #{call_period}") 
+        raise ArgumentError, "Invalid Call Period (must be > #{MIN_CALL_PERIOD}): #{call_period}" 
       end
       
       @mutex.synchronize do 
