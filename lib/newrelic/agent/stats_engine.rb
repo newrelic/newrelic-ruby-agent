@@ -38,7 +38,7 @@ module NewRelic::Agent
             @sampled_items.each do |sampled_item|
               begin 
                 sampled_item.poll
-              rescue Exception => e
+              rescue => e
                 log.error e
                 @sampled_items.delete sampled_item
                 log.error "Removing #{sampled_item} from list"

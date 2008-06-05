@@ -114,7 +114,7 @@ module NewRelic
             begin
               result = ActiveRecord::Base.connection.execute("EXPLAIN #{statement}")
               result.each {|row| explanation << row }
-            rescue Exception
+            rescue
               # swallow failed attempts to run an explain.  One example of a failure is the
               # connection for the sql statement is to a different db than the default connection
               # specified in AR::Base

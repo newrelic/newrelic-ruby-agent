@@ -16,13 +16,15 @@ class Module
   def trace_method_execution (metric_name, push_scope = true, agent = NewRelic::Agent.agent)
     
     t0 = Time.now
+    stats = nil
     
     begin
       stats_engine = agent.stats_engine
-      stats = stats_engine.get_stats metric_name, push_scope
-    
+      
       expected_scope = stats_engine.push_scope metric_name if push_scope
-    rescue Exception => e
+      
+      stats = stats_engine.get_stats metric_name, push_scope
+    rescue => e
       method_tracer_log.error("Caught exception in trace_method_execution header. Metric name = #{metric_name}, exception = #{e}")
       method_tracer_log.info(e.backtrace.join("\n"))
     end
@@ -33,14 +35,16 @@ class Module
       duration = Time.now - t0
       
       begin
-        if push_scope
-          scope = stats_engine.pop_scope expected_scope
-          exclusive = duration - scope.exclusive_time
-        else
-          exclusive = duration
+        if stats
+          if push_scope
+            scope = stats_engine.pop_scope expected_scope
+            exclusive = duration - scope.exclusive_time
+          else
+            exclusive = duration
+          end
+          stats.trace_call duration, exclusive
         end
-        stats.trace_call duration, exclusive
-      rescue Exception => e
+      rescue => e
         method_tracer_log.error("Caught exception in trace_method_execution footer. Metric name = #{metric_name}, exception = #{e}")
         method_tracer_log.info(e.backtrace.join("\n"))
       end
@@ -107,7 +111,7 @@ class Module
       alias_method method_name, "#{_untraced_method_name(method_name, metric_name_code)}"
       undef_method "#{_traced_method_name(method_name, metric_name_code)}"
     else
-      raise "No tracer for '#{metric_name_code}' on method '#{method_name}'";
+      raise "No tracer for '#{metric_name_code}' on method '#{method_name}'"
     end
   end
 

@@ -60,7 +60,7 @@ module NewRelic::Agent
         
         begin
           task.execute
-        rescue Exception => e
+        rescue => e
           log.debug "Error running task in Agent Worker Loop: #{e}" 
           log.debug e.backtrace.join("\n")
         end

@@ -235,7 +235,7 @@ module NewRelic::Agent
       log! "Turning New Relic Agent off."
       return false
       
-    rescue Exception => e
+    rescue => e
       log.error "Error attempting to connect to New Relic RPM Service at #{@remote_host}:#{@remote_port}"
       log.error e.message
       log.debug e.backtrace.join("\n")
@@ -261,7 +261,7 @@ module NewRelic::Agent
       Dir.glob(sampler_files) do |file|
         begin
           require file
-        rescue Exception => e
+        rescue => e
           log.error "Error loading sampler '#{file}': #{e}"
         end
       end
@@ -355,7 +355,7 @@ module NewRelic::Agent
         begin
           require file
           log.debug "Processed instrumentation file '#{file.split('/').last}'"
-        rescue Exception => e
+        rescue => e
           log.error "Error loading instrumentation file '#{file}': #{e}"
           log.debug e.backtrace.join("\n")
         end
@@ -416,7 +416,7 @@ module NewRelic::Agent
           message = Marshal.load(message)
           message.execute(self)
           log.debug("Received Message: #{message.to_yaml}")
-        rescue Exception => e
+        rescue => e
           log.error "Error handling message: #{e}"
           log.debug e.backtrace.join("\n")
         end
@@ -495,7 +495,7 @@ module NewRelic::Agent
           log.debug "Sending graceful shutdown message to #{remote_host}:#{remote_port}"
           invoke_remote :shutdown, @agent_id, Time.now.to_f
           log.debug "Shutdown Complete"
-        rescue Exception => e
+        rescue => e
           log.warn "Error sending shutdown message to #{remote_host}:#{remote_port}:"
           log.warn e
           log.debug e.backtrace.join("\n")
