@@ -81,14 +81,14 @@ module NewRelic::Agent
     def start(config)
       if @started
         log! "Agent Started Already!"
-        raise Exception.new("Duplicate attempt to start the NewRelic agent")
+        raise "Duplicate attempt to start the NewRelic agent"
       end
       
       @config = config
       
       @local_port = determine_environment_and_port
       @local_host = determine_host
-      
+
       setup_log
       
       @worker_loop = WorkerLoop.new(@log)
@@ -276,55 +276,69 @@ module NewRelic::Agent
     # on a port, return the port # that we are listening on.  When
     # this returns nil for the port, then the agent will not run.
     def determine_environment_and_port
+      # Note: log won't be available yet.
       port = nil
       @environment = :unknown
       
       # Disable the agent for rake, irb, ruby and console invocations:
       if $0 =~ /rake$|irb$/
-        return
+        return nil
       end
-      
-      # OPTIONS is set by script/server 
-      port = OPTIONS.fetch :port, DEFAULT_PORT
-      @environment = :webrick
-      
-    rescue NameError
+      begin
+        # OPTIONS is set by script/server 
+        port = OPTIONS.fetch :port, DEFAULT_PORT
+        @environment = :webrick
+        return port
+      rescue NameError; end # continue on if this didn't succeed...
+
       # this case covers starting by mongrel_rails
       if defined? Mongrel::HttpServer
         ObjectSpace.each_object(Mongrel::HttpServer) do |mongrel|
           port = mongrel.port
           @environment = :mongrel
+          return port
         end
       end
-      
-      # this case covers the thin web server
-      # Same issue as above- we assume only one instance per process
-      # NOTE if a thin server and a mongrel server were to coexist in a single
-      # ruby process (no idea why that would ever happen) the thin server
-      # would "win out" as the determined runtime environment
       if defined? Thin::Server
+        # This case covers the thin web server
+        # Same issue as above- we assume only one instance per process
         ObjectSpace.each_object(Thin::Server) do |thin_server|
           @environment = :thin
-          port = thin_server.port
-
-          # when thin uses UNIX domain sockets, we likely don't have a port
-          # setting.  So therefore we need another way to uniquely define this
-          # "instance", otherwise, a host running >1 thin instances will appear
-          # as 1 agent to us, and we will have a license counting problem (as well
-          # as a data granularity problem).
-
-          if port.nil? 
-            port = thin_server.socket
+          backend = thin_server.backend
+          # We need a way to uniquely identify and distinguish agents.  The port
+          # works for this.  When using sockets, use the socket file name.
+          if backend.respond_to? :port
+            port = backend.port
+          elsif backend.respond_to? :socket
+            # if the socket file ends with .NNN then use the NNN as the port #
+            # only take the last segment of the file name.  Thin auto-generates
+            # the names from the same directory.
+            if backend.socket =~ /\.([0-9])+$/
+              port = $1.to_i
+            elsif backend.socket =~ /^(.*\/)?([^\/]*)$/
+              # if the socket is /tmp/thin then set the port to "thin"
+              port = $2
+            else
+              port = ''
+            end
+          else
+            # Can't log this because the logger is not available.         
+#           log.error "Unknown backend for Thin has neither port nor socket: #{backend.class}"
+            port = "#{backend.class}"
           end
-          port
-        end
+          return port
+        end # each thin instance
+      end
+      if RUBY_PLATFORM =~ /java/
+        # Check for JRuby environment.  Not sure how this works in different appservers
+        require 'java'
+        @environment = :jruby
+        port = java.lang.System.identityHashCode(JRuby.runtime)
+        return port
       end
       
-    rescue NameError
-      log.info "Could not determine port.  Likely running as a cgi"
-      
-    ensure
-      return port
+      # if no real environment was found
+      return nil
     end
     
     def determine_home_directory
@@ -443,7 +457,7 @@ module NewRelic::Agent
           return return_value
         end
       else
-        raise Exception.new("#{response.code}: #{response.message}")
+        raise "#{response.code}: #{response.message}"
       end 
     rescue ForceDisconnectException => e
       log! "RPM forced this agent to disconnect", :error
