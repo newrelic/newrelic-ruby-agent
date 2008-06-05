@@ -116,7 +116,19 @@ module NewRelic
           assert_nil segment.metric_name =~ /Rails\/Application Code Loading/
         end
       end
-      
+      def test_unbalanced_handling
+        assert_raise RuntimeError do
+          build_segment("a") do
+            begin
+              build_segment("aa") do
+                build_segment("aaa") do
+                  raise "a problem"
+                end
+              end
+            rescue; end
+          end
+        end
+      end
       def test_marshal
         build_segment "a" do
           build_segment "ab"

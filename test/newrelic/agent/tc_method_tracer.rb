@@ -1,5 +1,6 @@
 require File.join(File.dirname(__FILE__),'mock_agent')
 require 'newrelic/agent/method_tracer'
+require 'newrelic/agent/transaction_sampler'
 require 'test/unit'
 
 ::RPM_TRACERS_ENABLED = true unless defined? ::RPM_TRACERS_ENABLED
@@ -51,6 +52,7 @@ module NewRelic
       METRIC = "metric"
       def test_add_method_tracer
         @metric_name = METRIC
+        assert ::RPM_TRACERS_ENABLED
         self.class.add_method_tracer :method_to_be_traced, METRIC
         
         t1 = Time.now
@@ -60,6 +62,21 @@ module NewRelic
         stats = @stats_engine.get_stats(METRIC)
         check_time stats.total_call_time, elapsed
         assert stats.call_count == 1
+      end
+      def test_nested_scope_tracer
+        Insider.add_method_tracer :catcher, "catcher", true
+        Insider.add_method_tracer :thrower, "thrower", true
+        sampler = TransactionSampler.new
+        @stats_engine.add_scope_stack_listener sampler
+        mock = Insider.new(@stats_engine)
+        mock.catcher(0)
+        mock.catcher(5)
+        stats = @stats_engine.get_stats("catcher")
+        assert_equal 2, stats.call_count
+        stats = @stats_engine.get_stats("thrower")
+        assert_equal 6, stats.call_count
+        sample = sampler.harvest_slowest_sample
+        assert_not_nil sample
       end
       
       def test_add_same_tracer_twice
@@ -114,7 +131,7 @@ module NewRelic
       def test_remove
         self.class.add_method_tracer :method_to_be_traced, METRIC
         self.class.remove_method_tracer :method_to_be_traced, METRIC
-          
+        
         t1 = Time.now
         method_to_be_traced 1,2,3,false,METRIC
         elapsed = Time.now - t1
@@ -127,14 +144,14 @@ module NewRelic
         testcase.assert x == "x"
         testcase.assert((testcase.stats_engine.peek_scope.name == "x") == is_traced)
       end
-
+      
       def trace_trace_static_method
         self.add_method_tracer :static_method, '#{args[0]}'
         self.class.static_method "x", self, true
         self.remove_method_tracer :static_method, '#{args[0]}'
         self.class.static_method "x", self, false
       end
-        
+      
       def test_execption
         begin
           metric = "hey there"
@@ -174,7 +191,7 @@ module NewRelic
       def check_time (t1, t2)
         assert((t2-t1).abs < 0.01)
       end
-
+      
       # =======================================================
       # test methods to be traced
       def method_to_be_traced(x, y, z, is_traced, expected_metric)
@@ -199,4 +216,22 @@ module NewRelic
     end
   end
 end
-
+class Insider
+  def initialize(stats_engine)
+    @stats_engine = stats_engine
+  end
+  def catcher(level=0)
+    thrower(level) if level>0
+  end
+  def thrower(level)
+    if level == 0
+        sampler = NewRelic::Agent::TransactionSampler.new
+        begin
+        @stats_engine.add_scope_stack_listener sampler
+        fail "This should not have worked."
+        rescue; end
+    else
+      thrower(level-1)
+    end
+  end
+end

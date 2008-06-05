@@ -16,9 +16,9 @@ module NewRelic
         run_sample_trace
       
         samples = @sampler.get_samples
-        assert samples.length == 4
-        assert samples.first.root_segment.called_segments[0].metric_name == "a"
-        assert samples.last.root_segment.called_segments[0].metric_name == "a"
+        assert_equal 4, samples.length
+        assert_equal "a", samples.first.root_segment.called_segments[0].metric_name
+        assert_equal "a", samples.last.root_segment.called_segments[0].metric_name
       end
       
       
