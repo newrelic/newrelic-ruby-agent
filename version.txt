@@ -1,3 +1,8 @@
+2008-06-04 version 2.2.0
+  * Add rails 2.1 support (desktop mode)
+  * Add protective exception catching to the stats engine
+  * Improved support for thin domain sockets
+  * Support JRuby environments
 2008-05-22 version 2.1.6
   * bugfixes
 2008-05-22 version 2.1.5
