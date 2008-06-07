@@ -13,6 +13,15 @@ module NewRelic::Agent::Synchronize
   end
   
   
+  def synchronize_mutex(&block)
+    @_local_mutex ||= Mutex.new
+    
+    @_local_mutex.synchronize do
+      block.call
+    end
+  end
+
+  
   def synchronize_thread
     old_val = Thread.critical
     
@@ -25,8 +34,9 @@ module NewRelic::Agent::Synchronize
     end
   end
   
-  alias synchronize synchronize_sync
-  alias synchronize_quick synchronize_sync
-  alias synchronized_long synchronize_sync
+  
+  alias synchronize synchronize_mutex
+  alias synchronize_quick synchronize_mutex
+  alias synchronized_long synchronize_mutex
    
 end
