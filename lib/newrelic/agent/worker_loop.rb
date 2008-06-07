@@ -1,14 +1,17 @@
 require 'thread'
+require 'newrelic/agent/synchronize'
 
 # A worker loop executes a set of registered tasks on a single thread.  
 # A task is a proc or block with a specified call period in seconds.  
 module NewRelic::Agent
+  
   class WorkerLoop
+    include(NewRelic::Agent::Synchronize)
+    
     attr_reader :log
     
     def initialize(log = Logger.new(STDERR))
       @tasks = []
-      @mutex = Mutex.new
       @log = log
     end
 
@@ -30,14 +33,14 @@ module NewRelic::Agent
         raise ArgumentError, "Invalid Call Period (must be > #{MIN_CALL_PERIOD}): #{call_period}" 
       end
       
-      @mutex.synchronize do 
+      synchronize do 
         @tasks << LoopTask.new(call_period, &task_proc)
       end
     end
       
     private 
       def get_next_task
-        @mutex.synchronize do
+        synchronize do
           return @tasks.inject do |soonest, task|
             (task.next_invocation_time < soonest.next_invocation_time) ? task : soonest
           end
@@ -60,7 +63,7 @@ module NewRelic::Agent
         
         begin
           task.execute
-        rescue => e
+        rescue Timeout::Error, StandardError => e
           log.debug "Error running task in Agent Worker Loop: #{e}" 
           log.debug e.backtrace.join("\n")
         end

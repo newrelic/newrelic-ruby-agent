@@ -235,7 +235,7 @@ module NewRelic::Agent
       log! "Turning New Relic Agent off."
       return false
       
-    rescue => e
+    rescue Timeout::Error, StandardError => e
       log.error "Error attempting to connect to New Relic RPM Service at #{@remote_host}:#{@remote_port}"
       log.error e.message
       log.debug e.backtrace.join("\n")
@@ -368,10 +368,19 @@ module NewRelic::Agent
       @unsent_timeslice_data ||= {}
       @unsent_timeslice_data = @stats_engine.harvest_timeslice_data(@unsent_timeslice_data, @metric_ids)
       
-      metric_ids = invoke_remote(:metric_data, @agent_id, 
-              @last_harvest_time.to_f, 
-              now.to_f, 
-              @unsent_timeslice_data.values)
+      
+      begin
+        metric_ids = invoke_remote(:metric_data, @agent_id, 
+                @last_harvest_time.to_f, 
+                now.to_f, 
+                @unsent_timeslice_data.values)
+      
+      rescue Timeout::Error
+        # assume that the data was received. chances are that it was
+        metric_ids = nil
+      end
+                
+              
       @metric_ids.merge! metric_ids unless metric_ids.nil?
       
       log.debug "#{Time.now}: sent #{@unsent_timeslice_data.length} timeslices (#{@agent_id})"
@@ -441,10 +450,14 @@ module NewRelic::Agent
         request.verify_mode = OpenSSL::SSL::VERIFY_NONE
       end
       
+      # set a long timeout on purpose (15 minutes). there are times when the server gets really backed up
+      request.read_timeout = 15 * 60
+      
       # we'd like to use to_query but it is not present in all supported rails platforms
       # params = {:method => method, :license_key => license_key, :protocol_version => PROTOCOL_VERSION }
       # uri = "/agent_listener/invoke_raw_method?#{params.to_query}"
       uri = "/agent_listener/invoke_raw_method?method=#{method}&license_key=#{license_key}&protocol_version=#{PROTOCOL_VERSION}"
+      
       response = request.start do |http|
         http.post(uri, post_data) 
       end
@@ -495,7 +508,7 @@ module NewRelic::Agent
           log.debug "Sending graceful shutdown message to #{remote_host}:#{remote_port}"
           invoke_remote :shutdown, @agent_id, Time.now.to_f
           log.debug "Shutdown Complete"
-        rescue => e
+        rescue Timeout::Error, StandardError => e
           log.warn "Error sending shutdown message to #{remote_host}:#{remote_port}:"
           log.warn e
           log.debug e.backtrace.join("\n")
