@@ -1,4 +1,3 @@
-require 'thread'
 require 'newrelic/agent/synchronize'
 
 # A worker loop executes a set of registered tasks on a single thread.  
@@ -6,7 +5,7 @@ require 'newrelic/agent/synchronize'
 module NewRelic::Agent
   
   class WorkerLoop
-    include(NewRelic::Agent::Synchronize)
+    include(Synchronize)
     
     attr_reader :log
     
