@@ -25,8 +25,8 @@ module NewRelic::Agent::Synchronize
     end
   end
   
-  alias synchronize synchronize_thread
-  alias synchronize_quick synchronize_thread
+  alias synchronize synchronize_sync
+  alias synchronize_quick synchronize_sync
   alias synchronized_long synchronize_sync
    
 end
