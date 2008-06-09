@@ -257,6 +257,10 @@ class Numeric
     (self * 1000000).round_to(decimal_places)
   end
   
+  def to_minutes(decimal_places = 0)
+    (self / 60).round_to(decimal_places)
+  end
+  
   # utility method that converts floating point percentage values
   # to integers as a percentage, to improve readability in ui
   def to_percentage(decimal_places = 2)
