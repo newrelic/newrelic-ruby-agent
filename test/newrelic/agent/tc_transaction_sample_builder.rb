@@ -108,8 +108,8 @@ module NewRelic
         delta = (sample.duration - without_code_loading.duration).to_ms
         
         # allow a few milliseconds for slop just in case this is running on a 386 ;)
-        assert delta >= 30 
-        assert delta <= 33
+        assert delta >= 30, "delta #{delta} should be between 30 and 33"
+        assert delta <= 33, "delta #{delta} should be between 30 and 33"
         
         # ensure none of the segments have this regex
         without_code_loading.each_segment do |segment|
