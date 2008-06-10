@@ -1,5 +1,7 @@
-2008-06-04 version 2.2.0
-  * Add rails 2.1 support (desktop mode)
+2008-06-04 version 2.2.2
+  + Add rails 2.1 support (desktop mode)
+  + Changes to memory sampler: Add support for JRuby and fix Solaris support.  
+  * Stop catching exceptions and start catching StandardError; other exception cleanup
   * Add protective exception catching to the stats engine
   * Improved support for thin domain sockets
   * Support JRuby environments
