@@ -280,10 +280,6 @@ module NewRelic::Agent
       port = nil
       @environment = :unknown
       
-      # Disable the agent for rake, irb, ruby and console invocations:
-      if $0 =~ /rake$|irb$/
-        return nil
-      end
       begin
         # OPTIONS is set by script/server 
         port = OPTIONS.fetch :port, DEFAULT_PORT

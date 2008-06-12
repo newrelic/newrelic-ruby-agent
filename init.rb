@@ -19,10 +19,18 @@ begin
 
   ::RPM_TRACERS_ENABLED = ::RPM_DEVELOPER || ::RPM_AGENT_ENABLED
   
+  # Check to see if the agent should be enabled or not
+  
+  # Disable the agent for rake, irb, ruby and console invocations:
+  skip_scripts = $0 =~ /rake$|irb$/
+  skip_env = ENV['NEWRELIC_ENABLE'] && ENV['NEWRELIC_ENABLE'].downcase =~ /false|off|no/
+  
+  disabled = skip_scripts || skip_env
+  
   # note if the agent is not turned on via the enabled flag in the 
   # configuration file, the application will be untouched, and it will
   # behave exaclty as if the agent were never installed in the first place.
-  if ::RPM_AGENT_ENABLED || ::RPM_DEVELOPER
+  if !disabled && (::RPM_AGENT_ENABLED || ::RPM_DEVELOPER)
     require 'newrelic/agent'
   
     agent = NewRelic::Agent.instance
