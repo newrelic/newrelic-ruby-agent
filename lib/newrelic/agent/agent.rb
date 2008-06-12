@@ -395,7 +395,7 @@ module NewRelic::Agent
       @slowest_sample = @transaction_sampler.harvest_slowest_sample(@slowest_sample)
       
       if @slowest_sample && @slowest_sample.duration > @sample_threshold
-        log.info "Sending Slowest Sample: #{@slowest_sample.params[:path]}, #{@slowest_sample.duration.round_to(2)} s" if @slowest_sample
+        log.debug "Sending slowest sample: #{@slowest_sample.params[:path]}, #{@slowest_sample.duration.round_to(2)} s" if @slowest_sample
         
         # take the slowest sample, and prepare it for sending across the wire.  This includes
         # gathering SQL explanations, stripping out stack traces, and normalizing SQL.
