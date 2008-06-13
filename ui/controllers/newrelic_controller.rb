@@ -8,7 +8,18 @@ class NewrelicController < ActionController::Base
   
   # do not include any filters inside the application since there might be a conflict
   if respond_to? :filter_chain
-    skip_filter filter_chain.collect(&:method)
+    filters = filter_chain.collect do |f|
+      if f.respond_to? :filter
+        # rails 2.0
+        f.filter
+      elsif f.respond_to? :method
+        # rails 2.1
+        f.method
+      else
+        fail "Unknown filter class. Please send this exception to support@newrelic.com"
+      end
+    end
+    skip_filter filters
   end
   
   # for this controller, the views are located in a different directory from
