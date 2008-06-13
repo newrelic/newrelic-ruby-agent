@@ -8,7 +8,7 @@ class NewrelicController < ActionController::Base
   
   # do not include any filters inside the application since there might be a conflict
   if respond_to? :filter_chain
-    skip_filter filter_chain.collect(&:filter)
+    skip_filter filter_chain.collect(&:method)
   end
   
   # for this controller, the views are located in a different directory from
