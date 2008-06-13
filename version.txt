@@ -1,3 +1,5 @@
+2008-06-13 version 2.2.2
+  * bugfixes
 2008-06-10 version 2.2.1
   + Add rails 2.1 support for Developer Mode
   + Changes to memory sampler: Add support for JRuby and fix Solaris support.  
