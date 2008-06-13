@@ -1,4 +1,11 @@
 module NewRelic
+  module Metrics
+    CONTROLLER = "Controller"
+    ACTIVE_RECORD = "ActiveRecord"
+    USER_TIME = "CPU/User Time"
+    MEMORY = "Memory/Physical"
+  end
+  
   # this struct uniquely defines a metric, optionally inside
   # the call scope of another metric
   class MetricSpec
@@ -40,7 +47,7 @@ module NewRelic
       end
     end
   end
-
+  
   class MetricData
     attr_accessor :metric_spec
     attr_accessor :metric_id
@@ -53,7 +60,7 @@ module NewRelic
     end
     
     def eql?(o)
-      (metric_spec.eql? o.metric_spec) && (stats.eql? o.stats)
+     (metric_spec.eql? o.metric_spec) && (stats.eql? o.stats)
     end
     
     def hash
