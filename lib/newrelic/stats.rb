@@ -253,6 +253,26 @@ class Numeric
     (self * 1000).round_to(decimal_places)
   end
   
+  # return the number of decimal points that this number would best render in
+  #
+  def get_number_decimals_ms
+    base = 0.010
+    decimal = 0
+    
+    while decimal <= 6 && self < base do
+      base /= 10.0
+      decimal += 1
+    end
+    
+    decimal
+  end
+  
+  # auto-adjust the precision based on the value
+  def to_smart_ms
+    to_ms get_number_decimals_ms
+  end
+  
+  
   def to_ns(decimal_places = 0)
     (self * 1000000).round_to(decimal_places)
   end
