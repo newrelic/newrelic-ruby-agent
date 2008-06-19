@@ -104,8 +104,6 @@ module NewRelic::Agent
       @remote_port = config.fetch('port', default_port)
       
       if config['enabled'] || config['developer']
-        instrument_rails
-        
         if config['enabled']
           # make sure the license key exists and is likely to be really a license key
           # by checking it's string length (license keys are 40 character strings.)
@@ -186,6 +184,8 @@ module NewRelic::Agent
         return unless should_retry
       end
       
+      instrument_rails
+      
       # determine the reporting period (server based)
       # note if the agent attempts to report more frequently than the specified
       # report data, then it will be ignored.
@@ -222,7 +222,7 @@ module NewRelic::Agent
       log! "Connected to NewRelic Service at #{@remote_host}:#{@remote_port}."
       log.debug "Agent ID = #{@agent_id}."
       
-      # Ask the server for permission to send transaction samples.  determined by suvbscription license.
+      # Ask the server for permission to send transaction samples.  determined by subscription license.
       @should_send_samples = invoke_remote :should_collect_samples, @agent_id
       
       @connected = true
