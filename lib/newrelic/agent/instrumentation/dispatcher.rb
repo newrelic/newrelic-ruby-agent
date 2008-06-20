@@ -7,7 +7,7 @@ if defined? ActionController::Dispatcher
 
   class ActionController::Dispatcher
     class << self
-      add_method_tracer :dispatch, 'Rails/HTTP Dispatch', false, "NewRelic::Agent.start_transaction"
+      add_method_tracer :dispatch, 'Rails/HTTP Dispatch', false, "NewRelic::Agent.agent.start_transaction"
     end
   end
   
@@ -15,7 +15,7 @@ elsif defined? Dispatcher
 
   class Dispatcher
     class << self
-      add_method_tracer :dispatch, 'Rails/HTTP Dispatch', false, "NewRelic::Agent.start_transaction"
+      add_method_tracer :dispatch, 'Rails/HTTP Dispatch', false, "NewRelic::Agent.agent.start_transaction"
     end
   end
 

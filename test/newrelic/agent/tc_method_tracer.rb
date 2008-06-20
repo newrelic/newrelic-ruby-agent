@@ -66,7 +66,7 @@ module NewRelic
       def test_nested_scope_tracer
         Insider.add_method_tracer :catcher, "catcher", true
         Insider.add_method_tracer :thrower, "thrower", true
-        sampler = TransactionSampler.new
+        sampler = TransactionSampler.new(Agent.instance)
         @stats_engine.add_scope_stack_listener sampler
         mock = Insider.new(@stats_engine)
         mock.catcher(0)
@@ -225,8 +225,10 @@ class Insider
   end
   def thrower(level)
     if level == 0
-        sampler = NewRelic::Agent::TransactionSampler.new
-        begin
+      # don't use a real sampler because we can't instantiate one
+      # sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
+      sampler = "<none>"
+      begin
         @stats_engine.add_scope_stack_listener sampler
         fail "This should not have worked."
         rescue; end

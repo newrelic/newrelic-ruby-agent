@@ -7,16 +7,33 @@ module NewRelic::Agent
   class TransactionSampler
     include(Synchronize)
     
-    def initialize(agent = nil, max_samples = 100)
+    def initialize(agent, max_samples = 100)
       @samples = []
       @max_samples = max_samples
 
-      # when the agent is nil, we are in a unit test.
-      # don't hook into the stats engine, which owns
-      # the scope stack
-      unless agent.nil?
-        agent.stats_engine.add_scope_stack_listener self
-      end
+      agent.stats_engine.add_scope_stack_listener self
+
+      proc = Proc.new { |sql| default_sql_obfuscator(sql) }
+      
+      agent.set_sql_obfuscator(:replace, proc)
+    end
+    
+    
+    def default_sql_obfuscator(sql)
+#      puts "obfuscate: #{sql}"
+      
+      # remove escaped strings
+      sql = sql.gsub("''", "?")
+      
+      # replace all string literals
+      sql = sql.gsub(/'[^']*'/, "?")
+      
+      # replace all number literals
+      sql = sql.gsub(/\d+/, "?")
+      
+#      puts "result: #{sql}"
+      
+      sql
     end
     
     
@@ -83,14 +100,18 @@ module NewRelic::Agent
     MAX_SQL_LENGTH = 16384
     def notice_sql(sql)
       with_builder do |builder|
-        segment = builder.current_segment
-        if segment
-          if sql.length > MAX_SQL_LENGTH
-            sql = sql[0..MAX_SQL_LENGTH] + '...'
+        if Thread::current[:record_sql].nil? || Thread::current[:record_sql]
+          segment = builder.current_segment
+          if segment
+            current_sql = segment[:sql]
+            sql = current_sql + ";\n" + sql if current_sql
+
+            if sql.length > (MAX_SQL_LENGTH - 4)
+              sql = sql[0..MAX_SQL_LENGTH-4] + '...'
+            end
+            
+            segment[:sql] = sql
           end
-          current_sql = segment[:sql]
-          sql = current_sql + ";\n" + sql if current_sql
-          segment[:sql] = sql
         end
       end
     end

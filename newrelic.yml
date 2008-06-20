@@ -3,15 +3,15 @@
 # applications with deep visibility and low overhead.  For more information, 
 # visit www.newrelic.com.
 #
-
+# #{generated_for_user}
+#
 # here are the settings that are common to all environments
 common: &default_settings
   # ============================== LICENSE KEY ===============================
-  # You must specify the licence key sent to you by New Relic for your agent to
-  # communicate with the New Relic RPM service.  Paste the license key in the
-  # line below
-  license_key: 'PASTE_YOUR_KEY_HERE'
-    
+  # You must specify the licence key associated with your New Relic account.
+  # This key binds your Agent's data to your account in the New Relic RPM service.
+  license_key: '#{license_key}'
+
   # the 'enabled' setting is used to turn on the NewRelic Agent.  When false,
   # your application is not instrumented and the Agent does not start up or
   # collect any data; it is a complete shut-off.
@@ -33,14 +33,34 @@ common: &default_settings
   # work is done asynchronously to the threads that process your application code, so
   # it should not impact response times.
   ssl: false
+  
+  
+  # Transaction sampler is a feature that captures deep information about slow
+  # transactions and sends this to the RPM service once a minute. Included in the
+  # sample is the exact call sequence of the transactions including any SQL statements
+  # issued.
+  transaction_sampler:
+  
+    # The default for transaction sampler is false due to the sensitive nature of the SQL
+    # data we send to the RPM service. Get comfortable with the SQL obfuscator in development
+    # mode before enabling transaction sampler.
+    enabled: false
+  
+    # When transaction sampler is on, the default behavior is to obfuscate all SQL. All
+    # string literals are replaced with '?' and all number sequences are replaced with ?.
+    # If this option is set to true, the raw SQL is sent rather than obfuscated SQL. This 
+    # should be used due to the sensitive nature of data stored in SQL statements
+    send_raw_sql: false
+    
 
 # override default settings based on your application's environment
 
 # NOTE if your application has other named environments, you should
 # provide newrelic conifguration settings for these enviromnents here.
+
 development:
   <<: *default_settings
-  # turn off in development.
+  # turn off communication to RPM service in development mode.
   # NOTE: for initial evaluation purposes, you may want to temporarily turn
   # the agent on in development mode.
   enabled: false

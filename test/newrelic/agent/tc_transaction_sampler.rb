@@ -1,14 +1,20 @@
 require 'newrelic/agent/transaction_sampler'
+require 'newrelic/agent/mock_agent'
 require 'test/unit'
 
 ::RPM_DEVELOPER = true unless defined? ::RPM_DEVELOPER
 
 module NewRelic 
   module Agent
+    
+    class TransactionSampler
+      public :with_builder
+    end
+    
     class TransationSamplerTests < Test::Unit::TestCase
       
       def test_multiple_samples
-        @sampler = TransactionSampler.new
+        @sampler = TransactionSampler.new(Agent.instance)
       
         run_sample_trace
         run_sample_trace
@@ -23,7 +29,7 @@ module NewRelic
       
       
       def test_harvest_slowest
-        @sampler = TransactionSampler.new
+        @sampler = TransactionSampler.new(Agent.instance)
         
         run_sample_trace
         run_sample_trace
@@ -45,7 +51,7 @@ module NewRelic
       end
       
       def test_preare_to_send
-        @sampler = TransactionSampler.new
+        @sampler = TransactionSampler.new(Agent.instance)
 
         run_sample_trace { sleep 0.2 }
         sample = @sampler.harvest_slowest_sample(nil)
@@ -55,7 +61,7 @@ module NewRelic
       end
       
       def test_multithread
-        @sampler = TransactionSampler.new
+        @sampler = TransactionSampler.new(Agent.instance)
         threads = []
         
         20.times do
@@ -72,7 +78,7 @@ module NewRelic
       end
       
       def test_sample_with_parallel_paths
-        @sampler = TransactionSampler.new
+        @sampler = TransactionSampler.new(Agent.instance)
         
         @sampler.notice_first_scope_push
         @sampler.notice_transaction "/path", nil, {}
@@ -88,7 +94,7 @@ module NewRelic
       end
       
       def test_double_scope_stack_empty
-        @sampler = TransactionSampler.new
+        @sampler = TransactionSampler.new(Agent.instance)
         
         @sampler.notice_first_scope_push
         @sampler.notice_transaction "/path", nil, {}
@@ -101,6 +107,105 @@ module NewRelic
         
         assert_not_nil @sampler.harvest_slowest_sample(nil)
       end
+      
+      
+      def test_big_sql
+        @sampler = TransactionSampler.new(Agent.instance)
+        
+        @sampler.notice_first_scope_push
+        
+        sql = "SADJKHASDHASD KAJSDH ASKDH ASKDHASDK JASHD KASJDH ASKDJHSAKDJHAS DKJHSADKJSAH DKJASHD SAKJDH SAKDJHS"
+        
+        len = 0
+        while len <= NewRelic::Agent::TransactionSampler::MAX_SQL_LENGTH
+          @sampler.notice_sql(sql)
+          len += sql.length
+        end
+        
+        segment = nil
+        @sampler.with_builder do |builder|
+          segment = builder.current_segment
+        end
+        
+        sql = segment[:sql]
+        
+        assert sql.length <= NewRelic::Agent::TransactionSampler::MAX_SQL_LENGTH
+      end
+      
+      
+      def test_segment_obfuscated
+        @sampler = TransactionSampler.new(Agent.instance)
+        
+        @sampler.notice_first_scope_push
+        
+        orig_sql = "SELECT * from Jim where id=66"
+        
+        @sampler.notice_sql(orig_sql)
+        
+        segment = nil
+        @sampler.with_builder do |builder|
+          segment = builder.current_segment
+        end
+        
+        assert_equal orig_sql, segment[:sql]
+        assert_equal "SELECT * from Jim where id=?", segment.obfuscated_sql
+      end
+      
+      def test_sql_normalization
+        t = TransactionSampler.new(Agent.instance)
+        
+        # basic statement
+        assert_equal "INSERT INTO X values(?,?, ? , ?)", 
+                     t.default_sql_obfuscator("INSERT INTO X values('test',0, 1 , 2)")
+                  
+        # escaped literals
+        assert_equal "INSERT INTO X values(?, ?,?, ? , ?)", 
+                     t.default_sql_obfuscator("INSERT INTO X values('', 'jim''s ssn',0, 1 , 'jim''s son''s son')")
+        
+        # multiple string literals             
+        assert_equal "INSERT INTO X values(?,?,?, ? , ?)", 
+                     t.default_sql_obfuscator("INSERT INTO X values('jim''s ssn','x',0, 1 , 2)")
+                     
+        # empty string literal
+        # NOTE: the empty string literal resolves to empty string, which for our purposes is acceptable
+        assert_equal "INSERT INTO X values(?,?,?, ? , ?)", 
+                     t.default_sql_obfuscator("INSERT INTO X values('','x',0, 1 , 2)")
+
+        # try a select statement             
+        assert_equal "select * from table where name=? and ssn=?",
+                     t.default_sql_obfuscator("select * from table where name='jim gochee' and ssn=0012211223")
+                     
+        # number literals embedded in sql - oh well
+        assert_equal "select * from table_? where name=? and ssn=?",
+                     t.default_sql_obfuscator("select * from table_007 where name='jim gochee' and ssn=0012211223")
+      end
+      
+      def test_sql_obfuscation_filters
+        orig =  NewRelic::Agent.agent.obfuscator
+        
+        NewRelic::Agent.set_sql_obfuscator(:replace) do |sql|
+          sql = "1" + sql
+        end
+        
+        sql = "SELECT * FROM TABLE 123 'jim'"
+        
+        assert_equal "1" + sql, NewRelic::Agent.instance.obfuscator.call(sql)
+        
+        NewRelic::Agent.set_sql_obfuscator(:before) do |sql|
+          sql = "2" + sql
+        end
+
+        assert_equal "12" + sql, NewRelic::Agent.instance.obfuscator.call(sql)
+
+        NewRelic::Agent.set_sql_obfuscator(:after) do |sql|
+          sql = sql + "3"
+        end
+
+        assert_equal "12" + sql + "3", NewRelic::Agent.instance.obfuscator.call(sql)
+        
+        NewRelic::Agent.agent.set_sql_obfuscator(:replace, orig)
+      end
+      
       
     private      
       def run_sample_trace(&proc)

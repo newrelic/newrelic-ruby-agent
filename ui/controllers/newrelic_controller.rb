@@ -85,6 +85,7 @@ class NewrelicController < ActionController::Base
 
     @sql = @segment[:sql]
     @trace = @segment[:backtrace]
+    @obfuscated_sql = @segment.obfuscated_sql
     explanations = @segment.explain_sql
     if explanations
       @explanation = explanations.first 

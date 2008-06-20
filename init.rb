@@ -21,11 +21,7 @@ begin
   
   # Check to see if the agent should be enabled or not
   
-  # Disable the agent for rake, irb, ruby and console invocations:
-  skip_scripts = $0 =~ /rake$|irb$/
-  skip_env = ENV['NEWRELIC_ENABLE'] && ENV['NEWRELIC_ENABLE'].downcase =~ /false|off|no/
-  
-  disabled = skip_scripts || skip_env
+  disabled = ENV['NEWRELIC_ENABLE'] && ENV['NEWRELIC_ENABLE'].downcase =~ /false|off|no/
   
   # note if the agent is not turned on via the enabled flag in the 
   # configuration file, the application will be untouched, and it will
@@ -67,5 +63,6 @@ rescue Errno::ENOENT => e
 rescue Exception => e
   to_stderr "Error parsing #{config_filename}"
   to_stderr "#{e}"
+   to_stderr e.backtrace.join("\n")
   to_stderr "Agent is disabled."
 end

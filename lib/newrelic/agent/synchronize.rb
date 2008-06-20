@@ -1,5 +1,5 @@
 
-#require 'sync'
+require 'sync'
 
 
 module NewRelic::Agent

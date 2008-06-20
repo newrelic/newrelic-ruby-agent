@@ -11,7 +11,7 @@ require 'newrelic/agent/stats_engine'
 require 'newrelic/agent/transaction_sampler'
 
 # The NewRelic Agent collects performance data from rails applications in realtime as the
-# application runs, and periodically sends that data to the NewRelic server.  
+# application runs, and periodically sends that data to the NewRelic server.
 module NewRelic::Agent
   
   # an exception that is thrown by the server if the agent license is invalid
@@ -45,10 +45,59 @@ module NewRelic::Agent
       agent.stats_engine.get_stats(metric_name, false)
     end
     
-    def start_transaction
-      instance.start_transaction
+    
+    # Call this to manually start the Agent in situations where the Agent does
+    # not auto-start.
+    # When the rails environment loads, so does the Agent. However, the Agent will
+    # only connect to RPM if a web plugin is found. If you want to selectively monitor
+    # rails processes that don't use web plugins, then call this method in your
+    # code and the Agent will fire up and start reporting to RPM.
+    #
+    # environment - the name of the environment. used for logging only
+    # port - the name of this instance. shows up in the RPM UI screens. can be any String
+    #
+    def manual_start(environment, port)
+      agent.manual_start(environment, port)
     end
+    
+    # This method sets the block sent to this method as a sql obfuscator. 
+    # The block will be called with a single String SQL statement to obfuscate.
+    # The method must return the obfuscated String SQL. 
+    # If chaining of obfuscators is required, use type = :before or :after
+    #
+    # type = :before, :replace, :after
+    #
+    # example:
+    #    NewRelic::Agent.set_sql_obfuscator(:replace) do |sql|
+    #       my_obfuscator(sql)
+    #    end
+    # 
+    def set_sql_obfuscator(type = :replace, &block)
+      agent.set_sql_obfuscator type, block
+    end
+    
+    
+    # This method sets the state of sql recording in the transaction
+    # sampler feature. Within the given block, no sql will be recorded
+    #
+    # usage:
+    #
+    #   NewRelic::Agent.disable_sql_recording do
+    #     ...  
+    #    end
+    #     
+    def disable_sql_recording
+      state = agent.set_record_sql(false)
+      begin
+        yield
+      ensure
+        agent.set_record_sql(state)
+      end
+    end
+    
   end
+  
+  
   
   # Implementation default for the NewRelic Agent
   class Agent
@@ -58,13 +107,15 @@ module NewRelic::Agent
     # VERSION HISTORY
     # 1: Private Beta, Jan 10, 2008.  Serialized Marshalled Objects.  Unsupported after 5/29/2008.
     # 2: Private Beta, March 15, 2008.  Compressed Serialzed Marshalled Objects (15-20x smaller)
-    PROTOCOL_VERSION = 2
+    # 3: June 19, 2008. Added transaction sampler capability with obfuscation
+    PROTOCOL_VERSION = 3
     
     include Singleton
     
     DEFAULT_HOST = 'localhost'
     DEFAULT_PORT = 3000
     
+    attr_reader :obfuscator
     attr_reader :stats_engine
     attr_reader :transaction_sampler
     attr_reader :worker_loop
@@ -87,6 +138,13 @@ module NewRelic::Agent
       @config = config
       
       @local_port = determine_environment_and_port
+      
+      if @local_port
+        start_reporting
+      end
+    end
+    
+    def start_reporting(force_enable=false)
       @local_host = determine_host
 
       setup_log
@@ -97,14 +155,24 @@ module NewRelic::Agent
       @sample_threshold = (config['sample_threshold'] || 2).to_i
       @license_key = config.fetch('license_key', nil)
       
+      sampler_config = config.fetch('transaction_sampler', {})
+      
+      @use_transaction_sampler = sampler_config.fetch('enabled', false)
+      @send_raw_sql = sampler_config.fetch('send_raw_sql', false)
+      
+      log.info "Transaction sampler enabled: #{@use_transaction_sampler}"
+      log.warn "Agent is configured to send raw SQL to RPM service" if @send_raw_sql
+      
       @use_ssl = config.fetch('ssl', false)
       default_port = @use_ssl ? 443 : 80
       
       @remote_host = config.fetch('host', 'collector.newrelic.com')
       @remote_port = config.fetch('port', default_port)
       
-      if config['enabled'] || config['developer']
-        if config['enabled']
+      enabled = force_enable || config['enabled']
+      
+      if enabled || config['developer']
+        if enabled
           # make sure the license key exists and is likely to be really a license key
           # by checking it's string length (license keys are 40 character strings.)
           unless @license_key && @license_key.length == 40
@@ -128,9 +196,37 @@ module NewRelic::Agent
       end
     end
     
+    def manual_start(environment, port)
+      @environment = environment
+      @local_port = port
+      
+      start_reporting true      
+    end
+
+    
     def start_transaction
       @stats_engine.start_transaction
     end
+        
+    def set_record_sql(should_record)
+      prev = Thread::current[:record_sql]
+      Thread::current[:record_sql] = should_record
+      
+      prev || true
+    end
+    
+    def set_sql_obfuscator(type, block)
+      if type == :before
+        @obfuscator = ChainedCall.new(block, @obfuscator)
+      elsif type == :after
+        @obfuscator = ChainedCall.new(@obfuscator, block)
+      elsif type == :replace
+        @obfuscator = block
+      else
+        fail "unknown sql_obfuscator type #{type}"
+      end
+    end
+
     
     private
     def initialize
@@ -173,11 +269,6 @@ module NewRelic::Agent
     
     # Connect to the server, and run the worker loop forever
     def run_worker_loop
-      # bail if the application is not running in a mongrel process unless
-      # the user explicitly asks to monitor non-mongrel processes (assumed to 
-      # be daemons) by setting 'monitor_daemons' to true in newrelic.yaml
-      # attempt to connect to the server
-      return unless should_run?
       
       until @connected
         should_retry = connect
@@ -195,7 +286,7 @@ module NewRelic::Agent
         harvest_and_send_timeslice_data
       end
       
-      if @should_send_samples
+      if @should_send_samples && @use_transaction_sampler
         @worker_loop.add_task(report_period) do 
           harvest_and_send_slowest_sample
         end
@@ -204,10 +295,6 @@ module NewRelic::Agent
       @worker_loop.run
     end
     
-    # return true if the agent should run the worker loop.
-    def should_run?
-      @local_port || config['monitor_daemons'] || @environment == :thin
-    end
     
     def connect
       @connect_retry_period ||= 5
@@ -285,16 +372,17 @@ module NewRelic::Agent
         port = OPTIONS.fetch :port, DEFAULT_PORT
         @environment = :webrick
         return port
-      rescue NameError; end # continue on if this didn't succeed...
+      rescue NameError
+      end # continue on if this didn't succeed...
 
       # this case covers starting by mongrel_rails
       if defined? Mongrel::HttpServer
         ObjectSpace.each_object(Mongrel::HttpServer) do |mongrel|
-          port = mongrel.port
           @environment = :mongrel
-          return port
+          return mongrel.port
         end
       end
+      
       if defined? Thin::Server
         # This case covers the thin web server
         # Same issue as above- we assume only one instance per process
@@ -304,33 +392,23 @@ module NewRelic::Agent
           # We need a way to uniquely identify and distinguish agents.  The port
           # works for this.  When using sockets, use the socket file name.
           if backend.respond_to? :port
-            port = backend.port
+            return backend.port
           elsif backend.respond_to? :socket
-            # if the socket file ends with .NNN then use the NNN as the port #
-            # only take the last segment of the file name.  Thin auto-generates
-            # the names from the same directory.
-            if backend.socket =~ /\.([0-9])+$/
-              port = $1.to_i
-            elsif backend.socket =~ /^(.*\/)?([^\/]*)$/
-              # if the socket is /tmp/thin then set the port to "thin"
-              port = $2
-            else
-              port = ''
-            end
-          else
-            # Can't log this because the logger is not available.         
-#           log.error "Unknown backend for Thin has neither port nor socket: #{backend.class}"
-            port = "#{backend.class}"
+            return backend.socket
           end
-          return port
         end # each thin instance
       end
+      
       if RUBY_PLATFORM =~ /java/
         # Check for JRuby environment.  Not sure how this works in different appservers
         require 'java'
         @environment = :jruby
-        port = java.lang.System.identityHashCode(JRuby.runtime)
-        return port
+        return java.lang.System.identityHashCode(JRuby.runtime)
+      end
+      
+      if config['monitor_daemons']
+        @environment = :daemon
+        return $0
       end
       
       # if no real environment was found
@@ -401,7 +479,7 @@ module NewRelic::Agent
         # gathering SQL explanations, stripping out stack traces, and normalizing SQL.
         # note that we explain only the sql statements whose segments' execution times exceed 
         # our threshold (to avoid unnecessary overhead of running explains on fast queries.)
-        sample = @slowest_sample.prepare_to_send(:explain_sql => 0.5)
+        sample = @slowest_sample.prepare_to_send(:explain_sql => 0.5, :send_raw_sql => @send_raw_sql)
 
         invoke_remote :transaction_sample_data, @agent_id, sample
       end
@@ -513,4 +591,17 @@ module NewRelic::Agent
     end
   end
   
+end
+
+class ChainedCall
+
+  def initialize(call1, call2)
+    @call1 = call1
+    @call2 = call2
+  end
+  
+  def call(sql)
+    sql = @call1.call(sql)
+    @call2.call(sql)
+  end
 end

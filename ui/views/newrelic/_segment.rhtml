@@ -24,7 +24,7 @@
 
 <td nowrap=true>
   <small>
-  <% if segment[:sql] %>
+  <% if segment[:sql_obfuscated] || segment[:sql] %>
     <%= link_to "SQL", explain_sql_url(segment) %> 
   <% end %>
   </small>

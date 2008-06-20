@@ -26,6 +26,10 @@ module NewRelic
         s.parent_segment = self
       end
       
+      def to_s
+        to_debug_str(0)
+      end
+      
       def to_debug_str(depth)
         tab = "" 
         depth.times {tab << "  "}
@@ -106,7 +110,7 @@ module NewRelic
       def explain_sql
         sql = params[:sql]
         return nil if sql.nil? 
-        statements = sql.split(';')
+        statements = sql.split(";\n")
         explanations = []
         statements.each do |statement|
           if statement.split($;, 2)[0].upcase == 'SELECT'
@@ -115,6 +119,7 @@ module NewRelic
               result = ActiveRecord::Base.connection.execute("EXPLAIN #{statement}")
               result.each {|row| explanation << row }
             rescue
+              x = 1 # this is here so that code coverage knows we've entered this block
               # swallow failed attempts to run an explain.  One example of a failure is the
               # connection for the sql statement is to a different db than the default connection
               # specified in AR::Base
@@ -126,11 +131,22 @@ module NewRelic
         explanations
       end
       
+      def obfuscated_sql
+        TransactionSample.obfuscate_sql(params[:sql])
+      end
+      
       protected
         def parent_segment=(s)
           @parent_segment = s
         end
     end
+    
+    class << self
+      def obfuscate_sql(sql)
+        NewRelic::Agent.instance.obfuscator.call(sql) 
+      end      
+    end
+        
 
     attr_accessor :start_time
     attr_reader :root_segment
@@ -201,7 +217,7 @@ module NewRelic
     #   :explain_sql : run EXPLAIN on all queries whose response times equal the value for this key
     #       (for example :explain_sql => 2.0 would explain everything over 2 seconds.  0.0 would explain everything.)
     #   :keep_backtraces : keep backtraces, significantly increasing size of trace (off by default)
-    #   :normalize_sql : clear sql fields of potentially sensitive values (higher overhead, better security)
+    #   :obfuscate_sql : clear sql fields of potentially sensitive values (higher overhead, better security)
     def prepare_to_send(options={})
       sample = TransactionSample.new(sample_id)
       sample.begin_building @start_time
@@ -213,12 +229,8 @@ module NewRelic
       sample.freeze
     end
     
+
   private
-  
-    def normalize_sql(sql)
-      # TODO 
-      sql
-    end
     
     def build_segment_with_omissions(new_sample, time_delta, source_segment, target_segment, regex)
       source_segment.called_segments.each do |source_called_segment|
@@ -269,8 +281,8 @@ module NewRelic
               target_called_segment[:explanation] = source_called_segment.explain_sql
             end
             
-            sql = normalize(sql) if options[:normalize_sql]
-            target_called_segment[k]=sql
+            target_called_segment[k]=sql if options[:send_raw_sql]
+            target_called_segment[:sql_obfuscated] = TransactionSample.obfuscate_sql(sql) if !options[:send_raw_sql]
           else
             target_called_segment[k]=v 
           end

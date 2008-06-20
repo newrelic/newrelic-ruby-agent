@@ -1,8 +1,9 @@
 require 'newrelic/agent/stats_engine'
-require File.join(File.dirname(__FILE__),'mock_agent')
+#require File.join(File.dirname(__FILE__),'mock_agent')
 
 RPM_AGENT_ENABLED = true
 module NewRelic
+  
   module Agent
     
     class Agent
@@ -25,6 +26,8 @@ module NewRelic
       def agent
         NewRelic::Agent::Agent.instance
       end
+      
+      alias instance agent
     end
   end
 end
