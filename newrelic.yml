@@ -35,10 +35,13 @@ common: &default_settings
   ssl: false
   
   
-  # Transaction sampler is a feature that captures deep information about slow
+  # Transaction sampler is a EARLY ACCESS feature that captures deep information about slow
   # transactions and sends this to the RPM service once a minute. Included in the
   # sample is the exact call sequence of the transactions including any SQL statements
   # issued.
+  #
+  # Because this feature is EARLY ACCESS, only accounts that have been approved for
+  # early access features by New Relic will have this capability enabled
   transaction_sampler:
   
     # The default for transaction sampler is false due to the sensitive nature of the SQL
