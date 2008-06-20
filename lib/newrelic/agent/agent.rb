@@ -312,6 +312,8 @@ module NewRelic::Agent
       # Ask the server for permission to send transaction samples.  determined by subscription license.
       @should_send_samples = invoke_remote :should_collect_samples, @agent_id
       
+      log! "Transaction sampler enabled from RPM: #{@should_send_samples}"
+      
       @connected = true
       @last_harvest_time = Time.now
       return true
