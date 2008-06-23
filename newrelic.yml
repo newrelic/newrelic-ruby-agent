@@ -35,21 +35,21 @@ common: &default_settings
   ssl: false
   
   
-  # Transaction sampler is a EARLY ACCESS feature that captures deep information about slow
+  # Transaction tracer is a EARLY ACCESS feature that captures deep information about slow
   # transactions and sends this to the RPM service once a minute. Included in the
-  # sample is the exact call sequence of the transactions including any SQL statements
+  # transaction is the exact call sequence of the transactions including any SQL statements
   # issued.
   #
   # Because this feature is EARLY ACCESS, only accounts that have been approved for
   # early access features by New Relic will have this capability enabled
-  transaction_sampler:
+  transaction_tracer:
   
-    # The default for transaction sampler is false due to the sensitive nature of the SQL
+    # The default for transaction tracer is false due to the sensitive nature of the SQL
     # data we send to the RPM service. Get comfortable with the SQL obfuscator in development
-    # mode before enabling transaction sampler.
+    # mode before enabling transaction tracer.
     enabled: false
   
-    # When transaction sampler is on, the default behavior is to obfuscate all SQL. All
+    # When transaction tracer is on, the default behavior is to obfuscate all SQL. All
     # string literals are replaced with '?' and all number sequences are replaced with ?.
     # If this option is set to true, the raw SQL is sent rather than obfuscated SQL. This 
     # should be used due to the sensitive nature of data stored in SQL statements

@@ -160,7 +160,7 @@ module NewRelic::Agent
       @use_transaction_sampler = sampler_config.fetch('enabled', false)
       @send_raw_sql = sampler_config.fetch('send_raw_sql', false)
       
-      log.info "Transaction sampler enabled: #{@use_transaction_sampler}"
+      log.info "Transaction tracer enabled: #{@use_transaction_sampler}"
       log.warn "Agent is configured to send raw SQL to RPM service" if @send_raw_sql
       
       @use_ssl = config.fetch('ssl', false)
@@ -312,7 +312,7 @@ module NewRelic::Agent
       # Ask the server for permission to send transaction samples.  determined by subscription license.
       @should_send_samples = invoke_remote :should_collect_samples, @agent_id
       
-      log! "Transaction sampler enabled from RPM: #{@should_send_samples}"
+      log! "Transaction tracer enabled from RPM service: #{@should_send_samples}"
       
       @connected = true
       @last_harvest_time = Time.now
