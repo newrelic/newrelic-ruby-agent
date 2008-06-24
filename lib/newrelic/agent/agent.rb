@@ -139,7 +139,7 @@ module NewRelic::Agent
       
       @local_port = determine_environment_and_port
       
-      if @local_port
+      if @local_port || config['developer']
         start_reporting
       end
     end
@@ -171,20 +171,18 @@ module NewRelic::Agent
       
       enabled = force_enable || config['enabled']
       
-      if enabled || config['developer']
-        if enabled
-          # make sure the license key exists and is likely to be really a license key
-          # by checking it's string length (license keys are 40 character strings.)
-          unless @license_key && @license_key.length == 40
-            log! "No license key found.  Please insert your license key into agent/newrelic.yml"
-            return
-          end
+      if enabled
+        # make sure the license key exists and is likely to be really a license key
+        # by checking it's string length (license keys are 40 character strings.)
+        unless @license_key && @license_key.length == 40
+          log! "No license key found.  Please insert your license key into agent/newrelic.yml"
+          return
+        end
 
-          load_samplers
-          
-          @worker_thread = Thread.new do 
-            run_worker_loop
-          end
+        load_samplers
+        
+        @worker_thread = Thread.new do 
+          run_worker_loop
         end
         
         # When the VM shuts down, attempt to send a message to the server that
@@ -193,6 +191,8 @@ module NewRelic::Agent
           @worker_thread.terminate if @worker_thread
           graceful_disconnect
         end
+      elsif config['developer']
+        instrument_rails
       end
     end
     
@@ -422,6 +422,12 @@ module NewRelic::Agent
     end
     
     def instrument_rails
+      @instrumented ||= false
+      
+      return if @instrumented
+      
+      @instrumented = true
+      
       Module.method_tracer_log = log
       
       # Instrumentation for the key code points inside rails for monitoring by NewRelic.
