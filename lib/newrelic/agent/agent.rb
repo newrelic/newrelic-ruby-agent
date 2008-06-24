@@ -103,20 +103,18 @@ module NewRelic::Agent
       @remote_host = config.fetch('host', 'collector.newrelic.com')
       @remote_port = config.fetch('port', default_port)
       
-      if config['enabled'] || config['developer']
-        if config['enabled']
-          # make sure the license key exists and is likely to be really a license key
-          # by checking it's string length (license keys are 40 character strings.)
-          unless @license_key && @license_key.length == 40
-            log! "No license key found.  Please insert your license key into agent/newrelic.yml"
-            return
-          end
+      if config['enabled']
+        # make sure the license key exists and is likely to be really a license key
+        # by checking it's string length (license keys are 40 character strings.)
+        unless @license_key && @license_key.length == 40
+          log! "No license key found.  Please insert your license key into agent/newrelic.yml"
+          return
+        end
 
-          load_samplers
-          
-          @worker_thread = Thread.new do 
-            run_worker_loop
-          end
+        load_samplers
+        
+        @worker_thread = Thread.new do 
+          run_worker_loop
         end
         
         # When the VM shuts down, attempt to send a message to the server that
@@ -125,6 +123,8 @@ module NewRelic::Agent
           @worker_thread.terminate if @worker_thread
           graceful_disconnect
         end
+      elsif config['developer']
+        instrument_rails
       end
     end
     

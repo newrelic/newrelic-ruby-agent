@@ -1,3 +1,5 @@
+2008-06-24 version 2.2.4
+  * fix for developer mode where no transaction traces were showing up (bug introduced in 2.2.3)
 2008-06-20 version 2.2.3
   * fix for issue when mongrel limit enforcement caused overhead in isolated situations
 2008-06-13 version 2.2.2
