@@ -585,7 +585,7 @@ module NewRelic::Agent
     end
     
     def graceful_disconnect
-      if @connected
+      if @connected && remote_host != "localhost"
         begin
           log.debug "Sending graceful shutdown message to #{remote_host}:#{remote_port}"
           invoke_remote :shutdown, @agent_id, Time.now.to_f
