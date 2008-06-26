@@ -155,7 +155,7 @@ module NewRelic::Agent
       @sample_threshold = (config['sample_threshold'] || 2).to_i
       @license_key = config.fetch('license_key', nil)
       
-      sampler_config = config.fetch('transaction_sampler', {})
+      sampler_config = config.fetch('transaction_tracer', {})
       
       @use_transaction_sampler = sampler_config.fetch('enabled', false)
       @send_raw_sql = sampler_config.fetch('send_raw_sql', false)
