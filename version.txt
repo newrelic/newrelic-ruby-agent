@@ -1,3 +1,5 @@
+2008-06-26 version 2.3.1
+  * bugfixes
 2008-06-26 version 2.3.0
   + Add support for Transaction Traces early access feature
 2008-06-13 version 2.2.2
