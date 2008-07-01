@@ -13,17 +13,22 @@ class Module
     @@method_trace_log = log
   end
   
-  def trace_method_execution (metric_name, push_scope = true, agent = NewRelic::Agent.agent)
+  #
+  # it might be cleaner to have a hash for options, however that's going to be slower
+  # than direct parameters
+  #
+  def trace_method_execution (metric_name, push_scope, produce_metric)
     
     t0 = Time.now
     stats = nil
+    expected_scope = nil
     
     begin
-      stats_engine = agent.stats_engine
+      stats_engine = NewRelic::Agent.agent.stats_engine
       
       expected_scope = stats_engine.push_scope metric_name if push_scope
       
-      stats = stats_engine.get_stats metric_name, push_scope
+      stats = stats_engine.get_stats metric_name, push_scope if produce_metric
     rescue => e
       method_tracer_log.error("Caught exception in trace_method_execution header. Metric name = #{metric_name}, exception = #{e}")
       method_tracer_log.info(e.backtrace.join("\n"))
@@ -35,15 +40,14 @@ class Module
       duration = Time.now - t0
       
       begin
-        if stats
-          if push_scope
-            scope = stats_engine.pop_scope expected_scope
-            exclusive = duration - scope.exclusive_time
-          else
-            exclusive = duration
-          end
-          stats.trace_call duration, exclusive
+        if expected_scope
+          scope = stats_engine.pop_scope expected_scope
+          exclusive = duration - scope.exclusive_time
+        else
+          exclusive = duration
         end
+
+        stats.trace_call duration, exclusive if stats
       rescue => e
         method_tracer_log.error("Caught exception in trace_method_execution footer. Metric name = #{metric_name}, exception = #{e}")
         method_tracer_log.info(e.backtrace.join("\n"))
@@ -65,8 +69,18 @@ class Module
   # statically defined metric names can be specified as regular strings
   # push_scope specifies whether this method tracer should push
   # the metric name onto the scope stack.
-  def add_method_tracer (method_name, metric_name_code, push_scope = true, code_header="", code_footer="")
+  def add_method_tracer (method_name, metric_name_code, options = {})
     return unless ::RPM_TRACERS_ENABLED
+    
+    if !options.is_a?(Hash)
+      options = {:push_scope => options} 
+    end
+    
+    options[:push_scope] = true if options[:push_scope].nil?
+    options[:metric] = true if options[:metric].nil? 
+    options[:code_header] ||= ""
+    options[:code_footer] ||= ""
+    
     klass = (self === Module) ? "self" : "self.class"
     
     unless method_defined?(method_name) || private_method_defined?(method_name)
@@ -82,12 +96,12 @@ class Module
     
     code = <<-CODE
     def #{_traced_method_name(method_name, metric_name_code)}(*args, &block)
-      #{code_header}
+      #{options[:code_header]}
       metric_name = "#{metric_name_code}"
-      traced_method_result = #{klass}.trace_method_execution("\#{metric_name}", #{push_scope}) do
+      traced_method_result = #{klass}.trace_method_execution("\#{metric_name}", #{options[:push_scope]}, #{options[:metric]}) do
         #{_untraced_method_name(method_name, metric_name_code)}(*args, &block)
       end
-      #{code_footer}
+      #{options[:code_footer]}
       traced_method_result
     end
     CODE
@@ -98,7 +112,7 @@ class Module
     alias_method method_name, "#{_traced_method_name(method_name, metric_name_code)}"
     
     method_tracer_log.debug("Traced method: class = #{self}, method = #{method_name}, "+
-        "metric = '#{metric_name_code}', push scope=#{push_scope}")
+        "metric = '#{metric_name_code}', options: #{options}, ")
   end
 
   # Not recommended for production use, because tracers must be removed in reverse-order

@@ -1,5 +1,4 @@
 require 'newrelic/agent/stats_engine'
-#require File.join(File.dirname(__FILE__),'mock_agent')
 
 RPM_AGENT_ENABLED = true
 module NewRelic

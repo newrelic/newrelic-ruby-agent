@@ -18,7 +18,7 @@
 		Obfuscated Query
 		</th>
 		<td colspan=<%= @explanation.length%>><small>
-			<%= @obfuscated_sql %>
+			<%= line_wrap_sql(@obfuscated_sql) %>
 		</small></td>
 	</tr>
 	<% end %>
@@ -55,7 +55,7 @@
 	<tr>
 		<th align=right valign=top>Obfuscated SQL</th>
 		<td><small>
-			<%= @obfuscated_sql %>
+			<%= line_wrap_sql(@obfuscated_sql) %>
 		</small></td>
 	</tr>
 	<% end %>

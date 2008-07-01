@@ -11,13 +11,13 @@ module ActionController
       return perform_action_without_newrelic_trace if self.class.read_inheritable_attribute('do_not_trace')
     
       # generate metrics for all all controllers (no scope)
-      self.class.trace_method_execution "Controller", false do 
+      self.class.trace_method_execution "Controller", false, true do 
         # generate metrics for this specific action
         path = _determine_metric_path
       
         agent.stats_engine.transaction_name ||= "Controller/#{path}" if agent.stats_engine
       
-        self.class.trace_method_execution "Controller/#{path}" do 
+        self.class.trace_method_execution "Controller/#{path}", true, true do 
           # send request and parameter info to the transaction sampler
           NewRelic::Agent.instance.transaction_sampler.notice_transaction(path, request, params)
         

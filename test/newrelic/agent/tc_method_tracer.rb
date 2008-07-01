@@ -1,10 +1,21 @@
 require File.join(File.dirname(__FILE__),'mock_agent')
 require 'newrelic/agent/method_tracer'
 require 'newrelic/agent/transaction_sampler'
+require 'newrelic/agent/mock_scope_listener'
 require 'test/unit'
 
 ::RPM_TRACERS_ENABLED = true unless defined? ::RPM_TRACERS_ENABLED
 
+
+  
+class Module
+  def method_traced?(method_name, metric_name)
+    traced_method_prefix = _traced_method_name(method_name, metric_name)
+    
+    method_defined? traced_method_prefix
+  end
+end  
+  
 module NewRelic
   module Agent
     
@@ -28,6 +39,10 @@ module NewRelic
       def setup
         @stats_engine = Agent.instance.stats_engine
         @stats_engine.reset
+        
+        @scope_listener = MockScopeListener.new
+        
+        @stats_engine.add_scope_stack_listener(@scope_listener)
       end
       
       def teardown
@@ -38,8 +53,8 @@ module NewRelic
       def test_basic
         metric = "hello"
         t1 = Time.now
-        self.class.trace_method_execution metric do
-          sleep 0.1
+        self.class.trace_method_execution metric, true, true do
+          sleep 1
           assert metric == @stats_engine.peek_scope.name
         end
         elapsed = Time.now - t1
@@ -63,9 +78,34 @@ module NewRelic
         check_time stats.total_call_time, elapsed
         assert stats.call_count == 1
       end
+      
+      
+      def test_method_traced?
+        assert !self.class.method_traced?(:method_to_be_traced, METRIC)
+        self.class.add_method_tracer :method_to_be_traced, METRIC
+        assert self.class.method_traced?(:method_to_be_traced, METRIC)
+      end
+      
+      def test_tt_only
+        
+        assert_nil @scope_listener.scope["c2"]
+        self.class.add_method_tracer :method_c1, "c1", true
+        
+        self.class.add_method_tracer :method_c2, "c2", :metric => false
+        self.class.add_method_tracer :method_c3, "c3", false
+        
+        method_c1
+        
+        assert_not_nil @stats_engine.lookup_stat("c1")
+        assert_nil @stats_engine.lookup_stat("c2")
+        assert_not_nil @stats_engine.lookup_stat("c3")
+
+        assert_not_nil @scope_listener.scope["c2"]
+      end
+      
       def test_nested_scope_tracer
-        Insider.add_method_tracer :catcher, "catcher", true
-        Insider.add_method_tracer :thrower, "thrower", true
+        Insider.add_method_tracer :catcher, "catcher", :push_scope => true
+        Insider.add_method_tracer :thrower, "thrower", :push_scope => true
         sampler = TransactionSampler.new(Agent.instance)
         @stats_engine.add_scope_stack_listener sampler
         mock = Insider.new(@stats_engine)
@@ -155,7 +195,7 @@ module NewRelic
       def test_execption
         begin
           metric = "hey there"
-          self.class.trace_method_execution metric do
+          self.class.trace_method_execution metric, true, true do
             assert @stats_engine.peek_scope.name == metric
             throw Exception.new            
           end
@@ -171,7 +211,7 @@ module NewRelic
       end
       
       def test_add_multiple_tracers
-        self.class.add_method_tracer :method_to_be_traced, 'X', false
+        self.class.add_method_tracer :method_to_be_traced, 'X', :push_scope => false
         method_to_be_traced 1,2,3,true,nil
         self.class.add_method_tracer :method_to_be_traced, 'Y'
         method_to_be_traced 1,2,3,true,'Y'
@@ -182,7 +222,7 @@ module NewRelic
       end
       
       def trace_no_push_scope
-        self.class.add_method_tracer :method_to_be_traced, 'X', false
+        self.class.add_method_tracer :method_to_be_traced, 'X', :push_scope => false
         method_to_be_traced 1,2,3,true,nil
         self.class.remove_method_tracer :method_to_be_traced, 'X'
         method_to_be_traced 1,2,3,false,'X'
@@ -213,6 +253,18 @@ module NewRelic
         scope_name = @stats_engine.peek_scope ? @stats_engine.peek_scope.name : nil
         assert((expected_metric == scope_name) == is_traced)
       end
+      
+      def method_c1
+        method_c2
+      end
+      
+      def method_c2
+        method_c3
+      end
+      
+      def method_c3
+      end
+    
     end
   end
 end

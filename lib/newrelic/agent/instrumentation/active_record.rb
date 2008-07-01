@@ -7,19 +7,19 @@ module ActiveRecord
     class << self
       [:find, :count].each do |find_method|
         add_method_tracer find_method, 'ActiveRecord/#{self.name}/find'
-        add_method_tracer find_method, 'ActiveRecord/find', false
-        add_method_tracer find_method, 'ActiveRecord/all', false
+        add_method_tracer find_method, 'ActiveRecord/find', :push_scope => false
+        add_method_tracer find_method, 'ActiveRecord/all', :push_scope => false
       end
     end
     [:save, :save!].each do |save_method|
       add_method_tracer save_method, 'ActiveRecord/#{self.class.name}/save'
-      add_method_tracer save_method, 'ActiveRecord/save', false
-      add_method_tracer save_method, 'ActiveRecord/all', false
+      add_method_tracer save_method, 'ActiveRecord/save', :push_scope => false
+      add_method_tracer save_method, 'ActiveRecord/all', :push_scope => false
     end
 
     add_method_tracer :destroy, 'ActiveRecord/#{self.class.name}/destroy'
-    add_method_tracer :destroy, 'ActiveRecord/destroy', false
-    add_method_tracer :destroy, 'ActiveRecord/all', false
+    add_method_tracer :destroy, 'ActiveRecord/destroy', :push_scope => false
+    add_method_tracer :destroy, 'ActiveRecord/all', :push_scope => false
   end
   
   # instrumentation to catch logged SQL statements in sampled transactions
@@ -31,9 +31,10 @@ module ActiveRecord
         
         log_without_capture_sql(sql, name, &block)
       end
+      
       alias_method_chain :log, :capture_sql
       
-      add_method_tracer :log, 'Database/#{adapter_name}/#{args[1]}' if ::RPM_DEVELOPER
+      add_method_tracer :log, 'Database/#{adapter_name}/#{args[1]}', :metric => false
     end
   end
   

@@ -113,6 +113,11 @@ module NewRelic::Agent
       Thread::current[:newrelic_transaction_name]
     end
     
+    
+    def lookup_stat(metric_name)
+      return @stats_hash[NewRelic::MetricSpec.new(metric_name)]
+    end
+    
     def get_stats(metric_name, use_scope = true)
       spec = NewRelic::MetricSpec.new metric_name
       stats = @stats_hash[spec]
