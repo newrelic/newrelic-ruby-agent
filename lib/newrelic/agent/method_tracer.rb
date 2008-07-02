@@ -31,7 +31,7 @@ class Module
       stats = stats_engine.get_stats metric_name, push_scope if produce_metric
     rescue => e
       method_tracer_log.error("Caught exception in trace_method_execution header. Metric name = #{metric_name}, exception = #{e}")
-      method_tracer_log.info(e.backtrace.join("\n"))
+      method_tracer_log.error(e.backtrace.join("\n"))
     end
 
     begin
@@ -50,7 +50,7 @@ class Module
         stats.trace_call duration, exclusive if stats
       rescue => e
         method_tracer_log.error("Caught exception in trace_method_execution footer. Metric name = #{metric_name}, exception = #{e}")
-        method_tracer_log.info(e.backtrace.join("\n"))
+        method_tracer_log.error(e.backtrace.join("\n"))
       end
     
       result 

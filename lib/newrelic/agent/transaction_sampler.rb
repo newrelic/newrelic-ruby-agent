@@ -98,7 +98,7 @@ module NewRelic::Agent
     # some statements (particularly INSERTS with large BLOBS
     # may be very large; we should trim them to a maximum usable length
     MAX_SQL_LENGTH = 16384
-    def notice_sql(sql)
+    def notice_sql(sql, config)
       with_builder do |builder|
         if Thread::current[:record_sql].nil? || Thread::current[:record_sql]
           segment = builder.current_segment
@@ -111,6 +111,7 @@ module NewRelic::Agent
             end
             
             segment[:sql] = sql
+            segment[:connection_config] = config
           end
         end
       end

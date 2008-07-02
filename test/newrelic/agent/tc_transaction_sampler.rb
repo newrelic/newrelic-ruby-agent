@@ -118,7 +118,7 @@ module NewRelic
         
         len = 0
         while len <= NewRelic::Agent::TransactionSampler::MAX_SQL_LENGTH
-          @sampler.notice_sql(sql)
+          @sampler.notice_sql(sql, nil)
           len += sql.length
         end
         
@@ -140,7 +140,7 @@ module NewRelic
         
         orig_sql = "SELECT * from Jim where id=66"
         
-        @sampler.notice_sql(orig_sql)
+        @sampler.notice_sql(orig_sql, nil)
         
         segment = nil
         @sampler.with_builder do |builder|
@@ -212,13 +212,13 @@ module NewRelic
         @sampler.notice_first_scope_push
         @sampler.notice_transaction '/path', nil, {}
         @sampler.notice_push_scope "a"
-        @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'")
+        @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'", nil)
         @sampler.notice_push_scope "ab"
-        @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'white'")
+        @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'white'", nil)
         proc.call if proc
         @sampler.notice_pop_scope "ab"
         @sampler.notice_push_scope "lew"
-        @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'french'")
+        @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'french'", nil)
         @sampler.notice_pop_scope "lew"
         @sampler.notice_pop_scope "a"
         @sampler.notice_scope_empty

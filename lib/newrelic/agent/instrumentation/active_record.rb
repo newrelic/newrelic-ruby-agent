@@ -27,14 +27,24 @@ module ActiveRecord
     class AbstractAdapter
       
       def log_with_capture_sql(sql, name, &block)
-        NewRelic::Agent.instance.transaction_sampler.notice_sql(sql)
+        
+        if self.is_a?(ActiveRecord::ConnectionAdapters::MysqlAdapter)
+          config = @config
+        elsif self.is_a?(ActiveRecord::ConnectionAdapters::PostgreSQLAdapter)
+          config = @config
+        else
+          config = nil
+        end
+        
+        NewRelic::Agent.instance.transaction_sampler.notice_sql(sql, config)
         
         log_without_capture_sql(sql, name, &block)
       end
       
       alias_method_chain :log, :capture_sql
-      
+
       add_method_tracer :log, 'Database/#{adapter_name}/#{args[1]}', :metric => false
+      add_method_tracer :log, 'Database/all', :push_scope => false
     end
   end
   

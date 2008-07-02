@@ -63,8 +63,8 @@ module NewRelic::Agent
         begin
           task.execute
         rescue Timeout::Error, StandardError => e
-          log.debug "Error running task in Agent Worker Loop: #{e}" 
-          log.debug e.backtrace.join("\n")
+          log.error "Error running task in Agent Worker Loop: #{e}" 
+          log.error e.backtrace.join("\n")
         end
       end
       

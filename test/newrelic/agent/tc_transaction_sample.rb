@@ -12,7 +12,7 @@ require 'test/unit'
 module ActiveRecord
   class Base
     class << self
-      def connection
+      def test_connection(config)
         @connect ||= Connection.new
       end
     end
@@ -20,9 +20,15 @@ module ActiveRecord
   
   class Connection
     attr_accessor :throw
+    attr_reader :disconnected
     
     def initialize
+      @disconnected = false
       @throw = false
+    end
+    
+    def disconnect!()
+      @disconnected = true
     end
     
     def execute(s)
@@ -40,6 +46,8 @@ module NewRelic
     class TransationSampleTests < Test::Unit::TestCase
       
       def test_sql
+        assert ActiveRecord::Base.test_connection({}).disconnected == false
+
         t = get_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
         
         s = t.prepare_to_send(:obfuscate_sql => true, :explain_sql => 0.00000001)
@@ -56,10 +64,10 @@ module NewRelic
               explain_count += 1
             end
           end
-
         end
-        
+                
         assert_equal 2, explain_count
+        assert ActiveRecord::Base.test_connection({}).disconnected
       end
       
       
@@ -78,7 +86,7 @@ module NewRelic
       
       
       def test_sql_throw
-        ActiveRecord::Base.connection.throw = true
+        ActiveRecord::Base.test_connection({}).throw = true
 
         t = get_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
         
@@ -124,7 +132,7 @@ module NewRelic
           
           sampler.notice_transaction '/path/2', nil, :jim => "cool"
 
-          sql.each {|sql_statement| sampler.notice_sql(sql_statement) }
+          sql.each {|sql_statement| sampler.notice_sql(sql_statement, {:adapter => "test"} ) }
           
           sleep 1.0
           
