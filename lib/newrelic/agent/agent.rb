@@ -404,6 +404,7 @@ module NewRelic::Agent
       if RUBY_PLATFORM =~ /java/
         # Check for JRuby environment.  Not sure how this works in different appservers
         require 'java'
+        require 'jruby'
         @environment = :jruby
         return java.lang.System.identityHashCode(JRuby.runtime)
       end
