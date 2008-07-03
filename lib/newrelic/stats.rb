@@ -208,7 +208,12 @@ module NewRelic
       self
     end
 
-    alias :trace_call :record_data_point
+    def trace_call(value, exclusive_time = nil)
+      value = 0 if value < 0
+      exclusive_time = 0 if exclusive_time && exclusive_time < 0
+      
+      record_data_point(value, exclusive_time)
+    end
 
     def freeze
       @end_time = Time.now
