@@ -178,6 +178,11 @@ module NewRelic::Agent
       @remote_host = config.fetch('host', 'collector.newrelic.com')
       @remote_port = config.fetch('port', default_port)
       
+      @proxy_host = config.fetch('proxy_host', nil)
+      @proxy_port = config.fetch('proxy_port', nil)
+      @proxy_user = config.fetch('proxy_user', nil)
+      @proxy_pass = config.fetch('proxy_pass', nil)
+
       enabled = force_enable || config['enabled']
       
       if enabled
@@ -536,7 +541,8 @@ module NewRelic::Agent
       # pay a little more CPU.
       post_data = CGI::escape(Zlib::Deflate.deflate(Marshal.dump(args), Zlib::BEST_SPEED))
       
-      request = Net::HTTP.new(@remote_host, @remote_port.to_i) 
+      # Proxy returns regular HTTP if @proxy_host is nil (the default)
+      request = Net::HTTP::Proxy(@proxy_host, @proxy_port, @proxy_user, @proxy_pass).new(@remote_host, @remote_port.to_i)
       if @use_ssl
         request.use_ssl = true 
         request.verify_mode = OpenSSL::SSL::VERIFY_NONE
