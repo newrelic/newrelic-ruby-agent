@@ -13,9 +13,9 @@ module NewRelic::Agent
 
       agent.stats_engine.add_scope_stack_listener self
 
-      proc = Proc.new { |sql| default_sql_obfuscator(sql) }
-      
-      agent.set_sql_obfuscator(:replace, proc)
+      agent.set_sql_obfuscator(:replace) do |sql| 
+        default_sql_obfuscator(sql)
+      end
     end
     
     

@@ -55,6 +55,16 @@ common: &default_settings
     # should be used due to the sensitive nature of data stored in SQL statements
     send_raw_sql: false
     
+    # When transaction tracer is on, should show SQL statements be EXPLAINED
+    explain_enabled: true
+    
+    # When transaction tracer is on, only report the slowest trace every minute to RPM
+    # if the trace is slower than this value
+    transaction_threshold: 2.0
+
+    # When EXPLAIN is enabled, only run it for SQL statements slower than this value 
+    explain_threshold: 0.50
+    
 
 # override default settings based on your application's environment
 

@@ -50,7 +50,7 @@ module NewRelic
 
         t = get_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
         
-        s = t.prepare_to_send(:obfuscate_sql => true, :explain_sql => 0.00000001)
+        s = t.prepare_to_send(:obfuscate_sql => true, :explain_enabled => true, :explain_sql => 0.00000001)
         
         explain_count = 0
         

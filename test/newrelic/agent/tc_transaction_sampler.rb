@@ -203,7 +203,7 @@ module NewRelic
 
         assert_equal "12" + sql + "3", NewRelic::Agent.instance.obfuscator.call(sql)
         
-        NewRelic::Agent.agent.set_sql_obfuscator(:replace, orig)
+        NewRelic::Agent.agent.set_sql_obfuscator(:replace, &orig)
       end
       
       

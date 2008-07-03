@@ -317,7 +317,7 @@ module NewRelic
             sql = v
 
             # run an EXPLAIN on this sql if specified.
-            if options[:explain_sql] && source_called_segment.duration > options[:explain_sql].to_f
+            if options[:explain_enabled] && options[:explain_sql] && source_called_segment.duration > options[:explain_sql].to_f
               target_called_segment[:explanation] = source_called_segment.explain_sql
             end
             

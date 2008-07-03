@@ -73,7 +73,7 @@ module NewRelic::Agent
     #    end
     # 
     def set_sql_obfuscator(type = :replace, &block)
-      agent.set_sql_obfuscator type, block
+      agent.set_sql_obfuscator type, &block
     end
     
     
@@ -152,13 +152,15 @@ module NewRelic::Agent
       @worker_loop = WorkerLoop.new(@log)
       @started = true
       
-      @sample_threshold = (config['sample_threshold'] || 2).to_i
       @license_key = config.fetch('license_key', nil)
       
       sampler_config = config.fetch('transaction_tracer', {})
       
       @use_transaction_sampler = sampler_config.fetch('enabled', false)
       @send_raw_sql = sampler_config.fetch('send_raw_sql', false)
+      @slowest_transaction_threshold = sampler_config.fetch('transaction_threshold', 2.0)
+      @explain_threshold = sampler_config.fetch('explain_threshold', 0.5)
+      @explain_enabled = sampler_config.fetch('explain_enabled', true)
       
       log.info "Transaction tracer enabled: #{@use_transaction_sampler}"
       log.warn "Agent is configured to send raw SQL to RPM service" if @send_raw_sql
@@ -215,7 +217,7 @@ module NewRelic::Agent
       prev || true
     end
     
-    def set_sql_obfuscator(type, block)
+    def set_sql_obfuscator(type, &block)
       if type == :before
         @obfuscator = ChainedCall.new(block, @obfuscator)
       elsif type == :after
@@ -481,14 +483,14 @@ module NewRelic::Agent
     def harvest_and_send_slowest_sample
       @slowest_sample = @transaction_sampler.harvest_slowest_sample(@slowest_sample)
       
-      if @slowest_sample && @slowest_sample.duration > @sample_threshold
+      if @slowest_sample && @slowest_sample.duration > @slowest_transaction_threshold
         log.debug "Sending slowest sample: #{@slowest_sample.params[:path]}, #{@slowest_sample.duration.round_to(2)} s" if @slowest_sample
         
         # take the slowest sample, and prepare it for sending across the wire.  This includes
         # gathering SQL explanations, stripping out stack traces, and normalizing SQL.
         # note that we explain only the sql statements whose segments' execution times exceed 
         # our threshold (to avoid unnecessary overhead of running explains on fast queries.)
-        sample = @slowest_sample.prepare_to_send(:explain_sql => 0.5, :send_raw_sql => @send_raw_sql)
+        sample = @slowest_sample.prepare_to_send(:explain_sql => @explain_threshold, :send_raw_sql => @send_raw_sql, :explain_enabled => @explain_enabled)
 
         invoke_remote :transaction_sample_data, @agent_id, sample
       end
