@@ -10,13 +10,21 @@ module ActiveRecord
         add_method_tracer find_method, 'ActiveRecord/find', :push_scope => false
         add_method_tracer find_method, 'ActiveRecord/all', :push_scope => false
       end
+      
+      # misc
+#      [:columns].each do |method|
+#        add_method_tracer method, 'ActiveRecord/misc', :push_scope => false
+#        add_method_tracer method, 'ActiveRecord/all', :push_scope => false
+#        add_method_tracer method, 'ActiveRecord/#{self.name}/misc'
+#      end
+      
     end
     [:save, :save!].each do |save_method|
       add_method_tracer save_method, 'ActiveRecord/#{self.class.name}/save'
       add_method_tracer save_method, 'ActiveRecord/save', :push_scope => false
       add_method_tracer save_method, 'ActiveRecord/all', :push_scope => false
     end
-
+    
     add_method_tracer :destroy, 'ActiveRecord/#{self.class.name}/destroy'
     add_method_tracer :destroy, 'ActiveRecord/destroy', :push_scope => false
     add_method_tracer :destroy, 'ActiveRecord/all', :push_scope => false
@@ -38,7 +46,21 @@ module ActiveRecord
         
         NewRelic::Agent.instance.transaction_sampler.notice_sql(sql, config)
         
-        log_without_capture_sql(sql, name, &block)
+        # if we aren't in a blamed context, then add one so that we can see that
+        # controllers are calling SQL directly
+        # we check scope_depth vs 3 since the controller is 1, and the 
+        # 'Database/#{adapter_name}/#{args[1]}' is 2
+        #      
+        if NewRelic::Agent.instance.transaction_sampler.scope_depth < 3
+          result = nil
+          self.class.trace_method_execution "Database/DirectSQL", true, true do
+            result = log_without_capture_sql(sql, name, &block)
+          end
+        else
+          result = log_without_capture_sql(sql, name, &block)
+        end
+        
+        result
       end
       
       alias_method_chain :log, :capture_sql

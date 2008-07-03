@@ -67,6 +67,15 @@ module NewRelic::Agent
         end
       end
     end
+    
+    def scope_depth
+      depth = 0
+      with_builder do |builder|
+        depth = builder.scope_depth
+      end
+      
+      depth
+    end
   
     def notice_pop_scope(scope)
       with_builder do |builder|
@@ -229,6 +238,18 @@ module NewRelic::Agent
       @sample.root_segment.end_trace relative_timestamp
       @sample.freeze
       @current_segment = nil
+    end
+    
+    def scope_depth
+      depth = -1        # have to account for the root
+      current = @current_segment
+      
+      while(current)
+        depth += 1
+        current = current.parent_segment
+      end
+      
+      depth
     end
     
     def freeze

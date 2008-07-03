@@ -81,11 +81,18 @@ module NewRelic
       def test_sample_with_parallel_paths
         @sampler = TransactionSampler.new(Agent.instance)
         
+        assert_equal 0, @sampler.scope_depth
+
         @sampler.notice_first_scope_push
         @sampler.notice_transaction "/path", nil, {}
         @sampler.notice_push_scope "a"
+        
+        assert_equal 1, @sampler.scope_depth 
+        
         @sampler.notice_pop_scope "a"
         @sampler.notice_scope_empty
+
+        assert_equal 0, @sampler.scope_depth 
         
         @sampler.notice_first_scope_push
         @sampler.notice_transaction "/path", nil, {}
