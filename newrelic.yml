@@ -49,11 +49,10 @@ common: &default_settings
     # mode before enabling transaction tracer.
     enabled: false
   
-    # When transaction tracer is on, the default behavior is to obfuscate all SQL. All
-    # string literals are replaced with '?' and all number sequences are replaced with ?.
-    # If this option is set to true, the raw SQL is sent rather than obfuscated SQL. This 
-    # should be used due to the sensitive nature of data stored in SQL statements
-    send_raw_sql: false
+    # When transaction tracer is on, SQL statements can optionally be recorded. The recorder
+    # has three modes, "off" which sends no SQL, "raw" which sends the SQL statement in its 
+    # original form, and "obfuscated", which strips out numeric and string literals
+    record_sql: obfuscated
     
     # When transaction tracer is on, should show SQL statements be EXPLAINED
     explain_enabled: true

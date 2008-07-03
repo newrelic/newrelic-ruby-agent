@@ -7,9 +7,13 @@ module NewRelic::Agent
   class TransactionSampler
     include(Synchronize)
     
-    def initialize(agent, max_samples = 100)
+    def initialize(agent, options = {})
       @samples = []
-      @max_samples = max_samples
+      
+      @options = {:max_samples => 100, :record_sql => :obfuscated}
+      @options.merge!(options)
+
+      @max_samples = @options[:max_samples]
 
       agent.stats_engine.add_scope_stack_listener self
 
@@ -99,8 +103,9 @@ module NewRelic::Agent
     # may be very large; we should trim them to a maximum usable length
     MAX_SQL_LENGTH = 16384
     def notice_sql(sql, config)
-      with_builder do |builder|
-        if Thread::current[:record_sql].nil? || Thread::current[:record_sql]
+    
+      if (@options[:record_sql] != :off) && (Thread::current[:record_sql].nil? || Thread::current[:record_sql])
+        with_builder do |builder|
           segment = builder.current_segment
           if segment
             current_sql = segment[:sql]

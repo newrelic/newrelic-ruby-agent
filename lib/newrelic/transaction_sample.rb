@@ -321,8 +321,8 @@ module NewRelic
               target_called_segment[:explanation] = source_called_segment.explain_sql
             end
             
-            target_called_segment[:sql]=sql if options[:send_raw_sql]
-            target_called_segment[:sql_obfuscated] = TransactionSample.obfuscate_sql(sql) if !options[:send_raw_sql]
+            target_called_segment[:sql]=sql if options[:record_sql] == :raw
+            target_called_segment[:sql_obfuscated] = TransactionSample.obfuscate_sql(sql) if options[:record_sql] == :obfuscated
           elsif k == :connection_config
             # don't copy it
           else

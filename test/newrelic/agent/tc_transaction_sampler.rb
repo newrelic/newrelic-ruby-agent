@@ -50,6 +50,7 @@ module NewRelic
         assert new_slowest.duration >= 0.6
       end
       
+      
       def test_preare_to_send
         @sampler = TransactionSampler.new(Agent.instance)
 
@@ -108,6 +109,54 @@ module NewRelic
         assert_not_nil @sampler.harvest_slowest_sample(nil)
       end
       
+
+      def test_record_sql_off
+        sampler = TransactionSampler.new(Agent.instance, :record_sql => :off)
+        
+        sampler.notice_first_scope_push
+        
+        sampler.notice_sql("test", nil)
+        
+        segment = nil
+        
+        sampler.with_builder do |builder|
+          segment = builder.current_segment
+        end
+        
+        assert_nil segment[:sql]
+      end
+
+      def test_record_sql_raw
+        sampler = TransactionSampler.new(Agent.instance, :record_sql => :raw)
+        
+        sampler.notice_first_scope_push
+        
+        sampler.notice_sql("test", nil)
+        
+        segment = nil
+        
+        sampler.with_builder do |builder|
+          segment = builder.current_segment
+        end
+        
+        assert segment[:sql]
+      end
+
+      def test_record_sql_raw
+        sampler = TransactionSampler.new(Agent.instance, :record_sql => :obfuscated)
+        
+        sampler.notice_first_scope_push
+        
+        sampler.notice_sql("test", nil)
+        
+        segment = nil
+        
+        sampler.with_builder do |builder|
+          segment = builder.current_segment
+        end
+        
+        assert segment[:sql]
+      end
       
       def test_big_sql
         @sampler = TransactionSampler.new(Agent.instance)

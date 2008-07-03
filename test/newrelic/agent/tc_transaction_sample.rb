@@ -45,6 +45,11 @@ end
 module NewRelic
     class TransationSampleTests < Test::Unit::TestCase
       
+      def initialize(test)
+        super(test)
+        @traceoptions = {}
+      end
+      
       def test_sql
         assert ActiveRecord::Base.test_connection({}).disconnected == false
 
@@ -84,6 +89,53 @@ module NewRelic
         end        
       end
       
+      
+      def test_record_sql_off
+        @traceoptions = {:record_sql => :off}
+        
+        t = get_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
+        
+        s = t.prepare_to_send(:obfuscate_sql => true, :explain_sql => 0.00000001, :record_sql => :off)
+        
+        s.each_segment do |segment|
+          fail if segment.params[:explanation] || segment.params[:obfuscated_sql] || segment.params[:sql]
+        end        
+      end
+
+      
+      def test_record_sql_raw
+        @traceoptions = {:record_sql => :raw}
+        
+        t = get_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
+        
+        s = t.prepare_to_send(:obfuscate_sql => true, :explain_sql => 0.00000001, :record_sql => :raw)
+        
+        got_one = false
+        s.each_segment do |segment|
+          fail if segment.params[:obfuscated_sql]
+          got_one = got_one || segment.params[:explanation] || segment.params[:sql]
+        end
+        
+        assert got_one
+      end
+
+
+      def test_record_sql_obfuscated
+        @traceoptions = {:record_sql => :obfuscated}
+        
+        t = get_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
+        
+        s = t.prepare_to_send(:obfuscate_sql => true, :explain_sql => 0.00000001, :record_sql => :obfuscated)
+        
+        got_one = false
+        s.each_segment do |segment|
+          fail if segment.params[:sql]
+          got_one = got_one || segment.params[:explanation] || segment.params[:sql_obfuscated]
+        end        
+        
+        assert got_one
+      end
+
       
       def test_sql_throw
         ActiveRecord::Base.test_connection({}).throw = true
@@ -125,7 +177,7 @@ module NewRelic
       
       private
         def get_sql_transaction(*sql)
-          sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
+          sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance, @traceoptions)
           sampler.notice_first_scope_push
           sampler.notice_transaction '/path', nil, :jim => "cool"
           sampler.notice_push_scope "a"

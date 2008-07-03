@@ -157,13 +157,13 @@ module NewRelic::Agent
       sampler_config = config.fetch('transaction_tracer', {})
       
       @use_transaction_sampler = sampler_config.fetch('enabled', false)
-      @send_raw_sql = sampler_config.fetch('send_raw_sql', false)
-      @slowest_transaction_threshold = sampler_config.fetch('transaction_threshold', 2.0)
-      @explain_threshold = sampler_config.fetch('explain_threshold', 0.5)
+      @record_sql = sampler_config.fetch('record_sql', :obfuscated).intern
+      @slowest_transaction_threshold = sampler_config.fetch('transaction_threshold', '2.0').to_f
+      @explain_threshold = sampler_config.fetch('explain_threshold', '0.5').to_f
       @explain_enabled = sampler_config.fetch('explain_enabled', true)
       
       log.info "Transaction tracer enabled: #{@use_transaction_sampler}"
-      log.warn "Agent is configured to send raw SQL to RPM service" if @send_raw_sql
+      log.warn "Agent is configured to send raw SQL to RPM service" if @record_sql == :raw
       
       @use_ssl = config.fetch('ssl', false)
       default_port = @use_ssl ? 443 : 80
@@ -490,7 +490,7 @@ module NewRelic::Agent
         # gathering SQL explanations, stripping out stack traces, and normalizing SQL.
         # note that we explain only the sql statements whose segments' execution times exceed 
         # our threshold (to avoid unnecessary overhead of running explains on fast queries.)
-        sample = @slowest_sample.prepare_to_send(:explain_sql => @explain_threshold, :send_raw_sql => @send_raw_sql, :explain_enabled => @explain_enabled)
+        sample = @slowest_sample.prepare_to_send(:explain_sql => @explain_threshold, :record_sql => @record_sql, :explain_enabled => @explain_enabled)
 
         invoke_remote :transaction_sample_data, @agent_id, sample
       end
