@@ -99,6 +99,15 @@ module NewRelic::Agent
       end
     end
     
+    
+    # params == a hash of parameters to add
+    #
+    def add_request_parameters(params)
+      with_builder do |builder|
+        builder.add_request_parameters(params)
+      end
+    end
+    
     # some statements (particularly INSERTS with large BLOBS
     # may be very large; we should trim them to a maximum usable length
     MAX_SQL_LENGTH = 16384
@@ -232,10 +241,14 @@ module NewRelic::Agent
     
     def set_transaction_info(path, request, params)
       @sample.params[:path] = path
-      @sample.params[:request_params] = params.clone
+      @sample.params[:request_params].merge!(params)
       @sample.params[:request_params].delete :controller
       @sample.params[:request_params].delete :action
       @sample.params[:uri] = request.path if request
+    end
+    
+    def add_request_parameters(params)
+      @sample.params[:request_params].merge!(params)
     end
     
     def sample

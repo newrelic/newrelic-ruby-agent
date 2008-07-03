@@ -95,6 +95,13 @@ module NewRelic::Agent
       end
     end
     
+    
+    # Add parameters to the current transaction trace
+    #
+    def add_request_parameters(params = {})
+      agent.transaction_sampler.add_request_parameters(params)
+    end
+    
   end
   
   

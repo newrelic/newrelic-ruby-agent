@@ -191,6 +191,7 @@ module NewRelic
     def initialize(sample_id = nil)
       @sample_id = sample_id || object_id
       @params = {}
+      @params[:request_params] = {}
     end
     
     def begin_building(start_time = Time.now)
