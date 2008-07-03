@@ -1,3 +1,4 @@
+require 'newrelic/agent/mock_ar_connection'
 require 'newrelic/agent/testable_agent'
 require 'newrelic/agent/transaction_sampler'
 require 'newrelic/transaction_sample'
@@ -8,38 +9,6 @@ require 'test/unit'
 
 ::SQL_STATEMENT = "SELECT * from sandwiches"
 
-
-module ActiveRecord
-  class Base
-    class << self
-      def test_connection(config)
-        @connect ||= Connection.new
-      end
-    end
-  end
-  
-  class Connection
-    attr_accessor :throw
-    attr_reader :disconnected
-    
-    def initialize
-      @disconnected = false
-      @throw = false
-    end
-    
-    def disconnect!()
-      @disconnected = true
-    end
-    
-    def execute(s)
-      fail "" if @throw
-      if s != "EXPLAIN #{::SQL_STATEMENT}"
-        fail "Unexpected sql statement #{s}"        
-      end
-      s
-    end
-  end
-end
 
 
 module NewRelic

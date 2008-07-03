@@ -35,7 +35,6 @@ module ActiveRecord
     class AbstractAdapter
       
       def log_with_capture_sql(sql, name, &block)
-        
         if self.is_a?(ActiveRecord::ConnectionAdapters::MysqlAdapter)
           config = @config
         elsif self.is_a?(ActiveRecord::ConnectionAdapters::PostgreSQLAdapter)
@@ -43,23 +42,11 @@ module ActiveRecord
         else
           config = nil
         end
-        
+          
+        result = log_without_capture_sql(sql, name, &block)
+
         NewRelic::Agent.instance.transaction_sampler.notice_sql(sql, config)
-        
-        # if we aren't in a blamed context, then add one so that we can see that
-        # controllers are calling SQL directly
-        # we check scope_depth vs 3 since the controller is 1, and the 
-        # 'Database/#{adapter_name}/#{args[1]}' is 2
-        #      
-        if NewRelic::Agent.instance.transaction_sampler.scope_depth < 3
-          result = nil
-          self.class.trace_method_execution "Database/DirectSQL", true, true do
-            result = log_without_capture_sql(sql, name, &block)
-          end
-        else
-          result = log_without_capture_sql(sql, name, &block)
-        end
-        
+
         result
       end
       
@@ -67,6 +54,24 @@ module ActiveRecord
 
       add_method_tracer :log, 'Database/#{adapter_name}/#{args[1]}', :metric => false
       add_method_tracer :log, 'Database/all', :push_scope => false
+      
+      
+      def log_with_add_scope(sql, name, &block)
+        # if we aren't in a blamed context, then add one so that we can see that
+        # controllers are calling SQL directly
+        # we check scope_depth vs 3 since the controller is 1, and the 
+        #      
+        if NewRelic::Agent.instance.transaction_sampler.scope_depth < 2
+          self.class.trace_method_execution "Database/DirectSQL", true, true do
+            log_without_add_scope(sql, name, &block)
+          end
+        else
+          log_without_add_scope(sql, name, &block)
+        end
+      end
+      
+      alias_method_chain :log, :add_scope
+      
     end
   end
   
