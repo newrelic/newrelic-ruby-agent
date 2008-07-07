@@ -131,6 +131,7 @@ module NewRelic::Agent
     attr_reader :config
     attr_reader :remote_host
     attr_reader :remote_port
+    attr_reader :record_sql
     attr_reader :local_port
     
     # Start up the agent, which will connect to the newrelic server and start 
