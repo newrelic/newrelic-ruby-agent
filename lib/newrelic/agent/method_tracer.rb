@@ -17,7 +17,7 @@ class Module
   # it might be cleaner to have a hash for options, however that's going to be slower
   # than direct parameters
   #
-  def trace_method_execution (metric_name, push_scope, produce_metric)
+  def trace_method_execution (metric_name, push_scope, produce_metric, exclude_subcalls)
     
     t0 = Time.now
     stats = nil
@@ -42,7 +42,12 @@ class Module
       begin
         if expected_scope
           scope = stats_engine.pop_scope expected_scope
-          exclusive = duration - scope.exclusive_time
+          
+          if exclude_subcalls
+            exclusive = duration - scope.exclusive_time
+          else
+            exclusive = duration
+          end
         else
           exclusive = duration
         end
@@ -77,7 +82,8 @@ class Module
     end
     
     options[:push_scope] = true if options[:push_scope].nil?
-    options[:metric] = true if options[:metric].nil? 
+    options[:metric] = true if options[:metric].nil?
+    options[:exclude_subcalls] = true if options[:exclude_subcalls].nil?
     options[:code_header] ||= ""
     options[:code_footer] ||= ""
     
@@ -98,7 +104,7 @@ class Module
     def #{_traced_method_name(method_name, metric_name_code)}(*args, &block)
       #{options[:code_header]}
       metric_name = "#{metric_name_code}"
-      traced_method_result = #{klass}.trace_method_execution("\#{metric_name}", #{options[:push_scope]}, #{options[:metric]}) do
+      traced_method_result = #{klass}.trace_method_execution("\#{metric_name}", #{options[:push_scope]}, #{options[:metric]}, #{options[:exclude_subcalls]}) do
         #{_untraced_method_name(method_name, metric_name_code)}(*args, &block)
       end
       #{options[:code_footer]}

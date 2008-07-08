@@ -53,7 +53,7 @@ module NewRelic
       def test_basic
         metric = "hello"
         t1 = Time.now
-        self.class.trace_method_execution metric, true, true do
+        self.class.trace_method_execution metric, true, true, true do
           sleep 1
           assert metric == @stats_engine.peek_scope.name
         end
@@ -192,10 +192,10 @@ module NewRelic
         self.class.static_method "x", self, false
       end
       
-      def test_execption
+      def test_exception
         begin
           metric = "hey there"
-          self.class.trace_method_execution metric, true, true do
+          self.class.trace_method_execution metric, true, true, true do
             assert @stats_engine.peek_scope.name == metric
             throw Exception.new            
           end

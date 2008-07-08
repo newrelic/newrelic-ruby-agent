@@ -59,10 +59,10 @@ module ActiveRecord
       def log_with_add_scope(sql, name, &block)
         # if we aren't in a blamed context, then add one so that we can see that
         # controllers are calling SQL directly
-        # we check scope_depth vs 3 since the controller is 1, and the 
+        # we check scope_depth vs 2 since the controller is 1, and the 
         #      
         if NewRelic::Agent.instance.transaction_sampler.scope_depth < 2
-          self.class.trace_method_execution "Database/DirectSQL", true, true do
+          self.class.trace_method_execution "Database/DirectSQL", true, true, false do
             log_without_add_scope(sql, name, &block)
           end
         else
