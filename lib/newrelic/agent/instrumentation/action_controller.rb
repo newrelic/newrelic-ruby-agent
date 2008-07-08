@@ -21,8 +21,14 @@ module ActionController
           # send request and parameter info to the transaction sampler
           NewRelic::Agent.instance.transaction_sampler.notice_transaction(path, request, params)
         
-          # run the action
-          perform_action_without_newrelic_trace
+          t = Process.times.utime + Process.times.stime
+          
+          begin
+            # run the action
+            perform_action_without_newrelic_trace
+          ensure
+            NewRelic::Agent.instance.transaction_sampler.notice_transaction_cpu_time((Process.times.utime + Process.times.stime) - t)
+          end
         end
       end
     

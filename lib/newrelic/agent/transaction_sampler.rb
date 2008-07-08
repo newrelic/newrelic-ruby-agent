@@ -108,6 +108,12 @@ module NewRelic::Agent
       end
     end
     
+    def notice_transaction_cpu_time(cpu_time)
+      with_builder do |builder|
+        builder.set_transaction_cpu_time(cpu_time)
+      end
+    end
+    
     
     # params == a hash of parameters to add
     #
@@ -266,6 +272,10 @@ module NewRelic::Agent
       @sample.params[:request_params].delete :controller
       @sample.params[:request_params].delete :action
       @sample.params[:uri] = request.path if request
+    end
+    
+    def set_transaction_cpu_time(cpu_time)
+      @sample.params[:cpu_time] = cpu_time
     end
     
     def add_request_parameters(params)

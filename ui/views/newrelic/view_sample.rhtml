@@ -20,6 +20,10 @@
     <th>Duration:</th>
     <td><%= colorize(@sample.duration, 1, 2) %> ms</td>
   </tr>
+  <tr>
+    <th>CPU Burn:</th>
+    <td><%= @sample.params[:cpu_time].to_ms %> ms</td>
+  </tr>
   <% unless @request_params.empty? %>
     <tr>
       <th valign="top">Params:</th>
