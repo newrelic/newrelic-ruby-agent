@@ -60,6 +60,10 @@ common: &default_settings
     # mode before enabling transaction tracer.
     enabled: false
   
+    # When transaction tracer is on, only report the slowest trace every minute to RPM
+    # if the trace is slower than this value
+    transaction_threshold: 2.0
+ 
     # When transaction tracer is on, SQL statements can optionally be recorded. The recorder
     # has three modes, "off" which sends no SQL, "raw" which sends the SQL statement in its 
     # original form, and "obfuscated", which strips out numeric and string literals
@@ -67,10 +71,6 @@ common: &default_settings
     
     # When transaction tracer is on, should show SQL statements be EXPLAINED
     explain_enabled: true
-    
-    # When transaction tracer is on, only report the slowest trace every minute to RPM
-    # if the trace is slower than this value
-    transaction_threshold: 2.0
 
     # When EXPLAIN is enabled, only run it for SQL statements slower than this value 
     explain_threshold: 0.50
