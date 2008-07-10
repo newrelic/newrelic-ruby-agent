@@ -1,3 +1,14 @@
+<script>
+	function show_request_params()
+	{
+		$('params_link').hide();
+		$('request_params').show();
+	}
+	function show_view(page_id){
+		['pie_chart', 'table', 'sql', 'text_dump', 'details'].each(Element.hide);  
+		$(page_id).show();
+	}
+</script>
 <div id='summary_table'>
 <table>
   <tr>
@@ -28,10 +39,7 @@
     <tr>
       <th valign="top">Params:</th>
       <td>
-        <%= link_to_function("#{@request_params.length}...", :id => "params_link") do |page| 
-              page[:request_params].show
-              page[:params_link].hide
-            end %>
+        <%= link_to_function("#{@request_params.length}...", "show_request_params()", :id => "params_link") %>
 
           <div id='request_params' style="display: none;">
           <small>
@@ -45,13 +53,6 @@
   <% end %>
 </table>
 </div>
-
-<script>
-  function show_view(page_id){
-    ['pie_chart', 'table', 'sql', 'text_dump', 'details'].each(Element.hide);  
-    $(page_id).show();
-  }
-</script>
 
 <br/>
 <div id="view_sample">
