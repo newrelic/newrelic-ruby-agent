@@ -34,10 +34,13 @@ module ActiveRecord
   module ConnectionAdapters
     class AbstractAdapter
       
+      @@my_sql_defined = defined? ActiveRecord::ConnectionAdapters::MysqlAdapter
+      @@postgres_defined = defined? ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
+      
       def log_with_capture_sql(sql, name, &block)
-        if self.is_a?(ActiveRecord::ConnectionAdapters::MysqlAdapter)
+        if @@my_sql_defined && self.is_a?(ActiveRecord::ConnectionAdapters::MysqlAdapter)
           config = @config
-        elsif self.is_a?(ActiveRecord::ConnectionAdapters::PostgreSQLAdapter)
+        elsif @@postgres_defined && self.is_a?(ActiveRecord::ConnectionAdapters::PostgreSQLAdapter)
           config = @config
         else
           config = nil
