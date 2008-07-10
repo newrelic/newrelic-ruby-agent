@@ -136,4 +136,14 @@ private
       file =~ /\/activesupport\// ||
       file =~ /\/actionpack\//
   end
+  
+  def show_view_link(title, page_name)
+    link_to_function("[#{title}]") { |page| show_view page, page_name }
+  end
+  
+  def show_view(page, id)
+    page.hide 'pie_chart', 'table', 'sql', 'text_dump', 'details'
+  
+    page[id].show
+  end
 end

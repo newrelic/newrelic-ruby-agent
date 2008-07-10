@@ -46,22 +46,12 @@
 </table>
 </div>
 
-<%
-def show_view(page, id)
-	['pie_chart', 'table', 'sql', 'text_dump', 'details'].each do |view|
-		page[view].hide 
-	end
-
-	page[id].show
-end
-%>
-
 <br/>
 <div id="view_sample">
 <div align=center width="100%">
-<%= link_to_function("[Summary]") { |page| show_view page, 'pie_chart' } %>
-<%= link_to_function("[Details]") { |page| show_view page, 'details' } %>
-<%= link_to_function("[SQL]") { |page| show_view page, 'sql' } %>
+	<%= show_view_link 'Summary', 'pie_chart' %>
+	<%= show_view_link 'Details', 'details' %>
+	<%= show_view_link 'SQL', 'sql' %>
 </div>
 <br/>
 
@@ -88,8 +78,7 @@ end
 		<thead>
 		<tr>
 			<td>Timestamp</td>
-			<td>Duration</td>
-			<td></td>
+			<td colspan="2">Duration</td>
 			<td>SQL</td>
 		</tr>
 		</thead>
