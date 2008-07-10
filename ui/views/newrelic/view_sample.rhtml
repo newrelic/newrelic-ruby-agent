@@ -46,6 +46,13 @@
 </table>
 </div>
 
+<script>
+  function show_view(page_id){
+    ['pie_chart', 'table', 'sql', 'text_dump', 'details'].each(Element.hide);  
+    $(page_id).show();
+  }
+</script>
+
 <br/>
 <div id="view_sample">
 <div align=center width="100%">
