@@ -165,7 +165,7 @@ module NewRelic::Agent
       sampler_config = config.fetch('transaction_tracer', {})
       
       @use_transaction_sampler = sampler_config.fetch('enabled', false)
-      @record_sql = (sampler_config.fetch('record_sql') || 'obfuscated').intern
+      @record_sql = (sampler_config.fetch('record_sql', nil) || 'obfuscated').intern
       @slowest_transaction_threshold = sampler_config.fetch('transaction_threshold', '2.0').to_f
       @explain_threshold = sampler_config.fetch('explain_threshold', '0.5').to_f
       @explain_enabled = sampler_config.fetch('explain_enabled', true)
