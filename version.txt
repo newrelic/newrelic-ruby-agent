@@ -1,3 +1,7 @@
+2008-07-11 version 2.3.4
+  * bugfix
+2008-07-10 version 2.3.3
+  * bugfix for non-mysql databases
 2008-07-07 version 2.3.2
   * bugfixes
   * Add enhancement for Transaction Traces early access feature
