@@ -1,0 +1,53 @@
+<table>
+	<tr>
+		<td valign=top>
+			<table>
+				<thead>
+				<tr>
+          			<td>Resp Time</td>
+					<td>URL</td>
+				</tr>
+				</thead>
+				<% @samples.each do |sample| %>
+					<tr class="<%= cycle('even_row', 'odd_row') %>">
+					<td align=right nowrap=true>
+						<%= colorize(stripped_sample(sample).duration, 1, 2) %> ms
+					</td>
+					<td>
+						<%= link_to "#{sample.params[:uri]}", :action => :view_sample, :id => sample.sample_id %>
+					</td>
+          <%if false %>
+					<td nowrap=true>
+						<%= Marshal.dump(sample).length / 1024 %> / 
+						<%= Zlib::Deflate.deflate(Marshal.dump(sample),Zlib::BEST_SPEED).length / 1024 %> / 
+						<%= Zlib::Deflate.deflate(Marshal.dump(sample),Zlib::BEST_COMPRESSION).length / 1024 %> kb
+					</td>
+          <% end %>
+					</tr>
+				<% end %>
+			</table>
+		</td>
+		<td width=15 />
+		<td valign=top>
+			<h3>Welcome</h3>
+			<p>
+			Welcome to <b>New Relic RPM Developer Mode</b>.  This Rails extension traces the performance activity
+			of your 100 most recent controller actions in your rails application, and presents the performance
+			information for your analysis.
+			</p>
+			<p>
+			The url's of the most recent transactions are presented to the left, most-recent first.  Click
+			on any one of these to drill down and inspect its performance information.
+			</p>
+			<p>
+			The identical agent technology that provides this data is also capable of monitoring your application as it
+       runs in production.  For more information, visit <a href="http://www.newrelic.com">http://www.newrelic.com</a>.
+			</p>
+			<p>
+			Note, to increase the accuracy of our performance measurement, we automatically "strip out" any
+			time spent in application code loading, which will not happen when your application runs in 
+			production mode.
+			</p>
+		</td>
+	<tr>
+</table>

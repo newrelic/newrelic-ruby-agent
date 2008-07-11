@@ -1,0 +1,118 @@
+<div id='summary_table'>
+<table>
+  <tr>
+    <th>URL:</th>
+    <td><%= @sample.params[:uri]%></td>
+  </tr>
+  <tr>
+    <th>Controller:</th>
+    <td><%= @sample_controller_name%></td>
+  </tr>
+  <tr>
+    <th>Action:</th>
+    <td><%= @sample_action_name%></td>
+  </tr>
+  <tr>
+    <th>Timestamp:</th>
+    <td><%= format_timestamp(@sample.start_time) %></td>
+  </tr>
+  <tr>
+    <th>Duration:</th>
+    <td><%= colorize(@sample.duration, 1, 2) %> ms</td>
+  </tr>
+  <% unless @request_params.empty? %>
+    <tr>
+      <th valign="top">Params:</th>
+      <td>
+        <%= link_to_function("#{@request_params.length}...", :id => "params_link") do |page| 
+              page[:request_params].show
+              page[:params_link].hide
+            end %>
+
+          <div id='request_params' style="display: none;">
+          <small>
+            <% @request_params.each do |k,v| %>
+              <b>&nbsp; &nbsp; <%= k %>: </b><%=v%><br/>
+            <% end %>
+          </small>
+        </div>
+      </td>
+    </tr>
+  <% end %>
+</table>
+</div>
+
+<%
+def show_view(page, id)
+	['pie_chart', 'table', 'sql', 'text_dump', 'details'].each do |view|
+		page[view].hide 
+	end
+
+	page[id].show
+end
+%>
+
+<br/>
+<div id="view_sample">
+<div align=center width="100%">
+<%= link_to_function("[Summary]") { |page| show_view page, 'pie_chart' } %>
+<%= link_to_function("[Details]") { |page| show_view page, 'details' } %>
+<%= link_to_function("[SQL]") { |page| show_view page, 'sql' } %>
+</div>
+<br/>
+
+<div id='pie_chart' align=center>
+	<h3>Performance Summary</h3>
+	<% @pie_chart.width = 800; @pie_chart.height = 300 %>
+	<%= @pie_chart.render %>
+	<%= render :partial => 'table', :object => @sample.breakdown_data(6) %>
+</div>
+
+<div id='table' align=left style="display: none;">
+	<%= render :partial => 'table', :object => @sample.breakdown_data %>
+</div>
+
+<div id='sql' align=center style="display: none;">
+  <% if rows_logger_present? %>
+    <h3>Plugin Incompatibility</h3>
+    The Rows Logger plugin rewrites part of Active Record, which in effect turns off the 
+    SQL statement tracing functionality of NewRelic RPM Developer Mode. To gain SQL statement
+    visibility, you must remove <samp>rows_logger_plugin</samp>, or change your plugin load order 
+    so that the rows logger is loaded first.  
+  <% else %>
+	<table width=100%>
+		<thead>
+		<tr>
+			<td>Timestamp</td>
+			<td>Duration</td>
+			<td></td>
+			<td>SQL</td>
+		</tr>
+		</thead>
+		
+		<%= render :partial => 'sql_row', :collection => @sample.sql_segments %>
+	</table>
+  <% end %>
+</div>
+
+<div id='text_dump' style="display: none;">
+<pre>
+<%= @sample.to_s %>
+</pre>
+</div>
+
+<div id='details' align='center' style="display: none;">
+<table>
+  <thead>
+  <tr>
+    <td>Metric</td>
+    <td>Timestamp<br/><small>seconds</small></td>
+    <td>Duration<br/><small>ms</small></td>
+    <td>Exclusive<br/><small>ms</small></td>
+    <td></td>
+  </tr>
+  </thead>
+  <%= render_sample_details @sample %>
+</table>
+</div>
+</div>
