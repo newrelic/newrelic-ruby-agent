@@ -19,7 +19,17 @@ module ActionController
       
         self.class.trace_method_execution "Controller/#{path}", true, true, true do 
           # send request and parameter info to the transaction sampler
-          NewRelic::Agent.instance.transaction_sampler.notice_transaction(path, request, params)
+          
+          local_copy = params
+          
+          if respond_to? :filter_parameters
+            local_copy = filter_parameters(params)
+          else
+            local_copy = params
+          end
+            
+          
+          NewRelic::Agent.instance.transaction_sampler.notice_transaction(path, request, local_copy)
         
           t = Process.times.utime + Process.times.stime
           
