@@ -9,6 +9,7 @@ require 'newrelic/agent/worker_loop'
 
 require 'newrelic/agent/stats_engine'
 require 'newrelic/agent/transaction_sampler'
+require 'newrelic/agent/error_collector'
 
 # The NewRelic Agent collects performance data from rails applications in realtime as the
 # application runs, and periodically sends that data to the NewRelic server.
@@ -115,7 +116,8 @@ module NewRelic::Agent
     # 1: Private Beta, Jan 10, 2008.  Serialized Marshalled Objects.  Unsupported after 5/29/2008.
     # 2: Private Beta, March 15, 2008.  Compressed Serialzed Marshalled Objects (15-20x smaller)
     # 3: June 19, 2008. Added transaction sampler capability with obfuscation
-    PROTOCOL_VERSION = 3
+    # 4: July 15, 2008. Added error capture
+    PROTOCOL_VERSION = 4
     
     include Singleton
     
@@ -125,6 +127,7 @@ module NewRelic::Agent
     attr_reader :obfuscator
     attr_reader :stats_engine
     attr_reader :transaction_sampler
+    attr_reader :error_collector
     attr_reader :worker_loop
     attr_reader :log
     attr_reader :license_key
@@ -253,6 +256,7 @@ module NewRelic::Agent
       
       @stats_engine = StatsEngine.new
       @transaction_sampler = TransactionSampler.new(self)
+      @error_collector = ErrorCollector.new(self)
     end
     
     def setup_log
@@ -307,6 +311,12 @@ module NewRelic::Agent
         end
       end
       
+      if @should_send_errors
+        @worker_loop.add_task(report_period) do 
+          harvest_and_send_errors
+        end
+      end
+      
       @worker_loop.run
     end
     
@@ -326,6 +336,9 @@ module NewRelic::Agent
       
       # Ask the server for permission to send transaction samples.  determined by subscription license.
       @should_send_samples = invoke_remote :should_collect_samples, @agent_id
+      
+      # Ask for mermission to collect error data
+      @should_send_errors = invoke_remote :should_collect_errors, @agent_id
       
       log! "Transaction tracer enabled from RPM service: #{@should_send_samples}"
       
@@ -515,6 +528,20 @@ module NewRelic::Agent
       # note - exceptions are logged in invoke_remote.  If an exception is encountered here,
       # then the slowest sample of is determined of the entire period since the last
       # reported sample.
+    end
+    
+    def harvest_and_send_errors
+      @unsent_errors = @error_collector.harvest_errors(@unsent_errors)
+      if @unsent_errors && @unsent_errors.length > 0
+        log.debug "Sending #{@unsent_errors.length} errors"
+
+        invoke_remote :error_data, @agent_id, @unsent_errors
+        
+        # if the remote invocation fails, then we never clear @unsent_errors,
+        # and therefore we can re-attempt to send on the next heartbeat.  Note
+        # the error collector maxes out at 20 instances to prevent leakage
+        @unsent_errors = []
+      end
     end
     
     def handle_messages(messages)
