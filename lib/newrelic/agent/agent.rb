@@ -1,3 +1,5 @@
+require "cgi"
+require "socket"
 require 'net/https' 
 require 'net/http'
 require 'logger'
@@ -298,7 +300,7 @@ module NewRelic::Agent
       
       # determine the reporting period (server based)
       # note if the agent attempts to report more frequently than the specified
-      # report data, then it will be ignored.
+      # report data, then it will ignored.
       report_period = invoke_remote :get_data_report_period, @agent_id
       log! "Reporting performance data every #{report_period} seconds"        
       @worker_loop.add_task(report_period) do 
@@ -439,7 +441,8 @@ module NewRelic::Agent
       
       if config['monitor_daemons']
         @environment = :daemon
-        return $0
+        # return the base part of the file name
+        return File.basename($0).split(".").first
       end
       
       # if no real environment was found
