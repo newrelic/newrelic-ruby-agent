@@ -15,11 +15,12 @@ Author URI: http://ifelse.co.uk/
 *************************************/
 body{
 	color:#333;
-	font-family: Verdana, Tahoma, Arial, Helvetica, sans-serif;
-	font-size:0.9em;
+	min-width: 1004px;
+	font-family: "Lucida Grande","Lucida Sans Unicode", Verdana, Tahoma, Arial, Helvetica, sans-serif;
+	font-size:12px;
 	margin:0;
 	padding:0;
-	text-align:left;
+	text-align:center;
 }
 #wrap{
 	margin:0 auto;
@@ -27,19 +28,20 @@ body{
 	width:76em;	
 }
 #content{
-	float: left;
-	padding: 5px 2em 5px 5px;
+	width: 984;
+	margin: 10px auto;
 	text-align:left;
 }
 #header{
-	padding: 0.0em 0em 20px 0px;
+	padding: 0px;
 }
 #footer
 {
 	color:#888;
 	clear:both;
-	font-size:0.9em;
+	font-size:smaller;
 	padding-top: 15px;
+	text-align: left;
 }
 #footer p
 {
@@ -61,35 +63,22 @@ Navigation Bar (horizontal at top)
 h1, h2, h3, p
 {
 	color:#333333;
-	font-family: Verdana, Tahoma, Arial, Helvetica, sans-serif;
 }
 
 h1, h2, h3
 {
-	margin-top:10px;
+	margin: 10px 0px 10px 0px;
     font-weight: normal;
 	letter-spacing: 0px;
 }
 
-h1 
+p
 {
-    font-size: 1.4em;    
-    margin-bottom:10px;
+	margin: 7px 0px 7px 0px;
 }
 
-h2 
-{
-    font-size: 1.2em;
-    margin-bottom:0px;
-}
-
-h3
-{
-	font-size: 1.1em;
-}
 
 #header h1{
-	font-family: Verdana, Tahoma, Arial, Helvetica, sans-serif;
 	font-size:1.2em;
 	font-weight:normal;
 }
@@ -108,11 +97,6 @@ h3
 #header table
 {
 	padding: 0px 0px 0px 0px;
-}
-p{
-    font-size:0.9em;
-    margin-top:0px;
-    margin-bottom:10px;
 }
 
 /*************************************
@@ -135,20 +119,27 @@ var{
 	font-size: 1.1em;
 }
 
-th, td, thead, tfoot
-{
-	font-size: .95em;	
-}
-
 /* regular tables use thead instead of th.  th is only used by name/value table layouts */
 th
 {
 	padding: 5px 5px 5px 5px;
 	text-align: right;
 }
+table a
+{
+	color: #333333;
+}
+table a:hover
+{
+	color:#0088CC;
+}
 /*************************************
 +Seldon Specific - need to preserve
 *************************************/
+.light_background
+{
+	background-color: #FAFEFE;
+}
 div.flash, #errorExplanation 
 {
 	margin: 8px 10px 8px 10px;
@@ -187,8 +178,14 @@ div.flash.notice
 	padding:0.5em;
 }
 
+.application_title
+{
+	font-size: larger;
+}
+
 #navlist
 {
+	font-size: smaller;
 	margin: 0px;
 	padding: 0px 10px 15px 0px;
 	white-space: nowrap;
@@ -200,7 +197,7 @@ div.flash.notice
 	display: inline;
 	list-style-type: none;
 	padding: 0px 0px 0px 20px;
-	font-size: .9em;
+	font-size: 12px;
 	color: #333333;
 }
 
@@ -228,14 +225,15 @@ div.flash.notice
 	margin:  15px 0px 15px 0px;
 }
 
-#view_sample
+.transaction_list_table
 {
-	width: 800px;
+	width: 600px;
+	margin-right: 15px;
 }
+
 
 #summary_table
 {
-	margin: 10px 0px 10px 20px;
 }
 
 #sql_statement
@@ -264,6 +262,7 @@ div.flash.notice
 
 table
 {
+	font-size: 12px;
 	border-collapse: collapse;
 	border-spacing: 0px;
 	padding: 5px 5px 5px 5px;
@@ -288,14 +287,14 @@ tfoot
 
 tfoot td
 {
-	font-size: .85em;
+	font-size: smaller;
 	text-align:right;
 }
 
 td.title_bar_right
 {
 	text-align:right;
-	font-size: .75em;
+	font-size: 11px;
 }
 
 
@@ -348,6 +347,7 @@ ul.tab_list li {
 	background-repeat:no-repeat;
 }
 
+
 .clock {
 	margin-bottom: -5px;
 }
@@ -371,9 +371,14 @@ ul.tab_list li {
 	background-color: #ffffff;
 }
 
+.leaf_segment
+{
+	padding-left: 20px;
+}
+
 .help
 {
-	padding: 20px 5px 5px 5px;
+	padding: 10px 5px 5px 5px;
 }
 
 .help p

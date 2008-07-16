@@ -1,6 +1,8 @@
 require 'newrelic/stats'
 
 module NewRelic
+  COLLAPSE_SEGMENTS_THRESHOLD = 2
+  
   class TransactionSample
     class Segment
       attr_reader :entry_timestamp
@@ -28,6 +30,10 @@ module NewRelic
       
       def to_s
         to_debug_str(0)
+      end
+      
+      def path_string
+        "#{metric_name}[#{@called_segments.collect {|segment| segment.path_string }.join('')}]"
       end
       
       def to_debug_str(depth)
@@ -102,9 +108,18 @@ module NewRelic
         end
       end
       
+      def find_segment(id)
+        return self if @segment_id == id
+        @called_segments.each do |segment|
+          found = segment.find_segment(id)
+          return found if found
+        end
+        nil
+      end
+      
       # perform this in the runtime environment of a managed application, to explain the sql
-      # statement(s) executed within a segment of a transaciton sample.
-      # returns an array of explanations (which is an array of reqults from the explain query)
+      # statement(s) executed within a segment of a transaction sample.
+      # returns an array of explanations (which is an array of results from the explain query)
       # Note this happens only for statements whose execution time exceeds a threshold (e.g. 500ms)
       # and only within the slowest transaction in a report period, selected for shipment to RPM
       def explain_sql        
@@ -139,10 +154,54 @@ module NewRelic
         TransactionSample.obfuscate_sql(params[:sql])
       end
       
+      def called_segments=(segments)
+        @called_segments = segments
+      end
+      
       protected
         def parent_segment=(s)
           @parent_segment = s
         end
+    end
+    
+    class SummarySegment < Segment
+      
+      
+      def initialize(segment)
+        super segment.entry_timestamp, segment.metric_name, nil
+        
+        add_segments segment.called_segments
+        
+        end_trace segment.exit_timestamp
+      end
+      
+      def add_segments(segments)
+        segments.collect do |segment|
+          SummarySegment.new(segment)
+        end.each {|segment| add_called_segment(segment)}
+      end
+      
+    end
+    
+    class CompositeSegment < Segment
+      attr_reader :detail_segments
+      
+      def initialize(segments)
+        summary = SummarySegment.new(segments.first)
+        super summary.entry_timestamp, "Repeating pattern (#{segments.length} repeats)", nil
+        
+        summary.end_trace(segments.last.exit_timestamp)
+        
+        @detail_segments = segments.clone
+        
+        add_called_segment(summary)
+        end_trace summary.exit_timestamp
+      end
+      
+      def detail_segments=(segments)
+        @detail_segments = segments
+      end
+      
     end
     
     class << self
@@ -194,6 +253,10 @@ module NewRelic
       @params[:request_params] = {}
     end
     
+    def path_string
+      @root_segment.path_string
+    end
+    
     def begin_building(start_time = Time.now)
       @start_time = start_time
       @root_segment = create_segment 0.0, "ROOT"
@@ -216,6 +279,10 @@ module NewRelic
     
     def each_segment(&block)
       @root_segment.each_segment(&block)
+    end
+    
+    def find_segment(id)
+      @root_segment.find_segment(id)
     end
     
     def to_s
@@ -270,8 +337,61 @@ module NewRelic
       sample.freeze
     end
     
+    def analyze
+      sample = self
+      original_path_string = nil
+      loop do
+        original_path_string = sample.path_string.to_s
+        new_sample = sample.dup
+        new_sample.root_segment = sample.root_segment.dup
+        new_sample.root_segment.called_segments = analyze_called_segments(root_segment.called_segments)
+        sample = new_sample
+        return sample if sample.path_string.to_s == original_path_string
+      end
+      
+    end
+    
+  protected
+    def root_segment=(segment)
+      @root_segment = segment
+    end
 
   private
+  
+    def analyze_called_segments(called_segments)
+      path = nil
+      like_segments = []
+      
+      segments = [] 
+      
+      called_segments.each do |segment|
+        segment = segment.dup
+        segment.called_segments = analyze_called_segments(segment.called_segments)
+        
+        current_path = segment.path_string
+        if path == current_path 
+          like_segments << segment
+        else
+          segments += summarize_segments(like_segments)
+
+          like_segments.clear
+          like_segments << segment
+          path = current_path
+        end
+      end
+      segments += summarize_segments(like_segments)
+      
+      segments
+    end
+    
+    def summarize_segments(like_segments)
+      if like_segments.length > COLLAPSE_SEGMENTS_THRESHOLD
+        puts "#{like_segments.first.path_string} #{like_segments.length}"
+        [CompositeSegment.new(like_segments)]
+      else
+        like_segments
+      end
+    end
     
     def build_segment_with_omissions(new_sample, time_delta, source_segment, target_segment, regex)
       source_segment.called_segments.each do |source_called_segment|

@@ -1,5 +1,4 @@
-var EXPANDED_IMAGE = '<%=expanded_image_path%>';
-var COLLAPSED_IMAGE = '<%= collapsed_image_path %>';
+
 function show_request_params()
 {
 	$('params_link').hide();

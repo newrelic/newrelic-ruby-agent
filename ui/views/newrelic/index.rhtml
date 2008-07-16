@@ -1,11 +1,12 @@
 <table>
 	<tr>
 		<td valign=top>
-			<table>
+			<table class="transaction_list_table">
 				<thead>
 				<tr>
           			<td>Resp Time</td>
 					<td>URL</td>
+					<td/>
 				</tr>
 				</thead>
 				<% @samples.each do |sample| %>
@@ -14,7 +15,11 @@
 						<%= colorize(stripped_sample(sample).duration, 1, 2) %> ms
 					</td>
 					<td>
-						<%= link_to "#{sample.params[:uri]}", :action => :view_sample, :id => sample.sample_id %>
+						<%= link_to "#{sample.params[:uri]}", :action => :show_sample_summary, :id => sample.sample_id %>
+					</td>
+					<td>
+						<%= link_to "[Detail]", :action => :show_sample_detail, :id => sample.sample_id %>
+						<%= link_to "[SQL]", :action => :show_sample_sql, :id => sample.sample_id %>
 					</td>
           <%if false %>
 					<td nowrap=true>
@@ -27,7 +32,6 @@
 				<% end %>
 			</table>
 		</td>
-		<td width=15 />
 		<td valign=top>
 			<h3>Welcome</h3>
 			<p>
