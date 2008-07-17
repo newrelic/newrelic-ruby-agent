@@ -55,7 +55,12 @@ module ActiveRecord
       
       alias_method_chain :log, :capture_sql
 
-      add_method_tracer :log, 'Database/#{adapter_name}/#{args[1]}', :metric => false
+      # FIXME
+      # The method tracer below meesses up the scope stack.  We need to make sure
+      # that when :metric => false, the top of the scope stack does not deduct
+      # this traced method's run time from the calling component's exclusive time.  If
+      # we don't then we get pie charts where all db activity is invisible.
+#      add_method_tracer :log, 'Database/#{adapter_name}/#{args[1]}', :metric => false
       add_method_tracer :log, 'Database/all', :push_scope => false
       
       
