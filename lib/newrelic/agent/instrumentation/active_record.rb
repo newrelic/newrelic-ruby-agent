@@ -53,8 +53,12 @@ module ActiveRecord
         result
       end
       
-      alias_method_chain :log, :capture_sql
-
+      # Compare with #alias_method_chain, which is not available in 
+      # Rails 1.1:
+      alias_method :log_without_capture_sql, :log
+      alias_method :log, :log_with_capture_sql
+      protected :log
+      
       # FIXME
       # The method tracer below meesses up the scope stack.  We need to make sure
       # that when :metric => false, the top of the scope stack does not deduct
