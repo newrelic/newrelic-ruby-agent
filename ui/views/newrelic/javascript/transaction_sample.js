@@ -37,6 +37,7 @@ function mouse_over_row(element)
 {
 	clazz = element.getAttribute('child_row_class')
 	element.style.cssText = "background-color:lightyellow";
+	return;
 	var style_element = get_cleared_highlight_styles();
 	style_element.appendChild(document.createTextNode('.' + clazz + ' { opacity: .7; }'));
 }
@@ -58,9 +59,10 @@ function get_cleared_highlight_styles()
 
 function mouse_out_row(element)
 {
+	element.style.cssText = "";
+	return;
 	clazz = element.getAttribute('child_row_class')
 	get_cleared_highlight_styles();
-	element.style.cssText = "";
 }
 function get_parent_segments()
 {
