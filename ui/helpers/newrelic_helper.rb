@@ -157,8 +157,10 @@ module NewrelicHelper
     pie_chart.render
   end
   
-  def segment_row_classes(segment)
-    classes = ["segment#{segment.parent_segment.segment_id}", "metric_#{segment.metric_name.hash}"]
+  def segment_row_classes(segment, depth)
+    classes = []
+    
+    classes << "segment#{segment.parent_segment.segment_id}" if depth > 1 
   
     classes << "view_segment" if segment.metric_name.starts_with?('View')
     classes << "summary_segment" if segment.is_a?(NewRelic::TransactionSample::CompositeSegment)

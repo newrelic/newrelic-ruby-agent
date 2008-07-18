@@ -17,7 +17,7 @@ function toggle_row_class(theLink)
 function toggle_row_class_for_image(image)
 {
 	var clazz = image.getAttribute('class_for_children');
-	var elements = $$('tr.' + clazz);
+	var elements = $('trace_detail_table').select('tr.' + clazz);
 	if (elements.length == 0) return;
 	var visible = !elements[0].visible();
 	show_or_hide_elements(elements, visible);
@@ -25,7 +25,7 @@ function toggle_row_class_for_image(image)
 }
 function show_or_hide_class_elements(clazz, visible)
 {
-	var elements = $$('tr.' + clazz);
+	var elements = $('trace_detail_table').select('tr.' + clazz);
 	show_or_hide_elements(elements, visible);
 }
 function show_or_hide_elements(elements, visible)
@@ -64,7 +64,7 @@ function mouse_out_row(element)
 }
 function get_parent_segments()
 {
-	return $$('img.parent_segment_image');
+	return $('trace_detail_table').select('img.parent_segment_image');
 }
 
 function expand_all_segments()
@@ -87,7 +87,7 @@ function collapse_all_segments()
 }
 function jump_to_metric(metric_name)
 {
-	var elements = $$('tr.' + metric_name);
+	var elements = $('trace_detail_table').select('tr.' + metric_name);
 	for (var i = 0; i < elements.length; i++) 
 	{
 		new Effect.Highlight(elements[i]); //, {endcolor : 'aliceblue'});

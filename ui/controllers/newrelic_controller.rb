@@ -78,7 +78,7 @@ class NewrelicController < ActionController::Base
   def explain_sql
     get_segment
     
-    render :nothing => true, :status => 404 if @segment.nil?
+    render :action => "sample_not_found" and return unless @sample 
 
     @sql = @segment[:sql]
     @trace = @segment[:backtrace]

@@ -9,27 +9,7 @@
 					<td/>
 				</tr>
 				</thead>
-				<% @samples.each do |sample| %>
-					<tr class="<%= cycle('even_row', 'odd_row') %>">
-					<td align=right nowrap=true>
-						<%= colorize(stripped_sample(sample).duration, 1, 2) %> ms
-					</td>
-					<td>
-						<%= link_to "#{sample.params[:uri]}", :action => :show_sample_summary, :id => sample.sample_id %>
-					</td>
-					<td>
-						<%= link_to "[Detail]", :action => :show_sample_detail, :id => sample.sample_id %>
-						<%= link_to "[SQL]", :action => :show_sample_sql, :id => sample.sample_id %>
-					</td>
-          <%if false %>
-					<td nowrap=true>
-						<%= Marshal.dump(sample).length / 1024 %> / 
-						<%= Zlib::Deflate.deflate(Marshal.dump(sample),Zlib::BEST_SPEED).length / 1024 %> / 
-						<%= Zlib::Deflate.deflate(Marshal.dump(sample),Zlib::BEST_COMPRESSION).length / 1024 %> kb
-					</td>
-          <% end %>
-					</tr>
-				<% end %>
+				<%= render :partial => 'sample', :collection => @samples %>
 			</table>
 		</td>
 		<td valign=top>
