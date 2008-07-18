@@ -41,19 +41,19 @@ function mouse_over_row(element)
 	style_element.appendChild(document.createTextNode('.' + clazz + ' { opacity: .7; }'));
 }
 
+var g_style_element;
 function get_cleared_highlight_styles()
 {
-	var style_element = $('highlight_styles');
-	if (!style_element)
+	if (!g_style_element)
 	{
-		style_element = document.createElement('style');
-		style_element.setAttribute('id', 'highlight_styles');
-		$$('head')[0].appendChild(style_element);
+		g_style_element = document.createElement('style');
+		g_style_element.setAttribute('id', 'highlight_styles');
+		document.getElementsByTagName('head')[0].appendChild(g_style_element);
 	}
-	else if (style_element.lastChild) {
-		style_element.removeChild(style_element.lastChild);
+	else if (g_style_element.lastChild) {
+		g_style_element.removeChild(g_style_element.lastChild);
 	}
-	return style_element;
+	return g_style_element;
 }
 
 function mouse_out_row(element)
