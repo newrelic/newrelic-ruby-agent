@@ -40,7 +40,10 @@ begin catch (:disabled) do
 
   ::RPM_TRACERS_ENABLED = ::RPM_DEVELOPER || ::RPM_AGENT_ENABLED
 
-  throw :disabled if !::RPM_TRACERS_ENABLED || ENV['NEWRELIC_ENABLE'] && ENV['NEWRELIC_ENABLE'] =~ /false|off|no/i
+  if !::RPM_TRACERS_ENABLED || ENV['NEWRELIC_ENABLE'] && ENV['NEWRELIC_ENABLE'] =~ /false|off|no/i
+    require 'newrelic/shim_agent'
+    throw :disabled 
+  end
   
   require 'newrelic/agent'
   
