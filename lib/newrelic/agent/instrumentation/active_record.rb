@@ -43,7 +43,7 @@ module ActiveRecord
         # we check scope_depth vs 2 since the controller is 1, and the 
         #      
         if NewRelic::Agent.instance.transaction_sampler.scope_depth < 2
-          self.class.trace_method_execution "Database/DirectSQL", true, true, false do
+          self.class.trace_method_execution "Database/DirectSQL", true, true, true do
             log_with_capture_sql(sql, name, &block)
           end
         else
@@ -78,7 +78,7 @@ module ActiveRecord
       # that when :metric => false, the top of the scope stack does not deduct
       # this traced method's run time from the calling component's exclusive time.  If
       # we don't then we get pie charts where all db activity is invisible.
-      #      add_method_tracer :log, 'Database/#{adapter_name}/#{args[1]}', :metric => false
+      add_method_tracer :log, 'Database/#{adapter_name}/#{args[1]}', :metric => false
       add_method_tracer :log, 'Database/all', :push_scope => false
       
     end

@@ -124,7 +124,7 @@ module NewRelic::Agent
       end
     end
     
-    def test_exclusive_time
+    def test_children_time
       t1 = Time.now
       
       expected1 = @engine.push_scope "a"
@@ -141,8 +141,8 @@ module NewRelic::Agent
           
           t4 = Time.now
     
-          check_time_approximate 0, scope.exclusive_time
-          check_time_approximate 0.3, @engine.peek_scope.exclusive_time
+          check_time_approximate 0, scope.children_time
+          check_time_approximate 0.3, @engine.peek_scope.children_time
     
           sleep 0.1
           t5 = Time.now
@@ -153,17 +153,17 @@ module NewRelic::Agent
           
           t6 = Time.now
 
-          check_time_approximate 0, scope.exclusive_time
+          check_time_approximate 0, scope.children_time
     
         scope = @engine.pop_scope expected2
         assert_equal scope.name, 'b'
         
-        check_time_approximate (t4 - t3) + (t6 - t5), scope.exclusive_time
+        check_time_approximate (t4 - t3) + (t6 - t5), scope.children_time
       
       scope = @engine.pop_scope expected1
       assert_equal scope.name, 'a'
       
-      check_time_approximate (t6 - t2), scope.exclusive_time
+      check_time_approximate (t6 - t2), scope.children_time
     end
     
     def test_simple_start_transaction
@@ -171,6 +171,40 @@ module NewRelic::Agent
       @engine.start_transaction
       assert @engine.peek_scope.nil?
     end 
+    
+    
+    # test for when the scope stack contains an element only used for tts and not metrics
+    def test_simple_tt_only_scope
+       scope1 = @engine.push_scope "a", 0, true
+       scope2 = @engine.push_scope "b", 10, false
+       scope3 = @engine.push_scope "c", 20, true
+       
+       @engine.pop_scope scope3, 10
+       @engine.pop_scope scope2, 10
+       @engine.pop_scope scope1, 10
+       
+       assert_equal 0, scope3.children_time
+       assert_equal 10, scope2.children_time
+       assert_equal 10, scope1.children_time 
+    end
+    
+    def test_double_tt_only_scope
+       scope1 = @engine.push_scope "a", 0, true
+       scope2 = @engine.push_scope "b", 10, false
+       scope3 = @engine.push_scope "c", 20, false
+       scope4 = @engine.push_scope "d", 30, true
+       
+       @engine.pop_scope scope4, 10
+       @engine.pop_scope scope3, 10
+       @engine.pop_scope scope2, 10
+       @engine.pop_scope scope1, 10
+       
+       assert_equal 0, scope4.children_time
+       assert_equal 10, scope3.children_time
+       assert_equal 10, scope2.children_time
+       assert_equal 10, scope1.children_time 
+    end
+    
 
     private 
       def check_time_approximate(expected, actual)

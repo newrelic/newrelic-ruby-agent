@@ -17,7 +17,7 @@ class Module
   # it might be cleaner to have a hash for options, however that's going to be slower
   # than direct parameters
   #
-  def trace_method_execution (metric_name, push_scope, produce_metric, exclude_subcalls)
+  def trace_method_execution (metric_name, push_scope, produce_metric, deduct_call_time_from_parent)
     
     t0 = Time.now
     stats = nil
@@ -26,7 +26,7 @@ class Module
     begin
       stats_engine = NewRelic::Agent.agent.stats_engine
       
-      expected_scope = stats_engine.push_scope metric_name if push_scope
+      expected_scope = stats_engine.push_scope(metric_name, t0, deduct_call_time_from_parent) if push_scope
       
       stats = stats_engine.get_stats metric_name, push_scope if produce_metric
     rescue => e
@@ -37,17 +37,15 @@ class Module
     begin
       result = yield
     ensure
-      duration = Time.now - t0
+      t1 = Time.now
+      
+      duration = t1 - t0
       
       begin
         if expected_scope
-          scope = stats_engine.pop_scope expected_scope
+          scope = stats_engine.pop_scope expected_scope, duration
           
-          if exclude_subcalls
-            exclusive = duration - scope.exclusive_time
-          else
-            exclusive = duration
-          end
+          exclusive = duration - scope.children_time
         else
           exclusive = duration
         end
@@ -83,7 +81,8 @@ class Module
     
     options[:push_scope] = true if options[:push_scope].nil?
     options[:metric] = true if options[:metric].nil?
-    options[:exclude_subcalls] = true if options[:exclude_subcalls].nil?
+    options[:deduct_call_time_from_parent] = false if options[:deduct_call_time_from_parent].nil? && !options[:metric]
+    options[:deduct_call_time_from_parent] = true if options[:deduct_call_time_from_parent].nil?
     options[:code_header] ||= ""
     options[:code_footer] ||= ""
     
@@ -104,7 +103,7 @@ class Module
     def #{_traced_method_name(method_name, metric_name_code)}(*args, &block)
       #{options[:code_header]}
       metric_name = "#{metric_name_code}"
-      traced_method_result = #{klass}.trace_method_execution("\#{metric_name}", #{options[:push_scope]}, #{options[:metric]}, #{options[:exclude_subcalls]}) do
+      traced_method_result = #{klass}.trace_method_execution("\#{metric_name}", #{options[:push_scope]}, #{options[:metric]}, #{options[:deduct_call_time_from_parent]}) do
         #{_untraced_method_name(method_name, metric_name_code)}(*args, &block)
       end
       #{options[:code_footer]}
