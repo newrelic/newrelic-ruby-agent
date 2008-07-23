@@ -27,7 +27,7 @@
 		<th align=right>
 		Duration
 		</th>
-		<td><%= @segment.duration.to_ms %> ms</td>
+		<td><%= @segment.duration.to_ms.with_delimiter %> ms</td>
 	</tr>
 	<% @row_headers.length.times do |r| %>
 		<% if @row_headers[r] %>
@@ -61,7 +61,7 @@
 	<% end %>
   <tr>
     <th align=right>Duration</th>
-    <td><%= @segment.duration.to_ms%> ms</td>
+    <td><%= @segment.duration.to_ms.with_delimiter%> ms</td>
   </tr>
 <% end %>
 </table>

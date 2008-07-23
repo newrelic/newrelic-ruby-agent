@@ -252,6 +252,19 @@ module NewRelic
 end
 
 class Numeric
+  
+  # copied from rails
+  def with_delimiter(delimiter=",", separator=".")
+    begin
+      parts = self.to_s.split('.')
+      parts[0].gsub!(/(\d)(?=(\d\d\d)+(?!\d))/, "\\1#{delimiter}")
+      parts.join separator
+    rescue
+      self
+    end
+  end
+  
+  
   # utlity method that converts floating point time values in seconds
   # to integers in milliseconds, to improve readability in ui
   def to_ms(decimal_places = 0)
