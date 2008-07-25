@@ -257,6 +257,8 @@ module NewRelic::Agent
       @stats_engine = StatsEngine.new
       @transaction_sampler = TransactionSampler.new(self)
       @error_collector = ErrorCollector.new(self)
+      
+      @request_timeout = 15 * 60
     end
     
     def setup_log
@@ -582,8 +584,7 @@ module NewRelic::Agent
         request.verify_mode = OpenSSL::SSL::VERIFY_NONE
       end
       
-      # set a long timeout on purpose (15 minutes). there are times when the server gets really backed up
-      request.read_timeout = 15 * 60
+      request.read_timeout = @request_timeout
       
       # we'd like to use to_query but it is not present in all supported rails platforms
       # params = {:method => method, :license_key => license_key, :protocol_version => PROTOCOL_VERSION }
@@ -638,6 +639,8 @@ module NewRelic::Agent
       if @connected    # && remote_host != "localhost"
         begin
           log.info "Sending graceful shutdown message to #{remote_host}:#{remote_port}"
+          
+          @request_timeout = 30
           
           harvest_and_send_timeslice_data
           
