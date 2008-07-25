@@ -65,10 +65,14 @@ module NewRelic::Agent
         # sleep until this next task's scheduled invocation time
         sleep_time = task.next_invocation_time - Time.now
         
-        sleep_time.to_i.times do
-          sleep 1
+        # sleep in chunks no longer than 1 second
+        while sleep_time > 0
           
+          sleep (sleep_time > 1 ? 1 : sleep_time)
+            
           return if !@should_run
+          
+          sleep_time -= 1
         end
         
         begin

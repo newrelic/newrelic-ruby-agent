@@ -652,7 +652,7 @@ module NewRelic::Agent
     # send the given message to STDERR as well as the agent log, so that it shows
     # up in the console.  This should be used for important informational messages at boot
     def log!(msg, level = :info)
-      to_stderr "[#{Time.now.strftime("%m/%d/%y %H:%M:%S")} (#{$$})] #{level} : #{msg}\n"
+      to_stderr msg
       log.send level, msg if log
     end
     
@@ -665,7 +665,7 @@ module NewRelic::Agent
     end
     
     def graceful_disconnect
-      if @connected    # && remote_host != "localhost"
+      if @connected && !(remote_host == "localhost" && @port == 3000)
         begin
           log.info "Sending graceful shutdown message to #{remote_host}:#{remote_port}"
           
