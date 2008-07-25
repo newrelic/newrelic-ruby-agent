@@ -437,6 +437,11 @@ module NewRelic::Agent
         return java.lang.System.identityHashCode(JRuby.runtime)
       end
       
+      if caller.pop =~ /fcgi-bin\/RailsRunner\.rb/
+          @environment = :litespeed
+          return 'litespeed'
+      end
+      
       if config['monitor_daemons']
         @environment = :daemon
         # return the base part of the file name
@@ -630,11 +635,14 @@ module NewRelic::Agent
     end
     
     def graceful_disconnect
-      if @connected && remote_host != "localhost"
+      if @connected    # && remote_host != "localhost"
         begin
-          log.debug "Sending graceful shutdown message to #{remote_host}:#{remote_port}"
+          log.info "Sending graceful shutdown message to #{remote_host}:#{remote_port}"
+          
+          harvest_and_send_timeslice_data
+          
           invoke_remote :shutdown, @agent_id, Time.now.to_f
-          log.debug "Shutdown Complete"
+          log.info "Shutdown Complete"
         rescue Timeout::Error, StandardError => e
           log.warn "Error sending shutdown message to #{remote_host}:#{remote_port}:"
           log.warn e
