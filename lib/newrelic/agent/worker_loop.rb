@@ -12,15 +12,21 @@ module NewRelic::Agent
     def initialize(log = Logger.new(STDERR))
       @tasks = []
       @log = log
+      @should_run = true
     end
 
     # run infinitely, calling the registered tasks at their specified
     # call periods.  The caller is responsible for creating the thread
     # that runs this worker loop
     def run
-      while(true) do
+      while(@should_run) do
         run_next_task
       end
+    end
+    
+    
+    def stop
+      @should_run = false
     end
 
     MIN_CALL_PERIOD = 0.1
@@ -48,7 +54,7 @@ module NewRelic::Agent
     
       def run_next_task
         if @tasks.empty?
-          sleep 5.0
+          sleep 1.0
           return
         end
         
@@ -58,7 +64,12 @@ module NewRelic::Agent
   
         # sleep until this next task's scheduled invocation time
         sleep_time = task.next_invocation_time - Time.now
-        sleep sleep_time unless sleep_time <= 0
+        
+        sleep_time.to_i.times do
+          sleep 1
+          
+          return if !@should_run
+        end
         
         begin
           task.execute

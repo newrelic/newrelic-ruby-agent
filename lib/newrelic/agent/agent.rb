@@ -206,8 +206,29 @@ module NewRelic::Agent
         # When the VM shuts down, attempt to send a message to the server that
         # this agent run is stopping, assuming it has successfully connected
         at_exit do
-          @worker_thread.terminate if @worker_thread
-          graceful_disconnect
+          @worker_loop.stop
+          
+          log.debug "Starting Agent shutdown"
+          
+          # if litespeed, then ignore all future SIGUSR1 - it's litespeed trying to shut us down
+          
+          if @environment == :litespeed
+            Signal.trap("SIGUSR1", "IGNORE")
+            Signal.trap("SIGTERM", "IGNORE")
+          end
+          
+          begin
+            
+            # only call graceful_disconnect if we successfully stop the worker thread (since a transaction may be in flight)
+            if @worker_thread.join(30)  
+              graceful_disconnect
+            else
+              log.debug "ERROR - could not stop worker thread"
+            end
+          rescue Exception => e
+            log.debug e
+            log.debug e.backtrace.join("\n")
+          end
         end
       elsif config['developer']
         instrument_rails
@@ -270,6 +291,12 @@ module NewRelic::Agent
       
       @log = Logger.new log_file
       @log.level = Logger::INFO
+      
+      # change the format just for our logger
+      
+      def @log.format_message(severity, timestamp, progname, msg)
+        "[#{timestamp.strftime("%m/%d/%y %H:%M:%S")} (#{$$})] #{severity} : #{msg}\n" 
+      end
       
       @stats_engine.log = @log
       
@@ -591,6 +618,8 @@ module NewRelic::Agent
       # uri = "/agent_listener/invoke_raw_method?#{params.to_query}"
       uri = "/agent_listener/invoke_raw_method?method=#{method}&license_key=#{license_key}&protocol_version=#{PROTOCOL_VERSION}"
       
+      log.debug "#{uri}"
+      
       response = request.start do |http|
         http.post(uri, post_data) 
       end
@@ -623,7 +652,7 @@ module NewRelic::Agent
     # send the given message to STDERR as well as the agent log, so that it shows
     # up in the console.  This should be used for important informational messages at boot
     def log!(msg, level = :info)
-      to_stderr msg
+      to_stderr "[#{Time.now.strftime("%m/%d/%y %H:%M:%S")} (#{$$})] #{level} : #{msg}\n"
       log.send level, msg if log
     end
     
@@ -644,8 +673,21 @@ module NewRelic::Agent
           
           harvest_and_send_timeslice_data
           
-          invoke_remote :shutdown, @agent_id, Time.now.to_f
-          log.info "Shutdown Complete"
+          if @should_send_samples && @use_transaction_sampler
+            harvest_and_send_slowest_sample
+          end
+          
+          if @should_send_errors
+            harvest_and_send_errors
+          end
+          
+          if @environment != :litespeed
+            log.debug "Sending RPM service agent run shutdown message"
+            invoke_remote :shutdown, @agent_id, Time.now.to_f
+          end
+          
+          log.info "Graceful shutdown complete"
+          
         rescue Timeout::Error, StandardError => e
           log.warn "Error sending shutdown message to #{remote_host}:#{remote_port}:"
           log.warn e

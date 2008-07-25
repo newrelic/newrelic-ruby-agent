@@ -78,7 +78,7 @@ module NewRelic::Agent
       
       stack.last.children_time += duration unless (stack.empty? || !scope.deduct_call_time_from_parent)
       
-      if !scope.deduct_call_time_from_parent
+      if !scope.deduct_call_time_from_parent && !stack.empty?
         stack.last.children_time += scope.children_time
       end
       

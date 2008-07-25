@@ -62,12 +62,7 @@ module NewRelic
         @@agent ||= Agent.new
         
         @@agent
-      end
-      
-      # we normally try to keep these out of here
-      def error_collector
-        @error_collector
-      end
+      end      
     end
     
     class ErrorCollector
