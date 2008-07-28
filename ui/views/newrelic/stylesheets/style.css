@@ -125,14 +125,6 @@ th
 	padding: 5px 5px 5px 5px;
 	text-align: right;
 }
-table a
-{
-	color: #333333;
-}
-table a:hover
-{
-	color:#0088CC;
-}
 /*************************************
 +Seldon Specific - need to preserve
 *************************************/
