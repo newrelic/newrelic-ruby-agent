@@ -1,3 +1,7 @@
+2008-07-28 version 2.3.7
+  * bugfixes
+2008-07-28 version 2.3.6
+  * bugfixes
 2008-07-17 version 2.3.5
   * bugfixes: pie chart data, rails 1.1 compability
 2008-07-11 version 2.3.4
