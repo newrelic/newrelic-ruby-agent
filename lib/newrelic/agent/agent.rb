@@ -149,10 +149,7 @@ module NewRelic::Agent
       @config = config
       
       @local_port = determine_environment_and_port
-      
-      if @local_port || config['developer']
-        start_reporting
-      end
+      start_reporting if @local_port
     end
     
     def start_reporting(force_enable=false)
@@ -206,32 +203,8 @@ module NewRelic::Agent
         # When the VM shuts down, attempt to send a message to the server that
         # this agent run is stopping, assuming it has successfully connected
         at_exit do
-          @worker_loop.stop
-          
-          log.debug "Starting Agent shutdown"
-          
-          # if litespeed, then ignore all future SIGUSR1 - it's litespeed trying to shut us down
-          
-          if @environment == :litespeed
-            Signal.trap("SIGUSR1", "IGNORE")
-            Signal.trap("SIGTERM", "IGNORE")
-          end
-          
-          begin
-            
-            # only call graceful_disconnect if we successfully stop the worker thread (since a transaction may be in flight)
-            if @worker_thread.join(30)  
-              graceful_disconnect
-            else
-              log.debug "ERROR - could not stop worker thread"
-            end
-          rescue Exception => e
-            log.debug e
-            log.debug e.backtrace.join("\n")
-          end
+          graceful_exit
         end
-      elsif config['developer']
-        instrument_rails
       end
     end
     
@@ -664,9 +637,37 @@ module NewRelic::Agent
       end
     end
     
+    # The shutdown hook when enabled:
+    def graceful_exit
+      @worker_loop.stop
+      
+      log.debug "Starting Agent shutdown"
+      
+      # if litespeed, then ignore all future SIGUSR1 - it's litespeed trying to shut us down
+      
+      if @environment == :litespeed
+        Signal.trap("SIGUSR1", "IGNORE")
+        Signal.trap("SIGTERM", "IGNORE")
+      end
+      
+      begin
+        
+        # only call graceful_disconnect if we successfully stop the worker thread (since a transaction may be in flight)
+        if @worker_thread.join(30)  
+          graceful_disconnect
+        else
+          log.debug "ERROR - could not stop worker thread"
+        end
+      rescue Exception => e
+        log.debug e
+        log.debug e.backtrace.join("\n")
+      end
+    end
     def graceful_disconnect
+      puts "disconnecting.."
       if @connected && !(remote_host == "localhost" && @port == 3000)
         begin
+          puts "should not be here."
           log.info "Sending graceful shutdown message to #{remote_host}:#{remote_port}"
           
           @request_timeout = 30
