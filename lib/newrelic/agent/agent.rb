@@ -693,7 +693,7 @@ module NewRelic::Agent
     def graceful_disconnect
       if @connected && !(remote_host == "localhost" && @port == 3000)
         begin
-          log.info "Sending graceful shutdown message to #{remote_host}:#{remote_port}"
+          log.debug "Sending graceful shutdown message to #{remote_host}:#{remote_port}"
           
           @request_timeout = 30
           
@@ -712,7 +712,7 @@ module NewRelic::Agent
             invoke_remote :shutdown, @agent_id, Time.now.to_f
           end
           
-          log.info "Graceful shutdown complete"
+          log.debug "Graceful shutdown complete"
           
         rescue Timeout::Error, StandardError => e
           log.warn "Error sending shutdown message to #{remote_host}:#{remote_port}:"
