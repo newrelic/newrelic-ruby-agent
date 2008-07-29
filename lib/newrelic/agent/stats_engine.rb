@@ -30,6 +30,13 @@ module NewRelic::Agent
       # Makes the unit tests happy
       Thread::current[:newrelic_scope_stack] = nil
       
+      spawn_sampler_thread
+    end
+    
+    def spawn_sampler_thread
+      
+      return if !@sampler_process.nil? && @sampler_process == $$ 
+      
       # start up a thread that will periodically poll for metric samples
       @sampler_thread = Thread.new do
         while true do
@@ -48,6 +55,8 @@ module NewRelic::Agent
           end
         end
       end
+
+      @sampler_process = $$
     end
     
     def add_scope_stack_listener(l)

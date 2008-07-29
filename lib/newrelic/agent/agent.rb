@@ -152,6 +152,16 @@ module NewRelic::Agent
       start_reporting if @local_port
     end
     
+    # this method makes sure that the agent is running. it's important
+    # for passenger where processes are forked and the agent is dormant
+    #
+    def ensure_started
+      if @worker_thread.nil? || !@worker_thread.alive?
+        launch_worker_thread
+        @stats_engine.spawn_sampler_thread
+     end
+    end
+    
     def start_reporting(force_enable=false)
       @local_host = determine_host
 
@@ -194,17 +204,12 @@ module NewRelic::Agent
           return
         end
 
+        instrument_rails
         load_samplers
         
-        @worker_thread = Thread.new do 
-          run_worker_loop
-        end
+        launch_worker_thread
         
-        # When the VM shuts down, attempt to send a message to the server that
-        # this agent run is stopping, assuming it has successfully connected
-        at_exit do
-          graceful_exit
-        end
+        install_at_exit_handler
       end
     end
     
@@ -247,6 +252,7 @@ module NewRelic::Agent
       
       @metric_ids = {}
       @environment = :unknown
+      @initalized_pid = $$
       
       @stats_engine = StatsEngine.new
       @transaction_sampler = TransactionSampler.new(self)
@@ -288,6 +294,19 @@ module NewRelic::Agent
       log.info "Runtime environment: #{@environment.to_s.titleize}"
     end
     
+    
+    def launch_worker_thread
+      
+      # we don't launch the worker_thread for passenger due to the way it spawns processes
+      
+      return if (@environment == :passenger && @initalized_pid == $$)
+      
+      @worker_thread = Thread.new do 
+        @worker_thread_started = true
+        run_worker_loop
+      end
+    end
+    
     # Connect to the server, and run the worker loop forever
     def run_worker_loop
       
@@ -295,9 +314,7 @@ module NewRelic::Agent
         should_retry = connect
         return unless should_retry
       end
-      
-      instrument_rails
-      
+            
       # determine the reporting period (server based)
       # note if the agent attempts to report more frequently than the specified
       # report data, then it will be ignored.
@@ -321,6 +338,37 @@ module NewRelic::Agent
       
       @worker_loop.run
     end
+    
+    
+    def install_at_exit_handler
+      # When the VM shuts down, attempt to send a message to the server that
+      # this agent run is stopping, assuming it has successfully connected
+      at_exit do
+        @worker_loop.stop
+        
+        log.debug "Starting Agent shutdown"
+        
+        # if litespeed, then ignore all future SIGUSR1 - it's litespeed trying to shut us down
+        
+        if @environment == :litespeed
+          Signal.trap("SIGUSR1", "IGNORE")
+          Signal.trap("SIGTERM", "IGNORE")
+        end
+        
+        begin
+          
+          # only call graceful_disconnect if we successfully stop the worker thread (since a transaction may be in flight)
+          if @worker_thread.join(30)  
+            graceful_disconnect
+          else
+            log.debug "ERROR - could not stop worker thread"
+          end
+        rescue Exception => e
+          log.debug e
+          log.debug e.backtrace.join("\n")
+        end
+      end
+    end    
     
     
     def connect
@@ -442,6 +490,11 @@ module NewRelic::Agent
       if caller.pop =~ /fcgi-bin\/RailsRunner\.rb/
           @environment = :litespeed
           return 'litespeed'
+      end
+      
+      if defined? Passenger::AbstractServer
+        @environment = :passenger
+        return 'passenger'
       end
       
       if config['monitor_daemons']
@@ -637,37 +690,9 @@ module NewRelic::Agent
       end
     end
     
-    # The shutdown hook when enabled:
-    def graceful_exit
-      @worker_loop.stop
-      
-      log.debug "Starting Agent shutdown"
-      
-      # if litespeed, then ignore all future SIGUSR1 - it's litespeed trying to shut us down
-      
-      if @environment == :litespeed
-        Signal.trap("SIGUSR1", "IGNORE")
-        Signal.trap("SIGTERM", "IGNORE")
-      end
-      
-      begin
-        
-        # only call graceful_disconnect if we successfully stop the worker thread (since a transaction may be in flight)
-        if @worker_thread.join(30)  
-          graceful_disconnect
-        else
-          log.debug "ERROR - could not stop worker thread"
-        end
-      rescue Exception => e
-        log.debug e
-        log.debug e.backtrace.join("\n")
-      end
-    end
     def graceful_disconnect
-      puts "disconnecting.."
       if @connected && !(remote_host == "localhost" && @port == 3000)
         begin
-          puts "should not be here."
           log.info "Sending graceful shutdown message to #{remote_host}:#{remote_port}"
           
           @request_timeout = 30
