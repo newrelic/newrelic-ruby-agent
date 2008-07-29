@@ -1,3 +1,5 @@
+2008-07-29 version 2.4.0
+  * Beta support for LiteSpeed and Passenger
 2008-07-28 version 2.3.7
   * bugfixes
 2008-07-28 version 2.3.6
