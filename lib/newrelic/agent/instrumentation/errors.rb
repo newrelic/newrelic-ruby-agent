@@ -8,8 +8,14 @@ module ActionController
   class Base
     def rescue_action_with_newrelic_trace(exception)
       self.class.trace_method_execution("Errors/all", false, true, nil) do
+        if respond_to? :filter_parameters
+          local_copy = filter_parameters(params)
+        else
+          local_copy = params
+        end
+        
         NewRelic::Agent.agent.error_collector.notice_error(_determine_metric_path,
-              params, exception)
+              local_copy, exception)
         rescue_action_without_newrelic_trace exception
       end
     end
