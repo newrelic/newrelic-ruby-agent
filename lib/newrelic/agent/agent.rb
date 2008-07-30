@@ -156,6 +156,7 @@ module NewRelic::Agent
     # for passenger where processes are forked and the agent is dormant
     #
     def ensure_started
+      return unless @prod_mode_enabled
       if @worker_thread.nil? || !@worker_thread.alive?
         launch_worker_thread
         @stats_engine.spawn_sampler_thread
@@ -194,21 +195,20 @@ module NewRelic::Agent
       @proxy_user = config.fetch('proxy_user', nil)
       @proxy_pass = config.fetch('proxy_pass', nil)
 
-      enabled = force_enable || config['enabled']
+      @prod_mode_enabled = force_enable || config['enabled']
       
-      if enabled
-        # make sure the license key exists and is likely to be really a license key
-        # by checking it's string length (license keys are 40 character strings.)
-        unless @license_key && @license_key.length == 40
-          log! "No license key found.  Please insert your license key into agent/newrelic.yml"
-          return
-        end
+      # make sure the license key exists and is likely to be really a license key
+      # by checking it's string length (license keys are 40 character strings.)
+      if @prod_mode_enabled && (!@license_key || @license_key.length != 40)
+        log! "No license key found.  Please insert your license key into agent/newrelic.yml"
+        return
+      end
 
-        instrument_rails
+      instrument_rails if force_enable || ::RPM_TRACERS_ENABLED
+      
+      if @prod_mode_enabled
         load_samplers
-        
         launch_worker_thread
-        
         install_at_exit_handler
       end
     end
