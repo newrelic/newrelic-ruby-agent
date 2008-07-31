@@ -101,6 +101,9 @@ class NewRelic::TransactionSample
       if segment[:sql]
         segments << segment
       end
+      if segment[:sql_obfuscated]
+        segments << segment
+      end
     end
     segments
   end
