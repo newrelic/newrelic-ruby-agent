@@ -113,7 +113,7 @@ module NewrelicHelper
   end
   
   def line_wrap_sql(sql)
-    sql.gsub(/\,/,', ').squeeze(' ')
+    sql.gsub(/\,/,', ').squeeze(' ') if sql
   end
   
   def render_sample_details(sample)
