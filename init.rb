@@ -9,7 +9,7 @@ end
 config_filename = File.join(File.dirname(__FILE__), '..','..','..','config','newrelic.yml')
 begin catch (:disabled) do 
   begin
-    newrelic_config_file = File.read(config_filename)
+    newrelic_config_file =  File.read(File.expand_path(config_filename))
   rescue => e
     to_stderr e
     to_stderr "Could not read configuration file #{config_filename}."
@@ -21,7 +21,7 @@ begin catch (:disabled) do
   begin
     newrelic_agent_config = YAML.load(newrelic_config_file)[RAILS_ENV] || {}
   rescue Exception => e
-    to_stderr "Error parsing #{config_filename}"
+    to_stderr "Error parsing #{newrelic_config_file}"
     to_stderr "#{e}"
     to_stderr "Agent is disabled."
     throw :disabled
