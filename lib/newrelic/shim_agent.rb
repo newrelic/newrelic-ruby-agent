@@ -76,8 +76,8 @@ end
 
 module ActionController
   class Base
-    def _determine_metric_path
-    end
+    def newrelic_ignore(*args); end
+    def _determine_metric_path; end
   end
 end
 

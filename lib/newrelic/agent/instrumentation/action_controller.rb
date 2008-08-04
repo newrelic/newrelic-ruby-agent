@@ -6,9 +6,29 @@ if defined? ActionController
 
 module ActionController
   class Base
+    # Have NewRelic ignore actions in this controller.  Specify the actions as hash options
+    # using :except and :only.  If no actions are specified, all actions are ignored.
+    def self.newrelic_ignore(specifiers={})
+      if specifiers.empty?
+        write_inheritable_attribute('do_not_trace', true)
+      elsif ! (Hash === specifiers)
+        logger.error "newrelic_ignore takes an optional hash with :only and :except lists of actions (illegal argument type '#{specifiers.class}')"
+      else
+        write_inheritable_attribute('do_not_trace', specifiers)
+      end
+    end
+  
     def perform_action_with_newrelic_trace
       agent = NewRelic::Agent.instance
-      return perform_action_without_newrelic_trace if self.class.read_inheritable_attribute('do_not_trace')
+      ignore_actions = self.class.read_inheritable_attribute('do_not_trace')
+      # Skip instrumentation based on the value of 'do_not_trace'
+      if ignore_actions
+        return perform_action_without_newrelic_trace unless Hash === ignore_actions
+        only_actions = Array(ignore_actions[:only])
+        except_actions = Array(ignore_actions[:except])
+        return perform_action_without_newrelic_trace if only_actions.include? action_name.to_sym
+        return perform_action_without_newrelic_trace if except_actions.any? && !except_actions.include?(action_name.to_sym)
+      end
       
       agent.ensure_started
 
