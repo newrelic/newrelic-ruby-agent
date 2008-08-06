@@ -4,8 +4,8 @@
 	<td align=right><%= link_to "#{segment.duration.to_ms.with_delimiter} ms", explain_sql_url(segment) %> </td>
     <td> <%= link_to_source(segment[:backtrace]) %> </td>
 	<td align=left>
-		<% content_tag_for(:div, segment) do %>
+		<div>
 			<small><%= line_wrap_sql(segment[:sql] || segment[:sql_obfuscated]) %></small>
-		<% end %>
+		</div>
 	</td>
 </tr>
