@@ -1,3 +1,6 @@
+version 2.4.3
+  * fixed error with Agent attempting to reconnect even when license key invalid
+
 2008-07-31 version 2.4.2
   * error reporting in early access
 2008-07-30 version 2.4.1
