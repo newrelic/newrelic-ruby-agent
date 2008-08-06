@@ -156,7 +156,7 @@ module NewRelic::Agent
     # for passenger where processes are forked and the agent is dormant
     #
     def ensure_started
-      return unless @prod_mode_enabled
+      return unless @prod_mode_enabled && !@invalid_license
       if @worker_thread.nil? || !@worker_thread.alive?
         launch_worker_thread
         @stats_engine.spawn_sampler_thread
@@ -259,6 +259,8 @@ module NewRelic::Agent
       @error_collector = ErrorCollector.new(self)
       
       @request_timeout = 15 * 60
+      
+      @invalid_license = false
     end
     
     def setup_log
@@ -400,6 +402,7 @@ module NewRelic::Agent
       log! e.message, :error
       log! "Visit NewRelic.com to obtain a valid license key, or to upgrade your account."
       log! "Turning New Relic Agent off."
+      @invalid_license = true
       return false
       
     rescue Timeout::Error, StandardError => e
