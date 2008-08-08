@@ -192,7 +192,7 @@ module NewRelic::Agent
       @explain_threshold = sampler_config.fetch('explain_threshold', '0.5').to_f
       @explain_enabled = sampler_config.fetch('explain_enabled', true)
       
-      log.info "Transaction tracer enabled: #{@use_transaction_sampler}"
+      log.info "Transaction tracing is enabled in the agent" if @use_transaction_sampler
       log.warn "Agent is configured to send raw SQL to RPM service" if @record_sql == :raw
       
       @use_ssl = config.fetch('ssl', false)
@@ -410,7 +410,7 @@ module NewRelic::Agent
       # Ask for mermission to collect error data
       @should_send_errors = invoke_remote :should_collect_errors, @agent_id
       
-      log! "Transaction tracer enabled from RPM service: #{@should_send_samples}"
+      log! "Transaction traces will be sent to the RPM service" if @use_transaction_sampler && @should_send_errors
       
       @connected = true
       @last_harvest_time = Time.now
