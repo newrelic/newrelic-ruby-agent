@@ -59,6 +59,17 @@ module NewRelic
       end
       
       
+      def test_disable_tt
+        NewRelic::Agent.disable_transaction_tracing do
+          t = get_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
+          assert t.nil?
+        end
+        
+        t = get_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
+        assert t
+      end
+      
+      
       def test_record_sql_off
         @traceoptions = {:record_sql => :off}
         

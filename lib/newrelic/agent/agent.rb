@@ -103,6 +103,17 @@ module NewRelic::Agent
       agent.transaction_sampler.add_request_parameters(params)
     end
     
+    # This method disables the recording of transaction traces in the given
+    # block.
+    def disable_transaction_tracing
+      state = agent.set_record_tt(false)
+      begin
+        yield
+      ensure
+        agent.set_record_tt(state)
+      end
+    end
+    
   end
   
   
@@ -228,6 +239,13 @@ module NewRelic::Agent
     def set_record_sql(should_record)
       prev = Thread::current[:record_sql]
       Thread::current[:record_sql] = should_record
+      
+      prev || true
+    end
+    
+    def set_record_tt(should_record)
+      prev = Thread::current[:record_tt]
+      Thread::current[:record_tt] = should_record
       
       prev || true
     end

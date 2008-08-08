@@ -190,7 +190,11 @@ module NewRelic::Agent
       end
       
       def get_builder
-        Thread::current[BUILDER_KEY]
+        if Thread::current[:record_tt].nil? || Thread::current[:record_tt]
+          Thread::current[BUILDER_KEY]
+        else
+          nil
+        end
       end
       
       def reset_builder

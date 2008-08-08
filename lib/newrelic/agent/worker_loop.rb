@@ -76,7 +76,10 @@ module NewRelic::Agent
         end
         
         begin
-          task.execute
+          # wrap task execution in a block that won't collect a TT
+          NewRelic::Agent.disable_transaction_tracing do
+            task.execute
+          end
         rescue Timeout::Error, StandardError => e
           log.debug "Error running task in Agent Worker Loop: #{e}" 
           log.debug e.backtrace.join("\n")

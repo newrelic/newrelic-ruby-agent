@@ -48,6 +48,10 @@ module NewRelic
         yield
       end
       
+      def disable_transaction_tracing
+        yield
+      end
+      
       def add_request_parameters(*args)
       end
     end  
