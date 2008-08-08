@@ -33,7 +33,7 @@ class NewrelicController < ActionController::Base
     self.template_root = view_path
   end
   
-  layout "default"
+  layout "newrelic_default"
   
   write_inheritable_attribute('do_not_trace', true)
   
