@@ -13,6 +13,8 @@ end
 
 __END__
 version 2.4.3
+  * added 'newrelic_ignore' controller class method with :except and :only options for finer grained control
+    over the blocking of instrumentation in controllers.
   * fixed error with Agent attempting to reconnect even when license key invalid
 2008-07-31 version 2.4.2
   * error reporting in early access
