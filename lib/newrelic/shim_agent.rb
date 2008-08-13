@@ -54,6 +54,9 @@ module NewRelic
       
       def add_request_parameters(*args)
       end
+    
+      def should_ignore_error
+      end
     end  
 
     class Agent

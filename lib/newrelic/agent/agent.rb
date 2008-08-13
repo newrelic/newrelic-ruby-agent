@@ -114,6 +114,14 @@ module NewRelic::Agent
       end
     end
     
+    # This method allows is used to tell the Agent whether an error should
+    # be igored by RPM or accounted for and sent to the RPM service.
+    # The block should return true if the error should be ignored, false otherwise
+    #
+    def should_ignore_error(&block)
+      agent.error_collector.should_ignore_error &block
+    end
+    
   end
   
   

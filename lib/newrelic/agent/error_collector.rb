@@ -12,6 +12,12 @@ module NewRelic::Agent
       @agent = agent
       @errors = []
       @ignore = {}
+      @ignore_block = nil
+    end
+    
+    
+    def should_ignore_error(&block)
+      @ignore_block = block
     end
     
     
@@ -24,7 +30,7 @@ module NewRelic::Agent
     
     def notice_error(path, params, exception)
       
-      return if @ignore[exception.class.name]
+      return if @ignore[exception.class.name] || (@ignore_block && @ignore_block.call(exception))
       
       @@error_stat ||= NewRelic::Agent.get_stats("Errors/all")
       

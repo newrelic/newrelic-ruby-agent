@@ -69,9 +69,24 @@ module NewRelic
         errors = @error_collector.harvest_errors([])
         
         assert_equal 0, errors.length
-         
       end
       
+      def test_exclude_block
+        @error_collector.should_ignore_error do |e|
+          if e.is_a? ActionController::RoutingError
+            true
+          else
+            false
+          end
+        end
+        
+        @error_collector.notice_error('path', {:x => 'y'}, ActionController::RoutingError.new("message"))
+        
+        errors = @error_collector.harvest_errors([])
+        
+        assert_equal 0, errors.length
+      end
+
     end
   end
 end
