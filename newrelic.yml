@@ -76,6 +76,11 @@ common: &default_settings
     explain_threshold: 0.50
     
 
+  # To stop specific errors from reporting to RPM, set this property to an array
+  # of exception names. An example is shown.
+  #
+  # ignore_errors: ["ActionController::RoutingError"]
+
 # override default settings based on your application's environment
 
 # NOTE if your application has other named environments, you should
