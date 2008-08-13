@@ -65,6 +65,7 @@ module NewrelicHelper
     end
   end
   
+  # write the metric label for a segment metric in the detail view
   def write_segment_label(segment)
     if segment[:backtrace] && (source_url = url_for_source(application_caller(segment[:backtrace])))
       link_to segment.metric_name, source_url
@@ -72,8 +73,13 @@ module NewrelicHelper
       segment.metric_name
     end
   end
-
   
+  # write the metric label for a segment metric in the summary table of metrics
+  def write_summary_segment_label(segment)
+    segment.metric_name
+  end
+
+  # write a link to the source for a trace
   def link_to_source(trace)
     image_url = "#{server}/images/"
     image_url << (using_textmate? ? "textmate.png" : "file_icon.png")
@@ -81,6 +87,7 @@ module NewrelicHelper
     link_to image_tag(image_url), url_for_source(application_caller(trace))
   end
   
+  # print the formatted timestamp for a segment
   def timestamp(segment)
     sprintf("%1.3f", segment.entry_timestamp)
   end

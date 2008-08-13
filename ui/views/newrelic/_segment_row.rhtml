@@ -1,6 +1,6 @@
 <tr class='<%= cycle('even_row', 'odd_row') %>'>
 	<td>
-			<%= segment_row.metric_name %>
+			<%= write_summary_segment_label segment_row %>
 			<small>
 			<%= link_to "?", url_for_metric_doc(segment_row.metric_name) %>
       </small>
