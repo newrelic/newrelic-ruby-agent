@@ -55,31 +55,21 @@ common: &default_settings
   # early access features by New Relic will have this capability enabled
   transaction_tracer:
   
-    # The default for transaction tracer is false due to the sensitive nature of the SQL
-    # data we send to the RPM service. Get comfortable with the SQL obfuscator in development
-    # mode before enabling transaction tracer.
-    enabled: false
+    # Transaction tracer is enabled by default. Set this to false to turn it off. This feature
+    # is available at the Advanced and Pro RPM product levels only.
+    enabled: true
   
-    # When transaction tracer is on, only report the slowest trace every minute to RPM
-    # if the trace is slower than this value
-    transaction_threshold: 2.0
  
     # When transaction tracer is on, SQL statements can optionally be recorded. The recorder
     # has three modes, "off" which sends no SQL, "raw" which sends the SQL statement in its 
     # original form, and "obfuscated", which strips out numeric and string literals
     record_sql: obfuscated
-    
-    # When transaction tracer is on, should show SQL statements be EXPLAINED
-    explain_enabled: true
+        
 
-    # When EXPLAIN is enabled, only run it for SQL statements slower than this value 
-    explain_threshold: 0.50
-    
-
-  # To stop specific errors from reporting to RPM, set this property to an array
-  # of exception names. An example is shown.
+  # To stop specific errors from reporting to RPM, set this property to comma separated 
+  # values
   #
-  # ignore_errors: ["ActionController::RoutingError"]
+  #ignore_errors: ActionController::RoutingError, ...
 
 # override default settings based on your application's environment
 

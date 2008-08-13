@@ -192,7 +192,9 @@ module NewRelic::Agent
       
       @license_key = config.fetch('license_key', nil)
       
-      ignore_errors = config.fetch('ignore_errors', [])
+      ignore_errors = config.fetch('ignore_errors', "")
+      ignore_errors = ignore_errors.split(",")
+      ignore_errors.each { |error| error.strip! } 
       
       @error_collector.ignore(ignore_errors)
       
