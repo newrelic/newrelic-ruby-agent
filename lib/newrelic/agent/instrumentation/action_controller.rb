@@ -42,15 +42,9 @@ module ActionController
         self.class.trace_method_execution "Controller/#{path}", true, true, true do 
           # send request and parameter info to the transaction sampler
           
-          local_copy = params
-          
-          if respond_to? :filter_parameters
-            local_copy = filter_parameters(params)
-          else
-            local_copy = params
-          end
+          local_params = (respond_to? :filter_parameters) ? filter_parameters(params) : params
             
-          agent.transaction_sampler.notice_transaction(path, request, local_copy)
+          agent.transaction_sampler.notice_transaction(path, request, local_params)
         
           t = Process.times.utime + Process.times.stime
           

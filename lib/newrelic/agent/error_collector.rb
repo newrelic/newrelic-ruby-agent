@@ -11,9 +11,25 @@ module NewRelic::Agent
     def initialize(agent = nil)
       @agent = agent
       @errors = []
+      @ignore = {}
     end
     
+    
+    # errors is an array of String exceptions
+    #
+    def ignore(errors)
+      errors.each { |error| @ignore[error] = true }
+    end
+   
+    
     def notice_error(path, params, exception)
+      
+      return if @ignore[exception.class.name]
+      
+      @@error_stat ||= NewRelic::Agent.get_stats("Errors/all")
+      
+      @@error_stat.increment_count
+      
       synchronize do
         if @errors.length >= MAX_ERROR_QUEUE_LENGTH
           log.info("Not reporting error (queue exceeded maximum length): #{exception.message}")

@@ -59,6 +59,19 @@ module NewRelic
           assert_equal err.params[:x], i
         end
       end
+      
+      
+      def test_exclude
+        @error_collector.ignore(["ActionController::RoutingError"])
+        
+        @error_collector.notice_error('path', {:x => 'y'}, ActionController::RoutingError.new("message"))
+        
+        errors = @error_collector.harvest_errors([])
+        
+        assert_equal 0, errors.length
+         
+      end
+      
     end
   end
 end

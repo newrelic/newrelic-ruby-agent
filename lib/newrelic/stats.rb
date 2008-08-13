@@ -207,6 +207,11 @@ module NewRelic
       @sum_of_squares += value ** 2
       self
     end
+    
+    
+    def increment_count(value = 1)
+      @call_count += value
+    end
 
     def trace_call(value, exclusive_time = nil)
       value = 0 if value < 0

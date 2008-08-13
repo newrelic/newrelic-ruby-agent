@@ -184,6 +184,10 @@ module NewRelic::Agent
       
       @license_key = config.fetch('license_key', nil)
       
+      ignore_errors = config.fetch('ignore_errors', [])
+      
+      @error_collector.ignore(ignore_errors)
+      
       sampler_config = config.fetch('transaction_tracer', {})
       
       @use_transaction_sampler = sampler_config.fetch('enabled', false)
@@ -410,7 +414,7 @@ module NewRelic::Agent
       # Ask for mermission to collect error data
       @should_send_errors = invoke_remote :should_collect_errors, @agent_id
       
-      log! "Transaction traces will be sent to the RPM service" if @use_transaction_sampler && @should_send_errors
+      log! "Transaction traces will be sent to the RPM service" if @use_transaction_sampler && @should_send_samples
       
       @connected = true
       @last_harvest_time = Time.now
