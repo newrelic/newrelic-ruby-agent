@@ -730,7 +730,7 @@ module NewRelic::Agent
         begin
           log.debug "Sending graceful shutdown message to #{remote_host}:#{remote_port}"
           
-          @request_timeout = 30
+          @request_timeout = 5
           
           harvest_and_send_timeslice_data
           
