@@ -48,6 +48,16 @@ class AgentTests < Test::Unit::TestCase
     rescue
       # ok
     end
+    
+    
+    ignore_called = false
+    NewRelic::Agent.should_ignore_error do |e|
+      ignore_called = true
+    end
+    
+    NewRelic::Agent.agent.error_collector.notice_error('path', {:x => 'y'}, ActionController::RoutingError.new("message"))
+    
+    assert ignore_called    
   end
   
   def test_thin

@@ -7,6 +7,7 @@ module NewRelic
     
     class Agent
       attr_reader :stats_engine
+      attr_reader :error_collector
       
       private_class_method :new
       @@instance = nil
@@ -17,7 +18,8 @@ module NewRelic
       end
       
       def initialize
-        @stats_engine = StatsEngine.new 
+        @stats_engine = StatsEngine.new
+        @error_collector = ErrorCollector.new
       end
     end
     
