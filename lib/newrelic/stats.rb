@@ -92,6 +92,8 @@ module NewRelic
       ((call_count / duration.to_f * 6000).round).to_f / 100
     end
     
+    alias errors_per_minute calls_per_minute
+    
     def calls_per_second
       (calls_per_minute / 60).round_to(2)
     end
