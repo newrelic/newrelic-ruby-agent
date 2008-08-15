@@ -195,9 +195,7 @@ module NewRelic
     # record a single data point into the statistical gatherer.  The gatherer
     # will aggregate all data points collected over a specified period and upload
     # its data to the NewRelic server
-    def record_data_point(value, exclusive_time = nil)
-      exclusive_time ||= value
-      
+    def record_data_point(value, exclusive_time = value)
       @call_count += 1
       @total_call_time += value
       @min_call_time = value if value < @min_call_time || @call_count == 1
@@ -213,7 +211,7 @@ module NewRelic
       @call_count += value
     end
 
-    def trace_call(value, exclusive_time = nil)
+    def trace_call(value, exclusive_time = value)
       value = 0 if value < 0
       exclusive_time = 0 if exclusive_time && exclusive_time < 0
       
@@ -249,7 +247,7 @@ module NewRelic
       @unscoped_stats = unscoped_stats
     end
     
-    def trace_call(call_time, exclusive_time = nil)
+    def trace_call(call_time, exclusive_time = call_time)
       @unscoped_stats.trace_call call_time, exclusive_time
       super call_time, exclusive_time
     end

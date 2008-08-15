@@ -23,11 +23,21 @@ module ActionController
       ignore_actions = self.class.read_inheritable_attribute('do_not_trace')
       # Skip instrumentation based on the value of 'do_not_trace'
       if ignore_actions
-        return perform_action_without_newrelic_trace unless Hash === ignore_actions
-        only_actions = Array(ignore_actions[:only])
-        except_actions = Array(ignore_actions[:except])
-        return perform_action_without_newrelic_trace if only_actions.include? action_name.to_sym
-        return perform_action_without_newrelic_trace if except_actions.any? && !except_actions.include?(action_name.to_sym)
+        should_skip = false
+        
+        if Hash === ignore_actions
+          only_actions = Array(ignore_actions[:only])
+          except_actions = Array(ignore_actions[:except])
+          should_skip = true if only_actions.include? action_name.to_sym
+          should_skip = true if except_actions.any? && !except_actions.include?(action_name.to_sym)
+        else
+          should_skip = true
+        end
+        
+        if should_skip
+          Thread.current[:controller_ignored] = true
+          return perform_action_without_newrelic_trace
+        end
       end
       
       agent.ensure_started
