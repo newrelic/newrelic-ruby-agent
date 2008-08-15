@@ -24,7 +24,7 @@ module NewRelic::Agent
     # errors is an array of String exceptions
     #
     def ignore(errors)
-      errors.each { |error| @ignore[error] = true }
+      errors.each { |error| @ignore[error] = true; log.debug("Ignoring error: '#{error}'") }
     end
    
     
