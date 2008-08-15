@@ -72,11 +72,11 @@ module NewRelic
       end
       
       def test_exclude_block
-        @error_collector.should_ignore_error do |e|
+        @error_collector.ignore_error_filter do |e|
           if e.is_a? ActionController::RoutingError
-            true
+            nil
           else
-            false
+            e
           end
         end
         

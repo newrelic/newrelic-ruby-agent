@@ -20,7 +20,7 @@ module ActionController
     # Rails 1.1:
     alias_method :rescue_action_without_newrelic_trace, :rescue_action
     alias_method :rescue_action, :rescue_action_with_newrelic_trace
-    private :rescue_action
+    protected :rescue_action
   end
 end
 
