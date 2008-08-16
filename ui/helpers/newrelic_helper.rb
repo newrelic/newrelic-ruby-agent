@@ -119,6 +119,11 @@ module NewrelicHelper
       :segment => segment.segment_id)
   end
   
+  def segment_duration_value(segment)
+    puts segment.explain_sql
+    link_to "#{segment.duration.to_ms.with_delimiter} ms", explain_sql_url(segment)
+  end
+  
   def line_wrap_sql(sql)
     sql.gsub(/\,/,', ').squeeze(' ') if sql
   end
