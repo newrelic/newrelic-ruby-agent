@@ -228,7 +228,7 @@ div.flash.notice
 {
 }
 
-#sql_statement
+.sql_statement
 {
 	width: 800px;
 	overflow: auto;
