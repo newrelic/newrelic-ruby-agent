@@ -99,7 +99,8 @@ function jump_to_metric(metric_name)
 }
 function sql_mouse_over(id) {
 	var sql_div = $('sql_statement' + id);
-	Tip(sql_div.innerHTML);
+	if (sql_div)
+		Tip(sql_div.innerHTML);
 }
 function sql_mouse_out(id) {
 	UnTip();
