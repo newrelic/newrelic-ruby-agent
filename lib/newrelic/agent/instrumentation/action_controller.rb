@@ -20,6 +20,14 @@ module ActionController
   
     def perform_action_with_newrelic_trace
       agent = NewRelic::Agent.instance
+
+      # It's important to do this regardless so that we don't end up with zero header info
+      # in TTs
+      #
+      local_params = (respond_to? :filter_parameters) ? filter_parameters(params) : params
+        
+      agent.transaction_sampler.notice_transaction(path, request, local_params)
+
       ignore_actions = self.class.read_inheritable_attribute('do_not_trace')
       # Skip instrumentation based on the value of 'do_not_trace'
       if ignore_actions
@@ -51,11 +59,7 @@ module ActionController
       
         self.class.trace_method_execution "Controller/#{path}", true, true, true do 
           # send request and parameter info to the transaction sampler
-          
-          local_params = (respond_to? :filter_parameters) ? filter_parameters(params) : params
-            
-          agent.transaction_sampler.notice_transaction(path, request, local_params)
-        
+                  
           t = Process.times.utime + Process.times.stime
           
           begin
