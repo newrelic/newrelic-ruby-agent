@@ -1,0 +1,14 @@
+<% @row_headers.length.times do |r| %>
+	<% if @row_headers[r] %>
+		<tr>
+			<th align=right nowrap>
+				<%= @row_headers[r]%>
+			</th>
+			<% @explanation.each do |exp| %>
+				<td>
+					<%= exp[r]%>
+				</td>
+			<% end %>
+		</tr>
+	<% end %>
+<% end %>
