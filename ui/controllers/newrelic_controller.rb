@@ -49,14 +49,7 @@ class NewrelicController < ActionController::Base
     forward_to_file '/newrelic/javascript/', 'text/javascript'
   end
   
-  def forward_to_file(root_path = nil, content_type = nil)
-    if root_path &&  file = params[:file]
-      full_path = root_path + file
-      render :file => full_path, :use_full_path => true, :content_type => content_type
-    else
-      render :nothing => true, :status => 404
-    end
-  end
+
   
   def index
     get_samples
@@ -134,6 +127,13 @@ class NewrelicController < ActionController::Base
   end
   
 private 
+
+  # root path is relative to plugin newrelic_rpm/ui/views directory.
+  def forward_to_file(root_path, content_type)
+    render :file => File.expand_path(File.join(__FILE__,"../../views", root_path, params[:file])),
+           :content_type => content_type
+  end
+  
   def show_sample_data
     get_sample
     
