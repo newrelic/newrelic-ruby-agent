@@ -5,7 +5,7 @@
 		<th align=right valign=top>
 		Query
 		</th>
-		<td colspan=<%= @explanation.length%>><small>
+		<td colspan=<%= colspan = @explanation ? @explanation.length : 0 %>><small>
 			<div class="sql_statement">
 				<%= line_wrap_sql(@sql) %>
 			</div>
@@ -18,7 +18,7 @@
 		<th align=right valign=top>
 		Obfuscated Query
 		</th>
-		<td colspan=<%= @explanation.length%>><small>
+		<td colspan=<%= colspan %>><small>
 			<div class="sql_statement">
 				<%= line_wrap_sql(@obfuscated_sql) %>
 			</div>
