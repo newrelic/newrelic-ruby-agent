@@ -20,6 +20,14 @@ module ActionController
   
     def perform_action_with_newrelic_trace
       agent = NewRelic::Agent.instance
+
+      # generate metrics for this specific action
+      path = _determine_metric_path
+      
+      local_params = (respond_to? :filter_parameters) ? filter_parameters(params) : params
+        
+      agent.transaction_sampler.notice_transaction(path, request, local_params)
+      
       ignore_actions = self.class.read_inheritable_attribute('do_not_trace')
       # Skip instrumentation based on the value of 'do_not_trace'
       if ignore_actions
@@ -44,18 +52,11 @@ module ActionController
 
       # generate metrics for all all controllers (no scope)
       self.class.trace_method_execution "Controller", false, true, true do 
-        # generate metrics for this specific action
-        path = _determine_metric_path
-      
         agent.stats_engine.transaction_name ||= "Controller/#{path}" if agent.stats_engine
       
         self.class.trace_method_execution "Controller/#{path}", true, true, true do 
           # send request and parameter info to the transaction sampler
-          
-          local_params = (respond_to? :filter_parameters) ? filter_parameters(params) : params
-            
-          agent.transaction_sampler.notice_transaction(path, request, local_params)
-        
+                  
           t = Process.times.utime + Process.times.stime
           
           begin
