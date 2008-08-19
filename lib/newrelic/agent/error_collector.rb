@@ -45,7 +45,15 @@ module NewRelic::Agent
       data = {}
       
       data[:request_params] = params
-      data[:stack_trace] = exception.backtrace
+      clean_backtrace = exception.clean_backtrace
+
+      # strip newrelic from the trace
+      clean_backtrace = clean_backtrace.reject {|line| line =~ /vendor\/plugins\/newrelic_rpm/ }
+      
+      # rename methods back to their original state
+      clean_backtrace = clean_backtrace.collect {|line| line.gsub "_without_newrelic", ""}
+       
+      data[:stack_trace] = clean_backtrace
       
       noticed_error = NoticedError.new(path, data, exception)
       
