@@ -8,9 +8,9 @@ module ActionController
   class Base
     def rescue_action_with_newrelic_trace(exception)
       
-     local_params = (respond_to? :filter_parameters) ? filter_parameters(params) : params
+      local_params = (respond_to? :filter_parameters) ? filter_parameters(params) : params
 
-      NewRelic::Agent.agent.error_collector.notice_error(_determine_metric_path,
+      NewRelic::Agent.agent.error_collector.notice_error((request) ? request.path : '/' + _determine_metric_path,
             local_params, exception)
             
       rescue_action_without_newrelic_trace exception

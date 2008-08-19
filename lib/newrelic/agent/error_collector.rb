@@ -42,11 +42,18 @@ module NewRelic::Agent
       
       @@error_stat.increment_count
       
+      data = {}
+      
+      data[:request_params] = params
+      data[:stack_trace] = exception.backtrace
+      
+      noticed_error = NoticedError.new(path, data, exception)
+      
       synchronize do
         if @errors.length >= MAX_ERROR_QUEUE_LENGTH
           log.info("Not reporting error (queue exceeded maximum length): #{exception.message}")
         else
-          @errors << NoticedError.new(path, params, exception)
+          @errors << noticed_error
         end
       end
     end

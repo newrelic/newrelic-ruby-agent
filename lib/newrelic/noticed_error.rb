@@ -6,13 +6,13 @@
 class NoticedError
   attr_accessor :path, :timestamp, :params, :exception_class, :message
   
-  def initialize(controller_path, params, exception)
-    self.params = params
-    self.path = controller_path
-    self.timestamp = Time.now
+  def initialize(path, data, exception)
+    self.path = path
+    self.params = data
     
     self.exception_class = exception.class.name
     self.message = exception.message
-    
+
+    self.timestamp = Time.now
   end
 end

@@ -20,7 +20,7 @@ module NewRelic
         
         err = errors.first
         assert err.message == 'message'
-        assert err.params[:x] == 'y'
+        assert err.params[:request_params][:x] == 'y'
         assert err.path == 'path'
         assert err.exception_class == 'Exception'
         
@@ -56,7 +56,7 @@ module NewRelic
         assert errors.length == max_q_length 
         errors.each_index do |i|
           err = errors.shift
-          assert_equal err.params[:x], i
+          assert_equal err.params[:request_params][:x], i
         end
       end
       
