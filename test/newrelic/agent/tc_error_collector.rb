@@ -11,7 +11,7 @@ module NewRelic
       end
 
       def test_simple
-        @error_collector.notice_error('path', {:x => 'y'}, Exception.new("message"))
+        @error_collector.notice_error('path', '/myurl/', {:x => 'y'}, Exception.new("message"))
         
         old_errors = []
         errors = @error_collector.harvest_errors(old_errors)
@@ -21,6 +21,7 @@ module NewRelic
         err = errors.first
         assert err.message == 'message'
         assert err.params[:request_params][:x] == 'y'
+        assert err.params[:request_uri] == '/myurl/'
         assert err.path == 'path'
         assert err.exception_class == 'Exception'
         
@@ -31,13 +32,13 @@ module NewRelic
       end
       
       def test_collect_failover
-        @error_collector.notice_error('first', {:x => 'y'}, Exception.new("message"))
+        @error_collector.notice_error('first', nil, {:x => 'y'}, Exception.new("message"))
         
         errors = @error_collector.harvest_errors([])
         
-        @error_collector.notice_error('path', {:x => 'y'}, Exception.new("message"))
-        @error_collector.notice_error('path', {:x => 'y'}, Exception.new("message"))
-        @error_collector.notice_error('path', {:x => 'y'}, Exception.new("message"))
+        @error_collector.notice_error('path', nil, {:x => 'y'}, Exception.new("message"))
+        @error_collector.notice_error('path', nil, {:x => 'y'}, Exception.new("message"))
+        @error_collector.notice_error('path', nil, {:x => 'y'}, Exception.new("message"))
         
         errors = @error_collector.harvest_errors(errors)
         
@@ -49,7 +50,7 @@ module NewRelic
         max_q_length = 20     # for some reason I can't read the constant in ErrorCollector
         
         (max_q_length + 5).times do |n|
-          @error_collector.notice_error("path", {:x => n}, Exception.new("exception #{n}"))
+          @error_collector.notice_error("path", nil, {:x => n}, Exception.new("exception #{n}"))
         end
         
         errors = @error_collector.harvest_errors([])
@@ -64,7 +65,7 @@ module NewRelic
       def test_exclude
         @error_collector.ignore(["ActionController::RoutingError"])
         
-        @error_collector.notice_error('path', {:x => 'y'}, ActionController::RoutingError.new("message"))
+        @error_collector.notice_error('path', nil, {:x => 'y'}, ActionController::RoutingError.new("message"))
         
         errors = @error_collector.harvest_errors([])
         
@@ -80,7 +81,7 @@ module NewRelic
           end
         end
         
-        @error_collector.notice_error('path', {:x => 'y'}, ActionController::RoutingError.new("message"))
+        @error_collector.notice_error('path', nil, {:x => 'y'}, ActionController::RoutingError.new("message"))
         
         errors = @error_collector.harvest_errors([])
         

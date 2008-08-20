@@ -28,7 +28,7 @@ module NewRelic::Agent
     end
    
     
-    def notice_error(path, params, exception)
+    def notice_error(path, request_uri, params, exception)
       
       return if @ignore[exception.class.name]
       
@@ -45,6 +45,7 @@ module NewRelic::Agent
       data = {}
       
       data[:request_params] = params
+      data[:request_uri] = request_uri
       
       if exception.backtrace
         clean_backtrace = exception.application_backtrace
