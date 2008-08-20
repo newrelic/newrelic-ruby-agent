@@ -53,7 +53,7 @@ module NewRelic::Agent
         clean_backtrace = clean_backtrace.reject {|line| line =~ /vendor\/plugins\/newrelic_rpm/ }
         
         # rename methods back to their original state
-        clean_backtrace = clean_backtrace.collect {|line| line.gsub "_without_newrelic", ""}
+        clean_backtrace = clean_backtrace.collect {|line| line.gsub "_without_(newrelic|trace)", ""}
          
         data[:stack_trace] = clean_backtrace
       end
