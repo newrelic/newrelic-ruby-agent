@@ -66,6 +66,7 @@ module ActiveRecord
       alias_method :log, :log_with_newrelic_instrumentation
       protected :log
       
+      add_method_tracer :log, 'Database/#{adapter_name}/#{args[1]}', :metric => false
       add_method_tracer :log, 'Database/all', :push_scope => false
       
     end
