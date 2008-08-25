@@ -68,15 +68,15 @@ module NewrelicHelper
   # write the metric label for a segment metric in the detail view
   def write_segment_label(segment)
     if segment[:backtrace] && (source_url = url_for_source(application_caller(segment[:backtrace])))
-      link_to segment.metric_name, source_url
+      link_to MetricParser.parse(segment.metric_name).developer_name, source_url
     else
-      segment.metric_name
+      MetricParser.parse(segment.metric_name).developer_name
     end
   end
   
   # write the metric label for a segment metric in the summary table of metrics
   def write_summary_segment_label(segment)
-    segment.metric_name
+    MetricParser.parse(segment.metric_name)
   end
 
   # write a link to the source for a trace
@@ -163,7 +163,7 @@ module NewrelicHelper
     pie_chart.color, pie_chart.width, pie_chart.height = '6688AA', width, height
     
     chart_data = sample.breakdown_data(6)
-    chart_data.each { |s| pie_chart.add_data_point s.metric_name, s.exclusive_time.to_ms }
+    chart_data.each { |s| pie_chart.add_data_point MetricParser.parse(s.metric_name).developer_name, s.exclusive_time.to_ms }
     
     pie_chart.render
   end
