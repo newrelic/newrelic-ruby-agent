@@ -1,11 +1,12 @@
 <h3>Statement Analysis</h3>
-<table>	
+<table>
+<% colspan = @explanation ? @explanation.length : 1 %>
 <% if @sql %>
 	<tr>
 		<th align=right valign=top>
 		Query
 		</th>
-		<td colspan=<%= colspan = @explanation ? @explanation.length : 0 %>><small>
+		<td colspan=<%= colspan %>><small>
 			<div class="sql_statement">
 				<%= line_wrap_sql(@sql) %>
 			</div>
