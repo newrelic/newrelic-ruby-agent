@@ -68,7 +68,8 @@ module NewRelic
     end
     
     def to_s
-      "#{metric_spec.name}(#{metric_spec.scope}): #{stats}"
+      "#{metric_spec.name}(#{metric_spec.scope}): #{stats}" if metric_spec
+      "#{metric_id}: #{stats}" if metric_spec.nil?
     end
   end
 end
