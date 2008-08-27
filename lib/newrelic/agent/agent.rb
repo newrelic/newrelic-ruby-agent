@@ -297,7 +297,8 @@ module NewRelic::Agent
     
     def setup_log
       if @local_port
-        log_file = "#{RAILS_ROOT}/log/newrelic_agent.#{@local_port}.log"
+        port_part = @local_port[/\w*$/] || 'thin'
+        log_file = "#{RAILS_ROOT}/log/newrelic_agent.#{port_part}.log"
       else
         log_file = "#{RAILS_ROOT}/log/newrelic_agent.log"
       end
@@ -517,21 +518,7 @@ module NewRelic::Agent
           if backend.respond_to? :port
             return backend.port
           elsif backend.respond_to? :socket
-            # if the socket file ends with .NNN then use the NNN as the port #
-            # only take the last segment of the file name.  Thin auto-generates
-            # the names from the same directory.
-            if backend.socket =~ /\.(\d+)$/
-              port = $1.to_i
-            elsif backend.socket =~ /^(.*\/)?([^\/]*)$/
-              # if the socket is /tmp/thin then set the port to "thin"
-              port = $2
-            else
-              port = ''
-            end
-          else
-            # Can't log this because the logger is not available.         
-            #           log.error "Unknown backend for Thin has neither port nor socket: #{backend.class}"
-            port = "#{backend.class}"
+            return backend.socket
           end
         end # each thin instance
       end
