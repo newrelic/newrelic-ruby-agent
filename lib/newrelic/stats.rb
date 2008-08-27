@@ -6,7 +6,6 @@ module NewRelic
       return 0 if call_count == 0
       total_call_time / call_count
     end
-    
     def average_exclusive_time
       return 0 if call_count == 0
       total_exclusive_time / call_count
@@ -120,6 +119,7 @@ module NewRelic
     end
 
     alias average_value average_call_time
+    alias average_response_time average_call_time 
     
     def to_s
       s = "Begin=#{begin_time}, "
