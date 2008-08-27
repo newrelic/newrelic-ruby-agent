@@ -490,6 +490,14 @@ module NewRelic::Agent
       rescue NameError
       end # continue on if this didn't succeed...
 
+      if RUBY_PLATFORM =~ /java/
+        # Check for JRuby environment.  Not sure how this works in different appservers
+        require 'java'
+        require 'jruby'
+        @environment = :jruby
+        return 'jruby'
+      end
+
       # this case covers starting by mongrel_rails
       if defined? Mongrel::HttpServer
         ObjectSpace.each_object(Mongrel::HttpServer) do |mongrel|
@@ -509,19 +517,25 @@ module NewRelic::Agent
           if backend.respond_to? :port
             return backend.port
           elsif backend.respond_to? :socket
-            return backend.socket
+            # if the socket file ends with .NNN then use the NNN as the port #
+            # only take the last segment of the file name.  Thin auto-generates
+            # the names from the same directory.
+            if backend.socket =~ /\.(\d+)$/
+              port = $1.to_i
+            elsif backend.socket =~ /^(.*\/)?([^\/]*)$/
+              # if the socket is /tmp/thin then set the port to "thin"
+              port = $2
+            else
+              port = ''
+            end
+          else
+            # Can't log this because the logger is not available.         
+            #           log.error "Unknown backend for Thin has neither port nor socket: #{backend.class}"
+            port = "#{backend.class}"
           end
         end # each thin instance
       end
-      
-      if RUBY_PLATFORM =~ /java/
-        # Check for JRuby environment.  Not sure how this works in different appservers
-        require 'java'
-        require 'jruby'
-        @environment = :jruby
-        return java.lang.System.identityHashCode(JRuby.runtime)
-      end
-      
+            
       if caller.pop =~ /fcgi-bin\/RailsRunner\.rb/
           @environment = :litespeed
           return 'litespeed'
