@@ -251,7 +251,8 @@ private
       file =~ /\/active(_)*record\// ||
       file =~ /\/action(_)*controller\// ||
       file =~ /\/activesupport\// ||
-      file =~ /\/actionpack\//
+      file =~ /\/actionpack\// ||
+      file !~ /\.rb/                  # must be a .rb file, otherwise it's a script of something else...
   end
   
   def show_view_link(title, page_name)

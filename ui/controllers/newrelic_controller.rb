@@ -101,10 +101,10 @@ class NewrelicController < ActionController::Base
   
   # show the selected source file with the highlighted selected line
   def show_source
-    filename = params[:file]
+    @filename = params[:file]
     line_number = params[:line].to_i
     
-    file = File.new(filename, 'r')
+    file = File.new(@filename, 'r')
     @source = ""
 
     @source << "<pre>"
