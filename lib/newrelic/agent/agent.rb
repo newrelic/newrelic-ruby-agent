@@ -297,8 +297,8 @@ module NewRelic::Agent
     
     def setup_log
       if @local_port
-        port_part = @local_port[/\w*$/] || 'thin'
-        log_file = "#{RAILS_ROOT}/log/newrelic_agent.#{port_part}.log"
+        port_part = @local_port[/[\.\w]*$/] 
+        log_file = "#{RAILS_ROOT}/log/newrelic_agent.#{port_part ? port_part + "." : "" }log"
       else
         log_file = "#{RAILS_ROOT}/log/newrelic_agent.log"
       end
