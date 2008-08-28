@@ -2,10 +2,11 @@ require 'newrelic/transaction_sample'
 require 'thread'
 require 'newrelic/agent/method_tracer'
 require 'newrelic/agent/synchronize'
+require 'newrelic/agent/param_normalizer'
 
 module NewRelic::Agent
   class TransactionSampler
-    include(Synchronize)
+    include Synchronize
     
     def initialize(agent, options = {})
       @samples = []
@@ -212,6 +213,8 @@ module NewRelic::Agent
   class TransactionSampleBuilder
     attr_reader :current_segment
     
+    include ParamNormalizer
+    
     def initialize
       @sample = NewRelic::TransactionSample.new
       @sample.begin_building
@@ -271,6 +274,9 @@ module NewRelic::Agent
     end
     
     def set_transaction_info(path, request, params)
+      
+      params = normalize_params params
+      
       @sample.params[:path] = path
       @sample.params[:request_params].merge!(params)
       @sample.params[:request_params].delete :controller
@@ -283,6 +289,9 @@ module NewRelic::Agent
     end
     
     def add_request_parameters(params)
+      
+      params = normalize_params params
+      
       @sample.params[:request_params].merge!(params)
     end
     

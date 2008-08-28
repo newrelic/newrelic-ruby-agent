@@ -62,6 +62,30 @@ module NewRelic
       end
       
       
+      class TestClass
+        undef to_s
+      end
+      
+      
+      def test_supported_param_types
+        
+        types = [[1, 1],
+                 [1.1, 1.1],
+                 ['hi', 'hi'],
+                 [:hi, :hi],
+                 [Exception.new("test"), "[Exception]: test"],
+                 [TestClass.new, "[#{TestClass.new.class}]"]
+                ]
+        
+        
+        types.each do |test|
+          @error_collector.notice_error('path', nil, {:x => test[0]}, Exception.new("message"))
+          
+          assert_equal test[1], @error_collector.harvest_errors([])[0].params[:request_params][:x]
+        end
+      end
+      
+      
       def test_exclude
         @error_collector.ignore(["ActionController::RoutingError"])
         

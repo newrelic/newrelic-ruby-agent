@@ -1,10 +1,12 @@
 require 'newrelic/agent/synchronize'
 require 'newrelic/noticed_error'
+require 'newrelic/agent/param_normalizer'
 require 'logger'
 
 module NewRelic::Agent
   class ErrorCollector
     include Synchronize
+    include ParamNormalizer
     
     MAX_ERROR_QUEUE_LENGTH = 20 unless defined? MAX_ERROR_QUEUE_LENGTH
     
@@ -43,8 +45,8 @@ module NewRelic::Agent
       @@error_stat.increment_count
       
       data = {}
-      
-      data[:request_params] = params
+      data[:request_params] = normalize_params(params)
+              
       data[:request_uri] = request_uri
       
       if exception.backtrace

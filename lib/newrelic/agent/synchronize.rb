@@ -5,20 +5,20 @@ require 'sync'
 module NewRelic::Agent
   
   module Synchronize
-    def synchronize_sync(&block)
+    def synchronize_sync
       @_local_sync ||= Sync.new
       
       @_local_sync.synchronize(:EX) do
-        block.call
+        yield
       end
     end
     
     
-    def synchronize_mutex(&block)
+    def synchronize_mutex
       @_local_mutex ||= Mutex.new
       
       @_local_mutex.synchronize do
-        block.call
+        yield
       end
     end
   
