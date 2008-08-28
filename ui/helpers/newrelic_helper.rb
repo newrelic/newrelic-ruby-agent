@@ -252,7 +252,7 @@ private
       file =~ /\/action(_)*controller\// ||
       file =~ /\/activesupport\// ||
       file =~ /\/actionpack\// ||
-      file !~ /\.rb/                  # must be a .rb file, otherwise it's a script of something else...
+      file !~ /\.rb/                  # must be a .rb file, otherwise it's a script of something else...we could have gotten trickier and tried to see if this file exists...
   end
   
   def show_view_link(title, page_name)
