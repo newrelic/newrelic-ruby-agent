@@ -70,7 +70,6 @@ class AgentTests < Test::Unit::TestCase
     thin.backend.set_socket("/application1/thin.0.sock")
     
     port1 = agent.determine_environment_and_port
-    assert_equal 'thin.0.sock', port1
     
     thin.backend.set_socket("/application2/thin.0.sock")
     port2 = agent.determine_environment_and_port
