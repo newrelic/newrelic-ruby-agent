@@ -104,7 +104,16 @@ class NewrelicController < ActionController::Base
     @filename = params[:file]
     line_number = params[:line].to_i
     
-    file = File.new(@filename, 'r')
+    if !File.readable?(@filename)
+      @source="<p>Unable to read #{@filename}.</p>"
+      return
+    end
+    begin
+      file = File.new(@filename, 'r')
+    rescue => e
+      @source="<p>Unable to access the source file #{@filename} (#{e.message}).</p>"
+      return
+    end
     @source = ""
 
     @source << "<pre>"
