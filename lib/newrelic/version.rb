@@ -12,6 +12,10 @@ if __FILE__ == $0
 end
 
 __END__
+
+2008-08-29 version 2.5.0
+  * add agent support for rpm 1.1 features
+  * Fix regression error with thin support
 2008-08-27 version 2.4.3
   * added 'newrelic_ignore' controller class method with :except and :only options for finer grained control
     over the blocking of instrumentation in controllers.
