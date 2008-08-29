@@ -202,9 +202,6 @@ module NewRelic::Agent
         Thread::current[BUILDER_KEY] = nil
       end
       
-      def is_developer_mode?
-        @developer_mode ||= (defined?(::RPM_DEVELOPER) && ::RPM_DEVELOPER)
-      end
   end
 
   # a builder is created with every sampled transaction, to dynamically

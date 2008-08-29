@@ -1,7 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'/../../../../../test/test_helper'))
 require "test/unit"
 require "newrelic/stats"
-
 class NewRelic::StatsTests < Test::Unit::TestCase
   
   def test_simple

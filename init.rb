@@ -1,5 +1,6 @@
 require 'yaml'
 require 'newrelic/agent/method_tracer'
+require 'newrelic/local_environment'
 
 def to_stderr(s)
   STDERR.puts "** [NewRelic] " + s
@@ -7,7 +8,7 @@ end
 
 # Initializer for the NewRelic Agent
 config_filename = File.join(File.dirname(__FILE__), '..','..','..','config','newrelic.yml')
-begin catch (:disabled) do 
+begin catch(:disabled) do 
   begin
     newrelic_config_file =  File.read(File.expand_path(config_filename))
   rescue => e
@@ -34,21 +35,26 @@ begin catch (:disabled) do
   
   # Check to see if the agent should be enabled or not
 
+  # This determines the environment we are running in
+  env = NewRelic::LocalEnvironment.new
+
   # note if the agent is not turned on via the enabled flag in the 
   # configuration file, the application will be untouched, and it will
   # behave exaclty as if the agent were never installed in the first place.
 
   ::RPM_TRACERS_ENABLED = ::RPM_DEVELOPER || ::RPM_AGENT_ENABLED
 
-  if !::RPM_TRACERS_ENABLED || ENV['NEWRELIC_ENABLE'] && ENV['NEWRELIC_ENABLE'] =~ /false|off|no/i
+  # START THE AGENT
+  # We install the shim agent unless the tracers are enabled, the plugin
+  # env setting is not false, and the agent started okay. 
+  if ::RPM_TRACERS_ENABLED && !(ENV['NEWRELIC_ENABLE'].to_s =~ /false|off|no/i)
+    require 'newrelic/agent'
+    NewRelic::Agent::Agent.instance.start(env.environment, env.identifier)
+  else
     require 'newrelic/shim_agent'
     throw :disabled 
   end
   
-  require 'newrelic/agent'
-  
-  agent = NewRelic::Agent.instance
-  agent.start(newrelic_agent_config)
   
   # When (and only when) RPM is running in developer mode, a few pages
   # are added to your application that present performance information
@@ -68,9 +74,10 @@ begin catch (:disabled) do
     
     # inform user that the dev edition is available if we are running inside
     # a webserver process
-    if agent.local_port
+    if env.identifier
+      port = env.identifier =~ /^\d+/ ? ":#{port}" : "" 
       to_stderr "NewRelic Agent (Developer Mode) enabled."
-      to_stderr "To view performance information, go to http://localhost:#{agent.local_port}/newrelic"
+      to_stderr "To view performance information, go to http://localhost#{port}/newrelic"
     end
   end
 end

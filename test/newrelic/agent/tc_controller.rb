@@ -1,8 +1,5 @@
 
 require 'test/unit'
-require 'vendor/rails/actionpack/lib/action_controller'
-
-::RPM_TRACERS_ENABLED = true
 
 require 'newrelic/agent/method_tracer'
 require 'newrelic/agent/instrumentation/action_controller'

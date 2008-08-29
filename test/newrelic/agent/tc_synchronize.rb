@@ -1,16 +1,11 @@
-
 require 'test/unit'
 require 'newrelic/agent/testable_agent'
 
-
-
 class TestSync
   include NewRelic::Agent::Synchronize
-  
 end
 
-
-class AgentTests < Test::Unit::TestCase
+class AgentSynchronizeTests < Test::Unit::TestCase
   
 
   def test_sync

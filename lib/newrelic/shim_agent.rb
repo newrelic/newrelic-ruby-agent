@@ -65,8 +65,8 @@ module NewRelic
         @error_collector = ErrorCollector.new
       end
       
-      def Agent.instance
-        @@agent ||= Agent.new
+      def self.instance
+        @@agent ||= new
         
         @@agent
       end      

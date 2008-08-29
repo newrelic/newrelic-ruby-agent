@@ -160,7 +160,7 @@ module NewRelic::Agent
         # the stats inside our hash table for the next time slice.
         stats = @stats_hash[metric_spec]
         if stats.nil? 
-          puts "Nil stats for #{metric_spec.name} (#{metric_spec.scope})"
+          raise "Nil stats for #{metric_spec.name} (#{metric_spec.scope})"
         end
         
         stats_copy = stats.clone

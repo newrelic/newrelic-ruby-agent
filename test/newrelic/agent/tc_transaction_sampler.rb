@@ -1,5 +1,4 @@
 require 'newrelic/agent/transaction_sampler'
-require 'newrelic/agent/mock_agent'
 require 'test/unit'
 
 ::RPM_DEVELOPER = true unless defined? ::RPM_DEVELOPER

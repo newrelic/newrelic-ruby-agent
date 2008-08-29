@@ -1,13 +1,11 @@
+require File.expand_path(File.join(File.dirname(__FILE__),'/../../../../../../test/test_helper'))
 require 'newrelic/agent/error_collector'
 require 'test/unit'
 
-module NewRelic
-  module Agent
-    
-    class ErrorCollectorTests < Test::Unit::TestCase
+    class NewRelic::Agent::ErrorCollectorTests < Test::Unit::TestCase
       
       def setup
-        @error_collector = ErrorCollector.new(nil)
+        @error_collector = NewRelic::Agent::ErrorCollector.new(nil)
       end
 
       def test_simple
@@ -47,10 +45,13 @@ module NewRelic
       end
       
       def test_queue_overflow
+        
         max_q_length = 20     # for some reason I can't read the constant in ErrorCollector
         
-        (max_q_length + 5).times do |n|
-          @error_collector.notice_error("path", nil, {:x => n}, Exception.new("exception #{n}"))
+        silence_stream(::STDERR) do
+         (max_q_length + 5).times do |n|
+            @error_collector.notice_error("path", nil, {:x => n}, Exception.new("exception #{n}"))
+          end
         end
         
         errors = @error_collector.harvest_errors([])
@@ -113,5 +114,3 @@ module NewRelic
       end
 
     end
-  end
-end

@@ -1,7 +1,5 @@
 require 'test/unit'
 require 'newrelic/agent/stats_engine'
-require File.join(File.dirname(__FILE__),'mock_agent')
-
 
 module NewRelic::Agent
   class StatsEngineTests < Test::Unit::TestCase

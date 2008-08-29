@@ -11,10 +11,3 @@ class String
   end
 end
 
-
-module NewRelic::Agent
-    class Agent
-      public :determine_environment_and_port
-      attr_accessor :environment
-    end
-end
