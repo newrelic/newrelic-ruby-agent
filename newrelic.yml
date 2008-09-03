@@ -64,7 +64,10 @@ common: &default_settings
     # has three modes, "off" which sends no SQL, "raw" which sends the SQL statement in its 
     # original form, and "obfuscated", which strips out numeric and string literals
     record_sql: obfuscated
-        
+    
+    # Tells transaction tracer whether or not to capture HTTP params. When true,
+    # the filter_parameters mechanism is used so that sensitive parameters are not recorded
+    capture_params: false
 
   # To stop specific errors from reporting to RPM, set this property to comma separated 
   # values

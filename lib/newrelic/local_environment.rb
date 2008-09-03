@@ -92,7 +92,8 @@ module NewRelic
       end
     end
     
-    private
+    # JRG 9/1/08 - unit tests don't run for me when this is private. Arg.
+    protected     
     def config(key)
       ::NR_CONFIG_FILE[key]
     end

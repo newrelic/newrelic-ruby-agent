@@ -8,6 +8,8 @@ module NewRelic::Agent
   class TransactionSampler
     include Synchronize
     
+    attr_accessor :capture_params
+    
     def initialize(agent, options = {})
       @samples = []
       
@@ -15,6 +17,8 @@ module NewRelic::Agent
       @options.merge!(options)
 
       @max_samples = @options[:max_samples]
+      
+      @capture_params = true
 
       agent.stats_engine.add_scope_stack_listener self
 
@@ -176,7 +180,7 @@ module NewRelic::Agent
       BUILDER_KEY = :transaction_sample_builder
 
       def create_builder
-        Thread::current[BUILDER_KEY] = TransactionSampleBuilder.new
+        Thread::current[BUILDER_KEY] = TransactionSampleBuilder.new(@capture_params)
       end
       
       # most entry points into the transaction sampler take the current transaction
@@ -212,7 +216,8 @@ module NewRelic::Agent
     
     include ParamNormalizer
     
-    def initialize
+    def initialize(capture_params=true)
+      @capture_params = capture_params
       @sample = NewRelic::TransactionSample.new
       @sample.begin_building
       @current_segment = @sample.root_segment
@@ -272,12 +277,17 @@ module NewRelic::Agent
     
     def set_transaction_info(path, request, params)
       
-      params = normalize_params params
       
       @sample.params[:path] = path
-      @sample.params[:request_params].merge!(params)
-      @sample.params[:request_params].delete :controller
-      @sample.params[:request_params].delete :action
+      
+      if @capture_params
+        params = normalize_params params
+        
+        @sample.params[:request_params].merge!(params)
+        @sample.params[:request_params].delete :controller
+        @sample.params[:request_params].delete :action
+      end
+      
       @sample.params[:uri] = request.path if request
     end
     

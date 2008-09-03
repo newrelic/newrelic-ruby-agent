@@ -206,6 +206,24 @@ module NewRelic
         assert_equal "SELECT * from Jim where id=?", segment.obfuscated_sql
       end
       
+      
+      def test_param_capture
+        [true, false].each do |capture| 
+          t = TransactionSampler.new(Agent.instance)
+          
+          t.capture_params = capture
+          
+          t.notice_first_scope_push
+          t.notice_transaction('/path', nil, {:param => 'hi'})
+          t.notice_scope_empty
+          
+          tt = t.harvest_slowest_sample
+          
+          assert_equal (capture) ? 1 : 0, tt.params[:request_params].length
+        end
+      end
+
+      
       def test_sql_normalization
         t = TransactionSampler.new(Agent.instance)
         
