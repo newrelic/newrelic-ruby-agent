@@ -355,7 +355,6 @@ module NewRelic::Agent
       
       @metric_ids = {}
       @environment = :unknown
-      @initalized_pid = $$
       
       @stats_engine = StatsEngine.new
       @transaction_sampler = TransactionSampler.new(self)
@@ -401,10 +400,10 @@ module NewRelic::Agent
     
     
     def launch_worker_thread
-      
-      # we don't launch the worker_thread for passenger due to the way it spawns processes
-      
-      return if (@environment == :passenger && @initalized_pid == $$)
+      if (@environment == :passenger && $0 =~ /ApplicationSpawner/)
+        log.info "Process is passenger spawner - don't connect to RPM service"
+        return
+      end
       
       @worker_thread = Thread.new do 
         @worker_thread_started = true
@@ -697,7 +696,6 @@ module NewRelic::Agent
     def graceful_disconnect
       if @connected && !(remote_host == "localhost" && @identifier == '3000')
         begin
-          puts "HEY WE SHOULDN'T BE HERE: #{remote_host}, #{@identifier}"
           log.debug "Sending graceful shutdown message to #{remote_host}:#{remote_port}"
           
           @request_timeout = 5
