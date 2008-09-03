@@ -692,7 +692,6 @@ module NewRelic::Agent
     def graceful_disconnect
       if @connected && !(remote_host == "localhost" && @identifier == 3000)
         begin
-          puts "HEY WE SHOULDN'T BE HERE: #{remote_host}, #{@identifier}"
           log.debug "Sending graceful shutdown message to #{remote_host}:#{remote_port}"
           
           @request_timeout = 5
