@@ -326,8 +326,9 @@ module NewRelic::Agent
       begin 
         require 'builtin/rails_info/rails/info'
         i += Rails::Info.properties
-      rescue => e
-        log! "Unable to get the Rails info: #{$!}"
+      rescue Exception => e
+        log.debug "Unable to get the Rails info: #{e.inspect}"
+        log.debug e.backtrace.join("\n")
       end
       # Would like to get this from config, but how?
       plugins = Dir[File.join(File.expand_path(__FILE__+"/../../../../.."),"/*")].collect { |p| File.basename p }
@@ -369,7 +370,6 @@ module NewRelic::Agent
       log_file = "#{RAILS_ROOT}/log/newrelic_agent.#{identifier_part ? identifier_part + "." : "" }log"
       
       @log = Logger.new log_file
-      @log.level = Logger::INFO
       
       # change the format just for our logger
       
@@ -692,6 +692,7 @@ module NewRelic::Agent
     def graceful_disconnect
       if @connected && !(remote_host == "localhost" && @identifier == 3000)
         begin
+          puts "HEY WE SHOULDN'T BE HERE: #{remote_host}, #{@identifier}"
           log.debug "Sending graceful shutdown message to #{remote_host}:#{remote_port}"
           
           @request_timeout = 5
