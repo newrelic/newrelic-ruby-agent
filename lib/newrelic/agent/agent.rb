@@ -210,6 +210,10 @@ module NewRelic::Agent
 
       setup_log
       
+      if @environment == :passenger
+        log.warn "Phusion Passenger has been detected. Some RPM memory statistics may have inaccuracies due to short process lifespans"
+      end
+      
       @worker_loop = WorkerLoop.new(@log)
       @started = true
       
