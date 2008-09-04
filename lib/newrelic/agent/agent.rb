@@ -21,6 +21,8 @@ module NewRelic::Agent
   
   # an exception that forces an agent to stop reporting until its mongrel is restarted
   class ForceDisconnectException < Exception; end
+    
+  class IgnoreSilentlyException < StandardError; end
   
   # add some convenience methods for easy access to the Agent singleton.
   # the following static methods all point to the same Agent instance:
@@ -662,7 +664,11 @@ module NewRelic::Agent
           return return_value
         end
       else
-        raise "#{response.code}: #{response.message}"
+        if response.code == 405
+          raise IgnoreSilentlyException.new
+        else
+          raise "#{response.code}: #{response.message}"
+        end
       end 
     rescue ForceDisconnectException => e
       log! "RPM forced this agent to disconnect", :error
@@ -672,6 +678,9 @@ module NewRelic::Agent
       # gathers data and talks to the server. 
       @connected = false
       Thread.exit
+    
+    rescue IgnoreSilentlyException => e
+      raise e
 
     rescue Exception => e
       log.error("Error communicating with RPM Service at #{@remote_host}:#{remote_port}: #{e}")
