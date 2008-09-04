@@ -2,8 +2,16 @@
 
 # instrumentation for dynamic application code loading (usually only happens a lot
 # in development environment)
-module Dependencies
-  add_method_tracer :load_file, "Rails/Application Code Loading"
+
+# Rails Edge
+if defined? ActiveSupport::Dependencies
+  module ActiveSupport::Dependencies
+    add_method_tracer :load_file, "Rails/Application Code Loading"
+  end
+else
+  module Dependencies
+    add_method_tracer :load_file, "Rails/Application Code Loading"
+  end
 end
 
 class ERB::Compiler

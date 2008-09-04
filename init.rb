@@ -68,7 +68,7 @@ begin catch(:disabled) do
     $LOAD_PATH << controller_path
     $LOAD_PATH << helper_path
     
-    # Rails 2.1
+    # Rails Edge
     if defined? ActiveSupport::Dependencies
       ActiveSupport::Dependencies.load_paths << controller_path
       ActiveSupport::Dependencies.load_paths << helper_path
