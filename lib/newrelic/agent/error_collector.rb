@@ -10,11 +10,14 @@ module NewRelic::Agent
     
     MAX_ERROR_QUEUE_LENGTH = 20 unless defined? MAX_ERROR_QUEUE_LENGTH
     
+    attr_accessor :capture_params
+    
     def initialize(agent = nil)
       @agent = agent
       @errors = []
       @ignore = {}
       @ignore_filter = nil
+      @capture_params = true
     end
     
     
@@ -45,7 +48,8 @@ module NewRelic::Agent
       @@error_stat.increment_count
       
       data = {}
-      data[:request_params] = normalize_params(params)
+      
+      data[:request_params] = normalize_params(params) if @capture_params
               
       data[:request_uri] = request_uri
       

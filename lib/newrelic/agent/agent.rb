@@ -218,7 +218,8 @@ module NewRelic::Agent
       ignore_errors.each { |error| error.strip! } 
       
       @error_collector.ignore(ignore_errors)
-      
+      @capture_params = config.fetch('capture_params', false)
+            
       sampler_config = config.fetch('transaction_tracer', {})
       
       @use_transaction_sampler = sampler_config.fetch('enabled', false)
@@ -226,7 +227,6 @@ module NewRelic::Agent
       @slowest_transaction_threshold = sampler_config.fetch('transaction_threshold', '2.0').to_f
       @explain_threshold = sampler_config.fetch('explain_threshold', '0.5').to_f
       @explain_enabled = sampler_config.fetch('explain_enabled', true)
-      @capture_params = sampler_config.fetch('capture_params', false)
       
       log.info "Transaction tracing is enabled in the agent" if @use_transaction_sampler
       log.warn "Agent is configured to send raw SQL to RPM service" if @record_sql == :raw
@@ -246,6 +246,7 @@ module NewRelic::Agent
       
       # Initialize transaction sampler
       @transaction_sampler.capture_params = @capture_params
+      @error_collector.capture_params = @capture_params
 
       
       # make sure the license key exists and is likely to be really a license key
