@@ -1,8 +1,8 @@
 #!/usr/bin/ruby
 module NewRelic::VERSION #:nodoc:
   MAJOR = 2
-  MINOR = 4
-  TINY  = 3
+  MINOR = 5
+  TINY  = 1
   STRING = [MAJOR, MINOR, TINY].join('.')
 end
 
@@ -12,7 +12,8 @@ if __FILE__ == $0
 end
 
 __END__
-
+2008-09-09 version 2.5.1
+  * bugfixes
 2008-08-29 version 2.5.0
   * add agent support for rpm 1.1 features
   * Fix regression error with thin support
