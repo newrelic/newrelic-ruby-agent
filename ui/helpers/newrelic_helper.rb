@@ -199,14 +199,18 @@ module NewrelicHelper
     { :onmouseover => "sql_mouse_over(#{segment.segment_id})", :onmouseout => "sql_mouse_out(#{segment.segment_id})"}
   end
   
+  def explain_sql_link(segment, child_sql = false)
+    link_to 'SQL', explain_sql_url(segment), sql_link_mouseover_options(segment)
+  end
+  
   def explain_sql_links(segment)
     if segment[:sql_obfuscated] || segment[:sql]
-      link_to 'SQL', explain_sql_url(segment), sql_link_mouseover_options(segment)
+      explain_sql_link segment
     else
       links = []
       segment.called_segments.each do |child|
         if child[:sql_obfuscated] || child[:sql]
-          links << link_to('SQL', explain_sql_url(child), sql_link_mouseover_options(child))
+          links << explain_sql_link(child, true)
         end
       end
       links[0..1].join(', ') + (links.length > 2?', ...':'')
