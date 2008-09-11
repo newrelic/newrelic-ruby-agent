@@ -72,12 +72,17 @@ begin catch(:disabled) do
     if defined? ActiveSupport::Dependencies
       ActiveSupport::Dependencies.load_paths << controller_path
       ActiveSupport::Dependencies.load_paths << helper_path
-    else
+      require 'newrelic_routing'
+    elsif defined? Dependencies.load_paths
       Dependencies.load_paths << controller_path
       Dependencies.load_paths << helper_path
-    end    
+      require 'newrelic_routing'
+    else
+      to_stderr "ERROR: Rails version #{(RAILS_GEM_VERSION) ? RAILS_GEM_VERSION : ''} too old for developer mode to work."
+      throw :disabled
+    end
+    
     config.controller_paths << controller_path
-    require 'newrelic_routing'
     
     # inform user that the dev edition is available if we are running inside
     # a webserver process
