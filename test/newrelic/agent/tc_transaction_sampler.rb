@@ -154,7 +154,7 @@ module NewRelic
         end
         
         assert segment[:sql]
-        assert segment[:stack_trace]
+        assert segment[:backtrace]
       end
 
       def test_nil_stacktrace
@@ -173,7 +173,7 @@ module NewRelic
         end
         
         assert segment[:sql]
-        assert_nil segment[:stack_trace]
+        assert_nil segment[:backtrace]
       end
       
       def test_big_sql

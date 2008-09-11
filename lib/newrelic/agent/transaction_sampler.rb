@@ -144,7 +144,7 @@ module NewRelic::Agent
             
             segment[:sql] = sql
             segment[:connection_config] = config
-            segment[:stack_trace] = caller.join("\n") if duration >= @stack_trace_threshold 
+            segment[:backtrace] = caller.join("\n") if duration >= @stack_trace_threshold 
           end
         end
       end
