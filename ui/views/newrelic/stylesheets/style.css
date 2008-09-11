@@ -223,6 +223,14 @@ div.flash.notice
 	margin-right: 15px;
 }
 
+#application_stack_trace, #full_stack_trace
+{	
+	font-family: monospace;
+	margin-top: 10px;
+	margin-left: 20px;
+	max-width: 950px;
+	overflow: auto;
+}
 
 #summary_table
 {

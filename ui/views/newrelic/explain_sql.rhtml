@@ -41,5 +41,5 @@
 <p/>
 <% if @segment[:backtrace] %>
   <h3>Application Stack Trace</h3>
-  <%= render :partial => 'stack_trace', :locals => {:segment => @segment} %>
+  <%= render :partial => agent_views_path('stack_trace'), :locals => {:segment => @segment} %>
 <% end %>

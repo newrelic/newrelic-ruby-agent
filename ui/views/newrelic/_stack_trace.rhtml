@@ -14,15 +14,11 @@ link_to_function('Hide Rails', :id => 'hide_rails_link', :style => "display: non
   page[:show_rails_link].show
 end %>
 
-<pre id='application_stack_trace'>
-<% application_stack_trace(trace, false).each do |trace_line| -%>
-  <%= link_to trace_line, url_for_source(trace_line) %>
-<% end -%>
-</pre>
+<div id='application_stack_trace'>
+  <%= application_stack_trace(trace, false).collect { |trace_line| write_stack_trace_line(trace_line)}.join("<br/>") %> 
+</div>
 
-<pre id='full_stack_trace' style="display: none;">
-<% application_stack_trace(trace, true).each do |trace_line| -%>
-  <%= link_to trace_line, url_for_source(trace_line) %>
-<% end -%>
-</pre>
+<div id='full_stack_trace' style="display: none;">
+  <%= application_stack_trace(trace, true).collect { |trace_line| write_stack_trace_line(trace_line)}.join("<br/>") %>
+</div>
   

@@ -85,6 +85,10 @@ module NewrelicHelper
   def write_summary_segment_label(segment)
     dev_name(segment.metric_name)
   end
+  
+  def write_stack_trace_line(trace_line)
+    link_to h(trace_line), url_for_source(trace_line)
+  end
 
   # write a link to the source for a trace
   def link_to_source(trace)
