@@ -83,6 +83,7 @@ end
 
 module ActionController
   class Base
+    def newrelic_notice_error(*args); end
     def self.newrelic_ignore(*args); end
     def _determine_metric_path; end
   end
