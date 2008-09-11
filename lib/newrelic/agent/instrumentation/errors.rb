@@ -6,12 +6,18 @@ if defined? ActionController
 
 module ActionController
   class Base
-    def rescue_action_with_newrelic_trace(exception)
-      
+    
+    
+    def newrelic_notice_error(exception)
       local_params = (respond_to? :filter_parameters) ? filter_parameters(params) : params
       
       NewRelic::Agent.agent.error_collector.notice_error(_determine_metric_path, (request) ? request.path : nil,
             local_params, exception)
+    end
+    
+    
+    def rescue_action_with_newrelic_trace(exception)
+      newrelic_notice_error exception
             
       rescue_action_without_newrelic_trace exception
     end
