@@ -9,15 +9,13 @@ module NewRelic::Agent
     include Synchronize
     
     attr_accessor :capture_params
+    attr_accessor :stack_trace_threshold
     
-    def initialize(agent, options = {})
+    def initialize(agent)
       @samples = []
-      
-      @options = {:max_samples => 100, :record_sql => :obfuscated}
-      @options.merge!(options)
 
-      @max_samples = @options[:max_samples]
-      
+      @max_samples = 100
+      @stack_trace_threshold = 100000.0
       @capture_params = true
 
       agent.stats_engine.add_scope_stack_listener self
@@ -131,9 +129,9 @@ module NewRelic::Agent
     # some statements (particularly INSERTS with large BLOBS
     # may be very large; we should trim them to a maximum usable length
     MAX_SQL_LENGTH = 16384
-    def notice_sql(sql, config)
+    def notice_sql(sql, config, duration)
     
-      if (@options[:record_sql] != :off) && (Thread::current[:record_sql].nil? || Thread::current[:record_sql])
+      if Thread::current[:record_sql].nil? || Thread::current[:record_sql]
         with_builder do |builder|
           segment = builder.current_segment
           if segment
@@ -146,6 +144,7 @@ module NewRelic::Agent
             
             segment[:sql] = sql
             segment[:connection_config] = config
+            segment[:stack_trace] = caller.join("\n") if duration >= @stack_trace_threshold 
           end
         end
       end

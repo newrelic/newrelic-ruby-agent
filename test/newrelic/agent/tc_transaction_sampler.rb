@@ -12,6 +12,10 @@ module NewRelic
     
     class TransationSamplerTests < Test::Unit::TestCase
       
+      def setup
+        Thread::current[:record_sql] = nil
+      end
+      
       def test_multiple_samples
         @sampler = TransactionSampler.new(Agent.instance)
       
@@ -117,11 +121,13 @@ module NewRelic
       
 
       def test_record_sql_off
-        sampler = TransactionSampler.new(Agent.instance, :record_sql => :off)
+        sampler = TransactionSampler.new(Agent.instance)
         
         sampler.notice_first_scope_push
         
-        sampler.notice_sql("test", nil)
+        Thread::current[:record_sql] = false
+        
+        sampler.notice_sql("test", nil, 0)
         
         segment = nil
         
@@ -132,12 +138,14 @@ module NewRelic
         assert_nil segment[:sql]
       end
 
-      def test_record_sql_raw
-        sampler = TransactionSampler.new(Agent.instance, :record_sql => :raw)
+      def test_stack_trace
+        sampler = TransactionSampler.new(Agent.instance)
+        
+        sampler.stack_trace_threshold = 0
         
         sampler.notice_first_scope_push
         
-        sampler.notice_sql("test", nil)
+        sampler.notice_sql("test", nil, 1)
         
         segment = nil
         
@@ -146,14 +154,17 @@ module NewRelic
         end
         
         assert segment[:sql]
+        assert segment[:stack_trace]
       end
 
-      def test_record_sql_raw
-        sampler = TransactionSampler.new(Agent.instance, :record_sql => :obfuscated)
+      def test_nil_stacktrace
+        sampler = TransactionSampler.new(Agent.instance)
+        
+        sampler.stack_trace_threshold = 2
         
         sampler.notice_first_scope_push
         
-        sampler.notice_sql("test", nil)
+        sampler.notice_sql("test", nil, 1)
         
         segment = nil
         
@@ -162,6 +173,7 @@ module NewRelic
         end
         
         assert segment[:sql]
+        assert_nil segment[:stack_trace]
       end
       
       def test_big_sql
@@ -173,7 +185,7 @@ module NewRelic
         
         len = 0
         while len <= NewRelic::Agent::TransactionSampler::MAX_SQL_LENGTH
-          @sampler.notice_sql(sql, nil)
+          @sampler.notice_sql(sql, nil, 0)
           len += sql.length
         end
         
@@ -195,7 +207,7 @@ module NewRelic
         
         orig_sql = "SELECT * from Jim where id=66"
         
-        @sampler.notice_sql(orig_sql, nil)
+        @sampler.notice_sql(orig_sql, nil, 0)
         
         segment = nil
         @sampler.with_builder do |builder|
@@ -285,13 +297,13 @@ module NewRelic
         @sampler.notice_first_scope_push
         @sampler.notice_transaction '/path', nil, {}
         @sampler.notice_push_scope "a"
-        @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'", nil)
+        @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'", nil, 0)
         @sampler.notice_push_scope "ab"
-        @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'white'", nil)
+        @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'white'", nil, 0)
         proc.call if proc
         @sampler.notice_pop_scope "ab"
         @sampler.notice_push_scope "lew"
-        @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'french'", nil)
+        @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'french'", nil, 0)
         @sampler.notice_pop_scope "lew"
         @sampler.notice_pop_scope "a"
         @sampler.notice_scope_empty

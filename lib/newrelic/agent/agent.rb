@@ -233,6 +233,7 @@ module NewRelic::Agent
       @slowest_transaction_threshold = sampler_config.fetch('transaction_threshold', '2.0').to_f
       @explain_threshold = sampler_config.fetch('explain_threshold', '0.5').to_f
       @explain_enabled = sampler_config.fetch('explain_enabled', true)
+      @stack_trace_threshold = sampler_config.fetch('stack_trace_threshold', '100000.0').to_f
       
       log.info "Transaction tracing is enabled in the agent" if @use_transaction_sampler
       log.warn "Agent is configured to send raw SQL to RPM service" if @record_sql == :raw
@@ -252,6 +253,7 @@ module NewRelic::Agent
       
       # Initialize transaction sampler
       @transaction_sampler.capture_params = @capture_params
+      @transaction_sampler.stack_trace_threshold = @stack_trace_threshold
       @error_collector.capture_params = @capture_params
 
       

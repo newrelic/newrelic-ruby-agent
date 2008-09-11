@@ -20,7 +20,6 @@ class NewRelic::TransationSampleTests < Test::Unit::TestCase
   end
   def initialize(test)
     super(test)
-    @traceoptions = {}
   end
   
   def test_sql
@@ -75,8 +74,6 @@ class NewRelic::TransationSampleTests < Test::Unit::TestCase
   
   
   def test_record_sql_off
-    @traceoptions = {:record_sql => :off}
-    
     t = get_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
     
     s = t.prepare_to_send(:obfuscate_sql => true, :explain_sql => 0.00000001, :record_sql => :off)
@@ -88,8 +85,6 @@ class NewRelic::TransationSampleTests < Test::Unit::TestCase
   
   
   def test_record_sql_raw
-    @traceoptions = {:record_sql => :raw}
-    
     t = get_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
     
     s = t.prepare_to_send(:obfuscate_sql => true, :explain_sql => 0.00000001, :record_sql => :raw)
@@ -105,8 +100,6 @@ class NewRelic::TransationSampleTests < Test::Unit::TestCase
   
   
   def test_record_sql_obfuscated
-    @traceoptions = {:record_sql => :obfuscated}
-    
     t = get_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
     
     s = t.prepare_to_send(:obfuscate_sql => true, :explain_sql => 0.00000001, :record_sql => :obfuscated)
@@ -161,14 +154,14 @@ class NewRelic::TransationSampleTests < Test::Unit::TestCase
   
   private
   def get_sql_transaction(*sql)
-    sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance, @traceoptions)
+    sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
     sampler.notice_first_scope_push
     sampler.notice_transaction '/path', nil, :jim => "cool"
     sampler.notice_push_scope "a"
     
     sampler.notice_transaction '/path/2', nil, :jim => "cool"
     
-    sql.each {|sql_statement| sampler.notice_sql(sql_statement, {:adapter => "test"} ) }
+    sql.each {|sql_statement| sampler.notice_sql(sql_statement, {:adapter => "test"}, 0 ) }
     
     sleep 1.0
     
