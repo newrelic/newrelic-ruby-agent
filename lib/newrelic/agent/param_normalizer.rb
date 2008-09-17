@@ -1,20 +1,24 @@
-
-
-
 module ParamNormalizer
-  
+  # Transform parameter hash into a hash whose values are strictly
+  # strings
   def normalize_params(params)
-    
-    result = {}
-    
-    params.each do |key,value|
-      if !(value.is_a?(Numeric) || value.is_a?(String) || value.is_a?(Symbol))
-        value = (value.respond_to?(:to_s)) ? "[#{value.class}]: #{value.to_s}" : "[#{value.class}]"
-      end
-      
-      result[key] = value
+    case params
+      when Numeric, String, Symbol, FalseClass, TrueClass:
+        truncate(params, 256)
+      when Hash:
+        new_params = {}
+        params.each do | key, value |
+          new_params[truncate(key,32)] = normalize_params(value)
+        end
+        new_params
+      when Enumerable:
+        params.first(20).collect { | v | normalize_params(v)}
+      else
+        normalize_params(params.inspect)
     end
-    
-    result
+  end
+  private 
+  def truncate(string, len)
+    string.to_s.gsub(/^(.{#{len}})(.*)/) {$2.blank? ? $1 : $1 + "..."}
   end
 end
