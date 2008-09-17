@@ -17,8 +17,8 @@ require 'test/unit'
         assert_equal errors.length, 1
         
         err = errors.first
-        assert err.message == 'message'
-        assert err.params[:request_params][:x] == 'y'
+        assert_equal 'message', err.message 
+        assert_equal 'y', err.params[:request_params]['x']
         assert err.params[:request_uri] == '/myurl/'
         assert err.path == 'path'
         assert err.exception_class == 'Exception'
@@ -58,13 +58,14 @@ require 'test/unit'
         assert errors.length == max_q_length 
         errors.each_index do |i|
           err = errors.shift
-          assert_equal err.params[:request_params][:x], i
+          assert_equal i, err.params[:request_params]['x']
         end
       end
       
-      
+      # Why would anyone undef these methods?
       class TestClass
         undef to_s
+        undef inspect
       end
       
       
@@ -74,15 +75,15 @@ require 'test/unit'
                  [1.1, 1.1],
                  ['hi', 'hi'],
                  [:hi, :hi],
-                 [Exception.new("test"), "[Exception]: test"],
-                 [TestClass.new, "[#{TestClass.new.class}]"]
+                 [Exception.new("test"), "#<Exception: test>"],
+                 [TestClass.new, "#<NewRelic::Agent::ErrorCollectorTests::TestClass>"]
                 ]
         
         
         types.each do |test|
           @error_collector.notice_error('path', nil, {:x => test[0]}, Exception.new("message"))
           
-          assert_equal test[1], @error_collector.harvest_errors([])[0].params[:request_params][:x]
+          assert_equal test[1], @error_collector.harvest_errors([])[0].params[:request_params]['x']
         end
       end
       

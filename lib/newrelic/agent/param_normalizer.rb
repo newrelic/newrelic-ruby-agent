@@ -3,7 +3,9 @@ module ParamNormalizer
   # strings
   def normalize_params(params)
     case params
-      when Numeric, String, Symbol, FalseClass, TrueClass:
+      when Symbol, Numeric, FalseClass, TrueClass:
+        params
+      when String
         truncate(params, 256)
       when Hash:
         new_params = {}
@@ -14,7 +16,14 @@ module ParamNormalizer
       when Enumerable:
         params.first(20).collect { | v | normalize_params(v)}
       else
-        normalize_params(params.inspect)
+        if params.respond_to? :inspect
+          v = params.inspect
+        elsif params.respond_to? :to_s
+          v = params.to_s
+        else
+          v = "#<#{params.class.to_s}>"
+        end
+        normalize_params(v)
     end
   end
   private 
