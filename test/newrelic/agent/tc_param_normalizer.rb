@@ -10,7 +10,7 @@ class NewRelic::Agent::ParamNormalizerTests < Test::Unit::TestCase
   end
   def test_boolean
     np = normalize_params(APP_CONFIG)
-    assert_equal 'false', np['disable_ui']
+    assert_equal false, np['disable_ui']
   end
   def test_hash
     val = ('A'..'Z').to_a.join * 100
