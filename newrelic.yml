@@ -55,11 +55,10 @@ common: &default_settings
   # transactions and sends this to the RPM service once a minute. Included in the
   # transaction is the exact call sequence of the transactions including any SQL statements
   # issued.
-  #
   transaction_tracer:
   
     # Transaction tracer is enabled by default. Set this to false to turn it off. This feature
-    # is available at the Advanced and Pro RPM product levels only.
+    # is only available at the Silver and above product levels.
     enabled: true
   
  
@@ -68,10 +67,24 @@ common: &default_settings
     # original form, and "obfuscated", which strips out numeric and string literals
     record_sql: obfuscated
     
-  # To stop specific errors from reporting to RPM, set this property to comma separated 
-  # values
-  #
-  #ignore_errors: ActionController::RoutingError, ...
+  
+  # Error collector captures information about uncaught exceptions and sends them to RPM for
+  # viewing
+  error_collector:
+    
+    # Error collector is enabled by default. Set this to false to turn it off. This feature
+    # is only available at the Silver and above product levels
+    enabled: true
+    
+    # Tells error collector whether or not to capture a source snippet around the place of the
+    # error. This is false by default.
+    capture_source: false    
+    
+    # To stop specific errors from reporting to RPM, set this property to comma separated 
+    # values
+    #
+    #ignore_errors: ActionController::RoutingError, ...
+
 
 # override default settings based on your application's environment
 

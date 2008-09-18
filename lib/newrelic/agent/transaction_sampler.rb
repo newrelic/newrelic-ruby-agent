@@ -2,7 +2,7 @@ require 'newrelic/transaction_sample'
 require 'thread'
 require 'newrelic/agent/method_tracer'
 require 'newrelic/agent/synchronize'
-require 'newrelic/agent/param_normalizer'
+require 'newrelic/agent/collection_helper'
 
 module NewRelic::Agent
   class TransactionSampler
@@ -213,7 +213,7 @@ module NewRelic::Agent
   class TransactionSampleBuilder
     attr_reader :current_segment
     
-    include ParamNormalizer
+    include CollectionHelper
     
     def initialize(capture_params=true)
       @capture_params = capture_params

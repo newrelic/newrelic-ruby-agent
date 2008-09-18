@@ -1,4 +1,4 @@
-module ParamNormalizer
+module CollectionHelper
   # Transform parameter hash into a hash whose values are strictly
   # strings
   def normalize_params(params)
@@ -26,7 +26,26 @@ module ParamNormalizer
         normalize_params(v)
     end
   end
-  private 
+  
+  def clean_exception(exception)
+    exception = exception.original_exception if exception.respond_to? 'original_exception'
+
+    if exception.backtrace
+      clean_backtrace = exception.backtrace
+
+      # strip newrelic from the trace
+      clean_backtrace = clean_backtrace.reject {|line| line =~ /vendor\/plugins\/newrelic_rpm/ }
+      
+      # rename methods back to their original state
+      clean_backtrace.collect {|line| line.gsub "_without_(newrelic|trace)", ""}
+    else
+      nil
+    end
+  end
+  
+  
+  private
+  
   def truncate(string, len)
     string.to_s.gsub(/^(.{#{len}})(.*)/) {$2.blank? ? $1 : $1 + "..."}
   end

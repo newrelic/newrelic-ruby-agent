@@ -1,16 +1,18 @@
 require 'newrelic/agent/synchronize'
 require 'newrelic/noticed_error'
-require 'newrelic/agent/param_normalizer'
+require 'newrelic/agent/collection_helper'
 require 'logger'
 
 module NewRelic::Agent
   class ErrorCollector
     include Synchronize
-    include ParamNormalizer
+    include CollectionHelper
     
     MAX_ERROR_QUEUE_LENGTH = 20 unless defined? MAX_ERROR_QUEUE_LENGTH
     
     attr_accessor :capture_params
+    attr_accessor :capture_source
+    attr_accessor :enabled
     
     def initialize(agent = nil)
       @agent = agent
@@ -18,6 +20,8 @@ module NewRelic::Agent
       @ignore = {}
       @ignore_filter = nil
       @capture_params = true
+      @capture_source = false
+      @enabled = true
     end
     
     
@@ -35,7 +39,7 @@ module NewRelic::Agent
     
     def notice_error(path, request_uri, params, exception)
       
-      return if @ignore[exception.class.name]
+      return if !@enabled || @ignore[exception.class.name] 
       
       if @ignore_filter
         exception = @ignore_filter.call(exception)
@@ -52,19 +56,17 @@ module NewRelic::Agent
       data[:request_params] = normalize_params(params) if @capture_params
               
       data[:request_uri] = request_uri
+            
+      data[:rails_root] = RAILS_ROOT if defined? RAILS_ROOT
       
-      if exception.backtrace
-        clean_backtrace = exception.application_backtrace
-  
-        # strip newrelic from the trace
-        clean_backtrace = clean_backtrace.reject {|line| line =~ /vendor\/plugins\/newrelic_rpm/ }
-        
-        # rename methods back to their original state
-        clean_backtrace = clean_backtrace.collect {|line| line.gsub "_without_(newrelic|trace)", ""}
-         
-        data[:stack_trace] = clean_backtrace
+      data[:file_name] = exception.file_name if exception.respond_to?('file_name')
+      data[:line_number] = exception.line_number if exception.respond_to?('line_number')
+      
+      if @capture_source && exception.respond_to?('source_extract')
+        data[:source] = exception.source_extract
       end
       
+      data[:stack_trace] = clean_exception(exception)
       noticed_error = NoticedError.new(path, data, exception)
       
       synchronize do

@@ -11,7 +11,12 @@ class NoticedError
     self.params = data
     
     self.exception_class = exception.class.name
-    self.message = exception.message
+    
+    if exception.respond_to?('original_exception')
+      self.message = exception.original_exception.message
+    else
+      self.message = exception.message
+    end
 
     self.timestamp = Time.now
   end
