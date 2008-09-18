@@ -54,7 +54,7 @@ module NewRelic::Agent
       data = {}
       
       data[:request_params] = normalize_params(params) if @capture_params
-      data[:custom_params] = normalize_params(@agent.custom_params)
+      data[:custom_params] = normalize_params(@agent.custom_params) if @agent
               
       data[:request_uri] = request_uri
             

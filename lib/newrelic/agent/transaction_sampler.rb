@@ -210,7 +210,7 @@ module NewRelic::Agent
     
     include CollectionHelper
     
-    def initialize(capture_params, agent)
+    def initialize(capture_params=true, agent=nil)
       @capture_params = capture_params
       @sample = NewRelic::TransactionSample.new
       @sample.begin_building
@@ -246,7 +246,7 @@ module NewRelic::Agent
       end
       
       @sample.root_segment.end_trace relative_timestamp
-      @sample.params[:custom_params] = normalize_params(@agent.custom_params)
+      @sample.params[:custom_params] = normalize_params(@agent.custom_params) if @agent
       @sample.freeze
       @current_segment = nil
     end
