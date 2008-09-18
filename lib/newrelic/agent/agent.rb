@@ -219,11 +219,18 @@ module NewRelic::Agent
       
       @license_key = config.fetch('license_key', nil)
       
-      ignore_errors = config.fetch('ignore_errors', "")
+      error_collector_config = config.fetch('error_collector', {})
+      
+      @error_collector.enabled = error_collector_config.fetch('enabled', true)
+      @error_collector.capture_source = error_collector_config.fetch('capture_source', false)
+      
+      ignore_errors = error_collector_config.fetch('ignore_errors', "")
       ignore_errors = ignore_errors.split(",")
       ignore_errors.each { |error| error.strip! } 
       
       @error_collector.ignore(ignore_errors)
+      
+      
       @capture_params = config.fetch('capture_params', false)
             
       sampler_config = config.fetch('transaction_tracer', {})
