@@ -126,15 +126,24 @@ module NewRelic::Agent
     
     
     def lookup_stat(metric_name)
-      return @stats_hash[NewRelic::MetricSpec.new(metric_name)]
+      return @stats_hash[metric_name]
+    end
+    
+    
+    def get_stats_no_scope(metric_name)
+      stats = @stats_hash[metric_name]
+      if stats.nil?
+        stats = NewRelic::MethodTraceStats.new
+        @stats_hash[metric_name] = stats
+      end
+      stats
     end
     
     def get_stats(metric_name, use_scope = true)
-      spec = NewRelic::MetricSpec.new metric_name
-      stats = @stats_hash[spec]
+      stats = @stats_hash[metric_name]
       if stats.nil?
         stats = NewRelic::MethodTraceStats.new
-        @stats_hash[spec] = stats
+        @stats_hash[metric_name] = stats
       end
       
       if use_scope && transaction_name
@@ -156,9 +165,16 @@ module NewRelic::Agent
       
       @stats_hash.keys.each do |metric_spec|
         
+        
         # get a copy of the stats collected since the last harvest, and clear
         # the stats inside our hash table for the next time slice.
         stats = @stats_hash[metric_spec]
+
+        # we have an optimization for unscoped metrics
+        if !(metric_spec.is_a? NewRelic::MetricSpec)
+          metric_spec = NewRelic::MetricSpec.new metric_spec
+        end
+
         if stats.nil? 
           raise "Nil stats for #{metric_spec.name} (#{metric_spec.scope})"
         end

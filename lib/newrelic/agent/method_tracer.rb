@@ -13,22 +13,35 @@ class Module
     @@method_trace_log = log
   end
   
+
+  
+  
+  # This is duplicated inline in add_method_tracer
+  def trace_method_execution_no_scope(metric_name)
+    t0 = Time.now.to_f
+    stats = @@newrelic_stats_engine.get_stats_no_scope metric_name
+  
+    result = yield
+    duration = Time.now.to_f - t0
+    stats.trace_call(duration, duration)     # for some reason this is 3 usec faster than Time - Time
+    result 
+  end
+
+
   #
   # it might be cleaner to have a hash for options, however that's going to be slower
   # than direct parameters
   #
-  def trace_method_execution (metric_name, push_scope, produce_metric, deduct_call_time_from_parent)
+  def trace_method_execution(metric_name, produce_metric, deduct_call_time_from_parent)
     
-    t0 = Time.now
+    t0 = Time.now.to_f
     stats = nil
     expected_scope = nil
     
     begin
-      stats_engine = NewRelic::Agent.agent.stats_engine
+      expected_scope = @@newrelic_stats_engine.push_scope(metric_name, t0, deduct_call_time_from_parent)
       
-      expected_scope = stats_engine.push_scope(metric_name, t0, deduct_call_time_from_parent) if push_scope
-      
-      stats = stats_engine.get_stats metric_name, push_scope if produce_metric
+      stats = @@newrelic_stats_engine.get_stats metric_name, true if produce_metric
     rescue => e
       method_tracer_log.error("Caught exception in trace_method_execution header. Metric name = #{metric_name}, exception = #{e}")
       method_tracer_log.error(e.backtrace.join("\n"))
@@ -37,20 +50,15 @@ class Module
     begin
       result = yield
     ensure
-      t1 = Time.now
-      
-      duration = t1 - t0
+      duration = Time.now.to_f - t0
       
       begin
         if expected_scope
-          scope = stats_engine.pop_scope expected_scope, duration
+          scope = @@newrelic_stats_engine.pop_scope expected_scope, duration
           
           exclusive = duration - scope.children_time
-        else
-          exclusive = duration
+          stats.trace_call duration, exclusive if stats
         end
-
-        stats.trace_call duration, exclusive if stats
       rescue => e
         method_tracer_log.error("Caught exception in trace_method_execution footer. Metric name = #{metric_name}, exception = #{e}")
         method_tracer_log.error(e.backtrace.join("\n"))
@@ -74,6 +82,9 @@ class Module
   # the metric name onto the scope stack.
   def add_method_tracer (method_name, metric_name_code, options = {})
     return unless ::RPM_TRACERS_ENABLED
+    
+    @@newrelic_stats_engine ||= NewRelic::Agent.agent.stats_engine
+
     
     if !options.is_a?(Hash)
       options = {:push_scope => options} 
@@ -99,18 +110,36 @@ class Module
       return
     end
     
-    code = <<-CODE
-    def #{_traced_method_name(method_name, metric_name_code)}(*args, &block)
-      #{options[:code_header]}
-      metric_name = "#{metric_name_code}"
-      traced_method_result = #{klass}.trace_method_execution("\#{metric_name}", #{options[:push_scope]}, #{options[:metric]}, #{options[:deduct_call_time_from_parent]}) do
-        #{_untraced_method_name(method_name, metric_name_code)}(*args, &block)
+    fail "Can't add a tracer where push_scope is false and metric is false" if options[:push_scope] == false && !options[:metric]
+    
+    if options[:push_scope] == false
+      code = <<-CODE
+        def #{_traced_method_name(method_name, metric_name_code)}(*args, &block)
+          #{options[:code_header]}
+          @@newrelic_stats_engine ||= NewRelic::Agent.agent.stats_engine     # wish I didn't have to duplicate this
+          t0 = Time.now.to_f
+          stats = @@newrelic_stats_engine.get_stats_no_scope "#{metric_name_code}"
+
+          result = #{_untraced_method_name(method_name, metric_name_code)}(*args, &block)
+          duration = Time.now.to_f - t0
+          stats.trace_call(duration, duration)     # for some reason this is 3 usec faster than Time - Time
+          #{options[:code_footer]}
+          result 
+        end
+      CODE
+    else
+      code = <<-CODE
+      def #{_traced_method_name(method_name, metric_name_code)}(*args, &block)
+        #{options[:code_header]}
+        result = #{klass}.trace_method_execution("#{metric_name_code}", #{options[:metric]}, #{options[:deduct_call_time_from_parent]}) do
+          #{_untraced_method_name(method_name, metric_name_code)}(*args, &block)
+        end
+        #{options[:code_footer]}
+        result
       end
-      #{options[:code_footer]}
-      traced_method_result
+      CODE
     end
-    CODE
-  
+      
     class_eval code, __FILE__, __LINE__
   
     alias_method _untraced_method_name(method_name, metric_name_code), method_name

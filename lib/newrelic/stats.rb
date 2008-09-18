@@ -202,21 +202,16 @@ module NewRelic
       @max_call_time = value if value > @max_call_time
       @total_exclusive_time += exclusive_time
 
-      @sum_of_squares += value ** 2
+      @sum_of_squares += (value * value)
       self
     end
     
+    alias trace_call record_data_point
     
     def increment_count(value = 1)
       @call_count += value
     end
 
-    def trace_call(value, exclusive_time = value)
-      value = 0 if value < 0
-      exclusive_time = 0 if exclusive_time && exclusive_time < 0
-      
-      record_data_point(value, exclusive_time)
-    end
 
     def freeze
       @end_time = Time.now

@@ -1,9 +1,9 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'/../../../../../../test/test_helper'))
-require 'newrelic/agent/param_normalizer'
+require 'newrelic/agent/collection_helper'
 require 'ostruct'
 
-class NewRelic::Agent::ParamNormalizerTests < Test::Unit::TestCase
-  include ParamNormalizer
+class NewRelic::Agent::CollectionHelperTests < Test::Unit::TestCase
+  include CollectionHelper
   def test_string
     val = ('A'..'Z').to_a.join * 100
     assert_equal val.first(256) + "...", normalize_params(val)
