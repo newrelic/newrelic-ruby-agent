@@ -5,6 +5,7 @@ require 'newrelic/agent/synchronize'
 require 'newrelic/agent/collection_helper'
 
 module NewRelic::Agent
+  
   class TransactionSampler
     include Synchronize
     
@@ -13,6 +14,8 @@ module NewRelic::Agent
     
     def initialize(agent)
       @samples = []
+      
+      @agent = agent
 
       @max_samples = 100
       @stack_trace_threshold = 100000.0
@@ -117,15 +120,7 @@ module NewRelic::Agent
       end
     end
     
-    
-    # params == a hash of parameters to add
-    #
-    def add_request_parameters(params)
-      with_builder do |builder|
-        builder.add_request_parameters(params)
-      end
-    end
-    
+        
     # some statements (particularly INSERTS with large BLOBS
     # may be very large; we should trim them to a maximum usable length
     MAX_SQL_LENGTH = 16384
@@ -179,7 +174,7 @@ module NewRelic::Agent
       BUILDER_KEY = :transaction_sample_builder
 
       def create_builder
-        Thread::current[BUILDER_KEY] = TransactionSampleBuilder.new(@capture_params)
+        Thread::current[BUILDER_KEY] = TransactionSampleBuilder.new(@capture_params, @agent)
       end
       
       # most entry points into the transaction sampler take the current transaction
@@ -215,10 +210,11 @@ module NewRelic::Agent
     
     include CollectionHelper
     
-    def initialize(capture_params=true)
+    def initialize(capture_params, agent)
       @capture_params = capture_params
       @sample = NewRelic::TransactionSample.new
       @sample.begin_building
+      @agent = agent
       @current_segment = @sample.root_segment
     end
 
@@ -250,6 +246,7 @@ module NewRelic::Agent
       end
       
       @sample.root_segment.end_trace relative_timestamp
+      @sample.params[:custom_params] = normalize_params(@agent.custom_params)
       @sample.freeze
       @current_segment = nil
     end
@@ -275,8 +272,6 @@ module NewRelic::Agent
     end
     
     def set_transaction_info(path, request, params)
-      
-      
       @sample.params[:path] = path
       
       if @capture_params
@@ -294,12 +289,6 @@ module NewRelic::Agent
       @sample.params[:cpu_time] = cpu_time
     end
     
-    def add_request_parameters(params)
-      
-      params = normalize_params params
-      
-      @sample.params[:request_params].merge!(params)
-    end
     
     def sample
       fail "Not finished building" unless @sample.frozen?

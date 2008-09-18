@@ -102,9 +102,11 @@ module NewRelic::Agent
     
     # Add parameters to the current transaction trace
     #
-    def add_request_parameters(params = {})
-      agent.transaction_sampler.add_request_parameters(params)
+    def add_custom_parameters(params)
+      agent.add_custom_parameters(params)
     end
+    
+    alias add_request_parameters add_custom_parameters
     
     # This method disables the recording of transaction traces in the given
     # block.
@@ -312,6 +314,7 @@ module NewRelic::Agent
     end
     
     def start_transaction
+      Thread::current[:custom_params] = nil
       @stats_engine.start_transaction
     end
         
@@ -327,6 +330,16 @@ module NewRelic::Agent
       Thread::current[:record_tt] = should_record
       
       prev || true
+    end
+    
+    def add_custom_parameters(params)
+      p = Thread::current[:custom_params] || (Thread::current[:custom_params] = {})
+      
+      p.merge!(params)
+    end
+    
+    def custom_params()
+      Thread::current[:custom_params]
     end
     
     def set_sql_obfuscator(type, &block)
