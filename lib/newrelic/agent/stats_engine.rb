@@ -70,7 +70,7 @@ module NewRelic::Agent
     
     def push_scope(metric, time = Time.now, deduct_call_time_from_parent = true)
       @scope_stack_listeners.each do |l|
-        l.notice_first_scope_push if scope_stack.empty? 
+        l.notice_first_scope_push(time) if scope_stack.empty? 
         l.notice_push_scope metric
       end
       

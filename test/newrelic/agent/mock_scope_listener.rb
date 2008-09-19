@@ -8,7 +8,7 @@ class MockScopeListener
     @scope = {}
   end
   
-  def notice_first_scope_push()
+  def notice_first_scope_push(time)
   end
 
   def notice_push_scope(scope)

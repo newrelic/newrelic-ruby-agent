@@ -263,7 +263,7 @@ module NewRelic::Agent
       @prod_mode_enabled = force_enable || config['enabled']
       
       # Initialize transaction sampler
-      @transaction_sampler.capture_params = @capture_params
+      TransactionSampler.capture_params = @capture_params
       @transaction_sampler.stack_trace_threshold = @stack_trace_threshold
       @error_collector.capture_params = @capture_params
 

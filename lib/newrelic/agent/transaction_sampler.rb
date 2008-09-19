@@ -6,20 +6,29 @@ require 'newrelic/agent/collection_helper'
 
 module NewRelic::Agent
   
+  
   class TransactionSampler
     include Synchronize
     
-    attr_accessor :capture_params
+    BUILDER_KEY = :transaction_sample_builder
+    
+    class << self
+      attr_accessor :capture_params
+      attr_accessor :agent
+      
+      @@capture_params = true
+      @@agent = nil
+    end
+    
     attr_accessor :stack_trace_threshold
     
     def initialize(agent)
       @samples = []
       
-      @agent = agent
+      @@agent = agent
 
       @max_samples = 100
       @stack_trace_threshold = 100000.0
-      @capture_params = true
 
       agent.stats_engine.add_scope_stack_listener self
 
@@ -29,7 +38,7 @@ module NewRelic::Agent
     end
     
     def disable
-      @agent.stats_engine.remove_scope_stack_listener self
+      @@agent.stats_engine.remove_scope_stack_listener self
     end
     
     
@@ -51,8 +60,8 @@ module NewRelic::Agent
     end
     
     
-    def notice_first_scope_push
-      create_builder
+    def notice_first_scope_push(time=Time.now)
+      Thread::current[BUILDER_KEY] = TransactionSampleBuilder.new(time)
     end
     
     def notice_push_scope(scope)
@@ -175,11 +184,6 @@ module NewRelic::Agent
     end
     
     private 
-      BUILDER_KEY = :transaction_sample_builder
-
-      def create_builder
-        Thread::current[BUILDER_KEY] = TransactionSampleBuilder.new(@capture_params, @agent)
-      end
       
       # most entry points into the transaction sampler take the current transaction
       # sample builder and do something with it.  There may or may not be a current
@@ -214,11 +218,8 @@ module NewRelic::Agent
     
     include CollectionHelper
     
-    def initialize(capture_params=true, agent=nil)
-      @capture_params = capture_params
-      @sample = NewRelic::TransactionSample.new
-      @sample.begin_building
-      @agent = agent
+    def initialize(time=Time.now)
+      @sample = NewRelic::TransactionSample.new(time)
       @current_segment = @sample.root_segment
     end
 
@@ -250,7 +251,7 @@ module NewRelic::Agent
       end
       
       @sample.root_segment.end_trace relative_timestamp
-      @sample.params[:custom_params] = normalize_params(@agent.custom_params) if @agent
+      @sample.params[:custom_params] = normalize_params(TransactionSampler.agent.custom_params) if TransactionSampler.agent
       @sample.freeze
       @current_segment = nil
     end
@@ -278,7 +279,7 @@ module NewRelic::Agent
     def set_transaction_info(path, request, params)
       @sample.params[:path] = path
       
-      if @capture_params
+      if TransactionSampler.capture_params
         params = normalize_params params
         
         @sample.params[:request_params].merge!(params)

@@ -127,7 +127,6 @@ class NewRelic::TransationSampleTests < Test::Unit::TestCase
     t = NewRelic::TransactionSample.new
     
     t.params[:test] = "hi"
-    t.begin_building
     
     s1 = t.create_segment(1, "controller")
     

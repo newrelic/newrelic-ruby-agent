@@ -36,7 +36,6 @@ class Module
     
     t0 = Time.now.to_f
     stats = nil
-    expected_scope = nil
     
     begin
       expected_scope = @@newrelic_stats_engine.push_scope(metric_name, t0, deduct_call_time_from_parent)

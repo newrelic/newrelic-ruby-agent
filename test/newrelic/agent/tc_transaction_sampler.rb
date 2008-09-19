@@ -223,7 +223,7 @@ module NewRelic
         [true, false].each do |capture| 
           t = TransactionSampler.new(Agent.instance)
           
-          t.capture_params = capture
+          TransactionSampler.capture_params = capture
           
           t.notice_first_scope_push
           t.notice_transaction('/path', nil, {:param => 'hi'})

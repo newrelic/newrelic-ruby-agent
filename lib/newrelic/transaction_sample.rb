@@ -247,8 +247,10 @@ module NewRelic
     attr_reader :params
     attr_reader :sample_id
     
-    def initialize(sample_id = nil)
+    def initialize(start_time = Time.now, sample_id = nil)
       @sample_id = sample_id || object_id
+      @start_time = start_time
+      @root_segment = create_segment 0.0, "ROOT"
       @params = {}
       @params[:request_params] = {}
     end
@@ -257,11 +259,6 @@ module NewRelic
       @root_segment.path_string
     end
     
-    def begin_building(start_time = Time.now)
-      @start_time = start_time
-      @root_segment = create_segment 0.0, "ROOT"
-    end
-
     def create_segment (relative_timestamp, metric_name, segment_id = nil)
       raise TypeError.new("Frozen Transaction Sample") if frozen?
       NewRelic::TransactionSample::Segment.new(relative_timestamp, metric_name, segment_id)    
@@ -305,8 +302,7 @@ module NewRelic
     def omit_segments_with(regex)
       regex = Regexp.new(regex)
       
-      sample = TransactionSample.new(sample_id)
-      sample.begin_building @start_time
+      sample = TransactionSample.new(@start_time, sample_id)
       
       params.each {|k,v| sample.params[k] = v}
         
@@ -322,8 +318,7 @@ module NewRelic
     #   :keep_backtraces : keep backtraces, significantly increasing size of trace (off by default)
     #   :obfuscate_sql : clear sql fields of potentially sensitive values (higher overhead, better security)
     def prepare_to_send(options={})
-      sample = TransactionSample.new(sample_id)
-      sample.begin_building @start_time
+      sample = TransactionSample.new(@start_time, sample_id)
       
       params.each {|k,v| sample.params[k] = v}
       
