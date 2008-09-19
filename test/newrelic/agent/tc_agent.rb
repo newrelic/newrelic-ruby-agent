@@ -41,18 +41,21 @@ class AgentTests < ActiveSupport::TestCase
     Mongrel::HttpServer.new
     @agent = NewRelic::Agent.instance
     @agent.start :test, :test
-    
   end
-  
-  # Remove the port method so it won't think mongrel
-  # is available
-  def teardown
+
+  def test_environment
+    # This was in the teardown but it was failing.  Still not sure why...
     e = NewRelic::LocalEnvironment.new
     assert_equal :mongrel, e.environment
     assert_equal 3000, e.identifier
+  end
+  # Remove the port method so it won't think mongrel
+  # is available
+  def teardown
     Mongrel::HttpServer.class_eval {undef_method :port}
     @agent.shutdown
     super
+
   end
   
   def test_public_apis
