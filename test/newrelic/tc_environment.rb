@@ -46,13 +46,9 @@ class EnvironmentTest < ActiveSupport::TestCase
   def test_mongrel
     require 'mongrel'
     m = Mongrel::HttpServer.new('127.0.0.1',3030)
-    m.run
-    Thread.pass
     e = NewRelic::LocalEnvironment.new
     assert_equal :mongrel, e.environment
     assert_equal 3030, e.identifier
-    m.stop
-    Thread.pass
   end
   def test_thin
     class << self
