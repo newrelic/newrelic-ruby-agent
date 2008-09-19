@@ -71,7 +71,7 @@ module NewRelic::Agent
     def push_scope(metric, time = Time.now, deduct_call_time_from_parent = true)
       @scope_stack_listeners.each do |l|
         l.notice_first_scope_push(time) if scope_stack.empty? 
-        l.notice_push_scope metric
+        l.notice_push_scope metric, time
       end
       
       scope = ScopeStackElement.new(metric, time, 0, deduct_call_time_from_parent)
@@ -80,7 +80,7 @@ module NewRelic::Agent
       scope
     end
     
-    def pop_scope(expected_scope, duration = Time.now - expected_scope.timestamp)
+    def pop_scope(expected_scope, duration = Time.now - expected_scope.timestamp, time=Time.now)
       stack = scope_stack
       
       scope = stack.pop
@@ -96,8 +96,8 @@ module NewRelic::Agent
       end
       
       @scope_stack_listeners.each do |l|
-        l.notice_pop_scope scope.name
-        l.notice_scope_empty if scope_stack.empty? 
+        l.notice_pop_scope(scope.name, time)
+        l.notice_scope_empty(time) if scope_stack.empty? 
       end
       
       scope

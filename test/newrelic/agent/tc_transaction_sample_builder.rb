@@ -1,3 +1,4 @@
+require File.expand_path(File.join(File.dirname(__FILE__),'/../../../../../../test/test_helper'))
 require 'newrelic/agent/transaction_sampler'
 require 'test/unit'
 
@@ -33,7 +34,7 @@ module NewRelic
           end
         end
       
-        @builder.finish_trace
+        @builder.finish_trace(Time.now)
         validate_builder
       end
     
@@ -49,7 +50,7 @@ module NewRelic
           # expected
         end
         
-        @builder.finish_trace
+        @builder.finish_trace(Time.now)
       
         validate_builder
       
@@ -89,7 +90,7 @@ module NewRelic
           end
           build_segment "c"
         end
-        @builder.finish_trace
+        @builder.finish_trace(Time.now)
         
         validate_builder false
         
@@ -143,7 +144,7 @@ module NewRelic
         end
         build_segment "c"
         
-        @builder.finish_trace
+        @builder.finish_trace(Time.now)
         validate_builder
         
         dump = Marshal.dump @builder.sample
@@ -158,7 +159,7 @@ module NewRelic
         build_segment "b"
         build_segment "c"
         
-        @builder.finish_trace
+        @builder.finish_trace(Time.now)
         validate_builder
       end
       
@@ -190,9 +191,9 @@ module NewRelic
       end
       
       def build_segment(metric, time = 0, &proc)
-        @builder.trace_entry(metric)
+        @builder.trace_entry(metric, Time.now)
         proc.call if proc
-        @builder.trace_exit(metric)
+        @builder.trace_exit(metric, Time.now)
       end
     end
   end

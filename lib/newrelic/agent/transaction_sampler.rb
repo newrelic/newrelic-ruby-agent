@@ -64,9 +64,9 @@ module NewRelic::Agent
       Thread::current[BUILDER_KEY] = TransactionSampleBuilder.new(time)
     end
     
-    def notice_push_scope(scope)
+    def notice_push_scope(scope, time=Time.now)
       with_builder do |builder|
-        builder.trace_entry(scope)
+        builder.trace_entry(scope, time)
         
         # in developer mode, capture the stack trace with the segment.
         # this is cpu and memory expensive and therefore should not be
@@ -96,15 +96,15 @@ module NewRelic::Agent
       depth
     end
   
-    def notice_pop_scope(scope)
+    def notice_pop_scope(scope, time = Time.now)
       with_builder do |builder|
-        builder.trace_exit(scope)
+        builder.trace_exit(scope, time)
       end
     end
     
-    def notice_scope_empty
+    def notice_scope_empty(time=Time.now)
       with_builder do |builder|
-        builder.finish_trace
+        builder.finish_trace(time)
         reset_builder
       
         synchronize do
@@ -223,22 +223,22 @@ module NewRelic::Agent
       @current_segment = @sample.root_segment
     end
 
-    def trace_entry(metric_name)
-      segment = @sample.create_segment(relative_timestamp, metric_name)
+    def trace_entry(metric_name, time)
+      segment = @sample.create_segment(time - @sample.start_time, metric_name)
       @current_segment.add_called_segment(segment)
       @current_segment = segment
     end
 
-    def trace_exit(metric_name)
+    def trace_exit(metric_name, time)
       if metric_name != @current_segment.metric_name
         fail "unbalanced entry/exit: #{metric_name} != #{@current_segment.metric_name}"
       end
       
-      @current_segment.end_trace relative_timestamp
+      @current_segment.end_trace(time - @sample.start_time)
       @current_segment = @current_segment.parent_segment
     end
     
-    def finish_trace
+    def finish_trace(time)
       # This should never get called twice, but in a rare case that we can't reproduce in house it does.
       # log forensics and return gracefully
       if @sample.frozen?
@@ -250,7 +250,7 @@ module NewRelic::Agent
         return
       end
       
-      @sample.root_segment.end_trace relative_timestamp
+      @sample.root_segment.end_trace(time - @sample.start_time)
       @sample.params[:custom_params] = normalize_params(TransactionSampler.agent.custom_params) if TransactionSampler.agent
       @sample.freeze
       @current_segment = nil
@@ -272,9 +272,6 @@ module NewRelic::Agent
       @sample.freeze unless sample.frozen?
     end
     
-    def relative_timestamp
-      Time.now - @sample.start_time
-    end
     
     def set_transaction_info(path, request, params)
       @sample.params[:path] = path
