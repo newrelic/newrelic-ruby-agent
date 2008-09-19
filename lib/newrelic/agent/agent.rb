@@ -341,7 +341,7 @@ module NewRelic::Agent
     end
     
     def custom_params()
-      Thread::current[:custom_params]
+      Thread::current[:custom_params] || {}
     end
     
     def set_sql_obfuscator(type, &block)
@@ -496,8 +496,8 @@ module NewRelic::Agent
       # Ask for mermission to collect error data
       @should_send_errors = invoke_remote :should_collect_errors, @agent_id
       
-      log! "Transaction traces will be sent to the RPM service" if @use_transaction_sampler && @should_send_samples
-      log! "Errors will be sent to the RPM service" if @error_collector.enabled && @should_send_errors
+      log.info "Transaction traces will be sent to the RPM service" if @use_transaction_sampler && @should_send_samples
+      log.info "Errors will be sent to the RPM service" if @error_collector.enabled && @should_send_errors
       
       @connected = true
       @last_harvest_time = Time.now
