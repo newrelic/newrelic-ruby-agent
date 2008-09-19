@@ -28,6 +28,10 @@ module NewRelic::Agent
       end
     end
     
+    def disable
+      @agent.stats_engine.remove_scope_stack_listener self
+    end
+    
     
     def default_sql_obfuscator(sql)
 #      puts "obfuscate: #{sql}"

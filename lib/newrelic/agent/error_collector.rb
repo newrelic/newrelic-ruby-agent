@@ -39,7 +39,8 @@ module NewRelic::Agent
     
     def notice_error(path, request_uri, params, exception)
       
-      return if !@enabled || @ignore[exception.class.name] 
+      return unless @enabled
+      return if @ignore[exception.class.name] 
       
       if @ignore_filter
         exception = @ignore_filter.call(exception)

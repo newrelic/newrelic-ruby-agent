@@ -226,6 +226,8 @@ module NewRelic::Agent
       @error_collector.enabled = error_collector_config.fetch('enabled', true)
       @error_collector.capture_source = error_collector_config.fetch('capture_source', false)
       
+      log.info "Error collecting is enabled in agent config" if @error_collector.enabled
+      
       ignore_errors = error_collector_config.fetch('ignore_errors', "")
       ignore_errors = ignore_errors.split(",")
       ignore_errors.each { |error| error.strip! } 
@@ -244,7 +246,7 @@ module NewRelic::Agent
       @explain_enabled = sampler_config.fetch('explain_enabled', true)
       @stack_trace_threshold = sampler_config.fetch('stack_trace_threshold', '100000.0').to_f
       
-      log.info "Transaction tracing is enabled in the agent" if @use_transaction_sampler
+      log.info "Transaction tracing is enabled in agent config" if @use_transaction_sampler
       log.warn "Agent is configured to send raw SQL to RPM service" if @record_sql == :raw
       
       @use_ssl = config.fetch('ssl', false)
@@ -461,9 +463,11 @@ module NewRelic::Agent
         @worker_loop.add_task(report_period) do 
           harvest_and_send_slowest_sample
         end
+      else
+        @transaction_sampler.disable
       end
       
-      if @should_send_errors
+      if @should_send_errors && @error_collector.enabled
         @worker_loop.add_task(report_period) do 
           harvest_and_send_errors
         end
@@ -493,6 +497,7 @@ module NewRelic::Agent
       @should_send_errors = invoke_remote :should_collect_errors, @agent_id
       
       log! "Transaction traces will be sent to the RPM service" if @use_transaction_sampler && @should_send_samples
+      log! "Errors will be sent to the RPM service" if @error_collector.enabled && @should_send_errors
       
       @connected = true
       @last_harvest_time = Time.now
