@@ -34,7 +34,7 @@ class Module
   #
   def trace_method_execution(metric_name, produce_metric, deduct_call_time_from_parent)
     
-    t0 = Time.now.to_f  # just pass in Time objects. Only do the math on TTs if we absolutely have to
+    t0 = Time.now  # just pass in Time objects. Only do the math on TTs if we absolutely have to
     stats = nil
     
     begin
@@ -49,8 +49,8 @@ class Module
     begin
       result = yield
     ensure
-      t1 = Time.now.to_f
-      duration = t1 - t0
+      t1 = Time.now
+      duration = t1.to_f - t0.to_f
       
       begin
         if expected_scope
