@@ -7,7 +7,6 @@ if defined? ActionController
 module ActionController
   class Base
     
-    
     def newrelic_notice_error(exception)
       local_params = (respond_to? :filter_parameters) ? filter_parameters(params) : params
       
