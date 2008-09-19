@@ -44,19 +44,15 @@ class EnvironmentTest < ActiveSupport::TestCase
     Object.class_eval { remove_const :DEFAULT_PORT }
   end
   def test_mongrel
-    
-    class << self
-      module ::Mongrel
-        class HttpServer
-          def port; 3000; end
-        end
-      end
-    end
-    Mongrel::HttpServer.new
+    require 'mongrel'
+    m = Mongrel::HttpServer.new('127.0.0.1',3030)
+    m.run
+    Thread.pass
     e = NewRelic::LocalEnvironment.new
     assert_equal :mongrel, e.environment
-    assert_equal 3000, e.identifier
-    Mongrel::HttpServer.class_eval {undef_method :port}
+    assert_equal 3030, e.identifier
+    m.stop
+    Thread.pass
   end
   def test_thin
     class << self
