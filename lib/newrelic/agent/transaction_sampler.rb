@@ -13,11 +13,20 @@ module NewRelic::Agent
     BUILDER_KEY = :transaction_sample_builder
     
     class << self
-      attr_accessor :capture_params
-      attr_accessor :agent
-      
       @@capture_params = true
       @@agent = nil
+      
+      def agent
+        @@agent
+      end
+      
+      def capture_params
+        @@capture_params
+      end
+      
+      def capture_params=(val)
+        @@capture_params = val
+      end
     end
     
     attr_accessor :stack_trace_threshold
