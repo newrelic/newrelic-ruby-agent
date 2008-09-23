@@ -435,12 +435,15 @@ module NewRelic::Agent
         return
       end
       
-      Thread.new do
-        @worker_thread = Thread.current
+      log.debug "Launching worker thread"
+      log.debug "#{@worker_thread}, #{(@worker_thread) ? @worker_thread.alive? : ''}"
+      log.debug caller().join("\n")
+      
+      @worker_thread = Thread.new do
         run_worker_loop
       end
       
-      while @worker_thread.nil? do
+      while !@worker_thread.alive? do
         sleep 0.1
       end
       
