@@ -198,7 +198,7 @@ module NewRelic::Agent
     #
     def ensure_started
       return unless @prod_mode_enabled && !@invalid_license
-      if @worker_thread.nil? || !@worker_thread.alive?
+      if @worker_pid != $$
         launch_worker_thread
         @stats_engine.spawn_sampler_thread
      end
@@ -393,6 +393,8 @@ module NewRelic::Agent
       @invalid_license = false
       
       @last_harvest_time = Time.now
+      
+      @worker_pid = 0
     end
     
     def setup_log
@@ -435,18 +437,11 @@ module NewRelic::Agent
         return
       end
       
-      log.debug "Launching worker thread"
-      log.debug "#{@worker_thread}, #{(@worker_thread) ? @worker_thread.alive? : ''}"
-      log.debug caller().join("\n")
+      @worker_pid = $$
       
       @worker_thread = Thread.new do
         run_worker_loop
       end
-      
-      while !@worker_thread.alive? do
-        sleep 0.1
-      end
-      
     end
     
     # Connect to the server, and run the worker loop forever
