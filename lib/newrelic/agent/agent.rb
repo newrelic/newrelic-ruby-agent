@@ -391,6 +391,8 @@ module NewRelic::Agent
       @request_timeout = 15 * 60
       
       @invalid_license = false
+      
+      @last_harvest_time = Time.now
     end
     
     def setup_log
@@ -497,7 +499,6 @@ module NewRelic::Agent
       log.info "Errors will be sent to the RPM service" if @error_collector.enabled && @should_send_errors
       
       @connected = true
-      @last_harvest_time = Time.now
       return true
       
     rescue LicenseException => e
@@ -568,7 +569,6 @@ module NewRelic::Agent
       end
     end
     
-    @last_harvest_time = Time.now
     def harvest_and_send_timeslice_data
       now = Time.now
       @unsent_timeslice_data ||= {}
@@ -589,11 +589,11 @@ module NewRelic::Agent
               
       @metric_ids.merge! metric_ids unless metric_ids.nil?
       
-      log.debug "#{Time.now}: sent #{@unsent_timeslice_data.length} timeslices (#{@agent_id})"
+      log.debug "#{now}: sent #{@unsent_timeslice_data.length} timeslices (#{@agent_id}) in #{Time.now - now} seconds"
       
       # if we successfully invoked this web service, then clear the unsent message cache.
       @unsent_timeslice_data.clear
-      @last_harvest_time = Time.now
+      @last_harvest_time = now
       
       # handle_messages 
       
