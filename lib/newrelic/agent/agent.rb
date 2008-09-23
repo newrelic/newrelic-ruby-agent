@@ -435,10 +435,15 @@ module NewRelic::Agent
         return
       end
       
-      @worker_thread = Thread.new do 
-        @worker_thread_started = true
+      Thread.new do
+        @worker_thread = Thread.current
         run_worker_loop
       end
+      
+      while @worker_thread.nil? do
+        sleep 0.1
+      end
+      
     end
     
     # Connect to the server, and run the worker loop forever
