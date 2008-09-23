@@ -65,7 +65,7 @@ module NewRelic::Agent
     end
     
     def remove_scope_stack_listener(l)
-      fail "Unknown stack listener trying to be removed" if @scope_stack_listeners.delete(l)
+      fail "Unknown stack listener trying to be removed" if !@scope_stack_listeners.delete(l)
     end
     
     def push_scope(metric, time = Time.now, deduct_call_time_from_parent = true)
