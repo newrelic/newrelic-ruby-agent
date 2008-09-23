@@ -145,9 +145,6 @@ module NewRelic::Agent
     
     include Singleton
     
-    DEFAULT_HOST = 'localhost'
-    DEFAULT_PORT = 3000
-    
     # Config hash
     attr_accessor :config
     attr_reader :obfuscator
