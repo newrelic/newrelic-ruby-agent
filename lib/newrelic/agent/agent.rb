@@ -440,7 +440,12 @@ module NewRelic::Agent
       @worker_pid = $$
       
       @worker_thread = Thread.new do
-        run_worker_loop
+        begin
+          run_worker_loop
+        rescue Exception => e
+          log! e
+          log! e.backtrace().join("\n")
+        end
       end
     end
     
