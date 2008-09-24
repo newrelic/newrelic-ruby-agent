@@ -1,13 +1,6 @@
+require File.expand_path(File.join(File.dirname(__FILE__),'/../../../../../../test/test_helper'))
 
-require 'test/unit'
-
-require 'newrelic/agent/method_tracer'
-require 'newrelic/agent/instrumentation/action_controller'
-require 'newrelic/agent/mock_http'
-require 'newrelic/agent'
-require 'mocha'
-
-
+NewRelic::Agent.instance.instrument_rails
 
 class TestController < ActionController::Base
   filter_parameter_logging :social_security_number
@@ -20,21 +13,26 @@ class TestController < ActionController::Base
   
   def action_to_ignore(*args)
   end
-
+  
 end
 
 
-   
+
 class AgentControllerTests < Test::Unit::TestCase
   
+  attr_accessor :agent
+  def setup
+    super
+    @agent = NewRelic::Agent.instance
+    @agent.start :test, :test
+  end
+  
+  def teardown
+    @agent.shutdown
+    super
+  end
   
   def test_controller_params
-    
-    return
-    
-    agent = NewRelic::Agent.instance
-    
-    assert agent
     
     assert agent.transaction_sampler
     
@@ -44,7 +42,7 @@ class AgentControllerTests < Test::Unit::TestCase
     
     assert_equal "[FILTERED]", controller._filter_parameters({'social_security_number' => 'test'})['social_security_number']
     
-    controller.process(MockHTTPRequest.new('social_security_number' => "001-555-1212"), MockHTTPResponse.new)
+    controller.process(ActionController::TestRequest.new('social_security_number' => "001-555-1212"), ActionController::TestResponse.new)
     
     samples = NewRelic::Agent.instance.transaction_sampler.get_samples
     
@@ -52,9 +50,8 @@ class AgentControllerTests < Test::Unit::TestCase
     
     assert_equal 1, samples.length
     
-    puts "Request Params: #{samples[0].params[:request_params]}"
+    assert_equal Hash["social_security_number", "[FILTERED]"], samples[0].params[:request_params]
 
-#    assert_equal "[FILTERED]", samples[0].params[:request_params]['social_security_number']
   end
-
+  
 end

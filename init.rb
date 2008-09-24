@@ -21,7 +21,7 @@ begin catch(:disabled) do
 
   begin
     newrelic_agent_config = YAML.load(newrelic_config_file)[RAILS_ENV] || {}
-  rescue Exception => e
+  rescue ScriptError, StandardError => e
     to_stderr "Error parsing #{newrelic_config_file}"
     to_stderr "#{e}"
     to_stderr "Agent is disabled."
@@ -93,7 +93,7 @@ begin catch(:disabled) do
     end
   end
 end
-rescue Exception => e
+rescue => e
   to_stderr "Error initializing New Relic plugin"
   to_stderr "#{e}"
   to_stderr e.backtrace.join("\n")

@@ -1,29 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'/../../../../../../test/test_helper'))
 require 'newrelic/agent/agent'
 require 'newrelic/local_environment'
-module Thin
-  class Server
-    def initialize
-      @backend = Backend.new
-    end
-    
-    def backend
-      @backend
-    end
-  end
-  
-  class Backend
-    
-    def set_socket(s)
-      @socket = s
-    end
-    def socket
-      @socket
-    end
-  end
-end
-
-
 
 class AgentTests < ActiveSupport::TestCase
   

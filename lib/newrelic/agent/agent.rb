@@ -152,7 +152,6 @@ module NewRelic::Agent
     attr_reader :transaction_sampler
     attr_reader :error_collector
     attr_reader :worker_loop
-    attr_reader :log
     attr_reader :license_key
     attr_reader :remote_host
     attr_reader :remote_port
@@ -213,7 +212,7 @@ module NewRelic::Agent
         log.warn "Phusion Passenger has been detected. Some RPM memory statistics may have inaccuracies due to short process lifespans"
       end
       
-      @worker_loop = WorkerLoop.new(@log)
+      @worker_loop = WorkerLoop.new(log)
       @started = true
       
       @license_key = config.fetch('license_key', nil)
@@ -305,9 +304,9 @@ module NewRelic::Agent
         else
           log.debug "ERROR - could not stop worker thread"
         end
-      rescue Exception => e
-        log.debug e
-        log.debug e.backtrace.join("\n")
+      rescue => e
+        log.error e
+        log.error e.backtrace.join("\n")
       end
       @started = nil
     end
@@ -359,7 +358,7 @@ module NewRelic::Agent
       begin 
         require 'builtin/rails_info/rails/info'
         i += Rails::Info.properties
-      rescue Exception => e
+      rescue SecurityError, ScriptError, StandardError => e
         log.debug "Unable to get the Rails info: #{e.inspect}"
         log.debug e.backtrace.join("\n")
       end
@@ -373,6 +372,32 @@ module NewRelic::Agent
         File.open(rev_file) { | file | i << ['Revision', file.read] } rescue nil
       end
       i
+    end
+    
+    def instrument_rails
+      return if @instrumented
+      
+      @instrumented = true
+      
+      Module.method_tracer_log = log
+      
+      # Instrumentation for the key code points inside rails for monitoring by NewRelic.
+      # note this file is loaded only if the newrelic agent is enabled (through config/newrelic.yml)
+      instrumentation_files = File.join(File.dirname(__FILE__), 'instrumentation', '*.rb')
+      Dir.glob(instrumentation_files) do |file|
+        begin
+          require file
+          log.debug "Processed instrumentation file '#{file.split('/').last}'"
+        rescue => e
+          log.error "Error loading instrumentation file '#{file}': #{e}"
+          log.debug e.backtrace.join("\n")
+        end
+      end
+    end
+    
+    def log
+      setup_log unless @log
+      @log
     end
     
     private
@@ -399,7 +424,7 @@ module NewRelic::Agent
     
     def setup_log
       log_path = ::RAILS_DEFAULT_LOGGER.instance_eval do
-      File.dirname(@log.path) rescue File.dirname(@logdev.filename) 
+        File.dirname(@log.path) rescue File.dirname(@logdev.filename) 
       end rescue "#{RAILS_ROOT}/log"
       log_path  = File.expand_path(log_path)
       identifier_part = identifier && identifier[/[\.\w]*$/] 
@@ -413,7 +438,7 @@ module NewRelic::Agent
         "[#{timestamp.strftime("%m/%d/%y %H:%M:%S")} (#{$$})] #{severity} : #{msg}\n" 
       end
       
-      @stats_engine.log = @log
+      @stats_engine.log = @log if @stats_engine
       
       # set the log level as specified in the config file
       case config.fetch("log_level","info").downcase
@@ -554,27 +579,6 @@ module NewRelic::Agent
 
     def determine_home_directory
       File.expand_path(RAILS_ROOT)
-    end
-    
-    def instrument_rails
-      return if @instrumented
-
-      @instrumented = true
-      
-      Module.method_tracer_log = log
-      
-      # Instrumentation for the key code points inside rails for monitoring by NewRelic.
-      # note this file is loaded only if the newrelic agent is enabled (through config/newrelic.yml)
-      instrumentation_files = File.join(File.dirname(__FILE__), 'instrumentation', '*.rb')
-      Dir.glob(instrumentation_files) do |file|
-        begin
-          require file
-          log.debug "Processed instrumentation file '#{file.split('/').last}'"
-        rescue => e
-          log.error "Error loading instrumentation file '#{file}': #{e}"
-          log.debug e.backtrace.join("\n")
-        end
-      end
     end
     
     def harvest_and_send_timeslice_data
