@@ -136,6 +136,10 @@ module NewRelic
         	    if connection
 	              result = connection.execute("EXPLAIN #{statement}")
   	            result.each {|row| explanation << row }
+                
+                # sleep for a very short period of time in order to yield to the main thread
+                # this is because a remote database call will likely hang the VM
+                sleep 0.05
   	          end
             rescue
               x = 1 # this is here so that code coverage knows we've entered this block
