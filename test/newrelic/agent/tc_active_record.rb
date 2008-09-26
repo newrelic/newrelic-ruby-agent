@@ -29,13 +29,18 @@ class ActiveRecordInstrumentationTests < Test::Unit::TestCase
   
   def setup
     super
-    TestModel.setup    
+    begin
+      TestModel.setup
+    rescue => e
+      puts e
+      raise e
+    end
     @agent = NewRelic::Agent.instance
     @agent.start :test, :test
-    TestModel.create :id => 0, :name => 'jeff'
   end
   
   def teardown
+    @agent.transaction_sampler.harvest_slowest_sample
     @agent.shutdown
     @agent.stats_engine.harvest_timeslice_data Hash.new, Hash.new
     TestModel.teardown
@@ -43,6 +48,7 @@ class ActiveRecordInstrumentationTests < Test::Unit::TestCase
   end
   
   def test_finder
+    TestModel.create :id => 0, :name => 'jeff'
     TestModel.find(:all)
     s = NewRelic::Agent.get_stats("ActiveRecord/TestModel/find")
     assert_equal 1, s.call_count
@@ -56,16 +62,29 @@ class ActiveRecordInstrumentationTests < Test::Unit::TestCase
   def test_transaction
     
     TestModel.find(:all)
-    sample = NewRelic::Agent.instance.transaction_sampler.harvest_slowest_sample
+    sample = @agent.transaction_sampler.harvest_slowest_sample
     sample = sample.prepare_to_send(:obfuscate_sql => true, :explain_enabled => true, :explain_sql => 0.000001)
     segment = sample.root_segment.called_segments.first.called_segments.first
     explanations = segment.params[:explanation]
     assert_equal 1, explanations.size
     assert_equal 1, explanations.first.size
-    assert_equal "1;SIMPLE;test_data;ALL;;;;;1;", explanations.first.first.join(";")
+    
+    if isPostgres?
+      assert_equal Array, explanations.class
+      assert_equal Array, explanations[0].class
+      assert_equal Array, explanations[0][0].class
+      assert_match /Seq Scan on test_data/, explanations[0][0].join(";") 
+    else
+      assert_equal "1;SIMPLE;test_data;ALL;;;;;1;", explanations.first.first.join(";")
+    end
     
     s = NewRelic::Agent.get_stats("ActiveRecord/TestModel/find")
     assert_equal 1, s.call_count
+  end
+  
+  private 
+  def isPostgres?
+    TestModel.configurations[RAILS_ENV]['adapter'] =~ /postgres/
   end
   
 end

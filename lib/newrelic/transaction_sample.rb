@@ -119,7 +119,8 @@ module NewRelic
       
       # perform this in the runtime environment of a managed application, to explain the sql
       # statement(s) executed within a segment of a transaction sample.
-      # returns an array of explanations (which is an array of array of string from the explain query)
+      # returns an array of explanations (which is an array rows consisting of 
+      # an array of strings for each column returned by the the explain query)
       # Note this happens only for statements whose execution time exceeds a threshold (e.g. 500ms)
       # and only within the slowest transaction in a report period, selected for shipment to RPM
       def explain_sql        

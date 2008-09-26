@@ -145,6 +145,7 @@ module NewRelic::Agent
         
     # some statements (particularly INSERTS with large BLOBS
     # may be very large; we should trim them to a maximum usable length
+    # config is the driver configuration for the connection
     MAX_SQL_LENGTH = 16384
     def notice_sql(sql, config, duration)
     
