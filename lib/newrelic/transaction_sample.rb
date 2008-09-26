@@ -3,6 +3,18 @@ require 'newrelic/stats'
 module NewRelic
   COLLAPSE_SEGMENTS_THRESHOLD = 2
   
+  MYSQL_EXPLAIN_COLUMNS = [
+        "Select Type",
+        "Table",
+        "Type",
+        "Possible Keys",
+        "Key",
+        "Key Length",
+        "Ref",
+        "Rows",
+        "Extra"
+      ].freeze
+      
   class TransactionSample
     class Segment
       attr_reader :entry_timestamp
