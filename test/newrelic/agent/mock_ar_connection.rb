@@ -23,7 +23,10 @@ module ActiveRecord
     def find()
       # used to test that we've instrumented this...
     end
-    
+
+    def select_rows(s)
+      execute(s)
+    end
     def execute(s)
       fail "" if @throw
       if s != "EXPLAIN #{::SQL_STATEMENT}"

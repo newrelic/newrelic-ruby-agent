@@ -38,7 +38,7 @@ class NewRelic::TransationSampleTests < Test::Unit::TestCase
         
         explanations.each do |explanation|
           assert_equal Array, explanation.class
-          assert_equal "EXPLAIN #{::SQL_STATEMENT}", explanation[0]
+          assert_equal "EXPLAIN #{::SQL_STATEMENT}", explanation[0][0]
           explain_count += 1
         end
       end
