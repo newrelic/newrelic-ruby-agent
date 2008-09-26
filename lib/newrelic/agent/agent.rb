@@ -450,7 +450,7 @@ module NewRelic::Agent
       else @log.level = Logger::INFO
       end
       
-      log! "New Relic RPM Agent Initialized: pid = #{$$}"
+      log! "New Relic RPM Agent #{NewRelic::VERSION::STRING} Initialized: pid = #{$$}"
       log! "Agent Log is found in #{log_file}"
       log.info "Runtime environment: #{@environment.to_s.titleize}"
     end
@@ -617,7 +617,7 @@ module NewRelic::Agent
       @slowest_sample = @transaction_sampler.harvest_slowest_sample(@slowest_sample)
       
       if @slowest_sample && @slowest_sample.duration > @slowest_transaction_threshold
-        log.debug "Sending slowest sample: #{@slowest_sample.params[:path]}, #{@slowest_sample.duration.round_to(2)} s" if @slowest_sample
+        log.debug "Sending slowest sample: #{@slowest_sample.params[:path]}, #{@slowest_sample.duration.round_to(2)}s (explain=#{@explain_enabled})" if @slowest_sample
         
         # take the slowest sample, and prepare it for sending across the wire.  This includes
         # gathering SQL explanations, stripping out stack traces, and normalizing SQL.
