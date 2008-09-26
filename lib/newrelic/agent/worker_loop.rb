@@ -67,7 +67,7 @@ module NewRelic::Agent
         while Time.now < task.next_invocation_time
           
           # sleep until this next task's scheduled invocation time
-          sleep_time = task.next_invocation_time - Time.now
+          sleep_time = [task.next_invocation_time - Time.now, 0.000001].max
 
           sleep (sleep_time > 1 ? 1 : sleep_time)
             
