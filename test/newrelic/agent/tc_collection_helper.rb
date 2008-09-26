@@ -12,6 +12,14 @@ class NewRelic::Agent::CollectionHelperTests < Test::Unit::TestCase
     np = normalize_params(APP_CONFIG)
     assert_equal false, np['disable_ui']
   end
+  def test_number
+    np = normalize_params({ 'one' => 1.0, 'two' => '2'})
+  end
+  def test_nil
+    np = normalize_params({ nil => 1.0, 'two' => 'nil'})
+    assert_equal "1.0", np[nil]
+    assert_equal nil, np['two']
+  end
   def test_hash
     val = ('A'..'Z').to_a.join * 100
     assert_equal Hash["ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEF..." => (("0"*256) + "...")], normalize_params({ val => '0' * 512 })

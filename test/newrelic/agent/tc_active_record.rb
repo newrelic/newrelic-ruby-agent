@@ -2,25 +2,15 @@ require File.expand_path(File.join(File.dirname(__FILE__),'/../../../../../../te
 
 class TestModel < ActiveRecord::Base
   self.table_name = 'test_data'
-  
   def TestModel.setup
     TestModel.connection.create_table :test_data, :force => true do |t|
       t.column :name, :string
     end
-    # Make the query very slow
-    class << TestModel.connection
-      alias :real_select :select
-      def select(sql, name=nil)
-        sleep 1
-        real_select sql, name
-      end
-    end
+    connection.setup_slow
   end
   
   def TestModel.teardown
-    class << TestModel.connection
-      alias :select :real_select
-    end
+    connection.teardown_slow
     TestModel.connection.drop_table :test_data
   end
 end
