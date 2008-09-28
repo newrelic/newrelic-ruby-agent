@@ -54,7 +54,9 @@ module CollectionHelper
   end
   
   def truncate(string, len)
-    if string.nil?
+    if string.instance_of? Symbol
+      string
+    elsif string.nil?
       ""
     elsif string.instance_of? String
       string.to_s.gsub(/^(.{#{len}})(.*)/) {$2.blank? ? $1 : $1 + "..."}

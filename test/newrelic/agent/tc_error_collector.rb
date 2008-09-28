@@ -18,7 +18,7 @@ require 'test/unit'
         
         err = errors.first
         assert_equal 'message', err.message 
-        assert_equal 'y', err.params[:request_params]['x']
+        assert_equal 'y', err.params[:request_params][:x]
         assert err.params[:request_uri] == '/myurl/'
         assert err.path == 'path'
         assert err.exception_class == 'Exception'
@@ -58,7 +58,7 @@ require 'test/unit'
         assert errors.length == max_q_length 
         errors.each_index do |i|
           err = errors.shift
-          assert_equal i, err.params[:request_params]['x']
+          assert_equal i.to_s, err.params[:request_params][:x], err.params.inspect
         end
       end
       
@@ -71,8 +71,8 @@ require 'test/unit'
       
       def test_supported_param_types
         
-        types = [[1, 1],
-                 [1.1, 1.1],
+        types = [[1, '1'],
+                 [1.1, '1.1'],
                  ['hi', 'hi'],
                  [:hi, :hi],
                  [Exception.new("test"), "#<Exception: test>"],
@@ -83,7 +83,7 @@ require 'test/unit'
         types.each do |test|
           @error_collector.notice_error('path', nil, {:x => test[0]}, Exception.new("message"))
           
-          assert_equal test[1], @error_collector.harvest_errors([])[0].params[:request_params]['x']
+          assert_equal test[1], @error_collector.harvest_errors([])[0].params[:request_params][:x]
         end
       end
       
