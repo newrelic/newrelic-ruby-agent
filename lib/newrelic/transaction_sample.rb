@@ -300,7 +300,13 @@ module NewRelic
       s << "  Path: #{params[:path]} \n"
       
       params.each do |k,v|
-        s << "  #{k}: #{v}\n" unless k == :path
+        next if k == :path
+        s << "  #{k}: " <<
+        case v
+          when Enumerable: v.sort.join("; ")
+        else
+          v
+        end << "\n"
       end
       s << "  }\n\n"
       s <<  @root_segment.to_debug_str(0)

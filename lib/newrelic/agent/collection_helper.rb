@@ -3,7 +3,7 @@ module CollectionHelper
   # strings
   def normalize_params(params)
     case params
-      when Symbol, FalseClass, TrueClass:
+      when Symbol, FalseClass, TrueClass, nil:
       params
       when Numeric
       params.to_s
@@ -12,7 +12,7 @@ module CollectionHelper
       when Hash:
       new_params = {}
       params.each do | key, value |
-        new_params[truncate(key,32)] = normalize_params(value)
+        new_params[truncate(normalize_params(key),32)] = normalize_params(value)
       end
       new_params
       when Enumerable:

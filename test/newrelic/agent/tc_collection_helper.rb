@@ -16,8 +16,8 @@ class NewRelic::Agent::CollectionHelperTests < Test::Unit::TestCase
     np = normalize_params({ 'one' => 1.0, 'two' => '2'})
   end
   def test_nil
-    np = normalize_params({ nil => 1.0, 'two' => 'nil'})
-    assert_equal "1.0", np[nil]
+    np = normalize_params({ nil => 1.0, 'two' => nil})
+    assert_equal "1.0", np['']
     assert_equal nil, np['two']
   end
   def test_hash

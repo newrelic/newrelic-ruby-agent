@@ -56,6 +56,7 @@ class ActiveRecordInstrumentationTests < Test::Unit::TestCase
     sample = sample.prepare_to_send(:obfuscate_sql => true, :explain_enabled => true, :explain_sql => 0.000001)
     segment = sample.root_segment.called_segments.first.called_segments.first
     explanations = segment.params[:explanation]
+    assert_not_nil explanations, "No explains in segment: #{segment}"
     assert_equal 1, explanations.size
     assert_equal 1, explanations.first.size
     
