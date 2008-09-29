@@ -90,7 +90,7 @@ class NewrelicController < ActionController::Base
         if first_row.length < NewRelic::MYSQL_EXPLAIN_COLUMNS.length
           @row_headers = Array.new(first_row.length, "&nbsp;")
         else
-          @row_headers = [nil] + NewRelic::MYSQL_EXPLAIN_COLUMNS
+          @row_headers = NewRelic::MYSQL_EXPLAIN_COLUMNS
         end
       end
     end

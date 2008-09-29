@@ -4,6 +4,7 @@ module NewRelic
   COLLAPSE_SEGMENTS_THRESHOLD = 2
   
   MYSQL_EXPLAIN_COLUMNS = [
+        "Id",
         "Select Type",
         "Table",
         "Type",
@@ -144,18 +145,23 @@ module NewRelic
           if statement.split($;, 2)[0].upcase == 'SELECT'
             explain_resultset = []
             begin
-              connection = NewRelic::TransactionSample.get_connection(params[:connection_config])        
-              explain_resultset = connection.select_rows("EXPLAIN #{statement}") if connection
+              connection = NewRelic::TransactionSample.get_connection(params[:connection_config])    
+              if connection
+                # Can't use select_rows because the native postgres driver doesn't know that method.
+                explain_resultset = connection.execute("EXPLAIN #{statement}") if connection
+                # This is to ensure we convert the row into an array if it is not already.
+                # Needed for PostgreSQL:
+                explanations << explain_resultset.map{|row| row.map(&:to_s)}
+                # sleep for a very short period of time in order to yield to the main thread
+                # this is because a remote database call will likely hang the VM
+                sleep 0.05
+              end
             rescue => e
-              raise e
               x = 1 # this is here so that code coverage knows we've entered this block
               # swallow failed attempts to run an explain.  One example of a failure is the
               # connection for the sql statement is to a different db than the default connection
               # specified in AR::Base
             end
-            # This is to ensure we convert the row into an array if it is not already.
-            # Needed for PostgreSQL:
-            explanations << explain_resultset.map{|row| row.map(&:to_s)}
           end
         end
 
