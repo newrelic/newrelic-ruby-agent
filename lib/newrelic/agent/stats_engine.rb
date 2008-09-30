@@ -24,7 +24,7 @@ module NewRelic::Agent
     def initialize(log = Logger.new(STDERR))
       @stats_hash = {}
       @sampled_items = []
-      @scope_stack_listeners = []
+      @scope_stack_listener = nil
       @log = log
       
       # Makes the unit tests happy
@@ -61,21 +61,26 @@ module NewRelic::Agent
     
     def add_scope_stack_listener(l)
       fail "Can't add a scope listener midflight in a transaction" if scope_stack.any?
-      @scope_stack_listeners << l
+#      fail "Can't add more than one scope stack listener" if @scope_stack_listener
+      @scope_stack_listener =  l
     end
     
     def remove_scope_stack_listener(l)
-      fail "Unknown stack listener trying to be removed" if !@scope_stack_listeners.delete(l)
+      fail "Unknown stack listener trying to be removed" if @scope_stack_listener != l
+      @scope_stack_listener = nil
     end
     
     def push_scope(metric, time = Time.now.to_f, deduct_call_time_from_parent = true)
-      @scope_stack_listeners.each do |l|
-        l.notice_first_scope_push(time) if scope_stack.empty? 
-        l.notice_push_scope metric, time
+      
+      stack = scope_stack
+      
+      if @scope_stack_listener
+        @scope_stack_listener.notice_first_scope_push(time) if stack.empty? 
+        @scope_stack_listener.notice_push_scope metric, time
       end
       
       scope = ScopeStackElement.new(metric, 0, deduct_call_time_from_parent)
-      scope_stack.push scope
+      stack.push scope
       
       scope
     end
@@ -95,9 +100,9 @@ module NewRelic::Agent
         stack.last.children_time += scope.children_time
       end
       
-      @scope_stack_listeners.each do |l|
-        l.notice_pop_scope(scope.name, time)
-        l.notice_scope_empty(time) if scope_stack.empty? 
+      if @scope_stack_listener
+        @scope_stack_listener.notice_pop_scope(scope.name, time)
+        @scope_stack_listener.notice_scope_empty(time) if stack.empty? 
       end
       
       scope
@@ -217,12 +222,7 @@ module NewRelic::Agent
     private
     
       def scope_stack
-        s = Thread::current[:newrelic_scope_stack]
-        if s.nil?
-          s = []
-          Thread::current[:newrelic_scope_stack] = s
-        end
-        s
+        Thread::current[:newrelic_scope_stack] ||= []
       end
   end
 end
