@@ -495,7 +495,7 @@ module NewRelic::Agent
         @worker_loop.add_task(report_period) do 
           harvest_and_send_slowest_sample
         end
-      else
+      elsif !::RPM_DEVELOPER
         @transaction_sampler.disable
       end
       
