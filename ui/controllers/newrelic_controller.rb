@@ -88,7 +88,7 @@ class NewrelicController < ActionController::Base
         # Show the standard headers if it looks like a mysql explain plan
         # Otherwise show blank headers
         if first_row.length < NewRelic::MYSQL_EXPLAIN_COLUMNS.length
-          @row_headers = Array.new(first_row.length, "&nbsp;")
+          @row_headers = nil
         else
           @row_headers = NewRelic::MYSQL_EXPLAIN_COLUMNS
         end

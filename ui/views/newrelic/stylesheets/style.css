@@ -242,6 +242,12 @@ div.flash.notice
 	overflow: auto;
 }
 
+.plan
+{
+    font-family: monospace;f
+    font-size: 0.8em;
+    white-space: pre;
+}
 #page_nav
 {
 	height: 42px;
