@@ -2,7 +2,7 @@
 module NewRelic::VERSION #:nodoc:
   MAJOR = 2
   MINOR = 5
-  TINY  = 1
+  TINY  = 2
   STRING = [MAJOR, MINOR, TINY].join('.')
 end
 
@@ -12,6 +12,8 @@ if __FILE__ == $0
 end
 
 __END__
+2008-09-30 version 2.5.2
+  * fixes for postgres explain plan support
 2008-09-09 version 2.5.1
   * bugfixes
 2008-08-29 version 2.5.0
