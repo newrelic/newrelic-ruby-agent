@@ -18,17 +18,20 @@ module NewRelic
       
   class TransactionSample
     class Segment
+      
+      class << self
+        @@empty_array = []
+      end
+      
       attr_reader :entry_timestamp
       attr_reader :exit_timestamp
       attr_reader :parent_segment
       attr_reader :metric_name
-      attr_reader :called_segments
       attr_reader :segment_id
       
       def initialize(timestamp, metric_name, segment_id)
         @entry_timestamp = timestamp
         @metric_name = metric_name
-        @called_segments = []
         @segment_id = segment_id || object_id
       end
       
@@ -37,6 +40,7 @@ module NewRelic
       end
       
       def add_called_segment(s)
+        @called_segments ||= []
         @called_segments << s
         s.parent_segment = self
       end
@@ -46,7 +50,7 @@ module NewRelic
       end
       
       def path_string
-        "#{metric_name}[#{@called_segments.collect {|segment| segment.path_string }.join('')}]"
+        "#{metric_name}[#{called_segments.collect {|segment| segment.path_string }.join('')}]"
       end
       
       def to_debug_str(depth)
@@ -71,13 +75,15 @@ module NewRelic
       end
       
       def called_segments
-        @called_segments.clone
+        @called_segments || @@empty_array
       end
       
       def freeze
         params.freeze
-        @called_segments.each do |s|
-          s.freeze
+        if @called_segments
+          @called_segments.each do |s|
+            s.freeze
+          end
         end
         super
       end
@@ -91,8 +97,11 @@ module NewRelic
       # including the time in the called segments
       def exclusive_duration
         d = duration
-        @called_segments.each do |segment|
-          d -= segment.duration
+        
+        if @called_segments
+          @called_segments.each do |segment|
+            d -= segment.duration
+          end
         end
         d
       end
@@ -116,14 +125,16 @@ module NewRelic
       def each_segment(&block)
         block.call self
         
-        @called_segments.each do |segment|
-          segment.each_segment(&block)
+        if @called_segments
+          @called_segments.each do |segment|
+            segment.each_segment(&block)
+          end
         end
       end
       
       def find_segment(id)
         return self if @segment_id == id
-        @called_segments.each do |segment|
+        called_segments.each do |segment|
           found = segment.find_segment(id)
           return found if found
         end
@@ -260,17 +271,20 @@ module NewRelic
     end
         
 
-    attr_accessor :start_time
     attr_reader :root_segment
     attr_reader :params
     attr_reader :sample_id
     
-    def initialize(start_time = Time.now, sample_id = nil)
+    def initialize(time = Time.now.to_f, sample_id = nil)
       @sample_id = sample_id || object_id
-      @start_time = start_time
+      @start_time = time
       @root_segment = create_segment 0.0, "ROOT"
       @params = {}
       @params[:request_params] = {}
+    end
+    
+    def start_time
+      Time.at(@start_time)
     end
     
     def path_string
@@ -342,7 +356,7 @@ module NewRelic
     #   :keep_backtraces : keep backtraces, significantly increasing size of trace (off by default)
     #   :obfuscate_sql : clear sql fields of potentially sensitive values (higher overhead, better security)
     def prepare_to_send(options={})
-      sample = TransactionSample.new(Time.at(@start_time), sample_id)
+      sample = TransactionSample.new(@start_time, sample_id)
       
       params.each {|k,v| sample.params[k] = v}
       
