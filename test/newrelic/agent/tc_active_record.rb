@@ -49,15 +49,21 @@ class ActiveRecordInstrumentationTests < Test::Unit::TestCase
     assert_equal 1, s.call_count
   end
   
+  def test_run_explains
+    TestModel.find(:all)
+    sample = @agent.transaction_sampler.harvest_slowest_sample
+    NewRelic::TransactionSample::Segment.any_instance.expects(:explain_sql).returns([])
+    sample.prepare_to_send(:obfuscate_sql => true, :explain_enabled => true, :explain_sql => 0.0)
+  end
   def test_transaction
     
     TestModel.find(:all)
     sample = @agent.transaction_sampler.harvest_slowest_sample
-    sample = sample.prepare_to_send(:obfuscate_sql => true, :explain_enabled => true, :explain_sql => 0.000001)
+    sample = sample.prepare_to_send(:obfuscate_sql => true, :explain_enabled => true, :explain_sql => 0.0)
     segment = sample.root_segment.called_segments.first.called_segments.first
     explanations = segment.params[:explanation]
     assert_not_nil explanations, "No explains in segment: #{segment}"
-    assert_equal 1, explanations.size
+    assert_equal 1, explanations.size,"No explains in segment: #{segment}" 
     assert_equal 1, explanations.first.size
     
     if isPostgres?
