@@ -72,7 +72,7 @@ module NewRelic::Agent
     
     def push_scope(metric, time = Time.now.to_f, deduct_call_time_from_parent = true)
       
-      stack = scope_stack
+      stack = (Thread::current[:newrelic_scope_stack] ||= [])
       
       if @scope_stack_listener
         @scope_stack_listener.notice_first_scope_push(time) if stack.empty? 
@@ -86,14 +86,13 @@ module NewRelic::Agent
     end
     
     def pop_scope(expected_scope, duration, time=Time.now.to_f)
-      stack = scope_stack
+
+      stack = (Thread::current[:newrelic_scope_stack] ||= [])
       
       scope = stack.pop
       
-      if scope != expected_scope
-	      fail "unbalanced pop from blame stack: #{scope.name} != #{expected_scope.name}"
-      end
-      
+      fail "unbalanced pop from blame stack: #{scope.name} != #{expected_scope.name}" if scope != expected_scope
+       
       stack.last.children_time += duration unless (stack.empty? || !scope.deduct_call_time_from_parent)
       
       if !scope.deduct_call_time_from_parent && !stack.empty?
