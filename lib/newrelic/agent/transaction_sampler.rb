@@ -204,21 +204,6 @@ module NewRelic::Agent
     
     private 
       
-      # most entry points into the transaction sampler take the current transaction
-      # sample builder and do something with it.  There may or may not be a current
-      # transaction sample builder on this thread. If none is present, the provided
-      # block is not called (saving sampling overhead); if one is, then the 
-      # block is called with the transaction sample builder that is registered
-      # with this thread.
-      def with_builder
-        builder = get_builder
-        yield builder if builder
-      end
-      
-      def get_builder
-        Thread::current[BUILDER_KEY]
-      end
-      
       def reset_builder
         Thread::current[BUILDER_KEY] = nil
       end
