@@ -69,7 +69,7 @@ module NewRelic::Agent
     end
     
     
-    def notice_first_scope_push(time=Time.now.to_f)
+    def notice_first_scope_push(time)
       if Thread::current[:record_tt].nil? || Thread::current[:record_tt]
         Thread::current[BUILDER_KEY] = TransactionSampleBuilder.new(time)
       else

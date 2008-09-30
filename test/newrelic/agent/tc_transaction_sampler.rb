@@ -89,7 +89,7 @@ module NewRelic
         
         assert_equal 0, @sampler.scope_depth
 
-        @sampler.notice_first_scope_push
+        @sampler.notice_first_scope_push Time.now.to_f
         @sampler.notice_transaction "/path", nil, {}
         @sampler.notice_push_scope "a"
         
@@ -100,7 +100,7 @@ module NewRelic
 
         assert_equal 0, @sampler.scope_depth 
         
-        @sampler.notice_first_scope_push
+        @sampler.notice_first_scope_push Time.now.to_f
         @sampler.notice_transaction "/path", nil, {}
         @sampler.notice_push_scope "a"
         @sampler.notice_pop_scope "a"
@@ -110,7 +110,7 @@ module NewRelic
       def test_double_scope_stack_empty
         @sampler = TransactionSampler.new(Agent.instance)
         
-        @sampler.notice_first_scope_push
+        @sampler.notice_first_scope_push Time.now.to_f
         @sampler.notice_transaction "/path", nil, {}
         @sampler.notice_push_scope "a"
         @sampler.notice_pop_scope "a"
@@ -126,7 +126,7 @@ module NewRelic
       def test_record_sql_off
         sampler = TransactionSampler.new(Agent.instance)
         
-        sampler.notice_first_scope_push
+        sampler.notice_first_scope_push Time.now.to_f
         
         Thread::current[:record_sql] = false
         
@@ -146,7 +146,7 @@ module NewRelic
         
         sampler.stack_trace_threshold = 0
         
-        sampler.notice_first_scope_push
+        sampler.notice_first_scope_push Time.now.to_f
         
         sampler.notice_sql("test", nil, 1)
         
@@ -165,7 +165,7 @@ module NewRelic
         
         sampler.stack_trace_threshold = 2
         
-        sampler.notice_first_scope_push
+        sampler.notice_first_scope_push Time.now.to_f
         
         sampler.notice_sql("test", nil, 1)
         
@@ -182,7 +182,7 @@ module NewRelic
       def test_big_sql
         @sampler = TransactionSampler.new(Agent.instance)
         
-        @sampler.notice_first_scope_push
+        @sampler.notice_first_scope_push Time.now.to_f
         
         sql = "SADJKHASDHASD KAJSDH ASKDH ASKDHASDK JASHD KASJDH ASKDJHSAKDJHAS DKJHSADKJSAH DKJASHD SAKJDH SAKDJHS"
         
@@ -206,7 +206,7 @@ module NewRelic
       def test_segment_obfuscated
         @sampler = TransactionSampler.new(Agent.instance)
         
-        @sampler.notice_first_scope_push
+        @sampler.notice_first_scope_push Time.now.to_f
         
         orig_sql = "SELECT * from Jim where id=66"
         
@@ -228,7 +228,7 @@ module NewRelic
           
           TransactionSampler.capture_params = capture
           
-          t.notice_first_scope_push
+          t.notice_first_scope_push Time.now.to_f
           t.notice_transaction('/path', nil, {:param => 'hi'})
           t.notice_scope_empty
           
@@ -297,7 +297,7 @@ module NewRelic
       
     private      
       def run_sample_trace(&proc)
-        @sampler.notice_first_scope_push
+        @sampler.notice_first_scope_push Time.now.to_f
         @sampler.notice_transaction '/path', nil, {}
         @sampler.notice_push_scope "a"
         @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'", nil, 0)

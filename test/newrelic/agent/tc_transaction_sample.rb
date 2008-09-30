@@ -155,7 +155,7 @@ class NewRelic::TransationSampleTests < Test::Unit::TestCase
   private
   def get_sql_transaction(*sql)
     sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
-    sampler.notice_first_scope_push
+    sampler.notice_first_scope_push Time.now.to_f
     sampler.notice_transaction '/path', nil, :jim => "cool"
     sampler.notice_push_scope "a"
     
