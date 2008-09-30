@@ -28,7 +28,7 @@ body{
 	width:76em;	
 }
 #content{
-	width: 984;
+	width: 984px;
 	margin: 10px auto;
 	text-align:left;
 }
@@ -244,7 +244,7 @@ div.flash.notice
 
 .plan
 {
-    font-family: monospace;f
+    font-family: monospace;
     font-size: 0.8em;
     white-space: pre;
 }
