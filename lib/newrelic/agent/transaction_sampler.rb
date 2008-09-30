@@ -11,23 +11,9 @@ module NewRelic::Agent
     include Synchronize
     
     BUILDER_KEY = :transaction_sample_builder
-    
-    class << self
-      @@capture_params = true
-      @@agent = nil
-      
-      def agent
-        @@agent
-      end
-      
-      def capture_params
-        @@capture_params
-      end
-      
-      def capture_params=(val)
-        @@capture_params = val
-      end
-    end
+    cattr_accessor :capture_params
+    cattr_reader :agent
+    @@capture_params = true
     
     attr_accessor :stack_trace_threshold
     
@@ -38,7 +24,6 @@ module NewRelic::Agent
 
       @max_samples = 100
       @stack_trace_threshold = 100000.0
-
       agent.stats_engine.add_scope_stack_listener self
 
       agent.set_sql_obfuscator(:replace) do |sql| 
@@ -79,7 +64,6 @@ module NewRelic::Agent
     
     def notice_push_scope(scope, time=Time.now.to_f)
       
-      builder = Thread::current[BUILDER_KEY]
       return unless builder
       
       builder.trace_entry(scope, time)
@@ -103,28 +87,26 @@ module NewRelic::Agent
     end
     
     def scope_depth
-      builder = Thread::current[BUILDER_KEY]
       return 0 unless builder
 
       builder.scope_depth
     end
   
     def notice_pop_scope(scope, time = Time.now.to_f)
-      builder = Thread::current[BUILDER_KEY]
       return unless builder
-
       builder.trace_exit(scope, time)
     end
     
     def notice_scope_empty(time=Time.now.to_f)
-      builder = Thread::current[BUILDER_KEY]
-      return unless builder
+      
+      last_builder = builder
+      return unless last_builder
 
-      builder.finish_trace(time)
+      last_builder.finish_trace(time)
       reset_builder
     
       synchronize do
-        sample = builder.sample
+        sample = last_builder.sample
       
         # ensure we don't collect more than a specified number of samples in memory
         @samples << sample if ::RPM_DEVELOPER && sample.params[:path] != nil
@@ -137,14 +119,12 @@ module NewRelic::Agent
     end
     
     def notice_transaction(path, request, params)
-      builder = Thread::current[BUILDER_KEY]
       return unless builder
 
       builder.set_transaction_info(path, request, params)
     end
     
     def notice_transaction_cpu_time(cpu_time)
-      builder = Thread::current[BUILDER_KEY]
       return unless builder
 
       builder.set_transaction_cpu_time(cpu_time)
@@ -156,11 +136,8 @@ module NewRelic::Agent
     # config is the driver configuration for the connection
     MAX_SQL_LENGTH = 16384
     def notice_sql(sql, config, duration)
-    
+      return unless builder
       if Thread::current[:record_sql].nil? || Thread::current[:record_sql]
-        builder = Thread::current[BUILDER_KEY]
-        return unless builder
-
         segment = builder.current_segment
         if segment
           current_sql = segment[:sql]
@@ -204,6 +181,9 @@ module NewRelic::Agent
     
     private 
       
+      def builder
+        Thread::current[BUILDER_KEY]
+      end
       def reset_builder
         Thread::current[BUILDER_KEY] = nil
       end

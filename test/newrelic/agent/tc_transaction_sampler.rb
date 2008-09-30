@@ -1,24 +1,20 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'/../../../../../../test/test_helper'))
-require 'newrelic/agent/transaction_sampler'
-require 'test/unit'
+#require 'newrelic/agent/transaction_sampler'
 
 ::RPM_DEVELOPER = true unless defined? ::RPM_DEVELOPER
 
-module NewRelic 
-  module Agent
-    
-    class TransactionSampler
-      public :with_builder
+    class NewRelic::Agent::TransactionSampler
+      public :builder
     end
     
-    class TransationSamplerTests < Test::Unit::TestCase
+    class NewRelic::Agent::TransationSamplerTests < Test::Unit::TestCase
       
       def setup
         Thread::current[:record_sql] = nil
       end
       
       def test_multiple_samples
-        @sampler = TransactionSampler.new(Agent.instance)
+        @sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
       
         run_sample_trace
         run_sample_trace
@@ -33,7 +29,7 @@ module NewRelic
       
       
       def test_harvest_slowest
-        @sampler = TransactionSampler.new(Agent.instance)
+        @sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
         
         run_sample_trace
         run_sample_trace
@@ -56,7 +52,7 @@ module NewRelic
       
       
       def test_preare_to_send
-        @sampler = TransactionSampler.new(Agent.instance)
+        @sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
 
         run_sample_trace { sleep 0.2 }
         sample = @sampler.harvest_slowest_sample(nil)
@@ -68,7 +64,7 @@ module NewRelic
       end
       
       def test_multithread
-        @sampler = TransactionSampler.new(Agent.instance)
+        @sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
         threads = []
         
         20.times do
@@ -85,7 +81,7 @@ module NewRelic
       end
       
       def test_sample_with_parallel_paths
-        @sampler = TransactionSampler.new(Agent.instance)
+        @sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
         
         assert_equal 0, @sampler.scope_depth
 
@@ -108,7 +104,7 @@ module NewRelic
       end
       
       def test_double_scope_stack_empty
-        @sampler = TransactionSampler.new(Agent.instance)
+        @sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
         
         @sampler.notice_first_scope_push Time.now.to_f
         @sampler.notice_transaction "/path", nil, {}
@@ -124,7 +120,7 @@ module NewRelic
       
 
       def test_record_sql_off
-        sampler = TransactionSampler.new(Agent.instance)
+        sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
         
         sampler.notice_first_scope_push Time.now.to_f
         
@@ -132,17 +128,13 @@ module NewRelic
         
         sampler.notice_sql("test", nil, 0)
         
-        segment = nil
-        
-        sampler.with_builder do |builder|
-          segment = builder.current_segment
-        end
+        segment = sampler.builder.current_segment
         
         assert_nil segment[:sql]
       end
 
       def test_stack_trace
-        sampler = TransactionSampler.new(Agent.instance)
+        sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
         
         sampler.stack_trace_threshold = 0
         
@@ -150,18 +142,14 @@ module NewRelic
         
         sampler.notice_sql("test", nil, 1)
         
-        segment = nil
-        
-        sampler.with_builder do |builder|
-          segment = builder.current_segment
-        end
+        segment = sampler.builder.current_segment
         
         assert segment[:sql]
         assert segment[:backtrace]
       end
 
       def test_nil_stacktrace
-        sampler = TransactionSampler.new(Agent.instance)
+        sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
         
         sampler.stack_trace_threshold = 2
         
@@ -169,18 +157,14 @@ module NewRelic
         
         sampler.notice_sql("test", nil, 1)
         
-        segment = nil
-        
-        sampler.with_builder do |builder|
-          segment = builder.current_segment
-        end
+        segment = sampler.builder.current_segment
         
         assert segment[:sql]
         assert_nil segment[:backtrace]
       end
       
       def test_big_sql
-        @sampler = TransactionSampler.new(Agent.instance)
+        @sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
         
         @sampler.notice_first_scope_push Time.now.to_f
         
@@ -192,10 +176,7 @@ module NewRelic
           len += sql.length
         end
         
-        segment = nil
-        @sampler.with_builder do |builder|
-          segment = builder.current_segment
-        end
+        segment = @sampler.builder.current_segment
         
         sql = segment[:sql]
         
@@ -204,7 +185,7 @@ module NewRelic
       
       
       def test_segment_obfuscated
-        @sampler = TransactionSampler.new(Agent.instance)
+        @sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
         
         @sampler.notice_first_scope_push Time.now.to_f
         
@@ -212,11 +193,8 @@ module NewRelic
         
         @sampler.notice_sql(orig_sql, nil, 0)
         
-        segment = nil
-        @sampler.with_builder do |builder|
-          segment = builder.current_segment
-        end
-        
+        segment = @sampler.builder.current_segment
+
         assert_equal orig_sql, segment[:sql]
         assert_equal "SELECT * from Jim where id=?", segment.obfuscated_sql
       end
@@ -224,9 +202,9 @@ module NewRelic
       
       def test_param_capture
         [true, false].each do |capture| 
-          t = TransactionSampler.new(Agent.instance)
+          t = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
           
-          TransactionSampler.capture_params = capture
+          NewRelic::Agent::TransactionSampler.capture_params = capture
           
           t.notice_first_scope_push Time.now.to_f
           t.notice_transaction('/path', nil, {:param => 'hi'})
@@ -240,7 +218,7 @@ module NewRelic
 
       
       def test_sql_normalization
-        t = TransactionSampler.new(Agent.instance)
+        t = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
         
         # basic statement
         assert_equal "INSERT INTO X values(?,?, ? , ?)", 
@@ -313,6 +291,4 @@ module NewRelic
       end
       
     end
-  end
-end
 

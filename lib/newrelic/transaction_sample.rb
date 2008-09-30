@@ -363,7 +363,7 @@ module NewRelic
     def prepare_to_send(options={})
       sample = TransactionSample.new(@start_time, sample_id)
       
-      params.each {|k,v| sample.params[k] = v}
+      sample.params.merge! self.params
       
       begin
         build_segment_for_transfer(sample, @root_segment, sample.root_segment, options)
