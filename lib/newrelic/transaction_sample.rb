@@ -158,11 +158,16 @@ module NewRelic
             begin
               connection = NewRelic::TransactionSample.get_connection(params[:connection_config])    
               if connection
-                # Can't use select_rows because the native postgres driver doesn't know that method.
+                # The resultset type varies for different drivers.  Only thing you can count on is
+                # that it implements each.  Also: can't use select_rows because the native postgres
+                # driver doesn't know that method.
                 explain_resultset = connection.execute("EXPLAIN #{statement}") if connection
-                # This is to ensure we convert the row into an array if it is not already.
-                # Needed for PostgreSQL:
-                explanations << explain_resultset.map{|row| row.map(&:to_s)}
+                rows = []
+                # Note: we can't use map.
+                # Note: have to convert from native column element types to string so we can
+                # serialize.  Esp. for postgresql.
+                explain_resultset.each { | row | rows << row.map(&:to_s) }  # Can't use map.  Suck it up.
+                explanations << rows
                 # sleep for a very short period of time in order to yield to the main thread
                 # this is because a remote database call will likely hang the VM
                 sleep 0.05
