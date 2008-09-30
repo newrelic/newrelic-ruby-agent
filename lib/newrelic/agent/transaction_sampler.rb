@@ -74,72 +74,76 @@ module NewRelic::Agent
     end
     
     def notice_push_scope(scope, time=Time.now.to_f)
-      with_builder do |builder|
-        builder.trace_entry(scope, time)
-        
-        # in developer mode, capture the stack trace with the segment.
-        # this is cpu and memory expensive and therefore should not be
-        # turned on in production mode
-        if ::RPM_DEVELOPER
-          segment = builder.current_segment
-          if segment
-            # NOTE we manually inspect stack traces to determine that the 
-            # agent consumes the last 8 frames.  Review after we make changes
-            # to transaction sampling or stats engine to make sure this remains
-            # a true assumption
-            trace = caller(8)
-            
-            trace = trace[0..40] if trace.length > 40
-            segment[:backtrace] = trace
-          end
+      
+      builder = get_builder
+      return unless builder
+      
+      builder.trace_entry(scope, time)
+      
+      # in developer mode, capture the stack trace with the segment.
+      # this is cpu and memory expensive and therefore should not be
+      # turned on in production mode
+      if ::RPM_DEVELOPER
+        segment = builder.current_segment
+        if segment
+          # NOTE we manually inspect stack traces to determine that the 
+          # agent consumes the last 8 frames.  Review after we make changes
+          # to transaction sampling or stats engine to make sure this remains
+          # a true assumption
+          trace = caller(8)
+          
+          trace = trace[0..40] if trace.length > 40
+          segment[:backtrace] = trace
         end
       end
     end
     
     def scope_depth
-      depth = 0
-      with_builder do |builder|
-        depth = builder.scope_depth
-      end
-      
-      depth
+      builder = get_builder
+      return 0 unless builder
+
+      builder.scope_depth
     end
   
     def notice_pop_scope(scope, time = Time.now.to_f)
-      with_builder do |builder|
-        builder.trace_exit(scope, time)
-      end
+      builder = get_builder
+      return unless builder
+
+      builder.trace_exit(scope, time)
     end
     
     def notice_scope_empty(time=Time.now.to_f)
-      with_builder do |builder|
-        builder.finish_trace(time)
-        reset_builder
+      builder = get_builder
+      return unless builder
+
+      builder.finish_trace(time)
+      reset_builder
+    
+      synchronize do
+        sample = builder.sample
       
-        synchronize do
-          sample = builder.sample
+        # ensure we don't collect more than a specified number of samples in memory
+        @samples << sample if ::RPM_DEVELOPER && sample.params[:path] != nil
+        @samples.shift while @samples.length > @max_samples
         
-          # ensure we don't collect more than a specified number of samples in memory
-          @samples << sample if ::RPM_DEVELOPER && sample.params[:path] != nil
-          @samples.shift while @samples.length > @max_samples
-          
-          if @slowest_sample.nil? || @slowest_sample.duration < sample.duration
-            @slowest_sample = sample
-          end
+        if @slowest_sample.nil? || @slowest_sample.duration < sample.duration
+          @slowest_sample = sample
         end
       end
     end
     
     def notice_transaction(path, request, params)
-      with_builder do |builder|
-        builder.set_transaction_info(path, request, params)
-      end
+      builder = get_builder
+      return unless builder
+
+      builder.set_transaction_info(path, request, params)
     end
     
     def notice_transaction_cpu_time(cpu_time)
-      with_builder do |builder|
-        builder.set_transaction_cpu_time(cpu_time)
-      end
+      builder = get_builder
+      return unless builder
+
+      builder.set_transaction_cpu_time(cpu_time)
     end
     
         
@@ -150,20 +154,21 @@ module NewRelic::Agent
     def notice_sql(sql, config, duration)
     
       if Thread::current[:record_sql].nil? || Thread::current[:record_sql]
-        with_builder do |builder|
-          segment = builder.current_segment
-          if segment
-            current_sql = segment[:sql]
-            sql = current_sql + ";\n" + sql if current_sql
+        builder = get_builder
+        return unless builder
 
-            if sql.length > (MAX_SQL_LENGTH - 4)
-              sql = sql[0..MAX_SQL_LENGTH-4] + '...'
-            end
-            
-            segment[:sql] = sql
-            segment[:connection_config] = config
-            segment[:backtrace] = caller.join("\n") if duration >= @stack_trace_threshold 
+        segment = builder.current_segment
+        if segment
+          current_sql = segment[:sql]
+          sql = current_sql + ";\n" + sql if current_sql
+
+          if sql.length > (MAX_SQL_LENGTH - 4)
+            sql = sql[0..MAX_SQL_LENGTH-4] + '...'
           end
+          
+          segment[:sql] = sql
+          segment[:connection_config] = config
+          segment[:backtrace] = caller.join("\n") if duration >= @stack_trace_threshold 
         end
       end
     end
