@@ -131,8 +131,22 @@ module NewRelic
           if statement.split($;, 2)[0].upcase == 'SELECT'
             explain_resultset = []
             begin
-              connection = NewRelic::TransactionSample.get_connection(params[:connection_config])        
-              explain_resultset = connection.select_rows("EXPLAIN #{statement}") if connection
+              connection = NewRelic::TransactionSample.get_connection(params[:connection_config])    
+              if connection
+                # The resultset type varies for different drivers.  Only thing you can count on is
+                # that it implements each.  Also: can't use select_rows because the native postgres
+                # driver doesn't know that method.
+                explain_resultset = connection.execute("EXPLAIN #{statement}") if connection
+                rows = []
+                # Note: we can't use map.
+                # Note: have to convert from native column element types to string so we can
+                # serialize.  Esp. for postgresql.
+                explain_resultset.each { | row | rows << row.map(&:to_s) }  # Can't use map.  Suck it up.
+                explanations << rows
+                # sleep for a very short period of time in order to yield to the main thread
+                # this is because a remote database call will likely hang the VM
+                sleep 0.05
+              end
             rescue => e
               x = 1 # this is here so that code coverage knows we've entered this block
               # swallow failed attempts to run an explain.  One example of a failure is the
