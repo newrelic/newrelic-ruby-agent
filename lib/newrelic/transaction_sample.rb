@@ -342,7 +342,7 @@ module NewRelic
     #   :keep_backtraces : keep backtraces, significantly increasing size of trace (off by default)
     #   :obfuscate_sql : clear sql fields of potentially sensitive values (higher overhead, better security)
     def prepare_to_send(options={})
-      sample = TransactionSample.new(@start_time, sample_id)
+      sample = TransactionSample.new(Time.at(@start_time), sample_id)
       
       params.each {|k,v| sample.params[k] = v}
       

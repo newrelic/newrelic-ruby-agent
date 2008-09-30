@@ -22,8 +22,8 @@ class Module
     stats = @@newrelic_stats_engine.get_stats_no_scope metric_name
   
     result = yield
-    duration = Time.now.to_f - t0
-    stats.trace_call(duration, duration)     # for some reason this is 3 usec faster than Time - Time
+    duration = Time.now.to_f - t0              # for some reason this is 3 usec faster than Time - Time
+    stats.trace_call(duration, duration)    
     result 
   end
 
@@ -34,7 +34,7 @@ class Module
   #
   def trace_method_execution(metric_name, produce_metric, deduct_call_time_from_parent)
     
-    t0 = Time.now  # just pass in Time objects. Only do the math on TTs if we absolutely have to
+    t0 = Time.now.to_f
     stats = nil
     
     begin
@@ -49,8 +49,8 @@ class Module
     begin
       result = yield
     ensure
-      t1 = Time.now
-      duration = t1.to_f - t0.to_f
+      t1 = Time.now.to_f
+      duration = t1 - t0
       
       begin
         if expected_scope

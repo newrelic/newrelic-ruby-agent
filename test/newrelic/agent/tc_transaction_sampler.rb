@@ -1,3 +1,4 @@
+require File.expand_path(File.join(File.dirname(__FILE__),'/../../../../../../test/test_helper'))
 require 'newrelic/agent/transaction_sampler'
 require 'test/unit'
 
@@ -62,6 +63,8 @@ module NewRelic
         
         ready_to_send = sample.prepare_to_send
         assert sample.duration == ready_to_send.duration
+        
+        assert ready_to_send.start_time.is_a?(Time)
       end
       
       def test_multithread

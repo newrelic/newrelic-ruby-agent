@@ -1,5 +1,7 @@
+require File.expand_path(File.join(File.dirname(__FILE__),'/../../../../../../test/test_helper'))
 require 'test/unit'
 require 'newrelic/agent/stats_engine'
+
 
 module NewRelic::Agent
   class StatsEngineTests < Test::Unit::TestCase
@@ -75,7 +77,7 @@ module NewRelic::Agent
       assert @engine.peek_scope.name == "scope1"
       
       expected = @engine.push_scope "scope2"
-      @engine.pop_scope expected
+      @engine.pop_scope expected, 0
       
       scoped = @engine.get_stats "a"
       scoped.trace_call 3
@@ -101,7 +103,7 @@ module NewRelic::Agent
           raise e
         end
       ensure
-        @engine.pop_scope scope
+        @engine.pop_scope scope, 0
       end
       
       if depth == 0
@@ -135,7 +137,7 @@ module NewRelic::Agent
           
           expected = @engine.push_scope "c"
             sleep 0.3
-          scope = @engine.pop_scope expected
+          scope = @engine.pop_scope expected, Time.now - t3
           
           t4 = Time.now
     
@@ -147,18 +149,18 @@ module NewRelic::Agent
     
           expected = @engine.push_scope "d"
             sleep 0.2
-          scope = @engine.pop_scope expected
+          scope = @engine.pop_scope expected, Time.now - t5
           
           t6 = Time.now
 
           check_time_approximate 0, scope.children_time
     
-        scope = @engine.pop_scope expected2
+        scope = @engine.pop_scope expected2, Time.now - t2
         assert_equal scope.name, 'b'
         
         check_time_approximate (t4 - t3) + (t6 - t5), scope.children_time
       
-      scope = @engine.pop_scope expected1
+      scope = @engine.pop_scope expected1, Time.now - t1
       assert_equal scope.name, 'a'
       
       check_time_approximate (t6 - t2), scope.children_time

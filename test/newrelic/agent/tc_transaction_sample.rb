@@ -129,11 +129,11 @@ class NewRelic::TransationSampleTests < Test::Unit::TestCase
     
     t.params[:test] = "hi"
     
-    s1 = t.create_segment(1, "controller")
+    s1 = t.create_segment(1.0, "controller")
     
     t.root_segment.add_called_segment(s1)
     
-    s2 = t.create_segment(2, "AR1")
+    s2 = t.create_segment(2.0, "AR1")
     
     s2.params[:test] = "test"
     
@@ -141,8 +141,8 @@ class NewRelic::TransationSampleTests < Test::Unit::TestCase
     
     s1.add_called_segment(s2)
     
-    s2.end_trace 3
-    s1.end_trace 4
+    s2.end_trace 3.0
+    s1.end_trace 4.0
     
     t.to_s
     

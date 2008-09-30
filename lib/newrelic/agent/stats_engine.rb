@@ -8,7 +8,7 @@ module NewRelic::Agent
     
     attr_accessor :log
 
-    ScopeStackElement = Struct.new(:name, :timestamp, :children_time, :deduct_call_time_from_parent)
+    ScopeStackElement = Struct.new(:name, :children_time, :deduct_call_time_from_parent)
     
     class SampledItem
       def initialize(stats, &callback)
@@ -68,19 +68,19 @@ module NewRelic::Agent
       fail "Unknown stack listener trying to be removed" if !@scope_stack_listeners.delete(l)
     end
     
-    def push_scope(metric, time = Time.now, deduct_call_time_from_parent = true)
+    def push_scope(metric, time = Time.now.to_f, deduct_call_time_from_parent = true)
       @scope_stack_listeners.each do |l|
         l.notice_first_scope_push(time) if scope_stack.empty? 
         l.notice_push_scope metric, time
       end
       
-      scope = ScopeStackElement.new(metric, time, 0, deduct_call_time_from_parent)
+      scope = ScopeStackElement.new(metric, 0, deduct_call_time_from_parent)
       scope_stack.push scope
       
       scope
     end
     
-    def pop_scope(expected_scope, duration = Time.now - expected_scope.timestamp, time=Time.now)
+    def pop_scope(expected_scope, duration, time=Time.now.to_f)
       stack = scope_stack
       
       scope = stack.pop

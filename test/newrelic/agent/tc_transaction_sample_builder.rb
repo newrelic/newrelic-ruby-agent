@@ -34,7 +34,7 @@ module NewRelic
           end
         end
       
-        @builder.finish_trace(Time.now)
+        @builder.finish_trace(Time.now.to_f)
         validate_builder
       end
     
@@ -50,7 +50,7 @@ module NewRelic
           # expected
         end
         
-        @builder.finish_trace(Time.now)
+        @builder.finish_trace(Time.now.to_f)
       
         validate_builder
       
@@ -90,7 +90,7 @@ module NewRelic
           end
           build_segment "c"
         end
-        @builder.finish_trace(Time.now)
+        @builder.finish_trace(Time.now.to_f)
         
         validate_builder false
         
@@ -144,7 +144,7 @@ module NewRelic
         end
         build_segment "c"
         
-        @builder.finish_trace(Time.now)
+        @builder.finish_trace(Time.now.to_f)
         validate_builder
         
         dump = Marshal.dump @builder.sample
@@ -159,7 +159,7 @@ module NewRelic
         build_segment "b"
         build_segment "c"
         
-        @builder.finish_trace(Time.now)
+        @builder.finish_trace(Time.now.to_f)
         validate_builder
       end
       
@@ -191,9 +191,9 @@ module NewRelic
       end
       
       def build_segment(metric, time = 0, &proc)
-        @builder.trace_entry(metric, Time.now)
+        @builder.trace_entry(metric, Time.now.to_f)
         proc.call if proc
-        @builder.trace_exit(metric, Time.now)
+        @builder.trace_exit(metric, Time.now.to_f)
       end
     end
   end

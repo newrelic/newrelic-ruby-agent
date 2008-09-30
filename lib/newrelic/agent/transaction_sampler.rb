@@ -69,11 +69,11 @@ module NewRelic::Agent
     end
     
     
-    def notice_first_scope_push(time=Time.now)
+    def notice_first_scope_push(time=Time.now.to_f)
       Thread::current[BUILDER_KEY] = TransactionSampleBuilder.new(time)
     end
     
-    def notice_push_scope(scope, time=Time.now)
+    def notice_push_scope(scope, time=Time.now.to_f)
       with_builder do |builder|
         builder.trace_entry(scope, time)
         
@@ -105,13 +105,13 @@ module NewRelic::Agent
       depth
     end
   
-    def notice_pop_scope(scope, time = Time.now)
+    def notice_pop_scope(scope, time = Time.now.to_f)
       with_builder do |builder|
         builder.trace_exit(scope, time)
       end
     end
     
-    def notice_scope_empty(time=Time.now)
+    def notice_scope_empty(time=Time.now.to_f)
       with_builder do |builder|
         builder.finish_trace(time)
         reset_builder
@@ -228,7 +228,7 @@ module NewRelic::Agent
     
     include CollectionHelper
     
-    def initialize(time=Time.now)
+    def initialize(time=Time.now.to_f)
       @sample = NewRelic::TransactionSample.new(time)
       @current_segment = @sample.root_segment
     end
