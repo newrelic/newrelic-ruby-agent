@@ -54,6 +54,8 @@ class ActiveRecordInstrumentationTests < Test::Unit::TestCase
     sample = @agent.transaction_sampler.harvest_slowest_sample
     NewRelic::TransactionSample::Segment.any_instance.expects(:explain_sql).returns([])
     sample.prepare_to_send(:obfuscate_sql => true, :explain_enabled => true, :explain_sql => 0.0)
+    segment = sample.root_segment.called_segments.first.called_segments.first
+    assert_equal "SELECT * FROM `test_data`", segment.params[:sql].strip
   end
   def test_transaction
     
