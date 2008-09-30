@@ -83,19 +83,16 @@ class NewrelicController < ActionController::Base
     explanations = @segment.explain_sql
     if explanations
       @explanation = explanations.first 
-    
-      @row_headers = [
-        nil,
-        "Select Type",
-        "Table",
-        "Type",
-        "Possible Keys",
-        "Key",
-        "Key Length",
-        "Ref",
-        "Rows",
-        "Extra"
-      ];
+      if !@explanation.blank?
+        first_row = @explanation.first
+        # Show the standard headers if it looks like a mysql explain plan
+        # Otherwise show blank headers
+        if first_row.length < NewRelic::MYSQL_EXPLAIN_COLUMNS.length
+          @row_headers = nil
+        else
+          @row_headers = NewRelic::MYSQL_EXPLAIN_COLUMNS
+        end
+      end
     end
   end
   

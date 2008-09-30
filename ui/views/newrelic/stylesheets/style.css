@@ -28,7 +28,7 @@ body{
 	width:76em;	
 }
 #content{
-	width: 984;
+	width: 984px;
 	margin: 10px auto;
 	text-align:left;
 }
@@ -234,6 +234,12 @@ div.flash.notice
 	overflow: auto;
 }
 
+.plan
+{
+    font-family: monospace;
+    font-size: 0.8em;
+    white-space: pre;
+}
 #page_nav
 {
 	height: 42px;

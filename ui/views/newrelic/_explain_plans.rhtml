@@ -1,4 +1,5 @@
-<% @row_headers.length.times do |r| %>
+<% if @row_headers %>
+  <% @row_headers.length.times do |r| %>
 	<% if @row_headers[r] %>
 		<tr>
 			<th align=right nowrap>
@@ -11,4 +12,16 @@
 			<% end %>
 		</tr>
 	<% end %>
+  <% end %>
+<% else %>
+  <tr>
+  <th align=right>Plan</th>
+  <td><p class="plan">
+  <% @explanation.each do |row| -%>
+      <% row.each do |col| -%>
+<%= h(col) %>
+      <% end -%>
+  <% end -%>
+  </p></td>
+  </tr>
 <% end %>
