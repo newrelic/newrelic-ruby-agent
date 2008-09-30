@@ -87,7 +87,7 @@ module NewRelic::Agent
     
     def pop_scope(expected_scope, duration, time=Time.now.to_f)
 
-      stack = (Thread::current[:newrelic_scope_stack] ||= [])
+      stack = Thread::current[:newrelic_scope_stack]
       
       scope = stack.pop
       

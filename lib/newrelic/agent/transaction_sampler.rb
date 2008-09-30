@@ -235,11 +235,12 @@ module NewRelic::Agent
     
     def initialize(time=Time.now.to_f)
       @sample = NewRelic::TransactionSample.new(time)
+      @sample_start = time
       @current_segment = @sample.root_segment
     end
 
     def trace_entry(metric_name, time)
-      segment = @sample.create_segment(time - @sample.start_time, metric_name)
+      segment = @sample.create_segment(time - @sample_start, metric_name)
       @current_segment.add_called_segment(segment)
       @current_segment = segment
     end
@@ -249,7 +250,7 @@ module NewRelic::Agent
         fail "unbalanced entry/exit: #{metric_name} != #{@current_segment.metric_name}"
       end
       
-      @current_segment.end_trace(time - @sample.start_time)
+      @current_segment.end_trace(time - @sample_start)
       @current_segment = @current_segment.parent_segment
     end
     
@@ -265,7 +266,7 @@ module NewRelic::Agent
         return
       end
       
-      @sample.root_segment.end_trace(time - @sample.start_time)
+      @sample.root_segment.end_trace(time - @sample_start)
       @sample.params[:custom_params] = normalize_params(TransactionSampler.agent.custom_params) if TransactionSampler.agent
       @sample.freeze
       @current_segment = nil
