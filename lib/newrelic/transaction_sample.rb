@@ -470,9 +470,10 @@ module NewRelic
 
         target_segment.add_called_segment target_called_segment
         source_called_segment.params.each do |k,v|
-          if k == :backtrace
+        case k
+          when :backtrace
             target_called_segment[k]=v if options[:keep_backtraces]
-          elsif k == :sql
+          when :sql
             sql = v
 
             # run an EXPLAIN on this sql if specified.
@@ -482,7 +483,7 @@ module NewRelic
             
             target_called_segment[:sql]=sql if options[:record_sql] == :raw
             target_called_segment[:sql_obfuscated] = TransactionSample.obfuscate_sql(sql) if options[:record_sql] == :obfuscated
-          elsif k == :connection_config
+          when :connection_config
             # don't copy it
           else
             target_called_segment[k]=v 
