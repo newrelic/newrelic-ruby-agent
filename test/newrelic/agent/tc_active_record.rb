@@ -58,12 +58,28 @@ class ActiveRecordInstrumentationTests < Test::Unit::TestCase
     sample = sample.prepare_to_send(:obfuscate_sql => true, :explain_enabled => true, :explain_sql => 0.0)
     segment = sample.root_segment.called_segments.first.called_segments.first
   end
+  def test_prepare_to_send
+    TestModel.find(:all)
+    sample = @agent.transaction_sampler.harvest_slowest_sample
+    segment = sample.root_segment.called_segments.first.called_segments.first
+    assert_match /^SELECT /, segment.params[:sql]
+    
+    sample = sample.prepare_to_send(:record_sql => :raw, :explain_enabled => true, :explain_sql => 0.0)
+    segment = sample.root_segment.called_segments.first.called_segments.first
+    assert_match /^SELECT /, segment.params[:sql]
+    explanations = segment.params[:explanation]
+    assert_not_nil explanations, "No explains in segment: #{segment}"
+    assert_equal 1, explanations.size,"No explains in segment: #{segment}" 
+    assert_equal 1, explanations.first.size
+    
+  end
   def test_transaction
     
     TestModel.find(:all)
     sample = @agent.transaction_sampler.harvest_slowest_sample
     sample = sample.prepare_to_send(:obfuscate_sql => true, :explain_enabled => true, :explain_sql => 0.0)
     segment = sample.root_segment.called_segments.first.called_segments.first
+    assert_nil segment.params[:sql], "SQL should have been removed."
     explanations = segment.params[:explanation]
     assert_not_nil explanations, "No explains in segment: #{segment}"
     assert_equal 1, explanations.size,"No explains in segment: #{segment}" 
