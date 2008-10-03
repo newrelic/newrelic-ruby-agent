@@ -328,7 +328,7 @@ module NewRelic
         next if k == :path
         s << "  #{k}: " <<
         case v
-          when Enumerable: v.sort.join("; ")
+          when Enumerable: v.map(&:to_s).sort.join("; ")
         else
           v
         end << "\n"
