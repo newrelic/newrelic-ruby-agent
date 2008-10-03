@@ -82,7 +82,7 @@ begin catch(:disabled) do
       throw :disabled
     end
     
-    config.controller_paths << controller_path if respond_to? :config
+    config.controller_paths << controller_path
     
     # inform user that the dev edition is available if we are running inside
     # a webserver process
