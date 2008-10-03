@@ -31,7 +31,10 @@ worry - those pages are not added to your application's routes when you run in
 production mode.)
 
 To view this performance information, including detailed SQL statement analysis,
-go to http://localhost:3000/newrelic and start drilling down.
+open '/newrelic' in your web application.  For instance if you are running
+mongrel or thin on port 3000, enter the following into your browser:
+
+http://localhost:3000/newrelic
 
 PRODUCTION MODE
 ---------------
