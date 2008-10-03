@@ -3,6 +3,7 @@ require 'net/http'
 require 'logger'
 require 'singleton'
 require 'zlib'
+require 'stringio'
 
 require 'newrelic/version'
 require 'newrelic/stats'
@@ -24,6 +25,8 @@ module NewRelic::Agent
     
   class IgnoreSilentlyException < StandardError; end
   
+  class ServerError < StandardError; end
+    
   # add some convenience methods for easy access to the Agent singleton.
   # the following static methods all point to the same Agent instance:
   #
@@ -141,7 +144,8 @@ module NewRelic::Agent
     # 2: Private Beta, March 15, 2008.  Compressed Serialzed Marshalled Objects (15-20x smaller)
     # 3: June 19, 2008. Added transaction sampler capability with obfuscation
     # 4: July 15, 2008. Added error capture
-    PROTOCOL_VERSION = 4
+    # 5: Sept 24, 2008. Optimized content coding
+    PROTOCOL_VERSION = 5
     
     include Singleton
     
@@ -495,7 +499,8 @@ module NewRelic::Agent
         @worker_loop.add_task(report_period) do 
           harvest_and_send_slowest_sample
         end
-      elsif !::RPM_DEVELOPER
+      elsif ! ::RPM_DEVELOPER
+        # We still need the sampler for dev mode.
         @transaction_sampler.disable
       end
       
@@ -650,19 +655,21 @@ module NewRelic::Agent
         @unsent_errors = []
       end
     end
-#    
-#    def handle_messages(messages)
-#      messages.each do |message|
-#        begin
-#          message = Marshal.load(message)
-#          message.execute(self)
-#          log.debug("Received Message: #{message.to_yaml}")
-#        rescue => e
-#          log.error "Error handling message: #{e}"
-#          log.debug e.backtrace.join("\n")
-#        end
-#      end 
-#    end
+
+=begin
+    def handle_messages(messages)
+      messages.each do |message|
+        begin
+          message = Marshal.load(message)
+          message.execute(self)
+          log.debug("Received Message: #{message.to_yaml}")
+        rescue => e
+          log.error "Error handling message: #{e}"
+          log.debug e.backtrace.join("\n")
+        end
+      end 
+    end
+=end
     
     # send a message via post
     # As of Version 2, the agent-server protocol is:
@@ -674,30 +681,40 @@ module NewRelic::Agent
       # message size with this, and CPU overhead is at a premium.  If we wanted
       # to go for higher compression instead, we could use Zlib::BEST_COMPRESSION and 
       # pay a little more CPU.
-      post_data = CGI::escape(Zlib::Deflate.deflate(Marshal.dump(args), Zlib::BEST_SPEED))
+      post_data = Zlib::Deflate.deflate(Marshal.dump(args), Zlib::BEST_SPEED)
       
       # Proxy returns regular HTTP if @proxy_host is nil (the default)
-      request = Net::HTTP::Proxy(@proxy_host, @proxy_port, @proxy_user, @proxy_pass).new(@remote_host, @remote_port.to_i)
+      http = Net::HTTP::Proxy(@proxy_host, @proxy_port, @proxy_user, @proxy_pass).new(@remote_host, @remote_port.to_i)
       if @use_ssl
-        request.use_ssl = true 
-        request.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        http.use_ssl = true 
+        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
       end
       
-      request.read_timeout = @request_timeout
+      http.read_timeout = @request_timeout
       
       # we'd like to use to_query but it is not present in all supported rails platforms
       # params = {:method => method, :license_key => license_key, :protocol_version => PROTOCOL_VERSION }
       # uri = "/agent_listener/invoke_raw_method?#{params.to_query}"
       uri = "/agent_listener/invoke_raw_method?method=#{method}&license_key=#{license_key}&protocol_version=#{PROTOCOL_VERSION}"
+
+      request = Net::HTTP::Post.new(uri, 'ACCEPT-ENCODING' => 'gzip')
+      request.content_type = "application/octet-stream"
+      request.body = post_data
       
       log.debug "#{uri}"
       
-      response = request.start do |http|
-        http.post(uri, post_data) 
-      end
-
+      response = http.request(request)
       if response.is_a? Net::HTTPSuccess
-        return_value = Marshal.load(Zlib::Inflate.inflate(CGI::unescape(response.body)))
+        body = nil
+        if response['content-encoding'] == 'gzip'
+          log.debug "Decompressing return value"
+          i = Zlib::GzipReader.new(StringIO.new(response.body))
+          body = i.read
+        else
+          log.debug "Uncompressed content returned"
+          body = response.body
+        end
+        return_value = Marshal.load(body)
         if return_value.is_a? Exception
           raise return_value
         else
