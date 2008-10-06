@@ -2,7 +2,7 @@
 module NewRelic::VERSION #:nodoc:
   MAJOR = 2
   MINOR = 5
-  TINY  = 2
+  TINY  = 3
   STRING = [MAJOR, MINOR, TINY].join('.')
 end
 
@@ -12,6 +12,8 @@ if __FILE__ == $0
 end
 
 __END__
+2008-10-06 version 2.5.3
+  * fix error in transaction tracing causing traces not to show up
 2008-09-30 version 2.5.2
   * fixes for postgres explain plan support
 2008-09-09 version 2.5.1

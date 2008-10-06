@@ -166,9 +166,6 @@ module NewRelic
               # connection for the sql statement is to a different db than the default connection
               # specified in AR::Base
             end
-            # This is to ensure we convert the row into an array if it is not already.
-            # Needed for PostgreSQL:
-            explanations << explain_resultset.map{|row| row.map(&:to_s)}
           end
         end
 
