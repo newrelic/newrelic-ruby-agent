@@ -64,8 +64,6 @@ class ActiveRecordInstrumentationTests < Test::Unit::TestCase
     sample = @agent.transaction_sampler.harvest_slowest_sample
     segment = sample.root_segment.called_segments.first.called_segments.first
     assert_match /^SELECT /, segment.params[:sql]
-    puts segment.duration
-    puts sample
     assert segment.duration > 0.0, "Segment duration must be greater than zero."
     sample = sample.prepare_to_send(:record_sql => :raw, :explain_enabled => true, :explain_sql => 0.0)
     segment = sample.root_segment.called_segments.first.called_segments.first
