@@ -27,10 +27,10 @@ class ActiveRecordInstrumentationTests < Test::Unit::TestCase
     end
     @agent = NewRelic::Agent.instance
     @agent.start :test, :test
+    @agent.transaction_sampler.harvest_slowest_sample
   end
   
   def teardown
-    @agent.transaction_sampler.harvest_slowest_sample
     @agent.shutdown
     @agent.stats_engine.harvest_timeslice_data Hash.new, Hash.new
     TestModel.teardown
