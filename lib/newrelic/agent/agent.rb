@@ -432,7 +432,7 @@ module NewRelic::Agent
       end rescue "#{RAILS_ROOT}/log"
       log_path  = File.expand_path(log_path)
       identifier_part = identifier && identifier[/[\.\w]*$/] 
-      log_file = "#{RAILS_ROOT}/log/newrelic_agent.#{identifier_part ? identifier_part + "." : "" }log"
+      log_file = "#{log_path}/newrelic_agent.#{identifier_part ? identifier_part + "." : "" }log"
       
       @log = Logger.new log_file
       
