@@ -5,7 +5,8 @@ require 'dispatcher'
 module NewRelicDispatcherMixIn
     @@newrelic_agent = NewRelic::Agent.agent
     @@newrelic_rails_dispatch_stat = @@newrelic_agent.stats_engine.get_stats 'Rails/HTTP Dispatch'
-    @@newrelic_mongrel_queue_stat = @@newrelic_agent.stats_engine.get_stats 'WebFrontend/Mongrel/Average Queue Time' if defined? Mongrel::HttpServer
+    @@newrelic_mongrel_queue_stat = defined?(Mongrel::HttpServer) ?
+       @@newrelic_agent.stats_engine.get_stats('WebFrontend/Mongrel/Average Queue Time'): nil 
     
     def dispatch_newrelic(*args)
       @@newrelic_agent.start_transaction
@@ -14,7 +15,7 @@ module NewRelicDispatcherMixIn
       
       t0 = Time.now.to_f
 
-      @@newrelic_mongrel_queue_stat.trace_call(t0 - Thread.current[:started_on].to_f) if Thread.current[:started_on]
+      @@newrelic_mongrel_queue_stat.trace_call(t0 - Thread.current[:started_on].to_f) if (Thread.current[:started_on] && @@newrelic_mongrel_queue_stat) 
 
       begin
         result = dispatch_without_newrelic(*args)
