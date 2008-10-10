@@ -6,7 +6,7 @@ module CollectionHelper
       when Symbol, FalseClass, TrueClass, nil:
       params
       when Numeric
-      params.to_s
+      truncate(params.to_s, 256)
       when String
       truncate(params, 256)
       when Hash:
@@ -44,13 +44,22 @@ module CollectionHelper
   # Convert any kind of object to a descriptive string
   # Only call this on unknown objects.  Otherwise call to_s.
   def flatten(object)
-    if object.respond_to? :inspect
-      object.inspect
-    elsif object.respond_to? :to_s
-      object.to_s
-    else
-      "#<#{object.class.to_s}>"
+    s = 
+      if object.respond_to? :inspect
+        object.inspect
+      elsif object.respond_to? :to_s
+        object.to_s
+      elsif object.nil?
+        "nil"
+      else
+        "#<#{object.class.to_s}>"
+      end
+
+    if !(s.instance_of? String)
+      s = "#<#{object.class.to_s}>"
     end
+    
+    s
   end
   
   def truncate(string, len)
