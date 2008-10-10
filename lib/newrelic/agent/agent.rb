@@ -224,7 +224,7 @@ module NewRelic::Agent
       error_collector_config = config.fetch('error_collector', {})
       
       @error_collector.enabled = error_collector_config.fetch('enabled', true)
-      @error_collector.capture_source = error_collector_config.fetch('capture_source', false)
+      @error_collector.capture_source = error_collector_config.fetch('capture_source', true)
       
       log.info "Error collecting is enabled in agent config" if @error_collector.enabled
       
@@ -244,7 +244,7 @@ module NewRelic::Agent
       @slowest_transaction_threshold = sampler_config.fetch('transaction_threshold', '2.0').to_f
       @explain_threshold = sampler_config.fetch('explain_threshold', '0.5').to_f
       @explain_enabled = sampler_config.fetch('explain_enabled', true)
-      @stack_trace_threshold = sampler_config.fetch('stack_trace_threshold', '100000.0').to_f
+      @stack_trace_threshold = sampler_config.fetch('stack_trace_threshold', '0.500').to_f
       
       log.info "Transaction tracing is enabled in agent config" if @use_transaction_sampler
       log.warn "Agent is configured to send raw SQL to RPM service" if @record_sql == :raw
