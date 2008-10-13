@@ -16,7 +16,7 @@ module NewRelic::Agent
         @ps = "ps -o rss -p"
       end
       if !@ps
-        raise SamplerInitFailure, "Unsupported platform for getting memory: #{platform}"
+        raise "Unsupported platform for getting memory: #{platform}"
       end
       
       if @ps        
