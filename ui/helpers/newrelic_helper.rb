@@ -74,11 +74,15 @@ module NewrelicHelper
   
   # write the metric label for a segment metric in the detail view
   def write_segment_label(segment)
-    if segment[:backtrace] && (source_url = url_for_source(application_caller(segment[:backtrace])))
+    if source_available && segment[:backtrace] && (source_url = url_for_source(application_caller(segment[:backtrace])))
       link_to dev_name(segment.metric_name), source_url
     else
       dev_name(segment.metric_name)
     end
+  end
+  
+  def source_available
+    true
   end
   
   # write the metric label for a segment metric in the summary table of metrics
