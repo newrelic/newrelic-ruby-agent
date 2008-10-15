@@ -360,7 +360,7 @@ module NewRelic::Agent
     def gather_info
       i = []
       begin 
-        require 'builtin/rails_info/rails/info'
+        require 'rails/info'
         i += Rails::Info.properties
       rescue SecurityError, ScriptError, StandardError => e
         log.debug "Unable to get the Rails info: #{e.inspect}"
@@ -480,41 +480,44 @@ module NewRelic::Agent
     
     # Connect to the server, and run the worker loop forever
     def run_worker_loop
+      until @connected or !connect; end
+      # We may not be connected now but keep going for dev mode
       
-      until @connected
-        should_retry = connect
-        return unless should_retry
-      end
-            
-      # determine the reporting period (server based)
-      # note if the agent attempts to report more frequently than the specified
-      # report data, then it will be ignored.
-      report_period = invoke_remote :get_data_report_period, @agent_id
-      log! "Reporting performance data every #{report_period} seconds"        
-      @worker_loop.add_task(report_period) do 
-        harvest_and_send_timeslice_data
-      end
-      
-      if @should_send_samples && @use_transaction_sampler
+      if @connected
+        # determine the reporting period (server based)
+        # note if the agent attempts to report more frequently than the specified
+        # report data, then it will be ignored.
+        report_period = invoke_remote :get_data_report_period, @agent_id
+        log! "Reporting performance data every #{report_period} seconds"        
         @worker_loop.add_task(report_period) do 
-          harvest_and_send_slowest_sample
+          harvest_and_send_timeslice_data
         end
-      elsif ! ::RPM_DEVELOPER
-        # We still need the sampler for dev mode.
-        @transaction_sampler.disable
-      end
-      
-      if @should_send_errors && @error_collector.enabled
-        @worker_loop.add_task(report_period) do 
-          harvest_and_send_errors
+        
+        if @should_send_samples && @use_transaction_sampler
+          @worker_loop.add_task(report_period) do 
+            harvest_and_send_slowest_sample
+          end
+        elsif ! ::RPM_DEVELOPER
+          # We still need the sampler for dev mode.
+          @transaction_sampler.disable
+        end
+        
+        if @should_send_errors && @error_collector.enabled
+          @worker_loop.add_task(report_period) do 
+            harvest_and_send_errors
+          end
         end
       end
-      
-      @worker_loop.run
+      @worker_loop.run if @connected || ::RPM_DEVELOPER
     end
     
     
-
+    # Connect to the server and validate the license.
+    # If successful, @connected has true when finished.
+    # If not successful, you can keep calling this. 
+    # Return false if we could not establish a connection with the
+    # server and we should not retry, such as if there's
+    # a bad license key.
     def connect
       @connect_retry_period ||= 5
       @connect_attempts ||= 0
@@ -542,7 +545,6 @@ module NewRelic::Agent
     rescue LicenseException => e
       log! e.message, :error
       log! "Visit NewRelic.com to obtain a valid license key, or to upgrade your account."
-      log! "Turning New Relic Agent off."
       @invalid_license = true
       return false
       
