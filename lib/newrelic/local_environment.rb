@@ -66,7 +66,7 @@ module NewRelic
         require 'java'
         require 'jruby'
         @environment = :jruby
-        @identifier = java.lang.System.identityHashCode(JRuby.runtime)
+        @identifier = 'jruby'
       end
     end
     
