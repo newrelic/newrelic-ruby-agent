@@ -13,10 +13,12 @@ end
 
 __END__
 2008-10-13 version 2.5.4
+  * Show stack traces in RPM Transaction Traces
+  * Performance tuning
+  * Clean up error stack traces.
+  * Support query plans from postgres
+  * Capture error source for TemplateErrors
   * bugfixes
-  * agent performance optimization
-2008-09-30 version 2.5.2
-  * fixes for postgres explain plan support
 2008-09-09 version 2.5.1
   * bugfixes
 2008-08-29 version 2.5.0
