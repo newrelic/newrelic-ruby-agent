@@ -218,6 +218,20 @@ module NewRelic::Agent
       Thread::current[:newrelic_scope_stack] = []
     end
     
+    
+    # Try to clean up gracefully, otherwise we leave things hanging around on thread locals
+    #
+    def end_transaction
+      stack = Thread::current[:newrelic_scope_stack]
+      
+      if stack
+        @scope_stack_listener.notice_scope_empty(Time.now) if @scope_stack_listener && !stack.empty? 
+        Thread::current[:newrelic_scope_stack] = nil
+      end
+      
+      Thread::current[:newrelic_transaction_name] = nil
+    end
+    
     private
     
       def scope_stack

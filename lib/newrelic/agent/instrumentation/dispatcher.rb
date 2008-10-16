@@ -1,7 +1,6 @@
 require 'dispatcher'
 
 
-
 module NewRelicDispatcherMixIn
     @@newrelic_agent = NewRelic::Agent.agent
     @@newrelic_rails_dispatch_stat = @@newrelic_agent.stats_engine.get_stats 'Rails/HTTP Dispatch'
@@ -9,20 +8,25 @@ module NewRelicDispatcherMixIn
        @@newrelic_agent.stats_engine.get_stats('WebFrontend/Mongrel/Average Queue Time'): nil 
     
     def dispatch_newrelic(*args)
-      @@newrelic_agent.start_transaction
       
-      Thread.current[:controller_ignored] = nil
-      
-      t0 = Time.now.to_f
-
-      @@newrelic_mongrel_queue_stat.trace_call(t0 - Thread.current[:started_on].to_f) if (Thread.current[:started_on] && @@newrelic_mongrel_queue_stat) 
-
       begin
-        result = dispatch_without_newrelic(*args)
-      ensure
-        @@newrelic_rails_dispatch_stat.trace_call(Time.now.to_f - t0) if Thread.current[:controller_ignored].nil?
+        t0 = Time.now.to_f
+        mongrel_start = Thread.current[:started_on]
+  
+        @@newrelic_mongrel_queue_stat.trace_call(t0 - mongrel_start.to_f) if mongrel_start 
+  
+        @@newrelic_agent.start_transaction
+        
+        Thread.current[:controller_ignored] = nil
+  
+        begin
+          result = dispatch_without_newrelic(*args)
+        ensure
+          @@newrelic_rails_dispatch_stat.trace_call(Time.now.to_f - t0) if Thread.current[:controller_ignored].nil?
+          @@newrelic_agent.end_transaction
+        end
       end
-      
+
       result
     end
 end
