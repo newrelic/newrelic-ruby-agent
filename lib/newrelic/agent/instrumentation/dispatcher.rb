@@ -40,6 +40,7 @@ module NewRelicDispatcherMixIn
     @@newrelic_agent = NewRelic::Agent.agent
     @@newrelic_rails_dispatch_stat = @@newrelic_agent.stats_engine.get_stats 'Rails/HTTP Dispatch'
     @@newrelic_mongrel_queue_stat = (@@mongrel) ? @@newrelic_agent.stats_engine.get_stats('WebFrontend/Mongrel/Average Queue Time'): nil
+    @@newrelic_mongrel_read_time = (@@mongrel) ? @@newrelic_agent.stats_engine.get_stats('WebFrontend/Mongrel/Average Read Time'): nil
     
     
     def patch_guard
@@ -88,8 +89,10 @@ module NewRelicDispatcherMixIn
         t0 = Time.now.to_f
   
         queue_start = Thread.current[:queue_start]
+        read_start = Thread.current[:started_on]
         
         @@newrelic_mongrel_queue_stat.trace_call(t0 - queue_start) if queue_start
+        @@newrelic_mongrel_read_time.trace_call(queue_start - read_start.to_f) if queue_start && read_start
   
         @@newrelic_agent.start_transaction
         
