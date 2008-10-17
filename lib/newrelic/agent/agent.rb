@@ -365,7 +365,11 @@ module NewRelic::Agent
     def gather_info
       i = []
       begin 
-        require 'rails/info'
+        begin
+          require 'rails/info'
+        rescue LoadError
+          require 'builtin/rails_info/rails/info'
+        end
         i += Rails::Info.properties
       rescue SecurityError, ScriptError, StandardError => e
         log.debug "Unable to get the Rails info: #{e.inspect}"
