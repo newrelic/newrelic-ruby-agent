@@ -77,6 +77,7 @@ module NewRelicDispatcherMixIn
     #
     # Patch dispatch
     def dispatch_newrelic(*args)
+      t0 = Time.now.to_f
       
       if !@@patch_guard
         patch_guard
@@ -86,8 +87,6 @@ module NewRelicDispatcherMixIn
       NewRelicMutexWrapper.in_handler
       
       begin
-        t0 = Time.now.to_f
-  
         queue_start = Thread.current[:queue_start]
         read_start = Thread.current[:started_on]
         
@@ -101,8 +100,8 @@ module NewRelicDispatcherMixIn
         begin
           result = dispatch_without_newrelic(*args)
         ensure
-          @@newrelic_rails_dispatch_stat.trace_call(Time.now.to_f - t0) if Thread.current[:controller_ignored].nil?
           @@newrelic_agent.end_transaction
+          @@newrelic_rails_dispatch_stat.trace_call(Time.now.to_f - t0) if Thread.current[:controller_ignored].nil?
         end
       end
 
