@@ -702,7 +702,8 @@ module NewRelic::Agent
       # we'd like to use to_query but it is not present in all supported rails platforms
       # params = {:method => method, :license_key => license_key, :protocol_version => PROTOCOL_VERSION }
       # uri = "/agent_listener/invoke_raw_method?#{params.to_query}"
-      uri = "/agent_listener/invoke_raw_method?method=#{method}&license_key=#{license_key}&protocol_version=#{PROTOCOL_VERSION}&run_id=#{@agent_id}"
+      uri = "/agent_listener/invoke_raw_method?method=#{method}&license_key=#{license_key}&protocol_version=#{PROTOCOL_VERSION}"
+      uri += "&run_id=#{@agent_id}" if @agent_id
 
       request = Net::HTTP::Post.new(uri, 'ACCEPT-ENCODING' => 'gzip')
       request.content_type = "application/octet-stream"
