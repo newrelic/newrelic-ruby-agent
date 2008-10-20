@@ -18,10 +18,10 @@ require 'newrelic/agent/error_collector'
 module NewRelic::Agent
   
   # an exception that is thrown by the server if the agent license is invalid
-  class LicenseException < Exception; end
+  class LicenseException < StandardError; end
   
   # an exception that forces an agent to stop reporting until its mongrel is restarted
-  class ForceDisconnectException < Exception; end
+  class ForceDisconnectException < StandardError; end
     
   class IgnoreSilentlyException < StandardError; end
   
@@ -480,7 +480,7 @@ module NewRelic::Agent
       @worker_thread = Thread.new do
         begin
           run_worker_loop
-        rescue Exception => e
+        rescue StandardError => e
           log! e
           log! e.backtrace().join("\n")
         end
