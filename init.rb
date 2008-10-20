@@ -36,7 +36,7 @@ begin catch(:disabled) do
   # Check to see if the agent should be enabled or not
 
   # This determines the environment we are running in
-  env = NewRelic::LocalEnvironment.new
+  env = NewRelic::LocalEnvironment.new newrelic_agent_config['app_name']
 
   # note if the agent is not turned on via the enabled flag in the 
   # configuration file, the application will be untouched, and it will

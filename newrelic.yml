@@ -11,6 +11,12 @@ common: &default_settings
   # You must specify the licence key associated with your New Relic account.
   # This key binds your Agent's data to your account in the New Relic RPM service.
   license_key: '<%= license_key %>'
+  
+  # Application Name
+  # For Passenger, JRuby, and Litespeed, if you host multiple applications on a
+  # single host, then define an application name for each app. If you don't do
+  # this, then all instances reporting from a host have their data aggregated.
+  # app_name: <your app name>
 
   # the 'enabled' setting is used to turn on the NewRelic Agent.  When false,
   # your application is not instrumented and the Agent does not start up or

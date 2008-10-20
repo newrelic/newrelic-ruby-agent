@@ -87,6 +87,11 @@ class EnvironmentTest < ActiveSupport::TestCase
     e = NewRelic::LocalEnvironment.new
     assert_equal :passenger, e.environment
     assert_equal 'passenger', e.identifier
+    
+    e = NewRelic::LocalEnvironment.new 'myapp'
+    assert_equal :passenger, e.environment
+    assert_equal 'passenger:myapp', e.identifier
+    
     ::Passenger.class_eval { remove_const :AbstractServer }
   end
   def test_daemon

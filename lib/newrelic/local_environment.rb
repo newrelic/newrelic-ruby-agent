@@ -10,10 +10,11 @@ module NewRelic
     # determine the environment we are running in (one of :webrick,
     # :mongrel, :thin, or :unknown) and if the process is listening
     # on a port, use the port # that we are listening on. 
-    def initialize
+    def initialize(app_name = nil)
       # Note: log won't be available yet.
       @identifier = nil
       @environment = :unknown
+      @app_name = app_name
       
       environments = %w[jruby webrick mongrel thin litespeed passenger daemon]
       while environments.any? && @identifier.nil?
@@ -67,6 +68,7 @@ module NewRelic
         require 'jruby'
         @environment = :jruby
         @identifier = 'jruby'
+        @identifier += ":#{@app_name}" if @app_name
       end
     end
     
@@ -74,6 +76,7 @@ module NewRelic
       if caller.pop =~ /fcgi-bin\/RailsRunner\.rb/
         @environment = :litespeed
         @identifier = 'litespeed'
+        @identifier += ":#{@app_name}" if @app_name
       end
     end
     
@@ -81,6 +84,7 @@ module NewRelic
       if defined? Passenger::AbstractServer
         @environment = :passenger
         @identifier = 'passenger'
+        @identifier += ":#{@app_name}" if @app_name
       end
     end
     
