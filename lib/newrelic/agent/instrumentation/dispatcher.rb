@@ -6,18 +6,15 @@ require 'dispatcher'
 class NewRelicMutexWrapper
     
   @@queue_length = 0
-  @@mutex = Mutex.new
   
   def NewRelicMutexWrapper.queue_length
-    @@mutex.synchronize do
-      return @@queue_length
-    end
+    @@queue_length
   end
   
   def NewRelicMutexWrapper.in_handler
-    @@mutex.synchronize do
-      @@queue_length -= 1
-    end
+    Thread.critical = true
+    @@queue_length -= 1
+    Thread.critical = false
   end
   
   def initialize(mutex)
@@ -27,14 +24,14 @@ class NewRelicMutexWrapper
   def synchronize(&block)
     Thread.current[:queue_start] = Time.now.to_f
     
-    @@mutex.synchronize do
-      @@queue_length += 1
-    end
+    Thread.critical = true
+    @@queue_length += 1
+    Thread.critical = false
     
     @mutex.synchronize(&block)
   end
-  
 end
+
 
 module NewRelicDispatcherMixIn
   
