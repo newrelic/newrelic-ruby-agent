@@ -6,13 +6,16 @@ require 'dispatcher'
 class NewRelicMutexWrapper
     
   @@queue_length = 0
+  @@mutex = Mutex.new
   
   def NewRelicMutexWrapper.queue_length
-    @@queue_length
+    @@mutex.synchronize do
+      return @@queue_length
+    end
   end
   
   def NewRelicMutexWrapper.in_handler
-    Thread.critical do
+    @@mutex.synchronize do
       @@queue_length -= 1
     end
   end
@@ -24,7 +27,7 @@ class NewRelicMutexWrapper
   def synchronize(&block)
     Thread.current[:queue_start] = Time.now.to_f
     
-    Thread.critical do
+    @@mutex.synchronize do
       @@queue_length += 1
     end
     
