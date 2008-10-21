@@ -10,8 +10,6 @@ module ActionController
     def newrelic_notice_error(exception)
       local_params = (respond_to? :filter_parameters) ? filter_parameters(params) : params
       
-      NewRelic::Agent.add_custom_parameters(:remote_addr => request.env['REMOTE_ADDR']) if request && request.env
-      
       NewRelic::Agent.agent.error_collector.notice_error(_determine_metric_path, (request) ? request.path : nil,
             local_params, exception)
     end
