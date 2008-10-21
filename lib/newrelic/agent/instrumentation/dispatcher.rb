@@ -22,11 +22,11 @@ class NewRelicMutexWrapper
   end
   
   def synchronize(&block)
-    Thread.current[:queue_start] = Time.now.to_f
-    
     Thread.critical = true
     @@queue_length += 1
     Thread.critical = false
+    
+    Thread.current[:queue_start] = Time.now.to_f
     
     @mutex.synchronize(&block)
   end
