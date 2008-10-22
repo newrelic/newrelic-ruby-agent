@@ -1,3 +1,4 @@
+=begin
 ENV["RAILS_ENV"] = "test"
 require 'rubygems'
 require 'mocha'
@@ -42,3 +43,4 @@ if defined? ActiveRecord::ConnectionAdapters
     end
   end
 end
+=end
