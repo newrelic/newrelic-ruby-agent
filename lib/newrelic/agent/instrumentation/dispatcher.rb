@@ -58,7 +58,7 @@ module NewRelicDispatcherMixIn
         ObjectSpace.each_object(Mongrel::Rails::RailsHandler) do |handler_instance|
           # should only be one mongrel instance in the vm
           if handler
-            agent.log.info("Discovered multiple Mongrel rails handler instances in one Ruby VM.  "+
+            agent.log.error("Discovered multiple Mongrel rails handler instances in one Ruby VM.  "+
               "This is unexpected and might affect the Accuracy of the Mongrel Request Queue metric.")
           end
       
@@ -90,10 +90,11 @@ module NewRelicDispatcherMixIn
         return dispatch_without_newrelic(*args)
       end
       
-      NewRelicMutexWrapper.in_handler
+      queue_start = Thread.current[:queue_start]
+      
+      NewRelicMutexWrapper.in_handler if queue_start
       
       begin
-        queue_start = Thread.current[:queue_start]
         read_start = Thread.current[:started_on]
         
         @@newrelic_mongrel_queue_stat.trace_call(t0 - queue_start) if queue_start
