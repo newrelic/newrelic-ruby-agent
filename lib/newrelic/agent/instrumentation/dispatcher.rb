@@ -77,9 +77,16 @@ module NewRelic
       
       Thread.critical = false
       
-      # busy = 0 if busy < 0
+      busy = 0.0 if busy < 0.0 # don't go below 0%
+      
+      time_window = (t0 - @@harvest_start)
+      time_window = 1.0 if time_window == 0.0  # protect against divide by zero
+      
+      busy = busy / time_window
+      
+      busy = 1.0 if busy > 1.0    # cap at 100%
             
-      @@instance_busy.record_data_point(busy / (t0 - @@harvest_start))
+      @@instance_busy.record_data_point busy
       
       @@harvest_start = t0
     end
