@@ -598,6 +598,9 @@ module NewRelic::Agent
     end
     
     def harvest_and_send_timeslice_data
+      
+      NewRelic::BusyCalculator.harvest_busy
+      
       now = Time.now
       @unsent_timeslice_data ||= {}
       @unsent_timeslice_data = @stats_engine.harvest_timeslice_data(@unsent_timeslice_data, @metric_ids)

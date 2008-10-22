@@ -33,6 +33,58 @@ module NewRelic
       @mutex.synchronize(&block)
     end
   end
+  
+  class BusyCalculator
+    
+    # the fraction of the sample period that the dispatcher was busy
+    @@instance_busy = NewRelic::Agent.agent.stats_engine.get_stats('Instance/Busy')
+    @@harvest_start = Time.now.to_f
+    @@accumulator = 0
+    
+    def BusyCalculator.dispatcher_start(time)
+      Thread.critical = true
+      @@dispatcher_start = time      
+      Thread.critical = false
+    end
+    
+    def BusyCalculator.dispatcher_finish(time)
+      Thread.critical = true
+      
+      @@accumulator += (time - @@dispatcher_start)
+      @@dispatcher_start = nil
+      
+      Thread.critical = false
+    end
+    
+    def BusyCalculator.add_busy(amount)
+      Thread.critical = true
+      @@accumulator += amount
+      Thread.critical = false
+    end
+    
+    def BusyCalculator.harvest_busy
+      t0 = Time.now.to_f
+      
+      Thread.critical = true
+      
+      busy = @@accumulator
+      @@accumulator = 0
+      
+      if @@dispatcher_start
+        busy += (t0 - @@dispatcher_start)
+        @@dispatcher_start = t0
+      end
+      
+      Thread.critical = false
+      
+      # busy = 0 if busy < 0
+            
+      @@instance_busy.record_data_point(busy / (t0 - @@harvest_start))
+      
+      @@harvest_start = t0
+    end
+    
+  end
 end
 
 
@@ -92,29 +144,35 @@ module NewRelicDispatcherMixIn
         patch_guard
         return dispatch_without_newrelic(*args)
       end
+
+      NewRelic::BusyCalculator.dispatcher_start t0
       
+      queue_start = Thread.current[:queue_start]
       
+      if queue_start
+        NewRelic::MutexWrapper.in_handler
+        read_start = Thread.current[:started_on]
+      
+        @@newrelic_mongrel_queue_stat.trace_call(t0 - queue_start)
+        
+        if read_start
+          read_time = queue_start - read_start.to_f
+          @@newrelic_mongrel_read_time.trace_call(read_time)
+          NewRelic::BusyCalculator.add_busy(read_time)
+        end
+      end
+
+      @@newrelic_agent.start_transaction
+      
+      Thread.current[:controller_ignored] = nil
+
       begin
-        queue_start = Thread.current[:queue_start]
-        
-        if queue_start
-          NewRelic::MutexWrapper.in_handler
-          read_start = Thread.current[:started_on]
-        
-          @@newrelic_mongrel_queue_stat.trace_call(t0 - queue_start)
-          @@newrelic_mongrel_read_time.trace_call(queue_start - read_start.to_f) if read_start
-        end
-  
-        @@newrelic_agent.start_transaction
-        
-        Thread.current[:controller_ignored] = nil
-  
-        begin
-          result = dispatch_without_newrelic(*args)
-        ensure
-          @@newrelic_agent.end_transaction
-          @@newrelic_rails_dispatch_stat.trace_call(Time.now.to_f - t0) if Thread.current[:controller_ignored].nil?
-        end
+        result = dispatch_without_newrelic(*args)
+      ensure
+        t1 = Time.now.to_f
+        @@newrelic_agent.end_transaction
+        @@newrelic_rails_dispatch_stat.trace_call(t1 - t0) if Thread.current[:controller_ignored].nil?
+        NewRelic::BusyCalculator.dispatcher_finish t1
       end
 
       result
