@@ -2,33 +2,36 @@ require 'dispatcher'
 
 
  
-
-class NewRelicMutexWrapper
+# We have to patch the mongrel dispatcher live since the classes
+# aren't defined when our instrumentation loads
+module NewRelic
+  class MutexWrapper
+      
+    @@queue_length = 0
     
-  @@queue_length = 0
-  
-  def NewRelicMutexWrapper.queue_length
-    @@queue_length
-  end
-  
-  def NewRelicMutexWrapper.in_handler
-    Thread.critical = true
-    @@queue_length -= 1
-    Thread.critical = false
-  end
-  
-  def initialize(mutex)
-    @mutex = mutex
-  end
-  
-  def synchronize(&block)
-    Thread.critical = true
-    @@queue_length += 1
-    Thread.critical = false
+    def MutexWrapper.queue_length
+      @@queue_length
+    end
     
-    Thread.current[:queue_start] = Time.now.to_f
+    def MutexWrapper.in_handler
+      Thread.critical = true
+      @@queue_length -= 1
+      Thread.critical = false
+    end
     
-    @mutex.synchronize(&block)
+    def initialize(mutex)
+      @mutex = mutex
+    end
+    
+    def synchronize(&block)
+      Thread.critical = true
+      @@queue_length += 1
+      Thread.critical = false
+      
+      Thread.current[:queue_start] = Time.now.to_f
+      
+      @mutex.synchronize(&block)
+    end
   end
 end
 
@@ -70,10 +73,10 @@ module NewRelicDispatcherMixIn
             @guard = guard
           end
         
-          handler.new_relic_set_guard NewRelicMutexWrapper.new(handler.guard)
+          handler.new_relic_set_guard NewRelic::MutexWrapper.new(handler.guard)
           
           NewRelic::Agent.instance.stats_engine.add_sampled_metric("Mongrel/Queue Length") do |stats|
-            stats.record_data_point NewRelicMutexWrapper.queue_length
+            stats.record_data_point NewRelic::MutexWrapper.queue_length
           end
         end
       end
@@ -90,15 +93,17 @@ module NewRelicDispatcherMixIn
         return dispatch_without_newrelic(*args)
       end
       
-      queue_start = Thread.current[:queue_start]
-      
-      NewRelicMutexWrapper.in_handler if queue_start
       
       begin
-        read_start = Thread.current[:started_on]
+        queue_start = Thread.current[:queue_start]
         
-        @@newrelic_mongrel_queue_stat.trace_call(t0 - queue_start) if queue_start
-        @@newrelic_mongrel_read_time.trace_call(queue_start - read_start.to_f) if queue_start && read_start
+        if queue_start
+          NewRelic::MutexWrapper.in_handler
+          read_start = Thread.current[:started_on]
+        
+          @@newrelic_mongrel_queue_stat.trace_call(t0 - queue_start)
+          @@newrelic_mongrel_read_time.trace_call(queue_start - read_start.to_f) if read_start
+        end
   
         @@newrelic_agent.start_transaction
         
