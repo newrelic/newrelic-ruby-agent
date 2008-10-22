@@ -430,7 +430,7 @@ module NewRelic::Agent
       
       @invalid_license = false
       
-      @last_harvest_time = Time.now
+      @last_harvest_time = Time.now - 60.seconds.ago
       
       @worker_pid = 0
     end
@@ -602,6 +602,13 @@ module NewRelic::Agent
       NewRelic::BusyCalculator.harvest_busy
       
       now = Time.now
+      
+      @harvest_thread ||= Thread.current
+      
+      log.log! "ERROR - two harvest threads are running" if @harvest_thread != Thread.current
+      
+      log.log! "Agent sending data too frequently - #{now - @last_harvest_time} seconds" if (now - @last_harvest_time) < 45
+      
       @unsent_timeslice_data ||= {}
       @unsent_timeslice_data = @stats_engine.harvest_timeslice_data(@unsent_timeslice_data, @metric_ids)
       
