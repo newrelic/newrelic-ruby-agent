@@ -100,9 +100,11 @@ module NewRelicDispatcherMixIn
     @@mongrel = nil;
     @@patch_guard = true
   
-    ObjectSpace.each_object(Mongrel::HttpServer) do |mongrel_instance|
-      @@mongrel = mongrel_instance
-      @@patch_guard = false
+    if defined? Mongrel
+      ObjectSpace.each_object(Mongrel::HttpServer) do |mongrel_instance|
+        @@mongrel = mongrel_instance
+        @@patch_guard = false
+      end
     end
     
     @@newrelic_agent = NewRelic::Agent.agent
