@@ -84,6 +84,7 @@ module NewRelic
     
     # the stat total_call_time is a percent
     def as_percentage(decimal_places = 2)
+      return 0 if call_count = 0
       ((total_call_time / call_count) * 100).round_to(decimal_places)
     end
     
