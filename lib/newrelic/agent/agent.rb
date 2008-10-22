@@ -607,7 +607,7 @@ module NewRelic::Agent
       
       log.log! "ERROR - two harvest threads are running" if @harvest_thread != Thread.current
       
-      log.log! "Agent sending data too frequently - #{now - @last_harvest_time} seconds" if (now - @last_harvest_time) < 45
+      log.log! "Agent sending data too frequently - #{now - @last_harvest_time} seconds" if (now.to_f - @last_harvest_time.to_f) < 45
       
       @unsent_timeslice_data ||= {}
       @unsent_timeslice_data = @stats_engine.harvest_timeslice_data(@unsent_timeslice_data, @metric_ids)
