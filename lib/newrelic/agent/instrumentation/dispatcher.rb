@@ -40,7 +40,7 @@ module NewRelic
     @@instance_busy = NewRelic::Agent.agent.stats_engine.get_stats('Instance/Busy')
     @@harvest_start = Time.now.to_f
     @@accumulator = 0
-    
+    @@dispatcher_start = nil    
     def BusyCalculator.dispatcher_start(time)
       Thread.critical = true
       @@dispatcher_start = time      
