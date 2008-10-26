@@ -5,8 +5,9 @@ puts IO.read(File.join(File.dirname(__FILE__), 'README'))
 dest_config_file = File.expand_path("#{File.dirname(__FILE__)}/../../../config/newrelic.yml")
 src_config_file = "#{File.dirname(__FILE__)}/newrelic.yml"
 
-unless File::exists? dest_config_file
-
+if File::exists? dest_config_file
+  puts "\nA config file already exists at #{dest_config_file}.\n"
+else
   generated_for_user = ""
   license_key = "PASTE_YOUR_KEY_HERE"
   

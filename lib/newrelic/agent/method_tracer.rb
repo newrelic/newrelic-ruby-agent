@@ -81,7 +81,7 @@ class Module
   # push_scope specifies whether this method tracer should push
   # the metric name onto the scope stack.
   def add_method_tracer (method_name, metric_name_code, options = {})
-    return unless ::RPM_TRACERS_ENABLED
+    return unless NewRelic::Agent.agent.config.tracers_enabled?
     
     @@newrelic_stats_engine ||= NewRelic::Agent.agent.stats_engine
 
@@ -153,7 +153,7 @@ class Module
   # from when they were added, or else other tracers that were added to the same method
   # may get removed as well.
   def remove_method_tracer(method_name, metric_name_code)
-    return unless ::RPM_TRACERS_ENABLED
+    return unless NewRelic::Agent.agent.config.tracers_enabled?
     
     if method_defined? "#{_traced_method_name(method_name, metric_name_code)}"
       alias_method method_name, "#{_untraced_method_name(method_name, metric_name_code)}"

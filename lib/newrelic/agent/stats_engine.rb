@@ -170,7 +170,6 @@ module NewRelic::Agent
     
     def harvest_timeslice_data(previous_timeslice_data, metric_ids)
       timeslice_data = {}
-      
       @stats_hash.keys.each do |metric_spec|
         
         

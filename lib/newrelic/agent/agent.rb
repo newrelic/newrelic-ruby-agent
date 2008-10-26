@@ -13,10 +13,9 @@ require 'newrelic/agent/stats_engine'
 require 'newrelic/agent/transaction_sampler'
 require 'newrelic/agent/error_collector'
 
-# The NewRelic Agent collects performance data from rails applications in realtime as the
+# The NewRelic Agent collects performance data from ruby applications in realtime as the
 # application runs, and periodically sends that data to the NewRelic server.
 module NewRelic::Agent
-  
   # an exception that is thrown by the server if the agent license is invalid
   class LicenseException < StandardError; end
   
@@ -55,9 +54,9 @@ module NewRelic::Agent
     
     # Call this to manually start the Agent in situations where the Agent does
     # not auto-start.
-    # When the rails environment loads, so does the Agent. However, the Agent will
+    # When the app environment loads, so does the Agent. However, the Agent will
     # only connect to RPM if a web plugin is found. If you want to selectively monitor
-    # rails processes that don't use web plugins, then call this method in your
+    # ruby processes that don't use web plugins, then call this method in your
     # code and the Agent will fire up and start reporting to RPM.
     #
     # environment - the name of the environment. used for logging only
@@ -149,7 +148,7 @@ module NewRelic::Agent
     
     include Singleton
     
-    # Config hash
+    # Config object
     attr_accessor :config
     attr_reader :obfuscator
     attr_reader :stats_engine
@@ -180,8 +179,6 @@ module NewRelic::Agent
     # Return false if the agent was not started
     def start(environment, identifier, force=false)
 
-      @config ||= ::NR_CONFIG_FILE 
-      
       if @started
         log! "Agent Started Already!"
         raise "Duplicate attempt to start the NewRelic agent"
@@ -275,7 +272,7 @@ module NewRelic::Agent
         return
       end
 
-      instrument_rails
+      instrument_app
       
       if @prod_mode_enabled
         load_samplers
@@ -303,7 +300,11 @@ module NewRelic::Agent
       begin
         
         # only call graceful_disconnect if we successfully stop the worker thread (since a transaction may be in flight)
-        if @worker_thread.join(30)  
+        log.debug("Join with the worker thread...")
+        if !@worker_thread
+          log.debug "No worker thread running"
+        elsif @worker_thread.join(30)  
+          log.debug "Worker thread finished, now disconnect"
           graceful_disconnect
         else
           log.debug "ERROR - could not stop worker thread"
@@ -345,7 +346,7 @@ module NewRelic::Agent
       p.merge!(params)
     end
     
-    def custom_params()
+    def custom_params
       Thread::current[:custom_params] || {}
     end
     
@@ -360,34 +361,8 @@ module NewRelic::Agent
         fail "unknown sql_obfuscator type #{type}"
       end
     end
-
-    # Collect the Rails::Info into an associative array as well as the list of plugins
-    def gather_info
-      i = []
-      begin 
-        begin
-          require 'rails/info'
-        rescue LoadError
-          require 'builtin/rails_info/rails/info'
-        end
-        i += Rails::Info.properties
-      rescue SecurityError, ScriptError, StandardError => e
-        log.debug "Unable to get the Rails info: #{e.inspect}"
-        log.debug e.backtrace.join("\n")
-      end
-      # Would like to get this from config, but how?
-      plugins = Dir[File.join(File.expand_path(__FILE__+"/../../../../.."),"/*")].collect { |p| File.basename p }
-      i << ['Plugin List', plugins]
-      
-      # Look for a capistrano file indicating the current revision:
-      rev_file = File.expand_path(File.join(RAILS_ROOT, "REVISION"))
-      if File.readable?(rev_file) && File.size(rev_file) < 64
-        File.open(rev_file) { | file | i << ['Revision', file.read] } rescue nil
-      end
-      i
-    end
     
-    def instrument_rails
+    def instrument_app
       return if @instrumented
       
       @instrumented = true
@@ -396,7 +371,11 @@ module NewRelic::Agent
       
       # Instrumentation for the key code points inside rails for monitoring by NewRelic.
       # note this file is loaded only if the newrelic agent is enabled (through config/newrelic.yml)
-      instrumentation_files = File.join(File.dirname(__FILE__), 'instrumentation', '*.rb')
+      instrumentation_path = File.join(File.dirname(__FILE__), 'instrumentation')
+      instrumentation_files = [ ] <<
+        File.join(instrumentation_path, '*.rb') <<
+        File.join(instrumentation_path, config.app.to_s, '*.rb')
+      
       Dir.glob(instrumentation_files) do |file|
         begin
           require file
@@ -422,6 +401,8 @@ module NewRelic::Agent
       @metric_ids = {}
       @environment = :unknown
       
+      @config = NewRelic::Config.instance
+      
       @stats_engine = StatsEngine.new
       @transaction_sampler = TransactionSampler.new(self)
       @error_collector = ErrorCollector.new(self)
@@ -436,36 +417,8 @@ module NewRelic::Agent
     end
     
     def setup_log
-      log_path = ::RAILS_DEFAULT_LOGGER.instance_eval do
-        File.dirname(@log.path) rescue File.dirname(@logdev.filename) 
-      end rescue "#{RAILS_ROOT}/log"
-      log_path  = File.expand_path(log_path)
-      identifier_part = identifier && identifier[/[\.\w]*$/] 
-      log_file = "#{log_path}/newrelic_agent.#{identifier_part ? identifier_part + "." : "" }log"
-      
-      @log = Logger.new log_file
-      
-      # change the format just for our logger
-      
-      def @log.format_message(severity, timestamp, progname, msg)
-        "[#{timestamp.strftime("%m/%d/%y %H:%M:%S")} (#{$$})] #{severity} : #{msg}\n" 
-      end
-      
-      @stats_engine.log = @log if @stats_engine
-      
-      # set the log level as specified in the config file
-      case config.fetch("log_level","info").downcase
-        when "debug": @log.level = Logger::DEBUG
-        when "info": @log.level = Logger::INFO
-        when "warn": @log.level = Logger::WARN
-        when "error": @log.level = Logger::ERROR
-        when "fatal": @log.level = Logger::FATAL
-      else @log.level = Logger::INFO
-      end
-      
-      log! "New Relic RPM Agent #{NewRelic::VERSION::STRING} Initialized: pid = #{$$}"
-      log! "Agent Log is found in #{log_file}"
-      log.info "Runtime environment: #{@environment.to_s.titleize}"
+      @log = config.setup_log(identifier)
+      log.info "Runtime environment: #{@environment.to_s}"
     end
     
     
@@ -506,7 +459,7 @@ module NewRelic::Agent
           @worker_loop.add_task(report_period) do 
             harvest_and_send_slowest_sample
           end
-        elsif ! ::RPM_DEVELOPER
+        elsif !config.developer_mode?
           # We still need the sampler for dev mode.
           @transaction_sampler.disable
         end
@@ -517,10 +470,9 @@ module NewRelic::Agent
           end
         end
       end
-      @worker_loop.run if @connected || ::RPM_DEVELOPER
+      @worker_loop.run if @connected || config.developer_mode?
     end
-    
-    
+      
     # Connect to the server and validate the license.
     # If successful, @connected has true when finished.
     # If not successful, you can keep calling this. 
@@ -534,7 +486,7 @@ module NewRelic::Agent
       # wait a few seconds for the web server to boot
       sleep @connect_retry_period.to_i
       @agent_id = invoke_remote :launch, @local_host,
-               @identifier, determine_home_directory, $$, @launch_time.to_f, NewRelic::VERSION::STRING, gather_info
+               @identifier, determine_home_directory, $$, @launch_time.to_f, NewRelic::VERSION::STRING, config.gather_info
       
       log! "Connected to NewRelic Service at #{@remote_host}:#{@remote_port}."
       log.debug "Agent ID = #{@agent_id}."
@@ -594,7 +546,7 @@ module NewRelic::Agent
     end
 
     def determine_home_directory
-      File.expand_path(RAILS_ROOT)
+      config.root
     end
     
     def harvest_and_send_timeslice_data
@@ -713,7 +665,6 @@ module NewRelic::Agent
       
       http.read_timeout = @request_timeout
       
-      # we'd like to use to_query but it is not present in all supported rails platforms
       # params = {:method => method, :license_key => license_key, :protocol_version => PROTOCOL_VERSION }
       # uri = "/agent_listener/invoke_raw_method?#{params.to_query}"
       uri = "/agent_listener/invoke_raw_method?method=#{method}&license_key=#{license_key}&protocol_version=#{PROTOCOL_VERSION}"
@@ -770,16 +721,10 @@ module NewRelic::Agent
     # send the given message to STDERR as well as the agent log, so that it shows
     # up in the console.  This should be used for important informational messages at boot
     def log!(msg, level = :info)
-      to_stderr msg
-      log.send level, msg if log
-    end
-    
-    def to_stderr(msg)
       # only log to stderr when we are running as a mongrel process, so it doesn't
       # muck with daemons and the like.
-      unless @environment == :unknown
-        STDERR.puts "** [NewRelic] " + msg 
-      end
+      config.log!(msg, level) unless @environment == :unknown
+      log.send level, msg if log
     end
     
     def graceful_disconnect

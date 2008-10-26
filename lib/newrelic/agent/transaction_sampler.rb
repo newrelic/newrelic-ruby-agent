@@ -71,7 +71,7 @@ module NewRelic::Agent
       # in developer mode, capture the stack trace with the segment.
       # this is cpu and memory expensive and therefore should not be
       # turned on in production mode
-      if ::RPM_DEVELOPER
+      if NewRelic::Config.instance.developer_mode?
         segment = builder.current_segment
         if segment
           # NOTE we manually inspect stack traces to determine that the 
@@ -109,7 +109,7 @@ module NewRelic::Agent
         sample = last_builder.sample
       
         # ensure we don't collect more than a specified number of samples in memory
-        @samples << sample if ::RPM_DEVELOPER && sample.params[:path] != nil
+        @samples << sample if NewRelic::Config.instance.developer_mode? && sample.params[:path] != nil
         @samples.shift while @samples.length > @max_samples
         
         if @slowest_sample.nil? || @slowest_sample.duration < sample.duration

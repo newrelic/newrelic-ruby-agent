@@ -2,10 +2,10 @@
 NEW RELIC RPM
 =============
 
-NewRelic RPM is a Rails performance management system, developed by New Relic, Inc.
-RPM provides you with deep information about the performance of your Ruby on
-Rails application as it runs in production. The New Relic Agent is distributed as
-a Rails Plugin, which is trivial to install and use.
+NewRelic RPM is a Ruby performance management system, developed by New Relic, Inc.
+RPM provides you with deep information about the performance of your Ruby on Rails 
+or Merb application as it runs in production. The New Relic Agent is distributed as
+a either a Rails plugin or a Gem.
 
 Our testing shows that this agent introduces minimal overhead: in production, a
 typical controller action will be impacted by less than 5 milliseconds in
@@ -21,11 +21,11 @@ DEVELOPER MODE
 ------------
 Developer mode is on by default when you run your application in the development
 environment (but not when it runs in other environments.) When running in
-developer mode, the NewRelic Agent Rails Extension will track the performance of
-every http request serviced by your application, and store in memory this
-information for the last 100 http transactions.
+developer mode, the RPM will track the performance of every http request serviced
+by your application, and store in memory this information for the last 100 http 
+transactions.
 
-When running in Developer Mode, the New Relic Agent will also add a few pages to 
+When running in Developer Mode, the RPM will also add a few pages to 
 your application that allow you to analyze this performance information. (Don't 
 worry - those pages are not added to your application's routes when you run in 
 production mode.)

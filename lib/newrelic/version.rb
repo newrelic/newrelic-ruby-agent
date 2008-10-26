@@ -1,17 +1,26 @@
 #!/usr/bin/ruby
-module NewRelic::VERSION #:nodoc:
+module NewRelic
+  module VERSION #:nodoc:
   MAJOR = 2
   MINOR = 5
-  TINY  = 4
+  TINY  = 5
   STRING = [MAJOR, MINOR, TINY].join('.')
-end
+  def self.changes
+    puts "NewRelic RPM Plugin Version: #{NewRelic::VERSION}"
+    puts CHANGELOG
+  end
 
-if __FILE__ == $0
-  puts "NewRelic RPM Plugin Version: #{NewRelic::VERSION}"
-  puts DATA.read
-end
-
-__END__
+  CHANGELOG = <<EOF
+2008-10-23 version 2.5.5
+  * Repackage to support Gem installation
+  * Update method for calculating dispatcher queue time
+2008-10-13 version 2.5.4
+  * Show stack traces in RPM Transaction Traces
+  * Performance tuning
+  * Clean up error stack traces.
+  * Support query plans from postgres
+  * Capture error source for TemplateErrors
+  * bugfixes
 2008-10-13 version 2.5.4
   * Show stack traces in RPM Transaction Traces
   * Performance tuning
@@ -74,3 +83,11 @@ __END__
   * bugfixes
 2008-04-25 version 2.1.0
   * release for private beta
+EOF
+  end
+end
+
+if __FILE__ == $0
+  NewRelic::VERSION.changes
+end
+
