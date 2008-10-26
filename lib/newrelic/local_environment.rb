@@ -10,18 +10,23 @@ module NewRelic
     # determine the environment we are running in (one of :webrick,
     # :mongrel, :thin, or :unknown) and if the process is listening
     # on a port, use the port # that we are listening on. 
-    def initialize(app_name = nil)
+    def initialize
       # Note: log won't be available yet.
       @identifier = nil
       @environment = :unknown
-      @app_name = app_name
-      
-      environments = %w[jruby webrick mongrel thin litespeed passenger daemon]
+      environments = %w[merb jruby webrick mongrel thin litespeed passenger daemon]
       while environments.any? && @identifier.nil?
         send 'check_for_'+(environments.shift)
       end
     end
-    
+    def to_s
+      "LocalEnvironment[#{environment}:#{identifier}]"
+    end
+    def check_for_merb
+      if config.app == :merb
+        @identifier = 'merb'
+      end
+    end
     def check_for_webrick
       if defined?(OPTIONS) && defined?(DEFAULT_PORT) && OPTIONS.respond_to?(:fetch) 
         # OPTIONS is set by script/server 
@@ -68,7 +73,7 @@ module NewRelic
         require 'jruby'
         @environment = :jruby
         @identifier = 'jruby'
-        @identifier += ":#{@app_name}" if @app_name
+        @identifier += ":#{config['app_name']}" if config['app_name']
       end
     end
     
@@ -76,7 +81,7 @@ module NewRelic
       if caller.pop =~ /fcgi-bin\/RailsRunner\.rb/
         @environment = :litespeed
         @identifier = 'litespeed'
-        @identifier += ":#{@app_name}" if @app_name
+        @identifier += ":#{config['app_name']}" if config['app_name']
       end
     end
     
@@ -84,22 +89,20 @@ module NewRelic
       if defined? Passenger::AbstractServer
         @environment = :passenger
         @identifier = 'passenger'
-        @identifier += ":#{@app_name}" if @app_name
+        @identifier += ":#{config['app_name']}" if config['app_name']
       end
     end
     
     def check_for_daemon
-      if config 'monitor_daemons'
+      if config['monitor_daemons']
         @environment = :daemon
         # return the base part of the file name
         @identifier = File.basename($0).split(".").first
       end
     end
-    
-    # JRG 9/1/08 - unit tests don't run for me when this is private. Arg.
-    protected     
-    def config(key)
-      ::NR_CONFIG_FILE[key]
+    private 
+    def config
+      NewRelic::Config.instance
     end
   end
 end
