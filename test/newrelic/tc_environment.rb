@@ -1,4 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__),'/../../../../../test/test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__),'..', 'test_helper'))
 require "test/unit"
 require "mocha"
 require 'newrelic/local_environment'
@@ -87,17 +87,16 @@ class EnvironmentTest < ActiveSupport::TestCase
     e = NewRelic::LocalEnvironment.new
     assert_equal :passenger, e.environment
     assert_equal 'passenger', e.identifier
+
+    NewRelic::Config.instance.instance_eval do
+      @settings['app_name'] = 'myapp'
+    end
     
-    e = NewRelic::LocalEnvironment.new 'myapp'
+    e = NewRelic::LocalEnvironment.new 
     assert_equal :passenger, e.environment
     assert_equal 'passenger:myapp', e.identifier
     
     ::Passenger.class_eval { remove_const :AbstractServer }
   end
-  def test_daemon
-    NewRelic::LocalEnvironment.any_instance.expects(:config).returns('foo.rb')
-    e = NewRelic::LocalEnvironment.new
-    assert_equal :daemon, e.environment
-    assert_not_nil e.identifier
-  end
+
 end

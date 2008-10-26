@@ -1,4 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__),'/../../../../../../test/test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
 require 'test/unit'
 require 'newrelic/agent/stats_engine'
 

@@ -1,4 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__),'/../../../../../../test/test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require 'newrelic/agent/agent'
 require 'newrelic/local_environment'
 
@@ -55,7 +55,7 @@ class AgentTests < ActiveSupport::TestCase
   end
   
   def test_info
-    props = @agent.gather_info
+    props = NewRelic::Config.instance.gather_info
     list = props.assoc('Plugin List').last.sort
     assert_equal 4, (list & %w[active_merchant active_scaffold acts_as_list acts_as_state_machine ]).size, list.join("\n")
     assert_equal 'mysql', props.assoc('Database adapter').last

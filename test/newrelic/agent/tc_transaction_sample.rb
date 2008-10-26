@@ -1,4 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__),'/../../../../../../test/test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
 require 'newrelic/agent/mock_ar_connection'
 require 'newrelic/agent/testable_agent'
 require 'newrelic/agent/transaction_sampler'

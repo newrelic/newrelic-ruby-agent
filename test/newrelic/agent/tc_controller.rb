@@ -1,6 +1,6 @@
-require File.expand_path(File.join(File.dirname(__FILE__),'/../../../../../../test/test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
 
-NewRelic::Agent.instance.instrument_rails
+NewRelic::Agent.instance.instrument_app
 
 class TestController < ActionController::Base
   filter_parameter_logging :social_security_number
