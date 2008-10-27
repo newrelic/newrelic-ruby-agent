@@ -62,6 +62,11 @@ module NewRelic
       "Config[#{self.app}]"
     end
     def log
+      # If we try to get a log before one has been set up, return a stdout log
+      unless @log
+        @log = Logger.new(STDOUT)
+        @log.level = Logger::WARN
+      end
       @log
     end
     

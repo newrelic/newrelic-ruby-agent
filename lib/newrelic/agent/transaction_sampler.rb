@@ -223,7 +223,7 @@ module NewRelic::Agent
       # This should never get called twice, but in a rare case that we can't reproduce in house it does.
       # log forensics and return gracefully
       if @sample.frozen?
-        log = self.class.method_tracer_log
+        log = NewRelic::Config.instance.log
         
         log.warn "Unexpected double-freeze of Transaction Trace Object."
         log.info "Please send this diagnostic data to New Relic"

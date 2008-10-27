@@ -1,20 +1,6 @@
 require 'logger'
 
 class Module
-  DEFAULT_METHOD_TRACE_LOG = Logger.new(STDERR)
-  DEFAULT_METHOD_TRACE_LOG.level = Logger::ERROR
-  
-  # the class accessor for the instrumentation log
-  def method_tracer_log
-    @@method_trace_log ||= DEFAULT_METHOD_TRACE_LOG
-  end
-  
-  def method_tracer_log= (log)
-    @@method_trace_log = log
-  end
-  
-
-  
   
   # This is duplicated inline in add_method_tracer
   def trace_method_execution_no_scope(metric_name)
@@ -42,8 +28,8 @@ class Module
       
       stats = @@newrelic_stats_engine.get_stats metric_name, true if produce_metric
     rescue => e
-      method_tracer_log.error("Caught exception in trace_method_execution header. Metric name = #{metric_name}, exception = #{e}")
-      method_tracer_log.error(e.backtrace.join("\n"))
+      NewRelic::Config.instance.log.error("Caught exception in trace_method_execution header. Metric name = #{metric_name}, exception = #{e}")
+      NewRelic::Config.instance.log.error(e.backtrace.join("\n"))
     end
 
     begin
@@ -60,8 +46,8 @@ class Module
           stats.trace_call duration, exclusive if stats
         end
       rescue => e
-        method_tracer_log.error("Caught exception in trace_method_execution footer. Metric name = #{metric_name}, exception = #{e}")
-        method_tracer_log.error(e.backtrace.join("\n"))
+        NewRelic::Config.instance.log.error("Caught exception in trace_method_execution footer. Metric name = #{metric_name}, exception = #{e}")
+        NewRelic::Config.instance.log.error(e.backtrace.join("\n"))
       end
     
       result 
@@ -100,13 +86,13 @@ class Module
     klass = (self === Module) ? "self" : "self.class"
     
     unless method_defined?(method_name) || private_method_defined?(method_name)
-      method_tracer_log.warn("Did not trace #{self}##{method_name} because that method does not exist")
+      NewRelic::Config.instance.log.warn("Did not trace #{self}##{method_name} because that method does not exist")
       return
     end
     
     traced_method_name = _traced_method_name(method_name, metric_name_code)
     if method_defined? traced_method_name
-      method_tracer_log.warn("Attempt to trace a method twice with the same metric: Method = #{method_name}, Metric Name = #{metric_name_code}")
+      NewRelic::Config.instance.log.warn("Attempt to trace a method twice with the same metric: Method = #{method_name}, Metric Name = #{metric_name_code}")
       return
     end
     
@@ -145,7 +131,7 @@ class Module
     alias_method _untraced_method_name(method_name, metric_name_code), method_name
     alias_method method_name, "#{_traced_method_name(method_name, metric_name_code)}"
     
-    method_tracer_log.debug("Traced method: class = #{self}, method = #{method_name}, "+
+    NewRelic::Config.instance.log.debug("Traced method: class = #{self}, method = #{method_name}, "+
         "metric = '#{metric_name_code}', options: #{options}, ")
   end
 
@@ -164,6 +150,7 @@ class Module
   end
 
 private
+
   def _untraced_method_name(method_name, metric_name)
     "#{_sanitize_name(method_name)}_without_trace_#{_sanitize_name(metric_name)}" 
   end

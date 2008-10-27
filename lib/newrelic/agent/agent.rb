@@ -367,8 +367,6 @@ module NewRelic::Agent
       
       @instrumented = true
       
-      Module.method_tracer_log = log
-      
       # Instrumentation for the key code points inside rails for monitoring by NewRelic.
       # note this file is loaded only if the newrelic agent is enabled (through config/newrelic.yml)
       instrumentation_path = File.join(File.dirname(__FILE__), 'instrumentation')
