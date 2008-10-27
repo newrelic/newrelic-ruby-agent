@@ -1,7 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..', 'test_helper'))
 require "test/unit"
 require "mocha"
-require 'newrelic/local_environment'
+#require 'newrelic/local_environment'
 class EnvironmentTest < ActiveSupport::TestCase
   
   def teardown

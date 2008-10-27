@@ -2,7 +2,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 
 NewRelic::Agent.instance.instrument_app
 
-class TestController < ActionController::Base
+class AgentTestController < ActionController::Base
   filter_parameter_logging :social_security_number
   
   def _filter_parameters(params)
@@ -36,7 +36,7 @@ class AgentControllerTests < Test::Unit::TestCase
     
     assert agent.transaction_sampler
     
-    controller = TestController.new
+    controller = AgentTestController.new
     
     assert_equal 0, NewRelic::Agent.instance.transaction_sampler.get_samples.length
     
