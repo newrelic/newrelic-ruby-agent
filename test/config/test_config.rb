@@ -1,4 +1,4 @@
-require 'newrelic/config/rails'
+require 'new_relic/config/rails'
 class NewRelic::Config::Test < NewRelic::Config::Rails
   def app; :test; end
   def env

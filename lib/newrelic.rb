@@ -1,9 +1,9 @@
 # Initialization script for the gem.
 # Add 
-#    require 'newrelic'
+#    #require 'new_relic'
 # to your initialization sequence, as late as possible.
 #
-require 'newrelic/config'
+require 'new_relic/config'
 
 def log!(message)
   STDERR.puts "[NewRelic] #{message}"
@@ -13,7 +13,7 @@ end
 # We install the shim agent unless the tracers are enabled, the plugin
 # env setting is not false, and the agent started okay.
 if !NewRelic::Config.instance.tracers_enabled?
-  require 'newrelic/shim_agent'
+  require 'new_relic/shim_agent'
 else
   newrelic_config.start_plugin
 end

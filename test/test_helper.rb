@@ -8,7 +8,6 @@ require File.expand_path(File.dirname(__FILE__) + "/../../../../config/environme
 require 'test_help'
 require 'mocha'
 require 'test/unit'
-require 'newrelic/config'
 
 module NewRelic
   class Config

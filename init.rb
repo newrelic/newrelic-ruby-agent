@@ -1,5 +1,5 @@
 # This is the initialization for the RPM Rails plugin
-require 'newrelic/config'
+##require 'new_relic/config'
 
 # Initializer for the NewRelic Agent
 begin

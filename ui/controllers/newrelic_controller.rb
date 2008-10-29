@@ -1,7 +1,5 @@
-require 'newrelic/agent'
+##require 'new_relic/agent'
 require 'google_pie_chart'
-require 'active_record'
-require 'transaction_analysis'
 
 class NewrelicController < ActionController::Base
   include NewrelicHelper
