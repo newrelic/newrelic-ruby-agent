@@ -682,6 +682,7 @@ module NewRelic::Agent
       log.debug "#{uri}"
       
       response = http.request(request)
+      
       if response.is_a? Net::HTTPSuccess
         body = nil
         if response['content-encoding'] == 'gzip'
@@ -699,7 +700,7 @@ module NewRelic::Agent
           return return_value
         end
       else
-        if response.code == 405
+        if response.code == "405" || response.code == "503"
           raise IgnoreSilentlyException.new
         else
           raise "#{response.code}: #{response.message}"
