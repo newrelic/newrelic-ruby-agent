@@ -285,7 +285,7 @@ module NewRelic::Agent
 
     # Attempt a graceful shutdown of the agent.  
     def shutdown
-      return if ! @started
+      return if !@started || !@worker_loop
       @worker_loop.stop
       
       log.debug "Starting Agent shutdown"
@@ -298,17 +298,7 @@ module NewRelic::Agent
       end
       
       begin
-        
-        # only call graceful_disconnect if we successfully stop the worker thread (since a transaction may be in flight)
-        log.debug("Join with the worker thread...")
-        if !@worker_thread
-          log.debug "No worker thread running"
-        elsif @worker_thread.join(30)  
-          log.debug "Worker thread finished, now disconnect"
-          graceful_disconnect
-        else
-          log.debug "ERROR - could not stop worker thread"
-        end
+        graceful_disconnect
       rescue => e
         log.error e
         log.error e.backtrace.join("\n")
@@ -409,7 +399,7 @@ module NewRelic::Agent
       
       @invalid_license = false
       
-      @last_harvest_time = Time.now - 60.seconds.ago
+      @last_harvest_time = Time.now
       
       @worker_pid = 0
     end
@@ -563,13 +553,11 @@ module NewRelic::Agent
       @harvest_thread ||= Thread.current
       
       log! "ERROR - two harvest threads are running" if @harvest_thread != Thread.current
-      
       log! "Agent sending data too frequently - #{now - @last_harvest_time} seconds" if (now.to_f - @last_harvest_time.to_f) < 45
       
       @unsent_timeslice_data ||= {}
       @unsent_timeslice_data = @stats_engine.harvest_timeslice_data(@unsent_timeslice_data, @metric_ids)
-      
-      
+
       begin
         metric_ids = invoke_remote(:metric_data, @agent_id, 
                 @last_harvest_time.to_f, 
@@ -582,7 +570,7 @@ module NewRelic::Agent
       end
                 
               
-      @metric_ids.merge! metric_ids unless metric_ids.nil?
+      @metric_ids.merge! metric_ids if metric_ids
       
       log.debug "#{now}: sent #{@unsent_timeslice_data.length} timeslices (#{@agent_id}) in #{Time.now - now} seconds"
       
@@ -601,6 +589,7 @@ module NewRelic::Agent
       @slowest_sample = @transaction_sampler.harvest_slowest_sample(@slowest_sample)
       
       if @slowest_sample && @slowest_sample.duration > @slowest_transaction_threshold
+        now = Time.now
         log.debug "Sending slowest sample: #{@slowest_sample.params[:path]}, #{@slowest_sample.duration.round_to(2)}s (explain=#{@explain_enabled})" if @slowest_sample
         
         # take the slowest sample, and prepare it for sending across the wire.  This includes
@@ -610,6 +599,8 @@ module NewRelic::Agent
         sample = @slowest_sample.prepare_to_send(:explain_sql => @explain_threshold, :record_sql => @record_sql, :keep_backtraces => true, :explain_enabled => @explain_enabled)
 
         invoke_remote :transaction_sample_data, @agent_id, sample
+        
+        log.debug "#{now}: sent slowest sample (#{@agent_id}) in #{Time.now - now} seconds"
       end
       
       # if we succeed sending this sample, then we don't need to keep the slowest sample
@@ -742,15 +733,15 @@ module NewRelic::Agent
           
           @request_timeout = 5
           
-          harvest_and_send_timeslice_data
-          
-          if @should_send_samples && @use_transaction_sampler
-            harvest_and_send_slowest_sample
-          end
-          
-          if @should_send_errors
-            harvest_and_send_errors
-          end
+#          harvest_and_send_timeslice_data true
+#          
+#          if @should_send_samples && @use_transaction_sampler
+#            harvest_and_send_slowest_sample
+#          end
+#          
+#          if @should_send_errors
+#            harvest_and_send_errors
+#          end
           
           if @environment != :litespeed
             log.debug "Sending RPM service agent run shutdown message"
@@ -764,6 +755,8 @@ module NewRelic::Agent
           log.warn e
           log.debug e.backtrace.join("\n")
         end
+      else
+        log.debug "Bypassing graceful shutdown - agent in development mode"
       end
     end
   end
