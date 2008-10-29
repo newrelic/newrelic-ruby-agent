@@ -166,7 +166,7 @@ module NewRelicDispatcherMixIn
         
         if read_start
           read_time = queue_start - read_start.to_f
-          @@newrelic_mongrel_read_time.trace_call(read_time)
+          @@newrelic_mongrel_read_time.trace_call(read_time) if read_time > 0
           NewRelic::BusyCalculator.add_busy(read_time)
         end
       end
