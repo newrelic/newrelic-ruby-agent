@@ -751,9 +751,6 @@ module NewRelic::Agent
           log.debug "Graceful shutdown complete"
           
         rescue Timeout::Error, StandardError => e
-          log.warn "Error sending shutdown message to #{remote_host}:#{remote_port}:"
-          log.warn e
-          log.debug e.backtrace.join("\n")
         end
       else
         log.debug "Bypassing graceful shutdown - agent in development mode"
