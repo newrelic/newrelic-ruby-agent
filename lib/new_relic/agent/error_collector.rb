@@ -1,5 +1,5 @@
 #require 'new_relic/agent/synchronize'
-#require 'new_relic/noticed_error'
+#require 'noticed_error'
 #require 'new_relic/agent/collection_helper'
 require 'logger'
 
@@ -69,7 +69,7 @@ module NewRelic::Agent
       end
       
       data[:stack_trace] = clean_exception(exception)
-      noticed_error = NewRelic::NoticedError.new(path, data, exception)
+      noticed_error = NoticedError.new(path, data, exception)
       
       synchronize do
         if @errors.length >= MAX_ERROR_QUEUE_LENGTH
