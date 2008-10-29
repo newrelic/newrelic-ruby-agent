@@ -450,7 +450,7 @@ module NewRelic::Agent
         report_period = invoke_remote :get_data_report_period, @agent_id
 
       if @@first_try
-        puts "Here twice: #{caller.join("\n")}\n\nFirst: #{@first_try}\n"        
+        log! "Here twice: #{caller.join("\n")}\n\nFirst: #{@@first_try}\n"        
       else
         @@first_try = caller.join("\n")
       end
@@ -587,7 +587,7 @@ module NewRelic::Agent
       log.debug "#{now}: sent #{@unsent_timeslice_data.length} timeslices (#{@agent_id}) in #{Time.now - now} seconds"
       
       # if we successfully invoked this web service, then clear the unsent message cache.
-      @unsent_timeslice_data.clear
+      @unsent_timeslice_data = {}
       @last_harvest_time = now
       
       # handle_messages 
