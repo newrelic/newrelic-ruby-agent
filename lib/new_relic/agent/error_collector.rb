@@ -69,7 +69,7 @@ module NewRelic::Agent
       end
       
       data[:stack_trace] = clean_exception(exception)
-      noticed_error = NoticedError.new(path, data, exception)
+      noticed_error = NewRelic::NoticedError.new(path, data, exception)
       
       synchronize do
         if @errors.length >= MAX_ERROR_QUEUE_LENGTH
