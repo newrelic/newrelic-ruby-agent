@@ -594,6 +594,7 @@ module NewRelic::Agent
       
       # note - exceptions are logged in invoke_remote.  If an exception is encountered here,
       # then the metric data is downsampled for another timeslices
+    rescue
     end
     
     def harvest_and_send_slowest_sample
@@ -618,6 +619,7 @@ module NewRelic::Agent
       # note - exceptions are logged in invoke_remote.  If an exception is encountered here,
       # then the slowest sample of is determined of the entire period since the last
       # reported sample.
+    rescue
     end
     
     def harvest_and_send_errors
@@ -632,6 +634,7 @@ module NewRelic::Agent
         # the error collector maxes out at 20 instances to prevent leakage
         @unsent_errors = []
       end
+    rescue
     end
 
 =begin
@@ -719,8 +722,8 @@ module NewRelic::Agent
       raise e
 
     rescue Exception => e
-      log.error("Error communicating with RPM Service at #{@remote_host}:#{remote_port}: #{e}")
-      log.debug(e.backtrace.join("\n"))
+      log.debug("Error communicating with RPM Service at #{@remote_host}:#{remote_port}: #{e} (#{e.class})")
+      #log.debug(e.backtrace.join("\n"))
       raise e
     end
     
