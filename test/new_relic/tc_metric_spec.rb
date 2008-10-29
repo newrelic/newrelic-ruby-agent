@@ -14,6 +14,16 @@ class NewRelic::StatsTests < Test::Unit::TestCase
     validate stats, 3, (10+20+30), 10, 30
   end
   
+  def test_equal
+    spec1 = NewRelic::MetricSpec.new('Controller')
+    spec2 = NewRelic::MetricSpec.new('Controller', nil)
+    
+    assert spec1.eql?(NewRelic::MetricSpec.new('Controller'))
+    assert spec2.eql?(NewRelic::MetricSpec.new('Controller', nil))
+    assert !spec1.eql?(spec2)
+    assert !spec2.eql?(NewRelic::MetricSpec.new('Controller', '/dude'))
+  end
+  
   def test_merge
     s1 = NewRelic::MethodTraceStats.new
     s2 = NewRelic::MethodTraceStats.new

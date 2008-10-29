@@ -4,16 +4,14 @@ class NewRelic::MetricSpec
   attr_accessor   :name
   attr_accessor   :scope
   
-  def initialize (name, scope = nil)
+  def initialize (name, scope = '')
     self.name = name
     self.scope = scope
   end
   
   def eql? (o)
-    if scope.nil? 
-      return name.eql?(o.name)
-    end
-    name.eql?(o.name) && scope.eql?(o.scope)
+    scope_equal = scope.nil? ? o.scope.nil? : scope.eql?(o.scope) 
+    name.eql?(o.name) && scope_equal
   end
   
   def hash
