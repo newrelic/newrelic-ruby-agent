@@ -1,20 +1,18 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
+require 'action_controller/base'
 
-NewRelic::Agent.instance.instrument_app
 
-class AgentTestController < ActionController::Base
-  filter_parameter_logging :social_security_number
-  
-  def _filter_parameters(params)
-    filter_parameters params
-  end
-  
-  newrelic_ignore :only => :action_to_ignore
-  
-  def action_to_ignore(*args)
-  end
-  
-end
+    class AgentTestController < ActionController::Base
+      filter_parameter_logging :social_security_number
+      
+      def _filter_parameters(params)
+        filter_parameters params
+      end
+      
+      def action_to_ignore(*args)
+      end
+      
+    end
 
 
 
@@ -24,6 +22,7 @@ class AgentControllerTests < Test::Unit::TestCase
   def setup
     super
     @agent = NewRelic::Agent.instance
+    @agent.instrument_app
     @agent.start :test, :test
   end
   
@@ -33,7 +32,10 @@ class AgentControllerTests < Test::Unit::TestCase
   end
   
   def test_controller_params
-    
+
+    AgentTestController.class_eval do
+      newrelic_ignore :only => :action_to_ignore
+    end
     assert agent.transaction_sampler
     
     controller = AgentTestController.new
@@ -51,7 +53,7 @@ class AgentControllerTests < Test::Unit::TestCase
     assert_equal 1, samples.length
     
     assert_equal Hash["social_security_number", "[FILTERED]"], samples[0].params[:request_params]
-
+    
   end
   
 end
