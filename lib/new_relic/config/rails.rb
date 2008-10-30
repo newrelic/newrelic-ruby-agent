@@ -50,10 +50,8 @@ class NewRelic::Config::Rails < NewRelic::Config
       next if defined? draw_with_newrelic_map
       def draw_with_newrelic_map
         draw_without_newrelic_map do | map |
-          puts "In NR mapper..."
           map.named_route 'newrelic_developer', '/newrelic/:action/:id', :controller => 'newrelic' unless NewRelic::Config.instance['skip_developer_route']
           yield map        
-          puts "...out of NR mapper"
         end
       end
       alias_method_chain :draw, :newrelic_map
