@@ -31,6 +31,9 @@ module NewRelic
       Thread.current[:queue_start] = Time.now.to_f
       
       @mutex.synchronize(&block)
+    rescue TimeoutError => e
+      MutexWrapper.in_handler
+      raise e
     end
   end
   
