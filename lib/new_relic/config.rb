@@ -130,9 +130,15 @@ module NewRelic
       end
       File.expand_path(path)
     end
-    def log_file_name(identifier)
-      identifier_part = identifier && identifier[/[\.\w]*$/] 
-      "newrelic_agent.#{identifier_part ? identifier_part + "." : "" }log"
+    
+    def log_file_name(identifier="")
+      
+      bad_chars = ['\\', '/', ':', '*', '?', '"', '\'', '<', '>', '|', '%', ',', ';']
+      
+      bad_chars.each do |c|      
+        identifier.gsub!(c, '_')
+      end
+      "newrelic_agent.#{identifier}.log"
     end
 
     # Create the concrete class for environment specific behavior:

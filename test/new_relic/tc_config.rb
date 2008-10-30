@@ -1,5 +1,12 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'/../test_helper'))
 
+
+module NewRelic
+  class Config
+    public :log_file_name
+  end
+end
+
 class NewRelic::ConfigTests < Test::Unit::TestCase
   
   def test_rails_config
@@ -7,6 +14,14 @@ class NewRelic::ConfigTests < Test::Unit::TestCase
     assert_equal :test, c.app
     assert_equal false, c['enabled']
     c.local_env
+  end
+  
+  def test_log_file_name
+    c = NewRelic::Config.instance
+    
+    assert_equal "newrelic_agent.3000.log", c.log_file_name("3000")
+    assert_equal "newrelic_agent.passenger_redmine-0.7.log", c.log_file_name("passenger:redmine-0.7")
+    assert_equal "newrelic_agent._tmp_test_1.log", c.log_file_name("/tmp/test/1")
   end
   
 end
