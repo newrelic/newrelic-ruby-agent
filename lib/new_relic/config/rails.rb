@@ -18,7 +18,7 @@ class NewRelic::Config::Rails < NewRelic::Config
   
   def start_plugin(rails_config=nil)
     if !tracers_enabled?
-      #require 'new_relic/shim_agent'
+      require 'new_relic/shim_agent'
       return
     end
     start_agent
