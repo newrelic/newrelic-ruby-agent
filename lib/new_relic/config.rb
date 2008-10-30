@@ -2,6 +2,7 @@ require 'yaml'
 #require 'new_relic/version'
 #require 'new_relic/local_environment'
 require 'singleton'
+require 'new_relic/agent'
 
 # Configuration supports the behavior of the agent which is dependent
 # on what environment is being monitored: rails, merb, ruby, etc
@@ -132,13 +133,7 @@ module NewRelic
     end
     
     def log_file_name(identifier="")
-      
-      bad_chars = ['\\', '/', ':', '*', '?', '"', '\'', '<', '>', '|', '%', ',', ';']
-      
-      bad_chars.each do |c|      
-        identifier.gsub!(c, '_')
-      end
-      "newrelic_agent.#{identifier}.log"
+      "newrelic_agent.#{identifier.gsub(/[^-\w.]/, '_')}.log"
     end
 
     # Create the concrete class for environment specific behavior:

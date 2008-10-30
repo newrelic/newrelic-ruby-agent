@@ -22,6 +22,8 @@ class NewRelic::ConfigTests < Test::Unit::TestCase
     assert_equal "newrelic_agent.3000.log", c.log_file_name("3000")
     assert_equal "newrelic_agent.passenger_redmine-0.7.log", c.log_file_name("passenger:redmine-0.7")
     assert_equal "newrelic_agent._tmp_test_1.log", c.log_file_name("/tmp/test/1")
+    assert_equal "newrelic_agent.c__foo_bar_long_gone__yes_.log", c.log_file_name("c:/foo/bar long gone?/yes!")
+    assert_equal "newrelic_agent..._tmp_pipes.log", c.log_file_name("..\\tmp\\pipes")
   end
   
 end
