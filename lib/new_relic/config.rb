@@ -1,6 +1,5 @@
 require 'yaml'
 #require 'new_relic/version'
-#require 'new_relic/local_environment'
 require 'singleton'
 require 'new_relic/agent'
 

@@ -30,7 +30,7 @@ class NewRelic::Config::Rails < NewRelic::Config
     helper_path = File.join(newrelic_root, 'ui', 'helpers')
     $LOAD_PATH << controller_path
     $LOAD_PATH << helper_path
-    # Rails Edge
+ 
     if defined? ActiveSupport::Dependencies
       ActiveSupport::Dependencies.load_paths << controller_path
       ActiveSupport::Dependencies.load_paths << helper_path
@@ -56,24 +56,21 @@ class NewRelic::Config::Rails < NewRelic::Config
       end
       alias_method_chain :draw, :newrelic_map
     end
-
-    # If we have the config object then add the controller path to the list
-    # Otherwise insert into the initializer to pick up the controller path
-    # and add it to the default controller paths.  If the controller_paths
-    # are overwritten then the dev mode controller will not be found
+    
+    # If we have the config object then add the controller path to the list.
+    # Otherwise we have to assume the controller paths have already been
+    # set and we can just append newrelic.
+    
     if rails_config
       rails_config.controller_paths << controller_path
     else
-      Rails::Initializer.class_eval do
-        def default_controller_paths_with_newrelic
-          paths = default_controller_paths_without_newrelic
-          paths << controller_path
-          paths
-        end
-        alias_method_chain :default_controller_paths, :newrelic
+      current_paths = ActionController::Routing.controller_paths
+      if current_paths.nil? || current_paths.empty?
+        to_stderr "ERROR: The controller paths has not been set.  Make sure you are invoking newrelic after the Initializer finishes."
       end
+      current_paths << controller_path
     end
-
+    
     #ActionController::Routing::Routes.reload! unless NewRelic::Config.instance['skip_developer_route']
     
     # inform user that the dev edition is available if we are running inside

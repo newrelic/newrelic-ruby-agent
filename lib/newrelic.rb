@@ -15,5 +15,12 @@ end
 if !NewRelic::Config.instance.tracers_enabled?
   require 'new_relic/shim_agent'
 else
-  newrelic_config.start_plugin
+  # if we are in the rails initializer, pass the config into the plugin
+  # so we can set up dev mode
+  if defined? config
+    c = [ config ]
+  else
+    c = []
+  end
+  NewRelic::Config.instance.start_plugin *c
 end

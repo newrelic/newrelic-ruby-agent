@@ -5,13 +5,6 @@ require 'singleton'
 require 'zlib'
 require 'stringio'
 
-#require 'new_relic/version'
-#require 'new_relic/stats'
-#require 'new_relic/agent/worker_loop'
-
-#require 'new_relic/agent/stats_engine'
-#require 'new_relic/agent/transaction_sampler'
-#require 'new_relic/agent/error_collector'
 
 # The NewRelic Agent collects performance data from ruby applications in realtime as the
 # application runs, and periodically sends that data to the NewRelic server.
@@ -391,9 +384,9 @@ module NewRelic::Agent
       
       @config = NewRelic::Config.instance
       
-      @stats_engine = StatsEngine.new
-      @transaction_sampler = TransactionSampler.new(self)
-      @error_collector = ErrorCollector.new(self)
+      @stats_engine = NewRelic::Agent::StatsEngine.new
+      @transaction_sampler = NewRelic::Agent::TransactionSampler.new(self)
+      @error_collector = NewRelic::Agent::ErrorCollector.new(self)
       
       @request_timeout = 15 * 60
       
