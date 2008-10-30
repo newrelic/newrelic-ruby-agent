@@ -1,8 +1,4 @@
-#require 'new_relic/transaction_sample'
 require 'thread'
-#require 'new_relic/agent/method_tracer'
-#require 'new_relic/agent/synchronize'
-#require 'new_relic/agent/collection_helper'
 
 module NewRelic::Agent
   
@@ -11,17 +7,19 @@ module NewRelic::Agent
     include Synchronize
     
     BUILDER_KEY = :transaction_sample_builder
-    cattr_accessor :capture_params
-    cattr_reader :agent
     @@capture_params = true
     
+    def self.capture_params
+      @@capture_params
+    end
+    def self.capture_params=(params)
+      @@capture_params = params
+    end
     attr_accessor :stack_trace_threshold
     
     def initialize(agent)
       @samples = []
       
-      @@agent = agent
-
       @max_samples = 100
       @stack_trace_threshold = 100000.0
       agent.stats_engine.add_scope_stack_listener self
@@ -32,7 +30,7 @@ module NewRelic::Agent
     end
     
     def disable
-      @@agent.stats_engine.remove_scope_stack_listener self
+      NewRelic::Agent.instance.stats_engine.remove_scope_stack_listener self
     end
     
     
@@ -232,7 +230,7 @@ module NewRelic::Agent
       end
       
       @sample.root_segment.end_trace(time - @sample_start)
-      @sample.params[:custom_params] = normalize_params(TransactionSampler.agent.custom_params) if TransactionSampler.agent
+      @sample.params[:custom_params] = normalize_params(NewRelic::Agent.instance.custom_params) 
       @sample.freeze
       @current_segment = nil
     end
