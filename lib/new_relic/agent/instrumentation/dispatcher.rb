@@ -30,10 +30,17 @@ module NewRelic
       
       Thread.current[:queue_start] = Time.now.to_f
       
-      @mutex.synchronize(&block)
-    rescue TimeoutError => e
-      MutexWrapper.in_handler
-      raise e
+      success = false
+      begin
+        @mutex.synchronize do
+            MutexWrapper.in_handler
+            success = true
+            yield
+        end
+      rescue Exception => e
+        MutexWrapper.in_handler if success
+        raise e
+      end
     end
   end
   
@@ -162,7 +169,6 @@ module NewRelicDispatcherMixIn
       queue_start = Thread.current[:queue_start]
       
       if queue_start
-        NewRelic::MutexWrapper.in_handler
         read_start = Thread.current[:started_on]
       
         @@newrelic_mongrel_queue_stat.trace_call(t0 - queue_start)
