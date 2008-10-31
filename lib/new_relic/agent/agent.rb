@@ -420,7 +420,6 @@ module NewRelic::Agent
         end
       end
     end
-    @@first_try=nil
     # Connect to the server, and run the worker loop forever
     def run_worker_loop
       until @connected or !connect; end
@@ -432,12 +431,6 @@ module NewRelic::Agent
         # report data, then it will be ignored.
         report_period = invoke_remote :get_data_report_period, @agent_id
 
-      if @@first_try
-        log! "Here twice: #{caller.join("\n")}\n\nFirst: #{@@first_try}\n"        
-      else
-        @@first_try = caller.join("\n")
-      end
-      
         log! "Reporting performance data every #{report_period} seconds"        
         @worker_loop.add_task(report_period) do 
           harvest_and_send_timeslice_data
@@ -575,7 +568,6 @@ module NewRelic::Agent
       
       # note - exceptions are logged in invoke_remote.  If an exception is encountered here,
       # then the metric data is downsampled for another timeslices
-    rescue
     end
     
     def harvest_and_send_slowest_sample
@@ -603,7 +595,6 @@ module NewRelic::Agent
       # note - exceptions are logged in invoke_remote.  If an exception is encountered here,
       # then the slowest sample of is determined of the entire period since the last
       # reported sample.
-    rescue
     end
     
     def harvest_and_send_errors
@@ -618,7 +609,6 @@ module NewRelic::Agent
         # the error collector maxes out at 20 instances to prevent leakage
         @unsent_errors = []
       end
-    rescue
     end
 
 =begin
@@ -687,11 +677,8 @@ module NewRelic::Agent
           return return_value
         end
       else
-        if response.code == "405" || response.code == "503"
-          raise IgnoreSilentlyException.new
-        else
-          raise "#{response.code}: #{response.message}"
-        end
+        log.debug "Unexpected response from server: #{response.code}: #{response.message}"
+        raise IgnoreSilentlyException
       end 
     rescue ForceDisconnectException => e
       log! "RPM forced this agent to disconnect", :error
@@ -701,14 +688,16 @@ module NewRelic::Agent
       # gathers data and talks to the server. 
       @connected = false
       Thread.exit
-    
-    rescue IgnoreSilentlyException => e
-      raise e
-
-    rescue Exception => e
+    rescue SystemCallError => e
+      # These include Errno connection errors 
+      log.debug "Error connecting to the server: #{e}"
+      raise IgnoreSilentlyException
+    rescue IgnoreSilentlyException
+      raise
+    rescue => e
       log.debug("Error communicating with RPM Service at #{@remote_host}:#{remote_port}: #{e} (#{e.class})")
       #log.debug(e.backtrace.join("\n"))
-      raise e
+      raise
     end
     
     # send the given message to STDERR as well as the agent log, so that it shows

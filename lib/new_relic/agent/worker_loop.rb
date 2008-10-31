@@ -79,8 +79,10 @@ module NewRelic::Agent
           NewRelic::Agent.disable_transaction_tracing do
             task.execute
           end
-        rescue Timeout::Error, StandardError => e
-          log.debug "Error running task in Agent Worker Loop: #{e}" 
+        rescue Timeout::Error, NewRelic::Agent::IgnoreSilentlyException
+          # Want to ignore these because they are handled already
+        rescue ScriptError, StandardError => e 
+          log.error "Error running task in Agent Worker Loop: #{e}" 
           log.debug e.backtrace.join("\n")
         end
       end
