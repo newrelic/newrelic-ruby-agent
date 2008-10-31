@@ -2,8 +2,8 @@
 module NewRelic
   module VERSION #:nodoc:
   MAJOR = 2
-  MINOR = 5
-  TINY  = 5
+  MINOR = 7
+  TINY  = 0
   STRING = [MAJOR, MINOR, TINY].join('.')
   def self.changes
     puts "NewRelic RPM Plugin Version: #{NewRelic::VERSION}"
@@ -11,10 +11,10 @@ module NewRelic
   end
 
   CHANGELOG = <<EOF
-2008-10-23 version 2.5.5
+2008-10-31 version 2.7.0
   * Repackage to support Gem installation
+  * Support passenger/litespeed/jruby application naming
   * Update method for calculating dispatcher queue time
-2008-10-13 version 2.5.4
   * Show stack traces in RPM Transaction Traces
   * Performance tuning
   * Clean up error stack traces.
