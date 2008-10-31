@@ -1,4 +1,3 @@
-require_dependency 'new_relic/agent/worker_loop'
 require 'test/unit'
 
 module NewRelic::Agent
