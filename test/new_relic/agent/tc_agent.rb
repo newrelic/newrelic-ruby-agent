@@ -44,7 +44,9 @@ class AgentTests < ActiveSupport::TestCase
   
   def test_startup_shutdown
     @agent.shutdown
+      assert (not @agent.started?)
     @agent.start "ruby", "test1"
+    assert @agent.started?
     @agent.shutdown
     @agent.start "ruby", "test2"
   end

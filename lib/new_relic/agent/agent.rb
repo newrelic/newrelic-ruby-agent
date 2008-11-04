@@ -196,7 +196,9 @@ module NewRelic::Agent
         @stats_engine.spawn_sampler_thread
      end
     end
-    
+    def started?
+      @started
+    end
     def start_reporting(force_enable=false)
       @local_host = determine_host
 
