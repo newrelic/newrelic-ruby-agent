@@ -21,6 +21,14 @@ class NewRelic::Config::Rails < NewRelic::Config
       require 'new_relic/shim_agent'
       return
     end
+    # We want to collect the info, but we should do it after the initializer has
+    # finished running.  If no config is available, assume the initializer has already
+    # run.  This is probably the case when the gem is used.
+    if rails_config
+      rails_config.after_initialize { @app_config_info = gather_info }
+    else 
+      @app_config_info = gather_info
+    end
     start_agent
     install_developer_mode rails_config if developer_mode?
   end
@@ -81,6 +89,8 @@ class NewRelic::Config::Rails < NewRelic::Config
       to_stderr "To view performance information, go to http://localhost#{port}/newrelic"
     end
   end
+  
+  protected 
   
   # Collect the Rails::Info into an associative array as well as the list of plugins
   def gather_info

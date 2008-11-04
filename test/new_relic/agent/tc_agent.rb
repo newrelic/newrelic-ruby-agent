@@ -58,7 +58,7 @@ class AgentTests < ActiveSupport::TestCase
   end
   
   def test_info
-    props = NewRelic::Config.instance.gather_info
+    props = NewRelic::Config.instance.app_config_info
     list = props.assoc('Plugin List').last.sort
     assert_equal 4, (list & %w[active_merchant active_scaffold acts_as_list acts_as_state_machine ]).size, list.join("\n")
     assert_equal 'mysql', props.assoc('Database adapter').last

@@ -27,9 +27,10 @@ module NewRelic
       end
     end
     
-    # Collect miscellaneous interesting info about the environment
-    def gather_info
-      [[:app, app]]
+    # Get the app config info.  It should already have been collected but
+    # if not we will memoize it to be safe.
+    def app_config_info
+      @app_config_info ||= gather_info
     end
     
     def [](key)
@@ -110,6 +111,12 @@ module NewRelic
     end
     
     protected
+    # Collect miscellaneous interesting info about the environment
+    # Called when the agent is started
+    def gather_info
+      [[:app, app]]
+    end
+    
     def to_stderr(msg)
       STDERR.puts "** [NewRelic] " + msg 
     end
