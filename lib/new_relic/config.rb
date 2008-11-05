@@ -167,13 +167,13 @@ module NewRelic
       newrelic_file = config_file
       if !File.exists?(config_file)
         yml_file = File.expand_path(File.join(__FILE__,"..","..","..","newrelic.yml"))
-        @settings = YAML.parse_file(yml_file)[env] || {}
+        @settings = YAML.load_file(yml_file)[env] || {}
         log! "Cannot find newrelic.yml file at #{config_file}."
         log! "Using #{yml_file} file."
         log! "Signup at rpm.newrelic.com to get a newrelic.yml file configured for a free Lite account."
       else
         cfile = File.read(newrelic_file)
-        @settings = YAML.parse_file(newrelic_file)[env] || {}
+        @settings = YAML.load_file(newrelic_file)[env] || {}
       end
     rescue ScriptError, StandardError => e
       raise "Error reading newrelic.yml file: #{e}"
