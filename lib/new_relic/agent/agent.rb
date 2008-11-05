@@ -263,7 +263,7 @@ module NewRelic::Agent
       # make sure the license key exists and is likely to be really a license key
       # by checking it's string length (license keys are 40 character strings.)
       if @prod_mode_enabled && (!@license_key || @license_key.length != 40)
-        log! "No license key found.  Please insert your license key into agent/newrelic.yml"
+        log! "No license key found.  Please edit your newrelic.yml file and insert your license key"
         return
       end
 

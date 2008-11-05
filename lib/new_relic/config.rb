@@ -13,7 +13,7 @@ module NewRelic
     def self.instance
       @instance ||= new_instance
     end
-
+    
     @settings = nil
     
     # Initialize the agent: install instrumentation and start the agent if
@@ -98,7 +98,7 @@ module NewRelic
     def local_env
       @env ||= NewRelic::LocalEnvironment.new
     end
-
+    
     # send the given message to STDERR so that it shows
     # up in the console.  This should be used for important informational messages at boot.
     # The to_stderr may be implemented differently by different config subclasses.
@@ -141,17 +141,17 @@ module NewRelic
     def log_file_name(identifier="")
       "newrelic_agent.#{identifier.gsub(/[^-\w.]/, '_')}.log"
     end
-
+    
     # Create the concrete class for environment specific behavior:
     def self.new_instance
       case
-      when defined? NewRelic::TEST
+        when defined? NewRelic::TEST
         require 'config/test_config'
         NewRelic::Config::Test.new
-      when defined? Merb::Plugins then
+        when defined? Merb::Plugins then
         require 'new_relic/config/merb'
         NewRelic::Config::Merb.new
-      when defined? Rails then
+        when defined? Rails then
         require 'new_relic/config/rails'
         NewRelic::Config::Rails.new
       else
@@ -166,18 +166,17 @@ module NewRelic
     def initialize
       newrelic_file = config_file
       if !File.exists?(config_file)
-        log! "Cannot find newrelic.yml file at #{newrelic_file}."
-        newrelic_file = File.expand_path(File.join(__FILE__,"..","..","..","newrelic.yml"))
-        log! "Using #{newrelic_file} file."
+        yml_file = File.expand_path(File.join(__FILE__,"..","..","..","newrelic.yml"))
+        @settings = YAML.parse_file(yml_file)[env] || {}
+        log! "Cannot find newrelic.yml file at #{config_file}."
+        log! "Using #{yml_file} file."
         log! "Signup at rpm.newrelic.com to get a newrelic.yml file configured for a free Lite account."
-      end
-      begin
+      else
         cfile = File.read(newrelic_file)
-        @settings = YAML.load(cfile)[env] || {}
-      rescue ScriptError, StandardError => e
-        raise "Error reading #{newrelic_file}: #{e}"
+        @settings = YAML.parse_file(newrelic_file)[env] || {}
       end
+    rescue ScriptError, StandardError => e
+      raise "Error reading newrelic.yml file: #{e}"
     end
-    
-  end  
+  end
 end
