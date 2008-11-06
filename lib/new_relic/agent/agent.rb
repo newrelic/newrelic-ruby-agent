@@ -17,6 +17,7 @@ module NewRelic::Agent
     
   class IgnoreSilentlyException < StandardError; end
   
+  # Reserved for future use
   class ServerError < StandardError; end
     
   # add some convenience methods for easy access to the Agent singleton.
