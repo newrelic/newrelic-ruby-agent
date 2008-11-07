@@ -83,9 +83,9 @@ module NewRelic
     end
     
     # the stat total_call_time is a percent
-    def as_percentage(decimal_places = 2)
+    def as_percentage
       return 0 if call_count == 0
-      ((total_call_time / call_count) * 100).round_to(decimal_places)
+      (total_call_time / call_count).to_percentage
     end
     
     def duration
@@ -305,7 +305,7 @@ class Numeric
   
   # utility method that converts floating point percentage values
   # to integers as a percentage, to improve readability in ui
-  def to_percentage(decimal_places = 2)
+  def to_percentage(decimal_places = 0)
     (self * 100).round_to(decimal_places)
   end
   
