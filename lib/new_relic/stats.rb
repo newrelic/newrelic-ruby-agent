@@ -305,7 +305,7 @@ class Numeric
   
   # utility method that converts floating point percentage values
   # to integers as a percentage, to improve readability in ui
-  def to_percentage(decimal_places = 0)
+  def to_percentage(decimal_places = 2)
     (self * 100).round_to(decimal_places)
   end
   
