@@ -15,7 +15,7 @@ module NewRelic
       Array(other_stats).each do |s|
         self.total_call_time += s.total_call_time
         self.total_exclusive_time += s.total_exclusive_time
-        self.min_call_time = s.min_call_time if s.min_call_time < min_call_time || call_count == 0
+        self.min_call_time = s.min_call_time if (s.min_call_time < min_call_time && s.call_count > 0) || call_count == 0
         self.max_call_time = s.max_call_time if s.max_call_time > max_call_time
         self.call_count += s.call_count
         self.sum_of_squares += s.sum_of_squares if s.sum_of_squares
