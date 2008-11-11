@@ -494,9 +494,11 @@ module NewRelic::Agent
       return false
       
     rescue Timeout::Error, StandardError => e
-      log.error "Error attempting to connect to New Relic RPM Service at #{@remote_host}:#{@remote_port}"
-      log.error e.message
-      log.debug e.backtrace.join("\n")
+      log.info "Unable to connect to New Relic RPM Service at #{@remote_host}:#{@remote_port}"
+      unless e.instance_of? IgnoreSilentlyException
+        log.error e.message
+        log.debug e.backtrace.join("\n")
+      end
       
       # retry logic
       @connect_attempts += 1
