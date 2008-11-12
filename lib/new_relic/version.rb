@@ -11,14 +11,12 @@ module NewRelic
   end
 
   CHANGELOG = <<EOF
-2008-10-31 version 2.7.0
+2008-11-11 version 2.7.0
   * Repackage to support Gem installation
   * Support passenger/litespeed/jruby application naming
   * Update method for calculating dispatcher queue time
   * Show stack traces in RPM Transaction Traces
   * Performance tuning
-  * Clean up error stack traces.
-  * Support query plans from postgres
   * Capture error source for TemplateErrors
   * bugfixes
 2008-10-13 version 2.5.4
