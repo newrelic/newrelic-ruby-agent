@@ -175,7 +175,7 @@ module NewRelic::Agent
 
       if @started
         log! "Agent Started Already!"
-        raise "Duplicate attempt to start the NewRelic agent"
+        return
       end
       @environment = environment
       @identifier = identifier && identifier.to_s
@@ -282,23 +282,25 @@ module NewRelic::Agent
 
     # Attempt a graceful shutdown of the agent.  
     def shutdown
-      return if !@started || !@worker_loop
-      @worker_loop.stop
-      
-      log.debug "Starting Agent shutdown"
-      
-      # if litespeed, then ignore all future SIGUSR1 - it's litespeed trying to shut us down
-      
-      if @environment == :litespeed
-        Signal.trap("SIGUSR1", "IGNORE")
-        Signal.trap("SIGTERM", "IGNORE")
-      end
-      
-      begin
-        graceful_disconnect
-      rescue => e
-        log.error e
-        log.error e.backtrace.join("\n")
+      return if !@started
+      if @worker_loop
+        @worker_loop.stop
+        
+        log.debug "Starting Agent shutdown"
+        
+        # if litespeed, then ignore all future SIGUSR1 - it's litespeed trying to shut us down
+        
+        if @environment == :litespeed
+          Signal.trap("SIGUSR1", "IGNORE")
+          Signal.trap("SIGTERM", "IGNORE")
+        end
+        
+        begin
+          graceful_disconnect
+        rescue => e
+          log.error e
+          log.error e.backtrace.join("\n")
+        end
       end
       @started = nil
     end
