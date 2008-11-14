@@ -49,7 +49,7 @@ module ActionController
       
         agent.stats_engine.transaction_name ||= "Controller/#{path}" if agent.stats_engine
       
-        self.class.trace_method_execution "Controller/#{path}", true, true do 
+        self.class.trace_method_execution_with_scope "Controller/#{path}", true, true do 
           # send request and parameter info to the transaction sampler
           
           local_params = (respond_to? :filter_parameters) ? filter_parameters(params) : params
