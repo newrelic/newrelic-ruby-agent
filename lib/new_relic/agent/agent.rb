@@ -411,6 +411,8 @@ module NewRelic::Agent
         return
       end
       
+      @worker_loop = WorkerLoop.new(log)
+
       @worker_thread = Thread.new do
         begin
           run_worker_loop
@@ -430,8 +432,6 @@ module NewRelic::Agent
         # note if the agent attempts to report more frequently than the specified
         # report data, then it will be ignored.
         report_period = invoke_remote :get_data_report_period, @agent_id
-
-        @worker_loop = WorkerLoop.new(log)
 
         log! "Reporting performance data every #{report_period} seconds"        
         @worker_loop.add_task(report_period) do 
@@ -543,7 +543,7 @@ module NewRelic::Agent
       @harvest_thread ||= Thread.current
       
       if @harvest_thread != Thread.current
-        log! "ERROR - two harvest threads are running"
+        log! "ERROR - two harvest threads are running (current=#{Thread.current}, havest=#{@harvest_thread}"
         @harvest_thread = Thread.current
       end
         
