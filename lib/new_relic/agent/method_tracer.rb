@@ -2,6 +2,15 @@ require 'logger'
 
 class Module
   
+  # Original method preserved for API backward compatibility
+  def trace_method_execution (metric_name, push_scope, produce_metric, deduct_call_time_from_parent, &block)
+    if push_scope
+      trace_method_execution_with_scope(metric_name, produce_metric, deduct_call_time_from_parent, &block)
+    else
+      trace_method_execution_no_scope(metric_name, &block)
+    end
+  end
+  
   # This is duplicated inline in add_method_tracer
   def trace_method_execution_no_scope(metric_name)
     t0 = Time.now.to_f
@@ -13,13 +22,8 @@ class Module
     result 
   end
 
-
-  #
-  # it might be cleaner to have a hash for options, however that's going to be slower
-  # than direct parameters
-  #
-  def trace_method_execution(metric_name, produce_metric, deduct_call_time_from_parent)
-    
+  def trace_method_execution_with_scope(metric_name, produce_metric, deduct_call_time_from_parent)
+  
     t0 = Time.now.to_f
     stats = nil
     
@@ -117,7 +121,7 @@ class Module
       code = <<-CODE
       def #{_traced_method_name(method_name, metric_name_code)}(*args, &block)
         #{options[:code_header]}
-        result = #{klass}.trace_method_execution("#{metric_name_code}", #{options[:metric]}, #{options[:deduct_call_time_from_parent]}) do
+        result = #{klass}.trace_method_execution_with_scope("#{metric_name_code}", #{options[:metric]}, #{options[:deduct_call_time_from_parent]}) do
           #{_untraced_method_name(method_name, metric_name_code)}(*args, &block)
         end
         #{options[:code_footer]}
