@@ -4,8 +4,12 @@ require 'merb-core/dispatch/dispatcher'
 # in rails 2.0.  Thus we need to check for both
 
 Merb::Request.class_eval do
-  include DispatcherInstrumentation
+  
+  # This is for merb prior to 1.0
+  include NewRelic::DispatcherInstrumentation
   alias_method :dispatch_without_newrelic, :handle
   alias_method :handle, :dispatch_newrelic
   
+  # After merb 1.0, you can use before and after callbacks
+  # for this?
 end

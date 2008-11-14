@@ -6,8 +6,7 @@ module NewRelic
     def absent?
       # guess on absent values
       call_count == 0
-    end
-    
+    end  
 
     def average_call_time
       return 0 if call_count == 0

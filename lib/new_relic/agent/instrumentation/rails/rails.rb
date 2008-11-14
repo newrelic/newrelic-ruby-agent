@@ -3,7 +3,7 @@
 # instrumentation for dynamic application code loading (usually only happens a lot
 # in development environment)
 
-class ERB::Compiler
+ERB::Compiler.class_eval do
   add_method_tracer :compile, 'View/.rhtml Processing'
 end
 
