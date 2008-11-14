@@ -192,8 +192,7 @@ module NewRelic::Agent
     #
     def ensure_started
       return unless @prod_mode_enabled && !@invalid_license
-      if @worker_loop.pid != $$
-        @worker_loop = WorkerLoop.new(log)
+      if @worker_loop.nil? || @worker_loop.pid != $$
         launch_worker_thread
         @stats_engine.spawn_sampler_thread
      end
@@ -212,7 +211,6 @@ module NewRelic::Agent
         log.warn "Phusion Passenger has been detected. Some RPM memory statistics may have inaccuracies due to short process lifespans"
       end
       
-      @worker_loop = WorkerLoop.new(log)
       @started = true
       
       @license_key = config.fetch('license_key', nil)
@@ -432,6 +430,8 @@ module NewRelic::Agent
         # note if the agent attempts to report more frequently than the specified
         # report data, then it will be ignored.
         report_period = invoke_remote :get_data_report_period, @agent_id
+
+        @worker_loop = WorkerLoop.new(log)
 
         log! "Reporting performance data every #{report_period} seconds"        
         @worker_loop.add_task(report_period) do 
