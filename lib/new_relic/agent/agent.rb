@@ -192,14 +192,16 @@ module NewRelic::Agent
     #
     def ensure_started
       return unless @prod_mode_enabled && !@invalid_license
-      if @worker_pid != $$
+      if @worker_loop.nil? || @worker_loop.pid != $$
         launch_worker_thread
         @stats_engine.spawn_sampler_thread
      end
     end
+    
     def started?
       @started
     end
+    
     def start_reporting(force_enable=false)
       @local_host = determine_host
 
@@ -209,7 +211,6 @@ module NewRelic::Agent
         log.warn "Phusion Passenger has been detected. Some RPM memory statistics may have inaccuracies due to short process lifespans"
       end
       
-      @worker_loop = WorkerLoop.new(log)
       @started = true
       
       @license_key = config.fetch('license_key', nil)
@@ -396,8 +397,6 @@ module NewRelic::Agent
       @invalid_license = false
       
       @last_harvest_time = Time.now
-      
-      @worker_pid = 0
     end
     
     def setup_log
@@ -412,8 +411,8 @@ module NewRelic::Agent
         return
       end
       
-      @worker_pid = $$
-      
+      @worker_loop = WorkerLoop.new(log)
+
       @worker_thread = Thread.new do
         begin
           run_worker_loop
@@ -544,7 +543,7 @@ module NewRelic::Agent
       @harvest_thread ||= Thread.current
       
       if @harvest_thread != Thread.current
-        log! "ERROR - two harvest threads are running"
+        log! "ERROR - two harvest threads are running (current=#{Thread.current}, havest=#{@harvest_thread}"
         @harvest_thread = Thread.current
       end
         
