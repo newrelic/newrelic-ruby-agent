@@ -192,14 +192,17 @@ module NewRelic::Agent
     #
     def ensure_started
       return unless @prod_mode_enabled && !@invalid_license
-      if @worker_pid != $$
+      if @worker_loop.pid != $$
+        @worker_loop = WorkerLoop.new(log)
         launch_worker_thread
         @stats_engine.spawn_sampler_thread
      end
     end
+    
     def started?
       @started
     end
+    
     def start_reporting(force_enable=false)
       @local_host = determine_host
 
@@ -396,8 +399,6 @@ module NewRelic::Agent
       @invalid_license = false
       
       @last_harvest_time = Time.now
-      
-      @worker_pid = 0
     end
     
     def setup_log
@@ -411,8 +412,6 @@ module NewRelic::Agent
         log.info "Process is passenger spawner - don't connect to RPM service"
         return
       end
-      
-      @worker_pid = $$
       
       @worker_thread = Thread.new do
         begin

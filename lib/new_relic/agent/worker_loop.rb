@@ -8,20 +8,27 @@ module NewRelic::Agent
     include(Synchronize)
     
     attr_reader :log
+    attr_reader :pid
     
     def initialize(log = Logger.new(STDERR))
       @tasks = []
       @log = log
       @should_run = true
+      @pid = $$
     end
 
     # run infinitely, calling the registered tasks at their specified
     # call periods.  The caller is responsible for creating the thread
     # that runs this worker loop
     def run
-      while(@should_run) do
+      while keep_running do
         run_next_task
       end
+    end
+    
+    
+    def keep_running
+      @should_run && (@pid == $$)
     end
     
     
@@ -71,7 +78,7 @@ module NewRelic::Agent
 
           sleep (sleep_time > 1 ? 1 : sleep_time)
             
-          return if !@should_run
+          return if !keep_running
         end
         
         begin
