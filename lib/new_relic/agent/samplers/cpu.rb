@@ -25,4 +25,5 @@ module NewRelic::Agent
   end
 end
 
-NewRelic::Agent::CPUSampler.new
+# CPU sampling like this doesn't work for jruby
+NewRelic::Agent::CPUSampler.new unless defined? Java

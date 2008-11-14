@@ -2,6 +2,13 @@
 
 module NewRelic
   module Stats
+    
+    def absent?
+      # guess on absent values
+      call_count == 0
+    end
+    
+
     def average_call_time
       return 0 if call_count == 0
       total_call_time / call_count
@@ -15,7 +22,7 @@ module NewRelic
       Array(other_stats).each do |s|
         self.total_call_time += s.total_call_time
         self.total_exclusive_time += s.total_exclusive_time
-        self.min_call_time = s.min_call_time if s.min_call_time < min_call_time || call_count == 0
+        self.min_call_time = s.min_call_time if (s.min_call_time < min_call_time && s.call_count > 0) || call_count == 0
         self.max_call_time = s.max_call_time if s.max_call_time > max_call_time
         self.call_count += s.call_count
         self.sum_of_squares += s.sum_of_squares if s.sum_of_squares
@@ -83,9 +90,9 @@ module NewRelic
     end
     
     # the stat total_call_time is a percent
-    def as_percentage(decimal_places = 2)
+    def as_percentage
       return 0 if call_count == 0
-      ((total_call_time / call_count) * 100).round_to(decimal_places)
+      (total_call_time / call_count).to_percentage
     end
     
     def duration
@@ -267,7 +274,6 @@ class Numeric
       self
     end
   end
-  
   
   # utlity method that converts floating point time values in seconds
   # to integers in milliseconds, to improve readability in ui

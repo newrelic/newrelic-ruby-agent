@@ -79,8 +79,23 @@ module NewRelic::Agent
           NewRelic::Agent.disable_transaction_tracing do
             task.execute
           end
-        rescue Timeout::Error, StandardError => e
-          log.debug "Error running task in Agent Worker Loop: #{e}" 
+        rescue ServerError => e
+          log.debug "Server Error: #{e}"
+        rescue RuntimeError => e
+          # This is probably a server error which has been logged in the server along
+          # with your account name.  Check and see if the agent listener is in the
+          # stack trace and log it quietly if it is.
+          message = "Error running task in worker loop, likely a server error (#{e})"
+          if e.backtrace.grep(/agent_listener/).empty?
+            log.error message
+          else
+            log.debug message
+            log.debug e.backtrace.join("\n")
+          end
+        rescue Timeout::Error, NewRelic::Agent::IgnoreSilentlyException
+          # Want to ignore these because they are handled already
+        rescue ScriptError, StandardError => e 
+          log.error "Error running task in Agent Worker Loop: #{e}" 
           log.debug e.backtrace.join("\n")
         end
       end
