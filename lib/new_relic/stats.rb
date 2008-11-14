@@ -2,6 +2,12 @@
 
 module NewRelic
   module Stats
+    
+    def absent?
+      # guess on absent values
+      call_count == 0
+    end  
+
     def average_call_time
       return 0 if call_count == 0
       total_call_time / call_count
@@ -267,7 +273,6 @@ class Numeric
       self
     end
   end
-  
   
   # utlity method that converts floating point time values in seconds
   # to integers in milliseconds, to improve readability in ui
