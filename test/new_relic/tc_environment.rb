@@ -22,26 +22,18 @@ class EnvironmentTest < ActiveSupport::TestCase
     assert_nil e.identifier
   end
   def test_webrick
-    class << self
-      ::OPTIONS=MockOptions.new
-      ::DEFAULT_PORT=5000
-    end
+    Object.const_set :OPTIONS, { :port => 3000 }
     e = NewRelic::LocalEnvironment.new
     assert_equal :webrick, e.environment
-    assert_equal 1000, e.identifier
+    assert_equal 3000, e.identifier
     Object.class_eval { remove_const :OPTIONS }
-    Object.class_eval { remove_const :DEFAULT_PORT }
   end
   def test_no_webrick
-    class << self
-      ::OPTIONS='foo'
-      ::DEFAULT_PORT=5000
-    end
+    Object.const_set :OPTIONS, 'foo'
     e = NewRelic::LocalEnvironment.new
     assert_equal :unknown, e.environment
     assert_nil e.identifier
     Object.class_eval { remove_const :OPTIONS }
-    Object.class_eval { remove_const :DEFAULT_PORT }
   end
   def test_mongrel
     

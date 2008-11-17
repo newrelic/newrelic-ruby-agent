@@ -59,7 +59,6 @@ class ActiveRecordInstrumentationTests < Test::Unit::TestCase
     segment = sample.root_segment.called_segments.first.called_segments.first
   end
   def test_prepare_to_send
-    t0 = Time.now
     TestModel.find(:all)
     sample = @agent.transaction_sampler.harvest_slowest_sample
     segment = sample.root_segment.called_segments.first.called_segments.first
