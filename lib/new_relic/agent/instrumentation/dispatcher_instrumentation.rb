@@ -1,4 +1,4 @@
-require 'dispatcher'
+require_dependency 'dispatcher'
 
 # We have to patch the mongrel dispatcher live since the classes
 # aren't defined when our instrumentation loads

@@ -1,7 +1,3 @@
-#require 'new_relic/agent/synchronize'
-#require 'noticed_error'
-#require 'new_relic/agent/collection_helper'
-require 'logger'
 
 module NewRelic::Agent
   class ErrorCollector

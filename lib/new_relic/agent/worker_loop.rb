@@ -1,4 +1,3 @@
-#require 'new_relic/agent/synchronize'
 
 # A worker loop executes a set of registered tasks on a single thread.  
 # A task is a proc or block with a specified call period in seconds.  
@@ -75,8 +74,9 @@ module NewRelic::Agent
           
           # sleep until this next task's scheduled invocation time
           sleep_time = [task.next_invocation_time - Time.now, 0.000001].max
+          sleep_time = (sleep_time > 1) ? 1 : sleep_time
 
-          sleep (sleep_time > 1 ? 1 : sleep_time)
+          sleep sleep_time
             
           return if !keep_running
         end

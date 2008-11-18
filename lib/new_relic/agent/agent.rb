@@ -120,7 +120,7 @@ module NewRelic::Agent
     # the original exception) or nil to ignore this exception
     #
     def ignore_error_filter(&block)
-      agent.error_collector.ignore_error_filter &block
+      agent.error_collector.ignore_error_filter(&block)
     end
     
   end
@@ -278,6 +278,8 @@ module NewRelic::Agent
         # this agent run is stopping, assuming it has successfully connected
         at_exit { shutdown }
       end
+      
+      log.debug "Finished starting reporting"
     end
 
     # Attempt a graceful shutdown of the agent.  
@@ -372,6 +374,8 @@ module NewRelic::Agent
           log.debug e.backtrace.join("\n")
         end
       end
+      
+      log.debug "Finished instrumentation"
     end
     
     def log
@@ -424,6 +428,20 @@ module NewRelic::Agent
           log! e.backtrace().join("\n")
         end
       end
+      
+      
+      # This code should be activated to check that no dependency loading is occuring in the background thread
+      # by stopping the foreground thread after the background thread is created. Turn on dependency loading logging
+      # and make sure that no loading occurs.
+      #
+      # TAKE OUT BEFORE WE SHIP!!!
+      if false
+        log! "FINISHED AGENT INIT"
+        while true
+          sleep 1
+        end
+      end
+      
     end
     # Connect to the server, and run the worker loop forever
     def run_worker_loop

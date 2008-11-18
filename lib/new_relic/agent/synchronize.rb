@@ -1,6 +1,4 @@
 
-require 'sync'
-
 
 module NewRelic::Agent
   

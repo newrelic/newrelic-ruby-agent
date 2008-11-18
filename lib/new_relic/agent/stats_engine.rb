@@ -1,6 +1,3 @@
-#require 'new_relic/stats'
-#require 'new_relic/metric_data'
-require 'logger'
 
 module NewRelic::Agent
   class StatsEngine

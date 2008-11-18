@@ -1,7 +1,4 @@
 module NewRelic
-
-  
-
   class MetricData
     attr_accessor :metric_spec
     attr_accessor :metric_id
