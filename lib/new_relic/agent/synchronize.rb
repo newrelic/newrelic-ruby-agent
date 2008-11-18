@@ -1,5 +1,4 @@
 
-
 module NewRelic::Agent
   
   module Synchronize

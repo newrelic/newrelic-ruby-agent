@@ -16,9 +16,9 @@ require 'new_relic/agent/collection_helper'
 require 'new_relic/agent/transaction_sampler'
 require 'new_relic/agent/error_collector'
 
-#require 'set'
-#require 'sync'
-#require 'thread'
+require 'set'
+require 'sync'
+require 'thread'
 
 module NewRelic::Agent
   

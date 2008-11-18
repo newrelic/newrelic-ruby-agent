@@ -1,3 +1,4 @@
+require "socket"
 require 'net/https' 
 require 'net/http'
 require 'logger'
@@ -418,7 +419,7 @@ module NewRelic::Agent
       end
       
       @worker_loop = WorkerLoop.new(log)
-
+      
       @worker_thread = Thread.new do
         begin
           run_worker_loop
@@ -428,6 +429,8 @@ module NewRelic::Agent
         end
       end
       
+      
+      #TEETE.new
       
       # This code should be activated to check that no dependency loading is occuring in the background thread
       # by stopping the foreground thread after the background thread is created. Turn on dependency loading logging
