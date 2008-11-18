@@ -7,6 +7,9 @@ require 'zlib'
 require 'stringio'
 
 
+# This must be turned off before we ship
+VALIDATE_BACKGROUND_THREAD_LOADING = false
+
 # The NewRelic Agent collects performance data from ruby applications in realtime as the
 # application runs, and periodically sends that data to the NewRelic server.
 module NewRelic::Agent
@@ -419,30 +422,32 @@ module NewRelic::Agent
       end
       
       @worker_loop = WorkerLoop.new(log)
-      
+
+      if VALIDATE_BACKGROUND_THREAD_LOADING
+        require 'new_relic/agent/patch_const_missing'
+      end
+
       @worker_thread = Thread.new do
         begin
+          if VALIDATE_BACKGROUND_THREAD_LOADING
+            self.class.new_relic_set_agent_thread(Thread.current)
+          end 
+          
           run_worker_loop
         rescue StandardError => e
           log! e
           log! e.backtrace().join("\n")
         end
       end
-      
-      
-      #TEETE.new
-      
+                  
       # This code should be activated to check that no dependency loading is occuring in the background thread
       # by stopping the foreground thread after the background thread is created. Turn on dependency loading logging
       # and make sure that no loading occurs.
       #
-      # TAKE OUT BEFORE WE SHIP!!!
-      if false
-        log! "FINISHED AGENT INIT"
-        while true
-          sleep 1
-        end
-      end
+#      log! "FINISHED AGENT INIT"
+#      while true
+#        sleep 1
+#      end
       
     end
     # Connect to the server, and run the worker loop forever
@@ -785,3 +790,4 @@ class ChainedCall
     @call2.call(sql)
   end
 end
+
