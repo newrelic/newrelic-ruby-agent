@@ -58,13 +58,13 @@ module NewRelic::DispatcherInstrumentation
     @@harvest_start = Time.now.to_f
     @@accumulator = 0
     @@dispatcher_start = nil    
-    def BusyCalculator.dispatcher_start(time)
+    def self.dispatcher_start(time)
       Thread.critical = true
       @@dispatcher_start = time      
       Thread.critical = false
     end
     
-    def BusyCalculator.dispatcher_finish(time)
+    def self.dispatcher_finish(time)
       Thread.critical = true
       
       @@accumulator += (time - @@dispatcher_start)
@@ -73,17 +73,17 @@ module NewRelic::DispatcherInstrumentation
       Thread.critical = false
     end
     
-    def BusyCalculator.add_busy(amount)
+    def self.add_busy(amount)
       Thread.critical = true
       @@accumulator += amount
       Thread.critical = false
     end
     
-    def BusyCalculator.is_busy?
+    def self.is_busy?
       @@dispatcher_start
     end
     
-    def BusyCalculator.harvest_busy
+    def self.harvest_busy
       t0 = Time.now.to_f
       
       Thread.critical = true
