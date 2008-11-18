@@ -4,31 +4,41 @@ require 'action_controller/base'
 
     class AgentTestController < ActionController::Base
       filter_parameter_logging :social_security_number
-      
+      def index
+        render :text => params.inspect
+      end
       def _filter_parameters(params)
         filter_parameters params
       end
-      
-      def action_to_ignore(*args)
+      def action_to_render
+        render :text => params.inspect
       end
-      
+      def action_to_ignore
+      end
     end
 
-
-
-class AgentControllerTests < Test::Unit::TestCase
+class AgentControllerTests < ActionController::TestCase
+  
+  self.controller_class = AgentTestController
   
   attr_accessor :agent
+  
   def setup
     super
     @agent = NewRelic::Agent.instance
-    @agent.instrument_app
-    @agent.start :test, :test
+    #    @agent.instrument_app
+    agent.start :test, :test
+    agent.transaction_sampler.harvest_slowest_sample
   end
   
   def teardown
-    @agent.shutdown
+    NewRelic::Agent.instance.shutdown
     super
+  end
+
+  def test_action_instrumentation
+    get :index, :foo => 'bar'
+    assert_match /bar/, @response.body
   end
   
   def test_controller_params
@@ -38,17 +48,15 @@ class AgentControllerTests < Test::Unit::TestCase
     end
     assert agent.transaction_sampler
     
-    controller = AgentTestController.new
-    
     assert_equal 0, NewRelic::Agent.instance.transaction_sampler.get_samples.length
     
-    assert_equal "[FILTERED]", controller._filter_parameters({'social_security_number' => 'test'})['social_security_number']
+    assert_equal "[FILTERED]", @controller._filter_parameters({'social_security_number' => 'test'})['social_security_number']
     
-    controller.process(ActionController::TestRequest.new('social_security_number' => "001-555-1212"), ActionController::TestResponse.new)
+    get :index, 'social_security_number' => "001-555-1212"
     
-    samples = NewRelic::Agent.instance.transaction_sampler.get_samples
+    samples = agent.transaction_sampler.get_samples
     
-    NewRelic::Agent.instance.transaction_sampler.expects(:notice_transaction).never
+    agent.transaction_sampler.expects(:notice_transaction).never
     
     assert_equal 1, samples.length
     
