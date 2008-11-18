@@ -420,7 +420,6 @@ module NewRelic::Agent
       @worker_loop = WorkerLoop.new(log)
 
       @worker_thread = Thread.new do
-        Dependencies.log_activity = true
         begin
           run_worker_loop
         rescue StandardError => e
