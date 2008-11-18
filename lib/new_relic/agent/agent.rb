@@ -8,7 +8,7 @@ require 'stringio'
 
 
 # This must be turned off before we ship
-VALIDATE_BACKGROUND_THREAD_LOADING = false
+VALIDATE_BACKGROUND_THREAD_LOADING = true
 
 # The NewRelic Agent collects performance data from ruby applications in realtime as the
 # application runs, and periodically sends that data to the NewRelic server.
@@ -431,7 +431,7 @@ module NewRelic::Agent
         begin
           if VALIDATE_BACKGROUND_THREAD_LOADING
             self.class.new_relic_set_agent_thread(Thread.current)
-          end 
+          end
           
           run_worker_loop
         rescue StandardError => e

@@ -3,7 +3,12 @@
 class Class
     
   def new_relic_const_missing(*args)
-    raise "Agent background thread shouldn't be calling const_missing!!!" if Thread.current == @agent_thread
+    if Thread.current == @agent_thread
+      STDERR.puts "Agent background thread shouldn't be calling const_missing!!!"
+      STDERR.puts caller.join("\n")
+      exit -1
+    end
+    
     original_const_missing(*args)
   end
   
