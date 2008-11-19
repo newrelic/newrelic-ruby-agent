@@ -27,6 +27,8 @@ class Module
     stats = nil
     
     begin
+      # Keep a reference to the scope we are pushing so we can do a sanity check making
+      # sure when we pop we get the one we 'expected'
       expected_scope = @@newrelic_stats_engine.push_scope(metric_name, t0, deduct_call_time_from_parent)
       
       stats = @@newrelic_stats_engine.get_stats metric_name, true if produce_metric
@@ -36,7 +38,7 @@ class Module
     end
 
     begin
-      result = yield
+      yield
     ensure
       t1 = Time.now.to_f
       duration = t1 - t0
@@ -46,14 +48,12 @@ class Module
           scope = @@newrelic_stats_engine.pop_scope expected_scope, duration, t1
           
           exclusive = duration - scope.children_time
-          stats.trace_call duration, exclusive if stats
+          stats.trace_call(duration, exclusive) if stats
         end
       rescue => e
         NewRelic::Config.instance.log.error("Caught exception in trace_method_execution footer. Metric name = #{metric_name}, exception = #{e}")
         NewRelic::Config.instance.log.error(e.backtrace.join("\n"))
       end
-    
-      result 
     end
   end
 
@@ -73,13 +73,15 @@ class Module
     return unless NewRelic::Agent.agent.config.tracers_enabled?
     
     @@newrelic_stats_engine ||= NewRelic::Agent.agent.stats_engine
-
     
     if !options.is_a?(Hash)
       options = {:push_scope => options} 
     end
-    
+    # options[:push_scope] true if we are noting the scope of this for
+    # stats collection as well as the transaction tracing
     options[:push_scope] = true if options[:push_scope].nil?
+    # options[:metric] true if you are tracking stats for a metric, otherwise
+    # it's just for transaction tracing.
     options[:metric] = true if options[:metric].nil?
     options[:deduct_call_time_from_parent] = false if options[:deduct_call_time_from_parent].nil? && !options[:metric]
     options[:deduct_call_time_from_parent] = true if options[:deduct_call_time_from_parent].nil?
@@ -102,10 +104,11 @@ class Module
     fail "Can't add a tracer where push_scope is false and metric is false" if options[:push_scope] == false && !options[:metric]
     
     if options[:push_scope] == false
+      class_eval "@@newrelic_stats_engine = NewRelic::Agent.agent.stats_engine"
       code = <<-CODE
         def #{_traced_method_name(method_name, metric_name_code)}(*args, &block)
           #{options[:code_header]}
-          @@newrelic_stats_engine ||= NewRelic::Agent.agent.stats_engine     # wish I didn't have to duplicate this
+
           t0 = Time.now.to_f
           stats = @@newrelic_stats_engine.get_stats_no_scope "#{metric_name_code}"
 
@@ -132,7 +135,7 @@ class Module
     class_eval code, __FILE__, __LINE__
   
     alias_method _untraced_method_name(method_name, metric_name_code), method_name
-    alias_method method_name, "#{_traced_method_name(method_name, metric_name_code)}"
+    alias_method method_name, _traced_method_name(method_name, metric_name_code)
     
     NewRelic::Config.instance.log.debug("Traced method: class = #{self}, method = #{method_name}, "+
         "metric = '#{metric_name_code}', options: #{options}, ")
