@@ -36,7 +36,7 @@ ActionController::Base.class_eval do
       end
     end
     
-    agent.ensure_started
+    agent.ensure_worker_thread_started
     
     # generate metrics for all all controllers (no scope)
     self.class.trace_method_execution_no_scope "Controller" do 

@@ -7,6 +7,7 @@ require 'new_relic/transaction_analysis'
 require 'new_relic/transaction_sample'
 require 'new_relic/noticed_error'
 
+require 'new_relic/agent/chained_call'
 require 'new_relic/agent/agent'
 require 'new_relic/agent/method_tracer'
 require 'new_relic/agent/synchronize'
