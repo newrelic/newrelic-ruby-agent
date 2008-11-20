@@ -4,6 +4,17 @@ require 'new_relic/agent/model_fixture'
 
 class NewRelic::Agent::CollectionHelperTests < Test::Unit::TestCase
   
+  def setup
+    super
+    NewRelic::Agent::ModelFixture.setup
+    NewRelic::Agent.instance.start :test, :test
+  end
+  def teardown
+    NewRelic::Agent::ModelFixture.teardown
+    NewRelic::Agent.instance.shutdown
+    super
+  end
+  
   include NewRelic::Agent::CollectionHelper
   def test_string
     val = ('A'..'Z').to_a.join * 100
@@ -45,24 +56,17 @@ class NewRelic::Agent::CollectionHelperTests < Test::Unit::TestCase
   end
   
   def test_strip_backtrace
-    NewRelic::Agent::ModelFixture.setup
     begin
-      # setup instrumentation
-      NewRelic::Agent.instance.start :test, :test
-      
       NewRelic::Agent::ModelFixture.find 0
       flunk "should throw"
     rescue => e
-#      puts e
-#      puts e.backtrace.join("\n")
-#      puts "\n\n"
+      #      puts e
+      #      puts e.backtrace.join("\n")
+      #      puts "\n\n"
       clean_trace = clean_backtrace(e.backtrace)
       assert_equal 0, clean_trace.grep(/newrelic_rpm/).size, clean_trace.grep(/newrelic_rpm/)
       assert_equal 0, clean_trace.grep(/trace/).size, clean_trace.grep(/trace/)
       assert_equal 3, clean_trace.grep(/find/).size, "should see three frames with 'find' in them: \n#{clean_trace.join("\n")}"
-    ensure
-      NewRelic::Agent::ModelFixture.teardown
-      NewRelic::Agent.instance.shutdown
     end
   end
 end
