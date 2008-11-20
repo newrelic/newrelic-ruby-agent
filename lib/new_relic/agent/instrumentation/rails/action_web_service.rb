@@ -23,5 +23,5 @@ if defined? ActionWebService
     if method_defined? :perform_invocation
       add_method_tracer :perform_invocation, 'WebService/#{controller_name}/#{args.first}'
     end
-  end
+  end if defined? ActionController::Base
 end

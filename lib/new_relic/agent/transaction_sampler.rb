@@ -94,6 +94,8 @@ module NewRelic::Agent
       builder.trace_exit(scope, time)
     end
     
+    # This is called when we are done with the transaction.  We've
+    # unwound the stack to the top level.
     def notice_scope_empty(time=Time.now.to_f)
       
       last_builder = builder

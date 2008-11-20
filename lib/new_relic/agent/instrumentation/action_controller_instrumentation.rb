@@ -76,11 +76,6 @@ ActionController::Base.class_eval do
   
   add_method_tracer :render, 'View/#{_determine_metric_path}/Rendering'
   
-  # ActionWebService is now an optional part of Rails as of 2.0
-  if method_defined? :perform_invocation
-    add_method_tracer :perform_invocation, 'WebService/#{controller_name}/#{args.first}'
-  end
-  
   private
   # determine the path that is used in the metric name for
   # the called controller action
@@ -91,4 +86,4 @@ ActionController::Base.class_eval do
       "#{self.class.controller_path}/(other)"
     end
   end
-end if defined? ActionController
+end if defined? ActionController::Base

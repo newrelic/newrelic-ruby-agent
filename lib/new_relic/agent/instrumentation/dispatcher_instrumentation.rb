@@ -44,13 +44,13 @@ module NewRelic::DispatcherInstrumentation
   def dispatch_newrelic(*args)
     dispatcher_start
     begin
-      result = dispatch_without_newrelic(*args)
+      dispatch_without_newrelic(*args)
     ensure
       dispatcher_finish
     end
-    result
   end
   
+  # This won't work with Rails 2.2 multi-threading
   class BusyCalculator
     
     # the fraction of the sample period that the dispatcher was busy
@@ -70,12 +70,6 @@ module NewRelic::DispatcherInstrumentation
       @@accumulator += (time - @@dispatcher_start)
       @@dispatcher_start = nil
       
-      Thread.critical = false
-    end
-    
-    def self.add_busy(amount)
-      Thread.critical = true
-      @@accumulator += amount
       Thread.critical = false
     end
     
