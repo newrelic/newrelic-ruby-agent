@@ -31,10 +31,10 @@ module NewRelic::Agent::CollectionHelper
       clean_backtrace = exception.backtrace
       
       # strip newrelic from the trace
-      clean_backtrace = clean_backtrace.reject {|line| line =~ /vendor\/plugins\/newrelic_rpm/ }
+      clean_backtrace = clean_backtrace.reject {|line| line =~ /new_relic\/agent\// }
       
       # rename methods back to their original state
-      clean_backtrace.collect {|line| line.gsub "_without_(newrelic|trace)", ""}
+      clean_backtrace.collect {|line| line.gsub /_without_(newrelic|trace)/, ""}
     else
       nil
     end
