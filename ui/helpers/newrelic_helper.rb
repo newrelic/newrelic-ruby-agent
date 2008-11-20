@@ -256,7 +256,7 @@ private
   end
     
   def exclude_file_from_stack_trace?(file, include_rails)
-    is_agent = file =~ /\/newrelic\/agent\//
+    is_agent = file =~ /\/new_relic\/agent\//
     return is_agent if include_rails
     
     is_agent ||
