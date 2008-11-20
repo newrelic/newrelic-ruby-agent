@@ -13,6 +13,7 @@ module NewRelic::Agent
     def initialize(agent = nil)
       @agent = agent
       @errors = []
+      # lookup of exception class names to ignore.  Hash for fast access
       @ignore = {}
       @ignore_filter = nil
       @capture_params = true
@@ -20,18 +21,17 @@ module NewRelic::Agent
       @enabled = true
     end
     
-    
     def ignore_error_filter(&block)
       @ignore_filter = block
     end
     
     
-    # errors is an array of String exceptions
+    # errors is an array of Exception Class Names
     #
     def ignore(errors)
       errors.each { |error| @ignore[error] = true; log.debug("Ignoring error: '#{error}'") }
     end
-   
+    
     
     def notice_error(path, request_uri, params, exception)
       
@@ -44,17 +44,15 @@ module NewRelic::Agent
         return if exception.nil?
       end
       
-      @@error_stat ||= NewRelic::Agent.get_stats("Errors/all")
-      
-      @@error_stat.increment_count
+      error_stat.increment_count
       
       data = {}
       
       data[:request_params] = normalize_params(params) if @capture_params
       data[:custom_params] = normalize_params(@agent.custom_params) if @agent
-              
+      
       data[:request_uri] = request_uri
-            
+      
       data[:rails_root] = NewRelic::Config.instance.root
       
       data[:file_name] = exception.file_name if exception.respond_to?('file_name')
@@ -64,7 +62,12 @@ module NewRelic::Agent
         data[:source] = exception.source_extract
       end
       
-      data[:stack_trace] = clean_exception(exception)
+      if exception.respond_to? 'original_exception'
+        inside_exception = exception.original_exception
+      else
+        inside_exception = exception
+      end
+      data[:stack_trace] = clean_backtrace(inside_exception.backtrace)
       noticed_error = NewRelic::NoticedError.new(path, data, exception)
       
       synchronize do
@@ -76,19 +79,27 @@ module NewRelic::Agent
       end
     end
     
+    # Get the errors currently queued up.  Unsent errors are left 
+    # over from a previous unsuccessful attempt to send them to the server.
+    # We first clear out all unsent errors before sending the newly queued errors.
     def harvest_errors(unsent_errors)
-      synchronize do
-        errors = (unsent_errors || []) + @errors
-        @errors = []
-        return errors
+      if unsent_errors && !unsent_errors.empty?
+        return unsent_errors
+      else
+        synchronize do
+          errors = @errors
+          @errors = []
+          return errors
+        end
       end
     end
     
-  private
-    def log 
-      return @agent.log if @agent && @agent.log
-      
-      @backup_log ||= Logger.new(STDERR)
+    private
+    def error_stat
+      @error_stat ||= NewRelic::Agent.get_stats("Errors/all")
+    end
+    def log
+      NewRelic::Config.instance.log
     end
   end
 end

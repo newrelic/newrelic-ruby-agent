@@ -51,11 +51,12 @@ class NewRelic::Agent::CollectionHelperTests < Test::Unit::TestCase
       NewRelic::Agent.instance.start :test, :test
       
       NewRelic::Agent::ModelFixture.find 0
+      flunk "should throw"
     rescue => e
-      puts e
-      puts e.backtrace.join("\n")
-      puts "\n\n"
-      clean_trace = clean_exception(e)
+#      puts e
+#      puts e.backtrace.join("\n")
+#      puts "\n\n"
+      clean_trace = clean_backtrace(e.backtrace)
       assert_equal 0, clean_trace.grep(/newrelic_rpm/).size, clean_trace.grep(/newrelic_rpm/)
       assert_equal 0, clean_trace.grep(/trace/).size, clean_trace.grep(/trace/)
       assert_equal 3, clean_trace.grep(/find/).size, "should see three frames with 'find' in them: \n#{clean_trace.join("\n")}"

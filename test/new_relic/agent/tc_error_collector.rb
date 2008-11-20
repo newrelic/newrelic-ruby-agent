@@ -34,14 +34,24 @@ require 'test/unit'
         
         errors = @error_collector.harvest_errors([])
         
-        @error_collector.notice_error('path', nil, {:x => 'y'}, Exception.new("message"))
+        @error_collector.notice_error('second', nil, {:x => 'y'}, Exception.new("message"))
         @error_collector.notice_error('path', nil, {:x => 'y'}, Exception.new("message"))
         @error_collector.notice_error('path', nil, {:x => 'y'}, Exception.new("message"))
         
         errors = @error_collector.harvest_errors(errors)
         
-        assert errors.length == 4
-        assert errors.first.path == 'first'
+        assert_equal 1, errors.length
+        assert_equal 'first', errors.first.path
+
+        # add two more
+        @error_collector.notice_error('path', nil, {:x => 'y'}, Exception.new("message"))
+        @error_collector.notice_error('last', nil, {:x => 'y'}, Exception.new("message"))
+        
+        errors = @error_collector.harvest_errors(nil)
+        assert_equal 5, errors.length
+        assert_equal 'second', errors.first.path
+        assert_equal 'last', errors.last.path
+        
       end
       
       def test_queue_overflow

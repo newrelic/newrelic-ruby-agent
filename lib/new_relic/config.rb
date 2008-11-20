@@ -122,7 +122,6 @@ module NewRelic
     end
     
     def start_agent
-      #require 'new_relic/agent'
       NewRelic::Agent::Agent.instance.start(local_env.environment, local_env.identifier)
     end
     
@@ -145,9 +144,9 @@ module NewRelic
     # Create the concrete class for environment specific behavior:
     def self.new_instance
       case
-#        when defined? NewRelic::TEST
-#        require 'config/test_config'
-#        NewRelic::Config::Test.new
+        when defined? NewRelic::TEST
+        require 'config/test_config'
+        NewRelic::Config::Test.new
         when defined? Merb::Plugins then
         require 'new_relic/config/merb'
         NewRelic::Config::Merb.new
