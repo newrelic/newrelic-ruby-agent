@@ -2,20 +2,20 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 require 'action_controller/base'
 
 
-    class AgentTestController < ActionController::Base
-      filter_parameter_logging :social_security_number
-      def index
-        render :text => params.inspect
-      end
-      def _filter_parameters(params)
-        filter_parameters params
-      end
-      def action_to_render
-        render :text => params.inspect
-      end
-      def action_to_ignore
-      end
-    end
+class AgentTestController < ActionController::Base
+  filter_parameter_logging :social_security_number
+  def index
+    render :text => params.inspect
+  end
+  def _filter_parameters(params)
+    filter_parameters params
+  end
+  def action_to_render
+    render :text => params.inspect
+  end
+  def action_to_ignore
+  end
+end
 
 class AgentControllerTests < ActionController::TestCase
   
@@ -35,14 +35,14 @@ class AgentControllerTests < ActionController::TestCase
     NewRelic::Agent.instance.shutdown
     super
   end
-
+  
   def test_action_instrumentation
     get :index, :foo => 'bar'
     assert_match /bar/, @response.body
   end
   
   def test_controller_params
-
+    
     AgentTestController.class_eval do
       newrelic_ignore :only => :action_to_ignore
     end

@@ -356,7 +356,7 @@ module NewRelic::Agent
           run_worker_loop
         rescue StandardError => e
           log! e
-          log! e.backtrace().join("\n")
+          log! e.backtrace.join("\n")
         end
       end
                   

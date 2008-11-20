@@ -87,5 +87,5 @@ module ActionController
     def self.newrelic_ignore(*args); end
     def _determine_metric_path; end
   end
-end
+end if defined? ActionController::Base
 

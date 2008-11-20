@@ -1,4 +1,3 @@
-
 # NewRelic instrumentation for controllers
 ActionController::Base.class_eval do
   
@@ -86,4 +85,4 @@ ActionController::Base.class_eval do
       "#{self.class.controller_path}/(other)"
     end
   end
-end if defined? ActionController::Base
+end if defined? ActionController

@@ -3,6 +3,7 @@
 if defined? ActiveRecord
   
   ActiveRecord::Base.class_eval do
+    # Note: we should instrument :find_every instead of :find.  
     class << self
       [:find, :count].each do |find_method|
         add_method_tracer find_method, 'ActiveRecord/#{self.name}/find'
