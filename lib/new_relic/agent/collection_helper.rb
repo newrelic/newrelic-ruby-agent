@@ -22,7 +22,8 @@ module NewRelic::Agent::CollectionHelper
     end
   end
   
-  
+  # Return an array of strings (backtrace), cleaned up for readability
+  # Return nil if there is no backtrace
   def clean_exception(exception)
     exception = exception.original_exception if exception.respond_to? 'original_exception'
     

@@ -70,7 +70,7 @@ if defined? ActiveRecord
   end
   
   # instrumentation for associations
-  Associations::AssociationCollection.class_eval do
+  ActiveRecord::Associations::AssociationCollection.class_eval do
     add_method_tracer :delete, 'ActiveRecord/#{@owner.class.name}/association delete'
   end
 =begin

@@ -1,7 +1,3 @@
-#require 'new_relic/agent/synchronize'
-#require 'noticed_error'
-#require 'new_relic/agent/collection_helper'
-require 'logger'
 
 module NewRelic::Agent
   class ErrorCollector
@@ -59,7 +55,7 @@ module NewRelic::Agent
               
       data[:request_uri] = request_uri
             
-      data[:rails_root] = RAILS_ROOT if defined? RAILS_ROOT
+      data[:rails_root] = NewRelic::Config.instance.root
       
       data[:file_name] = exception.file_name if exception.respond_to?('file_name')
       data[:line_number] = exception.line_number if exception.respond_to?('line_number')

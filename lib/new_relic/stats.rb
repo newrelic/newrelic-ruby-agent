@@ -1,4 +1,3 @@
-#require 'new_relic/metric_data'
 
 module NewRelic
   module Stats

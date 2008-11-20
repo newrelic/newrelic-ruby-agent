@@ -1,7 +1,7 @@
-require 'set'
 
 # NewRelic instrumentation for controllers
 ActionController::Base.class_eval do
+  
   # Have NewRelic ignore actions in this controller.  Specify the actions as hash options
   # using :except and :only.  If no actions are specified, all actions are ignored.
   def self.newrelic_ignore(specifiers={})
@@ -36,7 +36,7 @@ ActionController::Base.class_eval do
       end
     end
     
-    agent.ensure_started
+    agent.ensure_worker_thread_started
     
     # generate metrics for all all controllers (no scope)
     self.class.trace_method_execution_no_scope "Controller" do 
@@ -81,9 +81,9 @@ ActionController::Base.class_eval do
   # the called controller action
   def _determine_metric_path
     if self.class.action_methods.include?(action_name)
-          "#{self.class.controller_path}/#{action_name}"
+      "#{self.class.controller_path}/#{action_name}"
     else
-          "#{self.class.controller_path}/(other)"
+      "#{self.class.controller_path}/(other)"
     end
   end
-end if defined? ActionController
+end if defined? ActionController::Base
