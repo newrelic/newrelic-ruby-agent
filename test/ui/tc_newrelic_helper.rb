@@ -11,10 +11,11 @@ class NewRelic::Agent::CollectionHelperTests < Test::Unit::TestCase
       # setup instrumentation
       NewRelic::Agent.instance.start :test, :test
       NewRelic::Agent::ModelFixture.find 0
-      flunk "should throw"
     rescue => e
-      @exception = e 
+      @exception = e
+      return
     end
+    flunk "should throw"
   end
   def teardown
     NewRelic::Agent::ModelFixture.teardown

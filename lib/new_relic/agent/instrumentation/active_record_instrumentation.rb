@@ -3,9 +3,8 @@
 if defined? ActiveRecord
   
   ActiveRecord::Base.class_eval do
-    # Note: we should instrument :find_every instead of :find.  
     class << self
-      [:find, :count].each do |find_method|
+      [:find_by_sql, :count].each do |find_method|
         add_method_tracer find_method, 'ActiveRecord/#{self.name}/find'
         add_method_tracer find_method, 'ActiveRecord/find', :push_scope => false
         add_method_tracer find_method, 'ActiveRecord/all', :push_scope => false
@@ -68,6 +67,11 @@ if defined? ActiveRecord
     add_method_tracer :log, 'Database/#{adapter_name}/#{args[1]}', :metric => false
     add_method_tracer :log, 'Database/all', :push_scope => false
     
+  end
+  ActiveRecord::Associations::ClassMethods.class_eval do
+    add_method_tracer :find_with_associations, 'ActiveRecord/#{self.name}/find'
+    add_method_tracer :find_with_associations, 'ActiveRecord/find', :push_scope => false
+    add_method_tracer :find_with_associations, 'ActiveRecord/all', :push_scope => false
   end
   
   # instrumentation for associations
