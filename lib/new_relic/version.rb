@@ -12,7 +12,7 @@ module NewRelic
 
   CHANGELOG = <<EOF
 2008-11-23 version 2.7.0
-  * Repackage to support Gem installation
+  * Repackage to support both plugin and Gem installation
   * Support passenger/litespeed/jruby application naming
   * Update method for calculating dispatcher queue time
   * Show stack traces in RPM Transaction Traces
