@@ -11,7 +11,9 @@ module NewRelic
   end
 
   CHANGELOG = <<EOF
-2008-11-23 version 2.7.0
+2008-11-22 verison 2.7.1
+  * fix problem with skipped dispatcher instrumentation
+2008-11-22 version 2.7.0
   * Repackage to support both plugin and Gem installation
   * Support passenger/litespeed/jruby application naming
   * Update method for calculating dispatcher queue time
