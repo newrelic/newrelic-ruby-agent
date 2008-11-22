@@ -31,9 +31,7 @@ class ActiveRecordInstrumentationTests < Test::Unit::TestCase
     assert_equal 1, s.call_count
     NewRelic::Agent::ModelFixture.find_all_by_name "jeff"
     s = NewRelic::Agent.get_stats("ActiveRecord/NewRelic::Agent::ModelFixture/find")
-    # FIXME this should pass but we're not instrumenting the dynamic finders    
-    #assert_equal 2, s.call_count
-    assert_equal 1, s.call_count
+    assert_equal 2, s.call_count
   end
   
   def test_run_explains
