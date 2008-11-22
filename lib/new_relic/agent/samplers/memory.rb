@@ -26,14 +26,15 @@ module NewRelic::Agent
         agent.stats_engine.add_sampled_metric("Memory/Physical") do |stats|
           if !@broken
             begin
-              memory = `#{@ps} #{$$}`.split("\n")[1].to_f / 1024
+              process = $$
+              memory = `#{@ps} #{process}`.split("\n")[1].to_f / 1024
 
               # if for some reason the ps command doesn't work on the resident os,
               # then don't execute it any more.
-              if memory > 0
+              if memory >= 0
                 stats.record_data_point memory
               else 
-                NewRelic::Agent.instance.log.error "Error attempting to determine resident memory (got result of #{memory}).  Disabling this metric."
+                NewRelic::Agent.instance.log.error "Error attempting to determine resident memory for pid #{process} (got result of #{memory}, this process = #{$$}).  Disabling this metric."
                 NewRelic::Agent.instance.log.error "Faulty command: `#{@ps}`"
                 @broken = true
               end
