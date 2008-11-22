@@ -8,7 +8,7 @@ require 'stringio'
 
 
 # This must be turned off before we ship
-VALIDATE_BACKGROUND_THREAD_LOADING = true
+VALIDATE_BACKGROUND_THREAD_LOADING = false
 
 # The NewRelic Agent collects performance data from ruby applications in realtime as the
 # application runs, and periodically sends that data to the NewRelic server.
@@ -559,15 +559,15 @@ module NewRelic::Agent
       now = Time.now
       
       # Fixme: remove the harvest thread tracking
-      @harvest_thread ||= Thread.current
-      
-      if @harvest_thread != Thread.current
-        log! "ERROR - two harvest threads are running (current=#{Thread.current}, havest=#{@harvest_thread}"
-        @harvest_thread = Thread.current
-      end
+#      @harvest_thread ||= Thread.current
+#      
+#      if @harvest_thread != Thread.current
+#        log! "ERROR - two harvest threads are running (current=#{Thread.current}, havest=#{@harvest_thread}"
+#        @harvest_thread = Thread.current
+#      end
         
       # Fixme: remove this check
-      log! "Agent sending data too frequently - #{now - @last_harvest_time} seconds" if (now.to_f - @last_harvest_time.to_f) < 45
+#      log! "Agent sending data too frequently - #{now - @last_harvest_time} seconds" if (now.to_f - @last_harvest_time.to_f) < 45
       
       @unsent_timeslice_data ||= {}
       @unsent_timeslice_data = @stats_engine.harvest_timeslice_data(@unsent_timeslice_data, @metric_ids)
