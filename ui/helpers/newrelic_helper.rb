@@ -1,7 +1,7 @@
 require 'pathname'
-
+require 'new_relic/agent/collection_helper'
 module NewrelicHelper
-  
+  include NewRelic::Agent::CollectionHelper
   # return the host that serves static content (css, metric documentation, images, etc)
   # that supports the desktop edition.
   def server
@@ -21,6 +21,7 @@ module NewrelicHelper
   # return the highest level in the call stack for the trace that is not rails or 
   # newrelic agent code
   def application_caller(trace)
+    trace = clean_backtrace(trace)
     trace.each do |trace_line|
       file = file_and_line(trace_line).first
       unless exclude_file_from_stack_trace?(file, false)
@@ -31,6 +32,7 @@ module NewrelicHelper
   end
   
   def application_stack_trace(trace, include_rails = false)
+    trace = clean_backtrace(trace)
     trace.reject do |trace_line|
       file = file_and_line(trace_line).first
       exclude_file_from_stack_trace?(file, include_rails)
@@ -256,16 +258,13 @@ private
   end
     
   def exclude_file_from_stack_trace?(file, include_rails)
-    is_agent = file =~ /\/newrelic\/agent\//
-    return is_agent if include_rails
-    
-    is_agent ||
+    !include_rails && (
       file =~ /\/active(_)*record\// ||
       file =~ /\/action(_)*controller\// ||
       file =~ /\/activesupport\// ||
       file =~ /\/lib\/mongrel/ ||
       file =~ /\/actionpack\// ||
-      file !~ /\.rb/                  # must be a .rb file, otherwise it's a script of something else...we could have gotten trickier and tried to see if this file exists...
+      file !~ /\.rb/)                  # must be a .rb file, otherwise it's a script of something else...we could have gotten trickier and tried to see if this file exists...
   end
   
   def show_view_link(title, page_name)

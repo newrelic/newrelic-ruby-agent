@@ -28,9 +28,9 @@ module NewRelic
       end
     end
     def check_for_webrick
-      if defined?(OPTIONS) && defined?(DEFAULT_PORT) && OPTIONS.respond_to?(:fetch) 
+      if defined?(OPTIONS) && OPTIONS.respond_to?(:fetch) 
         # OPTIONS is set by script/server 
-        @identifier = OPTIONS.fetch :port, DEFAULT_PORT 
+        @identifier = OPTIONS.fetch(:port)
         @environment = :webrick
       end
     end

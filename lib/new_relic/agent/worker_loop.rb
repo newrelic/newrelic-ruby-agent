@@ -1,4 +1,3 @@
-#require 'new_relic/agent/synchronize'
 
 # A worker loop executes a set of registered tasks on a single thread.  
 # A task is a proc or block with a specified call period in seconds.  
@@ -8,20 +7,27 @@ module NewRelic::Agent
     include(Synchronize)
     
     attr_reader :log
+    attr_reader :pid
     
     def initialize(log = Logger.new(STDERR))
       @tasks = []
       @log = log
       @should_run = true
+      @pid = $$
     end
 
     # run infinitely, calling the registered tasks at their specified
     # call periods.  The caller is responsible for creating the thread
     # that runs this worker loop
     def run
-      while(@should_run) do
+      while keep_running do
         run_next_task
       end
+    end
+    
+    
+    def keep_running
+      @should_run && (@pid == $$)
     end
     
     
@@ -68,10 +74,11 @@ module NewRelic::Agent
           
           # sleep until this next task's scheduled invocation time
           sleep_time = [task.next_invocation_time - Time.now, 0.000001].max
+          sleep_time = (sleep_time > 1) ? 1 : sleep_time
 
-          sleep (sleep_time > 1 ? 1 : sleep_time)
+          sleep sleep_time
             
-          return if !@should_run
+          return if !keep_running
         end
         
         begin

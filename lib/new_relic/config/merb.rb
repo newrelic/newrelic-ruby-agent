@@ -1,4 +1,3 @@
-#require 'new_relic/agent'
 class NewRelic::Config::Merb < NewRelic::Config
   
   def app; :merb; end

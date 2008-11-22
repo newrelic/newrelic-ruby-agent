@@ -1,4 +1,3 @@
-#require 'new_relic/stats'
 
 module NewRelic
   COLLAPSE_SEGMENTS_THRESHOLD = 2

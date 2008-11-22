@@ -1,26 +1,13 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
+require 'new_relic/agent/model_fixture'
 
-class TestModel < ActiveRecord::Base
-  self.table_name = 'test_data'
-  def TestModel.setup
-    TestModel.connection.create_table :test_data, :force => true do |t|
-      t.column :name, :string
-    end
-    connection.setup_slow
-  end
-  
-  def TestModel.teardown
-    connection.teardown_slow
-    TestModel.connection.drop_table :test_data
-  end
-end
 
 class ActiveRecordInstrumentationTests < Test::Unit::TestCase
   
   def setup
     super
     begin
-      TestModel.setup
+      NewRelic::Agent::ModelFixture.setup
     rescue => e
       puts e
       raise e
@@ -33,24 +20,24 @@ class ActiveRecordInstrumentationTests < Test::Unit::TestCase
   def teardown
     @agent.shutdown
     @agent.stats_engine.harvest_timeslice_data Hash.new, Hash.new
-    TestModel.teardown
+    NewRelic::Agent::ModelFixture.teardown
     super
   end
   
   def test_finder
-    TestModel.create :id => 0, :name => 'jeff'
-    TestModel.find(:all)
-    s = NewRelic::Agent.get_stats("ActiveRecord/TestModel/find")
+    NewRelic::Agent::ModelFixture.create :id => 0, :name => 'jeff'
+    NewRelic::Agent::ModelFixture.find(:all)
+    s = NewRelic::Agent.get_stats("ActiveRecord/NewRelic::Agent::ModelFixture/find")
     assert_equal 1, s.call_count
-    TestModel.find_all_by_name "jeff"
-    s = NewRelic::Agent.get_stats("ActiveRecord/TestModel/find")
+    NewRelic::Agent::ModelFixture.find_all_by_name "jeff"
+    s = NewRelic::Agent.get_stats("ActiveRecord/NewRelic::Agent::ModelFixture/find")
     # FIXME this should pass but we're not instrumenting the dynamic finders    
     #assert_equal 2, s.call_count
     assert_equal 1, s.call_count
   end
   
   def test_run_explains
-    TestModel.find(:all)
+    NewRelic::Agent::ModelFixture.find(:all)
     sample = @agent.transaction_sampler.harvest_slowest_sample
     segment = sample.root_segment.called_segments.first.called_segments.first
     assert_equal "SELECT * FROM `test_data`", segment.params[:sql].strip
@@ -59,8 +46,7 @@ class ActiveRecordInstrumentationTests < Test::Unit::TestCase
     segment = sample.root_segment.called_segments.first.called_segments.first
   end
   def test_prepare_to_send
-    t0 = Time.now
-    TestModel.find(:all)
+    NewRelic::Agent::ModelFixture.find(:all)
     sample = @agent.transaction_sampler.harvest_slowest_sample
     segment = sample.root_segment.called_segments.first.called_segments.first
     assert_match /^SELECT /, segment.params[:sql]
@@ -76,7 +62,7 @@ class ActiveRecordInstrumentationTests < Test::Unit::TestCase
   end
   def test_transaction
     
-    TestModel.find(:all)
+    NewRelic::Agent::ModelFixture.find(:all)
     sample = @agent.transaction_sampler.harvest_slowest_sample
     sample = sample.prepare_to_send(:obfuscate_sql => true, :explain_enabled => true, :explain_sql => 0.0)
     segment = sample.root_segment.called_segments.first.called_segments.first
@@ -95,13 +81,13 @@ class ActiveRecordInstrumentationTests < Test::Unit::TestCase
       assert_equal "1;SIMPLE;test_data;ALL;;;;;1;", explanations.first.first.join(";")
     end
     
-    s = NewRelic::Agent.get_stats("ActiveRecord/TestModel/find")
+    s = NewRelic::Agent.get_stats("ActiveRecord/NewRelic::Agent::ModelFixture/find")
     assert_equal 1, s.call_count
   end
   
   private 
   def isPostgres?
-    TestModel.configurations[RAILS_ENV]['adapter'] =~ /postgres/
+    NewRelic::Agent::ModelFixture.configurations[RAILS_ENV]['adapter'] =~ /postgres/
   end
   
 end

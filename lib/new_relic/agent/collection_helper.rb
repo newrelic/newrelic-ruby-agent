@@ -22,21 +22,17 @@ module NewRelic::Agent::CollectionHelper
     end
   end
   
+  # Return an array of strings (backtrace), cleaned up for readability
+  # Return nil if there is no backtrace
   
-  def clean_exception(exception)
-    exception = exception.original_exception if exception.respond_to? 'original_exception'
-    
-    if exception.backtrace
-      clean_backtrace = exception.backtrace
-      
+  def clean_backtrace(backtrace)
+    if backtrace
       # strip newrelic from the trace
-      clean_backtrace = clean_backtrace.reject {|line| line =~ /vendor\/plugins\/newrelic_rpm/ }
-      
+      backtrace = backtrace.reject {|line| line =~ /new_relic\/agent\// }
       # rename methods back to their original state
-      clean_backtrace.collect {|line| line.gsub "_without_(newrelic|trace)", ""}
-    else
-      nil
+      backtrace = backtrace.collect {|line| line.gsub /_without_(newrelic|trace)/, ""}
     end
+    backtrace
   end
   
   private

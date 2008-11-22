@@ -1,6 +1,3 @@
-#require 'new_relic/stats'
-#require 'new_relic/metric_data'
-require 'logger'
 
 module NewRelic::Agent
   class StatsEngine
@@ -168,6 +165,9 @@ module NewRelic::Agent
       return stats
     end
     
+    # Note: this is not synchronized.  There is still some risk in this and
+    # we will revisit later to see if we can make this more robust without
+    # sacrificing efficiency.
     def harvest_timeslice_data(previous_timeslice_data, metric_ids)
       timeslice_data = {}
       @stats_hash.keys.each do |metric_spec|

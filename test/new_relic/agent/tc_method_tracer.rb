@@ -1,10 +1,5 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
-#require 'new_relic/agent/method_tracer'
-#require 'new_relic/agent/transaction_sampler'
-#require 'new_relic/agent/mock_scope_listener'
 require 'new_relic/agent/mock_scope_listener'
-require 'test/unit'
-##require 'new_relic/agent/agent'
 
 ::RPM_TRACERS_ENABLED = true unless defined? ::RPM_TRACERS_ENABLED
 
@@ -79,7 +74,21 @@ class NewRelic::Agent::MethodTracerTests < Test::Unit::TestCase
   def test_basic
     metric = "hello"
     t1 = Time.now
-    self.class.trace_method_execution metric, true, true do
+    self.class.trace_method_execution_with_scope metric, true, true do
+      sleep 1
+      assert metric == @stats_engine.peek_scope.name
+    end
+    elapsed = Time.now - t1
+    
+    stats = @stats_engine.get_stats(metric)
+    check_time stats.total_call_time, elapsed
+    assert stats.call_count == 1
+  end
+  
+  def test_basic__original_api
+    metric = "hello"
+    t1 = Time.now
+    self.class.trace_method_execution metric, true, true, true do
       sleep 1
       assert metric == @stats_engine.peek_scope.name
     end
@@ -220,7 +229,7 @@ class NewRelic::Agent::MethodTracerTests < Test::Unit::TestCase
   def test_exception
     begin
       metric = "hey there"
-      self.class.trace_method_execution metric, true, true do
+      self.class.trace_method_execution_with_scope metric, true, true do
         assert @stats_engine.peek_scope.name == metric
         throw Exception.new            
       end
