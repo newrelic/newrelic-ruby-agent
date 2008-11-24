@@ -1,3 +1,17 @@
+
+ATTENTION GITHUB CLIENTS:
+
+The New Relic github clone is now available as a copy of our latest agent subversion
+tree.
+
+If you clone or fork the repository please keep in mind that we intend to replace
+this repository soon with a true clone of the svn repository, giving you access
+to more information about the history and change sets from subversion.  When this
+happens you may be unable to pull changes from this repository.
+
+We will update this notice when that happens.
+
+
 =============
 NEW RELIC RPM
 =============
