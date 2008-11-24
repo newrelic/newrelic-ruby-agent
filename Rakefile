@@ -2,7 +2,7 @@ require 'rubygems'
 require 'rake/gempackagetask'
 require 'lib/new_relic/version.rb'
 
-GEM_NAME = "newrelic"
+GEM_NAME = "rpm"
 GEM_VERSION = NewRelic::VERSION::STRING
 AUTHOR = "Bill Kayser"
 EMAIL = "bkayser@newrelic.com"
