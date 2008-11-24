@@ -488,7 +488,7 @@ module NewRelic::Agent
       # wait a few seconds for the web server to boot, necessary in development
       sleep @connect_retry_period.to_i
       @agent_id = invoke_remote :launch, @local_host,
-      @identifier, determine_home_directory, $$, @launch_time.to_f, NewRelic::VERSION::STRING, config.app_config_info
+      @identifier, determine_home_directory, $$, @launch_time.to_f, NewRelic::VERSION::STRING, config.app_config_info, config['app_name']
       
       log! "Connected to NewRelic Service at #{@remote_host}:#{@remote_port}."
       log.debug "Agent ID = #{@agent_id}."
