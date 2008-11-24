@@ -1,4 +1,5 @@
 Gem::Specification.new do |s|
+
   s.name = %q{rpm}
   s.version = "2.7.1"
 
