@@ -18,12 +18,12 @@ module NewRelic::Agent
   
   # an exception that forces an agent to stop reporting until its mongrel is restarted
   class ForceDisconnectException < StandardError; end
-    
+  
   class IgnoreSilentlyException < StandardError; end
   
   # Reserved for future use
   class ServerError < StandardError; end
-    
+  
   # add some convenience methods for easy access to the Agent singleton.
   # the following static methods all point to the same Agent instance:
   #
@@ -125,14 +125,14 @@ module NewRelic::Agent
     end
     
     alias add_request_parameters add_custom_parameters
- 
+    
   end 
   
   # Implementation default for the NewRelic Agent
   class Agent
     # Specifies the version of the agent's communication protocol
     # with the NewRelic hosted site.
-
+    
     PROTOCOL_VERSION = 5
     
     include Singleton
@@ -154,7 +154,7 @@ module NewRelic::Agent
     def manual_start(environment, identifier)
       start(environment, identifier, true)
     end
-
+    
     # Start up the agent, which will connect to the newrelic server and start 
     # reporting performance information.  Typically this is done from the
     # environment configuration file.  
@@ -167,7 +167,7 @@ module NewRelic::Agent
     # the task name.
     # Return false if the agent was not started
     def start(environment, identifier, force=false)
-
+      
       if @started
         log! "Agent Started Already!"
         return
@@ -190,7 +190,7 @@ module NewRelic::Agent
       if @worker_loop.nil? || @worker_loop.pid != $$
         launch_worker_thread
         @stats_engine.spawn_sampler_thread
-     end
+      end
     end
     
     # True if we have initialized and completed 'start_reporting'
@@ -198,7 +198,7 @@ module NewRelic::Agent
       @started
     end
     
-
+    
     # Attempt a graceful shutdown of the agent.  
     def shutdown
       return if !@started
@@ -233,7 +233,7 @@ module NewRelic::Agent
       Thread::current[:custom_params] = nil
       @stats_engine.end_transaction
     end
-        
+    
     def set_record_sql(should_record)
       prev = Thread::current[:record_sql]
       Thread::current[:record_sql] = should_record
@@ -279,16 +279,17 @@ module NewRelic::Agent
       # note this file is loaded only if the newrelic agent is enabled (through config/newrelic.yml)
       instrumentation_path = File.join(File.dirname(__FILE__), 'instrumentation')
       instrumentation_files = [ ] <<
-        File.join(instrumentation_path, '*.rb') <<
-        File.join(instrumentation_path, config.app.to_s, '*.rb')
-      
-      Dir.glob(instrumentation_files) do |file|
-        begin
-          require file
-          log.debug "Processed instrumentation file '#{file.split('/').last}'"
-        rescue => e
-          log.error "Error loading instrumentation file '#{file}': #{e}"
-          log.debug e.backtrace.join("\n")
+      File.join(instrumentation_path, '*.rb') <<
+      File.join(instrumentation_path, config.app.to_s, '*.rb')
+      instrumentation_files.each do | pattern |
+        Dir.glob(pattern) do |file|
+          begin
+            require file
+            log.debug "Processed instrumentation file '#{file.split('/').last}'"
+          rescue => e
+            log.error "Error loading instrumentation file '#{file}': #{e}"
+            log.debug e.backtrace.join("\n")
+          end
         end
       end
       
@@ -301,7 +302,7 @@ module NewRelic::Agent
     end
     
     private
-  
+    
     # Connect to the server, and run the worker loop forever.  Will not return.
     def run_worker_loop
       until @connected or !connect; end
@@ -312,7 +313,7 @@ module NewRelic::Agent
         # note if the agent attempts to report more frequently than the specified
         # report data, then it will be ignored.
         report_period = invoke_remote :get_data_report_period, @agent_id
-
+        
         log! "Reporting performance data every #{report_period} seconds"        
         @worker_loop.add_task(report_period) do 
           harvest_and_send_timeslice_data
@@ -335,7 +336,7 @@ module NewRelic::Agent
         @worker_loop.run
       end
     end
-      
+    
     def launch_worker_thread
       if (@environment == :passenger && $0 =~ /ApplicationSpawner/)
         log.info "Process is passenger spawner - don't connect to RPM service"
@@ -343,11 +344,11 @@ module NewRelic::Agent
       end
       
       @worker_loop = WorkerLoop.new(log)
-
+      
       if VALIDATE_BACKGROUND_THREAD_LOADING
         require 'new_relic/agent/patch_const_missing'
       end
-
+      
       @worker_thread = Thread.new do
         begin
           if VALIDATE_BACKGROUND_THREAD_LOADING
@@ -359,15 +360,15 @@ module NewRelic::Agent
           log! e.backtrace.join("\n")
         end
       end
-                  
+      
       # This code should be activated to check that no dependency loading is occuring in the background thread
       # by stopping the foreground thread after the background thread is created. Turn on dependency loading logging
       # and make sure that no loading occurs.
       #
-#      log! "FINISHED AGENT INIT"
-#      while true
-#        sleep 1
-#      end
+      #      log! "FINISHED AGENT INIT"
+      #      while true
+      #        sleep 1
+      #      end
       
     end    
     def start_reporting(force_enable=false)
@@ -487,8 +488,8 @@ module NewRelic::Agent
       # wait a few seconds for the web server to boot, necessary in development
       sleep @connect_retry_period.to_i
       @agent_id = invoke_remote :launch, @local_host,
-               @identifier, determine_home_directory, $$, @launch_time.to_f, NewRelic::VERSION::STRING, config.app_config_info
-               
+      @identifier, determine_home_directory, $$, @launch_time.to_f, NewRelic::VERSION::STRING, config.app_config_info
+      
       log! "Connected to NewRelic Service at #{@remote_host}:#{@remote_port}."
       log.debug "Agent ID = #{@agent_id}."
       
@@ -547,7 +548,7 @@ module NewRelic::Agent
     def determine_host
       Socket.gethostname
     end
-
+    
     def determine_home_directory
       config.root
     end
@@ -565,25 +566,25 @@ module NewRelic::Agent
 #        log! "ERROR - two harvest threads are running (current=#{Thread.current}, havest=#{@harvest_thread}"
 #        @harvest_thread = Thread.current
 #      end
-        
+      
       # Fixme: remove this check
 #      log! "Agent sending data too frequently - #{now - @last_harvest_time} seconds" if (now.to_f - @last_harvest_time.to_f) < 45
       
       @unsent_timeslice_data ||= {}
       @unsent_timeslice_data = @stats_engine.harvest_timeslice_data(@unsent_timeslice_data, @metric_ids)
-
+      
       begin
         metric_ids = invoke_remote(:metric_data, @agent_id, 
-                @last_harvest_time.to_f, 
-                now.to_f, 
-                @unsent_timeslice_data.values)
-      
+                                   @last_harvest_time.to_f, 
+                                   now.to_f, 
+                                   @unsent_timeslice_data.values)
+        
       rescue Timeout::Error
         # assume that the data was received. chances are that it was
         metric_ids = nil
       end
-                
-              
+      
+      
       @metric_ids.merge! metric_ids if metric_ids
       
       log.debug "#{now}: sent #{@unsent_timeslice_data.length} timeslices (#{@agent_id}) in #{Time.now - now} seconds"
@@ -610,7 +611,7 @@ module NewRelic::Agent
         # note that we explain only the sql statements whose segments' execution times exceed 
         # our threshold (to avoid unnecessary overhead of running explains on fast queries.)
         sample = @slowest_sample.prepare_to_send(:explain_sql => @explain_threshold, :record_sql => @record_sql, :keep_backtraces => true, :explain_enabled => @explain_enabled)
-
+        
         invoke_remote :transaction_sample_data, @agent_id, sample
         
         log.debug "#{now}: sent slowest sample (#{@agent_id}) in #{Time.now - now} seconds"
@@ -629,7 +630,7 @@ module NewRelic::Agent
       @unsent_errors = @error_collector.harvest_errors(@unsent_errors)
       if @unsent_errors && @unsent_errors.length > 0
         log.debug "Sending #{@unsent_errors.length} errors"
-
+        
         invoke_remote :error_data, @agent_id, @unsent_errors
         
         # if the remote invocation fails, then we never clear @unsent_errors,
@@ -660,7 +661,7 @@ module NewRelic::Agent
       # uri = "/agent_listener/invoke_raw_method?#{params.to_query}"
       uri = "/agent_listener/invoke_raw_method?method=#{method}&license_key=#{license_key}&protocol_version=#{PROTOCOL_VERSION}"
       uri += "&run_id=#{@agent_id}" if @agent_id
-
+      
       request = Net::HTTP::Post.new(uri, 'ACCEPT-ENCODING' => 'gzip')
       request.content_type = "application/octet-stream"
       request.body = post_data
@@ -738,5 +739,3 @@ module NewRelic::Agent
   end
   
 end
-
-
