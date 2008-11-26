@@ -12,7 +12,7 @@ module NewRelic
 
   CHANGELOG = <<EOF
 2008-11-24 version 2.7.2
-  * fix problem with passenger edge not being a detected environment
+  * bugfixes
 2008-11-22 verison 2.7.1
   * fix problem with skipped dispatcher instrumentation
 2008-11-22 version 2.7.0
