@@ -11,6 +11,8 @@ module NewRelic
   end
 
   CHANGELOG = <<EOF
+2008-11-26 version 2.7.3
+  * fix compatibility issue with 1.8.5 causing error with Dir.glob
 2008-11-24 version 2.7.2
   * fix problem with passenger edge not being a detected environment
 2008-11-22 verison 2.7.1
