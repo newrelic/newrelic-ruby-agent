@@ -13,7 +13,7 @@ module NewRelic::Agent
       elsif platform =~ /freebsd/
         @ps = "ps -o rss"
       elsif platform =~ /solaris/
-        @ps = "ps -o rss -p"
+        @ps = "/usr/bin/ps -o rss -p"
       end
       if !@ps
         raise "Unsupported platform for getting memory: #{platform}"
