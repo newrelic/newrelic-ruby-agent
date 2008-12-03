@@ -309,31 +309,36 @@ module NewRelic::Agent
       # We may not be connected now but keep going for dev mode
       
       if @connected
-        # determine the reporting period (server based)
-        # note if the agent attempts to report more frequently than the specified
-        # report data, then it will be ignored.
-        report_period = invoke_remote :get_data_report_period, @agent_id
-        
-        log! "Reporting performance data every #{report_period} seconds"        
-        @worker_loop.add_task(report_period) do 
-          harvest_and_send_timeslice_data
-        end
-        
-        if @should_send_samples && @use_transaction_sampler
+        begin
+          # determine the reporting period (server based)
+          # note if the agent attempts to report more frequently than the specified
+          # report data, then it will be ignored.
+          report_period = invoke_remote :get_data_report_period, @agent_id
+          
+          log! "Reporting performance data every #{report_period} seconds"        
           @worker_loop.add_task(report_period) do 
-            harvest_and_send_slowest_sample
+            harvest_and_send_timeslice_data
           end
-        elsif !config.developer_mode?
-          # We still need the sampler for dev mode.
-          @transaction_sampler.disable
-        end
-        
-        if @should_send_errors && @error_collector.enabled
-          @worker_loop.add_task(report_period) do 
-            harvest_and_send_errors
+          
+          if @should_send_samples && @use_transaction_sampler
+            @worker_loop.add_task(report_period) do 
+              harvest_and_send_slowest_sample
+            end
+          elsif !config.developer_mode?
+            # We still need the sampler for dev mode.
+            @transaction_sampler.disable
           end
+          
+          if @should_send_errors && @error_collector.enabled
+            @worker_loop.add_task(report_period) do 
+              harvest_and_send_errors
+            end
+          end
+          @worker_loop.run
+        rescue StandardError
+          @connected = false
+          raise
         end
-        @worker_loop.run
       end
     end
     
@@ -355,6 +360,8 @@ module NewRelic::Agent
             self.class.new_relic_set_agent_thread(Thread.current)
           end          
           run_worker_loop
+        rescue IngnoreSilentlyException
+          log! "Unable to establish connection with the server.  Run with log level set to debug for more information."
         rescue StandardError => e
           log! e
           log! e.backtrace.join("\n")
@@ -503,7 +510,6 @@ module NewRelic::Agent
       log.info "Errors will be sent to the RPM service" if @error_collector.enabled && @should_send_errors
       
       @connected = true
-      return true
       
     rescue LicenseException => e
       log! e.message, :error
@@ -512,7 +518,7 @@ module NewRelic::Agent
       return false
       
     rescue Timeout::Error, StandardError => e
-      log.info "Unable to connect to New Relic RPM Service at #{@remote_host}:#{@remote_port}"
+      log.info "Unable to establish connection with New Relic RPM Service at #{@remote_host}:#{@remote_port}"
       unless e.instance_of? IgnoreSilentlyException
         log.error e.message
         log.debug e.backtrace.join("\n")
