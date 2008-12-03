@@ -86,7 +86,7 @@ module NewRelic
     end
     
     def check_for_passenger
-      if defined? Passenger::AbstractServer
+      if defined? Passenger::AbstractServer || defined? IN_PHUSION_PASSENGER 
         @environment = :passenger
         @identifier = 'passenger'
         @identifier += ":#{config['app_name']}" if config['app_name']
