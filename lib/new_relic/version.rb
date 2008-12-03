@@ -11,6 +11,9 @@ module NewRelic
   end
 
   CHANGELOG = <<EOF
+NEXT: version 2.7.4
+  * change memory sampler for solaris to use /usr/bin/ps
+  * fix startup issue that sometimes printed an IgnoreSilentlyException message
 2008-11-26 version 2.7.3
   * fix compatibility issue with 1.8.5 causing error with Dir.glob
 2008-11-24 version 2.7.2
@@ -18,7 +21,7 @@ module NewRelic
 2008-11-22 verison 2.7.1
   * fix problem with skipped dispatcher instrumentation
 2008-11-23 version 2.7.0
-  * Repackage to support Gem installation
+  * Repackage to support both plugin and Gem installation
   * Support passenger/litespeed/jruby application naming
   * Update method for calculating dispatcher queue time
   * Show stack traces in RPM Transaction Traces
