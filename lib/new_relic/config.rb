@@ -57,6 +57,9 @@ module NewRelic
       !(ENV['NEWRELIC_ENABLE'].to_s =~ /false|off|no/i) &&
        (developer_mode? || connect_to_server?)
     end
+    def app_name
+      fetch('app_name', nil)
+    end
     
     def to_s
       puts self.inspect
