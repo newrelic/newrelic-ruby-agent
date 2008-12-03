@@ -1,6 +1,8 @@
 # This is a class for executing commands related to deployment 
 # events
 
+require 'optparse'
+require 'newrelic_api'
 module NewRelic::API
   class Deployments
     def initialize command_line_args
