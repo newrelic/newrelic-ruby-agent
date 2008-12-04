@@ -12,6 +12,7 @@ module NewRelic
 
   CHANGELOG = <<EOF
 NEXT: version 2.7.4
+  * fix error when trying to serialize some kinds of Enumerable objects
   * change memory sampler for solaris to use /usr/bin/ps
   * fix startup issue that sometimes printed an IgnoreSilentlyException message
 2008-11-26 version 2.7.3
