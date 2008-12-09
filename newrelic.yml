@@ -14,6 +14,9 @@ common: &default_settings
   
   # Application Name
   # Set this to be the name of your application as you'd like it show up in RPM.
+  # RPM will then auto-map instances of your application into a RPM "application"
+  # on your home dashboard page. This setting does not prevent you from manually
+  # defining applications.
   app_name: My Application
 
   # the 'enabled' setting is used to turn on the NewRelic Agent.  When false,
