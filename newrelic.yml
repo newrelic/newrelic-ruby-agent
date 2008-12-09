@@ -13,6 +13,7 @@ common: &default_settings
   license_key: '<%= license_key %>'
   
   # Application Name
+  # Set this to be the name of your application as you'd like it show up in RPM.
   app_name: My Application
 
   # the 'enabled' setting is used to turn on the NewRelic Agent.  When false,
