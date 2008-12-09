@@ -16,7 +16,7 @@ module NewRelic::Agent::CollectionHelper
       end
       new_params
       when Enumerable:
-      params.first(20).collect { | v | normalize_params(v)}
+      params.to_a.first(20).collect { | v | normalize_params(v)}
     else
       truncate(flatten(params), 256)
     end
