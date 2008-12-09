@@ -13,6 +13,7 @@ module NewRelic
   CHANGELOG = <<EOF
 2008-12-09 version 2.7.4
   * added extra debug logging
+  * added app_name to app mapping
 2008-11-26 version 2.7.3
   * fix compatibility issue with 1.8.5 causing error with Dir.glob
 2008-11-24 version 2.7.2
