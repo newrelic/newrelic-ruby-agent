@@ -284,8 +284,8 @@ module NewRelic::Agent
       instrumentation_files.each do | pattern |
         Dir.glob(pattern) do |file|
           begin
+            log.debug "Processing instrumentation file '#{file}'"
             require file
-            log.debug "Processed instrumentation file '#{file.split('/').last}'"
           rescue => e
             log.error "Error loading instrumentation file '#{file}': #{e}"
             log.debug e.backtrace.join("\n")
