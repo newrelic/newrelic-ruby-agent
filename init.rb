@@ -8,7 +8,7 @@
 # the plugin is being loaded, then contact support@newrelic.com 
 # if you are unable to resolve the issue.
 
-# STDOUT.puts "RPM detected environment: #{NewRelic::LocalEnvironment.new}"
+# STDOUT.puts "RPM detected environment: #{NewRelic::LocalEnvironment.new}, RAILS_ENV: #{RAILS_ENV}"
 
 # Initializer for the NewRelic Agent
 begin
