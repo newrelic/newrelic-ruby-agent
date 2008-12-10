@@ -134,26 +134,8 @@ module NewRelicAPI
   
   module AgentResource #:nodoc:
     include ActiveResourceAssociations
-    has_many :deployments
-    
-    class Deployment < BaseResource
-      self.prefix = ACCOUNT_AGENT_RESOURCE_PATH
-    end
   end
-  
-  # An agent has many:
-  # +deployments+:: the agent deployments
-  class Agent < BaseResource
-    include AccountResource
-    include AgentResource
     
-    self.prefix = ACCOUNT_RESOURCE_PATH
-    
-    def query_params#:nodoc:
-      account_query_params(:agent_id => id)
-    end
-  end
-  
   # An application has many:
   # +agents+:: the agent instances associated with this app
   # +threshold_values+:: the health indicators for this application.
@@ -169,7 +151,10 @@ module NewRelicAPI
       account_query_params(:application_id => id)
     end
     
-    class Agent < NewRelicAPI::Agent  #:nodoc:
+    class Agent < NewRelicAPI::Agent
+      include AccountResource
+      include AgentResource
+      
       self.prefix = ACCOUNT_APPLICATION_RESOURCE_PATH
       
       def query_params#:nodoc:
@@ -232,6 +217,11 @@ module NewRelicAPI
   
   
   # This model is used to mark production deployments in RPM
+  # Only create is supported.
+  # ==Examples
+  #   # Creating a new deployment
+  #   NewRelicAPI::Deployment.create
+  #
   class Deployment < BaseResource
   end
   
