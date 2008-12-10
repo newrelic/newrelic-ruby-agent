@@ -151,7 +151,7 @@ module NewRelicAPI
       account_query_params(:application_id => id)
     end
     
-    class Agent < NewRelicAPI::Agent
+    class Agent < BaseResource
       include AccountResource
       include AgentResource
       
