@@ -3,7 +3,7 @@ module NewRelic
   module VERSION #:nodoc:
   MAJOR = 2
   MINOR = 7
-  TINY  = 3
+  TINY  = 5
   STRING = [MAJOR, MINOR, TINY].join('.')
   def self.changes
     puts "NewRelic RPM Plugin Version: #{NewRelic::VERSION}"
@@ -11,10 +11,13 @@ module NewRelic
   end
 
   CHANGELOG = <<EOF
-NEXT: version 2.7.4
+NEXT: version 2.7.5
   * fix error when trying to serialize some kinds of Enumerable objects
   * change memory sampler for solaris to use /usr/bin/ps
   * fix startup issue that sometimes printed an IgnoreSilentlyException message
+2008-12-09 version 2.7.4
+  * added extra debug logging
+  * added app_name to app mapping
 2008-11-26 version 2.7.3
   * fix compatibility issue with 1.8.5 causing error with Dir.glob
 2008-11-24 version 2.7.2
