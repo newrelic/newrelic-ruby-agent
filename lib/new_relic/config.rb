@@ -174,7 +174,6 @@ module NewRelic
         log! "Using #{yml_file} file."
         log! "Signup at rpm.newrelic.com to get a newrelic.yml file configured for a free Lite account."
       else
-        cfile = File.read(newrelic_file)
         @settings = YAML.load_file(newrelic_file)[env] || {}
       end
     rescue ScriptError, StandardError => e
