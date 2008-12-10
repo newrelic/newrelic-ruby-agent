@@ -2,57 +2,81 @@
 # events
 
 require 'optparse'
-require 'newrelic_api'
+
 module NewRelic::API
+  
   class Deployments
+    
+    def self.command; "deployments"; end 
+    
+    # Initialize the deployment uploader with command line args.
+    # Use -h to see options.  Will possibly exit the VM 
     def initialize command_line_args
       @application_id = NewRelic::Config.instance.app_name || RAILS_ENV
       @user = ENV['USER']
-      description = options.parse command_line_args
-      help("Description missing.") if description.blank?
+      @description = options.parse(command_line_args).join " "
+      help("Description missing.") if @description.blank?
     end
+    
+    # Run the Deployment upload in RPM via Active Resource.
+    # Will possibly print errors and exit the VM
     def run
-      # create a Deployment in RPM via Active Resource
       begin
-        d = NewRelicAPI::Deployment.create(:agent_id => @application_id, :description => description)
-        if d.valid?
-          puts "Recorded deployment to NewRelic RPM (#{d.description})"
-        else
-          STDERR.puts "Could not record deployment to NewRelic RPM:"
-          STDERR.puts d.errors.full_messages.join("\n")
-          exit 1
-        end
+        d = NewRelicAPI::Deployment.create(:application_id => @application_id, :host => Socket.gethostname, :description => @description)
       rescue Exception => e
-        STDERR.puts "Unable to upload deployment (#{e.message})"
-        STDERR.puts e.backtrace.join("\n")
+        err "Attempting to connect to #{NewRelicAPI::BaseResource.site_url}\nUnable to upload deployment (#{e.message})"
+        info e.backtrace.join("\n")
+        just_exit 1
+      end
+      if d.valid?
+        puts "Recorded deployment to NewRelic RPM (#{d.description})"
+      else
+        err "Could not record deployment to NewRelic RPM:"
+        err d.errors.full_messages.join("\n")
+        just_exit 1
       end
     end
     
+    private
+    
     def options
-      OptionParser.new do |o|
-        o.set_summary_indent('  ')
-        o.banner =    "Usage: deployments [OPTIONS] description "
-        o.define_head "RPM Deployments CLI"
+      OptionParser.new "Usage: #{self.class.command} [OPTIONS] description ", 40 do |o|
+        o.separator ""
+        o.separator "OPTIONS:"
         o.on("-a", "--appname=DIR", String,
              "Specify an application name.",
-             "Default: #{application_id}") { |@application_id| }
+             "Default: #{@application_id}") { |@application_id| }
         o.on("-u", "--user=USER", String,
              "Specify the user deploying.",
              "Default: #{ENV['USER']}") { |@user| }
-        o.on("-h", "--help", "Print this help") { puts o; exit }
-        o.separator "description = short text"
+        o.on("-?", "Print this help") { info o.help; just_exit }
+        o.separator ""
+        o.separator 'description = "short text"'
       end
     end
     
     def help(message)
       if message
-        STDERR.puts message
-        STDERR.puts options
-        exit 1
+        err message
+        info options.help
+        just_exit 1
       else
-        STDOUT.puts options
-        exit 0
+        info options
+        just_exit 0
       end
+    end
+    def info message
+      STDOUT.puts message
+    end
+    def err message
+      STDERR.puts message
+    end  
+    def just_exit status=0
+      exit status
+    end
+    def set_env env
+      ENV["RAILS_ENV"] = env
+      RAILS_ENV.replace(env) if defined?(RAILS_ENV)
     end
   end
 end

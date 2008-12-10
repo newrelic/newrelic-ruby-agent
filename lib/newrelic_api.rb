@@ -1,5 +1,7 @@
 # Ruby lib for working with the New Relic API's XML interface.  Requires Rails 2.0 or later to be loaded.
 #
+# Can also be used as a script using script/runner
+#
 # Authentication is handled using your agent license key or HTTP Basic Authentication.  To authenticate
 # using your license key your newrelic.yml configuration file must be in your application config directory
 # and contain your license key.  The New Relic account associated with the license key must allow api access.  
@@ -26,23 +28,13 @@
 #   NewRelicAPI::Account.find(:first).applications(:params => {:conditions => {:name => 'My App'}})
 #
 
-if __FILE__ == $0
-  # If running this class as a script then we can't assume the relative location
-  # of this file, and instead we will assume this is run from the RAILS_ROOT so
-  # we can load Rails
-  require 'config/environment.rb'
-end
-
 module NewRelicAPI
-  config_filename = File.join('config','newrelic.yml')
-  newrelic_config_file =  File.read(File.expand_path(config_filename))
-  CONFIG = YAML.load(newrelic_config_file)[ENV['NEWRELIC_ENV'] || 'production'] || {}
   
   # This mixin defines ActiveRecord style associations (like has_many) for ActiveResource objects.
   # ActiveResource objects using this mixin must define the method 'query_params'. 
   module ActiveResourceAssociations #:nodoc:
     class << self
-
+      
       protected
       def included(base)
         class << base
@@ -74,30 +66,30 @@ module NewRelicAPI
         end
       end
     end
-
+    
   end
   class << self
-      attr_accessor :email, :password
-      
-      # Sets up basic authentication credentials for all the resources.  This is not necessary if you are
-      # using agent license key authentication.
-      def authenticate(email, password)
-        @password = password
-        @email    = email
-      end
+    attr_accessor :email, :password
+    
+    # Sets up basic authentication credentials for all the resources.  This is not necessary if you are
+    # using agent license key authentication.
+    def authenticate(email, password)
+      @password = password
+      @email    = email
+    end
   end
   class BaseResource < ActiveResource::Base #:nodoc:
     include ActiveResourceAssociations
-
+    
     class << self
       def headers
-        h = {'x-license-key' => CONFIG['license_key']}
+        h = {'x-license-key' => NewRelic::Config.instance['license_key']}
         h['Authorization'] = 'Basic ' + ["#{NewRelicAPI.email}:#{NewRelicAPI.password}"].pack('m').delete("\r\n") if NewRelicAPI.email
         h
       end
       
       def site_url
-        "http#{'s' if CONFIG['ssl']}://#{CONFIG['host']}:#{CONFIG['port']}"
+        "http#{'s' if NewRelic::Config.instance['ssl']}://#{NewRelic::Config.instance['host']}:#{NewRelic::Config.instance['port']}"
       end
       
       protected
@@ -121,10 +113,7 @@ module NewRelicAPI
     end
     
     self.site = self.site_url
-    
-
   end
-  
   ACCOUNT_RESOURCE_PATH = '/accounts/:account_id/' #:nodoc:
   ACCOUNT_AGENT_RESOURCE_PATH = ACCOUNT_RESOURCE_PATH + 'agents/:agent_id/' #:nodoc:
   ACCOUNT_APPLICATION_RESOURCE_PATH = ACCOUNT_RESOURCE_PATH + 'applications/:application_id/' #:nodoc:
@@ -164,14 +153,14 @@ module NewRelicAPI
       account_query_params(:agent_id => id)
     end
   end
-
+  
   # An application has many:
   # +agents+:: the agent instances associated with this app
   # +threshold_values+:: the health indicators for this application.
   class Application < BaseResource
     include AccountResource
     include AgentResource
-        
+    
     has_many :agents, :threshold_values
     
     self.prefix = ACCOUNT_RESOURCE_PATH
@@ -198,7 +187,7 @@ module NewRelicAPI
   # +metric_value+:: The metric value associated with this threshold
   class ThresholdValue < BaseResource
     self.prefix = ACCOUNT_APPLICATION_RESOURCE_PATH
-#      attr_reader :name, :begin_time, :metric_value, :threshold_value
+    #      attr_reader :name, :begin_time, :metric_value, :threshold_value
     
     fix_integer_fields :threshold_value
     fix_float_fields :metric_value
@@ -209,7 +198,7 @@ module NewRelicAPI
         when 3: 'Red'
         when 2: 'Yellow'
         when 1: 'Green'
-        else 'Gray'
+      else 'Gray'
       end
     end
     
@@ -234,23 +223,43 @@ module NewRelicAPI
     def query_params #:nodoc:
       {:account_id => id}
     end
-
+    
     # Returns an account including all of its applications and the threshold values for each application.
     def self.application_health(type = :first)
       find(type, :params => {:include => :application_health})
     end
   end
-
+  
   
   # This model is used to mark production deployments in RPM
   class Deployment < BaseResource
   end
   
 end
-
 if (__FILE__ == $0) || ($0 =~ /script\/runner$/)
-  # Just have the deployments command right now.
-  require 'new_relic/api/deployments'
-  NewRelic::API::Deployments.new(ARGV).run
+  # Run the command given by the first argument.  Right
+  # now all we have is deployments. We hope to have other
+  # kinds of events here later
+  command = "(no command given)"
+  extra = [command]
+  ARGV.options do |opts|
+    script_name = File.basename($0)
+    opts.banner = "Usage: #{__FILE__} command [options]"
+    
+    opts.separator ""
+    
+    opts.on("-e", "--environment=name", String,
+          "Specifies the environment for the runner to operate under (test/development/production).",
+          "Default: development")
+    
+    extra = opts.order!
+  end
+  command = extra.shift
+  begin
+    command_class = NewRelic::API.const_get(command.camelize) 
+  rescue
+    STDERR.puts "Unknown command: #{command}"
+    exit 1
+  end
+  command_class.new(extra).run
 end
-
