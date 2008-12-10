@@ -66,6 +66,23 @@ class NewRelic::Agent::CollectionHelperTests < Test::Unit::TestCase
     assert_equal Hash, myhash.class 
   end
   
+  class MyEnumerable
+     include Enumerable
+     
+     def each
+       yield "1"
+     end
+  end
+  
+  def test_enumerable
+    e = MyEnumerable.new
+    custom_params = { :one => {:hash => { :a => :b}, :myenum => e }}
+    nh = normalize_params(custom_params)
+    myenum = nh[:one][:myenum]
+    assert_equal ["1"], myenum
+  end
+  
+  
   def test_object
     assert_equal ["foo", '#<OpenStruct z="q">'], normalize_params(['foo', OpenStruct.new('z'=>'q')])
   end
