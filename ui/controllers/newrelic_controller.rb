@@ -3,6 +3,13 @@ require 'google_pie_chart'
 
 class NewrelicController < ActionController::Base
   include NewrelicHelper
+
+  # See http://wiki.rubyonrails.org/rails/pages/Safe+ERB:
+  # We don't need to worry about checking taintedness
+  def initialize(*args)
+    @skip_checking_tainted = true
+    super *args
+  end
   
   # do not include any filters inside the application since there might be a conflict
   if respond_to? :filter_chain
@@ -19,7 +26,7 @@ class NewrelicController < ActionController::Base
     end
     skip_filter filters
   end
-  
+
   # for this controller, the views are located in a different directory from
   # the application's views.
   view_path = File.join(File.dirname(__FILE__), '..', 'views')
