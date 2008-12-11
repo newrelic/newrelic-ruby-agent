@@ -3,7 +3,12 @@
 if defined? ActionController 
 
   ActionController::Base.class_eval do
-
+    
+    class << self
+      @@newrelic_apdex_t = NewRelic::Agent.instance.apdex_t
+      @@newrelic_apdex_overall = NewRelic::Agent.instance.stats_engine.get_stats_no_scope("Apdex")
+    end
+    
     # Have NewRelic ignore actions in this controller.  Specify the actions as hash options
     # using :except and :only.  If no actions are specified, all actions are ignored.
     def self.newrelic_ignore(specifiers={})
@@ -38,6 +43,7 @@ if defined? ActionController
         end
       end
       
+      start = Time.now.to_f
       agent.ensure_worker_thread_started
       
       # generate metrics for all all controllers (no scope)
@@ -61,6 +67,21 @@ if defined? ActionController
             perform_action_without_newrelic_trace
           ensure
             agent.transaction_sampler.notice_transaction_cpu_time((Process.times.utime + Process.times.stime) - t)
+
+            duration = Time.now.to_f - start
+            
+            # do the apdex bucketing
+            if duration <= @@newrelic_apdex_t
+              @@newrelic_apdex_overall.record_apdex_s     # satisfied
+              agent.stats_engine.get_stats_no_scope("Apdex/#{path}").record_apdex_s
+            elsif duration <= (4 * @@newrelic_apdex_t)
+              @@newrelic_apdex_overall.record_apdex_t     # tolerating
+              agent.stats_engine.get_stats_no_scope("Apdex/#{path}").record_apdex_t
+            else
+              @@newrelic_apdex_overall.record_apdex_f     # frustrated
+              agent.stats_engine.get_stats_no_scope("Apdex/#{path}").record_apdex_f
+            end
+            
           end
         end
       end

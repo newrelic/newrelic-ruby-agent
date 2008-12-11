@@ -301,6 +301,10 @@ module NewRelic::Agent
       @log
     end
     
+    def apdex_t
+      @apdex_t ||= (config['apdex_T'] || config['apdex_t'] || 2.0).to_f
+    end    
+        
     private
     
     # Connect to the server, and run the worker loop forever.  Will not return.

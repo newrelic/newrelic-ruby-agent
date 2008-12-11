@@ -184,6 +184,11 @@ module NewRelic
       
       self
     end
+    
+    def get_apdex
+      [@call_count, @total_call_time, @total_exclusive_time]
+    end    
+    
   end
   
   # Statistics used to track the performance of traced methods
@@ -218,6 +223,18 @@ module NewRelic
     end
     
     alias trace_call record_data_point
+    
+    def record_apdex_s
+      @call_count += 1
+    end
+    
+    def record_apdex_t
+      @total_call_time += 1
+    end
+    
+    def record_apdex_f
+      @total_exclusive_time += 1
+    end
     
     def increment_count(value = 1)
       @call_count += value
