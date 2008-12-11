@@ -14,6 +14,9 @@ module NewRelic
       @instance ||= new_instance
     end
     
+    attr_reader :settings
+    
+    
     @settings = nil
     
     # Initialize the agent: install instrumentation and start the agent if
