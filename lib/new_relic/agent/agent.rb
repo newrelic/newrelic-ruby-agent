@@ -309,23 +309,25 @@ module NewRelic::Agent
     
     # Connect to the server, and run the worker loop forever.  Will not return.
     def run_worker_loop
-      until @connected or !connect; end
-      # We may not be connected now but keep going for dev mode
+
+      # connect to the server.  this will keep retrying until successful or
+      # it determines the license is bad.
+      connect
       
+      # We may not be connected now but keep going for dev mode
       if @connected
         begin
           # determine the reporting period (server based)
           # note if the agent attempts to report more frequently than the specified
           # report data, then it will be ignored.
-          report_period = invoke_remote :get_data_report_period, @agent_id
           
-          log! "Reporting performance data every #{report_period} seconds"        
-          @worker_loop.add_task(report_period) do 
+          log! "Reporting performance data every #{@report_period} seconds"        
+          @worker_loop.add_task(@report_period) do 
             harvest_and_send_timeslice_data
           end
           
           if @should_send_samples && @use_transaction_sampler
-            @worker_loop.add_task(report_period) do 
+            @worker_loop.add_task(@report_period) do 
               harvest_and_send_slowest_sample
             end
           elsif !config.developer_mode?
@@ -334,7 +336,7 @@ module NewRelic::Agent
           end
           
           if @should_send_errors && @error_collector.enabled
-            @worker_loop.add_task(report_period) do 
+            @worker_loop.add_task(@report_period) do 
               harvest_and_send_errors
             end
           end
@@ -493,58 +495,67 @@ module NewRelic::Agent
     # server and we should not retry, such as if there's
     # a bad license key.
     def connect
-      @connect_retry_period ||= 5
-      @connect_attempts ||= 0
-      
       # wait a few seconds for the web server to boot, necessary in development
-      sleep @connect_retry_period.to_i
+      connect_retry_period = 5
+      connect_attempts = 0
       
-      @agent_id = invoke_remote :launch, @local_host,
-      @identifier, determine_home_directory, $$, @launch_time.to_f, NewRelic::VERSION::STRING, config.app_config_info, config['app_name'], config.settings
-      
-      log! "Connected to NewRelic Service at #{@remote_host}:#{@remote_port}."
-      log.debug "Agent ID = #{@agent_id}."
-      
-      # Ask the server for permission to send transaction samples.  determined by subscription license.
-      @should_send_samples = invoke_remote :should_collect_samples, @agent_id
-      
-      # Ask for mermission to collect error data
-      @should_send_errors = invoke_remote :should_collect_errors, @agent_id
-      
-      log.info "Transaction traces will be sent to the RPM service" if @use_transaction_sampler && @should_send_samples
-      log.info "Errors will be sent to the RPM service" if @error_collector.enabled && @should_send_errors
-      
-      @connected = true
-      
-    rescue LicenseException => e
-      log! e.message, :error
-      log! "Visit NewRelic.com to obtain a valid license key, or to upgrade your account."
-      @invalid_license = true
-      return false
-      
-    rescue Timeout::Error, StandardError => e
-      log.info "Unable to establish connection with New Relic RPM Service at #{@remote_host}:#{@remote_port}"
-      unless e.instance_of? IgnoreSilentlyException
-        log.error e.message
-        log.debug e.backtrace.join("\n")
+      begin
+        sleep connect_retry_period.to_i
+        @agent_id = invoke_remote :launch, 
+            @local_host,
+            @identifier, 
+            determine_home_directory, 
+            $$, 
+            @launch_time.to_f, 
+            NewRelic::VERSION::STRING, 
+            config.app_config_info, 
+            config['app_name'], 
+            config.settings
+        @report_period = invoke_remote :get_data_report_period, @agent_id
+ 
+        log! "Connected to NewRelic Service at #{@remote_host}:#{@remote_port}."
+        log.debug "Agent ID = #{@agent_id}."
+        
+        # Ask the server for permission to send transaction samples.  determined by subscription license.
+        @should_send_samples = invoke_remote :should_collect_samples, @agent_id
+        
+        # Ask for mermission to collect error data
+        @should_send_errors = invoke_remote :should_collect_errors, @agent_id
+        
+        log.info "Transaction traces will be sent to the RPM service" if @use_transaction_sampler && @should_send_samples
+        log.info "Errors will be sent to the RPM service" if @error_collector.enabled && @should_send_errors
+        
+        @connected = true
+        
+      rescue LicenseException => e
+        log! e.message, :error
+        log! "Visit NewRelic.com to obtain a valid license key, or to upgrade your account."
+        @invalid_license = true
+        return false
+        
+      rescue Timeout::Error, StandardError => e
+        log.info "Unable to establish connection with New Relic RPM Service at #{@remote_host}:#{@remote_port}"
+        unless e.instance_of? IgnoreSilentlyException
+          log.error e.message
+          log.debug e.backtrace.join("\n")
+        end
+        # retry logic
+        connect_attempts += 1
+        case connect_attempts
+          when 1..5
+          connect_retry_period, period_msg = 5, nil
+          when 6..10 then
+          connect_retry_period, period_msg = 30, nil
+          when 11..20 then
+          connect_retry_period, period_msg = 1.minutes, "1 minute"
+        else 
+          connect_retry_period, period_msg = 10.minutes, "10 minutes"
+        end
+        log.info "Will re-attempt in #{period_msg}" if period_msg
+        retry
       end
-      
-      # retry logic
-      @connect_attempts += 1
-      if @connect_attempts > 20
-        @connect_retry_period, period_msg = 10.minutes, "10 minutes"
-      elsif @connect_attempts > 10
-        @connect_retry_period, period_msg = 1.minutes, "1 minute"
-      elsif @connect_attempts > 5
-        @connect_retry_period, period_msg = 30, nil
-      else
-        @connect_retry_period, period_msg = 5, nil
-      end
-      
-      log.info "Will re-attempt in #{period_msg}" if period_msg
-      return true
     end
-    
+      
     def load_samplers
       sampler_files = File.join(File.dirname(__FILE__), 'samplers', '*.rb')
       Dir.glob(sampler_files) do |file|
