@@ -12,7 +12,8 @@ make_notify_task = lambda do
     desc "Record a deployment in New Relic RPM (rpm.newrelic.com)"
     task :notice_deployment, :roles => :app, :except => {:no_release => true } do
       rails_env = fetch(:rails_env, "production")
-      script = File.expand_path(File.join(File.dirname(__FILE__), "..", "lib", "newrelic_api.rb"))
+      # I don't believe this will work if rpm is installed as a gem
+      script = "newrelic_api.rb"
       begin
         run "cd #{current_release}; script/runner -e #{rails_env} #{script} deployments -u '#{ENV['USER']}' '#{ENV['USER']} deploying #{File.basename(repository)}'" do | ssh, stream_id, output |
           logger.trace(output)
