@@ -12,9 +12,9 @@ make_notify_task = lambda do
     desc "Record a deployment in New Relic RPM (rpm.newrelic.com)"
     task :notify_rpm, :roles => :app, :except => {:no_release => true } do
       rails_env = fetch(:rails_env, "production")
-      script = File.expand_path(File.join(File.dirname(__FILE__), "..","newrelic_api.rb"))
+      script = File.expand_path(File.join(File.dirname(__FILE__), "..", "lib", "newrelic_api.rb"))
       begin
-        run "cd #{current_release}; script/runner -e #{rails_env} #{script} -a #{application_id} -u '#{ENV['USER']}' '#{ENV['USER']} deploying #{File.basename(repository)}'" do | ssh, stream_id, output |
+        run "cd #{current_release}; script/runner -e #{rails_env} #{script} -u '#{ENV['USER']}' '#{ENV['USER']} deploying #{File.basename(repository)}'" do | ssh, stream_id, output |
           logger.trace(output)
         end
       rescue CommandError
