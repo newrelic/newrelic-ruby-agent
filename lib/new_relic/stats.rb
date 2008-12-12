@@ -186,7 +186,7 @@ module NewRelic
     end
     
     def get_apdex
-      [@call_count, @total_call_time, @total_exclusive_time]
+      [@call_count, @total_call_time, @total_exclusive_time, @sum_of_squares]
     end    
     
   end
@@ -224,16 +224,19 @@ module NewRelic
     
     alias trace_call record_data_point
     
-    def record_apdex_s
+    def record_apdex_s(cpu)
       @call_count += 1
+      @sum_of_squares += cpu
     end
     
-    def record_apdex_t
+    def record_apdex_t(cpu)
       @total_call_time += 1
+      @sum_of_squares += cpu
     end
     
-    def record_apdex_f
+    def record_apdex_f(cpu)
       @total_exclusive_time += 1
+      @sum_of_squares += cpu
     end
     
     def increment_count(value = 1)
