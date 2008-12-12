@@ -7,10 +7,10 @@
 
 make_notify_task = lambda do
   
-  namespace :deploy do
+  namespace :newrelic do
     # on all deployments, notify RPM 
     desc "Record a deployment in New Relic RPM (rpm.newrelic.com)"
-    task :notify_rpm, :roles => :app, :except => {:no_release => true } do
+    task :notice_deployment, :roles => :app, :except => {:no_release => true } do
       rails_env = fetch(:rails_env, "production")
       script = File.expand_path(File.join(File.dirname(__FILE__), "..", "lib", "newrelic_api.rb"))
       begin
@@ -18,7 +18,7 @@ make_notify_task = lambda do
           logger.trace(output)
         end
       rescue CommandError
-        logger.important "Unable to notify RPM of the deployment... skipping"
+        logger.important "unable to notify New Relic of the deployment... skipping"
       end
     end
   end
