@@ -13,10 +13,7 @@ require 'test/unit'
 
 module Module
   def newrelic_notice_error(err)
-    
   end
-  
-  
 end
 
 module NewRelic
