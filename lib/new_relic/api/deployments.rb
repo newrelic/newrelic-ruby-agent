@@ -22,7 +22,14 @@ module NewRelic::API
     # Will possibly print errors and exit the VM
     def run
       begin
-        d = NewRelicAPI::Deployment.create(:application_id => @application_id, :host => Socket.gethostname, :description => @description)
+        create_params = {
+          :application_id => @application_id, 
+          :host => Socket.gethostname, 
+          :description => @description,
+          :user => @user,
+          :revision => @revision
+        }
+        d = NewRelicAPI::Deployment.create(create_params)
       rescue Exception => e
         err "Attempting to connect to #{NewRelicAPI::BaseResource.site_url}\nUnable to upload deployment (#{e.message})"
         info e.backtrace.join("\n")
@@ -41,7 +48,6 @@ module NewRelic::API
     
     def options
       OptionParser.new "Usage: #{self.class.command} [OPTIONS] description ", 40 do |o|
-        o.separator ""
         o.separator "OPTIONS:"
         o.on("-a", "--appname=DIR", String,
              "Specify an application name.",
@@ -49,6 +55,10 @@ module NewRelic::API
         o.on("-u", "--user=USER", String,
              "Specify the user deploying.",
              "Default: #{ENV['USER']}") { |@user| }
+        o.on("-r", "--revision=REV", String,
+             "Specify the revision being deployed") { |@revision | }
+        o.on("-c", "--changes", 
+             "Read in a change log from the standard input")
         o.on("-?", "Print this help") { info o.help; just_exit }
         o.separator ""
         o.separator 'description = "short text"'
