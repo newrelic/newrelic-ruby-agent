@@ -11,6 +11,8 @@ def new_relic_trace_controller_action(action_name)
   start = Time.now.to_f
   agent.ensure_worker_thread_started
   
+  Thread.current[:controller_ignored] = false     # if we don't do this the dispatcher ignores this call
+  
   # generate metrics for all all controllers (no scope)
   self.class.trace_method_execution_no_scope "Controller" do 
     # generate metrics for this specific action
