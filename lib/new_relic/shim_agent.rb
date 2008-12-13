@@ -85,7 +85,7 @@ module ActionController
   class Base
     def newrelic_notice_error(*args); end
     def self.newrelic_ignore(*args); end
-    def new_relic_trace_controller_action; yield; end
+    def new_relic_trace_controller_action(name); yield; end
     def _determine_metric_path; end
   end
 end if defined? ActionController::Base
