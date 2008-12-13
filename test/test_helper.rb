@@ -9,6 +9,16 @@ require 'test_help'
 require 'mocha'
 require 'test/unit'
 
+
+
+module Module
+  def newrelic_notice_error(err)
+    
+  end
+  
+  
+end
+
 module NewRelic
   class Config
     def setup_log_with_block_logging(*args)
