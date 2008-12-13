@@ -11,7 +11,7 @@ require 'test/unit'
 
 
 
-module Module
+class Module
   def newrelic_notice_error(err)
   end
 end
