@@ -65,10 +65,8 @@ if defined? ActionController
 
   ActionController::Base.class_eval do
     
-    class << self
-      @@newrelic_apdex_t = NewRelic::Agent.instance.apdex_t
-      @@newrelic_apdex_overall = NewRelic::Agent.instance.stats_engine.get_stats_no_scope("Apdex")
-    end
+    @@newrelic_apdex_t = NewRelic::Agent.instance.apdex_t
+    @@newrelic_apdex_overall = NewRelic::Agent.instance.stats_engine.get_stats_no_scope("Apdex")
     
     # Have NewRelic ignore actions in this controller.  Specify the actions as hash options
     # using :except and :only.  If no actions are specified, all actions are ignored.
