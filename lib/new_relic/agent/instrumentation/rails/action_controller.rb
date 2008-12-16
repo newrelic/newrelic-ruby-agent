@@ -1,66 +1,6 @@
 # NewRelic instrumentation for controllers
 
 
-# This method is used to directly trace controller actions
-#
-# INTERNAL ONLY...DO NOT CALL DIRECTLY
-#
-def new_relic_trace_controller_action(action_name)
-  agent = NewRelic::Agent.instance
-  
-  start = Time.now.to_f
-  agent.ensure_worker_thread_started
-  
-  Thread.current[:controller_ignored] = false     # if we don't do this the dispatcher ignores this call
-  
-  # generate metrics for all all controllers (no scope)
-  self.class.trace_method_execution_no_scope "Controller" do 
-    # generate metrics for this specific action
-    path = _determine_metric_path(action_name)
-    
-    agent.stats_engine.transaction_name ||= "Controller/#{path}" if agent.stats_engine
-    
-    self.class.trace_method_execution_with_scope "Controller/#{path}", true, true do 
-      # send request and parameter info to the transaction sampler
-      
-      local_params = (respond_to? :filter_parameters) ? filter_parameters(params) : params
-      
-      agent.transaction_sampler.notice_transaction(path, request, local_params)
-      
-      t = Process.times.utime + Process.times.stime
-      
-      begin
-        # run the action
-        yield
-      ensure
-        cpu_burn = (Process.times.utime + Process.times.stime) - t
-        agent.transaction_sampler.notice_transaction_cpu_time(cpu_burn)
-
-        duration = Time.now.to_f - start
-        
-        # do the apdex bucketing
-        if duration <= @@newrelic_apdex_t
-          @@newrelic_apdex_overall.record_apdex_s cpu_burn    # satisfied
-          agent.stats_engine.get_stats_no_scope("Apdex/#{path}").record_apdex_s cpu_burn
-        elsif duration <= (4 * @@newrelic_apdex_t)
-          @@newrelic_apdex_overall.record_apdex_t cpu_burn    # tolerating
-          agent.stats_engine.get_stats_no_scope("Apdex/#{path}").record_apdex_t cpu_burn
-        else
-          @@newrelic_apdex_overall.record_apdex_f cpu_burn    # frustrated
-          agent.stats_engine.get_stats_no_scope("Apdex/#{path}").record_apdex_f cpu_burn
-        end
-        
-      end
-    end
-  end
-  
-ensure
-  # clear out the name of the traced transaction under all circumstances
-  agent.stats_engine.transaction_name = nil
-end
-
-
-
 if defined? ActionController 
 
   ActionController::Base.class_eval do
