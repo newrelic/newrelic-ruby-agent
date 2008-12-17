@@ -2,7 +2,7 @@ require 'rubygems'
 require 'rake/gempackagetask'
 require 'lib/new_relic/version.rb'
 
-GEM_NAME = "rpm"
+GEM_NAME = "newrelic"
 GEM_VERSION = NewRelic::VERSION::STRING
 AUTHOR = "Bill Kayser"
 EMAIL = "bkayser@newrelic.com"
@@ -22,7 +22,7 @@ spec = Gem::Specification.new do |s|
   s.email = EMAIL
   s.homepage = HOMEPAGE
   s.require_path = 'lib'
-  s.files = %w(install.rb LICENSE README newrelic.yml Rakefile) + Dir.glob("{lib,tasks,test,ui}/**/*") 
+  s.files = %w(install.rb LICENSE README newrelic.yml Rakefile) + Dir.glob("{lib,recipes,tasks,test,ui}/**/*") 
   
 end
 

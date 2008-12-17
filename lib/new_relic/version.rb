@@ -12,6 +12,7 @@ module NewRelic
 
   CHANGELOG = <<EOF
 NEXT: version 2.7.5
+  * instrumented dynamic finders in ActiveRecord
   * fixed incompatibility in the developer mode with the safe_erb plugin
   * preliminary support for capturing deployment information via capistrano
   * change memory sampler for solaris to use /usr/bin/ps
