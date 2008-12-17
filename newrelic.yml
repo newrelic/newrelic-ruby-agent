@@ -13,10 +13,11 @@ common: &default_settings
   license_key: '<%= license_key %>'
   
   # Application Name
-  # For Passenger, JRuby, and Litespeed, if you host multiple applications on a
-  # single host, then define an application name for each app. If you don't do
-  # this, then all instances reporting from a host have their data aggregated.
-  # app_name: <your app name>
+  # Set this to be the name of your application as you'd like it show up in RPM.
+  # RPM will then auto-map instances of your application into a RPM "application"
+  # on your home dashboard page. This setting does not prevent you from manually
+  # defining applications.
+  app_name: My Application
 
   # the 'enabled' setting is used to turn on the NewRelic Agent.  When false,
   # your application is not instrumented and the Agent does not start up or
@@ -127,9 +128,11 @@ production:
   <<: *default_settings
   enabled: true
 
+
 # many applications have a staging environment which behaves identically to production.
 # Support for that environment is provided here.  By default, the staging environment has
 # the agent turned on.
 staging:
   <<: *default_settings
   enabled: true
+  app_name: My Application (Staging)
