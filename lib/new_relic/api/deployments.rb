@@ -8,7 +8,7 @@ module NewRelic::API
   class Deployments
     
     def self.command; "deployments"; end 
-    
+      
     # Initialize the deployment uploader with command line args.
     # Use -h to see options.  Will possibly exit the VM 
     def initialize command_line_args
@@ -21,6 +21,7 @@ module NewRelic::API
     # Run the Deployment upload in RPM via Active Resource.
     # Will possibly print errors and exit the VM
     def run
+      require 'newrelic_api.rb'
       begin
         create_params = {
           :application_id => @application_id, 
@@ -35,7 +36,10 @@ module NewRelic::API
         info e.backtrace.join("\n")
         just_exit 1
       end
-      if d.valid?
+      if d.nil?
+        err "No value returned from create!"
+        just_exit 1
+      elsif d.valid?
         puts "Recorded deployment to NewRelic RPM (#{d.description})"
       else
         err "Could not record deployment to NewRelic RPM:"
@@ -83,10 +87,6 @@ module NewRelic::API
     end  
     def just_exit status=0
       exit status
-    end
-    def set_env env
-      ENV["RAILS_ENV"] = env
-      RAILS_ENV.replace(env) if defined?(RAILS_ENV)
     end
   end
 end

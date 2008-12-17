@@ -1,6 +1,8 @@
 # This is the config file loaded when running unit tests locally.
 
 test:
+  host: localhost
+  port: 3000
   log_level: debug
   capture_params: true
   enabled: false

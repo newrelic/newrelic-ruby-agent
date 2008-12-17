@@ -111,7 +111,6 @@ module NewRelicAPI
       end
       
     end
-    
     self.site = self.site_url
   end
   ACCOUNT_RESOURCE_PATH = '/accounts/:account_id/' #:nodoc:
