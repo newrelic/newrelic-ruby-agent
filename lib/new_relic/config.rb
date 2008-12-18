@@ -170,16 +170,23 @@ module NewRelic
     
     def initialize
       newrelic_file = config_file
+      # Next two are for populating the newrelic.yml via erb binding, necessary
+      # when using the default newrelic.yml file
+      generated_for_user = ''
+      license_key=''
       if !File.exists?(config_file)
         yml_file = File.expand_path(File.join(__FILE__,"..","..","..","newrelic.yml"))
-        @settings = YAML.load_file(yml_file)[env] || {}
+        yaml = ERB.new(File.read(yml_file)).result(binding)
         log! "Cannot find newrelic.yml file at #{config_file}."
         log! "Using #{yml_file} file."
         log! "Signup at rpm.newrelic.com to get a newrelic.yml file configured for a free Lite account."
       else
-        @settings = YAML.load_file(newrelic_file)[env] || {}
+        yaml = ERB.new(File.read(config_file)).result(binding)
       end
+      @settings = YAML.load(yaml)[env] || {}
     rescue ScriptError, StandardError => e
+      puts e
+      puts e.backtrace.join("\n")
       raise "Error reading newrelic.yml file: #{e}"
     end
   end

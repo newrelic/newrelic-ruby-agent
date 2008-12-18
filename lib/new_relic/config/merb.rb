@@ -15,7 +15,6 @@ class NewRelic::Config::Merb < NewRelic::Config
   
   def start_plugin
     if !tracers_enabled?
-      #require 'new_relic/shim_agent'
       return
     end
     
