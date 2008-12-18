@@ -1,5 +1,5 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'/../test_helper'))
-#require 'new_relic/api/deployments'
+require 'newrelic_api'
 class NewRelic::DeploymentsTests < Test::Unit::TestCase
   
   def setup
