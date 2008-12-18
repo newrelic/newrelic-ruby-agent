@@ -51,7 +51,7 @@ module NewRelic::API
     private
     
     def options
-      OptionParser.new "Usage: #{self.class.command} [OPTIONS] description ", 40 do |o|
+      OptionParser.new "Usage: #{self.class.command} [OPTIONS] [description] ", 40 do |o|
         o.separator "OPTIONS:"
         o.on("-a", "--appname=DIR", String,
              "Specify an application name.",
