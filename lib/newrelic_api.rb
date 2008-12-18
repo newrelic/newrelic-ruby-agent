@@ -69,7 +69,7 @@ module NewRelicAPI
     
   end
   class << self
-    attr_accessor :email, :password
+    attr_accessor :email, :password, :license_key
     
     # Sets up basic authentication credentials for all the resources.  This is not necessary if you are
     # using agent license key authentication.
@@ -83,7 +83,7 @@ module NewRelicAPI
     
     class << self
       def headers
-        h = {'x-license-key' => NewRelic::Config.instance['license_key']}
+        h = {'x-license-key' => NewRelicAPI.license_key || NewRelic::Config.instance['license_key']}
         h['Authorization'] = 'Basic ' + ["#{NewRelicAPI.email}:#{NewRelicAPI.password}"].pack('m').delete("\r\n") if NewRelicAPI.email
         h
       end
