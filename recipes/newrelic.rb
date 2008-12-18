@@ -20,10 +20,11 @@ make_notify_task = lambda do
       script = [ "vendor/plugins/newrelic_rpm/lib/newrelic_api.rb" ] <<
                  "deployments" <<
                  "-u" << ENV['USER'] <<
-                 "deploying #{File.basename(repository)}"
+                 "-r" << current_revision <<
+                 "-c" 
       script = script.map { | arg | "'#{arg}'" }.join(" ")
       begin
-        run "cd #{current_release}; #{log_command} | script/runner -e #{rails_env} #{script}" do | ssh, stream_id, output |
+        run "cd #{current_release}; #{log_command} | script/runner -e #{rails_env} #{script}" do | io, stream_id, output |
           logger.trace(output)
         end
       rescue CommandError

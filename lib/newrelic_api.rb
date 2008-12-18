@@ -245,6 +245,7 @@ if (__FILE__ == $0) || ($0 =~ /script\/runner$/)
   end
   command = extra.shift
   begin
+    require "new_relic/api/#{command}"
     command_class = NewRelic::API.const_get(command.camelize) 
   rescue
     STDERR.puts "Unknown command: #{command}"

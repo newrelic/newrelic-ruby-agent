@@ -15,20 +15,20 @@ module NewRelic::API
       @application_id = NewRelic::Config.instance.app_name || RAILS_ENV
       @user = ENV['USER']
       @description = options.parse(command_line_args).join " "
-      help("Description missing.") if @description.blank?
     end
     
     # Run the Deployment upload in RPM via Active Resource.
     # Will possibly print errors and exit the VM
     def run
-      require 'newrelic_api.rb'
       begin
+        @description = nil if @description.blank?
         create_params = {
           :application_id => @application_id, 
           :host => Socket.gethostname, 
           :description => @description,
           :user => @user,
-          :revision => @revision
+          :revision => @revision,
+          :changelog => @changelog
         }
         d = NewRelicAPI::Deployment.create(create_params)
       rescue Exception => e
@@ -62,7 +62,7 @@ module NewRelic::API
         o.on("-r", "--revision=REV", String,
              "Specify the revision being deployed") { |@revision | }
         o.on("-c", "--changes", 
-             "Read in a change log from the standard input")
+             "Read in a change log from the standard input") { @changelog = STDIN.read }
         o.on("-?", "Print this help") { info o.help; just_exit }
         o.separator ""
         o.separator 'description = "short text"'
