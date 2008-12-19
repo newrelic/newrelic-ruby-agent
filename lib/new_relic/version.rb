@@ -2,8 +2,8 @@
 module NewRelic
   module VERSION #:nodoc:
   MAJOR = 2
-  MINOR = 7
-  TINY  = 5
+  MINOR = 8
+  TINY  = 0
   STRING = [MAJOR, MINOR, TINY].join('.')
   def self.changes
     puts "NewRelic RPM Plugin Version: #{NewRelic::VERSION}"
@@ -11,7 +11,7 @@ module NewRelic
   end
 
   CHANGELOG = <<EOF
-NEXT: version 2.7.5
+2008-12-18 version 2.8.0
   * add beta of api in newrelic_api.rb
   * instrumented dynamic finders in ActiveRecord
   * fixed incompatibility in the developer mode with the safe_erb plugin
