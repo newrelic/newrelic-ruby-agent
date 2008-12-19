@@ -45,8 +45,12 @@ module NewRelic::Agent
     #
     # the statistical gatherer returned by get_stats accepts data
     # via calls to add_data_point(value)
-    def get_stats(metric_name)
-      agent.stats_engine.get_stats(metric_name, false)
+    def get_stats(metric_name, use_scope=false)
+      agent.stats_engine.get_stats(metric_name, use_scope)
+    end
+
+    def get_stats_no_scope(metric_name)
+      agent.stats_engine.get_stats_no_scope(metric_name)
     end
     
     

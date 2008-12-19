@@ -20,11 +20,19 @@ if defined? ActionController
       end
     end
     
-    def perform_action_with_newrelic_trace
+    # Perform the current action with NewRelic tracing.  Used in a method
+    # chain via aliasing.  Call directly if you want to instrument a specifc
+    # block as if it were an action.  Pass the block along with the path.
+    # The metric is named according to the action name, or the given path if called
+    # directly.  
+    def perform_action_with_newrelic_trace(path=nil)
       agent = NewRelic::Agent.instance
+      stats_engine = agent.stats_engine
+
       ignore_actions = self.class.read_inheritable_attribute('do_not_trace')
-      # Skip instrumentation based on the value of 'do_not_trace'
-      if ignore_actions
+      # Skip instrumentation based on the value of 'do_not_trace' and if 
+      # we aren't calling directly with a block.
+      if ignore_actions && !block_given?
         should_skip = false
         
         if Hash === ignore_actions
@@ -48,9 +56,9 @@ if defined? ActionController
       # generate metrics for all all controllers (no scope)
       self.class.trace_method_execution_no_scope "Controller" do 
         # generate metrics for this specific action
-        path = _determine_metric_path
+        path = _determine_metric_path unless path
         
-        agent.stats_engine.transaction_name ||= "Controller/#{path}" if agent.stats_engine
+        stats_engine.transaction_name ||= "Controller/#{path}" if stats_engine
         
         self.class.trace_method_execution_with_scope "Controller/#{path}", true, true do 
           # send request and parameter info to the transaction sampler
@@ -63,23 +71,26 @@ if defined? ActionController
           
           begin
             # run the action
-            perform_action_without_newrelic_trace
+            if block_given?
+              yield
+            else
+              perform_action_without_newrelic_trace
+            end
           ensure
             cpu_burn = (Process.times.utime + Process.times.stime) - t
             agent.transaction_sampler.notice_transaction_cpu_time(cpu_burn)
 
             duration = Time.now.to_f - start
-            
             # do the apdex bucketing
             if duration <= @@newrelic_apdex_t
               @@newrelic_apdex_overall.record_apdex_s cpu_burn    # satisfied
-              agent.stats_engine.get_stats_no_scope("Apdex/#{path}").record_apdex_s cpu_burn
+              stats_engine.get_stats_no_scope("Apdex/#{path}").record_apdex_s cpu_burn
             elsif duration <= (4 * @@newrelic_apdex_t)
               @@newrelic_apdex_overall.record_apdex_t cpu_burn    # tolerating
-              agent.stats_engine.get_stats_no_scope("Apdex/#{path}").record_apdex_t cpu_burn
+              stats_engine.get_stats_no_scope("Apdex/#{path}").record_apdex_t cpu_burn
             else
               @@newrelic_apdex_overall.record_apdex_f cpu_burn    # frustrated
-              agent.stats_engine.get_stats_no_scope("Apdex/#{path}").record_apdex_f cpu_burn
+              stats_engine.get_stats_no_scope("Apdex/#{path}").record_apdex_f cpu_burn
             end
             
           end
@@ -88,7 +99,7 @@ if defined? ActionController
       
     ensure
       # clear out the name of the traced transaction under all circumstances
-      agent.stats_engine.transaction_name = nil
+      stats_engine.transaction_name = nil
     end
     
     # Compare with #alias_method_chain, which is not available in 

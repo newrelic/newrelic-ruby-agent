@@ -8,17 +8,17 @@
 # from method_tracer.rb
 
 class Module
-
+  
   def trace_method_execution (*args)
     yield
   end
   
   def add_method_tracer (*args)
   end
-
+  
   def remove_method_tracer(*args)
-end
-
+  end
+  
 end
 
 
@@ -28,19 +28,23 @@ module NewRelic
   module Agent
     
     class << self
+      @@dummy_stats = MethodTraceStats.new
       def agent
         NewRelic::Agent::Agent.instance
       end
       
       alias instance agent
-  
+      
       def get_stats(*args)
-        MethodTraceStats.new
+        @@dummy_stats
+      end
+      def get_stats_no_scope(*args)
+        @@dummy_stats
       end
       
       def manual_start(*args)
       end
-    
+      
       def set_sql_obfuscator(*args)
       end
       
@@ -54,21 +58,18 @@ module NewRelic
       
       def add_request_parameters(*args)
       end
-    
+      
       def should_ignore_error
       end
     end  
-
+    
     class Agent
       
       def initialize
         @error_collector = ErrorCollector.new
       end
-      
       def self.instance
         @@agent ||= new
-        
-        @@agent
       end      
     end
     
@@ -87,6 +88,8 @@ module ActionController
     def self.newrelic_ignore(*args); end
     def new_relic_trace_controller_action(name); yield; end
     def _determine_metric_path; end
+    def perform_action_with_newrelic_trace(path=nil)
+      yield
+    end
   end
 end if defined? ActionController::Base
-
