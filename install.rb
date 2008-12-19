@@ -10,9 +10,7 @@ if File::exists? dest_config_file
 else
   generated_for_user = ""
   license_key = "PASTE_YOUR_KEY_HERE"
-  
-  yaml = eval "%Q[#{File.read(src_config_file)}]"
-  
+  yaml = ERB.new(File.read(src_config_file)).result(binding)
   File.open( dest_config_file, 'w' ) do |out|
     out.puts yaml
   end
