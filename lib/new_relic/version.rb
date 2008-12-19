@@ -12,12 +12,12 @@ module NewRelic
 
   CHANGELOG = <<EOF
 NEXT: version 2.7.5
+  * add beta of api in newrelic_api.rb
   * instrumented dynamic finders in ActiveRecord
   * fixed incompatibility in the developer mode with the safe_erb plugin
   * preliminary support for capturing deployment information via capistrano
   * change memory sampler for solaris to use /usr/bin/ps
   * fix startup issue that sometimes printed an IgnoreSilentlyException message
-  * added apdex
 2008-12-09 version 2.7.4
   * fix error when trying to serialize some kinds of Enumerable objects
   * added extra debug logging
