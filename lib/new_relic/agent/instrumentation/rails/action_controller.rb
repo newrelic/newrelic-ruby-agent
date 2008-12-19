@@ -1,5 +1,29 @@
 # NewRelic instrumentation for controllers
-
+#
+# This instrumentation is applied to the action controller by default if the agent
+# is actively collecting statistics.  It will collect statistics for the 
+# given action.
+#
+# In cases where you don't want to instrument the top level action, but instead
+# have other methods which are dispatched to by your action, and you want to treat
+# these as distinct actions, then what you need to do is call newrelic_ignore
+# on the top level action, and manually instrument the called 'actions'.  
+#
+# Here's an example of a controller with a send_message action which dispatches
+# to more specific send_servicename methods.  This results in the controller 
+# action stats showing up for send_servicename.
+#
+# MyController < ActionController::Base
+#   newrelic_ignore :only => 'send_message'
+#   # dispatch this action to the method given by the service parameter.
+#   def send_message
+#     service = params['service']
+#     dispatch_to_method = "send_messge_to_#{service}"
+#     perform_action_with_newrelic_trace(dispatch_to_method) do
+#       send dispatch_to_method, params['message']
+#     end
+#   end
+# end
 
 if defined? ActionController 
 
@@ -25,7 +49,7 @@ if defined? ActionController
     # block as if it were an action.  Pass the block along with the path.
     # The metric is named according to the action name, or the given path if called
     # directly.  
-    def perform_action_with_newrelic_trace(path=nil)
+    def perform_action_with_newrelic_trace(action_name_override=nil)
       agent = NewRelic::Agent.instance
       stats_engine = agent.stats_engine
 
@@ -45,9 +69,16 @@ if defined? ActionController
         end
         
         if should_skip
-          Thread.current[:controller_ignored] = true
           return perform_action_without_newrelic_trace
+          # Tell the dispatcher instrumentation that we ignored this action and it shouldn't
+          # be counted for the overall HTTP operations measurement.  The if.. appears here
+          # because we might be ignoring the top level action instrumenting but instrumenting
+          # a direct invocation that already happened, so we need to make sure if this var
+          # has already been set to false we don't reset it.
+          Thread.current[:controller_ignored] = true if Thread.current[:controller_ignored].nil?
         end
+      else
+        Thread.current[:controller_ignored] = false
       end
       
       start = Time.now.to_f
@@ -56,8 +87,7 @@ if defined? ActionController
       # generate metrics for all all controllers (no scope)
       self.class.trace_method_execution_no_scope "Controller" do 
         # generate metrics for this specific action
-        path = _determine_metric_path unless path
-        
+        path = _determine_metric_path(action_name_override)
         stats_engine.transaction_name ||= "Controller/#{path}" if stats_engine
         
         self.class.trace_method_execution_with_scope "Controller/#{path}", true, true do 
@@ -113,9 +143,10 @@ if defined? ActionController
     private
     # determine the path that is used in the metric name for
     # the called controller action
-    def _determine_metric_path(action = action_name)
-      if self.class.action_methods.include?(action)
-        "#{self.class.controller_path}/#{action}"
+    def _determine_metric_path(action_name_override = nil)
+      action_part = action_name_override || action_name
+      if action_name_override || self.class.action_methods.include?(action_part)
+        "#{self.class.controller_path}/#{action_part}"
       else
         "#{self.class.controller_path}/(other)"
       end

@@ -27,7 +27,7 @@ module NewRelic::DispatcherInstrumentation
     @@newrelic_agent.start_transaction
     
     # Reset the flag indicating the controller action should be ignored.
-    # It may be set by the action.
+    # It may be set by the action to either true or false or left nil meaning false
     Thread.current[:controller_ignored] = nil
   end
   
