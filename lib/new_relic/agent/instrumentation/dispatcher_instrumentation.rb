@@ -76,17 +76,18 @@ module NewRelic::DispatcherInstrumentation
     end
     
     def self.harvest_busy
-      t0 = Time.now.to_f
-      
       Thread.critical = true
       
       busy = @@accumulator
       @@accumulator = 0
       
+      t0 = Time.now.to_f
+
       if @@dispatcher_start
         busy += (t0 - @@dispatcher_start)
         @@dispatcher_start = t0
       end
+      
       
       Thread.critical = false
       
@@ -96,11 +97,11 @@ module NewRelic::DispatcherInstrumentation
       time_window = 1.0 if time_window == 0.0  # protect against divide by zero
       
       busy = busy / time_window
-      
+        
       busy = 1.0 if busy > 1.0    # cap at 100%
       
       @@instance_busy.record_data_point busy
-      
+
       @@harvest_start = t0
     end
   end
