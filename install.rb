@@ -1,4 +1,5 @@
 require 'ftools'
+require 'erb'
 
 puts IO.read(File.join(File.dirname(__FILE__), 'README'))
 
