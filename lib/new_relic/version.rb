@@ -17,7 +17,9 @@ module NewRelic
   * fixed incompatibility in the developer mode with the safe_erb plugin
   * preliminary support for capturing deployment information via capistrano
   * change memory sampler for solaris to use /usr/bin/ps
-  * fix startup issue that sometimes printed an IgnoreSilentlyException message
+  * fix issue where the agent sometimes failed to start up if there was a transient network problem
+  * fix IgnoreSilentlyException message
+  * Allow ERB in newrelic.yml file
 2008-12-09 version 2.7.4
   * fix error when trying to serialize some kinds of Enumerable objects
   * added extra debug logging
