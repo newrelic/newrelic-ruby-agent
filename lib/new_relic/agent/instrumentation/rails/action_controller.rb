@@ -56,8 +56,9 @@ if defined? ActionController
       ignore_actions = self.class.read_inheritable_attribute('do_not_trace')
       # Skip instrumentation based on the value of 'do_not_trace' and if 
       # we aren't calling directly with a block.
-      if ignore_actions && !block_given?
-        should_skip = case ignore_actions
+      should_skip = !block_given? && case ignore_actions
+          when nil
+            false
           when Hash
             only_actions = Array(ignore_actions[:only])
             except_actions = Array(ignore_actions[:except])
@@ -65,20 +66,19 @@ if defined? ActionController
           else
             true
           end
-        
-        if should_skip
-          begin
-            return perform_action_without_newrelic_trace
-          ensure
-            # Tell the dispatcher instrumentation that we ignored this action and it shouldn't
-            # be counted for the overall HTTP operations measurement.  The if.. appears here
-            # because we might be ignoring the top level action instrumenting but instrumenting
-            # a direct invocation that already happened, so we need to make sure if this var
-            # has already been set to false we don't reset it.
-            Thread.current[:controller_ignored] = true if Thread.current[:controller_ignored].nil?
-          end
+      if should_skip
+        begin
+          return perform_action_without_newrelic_trace
+        ensure
+          # Tell the dispatcher instrumentation that we ignored this action and it shouldn't
+          # be counted for the overall HTTP operations measurement.  The if.. appears here
+          # because we might be ignoring the top level action instrumenting but instrumenting
+          # a direct invocation that already happened, so we need to make sure if this var
+          # has already been set to false we don't reset it.
+          Thread.current[:controller_ignored] = true if Thread.current[:controller_ignored].nil?
         end
       end
+
       Thread.current[:controller_ignored] = false
       
       start = Time.now.to_f
