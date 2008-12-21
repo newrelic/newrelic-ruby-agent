@@ -6,12 +6,21 @@ require_dependency 'dispatcher'
 if defined? ActionController::Dispatcher
   NewRelic::Agent.instance.log.debug "Adding ActionController::Dispatcher instrumentation"
   
-  ActionController::Dispatcher.class_eval do
-    class << self
+  if defined? ::Rails::Rack
+    ActionController::Dispatcher.class_eval do
       include NewRelic::DispatcherInstrumentation
 
       alias_method :dispatch_without_newrelic, :dispatch
       alias_method :dispatch, :dispatch_newrelic
+    end
+  else
+    ActionController::Dispatcher.class_eval do
+      class << self
+        include NewRelic::DispatcherInstrumentation
+
+        alias_method :dispatch_without_newrelic, :dispatch
+        alias_method :dispatch, :dispatch_newrelic
+      end
     end
   end
 elsif defined? Dispatcher
