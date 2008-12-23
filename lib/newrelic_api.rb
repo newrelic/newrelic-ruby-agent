@@ -78,10 +78,11 @@ module NewRelicAPI
       @email    = email
     end
     
-    # Resets the base path of all resources.  This should be called when the ssl, host or 
-    # port accessors are used.
+    # Resets the base path of all resources.  This should be called when overridding the newrelic.yml settings
+    # using the ssl, host or port accessors.
     def reset!
       @classes.each {|klass| klass.reset!} if @classes
+      NewRelicAPI::Account.site_url
     end
     
     
