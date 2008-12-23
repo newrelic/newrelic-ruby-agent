@@ -69,7 +69,7 @@ module NewRelicAPI
     
   end
   class << self
-    attr_accessor :email, :password, :license_key
+    attr_accessor :email, :password, :license_key, :ssl, :host, :port
     
     # Sets up basic authentication credentials for all the resources.  This is not necessary if you are
     # using agent license key authentication.
@@ -77,11 +77,26 @@ module NewRelicAPI
       @password = password
       @email    = email
     end
+    
+    # Resets the base path of all resources.  This should be called when the ssl, host or 
+    # port accessors are used.
+    def reset!
+      @classes.each {|klass| klass.reset!} if @classes
+    end
+    
+    
+    def track_resource(klass) #:nodoc:
+      (@classes ||= []) << klass
+    end
   end
   class BaseResource < ActiveResource::Base #:nodoc:
     include ActiveResourceAssociations
-    
+
     class << self
+      def inherited(klass) #:nodoc:
+        NewRelicAPI.track_resource(klass)
+      end
+      
       def headers
         h = {'x-license-key' => NewRelicAPI.license_key || NewRelic::Config.instance['license_key']}
         h['Authorization'] = 'Basic ' + ["#{NewRelicAPI.email}:#{NewRelicAPI.password}"].pack('m').delete("\r\n") if NewRelicAPI.email
@@ -89,7 +104,11 @@ module NewRelicAPI
       end
       
       def site_url
-        "http#{'s' if NewRelic::Config.instance['ssl']}://#{NewRelic::Config.instance['host']}:#{NewRelic::Config.instance['port']}"
+        "http#{'s' if (NewRelicAPI.ssl || NewRelic::Config.instance['ssl'])}://#{NewRelicAPI.host || NewRelic::Config.instance['host']}:#{NewRelicAPI.port || NewRelic::Config.instance['port']}"
+      end
+      
+      def reset!
+        self.site = self.site_url
       end
       
       protected
