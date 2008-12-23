@@ -10,25 +10,25 @@
 # Basic authentication uses your site credentials to authenticate.  
 #
 #   # To authenticate using basic authentication, make this call with your username and password:
-#   NewRelicAPI.authenticate('user@example.com', 'test')
+#   NewRelicApi.authenticate('user@example.com', 'test')
 #
 # This API does not have any agent dependencies.  It can be used independent of the agent by copying it into your application.
 #
 # ==Examples
 #   # Fetching the list of applications for an account
-#   NewRelicAPI::Account.find(:first).applications
+#   NewRelicApi::Account.find(:first).applications
 #  
 #   # Fetching the health values for all account applications
-#   NewRelicAPI::Account.application_health
+#   NewRelicApi::Account.application_health
 #
 #   # Fetching the health values for an application
-#   NewRelicAPI::Account.find(:first).applications.first.threshold_values
+#   NewRelicApi::Account.find(:first).applications.first.threshold_values
 #
 #   # Finding an application by name
-#   NewRelicAPI::Account.find(:first).applications(:params => {:conditions => {:name => 'My App'}})
+#   NewRelicApi::Account.find(:first).applications(:params => {:conditions => {:name => 'My App'}})
 #
 
-module NewRelicAPI
+module NewRelicApi
   
   # This mixin defines ActiveRecord style associations (like has_many) for ActiveResource objects.
   # ActiveResource objects using this mixin must define the method 'query_params'. 
@@ -53,7 +53,7 @@ module NewRelicAPI
                   clazz = ( self.class.name + '::' + association.to_s.camelize.singularize).constantize
                 rescue
                   # look for the class definition in the NRAPI module
-                  clazz = ( 'NewRelicAPI::' + association.to_s.camelize.singularize).constantize
+                  clazz = ( 'NewRelicApi::' + association.to_s.camelize.singularize).constantize
                 end
                 params = (options[:params] || {}).update(self.query_params)
                 options[:params] = params
@@ -82,7 +82,7 @@ module NewRelicAPI
     # using the ssl, host or port accessors.
     def reset!
       @classes.each {|klass| klass.reset!} if @classes
-      NewRelicAPI::Account.site_url
+      NewRelicApi::Account.site_url
     end
     
     
@@ -95,17 +95,17 @@ module NewRelicAPI
 
     class << self
       def inherited(klass) #:nodoc:
-        NewRelicAPI.track_resource(klass)
+        NewRelicApi.track_resource(klass)
       end
       
       def headers
-        h = {'x-license-key' => NewRelicAPI.license_key || NewRelic::Config.instance['license_key']}
-        h['Authorization'] = 'Basic ' + ["#{NewRelicAPI.email}:#{NewRelicAPI.password}"].pack('m').delete("\r\n") if NewRelicAPI.email
+        h = {'x-license-key' => NewRelicApi.license_key || NewRelic::Config.instance['license_key']}
+        h['Authorization'] = 'Basic ' + ["#{NewRelicApi.email}:#{NewRelicApi.password}"].pack('m').delete("\r\n") if NewRelicApi.email
         h
       end
       
       def site_url
-        "http#{'s' if (NewRelicAPI.ssl || NewRelic::Config.instance['ssl'])}://#{NewRelicAPI.host || NewRelic::Config.instance['host']}:#{NewRelicAPI.port || NewRelic::Config.instance['port']}"
+        "http#{'s' if (NewRelicApi.ssl || NewRelic::Config.instance['ssl'])}://#{NewRelicApi.host || NewRelic::Config.instance['host']}:#{NewRelicApi.port || NewRelic::Config.instance['port']}"
       end
       
       def reset!
@@ -218,8 +218,8 @@ module NewRelicAPI
   # 
   # Find Accounts
   #
-  #   NewRelicAPI::Account.find(:all) # find all accounts for the current user.
-  #   NewRelicAPI::Account.find(44)   # find individual account by ID
+  #   NewRelicApi::Account.find(:all) # find all accounts for the current user.
+  #   NewRelicApi::Account.find(44)   # find individual account by ID
   #
   class Account < BaseResource
     has_many :applications
@@ -239,7 +239,7 @@ module NewRelicAPI
   # Only create is supported.
   # ==Examples
   #   # Creating a new deployment
-  #   NewRelicAPI::Deployment.create
+  #   NewRelicApi::Deployment.create
   #
   class Deployment < BaseResource
   end

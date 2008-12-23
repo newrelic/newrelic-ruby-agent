@@ -17,7 +17,7 @@ make_notify_task = lambda do
       log_command = source.log(from_revision)
       # I don't believe this will work if rpm is installed as a gem, or 
       # if they put the plugin elsewhere.  Need to revisit.
-      script = [ "vendor/plugins/newrelic_rpm/lib/newrelic_api.rb" ] <<
+      script = [ "vendor/plugins/newrelic_rpm/lib/new_relic_api.rb" ] <<
                  "deployments" <<
                  "-u" << ENV['USER'] <<
                  "-r" << current_revision <<

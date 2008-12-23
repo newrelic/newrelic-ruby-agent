@@ -12,7 +12,7 @@ module NewRelic
 
   CHANGELOG = <<EOF
 2008-12-18 version 2.8.0
-  * add beta of api in newrelic_api.rb
+  * add beta of api in new_relic_api.rb
   * instrumented dynamic finders in ActiveRecord
   * fixed incompatibility in the developer mode with the safe_erb plugin
   * preliminary support for capturing deployment information via capistrano
