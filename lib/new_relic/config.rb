@@ -2,6 +2,7 @@ require 'yaml'
 #require 'new_relic/version'
 require 'singleton'
 require 'new_relic/agent'
+require 'erb'
 
 # Configuration supports the behavior of the agent which is dependent
 # on what environment is being monitored: rails, merb, ruby, etc
@@ -111,7 +112,7 @@ module NewRelic
     # This will NOT print anything if the environment is unknown because this is
     # probably not an environment the agent will be running in.
     def log!(msg, level=:info)
-      return if not tracers_enabled?
+      return if @settings && !tracers_enabled?
       to_stderr msg
       log.send level, msg if log
     end
@@ -176,7 +177,7 @@ module NewRelic
       license_key=''
       if !File.exists?(config_file)
         yml_file = File.expand_path(File.join(__FILE__,"..","..","..","newrelic.yml"))
-        yaml = ERB.new(File.read(yml_file)).result(binding)
+        yaml = ::ERB.new(File.read(yml_file)).result(binding)
         log! "Cannot find newrelic.yml file at #{config_file}."
         log! "Using #{yml_file} file."
         log! "Signup at rpm.newrelic.com to get a newrelic.yml file configured for a free Lite account."

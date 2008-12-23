@@ -581,7 +581,7 @@ module NewRelic::Agent
     
     def harvest_and_send_timeslice_data
       
-      NewRelic::DispatcherInstrumentation::BusyCalculator.harvest_busy
+      NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.harvest_busy
       
       now = Time.now
       

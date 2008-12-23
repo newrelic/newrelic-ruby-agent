@@ -8,7 +8,7 @@ if defined? ActionController::Dispatcher
   
   ActionController::Dispatcher.class_eval do
     class << self
-      include NewRelic::DispatcherInstrumentation
+      include NewRelic::Agent::Instrumentation::DispatcherInstrumentation
 
       alias_method :dispatch_without_newrelic, :dispatch
       alias_method :dispatch, :dispatch_newrelic
@@ -19,7 +19,7 @@ elsif defined? Dispatcher
   
   Dispatcher.class_eval do
     class << self
-      include NewRelic::DispatcherInstrumentation
+      include NewRelic::Agent::Instrumentation::DispatcherInstrumentation
 
       alias_method :dispatch_without_newrelic, :dispatch
       alias_method :dispatch, :dispatch_newrelic

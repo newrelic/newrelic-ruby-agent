@@ -1,25 +1,17 @@
 # We have to patch the mongrel dispatcher live since the classes
 # aren't defined when our instrumentation loads
-module NewRelic::DispatcherInstrumentation
-  
-  @@mongrel = nil;
-  
-  if defined? Mongrel
-    ObjectSpace.each_object(Mongrel::HttpServer) do |mongrel_instance|
-      @@mongrel = mongrel_instance
-    end
-  end
+module NewRelic::Agent::Instrumentation::DispatcherInstrumentation
   
   @@newrelic_agent = NewRelic::Agent.agent
   @@newrelic_rails_dispatch_stat = @@newrelic_agent.stats_engine.get_stats 'Rails/HTTP Dispatch'
-  @@newrelic_mongrel_queue_stat = (@@mongrel) ? @@newrelic_agent.stats_engine.get_stats('WebFrontend/Mongrel/Average Queue Time'): nil
+  @@newrelic_mongrel_queue_stat = @@newrelic_agent.stats_engine.get_stats('WebFrontend/Mongrel/Average Queue Time')
   
   def dispatcher_start
     # Put the current time on the thread.  Can't put in @ivar because this could
     # be a class or instance context
     t0 = Time.now.to_f
     Thread.current[:newrelic_t0] = t0
-    NewRelic::DispatcherInstrumentation::BusyCalculator.dispatcher_start t0
+    NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.dispatcher_start t0
     # capture the time spent in the mongrel queue, if running in mongrel.  This is the 
     # current time less the timestamp placed in 'started_on' by mongrel. 
     mongrel_start = Thread.current[:started_on]
@@ -36,7 +28,7 @@ module NewRelic::DispatcherInstrumentation
     t1 = Time.now.to_f
     @@newrelic_agent.end_transaction
     @@newrelic_rails_dispatch_stat.trace_call(t1 - t0) unless Thread.current[:controller_ignored]
-    NewRelic::DispatcherInstrumentation::BusyCalculator.dispatcher_finish t1    
+    NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.dispatcher_finish t1    
   end
   
   def dispatch_newrelic(*args)

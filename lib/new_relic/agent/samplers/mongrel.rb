@@ -17,7 +17,7 @@ if defined? Mongrel::HttpServer
   if mongrel
     agent.stats_engine.add_sampled_metric("Mongrel/Queue Length") do |stats|
       qsize = mongrel.workers.list.length
-      qsize -= 1 if NewRelic::DispatcherInstrumentation::BusyCalculator.is_busy?
+      qsize -= 1 if NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.is_busy?
       qsize = 0 if qsize < 0
       stats.record_data_point qsize
     end
