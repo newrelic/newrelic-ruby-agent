@@ -2,28 +2,28 @@ require 'dispatcher'
 
 # NewRelic RPM instrumentation for http request dispatching (Routes mapping)
 # Note, the dispatcher class from no module into into the ActionController module 
-# in rails 2.0.  Thus we need to check for both
+# in Rails 2.0.  Thus we need to check for both
 if defined? ActionController::Dispatcher
-  NewRelic::Agent.instance.log.debug "Adding ActionController::Dispatcher instrumentation"
-  
-  ActionController::Dispatcher.class_eval do
-    class << self
-      include NewRelic::Agent::Instrumentation::DispatcherInstrumentation
-
-      alias_method :dispatch_without_newrelic, :dispatch
-      alias_method :dispatch, :dispatch_newrelic
-    end
-  end
+  target = ActionController::Dispatcher
 elsif defined? Dispatcher
-  NewRelic::Agent.instance.log.debug "Adding Dispatcher instrumentation"
-  
-  Dispatcher.class_eval do
-    class << self
-      include NewRelic::Agent::Instrumentation::DispatcherInstrumentation
+  target = Dispatcher
+else
+  target = nil
+end
 
-      alias_method :dispatch_without_newrelic, :dispatch
-      alias_method :dispatch, :dispatch_newrelic
-    end
+if target
+  NewRelic::Agent.instance.log.debug "Adding #{target} instrumentation"
+  
+  # in Rails 2.3 (Rack-based) we don't want to add instrumentation on class level
+  unless defined? ::Rails::Rack
+    target = target.class_eval { class << self; self; end }
+  end
+  
+  target.class_eval do
+    include NewRelic::DispatcherInstrumentation
+
+    alias_method :dispatch_without_newrelic, :dispatch
+    alias_method :dispatch, :dispatch_newrelic
   end
 else
   NewRelic::Agent.instance.log.debug "WARNING: Dispatcher instrumentation not added"
