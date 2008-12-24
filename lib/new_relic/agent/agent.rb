@@ -57,7 +57,7 @@ module NewRelic::Agent
     # Call this to manually start the Agent in situations where the Agent does
     # not auto-start.
     # When the app environment loads, so does the Agent. However, the Agent will
-    # only connect to RPM if a web plugin is found. If you want to selectively monitor
+    # only connect to RPM if a web front-end is found. If you want to selectively monitor
     # ruby processes that don't use web plugins, then call this method in your
     # code and the Agent will fire up and start reporting to RPM.
     #
@@ -581,7 +581,7 @@ module NewRelic::Agent
     
     def harvest_and_send_timeslice_data
       
-      NewRelic::DispatcherInstrumentation::BusyCalculator.harvest_busy
+      NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.harvest_busy
       
       now = Time.now
       

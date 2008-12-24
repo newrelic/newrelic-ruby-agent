@@ -87,7 +87,7 @@ module ActionController
     def newrelic_notice_error(*args); end
     def self.newrelic_ignore(*args); end
     def new_relic_trace_controller_action(name); yield; end
-    def _determine_metric_path; end
+    def newrelic_metric_path; end
     def perform_action_with_newrelic_trace(path=nil)
       yield
     end

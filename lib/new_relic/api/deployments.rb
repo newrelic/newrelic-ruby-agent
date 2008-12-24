@@ -30,9 +30,9 @@ module NewRelic::API
           :revision => @revision,
           :changelog => @changelog
         }
-        d = NewRelicAPI::Deployment.create(create_params)
+        d = NewRelicApi::Deployment.create(create_params)
       rescue Exception => e
-        err "Attempting to connect to #{NewRelicAPI::BaseResource.site_url}\nUnable to upload deployment (#{e.message})"
+        err "Attempting to connect to #{NewRelicApi::BaseResource.site_url}\nUnable to upload deployment (#{e.message})"
         info e.backtrace.join("\n")
         just_exit 1
       end
