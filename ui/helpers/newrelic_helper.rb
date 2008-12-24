@@ -123,11 +123,11 @@ module NewrelicHelper
   end
   
   def expanded_image_path()
-    url_for(:controller => :newrelic, :action => :image, :file => '16x16/arrow-open.png')
+    url_for(:controller => :newrelic, :action => :image, :file => 'arrow-open.png')
   end
   
   def collapsed_image_path()
-    url_for(:controller => :newrelic, :action => :image, :file => '16x16/arrow-close.png')
+    url_for(:controller => :newrelic, :action => :image, :file => 'arrow-close.png')
   end
   
   def explain_sql_url(segment)
