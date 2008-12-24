@@ -83,7 +83,7 @@ module NewRelic::Agent::Instrumentation::ControllerInstrumentation
     end
     if should_skip
       begin
-        return perform_action_without_newrelic_trace *args
+        return perform_action_without_newrelic_trace(*args)
       ensure
         # Tell the dispatcher instrumentation that we ignored this action and it shouldn't
         # be counted for the overall HTTP operations measurement.  The if.. appears here
