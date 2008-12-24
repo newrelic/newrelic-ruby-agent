@@ -72,15 +72,14 @@ module NewRelic::Agent::Instrumentation::ControllerInstrumentation
     # Skip instrumentation based on the value of 'do_not_trace' and if 
     # we aren't calling directly with a block.
     should_skip = !block_given? && case ignore_actions
-      when nil
-      false
+      when nil: false
       when Hash
-      only_actions = Array(ignore_actions[:only])
-      except_actions = Array(ignore_actions[:except])
-      only_actions.include?(action_name.to_sym) || (except_actions.any? && !except_actions.include?(action_name.to_sym))
-    else
-      true
-    end
+        only_actions = Array(ignore_actions[:only])
+        except_actions = Array(ignore_actions[:except])
+        only_actions.include?(action_name.to_sym) || (except_actions.any? && !except_actions.include?(action_name.to_sym))
+      else
+        true
+      end
     if should_skip
       begin
         return perform_action_without_newrelic_trace(*args)
@@ -120,7 +119,7 @@ module NewRelic::Agent::Instrumentation::ControllerInstrumentation
           if block_given?
             yield
           else
-            perform_action_without_newrelic_trace *args
+            perform_action_without_newrelic_trace(*args)
           end
         ensure
           cpu_burn = (Process.times.utime + Process.times.stime) - t

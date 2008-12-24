@@ -6,7 +6,7 @@ module NewRelic::Agent::Instrumentation::DispatcherInstrumentation
   @@newrelic_rails_dispatch_stat = @@newrelic_agent.stats_engine.get_stats 'Rails/HTTP Dispatch'
   @@newrelic_mongrel_queue_stat = @@newrelic_agent.stats_engine.get_stats('WebFrontend/Mongrel/Average Queue Time')
   
-  def dispatcher_start
+  def newrelic_dispatcher_start
     # Put the current time on the thread.  Can't put in @ivar because this could
     # be a class or instance context
     t0 = Time.now.to_f
@@ -23,7 +23,7 @@ module NewRelic::Agent::Instrumentation::DispatcherInstrumentation
     Thread.current[:controller_ignored] = nil
   end
   
-  def dispatcher_finish
+  def newrelic_dispatcher_finish
     t0 = Thread.current[:newrelic_t0] or return
     t1 = Time.now.to_f
     @@newrelic_agent.end_transaction
@@ -32,11 +32,11 @@ module NewRelic::Agent::Instrumentation::DispatcherInstrumentation
   end
   
   def dispatch_newrelic(*args)
-    dispatcher_start
+    newrelic_dispatcher_start
     begin
       dispatch_without_newrelic(*args)
     ensure
-      dispatcher_finish
+      newrelic_dispatcher_finish
     end
   end
   
