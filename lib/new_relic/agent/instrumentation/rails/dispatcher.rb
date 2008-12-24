@@ -20,7 +20,7 @@ if target
   end
   
   target.class_eval do
-    include NewRelic::DispatcherInstrumentation
+    include NewRelic::Agent::Instrumentation::DispatcherInstrumentation
 
     alias_method :dispatch_without_newrelic, :dispatch
     alias_method :dispatch, :dispatch_newrelic
