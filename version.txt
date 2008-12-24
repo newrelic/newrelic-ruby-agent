@@ -1,1 +1,0 @@
-Version information has moved to NewRelic::VERSION in lib/newrelic/version.rb.
