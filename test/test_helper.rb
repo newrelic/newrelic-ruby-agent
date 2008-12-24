@@ -9,6 +9,7 @@ require 'test_help'
 require 'mocha'
 require 'test/unit'
 
+
 module NewRelic
   class Config
     def setup_log_with_block_logging(*args)

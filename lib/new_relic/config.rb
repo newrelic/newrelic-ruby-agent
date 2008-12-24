@@ -2,6 +2,7 @@ require 'yaml'
 #require 'new_relic/version'
 require 'singleton'
 require 'new_relic/agent'
+require 'erb'
 
 # Configuration supports the behavior of the agent which is dependent
 # on what environment is being monitored: rails, merb, ruby, etc
@@ -13,6 +14,9 @@ module NewRelic
     def self.instance
       @instance ||= new_instance
     end
+    
+    attr_reader :settings
+    
     
     @settings = nil
     
@@ -56,6 +60,9 @@ module NewRelic
     def tracers_enabled?
       !(ENV['NEWRELIC_ENABLE'].to_s =~ /false|off|no/i) &&
        (developer_mode? || connect_to_server?)
+    end
+    def app_name
+      fetch('app_name', nil)
     end
     
     def to_s
@@ -105,7 +112,7 @@ module NewRelic
     # This will NOT print anything if the environment is unknown because this is
     # probably not an environment the agent will be running in.
     def log!(msg, level=:info)
-      return if not tracers_enabled?
+      return if @settings && !tracers_enabled?
       to_stderr msg
       log.send level, msg if log
     end
@@ -164,17 +171,23 @@ module NewRelic
     
     def initialize
       newrelic_file = config_file
+      # Next two are for populating the newrelic.yml via erb binding, necessary
+      # when using the default newrelic.yml file
+      generated_for_user = ''
+      license_key=''
       if !File.exists?(config_file)
         yml_file = File.expand_path(File.join(__FILE__,"..","..","..","newrelic.yml"))
-        @settings = YAML.load_file(yml_file)[env] || {}
+        yaml = ::ERB.new(File.read(yml_file)).result(binding)
         log! "Cannot find newrelic.yml file at #{config_file}."
         log! "Using #{yml_file} file."
         log! "Signup at rpm.newrelic.com to get a newrelic.yml file configured for a free Lite account."
       else
-        cfile = File.read(newrelic_file)
-        @settings = YAML.load_file(newrelic_file)[env] || {}
+        yaml = ERB.new(File.read(config_file)).result(binding)
       end
+      @settings = YAML.load(yaml)[env] || {}
     rescue ScriptError, StandardError => e
+      puts e
+      puts e.backtrace.join("\n")
       raise "Error reading newrelic.yml file: #{e}"
     end
   end

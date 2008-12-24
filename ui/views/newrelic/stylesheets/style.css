@@ -334,11 +334,11 @@ ul.tab_list li {
 	padding-left: 1em;	
 }
 .selected {
-	background: url(../images/16-arrow-right.png) no-repeat;
+	background: url(../images/16x16/arrow-close.png) no-repeat;
 }
 
 .expand {
-	background-image:url(../images/16-arrow-down.png);
+	background-image:url(../images/16x16/arrow-open.png);
 	width:16px;
 	background-position: top left;
 	padding-left: 20px;
@@ -347,7 +347,7 @@ ul.tab_list li {
 }
 
 .collapse {
-	background-image:url(../images/16-arrow-right.png);
+	background-image:url(../images/16x16/arrow-close.png);
 	text-decoration: none;
 	width:16px;
 	padding-left: 20px;

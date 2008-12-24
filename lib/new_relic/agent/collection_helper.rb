@@ -4,21 +4,30 @@ module NewRelic::Agent::CollectionHelper
   def normalize_params(params)
     case params
       when Symbol, FalseClass, TrueClass, nil:
-      params
+        params
       when Numeric
-      truncate(params.to_s, 256)
+        truncate(params.to_s)
       when String
-      truncate(params, 256)
+        truncate(params)
       when Hash:
-      new_params = {}
-      params.each do | key, value |
-        new_params[truncate(normalize_params(key),32)] = normalize_params(value)
+        new_params = {}
+        params.each do | key, value |
+          new_params[truncate(normalize_params(key),32)] = normalize_params(value)
       end
-      new_params
+        new_params
       when Enumerable:
-      params.to_a.first(20).collect { | v | normalize_params(v)}
+      # We only want the first 20 values of any enumerable.  Invoking to_a.first(20) works but
+      # the to_a call might be expensive, so we'll just build it manually, even though it's
+      # more verbose.
+        new_values = []
+        count = 1
+        params.each do | item |
+          new_values << normalize_params(item)
+          break if (count += 1) > 20
+        end
+        new_values
     else
-      truncate(flatten(params), 256)
+      truncate(flatten(params))
     end
   end
   
@@ -58,7 +67,7 @@ module NewRelic::Agent::CollectionHelper
     s
   end
   
-  def truncate(string, len)
+  def truncate(string, len=256)
     if string.instance_of? Symbol
       string
     elsif string.nil?

@@ -8,7 +8,7 @@ require 'stringio'
 
 
 # This must be turned off before we ship
-VALIDATE_BACKGROUND_THREAD_LOADING = false
+VALIDATE_BACKGROUND_THREAD_LOADING = true
 
 # The NewRelic Agent collects performance data from ruby applications in realtime as the
 # application runs, and periodically sends that data to the NewRelic server.
@@ -45,15 +45,19 @@ module NewRelic::Agent
     #
     # the statistical gatherer returned by get_stats accepts data
     # via calls to add_data_point(value)
-    def get_stats(metric_name)
-      agent.stats_engine.get_stats(metric_name, false)
+    def get_stats(metric_name, use_scope=false)
+      agent.stats_engine.get_stats(metric_name, use_scope)
+    end
+
+    def get_stats_no_scope(metric_name)
+      agent.stats_engine.get_stats_no_scope(metric_name)
     end
     
     
     # Call this to manually start the Agent in situations where the Agent does
     # not auto-start.
     # When the app environment loads, so does the Agent. However, the Agent will
-    # only connect to RPM if a web plugin is found. If you want to selectively monitor
+    # only connect to RPM if a web front-end is found. If you want to selectively monitor
     # ruby processes that don't use web plugins, then call this method in your
     # code and the Agent will fire up and start reporting to RPM.
     #
@@ -301,39 +305,50 @@ module NewRelic::Agent
       @log
     end
     
+    def apdex_t
+      @apdex_t ||= (config['apdex_T'] || config['apdex_t'] || 2.0).to_f
+    end    
+        
     private
     
     # Connect to the server, and run the worker loop forever.  Will not return.
     def run_worker_loop
-      until @connected or !connect; end
-      # We may not be connected now but keep going for dev mode
+
+      # connect to the server.  this will keep retrying until successful or
+      # it determines the license is bad.
+      connect
       
+      # We may not be connected now but keep going for dev mode
       if @connected
-        # determine the reporting period (server based)
-        # note if the agent attempts to report more frequently than the specified
-        # report data, then it will be ignored.
-        report_period = invoke_remote :get_data_report_period, @agent_id
-        
-        log! "Reporting performance data every #{report_period} seconds"        
-        @worker_loop.add_task(report_period) do 
-          harvest_and_send_timeslice_data
-        end
-        
-        if @should_send_samples && @use_transaction_sampler
-          @worker_loop.add_task(report_period) do 
-            harvest_and_send_slowest_sample
+        begin
+          # determine the reporting period (server based)
+          # note if the agent attempts to report more frequently than the specified
+          # report data, then it will be ignored.
+          
+          log! "Reporting performance data every #{@report_period} seconds"        
+          @worker_loop.add_task(@report_period) do 
+            harvest_and_send_timeslice_data
           end
-        elsif !config.developer_mode?
-          # We still need the sampler for dev mode.
-          @transaction_sampler.disable
-        end
-        
-        if @should_send_errors && @error_collector.enabled
-          @worker_loop.add_task(report_period) do 
-            harvest_and_send_errors
+          
+          if @should_send_samples && @use_transaction_sampler
+            @worker_loop.add_task(@report_period) do 
+              harvest_and_send_slowest_sample
+            end
+          elsif !config.developer_mode?
+            # We still need the sampler for dev mode.
+            @transaction_sampler.disable
           end
+          
+          if @should_send_errors && @error_collector.enabled
+            @worker_loop.add_task(@report_period) do 
+              harvest_and_send_errors
+            end
+          end
+          @worker_loop.run
+        rescue StandardError
+          @connected = false
+          raise
         end
-        @worker_loop.run
       end
     end
     
@@ -355,6 +370,8 @@ module NewRelic::Agent
             self.class.new_relic_set_agent_thread(Thread.current)
           end          
           run_worker_loop
+        rescue IngnoreSilentlyException
+          log! "Unable to establish connection with the server.  Run with log level set to debug for more information."
         rescue StandardError => e
           log! e
           log! e.backtrace.join("\n")
@@ -482,58 +499,67 @@ module NewRelic::Agent
     # server and we should not retry, such as if there's
     # a bad license key.
     def connect
-      @connect_retry_period ||= 5
-      @connect_attempts ||= 0
-      
       # wait a few seconds for the web server to boot, necessary in development
-      sleep @connect_retry_period.to_i
-      @agent_id = invoke_remote :launch, @local_host,
-      @identifier, determine_home_directory, $$, @launch_time.to_f, NewRelic::VERSION::STRING, config.app_config_info, config['app_name']
+      connect_retry_period = 5
+      connect_attempts = 0
       
-      log! "Connected to NewRelic Service at #{@remote_host}:#{@remote_port}."
-      log.debug "Agent ID = #{@agent_id}."
-      
-      # Ask the server for permission to send transaction samples.  determined by subscription license.
-      @should_send_samples = invoke_remote :should_collect_samples, @agent_id
-      
-      # Ask for mermission to collect error data
-      @should_send_errors = invoke_remote :should_collect_errors, @agent_id
-      
-      log.info "Transaction traces will be sent to the RPM service" if @use_transaction_sampler && @should_send_samples
-      log.info "Errors will be sent to the RPM service" if @error_collector.enabled && @should_send_errors
-      
-      @connected = true
-      return true
-      
-    rescue LicenseException => e
-      log! e.message, :error
-      log! "Visit NewRelic.com to obtain a valid license key, or to upgrade your account."
-      @invalid_license = true
-      return false
-      
-    rescue Timeout::Error, StandardError => e
-      log.info "Unable to connect to New Relic RPM Service at #{@remote_host}:#{@remote_port}"
-      unless e.instance_of? IgnoreSilentlyException
-        log.error e.message
-        log.debug e.backtrace.join("\n")
+      begin
+        sleep connect_retry_period.to_i
+        @agent_id = invoke_remote :launch, 
+            @local_host,
+            @identifier, 
+            determine_home_directory, 
+            $$, 
+            @launch_time.to_f, 
+            NewRelic::VERSION::STRING, 
+            config.app_config_info, 
+            config['app_name'], 
+            config.settings
+        @report_period = invoke_remote :get_data_report_period, @agent_id
+ 
+        log! "Connected to NewRelic Service at #{@remote_host}:#{@remote_port}."
+        log.debug "Agent ID = #{@agent_id}."
+        
+        # Ask the server for permission to send transaction samples.  determined by subscription license.
+        @should_send_samples = invoke_remote :should_collect_samples, @agent_id
+        
+        # Ask for mermission to collect error data
+        @should_send_errors = invoke_remote :should_collect_errors, @agent_id
+        
+        log.info "Transaction traces will be sent to the RPM service" if @use_transaction_sampler && @should_send_samples
+        log.info "Errors will be sent to the RPM service" if @error_collector.enabled && @should_send_errors
+        
+        @connected = true
+        
+      rescue LicenseException => e
+        log! e.message, :error
+        log! "Visit NewRelic.com to obtain a valid license key, or to upgrade your account."
+        @invalid_license = true
+        return false
+        
+      rescue Timeout::Error, StandardError => e
+        log.info "Unable to establish connection with New Relic RPM Service at #{@remote_host}:#{@remote_port}"
+        unless e.instance_of? IgnoreSilentlyException
+          log.error e.message
+          log.debug e.backtrace.join("\n")
+        end
+        # retry logic
+        connect_attempts += 1
+        case connect_attempts
+          when 1..5
+          connect_retry_period, period_msg = 5, nil
+          when 6..10 then
+          connect_retry_period, period_msg = 30, nil
+          when 11..20 then
+          connect_retry_period, period_msg = 1.minutes, "1 minute"
+        else 
+          connect_retry_period, period_msg = 10.minutes, "10 minutes"
+        end
+        log.info "Will re-attempt in #{period_msg}" if period_msg
+        retry
       end
-      
-      # retry logic
-      @connect_attempts += 1
-      if @connect_attempts > 20
-        @connect_retry_period, period_msg = 10.minutes, "10 minutes"
-      elsif @connect_attempts > 10
-        @connect_retry_period, period_msg = 1.minutes, "1 minute"
-      elsif @connect_attempts > 5
-        @connect_retry_period, period_msg = 30, nil
-      else
-        @connect_retry_period, period_msg = 5, nil
-      end
-      
-      log.info "Will re-attempt in #{period_msg}" if period_msg
-      return true
     end
-    
+      
     def load_samplers
       sampler_files = File.join(File.dirname(__FILE__), 'samplers', '*.rb')
       Dir.glob(sampler_files) do |file|
@@ -555,20 +581,20 @@ module NewRelic::Agent
     
     def harvest_and_send_timeslice_data
       
-      NewRelic::DispatcherInstrumentation::BusyCalculator.harvest_busy
+      NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.harvest_busy
       
       now = Time.now
       
       # Fixme: remove the harvest thread tracking
-#      @harvest_thread ||= Thread.current
-#      
-#      if @harvest_thread != Thread.current
-#        log! "ERROR - two harvest threads are running (current=#{Thread.current}, havest=#{@harvest_thread}"
-#        @harvest_thread = Thread.current
-#      end
+      @harvest_thread ||= Thread.current
+      
+      if @harvest_thread != Thread.current
+        log! "ERROR - two harvest threads are running (current=#{Thread.current}, havest=#{@harvest_thread}"
+        @harvest_thread = Thread.current
+      end
       
       # Fixme: remove this check
-#      log! "Agent sending data too frequently - #{now - @last_harvest_time} seconds" if (now.to_f - @last_harvest_time.to_f) < 45
+      log! "Agent sending data too frequently - #{now - @last_harvest_time} seconds" if (now.to_f - @last_harvest_time.to_f) < 45
       
       @unsent_timeslice_data ||= {}
       @unsent_timeslice_data = @stats_engine.harvest_timeslice_data(@unsent_timeslice_data, @metric_ids)

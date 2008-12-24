@@ -15,6 +15,13 @@ class NewRelic::ConfigTests < Test::Unit::TestCase
     assert_equal false, c['enabled']
     c.local_env
   end
+
+  def test_config_yaml_erb
+    c = NewRelic::Config.instance
+    assert_equal 'heyheyhey', c['erb_value']
+    assert_equal '', c['message']
+    assert_equal '', c['license_key']
+  end
   
   def test_log_file_name
     c = NewRelic::Config.instance

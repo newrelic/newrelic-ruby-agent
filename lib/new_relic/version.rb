@@ -2,8 +2,8 @@
 module NewRelic
   module VERSION #:nodoc:
   MAJOR = 2
-  MINOR = 7
-  TINY  = 4
+  MINOR = 8
+  TINY  = 0
   STRING = [MAJOR, MINOR, TINY].join('.')
   def self.changes
     puts "NewRelic RPM Plugin Version: #{NewRelic::VERSION}"
@@ -11,16 +11,26 @@ module NewRelic
   end
 
   CHANGELOG = <<EOF
+2008-12-18 version 2.8.0
+  * add beta of api in new_relic_api.rb
+  * instrumented dynamic finders in ActiveRecord
+  * fixed incompatibility in the developer mode with the safe_erb plugin
+  * preliminary support for capturing deployment information via capistrano
+  * change memory sampler for solaris to use /usr/bin/ps
+  * fix issue where the agent sometimes failed to start up if there was a transient network problem
+  * fix IgnoreSilentlyException message
+  * Allow ERB in newrelic.yml file
 2008-12-09 version 2.7.4
+  * fix error when trying to serialize some kinds of Enumerable objects
   * added extra debug logging
   * added app_name to app mapping
 2008-11-26 version 2.7.3
   * fix compatibility issue with 1.8.5 causing error with Dir.glob
 2008-11-24 version 2.7.2
-  * bugfixes
+  * fix problem with passenger edge not being a detected environment
 2008-11-22 verison 2.7.1
   * fix problem with skipped dispatcher instrumentation
-2008-11-22 version 2.7.0
+2008-11-23 version 2.7.0
   * Repackage to support both plugin and Gem installation
   * Support passenger/litespeed/jruby application naming
   * Update method for calculating dispatcher queue time

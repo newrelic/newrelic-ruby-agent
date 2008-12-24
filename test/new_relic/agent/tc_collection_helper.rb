@@ -20,9 +20,24 @@ class NewRelic::Agent::CollectionHelperTests < Test::Unit::TestCase
     val = ('A'..'Z').to_a.join * 100
     assert_equal val.first(256) + "...", normalize_params(val)
   end
+  def test_array
+    new_array = normalize_params [ 1000 ] * 50
+    assert_equal 20, new_array.size
+    assert_equal '1000', new_array[0]
+  end
   def test_boolean
     np = normalize_params(APP_CONFIG)
     assert_equal false, np['disable_ui']
+  end
+  def test_coercible_string
+    s = CoercibleString.new "This is a string"
+    assert_equal "This is a string", s.to_s
+    assert_equal CoercibleString, s.class
+    assert_equal String, s.to_s.class
+    params = normalize_params(:val => [s])
+    assert_equal String, params[:val][0].class
+    assert_equal String, flatten(s).class
+    assert_equal String, truncate(s, 2).class
   end
   def test_number
     np = normalize_params({ 'one' => 1.0, 'two' => '2'})
@@ -50,6 +65,23 @@ class NewRelic::Agent::CollectionHelperTests < Test::Unit::TestCase
     myhash = nh[:one][:myhash]
     assert_equal Hash, myhash.class 
   end
+  
+  class MyEnumerable
+     include Enumerable
+     
+     def each
+       yield "1"
+     end
+  end
+  
+  def test_enumerable
+    e = MyEnumerable.new
+    custom_params = { :one => {:hash => { :a => :b}, :myenum => e }}
+    nh = normalize_params(custom_params)
+    myenum = nh[:one][:myenum]
+    assert_equal ["1"], myenum
+  end
+  
   
   def test_object
     assert_equal ["foo", '#<OpenStruct z="q">'], normalize_params(['foo', OpenStruct.new('z'=>'q')])

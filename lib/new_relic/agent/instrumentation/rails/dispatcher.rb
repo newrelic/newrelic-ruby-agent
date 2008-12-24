@@ -1,4 +1,4 @@
-require_dependency 'dispatcher'
+require 'dispatcher'
 
 # NewRelic RPM instrumentation for http request dispatching (Routes mapping)
 # Note, the dispatcher class from no module into into the ActionController module 

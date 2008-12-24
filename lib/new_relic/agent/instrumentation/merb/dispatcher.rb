@@ -6,7 +6,7 @@ require 'merb-core/dispatch/dispatcher'
 Merb::Request.class_eval do
   
   # This is for merb prior to 1.0
-  include NewRelic::DispatcherInstrumentation
+  include NewRelic::Agent::Instrumentation::DispatcherInstrumentation
   alias_method :dispatch_without_newrelic, :handle
   alias_method :handle, :dispatch_newrelic
   
