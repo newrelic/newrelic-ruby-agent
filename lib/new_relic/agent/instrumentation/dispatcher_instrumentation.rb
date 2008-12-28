@@ -11,6 +11,9 @@ module NewRelic::Agent::Instrumentation
       # Put the current time on the thread.  Can't put in @ivar because this could
       # be a class or instance context
       t0 = Time.now.to_f
+      if Thread.current[:newrelic_to]
+        NewRelic::Config.instance.log.warn "Recursive entry into dispatcher start!\n#{caller.join("\n   ")}"
+      end
       Thread.current[:newrelic_t0] = t0
       NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.dispatcher_start t0
       # capture the time spent in the mongrel queue, if running in mongrel.  This is the 
@@ -30,6 +33,7 @@ module NewRelic::Agent::Instrumentation
       @@newrelic_agent.end_transaction
       @@newrelic_rails_dispatch_stat.trace_call(t1 - t0) unless Thread.current[:controller_ignored]
       NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.dispatcher_finish t1    
+      Thread.current[:newrelic_t0] = nil
     end
     
     def dispatch_newrelic(*args)
