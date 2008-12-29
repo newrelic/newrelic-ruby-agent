@@ -185,8 +185,9 @@ module NewRelic
       self
     end
     
+    # returns s,t,f,cpu_burn
     def get_apdex
-      [@call_count, @total_call_time, @total_exclusive_time, @sum_of_squares]
+      [@call_count, @total_call_time.to_i, @total_exclusive_time.to_i, @sum_of_squares]
     end    
     
   end
