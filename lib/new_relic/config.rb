@@ -65,6 +65,10 @@ module NewRelic
       fetch('app_name', nil)
     end
     
+    def set_config(key, name)
+      @settings[key] = name
+    end
+    
     def to_s
       puts self.inspect
       "Config[#{self.app}]"
