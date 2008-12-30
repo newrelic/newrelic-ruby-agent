@@ -123,19 +123,20 @@ module NewRelic::Agent::Instrumentation
             end
           ensure
             cpu_burn = (Process.times.utime + Process.times.stime) - t
+            stats_engine.get_stats_no_scope("ControllerCPU/#{path}").record_data_point(cpu_burn)
             agent.transaction_sampler.notice_transaction_cpu_time(cpu_burn)
             
             duration = Time.now.to_f - start
             # do the apdex bucketing
             if duration <= @@newrelic_apdex_t
-              @@newrelic_apdex_overall.record_apdex_s cpu_burn    # satisfied
-              stats_engine.get_stats_no_scope("Apdex/#{path}").record_apdex_s cpu_burn
+              @@newrelic_apdex_overall.record_apdex_s    # satisfied
+              stats_engine.get_stats_no_scope("Apdex/#{path}").record_apdex_s
             elsif duration <= (4 * @@newrelic_apdex_t)
-              @@newrelic_apdex_overall.record_apdex_t cpu_burn    # tolerating
-              stats_engine.get_stats_no_scope("Apdex/#{path}").record_apdex_t cpu_burn
+              @@newrelic_apdex_overall.record_apdex_t    # tolerating
+              stats_engine.get_stats_no_scope("Apdex/#{path}").record_apdex_t
             else
-              @@newrelic_apdex_overall.record_apdex_f cpu_burn    # frustrated
-              stats_engine.get_stats_no_scope("Apdex/#{path}").record_apdex_f cpu_burn
+              @@newrelic_apdex_overall.record_apdex_f    # frustrated
+              stats_engine.get_stats_no_scope("Apdex/#{path}").record_apdex_f
             end
             
           end
