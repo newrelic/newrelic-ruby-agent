@@ -10,7 +10,7 @@ if defined? ActionController
     alias_method :perform_action, :perform_action_with_newrelic_trace
     private :perform_action
     
-    add_method_tracer :render, 'View/#{newrelic_metric_path}/Rendering'
+    add_method_tracer :render, 'View/#{newrelic_metric_path}/Rendering', :scoped_metric_only => true
     
     def self.newrelic_ignore_attr=(value)
       write_inheritable_attribute('do_not_trace', value)

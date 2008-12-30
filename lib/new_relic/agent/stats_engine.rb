@@ -145,25 +145,39 @@ module NewRelic::Agent
       stats
     end
     
-    def get_stats(metric_name, use_scope = true)
-      stats = @stats_hash[metric_name]
-      if stats.nil?
-        stats = NewRelic::MethodTraceStats.new
-        @stats_hash[metric_name] = stats
-      end
+    # If use_scope is true, two chained metrics are created, one with scope and one without
+    # If scoped_metric_only is true, only a scoped metric is created (used by rendering metrics which by definition are per controller only)
+    def get_stats(metric_name, use_scope = true, scoped_metric_only = false)
       
-      if use_scope && transaction_name
+      if scoped_metric_only
         spec = NewRelic::MetricSpec.new metric_name, transaction_name
         
-        scoped_stats = @stats_hash[spec]
-        if scoped_stats.nil?
-          scoped_stats = NewRelic::ScopedMethodTraceStats.new stats
-          @stats_hash[spec] = scoped_stats        
+        stats = @stats_hash[spec]
+        if stats.nil?
+          stats = NewRelic::MethodTraceStats.new
+          @stats_hash[spec] = stats        
+        end
+      else  
+        stats = @stats_hash[metric_name]
+        if stats.nil?
+          stats = NewRelic::MethodTraceStats.new
+          @stats_hash[metric_name] = stats
         end
         
-        stats = scoped_stats
+        if use_scope && transaction_name
+          spec = NewRelic::MetricSpec.new metric_name, transaction_name
+          
+          scoped_stats = @stats_hash[spec]
+          if scoped_stats.nil?
+            scoped_stats = NewRelic::ScopedMethodTraceStats.new stats
+            @stats_hash[spec] = scoped_stats        
+          end
+          
+          stats = scoped_stats
+        end
       end
-      return stats
+      
+      stats
     end
     
     # Note: this is not synchronized.  There is still some risk in this and

@@ -21,7 +21,7 @@ class Module
     result 
   end
 
-  def trace_method_execution_with_scope(metric_name, produce_metric, deduct_call_time_from_parent)
+  def trace_method_execution_with_scope(metric_name, produce_metric, deduct_call_time_from_parent, scoped_metric_only=false)
   
     t0 = Time.now.to_f
     stats = nil
@@ -31,7 +31,7 @@ class Module
       # sure when we pop we get the one we 'expected'
       expected_scope = @@newrelic_stats_engine.push_scope(metric_name, t0, deduct_call_time_from_parent)
       
-      stats = @@newrelic_stats_engine.get_stats metric_name, true if produce_metric
+      stats = @@newrelic_stats_engine.get_stats(metric_name, true, scoped_metric_only) if produce_metric
     rescue => e
       NewRelic::Config.instance.log.error("Caught exception in trace_method_execution header. Metric name = #{metric_name}, exception = #{e}")
       NewRelic::Config.instance.log.error(e.backtrace.join("\n"))
@@ -87,6 +87,7 @@ class Module
     options[:deduct_call_time_from_parent] = true if options[:deduct_call_time_from_parent].nil?
     options[:code_header] ||= ""
     options[:code_footer] ||= ""
+    options[:scoped_metric_only] ||= false
     
     klass = (self === Module) ? "self" : "self.class"
     
@@ -123,7 +124,7 @@ class Module
       code = <<-CODE
       def #{_traced_method_name(method_name, metric_name_code)}(*args, &block)
         #{options[:code_header]}
-        result = #{klass}.trace_method_execution_with_scope("#{metric_name_code}", #{options[:metric]}, #{options[:deduct_call_time_from_parent]}) do
+        result = #{klass}.trace_method_execution_with_scope("#{metric_name_code}", #{options[:metric]}, #{options[:deduct_call_time_from_parent]}, #{options[:scoped_metric_only]}) do
           #{_untraced_method_name(method_name, metric_name_code)}(*args, &block)
         end
         #{options[:code_footer]}
