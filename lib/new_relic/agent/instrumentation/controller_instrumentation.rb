@@ -101,14 +101,13 @@ module NewRelic::Agent::Instrumentation
       
       # generate metrics for all all controllers (no scope)
       self.class.trace_method_execution_no_scope "Controller" do 
-        # generate metrics for this specific action
         # assuming the first argument, if present, is the action name
         path = newrelic_metric_path(args.size > 0 ? args[0] : nil)
-        stats_engine.transaction_name ||= "Controller/#{path}" if stats_engine
+        controller_metric = "Controller/#{path}"
         
-        self.class.trace_method_execution_with_scope "Controller/#{path}", true, true do 
-          # send request and parameter info to the transaction sampler
-          
+        self.class.trace_method_execution_with_scope controller_metric, true, true do 
+          stats_engine.transaction_name = controller_metric
+
           local_params = (respond_to? :filter_parameters) ? filter_parameters(params) : params
           
           agent.transaction_sampler.notice_transaction(path, request, local_params)
