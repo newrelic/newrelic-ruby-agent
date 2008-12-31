@@ -11,9 +11,7 @@ module NewRelic::Agent::Instrumentation
       # Put the current time on the thread.  Can't put in @ivar because this could
       # be a class or instance context
       t0 = Time.now.to_f
-      if Thread.current[:newrelic_to]
-        NewRelic::Config.instance.log.warn "Recursive entry into dispatcher start!\n#{caller.join("\n   ")}"
-      end
+      NewRelic::Config.instance.log.warn "Recursive entry into dispatcher_start!\n#{caller.join("\n   ")}" if Thread.current[:newrelic_t0]
       Thread.current[:newrelic_t0] = t0
       NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.dispatcher_start t0
       # capture the time spent in the mongrel queue, if running in mongrel.  This is the 
@@ -28,7 +26,11 @@ module NewRelic::Agent::Instrumentation
     end
     
     def newrelic_dispatcher_finish
-      t0 = Thread.current[:newrelic_t0] or return
+      t0 = Thread.current[:newrelic_t0]
+      if t0.nil?
+        NewRelic::Config.instance.log.warn "Dispatcher finish called twice!\n#{caller.join("\n   ")}" 
+        return
+      end
       t1 = Time.now.to_f
       @@newrelic_agent.end_transaction
       @@newrelic_rails_dispatch_stat.trace_call(t1 - t0) unless Thread.current[:controller_ignored]
@@ -46,43 +48,42 @@ module NewRelic::Agent::Instrumentation
     end
     
     # This won't work with Rails 2.2 multi-threading
-    class BusyCalculator
-      
+    module BusyCalculator
+      extend self
       # the fraction of the sample period that the dispatcher was busy
-      @@instance_busy = NewRelic::Agent.agent.stats_engine.get_stats('Instance/Busy')
-      @@harvest_start = Time.now.to_f
-      @@accumulator = 0
-      @@dispatcher_start = nil    
-      def self.dispatcher_start(time)
+      @instance_busy = NewRelic::Agent.agent.stats_engine.get_stats('Instance/Busy')
+      @harvest_start = Time.now.to_f
+      @accumulator = 0
+      @dispatcher_start = nil    
+      def dispatcher_start(time)
         Thread.critical = true
-        @@dispatcher_start = time      
+        @dispatcher_start = time      
         Thread.critical = false
       end
       
-      def self.dispatcher_finish(time)
+      def dispatcher_finish(time)
         Thread.critical = true
-        
-        @@accumulator += (time - @@dispatcher_start)
-        @@dispatcher_start = nil
+        @accumulator += (time - @dispatcher_start)
+        @dispatcher_start = nil
         
         Thread.critical = false
       end
       
-      def self.is_busy?
-        @@dispatcher_start
+      def is_busy?
+        @dispatcher_start
       end
       
-      def self.harvest_busy
+      def harvest_busy
         Thread.critical = true
         
-        busy = @@accumulator
-        @@accumulator = 0
+        busy = @accumulator
+        @accumulator = 0
         
         t0 = Time.now.to_f
         
-        if @@dispatcher_start
-          busy += (t0 - @@dispatcher_start)
-          @@dispatcher_start = t0
+        if @dispatcher_start
+          busy += (t0 - @dispatcher_start)
+          @dispatcher_start = t0
         end
         
         
@@ -90,16 +91,14 @@ module NewRelic::Agent::Instrumentation
         
         busy = 0.0 if busy < 0.0 # don't go below 0%
         
-        time_window = (t0 - @@harvest_start)
+        time_window = (t0 - @harvest_start)
         time_window = 1.0 if time_window == 0.0  # protect against divide by zero
         
         busy = busy / time_window
         
         busy = 1.0 if busy > 1.0    # cap at 100%
-        
-        @@instance_busy.record_data_point busy
-        
-        @@harvest_start = t0
+        @instance_busy.record_data_point busy
+        @harvest_start = t0
       end
     end
   end
