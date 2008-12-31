@@ -29,7 +29,7 @@ module NewRelic::Agent::Instrumentation
   module ControllerInstrumentation
     
     @@newrelic_apdex_t = NewRelic::Agent.instance.apdex_t
-    @@newrelic_apdex_overall = NewRelic::Agent.instance.stats_engine.get_stats_no_scope("Apdex")
+    @@newrelic_apdex_overall = NewRelic::Agent.instance.stats_engine.get_custom_stats("Apdex", NewRelic::ApdexStats)
     def self.included(clazz)
       clazz.extend(ClassMethods)
     end
@@ -60,6 +60,8 @@ module NewRelic::Agent::Instrumentation
     end
     
     @@newrelic_apdex_t = NewRelic::Agent.instance.apdex_t
+    @@newrelic_apdex_4t = 4 * @@newrelic_apdex_t
+
     # Perform the current action with NewRelic tracing.  Used in a method
     # chain via aliasing.  Call directly if you want to instrument a specifc
     # block as if it were an action.  Pass the block along with the path.
@@ -114,6 +116,8 @@ module NewRelic::Agent::Instrumentation
           
           t = Process.times.utime + Process.times.stime
           
+          failed = false
+          
           begin
             # run the action
             if block_given?
@@ -121,28 +125,34 @@ module NewRelic::Agent::Instrumentation
             else
               perform_action_without_newrelic_trace(*args)
             end
+          rescue Exception => e
+            failed = true
+            raise e
           ensure
             cpu_burn = (Process.times.utime + Process.times.stime) - t
             stats_engine.get_stats_no_scope("ControllerCPU/#{path}").record_data_point(cpu_burn)
             agent.transaction_sampler.notice_transaction_cpu_time(cpu_burn)
             
-            duration = Time.now.to_f - start
             # do the apdex bucketing
-            if duration <= @@newrelic_apdex_t
+            #
+            duration = Time.now.to_f - start
+            controller_stat = stats_engine.get_custom_stats("Apdex/#{path}", NewRelic::ApdexStats)
+            if failed
+              @@newrelic_apdex_overall.record_apdex_f    # frustrated
+              controller_stat.record_apdex_f
+            elsif duration <= @@newrelic_apdex_t
               @@newrelic_apdex_overall.record_apdex_s    # satisfied
-              stats_engine.get_stats_no_scope("Apdex/#{path}").record_apdex_s
-            elsif duration <= (4 * @@newrelic_apdex_t)
+              controller_stat.record_apdex_s
+            elsif duration <= (@@newrelic_apdex_4t)
               @@newrelic_apdex_overall.record_apdex_t    # tolerating
-              stats_engine.get_stats_no_scope("Apdex/#{path}").record_apdex_t
+              controller_stat.record_apdex_t
             else
               @@newrelic_apdex_overall.record_apdex_f    # frustrated
-              stats_engine.get_stats_no_scope("Apdex/#{path}").record_apdex_f
+              controller_stat.record_apdex_f
             end
-            
           end
         end
       end
-      
     ensure
       # clear out the name of the traced transaction under all circumstances
       stats_engine.transaction_name = nil
