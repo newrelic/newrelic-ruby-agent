@@ -6,4 +6,8 @@ class NewRelic::Config::Test < NewRelic::Config::Rails
   def config_file
     File.join(File.dirname(__FILE__), "newrelic.yml")
   end
+  def initialize
+    super
+    setup_log env
+  end
 end
