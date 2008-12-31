@@ -192,10 +192,10 @@ module NewRelic
     
   end
   
-  # Statistics used to track the performance of traced methods
-  class MethodTraceStats
+  
+  class StatsBase
     include Stats
-    
+
     attr_accessor :call_count
     attr_accessor :min_call_time
     attr_accessor :max_call_time
@@ -203,49 +203,15 @@ module NewRelic
     attr_accessor :total_exclusive_time
     attr_accessor :sum_of_squares
     
-    alias data_point_count call_count
-    
     def initialize 
       reset
     end
     
-    # record a single data point into the statistical gatherer.  The gatherer
-    # will aggregate all data points collected over a specified period and upload
-    # its data to the NewRelic server
-    def record_data_point(value, exclusive_time = value)
-      @call_count += 1
-      @total_call_time += value
-      @min_call_time = value if value < @min_call_time || @call_count == 1
-      @max_call_time = value if value > @max_call_time
-      @total_exclusive_time += exclusive_time
-
-      @sum_of_squares += (value * value)
-      self
-    end
-    
-    alias trace_call record_data_point
-    
-    def record_apdex_s
-      @call_count += 1
-    end
-    
-    def record_apdex_t
-      @total_call_time += 1
-    end
-    
-    def record_apdex_f
-      @total_exclusive_time += 1
-    end
-    
-    def increment_count(value = 1)
-      @call_count += value
-    end
-
-
     def freeze
       @end_time = Time.now
       super
     end
+
     
     # In this class, we explicitly don't track begin and end time here, to save space during
     # cross process serialization via xml.  Still the accessor methods must be provided for merge to work.
@@ -264,6 +230,53 @@ module NewRelic
     end
   end
   
+  
+  class BasicStats < StatsBase
+  end
+  
+  class ApdexStats < StatsBase
+    
+    def record_apdex_s
+      @call_count += 1
+    end
+    
+    def record_apdex_t
+      @total_call_time += 1
+    end
+    
+    def record_apdex_f
+      @total_exclusive_time += 1
+    end
+  end
+  
+  # Statistics used to track the performance of traced methods
+  class MethodTraceStats < StatsBase
+    
+    alias data_point_count call_count
+    
+    
+    # record a single data point into the statistical gatherer.  The gatherer
+    # will aggregate all data points collected over a specified period and upload
+    # its data to the NewRelic server
+    def record_data_point(value, exclusive_time = value)
+      @call_count += 1
+      @total_call_time += value
+      @min_call_time = value if value < @min_call_time || @call_count == 1
+      @max_call_time = value if value > @max_call_time
+      @total_exclusive_time += exclusive_time
+
+      @sum_of_squares += (value * value)
+      self
+    end
+    
+    alias trace_call record_data_point
+    
+    def increment_count(value = 1)
+      @call_count += value
+    end
+
+  end
+  
   class ScopedMethodTraceStats < MethodTraceStats
     def initialize(unscoped_stats)
       super()
@@ -277,6 +290,7 @@ module NewRelic
     end
   end
 end
+
 
 class Numeric
   

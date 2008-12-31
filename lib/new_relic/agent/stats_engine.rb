@@ -145,6 +145,17 @@ module NewRelic::Agent
       stats
     end
     
+    # This version allows a caller to pass a stat class to use
+    #
+    def get_custom_stats(metric_name, stat_class)
+      stats = @stats_hash[metric_name]
+      if stats.nil?
+        stats = stat_class.new
+        @stats_hash[metric_name] = stats
+      end
+      stats
+    end
+    
     # If use_scope is true, two chained metrics are created, one with scope and one without
     # If scoped_metric_only is true, only a scoped metric is created (used by rendering metrics which by definition are per controller only)
     def get_stats(metric_name, use_scope = true, scoped_metric_only = false)
