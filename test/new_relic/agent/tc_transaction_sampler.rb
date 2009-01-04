@@ -133,7 +133,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
         assert_nil segment[:sql]
       end
 
-      def test_stack_trace
+      def test_stack_trace__sql
         sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
         
         sampler.stack_trace_threshold = 0
@@ -145,6 +145,17 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
         segment = sampler.builder.current_segment
         
         assert segment[:sql]
+        assert segment[:backtrace]
+      end
+      def test_stack_trace__scope
+        sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
+        
+        sampler.stack_trace_threshold = 0
+        t = Time.now
+        sampler.notice_first_scope_push t.to_f
+        sampler.notice_push_scope 'Bill', (t+1.second).to_f
+        
+        segment = sampler.builder.current_segment
         assert segment[:backtrace]
       end
 

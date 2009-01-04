@@ -71,13 +71,13 @@ module NewRelic::Agent
       if NewRelic::Config.instance.developer_mode?
         segment = builder.current_segment
         if segment
-          # NOTE we manually inspect stack traces to determine that the 
-          # agent consumes the last 8 frames.  Review after we make changes
-          # to transaction sampling or stats engine to make sure this remains
-          # a true assumption
-          trace = caller(8)
+          # Strip stack frames off the top that match /new_relic/agent/
+          trace = caller
+          while trace.first =~/\/lib\/new_relic\/agent\//
+            trace.shift
+          end
           
-          trace = trace[0..40] if trace.length > 40
+          trace = trace[0..39] if trace.length > 40
           segment[:backtrace] = trace
         end
       end
