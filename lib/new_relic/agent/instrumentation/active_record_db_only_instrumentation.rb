@@ -32,6 +32,8 @@ if false && defined? ActiveRecord
         
         operation = a[1].downcase
           
+          operation = "find" if operation == "load"
+          
         model = a[0]
           
         metric = "ActiveRecord/#{model}/#{operation}"
