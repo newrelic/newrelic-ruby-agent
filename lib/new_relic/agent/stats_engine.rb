@@ -225,7 +225,7 @@ module NewRelic::Agent
         
         # don't bother collecting and reporting stats that have zero-values for this timeslice.
         # significant performance boost and storage savings.
-        unless stats_copy.call_count == 0
+        unless stats_copy.call_count == 0 && stats_copy.total_call_time == 0.0 && stats_copy.total_exclusive_time == 0.0
           
           metric_spec_for_transport = (metric_ids[metric_spec].nil?) ? metric_spec : nil
           
