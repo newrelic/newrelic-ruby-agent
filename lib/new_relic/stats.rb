@@ -71,6 +71,10 @@ module NewRelic
       timeslices
     end
     
+    def is_reset?
+      call_count == 0 && total_call_time == 0.0 && total_exclusive_time == 0.0
+    end
+    
     def reset
       self.call_count = 0
       self.total_call_time = 0.0
