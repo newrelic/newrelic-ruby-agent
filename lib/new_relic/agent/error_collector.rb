@@ -67,7 +67,7 @@ module NewRelic::Agent
       else
         inside_exception = exception
       end
-      data[:stack_trace] = clean_backtrace(inside_exception.backtrace)
+      data[:stack_trace] = strip_nr_from_backtrace(inside_exception.backtrace)
       noticed_error = NewRelic::NoticedError.new(path, data, exception)
       
       synchronize do

@@ -21,7 +21,7 @@ module NewrelicHelper
   # return the highest level in the call stack for the trace that is not rails or 
   # newrelic agent code
   def application_caller(trace)
-    trace = clean_backtrace(trace)
+    trace = strip_nr_from_backtrace(trace)
     trace.each do |trace_line|
       file = file_and_line(trace_line).first
       unless exclude_file_from_stack_trace?(file, false)
@@ -32,7 +32,7 @@ module NewrelicHelper
   end
   
   def application_stack_trace(trace, include_rails = false)
-    trace = clean_backtrace(trace)
+    trace = strip_nr_from_backtrace(trace)
     trace.reject do |trace_line|
       file = file_and_line(trace_line).first
       exclude_file_from_stack_trace?(file, include_rails)
@@ -271,5 +271,16 @@ private
   
   def show_view_link(title, page_name)
     link_to_function("[#{title}]", "show_view('#{page_name}')");
+  end
+  def mime_type_from_extension(extension)
+    extension = extension[/[^.]*$/].downcase
+    case extension
+      when 'png': 'image/png'
+      when 'gif': 'image/gif'
+      when 'jpg': 'image/jpg'
+      when 'css': 'text/css'
+      when 'js': 'text/javascript'
+      else 'text/plain'
+    end
   end
 end

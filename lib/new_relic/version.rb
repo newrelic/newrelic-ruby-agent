@@ -14,12 +14,14 @@ module NewRelic
 2008-12-18 version 2.8.0
   * add beta of api in new_relic_api.rb
   * instrumented dynamic finders in ActiveRecord
-  * fixed incompatibility in the developer mode with the safe_erb plugin
   * preliminary support for capturing deployment information via capistrano
   * change memory sampler for solaris to use /usr/bin/ps
+  * allow ERB in newrelic.yml file
+  * merged support for merb into this version 
+  * fix incompatibility in the developer mode with the safe_erb plugin
+  * fix module namespace issue causing an error accessing NewRelic::Instrumentation modules
   * fix issue where the agent sometimes failed to start up if there was a transient network problem
   * fix IgnoreSilentlyException message
-  * Allow ERB in newrelic.yml file
 2008-12-09 version 2.7.4
   * fix error when trying to serialize some kinds of Enumerable objects
   * added extra debug logging
