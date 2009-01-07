@@ -306,7 +306,7 @@ module NewRelic::Agent
     end
     
     def apdex_t
-      @apdex_t ||= (config['apdex_T'] || config['apdex_t'] || 2.0).to_f
+      @apdex_t ||= (config['apdex_t'] || 2.0).to_f
     end    
         
     private
