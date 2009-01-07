@@ -264,6 +264,8 @@ private
       file =~ /\/activesupport\// ||
       file =~ /\/lib\/mongrel/ ||
       file =~ /\/actionpack\// ||
+      file =~ /\/passenger\// ||
+      file =~ /\/benchmark.rb/ ||
       file !~ /\.rb/)                  # must be a .rb file, otherwise it's a script of something else...we could have gotten trickier and tried to see if this file exists...
   end
   
