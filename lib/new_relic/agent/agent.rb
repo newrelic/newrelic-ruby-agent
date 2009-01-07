@@ -370,7 +370,7 @@ module NewRelic::Agent
             self.class.new_relic_set_agent_thread(Thread.current)
           end          
           run_worker_loop
-        rescue IngnoreSilentlyException
+        rescue IgnoreSilentlyException
           log! "Unable to establish connection with the server.  Run with log level set to debug for more information."
         rescue StandardError => e
           log! e
