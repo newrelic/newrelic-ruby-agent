@@ -102,7 +102,7 @@ module NewRelic::Agent
         rescue Timeout::Error, NewRelic::Agent::IgnoreSilentlyException
           # Want to ignore these because they are handled already
         rescue ScriptError, StandardError => e 
-          log.error "Error running task in Agent Worker Loop: #{e}" 
+          log.error "Error running task in Agent Worker Loop (#{e.class}): #{e} " 
           log.debug e.backtrace.join("\n")
         end
       end
