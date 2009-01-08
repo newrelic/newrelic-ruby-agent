@@ -724,16 +724,10 @@ module NewRelic::Agent
       # gathers data and talks to the server. 
       @connected = false
       Thread.exit
-    rescue SystemCallError => e
+    rescue SystemCallError, SocketError => e
       # These include Errno connection errors 
-      log.debug "Error connecting to the server: #{e}"
+      log.debug "Recoverable error connecting to the server: #{e}"
       raise IgnoreSilentlyException
-    rescue IgnoreSilentlyException
-      raise
-    rescue => e
-      log.debug("Error communicating with RPM Service at #{@remote_host}:#{remote_port}: #{e} (#{e.class})")
-      #log.debug(e.backtrace.join("\n"))
-      raise
     end
     
     # send the given message to STDERR as well as the agent log, so that it shows
