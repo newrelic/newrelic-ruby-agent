@@ -34,7 +34,7 @@ module NewRelic::Agent::CollectionHelper
   # Return an array of strings (backtrace), cleaned up for readability
   # Return nil if there is no backtrace
   
-  def clean_backtrace(backtrace)
+  def strip_nr_from_backtrace(backtrace)
     if backtrace
       # strip newrelic from the trace
       backtrace = backtrace.reject {|line| line =~ /new_relic\/agent\// }
