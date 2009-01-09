@@ -289,12 +289,6 @@ module NewRelic
       @params[:request_params] = {}
     end
 
-    # This is needed on the server to override what the agent's time is
-    # We always use server time
-    def start_time=(val)
-      @start_time = val
-    end
-    
     def start_time
       Time.at(@start_time)
     end
