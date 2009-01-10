@@ -143,14 +143,14 @@ class NewrelicController < ActionController::Base
   def forward_to_file(root_path, content_type='ignored anyway')
     file = File.expand_path(File.join(__FILE__,"../../views", root_path, params[:file]))
     last_modified = File.mtime(file)
-    date_check = request.headers['if-modified-since']
+    date_check = request.respond_to?(:headers) ? request.headers['if-modified-since'] : request.env['HTTP_IF_MODIFIED_SINCE']
     if date_check && Time.parse(date_check) >= last_modified
       expires_in 24.hours
       head :not_modified, 
       :last_modified => last_modified,
       :type => 'text/plain'
     else
-      headers['Last-Modified'] = last_modified
+      response.headers['Last-Modified'] = last_modified
       expires_in 24.hours
       send_file file, :content_type => mime_type_from_extension(file), :disposition => 'inline' #, :filename => File.basename(file)
     end
