@@ -15,12 +15,13 @@ module NewRelic::Agent
       @@capture_params = params
     end
     
-    attr_accessor :stack_trace_threshold, :random_sampling
+    attr_accessor :stack_trace_threshold, :random_sampling, :sampling_rate
     
     
     def initialize(agent)
       @samples = []
       
+      @harvest_count = 0
       @max_samples = 100
       @random_sample = nil
       @stack_trace_threshold = 100000.0
@@ -33,6 +34,11 @@ module NewRelic::Agent
     
     def disable
       NewRelic::Agent.instance.stats_engine.remove_scope_stack_listener self
+    end
+    
+    def sampling_rate=(val)
+      @sampling_rate = val
+      @harvest_count = rand(val)
     end
     
     
@@ -110,7 +116,7 @@ module NewRelic::Agent
       synchronize do
         sample = last_builder.sample
         
-        @random_sample ||= sample if @random_sampling
+        @random_sample = sample if @random_sampling
       
         # ensure we don't collect more than a specified number of samples in memory
         @samples << sample if NewRelic::Config.instance.developer_mode? && sample.params[:path] != nil
@@ -171,8 +177,14 @@ module NewRelic::Agent
       previous_slowest = previous.inject(nil) {|a,ts| (a) ? ((a.duration > ts.duration) ? a : ts) : ts}
       
       synchronize do
-        result << @random_sample if @random_sample
-        @random_sample = nil
+        
+        if @random_sampling        
+          @harvest_count += 1
+          
+          if (@harvest_count % @sampling_rate) == 0
+            result << @random_sample if @random_sample
+          end
+        end
         
         slowest = @slowest_sample
         @slowest_sample = nil

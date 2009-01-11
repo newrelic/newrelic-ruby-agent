@@ -426,6 +426,9 @@ module NewRelic::Agent
       @explain_enabled = sampler_config.fetch('explain_enabled', true)
       @stack_trace_threshold = sampler_config.fetch('stack_trace_threshold', '0.500').to_f
       @random_sample = sampler_config.fetch('random_sample', false)
+      @frustrating = sampler_config.fetch('frustrating', false)
+      
+      @slowest_transaction_threshold = (4 * apdex_t.to_f) if @frustrating
       
       log.info "Transaction tracing is enabled in agent config" if @use_transaction_sampler
       log.warn "Agent is configured to send raw SQL to RPM service" if @record_sql == :raw
@@ -524,6 +527,13 @@ module NewRelic::Agent
         
         # Ask the server for permission to send transaction samples.  determined by subscription license.
         @should_send_samples = invoke_remote :should_collect_samples, @agent_id
+        
+        if @should_send_samples
+          sampling_rate = invoke_remote :sampling_rate, @agent_id
+          @transaction_sampler.sampling_rate = sampling_rate
+            
+          log.info "Transaction sample rate: #{sampling_rate}"
+        end
         
         # Ask for mermission to collect error data
         @should_send_errors = invoke_remote :should_collect_errors, @agent_id
