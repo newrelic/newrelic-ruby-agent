@@ -149,7 +149,7 @@ class NewRelic::Agent::MethodTracerTests < Test::Unit::TestCase
     assert_equal 2, stats.call_count
     stats = @stats_engine.get_stats("thrower")
     assert_equal 6, stats.call_count
-    sample = sampler.harvest_slowest_sample
+    sample = sampler.harvest
     assert_not_nil sample
   end
   

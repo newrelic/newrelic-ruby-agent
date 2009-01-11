@@ -425,6 +425,7 @@ module NewRelic::Agent
       @explain_threshold = sampler_config.fetch('explain_threshold', '0.5').to_f
       @explain_enabled = sampler_config.fetch('explain_enabled', true)
       @stack_trace_threshold = sampler_config.fetch('stack_trace_threshold', '0.500').to_f
+      @random_sample = sampler_config.fetch('random_sample', false)
       
       log.info "Transaction tracing is enabled in agent config" if @use_transaction_sampler
       log.warn "Agent is configured to send raw SQL to RPM service" if @record_sql == :raw
@@ -445,6 +446,7 @@ module NewRelic::Agent
       # Initialize transaction sampler
       TransactionSampler.capture_params = @capture_params
       @transaction_sampler.stack_trace_threshold = @stack_trace_threshold
+      @transaction_sampler.random_sampling = @random_sample
       @error_collector.capture_params = @capture_params
       
       
@@ -626,26 +628,26 @@ module NewRelic::Agent
     end
     
     def harvest_and_send_slowest_sample
-      @slowest_sample = @transaction_sampler.harvest_slowest_sample(@slowest_sample)
+      @traces = @transaction_sampler.harvest(@traces, @slowest_transaction_threshold)
       
-      if @slowest_sample && @slowest_sample.duration > @slowest_transaction_threshold
+      unless @traces.empty?
         now = Time.now
-        log.debug "Sending slowest sample: #{@slowest_sample.params[:path]}, #{@slowest_sample.duration.round_to(2)}s (explain=#{@explain_enabled})" if @slowest_sample
+        log.debug "Sending (#{@traces.length}) transaction traces"
         
-        # take the slowest sample, and prepare it for sending across the wire.  This includes
+        # take the traces and prepare them for sending across the wire.  This includes
         # gathering SQL explanations, stripping out stack traces, and normalizing SQL.
         # note that we explain only the sql statements whose segments' execution times exceed 
         # our threshold (to avoid unnecessary overhead of running explains on fast queries.)
-        sample = @slowest_sample.prepare_to_send(:explain_sql => @explain_threshold, :record_sql => @record_sql, :keep_backtraces => true, :explain_enabled => @explain_enabled)
+        traces = @traces.collect {|trace| trace.prepare_to_send(:explain_sql => @explain_threshold, :record_sql => @record_sql, :keep_backtraces => true, :explain_enabled => @explain_enabled)} 
         
-        invoke_remote :transaction_sample_data, @agent_id, sample
+        invoke_remote :transaction_sample_data, @agent_id, traces
         
         log.debug "#{now}: sent slowest sample (#{@agent_id}) in #{Time.now - now} seconds"
       end
       
       # if we succeed sending this sample, then we don't need to keep the slowest sample
       # around - it has been sent already and we can collect the next one
-      @slowest_sample = nil
+      @traces = nil
       
       # note - exceptions are logged in invoke_remote.  If an exception is encountered here,
       # then the slowest sample of is determined of the entire period since the last

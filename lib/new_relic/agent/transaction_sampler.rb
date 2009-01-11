@@ -14,12 +14,15 @@ module NewRelic::Agent
     def self.capture_params=(params)
       @@capture_params = params
     end
-    attr_accessor :stack_trace_threshold
+    
+    attr_accessor :stack_trace_threshold, :random_sampling
+    
     
     def initialize(agent)
       @samples = []
       
       @max_samples = 100
+      @random_sample = nil
       @stack_trace_threshold = 100000.0
       agent.stats_engine.add_scope_stack_listener self
 
@@ -106,6 +109,8 @@ module NewRelic::Agent
     
       synchronize do
         sample = last_builder.sample
+        
+        @random_sample ||= sample if @random_sampling
       
         # ensure we don't collect more than a specified number of samples in memory
         @samples << sample if NewRelic::Config.instance.developer_mode? && sample.params[:path] != nil
@@ -152,23 +157,35 @@ module NewRelic::Agent
         end
       end
     end
+
     
     # get the set of collected samples, merging into previous samples,
     # and clear the collected sample list. 
     
-    def harvest_slowest_sample(previous_slowest = nil)
+    def harvest(previous = nil, slow_threshold = 2.0)
+      result = []
+      previous ||= []
+      
+      previous = [previous] unless previous.is_a?(Array)
+      
+      previous_slowest = previous.inject(nil) {|a,ts| (a) ? ((a.duration > ts.duration) ? a : ts) : ts}
+      
       synchronize do
+        result << @random_sample if @random_sample
+        @random_sample = nil
+        
         slowest = @slowest_sample
         @slowest_sample = nil
-
-        return nil unless slowest
-
-        if previous_slowest.nil? || previous_slowest.duration < slowest.duration
-          slowest
-        else
-          previous_slowest
+        
+        if slowest && slowest != @random_sample
+          if previous_slowest.nil? || previous_slowest.duration < slowest.duration
+            result << slowest
+          else
+            result << previous_slowest
+          end
         end
       end
+      result
     end
 
     # get the list of samples without clearing the list.

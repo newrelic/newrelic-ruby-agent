@@ -37,15 +37,15 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
         run_sample_trace
         run_sample_trace
         
-        slowest = @sampler.harvest_slowest_sample(nil)
+        slowest = @sampler.harvest(nil)[0]
         assert slowest.duration >= 0.5
         
         run_sample_trace { sleep 0.2 }
-        not_as_slow = @sampler.harvest_slowest_sample(slowest)
+        not_as_slow = @sampler.harvest(slowest)[0]
         assert not_as_slow == slowest
         
         run_sample_trace { sleep 0.6 }
-        new_slowest = @sampler.harvest_slowest_sample(slowest)
+        new_slowest = @sampler.harvest(slowest)[0]
         assert new_slowest != slowest
         assert new_slowest.duration >= 0.6
       end
@@ -55,7 +55,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
         @sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
 
         run_sample_trace { sleep 0.2 }
-        sample = @sampler.harvest_slowest_sample(nil)
+        sample = @sampler.harvest(nil)[0]
         
         ready_to_send = sample.prepare_to_send
         assert sample.duration == ready_to_send.duration
@@ -115,7 +115,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
         @sampler.notice_scope_empty
         @sampler.notice_scope_empty
         
-        assert_not_nil @sampler.harvest_slowest_sample(nil)
+        assert_not_nil @sampler.harvest(nil)[0]
       end
       
 
@@ -221,7 +221,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
           t.notice_transaction('/path', nil, {:param => 'hi'})
           t.notice_scope_empty
           
-          tt = t.harvest_slowest_sample
+          tt = t.harvest[0]
           
           assert_equal (capture) ? 1 : 0, tt.params[:request_params].length
         end

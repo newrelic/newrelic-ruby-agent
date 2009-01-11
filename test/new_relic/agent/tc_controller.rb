@@ -39,7 +39,7 @@ class AgentControllerTests < ActionController::TestCase
     @agent = NewRelic::Agent.instance
     #    @agent.instrument_app
     agent.start :test, :test
-    agent.transaction_sampler.harvest_slowest_sample
+    agent.transaction_sampler.harvest
     AgentTestController.class_eval do
       newrelic_ignore :only => [:action_to_ignore, :entry_action]
     end
