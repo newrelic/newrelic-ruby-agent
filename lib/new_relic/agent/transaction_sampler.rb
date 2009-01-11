@@ -183,6 +183,7 @@ module NewRelic::Agent
           
           if (@harvest_count % @sampling_rate) == 0
             result << @random_sample if @random_sample
+            @random_sample = nil
           end
         end
         
