@@ -192,7 +192,12 @@ module NewRelic
     # returns s,t,f
     def get_apdex
       [@call_count, @total_call_time.to_i, @total_exclusive_time.to_i]
-    end    
+    end
+
+		def apdex_score
+			s, t, f = get_apdex
+			(s.to_f + (t.to_f / 2)) / (s+t+f).to_f
+		end
     
   end
   
