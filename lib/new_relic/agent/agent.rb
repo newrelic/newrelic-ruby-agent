@@ -8,7 +8,7 @@ require 'stringio'
 
 
 # This must be turned off before we ship
-VALIDATE_BACKGROUND_THREAD_LOADING = true
+VALIDATE_BACKGROUND_THREAD_LOADING = false
 
 # The NewRelic Agent collects performance data from ruby applications in realtime as the
 # application runs, and periodically sends that data to the NewRelic server.
@@ -362,12 +362,13 @@ module NewRelic::Agent
       
       if VALIDATE_BACKGROUND_THREAD_LOADING
         require 'new_relic/agent/patch_const_missing'
+        self.class.newrelic_enable_warning
       end
       
       @worker_thread = Thread.new do
         begin
           if VALIDATE_BACKGROUND_THREAD_LOADING
-            self.class.new_relic_set_agent_thread(Thread.current)
+            self.class.newrelic_set_agent_thread(Thread.current)
           end          
           run_worker_loop
         rescue IgnoreSilentlyException

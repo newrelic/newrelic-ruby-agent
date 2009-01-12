@@ -57,6 +57,21 @@ class AgentTests < ActiveSupport::TestCase
     @agent.shutdown
   end
   
+  def test_classloading_patch
+    require 'new_relic/agent/patch_const_missing'
+    NewRelic::Agent::Agent.newrelic_set_agent_thread(Thread.current)
+    # try loading some non-existent class
+    NewRelic::Config.instance.log.expects(:warn).at_least_once.with{|args| args =~ /calling const_missing.*:FooBar/}
+    NewRelic::Config.instance.log.expects(:warn).with{|args| args =~ /calling const_missing.*:FooBaz/}.never
+    NewRelic::Agent::Agent.newrelic_enable_warning
+    assert_raise NameError do
+      FooBar::Bat
+    end
+    NewRelic::Agent::Agent.newrelic_disable_warning
+    assert_raise NameError do
+      FooBaz::Bat
+    end
+  end
   def test_info
     props = NewRelic::Config.instance.app_config_info
     list = props.assoc('Plugin List').last.sort
