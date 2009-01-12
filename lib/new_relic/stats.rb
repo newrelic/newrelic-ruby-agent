@@ -134,7 +134,8 @@ module NewRelic
     end
 
     alias average_value average_call_time
-    alias average_response_time average_call_time 
+    alias average_response_time average_call_time
+    alias requests_per_minute calls_per_minute
     
     def to_s
       s = "Begin=#{begin_time}, "
