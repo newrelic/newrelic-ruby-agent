@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Bill Kayser"]
-  s.date = %q{2009-01-09}
+  s.date = %q{2009-01-12}
   s.description = %q{Performance Monitoring Agent for New Relic Ruby Performance Monitoring Service}
   s.email = %q{bkayser@newrelic.com}
   s.extra_rdoc_files = ["README", "LICENSE"]
