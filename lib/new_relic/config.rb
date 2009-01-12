@@ -17,9 +17,6 @@ module NewRelic
     
     attr_reader :settings
     
-    
-    @settings = nil
-    
     # Initialize the agent: install instrumentation and start the agent if
     # appropriate.  Subclasses may have different arguments for this when
     # they are being called from different locations.
@@ -42,7 +39,7 @@ module NewRelic
     end
     
     def fetch(key, default=nil)
-      @settings[key].nil? ? default : @settings[key]
+      settings[key].nil? ? default : settings[key]
     end
     
     ###################################
@@ -66,7 +63,7 @@ module NewRelic
     end
     
     def set_config(key, name)
-      @settings[key] = name
+      settings[key] = name
     end
     
     def to_s
@@ -116,7 +113,7 @@ module NewRelic
     # This will NOT print anything if the environment is unknown because this is
     # probably not an environment the agent will be running in.
     def log!(msg, level=:info)
-      return if @settings && !tracers_enabled?
+      return if settings && !tracers_enabled?
       to_stderr msg
       log.send level, msg if log
     end
