@@ -1,29 +1,26 @@
-= newrelic
+= New Relic RPM
 
 * http://www.newrelic.com
 
-== DESCRIPTION:
-
-NewRelic RPM is a Ruby performance management system, developed by New Relic, Inc.
+New Relic RPM is a Ruby performance management system, developed by New Relic, Inc.
 RPM provides you with deep information about the performance of your Ruby on Rails 
 or Merb application as it runs in production. The New Relic Agent is distributed as
-a either a Rails plugin or a Gem.
-
-Our testing shows that this agent introduces minimal overhead: in production, a
-typical controller action will be impacted by less than 5 milliseconds in
-response time. (That's significantly less time than is typically spent in mapping
-a request to the appropriate controller action.) So, you can run RPM all the
-time, and always have access to the information you need to resolve performance
-problems and ensure your application can scale to meet the demands of your
-business.
+a either a Rails plugin or a Gem, both hosted on RubyForge.
 
 The New Relic Agent runs in one of two modes:
+
+* Developer Mode : Adds a web interface mapped to /newrelic to your application for
+  showing detailed performance metrics on a page by page basis.
+  
+* Production Mode : Low overhead instrumentation that captures detailed information
+  on your application running in production and transmits them to rpm.newrelic.com
+  where you can monitor them in real time.
 
 === DEVELOPER MODE
 
 Developer mode is on by default when you run your application in the development
-environment (but not when it runs in other environments.) When running in
-developer mode, the RPM will track the performance of every http request serviced
+environment (but not when it runs in other environments.)  When running in
+developer mode, RPM will track the performance of every http request serviced
 by your application, and store in memory this information for the last 100 http 
 transactions.
 
@@ -40,22 +37,20 @@ http://localhost:3000/newrelic
 
 === PRODUCTION MODE
 
-When your application runs in the production environment, the NewRelic agent
+To monitor your applications in production, create an account at
+http://newrelic.com/get-RPM.htm
+
+When your application runs in the production environment, the New Relic agent
 runs in production mode. It connects to the New Relic RPM service and sends deep
 performance data to the RPM service for your analysis. To view this data, login
 to http://rpm.newrelic.com.
 
-NOTE: you must have a valid account and license key to view this data online.
-When you sign up for an account at newrelic.com, you will be provided with a
-license key, as well as a default configuration file for NewRelic RPM. You can
+NOTE: You must have a valid account and license key to view this data online.
+When you sign up for an account at www.newrelic.com, you will be provided with a
+license key, as well as a default configuration file for New Relic RPM. You can
 either paste your license key into your existing configuration file,
 config/newrelic.yml, or you can replace that config file with the one included in
 your welcome email.
-
-Thank you, and may your application scale to infinity plus one.  
-
-Lew Cirne, Founder and CEO
-New Relic, Inc.
 
 == REQUIREMENTS:
 
@@ -63,6 +58,36 @@ Ruby 1.8.6
 Rails 1.2.6 or above
 Merb 1.0 or above
 
-== INSTALL:
+== RAILS PLUG-IN INSTALL:
 
    script/plugin install http://newrelic.rubyforge.net/svn/newrelic_rpm
+   
+== GEM INSTALL:
+
+   sudo gem install newrelic_rpm
+
+For Rails, edit environment.rb and add to the initalizer block:
+
+   config.gem "newrelic_rpm" 
+
+The Developer Mode is unavailable when using the gem on Rails versions prior to 2.0.
+
+== MERB SUPPORT:
+
+To monitor a merb app install the newrelic_rpm gem and add <code>dependency 'newrelic_rpm'</code> 
+to your init.rb file.
+
+Developer Mode not currently available in merb.
+   
+== SUPPORT:
+
+Reach out to us - and to fellow RPM users - on our support forum at 
+http://getsatisfaction.com/newrelic. We’ll share tips and tricks, answer all your 
+questions, and announce product updates. Operators are standing by.
+
+For other support channels, see http://www.newrelic.com/support.
+
+Thank you, and may your application scale to infinity plus one.  
+
+Lew Cirne, Founder and CEO
+New Relic, Inc.

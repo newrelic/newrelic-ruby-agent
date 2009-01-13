@@ -15,12 +15,13 @@ end
 if !NewRelic::Config.instance.tracers_enabled?
   require 'new_relic/shim_agent'
 else
-  # if we are in the rails initializer, pass the config into the plugin
-  # so we can set up dev mode
-  if defined? config
-    c = [ config ]
+  # After verison 2.0 of Rails we can access the configuration directly.
+  # We need it to add dev mode routes after initialization finished. 
+  if defined? Rails.configuration
+    Rails.configuration.after_initialize do
+      NewRelic::Config.instance.start_plugin Rails.configuration
+    end
   else
-    c = []
+    NewRelic::Config.instance.start_plugin
   end
-  NewRelic::Config.instance.start_plugin *c
 end

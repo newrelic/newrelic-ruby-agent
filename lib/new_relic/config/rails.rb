@@ -67,7 +67,7 @@ class NewRelic::Config::Rails < NewRelic::Config
     else
       current_paths = ActionController::Routing.controller_paths
       if current_paths.nil? || current_paths.empty?
-        to_stderr "ERROR: The controller paths has not been set.  Make sure you are invoking newrelic after the Initializer finishes."
+        to_stderr "WARNING: Unable to modify the routes in this version of Rails.  Developer mode not available."
       end
       current_paths << controller_path
     end
