@@ -7,7 +7,7 @@ GEM_VERSION = NewRelic::VERSION::STRING
 AUTHOR = "Bill Kayser"
 EMAIL = "bkayser@newrelic.com"
 HOMEPAGE = "http://www.newrelic.com"
-SUMMARY = "Performance Monitoring Agent for New Relic Ruby Performance Monitoring Service"
+SUMMARY = "New Relic Ruby Performance Monitoring Agent"
 
 spec = Gem::Specification.new do |s|
   s.rubyforge_project = 'newrelic'
