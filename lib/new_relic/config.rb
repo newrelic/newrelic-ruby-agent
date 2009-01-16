@@ -146,6 +146,7 @@ module NewRelic
     end
     
     def log_file_name(identifier="")
+      identifier ||= ""
       "newrelic_agent.#{identifier.gsub(/[^-\w.]/, '_')}.log"
     end
     
