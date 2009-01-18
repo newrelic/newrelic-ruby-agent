@@ -1,5 +1,7 @@
 # We have to patch the mongrel dispatcher live since the classes
 # aren't defined when our instrumentation loads
+# To use this module, you need to monkey patch a method newrelic_response_code
+# which will return the response status code when the dispatcher finishes.
 module NewRelic::Agent::Instrumentation
   module DispatcherInstrumentation
     
@@ -35,17 +37,23 @@ module NewRelic::Agent::Instrumentation
       t1 = Time.now.to_f
       @@newrelic_agent.end_transaction
       NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.dispatcher_finish t1
-      # Store the response header
-      response_code = @response.headers['Status'][0..2]
-      stats = @@newrelic_response_stats[response_code] ||= @@newrelic_agent.stats_engine.get_stats("HTTP/Response/#{response_code}")
       unless Thread.current[:controller_ignored]
-        stats.trace_call(t1 - t0) 
+        # Store the response header
+        response_code = newrelic_response_code
+        if response_code
+          stats = @@newrelic_response_stats[response_code] ||= @@newrelic_agent.stats_engine.get_stats("HTTP/Response/#{response_code}")
+          stats.trace_call(t1 - t0)
+        end
         @@newrelic_rails_dispatch_stat.trace_call(t1 - t0) 
       end
       
       Thread.current[:newrelic_t0] = nil
     end
-    
+    def newrelic_response_code
+      raise "Must be implemented in the dispatcher class"
+    end
+    # Used only when no before/after callbacks are available with
+    # the dispatcher, such as Rails before 2.0
     def dispatch_newrelic(*args)
       newrelic_dispatcher_start
       begin

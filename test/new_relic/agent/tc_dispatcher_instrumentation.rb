@@ -4,6 +4,7 @@ class NewRelic::Agent::DispatcherInstrumentationTests < Test::Unit::TestCase
   
   class FunnyDispatcher
     include NewRelic::Agent::Instrumentation::DispatcherInstrumentation
+    def newrelic_response_code; end
   end
   def setup
     @instance_busy = NewRelic::Agent.agent.stats_engine.get_stats('Instance/Busy')
