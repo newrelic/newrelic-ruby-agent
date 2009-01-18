@@ -9,7 +9,15 @@ require 'erb'
 # It is an abstract factory with concrete implementations under
 # the config folder.
 module NewRelic
+  
   class Config
+    
+    # Structs holding info for the remote server and proxy server 
+    class Server < Struct.new :host, :port
+      def to_s; "#{host}:#{port}"; end
+    end
+    
+    ProxyServer = Struct.new :host, :port, :user, :password
     
     def self.instance
       @instance ||= new_instance
@@ -62,6 +70,22 @@ module NewRelic
       fetch('app_name', nil)
     end
     
+    def use_ssl?
+      @use_ssl ||= fetch('ssl', false)
+    end
+    
+    def server
+      @remote_server ||= 
+      NewRelic::Config::Server.new fetch('host', 'collector.newrelic.com'), fetch('port', use_ssl? ? 443 : 80).to_i  
+    end
+    
+    def proxy_server
+      @proxy_server ||=
+      NewRelic::Config::ProxyServer.new fetch('proxy_host', nil), fetch('proxy_port', nil),
+      fetch('proxy_user', nil), fetch('proxy_pass', nil)
+    end      
+    
+    ####################################
     def set_config(key, name)
       settings[key] = name
     end
@@ -70,6 +94,7 @@ module NewRelic
       puts self.inspect
       "Config[#{self.app}]"
     end
+    
     def log
       # If we try to get a log before one has been set up, return a stdout log
       unless @log
