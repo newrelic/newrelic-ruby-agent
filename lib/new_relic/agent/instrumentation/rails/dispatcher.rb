@@ -15,15 +15,19 @@ if target
   NewRelic::Agent.instance.log.debug "Adding #{target} instrumentation"
   
   # in Rails 2.3 (Rack-based) we don't want to add instrumentation on class level
-  unless defined? ::Rails::Rack
-    target = target.class_eval { class << self; self; end }
-  end
+#  unless defined? ::Rails::Rack
+#    target = target.class_eval { class << self; self; end }
+#  end
   
   target.class_eval do
     include NewRelic::Agent::Instrumentation::DispatcherInstrumentation
-
-    alias_method :dispatch_without_newrelic, :dispatch
-    alias_method :dispatch, :dispatch_newrelic
+    if ActionPack::VERSION::MAJOR >= 2
+      before_dispatch :newrelic_dispatcher_start
+      after_dispatch :newrelic_dispatcher_finish
+    else
+      alias_method :dispatch_without_newrelic, :dispatch
+      alias_method :dispatch, :dispatch_newrelic
+    end
   end
 else
   NewRelic::Agent.instance.log.debug "WARNING: Dispatcher instrumentation not added"

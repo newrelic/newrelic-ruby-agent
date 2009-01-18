@@ -6,6 +6,7 @@ module NewRelic::Agent::Instrumentation
     @@newrelic_agent = NewRelic::Agent.agent
     @@newrelic_rails_dispatch_stat = @@newrelic_agent.stats_engine.get_stats 'Rails/HTTP Dispatch'
     @@newrelic_mongrel_queue_stat = @@newrelic_agent.stats_engine.get_stats('WebFrontend/Mongrel/Average Queue Time')
+    @@newrelic_response_stats = { '200' => @@newrelic_agent.stats_engine.get_stats('HTTP/Response/200')}
     
     def newrelic_dispatcher_start
       # Put the current time on the thread.  Can't put in @ivar because this could
@@ -33,8 +34,15 @@ module NewRelic::Agent::Instrumentation
       end
       t1 = Time.now.to_f
       @@newrelic_agent.end_transaction
-      @@newrelic_rails_dispatch_stat.trace_call(t1 - t0) unless Thread.current[:controller_ignored]
-      NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.dispatcher_finish t1    
+      NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.dispatcher_finish t1
+      # Store the response header
+      response_code = @response.headers['Status'][0..2]
+      stats = @@newrelic_response_stats[response_code] ||= @@newrelic_agent.stats_engine.get_stats("HTTP/Response/#{response_code}")
+      unless Thread.current[:controller_ignored]
+        stats.trace_call(t1 - t0) 
+        @@newrelic_rails_dispatch_stat.trace_call(t1 - t0) 
+      end
+      
       Thread.current[:newrelic_t0] = nil
     end
     
