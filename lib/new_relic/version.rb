@@ -11,6 +11,10 @@ module NewRelic
   end
 
   CHANGELOG = <<EOF
+2009-XXXXX version 2.9.0
+  * reduced the number of controller metrics that report to rpm
+  * user rpm server time for transaction traces rather than agent time
+
 2009-XXXXX version 2.8.1
   *
 2008-12-18 version 2.8.0
