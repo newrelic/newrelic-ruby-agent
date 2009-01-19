@@ -516,7 +516,7 @@ module NewRelic::Agent
         @should_send_samples = invoke_remote :should_collect_samples, @agent_id
         
         if @should_send_samples
-          sampling_rate = invoke_remote :sampling_rate, @agent_id
+          sampling_rate = invoke_remote :sampling_rate, @agent_id if @random_sample
           @transaction_sampler.sampling_rate = sampling_rate
             
           log.info "Transaction sample rate: #{sampling_rate}"
