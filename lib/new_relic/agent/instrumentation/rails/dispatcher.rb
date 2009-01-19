@@ -1,5 +1,4 @@
 require 'dispatcher'
-
 # NewRelic RPM instrumentation for http request dispatching (Routes mapping)
 # Note, the dispatcher class from no module into into the ActionController module 
 # in Rails 2.0.  Thus we need to check for both
@@ -10,6 +9,7 @@ elsif defined? Dispatcher
 end
 
 if target
+  require 'action_pack/version'
   NewRelic::Agent.instance.log.debug "Adding #{target} instrumentation"
   
   target.class_eval do
