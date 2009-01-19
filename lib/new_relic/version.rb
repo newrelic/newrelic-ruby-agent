@@ -2,8 +2,8 @@
 module NewRelic
   module VERSION #:nodoc:
   MAJOR = 2
-  MINOR = 8
-  TINY  = 1
+  MINOR = 9
+  TINY  = 0
   STRING = [MAJOR, MINOR, TINY].join('.')
   def self.changes
     puts "NewRelic RPM Plugin Version: #{NewRelic::VERSION::STRING}"
@@ -11,12 +11,14 @@ module NewRelic
   end
 
   CHANGELOG = <<EOF
+
 2009-XXXXX version 2.9.0
+  * Add instrumentation to capture metrics on response codes
   * reduced the number of controller metrics that report to rpm
   * user rpm server time for transaction traces rather than agent time
-
 2009-XXXXX version 2.8.1
-  *
+  * Fix issue invoking api when host is not set in newrelic.yml
+  * Fix deployments api so it will work from a gem
 2008-12-18 version 2.8.0
   * add beta of api in new_relic_api.rb
   * instrumented dynamic finders in ActiveRecord
