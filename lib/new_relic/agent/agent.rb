@@ -739,9 +739,9 @@ module NewRelic::Agent
     end
     
     def graceful_disconnect
-      if @connected && !(remote_host == "localhost" && @identifier == '3000')
+      if @connected && !(config.server.host == "localhost" && @identifier == '3000')
         begin
-          log.debug "Sending graceful shutdown message to #{remote_host}:#{remote_port}"
+          log.debug "Sending graceful shutdown message to #{config.server}"
           
           @request_timeout = 5
           
