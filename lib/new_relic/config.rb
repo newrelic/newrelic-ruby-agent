@@ -45,6 +45,14 @@ module NewRelic
     def [](key)
       fetch(key)
     end
+    ####################################
+    def []=(key, value)
+      settings[key] = value
+    end
+
+    def set_config(key,value)
+      self[key]=value
+    end
     
     def fetch(key, default=nil)
       settings[key].nil? ? default : settings[key]
@@ -73,10 +81,15 @@ module NewRelic
     def use_ssl?
       @use_ssl ||= fetch('ssl', false)
     end
-    
+
     def server
       @remote_server ||= 
       NewRelic::Config::Server.new fetch('host', 'collector.newrelic.com'), fetch('port', use_ssl? ? 443 : 80).to_i  
+    end
+    
+    def api_server
+      @api_server ||= 
+      NewRelic::Config::Server.new fetch('api_host', 'rpm.newrelic.com'), fetch('api_port', use_ssl? ? 443 : 80).to_i
     end
     
     def proxy_server
@@ -86,10 +99,7 @@ module NewRelic
     end      
     
     ####################################
-    def set_config(key, name)
-      settings[key] = name
-    end
-    
+ 
     def to_s
       puts self.inspect
       "Config[#{self.app}]"
