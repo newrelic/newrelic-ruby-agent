@@ -3,7 +3,7 @@ module NewRelic
   module VERSION #:nodoc:
   MAJOR = 2
   MINOR = 8
-  TINY  = 0
+  TINY  = 1
   STRING = [MAJOR, MINOR, TINY].join('.')
   def self.changes
     puts "NewRelic RPM Plugin Version: #{NewRelic::VERSION}"
@@ -11,6 +11,9 @@ module NewRelic
   end
 
   CHANGELOG = <<EOF
+2009-XXXXX version 2.8.1
+  * Fix issue invoking api when host is not set in newrelic.yml
+  * Fix deployments api so it will work from a gem
 2008-12-18 version 2.8.0
   * add beta of api in new_relic_api.rb
   * instrumented dynamic finders in ActiveRecord
