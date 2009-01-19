@@ -1,6 +1,6 @@
 
 # NewRelic instrumentation for ActiveRecord
-if defined?(ActiveRecord) && !(NewRelic::Agent.instance.config.fetch('skip_ar_instrumentation', false))
+if defined?(ActiveRecord) && !NewRelic::Agent.instance.config['skip_ar_instrumentation']
   
   ActiveRecord::Base.class_eval do
     class << self
