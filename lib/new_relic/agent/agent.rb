@@ -149,8 +149,6 @@ module NewRelic::Agent
     attr_reader :error_collector
     attr_reader :worker_loop
     attr_reader :license_key
-    attr_reader :remote_host
-    attr_reader :remote_port
     attr_reader :record_sql
     attr_reader :identifier
     
@@ -415,7 +413,6 @@ module NewRelic::Agent
       
       @error_collector.ignore(ignore_errors)
       
-      
       @capture_params = config.fetch('capture_params', false)
       
       sampler_config = config.fetch('transaction_tracer', {})
@@ -429,17 +426,6 @@ module NewRelic::Agent
       
       log.info "Transaction tracing is enabled in agent config" if @use_transaction_sampler
       log.warn "Agent is configured to send raw SQL to RPM service" if @record_sql == :raw
-      
-      @use_ssl = config.fetch('ssl', false)
-      default_port = @use_ssl ? 443 : 80
-      
-      @remote_host = config.fetch('host', 'collector.newrelic.com')
-      @remote_port = config.fetch('port', default_port)
-      
-      @proxy_host = config.fetch('proxy_host', nil)
-      @proxy_port = config.fetch('proxy_port', nil)
-      @proxy_user = config.fetch('proxy_user', nil)
-      @proxy_pass = config.fetch('proxy_pass', nil)
       
       @prod_mode_enabled = force_enable || config['enabled']
       
@@ -518,7 +504,7 @@ module NewRelic::Agent
             config.settings
         @report_period = invoke_remote :get_data_report_period, @agent_id
  
-        log! "Connected to NewRelic Service at #{@remote_host}:#{@remote_port}."
+        log! "Connected to NewRelic Service at #{config.server}"
         log.debug "Agent ID = #{@agent_id}."
         
         # Ask the server for permission to send transaction samples.  determined by subscription license.
@@ -539,7 +525,7 @@ module NewRelic::Agent
         return false
         
       rescue Timeout::Error, StandardError => e
-        log.info "Unable to establish connection with New Relic RPM Service at #{@remote_host}:#{@remote_port}"
+        log.info "Unable to establish connection with New Relic RPM Service at #{config.server}"
         unless e.instance_of? IgnoreSilentlyException
           log.error e.message
           log.debug e.backtrace.join("\n")
@@ -676,8 +662,9 @@ module NewRelic::Agent
       post_data = Zlib::Deflate.deflate(Marshal.dump(args), Zlib::BEST_SPEED)
       
       # Proxy returns regular HTTP if @proxy_host is nil (the default)
-      http = Net::HTTP::Proxy(@proxy_host, @proxy_port, @proxy_user, @proxy_pass).new(@remote_host, @remote_port.to_i)
-      if @use_ssl
+      http = Net::HTTP::Proxy(config.proxy_server.host, config.proxy_server.port, 
+                              config.proxy_server.user, config.proxy_server.password).new(config.server.host, config.server.port)
+      if config.use_ssl?
         http.use_ssl = true 
         http.verify_mode = OpenSSL::SSL::VERIFY_NONE
       end
@@ -740,9 +727,9 @@ module NewRelic::Agent
     end
     
     def graceful_disconnect
-      if @connected && !(remote_host == "localhost" && @identifier == '3000')
+      if @connected && !(config.server.host == "localhost" && @identifier == '3000')
         begin
-          log.debug "Sending graceful shutdown message to #{remote_host}:#{remote_port}"
+          log.debug "Sending graceful shutdown message to #{config.server}"
           
           @request_timeout = 5
           
