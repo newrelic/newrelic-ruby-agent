@@ -2,6 +2,15 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 ##require 'new_relic/agent/error_collector'
 require 'test/unit'
 
+
+class FakeRequest
+  attr_reader :path
+  
+  def initialize(path)
+    @path = path
+  end
+end
+
     class NewRelic::Agent::ErrorCollectorTests < Test::Unit::TestCase
       
       def setup
@@ -9,7 +18,7 @@ require 'test/unit'
       end
 
       def test_simple
-        @error_collector.notice_error('path', '/myurl/', {:x => 'y'}, Exception.new("message"))
+        @error_collector.notice_error(Exception.new("message"), FakeRequest.new('/myurl/'), 'path', {:x => 'y'})
         
         old_errors = []
         errors = @error_collector.harvest_errors(old_errors)
@@ -30,13 +39,13 @@ require 'test/unit'
       end
       
       def test_collect_failover
-        @error_collector.notice_error('first', nil, {:x => 'y'}, Exception.new("message"))
+        @error_collector.notice_error(Exception.new("message"), nil, 'first', {:x => 'y'})
         
         errors = @error_collector.harvest_errors([])
         
-        @error_collector.notice_error('second', nil, {:x => 'y'}, Exception.new("message"))
-        @error_collector.notice_error('path', nil, {:x => 'y'}, Exception.new("message"))
-        @error_collector.notice_error('path', nil, {:x => 'y'}, Exception.new("message"))
+        @error_collector.notice_error(Exception.new("message"), nil, 'second', {:x => 'y'})
+        @error_collector.notice_error(Exception.new("message"), nil, 'path', {:x => 'y'})
+        @error_collector.notice_error(Exception.new("message"), nil, 'path', {:x => 'y'})
         
         errors = @error_collector.harvest_errors(errors)
         
@@ -44,8 +53,8 @@ require 'test/unit'
         assert_equal 'first', errors.first.path
 
         # add two more
-        @error_collector.notice_error('path', nil, {:x => 'y'}, Exception.new("message"))
-        @error_collector.notice_error('last', nil, {:x => 'y'}, Exception.new("message"))
+        @error_collector.notice_error(Exception.new("message"), nil, 'path', {:x => 'y'})
+        @error_collector.notice_error(Exception.new("message"), nil, 'last', {:x => 'y'})
         
         errors = @error_collector.harvest_errors(nil)
         assert_equal 5, errors.length
@@ -60,7 +69,7 @@ require 'test/unit'
         
         silence_stream(::STDERR) do
          (max_q_length + 5).times do |n|
-            @error_collector.notice_error("path", nil, {:x => n}, Exception.new("exception #{n}"))
+            @error_collector.notice_error(Exception.new("exception #{n}"), nil, "path", {:x => n})
           end
         end
         
@@ -91,7 +100,7 @@ require 'test/unit'
         
         
         types.each do |test|
-          @error_collector.notice_error('path', nil, {:x => test[0]}, Exception.new("message"))
+          @error_collector.notice_error(Exception.new("message"), nil, 'path', {:x => test[0]})
           
           assert_equal test[1], @error_collector.harvest_errors([])[0].params[:request_params][:x]
         end
@@ -101,7 +110,7 @@ require 'test/unit'
       def test_exclude
         @error_collector.ignore(["ActionController::RoutingError"])
         
-        @error_collector.notice_error('path', nil, {:x => 'y'}, ActionController::RoutingError.new("message"))
+        @error_collector.notice_error(ActionController::RoutingError.new("message"), nil, 'path', {:x => 'y'})
         
         errors = @error_collector.harvest_errors([])
         
@@ -117,7 +126,7 @@ require 'test/unit'
           end
         end
         
-        @error_collector.notice_error('path', nil, {:x => 'y'}, ActionController::RoutingError.new("message"))
+        @error_collector.notice_error(ActionController::RoutingError.new("message"), nil, 'path', {:x => 'y'})
         
         errors = @error_collector.harvest_errors([])
         

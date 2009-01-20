@@ -33,7 +33,7 @@ module NewRelic::Agent
     end
     
     
-    def notice_error(path, request_uri, params, exception)
+    def notice_error(exception, request, action_path=nil, filtered_params={})
       
       return unless @enabled
       return if @ignore[exception.class.name] 
@@ -48,10 +48,13 @@ module NewRelic::Agent
       
       data = {}
       
-      data[:request_params] = normalize_params(params) if @capture_params
+      
+      data[:request_params] = normalize_params(filtered_params) if @capture_params
       data[:custom_params] = normalize_params(@agent.custom_params) if @agent
       
-      data[:request_uri] = request_uri
+      data[:request_uri] = request.path if request
+      data[:request_referer] = request.referer if request
+      data[:request_referer] ||= ""
       
       data[:rails_root] = NewRelic::Config.instance.root
       
@@ -68,7 +71,8 @@ module NewRelic::Agent
         inside_exception = exception
       end
       data[:stack_trace] = strip_nr_from_backtrace(inside_exception.backtrace)
-      noticed_error = NewRelic::NoticedError.new(path, data, exception)
+
+      noticed_error = NewRelic::NoticedError.new(action_path, data, exception)
       
       synchronize do
         if @errors.length >= MAX_ERROR_QUEUE_LENGTH
