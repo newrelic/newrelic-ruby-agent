@@ -105,7 +105,9 @@ module NewRelicApi
       end
       
       def site_url
-        "http#{'s' if (NewRelicApi.ssl || NewRelic::Config.instance['ssl'])}://#{NewRelicApi.host || NewRelic::Config.instance['host']}:#{NewRelicApi.port || NewRelic::Config.instance['port']}"
+        host = NewRelicApi.host || NewRelic::Config.instance.api_server.host
+        port = NewRelicApi.port || NewRelic::Config.instance.api_server.port
+        "#{port == 443 ? 'https' : 'http'}://#{host}:#{port}"
       end
       
       def reset!

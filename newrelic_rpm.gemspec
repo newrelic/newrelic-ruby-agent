@@ -1,12 +1,10 @@
-# -*- encoding: utf-8 -*-
-
 Gem::Specification.new do |s|
   s.name = %q{newrelic_rpm}
-  s.version = "2.8.0"
+  s.version = "2.8.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Bill Kayser"]
-  s.date = %q{2009-01-13}
+  s.date = %q{2009-01-20}
   s.description = %q{New Relic Ruby Performance Monitoring Agent}
   s.email = %q{bkayser@newrelic.com}
   s.extra_rdoc_files = ["README", "LICENSE"]
@@ -15,14 +13,14 @@ Gem::Specification.new do |s|
   s.homepage = %q{http://www.newrelic.com}
   s.require_paths = ["lib"]
   s.rubyforge_project = %q{newrelic}
-  s.rubygems_version = %q{1.3.1}
+  s.rubygems_version = %q{1.2.0}
   s.summary = %q{New Relic Ruby Performance Monitoring Agent}
 
   if s.respond_to? :specification_version then
     current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION
     s.specification_version = 2
 
-    if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
+    if current_version >= 3 then
     else
     end
   else
