@@ -672,15 +672,7 @@ module NewRelic::Agent
       # to go for higher compression instead, we could use Zlib::BEST_COMPRESSION and 
       # pay a little more CPU.
       post_data = Zlib::Deflate.deflate(Marshal.dump(args), Zlib::BEST_SPEED)
-      
-      # Proxy returns regular HTTP if @proxy_host is nil (the default)
-      http = Net::HTTP::Proxy(config.proxy_server.host, config.proxy_server.port, 
-                              config.proxy_server.user, config.proxy_server.password).new(config.server.host, config.server.port)
-      if config.use_ssl?
-        http.use_ssl = true 
-        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-      end
-      
+      http = config.http_connection
       http.read_timeout = @request_timeout
       
       # params = {:method => method, :license_key => license_key, :protocol_version => PROTOCOL_VERSION }
