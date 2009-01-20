@@ -9,6 +9,8 @@ test:
   enabled: false
   developer: true
   monitor_daemons: false
+  api_host: 127.0.0.1
+  api_port: 443
   message: '<%= generated_for_user %>'
   license_key: '<%= license_key %>'
   transaction_tracer:
