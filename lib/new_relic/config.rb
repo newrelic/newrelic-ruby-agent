@@ -22,7 +22,6 @@ module NewRelic
       @instance ||= new_instance
     end
     
-    attr_reader :settings
     
     # Initialize the agent: install instrumentation and start the agent if
     # appropriate.  Subclasses may have different arguments for this when
@@ -45,6 +44,15 @@ module NewRelic
       fetch(key)
     end
     ####################################
+    def env=(env_name)
+      @env = env_name
+      @settings = @yaml[env_name]
+    end
+    
+    def settings
+      @settings ||= @yaml[env] || {}
+    end
+    
     def []=(key, value)
       settings[key] = value
     end
@@ -149,7 +157,7 @@ module NewRelic
     end
     
     def local_env
-      @env ||= NewRelic::LocalEnvironment.new
+      @local_env ||= NewRelic::LocalEnvironment.new
     end
     
     # send the given message to STDERR so that it shows
@@ -231,7 +239,7 @@ module NewRelic
       else
         yaml = ERB.new(File.read(config_file)).result(binding)
       end
-      @settings = YAML.load(yaml)[env] || {}
+      @yaml = YAML.load(yaml)
     rescue ScriptError, StandardError => e
       puts e
       puts e.backtrace.join("\n")

@@ -3,7 +3,7 @@ class NewRelic::Config::Rails < NewRelic::Config
   def app; :rails; end
   
   def env
-    RAILS_ENV
+    @env ||= RAILS_ENV
   end
   def root
     RAILS_ROOT

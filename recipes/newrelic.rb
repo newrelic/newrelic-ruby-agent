@@ -17,14 +17,17 @@ make_notify_task = lambda do
       log_command = source.log(from_revision)
       # Because new_relic_api could be plugins or the gem dir, we rely
       # on the lib path to find it. 
-      script = [ 'load "new_relic_api.rb"' ] <<
+      ## script = [ ' ] <<
+      script = [ 'vendor/plugins/newrelic_rpm/bin/newrelic_cmd' ] <<
                  "deployments" <<
                  "-u" << ENV['USER'] <<
+                 "-e" << rails_env <<
                  "-r" << current_revision <<
-                 "-c" 
+                 "-c"
+      
       script = script.map { | arg | "'#{arg}'" }.join(" ")
       begin
-        run "cd #{current_release}; #{log_command} | script/runner -e #{rails_env} #{script}" do | io, stream_id, output |
+        run "cd #{current_release}; #{log_command} | ruby #{script}" do | io, stream_id, output |
           logger.trace(output)
         end
       rescue CommandError

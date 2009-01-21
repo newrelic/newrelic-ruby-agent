@@ -21,10 +21,9 @@ module NewRelic
       # Use -h to see options.  Will possibly exit the VM 
       def initialize command_line_args
         @config = NewRelic::Config.instance
-        
-        @application_id = config.app_name || ENV['RAILS_ENV'] || 'development'
         @user = ENV['USER']
         @description = options.parse(command_line_args).join " "
+        @application_id ||= config.app_name || config.env || 'development'
       end
       
       # Run the Deployment upload in RPM via Active Resource.
@@ -43,7 +42,7 @@ module NewRelic
           http = config.http_connection(config.api_server)
           
           uri = "/deployments.xml?"
-          
+
           request = Net::HTTP::Post.new(uri, 'HTTP_X_LICENSE_KEY' => config['license_key'])
           request.content_type = "application/octet-stream"
           request.body = create_params
@@ -60,10 +59,10 @@ module NewRelic
           end 
         rescue SystemCallError, SocketError => e
           # These include Errno connection errors 
-          err "Transient error attempting to connect to #{NewRelic::Config.instance.api_server} (#{e})"
+          err "Transient error attempting to connect to #{config.api_server} (#{e})"
           just_exit -2
         rescue Exception => e
-          err "Unexpected error attempting to connect to #{NewRelic::Config.instance.api_server} (#{e})"
+          err "Unexpected error attempting to connect to #{config.api_server} (#{e})"
           info e.backtrace.join("\n")
           just_exit 1
         end
@@ -82,8 +81,11 @@ module NewRelic
         OptionParser.new "Usage: #{self.class.command} [OPTIONS] [description] ", 40 do |o|
           o.separator "OPTIONS:"
           o.on("-a", "--appname=DIR", String,
-             "Specify an application name.",
-             "Default: #{@application_id}") { |@application_id| }
+             "Set the application name.",
+             "Default is app_name setting in newrelic.yml") { |@application_id| }
+          o.on("-e ENV", String,
+               "Override the (RAILS|MERB|RUBY)_ENV setting",
+               "currently: #{config.env}") { |env| config.env=env }
           o.on("-u", "--user=USER", String,
              "Specify the user deploying.",
              "Default: #{@user}") { |@user| }
