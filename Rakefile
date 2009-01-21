@@ -22,7 +22,7 @@ spec = Gem::Specification.new do |s|
   s.email = EMAIL
   s.homepage = HOMEPAGE
   s.require_path = 'lib'
-  s.files = %w(install.rb LICENSE README newrelic.yml Rakefile) + Dir.glob("{lib,recipes,test,ui}/**/*") 
+  s.files = %w(install.rb LICENSE README newrelic.yml Rakefile) + Dir.glob("{lib,bin,recipes,test,ui}/**/*") 
   
 end
 
