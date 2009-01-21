@@ -65,7 +65,7 @@ module NewRelic
     end
     
     def fetch(key, default=nil)
-      @settings[key].nil? ? default : @settings[key]
+      settings[key].nil? ? default : settings[key]
     end
     
     ###################################
@@ -169,7 +169,7 @@ module NewRelic
     # This will NOT print anything if the environment is unknown because this is
     # probably not an environment the agent will be running in.
     def log!(msg, level=:info)
-      return if @settings && !tracers_enabled?
+      return if settings && !tracers_enabled?
       to_stderr msg
       log.send level, msg if log
     end
@@ -202,6 +202,7 @@ module NewRelic
     end
     
     def log_file_name(identifier="")
+      identifier ||= ""
       "newrelic_agent.#{identifier.gsub(/[^-\w.]/, '_')}.log"
     end
     
