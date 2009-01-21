@@ -9,6 +9,10 @@ class FakeRequest
   def initialize(path)
     @path = path
   end
+  
+  def referer
+    "test_referer"
+  end
 end
 
     class NewRelic::Agent::ErrorCollectorTests < Test::Unit::TestCase
@@ -29,6 +33,7 @@ end
         assert_equal 'message', err.message 
         assert_equal 'y', err.params[:request_params][:x]
         assert err.params[:request_uri] == '/myurl/'
+        assert err.params[:request_referer] == "test_referer"
         assert err.path == 'path'
         assert err.exception_class == 'Exception'
         
