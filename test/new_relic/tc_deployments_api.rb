@@ -28,7 +28,7 @@ class NewRelic::DeploymentsTests < Test::Unit::TestCase
   end
   def test_run
     mock_the_connection
-    @mock_response.expects(:body).returns("<xml>deployment</xml>")
+#    @mock_response.expects(:body).returns("<xml>deployment</xml>")
     @deployment = NewRelic::Commands::Deployments.new(%w[-a APP -r 3838 --user=Bill] << "Some lengthy description")
     assert_nil @deployment.exit_status
     assert_nil @deployment.errors
