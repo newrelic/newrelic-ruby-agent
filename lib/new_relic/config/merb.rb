@@ -3,7 +3,7 @@ class NewRelic::Config::Merb < NewRelic::Config
   def app; :merb; end
   
   def env
-    ::Merb.env
+    @env ||= ::Merb.env
   end
   def root 
     ::Merb.root

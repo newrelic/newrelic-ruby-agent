@@ -1,7 +1,6 @@
 require 'yaml'
 #require 'new_relic/version'
 require 'singleton'
-require 'new_relic/agent'
 require 'erb'
 
 # Configuration supports the behavior of the agent which is dependent
@@ -23,7 +22,6 @@ module NewRelic
       @instance ||= new_instance
     end
     
-    attr_reader :settings
     
     
     @settings = nil
@@ -49,6 +47,15 @@ module NewRelic
       fetch(key)
     end
     ####################################
+    def env=(env_name)
+      @env = env_name
+      @settings = @yaml[env_name]
+    end
+    
+    def settings
+      @settings ||= @yaml[env] || {}
+    end
+    
     def []=(key, value)
       settings[key] = value
     end
@@ -92,7 +99,7 @@ module NewRelic
     
     def api_server
       @api_server ||= 
-      NewRelic::Config::Server.new fetch('api_host', 'rpm.newrelic.com'), fetch('api_port', use_ssl? ? 443 : 80).to_i
+      NewRelic::Config::Server.new fetch('api_host', 'rpm.newrelic.com'), fetch('api_port', fetch('port', use_ssl? ? 443 : 80)).to_i
     end
     
     def proxy_server
@@ -101,8 +108,19 @@ module NewRelic
       fetch('proxy_user', nil), fetch('proxy_pass', nil)
     end      
     
-    ####################################
- 
+    # Return the Net::HTTP with proxy configuration given the NewRelic::Config::Server object.
+    # Default is the collector but for api calls you need to pass api_server
+    def http_connection(host = server)
+      # Proxy returns regular HTTP if @proxy_host is nil (the default)
+      http = Net::HTTP::Proxy(proxy_server.host, proxy_server.port, 
+                              proxy_server.user, proxy_server.password).new(host.host, host.port)
+      if use_ssl?
+        http.use_ssl = true 
+        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      end
+      http
+    end
+    
     def to_s
       puts self.inspect
       "Config[#{self.app}]"
@@ -142,7 +160,7 @@ module NewRelic
     end
     
     def local_env
-      @env ||= NewRelic::LocalEnvironment.new
+      @local_env ||= NewRelic::LocalEnvironment.new
     end
     
     # send the given message to STDERR so that it shows
@@ -223,7 +241,7 @@ module NewRelic
       else
         yaml = ERB.new(File.read(config_file)).result(binding)
       end
-      @settings = YAML.load(yaml)[env] || {}
+      @yaml = YAML.load(yaml)
     rescue ScriptError, StandardError => e
       puts e
       puts e.backtrace.join("\n")
