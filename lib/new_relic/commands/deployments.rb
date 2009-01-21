@@ -31,30 +31,34 @@ module NewRelic
       def run
         begin
           @description = nil if @description.empty?
-          create_params = {
+          create_params = {}
+          {
             :application_id => @application_id, 
             :host => Socket.gethostname, 
             :description => @description,
             :user => @user,
             :revision => @revision,
             :changelog => @changelog
-          }
+          }.each do |k, v|
+            create_params["deployment[#{k}]"] = v unless v.nil? || v == ''
+          end
           http = config.http_connection(config.api_server)
           
-          uri = "/deployments.xml?"
+          uri = "/deployments.xml"
 
+					raise "license_key was not set in newrelic.yml for #{config.env}" if config['license_key'].nil?
           request = Net::HTTP::Post.new(uri, 'HTTP_X_LICENSE_KEY' => config['license_key'])
           request.content_type = "application/octet-stream"
-          request.body = create_params
+
+          request.set_form_data(create_params)
           
           response = http.request(request)
           
           if response.is_a? Net::HTTPSuccess
-            # TODO: Need to convert this into an object from the xml, and look
-            # for errors. 
-            response_value = response.body
+            info "Recorded deployment to NewRelic RPM (#{@description || Time.now })"
           else
             err "Unexpected response from server: #{response.code}: #{response.message}"
+            # TODO look for errors in xml response
             just_exit -1
           end 
         rescue SystemCallError, SocketError => e
@@ -65,13 +69,6 @@ module NewRelic
           err "Unexpected error attempting to connect to #{config.api_server} (#{e})"
           info e.backtrace.join("\n")
           just_exit 1
-        end
-        if !response_value # check the response or return value
-          err "No value returned from create!"
-          just_exit 1
-        else 
-          info "Recorded deployment to NewRelic RPM (#{@description || Time.now })"
-          info response_value
         end
       end
       
