@@ -4,6 +4,7 @@
 $LOAD_PATH << File.expand_path(File.join(File.dirname(__FILE__),"..",".."))
 require 'yaml'
 require 'net/http'
+require 'rexml/document'
 
 # We need to use the Config object but we don't want to load 
 # the rails/merb environment.  The defined? clause is so that
@@ -58,7 +59,13 @@ module NewRelic
             info "Recorded deployment to NewRelic RPM (#{@description || Time.now })"
           else
             err "Unexpected response from server: #{response.code}: #{response.message}"
-            # TODO look for errors in xml response
+            begin
+              doc = REXML::Document.new(response.body)
+              doc.elements.each('errors/error') do |error|
+                 err "Error: #{error.text}"
+              end
+            rescue
+            end
             just_exit -1
           end 
         rescue SystemCallError, SocketError => e
