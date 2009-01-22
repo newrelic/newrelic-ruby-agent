@@ -17,6 +17,7 @@ module NewRelic
   * reduced the number of controller metrics that report to rpm
   * user rpm server time for transaction traces rather than agent time
   * added http referer to traced errors
+  * on connection, get a shard collector to redirect to (experimental)
 2009-XXXXX version 2.8.1
   * Fix issue invoking api when host is not set in newrelic.yml
   * Fix deployments api so it will work from a gem
