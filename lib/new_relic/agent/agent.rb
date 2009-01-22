@@ -496,6 +496,8 @@ module NewRelic::Agent
       connect_attempts = 0
       
       begin
+        @redirect_server = nil
+        
         sleep connect_retry_period.to_i
         @agent_id = invoke_remote :launch, 
             @local_host,
@@ -507,9 +509,14 @@ module NewRelic::Agent
             config.app_config_info, 
             config['app_name'], 
             config.settings
+        
+        host = invoke_remote(:get_redirect_host)
+        
+        @redirect_server = config.server_from_host(host)        
+            
         @report_period = invoke_remote :get_data_report_period, @agent_id
  
-        log! "Connected to NewRelic Service at #{config.server}"
+        log! "Connected to NewRelic Service at #{@redirect_server}"
         log.debug "Agent ID = #{@agent_id}."
         
         # Ask the server for permission to send transaction samples.  determined by subscription license.
@@ -672,7 +679,7 @@ module NewRelic::Agent
       # to go for higher compression instead, we could use Zlib::BEST_COMPRESSION and 
       # pay a little more CPU.
       post_data = Zlib::Deflate.deflate(Marshal.dump(args), Zlib::BEST_SPEED)
-      http = config.http_connection
+      http = config.http_connection(@redirect_server)
       http.read_timeout = @request_timeout
       
       # params = {:method => method, :license_key => license_key, :protocol_version => PROTOCOL_VERSION }

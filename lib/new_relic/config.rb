@@ -103,11 +103,17 @@ module NewRelic
       @proxy_server ||=
       NewRelic::Config::ProxyServer.new fetch('proxy_host', nil), fetch('proxy_port', nil),
       fetch('proxy_user', nil), fetch('proxy_pass', nil)
-    end      
+    end 
+    
+    def server_from_host(host)
+      host ||= fetch('host', 'collector.newrelic.com')
+      NewRelic::Config::Server.new host, fetch('port', use_ssl? ? 443 : 80).to_i 
+    end
     
     # Return the Net::HTTP with proxy configuration given the NewRelic::Config::Server object.
     # Default is the collector but for api calls you need to pass api_server
-    def http_connection(host = server)
+    def http_connection(host = nil)
+      host ||= server
       # Proxy returns regular HTTP if @proxy_host is nil (the default)
       http = Net::HTTP::Proxy(proxy_server.host, proxy_server.port, 
                               proxy_server.user, proxy_server.password).new(host.host, host.port)
