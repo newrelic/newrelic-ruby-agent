@@ -13,28 +13,59 @@ require 'new_relic/config' unless defined? NewRelic::Config
 
 module NewRelic
   module Commands
+    # Capture a failure to execute the command.
+    # Ask it for a return status to exit the vm with,
+    # if appropriate.
+    class CommandFailure < StandardError
+      attr_reader :exit_code
+      def initialize message, return_status=nil
+        super message
+        @exit_code = return_status || 0
+      end
+    end
+    
     class Deployments
       
       attr_reader :config
       def self.command; "deployments"; end 
       
       # Initialize the deployment uploader with command line args.
-      # Use -h to see options.  Will possibly exit the VM 
+      # Use -h to see options.
+      # When command_line_args is a hash, we are invoking directly and
+      # it's treated as an options with optional sttring values for
+      # :user, :description, :appname, :revision, :environment,
+      # and :changes.
+      #
+      # Will throw CommandFailed exception if there's any error.
+      # 
       def initialize command_line_args
         @config = NewRelic::Config.instance
         @user = ENV['USER']
-        @description = options.parse(command_line_args).join " "
-        @application_id ||= config.app_name || config.env || 'development'
+        if Hash === command_line_args
+          # command line args is an options hash
+          command_line_args.each do | key, value |
+            if %w[user environment description appname revision changelog].include? key.to_s
+              instance_variable_set "@#{key}", value.to_s if value
+            else
+              raise "Unrecognized option #{key}=#{value}"
+            end
+          end
+        else
+          # parse command line args
+          @description = options.parse(command_line_args).join " "
+        end
+        config.env = @environment if @environment
+        @appname ||= config.app_name || config.env || 'development'
       end
       
       # Run the Deployment upload in RPM via Active Resource.
       # Will possibly print errors and exit the VM
       def run
         begin
-          @description = nil if @description.empty?
+          @description = nil if @description && @description.strip.empty?
           create_params = {}
           {
-            :application_id => @application_id, 
+            :application_id => @appname, 
             :host => Socket.gethostname, 
             :description => @description,
             :user => @user,
@@ -46,11 +77,11 @@ module NewRelic
           http = config.http_connection(config.api_server)
           
           uri = "/deployments.xml"
-
-					raise "license_key was not set in newrelic.yml for #{config.env}" if config['license_key'].nil?
+          
+          raise "license_key was not set in newrelic.yml for #{config.env}" if config['license_key'].nil?
           request = Net::HTTP::Post.new(uri, {'x-license-key' => config['license_key']})
           request.content_type = "application/octet-stream"
-
+          
           request.set_form_data(create_params)
           
           response = http.request(request)
@@ -58,24 +89,26 @@ module NewRelic
           if response.is_a? Net::HTTPSuccess
             info "Recorded deployment to NewRelic RPM (#{@description || Time.now })"
           else
-            err "Unexpected response from server: #{response.code}: #{response.message}"
+            err_string = [ "Unexpected response from server: #{response.code}: #{response.message}" ]
             begin
               doc = REXML::Document.new(response.body)
               doc.elements.each('errors/error') do |error|
-                 err "Error: #{error.text}"
+                err_string << "Error: #{error.text}"
               end
             rescue
             end
-            just_exit -1
+            raise CommandFailure.new(err_string.join("\n"), -1)
           end 
         rescue SystemCallError, SocketError => e
           # These include Errno connection errors 
-          err "Transient error attempting to connect to #{config.api_server} (#{e})"
-          just_exit -2
+          err_string = "Transient error attempting to connect to #{config.api_server} (#{e})"
+          raise CommandFailure.new(err_string, -1)
+        rescue CommandFailure
+          raise
         rescue Exception => e
-          err "Unexpected error attempting to connect to #{config.api_server} (#{e})"
+          err "Unexpected error attempting to connect to #{config.api_server}"
           info e.backtrace.join("\n")
-          just_exit 1
+          raise CommandFailure.new(e.to_s, -1)
         end
       end
       
@@ -86,10 +119,10 @@ module NewRelic
           o.separator "OPTIONS:"
           o.on("-a", "--appname=DIR", String,
              "Set the application name.",
-             "Default is app_name setting in newrelic.yml") { |@application_id| }
-          o.on("-e ENV", String,
+             "Default is app_name setting in newrelic.yml") { |@appname| }
+          o.on("-e", "--environment=name", String,
                "Override the (RAILS|MERB|RUBY)_ENV setting",
-               "currently: #{config.env}") { |env| config.env=env }
+               "currently: #{config.env}") { | @environment| }
           o.on("-u", "--user=USER", String,
              "Specify the user deploying.",
              "Default: #{@user}") { |@user| }
@@ -97,7 +130,7 @@ module NewRelic
              "Specify the revision being deployed") { |@revision | }
           o.on("-c", "--changes", 
              "Read in a change log from the standard input") { @changelog = STDIN.read }
-          o.on("-?", "Print this help") { info o.help; just_exit }
+          o.on("-?", "Print this help") { raise CommandFailure.new(o.help, 0) }
           o.separator ""
           o.separator 'description = "short text"'
         end
@@ -109,9 +142,6 @@ module NewRelic
       def err message
         STDERR.puts message
       end  
-      def just_exit status=0
-        exit status
-      end
     end
   end
 end

@@ -13,23 +13,38 @@ make_notify_task = lambda do
     desc "Record a deployment in New Relic RPM (rpm.newrelic.com)"
     task :notice_deployment, :roles => :app, :except => {:no_release => true } do
       rails_env = fetch(:rails_env, "production")
-      from_revision = source.next_revision(current_revision)
-      log_command = source.log(from_revision)
-      # Because new_relic_api could be plugins or the gem dir, we rely
-      # on the lib path to find it. 
-      ## script = [ ' ] <<
-      script = [ 'vendor/plugins/newrelic_rpm/bin/newrelic_cmd' ] <<
-                 "deployments" <<
-                 "-u" << ENV['USER'] <<
-                 "-e" << rails_env <<
-                 "-r" << current_revision <<
-                 "-c"
-      
-      script = script.map { | arg | "'#{arg}'" }.join(" ")
       begin
-        run "cd #{current_release}; #{log_command} | ruby #{script}" do | io, stream_id, output |
-          logger.trace(output)
+        require File.expand_path(File.join(File.dirname(__FILE__),'../lib/new_relic/commands/deployments.rb'))
+        # Try getting the changelog from the server.  Then fall back to local changelog
+        # if it doesn't work.  Problem is that I don't know what directory the .git is
+        # in when using git.
+=begin        
+        run "cd #{current_release}; #{log_command}" do | io, stream_id, output |
+          changelog = output
         end
+=end
+        # allow overrides to be defined for description, changelog and appname
+        description = newrelic_desc rescue nil
+        changelog = newrelic_changelog rescue nil
+        appname = newrelic_appname rescue nil
+        if !changelog
+          from_revision = source.next_revision(current_revision)
+          log_command = "#{source.log(from_revision)}"
+          logger.info "Executing #{log_command}"
+          changelog = `#{log_command}`
+        end
+        deploy_options = { :environment => rails_env,
+                :revision => current_revision, 
+                :changelog => changelog, 
+                :description => description,
+                :appname => appname }
+        deployment = NewRelic::Commands::Deployments.new deploy_options
+        deployment.run
+        logger.info "uploaded deployment"
+      rescue ScriptError => e
+        logger.info "error creating New Relic deployment (#{e})\n#{e.backtrace.join("\n")}"
+      rescue NewRelic::Commands::CommandFailure => e
+        logger.info "unable to notify New Relic of the deployment (#{e})... skipping"
       rescue CommandError
         logger.info "unable to notify New Relic of the deployment... skipping"
       end
