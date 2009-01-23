@@ -19,7 +19,11 @@ if target
       before_dispatch :newrelic_dispatcher_start
       after_dispatch :newrelic_dispatcher_finish
       def newrelic_response_code
-         @response.headers['Status'][0..2]
+#        if !@response.headers['Status']
+#          puts @response.headers.inspect
+#          puts @response.inspect
+#        end
+         (@response.headers['Status']||'200')[0..2]
       end
     else
       # In version 1.2.* the instrumentation is done by method chaining
