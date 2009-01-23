@@ -20,21 +20,32 @@ class NewRelic::DeploymentsTests < Test::Unit::TestCase
     puts @deployment.exit_status
   end
   def test_help
-    @deployment = NewRelic::Commands::Deployments.new "-?"
-    assert_equal 0, @deployment.exit_status
-    assert_match /^Usage/, @deployment.messages
-    assert_nil @deployment.revision
+    begin
+      NewRelic::Commands::Deployments.new "-?"
+      fail "should have thrown"
+    rescue NewRelic::Commands::CommandFailure => c
+      assert_match /^Usage/, c.message
+    end
+  end
+  def test_interactive
+    mock_the_connection
+    @deployment = NewRelic::Commands::Deployments.new :appname => 'APP', :revision => 3838, :user => 'Bill', :description => "Some lengthy description"
+    assert_nil @deployment.exit_status
+    assert_nil @deployment.errors
+    assert_equal '3838', @deployment.revision
+    @deployment.run
     @deployment = nil
   end
-  def test_run
+  
+  def test_command_line_run
     mock_the_connection
-    @mock_response.expects(:body).returns("<xml>deployment</xml>")
+    #    @mock_response.expects(:body).returns("<xml>deployment</xml>")
     @deployment = NewRelic::Commands::Deployments.new(%w[-a APP -r 3838 --user=Bill] << "Some lengthy description")
     assert_nil @deployment.exit_status
     assert_nil @deployment.errors
     assert_equal '3838', @deployment.revision
     @deployment.run
-
+    
     # This should pass because it's a bogus deployment
     #assert_equal 1, @deployment.exit_status
     #assert_match /Unable to upload/, @deployment.errors
