@@ -130,7 +130,7 @@ module NewRelic
              "Specify the revision being deployed") { |@revision | }
           o.on("-c", "--changes", 
              "Read in a change log from the standard input") { @changelog = STDIN.read }
-          o.on("-?", "Print this help") { raise CommandFailure.new(o.help, 0) }
+          o.on("-h", "--help", "Print this help") { raise CommandFailure.new(o.help, 0) }
           o.separator ""
           o.separator 'description = "short text"'
         end
