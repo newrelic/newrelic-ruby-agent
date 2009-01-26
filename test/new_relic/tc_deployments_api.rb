@@ -21,10 +21,15 @@ class NewRelic::DeploymentsTests < Test::Unit::TestCase
   end
   def test_help
     begin
-      NewRelic::Commands::Deployments.new "-?"
+      NewRelic::Commands::Deployments.new "-h"
       fail "should have thrown"
     rescue NewRelic::Commands::CommandFailure => c
       assert_match /^Usage/, c.message
+    end
+  end
+  def test_bad_command
+    assert_raise OptionParser::InvalidOption do
+      NewRelic::Commands::Deployments.new ["-foo", "bar"]
     end
   end
   def test_interactive
