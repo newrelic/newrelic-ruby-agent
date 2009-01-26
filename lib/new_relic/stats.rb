@@ -121,6 +121,15 @@ module NewRelic
       Math.sqrt(x / self.call_count)
     end
     
+    def plus_standard_deviation
+      average_value + standard_deviation
+    end
+    
+    def minus_standard_deviation(zero_minum = true)
+      value = average_value - standard_deviation
+      value < 0 && zero_minum ? 0 : value
+    end
+    
     # returns the time spent in this component as a percentage of the total
     # time window.
     def time_percentage
