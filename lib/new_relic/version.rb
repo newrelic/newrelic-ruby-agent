@@ -2,16 +2,19 @@
 module NewRelic
   module VERSION #:nodoc:
   MAJOR = 2
-  MINOR = 8
-  TINY  = 1
+  MINOR = 9
+  TINY  = 0
   STRING = [MAJOR, MINOR, TINY].join('.')
   def self.changes
-    puts "NewRelic RPM Plugin Version: #{NewRelic::VERSION}"
+    puts "NewRelic RPM Plugin Version: #{NewRelic::VERSION::STRING}"
     puts CHANGELOG
   end
 
   CHANGELOG = <<EOF
+
 2009-XXXXX version 2.8.1
+  * Convert the deployment information upload script to an executable
+    and put in the bin directory.  Usage: bin/newrelic_cmd deployments --help
   * Fix issue invoking api when host is not set in newrelic.yml
   * Fix deployments api so it will work from a gem
 2008-12-18 version 2.8.0
