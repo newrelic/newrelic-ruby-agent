@@ -23,24 +23,27 @@ make_notify_task = lambda do
           changelog = output
         end
 =end
-        # allow overrides to be defined for description, changelog and appname
-        description = newrelic_desc rescue nil
-        changelog = newrelic_changelog rescue nil
-        appname = newrelic_appname rescue nil
+        # allow overrides to be defined for revision, description, changelog and appname
+        rev = fetch(:newrelic_revision) if exists?(:newrelic_revision)
+        description = fetch(:newrelic_desc) if exists?(:newrelic_desc)
+        changelog = fetch(:newrelic_changelog) if exists?(:newrelic_changelog)
+        appname = fetch(:newrelic_appname) if exists?(:newrelic_appname)
         if !changelog
+          logger.debug "Getting log of changes for New Relic Deployment details"
           from_revision = source.next_revision(current_revision)
           log_command = "#{source.log(from_revision)}"
-          logger.info "Executing #{log_command}"
           changelog = `#{log_command}`
         end
+        new_revision = rev || source.query_revision(source.head()) { |cmd| `#{cmd}` } 
         deploy_options = { :environment => rails_env,
-                :revision => current_revision, 
+                :revision => new_revision,
                 :changelog => changelog, 
                 :description => description,
                 :appname => appname }
+        logger.debug "Uploading deployment to New Relic"
         deployment = NewRelic::Commands::Deployments.new deploy_options
         deployment.run
-        logger.info "uploaded deployment"
+        logger.info "Uploaded deployment information to New Relic"
       rescue ScriptError => e
         logger.info "error creating New Relic deployment (#{e})\n#{e.backtrace.join("\n")}"
       rescue NewRelic::Commands::CommandFailure => e
