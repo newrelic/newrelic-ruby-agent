@@ -51,7 +51,7 @@ module NewRelic
             end
           end
         else
-          # parse command line args
+          # parse command line args.  Throw an exception on a bad arg.
           @description = options.parse(command_line_args).join " "
         end
         config.env = @environment if @environment

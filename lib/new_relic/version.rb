@@ -19,6 +19,9 @@ module NewRelic
   * added http referer to traced errors
   * on connection, get a shard collector to redirect to (experimental)
 2009-XXXXX version 2.8.1
+  * Convert the deployment information upload script to an executable
+    and put in the bin directory.  When installed as a gem this command
+    is symlinked to /usr/bin.  Usage: newrelic_cmd deployments --help
   * Fix issue invoking api when host is not set in newrelic.yml
   * Fix deployments api so it will work from a gem
 2008-12-18 version 2.8.0

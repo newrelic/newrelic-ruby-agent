@@ -51,7 +51,7 @@ module NewRelic
     end
     
     def settings
-      @settings ||= @yaml[env] || {}
+      @settings ||= (@yaml && @yaml[env]) || {}
     end
     
     def []=(key, value)
@@ -173,7 +173,7 @@ module NewRelic
     # This will NOT print anything if the environment is unknown because this is
     # probably not an environment the agent will be running in.
     def log!(msg, level=:info)
-      return if settings && !tracers_enabled?
+      return if !tracers_enabled?
       to_stderr msg
       log.send level, msg if log
     end
