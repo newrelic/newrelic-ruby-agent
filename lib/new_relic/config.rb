@@ -54,7 +54,7 @@ module NewRelic
     end
     
     def settings
-      @settings ||= @yaml[env] || {}
+      @settings ||= (@yaml && @yaml[env]) || {}
     end
     
     def []=(key, value)
@@ -170,7 +170,7 @@ module NewRelic
     # This will NOT print anything if the environment is unknown because this is
     # probably not an environment the agent will be running in.
     def log!(msg, level=:info)
-      return if settings && !tracers_enabled?
+      return if !tracers_enabled?
       to_stderr msg
       log.send level, msg if log
     end
@@ -238,6 +238,7 @@ module NewRelic
         yml_file = File.expand_path(File.join(__FILE__,"..","..","..","newrelic.yml"))
         yaml = ::ERB.new(File.read(yml_file)).result(binding)
         log! "Cannot find newrelic.yml file at #{config_file}."
+        log! "Be sure to run this from the app root dir."
         log! "Using #{yml_file} file."
         log! "Signup at rpm.newrelic.com to get a newrelic.yml file configured for a free Lite account."
       else

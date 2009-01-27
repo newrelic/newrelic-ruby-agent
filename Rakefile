@@ -23,7 +23,9 @@ spec = Gem::Specification.new do |s|
   s.homepage = HOMEPAGE
   s.require_path = 'lib'
   s.files = %w(install.rb LICENSE README newrelic.yml Rakefile) + Dir.glob("{lib,bin,recipes,test,ui}/**/*") 
-  
+  s.bindir = "bin" # Use these for applications.
+  s.executables = ["newrelic_cmd"]
+  s.default_executable = "newrelic_cmd"
 end
 
 Rake::GemPackageTask.new(spec) do |pkg|
