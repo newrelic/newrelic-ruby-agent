@@ -1,4 +1,4 @@
-#require 'new_relic/stats'
+require 'new_relic/stats'
 
 # This agent is loaded by the plug when the plug-in is disabled
 # It recreates just enough of the API to not break any clients that
@@ -28,7 +28,7 @@ module NewRelic
   module Agent
     
     class << self
-      @@dummy_stats = MethodTraceStats.new
+      @@dummy_stats = NewRelic::MethodTraceStats.new
       def agent
         NewRelic::Agent::Agent.instance
       end
