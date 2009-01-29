@@ -150,7 +150,7 @@ class NewrelicController < ActionController::Base
       :last_modified => last_modified,
       :type => 'text/plain'
     else
-      response.headers['Last-Modified'] = last_modified
+      response.headers['Last-Modified'] = last_modified.to_formatted_s(:rfc822)
       expires_in 24.hours
       send_file file, :content_type => mime_type_from_extension(file), :disposition => 'inline' #, :filename => File.basename(file)
     end
