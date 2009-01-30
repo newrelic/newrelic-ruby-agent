@@ -107,6 +107,11 @@ module NewRelic::Agent
       scope_stack.last
     end
     
+    
+    def add_sampler(&sampler_callback)
+      @sampled_items << SampledItem.new(nil, &sampler_callback)
+    end
+    
     def add_sampled_metric(metric_name, &sampler_callback)
       stats = get_stats(metric_name, false)
       @sampled_items << SampledItem.new(stats, &sampler_callback)
