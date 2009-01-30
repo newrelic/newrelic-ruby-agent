@@ -18,6 +18,7 @@ module NewRelic
     is symlinked to /usr/bin.  Usage: newrelic_cmd deployments --help
   * Fix issue invoking api when host is not set in newrelic.yml
   * Fix deployments api so it will work from a gem
+  * Fix thin incompatibility in developer mode 
 2008-12-18 version 2.8.0
   * add beta of api in new_relic_api.rb
   * instrumented dynamic finders in ActiveRecord

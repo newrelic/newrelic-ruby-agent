@@ -170,7 +170,7 @@ module NewRelic
     # This will NOT print anything if the environment is unknown because this is
     # probably not an environment the agent will be running in.
     def log!(msg, level=:info)
-      return if !tracers_enabled?
+      return if @settings && !tracers_enabled?
       to_stderr msg
       log.send level, msg if log
     end
