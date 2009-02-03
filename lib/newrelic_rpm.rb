@@ -1,7 +1,7 @@
 # Initialization script for the gem.
 # Add 
-#    #require 'new_relic'
-# to your initialization sequence, as late as possible.
+#    config.gem 'newrelic_rpm'
+# to your initialization sequence.
 #
 require 'new_relic/config'
 
