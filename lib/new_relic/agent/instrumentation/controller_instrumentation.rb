@@ -75,7 +75,7 @@ module NewRelic::Agent::Instrumentation
       # Skip instrumentation based on the value of 'do_not_trace' and if 
       # we aren't calling directly with a block.
       should_skip = !block_given? && case ignore_actions
-        when nil: false
+        when nil; false
         when Hash
         only_actions = Array(ignore_actions[:only])
         except_actions = Array(ignore_actions[:except])
