@@ -3,19 +3,19 @@ module NewRelic::Agent::CollectionHelper
   # strings
   def normalize_params(params)
     case params
-      when Symbol, FalseClass, TrueClass, nil:
+      when Symbol, FalseClass, TrueClass, nil
         params
       when Numeric
         truncate(params.to_s)
       when String
         truncate(params)
-      when Hash:
+      when Hash
         new_params = {}
         params.each do | key, value |
           new_params[truncate(normalize_params(key),32)] = normalize_params(value)
       end
         new_params
-      when Enumerable:
+      when Enumerable
       # We only want the first 20 values of any enumerable.  Invoking to_a.first(20) works but
       # the to_a call might be expensive, so we'll just build it manually, even though it's
       # more verbose.
