@@ -148,11 +148,11 @@ module NewRelic
       
       # set the log level as specified in the config file
       case fetch("log_level","info").downcase
-        when "debug": @log.level = Logger::DEBUG
-        when "info": @log.level = Logger::INFO
-        when "warn": @log.level = Logger::WARN
-        when "error": @log.level = Logger::ERROR
-        when "fatal": @log.level = Logger::FATAL
+        when "debug"; @log.level = Logger::DEBUG
+        when "info"; @log.level = Logger::INFO
+        when "warn"; @log.level = Logger::WARN
+        when "error"; @log.level = Logger::ERROR
+        when "fatal"; @log.level = Logger::FATAL
       else @log.level = Logger::INFO
       end
       log! "New Relic RPM Agent #{NewRelic::VERSION::STRING} Initialized: pid = #{$$}"
