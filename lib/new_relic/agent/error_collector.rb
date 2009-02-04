@@ -53,6 +53,8 @@ module NewRelic::Agent
       data[:custom_params] = normalize_params(@agent.custom_params) if @agent
       
       data[:request_uri] = request.path if request
+      data[:request_uri] ||= ""
+      
       data[:request_referer] = request.referer if request
       data[:request_referer] ||= ""
       
@@ -70,8 +72,9 @@ module NewRelic::Agent
       else
         inside_exception = exception
       end
-      data[:stack_trace] = strip_nr_from_backtrace(inside_exception.backtrace)
 
+      data[:stack_trace] = inside_exception.backtrace
+      
       noticed_error = NewRelic::NoticedError.new(action_path, data, exception)
       
       synchronize do

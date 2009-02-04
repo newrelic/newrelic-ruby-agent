@@ -7,9 +7,6 @@ require 'zlib'
 require 'stringio'
 
 
-# This must be turned off before we ship
-VALIDATE_BACKGROUND_THREAD_LOADING = false
-
 # The NewRelic Agent collects performance data from ruby applications in realtime as the
 # application runs, and periodically sends that data to the NewRelic server.
 module NewRelic::Agent
@@ -23,6 +20,8 @@ module NewRelic::Agent
   
   # Reserved for future use
   class ServerError < StandardError; end
+    
+  class BackgroundLoadingError < StandardError; end
   
   # add some convenience methods for easy access to the Agent singleton.
   # the following static methods all point to the same Agent instance:
@@ -360,16 +359,20 @@ module NewRelic::Agent
       
       @worker_loop = WorkerLoop.new(log)
       
-      if VALIDATE_BACKGROUND_THREAD_LOADING
+      if config['check_bg_loading']
+        log.warn "Agent background loading checking turned on"
         require 'new_relic/agent/patch_const_missing'
+        
+        
         self.class.newrelic_enable_warning
       end
       
       @worker_thread = Thread.new do
         begin
-          if VALIDATE_BACKGROUND_THREAD_LOADING
+          if config['check_bg_loading']
             self.class.newrelic_set_agent_thread(Thread.current)
           end          
+        
           run_worker_loop
         rescue IgnoreSilentlyException
           config.log! "Unable to establish connection with the server.  Run with log level set to debug for more information."
@@ -387,8 +390,10 @@ module NewRelic::Agent
       #      while true
       #        sleep 1
       #      end
-      
-    end    
+    end
+    
+    private
+    
     def start_reporting(force_enable=false)
       @local_host = determine_host
       

@@ -4,6 +4,11 @@ require 'new_relic/agent/model_fixture'
 
 class NewRelic::Agent::NewrelicHelperTests < Test::Unit::TestCase
   include NewrelicHelper
+  
+  def params
+    {}
+  end
+  
   def setup
     super
     NewRelic::Agent::ModelFixture.setup

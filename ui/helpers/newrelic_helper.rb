@@ -21,7 +21,7 @@ module NewrelicHelper
   # return the highest level in the call stack for the trace that is not rails or 
   # newrelic agent code
   def application_caller(trace)
-    trace = strip_nr_from_backtrace(trace)
+    trace = strip_nr_from_backtrace(trace) unless params[:show_nr]
     trace.each do |trace_line|
       file = file_and_line(trace_line).first
       unless exclude_file_from_stack_trace?(file, false)
@@ -32,7 +32,7 @@ module NewrelicHelper
   end
   
   def application_stack_trace(trace, include_rails = false)
-    trace = strip_nr_from_backtrace(trace)
+    trace = strip_nr_from_backtrace(trace) unless params[:show_nr]
     trace.reject do |trace_line|
       file = file_and_line(trace_line).first
       exclude_file_from_stack_trace?(file, include_rails)
