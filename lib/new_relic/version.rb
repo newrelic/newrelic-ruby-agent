@@ -3,7 +3,7 @@ module NewRelic
   module VERSION #:nodoc:
   MAJOR = 2
   MINOR = 8
-  TINY  = 1
+  TINY  = 2
   STRING = [MAJOR, MINOR, TINY].join('.')
   def self.changes
     puts "NewRelic RPM Plugin Version: #{NewRelic::VERSION::STRING}"
@@ -12,6 +12,8 @@ module NewRelic
 
   CHANGELOG = <<EOF
 
+2009-02-07 version 2.8.2
+  * fix agent output on script and rake task execution
 2009-01-27 version 2.8.1
   * Convert the deployment information upload script to an executable
     and put in the bin directory.  When installed as a gem this command
