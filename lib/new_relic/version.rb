@@ -19,6 +19,8 @@ module NewRelic
   * added http referer to traced errors
   * on connection, get a shard collector to redirect to (experimental)
 2009-02-07 version 2.8.2
+  * fix Ruby 1.9 syntax compatibility errors
+  * update the class loading sanity check, will notify server of errors
   * fix agent output on script and rake task execution
 2009-01-27 version 2.8.1
   * Convert the deployment information upload script to an executable
