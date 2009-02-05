@@ -362,14 +362,12 @@ module NewRelic::Agent
       
       if VALIDATE_BACKGROUND_THREAD_LOADING
         require 'new_relic/agent/patch_const_missing'
-        self.class.newrelic_enable_warning
+        ClassLoadingWatcher.enable_warning
       end
       
       @worker_thread = Thread.new do
         begin
-          if VALIDATE_BACKGROUND_THREAD_LOADING
-            self.class.newrelic_set_agent_thread(Thread.current)
-          end          
+          ClassLoadingWatcher.set_background_thread(Thread.current) if config['check_bg_loading']
           run_worker_loop
         rescue IgnoreSilentlyException
           config.log! "Unable to establish connection with the server.  Run with log level set to debug for more information."

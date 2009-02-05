@@ -59,19 +59,55 @@ class AgentTests < ActiveSupport::TestCase
   
   def test_classloading_patch
     require 'new_relic/agent/patch_const_missing'
-    NewRelic::Agent::Agent.newrelic_set_agent_thread(Thread.current)
-    # try loading some non-existent class
-    NewRelic::Config.instance.log.expects(:warn).at_least_once.with{|args| args =~ /calling const_missing.*:FooBar/}
-    NewRelic::Config.instance.log.expects(:warn).with{|args| args =~ /calling const_missing.*:FooBaz/}.never
-    NewRelic::Agent::Agent.newrelic_enable_warning
+    ClassLoadingWatcher.set_background_thread(Thread.current)
+    
+    NewRelic::Config.instance.log.expects(:error).at_least_once.with{|args| args =~ /Agent background thread.*:FooBar/}
+    NewRelic::Config.instance.log.expects(:error).with{|args| args =~ /Agent background thread.*:FooBaz/}.never
+    
+    ClassLoadingWatcher.enable_warning
     assert_raise NameError do
       FooBar::Bat
     end
-    NewRelic::Agent::Agent.newrelic_disable_warning
+    ClassLoadingWatcher.disable_warning
     assert_raise NameError do
       FooBaz::Bat
     end
   end
+
+  def test_require
+    require 'new_relic/agent/patch_const_missing'
+    ClassLoadingWatcher.set_background_thread(Thread.current)
+    
+    # try loading some non-existent class
+    NewRelic::Config.instance.log.expects(:error).at_least_once.with{|args| args =~ /Agent background thread.*net/}
+    NewRelic::Config.instance.log.expects(:error).with{|args| args =~ /Agent background thread.*net/}.never
+    
+    ClassLoadingWatcher.enable_warning
+    
+    require 'net/http'
+
+    ClassLoadingWatcher.disable_warning
+
+    require 'net/http'
+  end
+  
+  def test_load
+    require 'new_relic/agent/patch_const_missing'
+    ClassLoadingWatcher.set_background_thread(Thread.current)
+    
+    # try loading some non-existent class
+    NewRelic::Config.instance.log.expects(:error).at_least_once.with{|args| args =~ /Agent background thread.*/}
+    NewRelic::Config.instance.log.expects(:error).with{|args| args =~ /Agent background thread.*/}.never
+    
+    ClassLoadingWatcher.enable_warning
+    
+    load 'net/http.rb'
+
+    ClassLoadingWatcher.disable_warning
+
+    load 'net/http.rb'
+  end
+
   def test_info
     props = NewRelic::Config.instance.app_config_info
     list = props.assoc('Plugin List').last.sort
