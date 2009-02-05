@@ -59,18 +59,18 @@ class AgentTests < ActiveSupport::TestCase
   
   def test_const_undefined
     require 'new_relic/agent/patch_const_missing'
-    newrelic_set_agent_thread(Thread.current)
+    ClassLoadingWatcher.set_background_thread(Thread.current)
     
     # try loading some non-existent class
     NewRelic::Config.instance.log.expects(:error).at_least_once.with{|args| args =~ /Agent background thread.*:FooBar/}
     NewRelic::Config.instance.log.expects(:error).with{|args| args =~ /Agent background thread.*:FooBaz/}.never
     
-    newrelic_enable_warning
+    ClassLoadingWatcher.enable_warning
     assert_raise NameError do
       FooBar::Bat
     end
     
-    newrelic_disable_warning
+    ClassLoadingWatcher.disable_warning
     assert_raise NameError do
       FooBaz::Bat
     end
@@ -78,34 +78,34 @@ class AgentTests < ActiveSupport::TestCase
 
   def test_require
     require 'new_relic/agent/patch_const_missing'
-    newrelic_set_agent_thread(Thread.current)
+    ClassLoadingWatcher.set_background_thread(Thread.current)
     
     # try loading some non-existent class
     NewRelic::Config.instance.log.expects(:error).at_least_once.with{|args| args =~ /Agent background thread.*net/}
     NewRelic::Config.instance.log.expects(:error).with{|args| args =~ /Agent background thread.*net/}.never
     
-    newrelic_enable_warning
+    ClassLoadingWatcher.enable_warning
     
     require 'net/http'
 
-    newrelic_disable_warning
+    ClassLoadingWatcher.disable_warning
 
     require 'net/http'
   end
   
   def test_load
     require 'new_relic/agent/patch_const_missing'
-    newrelic_set_agent_thread(Thread.current)
+    ClassLoadingWatcher.set_background_thread(Thread.current)
     
     # try loading some non-existent class
     NewRelic::Config.instance.log.expects(:error).at_least_once.with{|args| args =~ /Agent background thread.*/}
     NewRelic::Config.instance.log.expects(:error).with{|args| args =~ /Agent background thread.*/}.never
     
-    newrelic_enable_warning
+    ClassLoadingWatcher.enable_warning
     
     load 'net/http.rb'
 
-    newrelic_disable_warning
+    ClassLoadingWatcher.disable_warning
 
     load 'net/http.rb'
   end

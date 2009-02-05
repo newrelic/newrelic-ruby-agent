@@ -362,16 +362,12 @@ module NewRelic::Agent
       if config['check_bg_loading']
         log.warn "Agent background loading checking turned on"
         require 'new_relic/agent/patch_const_missing'
-        
-        
-        self.class.newrelic_enable_warning
+        ClassLoadingWatcher.enable_warning
       end
       
       @worker_thread = Thread.new do
         begin
-          if config['check_bg_loading']
-            self.class.newrelic_set_agent_thread(Thread.current)
-          end          
+          ClassLoadingWatcher.set_background_thread(Thread.current) if config['check_bg_loading']
         
           run_worker_loop
         rescue IgnoreSilentlyException
