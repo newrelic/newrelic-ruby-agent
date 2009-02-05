@@ -358,6 +358,7 @@ module NewRelic::Agent
       
       if config['check_bg_loading']
         require 'new_relic/agent/patch_const_missing'
+        log.warn "Agent background loading checking turned on"
         ClassLoadingWatcher.enable_warning
       end
       
