@@ -178,7 +178,7 @@ module NewRelic::Agent
       if @identifier
         start_reporting(force)
         config.log! "New Relic RPM Agent #{NewRelic::VERSION::STRING} Initialized: pid = #{$$}"
-        config.log! "Agent Log is found in #{NewRelic::Config.instance.log_file}"
+        config.log! "Agent Log found in #{NewRelic::Config.instance.log_file}"
         return true
       else
         return false
@@ -421,11 +421,11 @@ module NewRelic::Agent
       sampler_config = config.fetch('transaction_tracer', {})
       
       @use_transaction_sampler = sampler_config.fetch('enabled', false)
-      @record_sql = (sampler_config.fetch('record_sql', 'obfuscated') || 'off').intern
-      @slowest_transaction_threshold = sampler_config.fetch('transaction_threshold', '2.0').to_f
-      @explain_threshold = sampler_config.fetch('explain_threshold', '0.5').to_f
+      @record_sql = sampler_config.fetch('record_sql', :obfuscated).to_sym
+      @slowest_transaction_threshold = sampler_config.fetch('transaction_threshold', 2.0).to_f
+      @explain_threshold = sampler_config.fetch('explain_threshold', 0.5).to_f
       @explain_enabled = sampler_config.fetch('explain_enabled', true)
-      @stack_trace_threshold = sampler_config.fetch('stack_trace_threshold', '0.500').to_f
+      @stack_trace_threshold = sampler_config.fetch('stack_trace_threshold', 0.500).to_f
       @random_sample = sampler_config.fetch('random_sample', false)
       @frustrating = sampler_config.fetch('frustrating', false)
       

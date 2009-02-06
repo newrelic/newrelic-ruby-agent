@@ -13,6 +13,10 @@ test:
   api_port: 443
   message: '<%= generated_for_user %>'
   license_key: '<%= license_key %>'
+
+  # checks for loading classes on the background thread
+  check_bg_loading: true
+
   transaction_tracer:
     enabled: true
     record_sql: raw

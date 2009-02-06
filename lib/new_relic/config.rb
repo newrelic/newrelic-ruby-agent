@@ -65,7 +65,7 @@ module NewRelic
     end
     
     def fetch(key, default=nil)
-      settings[key].nil? ? default : settings[key]
+      settings.fetch(key, default)
     end
     
     ###################################

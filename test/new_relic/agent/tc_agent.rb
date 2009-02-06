@@ -1,7 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 ##require 'new_relic/agent/agent'
 ##require 'new_relic/local_environment'
-require 'net/http'
 
 class AgentTests < ActiveSupport::TestCase
   
@@ -30,7 +29,6 @@ class AgentTests < ActiveSupport::TestCase
       # ok
     end
     
-    
     ignore_called = false
     NewRelic::Agent.ignore_error_filter do |e|
       ignore_called = true
@@ -57,59 +55,6 @@ class AgentTests < ActiveSupport::TestCase
     @agent.shutdown
   end
   
-  def test_const_undefined
-    require 'new_relic/agent/patch_const_missing'
-    ClassLoadingWatcher.set_background_thread(Thread.current)
-    
-    # try loading some non-existent class
-    NewRelic::Config.instance.log.expects(:error).at_least_once.with{|args| args =~ /Agent background thread.*:FooBar/}
-    NewRelic::Config.instance.log.expects(:error).with{|args| args =~ /Agent background thread.*:FooBaz/}.never
-    
-    ClassLoadingWatcher.enable_warning
-    assert_raise NameError do
-      FooBar::Bat
-    end
-    
-    ClassLoadingWatcher.disable_warning
-    assert_raise NameError do
-      FooBaz::Bat
-    end
-  end
-
-  def test_require
-    require 'new_relic/agent/patch_const_missing'
-    ClassLoadingWatcher.set_background_thread(Thread.current)
-    
-    # try loading some non-existent class
-    NewRelic::Config.instance.log.expects(:error).at_least_once.with{|args| args =~ /Agent background thread.*net/}
-    NewRelic::Config.instance.log.expects(:error).with{|args| args =~ /Agent background thread.*net/}.never
-    
-    ClassLoadingWatcher.enable_warning
-    
-    require 'net/http'
-
-    ClassLoadingWatcher.disable_warning
-
-    require 'net/http'
-  end
-  
-  def test_load
-    require 'new_relic/agent/patch_const_missing'
-    ClassLoadingWatcher.set_background_thread(Thread.current)
-    
-    # try loading some non-existent class
-    NewRelic::Config.instance.log.expects(:error).at_least_once.with{|args| args =~ /Agent background thread.*/}
-    NewRelic::Config.instance.log.expects(:error).with{|args| args =~ /Agent background thread.*/}.never
-    
-    ClassLoadingWatcher.enable_warning
-    
-    load 'net/http.rb'
-
-    ClassLoadingWatcher.disable_warning
-
-    load 'net/http.rb'
-  end
-
   def test_info
     props = NewRelic::Config.instance.app_config_info
     list = props.assoc('Plugin List').last.sort
