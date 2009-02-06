@@ -37,10 +37,12 @@ module NewRelic::TransactionAnalysis
     end
     
     def exclusive_time_percentage
+      return 0 unless @exclusive_time && @sample.duration && @sample.duration > 0
       @exclusive_time / @sample.duration
     end
     
     def total_time_percentage
+      return 0 unless @total_time && @sample.duration && @sample.duration > 0
       @total_time / @sample.duration
     end
     
