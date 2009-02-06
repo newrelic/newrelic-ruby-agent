@@ -1,0 +1,28 @@
+# This is the config file loaded when running unit tests locally.
+
+test:
+  erb_value: <%= 'hey'*3 %>
+  host: localhost
+  port: 3000
+  log_level: debug
+  capture_params: true
+  enabled: false
+  developer: true
+  monitor_daemons: false
+  api_host: 127.0.0.1
+  api_port: 443
+  message: '<%= generated_for_user %>'
+  license_key: '<%= license_key %>'
+  transaction_tracer:
+    enabled: true
+    record_sql: raw
+    transaction_threshold: 0.500
+    explain_threshold: 0.1
+    explain_enabled: true
+    stack_trace_threshold: 0.1
+    
+  error_collector:
+    enabled: true
+    capture_source: true
+    
+  
