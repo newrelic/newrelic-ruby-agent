@@ -20,6 +20,8 @@ module NewRelic::Agent
   # Reserved for future use
   class ServerError < StandardError; end
   
+  class BackgroundLoadingError < StandardError; end
+
   # add some convenience methods for easy access to the Agent singleton.
   # the following static methods all point to the same Agent instance:
   #
