@@ -33,7 +33,7 @@ module ClassLoadingWatcher
         exception = NewRelic::Agent::BackgroundLoadingError.new(msg.clone)
         exception.set_backtrace(caller)
         
-        NewRelic::Agent.instance.error_collector.notice_error(exception, nil)
+        NewRelic::Agent.instance.error_collector.notice_error(nil, nil, [], exception)
         msg << caller.join("\n")
         
         NewRelic::Config.instance.log.error msg
