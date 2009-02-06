@@ -33,7 +33,7 @@ module NewRelic::Agent
     end
     
     
-    def notice_error(exception, request, action_path=nil, filtered_params={})
+    def notice_error(exception, request=nil, action_path=nil, filtered_params={})
       
       return unless @enabled
       return if @ignore[exception.class.name] 
