@@ -43,20 +43,8 @@ class NewRelic::Config::Rails < NewRelic::Config
       return
     end
     
-    # This is a monkey patch to inject the developer tool route into the
-    # parent app without requiring users to modify their routes. Of course this 
-    # has the effect of adding a route indiscriminately which is frowned upon by 
-    # some: http://www.ruby-forum.com/topic/126316#563328
-    ActionController::Routing::RouteSet.class_eval do
-      next if defined? draw_with_newrelic_map
-      def draw_with_newrelic_map
-        draw_without_newrelic_map do | map |
-          map.named_route 'newrelic_developer', '/newrelic/:action/:id', :controller => 'newrelic' unless NewRelic::Config.instance['skip_developer_route']
-          yield map        
-        end
-      end
-      alias_method_chain :draw, :newrelic_map
-    end
+    install_devmode_route
+    
     
     # If we have the config object then add the controller path to the list.
     # Otherwise we have to assume the controller paths have already been
@@ -84,6 +72,24 @@ class NewRelic::Config::Rails < NewRelic::Config
   end
   
   protected 
+  
+  def install_devmode_route
+    # This is a monkey patch to inject the developer tool route into the
+    # parent app without requiring users to modify their routes. Of course this 
+    # has the effect of adding a route indiscriminately which is frowned upon by 
+    # some: http://www.ruby-forum.com/topic/126316#563328
+    ActionController::Routing::RouteSet.class_eval do
+      return false if self.instance_methods.include? 'draw_with_newrelic_map'
+      def draw_with_newrelic_map
+        draw_without_newrelic_map do | map |
+          map.named_route 'newrelic_developer', '/newrelic/:action/:id', :controller => 'newrelic' unless NewRelic::Config.instance['skip_developer_route']
+          yield map        
+        end
+      end
+      alias_method_chain :draw, :newrelic_map
+    end
+    return true
+  end
   
   # Collect the Rails::Info into an associative array as well as the list of plugins
   def gather_info

@@ -6,11 +6,9 @@ class NewRelic::Agent::ModelFixture < ActiveRecord::Base
     connection.create_table :test_data, :force => true do |t|
       t.column :name, :string
     end
-    connection.setup_slow
   end
   
   def self.teardown
-    connection.teardown_slow
     connection.drop_table :test_data
   end
   
