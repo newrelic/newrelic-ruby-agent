@@ -1,4 +1,6 @@
 require 'new_relic/config/rails'
+require 'new_relic/agent/agent_test_controller'
+
 class NewRelic::Config::Test < NewRelic::Config::Rails
   def env
     'test'
@@ -15,9 +17,19 @@ class NewRelic::Config::Test < NewRelic::Config::Rails
     log.send level, msg if log
   end
   
-  # Not installing routes in test mode.  We don't
-  # have functional tests yet.
+  # Add the default route in case it's missing.  Need it for testing.
   def install_devmode_route
-    # no-op
+    if super
+      ActionController::Routing::RouteSet.class_eval do
+      def draw_with_test_route
+        draw_without_test_route do | map |
+          map.connect ':controller/:action/:id'
+          yield map        
+        end
+      end
+      alias_method_chain :draw, :test_route
+    end
+    return true
+    end
   end
 end
