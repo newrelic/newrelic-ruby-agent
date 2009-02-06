@@ -18,6 +18,11 @@ module NewRelic
   * user rpm server time for transaction traces rather than agent time
   * added http referer to traced errors
   * on connection, get a shard collector to redirect to (experimental)
+2009-XXXXX version 2.8.3
+  * refactor unit tests so they will run in a generic rails environment
+  * require classes in advance to avoid autoloading.  this is to address
+    incompatibilities with desert as well as more flexibility in gem 
+    initialization
 2009-02-07 version 2.8.2
   * fix Ruby 1.9 syntax compatibility errors
   * update the class loading sanity check, will notify server of errors
