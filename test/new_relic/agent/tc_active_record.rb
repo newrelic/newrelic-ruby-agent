@@ -6,12 +6,7 @@ class ActiveRecordInstrumentationTests < Test::Unit::TestCase
   
   def setup
     super
-    begin
-      NewRelic::Agent::ModelFixture.setup
-    rescue => e
-      puts e
-      raise e
-    end
+    NewRelic::Agent::ModelFixture.setup
     @agent = NewRelic::Agent.instance
     @agent.start :test, :test
     @agent.transaction_sampler.harvest_slowest_sample
@@ -38,7 +33,7 @@ class ActiveRecordInstrumentationTests < Test::Unit::TestCase
     NewRelic::Agent::ModelFixture.find(:all)
     sample = @agent.transaction_sampler.harvest_slowest_sample
     segment = sample.root_segment.called_segments.first.called_segments.first
-    assert_equal "SELECT * FROM `test_data`", segment.params[:sql].strip
+    assert_match /^SELECT \* FROM ["`]test_data["`]$/i, segment.params[:sql].strip
     NewRelic::TransactionSample::Segment.any_instance.expects(:explain_sql).returns([])
     sample = sample.prepare_to_send(:obfuscate_sql => true, :explain_enabled => true, :explain_sql => 0.0)
     segment = sample.root_segment.called_segments.first.called_segments.first
@@ -53,10 +48,11 @@ class ActiveRecordInstrumentationTests < Test::Unit::TestCase
     segment = sample.root_segment.called_segments.first.called_segments.first
     assert_match /^SELECT /, segment.params[:sql]
     explanations = segment.params[:explanation]
-    assert_not_nil explanations, "No explains in segment: #{segment}"
-    assert_equal 1, explanations.size,"No explains in segment: #{segment}" 
-    assert_equal 1, explanations.first.size
-    
+    if isMysql? || isPostgres?
+      assert_not_nil explanations, "No explains in segment: #{segment}"
+      assert_equal 1, explanations.size,"No explains in segment: #{segment}" 
+      assert_equal 1, explanations.first.size
+    end
   end
   def test_transaction
     
@@ -66,16 +62,17 @@ class ActiveRecordInstrumentationTests < Test::Unit::TestCase
     segment = sample.root_segment.called_segments.first.called_segments.first
     assert_nil segment.params[:sql], "SQL should have been removed."
     explanations = segment.params[:explanation]
-    assert_not_nil explanations, "No explains in segment: #{segment}"
-    assert_equal 1, explanations.size,"No explains in segment: #{segment}" 
-    assert_equal 1, explanations.first.size
-    
+    if isMysql? || isPostgres?
+      assert_not_nil explanations, "No explains in segment: #{segment}"
+      assert_equal 1, explanations.size,"No explains in segment: #{segment}" 
+      assert_equal 1, explanations.first.size
+    end    
     if isPostgres?
       assert_equal Array, explanations.class
       assert_equal Array, explanations[0].class
       assert_equal Array, explanations[0][0].class
       assert_match /Seq Scan on test_data/, explanations[0][0].join(";") 
-    else
+    elsif isMysql?
       assert_equal "1;SIMPLE;test_data;ALL;;;;;1;", explanations.first.first.join(";")
     end
     
@@ -87,5 +84,7 @@ class ActiveRecordInstrumentationTests < Test::Unit::TestCase
   def isPostgres?
     NewRelic::Agent::ModelFixture.configurations[RAILS_ENV]['adapter'] =~ /postgres/
   end
-  
+  def isMysql?
+    NewRelic::Agent::ModelFixture.connection.class.name =~ /mysql/i 
+  end
 end

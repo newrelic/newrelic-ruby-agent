@@ -1,35 +1,10 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
 require 'action_controller/base'
-
-
-class AgentTestController < ActionController::Base
-  filter_parameter_logging :social_security_number
-  def index
-    render :text => params.inspect
-  end
-  def _filter_parameters(params)
-    filter_parameters params
-  end
-  def action_to_render
-    render :text => params.inspect
-  end
-  def action_to_ignore
-    render :text => 'unmeasured'
-  end
-  def entry_action
-    perform_action_with_newrelic_trace('internal_action') do
-      internal_action
-    end    
-  end
-  private
-  def internal_action
-    render :text => 'internal action'
-  end
-end
+#require 'new_relic/agent/agent_test_controller'
 
 class AgentControllerTests < ActionController::TestCase
   
-  self.controller_class = AgentTestController
+  self.controller_class = NewRelic::Agent::AgentTestController
   
   attr_accessor :agent
   
@@ -40,7 +15,7 @@ class AgentControllerTests < ActionController::TestCase
     #    @agent.instrument_app
     agent.start :test, :test
     agent.transaction_sampler.harvest_slowest_sample
-    AgentTestController.class_eval do
+    NewRelic::Agent::AgentTestController.class_eval do
       newrelic_ignore :only => [:action_to_ignore, :entry_action]
     end
   end
@@ -57,7 +32,7 @@ class AgentControllerTests < ActionController::TestCase
   end
   def test_metric__no_ignore
     engine = @agent.stats_engine
-    index_stats = engine.get_stats_no_scope('Controller/agent_test/index')
+    index_stats = engine.get_stats_no_scope('Controller/new_relic/agent/agent_test/index')
     assert_difference 'index_stats.call_count' do
       get :index
     end
@@ -68,11 +43,15 @@ class AgentControllerTests < ActionController::TestCase
     get :entry_action
     assert_equal false, Thread.current[:controller_ignored]
     assert_nil engine.lookup_stat('Controller/agent_test/entry_action')
-    assert_equal 1, engine.lookup_stat('Controller/agent_test/internal_action').call_count
+    assert_equal 1, engine.lookup_stat('Controller/new_relic/agent/agent_test/internal_action').call_count
   end
   def test_action_instrumentation
-    get :index, :foo => 'bar'
-    assert_match /bar/, @response.body
+    begin
+      get :index, :foo => 'bar'
+      assert_match /bar/, @response.body
+    #rescue ActionController::RoutingError
+      # you might get here if you don't have the default route installed.
+    end
   end
   
   def test_controller_params

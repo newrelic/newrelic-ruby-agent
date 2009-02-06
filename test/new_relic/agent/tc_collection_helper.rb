@@ -26,13 +26,14 @@ class NewRelic::Agent::CollectionHelperTests < Test::Unit::TestCase
     assert_equal '1000', new_array[0]
   end
   def test_boolean
-    np = normalize_params(APP_CONFIG)
-    assert_equal false, np['disable_ui']
+    np = normalize_params(NewRelic::Config.instance.settings)
+    assert_equal false, np['enabled']
   end
-  def test_coercible_string
-    s = CoercibleString.new "This is a string"
+  class MyString < String; end
+  def test_kind_of_string
+    s = MyString.new "This is a string"
     assert_equal "This is a string", s.to_s
-    assert_equal CoercibleString, s.class
+    assert_equal MyString, s.class
     assert_equal String, s.to_s.class
     params = normalize_params(:val => [s])
     assert_equal String, params[:val][0].class

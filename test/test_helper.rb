@@ -9,7 +9,6 @@ require 'test_help'
 require 'mocha'
 require 'test/unit'
 
-
 module NewRelic
   class Config
     def setup_log_with_block_logging(*args)
@@ -19,6 +18,7 @@ module NewRelic
   end
 end
 
+=begin
 # This is a mixin for hacking the select method
 if defined? ActiveRecord::ConnectionAdapters
   class ActiveRecord::ConnectionAdapters::MysqlAdapter
@@ -37,3 +37,4 @@ if defined? ActiveRecord::ConnectionAdapters
     end
   end
 end
+=end

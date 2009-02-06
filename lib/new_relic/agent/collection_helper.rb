@@ -13,7 +13,7 @@ module NewRelic::Agent::CollectionHelper
         new_params = {}
         params.each do | key, value |
           new_params[truncate(normalize_params(key),32)] = normalize_params(value)
-      end
+        end
         new_params
       when Enumerable
       # We only want the first 20 values of any enumerable.  Invoking to_a.first(20) works but

@@ -111,8 +111,8 @@ class AgentTests < ActiveSupport::TestCase
   def test_info
     props = NewRelic::Config.instance.app_config_info
     list = props.assoc('Plugin List').last.sort
-    assert_equal 4, (list & %w[active_merchant active_scaffold acts_as_list acts_as_state_machine ]).size, list.join("\n")
-    assert_equal 'mysql', props.assoc('Database adapter').last
+    assert_not_nil list # can't really guess what might be in here.  
+    assert_match /jdbc|postgres|mysql|sqlite/, props.assoc('Database adapter').last
   end
   def test_version
     assert_match /\d\.\d\.\d+/, NewRelic::VERSION::STRING
