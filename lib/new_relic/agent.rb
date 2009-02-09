@@ -1,3 +1,8 @@
+module NewRelic
+  module Agent
+  end
+end
+
 require 'new_relic/version'
 require 'new_relic/local_environment'
 require 'new_relic/stats'
@@ -21,6 +26,4 @@ require 'set'
 require 'sync'
 require 'thread'
 
-module NewRelic::Agent
-  
-end
+
