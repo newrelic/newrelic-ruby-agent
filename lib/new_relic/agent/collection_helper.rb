@@ -39,7 +39,7 @@ module NewRelic::Agent::CollectionHelper
       # strip newrelic from the trace
       backtrace = backtrace.reject {|line| line =~ /new_relic\/agent\// }
       # rename methods back to their original state
-      backtrace = backtrace.collect {|line| line.gsub /_without_(newrelic|trace)/, ""}
+      backtrace = backtrace.collect {|line| line.gsub(/_without_(newrelic|trace)/, "")}
     end
     backtrace
   end
