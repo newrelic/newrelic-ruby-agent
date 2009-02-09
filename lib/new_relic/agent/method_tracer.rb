@@ -1,6 +1,8 @@
 
 class Module
   
+  @@newrelic_stats_engine = nil
+  
   # Original method preserved for API backward compatibility
   def trace_method_execution (metric_name, push_scope, produce_metric, deduct_call_time_from_parent, &block)
     if push_scope
