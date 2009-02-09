@@ -275,11 +275,11 @@ private
   def mime_type_from_extension(extension)
     extension = extension[/[^.]*$/].downcase
     case extension
-      when 'png': 'image/png'
-      when 'gif': 'image/gif'
-      when 'jpg': 'image/jpg'
-      when 'css': 'text/css'
-      when 'js': 'text/javascript'
+      when 'png'; 'image/png'
+      when 'gif'; 'image/gif'
+      when 'jpg'; 'image/jpg'
+      when 'css'; 'text/css'
+      when 'js'; 'text/javascript'
       else 'text/plain'
     end
   end
