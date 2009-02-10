@@ -85,7 +85,7 @@ module NewRelic::TransactionAnalysis
       remainder -= segment.exclusive_time
     end
     
-    if remainder.to_ms > 0.1
+    if (remainder*1000).round > 0
       remainder_summary = SegmentSummary.new('Remainder', self)
       remainder_summary.total_time = remainder_summary.exclusive_time = remainder
       remainder_summary.call_count = 1
@@ -118,7 +118,8 @@ module NewRelic::TransactionAnalysis
           total += segment.duration
         end
       end
-
-      return (total / duration).to_percentage
+      fraction = 100.0 * total / duration
+      # percent value rounded to two digits:
+      return (100 * fraction).round / 100.0
     end
 end

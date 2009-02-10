@@ -102,7 +102,7 @@ class NewRelic::Agent::TransationSampleBuilderTests < Test::Unit::TestCase
     
     # after we take out code loading, the delta should be approximately
     # 30 milliseconds
-    delta = (sample.duration - without_code_loading.duration).to_ms
+    delta = (sample.duration - without_code_loading.duration) * 1000
     
     # allow a few milliseconds for slop just in case this is running on a 386 ;)
     assert delta >= 30, "delta #{delta} should be between 30 and 50"

@@ -116,9 +116,9 @@ module NewrelicHelper
   def colorize(value, yellow_threshold = 0.05, red_threshold = 0.15)
     if value > yellow_threshold
       color = (value > red_threshold ? 'red' : 'orange')
-      "<font color=#{color}>#{value.to_ms}</font>"
+      "<font color=#{color}>#{to_ms(value)}</font>"
     else
-      "#{value.to_ms}"
+      "#{to_ms(value)}"
     end
   end
   
@@ -137,7 +137,7 @@ module NewrelicHelper
   end
   
   def segment_duration_value(segment)
-    link_to "#{segment.duration.to_ms.with_delimiter} ms", explain_sql_url(segment)
+    link_to "#{with_delimiter(to_ms(segment.duration))} ms", explain_sql_url(segment)
   end
   
   def line_wrap_sql(sql)
@@ -180,7 +180,7 @@ module NewrelicHelper
     pie_chart.color, pie_chart.width, pie_chart.height = '6688AA', width, height
     
     chart_data = sample.breakdown_data(6)
-    chart_data.each { |s| pie_chart.add_data_point dev_name(s.metric_name), s.exclusive_time.to_ms }
+    chart_data.each { |s| pie_chart.add_data_point dev_name(s.metric_name), to_ms(s.exclusive_time) }
     
     pie_chart.render
   end
@@ -275,12 +275,25 @@ private
   def mime_type_from_extension(extension)
     extension = extension[/[^.]*$/].downcase
     case extension
-      when 'png': 'image/png'
-      when 'gif': 'image/gif'
-      when 'jpg': 'image/jpg'
-      when 'css': 'text/css'
-      when 'js': 'text/javascript'
+      when 'png'; 'image/png'
+      when 'gif'; 'image/gif'
+      when 'jpg'; 'image/jpg'
+      when 'css'; 'text/css'
+      when 'js'; 'text/javascript'
       else 'text/plain'
+    end
+  end
+  def to_ms(number)
+   (number*1000).round
+  end
+  # copied from rails
+  def with_delimiter(delimiter=",", separator=".")
+    begin
+      parts = self.to_s.split('.')
+      parts[0].gsub!(/(\d)(?=(\d\d\d)+(?!\d))/, "\\1#{delimiter}")
+      parts.join separator
+    rescue
+      self
     end
   end
 end
