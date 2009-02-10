@@ -205,15 +205,15 @@ module NewRelic
     end
     # utility method that converts floating point percentage values
     # to integers as a percentage, to improve readability in ui
-    def to_percentage
-      round_to_2 self * 100
+    def to_percentage(value)
+      round_to_2(value * 100)
     end
     
     def round_to_2(val)
-      (val * 100).round * 100.0
+      (val * 100).round / 100.0
     end
     def round_to_3(val)
-      (val * 1000).round * 1000.0
+      (val * 1000).round / 1000.0
     end
   end
   
