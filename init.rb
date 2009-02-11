@@ -11,6 +11,8 @@
 # STDOUT.puts "RPM detected environment: #{NewRelic::LocalEnvironment.new}, RAILS_ENV: #{RAILS_ENV}"
 
 # Initializer for the NewRelic Agent
+require 'new_relic/config'
+
 begin
   # JRuby's glassfish plugin is trying to run the Initializer twice,
   # which isn't a good thing so we ignore subsequent invocations here.
