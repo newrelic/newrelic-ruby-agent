@@ -7,6 +7,17 @@ module NewRelic
       call_count == 0
     end  
 
+    def time_str(value_ms)
+      case
+        when value_ms >= 10000 
+       "%.1f s" % (value_ms / 1000.0)
+        when value_ms >= 5000 
+       "%.2f s" % (value_ms / 1000.0)
+      else
+       "%.0f ms" % value_ms
+      end
+    end
+    
     def average_call_time
       return 0 if call_count == 0
       total_call_time / call_count
@@ -109,7 +120,9 @@ module NewRelic
     def calls_per_second
       round_to_2 calls_per_minute / 60
     end
-    
+    def total_call_time_per_minute
+      60.0 * time_percentage
+    end
     def standard_deviation
       return 0 if call_count < 2 || self.sum_of_squares.nil?
       
@@ -190,6 +203,7 @@ module NewRelic
       self
     end
     
+
     # returns s,t,f
     def get_apdex
       [@call_count, @total_call_time.to_i, @total_exclusive_time.to_i]
