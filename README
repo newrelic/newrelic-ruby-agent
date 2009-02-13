@@ -38,7 +38,7 @@ http://localhost:3000/newrelic
 === PRODUCTION MODE
 
 To monitor your applications in production, create an account at
-http://newrelic.com/get-RPM.htm
+http://newrelic.com/get-RPM.html
 
 When your application runs in the production environment, the New Relic agent
 runs in production mode. It connects to the New Relic RPM service and sends deep
