@@ -47,10 +47,10 @@ make_notify_task = lambda do
           `#{cmd}` 
         end
         deploy_options = { :environment => rails_env,
-                :revision => new_revision,
-                :changelog => changelog, 
-                :description => description,
-                :appname => appname }
+          :revision => new_revision,
+          :changelog => changelog, 
+          :description => description,
+          :appname => appname }
         logger.debug "Uploading deployment to New Relic"
         deployment = NewRelic::Commands::Deployments.new deploy_options
         deployment.run
@@ -59,8 +59,9 @@ make_notify_task = lambda do
         logger.info "error creating New Relic deployment (#{e})\n#{e.backtrace.join("\n")}"
       rescue NewRelic::Commands::CommandFailure => e
         logger.info "unable to notify New Relic of the deployment (#{e})... skipping"
-      rescue CommandError
-        logger.info "unable to notify New Relic of the deployment... skipping"
+      rescue => e
+        logger.info "error notifying New Relic of the deployment (#{e})... skipping"
+        puts e.backtrace.join("  \n")
       end
       # WIP: For rollbacks, let's update the deployment we created with an indication of the failure:
       # on_rollback do
@@ -69,10 +70,13 @@ make_notify_task = lambda do
     end
   end
 end
-
-instance = Capistrano::Configuration.instance
-if instance
-  instance.load &make_notify_task
+if Capistrano::Version::MAJOR < 2
+  STDERR.puts "Unable to load #{__FILE__}\nNew Relic Capistrano hooks require at least version 2.0.0"
 else
-  make_notify_task.call
+  instance = Capistrano::Configuration.instance
+  if instance
+    instance.load &make_notify_task
+  else
+    make_notify_task.call
+  end
 end
