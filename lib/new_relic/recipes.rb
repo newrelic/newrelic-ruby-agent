@@ -40,10 +40,10 @@ make_notify_task = lambda do
         end
         new_revision = rev || source.query_revision(source.head()) { |cmd| `#{cmd}` } 
         deploy_options = { :environment => rails_env,
-                :revision => new_revision,
-                :changelog => changelog, 
-                :description => description,
-                :appname => appname }
+          :revision => new_revision,
+          :changelog => changelog, 
+          :description => description,
+          :appname => appname }
         logger.debug "Uploading deployment to New Relic"
         deployment = NewRelic::Commands::Deployments.new deploy_options
         deployment.run
@@ -62,10 +62,13 @@ make_notify_task = lambda do
     end
   end
 end
-
-instance = Capistrano::Configuration.instance
-if instance
-  instance.load &make_notify_task
+if Capistrano::Version::MAJOR < 2
+  STDERR.puts "Unable to load #{__FILE__}\nNew Relic Capistrano hooks require at least version 2.0.0"
 else
-  make_notify_task.call
+  instance = Capistrano::Configuration.instance
+  if instance
+    instance.load &make_notify_task
+  else
+    make_notify_task.call
+  end
 end
