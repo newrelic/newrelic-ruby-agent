@@ -69,6 +69,7 @@ make_notify_task = lambda do
     end
   end
 end
+require 'capistrano/version'
 if Capistrano::Version::MAJOR < 2
   STDERR.puts "Unable to load #{__FILE__}\nNew Relic Capistrano hooks require at least version 2.0.0"
 else
