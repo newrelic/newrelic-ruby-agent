@@ -54,7 +54,7 @@ common: &default_settings
 
   
   # Tells transaction tracer and error collector (when enabled) whether or not to capture HTTP params. 
-  # When true, the RoR filter_parameters mechanism is used so that sensitive parameters are not recorded
+  # When true, the RoR filter_parameter_logging mechanism is used so that sensitive parameters are not recorded
   capture_params: false
 
 
