@@ -19,7 +19,10 @@ module NewRelic
   * added http referer to traced errors
   * on connection, get a shard collector to redirect to (experimental)
   * removed Numeric extensions, including round_to, and to_ms
-2009-XXXXX version 2.8.3
+2009-02-17 version 2.8.4
+  * fix bug in capistrano recipe causing cap commands to fail with error
+    about not finding Version class
+2009-02-10 version 2.8.3
   * refactor unit tests so they will run in a generic rails environment
   * require classes in advance to avoid autoloading.  this is to address
     incompatibilities with desert as well as more flexibility in gem 
