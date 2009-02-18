@@ -18,7 +18,7 @@ begin
   # which isn't a good thing so we ignore subsequent invocations here.
   if ! defined?(::NEWRELIC_STARTED)
     ::NEWRELIC_STARTED = "#{caller.join("\n")}"
-    NewRelic::Config.instance.start_plugin (defined?(config) ? config : nil)
+    NewRelic::Config.instance.start_plugin(defined?(config) ? config : nil)
   else
     NewRelic::Config.instance.log.debug "Attempt to initialize the plugin twice!"
     NewRelic::Config.instance.log.debug "Original call: \n#{::NEWRELIC_STARTED}"
