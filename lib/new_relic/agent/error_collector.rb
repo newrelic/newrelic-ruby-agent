@@ -48,6 +48,8 @@ module NewRelic::Agent
       
       data = {}
       
+      action_path ||= ''
+      
       
       data[:request_params] = normalize_params(filtered_params) if @capture_params
       data[:custom_params] = normalize_params(@agent.custom_params) if @agent
