@@ -1,5 +1,5 @@
 require 'yaml'
-#require 'new_relic/version'
+require 'new_relic/local_environment'
 require 'singleton'
 require 'erb'
 require 'net/https'

@@ -3,7 +3,7 @@ module NewRelic
   module VERSION #:nodoc:
   MAJOR = 2
   MINOR = 8
-  TINY  = 3
+  TINY  = 4
   STRING = [MAJOR, MINOR, TINY].join('.')
   def self.changes
     puts "NewRelic RPM Plugin Version: #{NewRelic::VERSION::STRING}"
@@ -12,6 +12,9 @@ module NewRelic
 
   CHANGELOG = <<EOF
 
+2009-02-17 version 2.8.4
+  * fix bug in capistrano recipe causing cap commands to fail with error
+    about not finding Version class
 2009-02-10 version 2.8.3
   * refactor unit tests so they will run in a generic rails environment
   * require classes in advance to avoid autoloading.  this is to address
