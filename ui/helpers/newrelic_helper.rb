@@ -5,7 +5,7 @@ module NewrelicHelper
   # return the host that serves static content (css, metric documentation, images, etc)
   # that supports the desktop edition.
   def server
-    NewRelic::Agent.instance.config['desktop_server'] || "http://rpm.newrelic.com"
+    NewRelic::Config.instance['desktop_server'] || "http://rpm.newrelic.com"
   end
   
   # return the sample but post processed to strip out segments that normally don't show
@@ -287,13 +287,10 @@ private
    (number*1000).round
   end
   # copied from rails
-  def with_delimiter(delimiter=",", separator=".")
-    begin
-      parts = self.to_s.split('.')
-      parts[0].gsub!(/(\d)(?=(\d\d\d)+(?!\d))/, "\\1#{delimiter}")
-      parts.join separator
-    rescue
-      self
-    end
+  def with_delimiter(val)
+    return '0' if val.nil?
+    parts = val.to_s.split('.')
+    parts[0].gsub!(/(\d)(?=(\d\d\d)+(?!\d))/, "\\1,")
+    parts.join '.'
   end
 end

@@ -12,9 +12,10 @@ class NewRelic::Agent::NewrelicHelperTests < Test::Unit::TestCase
   def setup
     super
     NewRelic::Agent::ModelFixture.setup
+    # setup instrumentation
+    NewRelic::Agent.manual_start
+    # let's get a real stack trace
     begin
-      # setup instrumentation
-      NewRelic::Agent.instance.start :test, :test
       NewRelic::Agent::ModelFixture.find 0
     rescue => e
       @exception = e
@@ -37,6 +38,9 @@ class NewRelic::Agent::NewrelicHelperTests < Test::Unit::TestCase
   def test_application_stack_trace__no_rails
     assert_clean(application_stack_trace(@exception.backtrace, false), false)
   end 
+  def test_with_delimiter
+    assert_equal "123,456.123456", with_delimiter(123456.123456)
+  end
   
   private
   def assert_clean(backtrace, rails=false)
