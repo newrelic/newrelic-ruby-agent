@@ -117,9 +117,7 @@ module NewRelic::Agent
         sample = last_builder.sample
         
         @random_sample = sample if @random_sampling
-          
-        puts "random is cool" if @random_sampling
-      
+                
         # ensure we don't collect more than a specified number of samples in memory
         @samples << sample if NewRelic::Config.instance.developer_mode? && sample.params[:path] != nil
         @samples.shift while @samples.length > @max_samples
