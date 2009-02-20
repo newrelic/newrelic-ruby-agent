@@ -116,7 +116,7 @@ module NewRelic::Agent
       synchronize do
         sample = last_builder.sample
         
-        @random_sample = sample if @random_sampling
+        @random_sample = sample if @random_sampling && sample.params[:path] != nil
                 
         # ensure we don't collect more than a specified number of samples in memory
         @samples << sample if NewRelic::Config.instance.developer_mode? && sample.params[:path] != nil
