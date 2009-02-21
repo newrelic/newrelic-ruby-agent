@@ -13,7 +13,7 @@ class NewRelic::Agent::NewrelicHelperTests < Test::Unit::TestCase
     super
     NewRelic::Agent::ModelFixture.setup
     # setup instrumentation
-    NewRelic::Agent.manual_start
+    NewRelic::Agent.manual_start :test, :test
     # let's get a real stack trace
     begin
       NewRelic::Agent::ModelFixture.find 0
