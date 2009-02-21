@@ -31,7 +31,7 @@ class ActiveRecordInstrumentationTests < Test::Unit::TestCase
   
   def test_run_explains
     NewRelic::Agent::ModelFixture.find(:all)
-    sample = @agent.transaction_sampler.harvest[0]
+    sample = @agent.transaction_sampler.harvest(nil, 0)[0]
     segment = sample.root_segment.called_segments.first.called_segments.first
     assert_match /^SELECT \* FROM ["`]test_data["`]$/i, segment.params[:sql].strip
     NewRelic::TransactionSample::Segment.any_instance.expects(:explain_sql).returns([])
@@ -40,7 +40,8 @@ class ActiveRecordInstrumentationTests < Test::Unit::TestCase
   end
   def test_prepare_to_send
     NewRelic::Agent::ModelFixture.find(:all)
-    sample = @agent.transaction_sampler.harvest[0]
+    
+    sample = @agent.transaction_sampler.harvest(nil, 0)[0]
     segment = sample.root_segment.called_segments.first.called_segments.first
     assert_match /^SELECT /, segment.params[:sql]
     assert segment.duration > 0.0, "Segment duration must be greater than zero."
@@ -57,7 +58,7 @@ class ActiveRecordInstrumentationTests < Test::Unit::TestCase
   def test_transaction
     
     NewRelic::Agent::ModelFixture.find(:all)
-    sample = @agent.transaction_sampler.harvest[0]
+    sample = @agent.transaction_sampler.harvest(nil, 0)[0]
     sample = sample.prepare_to_send(:obfuscate_sql => true, :explain_enabled => true, :explain_sql => 0.0)
     segment = sample.root_segment.called_segments.first.called_segments.first
     assert_nil segment.params[:sql], "SQL should have been removed."
