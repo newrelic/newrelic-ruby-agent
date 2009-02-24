@@ -52,7 +52,7 @@ make_notify_task = lambda do
         logger.info "error creating New Relic deployment (#{e})\n#{e.backtrace.join("\n")}"
       rescue NewRelic::Commands::CommandFailure => e
         logger.info "unable to notify New Relic of the deployment (#{e})... skipping"
-      rescue CommandError
+      rescue Capistrano::CommandError
         logger.info "unable to notify New Relic of the deployment... skipping"
       end
       # WIP: For rollbacks, let's update the deployment we created with an indication of the failure:
