@@ -53,6 +53,7 @@ module NewRelic
     def env=(env_name)
       @env = env_name
       @settings = @yaml[env_name]
+      @settings['apdex_t'] ||= 1.0
     end
     
     def settings
