@@ -8,7 +8,7 @@ class NewRelic::Agent::ModelFixture < ActiveRecord::Base
       t.column :name, :string
     end
     def connection.log_info *args
-      sleep 0.2
+      sleep 0.5
       super *args
     end
   end
