@@ -246,5 +246,9 @@ module NewRelicApi
   class Deployment < BaseResource
   end
   
+  class User < BaseResource
+  end
+  class Subscription < BaseResource
+  end
 end
 
