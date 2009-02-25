@@ -1,11 +1,8 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
-##require 'new_relic/agent/transaction_sampler'
 
 ::RPM_DEVELOPER = true unless defined? ::RPM_DEVELOPER
 
-    class NewRelic::Agent::TransactionSampler
-      public :builder
-    end
+    NewRelic::Agent::TransactionSampler.send :public, :builder
     
     class NewRelic::Agent::TransationSamplerTests < Test::Unit::TestCase
       

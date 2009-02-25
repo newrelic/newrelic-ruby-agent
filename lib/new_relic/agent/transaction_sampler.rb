@@ -1,7 +1,6 @@
 
 module NewRelic::Agent
   
-  
   class TransactionSampler
     include Synchronize
     
@@ -34,22 +33,16 @@ module NewRelic::Agent
     
     
     def default_sql_obfuscator(sql)
-#      puts "obfuscate: #{sql}"
-      
-      # remove escaped strings
-      sql = sql.gsub("''", "?")
-      
-      # replace all string literals
-      sql = sql.gsub(/'[^']*'/, "?")
-      
+      sql = sql.dup
+      # This is hardly readable.  Use the unit tests.
+      # remove single quoted strings:
+      sql.gsub!(/'(.*?[^\\'])??'(?!')/, '?')
+      # remove double quoted strings:
+      sql.gsub!(/"(.*?[^\\"])??"(?!")/, '?')
       # replace all number literals
-      sql = sql.gsub(/\d+/, "?")
-      
-#      puts "result: #{sql}"
-      
+      sql.gsub!(/\d+/, "?")
       sql
     end
-    
     
     def notice_first_scope_push(time)
       if Thread::current[:record_tt] == false
