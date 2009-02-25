@@ -1,7 +1,6 @@
 
 module NewRelic::Agent
   
-  
   class TransactionSampler
     include Synchronize
     
@@ -42,6 +41,7 @@ module NewRelic::Agent
       sql.gsub!(/"(.*?[^\\"])??"(?!")/, '?')
       # replace all number literals
       sql.gsub!(/\d+/, "?")
+      sql
     end
     
     def notice_first_scope_push(time)
