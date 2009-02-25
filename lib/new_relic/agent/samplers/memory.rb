@@ -16,23 +16,17 @@ module NewRelic::Agent
       return nil if @broken
       
       process = $$
-      memory = `#{@command} #{process}`.split("\n")[1].to_f / 1024.0
+      memory = `#{@command} #{process}`.split("\n")[1].to_f / 1024.0 rescue 0
 
       # if for some reason the ps command doesn't work on the resident os,
       # then don't execute it any more.
-      if memory >= 0
+      if memory > 0
         memory
       else 
         NewRelic::Agent.instance.log.error "Error attempting to determine resident memory for pid #{process} (got result of #{memory}, this process = #{$$}).  Disabling this metric."
         NewRelic::Agent.instance.log.error "Faulty command: `#{command}`"
         @broken = true
         nil
-      end
-    rescue Exception => e
-      if e.is_a? Errno::ENOMEM
-        NewRelic::Agent.instance.log.error "Got OOM trying to determine process memory usage"
-      else
-        raise e
       end
     end
   end
@@ -47,34 +41,19 @@ module NewRelic::Agent
     # This is called first to make sure the sampler can run on this host, otherwise a ps sampler is used
     #
     def can_run?
-      sample = get_memory_sample
-      if (sample == 0.0)
-        false
-      else
-        true
-      end
-    rescue
-      false
+      get_memory_sample != 0.0 rescue nil
     end
     
     # Returns the amount of resident memory this process is using in MB
     #
     def get_memory_sample
-      f = File.new("/proc/#{$$}/status")
-      begin
-        while (line = f.readline)
-          line.chomp
-          if line =~ /RSS/
-            value = line.split(" ")[1]
-            
-            f.close
-              
-            return value.to_f / 1024.0
+      File.open("/proc/#{$$}/status", "r") do |f|
+        while !f.eof? 
+          if f.readline =~ /RSS:\s*(\d+) kB/i
+            return $1.to_f / 1024.0
           end
         end
       end
-    rescue EOFError
-      f.close
       return 0.0
     end
   end
