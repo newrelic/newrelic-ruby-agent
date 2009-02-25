@@ -2,67 +2,83 @@
 
 * http://www.newrelic.com
 
-New Relic RPM is a Ruby performance management system, developed by New Relic, Inc.
-RPM provides you with deep information about the performance of your Ruby on Rails 
-or Merb application as it runs in production. The New Relic Agent is distributed as
-a either a Rails plugin or a Gem, both hosted on RubyForge.
+New Relic RPM is a Ruby performance management system, developed by
+New Relic, Inc.  RPM provides you with deep information about the
+performance of your Ruby on Rails or Merb application as it runs in
+production. The New Relic Agent is distributed as a either a Rails
+plugin or a Gem, both hosted on RubyForge.
 
 The New Relic Agent runs in one of two modes:
 
-* Developer Mode : Adds a web interface mapped to /newrelic to your application for
-  showing detailed performance metrics on a page by page basis.
+* Developer Mode : Adds a web interface mapped to /newrelic to your
+  application for showing detailed performance metrics on a page by
+  page basis.
   
-* Production Mode : Low overhead instrumentation that captures detailed information
-  on your application running in production and transmits them to rpm.newrelic.com
-  where you can monitor them in real time.
+* Production Mode : Low overhead instrumentation that captures
+  detailed information on your application running in production and
+  transmits them to rpm.newrelic.com where you can monitor them in
+  real time.
 
-=== DEVELOPER MODE
+=== Developer Mode
 
-Developer mode is on by default when you run your application in the development
-environment (but not when it runs in other environments.)  When running in
-developer mode, RPM will track the performance of every http request serviced
-by your application, and store in memory this information for the last 100 http 
-transactions.
+Developer mode is on by default when you run your application in the
+development environment (but not when it runs in other environments.)
+When running in developer mode, RPM will track the performance of
+every http request serviced by your application, and store in memory
+this information for the last 100 http transactions.
 
-When running in Developer Mode, the RPM will also add a few pages to 
-your application that allow you to analyze this performance information. (Don't 
-worry - those pages are not added to your application's routes when you run in 
-production mode.)
+When running in Developer Mode, the RPM will also add a few pages to
+your application that allow you to analyze this performance
+information. (Don't worry - those pages are not added to your
+application's routes when you run in production mode.)
 
-To view this performance information, including detailed SQL statement analysis,
-open '/newrelic' in your web application.  For instance if you are running
-mongrel or thin on port 3000, enter the following into your browser:
+To view this performance information, including detailed SQL statement
+analysis, open '/newrelic' in your web application.  For instance if
+you are running mongrel or thin on port 3000, enter the following into
+your browser:
 
 http://localhost:3000/newrelic
 
-=== PRODUCTION MODE
+=== Production Mode
 
 To monitor your applications in production, create an account at
 http://newrelic.com/get-RPM.html
 
-When your application runs in the production environment, the New Relic agent
-runs in production mode. It connects to the New Relic RPM service and sends deep
-performance data to the RPM service for your analysis. To view this data, login
-to http://rpm.newrelic.com.
+When your application runs in the production environment, the New
+Relic agent runs in production mode. It connects to the New Relic RPM
+service and sends deep performance data to the RPM service for your
+analysis. To view this data, login to http://rpm.newrelic.com.
 
-NOTE: You must have a valid account and license key to view this data online.
-When you sign up for an account at www.newrelic.com, you will be provided with a
-license key, as well as a default configuration file for New Relic RPM. You can
-either paste your license key into your existing configuration file,
-config/newrelic.yml, or you can replace that config file with the one included in
-your welcome email.
+NOTE: You must have a valid account and license key to view this data
+online.  When you sign up for an account at www.newrelic.com, you will
+be provided with a license key, as well as a default configuration
+file for New Relic RPM. You can either paste your license key into
+your existing configuration file, config/newrelic.yml, or you can
+replace that config file with the one included in your welcome email.
 
-== REQUIREMENTS:
+== Installation
+
+RPM requires an agent be installed in the application as either a
+Rails plug-in or a gem.  Both are available on RubyForge--instructions
+below.
+
+=== Git your RPM on!
+
+The agent is also available on Github under newrelic/rpm. As of March,
+2009, we keep the latest release on the master, the edge on a working
+branch, and previous releases with tags.  Fork away!
+
+=== Requirements:
 
 Ruby 1.8.6
 Rails 1.2.6 or above
 Merb 1.0 or above
 
-== RAILS PLUG-IN INSTALL:
+=== Rails Plug-In Installation
 
    script/plugin install http://newrelic.rubyforge.net/svn/newrelic_rpm
    
-== GEM INSTALL:
+=== Gem Installation
 
    sudo gem install newrelic_rpm
 
@@ -70,20 +86,47 @@ For Rails, edit environment.rb and add to the initalizer block:
 
    config.gem "newrelic_rpm" 
 
-The Developer Mode is unavailable when using the gem on Rails versions prior to 2.0.
+The Developer Mode is unavailable when using the gem on Rails versions
+prior to 2.0.
 
-== MERB SUPPORT:
+== Merb Support
 
-To monitor a merb app install the newrelic_rpm gem and add <code>dependency 'newrelic_rpm'</code> 
+To monitor a merb app install the newrelic_rpm gem and add
+
+    dependency 'newrelic_rpm'
+
 to your init.rb file.
 
-Developer Mode not currently available in merb.
-   
-== SUPPORT:
+Current features implemented:
 
-Reach out to us - and to fellow RPM users - on our support forum at 
-http://getsatisfaction.com/newrelic. We’ll share tips and tricks, answer all your 
-questions, and announce product updates. Operators are standing by.
+    * Standard monitoring, overview pages
+    * Error capturing
+    * Full Active Record instrumentation, including SQL explains
+    * Very limited Data Mapper instrumentation
+    * Transaction Traces are implemented but will not be very useful
+      with Data Mapper until more work is done with the Data Mapper
+      instrumentation
+
+Still under development:
+
+    * Developer Mode
+    * Data Mapper bindings
+
+Also some of the instrumentation has been implemented with method
+chaining, a mechanism that truly goes against the merb way. This was
+necessary in some cases where the API’s were not yet available or
+understood well enough to use. Converting these to hook methods using
+the Merb public API is a work in progress.
+
+== Support
+
+Reach out to us--and to fellow RPM users--at
+http://support.newrelic.com.  There you'll find documentation, FAQs,
+and forums where you can submit suggestions and discuss RPM with New
+Relic staff and other users.
+
+Find a bug?  E-mail support@newrelic.com, or post it to
+support.newrelic.com.
 
 For other support channels, see http://www.newrelic.com/support.
 
