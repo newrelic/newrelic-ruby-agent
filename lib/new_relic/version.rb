@@ -14,6 +14,7 @@ module NewRelic
 2009-02-22 version 2.8.5
   * fix reference to CommandError which was breaking some cap scripts
   * fix incompatibility with Rails 2.0 in the server API
+  * fix problem with litespeed with Lite accounts
 2009-02-17 version 2.8.4
   * fix bug detecting Phusion Passenger v 2.1.0
   * fix bug in capistrano recipe causing cap commands to fail with error
