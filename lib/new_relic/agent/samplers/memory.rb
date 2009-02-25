@@ -100,7 +100,7 @@ module NewRelic::Agent
           NewRelic::Agent.instance.log.error "Error attempting to use /proc/$$/status file for reading memory. Using ps command instead"
           sampler = PSSampler.new("ps -o rsz")
         else
-          NewRelic::Agent.instance.log.info "Using /proc/$$/status file for reading memory."
+          NewRelic::Agent.instance.log.info "Using /proc/$$/status for reading process memory."
         end
       elsif platform =~ /darwin/
         sampler = PSSampler.new("ps -o rsz")
