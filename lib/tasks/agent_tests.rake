@@ -8,7 +8,17 @@ namespace :test do
     t.verbose = true
   end
   Rake::Task['test:agent'].comment = "Run the unit tests for the Agent"
-
-  Rake::TestTask.new(:all => ["test", "test:agent"])
-  Rake::Task['test:all'].comment = "Run all tests including agent code"
+  
+  desc 'Run all unit, functional and integration tests'
+  task :all do
+    errors = %w(test:units test:functionals test:integration test:agent).collect do |task|
+      begin
+        Rake::Task[task].invoke
+        nil
+      rescue => e
+        task
+      end
+    end.compact
+    abort "Errors running #{errors.to_sentence}!" if errors.any?
+  end
 end
