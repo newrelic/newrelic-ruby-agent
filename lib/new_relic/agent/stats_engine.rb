@@ -62,7 +62,6 @@ module NewRelic::Agent
     end
     
     def remove_scope_stack_listener(l)
-      fail "Unknown stack listener trying to be removed" if @scope_stack_listener != l
       @scope_stack_listener = nil
     end
     
