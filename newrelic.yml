@@ -12,6 +12,14 @@ common: &default_settings
   # This key binds your Agent's data to your account in the New Relic RPM service.
   license_key: '<%= license_key %>'
   
+  # Agent Enabled
+  # Use this setting to force the agent to run or not run.
+  # Default is 'auto' which means the agent will install and run only if a
+  # valid dispatcher such as Mongrel is running.  This prevents it from running
+  # with Rake or the console.  Set to false to completely turn the agent off
+  # regardless of the other settings.  Valid values are true, false and auto.
+  # agent_enabled: auto
+  
   # Application Name
   # Set this to be the name of your application as you'd like it show up in RPM.
   # RPM will then auto-map instances of your application into a RPM "application"
