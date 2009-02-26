@@ -120,6 +120,6 @@ class NewRelic::Config::Rails < NewRelic::Config
 
   def install_shim
     super
-    ActionController.send :include, NewRelic::Agent::Instrumentation::ControllerInstrumentation::InstanceMethodsShim  
+    ActionController::Base.send :include, NewRelic::Agent::Instrumentation::ControllerInstrumentation::Shim  
   end
 end
