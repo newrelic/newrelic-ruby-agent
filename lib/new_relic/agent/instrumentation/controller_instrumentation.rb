@@ -28,10 +28,23 @@
 module NewRelic::Agent::Instrumentation
   module ControllerInstrumentation
     
-    @@newrelic_apdex_t = NewRelic::Agent.instance.apdex_t
-    @@newrelic_apdex_overall = NewRelic::Agent.instance.stats_engine.get_custom_stats("Apdex", NewRelic::ApdexStats)
     def self.included(clazz)
       clazz.extend(ClassMethods)
+    end
+    
+    # This module is for importing stubs when the agent is disabled
+    module ClassMethodsShim
+      def newrelic_ignore(*args); end
+    end
+    
+    module Shim
+      def self.included(clazz)
+        clazz.extend(ClassMethodsShim)
+      end
+      def newrelic_notice_error(*args); end
+      def new_relic_trace_controller_action(*args); yield; end
+      def newrelic_metric_path; end
+      def perform_action_with_newrelic_trace(*args); yield; end
     end
     
     module ClassMethods
@@ -59,9 +72,8 @@ module NewRelic::Agent::Instrumentation
       raise "Not implemented!"
     end
     
-    @@newrelic_apdex_t = NewRelic::Agent.instance.apdex_t
-    @@newrelic_apdex_4t = 4 * @@newrelic_apdex_t
-
+    
+    
     # Perform the current action with NewRelic tracing.  Used in a method
     # chain via aliasing.  Call directly if you want to instrument a specifc
     # block as if it were an action.  Pass the block along with the path.
@@ -109,7 +121,7 @@ module NewRelic::Agent::Instrumentation
         
         self.class.trace_method_execution_with_scope controller_metric, true, true do 
           stats_engine.transaction_name = controller_metric
-
+          
           local_params = (respond_to? :filter_parameters) ? filter_parameters(params) : params
           
           agent.transaction_sampler.notice_transaction(path, request, local_params)
@@ -137,17 +149,18 @@ module NewRelic::Agent::Instrumentation
             #
             duration = Time.now.to_f - start
             controller_stat = stats_engine.get_custom_stats("Apdex/#{path}", NewRelic::ApdexStats)
-            if failed
-              @@newrelic_apdex_overall.record_apdex_f    # frustrated
+            case
+              when failed
+              apdex_overall_stat.record_apdex_f    # frustrated
               controller_stat.record_apdex_f
-            elsif duration <= @@newrelic_apdex_t
-              @@newrelic_apdex_overall.record_apdex_s    # satisfied
+              when duration <= NewRelic::Config.instance['apdex_t']
+              apdex_overall_stat.record_apdex_s    # satisfied
               controller_stat.record_apdex_s
-            elsif duration <= (@@newrelic_apdex_4t)
-              @@newrelic_apdex_overall.record_apdex_t    # tolerating
+              when duration <= 4 * NewRelic::Config.instance['apdex_t']
+              apdex_overall_stat.record_apdex_t    # tolerating
               controller_stat.record_apdex_t
             else
-              @@newrelic_apdex_overall.record_apdex_f    # frustrated
+              apdex_overall_stat.record_apdex_f    # frustrated
               controller_stat.record_apdex_f
             end
           end
@@ -157,5 +170,11 @@ module NewRelic::Agent::Instrumentation
       # clear out the name of the traced transaction under all circumstances
       stats_engine.transaction_name = nil
     end
+    
+    private
+    def apdex_overall_stat
+      @@newrelic_apdex_overall ||= NewRelic::Agent.instance.stats_engine.get_custom_stats("Apdex", NewRelic::ApdexStats)  
+    end
+    
   end 
 end  
