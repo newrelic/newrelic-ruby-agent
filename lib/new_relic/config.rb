@@ -4,7 +4,6 @@ require 'singleton'
 require 'erb'
 require 'net/https'
 require 'new_relic/local_environment'
-require 'new_relic/agent/instrumentation/controller_instrumentation'
 
 # Configuration supports the behavior of the agent which is dependent
 # on what environment is being monitored: rails, merb, ruby, etc
@@ -14,7 +13,8 @@ module NewRelic
   
   class Config
     
-    attr_accessor :log_file, :local_env
+    attr_accessor :log_file, :env
+    attr_reader :local_env
     
     # Structs holding info for the remote server and proxy server 
     class Server < Struct.new :host, :port
@@ -125,7 +125,7 @@ module NewRelic
       return true if ENV['NEWRELIC_ENABLE'].to_s =~ /true|on|yes/i
       # When in 'auto' mode the agent is enabled if there is a known
       # dispatcher running
-      return true if local_env.dispatcher != nil
+      return true if @local_env.dispatcher != nil
     end
 
     def app
@@ -282,7 +282,7 @@ module NewRelic
     # Collect miscellaneous interesting info about the environment
     # Called when the agent is started
     def gather_info
-      local_env.gather_info
+      @local_env.gather_info
     end
     
     def to_stderr(msg)
@@ -307,24 +307,23 @@ module NewRelic
     
     # Create the concrete class for environment specific behavior:
     def self.new_instance
-      local_env = NewRelic::LocalEnvironment.new
-      new_config = case local_env.framework
+      @local_env = NewRelic::LocalEnvironment.new
+      new_config = case @local_env.framework
         when :test
         require 'config/test_config'
-        NewRelic::Config::Test.new local_env
+        NewRelic::Config::Test.new @local_env
         when :merb
         require 'new_relic/config/merb'
-        NewRelic::Config::Merb.new local_env
+        NewRelic::Config::Merb.new @local_env
         when :rails
         require 'new_relic/config/rails'
-        NewRelic::Config::Rails.new local_env
+        NewRelic::Config::Rails.new @local_env
         when :ruby
         require 'new_relic/config/ruby'
-        NewRelic::Config::Ruby.new local_env
+        NewRelic::Config::Ruby.new @local_env
       else 
-        raise "Unknown framework: #{local_env.framework}"
+        raise "Unknown framework: #{@local_env.framework}"
       end
-      local_env.configure_overrides new_config
       new_config
     end
     

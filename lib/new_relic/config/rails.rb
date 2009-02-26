@@ -66,8 +66,8 @@ class NewRelic::Config::Rails < NewRelic::Config
     
     # inform user that the dev edition is available if we are running inside
     # a webserver process
-    if local_env.dispatcher_instance_id
-      port = local_env.dispatcher_instance_id.to_s =~ /^\d+/ ? ":#{local_env.dispatcher_instance_id}" : ":port" 
+    if @local_env.dispatcher_instance_id
+      port = @local_env.dispatcher_instance_id.to_s =~ /^\d+/ ? ":#{local_env.dispatcher_instance_id}" : ":port" 
       to_stderr "NewRelic Agent (Developer Mode) enabled."
       to_stderr "To view performance information, go to http://localhost#{port}/newrelic"
     end
@@ -120,6 +120,7 @@ class NewRelic::Config::Rails < NewRelic::Config
 
   def install_shim
     super
+    require 'new_relic/agent/instrumentation/controller_instrumentation'
     ActionController::Base.send :include, NewRelic::Agent::Instrumentation::ControllerInstrumentation::Shim  
   end
 end

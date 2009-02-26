@@ -14,20 +14,17 @@ module NewRelic
       discover_dispatcher
     end
     
-    # Process overrides from the newrelic.yml 
-    def configure_overrides config
-      # If dispatcher_instance_id isn't set, then give it a value
+    def dispatcher_instance_id
       if @dispatcher_instance_id.nil?
-        @dispatcher_instance_id = @dispatcher.to_s if @dispatcher
-        @dispatcher_instance_id += ":#{config['app_name']}" if config['app_name'] && @dispatcher_instance_id
+        if @dispatcher
+          @dispatcher_instance_id = @dispatcher.to_s
+        else
+          @dispatcher_instance_id = File.basename($0).split(".").first
+        end
+        @dispatcher_instance_id += ":#{config['app_name']}" if config['app_name']
       end
-      if config['monitor_daemons']
-        @dispatcher = :daemon if @dispatcher.nil?
-        raise "change log file name based on dispatcher daemon"
-        @dispatcher_instance_id = File.basename($0).split(".").first
-      end
+      @dispatcher_instance_id
     end
-    
     private
     
     def discover_dispatcher
