@@ -1,37 +1,60 @@
 # An instance of LocalEnvironment will provide the environment name
-# and locally unique identifier for this agent's host.
+# and locally unique dispatcher_instance_id for this agent's host.
 # If the environment can't be determined, it will be set to
-# :unknown and identifier will have nil
+# nil and dispatcher_instance_id will have nil
 module NewRelic 
   class LocalEnvironment
-    
-    attr_reader :environment, :identifier
-    
-    # determine the environment we are running in (one of :webrick,
-    # :mongrel, :thin, or :unknown) and if the process is listening
-    # on a port, use the port # that we are listening on. 
+
+    attr_accessor :dispatcher # mongrel, thin, webrick, or possibly nil
+    attr_accessor :dispatcher_instance_id # used to distinguish instances of a dispatcher from each other, may be nil
+    attr_accessor :framework # rails, merb, :ruby, :daemon, test
+    alias environment dispatcher
     def initialize
-      # Note: log won't be available yet.
-      @identifier = nil
-      @environment = :unknown
-      environments = %w[merb jruby webrick mongrel thin litespeed passenger daemon]
-      while environments.any? && @identifier.nil?
-        send 'check_for_'+(environments.shift)
+      discover_framework
+      discover_dispatcher
+    end
+    
+    # Process overrides from the newrelic.yml 
+    def configure_overrides config
+      # If dispatcher_instance_id isn't set, then give it a value
+      if @dispatcher_instance_id.nil?
+        @dispatcher_instance_id = @dispatcher.to_s if @dispatcher
+        @dispatcher_instance_id += ":#{config['app_name']}" if config['app_name'] && @dispatcher_instance_id
+      end
+      if config['monitor_daemons']
+        @dispatcher = :daemon if @dispatcher.nil?
+        raise "change log file name based on dispatcher daemon"
+        @dispatcher_instance_id = File.basename($0).split(".").first
       end
     end
-    def to_s
-      "LocalEnvironment[#{environment}:#{identifier}]"
-    end
-    def check_for_merb
-      if config.app == :merb
-        @identifier = 'merb'
+    
+    private
+    
+    def discover_dispatcher
+      dispatchers = %w[webrick mongrel thin litespeed passenger]
+      while dispatchers.any? && @dispatcher.nil?
+        send 'check_for_'+(dispatchers.shift)
       end
     end
+    
+    def discover_framework
+      
+      @framework = case
+        when ENV['NEWRELIC_APPLICATION'] then ENV['NEWRELIC_APPLICATION'].to_sym 
+        when defined? NewRelic::TEST then :test
+        when defined? Merb::Plugins then :merb
+        when defined? Rails then :rails
+      else :ruby
+      end      
+    end
+
+    private 
+
     def check_for_webrick
       if defined?(OPTIONS) && OPTIONS.respond_to?(:fetch) 
-        # OPTIONS is set by script/server 
-        @identifier = OPTIONS.fetch(:port)
-        @environment = :webrick
+        # OPTIONS is set by script/dispatcher 
+        @dispatcher_instance_id = OPTIONS.fetch(:port)
+        @dispatcher = :webrick
       end
     end
     
@@ -40,25 +63,25 @@ module NewRelic
       if defined? Mongrel::HttpServer
         ObjectSpace.each_object(Mongrel::HttpServer) do |mongrel|
           next if not mongrel.respond_to? :port
-          @environment = :mongrel
-          @identifier = mongrel.port
+          @dispatcher = :mongrel
+          @dispatcher_instance_id = mongrel.port
         end
       end
     end
     
     def check_for_thin
       if defined? Thin::Server
-        # This case covers the thin web server
+        # This case covers the thin web dispatcher
         # Same issue as above- we assume only one instance per process
-        ObjectSpace.each_object(Thin::Server) do |thin_server|
-          @environment = :thin
-          backend = thin_server.backend
+        ObjectSpace.each_object(Thin::Server) do |thin_dispatcher|
+          @dispatcher = :thin
+          backend = thin_dispatcher.backend
           # We need a way to uniquely identify and distinguish agents.  The port
           # works for this.  When using sockets, use the socket file name.
           if backend.respond_to? :port
-            @identifier = backend.port
+            @dispatcher_instance_id = backend.port
           elsif backend.respond_to? :socket
-            @identifier = backend.socket
+            @dispatcher_instance_id = backend.socket
           else
             raise "Unknown thin backend: #{backend}"
           end
@@ -66,43 +89,32 @@ module NewRelic
       end
     end
     
-    def check_for_jruby
-      if RUBY_PLATFORM =~ /java/
-        # Check for JRuby environment.  Not sure how this works in different appservers
-        require 'java'
-        require 'jruby'
-        @environment = :jruby
-        @identifier = 'jruby'
-        @identifier += ":#{config['app_name']}" if config['app_name']
-      end
-    end
-    
     def check_for_litespeed
       if caller.pop =~ /fcgi-bin\/RailsRunner\.rb/
-        @environment = :litespeed
-        @identifier = 'litespeed'
-        @identifier += ":#{config['app_name']}" if config['app_name']
+        @dispatcher = :litespeed
       end
     end
     
     def check_for_passenger
-      if defined? Passenger::AbstractServer || defined? IN_PHUSION_PASSENGER 
-        @environment = :passenger
-        @identifier = 'passenger'
-        @identifier += ":#{config['app_name']}" if config['app_name']
+      if defined?(Passenger::AbstractServer) || defined?(IN_PHUSION_PASSENGER) 
+        @dispatcher = :passenger
       end
     end
-    
-    def check_for_daemon
-      if config['monitor_daemons']
-        @environment = :daemon
-        # return the base part of the file name
-        @identifier = File.basename($0).split(".").first
-      end
+
+    public 
+    def to_s
+      s = "LocalEnvironment["
+      s << @framework.to_s
+      s << ";dispatcher=#{@dispatcher}" if @dispatcher
+      s << ";instance=#{@dispatcher_instance_id}" if @dispatcher_instance_id
+      s << "]"
     end
-    private 
-    def config
-      NewRelic::Config.instance
+    def gather_info
+      i = []
+      i << [ 'framework', @framework.to_s]
+      i << [ 'dispatcher', @dispatcher.to_s]
+      i << [ 'dispatcher_instance_id', @dispatcher_instance_id] if @dispatcher_instance_id
+      i
     end
   end
 end
