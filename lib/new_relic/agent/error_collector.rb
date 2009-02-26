@@ -6,8 +6,6 @@ module NewRelic::Agent
     
     MAX_ERROR_QUEUE_LENGTH = 20 unless defined? MAX_ERROR_QUEUE_LENGTH
     
-    attr_accessor :capture_params
-    attr_accessor :capture_source
     attr_accessor :enabled
     
     def initialize(agent = nil)
@@ -16,9 +14,17 @@ module NewRelic::Agent
       # lookup of exception class names to ignore.  Hash for fast access
       @ignore = {}
       @ignore_filter = nil
-      @capture_params = true
-      @capture_source = false
-      @enabled = true
+
+      config = NewRelic::Config.instance.fetch('error_collector', {})
+      
+      @enabled = config.fetch('enabled', true)
+      @capture_source = config.fetch('capture_source', true)
+      NewRelic::Config.instance.log.info "Error collector is enabled in agent config" if @enabled
+      
+      ignore_errors = config.fetch('ignore_errors', "")
+      ignore_errors = ignore_errors.split(",")
+      ignore_errors.each { |error| error.strip! } 
+      ignore(ignore_errors)
     end
     
     def ignore_error_filter(&block)
@@ -50,8 +56,8 @@ module NewRelic::Agent
       
       action_path ||= ''
       
-      
-      data[:request_params] = normalize_params(filtered_params) if @capture_params
+      data[:request_params] = normalize_params(filtered_params) if NewRelic::Config.instance.capture_params
+
       data[:custom_params] = normalize_params(@agent.custom_params) if @agent
       
       data[:request_uri] = request.path if request

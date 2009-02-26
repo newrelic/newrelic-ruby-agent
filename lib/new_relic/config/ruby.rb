@@ -1,5 +1,5 @@
 class NewRelic::Config::Ruby < NewRelic::Config
-  def app; :ruby; end
+
   def env
     @env ||= ENV['RUBY_ENV'] || ENV['RAILS_ENV'] || 'development'
   end

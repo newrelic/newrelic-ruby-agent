@@ -7,11 +7,10 @@ class NewRelic::Agent::CollectionHelperTests < Test::Unit::TestCase
   def setup
     super
     NewRelic::Agent::ModelFixture.setup
-    NewRelic::Agent.instance.start :test, :test
+    NewRelic::Agent.manual_start
   end
   def teardown
     NewRelic::Agent::ModelFixture.teardown
-    NewRelic::Agent.instance.shutdown
     super
   end
   

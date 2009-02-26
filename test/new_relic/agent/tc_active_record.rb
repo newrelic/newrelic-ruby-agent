@@ -5,20 +5,18 @@ require 'new_relic/agent/model_fixture'
 class ActiveRecordInstrumentationTests < Test::Unit::TestCase
   
   def setup
-    super
+    NewRelic::Agent.manual_start
     NewRelic::Agent::ModelFixture.setup
-    @agent = NewRelic::Agent.instance
-    @agent.start :test, :test
-    @agent.transaction_sampler.harvest
+    NewRelic::Agent.instance.transaction_sampler.harvest
   end
   
   def teardown
-    @agent.shutdown
-    @agent.stats_engine.harvest_timeslice_data Hash.new, Hash.new
+    NewRelic::Agent.instance.stats_engine.harvest_timeslice_data Hash.new, Hash.new
     NewRelic::Agent::ModelFixture.teardown
-    super
   end
-  
+  def test_agent_setup
+    assert NewRelic::Agent.instance.class == NewRelic::Agent::Agent
+  end
   def test_finder
     NewRelic::Agent::ModelFixture.create :id => 0, :name => 'jeff'
     NewRelic::Agent::ModelFixture.find(:all)
@@ -29,9 +27,21 @@ class ActiveRecordInstrumentationTests < Test::Unit::TestCase
     assert_equal 2, s.call_count
   end
   
+  def test_named_scope
+    NewRelic::Agent::ModelFixture.create :id => 0, :name => 'jeff'
+    s = NewRelic::Agent.get_stats("ActiveRecord/NewRelic::Agent::ModelFixture/find")
+    before_count = s.call_count
+    x = NewRelic::Agent::ModelFixture.jeffs.find(:all)
+    assert_equal 1, x.size
+    se = NewRelic::Agent.instance.stats_engine
+    assert_equal before_count+1, s.call_count
+  end
+  
   def test_run_explains
     NewRelic::Agent::ModelFixture.find(:all)
-    sample = @agent.transaction_sampler.harvest(nil, 0)[0]
+
+    sample = NewRelic::Agent.instance.transaction_sampler.harvest(nil, 0)[0]
+
     segment = sample.root_segment.called_segments.first.called_segments.first
     assert_match /^SELECT \* FROM ["`]test_data["`]$/i, segment.params[:sql].strip
     NewRelic::TransactionSample::Segment.any_instance.expects(:explain_sql).returns([])
@@ -40,8 +50,9 @@ class ActiveRecordInstrumentationTests < Test::Unit::TestCase
   end
   def test_prepare_to_send
     NewRelic::Agent::ModelFixture.find(:all)
-    
-    sample = @agent.transaction_sampler.harvest(nil, 0)[0]
+
+    sample = NewRelic::Agent.instance.transaction_sampler.harvest(nil, 0)[0]
+
     segment = sample.root_segment.called_segments.first.called_segments.first
     assert_match /^SELECT /, segment.params[:sql]
     assert segment.duration > 0.0, "Segment duration must be greater than zero."
@@ -58,7 +69,9 @@ class ActiveRecordInstrumentationTests < Test::Unit::TestCase
   def test_transaction
     
     NewRelic::Agent::ModelFixture.find(:all)
-    sample = @agent.transaction_sampler.harvest(nil, 0)[0]
+
+    sample = NewRelic::Agent.instance.transaction_sampler.harvest(nil, 0)[0]
+
     sample = sample.prepare_to_send(:obfuscate_sql => true, :explain_enabled => true, :explain_sql => 0.0)
     segment = sample.root_segment.called_segments.first.called_segments.first
     assert_nil segment.params[:sql], "SQL should have been removed."

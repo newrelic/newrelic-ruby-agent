@@ -4,7 +4,7 @@ class ClassLoaderPatchTests < ActiveSupport::TestCase
   
   def test_const_undefined
     require 'new_relic/agent/patch_const_missing'
-    ClassLoadingWatcher.set_background_thread(Thread.current)
+    ClassLoadingWatcher.background_thread = Thread.current
     
     # try loading some non-existent class
     NewRelic::Config.instance.log.expects(:error).at_least_once.with{|args| args =~ /Agent background thread.*:FooBar/}
@@ -23,7 +23,7 @@ class ClassLoaderPatchTests < ActiveSupport::TestCase
 
   def test_require
     require 'new_relic/agent/patch_const_missing'
-    ClassLoadingWatcher.set_background_thread(Thread.current)
+    ClassLoadingWatcher.background_thread = Thread.current
     
     # try loading some non-existent class
     NewRelic::Config.instance.log.expects(:error).at_least_once.with{|args| args =~ /Agent background thread.*rational/}
@@ -39,7 +39,7 @@ class ClassLoaderPatchTests < ActiveSupport::TestCase
   
   def test_load
     require 'new_relic/agent/patch_const_missing'
-    ClassLoadingWatcher.set_background_thread(Thread.current)
+    ClassLoadingWatcher.background_thread = Thread.current
     
     # try loading some non-existent class
     NewRelic::Config.instance.log.expects(:error).with{|args| args =~ /Agent background thread.*tsort/}.at_least_once

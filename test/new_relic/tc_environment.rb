@@ -18,21 +18,21 @@ class EnvironmentTest < ActiveSupport::TestCase
   
   def test_environment
     e = NewRelic::LocalEnvironment.new
-    assert_equal :unknown, e.environment
-    assert_nil e.identifier
+    assert_equal nil, e.environment
+    assert_nil e.dispatcher_instance_id
   end
   def test_webrick
     Object.const_set :OPTIONS, { :port => 3000 }
     e = NewRelic::LocalEnvironment.new
     assert_equal :webrick, e.environment
-    assert_equal 3000, e.identifier
+    assert_equal 3000, e.dispatcher_instance_id
     Object.class_eval { remove_const :OPTIONS }
   end
   def test_no_webrick
     Object.const_set :OPTIONS, 'foo'
     e = NewRelic::LocalEnvironment.new
-    assert_equal :unknown, e.environment
-    assert_nil e.identifier
+    assert_equal nil, e.environment
+    assert_nil e.dispatcher_instance_id
     Object.class_eval { remove_const :OPTIONS }
   end
   def test_mongrel
@@ -47,7 +47,7 @@ class EnvironmentTest < ActiveSupport::TestCase
     Mongrel::HttpServer.new
     e = NewRelic::LocalEnvironment.new
     assert_equal :mongrel, e.environment
-    assert_equal 3000, e.identifier
+    assert_equal 3000, e.dispatcher_instance_id
     Mongrel::HttpServer.class_eval {undef_method :port}
   end
   def test_thin
@@ -62,13 +62,13 @@ class EnvironmentTest < ActiveSupport::TestCase
     mock_thin = Thin::Server.new
     e = NewRelic::LocalEnvironment.new
     assert_equal :thin, e.environment
-    assert_equal '/socket/file.000', e.identifier
+    assert_equal '/socket/file.000', e.dispatcher_instance_id
     mock_thin
   end
   def test_litespeed
     e = NewRelic::LocalEnvironment.new
-    assert_equal :unknown, e.environment
-    assert_nil e.identifier
+    assert_equal nil, e.environment
+    assert_nil e.dispatcher_instance_id
   end
   def test_passenger
     class << self
@@ -77,16 +77,18 @@ class EnvironmentTest < ActiveSupport::TestCase
       end
     end
     e = NewRelic::LocalEnvironment.new
+    e.configure_overrides Hash.new
     assert_equal :passenger, e.environment
-    assert_equal 'passenger', e.identifier
-
+    assert_equal 'passenger', e.dispatcher_instance_id
+      
     NewRelic::Config.instance.instance_eval do
       @settings['app_name'] = 'myapp'
     end
     
     e = NewRelic::LocalEnvironment.new 
+    e.configure_overrides NewRelic::Config.instance
     assert_equal :passenger, e.environment
-    assert_equal 'passenger:myapp', e.identifier
+    assert_equal 'passenger:myapp', e.dispatcher_instance_id
     
     ::Passenger.class_eval { remove_const :AbstractServer }
   end

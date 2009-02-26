@@ -1,22 +1,12 @@
 
 module NewRelic::Agent
   
-  
   class TransactionSampler
     include Synchronize
     
     BUILDER_KEY = :transaction_sample_builder
-    @@capture_params = true
-    
-    def self.capture_params
-      @@capture_params
-    end
-    def self.capture_params=(params)
-      @@capture_params = params
-    end
-    
+
     attr_accessor :stack_trace_threshold, :random_sampling, :sampling_rate
-    
     
     def initialize(agent)
       @samples = []
@@ -24,7 +14,10 @@ module NewRelic::Agent
       @harvest_count = 0
       @max_samples = 100
       @random_sample = nil
-      @stack_trace_threshold = 100000.0
+      config = NewRelic::Config.instance
+      sampler_config = config.fetch('transaction_tracer', {})
+      @stack_trace_threshold = sampler_config.fetch('stack_trace_threshold', 0.500).to_f
+      
       agent.stats_engine.add_scope_stack_listener self
 
       agent.set_sql_obfuscator(:replace) do |sql| 
@@ -41,21 +34,15 @@ module NewRelic::Agent
       @harvest_count = rand(val)
     end
     
-    
     def default_sql_obfuscator(sql)
-#      puts "obfuscate: #{sql}"
-      
-      # remove escaped strings
-      sql = sql.gsub("''", "?")
-      
-      # replace all string literals
-      sql = sql.gsub(/'[^']*'/, "?")
-      
+      sql = sql.dup
+      # This is hardly readable.  Use the unit tests.
+      # remove single quoted strings:
+      sql.gsub!(/'(.*?[^\\'])??'(?!')/, '?')
+      # remove double quoted strings:
+      sql.gsub!(/"(.*?[^\\"])??"(?!")/, '?')
       # replace all number literals
-      sql = sql.gsub(/\d+/, "?")
-      
-#      puts "result: #{sql}"
-      
+      sql.gsub!(/\d+/, "?")
       sql
     end
     
@@ -286,7 +273,7 @@ module NewRelic::Agent
     def set_transaction_info(path, request, params)
       @sample.params[:path] = path
       
-      if TransactionSampler.capture_params
+      if NewRelic::Config.instance.capture_params
         params = normalize_params params
         
         @sample.params[:request_params].merge!(params)

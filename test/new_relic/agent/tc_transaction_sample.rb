@@ -10,16 +10,7 @@ require 'test/unit'
 class NewRelic::TransationSampleTests < Test::Unit::TestCase
   
   def setup
-    super
-    NewRelic::Agent::Agent.instance.shutdown
-    NewRelic::Agent::Agent.instance.start(:test, :test)
-  end
-  def shutdown
-    NewRelic::Agent::Agent.instance.shutdown
-    super
-  end
-  def initialize(test)
-    super(test)
+    NewRelic::Agent.manual_start
   end
   
   def test_sql

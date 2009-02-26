@@ -1,8 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
 require 'new_relic/agent/mock_scope_listener'
 
-::RPM_TRACERS_ENABLED = true unless defined? ::RPM_TRACERS_ENABLED
-
 class Module
   def method_traced?(method_name, metric_name)
     traced_method_prefix = _traced_method_name(method_name, metric_name)
@@ -56,19 +54,16 @@ class NewRelic::Agent::MethodTracerTests < Test::Unit::TestCase
   attr_reader :stats_engine
   
   def setup
-    NewRelic::Agent::Agent.instance.shutdown
-    NewRelic::Agent::Agent.instance.start 'rake', 'test'
-    @stats_engine = NewRelic::Agent::Agent.instance.stats_engine
+    NewRelic::Agent.manual_start
+    @stats_engine = NewRelic::Agent.instance.stats_engine
     @stats_engine.reset
     @scope_listener = NewRelic::Agent::MockScopeListener.new
-    
     @stats_engine.add_scope_stack_listener(@scope_listener)
   end
   
   def teardown
     self.class.remove_method_tracer :method_to_be_traced, @metric_name if @metric_name
     @metric_name = nil
-    NewRelic::Agent::Agent.instance.shutdown
   end
   
   def test_basic
@@ -102,7 +97,6 @@ class NewRelic::Agent::MethodTracerTests < Test::Unit::TestCase
   METRIC = "metric"
   def test_add_method_tracer
     @metric_name = METRIC
-    assert ::RPM_TRACERS_ENABLED
     self.class.add_method_tracer :method_to_be_traced, METRIC
     
     t1 = Time.now
@@ -141,7 +135,7 @@ class NewRelic::Agent::MethodTracerTests < Test::Unit::TestCase
   def test_nested_scope_tracer
     Insider.add_method_tracer :catcher, "catcher", :push_scope => true
     Insider.add_method_tracer :thrower, "thrower", :push_scope => true
-    sampler = NewRelic::Agent::Agent.instance.transaction_sampler
+    sampler = NewRelic::Agent.instance.transaction_sampler
     mock = Insider.new(@stats_engine)
     mock.catcher(0)
     mock.catcher(5)
@@ -263,7 +257,7 @@ class NewRelic::Agent::MethodTracerTests < Test::Unit::TestCase
   end
   
   def check_time (t1, t2)
-    assert((t2-t1).abs < 0.01)
+    assert((t2-t1).abs < 0.01, "Times not close: #{t1} ~ #{t2}")
   end
   
   # =======================================================

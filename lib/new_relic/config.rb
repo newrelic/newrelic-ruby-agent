@@ -1,7 +1,10 @@
 require 'yaml'
+require 'new_relic/local_environment'
 require 'singleton'
 require 'erb'
 require 'net/https'
+require 'new_relic/local_environment'
+require 'new_relic/agent/instrumentation/controller_instrumentation'
 
 # Configuration supports the behavior of the agent which is dependent
 # on what environment is being monitored: rails, merb, ruby, etc
@@ -10,8 +13,8 @@ require 'net/https'
 module NewRelic
   
   class Config
-
-    attr_accessor :log_file
+    
+    attr_accessor :log_file, :local_env
     
     # Structs holding info for the remote server and proxy server 
     class Server < Struct.new :host, :port
@@ -24,16 +27,44 @@ module NewRelic
       @instance ||= new_instance
     end
     
-    
-    # Initialize the agent: install instrumentation and start the agent if
-    # appropriate.  Subclasses may have different arguments for this when
-    # they are being called from different locations.
-    def start_plugin(*args)
-      if tracers_enabled?
+    # Initialize the plugin/gem.  This does the necessary configuration based on the
+    # framework environment and determines whether or not to start the agent.  If the
+    # agent is not going to be started then it loads the agent shim which has stubs
+    # for all the external api.
+    #
+    # This may be invoked multiple times, as long as you don't attempt to uninstall
+    # the agent after it has been started.  If the plugin is initialized and 
+    # it determines that the agent is not enabled, it will skip starting it and install
+    # the shim.  But if you later call this with :agent_enabled => true, then it
+    # will install the real agent and start it.
+    #
+    # What determines whether the agent is launched is the result of calling agent_enabled?
+    # This will indicate whether the instrumentation should/will be installed.  If we're
+    # in a mode where tracers are not installed then we should not start the agent.
+    #
+    # Subclasses are not allowed to override, but must implement init_config({}) which
+    # is called at most once.
+    #
+    def init_plugin(options={})
+      require 'new_relic/agent'
+      # Merge the stringified options into the config as overrides:
+      options.each { |sym, val | self[sym.to_s] = val unless sym == :config }
+      init_config(options)
+      if agent_enabled? && !@started
+        setup_log
+        app_config_info
         start_agent
-      else
-        require 'new_relic/shim_agent'
+        install_instrumentation
+        @started = true
+      elsif !agent_enabled?
+        install_shim
       end
+    end
+
+    # Install the real agent into the Agent module, and issue the start command.
+    def start_agent
+      NewRelic::Agent.agent = NewRelic::Agent::Agent.instance
+      NewRelic::Agent.agent.start
     end
     
     # Get the app config info.  It should already have been collected but
@@ -45,20 +76,15 @@ module NewRelic
     def [](key)
       fetch(key)
     end
-    ####################################
-    def env=(env_name)
-      @env = env_name
-      @settings = @yaml[env_name]
-    end
     
     def settings
-      @settings ||= (@yaml && @yaml[env]) || {}
+      @settings ||= (@yaml && merge_defaults(@yaml[env])) || {}
     end
     
     def []=(key, value)
       settings[key] = value
     end
-
+    
     def set_config(key,value)
       self[key]=value
     end
@@ -70,27 +96,57 @@ module NewRelic
     ###################################
     # Agent config conveniences
     
+    def license_key
+      fetch('license_key')
+    end
+    def capture_params
+      fetch('capture_params')
+    end
     def newrelic_root
       File.expand_path(File.join(__FILE__, "..","..",".."))
     end
-    def connect_to_server?
+    # True if we are sending data to the server, monitoring production
+    def monitor_mode?
       fetch('enabled', nil)
     end
+    # True if we are capturing data and displaying in /newrelic
     def developer_mode?
       fetch('developer', nil)
     end
-    def tracers_enabled?
-      !(ENV['NEWRELIC_ENABLE'].to_s =~ /false|off|no/i) &&
-       (developer_mode? || connect_to_server?)
+    # True if dev mode or monitor mode are enabled, and we are running
+    # inside a valid dispatcher like mongrel or passenger.  Can be overridden
+    # by NEWRELIC_ENABLE env variable, monitor_daemons config option when true, or
+    # agent_enabled config option when true or false.
+    def agent_enabled?
+      return false if !developer_mode? && !monitor_mode?
+      return self['agent_enabled'].to_s =~ /true|on|yes/i unless self['agent_enabled'].nil?
+      return false if ENV['NEWRELIC_ENABLE'].to_s =~ /false|off|no/i 
+      return true if self['monitor_daemons'].to_s =~ /true|on|yes/i
+      return true if ENV['NEWRELIC_ENABLE'].to_s =~ /true|on|yes/i
+      # When in 'auto' mode the agent is enabled if there is a known
+      # dispatcher running
+      return true if local_env.dispatcher != nil
+    end
+
+    def app
+      @local_env.framework
+    end
+    alias framework app
+
+    def dispatcher_instance_id
+      self['dispatcher_instance_id'] || @local_env.dispatcher_instance_id
+    end
+    def dispatcher
+      self['dispatcher'] || @local_env.dispatcher
     end
     def app_name
-      fetch('app_name', nil)
+      self['app_name']
     end
     
     def use_ssl?
       @use_ssl ||= fetch('ssl', false)
     end
-
+    
     def server
       @remote_server ||= 
       NewRelic::Config::Server.new fetch('host', 'collector.newrelic.com'), fetch('port', use_ssl? ? 443 : 80).to_i  
@@ -127,29 +183,90 @@ module NewRelic
     end
     
     def to_s
-      puts self.inspect
       "Config[#{self.app}]"
     end
     
     def log
       # If we try to get a log before one has been set up, return a stdout log
       unless @log
-        @log = Logger.new(STDOUT)
-        @log.level = Logger::WARN
+        l = Logger.new(STDOUT)
+        l.level = Logger::WARN
+        return l
       end
       @log
     end
     
-    def setup_log(identifier)
-      @log_file = "#{log_path}/#{log_file_name(identifier)}"
+    # send the given message to STDERR so that it shows
+    # up in the console.  This should be used for important informational messages at boot.
+    # The to_stderr may be implemented differently by different config subclasses.
+    # This will NOT print anything if tracers are not enabled
+    def log!(msg, level=:info)
+      return if @settings && !agent_enabled?
+      to_stderr msg
+      log.send level, msg if @log
+    end
+    
+    # Install stubs to the proper location so the app code will not fail
+    # if the agent is not running.
+    def install_shim
+      # Once we install instrumentation, you can't undo that by installing the shim.
+      raise "Cannot install the Agent shim after instrumentation has already been installed!" if @instrumented
+      NewRelic::Agent.agent = NewRelic::Agent::ShimAgent.instance
+      Module.send :include, NewRelic::Agent::MethodTracerShim
+    end
+    
+    def install_instrumentation
+      return if @instrumented
+      
+      @instrumented = true
+      
+      Module.send :include, NewRelic::Agent::MethodTracer
+      
+      # Instrumentation for the key code points inside rails for monitoring by NewRelic.
+      # note this file is loaded only if the newrelic agent is enabled (through config/newrelic.yml)
+      instrumentation_path = File.join(File.dirname(__FILE__), 'agent','instrumentation')
+      instrumentation_files = [ ] <<
+      File.join(instrumentation_path, '*.rb') <<
+      File.join(instrumentation_path, app.to_s, '*.rb')
+      instrumentation_files.each do | pattern |
+        Dir.glob(pattern) do |file|
+          begin
+            log.debug "Processing instrumentation file '#{file}'"
+            require file
+          rescue => e
+            log.error "Error loading instrumentation file '#{file}': #{e}"
+            log.debug e.backtrace.join("\n")
+          end
+        end
+      end
+      
+      log.debug "Finished instrumentation"
+    end
+    
+    protected
+    
+    def merge_defaults(settings_hash)
+      s = {
+        'host' => 'collector.newrelic.com',
+        'ssl' => false,
+        'log_level' => 'info',
+        'apdex_t' => 1.0
+      }.merge settings_hash
+      # monitor_daemons replaced with agent_enabled
+      s['agent_enabled'] = s.delete('monitor_daemons') if s['agent_enabled'].nil?
+      s
+    end
+    # Configs may override this, but it can be called multiple times.
+    def setup_log
+      @log_file = "#{log_path}/newrelic_agent.log"
       @log = Logger.new @log_file
       
       # change the format just for our logger
       
       def @log.format_message(severity, timestamp, progname, msg)
-        "[#{timestamp.strftime("%m/%d/%y %H:%M:%S")} (#{$$})] #{severity} : #{msg}\n" 
+        "[#{timestamp.strftime("%m/%d/%y %H:%M:%S %z")} #{Socket.gethostname} (#{$$})] #{severity} : #{msg}\n" 
       end
-      
+    
       # set the log level as specified in the config file
       case fetch("log_level","info").downcase
         when "debug"; @log.level = Logger::DEBUG
@@ -162,34 +279,14 @@ module NewRelic
       @log
     end
     
-    def local_env
-      @local_env ||= NewRelic::LocalEnvironment.new
-    end
-    
-    # send the given message to STDERR so that it shows
-    # up in the console.  This should be used for important informational messages at boot.
-    # The to_stderr may be implemented differently by different config subclasses.
-    # This will NOT print anything if the environment is unknown because this is
-    # probably not an environment the agent will be running in.
-    def log!(msg, level=:info)
-      return if @settings && !tracers_enabled?
-      to_stderr msg
-      log.send level, msg if log
-    end
-    
-    protected
     # Collect miscellaneous interesting info about the environment
     # Called when the agent is started
     def gather_info
-      [[:app, app]]
+      local_env.gather_info
     end
     
     def to_stderr(msg)
       STDERR.puts "** [NewRelic] " + msg 
-    end
-    
-    def start_agent
-      NewRelic::Agent::Agent.instance.start(local_env.environment, local_env.identifier)
     end
     
     def config_file
@@ -204,33 +301,38 @@ module NewRelic
       File.expand_path(path)
     end
     
-    def log_file_name(identifier="")
-      identifier ||= ""
-      "newrelic_agent.#{identifier.gsub(/[^-\w.]/, '_')}.log"
+    def log_file_name
+      @log_file
     end
     
     # Create the concrete class for environment specific behavior:
     def self.new_instance
-      case
-        when defined? NewRelic::TEST
+      local_env = NewRelic::LocalEnvironment.new
+      new_config = case local_env.framework
+        when :test
         require 'config/test_config'
-        NewRelic::Config::Test.new
-        when defined? Merb::Plugins then
+        NewRelic::Config::Test.new local_env
+        when :merb
         require 'new_relic/config/merb'
-        NewRelic::Config::Merb.new
-        when defined? Rails then
+        NewRelic::Config::Merb.new local_env
+        when :rails
         require 'new_relic/config/rails'
-        NewRelic::Config::Rails.new
-      else
+        NewRelic::Config::Rails.new local_env
+        when :ruby
         require 'new_relic/config/ruby'
-        NewRelic::Config::Ruby.new
+        NewRelic::Config::Ruby.new local_env
+      else 
+        raise "Unknown framework: #{local_env.framework}"
       end
+      local_env.configure_overrides new_config
+      new_config
     end
     
     # Return a hash of settings you want to override in the newrelic.yml
     # file.  Maybe just for testing.
     
-    def initialize
+    def initialize local_env
+      @local_env = local_env
       newrelic_file = config_file
       # Next two are for populating the newrelic.yml via erb binding, necessary
       # when using the default newrelic.yml file

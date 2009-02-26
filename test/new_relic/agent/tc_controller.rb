@@ -11,9 +11,9 @@ class AgentControllerTests < ActionController::TestCase
   def setup
     super
     Thread.current[:controller_ignored] = nil
+    NewRelic::Agent.manual_start
     @agent = NewRelic::Agent.instance
     #    @agent.instrument_app
-    agent.start :test, :test
     agent.transaction_sampler.harvest
     NewRelic::Agent::AgentTestController.class_eval do
       newrelic_ignore :only => [:action_to_ignore, :entry_action]
@@ -21,7 +21,6 @@ class AgentControllerTests < ActionController::TestCase
   end
   
   def teardown
-    NewRelic::Agent.instance.shutdown
     Thread.current[:controller_ignored] = nil
     super
   end

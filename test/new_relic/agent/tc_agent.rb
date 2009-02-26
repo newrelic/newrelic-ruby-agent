@@ -8,25 +8,22 @@ class AgentTests < ActiveSupport::TestCase
   
   # Fake out the agent to think mongrel is running
   def setup
+    NewRelic::Agent.manual_start
     @agent = NewRelic::Agent.instance
-    @agent.start :test, :test
   end
   
-  # Remove the port method so it won't think mongrel
-  # is available
-  def teardown
-    @agent.shutdown
-    super
+  def test_agent_setup
+    assert NewRelic::Agent.instance.class == NewRelic::Agent::Agent
+    assert_raise RuntimeError do
+      NewRelic::Config.instance.init_plugin :agent_enabled => false
+    end
   end
   
   def test_public_apis
-    begin
+    assert_raise RuntimeError do
       NewRelic::Agent.set_sql_obfuscator(:unknown) do |sql|
         puts sql
       end
-      fail
-    rescue
-      # ok
     end
     
     ignore_called = false
@@ -35,32 +32,28 @@ class AgentTests < ActiveSupport::TestCase
       nil
     end
     
-    NewRelic::Agent.agent.error_collector.notice_error(ActionController::RoutingError.new("message"), nil, 'path', {:x => 'y'} )
+    NewRelic::Agent.agent.error_collector.notice_error(ActionController::RoutingError.new("message"), nil, "path", {:x => "y"} )
     
     assert ignore_called    
   end
   
   def test_startup_shutdown
+    @agent = NewRelic::Agent::ShimAgent.instance
     @agent.shutdown
     assert (not @agent.started?)
-    @agent.start "ruby", "test1"
+    @agent.start 
+    assert !@agent.started?
+    # this installs the real agent:
+    NewRelic::Agent.manual_start
+    @agent = NewRelic::Agent.instance
+    assert @agent != NewRelic::Agent::ShimAgent.instance
     assert @agent.started?
     @agent.shutdown
-    @agent.start "ruby", "test2"
-  end
-  def test_setup_log_default
-    assert @agent.log.instance_of?(Logger), @agent.log
-    logfile = @agent.log.instance_eval { @logdev.filename }
-    assert_match /\/log\/newrelic_agent\..*\.log$/,logfile
-    @agent.shutdown
+    assert !@agent.started?
+    @agent.start
+    assert @agent.started?
   end
   
-  def test_info
-    props = NewRelic::Config.instance.app_config_info
-    list = props.assoc('Plugin List').last.sort
-    assert_not_nil list # can't really guess what might be in here.  
-    assert_match /jdbc|postgres|mysql|sqlite/, props.assoc('Database adapter').last
-  end
   def test_version
     assert_match /\d\.\d\.\d+/, NewRelic::VERSION::STRING
   end

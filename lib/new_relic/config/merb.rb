@@ -1,7 +1,5 @@
 class NewRelic::Config::Merb < NewRelic::Config
   
-  def app; :merb; end
-  
   def env
     @env ||= ::Merb.env
   end
@@ -13,23 +11,17 @@ class NewRelic::Config::Merb < NewRelic::Config
     STDERR.puts "NewRelic ~ " + msg 
   end
   
-  def start_plugin
+  def init_config options={}
     ::Merb::Plugins.add_rakefiles File.join(newrelic_root,"lib/tasks/all.rb")
     
     # Merb gives you a Merb::Plugins.config hash...feel free to put your stuff in your piece of it
     ::Merb::Plugins.config[:newrelic] = {
       :config => self
     }
-    
-    ::Merb::BootLoader.before_app_loads do
-      # require code that must be loaded before the application
-    end
-    
-    if tracers_enabled?
-      ::Merb::BootLoader.after_app_loads do
-        start_agent
-      end
-    end
-    
+  end
+  def start_agent
+    ::Merb::BootLoader.after_app_loads do
+       super
+    end unless @started_already
   end
 end

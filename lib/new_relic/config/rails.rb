@@ -1,6 +1,6 @@
+require 'new_relic/agent/instrumentation/controller_instrumentation'
+
 class NewRelic::Config::Rails < NewRelic::Config
-  
-  def app; :rails; end
   
   def env
     @env ||= RAILS_ENV
@@ -15,23 +15,26 @@ class NewRelic::Config::Rails < NewRelic::Config
     end rescue "#{root}/log"
     File.expand_path(path)
   end
-  
-  def start_plugin(rails_config=nil)
-    if !tracers_enabled?
-      require 'new_relic/shim_agent'
-      return
+  # In versions of Rails prior to 2.0, the rails config was only available to 
+  # the init.rb, so it had to be passed on from there.  
+  def init_config(options={})
+    rails_config=options[:config]
+    if !agent_enabled?
+      RAILS_DEFAULT_LOGGER.info "New Relic Agent not running"
+    else
+      RAILS_DEFAULT_LOGGER.info "Starting the New Relic Agent"
+      install_developer_mode rails_config if developer_mode?
     end
-    app_config_info
-    start_agent
-    install_developer_mode rails_config if developer_mode?
   end
   
   def install_developer_mode(rails_config)
+    return if @installed
+    @installed = true
     controller_path = File.join(newrelic_root, 'ui', 'controllers')
     helper_path = File.join(newrelic_root, 'ui', 'helpers')
     $LOAD_PATH << controller_path
     $LOAD_PATH << helper_path
- 
+    
     if defined? ActiveSupport::Dependencies
       ActiveSupport::Dependencies.load_paths << controller_path
       ActiveSupport::Dependencies.load_paths << helper_path
@@ -44,7 +47,6 @@ class NewRelic::Config::Rails < NewRelic::Config
     end
     
     install_devmode_route
-    
     
     # If we have the config object then add the controller path to the list.
     # Otherwise we have to assume the controller paths have already been
@@ -64,8 +66,8 @@ class NewRelic::Config::Rails < NewRelic::Config
     
     # inform user that the dev edition is available if we are running inside
     # a webserver process
-    if local_env.identifier
-      port = local_env.identifier.to_s =~ /^\d+/ ? ":#{local_env.identifier}" : ":port" 
+    if local_env.dispatcher_instance_id
+      port = local_env.dispatcher_instance_id.to_s =~ /^\d+/ ? ":#{local_env.dispatcher_instance_id}" : ":port" 
       to_stderr "NewRelic Agent (Developer Mode) enabled."
       to_stderr "To view performance information, go to http://localhost#{port}/newrelic"
     end
@@ -79,7 +81,7 @@ class NewRelic::Config::Rails < NewRelic::Config
     # has the effect of adding a route indiscriminately which is frowned upon by 
     # some: http://www.ruby-forum.com/topic/126316#563328
     ActionController::Routing::RouteSet.class_eval do
-      return false if self.instance_methods.include? 'draw_with_newrelic_map'
+      next if self.instance_methods.include? 'draw_with_newrelic_map'
       def draw_with_newrelic_map
         draw_without_newrelic_map do | map |
           map.named_route 'newrelic_developer', '/newrelic/:action/:id', :controller => 'newrelic' unless NewRelic::Config.instance['skip_developer_route']
@@ -88,12 +90,11 @@ class NewRelic::Config::Rails < NewRelic::Config
       end
       alias_method_chain :draw, :newrelic_map
     end
-    return true
   end
   
   # Collect the Rails::Info into an associative array as well as the list of plugins
   def gather_info
-    i = [[:app, app]]
+    i = super
     begin 
       begin
         require 'rails/info'
@@ -115,5 +116,10 @@ class NewRelic::Config::Rails < NewRelic::Config
       File.open(rev_file) { | file | i << ['Revision', file.read] } rescue nil
     end
     i
+  end
+
+  def install_shim
+    super
+    ActionController.send :include, NewRelic::Agent::Instrumentation::ControllerInstrumentation::InstanceMethodsShim  
   end
 end

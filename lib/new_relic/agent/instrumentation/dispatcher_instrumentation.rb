@@ -5,11 +5,6 @@
 module NewRelic::Agent::Instrumentation
   module DispatcherInstrumentation
     
-    @@newrelic_agent = NewRelic::Agent.agent
-    @@newrelic_rails_dispatch_stat = @@newrelic_agent.stats_engine.get_stats 'Rails/HTTP Dispatch'
-    @@newrelic_mongrel_queue_stat = @@newrelic_agent.stats_engine.get_stats('WebFrontend/Mongrel/Average Queue Time')
-    @@newrelic_response_stats = { '200' => @@newrelic_agent.stats_engine.get_stats('HTTP/Response/200')}
-    
     def newrelic_dispatcher_start
       # Put the current time on the thread.  Can't put in @ivar because this could
       # be a class or instance context
@@ -20,8 +15,8 @@ module NewRelic::Agent::Instrumentation
       # capture the time spent in the mongrel queue, if running in mongrel.  This is the 
       # current time less the timestamp placed in 'started_on' by mongrel. 
       mongrel_start = Thread.current[:started_on]
-      @@newrelic_mongrel_queue_stat.trace_call(t0 - mongrel_start.to_f) if mongrel_start
-      @@newrelic_agent.start_transaction
+      mongrel_queue_stat.trace_call(t0 - mongrel_start.to_f) if mongrel_start
+      NewRelic::Agent.agent.start_transaction
       
       # Reset the flag indicating the controller action should be ignored.
       # It may be set by the action to either true or false or left nil meaning false
@@ -35,16 +30,16 @@ module NewRelic::Agent::Instrumentation
         return
       end
       t1 = Time.now.to_f
-      @@newrelic_agent.end_transaction
+      NewRelic::Agent.agent.end_transaction
       NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.dispatcher_finish t1
       unless Thread.current[:controller_ignored]
         # Store the response header
         response_code = newrelic_response_code
         if response_code
-          stats = @@newrelic_response_stats[response_code] ||= @@newrelic_agent.stats_engine.get_stats("HTTP/Response/#{response_code}")
+          stats = response_stats[response_code] ||= NewRelic::Agent.agent.stats_engine.get_stats("HTTP/Response/#{response_code}")
           stats.trace_call(t1 - t0)
         end
-        @@newrelic_rails_dispatch_stat.trace_call(t1 - t0) 
+        dispatch_stat.trace_call(t1 - t0) 
       end
       
       Thread.current[:newrelic_t0] = nil
@@ -67,10 +62,11 @@ module NewRelic::Agent::Instrumentation
     module BusyCalculator
       extend self
       # the fraction of the sample period that the dispatcher was busy
-      @instance_busy = NewRelic::Agent.agent.stats_engine.get_stats('Instance/Busy')
+      
       @harvest_start = Time.now.to_f
       @accumulator = 0
       @dispatcher_start = nil    
+      
       def dispatcher_start(time)
         Thread.critical = true
         @dispatcher_start = time      
@@ -113,9 +109,28 @@ module NewRelic::Agent::Instrumentation
         busy = busy / time_window
         
         busy = 1.0 if busy > 1.0    # cap at 100%
-        @instance_busy.record_data_point busy
+        instance_busy_stats.record_data_point busy
         @harvest_start = t0
       end
+      private
+      def instance_busy_stats
+        # Late binding on the Instance/busy stats
+        @instance_busy ||= NewRelic::Agent.agent.stats_engine.get_stats('Instance/Busy')  
+      end
+      
     end
+    
+    private
+    # memoize the stats to avoid the cost of the lookup each time.
+    def dispatch_stat
+      @@newrelic_rails_dispatch_stat ||= NewRelic::Agent.agent.stats_engine.get_stats 'Rails/HTTP Dispatch'  
+    end
+    def mongrel_queue_stat
+      @@newrelic_mongrel_queue_stat ||= NewRelic::Agent.agent.stats_engine.get_stats('WebFrontend/Mongrel/Average Queue Time')  
+    end
+    def response_stats
+      @@newrelic_response_stats ||= { '200' => NewRelic::Agent.agent.stats_engine.get_stats('HTTP/Response/200')}  
+    end
+    
   end
 end

@@ -69,7 +69,6 @@ class NewRelic::StatsTests < Test::Unit::TestCase
     stats.record_data_point(0.125222, 0.025)
     stats.record_data_point(0.125222, 0.025)
     stats.record_data_point(0.125222, 0.025)
-    puts stats.inspect
     assert_equal 0.047041647852, stats.sum_of_squares
     assert_equal 0.375666, stats.total_call_time
     stats.round!
