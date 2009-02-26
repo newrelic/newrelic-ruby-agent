@@ -1,6 +1,6 @@
 
 # NewRelic instrumentation for ActiveRecord
-if defined? ActiveRecord
+if defined? ActiveRecord::Base
   
   ActiveRecord::Base.class_eval do
     class << self
