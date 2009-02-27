@@ -12,7 +12,7 @@ module NewRelic
   
   class Config
 
-    attr_accessor :log_file
+    attr_accessor :log_file, :env
     
     # Structs holding info for the remote server and proxy server 
     class Server < Struct.new :host, :port
@@ -50,14 +50,12 @@ module NewRelic
       fetch(key)
     end
     ####################################
-    def env=(env_name)
-      @env = env_name
-      @settings = @yaml[env_name]
-      @settings['apdex_t'] ||= 1.0
-    end
-    
     def settings
-      @settings ||= (@yaml && @yaml[env]) || {}
+      if @settings.nil?
+        @settings = (@yaml && @yaml[env]) || {}
+        @settings['apdex_t'] ||= 1.0
+      end
+      @settings
     end
     
     def []=(key, value)
