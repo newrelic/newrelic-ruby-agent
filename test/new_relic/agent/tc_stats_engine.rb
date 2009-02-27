@@ -89,6 +89,24 @@ module NewRelic::Agent
       assert unscoped.total_call_time == 3
     end
    
+    def test_scope__overlap
+      @engine.transaction_name = 'orlando'
+      orlando_disney = @engine.get_stats 'disney'
+      orlando_disney.record_data_point 3
+      
+      @engine.transaction_name = 'anaheim'
+      anaheim_disney = @engine.get_stats 'disney'
+      anaheim_disney.record_data_point 5
+      
+      disney = @engine.get_stats_no_scope "disney"
+      assert !orlando_disney.equal?(anaheim_disney)
+      assert orlando_disney != anaheim_disney
+      assert_equal 1, orlando_disney.call_count 
+      assert_equal 1, anaheim_disney.call_count
+      assert_equal 2, disney.call_count
+      assert_equal 8, disney.total_time
+      assert orlando_disney.unscoped_stats.equal?(anaheim_disney.unscoped_stats)
+    end
 
     def test_simplethrowcase(depth=0)
       

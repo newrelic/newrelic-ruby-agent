@@ -19,7 +19,7 @@ class EnvironmentTest < ActiveSupport::TestCase
   def test_environment
     e = NewRelic::LocalEnvironment.new
     assert_equal nil, e.environment
-    assert_nil e.dispatcher_instance_id
+    assert_match /test/i, e.dispatcher_instance_id
   end
   def test_webrick
     Object.const_set :OPTIONS, { :port => 3000 }
@@ -32,7 +32,7 @@ class EnvironmentTest < ActiveSupport::TestCase
     Object.const_set :OPTIONS, 'foo'
     e = NewRelic::LocalEnvironment.new
     assert_equal nil, e.environment
-    assert_nil e.dispatcher_instance_id
+    assert_match /test/i, e.dispatcher_instance_id
     Object.class_eval { remove_const :OPTIONS }
   end
   def test_mongrel
@@ -68,7 +68,7 @@ class EnvironmentTest < ActiveSupport::TestCase
   def test_litespeed
     e = NewRelic::LocalEnvironment.new
     assert_equal nil, e.environment
-    assert_nil e.dispatcher_instance_id
+    assert_match /test/i, e.dispatcher_instance_id
   end
   def test_passenger
     class << self
@@ -77,7 +77,6 @@ class EnvironmentTest < ActiveSupport::TestCase
       end
     end
     e = NewRelic::LocalEnvironment.new
-    e.configure_overrides Hash.new
     assert_equal :passenger, e.environment
     assert_equal 'passenger', e.dispatcher_instance_id
       
@@ -86,7 +85,6 @@ class EnvironmentTest < ActiveSupport::TestCase
     end
     
     e = NewRelic::LocalEnvironment.new 
-    e.configure_overrides NewRelic::Config.instance
     assert_equal :passenger, e.environment
     assert_equal 'passenger:myapp', e.dispatcher_instance_id
     

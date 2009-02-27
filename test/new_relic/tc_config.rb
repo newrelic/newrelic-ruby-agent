@@ -18,7 +18,7 @@ class NewRelic::ConfigTests < Test::Unit::TestCase
   def test_test_config
     assert_equal :rails, c.app
     assert_equal :test, c.framework
-    assert_equal nil, c.dispatcher_instance_id
+    assert_match /test/i, c.dispatcher_instance_id
     assert_equal nil, c.dispatcher
     
     assert_equal false, c['enabled']
