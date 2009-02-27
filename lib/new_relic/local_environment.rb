@@ -8,6 +8,7 @@ module NewRelic
     attr_accessor :dispatcher # mongrel, thin, webrick, or possibly nil
     attr_accessor :dispatcher_instance_id # used to distinguish instances of a dispatcher from each other, may be nil
     attr_accessor :framework # rails, merb, :ruby, :daemon, test
+    attr_reader :mongrel
     alias environment dispatcher
     def initialize
       discover_framework
@@ -21,7 +22,8 @@ module NewRelic
         else
           @dispatcher_instance_id = File.basename($0).split(".").first
         end
-        @dispatcher_instance_id += ":#{config['app_name']}" if config['app_name']
+        app_name = NewRelic::Config.instance['app_name']
+        @dispatcher_instance_id += ":#{app_name}" if app_name
       end
       @dispatcher_instance_id
     end
@@ -45,6 +47,7 @@ module NewRelic
       end      
     end
 
+
     private 
 
     def check_for_webrick
@@ -58,10 +61,10 @@ module NewRelic
     # this case covers starting by mongrel_rails
     def check_for_mongrel
       if defined? Mongrel::HttpServer
-        ObjectSpace.each_object(Mongrel::HttpServer) do |mongrel|
-          next if not mongrel.respond_to? :port
+        ObjectSpace.each_object(Mongrel::HttpServer) do |@mongrel|
+          next if not @mongrel.respond_to? :port
           @dispatcher = :mongrel
-          @dispatcher_instance_id = mongrel.port
+          @dispatcher_instance_id = @mongrel.port
         end
       end
     end

@@ -127,7 +127,7 @@ module NewRelic
       # dispatcher running
       return true if @local_env.dispatcher != nil
     end
-
+    
     def app
       @local_env.framework
     end
@@ -181,7 +181,9 @@ module NewRelic
       end
       http
     end
-    
+    def mongrel
+      local_env.mongrel
+    end
     def to_s
       "Config[#{self.app}]"
     end

@@ -293,7 +293,6 @@ module NewRelic
     
     alias data_point_count call_count
     
-    
     # record a single data point into the statistical gatherer.  The gatherer
     # will aggregate all data points collected over a specified period and upload
     # its data to the NewRelic server
@@ -318,14 +317,16 @@ module NewRelic
   
   class ScopedMethodTraceStats < MethodTraceStats
     def initialize(unscoped_stats)
-      super()
-      
+      super
       @unscoped_stats = unscoped_stats
     end
     
     def trace_call(call_time, exclusive_time = call_time)
       @unscoped_stats.trace_call call_time, exclusive_time
       super call_time, exclusive_time
+    end
+    def unscoped_stats
+      @unscoped_stats
     end
   end
 end
