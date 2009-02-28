@@ -76,6 +76,10 @@ module NewRelic::Agent::Samplers
     #
     class ProcStatusSampler < MemorySampler
       
+      # override default initialize method
+      def initialize
+      end
+      
       # Returns the amount of resident memory this process is using in MB
       #
       def get_memory_sample
