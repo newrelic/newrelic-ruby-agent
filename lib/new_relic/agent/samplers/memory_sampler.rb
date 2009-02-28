@@ -74,7 +74,7 @@ module NewRelic::Agent::Samplers
     #
     # A class that samples memory by reading the file /proc/$$/status, which is specific to linux
     #
-    class ProcStatusSampler 
+    class ProcStatusSampler < MemorySampler
       
       # Returns the amount of resident memory this process is using in MB
       #
