@@ -79,6 +79,7 @@ module NewRelic::Agent::Samplers
       # override default initialize method
       def initialize
       end
+    
       
       # Returns the amount of resident memory this process is using in MB
       #
