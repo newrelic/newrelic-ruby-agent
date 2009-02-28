@@ -5,14 +5,15 @@ module NewRelic::Agent::Samplers
       super :mongrel
       @mongrel = mongrel_instance
     end
-    
+    def queue_stats
+      @queue_stats ||= stats_engine.get_stats("Mongrel/Queue Length", false)
+    end
     def poll
       if @mongrel
-        @queue_stat ||= stats_engine.get_stats("Mongrel/Queue Length", false)
         qsize = @mongrel.workers.list.length
         qsize -= 1 if NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.is_busy?
         qsize = 0 if qsize < 0
-        @queue_stat.record_data_point qsize
+        queue_stats.record_data_point qsize
       end
     end
   end
