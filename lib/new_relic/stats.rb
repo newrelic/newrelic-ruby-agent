@@ -317,7 +317,7 @@ module NewRelic
   
   class ScopedMethodTraceStats < MethodTraceStats
     def initialize(unscoped_stats)
-      super()
+        super()
       @unscoped_stats = unscoped_stats
     end
     
