@@ -358,14 +358,9 @@ module NewRelic::Agent
     end
       
     def load_samplers
-      sampler_files = File.join(File.dirname(__FILE__), 'samplers', '*.rb')
-      Dir.glob(sampler_files) do |file|
-        begin
-          require file
-        rescue => e
-          log.error "Error loading sampler '#{file}': #{e}"
-        end
-      end
+      stats_engine.add_sampler NewRelic::Agent::Samplers::MongrelSampler.new config.mongrel if config.mongrel
+      stats_engine.add_sampler NewRelic::Agent::Samplers::CpuSampler.new
+      stats_engine.add_sampler NewRelic::Agent::Samplers::MemorySampler.new 
     end
     
     def determine_host

@@ -21,7 +21,10 @@ module NewRelic
     require 'new_relic/agent/collection_helper'
     require 'new_relic/agent/transaction_sampler'
     require 'new_relic/agent/error_collector'
-       
+    
+    require 'new_relic/agent/samplers/cpu_sampler'
+    require 'new_relic/agent/samplers/memory_sampler'
+    require 'new_relic/agent/samplers/mongrel_sampler'
     require 'set'
     require 'sync'
     require 'thread'
