@@ -359,7 +359,7 @@ module NewRelic::Agent
       
     def load_samplers
       stats_engine.add_sampler NewRelic::Agent::Samplers::MongrelSampler.new config.mongrel if config.mongrel
-      stats_engine.add_sampler NewRelic::Agent::Samplers::CpuSampler.new
+      stats_engine.add_sampler NewRelic::Agent::Samplers::CpuSampler.new unless defined? Java
       stats_engine.add_sampler NewRelic::Agent::Samplers::MemorySampler.new 
     end
     
