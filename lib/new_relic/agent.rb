@@ -86,12 +86,10 @@ module NewRelic
     # All arguments ignored except options like :app_name = XXXX option which 
     # will override the settings in the newrelic_yml.
     #
-    def manual_start(*args)
+    def manual_start(options={})
+      raise unless Hash === options
       # Ignore all args but hash options
-      options = { :agent_enabled => true }
-      if args.size == 1 && Hash === args[0]
-        options.merge args[0]
-      end
+      options.merge! :agent_enabled => true 
       NewRelic::Config.instance.init_plugin options
     end
 

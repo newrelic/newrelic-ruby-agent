@@ -54,6 +54,13 @@ class AgentTests < ActiveSupport::TestCase
     assert @agent.started?
   end
   
+  def test_manual_overrides
+    NewRelic::Agent.manual_start :app_name => "testjobs", :dispatcher_instance_id => "mailer"
+    assert_equal "testjobs", NewRelic::Config.instance.app_name
+    assert_equal "mailer", NewRelic::Config.instance.dispatcher_instance_id
+
+  end
+  
   def test_version
     assert_match /\d\.\d\.\d+/, NewRelic::VERSION::STRING
   end
