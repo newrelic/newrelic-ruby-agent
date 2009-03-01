@@ -4,6 +4,7 @@ require 'singleton'
 require 'erb'
 require 'net/https'
 require 'new_relic/local_environment'
+require 'logger'
 
 # Configuration supports the behavior of the agent which is dependent
 # on what environment is being monitored: rails, merb, ruby, etc
