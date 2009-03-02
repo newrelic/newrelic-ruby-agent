@@ -8,6 +8,15 @@ module NewrelicHelper
     NewRelic::Config.instance['desktop_server'] || "http://rpm.newrelic.com"
   end
   
+  # limit of how many detail/SQL rows we display - very large data sets (~10000+) crash browsers
+  def trace_row_display_limit
+    2000
+  end
+  
+  def trace_row_display_limit_reached
+    (!@detail_segment_count.nil? && @detail_segment_count > trace_row_display_limit) || @sample.sql_segments.length > trace_row_display_limit
+  end
+  
   # return the sample but post processed to strip out segments that normally don't show
   # up in production (after the first execution, at least) such as application code loading
   def stripped_sample(sample = @sample)
@@ -239,6 +248,10 @@ private
   
 
   def render_segment_details(segment, depth=0)
+    @detail_segment_count ||= 0
+    @detail_segment_count += 1
+    
+    return '' if @detail_segment_count > trace_row_display_limit
     
     @indentation_depth = depth if depth > @indentation_depth
     repeat = nil
