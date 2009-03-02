@@ -78,7 +78,7 @@ class EnvironmentTest < ActiveSupport::TestCase
     end
     e = NewRelic::LocalEnvironment.new
     assert_equal :passenger, e.environment
-    assert_equal 'passenger', e.dispatcher_instance_id
+    assert_match /passenger/, e.dispatcher_instance_id
       
     NewRelic::Config.instance.instance_eval do
       @settings['app_name'] = 'myapp'
