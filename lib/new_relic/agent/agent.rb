@@ -466,7 +466,7 @@ module NewRelic::Agent
       @transaction_sampler = NewRelic::Agent::TransactionSampler.new(self)
       @error_collector = NewRelic::Agent::ErrorCollector.new(self)
       
-      @request_timeout = 15 * 60
+      @request_timeout = NewRelic::Config.fetch('timeout', 2 * 60)
       
       @invalid_license = false
       
