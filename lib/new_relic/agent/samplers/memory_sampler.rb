@@ -36,7 +36,7 @@ module NewRelic::Agent::Samplers
       @stats ||= stats_engine.get_stats("Memory/Physical", false) 
     end
     def poll
-      sample = @sampler.get_memory
+      sample = @sampler.get_sample
       stats.record_data_point sample if sample
       stats
     end
