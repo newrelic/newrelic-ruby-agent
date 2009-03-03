@@ -87,7 +87,8 @@ module NewRelic::Agent
             task.execute
           end
         rescue ServerError => e
-          log.debug "Server Error: #{e}"
+          #log.debug "Server Error: #{e}"
+          log.error "Server Error: #{e}"
         rescue RuntimeError => e
           # This is probably a server error which has been logged in the server along
           # with your account name.  Check and see if the agent listener is in the
@@ -96,11 +97,14 @@ module NewRelic::Agent
           if e.backtrace.grep(/agent_listener/).empty?
             log.error message
           else
-            log.debug message
-            log.debug e.backtrace.join("\n")
+#            log.debug message
+#            log.debug e.backtrace.join("\n")
+            log.error message
+            log.error e.backtrace.join("\n")
           end
         rescue Timeout::Error, NewRelic::Agent::IgnoreSilentlyException
           # Want to ignore these because they are handled already
+          log.error("Ignored this: #{$!}")
         rescue ScriptError, StandardError => e 
           log.error "Error running task in Agent Worker Loop (#{e.class}): #{e} " 
           log.debug e.backtrace.join("\n")
