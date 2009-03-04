@@ -47,7 +47,7 @@ module NewRelic::Agent::Instrumentation
       end
     end
     
-    # This is designed to be thread safe
+    # This won't work with Rails 2.2 multi-threading
     module BusyCalculator
       extend self
       # the fraction of the sample period that the dispatcher was busy
@@ -55,37 +55,37 @@ module NewRelic::Agent::Instrumentation
       @harvest_start = Time.now.to_f
       @accumulator = 0
       @dispatcher_start = nil    
-      
       def dispatcher_start(time)
         Thread.critical = true
-        @entrypoint_stack.push time      
+        @dispatcher_start = time      
         Thread.critical = false
       end
       
       def dispatcher_finish(time)
-        NewRelic::Config.instance.log.error "Stack underflow tracking dispatcher entry and exit!\n  #{caller.join("  \n")}" if @entrypoint_stack.empty?
         Thread.critical = true
-        @accumulator += (time - @entrypoint_stack.pop)
+        @accumulator += (time - @dispatcher_start)
+        @dispatcher_start = nil
+        
         Thread.critical = false
       end
       
       def is_busy?
-        @entrypoint_stack
+        @dispatcher_start
       end
       
       def harvest_busy
         Thread.critical = true
+        
         busy = @accumulator
         @accumulator = 0
         
         t0 = Time.now.to_f
-
-        # Walk through the stack and capture all times up to 
-        # now for entrypoints
-        @entrypoint_stack.size.times do |frame| 
-          busy += (t0 - @entrypoint_stack[frame])
-          @entrypoint_stack[frame] = t0
+        
+        if @dispatcher_start
+          busy += (t0 - @dispatcher_start)
+          @dispatcher_start = t0
         end
+        
         
         Thread.critical = false
         
