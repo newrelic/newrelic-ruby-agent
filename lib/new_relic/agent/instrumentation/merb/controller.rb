@@ -1,7 +1,7 @@
 require 'set'
-require 'merb-core/controller/abstract_controller'
+require 'merb-core/controller/merb_controller'
 
-Merb::AbstractController.class_eval do
+Merb::Controller.class_eval do
   include NewRelic::Agent::Instrumentation::ControllerInstrumentation
   
   class_inheritable_accessor :newrelic_ignore_attr
