@@ -48,7 +48,7 @@ module NewRelic::Agent::CollectionHelper
   
   # Convert any kind of object to a short string.
   def flatten(object)
-    s = case obejct 
+    s = case object 
       when nil then ''
       when String then object
       else "#<#{object.class.to_s}>"
