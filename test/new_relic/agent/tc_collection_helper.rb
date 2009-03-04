@@ -6,11 +6,9 @@ class NewRelic::Agent::CollectionHelperTests < Test::Unit::TestCase
   
   def setup
     super
-    NewRelic::Agent::ModelFixture.setup
     NewRelic::Agent.manual_start
   end
   def teardown
-    NewRelic::Agent::ModelFixture.teardown
     super
   end
   
@@ -82,6 +80,10 @@ class NewRelic::Agent::CollectionHelperTests < Test::Unit::TestCase
     assert_equal ["1"], myenum
   end
   
+  def test_stringio
+    s = StringIO.new "foo bar bat " * 1000
+    v = normalize_params({ :foo => s })
+  end
   
   def test_object
     assert_equal ["foo", '#<OpenStruct z="q">'], normalize_params(['foo', OpenStruct.new('z'=>'q')])

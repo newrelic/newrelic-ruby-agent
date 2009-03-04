@@ -50,16 +50,16 @@ module NewRelic::Agent::CollectionHelper
   def flatten(object)
     s = case object 
       when nil then ''
-      when String then object
+      when object.instance_of?(String) then object
+      when String then String.new(object)  # convert string subclasses to strings
       else "#<#{object.class.to_s}>"
     end
   end
   def truncate(string, len=256)
-    if string.instance_of? Symbol
-      string
-    elsif string.nil?
-      ""
-    elsif string.instance_of? String
+    case string
+    when Symbol then string
+    when nil then ""
+    when String
       string.to_s.gsub(/^(.{#{len}})(.*)/) {$2.blank? ? $1 : $1 + "..."}
     else
       truncate(flatten(string), len)     
