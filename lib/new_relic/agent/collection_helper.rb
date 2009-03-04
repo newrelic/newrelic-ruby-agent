@@ -46,27 +46,14 @@ module NewRelic::Agent::CollectionHelper
   
   private
   
-  # Convert any kind of object to a descriptive string
-  # Only call this on unknown objects.  Otherwise call to_s.
+  # Convert any kind of object to a short string.
   def flatten(object)
-    s = 
-      if object.respond_to? :inspect
-        object.inspect
-      elsif object.respond_to? :to_s
-        object.to_s
-      elsif object.nil?
-        "nil"
-      else
-        "#<#{object.class.to_s}>"
-      end
-
-    if !(s.instance_of? String)
-      s = "#<#{object.class.to_s}>"
+    s = case obejct 
+      when nil then ''
+      when String then object
+      else "#<#{object.class.to_s}>"
     end
-    
-    s
   end
-  
   def truncate(string, len=256)
     if string.instance_of? Symbol
       string
