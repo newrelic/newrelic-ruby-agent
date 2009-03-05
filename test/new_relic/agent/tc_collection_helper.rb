@@ -65,11 +65,11 @@ class NewRelic::Agent::CollectionHelperTests < Test::Unit::TestCase
   end
   
   class MyEnumerable
-     include Enumerable
-     
-     def each
-       yield "1"
-     end
+    include Enumerable
+    
+    def each
+      yield "1"
+    end
   end
   
   def test_enumerable
@@ -91,16 +91,19 @@ class NewRelic::Agent::CollectionHelperTests < Test::Unit::TestCase
   
   def test_strip_backtrace
     begin
+      NewRelic::Agent::ModelFixture.setup
       NewRelic::Agent::ModelFixture.find 0
       flunk "should throw"
     rescue => e
-      #      puts e
-      #      puts e.backtrace.join("\n")
-      #      puts "\n\n"
+      #puts e
+      #puts e.backtrace.join("\n")
+      #puts "\n\n"
       clean_trace = strip_nr_from_backtrace(e.backtrace)
       assert_equal 0, clean_trace.grep(/newrelic_rpm/).size, clean_trace.grep(/newrelic_rpm/)
       assert_equal 0, clean_trace.grep(/trace/).size, clean_trace.grep(/trace/)
-      assert_equal 3, clean_trace.grep(/find/).size, "should see three frames with 'find' in them: \n#{clean_trace.join("\n")}"
+      assert_equal 3, clean_trace.grep(/find/).size, "should see three frames with 'find' in them (#{e}): \n#{clean_trace.join("\n")}"
+    ensure
+      NewRelic::Agent::ModelFixture.teardown
     end
   end
 end
