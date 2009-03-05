@@ -17,7 +17,7 @@ module NewRelic::Agent
     end
 
     def log
-      NewRelic::Config.instance.log
+      NewRelic::Control.instance.log
     end
     
     def spawn_sampler_thread

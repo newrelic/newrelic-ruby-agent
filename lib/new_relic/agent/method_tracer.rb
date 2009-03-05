@@ -47,8 +47,8 @@ module NewRelic::Agent
         
         stats = NewRelic::Agent.instance.stats_engine.get_stats(metric_name, true, scoped_metric_only) if produce_metric
       rescue => e
-        NewRelic::Config.instance.log.error("Caught exception in trace_method_execution header. Metric name = #{metric_name}, exception = #{e}")
-        NewRelic::Config.instance.log.error(e.backtrace.join("\n"))
+        NewRelic::Control.instance.log.error("Caught exception in trace_method_execution header. Metric name = #{metric_name}, exception = #{e}")
+        NewRelic::Control.instance.log.error(e.backtrace.join("\n"))
       end
       
       begin
@@ -65,8 +65,8 @@ module NewRelic::Agent
             stats.trace_call(duration, exclusive) if stats
           end
         rescue => e
-          NewRelic::Config.instance.log.error("Caught exception in trace_method_execution footer. Metric name = #{metric_name}, exception = #{e}")
-          NewRelic::Config.instance.log.error(e.backtrace.join("\n"))
+          NewRelic::Control.instance.log.error("Caught exception in trace_method_execution footer. Metric name = #{metric_name}, exception = #{e}")
+          NewRelic::Control.instance.log.error(e.backtrace.join("\n"))
         end
       end
     end
@@ -102,13 +102,13 @@ module NewRelic::Agent
       klass = (self === Module) ? "self" : "self.class"
       
       unless method_defined?(method_name) || private_method_defined?(method_name)
-        NewRelic::Config.instance.log.warn("Did not trace #{self}##{method_name} because that method does not exist")
+        NewRelic::Control.instance.log.warn("Did not trace #{self}##{method_name} because that method does not exist")
         return
       end
       
       traced_method_name = _traced_method_name(method_name, metric_name_code)
       if method_defined? traced_method_name
-        NewRelic::Config.instance.log.warn("Attempt to trace a method twice with the same metric: Method = #{method_name}, Metric Name = #{metric_name_code}")
+        NewRelic::Control.instance.log.warn("Attempt to trace a method twice with the same metric: Method = #{method_name}, Metric Name = #{metric_name_code}")
         return
       end
       
@@ -147,7 +147,7 @@ module NewRelic::Agent
       alias_method _untraced_method_name(method_name, metric_name_code), method_name
       alias_method method_name, _traced_method_name(method_name, metric_name_code)
       
-      NewRelic::Config.instance.log.debug("Traced method: class = #{self}, method = #{method_name}, "+
+      NewRelic::Control.instance.log.debug("Traced method: class = #{self}, method = #{method_name}, "+
         "metric = '#{metric_name_code}', options: #{options.inspect}, ")
     end
     
@@ -155,7 +155,7 @@ module NewRelic::Agent
     # from when they were added, or else other tracers that were added to the same method
     # may get removed as well.
     def remove_method_tracer(method_name, metric_name_code)
-      return unless NewRelic::Config.instance.agent_enabled?
+      return unless NewRelic::Control.instance.agent_enabled?
       
       if method_defined? "#{_traced_method_name(method_name, metric_name_code)}"
         alias_method method_name, "#{_untraced_method_name(method_name, metric_name_code)}"

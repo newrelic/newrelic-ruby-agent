@@ -53,7 +53,7 @@ module ClassLoadingWatcher
       exception.set_backtrace(backtrace)
       NewRelic::Agent.instance.error_collector.notice_error(exception, nil)
       msg << "\n" << backtrace.join("\n")
-      NewRelic::Config.instance.log.error msg
+      NewRelic::Control.instance.log.error msg
     end
   end
   def enable_warning

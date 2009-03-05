@@ -15,11 +15,11 @@ module NewRelic::Agent
       @ignore = {}
       @ignore_filter = nil
 
-      config = NewRelic::Config.instance.fetch('error_collector', {})
+      config = NewRelic::Control.instance.fetch('error_collector', {})
       
       @enabled = config.fetch('enabled', true)
       @capture_source = config.fetch('capture_source', true)
-      NewRelic::Config.instance.log.info "Error collector is enabled in agent config" if @enabled
+      NewRelic::Control.instance.log.info "Error collector is enabled in agent config" if @enabled
       
       ignore_errors = config.fetch('ignore_errors', "")
       ignore_errors = ignore_errors.split(",")
@@ -56,7 +56,7 @@ module NewRelic::Agent
       
       action_path ||= ''
       
-      data[:request_params] = normalize_params(filtered_params) if NewRelic::Config.instance.capture_params
+      data[:request_params] = normalize_params(filtered_params) if NewRelic::Control.instance.capture_params
 
       data[:custom_params] = normalize_params(@agent.custom_params) if @agent
       
@@ -66,7 +66,7 @@ module NewRelic::Agent
       data[:request_referer] = request.referer if request
       data[:request_referer] ||= ""
       
-      data[:rails_root] = NewRelic::Config.instance.root
+      data[:rails_root] = NewRelic::Control.instance.root
       
       data[:file_name] = exception.file_name if exception.respond_to?('file_name')
       data[:line_number] = exception.line_number if exception.respond_to?('line_number')
@@ -114,7 +114,7 @@ module NewRelic::Agent
       @error_stat ||= NewRelic::Agent.get_stats("Errors/all")
     end
     def log
-      NewRelic::Config.instance.log
+      NewRelic::Control.instance.log
     end
   end
 end

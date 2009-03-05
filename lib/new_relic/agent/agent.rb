@@ -22,7 +22,7 @@ module NewRelic::Agent
     attr_reader :worker_loop
     attr_reader :record_sql
     
-    # Should only be called by NewRelic::Config
+    # Should only be called by NewRelic::Control
     def self.instance
       @instance ||= self.new
     end
@@ -119,7 +119,7 @@ module NewRelic::Agent
     end
 
     def log
-      NewRelic::Config.instance.log
+      NewRelic::Control.instance.log
     end  
         
     # Start up the agent.  This verifies that the agent_enabled? is true
@@ -155,7 +155,7 @@ module NewRelic::Agent
       log.warn "Agent is configured to send raw SQL to RPM service" if @record_sql == :raw
       # Initialize transaction sampler
       @transaction_sampler.random_sampling = @random_sample
-      @slowest_transaction_threshold = 4 * NewRelic::Config.instance['apdex_t'] if @frustrating
+      @slowest_transaction_threshold = 4 * NewRelic::Control.instance['apdex_t'] if @frustrating
 
       if config.monitor_mode?
         # make sure the license key exists and is likely to be really a license key
@@ -171,7 +171,7 @@ module NewRelic::Agent
         end
       end
       config.log! "New Relic RPM Agent #{NewRelic::VERSION::STRING} Initialized: pid = #{$$}"
-      config.log! "Agent Log found in #{NewRelic::Config.instance.log_file}"
+      config.log! "Agent Log found in #{NewRelic::Control.instance.log_file}"
     end
 
     private
@@ -255,7 +255,7 @@ module NewRelic::Agent
     end
     
     def config
-      NewRelic::Config.instance
+      NewRelic::Control.instance
     end
     
     def initialize
@@ -268,7 +268,7 @@ module NewRelic::Agent
       @transaction_sampler = NewRelic::Agent::TransactionSampler.new(self)
       @error_collector = NewRelic::Agent::ErrorCollector.new(self)
       
-      @request_timeout = NewRelic::Config.instance.fetch('timeout', 2 * 60)
+      @request_timeout = NewRelic::Control.instance.fetch('timeout', 2 * 60)
       
       @invalid_license = false
       
