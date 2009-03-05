@@ -20,12 +20,12 @@ class NewRelic::Agent::DispatcherInstrumentationTests < Test::Unit::TestCase
   
   def test_normal_call
     d = FunnyDispatcher.new
-    assert !NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.is_busy?
+    assert_equal 0, NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.busy_count
     d.newrelic_dispatcher_start
     sleep 1.0
-    assert NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.is_busy?
+    assert_equal 1, NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.busy_count
     d.newrelic_dispatcher_finish
-    assert !NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.is_busy?
+    assert_equal 0, NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.busy_count
     assert_nil Thread.current[:newrelic_t0]
     NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.harvest_busy
 
@@ -36,16 +36,18 @@ class NewRelic::Agent::DispatcherInstrumentationTests < Test::Unit::TestCase
     assert @instance_busy.total_call_time > 0.9 && @instance_busy.total_call_time <= 1.0, "instance busy = #{@instance_busy.inspect}"
   end
   def test_recursive_call
-    d = FunnyDispatcher.new
-    assert !NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.is_busy?
-    d.newrelic_dispatcher_start
-    assert NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.is_busy?
-    d.newrelic_dispatcher_start
-    assert NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.is_busy?
-    d.newrelic_dispatcher_finish
-    assert !NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.is_busy?
-    d.newrelic_dispatcher_finish
-    assert !NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.is_busy?
+    d0 = FunnyDispatcher.new
+    d1 = FunnyDispatcher.new
+
+    assert_equal 0, NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.busy_count
+    d0.newrelic_dispatcher_start
+    assert_equal 1, NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.busy_count
+    d1.newrelic_dispatcher_start
+    assert_equal 2, NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.busy_count
+    d0.newrelic_dispatcher_finish
+    assert_equal 1, NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.busy_count
+    d1.newrelic_dispatcher_finish
+    assert_equal 0, NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.busy_count
     assert_nil Thread.current[:newrelic_t0]
     NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.harvest_busy
     assert_equal 1, @instance_busy.call_count  

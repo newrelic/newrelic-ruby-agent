@@ -8,14 +8,12 @@ module NewRelic::Agent::Instrumentation
     def newrelic_dispatcher_start
       # Put the current time on the thread.  Can't put in @ivar because this could
       # be a class or instance context
-      t0 = Time.now.to_f
-      NewRelic::Config.instance.log.warn "Recursive entry into dispatcher_start!\n#{caller.join("\n   ")}" if Thread.current[:newrelic_t0]
-      Thread.current[:newrelic_t0] = t0
-      NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.dispatcher_start t0
+      @newrelic_dispatcher_start_time = Time.now.to_f
+      NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.dispatcher_start @newrelic_dispatcher_start_time
       # capture the time spent in the mongrel queue, if running in mongrel.  This is the 
       # current time less the timestamp placed in 'started_on' by mongrel. 
       mongrel_start = Thread.current[:started_on]
-      mongrel_queue_stat.trace_call(t0 - mongrel_start.to_f) if mongrel_start
+      mongrel_queue_stat.trace_call(@newrelic_dispatcher_start_time - mongrel_start.to_f) if mongrel_start
       NewRelic::Agent.agent.start_transaction
       
       # Reset the flag indicating the controller action should be ignored.
@@ -24,25 +22,18 @@ module NewRelic::Agent::Instrumentation
     end
     
     def newrelic_dispatcher_finish
-      t0 = Thread.current[:newrelic_t0]
-      if t0.nil?
-        NewRelic::Config.instance.log.warn "Dispatcher finish called twice!\n#{caller.join("\n   ")}" 
-        return
-      end
-      t1 = Time.now.to_f
+      dispatcher_end_time = Time.now.to_f
       NewRelic::Agent.agent.end_transaction
-      NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.dispatcher_finish t1
+      NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.dispatcher_finish dispatcher_end_time
       unless Thread.current[:controller_ignored]
         # Store the response header
         response_code = newrelic_response_code
         if response_code
           stats = response_stats[response_code] ||= NewRelic::Agent.agent.stats_engine.get_stats("HTTP/Response/#{response_code}")
-          stats.trace_call(t1 - t0)
+          stats.trace_call(dispatcher_end_time - @newrelic_dispatcher_start_time)
         end
-        dispatch_stat.trace_call(t1 - t0) 
+        dispatch_stat.trace_call(dispatcher_end_time - @newrelic_dispatcher_start_time) 
       end
-      
-      Thread.current[:newrelic_t0] = nil
     end
     def newrelic_response_code
       raise "Must be implemented in the dispatcher class"
@@ -80,8 +71,8 @@ module NewRelic::Agent::Instrumentation
         Thread.critical = false
       end
       
-      def is_busy?
-        @entrypoint_stack
+      def busy_count
+        @entrypoint_stack.size
       end
       
       def harvest_busy

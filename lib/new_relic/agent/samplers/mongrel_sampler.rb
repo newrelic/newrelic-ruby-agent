@@ -10,8 +10,10 @@ module NewRelic::Agent::Samplers
     end
     def poll
       if @mongrel
-        qsize = @mongrel.workers.list.length
-        qsize -= 1 if NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.is_busy?
+        # The mongrel workers list includes workers actively processing requests
+        # so you need to subtract what appears to be the active workers from the total
+        # number of workers to get the queue size.
+        qsize = @mongrel.workers.list.length - NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.busy_count
         qsize = 0 if qsize < 0
         queue_stats.record_data_point qsize
       end
