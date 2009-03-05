@@ -1,5 +1,5 @@
 # This is the initialization for the RPM Rails plugin
-require 'new_relic/config'
+require 'new_relic/control'
 
 # If you are having problems seeing data, be sure and check the
 # newrelic_agent log files. 
@@ -21,18 +21,18 @@ begin
   if ! defined?(::NEWRELIC_STARTED)
     ::NEWRELIC_STARTED = "#{caller.join("\n")}"
 
-    NewRelic::Config.instance.init_plugin (defined?(config) ? {:config => config} : {})
+    NewRelic::Control.instance.init_plugin (defined?(config) ? {:config => config} : {})
   else
-    NewRelic::Config.instance.log.debug "Attempt to initialize the plugin twice!"
-    NewRelic::Config.instance.log.debug "Original call: \n#{::NEWRELIC_STARTED}"
-    NewRelic::Config.instance.log.debug "Here we are now: \n#{caller.join("\n")}"
+    NewRelic::Control.instance.log.debug "Attempt to initialize the plugin twice!"
+    NewRelic::Control.instance.log.debug "Original call: \n#{::NEWRELIC_STARTED}"
+    NewRelic::Control.instance.log.debug "Here we are now: \n#{caller.join("\n")}"
   end
 rescue => e
-  NewRelic::Config.instance.log! "Error initializing New Relic plugin (#{e})", :error
-  NewRelic::Config.instance.log!  e.backtrace.join("\n"), :error
-  NewRelic::Config.instance.log! "Agent is disabled."
+  NewRelic::Control.instance.log! "Error initializing New Relic plugin (#{e})", :error
+  NewRelic::Control.instance.log!  e.backtrace.join("\n"), :error
+  NewRelic::Control.instance.log! "Agent is disabled."
 end
 #ClassLoadingWatcher.flag_const_missing = nil
 
-# STDOUT.puts "RPM detected environment: #{NewRelic::Config.instance.local_env.to_s}, RAILS_ENV: #{RAILS_ENV}"
-# STDOUT.puts "Enabled? #{NewRelic::Config.instance.agent_enabled?}"
+# STDOUT.puts "RPM detected environment: #{NewRelic::Control.instance.local_env.to_s}, RAILS_ENV: #{RAILS_ENV}"
+# STDOUT.puts "Enabled? #{NewRelic::Control.instance.agent_enabled?}"

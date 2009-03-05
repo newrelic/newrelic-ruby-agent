@@ -9,7 +9,7 @@
 #    dependency 'newrelic_rpm'
 # in the Merb config/init.rb
 #
-require 'new_relic/config'
+require 'new_relic/control'
 
 def log!(message)
   STDERR.puts "[NewRelic] #{message}"
@@ -19,8 +19,8 @@ end
 # We need it to add dev mode routes after initialization finished. 
 if defined? Rails.configuration
   Rails.configuration.after_initialize do
-    NewRelic::Config.instance.init_plugin :config => Rails.configuration
+    NewRelic::Control.instance.init_plugin :config => Rails.configuration
   end
 else
-  NewRelic::Config.instance.init_plugin
+  NewRelic::Control.instance.init_plugin
 end

@@ -42,8 +42,9 @@ module NewRelic::Agent::Samplers
     end
     class Base
       def can_run?
-        get_sample
-        not @broken
+        return false if @broken
+        m = get_memory rescue nil
+        m && m > 0
       end
       def get_sample
         return nil if @broken

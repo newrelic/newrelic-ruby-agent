@@ -12,7 +12,7 @@ require 'logger'
 # the config folder.
 module NewRelic
   
-  class Config
+  class Control
     
     attr_accessor :log_file, :env
     attr_reader :local_env
@@ -150,26 +150,26 @@ module NewRelic
     
     def server
       @remote_server ||= 
-      NewRelic::Config::Server.new fetch('host', 'collector.newrelic.com'), fetch('port', use_ssl? ? 443 : 80).to_i  
+      NewRelic::Control::Server.new fetch('host', 'collector.newrelic.com'), fetch('port', use_ssl? ? 443 : 80).to_i  
     end
     
     def api_server
       @api_server ||= 
-      NewRelic::Config::Server.new fetch('api_host', 'rpm.newrelic.com'), fetch('api_port', fetch('port', use_ssl? ? 443 : 80)).to_i
+      NewRelic::Control::Server.new fetch('api_host', 'rpm.newrelic.com'), fetch('api_port', fetch('port', use_ssl? ? 443 : 80)).to_i
     end
     
     def proxy_server
       @proxy_server ||=
-      NewRelic::Config::ProxyServer.new fetch('proxy_host', nil), fetch('proxy_port', nil),
+      NewRelic::Control::ProxyServer.new fetch('proxy_host', nil), fetch('proxy_port', nil),
       fetch('proxy_user', nil), fetch('proxy_pass', nil)
     end 
     
     def server_from_host(host)
       host ||= fetch('host', 'collector.newrelic.com')
-      NewRelic::Config::Server.new host, fetch('port', use_ssl? ? 443 : 80).to_i 
+      NewRelic::Control::Server.new host, fetch('port', use_ssl? ? 443 : 80).to_i 
     end
     
-    # Return the Net::HTTP with proxy configuration given the NewRelic::Config::Server object.
+    # Return the Net::HTTP with proxy configuration given the NewRelic::Control::Server object.
     # Default is the collector but for api calls you need to pass api_server
     def http_connection(host = nil)
       host ||= server
@@ -186,7 +186,7 @@ module NewRelic
       local_env.mongrel
     end
     def to_s
-      "Config[#{self.app}]"
+      "Control[#{self.app}]"
     end
     
     def log
@@ -311,23 +311,22 @@ module NewRelic
     # Create the concrete class for environment specific behavior:
     def self.new_instance
       @local_env = NewRelic::LocalEnvironment.new
-      new_config = case @local_env.framework
+      case @local_env.framework
         when :test
         require 'config/test_config'
-        NewRelic::Config::Test.new @local_env
+        NewRelic::Control::Test.new @local_env
         when :merb
-        require 'new_relic/config/merb'
-        NewRelic::Config::Merb.new @local_env
+        require 'new_relic/control/merb'
+        NewRelic::Control::Merb.new @local_env
         when :rails
-        require 'new_relic/config/rails'
-        NewRelic::Config::Rails.new @local_env
+        require 'new_relic/control/rails'
+        NewRelic::Control::Rails.new @local_env
         when :ruby
-        require 'new_relic/config/ruby'
-        NewRelic::Config::Ruby.new @local_env
+        require 'new_relic/control/ruby'
+        NewRelic::Control::Ruby.new @local_env
       else 
         raise "Unknown framework: #{@local_env.framework}"
       end
-      new_config
     end
     
     # Return a hash of settings you want to override in the newrelic.yml

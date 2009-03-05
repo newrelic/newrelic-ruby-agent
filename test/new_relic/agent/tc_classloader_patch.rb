@@ -7,8 +7,8 @@ class ClassLoaderPatchTests < ActiveSupport::TestCase
     ClassLoadingWatcher.background_thread = Thread.current
     
     # try loading some non-existent class
-    NewRelic::Config.instance.log.expects(:error).at_least_once.with{|args| args =~ /Agent background thread.*:FooBar/}
-    NewRelic::Config.instance.log.expects(:error).with{|args| args =~ /Agent background thread.*:FooBaz/}.never
+    NewRelic::Control.instance.log.expects(:error).at_least_once.with{|args| args =~ /Agent background thread.*:FooBar/}
+    NewRelic::Control.instance.log.expects(:error).with{|args| args =~ /Agent background thread.*:FooBaz/}.never
     
     ClassLoadingWatcher.enable_warning
     assert_raise NameError do
@@ -26,8 +26,8 @@ class ClassLoaderPatchTests < ActiveSupport::TestCase
     ClassLoadingWatcher.background_thread = Thread.current
     
     # try loading some non-existent class
-    NewRelic::Config.instance.log.expects(:error).at_least_once.with{|args| args =~ /Agent background thread.*rational/}
-    NewRelic::Config.instance.log.expects(:error).with{|args| args =~ /Agent background thread.*pstore/}.never
+    NewRelic::Control.instance.log.expects(:error).at_least_once.with{|args| args =~ /Agent background thread.*rational/}
+    NewRelic::Control.instance.log.expects(:error).with{|args| args =~ /Agent background thread.*pstore/}.never
     
     ClassLoadingWatcher.enable_warning
     require('rational') # standard library probably not loaded yet
@@ -42,8 +42,8 @@ class ClassLoaderPatchTests < ActiveSupport::TestCase
     ClassLoadingWatcher.background_thread = Thread.current
     
     # try loading some non-existent class
-    NewRelic::Config.instance.log.expects(:error).with{|args| args =~ /Agent background thread.*tsort/}.at_least_once
-    NewRelic::Config.instance.log.expects(:error).with{|args| args =~ /Agent background thread.*getoptlong/}.never
+    NewRelic::Control.instance.log.expects(:error).with{|args| args =~ /Agent background thread.*tsort/}.at_least_once
+    NewRelic::Control.instance.log.expects(:error).with{|args| args =~ /Agent background thread.*getoptlong/}.never
     
     ClassLoadingWatcher.enable_warning
     

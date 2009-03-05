@@ -209,7 +209,7 @@ class NewRelic::Agent::TransationSamplerTests < Test::Unit::TestCase
   
   def test_param_capture
     [true, false].each do |capture| 
-      NewRelic::Config.instance.stubs(:capture_params).returns(capture)
+      NewRelic::Control.instance.stubs(:capture_params).returns(capture)
       t = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
       
       t.notice_first_scope_push Time.now.to_f

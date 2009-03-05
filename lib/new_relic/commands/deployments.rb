@@ -9,7 +9,7 @@ require 'rexml/document'
 # We need to use the Config object but we don't want to load 
 # the rails/merb environment.  The defined? clause is so that
 # it won't load it twice, something it does when run inside a test
-require 'new_relic/config' unless defined? NewRelic::Config
+require 'new_relic/control' unless defined? NewRelic::Control
 
 module NewRelic
   module Commands
@@ -39,7 +39,7 @@ module NewRelic
       # Will throw CommandFailed exception if there's any error.
       # 
       def initialize command_line_args
-        @config = NewRelic::Config.instance
+        @config = NewRelic::Control.instance
         @user = ENV['USER']
         if Hash === command_line_args
           # command line args is an options hash

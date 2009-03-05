@@ -99,14 +99,14 @@ module NewRelicApi
       end
       
       def headers
-        h = {'x-license-key' => NewRelicApi.license_key || NewRelic::Config.instance['license_key']}
+        h = {'x-license-key' => NewRelicApi.license_key || NewRelic::Control.instance['license_key']}
         h['Authorization'] = 'Basic ' + ["#{NewRelicApi.email}:#{NewRelicApi.password}"].pack('m').delete("\r\n") if NewRelicApi.email
         h
       end
       
       def site_url
-        host = NewRelicApi.host || NewRelic::Config.instance.api_server.host
-        port = NewRelicApi.port || NewRelic::Config.instance.api_server.port
+        host = NewRelicApi.host || NewRelic::Control.instance.api_server.host
+        port = NewRelicApi.port || NewRelic::Control.instance.api_server.port
         "#{port == 443 ? 'https' : 'http'}://#{host}:#{port}"
       end
       

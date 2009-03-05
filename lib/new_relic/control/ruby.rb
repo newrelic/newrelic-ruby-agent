@@ -1,4 +1,4 @@
-class NewRelic::Config::Ruby < NewRelic::Config
+class NewRelic::Control::Ruby < NewRelic::Control
 
   def env
     @env ||= ENV['RUBY_ENV'] || ENV['RAILS_ENV'] || 'development'

@@ -80,7 +80,7 @@ class EnvironmentTest < ActiveSupport::TestCase
     assert_equal :passenger, e.environment
     assert_match /passenger/, e.dispatcher_instance_id
       
-    NewRelic::Config.instance.instance_eval do
+    NewRelic::Control.instance.instance_eval do
       @settings['app_name'] = 'myapp'
     end
     

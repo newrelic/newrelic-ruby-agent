@@ -1,18 +1,18 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'/../test_helper'))
 
 module NewRelic
-  class Config
+  class Control
     public :log_file_name
   end
 end
 
-class NewRelic::ConfigTests < Test::Unit::TestCase
+class NewRelic::ControlTests < Test::Unit::TestCase
 
   attr_reader :c
   
   def setup
     NewRelic::Agent.manual_start
-    @c =  NewRelic::Config.instance
+    @c =  NewRelic::Control.instance
   end
   
   def test_test_config
@@ -26,7 +26,7 @@ class NewRelic::ConfigTests < Test::Unit::TestCase
   end
 
   def test_info
-    props = NewRelic::Config.instance.app_config_info
+    props = NewRelic::Control.instance.app_config_info
     list = props.assoc('Plugin List').last.sort
     assert_not_nil list # can't really guess what might be in here.  
     assert_match /jdbc|postgres|mysql|sqlite/, props.assoc('Database adapter').last

@@ -1,6 +1,6 @@
 require 'new_relic/agent/instrumentation/controller_instrumentation'
 
-class NewRelic::Config::Rails < NewRelic::Config
+class NewRelic::Control::Rails < NewRelic::Control
   
   def env
     @env ||= RAILS_ENV
@@ -62,7 +62,7 @@ class NewRelic::Config::Rails < NewRelic::Config
       current_paths << controller_path
     end
     
-    #ActionController::Routing::Routes.reload! unless NewRelic::Config.instance['skip_developer_route']
+    #ActionController::Routing::Routes.reload! unless NewRelic::Control.instance['skip_developer_route']
     
     # inform user that the dev edition is available if we are running inside
     # a webserver process
@@ -84,7 +84,7 @@ class NewRelic::Config::Rails < NewRelic::Config
       next if self.instance_methods.include? 'draw_with_newrelic_map'
       def draw_with_newrelic_map
         draw_without_newrelic_map do | map |
-          map.named_route 'newrelic_developer', '/newrelic/:action/:id', :controller => 'newrelic' unless NewRelic::Config.instance['skip_developer_route']
+          map.named_route 'newrelic_developer', '/newrelic/:action/:id', :controller => 'newrelic' unless NewRelic::Control.instance['skip_developer_route']
           yield map        
         end
       end

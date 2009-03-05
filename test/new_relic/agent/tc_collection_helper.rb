@@ -23,7 +23,7 @@ class NewRelic::Agent::CollectionHelperTests < Test::Unit::TestCase
     assert_equal '1000', new_array[0]
   end
   def test_boolean
-    np = normalize_params(NewRelic::Config.instance.settings)
+    np = normalize_params(NewRelic::Control.instance.settings)
     assert_equal false, np['enabled']
   end
   class MyString < String; end

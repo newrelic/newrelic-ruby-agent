@@ -12,14 +12,14 @@ class AgentTests < ActiveSupport::TestCase
     @agent = NewRelic::Agent.instance
   end
   def teardown
-    NewRelic::Config.instance['app_name']=nil
-    NewRelic::Config.instance['dispatcher']=nil
-    NewRelic::Config.instance['dispatcher_instance_id']=nil
+    NewRelic::Control.instance['app_name']=nil
+    NewRelic::Control.instance['dispatcher']=nil
+    NewRelic::Control.instance['dispatcher_instance_id']=nil
   end
   def test_agent_setup
     assert NewRelic::Agent.instance.class == NewRelic::Agent::Agent
     assert_raise RuntimeError do
-      NewRelic::Config.instance.init_plugin :agent_enabled => false
+      NewRelic::Control.instance.init_plugin :agent_enabled => false
     end
   end
   
@@ -60,14 +60,14 @@ class AgentTests < ActiveSupport::TestCase
   
   def test_manual_overrides
     NewRelic::Agent.manual_start :app_name => "testjobs", :dispatcher_instance_id => "mailer"
-    assert_equal "testjobs", NewRelic::Config.instance.app_name
-    assert_equal "mailer", NewRelic::Config.instance.dispatcher_instance_id
+    assert_equal "testjobs", NewRelic::Control.instance.app_name
+    assert_equal "mailer", NewRelic::Control.instance.dispatcher_instance_id
   end
   def test_restart
     NewRelic::Agent.manual_start :app_name => "noapp", :dispatcher_instance_id => ""
     NewRelic::Agent.manual_start :app_name => "testjobs", :dispatcher_instance_id => "mailer"
-    assert_equal "testjobs", NewRelic::Config.instance.app_name
-    assert_equal "mailer", NewRelic::Config.instance.dispatcher_instance_id
+    assert_equal "testjobs", NewRelic::Control.instance.app_name
+    assert_equal "mailer", NewRelic::Control.instance.dispatcher_instance_id
   end
   
   def test_version

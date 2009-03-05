@@ -22,7 +22,7 @@ module NewRelic
         else
           @dispatcher_instance_id = File.basename($0).split(".").first
         end
-        app_name = NewRelic::Config.instance['app_name']
+        app_name = NewRelic::Control.instance['app_name']
         @dispatcher_instance_id += ":#{app_name}" if app_name
       end
       @dispatcher_instance_id

@@ -91,7 +91,7 @@ module NewRelic
       raise unless Hash === options
       # Ignore all args but hash options
       options.merge! :agent_enabled => true 
-      NewRelic::Config.instance.init_plugin options
+      NewRelic::Control.instance.init_plugin options
     end
 
     # This method sets the block sent to this method as a sql obfuscator. 

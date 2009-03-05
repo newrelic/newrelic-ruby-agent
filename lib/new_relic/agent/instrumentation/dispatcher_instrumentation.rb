@@ -65,7 +65,7 @@ module NewRelic::Agent::Instrumentation
       end
       
       def dispatcher_finish(time)
-        NewRelic::Config.instance.log.error "Stack underflow tracking dispatcher entry and exit!\n  #{caller.join("  \n")}" if @entrypoint_stack.empty?
+        NewRelic::Control.instance.log.error "Stack underflow tracking dispatcher entry and exit!\n  #{caller.join("  \n")}" if @entrypoint_stack.empty?
         Thread.critical = true
         @accumulator += (time - @entrypoint_stack.pop)
         Thread.critical = false
