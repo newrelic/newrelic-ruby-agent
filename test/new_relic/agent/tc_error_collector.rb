@@ -99,7 +99,7 @@ class NewRelic::Agent::ErrorCollectorTests < Test::Unit::TestCase
     [1.1, '1.1'],
     ['hi', 'hi'],
     [:hi, :hi],
-    [Exception.new("test"), "#<Exception: test>"],
+    [Exception.new("test"), "#<Exception>"],
     [TestClass.new, "#<NewRelic::Agent::ErrorCollectorTests::TestClass>"]
     ]
     
