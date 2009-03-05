@@ -65,24 +65,23 @@ module NewRelic::Agent::Instrumentation
       
       @harvest_start = Time.now.to_f
       @accumulator = 0
-      @dispatcher_start = nil    
+      @entrypoint_stack = []    
       
       def dispatcher_start(time)
         Thread.critical = true
-        @dispatcher_start = time      
+        @entrypoint_stack.push time      
         Thread.critical = false
       end
       
       def dispatcher_finish(time)
+        NewRelic::Config.instance.log.error "Stack underflow tracking dispatcher entry and exit!\n  #{caller.join("  \n")}" if @entrypoint_stack.empty?
         Thread.critical = true
-        @accumulator += (time - @dispatcher_start)
-        @dispatcher_start = nil
-        
+        @accumulator += (time - @entrypoint_stack.pop)
         Thread.critical = false
       end
       
       def is_busy?
-        @dispatcher_start
+        @entrypoint_stack
       end
       
       def harvest_busy
@@ -92,10 +91,12 @@ module NewRelic::Agent::Instrumentation
         @accumulator = 0
         
         t0 = Time.now.to_f
-        
-        if @dispatcher_start
-          busy += (t0 - @dispatcher_start)
-          @dispatcher_start = t0
+
+        # Walk through the stack and capture all times up to 
+        # now for entrypoints
+        @entrypoint_stack.size.times do |frame| 
+          busy += (t0 - @entrypoint_stack[frame])
+          @entrypoint_stack[frame] = t0
         end
         
         
