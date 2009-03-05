@@ -86,7 +86,7 @@ class NewRelic::Agent::CollectionHelperTests < Test::Unit::TestCase
   end
   
   def test_object
-    assert_equal ["foo", '#<OpenStruct z="q">'], normalize_params(['foo', OpenStruct.new('z'=>'q')])
+    assert_equal ["foo", '#<OpenStruct>'], normalize_params(['foo', OpenStruct.new('z'=>'q')])
   end
   
   def test_strip_backtrace
