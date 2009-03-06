@@ -2,6 +2,7 @@ require 'pathname'
 require 'new_relic/agent/collection_helper'
 module NewrelicHelper
   include NewRelic::Agent::CollectionHelper
+  
   # return the host that serves static content (css, metric documentation, images, etc)
   # that supports the desktop edition.
   def server
@@ -122,12 +123,12 @@ module NewrelicHelper
     time.strftime("%H:%M:%S") 
   end
 
-  def colorize(value, yellow_threshold = 0.05, red_threshold = 0.15)
+  def colorize(value, yellow_threshold = 0.05, red_threshold = 0.15, s=to_ms(value))
     if value > yellow_threshold
       color = (value > red_threshold ? 'red' : 'orange')
-      "<font color=#{color}>#{to_ms(value)}</font>"
+      "<font color=#{color}>#{s}</font>"
     else
-      "#{to_ms(value)}"
+      "#{s}"
     end
   end
   
@@ -146,7 +147,7 @@ module NewrelicHelper
   end
   
   def segment_duration_value(segment)
-    link_to "#{with_delimiter(to_ms(segment.duration))} ms", explain_sql_url(segment)
+    link_to colorize(segment.duration, 0.05, 0.15, "#{with_delimiter(to_ms(segment.duration))} ms"), explain_sql_url(segment)
   end
   
   def line_wrap_sql(sql)
