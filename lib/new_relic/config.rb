@@ -97,7 +97,7 @@ module NewRelic
 
     def server
       @remote_server ||= 
-      NewRelic::Config::Server.new fetch('host', 'collector.newrelic.com'), fetch('port', use_ssl? ? 443 : 80).to_i  
+      NewRelic::Config::Server.new convert_to_ip_address(fetch('host', 'collector.newrelic.com')), fetch('port', use_ssl? ? 443 : 80).to_i  
     end
     
     def api_server
@@ -107,9 +107,10 @@ module NewRelic
     
     def proxy_server
       @proxy_server ||=
-      NewRelic::Config::ProxyServer.new fetch('proxy_host', nil), fetch('proxy_port', nil),
+      NewRelic::Config::ProxyServer.new convert_to_ip_address(fetch('proxy_host', nil)), fetch('proxy_port', nil),
       fetch('proxy_user', nil), fetch('proxy_pass', nil)
-    end      
+    end
+    
     
     # Return the Net::HTTP with proxy configuration given the NewRelic::Config::Server object.
     # Default is the collector but for api calls you need to pass api_server
@@ -176,6 +177,24 @@ module NewRelic
     end
     
     protected
+    
+    def convert_to_ip_address(host)
+      return nil unless host
+      if host.downcase == "localhost"
+        ip_address = host
+      else
+        begin
+          ip_address = Resolv.getaddress(host)
+        rescue => e
+          log.error "DNS Error: #{e}"
+          raise NewRelic::Agent::IgnoreSilentlyException.new
+        end
+      end
+      
+      log.info "Resolved #{host} to #{ip_address}"
+      ip_address
+    end
+    
     # Collect miscellaneous interesting info about the environment
     # Called when the agent is started
     def gather_info
