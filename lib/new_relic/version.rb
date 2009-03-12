@@ -3,7 +3,7 @@ module NewRelic
   module VERSION #:nodoc:
   MAJOR = 2
   MINOR = 8
-  TINY  = 5
+  TINY  = 6
   STRING = [MAJOR, MINOR, TINY].join('.')
   def self.changes
     puts "NewRelic RPM Plugin Version: #{NewRelic::VERSION::STRING}"
@@ -11,6 +11,10 @@ module NewRelic
   end
 
   CHANGELOG = <<EOF
+2009-03-16 version 2.8.6
+  * fix for capture_params when using file uploads in controller actions
+  * use Resolv::getaddress rather than allowing the default DNS to stall 
+    the VM
 2009-02-22 version 2.8.5
   * fix reference to CommandError which was breaking some cap scripts
   * fix incompatibility with Rails 2.0 in the server API
