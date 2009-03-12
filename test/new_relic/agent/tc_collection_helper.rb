@@ -80,9 +80,17 @@ class NewRelic::Agent::CollectionHelperTests < Test::Unit::TestCase
     custom_params = { :one => {:hash => { :a => :b}, :myenum => e }}
     nh = normalize_params(custom_params)
     myenum = nh[:one][:myenum]
-    assert_equal ["1"], myenum
+    assert_match /MyEnumerable/, myenum
   end
   
+  def test_stringio
+    # make sure stringios aren't affected
+    s = StringIO.new "start" + ("foo bar bat " * 1000)
+    v = normalize_params({ :foo => s })
+    val = ""
+    s.each { | val | break } 
+    assert_match /^startfoo bar/, val
+  end
   
   def test_object
     assert_equal ["foo", '#<OpenStruct z="q">'], normalize_params(['foo', OpenStruct.new('z'=>'q')])
