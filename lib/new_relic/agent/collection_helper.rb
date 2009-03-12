@@ -15,17 +15,8 @@ module NewRelic::Agent::CollectionHelper
           new_params[truncate(normalize_params(key),32)] = normalize_params(value)
         end
         new_params
-      when Enumerable
-      # We only want the first 20 values of any enumerable.  Invoking to_a.first(20) works but
-      # the to_a call might be expensive, so we'll just build it manually, even though it's
-      # more verbose.
-        new_values = []
-        count = 1
-        params.each do | item |
-          new_values << normalize_params(item)
-          break if (count += 1) > 20
-        end
-        new_values
+      when Array
+        params.first(20).map{|item| normalize_params(item)}
     else
       truncate(flatten(params))
     end
