@@ -149,8 +149,7 @@ module NewRelic
     end
     
     def server
-      @remote_server ||= 
-      NewRelic::Control::Server.new fetch('host', 'collector.newrelic.com'), fetch('port', use_ssl? ? 443 : 80).to_i  
+      @remote_server ||= server_from_host(nil)  
     end
     
     def api_server
@@ -160,12 +159,18 @@ module NewRelic
     
     def proxy_server
       @proxy_server ||=
-      NewRelic::Control::ProxyServer.new fetch('proxy_host', nil), fetch('proxy_port', nil),
+      NewRelic::Control::ProxyServer.new convert_to_ip_address(fetch('proxy_host', nil)), fetch('proxy_port', nil),
       fetch('proxy_user', nil), fetch('proxy_pass', nil)
-    end 
+    end
+    
+       
     
     def server_from_host(host)
       host ||= fetch('host', 'collector.newrelic.com')
+      
+      # if the host is not an IP address, turn it into one
+      host = convert_to_ip_address(host)
+      
       NewRelic::Control::Server.new host, fetch('port', use_ssl? ? 443 : 80).to_i 
     end
     
@@ -248,6 +253,24 @@ module NewRelic
     
     protected
     
+    def convert_to_ip_address(host)
+      return nil unless host
+      if host.downcase == "localhost"
+        ip_address = host
+      else
+        begin
+          ip_address = Resolv.getaddress(host)
+        rescue => e
+          log.error "DNS Error: #{e}"
+          raise NewRelic::Agent::IgnoreSilentlyException.new
+        end
+      end
+      
+      log.info "Resolved #{host} to #{ip_address}"
+      ip_address
+    end
+    
+
     def merge_defaults(settings_hash)
       s = {
         'host' => 'collector.newrelic.com',
@@ -311,7 +334,7 @@ module NewRelic
     # Create the concrete class for environment specific behavior:
     def self.new_instance
       @local_env = NewRelic::LocalEnvironment.new
-      case @local_env.framework
+            case @local_env.framework
         when :test
         require 'config/test_config'
         NewRelic::Control::Test.new @local_env
@@ -321,7 +344,7 @@ module NewRelic
         when :rails
         require 'new_relic/control/rails'
         NewRelic::Control::Rails.new @local_env
-        when :ruby
+      when :ruby
         require 'new_relic/control/ruby'
         NewRelic::Control::Ruby.new @local_env
       else 
