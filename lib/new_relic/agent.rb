@@ -29,6 +29,7 @@ module NewRelic
     require 'set'
     require 'sync'
     require 'thread'
+    require 'resolv'
     
     # an exception that is thrown by the server if the agent license is invalid
     class LicenseException < StandardError; end
