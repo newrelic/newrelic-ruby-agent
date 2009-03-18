@@ -19,4 +19,8 @@ class NewRelic::Control::Ruby < NewRelic::Control
     return File.expand_path(files.first)
   end
   
+  def init_config(options={})
+  end
+
+  
 end
