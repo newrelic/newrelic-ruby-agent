@@ -103,14 +103,17 @@ module NewRelic::Agent
       synchronize do
         sample = last_builder.sample
         
-        @random_sample = sample if @random_sampling && sample.params[:path] != nil
-                
-        # ensure we don't collect more than a specified number of samples in memory
-        @samples << sample if NewRelic::Control.instance.developer_mode? && sample.params[:path] != nil
-        @samples.shift while @samples.length > @max_samples
-        
-        if @slowest_sample.nil? || @slowest_sample.duration < sample.duration
-          @slowest_sample = sample
+        # We sometimes see "unanchored" transaction traces
+        if sample.params[:path]
+          @random_sample = sample if @random_sampling
+                  
+          # ensure we don't collect more than a specified number of samples in memory
+          @samples << sample if NewRelic::Control.instance.developer_mode?
+          @samples.shift while @samples.length > @max_samples
+          
+          if @slowest_sample.nil? || @slowest_sample.duration < sample.duration
+            @slowest_sample = sample
+          end
         end
       end
     end
