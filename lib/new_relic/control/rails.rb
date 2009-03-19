@@ -1,3 +1,4 @@
+
 require 'new_relic/agent/instrumentation/controller_instrumentation'
 
 class NewRelic::Control::Rails < NewRelic::Control
@@ -42,7 +43,7 @@ class NewRelic::Control::Rails < NewRelic::Control
       Dependencies.load_paths << controller_path
       Dependencies.load_paths << helper_path
     else
-      to_stderr "ERROR: Rails version #{(RAILS_GEM_VERSION) ? RAILS_GEM_VERSION : ''} too old for developer mode to work."
+      to_stderr "ERROR: Rails version #{Rails::VERSION::STRING} too old for developer mode to work."
       return
     end
     
@@ -92,32 +93,57 @@ class NewRelic::Control::Rails < NewRelic::Control
     end
   end
   
-  # Collect the Rails::Info into an associative array as well as the list of plugins
-  def gather_info
-    i = super
-    begin 
+  def rails_vendor_root
+    File.join(root,'vendor','rails')
+  end
+  def git_info
+    env_lang, ENV['LC_ALL'] = ENV['LC_ALL'], 'C'
+    Dir.chdir(rails_vendor_root) do
+      silence_stderr { `git log -n 1` }
+    end
+  ensure
+    ENV['LC_ALL'] = env_lang
+  end
+  
+  def freeze_edge_version
+    if File.exist?(rails_vendor_root)
       begin
-        require 'rails/info'
-      rescue LoadError
-        require 'builtin/rails_info/rails/info'
+        Dir[File.join(rails_vendor_root, 'REVISION_*')].first.scan(/_(\d+)$/).first.first
+      rescue
+        Dir[File.join(rails_vendor_root, 'TAG_*')].first.scan(/_(.+)$/).first.first rescue 'unknown'
       end
-      i += ::Rails::Info.properties
-    rescue SecurityError, ScriptError, StandardError => e
-      log.debug "Unable to get the Rails info: #{e.inspect}"
     end
-    
-    # Would like to get this from config, but how?
-    plugins = Dir[File.join(File.expand_path(__FILE__+"/../../../../.."),"/*")].collect { |p| File.basename p }
-    i << ['Plugin List', plugins]
-    
-    # Look for a capistrano file indicating the current revision:
-    rev_file = File.expand_path(File.join(RAILS_ROOT, "REVISION"))
-    if File.readable?(rev_file) && File.size(rev_file) < 64
-      File.open(rev_file) { | file | i << ['Revision', file.read] } rescue nil
-    end
-    i
   end
 
+  # Collect the Rails::Info into an associative array as well as the list of plugins
+  def append_environment_info
+    local_env.append_environment_value('Rails version'){ ::Rails::VERSION::STRING }
+
+    # The Rails Git revision, if it's checked out into vendor/rails.
+    local_env.append_environment_value 'Edge Rails revision' do
+      git_info[/commit ([a-z0-9-]+)/, 1] || freeze_edge_version
+    end
+
+    if ::Rails::VERSION::MAJOR * 100 + ::Rails::VERSION::MINOR * 10 >= 210
+      local_env.append_gem_list do
+        ::Rails.configuration.gems.map { |gem | gem.name + (gem.version ? "(#{gem.version})" : "") }
+      end
+      # The plugins is configured manually.  If it's nil, it loads everything non-deterministically
+      if ::Rails.configuration.plugins
+         local_env.append_plugin_list { ::Rails.configuration.plugins }
+      else
+        ::Rails.configuration.plugin_paths.each do |path|
+          local_env.append_plugin_list { Dir[File.join(path, '*')].collect{ |p| File.basename p if File.directory? p }.compact }
+        end
+      end
+    else
+      # Rails prior to 2.1, can't get the gems.  Find plugins in the default location
+      local_env.append_plugin_list do
+        Dir[File.join(root, 'vendor', 'plugins', '*')].collect{ |p| File.basename p if File.directory? p }.compact
+      end
+    end
+  end
+  
   def install_shim
     super
     require 'new_relic/agent/instrumentation/controller_instrumentation'

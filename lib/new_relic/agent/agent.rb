@@ -297,7 +297,7 @@ module NewRelic::Agent
             $$, 
             @launch_time.to_f, 
             NewRelic::VERSION::STRING, 
-            config.app_config_info, 
+            config.local_env.snapshot,
             config['app_name'], 
             config.settings
         

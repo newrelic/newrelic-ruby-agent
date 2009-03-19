@@ -90,5 +90,14 @@ class EnvironmentTest < ActiveSupport::TestCase
     
     ::Passenger.class_eval { remove_const :AbstractServer }
   end
-
+  def test_snapshot
+    e = NewRelic::LocalEnvironment.new
+    s = e.snapshot
+    assert_equal 0, s.size
+    e.gather_environment_info
+    s = e.snapshot
+    assert_equal '1.8.6', s.assoc('Ruby version').last, s.inspect
+    assert_equal 'test', s.assoc('Framework').last, s.inspect
+    assert_equal NewRelic::VERSION::STRING, s.assoc('RPM agent version').last
+  end
 end
