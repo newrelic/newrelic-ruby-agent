@@ -40,7 +40,7 @@ class ActiveRecordInstrumentationTests < Test::Unit::TestCase
   def test_run_explains
     NewRelic::Agent::ModelFixture.find(:all)
 
-    sample = NewRelic::Agent.instance.transaction_sampler.harvest(nil, 0)[0]
+    sample = NewRelic::Agent.instance.transaction_sampler.last_sample
 
     segment = sample.root_segment.called_segments.first.called_segments.first
     assert_match /^SELECT \* FROM ["`]test_data["`]$/i, segment.params[:sql].strip
@@ -51,7 +51,7 @@ class ActiveRecordInstrumentationTests < Test::Unit::TestCase
   def test_prepare_to_send
     NewRelic::Agent::ModelFixture.find(:all)
 
-    sample = NewRelic::Agent.instance.transaction_sampler.harvest(nil, 0)[0]
+    sample = NewRelic::Agent.instance.transaction_sampler.last_sample
 
     segment = sample.root_segment.called_segments.first.called_segments.first
     assert_match /^SELECT /, segment.params[:sql]
@@ -70,7 +70,7 @@ class ActiveRecordInstrumentationTests < Test::Unit::TestCase
     
     NewRelic::Agent::ModelFixture.find(:all)
 
-    sample = NewRelic::Agent.instance.transaction_sampler.harvest(nil, 0)[0]
+    sample = NewRelic::Agent.instance.transaction_sampler.last_sample
 
     sample = sample.prepare_to_send(:obfuscate_sql => true, :explain_enabled => true, :explain_sql => 0.0)
     segment = sample.root_segment.called_segments.first.called_segments.first

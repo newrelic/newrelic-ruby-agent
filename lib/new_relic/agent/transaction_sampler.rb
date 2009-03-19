@@ -6,7 +6,7 @@ module NewRelic::Agent
     
     BUILDER_KEY = :transaction_sample_builder
 
-    attr_accessor :stack_trace_threshold, :random_sampling, :sampling_rate
+    attr_accessor :stack_trace_threshold, :random_sampling, :sampling_rate, :last_sample
     
     def initialize(agent)
       @samples = []
@@ -101,18 +101,18 @@ module NewRelic::Agent
       reset_builder
     
       synchronize do
-        sample = last_builder.sample
+        @last_sample = last_builder.sample
         
         # We sometimes see "unanchored" transaction traces
-        if sample.params[:path]
-          @random_sample = sample if @random_sampling
+        if @last_sample.params[:path]
+          @random_sample = @last_sample if @random_sampling
                   
           # ensure we don't collect more than a specified number of samples in memory
-          @samples << sample if NewRelic::Control.instance.developer_mode?
+          @samples << @last_sample if NewRelic::Control.instance.developer_mode?
           @samples.shift while @samples.length > @max_samples
           
-          if @slowest_sample.nil? || @slowest_sample.duration < sample.duration
-            @slowest_sample = sample
+          if @slowest_sample.nil? || @slowest_sample.duration < @last_sample.duration
+            @slowest_sample = @last_sample
           end
         end
       end
