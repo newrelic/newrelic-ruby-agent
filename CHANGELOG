@@ -1,4 +1,5 @@
 2009-XXXXX version 2.9.0
+  * Using a different timeout mechanism when we post data to RPM
   * Sample memory on linux by reading /proc/#{$$}/status file
   * changed API for manual starting of the agent; refer to
     NewRelic::Agent.manual_start for details
