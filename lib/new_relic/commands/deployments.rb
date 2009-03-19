@@ -6,7 +6,7 @@ require 'yaml'
 require 'net/http'
 require 'rexml/document'
 
-# We need to use the Config object but we don't want to load 
+# We need to use the Control object but we don't want to load 
 # the rails/merb environment.  The defined? clause is so that
 # it won't load it twice, something it does when run inside a test
 require 'new_relic/control' unless defined? NewRelic::Control
