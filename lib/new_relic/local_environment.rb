@@ -128,6 +128,7 @@ module NewRelic
       default_port = 3000
       ARGV.clone.options do |opts|
         opts.on("-p", "--port=port", String) { | default_port | }
+        opts.parse!
       end
       default_port
     end
