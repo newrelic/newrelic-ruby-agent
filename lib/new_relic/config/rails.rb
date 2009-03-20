@@ -66,7 +66,7 @@ class NewRelic::Config::Rails < NewRelic::Config
     # a webserver process
     if local_env.identifier
       port = local_env.identifier.to_s =~ /^\d+/ ? ":#{local_env.identifier}" : ":port" 
-      to_stderr "NewRelic Agent (Developer Mode) enabled."
+      to_stderr "NewRelic Agent Developer Mode enabled."
       to_stderr "To view performance information, go to http://localhost#{port}/newrelic"
     end
   end
