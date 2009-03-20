@@ -176,7 +176,7 @@ module NewRelic::Agent
       @identifier = identifier && identifier.to_s
       if @identifier
         start_reporting(force)
-        config.log! "New Relic RPM Agent #{NewRelic::VERSION::STRING} Initialized: pid = #{$$}"
+        config.log! "New Relic RPM Agent #{NewRelic::VERSION::STRING} Initialized: pid = #{$$}, handler = #{@environment}"
         config.log! "Agent Log is found in #{NewRelic::Config.instance.log_file}"
         return true
       else

@@ -14,7 +14,7 @@ module NewRelic
       # Note: log won't be available yet.
       @identifier = nil
       @environment = :unknown
-      environments = %w[merb jruby webrick mongrel thin litespeed passenger fastcgi daemon]
+      environments = %w[merb jruby webrick thin mongrel litespeed passenger fastcgi daemon]
       while environments.any? && @identifier.nil?
         send 'check_for_'+(environments.shift)
       end
