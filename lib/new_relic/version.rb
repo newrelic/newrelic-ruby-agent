@@ -3,7 +3,7 @@ module NewRelic
   module VERSION #:nodoc:
   MAJOR = 2
   MINOR = 8
-  TINY  = 6
+  TINY  = 7
   STRING = [MAJOR, MINOR, TINY].join('.')
   def self.changes
     puts "NewRelic RPM Plugin Version: #{NewRelic::VERSION::STRING}"
@@ -13,6 +13,9 @@ module NewRelic
   CHANGELOG = <<EOF
 2009-03-20 version 2.8.7
   * fix for ssl connection hanging problems
+  * fix problem recognizing mongrel in rails 2.3.2
+  * fastcgi support in rails 2.3.2
+  * put back webrick support
 2009-03-16 version 2.8.6
   * fix for capture_params when using file uploads in controller actions
   * use Resolv::getaddress rather than allowing the default DNS to stall 
