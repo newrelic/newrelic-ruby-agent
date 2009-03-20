@@ -39,7 +39,7 @@ module NewRelic
         # OPTIONS is set by script/server 
         @identifier = OPTIONS.fetch(:port)
       end
-      @identifier = default_port
+      @identifier = default_port unless @identifier
     end
     # this case covers starting by mongrel_rails
     def check_for_mongrel
