@@ -20,7 +20,8 @@ require 'new_relic/agent/error_collector'
 require 'set'
 require 'sync'
 require 'thread'
-require 'resolv'    
+require 'resolv'
+require 'timeout'
 
 
 module NewRelic::Agent

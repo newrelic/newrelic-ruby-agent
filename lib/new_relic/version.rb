@@ -11,6 +11,8 @@ module NewRelic
   end
 
   CHANGELOG = <<EOF
+2009-03-20 version 2.8.7
+  * fix for ssl connection hanging problems
 2009-03-16 version 2.8.6
   * fix for capture_params when using file uploads in controller actions
   * use Resolv::getaddress rather than allowing the default DNS to stall 
