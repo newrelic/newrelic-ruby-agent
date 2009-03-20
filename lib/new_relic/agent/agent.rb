@@ -660,7 +660,6 @@ module NewRelic::Agent
       # pay a little more CPU.
       post_data = Zlib::Deflate.deflate(Marshal.dump(args), Zlib::BEST_SPEED)
       http = config.http_connection
-      http.read_timeout = @request_timeout
       
       # params = {:method => method, :license_key => license_key, :protocol_version => PROTOCOL_VERSION }
       # uri = "/agent_listener/invoke_raw_method?#{params.to_query}"
@@ -673,7 +672,16 @@ module NewRelic::Agent
       
       log.debug "#{uri}"
       
-      response = http.request(request)
+      response = nil
+      
+      begin
+        timeout(@request_timeout) do      
+          response = http.request(request)
+        end
+      rescue Timeout::Error
+        log.warn "Timed out trying to post data to RPM (timeout = #{@request_timeout} seconds)"
+        raise IgnoreSilentlyException
+      end
       
       if response.is_a? Net::HTTPSuccess
         body = nil
