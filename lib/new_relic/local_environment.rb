@@ -14,7 +14,7 @@ module NewRelic
       # Note: log won't be available yet.
       @identifier = nil
       @environment = :unknown
-      environments = %w[merb jruby webrick mongrel thin litespeed passenger daemon]
+      environments = %w[merb jruby webrick mongrel thin litespeed passenger fastcgi daemon]
       while environments.any? && @identifier.nil?
         send 'check_for_'+(environments.shift)
       end
@@ -22,28 +22,45 @@ module NewRelic
     def to_s
       "LocalEnvironment[#{environment}:#{identifier}]"
     end
+    def check_for_fastcgi
+      return unless defined? FCGI
+      @environment = :fastcgi
+      @identifier = 'fastcgi'
+    end
     def check_for_merb
       if config.app == :merb
         @identifier = 'merb'
       end
     end
     def check_for_webrick
-      if defined?(OPTIONS) && OPTIONS.respond_to?(:fetch) 
+      return unless defined?(WEBrick)
+      @environment = :webrick
+      if defined?(OPTIONS) && ::OPTIONS.respond_to?(:fetch) 
         # OPTIONS is set by script/server 
         @identifier = OPTIONS.fetch(:port)
-        @environment = :webrick
       end
+      @identifier = default_port
     end
-    
     # this case covers starting by mongrel_rails
     def check_for_mongrel
-      if defined? Mongrel::HttpServer
-        ObjectSpace.each_object(Mongrel::HttpServer) do |mongrel|
-          next if not mongrel.respond_to? :port
-          @environment = :mongrel
-          @identifier = mongrel.port
+      return unless defined?(Mongrel::HttpServer) 
+      @environment = :mongrel
+      
+      # Get the port from the server if it's started
+      ObjectSpace.each_object(Mongrel::HttpServer) do |mongrel|
+        next if not mongrel.respond_to? :port
+        @identifier = mongrel.port.to_s
+      end
+      
+      # Get the port from the configurator if one was created
+      if @identifier.nil? && defined?(Mongrel::Configurator)
+        ObjectSpace.each_object(Mongrel::Configurator) do |mongrel|
+          @identifier = mongrel.defaults[:port] && mongrel.defaults[:port].to_s
         end
       end
+      
+      # Still can't find the port.  Let's look at ARGV to fall back
+      @identifier = default_port if @identifier.nil?
     end
     
     def check_for_thin
@@ -103,6 +120,16 @@ module NewRelic
     private 
     def config
       NewRelic::Config.instance
+    end
+    
+    def default_port
+      require 'optparse'
+      # If nothing else is found, use the 3000 default
+      default_port = 3000
+      ARGV.clone.options do |opts|
+        opts.on("-p", "--port=port", String) { | default_port | }
+      end
+      default_port
     end
   end
 end
