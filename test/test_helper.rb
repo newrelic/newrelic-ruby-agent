@@ -10,15 +10,6 @@ require 'test_help'
 require 'mocha'
 require 'test/unit'
 
-module NewRelic
-  class Config
-    def setup_log_with_block_logging(*args)
-      silence_stream(::STDERR) { self.setup_log_without_block_logging(*args) }
-    end
-    alias_method_chain :setup_log, :block_logging rescue nil
-  end
-end
-
 =begin
 # This is a mixin for hacking the select method
 if defined? ActiveRecord::ConnectionAdapters

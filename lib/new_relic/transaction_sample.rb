@@ -256,7 +256,7 @@ module NewRelic
           connection = ActiveRecord::Base.send("#{config[:adapter]}_connection", config)
           @@connections[config] = connection
         rescue => e
-          NewRelic::Agent.agent.log.error("Caught exception #{e} trying to get connection to DB for explain. Config: #{config}")
+          NewRelic::Agent.agent.log.error("Caught exception #{e} trying to get connection to DB for explain. Control: #{config}")
           NewRelic::Agent.agent.log.error(e.backtrace.join("\n"))
           nil
         end

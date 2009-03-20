@@ -6,10 +6,11 @@ require 'net/https'
 require 'new_relic/local_environment'
 require 'logger'
 
-# Configuration supports the behavior of the agent which is dependent
+# Control supports the behavior of the agent which is dependent
 # on what environment is being monitored: rails, merb, ruby, etc
 # It is an abstract factory with concrete implementations under
-# the config folder.
+# the control folder.  It is also responsible for initializing
+# and starting the agent.
 module NewRelic
   
   class Control
@@ -53,25 +54,20 @@ module NewRelic
       init_config(options)
       if agent_enabled? && !@started
         setup_log
-        app_config_info
         start_agent
         install_instrumentation
+        local_env.gather_environment_info
+        append_environment_info
         @started = true
       elsif !agent_enabled?
         install_shim
       end
     end
-
+    
     # Install the real agent into the Agent module, and issue the start command.
     def start_agent
       NewRelic::Agent.agent = NewRelic::Agent::Agent.instance
       NewRelic::Agent.agent.start
-    end
-    
-    # Get the app config info.  It should already have been collected but
-    # if not we will memoize it to be safe.
-    def app_config_info
-      @app_config_info ||= gather_info
     end
     
     def [](key)
@@ -86,12 +82,14 @@ module NewRelic
       settings[key] = value
     end
     
-    def set_config(key,value)
-      self[key]=value
-    end
-    
     def fetch(key, default=nil)
       settings.fetch(key, default)
+    end
+    # Add your own environment value to track for change detection.
+    # The name and value should be stable and not vary across app processes on 
+    # the same host.
+    def append_environment_info(name, value)
+      local_env.record_environment_info(name,value)
     end
     
     ###################################
@@ -133,7 +131,7 @@ module NewRelic
       @local_env.framework
     end
     alias framework app
-
+    
     def dispatcher_instance_id
       self['dispatcher_instance_id'] || @local_env.dispatcher_instance_id
     end
@@ -252,6 +250,10 @@ module NewRelic
     end
     
     protected
+
+    # Append framework specific environment information for uploading to
+    # the server for change detection.  Override in subclasses
+    def append_environment_info; end
     
     def convert_to_ip_address(host)
       return nil unless host
@@ -282,7 +284,7 @@ module NewRelic
       s['agent_enabled'] = s.delete('monitor_daemons') if s['agent_enabled'].nil?
       s
     end
-    # Configs may override this, but it can be called multiple times.
+    # Control subclasses may override this, but it can be called multiple times.
     def setup_log
       @log_file = "#{log_path}/newrelic_agent.log"
       @log = Logger.new @log_file
@@ -303,12 +305,6 @@ module NewRelic
       else @log.level = Logger::INFO
       end
       @log
-    end
-    
-    # Collect miscellaneous interesting info about the environment
-    # Called when the agent is started
-    def gather_info
-      @local_env.gather_info
     end
     
     def to_stderr(msg)
@@ -352,9 +348,6 @@ module NewRelic
       end
     end
     
-    # Return a hash of settings you want to override in the newrelic.yml
-    # file.  Maybe just for testing.
-    
     def initialize local_env
       @local_env = local_env
       newrelic_file = config_file
@@ -377,5 +370,7 @@ module NewRelic
       puts e.backtrace.join("\n")
       raise "Error reading newrelic.yml file: #{e}"
     end
+    
+
   end
 end

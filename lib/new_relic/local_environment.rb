@@ -1,3 +1,4 @@
+require 'set'
 # An instance of LocalEnvironment will provide the environment name
 # and locally unique dispatcher_instance_id for this agent's host.
 # If the environment can't be determined, it will be set to
@@ -9,10 +10,37 @@ module NewRelic
     attr_accessor :dispatcher_instance_id # used to distinguish instances of a dispatcher from each other, may be nil
     attr_accessor :framework # rails, merb, :ruby, :daemon, test
     attr_reader :mongrel
+    
     alias environment dispatcher
+    
     def initialize
       discover_framework
       discover_dispatcher
+      @gems = Set.new
+      @plugins = Set.new
+      @config = Hash.new
+    end
+    
+    def append_environment_value name, value = nil
+      value = yield if block_given?
+      @config[name] = value if value
+    rescue Exception
+      # puts "#{e}\n  #{e.backtrace.join("\n  ")}" 
+      raise if @framework == :test 
+    end
+
+    def append_gem_list
+      @gems += yield
+    rescue Exception => e
+      # puts "#{e}\n  #{e.backtrace.join("\n  ")}"
+      raise if @framework == :test 
+    end
+  
+    def append_plugin_list
+      @plugins += yield
+    rescue Exception
+      # puts "#{e}\n  #{e.backtrace.join("\n  ")}" 
+      raise if @framework == :test 
     end
     
     def dispatcher_instance_id
@@ -27,6 +55,62 @@ module NewRelic
       end
       @dispatcher_instance_id
     end
+        
+    # Collect base statistics about the environment and record them for
+    # comparison and change detection.
+    def gather_environment_info
+      append_environment_value 'Framework', @framework.to_s
+      append_environment_value 'Dispatcher', @dispatcher.to_s if @dispatcher
+      append_environment_value 'Dispatcher instance id', @dispatcher_instance_id if @dispatcher_instance_id
+      append_environment_value('RPM agent version') do
+        require 'new_relic/version'
+        NewRelic::VERSION::STRING
+      end
+      append_environment_value('Application root') { File.expand_path(NewRelic::Control.instance.root) }
+      append_environment_value('Ruby version'){ RUBY_VERSION }
+      append_environment_value('Ruby platform') { RUBY_PLATFORM }
+      append_environment_value('Ruby patchlevel') { RUBY_PATCHLEVEL }
+      append_environment_value('OS version') { `uname -v` }
+      append_environment_value('OS') { `uname -s` } ||
+      append_environment_value('OS') { ENV['OS'] } ||
+      append_environment_value('Arch') { `uname -p` } ||
+      append_environment_value('Arch') { ENV['PROCESSOR_ARCHITECTURE'] }
+      
+      # The current Rails environment (development, test, or production).
+      append_environment_value('Environment') { NewRelic::Control.instance.env }
+      # Look for a capistrano file indicating the current revision:
+      rev_file = File.join(NewRelic::Control.instance.root, "REVISION")
+      if File.readable?(rev_file) && File.size(rev_file) < 64
+        append_environment_value('Revision') do
+          File.open(rev_file) { | file | file.read }
+        end
+      end
+      # The name of the database adapter for the current environment.
+      if defined? ActiveRecord
+        append_environment_value 'Database adapter' do
+          ActiveRecord::Base.configurations[RAILS_ENV]['adapter']
+        end
+        append_environment_value 'Database schema version' do
+          ActiveRecord::Migrator.current_version
+        end
+      end
+      if defined? DataMapper
+        append_environment_value 'DataMapper version' do
+          require 'dm-core/version'
+          DataMapper::VERSION
+        end
+      end
+    end
+    # Take a snapshot of the environment information for this application
+    # Returns an associative array
+    def snapshot
+      i = @config.to_a
+      i << [ 'Plugin List', @plugins.to_a] if not @plugins.empty? 
+      i << [ 'Gems', @gems.to_a] if not @gems.empty?
+      i
+    end
+    
+    
     private
     
     def discover_dispatcher
@@ -39,7 +123,7 @@ module NewRelic
     def discover_framework
       
       @framework = case
-        when ENV['NEWRELIC_APPLICATION'] then ENV['NEWRELIC_APPLICATION'].to_sym 
+        when ENV['NEWRELIC_FRAMEWORK'] then ENV['NEWRELIC_FRAMEWORK'].to_sym 
         when defined? NewRelic::TEST then :test
         when defined? Merb::Plugins then :merb
         when defined? Rails then :rails
@@ -109,12 +193,6 @@ module NewRelic
       s << ";instance=#{@dispatcher_instance_id}" if @dispatcher_instance_id
       s << "]"
     end
-    def gather_info
-      i = []
-      i << [ 'framework', @framework.to_s]
-      i << [ 'dispatcher', @dispatcher.to_s]
-      i << [ 'dispatcher_instance_id', @dispatcher_instance_id] if @dispatcher_instance_id
-      i
-    end
+
   end
 end
