@@ -8,12 +8,13 @@ module NewRelic::Agent::Instrumentation
     def newrelic_dispatcher_start
       # Put the current time on the thread.  Can't put in @ivar because this could
       # be a class or instance context
-      @newrelic_dispatcher_start_time = Time.now.to_f
-      NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.dispatcher_start @newrelic_dispatcher_start_time
+      newrelic_dispatcher_start_time = Time.now.to_f
+      Thread.current[:newrelic_dispatcher_start] = newrelic_dispatcher_start_time
+      NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.dispatcher_start newrelic_dispatcher_start_time
       # capture the time spent in the mongrel queue, if running in mongrel.  This is the 
       # current time less the timestamp placed in 'started_on' by mongrel. 
       mongrel_start = Thread.current[:started_on]
-      mongrel_queue_stat.trace_call(@newrelic_dispatcher_start_time - mongrel_start.to_f) if mongrel_start
+      mongrel_queue_stat.trace_call(newrelic_dispatcher_start_time - mongrel_start.to_f) if mongrel_start
       NewRelic::Agent.agent.start_transaction
       
       # Reset the flag indicating the controller action should be ignored.
@@ -27,12 +28,13 @@ module NewRelic::Agent::Instrumentation
       NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.dispatcher_finish dispatcher_end_time
       unless Thread.current[:controller_ignored]
         # Store the response header
+        newrelic_dispatcher_start_time = Thread.current[:newrelic_dispatcher_start]
         response_code = newrelic_response_code
         if response_code
           stats = response_stats[response_code] ||= NewRelic::Agent.agent.stats_engine.get_stats("HTTP/Response/#{response_code}")
-          stats.trace_call(dispatcher_end_time - @newrelic_dispatcher_start_time)
+          stats.trace_call(dispatcher_end_time - newrelic_dispatcher_start_time)
         end
-        dispatch_stat.trace_call(dispatcher_end_time - @newrelic_dispatcher_start_time) 
+        dispatch_stat.trace_call(dispatcher_end_time - newrelic_dispatcher_start_time) 
       end
     end
     def newrelic_response_code
