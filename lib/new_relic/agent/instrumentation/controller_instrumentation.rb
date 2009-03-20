@@ -95,20 +95,17 @@ module NewRelic::Agent::Instrumentation
       else
         true
       end
-      if should_skip
-        begin
-          return perform_action_without_newrelic_trace(*args)
-        ensure
-          # Tell the dispatcher instrumentation that we ignored this action and it shouldn't
-          # be counted for the overall HTTP operations measurement.  The if.. appears here
-          # because we might be ignoring the top level action instrumenting but instrumenting
-          # a direct invocation that already happened, so we need to make sure if this var
-          # has already been set to false we don't reset it.
-          Thread.current[:controller_ignored] = true if Thread.current[:controller_ignored].nil?
-        end
-      end
       
-      Thread.current[:controller_ignored] = false
+      if should_skip
+        # Tell the dispatcher instrumentation that we ignored this action and it shouldn't
+        # be counted for the overall HTTP operations measurement.
+        Thread.current[:controller_ignored] = true
+        
+        return perform_action_without_newrelic_trace(*args)
+      end
+
+      # reset this in case we came through a code path where the top level controller is ignored
+      Thread.current[:controller_ignored] = nil
       
       start = Time.now.to_f
       agent.ensure_worker_thread_started

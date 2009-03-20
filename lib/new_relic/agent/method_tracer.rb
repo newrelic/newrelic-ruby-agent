@@ -29,10 +29,12 @@ module NewRelic::Agent
       t0 = Time.now.to_f
       stats = NewRelic::Agent.instance.stats_engine.get_stats_no_scope metric_name
       
-      result = yield
-      duration = Time.now.to_f - t0              # for some reason this is 3 usec faster than Time - Time
-      stats.trace_call(duration, duration)    
-      result 
+      begin
+        yield
+      ensure
+        duration = Time.now.to_f - t0              # for some reason this is 3 usec faster than Time - Time
+        stats.trace_call(duration, duration)
+      end
     end
     
     def trace_method_execution_with_scope(metric_name, produce_metric, deduct_call_time_from_parent, scoped_metric_only=false)
@@ -122,11 +124,13 @@ module NewRelic::Agent
           t0 = Time.now.to_f
           stats = NewRelic::Agent.instance.stats_engine.get_stats_no_scope "#{metric_name_code}"
 
-          result = #{_untraced_method_name(method_name, metric_name_code)}(*args, &block)
-          duration = Time.now.to_f - t0
-          stats.trace_call(duration, duration)     # for some reason this is 3 usec faster than Time - Time
-          #{options[:code_footer]}
-          result 
+          begin
+            #{_untraced_method_name(method_name, metric_name_code)}(*args, &block)
+          ensure
+            duration = Time.now.to_f - t0
+            stats.trace_call(duration, duration)     # for some reason this is 3 usec faster than Time - Time
+            #{options[:code_footer]}
+          end
         end
       CODE
       else

@@ -35,12 +35,12 @@ class AgentControllerTests < ActionController::TestCase
     assert_difference 'index_stats.call_count' do
       get :index
     end
-    assert_equal false, Thread.current[:controller_ignored]
+    assert_nil Thread.current[:controller_ignored]
   end
   def test_metric__dispatched
     engine = @agent.stats_engine
     get :entry_action
-    assert_equal false, Thread.current[:controller_ignored]
+    assert_nil Thread.current[:controller_ignored]
     assert_nil engine.lookup_stat('Controller/agent_test/entry_action')
     assert_equal 1, engine.lookup_stat('Controller/new_relic/agent/agent_test/internal_action').call_count
   end
