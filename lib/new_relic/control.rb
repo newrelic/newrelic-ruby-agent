@@ -6,39 +6,44 @@ require 'net/https'
 require 'new_relic/local_environment'
 require 'logger'
 
-# Control supports the behavior of the agent which is dependent
-# on what environment is being monitored: rails, merb, ruby, etc
-# It is an abstract factory with concrete implementations under
-# the control folder.  It is also responsible for initializing
-# and starting the agent.
-module NewRelic
+
+module NewRelic 
   
+# The Control is a singleton responsible for the startup and
+# initialization sequence.  The initializer uses a LocalEnvironment to 
+# detect the framework and instantiates the framework specific
+# subclass.
+#
+# The Control also implements some of the public API for the agent.
+# 
   class Control
     
     attr_accessor :log_file, :env
     attr_reader :local_env
     
     # Structs holding info for the remote server and proxy server 
-    class Server < Struct.new :host, :port
+    class Server < Struct.new :host, :port #:nodoc:
       def to_s; "#{host}:#{port}"; end
     end
     
-    ProxyServer = Struct.new :host, :port, :user, :password
-    
+    ProxyServer = Struct.new :host, :port, :user, :password #:nodoc:
+
+    # Access the Control singleton, lazy initialized
     def self.instance
       @instance ||= new_instance
     end
     
-    # Initialize the plugin/gem.  This does the necessary configuration based on the
+    # Initialize the plugin/gem and start the agent.  This does the necessary configuration based on the
     # framework environment and determines whether or not to start the agent.  If the
     # agent is not going to be started then it loads the agent shim which has stubs
     # for all the external api.
     #
     # This may be invoked multiple times, as long as you don't attempt to uninstall
-    # the agent after it has been started.  If the plugin is initialized and 
-    # it determines that the agent is not enabled, it will skip starting it and install
-    # the shim.  But if you later call this with :agent_enabled => true, then it
-    # will install the real agent and start it.
+    # the agent after it has been started.
+    #
+    # If the plugin is initialized and it determines that the agent is not enabled, it 
+    # will skip starting it and install the shim.  But if you later call this with 
+    # <tt>:agent_enabled => true</tt>, then it will install the real agent and start it.
     #
     # What determines whether the agent is launched is the result of calling agent_enabled?
     # This will indicate whether the instrumentation should/will be installed.  If we're

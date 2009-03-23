@@ -1,5 +1,9 @@
-# Initialization script for the gem.
-# The gem currently works with Rails 2.0 and up, and Merb 1.0 and up.
+# = New Relic Agent
+#
+# This file is the initialization script for the gem.  The agent can also be started
+# as a plugin.
+#
+# == Starting the Agent
 #
 # For Rails, add:
 #    config.gem 'newrelic_rpm'
@@ -9,6 +13,18 @@
 #    dependency 'newrelic_rpm'
 # in the Merb config/init.rb
 #
+# For other frameworks, or to manage the agent manually, invoke NewRelic::Agent#manual_start
+# directly.
+#
+# == Configuring the Agent
+# 
+# All agent configuration is done in the <code>newrelic.yml</code> file.  This file is by
+# default read from the +config+ directory of the application root and is subsequently
+# searched for in the application root directory, and then in a <code>~/.newrelic</code> directory
+#
+# == Agent APIs
+#
+# The agent has some APIs available for extending and customizing. 
 require 'new_relic/control'
 
 def log!(message)
