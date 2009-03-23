@@ -82,7 +82,7 @@ module NewRelic
       rev_file = File.join(NewRelic::Control.instance.root, "REVISION")
       if File.readable?(rev_file) && File.size(rev_file) < 64
         append_environment_value('Revision') do
-          File.open(rev_file) { | file | file.read }
+          File.open(rev_file) { | file | file.readline.strip }
         end
       end
       # The name of the database adapter for the current environment.
@@ -114,7 +114,7 @@ module NewRelic
     private
     
     def discover_dispatcher
-      dispatchers = %w[webrick mongrel thin litespeed passenger]
+      dispatchers = %w[webrick thin mongrel litespeed passenger fastcgi]
       while dispatchers.any? && @dispatcher.nil?
         send 'check_for_'+(dispatchers.shift)
       end
@@ -135,22 +135,40 @@ module NewRelic
     private 
 
     def check_for_webrick
+      return unless defined?(WEBrick)
+      @dispatcher = :webrick
       if defined?(OPTIONS) && OPTIONS.respond_to?(:fetch) 
-        # OPTIONS is set by script/dispatcher 
+        # OPTIONS is set by script/server
         @dispatcher_instance_id = OPTIONS.fetch(:port)
-        @dispatcher = :webrick
       end
+      @dispatcher_instance_id = default_port unless @dispatcher_instance_id
     end
     
+    def check_for_fastcgi
+      return unless defined? FCGI
+      @dispatcher = :fastcgi
+    end
+
     # this case covers starting by mongrel_rails
     def check_for_mongrel
-      if defined? Mongrel::HttpServer
-        ObjectSpace.each_object(Mongrel::HttpServer) do |@mongrel|
-          next if not @mongrel.respond_to? :port
-          @dispatcher = :mongrel
-          @dispatcher_instance_id = @mongrel.port
+      return unless defined?(Mongrel::HttpServer) 
+      @dispatcher = :mongrel
+      
+      # Get the port from the server if it's started
+      ObjectSpace.each_object(Mongrel::HttpServer) do |mongrel|
+        next if not mongrel.respond_to? :port
+        @dispatcher_instance_id = mongrel.port.to_s
+      end
+      
+      # Get the port from the configurator if one was created
+      if @dispatcher_instance_id.nil? && defined?(Mongrel::Configurator)
+        ObjectSpace.each_object(Mongrel::Configurator) do |mongrel|
+          @dispatcher_instance_id = mongrel.defaults[:port] && mongrel.defaults[:port].to_s
         end
       end
+      
+      # Still can't find the port.  Let's look at ARGV to fall back
+      @dispatcher_instance_id = default_port if @dispatcher_instance_id.nil?
     end
     
     def check_for_thin
@@ -183,6 +201,17 @@ module NewRelic
       if defined?(Passenger::AbstractServer) || defined?(IN_PHUSION_PASSENGER) 
         @dispatcher = :passenger
       end
+    end
+
+    def default_port
+      require 'optparse'
+      # If nothing else is found, use the 3000 default
+      default_port = 3000
+      ARGV.clone.options do |opts|
+        opts.on("-p", "--port=port", String) { | default_port | }
+        opts.parse!
+      end
+      default_port
     end
 
     public 
