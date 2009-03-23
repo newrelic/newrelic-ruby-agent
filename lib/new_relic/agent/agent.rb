@@ -170,7 +170,7 @@ module NewRelic::Agent
           at_exit { shutdown }
         end
       end
-      config.log! "New Relic RPM Agent #{NewRelic::VERSION::STRING} Initialized: pid = #{$$}"
+      config.log! "New Relic RPM Agent #{NewRelic::VERSION::STRING} Initialized: pid = #{$$}, handler = #{@environment}"
       config.log! "Agent Log found in #{NewRelic::Control.instance.log_file}"
     end
 
