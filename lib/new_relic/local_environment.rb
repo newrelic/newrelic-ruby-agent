@@ -14,6 +14,7 @@ module NewRelic
     alias environment dispatcher
     
     def initialize
+::RAILS_DEFAULT_LOGGER.warn "in le..."
       discover_framework
       discover_dispatcher
       @gems = Set.new
@@ -114,7 +115,7 @@ module NewRelic
     private
     
     def discover_dispatcher
-      dispatchers = %w[webrick thin mongrel litespeed passenger fastcgi]
+      dispatchers = %w[webrick thin mongrel glassfish litespeed passenger fastcgi]
       while dispatchers.any? && @dispatcher.nil?
         send 'check_for_'+(dispatchers.shift)
       end
@@ -133,6 +134,13 @@ module NewRelic
 
 
     private 
+
+    def check_for_glassfish
+      return unless defined?(Java) &&
+         (com.sun.grizzly.jruby.rack.DefaultRackApplicationFactory rescue nil) &&
+         defined?(com::sun::grizzly::jruby::rack::DefaultRackApplicationFactory)
+      @dispatcher = :glassfish
+    end
 
     def check_for_webrick
       return unless defined?(WEBrick)
