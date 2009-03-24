@@ -5,7 +5,9 @@ module NewRelic::Agent::Samplers
       super :memory
       
       # macos, linux, solaris
-      if platform =~ /linux/
+      if defined? Java
+        @sampler = JavaHeapSampler.new
+      elsif platform =~ /linux/
         @sampler = ProcStatus.new
         if !@sampler.can_run?
           NewRelic::Agent.instance.log.error "Error attempting to use /proc/$$/status file for reading memory. Using ps command instead"
@@ -61,6 +63,17 @@ module NewRelic::Agent::Samplers
           NewRelic::Agent.instance.log.error "Disabling memory sampler."
           @broken = true
         end
+      end
+    end
+
+    class JavaHeapSampler < Base
+
+      def get_memory
+        raise "Can't sample Java heap unless running in JRuby" unless defined? Java
+        java.lang.Runtime.getRuntime.totalMemory / (1024 * 1024).to_f rescue nil
+      end
+      def to_s
+        "JRuby Java heap sampler"
       end
     end
 
