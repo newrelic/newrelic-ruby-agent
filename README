@@ -76,7 +76,7 @@ Merb 1.0 or above
 
 === Rails Plug-In Installation
 
-   script/plugin install http://newrelic.rubyforge.net/svn/newrelic_rpm
+   script/plugin install http://newrelic.rubyforge.org/svn/newrelic_rpm
    
 === Gem Installation
 
