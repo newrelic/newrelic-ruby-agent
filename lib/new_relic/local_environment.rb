@@ -14,7 +14,6 @@ module NewRelic
     alias environment dispatcher
     
     def initialize
-::RAILS_DEFAULT_LOGGER.warn "in le..."
       discover_framework
       discover_dispatcher
       @gems = Set.new
