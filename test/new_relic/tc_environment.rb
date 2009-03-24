@@ -21,13 +21,6 @@ class EnvironmentTest < ActiveSupport::TestCase
     assert_equal nil, e.environment
     assert_match /test/i, e.dispatcher_instance_id
   end
-  def test_webrick
-    Object.const_set :OPTIONS, { :port => 3000 }
-    e = NewRelic::LocalEnvironment.new
-    assert_equal :webrick, e.environment
-    assert_equal 3000, e.dispatcher_instance_id
-    Object.class_eval { remove_const :OPTIONS }
-  end
   def test_no_webrick
     Object.const_set :OPTIONS, 'foo'
     e = NewRelic::LocalEnvironment.new
@@ -35,41 +28,7 @@ class EnvironmentTest < ActiveSupport::TestCase
     assert_match /test/i, e.dispatcher_instance_id
     Object.class_eval { remove_const :OPTIONS }
   end
-  def test_mongrel
-    
-    class << self
-      module ::Mongrel
-        class HttpServer
-          def port; 3000; end
-        end
-      end
-    end
-    Mongrel::HttpServer.new
-    e = NewRelic::LocalEnvironment.new
-    assert_equal :mongrel, e.environment
-    assert_equal 3000, e.dispatcher_instance_id
-    Mongrel::HttpServer.class_eval {undef_method :port}
-  end
-  def test_thin
-    class << self
-      module ::Thin
-        class Server
-          def backend; self; end
-          def socket; "/socket/file.000"; end
-        end
-      end
-    end
-    mock_thin = Thin::Server.new
-    e = NewRelic::LocalEnvironment.new
-    assert_equal :thin, e.environment
-    assert_equal '/socket/file.000', e.dispatcher_instance_id
-    mock_thin
-  end
-  def test_litespeed
-    e = NewRelic::LocalEnvironment.new
-    assert_equal nil, e.environment
-    assert_match /test/i, e.dispatcher_instance_id
-  end
+
   def test_passenger
     class << self
       module ::Passenger
