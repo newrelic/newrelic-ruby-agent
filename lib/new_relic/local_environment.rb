@@ -9,7 +9,6 @@ module NewRelic
     attr_accessor :dispatcher # mongrel, thin, webrick, or possibly nil
     attr_accessor :dispatcher_instance_id # used to distinguish instances of a dispatcher from each other, may be nil
     attr_accessor :framework # rails, merb, :ruby, :daemon, test
-    attr_reader :mongrel
     
     alias environment dispatcher
     

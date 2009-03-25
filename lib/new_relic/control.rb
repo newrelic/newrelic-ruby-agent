@@ -190,9 +190,6 @@ module NewRelic
       end
       http
     end
-    def mongrel
-      local_env.mongrel
-    end
     def to_s
       "Control[#{self.app}]"
     end
@@ -254,6 +251,12 @@ module NewRelic
       log.debug "Finished instrumentation"
     end
     
+    def load_samplers(agent)
+      agent.stats_engine.add_sampler NewRelic::Agent::Samplers::MongrelSampler.new config.mongrel if local_env.mongrel
+      agent.stats_engine.add_sampler NewRelic::Agent::Samplers::CpuSampler.new unless defined? Java
+      agent.stats_engine.add_sampler NewRelic::Agent::Samplers::MemorySampler.new 
+    end
+     
     protected
 
     # Append framework specific environment information for uploading to
@@ -262,18 +265,15 @@ module NewRelic
     
     def convert_to_ip_address(host)
       return nil unless host
-      if host.downcase == "localhost"
         ip_address = host
-      else
+      unless host.downcase == "localhost"
         begin
           ip_address = Resolv.getaddress(host)
+          log.info "Resolved #{host} to #{ip_address}"
         rescue => e
-          log.error "DNS Error: #{e}"
-          raise NewRelic::Agent::IgnoreSilentlyException.new
+          log.warn "DNS Error caching IP address: #{e}"
         end
       end
-      
-      log.info "Resolved #{host} to #{ip_address}"
       ip_address
     end
     
