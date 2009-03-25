@@ -278,6 +278,8 @@ module NewRelic
           ip_address = IPSocket::getaddress host rescue ip_address
         end
       end
+      # Do this to avoid breaking with local virtual hosts
+      ip_address = host if ip_address == '127.0.0.1'
       ip_address
     end
     

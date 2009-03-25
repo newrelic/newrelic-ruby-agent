@@ -9,7 +9,7 @@ module NewRelic
     attr_accessor :dispatcher # mongrel, thin, webrick, or possibly nil
     attr_accessor :dispatcher_instance_id # used to distinguish instances of a dispatcher from each other, may be nil
     attr_accessor :framework # rails, merb, :ruby, :daemon, test
-    
+    attr_reader :mongrel
     alias environment dispatcher
     
     def initialize
@@ -109,7 +109,14 @@ module NewRelic
       i
     end
     
-    
+    def mongrel
+      return @mongrel if ! defined? Mongrel::HttpServer 
+      ObjectSpace.each_object(Mongrel::HttpServer) do |mongrel|
+        @mongrel = mongrel
+      end unless @mongrel
+      @mongrel
+    end
+
     private
     
     def discover_dispatcher
@@ -129,9 +136,6 @@ module NewRelic
       else :ruby
       end      
     end
-
-
-    private 
 
     def check_for_glassfish
       return unless defined?(Java) &&
@@ -161,8 +165,8 @@ module NewRelic
       @dispatcher = :mongrel
       
       # Get the port from the server if it's started
-      ObjectSpace.each_object(Mongrel::HttpServer) do |mongrel|
-        next if not mongrel.respond_to? :port
+
+      if mongrel && mongrel.respond_to?(:port)
         @dispatcher_instance_id = mongrel.port.to_s
       end
       
