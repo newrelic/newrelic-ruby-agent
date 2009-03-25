@@ -2,8 +2,8 @@ require 'yaml'
 require 'new_relic/local_environment'
 require 'singleton'
 require 'erb'
+require 'socket'
 require 'net/https'
-require 'new_relic/local_environment'
 require 'logger'
 
 
@@ -263,15 +263,19 @@ module NewRelic
     # the server for change detection.  Override in subclasses
     def append_environment_info; end
     
+    # Look up the ip address of the host using the pure ruby lookup 
+    # to prevent blocking.  If that fails, fall back to the regular
+    # IPSocket library.
     def convert_to_ip_address(host)
       return nil unless host
-        ip_address = host
+      ip_address = host
       unless host.downcase == "localhost"
         begin
           ip_address = Resolv.getaddress(host)
           log.info "Resolved #{host} to #{ip_address}"
         rescue => e
           log.warn "DNS Error caching IP address: #{e}"
+          ip_address = IPSocket::getaddress host rescue ip_address
         end
       end
       ip_address
