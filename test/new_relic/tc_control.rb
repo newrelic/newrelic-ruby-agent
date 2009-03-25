@@ -32,12 +32,17 @@ class NewRelic::ControlTests < Test::Unit::TestCase
     assert_match /jdbc|postgres|mysql|sqlite/, props.assoc('Database adapter').last
   end
 
+  def test_resolve_ip
+    assert_equal 'localhost', c.send(:convert_to_ip_address, 'localhost')
+    assert_equal 'q1239988737.us', c.send(:convert_to_ip_address, 'q1239988737.us')
+    assert_equal '65.74.177.194', c.send(:convert_to_ip_address, 'rpm.newrelic.com')
+  end
   def test_config_yaml_erb
     assert_equal 'heyheyhey', c['erb_value']
     assert_equal '', c['message']
     assert_equal '', c['license_key']
   end
-  
+
   def test_config_booleans
     assert_equal c['tval'], true
     assert_equal c['fval'], false
@@ -52,7 +57,6 @@ class NewRelic::ControlTests < Test::Unit::TestCase
     assert_match /newrelic_agent.log$/, c.instance_variable_get('@log_file')
   end
   def test_environment_info
-    puts ::Rails.configuration.plugin_paths.inspect
     NewRelic::Control.instance.send :append_environment_info
     snapshot = NewRelic::Control.instance.local_env.snapshot
     assert snapshot.assoc('Plugin List').last.include?('newrelic_rpm'), snapshot.inspect
