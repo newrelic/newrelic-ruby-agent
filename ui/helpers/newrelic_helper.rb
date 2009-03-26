@@ -108,8 +108,7 @@ module NewrelicHelper
 
   # write a link to the source for a trace
   def link_to_source(trace)
-    image_url = "#{server}/images/"
-    image_url << (using_textmate? ? "textmate.png" : "file_icon.png")
+    image_url = url_for(:controller => :newrelic, :action => :image, :file => (using_textmate? ? "textmate.png" : "file_icon.png"), :content_type => 'image/png')
     
     link_to image_tag(image_url, :alt => (title = 'View Source'), :title => title), url_for_source(application_caller(trace))
   end
