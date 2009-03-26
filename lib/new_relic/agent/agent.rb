@@ -287,7 +287,7 @@ module NewRelic::Agent
       connect_attempts = 0
       
       begin
-        @redirect_server = nil
+        @collector = config.server
         
         sleep connect_retry_period.to_i
         @agent_id = invoke_remote :launch, 
@@ -301,13 +301,13 @@ module NewRelic::Agent
             config['app_name'], 
             config.settings
         
-        host = invoke_remote(:get_redirect_host)
+        host = invoke_remote(:get_redirect_host) rescue nil
         
-        @redirect_server = config.server_from_host(host)        
+        @collector = config.server_from_host(host) if host        
             
         @report_period = invoke_remote :get_data_report_period, @agent_id
  
-        config.log! "Connected to NewRelic Service at #{@redirect_server}"
+        config.log! "Connected to NewRelic Service at #{@collector}"
         log.debug "Agent ID = #{@agent_id}."
         
         # Ask the server for permission to send transaction samples.  determined by subscription license.
@@ -461,18 +461,18 @@ module NewRelic::Agent
       # to go for higher compression instead, we could use Zlib::BEST_COMPRESSION and 
       # pay a little more CPU.
       post_data = Zlib::Deflate.deflate(Marshal.dump(args), Zlib::BEST_SPEED)
-      http = config.http_connection(@redirect_server)
+      http = config.http_connection(@collector)
       
       # params = {:method => method, :license_key => license_key, :protocol_version => PROTOCOL_VERSION }
       # uri = "/agent_listener/invoke_raw_method?#{params.to_query}"
       uri = "/agent_listener/invoke_raw_method?method=#{method}&license_key=#{config.license_key}&protocol_version=#{PROTOCOL_VERSION}"
       uri += "&run_id=#{@agent_id}" if @agent_id
       
-      request = Net::HTTP::Post.new(uri, 'ACCEPT-ENCODING' => 'gzip')
+      request = Net::HTTP::Post.new(uri, 'ACCEPT-ENCODING' => 'gzip', 'HOST' => @collector.name)
       request.content_type = "application/octet-stream"
       request.body = post_data
       
-      log.debug "#{uri}"
+      log.debug "connect to #{@collector}/#{uri}"
       
       response = nil
       
@@ -519,7 +519,7 @@ module NewRelic::Agent
     end
     
     def graceful_disconnect
-      if @connected && !(config.server.host == "localhost" && config.dispatcher_instance_id == '3000')
+      if @connected && !(config.server.name == "localhost" && config.dispatcher_instance_id == '3000')
         begin
           log.debug "Sending graceful shutdown message to #{config.server}"
           

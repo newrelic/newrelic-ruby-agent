@@ -8,7 +8,7 @@
   * reduced the number of controller metrics that report to rpm
   * user rpm server time for transaction traces rather than agent time
   * added http referer to traced errors
-  * on connection, get a shard collector to redirect to (experimental)
+  * on connection, get a shard collector to redirect to
   * removed Numeric extensions, including round_to, and to_ms
   * combined agent logfiles into a single logfile
   * in jruby, use Java used heap for memory sampling if the system

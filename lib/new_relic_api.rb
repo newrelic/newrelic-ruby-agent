@@ -105,7 +105,7 @@ module NewRelicApi
       end
       
       def site_url
-        host = NewRelicApi.host || NewRelic::Control.instance.api_server.host
+        host = NewRelicApi.host || NewRelic::Control.instance.api_server.name
         port = NewRelicApi.port || NewRelic::Control.instance.api_server.port
         "#{port == 443 ? 'https' : 'http'}://#{host}:#{port}"
       end

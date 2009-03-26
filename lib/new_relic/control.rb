@@ -22,11 +22,11 @@ module NewRelic
     attr_reader :local_env
     
     # Structs holding info for the remote server and proxy server 
-    class Server < Struct.new :host, :port #:nodoc:
-      def to_s; "#{host}:#{port}"; end
+    class Server < Struct.new :name, :port, :ip #:nodoc:
+      def to_s; "#{name}:#{port}"; end
     end
     
-    ProxyServer = Struct.new :host, :port, :user, :password #:nodoc:
+    ProxyServer = Struct.new :name, :port, :user, :password #:nodoc:
 
     # Access the Control singleton, lazy initialized
     def self.instance
@@ -156,25 +156,24 @@ module NewRelic
     end
     
     def api_server
+      api_host = self['api_host'] || 'rpm.newrelic.com' 
       @api_server ||= 
-      NewRelic::Control::Server.new fetch('api_host', 'rpm.newrelic.com'), fetch('api_port', fetch('port', use_ssl? ? 443 : 80)).to_i
+        NewRelic::Control::Server.new \
+          api_host, 
+          (self['api_port'] || self['port'] || (use_ssl? ? 443 : 80)).to_i, 
+          nil
     end
     
     def proxy_server
       @proxy_server ||=
-      NewRelic::Control::ProxyServer.new convert_to_ip_address(fetch('proxy_host', nil)), fetch('proxy_port', nil),
-      fetch('proxy_user', nil), fetch('proxy_pass', nil)
+         NewRelic::Control::ProxyServer.new self['proxy_host'], self['proxy_port'], self['proxy_user'], self['proxy_pass'] 
     end
     
-       
-    
-    def server_from_host(host)
-      host ||= fetch('host', 'collector.newrelic.com')
+    def server_from_host(hostname=nil)
+      host = hostname || self['host'] || 'collector.newrelic.com'
       
       # if the host is not an IP address, turn it into one
-      host = convert_to_ip_address(host)
-      
-      NewRelic::Control::Server.new host, fetch('port', use_ssl? ? 443 : 80).to_i 
+      NewRelic::Control::Server.new host, (self['port'] || (use_ssl? ? 443 : 80)).to_i, convert_to_ip_address(host) 
     end
     
     # Return the Net::HTTP with proxy configuration given the NewRelic::Control::Server object.
@@ -182,8 +181,9 @@ module NewRelic
     def http_connection(host = nil)
       host ||= server
       # Proxy returns regular HTTP if @proxy_host is nil (the default)
-      http = Net::HTTP::Proxy(proxy_server.host, proxy_server.port, 
-                              proxy_server.user, proxy_server.password).new(host.host, host.port)
+      http_class = Net::HTTP::Proxy(proxy_server.name, proxy_server.port, 
+                              proxy_server.user, proxy_server.password)
+      http = http_class.new(host.ip || host.name, host.port)
       if use_ssl?
         http.use_ssl = true 
         http.verify_mode = OpenSSL::SSL::VERIFY_NONE
@@ -265,24 +265,21 @@ module NewRelic
     
     # Look up the ip address of the host using the pure ruby lookup 
     # to prevent blocking.  If that fails, fall back to the regular
-    # IPSocket library.
+    # IPSocket library.  Return nil if we can't find the host ip
+    # address and don't have a good default.
     def convert_to_ip_address(host)
-      return nil unless host
-      ip_address = host
-      unless host.downcase == "localhost"
-        begin
-          ip_address = Resolv.getaddress(host)
-          log.info "Resolved #{host} to #{ip_address}"
-        rescue => e
-          log.warn "DNS Error caching IP address: #{e}"
-          ip_address = IPSocket::getaddress host rescue ip_address
-        end
+      return nil if host.nil? || host.downcase == "localhost"
+      # Fall back to known ip address in the common case
+      ip_address = '65.74.177.195' if host.downcase == 'collector.newrelic.com'
+      begin
+        ip_address = Resolv.getaddress(host)
+        log.info "Resolved #{host} to #{ip_address}"
+      rescue => e
+        log.warn "DNS Error caching IP address: #{e}"
+        ip_address = IPSocket::getaddress host rescue ip_address
       end
-      # Do this to avoid breaking with local virtual hosts
-      ip_address = host if ip_address == '127.0.0.1'
       ip_address
     end
-    
 
     def merge_defaults(settings_hash)
       s = {
