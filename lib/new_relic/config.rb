@@ -186,11 +186,15 @@ module NewRelic
         begin
           ip_address = Resolv.getaddress(host)
         rescue => e
-          log.error "DNS Error: #{e}"
-          raise NewRelic::Agent::IgnoreSilentlyException.new
+          log.debug "DNS Error caching with Resolv: #{e}"
+          begin
+            ip_address = IPSocket::getaddress host
+          rescue => e
+            log.warn "DNS Error looking up IP address: #{e}"
+            raise NewRelic::Agent::IgnoreSilentlyException.new
+          end
         end
       end
-      
       log.info "Resolved #{host} to #{ip_address}"
       ip_address
     end
