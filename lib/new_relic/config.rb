@@ -180,7 +180,6 @@ module NewRelic
     
     def convert_to_ip_address(host)
       return nil unless host
-      return host if RUBY_PLATFORM == "java"
       if host.downcase == "localhost"
         ip_address = host
       else
