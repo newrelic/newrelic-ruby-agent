@@ -49,14 +49,15 @@ class NewRelic::SamplersTests < Test::Unit::TestCase
     end
   end
   def test_mongrel 
-    NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.stubs('is_busy?'.to_sym).returns(false)    
+    NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.stubs('is_busy?'.to_sym).returns(false)  
     mongrel = mock()
+    NewRelic::Control.instance.local_env.stubs(:mongrel).returns(mongrel)
     list = mock()
     workers = mock()
     workers.stubs(:list).returns(list)
     list.stubs(:length).returns(3)
     mongrel.expects(:workers).returns(workers).at_least_once
-    s = NewRelic::Agent::Samplers::MongrelSampler.new mongrel
+    s = NewRelic::Agent::Samplers::MongrelSampler.new
     s.stats_engine = @stats_engine
     s.poll
     s.poll

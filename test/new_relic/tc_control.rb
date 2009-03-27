@@ -33,8 +33,8 @@ class NewRelic::ControlTests < Test::Unit::TestCase
   end
 
   def test_resolve_ip
-    assert_equal 'localhost', c.send(:convert_to_ip_address, 'localhost')
-    assert_equal 'q1239988737.us', c.send(:convert_to_ip_address, 'q1239988737.us')
+    assert_equal nil, c.send(:convert_to_ip_address, 'localhost')
+    assert_equal nil, c.send(:convert_to_ip_address, 'q1239988737.us')
     assert_equal '65.74.177.194', c.send(:convert_to_ip_address, 'rpm.newrelic.com')
   end
   def test_config_yaml_erb

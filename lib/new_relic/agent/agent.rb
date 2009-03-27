@@ -175,6 +175,9 @@ module NewRelic::Agent
     end
 
     private
+    def collector
+      @collector ||= config.server
+    end
     
     # Connect to the server, and run the worker loop forever.  Will not return.
     def run_worker_loop
@@ -287,8 +290,6 @@ module NewRelic::Agent
       connect_attempts = 0
       
       begin
-        @collector = config.server
-        
         sleep connect_retry_period.to_i
         @agent_id = invoke_remote :launch, 
             @local_host,
@@ -461,18 +462,18 @@ module NewRelic::Agent
       # to go for higher compression instead, we could use Zlib::BEST_COMPRESSION and 
       # pay a little more CPU.
       post_data = Zlib::Deflate.deflate(Marshal.dump(args), Zlib::BEST_SPEED)
-      http = config.http_connection(@collector)
+      http = config.http_connection(collector)
       
       # params = {:method => method, :license_key => license_key, :protocol_version => PROTOCOL_VERSION }
       # uri = "/agent_listener/invoke_raw_method?#{params.to_query}"
       uri = "/agent_listener/invoke_raw_method?method=#{method}&license_key=#{config.license_key}&protocol_version=#{PROTOCOL_VERSION}"
       uri += "&run_id=#{@agent_id}" if @agent_id
       
-      request = Net::HTTP::Post.new(uri, 'ACCEPT-ENCODING' => 'gzip', 'HOST' => @collector.name)
+      request = Net::HTTP::Post.new(uri, 'ACCEPT-ENCODING' => 'gzip', 'HOST' => collector.name)
       request.content_type = "application/octet-stream"
       request.body = post_data
       
-      log.debug "connect to #{@collector}/#{uri}"
+      log.debug "connect to #{collector}/#{uri}"
       
       response = nil
       
