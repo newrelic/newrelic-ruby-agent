@@ -8,7 +8,8 @@ module NewRelic::Agent::Samplers
       @queue_stats ||= stats_engine.get_stats("Mongrel/Queue Length", false)
     end
     def poll
-      if NewRelic::Control.instance.local_env.mongrel
+      mongrel = NewRelic::Control.instance.local_env.mongrel
+      if mongrel
         # The mongrel workers list includes workers actively processing requests
         # so you need to subtract what appears to be the active workers from the total
         # number of workers to get the queue size.
