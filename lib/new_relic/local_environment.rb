@@ -33,13 +33,12 @@ module NewRelic
       end
     end
     def check_for_webrick
-      return unless defined?(WEBrick)
-      @environment = :webrick
-      if defined?(OPTIONS) && ::OPTIONS.respond_to?(:fetch) 
+      # This will not succeed on rails 2.2 and later
+      if defined?(WEBrick) && defined?(OPTIONS) && ::OPTIONS.respond_to?(:fetch) 
         # OPTIONS is set by script/server 
+        @identifier = default_port unless @identifier
         @identifier = OPTIONS.fetch(:port)
       end
-      @identifier = default_port unless @identifier
     end
     # this case covers starting by mongrel_rails
     def check_for_mongrel
