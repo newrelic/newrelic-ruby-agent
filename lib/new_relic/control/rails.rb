@@ -98,8 +98,12 @@ class NewRelic::Control::Rails < NewRelic::Control
   end
   def git_info
     env_lang, ENV['LC_ALL'] = ENV['LC_ALL'], 'C'
-    Dir.chdir(rails_vendor_root) do
-      silence_stderr { `git log -n 1` }
+    if File.directory? rails_vendor_root
+      Dir.chdir(rails_vendor_root) do
+        silence_stderr { `git log -n 1` }
+      end
+    else 
+      ""
     end
   ensure
     ENV['LC_ALL'] = env_lang
@@ -122,11 +126,15 @@ class NewRelic::Control::Rails < NewRelic::Control
     # The Rails Git revision, if it's checked out into vendor/rails.
     local_env.append_environment_value 'Edge Rails revision' do
       git_info[/commit ([a-z0-9-]+)/, 1] || freeze_edge_version
-    end
+    end if File.directory?(rails_vendor_root)
 
     if ::Rails::VERSION::MAJOR * 100 + ::Rails::VERSION::MINOR * 10 >= 210
       local_env.append_gem_list do
-        ::Rails.configuration.gems.map { |gem | gem.name + (gem.version ? "(#{gem.version})" : "") }
+        ::Rails.configuration.gems.map do | gem |
+          version = (gem.respond_to?(:version) && gem.version) ||
+                    (gem.specification.respond_to?(:version) && gem.specification.version)
+          gem.name + (version ? "(#{version})" : "")
+        end
       end
       # The plugins is configured manually.  If it's nil, it loads everything non-deterministically
       if ::Rails.configuration.plugins
