@@ -7,8 +7,8 @@ class NewRelic::Control::Merb < NewRelic::Control
     ::Merb.root
   end
   
-  def to_stderr(msg)
-    STDERR.puts "NewRelic ~ " + msg 
+  def to_stdout(msg)
+    STDOUT.puts "NewRelic ~ " + msg 
   end
   
   def init_config options={}

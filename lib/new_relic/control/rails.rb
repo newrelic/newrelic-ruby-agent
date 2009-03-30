@@ -43,7 +43,7 @@ class NewRelic::Control::Rails < NewRelic::Control
       Dependencies.load_paths << controller_path
       Dependencies.load_paths << helper_path
     else
-      to_stderr "ERROR: Rails version #{Rails::VERSION::STRING} too old for developer mode to work."
+      to_stdout "ERROR: Rails version #{Rails::VERSION::STRING} too old for developer mode to work."
       return
     end
     
@@ -58,7 +58,7 @@ class NewRelic::Control::Rails < NewRelic::Control
     else
       current_paths = ActionController::Routing.controller_paths
       if current_paths.nil? || current_paths.empty?
-        to_stderr "WARNING: Unable to modify the routes in this version of Rails.  Developer mode not available."
+        to_stdout "WARNING: Unable to modify the routes in this version of Rails.  Developer mode not available."
       end
       current_paths << controller_path
     end
@@ -69,8 +69,8 @@ class NewRelic::Control::Rails < NewRelic::Control
     # a webserver process
     if @local_env.dispatcher_instance_id
       port = @local_env.dispatcher_instance_id.to_s =~ /^\d+/ ? ":#{local_env.dispatcher_instance_id}" : ":port" 
-      to_stderr "NewRelic Agent Developer Mode enabled."
-      to_stderr "To view performance information, go to http://localhost#{port}/newrelic"
+      to_stdout "NewRelic Agent Developer Mode enabled."
+      to_stdout "To view performance information, go to http://localhost#{port}/newrelic"
     end
   end
   

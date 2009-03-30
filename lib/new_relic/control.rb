@@ -204,13 +204,13 @@ module NewRelic
       @log
     end
     
-    # send the given message to STDERR so that it shows
+    # send the given message to STDOUT so that it shows
     # up in the console.  This should be used for important informational messages at boot.
-    # The to_stderr may be implemented differently by different config subclasses.
+    # The to_stdout may be implemented differently by different config subclasses.
     # This will NOT print anything if tracers are not enabled
     def log!(msg, level=:info)
       return if @settings && !agent_enabled?
-      to_stderr msg
+      to_stdout msg
       log.send level, msg if @log
     end
     
@@ -315,8 +315,8 @@ module NewRelic
       @log
     end
     
-    def to_stderr(msg)
-      STDERR.puts "** [NewRelic] " + msg 
+    def to_stdout(msg)
+      STDOUT.puts "** [NewRelic] " + msg 
     end
     
     def config_file
