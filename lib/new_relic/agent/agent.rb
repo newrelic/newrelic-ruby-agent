@@ -146,16 +146,20 @@ module NewRelic::Agent
       @use_transaction_sampler = sampler_config.fetch('enabled', false)
       
       @record_sql = sampler_config.fetch('record_sql', :obfuscated).to_sym
-      @slowest_transaction_threshold = sampler_config.fetch('transaction_threshold', 2.0).to_f
+      
+      # use transaction_threshold: 4.0 to force the TT collection threshold to 4 seconds
+      # use transaction_threshold: apdex_f to use your apdex t value multiplied by 4
+      @slowest_transaction_threshold = sampler_config.fetch('transaction_threshold', 'apdex_f')
+      @slowest_transaction_threshold = 4 * NewRelic::Control.instance['apdex_t'].to_f if @slowest_transaction_threshold == 'apdex_f'
+      @slowest_transaction_threshold = @slowest_transaction_threshold.to_f
+      
       @explain_threshold = sampler_config.fetch('explain_threshold', 0.5).to_f
       @explain_enabled = sampler_config.fetch('explain_enabled', true)
       @random_sample = sampler_config.fetch('random_sample', false)
-      @frustrating = sampler_config.fetch('frustrating', false)
       log.info "Transaction tracing is enabled in agent config" if @use_transaction_sampler
       log.warn "Agent is configured to send raw SQL to RPM service" if @record_sql == :raw
       # Initialize transaction sampler
       @transaction_sampler.random_sampling = @random_sample
-      @slowest_transaction_threshold = 4 * NewRelic::Control.instance['apdex_t'] if @frustrating
 
       if config.monitor_mode?
         # make sure the license key exists and is likely to be really a license key

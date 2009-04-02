@@ -53,6 +53,10 @@ class NewRelic::ControlTests < Test::Unit::TestCase
   def test_config_apdex
     assert_equal 1.1, c['apdex_t']
   end
+  def test_transaction_threshold
+    assert_equal nil, c['transaction_tracer']['transaction_threshold']
+    assert_equal 4.4, NewRelic::Agent::Agent.instance.instance_variable_get('@slowest_transaction_threshold')
+  end
   def test_log_file_name
     assert_match /newrelic_agent.log$/, c.instance_variable_get('@log_file')
   end
