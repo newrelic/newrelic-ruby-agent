@@ -149,9 +149,17 @@ module NewRelic::Agent
       
       # use transaction_threshold: 4.0 to force the TT collection threshold to 4 seconds
       # use transaction_threshold: apdex_f to use your apdex t value multiplied by 4
-      @slowest_transaction_threshold = sampler_config.fetch('transaction_threshold', 'apdex_f')
-      @slowest_transaction_threshold = 4 * NewRelic::Control.instance['apdex_t'].to_f if @slowest_transaction_threshold == 'apdex_f'
+      # undefined transaction_threshold defaults to 2.0
+      apdex_f = 4 * NewRelic::Control.instance['apdex_t'].to_f
+      @slowest_transaction_threshold = sampler_config.fetch('transaction_threshold', 2.0)
+      if @slowest_transaction_threshold =~ /apdex_f/i
+        @slowest_transaction_threshold = apdex_f
+      elsif !@slowest_transaction_threshold.is_a? Float
+        log.warn "Invalid transaction_threshold detected: '#{@slowest_transaction_threshold}'. Using #{apdex_f} seconds." if @use_transaction_sampler
+        @slowest_transaction_threshold = apdex_f
+      end
       @slowest_transaction_threshold = @slowest_transaction_threshold.to_f
+      log.info "Transaction tracing threshold is #{@slowest_transaction_threshold} seconds" if @use_transaction_sampler
       
       @explain_threshold = sampler_config.fetch('explain_threshold', 0.5).to_f
       @explain_enabled = sampler_config.fetch('explain_enabled', true)

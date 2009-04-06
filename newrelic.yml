@@ -75,7 +75,12 @@ common: &default_settings
     # Transaction tracer is enabled by default. Set this to false to turn it off. This feature
     # is only available at the Silver and above product levels.
     enabled: true
-  
+    
+    # Threshold in seconds for when to collect a transaction trace. When the response time of
+    # a controller action exceeds this threshold, a transaction trace will be recorded and sent
+    # to RPM. Valid values are any float value, or (default) "apdex_f", which will use the
+    # threshold for an dissatisfying Apdex controller action - four times the Apdex T value.
+    transaction_threshold: apdex_f
  
     # When transaction tracer is on, SQL statements can optionally be recorded. The recorder
     # has three modes, "off" which sends no SQL, "raw" which sends the SQL statement in its 

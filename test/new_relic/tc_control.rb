@@ -54,7 +54,7 @@ class NewRelic::ControlTests < Test::Unit::TestCase
     assert_equal 1.1, c['apdex_t']
   end
   def test_transaction_threshold
-    assert_equal nil, c['transaction_tracer']['transaction_threshold']
+    assert_equal 'Apdex_f', c['transaction_tracer']['transaction_threshold']
     assert_equal 4.4, NewRelic::Agent::Agent.instance.instance_variable_get('@slowest_transaction_threshold')
   end
   def test_log_file_name

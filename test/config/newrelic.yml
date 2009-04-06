@@ -27,7 +27,7 @@ test:
   transaction_tracer:
     enabled: true
     record_sql: raw
-    # transaction_threshold: apdex_f # apdex_f should be the default if transaction_threshold is omitted
+    transaction_threshold: Apdex_f # case insensitive
     explain_threshold: 0.1
     explain_enabled: true
     stack_trace_threshold: 0.1
