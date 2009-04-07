@@ -1,8 +1,8 @@
-##require 'new_relic/agent'
-require 'google_pie_chart'
+#require 'google_pie_chart'
 
 class NewrelicController < ActionController::Base
   include NewrelicHelper
+  helper NewrelicHelper
   
   # See http://wiki.rubyonrails.org/rails/pages/Safe+ERB:
   # We don't need to worry about checking taintedness

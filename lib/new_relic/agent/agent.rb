@@ -476,10 +476,8 @@ module NewRelic::Agent
       post_data = Zlib::Deflate.deflate(Marshal.dump(args), Zlib::BEST_SPEED)
       http = config.http_connection(collector)
       
-      # params = {:method => method, :license_key => license_key, :protocol_version => PROTOCOL_VERSION }
-      # uri = "/agent_listener/invoke_raw_method?#{params.to_query}"
-      uri = "/agent_listener/invoke_raw_method?method=#{method}&license_key=#{config.license_key}&protocol_version=#{PROTOCOL_VERSION}"
-      uri += "&run_id=#{@agent_id}" if @agent_id
+      uri = "/agent_listener/#{PROTOCOL_VERSION}/#{config.license_key}/#{method}"
+      uri += "?run_id=#{@agent_id}" if @agent_id
       
       request = Net::HTTP::Post.new(uri, 'ACCEPT-ENCODING' => 'gzip', 'HOST' => collector.name)
       request.content_type = "application/octet-stream"

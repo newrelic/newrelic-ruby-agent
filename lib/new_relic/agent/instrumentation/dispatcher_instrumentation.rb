@@ -23,6 +23,9 @@ module NewRelic::Agent::Instrumentation
     end
     
     def newrelic_dispatcher_finish
+      #puts @env.to_a.map{|k,v| "#{'%32s' % k}: #{v.inspect[0..64]}"}.join("\n")
+
+
       dispatcher_end_time = Time.now.to_f
       NewRelic::Agent.agent.end_transaction
       NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.dispatcher_finish dispatcher_end_time
