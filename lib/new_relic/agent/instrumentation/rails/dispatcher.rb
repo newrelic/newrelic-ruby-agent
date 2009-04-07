@@ -8,6 +8,7 @@ elsif defined? Dispatcher
   target = Dispatcher
 end
 
+# NOTE TODO: maybe this should be done with a middleware?
 if target
   require 'action_pack/version'
   NewRelic::Agent.instance.log.debug "Adding #{target} instrumentation"
@@ -19,11 +20,7 @@ if target
       before_dispatch :newrelic_dispatcher_start
       after_dispatch :newrelic_dispatcher_finish
       def newrelic_response_code
-#        if !@response.headers['Status']
-#          puts @response.headers.inspect
-#          puts @response.inspect
-#        end
-         (@response.headers['Status']||'200')[0..2]
+        (@response.headers['Status']||'200')[0..2] if ActionPack::VERSION::MAJOR == 2 && ActionPack::VERSION::MINOR < 3 
       end
     else
       # In version 1.2.* the instrumentation is done by method chaining
