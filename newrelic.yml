@@ -49,6 +49,14 @@ common: &default_settings
   # it should not impact response times.
   ssl: false
   
+  # Set your application's Apdex threshold value with the 'apdex_t' setting, in seconds. The
+  # apdex_t value determines the buckets used to compute your overall Apdex score. Requests
+  # that take less than apdex_t seconds to process will be classified as Satisfying transactions;
+  # more than apdex_t seconds as Tolerating transactions; and more than four times the apdex_t 
+  # value as Frustrating transactions. For more
+  # about the Apdex standard, see http://support.newrelic.com/faqs/general/apdex
+  apdex_t: 2.0
+    
 
   # Proxy settings for connecting to the RPM server.
   #
