@@ -50,6 +50,37 @@ module NewRelic
         to_debug_str(0)
       end
       
+      def to_json
+        map = {:entry_timestamp => @entry_timestamp,
+          :exit_timestamp => @exit_timestamp,
+          :metric_name => @metric_name,
+          :segment_id => @segment_id}
+        if @called_segments && !@called_segments.empty?
+          map[:called_segments] = @called_segments
+        end
+        if @params && !@params.empty?
+          map[:params] = @params
+        end
+        map.to_json
+      end
+      
+      def self.from_json(json)
+        json = ActiveSupport::JSON.decode(json) if json.is_a?(String)
+        segment = Segment.new(json["entry_timestamp"].to_f, json["metric_name"], json["segment_id"])
+        segment.end_trace json["exit_timestamp"].to_f
+        params = json["params"]
+        if params
+          segment.send :params=, HashWithIndifferentAccess.new(params)
+        end
+        called_segments = json["called_segments"]
+        if called_segments
+          called_segments.each do |child|
+            segment.add_called_segment(self.from_json(child))
+          end
+        end
+        segment
+      end
+      
       def path_string
         "#{metric_name}[#{called_segments.collect {|segment| segment.path_string }.join('')}]"
       end
@@ -197,6 +228,9 @@ module NewRelic
         def parent_segment=(s)
           @parent_segment = s
         end
+        def params=(p)
+          @params = p
+        end
     end
     
     class SummarySegment < Segment
@@ -287,6 +321,30 @@ module NewRelic
       @root_segment = create_segment 0.0, "ROOT"
       @params = {}
       @params[:request_params] = {}
+    end
+    
+    def to_json(options = {})
+      map = {:sample_id => @sample_id,
+        :start_time => @start_time,
+        :root_segment => @root_segment}
+      if @params && !@params.empty?
+        map[:params] = @params  
+      end
+      map.to_json
+    end
+    
+    def self.from_json(json)
+      json = ActiveSupport::JSON.decode(json) if json.is_a?(String)
+      sample = TransactionSample.new(json["start_time"].to_f, json["sample_id"].to_i)
+      params = json["params"]
+      if params
+        sample.send :params=, HashWithIndifferentAccess.new(params)
+      end
+      root = json["root_segment"]
+      if root
+        sample.send :root_segment=, Segment.from_json(root)
+      end
+      sample
     end
 
     def start_time
@@ -393,6 +451,9 @@ module NewRelic
   protected
     def root_segment=(segment)
       @root_segment = segment
+    end
+    def params=(params)
+      @params = params
     end
 
   private
