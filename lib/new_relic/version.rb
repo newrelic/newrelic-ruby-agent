@@ -11,10 +11,8 @@ module NewRelic
   end
 
   CHANGELOG = <<EOF
-2009-03-30 version 2.8.8
+2009-03-27 version 2.8.8
   * fix error with jruby on windows
-  * fix problem where webrick was being incorrectly detected
-    causing some problems with mongrel application assignments
 2009-03-20 version 2.8.7
   * fix for ssl connection hanging problems
   * fix problem recognizing mongrel in rails 2.3.2
