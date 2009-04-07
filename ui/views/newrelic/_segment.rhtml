@@ -14,7 +14,7 @@
   <%= timestamp(segment) %>
 </td>
 <td nowrap=true align="right">
-  <%= segment.duration.to_ms.with_delimiter %>
+  <%= with_delimiter(to_ms(segment.duration)) %>
 </td>
 <td nowrap=true align="right">
   <%= colorize(segment.exclusive_duration) %>

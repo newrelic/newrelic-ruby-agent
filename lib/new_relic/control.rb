@@ -276,6 +276,7 @@ module NewRelic
         log.info "Resolved #{host} to #{ip_address}"
       rescue => e
         log.warn "DNS Error caching IP address: #{e}"
+        log.debug e.backtrace.join("\n   ")
         ip_address = IPSocket::getaddress host rescue ip_address
       end
       ip_address

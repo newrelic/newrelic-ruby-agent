@@ -89,7 +89,7 @@ module NewrelicHelper
     if source_available && segment[:backtrace] && (source_url = url_for_source(application_caller(segment[:backtrace])))
       link_to dev_name(segment.metric_name), source_url
     else
-      dev_name(segment.metric_name)
+      h(dev_name(segment.metric_name))
     end
   end
   
@@ -299,7 +299,9 @@ private
   def to_ms(number)
    (number*1000).round
   end
-  # copied from rails
+  def to_percentage(value)
+    (value * 100).round if value
+  end
   def with_delimiter(val)
     return '0' if val.nil?
     parts = val.to_s.split('.')
