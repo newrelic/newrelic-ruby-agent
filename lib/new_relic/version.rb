@@ -13,6 +13,8 @@ module NewRelic
   CHANGELOG = <<EOF
 2009-04-10 version 2.8.9
   * fix problem finding the newrelic controller in dev mode
+  * fix incompatibility with older versions of optparse
+  * fix potential jvm problem with jruby
 2009-03-27 version 2.8.8
   * fix error with jruby on windows
 2009-03-20 version 2.8.7
