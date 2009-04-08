@@ -547,12 +547,15 @@ module NewRelic::Agent
     end
       
     def load_samplers
-      sampler_files = File.join(File.dirname(__FILE__), 'samplers', '*.rb')
-      Dir.glob(sampler_files) do |file|
+      sampler_files_root = File.join(File.dirname(__FILE__), 'samplers')
+      samplers = %w[memory.rb]
+      samplers += %w[cpu.rb mongrel.rb] unless RUBY_PLATFORM =~ /java/
+      for sampler in samplers do
         begin
-          require file
+          log.debug "Loading sampler #{sampler}"
+          require File.join(sampler_files_root, sampler)
         rescue => e
-          log.error "Error loading sampler '#{file}': #{e}"
+          log.error "Error loading sampler '#{sampler}': #{e}"
         end
       end
     end
