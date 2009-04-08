@@ -1,5 +1,3 @@
-#require 'google_pie_chart'
-
 class NewrelicController < ActionController::Base
   include NewrelicHelper
   helper NewrelicHelper
