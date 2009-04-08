@@ -26,19 +26,14 @@ class NewRelic::Control::Rails < NewRelic::Control
   end
   
   def install_developer_mode(rails_config)
-#    ActiveSupport::Dependencies.log_activity = true
     return if @installed
     @installed = true
     controller_path = File.expand_path(File.join(newrelic_root, 'ui', 'controllers'))
     helper_path = File.expand_path(File.join(newrelic_root, 'ui', 'helpers'))
-#    $LOAD_PATH << controller_path
-#    $LOAD_PATH << helper_path
 
     if defined? ActiveSupport::Dependencies
       Dir["#{helper_path}/*.rb"].each { |f| require f }
       Dir["#{controller_path}/*.rb"].each { |f| require f }
- #      ActiveSupport::Dependencies.load_paths << controller_path
-#      ActiveSupport::Dependencies.load_paths << helper_path
     elsif defined? Dependencies.load_paths
       Dependencies.load_paths << controller_path
       Dependencies.load_paths << helper_path
