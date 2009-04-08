@@ -59,4 +59,14 @@ class EnvironmentTest < ActiveSupport::TestCase
     assert_equal 'test', s.assoc('Framework').last, s.inspect
     assert_equal NewRelic::VERSION::STRING, s.assoc('RPM agent version').last
   end
+  
+  
+  def test_default_port
+    e = NewRelic::LocalEnvironment.new
+    assert_equal 3000, e.send(:default_port)
+    ARGV.push '--port=3121'
+    assert_equal '3121', e.send(:default_port)
+    ARGV.pop
+  end
+  
 end
