@@ -215,18 +215,18 @@ module NewRelic
         @dispatcher = :passenger
       end
     end
-
+  
     def default_port
       require 'optparse'
       # If nothing else is found, use the 3000 default
       default_port = 3000
-      ARGV.clone.options do |opts|
+      OptionParser.new do |opts|
         opts.on("-p", "--port=port", String) { | default_port | }
-        opts.parse!
+        opts.parse!(ARGV.clone)
       end
       default_port
     end
-
+    
     public 
     def to_s
       s = "LocalEnvironment["
