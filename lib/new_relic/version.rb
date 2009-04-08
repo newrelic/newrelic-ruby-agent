@@ -3,7 +3,7 @@ module NewRelic
   module VERSION #:nodoc:
   MAJOR = 2
   MINOR = 8
-  TINY  = 8
+  TINY  = 9
   STRING = [MAJOR, MINOR, TINY].join('.')
   def self.changes
     puts "NewRelic RPM Plugin Version: #{NewRelic::VERSION::STRING}"
@@ -11,6 +11,8 @@ module NewRelic
   end
 
   CHANGELOG = <<EOF
+2009-04-10 version 2.8.9
+  * fix problem finding the newrelic controller in dev mode
 2009-03-27 version 2.8.8
   * fix error with jruby on windows
 2009-03-20 version 2.8.7
