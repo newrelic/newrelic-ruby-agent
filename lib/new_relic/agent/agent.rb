@@ -666,7 +666,7 @@ module NewRelic::Agent
       uri = "/agent_listener/invoke_raw_method?method=#{method}&license_key=#{license_key}&protocol_version=#{PROTOCOL_VERSION}"
       uri += "&run_id=#{@agent_id}" if @agent_id
       
-      request = Net::HTTP::Post.new(uri, 'ACCEPT-ENCODING' => 'gzip')
+      request = Net::HTTP::Post.new(uri, 'ACCEPT-ENCODING' => 'gzip', 'HOST' => config.fetch('host', 'collector.newrelic.com'))
       request.content_type = "application/octet-stream"
       request.body = post_data
       
