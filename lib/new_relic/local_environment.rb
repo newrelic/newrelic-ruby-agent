@@ -148,7 +148,7 @@ module NewRelic
       return
       # This next line is too aggressive.  Apps not using webrick
       # sometimes ended up with this constant defined anyway
-      return unless defined?(WEBrick)
+      return unless defined?(WEBrick::VERSION)
       @dispatcher = :webrick
       if defined?(OPTIONS) && OPTIONS.respond_to?(:fetch) 
         # OPTIONS is set by script/server
