@@ -77,11 +77,8 @@ module NewrelicHelper
     end
   end
   
-  
   def dev_name(metric_name)
-    @@metric_parser_available ||= defined? MetricParser
-    
-    (@@metric_parser_available) ? MetricParser.parse(metric_name).developer_name : metric_name
+    NewRelic::MetricParser.parse(metric_name).developer_name
   end
   
   # write the metric label for a segment metric in the detail view

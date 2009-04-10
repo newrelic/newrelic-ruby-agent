@@ -48,11 +48,7 @@ module NewRelic::TransactionAnalysis
     
     def developer_name
       return @metric_name if @metric_name == 'Remainder'
-      # This drags all of the metric parser into the agent which I would prefer
-      # not to do.  We could do a webservice that centralizes this but that might
-      # be expensive and not well received.
-      # MetricParser.parse(@metric_name).developer_name
-      @metric_name
+      NewRelic::MetricParser.parse(@metric_name).developer_name
     end
   end
   

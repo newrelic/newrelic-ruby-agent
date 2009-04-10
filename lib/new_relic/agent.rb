@@ -7,6 +7,7 @@ module NewRelic
     require 'new_relic/stats'
     require 'new_relic/metric_spec'
     require 'new_relic/metric_data'
+    require 'new_relic/metric_parser'
     require 'new_relic/transaction_analysis'
     require 'new_relic/transaction_sample'
     require 'new_relic/noticed_error'

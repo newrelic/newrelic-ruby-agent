@@ -1,5 +1,7 @@
 2009-XXXXX version 2.9.0
-  * Give visibility to templates and partials in Rails 2.1 and later
+  * Improved labeling of metrics in Dev Mode traces to make them more readable
+  * Give visibility to templates and partials in Rails 2.1 and later, in dev
+    mode and production
   * Capture gem information in configuration
   * Using a different timeout mechanism when we post data to RPM
   * Sample memory on linux by reading /proc/#{$$}/status file
