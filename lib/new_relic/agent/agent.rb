@@ -473,13 +473,15 @@ module NewRelic::Agent
       # message size with this, and CPU overhead is at a premium.  If we wanted
       # to go for higher compression instead, we could use Zlib::BEST_COMPRESSION and 
       # pay a little more CPU.
-      post_data = Zlib::Deflate.deflate(Marshal.dump(args), Zlib::BEST_SPEED)
+      data = Marshal.dump(args)
+      encoding = data.size > 2000 ? 'deflate' : 'identity' # don't compress small payloads
+      post_data = encoding == 'deflate' ? Zlib::Deflate.deflate(data, Zlib::BEST_SPEED) : data
       http = config.http_connection(collector)
       
       uri = "/agent_listener/#{PROTOCOL_VERSION}/#{config.license_key}/#{method}"
       uri += "?run_id=#{@agent_id}" if @agent_id
       
-      request = Net::HTTP::Post.new(uri, 'ACCEPT-ENCODING' => 'gzip', 'HOST' => collector.name)
+      request = Net::HTTP::Post.new(uri, 'CONTENT-ENCODING' => encoding, 'ACCEPT-ENCODING' => 'gzip', 'HOST' => collector.name)
       request.content_type = "application/octet-stream"
       request.body = post_data
       
