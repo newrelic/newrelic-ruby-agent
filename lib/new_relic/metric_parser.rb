@@ -58,10 +58,6 @@ module NewRelic
       short_name
     end
     
-
-      Metric.lookup(name, "", :create => false)
-    
-    
     # Return the name of another metric if the current
     # metric is really add-on data for another metric
     def base_metric_name
@@ -105,7 +101,7 @@ module NewRelic
     end
   end  
 end
-
-for submodule in Dir[File.join(File.dirname(__FILE__), "metric_parser", "*.rb")] do
-  require submodule
-end
+#
+#for submodule in Dir[File.join(File.dirname(__FILE__), "metric_parser", "*.rb")] do
+#  require submodule
+#end
