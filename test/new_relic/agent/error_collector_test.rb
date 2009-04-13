@@ -100,7 +100,7 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
     ['hi', 'hi'],
     [:hi, :hi],
     [Exception.new("test"), "#<Exception>"],
-    [TestClass.new, "#<NewRelic::Agent::ErrorCollectorTests::TestClass>"]
+    [TestClass.new, "#<NewRelic::Agent::ErrorCollectorTest::TestClass>"]
     ]
     
     
