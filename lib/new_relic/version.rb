@@ -15,6 +15,7 @@ module NewRelic
   * fix problem finding the newrelic controller in dev mode
   * fix incompatibility with older versions of optparse
   * fix potential jvm problem with jruby
+  * remove test:all task definition to avoid conflicts
 2009-03-27 version 2.8.8
   * fix error with jruby on windows
 2009-03-20 version 2.8.7
