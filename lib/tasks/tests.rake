@@ -5,7 +5,7 @@ if defined? Rake::TestTask
     Rake::TestTask.new(:newrelic) do |t|
       t.libs << "#{AGENT_HOME}/test"
       t.libs << "#{AGENT_HOME}/lib"
-      t.pattern = "#{AGENT_HOME}/test/**/tc_*.rb"
+      t.pattern = "#{AGENT_HOME}/test/**/*_test.rb"
       t.verbose = true
     end
     Rake::Task['test:newrelic'].comment = "Run the unit tests for the Agent"
