@@ -50,7 +50,7 @@ module NewRelic
   end
 end
 
-class NewRelic::Agent::MethodTracerTests < Test::Unit::TestCase
+class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
   attr_reader :stats_engine
   
   def setup

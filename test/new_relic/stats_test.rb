@@ -1,7 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..', 'test_helper'))
 ##require "new_relic/stats"
 
-class NewRelic::StatsTests < Test::Unit::TestCase
+class NewRelic::StatsTest < Test::Unit::TestCase
   
   def test_simple
     stats = NewRelic::MethodTraceStats.new 

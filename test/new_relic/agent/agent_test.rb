@@ -2,7 +2,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 ##require 'new_relic/agent/agent'
 ##require 'new_relic/local_environment'
 
-class AgentTests < ActiveSupport::TestCase
+class AgentTest < ActiveSupport::TestCase
   
   attr_reader :agent
   

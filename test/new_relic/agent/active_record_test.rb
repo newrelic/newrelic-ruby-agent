@@ -2,7 +2,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 require 'new_relic/agent/model_fixture'
 
 
-class ActiveRecordInstrumentationTests < Test::Unit::TestCase
+class ActiveRecordTest < Test::Unit::TestCase
   
   def setup
     NewRelic::Agent.manual_start

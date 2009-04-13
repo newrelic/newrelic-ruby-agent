@@ -1,6 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 
-class ClassLoaderPatchTests < ActiveSupport::TestCase
+class ClassLoaderPatchTest < ActiveSupport::TestCase
   
   def test_const_undefined
     require 'new_relic/agent/patch_const_missing'

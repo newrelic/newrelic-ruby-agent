@@ -3,7 +3,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 
 NewRelic::Agent::TransactionSampler.send :public, :builder
 
-class NewRelic::Agent::TransationSamplerTests < Test::Unit::TestCase
+class NewRelic::Agent::TransationSamplerTest < Test::Unit::TestCase
   
   def setup
     Thread::current[:record_sql] = nil

@@ -2,7 +2,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
 require 'newrelic_helper'
 require 'new_relic/agent/model_fixture'
 
-class NewRelic::Agent::NewrelicHelperTests < Test::Unit::TestCase
+class NewRelic::Agent::NewrelicHelperTest < Test::Unit::TestCase
   include NewrelicHelper
   
   def params

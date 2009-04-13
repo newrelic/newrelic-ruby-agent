@@ -6,7 +6,7 @@ module NewRelic
   end
 end
 
-class NewRelic::ControlTests < Test::Unit::TestCase
+class NewRelic::ControlTest < Test::Unit::TestCase
 
   attr_reader :c
   

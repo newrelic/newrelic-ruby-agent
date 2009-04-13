@@ -1,6 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
 
-class NewRelic::Agent::TransationSampleBuilderTests < Test::Unit::TestCase
+class NewRelic::Agent::TransationSampleBuilderTest < Test::Unit::TestCase
   
   def setup
     @builder = NewRelic::Agent::TransactionSampleBuilder.new

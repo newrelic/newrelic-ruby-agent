@@ -7,7 +7,7 @@ require 'test/unit'
 
 ::SQL_STATEMENT = "SELECT * from sandwiches"
 
-class NewRelic::TransationSampleTests < Test::Unit::TestCase
+class NewRelic::TransationSampleTest < Test::Unit::TestCase
   
   def setup
     NewRelic::Agent.manual_start

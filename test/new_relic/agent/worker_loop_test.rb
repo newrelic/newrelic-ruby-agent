@@ -5,7 +5,7 @@ NewRelic::Agent::WorkerLoop.class_eval do
   public :run_next_task
 end
 
-class NewRelic::Agent::WorkerLoopTests < Test::Unit::TestCase
+class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
   def setup
     @log = ""
     @logger = Logger.new(StringIO.new(@log))

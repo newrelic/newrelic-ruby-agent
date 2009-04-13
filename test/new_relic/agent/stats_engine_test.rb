@@ -3,7 +3,7 @@ require 'test/unit'
 ##require 'new_relic/agent/stats_engine'
 
 
-class NewRelic::Agent::StatsEngineTests < Test::Unit::TestCase
+class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
   def setup
     NewRelic::Agent.manual_start
     @engine = NewRelic::Agent.instance.stats_engine

@@ -5,7 +5,7 @@ class TestSync
   include NewRelic::Agent::Synchronize
 end
 
-class AgentSynchronizeTests < Test::Unit::TestCase
+class AgentSynchronizeTest < Test::Unit::TestCase
   
 
   def test_sync

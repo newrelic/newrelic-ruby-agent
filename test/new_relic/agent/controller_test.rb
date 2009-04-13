@@ -2,7 +2,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 require 'action_controller/base'
 #require 'new_relic/agent/agent_test_controller'
 
-class AgentControllerTests < ActionController::TestCase
+class AgentControllerTest < ActionController::TestCase
   
   self.controller_class = NewRelic::Agent::AgentTestController
   

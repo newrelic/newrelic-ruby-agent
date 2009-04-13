@@ -3,7 +3,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'../../lib/new_relic/c
 require 'rubygems'
 require 'mocha'
 
-class NewRelic::DeploymentsTests < Test::Unit::TestCase
+class NewRelic::DeploymentsTest < Test::Unit::TestCase
   
   def setup
     NewRelic::Commands::Deployments.class_eval do

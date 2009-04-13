@@ -1,6 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
 
-class NewRelic::Agent::DispatcherInstrumentationTests < Test::Unit::TestCase
+class NewRelic::Agent::DispatcherInstrumentationTest < Test::Unit::TestCase
   
   class FunnyDispatcher
     include NewRelic::Agent::Instrumentation::DispatcherInstrumentation

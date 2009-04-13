@@ -15,7 +15,7 @@ class FakeRequest
   end
 end
 
-class NewRelic::Agent::ErrorCollectorTests < Test::Unit::TestCase
+class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
   
   def setup
     @error_collector = NewRelic::Agent::ErrorCollector.new(nil)

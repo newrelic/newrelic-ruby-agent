@@ -2,7 +2,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 require 'ostruct'
 require 'new_relic/agent/model_fixture'
 
-class NewRelic::Agent::CollectionHelperTests < Test::Unit::TestCase
+class NewRelic::Agent::CollectionHelperTest < Test::Unit::TestCase
   
   def setup
     super

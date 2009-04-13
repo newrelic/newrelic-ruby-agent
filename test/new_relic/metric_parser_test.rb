@@ -9,7 +9,7 @@ class MyMetric
   end
 end
 
-class MetricParserTests < Test::Unit::TestCase
+class MetricParserTest < Test::Unit::TestCase
   
   def test_string
     %[Controller/posts/index View/posts/index WebService/posts Custom/posts Unrecognized/posts XX/posts].each do | name |
