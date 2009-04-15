@@ -10,7 +10,7 @@ module NewRelic::Agent::Samplers
       elsif platform =~ /linux/
         @sampler = ProcStatus.new
         if !@sampler.can_run?
-          NewRelic::Agent.instance.log.error "Error attempting to use /proc/$$/status file for reading memory. Using ps command instead"
+          NewRelic::Agent.instance.log.warn "Error attempting to use /proc/$$/status file for reading memory. Using ps command instead."
           @sampler = ShellPS.new("ps -o rsz")
         else
           NewRelic::Agent.instance.log.info "Using /proc/$$/status for reading process memory."
