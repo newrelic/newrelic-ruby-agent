@@ -27,14 +27,9 @@ common: &default_settings
   # defining applications.
   app_name: My Application
 
-  # the 'enabled' setting is used to turn on the NewRelic Agent.  When false,
-  # your application is not instrumented and the Agent does not start up or
-  # collect any data; it is a complete shut-off.
-  #
-  # when turned on, the agent collects performance data by inserting lightweight
+  # When 'enabled' is turned on, the agent collects performance data by inserting lightweight
   # tracers on key methods inside the rails framework and asynchronously aggregating
-  # and reporting this performance data to the NewRelic RPM service at NewRelic.com.
-  # below.
+  # and reporting this performance data to the NewRelic RPM service at newrelic.com.
   enabled: false
 
   # The newrelic agent generates its own log file to keep its logging information
@@ -55,7 +50,7 @@ common: &default_settings
   # more than apdex_t seconds as Tolerating transactions; and more than four times the apdex_t 
   # value as Frustrating transactions. For more
   # about the Apdex standard, see http://support.newrelic.com/faqs/general/apdex
-  apdex_t: 2.0
+  apdex_t: 1.0
     
 
   # Proxy settings for connecting to the RPM server.
@@ -117,6 +112,9 @@ common: &default_settings
     #
     #ignore_errors: ActionController::RoutingError, ...
 
+  # (Advanced) Uncomment this to ensure the cpu and memory samplers won't run.  Useful when you
+  # are using the agent to monitor an external resource
+  # disable_samplers: true
 
 # override default settings based on your application's environment
 
