@@ -24,8 +24,6 @@ module NewRelic::Agent::Instrumentation
     
     def newrelic_dispatcher_finish
       #puts @env.to_a.map{|k,v| "#{'%32s' % k}: #{v.inspect[0..64]}"}.join("\n")
-
-
       dispatcher_end_time = Time.now.to_f
       NewRelic::Agent.agent.end_transaction
       NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.dispatcher_finish dispatcher_end_time
@@ -54,6 +52,18 @@ module NewRelic::Agent::Instrumentation
       end
     end
     
+    private
+    # memoize the stats to avoid the cost of the lookup each time.
+    def dispatch_stat
+      @@newrelic_rails_dispatch_stat ||= NewRelic::Agent.agent.stats_engine.get_stats 'Rails/HTTP Dispatch'  
+    end
+    def mongrel_queue_stat
+      @@newrelic_mongrel_queue_stat ||= NewRelic::Agent.agent.stats_engine.get_stats('WebFrontend/Mongrel/Average Queue Time')  
+    end
+    def response_stats
+      @@newrelic_response_stats ||= { '200' => NewRelic::Agent.agent.stats_engine.get_stats('HTTP/Response/200')}  
+    end
+    
     # This won't work with Rails 2.2 multi-threading
     module BusyCalculator
       extend self
@@ -70,8 +80,8 @@ module NewRelic::Agent::Instrumentation
       end
       
       def dispatcher_finish(time)
-        NewRelic::Control.instance.log.error "Stack underflow tracking dispatcher entry and exit!\n  #{caller.join("  \n")}" if @entrypoint_stack.empty?
         Thread.critical = true
+        NewRelic::Control.instance.log.error("Stack underflow tracking dispatcher entry and exit!\n  #{caller.join("  \n")}") and return if @entrypoint_stack.empty?
         @accumulator += (time - @entrypoint_stack.pop)
         Thread.critical = false
       end
@@ -87,7 +97,7 @@ module NewRelic::Agent::Instrumentation
         @accumulator = 0
         
         t0 = Time.now.to_f
-
+        
         # Walk through the stack and capture all times up to 
         # now for entrypoints
         @entrypoint_stack.size.times do |frame| 
@@ -106,7 +116,7 @@ module NewRelic::Agent::Instrumentation
         busy = busy / time_window
         
         busy = 1.0 if busy > 1.0    # cap at 100%
-        instance_busy_stats.record_data_point busy
+        instance_busy_stats.record_data_point busy unless busy == 0
         @harvest_start = t0
       end
       private
@@ -115,18 +125,6 @@ module NewRelic::Agent::Instrumentation
         @instance_busy ||= NewRelic::Agent.agent.stats_engine.get_stats('Instance/Busy')  
       end
       
-    end
-    
-    private
-    # memoize the stats to avoid the cost of the lookup each time.
-    def dispatch_stat
-      @@newrelic_rails_dispatch_stat ||= NewRelic::Agent.agent.stats_engine.get_stats 'Rails/HTTP Dispatch'  
-    end
-    def mongrel_queue_stat
-      @@newrelic_mongrel_queue_stat ||= NewRelic::Agent.agent.stats_engine.get_stats('WebFrontend/Mongrel/Average Queue Time')  
-    end
-    def response_stats
-      @@newrelic_response_stats ||= { '200' => NewRelic::Agent.agent.stats_engine.get_stats('HTTP/Response/200')}  
     end
     
   end
