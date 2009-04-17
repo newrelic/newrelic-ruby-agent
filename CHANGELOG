@@ -1,4 +1,5 @@
 2009-XXXXX version 2.9.0
+  * Add API for system monitoring daemons
   * Improved labeling of metrics in Dev Mode traces to make them more readable
   * Give visibility to templates and partials in Rails 2.1 and later, in dev
     mode and production
@@ -18,6 +19,13 @@
   * in jruby, use Java used heap for memory sampling if the system
     memory is not accessible from an unsupported platform
   * fix various bugs with jruby support
+2009-04-17 version 2.8.9
+  * fix problem finding the newrelic controller in dev mode
+  * fix incompatibility with older versions of optparse
+  * fix potential jvm problem with jruby
+  * remove test:all task definition to avoid conflicts
+  * change error message about window sampler in windows not supported
+    to a warning message
 2009-03-30 version 2.8.8
   * fix error with jruby on windows
   * fix problem where webrick was being incorrectly detected
