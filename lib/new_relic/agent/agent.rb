@@ -175,14 +175,13 @@ module NewRelic::Agent
         if !config.license_key || config.license_key.length != 40
           config.log! "No license key found.  Please edit your newrelic.yml file and insert your license key.", :error
         else     
-          load_samplers
           launch_worker_thread
           # When the VM shuts down, attempt to send a message to the server that
           # this agent run is stopping, assuming it has successfully connected
           at_exit { shutdown }
         end
       end
-      config.log! "New Relic RPM Agent #{NewRelic::VERSION::STRING} Initialized: pid = #{$$}, handler = #{@environment}"
+      config.log! "New Relic RPM Agent #{NewRelic::VERSION::STRING} Initialized: pid = #{$$}"
       config.log! "Agent Log found in #{NewRelic::Control.instance.log_file}"
     end
 
@@ -361,21 +360,15 @@ module NewRelic::Agent
           when 6..10 then
           connect_retry_period, period_msg = 30, nil
           when 11..20 then
-          connect_retry_period, period_msg = 1.minutes, "1 minute"
+          connect_retry_period, period_msg = 60, "1 minute"
         else 
-          connect_retry_period, period_msg = 10.minutes, "10 minutes"
+          connect_retry_period, period_msg = 10*60, "10 minutes"
         end
         log.info "Will re-attempt in #{period_msg}" if period_msg
         retry
       end
     end
       
-    def load_samplers
-      stats_engine.add_sampler NewRelic::Agent::Samplers::MongrelSampler.new 
-      stats_engine.add_sampler NewRelic::Agent::Samplers::CpuSampler.new unless defined? Java
-      stats_engine.add_sampler NewRelic::Agent::Samplers::MemorySampler.new 
-    end
-    
     def determine_host
       Socket.gethostname
     end

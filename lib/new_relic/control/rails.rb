@@ -90,37 +90,10 @@ class NewRelic::Control::Rails < NewRelic::Control
   def rails_vendor_root
     File.join(root,'vendor','rails')
   end
-  def git_info
-    env_lang, ENV['LC_ALL'] = ENV['LC_ALL'], 'C'
-    if File.directory? rails_vendor_root
-      Dir.chdir(rails_vendor_root) do
-        silence_stderr { `git log -n 1` }
-      end
-    else 
-      ""
-    end
-  ensure
-    ENV['LC_ALL'] = env_lang
-  end
   
-  def freeze_edge_version
-    if File.exist?(rails_vendor_root)
-      begin
-        Dir[File.join(rails_vendor_root, 'REVISION_*')].first.scan(/_(\d+)$/).first.first
-      rescue
-        Dir[File.join(rails_vendor_root, 'TAG_*')].first.scan(/_(.+)$/).first.first rescue 'unknown'
-      end
-    end
-  end
-
   # Collect the Rails::Info into an associative array as well as the list of plugins
   def append_environment_info
     local_env.append_environment_value('Rails version'){ ::Rails::VERSION::STRING }
-
-    # The Rails Git revision, if it's checked out into vendor/rails.
-    local_env.append_environment_value 'Edge Rails revision' do
-      git_info[/commit ([a-z0-9-]+)/, 1] || freeze_edge_version
-    end if File.directory?(rails_vendor_root)
 
     if ::Rails::VERSION::MAJOR * 100 + ::Rails::VERSION::MINOR * 10 >= 210
       local_env.append_gem_list do

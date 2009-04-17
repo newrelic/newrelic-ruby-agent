@@ -1,5 +1,11 @@
 require 'set'
-# An instance of LocalEnvironment will provide the environment name
+# An instance of LocalEnvironment is responsible for determining
+# three things: 
+#
+# * Framework - :rails, :merb, :ruby, :test
+# * Dispatcher - A supported dispatcher, or nil (:mongrel, :thin, :passenger, :webrick, etc)
+# * Dispatcher Instance ID, which distinguishes agents on a single host from each other
+#
 # and locally unique dispatcher_instance_id for this agent's host.
 # If the environment can't be determined, it will be set to
 # nil and dispatcher_instance_id will have nil
@@ -8,7 +14,7 @@ module NewRelic
 
     attr_accessor :dispatcher # mongrel, thin, webrick, or possibly nil
     attr_accessor :dispatcher_instance_id # used to distinguish instances of a dispatcher from each other, may be nil
-    attr_accessor :framework # rails, merb, :ruby, :daemon, test
+    attr_accessor :framework # rails, merb, :ruby, test
     attr_reader :mongrel
     alias environment dispatcher
     
@@ -127,7 +133,8 @@ module NewRelic
     end
     
     def discover_framework
-      
+      # Although you can override the framework with NEWRELIC_FRAMEWORK this
+      # is not advisable since it implies certain api's being available.
       @framework = case
         when ENV['NEWRELIC_FRAMEWORK'] then ENV['NEWRELIC_FRAMEWORK'].to_sym 
         when defined? NewRelic::TEST then :test

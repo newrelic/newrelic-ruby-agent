@@ -61,6 +61,7 @@ module NewRelic
         setup_log
         start_agent
         install_instrumentation
+        load_samplers unless self['disable_samplers']
         local_env.gather_environment_info
         append_environment_info
         @started = true
@@ -123,7 +124,7 @@ module NewRelic
     # agent_enabled config option when true or false.
     def agent_enabled?
       return false if !developer_mode? && !monitor_mode?
-      return self['agent_enabled'].to_s =~ /true|on|yes/i unless self['agent_enabled'].nil?
+      return self['agent_enabled'].to_s =~ /true|on|yes/i if self['agent_enabled'] && self['agent_enabled'] != 'auto'
       return false if ENV['NEWRELIC_ENABLE'].to_s =~ /false|off|no/i 
       return true if self['monitor_daemons'].to_s =~ /true|on|yes/i
       return true if ENV['NEWRELIC_ENABLE'].to_s =~ /true|on|yes/i
@@ -250,9 +251,10 @@ module NewRelic
       
       log.debug "Finished instrumentation"
     end
-    
-    def load_samplers(agent)
-      agent.stats_engine.add_sampler NewRelic::Agent::Samplers::MongrelSampler.new(config.mongrel) if local_env.mongrel
+
+    def load_samplers
+      agent = NewRelic::Agent.instance
+      agent.stats_engine.add_sampler NewRelic::Agent::Samplers::MongrelSampler.new if local_env.mongrel
       agent.stats_engine.add_sampler NewRelic::Agent::Samplers::CpuSampler.new unless defined? Java
       agent.stats_engine.add_sampler NewRelic::Agent::Samplers::MemorySampler.new 
     end
@@ -349,7 +351,7 @@ module NewRelic
         when :rails
         require 'new_relic/control/rails'
         NewRelic::Control::Rails.new @local_env
-      when :ruby
+        when :ruby
         require 'new_relic/control/ruby'
         NewRelic::Control::Ruby.new @local_env
       else 
