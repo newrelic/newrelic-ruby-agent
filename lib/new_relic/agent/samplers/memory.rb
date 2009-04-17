@@ -16,10 +16,8 @@ module NewRelic::Agent
         @ps = "/usr/bin/ps -o rss -p"
       end
       if !@ps
-        raise "Unsupported platform for getting memory: #{platform}"
-      end
-      
-      if @ps        
+        NewRelic::Config.instance.log.warn "Unsupported platform for getting memory: #{platform}"
+      else
         @broken = false
         
         agent = NewRelic::Agent.instance        

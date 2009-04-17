@@ -58,7 +58,8 @@ module NewRelic
       
       def add_request_parameters(*args)
       end
-      
+      def add_custom_parameters(*args)
+      end
       def should_ignore_error
       end
     end  
