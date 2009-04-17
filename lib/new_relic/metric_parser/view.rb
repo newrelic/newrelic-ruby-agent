@@ -13,6 +13,10 @@ module NewRelic::MetricParser::View
         "#{file_name(segments[-2])} Template"
       when "Partial"
         "#{file_name(segments[-2])} Partial"
+      when ".rhtml Processing"
+        "ERB compilation"
+      else 
+        segments[1..-1]
     end
   end
   def template_label
@@ -21,6 +25,10 @@ module NewRelic::MetricParser::View
         "#{file_name(segments[1..-2].join(NewRelic::MetricParser::SEPARATOR))} Template"
       when "Partial"
         "#{file_name(segments[1..-2].join(NewRelic::MetricParser::SEPARATOR))} Partial"
+      when ".rhtml Processing"
+        "ERB compilation"
+      else 
+        segments[1..-1]
     end
   end
   
@@ -46,6 +54,8 @@ module NewRelic::MetricParser::View
   end
   private
   def file_name(path)
-    path.gsub /\.html\.rhtml/, '.rhtml'
+    label = path.gsub /\.html\.rhtml/, '.rhtml'
+    label = segments[1] if label.empty?
+    label
   end
 end

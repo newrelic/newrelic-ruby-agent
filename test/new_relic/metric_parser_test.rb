@@ -22,7 +22,11 @@ class MetricParserTest < Test::Unit::TestCase
     assert m.is_view?
     assert !m.is_controller?
   end
-  
+
+  def test_view__short
+    i = NewRelic::MetricParser.parse("View/.rhtml Processing")
+    assert_equal "ERB compilation", i.developer_name
+  end
   def test_controller
     ["controller", "Controller/1/2/3","Controller//!!#!//"].each do | metric_name |
       m = MyMetric.new(metric_name)
