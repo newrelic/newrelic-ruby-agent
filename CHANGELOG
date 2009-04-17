@@ -1,17 +1,18 @@
 2009-XXXXX version 2.9.0
-  * Add API for system monitoring daemons
   * Improved labeling of metrics in Dev Mode traces to make them more readable
   * Give visibility to templates and partials in Rails 2.1 and later, in dev
     mode and production
+  * Support concurrency when determining busy times, for 2.3 compatibility
   * Capture gem information in configuration
   * Using a different timeout mechanism when we post data to RPM
+  * Add API for system monitoring daemons
   * Sample memory on linux by reading /proc/#{$$}/status file
   * changed API for manual starting of the agent; refer to
     NewRelic::Agent.manual_start for details
   * refactored to simplify startup sequence
   * add instrumentation to capture metrics on response codes
   * reduced the number of controller metrics that report to rpm
-  * user rpm server time for transaction traces rather than agent time
+  * use rpm server time for transaction traces rather than agent time
   * added http referer to traced errors
   * on connection, get a shard collector to redirect to
   * removed Numeric extensions, including round_to, and to_ms
