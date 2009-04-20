@@ -338,7 +338,7 @@ module NewRelic
     # Create the concrete class for environment specific behavior:
     def self.new_instance
       @local_env = NewRelic::LocalEnvironment.new
-            case @local_env.framework
+      case @local_env.framework
         when :test
         require File.join(newrelic_root, "test", "config", "test_control.rb")
         NewRelic::Control::Test.new @local_env

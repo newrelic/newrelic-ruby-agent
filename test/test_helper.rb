@@ -1,5 +1,4 @@
-#module NewRelic; TEST = true; end unless defined? NewRelic::TEST
-ENV['NEWRELIC_FRAMEWORK'] = 'test'
+module NewRelic; TEST = true; end unless defined? NewRelic::TEST
 
 NEWRELIC_PLUGIN_DIR = File.expand_path(File.join(File.dirname(__FILE__),".."))
 $LOAD_PATH << File.join(NEWRELIC_PLUGIN_DIR,"test")
