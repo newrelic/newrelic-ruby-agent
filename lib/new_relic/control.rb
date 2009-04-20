@@ -107,9 +107,6 @@ module NewRelic
     def capture_params
       fetch('capture_params')
     end
-    def newrelic_root
-      File.expand_path(File.join(__FILE__, "..","..",".."))
-    end
     # True if we are sending data to the server, monitoring production
     def monitor_mode?
       fetch('enabled', nil)
@@ -343,7 +340,7 @@ module NewRelic
       @local_env = NewRelic::LocalEnvironment.new
             case @local_env.framework
         when :test
-        require 'config/test_config'
+        require File.join(newrelic_root, "test", "config", "test_control.rb")
         NewRelic::Control::Test.new @local_env
         when :merb
         require 'new_relic/control/merb'
@@ -367,7 +364,7 @@ module NewRelic
       generated_for_user = ''
       license_key=''
       if !File.exists?(config_file)
-        yml_file = File.expand_path(File.join(__FILE__,"..","..","..","newrelic.yml"))
+        yml_file = File.expand_path(File.join(newrelic_root,"newrelic.yml"))
         yaml = ::ERB.new(File.read(yml_file)).result(binding)
         log! "Cannot find newrelic.yml file at #{config_file}."
         log! "Using #{yml_file} file."
@@ -382,6 +379,12 @@ module NewRelic
       raise "Error reading newrelic.yml file: #{e}"
     end
     
-
+    # The root directory for the plugin or gem
+    def self.newrelic_root
+      File.expand_path(File.join(File.dirname(__FILE__),"..",".."))
+    end
+    def newrelic_root
+      self.class.newrelic_root
+    end
   end
 end

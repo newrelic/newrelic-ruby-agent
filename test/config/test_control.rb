@@ -19,7 +19,7 @@ class NewRelic::Control::Test < NewRelic::Control::Rails
   def log!(msg, level=:info)
     log.send level, msg if log
   end
-  
+
   # Add the default route in case it's missing.  Need it for testing.
   def install_devmode_route
     super

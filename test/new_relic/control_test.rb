@@ -25,6 +25,11 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     c.local_env
   end
 
+  def test_root
+    assert File.directory?(NewRelic::Control.newrelic_root), NewRelic::Control.newrelic_root
+    assert File.directory?(File.join(NewRelic::Control.newrelic_root, "lib")), NewRelic::Control.newrelic_root +  "/lib"
+  end
+
   def test_info
     props = NewRelic::Control.instance.local_env.snapshot
     list = props.assoc('Plugin List').last.sort
