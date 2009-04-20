@@ -1,12 +1,12 @@
 #module NewRelic; TEST = true; end unless defined? NewRelic::TEST
 ENV['NEWRELIC_FRAMEWORK'] = 'test'
 
-NEWRELIC_PLUGIN_DIR = File.expand_path(File.dirname(__FILE__)+"/..")
+NEWRELIC_PLUGIN_DIR = File.expand_path(File.join(File.dirname(__FILE__),".."))
 $LOAD_PATH << File.join(NEWRELIC_PLUGIN_DIR,"test")
 $LOAD_PATH << File.join(NEWRELIC_PLUGIN_DIR,"ui/helpers")
 $LOAD_PATH.uniq!
 
-require File.expand_path(File.dirname(__FILE__) + "/../../../../config/environment")
+require File.expand_path(File.join(NEWRELIC_PLUGIN_DIR, "..","..","..","config","environment"))
 
 require 'test_help'
 require 'mocha'
