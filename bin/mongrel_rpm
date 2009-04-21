@@ -1,0 +1,24 @@
+#!/usr/bin/env ruby
+require 'rubygems'
+require 'rack'
+require 'rack/handler/mongrel'
+require 'optparse'
+
+port = 3000
+host = '0.0.0.0'
+
+OptionParser.new do |opts|
+  opts.on("-p", "--port=port", Integer, "default: #{port}") { | port | }
+  opts.on("-h", "--host=address", String, "default: 0.0.0.0" ) { | host | }
+  opts.parse!(ARGV.clone)
+end
+
+ru_file = File.expand_path(File.join(File.dirname(__FILE__), "..", "lib", "new_relic", "rack", "newrelic.ru"))
+rackup_code = File.read ru_file
+builder = Rack::Builder.new { eval rackup_code, binding, ru_file }
+
+options = { :Host => host, :Port => port }
+Rack::Handler::Mongrel.run(builder.to_app, options) do | server |
+  puts "Started Mongrel listening for RPM data at #{server.host}:#{server.port}" 
+end
+
