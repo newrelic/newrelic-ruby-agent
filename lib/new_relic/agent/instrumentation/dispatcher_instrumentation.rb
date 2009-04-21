@@ -115,7 +115,6 @@ module NewRelic::Agent::Instrumentation
         
         busy = busy / time_window
         
-        busy = 1.0 if busy > 1.0    # cap at 100%
         instance_busy_stats.record_data_point busy unless busy == 0
         @harvest_start = t0
       end

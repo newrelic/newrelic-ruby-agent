@@ -35,17 +35,29 @@ class NewRelic::Agent::DispatcherInstrumentationTest < Test::Unit::TestCase
     assert @dispatch_stat.total_call_time >= 1.0, "Total call time must be at least one second"
     assert @instance_busy.total_call_time > 0.9 && @instance_busy.total_call_time <= 1.0, "instance busy = #{@instance_busy.inspect}"
   end
+  def test_ignore_zero_counts
+    assert_equal 0, @instance_busy.call_count, "Problem with test--instance busy not starting off at zero."
+    NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.harvest_busy
+    NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.harvest_busy
+    NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.harvest_busy
+    assert_equal 0, @instance_busy.call_count  
+  end
   def test_recursive_call
     d0 = FunnyDispatcher.new
     d1 = FunnyDispatcher.new
 
     assert_equal 0, @instance_busy.call_count, "Problem with test--instance busy not starting off at zero."
 
+    NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.harvest_busy
+    NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.harvest_busy
+    assert_equal 0, @instance_busy.call_count  
+
     assert_equal 0, NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.busy_count
     d0.newrelic_dispatcher_start
     assert_equal 1, NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.busy_count
     d1.newrelic_dispatcher_start
     assert_equal 2, NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.busy_count
+    sleep 1
     d0.newrelic_dispatcher_finish
     assert_equal 1, NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.busy_count
     d1.newrelic_dispatcher_finish
@@ -53,5 +65,6 @@ class NewRelic::Agent::DispatcherInstrumentationTest < Test::Unit::TestCase
     assert_nil Thread.current[:newrelic_t0]
     NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.harvest_busy
     assert_equal 1, @instance_busy.call_count  
+    assert @instance_busy.total_call_time.between?(1.8, 2.1), "Should be about 200%: #{@instance_busy.total_call_time}"
   end
 end
