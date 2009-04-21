@@ -39,6 +39,8 @@ class NewRelic::Agent::DispatcherInstrumentationTest < Test::Unit::TestCase
     d0 = FunnyDispatcher.new
     d1 = FunnyDispatcher.new
 
+    assert_equal 0, @instance_busy.call_count, "Problem with test--instance busy not starting off at zero."
+
     assert_equal 0, NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.busy_count
     d0.newrelic_dispatcher_start
     assert_equal 1, NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.busy_count
