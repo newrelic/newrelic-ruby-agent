@@ -4,25 +4,31 @@ require 'newrelic_rpm'
 module NewRelic
   module Rack
     class MetricApp
-      def initialize
-        NewRelic::Agent.manual_start :app_name => 'EPM Agent'
+      def initialize(appname)
+        NewRelic::Agent.manual_start :app_name => appname, :disable_samplers => true
         @stats_engine = NewRelic::Agent.instance.stats_engine
       end
       def call(env)
         request = ::Rack::Request.new env
-        body = StringIO.new
-        
-        segments = request.url.split("?")[0].split("/")
-        segments.shift # scheme
-        segments.shift # /
-        segments.shift # host
+        segments = request.url.gsub(/^.*?\/metrics\//, '').split("?")[0].split("/")
         metric = "Custom/" + segments.join("/")
-        
+        raise "Expected value parameter!" unless request['value']
+        data = request['value'].to_f
         stats = @stats_engine.get_stats(metric, false)
-        data = request['value'] && request['value'].to_f
-        stats.record_data_point data if data
-        body.puts "<h1>Got request!</h1>"
-        body.puts "<p>#{metric}=#{data}</p>"
+        stats.record_data_point data
+        response = ::Rack::Response.new "#{metric}=#{data}" 
+        response.finish
+      end
+    end
+    class Status
+      def call(env)
+        request = ::Rack::Request.new env
+        data_url = "http://#{env['HTTP_HOST']}/metrics/path?value=nnn"
+        body = StringIO.new
+        body.puts "<html><body>"
+        body.puts "<h1>New Relic Actively Monitoring #{NewRelic::Control.instance.app_name}</h1>"
+        body.puts "<p>To submit a metric value, use <a href='#{data_url}'>#{data_url}</a></p>"
+        body.puts "<h2>Request Details</h2>"
         body.puts "<dl>"
         body.puts "<dt>ip<dd>#{request.ip}"
         body.puts "<dt>host<dd>#{request.host}"
@@ -30,7 +36,10 @@ module NewRelic
         body.puts "<dt>query<dd>#{request.query_string}"
         body.puts "<dt>params<dd>#{request.params.inspect}"
         body.puts "</dl>"
-        body.puts "<p><pre>#{env.to_a.map{|k,v| "#{k} = #{v}" }.join("\n")}"
+        body.puts "<h2>Complete ENV</h2>"
+        body.puts "<ul>"
+        body.puts env.to_a.map{|k,v| "<li>#{k} = #{v}</li>" }.join("\n")
+        body.puts "</ul></body></html>"
         response = ::Rack::Response.new body.string
         response.finish
       end

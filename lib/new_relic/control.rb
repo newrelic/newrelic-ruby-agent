@@ -54,6 +54,7 @@ module NewRelic
     #
     def init_plugin(options={})
       require 'new_relic/agent'
+      puts "options: #{options.inspect}"
       # Merge the stringified options into the config as overrides:
       options.each { |sym, val | self[sym.to_s] = val unless sym == :config }
       init_config(options)

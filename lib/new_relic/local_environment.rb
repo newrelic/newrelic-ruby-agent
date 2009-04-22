@@ -21,6 +21,7 @@ module NewRelic
     def initialize
       discover_framework
       discover_dispatcher
+      @dispatcher = nil if @dispatcher == :none
       @gems = Set.new
       @plugins = Set.new
       @config = Hash.new
@@ -125,7 +126,10 @@ module NewRelic
 
     private
     
+    # Although you can override the framework with NEWRELIC_DISPATCHER this
+    # is not advisable since it implies certain api's being available.
     def discover_dispatcher
+      @dispatcher = ENV['NEWRELIC_DISPATCHER'] && ENV['NEWRELIC_DISPATCHER'].to_sym
       dispatchers = %w[webrick thin mongrel glassfish litespeed passenger fastcgi]
       while dispatchers.any? && @dispatcher.nil?
         send 'check_for_'+(dispatchers.shift)
