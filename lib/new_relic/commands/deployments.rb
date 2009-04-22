@@ -6,10 +6,10 @@ require 'yaml'
 require 'net/http'
 require 'rexml/document'
 
-# We need to use the Config object but we don't want to load 
+# We need to use the Control object but we don't want to load 
 # the rails/merb environment.  The defined? clause is so that
 # it won't load it twice, something it does when run inside a test
-require 'new_relic/config' unless defined? NewRelic::Config
+require 'new_relic/control' unless defined? NewRelic::Control
 
 module NewRelic
   module Commands
@@ -39,7 +39,7 @@ module NewRelic
       # Will throw CommandFailed exception if there's any error.
       # 
       def initialize command_line_args
-        @config = NewRelic::Config.instance
+        @config = NewRelic::Control.instance
         @user = ENV['USER']
         if Hash === command_line_args
           # command line args is an options hash
@@ -130,7 +130,7 @@ module NewRelic
              "Specify the revision being deployed") { |@revision | }
           o.on("-c", "--changes", 
              "Read in a change log from the standard input") { @changelog = STDIN.read }
-          o.on("-?", "Print this help") { raise CommandFailure.new(o.help, 0) }
+          o.on("-h", "--help", "Print this help") { raise CommandFailure.new(o.help, 0) }
           o.separator ""
           o.separator 'description = "short text"'
         end

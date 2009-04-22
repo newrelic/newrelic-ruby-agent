@@ -16,8 +16,8 @@ make_notify_task = lambda do
     desc "Record a deployment in New Relic RPM (rpm.newrelic.com)"
     task :notice_deployment, :roles => :app, :except => {:no_release => true } do
       rails_env = fetch(:rails_env, "production")
+      require File.join(File.dirname(__FILE__), 'commands', 'deployments.rb')
       begin
-        require File.join(File.dirname(__FILE__), 'commands', 'deployments.rb')
         # Try getting the changelog from the server.  Then fall back to local changelog
         # if it doesn't work.  Problem is that I don't know what directory the .git is
         # in when using git.  I could possibly use the remote cache but i don't know
@@ -35,10 +35,17 @@ make_notify_task = lambda do
         if !changelog
           logger.debug "Getting log of changes for New Relic Deployment details"
           from_revision = source.next_revision(current_revision)
-          log_command = "#{source.log(from_revision)}"
+          if scm == :git
+            log_command = "git log --no-color --pretty=format:'  * %an: %s' --abbrev-commit --no-merges #{previous_revision}..#{real_revision}"
+          else
+            log_command = "#{source.log(from_revision)}"
+          end
           changelog = `#{log_command}`
         end
-        new_revision = rev || source.query_revision(source.head()) { |cmd| `#{cmd}` } 
+        new_revision = rev || source.query_revision(source.head()) do |cmd| 
+          logger.debug "executing locally: '#{cmd}'"
+          `#{cmd}` 
+        end
         deploy_options = { :environment => rails_env,
           :revision => new_revision,
           :changelog => changelog, 

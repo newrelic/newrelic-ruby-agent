@@ -30,40 +30,27 @@ module NewRelic::Agent::CollectionHelper
       # strip newrelic from the trace
       backtrace = backtrace.reject {|line| line =~ /new_relic\/agent\// }
       # rename methods back to their original state
-      backtrace = backtrace.collect {|line| line.gsub /_without_(newrelic|trace)/, ""}
+      backtrace = backtrace.collect {|line| line.gsub(/_without_(newrelic|trace)/, "")}
     end
     backtrace
   end
   
   private
   
-  # Convert any kind of object to a descriptive string
-  # Only call this on unknown objects.  Otherwise call to_s.
+  # Convert any kind of object to a short string.
   def flatten(object)
-    s = 
-      if object.respond_to? :inspect
-        object.inspect
-      elsif object.respond_to? :to_s
-        object.to_s
-      elsif object.nil?
-        "nil"
-      else
-        "#<#{object.class.to_s}>"
-      end
-
-    if !(s.instance_of? String)
-      s = "#<#{object.class.to_s}>"
+    s = case object 
+      when nil then ''
+      when object.instance_of?(String) then object
+      when String then String.new(object)  # convert string subclasses to strings
+      else "#<#{object.class.to_s}>"
     end
-    
-    s
   end
-  
   def truncate(string, len=256)
-    if string.instance_of? Symbol
-      string
-    elsif string.nil?
-      ""
-    elsif string.instance_of? String
+    case string
+    when Symbol then string
+    when nil then ""
+    when String
       string.to_s.gsub(/^(.{#{len}})(.*)/) {$2.blank? ? $1 : $1 + "..."}
     else
       truncate(flatten(string), len)     

@@ -3,31 +3,21 @@ module NewRelic::Agent
   class StatsEngine
     POLL_PERIOD = 10
     
-    attr_accessor :log
-
     ScopeStackElement = Struct.new(:name, :children_time, :deduct_call_time_from_parent)
     
-    class SampledItem
-      def initialize(stats, &callback)
-        @stats = stats
-        @callback = callback
-      end
-      
-      def poll
-        @callback.call @stats
-      end
-    end
-    
-    def initialize(log = Logger.new(STDERR))
+    def initialize
       @stats_hash = {}
       @sampled_items = []
       @scope_stack_listener = nil
-      @log = log
       
       # Makes the unit tests happy
       Thread::current[:newrelic_scope_stack] = nil
       
       spawn_sampler_thread
+    end
+
+    def log
+      NewRelic::Control.instance.log
     end
     
     def spawn_sampler_thread
@@ -39,7 +29,7 @@ module NewRelic::Agent
         while true do
           begin
             sleep POLL_PERIOD
-            @sampled_items.each do |sampled_item|
+            @sampled_items.dup.each do |sampled_item|
               begin 
                 sampled_item.poll
               rescue => e
@@ -106,9 +96,11 @@ module NewRelic::Agent
       scope_stack.last
     end
     
-    def add_sampled_metric(metric_name, &sampler_callback)
-      stats = get_stats(metric_name, false)
-      @sampled_items << SampledItem.new(stats, &sampler_callback)
+    # Add an instance of Sampler
+    def add_sampler sampler
+      @sampled_items << sampler
+      sampler.stats_engine = self
+      log.debug "Adding sampler #{sampler.id.to_s}"
     end
     
     # set the name of the transaction for the current thread, which will be used
@@ -144,25 +136,50 @@ module NewRelic::Agent
       stats
     end
     
-    def get_stats(metric_name, use_scope = true)
+    # This version allows a caller to pass a stat class to use
+    #
+    def get_custom_stats(metric_name, stat_class)
       stats = @stats_hash[metric_name]
       if stats.nil?
-        stats = NewRelic::MethodTraceStats.new
+        stats = stat_class.new
         @stats_hash[metric_name] = stats
       end
+      stats
+    end
+    
+    # If use_scope is true, two chained metrics are created, one with scope and one without
+    # If scoped_metric_only is true, only a scoped metric is created (used by rendering metrics which by definition are per controller only)
+    def get_stats(metric_name, use_scope = true, scoped_metric_only = false)
       
-      if use_scope && transaction_name
+      if scoped_metric_only
         spec = NewRelic::MetricSpec.new metric_name, transaction_name
         
-        scoped_stats = @stats_hash[spec]
-        if scoped_stats.nil?
-          scoped_stats = NewRelic::ScopedMethodTraceStats.new stats
-          @stats_hash[spec] = scoped_stats        
+        stats = @stats_hash[spec]
+        if stats.nil?
+          stats = NewRelic::MethodTraceStats.new
+          @stats_hash[spec] = stats        
+        end
+      else  
+        stats = @stats_hash[metric_name]
+        if stats.nil?
+          stats = NewRelic::MethodTraceStats.new
+          @stats_hash[metric_name] = stats
         end
         
-        stats = scoped_stats
+        if use_scope && transaction_name
+          spec = NewRelic::MetricSpec.new metric_name, transaction_name
+          
+          scoped_stats = @stats_hash[spec]
+          if scoped_stats.nil?
+            scoped_stats = NewRelic::ScopedMethodTraceStats.new stats
+            @stats_hash[spec] = scoped_stats        
+          end
+          
+          stats = scoped_stats
+        end
       end
-      return stats
+      
+      stats
     end
     
     # Note: this is not synchronized.  There is still some risk in this and
@@ -199,7 +216,7 @@ module NewRelic::Agent
         
         # don't bother collecting and reporting stats that have zero-values for this timeslice.
         # significant performance boost and storage savings.
-        unless stats_copy.call_count == 0 && stats_copy.total_call_time == 0.0 && stats_copy.total_exclusive_time == 0.0
+        unless stats_copy.is_reset?
           
           metric_spec_for_transport = (metric_ids[metric_spec].nil?) ? metric_spec : nil
           

@@ -37,20 +37,18 @@ module NewRelic::TransactionAnalysis
     end
     
     def exclusive_time_percentage
+      return 0 unless @exclusive_time && @sample.duration && @sample.duration > 0
       @exclusive_time / @sample.duration
     end
     
     def total_time_percentage
+      return 0 unless @total_time && @sample.duration && @sample.duration > 0
       @total_time / @sample.duration
     end
     
     def developer_name
       return @metric_name if @metric_name == 'Remainder'
-      # This drags all of the metric parser into the agent which I would prefer
-      # not to do.  We could do a webservice that centralizes this but that might
-      # be expensive and not well received.
-      # MetricParser.parse(@metric_name).developer_name
-      @metric_name
+      NewRelic::MetricParser.parse(@metric_name).developer_name
     end
   end
   
@@ -83,7 +81,7 @@ module NewRelic::TransactionAnalysis
       remainder -= segment.exclusive_time
     end
     
-    if remainder.to_ms > 0.1
+    if (remainder*1000).round > 0
       remainder_summary = SegmentSummary.new('Remainder', self)
       remainder_summary.total_time = remainder_summary.exclusive_time = remainder
       remainder_summary.call_count = 1
@@ -116,7 +114,8 @@ module NewRelic::TransactionAnalysis
           total += segment.duration
         end
       end
-
-      return (total / duration).to_percentage
+      fraction = 100.0 * total / duration
+      # percent value rounded to two digits:
+      return (100 * fraction).round / 100.0
     end
 end

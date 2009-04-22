@@ -1,22 +1,15 @@
 module NewRelic; TEST = true; end unless defined? NewRelic::TEST
-NEWRELIC_PLUGIN_DIR = File.expand_path(File.dirname(__FILE__)+"/..")
+
+NEWRELIC_PLUGIN_DIR = File.expand_path(File.join(File.dirname(__FILE__),".."))
 $LOAD_PATH << File.join(NEWRELIC_PLUGIN_DIR,"test")
+$LOAD_PATH << File.join(NEWRELIC_PLUGIN_DIR,"ui/helpers")
 $LOAD_PATH.uniq!
 
-require File.expand_path(File.dirname(__FILE__) + "/../../../../config/environment")
+require File.expand_path(File.join(NEWRELIC_PLUGIN_DIR, "..","..","..","config","environment"))
 
 require 'test_help'
 require 'mocha'
 require 'test/unit'
-
-module NewRelic
-  class Config
-    def setup_log_with_block_logging(*args)
-      silence_stream(::STDERR) { self.setup_log_without_block_logging(*args) }
-    end
-    alias_method_chain :setup_log, :block_logging rescue nil
-  end
-end
 
 =begin
 # This is a mixin for hacking the select method

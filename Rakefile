@@ -22,10 +22,10 @@ spec = Gem::Specification.new do |s|
   s.email = EMAIL
   s.homepage = HOMEPAGE
   s.require_path = 'lib'
-  s.files = %w(install.rb LICENSE README newrelic.yml Rakefile) + Dir.glob("{lib,bin,recipes,test,ui}/**/*") 
+  s.files = %w(install.rb LICENSE README CHANGELOG newrelic.yml Rakefile) + Dir.glob("{lib,bin,recipes,test,ui}/**/*") 
   s.bindir = "bin" # Use these for applications.
-  s.executables = ["newrelic_cmd"]
-  s.default_executable = "newrelic_cmd"
+  s.executables = %w[newrelic_cmd mongrel_rpm]
+  s.default_executable = "mongrel_rpm"
 end
 
 Rake::GemPackageTask.new(spec) do |pkg|
