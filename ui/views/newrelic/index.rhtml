@@ -1,11 +1,15 @@
+<p id="reset_transactions"><strong><a href="/newrelic/reset">Reset transactions (<%= @samples.size %>)</a></strong></p>
+<% if params[:h] || params[:u] %>
+  <p><a href="/newrelic">Sort by most-recent first</a></p>
+<% end %>
 <table>
 	<tr>
 		<td valign=top>
 			<table class="transaction_list_table">
 				<thead>
 				<tr>
-          			<td>Resp Time</td>
-					<td>URL</td>
+          			<td><%= params[:h] ? 'Resp Time' : link_to('Sort by Resp Time', '/newrelic?h=y') %></td>
+					<td><%= params[:u] ? 'URL' : link_to('Sort by URL', '/newrelic?u=y') %></td>
 					<td/>
 				</tr>
 				</thead>
@@ -33,5 +37,5 @@
 			production mode.
 			</p>
 		</td>
-	<tr>
+	</tr>
 </table>

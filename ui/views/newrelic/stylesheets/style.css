@@ -219,6 +219,13 @@ div.flash.notice
 	margin:  15px 0px 15px 0px;
 }
 
+#reset_transactions, #reset_transactions a
+{
+    color:red;
+    text-align:right;
+}
+
+
 .transaction_list_table
 {
 	width: 600px;
@@ -285,6 +292,11 @@ thead
 	background-color: #6688aa;
 	color: white;
 	padding: 5px 5px 5px 5px;
+}
+
+thead a, thead a:hover
+{
+    color: white;
 }
 
 tfoot

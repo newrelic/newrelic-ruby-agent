@@ -170,7 +170,12 @@ module NewRelic::Agent
         return @samples.clone
       end
     end
-    
+
+    # reset samples without rebooting the web server
+    def reset!
+      @samples = []
+    end
+
     private 
       
       def builder
