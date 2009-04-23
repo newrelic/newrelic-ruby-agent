@@ -58,6 +58,11 @@ class NewrelicController < ActionController::Base
     get_samples
   end
   
+  def reset
+    NewRelic::Agent.instance.transaction_sampler.reset!
+    redirect_to :action => 'index'
+  end
+
   def show_sample_detail
     show_sample_data
   end
@@ -174,6 +179,9 @@ class NewrelicController < ActionController::Base
       sample.params[:path] != nil
     end
     
+    return @samples = @samples.sort{|x,y| y.omit_segments_with('(Rails/Application Code Loading)|(Database/.*/.+ Columns)').duration <=>
+        x.omit_segments_with('(Rails/Application Code Loading)|(Database/.*/.+ Columns)').duration} if params[:h]
+    return @samples = @samples.sort{|x,y| x.params[:uri] <=> y.params[:uri]} if params[:u]
     @samples = @samples.reverse
   end
   
