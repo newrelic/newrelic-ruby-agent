@@ -4,8 +4,10 @@ require 'newrelic_rpm'
 module NewRelic
   module Rack
     class MetricApp
-      def initialize(appname)
-        NewRelic::Agent.manual_start :app_name => appname, :disable_samplers => true
+      def initialize(options)
+        options[:app_name] ||= 'EPM Monitor'
+        options[:disable_samplers] = true
+        NewRelic::Agent.manual_start options
         @stats_engine = NewRelic::Agent.instance.stats_engine
       end
       def call(env)

@@ -1,4 +1,7 @@
 2009-XXXXX version 2.9.0
+  * Added mongrel_rpm to the gem, a standalone daemon listening for 
+    custom metric values sent from local processes.  Experimental.
+  * Added some sorting options for the transaction list in Developer Mode
   * Improved labeling of metrics in Dev Mode traces to make them more readable
   * Give visibility to templates and partials in Rails 2.1 and later, in dev
     mode and production
