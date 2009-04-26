@@ -6,4 +6,7 @@ module NewRelic::MetricParser::MemCache
   def short_name
     name
   end
+  def developer_name
+    "MemCache #{segments[1..-1].join '/'}"
+  end
 end
