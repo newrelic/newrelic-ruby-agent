@@ -312,16 +312,12 @@ module NewRelic::Agent
       
       begin
         sleep connect_retry_period.to_i
-        @agent_id = invoke_remote :launch, 
-            @local_host,
-            control.dispatcher_instance_id, 
-            determine_home_directory, 
-            $$, 
-            @launch_time.to_f, 
-            NewRelic::VERSION::STRING, 
-            control.local_env.snapshot,
-            control.app_name, 
-            control.settings
+        @agent_id = invoke_remote :start, @local_host,
+        { :pid => $$, 
+          :launch_time => @launch_time.to_f, 
+          :agent_version => NewRelic::VERSION::STRING, 
+          :info => control.local_env.snapshot,
+          :settings => control.settings }
         
         host = invoke_remote(:get_redirect_host) rescue nil
         

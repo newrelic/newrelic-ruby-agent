@@ -55,7 +55,7 @@ module NewRelic
           @description = options.parse(command_line_args).join " "
         end
         config.env = @environment if @environment
-        @appname ||= config.app_name || config.env || 'development'
+        @appname ||= config.app_names[0] || config.env || 'development'
       end
       
       # Run the Deployment upload in RPM via Active Resource.
