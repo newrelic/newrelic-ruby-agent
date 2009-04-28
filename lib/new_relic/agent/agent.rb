@@ -316,7 +316,7 @@ module NewRelic::Agent
         { :pid => $$, 
           :launch_time => @launch_time.to_f, 
           :agent_version => NewRelic::VERSION::STRING, 
-          :info => control.local_env.snapshot,
+          :environment => control.local_env.snapshot,
           :settings => control.settings }
         
         host = invoke_remote(:get_redirect_host) rescue nil
