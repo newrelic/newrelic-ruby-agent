@@ -1,6 +1,5 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
 require 'action_controller/base'
-#require 'new_relic/agent/agent_test_controller'
 
 class AgentControllerTest < ActionController::TestCase
   
@@ -8,8 +7,10 @@ class AgentControllerTest < ActionController::TestCase
   
   attr_accessor :agent
   
-  def setup
-    super
+  # Normally you can do this with #setup but for some reason in rails 2.0.2
+  # setup is not called.
+  def initialize name
+    super name
     Thread.current[:controller_ignored] = nil
     NewRelic::Agent.manual_start
     @agent = NewRelic::Agent.instance
@@ -24,6 +25,7 @@ class AgentControllerTest < ActionController::TestCase
     Thread.current[:controller_ignored] = nil
     super
   end
+  
   def test_metric__ignore
     engine = @agent.stats_engine
     get :action_to_ignore
