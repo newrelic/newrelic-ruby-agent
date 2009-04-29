@@ -57,7 +57,6 @@ class EnvironmentTest < ActiveSupport::TestCase
     s = e.snapshot
     assert_equal '1.8.6', s.assoc('Ruby version').last, s.inspect
     assert_equal 'test', s.assoc('Framework').last, s.inspect
-    assert_equal NewRelic::VERSION::STRING, s.assoc('RPM agent version').last
   end
   
   

@@ -64,10 +64,6 @@ module NewRelic
       append_environment_value 'Framework', @framework.to_s
       append_environment_value 'Dispatcher', @dispatcher.to_s if @dispatcher
       append_environment_value 'Dispatcher instance id', @dispatcher_instance_id if @dispatcher_instance_id
-      append_environment_value('RPM agent version') do
-        require 'new_relic/version'
-        NewRelic::VERSION::STRING
-      end
       append_environment_value('Application root') { File.expand_path(NewRelic::Control.instance.root) }
       append_environment_value('Ruby version'){ RUBY_VERSION }
       append_environment_value('Ruby platform') { RUBY_PLATFORM }
