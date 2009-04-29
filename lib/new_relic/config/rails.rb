@@ -103,8 +103,7 @@ class NewRelic::Config::Rails < NewRelic::Config
       log.debug "Unable to get the Rails info: #{e.inspect}"
     end
     
-    # Would like to get this from config, but how?
-    plugins = Dir[File.join(File.expand_path(__FILE__+"/../../../../.."),"/*")].collect { |p| File.basename p }
+    plugins = Dir[File.expand_path(File.join(RAILS_ROOT,"vendor","plugins","*"))].collect { |p| File.basename p }
     i << ['Plugin List', plugins]
     
     # Look for a capistrano file indicating the current revision:
