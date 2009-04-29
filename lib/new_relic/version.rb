@@ -11,6 +11,9 @@ module NewRelic
   end
 
   CHANGELOG = <<EOF
+2009-04-29 version 2.8.10
+  * fix incompatibility with rails 2.3.2 and script/server options processing
+  * minor tweak to environment gathering for gem mode
 2009-04-17 version 2.8.9
   * fix problem finding the newrelic controller in dev mode
   * fix incompatibility with older versions of optparse
