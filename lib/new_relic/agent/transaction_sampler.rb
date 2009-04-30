@@ -25,6 +25,11 @@ module NewRelic::Agent
       end
     end
     
+    def current_sample_id
+      b=builder
+      b and b.sample_id
+    end
+
     def disable
       NewRelic::Agent.instance.stats_engine.remove_scope_stack_listener self
     end
@@ -226,6 +231,10 @@ module NewRelic::Agent
       @sample = NewRelic::TransactionSample.new(time)
       @sample_start = time
       @current_segment = @sample.root_segment
+    end
+
+    def sample_id
+      @sample.sample_id
     end
 
     def trace_entry(metric_name, time)
