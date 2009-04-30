@@ -10,7 +10,12 @@ class MyMetric
 end
 
 class MetricParserTest < Test::Unit::TestCase
-  
+
+  def test_memcache
+    m = "MemCache/read"
+    m.extend NewRelic::MetricParser
+    assert_equal "MemCache read", m.developer_name
+  end
   def test_string
     %[Controller/posts/index View/posts/index WebService/posts Custom/posts Unrecognized/posts XX/posts].each do | name |
       name.extend NewRelic::MetricParser

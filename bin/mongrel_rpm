@@ -5,21 +5,21 @@ require 'rack/handler/mongrel'
 require 'optparse'
 
 port = 3000
-logging = true
+options = { }
 appname = nil
-license_key = nil
-
 OptionParser.new do |opts|
   opts.banner = "Usage: #{ARGV[0]} [options] app_name"
   opts.on("-p", "--port=port", Integer, "default: #{port}") { | port | }
-  opts.on("--[no-]logging", "turn off request logging" ) { | logging | }
-  opts.on("--license=rpm_license_key", "override license key" ) { | license_key | }
+  opts.on("--[no-]logging", "turn off request logging" ) { | l | options[:logging] = l }
+  opts.on("--license=rpm_license_key", "override license key" ) { | l | options[:license_key] = l }
   opts.separator ""
   opts.separator "app_name is the name of the application where the metrics will be stored"
   opts.separator ""
   # The rackup file references this var
   appname = opts.parse!(ARGV.clone).first
 end
+
+options[:app_name] = appname if appname
 
 ru_file = File.expand_path(File.join(File.dirname(__FILE__), "..", "lib", "new_relic", "rack", "newrelic.ru"))
 rackup_code = File.read ru_file

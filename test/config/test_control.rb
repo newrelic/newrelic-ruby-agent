@@ -24,7 +24,7 @@ class NewRelic::Control::Test < NewRelic::Control::Rails
   def install_devmode_route
     super
     ActionController::Routing::RouteSet.class_eval do
-      next if defined? draw_without_test_route
+      return if defined? draw_without_test_route
       def draw_with_test_route
         draw_without_test_route do | map |
           map.connect ':controller/:action/:id'
@@ -33,5 +33,7 @@ class NewRelic::Control::Test < NewRelic::Control::Rails
       end
       alias_method_chain :draw, :test_route
     end
+    # Force the routes to be reloaded
+    ActionController::Routing::Routes.reload!
   end
 end

@@ -37,7 +37,7 @@ class EnvironmentTest < ActiveSupport::TestCase
     end
     e = NewRelic::LocalEnvironment.new
     assert_equal :passenger, e.environment
-    assert_match /passenger/, e.dispatcher_instance_id
+    assert_nil e.dispatcher_instance_id, "dispatcher instance id should be nil: #{e.dispatcher_instance_id}"
       
     NewRelic::Control.instance.instance_eval do
       @settings['app_name'] = 'myapp'
@@ -45,7 +45,7 @@ class EnvironmentTest < ActiveSupport::TestCase
     
     e = NewRelic::LocalEnvironment.new 
     assert_equal :passenger, e.environment
-    assert_equal 'passenger:myapp', e.dispatcher_instance_id
+    assert_nil e.dispatcher_instance_id
     
     ::Passenger.class_eval { remove_const :AbstractServer }
   end
@@ -57,7 +57,6 @@ class EnvironmentTest < ActiveSupport::TestCase
     s = e.snapshot
     assert_equal '1.8.6', s.assoc('Ruby version').last, s.inspect
     assert_equal 'test', s.assoc('Framework').last, s.inspect
-    assert_equal NewRelic::VERSION::STRING, s.assoc('RPM agent version').last
   end
   
   

@@ -17,6 +17,4 @@ class NewRelic::Agent::ModelFixture < ActiveRecord::Base
     connection.drop_table :test_data
   end
   
-  named_scope :jeffs, :conditions => { :name => 'Jeff' }
-  
 end
