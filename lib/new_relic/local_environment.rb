@@ -33,6 +33,8 @@ module NewRelic
       end
     end
     def check_for_webrick
+      # Some indication this is causing problems.  To be fixed in 2.9.0
+      return
       # This will not succeed on rails 2.2 and later
       if defined?(WEBrick) && defined?(OPTIONS) && ::OPTIONS.respond_to?(:fetch) 
         # OPTIONS is set by script/server 
