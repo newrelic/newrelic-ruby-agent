@@ -5,13 +5,18 @@ ENV['NEWRELIC_DISPATCHER'] = 'none'
 $LOAD_PATH << File.expand_path(File.join(File.dirname(__FILE__), '..','..'))
 
 require 'new_relic/rack'
-puts ENV.inspect
-appname ||= 'EPM Agent'
-license_key ||= nil
-use Rack::CommonLogger if defined?(logging) && logging
+
+# Valid options which may be present in this binding:
+# :license_key   optional license key override
+# :app_name      optional name of app
+# :logging       optional, false to omit request logging to stdout
+
+options ||= {}
+
+use Rack::CommonLogger unless options[:logging] == false
 use Rack::ShowExceptions
 map "http://localhost/metrics" do
-  run NewRelic::Rack::MetricApp.new(appname, license_key)
+  run NewRelic::Rack::MetricApp.new(options)
 end
 map "/" do
   run NewRelic::Rack::Status.new

@@ -9,7 +9,11 @@ module NewRelic::MetricParser::Controller
   end
 
   def action_name
-    segments[-1]
+    if segments[-1] =~ /^\(other\)$/
+      '(template only)'
+    else
+      segments[-1]
+    end
   end
   
   def developer_name

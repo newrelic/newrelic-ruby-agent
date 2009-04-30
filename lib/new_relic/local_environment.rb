@@ -51,13 +51,9 @@ module NewRelic
     
     def dispatcher_instance_id
       if @dispatcher_instance_id.nil?
-        if @dispatcher
-          @dispatcher_instance_id = @dispatcher.to_s
-        else
+        if @dispatcher.nil?
           @dispatcher_instance_id = File.basename($0).split(".").first
         end
-        app_name = NewRelic::Control.instance['app_name']
-        @dispatcher_instance_id += ":#{app_name}" if app_name
       end
       @dispatcher_instance_id
     end
@@ -68,10 +64,6 @@ module NewRelic
       append_environment_value 'Framework', @framework.to_s
       append_environment_value 'Dispatcher', @dispatcher.to_s if @dispatcher
       append_environment_value 'Dispatcher instance id', @dispatcher_instance_id if @dispatcher_instance_id
-      append_environment_value('RPM agent version') do
-        require 'new_relic/version'
-        NewRelic::VERSION::STRING
-      end
       append_environment_value('Application root') { File.expand_path(NewRelic::Control.instance.root) }
       append_environment_value('Ruby version'){ RUBY_VERSION }
       append_environment_value('Ruby platform') { RUBY_PLATFORM }
@@ -233,7 +225,7 @@ module NewRelic
       default_port = 3000
       OptionParser.new do |opts|
         opts.on("-p", "--port=port", String) { | default_port | }
-        opts.parse!(ARGV.clone)
+        opts.parse(ARGV.clone) rescue nil
       end
       default_port
     end

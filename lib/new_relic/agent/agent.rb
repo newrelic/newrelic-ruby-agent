@@ -35,11 +35,17 @@ module NewRelic::Agent
     # for passenger where processes are forked and the agent is dormant
     #
     def ensure_worker_thread_started
-      return unless config.agent_enabled? && config.monitor_mode? && !@invalid_license
-      if @worker_loop.nil? || @worker_loop.pid != $$
+      return unless control.agent_enabled? && control.monitor_mode? && !@invalid_license
+      if !running? 
         launch_worker_thread
         @stats_engine.spawn_sampler_thread
       end
+    end
+    
+    # True if the worker thread has been started.  Doesn't necessarily
+    # mean we are connected 
+    def running?
+      control.agent_enabled? && control.monitor_mode? && @worker_loop && @worker_loop.pid == $$
     end
     
     # True if we have initialized and completed 'start'
@@ -57,7 +63,7 @@ module NewRelic::Agent
         
         # if litespeed, then ignore all future SIGUSR1 - it's litespeed trying to shut us down
         
-        if config.dispatcher == :litespeed
+        if control.dispatcher == :litespeed
           Signal.trap("SIGUSR1", "IGNORE")
           Signal.trap("SIGTERM", "IGNORE")
         end
@@ -123,26 +129,26 @@ module NewRelic::Agent
     end  
         
     # Start up the agent.  This verifies that the agent_enabled? is true
-    # and initializes the sampler based on the current configuration settings.
+    # and initializes the sampler based on the current controluration settings.
     # Then it will fire up the background thread for sending data to the server if applicable.
     def start
       if started?
-        config.log! "Agent Started Already!", :error
+        control.log! "Agent Started Already!", :error
         return
       end
-      return if !config.agent_enabled? 
+      return if !control.agent_enabled? 
 
       @local_host = determine_host
       
-      log.info "Web container: #{config.dispatcher.to_s}"
+      log.info "Web container: #{control.dispatcher.to_s}"
       
-      if config.dispatcher == :passenger
+      if control.dispatcher == :passenger
         log.warn "Phusion Passenger has been detected. Some RPM memory statistics may have inaccuracies due to short process lifespans."
       end
       
       @started = true
       
-      sampler_config = config.fetch('transaction_tracer', {})
+      sampler_config = control.fetch('transaction_tracer', {})
       @use_transaction_sampler = sampler_config.fetch('enabled', false)
       
       @record_sql = sampler_config.fetch('record_sql', :obfuscated).to_sym
@@ -164,16 +170,20 @@ module NewRelic::Agent
       @explain_threshold = sampler_config.fetch('explain_threshold', 0.5).to_f
       @explain_enabled = sampler_config.fetch('explain_enabled', true)
       @random_sample = sampler_config.fetch('random_sample', false)
-      log.info "Transaction tracing is enabled in agent config" if @use_transaction_sampler
+      log.info "Transaction tracing is enabled in agent control" if @use_transaction_sampler
       log.warn "Agent is configured to send raw SQL to RPM service" if @record_sql == :raw
       # Initialize transaction sampler
       @transaction_sampler.random_sampling = @random_sample
 
-      if config.monitor_mode?
+      if control.monitor_mode?
         # make sure the license key exists and is likely to be really a license key
         # by checking it's string length (license keys are 40 character strings.)
-        if !config.license_key || config.license_key.length != 40
-          config.log! "No license key found.  Please edit your newrelic.yml file and insert your license key.", :error
+        if !control.license_key
+          @invalid_license = true
+          control.log! "No license key found.  Please edit your newrelic.yml file and insert your license key.", :error
+        elsif  control.license_key.length != 40
+          @invalid_license = true
+          control.log! "Invalid license key: #{control.license_key}", :error
         else     
           launch_worker_thread
           # When the VM shuts down, attempt to send a message to the server that
@@ -181,13 +191,13 @@ module NewRelic::Agent
           at_exit { shutdown }
         end
       end
-      config.log! "New Relic RPM Agent #{NewRelic::VERSION::STRING} Initialized: pid = #{$$}"
-      config.log! "Agent Log found in #{NewRelic::Control.instance.log_file}"
+      control.log! "New Relic RPM Agent #{NewRelic::VERSION::STRING} Initialized: pid = #{$$}"
+      control.log! "Agent Log found in #{NewRelic::Control.instance.log_file}"
     end
 
     private
     def collector
-      @collector ||= config.server
+      @collector ||= control.server
     end
     
     # Connect to the server, and run the worker loop forever.  Will not return.
@@ -204,7 +214,7 @@ module NewRelic::Agent
           # note if the agent attempts to report more frequently than the specified
           # report data, then it will be ignored.
           
-          config.log! "Reporting performance data every #{@report_period} seconds."        
+          control.log! "Reporting performance data every #{@report_period} seconds."        
           @worker_loop.add_task(@report_period) do 
             harvest_and_send_timeslice_data
           end
@@ -213,7 +223,7 @@ module NewRelic::Agent
             @worker_loop.add_task(@report_period) do 
               harvest_and_send_slowest_sample
             end
-          elsif !config.developer_mode?
+          elsif !control.developer_mode?
             # We still need the sampler for dev mode.
             @transaction_sampler.disable
           end
@@ -232,14 +242,14 @@ module NewRelic::Agent
     end
     
     def launch_worker_thread
-      if (config.dispatcher == :passenger && $0 =~ /ApplicationSpawner/)
+      if (control.dispatcher == :passenger && $0 =~ /ApplicationSpawner/)
         log.debug "Process is passenger spawner - don't connect to RPM service"
         return
       end
       
       @worker_loop = WorkerLoop.new(log)
       
-      if config['check_bg_loading']
+      if control['check_bg_loading']
         log.warn "Agent background loading checking turned on"
         require 'new_relic/agent/patch_const_missing'
         ClassLoadingWatcher.enable_warning
@@ -247,14 +257,14 @@ module NewRelic::Agent
       
       @worker_thread = Thread.new do
         begin
-          ClassLoadingWatcher.background_thread=Thread.current if config['check_bg_loading']
+          ClassLoadingWatcher.background_thread=Thread.current if control['check_bg_loading']
         
           run_worker_loop
         rescue IgnoreSilentlyException
-          config.log! "Unable to establish connection with the server.  Run with log level set to debug for more information."
+          control.log! "Unable to establish connection with the server.  Run with log level set to debug for more information."
         rescue StandardError => e
-          config.log! e, :error
-          config.log! e.backtrace.join("\n  "), :error
+          control.log! e, :error
+          control.log! e.backtrace.join("\n  "), :error
         end
       end
       
@@ -262,13 +272,13 @@ module NewRelic::Agent
       # by stopping the foreground thread after the background thread is created. Turn on dependency loading logging
       # and make sure that no loading occurs.
       #
-      #      config.log! "FINISHED AGENT INIT"
+      #      control.log! "FINISHED AGENT INIT"
       #      while true
       #        sleep 1
       #      end
     end
     
-    def config
+    def control
       NewRelic::Control.instance
     end
     
@@ -302,24 +312,20 @@ module NewRelic::Agent
       
       begin
         sleep connect_retry_period.to_i
-        @agent_id = invoke_remote :launch, 
-            @local_host,
-            config.dispatcher_instance_id, 
-            determine_home_directory, 
-            $$, 
-            @launch_time.to_f, 
-            NewRelic::VERSION::STRING, 
-            config.local_env.snapshot,
-            config['app_name'], 
-            config.settings
+        @agent_id = invoke_remote :start, @local_host,
+        { :pid => $$, 
+          :launch_time => @launch_time.to_f, 
+          :agent_version => NewRelic::VERSION::STRING, 
+          :environment => control.local_env.snapshot,
+          :settings => control.settings }
         
         host = invoke_remote(:get_redirect_host) rescue nil
         
-        @collector = config.server_from_host(host) if host        
+        @collector = control.server_from_host(host) if host        
             
         @report_period = invoke_remote :get_data_report_period, @agent_id
  
-        config.log! "Connected to NewRelic Service at #{@collector}"
+        control.log! "Connected to NewRelic Service at #{@collector}"
         log.debug "Agent ID = #{@agent_id}."
         
         # Ask the server for permission to send transaction samples.  determined by subscription license.
@@ -341,13 +347,13 @@ module NewRelic::Agent
         @connected = true
         
       rescue LicenseException => e
-        config.log! e.message, :error
-        config.log! "Visit NewRelic.com to obtain a valid license key, or to upgrade your account."
+        control.log! e.message, :error
+        control.log! "Visit NewRelic.com to obtain a valid license key, or to upgrade your account."
         @invalid_license = true
         return false
         
       rescue Timeout::Error, StandardError => e
-        log.info "Unable to establish connection with New Relic RPM Service at #{config.server}"
+        log.info "Unable to establish connection with New Relic RPM Service at #{control.server}"
         unless e.instance_of? IgnoreSilentlyException
           log.error e.message
           log.debug e.backtrace.join("\n")
@@ -374,7 +380,7 @@ module NewRelic::Agent
     end
     
     def determine_home_directory
-      config.root
+      control.root
     end
     
     def harvest_and_send_timeslice_data
@@ -469,9 +475,9 @@ module NewRelic::Agent
       data = Marshal.dump(args)
       encoding = data.size > 2000 ? 'deflate' : 'identity' # don't compress small payloads
       post_data = encoding == 'deflate' ? Zlib::Deflate.deflate(data, Zlib::BEST_SPEED) : data
-      http = config.http_connection(collector)
+      http = control.http_connection(collector)
       
-      uri = "/agent_listener/#{PROTOCOL_VERSION}/#{config.license_key}/#{method}"
+      uri = "/agent_listener/#{PROTOCOL_VERSION}/#{control.license_key}/#{method}"
       uri += "?run_id=#{@agent_id}" if @agent_id
       
       request = Net::HTTP::Post.new(uri, 'CONTENT-ENCODING' => encoding, 'ACCEPT-ENCODING' => 'gzip', 'HOST' => collector.name)
@@ -525,9 +531,9 @@ module NewRelic::Agent
     end
     
     def graceful_disconnect
-      if @connected && !(config.server.name == "localhost" && config.dispatcher_instance_id == '3000')
+      if @connected && !(control.server.name == "localhost" && control.dispatcher_instance_id == '3000')
         begin
-          log.debug "Sending graceful shutdown message to #{config.server}"
+          log.debug "Sending graceful shutdown message to #{control.server}"
           
           @request_timeout = 5
           

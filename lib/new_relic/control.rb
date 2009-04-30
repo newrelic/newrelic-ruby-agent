@@ -141,8 +141,8 @@ module NewRelic
     def dispatcher
       self['dispatcher'] || @local_env.dispatcher
     end
-    def app_name
-      self['app_name']
+    def app_names
+      self['app_name'] ? self['app_name'].split(';') : []
     end
     
     def use_ssl?
