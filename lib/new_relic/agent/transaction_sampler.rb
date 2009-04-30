@@ -201,6 +201,10 @@ module NewRelic::Agent
       @current_segment = @sample.root_segment
     end
 
+    def sample_id
+      @sample.sample_id
+    end
+
     def trace_entry(metric_name, time)
       segment = @sample.create_segment(time - @sample_start, metric_name)
       @current_segment.add_called_segment(segment)
