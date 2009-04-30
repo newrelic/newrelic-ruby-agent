@@ -8,7 +8,8 @@ require 'new_relic/config'
 # application log files, try uncommenting these lines to verify
 # the plugin is being loaded, then contact support@newrelic.com 
 # if you are unable to resolve the issue.
-# STDOUT.puts "RPM detected environment: #{NewRelic::Config.instance.local_env}, RAILS_ENV: #{RAILS_ENV}"
+
+# ::RAILS_DEFAULT_LOGGER.warn "RPM detected environment: #{NewRelic::Config.instance.local_env}, RAILS_ENV: #{RAILS_ENV}"
 
 # Initializer for the NewRelic Agent
 
