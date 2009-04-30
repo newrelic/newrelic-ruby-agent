@@ -27,6 +27,11 @@ module NewRelic::Agent
       end
     end
     
+    def current_sample_id
+      b=builder
+      b and b.sample_id
+    end
+
     def disable
       NewRelic::Agent.instance.stats_engine.remove_scope_stack_listener self
     end
