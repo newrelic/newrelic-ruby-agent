@@ -196,7 +196,7 @@ module NewRelic
       # If we try to get a log before one has been set up, return a stdout log
       unless @log
         l = Logger.new(STDOUT)
-        l.level = Logger::WARN
+        l.level = Logger::INFO
         return l
       end
       @log
@@ -287,9 +287,10 @@ module NewRelic
         'ssl' => false,
         'log_level' => 'info',
         'apdex_t' => 1.0
-      }.merge settings_hash
+      }
+      s.merge settings_hash if settings_hash
       # monitor_daemons replaced with agent_enabled
-      s['agent_enabled'] = s.delete('monitor_daemons') if s['agent_enabled'].nil?
+      s['agent_enabled'] = s.delete('monitor_daemons') if s['agent_enabled'].nil? && s.include?('monitor_daemons')
       s
     end
     # Control subclasses may override this, but it can be called multiple times.
@@ -364,15 +365,11 @@ module NewRelic
       generated_for_user = ''
       license_key=''
       if !File.exists?(config_file)
-        yml_file = File.expand_path(File.join(newrelic_root,"newrelic.yml"))
-        yaml = ::ERB.new(File.read(yml_file)).result(binding)
         log! "Cannot find newrelic.yml file at #{config_file}."
-        log! "Using #{yml_file} file."
-        log! "Signup at rpm.newrelic.com to get a newrelic.yml file configured for a free Lite account."
+        @yaml = {}
       else
-        yaml = ERB.new(File.read(config_file)).result(binding)
+        @yaml = YAML.load(ERB.new(File.read(config_file)).result(binding))
       end
-      @yaml = YAML.load(yaml)
     rescue ScriptError, StandardError => e
       puts e
       puts e.backtrace.join("\n")

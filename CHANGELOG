@@ -1,4 +1,5 @@
 2009-XXXXX version 2.9.0
+  * Support footnote add-in
   * Support instances appearing in more than one application by allowing
     a semicolon separated list of names for the newrelic.yml app_name setting.
   * Added mongrel_rpm to the gem, a standalone daemon listening for 
@@ -25,6 +26,7 @@
   * in jruby, use Java used heap for memory sampling if the system
     memory is not accessible from an unsupported platform
   * fix various bugs with jruby support
+  * re-enable webrick support
 2009-04-17 version 2.8.9
   * fix problem finding the newrelic controller in dev mode
   * fix incompatibility with older versions of optparse

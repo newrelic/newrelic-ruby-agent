@@ -22,7 +22,14 @@ class NewRelic::Agent::TransationSamplerTest < Test::Unit::TestCase
     assert_equal "a", samples.first.root_segment.called_segments[0].metric_name
     assert_equal "a", samples.last.root_segment.called_segments[0].metric_name
   end
-  
+
+  def test_sample_id 
+    @sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
+#    assert_nil @sampler.current_sample_id
+    run_sample_trace do 
+      assert @sampler.current_sample_id > 0, @sampler.current_sample_id 
+    end
+  end
   
   def test_harvest_slowest
     @sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
