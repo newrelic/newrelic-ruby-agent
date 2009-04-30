@@ -12,6 +12,7 @@ OptionParser.new do |opts|
   opts.on("-p", "--port=port", Integer, "default: #{port}") { | port | }
   opts.on("--[no-]logging", "turn off request logging" ) { | l | options[:logging] = l }
   opts.on("--license=rpm_license_key", "override license key" ) { | l | options[:license_key] = l }
+  opts.on("--install", "install a newrelic.yml template" ) { | l | options[:install] = true }
   opts.separator ""
   opts.separator "app_name is the name of the application where the metrics will be stored"
   opts.separator ""
