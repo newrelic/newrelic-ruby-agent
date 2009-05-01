@@ -36,7 +36,7 @@ module NewRelic::Rack
       data_url = "http://#{env['HTTP_HOST']}/metrics/path?value=nnn"
       body = StringIO.new
       body.puts "<html><body>"
-      body.puts "<h1>New Relic Actively Monitoring #{NewRelic::Control.instance.app_name}</h1>"
+      body.puts "<h1>New Relic Actively Monitoring #{NewRelic::Control.instance.app_names.join(' and ')}</h1>"
       body.puts "<p>To submit a metric value, use <a href='#{data_url}'>#{data_url}</a></p>"
       body.puts "<h2>Request Details</h2>"
       body.puts "<dl>"
