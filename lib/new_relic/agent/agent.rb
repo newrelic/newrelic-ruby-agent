@@ -312,8 +312,8 @@ module NewRelic::Agent
       
       begin
         sleep connect_retry_period.to_i
-        @agent_id = invoke_remote :start, @local_host,
-        { :pid => $$, 
+        @agent_id = invoke_remote :start, @local_host, {
+          :pid => $$, 
           :launch_time => @launch_time.to_f, 
           :agent_version => NewRelic::VERSION::STRING, 
           :environment => control.local_env.snapshot,
