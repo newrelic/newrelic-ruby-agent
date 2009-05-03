@@ -1,20 +1,31 @@
-<p id="reset_transactions"><strong><a href="/newrelic/reset">Reset transactions (<%= @samples.size %>)</a></strong></p>
-<% if params[:h] || params[:u] %>
-  <p><a href="/newrelic">Sort by most-recent first</a></p>
-<% end %>
 <table>
+    <tr>
+    	<td colspan=4 align="left">
+        <%= link_to "Clear Transactions (#{@samples.size})", :action => 'reset' %>
+		</td>
+	</td>
 	<tr>
 		<td valign=top>
-			<table class="transaction_list_table">
-				<thead>
-				<tr>
-          			<td><%= params[:h] ? 'Resp Time' : link_to('Sort by Resp Time', '/newrelic?h=y') %></td>
-					<td><%= params[:u] ? 'URL' : link_to('Sort by URL', '/newrelic?u=y') %></td>
-					<td/>
-				</tr>
-				</thead>
-				<%= render :partial => 'sample', :collection => @samples %>
-			</table>
+        <table class="transaction_list_table">
+            <thead>
+                <tr>
+                    <td>
+                        <% if params[:h] || params[:u] -%>
+                        <%= link_to 'Sort by Timestamp', :h =>nil, :u=>nil %>
+                        <% else -%>
+                        Timestamp
+						<% end -%>
+                    </td>
+                    <td>
+                        <%= params[:h] ? 'Resp Time' : link_to('Sort by Resp Time', :h => 'y') %>
+                    </td>
+                    <td>
+                        <%= params[:u] ? 'URL' : link_to('Sort by URL', :u =>'y') %>
+                    </td>
+                    <td/>
+                </tr>
+            </thead><%= render :partial => 'sample', :collection => @samples %>
+        </table>
 		</td>
 		<td valign=top>
 			<h3>Welcome</h3>

@@ -1,5 +1,8 @@
 <tr class="<%= cycle('even_row', 'odd_row') %>">
 	<td align=right nowrap=true>
+		<%= Time.at(stripped_sample(sample).timestamp).strftime "%k:%M:%S" %>
+	</td>
+	<td align=right nowrap=true>
 		<%= colorize(stripped_sample(sample).duration, 1, 2) %> ms
 	</td>
 	<td>
