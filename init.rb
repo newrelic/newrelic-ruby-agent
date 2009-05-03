@@ -5,7 +5,7 @@ require 'new_relic/config'
 # newrelic_agent log files. 
 # 
 # If you can't find any log files and you don't see anything in your
-# application log files, try uncommenting these lines to verify
+# application log files, try uncommenting the following line to verify
 # the plugin is being loaded, then contact support@newrelic.com 
 # if you are unable to resolve the issue.
 

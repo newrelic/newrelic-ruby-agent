@@ -63,10 +63,9 @@ module NewRelic
       # Still can't find the port.  Let's look at ARGV to fall back
       @identifier = default_port if @identifier.nil?
     end
-    
-    def check_for_thin
+    def check_for_thin    
       if defined? Thin::Server
-        # This case covers the thin web server
+        # This case covers the thin web dispatcher
         # Same issue as above- we assume only one instance per process
         ObjectSpace.each_object(Thin::Server) do |thin_server|
           @environment = :thin
@@ -81,6 +80,10 @@ module NewRelic
             raise "Unknown thin backend: #{backend}"
           end
         end # each thin instance
+      end
+      if defined?(Thin::VERSION) && !@identifier
+        @environment = :thin
+        @identifier = default_port
       end
     end
     
