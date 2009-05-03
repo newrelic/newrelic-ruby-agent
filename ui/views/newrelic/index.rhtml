@@ -1,7 +1,7 @@
 <table>
     <tr>
     	<td colspan=4 align="left">
-        <%= link_to "Clear Transactions (#{@samples.size})", :action => 'reset' %>
+        <%= link_to_if @samples.size > 0, "Clear Transactions (#{@samples.size})", :action => 'reset' %>
 		</td>
 	</td>
 	<tr>
@@ -10,17 +10,13 @@
             <thead>
                 <tr>
                     <td>
-                        <% if params[:h] || params[:u] -%>
-                        <%= link_to 'Sort by Timestamp', :h =>nil, :u=>nil %>
-                        <% else -%>
-                        Timestamp
-						<% end -%>
+                        <%= link_to_if (params[:h] ||params[:u]), 'Timestamp' %>
                     </td>
                     <td>
-                        <%= params[:h] ? 'Resp Time' : link_to('Sort by Resp Time', :h => 'y') %>
+                        <%= link_to_unless_current('Resp. Time', :h => 'y') %>
                     </td>
                     <td>
-                        <%= params[:u] ? 'URL' : link_to('Sort by URL', :u =>'y') %>
+                        <%= link_to_unless_current('URL', :u =>'y') %>
                     </td>
                     <td/>
                 </tr>

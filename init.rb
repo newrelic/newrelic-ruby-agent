@@ -7,8 +7,8 @@ require 'new_relic/control'
 # If you can't find any log files and you don't see anything in your
 # application log files, try uncommenting the two lines at the 
 # bottom of this file to verify the plugin is being loaded, 
-# then contact support@newrelic.com if you are unable to resolve the 
-# issue.
+# then send the output to support@newrelic.com if you are unable to 
+# resolve the issue.
 
 # Initializer for the NewRelic Agent
 
@@ -34,5 +34,5 @@ rescue => e
 end
 #ClassLoadingWatcher.flag_const_missing = nil
 
-# STDOUT.puts "RPM detected environment: #{NewRelic::Control.instance.local_env.to_s}, RAILS_ENV: #{RAILS_ENV}"
-# STDOUT.puts "Enabled? #{NewRelic::Control.instance.agent_enabled?}"
+# ::RAILS_DEFAULT_LOGGER.warn "RPM detected environment: #{NewRelic::Control.instance.local_env.to_s}, RAILS_ENV: #{RAILS_ENV}"
+# ::RAILS_DEFAULT_LOGGER.warn "Enabled? #{NewRelic::Control.instance.agent_enabled?}"

@@ -231,6 +231,15 @@ div.flash.notice
 	width: 600px;
 	margin-right: 15px;
 }
+.transaction_list_table thead a:visited
+{
+	color: white;
+}
+.transaction_list_table thead a
+{
+	color: white;
+	text-decoration: underline;
+}
 
 .application_stack_trace, .full_stack_trace
 {	
