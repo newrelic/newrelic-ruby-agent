@@ -202,6 +202,10 @@ module NewRelic
           end
         end # each thin instance
       end
+      if defined? Thin::VERSION && !@dispatcher
+        @dispatcher = :thin
+        @dispatcher_instance_id = default_port
+      end
     end
     
     def check_for_litespeed
