@@ -1,6 +1,6 @@
 
 # NewRelic instrumentation for ActiveRecord
-if defined? ActiveRecord::Base
+if defined?(ActiveRecord::Base) && !NewRelic::Control.instance['skip_ar_instrumentation']
   
   # instrumentation to catch logged SQL statements in sampled transactions
   
