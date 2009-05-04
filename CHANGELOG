@@ -1,4 +1,6 @@
 2009-XXXXX version 2.9.0
+  * Change active record metrics to capture statistics in adapter log() call,
+    resulting in lower overhead and visibility into create operation
   * Support footnote add-in
   * Support instances appearing in more than one application by allowing
     a semicolon separated list of names for the newrelic.yml app_name setting.
@@ -27,6 +29,10 @@
     memory is not accessible from an unsupported platform
   * fix various bugs with jruby support
   * re-enable webrick support
+2009-05-04 version 2.8.10
+  * fix thin support with rails 2.3.2 when using script/server
+  * fix incompatibility with rails 2.3.2 and script/server options processing
+  * minor tweak to environment gathering for gem mode
 2009-04-17 version 2.8.9
   * fix problem finding the newrelic controller in dev mode
   * fix incompatibility with older versions of optparse

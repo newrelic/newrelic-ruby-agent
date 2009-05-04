@@ -19,7 +19,6 @@ module NewRelic::Agent
       
       @enabled = config.fetch('enabled', true)
       @capture_source = config.fetch('capture_source', true)
-      NewRelic::Control.instance.log.info "Error collector is enabled in agent config" if @enabled
       
       ignore_errors = config.fetch('ignore_errors', "")
       ignore_errors = ignore_errors.split(",")

@@ -1,95 +1,59 @@
 
 # NewRelic instrumentation for ActiveRecord
-if defined?(ActiveRecord::Base) && !NewRelic::Control.instance['skip_ar_instrumentation']
-  
-  ActiveRecord::Base.class_eval do
-    class << self
-      [:find_by_sql, :count].each do |find_method|
-        add_method_tracer find_method, 'ActiveRecord/#{self.name}/find'
-        add_method_tracer find_method, 'ActiveRecord/find', :push_scope => false
-        add_method_tracer find_method, 'ActiveRecord/all', :push_scope => false
-      end
-    end
-    [:save, :save!].each do |save_method|
-      add_method_tracer save_method, 'ActiveRecord/#{self.class.name}/save'
-      add_method_tracer save_method, 'ActiveRecord/save', :push_scope => false
-      add_method_tracer save_method, 'ActiveRecord/all', :push_scope => false
-    end
-    
-    add_method_tracer :destroy, 'ActiveRecord/#{self.class.name}/destroy'
-    add_method_tracer :destroy, 'ActiveRecord/destroy', :push_scope => false
-    add_method_tracer :destroy, 'ActiveRecord/all', :push_scope => false
-  end
+if defined? ActiveRecord::Base
   
   # instrumentation to catch logged SQL statements in sampled transactions
-
+  
   ActiveRecord::ConnectionAdapters::AbstractAdapter.class_eval do
-    @@my_sql_defined = defined? ActiveRecord::ConnectionAdapters::MysqlAdapter
-    @@postgres_defined = defined? ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
     
-    def log_with_newrelic_instrumentation(sql, name, &block)
-      # if we aren't in a blamed context, then add one so that we can see that
-      # controllers are calling SQL directly
-      # we check scope_depth vs 2 since the controller is 1, and the 
-      #      
-      if NewRelic::Agent.instance.transaction_sampler.scope_depth < 2
-        self.class.trace_method_execution_with_scope "Database/DirectSQL", true, true do
-          log_with_capture_sql(sql, name, &block)
-        end
-      else
-        log_with_capture_sql(sql, name, &block)
-      end
+    def newrelic_ar_all_stats
+      # need to lazy init this
+      @@newrelic_ar_all ||= NewRelic::Agent.instance.stats_engine.get_stats_no_scope("ActiveRecord/all")
     end
     
-    def log_with_capture_sql(sql, name, &block)
-      if @@my_sql_defined && self.is_a?(ActiveRecord::ConnectionAdapters::MysqlAdapter)
-        config = @config
-      elsif @@postgres_defined && self.is_a?(ActiveRecord::ConnectionAdapters::PostgreSQLAdapter)
-        config = @config
-      else
-        config = nil
+    def log_with_newrelic_instrumentation(sql, name, &block)
+      if (defined? ActiveRecord::ConnectionAdapters::MysqlAdapter && self.is_a?(ActiveRecord::ConnectionAdapters::MysqlAdapter)) ||
+       (defined? ActiveRecord::ConnectionAdapters::PostgreSQLAdapter && self.is_a?(ActiveRecord::ConnectionAdapters::PostgreSQLAdapter))
+        supported_config = @config
       end
       
-      t0 = Time.now
-      result = log_without_newrelic_instrumentation(sql, name, &block)
+      if name.blank?
+        metric = "Database/DirectSQL"
+        operation = ""
+      else
+        a = name.split(" ")
+        
+        model = a[0]
+        operation = a[1].downcase
+        
+        # we may want to leave the metric as "load" and adjust our UI.
+        operation = "find" if operation == "load"
+        
+        metric = "ActiveRecord/#{model}/#{operation}"
+      end
       
-      NewRelic::Agent.instance.transaction_sampler.notice_sql(sql, config, Time.now - t0)
+      result = nil
+      
+      self.class.trace_method_execution_with_scope metric, true, true do        
+        t0 = Time.now.to_f
+        
+        result = log_without_newrelic_instrumentation(sql, name, &block)
+        
+        duration = Time.now.to_f - t0
+        
+        NewRelic::Agent.instance.transaction_sampler.notice_sql(sql, supported_config, duration)
+        newrelic_ar_all_stats.record_data_point(duration)
+        
+        NewRelic::Agent.instance.stats_engine.get_stats_no_scope("ActiveRecord/#{operation}").record_data_point(duration)
+      end
       
       result
     end
     
-    # Compare with #alias_method_chain, which is not available in 
-    # Rails 1.1:
     alias_method :log_without_newrelic_instrumentation, :log
     alias_method :log, :log_with_newrelic_instrumentation
     protected :log
     
-    add_method_tracer :log, 'Database/#{adapter_name}/#{args[1]}', :metric => false
-    add_method_tracer :log, 'Database/all', :push_scope => false
-    
-  end
-  ActiveRecord::Associations::ClassMethods.class_eval do
-    add_method_tracer :find_with_associations, 'ActiveRecord/#{self.name}/find'
-    add_method_tracer :find_with_associations, 'ActiveRecord/find', :push_scope => false
-    add_method_tracer :find_with_associations, 'ActiveRecord/all', :push_scope => false
   end
   
-  # instrumentation for associations
-  ActiveRecord::Associations::AssociationCollection.class_eval do
-    add_method_tracer :delete, 'ActiveRecord/#{@owner.class.name}/association delete'
-  end
-=begin
-    # Consider enabling these in the future
-    class HasAndBelongsToManyAssociation
-      add_method_tracer :find, 'ActiveRecord/#{@owner.class.name}/association find'
-      add_method_tracer :create_record, 'ActiveRecord/#{@owner.class.name}/association create'
-      add_method_tracer :insert_record, 'ActiveRecord/#{@owner.class.name}/association insert'
-    end
-    
-    class HasManyAssociation
-      add_method_tracer :find, 'ActiveRecord/#{@owner.class.name}/association find'
-      add_method_tracer :insert_record, 'ActiveRecord/#{@owner.class.name}/association insert'
-      add_method_tracer :create_record, 'ActiveRecord/#{@owner.class.name}/association create'
-    end
-=end
 end
