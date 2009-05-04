@@ -14,9 +14,11 @@ module NewRelic
         "Rows",
         "Extra"
       ].freeze
-      
+  
   class TransactionSample
     
+    @@start_time = Time.now
+
     include TransactionAnalysis
     class Segment
       
@@ -321,6 +323,11 @@ module NewRelic
       @root_segment = create_segment 0.0, "ROOT"
       @params = {}
       @params[:request_params] = {}
+    end
+
+    # offset from start of app
+    def timestamp
+      @start_time - @@start_time.to_f
     end
     
     def to_json(options = {})
