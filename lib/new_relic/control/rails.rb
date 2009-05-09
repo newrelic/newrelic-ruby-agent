@@ -1,5 +1,5 @@
 class NewRelic::Control::Rails < NewRelic::Control
-
+  
   def env
     @env ||= RAILS_ENV
   end
@@ -30,7 +30,7 @@ class NewRelic::Control::Rails < NewRelic::Control
     @installed = true
     controller_path = File.expand_path(File.join(newrelic_root, 'ui', 'controllers'))
     helper_path = File.expand_path(File.join(newrelic_root, 'ui', 'helpers'))
-
+    
     if defined? ActiveSupport::Dependencies
       Dir["#{helper_path}/*.rb"].each { |f| require f }
       Dir["#{controller_path}/*.rb"].each { |f| require f }
@@ -68,6 +68,10 @@ class NewRelic::Control::Rails < NewRelic::Control
     end
   end
   
+  def rails_version
+    @rails_version ||= NewRelic::VersionNumber.new(::Rails::VERSION::STRING)
+  end
+  
   protected 
   
   def install_devmode_route
@@ -94,18 +98,18 @@ class NewRelic::Control::Rails < NewRelic::Control
   # Collect the Rails::Info into an associative array as well as the list of plugins
   def append_environment_info
     local_env.append_environment_value('Rails version'){ ::Rails::VERSION::STRING }
-
-    if ::Rails::VERSION::MAJOR * 100 + ::Rails::VERSION::MINOR * 10 >= 210
+    
+    if rails_version >= NewRelic::VersionNumber.new('2.1.0')
       local_env.append_gem_list do
         ::Rails.configuration.gems.map do | gem |
           version = (gem.respond_to?(:version) && gem.version) ||
-                    (gem.specification.respond_to?(:version) && gem.specification.version)
+           (gem.specification.respond_to?(:version) && gem.specification.version)
           gem.name + (version ? "(#{version})" : "")
         end
       end
       # The plugins is configured manually.  If it's nil, it loads everything non-deterministically
       if ::Rails.configuration.plugins
-         local_env.append_plugin_list { ::Rails.configuration.plugins }
+        local_env.append_plugin_list { ::Rails.configuration.plugins }
       else
         ::Rails.configuration.plugin_paths.each do |path|
           local_env.append_plugin_list { Dir[File.join(path, '*')].collect{ |p| File.basename p if File.directory? p }.compact }
@@ -124,4 +128,5 @@ class NewRelic::Control::Rails < NewRelic::Control
     require 'new_relic/agent/instrumentation/controller_instrumentation'
     ActionController::Base.send :include, NewRelic::Agent::Instrumentation::ControllerInstrumentation::Shim  
   end
+  
 end
