@@ -29,12 +29,12 @@ module NewRelic
     end
     
     def to_s
-      "#{major_version}.#{minor_version}.#{tiny_version}"
+      @parts.join(".")
     end
     def scalar_value
       if !@scalar_value
-        bits = 18
-        @scalar_value = @parts.inject(0) do | part, value |
+        bits = 24
+        @scalar_value = @parts.inject(0) do | value, part |
           bits -= 6
           value + (part << bits)
         end
