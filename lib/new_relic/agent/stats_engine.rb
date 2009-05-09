@@ -229,11 +229,9 @@ module NewRelic::Agent
       timeslice_data
     end
     
-    
     def start_transaction
       Thread::current[:newrelic_scope_stack] = []
     end
-    
     
     # Try to clean up gracefully, otherwise we leave things hanging around on thread locals
     #
@@ -248,6 +246,10 @@ module NewRelic::Agent
       Thread::current[:newrelic_transaction_name] = nil
     end
     
+    # :nodoc: for test code only
+    def clear_stats
+      @stats_hash.clear
+    end
     private
     
       def scope_stack

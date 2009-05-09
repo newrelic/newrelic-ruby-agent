@@ -1,6 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper')) 
 require 'newrelic_helper'
-require 'new_relic/agent/model_fixture'
+require 'active_record_fixtures'
 
 class NewRelic::Agent::NewrelicHelperTest < Test::Unit::TestCase
   include NewrelicHelper
@@ -11,12 +11,12 @@ class NewRelic::Agent::NewrelicHelperTest < Test::Unit::TestCase
   
   def setup
     super
-    NewRelic::Agent::ModelFixture.setup
+    ActiveRecordFixtures.setup
     # setup instrumentation
     NewRelic::Agent.manual_start 
     # let's get a real stack trace
     begin
-      NewRelic::Agent::ModelFixture.find 0
+      NewRelic::Agent::Fixtures::Order.find 0
     rescue => e
       @exception = e
       return
@@ -24,7 +24,7 @@ class NewRelic::Agent::NewrelicHelperTest < Test::Unit::TestCase
     flunk "should throw"
   end
   def teardown
-    NewRelic::Agent::ModelFixture.teardown
+    ActiveRecordFixtures.teardown
     NewRelic::Agent.instance.shutdown
     super
   end
