@@ -110,6 +110,7 @@ class ActiveRecordTest < Test::Unit::TestCase
     segment = sample.root_segment.called_segments.first.called_segments.first
   end
   def test_prepare_to_send
+    ActiveRecordFixtures::Order.add_delay
     ActiveRecordFixtures::Order.find(:all)
     
     sample = NewRelic::Agent.instance.transaction_sampler.last_sample
