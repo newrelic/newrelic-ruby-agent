@@ -8,6 +8,9 @@ class ActiveRecordTest < Test::Unit::TestCase
     NewRelic::Agent.instance.stats_engine.clear_stats
     ActiveRecordFixtures.setup
     NewRelic::Agent.instance.transaction_sampler.harvest
+  rescue
+    puts e
+    puts e.backtrace.join("\n")
   end
   
   def teardown
@@ -107,6 +110,7 @@ class ActiveRecordTest < Test::Unit::TestCase
     segment = sample.root_segment.called_segments.first.called_segments.first
   end
   def test_prepare_to_send
+    ActiveRecordFixtures::Order.add_delay
     ActiveRecordFixtures::Order.find(:all)
     
     sample = NewRelic::Agent.instance.transaction_sampler.last_sample
@@ -125,7 +129,7 @@ class ActiveRecordTest < Test::Unit::TestCase
     end
   end
   def test_transaction
-    
+    ActiveRecordFixtures::Order.add_delay
     ActiveRecordFixtures::Order.find(:all)
     
     sample = NewRelic::Agent.instance.transaction_sampler.last_sample
@@ -152,7 +156,7 @@ class ActiveRecordTest < Test::Unit::TestCase
     assert_equal 1, s.call_count
   end
   # These are only valid for rails 2.1 and later
-  unless Rails::VERSION::STRING =~ /^(1\.|2\.0)/
+  if NewRelic::Control.instance.rails_version >= NewRelic::VersionNumber.new("2.1.0")
     ActiveRecordFixtures::Order.class_eval do
       named_scope :jeffs, :conditions => { :name => 'Jeff' }
     end

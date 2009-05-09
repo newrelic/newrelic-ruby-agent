@@ -13,8 +13,12 @@ module NewRelic
     include Comparable
     def initialize(version_string)
       version_string ||= '1.0.0'
+      @parts = version_string.split('.').map{|n| n.to_i }
       @major_version, @minor_version, @tiny_version = (version_string.split('.') + %w[0 0 0]).map(&:to_i)
     end
+    def major_version; @parts[0]; end
+    def minor_version; @parts[1]; end
+    def tiny_version; @parts[2]; end
     
     def <=>(other)
       self.scalar_value <=> other.scalar_value 
@@ -25,12 +29,17 @@ module NewRelic
     end
     
     def to_s
-      "#{major_version}.#{minor_version}.#{tiny_version}"
+      @parts.join(".")
     end
     def scalar_value
-      (major_version << 16) +
-      (minor_version << 8) +
-      tiny_version
+      if !@scalar_value
+        bits = 24
+        @scalar_value = @parts.inject(0) do | value, part |
+          bits -= 6
+          value + (part << bits)
+        end
+      end
+      @scalar_value
     end
     alias hash scalar_value
   end
