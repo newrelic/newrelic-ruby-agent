@@ -1,7 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
 require 'ostruct'
-require 'new_relic/agent/model_fixture'
-
+require 'active_record_fixtures'
 class NewRelic::Agent::CollectionHelperTest < Test::Unit::TestCase
   
   def setup
@@ -95,8 +94,9 @@ class NewRelic::Agent::CollectionHelperTest < Test::Unit::TestCase
   
   def test_strip_backtrace
     begin
-      NewRelic::Agent::ModelFixture.setup
-      NewRelic::Agent::ModelFixture.find 0
+      ActiveRecordFixtures.setup
+#      ActiveRecordFixtures::Order.add_delay
+      ActiveRecordFixtures::Order.find 0
       flunk "should throw"
     rescue => e
       #puts e
@@ -107,7 +107,7 @@ class NewRelic::Agent::CollectionHelperTest < Test::Unit::TestCase
       assert_equal 0, clean_trace.grep(/trace/).size, clean_trace.grep(/trace/)
       assert_equal 3, clean_trace.grep(/find/).size, "should see three frames with 'find' in them (#{e}): \n#{clean_trace.join("\n")}"
     ensure
-      NewRelic::Agent::ModelFixture.teardown
+      ActiveRecordFixtures.teardown
     end
   end
 end
