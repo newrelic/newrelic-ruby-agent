@@ -119,15 +119,15 @@ module NewRelic
           o.separator "OPTIONS:"
           o.on("-a", "--appname=DIR", String,
              "Set the application name.",
-             "Default is app_name setting in newrelic.yml") { |@appname| }
+             "Default is app_name setting in newrelic.yml") { | e | @appname = e }
           o.on("-e", "--environment=name", String,
                "Override the (RAILS|MERB|RUBY)_ENV setting",
-               "currently: #{config.env}") { | @environment| }
+               "currently: #{config.env}") { | e | @environment = e }
           o.on("-u", "--user=USER", String,
              "Specify the user deploying.",
-             "Default: #{@user}") { |@user| }
+             "Default: #{@user}") { | u | @user = u }
           o.on("-r", "--revision=REV", String,
-             "Specify the revision being deployed") { |@revision | }
+             "Specify the revision being deployed") { | r | @revision = r }
           o.on("-c", "--changes", 
              "Read in a change log from the standard input") { @changelog = STDIN.read }
           o.on("-h", "--help", "Print this help") { raise CommandFailure.new(o.help, 0) }

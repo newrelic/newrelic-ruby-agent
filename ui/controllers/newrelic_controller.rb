@@ -28,9 +28,9 @@ class NewrelicController < ActionController::Base
   # for this controller, the views are located in a different directory from
   # the application's views.
   view_path = File.join(File.dirname(__FILE__), '..', 'views')
-  if public_methods.include? 'append_view_path' # rails 2.1+
+  if respond_to? :append_view_path # rails 2.1+
     self.append_view_path view_path
-  elsif public_methods.include? "view_paths"   # rails 2.0+
+  elsif respond_to? :view_paths   # rails 2.0+
     self.view_paths << view_path
   else                                      # rails <2.0
     self.template_root = view_path
