@@ -80,11 +80,16 @@ class NewRelic::Agent::CollectionHelperTest < Test::Unit::TestCase
   end
   
   def test_stringio
-    # make sure stringios aren't affected
+    # Verify StringIO works like this normally:
     s = StringIO.new "start" + ("foo bar bat " * 1000)
-    v = normalize_params({ :foo => s })
-    val = ""
-    s.each { | val | break } 
+    val = nil
+    s.each { | entry | val = entry; break } 
+    assert_match /^startfoo bar/, val
+
+    # make sure stringios aren't affected by calling normalize_params:
+    s = StringIO.new "start" + ("foo bar bat " * 1000)
+    v = normalize_params({ :foo => s.string })
+    s.each { | entry | val = entry; break } 
     assert_match /^startfoo bar/, val
   end
   

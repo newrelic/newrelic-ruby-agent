@@ -71,42 +71,42 @@ module NewRelic::Agent::Instrumentation
       
       @harvest_start = Time.now.to_f
       @accumulator = 0
-      @entrypoint_stack = []    
+      @entrypoint_stack = []
+      @lock = Mutex.new
       
       def dispatcher_start(time)
-        Thread.critical = true
-        @entrypoint_stack.push time      
-        Thread.critical = false
+        @lock.synchronize do
+          @entrypoint_stack.push time      
+        end
       end
       
       def dispatcher_finish(time)
-        Thread.critical = true
-        NewRelic::Control.instance.log.error("Stack underflow tracking dispatcher entry and exit!\n  #{caller.join("  \n")}") and return if @entrypoint_stack.empty?
-        @accumulator += (time - @entrypoint_stack.pop)
-        Thread.critical = false
+        @lock.synchronize do
+          NewRelic::Control.instance.log.error("Stack underflow tracking dispatcher entry and exit!\n  #{caller.join("  \n")}") and return if @entrypoint_stack.empty?
+          @accumulator += (time - @entrypoint_stack.pop)
+        end
       end
       
       def busy_count
         @entrypoint_stack.size
       end
-      
+
+      # Called before uploading to to the server to collect current busy stats.
       def harvest_busy
-        Thread.critical = true
-        
-        busy = @accumulator
-        @accumulator = 0
-        
+        busy = 0
         t0 = Time.now.to_f
-        
-        # Walk through the stack and capture all times up to 
-        # now for entrypoints
-        @entrypoint_stack.size.times do |frame| 
-          busy += (t0 - @entrypoint_stack[frame])
-          @entrypoint_stack[frame] = t0
+        @lock.synchronize do
+          busy = @accumulator
+          @accumulator = 0
+          
+          # Walk through the stack and capture all times up to 
+          # now for entrypoints
+          @entrypoint_stack.size.times do |frame| 
+            busy += (t0 - @entrypoint_stack[frame])
+            @entrypoint_stack[frame] = t0
+          end
+          
         end
-        
-        
-        Thread.critical = false
         
         busy = 0.0 if busy < 0.0 # don't go below 0%
         

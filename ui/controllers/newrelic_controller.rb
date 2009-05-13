@@ -175,7 +175,7 @@ class NewrelicController < ActionController::Base
   end
   
   def get_samples
-    @samples = NewRelic::Agent.instance.transaction_sampler.get_samples.select do |sample|
+    @samples = NewRelic::Agent.instance.transaction_sampler.samples.select do |sample|
       sample.params[:path] != nil
     end
     

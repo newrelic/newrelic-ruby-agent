@@ -1,7 +1,6 @@
 
 module NewRelic::Agent
   class ErrorCollector
-    include Synchronize
     include CollectionHelper
     
     MAX_ERROR_QUEUE_LENGTH = 20 unless defined? MAX_ERROR_QUEUE_LENGTH
@@ -24,6 +23,7 @@ module NewRelic::Agent
       ignore_errors = ignore_errors.split(",")
       ignore_errors.each { |error| error.strip! } 
       ignore(ignore_errors)
+      @lock = Mutex.new
     end
     
     def ignore_error_filter(&block)
@@ -84,7 +84,7 @@ module NewRelic::Agent
       
       noticed_error = NewRelic::NoticedError.new(action_path, data, exception)
       
-      synchronize do
+      @lock.synchronize do
         if @errors.length >= MAX_ERROR_QUEUE_LENGTH
           log.info("The error reporting queue has reached #{MAX_ERROR_QUEUE_LENGTH}. This error will not be reported to RPM: #{exception.message}")
         else
@@ -100,7 +100,7 @@ module NewRelic::Agent
       if unsent_errors && !unsent_errors.empty?
         return unsent_errors
       else
-        synchronize do
+        @lock.synchronize do
           errors = @errors
           @errors = []
           return errors
