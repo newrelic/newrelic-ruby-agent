@@ -2,11 +2,10 @@
 module NewRelic::Agent
   
   class TransactionSampler
-    include Synchronize
     
     BUILDER_KEY = :transaction_sample_builder
 
-    attr_accessor :stack_trace_threshold, :random_sampling, :sampling_rate, :last_sample
+    attr_accessor :stack_trace_threshold, :random_sampling, :sampling_rate, :last_sample, :samples
     
     def initialize(agent)
       @samples = []
@@ -23,6 +22,7 @@ module NewRelic::Agent
       agent.set_sql_obfuscator(:replace) do |sql| 
         default_sql_obfuscator(sql)
       end
+      @samples_lock = Mutex.new
     end
     
     def current_sample_id
@@ -105,7 +105,7 @@ module NewRelic::Agent
       last_builder.finish_trace(time)
       reset_builder
     
-      synchronize do
+      @samples_lock.synchronize do
         @last_sample = last_builder.sample
         
         # We sometimes see "unanchored" transaction traces
@@ -171,7 +171,7 @@ module NewRelic::Agent
       
       previous_slowest = previous.inject(nil) {|a,ts| (a) ? ((a.duration > ts.duration) ? a : ts) : ts}
       
-      synchronize do
+      @samples_lock.synchronize do
         
         if @random_sampling        
           @harvest_count += 1
@@ -194,13 +194,6 @@ module NewRelic::Agent
         end
       end
       result
-    end
-
-    # get the list of samples without clearing the list.
-    def get_samples
-      synchronize do
-        return @samples.clone
-      end
     end
 
     # reset samples without rebooting the web server

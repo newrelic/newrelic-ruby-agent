@@ -16,7 +16,6 @@ module NewRelic
     require 'new_relic/agent/agent'
     require 'new_relic/agent/shim_agent'
     require 'new_relic/agent/method_tracer'
-    require 'new_relic/agent/synchronize'
     require 'new_relic/agent/worker_loop'
     require 'new_relic/agent/stats_engine'
     require 'new_relic/agent/collection_helper'

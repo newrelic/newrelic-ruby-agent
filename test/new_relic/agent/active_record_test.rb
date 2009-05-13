@@ -99,6 +99,7 @@ class ActiveRecordTest < Test::Unit::TestCase
   end
   
   def test_run_explains
+    ActiveRecordFixtures::Order.add_delay
     ActiveRecordFixtures::Order.find(:all)
     
     sample = NewRelic::Agent.instance.transaction_sampler.last_sample

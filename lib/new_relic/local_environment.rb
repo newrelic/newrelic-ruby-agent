@@ -225,7 +225,7 @@ module NewRelic
       # If nothing else is found, use the 3000 default
       default_port = 3000
       OptionParser.new do |opts|
-        opts.on("-p", "--port=port", String) { | default_port | }
+        opts.on("-p", "--port=port", String) { | p | default_port = p }
         opts.parse(ARGV.clone) rescue nil
       end
       default_port

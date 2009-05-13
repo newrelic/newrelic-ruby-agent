@@ -7,6 +7,12 @@ require 'test/unit'
 
 ::SQL_STATEMENT = "SELECT * from sandwiches"
 
+NewRelic::TransactionSample::Segment.class_eval do
+  def handle_exception_in_explain(e)
+    fail "Got error in explain plan: #{e}"
+  end
+  
+end
 class NewRelic::TransationSampleTest < Test::Unit::TestCase
   
   def setup
@@ -23,7 +29,6 @@ class NewRelic::TransationSampleTest < Test::Unit::TestCase
     explain_count = 0
     
     s.each_segment do |segment|
-      
       if segment.params[:explanation]
         explanations = segment.params[:explanation]
         
@@ -159,7 +164,7 @@ class NewRelic::TransationSampleTest < Test::Unit::TestCase
     sampler.notice_pop_scope "a"
     sampler.notice_scope_empty
     
-    sampler.get_samples[0]
+    sampler.samples[0]
   end
   
   

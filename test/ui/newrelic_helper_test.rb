@@ -16,7 +16,7 @@ class NewRelic::Agent::NewrelicHelperTest < Test::Unit::TestCase
     NewRelic::Agent.manual_start 
     # let's get a real stack trace
     begin
-      NewRelic::Agent::Fixtures::Order.find 0
+      ActiveRecordFixtures::Order.find 0
     rescue => e
       @exception = e
       return

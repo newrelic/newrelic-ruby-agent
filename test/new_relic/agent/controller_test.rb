@@ -59,13 +59,13 @@ class AgentControllerTest < ActionController::TestCase
     
     assert agent.transaction_sampler
     
-    num_samples = NewRelic::Agent.instance.transaction_sampler.get_samples.length
+    num_samples = NewRelic::Agent.instance.transaction_sampler.samples.length
     
     assert_equal "[FILTERED]", @controller._filter_parameters({'social_security_number' => 'test'})['social_security_number']
     
     get :index, 'social_security_number' => "001-555-1212"
     
-    samples = agent.transaction_sampler.get_samples
+    samples = agent.transaction_sampler.samples
     
     agent.transaction_sampler.expects(:notice_transaction).never
     

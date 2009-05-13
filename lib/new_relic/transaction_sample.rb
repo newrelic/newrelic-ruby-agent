@@ -200,24 +200,32 @@ module NewRelic
                 # Note: we can't use map.
                 # Note: have to convert from native column element types to string so we can
                 # serialize.  Esp. for postgresql.
-                explain_resultset.each { | row | rows << row.map(&:to_s) }  # Can't use map.  Suck it up.
+                # Can't use map.  Suck it up.
+                if explain_resultset.respond_to?(:each)
+                  explain_resultset.each { | row | rows << row.map(&:to_s) }
+                else
+                  rows << [ explain_resultset ]
+                end
                 explanations << rows
                 # sleep for a very short period of time in order to yield to the main thread
                 # this is because a remote database call will likely hang the VM
                 sleep 0.05
               end
             rescue => e
-              x = 1 # this is here so that code coverage knows we've entered this block
-              # swallow failed attempts to run an explain.  One example of a failure is the
-              # connection for the sql statement is to a different db than the default connection
-              # specified in AR::Base
+              handle_exception_in_explain(e)
             end
           end
         end
 
         explanations
       end
-      
+
+      def handle_exception_in_explain(e)
+        x = 1 # this is here so that code coverage knows we've entered this block
+        # swallow failed attempts to run an explain.  One example of a failure is the
+        # connection for the sql statement is to a different db than the default connection
+        # specified in AR::Base
+      end
       def obfuscated_sql
         TransactionSample.obfuscate_sql(params[:sql])
       end

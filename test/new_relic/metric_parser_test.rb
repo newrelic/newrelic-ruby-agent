@@ -17,7 +17,7 @@ class MetricParserTest < Test::Unit::TestCase
     assert_equal "MemCache read", m.developer_name
   end
   def test_string
-    %[Controller/posts/index View/posts/index WebService/posts Custom/posts Unrecognized/posts XX/posts].each do | name |
+    %w[Controller/posts/index View/posts/index WebService/posts Custom/posts Unrecognized/posts XX/posts].each do | name |
       name.extend NewRelic::MetricParser
       assert_equal "posts", name.segments[1]
     end
