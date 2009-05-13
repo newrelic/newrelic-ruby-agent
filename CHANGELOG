@@ -1,4 +1,5 @@
 2009-XXXXX version 2.9.0
+  * Fixes for ruby 1.9.1
   * Change active record metrics to capture statistics in adapter log() call,
     resulting in lower overhead and visibility into create operation
   * Support footnote add-in
