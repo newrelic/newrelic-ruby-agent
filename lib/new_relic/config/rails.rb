@@ -17,13 +17,11 @@ class NewRelic::Config::Rails < NewRelic::Config
   end
   
   def start_plugin(rails_config=nil)
-    if !tracers_enabled?
+    if !tracers_enabled? || !start_agent
       require 'new_relic/shim_agent'
-      return
+    else
+      install_developer_mode rails_config if developer_mode?
     end
-    app_config_info
-    start_agent
-    install_developer_mode rails_config if developer_mode?
   end
   
   def install_developer_mode(rails_config)
