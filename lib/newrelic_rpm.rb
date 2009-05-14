@@ -24,7 +24,8 @@
 #
 # == Agent APIs
 #
-# The agent has some APIs available for extending and customizing. 
+# The agent has some APIs available for extending and customizing.
+# :main: 
 require 'new_relic/control'
 
 def log!(message)

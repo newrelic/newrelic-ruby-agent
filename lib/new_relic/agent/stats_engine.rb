@@ -246,8 +246,7 @@ module NewRelic::Agent
       Thread::current[:newrelic_transaction_name] = nil
     end
     
-    # :nodoc: for test code only
-    def clear_stats
+    def clear_stats # :nodoc: for test code only
       @stats_hash.clear
     end
     private

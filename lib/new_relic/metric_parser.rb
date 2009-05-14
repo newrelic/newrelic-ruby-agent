@@ -1,19 +1,19 @@
-# Metric parsing logic mixin.  Given a metric name (attribute called "name"), provide a set of accessors
-# that enable inspection of the metric.  A metric has 2 or more segments, each separated
-# by the '/' character.  The metric's category is specified by its first segment. Following
-# are the set of categories currently supported by NewRelic's default metric set:
-#
-# - Controller
-# - ActiveRecord
-# - Rails
-# - WebService
-# - View
-# - Database
-# - Custom
-#
-# Based on the category of the metric, specific parsing logic is defined in the source files
-# countained in the "metric_parsers" sub directory local to this file.
 module NewRelic
+  # Metric parsing logic mixin.  Given a metric name (attribute called "name"), provide a set of accessors
+  # that enable inspection of the metric.  A metric has 2 or more segments, each separated
+  # by the '/' character.  The metric's category is specified by its first segment. Following
+  # are the set of categories currently supported by NewRelic's default metric set:
+  #
+  # - Controller
+  # - ActiveRecord
+  # - Rails
+  # - WebService
+  # - View
+  # - Database
+  # - Custom
+  #
+  # Based on the category of the metric, specific parsing logic is defined in the source files
+  # countained in the "metric_parsers" sub directory local to this file.
   module MetricParser
     
     # this exception is thrown if the caller inspects a metric

@@ -1,35 +1,40 @@
-2009-XXXXX version 2.9.0
-  * Fixes for ruby 1.9.1
-  * Change active record metrics to capture statistics in adapter log() call,
-    resulting in lower overhead and visibility into create operation
-  * Support footnote add-in
-  * Support instances appearing in more than one application by allowing
-    a semicolon separated list of names for the newrelic.yml app_name setting.
-  * Added mongrel_rpm to the gem, a standalone daemon listening for 
-    custom metric values sent from local processes.  Experimental.
-  * Added some sorting options for the transaction list in Developer Mode
-  * Improved labeling of metrics in Dev Mode traces to make them more readable
-  * Give visibility to templates and partials in Rails 2.1 and later, in dev
+2009-05-14 version 2.9.0
+  Enhancements
+  * give visibility to templates and partials in Rails 2.1 and later, in dev
     mode and production
-  * Support concurrency when determining busy times, for 2.3 compatibility
-  * Capture gem information in configuration
-  * Using a different timeout mechanism when we post data to RPM
-  * Add API for system monitoring daemons
-  * Sample memory on linux by reading /proc/#{$$}/status file
-  * changed API for manual starting of the agent; refer to
-    NewRelic::Agent.manual_start for details
-  * refactored to simplify startup sequence
+  * change active record metrics to capture statistics in adapter log() call,
+    resulting in lower overhead and improved visibility into different DB operations
+  * support instances appearing in more than one application by allowing
+    a semicolon separated list of names for the newrelic.yml app_name setting.
+  * added mongrel_rpm to the gem, a standalone daemon listening for 
+    custom metric values sent from local processes (experimental)
+  * added some sorting options for the transaction list in Developer Mode
+  * improved labeling of metrics in developer mode traces to make them more readable
+  * capture gem information in configuration
+  * add API for system monitoring daemons (refer to KB articles); changed API 
+    for manual starting of the agent; refer to NewRelic::Agent.manual_start for details
   * add instrumentation to capture metrics on response codes
-  * reduced the number of controller metrics that report to rpm
   * use rpm server time for transaction traces rather than agent time
   * added http referer to traced errors
-  * on connection, get a shard collector to redirect to
-  * removed Numeric extensions, including round_to, and to_ms
   * combined agent logfiles into a single logfile
+
+  Compatibility Enhancements
+  * support concurrency when determining busy times, for 2.2 compatibility
+  * ruby 1.9.1 compatibility
+  * fix various bugs with jruby support
   * in jruby, use Java used heap for memory sampling if the system
     memory is not accessible from an unsupported platform
-  * fix various bugs with jruby support
   * re-enable webrick support
+  * API support for RPM as a footnote add-in
+
+  Major bugfixes
+  * Sample memory on linux by reading /proc/#{$$}/status file
+  * removed Numeric extensions, including round_to, and to_ms
+  * refactored to simplify startup sequence  
+  * using a different timeout mechanism when we post data to RPM
+  * remove usage of Rails::Info which had a side effect of enabling
+    ActiveRecord even when it wasn't an active framework
+  
 2009-05-04 version 2.8.10
   * fix thin support with rails 2.3.2 when using script/server
   * fix incompatibility with rails 2.3.2 and script/server options processing

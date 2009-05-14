@@ -1,15 +1,17 @@
 require 'set'
-# An instance of LocalEnvironment is responsible for determining
-# three things: 
-#
-# * Framework - :rails, :merb, :ruby, :test
-# * Dispatcher - A supported dispatcher, or nil (:mongrel, :thin, :passenger, :webrick, etc)
-# * Dispatcher Instance ID, which distinguishes agents on a single host from each other
-#
-# and locally unique dispatcher_instance_id for this agent's host.
-# If the environment can't be determined, it will be set to
-# nil and dispatcher_instance_id will have nil
+
 module NewRelic 
+  # An instance of LocalEnvironment is responsible for determining
+  # three things: 
+  #
+  # * Framework - :rails, :merb, :ruby, :test
+  # * Dispatcher - A supported dispatcher, or nil (:mongrel, :thin, :passenger, :webrick, etc)
+  # * Dispatcher Instance ID, which distinguishes agents on a single host from each other
+  #
+  # If the environment can't be determined, it will be set to
+  # nil and dispatcher_instance_id will have nil.
+  # 
+  # NewRelic::LocalEnvironment should be accessed through NewRelic::Control#env (via the NewRelic::Control singleton).
   class LocalEnvironment
 
     attr_accessor :dispatcher # mongrel, thin, webrick, or possibly nil
