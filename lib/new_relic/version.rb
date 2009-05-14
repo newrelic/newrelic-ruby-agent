@@ -11,6 +11,10 @@ module NewRelic
   end
 
   CHANGELOG = <<EOF
+2009-05-14 version 2.8.11
+  * fix problem where newrelic_ignore was not defined when the agent was not
+    started
+  * fix error in log occurring when jruby/tomcat doesn't have a db config entry
 2009-05-04 version 2.8.10
   * fix thin support with rails 2.3.2 when using script/server
   * fix incompatibility with rails 2.3.2 and script/server options processing
