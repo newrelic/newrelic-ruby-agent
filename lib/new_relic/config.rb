@@ -211,6 +211,7 @@ module NewRelic
     
     def start_agent
       require 'new_relic/agent.rb'
+      app_config_info
       NewRelic::Agent::Agent.instance.start(local_env.environment, local_env.identifier)
     end
     
