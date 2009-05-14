@@ -183,7 +183,7 @@ module NewRelic
       # and only within the slowest transaction in a report period, selected for shipment to RPM
       def explain_sql        
         sql = params[:sql]
-        return nil if sql.nil?
+        return nil unless sql && params[:connection_config]
         statements = sql.split(";\n")
         explanations = []
         statements.each do |statement|
