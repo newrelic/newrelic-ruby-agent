@@ -4,22 +4,18 @@ module NewRelic
   # by the '/' character.  The metric's category is specified by its first segment. Following
   # are the set of categories currently supported by NewRelic's default metric set:
   #
-  # - Controller
-  # - ActiveRecord
-  # - Rails
-  # - WebService
-  # - View
-  # - Database
-  # - Custom
+  # * Controller
+  # * ActiveRecord
+  # * Rails
+  # * WebService
+  # * View
+  # * Database
+  # * Custom
   #
   # Based on the category of the metric, specific parsing logic is defined in the source files
   # countained in the "metric_parsers" sub directory local to this file.
+  #
   module MetricParser
-    
-    # this exception is thrown if the caller inspects a metric
-    # improperly (for example, if a metric that measures database
-    # activity is called with :controller_name, a MetricException is thrown)
-    class MetricException < Exception; end
     
     SEPARATOR = '/' unless defined? SEPARATOR
     @segments = nil
@@ -38,7 +34,7 @@ module NewRelic
       return false if method_name.to_s =~ /^is_.*\?/
       super
     end
-    # the short name for the metric is defined as all of the segments
+    # The short name for the metric is defined as all of the segments
     # of the metric name except for its first (its domain).
     def short_name
       if segments.empty?
@@ -59,7 +55,7 @@ module NewRelic
     end
     
     # Return the name of another metric if the current
-    # metric is really add-on data for another metric
+    # metric is really add-on data for another metric.
     def base_metric_name
       nil
     end
@@ -73,8 +69,10 @@ module NewRelic
       @segments ||= name.split(SEPARATOR).freeze
     end
     
-    # these accessors are used to allow chart to use a specific segment  in the metric
+    # --
+    # These accessors are used to allow chart to use a specific segment  in the metric
     # name for label construction as a zero-arg accessor
+    # ++
     def segment_0; segments[0]; end
     def segment_1; segments[1]; end
     def segment_2; segments[2]; end
@@ -82,7 +80,7 @@ module NewRelic
     def segment_4; segments[4]; end
     def last_segment; segments.last; end
     
-    # this is the suffix used for call rate or throughput.  By default, it's cpm
+    # This is the suffix used for call rate or throughput.  By default, it's cpm
     # but things like controller actions will override to use something like 'rpm'
     # for requests per minute
     def call_rate_suffix
@@ -101,7 +99,4 @@ module NewRelic
     end
   end  
 end
-#
-#for submodule in Dir[File.join(File.dirname(__FILE__), "metric_parser", "*.rb")] do
-#  require submodule
-#end
+

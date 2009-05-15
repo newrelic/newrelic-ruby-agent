@@ -9,7 +9,9 @@ require 'stringio'
 # application runs, and periodically sends that data to the NewRelic server.
 module NewRelic::Agent
  
+  # The Agent is a singleton that is instantiated when the plugin is activated.
   class Agent
+    
     # Specifies the version of the agent's communication protocol
     # with the NewRelic hosted site.
     

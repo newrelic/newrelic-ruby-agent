@@ -1,4 +1,43 @@
+# = New Relic Agent
+#
+# New Relic RPM is a performance monitoring application for Ruby applications running
+# in production.  For more information on RPM please visit http://www.newrelic.com.
+#
+# The New Relic Agent can be installed in Ruby applications to gather runtime performance
+# metrics, traces, and errors for display in a Developer Mode UI (mapped to /newrelic in your application 
+# server) or for monitoring and analysis at http://rpm.newrelic.com.
+#
+# For detailed information on configuring or customizing the RPM Agent please visit our
+# {support and documentation site}[http://support.newrelic.com].
+#
+# == Starting the Agent as a Gem
+#
+# For Rails, add:
+#    config.gem 'newrelic_rpm'
+# to your initialization sequence.
+#
+# For merb, do 
+#    dependency 'newrelic_rpm'
+# in the Merb config/init.rb
+#
+# For other frameworks, or to manage the agent manually, invoke NewRelic::Agent#manual_start
+# directly.
+#
+# == Configuring the Agent
+# 
+# All agent configuration is done in the +newrelic.yml+ file.  This file is by
+# default read from the +config+ directory of the application root and is subsequently
+# searched for in the application root directory, and then in a +~/.newrelic+ directory
+#
+# == Agent APIs
+#
+# The agent has some APIs available for extending and customizing.
+#
+# :main: new_relic/agent.rb
 module NewRelic
+
+  # Methods in the Agent module are delegated to the NewRelic::Agent::Agent
+  # singleton instance.
   module Agent
     extend self
     
@@ -32,26 +71,24 @@ module NewRelic
     require 'resolv'
     require 'timeout'
     
-    # an exception that is thrown by the server if the agent license is invalid
+    # An exception that is thrown by the server if the agent license is invalid.
     class LicenseException < StandardError; end
     
-    # an exception that forces an agent to stop reporting until its mongrel is restarted
+    # An exception that forces an agent to stop reporting until its mongrel is restarted.
     class ForceDisconnectException < StandardError; end
     
+    # Used to blow out of a periodic task without logging a an error, such as for routine
+    # failures.
     class IgnoreSilentlyException < StandardError; end
     
-    # Reserved for future use
+    # Reserved for future use.  Meant to represent a problem on the server side.
     class ServerError < StandardError; end
-    
+
     class BackgroundLoadingError < StandardError; end
     
     @@agent = nil
-    
-    # add some convenience methods for easy access to the Agent singleton.
-    # the following static methods all point to the same Agent instance:
-    #
-    # NewRelic::Agent.agent
-    # NewRelic::Agent.instance
+
+    # The singleton Agent instance.
     def agent
       raise "Plugin not initialized!" if @@agent.nil?
       @@agent
@@ -66,11 +103,11 @@ module NewRelic
     # Get or create a statistics gatherer that will aggregate numerical data
     # under a metric name.
     #
-    # metric_name should follow a slash separated path convention.  Application
+    # +metric_name+ should follow a slash separated path convention.  Application
     # specific metrics should begin with "Custom/".
     #
-    # the statistical gatherer returned by get_stats accepts data
-    # via calls to add_data_point(value)
+    # Return a NewRelic::Stats that accepts data
+    # via calls to add_data_point(value).
     def get_stats(metric_name, use_scope=false)
       @@agent.stats_engine.get_stats(metric_name, use_scope)
     end
@@ -81,12 +118,13 @@ module NewRelic
     
     # Call this to manually start the Agent in situations where the Agent does
     # not auto-start.
+    # 
     # When the app environment loads, so does the Agent. However, the Agent will
     # only connect to RPM if a web front-end is found. If you want to selectively monitor
     # ruby processes that don't use web plugins, then call this method in your
     # code and the Agent will fire up and start reporting to RPM.
     #
-    # All arguments ignored except options like :app_name = XXXX option which 
+    # All arguments ignored except options like +:app_name = XXXX+ option which 
     # will override the settings in the newrelic_yml.
     #
     def manual_start(options={})
@@ -103,7 +141,8 @@ module NewRelic
     #
     # type = :before, :replace, :after
     #
-    # example:
+    # Example:
+    #
     #    NewRelic::Agent.set_sql_obfuscator(:replace) do |sql|
     #       my_obfuscator(sql)
     #    end
@@ -120,7 +159,7 @@ module NewRelic
     #
     #   NewRelic::Agent.disable_sql_recording do
     #     ...  
-    #    end
+    #   end
     #     
     def disable_sql_recording
       state = agent.set_record_sql(false)

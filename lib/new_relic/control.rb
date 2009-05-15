@@ -9,13 +9,13 @@ require 'logger'
 
 module NewRelic 
   
-# The Control is a singleton responsible for the startup and
-# initialization sequence.  The initializer uses a LocalEnvironment to 
-# detect the framework and instantiates the framework specific
-# subclass.
-#
-# The Control also implements some of the public API for the agent.
-# 
+  # The Control is a singleton responsible for the startup and
+  # initialization sequence.  The initializer uses a LocalEnvironment to 
+  # detect the framework and instantiates the framework specific
+  # subclass.
+  #
+  # The Control also implements some of the public API for the agent.
+  # 
   class Control
     
     attr_accessor :log_file, :env

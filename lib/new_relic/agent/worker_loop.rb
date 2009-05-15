@@ -1,8 +1,7 @@
-
-# A worker loop executes a set of registered tasks on a single thread.  
-# A task is a proc or block with a specified call period in seconds.  
 module NewRelic::Agent
   
+  # A worker loop executes a set of registered tasks on a single thread.  
+  # A task is a proc or block with a specified call period in seconds.  
   class WorkerLoop
     
     attr_reader :log
@@ -15,7 +14,7 @@ module NewRelic::Agent
       @pid = $$
     end
 
-    # run infinitely, calling the registered tasks at their specified
+    # Run infinitely, calling the registered tasks at their specified
     # call periods.  The caller is responsible for creating the thread
     # that runs this worker loop
     def run
