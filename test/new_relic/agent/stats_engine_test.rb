@@ -22,6 +22,24 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
     assert s1 != s3
   end
   
+  # The default agent configuration when running tests does not
+  # install the samplers so this test just creates them and polls them
+  # just like the stats_engine does.
+  def test_samplers
+    
+    samplers = []
+    samplers << NewRelic::Agent::Samplers::CpuSampler.new unless defined? Java
+    samplers << NewRelic::Agent::Samplers::MemorySampler.new 
+    samplers.each { |s| s.stats_engine = @engine }
+    @engine.instance_eval do
+      poll(samplers)
+    end
+    data = @engine.harvest_timeslice_data({},{})
+    cpu_user = data[NewRelic::MetricSpec.new('CPU/User Time')]
+    memory = data[NewRelic::MetricSpec.new('Memory/Physical')]
+    assert_equal 1, cpu_user.stats.call_count, cpu_user.stats.inspect unless defined? Java
+    assert_equal 1, memory.stats.call_count
+  end
   def test_harvest
     s1 = @engine.get_stats "a"
     s2 = @engine.get_stats "c"
