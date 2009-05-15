@@ -79,7 +79,7 @@ module NewRelic
       append_environment_value('Processors') do
         processors = 0
         File.open '/proc/cpuinfo' do | file |
-          processors += 1 if file.readline =~ /^processor\w*:/
+          processors += 1 if file.readline =~ /^processor\s*:/
         end 
         raise unless processors > 0
         processors
