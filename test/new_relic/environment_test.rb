@@ -59,7 +59,7 @@ class EnvironmentTest < ActiveSupport::TestCase
     assert_equal 'test', s.assoc('Framework').last, s.inspect
     # Make sure the processor count is determined on linux systems
     if File.exists? '/proc/cpuinfo'
-      assert s.assoc('Framework').last.to_i > 0
+      assert s.assoc('Processors').last.to_i > 0
     end
   end
   
