@@ -75,7 +75,15 @@ module NewRelic
       append_environment_value('OS') { ENV['OS'] } ||
       append_environment_value('Arch') { `uname -p` } ||
       append_environment_value('Arch') { ENV['PROCESSOR_ARCHITECTURE'] }
-      
+      # See what the number of cpus is, works only on unix
+      append_environment_value('Processors') do
+        processors = 0
+        File.open '/proc/cpuinfo' do | file |
+          processors += 1 if file.readline =~ /^processor\w*:/
+        end 
+        raise unless processors > 0
+        processors
+      end if File.readable? '/proc/cpuinfo'
       # The current Rails environment (development, test, or production).
       append_environment_value('Environment') { NewRelic::Control.instance.env }
       # Look for a capistrano file indicating the current revision:
