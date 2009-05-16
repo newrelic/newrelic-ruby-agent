@@ -1,23 +1,28 @@
 2009-05-14 version 2.9.0
-  Enhancements
+
+  Noteworthy Enhancements
   * give visibility to templates and partials in Rails 2.1 and later, in dev
     mode and production
   * change active record metrics to capture statistics in adapter log() call,
-    resulting in lower overhead and improved visibility into different DB operations
-  * support instances appearing in more than one application by allowing
-    a semicolon separated list of names for the newrelic.yml app_name setting.
+    resulting in lower overhead and improved visibility into different DB operations;
+    only AR operations that are not hitting the query cache will be measured to avoid
+    overhead
   * added mongrel_rpm to the gem, a standalone daemon listening for 
-    custom metric values sent from local processes (experimental)
-  * added some sorting options for the transaction list in Developer Mode
-  * improved labeling of metrics in developer mode traces to make them more readable
-  * capture gem information in configuration
+    custom metric values sent from local processes (experimental); 
+    do mongrel_rpm --help
   * add API for system monitoring daemons (refer to KB articles); changed API 
     for manual starting of the agent; refer to NewRelic::Agent.manual_start for details
-  * add instrumentation to capture metrics on response codes
-  * use rpm server time for transaction traces rather than agent time
-  * added http referer to traced errors
+  * support instances appearing in more than one application by allowing
+    a semicolon separated list of names for the newrelic.yml app_name setting.
   * combined agent logfiles into a single logfile
+  * use rpm server time for transaction traces rather than agent time
 
+  Developer Mode (only) Enhancements
+  * added a page showing the list of active threads
+  * added some sorting options for the transaction list in Developer Mode
+  * improved formatting of metric names in traces
+  * improved visibility of template and partial rendering
+    
   Compatibility Enhancements
   * support concurrency when determining busy times, for 2.2 compatibility
   * ruby 1.9.1 compatibility
@@ -28,13 +33,18 @@
   * API support for RPM as a footnote add-in
 
   Major bugfixes
-  * Sample memory on linux by reading /proc/#{$$}/status file
+  * sample memory on linux by reading /proc/#{$$}/status file
   * removed Numeric extensions, including round_to, and to_ms
-  * refactored to simplify startup sequence  
   * using a different timeout mechanism when we post data to RPM
   * remove usage of Rails::Info which had a side effect of enabling
     ActiveRecord even when it wasn't an active framework
-  
+  * moved CPU sampler off background thread and onto the harvest thread
+    
+  Agent improvements to support future RPM enhancements
+  * add instrumentation to capture metrics on response codes; not yet working in rails 2.3.*
+  * added http referer to traced errors
+  * capture gem requirements from rails
+
 2009-05-04 version 2.8.10
   * fix thin support with rails 2.3.2 when using script/server
   * fix incompatibility with rails 2.3.2 and script/server options processing

@@ -1,3 +1,6 @@
+# Control subclass instantiated when Rails is detected.  Contains
+# Rails specific configuration, instrumentation, environment values, 
+# etc.
 class NewRelic::Control::Rails < NewRelic::Control
   
   def env
