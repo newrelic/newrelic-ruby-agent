@@ -58,6 +58,10 @@ class NewrelicController < ActionController::Base
     get_samples
   end
   
+  def threads
+    
+  end
+  
   def reset
     NewRelic::Agent.instance.transaction_sampler.reset!
     redirect_to :action => 'index'

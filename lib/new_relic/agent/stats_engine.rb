@@ -34,7 +34,7 @@ module NewRelic::Agent
           end
         end
       end
-
+      @sampler_thread['newrelic_label'] = 'Sampler Tasks'
       @sampler_process = $$
     end
     
