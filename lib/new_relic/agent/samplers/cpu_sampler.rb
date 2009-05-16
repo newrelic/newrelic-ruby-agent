@@ -3,6 +3,12 @@ module NewRelic::Agent::Samplers
     def initialize
       super :cpu
     end
+    def user_util_stats
+      @userutil ||= stats_engine.get_stats("CPU/User/Utilization", false)
+    end
+    def system_util_stats
+      @systemutil ||= stats_engine.get_stats("CPU/System/Utilization", false)
+    end
     def usertime_stats
       @usertime ||= stats_engine.get_stats("CPU/User Time", false)
     end
@@ -10,16 +16,25 @@ module NewRelic::Agent::Samplers
       @systemtime ||= stats_engine.get_stats("CPU/System Time", false)
     end
     def poll
+      now = Time.now
       t = Process.times
-      @last_utime ||= t.utime
-      @last_stime ||= t.stime
-      utime = t.utime
-      stime = t.stime
-      
-      systemtime_stats.record_data_point(stime - @last_stime) if (stime - @last_stime) >= 0
-      usertime_stats.record_data_point(utime - @last_utime) if (utime - @last_utime) >= 0
-      @last_utime = utime
-      @last_stime = stime
+      if @last_time
+        num_processors = NewRelic::Control.instance.local_env.processors || 1
+        usertime = t.utime - @last_utime
+        systemtime = t.stime - @last_stime
+
+        systemtime_stats.record_data_point(systemtime) if systemtime >= 0
+        usertime_stats.record_data_point(usertime) if usertime >= 0
+        
+        # Calculate the true utilization by taking cpu times and dividing by
+        # elapsed time X num_processors.
+        elapsed = now - @last_time
+        user_util_stats.record_data_point usertime / (elapsed * num_processors)
+        system_util_stats.record_data_point systemtime / (elapsed * num_processors)
+      end
+      @last_utime = t.utime
+      @last_stime = t.stime
+      @last_time = now
     end
   end
 end
