@@ -9,7 +9,9 @@ require 'stringio'
 # application runs, and periodically sends that data to the NewRelic server.
 module NewRelic::Agent
  
+  # The Agent is a singleton that is instantiated when the plugin is activated.
   class Agent
+    
     # Specifies the version of the agent's communication protocol
     # with the NewRelic hosted site.
     
@@ -267,6 +269,7 @@ module NewRelic::Agent
           control.log! e.backtrace.join("\n  "), :error
         end
       end
+      @worker_thread['newrelic_label'] = 'Worker Loop'
       
       # This code should be activated to check that no dependency loading is occuring in the background thread
       # by stopping the foreground thread after the background thread is created. Turn on dependency loading logging
@@ -484,7 +487,7 @@ module NewRelic::Agent
       request.content_type = "application/octet-stream"
       request.body = post_data
       
-      log.debug "connect to #{collector}/#{uri}"
+      log.debug "connect to #{collector}#{uri}"
       
       response = nil
       

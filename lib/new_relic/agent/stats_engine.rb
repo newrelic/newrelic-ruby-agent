@@ -7,7 +7,8 @@ module NewRelic::Agent
     
     def initialize
       @stats_hash = {}
-      @sampled_items = []
+      @harvest_samplers = []
+      @periodic_samplers = []
       @scope_stack_listener = nil
       
       # Makes the unit tests happy
@@ -29,20 +30,11 @@ module NewRelic::Agent
         while true do
           begin
             sleep POLL_PERIOD
-            @sampled_items.dup.each do |sampled_item|
-              begin 
-                sampled_item.poll
-              rescue => e
-                log.error e
-                @sampled_items.delete sampled_item
-                log.error "Removing #{sampled_item} from list"
-                log.debug e.backtrace.to_s
-              end
-            end
+            poll @periodic_samplers
           end
         end
       end
-
+      @sampler_thread['newrelic_label'] = 'Sampler Tasks'
       @sampler_process = $$
     end
     
@@ -96,11 +88,19 @@ module NewRelic::Agent
       scope_stack.last
     end
     
-    # Add an instance of Sampler
+    # Add an instance of Sampler to be invoked about every 10 seconds on a background
+    # thread.
     def add_sampler sampler
-      @sampled_items << sampler
+      @periodic_samplers << sampler
       sampler.stats_engine = self
       log.debug "Adding sampler #{sampler.id.to_s}"
+    end
+    
+    # Add a sampler to be invoked just before each harvest.
+    def add_harvest_sampler sampler
+      @harvest_samplers << sampler
+      sampler.stats_engine = self
+      log.debug "Adding harvest time sampler: #{sampler.id.to_s}"
     end
     
     # set the name of the transaction for the current thread, which will be used
@@ -182,12 +182,19 @@ module NewRelic::Agent
       stats
     end
     
+    # Harvest the timeslice data.  First recombine current statss
+    # with any previously
+    # unsent metrics, clear out stats cache, and return the current
+    # stats. 
+    # ---
     # Note: this is not synchronized.  There is still some risk in this and
     # we will revisit later to see if we can make this more robust without
     # sacrificing efficiency.
+    # +++
     def harvest_timeslice_data(previous_timeslice_data, metric_ids)
       timeslice_data = {}
-      @stats_hash.keys.each do |metric_spec|
+      poll @harvest_samplers
+      @stats_hash.keys.each do | metric_spec |
         
         
         # get a copy of the stats collected since the last harvest, and clear
@@ -246,14 +253,28 @@ module NewRelic::Agent
       Thread::current[:newrelic_transaction_name] = nil
     end
     
-    # :nodoc: for test code only
-    def clear_stats
+    def clear_stats # :nodoc: for test code only
       @stats_hash.clear
     end
     private
     
-      def scope_stack
-        Thread::current[:newrelic_scope_stack] ||= []
+    # Call poll on each of the samplers.  Remove
+    # the sampler if it raises.
+    def poll(samplers)
+      samplers.delete_if do |sampled_item|
+        begin 
+          sampled_item.poll
+          false # it's okay.  don't delete it.
+        rescue => e
+          log.error "Removing #{sampled_item} from list"
+          log.error e
+          log.debug e.backtrace.to_s
+          true # remove the sampler
+        end
       end
+    end
+    def scope_stack
+      Thread::current[:newrelic_scope_stack] ||= []
+    end
   end
 end

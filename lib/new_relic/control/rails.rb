@@ -1,3 +1,6 @@
+# Control subclass instantiated when Rails is detected.  Contains
+# Rails specific configuration, instrumentation, environment values, 
+# etc.
 class NewRelic::Control::Rails < NewRelic::Control
   
   def env
@@ -98,7 +101,11 @@ class NewRelic::Control::Rails < NewRelic::Control
   # Collect the Rails::Info into an associative array as well as the list of plugins
   def append_environment_info
     local_env.append_environment_value('Rails version'){ ::Rails::VERSION::STRING }
-    
+    if rails_version >= NewRelic::VersionNumber.new('2.2.0')
+      local_env.append_environment_value('Rails threadsafe') do
+        Rails.configuration.action_controller.allow_concurrency == true
+      end
+    end
     if rails_version >= NewRelic::VersionNumber.new('2.1.0')
       local_env.append_gem_list do
         ::Rails.configuration.gems.map do | gem |

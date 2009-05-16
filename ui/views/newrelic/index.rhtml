@@ -1,10 +1,5 @@
 <table>
     <tr>
-    	<td colspan=4 align="left">
-        <%= link_to_if @samples.size > 0, "Clear Transactions (#{@samples.size})", :action => 'reset' %>
-		</td>
-	</td>
-	<tr>
 		<td valign=top>
         <table class="transaction_list_table">
             <thead>
@@ -24,6 +19,8 @@
         </table>
 		</td>
 		<td valign=top>
+        <%= link_to_if @samples.size > 0, "Clear Transactions (#{@samples.size})", :action => 'reset' %><br/>
+        <%= link_to "List Threads", :action => 'threads' %>
 			<h3>Welcome</h3>
 			<p>
 			Welcome to <b>New Relic RPM Developer Mode</b>.  This Rails extension traces the performance activity

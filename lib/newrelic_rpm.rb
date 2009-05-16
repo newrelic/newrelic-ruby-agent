@@ -1,9 +1,6 @@
-# = New Relic Agent
-#
-# This file is the initialization script for the gem.  The agent can also be started
-# as a plugin.
-#
-# == Starting the Agent
+# == New Relic Initialization
+# 
+# When installed as a gem, you can activate the New Relic agent one of the following ways:
 #
 # For Rails, add:
 #    config.gem 'newrelic_rpm'
@@ -16,15 +13,6 @@
 # For other frameworks, or to manage the agent manually, invoke NewRelic::Agent#manual_start
 # directly.
 #
-# == Configuring the Agent
-# 
-# All agent configuration is done in the <code>newrelic.yml</code> file.  This file is by
-# default read from the +config+ directory of the application root and is subsequently
-# searched for in the application root directory, and then in a <code>~/.newrelic</code> directory
-#
-# == Agent APIs
-#
-# The agent has some APIs available for extending and customizing. 
 require 'new_relic/control'
 
 def log!(message)

@@ -9,13 +9,13 @@ require 'logger'
 
 module NewRelic 
   
-# The Control is a singleton responsible for the startup and
-# initialization sequence.  The initializer uses a LocalEnvironment to 
-# detect the framework and instantiates the framework specific
-# subclass.
-#
-# The Control also implements some of the public API for the agent.
-# 
+  # The Control is a singleton responsible for the startup and
+  # initialization sequence.  The initializer uses a LocalEnvironment to 
+  # detect the framework and instantiates the framework specific
+  # subclass.
+  #
+  # The Control also implements some of the public API for the agent.
+  # 
   class Control
     
     attr_accessor :log_file, :env
@@ -252,7 +252,7 @@ module NewRelic
     def load_samplers
       agent = NewRelic::Agent.instance
       agent.stats_engine.add_sampler NewRelic::Agent::Samplers::MongrelSampler.new if local_env.mongrel
-      agent.stats_engine.add_sampler NewRelic::Agent::Samplers::CpuSampler.new unless defined? Java
+      agent.stats_engine.add_harvest_sampler NewRelic::Agent::Samplers::CpuSampler.new unless defined? Java
       agent.stats_engine.add_sampler NewRelic::Agent::Samplers::MemorySampler.new 
     end
      

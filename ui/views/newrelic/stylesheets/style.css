@@ -127,6 +127,24 @@ th
 	padding: 5px 5px 5px 5px;
 	text-align: right;
 }
+th.left
+{
+	text-align: left;
+}
+th.title 
+{
+	font-size: 1.2em;
+	text-align: left;
+	padding: 6px 5px 8px 5px;
+	color: #EEEEEE;
+}
+td.locals
+{
+	font-size: 0.9em;
+	text-align: left;
+    font-family: monospace;
+}
+ 
 /*************************************
 +Seldon Specific - need to preserve
 *************************************/

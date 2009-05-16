@@ -1,8 +1,7 @@
-# These are the class methods added to support installing custom
-# metric tracers and executing for individual metrics
-
 module NewRelic::Agent
+
   # These are stubs for API methods installed when the agent is disabled.
+
   module MethodTracerShim
     def trace_method_execution(*args); yield; end
     
@@ -12,11 +11,14 @@ module NewRelic::Agent
     def remove_method_tracer(*args); end
   end
   
-  # This is the set of methods to be added to Module
+  # These are the class methods added to support installing custom
+  # metric tracers and executing for individual metrics.
+  # This module is included in class Module.
   module MethodTracer
     
-    # Original method preserved for API backward compatibility
-    def trace_method_execution (metric_name, push_scope, produce_metric, deduct_call_time_from_parent, &block)
+    # Deprecated: original method preserved for API backward compatibility, use one of the other
+    # +trace_method..+ calls.
+    def trace_method_execution(metric_name, push_scope, produce_metric, deduct_call_time_from_parent, &block) 
       if push_scope
         trace_method_execution_with_scope(metric_name, produce_metric, deduct_call_time_from_parent, &block)
       else
@@ -24,7 +26,10 @@ module NewRelic::Agent
       end
     end
     
-    # This is duplicated inline in add_method_tracer
+    # Trace a given block with stats assigned to the given metric_name.  It does not 
+    # provide scoped measurements, meaning whatever is being traced will not 'blame the
+    # Controller'--that is to say appear in the breakdown chart. 
+    # This is duplicated inline in #add_method_tracer.
     def trace_method_execution_no_scope(metric_name)
       t0 = Time.now.to_f
       stats = NewRelic::Agent.instance.stats_engine.get_stats_no_scope metric_name
@@ -36,9 +41,9 @@ module NewRelic::Agent
         stats.trace_call(duration, duration)
       end
     end
-    
+
+    # Trace a given block with stats, like #trace_method_execution_no_scope but 
     def trace_method_execution_with_scope(metric_name, produce_metric, deduct_call_time_from_parent, scoped_metric_only=false)
-      
       t0 = Time.now.to_f
       stats = nil
       

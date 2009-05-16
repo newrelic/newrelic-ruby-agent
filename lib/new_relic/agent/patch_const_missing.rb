@@ -1,9 +1,11 @@
 # This class is for debugging purposes only.
 # It inserts instrumentation into class loading to verify
 # that no classes are being loaded on the new relic thread,
-# which can cause problems in the class loader code.
+# which can cause problems in the class loader code. 
+# It is only loaded by agent.rb when a particular newrelic.yml
+# option is set.
 
-module ClassLoadingWatcher
+module ClassLoadingWatcher # :nodoc: all
   
   extend self
   @@background_thread = nil
@@ -97,7 +99,7 @@ module ClassLoadingWatcher
   end
 end
 
-class Object
+class Object # :nodoc:
   include ClassLoadingWatcher::SanityCheck
   
   def new_relic_require(*args)
@@ -111,7 +113,8 @@ class Object
   end
 end
 
-class Module
+
+class Module # :nodoc:
   include ClassLoadingWatcher::SanityCheck
   
   def new_relic_const_missing(*args)

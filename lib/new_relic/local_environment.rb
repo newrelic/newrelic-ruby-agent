@@ -1,15 +1,17 @@
 require 'set'
-# An instance of LocalEnvironment is responsible for determining
-# three things: 
-#
-# * Framework - :rails, :merb, :ruby, :test
-# * Dispatcher - A supported dispatcher, or nil (:mongrel, :thin, :passenger, :webrick, etc)
-# * Dispatcher Instance ID, which distinguishes agents on a single host from each other
-#
-# and locally unique dispatcher_instance_id for this agent's host.
-# If the environment can't be determined, it will be set to
-# nil and dispatcher_instance_id will have nil
+
 module NewRelic 
+  # An instance of LocalEnvironment is responsible for determining
+  # three things: 
+  #
+  # * Framework - :rails, :merb, :ruby, :test
+  # * Dispatcher - A supported dispatcher, or nil (:mongrel, :thin, :passenger, :webrick, etc)
+  # * Dispatcher Instance ID, which distinguishes agents on a single host from each other
+  #
+  # If the environment can't be determined, it will be set to
+  # nil and dispatcher_instance_id will have nil.
+  # 
+  # NewRelic::LocalEnvironment should be accessed through NewRelic::Control#env (via the NewRelic::Control singleton).
   class LocalEnvironment
 
     attr_accessor :dispatcher # mongrel, thin, webrick, or possibly nil
@@ -73,7 +75,15 @@ module NewRelic
       append_environment_value('OS') { ENV['OS'] } ||
       append_environment_value('Arch') { `uname -p` } ||
       append_environment_value('Arch') { ENV['PROCESSOR_ARCHITECTURE'] }
-      
+      # See what the number of cpus is, works only on unix
+      append_environment_value('Processors') do
+        processors = 0
+        File.open '/proc/cpuinfo' do | file |
+          processors += 1 if file.readline =~ /^processor\s*:/
+        end 
+        raise unless processors > 0
+        processors
+      end if File.readable? '/proc/cpuinfo'
       # The current Rails environment (development, test, or production).
       append_environment_value('Environment') { NewRelic::Control.instance.env }
       # Look for a capistrano file indicating the current revision:
