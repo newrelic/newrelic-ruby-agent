@@ -72,7 +72,7 @@ module NewRelic
       append_environment_value('Ruby patchlevel') { RUBY_PATCHLEVEL }
       append_environment_value('OS version') { `uname -v` }
       append_environment_value('OS') { `uname -s` } ||
-      append_environment_value('OS') { ENV['OS'] } ||
+      append_environment_value('OS') { ENV['OS'] } 
       append_environment_value('Arch') { `uname -p` } ||
       append_environment_value('Arch') { ENV['PROCESSOR_ARCHITECTURE'] }
       # See what the number of cpus is, works only on unix
