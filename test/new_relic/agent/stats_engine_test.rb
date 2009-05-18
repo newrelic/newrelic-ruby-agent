@@ -42,8 +42,8 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
     cpu_user = data[NewRelic::MetricSpec.new('CPU/User Time')]
     cpu_utilization = data[NewRelic::MetricSpec.new('CPU/User/Utilization')]
     memory = data[NewRelic::MetricSpec.new('Memory/Physical')]
-    assert_equal 2, cpu_user.stats.call_count, cpu_user.stats.inspect unless defined? Java
-    assert_equal 2, cpu_utilization.stats.call_count unless defined? Java
+    assert_equal 3, cpu_user.stats.call_count, cpu_user.stats.inspect unless defined? Java
+    assert_equal 3, cpu_utilization.stats.call_count unless defined? Java
     assert_equal 3, memory.stats.call_count
   end
   def test_harvest

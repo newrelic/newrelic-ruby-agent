@@ -30,8 +30,8 @@
   * support concurrency when determining busy times, for 2.2 compatibility
   * in jruby, use Java used heap for memory sampling if the system memory
     is not accessible from an unsupported platform
-  * jruby will not start the agent now in the console or rake tasks
-  * re-enable webrick support
+  * jruby will no longer start the agent now when running the console or 
+    rake tasks
   * API support for RPM as a footnote add-in
   * webrick support restored
   

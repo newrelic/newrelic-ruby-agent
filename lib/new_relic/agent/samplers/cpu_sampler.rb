@@ -2,6 +2,7 @@ module NewRelic::Agent::Samplers
   class CpuSampler < NewRelic::Agent::Sampler
     def initialize
       super :cpu
+      poll
     end
     def user_util_stats
       @userutil ||= stats_engine.get_stats("CPU/User/Utilization", false)
