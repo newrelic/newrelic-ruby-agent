@@ -33,12 +33,18 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
     samplers.each { |s| s.stats_engine = @engine }
     @engine.instance_eval do
       poll(samplers)
+      sleep 0.1
+      poll(samplers)
+      sleep 0.1
+      poll(samplers)
     end
     data = @engine.harvest_timeslice_data({},{})
     cpu_user = data[NewRelic::MetricSpec.new('CPU/User Time')]
+    cpu_utilization = data[NewRelic::MetricSpec.new('CPU/User/Utilization')]
     memory = data[NewRelic::MetricSpec.new('Memory/Physical')]
-    assert_equal 1, cpu_user.stats.call_count, cpu_user.stats.inspect unless defined? Java
-    assert_equal 1, memory.stats.call_count
+    assert_equal 2, cpu_user.stats.call_count, cpu_user.stats.inspect unless defined? Java
+    assert_equal 2, cpu_utilization.stats.call_count unless defined? Java
+    assert_equal 3, memory.stats.call_count
   end
   def test_harvest
     s1 = @engine.get_stats "a"

@@ -17,7 +17,8 @@ module NewRelic
     attr_accessor :dispatcher # mongrel, thin, webrick, or possibly nil
     attr_accessor :dispatcher_instance_id # used to distinguish instances of a dispatcher from each other, may be nil
     attr_accessor :framework # rails, merb, :ruby, test
-    attr_reader :mongrel
+    attr_reader :mongrel    # The mongrel instance, if there is one, captured as a convenience
+    attr_reader :processors # The number of cpus, if detected, or nil
     alias environment dispatcher
     
     def initialize
@@ -28,9 +29,13 @@ module NewRelic
       @plugins = Set.new
       @config = Hash.new
     end
-    
+
+    # Add the given key/value pair to the app environment 
+    # settings.  Must pass either a value or a block.  Block
+    # is called to get the value and any raised errors are
+    # silently ignored.
     def append_environment_value name, value = nil
-      value = yield if block_given?
+      value = yield if block_given? 
       @config[name] = value if value
     rescue Exception
       # puts "#{e}\n  #{e.backtrace.join("\n  ")}" 
@@ -72,14 +77,14 @@ module NewRelic
       append_environment_value('Ruby patchlevel') { RUBY_PATCHLEVEL }
       append_environment_value('OS version') { `uname -v` }
       append_environment_value('OS') { `uname -s` } ||
-      append_environment_value('OS') { ENV['OS'] } ||
+      append_environment_value('OS') { ENV['OS'] } 
       append_environment_value('Arch') { `uname -p` } ||
       append_environment_value('Arch') { ENV['PROCESSOR_ARCHITECTURE'] }
-      # See what the number of cpus is, works only on unix
-      append_environment_value('Processors') do
+      # See what the number of cpus is, works only on linux.
+      @processors = append_environment_value('Processors') do
         processors = 0
-        File.open '/proc/cpuinfo' do | file |
-          processors += 1 if file.readline =~ /^processor\s*:/
+        File.read('/proc/cpuinfo').each_line do | line |
+          processors += 1 if line =~ /^processor\s*:/
         end 
         raise unless processors > 0
         processors
@@ -119,10 +124,10 @@ module NewRelic
     end
     
     def mongrel
-      return @mongrel if ! defined? Mongrel::HttpServer 
+      return @mongrel if @mongrel || ! defined? Mongrel::HttpServer 
       ObjectSpace.each_object(Mongrel::HttpServer) do |mongrel|
         @mongrel = mongrel
-      end unless @mongrel
+      end
       @mongrel
     end
 

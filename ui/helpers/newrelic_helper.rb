@@ -48,6 +48,13 @@ module NewrelicHelper
       exclude_file_from_stack_trace?(file, include_rails)
     end
   end
+
+  def render_backtrace
+    if @segment[:backtrace]
+      content_tag('h3', 'Application Stack Trace') + 
+          render(:partial => agent_views_path('stack_trace'), :locals => {:segment => @segment})
+    end
+  end
   
   def agent_views_path(path)
     path
