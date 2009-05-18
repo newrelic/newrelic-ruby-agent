@@ -23,6 +23,33 @@ class NewRelic::StatsTest < Test::Unit::TestCase
     assert !spec1.eql?(spec2)
     assert !spec2.eql?(NewRelic::MetricSpec.new('Controller', '/dude'))
   end
+
+  define_method(:'test_<=>') do
+    s1 = NewRelic::MetricSpec.new('ActiveRecord')
+    s2 = NewRelic::MetricSpec.new('Controller')
+    assert_equal [s1, s2].sort, [s1,s2]
+    assert_equal [s2, s1].sort, [s1,s2]
+
+    s1 = NewRelic::MetricSpec.new('Controller', nil)
+    s2 = NewRelic::MetricSpec.new('Controller', 'hap')
+    assert_equal [s2, s1].sort, [s1, s2]
+    assert_equal [s1, s2].sort, [s1, s2]
+    
+    s1 = NewRelic::MetricSpec.new('Controller', 'hap')
+    s2 = NewRelic::MetricSpec.new('Controller', nil)
+    assert_equal [s2, s1].sort, [s2, s1]
+    assert_equal [s1, s2].sort, [s2, s1]
+    
+    s1 = NewRelic::MetricSpec.new('Controller')
+    s2 = NewRelic::MetricSpec.new('Controller')
+    assert_equal [s2, s1].sort, [s2, s1] # unchanged due to no sort criteria
+    assert_equal [s1, s2].sort, [s1, s2] # unchanged due to no sort criteria
+    
+    s1 = NewRelic::MetricSpec.new('Controller', nil)
+    s2 = NewRelic::MetricSpec.new('Controller', nil)
+    assert_equal [s2, s1].sort, [s2, s1] # unchanged due to no sort criteria
+    assert_equal [s1, s2].sort, [s1, s2] # unchanged due to no sort criteria  
+  end
   
   def test_merge
     s1 = NewRelic::MethodTraceStats.new

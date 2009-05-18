@@ -103,7 +103,7 @@ class NewRelic::Control::Rails < NewRelic::Control
     local_env.append_environment_value('Rails version'){ ::Rails::VERSION::STRING }
     if rails_version >= NewRelic::VersionNumber.new('2.2.0')
       local_env.append_environment_value('Rails threadsafe') do
-        Rails.configuration.action_controller.allow_concurrency == true
+        ::Rails.configuration.action_controller.allow_concurrency == true
       end
     end
     if rails_version >= NewRelic::VersionNumber.new('2.1.0')
