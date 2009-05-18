@@ -42,6 +42,20 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
     errors = @error_collector.harvest_errors(nil)
     assert errors.length == 0
   end
+
+  def test_long_message
+    #yes, times 500. it's a 5000 byte string. Assuming strings are
+    #still 1 byte / char.
+    @error_collector.notice_error(Exception.new("1234567890" * 500), FakeRequest.new('/myurl/'), 'path', {:x => 'y'})
+    
+    old_errors = []
+    errors = @error_collector.harvest_errors(old_errors)
+    
+    assert_equal errors.length, 1
+    
+    err = errors.first
+    assert_equal ('1234567890' * 500)[0..4096], err.message
+  end
   
   def test_collect_failover
     @error_collector.notice_error(Exception.new("message"), nil, 'first', {:x => 'y'})
