@@ -25,9 +25,8 @@ class NewRelic::Agent::TransationSamplerTest < Test::Unit::TestCase
 
   def test_sample_id 
     @sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
-#    assert_nil @sampler.current_sample_id
     run_sample_trace do 
-      assert @sampler.current_sample_id > 0, @sampler.current_sample_id 
+      assert @sampler.current_sample_id != 0, @sampler.current_sample_id 
     end
   end
   
