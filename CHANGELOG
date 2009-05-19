@@ -52,6 +52,7 @@
   * added http referer to traced errors
   * capture gem requirements from rails
   * capture cpu utilization adjusted for processor count
+  * transaction sampling
 
 2009-05-04 version 2.8.10
   * fix thin support with rails 2.3.2 when using script/server

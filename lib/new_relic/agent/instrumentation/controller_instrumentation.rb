@@ -123,7 +123,8 @@ module NewRelic::Agent::Instrumentation
           
           agent.transaction_sampler.notice_transaction(path, request, local_params)
           
-          t = Process.times.utime + Process.times.stime
+          # for capturing per-controller cpu burn:
+          # t = Process.times.utime + Process.times.stime
           
           failed = false
           
@@ -138,9 +139,10 @@ module NewRelic::Agent::Instrumentation
             failed = true
             raise e
           ensure
-            cpu_burn = (Process.times.utime + Process.times.stime) - t
-            stats_engine.get_stats_no_scope("ControllerCPU/#{path}").record_data_point(cpu_burn)
-            agent.transaction_sampler.notice_transaction_cpu_time(cpu_burn)
+            # for capturing per-controller cpu burn:
+            # cpu_burn = (Process.times.utime + Process.times.stime) - t
+            # stats_engine.get_stats_no_scope("ControllerCPU/#{path}").record_data_point(cpu_burn)
+            # agent.transaction_sampler.notice_transaction_cpu_time(cpu_burn)
             
             # do the apdex bucketing
             #
