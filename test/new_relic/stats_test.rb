@@ -200,15 +200,6 @@ class NewRelic::StatsTest < Test::Unit::TestCase
     
   end
   
-  def test_summary
-    s1 = NewRelic::TestObjectForStats.new
-    s1.begin_time = Time.at(0)
-    s1.end_time = Time.at(30)
-    s1.call_count = 1
-    s1.total_call_time = 1
-    assert_equal("[12/31 04:00PM, 30.0s. 1 calls; 1000ms]", s1.summary)
-  end
-  
   def test_freeze
     s1 = NewRelic::MethodTraceStats.new
     
