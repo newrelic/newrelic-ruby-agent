@@ -7,10 +7,15 @@ class NewRelic::Agent::TransationSamplerTest < Test::Unit::TestCase
   
   def setup
     Thread::current[:record_sql] = nil
+    mock_agent = mock()
+    stats_engine_mock = mock()
+    stats_engine_mock.stubs(:add_scope_stack_listener)
+    mock_agent.stubs(:stats_engine).returns(stats_engine_mock)
+    mock_agent.stubs(:set_sql_obfuscator).returns(stats_engine_mock)
+    @sampler = NewRelic::Agent::TransactionSampler.new(mock_agent)
   end
   
   def test_multiple_samples
-    @sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
     
     run_sample_trace
     run_sample_trace
@@ -24,14 +29,12 @@ class NewRelic::Agent::TransationSamplerTest < Test::Unit::TestCase
   end
 
   def test_sample_id 
-    @sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
     run_sample_trace do 
       assert @sampler.current_sample_id != 0, @sampler.current_sample_id 
     end
   end
   
   def test_harvest_slowest
-    @sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
     
     run_sample_trace
     run_sample_trace
@@ -54,7 +57,6 @@ class NewRelic::Agent::TransationSamplerTest < Test::Unit::TestCase
   
   
   def test_preare_to_send
-    @sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
     
     run_sample_trace { sleep 0.2 }
     sample = @sampler.harvest(nil, 0)[0]
@@ -66,7 +68,6 @@ class NewRelic::Agent::TransationSamplerTest < Test::Unit::TestCase
   end
   
   def test_multithread
-    @sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
     threads = []
     
     20.times do
@@ -83,7 +84,6 @@ class NewRelic::Agent::TransationSamplerTest < Test::Unit::TestCase
   end
   
   def test_sample_with_parallel_paths
-    @sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
     
     assert_equal 0, @sampler.scope_depth
     
@@ -106,7 +106,6 @@ class NewRelic::Agent::TransationSamplerTest < Test::Unit::TestCase
   end
   
   def test_double_scope_stack_empty
-    @sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
     
     @sampler.notice_first_scope_push Time.now.to_f
     @sampler.notice_transaction "/path", nil, {}
@@ -122,62 +121,56 @@ class NewRelic::Agent::TransationSamplerTest < Test::Unit::TestCase
   
   
   def test_record_sql_off
-    sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
     
-    sampler.notice_first_scope_push Time.now.to_f
+    @sampler.notice_first_scope_push Time.now.to_f
     
     Thread::current[:record_sql] = false
     
-    sampler.notice_sql("test", nil, 0)
+    @sampler.notice_sql("test", nil, 0)
     
-    segment = sampler.builder.current_segment
+    segment = @sampler.builder.current_segment
     
     assert_nil segment[:sql]
   end
   
   def test_stack_trace__sql
-    sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
+    @sampler.stack_trace_threshold = 0
     
-    sampler.stack_trace_threshold = 0
+    @sampler.notice_first_scope_push Time.now.to_f
     
-    sampler.notice_first_scope_push Time.now.to_f
+    @sampler.notice_sql("test", nil, 1)
     
-    sampler.notice_sql("test", nil, 1)
-    
-    segment = sampler.builder.current_segment
+    segment = @sampler.builder.current_segment
     
     assert segment[:sql]
     assert segment[:backtrace]
   end
   def test_stack_trace__scope
-    sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
     
-    sampler.stack_trace_threshold = 0
+    @sampler.stack_trace_threshold = 0
     t = Time.now
-    sampler.notice_first_scope_push t.to_f
-    sampler.notice_push_scope 'Bill', (t+1.second).to_f
+    @sampler.notice_first_scope_push t.to_f
+    @sampler.notice_push_scope 'Bill', (t+1.second).to_f
     
-    segment = sampler.builder.current_segment
+    segment = @sampler.builder.current_segment
     assert segment[:backtrace]
   end
   
   def test_nil_stacktrace
-    sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
     
-    sampler.stack_trace_threshold = 2
+    @sampler.stack_trace_threshold = 2
     
-    sampler.notice_first_scope_push Time.now.to_f
+    @sampler.notice_first_scope_push Time.now.to_f
     
-    sampler.notice_sql("test", nil, 1)
+    @sampler.notice_sql("test", nil, 1)
     
-    segment = sampler.builder.current_segment
+    segment = @sampler.builder.current_segment
     
     assert segment[:sql]
     assert_nil segment[:backtrace]
   end
   
   def test_big_sql
-    @sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
     
     @sampler.notice_first_scope_push Time.now.to_f
     
@@ -198,7 +191,6 @@ class NewRelic::Agent::TransationSamplerTest < Test::Unit::TestCase
   
   
   def test_segment_obfuscated
-    @sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
     
     @sampler.notice_first_scope_push Time.now.to_f
     
@@ -216,13 +208,11 @@ class NewRelic::Agent::TransationSamplerTest < Test::Unit::TestCase
   def test_param_capture
     [true, false].each do |capture| 
       NewRelic::Control.instance.stubs(:capture_params).returns(capture)
-      t = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
+      @sampler.notice_first_scope_push Time.now.to_f
+      @sampler.notice_transaction('/path', nil, {:param => 'hi'})
+      @sampler.notice_scope_empty
       
-      t.notice_first_scope_push Time.now.to_f
-      t.notice_transaction('/path', nil, {:param => 'hi'})
-      t.notice_scope_empty
-      
-      tt = t.harvest(nil,0)[0]
+      tt = @sampler.harvest(nil,0)[0]
       
       assert_equal (capture) ? 1 : 0, tt.params[:request_params].length
     end
@@ -230,58 +220,55 @@ class NewRelic::Agent::TransationSamplerTest < Test::Unit::TestCase
   
   
   def test_sql_normalization
-    t = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
     
     # basic statement
     assert_equal "INSERT INTO X values(?,?, ? , ?)", 
-    t.default_sql_obfuscator("INSERT INTO X values('test',0, 1 , 2)")
+    @sampler.default_sql_obfuscator("INSERT INTO X values('test',0, 1 , 2)")
     
     # escaped literals
     assert_equal "INSERT INTO X values(?, ?,?, ? , ?)", 
-    t.default_sql_obfuscator("INSERT INTO X values('', 'jim''s ssn',0, 1 , 'jim''s son''s son')")
+    @sampler.default_sql_obfuscator("INSERT INTO X values('', 'jim''s ssn',0, 1 , 'jim''s son''s son')")
     
     # multiple string literals             
     assert_equal "INSERT INTO X values(?,?,?, ? , ?)", 
-    t.default_sql_obfuscator("INSERT INTO X values('jim''s ssn','x',0, 1 , 2)")
+    @sampler.default_sql_obfuscator("INSERT INTO X values('jim''s ssn','x',0, 1 , 2)")
     
     # empty string literal
     # NOTE: the empty string literal resolves to empty string, which for our purposes is acceptable
     assert_equal "INSERT INTO X values(?,?,?, ? , ?)", 
-    t.default_sql_obfuscator("INSERT INTO X values('','x',0, 1 , 2)")
+    @sampler.default_sql_obfuscator("INSERT INTO X values('','x',0, 1 , 2)")
     
     # try a select statement             
     assert_equal "select * from table where name=? and ssn=?",
-    t.default_sql_obfuscator("select * from table where name='jim gochee' and ssn=0012211223")
+    @sampler.default_sql_obfuscator("select * from table where name='jim gochee' and ssn=0012211223")
     
     # number literals embedded in sql - oh well
     assert_equal "select * from table_? where name=? and ssn=?",
-    t.default_sql_obfuscator("select * from table_007 where name='jim gochee' and ssn=0012211223")
+    @sampler.default_sql_obfuscator("select * from table_007 where name='jim gochee' and ssn=0012211223")
   end
   
   def test_sql_normalization__single_quotes
-    t = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
     assert_equal "INSERT ? into table",
-    t.default_sql_obfuscator("INSERT 'this isn''t a real value' into table")
+    @sampler.default_sql_obfuscator("INSERT 'this isn''t a real value' into table")
     assert_equal "INSERT ? into table",
-    t.default_sql_obfuscator(%q[INSERT '"' into table])
+    @sampler.default_sql_obfuscator(%q[INSERT '"' into table])
     assert_equal "INSERT ? into table",
-    t.default_sql_obfuscator(%q[INSERT ' "some text" \" ' into table])
+    @sampler.default_sql_obfuscator(%q[INSERT ' "some text" \" ' into table])
 #    could not get this one licked.  no biggie    
 #    assert_equal "INSERT ? into table",
-#    t.default_sql_obfuscator(%q[INSERT '\'' into table])
+#    @sampler.default_sql_obfuscator(%q[INSERT '\'' into table])
     assert_equal "INSERT ? into table",
-    t.default_sql_obfuscator(%q[INSERT ''' ' into table])
+    @sampler.default_sql_obfuscator(%q[INSERT ''' ' into table])
   end
   def test_sql_normalization__double_quotes
-    t = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
     assert_equal "INSERT ? into table",
-    t.default_sql_obfuscator(%q[INSERT "this isn't a real value" into table])
+    @sampler.default_sql_obfuscator(%q[INSERT "this isn't a real value" into table])
     assert_equal "INSERT ? into table",
-    t.default_sql_obfuscator(%q[INSERT "'" into table])
+    @sampler.default_sql_obfuscator(%q[INSERT "'" into table])
     assert_equal "INSERT ? into table",
-    t.default_sql_obfuscator(%q[INSERT " \" " into table])
+    @sampler.default_sql_obfuscator(%q[INSERT " \" " into table])
     assert_equal "INSERT ? into table",
-    t.default_sql_obfuscator(%q[INSERT " 'some text' " into table])
+    @sampler.default_sql_obfuscator(%q[INSERT " 'some text' " into table])
   end
   def test_sql_obfuscation_filters
     orig =  NewRelic::Agent.agent.obfuscator
