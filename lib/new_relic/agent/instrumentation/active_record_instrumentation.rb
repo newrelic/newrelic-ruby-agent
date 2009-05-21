@@ -69,5 +69,11 @@ if defined?(ActiveRecord::Base) && !NewRelic::Control.instance['skip_ar_instrume
   ActiveRecord::ConnectionAdapters::AbstractAdapter.module_eval do
     include ::NewRelic::Agent::Instrumentation::ActiveRecordInstrumentation
   end
-  
+
+  ActiveRecord::Base.class_eval do
+    class << self
+      add_method_tracer :find_by_sql, 'ActiveRecord/#{self.name}/find_by_sql', :metric => false
+    end
+  end
+ 
 end
