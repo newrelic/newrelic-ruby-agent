@@ -10,6 +10,6 @@
 	</td>
 	<td>
 		<%= link_to "[Detail]", :action => :show_sample_detail, :id => sample.sample_id %>
-		<%= link_to "[SQL]", :action => :show_sample_sql, :id => sample.sample_id %>
+		<%= link_to "[SQL (#{sample.sql_segments.size})]", :action => :show_sample_sql, :id => sample.sample_id %>
 	</td>
 </tr>
