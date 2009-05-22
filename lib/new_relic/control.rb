@@ -146,7 +146,6 @@ module NewRelic
     end
     
     def use_ssl?
-      return true
       @use_ssl ||= fetch('ssl', false)
     end
     
