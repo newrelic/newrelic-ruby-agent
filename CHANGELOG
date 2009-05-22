@@ -13,6 +13,8 @@
   * add API for system monitoring daemons (refer to KB articles); changed
     API for manual starting of the agent; refer to
     NewRelic::Agent.manual_start for details
+  * do certificate verification on ssl connections to 
+    collector.newrelic.com
   * support instances appearing in more than one application by allowing a
     semicolon separated list of names for the newrelic.yml app_name
     setting.
