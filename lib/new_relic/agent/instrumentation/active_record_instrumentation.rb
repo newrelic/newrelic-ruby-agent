@@ -70,6 +70,9 @@ if defined?(ActiveRecord::Base) && !NewRelic::Control.instance['skip_ar_instrume
     include ::NewRelic::Agent::Instrumentation::ActiveRecordInstrumentation
   end
 
+  # This instrumentation will add an extra scope to the transaction traces
+  # which will show the code surrounding the query, inside the model find_by_sql
+  # method.
   ActiveRecord::Base.class_eval do
     class << self
       add_method_tracer :find_by_sql, 'ActiveRecord/#{self.name}/find_by_sql', :metric => false
