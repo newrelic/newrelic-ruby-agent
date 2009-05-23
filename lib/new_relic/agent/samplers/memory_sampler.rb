@@ -116,7 +116,7 @@ module NewRelic::Agent::Samplers
         raise "Unable to find RSS in #{proc_status_file}"
       end
       def proc_status_file
-        @proc_status_file ||= "/proc/#{$$}/status"
+        "/proc/#{$$}/status"
       end
       def to_s
         "proc status file sampler: #{proc_status_file}"

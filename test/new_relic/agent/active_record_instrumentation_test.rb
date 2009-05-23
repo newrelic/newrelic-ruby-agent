@@ -1,7 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
 require 'active_record_fixtures'
 
-class ActiveRecordTest < Test::Unit::TestCase
+class ActiveRecordInstrumentationTest < Test::Unit::TestCase
   
   def setup
     NewRelic::Agent.manual_start
@@ -104,7 +104,7 @@ class ActiveRecordTest < Test::Unit::TestCase
     
     sample = NewRelic::Agent.instance.transaction_sampler.last_sample
     
-    segment = sample.root_segment.called_segments.first
+    segment = sample.root_segment.called_segments.first.called_segments.first
     assert_match /^SELECT \* FROM ["`]?#{ActiveRecordFixtures::Order.table_name}["`]?$/i, segment.params[:sql].strip
     NewRelic::TransactionSample::Segment.any_instance.expects(:explain_sql).returns([])
     sample = sample.prepare_to_send(:obfuscate_sql => true, :explain_enabled => true, :explain_sql => 0.0)
@@ -115,17 +115,17 @@ class ActiveRecordTest < Test::Unit::TestCase
     ActiveRecordFixtures::Order.find(:all)
     
     sample = NewRelic::Agent.instance.transaction_sampler.last_sample
-    
-    segment = sample.root_segment.called_segments.first
-    assert_match /^SELECT /, segment.params[:sql]
-    assert segment.duration > 0.0, "Segment duration must be greater than zero."
+    # 
+    sql_segment = sample.root_segment.called_segments.first.called_segments.first
+    assert_match /^SELECT /, sql_segment.params[:sql]
+    assert sql_segment.duration > 0.0, "Segment duration must be greater than zero."
     sample = sample.prepare_to_send(:record_sql => :raw, :explain_enabled => true, :explain_sql => 0.0)
-    segment = sample.root_segment.called_segments.first
-    assert_match /^SELECT /, segment.params[:sql]
-    explanations = segment.params[:explanation]
+    sql_segment = sample.root_segment.called_segments.first.called_segments.first
+    assert_match /^SELECT /, sql_segment.params[:sql]
+    explanations = sql_segment.params[:explanation]
     if isMysql? || isPostgres?
-      assert_not_nil explanations, "No explains in segment: #{segment}"
-      assert_equal 1, explanations.size,"No explains in segment: #{segment}" 
+      assert_not_nil explanations, "No explains in segment: #{sql_segment}"
+      assert_equal 1, explanations.size,"No explains in segment: #{sql_segment}" 
       assert_equal 1, explanations.first.size
     end
   end
@@ -136,7 +136,7 @@ class ActiveRecordTest < Test::Unit::TestCase
     sample = NewRelic::Agent.instance.transaction_sampler.last_sample
     
     sample = sample.prepare_to_send(:obfuscate_sql => true, :explain_enabled => true, :explain_sql => 0.0)
-    segment = sample.root_segment.called_segments.first
+    segment = sample.root_segment.called_segments.first.called_segments.first
     assert_nil segment.params[:sql], "SQL should have been removed."
     explanations = segment.params[:explanation]
     if isMysql? || isPostgres?

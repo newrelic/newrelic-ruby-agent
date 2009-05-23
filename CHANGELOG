@@ -13,6 +13,8 @@
   * add API for system monitoring daemons (refer to KB articles); changed
     API for manual starting of the agent; refer to
     NewRelic::Agent.manual_start for details
+  * do certificate verification on ssl connections to 
+    collector.newrelic.com
   * support instances appearing in more than one application by allowing a
     semicolon separated list of names for the newrelic.yml app_name
     setting.
@@ -22,7 +24,8 @@
   Developer Mode (only) Enhancements
   * show partial rendering in traces
   * improved formatting of metric names in traces
-  * added some sorting options for the transaction list in Developer Mode
+  * added number of queries to transactions in the transaction list
+  * added some sorting options for the transaction list
   * added a page showing the list of active threads
       
   Compatibility Enhancements

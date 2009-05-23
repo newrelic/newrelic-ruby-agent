@@ -183,8 +183,9 @@ module NewRelic
                               proxy_server.user, proxy_server.password)
       http = http_class.new(host.ip || host.name, host.port)
       if use_ssl?
-        http.use_ssl = true 
-        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        http.use_ssl = true
+        http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+        http.ca_file = File.join(File.dirname(__FILE__), '..', '..', 'gd-class2-root.pem')
       end
       http
     end
