@@ -222,7 +222,7 @@ module NewRelic::Agent
         begin
           stats_copy.round!
         rescue FloatDomainError => e
-          raise "Got #{e} copying #{metric_spec} stats: #{stats_copy.inspect}"
+          raise "Got #{e} copying #{metric_spec.name} stats: #{stats_copy.inspect}"
         end
         
         # don't bother collecting and reporting stats that have zero-values for this timeslice.
