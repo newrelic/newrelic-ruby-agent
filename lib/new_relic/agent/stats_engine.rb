@@ -219,7 +219,11 @@ module NewRelic::Agent
         previous_metric_data = previous_timeslice_data[metric_spec]
         stats_copy.merge! previous_metric_data.stats unless previous_metric_data.nil?
         
-        stats_copy.round!
+        begin
+          stats_copy.round!
+        rescue FloatDomainError => e
+          raise "Got #{e} copying #{metric_spec} stats: #{stats_copy.inspect}"
+        end
         
         # don't bother collecting and reporting stats that have zero-values for this timeslice.
         # significant performance boost and storage savings.
