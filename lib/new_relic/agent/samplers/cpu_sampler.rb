@@ -30,8 +30,8 @@ module NewRelic::Agent::Samplers
         # Calculate the true utilization by taking cpu times and dividing by
         # elapsed time X num_processors.
         elapsed = now - @last_time
-        user_util_stats.record_data_point usertime / (elapsed * num_processors)
-        system_util_stats.record_data_point systemtime / (elapsed * num_processors)
+        user_util_stats.record_data_point usertime / (elapsed * num_processors) if usertime > 0
+        system_util_stats.record_data_point systemtime / (elapsed * num_processors) if systemtime > 0
       end
       @last_utime = t.utime
       @last_stime = t.stime

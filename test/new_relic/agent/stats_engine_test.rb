@@ -33,9 +33,9 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
     samplers.each { |s| s.stats_engine = @engine }
     @engine.instance_eval do
       poll(samplers)
-      sleep 0.1
+      sleep 2
       poll(samplers)
-      sleep 0.1
+      sleep 2
       poll(samplers)
     end
     data = @engine.harvest_timeslice_data({},{})
