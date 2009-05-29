@@ -176,6 +176,11 @@ module NewRelic
     
     # Return the Net::HTTP with proxy configuration given the NewRelic::Control::Server object.
     # Default is the collector but for api calls you need to pass api_server
+    #
+    # Experimental support for SSL verification:
+    # swap 'VERIFY_NONE' for 'VERIFY_PEER' line to try it out
+    # If verification fails, uncomment the 'http.ca_file' line
+    # and it will use the included certificate.
     def http_connection(host = nil)
       host ||= server
       # Proxy returns regular HTTP if @proxy_host is nil (the default)
@@ -184,8 +189,8 @@ module NewRelic
       http = http_class.new(host.ip || host.name, host.port)
       if use_ssl?
         http.use_ssl = true
-        http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-        http.ca_file = File.join(File.dirname(__FILE__), '..', '..', 'gd-class2-root.pem')
+        http.verify_mode = OpenSSL::SSL::VERIFY_NONE # OpenSSL::SSL::VERIFY_PEER
+        #http.ca_file = File.join(File.dirname(__FILE__), '..', '..', 'gd-class2-root.pem')
       end
       http
     end
