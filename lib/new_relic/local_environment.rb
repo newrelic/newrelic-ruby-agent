@@ -62,6 +62,7 @@ module NewRelic
       
       # Still can't find the port.  Let's look at ARGV to fall back
       @identifier = default_port if @identifier.nil?
+      @identifier += ":#{config['app_name']}" if config['app_name'] && config['multi_homed']
     end
     def check_for_thin    
       if defined? Thin::Server
