@@ -20,6 +20,8 @@ module NewRelic::Agent::Samplers
       now = Time.now
       t = Process.times
       if @last_time
+        elapsed = now - @last_time
+        return if elapsed < 1 # Causing some kind of math underflow
         num_processors = NewRelic::Control.instance.local_env.processors || 1
         usertime = t.utime - @last_utime
         systemtime = t.stime - @last_stime
@@ -29,7 +31,6 @@ module NewRelic::Agent::Samplers
         
         # Calculate the true utilization by taking cpu times and dividing by
         # elapsed time X num_processors.
-        elapsed = now - @last_time
         user_util_stats.record_data_point usertime / (elapsed * num_processors)
         system_util_stats.record_data_point systemtime / (elapsed * num_processors)
       end
