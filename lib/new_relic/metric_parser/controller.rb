@@ -1,4 +1,4 @@
-module NewRelic::MetricParser::Controller
+class NewRelic::MetricParser::Controller < NewRelic::MetricParser
   
   def is_controller?
     true

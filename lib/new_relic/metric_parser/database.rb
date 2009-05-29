@@ -1,4 +1,4 @@
-module NewRelic::MetricParser::Database
+class NewRelic::MetricParser::Database < NewRelic::MetricParser
   def is_database?; true; end
 
   def database

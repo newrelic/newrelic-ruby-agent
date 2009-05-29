@@ -15,19 +15,20 @@ module NewRelic
   # Based on the category of the metric, specific parsing logic is defined in the source files
   # countained in the "metric_parsers" sub directory local to this file.
   #
-  module MetricParser
+  class MetricParser
     
     SEPARATOR = '/' unless defined? SEPARATOR
-    @segments = nil
+    attr_reader :name
     
-    # When you extend a string or a class that implements name() with this module
-    # the string is checked to see if the first segment (category) matches any 
-    # of the modules in the metric_parser folder.  If it does, the String or class
-    # is extended with that module as well.
-    def self.extended(named_thing)
-      def named_thing.name; self; end if named_thing.is_a? String 
-      parser_module = "NewRelic::MetricParser::#{named_thing.category.camelize}".constantize rescue nil
-      named_thing.extend parser_module if parser_module && parser_module != MetricParser && parser_module.instance_of?(Module)
+    # return a string that is parsable via the Metric parser APIs
+    def self.for_metric_named(s)
+      category = (s =~ /^([^\/]*)/) && $1
+      parser_class = (category && "NewRelic::MetricParser::#{category.camelize}".constantize rescue nil) || self
+      parser_class.new s
+    end
+
+    def self.parse(s)
+      for_metric_named(s)
     end
     
     def method_missing(method_name, *args)
@@ -90,13 +91,10 @@ module NewRelic
     def url
     ''
     end
-    
-    class << self
-      # return a string that is parsable via the Metric parser APIs
-      def parse(s)
-        s.extend MetricParser
-      end
+
+    def initialize(name)
+      @name = name
     end
+    
   end  
 end
-

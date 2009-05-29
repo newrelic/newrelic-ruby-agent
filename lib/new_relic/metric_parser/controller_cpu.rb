@@ -1,4 +1,4 @@
-module NewRelic::MetricParser::ControllerCPU
+class NewRelic::MetricParser::ControllerCPU < NewRelic::MetricParser
   
   def is_controller_cpu?; true; end
   

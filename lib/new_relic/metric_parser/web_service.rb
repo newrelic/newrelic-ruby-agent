@@ -1,4 +1,4 @@
-module NewRelic::MetricParser::WebService
+class NewRelic::MetricParser::WebService < NewRelic::MetricParser
   def is_web_service?
     segments[1] != 'Soap' && segments[1] != 'Xml Rpc'
   end

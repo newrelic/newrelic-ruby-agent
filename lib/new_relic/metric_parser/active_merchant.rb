@@ -1,4 +1,5 @@
-module NewRelic::MetricParser::ActiveMerchant
+class NewRelic::MetricParser::ActiveMerchant < NewRelic::MetricParser
+  
   def is_active_merchant?; true; end
   
   def is_active_merchant_gateway?
