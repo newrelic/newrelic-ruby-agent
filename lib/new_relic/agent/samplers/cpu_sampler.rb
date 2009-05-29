@@ -1,5 +1,6 @@
 module NewRelic::Agent::Samplers
   class CpuSampler < NewRelic::Agent::Sampler
+    attr_reader :last_time
     def initialize
       super :cpu
       poll

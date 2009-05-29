@@ -28,23 +28,28 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
   def test_samplers
     
     samplers = []
-    samplers << NewRelic::Agent::Samplers::CpuSampler.new unless defined? Java
+    cpu_sampler = NewRelic::Agent::Samplers::CpuSampler.new
+    samplers << cpu_sampler unless defined? Java
     samplers << NewRelic::Agent::Samplers::MemorySampler.new 
     samplers.each { |s| s.stats_engine = @engine }
+    msg = ["Running sampler at #{Time.now}"]
     @engine.instance_eval do
       poll(samplers)
       sleep 2
+      msg << "Polling again at #{Time.now}, last time polled=#{cpu_sampler.last_time}"
       poll(samplers)
       sleep 2
+      msg << "Polling again at #{Time.now}, last time polled=#{cpu_sampler.last_time}"
       poll(samplers)
     end
+    msg << "Last time polled: #{cpu_sampler.last_time}"
     data = @engine.harvest_timeslice_data({},{})
     cpu_user = data[NewRelic::MetricSpec.new('CPU/User Time')]
     cpu_utilization = data[NewRelic::MetricSpec.new('CPU/User/Utilization')]
     memory = data[NewRelic::MetricSpec.new('Memory/Physical')]
     # might get 1, 2 or 3 stats depending on timing factors.  short intervals are skipped.
-    assert_between 1, 3, cpu_user.stats.call_count, cpu_user.stats.inspect unless defined? Java
-    assert_between 1, 3, cpu_utilization.stats.call_count unless defined? Java
+    assert_equal 2, cpu_user.stats.call_count, cpu_user.stats.inspect unless defined? Java
+    assert_equal 2, cpu_utilization.stats.call_count, msg.join("; ") unless defined? Java
     assert_equal 3, memory.stats.call_count
   end
   def test_harvest
