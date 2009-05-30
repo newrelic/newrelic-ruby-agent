@@ -1,4 +1,4 @@
-module NewRelic::MetricParser::ActiveRecord
+class NewRelic::MetricParser::ActiveRecord < NewRelic::MetricParser
   def is_active_record? ; true; end
   
   def model_class

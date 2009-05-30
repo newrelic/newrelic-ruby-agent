@@ -198,7 +198,8 @@ module NewRelic
       # Still can't find the port.  Let's look at ARGV to fall back
       @dispatcher_instance_id = default_port if @dispatcher_instance_id.nil?
     end
-    def check_for_thin    
+    
+    def check_for_thin
       if defined? Thin::Server
         # This case covers the thin web dispatcher
         # Same issue as above- we assume only one instance per process

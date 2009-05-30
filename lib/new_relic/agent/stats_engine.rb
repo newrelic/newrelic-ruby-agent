@@ -218,7 +218,6 @@ module NewRelic::Agent
         # data
         previous_metric_data = previous_timeslice_data[metric_spec]
         stats_copy.merge! previous_metric_data.stats unless previous_metric_data.nil?
-        
         stats_copy.round!
         
         # don't bother collecting and reporting stats that have zero-values for this timeslice.

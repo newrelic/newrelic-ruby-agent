@@ -21,6 +21,7 @@ module NewRelic
     def tiny_version; @parts[2]; end
     
     def <=>(other)
+      other = VersionNumber.new(other) if other.is_a?(String)
       self.scalar_value <=> other.scalar_value 
     end
     

@@ -5,11 +5,10 @@ require 'new_relic/control'
 # newrelic_agent log files. 
 # 
 # If you can't find any log files and you don't see anything in your
-# application log files, try uncommenting the following line to verify
-# the plugin is being loaded, then contact support@newrelic.com 
-# if you are unable to resolve the issue.
-
-# ::RAILS_DEFAULT_LOGGER.warn "RPM detected environment: #{NewRelic::Config.instance.local_env}, RAILS_ENV: #{RAILS_ENV}"
+# application log files, try uncommenting the two lines at the 
+# bottom of this file to verify the plugin is being loaded, 
+# then send the output to support@newrelic.com if you are unable to 
+# resolve the issue.
 
 # Initializer for the NewRelic Agent
 

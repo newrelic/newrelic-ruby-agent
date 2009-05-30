@@ -1,4 +1,4 @@
-module NewRelic::MetricParser::View
+class NewRelic::MetricParser::View < NewRelic::MetricParser
   def is_view?; true; end
 
   def is_render?
