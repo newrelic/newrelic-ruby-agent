@@ -53,12 +53,14 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
     metrics = NewRelic::Agent.instance.stats_engine.metrics
     #   This doesn't work on hudson because the sampler metrics creep in.    
     #   metrics = NewRelic::Agent.instance.stats_engine.metrics.select { |mname| mname =~ /ActiveRecord\/ActiveRecordFixtures::Order\// }.sort
-    compare_metrics %W[
+    expected = %W[
       ActiveRecord/create
       ActiveRecord/find
       ActiveRecord/ActiveRecordFixtures::Order/create
       ActiveRecord/ActiveRecordFixtures::Order/find
-      ], metrics
+      ]
+    expected += %W[ActiveRecord/save ActiveRecord/ActiveRecordFixtures::Order/save] if NewRelic::Control.instance.rails_version < '2.1.0'   
+    compare_metrics expected, metrics
     assert_equal 1, NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Order/find").call_count
     assert_equal 1, NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Order/create").call_count
   end
