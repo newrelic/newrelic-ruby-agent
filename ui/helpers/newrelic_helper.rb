@@ -2,10 +2,20 @@ require 'pathname'
 require 'new_relic/agent/collection_helper'
 module NewrelicHelper
   include NewRelic::Agent::CollectionHelper
+  
   # return the host that serves static content (css, metric documentation, images, etc)
   # that supports the desktop edition.
   def server
-    NewRelic::Agent.instance.config['desktop_server'] || "http://rpm.newrelic.com"
+    NewRelic::Control.instance['desktop_server'] || "http://rpm.newrelic.com"
+  end
+  
+  # limit of how many detail/SQL rows we display - very large data sets (~10000+) crash browsers
+  def trace_row_display_limit
+    2000
+  end
+  
+  def trace_row_display_limit_reached
+    (!@detail_segment_count.nil? && @detail_segment_count > trace_row_display_limit) || @sample.sql_segments.length > trace_row_display_limit
   end
   
   # return the sample but post processed to strip out segments that normally don't show
@@ -21,7 +31,7 @@ module NewrelicHelper
   # return the highest level in the call stack for the trace that is not rails or 
   # newrelic agent code
   def application_caller(trace)
-    trace = strip_nr_from_backtrace(trace)
+    trace = strip_nr_from_backtrace(trace) unless params[:show_nr]
     trace.each do |trace_line|
       file = file_and_line(trace_line).first
       unless exclude_file_from_stack_trace?(file, false)
@@ -32,10 +42,17 @@ module NewrelicHelper
   end
   
   def application_stack_trace(trace, include_rails = false)
-    trace = strip_nr_from_backtrace(trace)
+    trace = strip_nr_from_backtrace(trace) unless params[:show_nr]
     trace.reject do |trace_line|
       file = file_and_line(trace_line).first
       exclude_file_from_stack_trace?(file, include_rails)
+    end
+  end
+
+  def render_backtrace
+    if @segment[:backtrace]
+      content_tag('h3', 'Application Stack Trace') + 
+          render(:partial => agent_views_path('stack_trace'), :locals => {:segment => @segment})
     end
   end
   
@@ -67,11 +84,8 @@ module NewrelicHelper
     end
   end
   
-  
   def dev_name(metric_name)
-    @@metric_parser_available ||= defined? MetricParser
-    
-    (@@metric_parser_available) ? MetricParser.parse(metric_name).developer_name : metric_name
+    NewRelic::MetricParser.parse(metric_name).developer_name
   end
   
   # write the metric label for a segment metric in the detail view
@@ -79,7 +93,7 @@ module NewrelicHelper
     if source_available && segment[:backtrace] && (source_url = url_for_source(application_caller(segment[:backtrace])))
       link_to dev_name(segment.metric_name), source_url
     else
-      dev_name(segment.metric_name)
+      h(dev_name(segment.metric_name))
     end
   end
   
@@ -98,8 +112,7 @@ module NewrelicHelper
 
   # write a link to the source for a trace
   def link_to_source(trace)
-    image_url = "#{server}/images/"
-    image_url << (using_textmate? ? "textmate.png" : "file_icon.png")
+    image_url = url_for(:controller => :newrelic, :action => :image, :file => (using_textmate? ? "textmate.png" : "file_icon.png"), :content_type => 'image/png')
     
     link_to image_tag(image_url, :alt => (title = 'View Source'), :title => title), url_for_source(application_caller(trace))
   end
@@ -113,12 +126,12 @@ module NewrelicHelper
     time.strftime("%H:%M:%S") 
   end
 
-  def colorize(value, yellow_threshold = 0.05, red_threshold = 0.15)
+  def colorize(value, yellow_threshold = 0.05, red_threshold = 0.15, s=to_ms(value))
     if value > yellow_threshold
       color = (value > red_threshold ? 'red' : 'orange')
-      "<font color=#{color}>#{value.to_ms}</font>"
+      "<font color=#{color}>#{s}</font>"
     else
-      "#{value.to_ms}"
+      "#{s}"
     end
   end
   
@@ -137,7 +150,7 @@ module NewrelicHelper
   end
   
   def segment_duration_value(segment)
-    link_to "#{segment.duration.to_ms.with_delimiter} ms", explain_sql_url(segment)
+    link_to colorize(segment.duration, 0.05, 0.15, "#{with_delimiter(to_ms(segment.duration))} ms"), explain_sql_url(segment)
   end
   
   def line_wrap_sql(sql)
@@ -180,7 +193,7 @@ module NewrelicHelper
     pie_chart.color, pie_chart.width, pie_chart.height = '6688AA', width, height
     
     chart_data = sample.breakdown_data(6)
-    chart_data.each { |s| pie_chart.add_data_point dev_name(s.metric_name), s.exclusive_time.to_ms }
+    chart_data.each { |s| pie_chart.add_data_point dev_name(s.metric_name), to_ms(s.exclusive_time) }
     
     pie_chart.render
   end
@@ -239,6 +252,10 @@ private
   
 
   def render_segment_details(segment, depth=0)
+    @detail_segment_count ||= 0
+    @detail_segment_count += 1
+    
+    return '' if @detail_segment_count > trace_row_display_limit
     
     @indentation_depth = depth if depth > @indentation_depth
     repeat = nil
@@ -282,5 +299,17 @@ private
       when 'js'; 'text/javascript'
       else 'text/plain'
     end
+  end
+  def to_ms(number)
+   (number*1000).round
+  end
+  def to_percentage(value)
+    (value * 100).round if value
+  end
+  def with_delimiter(val)
+    return '0' if val.nil?
+    parts = val.to_s.split('.')
+    parts[0].gsub!(/(\d)(?=(\d\d\d)+(?!\d))/, "\\1,")
+    parts.join '.'
   end
 end

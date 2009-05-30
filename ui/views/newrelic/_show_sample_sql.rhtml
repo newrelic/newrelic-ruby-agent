@@ -5,6 +5,7 @@
     visibility, you must remove <samp>rows_logger_plugin</samp>, or change your plugin load order 
     so that the rows logger is loaded first.  
   <% else %>
+  <%= render :partial => agent_views_path('segment_limit_message') if trace_row_display_limit_reached %>
 	<table width="100%">
 		<thead>
 		<tr>
@@ -14,6 +15,6 @@
 		</tr>
 		</thead>
 		
-		<%= render :partial => agent_views_path('sql_row'), :collection => @sample.sql_segments %>
+		<%= render :partial => agent_views_path('sql_row'), :collection => @sample.sql_segments[0...trace_row_display_limit] %>
 	</table>
   <% end %>

@@ -23,7 +23,7 @@
   </tr>
   <tr>
     <th>CPU Burn:</th>
-    <td><%= @sample.params[:cpu_time].to_ms if @sample.params[:cpu_time] %> ms</td>
+    <td><%= to_ms(@sample.params[:cpu_time]) if @sample.params[:cpu_time] %> ms</td>
   </tr>
   <% unless @request_params.empty? %>
     <tr>

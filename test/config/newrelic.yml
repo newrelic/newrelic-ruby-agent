@@ -1,7 +1,6 @@
 # This is the config file loaded when running unit tests locally.
 
 test:
-  erb_value: <%= 'hey'*3 %>
   host: localhost
   port: 3000
   log_level: debug
@@ -9,14 +8,29 @@ test:
   enabled: false
   developer: true
   monitor_daemons: false
+  disable_samplers: true
   api_host: 127.0.0.1
   api_port: 443
   message: '<%= generated_for_user %>'
   license_key: '<%= license_key %>'
+  agent_enabled: auto
+  apdex_t: 1.1
+
+  # Some fixtures for newrelic.yml parsing tests
+  erb_value: <%= 'hey'*3 %>
+  tval: true
+  tstring: 'true'
+  fval: false
+  yval: yes
+  sval: sure
+    
+  # checks for loading classes on the background thread
+  check_bg_loading: true
+
   transaction_tracer:
     enabled: true
     record_sql: raw
-    transaction_threshold: 0.500
+    transaction_threshold: Apdex_f # case insensitive
     explain_threshold: 0.1
     explain_enabled: true
     stack_trace_threshold: 0.1

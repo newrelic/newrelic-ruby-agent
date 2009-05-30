@@ -1,3 +1,5 @@
+# == REST API Helpers
+#
 # Ruby lib for working with the New Relic API's XML interface.  Requires Rails 2.0 or later to be loaded.
 #
 # Can also be used as a script using script/runner
@@ -14,7 +16,8 @@
 #
 # This API does not have any agent dependencies.  It can be used independent of the agent by copying it into your application.
 #
-# ==Examples
+# == Examples
+#
 #   # Fetching the list of applications for an account
 #   NewRelicApi::Account.find(:first).applications
 #  
@@ -34,7 +37,6 @@ module NewRelicApi
   # ActiveResource objects using this mixin must define the method 'query_params'. 
   module ActiveResourceAssociations #:nodoc:
     class << self
-      
       protected
       def included(base)
         class << base
@@ -99,14 +101,14 @@ module NewRelicApi
       end
       
       def headers
-        h = {'x-license-key' => NewRelicApi.license_key || NewRelic::Config.instance['license_key']}
+        h = {'x-license-key' => NewRelicApi.license_key || NewRelic::Control.instance['license_key']}
         h['Authorization'] = 'Basic ' + ["#{NewRelicApi.email}:#{NewRelicApi.password}"].pack('m').delete("\r\n") if NewRelicApi.email
         h
       end
       
       def site_url
-        host = NewRelicApi.host || NewRelic::Config.instance.api_server.host
-        port = NewRelicApi.port || NewRelic::Config.instance.api_server.port
+        host = NewRelicApi.host || NewRelic::Control.instance.api_server.name
+        port = NewRelicApi.port || NewRelic::Control.instance.api_server.port
         "#{port == 443 ? 'https' : 'http'}://#{host}:#{port}"
       end
       
@@ -248,7 +250,6 @@ module NewRelicApi
   
   class User < BaseResource
   end
-  
   class Subscription < BaseResource
   end
 end

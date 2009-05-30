@@ -6,10 +6,10 @@ require 'yaml'
 require 'net/http'
 require 'rexml/document'
 
-# We need to use the Config object but we don't want to load 
+# We need to use the Control object but we don't want to load 
 # the rails/merb environment.  The defined? clause is so that
 # it won't load it twice, something it does when run inside a test
-require 'new_relic/config' unless defined? NewRelic::Config
+require 'new_relic/control' unless defined? NewRelic::Control
 
 module NewRelic
   module Commands
@@ -39,7 +39,7 @@ module NewRelic
       # Will throw CommandFailed exception if there's any error.
       # 
       def initialize command_line_args
-        @config = NewRelic::Config.instance
+        @config = NewRelic::Control.instance
         @user = ENV['USER']
         if Hash === command_line_args
           # command line args is an options hash
@@ -55,7 +55,7 @@ module NewRelic
           @description = options.parse(command_line_args).join " "
         end
         config.env = @environment if @environment
-        @appname ||= config.app_name || config.env || 'development'
+        @appname ||= config.app_names[0] || config.env || 'development'
       end
       
       # Run the Deployment upload in RPM via Active Resource.
@@ -119,18 +119,18 @@ module NewRelic
           o.separator "OPTIONS:"
           o.on("-a", "--appname=DIR", String,
              "Set the application name.",
-             "Default is app_name setting in newrelic.yml") { |@appname| }
+             "Default is app_name setting in newrelic.yml") { | e | @appname = e }
           o.on("-e", "--environment=name", String,
                "Override the (RAILS|MERB|RUBY)_ENV setting",
-               "currently: #{config.env}") { | @environment| }
+               "currently: #{config.env}") { | e | @environment = e }
           o.on("-u", "--user=USER", String,
              "Specify the user deploying.",
-             "Default: #{@user}") { |@user| }
+             "Default: #{@user}") { | u | @user = u }
           o.on("-r", "--revision=REV", String,
-             "Specify the revision being deployed") { |@revision | }
+             "Specify the revision being deployed") { | r | @revision = r }
           o.on("-c", "--changes", 
              "Read in a change log from the standard input") { @changelog = STDIN.read }
-          o.on("-?", "Print this help") { raise CommandFailure.new(o.help, 0) }
+          o.on("-h", "--help", "Print this help") { raise CommandFailure.new(o.help, 0) }
           o.separator ""
           o.separator 'description = "short text"'
         end

@@ -31,7 +31,7 @@
 	<th align=right>
 	Duration
 	</th>
-	<td><%= @segment.duration.to_ms.with_delimiter %> ms</td>
+	<td><%= with_delimiter(to_ms(@segment.duration)) %> ms</td>
 </tr>
 <% if @explanation %>
 	<%= render :partial => agent_views_path('explain_plans') %>
@@ -39,7 +39,4 @@
 </table>
 
 <p/>
-<% if @segment[:backtrace] %>
-  <h3>Application Stack Trace</h3>
-  <%= render :partial => agent_views_path('stack_trace'), :locals => {:segment => @segment} %>
-<% end %>
+<%= render_backtrace %>

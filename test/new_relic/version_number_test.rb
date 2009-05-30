@@ -1,0 +1,38 @@
+require File.expand_path(File.join(File.dirname(__FILE__),'..', 'test_helper'))
+class NewRelic::VersionNumberTest < Test::Unit::TestCase
+  
+  def test_comparison__first
+    versions = %w[1.0.0 0.1.0 0.0.1 10.0.1 1.10.0].map {|s| NewRelic::VersionNumber.new s }
+    assert_equal %w[0.0.1 0.1.0 1.0.0 1.10.0 10.0.1], versions.sort.map(&:to_s)
+    v0 = NewRelic::VersionNumber.new '1.2.3'
+    v1 = NewRelic::VersionNumber.new '1.2.2'
+    v3 = NewRelic::VersionNumber.new '1.2.2'
+    assert v0 > v1
+    assert v1 == v1
+    assert v1 == v3
+  end
+  def test_comparison__second
+    v0 = NewRelic::VersionNumber.new '1.2.0'
+    v1 = NewRelic::VersionNumber.new '2.2.2'
+    v3 = NewRelic::VersionNumber.new '1.1.2'
+    assert v0 < v1
+    assert v1 > v3
+    assert v3 < v0
+  end
+  def test_long_version
+    v0 = NewRelic::VersionNumber.new '1.2.3.4'
+    v1 = NewRelic::VersionNumber.new '1.2.3.3'
+    v3 = NewRelic::VersionNumber.new '1.3'
+    assert v0 > v1
+    assert v3 > v0
+  end
+  def test_sort
+    values = %w[1.1.1 2.6.5 2.7 2.7.1]
+    assert_equal values, values.map{|v| NewRelic::VersionNumber.new v}.sort.map(&:to_s)
+
+  end
+  def test_string
+    assert_equal '1.2.0', NewRelic::VersionNumber.new('1.2.0').to_s
+    assert_equal '1.2', NewRelic::VersionNumber.new('1.2').to_s
+  end
+end

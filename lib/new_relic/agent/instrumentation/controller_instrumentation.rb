@@ -28,10 +28,23 @@
 module NewRelic::Agent::Instrumentation
   module ControllerInstrumentation
     
-    @@newrelic_apdex_t = NewRelic::Agent.instance.apdex_t
-    @@newrelic_apdex_overall = NewRelic::Agent.instance.stats_engine.get_stats_no_scope("Apdex")
     def self.included(clazz)
       clazz.extend(ClassMethods)
+    end
+    
+    # This module is for importing stubs when the agent is disabled
+    module ClassMethodsShim
+      def newrelic_ignore(*args); end
+    end
+    
+    module Shim
+      def self.included(clazz)
+        clazz.extend(ClassMethodsShim)
+      end
+      def newrelic_notice_error(*args); end
+      def new_relic_trace_controller_action(*args); yield; end
+      def newrelic_metric_path; end
+      def perform_action_with_newrelic_trace(*args); yield; end
     end
     
     module ClassMethods
@@ -59,7 +72,8 @@ module NewRelic::Agent::Instrumentation
       raise "Not implemented!"
     end
     
-    @@newrelic_apdex_t = NewRelic::Agent.instance.apdex_t
+    
+    
     # Perform the current action with NewRelic tracing.  Used in a method
     # chain via aliasing.  Call directly if you want to instrument a specifc
     # block as if it were an action.  Pass the block along with the path.
@@ -81,39 +95,37 @@ module NewRelic::Agent::Instrumentation
       else
         true
       end
-      if should_skip
-        begin
-          return perform_action_without_newrelic_trace(*args)
-        ensure
-          # Tell the dispatcher instrumentation that we ignored this action and it shouldn't
-          # be counted for the overall HTTP operations measurement.  The if.. appears here
-          # because we might be ignoring the top level action instrumenting but instrumenting
-          # a direct invocation that already happened, so we need to make sure if this var
-          # has already been set to false we don't reset it.
-          Thread.current[:controller_ignored] = true if Thread.current[:controller_ignored].nil?
-        end
-      end
       
-      Thread.current[:controller_ignored] = false
+      if should_skip
+        # Tell the dispatcher instrumentation that we ignored this action and it shouldn't
+        # be counted for the overall HTTP operations measurement.
+        Thread.current[:controller_ignored] = true
+        
+        return perform_action_without_newrelic_trace(*args)
+      end
+
+      # reset this in case we came through a code path where the top level controller is ignored
+      Thread.current[:controller_ignored] = nil
       
       start = Time.now.to_f
       agent.ensure_worker_thread_started
       
       # generate metrics for all all controllers (no scope)
       self.class.trace_method_execution_no_scope "Controller" do 
-        # generate metrics for this specific action
         # assuming the first argument, if present, is the action name
         path = newrelic_metric_path(args.size > 0 ? args[0] : nil)
-        stats_engine.transaction_name ||= "Controller/#{path}" if stats_engine
+        controller_metric = "Controller/#{path}"
         
-        self.class.trace_method_execution_with_scope "Controller/#{path}", true, true do 
-          # send request and parameter info to the transaction sampler
+        self.class.trace_method_execution_with_scope controller_metric, true, true do 
+          stats_engine.transaction_name = controller_metric
           
           local_params = (respond_to? :filter_parameters) ? filter_parameters(params) : params
           
           agent.transaction_sampler.notice_transaction(path, request, local_params)
           
           t = Process.times.utime + Process.times.stime
+          
+          failed = false
           
           begin
             # run the action
@@ -122,30 +134,44 @@ module NewRelic::Agent::Instrumentation
             else
               perform_action_without_newrelic_trace(*args)
             end
+          rescue Exception => e
+            failed = true
+            raise e
           ensure
             cpu_burn = (Process.times.utime + Process.times.stime) - t
+            stats_engine.get_stats_no_scope("ControllerCPU/#{path}").record_data_point(cpu_burn)
             agent.transaction_sampler.notice_transaction_cpu_time(cpu_burn)
             
-            duration = Time.now.to_f - start
             # do the apdex bucketing
-            if duration <= @@newrelic_apdex_t
-              @@newrelic_apdex_overall.record_apdex_s cpu_burn    # satisfied
-              stats_engine.get_stats_no_scope("Apdex/#{path}").record_apdex_s cpu_burn
-            elsif duration <= (4 * @@newrelic_apdex_t)
-              @@newrelic_apdex_overall.record_apdex_t cpu_burn    # tolerating
-              stats_engine.get_stats_no_scope("Apdex/#{path}").record_apdex_t cpu_burn
+            #
+            duration = Time.now.to_f - start
+            controller_stat = stats_engine.get_custom_stats("Apdex/#{path}", NewRelic::ApdexStats)
+            case
+              when failed
+              apdex_overall_stat.record_apdex_f    # frustrated
+              controller_stat.record_apdex_f
+              when duration <= NewRelic::Control.instance['apdex_t']
+              apdex_overall_stat.record_apdex_s    # satisfied
+              controller_stat.record_apdex_s
+              when duration <= 4 * NewRelic::Control.instance['apdex_t']
+              apdex_overall_stat.record_apdex_t    # tolerating
+              controller_stat.record_apdex_t
             else
-              @@newrelic_apdex_overall.record_apdex_f cpu_burn    # frustrated
-              stats_engine.get_stats_no_scope("Apdex/#{path}").record_apdex_f cpu_burn
+              apdex_overall_stat.record_apdex_f    # frustrated
+              controller_stat.record_apdex_f
             end
-            
           end
         end
       end
-      
     ensure
       # clear out the name of the traced transaction under all circumstances
       stats_engine.transaction_name = nil
     end
+    
+    private
+    def apdex_overall_stat
+      @@newrelic_apdex_overall ||= NewRelic::Agent.instance.stats_engine.get_custom_stats("Apdex", NewRelic::ApdexStats)  
+    end
+    
   end 
 end  

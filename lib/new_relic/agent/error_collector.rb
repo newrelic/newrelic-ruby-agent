@@ -1,13 +1,10 @@
 
 module NewRelic::Agent
   class ErrorCollector
-    include Synchronize
     include CollectionHelper
     
     MAX_ERROR_QUEUE_LENGTH = 20 unless defined? MAX_ERROR_QUEUE_LENGTH
     
-    attr_accessor :capture_params
-    attr_accessor :capture_source
     attr_accessor :enabled
     
     def initialize(agent = nil)
@@ -16,9 +13,17 @@ module NewRelic::Agent
       # lookup of exception class names to ignore.  Hash for fast access
       @ignore = {}
       @ignore_filter = nil
-      @capture_params = true
-      @capture_source = false
-      @enabled = true
+
+      config = NewRelic::Control.instance.fetch('error_collector', {})
+      
+      @enabled = config.fetch('enabled', true)
+      @capture_source = config.fetch('capture_source', true)
+      
+      ignore_errors = config.fetch('ignore_errors', "")
+      ignore_errors = ignore_errors.split(",")
+      ignore_errors.each { |error| error.strip! } 
+      ignore(ignore_errors)
+      @lock = Mutex.new
     end
     
     def ignore_error_filter(&block)
@@ -33,7 +38,7 @@ module NewRelic::Agent
     end
     
     
-    def notice_error(path, request_uri, params, exception)
+    def notice_error(exception, request=nil, action_path=nil, filtered_params={})
       
       return unless @enabled
       return if @ignore[exception.class.name] 
@@ -48,12 +53,19 @@ module NewRelic::Agent
       
       data = {}
       
-      data[:request_params] = normalize_params(params) if @capture_params
+      action_path ||= ''
+      
+      data[:request_params] = normalize_params(filtered_params) if NewRelic::Control.instance.capture_params
+
       data[:custom_params] = normalize_params(@agent.custom_params) if @agent
       
-      data[:request_uri] = request_uri
+      data[:request_uri] = request.path if request
+      data[:request_uri] ||= ""
       
-      data[:rails_root] = NewRelic::Config.instance.root
+      data[:request_referer] = request.referer if request
+      data[:request_referer] ||= ""
+      
+      data[:rails_root] = NewRelic::Control.instance.root
       
       data[:file_name] = exception.file_name if exception.respond_to?('file_name')
       data[:line_number] = exception.line_number if exception.respond_to?('line_number')
@@ -67,10 +79,12 @@ module NewRelic::Agent
       else
         inside_exception = exception
       end
-      data[:stack_trace] = strip_nr_from_backtrace(inside_exception.backtrace)
-      noticed_error = NewRelic::NoticedError.new(path, data, exception)
+
+      data[:stack_trace] = inside_exception.backtrace
       
-      synchronize do
+      noticed_error = NewRelic::NoticedError.new(action_path, data, exception)
+      
+      @lock.synchronize do
         if @errors.length >= MAX_ERROR_QUEUE_LENGTH
           log.info("The error reporting queue has reached #{MAX_ERROR_QUEUE_LENGTH}. This error will not be reported to RPM: #{exception.message}")
         else
@@ -86,7 +100,7 @@ module NewRelic::Agent
       if unsent_errors && !unsent_errors.empty?
         return unsent_errors
       else
-        synchronize do
+        @lock.synchronize do
           errors = @errors
           @errors = []
           return errors
@@ -99,7 +113,7 @@ module NewRelic::Agent
       @error_stat ||= NewRelic::Agent.get_stats("Errors/all")
     end
     def log
-      NewRelic::Config.instance.log
+      NewRelic::Control.instance.log
     end
   end
 end

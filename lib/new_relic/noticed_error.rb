@@ -15,6 +15,10 @@ class NewRelic::NoticedError
     else
       self.message = exception.message
     end
+    
+    # clamp long messages to 4k so that we don't send a lot of
+    # overhead across the wire
+    self.message = self.message[0..4096] if self.message.length > 4096
 
     self.timestamp = Time.now
   end

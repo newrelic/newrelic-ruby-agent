@@ -1,18 +1,26 @@
 <table>
-	<tr>
+    <tr>
 		<td valign=top>
-			<table class="transaction_list_table">
-				<thead>
-				<tr>
-          			<td>Resp Time</td>
-					<td>URL</td>
-					<td/>
-				</tr>
-				</thead>
-				<%= render :partial => 'sample', :collection => @samples %>
-			</table>
+        <table class="transaction_list_table">
+            <thead>
+                <tr>
+                    <td>
+                        <%= link_to_if (params[:h] ||params[:u]), 'Timestamp' %>
+                    </td>
+                    <td>
+                        <%= link_to_unless_current('Resp. Time', :h => 'y') %>
+                    </td>
+                    <td>
+                        <%= link_to_unless_current('URL', :u =>'y') %>
+                    </td>
+                    <td/>
+                </tr>
+            </thead><%= render :partial => 'sample', :collection => @samples %>
+        </table>
 		</td>
 		<td valign=top>
+        <%= link_to_if @samples.size > 0, "Clear Transactions (#{@samples.size})", :action => 'reset' %><br/>
+        <%= link_to "List Threads", :action => 'threads' %>
 			<h3>Welcome</h3>
 			<p>
 			Welcome to <b>New Relic RPM Developer Mode</b>.  This Rails extension traces the performance activity
@@ -33,5 +41,5 @@
 			production mode.
 			</p>
 		</td>
-	<tr>
+	</tr>
 </table>

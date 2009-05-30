@@ -127,6 +127,24 @@ th
 	padding: 5px 5px 5px 5px;
 	text-align: right;
 }
+th.left
+{
+	text-align: left;
+}
+th.title 
+{
+	font-size: 1.2em;
+	text-align: left;
+	padding: 6px 5px 8px 5px;
+	color: #EEEEEE;
+}
+td.locals
+{
+	font-size: 0.9em;
+	text-align: left;
+    font-family: monospace;
+}
+ 
 /*************************************
 +Seldon Specific - need to preserve
 *************************************/
@@ -219,10 +237,26 @@ div.flash.notice
 	margin:  15px 0px 15px 0px;
 }
 
+#reset_transactions, #reset_transactions a
+{
+    color:red;
+    text-align:right;
+}
+
+
 .transaction_list_table
 {
 	width: 600px;
 	margin-right: 15px;
+}
+.transaction_list_table thead a:visited
+{
+	color: white;
+}
+.transaction_list_table thead a
+{
+	color: white;
+	text-decoration: underline;
 }
 
 .application_stack_trace, .full_stack_trace
@@ -285,6 +319,11 @@ thead
 	background-color: #6688aa;
 	color: white;
 	padding: 5px 5px 5px 5px;
+}
+
+thead a, thead a:hover
+{
+    color: white;
 }
 
 tfoot

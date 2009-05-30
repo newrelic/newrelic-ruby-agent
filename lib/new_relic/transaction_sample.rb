@@ -14,9 +14,11 @@ module NewRelic
         "Rows",
         "Extra"
       ].freeze
-      
+  
   class TransactionSample
     
+    @@start_time = Time.now
+
     include TransactionAnalysis
     class Segment
       
@@ -50,6 +52,37 @@ module NewRelic
         to_debug_str(0)
       end
       
+      def to_json
+        map = {:entry_timestamp => @entry_timestamp,
+          :exit_timestamp => @exit_timestamp,
+          :metric_name => @metric_name,
+          :segment_id => @segment_id}
+        if @called_segments && !@called_segments.empty?
+          map[:called_segments] = @called_segments
+        end
+        if @params && !@params.empty?
+          map[:params] = @params
+        end
+        map.to_json
+      end
+      
+      def self.from_json(json)
+        json = ActiveSupport::JSON.decode(json) if json.is_a?(String)
+        segment = Segment.new(json["entry_timestamp"].to_f, json["metric_name"], json["segment_id"])
+        segment.end_trace json["exit_timestamp"].to_f
+        params = json["params"]
+        if params
+          segment.send :params=, HashWithIndifferentAccess.new(params)
+        end
+        called_segments = json["called_segments"]
+        if called_segments
+          called_segments.each do |child|
+            segment.add_called_segment(self.from_json(child))
+          end
+        end
+        segment
+      end
+      
       def path_string
         "#{metric_name}[#{called_segments.collect {|segment| segment.path_string }.join('')}]"
       end
@@ -59,7 +92,7 @@ module NewRelic
         depth.times {tab << "  "}
         
         s = tab.clone
-        s << ">> #{metric_name}: #{@entry_timestamp.to_ms}\n"
+        s << ">> #{metric_name}: #{(@entry_timestamp*1000).round}\n"
         unless params.empty?
           s << "#{tab}#{tab}{\n"
           params.each do |k,v|
@@ -71,7 +104,7 @@ module NewRelic
           s << cs.to_debug_str(depth + 1)
         end
         s << tab
-        s << "<< #{metric_name}: #{@exit_timestamp ? @exit_timestamp.to_ms : 'n/a'}\n"
+        s << "<< #{metric_name}: #{@exit_timestamp ? (@exit_timestamp*1000).round : 'n/a'}\n"
         s
       end
       
@@ -167,24 +200,32 @@ module NewRelic
                 # Note: we can't use map.
                 # Note: have to convert from native column element types to string so we can
                 # serialize.  Esp. for postgresql.
-                explain_resultset.each { | row | rows << row.map(&:to_s) }  # Can't use map.  Suck it up.
+                # Can't use map.  Suck it up.
+                if explain_resultset.respond_to?(:each)
+                  explain_resultset.each { | row | rows << row.map(&:to_s) }
+                else
+                  rows << [ explain_resultset ]
+                end
                 explanations << rows
                 # sleep for a very short period of time in order to yield to the main thread
                 # this is because a remote database call will likely hang the VM
                 sleep 0.05
               end
             rescue => e
-              x = 1 # this is here so that code coverage knows we've entered this block
-              # swallow failed attempts to run an explain.  One example of a failure is the
-              # connection for the sql statement is to a different db than the default connection
-              # specified in AR::Base
+              handle_exception_in_explain(e)
             end
           end
         end
 
         explanations
       end
-      
+
+      def handle_exception_in_explain(e)
+        x = 1 # this is here so that code coverage knows we've entered this block
+        # swallow failed attempts to run an explain.  One example of a failure is the
+        # connection for the sql statement is to a different db than the default connection
+        # specified in AR::Base
+      end
       def obfuscated_sql
         TransactionSample.obfuscate_sql(params[:sql])
       end
@@ -196,6 +237,9 @@ module NewRelic
       protected
         def parent_segment=(s)
           @parent_segment = s
+        end
+        def params=(p)
+          @params = p
         end
     end
     
@@ -256,7 +300,7 @@ module NewRelic
           connection = ActiveRecord::Base.send("#{config[:adapter]}_connection", config)
           @@connections[config] = connection
         rescue => e
-          NewRelic::Agent.agent.log.error("Caught exception #{e} trying to get connection to DB for explain. Config: #{config}")
+          NewRelic::Agent.agent.log.error("Caught exception #{e} trying to get connection to DB for explain. Control: #{config}")
           NewRelic::Agent.agent.log.error(e.backtrace.join("\n"))
           nil
         end
@@ -288,7 +332,36 @@ module NewRelic
       @params = {}
       @params[:request_params] = {}
     end
+
+    # offset from start of app
+    def timestamp
+      @start_time - @@start_time.to_f
+    end
     
+    def to_json(options = {})
+      map = {:sample_id => @sample_id,
+        :start_time => @start_time,
+        :root_segment => @root_segment}
+      if @params && !@params.empty?
+        map[:params] = @params  
+      end
+      map.to_json
+    end
+    
+    def self.from_json(json)
+      json = ActiveSupport::JSON.decode(json) if json.is_a?(String)
+      sample = TransactionSample.new(json["start_time"].to_f, json["sample_id"].to_i)
+      params = json["params"]
+      if params
+        sample.send :params=, HashWithIndifferentAccess.new(params)
+      end
+      root = json["root_segment"]
+      if root
+        sample.send :root_segment=, Segment.from_json(root)
+      end
+      sample
+    end
+
     def start_time
       Time.at(@start_time)
     end
@@ -393,6 +466,9 @@ module NewRelic
   protected
     def root_segment=(segment)
       @root_segment = segment
+    end
+    def params=(params)
+      @params = params
     end
 
   private

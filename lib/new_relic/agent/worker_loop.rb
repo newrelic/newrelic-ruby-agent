@@ -1,10 +1,8 @@
-
-# A worker loop executes a set of registered tasks on a single thread.  
-# A task is a proc or block with a specified call period in seconds.  
 module NewRelic::Agent
   
+  # A worker loop executes a set of registered tasks on a single thread.  
+  # A task is a proc or block with a specified call period in seconds.  
   class WorkerLoop
-    include(Synchronize)
     
     attr_reader :log
     attr_reader :pid
@@ -16,7 +14,7 @@ module NewRelic::Agent
       @pid = $$
     end
 
-    # run infinitely, calling the registered tasks at their specified
+    # Run infinitely, calling the registered tasks at their specified
     # call periods.  The caller is responsible for creating the thread
     # that runs this worker loop
     def run
@@ -25,11 +23,9 @@ module NewRelic::Agent
       end
     end
     
-    
     def keep_running
       @should_run && (@pid == $$)
     end
-    
     
     def stop
       @should_run = false
@@ -43,31 +39,25 @@ module NewRelic::Agent
       if call_period < MIN_CALL_PERIOD
         raise ArgumentError, "Invalid Call Period (must be > #{MIN_CALL_PERIOD}): #{call_period}" 
       end
-      
-      synchronize do 
-        @tasks << LoopTask.new(call_period, &task_proc)
-      end
+      @tasks << LoopTask.new(call_period, &task_proc)
     end
       
     private 
-      def get_next_task
-        synchronize do
-          return @tasks.inject do |soonest, task|
+      def next_task
+        @tasks.inject do |soonest, task|
             (task.next_invocation_time < soonest.next_invocation_time) ? task : soonest
-          end
         end
       end
     
       def run_next_task
         if @tasks.empty?
-          sleep 1.0
+          sleep 5.0
           return
         end
         
         # get the next task to be executed, which is the task with the lowest (ie, soonest)
         # next invocation time.
-        task = get_next_task
-  
+        task = next_task
         
         # sleep in chunks no longer than 1 second
         while Time.now < task.next_invocation_time

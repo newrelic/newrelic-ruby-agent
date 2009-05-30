@@ -2,29 +2,27 @@
 module NewRelic::Agent
   
   class TransactionSampler
-    include Synchronize
     
     BUILDER_KEY = :transaction_sample_builder
-    @@capture_params = true
-    
-    def self.capture_params
-      @@capture_params
-    end
-    def self.capture_params=(params)
-      @@capture_params = params
-    end
-    attr_accessor :stack_trace_threshold
+
+    attr_accessor :stack_trace_threshold, :random_sampling, :sampling_rate, :last_sample, :samples
     
     def initialize(agent)
       @samples = []
       
+      @harvest_count = 0
       @max_samples = 100
-      @stack_trace_threshold = 100000.0
+      @random_sample = nil
+      config = NewRelic::Control.instance
+      sampler_config = config.fetch('transaction_tracer', {})
+      @stack_trace_threshold = sampler_config.fetch('stack_trace_threshold', 0.500).to_f
+      
       agent.stats_engine.add_scope_stack_listener self
 
       agent.set_sql_obfuscator(:replace) do |sql| 
         default_sql_obfuscator(sql)
       end
+      @samples_lock = Mutex.new
     end
     
     def current_sample_id
@@ -36,6 +34,10 @@ module NewRelic::Agent
       NewRelic::Agent.instance.stats_engine.remove_scope_stack_listener self
     end
     
+    def sampling_rate=(val)
+      @sampling_rate = val
+      @harvest_count = rand(val)
+    end
     
     def default_sql_obfuscator(sql)
       sql = sql.dup
@@ -48,6 +50,7 @@ module NewRelic::Agent
       sql.gsub!(/\d+/, "?")
       sql
     end
+    
     
     def notice_first_scope_push(time)
       if Thread::current[:record_tt] == false
@@ -66,7 +69,7 @@ module NewRelic::Agent
       # in developer mode, capture the stack trace with the segment.
       # this is cpu and memory expensive and therefore should not be
       # turned on in production mode
-      if NewRelic::Config.instance.developer_mode?
+      if NewRelic::Control.instance.developer_mode?
         segment = builder.current_segment
         if segment
           # Strip stack frames off the top that match /new_relic/agent/
@@ -102,15 +105,20 @@ module NewRelic::Agent
       last_builder.finish_trace(time)
       reset_builder
     
-      synchronize do
-        sample = last_builder.sample
-      
-        # ensure we don't collect more than a specified number of samples in memory
-        @samples << sample if NewRelic::Config.instance.developer_mode? && sample.params[:path] != nil
-        @samples.shift while @samples.length > @max_samples
+      @samples_lock.synchronize do
+        @last_sample = last_builder.sample
         
-        if @slowest_sample.nil? || @slowest_sample.duration < sample.duration
-          @slowest_sample = sample
+        # We sometimes see "unanchored" transaction traces
+        if @last_sample.params[:path]
+          @random_sample = @last_sample if @random_sampling
+                  
+          # ensure we don't collect more than a specified number of samples in memory
+          @samples << @last_sample if NewRelic::Control.instance.developer_mode?
+          @samples.shift while @samples.length > @max_samples
+          
+          if @slowest_sample.nil? || @slowest_sample.duration < @last_sample.duration
+            @slowest_sample = @last_sample
+          end
         end
       end
     end
@@ -150,32 +158,49 @@ module NewRelic::Agent
         end
       end
     end
+
     
     # get the set of collected samples, merging into previous samples,
     # and clear the collected sample list. 
     
-    def harvest_slowest_sample(previous_slowest = nil)
-      synchronize do
+    def harvest(previous = nil, slow_threshold = 2.0)
+      result = []
+      previous ||= []
+      
+      previous = [previous] unless previous.is_a?(Array)
+      
+      previous_slowest = previous.inject(nil) {|a,ts| (a) ? ((a.duration > ts.duration) ? a : ts) : ts}
+      
+      @samples_lock.synchronize do
+        
+        if @random_sampling        
+          @harvest_count += 1
+          
+          if (@harvest_count % @sampling_rate) == 0
+            result << @random_sample if @random_sample
+            @random_sample = nil
+          end
+        end
+        
         slowest = @slowest_sample
         @slowest_sample = nil
-
-        return nil unless slowest
-
-        if previous_slowest.nil? || previous_slowest.duration < slowest.duration
-          slowest
-        else
-          previous_slowest
+        
+        if slowest && slowest != @random_sample && slowest.duration >= slow_threshold
+          if previous_slowest.nil? || previous_slowest.duration < slowest.duration
+            result << slowest
+          else
+            result << previous_slowest
+          end
         end
       end
+      result
     end
 
-    # get the list of samples without clearing the list.
-    def get_samples
-      synchronize do
-        return @samples.clone
-      end
+    # reset samples without rebooting the web server
+    def reset!
+      @samples = []
     end
-    
+
     private 
       
       def builder
@@ -224,7 +249,7 @@ module NewRelic::Agent
       # This should never get called twice, but in a rare case that we can't reproduce in house it does.
       # log forensics and return gracefully
       if @sample.frozen?
-        log = NewRelic::Config.instance.log
+        log = NewRelic::Control.instance.log
         
         log.warn "Unexpected double-freeze of Transaction Trace Object."
         log.info "Please send this diagnostic data to New Relic"
@@ -258,7 +283,7 @@ module NewRelic::Agent
     def set_transaction_info(path, request, params)
       @sample.params[:path] = path
       
-      if TransactionSampler.capture_params
+      if NewRelic::Control.instance.capture_params
         params = normalize_params params
         
         @sample.params[:request_params].merge!(params)
