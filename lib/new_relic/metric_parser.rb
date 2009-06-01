@@ -15,10 +15,14 @@ module NewRelic
   # Based on the category of the metric, specific parsing logic is defined in the source files
   # countained in the "metric_parsers" sub directory local to this file.
   #
+  
   class MetricParser
     
     SEPARATOR = '/' unless defined? SEPARATOR
     attr_reader :name
+    
+    # Load in the parsers classes in the plugin:
+    Dir[File.join(File.dirname(__FILE__), "metric_parser", "*.rb")].each { | file | require file }
     
     # return a string that is parsable via the Metric parser APIs
     def self.for_metric_named(s)
