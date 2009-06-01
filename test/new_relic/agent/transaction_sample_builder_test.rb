@@ -104,10 +104,11 @@ class NewRelic::Agent::TransationSampleBuilderTest < Test::Unit::TestCase
     # 30 milliseconds
     delta = (sample.duration - without_code_loading.duration) * 1000
     
-    # allow a few milliseconds for slop just in case this is running on a 386 ;)
-    assert delta >= 30, "delta #{delta} should be between 30 and 50"
+    # Need to allow substantial headroom on the upper bound to prevent 
+    # spurious errors.
+    assert delta >= 30, "delta #{delta} should be between 30 and 100"
     # disable this test for a couple days:
-    assert delta <= 50, "delta #{delta} should be between 30 and 50"
+    assert delta <= 100, "delta #{delta} should be between 30 and 100"
     
     # ensure none of the segments have this regex
     without_code_loading.each_segment do |segment|
