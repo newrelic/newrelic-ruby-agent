@@ -1,6 +1,7 @@
 2009-06-02 version 2.9.1
 
   * Add newrelic_notice_error to Object class.
+  * optional ability to verify SSL certificates, note that this has some performance and reliability implications
   
 2009-05-14 version 2.9.0
 

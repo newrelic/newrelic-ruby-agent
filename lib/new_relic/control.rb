@@ -149,6 +149,11 @@ module NewRelic
       @use_ssl ||= fetch('ssl', false)
     end
     
+    def verify_certificate?
+      #this can only be on when SSL is enabled
+      @verify_certificate ||= ( use_ssl? ? fetch('verify_certificate', false) : false)
+    end
+    
     def server
       @remote_server ||= server_from_host(nil)  
     end
@@ -185,12 +190,16 @@ module NewRelic
       host ||= server
       # Proxy returns regular HTTP if @proxy_host is nil (the default)
       http_class = Net::HTTP::Proxy(proxy_server.name, proxy_server.port, 
-                              proxy_server.user, proxy_server.password)
+                                    proxy_server.user, proxy_server.password)
       http = http_class.new(host.ip || host.name, host.port)
       if use_ssl?
         http.use_ssl = true
-        http.verify_mode = OpenSSL::SSL::VERIFY_NONE # OpenSSL::SSL::VERIFY_PEER
-        #http.ca_file = File.join(File.dirname(__FILE__), '..', '..', 'gd-class2-root.pem')
+        if verify_certificate?
+          http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+          http.ca_file = File.join(File.dirname(__FILE__), '..', '..', 'cert', 'cacert.pem')
+        else
+          http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        end
       end
       http
     end
@@ -273,6 +282,9 @@ module NewRelic
     # IPSocket library.  Return nil if we can't find the host ip
     # address and don't have a good default.
     def convert_to_ip_address(host)
+      # here we leave it as a host name since the cert verification
+      # needs it in host form
+      return host if verify_certificate?
       return nil if host.nil? || host.downcase == "localhost"
       # Fall back to known ip address in the common case
       ip_address = '65.74.177.195' if host.downcase == 'collector.newrelic.com'
