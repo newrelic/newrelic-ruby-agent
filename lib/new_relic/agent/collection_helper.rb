@@ -27,6 +27,8 @@ module NewRelic::Agent::CollectionHelper
   
   def strip_nr_from_backtrace(backtrace)
     if backtrace
+      # this is for 1.9.1, where strings no longer have Enumerable
+      backtrace = backtrace.split("\n") if String === backtrace
       # strip newrelic from the trace
       backtrace = backtrace.reject {|line| line =~ /new_relic\/agent\// }
       # rename methods back to their original state
