@@ -13,7 +13,6 @@ class NewRelic::Agent::AgentTestController < NewRelic::Agent::SuperclassControll
 
   ActionController::Routing::Routes.draw do | map |
     map.connect ':controller/:action.:format'
-#    map.connect '/new_relic/agent/agent_test/:action', :controller => 'new_relic/agent/agent_test'
   end
   
   def index
@@ -26,6 +25,9 @@ class NewRelic::Agent::AgentTestController < NewRelic::Agent::SuperclassControll
     render :text => params.inspect
   end
   def action_to_ignore
+    render :text => 'unmeasured'
+  end
+  def action_to_ignore_apdex
     render :text => 'unmeasured'
   end
   def entry_action
