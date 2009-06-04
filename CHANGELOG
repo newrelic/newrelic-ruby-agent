@@ -1,5 +1,8 @@
 2009-06-02 version 2.9.1
 
+  * Add hook for Passenger shutdown events to get more timely shutdown
+    notices; this will help in more accurate memory readings in 
+    Passenger.
   * Add newrelic_notice_error to Object class.
   * optional ability to verify SSL certificates, note that this has some performance and reliability implications
   
