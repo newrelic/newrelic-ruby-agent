@@ -38,11 +38,12 @@ if defined? ActionController
     #add_method_tracer :render_for_text, 'View/#{newrelic_metric_path}/Text/Rendering'
     #add_method_tracer :render, 'View/#{newrelic_metric_path}/Rendering'
     
-    def self.newrelic_ignore_attr=(value)
-      write_inheritable_attribute('do_not_trace', value)
+    def self.newrelic_write_attr(attr_name, value) # :nodoc:
+      write_inheritable_attribute(attr_name, value)
     end
-    def self.newrelic_ignore_attr
-      read_inheritable_attribute('do_not_trace')
+    
+    def self.newrelic_read_attr(attr_name) # :nodoc:
+      read_inheritable_attribute(attr_name)
     end
     
     # determine the path that is used in the metric name for

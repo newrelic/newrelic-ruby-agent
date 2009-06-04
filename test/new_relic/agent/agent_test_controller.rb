@@ -1,5 +1,12 @@
+# Defining a test controller class with a superclass, used to 
+# verify correct attribute inheritence
+class NewRelic::Agent::SuperclassController <  ActionController::Base
+  def base_action
+    render :text => 'none'
+  end
+end
 # This is a controller class used in testing controller instrumentation
-class NewRelic::Agent::AgentTestController < ActionController::Base
+class NewRelic::Agent::AgentTestController < NewRelic::Agent::SuperclassController
   filter_parameter_logging :social_security_number
 
   def rescue_action(e) raise e end

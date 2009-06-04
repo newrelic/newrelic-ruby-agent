@@ -35,6 +35,7 @@ module NewRelic::Agent::Instrumentation
     # This module is for importing stubs when the agent is disabled
     module ClassMethodsShim
       def newrelic_ignore(*args); end
+      def newrelic_ignore_apdex(*args); end
     end
     
     module Shim
@@ -51,28 +52,41 @@ module NewRelic::Agent::Instrumentation
       # Have NewRelic ignore actions in this controller.  Specify the actions as hash options
       # using :except and :only.  If no actions are specified, all actions are ignored.
       def newrelic_ignore(specifiers={})
+        newrelic_ignore_aspect('do_not_trace', specifiers)
+      end
+      # Have NewRelic omit apdex measurements on the given actions.  Typically used for 
+      # actions that are not user facing or that skew your overall apdex measurement.
+      # Accepts :except and :only options, as with #newrelic_ignore.
+      def newrelic_ignore_apdex(specifiers={})
+        newrelic_ignore_aspect('ignore_apdex', specifiers)
+      end
+      
+      def newrelic_ignore_aspect(property, specifiers={}) # :nodoc:
         if specifiers.empty?
-          self.newrelic_ignore_attr = true
+          self.newrelic_write_attr property, true
         elsif ! (Hash === specifiers)
-          logger.error "newrelic_ignore takes an optional hash with :only and :except lists of actions (illegal argument type '#{specifiers.class}')"
+          logger.error "newrelic_#{property} takes an optional hash with :only and :except lists of actions (illegal argument type '#{specifiers.class}')"
         else
-          self.newrelic_ignore_attr = specifiers
+          self.newrelic_write_attr property, specifiers
         end
       end
-      # Should be implemented in the controller class via the inheritable attribute mechanism.
-      def newrelic_ignore_attr=(value); end
-      def newrelic_ignore_attr; end
+      
+      # Should be monkey patched into the controller class implemented with the inheritable attribute mechanism.
+      def newrelic_write_attr(attr_name, value) # :nodoc:
+        instance_variable_set "@#{attr_name}", value
+      end
+      def newrelic_read_attr(attr_name) # :nodoc:
+        instance_variable_get "@#{attr_name}", value
+      end
     end
     
     # Must be implemented in the controller class:
     # Determine the path that is used in the metric name for
     # the called controller action.  Of the form controller_path/action_name
     # 
-    def newrelic_metric_path(action_name_override = nil)
+    def newrelic_metric_path(action_name_override = nil) # :nodoc:
       raise "Not implemented!"
     end
-    
-    
     
     # Perform the current action with NewRelic tracing.  Used in a method
     # chain via aliasing.  Call directly if you want to instrument a specifc
@@ -83,27 +97,16 @@ module NewRelic::Agent::Instrumentation
       agent = NewRelic::Agent.instance
       stats_engine = agent.stats_engine
       
-      ignore_actions = self.class.newrelic_ignore_attr
       # Skip instrumentation based on the value of 'do_not_trace' and if 
       # we aren't calling directly with a block.
-      should_skip = !block_given? && case ignore_actions
-        when nil; false
-        when Hash
-        only_actions = Array(ignore_actions[:only])
-        except_actions = Array(ignore_actions[:except])
-        only_actions.include?(action_name.to_sym) || (except_actions.any? && !except_actions.include?(action_name.to_sym))
-      else
-        true
-      end
-      
-      if should_skip
+      if !block_given? && is_filtered?(self.class.newrelic_read_attr('do_not_trace'))
         # Tell the dispatcher instrumentation that we ignored this action and it shouldn't
         # be counted for the overall HTTP operations measurement.
         Thread.current[:controller_ignored] = true
         
         return perform_action_without_newrelic_trace(*args)
       end
-
+      
       # reset this in case we came through a code path where the top level controller is ignored
       Thread.current[:controller_ignored] = nil
       
@@ -144,21 +147,23 @@ module NewRelic::Agent::Instrumentation
             
             # do the apdex bucketing
             #
-            duration = Time.now.to_f - start
-            controller_stat = stats_engine.get_custom_stats("Apdex/#{path}", NewRelic::ApdexStats)
-            case
-              when failed
-              apdex_overall_stat.record_apdex_f    # frustrated
-              controller_stat.record_apdex_f
-              when duration <= NewRelic::Control.instance['apdex_t']
-              apdex_overall_stat.record_apdex_s    # satisfied
-              controller_stat.record_apdex_s
-              when duration <= 4 * NewRelic::Control.instance['apdex_t']
-              apdex_overall_stat.record_apdex_t    # tolerating
-              controller_stat.record_apdex_t
-            else
-              apdex_overall_stat.record_apdex_f    # frustrated
-              controller_stat.record_apdex_f
+            unless is_filtered?(self.class.newrelic_read_attr('ignore_apdex'))
+              duration = Time.now.to_f - start
+              controller_stat = stats_engine.get_custom_stats("Apdex/#{path}", NewRelic::ApdexStats)
+              case
+                when failed
+                apdex_overall_stat.record_apdex_f    # frustrated
+                controller_stat.record_apdex_f
+                when duration <= NewRelic::Control.instance['apdex_t']
+                apdex_overall_stat.record_apdex_s    # satisfied
+                controller_stat.record_apdex_s
+                when duration <= 4 * NewRelic::Control.instance['apdex_t']
+                apdex_overall_stat.record_apdex_t    # tolerating
+                controller_stat.record_apdex_t
+              else
+                apdex_overall_stat.record_apdex_f    # frustrated
+                controller_stat.record_apdex_f
+              end
             end
           end
         end
@@ -173,5 +178,16 @@ module NewRelic::Agent::Instrumentation
       @@newrelic_apdex_overall ||= NewRelic::Agent.instance.stats_engine.get_custom_stats("Apdex", NewRelic::ApdexStats)  
     end
     
+    def is_filtered?(ignore_actions)
+      case ignore_actions
+        when nil; false
+        when Hash
+        only_actions = Array(ignore_actions[:only])
+        except_actions = Array(ignore_actions[:except])
+        only_actions.include?(action_name.to_sym) || (except_actions.any? && !except_actions.include?(action_name.to_sym))
+      else
+        true
+      end
+    end
   end 
 end  

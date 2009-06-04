@@ -4,7 +4,16 @@ require 'merb-core/controller/merb_controller'
 Merb::Controller.class_eval do
   include NewRelic::Agent::Instrumentation::ControllerInstrumentation
   
-  class_inheritable_accessor :newrelic_ignore_attr
+  class_inheritable_accessor :do_not_trace
+  class_inheritable_accessor :ignore_apdex
+  
+  def self.newrelic_write_attr(attr_name, value) # :nodoc:
+    self.send "#{attr_name}=", attr_name, value
+  end
+  
+  def self.newrelic_read_attr(attr_name) # :nodoc:
+    self.send attr_name, value
+  end
   
   protected
   # determine the path that is used in the metric name for

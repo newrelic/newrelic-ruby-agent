@@ -16,8 +16,11 @@ class AgentControllerTest < ActionController::TestCase
     @agent = NewRelic::Agent.instance
     #    @agent.instrument_app
     agent.transaction_sampler.harvest
+    # Note that we are specifying in a subclass to ignore an action in a superclass.
+    # It would be better to use class inheritable attributes but that is complicated
+    # if you support things other than rails.  It's a minor tradeoff.
     NewRelic::Agent::AgentTestController.class_eval do
-      newrelic_ignore :only => [:action_to_ignore, :entry_action]
+      newrelic_ignore :only => [:action_to_ignore, :entry_action, :base_action]
     end
   end
   
@@ -29,6 +32,11 @@ class AgentControllerTest < ActionController::TestCase
   def test_metric__ignore
     engine = @agent.stats_engine
     get :action_to_ignore
+    assert_equal true, Thread.current[:controller_ignored]
+  end
+  def test_metric__ignore_base
+    engine = @agent.stats_engine
+    get :base_action
     assert_equal true, Thread.current[:controller_ignored]
   end
   def test_metric__no_ignore
