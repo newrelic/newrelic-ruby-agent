@@ -64,13 +64,11 @@ below.
 
 === Git your RPM on!
 
-The agent is also available on Github under newrelic/rpm. As of March,
-2009, we keep the latest release on the master, the edge on a working
-branch, and previous releases with tags.  Fork away!
+The agent is also available on Github under newrelic/rpm.  Fork away!
 
 === Requirements:
 
-Ruby 1.8.6
+Ruby 1.8.6 or 1.9.1
 Rails 1.2.6 or above
 Merb 1.0 or above
 
@@ -111,12 +109,6 @@ Still under development:
 
     * Developer Mode
     * Data Mapper bindings
-
-Also some of the instrumentation has been implemented with method
-chaining, a mechanism that truly goes against the merb way. This was
-necessary in some cases where the API’s were not yet available or
-understood well enough to use. Converting these to hook methods using
-the Merb public API is a work in progress.
 
 == Support
 
