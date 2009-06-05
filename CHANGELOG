@@ -1,14 +1,14 @@
-v2.9.1
+v2.9.1.
   * add newrelic_ignore_apdex method to controller classes to allow
     you to omit some actions from apdex statistics
-  * add hook for Passenger shutdown events to get more timely shutdown
+  * Add hook for Passenger shutdown events to get more timely shutdown
     notices; this will help in more accurate memory readings in 
     Passenger
   * add newrelic_notice_error to Object class
   * optional ability to verify SSL certificates, note that this has some 
     performance and reliability implications
   
-v2.9.0
+v2.9.0.
   Noteworthy Enhancements
   * give visibility to templates and partials in Rails 2.1 and later, in
     dev mode and production
@@ -66,7 +66,7 @@ v2.9.0
   * capture cpu utilization adjusted for processor count
   * transaction sampling
 
-v2.8.10
+v2.8.10.
   * fix thin support with rails 2.3.2 when using script/server
   * fix incompatibility with rails 2.3.2 and script/server options
     processing
