@@ -197,7 +197,6 @@ module NewRelic
       
       # Still can't find the port.  Let's look at ARGV to fall back
       @dispatcher_instance_id = default_port if @dispatcher_instance_id.nil?
-      @dispatcher_instance_id << ":#{config['app_name']}" if config['app_name'] && config['multi_homed']
     end
     
     def check_for_thin
