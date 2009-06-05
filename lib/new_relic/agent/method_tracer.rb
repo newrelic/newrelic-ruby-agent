@@ -84,12 +84,16 @@ module NewRelic::Agent
     # should be provided in 'single quote' strings rather than
     # "double quote" strings, so that #{} evaluation happens
     # at traced method execution time.
+    #
     # Example: tracing a method :foo, where the metric name is
     # the first argument converted to a string
+    #
     #     add_method_tracer :foo, '#{args.first.to_s}'
-    # statically defined metric names can be specified as regular strings
-    # push_scope specifies whether this method tracer should push
-    # the metric name onto the scope stack.
+    #
+    # Statically defined metric names can be specified as regular strings.
+    # The option +:push_scope+ specifies whether this method tracer should 
+    # keep track of the caller so it will show up in controller breakdown
+    # pie charts.
     def add_method_tracer (method_name, metric_name_code, options = {})
       if !options.is_a?(Hash)
         options = {:push_scope => options} 

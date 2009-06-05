@@ -133,7 +133,9 @@ class NewRelic::Control::Rails < NewRelic::Control
   def install_shim
     super
     require 'new_relic/agent/instrumentation/controller_instrumentation'
-    ActionController::Base.send :include, NewRelic::Agent::Instrumentation::ControllerInstrumentation::Shim  
+    require 'new_relic/agent/instrumentation/error_instrumentation'
+    ActionController::Base.send :include, NewRelic::Agent::Instrumentation::ControllerInstrumentation::Shim
+    Object.send :include, NewRelic::Agent::Instrumentation::ErrorInstrumentation::Shim
   end
   
 end

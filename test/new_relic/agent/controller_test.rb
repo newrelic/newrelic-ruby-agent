@@ -17,7 +17,8 @@ class AgentControllerTest < ActionController::TestCase
     #    @agent.instrument_app
     agent.transaction_sampler.harvest
     NewRelic::Agent::AgentTestController.class_eval do
-      newrelic_ignore :only => [:action_to_ignore, :entry_action]
+      newrelic_ignore :only => [:action_to_ignore, :entry_action, :base_action]
+      newrelic_ignore_apdex :only => :action_to_ignore_apdex
     end
   end
   
@@ -31,13 +32,41 @@ class AgentControllerTest < ActionController::TestCase
     get :action_to_ignore
     assert_equal true, Thread.current[:controller_ignored]
   end
+  def test_metric__ignore_base
+    engine = @agent.stats_engine
+    get :base_action
+    assert_equal true, Thread.current[:controller_ignored]
+  end
   def test_metric__no_ignore
     engine = @agent.stats_engine
-    index_stats = engine.get_stats_no_scope('Controller/new_relic/agent/agent_test/index')
+    path = 'new_relic/agent/agent_test/index'
+    cpu_stats = engine.get_stats_no_scope("ControllerCPU/#{path}")
+    index_stats = engine.get_stats_no_scope("Controller/#{path}")
+    index_apdex_stats = engine.get_custom_stats("Apdex/#{path}", NewRelic::ApdexStats)
     assert_difference 'index_stats.call_count' do
-      get :index
+      assert_difference 'index_apdex_stats.call_count' do
+        assert_difference 'cpu_stats.call_count' do
+          get :index
+        end
+      end
     end
     assert_nil Thread.current[:controller_ignored]
+  end
+  def test_metric__ignore_apdex
+    engine = @agent.stats_engine
+    path = 'new_relic/agent/agent_test/action_to_ignore_apdex'
+    cpu_stats = engine.get_stats_no_scope("ControllerCPU/#{path}")
+    index_stats = engine.get_stats_no_scope("Controller/#{path}")
+    index_apdex_stats = engine.get_custom_stats("Apdex/#{path}", NewRelic::ApdexStats)
+    assert_difference 'index_stats.call_count' do
+      assert_no_difference 'index_apdex_stats.call_count' do
+        assert_difference 'cpu_stats.call_count' do
+          get :action_to_ignore_apdex
+        end
+      end
+    end
+    assert_nil Thread.current[:controller_ignored]
+    
   end
   def test_metric__dispatched
     engine = @agent.stats_engine
@@ -50,7 +79,7 @@ class AgentControllerTest < ActionController::TestCase
     begin
       get :index, :foo => 'bar'
       assert_match /bar/, @response.body
-    #rescue ActionController::RoutingError
+      #rescue ActionController::RoutingError
       # you might get here if you don't have the default route installed.
     end
   end

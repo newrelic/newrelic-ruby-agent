@@ -28,7 +28,7 @@ class NewRelic::MetricParser::View < NewRelic::MetricParser
       when ".rhtml Processing"
         "ERB compilation"
       else 
-        segments[1..-1]
+        segments[1..-1].join("/")
     end
   end
   

@@ -496,7 +496,7 @@ module NewRelic::Agent
           response = http.request(request)
         end
       rescue Timeout::Error
-        log.warn "Timed out trying to post data to RPM (timeout = #{@request_timeout} seconds)"
+        log.warn "Timed out trying to post data to RPM (timeout = #{@request_timeout} seconds)" unless @request_timeout < 30
         raise IgnoreSilentlyException
       end
       
@@ -538,7 +538,7 @@ module NewRelic::Agent
         begin
           log.debug "Sending graceful shutdown message to #{control.server}"
           
-          @request_timeout = 5
+          @request_timeout = 10
           
           log.debug "Sending RPM service agent run shutdown message"
           invoke_remote :shutdown, @agent_id, Time.now.to_f

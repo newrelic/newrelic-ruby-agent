@@ -1,4 +1,4 @@
-# todo: patch rescue_action and track how many are occuring and capture instances as well
+
 ActionController::Base.class_eval do
   
   def newrelic_notice_error(exception)
@@ -20,3 +20,5 @@ ActionController::Base.class_eval do
   protected :rescue_action
 
 end if defined? ActionController
+
+Object.send :include, NewRelic::Agent::Instrumentation::ErrorInstrumentation

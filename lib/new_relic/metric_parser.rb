@@ -27,7 +27,11 @@ module NewRelic
     # return a string that is parsable via the Metric parser APIs
     def self.for_metric_named(s)
       category = (s =~ /^([^\/]*)/) && $1
-      parser_class = (category && "NewRelic::MetricParser::#{category.camelize}".constantize rescue nil) || self
+      parser_class = self
+      if category
+        category_class = category.camelize
+        parser_class = NewRelic::MetricParser.const_get(category_class) if (NewRelic::MetricParser.const_defined?(category_class) rescue nil)
+      end
       parser_class.new s
     end
 
