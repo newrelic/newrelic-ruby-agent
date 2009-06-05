@@ -7,6 +7,8 @@ v2.9.1.
   * add newrelic_notice_error to Object class
   * optional ability to verify SSL certificates, note that this has some 
     performance and reliability implications
+  * support multi-homed host with multiple apps running on duplicate
+    ports
   
 v2.9.0.
   Noteworthy Enhancements
