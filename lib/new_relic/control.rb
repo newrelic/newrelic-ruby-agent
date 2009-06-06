@@ -377,7 +377,6 @@ module NewRelic
     
     def initialize local_env
       @local_env = local_env
-      @local_env.dispatcher_instance_id << ":#{app_names.first}" if app_names.size > 0 && self['multi_homed']
       newrelic_file = config_file
       # Next two are for populating the newrelic.yml via erb binding, necessary
       # when using the default newrelic.yml file
@@ -389,6 +388,7 @@ module NewRelic
       else
         @yaml = YAML.load(ERB.new(File.read(config_file)).result(binding))
       end
+      @local_env.dispatcher_instance_id << ":#{app_names.first}" if app_names.size > 0 && self['multi_homed']
     rescue ScriptError, StandardError => e
       puts e
       puts e.backtrace.join("\n")
