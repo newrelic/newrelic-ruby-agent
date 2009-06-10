@@ -1,4 +1,6 @@
 .DS\_Store
+Manifest
+doc/
 .svn/
 *~
 pkg/
