@@ -12,7 +12,7 @@ class MetricParserTest < Test::Unit::TestCase
     assert_equal "ERB compilation", i.developer_name
   end
   def test_controller
-    ["controller", "Controller/1/2/3","Controller//!!#!//"].each do | metric_name |
+    ["Controller", "Controller/1/2/3","Controller//!!#!//"].each do | metric_name |
       m = NewRelic::MetricParser.for_metric_named(metric_name)      
       assert m.is_controller?
       assert !m.is_view?
