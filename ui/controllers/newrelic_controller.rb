@@ -169,6 +169,8 @@ class NewrelicController < ActionController::Base
     render :action => "sample_not_found" and return unless @sample 
     
     @request_params = @sample.params[:request_params] || {}
+    @custom_params = @sample.params[:custom_params] || {}
+
     controller_metric = @sample.root_segment.called_segments.first.metric_name
     
     controller_segments = controller_metric.split('/')
