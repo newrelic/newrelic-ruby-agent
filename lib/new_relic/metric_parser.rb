@@ -29,8 +29,7 @@ module NewRelic
       category = (s =~ /^([^\/]*)/) && $1
       parser_class = self
       if category
-        category_class = category.camelize
-        parser_class = NewRelic::MetricParser.const_get(category_class) if (NewRelic::MetricParser.const_defined?(category_class) rescue nil)
+        parser_class = NewRelic::MetricParser.const_get(category) if (NewRelic::MetricParser.const_defined?(category) rescue nil)
       end
       parser_class.new s
     end
