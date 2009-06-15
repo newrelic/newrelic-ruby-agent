@@ -4,3 +4,4 @@
 pkg/
 *.gem
 !rails
+Manifest*
