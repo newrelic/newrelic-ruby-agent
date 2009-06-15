@@ -1,5 +1,6 @@
 v2.9.2.
   * Display custom parameters when looking at transactions in dev mode 
+  * Display count of sql statements on the list of transactions in dev mode
 
 v2.9.1.
   * add newrelic_ignore_apdex method to controller classes to allow
