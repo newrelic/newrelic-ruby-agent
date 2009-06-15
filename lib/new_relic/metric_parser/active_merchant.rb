@@ -1,13 +1,7 @@
 class NewRelic::MetricParser::ActiveMerchant < NewRelic::MetricParser
-  
-  def is_active_merchant?; true; end
-  
+ 
   def is_active_merchant_gateway?
     segments[1] == 'gateway'
-  end
-  
-  def is_active_merchant_operation?
-    segments[1] == 'operation'
   end
   
   def gateway_name
