@@ -81,7 +81,13 @@ module NewRelic
     end
     
     def settings
-      @settings ||= (@yaml && merge_defaults(@yaml[env])) || {}
+      unless @settings
+        @settings = (@yaml && merge_defaults(@yaml[env])) || {}
+        # At the time we bind the settings, we also need to run this little piece
+        # of magic which allows someone to augment the id with the app name, necessary
+        @local_env.dispatcher_instance_id << ":#{app_names.first}" if self['multi_homed'] && app_names.size > 0
+      end
+      @settings
     end
     
     def []=(key, value)
@@ -160,6 +166,7 @@ module NewRelic
     
     def api_server
       api_host = self['api_host'] || 'rpm.newrelic.com' 
+      puts "api host = #{api_host}"
       @api_server ||= 
         NewRelic::Control::Server.new \
           api_host, 
@@ -388,7 +395,6 @@ module NewRelic
       else
         @yaml = YAML.load(ERB.new(File.read(config_file)).result(binding))
       end
-      @local_env.dispatcher_instance_id << ":#{app_names.first}" if app_names.size > 0 && self['multi_homed']
     rescue ScriptError, StandardError => e
       puts e
       puts e.backtrace.join("\n")
