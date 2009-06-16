@@ -171,7 +171,6 @@ module NewRelic
     
     def api_server
       api_host = self['api_host'] || 'rpm.newrelic.com' 
-      puts "api host = #{api_host}"
       @api_server ||= 
         NewRelic::Control::Server.new \
           api_host, 
