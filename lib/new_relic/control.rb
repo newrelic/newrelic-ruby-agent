@@ -55,10 +55,15 @@ module NewRelic
     def init_plugin(options={})
       require 'new_relic/agent'
       # Merge the stringified options into the config as overrides:
+      logger_override = options.delete(:log)
       options.each { |sym, val | self[sym.to_s] = val unless sym == :config }
       init_config(options)
       if agent_enabled? && !@started
-        setup_log
+        if logger_override
+          @log = logger_override
+        else
+          setup_log
+        end
         start_agent
         install_instrumentation
         load_samplers unless self['disable_samplers']

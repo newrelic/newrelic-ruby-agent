@@ -124,8 +124,9 @@ module NewRelic
     # ruby processes that don't use web plugins, then call this method in your
     # code and the Agent will fire up and start reporting to RPM.
     #
-    # All arguments ignored except options like +:app_name = XXXX+ option which 
-    # will override the settings in the newrelic_yml.
+    # Options are passed in as overrides for values in the newrelic.yml, such
+    # as app_name.  In addition, the option +log+ will take a logger that
+    # will be used instead of the standard file logger.
     #
     def manual_start(options={})
       raise unless Hash === options
