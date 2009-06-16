@@ -65,9 +65,10 @@ module NewRelic
       timeslices = []
       while current_end_time < self.end_time do
         ts = yield(current_begin_time, current_end_time)
-        
-        ts.fraction_of(self)
-        timeslices << ts
+        if ts
+          ts.fraction_of(self)
+          timeslices << ts
+        end
         current_begin_time = current_end_time
         current_end_time = current_begin_time + rollup_period
       end
@@ -75,8 +76,10 @@ module NewRelic
       if self.end_time > current_begin_time
         percentage = rollup_period / self.duration + (self.begin_time - rollup_begin_time) / rollup_period
         ts = yield(current_begin_time, self.end_time)
-        ts.fraction_of(self)
-        timeslices << ts
+        if ts
+          ts.fraction_of(self)
+          timeslices << ts
+        end
       end
       
       timeslices
