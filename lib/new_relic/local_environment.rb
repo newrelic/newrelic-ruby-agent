@@ -127,7 +127,7 @@ module NewRelic
       return @mongrel if @mongrel || ! defined? Mongrel::HttpServer 
       ObjectSpace.each_object(Mongrel::HttpServer) do |mongrel|
         @mongrel = mongrel
-      end
+      end unless defined?(JRuby) && !JRuby.runtime.is_object_space_enabled
       @mongrel
     end
 
@@ -192,8 +192,9 @@ module NewRelic
       if @dispatcher_instance_id.nil? && defined?(Mongrel::Configurator)
         ObjectSpace.each_object(Mongrel::Configurator) do |mongrel|
           @dispatcher_instance_id = mongrel.defaults[:port] && mongrel.defaults[:port].to_s
-        end
+        end unless defined?(JRuby) && !JRuby.runtime.is_object_space_enabled
       end
+      @mongrel
       
       # Still can't find the port.  Let's look at ARGV to fall back
       @dispatcher_instance_id = default_port if @dispatcher_instance_id.nil?
