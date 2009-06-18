@@ -157,8 +157,10 @@ module NewRelic
 
     def check_for_glassfish
       return unless defined?(Java) &&
-         (com.sun.grizzly.jruby.rack.DefaultRackApplicationFactory rescue nil) &&
-         defined?(com::sun::grizzly::jruby::rack::DefaultRackApplicationFactory)
+         (((com.sun.grizzly.jruby.rack.DefaultRackApplicationFactory rescue nil) &&
+         defined?(com::sun::grizzly::jruby::rack::DefaultRackApplicationFactory)) ||
+         ((org.jruby.rack.DefaultRackApplicationFactory rescue nil) &&
+         defined?(org::jruby::rack::DefaultRackApplicationFactory)))
       @dispatcher = :glassfish
     end
 
