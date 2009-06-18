@@ -74,7 +74,7 @@ common: &default_settings
   # For more about the Apdex standard, see
   # http://support.newrelic.com/faqs/general/apdex
 
-  apdex_t: 1.0
+  apdex_t: 0.5
     
 
   # Proxy settings for connecting to the RPM server.

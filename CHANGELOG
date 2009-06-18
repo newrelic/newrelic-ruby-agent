@@ -1,3 +1,11 @@
+v2.9.2
+  * change default apdex_t to 0.5 seconds 
+  * fix bug in deployments introduced by multi_homed setting
+  * support overriding the log in the agent api
+  * fix JRuby problem using objectspace
+  * display custom parameters when looking at transactions in dev mode 
+  * display count of sql statements on the list of transactions in dev mode
+
 v2.9.1.
   * add newrelic_ignore_apdex method to controller classes to allow
     you to omit some actions from apdex statistics

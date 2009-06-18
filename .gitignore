@@ -1,8 +1,7 @@
 .DS\_Store
-Manifest
-doc/
 .svn/
 *~
 pkg/
 *.gem
 !rails
+Manifest*

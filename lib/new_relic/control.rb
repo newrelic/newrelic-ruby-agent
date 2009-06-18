@@ -55,10 +55,15 @@ module NewRelic
     def init_plugin(options={})
       require 'new_relic/agent'
       # Merge the stringified options into the config as overrides:
+      logger_override = options.delete(:log)
       options.each { |sym, val | self[sym.to_s] = val unless sym == :config }
       init_config(options)
       if agent_enabled? && !@started
-        setup_log
+        if logger_override
+          @log = logger_override
+        else
+          setup_log
+        end
         start_agent
         install_instrumentation
         load_samplers unless self['disable_samplers']
@@ -81,7 +86,13 @@ module NewRelic
     end
     
     def settings
-      @settings ||= (@yaml && merge_defaults(@yaml[env])) || {}
+      unless @settings
+        @settings = (@yaml && merge_defaults(@yaml[env])) || {}
+        # At the time we bind the settings, we also need to run this little piece
+        # of magic which allows someone to augment the id with the app name, necessary
+        @local_env.dispatcher_instance_id << ":#{app_names.first}" if self['multi_homed'] && app_names.size > 0
+      end
+      @settings
     end
     
     def []=(key, value)
@@ -388,7 +399,6 @@ module NewRelic
       else
         @yaml = YAML.load(ERB.new(File.read(config_file)).result(binding))
       end
-      @local_env.dispatcher_instance_id << ":#{app_names.first}" if app_names.size > 0 && self['multi_homed']
     rescue ScriptError, StandardError => e
       puts e
       puts e.backtrace.join("\n")

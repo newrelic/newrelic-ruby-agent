@@ -25,22 +25,37 @@
     <th>CPU Burn:</th>
     <td><%= to_ms(@sample.params[:cpu_time]) if @sample.params[:cpu_time] %> ms</td>
   </tr>
+  
+  <% unless @custom_params.empty? %>
+    <tr>
+      <th valign="top">Custom Params:</th>
+      <td>
+      <small>
+        <% @custom_params.each do |k,v| %>
+          <b><%= h k %>: </b><%=h v%><br/>
+        <% end %>
+      </small>
+      </td>
+    </tr>
+  <% end %>
+  
   <% unless @request_params.empty? %>
     <tr>
-      <th valign="top">Params:</th>
+      <th valign="top">HTTP Params:</th>
       <td>
         <%= link_to_function("#{@request_params.length}...", "show_request_params()", :id => "params_link") %>
 
           <div id='request_params' style="display: none;">
           <small>
             <% @request_params.each do |k,v| %>
-              <b>&nbsp; &nbsp; <%= k %>: </b><%=v%><br/>
+              <b><%= h k %>: </b><%=h v%><br/>
             <% end %>
           </small>
         </div>
       </td>
     </tr>
   <% end %>
+  
 </table>
 </div>
 
