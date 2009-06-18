@@ -4,7 +4,7 @@
 class NewRelic::Control::Rails < NewRelic::Control
   
   def env
-    @env ||= RAILS_ENV
+    @env ||= RAILS_ENV.dup
   end
   def root
     RAILS_ROOT
