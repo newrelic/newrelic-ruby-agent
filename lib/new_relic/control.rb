@@ -18,9 +18,13 @@ module NewRelic
   # 
   class Control
     
-    attr_accessor :log_file, :env
+    attr_accessor :log_file
+    # The env is the setting used to identify which section of the newrelic.yml
+    # to load.  This defaults to a framework specific value, such as ENV['RAILS_ENV']
+    # but can be overridden as long as you set it before calling #init_plugin
+    attr_writer :env
     attr_reader :local_env
-    
+
     # Structs holding info for the remote server and proxy server 
     class Server < Struct.new :name, :port, :ip #:nodoc:
       def to_s; "#{name}:#{port}"; end
