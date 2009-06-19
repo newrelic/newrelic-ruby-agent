@@ -33,7 +33,7 @@
 #
 # The agent has some APIs available for extending and customizing.
 #
-# :main: new_relic/agent.rb
+# :main: lib/new_relic/agent.rb
 module NewRelic
 
   # Methods in the Agent module are delegated to the NewRelic::Agent::Agent
