@@ -20,29 +20,6 @@ Echoe.new(GEM_NAME) do |p|
   p.need_gem = true
 end
 
-spec = Gem::Specification.new do |s|
-  s.rubyforge_project = 'newrelic'
-  s.name = GEM_NAME
-  s.version = GEM_VERSION
-  s.platform = Gem::Platform::RUBY
-  s.has_rdoc = true
-  s.extra_rdoc_files = ["README", "LICENSE"]
-  s.summary = SUMMARY
-  s.description = s.summary
-  s.author = AUTHOR
-  s.email = EMAIL
-  s.homepage = HOMEPAGE
-  s.require_path = 'lib'
-  s.files = %w(install.rb LICENSE README CHANGELOG newrelic.yml Rakefile) + Dir.glob("{lib,bin,recipes,test,ui}/**/*") 
-  s.bindir = "bin" # Use these for applications.
-  s.executables = %w[newrelic_cmd mongrel_rpm]
-  s.default_executable = "mongrel_rpm"
-end
-
-Rake::GemPackageTask.new(spec) do |pkg|
-  pkg.gem_spec = spec
-end
-
 desc "Create a gemspec file"
 task :gemspec do
   File.open("#{GEM_NAME}.gemspec", "w") do |file|

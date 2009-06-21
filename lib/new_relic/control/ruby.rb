@@ -1,3 +1,8 @@
+# A control used when no framework is detected.
+# Looks for a newrelic.yml file in several locations
+# including ./, ./config, $HOME/.newrelic and $HOME/.
+# It loads the settings from the newrelic.yml section
+# based on the value of RUBY_ENV or RAILS_ENV. 
 class NewRelic::Control::Ruby < NewRelic::Control
 
   def env
@@ -24,6 +29,5 @@ class NewRelic::Control::Ruby < NewRelic::Control
   
   def init_config(options={})
   end
-
   
 end
