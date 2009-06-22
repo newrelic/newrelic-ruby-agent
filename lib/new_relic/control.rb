@@ -68,7 +68,11 @@ module NewRelic
       @settings = nil
       
       options.each { |sym, val | self[sym.to_s] = val unless sym == :config }
-      @log = logger_override if logger_override
+      if logger_override
+        @log = logger_override
+        # Try to grab the log filename
+        @log_file = @log.instance_eval { @logdev.filename rescue nil }
+      end
       init_config(options)
       if agent_enabled? && !@started
         setup_log unless logger_override
@@ -367,10 +371,6 @@ module NewRelic
         path = '.'
       end
       File.expand_path(path)
-    end
-    
-    def log_file_name
-      @log_file
     end
     
     # Create the concrete class for environment specific behavior:
