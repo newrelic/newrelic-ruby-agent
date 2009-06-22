@@ -1,11 +1,5 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'/../test_helper'))
 
-module NewRelic
-  class Control
-    public :log_file_name
-  end
-end
-
 class NewRelic::ControlTest < Test::Unit::TestCase
 
   attr_reader :c
