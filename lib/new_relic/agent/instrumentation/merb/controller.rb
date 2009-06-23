@@ -12,7 +12,7 @@ Merb::Controller.class_eval do
   end
   
   def self.newrelic_read_attr(attr_name) # :nodoc:
-    self.send attr_name, value
+    self.send attr_name
   end
   
   protected
