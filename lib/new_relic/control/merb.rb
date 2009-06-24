@@ -19,9 +19,4 @@ class NewRelic::Control::Merb < NewRelic::Control
       :config => self
     }
   end
-  def start_agent
-    ::Merb::BootLoader.after_app_loads do
-       super
-    end unless @started_already
-  end
 end
