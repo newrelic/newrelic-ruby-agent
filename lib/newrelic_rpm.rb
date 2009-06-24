@@ -25,6 +25,16 @@ if defined? Rails.configuration
   Rails.configuration.after_initialize do
     NewRelic::Control.instance.init_plugin :config => Rails.configuration
   end
+elsif defined? Merb
+  module NewRelic
+    class MerbBootLoader < Merb::BootLoader
+      after Merb::BootLoader::ChooseAdapter
+
+      def self.run
+        NewRelic::Control.instance.init_plugin
+      end
+    end
+  end  
 else
   NewRelic::Control.instance.init_plugin
 end
