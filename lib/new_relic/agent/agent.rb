@@ -151,7 +151,7 @@ module NewRelic::Agent
       @started = true
       
       sampler_config = control.fetch('transaction_tracer', {})
-      @use_transaction_sampler = sampler_config.fetch('enabled', false)
+      @use_transaction_sampler = sampler_config.fetch('enabled', true)
       
       @record_sql = sampler_config.fetch('record_sql', :obfuscated).to_sym
       
@@ -162,17 +162,17 @@ module NewRelic::Agent
       @slowest_transaction_threshold = sampler_config.fetch('transaction_threshold', 2.0)
       if @slowest_transaction_threshold =~ /apdex_f/i
         @slowest_transaction_threshold = apdex_f
-      elsif !@slowest_transaction_threshold.is_a? Float
-        log.warn "Invalid transaction_threshold detected: '#{@slowest_transaction_threshold}'. Using #{apdex_f} seconds." if @use_transaction_sampler
-        @slowest_transaction_threshold = apdex_f
       end
       @slowest_transaction_threshold = @slowest_transaction_threshold.to_f
-      log.info "Transaction tracing threshold is #{@slowest_transaction_threshold} seconds" if @use_transaction_sampler
       
+      if @use_transaction_sampler
+        log.info "Transaction tracing threshold is #{@slowest_transaction_threshold} seconds." 
+      else
+        log.info "Transaction tracing not enabled."
+      end
       @explain_threshold = sampler_config.fetch('explain_threshold', 0.5).to_f
       @explain_enabled = sampler_config.fetch('explain_enabled', true)
       @random_sample = sampler_config.fetch('random_sample', false)
-      log.info "Transaction tracing is enabled in agent control" if @use_transaction_sampler
       log.warn "Agent is configured to send raw SQL to RPM service" if @record_sql == :raw
       # Initialize transaction sampler
       @transaction_sampler.random_sampling = @random_sample
@@ -338,10 +338,10 @@ module NewRelic::Agent
           sampling_rate = invoke_remote :sampling_rate, @agent_id if @random_sample
           @transaction_sampler.sampling_rate = sampling_rate
             
-          log.info "Transaction sample rate: #{sampling_rate}"
+          log.info "Transaction sample rate: #{@transaction_sampler.sampling_rate}"
         end
         
-        # Ask for mermission to collect error data
+        # Ask for permission to collect error data
         @should_send_errors = invoke_remote :should_collect_errors, @agent_id
         
         log.info "Transaction traces will be sent to the RPM service" if @use_transaction_sampler && @should_send_samples

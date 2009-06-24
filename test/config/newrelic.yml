@@ -1,6 +1,11 @@
 # This is the config file loaded when running unit tests locally.
+common: &default_settings
+  transaction_tracer:
+    enabled: true
+    record_sql: raw
 
 test:
+  <<: *default_settings
   host: localhost
   port: 3000
   log_level: debug
@@ -28,7 +33,6 @@ test:
   check_bg_loading: true
 
   transaction_tracer:
-    enabled: true
     record_sql: raw
     transaction_threshold: Apdex_f # case insensitive
     explain_threshold: 0.1

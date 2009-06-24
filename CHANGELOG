@@ -5,6 +5,7 @@ v2.9.2
   * fix JRuby problem using objectspace
   * display custom parameters when looking at transactions in dev mode 
   * display count of sql statements on the list of transactions in dev mode
+  * fixes for merb--thanks to Carl Lerche
 
 v2.9.1.
   * add newrelic_ignore_apdex method to controller classes to allow

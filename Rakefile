@@ -1,5 +1,4 @@
 require 'rubygems'
-require 'rake/gempackagetask'
 require 'lib/new_relic/version.rb'
 require 'echoe'
 
@@ -18,11 +17,6 @@ Echoe.new(GEM_NAME) do |p|
   p.project = 'newrelic'
   p.need_tar_gz = false
   p.need_gem = true
+  p.ignore_pattern = %w[]
 end
 
-desc "Create a gemspec file"
-task :gemspec do
-  File.open("#{GEM_NAME}.gemspec", "w") do |file|
-    file.puts spec.to_ruby
-  end
-end
