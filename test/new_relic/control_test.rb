@@ -1,7 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'/../test_helper'))
 
 class NewRelic::ControlTest < Test::Unit::TestCase
-
+  
   attr_reader :c
   
   def setup
@@ -18,19 +18,19 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     assert_equal false, c['enabled']
     c.local_env
   end
-
+  
   def test_root
     assert File.directory?(NewRelic::Control.newrelic_root), NewRelic::Control.newrelic_root
     assert File.directory?(File.join(NewRelic::Control.newrelic_root, "lib")), NewRelic::Control.newrelic_root +  "/lib"
   end
-
+  
   def test_info
     props = NewRelic::Control.instance.local_env.snapshot
     list = props.assoc('Plugin List').last.sort
     assert_not_nil list # can't really guess what might be in here.  
     assert_match /jdbc|postgres|mysql|sqlite/, props.assoc('Database adapter').last
   end
-
+  
   def test_resolve_ip
     assert_equal nil, c.send(:convert_to_ip_address, 'localhost')
     assert_equal nil, c.send(:convert_to_ip_address, 'q1239988737.us')
@@ -42,7 +42,7 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     assert_equal '', c['message']
     assert_equal '', c['license_key']
   end
-
+  
   def test_config_booleans
     assert_equal c['tval'], true
     assert_equal c['fval'], false
@@ -65,5 +65,33 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     snapshot = NewRelic::Control.instance.local_env.snapshot
     assert snapshot.assoc('Plugin List').last.include?('newrelic_rpm'), snapshot.inspect
   end
+  def test_config_apdex
+    assert_equal 1.1, c['apdex_t']
+  end
+   
+  def test_transaction_threshold__apdex
+    forced_start
+    assert_equal 'Apdex_f', c['transaction_tracer']['transaction_threshold']
+    assert_equal 4.4, NewRelic::Agent::Agent.instance.instance_variable_get('@slowest_transaction_threshold')
+  end
   
+  def test_transaction_threshold__default
+    
+    forced_start :transaction_tracer => {}
+    assert_nil c['transaction_tracer']['transaction_threshold']
+    assert_equal 2.0, NewRelic::Agent::Agent.instance.instance_variable_get('@slowest_transaction_threshold')
+  end
+  
+  def test_transaction_threshold__override
+    forced_start :transaction_tracer => { 'transaction_threshold' => 1}
+    assert_equal 1, c['transaction_tracer']['transaction_threshold']
+    assert_equal 1, NewRelic::Agent::Agent.instance.instance_variable_get('@slowest_transaction_threshold')
+  end
+  private
+  def forced_start overrides = {}
+    NewRelic::Agent.manual_start overrides
+    # This is to force the agent to start again. 
+    NewRelic::Agent.instance.stubs(:started?).returns(nil)
+    NewRelic::Agent.instance.start 
+  end
 end
