@@ -445,14 +445,23 @@ module NewRelic::Agent
       unless @traces.empty?
         now = Time.now
         log.debug "Sending (#{@traces.length}) transaction traces"
-        
-        # take the traces and prepare them for sending across the wire.  This includes
-        # gathering SQL explanations, stripping out stack traces, and normalizing SQL.
-        # note that we explain only the sql statements whose segments' execution times exceed 
-        # our threshold (to avoid unnecessary overhead of running explains on fast queries.)
-        traces = @traces.collect {|trace| trace.prepare_to_send(:explain_sql => @explain_threshold, :record_sql => @record_sql, :keep_backtraces => true, :explain_enabled => @explain_enabled)} 
-        
-        invoke_remote :transaction_sample_data, @agent_id, traces
+        begin        
+          # take the traces and prepare them for sending across the
+          # wire.  This includes gathering SQL explanations, stripping
+          # out stack traces, and normalizing SQL.  note that we
+          # explain only the sql statements whose segments' execution
+          # times exceed our threshold (to avoid unnecessary overhead
+          # of running explains on fast queries.)
+          traces = @traces.collect {|trace| trace.prepare_to_send(:explain_sql => @explain_threshold, :record_sql => @record_sql, :keep_backtraces => true, :explain_enabled => @explain_enabled)} 
+
+
+          invoke_remote :transaction_sample_data, @agent_id, traces
+        rescue PostTooBigException
+          # we tried to send too much data, drop the first trace and
+          # try again
+          @traces.shift
+          retry
+        end
         
         log.debug "#{now}: sent slowest sample (#{@agent_id}) in #{Time.now - now} seconds"
       end
@@ -472,12 +481,16 @@ module NewRelic::Agent
       @unsent_errors = @error_collector.harvest_errors(@unsent_errors)
       if @unsent_errors && @unsent_errors.length > 0
         log.debug "Sending #{@unsent_errors.length} errors"
-        
-        invoke_remote :error_data, @agent_id, @unsent_errors
-        
-        # if the remote invocation fails, then we never clear @unsent_errors,
-        # and therefore we can re-attempt to send on the next heartbeat.  Note
-        # the error collector maxes out at 20 instances to prevent leakage
+        begin        
+          invoke_remote :error_data, @agent_id, @unsent_errors
+        rescue PostTooBigException
+          @unsent_errors.shift
+          retry
+        end
+        # if the remote invocation fails, then we never clear
+        # @unsent_errors, and therefore we can re-attempt to send on
+        # the next heartbeat.  Note the error collector maxes out at
+        # 20 instances to prevent leakage
         @unsent_errors = []
       end
     end
