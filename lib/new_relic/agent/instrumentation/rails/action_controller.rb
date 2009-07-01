@@ -34,10 +34,6 @@ if defined? ActionController
     alias_method :perform_action, :perform_action_with_newrelic_trace
     private :perform_action
     
-    #add_method_tracer :render_for_file, 'View/#{args[0]}/ForFile/Rendering'
-    #add_method_tracer :render_for_text, 'View/#{newrelic_metric_path}/Text/Rendering'
-    #add_method_tracer :render, 'View/#{newrelic_metric_path}/Rendering'
-    
     def self.newrelic_write_attr(attr_name, value) # :nodoc:
       write_inheritable_attribute(attr_name, value)
     end
