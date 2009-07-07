@@ -1,8 +1,4 @@
-v2.9.3.
-  * Fix startup failure in Windows due to memory sampler
-  * Add JRuby environment information 
-
-v2.9.2.
+v2.9.2
   * change default apdex_t to 0.5 seconds 
   * fix bug in deployments introduced by multi_homed setting
   * support overriding the log in the agent api
