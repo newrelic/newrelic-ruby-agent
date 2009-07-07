@@ -291,7 +291,11 @@ module NewRelic
       agent = NewRelic::Agent.instance
       agent.stats_engine.add_sampler NewRelic::Agent::Samplers::MongrelSampler.new if local_env.mongrel
       agent.stats_engine.add_harvest_sampler NewRelic::Agent::Samplers::CpuSampler.new unless defined? Java
-      agent.stats_engine.add_sampler NewRelic::Agent::Samplers::MemorySampler.new 
+      begin
+        agent.stats_engine.add_sampler NewRelic::Agent::Samplers::MemorySampler.new
+      rescue RuntimeError => e
+        log.error "Cannot add memory sampling: #{e}"
+      end
     end
      
     protected
