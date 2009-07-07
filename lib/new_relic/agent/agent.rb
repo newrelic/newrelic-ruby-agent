@@ -5,15 +5,17 @@ require 'logger'
 require 'zlib'
 require 'stringio'
 
-# The NewRelic Agent collects performance data from ruby applications in realtime as the
-# application runs, and periodically sends that data to the NewRelic server.
+# The NewRelic Agent collects performance data from ruby applications
+# in realtime as the application runs, and periodically sends that
+# data to the NewRelic server.
 module NewRelic::Agent
- 
-  # The Agent is a singleton that is instantiated when the plugin is activated.
+  
+  # The Agent is a singleton that is instantiated when the plugin is
+  # activated.
   class Agent
     
-    # Specifies the version of the agent's communication protocol
-    # with the NewRelic hosted site.
+    # Specifies the version of the agent's communication protocol with
+    # the NewRelic hosted site.
     
     PROTOCOL_VERSION = 5
     
@@ -34,7 +36,8 @@ module NewRelic::Agent
     end
     
     # this method makes sure that the agent is running. it's important
-    # for passenger where processes are forked and the agent is dormant
+    # for passenger where processes are forked and the agent is
+    # dormant
     #
     def ensure_worker_thread_started
       return unless control.agent_enabled? && control.monitor_mode? && !@invalid_license
@@ -45,7 +48,7 @@ module NewRelic::Agent
     end
     
     # True if the worker thread has been started.  Doesn't necessarily
-    # mean we are connected 
+    # mean we are connected
     def running?
       control.agent_enabled? && control.monitor_mode? && @worker_loop && @worker_loop.pid == $$
     end
@@ -63,7 +66,8 @@ module NewRelic::Agent
         
         log.debug "Starting Agent shutdown"
         
-        # if litespeed, then ignore all future SIGUSR1 - it's litespeed trying to shut us down
+        # if litespeed, then ignore all future SIGUSR1 - it's
+        # litespeed trying to shut us down
         
         if control.dispatcher == :litespeed
           Signal.trap("SIGUSR1", "IGNORE")
@@ -129,10 +133,11 @@ module NewRelic::Agent
     def log
       NewRelic::Control.instance.log
     end  
-        
-    # Start up the agent.  This verifies that the agent_enabled? is true
-    # and initializes the sampler based on the current controluration settings.
-    # Then it will fire up the background thread for sending data to the server if applicable.
+    
+    # Start up the agent.  This verifies that the agent_enabled? is
+    # true and initializes the sampler based on the current
+    # controluration settings.  Then it will fire up the background
+    # thread for sending data to the server if applicable.
     def start
       if started?
         control.log! "Agent Started Already!", :error
@@ -155,8 +160,10 @@ module NewRelic::Agent
       
       @record_sql = sampler_config.fetch('record_sql', :obfuscated).to_sym
       
-      # use transaction_threshold: 4.0 to force the TT collection threshold to 4 seconds
-      # use transaction_threshold: apdex_f to use your apdex t value multiplied by 4
+      # use transaction_threshold: 4.0 to force the TT collection
+      # threshold to 4 seconds
+      # use transaction_threshold: apdex_f to use your apdex t value
+      # multiplied by 4
       # undefined transaction_threshold defaults to 2.0
       apdex_f = 4 * NewRelic::Control.instance['apdex_t'].to_f
       @slowest_transaction_threshold = sampler_config.fetch('transaction_threshold', 2.0)
@@ -188,8 +195,9 @@ module NewRelic::Agent
           control.log! "Invalid license key: #{control.license_key}", :error
         else     
           launch_worker_thread
-          # When the VM shuts down, attempt to send a message to the server that
-          # this agent run is stopping, assuming it has successfully connected
+          # When the VM shuts down, attempt to send a message to the
+          # server that this agent run is stopping, assuming it has
+          # successfully connected
           at_exit { shutdown }
         end
       end
@@ -202,19 +210,20 @@ module NewRelic::Agent
       @collector ||= control.server
     end
     
-    # Connect to the server, and run the worker loop forever.  Will not return.
+    # Connect to the server, and run the worker loop forever.
+    # Will not return.
     def run_worker_loop
 
-      # connect to the server.  this will keep retrying until successful or
-      # it determines the license is bad.
+      # connect to the server.  this will keep retrying until
+      # successful or it determines the license is bad.
       connect
       
       # We may not be connected now but keep going for dev mode
       if @connected
         begin
-          # determine the reporting period (server based)
-          # note if the agent attempts to report more frequently than the specified
-          # report data, then it will be ignored.
+          # determine the reporting period (server based)          
+          # note if the agent attempts to report more frequently than
+          # the specified report data, then it will be ignored.
           
           control.log! "Reporting performance data every #{@report_period} seconds."        
           @worker_loop.add_task(@report_period) do 
@@ -271,9 +280,11 @@ module NewRelic::Agent
       end
       @worker_thread['newrelic_label'] = 'Worker Loop'
       
-      # This code should be activated to check that no dependency loading is occuring in the background thread
-      # by stopping the foreground thread after the background thread is created. Turn on dependency loading logging
-      # and make sure that no loading occurs.
+      # This code should be activated to check that no dependency
+      # loading is occuring in the background thread by stopping the
+      # foreground thread after the background thread is created. Turn
+      # on dependency loading logging and make sure that no loading
+      # occurs.
       #
       #      control.log! "FINISHED AGENT INIT"
       #      while true
@@ -302,12 +313,11 @@ module NewRelic::Agent
       @last_harvest_time = Time.now
     end
     
-    # Connect to the server and validate the license.
-    # If successful, @connected has true when finished.
-    # If not successful, you can keep calling this. 
-    # Return false if we could not establish a connection with the
-    # server and we should not retry, such as if there's
-    # a bad license key.
+    # Connect to the server and validate the license.  If successful,
+    # @connected has true when finished.  If not successful, you can
+    # keep calling this.  Return false if we could not establish a
+    # connection with the server and we should not retry, such as if
+    # there's a bad license key.
     def connect
       # wait a few seconds for the web server to boot, necessary in development
       connect_retry_period = 5
@@ -331,7 +341,8 @@ module NewRelic::Agent
         control.log! "Connected to NewRelic Service at #{@collector}"
         log.debug "Agent ID = #{@agent_id}."
         
-        # Ask the server for permission to send transaction samples.  determined by subscription license.
+        # Ask the server for permission to send transaction samples.
+        # determined by subscription license.
         @should_send_samples = invoke_remote :should_collect_samples, @agent_id
         
         if @should_send_samples
@@ -434,63 +445,93 @@ module NewRelic::Agent
       unless @traces.empty?
         now = Time.now
         log.debug "Sending (#{@traces.length}) transaction traces"
-        
-        # take the traces and prepare them for sending across the wire.  This includes
-        # gathering SQL explanations, stripping out stack traces, and normalizing SQL.
-        # note that we explain only the sql statements whose segments' execution times exceed 
-        # our threshold (to avoid unnecessary overhead of running explains on fast queries.)
-        traces = @traces.collect {|trace| trace.prepare_to_send(:explain_sql => @explain_threshold, :record_sql => @record_sql, :keep_backtraces => true, :explain_enabled => @explain_enabled)} 
-        
-        invoke_remote :transaction_sample_data, @agent_id, traces
+        begin        
+          # take the traces and prepare them for sending across the
+          # wire.  This includes gathering SQL explanations, stripping
+          # out stack traces, and normalizing SQL.  note that we
+          # explain only the sql statements whose segments' execution
+          # times exceed our threshold (to avoid unnecessary overhead
+          # of running explains on fast queries.)
+          traces = @traces.collect {|trace| trace.prepare_to_send(:explain_sql => @explain_threshold, :record_sql => @record_sql, :keep_backtraces => true, :explain_enabled => @explain_enabled)} 
+
+
+          invoke_remote :transaction_sample_data, @agent_id, traces
+        rescue PostTooBigException
+          # we tried to send too much data, drop the first trace and
+          # try again
+          @traces.shift
+          retry
+        end
         
         log.debug "#{now}: sent slowest sample (#{@agent_id}) in #{Time.now - now} seconds"
       end
       
-      # if we succeed sending this sample, then we don't need to keep the slowest sample
-      # around - it has been sent already and we can collect the next one
+      # if we succeed sending this sample, then we don't need to keep
+      # the slowest sample around - it has been sent already and we
+      # can collect the next one
       @traces = nil
       
-      # note - exceptions are logged in invoke_remote.  If an exception is encountered here,
-      # then the slowest sample of is determined of the entire period since the last
-      # reported sample.
+      # note - exceptions are logged in invoke_remote.  If an
+      # exception is encountered here, then the slowest sample of is
+      # determined of the entire period since the last reported
+      # sample.
     end
     
     def harvest_and_send_errors
       @unsent_errors = @error_collector.harvest_errors(@unsent_errors)
       if @unsent_errors && @unsent_errors.length > 0
         log.debug "Sending #{@unsent_errors.length} errors"
-        
-        invoke_remote :error_data, @agent_id, @unsent_errors
-        
-        # if the remote invocation fails, then we never clear @unsent_errors,
-        # and therefore we can re-attempt to send on the next heartbeat.  Note
-        # the error collector maxes out at 20 instances to prevent leakage
+        begin        
+          invoke_remote :error_data, @agent_id, @unsent_errors
+        rescue PostTooBigException
+          @unsent_errors.shift
+          retry
+        end
+        # if the remote invocation fails, then we never clear
+        # @unsent_errors, and therefore we can re-attempt to send on
+        # the next heartbeat.  Note the error collector maxes out at
+        # 20 instances to prevent leakage
         @unsent_errors = []
       end
     end
+
+    def compress_data(object)
+      dump = Marshal.dump(object)
+      
+      # we currently optimize for CPU here since we get roughly a 10x
+      # reduction in message size with this, and CPU overhead is at a
+      # premium. For extra-large posts, we use the higher compression
+      # since otherwise it actually errors out.
+      
+      dump_size = dump.size
+      
+      # small payloads don't need compression      
+      return [dump, 'identity'] if dump_size < 2000
+      
+      # medium payloads get fast compression, to save CPU
+      # big payloads get all the compression possible, to stay under
+      # the 2,000,000 byte post threshold      
+      compression = dump_size < 2000000 ? Zlib::BEST_SPEED : Zlib::BEST_COMPRESSION
+      
+      [Zlib::Deflate.deflate(dump, compression), 'deflate']
+    end
     
-    # send a message via post
-    def invoke_remote(method, *args)
-      # we currently optimize for CPU here since we get roughly a 10x reduction in
-      # message size with this, and CPU overhead is at a premium.  If we wanted
-      # to go for higher compression instead, we could use Zlib::BEST_COMPRESSION and 
-      # pay a little more CPU.
-      data = Marshal.dump(args)
-      encoding = data.size > 2000 ? 'deflate' : 'identity' # don't compress small payloads
-      post_data = encoding == 'deflate' ? Zlib::Deflate.deflate(data, Zlib::BEST_SPEED) : data
-      http = control.http_connection(collector)
-      
-      uri = "/agent_listener/#{PROTOCOL_VERSION}/#{control.license_key}/#{method}"
-      uri += "?run_id=#{@agent_id}" if @agent_id
-      
-      request = Net::HTTP::Post.new(uri, 'CONTENT-ENCODING' => encoding, 'ACCEPT-ENCODING' => 'gzip', 'HOST' => collector.name)
+    def check_post_size(post_string)
+      # TODO: define this as a config option on the server side
+      return if post_string.size < 2000000
+      log.warn "Tried to send too much data, retrying with less: #{post_string.size} bytes"
+      raise PostTooBigException
+    end
+
+    def send_request(opts)
+      request = Net::HTTP::Post.new(opts[:uri], 'CONTENT-ENCODING' => opts[:encoding], 'ACCEPT-ENCODING' => 'gzip', 'HOST' => opts[:collector].name)
       request.content_type = "application/octet-stream"
-      request.body = post_data
+      request.body = opts[:data]
       
-      log.debug "connect to #{collector}#{uri}"
+      log.debug "connect to #{opts[:collector]}#{opts[:uri]}"
       
       response = nil
-      
+      http = control.http_connection(collector)      
       begin
         timeout(@request_timeout) do      
           response = http.request(request)
@@ -500,31 +541,54 @@ module NewRelic::Agent
         raise IgnoreSilentlyException
       end
       
-      if response.is_a? Net::HTTPSuccess
-        body = nil
-        if response['content-encoding'] == 'gzip'
-          log.debug "Decompressing return value"
-          i = Zlib::GzipReader.new(StringIO.new(response.body))
-          body = i.read
-        else
-          log.debug "Uncompressed content returned"
-          body = response.body
-        end
-        return_value = Marshal.load(body)
-        if return_value.is_a? Exception
-          raise return_value
-        else
-          return return_value
-        end
-      else
+      if !(response.is_a? Net::HTTPSuccess)
         log.debug "Unexpected response from server: #{response.code}: #{response.message}"
         raise IgnoreSilentlyException
-      end 
+      end
+      response
+    end
+
+    def decompress_response(response)
+      if response['content-encoding'] != 'gzip'
+        log.debug "Uncompressed content returned"
+        return response.body
+      end
+      log.debug "Decompressing return value"
+      i = Zlib::GzipReader.new(StringIO.new(response.body))
+      i.read
+    end
+
+    def check_for_exception(response)
+      dump = decompress_response(response)
+      value = Marshal.load(dump)
+      raise value if value.is_a? Exception
+      value
+    end
+    
+    def remote_method_uri(method)
+      uri = "/agent_listener/#{PROTOCOL_VERSION}/#{control.license_key}/#{method}"
+      uri << "?run_id=#{@agent_id}" if @agent_id
+      uri
+    end
+      
+    # send a message via post
+    def invoke_remote(method, *args)
+      #determines whether to zip the data or send plain
+      post_data, encoding = compress_data(args)
+      
+      # this checks to make sure mongrel won't choke on big uploads
+      check_post_size(post_data) 
+      
+      response = send_request({:uri => remote_method_uri(method), :encoding => encoding, :collector => collector, :data => post_data})
+
+      # raises the right exception if the remote server tells it to die
+      return check_for_exception(response)
     rescue ForceDisconnectException => e
       log.error "RPM forced this agent to disconnect (#{e.message})\n" \
-                       "Restart this process to resume monitoring via rpm.newrelic.com."
-      # when a disconnect is requested, stop the current thread, which is the worker thread that 
-      # gathers data and talks to the server. 
+      "Restart this process to resume monitoring via rpm.newrelic.com."
+      # when a disconnect is requested, stop the current thread, which
+      # is the worker thread that gathers data and talks to the
+      # server.
       @connected = false
       Thread.exit
     rescue SystemCallError, SocketError => e

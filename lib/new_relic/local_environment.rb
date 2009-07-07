@@ -75,6 +75,10 @@ module NewRelic
       append_environment_value('Ruby version'){ RUBY_VERSION }
       append_environment_value('Ruby platform') { RUBY_PLATFORM }
       append_environment_value('Ruby patchlevel') { RUBY_PATCHLEVEL }
+      if defined? ::JRUBY_VERSION
+        append_environment_value('JRuby version') { JRUBY_VERSION }
+        append_environment_value('Java VM version') { ENV_JAVA['java.vm.version']}
+      end
       append_environment_value('OS version') { `uname -v` }
       append_environment_value('OS') { `uname -s` } ||
       append_environment_value('OS') { ENV['OS'] } 
@@ -156,7 +160,7 @@ module NewRelic
     end
 
     def check_for_glassfish
-      return unless defined?(Java) &&
+      return unless defined?(::Java) &&
          (((com.sun.grizzly.jruby.rack.DefaultRackApplicationFactory rescue nil) &&
          defined?(com::sun::grizzly::jruby::rack::DefaultRackApplicationFactory)) ||
          ((org.jruby.rack.DefaultRackApplicationFactory rescue nil) &&

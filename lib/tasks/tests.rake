@@ -1,7 +1,7 @@
 # run unit tests for the NewRelic Agent
 if defined? Rake::TestTask
   namespace :test do
-    AGENT_HOME = File.expand_path(File.join(File.dirname(__FILE__), "..",".."))
+    AGENT_HOME = File.join(File.dirname(__FILE__), "..","..")
     Rake::TestTask.new(:newrelic) do |t|
       t.libs << "#{AGENT_HOME}/test"
       t.libs << "#{AGENT_HOME}/lib"

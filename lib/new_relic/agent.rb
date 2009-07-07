@@ -81,6 +81,10 @@ module NewRelic
     # failures.
     class IgnoreSilentlyException < StandardError; end
     
+    # Used for when a transaction trace or error report has too much
+    # data, so we reset the queue to clear the extra-large item
+    class PostTooBigException < IgnoreSilentlyException; end
+    
     # Reserved for future use.  Meant to represent a problem on the server side.
     class ServerError < StandardError; end
 

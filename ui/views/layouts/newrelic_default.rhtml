@@ -39,10 +39,9 @@
 	</div>
 	<div id='footer'>
 		<img width="100%" height="4" src="<%= url_for(:controller => :newrelic, :action => :image, :file => 'blue_bar.gif', :content_type => 'image/gif') %>" alt="spacer"/>
-		<p>Crazy about Rails? Want to be a part of one of the fastest growing companies
-	      in the Rails community? <a href="http://www.newrelic.com/jobs.html" title="Learn more about what we're looking for.">We're Hiring! &raquo;</a><br />
+        <p>We're hiring! Check out our <%=link_to "job postings", 'http://www.newrelic.com/jobs.html' %></p>
 		<a href="/newrelic">Home</a> | <a href="&#109;&#97;&#105;&#108;&#116;&#111;:&#x73;&#x75;&#x70;&#112;&#111;&#x72;&#116;&#x40;&#x6E;&#x65;&#119;&#114;&#x65;&#x6C;&#105;&#x63;&#x2E;&#99;&#x6F;&#109;?subject=&#70;&#101;&#x65;&#x64;&#x62;&#x61;&#x63;&#107;" title="">&#x46;&#x65;&#101;&#x64;&#98;&#97;&#x63;&#x6B;</a><br />
 		Monitor your Rails Application in Production. <a href="http://www.newrelic.com/dev-upgrade.html">Learn more. &raquo;</a><br />
-		&copy; 2008 New Relic. All rights reserved.</p>
+		&copy; 2008 - <%= Time.now.strftime('%Y') %> New Relic. All rights reserved.</p>
 	</div>
 </body>
