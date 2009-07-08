@@ -1,3 +1,6 @@
+v2.9.4
+  Not sure if this is going to be bugfix or a 2.10.0 feature release yet
+  
 v2.9.3.
   * Fix startup failure in Windows due to memory sampler
   * Add JRuby environment information 
