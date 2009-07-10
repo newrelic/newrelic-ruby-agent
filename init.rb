@@ -21,7 +21,7 @@ begin
   if ! defined?(::NEWRELIC_STARTED)
     ::NEWRELIC_STARTED = "#{caller.join("\n")}"
 
-    NewRelic::Control.instance.init_plugin(defined?(config) ? {:config => config} : {})
+    NewRelic::Control.instance.init_plugin (defined?(config) ? {:config => config} : {})
   else
     NewRelic::Control.instance.log.debug "Attempt to initialize the plugin twice!"
     NewRelic::Control.instance.log.debug "Original call: \n#{::NEWRELIC_STARTED}"

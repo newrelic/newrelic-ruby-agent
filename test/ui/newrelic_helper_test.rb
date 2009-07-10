@@ -45,9 +45,9 @@ class NewRelic::Agent::NewrelicHelperTest < Test::Unit::TestCase
   private
   def assert_clean(backtrace, rails=false)
     if !rails
-      assert_equal 0, backtrace.grep('/rails/').size, backtrace.join("\n")
+      assert_equal 0, backtrace.grep('/rails/').size, backtrace.grep(/newrelic_rpm/)
     end
-    assert_equal 0, backtrace.grep(/trace/).size, backtrace.join("\n")
-    assert_equal 0, backtrace.grep(/newrelic_rpm\/agent/).size, backtrace.join("\n")
+    assert_equal 0, backtrace.grep(/trace/).size, backtrace.grep(/trace/)
+    assert_equal 0, backtrace.grep(/newrelic_rpm\/lib/).size, backtrace.grep(/newrelic_rpm\/lib/)
   end
 end

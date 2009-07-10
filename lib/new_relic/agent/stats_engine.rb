@@ -252,11 +252,9 @@ module NewRelic::Agent
       Thread::current[:newrelic_transaction_name] = nil
     end
     
-    # Empty the stats engine, such as when a new passenger instance starts up.
-    def clear_stats 
+    def clear_stats # :nodoc: for test code only
       @stats_hash.clear
     end
-    
     private
     
     # Call poll on each of the samplers.  Remove
