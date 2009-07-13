@@ -1,6 +1,8 @@
 module NewRelic::Agent::Samplers
   
   class MemorySampler < NewRelic::Agent::Sampler
+    attr_accessor :sampler
+    
     def initialize
       super :memory
       
