@@ -23,7 +23,7 @@ class NewRelic::MetricParser::Controller < NewRelic::MetricParser
   # return the cpu measuring equivalent.  It may be nil since this metric was not
   # present in earlier versions of the agent.
   def cpu_metric
-    Metric.lookup((["ControllerCPU"] + segments[1..-1]).join('/'), "", :create => false)
+    Metric.lookup((["ControllerCPU"] + segments[1..-1]).join('/'), :create => false)
   end
   
   def short_name
