@@ -5,7 +5,7 @@ module NewRelic::Agent::Samplers
       super :mongrel
     end
     def queue_stats
-      @queue_stats ||= stats_engine.get_stats("Mongrel/Queue Length", false)
+      stats_engine.get_stats("Mongrel/Queue Length", false)
     end
     def poll
       mongrel = NewRelic::Control.instance.local_env.mongrel
