@@ -4,8 +4,8 @@ class NewRelic::MetricSpec
   attr_accessor   :name
   attr_accessor   :scope
   
-  def initialize (name, metric_scope = '')
-    self.name = name
+  def initialize (metric_name, metric_scope = '')
+    self.name = metric_name
     self.scope = metric_scope
   end
   
