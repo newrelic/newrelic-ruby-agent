@@ -20,6 +20,12 @@ class NewRelic::MetricParser::Controller < NewRelic::MetricParser
     "#{controller_name}##{action_name}"
   end
   
+  # return the cpu measuring equivalent.  It may be nil since this metric was not
+  # present in earlier versions of the agent.
+  def cpu_metric
+    Metric.lookup((["ControllerCPU"] + segments[1..-1]).join('/'), :create => false)
+  end
+  
   def short_name
     # standard controller actions
     if segments.length > 1

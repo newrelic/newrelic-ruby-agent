@@ -6,16 +6,16 @@ module NewRelic::Agent::Samplers
       poll
     end
     def user_util_stats
-      @userutil ||= stats_engine.get_stats("CPU/User/Utilization", false)
+      stats_engine.get_stats_no_scope("CPU/User/Utilization")
     end
     def system_util_stats
-      @systemutil ||= stats_engine.get_stats("CPU/System/Utilization", false)
+      stats_engine.get_stats_no_scope("CPU/System/Utilization")
     end
     def usertime_stats
-      @usertime ||= stats_engine.get_stats("CPU/User Time", false)
+      stats_engine.get_stats_no_scope("CPU/User Time")
     end
     def systemtime_stats
-      @systemtime ||= stats_engine.get_stats("CPU/System Time", false)
+      stats_engine.get_stats_no_scope("CPU/System Time")
     end
     def poll
       now = Time.now

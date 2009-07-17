@@ -13,8 +13,7 @@ if defined?(ActiveRecord::Base) && !NewRelic::Control.instance['skip_ar_instrume
     end
     
     def active_record_all_stats
-      # need to lazy init this
-      @@active_record_all ||= NewRelic::Agent.instance.stats_engine.get_stats_no_scope("ActiveRecord/all")
+      NewRelic::Agent.instance.stats_engine.get_stats_no_scope("ActiveRecord/all")
     end
     
     def log_with_newrelic_instrumentation(sql, name, &block)
