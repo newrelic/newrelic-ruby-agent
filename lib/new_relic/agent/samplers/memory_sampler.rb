@@ -1,6 +1,8 @@
 module NewRelic::Agent::Samplers
   
   class MemorySampler < NewRelic::Agent::Sampler
+    attr_accessor :sampler
+    
     def initialize
       super :memory
       
@@ -35,7 +37,7 @@ module NewRelic::Agent::Samplers
     end
     
     def stats
-      @stats ||= stats_engine.get_stats("Memory/Physical", false) 
+      stats_engine.get_stats("Memory/Physical", false) 
     end
     def poll
       sample = @sampler.get_sample

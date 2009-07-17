@@ -75,7 +75,6 @@ common: &default_settings
   # http://support.newrelic.com/faqs/general/apdex
 
   apdex_t: 0.5
-    
 
   # Proxy settings for connecting to the RPM server.
   #
@@ -156,9 +155,9 @@ common: &default_settings
 
 development:
   <<: *default_settings
-  # turn off communication to RPM service in development mode.  NOTE:
-  # for initial evaluation purposes, you may want to temporarily turn
-  # the agent on in development mode.
+  # Turn off communication to RPM service in development mode.  
+  # NOTE: for initial evaluation purposes, you may want to temporarily 
+  # turn the agent on in development mode.
   enabled: false
 
   # When running in Developer Mode, the New Relic Agent will present

@@ -32,7 +32,7 @@ module NewRelic::Agent::Instrumentation
         newrelic_dispatcher_start_time = Thread.current[:newrelic_dispatcher_start]
         response_code = newrelic_response_code
         if response_code
-          stats = response_stats[response_code] ||= NewRelic::Agent.agent.stats_engine.get_stats("HTTP/Response/#{response_code}")
+          stats = NewRelic::Agent.agent.stats_engine.get_stats_no_scope("HTTP/Response/#{response_code}")
           stats.trace_call(dispatcher_end_time - newrelic_dispatcher_start_time)
         end
         dispatch_stat.trace_call(dispatcher_end_time - newrelic_dispatcher_start_time) 
@@ -55,13 +55,10 @@ module NewRelic::Agent::Instrumentation
     private
     # memoize the stats to avoid the cost of the lookup each time.
     def dispatch_stat
-      @@newrelic_rails_dispatch_stat ||= NewRelic::Agent.agent.stats_engine.get_stats 'Rails/HTTP Dispatch'  
+      NewRelic::Agent.agent.stats_engine.get_stats_no_scope 'Rails/HTTP Dispatch'  
     end
     def mongrel_queue_stat
-      @@newrelic_mongrel_queue_stat ||= NewRelic::Agent.agent.stats_engine.get_stats('WebFrontend/Mongrel/Average Queue Time')  
-    end
-    def response_stats
-      @@newrelic_response_stats ||= { '200' => NewRelic::Agent.agent.stats_engine.get_stats('HTTP/Response/200')}  
+      NewRelic::Agent.agent.stats_engine.get_stats_no_scope 'WebFrontend/Mongrel/Average Queue Time'  
     end
     
     # This won't work with Rails 2.2 multi-threading
@@ -121,7 +118,7 @@ module NewRelic::Agent::Instrumentation
       private
       def instance_busy_stats
         # Late binding on the Instance/busy stats
-        @instance_busy ||= NewRelic::Agent.agent.stats_engine.get_stats('Instance/Busy')  
+        NewRelic::Agent.agent.stats_engine.get_stats_no_scope 'Instance/Busy'  
       end
       
     end

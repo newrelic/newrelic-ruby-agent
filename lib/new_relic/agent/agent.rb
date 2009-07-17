@@ -612,7 +612,7 @@ module NewRelic::Agent
         rescue Timeout::Error, StandardError 
         end
       else
-        log.debug "Bypassing graceful shutdown - agent in development mode"
+        log.debug "Bypassing graceful shutdown - agent not connected"
       end
     end
   end

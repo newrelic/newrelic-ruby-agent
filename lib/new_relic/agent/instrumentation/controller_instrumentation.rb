@@ -175,7 +175,7 @@ module NewRelic::Agent::Instrumentation
     
     private
     def apdex_overall_stat
-      @@newrelic_apdex_overall ||= NewRelic::Agent.instance.stats_engine.get_custom_stats("Apdex", NewRelic::ApdexStats)  
+      NewRelic::Agent.instance.stats_engine.get_custom_stats("Apdex", NewRelic::ApdexStats)  
     end
     
     def is_filtered?(ignore_actions)

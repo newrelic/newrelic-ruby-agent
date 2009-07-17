@@ -1,3 +1,8 @@
+v2.9.4
+  * Clamp size of data sent to server
+  * Reset statistics for passenger when forking to avoid erroneous data
+  * Fix problem deserializing errors from the server
+
 v2.9.3.
   * Fix startup failure in Windows due to memory sampler
   * Add JRuby environment information 

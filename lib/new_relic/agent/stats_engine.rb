@@ -252,11 +252,16 @@ module NewRelic::Agent
       Thread::current[:newrelic_transaction_name] = nil
     end
     
-    # Empty the stats engine, such as when a new passenger instance starts up.
+    # Remove all stats.  For test code only.
     def clear_stats 
       @stats_hash.clear
     end
     
+    # Reset each of the stats, such as when a new passenger instance starts up.
+    def reset_stats 
+      @stats_hash.values.each { |s| s.reset }
+    end
+
     private
     
     # Call poll on each of the samplers.  Remove

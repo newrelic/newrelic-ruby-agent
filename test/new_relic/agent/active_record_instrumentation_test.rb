@@ -54,6 +54,7 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
     #   This doesn't work on hudson because the sampler metrics creep in.    
     #   metrics = NewRelic::Agent.instance.stats_engine.metrics.select { |mname| mname =~ /ActiveRecord\/ActiveRecordFixtures::Order\// }.sort
     expected = %W[
+      ActiveRecord/all
       ActiveRecord/create
       ActiveRecord/find
       ActiveRecord/ActiveRecordFixtures::Order/create
@@ -75,6 +76,7 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
     #   This doesn't work on hudson because the sampler metrics creep in.    
     #   metrics = NewRelic::Agent.instance.stats_engine.metrics.select { |mname| mname =~ /ActiveRecord\/ActiveRecordFixtures::Order\// }.sort
     compare_metrics %W[
+    ActiveRecord/all
     ActiveRecord/destroy
     ActiveRecord/ActiveRecordFixtures::Order/destroy
     Database/SQL/insert
@@ -95,6 +97,7 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
     list = ActiveRecordFixtures::Order.connection.select_rows "select * from #{ActiveRecordFixtures::Order.table_name}"
     metrics = NewRelic::Agent.instance.stats_engine.metrics
     compare_metrics %W[
+    ActiveRecord/all
     Database/SQL/select
     ], metrics
     assert_equal 1, NewRelic::Agent.get_stats("Database/SQL/select").call_count
