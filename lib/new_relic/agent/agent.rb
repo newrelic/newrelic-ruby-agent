@@ -202,7 +202,7 @@ module NewRelic::Agent
         end
       end
       control.log! "New Relic RPM Agent #{NewRelic::VERSION::STRING} Initialized: pid = #{$$}"
-      control.log! "Agent Log found in #{NewRelic::Control.instance.log_file}"
+      control.log! "Agent Log found in #{NewRelic::Control.instance.log_file}" if NewRelic::Control.instance.log_file
     end
 
     private
@@ -322,10 +322,10 @@ module NewRelic::Agent
       # wait a few seconds for the web server to boot, necessary in development
       connect_retry_period = 5
       connect_attempts = 0
-      
+      @agent_id = nil
       begin
         sleep connect_retry_period.to_i
-        @agent_id = invoke_remote :start, @local_host, {
+        @agent_id ||= invoke_remote :start, @local_host, {
           :pid => $$, 
           :launch_time => @launch_time.to_f, 
           :agent_version => NewRelic::VERSION::STRING, 
@@ -375,16 +375,14 @@ module NewRelic::Agent
         # retry logic
         connect_attempts += 1
         case connect_attempts
-          when 1..5
-          connect_retry_period, period_msg = 5, nil
-          when 6..10 then
-          connect_retry_period, period_msg = 30, nil
-          when 11..20 then
+          when 1..2
           connect_retry_period, period_msg = 60, "1 minute"
+          when 3..5 then
+          connect_retry_period, period_msg = 60 * 2, "2 minutes"
         else 
           connect_retry_period, period_msg = 10*60, "10 minutes"
         end
-        log.info "Will re-attempt in #{period_msg}" if period_msg
+        log.info "Will re-attempt in #{period_msg}" 
         retry
       end
     end
