@@ -18,8 +18,8 @@ if defined?(ActiveRecord::Base) && !NewRelic::Control.instance['skip_ar_instrume
     
     def log_with_newrelic_instrumentation(sql, name, &block)
       # Capture db config if we are going to try to get the explain plans
-      if (defined? ActiveRecord::ConnectionAdapters::MysqlAdapter && self.is_a?(ActiveRecord::ConnectionAdapters::MysqlAdapter)) ||
-       (defined? ActiveRecord::ConnectionAdapters::PostgreSQLAdapter && self.is_a?(ActiveRecord::ConnectionAdapters::PostgreSQLAdapter))
+      if (defined?(ActiveRecord::ConnectionAdapters::MysqlAdapter) && self.is_a?(ActiveRecord::ConnectionAdapters::MysqlAdapter)) ||
+       (defined?(ActiveRecord::ConnectionAdapters::PostgreSQLAdapter) && self.is_a?(ActiveRecord::ConnectionAdapters::PostgreSQLAdapter))
         supported_config = @config
       end
       if name && (parts = name.split " ") && parts.size == 2
