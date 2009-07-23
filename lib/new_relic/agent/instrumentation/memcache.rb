@@ -13,6 +13,6 @@ end if defined? MemCache
 # Support for libmemcached through Evan Weaver's memcached wrapper
 # http://blog.evanweaver.com/files/doc/fauna/memcached/classes/Memcached.html    
 Memcached.class_eval do
-  add_method_tracer :get, 'Memcached/read' if self.method_defined? :get
-  add_method_tracer :set, 'Memcached/write' if self.method_defined? :set
+  add_method_tracer :get, 'MemCache/read' if self.method_defined? :get
+  add_method_tracer :set, 'MemCache/write' if self.method_defined? :set
 end if defined? Memcached
