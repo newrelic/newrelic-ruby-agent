@@ -20,4 +20,20 @@ class NewRelic::MetricParser::Database < NewRelic::MetricParser
   def developer_name
     (segments[2]) ? "#{segments[1]} - #{segments[2]}" : "#{segments[1]} - unknown" 
   end
+  
+  def legend_name
+    if name == Metric.DATABASE_ALL
+      'Database'
+    else
+      super
+    end
+  end
+  
+  def tooltip_name
+    if name == Metric.DATABASE_ALL
+      'All Database'
+    else
+      super
+    end
+  end
 end
