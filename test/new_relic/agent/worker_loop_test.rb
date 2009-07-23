@@ -96,6 +96,6 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
   def check_test_timestamp(expected)
     ts = Time.now - @test_start_time
     delta = (expected - ts).abs
-    assert(delta < 0.05, "#{delta} exceeds 50 milliseconds")
+    assert(delta < 0.100, "#{delta} exceeds 100 milliseconds")
   end
 end
