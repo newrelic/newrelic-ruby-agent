@@ -14,7 +14,7 @@ class NewRelic::MetricParser::ActiveRecord < NewRelic::MetricParser
   end
   def tooltip_name
     if name == 'ActiveRecord/all'
-      'All SQL Execution'
+      'all SQL execution'
     else
       super
     end
