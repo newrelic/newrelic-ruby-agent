@@ -71,7 +71,7 @@ class AgentTest < ActiveSupport::TestCase
   end
   
   def test_version
-    assert_match /\d\.\d\.\d+/, NewRelic::VERSION::STRING
+    assert_match /\d\.\d+\.\d+/, NewRelic::VERSION::STRING
   end
   
   def test_invoke_remote__ignore_non_200_results

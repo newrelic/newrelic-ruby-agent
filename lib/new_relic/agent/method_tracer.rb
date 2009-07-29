@@ -1,10 +1,8 @@
 module NewRelic::Agent
 
   # These are stubs for API methods installed when the agent is disabled.
-
-  module MethodTracerShim
+  module MethodTracerShim # :nodoc:
     def trace_method_execution(*args); yield; end
-    
     def trace_method_execution_no_scope(metric_name); yield; end
     def trace_method_execution_with_scope(*args); yield; end
     def add_method_tracer (*args); end
@@ -42,7 +40,7 @@ module NewRelic::Agent
       end
     end
 
-    # Trace a given block with stats, like #trace_method_execution_no_scope but 
+    # Trace a given block with stats and keep track of the caller.  See #add_method_tracer for a description of the arguments.
     def trace_method_execution_with_scope(metric_name, produce_metric, deduct_call_time_from_parent, scoped_metric_only=false)
       t0 = Time.now.to_f
       stats = nil
@@ -79,22 +77,43 @@ module NewRelic::Agent
     end
     
     # Add a method tracer to the specified method.  
-    # metric_name_code is ruby code that determines the name of the
-    # metric to be collected during tracing.  As such, the code
-    # should be provided in 'single quote' strings rather than
-    # "double quote" strings, so that #{} evaluation happens
-    # at traced method execution time.
+    # 
+    # +metric_name+ is the name of the metric associated with calls
+    # to +method_name+.  The value is eval'd so if you want to 
+    # use interpolation evaluated at call time, then single quote
+    # the value like this:
     #
-    # Example: tracing a method :foo, where the metric name is
-    # the first argument converted to a string
+    #     add_method_tracer :foo, 'Custom/#{self.class.name}/foo'
     #
-    #     add_method_tracer :foo, '#{args.first.to_s}'
+    # This would name the metric according to the class of the runtime
+    # intance, as opposed to the class where +foo+ is defined.
     #
-    # Statically defined metric names can be specified as regular strings.
-    # The option +:push_scope+ specifies whether this method tracer should 
-    # keep track of the caller so it will show up in controller breakdown
-    # pie charts.
-    def add_method_tracer (method_name, metric_name_code, options = {})
+    # If not provided, the metric name will be +Custom/ClassName/method_name+.
+    #
+    # === Common Options
+    # * <tt>:push_scope => false</tt> specifies this method tracer should not 
+    #   keep track of the caller; it will show up in controller breakdown
+    #   pie charts. 
+    # * <tt>:metric => false</tt> specifies that no metric will be recorded.
+    #   Instead the call will show up in transaction traces as well as traces
+    #   shown in Developer Mode.  
+    # === Uncommon Options
+    # * <tt>:scoped_metric_only => true</tt> indicates that the unscoped metric
+    #   should not be recorded.  Normally two metrics are potentially created
+    #   on every invocation: the aggregate method where statistics for all calls
+    #   of that metric are stored, and the "scoped metric" which records the
+    #   statistics for invocations in a particular scope--generally a controller
+    #   action.  This option indicates that only the second type should be recorded.
+    #   The effect is similar to <tt>:metric => false</tt> but in addition you
+    #   will also see the invocation in breakdown pie charts.
+    # * <tt>:deduct_call_time_from_parent => false</tt> indicates that the method invocation
+    #   time should never be deducted from the time reported as 'exclusive' in the 
+    #   caller.  You would want to use this if you are tracing a recursive method
+    #   or a method that might be called inside another traced method.
+    # * <tt>:code_header</tt> and <tt>:code_footer</tt> specify ruby code that 
+    #   is inserted into the tracer before and after the call.
+    #
+    def add_method_tracer (method_name, metric_name_code=nil, options = {})
       if !options.is_a?(Hash)
         options = {:push_scope => options} 
       end
@@ -111,6 +130,8 @@ module NewRelic::Agent
       options[:scoped_metric_only] ||= false
       
       klass = (self === Module) ? "self" : "self.class"
+      # Default to the class where the method is defined.
+      metric_name_code = "Custom/#{self.name}/#{method_name.to_s}" unless metric_name_code
       
       unless method_defined?(method_name) || private_method_defined?(method_name)
         NewRelic::Control.instance.log.warn("Did not trace #{self}##{method_name} because that method does not exist")

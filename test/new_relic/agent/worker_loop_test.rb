@@ -93,9 +93,11 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
   end
   
   private
+  # The test is expected to have lasted no less than expected
+  # and no more than expected + 100 ms.
   def check_test_timestamp(expected)
     ts = Time.now - @test_start_time
-    delta = (expected - ts).abs
-    assert(delta < 0.05, "#{delta} exceeds 50 milliseconds")
+    delta = ts - expected
+    assert(delta < 0.100, "#{ts} duration includes a delay of #{delta} that exceeds 100 milliseconds")
   end
 end

@@ -1,3 +1,8 @@
+v2.10.0
+  * Added doc to method_tracer API and removed second arg
+    requirement for add_method_tracer call
+  * Instrumentation for Net::HTTP
+    
 v2.9.4
   * Clamp size of data sent to server
   * Reset statistics for passenger when forking to avoid erroneous data
@@ -6,7 +11,8 @@ v2.9.4
 
 v2.9.3.
   * Fix startup failure in Windows due to memory sampler
-  * Add JRuby environment information 
+  * Add JRuby environment information
+   
 v2.9.2.
   * change default apdex_t to 0.5 seconds 
   * fix bug in deployments introduced by multi_homed setting

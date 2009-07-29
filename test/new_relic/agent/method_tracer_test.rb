@@ -33,15 +33,6 @@ end
 
 module NewRelic
   module Agent
-    
-    # for testing, enable the stats engine to clear itself
-    class StatsEngine
-      def reset
-        scope_stack.clear
-        @stats_hash.clear
-      end
-    end
-    
     extend self
     def module_method_to_be_traced (x, testcase)
       testcase.assert x == "x"
@@ -56,7 +47,7 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
   def setup
     NewRelic::Agent.manual_start
     @stats_engine = NewRelic::Agent.instance.stats_engine
-    @stats_engine.reset
+    @stats_engine.clear_stats
     @scope_listener = NewRelic::Agent::MockScopeListener.new
     @stats_engine.add_scope_stack_listener(@scope_listener)
   end
@@ -108,7 +99,27 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
     assert stats.call_count == 1
   end
   
-  
+  def test_add_method_tracer__default
+    self.class.add_method_tracer :simple_method
+    
+    simple_method
+    
+    stats = @stats_engine.get_stats("Custom/#{self.class.name}/simple_method")
+    assert stats.call_count == 1
+    
+  end
+  def test_add_method_tracer__reentry
+    self.class.add_method_tracer :simple_method
+    self.class.add_method_tracer :simple_method
+    self.class.add_method_tracer :simple_method
+    
+    simple_method
+    
+    stats = @stats_engine.get_stats("Custom/#{self.class.name}/simple_method")
+    assert stats.call_count == 1
+    
+  end
+
   def test_method_traced?
     assert !self.class.method_traced?(:method_to_be_traced, METRIC)
     self.class.add_method_tracer :method_to_be_traced, METRIC
@@ -296,5 +307,7 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
   
   def method_c3
   end
-  
+
+  def simple_method
+  end
 end

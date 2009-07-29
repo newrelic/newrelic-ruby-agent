@@ -393,6 +393,9 @@ module NewRelic
         when :ruby
         require 'new_relic/control/ruby'
         NewRelic::Control::Ruby.new @local_env
+        when :external
+        require 'new_relic/control/external'
+        NewRelic::Control::External.new @local_env
       else 
         raise "Unknown framework: #{@local_env.framework}"
       end
