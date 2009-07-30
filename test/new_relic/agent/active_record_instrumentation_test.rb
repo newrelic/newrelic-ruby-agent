@@ -4,6 +4,7 @@ require 'active_record_fixtures'
 class ActiveRecordInstrumentationTest < Test::Unit::TestCase
   
   def setup
+    super
     NewRelic::Agent.manual_start
     NewRelic::Agent.instance.stats_engine.clear_stats
     ActiveRecordFixtures.setup
@@ -14,6 +15,7 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
   end
   
   def teardown
+    super
     ActiveRecordFixtures.teardown
   end
   def test_agent_setup
@@ -177,7 +179,25 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
     end
   end
   
+  # This is to make sure the all metric is recorded for exceptional cases
+  def test_error_handling
+    # have the AR select throw an error
+    ActiveRecordFixtures::Order.connection.stubs(:log_info).with do | sql, x, y |
+      raise "Error" if sql =~ /select/
+      true
+    end
+    ActiveRecordFixtures::Order.connection.select_rows "select * from #{ActiveRecordFixtures::Order.table_name}" rescue nil
+    metrics = NewRelic::Agent.instance.stats_engine.metrics
+    compare_metrics %W[
+    ActiveRecord/all
+    Database/SQL/select
+    ], metrics
+    assert_equal 1, NewRelic::Agent.get_stats("Database/SQL/select").call_count
+    assert_equal 1, NewRelic::Agent.get_stats("ActiveRecord/all").call_count
+  end
+  
   private
+  
   def compare_metrics expected_list, actual_list
     actual = Set.new actual_list
     expected = Set.new expected_list
