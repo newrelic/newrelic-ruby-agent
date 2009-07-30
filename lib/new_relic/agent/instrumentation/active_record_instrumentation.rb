@@ -49,15 +49,16 @@ if defined?(ActiveRecord::Base) && !NewRelic::Control.instance['skip_ar_instrume
       else
         self.class.trace_method_execution_with_scope metric, true, true do        
           t0 = Time.now.to_f
-          result = log_without_newrelic_instrumentation(sql, name, &block)
-          duration = Time.now.to_f - t0
-          
-          NewRelic::Agent.instance.transaction_sampler.notice_sql(sql, supported_config, duration)
-          # Record in the overall summary metric
-          active_record_all_stats.record_data_point(duration)
-          # Record in the summary metric for this operation
-          NewRelic::Agent.instance.stats_engine.get_stats_no_scope("ActiveRecord/#{metric_name}").record_data_point(duration) if metric_name
-          result
+          begin
+            log_without_newrelic_instrumentation(sql, name, &block)
+          ensure
+            duration = Time.now.to_f - t0
+            NewRelic::Agent.instance.transaction_sampler.notice_sql(sql, supported_config, duration)
+            # Record in the overall summary metric
+            active_record_all_stats.record_data_point(duration)
+            # Record in the summary metric for this operation
+            NewRelic::Agent.instance.stats_engine.get_stats_no_scope("ActiveRecord/#{metric_name}").record_data_point(duration) if metric_name
+          end
         end
       end
     end
