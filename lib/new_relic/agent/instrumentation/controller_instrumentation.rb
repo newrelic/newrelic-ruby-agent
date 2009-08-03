@@ -102,24 +102,26 @@ module NewRelic::Agent::Instrumentation
       if !block_given? && is_filtered?(self.class.newrelic_read_attr('do_not_trace'))
         # Tell the dispatcher instrumentation that we ignored this action and it shouldn't
         # be counted for the overall HTTP operations measurement.
-        Thread.current[:controller_ignored] = true
-        
-        return perform_action_without_newrelic_trace(*args)
+        Thread.current[:newrelic_ignore_controller] = true
+        # Also ignore all instrumentation in the call sequence
+        self.class.untrace_execution do
+          return perform_action_without_newrelic_trace(*args)
+        end
       end
       
       # reset this in case we came through a code path where the top level controller is ignored
-      Thread.current[:controller_ignored] = nil
+      Thread.current[:newrelic_ignore_controller] = nil
       
       start = Time.now.to_f
       agent.ensure_worker_thread_started
       
       # generate metrics for all all controllers (no scope)
-      self.class.trace_method_execution_no_scope "Controller" do 
+      self.class.trace_execution_unscoped "Controller" do 
         # assuming the first argument, if present, is the action name
         path = newrelic_metric_path(args.size > 0 ? args[0] : nil)
         controller_metric = "Controller/#{path}"
         
-        self.class.trace_method_execution_with_scope controller_metric, true, true do 
+        self.class.trace_execution_scoped controller_metric do 
           stats_engine.transaction_name = controller_metric
           
           local_params = (respond_to? :filter_parameters) ? filter_parameters(params) : params

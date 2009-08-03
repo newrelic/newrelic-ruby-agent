@@ -193,6 +193,7 @@ module NewRelic::Agent
         end
 
         @random_sample = nil
+        @last_sample = nil
       end
       result
     end

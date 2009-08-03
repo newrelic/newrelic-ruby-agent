@@ -11,7 +11,7 @@ class AgentControllerTest < ActionController::TestCase
   # setup is not called.
   def initialize name
     super name
-    Thread.current[:controller_ignored] = nil
+    Thread.current[:newrelic_ignore_controller] = nil
     NewRelic::Agent.manual_start
     @agent = NewRelic::Agent.instance
     #    @agent.instrument_app
@@ -23,19 +23,19 @@ class AgentControllerTest < ActionController::TestCase
   end
   
   def teardown
-    Thread.current[:controller_ignored] = nil
+    Thread.current[:newrelic_ignore_controller] = nil
     super
   end
   
   def test_metric__ignore
     engine = @agent.stats_engine
     get :action_to_ignore
-    assert_equal true, Thread.current[:controller_ignored]
+    assert_equal true, Thread.current[:newrelic_ignore_controller]
   end
   def test_metric__ignore_base
     engine = @agent.stats_engine
     get :base_action
-    assert_equal true, Thread.current[:controller_ignored]
+    assert_equal true, Thread.current[:newrelic_ignore_controller]
   end
   def test_metric__no_ignore
     engine = @agent.stats_engine
@@ -50,7 +50,7 @@ class AgentControllerTest < ActionController::TestCase
         end
       end
     end
-    assert_nil Thread.current[:controller_ignored]
+    assert_nil Thread.current[:newrelic_ignore_controller]
   end
   def test_metric__ignore_apdex
     engine = @agent.stats_engine
@@ -65,15 +65,15 @@ class AgentControllerTest < ActionController::TestCase
         end
       end
     end
-    assert_nil Thread.current[:controller_ignored]
+    assert_nil Thread.current[:newrelic_ignore_controller]
     
   end
   def test_metric__dispatched
     engine = @agent.stats_engine
     get :entry_action
-    assert_nil Thread.current[:controller_ignored]
+    assert_nil Thread.current[:newrelic_ignore_controller]
     assert_nil engine.lookup_stat('Controller/agent_test/entry_action')
-    assert_equal 1, engine.lookup_stat('Controller/new_relic/agent/agent_test/internal_action').call_count
+    assert_nil engine.lookup_stat('Controller/new_relic/agent/agent_test/internal_action')
   end
   def test_action_instrumentation
     begin

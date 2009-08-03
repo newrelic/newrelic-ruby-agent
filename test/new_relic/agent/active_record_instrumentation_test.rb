@@ -105,6 +105,15 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
     assert_equal 1, NewRelic::Agent.get_stats("Database/SQL/select").call_count
   end
   
+  def test_blocked_instrumentation
+    ActiveRecordFixtures::Order.add_delay
+    self.class.untrace_execution do
+      ActiveRecordFixtures::Order.find(:all)
+    end
+    assert_nil NewRelic::Agent.instance.transaction_sampler.last_sample
+    metrics = NewRelic::Agent.instance.stats_engine.metrics
+    compare_metrics [], metrics
+  end
   def test_run_explains
     ActiveRecordFixtures::Order.add_delay
     ActiveRecordFixtures::Order.find(:all)

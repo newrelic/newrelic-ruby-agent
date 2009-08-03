@@ -5,6 +5,9 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
   def setup
     NewRelic::Agent.manual_start
     @engine = NewRelic::Agent.instance.stats_engine
+  rescue => e
+    puts e
+    puts e.backtrace.join("\n")
   end
   def teardown
     @engine.harvest_timeslice_data({},{})
@@ -121,11 +124,11 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
   
   def test_scope__overlap
     @engine.transaction_name = 'orlando'
-    self.class.trace_method_execution_with_scope('disney', true, false) { sleep 0.1 }
+    self.class.trace_execution_scoped('disney', :deduct_call_time_from_parent => false) { sleep 0.1 }
     orlando_disney = @engine.get_stats 'disney'
     
     @engine.transaction_name = 'anaheim'
-    self.class.trace_method_execution_with_scope('disney', true, false) { sleep 0.1 }
+    self.class.trace_execution_scoped('disney', :deduct_call_time_from_parent => false) { sleep 0.1 }
     anaheim_disney = @engine.get_stats 'disney'
 
     disney = @engine.get_stats_no_scope "disney"
