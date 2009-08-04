@@ -60,7 +60,7 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
   def test_basic
     metric = "hello"
     t1 = Time.now
-    self.class.trace_method_execution_with_scope metric, true, true do
+    self.class.trace_execution_scoped metric do
       sleep 1
       assert metric == @stats_engine.peek_scope.name
     end
@@ -231,10 +231,32 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
     self.class.static_method "x", self, false
   end
   
+  def test_multiple_metrics__scoped
+    metrics = %w[first second third]
+    self.class.trace_execution_scoped metrics do
+      sleep 0.05
+    end
+    elapsed = @stats_engine.get_stats('first').average_call_time
+    metrics.map{|name| @stats_engine.get_stats name}.each do | m |
+      assert_equal 1, m.call_count
+      assert_equal elapsed, m.total_call_time
+    end
+  end
+  def test_multiple_metrics__unscoped
+    metrics = %w[first second third]
+    self.class.trace_execution_unscoped metrics do
+      sleep 0.05
+    end
+    elapsed = @stats_engine.get_stats('first').average_call_time
+    metrics.map{|name| @stats_engine.get_stats name}.each do | m |
+      assert_equal 1, m.call_count
+      assert_equal elapsed, m.total_call_time
+    end
+  end
   def test_exception
     begin
-      metric = "hey there"
-      self.class.trace_method_execution_with_scope metric, true, true do
+      metric = "hey"
+      self.class.trace_execution_scoped metric do
         assert @stats_engine.peek_scope.name == metric
         throw Exception.new            
       end

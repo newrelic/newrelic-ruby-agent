@@ -12,11 +12,10 @@ if defined?(ActiveRecord::Base) && !NewRelic::Control.instance['skip_ar_instrume
       end
     end
     
-    def active_record_all_stats
-      NewRelic::Agent.instance.stats_engine.get_stats_no_scope("ActiveRecord/all")
-    end
-    
     def log_with_newrelic_instrumentation(sql, name, &block)
+      
+      return log_without_newrelic_instrumentation(sql, name, &block) unless self.class.is_execution_traced?
+      
       # Capture db config if we are going to try to get the explain plans
       if (defined?(ActiveRecord::ConnectionAdapters::MysqlAdapter) && self.is_a?(ActiveRecord::ConnectionAdapters::MysqlAdapter)) ||
        (defined?(ActiveRecord::ConnectionAdapters::PostgreSQLAdapter) && self.is_a?(ActiveRecord::ConnectionAdapters::PostgreSQLAdapter))
@@ -47,17 +46,15 @@ if defined?(ActiveRecord::Base) && !NewRelic::Control.instance['skip_ar_instrume
       if !metric
         log_without_newrelic_instrumentation(sql, name, &block)
       else
-        self.class.trace_method_execution_with_scope metric, true, true do        
+        metrics = [metric, "ActiveRecord/all"]
+        metrics << "ActiveRecord/#{metric_name}" if metric_name
+        self.class.trace_execution_scoped(metrics) do
           t0 = Time.now.to_f
-          result = log_without_newrelic_instrumentation(sql, name, &block)
-          duration = Time.now.to_f - t0
-          
-          NewRelic::Agent.instance.transaction_sampler.notice_sql(sql, supported_config, duration)
-          # Record in the overall summary metric
-          active_record_all_stats.record_data_point(duration)
-          # Record in the summary metric for this operation
-          NewRelic::Agent.instance.stats_engine.get_stats_no_scope("ActiveRecord/#{metric_name}").record_data_point(duration) if metric_name
-          result
+          begin
+            log_without_newrelic_instrumentation(sql, name, &block) 
+          ensure
+            NewRelic::Agent.instance.transaction_sampler.notice_sql(sql, supported_config, Time.now.to_f - t0) 
+          end
         end
       end
     end

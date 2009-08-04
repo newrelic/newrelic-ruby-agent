@@ -536,10 +536,13 @@ module NewRelic::Agent
         end
       rescue Timeout::Error
         log.warn "Timed out trying to post data to RPM (timeout = #{@request_timeout} seconds)" unless @request_timeout < 30
-        raise IgnoreSilentlyException
+        raise
       end
       
-      if !(response.is_a? Net::HTTPSuccess)
+      if response.is_a? Net::HTTPGatewayTimeOut
+        log.debug("Timed out getting response: #{response.message}")
+        raise Timeout::Error, response.message
+      elsif !(response.is_a? Net::HTTPSuccess)
         log.debug "Unexpected response from server: #{response.code}: #{response.message}"
         raise IgnoreSilentlyException
       end

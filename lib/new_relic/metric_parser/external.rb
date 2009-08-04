@@ -18,7 +18,7 @@ class NewRelic::MetricParser::External < NewRelic::MetricParser
   def legend_name
     case
     when all?
-      "External Services"
+      "External Calls"
     when hosts_all?
       "All #{host} calls"
     else
