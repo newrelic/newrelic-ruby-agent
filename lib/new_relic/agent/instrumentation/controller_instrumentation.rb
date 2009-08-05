@@ -104,7 +104,7 @@ module NewRelic::Agent::Instrumentation
         # be counted for the overall HTTP operations measurement.
         Thread.current[:newrelic_ignore_controller] = true
         # Also ignore all instrumentation in the call sequence
-        self.class.set_untrace_execution do
+        NewRelic::Agent.set_untrace_execution do
           return perform_action_without_newrelic_trace(*args)
         end
       end
@@ -119,7 +119,7 @@ module NewRelic::Agent::Instrumentation
       path = newrelic_metric_path(args.size > 0 ? args[0] : nil)
       controller_metric = "Controller/#{path}"
       force = block_given? && Hash === args.last && args.last[:force]
-      self.class.trace_execution_scoped [controller_metric, "Controller"], :force => force do 
+      NewRelic::Agent.trace_execution_scoped [controller_metric, "Controller"], :force => force do 
         stats_engine.transaction_name = controller_metric
         
         local_params = (respond_to? :filter_parameters) ? filter_parameters(params) : params
@@ -141,7 +141,7 @@ module NewRelic::Agent::Instrumentation
           failed = true
           raise e
         ensure
-          if self.class.is_execution_traced?
+          if NewRelic::Agent.is_execution_traced?
             cpu_burn = (Process.times.utime + Process.times.stime) - t
             stats_engine.get_stats_no_scope("ControllerCPU/#{path}").record_data_point(cpu_burn)
             agent.transaction_sampler.notice_transaction_cpu_time(cpu_burn)

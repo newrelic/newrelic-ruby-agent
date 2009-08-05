@@ -34,7 +34,7 @@ module NewRelic::Agent
     # * <tt>metric_names</tt> is a single name or an array of names of metrics
     #
     def trace_method_execution_no_scope(metric_names, options={})
-      return yield unless self.class.is_execution_traced?
+      return yield unless NewRelic::Agent.is_execution_traced?
       t0 = Time.now.to_f
       stats = Array(metric_names).map do | metric_name |
         NewRelic::Agent.instance.stats_engine.get_stats_no_scope metric_name
@@ -56,9 +56,9 @@ module NewRelic::Agent
     # Deprecated. Use #trace_execution_scoped, a version with an options hash.  
     def trace_method_execution_with_scope(metric_names, produce_metric, deduct_call_time_from_parent, scoped_metric_only=false);
       trace_execution_scoped(metric_names, 
-                                    :metric => produce_metric, 
-                                    :deduct_call_time_from_parent => deduct_call_time_from_parent, 
-                                    :scoped_metric_only => scoped_metric_only)
+                             :metric => produce_metric, 
+                             :deduct_call_time_from_parent => deduct_call_time_from_parent, 
+                             :scoped_metric_only => scoped_metric_only)
     end
 
     # Trace a given block with stats and keep track of the caller.  
@@ -73,7 +73,7 @@ module NewRelic::Agent
     
     def trace_execution_scoped(metric_names, options={})
 
-      return yield unless self.class.is_execution_traced? || options[:force]
+      return yield unless NewRelic::Agent.is_execution_traced? || options[:force]
 
       produce_metric               = options[:metric] != false
       deduct_call_time_from_parent = options[:deduct_call_time_from_parent] != false
@@ -153,7 +153,7 @@ module NewRelic::Agent
     # * <tt>:code_header</tt> and <tt>:code_footer</tt> specify ruby code that 
     #   is inserted into the tracer before and after the call.
     # * <tt>:force = true</tt> will ensure the metric is captured even if called inside
-    #   an #untrace_execution call.
+    #   an untraced execution call.  (See NewRelic::Agent#set_untrace_execution)
     #
     # === Overriding the metric name
     #
@@ -209,7 +209,7 @@ module NewRelic::Agent
       
       header = ""
       if !options[:force]
-        header << "return #{_untraced_method_name(method_name, metric_name_code)}(*args, &block) unless self.class.is_execution_traced?\n"
+        header << "return #{_untraced_method_name(method_name, metric_name_code)}(*args, &block) unless NewRelic::Agent.is_execution_traced?\n"
       end
       header << options[:code_header] if options[:code_header]
       if options[:push_scope] == false
@@ -220,7 +220,7 @@ module NewRelic::Agent
           stats = NewRelic::Agent.instance.stats_engine.get_stats_no_scope "#{metric_name_code}"
           begin
         CODE
-        code << "set_untraced_execution(true) do\n" if options[:force]
+        code << "NewRelic::Agent.set_untraced_execution(true) do\n" if options[:force]
         code << "#{_untraced_method_name(method_name, metric_name_code)}(*args, &block)\n"
         code << "end\n" if options[:force]
         code << <<-CODE 
@@ -255,21 +255,6 @@ module NewRelic::Agent
       
       NewRelic::Control.instance.log.debug("Traced method: class = #{self}, method = #{method_name}, "+
         "metric = '#{metric_name_code}', options: #{options.inspect}, ")
-    end
-
-    # Yield to the block without collecting any metrics or traces in any of the
-    # subsequent calls.  If executed recursively, will keep track of the first
-    # entry point and turn on tracing again after leaving that block.
-    # This uses the thread local +newrelic_untrace+
-    def set_untrace_execution(trace=false)
-      (Thread.current[:newrelic_untraced] ||= []) << trace 
-      yield
-    ensure
-      Thread.current[:newrelic_untraced].pop
-    end
-    
-    def is_execution_traced?
-      Thread.current[:newrelic_untraced].nil? || Thread.current[:newrelic_untraced].last != false      
     end
 
     # Not recommended for production use, because tracers must be removed in reverse-order

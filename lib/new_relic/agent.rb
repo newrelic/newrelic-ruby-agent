@@ -178,7 +178,7 @@ module NewRelic
     end
     
     # This method disables the recording of transaction traces in the given
-    # block.
+    # block.  See also #set_untrace_execution  
     def disable_transaction_tracing
       state = agent.set_record_tt(false)
       begin
@@ -188,6 +188,22 @@ module NewRelic
       end
     end
     
+    # Yield to the block without collecting any metrics or traces in any of the
+    # subsequent calls.  If executed recursively, will keep track of the first
+    # entry point and turn on tracing again after leaving that block.
+    # This uses the thread local +newrelic_untrace+
+    def set_untrace_execution(trace=false)
+      (Thread.current[:newrelic_untraced] ||= []) << trace 
+      yield
+    ensure
+      Thread.current[:newrelic_untraced].pop
+    end
+    
+    # Check to see if we are capturing metrics currently on this thread.
+    def is_execution_traced?
+      Thread.current[:newrelic_untraced].nil? || Thread.current[:newrelic_untraced].last != false      
+    end
+
     # This method allows a filter to be applied to errors that RPM will track.
     # The block should return the exception to track (which could be different from
     # the original exception) or nil to ignore this exception
