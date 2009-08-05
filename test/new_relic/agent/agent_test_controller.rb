@@ -8,9 +8,9 @@ end
 # This is a controller class used in testing controller instrumentation
 class NewRelic::Agent::AgentTestController < NewRelic::Agent::SuperclassController
   filter_parameter_logging :social_security_number
-
+  
   def rescue_action(e) raise e end
-
+  
   ActionController::Routing::Routes.draw do | map |
     map.connect ':controller/:action.:format'
   end
@@ -37,6 +37,8 @@ class NewRelic::Agent::AgentTestController < NewRelic::Agent::SuperclassControll
   end
   private
   def internal_action
-    render :text => 'internal action'
+    perform_action_with_newrelic_trace('internal_traced_action', :force => true) do
+      render :text => 'internal action'
+    end
   end
 end

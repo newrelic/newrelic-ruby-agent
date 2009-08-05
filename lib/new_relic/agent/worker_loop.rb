@@ -18,7 +18,7 @@ module NewRelic::Agent
     # call periods.  The caller is responsible for creating the thread
     # that runs this worker loop
     def run
-      self.class.untrace_execution do
+      self.class.set_untrace_execution do
         while keep_running do
           run_next_task
         end
