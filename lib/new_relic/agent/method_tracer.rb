@@ -33,15 +33,17 @@ module NewRelic::Agent
     # This is code is inlined in #add_method_tracer.
     # * <tt>metric_names</tt> is a single name or an array of names of metrics
     #
-    def trace_method_execution_no_scope(metric_names)
-      return yield unless self.class.is_execution_traced?
+    def trace_method_execution_no_scope(metric_names, options={})
+      return yield unless NewRelic::Agent.is_execution_traced?
       t0 = Time.now.to_f
       stats = Array(metric_names).map do | metric_name |
         NewRelic::Agent.instance.stats_engine.get_stats_no_scope metric_name
       end
       begin
+        (Thread.current[:newrelic_untraced] ||= []) << true if options[:force] 
         yield
       ensure
+        Thread.current[:newrelic_untraced].pop if options[:force] && Thread.current[:newrelic_untraced]
         duration = Time.now.to_f - t0              # for some reason this is 3 usec faster than Time - Time
         stats.each { |stat| stat.trace_call(duration) }
       end
@@ -54,9 +56,9 @@ module NewRelic::Agent
     # Deprecated. Use #trace_execution_scoped, a version with an options hash.  
     def trace_method_execution_with_scope(metric_names, produce_metric, deduct_call_time_from_parent, scoped_metric_only=false);
       trace_execution_scoped(metric_names, 
-                                    :metric => produce_metric, 
-                                    :deduct_call_time_from_parent => deduct_call_time_from_parent, 
-                                    :scoped_metric_only => scoped_metric_only)
+                             :metric => produce_metric, 
+                             :deduct_call_time_from_parent => deduct_call_time_from_parent, 
+                             :scoped_metric_only => scoped_metric_only)
     end
 
     # Trace a given block with stats and keep track of the caller.  
@@ -71,7 +73,7 @@ module NewRelic::Agent
     
     def trace_execution_scoped(metric_names, options={})
 
-      return yield unless self.class.is_execution_traced?
+      return yield unless NewRelic::Agent.is_execution_traced? || options[:force]
 
       produce_metric               = options[:metric] != false
       deduct_call_time_from_parent = options[:deduct_call_time_from_parent] != false
@@ -103,8 +105,10 @@ module NewRelic::Agent
       end
       
       begin
+        (Thread.current[:newrelic_untraced] ||= []) << true if options[:force] 
         yield
       ensure
+        Thread.current[:newrelic_untraced].pop if options[:force] && Thread.current[:newrelic_untraced]
         t1 = Time.now.to_f
         duration = t1 - t0
         
@@ -148,6 +152,8 @@ module NewRelic::Agent
     #   or a method that might be called inside another traced method.
     # * <tt>:code_header</tt> and <tt>:code_footer</tt> specify ruby code that 
     #   is inserted into the tracer before and after the call.
+    # * <tt>:force = true</tt> will ensure the metric is captured even if called inside
+    #   an untraced execution call.  (See NewRelic::Agent#set_untrace_execution)
     #
     # === Overriding the metric name
     #
@@ -168,7 +174,7 @@ module NewRelic::Agent
       if !options.is_a?(Hash)
         options = {:push_scope => options} 
       end
-      if (unrecognized = options.keys - [:metric, :push_scope, :deduct_call_time_from_parent, :code_header, :code_footer, :scoped_metric_only]).any?
+      if (unrecognized = options.keys - [:force, :metric, :push_scope, :deduct_call_time_from_parent, :code_header, :code_footer, :scoped_metric_only]).any?
         fail "Unrecognized options in add_method_tracer_call: #{unrecognized.join(', ')}"
       end
       # options[:push_scope] true if we are noting the scope of this for
@@ -177,6 +183,7 @@ module NewRelic::Agent
       # options[:metric] true if you are tracking stats for a metric, otherwise
       # it's just for transaction tracing.
       options[:metric] = true if options[:metric].nil?
+      options[:force] = false if options[:force].nil?
       options[:deduct_call_time_from_parent] = false if options[:deduct_call_time_from_parent].nil? && !options[:metric]
       options[:deduct_call_time_from_parent] = true if options[:deduct_call_time_from_parent].nil?
       options[:code_header] ||= ""
@@ -200,21 +207,26 @@ module NewRelic::Agent
       
       fail "Can't add a tracer where push_scope is false and metric is false" if options[:push_scope] == false && !options[:metric]
       
+      header = ""
+      if !options[:force]
+        header << "return #{_untraced_method_name(method_name, metric_name_code)}(*args, &block) unless NewRelic::Agent.is_execution_traced?\n"
+      end
+      header << options[:code_header] if options[:code_header]
       if options[:push_scope] == false
         code = <<-CODE
         def #{_traced_method_name(method_name, metric_name_code)}(*args, &block)
-          return #{_untraced_method_name(method_name, metric_name_code)}(*args, &block) unless self.class.is_execution_traced?
-          
-          #{options[:code_header]}
-
+          #{header}
           t0 = Time.now.to_f
           stats = NewRelic::Agent.instance.stats_engine.get_stats_no_scope "#{metric_name_code}"
-
           begin
-            #{_untraced_method_name(method_name, metric_name_code)}(*args, &block)
+        CODE
+        code << "NewRelic::Agent.set_untraced_execution(true) do\n" if options[:force]
+        code << "#{_untraced_method_name(method_name, metric_name_code)}(*args, &block)\n"
+        code << "end\n" if options[:force]
+        code << <<-CODE 
           ensure
             duration = Time.now.to_f - t0
-            stats.trace_call(duration)     # for some reason this is 3 usec faster than Time - Time
+            stats.trace_call(duration)
             #{options[:code_footer]}
           end
         end
@@ -224,7 +236,8 @@ module NewRelic::Agent
       def #{_traced_method_name(method_name, metric_name_code)}(*args, &block)
         #{options[:code_header]}
         result = #{klass}.trace_execution_scoped("#{metric_name_code}", 
-                  :metric => #{options[:metric]}, 
+                  :metric => #{options[:metric]},
+                  :forced => #{options[:force]}, 
                   :deduct_call_time_from_parent => #{options[:deduct_call_time_from_parent]}, 
                   :scoped_metric_only => #{options[:scoped_metric_only]}) do
           #{_untraced_method_name(method_name, metric_name_code)}(*args, &block)
@@ -242,29 +255,6 @@ module NewRelic::Agent
       
       NewRelic::Control.instance.log.debug("Traced method: class = #{self}, method = #{method_name}, "+
         "metric = '#{metric_name_code}', options: #{options.inspect}, ")
-    end
-
-    # Yield to the block without collecting any metrics or traces in any of the
-    # subsequent calls.  If executed recursively, will keep track of the first
-    # entry point and turn on tracing again after leaving that block.
-    # This uses the thread local +newrelic_untrace+
-    def untrace_execution
-      if Thread.current[:newrelic_untraced]
-        Thread.current[:newrelic_untraced] += 1
-      else
-        Thread.current[:newrelic_untraced] = 1
-      end
-      yield
-    ensure
-      new_value = Thread.current[:newrelic_untraced] -= 1 if Thread.current[:newrelic_untraced]
-      if new_value.nil? || new_value < 1
-        Thread.current[:newrelic_untraced] = nil
-        NewRelic::Control.instance.log.error "Unbalanced thread flag rpm ignore (#{new_value}): #{caller.join("\n   ")}" if new_value.nil? || new_value < 0
-      end
-    end
-    
-    def is_execution_traced?
-      not Thread.current[:newrelic_untraced]      
     end
 
     # Not recommended for production use, because tracers must be removed in reverse-order

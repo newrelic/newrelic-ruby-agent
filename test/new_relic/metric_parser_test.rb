@@ -145,7 +145,7 @@ class MetricParserTest < Test::Unit::TestCase
     assert !m.hosts_all?
     assert_equal "All External", m.developer_name
     assert_equal "calls to external systems", m.tooltip_name
-    assert_equal "External Calls", m.legend_name
+    assert_equal "External Services", m.legend_name
     assert_nil m.operation
     assert_nil m.library
     

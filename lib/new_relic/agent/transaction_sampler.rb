@@ -53,7 +53,7 @@ module NewRelic::Agent
     
     
     def notice_first_scope_push(time)
-      if Thread::current[:record_tt] == false
+      if Thread::current[:record_tt] == false || !NewRelic::Agent.is_execution_traced?
         Thread::current[BUILDER_KEY] = nil
       else
         Thread::current[BUILDER_KEY] = TransactionSampleBuilder.new(time)

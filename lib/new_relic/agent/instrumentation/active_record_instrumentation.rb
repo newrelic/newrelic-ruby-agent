@@ -14,7 +14,7 @@ if defined?(ActiveRecord::Base) && !NewRelic::Control.instance['skip_ar_instrume
     
     def log_with_newrelic_instrumentation(sql, name, &block)
       
-      return log_without_newrelic_instrumentation(sql, name, &block) unless self.class.is_execution_traced?
+      return log_without_newrelic_instrumentation(sql, name, &block) unless NewRelic::Agent.is_execution_traced?
       
       # Capture db config if we are going to try to get the explain plans
       if (defined?(ActiveRecord::ConnectionAdapters::MysqlAdapter) && self.is_a?(ActiveRecord::ConnectionAdapters::MysqlAdapter)) ||

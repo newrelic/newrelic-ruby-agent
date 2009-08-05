@@ -19,7 +19,7 @@ module NewRelic::Agent::Instrumentation
       
       # Reset the flag indicating the controller action should be ignored.
       # It may be set by the action to either true or false or left nil meaning false
-      Thread.current[:rpm_ignore_controller] = nil
+      Thread.current[:newrelic_ignore_controller] = nil
     end
     
     def newrelic_dispatcher_finish
@@ -27,7 +27,7 @@ module NewRelic::Agent::Instrumentation
       dispatcher_end_time = Time.now.to_f
       NewRelic::Agent.agent.end_transaction
       NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.dispatcher_finish dispatcher_end_time
-      unless Thread.current[:rpm_ignore_controller]
+      unless Thread.current[:newrelic_ignore_controller]
         # Store the response header
         newrelic_dispatcher_start_time = Thread.current[:newrelic_dispatcher_start]
         response_code = newrelic_response_code
