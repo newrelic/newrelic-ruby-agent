@@ -18,10 +18,8 @@ module NewRelic::Agent
     # call periods.  The caller is responsible for creating the thread
     # that runs this worker loop
     def run
-      self.class.set_untrace_execution do
-        while keep_running do
-          run_next_task
-        end
+      while keep_running do
+        run_next_task
       end
     end
     
@@ -74,10 +72,7 @@ module NewRelic::Agent
       end
       
       begin
-        # wrap task execution in a block that won't collect a TT
-        NewRelic::Agent.disable_transaction_tracing do
-          task.execute
-        end
+        task.execute
       rescue ServerError => e
         log.debug "Server Error: #{e}"
       rescue RuntimeError => e

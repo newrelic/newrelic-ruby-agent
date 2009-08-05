@@ -270,7 +270,7 @@ module NewRelic::Agent
         begin
           ClassLoadingWatcher.background_thread=Thread.current if control['check_bg_loading']
         
-          run_worker_loop
+          self.class.set_untrace_execution { run_worker_loop }
         rescue IgnoreSilentlyException
           control.log! "Unable to establish connection with the server.  Run with log level set to debug for more information."
         rescue StandardError => e
