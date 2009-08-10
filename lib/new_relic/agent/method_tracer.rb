@@ -40,10 +40,10 @@ module NewRelic::Agent
         NewRelic::Agent.instance.stats_engine.get_stats_no_scope metric_name
       end
       begin
-        (Thread.current[:newrelic_untraced] ||= []) << true if options[:force] 
+        NewRelic::Agent.instance.push_trace_execution_flag(true) if options[:force]
         yield
       ensure
-        Thread.current[:newrelic_untraced].pop if options[:force] && Thread.current[:newrelic_untraced]
+        NewRelic::Agent.instance.pop_trace_execution_flag if options[:force]
         duration = Time.now.to_f - t0              # for some reason this is 3 usec faster than Time - Time
         stats.each { |stat| stat.trace_call(duration) }
       end
@@ -98,6 +98,7 @@ module NewRelic::Agent
       begin
         # Keep a reference to the scope we are pushing so we can do a sanity check making
         # sure when we pop we get the one we 'expected'
+        NewRelic::Agent.instance.push_trace_execution_flag(true) if options[:force] 
         expected_scope = NewRelic::Agent.instance.stats_engine.push_scope(first_name, t0, deduct_call_time_from_parent)
       rescue => e
         NewRelic::Control.instance.log.error("Caught exception in trace_method_execution header. Metric name = #{metric_name}, exception = #{e}")
@@ -105,14 +106,13 @@ module NewRelic::Agent
       end
       
       begin
-        (Thread.current[:newrelic_untraced] ||= []) << true if options[:force] 
         yield
       ensure
-        Thread.current[:newrelic_untraced].pop if options[:force] && Thread.current[:newrelic_untraced]
         t1 = Time.now.to_f
         duration = t1 - t0
         
         begin
+          NewRelic::Agent.instance.pop_trace_execution_flag if options[:force]
           if expected_scope
             scope = NewRelic::Agent.instance.stats_engine.pop_scope expected_scope, duration, t1
             exclusive = duration - scope.children_time
@@ -153,7 +153,7 @@ module NewRelic::Agent
     # * <tt>:code_header</tt> and <tt>:code_footer</tt> specify ruby code that 
     #   is inserted into the tracer before and after the call.
     # * <tt>:force = true</tt> will ensure the metric is captured even if called inside
-    #   an untraced execution call.  (See NewRelic::Agent#set_untrace_execution)
+    #   an untraced execution call.  (See NewRelic::Agent#disable_all_tracing)
     #
     # === Overriding the metric name
     #
@@ -219,12 +219,10 @@ module NewRelic::Agent
           t0 = Time.now.to_f
           stats = NewRelic::Agent.instance.stats_engine.get_stats_no_scope "#{metric_name_code}"
           begin
-        CODE
-        code << "NewRelic::Agent.set_untraced_execution(true) do\n" if options[:force]
-        code << "#{_untraced_method_name(method_name, metric_name_code)}(*args, &block)\n"
-        code << "end\n" if options[:force]
-        code << <<-CODE 
+            #{"NewRelic::Agent.instance.push_trace_execution_flag(true)\n" if options[:force]}
+            #{_untraced_method_name(method_name, metric_name_code)}(*args, &block)\n
           ensure
+            #{"NewRelic::Agent.instance.pop_trace_execution_flag\n" if options[:force] }
             duration = Time.now.to_f - t0
             stats.trace_call(duration)
             #{options[:code_footer]}

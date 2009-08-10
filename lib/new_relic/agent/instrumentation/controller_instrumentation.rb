@@ -104,7 +104,7 @@ module NewRelic::Agent::Instrumentation
         # be counted for the overall HTTP operations measurement.
         Thread.current[:newrelic_ignore_controller] = true
         # Also ignore all instrumentation in the call sequence
-        NewRelic::Agent.set_untrace_execution do
+        NewRelic::Agent.disable_all_tracing do
           return perform_action_without_newrelic_trace(*args)
         end
       end

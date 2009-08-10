@@ -105,6 +105,17 @@ module NewRelic::Agent
       Thread::current[:record_tt] = should_record
       prev.nil? || prev
     end
+    # Push flag indicating whether we should be tracing in this
+    # thread.  
+    def push_trace_execution_flag(should_trace=false)
+      (Thread.current[:newrelic_untraced] ||= []) << should_trace 
+    end
+
+    # Pop the current trace execution status.  Restore trace execution status
+    # to what it was before we pushed the current flag.
+    def pop_trace_execution_flag
+      Thread.current[:newrelic_untraced].pop if Thread.current[:newrelic_untraced]
+    end
     
     def add_custom_parameters(params)
       p = Thread::current[:custom_params] || (Thread::current[:custom_params] = {})
@@ -267,7 +278,7 @@ module NewRelic::Agent
       @worker_thread = Thread.new do
         begin
           ClassLoadingWatcher.background_thread=Thread.current if control['check_bg_loading']
-          NewRelic::Agent.set_untrace_execution { run_worker_loop }
+          NewRelic::Agent.disable_all_tracing { run_worker_loop }
         rescue IgnoreSilentlyException
           control.log! "Unable to establish connection with the server.  Run with log level set to debug for more information."
         rescue StandardError => e
