@@ -97,15 +97,13 @@ module NewRelic::Agent
     def set_record_sql(should_record)
       prev = Thread::current[:record_sql]
       Thread::current[:record_sql] = should_record
-      
-      prev || true
+      prev.nil? || prev
     end
     
     def set_record_tt(should_record)
       prev = Thread::current[:record_tt]
       Thread::current[:record_tt] = should_record
-      
-      prev || true
+      prev.nil? || prev
     end
     
     def add_custom_parameters(params)
