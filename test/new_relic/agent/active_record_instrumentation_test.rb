@@ -107,7 +107,7 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
   
   def test_blocked_instrumentation
     ActiveRecordFixtures::Order.add_delay
-    NewRelic::Agent.set_untrace_execution do
+    NewRelic::Agent.disable_all_tracing do
       ActiveRecordFixtures::Order.find(:all)
     end
     assert_nil NewRelic::Agent.instance.transaction_sampler.last_sample

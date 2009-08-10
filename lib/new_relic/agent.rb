@@ -181,7 +181,7 @@ module NewRelic
     end
     
     # This method disables the recording of transaction traces in the given
-    # block.  See also #set_untrace_execution  
+    # block.  See also #disable_all_tracing  
     def disable_transaction_tracing
       state = agent.set_record_tt(false)
       begin
@@ -195,11 +195,11 @@ module NewRelic
     # subsequent calls.  If executed recursively, will keep track of the first
     # entry point and turn on tracing again after leaving that block.
     # This uses the thread local +newrelic_untrace+
-    def set_untrace_execution(trace=false)
-      (Thread.current[:newrelic_untraced] ||= []) << trace 
+    def disable_all_tracing
+      agent.push_trace_execution_flag(false)
       yield
     ensure
-      Thread.current[:newrelic_untraced].pop
+      agent.pop_trace_execution_flag
     end
     
     # Check to see if we are capturing metrics currently on this thread.
