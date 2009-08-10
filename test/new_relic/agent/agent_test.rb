@@ -70,6 +70,21 @@ class AgentTest < ActiveSupport::TestCase
     assert_equal "mailer", NewRelic::Control.instance.dispatcher_instance_id
   end
   
+  def test_set_record_sql
+    @agent.set_record_sql(false)
+    assert !Thread::current[:record_sql]
+    NewRelic::Agent.disable_sql_recording do
+      assert_equal false, Thread::current[:record_sql]
+      NewRelic::Agent.disable_sql_recording do
+        assert_equal false, Thread::current[:record_sql]
+      end
+      assert_equal false, Thread::current[:record_sql]
+    end
+    assert !Thread::current[:record_sql], Thread::current[:record_sql]
+  ensure
+    @agent.set_record_sql(nil)
+  end
+  
   def test_version
     assert_match /\d\.\d+\.\d+/, NewRelic::VERSION::STRING
   end

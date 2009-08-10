@@ -76,6 +76,9 @@ module NewRelic
     
     # An exception that forces an agent to stop reporting until its mongrel is restarted.
     class ForceDisconnectException < StandardError; end
+      
+    # An exception that forces an agent to restart.
+    class ForceRestartException < StandardError; end
     
     # Used to blow out of a periodic task without logging a an error, such as for routine
     # failures.
