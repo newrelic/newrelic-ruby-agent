@@ -21,13 +21,22 @@ class NewRelic::Agent::NetInstrumentationTest < Test::Unit::TestCase
     assert_equal @engine.metrics.sort, 
        %w[External/www.google.com/Net::HTTP/GET External/all External/www.google.com/all].sort
   end
+  def test_ignore
+    NewRelic::Agent.disable_all_tracing do
+      url = URI.parse('http://www.google.com/index.html')
+      res = Net::HTTP.start(url.host, url.port) {|http|
+        http.post('/index.html','data')
+      }
+    end
+    assert_equal 0, @engine.metrics.size 
+  end
   def test_head
     url = URI.parse('http://www.google.com/index.html')
     res = Net::HTTP.start(url.host, url.port) {|http|
       http.head('/index.html')
     }
     assert_equal %w[External/www.google.com/Net::HTTP/HEAD External/all External/www.google.com/all].sort,
-       @engine.metrics.sort 
+    @engine.metrics.sort 
   end
   
   def test_post
@@ -36,7 +45,7 @@ class NewRelic::Agent::NetInstrumentationTest < Test::Unit::TestCase
       http.post('/index.html','data')
     }
     assert_equal %w[External/www.google.com/Net::HTTP/POST External/all External/www.google.com/all].sort, 
-        @engine.metrics.sort 
+    @engine.metrics.sort 
   end
   
 end
