@@ -255,6 +255,7 @@ module NewRelic::Agent
     # Remove all stats.  For test code only.
     def clear_stats 
       @stats_hash.clear
+      NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.reset
     end
     
     # Reset each of the stats, such as when a new passenger instance starts up.

@@ -25,6 +25,7 @@ module NewRelic::Agent
     attr_reader :error_collector
     attr_reader :worker_loop
     attr_reader :record_sql
+    attr_reader :histogram
     
     # Should only be called by NewRelic::Control
     def self.instance
@@ -174,7 +175,7 @@ module NewRelic::Agent
       # use transaction_threshold: apdex_f to use your apdex t value
       # multiplied by 4
       # undefined transaction_threshold defaults to 2.0
-      apdex_f = 4 * NewRelic::Control.instance['apdex_t'].to_f
+      apdex_f = 4 * NewRelic::Control.instance.apdex_t
       @slowest_transaction_threshold = sampler_config.fetch('transaction_threshold', 2.0)
       if @slowest_transaction_threshold =~ /apdex_f/i
         @slowest_transaction_threshold = apdex_f
@@ -309,7 +310,7 @@ module NewRelic::Agent
       @launch_time = Time.now
       
       @metric_ids = {}
-      
+      @histogram = NewRelic::Histogram.new(NewRelic::Control.instance.apdex_t / 10)
       @stats_engine = NewRelic::Agent::StatsEngine.new
       @transaction_sampler = NewRelic::Agent::TransactionSampler.new(self)
       @error_collector = NewRelic::Agent::ErrorCollector.new(self)
