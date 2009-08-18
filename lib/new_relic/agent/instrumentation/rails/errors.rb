@@ -1,8 +1,10 @@
 
 ActionController::Base.class_eval do
   
-  def newrelic_notice_error(exception)
+  def newrelic_notice_error(exception, custom_params = {})
     filtered_params = (respond_to? :filter_parameters) ? filter_parameters(params) : params
+    
+    filtered_params.merge!(custom_params)
     
     NewRelic::Agent.agent.error_collector.notice_error(exception, request, newrelic_metric_path, filtered_params)
   end
