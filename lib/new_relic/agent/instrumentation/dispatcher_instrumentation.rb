@@ -28,14 +28,16 @@ module NewRelic::Agent::Instrumentation
       NewRelic::Agent.agent.end_transaction
       NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.dispatcher_finish dispatcher_end_time
       unless Thread.current[:newrelic_ignore_controller]
+        elapsed_time = dispatcher_end_time - Thread.current[:newrelic_dispatcher_start]
         # Store the response header
-        newrelic_dispatcher_start_time = Thread.current[:newrelic_dispatcher_start]
         response_code = newrelic_response_code
         if response_code
           stats = NewRelic::Agent.agent.stats_engine.get_stats_no_scope("HTTP/Response/#{response_code}")
-          stats.trace_call(dispatcher_end_time - newrelic_dispatcher_start_time)
+          stats.trace_call(elapsed_time)
         end
-        dispatch_stat.trace_call(dispatcher_end_time - newrelic_dispatcher_start_time) 
+        # Store the response time
+        dispatch_stat.trace_call(elapsed_time)
+        NewRelic::Agent.instance.histogram.process(elapsed_time)
       end
     end
     def newrelic_response_code
@@ -66,11 +68,6 @@ module NewRelic::Agent::Instrumentation
       extend self
       # the fraction of the sample period that the dispatcher was busy
       
-      @harvest_start = Time.now.to_f
-      @accumulator = 0
-      @entrypoint_stack = []
-      @lock = Mutex.new
-      
       def dispatcher_start(time)
         @lock.synchronize do
           @entrypoint_stack.push time      
@@ -87,7 +84,15 @@ module NewRelic::Agent::Instrumentation
       def busy_count
         @entrypoint_stack.size
       end
-
+      def reset
+        @entrypoint_stack = []
+        @lock = Mutex.new
+        @accumulator = 0
+        @harvest_start = Time.now.to_f
+      end
+      
+      self.reset
+      
       # Called before uploading to to the server to collect current busy stats.
       def harvest_busy
         busy = 0

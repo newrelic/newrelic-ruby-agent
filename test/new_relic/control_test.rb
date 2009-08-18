@@ -51,7 +51,7 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     assert_equal c['sval'], 'sure'
   end
   def test_config_apdex
-    assert_equal 1.1, c['apdex_t']
+    assert_equal 1.1, c.apdex_t
   end
   def test_transaction_threshold
     assert_equal 'Apdex_f', c['transaction_tracer']['transaction_threshold']
@@ -64,9 +64,6 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     NewRelic::Control.instance.send :append_environment_info
     snapshot = NewRelic::Control.instance.local_env.snapshot
     assert snapshot.assoc('Plugin List').last.include?('newrelic_rpm'), snapshot.inspect
-  end
-  def test_config_apdex
-    assert_equal 1.1, c['apdex_t']
   end
    
   def test_transaction_threshold__apdex

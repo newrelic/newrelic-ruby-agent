@@ -155,10 +155,10 @@ module NewRelic::Agent::Instrumentation
               when failed
                 apdex_overall_stat.record_apdex_f    # frustrated
                 controller_stat.record_apdex_f
-              when duration <= NewRelic::Control.instance['apdex_t']
+              when duration <= NewRelic::Control.instance.apdex_t
                 apdex_overall_stat.record_apdex_s    # satisfied
                 controller_stat.record_apdex_s
-              when duration <= 4 * NewRelic::Control.instance['apdex_t']
+              when duration <= 4 * NewRelic::Control.instance.apdex_t
                 apdex_overall_stat.record_apdex_t    # tolerating
                 controller_stat.record_apdex_t
               else
