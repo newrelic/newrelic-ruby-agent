@@ -135,7 +135,6 @@ class NewRelic::Control::Rails < NewRelic::Control
     require 'new_relic/agent/instrumentation/controller_instrumentation'
     require 'new_relic/agent/instrumentation/error_instrumentation'
     ActionController::Base.send :include, NewRelic::Agent::Instrumentation::ControllerInstrumentation::Shim
-    Object.send :include, NewRelic::Agent::Instrumentation::ErrorInstrumentation::Shim
   end
   
 end

@@ -1,4 +1,5 @@
 v2.10.0
+  * removed #newrelic_notice_error from Object class, replaced by NewRelic::Agent#notic_error 
   * collect histogram statistics
   * add custom parameters to newrelic_notice_error call to display
     extra info for errors
