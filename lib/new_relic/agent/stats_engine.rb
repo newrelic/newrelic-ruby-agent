@@ -139,23 +139,13 @@ module NewRelic::Agent
     end
     
     def get_stats_no_scope(metric_name)
-      stats = @stats_hash[metric_name]
-      if stats.nil?
-        stats = NewRelic::MethodTraceStats.new
-        @stats_hash[metric_name] = stats
-      end
-      stats
+      @stats_hash[metric_name] ||= NewRelic::MethodTraceStats.new 
     end
     
     # This version allows a caller to pass a stat class to use
     #
     def get_custom_stats(metric_name, stat_class)
-      stats = @stats_hash[metric_name]
-      if stats.nil?
-        stats = stat_class.new
-        @stats_hash[metric_name] = stats
-      end
-      stats
+      @stats_hash[metric_name] ||= stat_class.new
     end
     
     # If use_scope is true, two chained metrics are created, one with scope and one without
@@ -164,32 +154,15 @@ module NewRelic::Agent
       
       if scoped_metric_only
         spec = NewRelic::MetricSpec.new metric_name, transaction_name
-        
-        stats = @stats_hash[spec]
-        if stats.nil?
-          stats = NewRelic::MethodTraceStats.new
-          @stats_hash[spec] = stats        
-        end
+        stats = @stats_hash[spec] ||= NewRelic::MethodTraceStats.new 
       else  
-        stats = @stats_hash[metric_name]
-        if stats.nil?
-          stats = NewRelic::MethodTraceStats.new
-          @stats_hash[metric_name] = stats
-        end
-        
+        stats = @stats_hash[metric_name] ||= NewRelic::MethodTraceStats.new 
         if use_scope && transaction_name
           spec = NewRelic::MetricSpec.new metric_name, transaction_name
-          
-          scoped_stats = @stats_hash[spec]
-          if scoped_stats.nil?
-            scoped_stats = NewRelic::ScopedMethodTraceStats.new stats
-            @stats_hash[spec] = scoped_stats        
-          end
-          
+          scoped_stats = @stats_hash[spec] ||= NewRelic::ScopedMethodTraceStats.new(stats) 
           stats = scoped_stats
         end
       end
-      
       stats
     end
     
