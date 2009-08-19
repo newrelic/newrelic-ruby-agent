@@ -1,6 +1,17 @@
 
 module NewRelic::Agent
   class StatsEngine
+    
+    # Defines methods that stub out the stats engine methods
+    # when the agent is disabled
+    module Shim # :nodoc:
+      def start_transaction; end
+      def end_transaction; end
+      def add_sampler(*args); end
+      def add_harvest_sampler(*args); end
+      def spawn_sampler_thread(*args); end
+    end
+    
     POLL_PERIOD = 10
     
     ScopeStackElement = Struct.new(:name, :children_time, :deduct_call_time_from_parent)

@@ -5,6 +5,13 @@ class NewRelic::Agent::ShimAgent < NewRelic::Agent::Agent
   def self.instance
     @instance ||= self.new
   end  
+  def initialize
+    super
+    @histogram.extend NewRelic::Histogram::Shim
+    @stats_engine.extend NewRelic::Agent::StatsEngine::Shim
+    @transaction_sampler.extend NewRelic::Agent::TransactionSampler::Shim
+    @error_collector.extend NewRelic::Agent::ErrorCollector::Shim
+  end
   def ensure_worker_thread_started; end
   def start *args; end
   def shutdown; end
