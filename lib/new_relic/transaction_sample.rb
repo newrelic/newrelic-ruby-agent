@@ -16,15 +16,13 @@ module NewRelic
       ].freeze
   
   class TransactionSample
+    EMPTY_ARRAY = [].freeze
     
     @@start_time = Time.now
 
     include TransactionAnalysis
     class Segment
       
-      class << self
-        @@empty_array = []
-      end
       
       attr_reader :entry_timestamp
       attr_reader :exit_timestamp
@@ -86,7 +84,14 @@ module NewRelic
       def path_string
         "#{metric_name}[#{called_segments.collect {|segment| segment.path_string }.join('')}]"
       end
-      
+      def to_s_compact
+        str = ""
+        str << metric_name
+        if called_segments.any?
+          str << "{#{called_segments.map { | cs | cs.to_s_compact }.join(",")}}"
+        end
+        str
+      end
       def to_debug_str(depth)
         tab = "" 
         depth.times {tab << "  "}
@@ -109,7 +114,7 @@ module NewRelic
       end
       
       def called_segments
-        @called_segments || @@empty_array
+        @called_segments || EMPTY_ARRAY
       end
       
       def freeze
@@ -319,7 +324,6 @@ module NewRelic
       end
       
     end
-        
 
     attr_reader :root_segment
     attr_reader :params
@@ -387,6 +391,10 @@ module NewRelic
     
     def each_segment(&block)
       @root_segment.each_segment(&block)
+    end
+    
+    def to_s_compact
+      @root_segment.to_s_compact
     end
     
     def find_segment(id)

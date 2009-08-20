@@ -28,6 +28,27 @@ class NewRelic::Agent::TransationSamplerTest < Test::Unit::TestCase
     assert_equal "a", samples.last.root_segment.called_segments[0].metric_name
   end
 
+  def test_sample_tree
+    assert_equal 0, @sampler.scope_depth
+    
+    @sampler.notice_first_scope_push Time.now.to_f
+    @sampler.notice_transaction "/path", nil, {}
+    @sampler.notice_push_scope "a"
+
+    @sampler.notice_push_scope "b"
+    @sampler.notice_pop_scope "b"
+
+    @sampler.notice_push_scope "c"
+    @sampler.notice_push_scope "d"
+    @sampler.notice_pop_scope "d"
+    @sampler.notice_pop_scope "c"
+
+    @sampler.notice_pop_scope "a"
+    @sampler.notice_scope_empty
+    sample = @sampler.harvest([],0.0).first
+    assert_equal "ROOT{a{b,c{d}}}", sample.to_s_compact
+
+  end
   def test_sample_id 
     run_sample_trace do 
       assert @sampler.current_sample_id != 0, @sampler.current_sample_id 
@@ -103,6 +124,10 @@ class NewRelic::Agent::TransationSamplerTest < Test::Unit::TestCase
     @sampler.notice_push_scope "a"
     @sampler.notice_pop_scope "a"
     @sampler.notice_scope_empty
+    
+    assert_equal 0, @sampler.scope_depth
+    sample = @sampler.harvest(nil, 0.0).first
+    assert_equal "ROOT{a}", sample.to_s_compact
   end
   
   def test_double_scope_stack_empty

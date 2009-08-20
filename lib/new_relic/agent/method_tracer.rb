@@ -119,7 +119,7 @@ module NewRelic::Agent
             metric_stats.each { |stats| stats.trace_call(duration, exclusive) }
           end
         rescue => e
-          NewRelic::Control.instance.log.error("Caught exception in trace_method_execution footer. Metric name = #{metric_name}, exception = #{e}")
+          NewRelic::Control.instance.log.error("Caught exception in trace_method_execution footer. Metric name = #{first_name}, exception = #{e}")
           NewRelic::Control.instance.log.error(e.backtrace.join("\n"))
         end
       end

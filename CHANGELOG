@@ -1,4 +1,5 @@
 v2.10.0
+  * instrumentation of GC for REE and MRE with GC patch
   * support agent restarting when changes are made to the account
   * removed #newrelic_notice_error from Object class, replaced by NewRelic::Agent#notic_error 
   * collect histogram statistics
