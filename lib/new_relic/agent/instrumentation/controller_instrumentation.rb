@@ -114,7 +114,7 @@ module NewRelic::Agent::Instrumentation
       
       start = Time.now.to_f
       agent.ensure_worker_thread_started
-      
+#      gc_start = GC.respond_to?(:enable_stats) && GC.time      
       # assuming the first argument, if present, is the action name
       path = newrelic_metric_path(args.size > 0 ? args[0] : nil)
       controller_metric = "Controller/#{path}"
@@ -145,7 +145,10 @@ module NewRelic::Agent::Instrumentation
             cpu_burn = (Process.times.utime + Process.times.stime) - t
             stats_engine.get_stats_no_scope("ControllerCPU/#{path}").record_data_point(cpu_burn)
             agent.transaction_sampler.notice_transaction_cpu_time(cpu_burn)
-            
+#            if gc_start
+#              gcstats = stats_engine.get_stats("GC/cumulative")
+#              gcstats.record_data_point((GC.time - gc_start)/1000000.0)
+#            end
             # do the apdex bucketing
             #
             unless is_filtered?(self.class.newrelic_read_attr('ignore_apdex'))

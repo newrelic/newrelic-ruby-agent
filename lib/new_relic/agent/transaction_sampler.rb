@@ -24,8 +24,8 @@ module NewRelic::Agent
       config = NewRelic::Control.instance
       sampler_config = config.fetch('transaction_tracer', {})
       @stack_trace_threshold = sampler_config.fetch('stack_trace_threshold', 0.500).to_f
-      
-      agent.stats_engine.add_scope_stack_listener self
+      @stats_engine = agent.stats_engine
+      @stats_engine.add_scope_stack_listener self
 
       agent.set_sql_obfuscator(:replace) do |sql| 
         default_sql_obfuscator(sql)
@@ -234,23 +234,39 @@ module NewRelic::Agent
       @sample = NewRelic::TransactionSample.new(time)
       @sample_start = time
       @current_segment = @sample.root_segment
+      @collecting_gc = GC.respond_to?(:time)
+      @last_gc = GC.time if @collecting_gc
     end
 
     def sample_id
       @sample.sample_id
     end
 
+    def capture_gc_time
+      return if @current_segment.metric_name == "GC/cumulative"
+      new_time = GC.time
+      elapsed = (new_time - @last_gc)/1000000.0 if @last_gc
+      if elapsed && elapsed > 0.001
+        @last_gc = new_time
+        time = Time.now.to_f
+        trace_entry("GC/cumulative", time - elapsed)
+        trace_exit("GC/cumulative", time)
+        gc_stats = NewRelic::Agent.get_stats("GC/cumulative", true)  
+        gc_stats.trace_call(elapsed, elapsed)
+      end
+    end
     def trace_entry(metric_name, time)
+      capture_gc_time if @collecting_gc
       segment = @sample.create_segment(time - @sample_start, metric_name)
       @current_segment.add_called_segment(segment)
       @current_segment = segment
     end
 
     def trace_exit(metric_name, time)
+      capture_gc_time if @collecting_gc
       if metric_name != @current_segment.metric_name
         fail "unbalanced entry/exit: #{metric_name} != #{@current_segment.metric_name}"
       end
-      
       @current_segment.end_trace(time - @sample_start)
       @current_segment = @current_segment.parent_segment
     end
@@ -266,7 +282,7 @@ module NewRelic::Agent
         log.info @sample.to_s
         return
       end
-      
+      capture_gc_time if @collecting_gc
       @sample.root_segment.end_trace(time - @sample_start)
       @sample.params[:custom_params] = normalize_params(NewRelic::Agent.instance.custom_params) 
       @sample.freeze
