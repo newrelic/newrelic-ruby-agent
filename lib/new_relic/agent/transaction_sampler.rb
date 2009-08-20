@@ -3,6 +3,14 @@ module NewRelic::Agent
   
   class TransactionSampler
     
+    # Module defining methods stubbed out when the agent is disabled
+    module Shim #:nodoc:
+      def notice_first_scope_push(*args); end
+      def notice_push_scope(*args); end
+      def notice_pop_scope(*args); end
+      def notice_scope_empty(*args); end
+    end
+    
     BUILDER_KEY = :transaction_sample_builder
 
     attr_accessor :stack_trace_threshold, :random_sampling, :sampling_rate, :last_sample, :samples

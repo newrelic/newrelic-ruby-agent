@@ -1,14 +1,16 @@
 # = New Relic Agent
 #
-# New Relic RPM is a performance monitoring application for Ruby applications running
-# in production.  For more information on RPM please visit http://www.newrelic.com.
+# New Relic RPM is a performance monitoring application for Ruby
+# applications running in production.  For more information on RPM
+# please visit http://www.newrelic.com.
 #
-# The New Relic Agent can be installed in Ruby applications to gather runtime performance
-# metrics, traces, and errors for display in a Developer Mode UI (mapped to /newrelic in your application 
-# server) or for monitoring and analysis at http://rpm.newrelic.com.
+# The New Relic Agent can be installed in Ruby applications to gather
+# runtime performance metrics, traces, and errors for display in a
+# Developer Mode UI (mapped to /newrelic in your application server)
+# or for monitoring and analysis at http://rpm.newrelic.com.
 #
-# For detailed information on configuring or customizing the RPM Agent please visit our
-# {support and documentation site}[http://support.newrelic.com].
+# For detailed information on configuring or customizing the RPM Agent
+# please visit our {support and documentation site}[http://support.newrelic.com].
 #
 # == Starting the Agent as a Gem
 #
@@ -20,24 +22,32 @@
 #    dependency 'newrelic_rpm'
 # in the Merb config/init.rb
 #
-# For other frameworks, or to manage the agent manually, invoke NewRelic::Agent#manual_start
-# directly.
+# For other frameworks, or to manage the agent manually, 
+# invoke NewRelic::Agent#manual_start directly.
 #
 # == Configuring the Agent
 # 
-# All agent configuration is done in the +newrelic.yml+ file.  This file is by
-# default read from the +config+ directory of the application root and is subsequently
-# searched for in the application root directory, and then in a +~/.newrelic+ directory
+# All agent configuration is done in the +newrelic.yml+ file.  This
+# file is by default read from the +config+ directory of the
+# application root and is subsequently searched for in the application
+# root directory, and then in a +~/.newrelic+ directory
 #
 # == Agent APIs
 #
-# The agent has some APIs available for extending and customizing.
+
+# Methods in this module are available to applications.  When the
+# agent is not enabled The method implementations are stubbed into
+# no-ops to reduce overhead.
+#
+# Methods and classes in other parts of the agent are not guaranteed
+# to be available between releases.
 #
 # :main: lib/new_relic/agent.rb
 module NewRelic
 
-  # Methods in the Agent module are delegated to the NewRelic::Agent::Agent
-  # singleton instance.
+  # The main API module for the Agent.  
+  # Methods are delegated to a singleton NewRelic::Agent::Agent
+  # or the Shim when the agent is not enabled.
   module Agent
     extend self
     
@@ -94,16 +104,16 @@ module NewRelic
 
     class BackgroundLoadingError < StandardError; end
     
-    @@agent = nil
+    @agent = nil
 
     # The singleton Agent instance.
     def agent
-      raise "Plugin not initialized!" if @@agent.nil?
-      @@agent
+      raise "Plugin not initialized!" if @agent.nil?
+      @agent
     end
     
     def agent= new_instance
-      @@agent = new_instance
+      @agent = new_instance
     end
     
     alias instance agent
@@ -117,11 +127,11 @@ module NewRelic
     # Return a NewRelic::Stats that accepts data
     # via calls to add_data_point(value).
     def get_stats(metric_name, use_scope=false)
-      @@agent.stats_engine.get_stats(metric_name, use_scope)
+      @agent.stats_engine.get_stats(metric_name, use_scope)
     end
     
     def get_stats_no_scope(metric_name)
-      @@agent.stats_engine.get_stats_no_scope(metric_name)
+      @agent.stats_engine.get_stats_no_scope(metric_name)
     end
     
     # Call this to manually start the Agent in situations where the Agent does
@@ -208,15 +218,28 @@ module NewRelic
       Thread.current[:newrelic_untraced].nil? || Thread.current[:newrelic_untraced].last != false      
     end
 
-    # This method allows a filter to be applied to errors that RPM will track.
+    # Set a filter to be applied to errors that RPM will track.
     # The block should return the exception to track (which could be different from
-    # the original exception) or nil to ignore this exception
+    # the original exception) or nil to ignore this exception.
+    #
+    # The block is yielded to with the exception to filter.
     #
     def ignore_error_filter(&block)
       agent.error_collector.ignore_error_filter(&block)
     end
     
-    # Add parameters to the current transaction trace
+    # Record the given error in RPM.  It will be passed through the #ignore_error_filter
+    # if there is one.
+    # 
+    # * <tt>exception</tt> is the exception which will be recorded
+    # * <tt>extra_params</tt> is a hash of name value pairs to appear alongside
+    #   the exception in RPM.
+    #
+    def notice_error(exception, extra_params = {})
+      NewRelic::Agent.agent.error_collector.notice_error(exception, extra_params)
+    end
+
+    # Add parameters to the current transaction trace on the call stack.
     #
     def add_custom_parameters(params)
       agent.add_custom_parameters(params)

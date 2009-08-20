@@ -7,6 +7,10 @@
 # r/t level.
 class NewRelic::Histogram
 
+  # Used to stub out API methods when the agent is not enabled
+  module Shim
+    def process(response_time); end
+  end
   # Stores statistics for response times falling in a particular range.
   # A bucket has a min and max response time.  A response time event
   # falls in a bucket if min <= r/t < max.  A bucket also 
