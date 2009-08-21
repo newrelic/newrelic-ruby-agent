@@ -236,7 +236,7 @@ module NewRelic
     #   the exception in RPM.
     #
     def notice_error(exception, extra_params = {})
-      NewRelic::Agent.agent.error_collector.notice_error(exception, extra_params)
+      NewRelic::Agent.agent.error_collector.notice_error(exception, nil, nil, extra_params)
     end
 
     # Add parameters to the current transaction trace on the call stack.
