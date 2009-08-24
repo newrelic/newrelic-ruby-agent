@@ -237,11 +237,19 @@ module NewRelicApi
       find(type, :params => {:include => :application_health})
     end
     
+    # Add a user to an account.
+    # +user_params+:: User parameters as a hash consisting of the following:
+    #                 email, first_name, password, password_confirmation
+    #                 If a user record already exists for this email, the name
+    #                 and password fields are ignored.
+    # +is_admin+:: Set administrative privileges for this user.
     def add_user(user_params, is_admin = false)
       account_id = self.id
       AccountView.create(:account_id => account_id, :user => user_params, :is_admin => is_admin)
     end
     
+    # Remove a user's access from an account.
+    # +email+:: User's email address.
     def remove_user(email)
       view = account_views.find(:account_id => self.id, :email => email)
       view.delete if view
