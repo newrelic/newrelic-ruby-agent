@@ -141,7 +141,7 @@ module NewRelicApi
   ACCOUNT_AGENT_RESOURCE_PATH = ACCOUNT_RESOURCE_PATH + 'agents/:agent_id/' #:nodoc:
   ACCOUNT_APPLICATION_RESOURCE_PATH = ACCOUNT_RESOURCE_PATH + 'applications/:application_id/' #:nodoc:
   
-  module AccountResource #:nodoc:
+  module AccountResource #:nodoc: 
     def account_id
       prefix_options[:account_id]
     end
@@ -151,8 +151,7 @@ module NewRelicApi
     
     def query_params#:nodoc:
       account_query_params
-    end
-    
+    end 
   end
   
   module AgentResource #:nodoc:
@@ -227,6 +226,7 @@ module NewRelicApi
   #
   class Account < BaseResource
     has_many :applications
+    has_many :account_views
     
     def query_params #:nodoc:
       {:account_id => id}
@@ -236,9 +236,34 @@ module NewRelicApi
     def self.application_health(type = :first)
       find(type, :params => {:include => :application_health})
     end
+    
+    # Add a user to an account.
+    # +user_params+:: User parameters as a hash consisting of the following:
+    #                 email, first_name, password, password_confirmation
+    #                 If a user record already exists for this email, the name
+    #                 and password fields are ignored.
+    # +is_admin+:: Set administrative privileges for this user.
+    def add_user(user_params, is_admin = false)
+      account_id = self.id
+      AccountView.create(:account_id => account_id, :user => user_params, :is_admin => is_admin)
+    end
+    
+    # Remove a user's access from an account.
+    # +email+:: User's email address.
+    def remove_user(email)
+      view = account_views.find(:account_id => self.id, :email => email)
+      view.delete if view
+    end
+    
+    class AccountView < BaseResource
+      self.prefix = ACCOUNT_RESOURCE_PATH
+      
+      def query_params(extra_params = {}) #:nodoc:
+        {:account_id => account_id}.merge(extra_params)
+      end
+    end      
   end
-  
-  
+    
   # This model is used to mark production deployments in RPM
   # Only create is supported.
   # ==Examples
@@ -248,9 +273,11 @@ module NewRelicApi
   class Deployment < BaseResource
   end
   
-  class User < BaseResource
-  end
   class Subscription < BaseResource
   end
+
+  class User < BaseResource
+  end
+
 end
 

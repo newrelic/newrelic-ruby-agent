@@ -35,9 +35,7 @@ class AgentTest < ActiveSupport::TestCase
       ignore_called = true
       nil
     end
-    
-    NewRelic::Agent.agent.error_collector.notice_error(ActionController::RoutingError.new("message"), nil, "path", {:x => "y"} )
-    
+    NewRelic::Agent.notice_error(ActionController::RoutingError.new("message"), :x => "y")
     assert ignore_called    
   end
   
