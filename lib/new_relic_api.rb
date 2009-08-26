@@ -255,6 +255,13 @@ module NewRelicApi
       view.delete if view
     end
     
+    # Change the primary admin for an account. The administrator must be a 
+    # user that is already associated with the account
+    # +email+:: Email address of the new administrator
+    def change_primary_admin(email)
+      get(:change_primary_admin, :email => email)
+    end
+    
     class AccountView < BaseResource
       self.prefix = ACCOUNT_RESOURCE_PATH
       
