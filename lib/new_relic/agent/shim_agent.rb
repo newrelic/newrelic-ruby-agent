@@ -15,4 +15,6 @@ class NewRelic::Agent::ShimAgent < NewRelic::Agent::Agent
   def ensure_worker_thread_started; end
   def start *args; end
   def shutdown; end
+  def push_trace_execution_flag(*args); end
+  def pop_trace_execution_flag(*args); end
 end

@@ -10,6 +10,8 @@ module NewRelic::Agent
       def add_sampler(*args); end
       def add_harvest_sampler(*args); end
       def spawn_sampler_thread(*args); end
+      def push_scope(*args); end
+      def pop_scope(*args); end
     end
     
     POLL_PERIOD = 10

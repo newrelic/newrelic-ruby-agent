@@ -12,7 +12,8 @@ v2.10.0
   * added doc to method_tracer API and removed second arg
     requirement for add_method_tracer call
   * instrumentation for Net::HTTP
-    
+  * remove method_tracer shim to avoid timing problems in monitoring daemons
+      
 v2.9.4
   * Clamp size of data sent to server
   * Reset statistics for passenger when forking to avoid erroneous data

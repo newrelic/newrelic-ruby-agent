@@ -1,16 +1,5 @@
 module NewRelic::Agent
 
-  # These are stubs for API methods installed when the agent is disabled.
-  module MethodTracerShim #:nodoc:
-    def trace_method_execution(*args); yield; end
-    alias trace_method_execution_no_scope trace_method_execution
-    alias trace_method_execution_with_scope trace_method_execution
-    alias trace_execution_scoped trace_method_execution
-    alias trace_execution_unscoped trace_method_execution
-    def add_method_tracer (*args); end
-    def remove_method_tracer(*args); end
-  end
-  
   # These are the class methods added to support installing custom
   # metric tracers and executing for individual metrics.
   # This module is included in class Module.
