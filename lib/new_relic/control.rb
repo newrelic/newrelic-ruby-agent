@@ -73,6 +73,7 @@ module NewRelic
         # Try to grab the log filename
         @log_file = @log.instance_eval { @logdev.filename rescue nil }
       end
+      Module.send :include, NewRelic::Agent::MethodTracer
       init_config(options)
       if agent_enabled? && !@started
         setup_log unless logger_override
@@ -148,7 +149,7 @@ module NewRelic
     # agent_enabled config option when true or false.
     def agent_enabled?
       return false if !developer_mode? && !monitor_mode?
-      return self['agent_enabled'].to_s =~ /true|on|yes/i if self['agent_enabled'] && self['agent_enabled'] != 'auto'
+      return self['agent_enabled'].to_s =~ /true|on|yes/i if !self['agent_enabled'].nil? && self['agent_enabled'] != 'auto'
       return false if ENV['NEWRELIC_ENABLE'].to_s =~ /false|off|no/i 
       return true if self['monitor_daemons'].to_s =~ /true|on|yes/i
       return true if ENV['NEWRELIC_ENABLE'].to_s =~ /true|on|yes/i
@@ -260,15 +261,12 @@ module NewRelic
       # Once we install instrumentation, you can't undo that by installing the shim.
       raise "Cannot install the Agent shim after instrumentation has already been installed!" if @instrumented
       NewRelic::Agent.agent = NewRelic::Agent::ShimAgent.instance
-      Module.send :include, NewRelic::Agent::MethodTracerShim
     end
     
     def install_instrumentation
       return if @instrumented
       
       @instrumented = true
-      
-      Module.send :include, NewRelic::Agent::MethodTracer
       
       # Instrumentation for the key code points inside rails for monitoring by NewRelic.
       # note this file is loaded only if the newrelic agent is enabled (through config/newrelic.yml)
