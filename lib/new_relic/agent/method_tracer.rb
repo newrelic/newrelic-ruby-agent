@@ -32,8 +32,10 @@ module NewRelic::Agent
     # Controller'--that is to say appear in the breakdown chart. 
     # This is code is inlined in #add_method_tracer.
     # * <tt>metric_names</tt> is a single name or an array of names of metrics
+    # * <tt>:force => true</tt> will force the metric to be captured even when 
+    #   tracing is disabled with NewRelic::Agent#disable_all_tracing
     #
-    def trace_method_execution_no_scope(metric_names, options={})
+    def trace_execution_unscoped(metric_names, options={})
       return yield unless NewRelic::Agent.is_execution_traced?
       t0 = Time.now.to_f
       stats = Array(metric_names).map do | metric_name |
@@ -49,8 +51,6 @@ module NewRelic::Agent
       end
     end
     
-    alias trace_execution_unscoped trace_method_execution_no_scope
-      
     EMPTY_ARRAY = [].freeze #:nodoc:
     
     # Deprecated. Use #trace_execution_scoped, a version with an options hash.  
@@ -61,6 +61,8 @@ module NewRelic::Agent
                              :scoped_metric_only => scoped_metric_only)
     end
 
+    alias trace_method_execution_no_scope trace_execution_unscoped
+      
     # Trace a given block with stats and keep track of the caller.  
     # See #add_method_tracer for a description of the arguments.
     # +metric_names+ is either a single name or an array of metric names.
