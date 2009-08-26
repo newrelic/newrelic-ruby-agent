@@ -141,7 +141,7 @@ module NewRelic
     # is not advisable since it implies certain api's being available.
     def discover_dispatcher
       @dispatcher = ENV['NEWRELIC_DISPATCHER'] && ENV['NEWRELIC_DISPATCHER'].to_sym
-      dispatchers = %w[webrick thin mongrel glassfish litespeed passenger fastcgi]
+      dispatchers = %w[passenger glassfish thin mongrel litespeed webrick fastcgi]
       while dispatchers.any? && @dispatcher.nil?
         send 'check_for_'+(dispatchers.shift)
       end
