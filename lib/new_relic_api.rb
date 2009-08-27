@@ -245,21 +245,23 @@ module NewRelicApi
     # +is_admin+:: Set administrative privileges for this user.
     def add_user(user_params, is_admin = false)
       account_id = self.id
-      AccountView.create(:account_id => account_id, :user => user_params, :is_admin => is_admin)
+      account_view = NewRelicApi::Account::AccountView.create(:account_id => account_id, :user => user_params, :is_admin => is_admin)
+      account_views << account_view if account_view.valid?
+      account_view    
     end
     
     # Remove a user's access from an account.
     # +email+:: User's email address.
     def remove_user(email)
-      view = account_views.find(:account_id => self.id, :email => email)
-      view.delete if view
+      view = NewRelicApi::Account::AccountView.find(:first, :params => {:account_id => self.id, :email => email})
+      view.destroy if view
     end
     
     # Change the primary admin for an account. The administrator must be a 
     # user that is already associated with the account
     # +email+:: Email address of the new administrator
     def change_primary_admin(email)
-      get(:change_primary_admin, :email => email)
+      put(:update_primary_admin, :email => email)
     end
     
     class AccountView < BaseResource
@@ -267,6 +269,10 @@ module NewRelicApi
       
       def query_params(extra_params = {}) #:nodoc:
         {:account_id => account_id}.merge(extra_params)
+      end
+      
+      def user
+        @attributes['user']
       end
     end      
   end
