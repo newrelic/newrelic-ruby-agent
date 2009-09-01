@@ -8,15 +8,20 @@ class NewRelic::MetricSpec
     self.name = metric_name
     self.scope = metric_scope
   end
+
+  def ==(o)
+    self.eql?(o)
+  end
   
   def eql? (o)
-    scope_equal = scope.nil? ? o.scope.nil? : scope.eql?(o.scope) 
-    name.eql?(o.name) && scope_equal
+    o.class == self.class &&
+    name.eql?(o.name) && 
+    (scope.nil? ? o.scope.nil? : scope.eql?(o.scope)) 
   end
   
   def hash
     h = name.hash
-    h += scope.hash unless scope.nil?
+    h ^= scope.hash unless scope.nil?
     h
   end
   
