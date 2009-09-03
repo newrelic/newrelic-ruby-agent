@@ -11,7 +11,7 @@ class NewRelic::Agent::DispatcherInstrumentationTest < Test::Unit::TestCase
     NewRelic::Agent.manual_start
     NewRelic::Agent.instance.stats_engine.clear_stats
     @instance_busy = NewRelic::Agent.agent.stats_engine.get_stats('Instance/Busy')
-    @dispatch_stat = NewRelic::Agent.agent.stats_engine.get_stats 'Rails/HTTP Dispatch'
+    @dispatch_stat = NewRelic::Agent.agent.stats_engine.get_stats 'HttpDispatcher'
     @mongrel_queue_stat = NewRelic::Agent.agent.stats_engine.get_stats 'WebFrontend/Mongrel/Average Queue Time'
   end
   

@@ -57,7 +57,7 @@ module NewRelic::Agent::Instrumentation
     private
     # memoize the stats to avoid the cost of the lookup each time.
     def dispatch_stat
-      NewRelic::Agent.agent.stats_engine.get_stats_no_scope 'Rails/HTTP Dispatch'  
+      NewRelic::Agent.agent.stats_engine.get_stats_no_scope 'HttpDispatcher'  
     end
     def mongrel_queue_stat
       NewRelic::Agent.agent.stats_engine.get_stats_no_scope 'WebFrontend/Mongrel/Average Queue Time'  
