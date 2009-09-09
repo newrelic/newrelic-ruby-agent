@@ -324,11 +324,12 @@ module NewRelic::Agent
       @agent_id = nil
       begin
         sleep connect_retry_period.to_i
+        environment = control['send_environment_info'] != false ? control.local_env.snapshot : []
         @agent_id ||= invoke_remote :start, @local_host, {
           :pid => $$, 
           :launch_time => @launch_time.to_f, 
           :agent_version => NewRelic::VERSION::STRING, 
-          :environment => control.local_env.snapshot,
+          :environment => environment,
           :settings => control.settings }
         
         host = invoke_remote(:get_redirect_host) rescue nil
