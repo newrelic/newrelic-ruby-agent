@@ -262,7 +262,7 @@ module NewRelicApi
     # Remove a user's access from an account.
     # +email+:: User's email address.
     def remove_user(email)
-      view = NewRelicApi::Account::AccountView.find(:first, :params => {:account_id => self.id, :email => email})
+      view = NewRelicApi::Account::AccountView.find(:one, :params => {:account_id => self.id, :email => email})
       view.destroy if view
     end
     
