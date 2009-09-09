@@ -32,7 +32,7 @@ module NewRelic
       
       def initialize(timestamp, metric_name, segment_id)
         @entry_timestamp = timestamp
-        @metric_name = metric_name
+        @metric_name = metric_name || '<unknown>'
         @segment_id = segment_id || object_id
       end
       

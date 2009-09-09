@@ -5,14 +5,30 @@ NewRelic::Agent::TransactionSampler.send :public, :builder
 
 class NewRelic::Agent::TransationSamplerTest < Test::Unit::TestCase
   
+  module MockGCStats
+    
+    def time
+      return 0 if @@values.empty?
+      raise "too many calls" if @@index >= @@values.size
+      @@curtime ||= 0
+      @@curtime += (@@values[@@index] * 1e09).to_i
+      @@index += 1
+      @@curtime
+    end
+    
+    def self.mock_values= array
+      @@values = array
+      @@index = 0
+    end
+    
+  end
+
   def setup
     Thread::current[:record_sql] = nil
-    mock_agent = mock()
-    stats_engine_mock = mock()
-    stats_engine_mock.stubs(:add_scope_stack_listener)
-    mock_agent.stubs(:stats_engine).returns(stats_engine_mock)
-    mock_agent.stubs(:set_sql_obfuscator).returns(stats_engine_mock)
-    @sampler = NewRelic::Agent::TransactionSampler.new(mock_agent)
+    agent = NewRelic::Agent.instance
+    stats_engine = NewRelic::Agent::StatsEngine.new
+    agent.stubs(:stats_engine).returns(stats_engine)
+    @sampler = NewRelic::Agent::TransactionSampler.new(agent)
   end
   
   def test_multiple_samples
@@ -47,8 +63,38 @@ class NewRelic::Agent::TransationSamplerTest < Test::Unit::TestCase
     @sampler.notice_scope_empty
     sample = @sampler.harvest([],0.0).first
     assert_equal "ROOT{a{b,c{d}}}", sample.to_s_compact
-
+    
   end
+
+ 
+  def test_sample__gc_stats
+    GC.extend MockGCStats
+    # These are effectively Garbage Collects, detected each time GC.time is
+    # called by the transaction sampler.  One time value in seconds for each call.
+    MockGCStats.mock_values = [0,0,0,1,0,0,1,0,0,0,0,0,0,0,0]
+    assert_equal 0, @sampler.scope_depth
+    
+    @sampler.notice_first_scope_push Time.now.to_f
+    @sampler.notice_transaction "/path", nil, {}
+    @sampler.notice_push_scope "a"
+
+    @sampler.notice_push_scope "b"
+    @sampler.notice_pop_scope "b"
+
+    @sampler.notice_push_scope "c"
+    @sampler.notice_push_scope "d"
+    @sampler.notice_pop_scope "d"
+    @sampler.notice_pop_scope "c"
+
+    @sampler.notice_pop_scope "a"
+    @sampler.notice_scope_empty
+    sample = @sampler.harvest([],0.0).first
+    assert_equal "ROOT{a{b{GC/cumulative},c{GC/cumulative,d}}}", sample.to_s_compact
+    puts NewRelic::Agent.instance.stats_engine.metrics.inspect
+  ensure
+    MockGCStats.mock_values = []
+  end
+
   def test_sample_id 
     run_sample_trace do 
       assert @sampler.current_sample_id != 0, @sampler.current_sample_id 
