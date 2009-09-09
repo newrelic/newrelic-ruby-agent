@@ -5,7 +5,7 @@ module NewRelic
     attr_accessor :stats
     
     def initialize(metric_spec, stats, metric_id)
-      self.metric_spec = metric_spec
+      @metric_spec = metric_spec
       self.stats = stats
       self.metric_id = metric_id
     end
@@ -13,9 +13,20 @@ module NewRelic
     def eql?(o)
      (metric_spec.eql? o.metric_spec) && (stats.eql? o.stats)
     end
+
+    def original_spec
+      @original_spec || @metric_spec
+    end
+    def metric_spec
+      @metric_spec
+    end
+    def metric_spec= new_spec
+      @original_spec = @metric_spec if @metric_spec
+      @metric_spec = new_spec
+    end
     
     def hash
-      metric_spec.hash + stats.hash
+      metric_spec.hash ^ stats.hash
     end
     
     def to_json(*a)
