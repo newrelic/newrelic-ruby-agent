@@ -245,14 +245,32 @@ module NewRelicApi
     # +is_admin+:: Set administrative privileges for this user.
     def add_user(user_params, is_admin = false)
       account_id = self.id
-      AccountView.create(:account_id => account_id, :user => user_params, :is_admin => is_admin)
+      account_view = NewRelicApi::Account::AccountView.create(:account_id => account_id, :user => user_params, :is_admin => is_admin)
+      account_views << account_view if account_view.valid?
+      account_view    
+    end
+    
+    # Change the subscription for an account
+    # +product_id+:: ID or name of product (e.g. Lite) (required).
+    # +number_of_hosts+:: Number of hosts. This is required for fixed host products.
+    #                     For utility based products, this is set to the maximum
+    #                     number of hosts allowed to connect.
+    def change_subscription(sub_params)
+      NewRelicApi::Subscription.create(sub_params.merge(:account_id => self.id))
     end
     
     # Remove a user's access from an account.
     # +email+:: User's email address.
     def remove_user(email)
-      view = account_views.find(:account_id => self.id, :email => email)
-      view.delete if view
+      view = NewRelicApi::Account::AccountView.find(:one, :params => {:account_id => self.id, :email => email})
+      view.destroy if view
+    end
+    
+    # Change the primary admin for an account. The administrator must be a 
+    # user that is already associated with the account
+    # +email+:: Email address of the new administrator
+    def change_primary_admin(email)
+      put(:update_primary_admin, :email => email)
     end
     
     class AccountView < BaseResource
@@ -260,6 +278,10 @@ module NewRelicApi
       
       def query_params(extra_params = {}) #:nodoc:
         {:account_id => account_id}.merge(extra_params)
+      end
+      
+      def user
+        @attributes['user']
       end
     end      
   end
@@ -273,7 +295,17 @@ module NewRelicApi
   class Deployment < BaseResource
   end
   
+  # This model is used to modify subscriptions for existing accounts in RPM.
+  # To update a subscription, create a new instance with the following properties:
+  # +account_id+:: Account ID in RPM (required).
+  # +product_id+:: ID or name of product (e.g. Lite) (required).
+  # +number_of_hosts+:: Number of hosts. This is required for fixed host products.
+  #                     For utility based products, this is set to the maximum
+  #                     number of hosts allowed to connect.
   class Subscription < BaseResource
+    def query_params(extra_params = {}) #:nodoc:
+      {:account_id => account_id}.merge(extra_params)
+    end
   end
 
   class User < BaseResource
