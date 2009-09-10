@@ -348,8 +348,7 @@ module NewRelic::Agent
         if @should_send_samples
           sampling_rate = invoke_remote :sampling_rate, @agent_id if @random_sample
           @transaction_sampler.sampling_rate = sampling_rate
-            
-          log.info "Transaction sample rate: #{@transaction_sampler.sampling_rate}"
+          log.info "Transaction sample rate: #{@transaction_sampler.sampling_rate}" if sampling_rate
         end
         
         # Ask for permission to collect error data
