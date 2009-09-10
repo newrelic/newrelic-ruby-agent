@@ -1,6 +1,6 @@
 
 # NewRelic instrumentation for ActiveRecord
-if defined?(ActiveRecord::Base) && !NewRelic::Control.instance['skip_ar_instrumentation']
+if defined?(ActiveRecord) && defined?(ActiveRecord::Base) && !NewRelic::Control.instance['skip_ar_instrumentation']
   
   module NewRelic::Agent::Instrumentation
     module ActiveRecordInstrumentation
