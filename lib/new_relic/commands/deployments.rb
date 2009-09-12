@@ -87,7 +87,7 @@ module NewRelic
           response = http.request(request)
           
           if response.is_a? Net::HTTPSuccess
-            info "Recorded deployment to NewRelic RPM (#{@description || Time.now })"
+            info "Recorded deployment to '#{@appname}' (#{@description || Time.now })"
           else
             err_string = [ "Unexpected response from server: #{response.code}: #{response.message}" ]
             begin
