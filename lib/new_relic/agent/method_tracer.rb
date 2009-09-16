@@ -92,7 +92,7 @@ module NewRelic::Agent
         NewRelic::Agent.instance.push_trace_execution_flag(true) if options[:force] 
         expected_scope = NewRelic::Agent.instance.stats_engine.push_scope(first_name, t0, deduct_call_time_from_parent)
       rescue => e
-        NewRelic::Control.instance.log.error("Caught exception in trace_method_execution header. Metric name = #{metric_name}, exception = #{e}")
+        NewRelic::Control.instance.log.error("Caught exception in trace_method_execution header. Metric name = #{first_name}, exception = #{e}")
         NewRelic::Control.instance.log.error(e.backtrace.join("\n"))
       end
       
