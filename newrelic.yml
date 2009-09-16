@@ -91,7 +91,7 @@ common: &default_settings
   # Tells transaction tracer and error collector (when enabled)
   # whether or not to capture HTTP params.  When true, frameworks can
   # exclude HTTP parameters from being captured.
-  # RAILS: the RoR filter_parameter_logging excludes parameters
+  # Rails: the RoR filter_parameter_logging excludes parameters
   # Java: create a config setting called "ignored_params" and set it to
   #     a comma separated list of HTTP parameter names.
   #     ex: ignored_params: credit_card, ssn, password 
@@ -138,8 +138,9 @@ common: &default_settings
     # product levels
     enabled: true
     
-    # Rails Only - tells error collector whether or not to capture a source snippet
-    # around the place of the error when errors are View related.
+    # Rails Only - tells error collector whether or not to capture a 
+    # source snippet around the place of the error when errors are View 
+    # related.
     capture_source: true    
     
     # To stop specific errors from reporting to RPM, set this property
@@ -157,7 +158,8 @@ common: &default_settings
 # ------------------------------------------
 # Environment specific settings are in this section.
 # For Rails applications, RAILS_ENV is used to determine the environment
-# For Java applications, pass -Dnewrelic.environment <environment> to set the environment
+# For Java applications, pass -Dnewrelic.environment <environment> to set
+# the environment
 
 # NOTE if your application has other named environments, you should
 # provide newrelic conifguration settings for these enviromnents here.
@@ -169,15 +171,15 @@ development:
   # turn the agent on in development mode.
   enabled: false
 
-  # Rails Only - when running in Developer Mode, the New Relic Agent will present
-  # performance information on the last 100 transactions you have
+  # Rails Only - when running in Developer Mode, the New Relic Agent will 
+  # present performance information on the last 100 transactions you have
   # executed since starting the mongrel.  to view this data, go to
   # http://localhost:3000/newrelic
   developer: true
 
 test:
   <<: *default_settings
-  # it almost never makes sense to turn on the agent when running
+  # It almost never makes sense to turn on the agent when running
   # unit, functional or integration tests or the like.
   enabled: false
 
@@ -189,7 +191,7 @@ production:
   <<: *default_settings
   enabled: true
 
-# many applications have a staging environment which behaves
+# Many applications have a staging environment which behaves
 # identically to production.  Support for that environment is provided
 # here.  By default, the staging environment has the agent turned on.
 staging:
