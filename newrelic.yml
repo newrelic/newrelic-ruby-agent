@@ -14,7 +14,7 @@ common: &default_settings
   # New Relic RPM service.
   license_key: '<%= license_key %>'
   
-  # Agent Enabled
+  # Agent Enabled (Rails Only)
   # Use this setting to force the agent to run or not run.
   # Default is 'auto' which means the agent will install and run only
   # if a valid dispatcher such as Mongrel is running.  This prevents
@@ -33,11 +33,12 @@ common: &default_settings
   # defining applications.
   app_name: My Application
 
-  # When 'enabled' is turned on, the agent collects performance data
-  # by inserting lightweight tracers on key methods inside the rails
-  # framework and asynchronously aggregating and reporting this
-  # performance data to the NewRelic RPM service at newrelic.com.
-  enabled: false
+  # A global switch for enabling/disabling the agent. 
+  # When "true", the agent collects performance data about your 
+  # application and reports this data to the NewRelic RPM service at 
+  # newrelic.com. This global switch is normally overridden for each 
+  # environment below.
+  enabled: true
 
   # The newrelic agent generates its own log file to keep its logging
   # information separate from that of your application.  Specify its
@@ -88,9 +89,12 @@ common: &default_settings
 
   
   # Tells transaction tracer and error collector (when enabled)
-  # whether or not to capture HTTP params.  When true, the RoR
-  # filter_parameter_logging mechanism is used so that sensitive
-  # parameters are not recorded
+  # whether or not to capture HTTP params.  When true, frameworks can
+  # exclude HTTP parameters from being captured.
+  # RAILS: the RoR filter_parameter_logging excludes parameters
+  # Java: create a config setting called "ignored_params" and set it to
+  #     a comma separated list of HTTP parameter names.
+  #     ex: ignored_params: credit_card, ssn, password 
   capture_params: false
 
 
@@ -134,7 +138,7 @@ common: &default_settings
     # product levels
     enabled: true
     
-    # Tells error collector whether or not to capture a source snippet
+    # Rails Only - tells error collector whether or not to capture a source snippet
     # around the place of the error when errors are View related.
     capture_source: true    
     
@@ -148,7 +152,12 @@ common: &default_settings
   # external resource
   # disable_samplers: true
 
-# override default settings based on your application's environment
+
+# Application Environments
+# ------------------------------------------
+# Environment specific settings are in this section.
+# For Rails applications, RAILS_ENV is used to determine the environment
+# For Java applications, pass -Dnewrelic.environment <environment> to set the environment
 
 # NOTE if your application has other named environments, you should
 # provide newrelic conifguration settings for these enviromnents here.
@@ -160,7 +169,7 @@ development:
   # turn the agent on in development mode.
   enabled: false
 
-  # When running in Developer Mode, the New Relic Agent will present
+  # Rails Only - when running in Developer Mode, the New Relic Agent will present
   # performance information on the last 100 transactions you have
   # executed since starting the mongrel.  to view this data, go to
   # http://localhost:3000/newrelic
