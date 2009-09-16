@@ -22,7 +22,7 @@ class Insider
       # sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
       sampler = "<none>"
       begin
-        @stats_engine.add_scope_stack_listener sampler
+        @stats_engine.transaction_sampler = sampler
         fail "This should not have worked."
         rescue; end
     else
@@ -49,7 +49,7 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
     @stats_engine = NewRelic::Agent.instance.stats_engine
     @stats_engine.clear_stats
     @scope_listener = NewRelic::Agent::MockScopeListener.new
-    @stats_engine.add_scope_stack_listener(@scope_listener)
+    @stats_engine.transaction_sampler = @scope_listener
   end
   
   def teardown
