@@ -1,3 +1,9 @@
+v2.10.1
+  * fixed scope issue with GC instrumentation, subtracting time from caller
+  * added # of GC calls to GC instrumentation
+  * renamed the dispatcher metric
+  * refactored stats_engine code for readability
+  
 v2.10.0
   * support unicorn
   * instrumentation of GC for REE and MRE with GC patch

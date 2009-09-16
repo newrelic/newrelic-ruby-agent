@@ -1,7 +1,7 @@
-require File.expand_path(File.join(File.dirname(__FILE__),'..', 'test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__),'..', '..','..','test_helper'))
 require 'new_relic/agent/samplers/cpu_sampler'
 
-class NewRelic::SamplersTest < Test::Unit::TestCase
+class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
   
   def setup
     @stats_engine = NewRelic::Agent::StatsEngine.new
@@ -40,9 +40,12 @@ class NewRelic::SamplersTest < Test::Unit::TestCase
   end
   def test_memory__solaris
     NewRelic::Agent::Samplers::MemorySampler.any_instance.stubs(:platform).returns 'solaris'
-    assert_raise RuntimeError, /Unable to run command/ do
-      NewRelic::Agent::Samplers::MemorySampler.new
-    end
+    NewRelic::Agent::Samplers::MemorySampler::ShellPS.any_instance.stubs(:get_memory).returns 999
+    s = NewRelic::Agent::Samplers::MemorySampler.new
+    s.stats_engine = @stats_engine
+    s.poll
+    assert_equal 1, s.stats.call_count
+    assert_equal 999, s.stats.total_call_time
   end
   def test_memory__windows
     NewRelic::Agent::Samplers::MemorySampler.any_instance.stubs(:platform).returns 'win32'
