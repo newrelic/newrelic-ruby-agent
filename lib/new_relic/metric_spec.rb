@@ -14,9 +14,9 @@ class NewRelic::MetricSpec
   end
   
   def eql? (o)
-    o.class == self.class &&
     name.eql?(o.name) && 
-    (scope.nil? ? o.scope.nil? : scope.eql?(o.scope)) 
+    # coerce scope to a string and compare
+    (scope || '') == (o.scope || '')
   end
   
   def hash
