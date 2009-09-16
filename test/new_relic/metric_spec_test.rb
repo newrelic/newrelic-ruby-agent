@@ -1,6 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..', 'test_helper'))
 ##require "new_relic/stats"
-class NewRelic::StatsTest < Test::Unit::TestCase
+class NewRelic::MetricSpecTest < Test::Unit::TestCase
   
   def test_simple
     stats = NewRelic::MethodTraceStats.new 
@@ -20,7 +20,7 @@ class NewRelic::StatsTest < Test::Unit::TestCase
     
     assert spec1.eql?(NewRelic::MetricSpec.new('Controller'))
     assert spec2.eql?(NewRelic::MetricSpec.new('Controller', nil))
-    assert !spec1.eql?(spec2)
+    assert spec1.eql?(spec2)
     assert !spec2.eql?(NewRelic::MetricSpec.new('Controller', '/dude'))
   end
 
