@@ -19,6 +19,12 @@ class NewRelic::VersionNumberTest < Test::Unit::TestCase
     assert v1 > v3
     assert v3 < v0
   end
+  def test_bug
+    v0 = NewRelic::VersionNumber.new '2.8.999'
+    v1 = NewRelic::VersionNumber.new '2.9.10'
+    assert v1 > v0
+    assert v0 <= v1
+  end
   def test_long_version
     v0 = NewRelic::VersionNumber.new '1.2.3.4'
     v1 = NewRelic::VersionNumber.new '1.2.3.3'
@@ -27,7 +33,17 @@ class NewRelic::VersionNumberTest < Test::Unit::TestCase
     assert v3 > v0
   end
   def test_sort
-    values = %w[1.1.1 2.6.5 2.7 2.7.1]
+    values = %w[1.1.1 
+                1.1.99 
+                1.1.999 
+                2.0.6 
+                2.6.5 
+                2.7 
+                2.7.1 
+                2.7.2 
+                2.7.2.0
+                3
+                999]
     assert_equal values, values.map{|v| NewRelic::VersionNumber.new v}.sort.map(&:to_s)
   end
   def test_compare_string
