@@ -66,7 +66,6 @@ class NewRelic::Agent::TransationSamplerTest < Test::Unit::TestCase
     
   end
 
- 
   def test_sample__gc_stats
     GC.extend MockGCStats
     # These are effectively Garbage Collects, detected each time GC.time is
@@ -88,9 +87,9 @@ class NewRelic::Agent::TransationSamplerTest < Test::Unit::TestCase
 
     @sampler.notice_pop_scope "a"
     @sampler.notice_scope_empty
+    
     sample = @sampler.harvest([],0.0).first
-    assert_equal "ROOT{a{b{GC/cumulative},c{GC/cumulative,d}}}", sample.to_s_compact
-    puts NewRelic::Agent.instance.stats_engine.metrics.inspect
+    assert_equal "ROOT{a{b,c{d}}}", sample.to_s_compact
   ensure
     MockGCStats.mock_values = []
   end
