@@ -13,7 +13,8 @@ class NewRelic::MetricSpec
     self.eql?(o)
   end
   
-  def eql? (o)
+  def eql? o
+    self.class == o.class &&
     name.eql?(o.name) && 
     # coerce scope to a string and compare
     (scope || '') == (o.scope || '')
