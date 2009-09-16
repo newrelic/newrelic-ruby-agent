@@ -1,7 +1,7 @@
 class NewRelic::MetricParser::External < NewRelic::MetricParser
   
   def all?
-    host == 'all'
+    host == 'all' || host == 'allWeb' || host == 'allOther'
   end
   def hosts_all?
     library == 'all'
