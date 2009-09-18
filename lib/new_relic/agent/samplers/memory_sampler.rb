@@ -17,8 +17,10 @@ module NewRelic::Agent::Samplers
         else
           NewRelic::Agent.instance.log.info "Using /proc/$$/status for reading process memory."
         end
-      elsif platform =~ /darwin/
+      elsif platform =~ /darwin9/ # 10.5
         @sampler = ShellPS.new("ps -o rsz")
+      elsif platform =~ /darwin10/ # 10.6
+        @sampler = ShellPS.new("ps -o rss")
       elsif platform =~ /freebsd/
         @sampler = ShellPS.new("ps -o rss")
       elsif platform =~ /solaris/

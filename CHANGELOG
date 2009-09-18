@@ -1,3 +1,6 @@
+v2.9.5
+  * Fix memory sampling on Snow Leopard (No more ps rsz option)
+
 v2.9.4
   * Clamp size of data sent to server
   * Reset statistics for passenger when forking to avoid erroneous data
