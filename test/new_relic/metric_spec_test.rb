@@ -10,7 +10,7 @@ class NewRelic::MetricSpecTest < Test::Unit::TestCase
     stats.trace_call 10
     stats.trace_call 20
     stats.trace_call 30
-    
+    raise "here"
     validate stats, 3, (10+20+30), 10, 30
   end
   
