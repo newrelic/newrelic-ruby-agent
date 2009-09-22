@@ -1,9 +1,13 @@
 module NewRelic::Agent::Samplers
   class CpuSampler < NewRelic::Agent::Sampler
     if defined? JRuby
-      require 'java'
-      include_class 'java.lang.management.ManagementFactory'
-      include_class 'com.sun.management.OperatingSystemMXBean'
+      begin
+        require 'java'
+        include_class 'java.lang.management.ManagementFactory'
+        include_class 'com.sun.management.OperatingSystemMXBean'
+      rescue
+        @@java_classes_missing = true
+      end
     end
     attr_reader :last_time
     def initialize
@@ -22,11 +26,16 @@ module NewRelic::Agent::Samplers
     def systemtime_stats
       stats_engine.get_stats_no_scope("CPU/System Time")
     end
+    
+    def self.supported_on_this_platform?
+      (not defined?(Java)) or (defined?(JRuby))
+    end
+    
     def poll
       now = Time.now
-      if defined? JRuby
-        osMBean = ManagementFactory.getOperatingSystemMXBean();
-        java_utime = osMBean.getProcessCpuTime();  # ns
+      if defined?(JRuby) and not @@java_classes_missing
+        osMBean = ManagementFactory.getOperatingSystemMXBean()
+        java_utime = osMBean.getProcessCpuTime()  # ns
         t = Struct::Tms.new
         t.utime = t.stime = (-1 == java_utime ? 0.0 : java_utime/1e9)
       else

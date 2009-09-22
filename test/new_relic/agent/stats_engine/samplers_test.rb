@@ -53,6 +53,10 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
       NewRelic::Agent::Samplers::MemorySampler.new
     end
   end
+  def test_memory__is_supported
+    NewRelic::Agent::Samplers::MemorySampler.stubs(:platform).returns 'windows'
+    assert !(NewRelic::Agent::Samplers::MemorySampler.supported_on_this_platform?)
+  end
   def test_mongrel 
     NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.stubs('is_busy?'.to_sym).returns(false)  
     mongrel = mock()
