@@ -46,9 +46,7 @@ class AgentControllerTest < ActionController::TestCase
     index_apdex_stats = engine.get_custom_stats("Apdex/#{path}", NewRelic::ApdexStats)
     assert_difference 'index_stats.call_count' do
       assert_difference 'index_apdex_stats.call_count' do
-        assert_difference 'cpu_stats.call_count' do
-          get :index
-        end
+        get :index
       end
     end
     assert_nil Thread.current[:newrelic_ignore_controller]
@@ -61,9 +59,7 @@ class AgentControllerTest < ActionController::TestCase
     index_apdex_stats = engine.get_custom_stats("Apdex/#{path}", NewRelic::ApdexStats)
     assert_difference 'index_stats.call_count' do
       assert_no_difference 'index_apdex_stats.call_count' do
-        assert_difference 'cpu_stats.call_count' do
-          get :action_to_ignore_apdex
-        end
+        get :action_to_ignore_apdex
       end
     end
     assert_nil Thread.current[:newrelic_ignore_controller]
