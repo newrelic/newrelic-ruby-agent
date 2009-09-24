@@ -27,6 +27,17 @@
 
 module NewRelic::Agent::Instrumentation
   module ControllerInstrumentation
+
+    if defined? JRuby
+      @@newrelic_java_classes_missing = false
+      begin
+        require 'java'
+        include_class 'java.lang.management.ManagementFactory'
+        include_class 'com.sun.management.OperatingSystemMXBean'
+      rescue
+        @@newrelic_java_classes_missing = true
+      end
+    end
     
     def self.included(clazz)
       clazz.extend(ClassMethods)
@@ -88,6 +99,16 @@ module NewRelic::Agent::Instrumentation
       raise "Not implemented!"
     end
     
+    def newrelic_record_cpu_burn?
+      defined? JRuby and not @@newrelic_java_classes_missing
+    end
+
+    def newrelic_cpu_time
+      threadMBean = ManagementFactory.getThreadMXBean()
+      java_utime = threadMBean.getCurrentThreadUserTime()  # ns
+      -1 == java_utime ? 0.0 : java_utime/1e9
+    end
+    
     # Perform the current action with NewRelic tracing.  Used in a method
     # chain via aliasing.  Call directly if you want to instrument a specifc
     # block as if it were an action.  Pass the block along with the path.
@@ -126,8 +147,10 @@ module NewRelic::Agent::Instrumentation
         
         agent.transaction_sampler.notice_transaction(path, request, local_params)
         
-        t = Process.times.utime + Process.times.stime
-        
+        if newrelic_record_cpu_burn?
+          t = newrelic_cpu_time
+        end
+
         failed = false
         
         begin
@@ -142,9 +165,11 @@ module NewRelic::Agent::Instrumentation
           raise e
         ensure
           if NewRelic::Agent.is_execution_traced?
-            cpu_burn = (Process.times.utime + Process.times.stime) - t
-            stats_engine.get_stats_no_scope("ControllerCPU/#{path}").record_data_point(cpu_burn)
-            agent.transaction_sampler.notice_transaction_cpu_time(cpu_burn)
+            if newrelic_record_cpu_burn?
+              cpu_burn = newrelic_cpu_time - t
+              stats_engine.get_stats_no_scope(NewRelic::Metrics::USER_TIME).record_data_point(cpu_burn)
+              agent.transaction_sampler.notice_transaction_cpu_time(cpu_burn)
+            end
 #            if gc_start
 #              gcstats = stats_engine.get_stats("GC/cumulative")
 #              gcstats.record_data_point((GC.time - gc_start)/1000000.0)
