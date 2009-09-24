@@ -1,4 +1,6 @@
 v2.10.1
+  * implmented CPU measure for JRuby which reflects the cpu burn for
+    all controller actions (does not include background tasks)
   * fixed scope issue with GC instrumentation, subtracting time from caller
   * added # of GC calls to GC instrumentation
   * renamed the dispatcher metric
