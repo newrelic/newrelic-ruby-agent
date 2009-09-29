@@ -106,6 +106,7 @@ class NewRelic::Control::Rails < NewRelic::Control
         ::Rails.configuration.action_controller.allow_concurrency == true
       end
     end
+    local_env.append_environment_value('Rails Env') { ENV['RAILS_ENV'] }
     if rails_version >= NewRelic::VersionNumber.new('2.1.0')
       local_env.append_gem_list do
         ::Rails.configuration.gems.map do | gem |
