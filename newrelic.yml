@@ -176,6 +176,9 @@ development:
   # executed since starting the mongrel.  to view this data, go to
   # http://localhost:3000/newrelic
   developer: true
+  
+  # Enable textmate links
+  textmate: true
 
 test:
   <<: *default_settings

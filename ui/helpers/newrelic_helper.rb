@@ -246,8 +246,7 @@ private
   end
   
   def using_textmate?
-    # For now, disable textmate integration
-    false
+    NewRelic::Control.instance.use_textmate?
   end
   
 
