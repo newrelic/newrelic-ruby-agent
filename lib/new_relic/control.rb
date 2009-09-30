@@ -103,7 +103,14 @@ module NewRelic
         @settings = (@yaml && merge_defaults(@yaml[env])) || {}
         # At the time we bind the settings, we also need to run this little piece
         # of magic which allows someone to augment the id with the app name, necessary
-        @local_env.dispatcher_instance_id << ":#{app_names.first}" if self['multi_homed'] && app_names.size > 0
+        if self['multi_homed'] && app_names.size > 0
+          if @local_env.dispatcher_instance_id
+            @local_env.dispatcher_instance_id << ":#{app_names.first}"
+          else
+            @local_env.dispatcher_instance_id = app_names.first
+          end
+        end
+          
       end
       @settings
     end
