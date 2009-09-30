@@ -87,7 +87,7 @@ module NewRelic
       # See what the number of cpus is, works only on linux.
       @processors = append_environment_value('Processors') do
         processors = 0
-        File.read('/proc/cpuinfo').each_line do | line |
+        File.readlines('/proc/cpuinfo') do | line |
           processors += 1 if line =~ /^processor\s*:/
         end 
         raise unless processors > 0
