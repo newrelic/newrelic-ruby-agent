@@ -55,21 +55,7 @@ class NewrelicController < ActionController::Base
         raise "Unknown type '#{ext}' (#{file_name})"
     end
   end
-  
-#  def css
-#    forward_to_file '/newrelic/stylesheets/', 'text/css'
-#  end
-  
-#  def image
-#    forward_to_file '/newrelic/images/', params[:content_type]
-#  end
-  
-#  def javascript
-#    forward_to_file '/newrelic/javascript/', 'text/javascript'
-#  end
-  
-  
-  
+
   def index
     get_samples
   end
