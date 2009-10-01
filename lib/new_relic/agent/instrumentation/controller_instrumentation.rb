@@ -179,7 +179,7 @@ module NewRelic::Agent::Instrumentation
               # this uses the start time of the controller action:
               # does not include capacity problems since those aren't
               # per controller
-              apdex_controller(start, ending, failed)
+              apdex_controller(start, ending, failed, path)
             end
           end
       end
@@ -198,8 +198,8 @@ module NewRelic::Agent::Instrumentation
       record_apdex(apdex_overall_stat, (ending - start), failed)
     end
 
-    def apdex_controller(start, ending, failed)
-      controller_stat = stats_engine.get_custom_stats("Apdex/#{path}", NewRelic::ApdexStats)
+    def apdex_controller(start, ending, failed, path)
+      controller_stat = NewRelic::Agent.instance.stats_engine.get_custom_stats("Apdex/#{path}", NewRelic::ApdexStats)
       record_apdex(controller_stat, (ending - start), failed)
     end
 
