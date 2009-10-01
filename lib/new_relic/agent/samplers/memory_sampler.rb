@@ -30,14 +30,21 @@ module NewRelic::Agent::Samplers
       raise "Unsupported platform for getting memory: #{platform}" if @sampler.nil?
       raise "Unable to run #{@sampler}" unless @sampler.can_run?
     end
-    def platform
+    def self.supported_on_this_platform?
+      defined?(Java) or platform =~ /linux|darwin9|darwin10|freebsd|solaris/
+    end
+
+    def self.platform
       if RUBY_PLATFORM =~ /java/
         %x[uname -s].downcase
       else
         RUBY_PLATFORM.downcase
       end
     end
-    
+    def platform
+      NewRelic::Agent::Samplers::MemorySampler.platform
+    end
+
     def stats
       stats_engine.get_stats("Memory/Physical", false) 
     end

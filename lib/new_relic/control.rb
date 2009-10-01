@@ -292,9 +292,13 @@ module NewRelic
     def load_samplers
       agent = NewRelic::Agent.instance
       agent.stats_engine.add_sampler NewRelic::Agent::Samplers::MongrelSampler.new if local_env.mongrel
-      agent.stats_engine.add_harvest_sampler NewRelic::Agent::Samplers::CpuSampler.new unless (defined? Java and not defined? JRuby)
+      if NewRelic::Agent::Samplers::CpuSampler.supported_on_this_platform?
+        agent.stats_engine.add_harvest_sampler NewRelic::Agent::Samplers::CpuSampler.new
+      end
       begin
-        agent.stats_engine.add_sampler NewRelic::Agent::Samplers::MemorySampler.new
+        if NewRelic::Agent::Samplers::MemorySampler.supported_on_this_platform?
+          agent.stats_engine.add_sampler NewRelic::Agent::Samplers::MemorySampler.new
+        end
       rescue RuntimeError => e
         log.error "Cannot add memory sampling: #{e}"
       end
