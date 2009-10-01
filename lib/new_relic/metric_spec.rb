@@ -25,6 +25,15 @@ class NewRelic::MetricSpec
     h ^= scope.hash unless scope.nil?
     h
   end
+  # return a new metric spec if the given regex
+  # matches the name or scope.
+  def sub(pattern, replacement, apply_to_scope = true)
+    return nil if name !~ pattern && 
+                  (!apply_to_scope || scope.nil? || scope !~ pattern)
+    new_name = name.sub(pattern, replacement)
+    new_scope = (scope && scope.sub(pattern, replacement)) 
+    self.class.new new_name, new_scope
+  end
   
   def to_s
     "#{name}:#{scope}"
@@ -36,19 +45,8 @@ class NewRelic::MetricSpec
   end
   
   def <=>(o)
-    namecmp = name <=> o.name
+    namecmp = self.name <=> o.name
     return namecmp if namecmp != 0
-    
-    # i'm sure there's a more elegant way to code this correctly, but at least this passes
-    # my unit test
-    if scope.nil? && o.scope.nil?
-      return 0
-    elsif scope.nil?
-      return -1
-    elsif o.scope.nil?
-      return 1
-    else
-      return scope <=> o.scope
-    end
+    return (self.scope || '') <=> (o.scope || '')
   end
 end
