@@ -280,10 +280,14 @@ module NewRelic::Agent
           @traces = nil
           @unsent_timeslice_data = {}
           @last_harvest_time = Time.now
+          @connected = false
+          # Wait a short time before trying to reconnect
+          sleep 30
           retry
         rescue IgnoreSilentlyException
           control.log! "Unable to establish connection with the server.  Run with log level set to debug for more information."
         rescue StandardError => e
+          @connected = false
           control.log! e, :error
           control.log! e.backtrace.join("\n  "), :error
         end
@@ -575,18 +579,9 @@ module NewRelic::Agent
 
       # raises the right exception if the remote server tells it to die
       return check_for_exception(response)
-    rescue NewRelic::Agent::ForceRestartException => e
+    rescue ForceRestartException => e
       log.info e.message
-      # TODO but we'll ignore for now
-      # disconnect and start over.
-      # clear the stats engine
-      @metric_ids = {}
-      @unsent_errors = []
-      @traces = nil
-      @unsent_timeslice_data = {}
-      @last_harvest_time = Time.now
-      log.warn "Restart not yet implemented"
-      
+      raise
     rescue ForceDisconnectException => e
       log.error "RPM forced this agent to disconnect (#{e.message})\n" \
       "Restart this process to resume monitoring via rpm.newrelic.com."

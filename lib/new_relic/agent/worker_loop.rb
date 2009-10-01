@@ -75,6 +75,9 @@ module NewRelic::Agent
         task.execute
       rescue ServerError => e
         log.debug "Server Error: #{e}"
+      rescue NewRelic::Agent::ForceRestartException => e
+        # blow out the loop
+        raise
       rescue RuntimeError => e
         # This is probably a server error which has been logged in the server along
         # with your account name.  Check and see if the agent listener is in the
