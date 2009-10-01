@@ -292,7 +292,7 @@ module NewRelic
     def load_samplers
       agent = NewRelic::Agent.instance
       agent.stats_engine.add_sampler NewRelic::Agent::Samplers::MongrelSampler.new if local_env.mongrel
-      agent.stats_engine.add_harvest_sampler NewRelic::Agent::Samplers::CpuSampler.new unless defined? Java
+      agent.stats_engine.add_harvest_sampler NewRelic::Agent::Samplers::CpuSampler.new unless (defined? Java and not defined? JRuby)
       begin
         agent.stats_engine.add_sampler NewRelic::Agent::Samplers::MemorySampler.new
       rescue RuntimeError => e
