@@ -132,10 +132,9 @@ module NewRelic::Agent::Instrumentation
       
       # reset this in case we came through a code path where the top level controller is ignored
       Thread.current[:newrelic_ignore_controller] = nil
-      
+      apdex_start = (Thread.current[:started_on] || Thread.current[:newrelic_dispatcher_start] || Time.now).to_f
       start = Time.now.to_f
       agent.ensure_worker_thread_started
-#      gc_start = GC.respond_to?(:enable_stats) && GC.time      
       # assuming the first argument, if present, is the action name
       path = newrelic_metric_path(args.size > 0 ? args[0] : nil)
       controller_metric = "Controller/#{path}"
@@ -170,29 +169,17 @@ module NewRelic::Agent::Instrumentation
               stats_engine.get_stats_no_scope(NewRelic::Metrics::USER_TIME).record_data_point(cpu_burn)
               agent.transaction_sampler.notice_transaction_cpu_time(cpu_burn)
             end
-#            if gc_start
-#              gcstats = stats_engine.get_stats("GC/cumulative")
-#              gcstats.record_data_point((GC.time - gc_start)/1000000.0)
-#            end
             # do the apdex bucketing
             #
             unless is_filtered?(self.class.newrelic_read_attr('ignore_apdex'))
-              duration = Time.now.to_f - start
-              controller_stat = stats_engine.get_custom_stats("Apdex/#{path}", NewRelic::ApdexStats)
-              case
-              when failed
-                apdex_overall_stat.record_apdex_f    # frustrated
-                controller_stat.record_apdex_f
-              when duration <= NewRelic::Control.instance.apdex_t
-                apdex_overall_stat.record_apdex_s    # satisfied
-                controller_stat.record_apdex_s
-              when duration <= 4 * NewRelic::Control.instance.apdex_t
-                apdex_overall_stat.record_apdex_t    # tolerating
-                controller_stat.record_apdex_t
-              else
-                apdex_overall_stat.record_apdex_f    # frustrated
-                controller_stat.record_apdex_f
-              end
+              ending = Time.now.to_f
+              # this uses the start of the dispatcher or the mongrel
+              # thread: causes apdex to show too little capacity
+              apdex_overall(apdex_start, ending, failed)
+              # this uses the start time of the controller action:
+              # does not include capacity problems since those aren't
+              # per controller
+              apdex_controller(start, ending, failed, path)
             end
           end
       end
@@ -206,6 +193,30 @@ module NewRelic::Agent::Instrumentation
     def apdex_overall_stat
       NewRelic::Agent.instance.stats_engine.get_custom_stats("Apdex", NewRelic::ApdexStats)  
     end
+
+    def apdex_overall(start, ending, failed)
+      record_apdex(apdex_overall_stat, (ending - start), failed)
+    end
+
+    def apdex_controller(start, ending, failed, path)
+      controller_stat = NewRelic::Agent.instance.stats_engine.get_custom_stats("Apdex/#{path}", NewRelic::ApdexStats)
+      record_apdex(controller_stat, (ending - start), failed)
+    end
+
+    def record_apdex(stat, duration, failed)
+      apdex_t = NewRelic::Control.instance.apdex_t
+      case
+      when failed
+        stat.record_apdex_f
+      when duration <= apdex_t
+        stat.record_apdex_s
+      when duration <= 4 * apdex_t
+        stat.record_apdex_t
+      else
+        stat.record_apdex_f
+      end
+    end
+    
     
     def is_filtered?(ignore_actions)
       case ignore_actions
