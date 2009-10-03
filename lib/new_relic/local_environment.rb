@@ -86,10 +86,7 @@ module NewRelic
       append_environment_value('Arch') { ENV['PROCESSOR_ARCHITECTURE'] }
       # See what the number of cpus is, works only on linux.
       @processors = append_environment_value('Processors') do
-        processors = 0
-        File.readlines('/proc/cpuinfo').each do | line |
-          processors += 1 if line =~ /^processor\s*:/
-        end 
+        processors = File.readlines('/proc/cpuinfo').select { |line| line =~ /^processor\s*:/ }.size
         raise "Cannot determine the number of processors in /proc/cpuinfo" unless processors > 0
         processors
       end if File.readable? '/proc/cpuinfo'
