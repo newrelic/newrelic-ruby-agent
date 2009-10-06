@@ -4,7 +4,7 @@
 # which will return the response status code when the dispatcher finishes.
 module NewRelic::Agent::Instrumentation
   module DispatcherInstrumentation
-    
+    extend self
     def newrelic_dispatcher_start
       # Put the current time on the thread.  Can't put in @ivar because this could
       # be a class or instance context
@@ -32,17 +32,16 @@ module NewRelic::Agent::Instrumentation
         # Store the response header
         response_code = newrelic_response_code
         if response_code
-          stats = NewRelic::Agent.agent.stats_engine.get_stats_no_scope("HTTP/Response/#{response_code}")
-          stats.trace_call(elapsed_time)
+          NewRelic::Agent.agent.stats_engine.get_stats_no_scope("HTTP/Response/#{response_code}").trace_call(elapsed_time)
         end
         # Store the response time
         dispatch_stat.trace_call(elapsed_time)
         NewRelic::Agent.instance.histogram.process(elapsed_time)
       end
     end
-    def newrelic_response_code
-      raise "Must be implemented in the dispatcher class"
-    end
+    # Should be implemented in the dispatcher class
+    def newrelic_response_code; end
+    
     # Used only when no before/after callbacks are available with
     # the dispatcher, such as Rails before 2.0
     def dispatch_newrelic(*args)
