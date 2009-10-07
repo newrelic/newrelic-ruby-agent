@@ -236,22 +236,18 @@ module NewRelic::Agent::Instrumentation
       force = false      
       category = 'Controller'
       if block_given? && args.any?
-        if args.last.is_a? Hash
-          options = args.pop
-          category =
+        # FIXME whk should not use underscore, but formatters expect that format, not class name :(
+        clazz = self.class.name.respond_to?(:underscore) ? self.class.name.underscore : self.class.name
+        options =  args.last.is_a?(Hash) ? args.pop : {}
+        category =
           case options[:category]
             when :web_transaction, :controller, nil then 'Controller'
             when :task then 'Task'
-          else options[:category].to_s.capitalize
+            else options[:category].to_s.capitalize
           end
-          # FIXME whk should not use underscore
-          clazz = self.class.name.underscore
-          action = options[:name] || args.first || 'unknown'
-          path = clazz + '/' + action
-          force = options[:force]
-        else
-          path = args[0]
-        end
+        action = options[:name] || args.first || 'unknown'
+        force = options[:force]
+        path = clazz + '/' + action
       else
         path = newrelic_metric_path
       end
