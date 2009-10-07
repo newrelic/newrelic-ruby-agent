@@ -6,28 +6,13 @@
 #
 # In cases where you don't want to instrument the top level action, but instead
 # have other methods which are dispatched to by your action, and you want to treat
-# these as distinct actions, then what you need to do is call newrelic_ignore
-# on the top level action, and manually instrument the called 'actions'.  
+# these as distinct actions, then what you need to do is use
+# #perform_action_with_newrelic_trace
 #
-# Here's an example of a controller with a send_message action which dispatches
-# to more specific send_servicename methods.  This results in the controller 
-# action stats showing up for send_servicename.
-#
-# MyController < ActionController::Base
-#   newrelic_ignore :only => 'send_message'
-#   # dispatch this action to the method given by the service parameter.
-#   def send_message
-#     service = params['service']
-#     dispatch_to_method = "send_messge_to_#{service}"
-#     perform_action_with_newrelic_trace(dispatch_to_method) do
-#       send dispatch_to_method, params['message']
-#     end
-#   end
-# end
 
 module NewRelic::Agent::Instrumentation
   module ControllerInstrumentation
-
+    
     if defined? JRuby
       @@newrelic_java_classes_missing = false
       begin
@@ -39,17 +24,17 @@ module NewRelic::Agent::Instrumentation
       end
     end
     
-    def self.included(clazz)
+    def self.included(clazz) # :nodoc:
       clazz.extend(ClassMethods)
     end
     
     # This module is for importing stubs when the agent is disabled
-    module ClassMethodsShim
+    module ClassMethodsShim # :nodoc:
       def newrelic_ignore(*args); end
       def newrelic_ignore_apdex(*args); end
     end
     
-    module Shim
+    module Shim # :nodoc:
       def self.included(clazz)
         clazz.extend(ClassMethodsShim)
       end
@@ -82,12 +67,86 @@ module NewRelic::Agent::Instrumentation
         end
       end
       
-      # Should be monkey patched into the controller class implemented with the inheritable attribute mechanism.
+      # Should be monkey patched into the controller class implemented
+      # with the inheritable attribute mechanism.
       def newrelic_write_attr(attr_name, value) # :nodoc:
         instance_variable_set "@#{attr_name}", value
       end
       def newrelic_read_attr(attr_name) # :nodoc:
-        instance_variable_get "@#{attr_name}", value
+        instance_variable_get "@#{attr_name}"
+      end
+      
+      # Add transaction tracing to the given method.  This will treat
+      # the given method as a main entrypoint for instrumentation, just
+      # like controller actions are treated by default.  Useful especially
+      # for background tasks. 
+      #
+      # Example for background job:
+      #   class Job
+      #     include NewRelic::Agent::Instrumentation::ControllerInstrumentation
+      #     def run(task)
+      #        ...
+      #     end
+      #     # Instrument run so tasks show up under task.name.  Note single
+      #     # quoting to defer eval to runtime.
+      #     add_transaction_tracer :run, :name => '#{args[0].name}'
+      #   end
+      #
+      # Note: This method is still experimental.  Only the web
+      # transaction type is supported, and that is the default.
+      #
+      # Here's an example of a controller that uses a dispatcher
+      # action to invoke operations which you want treated as top
+      # level actions, so they aren't all lumped into the invoker
+      # action.
+      #      
+      #   MyController < ActionController::Base
+      #     include NewRelic::Agent::Instrumentation::ControllerInstrumentation
+      #     # dispatch the given op to the method given by the service parameter.
+      #     def invoke_operation
+      #       op = params['operation']
+      #       send op
+      #     end
+      #     # Ignore the invoker to avoid double counting
+      #     newrelic_ignore :only => 'invoke_operation'
+      #     # Instrument the operations:
+      #     add_transaction_tracer :print
+      #     add_transaction_tracer :show
+      #     add_transaction_tracer :forward
+      #   end
+      #
+      # All options are optional
+      #
+      # * <tt>:name => action_name</tt> is used to specify the action
+      #   name used as part of the metric name.  Default is the method name.
+      # * <tt>:category => :web_transaction</tt> indicates that this is a
+      #   controller action and will appear with all the other actions.
+      #   This is the default.
+      # * <tt>:category => :task</tt> indicates that this is a
+      #   background task and will show up in RPM with other background
+      #   tasks instead of in the controllers list.
+      # * <tt>:force => true</tt> indicates you should capture all
+      #   metrics even if the +newrelic_ignore+ directive was specified at
+      #   a higher level.
+      def add_transaction_tracer(method, options={})
+        # The metric path:
+        options[:name] ||= method.to_s
+        options_arg = []
+        options.each do |key, value|
+          options_arg << %Q[:#{key} => #{value.inspect}]
+        end
+        class_eval <<-EOC
+        def #{method.to_s}_with_newrelic_transaction_trace(*args, &block)
+          NewRelic::Agent::Instrumentation::DispatcherInstrumentation.newrelic_dispatcher_start
+          perform_action_with_newrelic_trace(#{options_arg.join(',')}) do
+            #{method.to_s}_without_newrelic_transaction_trace(*args, &block)
+          end
+        ensure
+          NewRelic::Agent::Instrumentation::DispatcherInstrumentation.newrelic_dispatcher_finish
+        end
+        EOC
+        alias_method "#{method.to_s}_without_newrelic_transaction_trace", method.to_s
+        alias_method method.to_s, "#{method.to_s}_with_newrelic_transaction_trace"
       end
     end
     
@@ -99,21 +158,62 @@ module NewRelic::Agent::Instrumentation
       raise "Not implemented!"
     end
     
-    def newrelic_record_cpu_burn?
-      defined? JRuby and not @@newrelic_java_classes_missing
-    end
-
-    def newrelic_cpu_time
-      threadMBean = ManagementFactory.getThreadMXBean()
-      java_utime = threadMBean.getCurrentThreadUserTime()  # ns
-      -1 == java_utime ? 0.0 : java_utime/1e9
-    end
-    
-    # Perform the current action with NewRelic tracing.  Used in a method
-    # chain via aliasing.  Call directly if you want to instrument a specifc
-    # block as if it were an action.  Pass the block along with the path.
-    # The metric is named according to the action name, or the given path if called
-    # directly.  
+    # Yield to the given block with NewRelic tracing.  Used by 
+    # default instrumentation on controller actions in Rails and Merb.
+    # But it can also be used in custom instrumentation of controller
+    # methods and background tasks.
+    #
+    # Here's a more verbose version of the example shown in
+    # ClassMethods#add_method_tracer using this method instead of
+    # add_method_tracer.
+    #
+    # Below is a controller with an =invoke_operation= action which
+    # dispatches to more specific operation methods based on a
+    # parameter (very dangerous, btw!).  With this instrumentation,
+    # the =invoke_operation= action is ignored but the operation
+    # methods show up in RPM as if they were first class controller
+    # actions
+    #    
+    #   MyController < ActionController::Base
+    #     include NewRelic::Agent::Instrumentation::ControllerInstrumentation
+    #     # dispatch the given op to the method given by the service parameter.
+    #     def invoke_operation
+    #       op = params['operation']
+    #       path = "#{self.class.underscore}/#{op}"
+    #       perform_action_with_newrelic_trace(:path => path) do
+    #         send op, params['message']
+    #       end
+    #     end
+    #     # Ignore the invoker to avoid double counting
+    #     newrelic_ignore :only => 'invoke_operation'
+    #   end
+    #
+    # By passing a block in combination with specific arguments, you can 
+    # invoke this directly to capture high level information in
+    # several contexts:
+    #
+    # * Pass <tt>:category => :web_transaction</tt> and <tt>:path => actionpath</tt>
+    #   to treat the block as if it were a controller action, invoked
+    #   inside a real action.  _actionpath_ is the class underscore
+    #   name followed by '/' and the name of the method, and is
+    #   used as the metric name.
+    #
+    # When invoked directly, pass in a block to measure with some
+    # combination of options:
+    #
+    # * <tt>:category => :web_transaction</tt> indicates that this is a
+    #   controller action and will appear with all the other actions.  This
+    #   is the default.
+    # * <tt>:category => :task</tt> indicates that this is a
+    #   background task and will show up in RPM with other background
+    #   tasks instead of in the controllers list
+    # * <tt>:name => action_name</tt> is used to specify the action
+    #   name used as part of the metric name
+    # * <tt>:force => true</tt> indicates you should capture all
+    #   metrics even if the #newrelic_ignore directive was specified
+    #
+    # If a single argument is passed in, it is treated as a metric
+    # path.  This form is deprecated.
     def perform_action_with_newrelic_trace(*args)
       agent = NewRelic::Agent.instance
       stats_engine = agent.stats_engine
@@ -133,23 +233,43 @@ module NewRelic::Agent::Instrumentation
       # reset this in case we came through a code path where the top level controller is ignored
       Thread.current[:newrelic_ignore_controller] = nil
       apdex_start = (Thread.current[:started_on] || Thread.current[:newrelic_dispatcher_start] || Time.now).to_f
+      force = false      
+      category = 'Controller'
+      if block_given? && args.any?
+        if args.last.is_a? Hash
+          options = args.pop
+          category =
+          case options[:category]
+            when :web_transaction, :controller, nil then 'Controller'
+            when :task then 'Task'
+          else options[:category].to_s.capitalize
+          end
+          # FIXME whk should not use underscore
+          clazz = self.class.name.underscore
+          action = options[:name] || args.first || 'unknown'
+          path = clazz + '/' + action
+          force = options[:force]
+        else
+          path = args[0]
+        end
+      else
+        path = newrelic_metric_path
+      end
+      metric_name = category + '/' + path 
       start = Time.now.to_f
       agent.ensure_worker_thread_started
-      # assuming the first argument, if present, is the action name
-      path = newrelic_metric_path(args.size > 0 ? args[0] : nil)
-      controller_metric = "Controller/#{path}"
-      force = block_given? && Hash === args.last && args.last[:force]
-      NewRelic::Agent.trace_execution_scoped [controller_metric, "Controller"], :force => force do 
-        stats_engine.transaction_name = controller_metric
-        
-        local_params = (respond_to? :filter_parameters) ? filter_parameters(params) : params
-        
-        agent.transaction_sampler.notice_transaction(path, request, local_params)
+      
+      NewRelic::Agent.trace_execution_scoped [metric_name, "Controller"], :force => force do 
+        stats_engine.transaction_name = metric_name
+        available_params = self.respond_to?(:params) ? params : {} 
+        local_params = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
+        available_request = (respond_to? :request) ? request : nil
+        agent.transaction_sampler.notice_transaction(path, available_request, local_params)
         
         if newrelic_record_cpu_burn?
           t = newrelic_cpu_time
         end
-
+        
         failed = false
         
         begin
@@ -182,8 +302,8 @@ module NewRelic::Agent::Instrumentation
               apdex_controller(start, ending, failed, path)
             end
           end
+        end
       end
-    end
     ensure
       # clear out the name of the traced transaction under all circumstances
       stats_engine.transaction_name = nil
@@ -193,24 +313,24 @@ module NewRelic::Agent::Instrumentation
     def apdex_overall_stat
       NewRelic::Agent.instance.stats_engine.get_custom_stats("Apdex", NewRelic::ApdexStats)  
     end
-
+    
     def apdex_overall(start, ending, failed)
       record_apdex(apdex_overall_stat, (ending - start), failed)
     end
-
+    
     def apdex_controller(start, ending, failed, path)
       controller_stat = NewRelic::Agent.instance.stats_engine.get_custom_stats("Apdex/#{path}", NewRelic::ApdexStats)
       record_apdex(controller_stat, (ending - start), failed)
     end
-
+    
     def record_apdex(stat, duration, failed)
       apdex_t = NewRelic::Control.instance.apdex_t
       case
-      when failed
+        when failed
         stat.record_apdex_f
-      when duration <= apdex_t
+        when duration <= apdex_t
         stat.record_apdex_s
-      when duration <= 4 * apdex_t
+        when duration <= 4 * apdex_t
         stat.record_apdex_t
       else
         stat.record_apdex_f
@@ -229,5 +349,15 @@ module NewRelic::Agent::Instrumentation
         true
       end
     end
+    protected
+    def newrelic_record_cpu_burn? # :nodoc:
+      defined? JRuby and not @@newrelic_java_classes_missing
+    end
+    def newrelic_cpu_time # :nodoc:
+      threadMBean = ManagementFactory.getThreadMXBean()
+      java_utime = threadMBean.getCurrentThreadUserTime()  # ns
+      -1 == java_utime ? 0.0 : java_utime/1e9
+    end
+
   end 
 end  

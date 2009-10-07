@@ -34,13 +34,25 @@
 #
 # == Agent APIs
 #
-
-# Methods in this module are available to applications.  When the
-# agent is not enabled The method implementations are stubbed into
+# For adding custom instrumentation to method invocation, refer to 
+# the docs in the class NewRelic::Agent::MethodTracer.
+#
+# For information on how to instrument something other than Rails so
+# that high level dispatcher actions or background tasks show up as first
+# class operations in RPM, refer to NewRelic::Agent::Instrumentation::ControllerInstrumentation
+# and NewRelic::Agent::Instrumentation::ControllerInstrumentation::ClassMethods.
+#
+# Methods in this module as well as MethodTracer and ControllerInstrumentation
+# are available to applications.  When the
+# agent is not enabled the method implementations are stubbed into
 # no-ops to reduce overhead.
 #
 # Methods and classes in other parts of the agent are not guaranteed
 # to be available between releases.
+#
+# Refer to the online docs at support.newrelic.com to see how to access
+# the data collected by custom instrumentation, or e-mail support at New Relic
+# for help.
 #
 # :main: lib/new_relic/agent.rb
 module NewRelic
