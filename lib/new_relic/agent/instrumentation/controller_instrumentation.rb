@@ -133,7 +133,7 @@ module NewRelic::Agent::Instrumentation
         options[:name] ||= method.to_s
         options_arg = []
         options.each do |key, value|
-          options_arg << %Q[:#{key} => #{value.inspect}]
+          options_arg << %Q[:#{key} => "#{value}"]
         end
         class_eval <<-EOC
         def #{method.to_s}_with_newrelic_transaction_trace(*args, &block)
@@ -237,7 +237,7 @@ module NewRelic::Agent::Instrumentation
       category = 'Controller'
       if block_given? && args.any?
         # FIXME whk should not use underscore, but formatters expect that format, not class name :(
-        clazz = self.class.name.respond_to?(:underscore) ? self.class.name.underscore : self.class.name
+        metric_path_of_class = self.class.name.respond_to?(:underscore) ? self.class.name.underscore : self.class.name
         options =  args.last.is_a?(Hash) ? args.pop : {}
         category =
           case options[:category]
@@ -245,9 +245,12 @@ module NewRelic::Agent::Instrumentation
             when :task then 'Task'
             else options[:category].to_s.capitalize
           end
+        # To be consistent with the ActionController::Base#controller_path used in rails to determine the
+        # metric path, we drop the controller off the end of the path if there is one.
+        metric_path_of_class.gsub! /_controller$/,'' if category == 'Controller'
         action = options[:name] || args.first || 'unknown'
         force = options[:force]
-        path = clazz + '/' + action
+        path = metric_path_of_class + '/' + action
       else
         path = newrelic_metric_path
       end
