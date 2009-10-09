@@ -205,6 +205,19 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
     assert_equal 1, NewRelic::Agent.get_stats("ActiveRecord/all").call_count
   end
   
+  def test_rescue_handling
+    begin
+      ActiveRecordFixtures::Order.transaction do
+        raise ActiveRecord::ActiveRecordError.new('preserve-me!') 
+      end
+    rescue ActiveRecord::ActiveRecordError => e
+      assert_equal 'preserve-me!', e.message
+    rescue
+      fail "Rescue2: Got something COMPLETELY unexpected: $!:#{$!.inspect}"
+    end
+
+  end
+  
   private
   
   def compare_metrics expected_list, actual_list

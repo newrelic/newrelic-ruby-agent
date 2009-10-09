@@ -69,9 +69,9 @@ class AgentControllerTest < ActionController::TestCase
     engine = @agent.stats_engine
     get :entry_action
     assert_nil Thread.current[:newrelic_ignore_controller]
-    assert_nil engine.lookup_stat('Controller/agent_test/entry_action')
-    assert_nil engine.lookup_stat('Controller/new_relic/agent/agent_test/internal_action')
-    assert_not_nil engine.lookup_stat('Controller/new_relic/agent/agent_test/internal_traced_action')
+    assert_nil engine.lookup_stat('Controller/agent_test_controller/entry_action')
+    assert_nil engine.lookup_stat('Controller/new_relic/agent/agent_test_controller/internal_action')
+    assert_not_nil engine.lookup_stat('Controller/new_relic/agent/agent_test_controller/internal_traced_action')
   end
   def test_action_instrumentation
     begin

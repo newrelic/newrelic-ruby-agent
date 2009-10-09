@@ -37,7 +37,7 @@ class NewRelic::Agent::AgentTestController < NewRelic::Agent::SuperclassControll
   end
   private
   def internal_action
-    perform_action_with_newrelic_trace('internal_traced_action', :force => true) do
+    perform_action_with_newrelic_trace(:name => 'internal_traced_action', :force => true) do
       render :text => 'internal action'
     end
   end
