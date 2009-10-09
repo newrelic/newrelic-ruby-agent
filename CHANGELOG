@@ -1,4 +1,7 @@
 v2.10.1
+  * added add_transaction_tracer method to support instrumenting methods as
+    if they were web transactions; this will facilitate better visibility of background
+    tasks and eventually things like rack, metal and Sinatra
   * adjusted apdex scores to reflect time spent in the mongrel queue
   * fixed incompatibility with JRuby on startup
   * implmented CPU measure for JRuby which reflects the cpu burn for
