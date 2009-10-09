@@ -119,14 +119,20 @@ module NewRelic::Agent
       def collecting_gc?
         @@collecting_gc
       end
+
+      # smallest recordable amount of GC time. We ignore anything
+      # smaller than this since it's under our reporting thresholds
+      EPSILON = 100 # µs
       
       # Assumes collecting_gc?
       def capture_gc_time
         # Skip this if we are already in this segment
         return if !scope_stack.empty? && scope_stack.last.name == "GC/cumulative"
         num_calls = GC.collections - @last_gc_count
-        elapsed = (GC.time - @last_gc_timestamp)/1000000.0 
-        if num_calls > 0
+        elapsed = (GC.time - @last_gc_timestamp)
+        if num_calls > 0 && elapsed >= EPSILON
+          # µs to seconds 
+          elapsed = elapsed / 1000000.0
           @last_gc_timestamp += elapsed
           @last_gc_count += num_calls
           # Allocate the GC time to a scope as if the GC just ended
