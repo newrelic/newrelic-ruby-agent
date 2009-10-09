@@ -166,6 +166,12 @@ module NewRelic
       options.merge! :agent_enabled => true 
       NewRelic::Control.instance.init_plugin options
     end
+    
+    # Shutdown the agent.  Call this before exiting.  Sends any queued data
+    # and kills the background thread.
+    def shutdown
+      @agent.shutdown
+    end        
 
     # This method sets the block sent to this method as a sql obfuscator. 
     # The block will be called with a single String SQL statement to obfuscate.
