@@ -33,7 +33,6 @@ common: &default_settings
   # defining applications.
   app_name: My Application
 
-  # A global switch for enabling/disabling the agent. 
   # When "true", the agent collects performance data about your 
   # application and reports this data to the NewRelic RPM service at 
   # newrelic.com. This global switch is normally overridden for each 
@@ -128,6 +127,15 @@ common: &default_settings
     # then capture and send to RPM the current stack trace. This is
     # helpful for pinpointing where long SQL calls originate from
     stack_trace_threshold: 0.500
+
+    # Determines whether the agent will capture query plans for slow
+    # SQL queries.  Only supported in mysql and postgres.  Should be
+    # set to false when using other adapters.
+    # explain_enabled: true
+
+    # Threshold for query execution time below which query plans will not 
+    # not be captured.  Relevant only when `explain_enabled` is true.
+    # explain_threshold: 0.5
   
   # Error collector captures information about uncaught exceptions and
   # sends them to RPM for viewing
