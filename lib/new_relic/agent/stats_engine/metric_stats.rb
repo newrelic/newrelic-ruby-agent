@@ -1,13 +1,14 @@
 module NewRelic::Agent
   class StatsEngine
     module MetricStats
-
+      # The stats hash hashes either a metric name for an unscoped metric,
+      # or a metric_spec for a scoped metric value.
       def lookup_stat(metric_name)
         stats_hash[metric_name]
       end
 
       def metrics
-        stats_hash.keys
+        stats_hash.keys.map(&:to_s)
       end
       
       def get_stats_no_scope(metric_name)
