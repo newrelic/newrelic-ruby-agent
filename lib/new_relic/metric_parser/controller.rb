@@ -4,8 +4,11 @@ class NewRelic::MetricParser::Controller < NewRelic::MetricParser
     true
   end
   
+  # If the controller name segments look like a file path, convert it to the controller
+  # class name.  If it begins with a capital letter, assume it's already a class name
   def controller_name
-    segments[1..-2].join('/').camelize+"Controller"
+    path = segments[1..-2].join('/')
+    path < 'a' ? path : path.camelize+"Controller" 
   end
 
   def action_name
@@ -17,7 +20,11 @@ class NewRelic::MetricParser::Controller < NewRelic::MetricParser
   end
   
   def developer_name
-    "#{controller_name}##{action_name}"
+    if segments[1] == 'Sinatra::Application'
+      "Sinatra Pattern: #{segments[2..-1].join('/')}"
+    else
+      "#{controller_name}##{action_name}"
+    end
   end
   
   # return the cpu measuring equivalent.  It may be nil since this metric was not

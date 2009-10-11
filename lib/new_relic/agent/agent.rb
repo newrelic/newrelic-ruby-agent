@@ -206,7 +206,9 @@ module NewRelic::Agent
           # When the VM shuts down, attempt to send a message to the
           # server that this agent run is stopping, assuming it has
           # successfully connected
-          at_exit { shutdown }
+          # This shutdown handler doesn't work if Sinatra is running
+          # because it executes in the shutdown handler!
+          at_exit { shutdown } unless defined?(Sinatra::Default)
         end
       end
       control.log! "New Relic RPM Agent #{NewRelic::VERSION::STRING} Initialized: pid = #{$$}"
@@ -244,8 +246,10 @@ module NewRelic::Agent
           harvest_and_send_errors
         end
       end
+      log.debug("Running worker loop")
       @task_loop.run
     rescue StandardError
+      log.debug("Error in worker loop: #{$!}")
       @connected = false
       raise
     end
@@ -263,7 +267,7 @@ module NewRelic::Agent
         require 'new_relic/agent/patch_const_missing'
         ClassLoadingWatcher.enable_warning
       end
-      
+      log.debug "Creating RPM worker thread."
       @worker_thread = Thread.new do
         begin
           ClassLoadingWatcher.background_thread=Thread.current if control['check_bg_loading']
