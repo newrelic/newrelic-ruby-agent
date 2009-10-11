@@ -393,24 +393,12 @@ module NewRelic
     # Create the concrete class for environment specific behavior:
     def self.new_instance
       @local_env = NewRelic::LocalEnvironment.new
-      case @local_env.framework
-        when :test
+      if @local_env.framework == :test
         require File.join(newrelic_root, "test", "config", "test_control.rb")
         NewRelic::Control::Test.new @local_env
-        when :merb
-        require 'new_relic/control/merb'
-        NewRelic::Control::Merb.new @local_env
-        when :rails
-        require 'new_relic/control/rails'
-        NewRelic::Control::Rails.new @local_env
-        when :ruby
-        require 'new_relic/control/ruby'
-        NewRelic::Control::Ruby.new @local_env
-        when :external
-        require 'new_relic/control/external'
-        NewRelic::Control::External.new @local_env
-      else 
-        raise "Unknown framework: #{@local_env.framework}"
+      else
+        require "new_relic/control/#{@local_env.framework}.rb"
+        NewRelic::Control.const_get(@local_env.framework.to_s.capitalize).new @local_env
       end
     end
     
