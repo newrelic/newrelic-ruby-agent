@@ -186,7 +186,7 @@ module NewRelic::Agent
       metric_name_code = "Custom/#{self.name}/#{method_name.to_s}" unless metric_name_code
       
       unless method_defined?(method_name) || private_method_defined?(method_name)
-        NewRelic::Control.instance.log.warn("Did not trace #{self}##{method_name} because that method does not exist")
+        NewRelic::Control.instance.log.warn("Did not trace #{self.name}##{method_name} because that method does not exist")
         return
       end
       
@@ -242,7 +242,7 @@ module NewRelic::Agent
       alias_method _untraced_method_name(method_name, metric_name_code), method_name
       alias_method method_name, _traced_method_name(method_name, metric_name_code)
       
-      NewRelic::Control.instance.log.debug("Traced method: class = #{self}, method = #{method_name}, "+
+      NewRelic::Control.instance.log.debug("Traced method: class = #{self.name}, method = #{method_name}, "+
         "metric = '#{metric_name_code}', options: #{options.inspect}, ")
     end
 
