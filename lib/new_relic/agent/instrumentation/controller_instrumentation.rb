@@ -220,7 +220,7 @@ module NewRelic::Agent::Instrumentation
       
       # Skip instrumentation based on the value of 'do_not_trace' and if 
       # we aren't calling directly with a block.
-      if !block_given? && is_filtered?(self.class.newrelic_read_attr('do_not_trace'))
+      if !block_given? && is_filtered?('do_not_trace')
         # Tell the dispatcher instrumentation that we ignored this action and it shouldn't
         # be counted for the overall HTTP operations measurement.
         Thread.current[:newrelic_ignore_controller] = true
@@ -290,7 +290,7 @@ module NewRelic::Agent::Instrumentation
             end
             # do the apdex bucketing
             #
-            unless is_filtered?(self.class.newrelic_read_attr('ignore_apdex'))
+            unless is_filtered?('ignore_apdex')
               ending = Time.now.to_f
               # this uses the start of the dispatcher or the mongrel
               # thread: causes apdex to show too little capacity
@@ -336,8 +336,11 @@ module NewRelic::Agent::Instrumentation
       end
     end
     
+    protected
     
-    def is_filtered?(ignore_actions)
+    # Filter out 
+    def is_filtered?(key)
+      ignore_actions = self.class.newrelic_read_attr(key) if self.class.respond_to? :newrelic_read_attr
       case ignore_actions
         when nil; false
         when Hash
@@ -348,7 +351,6 @@ module NewRelic::Agent::Instrumentation
         true
       end
     end
-    protected
     def newrelic_record_cpu_burn? # :nodoc:
       defined? JRuby and not @@newrelic_java_classes_missing
     end

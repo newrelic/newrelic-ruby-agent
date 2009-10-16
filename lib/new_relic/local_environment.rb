@@ -146,7 +146,7 @@ module NewRelic
     # is not advisable since it implies certain api's being available.
     def discover_dispatcher
       @dispatcher = ENV['NEWRELIC_DISPATCHER'] && ENV['NEWRELIC_DISPATCHER'].to_sym
-      dispatchers = %w[passenger glassfish thin mongrel litespeed webrick fastcgi unicorn]
+      dispatchers = %w[passenger glassfish thin mongrel litespeed webrick fastcgi unicorn sinatra]
       while dispatchers.any? && @dispatcher.nil?
         send 'check_for_'+(dispatchers.shift)
       end
@@ -160,6 +160,7 @@ module NewRelic
         when defined? NewRelic::TEST then :test
         when defined? Merb::Plugins then :merb
         when defined? Rails then :rails
+        when defined? Sinatra::Base then :sinatra      
         when defined? NewRelic::IA then :external
       else :ruby
       end      
@@ -219,6 +220,10 @@ module NewRelic
       @dispatcher = :unicorn
     end
       
+    def check_for_sinatra
+      return unless defined?(Sinatra::Base)
+      @dispatcher = :sinatra
+    end
     
     def check_for_thin
       if defined? Thin::Server
