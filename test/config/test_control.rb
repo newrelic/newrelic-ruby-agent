@@ -1,7 +1,7 @@
 require 'new_relic/control/rails'
 require 'new_relic/agent/agent_test_controller'
 
-class NewRelic::Control::Test < NewRelic::Control::Rails
+class NewRelic::Control::Test < NewRelic::Control::Rails #:nodoc:
   def env
     'test'
   end
