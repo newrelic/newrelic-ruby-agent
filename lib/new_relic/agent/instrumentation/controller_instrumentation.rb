@@ -117,11 +117,14 @@ module NewRelic::Agent::Instrumentation
       #
       # All options are optional
       #
-      # * <tt>:name => action_name</tt> is used to specify the action
-      #   name used as part of the metric name.  Default is the method name.
-      # * <tt>:category => :web_transaction</tt> indicates that this is a
+      # * <tt>:name => path</tt> is used to specify the action
+      #   name, URI, or other identifier that uniquely identifies what
+      #   is being invoked.  This will be used as part of the metric name.  
+      #   Default is the method name.
+      # * <tt>:category => :controller</tt> indicates that this is a
       #   controller action and will appear with all the other actions.
-      #   This is the default.
+      #   This is the default.  The <tt>:name</tt> should be an action or
+      #   method name.
       # * <tt>:category => :task</tt> indicates that this is a
       #   background task and will show up in RPM with other background
       #   tasks instead of in the controllers list.
@@ -179,8 +182,7 @@ module NewRelic::Agent::Instrumentation
     #     # dispatch the given op to the method given by the service parameter.
     #     def invoke_operation
     #       op = params['operation']
-    #       path = "#{self.class.underscore}/#{op}"
-    #       perform_action_with_newrelic_trace(:path => path) do
+    #       perform_action_with_newrelic_trace(:name => op) do
     #         send op, params['message']
     #       end
     #     end
@@ -192,25 +194,37 @@ module NewRelic::Agent::Instrumentation
     # invoke this directly to capture high level information in
     # several contexts:
     #
-    # * Pass <tt>:category => :web_transaction</tt> and <tt>:path => actionpath</tt>
+    # * Pass <tt>:category => :controller</tt> and <tt>:name => actionname</tt>
     #   to treat the block as if it were a controller action, invoked
-    #   inside a real action.  _actionpath_ is the class underscore
-    #   name followed by '/' and the name of the method, and is
-    #   used as the metric name.
+    #   inside a real action.  <tt>:name</tt> is the name of the method, and is
+    #   used in the metric name.
     #
     # When invoked directly, pass in a block to measure with some
     # combination of options:
     #
-    # * <tt>:category => :web_transaction</tt> indicates that this is a
+    # * <tt>:category => :controller</tt> indicates that this is a
     #   controller action and will appear with all the other actions.  This
     #   is the default.
     # * <tt>:category => :task</tt> indicates that this is a
     #   background task and will show up in RPM with other background
     #   tasks instead of in the controllers list
+    # * <tt>:category => :rack</tt> if you are instrumenting a rack
+    #   middleware call.  The <tt>:name</tt> is optional, useful if you 
+    #   have more than one potential transaction in the #call.
+    # * <tt>:category => :uri</tt> indicates that this is a
+    #   web transaction whose name is a normalized URI, where  'normalized'
+    #   means the URI does not have any elements with data in them such
+    #   as in many REST URIs.
     # * <tt>:name => action_name</tt> is used to specify the action
     #   name used as part of the metric name
     # * <tt>:force => true</tt> indicates you should capture all
     #   metrics even if the #newrelic_ignore directive was specified
+    # * <tt>:class_name => aClass.name</tt> is used to override the name
+    #   of the class when used inside the metric name.  Default is the
+    #   current class.
+    # * <tt>:path => metric_path</tt> is *deprecated* in the public API.  It
+    #   allows you to set the entire metric after the category part.  Overrides
+    #   all the other options.
     #
     # If a single argument is passed in, it is treated as a metric
     # path.  This form is deprecated.
@@ -236,21 +250,24 @@ module NewRelic::Agent::Instrumentation
       force = false      
       category = 'Controller'
       if block_given? && args.any?
-        # FIXME whk should not use underscore, but formatters expect that format, not class name :(
-        metric_path_of_class = self.class.name.respond_to?(:underscore) ? self.class.name.underscore : self.class.name
         options =  args.last.is_a?(Hash) ? args.pop : {}
-        category =
+        unless path = options[:path]
+          category =
           case options[:category]
-            when :web_transaction, :controller, nil then 'Controller'
+            when :controller, nil then 'Controller'
+            when :uri, nil then 'WebTransaction/Uri'
+            when :rack, nil then 'WebTransaction/Rack'
             when :task then 'Task'
-            else options[:category].to_s.capitalize
+          else options[:category].to_s.capitalize
           end
-        # To be consistent with the ActionController::Base#controller_path used in rails to determine the
-        # metric path, we drop the controller off the end of the path if there is one.
-        metric_path_of_class.gsub! /_controller$/,'' if category == 'Controller'
-        action = options[:name] || args.first || 'unknown'
-        force = options[:force]
-        path = metric_path_of_class + '/' + action
+          # To be consistent with the ActionController::Base#controller_path used in rails to determine the
+          # metric path, we drop the controller off the end of the path if there is one.
+          action = options[:name] || args.first 
+          force = options[:force]
+          metric_class = options[:class_name] || self.class.name
+          path = metric_class
+          path += ('/' + action) if action
+        end
       else
         path = newrelic_metric_path
       end
