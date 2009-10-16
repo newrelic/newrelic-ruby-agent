@@ -92,9 +92,6 @@ module NewRelic::Agent::Instrumentation
       #     add_transaction_tracer :run, :name => '#{args[0].name}'
       #   end
       #
-      # Note: This method is still experimental.  Only the web
-      # transaction type is supported, and that is the default.
-      #
       # Here's an example of a controller that uses a dispatcher
       # action to invoke operations which you want treated as top
       # level actions, so they aren't all lumped into the invoker
@@ -115,22 +112,9 @@ module NewRelic::Agent::Instrumentation
       #     add_transaction_tracer :forward
       #   end
       #
-      # All options are optional
+      # See NewRelic::Agent::Instrumentation::ControllerInstrumentation#perform_action_with_newrelic_trace
+      # for the full list of available options.
       #
-      # * <tt>:name => path</tt> is used to specify the action
-      #   name, URI, or other identifier that uniquely identifies what
-      #   is being invoked.  This will be used as part of the metric name.  
-      #   Default is the method name.
-      # * <tt>:category => :controller</tt> indicates that this is a
-      #   controller action and will appear with all the other actions.
-      #   This is the default.  The <tt>:name</tt> should be an action or
-      #   method name.
-      # * <tt>:category => :task</tt> indicates that this is a
-      #   background task and will show up in RPM with other background
-      #   tasks instead of in the controllers list.
-      # * <tt>:force => true</tt> indicates you should capture all
-      #   metrics even if the +newrelic_ignore+ directive was specified at
-      #   a higher level.
       def add_transaction_tracer(method, options={})
         # The metric path:
         options[:name] ||= method.to_s
@@ -167,13 +151,13 @@ module NewRelic::Agent::Instrumentation
     # methods and background tasks.
     #
     # Here's a more verbose version of the example shown in
-    # ClassMethods#add_method_tracer using this method instead of
+    # <tt>ClassMethods#add_method_tracer</tt> using this method instead of
     # add_method_tracer.
     #
-    # Below is a controller with an =invoke_operation= action which
+    # Below is a controller with an +invoke_operation+ action which
     # dispatches to more specific operation methods based on a
     # parameter (very dangerous, btw!).  With this instrumentation,
-    # the =invoke_operation= action is ignored but the operation
+    # the +invoke_operation+ action is ignored but the operation
     # methods show up in RPM as if they were first class controller
     # actions
     #    
