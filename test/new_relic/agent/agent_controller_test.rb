@@ -41,7 +41,6 @@ class AgentControllerTest < ActionController::TestCase
   def test_metric__no_ignore
     engine = @agent.stats_engine
     path = 'new_relic/agent/agent_test/index'
-    cpu_stats = engine.get_stats_no_scope("ControllerCPU/#{path}")
     index_stats = engine.get_stats_no_scope("Controller/#{path}")
     index_apdex_stats = engine.get_custom_stats("Apdex/#{path}", NewRelic::ApdexStats)
     assert_difference 'index_stats.call_count' do
@@ -71,9 +70,10 @@ class AgentControllerTest < ActionController::TestCase
     assert_nil Thread.current[:newrelic_ignore_controller]
     assert_nil engine.lookup_stat('Controller/agent_test/entry_action')
     assert_nil engine.lookup_stat('Controller/agent_test_controller/entry_action')
-    assert_nil engine.lookup_stat('Controller/new_relic/agent/agent_test/internal_action')
-    assert_nil engine.lookup_stat('Controller/new_relic/agent/agent_test_controller/internal_action')
-    assert_not_nil engine.lookup_stat('Controller/new_relic/agent/agent_test/internal_traced_action')
+    assert_nil engine.lookup_stat('Controller/AgentTestController/entry_action')
+    assert_nil engine.lookup_stat('Controller/NewRelic::Agent::AgentTestController/internal_action')
+    assert_nil engine.lookup_stat('Controller/NewRelic::Agent::AgentTestController_controller/internal_action')
+    assert_not_nil engine.lookup_stat('Controller/NewRelic::Agent::AgentTestController/internal_traced_action')
   end
   def test_action_instrumentation
     begin
