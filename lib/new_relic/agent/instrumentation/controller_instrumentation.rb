@@ -255,8 +255,8 @@ module NewRelic::Agent::Instrumentation
           category =
           case options[:category]
             when :controller, nil then 'Controller'
-            when :uri, nil then 'WebTransaction/Uri'
-            when :rack, nil then 'WebTransaction/Rack'
+            when :uri then 'Controller' #'WebTransaction/Uri'
+            when :rack then 'Controller' #'WebTransaction/Rack'
             when :task then 'Task'
           else options[:category].to_s.capitalize
           end
