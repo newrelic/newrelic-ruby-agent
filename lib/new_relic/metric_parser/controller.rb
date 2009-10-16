@@ -1,5 +1,5 @@
 class NewRelic::MetricParser::Controller < NewRelic::MetricParser
-  
+
   def is_controller?
     true
   end
@@ -20,11 +20,7 @@ class NewRelic::MetricParser::Controller < NewRelic::MetricParser
   end
   
   def developer_name
-    if segments[1] == 'Sinatra::Application'
-      "Sinatra Pattern: #{segments[2..-1].join('/')}"
-    else
-      "#{controller_name}##{action_name}"
-    end
+    "#{controller_name}##{action_name}"
   end
   
   # return the cpu measuring equivalent.  It may be nil since this metric was not
