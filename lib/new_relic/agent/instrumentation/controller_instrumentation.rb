@@ -120,7 +120,7 @@ module NewRelic::Agent::Instrumentation
         options[:name] ||= method.to_s
         options_arg = []
         options.each do |key, value|
-          options_arg << %Q[:#{key} => "#{value}"]
+          options_arg << %Q[:#{key} => #{value.is_a?(Symbol) ? value.inspect : %Q["#{value.to_s}"]}]
         end
         class_eval <<-EOC
         def #{method.to_s}_with_newrelic_transaction_trace(*args, &block)
@@ -239,16 +239,19 @@ module NewRelic::Agent::Instrumentation
           category =
           case options[:category]
             when :controller, nil then 'Controller'
+            when :task then 'Controller/Task' # 'Task'
+            when :rack then 'Controller/Rack' #'WebTransaction/Rack'
             when :uri then 'Controller' #'WebTransaction/Uri'
-            when :rack then 'Controller' #'WebTransaction/Rack'
-            when :task then 'Task'
-          else options[:category].to_s.capitalize
+            # for internal use only
+            when :sinatra then 'Controller/Sinatra' #'WebTransaction/Uri'
+            else options[:category].to_s.capitalize
           end
           # To be consistent with the ActionController::Base#controller_path used in rails to determine the
           # metric path, we drop the controller off the end of the path if there is one.
           action = options[:name] || args.first 
           force = options[:force]
-          metric_class = options[:class_name] || self.class.name
+          metric_class = options[:class_name] || (self.is_a?(Class) ? self.name : self.class.name)
+
           path = metric_class
           path += ('/' + action) if action
         end
