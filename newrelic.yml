@@ -186,7 +186,7 @@ development:
   developer: true
   
   # Enable textmate links
-  textmate: true
+  # textmate: true
 
 test:
   <<: *default_settings

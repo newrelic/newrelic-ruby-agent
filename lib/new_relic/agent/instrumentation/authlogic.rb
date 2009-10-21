@@ -1,4 +1,4 @@
-if defined? Authlogic
+if defined? Authlogic::Session::Base
   Authlogic::Session::Base.class_eval do
   #  add_method_tracer :record, 'Authlogic/record'
     class << self

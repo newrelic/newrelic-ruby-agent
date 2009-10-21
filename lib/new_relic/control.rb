@@ -152,7 +152,7 @@ module NewRelic
     end
     # True if we should view files in textmate
     def use_textmate?
-      fetch('textmate',false)
+      fetch('textmate')
     end
     # True if dev mode or monitor mode are enabled, and we are running
     # inside a valid dispatcher like mongrel or passenger.  Can be overridden
