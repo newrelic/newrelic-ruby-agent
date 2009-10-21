@@ -86,7 +86,10 @@ class NewRelic::Control::Rails < NewRelic::Control
       next if self.instance_methods.include? 'draw_with_newrelic_map'
       def draw_with_newrelic_map
         draw_without_newrelic_map do | map |
-          map.named_route 'newrelic_developer', '/newrelic/:action/:id', :controller => 'newrelic' unless NewRelic::Control.instance['skip_developer_route']
+          unless NewRelic::Control.instance['skip_developer_route']
+            map.named_route 'newrelic_developer', '/newrelic/:action/:id', :controller => 'newrelic' 
+            map.named_route 'newrelic_file', '/newrelic/file/*file', :controller => 'newrelic', :action=>'file'
+          end
           yield map        
         end
       end

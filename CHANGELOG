@@ -1,4 +1,5 @@
 v2.10.1
+  * add support for textmate to dev mode
   * preliminary sinatra support, displays actions named by the URI pattern matched
   * added add_transaction_tracer method to support instrumenting methods as
     if they were web transactions; this will facilitate better visibility of background
