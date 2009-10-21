@@ -144,11 +144,15 @@ module NewRelic
     end
     # True if we are sending data to the server, monitoring production
     def monitor_mode?
-      fetch('enabled', nil)
+      fetch('enabled')
     end
     # True if we are capturing data and displaying in /newrelic
     def developer_mode?
-      fetch('developer', nil)
+      fetch('developer')
+    end
+    # True if we should view files in textmate
+    def use_textmate?
+      fetch('textmate',false)
     end
     # True if dev mode or monitor mode are enabled, and we are running
     # inside a valid dispatcher like mongrel or passenger.  Can be overridden
