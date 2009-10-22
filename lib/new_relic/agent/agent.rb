@@ -338,7 +338,9 @@ module NewRelic::Agent
           :launch_time => @launch_time.to_f, 
           :agent_version => NewRelic::VERSION::STRING, 
           :environment => environment,
-          :settings => control.settings }
+          :settings => control.settings,
+          :validate_seed => ENV['NR_VALIDATE_SEED'],
+          :validate_token => ENV['NR_VALIDATE_TOKEN'] }
         
         host = invoke_remote(:get_redirect_host) rescue nil
         
