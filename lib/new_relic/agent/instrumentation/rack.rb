@@ -37,6 +37,19 @@ module NewRelic
       #     extend NewRelic::Agent::Instrumentation::Rack
       #   end
       #
+      # == Overriding the metric name
+      # By default the middleware is identified only by its class, but if you want to 
+      # be more specific and pass in name, then omit including the Rack instrumentation
+      # and instead follow this example:
+      #
+      #   require 'new_relic/agent/instrumentation/controller_instrumentation'
+      #   class Middleware
+      #     def call(env)
+      #       ...
+      #     end
+      #     add_transaction_tracer :call, :category => :rack, :name => 'my app'
+      #   end
+      #
       module Rack
         def call_with_newrelic(*args)
           perform_action_with_newrelic_trace(:category => :rack) do

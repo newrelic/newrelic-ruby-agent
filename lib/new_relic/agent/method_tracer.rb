@@ -7,7 +7,7 @@ module NewRelic::Agent
     
     # Deprecated: original method preserved for API backward compatibility.
     # Use either #trace_execution_scoped or #trace_execution_unscoped
-    def trace_method_execution(metric_names, push_scope, produce_metric, deduct_call_time_from_parent, &block) 
+    def trace_method_execution(metric_names, push_scope, produce_metric, deduct_call_time_from_parent, &block) #:nodoc: 
       if push_scope
         trace_execution_scoped(metric_names, :metric => produce_metric, 
                                                     :deduct_call_time_from_parent => deduct_call_time_from_parent, &block)
@@ -43,7 +43,7 @@ module NewRelic::Agent
     EMPTY_ARRAY = [].freeze #:nodoc:
     
     # Deprecated. Use #trace_execution_scoped, a version with an options hash.  
-    def trace_method_execution_with_scope(metric_names, produce_metric, deduct_call_time_from_parent, scoped_metric_only=false);
+    def trace_method_execution_with_scope(metric_names, produce_metric, deduct_call_time_from_parent, scoped_metric_only=false) #:nodoc
       trace_execution_scoped(metric_names, 
                              :metric => produce_metric, 
                              :deduct_call_time_from_parent => deduct_call_time_from_parent, 

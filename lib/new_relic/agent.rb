@@ -24,7 +24,7 @@
 # in the Merb config/init.rb
 #
 # For Sinatra, just require the +newrelic_rpm+ gem and it will
-# automatically detect Sinatra and instrument all the handlers. 
+# automatically detect Sinatra and instrument all the handlers.
 #
 # For other frameworks, or to manage the agent manually, 
 # invoke NewRelic::Agent#manual_start directly.
@@ -41,34 +41,38 @@
 # To instrument middlewares, refer to the docs in 
 # NewRelic::Agent::Instrumentation::Rack.
 #
-# == Agent APIs
+# == Agent API
 #
-# For adding custom instrumentation to method invocation, refer to 
-# the docs in the class NewRelic::Agent::MethodTracer.
-#
-# For information on how to instrument something other than Rails so
-# that high level dispatcher actions or background tasks show up as first
-# class operations in RPM, refer to NewRelic::Agent::Instrumentation::ControllerInstrumentation
-# and NewRelic::Agent::Instrumentation::ControllerInstrumentation::ClassMethods.
-#
-# Methods in this module as well as MethodTracer and ControllerInstrumentation
-# are available to applications.  When the
-# agent is not enabled the method implementations are stubbed into
-# no-ops to reduce overhead.
-#
-# Methods and classes in other parts of the agent are not guaranteed
-# to be available between releases.
-#
-# Refer to the online docs at support.newrelic.com to see how to access
-# the data collected by custom instrumentation, or e-mail support at New Relic
-# for help.
+# For details on the Agent API, refer to NewRelic::Agent.
+# 
 #
 # :main: lib/new_relic/agent.rb
 module NewRelic
-
-  # The main API module for the Agent.  
-  # Methods are delegated to a singleton NewRelic::Agent::Agent
-  # or the Shim when the agent is not enabled.
+  # == Agent APIs
+  # This module contains the public API methods for the Agent.
+  #
+  # For adding custom instrumentation to method invocations, refer to 
+  # the docs in the class NewRelic::Agent::MethodTracer.
+  #
+  # For information on how to customize the controller
+  # instrumentation, or to instrument something other than Rails so
+  # that high level dispatcher actions or background tasks show up as
+  # first class operations in RPM, refer to
+  # NewRelic::Agent::Instrumentation::ControllerInstrumentation and
+  # NewRelic::Agent::Instrumentation::ControllerInstrumentation::ClassMethods.
+  #
+  # Methods in this module as well as documented methods in
+  # NewRelic::Agent::MethodTracer and
+  # NewRelic::Agent::Instrumentation::ControllerInstrumentation are
+  # available to applications.  When the agent is not enabled the
+  # method implementations are stubbed into no-ops to reduce overhead.
+  #
+  # Methods and classes in other parts of the agent are not guaranteed
+  # to be available between releases.
+  #
+  # Refer to the online docs at support.newrelic.com to see how to
+  # access the data collected by custom instrumentation, or e-mail
+  # support at New Relic for help.
   module Agent
     extend self
     
@@ -127,17 +131,17 @@ module NewRelic
     
     @agent = nil
 
-    # The singleton Agent instance.
-    def agent
+    # The singleton Agent instance.  Used internally.
+    def agent #:nodoc:
       raise "Plugin not initialized!" if @agent.nil?
       @agent
     end
     
-    def agent= new_instance
+    def agent= new_instance #:nodoc:
       @agent = new_instance
     end
     
-    alias instance agent
+    alias instance agent #:nodoc:
 
     # Get or create a statistics gatherer that will aggregate numerical data
     # under a metric name.
@@ -151,9 +155,7 @@ module NewRelic
       @agent.stats_engine.get_stats(metric_name, use_scope)
     end
     
-    def get_stats_no_scope(metric_name)
-      @agent.stats_engine.get_stats_no_scope(metric_name)
-    end
+    alias get_stats_no_scope get_stats 
     
     # Call this to manually start the Agent in situations where the Agent does
     # not auto-start.
