@@ -92,6 +92,7 @@ module NewRelicApi
       (@classes ||= []) << klass
     end
   end
+
   class BaseResource < ActiveResource::Base #:nodoc:
     include ActiveResourceAssociations
 
@@ -299,9 +300,8 @@ module NewRelicApi
   # To update a subscription, create a new instance with the following properties:
   # +account_id+:: Account ID in RPM (required).
   # +product_id+:: ID or name of product (e.g. Lite) (required).
-  # +number_of_hosts+:: Number of hosts. This is required for fixed host products.
-  #                     For utility based products, this is set to the maximum
-  #                     number of hosts allowed to connect.
+  # +number_of_hosts+:: Number of hosts. This is required for and applicable to
+  #                     only host based products.
   class Subscription < BaseResource
     def query_params(extra_params = {}) #:nodoc:
       {:account_id => account_id}.merge(extra_params)
