@@ -1,16 +1,16 @@
-# NewRelic instrumentation for controllers
-#
-# This instrumentation is applied to the action controller by default if the agent
-# is actively collecting statistics.  It will collect statistics for the 
-# given action.
-#
-# In cases where you don't want to instrument the top level action, but instead
-# have other methods which are dispatched to by your action, and you want to treat
-# these as distinct actions, then what you need to do is use
-# #perform_action_with_newrelic_trace
-#
 
 module NewRelic::Agent::Instrumentation
+  # == NewRelic instrumentation for controllers
+  #
+  # This instrumentation is applied to the action controller by default if the agent
+  # is actively collecting statistics.  It will collect statistics for the 
+  # given action.
+  #
+  # In cases where you don't want to instrument the top level action, but instead
+  # have other methods which are dispatched to by your action, and you want to treat
+  # these as distinct actions, then what you need to do is use
+  # #perform_action_with_newrelic_trace
+  #
   module ControllerInstrumentation
     
     if defined? JRuby
@@ -244,14 +244,14 @@ module NewRelic::Agent::Instrumentation
             when :uri then 'Controller' #'WebTransaction/Uri'
             # for internal use only
             when :sinatra then 'Controller/Sinatra' #'WebTransaction/Uri'
-            else options[:category].to_s.capitalize
+          else options[:category].to_s.capitalize
           end
           # To be consistent with the ActionController::Base#controller_path used in rails to determine the
           # metric path, we drop the controller off the end of the path if there is one.
           action = options[:name] || args.first 
           force = options[:force]
           metric_class = options[:class_name] || (self.is_a?(Class) ? self.name : self.class.name)
-
+          
           path = metric_class
           path += ('/' + action) if action
         end
@@ -363,6 +363,6 @@ module NewRelic::Agent::Instrumentation
       java_utime = threadMBean.getCurrentThreadUserTime()  # ns
       -1 == java_utime ? 0.0 : java_utime/1e9
     end
-
+    
   end 
 end  
