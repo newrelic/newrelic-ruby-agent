@@ -1,13 +1,6 @@
 module NewRelic::Agent
   class StatsEngine
-    
-    module Shim # :nodoc:
-      def start_transaction; end
-      def end_transaction; end
-      def push_scope(*args); end
-      def pop_scope(*args); end
-    end
-    
+        
     # Defines methods that stub out the stats engine methods
     # when the agent is disabled
     
@@ -22,6 +15,12 @@ module NewRelic::Agent
     end
     
     module Transactions
+      module Shim # :nodoc:
+        def start_transaction; end
+        def end_transaction; end
+        def push_scope(*args); end
+        def pop_scope(*args); end
+      end
       
       def transaction_sampler= sampler
         fail "Can't add a scope listener midflight in a transaction" if scope_stack.any?
@@ -119,7 +118,7 @@ module NewRelic::Agent
       def collecting_gc?
         @@collecting_gc
       end
-
+      
       # smallest recordable amount of GC time. We ignore anything
       # smaller than this since it's under our reporting thresholds
       EPSILON = 100 # µs

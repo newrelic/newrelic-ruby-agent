@@ -161,6 +161,9 @@ common: &default_settings
   # external resource
   # disable_samplers: true
 
+  # disable_view_instrumentation: true
+  # disable_ar_instrumentation: true
+  # disable_scope_tracking: true
 
 # Application Environments
 # ------------------------------------------

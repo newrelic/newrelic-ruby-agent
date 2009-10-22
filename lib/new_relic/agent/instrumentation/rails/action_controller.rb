@@ -24,7 +24,7 @@ if defined? ActionController
     ActionView::Template.class_eval do
       add_method_tracer :render, 'View/#{path}/Rendering'
     end
-  end
+  end unless NewRelic::Control.instance['disable_view_instrumentation']
   
   ActionController::Base.class_eval do
     include NewRelic::Agent::Instrumentation::ControllerInstrumentation
