@@ -4,7 +4,8 @@ module NewRelic
     MAJOR = 2
     MINOR = 10
     TINY  = 1
-    STRING = [MAJOR, MINOR, TINY].join('.')
+    EXPERIMENTAL = 1
+    STRING = [MAJOR, MINOR, TINY, EXPERIMENTAL].compact.join('.')
   end
   
   # Helper class for managing version comparisons 
