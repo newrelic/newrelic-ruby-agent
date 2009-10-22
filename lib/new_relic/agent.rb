@@ -24,7 +24,7 @@
 # in the Merb config/init.rb
 #
 # For Sinatra, just require the +newrelic_rpm+ gem and it will
-# automatically detect Sinatra and instrument all the handlers. 
+# automatically detect Sinatra and instrument all the handlers.
 #
 # For other frameworks, or to manage the agent manually, 
 # invoke NewRelic::Agent#manual_start directly.
@@ -42,6 +42,7 @@
 # NewRelic::Agent::Instrumentation::Rack.
 #
 # == Agent API
+#
 # For details on the Agent API, refer to NewRelic::Agent.
 # 
 #
@@ -53,23 +54,25 @@ module NewRelic
   # For adding custom instrumentation to method invocations, refer to 
   # the docs in the class NewRelic::Agent::MethodTracer.
   #
-  # For information on how to customize the controller instrumentation, or to 
-  # instrument something other than Rails so
-  # that high level dispatcher actions or background tasks show up as first
-  # class operations in RPM, refer to NewRelic::Agent::Instrumentation::ControllerInstrumentation
-  # and NewRelic::Agent::Instrumentation::ControllerInstrumentation::ClassMethods.
+  # For information on how to customize the controller
+  # instrumentation, or to instrument something other than Rails so
+  # that high level dispatcher actions or background tasks show up as
+  # first class operations in RPM, refer to
+  # NewRelic::Agent::Instrumentation::ControllerInstrumentation and
+  # NewRelic::Agent::Instrumentation::ControllerInstrumentation::ClassMethods.
   #
-  # Methods in this module as well as MethodTracer and ControllerInstrumentation
-  # are available to applications.  When the
-  # agent is not enabled the method implementations are stubbed into
-  # no-ops to reduce overhead.
+  # Methods in this module as well as documented methods in
+  # NewRelic::Agent::MethodTracer and
+  # NewRelic::Agent::Instrumentation::ControllerInstrumentation are
+  # available to applications.  When the agent is not enabled the
+  # method implementations are stubbed into no-ops to reduce overhead.
   #
   # Methods and classes in other parts of the agent are not guaranteed
   # to be available between releases.
   #
-  # Refer to the online docs at support.newrelic.com to see how to access
-  # the data collected by custom instrumentation, or e-mail support at New Relic
-  # for help.
+  # Refer to the online docs at support.newrelic.com to see how to
+  # access the data collected by custom instrumentation, or e-mail
+  # support at New Relic for help.
   module Agent
     extend self
     

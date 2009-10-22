@@ -151,8 +151,8 @@ module NewRelic::Agent::Instrumentation
     # methods and background tasks.
     #
     # Here's a more verbose version of the example shown in
-    # <tt>ClassMethods#add_method_tracer</tt> using this method instead of
-    # add_method_tracer.
+    # <tt>ClassMethods#add_transaction_tracer</tt> using this method instead of
+    # #add_transaction_tracer.
     #
     # Below is a controller with an +invoke_operation+ action which
     # dispatches to more specific operation methods based on a
