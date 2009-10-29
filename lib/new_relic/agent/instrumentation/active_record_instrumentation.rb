@@ -74,6 +74,6 @@ if defined?(ActiveRecord) && defined?(ActiveRecord::Base) && !NewRelic::Control.
       class << self
         add_method_tracer :find_by_sql, 'ActiveRecord/#{self.name}/find_by_sql', :metric => false
       end
-    end
+    end unless NewRelic::Control.instance['disable_ar_instrumentation']
   end
 end

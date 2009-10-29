@@ -55,6 +55,18 @@ class NewRelic::VersionNumberTest < Test::Unit::TestCase
     assert v3 < '1.2.0'
     assert v0 == '1.2.0'
   end
+  def test_4_numbers
+    v0 = NewRelic::VersionNumber.new '1.2.0'
+    v1 = NewRelic::VersionNumber.new '1.2.0.1'
+    v2 = NewRelic::VersionNumber.new '1.2.1.0'
+    v3 = NewRelic::VersionNumber.new '1.2.1.1'
+    assert v0 < v1
+    assert v1 < v2
+    assert v2 < v3
+    assert v0 < v3
+    assert v0 < '1.2.0.1'
+    assert v0 > '1.1.0.1'
+  end
   def test_string
     assert_equal '1.2.0', NewRelic::VersionNumber.new('1.2.0').to_s
     assert_equal '1.2', NewRelic::VersionNumber.new('1.2').to_s

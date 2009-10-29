@@ -30,7 +30,13 @@ v2.10.0
   * instrumentation for Net::HTTP
   * remove method_tracer shim to avoid timing problems in monitoring daemons
   * for non-rails daemons, look at APP_ROOT and NRCONFIG env vars for custom locations
-      
+
+v2.9.6
+  * added support for validating agents in the cloud.
+
+v2.9.5
+  * Snow Leopard memory fix
+
 v2.9.4
   * Clamp size of data sent to server
   * Reset statistics for passenger when forking to avoid erroneous data
