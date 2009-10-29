@@ -34,6 +34,9 @@ v2.10.0
 v2.9.6
   * added support for validating agents in the cloud.
 
+v2.9.5
+  * Snow Leopard memory fix
+
 v2.9.4
   * Clamp size of data sent to server
   * Reset statistics for passenger when forking to avoid erroneous data
