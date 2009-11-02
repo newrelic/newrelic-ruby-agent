@@ -7,7 +7,7 @@ module NewRelic::Agent::Samplers
       super :memory
       
       # macos, linux, solaris
-      if defined? Java
+      if defined? JRuby
         @sampler = JavaHeapSampler.new
       elsif platform =~ /linux/
         @sampler = ProcStatus.new

@@ -41,7 +41,7 @@ module ActiveRecordFixtures
       connection.create_table self.table_name, :force => true do |t|
         t.column :order_id, :integer 
       end
-      connection.create_table 'orders_shipments', :force => true do |t|
+      connection.create_table 'orders_shipments', :force => true, :id => false do |t|
         t.column :order_id, :integer 
         t.column :shipment_id, :integer 
       end
