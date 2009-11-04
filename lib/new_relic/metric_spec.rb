@@ -39,11 +39,6 @@ class NewRelic::MetricSpec
     "#{name}:#{scope}"
   end
   
-  def to_json(*a)
-    {'name' => name, 
-    'scope' => scope}.to_json(*a)
-  end
-  
   def <=>(o)
     namecmp = self.name <=> o.name
     return namecmp if namecmp != 0

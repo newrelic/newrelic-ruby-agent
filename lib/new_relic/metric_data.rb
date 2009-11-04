@@ -29,13 +29,6 @@ module NewRelic
       metric_spec.hash ^ stats.hash
     end
     
-    def to_json(*a)
-      {'metric_spec' => metric_spec,
-      'stats' => stats,
-      'metric_id' => metric_id
-      }.to_json(*a)
-    end
-    
     def to_s
       "#{metric_spec.name}(#{metric_spec.scope}): #{stats}" if metric_spec
       "#{metric_id}: #{stats}" if metric_spec.nil?

@@ -254,16 +254,6 @@ module NewRelic
       super
     end
     
-    def to_json(*a)
-      {'call_count' => call_count, 
-      'min_call_time' => min_call_time, 
-      'max_call_time' => max_call_time, 
-      'total_call_time' => total_call_time,
-      'total_exclusive_time' => total_exclusive_time,
-      'sum_of_squares' => sum_of_squares}.to_json(*a)
-    end
-
-    
     # In this class, we explicitly don't track begin and end time here, to save space during
     # cross process serialization via xml.  Still the accessor methods must be provided for merge to work.
     def begin_time=(t)
