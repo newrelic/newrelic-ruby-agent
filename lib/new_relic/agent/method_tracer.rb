@@ -116,12 +116,12 @@ module NewRelic::Agent
       end
     end
     
-    # Add a method tracer to the specified method.  
+    # Add a method tracer to the specified method.
     #
     # === Common Options
     #
     # * <tt>:push_scope => false</tt> specifies this method tracer should not 
-    #   keep track of the caller; it will show up in controller breakdown
+    #   keep track of the caller; it will not show up in controller breakdown
     #   pie charts. 
     # * <tt>:metric => false</tt> specifies that no metric will be recorded.
     #   Instead the call will show up in transaction traces as well as traces
@@ -159,11 +159,41 @@ module NewRelic::Agent
     # intance, as opposed to the class where +foo+ is defined.
     #
     # If not provided, the metric name will be <tt>Custom/ClassName/method_name</tt>.
+    #
+    # === Examples
+    #
+    # Instrument +foo+ only for custom views--will not show up in transaction traces or caller breakdown graphs:
+    #
+    #     add_method_tracer :foo, :push_scope => false
+    #
+    # Instrument +foo+ just for transaction traces only:
+    #
+    #     add_method_tracer :foo, :metric => false
+    #
+    # Instrument +foo+ so it shows up in transaction traces and caller breakdown graphs
+    # for actions:
+    #
+    #     add_method_tracer :foo
+    # 
+    # which is equivalent to:
+    #
+    #     add_method_tracer :foo, 'Custom/#{self.class.name}/foo', :push_scope => true, :metric => true
+    #
+    # Instrument the class method +foo+ with the metric name 'Custom/People/fetch':
+    # 
+    #     class << self
+    #       add_method_tracer :foo, 'Custom/People/fetch'
+    #     end
+    #
 
     def add_method_tracer(method_name, metric_name_code=nil, options = {})
       # for backward compatibility:
       if !options.is_a?(Hash)
         options = {:push_scope => options} 
+      end
+      # in case they omit the metric name code
+      if metric_name_code.is_a?(Hash)
+        options.merge(metric_name_code)
       end
       if (unrecognized = options.keys - [:force, :metric, :push_scope, :deduct_call_time_from_parent, :code_header, :code_footer, :scoped_metric_only]).any?
         fail "Unrecognized options in add_method_tracer_call: #{unrecognized.join(', ')}"
