@@ -45,6 +45,7 @@ module NewRelic
       #
       #   require 'new_relic/agent/instrumentation/controller_instrumentation'
       #   class Middleware
+      #     include NewRelic::Agent::Instrumentation::ControllerInstrumentation
       #     def call(env)
       #       ...
       #     end
@@ -62,13 +63,17 @@ module NewRelic
       # include NewRelic::Agent::Instrumentation::ControllerInstrumentation.
       # Here's how that might look:
       #
-      #   def call(env)
-      #     if should_do_my_thing?
-      #       perform_action_with_newrelic_trace(:category => :rack) do
-      #         return my_response(env)
+      #   require 'new_relic/agent/instrumentation/controller_instrumentation'
+      #   class MetalApp
+      #     extend NewRelic::Agent::Instrumentation::ControllerInstrumentation
+      #     def self.call(env)
+      #       if should_do_my_thing?
+      #         perform_action_with_newrelic_trace(:category => :rack) do
+      #           return my_response(env)
+      #         end
+      #       else
+      #         return [404, {"Content-Type" => "text/html"}, ["Not Found"]]
       #       end
-      #     else
-      #       return [404, {"Content-Type" => "text/html"}, ["Not Found"]]
       #     end
       #   end
       #      
