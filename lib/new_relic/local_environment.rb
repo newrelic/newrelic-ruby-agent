@@ -134,6 +134,14 @@ module NewRelic
       end unless defined?(JRuby) && !JRuby.runtime.is_object_space_enabled
       @mongrel
     end
+    
+    def unicorn
+      return @unicorn if @unicorn || ! defined? Unicorn::HttpServer 
+      ObjectSpace.each_object(Unicorn::HttpServer) do |unicorn|
+        @unicorn = unicorn
+      end unless defined?(JRuby) && !JRuby.runtime.is_object_space_enabled
+      @unicorn
+    end
 
     private
     
@@ -141,7 +149,7 @@ module NewRelic
     # is not advisable since it implies certain api's being available.
     def discover_dispatcher
       @dispatcher = ENV['NEWRELIC_DISPATCHER'] && ENV['NEWRELIC_DISPATCHER'].to_sym
-      dispatchers = %w[webrick thin mongrel glassfish litespeed passenger fastcgi]
+      dispatchers = %w[passenger glassfish thin mongrel litespeed webrick fastcgi unicorn]
       while dispatchers.any? && @dispatcher.nil?
         send 'check_for_'+(dispatchers.shift)
       end
@@ -200,11 +208,19 @@ module NewRelic
           @dispatcher_instance_id = mongrel.defaults[:port] && mongrel.defaults[:port].to_s
         end unless defined?(JRuby) && !JRuby.runtime.is_object_space_enabled
       end
-      @mongrel
       
       # Still can't find the port.  Let's look at ARGV to fall back
       @dispatcher_instance_id = default_port if @dispatcher_instance_id.nil?
     end
+    
+    def check_for_unicorn
+      return unless defined?(Unicorn::HttpServer)
+      
+      # unlike mongrel, unicorn manages muliple threads and ports, so we 
+      # have to map multiple processes into one instance, as we do with passenger
+      @dispatcher = :unicorn
+    end
+      
     
     def check_for_thin
       if defined? Thin::Server
