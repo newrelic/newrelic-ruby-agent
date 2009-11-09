@@ -1,6 +1,7 @@
 v2.9.6.
   * added support for validating agents in the cloud.
   * recognize Unicorn dispatcher
+  * add NewRelic module definitions to ActiveRecord instrumentation
 
 v2.9.5.
   * Snow Leopard memory fix
