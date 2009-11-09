@@ -1,10 +1,11 @@
-v2.9.6
+v2.9.6.
   * added support for validating agents in the cloud.
+  * recognize Unicorn dispatcher
 
-v2.9.5
+v2.9.5.
   * Snow Leopard memory fix
 
-v2.9.4
+v2.9.4.
   * Clamp size of data sent to server
   * Reset statistics for passenger when forking to avoid erroneous data
   * Fix problem deserializing errors from the server
@@ -13,6 +14,7 @@ v2.9.4
 v2.9.3.
   * Fix startup failure in Windows due to memory sampler
   * Add JRuby environment information 
+
 v2.9.2.
   * change default apdex_t to 0.5 seconds 
   * fix bug in deployments introduced by multi_homed setting
