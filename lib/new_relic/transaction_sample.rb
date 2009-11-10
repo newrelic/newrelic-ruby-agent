@@ -66,13 +66,27 @@ module NewRelic
       
       def self.from_json(json)
         json = ActiveSupport::JSON.decode(json) if json.is_a?(String)
-        segment = Segment.new(json["entry_timestamp"].to_f, json["metric_name"], json["segment_id"])
-        segment.end_trace json["exit_timestamp"].to_f
-        params = json["params"]
+        if json.is_a?(Array)
+          entry_timestamp = json[0].to_f / 1000
+          exit_timestamp = json[1].to_f / 1000
+          metric_name = json[2]
+          segment_id = nil
+          params = json[3]
+          called_segments = json[4]
+        else
+          entry_timestamp = json["entry_timestamp"].to_f
+          exit_timestamp = json["exit_timestamp"].to_f
+          metric_name =  json["metric_name"]
+          segment_id = json["segment_id"]          
+          params = json["params"]
+          
+          called_segments = json["called_segments"]
+        end
+        segment = Segment.new(entry_timestamp, metric_name, segment_id)
+        segment.end_trace exit_timestamp
         if params
           segment.send :params=, HashWithIndifferentAccess.new(params)
         end
-        called_segments = json["called_segments"]
         if called_segments
           called_segments.each do |child|
             segment.add_called_segment(self.from_json(child))
@@ -354,12 +368,28 @@ module NewRelic
     
     def self.from_json(json)
       json = ActiveSupport::JSON.decode(json) if json.is_a?(String)
-      sample = TransactionSample.new(json["start_time"].to_f, json["sample_id"].to_i)
-      params = json["params"]
+      
+      if json.is_a?(Array)
+        start_time = json[0].to_f / 1000
+        custom_params = HashWithIndifferentAccess.new(json[2])
+        params = {:request_params => HashWithIndifferentAccess.new(json[1]), 
+              :custom_params => custom_params}
+        cpu_time = custom_params.delete(:cpu_time)
+        sample_id = nil
+        params[:cpu_time] = cpu_time.to_f / 1000 if cpu_time
+        root = json[3]
+      else
+        start_time = json["start_time"].to_f 
+        sample_id = json["sample_id"].to_i
+        params = json["params"] 
+        root = json["root_segment"]
+      end
+      
+      sample = TransactionSample.new(start_time, sample_id)
+      
       if params
         sample.send :params=, HashWithIndifferentAccess.new(params)
       end
-      root = json["root_segment"]
       if root
         sample.send :root_segment=, Segment.from_json(root)
       end
