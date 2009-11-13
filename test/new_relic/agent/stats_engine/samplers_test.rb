@@ -29,6 +29,7 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
     assert s.stats.total_call_time > 0.5, "cpu greater than 0.5 ms: #{s.stats.total_call_time}"
   end
   def test_memory__linux
+    return if RUBY_PLATFORM =~ /darwin/
     NewRelic::Agent::Samplers::MemorySampler.any_instance.stubs(:platform).returns 'linux'
     s = NewRelic::Agent::Samplers::MemorySampler.new
     s.stats_engine = @stats_engine

@@ -31,7 +31,7 @@ module NewRelic::Agent::Samplers
       raise "Unable to run #{@sampler}" unless @sampler.can_run?
     end
     def self.supported_on_this_platform?
-      defined?(Java) or platform =~ /linux|darwin9|darwin10|freebsd|solaris/
+      defined?(JRuby) or platform =~ /linux|darwin9|darwin10|freebsd|solaris/
     end
 
     def self.platform
@@ -80,7 +80,7 @@ module NewRelic::Agent::Samplers
     class JavaHeapSampler < Base
 
       def get_memory
-        raise "Can't sample Java heap unless running in JRuby" unless defined? Java
+        raise "Can't sample Java heap unless running in JRuby" unless defined? JRuby
         java.lang.Runtime.getRuntime.totalMemory / (1024 * 1024).to_f rescue nil
       end
       def to_s
