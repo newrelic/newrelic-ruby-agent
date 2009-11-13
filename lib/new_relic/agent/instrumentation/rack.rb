@@ -38,18 +38,45 @@ module NewRelic
       #   end
       #
       # == Overriding the metric name
+      #
       # By default the middleware is identified only by its class, but if you want to 
       # be more specific and pass in name, then omit including the Rack instrumentation
       # and instead follow this example:
       #
       #   require 'new_relic/agent/instrumentation/controller_instrumentation'
       #   class Middleware
+      #     include NewRelic::Agent::Instrumentation::ControllerInstrumentation
       #     def call(env)
       #       ...
       #     end
       #     add_transaction_tracer :call, :category => :rack, :name => 'my app'
       #   end
       #
+      # == Cascading or chained calls
+      #
+      # You should avoid instrumenting nested calls.  So if you are using Rack::Cascade
+      # to fall through the action, or you are chaining through to the next middleware 
+      # which will have it's own controller instrumentation, then you will want to
+      # instrument only when you are the endpoint.
+      #
+      # In these cases, you should not include or extend the Rack module but instead
+      # include NewRelic::Agent::Instrumentation::ControllerInstrumentation.
+      # Here's how that might look:
+      #
+      #   require 'new_relic/agent/instrumentation/controller_instrumentation'
+      #   class MetalApp
+      #     extend NewRelic::Agent::Instrumentation::ControllerInstrumentation
+      #     def self.call(env)
+      #       if should_do_my_thing?
+      #         perform_action_with_newrelic_trace(:category => :rack) do
+      #           return my_response(env)
+      #         end
+      #       else
+      #         return [404, {"Content-Type" => "text/html"}, ["Not Found"]]
+      #       end
+      #     end
+      #   end
+      #      
       module Rack
         def call_with_newrelic(*args)
           perform_action_with_newrelic_trace(:category => :rack) do

@@ -39,6 +39,10 @@ common: &default_settings
   # environment below.
   enabled: true
 
+  # Development mode should be off in every enviornment but
+  # development as it has very high overhead in memory
+  development: false
+
   # The newrelic agent generates its own log file to keep its logging
   # information separate from that of your application.  Specify its
   # log level here.

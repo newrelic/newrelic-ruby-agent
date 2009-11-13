@@ -29,11 +29,9 @@ module NewRelic
       metric_spec.hash ^ stats.hash
     end
     
+    # Serialize with all attributes, but if the metric id is not nil, then don't send the metric spec
     def to_json(*a)
-      {'metric_spec' => metric_spec,
-      'stats' => stats,
-      'metric_id' => metric_id
-      }.to_json(*a)
+       %Q[{"metric_spec":#{metric_id ? 'null' : metric_spec.to_json},"stats":{"total_exclusive_time":#{stats.total_exclusive_time},"min_call_time":#{stats.min_call_time},"call_count":#{stats.call_count},"sum_of_squares":#{stats.sum_of_squares},"total_call_time":#{stats.total_call_time},"max_call_time":#{stats.max_call_time}},"metric_id":#{metric_id ? metric_id : 'null'}}]
     end
     
     def to_s

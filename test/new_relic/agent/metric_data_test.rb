@@ -47,9 +47,9 @@ class NewRelic::Agent::MetricDataTest < Test::Unit::TestCase
   
   def compare_metric_data(metric_data, import)
     assert_equal 3, import.length
-    compare_spec(metric_data.metric_spec, import['metric_spec'])
-    compare_stat(metric_data.stats, import['stats'])
     assert_equal metric_data.metric_id, import['metric_id']
+    compare_spec(metric_data.metric_spec, import['metric_spec']) unless metric_data.metric_id
+    compare_stat(metric_data.stats, import['stats'])
   end
   
 end
