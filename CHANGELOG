@@ -1,4 +1,5 @@
 v2.9.6.
+  * add instrumentation for Net::HTTP calls, to show up as "External"
   * added support for validating agents in the cloud.
   * recognize Unicorn dispatcher
   * add NewRelic module definitions to ActiveRecord instrumentation
@@ -7,14 +8,14 @@ v2.9.5.
   * Snow Leopard memory fix
 
 v2.9.4.
-  * Clamp size of data sent to server
-  * Reset statistics for passenger when forking to avoid erroneous data
-  * Fix problem deserializing errors from the server
-  * Fix incompatibility with postgres introduced in 2.9.
+  * clamp size of data sent to server
+  * reset statistics for passenger when forking to avoid erroneous data
+  * fix problem deserializing errors from the server
+  * fix incompatibility with postgres introduced in 2.9.
 
 v2.9.3.
-  * Fix startup failure in Windows due to memory sampler
-  * Add JRuby environment information 
+  * fix startup failure in Windows due to memory sampler
+  * add JRuby environment information 
 
 v2.9.2.
   * change default apdex_t to 0.5 seconds 
