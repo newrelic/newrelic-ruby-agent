@@ -64,7 +64,7 @@ module NewRelic
         map.to_json
       end
       
-      def self.from_json(json, segment_id = 0)
+      def self.from_json(json, id_generator)
         json = ActiveSupport::JSON.decode(json) if json.is_a?(String)
         if json.is_a?(Array)
           entry_timestamp = json[0].to_f / 1000
@@ -80,15 +80,14 @@ module NewRelic
           
           called_segments = json["called_segments"]
         end
-        segment = Segment.new(entry_timestamp, metric_name, segment_id)
+        segment = Segment.new(entry_timestamp, metric_name, id_generator.next_id)
         segment.end_trace exit_timestamp
         if params
           segment.send :params=, HashWithIndifferentAccess.new(params)
         end
         if called_segments
           called_segments.each do |child|
-            segment_id += 1;
-            segment.add_called_segment(self.from_json(child, segment_id))
+            segment.add_called_segment(self.from_json(child, id_generator))
           end
         end
         segment
@@ -390,7 +389,7 @@ module NewRelic
         sample.send :params=, HashWithIndifferentAccess.new(params)
       end
       if root
-        sample.send :root_segment=, Segment.from_json(root)
+        sample.send :root_segment=, Segment.from_json(root, IDGenerator.new)
       end
       sample
     end
@@ -606,6 +605,16 @@ module NewRelic
 
         build_segment_for_transfer(new_sample, source_called_segment, target_called_segment, options)
         target_called_segment.end_trace(source_called_segment.exit_timestamp)
+      end
+    end
+    
+    # Generates segment ids for json transaction segments
+    class IDGenerator
+      def initialize
+        @next_id = 0        
+      end
+      def next_id
+        @next_id += 1
       end
     end
   end
