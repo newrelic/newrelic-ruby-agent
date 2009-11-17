@@ -1,3 +1,7 @@
+v2.9.7.
+  * Fix External instrumentation so it does not capture Net
+    calls outside of web transactions.
+
 v2.9.6.
   * add instrumentation for Net::HTTP calls, to show up as "External"
   * added support for validating agents in the cloud.
