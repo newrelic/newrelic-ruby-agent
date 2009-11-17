@@ -64,20 +64,18 @@ module NewRelic
         map.to_json
       end
       
-      def self.from_json(json)
+      def self.from_json(json, segment_id = 0)
         json = ActiveSupport::JSON.decode(json) if json.is_a?(String)
         if json.is_a?(Array)
           entry_timestamp = json[0].to_f / 1000
           exit_timestamp = json[1].to_f / 1000
           metric_name = json[2]
-          segment_id = nil
           params = json[3]
           called_segments = json[4]
         else
           entry_timestamp = json["entry_timestamp"].to_f
           exit_timestamp = json["exit_timestamp"].to_f
-          metric_name =  json["metric_name"]
-          segment_id = json["segment_id"]          
+          metric_name =  json["metric_name"]       
           params = json["params"]
           
           called_segments = json["called_segments"]
@@ -89,7 +87,8 @@ module NewRelic
         end
         if called_segments
           called_segments.each do |child|
-            segment.add_called_segment(self.from_json(child))
+            segment_id += 1;
+            segment.add_called_segment(self.from_json(child, segment_id))
           end
         end
         segment
