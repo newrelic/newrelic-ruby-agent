@@ -54,7 +54,8 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
     assert_equal errors.length, 1
     
     err = errors.first
-    assert_equal ('1234567890' * 500)[0..4096], err.message
+    assert_equal 4096, err.message.length
+    assert_equal ('1234567890' * 500)[0..4095], err.message
   end
   
   def test_collect_failover
