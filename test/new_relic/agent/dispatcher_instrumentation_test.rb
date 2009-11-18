@@ -10,7 +10,7 @@ class NewRelic::Agent::DispatcherInstrumentationTest < Test::Unit::TestCase
     super
     NewRelic::Agent.manual_start
     NewRelic::Agent.instance.stats_engine.clear_stats
-    @instance_busy = NewRelic::Agent.agent.stats_engine.get_stats('Instance/Busy')
+    @instance_busy = NewRelic::Agent.agent.stats_engine.get_stats 'Instance/Busy'
     @dispatch_stat = NewRelic::Agent.agent.stats_engine.get_stats 'HttpDispatcher'
     @mongrel_queue_stat = NewRelic::Agent.agent.stats_engine.get_stats 'WebFrontend/Mongrel/Average Queue Time'
   end
@@ -62,15 +62,15 @@ class NewRelic::Agent::DispatcherInstrumentationTest < Test::Unit::TestCase
     d0.newrelic_dispatcher_start
     assert_equal 1, NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.busy_count
     d1.newrelic_dispatcher_start
-    assert_equal 2, NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.busy_count
+    assert_equal 1, NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.busy_count
     sleep 1
     d0.newrelic_dispatcher_finish
-    assert_equal 1, NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.busy_count
+    assert_equal 0, NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.busy_count
     d1.newrelic_dispatcher_finish
     assert_equal 0, NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.busy_count
     assert_nil Thread.current[:newrelic_t0]
     NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.harvest_busy
     assert_equal 1, @instance_busy.call_count  
-    assert @instance_busy.total_call_time.between?(1.8, 2.1), "Should be about 200%: #{@instance_busy.total_call_time}"
+    assert @instance_busy.total_call_time.between?(0.8, 1.1), "Should be about 100%: #{@instance_busy.total_call_time}"
   end
 end
