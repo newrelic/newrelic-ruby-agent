@@ -10,9 +10,9 @@ if defined? Net::HTTP
           request_without_newrelic_trace(*args)
         end
       else
-        self.class.trace_execution_scoped("External/#{@address}/Net::HTTP/#{args[0].method}",
-                                          "External/#{@address}/all",
-                                          "External/allWeb") do
+        self.class.trace_execution_scoped(["External/#{@address}/Net::HTTP/#{args[0].method}",
+                                           "External/#{@address}/all",
+                                           "External/allWeb"]) do
           request_without_newrelic_trace(*args)
         end
       end
