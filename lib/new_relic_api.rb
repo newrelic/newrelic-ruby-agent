@@ -296,12 +296,6 @@ module NewRelicApi
   class Deployment < BaseResource
   end
 
-  # This model is used to modify subscriptions for existing accounts in RPM.
-  # To update a subscription, create a new instance with the following properties:
-  # +account_id+:: Account ID in RPM (required).
-  # +product_id+:: ID or name of product (e.g. Lite) (required).
-  # +number_of_hosts+:: Number of hosts. This is required for and applicable to
-  #                     only host based products.
   class Subscription < BaseResource
     def query_params(extra_params = {}) #:nodoc:
       {:account_id => account_id}.merge(extra_params)
