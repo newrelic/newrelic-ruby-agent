@@ -66,15 +66,6 @@ module NewRelic
       short_name
     end
     
-    def apdex_metric_path
-      "Apdex/#{segments[1..-1].join('/')}"
-    end
-    
-    # A short name for legends in the graphs
-    def legend_name
-      short_name
-    end
-    
     # Return the name of another metric if the current
     # metric is really add-on data for another metric.
     def base_metric_name

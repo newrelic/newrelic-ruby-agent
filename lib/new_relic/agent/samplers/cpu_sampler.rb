@@ -17,11 +17,6 @@ module NewRelic::Agent::Samplers
     def systemtime_stats
       stats_engine.get_stats_no_scope("CPU/System Time")
     end
-    
-    def self.supported_on_this_platform?
-      not defined?(Java)
-    end
-    
     def poll
       now = Time.now
       t = Process.times

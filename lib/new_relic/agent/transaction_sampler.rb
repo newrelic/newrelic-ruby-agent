@@ -3,14 +3,6 @@ module NewRelic::Agent
   
   class TransactionSampler
     
-    # Module defining methods stubbed out when the agent is disabled
-    module Shim #:nodoc:
-      def notice_first_scope_push(*args); end
-      def notice_push_scope(*args); end
-      def notice_pop_scope(*args); end
-      def notice_scope_empty(*args); end
-    end
-    
     BUILDER_KEY = :transaction_sample_builder
 
     attr_accessor :stack_trace_threshold, :random_sampling, :sampling_rate, :last_sample, :samples
@@ -24,8 +16,8 @@ module NewRelic::Agent
       config = NewRelic::Control.instance
       sampler_config = config.fetch('transaction_tracer', {})
       @stack_trace_threshold = sampler_config.fetch('stack_trace_threshold', 0.500).to_f
-      @stats_engine = agent.stats_engine
-      @stats_engine.transaction_sampler = self
+      
+      agent.stats_engine.add_scope_stack_listener self
 
       agent.set_sql_obfuscator(:replace) do |sql| 
         default_sql_obfuscator(sql)
@@ -39,7 +31,7 @@ module NewRelic::Agent
     end
 
     def disable
-      NewRelic::Agent.instance.stats_engine.remove_transaction_sampler self
+      NewRelic::Agent.instance.stats_engine.remove_scope_stack_listener self
     end
     
     def sampling_rate=(val)
@@ -61,7 +53,7 @@ module NewRelic::Agent
     
     
     def notice_first_scope_push(time)
-      if Thread::current[:record_tt] == false || !NewRelic::Agent.is_execution_traced?
+      if Thread::current[:record_tt] == false
         Thread::current[BUILDER_KEY] = nil
       else
         Thread::current[BUILDER_KEY] = TransactionSampleBuilder.new(time)
@@ -112,7 +104,6 @@ module NewRelic::Agent
 
       last_builder.finish_trace(time)
       reset_builder
-      
     
       @samples_lock.synchronize do
         @last_sample = last_builder.sample
@@ -187,8 +178,6 @@ module NewRelic::Agent
           
           if (@harvest_count % @sampling_rate) == 0
             result << @random_sample if @random_sample
-          else
-            @random_sample = nil   # if we don't nil this out, then we won't send the slowest if slowest == @random_sample
           end
         end
         
@@ -204,7 +193,6 @@ module NewRelic::Agent
         end
 
         @random_sample = nil
-        @last_sample = nil
       end
       result
     end
@@ -253,6 +241,7 @@ module NewRelic::Agent
       if metric_name != @current_segment.metric_name
         fail "unbalanced entry/exit: #{metric_name} != #{@current_segment.metric_name}"
       end
+      
       @current_segment.end_trace(time - @sample_start)
       @current_segment = @current_segment.parent_segment
     end
@@ -268,6 +257,7 @@ module NewRelic::Agent
         log.info @sample.to_s
         return
       end
+      
       @sample.root_segment.end_trace(time - @sample_start)
       @sample.params[:custom_params] = normalize_params(NewRelic::Agent.instance.custom_params) 
       @sample.freeze

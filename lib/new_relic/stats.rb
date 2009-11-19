@@ -321,18 +321,6 @@ module NewRelic
     
     alias trace_call record_data_point
     
-    def record_multiple_data_points(total_value, count=1)
-      return record_data_point(total_value) if count == 1
-      @call_count += count
-      @total_call_time += total_value
-      avg_val = total_value / count
-      @min_call_time = avg_val if avg_val < @min_call_time || @call_count == count
-      @max_call_time = avg_val if avg_val > @max_call_time
-      @total_exclusive_time += total_value
-      @sum_of_squares += (avg_val * avg_val) * count
-      self
-    end
-    
     def increment_count(value = 1)
       @call_count += value
     end
@@ -341,16 +329,13 @@ module NewRelic
   
   class ScopedMethodTraceStats < MethodTraceStats
     def initialize(unscoped_stats)
-      super()
+        super()
       @unscoped_stats = unscoped_stats
     end
+    
     def trace_call(call_time, exclusive_time = call_time)
       @unscoped_stats.trace_call call_time, exclusive_time
       super call_time, exclusive_time
-    end
-    def record_multiple_data_points(total_value, count=1)
-      @unscoped_stats.record_multiple_data_points(total_value, count)
-      super total_value, count
     end
     def unscoped_stats
       @unscoped_stats

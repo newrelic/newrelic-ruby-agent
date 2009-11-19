@@ -40,22 +40,20 @@ class NewrelicController < ActionController::Base
   
   write_inheritable_attribute('do_not_trace', true)
   
-  def file
-    file_name=params[:file].to_s
-    file_name=~/^.*[.]([^.]*)$/
-    ext=$1
-    case ext
-      when 'css':
-        forward_to_file '/newrelic/stylesheets/', 'text/css'
-      when 'gif','jpg','png':
-        forward_to_file '/newrelic/images/', "image/#{ext}"
-      when 'js':
-        forward_to_file '/newrelic/javascript/', 'text/javascript'
-      else
-        raise "Unknown type '#{ext}' (#{file_name})"
-    end
+  def css
+    forward_to_file '/newrelic/stylesheets/', 'text/css'
   end
-
+  
+  def image
+    forward_to_file '/newrelic/images/', params[:content_type]
+  end
+  
+  def javascript
+    forward_to_file '/newrelic/javascript/', 'text/javascript'
+  end
+  
+  
+  
   def index
     get_samples
   end

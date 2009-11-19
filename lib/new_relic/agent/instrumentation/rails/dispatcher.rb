@@ -20,7 +20,7 @@ if target
       before_dispatch :newrelic_dispatcher_start
       after_dispatch :newrelic_dispatcher_finish
       def newrelic_response_code
-        (@response.headers['Status']||'200')[0..2] if @response && ActionPack::VERSION::MAJOR == 2 && ActionPack::VERSION::MINOR < 3 
+        (@response.headers['Status']||'200')[0..2] if ActionPack::VERSION::MAJOR == 2 && ActionPack::VERSION::MINOR < 3 
       end
     else
       # In version 1.2.* the instrumentation is done by method chaining

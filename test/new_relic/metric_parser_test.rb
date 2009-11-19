@@ -139,34 +139,4 @@ class MetricParserTest < Test::Unit::TestCase
     m = NewRelic::MetricParser.for_metric_named("Errors/Type/MyType")
     assert_equal m.short_name, 'MyType'
   end
-  def test_external
-    m = NewRelic::MetricParser.for_metric_named("External/all")
-    assert m.all?
-    assert !m.hosts_all?
-    assert_equal "All External", m.developer_name
-    assert_equal "calls to external systems", m.tooltip_name
-    assert_equal "External Services", m.legend_name
-    assert_nil m.operation
-    assert_nil m.library
-    
-    m = NewRelic::MetricParser.for_metric_named("External/venus/all")
-    assert !m.all?
-    assert m.hosts_all?
-    assert_equal "venus", m.developer_name
-    assert_equal "calls to venus", m.tooltip_name
-    assert_equal "All venus calls", m.legend_name
-    assert_nil m.operation
-    assert_equal 'all', m.library
-
-    m = NewRelic::MetricParser.for_metric_named("External/venus/Net::Http/get")
-    assert !m.all?
-    assert !m.hosts_all?
-    assert_equal "Net::Http[venus]: get", m.developer_name
-    assert_equal "calls to Net::Http[venus]: get", m.tooltip_name
-    assert_equal "Net::Http[venus]: get", m.legend_name
-    assert_equal 'get', m.operation
-    assert_equal 'Net::Http', m.library
-    
-    
-  end
 end

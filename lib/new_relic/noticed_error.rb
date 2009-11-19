@@ -4,7 +4,7 @@
 class NewRelic::NoticedError
   attr_accessor :path, :timestamp, :params, :exception_class, :message
   
-  def initialize(path, data, exception, timestamp = Time.now)
+  def initialize(path, data, exception)
     self.path = path
     self.params = data
     
@@ -20,6 +20,6 @@ class NewRelic::NoticedError
     # overhead across the wire
     self.message = self.message[0..4096] if self.message.length > 4096
 
-    self.timestamp = timestamp
+    self.timestamp = Time.now
   end
 end

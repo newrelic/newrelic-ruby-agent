@@ -7,12 +7,15 @@ class NewRelic::Agent::DispatcherInstrumentationTest < Test::Unit::TestCase
     def newrelic_response_code; end
   end
   def setup
-    super
-    NewRelic::Agent.manual_start
-    NewRelic::Agent.instance.stats_engine.clear_stats
     @instance_busy = NewRelic::Agent.agent.stats_engine.get_stats('Instance/Busy')
-    @dispatch_stat = NewRelic::Agent.agent.stats_engine.get_stats 'HttpDispatcher'
+    @dispatch_stat = NewRelic::Agent.agent.stats_engine.get_stats 'Rails/HTTP Dispatch'
     @mongrel_queue_stat = NewRelic::Agent.agent.stats_engine.get_stats 'WebFrontend/Mongrel/Average Queue Time'
+
+    NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.harvest_busy
+    @instance_busy.reset
+    @dispatch_stat.reset
+    @mongrel_queue_stat.reset
+
   end
   
   def test_normal_call
@@ -31,15 +34,6 @@ class NewRelic::Agent::DispatcherInstrumentationTest < Test::Unit::TestCase
     assert_equal 0, @mongrel_queue_stat.call_count
     assert @dispatch_stat.total_call_time >= 1.0, "Total call time must be at least one second"
     assert @instance_busy.total_call_time > 0.9 && @instance_busy.total_call_time <= 1.0, "instance busy = #{@instance_busy.inspect}"
-  end
-  def test_histogram
-    d = FunnyDispatcher.new
-    d.newrelic_dispatcher_start
-    d.newrelic_dispatcher_finish
-    bucket = NewRelic::Agent.instance.stats_engine.metrics.find { | m | m =~ /^Response Times/ }
-    assert_not_nil bucket
-    bucket_stats = NewRelic::Agent.instance.stats_engine.get_stats(bucket)
-    assert_equal 1, bucket_stats.call_count
   end
   def test_ignore_zero_counts
     assert_equal 0, @instance_busy.call_count, "Problem with test--instance busy not starting off at zero."

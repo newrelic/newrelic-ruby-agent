@@ -22,7 +22,7 @@ class Insider
       # sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
       sampler = "<none>"
       begin
-        @stats_engine.transaction_sampler = sampler
+        @stats_engine.add_scope_stack_listener sampler
         fail "This should not have worked."
         rescue; end
     else
@@ -33,6 +33,15 @@ end
 
 module NewRelic
   module Agent
+    
+    # for testing, enable the stats engine to clear itself
+    class StatsEngine
+      def reset
+        scope_stack.clear
+        @stats_hash.clear
+      end
+    end
+    
     extend self
     def module_method_to_be_traced (x, testcase)
       testcase.assert x == "x"
@@ -47,9 +56,9 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
   def setup
     NewRelic::Agent.manual_start
     @stats_engine = NewRelic::Agent.instance.stats_engine
-    @stats_engine.clear_stats
+    @stats_engine.reset
     @scope_listener = NewRelic::Agent::MockScopeListener.new
-    @stats_engine.transaction_sampler = @scope_listener
+    @stats_engine.add_scope_stack_listener(@scope_listener)
   end
   
   def teardown
@@ -60,7 +69,7 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
   def test_basic
     metric = "hello"
     t1 = Time.now
-    self.class.trace_execution_scoped metric do
+    self.class.trace_method_execution_with_scope metric, true, true do
       sleep 1
       assert metric == @stats_engine.peek_scope.name
     end
@@ -99,27 +108,7 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
     assert stats.call_count == 1
   end
   
-  def test_add_method_tracer__default
-    self.class.add_method_tracer :simple_method
-    
-    simple_method
-    
-    stats = @stats_engine.get_stats("Custom/#{self.class.name}/simple_method")
-    assert stats.call_count == 1
-    
-  end
-  def test_add_method_tracer__reentry
-    self.class.add_method_tracer :simple_method
-    self.class.add_method_tracer :simple_method
-    self.class.add_method_tracer :simple_method
-    
-    simple_method
-    
-    stats = @stats_engine.get_stats("Custom/#{self.class.name}/simple_method")
-    assert stats.call_count == 1
-    
-  end
-
+  
   def test_method_traced?
     assert !self.class.method_traced?(:method_to_be_traced, METRIC)
     self.class.add_method_tracer :method_to_be_traced, METRIC
@@ -231,32 +220,10 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
     self.class.static_method "x", self, false
   end
   
-  def test_multiple_metrics__scoped
-    metrics = %w[first second third]
-    self.class.trace_execution_scoped metrics do
-      sleep 0.05
-    end
-    elapsed = @stats_engine.get_stats('first').average_call_time
-    metrics.map{|name| @stats_engine.get_stats name}.each do | m |
-      assert_equal 1, m.call_count
-      assert_equal elapsed, m.total_call_time
-    end
-  end
-  def test_multiple_metrics__unscoped
-    metrics = %w[first second third]
-    self.class.trace_execution_unscoped metrics do
-      sleep 0.05
-    end
-    elapsed = @stats_engine.get_stats('first').average_call_time
-    metrics.map{|name| @stats_engine.get_stats name}.each do | m |
-      assert_equal 1, m.call_count
-      assert_equal elapsed, m.total_call_time
-    end
-  end
   def test_exception
     begin
-      metric = "hey"
-      self.class.trace_execution_scoped metric do
+      metric = "hey there"
+      self.class.trace_method_execution_with_scope metric, true, true do
         assert @stats_engine.peek_scope.name == metric
         throw Exception.new            
       end
@@ -329,7 +296,5 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
   
   def method_c3
   end
-
-  def simple_method
-  end
+  
 end

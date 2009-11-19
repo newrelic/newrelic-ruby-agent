@@ -87,7 +87,7 @@ module NewRelic
           response = http.request(request)
           
           if response.is_a? Net::HTTPSuccess
-            info "Recorded deployment to '#{@appname}' (#{@description || Time.now })"
+            info "Recorded deployment to NewRelic RPM (#{@description || Time.now })"
           else
             err_string = [ "Unexpected response from server: #{response.code}: #{response.message}" ]
             begin
@@ -115,9 +115,9 @@ module NewRelic
       private
       
       def options
-        OptionParser.new %Q{Usage: #{$0} [OPTIONS] ["description"] }, 40 do |o|
+        OptionParser.new "Usage: #{self.class.command} [OPTIONS] [description] ", 40 do |o|
           o.separator "OPTIONS:"
-          o.on("-a", "--appname=NAME", String,
+          o.on("-a", "--appname=DIR", String,
              "Set the application name.",
              "Default is app_name setting in newrelic.yml") { | e | @appname = e }
           o.on("-e", "--environment=name", String,
@@ -131,6 +131,8 @@ module NewRelic
           o.on("-c", "--changes", 
              "Read in a change log from the standard input") { @changelog = STDIN.read }
           o.on("-h", "--help", "Print this help") { raise CommandFailure.new(o.help, 0) }
+          o.separator ""
+          o.separator 'description = "short text"'
         end
       end
       

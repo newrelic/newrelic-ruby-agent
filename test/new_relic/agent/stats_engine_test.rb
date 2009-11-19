@@ -1,16 +1,105 @@
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..', 'test_helper')) 
+require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
 
 
-class NewRelic::Agent::StatsEngine::TransactionsTest < Test::Unit::TestCase
+class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
   def setup
     NewRelic::Agent.manual_start
     @engine = NewRelic::Agent.instance.stats_engine
-  rescue => e
-    puts e
-    puts e.backtrace.join("\n")
   end
   def teardown
     @engine.harvest_timeslice_data({},{})
+  end
+  def test_get_no_scope
+    s1 = @engine.get_stats "a"
+    s2 = @engine.get_stats "a"
+    s3 = @engine.get_stats "b"
+    
+    assert_not_nil s1
+    assert_not_nil s2
+    assert_not_nil s3
+    
+    assert s1 == s2
+    assert s1 != s3
+  end
+  
+  # The default agent configuration when running tests does not
+  # install the samplers so this test just creates them and polls them
+  # just like the stats_engine does.
+  def test_samplers
+    
+    samplers = []
+    cpu_sampler = NewRelic::Agent::Samplers::CpuSampler.new
+    samplers << cpu_sampler unless defined? Java
+    samplers << NewRelic::Agent::Samplers::MemorySampler.new 
+    samplers.each { |s| s.stats_engine = @engine }
+    msg = ["Running sampler at #{Time.now}"]
+    @engine.instance_eval do
+      poll(samplers)
+      sleep 2
+      msg << "Polling again at #{Time.now}, last time polled=#{cpu_sampler.last_time}"
+      poll(samplers)
+      sleep 2
+      msg << "Polling again at #{Time.now}, last time polled=#{cpu_sampler.last_time}"
+      poll(samplers)
+    end
+    msg << "Last time polled: #{cpu_sampler.last_time}"
+    data = @engine.harvest_timeslice_data({},{})
+    cpu_user = data[NewRelic::MetricSpec.new('CPU/User Time')]
+    cpu_utilization = data[NewRelic::MetricSpec.new('CPU/User/Utilization')]
+    memory = data[NewRelic::MetricSpec.new('Memory/Physical')]
+    # might get 1, 2 or 3 stats depending on timing factors.  short intervals are skipped.
+    assert_equal 2, cpu_user.stats.call_count, cpu_user.stats.inspect unless defined? Java
+    assert_equal 2, cpu_utilization.stats.call_count, msg.join("; ") unless defined? Java
+    assert_equal 3, memory.stats.call_count
+  end
+  def test_harvest
+    s1 = @engine.get_stats "a"
+    s2 = @engine.get_stats "c"
+    
+    s1.trace_call 10
+    s2.trace_call 1
+    s2.trace_call 3
+    
+    assert @engine.get_stats("a").call_count == 1
+    assert @engine.get_stats("a").total_call_time == 10
+    
+    assert @engine.get_stats("c").call_count == 2
+    assert @engine.get_stats("c").total_call_time == 4
+    
+    metric_data = @engine.harvest_timeslice_data({}, {}).values
+    
+    # after harvest, all the metrics should be reset
+    assert @engine.get_stats("a").call_count == 0
+    assert @engine.get_stats("a").total_call_time == 0
+    
+    assert @engine.get_stats("c").call_count == 0
+    assert @engine.get_stats("c").total_call_time == 0
+    
+    metric_data = metric_data.reverse if metric_data[0].metric_spec.name != "a"
+    
+    assert metric_data[0].metric_spec.name == "a"
+    
+    assert metric_data[0].stats.call_count == 1
+    assert metric_data[0].stats.total_call_time == 10
+  end
+  
+  def test_harvest_with_merge
+    s = @engine.get_stats "a"
+    s.trace_call 1
+    
+    assert @engine.get_stats("a").call_count == 1
+    
+    harvest = @engine.harvest_timeslice_data({}, {})
+    assert s.call_count == 0
+    s.trace_call 2
+    assert s.call_count == 1
+    
+    # this calk should merge the contents of the previous harvest,
+    # so the stats for metric "a" should have 2 data points
+    harvest = @engine.harvest_timeslice_data(harvest, {})
+    stats = harvest.fetch(NewRelic::MetricSpec.new("a")).stats
+    assert stats.call_count == 2
+    assert stats.total_call_time == 3
   end
   
   def test_scope
@@ -32,11 +121,11 @@ class NewRelic::Agent::StatsEngine::TransactionsTest < Test::Unit::TestCase
   
   def test_scope__overlap
     @engine.transaction_name = 'orlando'
-    self.class.trace_execution_scoped('disney', :deduct_call_time_from_parent => false) { sleep 0.1 }
+    self.class.trace_method_execution_with_scope('disney', true, false) { sleep 0.1 }
     orlando_disney = @engine.get_stats 'disney'
     
     @engine.transaction_name = 'anaheim'
-    self.class.trace_execution_scoped('disney', :deduct_call_time_from_parent => false) { sleep 0.1 }
+    self.class.trace_method_execution_with_scope('disney', true, false) { sleep 0.1 }
     anaheim_disney = @engine.get_stats 'disney'
 
     disney = @engine.get_stats_no_scope "disney"

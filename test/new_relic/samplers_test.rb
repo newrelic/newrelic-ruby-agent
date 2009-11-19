@@ -1,7 +1,7 @@
-require File.expand_path(File.join(File.dirname(__FILE__),'..', '..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__),'..', 'test_helper'))
 require 'new_relic/agent/samplers/cpu_sampler'
 
-class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
+class NewRelic::SamplersTest < Test::Unit::TestCase
   
   def setup
     @stats_engine = NewRelic::Agent::StatsEngine.new
@@ -29,7 +29,6 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
     assert s.stats.total_call_time > 0.5, "cpu greater than 0.5 ms: #{s.stats.total_call_time}"
   end
   def test_memory__linux
-    return if RUBY_PLATFORM =~ /darwin/
     NewRelic::Agent::Samplers::MemorySampler.any_instance.stubs(:platform).returns 'linux'
     s = NewRelic::Agent::Samplers::MemorySampler.new
     s.stats_engine = @stats_engine
@@ -41,22 +40,15 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
   end
   def test_memory__solaris
     NewRelic::Agent::Samplers::MemorySampler.any_instance.stubs(:platform).returns 'solaris'
-    NewRelic::Agent::Samplers::MemorySampler::ShellPS.any_instance.stubs(:get_memory).returns 999
-    s = NewRelic::Agent::Samplers::MemorySampler.new
-    s.stats_engine = @stats_engine
-    s.poll
-    assert_equal 1, s.stats.call_count
-    assert_equal 999, s.stats.total_call_time
+    assert_raise RuntimeError, /Unable to run command/ do
+      NewRelic::Agent::Samplers::MemorySampler.new
+    end
   end
   def test_memory__windows
     NewRelic::Agent::Samplers::MemorySampler.any_instance.stubs(:platform).returns 'win32'
     assert_raise RuntimeError, /Unsupported platform/ do
       NewRelic::Agent::Samplers::MemorySampler.new
     end
-  end
-  def test_memory__is_supported
-    NewRelic::Agent::Samplers::MemorySampler.stubs(:platform).returns 'windows'
-    assert !(NewRelic::Agent::Samplers::MemorySampler.supported_on_this_platform?)
   end
   def test_mongrel 
     NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.stubs('is_busy?'.to_sym).returns(false)  

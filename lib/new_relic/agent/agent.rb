@@ -17,15 +17,14 @@ module NewRelic::Agent
     # Specifies the version of the agent's communication protocol with
     # the NewRelic hosted site.
     
-    PROTOCOL_VERSION = 6
+    PROTOCOL_VERSION = 5
     
     attr_reader :obfuscator
     attr_reader :stats_engine
     attr_reader :transaction_sampler
     attr_reader :error_collector
-    attr_reader :task_loop
+    attr_reader :worker_loop
     attr_reader :record_sql
-    attr_reader :histogram
     
     # Should only be called by NewRelic::Control
     def self.instance
@@ -51,7 +50,7 @@ module NewRelic::Agent
     # True if the worker thread has been started.  Doesn't necessarily
     # mean we are connected
     def running?
-      control.agent_enabled? && control.monitor_mode? && @task_loop && @task_loop.pid == $$
+      control.agent_enabled? && control.monitor_mode? && @worker_loop && @worker_loop.pid == $$
     end
     
     # True if we have initialized and completed 'start'
@@ -62,8 +61,8 @@ module NewRelic::Agent
     # Attempt a graceful shutdown of the agent.  
     def shutdown
       return if not started?
-      if @task_loop
-        @task_loop.stop
+      if @worker_loop
+        @worker_loop.stop
         
         log.debug "Starting Agent shutdown"
         
@@ -98,24 +97,15 @@ module NewRelic::Agent
     def set_record_sql(should_record)
       prev = Thread::current[:record_sql]
       Thread::current[:record_sql] = should_record
-      prev.nil? || prev
+      
+      prev || true
     end
     
     def set_record_tt(should_record)
       prev = Thread::current[:record_tt]
       Thread::current[:record_tt] = should_record
-      prev.nil? || prev
-    end
-    # Push flag indicating whether we should be tracing in this
-    # thread.  
-    def push_trace_execution_flag(should_trace=false)
-      (Thread.current[:newrelic_untraced] ||= []) << should_trace 
-    end
-
-    # Pop the current trace execution status.  Restore trace execution status
-    # to what it was before we pushed the current flag.
-    def pop_trace_execution_flag
-      Thread.current[:newrelic_untraced].pop if Thread.current[:newrelic_untraced]
+      
+      prev || true
     end
     
     def add_custom_parameters(params)
@@ -175,7 +165,7 @@ module NewRelic::Agent
       # use transaction_threshold: apdex_f to use your apdex t value
       # multiplied by 4
       # undefined transaction_threshold defaults to 2.0
-      apdex_f = 4 * NewRelic::Control.instance.apdex_t
+      apdex_f = 4 * NewRelic::Control.instance['apdex_t'].to_f
       @slowest_transaction_threshold = sampler_config.fetch('transaction_threshold', 2.0)
       if @slowest_transaction_threshold =~ /apdex_f/i
         @slowest_transaction_threshold = apdex_f
@@ -195,6 +185,8 @@ module NewRelic::Agent
       @transaction_sampler.random_sampling = @random_sample
 
       if control.monitor_mode?
+        # make sure the license key exists and is likely to be really a license key
+        # by checking it's string length (license keys are 40 character strings.)
         if !control.license_key
           @invalid_license = true
           control.log! "No license key found.  Please edit your newrelic.yml file and insert your license key.", :error
@@ -206,9 +198,7 @@ module NewRelic::Agent
           # When the VM shuts down, attempt to send a message to the
           # server that this agent run is stopping, assuming it has
           # successfully connected
-          # This shutdown handler doesn't work if Sinatra is running
-          # because it executes in the shutdown handler!
-          at_exit { shutdown } unless defined?(Sinatra::Default)
+          at_exit { shutdown }
         end
       end
       control.log! "New Relic RPM Agent #{NewRelic::VERSION::STRING} Initialized: pid = #{$$}"
@@ -222,36 +212,44 @@ module NewRelic::Agent
     
     # Connect to the server, and run the worker loop forever.
     # Will not return.
-    def run_task_loop
-      # determine the reporting period (server based)          
-      # note if the agent attempts to report more frequently than
-      # the specified report data, then it will be ignored.
+    def run_worker_loop
+
+      # connect to the server.  this will keep retrying until
+      # successful or it determines the license is bad.
+      connect
       
-      control.log! "Reporting performance data every #{@report_period} seconds."        
-      @task_loop.add_task(@report_period) do 
-        harvest_and_send_timeslice_data
-      end
-      
-      if @should_send_samples && @use_transaction_sampler
-        @task_loop.add_task(@report_period) do 
-          harvest_and_send_slowest_sample
+      # We may not be connected now but keep going for dev mode
+      if @connected
+        begin
+          # determine the reporting period (server based)          
+          # note if the agent attempts to report more frequently than
+          # the specified report data, then it will be ignored.
+          
+          control.log! "Reporting performance data every #{@report_period} seconds."        
+          @worker_loop.add_task(@report_period) do 
+            harvest_and_send_timeslice_data
+          end
+          
+          if @should_send_samples && @use_transaction_sampler
+            @worker_loop.add_task(@report_period) do 
+              harvest_and_send_slowest_sample
+            end
+          elsif !control.developer_mode?
+            # We still need the sampler for dev mode.
+            @transaction_sampler.disable
+          end
+          
+          if @should_send_errors && @error_collector.enabled
+            @worker_loop.add_task(@report_period) do 
+              harvest_and_send_errors
+            end
+          end
+          @worker_loop.run
+        rescue StandardError
+          @connected = false
+          raise
         end
-      elsif !control.developer_mode?
-        # We still need the sampler for dev mode.
-        @transaction_sampler.disable
       end
-      
-      if @should_send_errors && @error_collector.enabled
-        @task_loop.add_task(@report_period) do 
-          harvest_and_send_errors
-        end
-      end
-      log.debug("Running worker loop")
-      @task_loop.run
-    rescue StandardError
-      log.debug("Error in worker loop: #{$!}")
-      @connected = false
-      raise
     end
     
     def launch_worker_thread
@@ -260,43 +258,38 @@ module NewRelic::Agent
         return
       end
       
-      @task_loop = WorkerLoop.new(log)
+      @worker_loop = WorkerLoop.new(log)
       
       if control['check_bg_loading']
         log.warn "Agent background loading checking turned on"
         require 'new_relic/agent/patch_const_missing'
         ClassLoadingWatcher.enable_warning
       end
-      log.debug "Creating RPM worker thread."
+      
       @worker_thread = Thread.new do
         begin
           ClassLoadingWatcher.background_thread=Thread.current if control['check_bg_loading']
-          NewRelic::Agent.disable_all_tracing do
-            connect
-            run_task_loop if @connected
-          end
-        rescue NewRelic::Agent::ForceRestartException => e
-          log.info e.message
-          # disconnect and start over.
-          # clear the stats engine
-          @metric_ids = {}
-          @unsent_errors = []
-          @traces = nil
-          @unsent_timeslice_data = {}
-          @last_harvest_time = Time.now
-          @connected = false
-          # Wait a short time before trying to reconnect
-          sleep 30
-          retry
+        
+          run_worker_loop
         rescue IgnoreSilentlyException
           control.log! "Unable to establish connection with the server.  Run with log level set to debug for more information."
         rescue StandardError => e
-          @connected = false
           control.log! e, :error
           control.log! e.backtrace.join("\n  "), :error
         end
       end
       @worker_thread['newrelic_label'] = 'Worker Loop'
+      
+      # This code should be activated to check that no dependency
+      # loading is occuring in the background thread by stopping the
+      # foreground thread after the background thread is created. Turn
+      # on dependency loading logging and make sure that no loading
+      # occurs.
+      #
+      #      control.log! "FINISHED AGENT INIT"
+      #      while true
+      #        sleep 1
+      #      end
     end
     
     def control
@@ -308,7 +301,7 @@ module NewRelic::Agent
       @launch_time = Time.now
       
       @metric_ids = {}
-      @histogram = NewRelic::Histogram.new(NewRelic::Control.instance.apdex_t / 10)
+      
       @stats_engine = NewRelic::Agent::StatsEngine.new
       @transaction_sampler = NewRelic::Agent::TransactionSampler.new(self)
       @error_collector = NewRelic::Agent::ErrorCollector.new(self)
@@ -332,12 +325,11 @@ module NewRelic::Agent
       @agent_id = nil
       begin
         sleep connect_retry_period.to_i
-        environment = control['send_environment_info'] != false ? control.local_env.snapshot : []
         @agent_id ||= invoke_remote :start, @local_host, {
           :pid => $$, 
           :launch_time => @launch_time.to_f, 
           :agent_version => NewRelic::VERSION::STRING, 
-          :environment => environment,
+          :environment => control.local_env.snapshot,
           :settings => control.settings,
           :validate_seed => ENV['NR_VALIDATE_SEED'],
           :validate_token => ENV['NR_VALIDATE_TOKEN'] }
@@ -358,7 +350,8 @@ module NewRelic::Agent
         if @should_send_samples
           sampling_rate = invoke_remote :sampling_rate, @agent_id if @random_sample
           @transaction_sampler.sampling_rate = sampling_rate
-          log.info "Transaction sample rate: #{@transaction_sampler.sampling_rate}" if sampling_rate
+            
+          log.info "Transaction sample rate: #{@transaction_sampler.sampling_rate}"
         end
         
         # Ask for permission to collect error data
@@ -409,7 +402,15 @@ module NewRelic::Agent
       NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.harvest_busy
       
       now = Time.now
-            
+      
+      # Fixme: remove the harvest thread tracking
+      @harvest_thread ||= Thread.current
+      
+      if @harvest_thread != Thread.current
+        log.error "Two harvest threads are running (current=#{Thread.current}, harvest=#{@harvest_thread}"
+        @harvest_thread = Thread.current
+      end
+      
       @unsent_timeslice_data ||= {}
       @unsent_timeslice_data = @stats_engine.harvest_timeslice_data(@unsent_timeslice_data, @metric_ids)
       
@@ -537,15 +538,10 @@ module NewRelic::Agent
         end
       rescue Timeout::Error
         log.warn "Timed out trying to post data to RPM (timeout = #{@request_timeout} seconds)" unless @request_timeout < 30
-        raise
-      end
-      if response.is_a? Net::HTTPServiceUnavailable
-        log.debug(response.body || response.message)
         raise IgnoreSilentlyException
-      elsif response.is_a? Net::HTTPGatewayTimeOut
-        log.debug("Timed out getting response: #{response.message}")
-        raise Timeout::Error, response.message
-      elsif !(response.is_a? Net::HTTPSuccess)
+      end
+      
+      if !(response.is_a? Net::HTTPSuccess)
         log.debug "Unexpected response from server: #{response.code}: #{response.message}"
         raise IgnoreSilentlyException
       end
@@ -587,9 +583,6 @@ module NewRelic::Agent
 
       # raises the right exception if the remote server tells it to die
       return check_for_exception(response)
-    rescue ForceRestartException => e
-      log.info e.message
-      raise
     rescue ForceDisconnectException => e
       log.error "RPM forced this agent to disconnect (#{e.message})\n" \
       "Restart this process to resume monitoring via rpm.newrelic.com."

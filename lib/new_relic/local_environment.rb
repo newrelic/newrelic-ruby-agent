@@ -4,7 +4,7 @@ module NewRelic
   # An instance of LocalEnvironment is responsible for determining
   # three things: 
   #
-  # * Framework - :rails, :merb, :ruby, :external, :test
+  # * Framework - :rails, :merb, :ruby, :test
   # * Dispatcher - A supported dispatcher, or nil (:mongrel, :thin, :passenger, :webrick, etc)
   # * Dispatcher Instance ID, which distinguishes agents on a single host from each other
   #
@@ -16,7 +16,7 @@ module NewRelic
 
     attr_accessor :dispatcher # mongrel, thin, webrick, or possibly nil
     attr_accessor :dispatcher_instance_id # used to distinguish instances of a dispatcher from each other, may be nil
-    attr_accessor :framework # rails, merb, external, ruby, test
+    attr_accessor :framework # rails, merb, :ruby, test
     attr_reader :mongrel    # The mongrel instance, if there is one, captured as a convenience
     attr_reader :processors # The number of cpus, if detected, or nil
     alias environment dispatcher
@@ -86,8 +86,11 @@ module NewRelic
       append_environment_value('Arch') { ENV['PROCESSOR_ARCHITECTURE'] }
       # See what the number of cpus is, works only on linux.
       @processors = append_environment_value('Processors') do
-        processors = File.readlines('/proc/cpuinfo').select { |line| line =~ /^processor\s*:/ }.size
-        raise "Cannot determine the number of processors in /proc/cpuinfo" unless processors > 0
+        processors = 0
+        File.read('/proc/cpuinfo').each_line do | line |
+          processors += 1 if line =~ /^processor\s*:/
+        end 
+        raise unless processors > 0
         processors
       end if File.readable? '/proc/cpuinfo'
       # The current Rails environment (development, test, or production).
@@ -146,7 +149,7 @@ module NewRelic
     # is not advisable since it implies certain api's being available.
     def discover_dispatcher
       @dispatcher = ENV['NEWRELIC_DISPATCHER'] && ENV['NEWRELIC_DISPATCHER'].to_sym
-      dispatchers = %w[passenger glassfish thin mongrel litespeed webrick fastcgi unicorn sinatra]
+      dispatchers = %w[passenger glassfish thin mongrel litespeed webrick fastcgi unicorn]
       while dispatchers.any? && @dispatcher.nil?
         send 'check_for_'+(dispatchers.shift)
       end
@@ -156,12 +159,10 @@ module NewRelic
       # Although you can override the framework with NEWRELIC_FRAMEWORK this
       # is not advisable since it implies certain api's being available.
       @framework = case
-        when ENV['NEWRELIC_FRAMEWORK'] then ENV['NEWRELIC_FRAMEWORK'].to_sym
+        when ENV['NEWRELIC_FRAMEWORK'] then ENV['NEWRELIC_FRAMEWORK'].to_sym 
         when defined? NewRelic::TEST then :test
         when defined? Merb::Plugins then :merb
         when defined? Rails then :rails
-        when defined? Sinatra::Base then :sinatra      
-        when defined? NewRelic::IA then :external
       else :ruby
       end      
     end
@@ -220,10 +221,6 @@ module NewRelic
       @dispatcher = :unicorn
     end
       
-    def check_for_sinatra
-      return unless defined?(Sinatra::Base)
-      @dispatcher = :sinatra
-    end
     
     def check_for_thin
       if defined? Thin::Server

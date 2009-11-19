@@ -3,12 +3,6 @@ module NewRelic::Agent
   class ErrorCollector
     include CollectionHelper
     
-    # Defined the methods that need to be stubbed out when the
-    # agent is disabled
-    module Shim #:nodoc:
-      def notice_error(*args); end
-    end
-    
     MAX_ERROR_QUEUE_LENGTH = 20 unless defined? MAX_ERROR_QUEUE_LENGTH
     
     attr_accessor :enabled

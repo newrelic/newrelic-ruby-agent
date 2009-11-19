@@ -86,10 +86,7 @@ class NewRelic::Control::Rails < NewRelic::Control
       next if self.instance_methods.include? 'draw_with_newrelic_map'
       def draw_with_newrelic_map
         draw_without_newrelic_map do | map |
-          unless NewRelic::Control.instance['skip_developer_route']
-            map.named_route 'newrelic_developer', '/newrelic/:action/:id', :controller => 'newrelic' 
-            map.named_route 'newrelic_file', '/newrelic/file/*file', :controller => 'newrelic', :action=>'file'
-          end
+          map.named_route 'newrelic_developer', '/newrelic/:action/:id', :controller => 'newrelic' unless NewRelic::Control.instance['skip_developer_route']
           yield map        
         end
       end
@@ -109,7 +106,6 @@ class NewRelic::Control::Rails < NewRelic::Control
         ::Rails.configuration.action_controller.allow_concurrency == true
       end
     end
-    local_env.append_environment_value('Rails Env') { ENV['RAILS_ENV'] }
     if rails_version >= NewRelic::VersionNumber.new('2.1.0')
       local_env.append_gem_list do
         ::Rails.configuration.gems.map do | gem |
@@ -137,7 +133,9 @@ class NewRelic::Control::Rails < NewRelic::Control
   def install_shim
     super
     require 'new_relic/agent/instrumentation/controller_instrumentation'
+    require 'new_relic/agent/instrumentation/error_instrumentation'
     ActionController::Base.send :include, NewRelic::Agent::Instrumentation::ControllerInstrumentation::Shim
+    Object.send :include, NewRelic::Agent::Instrumentation::ErrorInstrumentation::Shim
   end
   
 end

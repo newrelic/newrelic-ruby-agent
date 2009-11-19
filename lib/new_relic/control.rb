@@ -73,7 +73,6 @@ module NewRelic
         # Try to grab the log filename
         @log_file = @log.instance_eval { @logdev.filename rescue nil }
       end
-      Module.send :include, NewRelic::Agent::MethodTracer
       init_config(options)
       if agent_enabled? && !@started
         setup_log unless logger_override
@@ -103,14 +102,7 @@ module NewRelic
         @settings = (@yaml && merge_defaults(@yaml[env])) || {}
         # At the time we bind the settings, we also need to run this little piece
         # of magic which allows someone to augment the id with the app name, necessary
-        if self['multi_homed'] && app_names.size > 0
-          if @local_env.dispatcher_instance_id
-            @local_env.dispatcher_instance_id << ":#{app_names.first}"
-          else
-            @local_env.dispatcher_instance_id = app_names.first
-          end
-        end
-          
+        @local_env.dispatcher_instance_id << ":#{app_names.first}" if self['multi_homed'] && app_names.size > 0
       end
       @settings
     end
@@ -131,11 +123,7 @@ module NewRelic
     
     ###################################
     # Agent config conveniences
-
-    def apdex_t
-      # Always initialized with a default
-      fetch('apdex_t').to_f
-    end
+    
     def license_key
       fetch('license_key')
     end
@@ -144,15 +132,11 @@ module NewRelic
     end
     # True if we are sending data to the server, monitoring production
     def monitor_mode?
-      fetch('enabled')
+      fetch('enabled', nil)
     end
     # True if we are capturing data and displaying in /newrelic
     def developer_mode?
-      fetch('developer')
-    end
-    # True if we should view files in textmate
-    def use_textmate?
-      fetch('textmate')
+      fetch('developer', nil)
     end
     # True if dev mode or monitor mode are enabled, and we are running
     # inside a valid dispatcher like mongrel or passenger.  Can be overridden
@@ -160,7 +144,7 @@ module NewRelic
     # agent_enabled config option when true or false.
     def agent_enabled?
       return false if !developer_mode? && !monitor_mode?
-      return self['agent_enabled'].to_s =~ /true|on|yes/i if !self['agent_enabled'].nil? && self['agent_enabled'] != 'auto'
+      return self['agent_enabled'].to_s =~ /true|on|yes/i if self['agent_enabled'] && self['agent_enabled'] != 'auto'
       return false if ENV['NEWRELIC_ENABLE'].to_s =~ /false|off|no/i 
       return true if self['monitor_daemons'].to_s =~ /true|on|yes/i
       return true if ENV['NEWRELIC_ENABLE'].to_s =~ /true|on|yes/i
@@ -272,12 +256,15 @@ module NewRelic
       # Once we install instrumentation, you can't undo that by installing the shim.
       raise "Cannot install the Agent shim after instrumentation has already been installed!" if @instrumented
       NewRelic::Agent.agent = NewRelic::Agent::ShimAgent.instance
+      Module.send :include, NewRelic::Agent::MethodTracerShim
     end
     
     def install_instrumentation
       return if @instrumented
       
       @instrumented = true
+      
+      Module.send :include, NewRelic::Agent::MethodTracer
       
       # Instrumentation for the key code points inside rails for monitoring by NewRelic.
       # note this file is loaded only if the newrelic agent is enabled (through config/newrelic.yml)
@@ -303,13 +290,9 @@ module NewRelic
     def load_samplers
       agent = NewRelic::Agent.instance
       agent.stats_engine.add_sampler NewRelic::Agent::Samplers::MongrelSampler.new if local_env.mongrel
-      if NewRelic::Agent::Samplers::CpuSampler.supported_on_this_platform?
-        agent.stats_engine.add_harvest_sampler NewRelic::Agent::Samplers::CpuSampler.new
-      end
+      agent.stats_engine.add_harvest_sampler NewRelic::Agent::Samplers::CpuSampler.new unless defined? Java
       begin
-        if NewRelic::Agent::Samplers::MemorySampler.supported_on_this_platform?
-          agent.stats_engine.add_sampler NewRelic::Agent::Samplers::MemorySampler.new
-        end
+        agent.stats_engine.add_sampler NewRelic::Agent::Samplers::MemorySampler.new
       rescue RuntimeError => e
         log.error "Cannot add memory sampling: #{e}"
       end
@@ -397,12 +380,21 @@ module NewRelic
     # Create the concrete class for environment specific behavior:
     def self.new_instance
       @local_env = NewRelic::LocalEnvironment.new
-      if @local_env.framework == :test
+      case @local_env.framework
+        when :test
         require File.join(newrelic_root, "test", "config", "test_control.rb")
         NewRelic::Control::Test.new @local_env
-      else
-        require "new_relic/control/#{@local_env.framework}.rb"
-        NewRelic::Control.const_get(@local_env.framework.to_s.capitalize).new @local_env
+        when :merb
+        require 'new_relic/control/merb'
+        NewRelic::Control::Merb.new @local_env
+        when :rails
+        require 'new_relic/control/rails'
+        NewRelic::Control::Rails.new @local_env
+        when :ruby
+        require 'new_relic/control/ruby'
+        NewRelic::Control::Ruby.new @local_env
+      else 
+        raise "Unknown framework: #{@local_env.framework}"
       end
     end
     

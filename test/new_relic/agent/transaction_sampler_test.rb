@@ -5,30 +5,14 @@ NewRelic::Agent::TransactionSampler.send :public, :builder
 
 class NewRelic::Agent::TransationSamplerTest < Test::Unit::TestCase
   
-  module MockGCStats
-    
-    def time
-      return 0 if @@values.empty?
-      raise "too many calls" if @@index >= @@values.size
-      @@curtime ||= 0
-      @@curtime += (@@values[@@index] * 1e09).to_i
-      @@index += 1
-      @@curtime
-    end
-    
-    def self.mock_values= array
-      @@values = array
-      @@index = 0
-    end
-    
-  end
-
   def setup
     Thread::current[:record_sql] = nil
-    agent = NewRelic::Agent.instance
-    stats_engine = NewRelic::Agent::StatsEngine.new
-    agent.stubs(:stats_engine).returns(stats_engine)
-    @sampler = NewRelic::Agent::TransactionSampler.new(agent)
+    mock_agent = mock()
+    stats_engine_mock = mock()
+    stats_engine_mock.stubs(:add_scope_stack_listener)
+    mock_agent.stubs(:stats_engine).returns(stats_engine_mock)
+    mock_agent.stubs(:set_sql_obfuscator).returns(stats_engine_mock)
+    @sampler = NewRelic::Agent::TransactionSampler.new(mock_agent)
   end
   
   def test_multiple_samples
@@ -42,56 +26,6 @@ class NewRelic::Agent::TransationSamplerTest < Test::Unit::TestCase
     assert_equal 4, samples.length
     assert_equal "a", samples.first.root_segment.called_segments[0].metric_name
     assert_equal "a", samples.last.root_segment.called_segments[0].metric_name
-  end
-
-  def test_sample_tree
-    assert_equal 0, @sampler.scope_depth
-    
-    @sampler.notice_first_scope_push Time.now.to_f
-    @sampler.notice_transaction "/path", nil, {}
-    @sampler.notice_push_scope "a"
-
-    @sampler.notice_push_scope "b"
-    @sampler.notice_pop_scope "b"
-
-    @sampler.notice_push_scope "c"
-    @sampler.notice_push_scope "d"
-    @sampler.notice_pop_scope "d"
-    @sampler.notice_pop_scope "c"
-
-    @sampler.notice_pop_scope "a"
-    @sampler.notice_scope_empty
-    sample = @sampler.harvest([],0.0).first
-    assert_equal "ROOT{a{b,c{d}}}", sample.to_s_compact
-    
-  end
-
-  def test_sample__gc_stats
-    GC.extend MockGCStats
-    # These are effectively Garbage Collects, detected each time GC.time is
-    # called by the transaction sampler.  One time value in seconds for each call.
-    MockGCStats.mock_values = [0,0,0,1,0,0,1,0,0,0,0,0,0,0,0]
-    assert_equal 0, @sampler.scope_depth
-    
-    @sampler.notice_first_scope_push Time.now.to_f
-    @sampler.notice_transaction "/path", nil, {}
-    @sampler.notice_push_scope "a"
-
-    @sampler.notice_push_scope "b"
-    @sampler.notice_pop_scope "b"
-
-    @sampler.notice_push_scope "c"
-    @sampler.notice_push_scope "d"
-    @sampler.notice_pop_scope "d"
-    @sampler.notice_pop_scope "c"
-
-    @sampler.notice_pop_scope "a"
-    @sampler.notice_scope_empty
-    
-    sample = @sampler.harvest([],0.0).first
-    assert_equal "ROOT{a{b,c{d}}}", sample.to_s_compact
-  ensure
-    MockGCStats.mock_values = []
   end
 
   def test_sample_id 
@@ -169,10 +103,6 @@ class NewRelic::Agent::TransationSamplerTest < Test::Unit::TestCase
     @sampler.notice_push_scope "a"
     @sampler.notice_pop_scope "a"
     @sampler.notice_scope_empty
-    
-    assert_equal 0, @sampler.scope_depth
-    sample = @sampler.harvest(nil, 0.0).first
-    assert_equal "ROOT{a}", sample.to_s_compact
   end
   
   def test_double_scope_stack_empty

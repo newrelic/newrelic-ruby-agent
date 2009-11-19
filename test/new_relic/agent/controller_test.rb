@@ -11,7 +11,7 @@ class AgentControllerTest < ActionController::TestCase
   # setup is not called.
   def initialize name
     super name
-    Thread.current[:newrelic_ignore_controller] = nil
+    Thread.current[:controller_ignored] = nil
     NewRelic::Agent.manual_start
     @agent = NewRelic::Agent.instance
     #    @agent.instrument_app
@@ -23,32 +23,34 @@ class AgentControllerTest < ActionController::TestCase
   end
   
   def teardown
-    Thread.current[:newrelic_ignore_controller] = nil
-    @agent.stats_engine.clear_stats
+    Thread.current[:controller_ignored] = nil
     super
   end
   
   def test_metric__ignore
     engine = @agent.stats_engine
     get :action_to_ignore
-    assert_equal true, Thread.current[:newrelic_ignore_controller]
+    assert_equal true, Thread.current[:controller_ignored]
   end
   def test_metric__ignore_base
     engine = @agent.stats_engine
     get :base_action
-    assert_equal true, Thread.current[:newrelic_ignore_controller]
+    assert_equal true, Thread.current[:controller_ignored]
   end
   def test_metric__no_ignore
     engine = @agent.stats_engine
     path = 'new_relic/agent/agent_test/index'
+    cpu_stats = engine.get_stats_no_scope("ControllerCPU/#{path}")
     index_stats = engine.get_stats_no_scope("Controller/#{path}")
     index_apdex_stats = engine.get_custom_stats("Apdex/#{path}", NewRelic::ApdexStats)
     assert_difference 'index_stats.call_count' do
       assert_difference 'index_apdex_stats.call_count' do
-        get :index
+        assert_difference 'cpu_stats.call_count' do
+          get :index
+        end
       end
     end
-    assert_nil Thread.current[:newrelic_ignore_controller]
+    assert_nil Thread.current[:controller_ignored]
   end
   def test_metric__ignore_apdex
     engine = @agent.stats_engine
@@ -58,22 +60,20 @@ class AgentControllerTest < ActionController::TestCase
     index_apdex_stats = engine.get_custom_stats("Apdex/#{path}", NewRelic::ApdexStats)
     assert_difference 'index_stats.call_count' do
       assert_no_difference 'index_apdex_stats.call_count' do
-        get :action_to_ignore_apdex
+        assert_difference 'cpu_stats.call_count' do
+          get :action_to_ignore_apdex
+        end
       end
     end
-    assert_nil Thread.current[:newrelic_ignore_controller]
+    assert_nil Thread.current[:controller_ignored]
     
   end
   def test_metric__dispatched
     engine = @agent.stats_engine
     get :entry_action
-    assert_nil Thread.current[:newrelic_ignore_controller]
+    assert_nil Thread.current[:controller_ignored]
     assert_nil engine.lookup_stat('Controller/agent_test/entry_action')
-    assert_nil engine.lookup_stat('Controller/agent_test_controller/entry_action')
-    assert_nil engine.lookup_stat('Controller/AgentTestController/entry_action')
-    assert_nil engine.lookup_stat('Controller/NewRelic::Agent::AgentTestController/internal_action')
-    assert_nil engine.lookup_stat('Controller/NewRelic::Agent::AgentTestController_controller/internal_action')
-    assert_not_nil engine.lookup_stat('Controller/NewRelic::Agent::AgentTestController/internal_traced_action')
+    assert_equal 1, engine.lookup_stat('Controller/new_relic/agent/agent_test/internal_action').call_count
   end
   def test_action_instrumentation
     begin

@@ -7,7 +7,7 @@ module NewRelic::Agent::Samplers
       super :memory
       
       # macos, linux, solaris
-      if defined? JRuby
+      if defined? Java
         @sampler = JavaHeapSampler.new
       elsif platform =~ /linux/
         @sampler = ProcStatus.new
@@ -30,21 +30,14 @@ module NewRelic::Agent::Samplers
       raise "Unsupported platform for getting memory: #{platform}" if @sampler.nil?
       raise "Unable to run #{@sampler}" unless @sampler.can_run?
     end
-    def self.supported_on_this_platform?
-      defined?(JRuby) or platform =~ /linux|darwin9|darwin10|freebsd|solaris/
-    end
-
-    def self.platform
+    def platform
       if RUBY_PLATFORM =~ /java/
         %x[uname -s].downcase
       else
         RUBY_PLATFORM.downcase
       end
     end
-    def platform
-      NewRelic::Agent::Samplers::MemorySampler.platform
-    end
-
+    
     def stats
       stats_engine.get_stats("Memory/Physical", false) 
     end
@@ -80,7 +73,7 @@ module NewRelic::Agent::Samplers
     class JavaHeapSampler < Base
 
       def get_memory
-        raise "Can't sample Java heap unless running in JRuby" unless defined? JRuby
+        raise "Can't sample Java heap unless running in JRuby" unless defined? Java
         java.lang.Runtime.getRuntime.totalMemory / (1024 * 1024).to_f rescue nil
       end
       def to_s

@@ -1,5 +1,8 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
 require 'new_relic/agent/mock_ar_connection'
+##require 'new_relic/agent/testable_agent'
+##require 'new_relic/agent/transaction_sampler'
+##require 'new_relic/transaction_sample'
 require 'test/unit'
 
 ::SQL_STATEMENT = "SELECT * from sandwiches"
@@ -11,7 +14,7 @@ NewRelic::TransactionSample::Segment.class_eval do
   
 end
 class NewRelic::TransationSampleTest < Test::Unit::TestCase
-  include TransactionSampleTestHelper
+  
   def setup
     NewRelic::Agent.manual_start
   end
@@ -19,7 +22,7 @@ class NewRelic::TransationSampleTest < Test::Unit::TestCase
   def test_sql
     assert ActiveRecord::Base.test_connection({}).disconnected == false
     
-    t = make_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
+    t = get_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
     
     s = t.prepare_to_send(:obfuscate_sql => true, :explain_enabled => true, :explain_sql => 0.00000001)
     
@@ -45,7 +48,7 @@ class NewRelic::TransationSampleTest < Test::Unit::TestCase
   def test_disable_sql
     t = nil
     NewRelic::Agent.disable_sql_recording do
-      t = make_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
+      t = get_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
     end
     
     s = t.prepare_to_send(:obfuscate_sql => true, :explain_sql => 0.00000001)
@@ -58,17 +61,17 @@ class NewRelic::TransationSampleTest < Test::Unit::TestCase
   
   def test_disable_tt
     NewRelic::Agent.disable_transaction_tracing do
-      t = make_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
+      t = get_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
       assert t.nil?
     end
     
-    t = make_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
+    t = get_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
     assert t
   end
   
   
   def test_record_sql_off
-    t = make_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
+    t = get_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
     
     s = t.prepare_to_send(:obfuscate_sql => true, :explain_sql => 0.00000001, :record_sql => :off)
     
@@ -79,7 +82,7 @@ class NewRelic::TransationSampleTest < Test::Unit::TestCase
   
   
   def test_record_sql_raw
-    t = make_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
+    t = get_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
     
     s = t.prepare_to_send(:obfuscate_sql => true, :explain_sql => 0.00000001, :record_sql => :raw)
     
@@ -94,7 +97,7 @@ class NewRelic::TransationSampleTest < Test::Unit::TestCase
   
   
   def test_record_sql_obfuscated
-    t = make_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
+    t = get_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
     
     s = t.prepare_to_send(:obfuscate_sql => true, :explain_sql => 0.00000001, :record_sql => :obfuscated)
     
@@ -111,7 +114,7 @@ class NewRelic::TransationSampleTest < Test::Unit::TestCase
   def test_sql_throw
     ActiveRecord::Base.test_connection({}).throw = true
     
-    t = make_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
+    t = get_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
     
     # the sql connection will throw
     t.prepare_to_send(:obfuscate_sql => true, :explain_sql => 0.00000001)
@@ -142,5 +145,27 @@ class NewRelic::TransationSampleTest < Test::Unit::TestCase
     assert_equal 3.0, s1.duration
     assert_equal 2.0, s1.exclusive_duration
   end
+  
+  
+  
+  private
+  def get_sql_transaction(*sql)
+    sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
+    sampler.notice_first_scope_push Time.now.to_f
+    sampler.notice_transaction '/path', nil, :jim => "cool"
+    sampler.notice_push_scope "a"
     
+    sampler.notice_transaction '/path/2', nil, :jim => "cool"
+    
+    sql.each {|sql_statement| sampler.notice_sql(sql_statement, {:adapter => "test"}, 0 ) }
+    
+    sleep 1.0
+    
+    sampler.notice_pop_scope "a"
+    sampler.notice_scope_empty
+    
+    sampler.samples[0]
+  end
+  
+  
 end

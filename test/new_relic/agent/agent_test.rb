@@ -35,7 +35,9 @@ class AgentTest < ActiveSupport::TestCase
       ignore_called = true
       nil
     end
-    NewRelic::Agent.notice_error(ActionController::RoutingError.new("message"), :x => "y")
+    
+    NewRelic::Agent.agent.error_collector.notice_error(ActionController::RoutingError.new("message"), nil, "path", {:x => "y"} )
+    
     assert ignore_called    
   end
   
@@ -68,23 +70,8 @@ class AgentTest < ActiveSupport::TestCase
     assert_equal "mailer", NewRelic::Control.instance.dispatcher_instance_id
   end
   
-  def test_set_record_sql
-    @agent.set_record_sql(false)
-    assert !Thread::current[:record_sql]
-    NewRelic::Agent.disable_sql_recording do
-      assert_equal false, Thread::current[:record_sql]
-      NewRelic::Agent.disable_sql_recording do
-        assert_equal false, Thread::current[:record_sql]
-      end
-      assert_equal false, Thread::current[:record_sql]
-    end
-    assert !Thread::current[:record_sql], Thread::current[:record_sql]
-  ensure
-    @agent.set_record_sql(nil)
-  end
-  
   def test_version
-    assert_match /\d\.\d+\.\d+/, NewRelic::VERSION::STRING
+    assert_match /\d\.\d\.\d+/, NewRelic::VERSION::STRING
   end
   
   def test_invoke_remote__ignore_non_200_results

@@ -1,43 +1,20 @@
-v2.10.1
-  * add support for textmate to dev mode
-  * preliminary sinatra support, displays actions named by the URI pattern matched
-  * added add_transaction_tracer method to support instrumenting methods as
-    if they were web transactions; this will facilitate better visibility of background
-    tasks and eventually things like rack, metal and Sinatra
-  * adjusted apdex scores to reflect time spent in the mongrel queue
-  * fixed incompatibility with JRuby on startup
-  * implmented CPU measure for JRuby which reflects the cpu burn for
-    all controller actions (does not include background tasks)
-  * fixed scope issue with GC instrumentation, subtracting time from caller
-  * added # of GC calls to GC instrumentation
-  * renamed the dispatcher metric
-  * refactored stats_engine code for readability
-  
-v2.10.0
-  * support unicorn
-  * instrumentation of GC for REE and MRE with GC patch
-  * support agent restarting when changes are made to the account
-  * removed #newrelic_notice_error from Object class, replaced by NewRelic::Agent#notic_error 
-  * collect histogram statistics
-  * add custom parameters to newrelic_notice_error call to display
-    extra info for errors
-  * add method disable_all_tracing(&block) to execute a block without
-    capturing metrics
-  * newrelic_ignore now blocks all instrumentation collection for
-    the specified actions
-  * added doc to method_tracer API and removed second arg
-    requirement for add_method_tracer call
-  * instrumentation for Net::HTTP
-  * remove method_tracer shim to avoid timing problems in monitoring daemons
-  * for non-rails daemons, look at APP_ROOT and NRCONFIG env vars for custom locations
+v2.9.8.
+  * Fix bug in Net instrumentation when a block is passed to request calls.
 
-v2.9.6
+v2.9.7.
+  * Fix External instrumentation so it does not capture Net
+    calls outside of web transactions.
+
+v2.9.6.
+  * add instrumentation for Net::HTTP calls, to show up as "External"
   * added support for validating agents in the cloud.
+  * recognize Unicorn dispatcher
+  * add NewRelic module definitions to ActiveRecord instrumentation
 
-v2.9.5
+v2.9.5.
   * Snow Leopard memory fix
 
-v2.9.4
+v2.9.4.
   * clamp size of data sent to server
   * reset statistics for passenger when forking to avoid erroneous data
   * fix problem deserializing errors from the server
@@ -45,8 +22,8 @@ v2.9.4
 
 v2.9.3.
   * fix startup failure in Windows due to memory sampler
-  * add JRuby environment information
-   
+  * add JRuby environment information 
+
 v2.9.2.
   * change default apdex_t to 0.5 seconds 
   * fix bug in deployments introduced by multi_homed setting

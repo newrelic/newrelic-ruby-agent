@@ -12,6 +12,7 @@ module NewRelic::Rack
       options[:app_name] ||= 'EPM Monitor'
       options[:disable_samplers] = true
       NewRelic::Agent.manual_start options
+      @stats_engine = NewRelic::Agent.instance.stats_engine
       unless NewRelic::Control.instance.license_key
         NewRelic::Control.instance.log.error "Please add a valid license key to newrelic.yml."
         exit 1
@@ -23,7 +24,7 @@ module NewRelic::Rack
       metric = "Custom/" + segments.join("/")
       raise "Expected value parameter!" unless request['value']
       data = request['value'].to_f
-      stats = NewRelic::Agent.get_stats(metric, false)
+      stats = @stats_engine.get_stats(metric, false)
       stats.record_data_point data
       response = ::Rack::Response.new "#{metric}=#{data}" 
       response.finish

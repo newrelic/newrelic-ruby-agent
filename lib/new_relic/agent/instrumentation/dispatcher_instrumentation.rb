@@ -4,7 +4,7 @@
 # which will return the response status code when the dispatcher finishes.
 module NewRelic::Agent::Instrumentation
   module DispatcherInstrumentation
-    extend self
+    
     def newrelic_dispatcher_start
       # Put the current time on the thread.  Can't put in @ivar because this could
       # be a class or instance context
@@ -19,7 +19,7 @@ module NewRelic::Agent::Instrumentation
       
       # Reset the flag indicating the controller action should be ignored.
       # It may be set by the action to either true or false or left nil meaning false
-      Thread.current[:newrelic_ignore_controller] = nil
+      Thread.current[:controller_ignored] = nil
     end
     
     def newrelic_dispatcher_finish
@@ -27,21 +27,20 @@ module NewRelic::Agent::Instrumentation
       dispatcher_end_time = Time.now.to_f
       NewRelic::Agent.agent.end_transaction
       NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.dispatcher_finish dispatcher_end_time
-      unless Thread.current[:newrelic_ignore_controller]
-        elapsed_time = dispatcher_end_time - Thread.current[:newrelic_dispatcher_start]
+      unless Thread.current[:controller_ignored]
         # Store the response header
+        newrelic_dispatcher_start_time = Thread.current[:newrelic_dispatcher_start]
         response_code = newrelic_response_code
         if response_code
-          NewRelic::Agent.agent.stats_engine.get_stats_no_scope("HTTP/Response/#{response_code}").trace_call(elapsed_time)
+          stats = NewRelic::Agent.agent.stats_engine.get_stats_no_scope("HTTP/Response/#{response_code}")
+          stats.trace_call(dispatcher_end_time - newrelic_dispatcher_start_time)
         end
-        # Store the response time
-        dispatch_stat.trace_call(elapsed_time)
-        NewRelic::Agent.instance.histogram.process(elapsed_time)
+        dispatch_stat.trace_call(dispatcher_end_time - newrelic_dispatcher_start_time) 
       end
     end
-    # Should be implemented in the dispatcher class
-    def newrelic_response_code; end
-    
+    def newrelic_response_code
+      raise "Must be implemented in the dispatcher class"
+    end
     # Used only when no before/after callbacks are available with
     # the dispatcher, such as Rails before 2.0
     def dispatch_newrelic(*args)
@@ -54,11 +53,10 @@ module NewRelic::Agent::Instrumentation
     end
     
     private
-    
+    # memoize the stats to avoid the cost of the lookup each time.
     def dispatch_stat
-      NewRelic::Agent.agent.stats_engine.get_stats_no_scope 'HttpDispatcher'  
+      NewRelic::Agent.agent.stats_engine.get_stats_no_scope 'Rails/HTTP Dispatch'  
     end
-    
     def mongrel_queue_stat
       NewRelic::Agent.agent.stats_engine.get_stats_no_scope 'WebFrontend/Mongrel/Average Queue Time'  
     end
@@ -67,6 +65,11 @@ module NewRelic::Agent::Instrumentation
     module BusyCalculator
       extend self
       # the fraction of the sample period that the dispatcher was busy
+      
+      @harvest_start = Time.now.to_f
+      @accumulator = 0
+      @entrypoint_stack = []
+      @lock = Mutex.new
       
       def dispatcher_start(time)
         @lock.synchronize do
@@ -84,15 +87,7 @@ module NewRelic::Agent::Instrumentation
       def busy_count
         @entrypoint_stack.size
       end
-      def reset
-        @entrypoint_stack = []
-        @lock = Mutex.new
-        @accumulator = 0
-        @harvest_start = Time.now.to_f
-      end
-      
-      self.reset
-      
+
       # Called before uploading to to the server to collect current busy stats.
       def harvest_busy
         busy = 0

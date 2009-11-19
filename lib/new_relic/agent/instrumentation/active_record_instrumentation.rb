@@ -1,12 +1,12 @@
 
 # NewRelic instrumentation for ActiveRecord
-if defined?(ActiveRecord) && defined?(ActiveRecord::Base) && !NewRelic::Control.instance['skip_ar_instrumentation']
-
+if defined?(ActiveRecord::Base) && !NewRelic::Control.instance['skip_ar_instrumentation']
+  
   module NewRelic
     module Agent
       module Instrumentation
         module ActiveRecordInstrumentation
-          
+
           def self.included(instrumented_class)
             instrumented_class.class_eval do
               alias_method :log_without_newrelic_instrumentation, :log
@@ -15,10 +15,11 @@ if defined?(ActiveRecord) && defined?(ActiveRecord::Base) && !NewRelic::Control.
             end
           end
           
+          def active_record_all_stats
+            NewRelic::Agent.instance.stats_engine.get_stats_no_scope("ActiveRecord/all")
+          end
+          
           def log_with_newrelic_instrumentation(sql, name, &block)
-            
-            return log_without_newrelic_instrumentation(sql, name, &block) unless NewRelic::Agent.is_execution_traced?
-            
             # Capture db config if we are going to try to get the explain plans
             if (defined?(ActiveRecord::ConnectionAdapters::MysqlAdapter) && self.is_a?(ActiveRecord::ConnectionAdapters::MysqlAdapter)) ||
                 (defined?(ActiveRecord::ConnectionAdapters::PostgreSQLAdapter) && self.is_a?(ActiveRecord::ConnectionAdapters::PostgreSQLAdapter))
@@ -49,15 +50,17 @@ if defined?(ActiveRecord) && defined?(ActiveRecord::Base) && !NewRelic::Control.
             if !metric
               log_without_newrelic_instrumentation(sql, name, &block)
             else
-              metrics = [metric, "ActiveRecord/all"]
-              metrics << "ActiveRecord/#{metric_name}" if metric_name
-              self.class.trace_execution_scoped(metrics) do
+              self.class.trace_method_execution_with_scope metric, true, true do        
                 t0 = Time.now.to_f
-                begin
-                  log_without_newrelic_instrumentation(sql, name, &block) 
-                ensure
-                  NewRelic::Agent.instance.transaction_sampler.notice_sql(sql, supported_config, Time.now.to_f - t0) 
-                end
+                result = log_without_newrelic_instrumentation(sql, name, &block)
+                duration = Time.now.to_f - t0
+                
+                NewRelic::Agent.instance.transaction_sampler.notice_sql(sql, supported_config, duration)
+                # Record in the overall summary metric
+                active_record_all_stats.record_data_point(duration)
+                # Record in the summary metric for this operation
+                NewRelic::Agent.instance.stats_engine.get_stats_no_scope("ActiveRecord/#{metric_name}").record_data_point(duration) if metric_name
+                result
               end
             end
           end
@@ -68,7 +71,7 @@ if defined?(ActiveRecord) && defined?(ActiveRecord::Base) && !NewRelic::Control.
         ActiveRecord::ConnectionAdapters::AbstractAdapter.module_eval do
           include ::NewRelic::Agent::Instrumentation::ActiveRecordInstrumentation
         end
-        
+
         # This instrumentation will add an extra scope to the transaction traces
         # which will show the code surrounding the query, inside the model find_by_sql
         # method.
@@ -76,7 +79,8 @@ if defined?(ActiveRecord) && defined?(ActiveRecord::Base) && !NewRelic::Control.
           class << self
             add_method_tracer :find_by_sql, 'ActiveRecord/#{self.name}/find_by_sql', :metric => false
           end
-        end unless NewRelic::Control.instance['disable_ar_instrumentation']
+        end
+        
       end
     end
   end

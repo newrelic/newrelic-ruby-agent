@@ -4,7 +4,7 @@ ENV['NEWRELIC_DISPATCHER'] = 'none'
 
 $LOAD_PATH << File.expand_path(File.join(File.dirname(__FILE__), '..','..'))
 
-require 'new_relic/rack_app'
+require 'new_relic/rack'
 
 # Valid options which may be present in this binding:
 # :license_key   optional license key override
