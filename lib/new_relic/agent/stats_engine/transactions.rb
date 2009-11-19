@@ -130,14 +130,14 @@ module NewRelic::Agent
         num_calls = GC.collections - @last_gc_count
         elapsed = (GC.time - @last_gc_timestamp)
         if num_calls > 0 && elapsed >= EPSILON
-          @last_gc_timestamp += elapsed
-          @last_gc_count += num_calls
+          @last_gc_timestamp = GC.time
+          @last_gc_count = GC.collections
           # µs to seconds
           elapsed = elapsed / 1000000.0
           # Allocate the GC time to a scope as if the GC just ended
           # right now.
           time = Time.now.to_f
-          gc_scope = push_scope("GC/cumulative", time - elapsed)
+          gc_scope = push_scope("GC/cumulative", time - elapsed, false)
           # GC stats are collected into a blamed metric which allows
           # us to show the stats controller by controller
           gc_stats = NewRelic::Agent.get_stats(gc_scope.name, true)  
