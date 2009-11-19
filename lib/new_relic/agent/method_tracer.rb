@@ -43,11 +43,11 @@ module NewRelic::Agent
     EMPTY_ARRAY = [].freeze #:nodoc:
     
     # Deprecated. Use #trace_execution_scoped, a version with an options hash.  
-    def trace_method_execution_with_scope(metric_names, produce_metric, deduct_call_time_from_parent, scoped_metric_only=false) #:nodoc
+    def trace_method_execution_with_scope(metric_names, produce_metric, deduct_call_time_from_parent, scoped_metric_only=false, &block) #:nodoc
       trace_execution_scoped(metric_names, 
                              :metric => produce_metric, 
                              :deduct_call_time_from_parent => deduct_call_time_from_parent, 
-                             :scoped_metric_only => scoped_metric_only)
+                             :scoped_metric_only => scoped_metric_only, &block)
     end
 
     alias trace_method_execution_no_scope trace_execution_unscoped

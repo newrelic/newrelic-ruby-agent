@@ -30,7 +30,7 @@ class TaskInstrumentationTest < Test::Unit::TestCase
     assert_equal 1, @agent.stats_engine.get_stats('Controller/TaskInstrumentationTest/inner_task_0').call_count
   end
 
-  def test_run_recursive
+  def _test_run_recursive
     run_task_inner(3)
     assert_equal 0, @agent.stats_engine.get_stats('Controller/TaskInstrumentationTest/inner_task_3').call_count
     assert_equal 0, @agent.stats_engine.get_stats('Controller/TaskInstrumentationTest/inner_task_2').call_count
