@@ -2,8 +2,22 @@
 
 if defined? Net::HTTP
   Net::HTTP.class_eval do
-    add_method_tracer "request", 'External/#{@address}/Net::HTTP/#{args[0].method}'# + op 
-    add_method_tracer "request", 'External/#{@address}/all', :push_scope => false
-    add_method_tracer "request", 'External/allWeb', :push_scope => false
+    def request_with_newrelic_trace(*args, &block)
+      if Thread::current[:newrelic_transaction_name].nil?
+        self.class.trace_execution_unscoped(["External/#{@address}/Net::HTTP/#{args[0].method}", 
+                                             "External/#{@address}/all",
+                                             "External/allOther"]) do
+          request_without_newrelic_trace(*args, &block)
+        end
+      else
+        self.class.trace_execution_scoped(["External/#{@address}/Net::HTTP/#{args[0].method}",
+                                           "External/#{@address}/all",
+                                           "External/allWeb"]) do
+          request_without_newrelic_trace(*args, &block)
+        end
+      end
+    end
+    alias request_without_newrelic_trace request
+    alias request request_with_newrelic_trace
   end
 end

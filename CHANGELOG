@@ -1,4 +1,6 @@
 v2.10.1
+  * improve Net::HTTP instrumentation so its more efficient and distinguishes calls
+    between web and non-web transactions.
   * add support for textmate to dev mode
   * preliminary sinatra support, displays actions named by the URI pattern matched
   * added add_transaction_tracer method to support instrumenting methods as
