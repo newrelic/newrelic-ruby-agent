@@ -1,11 +1,13 @@
 # We have to patch the mongrel dispatcher live since the classes
-# aren't defined when our instrumentation loads
-# To use this module, you need to monkey patch a method newrelic_response_code
+# aren't defined when our instrumentation loads.
+# To use this module, you should monkey patch a method newrelic_response_code
 # which will return the response status code when the dispatcher finishes.
 module NewRelic::Agent::Instrumentation
   module DispatcherInstrumentation
     extend self
     def newrelic_dispatcher_start
+      # This call might be entered twice in the same call sequence so we ignore subsequent calls.
+      return if Thread.current[:newrelic_dispatcher_start]
       # Put the current time on the thread.  Can't put in @ivar because this could
       # be a class or instance context
       newrelic_dispatcher_start_time = Time.now.to_f
@@ -24,20 +26,22 @@ module NewRelic::Agent::Instrumentation
     
     def newrelic_dispatcher_finish
       #puts @env.to_a.map{|k,v| "#{'%32s' % k}: #{v.inspect[0..64]}"}.join("\n")
+      return unless started = Thread.current[:newrelic_dispatcher_start]
       dispatcher_end_time = Time.now.to_f
       NewRelic::Agent.agent.end_transaction
       NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.dispatcher_finish dispatcher_end_time
       unless Thread.current[:newrelic_ignore_controller]
-        elapsed_time = dispatcher_end_time - Thread.current[:newrelic_dispatcher_start]
+        elapsed_time = dispatcher_end_time - started
         # Store the response header
-        response_code = newrelic_response_code
-        if response_code
+        if response_code = newrelic_response_code 
           NewRelic::Agent.agent.stats_engine.get_stats_no_scope("HTTP/Response/#{response_code}").trace_call(elapsed_time)
         end
         # Store the response time
         dispatch_stat.trace_call(elapsed_time)
         NewRelic::Agent.instance.histogram.process(elapsed_time)
       end
+      # ensure we don't record it twice
+      Thread.current[:newrelic_dispatcher_start] = nil
     end
     # Should be implemented in the dispatcher class
     def newrelic_response_code; end
