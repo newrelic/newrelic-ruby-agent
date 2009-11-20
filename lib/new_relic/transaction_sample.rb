@@ -25,6 +25,8 @@ module NewRelic
       
       
       attr_reader :entry_timestamp
+      # The exit timestamp will be relative except for the outermost sample which will 
+      # have a timestamp.
       attr_reader :exit_timestamp
       attr_reader :parent_segment
       attr_reader :metric_name
@@ -402,7 +404,7 @@ module NewRelic
       @root_segment.path_string
     end
     
-    def create_segment (relative_timestamp, metric_name, segment_id = nil)
+    def create_segment(relative_timestamp, metric_name, segment_id = nil)
       raise TypeError.new("Frozen Transaction Sample") if frozen?
       NewRelic::TransactionSample::Segment.new(relative_timestamp, metric_name, segment_id)    
     end
