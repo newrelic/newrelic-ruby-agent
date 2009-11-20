@@ -7,8 +7,6 @@ module NewRelic::Agent
     include MetricStats
     include Samplers
     include Transactions
-    # race condition
-#    include Transactions::Shim if NewRelic::Control.instance['disable_scope_tracking']
     
     def initialize
       # Makes the unit tests happy
