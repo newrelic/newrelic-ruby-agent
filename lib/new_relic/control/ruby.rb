@@ -4,7 +4,7 @@
 # It loads the settings from the newrelic.yml section
 # based on the value of RUBY_ENV or RAILS_ENV. 
 class NewRelic::Control::Ruby < NewRelic::Control
-
+  
   def env
     @env ||= ENV['RUBY_ENV'] || ENV['RAILS_ENV'] || 'development'
   end
@@ -16,8 +16,10 @@ class NewRelic::Control::Ruby < NewRelic::Control
     files = []
     files << File.join(root,"config","newrelic.yml")
     files << File.join(root,"newrelic.yml")
-    files << File.join(ENV["HOME"], ".newrelic", "newrelic.yml")
-    files << File.join(ENV["HOME"], "newrelic.yml")
+    if ENV["HOME"]
+      files << File.join(ENV["HOME"], ".newrelic", "newrelic.yml") 
+      files << File.join(ENV["HOME"], "newrelic.yml")
+    end
     files << File.expand_path(ENV["NRCONFIG"]) if ENV["NRCONFIG"]
     files.each do | file |
       return File.expand_path(file) if File.exists? file
