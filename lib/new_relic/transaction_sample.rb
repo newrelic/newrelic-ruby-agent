@@ -143,7 +143,7 @@ module NewRelic
       
       # return the total duration of this segment
       def duration
-        @exit_timestamp - @entry_timestamp
+        (@exit_timestamp - @entry_timestamp).to_f
       end
       
       # return the duration of this segment without 
