@@ -124,7 +124,7 @@ module NewRelic::Agent
         # Skip this if we are already in this segment
         return if !scope_stack.empty? && scope_stack.last.name == "GC/cumulative"
         num_calls = GC.collections - @last_gc_count
-        elapsed = (GC.time - @last_gc_timestamp)
+        elapsed = (GC.time - @last_gc_timestamp).to_f
         @last_gc_timestamp = GC.time
         @last_gc_count = GC.collections
         if num_calls > 0
@@ -138,7 +138,7 @@ module NewRelic::Agent
           # us to show the stats controller by controller
           gc_stats = NewRelic::Agent.get_stats(gc_scope.name, true)  
           gc_stats.record_multiple_data_points(elapsed, num_calls)
-          pop_scope(gc_scope, time)
+          pop_scope(gc_scope, elapsed, time)
         end
       end
       
