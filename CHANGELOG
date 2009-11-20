@@ -1,4 +1,4 @@
-v2.10.1
+v2.10.1.
   * improve Net::HTTP instrumentation so its more efficient and distinguishes calls
     between web and non-web transactions.
   * add support for textmate to dev mode
@@ -15,7 +15,7 @@ v2.10.1
   * renamed the dispatcher metric
   * refactored stats_engine code for readability
   
-v2.10.0
+v2.10.0.
   * support unicorn
   * instrumentation of GC for REE and MRE with GC patch
   * support agent restarting when changes are made to the account
@@ -33,13 +33,16 @@ v2.10.0
   * remove method_tracer shim to avoid timing problems in monitoring daemons
   * for non-rails daemons, look at APP_ROOT and NRCONFIG env vars for custom locations
 
-v2.9.6
+v2.9.8.
+  * add instrumentation for Net::HTTP calls, to show up as "External"
   * added support for validating agents in the cloud.
+  * recognize Unicorn dispatcher
+  * add NewRelic module definitions to ActiveRecord instrumentation
 
-v2.9.5
+v2.9.5.
   * Snow Leopard memory fix
 
-v2.9.4
+v2.9.4.
   * clamp size of data sent to server
   * reset statistics for passenger when forking to avoid erroneous data
   * fix problem deserializing errors from the server
@@ -134,7 +137,7 @@ v2.8.10.
     processing
   * minor tweak to environment gathering for gem mode
 
-v2.8.9
+v2.8.9.
   * fix problem finding the newrelic controller in dev mode
   * fix incompatibility with older versions of optparse
   * fix potential jvm problem with jruby
@@ -142,24 +145,24 @@ v2.8.9
   * change error message about window sampler in windows not supported to a
     warning message
 
-v2.8.8
+v2.8.8.
   * fix error with jruby on windows
   * fix problem where webrick was being incorrectly detected causing some
     problems with mongrel application assignments--had to disable webrick
     for now
 
-v2.8.7
+v2.8.7.
   * fix for ssl connection hanging problems
   * fix problem recognizing mongrel in rails 2.3.2
   * fastcgi support in rails 2.3.2
   * put back webrick support
 
-v2.8.6
+v2.8.6.
   * fix for capture_params when using file uploads in controller actions
   * use pure ruby NS lookup for collector host to eliminate possibly
     blocking applications
 
-v2.8.5
+v2.8.5.
   * fix reference to CommandError which was breaking some cap scripts
   * fix incompatibility with Rails 2.0 in the server API
   * fix problem with litespeed with Lite accounts
@@ -168,23 +171,23 @@ v2.8.5
     AbstractController to address incompatibility with MailController
   * fix problem in devmode displaying sql with embedded urls
 
-v2.8.4
+v2.8.4.
   * fix bug in capistrano recipe causing cap commands to fail with error
     about not finding Version class
 
-v2.8.3
+v2.8.3.
   * refactor unit tests so they will run in a generic rails environment
   * require classes in advance to avoid autoloading.  this is to address
     incompatibilities with desert as well as more flexibility in gem
     initialization
   * fixed newrelic_helper.rb 1.9 incompatibility
 
-v2.8.2
+v2.8.2.
   * fix Ruby 1.9 syntax compatibility errors
   * update the class loading sanity check, will notify server of errors
   * fix agent output on script and rake task execution
 
-v2.8.1
+v2.8.1.
   * Convert the deployment information upload script to an executable and
     put in the bin directory.  When installed as a gem this command is
     symlinked to /usr/bin.  Usage: newrelic_cmd deployments --help
@@ -192,7 +195,7 @@ v2.8.1
   * Fix deployments api so it will work from a gem
   * Fix thin incompatibility in developer mode 
 
-v2.8.0
+v2.8.0.
   * add beta of api in new_relic_api.rb
   * instrumented dynamic finders in ActiveRecord
   * preliminary support for capturing deployment information via capistrano
@@ -206,21 +209,21 @@ v2.8.0
     transient network problem
   * fix IgnoreSilentlyException message
 
-v2.7.4
+v2.7.4.
   * fix error when trying to serialize some kinds of Enumerable objects
   * added extra debug logging
   * added app_name to app mapping
 
-v2.7.3
+v2.7.3.
   * fix compatibility issue with 1.8.5 causing error with Dir.glob
 
-v2.7.2
+v2.7.2.
   * fix problem with passenger edge not being a detected environment
 
-v2.7.1
+v2.7.1.
   * fix problem with skipped dispatcher instrumentation
 
-v2.7.0
+v2.7.0.
   * Repackage to support both plugin and Gem installation
   * Support passenger/litespeed/jruby application naming
   * Update method for calculating dispatcher queue time
@@ -231,62 +234,62 @@ v2.7.0
   * Performance tuning
   * bugfixes
 
-v2.5.3
+v2.5.3.
   * fix error in transaction tracing causing traces not to show up
 
-v2.5.2
+v2.5.2.
   * fixes for postgres explain plan support
 
-v2.5.1
+v2.5.1.
   * bugfixes
 
-v2.5.0
+v2.5.0.
   * add agent support for rpm 1.1 features
   * Fix regression error with thin support
 
-v2.4.3
+v2.4.3.
   * added 'newrelic_ignore' controller class method with :except and :only options for finer grained control
     over the blocking of instrumentation in controllers.
   * bugfixes
 
-v2.4.2
+v2.4.2.
   * error reporting in early access
 
-v2.4.1
+v2.4.1.
   * bugfix: initializing developer mode
 
-v2.4.0
+v2.4.0.
   * Beta support for LiteSpeed and Passenger
 
-v2.3.7
+v2.3.7.
   * bugfixes
 
-v2.3.6
+v2.3.6.
   * bugfixes
 
-v2.3.5
+v2.3.5.
   * bugfixes: pie chart data, rails 1.1 compability
 
-v2.3.4
+v2.3.4.
   * bugfix
 
-v2.3.3
+v2.3.3.
   * bugfix for non-mysql databases
 
-v2.3.2
+v2.3.2.
   * bugfixes
   * Add enhancement for Transaction Traces early access feature
 
-v2.3.1
+v2.3.1.
   * bugfixes
 
-v2.3.0
+v2.3.0.
   + Add support for Transaction Traces early access feature
 
-v2.2.2
+v2.2.2.
   * bugfixes
 
-v2.2.1
+v2.2.1.
   + Add rails 2.1 support for Developer Mode
   + Changes to memory sampler: Add support for JRuby and fix Solaris support.  
   * Stop catching exceptions and start catching StandardError; other exception cleanup
@@ -294,25 +297,25 @@ v2.2.1
   * Improved support for thin domain sockets
   * Support JRuby environments
 
-v2.1.6
+v2.1.6.
   * bugfixes
 
-v2.1.5
+v2.1.5.
   * bugfixes
 
-v2.1.4
+v2.1.4.
   * bugfixes
 
-v2.1.3
+v2.1.3.
   * bugfixes
 
-v2.1.2
+v2.1.2.
   * bugfixes
 
-v2.1.1
+v2.1.1.
   * bugfixes
 
-v2.1.0
+v2.1.0.
   * release for private beta
 
 
