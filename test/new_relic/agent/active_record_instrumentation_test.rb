@@ -246,8 +246,9 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
   
   def compare_metrics expected_list, actual_list
     actual = Set.new actual_list
+    actual.delete('GC/cumulative') # in case we are in REE
     expected = Set.new expected_list
-    assert_equal expected, actual, "extra: #{(actual - expected).to_a.join(", ")}; missing: #{(expected - actual).to_a.join(", ")}"
+    assert_equal expected.to_a.sort, actual.to_a.sort, "extra: #{(actual - expected).to_a.join(", ")}; missing: #{(expected - actual).to_a.join(", ")}"
   end
   def isPostgres?
     ActiveRecordFixtures::Order.configurations[RAILS_ENV]['adapter'] =~ /postgres/
