@@ -6,9 +6,10 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
   def setup
     super
     NewRelic::Agent.manual_start
-    NewRelic::Agent.instance.stats_engine.clear_stats
     ActiveRecordFixtures.setup
     NewRelic::Agent.instance.transaction_sampler.harvest
+#    ActiveRecordFixtures::Order.execute "show tables"   # this warms up the connection - which can issue sql statements
+    NewRelic::Agent.instance.stats_engine.clear_stats
   rescue
     puts e
     puts e.backtrace.join("\n")
@@ -58,6 +59,7 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
     expected = %W[
       ActiveRecord/all
       ActiveRecord/create
+      Database/SQL/other
       ActiveRecord/find
       ActiveRecord/ActiveRecordFixtures::Order/create
       ActiveRecord/ActiveRecordFixtures::Order/find
@@ -82,6 +84,8 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
     ActiveRecord/destroy
     ActiveRecord/ActiveRecordFixtures::Order/destroy
     Database/SQL/insert
+    Database/SQL/other
+    Database/SQL/show
     Database/SQL/delete
     ActiveRecord/create
     ActiveRecord/find
@@ -105,6 +109,26 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
     assert_equal 1, NewRelic::Agent.get_stats("Database/SQL/select").call_count
   end
   
+  def test_other_sql
+    list = ActiveRecordFixtures::Order.connection.execute "begin"
+    metrics = NewRelic::Agent.instance.stats_engine.metrics
+    compare_metrics %W[
+    ActiveRecord/all
+    Database/SQL/other
+    ], metrics
+    assert_equal 1, NewRelic::Agent.get_stats("Database/SQL/other").call_count
+  end
+  
+  def test_show_sql
+    list = ActiveRecordFixtures::Order.connection.execute "show tables"
+    metrics = NewRelic::Agent.instance.stats_engine.metrics
+    compare_metrics %W[
+    ActiveRecord/all
+    Database/SQL/show
+    ], metrics
+    assert_equal 1, NewRelic::Agent.get_stats("Database/SQL/show").call_count 
+  end
+
   def test_blocked_instrumentation
     ActiveRecordFixtures::Order.add_delay
     NewRelic::Agent.disable_all_tracing do

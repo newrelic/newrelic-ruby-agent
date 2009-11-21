@@ -38,12 +38,17 @@ if defined?(ActiveRecord) && defined?(ActiveRecord::Base) && !NewRelic::Control.
                               end
                             end
               metric = "ActiveRecord/#{model}/#{metric_name}" if metric_name
-            end      
-            if metric.nil? && sql =~ /^(select|update|insert|delete)/i
-              # Could not determine the model/operation so let's find a better
-              # metric.  If it doesn't match the regex, it's probably a show
-              # command or some DDL which we'll ignore.
-              metric = "Database/SQL/#{$1.downcase}"
+            end
+            
+            if metric.nil?
+              if sql =~ /^(select|update|insert|delete|show)/i
+                # Could not determine the model/operation so let's find a better
+                # metric.  If it doesn't match the regex, it's probably a show
+                # command or some DDL which we'll ignore.
+                metric = "Database/SQL/#{$1.downcase}"
+              else
+                metric = "Database/SQL/other"
+              end
             end
             
             if !metric
