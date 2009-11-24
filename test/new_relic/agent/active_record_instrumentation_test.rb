@@ -66,7 +66,7 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
     expected += %W[ActiveRecord/save ActiveRecord/ActiveRecordFixtures::Order/save] if NewRelic::Control.instance.rails_version < '2.1.0'   
     compare_metrics expected, metrics
     assert_equal 1, NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Order/find").call_count
-    assert_equal 1, NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Order/create").call_count
+    assert_equal (defined?(JRuby) ? 0 : 1), NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Order/create").call_count
   end
   def test_join_metrics
     m = ActiveRecordFixtures::Order.create :name => 'jeff'
@@ -97,10 +97,11 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
     compare_metrics expected_metrics, metrics
     # This number may be different with different db adapters, not sure
     # assert_equal 17, NewRelic::Agent.get_stats("ActiveRecord/all").call_count
-    assert_equal NewRelic::Agent.get_stats("ActiveRecord/all").total_exclusive_time, NewRelic::Agent.get_stats("ActiveRecord/all").total_call_time
+    assert_equal NewRelic::Agent.get_stats("ActiveRecord/all").total_exclusive_time, NewRelic::Agent.get_stats("ActiveRecord/all").total_call_time unless RUBY_DESCRIPTION =~ /Enterprise Edition/
     assert_equal 1, NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Order/find").call_count
     assert_equal 1, NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Shipment/find").call_count
-    assert_equal 1, NewRelic::Agent.get_stats("Database/SQL/insert").call_count
+    assert_equal 1, NewRelic::Agent.get_stats("Database/SQL/insert").call_count unless defined? JRuby
+    assert_equal 3, NewRelic::Agent.get_stats("Database/SQL/insert").call_count if defined? JRuby
     assert_equal 1, NewRelic::Agent.get_stats("Database/SQL/delete").call_count
   end
   def test_direct_sql
