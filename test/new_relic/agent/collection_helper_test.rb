@@ -13,8 +13,8 @@ class NewRelic::Agent::CollectionHelperTest < Test::Unit::TestCase
   
   include NewRelic::Agent::CollectionHelper
   def test_string
-    val = ('A'..'Z').to_a.join * 100
-    assert_equal val[0...256] + "...", normalize_params(val)
+    val = ('A'..'Z').to_s * 100
+    assert_equal val.to_s[0...256] + "...", normalize_params(val)
   end
   def test_array
     new_array = normalize_params [ 1000 ] * 50
