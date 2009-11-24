@@ -61,6 +61,7 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
       ActiveRecord/find
       ActiveRecord/ActiveRecordFixtures::Order/find
       ]
+    expected += %W[Database/SQL/insert] if defined?(JRuby)      
     expected += %W[ActiveRecord/create Database/SQL/other ActiveRecord/ActiveRecordFixtures::Order/create] unless defined?(JRuby)      
     expected += %W[ActiveRecord/save ActiveRecord/ActiveRecordFixtures::Order/save] if NewRelic::Control.instance.rails_version < '2.1.0'   
     compare_metrics expected, metrics
