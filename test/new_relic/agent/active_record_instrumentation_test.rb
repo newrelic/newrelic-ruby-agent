@@ -58,12 +58,10 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
     #   metrics = NewRelic::Agent.instance.stats_engine.metrics.select { |mname| mname =~ /ActiveRecord\/ActiveRecordFixtures::Order\// }.sort
     expected = %W[
       ActiveRecord/all
-      ActiveRecord/create
-      Database/SQL/other
       ActiveRecord/find
-      ActiveRecord/ActiveRecordFixtures::Order/create
       ActiveRecord/ActiveRecordFixtures::Order/find
       ]
+    expected += %W[ActiveRecord/create Database/SQL/other ActiveRecord/ActiveRecordFixtures::Order/create] unless defined?(JRuby)      
     expected += %W[ActiveRecord/save ActiveRecord/ActiveRecordFixtures::Order/save] if NewRelic::Control.instance.rails_version < '2.1.0'   
     compare_metrics expected, metrics
     assert_equal 1, NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Order/find").call_count
@@ -79,21 +77,23 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
     metrics = NewRelic::Agent.instance.stats_engine.metrics
     #   This doesn't work on hudson because the sampler metrics creep in.    
     #   metrics = NewRelic::Agent.instance.stats_engine.metrics.select { |mname| mname =~ /ActiveRecord\/ActiveRecordFixtures::Order\// }.sort
-    compare_metrics %W[
+    expected_metrics = %W[
     ActiveRecord/all
     ActiveRecord/destroy
     ActiveRecord/ActiveRecordFixtures::Order/destroy
     Database/SQL/insert
-    Database/SQL/other
-    Database/SQL/show
     Database/SQL/delete
-    ActiveRecord/create
     ActiveRecord/find
-    ActiveRecord/ActiveRecordFixtures::Order/create
     ActiveRecord/ActiveRecordFixtures::Order/find
     ActiveRecord/ActiveRecordFixtures::Shipment/find
-    ActiveRecord/ActiveRecordFixtures::Shipment/create
-    ], metrics
+    ]
+    
+    expected_metrics += %W[Database/SQL/other Database/SQL/show ActiveRecord/create
+                           ActiveRecord/ActiveRecordFixtures::Shipment/create
+                           ActiveRecord/ActiveRecordFixtures::Order/create
+                           ] unless defined? JRuby
+
+    compare_metrics expected_metrics, metrics
     # This number may be different with different db adapters, not sure
     assert_equal 17, NewRelic::Agent.get_stats("ActiveRecord/all").call_count
     assert_equal NewRelic::Agent.get_stats("ActiveRecord/all").total_exclusive_time, NewRelic::Agent.get_stats("ActiveRecord/all").total_call_time
