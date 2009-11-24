@@ -97,7 +97,7 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
     compare_metrics expected_metrics, metrics
     # This number may be different with different db adapters, not sure
     # assert_equal 17, NewRelic::Agent.get_stats("ActiveRecord/all").call_count
-    assert_equal NewRelic::Agent.get_stats("ActiveRecord/all").total_exclusive_time, NewRelic::Agent.get_stats("ActiveRecord/all").total_call_time unless RUBY_DESCRIPTION =~ /Enterprise Edition/
+    assert_equal NewRelic::Agent.get_stats("ActiveRecord/all").total_exclusive_time, NewRelic::Agent.get_stats("ActiveRecord/all").total_call_time unless defined?(RUBY_DESCRIPTION) && RUBY_DESCRIPTION =~ /Enterprise Edition/
     assert_equal 1, NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Order/find").call_count
     assert_equal 1, NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Shipment/find").call_count
     assert_equal 1, NewRelic::Agent.get_stats("Database/SQL/insert").call_count unless defined? JRuby
