@@ -1,6 +1,6 @@
 module NewRelic; TEST = true; end unless defined? NewRelic::TEST
 #ENV['NEWRELIC_ENABLE'] = 'true'
-#ENV['RAILS_ENV'] = 'test'
+ENV['RAILS_ENV'] = 'test'
 NEWRELIC_PLUGIN_DIR = File.expand_path(File.join(File.dirname(__FILE__),".."))
 $LOAD_PATH << File.join(NEWRELIC_PLUGIN_DIR,"test")
 $LOAD_PATH << File.join(NEWRELIC_PLUGIN_DIR,"ui/helpers")
