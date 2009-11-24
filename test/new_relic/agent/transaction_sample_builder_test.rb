@@ -106,9 +106,9 @@ class NewRelic::Agent::TransationSampleBuilderTest < Test::Unit::TestCase
     
     # Need to allow substantial headroom on the upper bound to prevent 
     # spurious errors.
-    assert delta >= 30, "delta #{delta} should be between 30 and 100"
+    assert delta >= 28, "delta #{delta} should be between 28 and 100"
     # disable this test for a couple days:
-    assert delta <= 100, "delta #{delta} should be between 30 and 100"
+    assert delta <= 100, "delta #{delta} should be between 28 and 100"
     
     # ensure none of the segments have this regex
     without_code_loading.each_segment do |segment|

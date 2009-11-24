@@ -14,7 +14,7 @@ class NewRelic::Agent::CollectionHelperTest < Test::Unit::TestCase
   include NewRelic::Agent::CollectionHelper
   def test_string
     val = ('A'..'Z').to_a.join * 100
-    assert_equal val.first(256) + "...", normalize_params(val)
+    assert_equal val[0...256] + "...", normalize_params(val)
   end
   def test_array
     new_array = normalize_params [ 1000 ] * 50
@@ -24,6 +24,13 @@ class NewRelic::Agent::CollectionHelperTest < Test::Unit::TestCase
   def test_boolean
     np = normalize_params(NewRelic::Control.instance.settings)
     assert_equal false, np['enabled']
+  end
+  def test_string__singleton
+    val = "This String"
+    def val.hello; end
+    assert_equal "This String", normalize_params(val)
+    assert val.respond_to?(:hello)
+    assert !normalize_params(val).respond_to?(:hello)
   end
   class MyString < String; end
   def test_kind_of_string

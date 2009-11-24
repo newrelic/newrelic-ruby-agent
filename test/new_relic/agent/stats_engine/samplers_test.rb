@@ -40,6 +40,7 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
     assert s.stats.total_call_time > 0.5, "cpu greater than 0.5 ms: #{s.stats.total_call_time}"
   end
   def test_memory__solaris
+    return if defined? JRuby
     NewRelic::Agent::Samplers::MemorySampler.any_instance.stubs(:platform).returns 'solaris'
     NewRelic::Agent::Samplers::MemorySampler::ShellPS.any_instance.stubs(:get_memory).returns 999
     s = NewRelic::Agent::Samplers::MemorySampler.new
@@ -49,6 +50,7 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
     assert_equal 999, s.stats.total_call_time
   end
   def test_memory__windows
+    return if defined? JRuby
     NewRelic::Agent::Samplers::MemorySampler.any_instance.stubs(:platform).returns 'win32'
     assert_raise RuntimeError, /Unsupported platform/ do
       NewRelic::Agent::Samplers::MemorySampler.new
@@ -56,7 +58,7 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
   end
   def test_memory__is_supported
     NewRelic::Agent::Samplers::MemorySampler.stubs(:platform).returns 'windows'
-    assert !(NewRelic::Agent::Samplers::MemorySampler.supported_on_this_platform?)
+    assert !NewRelic::Agent::Samplers::MemorySampler.supported_on_this_platform? || defined? JRuby
   end
   def test_mongrel 
     NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.stubs('is_busy?'.to_sym).returns(false)  

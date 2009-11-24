@@ -58,19 +58,18 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
     #   metrics = NewRelic::Agent.instance.stats_engine.metrics.select { |mname| mname =~ /ActiveRecord\/ActiveRecordFixtures::Order\// }.sort
     expected = %W[
       ActiveRecord/all
-      ActiveRecord/create
-      Database/SQL/other
       ActiveRecord/find
-      ActiveRecord/ActiveRecordFixtures::Order/create
       ActiveRecord/ActiveRecordFixtures::Order/find
       ]
+    expected += %W[Database/SQL/insert] if defined?(JRuby)      
+    expected += %W[ActiveRecord/create Database/SQL/other ActiveRecord/ActiveRecordFixtures::Order/create] unless defined?(JRuby)      
     expected += %W[ActiveRecord/save ActiveRecord/ActiveRecordFixtures::Order/save] if NewRelic::Control.instance.rails_version < '2.1.0'   
     compare_metrics expected, metrics
     assert_equal 1, NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Order/find").call_count
-    assert_equal 1, NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Order/create").call_count
+    assert_equal (defined?(JRuby) ? 0 : 1), NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Order/create").call_count
   end
   def test_join_metrics
-    m = ActiveRecordFixtures::Order.create :id => 0, :name => 'jeff'
+    m = ActiveRecordFixtures::Order.create :name => 'jeff'
     m = ActiveRecordFixtures::Order.find(m.id)
     s = m.shipments.create
     m.shipments.to_a
@@ -79,24 +78,30 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
     metrics = NewRelic::Agent.instance.stats_engine.metrics
     #   This doesn't work on hudson because the sampler metrics creep in.    
     #   metrics = NewRelic::Agent.instance.stats_engine.metrics.select { |mname| mname =~ /ActiveRecord\/ActiveRecordFixtures::Order\// }.sort
-    compare_metrics %W[
+    expected_metrics = %W[
     ActiveRecord/all
     ActiveRecord/destroy
     ActiveRecord/ActiveRecordFixtures::Order/destroy
     Database/SQL/insert
-    Database/SQL/other
-    Database/SQL/show
     Database/SQL/delete
-    ActiveRecord/create
     ActiveRecord/find
-    ActiveRecord/ActiveRecordFixtures::Order/create
     ActiveRecord/ActiveRecordFixtures::Order/find
     ActiveRecord/ActiveRecordFixtures::Shipment/find
-    ActiveRecord/ActiveRecordFixtures::Shipment/create
-    ], metrics
+    ]
+    
+    expected_metrics += %W[Database/SQL/other Database/SQL/show ActiveRecord/create
+                           ActiveRecord/ActiveRecordFixtures::Shipment/create
+                           ActiveRecord/ActiveRecordFixtures::Order/create
+                           ] unless defined? JRuby
+
+    compare_metrics expected_metrics, metrics
+    # This number may be different with different db adapters, not sure
+    # assert_equal 17, NewRelic::Agent.get_stats("ActiveRecord/all").call_count
+    assert_equal NewRelic::Agent.get_stats("ActiveRecord/all").total_exclusive_time, NewRelic::Agent.get_stats("ActiveRecord/all").total_call_time unless defined?(RUBY_DESCRIPTION) && RUBY_DESCRIPTION =~ /Enterprise Edition/
     assert_equal 1, NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Order/find").call_count
     assert_equal 1, NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Shipment/find").call_count
-    assert_equal 1, NewRelic::Agent.get_stats("Database/SQL/insert").call_count
+    assert_equal 1, NewRelic::Agent.get_stats("Database/SQL/insert").call_count unless defined? JRuby
+    assert_equal 3, NewRelic::Agent.get_stats("Database/SQL/insert").call_count if defined? JRuby
     assert_equal 1, NewRelic::Agent.get_stats("Database/SQL/delete").call_count
   end
   def test_direct_sql
@@ -246,8 +251,9 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
   
   def compare_metrics expected_list, actual_list
     actual = Set.new actual_list
+    actual.delete('GC/cumulative') # in case we are in REE
     expected = Set.new expected_list
-    assert_equal expected, actual, "extra: #{(actual - expected).to_a.join(", ")}; missing: #{(expected - actual).to_a.join(", ")}"
+    assert_equal expected.to_a.sort, actual.to_a.sort, "extra: #{(actual - expected).to_a.join(", ")}; missing: #{(expected - actual).to_a.join(", ")}"
   end
   def isPostgres?
     ActiveRecordFixtures::Order.configurations[RAILS_ENV]['adapter'] =~ /postgres/

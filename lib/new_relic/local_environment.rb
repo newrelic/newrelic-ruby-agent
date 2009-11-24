@@ -73,6 +73,7 @@ module NewRelic
       append_environment_value 'Dispatcher instance id', @dispatcher_instance_id if @dispatcher_instance_id
       append_environment_value('Application root') { File.expand_path(NewRelic::Control.instance.root) }
       append_environment_value('Ruby version'){ RUBY_VERSION }
+      append_environment_value('Ruby description'){ RUBY_DESCRIPTION } if defined? RUBY_DESCRIPTION
       append_environment_value('Ruby platform') { RUBY_PLATFORM }
       append_environment_value('Ruby patchlevel') { RUBY_PATCHLEVEL }
       if defined? ::JRUBY_VERSION

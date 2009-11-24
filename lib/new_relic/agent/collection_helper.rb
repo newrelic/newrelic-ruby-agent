@@ -53,7 +53,12 @@ module NewRelic::Agent::CollectionHelper
     when Symbol then string
     when nil then ""
     when String
-      string.to_s.gsub(/^(.{#{len}})(.*)/m) {$2.blank? ? $1 : $1 + "..."}
+      real_string = flatten(string)
+      if real_string.size > len
+        real_string = real_string.slice(0...len)
+        real_string << "..."
+      end
+      real_string
     else
       truncate(flatten(string), len)     
     end
