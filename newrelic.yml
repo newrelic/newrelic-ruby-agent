@@ -168,6 +168,10 @@ common: &default_settings
   # For debugging overhead:
   # disable_view_instrumentation: true
   # disable_ar_instrumentation: true
+  
+  # Certain types of instrumentation such as GC stats will not work if 
+  # you are running multi-threaded.  Please let us know.
+  # multi_threaded = false
 
 # Application Environments
 # ------------------------------------------

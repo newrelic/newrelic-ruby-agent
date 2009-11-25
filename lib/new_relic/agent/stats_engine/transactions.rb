@@ -113,10 +113,9 @@ module NewRelic::Agent
       
       private
       
-      @@collecting_gc = GC.respond_to?(:time) && GC.respond_to?(:collections) 
       # Make sure we don't do this in a multi-threaded environment
       def collecting_gc?
-        @@collecting_gc
+        @@collecting_gc ||= GC.respond_to?(:time) && GC.respond_to?(:collections) && !NewRelic::Control.instance.multi_threaded?  
       end
       
       # Assumes collecting_gc?
