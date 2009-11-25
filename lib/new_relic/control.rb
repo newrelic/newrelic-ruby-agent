@@ -303,9 +303,11 @@ module NewRelic
     def load_samplers
       agent = NewRelic::Agent.instance
       agent.stats_engine.add_sampler NewRelic::Agent::Samplers::MongrelSampler.new if local_env.mongrel
+      
       if NewRelic::Agent::Samplers::CpuSampler.supported_on_this_platform?
         agent.stats_engine.add_harvest_sampler NewRelic::Agent::Samplers::CpuSampler.new
       end
+      
       begin
         if NewRelic::Agent::Samplers::MemorySampler.supported_on_this_platform?
           agent.stats_engine.add_sampler NewRelic::Agent::Samplers::MemorySampler.new
@@ -313,6 +315,8 @@ module NewRelic
       rescue RuntimeError => e
         log.error "Cannot add memory sampling: #{e}"
       end
+      
+      agent.stats_engine.add_sampler NewRelic::Agent::Samplers::DelayedJobLockSampler.new if local_env.delayed_worker
     end
      
     protected
