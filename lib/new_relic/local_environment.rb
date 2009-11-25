@@ -17,6 +17,7 @@ module NewRelic
     attr_accessor :dispatcher # mongrel, thin, webrick, or possibly nil
     attr_accessor :dispatcher_instance_id # used to distinguish instances of a dispatcher from each other, may be nil
     attr_accessor :framework # rails, merb, external, ruby, test
+    attr_reader :delayed_worker
     attr_reader :mongrel    # The mongrel instance, if there is one, captured as a convenience
     attr_reader :processors # The number of cpus, if detected, or nil
     alias environment dispatcher
@@ -24,6 +25,7 @@ module NewRelic
     def initialize
       discover_framework
       discover_dispatcher
+      duck_punch_delayed_worker if defined? Delayed::Worker
       @dispatcher = nil if @dispatcher == :none
       @gems = Set.new
       @plugins = Set.new
@@ -140,6 +142,26 @@ module NewRelic
       end unless defined?(JRuby) && !JRuby.runtime.is_object_space_enabled
       @unicorn
     end
+    
+    def delayed_worker=(worker)
+      @dispatcher = :delayed_job
+      @delayed_worker = worker
+      
+      @dispatcher_instance_id = if @delayed_worker.respond_to?(:name)
+        @delayed_worker.name
+      elsif @delayed_worker.class.respond_to?(:default_name)
+        @delayed_worker.class.default_name
+      else
+        "host:#{Socket.gethostname} pid:#{Process.pid}" rescue "pid:#{Process.pid}"
+      end
+      
+      append_environment_value 'Dispatcher', @dispatcher.to_s
+      append_environment_value 'Dispatcher instance id', @dispatcher_instance_id
+      
+      NewRelic::Control.instance.init_plugin
+            
+      @delayed_worker
+    end
 
     private
     
@@ -147,7 +169,9 @@ module NewRelic
     # is not advisable since it implies certain api's being available.
     def discover_dispatcher
       @dispatcher = ENV['NEWRELIC_DISPATCHER'] && ENV['NEWRELIC_DISPATCHER'].to_sym
+      
       dispatchers = %w[passenger glassfish thin mongrel litespeed webrick fastcgi unicorn sinatra]
+      
       while dispatchers.any? && @dispatcher.nil?
         send 'check_for_'+(dispatchers.shift)
       end
@@ -259,6 +283,18 @@ module NewRelic
     def check_for_passenger
       if defined?(Passenger::AbstractServer) || defined?(IN_PHUSION_PASSENGER) 
         @dispatcher = :passenger
+      end
+    end
+    
+    def duck_punch_delayed_worker
+      Delayed::Worker.class_eval do
+        def initialize_with_new_relic(*args)
+          initialize_without_new_relic(*args)
+          NewRelic::Control.instance.local_env.delayed_worker = self          
+        end
+        
+        alias initialize_without_new_relic initialize
+        alias initialize initialize_with_new_relic
       end
     end
   
