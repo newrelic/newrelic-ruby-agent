@@ -123,8 +123,12 @@ module NewRelic
           s << cs.to_debug_str(depth + 1)
         end
         s << tab
-        s << "<< #{metric_name}: #{@exit_timestamp ? (@exit_timestamp*1000).round : 'n/a'}\n"
-        s
+        s << "<< #{metric_name}: "
+        s << case @exit_timestamp
+          when nil then 'n/a'
+          when Numeric then (@exit_timestamp*1000).round.to_s
+          else @exit_timestamp.to_s
+        end << "\n"
       end
       
       def called_segments
@@ -440,9 +444,11 @@ module NewRelic
         next if k == :path
         s << "  #{k}: " <<
         case v
-          when Enumerable; v.map(&:to_s).sort.join("; ")
+          when Enumerable then v.map(&:to_s).sort.join("; ")
+          when String then v
+          when Float then '%6.3s' % v 
         else
-          v
+          raise "unexpected value type for #{k}: '#{v}' (#{v.class})"
         end << "\n"
       end
       s << "  }\n\n"

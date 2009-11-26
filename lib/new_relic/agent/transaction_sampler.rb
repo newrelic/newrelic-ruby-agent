@@ -13,7 +13,8 @@ module NewRelic::Agent
     
     BUILDER_KEY = :transaction_sample_builder
 
-    attr_accessor :stack_trace_threshold, :random_sampling, :sampling_rate, :last_sample, :samples
+    attr_accessor :stack_trace_threshold, :random_sampling, :sampling_rate
+    attr_reader :samples, :last_sample
     
     def initialize(agent)
       @samples = []

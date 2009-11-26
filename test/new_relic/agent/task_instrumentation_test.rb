@@ -30,7 +30,7 @@ class TaskInstrumentationTest < Test::Unit::TestCase
     assert_equal 1, @agent.stats_engine.get_stats('Controller/TaskInstrumentationTest/inner_task_0').call_count
   end
 
-  def _test_run_recursive
+  def test_run_recursive
     run_task_inner(3)
     assert_equal 0, @agent.stats_engine.get_stats('Controller/TaskInstrumentationTest/inner_task_3').call_count
     assert_equal 0, @agent.stats_engine.get_stats('Controller/TaskInstrumentationTest/inner_task_2').call_count
@@ -47,6 +47,20 @@ class TaskInstrumentationTest < Test::Unit::TestCase
     assert_equal 0, @agent.stats_engine.get_stats('Controller/TaskInstrumentationTest/outer_task').call_count
     assert_equal 2, @agent.stats_engine.get_stats('Controller').call_count
     assert_equal 2, @agent.stats_engine.get_stats('Controller/TaskInstrumentationTest/inner_task_0').call_count
+  end
+  
+  def test_transaction
+    run_task_outer(10)
+    @agent.stats_engine.metrics.sort.each do |n|
+      stat = @agent.stats_engine.get_stats(n)
+#      puts "#{'%-26s' % n}: #{stat.call_count} calls @ #{stat.average_call_time} sec/call"
+    end
+    assert_equal 0, @agent.stats_engine.get_stats('Controller/TaskInstrumentationTest/outer_task').call_count
+    assert_equal 2, @agent.stats_engine.get_stats('Controller').call_count
+    assert_equal 2, @agent.stats_engine.get_stats('Controller/TaskInstrumentationTest/inner_task_0').call_count
+    sample = @agent.transaction_sampler.last_sample
+    assert sample.params[:cpu_time] > 0, "cpu time: #{sample.params[:cpu_time]}"
+    
   end
 
   private
