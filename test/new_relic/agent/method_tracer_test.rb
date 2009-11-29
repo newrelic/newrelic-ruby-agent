@@ -45,17 +45,27 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
   attr_reader :stats_engine
   
   def setup
+    super
     NewRelic::Agent.manual_start
     @stats_engine = NewRelic::Agent.instance.stats_engine
     @stats_engine.clear_stats
     @scope_listener = NewRelic::Agent::MockScopeListener.new
+    @old_sampler = NewRelic::Agent.instance.transaction_sampler
     @stats_engine.transaction_sampler = @scope_listener
   end
-  
+
   def teardown
+    @stats_engine.transaction_sampler = @old_sampler
+    @stats_engine.clear_stats
     self.class.remove_method_tracer :method_to_be_traced, @metric_name if @metric_name
     @metric_name = nil
+    super
   end
+  
+  def test_setup
+    assert_equal NewRelic::Agent.instance.stats_engine.transaction_sampler, @scope_listener
+  end
+  
   
   def test_basic
     metric = "hello"
