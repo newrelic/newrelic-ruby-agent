@@ -271,7 +271,6 @@ module NewRelic::Agent::Instrumentation
         
         jruby_cpu_start = _jruby_cpu_time
         process_cpu_start = _process_cpu
-        
         failed = false
         
         begin
@@ -288,8 +287,7 @@ module NewRelic::Agent::Instrumentation
           if NewRelic::Agent.is_execution_traced?
             cpu_burn = nil
             if process_cpu_start
-              cpu_finish = _process_cpu
-              cpu_burn = cpu_finish.utime + cpu_finish.stime - process_cpu_start.utime - process_cpu_start.stime
+              cpu_burn = _process_cpu - process_cpu_start
             elsif jruby_cpu_start
               cpu_burn = _jruby_cpu_time - t
               stats_engine.get_stats_no_scope(NewRelic::Metrics::USER_TIME).record_data_point(cpu_burn)
@@ -361,7 +359,9 @@ module NewRelic::Agent::Instrumentation
     end
 
     def _process_cpu
-      Process.times unless defined? JRuby
+      return nil if defined? JRuby
+      p = Process.times
+      p.stime + p.utime
     end
     
     def _jruby_cpu_time # :nodoc:

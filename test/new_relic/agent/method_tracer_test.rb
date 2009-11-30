@@ -62,11 +62,6 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
     super
   end
   
-  def test_setup
-    assert_equal NewRelic::Agent.instance.stats_engine.transaction_sampler, @scope_listener
-  end
-  
-  
   def test_basic
     metric = "hello"
     t1 = Time.now
