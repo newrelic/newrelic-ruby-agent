@@ -8,6 +8,7 @@ class TaskInstrumentationTest < Test::Unit::TestCase
     super
     NewRelic::Agent.manual_start
     @agent = NewRelic::Agent.instance
+    NewRelic::Agent.instance.transaction_sampler.reset!
   end
   def teardown
     @agent.stats_engine.clear_stats
@@ -59,7 +60,8 @@ class TaskInstrumentationTest < Test::Unit::TestCase
     assert_equal 2, @agent.stats_engine.get_stats('Controller').call_count
     assert_equal 2, @agent.stats_engine.get_stats('Controller/TaskInstrumentationTest/inner_task_0').call_count
     sample = @agent.transaction_sampler.last_sample
-    assert sample.params[:cpu_time] >= 0, "cpu time: #{sample.params[:cpu_time]}"
+    assert_not_nil sample.params[:cpu_time],"cpu time nil: \n#{sample}"
+    assert sample.params[:cpu_time] >= 0, "cpu time: #{sample.params[:cpu_time]},\n#{sample}"
   end
 
   private
