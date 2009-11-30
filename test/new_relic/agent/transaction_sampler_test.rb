@@ -1,7 +1,4 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
-##require 'new_relic/agent/transaction_sampler'
-
-NewRelic::Agent::TransactionSampler.send :public, :builder
 
 class NewRelic::Agent::TransationSamplerTest < Test::Unit::TestCase
   
@@ -28,7 +25,8 @@ class NewRelic::Agent::TransationSamplerTest < Test::Unit::TestCase
     agent = NewRelic::Agent.instance
     stats_engine = NewRelic::Agent::StatsEngine.new
     agent.stubs(:stats_engine).returns(stats_engine)
-    @sampler = NewRelic::Agent::TransactionSampler.new(agent)
+    @sampler = NewRelic::Agent::TransactionSampler.new
+    stats_engine.transaction_sampler = @sampler
   end
   
   def test_multiple_samples
@@ -198,7 +196,7 @@ class NewRelic::Agent::TransationSamplerTest < Test::Unit::TestCase
     
     @sampler.notice_sql("test", nil, 0)
     
-    segment = @sampler.builder.current_segment
+    segment = @sampler.send(:builder).current_segment
     
     assert_nil segment[:sql]
   end
@@ -210,7 +208,7 @@ class NewRelic::Agent::TransationSamplerTest < Test::Unit::TestCase
     
     @sampler.notice_sql("test", nil, 1)
     
-    segment = @sampler.builder.current_segment
+    segment = @sampler.send(:builder).current_segment
     
     assert segment[:sql]
     assert segment[:backtrace]
@@ -222,7 +220,7 @@ class NewRelic::Agent::TransationSamplerTest < Test::Unit::TestCase
     @sampler.notice_first_scope_push t.to_f
     @sampler.notice_push_scope 'Bill', (t+1.second).to_f
     
-    segment = @sampler.builder.current_segment
+    segment = @sampler.send(:builder).current_segment
     assert segment[:backtrace]
   end
   
@@ -234,7 +232,7 @@ class NewRelic::Agent::TransationSamplerTest < Test::Unit::TestCase
     
     @sampler.notice_sql("test", nil, 1)
     
-    segment = @sampler.builder.current_segment
+    segment = @sampler.send(:builder).current_segment
     
     assert segment[:sql]
     assert_nil segment[:backtrace]
@@ -252,7 +250,7 @@ class NewRelic::Agent::TransationSamplerTest < Test::Unit::TestCase
       len += sql.length
     end
     
-    segment = @sampler.builder.current_segment
+    segment = @sampler.send(:builder).current_segment
     
     sql = segment[:sql]
     
@@ -268,7 +266,7 @@ class NewRelic::Agent::TransationSamplerTest < Test::Unit::TestCase
     
     @sampler.notice_sql(orig_sql, nil, 0)
     
-    segment = @sampler.builder.current_segment
+    segment = @sampler.send(:builder).current_segment
     
     assert_equal orig_sql, segment[:sql]
     assert_equal "SELECT * from Jim where id=?", segment.obfuscated_sql
@@ -293,52 +291,52 @@ class NewRelic::Agent::TransationSamplerTest < Test::Unit::TestCase
     
     # basic statement
     assert_equal "INSERT INTO X values(?,?, ? , ?)", 
-    @sampler.default_sql_obfuscator("INSERT INTO X values('test',0, 1 , 2)")
+    NewRelic::Agent.instance.send(:default_sql_obfuscator, "INSERT INTO X values('test',0, 1 , 2)")
     
     # escaped literals
     assert_equal "INSERT INTO X values(?, ?,?, ? , ?)", 
-    @sampler.default_sql_obfuscator("INSERT INTO X values('', 'jim''s ssn',0, 1 , 'jim''s son''s son')")
+    NewRelic::Agent.instance.send(:default_sql_obfuscator, "INSERT INTO X values('', 'jim''s ssn',0, 1 , 'jim''s son''s son')")
     
     # multiple string literals             
     assert_equal "INSERT INTO X values(?,?,?, ? , ?)", 
-    @sampler.default_sql_obfuscator("INSERT INTO X values('jim''s ssn','x',0, 1 , 2)")
+    NewRelic::Agent.instance.send(:default_sql_obfuscator, "INSERT INTO X values('jim''s ssn','x',0, 1 , 2)")
     
     # empty string literal
     # NOTE: the empty string literal resolves to empty string, which for our purposes is acceptable
     assert_equal "INSERT INTO X values(?,?,?, ? , ?)", 
-    @sampler.default_sql_obfuscator("INSERT INTO X values('','x',0, 1 , 2)")
+    NewRelic::Agent.instance.send(:default_sql_obfuscator, "INSERT INTO X values('','x',0, 1 , 2)")
     
     # try a select statement             
     assert_equal "select * from table where name=? and ssn=?",
-    @sampler.default_sql_obfuscator("select * from table where name='jim gochee' and ssn=0012211223")
+    NewRelic::Agent.instance.send(:default_sql_obfuscator, "select * from table where name='jim gochee' and ssn=0012211223")
     
     # number literals embedded in sql - oh well
     assert_equal "select * from table_? where name=? and ssn=?",
-    @sampler.default_sql_obfuscator("select * from table_007 where name='jim gochee' and ssn=0012211223")
+    NewRelic::Agent.instance.send(:default_sql_obfuscator, "select * from table_007 where name='jim gochee' and ssn=0012211223")
   end
   
   def test_sql_normalization__single_quotes
     assert_equal "INSERT ? into table",
-    @sampler.default_sql_obfuscator("INSERT 'this isn''t a real value' into table")
+    NewRelic::Agent.instance.send(:default_sql_obfuscator, "INSERT 'this isn''t a real value' into table")
     assert_equal "INSERT ? into table",
-    @sampler.default_sql_obfuscator(%q[INSERT '"' into table])
+    NewRelic::Agent.instance.send(:default_sql_obfuscator, %q[INSERT '"' into table])
     assert_equal "INSERT ? into table",
-    @sampler.default_sql_obfuscator(%q[INSERT ' "some text" \" ' into table])
+    NewRelic::Agent.instance.send(:default_sql_obfuscator, %q[INSERT ' "some text" \" ' into table])
 #    could not get this one licked.  no biggie    
 #    assert_equal "INSERT ? into table",
-#    @sampler.default_sql_obfuscator(%q[INSERT '\'' into table])
+#    NewRelic::Agent.instance.send(:default_sql_obfuscator, %q[INSERT '\'' into table])
     assert_equal "INSERT ? into table",
-    @sampler.default_sql_obfuscator(%q[INSERT ''' ' into table])
+    NewRelic::Agent.instance.send(:default_sql_obfuscator, %q[INSERT ''' ' into table])
   end
   def test_sql_normalization__double_quotes
     assert_equal "INSERT ? into table",
-    @sampler.default_sql_obfuscator(%q[INSERT "this isn't a real value" into table])
+    NewRelic::Agent.instance.send(:default_sql_obfuscator, %q[INSERT "this isn't a real value" into table])
     assert_equal "INSERT ? into table",
-    @sampler.default_sql_obfuscator(%q[INSERT "'" into table])
+    NewRelic::Agent.instance.send(:default_sql_obfuscator, %q[INSERT "'" into table])
     assert_equal "INSERT ? into table",
-    @sampler.default_sql_obfuscator(%q[INSERT " \" " into table])
+    NewRelic::Agent.instance.send(:default_sql_obfuscator, %q[INSERT " \" " into table])
     assert_equal "INSERT ? into table",
-    @sampler.default_sql_obfuscator(%q[INSERT " 'some text' " into table])
+    NewRelic::Agent.instance.send(:default_sql_obfuscator, %q[INSERT " 'some text' " into table])
   end
   def test_sql_obfuscation_filters
     orig =  NewRelic::Agent.agent.obfuscator

@@ -16,21 +16,14 @@ module NewRelic::Agent
     attr_accessor :stack_trace_threshold, :random_sampling, :sampling_rate
     attr_reader :samples, :last_sample
     
-    def initialize(agent)
+    def initialize
       @samples = []
-      
       @harvest_count = 0
       @max_samples = 100
       @random_sample = nil
       config = NewRelic::Control.instance
       sampler_config = config.fetch('transaction_tracer', {})
       @stack_trace_threshold = sampler_config.fetch('stack_trace_threshold', 0.500).to_f
-      @stats_engine = agent.stats_engine
-      @stats_engine.transaction_sampler = self
-
-      agent.set_sql_obfuscator(:replace) do |sql| 
-        default_sql_obfuscator(sql)
-      end
       @samples_lock = Mutex.new
     end
     
@@ -47,19 +40,6 @@ module NewRelic::Agent
       @sampling_rate = val
       @harvest_count = rand(val)
     end
-    
-    def default_sql_obfuscator(sql)
-      sql = sql.dup
-      # This is hardly readable.  Use the unit tests.
-      # remove single quoted strings:
-      sql.gsub!(/'(.*?[^\\'])??'(?!')/, '?')
-      # remove double quoted strings:
-      sql.gsub!(/"(.*?[^\\"])??"(?!")/, '?')
-      # replace all number literals
-      sql.gsub!(/\d+/, "?")
-      sql
-    end
-    
     
     def notice_first_scope_push(time)
       if Thread::current[:record_tt] == false || !NewRelic::Agent.is_execution_traced?
@@ -213,6 +193,7 @@ module NewRelic::Agent
     # reset samples without rebooting the web server
     def reset!
       @samples = []
+      @last_sample = nil
     end
 
     private 

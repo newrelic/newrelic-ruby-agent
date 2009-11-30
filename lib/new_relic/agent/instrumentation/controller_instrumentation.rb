@@ -262,7 +262,8 @@ module NewRelic::Agent::Instrumentation
       start = Time.now.to_f
       agent.ensure_worker_thread_started
       
-      NewRelic::Agent.trace_execution_scoped [metric_name, "Controller"], :force => force do 
+      NewRelic::Agent.trace_execution_scoped [metric_name, "Controller"], :force => force do
+        # Last one (innermost) to set the transaction name on the call stack wins.
         stats_engine.transaction_name = metric_name
         available_params = self.respond_to?(:params) ? params : {} 
         local_params = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
@@ -309,9 +310,6 @@ module NewRelic::Agent::Instrumentation
           end
         end
       end
-    ensure
-      # clear out the name of the traced transaction under all circumstances
-      stats_engine.transaction_name = nil
     end
     
     private

@@ -26,9 +26,9 @@ module NewRelic::Agent::Instrumentation
     
     def newrelic_dispatcher_finish
       #puts @env.to_a.map{|k,v| "#{'%32s' % k}: #{v.inspect[0..64]}"}.join("\n")
+      NewRelic::Agent.agent.end_transaction
       return unless started = Thread.current[:newrelic_dispatcher_start]
       dispatcher_end_time = Time.now.to_f
-      NewRelic::Agent.agent.end_transaction
       NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.dispatcher_finish dispatcher_end_time
       unless Thread.current[:newrelic_ignore_controller]
         elapsed_time = dispatcher_end_time - started

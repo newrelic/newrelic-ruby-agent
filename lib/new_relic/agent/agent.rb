@@ -310,7 +310,8 @@ module NewRelic::Agent
       @metric_ids = {}
       @histogram = NewRelic::Histogram.new(NewRelic::Control.instance.apdex_t / 10)
       @stats_engine = NewRelic::Agent::StatsEngine.new
-      @transaction_sampler = NewRelic::Agent::TransactionSampler.new(self)
+      @transaction_sampler = NewRelic::Agent::TransactionSampler.new
+      @stats_engine.transaction_sampler = @transaction_sampler
       @error_collector = NewRelic::Agent::ErrorCollector.new(self)
       
       @request_timeout = NewRelic::Control.instance.fetch('timeout', 2 * 60)
@@ -318,6 +319,7 @@ module NewRelic::Agent
       @invalid_license = false
       
       @last_harvest_time = Time.now
+      @obfuscator = method(:default_sql_obfuscator)
     end
     
     # Connect to the server and validate the license.  If successful,
@@ -621,6 +623,17 @@ module NewRelic::Agent
       else
         log.debug "Bypassing graceful shutdown - agent not connected"
       end
+    end
+    def default_sql_obfuscator(sql)
+      sql = sql.dup
+      # This is hardly readable.  Use the unit tests.
+      # remove single quoted strings:
+      sql.gsub!(/'(.*?[^\\'])??'(?!')/, '?')
+      # remove double quoted strings:
+      sql.gsub!(/"(.*?[^\\"])??"(?!")/, '?')
+      # replace all number literals
+      sql.gsub!(/\d+/, "?")
+      sql
     end
   end
   

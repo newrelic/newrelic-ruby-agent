@@ -56,8 +56,7 @@ module NewRelic::Agent
         capture_gc_time if collecting_gc?
         stack = scope_stack
         scope = stack.pop
-        
-        fail "unbalanced pop from blame stack: #{scope.name} != #{expected_scope.name}" if scope != expected_scope
+        fail "unbalanced pop from blame stack, got #{scope ? scope.name : 'nil'}, expected #{expected_scope ? expected_scope.name : 'nil'}" if scope != expected_scope
         
         if !stack.empty? 
           if scope.deduct_call_time_from_parent
@@ -95,20 +94,21 @@ module NewRelic::Agent
       end
       
       def start_transaction
-        Thread::current[:newrelic_scope_stack] = []
+        Thread::current[:newrelic_scope_stack] ||= []
       end
       
-      # Try to clean up gracefully, otherwise we leave things hanging around on thread locals
+      # Try to clean up gracefully, otherwise we leave things hanging around on thread locals.
+      # If it looks like a transaction is still in progress, then maybe this is an inner transaction
+      # and is ignored.
       #
       def end_transaction
         stack = scope_stack
         
-        if stack
-          @transaction_sampler.notice_scope_empty(Time.now) if @transaction_sampler && !stack.empty? 
+        if stack && stack.empty?
+          @transaction_sampler.notice_scope_empty(Time.now) if @transaction_sampler #&& !stack.empty? 
           Thread::current[:newrelic_scope_stack] = nil
+          Thread::current[:newrelic_transaction_name] = nil
         end
-        
-        Thread::current[:newrelic_transaction_name] = nil
       end
       
       private
