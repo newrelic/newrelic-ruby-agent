@@ -101,6 +101,7 @@ module NewRelic
     require 'new_relic/agent/samplers/cpu_sampler'
     require 'new_relic/agent/samplers/memory_sampler'
     require 'new_relic/agent/samplers/mongrel_sampler'
+    require 'new_relic/agent/samplers/object_sampler'
     require 'set'
     require 'sync'
     require 'thread'
