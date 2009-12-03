@@ -45,11 +45,11 @@ class NewrelicController < ActionController::Base
     file_name=~/^.*[.]([^.]*)$/
     ext=$1
     case ext
-      when 'css':
+      when 'css' then
         forward_to_file '/newrelic/stylesheets/', 'text/css'
-      when 'gif','jpg','png':
+      when 'gif','jpg','png' then
         forward_to_file '/newrelic/images/', "image/#{ext}"
-      when 'js':
+      when 'js' then
         forward_to_file '/newrelic/javascript/', 'text/javascript'
       else
         raise "Unknown type '#{ext}' (#{file_name})"
