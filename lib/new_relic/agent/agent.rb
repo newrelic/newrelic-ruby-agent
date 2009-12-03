@@ -42,7 +42,9 @@ module NewRelic::Agent
     #
     def ensure_worker_thread_started
       return unless control.agent_enabled? && control.monitor_mode? && !@invalid_license
-      if !running? 
+      if !running?
+        # Assume we've been forked, clear out stats that are left over from parent process
+        @stats_engine.reset_stats
         launch_worker_thread
         @stats_engine.spawn_sampler_thread
       end
