@@ -30,7 +30,7 @@ module NewRelic::Agent::Instrumentation
     end
   end
   
-  Sinatra::Base.class_eval do
+  ::Sinatra::Base.class_eval do
     include NewRelic::Agent::Instrumentation::Sinatra
     alias route_eval_without_newrelic route_eval
     alias route_eval route_eval_with_newrelic
