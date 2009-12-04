@@ -238,9 +238,8 @@ module NewRelic::Agent::Instrumentation
       # If a block was passed in, then the arguments represent options for the instrumentation,
       # not app method arguments.
       if block_given? && args.any?
-        options =  args.last.is_a?(Hash) ? args.pop : {}
-        category, path = _convert_options_to_path(options)
-        force = options[:force]
+        force = args.last.is_a?(Hash) && args.last[:force]
+        category, path = _convert_args_to_path(args)
       else
         category = 'Controller'
         path = newrelic_metric_path
@@ -305,8 +304,7 @@ module NewRelic::Agent::Instrumentation
       stats_engine = agent.stats_engine
       
       if block_given? && args.any?
-        options =  args.last.is_a?(Hash) ? args.pop : {}
-        category, path = _convert_options_to_path(options)
+        category, path = _convert_args_to_path(args)
       else
         category = 'Controller'
         path = newrelic_metric_path
@@ -366,7 +364,8 @@ module NewRelic::Agent::Instrumentation
     
     protected
     
-    def _convert_options_to_path(options)
+    def _convert_args_to_path(args)
+      options =  args.last.is_a?(Hash) ? args.pop : {}
       category = 'Controller'
       unless path = options[:path]
         category = case options[:category]
