@@ -68,7 +68,7 @@ module NewRelic::Agent
 
       produce_metric               = options[:metric] != false
       deduct_call_time_from_parent = options[:deduct_call_time_from_parent] != false
-      scoped_metric_only           = options[:scoped_metric_only]
+      scoped_metric_only           = produce_metric && options[:scoped_metric_only]
       t0 = Time.now.to_f
       if metric_names.instance_of? Array
         first_name = metric_names.first

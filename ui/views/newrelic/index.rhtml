@@ -20,6 +20,8 @@
 		</td>
 		<td valign=top>
         <%= link_to_if @samples.size > 0, "Clear Transactions (#{@samples.size})", :action => 'reset' %><br/>
+        <%= link_to_unless NewRelic::Control.instance.profiling?, "Start Profiling", :action => 'profile', :start => true %>
+        <%= link_to_if NewRelic::Control.instance.profiling?, "Stop Profiling", :action => 'profile', :stop => true %><br/>
         <%= link_to "List Threads", :action => 'threads' %>
 			<h3>Welcome</h3>
 			<p>

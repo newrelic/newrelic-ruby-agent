@@ -67,11 +67,17 @@
 		<%= show_view_link 'SQL', 'show_sample_sql' %>
 	</div>
 	<br/>
-	
+	<% if @sample.profile 
+         out = StringIO.new
+         printer = RubyProf::GraphHtmlPrinter.new(@sample.profile)
+         printer.print(out, :min_percent=>0.05)
+         concat out.string
+	   else %>
 	<%= %w[show_sample_summary show_sample_sql show_sample_detail].collect do |p|
 		options = {:align => 'center', :id => p}
 		options[:style] = 'display: none' unless p == params[:action]
 		content_tag('div', render(:partial => p), options)
 	end.join(' ')%>
+	<% end -%>
 
 </div>

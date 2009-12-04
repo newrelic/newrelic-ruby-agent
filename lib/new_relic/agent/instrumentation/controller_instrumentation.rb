@@ -212,10 +212,8 @@ module NewRelic::Agent::Instrumentation
     #
     # If a single argument is passed in, it is treated as a metric
     # path.  This form is deprecated.
-    def perform_action_with_newrelic_trace(*args)
-      agent = NewRelic::Agent.instance
-      stats_engine = agent.stats_engine
-      
+    def perform_action_with_newrelic_trace(*args, &block)
+
       # Skip instrumentation based on the value of 'do_not_trace' and if 
       # we aren't calling directly with a block.
       if !block_given? && _is_filtered?('do_not_trace')
@@ -228,34 +226,23 @@ module NewRelic::Agent::Instrumentation
         end
       end
       
+      return perform_action_with_newrelic_profile(*args, &block) if NewRelic::Control.instance.profiling?
+
+      agent = NewRelic::Agent.instance
+      stats_engine = agent.stats_engine
+      
       # reset this in case we came through a code path where the top level controller is ignored
       Thread.current[:newrelic_ignore_controller] = nil
       apdex_start = (Thread.current[:started_on] || Thread.current[:newrelic_dispatcher_start] || Time.now).to_f
-      force = false      
-      category = 'Controller'
+      force = false
+      # If a block was passed in, then the arguments represent options for the instrumentation,
+      # not app method arguments.
       if block_given? && args.any?
         options =  args.last.is_a?(Hash) ? args.pop : {}
-        unless path = options[:path]
-          category =
-          case options[:category]
-            when :controller, nil then 'Controller'
-            when :task then 'Controller/Task' # 'Task'
-            when :rack then 'Controller/Rack' #'WebTransaction/Rack'
-            when :uri then 'Controller' #'WebTransaction/Uri'
-            # for internal use only
-            when :sinatra then 'Controller/Sinatra' #'WebTransaction/Uri'
-          else options[:category].to_s.capitalize
-          end
-          # To be consistent with the ActionController::Base#controller_path used in rails to determine the
-          # metric path, we drop the controller off the end of the path if there is one.
-          action = options[:name] || args.first 
-          force = options[:force]
-          metric_class = options[:class_name] || (self.is_a?(Class) ? self.name : self.class.name)
-          
-          path = metric_class
-          path += ('/' + action) if action
-        end
+        category, path = _convert_options_to_path(options)
+        force = options[:force]
       else
+        category = 'Controller'
         path = newrelic_metric_path
       end
       metric_name = category + '/' + path 
@@ -312,7 +299,44 @@ module NewRelic::Agent::Instrumentation
       end
     end
     
-    private
+    # Experimental
+    def perform_action_with_newrelic_profile(*args)
+      agent = NewRelic::Agent.instance
+      stats_engine = agent.stats_engine
+      
+      if block_given? && args.any?
+        options =  args.last.is_a?(Hash) ? args.pop : {}
+        category, path = _convert_options_to_path(options)
+      else
+        category = 'Controller'
+        path = newrelic_metric_path
+      end
+      metric_name = category + '/' + path 
+      
+      NewRelic::Agent.trace_execution_scoped [metric_name, "Controller"] do
+        stats_engine.transaction_name = metric_name
+        NewRelic::Agent.disable_all_tracing do
+          available_params = self.respond_to?(:params) ? params : {} 
+          # Not sure if we need to get the params and request...
+          local_params = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
+          available_request = (respond_to? :request) ? request : nil
+          agent.transaction_sampler.notice_transaction(path, available_request, local_params)
+
+          # turn on profiling
+          profile = RubyProf.profile do
+            if block_given?
+              yield
+            else
+              perform_action_without_newrelic_trace(*args)
+            end
+          end
+          agent.transaction_sampler.notice_profile profile
+        end
+      end
+    end
+    
+  private
+  
     def apdex_overall_stat
       NewRelic::Agent.instance.stats_engine.get_custom_stats("Apdex", NewRelic::ApdexStats)  
     end
@@ -342,6 +366,29 @@ module NewRelic::Agent::Instrumentation
     
     protected
     
+    def _convert_options_to_path(options)
+      category = 'Controller'
+      unless path = options[:path]
+        category = case options[:category]
+          when :controller, nil then 'Controller'
+          when :task then 'Controller/Task' # 'Task'
+          when :rack then 'Controller/Rack' #'WebTransaction/Rack'
+          when :uri then 'Controller' #'WebTransaction/Uri'
+          # for internal use only
+          when :sinatra then 'Controller/Sinatra' #'WebTransaction/Uri'
+        else options[:category].to_s.capitalize
+        end
+        # To be consistent with the ActionController::Base#controller_path used in rails to determine the
+        # metric path, we drop the controller off the end of the path if there is one.
+        action = options[:name] || args.first 
+        force = options[:force]
+        metric_class = options[:class_name] || (self.is_a?(Class) ? self.name : self.class.name)
+        
+        path = metric_class
+        path += ('/' + action) if action
+      end
+      [category, path]
+    end
     # Filter out 
     def _is_filtered?(key)
       ignore_actions = self.class.newrelic_read_attr(key) if self.class.respond_to? :newrelic_read_attr
@@ -355,7 +402,7 @@ module NewRelic::Agent::Instrumentation
         true
       end
     end
-
+    
     def _process_cpu
       return nil if defined? JRuby
       p = Process.times

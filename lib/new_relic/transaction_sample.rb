@@ -343,6 +343,7 @@ module NewRelic
       
     end
 
+    attr_accessor :profile
     attr_reader :root_segment
     attr_reader :params
     attr_reader :sample_id
@@ -468,7 +469,8 @@ module NewRelic
       params.each {|k,v| sample.params[k] = v}
         
       delta = build_segment_with_omissions(sample, 0.0, @root_segment, sample.root_segment, regex)
-      sample.root_segment.end_trace(@root_segment.exit_timestamp - delta) 
+      sample.root_segment.end_trace(@root_segment.exit_timestamp - delta)
+      sample.profile = self.profile
       sample.freeze
     end
     
@@ -545,7 +547,6 @@ module NewRelic
     
     def summarize_segments(like_segments)
       if like_segments.length > COLLAPSE_SEGMENTS_THRESHOLD
-        puts "#{like_segments.first.path_string} #{like_segments.length}"
         [CompositeSegment.new(like_segments)]
       else
         like_segments

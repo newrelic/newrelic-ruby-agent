@@ -40,6 +40,12 @@ class NewrelicController < ActionController::Base
   
   write_inheritable_attribute('do_not_trace', true)
   
+  def profile
+    NewRelic::Control.instance.profiling = params['start'] == 'true'
+    get_samples
+    render :action => 'index'
+  end
+  
   def file
     file_name=params[:file].to_s
     file_name=~/^.*[.]([^.]*)$/
