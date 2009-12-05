@@ -117,7 +117,26 @@ class NewRelic::TransationSampleTest < Test::Unit::TestCase
     t.prepare_to_send(:obfuscate_sql => true, :explain_sql => 0.00000001)
   end
   
+
   def test_exclusive_duration
+    t = nested_sample
+    s1 = t.root_segment.called_segments.first
+    assert_equal 3.0, s1.duration
+    assert_equal 2.0, s1.exclusive_duration
+  end
+  
+  def test_count
+    assert_equal 5, nested_sample.count_segments
+  end
+  
+  def test_truncate
+    sample = nested_sample
+    sample.truncate(2)
+    assert_equal 3, sample.count_segments
+  end
+    
+  private
+  def nested_sample
     t = NewRelic::TransactionSample.new
     
     t.params[:test] = "hi"
@@ -130,17 +149,18 @@ class NewRelic::TransationSampleTest < Test::Unit::TestCase
     
     s2.params[:test] = "test"
     
-    s2.to_s
-    
     s1.add_called_segment(s2)
-    
     s2.end_trace 3.0
     s1.end_trace 4.0
     
-    t.to_s
+    s3 = t.create_segment(4.0, "post_filter")
+    t.root_segment.add_called_segment(s3)
+    s3.end_trace 6.0
     
-    assert_equal 3.0, s1.duration
-    assert_equal 2.0, s1.exclusive_duration
+    s4 = t.create_segment(6.0, "post_filter")
+    t.root_segment.add_called_segment(s4)
+    s4.end_trace 7.0
+    t
   end
-    
+   
 end

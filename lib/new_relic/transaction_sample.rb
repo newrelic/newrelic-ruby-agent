@@ -162,7 +162,30 @@ module NewRelic
         end
         d
       end
-      
+      def count_segments
+        children = 0
+        @called_segments.each { | seg | children  += 1 + seg.count_segments } if @called_segments
+        children
+      end
+      # Walk through the tree and truncate the segments
+      def truncate(max)
+        return max unless @called_segments
+        i = 0
+        stop = nil
+        @called_segments.each do | segment |
+          max = segment.truncate(max)
+          max -= 1
+          if max <= 0
+            puts "stop at #{i}, #{max}"
+            @called_segments = @called_segments[0..i]
+            break
+          else
+            i += 1
+          end
+        end
+        max
+      end
+
       def []=(key, value)
         # only create a parameters field if a parameter is set; this will save
         # bandwidth etc as most segments have no parameters
@@ -356,6 +379,12 @@ module NewRelic
       @params[:request_params] = {}
     end
 
+    def count_segments
+      @root_segment.count_segments + 1
+    end
+    def truncate(max)
+      @root_segment.truncate(max-1)
+    end
     # offset from start of app
     def timestamp
       @start_time - @@start_time.to_f
