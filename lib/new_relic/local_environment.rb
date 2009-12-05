@@ -169,9 +169,7 @@ module NewRelic
     # is not advisable since it implies certain api's being available.
     def discover_dispatcher
       @dispatcher = ENV['NEWRELIC_DISPATCHER'] && ENV['NEWRELIC_DISPATCHER'].to_sym
-      
-      dispatchers = %w[passenger glassfish thin mongrel litespeed webrick fastcgi unicorn sinatra]
-      
+      dispatchers = %w[passenger torquebox glassfish thin mongrel litespeed webrick fastcgi unicorn sinatra]
       while dispatchers.any? && @dispatcher.nil?
         send 'check_for_'+(dispatchers.shift)
       end
@@ -189,6 +187,12 @@ module NewRelic
         when defined? NewRelic::IA then :external
       else :ruby
       end      
+    end
+
+    def check_for_torquebox
+      return unless defined?(::Java) &&
+         ( Java::OrgTorqueboxRailsWebDeployers::RailsRackDeployer rescue nil) 
+      @dispatcher = :torquebox
     end
 
     def check_for_glassfish
