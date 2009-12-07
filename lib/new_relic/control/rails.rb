@@ -41,7 +41,7 @@ class NewRelic::Control::Rails < NewRelic::Control
       Dependencies.load_paths << controller_path
       Dependencies.load_paths << helper_path
     else
-      to_stdout "ERROR: Rails version #{Rails::VERSION::STRING} too old for developer mode to work."
+      to_stdout "ERROR: Rails version #{::Rails::VERSION::STRING} too old for developer mode to work."
       return
     end
     install_devmode_route
