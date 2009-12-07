@@ -12,6 +12,57 @@ Author: Phu Ly
 Author URI: http://ifelse.co.uk/
 */
 
+/*****************************
+ * Profile
+ *****************************/
+
+table#profile {
+    border-collapse: collapse;
+    border: 1px solid #CCC;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 9pt;
+    line-height: normal;
+    padding: 2px 2px 2px 2px;
+}
+
+table#profile th {
+    text-align: center;
+    border-top: 1px solid #FB7A31;
+    border-bottom: 1px solid #FB7A31;
+    background: #FFC;
+    padding: 0.3em;
+    border-left: 1px solid silver;
+}
+
+table#profile tr.break td {
+    border: 0;
+    border-top: 1px solid #FB7A31;
+    padding: 0;
+    margin: 0;
+}
+
+table#profile tr.method td {
+    font-weight: bold;
+}
+
+table#profile td {
+    padding: 0.3em;
+}
+
+table#profile td:first-child {
+    width: 190px;
+}
+
+table#profile td {
+    border-left: 1px solid #CCC;
+    text-align: center;
+}
+
+table#profile .method_name {
+    text-align: left;
+}
+
+
 /*************************************
 +Containers
 *************************************/
@@ -431,3 +482,54 @@ ul.tab_list li {
 .help p
 {
 }
+
+/*****************************
+ * Profile
+ *****************************/
+
+table#profile {
+    border-collapse: collapse;
+    border: 1px solid #CCC;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 9pt;
+    line-height: normal;
+    padding: 2px 2px 2px 2px;
+}
+
+table#profile th {
+    text-align: center;
+    border-top: 1px solid #FB7A31;
+    border-bottom: 1px solid #FB7A31;
+    background: #FFC;
+    padding: 0.3em;
+    border-left: 1px solid silver;
+}
+
+table#profile tr.break td {
+    border: 0;
+    border-top: 1px solid #FB7A31;
+    padding: 0;
+    margin: 0;
+}
+
+table#profile tr.method td {
+    font-weight: bold;
+}
+
+table#profile td {
+    padding: 0.3em;
+}
+
+table#profile td:first-child {
+    width: 190px;
+}
+
+table#profile td {
+    border-left: 1px solid #CCC;
+    text-align: center;
+}
+
+table#profile .method_name {
+    text-align: left;
+}
+

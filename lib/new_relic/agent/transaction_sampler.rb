@@ -277,7 +277,6 @@ module NewRelic::Agent
     
     def set_profile(profile)
       @sample.profile = profile
-      puts "Set the profile for #{@sample.sample_id}"
     end
     
     def set_transaction_info(path, request, params)

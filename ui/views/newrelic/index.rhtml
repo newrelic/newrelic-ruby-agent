@@ -20,9 +20,19 @@
 		</td>
 		<td valign=top>
         <%= link_to_if @samples.size > 0, "Clear Transactions (#{@samples.size})", :action => 'reset' %><br/>
-        <%= link_to_unless NewRelic::Control.instance.profiling?, "Start Profiling", :action => 'profile', :start => true %>
-        <%= link_to_if NewRelic::Control.instance.profiling?, "Stop Profiling", :action => 'profile', :stop => true %><br/>
-        <%= link_to "List Threads", :action => 'threads' %>
+        <%= link_to "List Threads", :action => 'threads' %><br/>
+		<% if NewRelic::Control.instance.profiling_available? %>
+		  <p><b>Profiling available:</b>
+		  <% if NewRelic::Control.instance.profiling? %>
+            <%= link_to "Stop Profiling", :action => 'profile', :stop => true %>
+	      <% else %>
+            <%= link_to "Start Profiling", :action => 'profile', :start => true %>
+		  <% end %>
+		  </p>
+		<% else %>
+		  <p>You can use the ruby-prof gem to display profiles of your actions with Developer Mode.  Just 
+		  install the ruby-prof gem and restart your app.</p>
+		<% end %>
 			<h3>Welcome</h3>
 			<p>
 			Welcome to <b>New Relic RPM Developer Mode</b>.  This Rails extension traces the performance activity

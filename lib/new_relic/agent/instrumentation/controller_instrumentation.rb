@@ -225,8 +225,6 @@ module NewRelic::Agent::Instrumentation
           return perform_action_without_newrelic_trace(*args)
         end
       end
-      
-      return perform_action_with_newrelic_profile(*args, &block) if NewRelic::Control.instance.profiling?
 
       agent = NewRelic::Agent.instance
       stats_engine = agent.stats_engine
@@ -245,6 +243,9 @@ module NewRelic::Agent::Instrumentation
         path = newrelic_metric_path
       end
       metric_name = category + '/' + path 
+
+      return perform_action_with_newrelic_profile(metric_name, path, args, &block) if NewRelic::Control.instance.profiling?
+
       start = Time.now.to_f
       agent.ensure_worker_thread_started
       
@@ -299,18 +300,9 @@ module NewRelic::Agent::Instrumentation
     end
     
     # Experimental
-    def perform_action_with_newrelic_profile(*args)
+    def perform_action_with_newrelic_profile(metric_name, path, args)
       agent = NewRelic::Agent.instance
       stats_engine = agent.stats_engine
-      
-      if block_given? && args.any?
-        category, path = _convert_args_to_path(args)
-      else
-        category = 'Controller'
-        path = newrelic_metric_path
-      end
-      metric_name = category + '/' + path 
-      
       NewRelic::Agent.trace_execution_scoped [metric_name, "Controller"] do
         stats_engine.transaction_name = metric_name
         NewRelic::Agent.disable_all_tracing do

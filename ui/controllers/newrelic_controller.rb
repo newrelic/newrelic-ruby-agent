@@ -43,7 +43,7 @@ class NewrelicController < ActionController::Base
   def profile
     NewRelic::Control.instance.profiling = params['start'] == 'true'
     get_samples
-    render :action => 'index'
+    redirect_to :action => 'index'
   end
   
   def file
