@@ -1,7 +1,5 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
-##require 'new_relic/agent/error_collector'
 require 'test/unit'
-
 
 class FakeRequest
   attr_reader :path
@@ -21,6 +19,22 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
     @error_collector = NewRelic::Agent::ErrorCollector.new(nil)
   end
   
+  def test_empty
+    @error_collector.harvest_errors([])
+    @error_collector.notice_error(nil, nil, 'path', {:x => 'y'})
+    errors = @error_collector.harvest_errors([])
+    
+    assert_equal errors.length, 1
+    
+    err = errors.first
+    assert_equal '<no message>', err.message 
+    assert_equal 'y', err.params[:request_params][:x]
+    assert_equal '', err.params[:request_uri]
+    assert_equal '', err.params[:request_referer]
+    assert_equal 'path', err.path 
+    assert_equal '<no exception>', err.exception_class
+
+  end
   def test_simple
     @error_collector.notice_error(Exception.new("message"), FakeRequest.new('/myurl/'), 'path', {:x => 'y'})
     

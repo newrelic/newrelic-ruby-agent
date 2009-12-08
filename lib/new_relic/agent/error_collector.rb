@@ -86,7 +86,7 @@ module NewRelic::Agent
         inside_exception = exception
       end
 
-      data[:stack_trace] = inside_exception.backtrace
+      data[:stack_trace] = inside_exception ? inside_exception.backtrace : '<no stack trace>'
       
       noticed_error = NewRelic::NoticedError.new(action_path, data, exception)
       

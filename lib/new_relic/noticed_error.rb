@@ -1,6 +1,4 @@
-# this class encapsulates an error that was noticed by RPM in a managed app.
-# Unfortunately it was put in the agent in the global namespace early on and
-# for backward compatibility it needs to remain here.
+# This class encapsulates an error that was noticed by RPM in a managed app.
 class NewRelic::NoticedError
   attr_accessor :path, :timestamp, :params, :exception_class, :message
   
@@ -8,12 +6,12 @@ class NewRelic::NoticedError
     self.path = path
     self.params = data
     
-    self.exception_class = exception.class.name
+    self.exception_class = exception ? exception.class.name : '<no exception>'
     
     if exception.respond_to?('original_exception')
       self.message = exception.original_exception.message.to_s
     else
-      self.message = exception.message.to_s
+      self.message = (exception || '<no message>').to_s
     end
     
     # clamp long messages to 4k so that we don't send a lot of
