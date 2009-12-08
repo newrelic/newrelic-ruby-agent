@@ -19,6 +19,9 @@ module NewRelic::Agent
         def start_transaction; end
         def end_transaction; end
         def push_scope(*args); end
+        def transaction_sampler=(*args); end
+        def transaction_name=(*args); end
+        def transaction_name; end
         def pop_scope(*args); end
       end
       
@@ -105,7 +108,6 @@ module NewRelic::Agent
         stack = scope_stack
         
         if stack && stack.empty?
-          @transaction_sampler.notice_scope_empty(Time.now) if @transaction_sampler #&& !stack.empty? 
           Thread::current[:newrelic_scope_stack] = nil
           Thread::current[:newrelic_transaction_name] = nil
         end
