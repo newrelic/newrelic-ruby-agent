@@ -311,6 +311,10 @@ module NewRelic
       if NewRelic::Agent::Samplers::CpuSampler.supported_on_this_platform?
         agent.stats_engine.add_harvest_sampler NewRelic::Agent::Samplers::CpuSampler.new
       end
+
+      if NewRelic::Agent::Samplers::ObjectSampler.supported_on_this_platform?
+        agent.stats_engine.add_harvest_sampler NewRelic::Agent::Samplers::ObjectSampler.new
+      end
       
       begin
         if NewRelic::Agent::Samplers::MemorySampler.supported_on_this_platform?
