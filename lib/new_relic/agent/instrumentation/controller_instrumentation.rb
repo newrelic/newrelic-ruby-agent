@@ -290,7 +290,7 @@ module NewRelic::Agent::Instrumentation
             if process_cpu_start
               cpu_burn = _process_cpu - process_cpu_start
             elsif jruby_cpu_start
-              cpu_burn = _jruby_cpu_time - t
+              cpu_burn = _jruby_cpu_time - jruby_cpu_start
               stats_engine.get_stats_no_scope(NewRelic::Metrics::USER_TIME).record_data_point(cpu_burn)
             end
             agent.transaction_sampler.notice_transaction_cpu_time(cpu_burn) if cpu_burn
