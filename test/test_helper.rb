@@ -19,7 +19,7 @@ end
 
 module TransactionSampleTestHelper
   def make_sql_transaction(*sql)
-    sampler = NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
+    sampler = NewRelic::Agent::TransactionSampler.new
     sampler.notice_first_scope_push Time.now.to_f
     sampler.notice_transaction '/path', nil, :jim => "cool"
     sampler.notice_push_scope "a"

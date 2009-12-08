@@ -8,7 +8,7 @@ test:
   <<: *default_settings
   host: localhost
   port: 3000
-  log_level: debug
+  log_level: info
   capture_params: true
   enabled: false
   developer: true

@@ -218,7 +218,7 @@ module NewRelic::Agent::Instrumentation
       
       # Skip instrumentation based on the value of 'do_not_trace' and if 
       # we aren't calling directly with a block.
-      if !block_given? && is_filtered?('do_not_trace')
+      if !block_given? && _is_filtered?('do_not_trace')
         # Tell the dispatcher instrumentation that we ignored this action and it shouldn't
         # be counted for the overall HTTP operations measurement.
         Thread.current[:newrelic_ignore_controller] = true
@@ -262,17 +262,16 @@ module NewRelic::Agent::Instrumentation
       start = Time.now.to_f
       agent.ensure_worker_thread_started
       
-      NewRelic::Agent.trace_execution_scoped [metric_name, "Controller"], :force => force do 
+      NewRelic::Agent.trace_execution_scoped [metric_name, "Controller"], :force => force do
+        # Last one (innermost) to set the transaction name on the call stack wins.
         stats_engine.transaction_name = metric_name
         available_params = self.respond_to?(:params) ? params : {} 
         local_params = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
         available_request = (respond_to? :request) ? request : nil
         agent.transaction_sampler.notice_transaction(path, available_request, local_params)
         
-        if newrelic_record_cpu_burn?
-          t = newrelic_cpu_time
-        end
-        
+        jruby_cpu_start = _jruby_cpu_time
+        process_cpu_start = _process_cpu
         failed = false
         
         begin
@@ -287,14 +286,18 @@ module NewRelic::Agent::Instrumentation
           raise e
         ensure
           if NewRelic::Agent.is_execution_traced?
-            if newrelic_record_cpu_burn?
-              cpu_burn = newrelic_cpu_time - t
+            cpu_burn = nil
+            if process_cpu_start
+              cpu_burn = _process_cpu - process_cpu_start
+            elsif jruby_cpu_start
+              cpu_burn = _jruby_cpu_time - t
               stats_engine.get_stats_no_scope(NewRelic::Metrics::USER_TIME).record_data_point(cpu_burn)
-              agent.transaction_sampler.notice_transaction_cpu_time(cpu_burn)
             end
+            agent.transaction_sampler.notice_transaction_cpu_time(cpu_burn) if cpu_burn
+            
             # do the apdex bucketing
             #
-            unless is_filtered?('ignore_apdex')
+            unless _is_filtered?('ignore_apdex')
               ending = Time.now.to_f
               # this uses the start of the dispatcher or the mongrel
               # thread: causes apdex to show too little capacity
@@ -307,9 +310,6 @@ module NewRelic::Agent::Instrumentation
           end
         end
       end
-    ensure
-      # clear out the name of the traced transaction under all circumstances
-      stats_engine.transaction_name = nil
     end
     
     private
@@ -343,7 +343,7 @@ module NewRelic::Agent::Instrumentation
     protected
     
     # Filter out 
-    def is_filtered?(key)
+    def _is_filtered?(key)
       ignore_actions = self.class.newrelic_read_attr(key) if self.class.respond_to? :newrelic_read_attr
       case ignore_actions
         when nil; false
@@ -355,10 +355,15 @@ module NewRelic::Agent::Instrumentation
         true
       end
     end
-    def newrelic_record_cpu_burn? # :nodoc:
-      defined? JRuby and not @@newrelic_java_classes_missing
+
+    def _process_cpu
+      return nil if defined? JRuby
+      p = Process.times
+      p.stime + p.utime
     end
-    def newrelic_cpu_time # :nodoc:
+    
+    def _jruby_cpu_time # :nodoc:
+      return nil unless defined? JRuby and not @@newrelic_java_classes_missing 
       threadMBean = ManagementFactory.getThreadMXBean()
       java_utime = threadMBean.getCurrentThreadUserTime()  # ns
       -1 == java_utime ? 0.0 : java_utime/1e9

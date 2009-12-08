@@ -4,7 +4,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..', 'test_
 class NewRelic::Agent::StatsEngine::TransactionsTest < Test::Unit::TestCase
   def setup
     NewRelic::Agent.manual_start
-    @engine = NewRelic::Agent.instance.stats_engine
+    @engine = NewRelic::Agent::StatsEngine.new 
   rescue => e
     puts e
     puts e.backtrace.join("\n")
@@ -31,6 +31,8 @@ class NewRelic::Agent::StatsEngine::TransactionsTest < Test::Unit::TestCase
   end
   
   def test_scope__overlap
+    NewRelic::Agent.instance.stubs(:stats_engine).returns(@engine)
+    
     @engine.transaction_name = 'orlando'
     self.class.trace_execution_scoped('disney', :deduct_call_time_from_parent => false) { sleep 0.1 }
     orlando_disney = @engine.get_stats 'disney'
@@ -129,8 +131,13 @@ class NewRelic::Agent::StatsEngine::TransactionsTest < Test::Unit::TestCase
   end
   
   def test_simple_start_transaction
-    @engine.push_scope "scope"
+    assert @engine.peek_scope.nil?
+    scope = @engine.push_scope "scope"
     @engine.start_transaction
+    assert !@engine.peek_scope.nil?
+    @engine.pop_scope scope, 0.01
+    assert @engine.peek_scope.nil?
+    @engine.end_transaction
     assert @engine.peek_scope.nil?
   end 
   
