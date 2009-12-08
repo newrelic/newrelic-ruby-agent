@@ -263,8 +263,12 @@ module NewRelicApi
     # Remove a user's access from an account.
     # +email+:: User's email address.
     def remove_user(email)
-      view = NewRelicApi::Account::AccountView.find(:one, :params => {:account_id => self.id, :email => email})
-      view.destroy if view
+      view = account_views.detect{|av| av.user.email == email}
+      if view
+        view.destroy
+      else
+        raise "No user matching email #{email} for account"
+      end
     end
 
     # Change the primary admin for an account. The administrator must be a
