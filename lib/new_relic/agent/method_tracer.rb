@@ -68,7 +68,7 @@ module NewRelic::Agent
 
       produce_metric               = options[:metric] != false
       deduct_call_time_from_parent = options[:deduct_call_time_from_parent] != false
-      scoped_metric_only           = options[:scoped_metric_only]
+      scoped_metric_only           = produce_metric && options[:scoped_metric_only]
       t0 = Time.now.to_f
       if metric_names.instance_of? Array
         first_name = metric_names.first
@@ -273,7 +273,7 @@ module NewRelic::Agent
       alias_method method_name, _traced_method_name(method_name, metric_name_code)
       
       NewRelic::Control.instance.log.debug("Traced method: class = #{self.name}, method = #{method_name}, "+
-        "metric = '#{metric_name_code}', options: #{options.inspect}, ")
+        "metric = '#{metric_name_code}', options: #{options.inspect}")
     end
 
     # Not recommended for production use, because tracers must be removed in reverse-order

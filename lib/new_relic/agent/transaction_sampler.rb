@@ -115,13 +115,16 @@ module NewRelic::Agent
     
     def notice_transaction(path, request, params)
       return unless builder
-
       builder.set_transaction_info(path, request, params)
+    end
+
+    def notice_profile(profile)
+      return unless builder
+      builder.set_profile(profile)
     end
     
     def notice_transaction_cpu_time(cpu_time)
       return unless builder
-
       builder.set_transaction_cpu_time(cpu_time)
     end
     
@@ -251,7 +254,7 @@ module NewRelic::Agent
         return
       end
       @sample.root_segment.end_trace(time - @sample_start)
-      @sample.params[:custom_params] = normalize_params(NewRelic::Agent.instance.custom_params) 
+      @sample.params[:custom_params] = normalize_params(NewRelic::Agent.instance.custom_params)
       @sample.freeze
       @current_segment = nil
     end
@@ -272,6 +275,9 @@ module NewRelic::Agent
       @sample.freeze unless sample.frozen?
     end
     
+    def set_profile(profile)
+      @sample.profile = profile
+    end
     
     def set_transaction_info(path, request, params)
       @sample.params[:path] = path
@@ -283,7 +289,6 @@ module NewRelic::Agent
         @sample.params[:request_params].delete :controller
         @sample.params[:request_params].delete :action
       end
-      
       @sample.params[:uri] = request.path if request
     end
     

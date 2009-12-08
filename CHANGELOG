@@ -1,4 +1,5 @@
 v2.10.1.
+  * add profiling support to dev mode; very experimental!
   * add 'multi_threaded' config option to indicate when the app is running
     multi-threaded, so we can disable some instrumentation
   * fix test failures in JRuby, REE

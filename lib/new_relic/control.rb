@@ -18,6 +18,24 @@ module NewRelic
   # 
   class Control
     
+    # A flag used in dev mode to indicate if profiling is available
+    def profiling?
+      @profiling
+    end
+
+    def profiling_available?
+      @profiling_available ||= 
+      begin
+        require 'ruby-prof'
+        true
+      rescue LoadError; end
+    end
+    # Set the flag for capturing profiles in dev mode.  If RubyProf is not
+    # loaded a true value is ignored.
+    def profiling=(val)
+      @profiling = profiling_available? && val && defined?(RubyProf)
+    end
+    
     attr_accessor :log_file
     # The env is the setting used to identify which section of the newrelic.yml
     # to load.  This defaults to a framework specific value, such as ENV['RAILS_ENV']

@@ -15,17 +15,13 @@ module NewrelicHelper
   end
   
   def trace_row_display_limit_reached
-    (!@detail_segment_count.nil? && @detail_segment_count > trace_row_display_limit) || @sample.sql_segments.length > trace_row_display_limit
+   (!@detail_segment_count.nil? && @detail_segment_count > trace_row_display_limit) || @sample.sql_segments.length > trace_row_display_limit
   end
   
   # return the sample but post processed to strip out segments that normally don't show
   # up in production (after the first execution, at least) such as application code loading
   def stripped_sample(sample = @sample)
-    if session[:newrelic_strip_code_loading] || true
-      sample.omit_segments_with('(Rails/Application Code Loading)|(Database/.*/.+ Columns)')
-    else
-      sample
-    end
+    sample.omit_segments_with('(Rails/Application Code Loading)|(Database/.*/.+ Columns)')
   end
   
   # return the highest level in the call stack for the trace that is not rails or 
@@ -48,11 +44,11 @@ module NewrelicHelper
       exclude_file_from_stack_trace?(file, include_rails)
     end
   end
-
+  
   def render_backtrace
     if @segment[:backtrace]
       content_tag('h3', 'Application Stack Trace') + 
-          render(:partial => agent_views_path('stack_trace'), :locals => {:segment => @segment})
+      render(:partial => agent_views_path('stack_trace'), :locals => {:segment => @segment})
     end
   end
   
@@ -76,7 +72,7 @@ module NewrelicHelper
     rescue 
       # catch all other exceptions.  We're going to create an invalid link below, but that's okay.
     end
-      
+    
     if using_textmate?
       "txmt://open?url=file://#{file}&line=#{line}"
     else
@@ -109,7 +105,7 @@ module NewrelicHelper
   def write_stack_trace_line(trace_line)
     link_to h(trace_line), url_for_source(trace_line)
   end
-
+  
   # write a link to the source for a trace
   def link_to_source(trace)
     image_url = url_for(:controller => :newrelic, :action => :file, :file => (using_textmate? ? "textmate.png" : "file_icon.png"))
@@ -125,7 +121,7 @@ module NewrelicHelper
   def format_timestamp(time)
     time.strftime("%H:%M:%S") 
   end
-
+  
   def colorize(value, yellow_threshold = 0.05, red_threshold = 0.15, s=to_ms(value))
     if value > yellow_threshold
       color = (value > red_threshold ? 'red' : 'orange')
@@ -202,17 +198,17 @@ module NewrelicHelper
     classes = []
     
     classes << "segment#{segment.parent_segment.segment_id}" if depth > 1 
-  
+    
     classes << "view_segment" if segment.metric_name.starts_with?('View')
     classes << "summary_segment" if segment.is_a?(NewRelic::TransactionSample::CompositeSegment)
-
+    
     classes.join(' ')
   end
-
+  
   # render_segment_details should be called before calling this method
   def render_indentation_classes(depth)
     styles = [] 
-    (1..depth).each do |d|
+     (1..depth).each do |d|
       styles <<  ".segment_indent_level#{d} { display: inline-block; margin-left: #{(d-1)*20}px }"
     end
     content_tag("style", styles.join(' '))    
@@ -240,7 +236,7 @@ module NewrelicHelper
     end
   end
   
-private
+  private
   def file_and_line(stack_trace_line)
     stack_trace_line.match(/(.*):(\d+)/)[1..2]
   end
@@ -249,7 +245,7 @@ private
     NewRelic::Control.instance.use_textmate?
   end
   
-
+  
   def render_segment_details(segment, depth=0)
     @detail_segment_count ||= 0
     @detail_segment_count += 1
@@ -272,17 +268,17 @@ private
     
     html
   end
-    
+  
   def exclude_file_from_stack_trace?(file, include_rails)
     !include_rails && (
-      file =~ /\/active(_)*record\// ||
-      file =~ /\/action(_)*controller\// ||
-      file =~ /\/activesupport\// ||
-      file =~ /\/lib\/mongrel/ ||
-      file =~ /\/actionpack\// ||
-      file =~ /\/passenger\// ||
-      file =~ /\/benchmark.rb/ ||
-      file !~ /\.rb/)                  # must be a .rb file, otherwise it's a script of something else...we could have gotten trickier and tried to see if this file exists...
+                       file =~ /\/active(_)*record\// ||
+    file =~ /\/action(_)*controller\// ||
+    file =~ /\/activesupport\// ||
+    file =~ /\/lib\/mongrel/ ||
+    file =~ /\/actionpack\// ||
+    file =~ /\/passenger\// ||
+    file =~ /\/benchmark.rb/ ||
+    file !~ /\.rb/)                  # must be a .rb file, otherwise it's a script of something else...we could have gotten trickier and tried to see if this file exists...
   end
   
   def show_view_link(title, page_name)
@@ -296,19 +292,27 @@ private
       when 'jpg'; 'image/jpg'
       when 'css'; 'text/css'
       when 'js'; 'text/javascript'
-      else 'text/plain'
+    else 'text/plain'
     end
   end
   def to_ms(number)
    (number*1000).round
   end
   def to_percentage(value)
-    (value * 100).round if value
+   (value * 100).round if value
   end
   def with_delimiter(val)
     return '0' if val.nil?
     parts = val.to_s.split('.')
     parts[0].gsub!(/(\d)(?=(\d\d\d)+(?!\d))/, "\\1,")
     parts.join '.'
+  end
+  
+  def profile_table(profile)
+    out = StringIO.new
+    printer = RubyProf::GraphHtmlPrinter.new(profile)
+    printer.print(out, :min_percent=>0.1)
+    data = out.string[/<body>(.*)<\/body>/im, 0]
+    data.gsub('<table>', '<table id=profile>')
   end
 end
