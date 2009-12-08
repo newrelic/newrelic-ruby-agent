@@ -150,6 +150,10 @@ module NewRelic
     def developer_mode?
       fetch('developer')
     end
+    # True if the app runs in multi-threaded mode
+    def multi_threaded?
+      fetch('multi_threaded')
+    end
     # True if we should view files in textmate
     def use_textmate?
       fetch('textmate')
