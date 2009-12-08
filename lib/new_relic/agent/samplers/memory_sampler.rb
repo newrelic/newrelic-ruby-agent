@@ -73,6 +73,7 @@ module NewRelic::Agent::Samplers
           NewRelic::Agent.instance.log.debug e.backtrace.join("\n  ")
           NewRelic::Agent.instance.log.error "Disabling memory sampler."
           @broken = true
+          return nil
         end
       end
     end
