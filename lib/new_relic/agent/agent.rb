@@ -456,14 +456,11 @@ module NewRelic::Agent
           # times exceed our threshold (to avoid unnecessary overhead
           # of running explains on fast queries.)
           traces = @traces.collect {|trace| trace.prepare_to_send(:explain_sql => @explain_threshold, :record_sql => @record_sql, :keep_backtraces => true, :explain_enabled => @explain_enabled)} 
-
-
           invoke_remote :transaction_sample_data, @agent_id, traces
         rescue PostTooBigException
           # we tried to send too much data, drop the first trace and
           # try again
-          @traces.shift
-          retry
+          retry if @traces.shift
         end
         
         log.debug "#{now}: sent slowest sample (#{@agent_id}) in #{Time.now - now} seconds"
@@ -501,6 +498,9 @@ module NewRelic::Agent
     def compress_data(object)
       dump = Marshal.dump(object)
       
+      # this checks to make sure mongrel won't choke on big uploads
+      check_post_size(dump)
+      
       # we currently optimize for CPU here since we get roughly a 10x
       # reduction in message size with this, and CPU overhead is at a
       # premium. For extra-large posts, we use the higher compression
@@ -521,8 +521,8 @@ module NewRelic::Agent
     
     def check_post_size(post_string)
       # TODO: define this as a config option on the server side
-      return if post_string.size < 2000000
-      log.warn "Tried to send too much data, retrying with less: #{post_string.size} bytes"
+      return if post_string.size < control.post_size_limit
+      log.warn "Tried to send too much data: #{post_string.size} bytes"
       raise PostTooBigException
     end
 
@@ -583,9 +583,6 @@ module NewRelic::Agent
     def invoke_remote(method, *args)
       #determines whether to zip the data or send plain
       post_data, encoding = compress_data(args)
-      
-      # this checks to make sure mongrel won't choke on big uploads
-      check_post_size(post_data) 
       
       response = send_request({:uri => remote_method_uri(method), :encoding => encoding, :collector => collector, :data => post_data})
 

@@ -22,7 +22,7 @@ module NewRelic
     def profiling?
       @profiling
     end
-
+    
     def profiling_available?
       @profiling_available ||= 
       begin
@@ -42,14 +42,14 @@ module NewRelic
     # but can be overridden as long as you set it before calling #init_plugin
     attr_writer :env
     attr_reader :local_env
-
+    
     # Structs holding info for the remote server and proxy server 
     class Server < Struct.new :name, :port, :ip #:nodoc:
       def to_s; "#{name}:#{port}"; end
     end
     
     ProxyServer = Struct.new :name, :port, :user, :password #:nodoc:
-
+    
     # Access the Control singleton, lazy initialized
     def self.instance
       @instance ||= new_instance
@@ -128,7 +128,7 @@ module NewRelic
             @local_env.dispatcher_instance_id = app_names.first
           end
         end
-          
+        
       end
       @settings
     end
@@ -149,7 +149,7 @@ module NewRelic
     
     ###################################
     # Agent config conveniences
-
+    
     def apdex_t
       # Always initialized with a default
       fetch('apdex_t').to_f
@@ -162,11 +162,11 @@ module NewRelic
     end
     # True if we are sending data to the server, monitoring production
     def monitor_mode?
-      fetch('enabled')
+      fetch('monitor_mode', fetch('enabled'))
     end
     # True if we are capturing data and displaying in /newrelic
     def developer_mode?
-      fetch('developer')
+      fetch('developer_mode', fetch('developer'))
     end
     # True if the app runs in multi-threaded mode
     def multi_threaded?
@@ -175,6 +175,9 @@ module NewRelic
     # True if we should view files in textmate
     def use_textmate?
       fetch('textmate')
+    end
+    def post_size_limit
+      fetch('post_size_limit', 2 * 1024 * 1024)
     end
     # True if dev mode or monitor mode are enabled, and we are running
     # inside a valid dispatcher like mongrel or passenger.  Can be overridden
@@ -222,15 +225,15 @@ module NewRelic
     def api_server
       api_host = self['api_host'] || 'rpm.newrelic.com' 
       @api_server ||= 
-        NewRelic::Control::Server.new \
-          api_host, 
-          (self['api_port'] || self['port'] || (use_ssl? ? 443 : 80)).to_i, 
-          nil
+      NewRelic::Control::Server.new \
+      api_host, 
+       (self['api_port'] || self['port'] || (use_ssl? ? 443 : 80)).to_i, 
+      nil
     end
     
     def proxy_server
       @proxy_server ||=
-         NewRelic::Control::ProxyServer.new self['proxy_host'], self['proxy_port'], self['proxy_user'], self['proxy_pass'] 
+      NewRelic::Control::ProxyServer.new self['proxy_host'], self['proxy_port'], self['proxy_user'], self['proxy_pass'] 
     end
     
     def server_from_host(hostname=nil)
@@ -321,7 +324,7 @@ module NewRelic
       
       log.debug "Finished instrumentation"
     end
-
+    
     def load_samplers
       agent = NewRelic::Agent.instance
       agent.stats_engine.add_sampler NewRelic::Agent::Samplers::MongrelSampler.new if local_env.mongrel
@@ -329,7 +332,7 @@ module NewRelic
       if NewRelic::Agent::Samplers::CpuSampler.supported_on_this_platform?
         agent.stats_engine.add_harvest_sampler NewRelic::Agent::Samplers::CpuSampler.new
       end
-
+      
       if NewRelic::Agent::Samplers::ObjectSampler.supported_on_this_platform?
         agent.stats_engine.add_harvest_sampler NewRelic::Agent::Samplers::ObjectSampler.new
       end
@@ -341,12 +344,14 @@ module NewRelic
       rescue RuntimeError => e
         log.error "Cannot add memory sampling: #{e}"
       end
-      
-      agent.stats_engine.add_sampler NewRelic::Agent::Samplers::DelayedJobLockSampler.new if local_env.delayed_worker
+      # Add sampler for DelayedJob worker
+      if local_env.delayed_worker
+        agent.stats_engine.add_sampler NewRelic::Agent::Samplers::DelayedJobLockSampler.new
+      end
     end
-     
+    
     protected
-
+    
     # Append framework specific environment information for uploading to
     # the server for change detection.  Override in subclasses
     def append_environment_info; end
@@ -372,7 +377,7 @@ module NewRelic
       end
       ip_address
     end
-
+    
     def merge_defaults(settings_hash)
       s = {
         'host' => 'collector.newrelic.com',
@@ -394,73 +399,73 @@ module NewRelic
       
       def @log.format_message(severity, timestamp, progname, msg)
         "[#{timestamp.strftime("%m/%d/%y %H:%M:%S %z")} #{Socket.gethostname} (#{$$})] #{severity} : #{msg}\n" 
-      end
-    
-      # set the log level as specified in the config file
-      case fetch("log_level","info").downcase
-        when "debug"; @log.level = Logger::DEBUG
-        when "info"; @log.level = Logger::INFO
-        when "warn"; @log.level = Logger::WARN
-        when "error"; @log.level = Logger::ERROR
-        when "fatal"; @log.level = Logger::FATAL
-      else @log.level = Logger::INFO
-      end
-      @log
     end
     
-    def to_stdout(msg)
-      STDOUT.puts "** [NewRelic] " + msg 
+    # set the log level as specified in the config file
+    case fetch("log_level","info").downcase
+      when "debug"; @log.level = Logger::DEBUG
+      when "info"; @log.level = Logger::INFO
+      when "warn"; @log.level = Logger::WARN
+      when "error"; @log.level = Logger::ERROR
+      when "fatal"; @log.level = Logger::FATAL
+    else @log.level = Logger::INFO
     end
-    
-    def config_file
-      File.expand_path(File.join(root,"config","newrelic.yml"))
+    @log
+  end
+  
+  def to_stdout(msg)
+    STDOUT.puts "** [NewRelic] " + msg 
+  end
+  
+  def config_file
+    File.expand_path(File.join(root,"config","newrelic.yml"))
+  end
+  
+  def log_path
+    path = File.join(root,'log')
+    unless File.directory? path
+      path = '.'
     end
-    
-    def log_path
-      path = File.join(root,'log')
-      unless File.directory? path
-        path = '.'
-      end
-      File.expand_path(path)
-    end
-    
-    # Create the concrete class for environment specific behavior:
-    def self.new_instance
-      @local_env = NewRelic::LocalEnvironment.new
-      if @local_env.framework == :test
-        require File.join(newrelic_root, "test", "config", "test_control.rb")
-        NewRelic::Control::Test.new @local_env
-      else
-        require "new_relic/control/#{@local_env.framework}.rb"
-        NewRelic::Control.const_get(@local_env.framework.to_s.capitalize).new @local_env
-      end
-    end
-    
-    def initialize local_env
-      @local_env = local_env
-      newrelic_file = config_file
-      # Next two are for populating the newrelic.yml via erb binding, necessary
-      # when using the default newrelic.yml file
-      generated_for_user = ''
-      license_key=''
-      if !File.exists?(config_file)
-        log! "Cannot find newrelic.yml file at #{config_file}."
-        @yaml = {}
-      else
-        @yaml = YAML.load(ERB.new(File.read(config_file)).result(binding))
-      end
-    rescue ScriptError, StandardError => e
-      puts e
-      puts e.backtrace.join("\n")
-      raise "Error reading newrelic.yml file: #{e}"
-    end
-    
-    # The root directory for the plugin or gem
-    def self.newrelic_root
-      File.expand_path(File.join(File.dirname(__FILE__),"..",".."))
-    end
-    def newrelic_root
-      self.class.newrelic_root
+    File.expand_path(path)
+  end
+  
+  # Create the concrete class for environment specific behavior:
+  def self.new_instance
+    @local_env = NewRelic::LocalEnvironment.new
+    if @local_env.framework == :test
+      require File.join(newrelic_root, "test", "config", "test_control.rb")
+      NewRelic::Control::Test.new @local_env
+    else
+      require "new_relic/control/#{@local_env.framework}.rb"
+      NewRelic::Control.const_get(@local_env.framework.to_s.capitalize).new @local_env
     end
   end
+  
+  def initialize local_env
+    @local_env = local_env
+    newrelic_file = config_file
+    # Next two are for populating the newrelic.yml via erb binding, necessary
+    # when using the default newrelic.yml file
+    generated_for_user = ''
+    license_key=''
+    if !File.exists?(config_file)
+      log! "Cannot find newrelic.yml file at #{config_file}."
+      @yaml = {}
+    else
+      @yaml = YAML.load(ERB.new(File.read(config_file)).result(binding))
+    end
+  rescue ScriptError, StandardError => e
+    puts e
+    puts e.backtrace.join("\n")
+    raise "Error reading newrelic.yml file: #{e}"
+  end
+  
+  # The root directory for the plugin or gem
+  def self.newrelic_root
+    File.expand_path(File.join(File.dirname(__FILE__),"..",".."))
+  end
+  def newrelic_root
+    self.class.newrelic_root
+  end
+end
 end

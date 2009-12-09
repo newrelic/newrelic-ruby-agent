@@ -23,6 +23,7 @@ module NewRelic::Agent
       @random_sample = nil
       config = NewRelic::Control.instance
       sampler_config = config.fetch('transaction_tracer', {})
+      @segment_limit = sampler_config.fetch('limit_segments', 4000)
       @stack_trace_threshold = sampler_config.fetch('stack_trace_threshold', 0.500).to_f
       @samples_lock = Mutex.new
     end
@@ -190,6 +191,9 @@ module NewRelic::Agent
         @random_sample = nil
         @last_sample = nil
       end
+      # Truncate the samples at 2100 segments. The UI will clamp them at 2000 segments anyway.
+      # This will save us memory and bandwidth.
+      result.each { |sample| sample.truncate(@segment_limit) }
       result
     end
 

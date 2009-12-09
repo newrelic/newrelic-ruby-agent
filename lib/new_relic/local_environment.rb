@@ -142,7 +142,9 @@ module NewRelic
       end unless defined?(JRuby) && !JRuby.runtime.is_object_space_enabled
       @unicorn
     end
-    
+
+    # Set up DelayedJob for instrumentation by passing in the worker.  Must be 
+    # called after the New Relic gem is loaded but before the agent is started!
     def delayed_worker=(worker)
       @dispatcher = :delayed_job
       @delayed_worker = worker
