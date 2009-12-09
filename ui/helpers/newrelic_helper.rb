@@ -312,7 +312,6 @@ module NewrelicHelper
     out = StringIO.new
     printer = RubyProf::GraphHtmlPrinter.new(profile)
     printer.print(out, :min_percent=>0.1)
-    data = out.string[/<body>(.*)<\/body>/im, 0]
-    data.gsub('<table>', '<table id=profile>')
+    out.string[/<body>(.*)<\/body>/im, 0].gsub('<table>', '<table class=profile>')
   end
 end
