@@ -8,6 +8,25 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     NewRelic::Agent.manual_start
     @c =  NewRelic::Control.instance
   end
+
+  def test_monitor_mode
+    assert ! @c.monitor_mode?
+    @c['enabled'] = nil
+    assert !@c.monitor_mode?
+    @c['enabled'] = false
+    assert ! @c.monitor_mode?
+    @c['enabled'] = true
+    assert @c.monitor_mode?
+    @c['monitor_mode'] = nil
+    assert !@c.monitor_mode?
+    @c['monitor_mode'] = false
+    assert !@c.monitor_mode?
+    @c['monitor_mode'] = true
+    assert @c.monitor_mode?
+  ensure
+    @c['enabled'] = false
+    @c['monitor_mode'] = false
+  end
   
   def test_test_config
     assert_equal :rails, c.app
