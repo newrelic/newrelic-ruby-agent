@@ -177,7 +177,7 @@ class NewRelic::Agent::StatsEngine::TransactionsTest < Test::Unit::TestCase
   
   private 
   def check_time_approximate(expected, actual)
-    assert((expected - actual).abs < 0.05, "Expected between #{expected - 0.05} and #{expected + 0.05}, got #{actual}")
+    assert((expected - actual).abs < 0.1, "Expected between #{expected - 0.1} and #{expected + 0.1}, got #{actual}")
   end
   
 end
