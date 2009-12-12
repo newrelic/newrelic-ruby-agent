@@ -22,6 +22,9 @@ if target
       def newrelic_response_code
         (@response.headers['Status']||'200')[0..2] if @response && ActionPack::VERSION::MAJOR == 2 && ActionPack::VERSION::MINOR < 3 
       end
+      def newrelic_request_headers
+        @env || (@request && @request.headers) 
+      end
     else
       # In version 1.2.* the instrumentation is done by method chaining
       # the static dispatch method on the dispatcher class
