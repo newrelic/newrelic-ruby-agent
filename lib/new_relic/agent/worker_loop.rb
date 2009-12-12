@@ -35,11 +35,11 @@ module NewRelic::Agent
     
     # add a task to the worker loop.  The task will be called approximately once
     # every call_period seconds.  The task is passed as a block
-    def add_task(call_period, &task_proc)
+    def add_task(call_period, desc="", &task_proc)
       if call_period < MIN_CALL_PERIOD
         raise ArgumentError, "Invalid Call Period (must be > #{MIN_CALL_PERIOD}): #{call_period}" 
       end
-      @tasks << LoopTask.new(call_period, &task_proc)
+      @tasks << LoopTask.new(call_period, desc, &task_proc)
     end
     
     private 
@@ -63,11 +63,8 @@ module NewRelic::Agent
       while Time.now < task.next_invocation_time
         
         # sleep until this next task's scheduled invocation time
-        sleep_time = [task.next_invocation_time - Time.now, 0.000001].max
-        sleep_time = (sleep_time > 1) ? 1 : sleep_time
-        
-        sleep sleep_time
-        
+        sleep_time = task.next_invocation_time - Time.now
+        sleep sleep_time if sleep_time > 0
         return if !keep_running
       end
       
@@ -99,12 +96,15 @@ module NewRelic::Agent
     
     class LoopTask
       
-      def initialize(call_period, &task_proc)
+      def initialize(call_period, desc="", &task_proc) 
         @call_period = call_period
         @last_invocation_time = Time.now
         @task = task_proc
+        @desc = desc
       end
-      
+      def to_s
+        "Task[#{@desc}]"
+      end
       def next_invocation_time
         @last_invocation_time + @call_period
       end
