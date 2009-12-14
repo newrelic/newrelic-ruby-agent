@@ -1,7 +1,3 @@
-v2.9.9.
-  * Disable at_exit handler for Unicorn which sometimes caused the
-    agent to stop reporting immediately.
-
 v2.9.8.
   * Fix bug in Net instrumentation when a block is passed to request calls.
 
