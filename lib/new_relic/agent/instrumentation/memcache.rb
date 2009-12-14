@@ -10,7 +10,7 @@ unless NewRelic::Control.instance['disable_memcache_instrumentation']
   %w[set add incr decr delete].each do | method |
       add_method_tracer method, 'MemCache/write' if self.method_defined? method
     end
-  end if defined?(MemCache) 
+  end if defined? MemCache 
   
   # Support for libmemcached through Evan Weaver's memcached wrapper
   # http://blog.evanweaver.com/files/doc/fauna/memcached/classes/Memcached.html    
