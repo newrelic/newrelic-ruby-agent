@@ -1,6 +1,8 @@
 v2.10.1.
+  * added TorqueBox recognition (thanks Bob McWhirter)
   * renamed config settings: enabled => monitor_mode; developer => developer_mode;
     old names will still work in newrelic.yml
+  * instrumentation for DelayedJob (thanks Travis Tilley)
   * added config switches to turn off certain instrumentation when you aren't 
     interested in the metrics, to save on overhead--see newrelic.yml for details. 
   * add profiling support to dev mode; very experimental!
