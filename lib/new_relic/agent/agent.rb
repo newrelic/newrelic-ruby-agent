@@ -207,7 +207,7 @@ module NewRelic::Agent
           # successfully connected
           # This shutdown handler doesn't work if Sinatra is running
           # because it executes in the shutdown handler!
-          at_exit { shutdown } unless defined?(Sinatra::Default)
+          at_exit { shutdown } unless [:sinatra, :unicorn].include? NewRelic::Control.instance.dispatcher
         end
       end
       control.log! "New Relic RPM Agent #{NewRelic::VERSION::STRING} Initialized: pid = #{$$}"
