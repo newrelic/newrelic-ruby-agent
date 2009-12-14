@@ -7,16 +7,14 @@ module NewRelic::Agent::Instrumentation
     extend self
     def newrelic_dispatcher_start
       # This call might be entered twice in the same call sequence so we ignore subsequent calls.
-      return if Thread.current[:newrelic_dispatcher_start]
+      return if _dispatcher_start_time
       # Put the current time on the thread.  Can't put in @ivar because this could
       # be a class or instance context
-      newrelic_dispatcher_start_time = Time.now.to_f
-      Thread.current[:newrelic_dispatcher_start] = newrelic_dispatcher_start_time
-      NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.dispatcher_start newrelic_dispatcher_start_time
-      # capture the time spent in the mongrel queue, if running in mongrel.  This is the 
-      # current time less the timestamp placed in 'started_on' by mongrel. 
-      mongrel_start = Thread.current[:started_on]
-      mongrel_queue_stat.trace_call(newrelic_dispatcher_start_time - mongrel_start.to_f) if mongrel_start
+      start = Time.now.to_f
+      self._dispatcher_start_time = start
+      BusyCalculator.dispatcher_start start
+      _detect_upstream_wait
+      
       NewRelic::Agent.agent.start_transaction
       
       # Reset the flag indicating the controller action should be ignored.
@@ -25,11 +23,10 @@ module NewRelic::Agent::Instrumentation
     end
     
     def newrelic_dispatcher_finish
-      #puts @env.to_a.map{|k,v| "#{'%32s' % k}: #{v.inspect[0..64]}"}.join("\n")
       NewRelic::Agent.agent.end_transaction
-      return unless started = Thread.current[:newrelic_dispatcher_start]
+      return unless started = _dispatcher_start_time
       dispatcher_end_time = Time.now.to_f
-      NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.dispatcher_finish dispatcher_end_time
+      BusyCalculator.dispatcher_finish dispatcher_end_time
       unless Thread.current[:newrelic_ignore_controller]
         elapsed_time = dispatcher_end_time - started
         # Store the response header
@@ -37,15 +34,20 @@ module NewRelic::Agent::Instrumentation
           NewRelic::Agent.agent.stats_engine.get_stats_no_scope("HTTP/Response/#{response_code}").trace_call(elapsed_time)
         end
         # Store the response time
-        dispatch_stat.trace_call(elapsed_time)
+        _dispatch_stat.trace_call(elapsed_time)
         NewRelic::Agent.instance.histogram.process(elapsed_time)
       end
       # ensure we don't record it twice
-      Thread.current[:newrelic_dispatcher_start] = nil
+      self._dispatcher_start_time = nil
+      self._request_start_time = nil
     end
     # Should be implemented in the dispatcher class
     def newrelic_response_code; end
-    
+
+    def newrelic_request_headers
+      self.respond_to?(:request) && self.request.respond_to?(:headers) && self.request.headers
+    end
+      
     # Used only when no before/after callbacks are available with
     # the dispatcher, such as Rails before 2.0
     def dispatch_newrelic(*args)
@@ -59,12 +61,43 @@ module NewRelic::Agent::Instrumentation
     
     private
     
-    def dispatch_stat
-      NewRelic::Agent.agent.stats_engine.get_stats_no_scope 'HttpDispatcher'  
+    def _dispatcher_start_time
+      Thread.current[:newrelic_dispatcher_start]
     end
     
-    def mongrel_queue_stat
-      NewRelic::Agent.agent.stats_engine.get_stats_no_scope 'WebFrontend/Mongrel/Average Queue Time'  
+    def _dispatcher_start_time= newval
+      Thread.current[:newrelic_dispatcher_start] = newval
+    end
+
+    def _request_start_time
+      Thread.current[:newrelic_request_start]
+    end
+    def _request_start_time=(newval)
+      Thread.current[:newrelic_request_start] = newval
+    end
+    
+    def _detect_upstream_wait
+      return if _request_start_time
+      # Capture the time spent in the mongrel queue, if running in mongrel.  This is the 
+      # current time less the timestamp placed in 'started_on' by mongrel.
+      http_entry_time = Thread.current[:started_on] and http_entry_time = http_entry_time.to_f
+      
+      # No mongrel.  Look for a custom header:
+      if !http_entry_time && newrelic_request_headers
+        entry_time = newrelic_request_headers['HTTP_X_REQUEST_START'] and
+        entry_time = entry_time[/t=(\d+)/, 1 ] and 
+        http_entry_time = entry_time.to_f/1e6
+      end
+      if http_entry_time
+        self._request_start_time = http_entry_time
+        queue_stat = NewRelic::Agent.agent.stats_engine.get_stats_no_scope 'WebFrontend/Mongrel/Average Queue Time'  
+        queue_stat.trace_call(_dispatcher_start_time - http_entry_time)
+      end
+    end
+    
+    
+    def _dispatch_stat
+      NewRelic::Agent.agent.stats_engine.get_stats_no_scope 'HttpDispatcher'  
     end
     
     # This won't work with Rails 2.2 multi-threading

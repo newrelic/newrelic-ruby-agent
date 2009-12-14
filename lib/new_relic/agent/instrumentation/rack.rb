@@ -78,7 +78,11 @@ module NewRelic
       #   end
       #      
       module Rack
+        def newrelic_request_headers
+          @newrelic_env
+        end
         def call_with_newrelic(*args)
+          @newrelic_env = args.first
           perform_action_with_newrelic_trace(:category => :rack) do
             call_without_newrelic(*args)
           end

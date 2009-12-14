@@ -43,6 +43,7 @@ module NewRelic::Agent
     def ensure_worker_thread_started
       return unless control.agent_enabled? && control.monitor_mode? && !@invalid_license
       if !running?
+        log.info "Detected that the worker loop is not running.  Restarting."
         # Assume we've been forked, clear out stats that are left over from parent process
         @stats_engine.reset_stats
         launch_worker_thread
@@ -161,10 +162,6 @@ module NewRelic::Agent
       
       log.info "Web container: #{control.dispatcher.to_s}"
       
-      if control.dispatcher == :passenger
-        log.warn "Phusion Passenger has been detected. Some RPM memory statistics may have inaccuracies due to short process lifespans."
-      end
-      
       @started = true
       
       sampler_config = control.fetch('transaction_tracer', {})
@@ -230,12 +227,12 @@ module NewRelic::Agent
       # the specified report data, then it will be ignored.
       
       control.log! "Reporting performance data every #{@report_period} seconds."        
-      @task_loop.add_task(@report_period) do 
+      @task_loop.add_task(@report_period, "Timeslice Data Send") do 
         harvest_and_send_timeslice_data
       end
       
       if @should_send_samples && @use_transaction_sampler
-        @task_loop.add_task(@report_period) do 
+        @task_loop.add_task(@report_period, "Transaction Sampler Send") do 
           harvest_and_send_slowest_sample
         end
       elsif !control.developer_mode?
@@ -244,7 +241,7 @@ module NewRelic::Agent
       end
       
       if @should_send_errors && @error_collector.enabled
-        @task_loop.add_task(@report_period) do 
+        @task_loop.add_task(@report_period, "Error Send") do 
           harvest_and_send_errors
         end
       end
@@ -292,7 +289,7 @@ module NewRelic::Agent
           retry
         rescue IgnoreSilentlyException
           control.log! "Unable to establish connection with the server.  Run with log level set to debug for more information."
-        rescue StandardError => e
+        rescue Exception => e
           @connected = false
           control.log! e, :error
           control.log! e.backtrace.join("\n  "), :error

@@ -225,7 +225,6 @@ module NewRelic::Agent::Instrumentation
           return perform_action_without_newrelic_trace(*args)
         end
       end
-
       agent = NewRelic::Agent.instance
       stats_engine = agent.stats_engine
       
@@ -246,7 +245,6 @@ module NewRelic::Agent::Instrumentation
 
       return perform_action_with_newrelic_profile(metric_name, path, args, &block) if NewRelic::Control.instance.profiling?
 
-      start = Time.now.to_f
       agent.ensure_worker_thread_started
       
       NewRelic::Agent.trace_execution_scoped [metric_name, "Controller"], :force => force do
@@ -292,7 +290,7 @@ module NewRelic::Agent::Instrumentation
               # this uses the start time of the controller action:
               # does not include capacity problems since those aren't
               # per controller
-              apdex_controller(start, ending, failed, path)
+              apdex_controller(apdex_start, ending, failed, path)
             end
           end
         end
@@ -406,6 +404,6 @@ module NewRelic::Agent::Instrumentation
       java_utime = threadMBean.getCurrentThreadUserTime()  # ns
       -1 == java_utime ? 0.0 : java_utime/1e9
     end
-    
+        
   end 
 end  
