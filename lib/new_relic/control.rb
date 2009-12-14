@@ -203,7 +203,7 @@ module NewRelic
       self['dispatcher_instance_id'] || @local_env.dispatcher_instance_id
     end
     def dispatcher
-      self['dispatcher'] || @local_env.dispatcher
+      (self['dispatcher'] && self['dispatcher'].to_sym) || @local_env.dispatcher
     end
     def app_names
       self['app_name'] ? self['app_name'].split(';') : []
