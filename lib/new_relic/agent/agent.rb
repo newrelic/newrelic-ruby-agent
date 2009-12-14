@@ -198,7 +198,9 @@ module NewRelic::Agent
           # When the VM shuts down, attempt to send a message to the
           # server that this agent run is stopping, assuming it has
           # successfully connected
-          at_exit { shutdown }
+          # This shutdown handler doesn't work if Sinatra or Unicorn is running
+          # because it executes in the shutdown handler!
+          at_exit { shutdown } unless [:sinatra, :unicorn].include? NewRelic::Control.instance.dispatcher
         end
       end
       control.log! "New Relic RPM Agent #{NewRelic::VERSION::STRING} Initialized: pid = #{$$}"
