@@ -29,8 +29,8 @@ common: &default_settings
   # into a RPM "application" on your home dashboard page. If you want
   # to map this instance into multiple apps, like "AJAX Requests" and
   # "All UI" then specify a semicolon separated list of up to three
-  # distinct names.  This setting does not prevent you from manually
-  # defining applications.
+  # distinct names.  If you comment this out, it defaults to the 
+  # capitalized RAILS_ENV (i.e., Production, Staging, etc)
   app_name: My Application
 
   # When "true", the agent collects performance data about your 
