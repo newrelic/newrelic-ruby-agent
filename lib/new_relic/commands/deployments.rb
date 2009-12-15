@@ -107,7 +107,7 @@ module NewRelic
           raise
         rescue Exception => e
           err "Unexpected error attempting to connect to #{config.api_server}"
-          info e.backtrace.join("\n")
+          info "#{e}: #{e.backtrace.join("\n   ")}"
           raise CommandFailure.new(e.to_s, -1)
         end
       end
