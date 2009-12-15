@@ -360,7 +360,7 @@ module NewRelic::Agent::Instrumentation
       unless path = options[:path]
         category = case options[:category]
           when :controller, nil then 'Controller'
-          when :task then 'Controller/Task' # 'Task'
+          when :task then 'OtherTransaction/Background' # 'Task'
           when :rack then 'Controller/Rack' #'WebTransaction/Rack'
           when :uri then 'Controller' #'WebTransaction/Uri'
           # for internal use only
