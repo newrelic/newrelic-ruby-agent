@@ -176,7 +176,6 @@ module NewRelic
           max = segment.truncate(max)
           max -= 1
           if max <= 0
-            puts "stop at #{i}, #{max}"
             @called_segments = @called_segments[0..i]
             break
           else
