@@ -133,6 +133,10 @@ class NewRelic::TransationSampleTest < Test::Unit::TestCase
     sample = nested_sample
     sample.truncate(2)
     assert_equal 3, sample.count_segments
+    
+    sample = large_sample
+    sample.truncate(2)
+    assert_equal 1, sample.count_segments
   end
     
   private
@@ -162,5 +166,17 @@ class NewRelic::TransationSampleTest < Test::Unit::TestCase
     s4.end_trace 7.0
     t
   end
-   
+  
+  def large_sample
+    t = NewRelic::TransactionSample.new
+    
+    s1 = t.create_segment(1.0, "controller")
+    
+    100.times do
+      s1.add_called_segment(t.create_segment(1.0, "segment"))
+    end
+    t
+  end
+  
+
 end
