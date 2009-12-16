@@ -171,7 +171,6 @@ module NewRelic
       def truncate(max)
         return max unless @called_segments
         i = 0
-        stop = nil
         @called_segments.each do | segment |
           max = segment.truncate(max)
           max -= 1
