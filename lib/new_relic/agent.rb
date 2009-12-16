@@ -31,10 +31,10 @@
 #
 # == Configuring the Agent
 # 
-# All agent configuration is done in the +newrelic.yml+ file.  This
+# All agent configuration is done in the <tt>newrelic.yml</tt> file.  This
 # file is by default read from the +config+ directory of the
 # application root and is subsequently searched for in the application
-# root directory, and then in a +~/.newrelic+ directory
+# root directory, and then in a <tt>~/.newrelic</tt> directory
 #
 # == Using with Rack/Metal
 #
