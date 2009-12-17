@@ -33,6 +33,6 @@ def install_newrelic_config_file(license_key="PASTE_YOUR_LICENSE_KEY_HERE")
   end  
 end
 
-if __FILE__ == $0
+if __FILE__ == $0 || $0 =~ /script\/plugin/
   install_newrelic_config_file
 end
