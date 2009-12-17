@@ -189,7 +189,8 @@ module NewRelic
       min_end = (end_time < s.end_time ? end_time : s.end_time)
       max_begin = (begin_time > s.begin_time ? begin_time : s.begin_time)
       percentage = (min_end - max_begin) / s.duration
-      
+
+      self.total_exclusive_time = s.total_exclusive_time * percentage
       self.total_call_time = s.total_call_time * percentage
       self.min_call_time = s.min_call_time
       self.max_call_time = s.max_call_time
