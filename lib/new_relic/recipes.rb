@@ -15,7 +15,7 @@ make_notify_task = lambda do
     # on all deployments, notify RPM 
     desc "Record a deployment in New Relic RPM (rpm.newrelic.com)"
     task :notice_deployment, :roles => :app, :except => {:no_release => true } do
-      rails_env = fetch(:rails_env, "production")
+      rails_env = fetch(:newrelic_rails_env, fetch(:rails_env, "production"))
       require File.join(File.dirname(__FILE__), 'commands', 'deployments.rb')
       begin
         # Try getting the changelog from the server.  Then fall back to local changelog
