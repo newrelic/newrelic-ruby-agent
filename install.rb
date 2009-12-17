@@ -24,7 +24,7 @@ def install_newrelic_config_file(license_key="PASTE_YOUR_LICENSE_KEY_HERE")
       out.puts yaml
     end
     
-    puts IO.read(File.join(File.dirname(__FILE__), 'README'))
+    puts IO.read(File.join(File.dirname(__FILE__), 'README.md'))
     puts "\n--------------------------------------------------------\n"
     puts "Installing a default configuration file in #{dest_dir}."
     puts "To monitor your application in production mode, you must enter a license key."
@@ -35,7 +35,4 @@ end
 
 if __FILE__ == $0 || $0 =~ /script\/plugin/
   install_newrelic_config_file
-else
-  # debugging:
-  puts $0
 end
