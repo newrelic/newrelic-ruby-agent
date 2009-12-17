@@ -381,8 +381,17 @@ module NewRelic
       @root_segment.count_segments + 1
     end
     def truncate(max)
+      original_count = count_segments
+      
+      return if original_count <= max
+      
       @root_segment.truncate(max-1)
+      
+      if @sample.params[:segment_count].nil?
+        @sample.params[:segment_count] = original_count
+      end
     end
+    
     # offset from start of app
     def timestamp
       @start_time - @@start_time.to_f
