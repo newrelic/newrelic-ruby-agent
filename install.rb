@@ -25,7 +25,8 @@ def install_newrelic_config_file(license_key="PASTE_YOUR_LICENSE_KEY_HERE")
     end
     
     puts <<-EOF
-Installing a default configuration file in #{dest_dir}.
+
+Installed a default configuration file in #{dest_dir}.
 
 To monitor your application in production mode, sign up for an account
 at www.newrelic.com, and replace the newrelic.yml file with the one
