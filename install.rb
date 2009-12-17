@@ -35,4 +35,7 @@ end
 
 if __FILE__ == $0
   install_newrelic_config_file
+else
+  # debugging:
+  puts $0
 end
