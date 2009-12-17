@@ -24,12 +24,18 @@ def install_newrelic_config_file(license_key="PASTE_YOUR_LICENSE_KEY_HERE")
       out.puts yaml
     end
     
-    puts IO.read(File.join(File.dirname(__FILE__), 'README.md'))
-    puts "\n--------------------------------------------------------\n"
-    puts "Installing a default configuration file in #{dest_dir}."
-    puts "To monitor your application in production mode, you must enter a license key."
-    puts "See #{dest_config_file}"
-    puts "For a license key, sign up at http://rpm.newrelic.com/signup."
+    puts <<-EOF
+Installing a default configuration file in #{dest_dir}.
+
+To monitor your application in production mode, sign up for an account
+at www.newrelic.com, and replace the newrelic.yml file with the one
+you receive upon registration.
+
+Please review the README.md file for more information.
+
+E-mail support@newrelic.com with any problems or questions.
+
+    EOF
   end  
 end
 
