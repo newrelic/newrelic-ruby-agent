@@ -163,9 +163,9 @@ module NewRelic
         d
       end
       def count_segments
-        children = 0
-        @called_segments.each { | seg | children  += 1 + seg.count_segments } if @called_segments
-        children
+        count = 1
+        @called_segments.each { | seg | count  += seg.count_segments } if @called_segments
+        count
       end
       # Walk through the tree and truncate the segments
       def truncate(max)
@@ -378,8 +378,9 @@ module NewRelic
     end
 
     def count_segments
-      @root_segment.count_segments + 1
+      @root_segment.count_segments - 1    # don't count the root segment
     end
+    
     def truncate(max)
       original_count = count_segments
       
@@ -387,8 +388,8 @@ module NewRelic
       
       @root_segment.truncate(max-1)
       
-      if @sample.params[:segment_count].nil?
-        @sample.params[:segment_count] = original_count
+      if params[:segment_count].nil?
+        params[:segment_count] = original_count
       end
     end
     
@@ -452,7 +453,6 @@ module NewRelic
     
     def freeze
       @root_segment.freeze
-      params.freeze
       super
     end
     
