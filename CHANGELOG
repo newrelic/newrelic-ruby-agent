@@ -1,4 +1,5 @@
 v2.10.1.
+  * truncating extremely large transaction traces for efficiency
   * fix error reporting in recipes; add newrelic_rails_env option to recipes to 
     override the rails env used to pull the app_name out of newrelic.yml
   * added TorqueBox recognition (thanks Bob McWhirter)
