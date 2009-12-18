@@ -112,15 +112,37 @@ module NewRelic::Agent::Instrumentation
       #     add_transaction_tracer :forward
       #   end
       #
+      # Here's an example of how to pass contextual information into the transaction
+      # so it will appear in transaction traces:
+      #
+      #   class Job
+      #     include NewRelic::Agent::Instrumentation::ControllerInstrumentation
+      #     def process(account)
+      #        ...
+      #     end
+      #     # Include the account name in the transaction details.  Note the single
+      #     # quotes to defer eval until call time.
+      #     add_transaction_tracer :process, :params => '{ :account_name => args[0].name }'
+      #   end
+      #
       # See NewRelic::Agent::Instrumentation::ControllerInstrumentation#perform_action_with_newrelic_trace
       # for the full list of available options.
       #
       def add_transaction_tracer(method, options={})
         # The metric path:
         options[:name] ||= method.to_s
+        # create the argument list:
         options_arg = []
         options.each do |key, value|
-          options_arg << %Q[:#{key} => #{value.is_a?(Symbol) ? value.inspect : %Q["#{value.to_s}"]}]
+          valuestr = case
+            when value.is_a?(Symbol)
+              value.inspect
+            when key == :params
+              value.to_s
+            else
+              %Q["#{value.to_s}"]
+          end
+          options_arg << %Q[:#{key} => #{valuestr}]
         end
         class_eval <<-EOC
         def #{method.to_s}_with_newrelic_transaction_trace(*args, &block)
@@ -199,6 +221,9 @@ module NewRelic::Agent::Instrumentation
     #   web transaction whose name is a normalized URI, where  'normalized'
     #   means the URI does not have any elements with data in them such
     #   as in many REST URIs.
+    # * <tt>:params => {...}</tt> to provide information about the context
+    #   of the call, used in transaction trace display, for example:
+    #   <tt>:params => { :account => @account.name, :file => file.name }</tt>
     # * <tt>:name => action_name</tt> is used to specify the action
     #   name used as part of the metric name
     # * <tt>:force => true</tt> indicates you should capture all
@@ -236,24 +261,25 @@ module NewRelic::Agent::Instrumentation
       # not app method arguments.
       if block_given? && args.any?
         force = args.last.is_a?(Hash) && args.last[:force]
-        category, path = _convert_args_to_path(args)
+        category, path, available_params = _convert_args_to_path(args)
       else
         category = 'Controller'
         path = newrelic_metric_path
+        available_params = self.respond_to?(:params) ? self.params : {} 
       end
       metric_name = category + '/' + path 
 
       return perform_action_with_newrelic_profile(metric_name, path, args, &block) if NewRelic::Control.instance.profiling?
+
+      filtered_params = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
 
       agent.ensure_worker_thread_started
       
       NewRelic::Agent.trace_execution_scoped [metric_name, "Controller"], :force => force do
         # Last one (innermost) to set the transaction name on the call stack wins.
         stats_engine.transaction_name = metric_name
-        available_params = self.respond_to?(:params) ? params : {} 
-        local_params = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
         available_request = (respond_to? :request) ? request : nil
-        agent.transaction_sampler.notice_transaction(path, available_request, local_params)
+        agent.transaction_sampler.notice_transaction(path, available_request, filtered_params)
         
         jruby_cpu_start = _jruby_cpu_time
         process_cpu_start = _process_cpu
@@ -306,9 +332,9 @@ module NewRelic::Agent::Instrumentation
         NewRelic::Agent.disable_all_tracing do
           available_params = self.respond_to?(:params) ? params : {} 
           # Not sure if we need to get the params and request...
-          local_params = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
+          filtered_params = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
           available_request = (respond_to? :request) ? request : nil
-          agent.transaction_sampler.notice_transaction(path, available_request, local_params)
+          agent.transaction_sampler.notice_transaction(path, available_request, filtered_params)
 
           # turn on profiling
           profile = RubyProf.profile do
@@ -357,6 +383,7 @@ module NewRelic::Agent::Instrumentation
     def _convert_args_to_path(args)
       options =  args.last.is_a?(Hash) ? args.pop : {}
       category = 'Controller'
+      params = options[:params] || {}
       unless path = options[:path]
         category = case options[:category]
           when :controller, nil then 'Controller'
@@ -376,7 +403,7 @@ module NewRelic::Agent::Instrumentation
         path = metric_class
         path += ('/' + action) if action
       end
-      [category, path]
+      [category, path, params]
     end
     # Filter out 
     def _is_filtered?(key)

@@ -61,7 +61,7 @@ class TaskInstrumentationTest < Test::Unit::TestCase
     assert_equal @agent.transaction_sampler, @agent.stats_engine.instance_variable_get("@transaction_sampler")
     run_task_outer(10)
     @agent.stats_engine.metrics.sort.each do |n|
-      stat = @agent.stats_engine.get_stats(n)
+      stat = @agent.stats_engine.get_stats_no_scope(n)
       #      puts "#{'%-26s' % n}: #{stat.call_count} calls @ #{stat.average_call_time} sec/call"
     end
     assert_equal 1, @agent.stats_engine.get_stats('Controller/TaskInstrumentationTest/outer_task').call_count
@@ -72,6 +72,25 @@ class TaskInstrumentationTest < Test::Unit::TestCase
     assert_not_nil sample
     assert_not_nil sample.params[:cpu_time], "cpu time nil: \n#{sample}"
     assert sample.params[:cpu_time] >= 0, "cpu time: #{sample.params[:cpu_time]},\n#{sample}"
+    assert_equal '10', sample.params[:request_params][:level]
+  end
+  
+  def test_block
+    assert_equal @agent, NewRelic::Agent.instance
+    @acct = 'Redrocks'
+    perform_action_with_newrelic_trace(:name => 'hello', :force => true, :params => { :account => @acct}) do
+      Rails.logger.info "Hello world"
+    end
+    @agent.stats_engine.metrics.sort.each do |n|
+      stat = @agent.stats_engine.get_stats_no_scope(n)
+      #puts "#{'%-26s' % n}: #{stat.call_count} calls @ #{stat.average_call_time} sec/call"
+    end
+    assert_equal @agent, NewRelic::Agent.instance
+    assert_equal 1, @agent.stats_engine.get_stats_no_scope('Controller/TaskInstrumentationTest/hello').call_count
+    sample = @agent.transaction_sampler.last_sample
+    assert_not_nil sample
+    assert_equal 'Redrocks', sample.params[:request_params][:account]
+
   end
   
   private
@@ -88,5 +107,5 @@ class TaskInstrumentationTest < Test::Unit::TestCase
   end
   
   add_transaction_tracer :run_task_inner, :name => 'inner_task_#{args[0]}'
-  add_transaction_tracer :run_task_outer, :name => 'outer_task'
+  add_transaction_tracer :run_task_outer, :name => 'outer_task', :params => '{ :level => args[0] }'
 end
