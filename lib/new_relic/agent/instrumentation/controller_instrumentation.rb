@@ -293,6 +293,7 @@ module NewRelic::Agent::Instrumentation
             perform_action_without_newrelic_trace(*args)
           end
         rescue Exception => e
+          NewRelic::Agent.instance.error_collector.notice_error(e, nil, metric_name, filtered_params)
           failed = true
           raise e
         ensure

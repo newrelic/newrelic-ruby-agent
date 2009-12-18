@@ -90,7 +90,16 @@ class TaskInstrumentationTest < Test::Unit::TestCase
     sample = @agent.transaction_sampler.last_sample
     assert_not_nil sample
     assert_equal 'Redrocks', sample.params[:request_params][:account]
-
+    
+  end
+  
+  def test_error_handling
+    @agent.error_collector.harvest_errors([])
+    assert_raise RuntimeError do
+      run_task_exception
+    end
+    errors = @agent.error_collector.harvest_errors([])
+    assert_equal 1, errors.size
   end
   
   private
@@ -106,6 +115,11 @@ class TaskInstrumentationTest < Test::Unit::TestCase
     run_task_inner(n)
   end
   
+  def run_task_exception
+    raise "This is an error"
+  end
+  
+  add_transaction_tracer :run_task_exception
   add_transaction_tracer :run_task_inner, :name => 'inner_task_#{args[0]}'
   add_transaction_tracer :run_task_outer, :name => 'outer_task', :params => '{ :level => args[0] }'
 end
