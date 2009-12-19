@@ -43,15 +43,11 @@ module NewRelic::Agent
       errors.each { |error| @ignore[error] = true; log.debug("Ignoring error: '#{error}'") }
     end
     
-    
     def notice_error(exception, request=nil, action_path=nil, filtered_params={})
-      
       return unless @enabled
       return if @ignore[exception.class.name] 
-      
       if @ignore_filter
         exception = @ignore_filter.call(exception)
-        
         return if exception.nil?
       end
       
