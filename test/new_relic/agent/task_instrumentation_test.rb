@@ -79,7 +79,7 @@ class TaskInstrumentationTest < Test::Unit::TestCase
     assert_equal @agent, NewRelic::Agent.instance
     @acct = 'Redrocks'
     perform_action_with_newrelic_trace(:name => 'hello', :force => true, :params => { :account => @acct}) do
-      Rails.logger.info "Hello world"
+      RAILS_DEFAULT_LOGGER.info "Hello world"
     end
     @agent.stats_engine.metrics.sort.each do |n|
       stat = @agent.stats_engine.get_stats_no_scope(n)
@@ -94,13 +94,14 @@ class TaskInstrumentationTest < Test::Unit::TestCase
   end
   
   def test_error_handling
+    @agent.error_collector.ignore_error_filter
     @agent.error_collector.harvest_errors([])
     assert_raise RuntimeError do
       run_task_exception
     end
     errors = @agent.error_collector.harvest_errors([])
     assert_equal 1, errors.size
-  end
+   end
   
   private
   
