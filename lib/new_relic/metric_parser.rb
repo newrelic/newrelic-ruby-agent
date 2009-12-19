@@ -111,7 +111,11 @@ module NewRelic
     def url
     ''
     end
-
+    
+    # returns a hash of params for url_for(), giving you a drilldown URL to an RPM page for this metric
+    # define in subclasses - TB 2009-12-18
+    # def drilldown_url(metric_id); end
+    
     def initialize(name)
       @name = name
     end
