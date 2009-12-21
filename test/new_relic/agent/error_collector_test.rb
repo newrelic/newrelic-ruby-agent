@@ -18,7 +18,9 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
   def setup
     @error_collector = NewRelic::Agent::ErrorCollector.new(nil)
   end
-  
+  def teardown
+    
+  end
   def test_empty
     @error_collector.harvest_errors([])
     @error_collector.notice_error(nil, nil, 'path', {:x => 'y'})
