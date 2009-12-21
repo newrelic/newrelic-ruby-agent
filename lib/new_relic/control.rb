@@ -6,7 +6,6 @@ require 'socket'
 require 'net/https'
 require 'logger'
 
-
 module NewRelic 
   
   # The Control is a singleton responsible for the startup and
@@ -43,7 +42,7 @@ module NewRelic
     attr_writer :env
     attr_reader :local_env
     
-    # Structs holding info for the remote server and proxy server 
+    # Structs holding info for the remote server and proxy server
     class Server < Struct.new :name, :port, :ip #:nodoc:
       def to_s; "#{name}:#{port}"; end
     end
@@ -91,7 +90,10 @@ module NewRelic
         # Try to grab the log filename
         @log_file = @log.instance_eval { @logdev.filename rescue nil }
       end
-      Module.send :include, NewRelic::Agent::MethodTracer
+      # An artifact of earlier implementation, we put both #add_method_tracer and #trace_execution
+      # methods in the module methods.
+      Module.send :include, NewRelic::Agent::MethodTracer::ClassMethods
+      Module.send :include, NewRelic::Agent::MethodTracer::InstanceMethods
       init_config(options)
       if agent_enabled? && !@started
         setup_log unless logger_override
