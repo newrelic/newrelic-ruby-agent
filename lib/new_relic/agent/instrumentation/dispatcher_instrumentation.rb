@@ -78,16 +78,14 @@ module NewRelic::Agent::Instrumentation
     
     def _detect_upstream_wait
       return if _request_start_time
-      # Capture the time spent in the mongrel queue, if running in mongrel.  This is the 
-      # current time less the timestamp placed in 'started_on' by mongrel.
-      http_entry_time = Thread.current[:started_on] and http_entry_time = http_entry_time.to_f
-      
-      # No mongrel.  Look for a custom header:
-      if !http_entry_time && newrelic_request_headers
+      if newrelic_request_headers
         entry_time = newrelic_request_headers['HTTP_X_REQUEST_START'] and
         entry_time = entry_time[/t=(\d+)/, 1 ] and 
         http_entry_time = entry_time.to_f/1e6
       end
+      # If we didn't find the custom header, look for the mongrel timestamp:a
+      http_entry_time ||= Thread.current[:started_on] and http_entry_time = http_entry_time.to_f
+
       if http_entry_time
         self._request_start_time = http_entry_time
         queue_stat = NewRelic::Agent.agent.stats_engine.get_stats_no_scope 'WebFrontend/Mongrel/Average Queue Time'  
