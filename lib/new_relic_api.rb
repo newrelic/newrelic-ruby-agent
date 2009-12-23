@@ -272,10 +272,18 @@ module NewRelicApi
     end
 
     # Change the primary admin for an account. The administrator must be a
-    # user that is already associated with the account
+    # user that is already associated with the account.
     # +email+:: Email address of the new administrator
     def change_primary_admin(email)
       put(:update_primary_admin, :email => email)
+    end
+
+    # Obtain usage information for an account for the specified month.
+    # This method is only supported if the account's subscription is utility
+    # (on-demand) based.
+    # +date+:: end date for month range (default is yesterday)
+    def usage(date = nil)
+      get(:usage, :date => date)
     end
 
     class AccountView < BaseResource
@@ -288,6 +296,9 @@ module NewRelicApi
       def user
         @attributes['user']
       end
+    end
+
+    class AccountUsage < BaseResource
     end
   end
 
