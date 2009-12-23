@@ -238,54 +238,6 @@ module NewRelicApi
       find(type, :params => {:include => :application_health})
     end
 
-    # Add a user to an account.
-    # +user_params+:: User parameters as a hash consisting of the following:
-    #                 email, first_name, password, password_confirmation
-    #                 If a user record already exists for this email, the name
-    #                 and password fields are ignored.
-    # +is_admin+:: Set administrative privileges for this user.
-    def add_user(user_params, is_admin = false)
-      account_id = self.id
-      account_view = NewRelicApi::Account::AccountView.create(:account_id => account_id, :user => user_params, :is_admin => is_admin)
-      account_views << account_view if account_view.valid?
-      account_view
-    end
-
-    # Change the subscription for an account
-    # +product_id+:: ID or name of product (e.g. Lite) (required).
-    # +number_of_hosts+:: Number of hosts. This is required for fixed host products.
-    #                     For utility based products, this is set to the maximum
-    #                     number of hosts allowed to connect.
-    def change_subscription(sub_params)
-      NewRelicApi::Subscription.create(sub_params.merge(:account_id => self.id))
-    end
-
-    # Remove a user's access from an account.
-    # +email+:: User's email address.
-    def remove_user(email)
-      view = account_views.detect{|av| av.user.email == email}
-      if view
-        view.destroy
-      else
-        raise "No user matching email #{email} for account"
-      end
-    end
-
-    # Change the primary admin for an account. The administrator must be a
-    # user that is already associated with the account.
-    # +email+:: Email address of the new administrator
-    def change_primary_admin(email)
-      put(:update_primary_admin, :email => email)
-    end
-
-    # Obtain usage information for an account for the specified month.
-    # This method is only supported if the account's subscription is utility
-    # (on-demand) based.
-    # +date+:: end date for month range (default is yesterday)
-    def usage(date = nil)
-      get(:usage, :date => date)
-    end
-
     class AccountView < BaseResource
       self.prefix = ACCOUNT_RESOURCE_PATH
 
