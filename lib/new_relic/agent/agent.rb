@@ -45,7 +45,7 @@ module NewRelic::Agent
       if !running?
         log.info "Detected that the worker loop is not running.  Restarting."
         # Assume we've been forked, clear out stats that are left over from parent process
-        @stats_engine.reset_stats
+        reset_stats
         launch_worker_thread
         @stats_engine.spawn_sampler_thread
       end
@@ -278,11 +278,7 @@ module NewRelic::Agent
           log.info e.message
           # disconnect and start over.
           # clear the stats engine
-          @metric_ids = {}
-          @unsent_errors = []
-          @traces = nil
-          @unsent_timeslice_data = {}
-          @last_harvest_time = Time.now
+          reset_stats
           @connected = false
           # Wait a short time before trying to reconnect
           sleep 30
@@ -403,6 +399,16 @@ module NewRelic::Agent
     
     def determine_home_directory
       control.root
+    end
+    def reset_stats
+      @stats_engine.reset_stats
+      @metric_ids = {}
+      @unsent_errors = []
+      @traces = nil
+      @unsent_timeslice_data = {}
+      @last_harvest_time = Time.now
+      @launch_time = Time.now
+      @histogram = NewRelic::Histogram.new(NewRelic::Control.instance.apdex_t / 10)
     end
     
     def harvest_and_send_timeslice_data
