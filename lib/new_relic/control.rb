@@ -179,7 +179,7 @@ module NewRelic
       fetch('textmate')
     end
     def post_size_limit
-      fetch('post_size_limit', 1024 * 1024)
+      fetch('post_size_limit', 2 * 1024 * 1024)
     end
     # True if dev mode or monitor mode are enabled, and we are running
     # inside a valid dispatcher like mongrel or passenger.  Can be overridden
