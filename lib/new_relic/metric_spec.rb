@@ -31,7 +31,13 @@ class NewRelic::MetricSpec
     return nil if name !~ pattern && 
                   (!apply_to_scope || scope.nil? || scope !~ pattern)
     new_name = name.sub(pattern, replacement)
-    new_scope = (scope && scope.sub(pattern, replacement)) 
+    
+    if apply_to_scope
+      new_scope = (scope && scope.sub(pattern, replacement))
+    else
+      new_scope = scope
+    end
+    
     self.class.new new_name, new_scope
   end
   
