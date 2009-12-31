@@ -50,12 +50,10 @@ module NewRelic::Agent
         exception = @ignore_filter.call(exception)
         return if exception.nil?
       end
-      
+      action_path ||= NewRelic::Agent.instance.stats_engine.transaction_name || ''
       error_stat.increment_count
       
       data = {}
-      
-      action_path ||= ''
       
       data[:request_params] = normalize_params(filtered_params) if NewRelic::Control.instance.capture_params
 
