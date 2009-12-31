@@ -17,6 +17,13 @@ def assert_between(floor, ceiling, value, message = nil)
   message || "expected #{floor} <= #{value} <= #{ceiling}"
 end
 
+def compare_metrics expected_list, actual_list
+  actual = Set.new actual_list
+  actual.delete('GC/cumulative') # in case we are in REE
+  expected = Set.new expected_list
+  assert_equal expected.to_a.sort, actual.to_a.sort, "extra: #{(actual - expected).to_a.join(", ")}; missing: #{(expected - actual).to_a.join(", ")}"
+end
+
 module TransactionSampleTestHelper
   def make_sql_transaction(*sql)
     sampler = NewRelic::Agent::TransactionSampler.new

@@ -23,36 +23,53 @@ class TaskInstrumentationTest < Test::Unit::TestCase
                     Apdex Apdex/TaskInstrumentationTest/inner_task_0].sort
     expected_but_missing = stat_names - @agent.stats_engine.metrics
     assert_equal 0, expected_but_missing.size, @agent.stats_engine.metrics.map  { |n|
-      stat = @agent.stats_engine.get_stats(n)
+      stat = @agent.stats_engine.get_stats_no_scope(n)
       "#{'%-26s' % n}: #{stat.call_count} calls @ #{stat.average_call_time} sec/call"
     }.join("\n  ") + "\nmissing: #{expected_but_missing.inspect}"
     assert_equal 1, @agent.stats_engine.get_stats_no_scope('Controller').call_count
-    assert_equal 1, @agent.stats_engine.get_stats('Controller/TaskInstrumentationTest/inner_task_0').call_count
+    assert_equal 1, @agent.stats_engine.get_stats_no_scope('Controller/TaskInstrumentationTest/inner_task_0').call_count
   end
   
   def test_run_recursive
     run_task_inner(3)
-    assert_equal 1, @agent.stats_engine.get_stats('Controller/TaskInstrumentationTest/inner_task_3').call_count
-    assert_equal 1, @agent.stats_engine.get_stats('Controller/TaskInstrumentationTest/inner_task_2').call_count
-    assert_equal 1, @agent.stats_engine.get_stats('Controller/TaskInstrumentationTest/inner_task_0').call_count
-    assert_equal 4, @agent.stats_engine.get_stats('Controller').call_count
+    assert_equal 1, @agent.stats_engine.lookup_stats(
+                          'Controller/TaskInstrumentationTest/inner_task_0',
+                          'Controller/TaskInstrumentationTest/inner_task_1').try(:call_count)
+    assert_equal 1, @agent.stats_engine.lookup_stats(
+                          'Controller/TaskInstrumentationTest/inner_task_1',
+                          'Controller/TaskInstrumentationTest/inner_task_2').try(:call_count)
+    assert_equal 1, @agent.stats_engine.lookup_stats(
+                          'Controller/TaskInstrumentationTest/inner_task_2',
+                          'Controller/TaskInstrumentationTest/inner_task_3').try(:call_count)
+    assert_equal 1, @agent.stats_engine.get_stats_no_scope('Controller/TaskInstrumentationTest/inner_task_0').call_count
+    assert_equal 1, @agent.stats_engine.get_stats_no_scope('Controller/TaskInstrumentationTest/inner_task_1').call_count
+    assert_equal 1, @agent.stats_engine.get_stats_no_scope('Controller/TaskInstrumentationTest/inner_task_2').call_count
+    assert_equal 1, @agent.stats_engine.get_stats_no_scope('Controller/TaskInstrumentationTest/inner_task_3').call_count
+    assert_equal 1, @agent.stats_engine.get_stats_no_scope('Controller').call_count
   end
   
   def test_run_nested
     run_task_outer(3)
     @agent.stats_engine.metrics.sort.each do |n|
-      stat = @agent.stats_engine.get_stats(n)
+      stat = @agent.stats_engine.get_stats_no_scope(n)
       #      puts "#{'%-26s' % n}: #{stat.call_count} calls @ #{stat.average_call_time} sec/call"
     end
-    assert_equal 1, @agent.stats_engine.get_stats('Controller/TaskInstrumentationTest/outer_task').call_count
-    assert_equal 2, @agent.stats_engine.get_stats('Controller/TaskInstrumentationTest/inner_task_0').call_count
-    assert_equal 9, @agent.stats_engine.get_stats('Controller').call_count
+    assert_equal 1, @agent.stats_engine.get_stats_no_scope('Controller/TaskInstrumentationTest/outer_task').call_count
+    assert_equal 2, @agent.stats_engine.get_stats_no_scope('Controller/TaskInstrumentationTest/inner_task_0').call_count
+    assert_equal 1, @agent.stats_engine.get_stats_no_scope('Controller').call_count
   end
   
   def test_reentrancy
+    assert_equal 0, NewRelic::Agent::BusyCalculator.busy_count
     run_task_inner(1)
-    assert_equal 1, @agent.stats_engine.get_stats('Controller/TaskInstrumentationTest/inner_task_0').call_count
-    assert_equal 1, @agent.stats_engine.get_stats('Controller/TaskInstrumentationTest/inner_task_1').call_count
+    compare_metrics %w[
+      Controller
+      Controller/TaskInstrumentationTest/inner_task_0:Controller/TaskInstrumentationTest/inner_task_1
+      Controller/TaskInstrumentationTest/inner_task_0
+      Controller/TaskInstrumentationTest/inner_task_1
+      ], @agent.stats_engine.metrics.grep(/^Controller/)
+    assert_equal 1, @agent.stats_engine.get_stats_no_scope('Controller/TaskInstrumentationTest/inner_task_0').call_count
+    assert_equal 1, @agent.stats_engine.get_stats_no_scope('Controller/TaskInstrumentationTest/inner_task_1').call_count
   end
   
   def test_transaction
@@ -64,9 +81,9 @@ class TaskInstrumentationTest < Test::Unit::TestCase
       stat = @agent.stats_engine.get_stats_no_scope(n)
       #      puts "#{'%-26s' % n}: #{stat.call_count} calls @ #{stat.average_call_time} sec/call"
     end
-    assert_equal 1, @agent.stats_engine.get_stats('Controller/TaskInstrumentationTest/outer_task').call_count
-    assert_equal 23, @agent.stats_engine.get_stats('Controller').call_count
-    assert_equal 2, @agent.stats_engine.get_stats('Controller/TaskInstrumentationTest/inner_task_0').call_count
+    assert_equal 1, @agent.stats_engine.get_stats_no_scope('Controller/TaskInstrumentationTest/outer_task').call_count
+    assert_equal 1, @agent.stats_engine.get_stats_no_scope('Controller').call_count
+    assert_equal 2, @agent.stats_engine.get_stats_no_scope('Controller/TaskInstrumentationTest/inner_task_0').call_count
     assert_equal 0, @agent.transaction_sampler.scope_depth, "existing unfinished sample"
     sample = @agent.transaction_sampler.last_sample
     assert_not_nil sample
@@ -101,22 +118,25 @@ class TaskInstrumentationTest < Test::Unit::TestCase
     end
     errors = @agent.error_collector.harvest_errors([])
     assert_equal 1, errors.size
-   end
+  end
   
   private
   
   def run_task_inner(n)
     sleep 0.1
     return if n == 0
+    assert_equal 1, NewRelic::Agent::BusyCalculator.busy_count
     run_task_inner(n-1)
   end
   
   def run_task_outer(n=0)
+    assert_equal 1, NewRelic::Agent::BusyCalculator.busy_count
     run_task_inner(n)
     run_task_inner(n)
   end
   
   def run_task_exception
+    assert_equal 1, NewRelic::Agent::BusyCalculator.busy_count
     raise "This is an error"
   end
   

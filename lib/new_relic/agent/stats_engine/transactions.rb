@@ -16,7 +16,7 @@ module NewRelic::Agent
     
     module Transactions
       module Shim # :nodoc:
-        def start_transaction; end
+        def start_transaction(*args); end
         def end_transaction; end
         def push_scope(*args); end
         def transaction_sampler=(*args); end
@@ -96,8 +96,10 @@ module NewRelic::Agent
         Thread::current[:newrelic_transaction_name]
       end
       
-      def start_transaction
+      # Start a new transaction, unless one is already in progress
+      def start_transaction(name = nil)
         Thread::current[:newrelic_scope_stack] ||= []
+        self.transaction_name = name if name
       end
       
       # Try to clean up gracefully, otherwise we leave things hanging around on thread locals.

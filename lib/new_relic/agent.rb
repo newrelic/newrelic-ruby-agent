@@ -96,6 +96,7 @@ module NewRelic
     require 'new_relic/agent/collection_helper'
     require 'new_relic/agent/transaction_sampler'
     require 'new_relic/agent/error_collector'
+    require 'new_relic/agent/busy_calculator'
     require 'new_relic/agent/sampler'
     
     require 'new_relic/agent/samplers/cpu_sampler'
