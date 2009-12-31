@@ -26,7 +26,7 @@ class NewRelic::Histogram
     end
     
     def stats
-      @stats ||= NewRelic::Agent.get_stats("Response Times/#{min_millis}/#{max_millis}")
+      NewRelic::Agent.get_stats("Response Times/#{min_millis}/#{max_millis}")
     end
   
     # This has return value like <=> but does something more
