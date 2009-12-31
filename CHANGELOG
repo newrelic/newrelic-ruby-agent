@@ -47,6 +47,10 @@ v2.10.0.
   * remove method_tracer shim to avoid timing problems in monitoring daemons
   * for non-rails daemons, look at APP_ROOT and NRCONFIG env vars for custom locations
 
+v2.9.9.
+  * Disable at_exit handler for Unicorn which sometimes caused the
+    agent to stop reporting immediately.
+
 v2.9.8.
   * add instrumentation for Net::HTTP calls, to show up as "External"
   * added support for validating agents in the cloud.
