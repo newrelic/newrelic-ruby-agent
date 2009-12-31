@@ -1,5 +1,3 @@
-# ActiveMerchant Instrumentation.
-
 if defined? Net::HTTP
   Net::HTTP.class_eval do
     def request_with_newrelic_trace(*args, &block)
