@@ -317,34 +317,11 @@ module NewRelic::Agent::Instrumentation
     # Clear the thread local when finished to ensure it only gets called once.
     def _pop_metric_frame # :nodoc:
       frame_data = MetricFrame.current
-      if !_is_filtered?('ignore_apdex')
-        ending = Time.now.to_f
-        record_apdex(apdex_overall_stat, ending - frame_data.apdex_start, frame_data.exception)
-        controller_stat = NewRelic::Agent.instance.stats_engine.get_custom_stats("Apdex/#{frame_data.path}", NewRelic::ApdexStats)
-        record_apdex(controller_stat, ending - frame_data.start, frame_data.exception)
-      end
+      frame_data.record_apdex unless _is_filtered?('ignore_apdex')
       frame_data.pop
     end
     
     private
-    
-    def apdex_overall_stat
-      NewRelic::Agent.instance.stats_engine.get_custom_stats("Apdex", NewRelic::ApdexStats)  
-    end
-    
-    def record_apdex(stat, duration, failed)
-      apdex_t = NewRelic::Control.instance.apdex_t
-      case
-      when failed
-        stat.record_apdex_f
-      when duration <= apdex_t
-        stat.record_apdex_s
-      when duration <= 4 * apdex_t
-        stat.record_apdex_t
-      else
-        stat.record_apdex_f
-      end
-    end
     
     protected
     
