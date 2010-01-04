@@ -61,7 +61,7 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
     assert !NewRelic::Agent::Samplers::MemorySampler.supported_on_this_platform? || defined? JRuby
   end
   def test_mongrel 
-    NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.stubs('is_busy?'.to_sym).returns(false)  
+    NewRelic::Agent::BusyCalculator.stubs('is_busy?'.to_sym).returns(false)  
     mongrel = mock()
     NewRelic::Control.instance.local_env.stubs(:mongrel).returns(mongrel)
     list = mock()

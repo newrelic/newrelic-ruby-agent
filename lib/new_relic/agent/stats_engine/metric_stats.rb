@@ -39,6 +39,10 @@ module NewRelic::Agent
         stats
       end
       
+      def lookup_stats(metric_name, transaction_name = nil)
+        stats_hash[NewRelic::MetricSpec.new(metric_name, transaction_name)] ||
+        stats_hash[metric_name]
+      end
       # Harvest the timeslice data.  First recombine current statss
       # with any previously
       # unsent metrics, clear out stats cache, and return the current
@@ -95,7 +99,7 @@ module NewRelic::Agent
       # Remove all stats.  For test code only.
       def clear_stats 
         stats_hash.clear
-        NewRelic::Agent::Instrumentation::DispatcherInstrumentation::BusyCalculator.reset
+        NewRelic::Agent::BusyCalculator.reset
       end
       
       # Reset each of the stats, such as when a new passenger instance starts up.

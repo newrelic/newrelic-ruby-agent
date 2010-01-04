@@ -5,7 +5,7 @@ class AgentControllerTest < ActionController::TestCase
   
   self.controller_class = NewRelic::Agent::AgentTestController
   
-  attr_accessor :agent
+  attr_accessor :agent, :engine
   
   # Normally you can do this with #setup but for some reason in rails 2.0.2
   # setup is not called.
@@ -20,28 +20,29 @@ class AgentControllerTest < ActionController::TestCase
       newrelic_ignore :only => [:action_to_ignore, :entry_action, :base_action]
       newrelic_ignore_apdex :only => :action_to_ignore_apdex
     end
+    @engine = @agent.stats_engine
   end
   
   def teardown
     Thread.current[:newrelic_ignore_controller] = nil
-    @agent.stats_engine.clear_stats
     super
+    NewRelic::Agent.shutdown
   end
   
   def test_metric__ignore
-    engine = @agent.stats_engine
+    engine.clear_stats
+    compare_metrics [], engine.metrics
     get :action_to_ignore
-    assert_equal true, Thread.current[:newrelic_ignore_controller]
+    compare_metrics [], engine.metrics
   end
   def test_metric__ignore_base
-    engine = @agent.stats_engine
+    engine.clear_stats
     get :base_action
-    assert_equal true, Thread.current[:newrelic_ignore_controller]
+    compare_metrics [], engine.metrics
   end
   def test_metric__no_ignore
-    engine = @agent.stats_engine
     path = 'new_relic/agent/agent_test/index'
-    index_stats = engine.get_stats_no_scope("Controller/#{path}")
+    index_stats = stats("Controller/#{path}")
     index_apdex_stats = engine.get_custom_stats("Apdex/#{path}", NewRelic::ApdexStats)
     assert_difference 'index_stats.call_count' do
       assert_difference 'index_apdex_stats.call_count' do
@@ -53,8 +54,8 @@ class AgentControllerTest < ActionController::TestCase
   def test_metric__ignore_apdex
     engine = @agent.stats_engine
     path = 'new_relic/agent/agent_test/action_to_ignore_apdex'
-    cpu_stats = engine.get_stats_no_scope("ControllerCPU/#{path}")
-    index_stats = engine.get_stats_no_scope("Controller/#{path}")
+    cpu_stats = stats("ControllerCPU/#{path}")
+    index_stats = stats("Controller/#{path}")
     index_apdex_stats = engine.get_custom_stats("Apdex/#{path}", NewRelic::ApdexStats)
     assert_difference 'index_stats.call_count' do
       assert_no_difference 'index_apdex_stats.call_count' do
@@ -102,6 +103,35 @@ class AgentControllerTest < ActionController::TestCase
     
     assert_equal "[FILTERED]", samples.last.params[:request_params]["social_security_number"]
     
+  end
+  
+  def test_busycalculation
+    engine.clear_stats
+    
+    assert_equal 0, NewRelic::Agent::BusyCalculator.busy_count
+    get :index, 'social_security_number' => "001-555-1212"
+#    assert_equal 1, NewRelic::Agent::BusyCalculator.busy_count
+#    assert_equal 0, NewRelic::Agent::BusyCalculator.busy_count
+    NewRelic::Agent::BusyCalculator.harvest_busy
+
+    assert_equal 1, stats('Instance/Busy').call_count
+    assert stats('Instance/Busy').total_call_time > 0.0
+    assert_equal 1, stats('HttpDispatcher').call_count
+    assert_equal 0, stats('WebFrontend/Mongrel/Average Queue Time').call_count
+  end
+  
+  def test_histogram
+    engine.clear_stats
+    get :index, 'social_security_number' => "001-555-1212"
+    bucket = NewRelic::Agent.instance.stats_engine.metrics.find { | m | m =~ /^Response Times/ }
+    assert_not_nil bucket
+    bucket_stats = stats(bucket)
+    assert_equal 1, bucket_stats.call_count
+  end
+  
+  private
+  def stats(name)
+    engine.get_stats_no_scope(name)
   end
   
 end
