@@ -109,14 +109,13 @@ class AgentControllerTest < ActionController::TestCase
     engine.clear_stats
     
     assert_equal 0, NewRelic::Agent::BusyCalculator.busy_count
-    get :index, 'social_security_number' => "001-555-1212"
-#    assert_equal 1, NewRelic::Agent::BusyCalculator.busy_count
-#    assert_equal 0, NewRelic::Agent::BusyCalculator.busy_count
+    get :index, 'social_security_number' => "001-555-1212", 'wait' => '1.0'
     NewRelic::Agent::BusyCalculator.harvest_busy
 
     assert_equal 1, stats('Instance/Busy').call_count
-    assert stats('Instance/Busy').total_call_time > 0.0
     assert_equal 1, stats('HttpDispatcher').call_count
+    # We are probably busy about 99% of the time, but lets make sure it's at least 50
+    assert stats('Instance/Busy').total_call_time > 0.5, stats('Instance/Busy')
     assert_equal 0, stats('WebFrontend/Mongrel/Average Queue Time').call_count
   end
   
