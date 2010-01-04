@@ -259,7 +259,10 @@ module NewRelic::Agent::Instrumentation
           raise e
         ensure
           NewRelic::Agent::BusyCalculator.dispatcher_finish
-          _pop_metric_frame
+          # Look for a metric frame in the thread local and process it.
+          # Clear the thread local when finished to ensure it only gets called once.
+          frame_data.record_apdex unless _is_filtered?('ignore_apdex')
+          frame_data.pop
         end
       end
     end
@@ -313,16 +316,6 @@ module NewRelic::Agent::Instrumentation
       frame_data
     end
     
-    # Look for a metric frame in the thread local and process it.
-    # Clear the thread local when finished to ensure it only gets called once.
-    def _pop_metric_frame # :nodoc:
-      frame_data = MetricFrame.current
-      frame_data.record_apdex unless _is_filtered?('ignore_apdex')
-      frame_data.pop
-    end
-    
-    private
-    
     protected
     
     def _convert_args_to_path(args)
@@ -337,7 +330,7 @@ module NewRelic::Agent::Instrumentation
         when :uri then 'Controller' #'WebTransaction/Uri'
         when :sinatra then 'Controller/Sinatra' #'WebTransaction/Uri'
         # for internal use only
-        else options[:category].to_s.capitalize
+        else options[:category].to_s
         end
         # To be consistent with the ActionController::Base#controller_path used in rails to determine the
         # metric path, we drop the controller off the end of the path if there is one.

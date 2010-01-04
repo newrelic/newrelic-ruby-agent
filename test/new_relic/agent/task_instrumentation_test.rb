@@ -161,5 +161,6 @@ class TaskInstrumentationTest < Test::Unit::TestCase
   add_transaction_tracer :run_task_exception
   add_transaction_tracer :run_task_inner, :name => 'inner_task_#{args[0]}'
   add_transaction_tracer :run_task_outer, :name => 'outer_task', :params => '{ :level => args[0] }'
-  add_transaction_tracer :run_background_job, :category => :task
+  # Eventually we need th change this to :category => :task
+  add_transaction_tracer :run_background_job, :category => 'OtherTransaction/Background'
 end
