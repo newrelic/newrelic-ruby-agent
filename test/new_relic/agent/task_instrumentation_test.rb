@@ -34,13 +34,13 @@ class TaskInstrumentationTest < Test::Unit::TestCase
     run_task_inner(3)
     assert_equal 1, @agent.stats_engine.lookup_stats(
                           'Controller/TaskInstrumentationTest/inner_task_0',
-                          'Controller/TaskInstrumentationTest/inner_task_1').try(:call_count)
+                          'Controller/TaskInstrumentationTest/inner_task_1').call_count
     assert_equal 1, @agent.stats_engine.lookup_stats(
                           'Controller/TaskInstrumentationTest/inner_task_1',
-                          'Controller/TaskInstrumentationTest/inner_task_2').try(:call_count)
+                          'Controller/TaskInstrumentationTest/inner_task_2').call_count
     assert_equal 1, @agent.stats_engine.lookup_stats(
                           'Controller/TaskInstrumentationTest/inner_task_2',
-                          'Controller/TaskInstrumentationTest/inner_task_3').try(:call_count)
+                          'Controller/TaskInstrumentationTest/inner_task_3').call_count
     assert_equal 1, @agent.stats_engine.get_stats_no_scope('Controller/TaskInstrumentationTest/inner_task_0').call_count
     assert_equal 1, @agent.stats_engine.get_stats_no_scope('Controller/TaskInstrumentationTest/inner_task_1').call_count
     assert_equal 1, @agent.stats_engine.get_stats_no_scope('Controller/TaskInstrumentationTest/inner_task_2').call_count
