@@ -29,7 +29,7 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
     @last_executed = nil
     
     period1 = 0.5
-    period2 = 0.75
+    period2 = 0.7
     
     @worker_loop.add_task(period1) do
       @last_executed = 1
@@ -45,7 +45,7 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
     
     @worker_loop.run_next_task
     assert_equal @last_executed, 2
-    check_test_timestamp(0.75)
+    check_test_timestamp(0.7)
     
     @worker_loop.run_next_task
     assert_equal @last_executed, 1 
@@ -53,11 +53,11 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
     
     @worker_loop.run_next_task
     assert_equal @last_executed, 2
-    check_test_timestamp(1.5)
+    check_test_timestamp(1.4)
     
     @worker_loop.run_next_task
     assert_equal @last_executed, 1
-    check_test_timestamp(2.0)
+    check_test_timestamp(1.5)
   end
   
   def test_task_error__standard
