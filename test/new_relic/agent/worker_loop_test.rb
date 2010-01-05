@@ -28,8 +28,8 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
   def test_add_tasks_with_different_periods
     @last_executed = nil
     
-    period1 = 0.2
-    period2 = 0.35
+    period1 = 0.5
+    period2 = 0.7
     
     @worker_loop.add_task(period1) do
       @last_executed = 1
@@ -40,24 +40,24 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
     end
     
     @worker_loop.run_next_task
-    assert_equal @last_executed, 1      # 0.2 s
-    check_test_timestamp(0.2)
+    assert_equal @last_executed, 1
+    check_test_timestamp(0.5)
     
     @worker_loop.run_next_task
-    assert_equal @last_executed, 2      # 0.35 s
-    check_test_timestamp(0.35)
-    
-    @worker_loop.run_next_task
-    assert_equal @last_executed, 1      # 0.4 s
-    check_test_timestamp(0.4)
-    
-    @worker_loop.run_next_task
-    assert_equal @last_executed, 1      # 0.6 s
-    check_test_timestamp(0.6)
-    
-    @worker_loop.run_next_task
-    assert_equal @last_executed, 2      # 0.7 s
+    assert_equal @last_executed, 2
     check_test_timestamp(0.7)
+    
+    @worker_loop.run_next_task
+    assert_equal @last_executed, 1 
+    check_test_timestamp(1.0)
+    
+    @worker_loop.run_next_task
+    assert_equal @last_executed, 2
+    check_test_timestamp(1.4)
+    
+    @worker_loop.run_next_task
+    assert_equal @last_executed, 1
+    check_test_timestamp(1.5)
   end
   
   def test_task_error__standard
@@ -98,6 +98,6 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
   def check_test_timestamp(expected)
     ts = Time.now - @test_start_time
     delta = ts - expected
-    assert(delta < 0.100, "#{ts} duration includes a delay of #{delta} that exceeds 100 milliseconds")
+    assert(delta <= 0.250, "#{ts} duration includes a delay of #{delta} that exceeds 250 milliseconds")
   end
 end

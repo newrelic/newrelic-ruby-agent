@@ -33,7 +33,7 @@ class NewRelic::Agent::Instrumentation::MetricFrame # :nodoc:
   def push(category, path)
     @path_stack.push [category, path]
   end
-
+  
   # This needs to be called after entering the call to trace the controller action, otherwise
   # the controller action blames itself.  It gets reset in the normal #pop call.
   def start_transaction
@@ -74,19 +74,47 @@ class NewRelic::Agent::Instrumentation::MetricFrame # :nodoc:
     NewRelic::Agent.instance.stats_engine.transaction_name = metric_name
   end
   
+  def record_apdex
+    ending = Time.now.to_f
+    summary_stat = NewRelic::Agent.instance.stats_engine.get_custom_stats("Apdex", NewRelic::ApdexStats)
+    controller_stat = NewRelic::Agent.instance.stats_engine.get_custom_stats("Apdex/#{path}", NewRelic::ApdexStats)
+    update_apdex(summary_stat, ending - apdex_start, exception)
+    update_apdex(controller_stat, ending - start, exception)
+  end
+  
   def metric_name
     return nil if @path_stack.empty?
     category + '/' + path 
   end
+  
+  # Return the array of metrics to record for the current metric frame.
   def recorded_metrics
+    metrics = [ metric_name ]
     if @path_stack.size == 1
-      [metric_name, "Controller", "HttpDispatcher"]
-    else
-      [metric_name]
+      if category.starts_with? "Controller" 
+        metrics += ["Controller", "HttpDispatcher"]
+      else
+        metrics += ["#{category}/all", "OtherTransaction/all"]
+      end
     end
+    metrics
   end
   
   private
+  
+  def update_apdex(stat, duration, failed)
+    apdex_t = NewRelic::Control.instance.apdex_t
+    case
+    when failed
+      stat.record_apdex_f
+    when duration <= apdex_t
+      stat.record_apdex_s
+    when duration <= 4 * apdex_t
+      stat.record_apdex_t
+    else
+      stat.record_apdex_f
+    end
+  end  
   
   def process_cpu
     return nil if defined? JRuby

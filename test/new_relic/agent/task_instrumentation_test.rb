@@ -120,6 +120,20 @@ class TaskInstrumentationTest < Test::Unit::TestCase
     assert_equal 1, errors.size
   end
   
+  def test_instrument_bg
+    run_background_job
+    stat_names = %w[OtherTransaction/Background/TaskInstrumentationTest/run_background_job
+                    OtherTransaction/Background/all
+                    OtherTransaction/all].sort
+                    
+    expected_but_missing = stat_names - @agent.stats_engine.metrics
+    assert_equal 0, expected_but_missing.size, @agent.stats_engine.metrics.map  { |n|
+      stat = @agent.stats_engine.get_stats_no_scope(n)
+      "#{'%-26s' % n}: #{stat.call_count} calls @ #{stat.average_call_time} sec/call"
+    }.join("\n  ") + "\nmissing: #{expected_but_missing.inspect}"
+    assert_equal 1, @agent.stats_engine.get_stats_no_scope('OtherTransaction/all').call_count
+    assert_equal 1, @agent.stats_engine.get_stats_no_scope('OtherTransaction/Background/all').call_count
+  end
   private
   
   def run_task_inner(n)
@@ -140,7 +154,13 @@ class TaskInstrumentationTest < Test::Unit::TestCase
     raise "This is an error"
   end
   
+  def run_background_job
+    "This is a background job"
+  end
+  
   add_transaction_tracer :run_task_exception
   add_transaction_tracer :run_task_inner, :name => 'inner_task_#{args[0]}'
   add_transaction_tracer :run_task_outer, :name => 'outer_task', :params => '{ :level => args[0] }'
+  # Eventually we need th change this to :category => :task
+  add_transaction_tracer :run_background_job, :category => 'OtherTransaction/Background'
 end
