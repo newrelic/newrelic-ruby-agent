@@ -269,17 +269,9 @@ module NewRelic::Agent::Instrumentation
     
     # Experimental
     def perform_action_with_newrelic_profile(metric_name, path, args)
-      agent = NewRelic::Agent.instance
-      stats_engine = agent.stats_engine
       NewRelic::Agent.trace_execution_scoped metric_name do
-        stats_engine.start_transaction metric_name
+        MetricFrame.current.start_transaction
         NewRelic::Agent.disable_all_tracing do
-          available_params = self.respond_to?(:params) ? params : {} 
-          # Not sure if we need to get the params and request...
-          filtered_params = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
-          available_request = (respond_to? :request) ? request : nil
-          agent.transaction_sampler.notice_transaction(path, available_request, filtered_params)
-          
           # turn on profiling
           profile = RubyProf.profile do
             if block_given?
@@ -288,7 +280,7 @@ module NewRelic::Agent::Instrumentation
               perform_action_without_newrelic_trace(*args)
             end
           end
-          agent.transaction_sampler.notice_profile profile
+          NewRelic::Agent.instance.transaction_sampler.notice_profile profile
         end
       end
     end

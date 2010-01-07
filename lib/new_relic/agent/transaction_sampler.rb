@@ -43,11 +43,7 @@ module NewRelic::Agent
     end
     
     def notice_first_scope_push(time)
-      if Thread::current[:record_tt] == false || !NewRelic::Agent.is_execution_traced?
-        Thread::current[BUILDER_KEY] = nil
-      else
-        Thread::current[BUILDER_KEY] = TransactionSampleBuilder.new(time)
-      end
+      start_builder(time)
     end
     
     def notice_push_scope(scope, time=Time.now.to_f)
@@ -93,7 +89,7 @@ module NewRelic::Agent
       return unless last_builder
 
       last_builder.finish_trace(time)
-      reset_builder
+      clear_builder
       return if last_builder.ignored?
     
       @samples_lock.synchronize do
@@ -111,22 +107,19 @@ module NewRelic::Agent
       end
     end
     
-    def notice_transaction(path, request, params)
-      return unless builder
-      builder.set_transaction_info(path, request, params)
+    def notice_transaction(path, request=nil, params={})
+      builder.set_transaction_info(path, request, params) if start_builder
     end
+    
     def ignore_transaction
-      return unless builder
-      builder.ignore_transaction
+      builder.ignore_transaction if builder
     end
     def notice_profile(profile)
-      return unless builder
-      builder.set_profile(profile)
+      builder.set_profile(profile) if builder
     end
     
     def notice_transaction_cpu_time(cpu_time)
-      return unless builder
-      builder.set_transaction_cpu_time(cpu_time)
+      builder.set_transaction_cpu_time(cpu_time) if builder
     end
     
         
@@ -136,7 +129,7 @@ module NewRelic::Agent
     MAX_SQL_LENGTH = 16384
     def notice_sql(sql, config, duration)
       return unless builder
-      if Thread::current[:record_sql].nil? || Thread::current[:record_sql]
+      if Thread::current[:record_sql] != false
         segment = builder.current_segment
         if segment
           current_sql = segment[:sql]
@@ -204,11 +197,18 @@ module NewRelic::Agent
     end
 
     private 
-      
+    
+      def start_builder(time=nil)
+        if Thread::current[:record_tt] == false || !NewRelic::Agent.is_execution_traced?
+          clear_builder
+        else
+          Thread::current[BUILDER_KEY] ||= TransactionSampleBuilder.new(time) 
+        end
+      end
       def builder
         Thread::current[BUILDER_KEY]
       end
-      def reset_builder
+      def clear_builder
         Thread::current[BUILDER_KEY] = nil
       end
       
@@ -222,7 +222,8 @@ module NewRelic::Agent
     
     include CollectionHelper
     
-    def initialize(time=Time.now.to_f)
+    def initialize(time=nil)
+      time ||= Time.now.to_f
       @sample = NewRelic::TransactionSample.new(time)
       @sample_start = time
       @current_segment = @sample.root_segment
@@ -298,7 +299,8 @@ module NewRelic::Agent
         @sample.params[:request_params].delete :controller
         @sample.params[:request_params].delete :action
       end
-      @sample.params[:uri] ||= params[:uri] || (request && request.path)
+      uri = params[:uri] || (request && request.path)
+      @sample.params[:uri] ||= uri if uri
     end
     
     def set_transaction_cpu_time(cpu_time)

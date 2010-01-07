@@ -75,7 +75,7 @@ class NewRelic::Agent::Instrumentation::MetricFrame # :nodoc:
         NewRelic::Agent.instance.histogram.process(Time.now.to_f - start)
       end      
     end
-    NewRelic::Agent.instance.stats_engine.transaction_name = metric_name 
+    NewRelic::Agent.instance.stats_engine.scope_name = metric_name 
   end
   
   def record_apdex
