@@ -16,7 +16,6 @@ class NewRelic::Agent::AgentTestController < NewRelic::Agent::SuperclassControll
   end
   
   def index
-    puts params['wait']
     sleep params['wait'].to_i if params['wait']
     render :text => params.inspect
   end
