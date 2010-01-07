@@ -233,6 +233,16 @@ module NewRelic
       end
     end
     
+    # Cancel the collection of the current transaction in progress, if any.
+    # Only affects the transaction started on this thread once it has started
+    # and before it has completed.
+    def abort_transaction
+      # The class may not be loaded if the agent is disabled
+      if defined? NewRelic::Agent::Instrumentation::MetricFrame
+        NewRelic::Agent::Instrumentation::MetricFrame.current.abort_transaction!
+      end
+    end
+    
     # Yield to the block without collecting any metrics or traces in any of the
     # subsequent calls.  If executed recursively, will keep track of the first
     # entry point and turn on tracing again after leaving that block.

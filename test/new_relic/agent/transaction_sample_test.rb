@@ -61,11 +61,18 @@ class NewRelic::TransationSampleTest < Test::Unit::TestCase
       t = make_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
       assert t.nil?
     end
-    
+  end
+  def test_enabled_tt
     t = make_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
     assert t
   end
   
+  def test_abort_tt
+    t = make_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT) do
+      NewRelic::Agent.abort_transaction
+    end
+    assert t.nil?
+  end
   
   def test_record_sql_off
     t = make_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
