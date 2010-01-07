@@ -94,22 +94,19 @@ module NewRelic::Agent
 
       last_builder.finish_trace(time)
       reset_builder
-      
+      return if last_builder.ignored?
     
       @samples_lock.synchronize do
         @last_sample = last_builder.sample
         
-        # We sometimes see "unanchored" transaction traces
-        if @last_sample.params[:path]
-          @random_sample = @last_sample if @random_sampling
-                  
-          # ensure we don't collect more than a specified number of samples in memory
-          @samples << @last_sample if NewRelic::Control.instance.developer_mode?
-          @samples.shift while @samples.length > @max_samples
-          
-          if @slowest_sample.nil? || @slowest_sample.duration < @last_sample.duration
-            @slowest_sample = @last_sample
-          end
+        @random_sample = @last_sample if @random_sampling
+        
+        # ensure we don't collect more than a specified number of samples in memory
+        @samples << @last_sample if NewRelic::Control.instance.developer_mode?
+        @samples.shift while @samples.length > @max_samples
+        
+        if @slowest_sample.nil? || @slowest_sample.duration < @last_sample.duration
+          @slowest_sample = @last_sample
         end
       end
     end
@@ -118,7 +115,10 @@ module NewRelic::Agent
       return unless builder
       builder.set_transaction_info(path, request, params)
     end
-
+    def ignore_transaction
+      return unless builder
+      builder.ignore_transaction
+    end
     def notice_profile(profile)
       return unless builder
       builder.set_profile(profile)
@@ -218,7 +218,7 @@ module NewRelic::Agent
   # generate the sampled data.  It is a thread-local object, and is not
   # accessed by any other thread so no need for synchronization.
   class TransactionSampleBuilder
-    attr_reader :current_segment
+    attr_reader :current_segment, :sample
     
     include CollectionHelper
     
@@ -231,7 +231,12 @@ module NewRelic::Agent
     def sample_id
       @sample.sample_id
     end
-
+    def ignored?
+      @ignore || @sample.params[:path].nil? 
+    end
+    def ignore_transaction
+      @ignore = true
+    end
     def trace_entry(metric_name, time)
       segment = @sample.create_segment(time - @sample_start, metric_name)
       @current_segment.add_called_segment(segment)
@@ -293,16 +298,14 @@ module NewRelic::Agent
         @sample.params[:request_params].delete :controller
         @sample.params[:request_params].delete :action
       end
-      @sample.params[:uri] = request.path if request
+      @sample.params[:uri] ||= params[:uri] || (request && request.path)
     end
     
     def set_transaction_cpu_time(cpu_time)
       @sample.params[:cpu_time] = cpu_time
     end
     
-    
     def sample
-      fail "Not finished building" unless @sample.frozen?
       @sample
     end
     
