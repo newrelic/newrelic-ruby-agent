@@ -308,7 +308,6 @@ module NewRelic::Agent
       end
       CODE
         end
-        
         class_eval code, __FILE__, __LINE__
         
         alias_method _untraced_method_name(method_name, metric_name_code), method_name
@@ -342,7 +341,7 @@ module NewRelic::Agent
       end
       
       def _sanitize_name(name)
-        name.to_s.tr('^a-z,A-Z,0-9', '_')
+        name.to_s.tr_s('^a-zA-Z0-9', '_')
       end
     end
   end
