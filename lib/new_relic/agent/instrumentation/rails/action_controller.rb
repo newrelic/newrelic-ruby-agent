@@ -10,19 +10,19 @@ if defined? ActionController
 
     when /^2\.1\./  # Rails 2.1
     ActionView::PartialTemplate.class_eval do
-      add_method_tracer :render, 'View/#{path_without_extension}.#{@view.template_format}.#{extension}/Partial'
+      add_method_tracer :render, 'View/#{path_without_extension[%r{^(/.*/)?(.*)$},2]}.#{@view.template_format}.#{extension}/Partial'
     end
     # this is for template rendering, as opposed to partial rendering.
     ActionView::Template.class_eval do
-      add_method_tracer :render, 'View/#{path_without_extension}.#{@view.template_format}.#{extension}/Rendering'
+      add_method_tracer :render, 'View/#{path_without_extension[%r{^(/.*/)?(.*)$},2]}.#{@view.template_format}.#{extension}/Rendering'
     end
 
     when /^2\./   # Rails 2.2-2.*
     ActionView::RenderablePartial.module_eval do
-      add_method_tracer :render_partial, 'View/#{path}/Partial'
+      add_method_tracer :render_partial, 'View/#{path[%r{^(/.*/)?(.*)$},2]}/Partial'
     end
     ActionView::Template.class_eval do
-      add_method_tracer :render, 'View/#{path}/Rendering'
+      add_method_tracer :render, 'View/#{path[%r{^(/.*/)?(.*)$},2]}/Rendering'
     end
   end unless NewRelic::Control.instance['disable_view_instrumentation']
   
