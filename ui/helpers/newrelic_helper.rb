@@ -270,15 +270,18 @@ module NewrelicHelper
   end
   
   def exclude_file_from_stack_trace?(file, include_rails)
-    !include_rails && (
-                       file =~ /\/active(_)*record\// ||
-    file =~ /\/action(_)*controller\// ||
-    file =~ /\/activesupport\// ||
-    file =~ /\/lib\/mongrel/ ||
-    file =~ /\/actionpack\// ||
-    file =~ /\/passenger\// ||
-    file =~ /\/benchmark.rb/ ||
-    file !~ /\.rb/)                  # must be a .rb file, otherwise it's a script of something else...we could have gotten trickier and tried to see if this file exists...
+    return false if include_rails
+    return true if file !~ /\.(rb|java)/
+    %w[/actionmailer/ 
+             /activerecord 
+             /activeresource 
+             /activesupport 
+             /lib/mongrel 
+             /actionpack 
+             /passenger/
+             /railties
+             benchmark.rb].each { |s| return true if file.include? s }
+     false
   end
   
   def show_view_link(title, page_name)
