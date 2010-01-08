@@ -339,7 +339,7 @@ module NewRelic::Agent
           :validate_seed => ENV['NR_VALIDATE_SEED'],
           :validate_token => ENV['NR_VALIDATE_TOKEN'] }
         
-        host = invoke_remote(:get_redirect_host) rescue nil
+        host = invoke_remote(:get_redirect_host)
         
         @collector = control.server_from_host(host) if host        
             
