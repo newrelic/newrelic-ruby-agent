@@ -7,7 +7,7 @@ class TaskInstrumentationTest < Test::Unit::TestCase
     super
     NewRelic::Agent.manual_start
     @agent = NewRelic::Agent.instance
-    @agent.transaction_sampler.send :reset_builder
+    @agent.transaction_sampler.send :clear_builder
     @agent.transaction_sampler.reset!
     @agent.stats_engine.clear_stats
   end

@@ -1,7 +1,7 @@
 if defined? Net::HTTP
   Net::HTTP.class_eval do
     def request_with_newrelic_trace(*args, &block)
-      if Thread::current[:newrelic_transaction_name].nil?
+      if Thread::current[:newrelic_scope_name].nil?
         self.class.trace_execution_unscoped(["External/#{@address}/Net::HTTP/#{args[0].method}", 
                                              "External/#{@address}/all",
                                              "External/allOther"]) do

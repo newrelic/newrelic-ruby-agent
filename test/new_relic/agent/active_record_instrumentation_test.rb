@@ -8,7 +8,6 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
     NewRelic::Agent.manual_start
     ActiveRecordFixtures.setup
     NewRelic::Agent.instance.transaction_sampler.harvest
-#    ActiveRecordFixtures::Order.execute "show tables"   # this warms up the connection - which can issue sql statements
     NewRelic::Agent.instance.stats_engine.clear_stats
   rescue
     puts e
@@ -18,7 +17,9 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
   def teardown
     super
     ActiveRecordFixtures.teardown
+    NewRelic::Agent.shutdown
   end
+  
   def test_agent_setup
     assert NewRelic::Agent.instance.class == NewRelic::Agent::Agent
   end
@@ -135,6 +136,7 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
   end
 
   def test_blocked_instrumentation
+    NewRelic::Agent.instance.transaction_sampler.notice_transaction "ActiveRecord/bogus/bogosity"
     ActiveRecordFixtures::Order.add_delay
     NewRelic::Agent.disable_all_tracing do
       ActiveRecordFixtures::Order.find(:all)
@@ -144,6 +146,7 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
     compare_metrics [], metrics
   end
   def test_run_explains
+    NewRelic::Agent.instance.transaction_sampler.notice_transaction "ActiveRecord/bogus/bogosity"
     ActiveRecordFixtures::Order.add_delay
     ActiveRecordFixtures::Order.find(:all)
     
@@ -156,10 +159,12 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
     segment = sample.root_segment.called_segments.first.called_segments.first
   end
   def test_prepare_to_send
+    NewRelic::Agent.instance.transaction_sampler.notice_transaction "ActiveRecord/bogus/bogosity"
     ActiveRecordFixtures::Order.add_delay
     ActiveRecordFixtures::Order.find(:all)
     
     sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+    assert_not_nil sample
     # 
     sql_segment = sample.root_segment.called_segments.first.called_segments.first
     assert_match /^SELECT /, sql_segment.params[:sql]
@@ -175,6 +180,7 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
     end
   end
   def test_transaction
+    NewRelic::Agent.instance.transaction_sampler.notice_transaction "ActiveRecord/bogus/bogosity"
     ActiveRecordFixtures::Order.add_delay
     ActiveRecordFixtures::Order.find(:all)
     

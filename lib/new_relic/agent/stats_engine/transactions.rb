@@ -20,8 +20,8 @@ module NewRelic::Agent
         def end_transaction; end
         def push_scope(*args); end
         def transaction_sampler=(*args); end
-        def transaction_name=(*args); end
-        def transaction_name; end
+        def scope_name=(*args); end
+        def scope_name; end
         def pop_scope(*args); end
       end
       
@@ -88,18 +88,18 @@ module NewRelic::Agent
       # is invoked via the dispatcher, but conceivably we could use other transaction
       # names in the future if the traced application does more than service http request
       # via controller actions
-      def transaction_name=(transaction)
-        Thread::current[:newrelic_transaction_name] = transaction
+      def scope_name=(transaction)
+        Thread::current[:newrelic_scope_name] = transaction
       end
       
-      def transaction_name
-        Thread::current[:newrelic_transaction_name]
+      def scope_name
+        Thread::current[:newrelic_scope_name]
       end
       
       # Start a new transaction, unless one is already in progress
       def start_transaction(name = nil)
         Thread::current[:newrelic_scope_stack] ||= []
-        self.transaction_name = name if name
+        self.scope_name = name if name
       end
       
       # Try to clean up gracefully, otherwise we leave things hanging around on thread locals.
@@ -111,7 +111,7 @@ module NewRelic::Agent
         
         if stack && stack.empty?
           Thread::current[:newrelic_scope_stack] = nil
-          Thread::current[:newrelic_transaction_name] = nil
+          Thread::current[:newrelic_scope_name] = nil
         end
       end
       

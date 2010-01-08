@@ -48,20 +48,39 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     @sampler.notice_first_scope_push Time.now.to_f
     @sampler.notice_transaction "/path", nil, {}
     @sampler.notice_push_scope "a"
-
+    
     @sampler.notice_push_scope "b"
     @sampler.notice_pop_scope "b"
-
+    
     @sampler.notice_push_scope "c"
     @sampler.notice_push_scope "d"
     @sampler.notice_pop_scope "d"
     @sampler.notice_pop_scope "c"
-
+    
     @sampler.notice_pop_scope "a"
     @sampler.notice_scope_empty
     sample = @sampler.harvest([],0.0).first
     assert_equal "ROOT{a{b,c{d}}}", sample.to_s_compact
     
+  end
+
+  def test_sample_sequence
+    assert_equal 0, @sampler.scope_depth
+    
+    @sampler.notice_transaction "/path1", nil, {}
+    @sampler.notice_first_scope_push Time.now.to_f
+    @sampler.notice_push_scope "a"
+    @sampler.notice_pop_scope "a"
+    @sampler.notice_scope_empty
+    @sampler.notice_transaction "/path2", nil, {}
+    @sampler.notice_first_scope_push Time.now.to_f
+    @sampler.notice_push_scope "b"
+    @sampler.notice_pop_scope "b"
+    @sampler.notice_scope_empty
+    assert_equal 2, @sampler.samples.size
+    assert_equal "/path1", @sampler.samples[0].params[:path]
+    assert_equal "/path2", @sampler.samples[1].params[:path]
+    assert_nil @sampler.send(:builder)
   end
 
   def test_sample__gc_stats

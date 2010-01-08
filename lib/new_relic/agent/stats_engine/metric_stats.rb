@@ -26,12 +26,12 @@ module NewRelic::Agent
       def get_stats(metric_name, use_scope = true, scoped_metric_only = false)
         
         if scoped_metric_only
-          spec = NewRelic::MetricSpec.new metric_name, transaction_name
+          spec = NewRelic::MetricSpec.new metric_name, scope_name
           stats = stats_hash[spec] ||= NewRelic::MethodTraceStats.new 
         else  
           stats = stats_hash[metric_name] ||= NewRelic::MethodTraceStats.new 
-          if use_scope && transaction_name
-            spec = NewRelic::MetricSpec.new metric_name, transaction_name
+          if use_scope && scope_name
+            spec = NewRelic::MetricSpec.new metric_name, scope_name
             scoped_stats = stats_hash[spec] ||= NewRelic::ScopedMethodTraceStats.new(stats) 
             stats = scoped_stats
           end
@@ -39,8 +39,8 @@ module NewRelic::Agent
         stats
       end
       
-      def lookup_stats(metric_name, transaction_name = nil)
-        stats_hash[NewRelic::MetricSpec.new(metric_name, transaction_name)] ||
+      def lookup_stats(metric_name, scope_name = nil)
+        stats_hash[NewRelic::MetricSpec.new(metric_name, scope_name)] ||
         stats_hash[metric_name]
       end
       # Harvest the timeslice data.  First recombine current statss
