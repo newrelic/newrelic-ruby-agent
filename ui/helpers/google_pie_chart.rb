@@ -7,7 +7,6 @@ class GooglePieChart
   def initialize
     # an array of [label, value]
     @data = []
-
     self.width = 300
     self.height = 200
   end
@@ -20,18 +19,13 @@ class GooglePieChart
   # render the chart to html by creating an image object and
   # placing the correct URL to the google charts api
   def render
-    labels = ''
-    values = ''
+    labels = []
+    values = []
     @data.each do |label, value|
-      labels << CGI::escape(label) + '|'
-      values << (value * 100 / @max).round.to_s + ","
+      labels << CGI::escape(label)
+      values << (value > 0 ? value * 100 / @max : value).round.to_s
     end
-
-    # strip of the last separator char for labels and values
-    labels = labels[0..-2]
-    values = values[0..-2]
-      
-    params = {:cht => 'p', :chs => "#{width}x#{height}", :chd => "t:#{values}", :chl => labels }
+    params = {:cht => 'p', :chs => "#{width}x#{height}", :chd => "t:#{values.join(',')}", :chl => labels.join('|') }
     params['chco'] = color if color
     
     url = "http://chart.apis.google.com/chart?#{to_query(params)}"

@@ -1,6 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
 
-class NewRelic::Agent::TransationSamplerTest < Test::Unit::TestCase
+class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   
   module MockGCStats
     
