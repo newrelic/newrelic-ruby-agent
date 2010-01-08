@@ -34,6 +34,10 @@ class NewRelic::Agent::Instrumentation::MetricFrame # :nodoc:
     @path_stack.push [category, path]
   end
   
+  # Call this to ensure that the current transaction is not saved
+  def abort_transaction!
+    NewRelic::Agent.instance.transaction_sampler.ignore_transaction
+  end
   # This needs to be called after entering the call to trace the controller action, otherwise
   # the controller action blames itself.  It gets reset in the normal #pop call.
   def start_transaction
@@ -71,7 +75,7 @@ class NewRelic::Agent::Instrumentation::MetricFrame # :nodoc:
         NewRelic::Agent.instance.histogram.process(Time.now.to_f - start)
       end      
     end
-    NewRelic::Agent.instance.stats_engine.transaction_name = metric_name
+    NewRelic::Agent.instance.stats_engine.transaction_name = metric_name 
   end
   
   def record_apdex

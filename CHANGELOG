@@ -1,4 +1,7 @@
 v2.10.1.
+  * rack support, including metal; ignores 404s; requires a module inclusion (see docs)
+  * sinatra support, displays actions named by the URI pattern matched
+  * add API method to abort transaction recording for in-flight transactions
   * remove account management calls from newrelic_api.rb
   * truncating extremely large transaction traces for efficiency
   * fix error reporting in recipes; add newrelic_rails_env option to recipes to 
@@ -17,7 +20,6 @@ v2.10.1.
     between web and non-web transactions.
   * database instrumentation notices all database commands in addition to the core commands
   * add support for textmate to dev mode
-  * preliminary sinatra support, displays actions named by the URI pattern matched
   * added add_transaction_tracer method to support instrumenting methods as
     if they were web transactions; this will facilitate better visibility of background
     tasks and eventually things like rack, metal and Sinatra
