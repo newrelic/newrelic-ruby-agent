@@ -43,7 +43,7 @@ module NewRelic::Agent::BusyCalculator
   def reset
     @entrypoint_stack = []
     Thread.current[:busy_entries] = 0
-    @lock = Mutex.new
+    @lock ||= Mutex.new
     @accumulator = 0
     @harvest_start = Time.now.to_f
   end
