@@ -286,7 +286,12 @@ module NewRelic
           @params = p
         end
     end
-    
+
+    class FakeSegment < Segment
+
+      public :parent_segment=
+    end
+
     class SummarySegment < Segment
       
       
