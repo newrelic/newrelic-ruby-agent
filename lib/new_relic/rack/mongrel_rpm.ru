@@ -15,11 +15,11 @@ options ||= {}
 
 use Rack::CommonLogger unless options[:logging] == false
 use Rack::ShowExceptions
-map "http://localhost/metrics" do
-  run NewRelic::Rack::MetricApp.new(options)
-end
 map "/" do
   run NewRelic::Rack::Status.new
+end
+map "/metrics" do
+  run NewRelic::Rack::MetricApp.new(options)
 end
 
 
