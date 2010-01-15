@@ -269,7 +269,7 @@ module NewRelic::Agent::Instrumentation
     end
     
     # Experimental
-    def perform_action_with_newrelic_profile(metric_name, path, args)
+    def perform_action_with_newrelic_profile(args)
       frame_data = _push_metric_frame(block_given? ? args : [])
       NewRelic::Agent.trace_execution_scoped frame_data.metric_name do
         MetricFrame.current.start_transaction
