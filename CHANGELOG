@@ -1,3 +1,5 @@
+v2.10.2.0
+  * beta release of 2.10
 v2.10.1.
   * rack support, including metal; ignores 404s; requires a module inclusion (see docs)
   * sinatra support, displays actions named by the URI pattern matched
