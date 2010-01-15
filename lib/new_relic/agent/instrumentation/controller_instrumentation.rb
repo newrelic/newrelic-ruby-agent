@@ -238,9 +238,10 @@ module NewRelic::Agent::Instrumentation
           return perform_action_without_newrelic_trace(*args)
         end
       end
-      frame_data = _push_metric_frame(block_given? ? args : [])
       
-      return perform_action_with_newrelic_profile(frame_data.metric_name, frame_data.path, args, &block) if NewRelic::Control.instance.profiling?
+      return perform_action_with_newrelic_profile(args, &block) if NewRelic::Control.instance.profiling?
+      
+      frame_data = _push_metric_frame(block_given? ? args : [])
       
       NewRelic::Agent.trace_execution_scoped frame_data.recorded_metrics, :force => frame_data.force_flag do
         frame_data.start_transaction
@@ -269,7 +270,8 @@ module NewRelic::Agent::Instrumentation
     
     # Experimental
     def perform_action_with_newrelic_profile(metric_name, path, args)
-      NewRelic::Agent.trace_execution_scoped metric_name do
+      frame_data = _push_metric_frame(block_given? ? args : [])
+      NewRelic::Agent.trace_execution_scoped frame_data.metric_name do
         MetricFrame.current.start_transaction
         NewRelic::Agent.disable_all_tracing do
           # turn on profiling
@@ -283,6 +285,8 @@ module NewRelic::Agent::Instrumentation
           NewRelic::Agent.instance.transaction_sampler.notice_profile profile
         end
       end
+    ensure
+      frame_data.pop
     end
     
     # Write a metric frame onto a thread local if there isn't already one there.
