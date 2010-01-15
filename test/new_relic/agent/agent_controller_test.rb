@@ -86,24 +86,23 @@ class AgentControllerTest < ActionController::TestCase
   end
   
   def test_controller_params
-    
     assert agent.transaction_sampler
-    
     num_samples = NewRelic::Agent.instance.transaction_sampler.samples.length
-    
     assert_equal "[FILTERED]", @controller._filter_parameters({'social_security_number' => 'test'})['social_security_number']
-    
     get :index, 'social_security_number' => "001-555-1212"
-    
     samples = agent.transaction_sampler.samples
-    
-    agent.transaction_sampler.expects(:notice_transaction).never
-    
     assert_equal num_samples + 1, samples.length
-    
     assert_equal "[FILTERED]", samples.last.params[:request_params]["social_security_number"]
-    
   end
+  
+  def test_controller_params
+    agent.transaction_sampler.reset!
+    get :index, 'number' => "001-555-1212"
+    s = agent.transaction_sampler.harvest(nil, 0.0)
+    assert_equal 1, s.size
+    assert_equal 5, s.first.params.size
+  end
+
   
   def test_busycalculation
     engine.clear_stats
