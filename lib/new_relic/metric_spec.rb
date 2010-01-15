@@ -3,8 +3,11 @@
 class NewRelic::MetricSpec
   attr_accessor   :name
   attr_accessor   :scope
-  
-  def initialize (metric_name, metric_scope = '')
+
+  # Need a "zero-arg" constructor so it can be instantiated from java (using
+  # jruby) for sending responses to ruby agents from the java collector.
+  #
+  def initialize (metric_name = '', metric_scope = '')
     self.name = metric_name
     self.scope = metric_scope
   end
