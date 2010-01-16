@@ -41,7 +41,7 @@ if defined?(ActiveRecord) && defined?(ActiveRecord::Base) && !NewRelic::Control.
             end
             
             if metric.nil?
-              metric = MetricFrame.current.database_metric_name
+              metric = NewRelic::Agent::Instrumentation::MetricFrame.current.database_metric_name
               if metric.nil?
                 if sql =~ /^(select|update|insert|delete|show)/i
                   # Could not determine the model/operation so let's find a better
