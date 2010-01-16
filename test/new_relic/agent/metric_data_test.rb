@@ -5,6 +5,8 @@ require 'test/unit'
 class NewRelic::Agent::MetricDataTest < Test::Unit::TestCase
   
   
+  include AgentListener::MetricData
+  
   # test to make sure the MetricData class can serialize to json
   def test_json
     spec = NewRelic::MetricSpec.new("controller", "metric#find")
@@ -24,6 +26,16 @@ class NewRelic::Agent::MetricDataTest < Test::Unit::TestCase
     import = ActiveSupport::JSON.decode(metric_data.to_json)
     
     compare_metric_data(metric_data, import)
+  end
+  
+  
+  def test_broken_view_metric
+    
+    s = "View//home/rails/rightscale/releases/20091116235514/public/500.html.html/Rendering"
+    
+    replace_broken_view_metric(s)
+    
+    assert_equal "View/Rendering", s
   end
   
   
