@@ -28,7 +28,7 @@ if defined?(ActiveRecord) && defined?(ActiveRecord::Base) && !NewRelic::Control.
               model = parts.first
               operation = parts.last.downcase
               metric_name = case operation
-                            when 'load' then 'find'
+                            when 'load', 'exists?' then 'find'
                             when 'indexes', 'columns' then nil # fall back to DirectSQL
                             when 'destroy', 'find', 'save', 'create' then operation
                             when 'update' then 'save'
