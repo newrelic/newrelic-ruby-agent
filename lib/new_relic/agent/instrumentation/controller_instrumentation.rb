@@ -257,7 +257,7 @@ module NewRelic::Agent::Instrumentation
             NewRelic::Agent.instance.error_collector.notice_error(e, nil, frame_data.metric_name, frame_data.filtered_params)
             frame_data.exception = e
           end
-          raise e
+          raise
         ensure
           NewRelic::Agent::BusyCalculator.dispatcher_finish
           # Look for a metric frame in the thread local and process it.
