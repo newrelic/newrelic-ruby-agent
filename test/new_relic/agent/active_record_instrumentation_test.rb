@@ -23,6 +23,7 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
   def test_agent_setup
     assert NewRelic::Agent.instance.class == NewRelic::Agent::Agent
   end
+
   def test_finder
     ActiveRecordFixtures::Order.create :id => 0, :name => 'jeff'
     ActiveRecordFixtures::Order.find(:all)
@@ -31,8 +32,11 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
     ActiveRecordFixtures::Order.find_all_by_name "jeff"
     s = NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Order/find")
     assert_equal 2, s.call_count
+    ActiveRecordFixtures::Order.exists?(["name=?", 'jeff'])
+    s = NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Order/find")
+    assert_equal 3, s.call_count if NewRelic::Control.instance.rails_version > '2.3.4'
   end
-  
+
   # multiple duplicate find calls should only cause metric trigger on the first
   # call.  the others are ignored.
   def test_query_cache
