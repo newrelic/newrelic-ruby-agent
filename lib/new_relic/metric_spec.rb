@@ -3,15 +3,21 @@
 class NewRelic::MetricSpec
   attr_accessor   :name
   attr_accessor   :scope
-
+  
+  MAX_LENGTH = 100
   # Need a "zero-arg" constructor so it can be instantiated from java (using
   # jruby) for sending responses to ruby agents from the java collector.
   #
-  def initialize (metric_name = '', metric_scope = '')
-    self.name = metric_name
-    self.scope = metric_scope
+  def initialize(metric_name = '', metric_scope = '')
+    self.name = (metric_name || '') && metric_name[0...MAX_LENGTH]
+    self.scope = metric_scope && metric_scope[0...MAX_LENGTH]
   end
-
+  
+  def truncate!
+    self.name = name[0...100] if name && name.size > 100
+    self.scope = scope[0...100] if scope && scope.size > 100
+  end
+  
   def ==(o)
     self.eql?(o)
   end
@@ -20,7 +26,7 @@ class NewRelic::MetricSpec
     self.class == o.class &&
     name.eql?(o.name) && 
     # coerce scope to a string and compare
-    (scope || '') == (o.scope || '')
+     (scope || '') == (o.scope || '')
   end
   
   def hash
@@ -32,11 +38,11 @@ class NewRelic::MetricSpec
   # matches the name or scope.
   def sub(pattern, replacement, apply_to_scope = true)
     return nil if name !~ pattern && 
-                  (!apply_to_scope || scope.nil? || scope !~ pattern)
-    new_name = name.sub(pattern, replacement)
+     (!apply_to_scope || scope.nil? || scope !~ pattern)
+    new_name = name.sub(pattern, replacement)[0...MAX_LENGTH]
     
     if apply_to_scope
-      new_scope = (scope && scope.sub(pattern, replacement))
+      new_scope = (scope && scope.sub(pattern, replacement)[0...MAX_LENGTH])
     else
       new_scope = scope
     end
