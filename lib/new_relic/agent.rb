@@ -287,6 +287,16 @@ module NewRelic
     end
     
     alias add_request_parameters add_custom_parameters
-
+    
+    # Yield to a block that is run with a database metric name context.  This means
+    # the Database instrumentation will use this for the metric name if it does not
+    # otherwise know about a model.  This is re-entrant.
+    #
+    # * <tt>model</tt> is the DB model class
+    # * <tt>method</tt> is the name of the finder method or other method to identify the operation with.
+    #
+    def with_database_metric_name(model, method, &block)
+      NewRelic::Agent::Instrumentation::MetricFrame.current.with_database_metric_name(model, method, &block)
+    end
   end 
 end  
