@@ -98,13 +98,6 @@ module NewRelic::Agent
       @stats_engine.end_transaction
     end
     
-    def Agent.with_database_metric_name(name)
-      NewRelic::Agent::Instrumentation::MetricFrame.current.database_metric_name=name
-      yield
-    ensure  
-      NewRelic::Agent::Instrumentation::MetricFrame.current.database_metric_name=nil
-    end
-    
     def set_record_sql(should_record)
       prev = Thread::current[:record_sql]
       Thread::current[:record_sql] = should_record
