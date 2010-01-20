@@ -4,7 +4,7 @@
 class NewRelic::Agent::Instrumentation::MetricFrame # :nodoc:
   attr_accessor :start, :apdex_start, :exception, 
                 :filtered_params, :available_request, :force_flag, 
-                :jruby_cpu_start, :process_cpu_start
+                :jruby_cpu_start, :process_cpu_start, :database_metric_name
   
   def self.current
     Thread.current[:newrelic_metric_frame] ||= new
