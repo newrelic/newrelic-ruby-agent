@@ -5,7 +5,6 @@ require 'test/unit'
 class NewRelic::Agent::MetricDataTest < Test::Unit::TestCase
   
   
-  
   # test to make sure the MetricData class can serialize to json
   def test_json
     spec = NewRelic::MetricSpec.new("controller", "metric#find")
@@ -26,6 +25,7 @@ class NewRelic::Agent::MetricDataTest < Test::Unit::TestCase
     
     compare_metric_data(metric_data, import)
   end
+  
   
   private 
   
