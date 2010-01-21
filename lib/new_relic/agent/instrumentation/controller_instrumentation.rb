@@ -355,13 +355,14 @@ module NewRelic::Agent::Instrumentation
     
     def _detect_upstream_wait(now)
       if newrelic_request_headers
-        entry_time = newrelic_request_headers['HTTP_X_REQUEST_START']
-        if newrelic_request_headers['HTTP_X_HEROKU_QUEUE_DEPTH']
-          http_entry_time = entry_time.to_f / 1e3
-          _record_heroku_queue_depth(newrelic_request_headers['HTTP_X_HEROKU_QUEUE_DEPTH'])
-        else # apache / nginx
-          apache_parsed_time = entry_time[/t=(\d+)/, 1]
-          http_entry_time = apache_parsed_time.to_f/1e6 if apache_parsed_time
+        if entry_time = newrelic_request_headers['HTTP_X_REQUEST_START']
+          if queue_depth = newrelic_request_headers['HTTP_X_HEROKU_QUEUE_DEPTH']
+            http_entry_time = entry_time.to_f / 1e3
+            _record_heroku_queue_depth(queue_depth)
+          else # apache / nginx
+            apache_parsed_time = entry_time[/t=(\d+)/, 1]
+            http_entry_time = apache_parsed_time.to_f/1e6 if apache_parsed_time
+          end
         end
       end
       # If we didn't find the custom header, look for the mongrel timestamp
