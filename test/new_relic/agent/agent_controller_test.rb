@@ -126,6 +126,58 @@ class AgentControllerTest < ActionController::TestCase
     bucket_stats = stats(bucket)
     assert_equal 1, bucket_stats.call_count
   end
+
+  def test_queue_headers
+    engine.clear_stats
+    queue_length_stat = stats('Mongrel/Queue Length')
+    queue_time_stat = stats('WebFrontend/Mongrel/Average Queue Time')
+    
+    # no request start header
+    get :index
+    assert_equal 0, queue_length_stat.call_count
+
+    # apache version of header
+    request_start = ((Time.now.to_f - 0.1) * 1e6).to_i.to_s
+    NewRelic::Agent::AgentTestController.set_some_headers({'HTTP_X_REQUEST_START' => "t=#{request_start}"})
+    get :index
+    assert_equal(0, queue_length_stat.call_count, 'We should not be seeing a queue length yet')
+    assert_equal(1, queue_time_stat.call_count, 'We should have seen the queue header once')
+    assert(queue_time_stat.total_call_time > 0.1, "Queue time should be longer than 100ms")
+    assert(queue_time_stat.total_call_time < 10, "Queue time should be under 10 seconds (sanity check)")    
+    
+    engine.clear_stats
+    NewRelic::Agent::AgentTestController.clear_headers    
+
+    queue_length_stat = stats('Mongrel/Queue Length')
+    queue_time_stat = stats('WebFrontend/Mongrel/Average Queue Time')
+    
+    # heroku version
+    request_start = ((Time.now.to_f - 0.1) * 1e3).to_i.to_s
+    NewRelic::Agent::AgentTestController.set_some_headers({'HTTP_X_REQUEST_START' => request_start, 'HTTP_X_HEROKU_QUEUE_DEPTH' => '0'})
+    get :index
+    assert_equal(0, queue_length_stat.total_call_time, 'queue should be empty')
+    assert_equal(1, queue_time_stat.call_count, 'should have seen the queue header once')
+    assert(queue_time_stat.total_call_time > 0.1, "Queue time should be longer than 100ms")
+    assert(queue_time_stat.total_call_time < 10, "Queue time should be under 10 seconds (sanity check)")
+    engine.clear_stats
+    NewRelic::Agent::AgentTestController.clear_headers
+    
+    queue_length_stat = stats('Mongrel/Queue Length')
+    queue_time_stat = stats('WebFrontend/Mongrel/Average Queue Time')    
+
+    # heroku version with queue length > 0
+    request_start = ((Time.now.to_f - 0.1) * 1e3).to_i.to_s
+    NewRelic::Agent::AgentTestController.set_some_headers({'HTTP_X_REQUEST_START' => request_start, 'HTTP_X_HEROKU_QUEUE_DEPTH' => '3'})
+    get :index
+    
+    assert_equal(1, queue_length_stat.call_count, 'queue should have been seen once')
+    assert_equal(1, queue_time_stat.call_count, 'should have seen the queue header once')
+    assert(queue_time_stat.total_call_time > 0.1, "Queue time should be longer than 100ms")
+    assert(queue_time_stat.total_call_time < 10, "Queue time should be under 10 seconds (sanity check)")
+    assert_equal(3, queue_length_stat.total_call_time, 'queue should be 3 long')
+
+    NewRelic::Agent::AgentTestController.clear_headers
+  end
   
   private
   def stats(name)
