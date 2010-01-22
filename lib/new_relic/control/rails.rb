@@ -62,6 +62,12 @@ class NewRelic::Control::Rails < NewRelic::Control
       current_paths << controller_path
     end
     
+    def to_stdout(message)
+      ::RAILS_DEFAULT_LOGGER.info(message)
+    rescue Exception => e
+      STDOUT.puts(message)
+    end
+        
     #ActionController::Routing::Routes.reload! unless NewRelic::Control.instance['skip_developer_route']
     
     # inform user that the dev edition is available if we are running inside
