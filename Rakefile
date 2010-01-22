@@ -29,6 +29,7 @@ http://github.com/newrelic/rpm/tree/master.
     gem.author = AUTHOR
     gem.version = GEM_VERSION
     gem.files = FileList['**/*'].to_a
+    gem.test_files = [] # You can't really run the tests unless the gem is installed.
     gem.rdoc_options << "--line-numbers" << "--inline-source" << "--title" << "New Relic RPM" << "README.md"
     gem.files.reject! { |fn| fn =~ /Rakefile|pkg\// }
   end
