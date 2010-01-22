@@ -137,7 +137,7 @@ class AgentControllerTest < ActionController::TestCase
     assert_equal 0, queue_length_stat.call_count
 
     # apache version of header
-    request_start = ((Time.now.to_f - 0.1) * 1e6).to_i.to_s
+    request_start = ((Time.now.to_f - 0.2) * 1e6).to_i.to_s
     NewRelic::Agent::AgentTestController.set_some_headers({'HTTP_X_REQUEST_START' => "t=#{request_start}"})
     get :index
     assert_equal(0, queue_length_stat.call_count, 'We should not be seeing a queue length yet')
@@ -152,7 +152,7 @@ class AgentControllerTest < ActionController::TestCase
     queue_time_stat = stats('WebFrontend/Mongrel/Average Queue Time')
     
     # heroku version
-    request_start = ((Time.now.to_f - 0.1) * 1e3).to_i.to_s
+    request_start = ((Time.now.to_f - 0.2) * 1e3).to_i.to_s
     NewRelic::Agent::AgentTestController.set_some_headers({'HTTP_X_REQUEST_START' => request_start, 'HTTP_X_HEROKU_QUEUE_DEPTH' => '0'})
     get :index
     assert_equal(0, queue_length_stat.total_call_time, 'queue should be empty')
@@ -166,7 +166,7 @@ class AgentControllerTest < ActionController::TestCase
     queue_time_stat = stats('WebFrontend/Mongrel/Average Queue Time')    
 
     # heroku version with queue length > 0
-    request_start = ((Time.now.to_f - 0.1) * 1e3).to_i.to_s
+    request_start = ((Time.now.to_f - 0.2) * 1e3).to_i.to_s
     NewRelic::Agent::AgentTestController.set_some_headers({'HTTP_X_REQUEST_START' => request_start, 'HTTP_X_HEROKU_QUEUE_DEPTH' => '3'})
     get :index
     
