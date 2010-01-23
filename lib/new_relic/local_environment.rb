@@ -17,7 +17,6 @@ module NewRelic
     attr_accessor :dispatcher # mongrel, thin, webrick, or possibly nil
     attr_accessor :dispatcher_instance_id # used to distinguish instances of a dispatcher from each other, may be nil
     attr_accessor :framework # rails, merb, external, ruby, test
-    attr_reader :delayed_worker
     attr_reader :mongrel    # The mongrel instance, if there is one, captured as a convenience
     attr_reader :processors # The number of cpus, if detected, or nil
     alias environment dispatcher
@@ -25,7 +24,6 @@ module NewRelic
     def initialize
       discover_framework
       discover_dispatcher
-      duck_punch_delayed_worker if defined? Delayed::Worker
       @dispatcher = nil if @dispatcher == :none
       @gems = Set.new
       @plugins = Set.new
@@ -143,26 +141,10 @@ module NewRelic
       @unicorn
     end
 
-    # Set up DelayedJob for instrumentation by passing in the worker.  Must be 
-    # called after the New Relic gem is loaded but before the agent is started!
+    # Obsolete method for DelayedJob instrumentation support, which is
+    # now in the rpm_contrib gem.
     def delayed_worker=(worker)
-      @dispatcher = :delayed_job
-      @delayed_worker = worker
-      
-      @dispatcher_instance_id = if @delayed_worker.respond_to?(:name)
-        @delayed_worker.name
-      elsif @delayed_worker.class.respond_to?(:default_name)
-        @delayed_worker.class.default_name
-      else
-        "host:#{Socket.gethostname} pid:#{Process.pid}" rescue "pid:#{Process.pid}"
-      end
-      
-      append_environment_value 'Dispatcher', @dispatcher.to_s
-      append_environment_value 'Dispatcher instance id', @dispatcher_instance_id
-      
-      NewRelic::Control.instance.init_plugin
-            
-      @delayed_worker
+      $stderr.puts "WARNING: DelayedJob instrumentation has been moved to the rpm_contrib gem."
     end
 
     private
@@ -192,13 +174,13 @@ module NewRelic
     end
 
     def check_for_torquebox
-      return unless defined?(::Java) &&
+      return unless defined?(JRuby) &&
          ( Java::OrgTorqueboxRailsWebDeployers::RailsRackDeployer rescue nil) 
       @dispatcher = :torquebox
     end
 
     def check_for_glassfish
-      return unless defined?(::Java) &&
+      return unless defined?(JRuby) &&
          (((com.sun.grizzly.jruby.rack.DefaultRackApplicationFactory rescue nil) &&
          defined?(com::sun::grizzly::jruby::rack::DefaultRackApplicationFactory)) ||
          ((org.jruby.rack.DefaultRackApplicationFactory rescue nil) &&
@@ -292,18 +274,7 @@ module NewRelic
       end
     end
     
-    def duck_punch_delayed_worker
-      Delayed::Worker.class_eval do
-        def initialize_with_new_relic(*args)
-          initialize_without_new_relic(*args)
-          NewRelic::Control.instance.local_env.delayed_worker = self          
-        end
-        
-        alias initialize_without_new_relic initialize
-        alias initialize initialize_with_new_relic
-      end
-    end
-  
+
     def default_port
       require 'optparse'
       # If nothing else is found, use the 3000 default
