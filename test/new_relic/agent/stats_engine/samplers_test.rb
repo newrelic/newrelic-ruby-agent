@@ -5,6 +5,7 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
   
   def setup
     @stats_engine = NewRelic::Agent::StatsEngine.new
+    NewRelic::Agent.instance.stubs(:stats_engine).returns(@stats_engine)
   end
   def test_cpu
     s = NewRelic::Agent::Samplers::CpuSampler.new
@@ -52,9 +53,15 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
   def test_memory__windows
     return if defined? JRuby
     NewRelic::Agent::Samplers::MemorySampler.any_instance.stubs(:platform).returns 'win32'
-    assert_raise RuntimeError, /Unsupported platform/ do
+    assert_raise NewRelic::Agent::Sampler::Unsupported do
       NewRelic::Agent::Samplers::MemorySampler.new
     end
+  end
+  def test_load_samplers
+    @stats_engine.expects(:add_harvest_sampler).once
+    @stats_engine.expects(:add_sampler).once
+    NewRelic::Control.instance.load_samplers
+    assert_equal 4, NewRelic::Agent::Sampler.sampler_classes.size
   end
   def test_memory__is_supported
     NewRelic::Agent::Samplers::MemorySampler.stubs(:platform).returns 'windows'

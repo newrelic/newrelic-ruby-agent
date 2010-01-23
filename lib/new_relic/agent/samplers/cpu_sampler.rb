@@ -5,6 +5,7 @@ module NewRelic::Agent::Samplers
       super :cpu
       poll
     end
+    
     def user_util_stats
       stats_engine.get_stats_no_scope("CPU/User/Utilization")
     end
@@ -19,7 +20,7 @@ module NewRelic::Agent::Samplers
     end
     
     def self.supported_on_this_platform?
-      not defined?(Java)
+      not defined?(JRuby)
     end
     
     def poll

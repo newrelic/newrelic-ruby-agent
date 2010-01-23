@@ -5,7 +5,6 @@ module NewRelic::Agent::Samplers
     
     def initialize
       super :memory
-      
       # macos, linux, solaris
       if defined? JRuby
         @sampler = JavaHeapSampler.new
@@ -27,11 +26,15 @@ module NewRelic::Agent::Samplers
         @sampler = ShellPS.new("/usr/bin/ps -o rss -p")
       end
       
-      raise "Unsupported platform for getting memory: #{platform}" if @sampler.nil?
-      raise "Unable to run #{@sampler}" unless @sampler.can_run?
+      raise Unsupported, "Unsupported platform for getting memory: #{platform}" if @sampler.nil?
+      raise Unsupported, "Unable to run #{@sampler}" unless @sampler.can_run?
     end
     def self.supported_on_this_platform?
       defined?(JRuby) or platform =~ /linux|darwin9|darwin10|freebsd|solaris/
+    end
+
+    def self.use_harvest_sampler?
+      false
     end
 
     def self.platform

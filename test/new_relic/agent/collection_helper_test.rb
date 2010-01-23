@@ -23,7 +23,7 @@ class NewRelic::Agent::CollectionHelperTest < Test::Unit::TestCase
   end
   def test_boolean
     np = normalize_params(NewRelic::Control.instance.settings)
-    assert_equal false, np['enabled']
+    assert_equal false, np['monitor_mode']
   end
   def test_string__singleton
     val = "This String"
