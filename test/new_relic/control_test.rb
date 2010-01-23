@@ -37,7 +37,7 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     assert_equal :test, c.framework
     assert_match /test/i, c.dispatcher_instance_id
     assert_equal nil, c.dispatcher
-    assert_equal nil, c['enabled']
+    assert !c['enabled']
     assert_equal false, c['monitor_mode']
     c.local_env
   end
