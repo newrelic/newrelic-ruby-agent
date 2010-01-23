@@ -8,10 +8,14 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     NewRelic::Agent.manual_start
     @c =  NewRelic::Control.instance
   end
+  def shutdown
+    NewRelic::Agent.shutdown
+  end
 
   def test_monitor_mode
     assert ! @c.monitor_mode?
-    @c['enabled'] = nil
+    @c.settings.delete 'enabled'
+    @c.settings.delete 'monitor_mode'
     assert !@c.monitor_mode?
     @c['enabled'] = false
     assert ! @c.monitor_mode?
@@ -33,8 +37,8 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     assert_equal :test, c.framework
     assert_match /test/i, c.dispatcher_instance_id
     assert_equal nil, c.dispatcher
-    
-    assert_equal false, c['enabled']
+    assert_equal nil, c['enabled']
+    assert_equal false, c['monitor_mode']
     c.local_env
   end
   
