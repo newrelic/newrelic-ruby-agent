@@ -26,6 +26,7 @@ module NewRelic::Agent
     attr_reader :task_loop
     attr_reader :record_sql
     attr_reader :histogram
+    attr_reader :metric_ids
     
     # Should only be called by NewRelic::Control
     def self.instance
@@ -421,6 +422,7 @@ module NewRelic::Agent
       @unsent_timeslice_data = @stats_engine.harvest_timeslice_data(@unsent_timeslice_data, @metric_ids)
       
       begin
+        # In this version of the protocol, we get back an assoc array of spec to id.
         metric_ids = invoke_remote(:metric_data, @agent_id, 
                                    @last_harvest_time.to_f, 
                                    now.to_f, 
@@ -430,10 +432,10 @@ module NewRelic::Agent
         # assume that the data was received. chances are that it was
         metric_ids = nil
       end
-
-      if metric_ids
-        @metric_ids.merge! Hash[*metric_ids].invert
-      end
+      
+      metric_ids.each do | spec, id |
+        @metric_ids[spec] = id
+      end if metric_ids 
       
       log.debug "#{now}: sent #{@unsent_timeslice_data.length} timeslices (#{@agent_id}) in #{Time.now - now} seconds"
       

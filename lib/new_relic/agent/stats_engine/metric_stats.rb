@@ -84,10 +84,11 @@ module NewRelic::Agent
           # don't bother collecting and reporting stats that have zero-values for this timeslice.
           # significant performance boost and storage savings.
           unless stats_copy.is_reset?
+
+            id = metric_ids[metric_spec]
+            metric_spec_for_transport = id ? nil : metric_spec 
             
-            metric_spec_for_transport = (metric_ids[metric_spec].nil?) ? metric_spec : nil
-            
-            metric_data = NewRelic::MetricData.new(metric_spec_for_transport, stats_copy, metric_ids[metric_spec])
+            metric_data = NewRelic::MetricData.new(metric_spec_for_transport, stats_copy, id)
             
             timeslice_data[metric_spec] = metric_data
           end
