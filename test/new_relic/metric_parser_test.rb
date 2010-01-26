@@ -47,7 +47,7 @@ class MetricParserTest < Test::Unit::TestCase
       assert !m.is_web_service?
       
       assert_not_nil m.base_metric_name
-      assert m.base_metric_name.starts_with?('Controller/')
+      assert_equal 0, m.base_metric_name.index('Controller/')
     end
     
   end
