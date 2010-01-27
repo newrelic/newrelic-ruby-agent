@@ -95,7 +95,7 @@ class NewRelic::Agent::Instrumentation::MetricFrame # :nodoc:
   def recorded_metrics
     metrics = [ metric_name ]
     if @path_stack.size == 1
-      if category.starts_with? "Controller" 
+      if category.index("Controller") == 0
         metrics += ["Controller", "HttpDispatcher"]
       else
         metrics += ["#{category}/all", "OtherTransaction/all"]
