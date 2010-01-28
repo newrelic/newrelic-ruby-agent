@@ -58,7 +58,7 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
     end
   end
   def test_load_samplers
-    @stats_engine.expects(:add_harvest_sampler).once
+    @stats_engine.expects(:add_harvest_sampler).once unless defined? JRuby
     @stats_engine.expects(:add_sampler).once
     NewRelic::Control.instance.load_samplers
     assert_equal 4, NewRelic::Agent::Sampler.sampler_classes.size

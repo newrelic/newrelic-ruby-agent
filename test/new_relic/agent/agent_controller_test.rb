@@ -49,7 +49,7 @@ class AgentControllerTest < ActionController::TestCase
                 'Controller/new_relic/agent/agent_test/action_with_error',
                 'Errors/all']
 
-    compare_metrics metrics, engine.metrics.reject{|m| m.index('Response')==0}
+    compare_metrics metrics, engine.metrics.reject{|m| m.index('Response')==0 || m.index('CPU')==0}
     assert_equal 1, engine.get_stats_no_scope("Controller/new_relic/agent/agent_test/action_with_error").call_count
     assert_equal 1, engine.get_stats_no_scope("Errors/all").call_count
     apdex = engine.get_stats_no_scope("Apdex")
@@ -71,7 +71,7 @@ class AgentControllerTest < ActionController::TestCase
                 'Controller/new_relic/agent/agent_test/action_with_error',
                 'Errors/all']
 
-    compare_metrics metrics, engine.metrics.reject{|m| m.index('Response')==0}
+    compare_metrics metrics, engine.metrics.reject{|m| m.index('Response')==0 || m.index('CPU')==0}
     assert_equal 1, engine.get_stats_no_scope("Controller/new_relic/agent/agent_test/action_with_error").call_count
     assert_equal 1, engine.get_stats_no_scope("Errors/all").call_count
     apdex = engine.get_stats_no_scope("Apdex")
@@ -93,7 +93,7 @@ class AgentControllerTest < ActionController::TestCase
                 'Controller/new_relic/agent/agent_test/action_with_before_filter_error',
                 'Errors/all']
 
-    compare_metrics metrics, engine.metrics.reject{|m| m.index('Response')==0}
+    compare_metrics metrics, engine.metrics.reject{|m| m.index('Response')==0 || m.index('CPU')==0}
     assert_equal 1, engine.get_stats_no_scope("Controller/new_relic/agent/agent_test/action_with_before_filter_error").call_count
     assert_equal 1, engine.get_stats_no_scope("Errors/all").call_count
     apdex = engine.get_stats_no_scope("Apdex")
