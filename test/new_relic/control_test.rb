@@ -49,8 +49,6 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   
   def test_info
     props = NewRelic::Control.instance.local_env.snapshot
-    list = props.assoc('Plugin List').last.map(&:to_s).sort
-    assert_not_nil list # can't really guess what might be in here.  
     assert_match /jdbc|postgres|mysql|sqlite/, props.assoc('Database adapter').last
   end
   
@@ -82,11 +80,6 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   end
   def test_log_file_name
     assert_match /newrelic_agent.log$/, c.instance_variable_get('@log_file')
-  end
-  def test_environment_info
-    NewRelic::Control.instance.send :append_environment_info
-    snapshot = NewRelic::Control.instance.local_env.snapshot
-    assert snapshot.assoc('Plugin List').last.map(&:to_s).include?('newrelic_rpm'), snapshot.inspect
   end
    
   def test_transaction_threshold__apdex
