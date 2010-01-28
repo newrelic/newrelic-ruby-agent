@@ -47,9 +47,6 @@ class NewRelic::Agent::AgentTestController < NewRelic::Agent::SuperclassControll
       raise "error in the handler"
     end
   end
-  def action_with_double_raise
-    raise TestException, "Test Exception"
-  end
   def action_with_error
     raise "error in action"
   end
