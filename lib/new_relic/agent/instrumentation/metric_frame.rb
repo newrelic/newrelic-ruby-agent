@@ -99,15 +99,15 @@ class NewRelic::Agent::Instrumentation::MetricFrame
   end
   
   # If we have an active metric frame, notice the error and increment the error metric.
-  def self.notice_exception(e, custom_params={})
+  def self.notice_error(e, custom_params={})
     if current
-      current.notice_exception(e, custom_params)
+      current.notice_error(e, custom_params)
     else
       NewRelic::Agent.instance.error_collector.notice_error(e, nil, nil, custom_params)
     end
   end
   
-  def notice_exception(e, custom_params={})
+  def notice_error(e, custom_params={})
     if exception != e
       NewRelic::Agent.instance.error_collector.notice_error(e, nil, metric_name, filtered_params.merge(custom_params))
       self.exception = e

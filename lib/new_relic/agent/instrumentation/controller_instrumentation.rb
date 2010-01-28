@@ -248,7 +248,7 @@ module NewRelic::Agent::Instrumentation
             perform_action_without_newrelic_trace(*args)
           end
         rescue Exception => e
-          frame_data.notice_exception(e)
+          frame_data.notice_error(e)
           raise
         ensure
           NewRelic::Agent::BusyCalculator.dispatcher_finish

@@ -6,11 +6,11 @@ ActionController::Base.class_eval do
   # but we replaced that global method with NewRelic::Agent#notice_error.
   # Use that one outside of controller actions.
   def newrelic_notice_error(exception, custom_params = {})
-    NewRelic::Agent::Instrumentation::MetricFrame.notice_exception exception, custom_params
+    NewRelic::Agent::Instrumentation::MetricFrame.notice_error exception, custom_params
   end
   
   def rescue_action_with_newrelic_trace(exception)
-    NewRelic::Agent::Instrumentation::MetricFrame.notice_exception exception
+    NewRelic::Agent::Instrumentation::MetricFrame.notice_error exception
     rescue_action_without_newrelic_trace exception
   end
   
