@@ -92,6 +92,17 @@ class TaskInstrumentationTest < Test::Unit::TestCase
     assert_equal '10', sample.params[:request_params][:level]
   end
   
+  def test_abort
+    @acct = 'Redrocks'
+    perform_action_with_newrelic_trace(:name => 'hello', :force => true, :params => { :account => @acct}) do
+      RAILS_DEFAULT_LOGGER.info "Hello world"
+      NewRelic::Agent.abort_transaction!
+    end
+    # We record the controller metric still, but abort any transaction recording.
+    assert_equal 1, @agent.stats_engine.get_stats_no_scope('Controller/TaskInstrumentationTest/hello').call_count
+    assert_nil @agent.transaction_sampler.last_sample
+  end
+  
   def test_block
     assert_equal @agent, NewRelic::Agent.instance
     @acct = 'Redrocks'
@@ -113,11 +124,11 @@ class TaskInstrumentationTest < Test::Unit::TestCase
   def test_error_handling
     @agent.error_collector.ignore_error_filter
     @agent.error_collector.harvest_errors([])
+    @agent.error_collector.expects(:notice_error).once
+    assert_equal @agent.error_collector, NewRelic::Agent.instance.error_collector
     assert_raise RuntimeError do
       run_task_exception
     end
-    errors = @agent.error_collector.harvest_errors([])
-    assert_equal 1, errors.size
   end
   
   def test_instrument_bg

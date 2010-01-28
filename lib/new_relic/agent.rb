@@ -245,10 +245,10 @@ module NewRelic
     # Cancel the collection of the current transaction in progress, if any.
     # Only affects the transaction started on this thread once it has started
     # and before it has completed.
-    def abort_transaction
+    def abort_transaction!
       # The class may not be loaded if the agent is disabled
       if defined? NewRelic::Agent::Instrumentation::MetricFrame
-        NewRelic::Agent::Instrumentation::MetricFrame.current.abort_transaction!
+        NewRelic::Agent::Instrumentation::MetricFrame.abort_transaction!
       end
     end
     
@@ -286,7 +286,7 @@ module NewRelic
     #   the exception in RPM.
     #
     def notice_error(exception, extra_params = {})
-      NewRelic::Agent.agent.error_collector.notice_error(exception, nil, nil, extra_params)
+      NewRelic::Agent::Instrumentation::MetricFrame.notice_error(exception, extra_params)
     end
 
     # Add parameters to the current transaction trace on the call stack.
@@ -305,7 +305,11 @@ module NewRelic
     # * <tt>method</tt> is the name of the finder method or other method to identify the operation with.
     #
     def with_database_metric_name(model, method, &block)
-      NewRelic::Agent::Instrumentation::MetricFrame.current.with_database_metric_name(model, method, &block)
+      if frame = MetricFrame.current
+        frame.with_database_metric_name(model, method, &block)
+      else
+        yield
+      end
     end
   end 
 end  

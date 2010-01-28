@@ -36,6 +36,88 @@ class AgentControllerTest < ActionController::TestCase
     get :action_to_ignore
     compare_metrics [], engine.metrics
   end
+  def test_controller_double_raise
+    engine.clear_stats
+    # This blocks the test from rethrowing the error.
+    ActionController::TestRequest.any_instance.stubs(:remote_addr).returns '127.0.0.1'
+    assert_raise RuntimeError do
+      # exception thrown is the one thrown from the rescue handler, hence the double raise
+      get :action_with_double_raise
+    end
+    assert_equal 1, engine.get_stats_no_scope("Controller/new_relic/agent/agent_test/action_with_double_raise").call_count
+    assert_equal 2, engine.get_stats_no_scope("Errors/all").call_count
+    apdex = engine.get_stats_no_scope("Apdex")
+    score = apdex.get_apdex
+    assert_equal 1, score[2], 'failing'
+    assert_equal 0, score[1], 'tol'
+    assert_equal 0, score[0], 'satisfied'
+  end
+  
+  def test_controller_rescued_error
+    engine.clear_stats
+    assert_raise RuntimeError do
+      get :action_with_error
+    end
+    metrics =  ['Apdex',
+                'Apdex/new_relic/agent/agent_test/action_with_error',
+                'HttpDispatcher',
+                'Controller',
+                'Controller/new_relic/agent/agent_test/action_with_error',
+                'Errors/all']
+
+    compare_metrics metrics, engine.metrics.reject{|m| m.index('Response')==0}
+    assert_equal 1, engine.get_stats_no_scope("Controller/new_relic/agent/agent_test/action_with_error").call_count
+    assert_equal 1, engine.get_stats_no_scope("Errors/all").call_count
+    apdex = engine.get_stats_no_scope("Apdex")
+    score = apdex.get_apdex
+    assert_equal 1, score[2], 'failing'
+    assert_equal 0, score[1], 'tol'
+    assert_equal 0, score[0], 'satisfied'
+   
+  end
+  def test_controller_error
+    engine.clear_stats
+    assert_raise RuntimeError do
+      get :action_with_error
+    end
+    metrics =  ['Apdex',
+                'Apdex/new_relic/agent/agent_test/action_with_error',
+                'HttpDispatcher',
+                'Controller',
+                'Controller/new_relic/agent/agent_test/action_with_error',
+                'Errors/all']
+
+    compare_metrics metrics, engine.metrics.reject{|m| m.index('Response')==0}
+    assert_equal 1, engine.get_stats_no_scope("Controller/new_relic/agent/agent_test/action_with_error").call_count
+    assert_equal 1, engine.get_stats_no_scope("Errors/all").call_count
+    apdex = engine.get_stats_no_scope("Apdex")
+    score = apdex.get_apdex
+    assert_equal 1, score[2], 'failing'
+    assert_equal 0, score[1], 'tol'
+    assert_equal 0, score[0], 'satisfied'
+
+  end
+  def test_filter_error
+    engine.clear_stats
+    assert_raise RuntimeError do
+      get :action_with_before_filter_error
+    end
+    metrics =  ['Apdex',
+                'Apdex/new_relic/agent/agent_test/action_with_before_filter_error',
+                'HttpDispatcher',
+                'Controller',
+                'Controller/new_relic/agent/agent_test/action_with_before_filter_error',
+                'Errors/all']
+
+    compare_metrics metrics, engine.metrics.reject{|m| m.index('Response')==0}
+    assert_equal 1, engine.get_stats_no_scope("Controller/new_relic/agent/agent_test/action_with_before_filter_error").call_count
+    assert_equal 1, engine.get_stats_no_scope("Errors/all").call_count
+    apdex = engine.get_stats_no_scope("Apdex")
+    score = apdex.get_apdex
+    assert_equal 1, score[2], 'failing'
+    assert_equal 0, score[1], 'tol'
+    assert_equal 0, score[0], 'satisfied'
+  end
   def test_metric__ignore_base
     engine.clear_stats
     get :base_action

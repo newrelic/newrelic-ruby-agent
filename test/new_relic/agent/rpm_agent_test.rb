@@ -74,7 +74,6 @@ class RpmAgentTest < ActiveSupport::TestCase
     @agent.expects(:invoke_remote).returns({NewRelic::MetricSpec.new("/A/b/c") => 1, NewRelic::MetricSpec.new("/A/b/c", "/X") => 2, NewRelic::MetricSpec.new("/A/b/d") => 3 }.to_a)
     @agent.send :harvest_and_send_timeslice_data
     assert_equal 3, @agent.metric_ids.size
-    puts @agent.metric_ids.to_a.map{|k,v| "#{k.inspect}  => #{v}"}.join("\n  ")
     assert_equal 3, @agent.metric_ids[NewRelic::MetricSpec.new("/A/b/d") ], @agent.metric_ids.inspect
   end
   def test_set_record_sql
