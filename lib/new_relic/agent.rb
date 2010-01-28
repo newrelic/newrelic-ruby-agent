@@ -305,7 +305,7 @@ module NewRelic
     # * <tt>method</tt> is the name of the finder method or other method to identify the operation with.
     #
     def with_database_metric_name(model, method, &block)
-      if frame = MetricFrame.current
+      if frame = NewRelic::Agent::Instrumentation::MetricFrame.current
         frame.with_database_metric_name(model, method, &block)
       else
         yield
