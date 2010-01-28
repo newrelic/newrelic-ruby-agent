@@ -185,17 +185,9 @@ module NewRelic::Agent::Instrumentation
     #     newrelic_ignore :only => 'invoke_operation'
     #   end
     #
-    # By passing a block in combination with specific arguments, you can 
-    # invoke this directly to capture high level information in
-    # several contexts:
     #
-    # * Pass <tt>:category => :controller</tt> and <tt>:name => actionname</tt>
-    #   to treat the block as if it were a controller action, invoked
-    #   inside a real action.  <tt>:name</tt> is the name of the method, and is
-    #   used in the metric name.
-    #
-    # When invoked directly, pass in a block to measure with some
-    # combination of options:
+    # When invoking this method explicitly as in the example above, pass in a 
+    # block to measure with some combination of options:
     #
     # * <tt>:category => :controller</tt> indicates that this is a
     #   controller action and will appear with all the other actions.  This
@@ -210,11 +202,14 @@ module NewRelic::Agent::Instrumentation
     #   web transaction whose name is a normalized URI, where  'normalized'
     #   means the URI does not have any elements with data in them such
     #   as in many REST URIs.
+    # * <tt>:name => action_name</tt> is used to specify the action
+    #   name used as part of the metric name
     # * <tt>:params => {...}</tt> to provide information about the context
     #   of the call, used in transaction trace display, for example:
     #   <tt>:params => { :account => @account.name, :file => file.name }</tt>
-    # * <tt>:name => action_name</tt> is used to specify the action
-    #   name used as part of the metric name
+    #
+    # Seldomly used options:
+    #
     # * <tt>:force => true</tt> indicates you should capture all
     #   metrics even if the #newrelic_ignore directive was specified
     # * <tt>:class_name => aClass.name</tt> is used to override the name

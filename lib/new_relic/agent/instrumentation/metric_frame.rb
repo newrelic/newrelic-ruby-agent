@@ -1,21 +1,28 @@
 # A struct holding the information required to measure a controller
 # action.  This is put on the thread local.  Handles the issue of
 # re-entrancy, or nested action calls.
-class NewRelic::Agent::Instrumentation::MetricFrame # :nodoc:
+#
+# This class is not part of the public API.  Avoid making calls on it directly.
+#
+class NewRelic::Agent::Instrumentation::MetricFrame 
   attr_accessor :start, :apdex_start, :exception, 
                 :filtered_params, :available_request, :force_flag, 
                 :jruby_cpu_start, :process_cpu_start, :database_metric_name
   
+  # Return the currently active metric frame, or nil.  Call with +true+
+  # to create a new metric frame if one is not already on the thread.
   def self.current(create_if_empty=nil)
     Thread.current[:newrelic_metric_frame] ||= create_if_empty && new
   end
   
+  # This is the name of the model currently assigned to database 
+  # measurements, overriding the default. 
   def self.database_metric_name
     current && current.database_metric_name
   end
-
   
   @@java_classes_loaded = false
+  
   if defined? JRuby
     begin
       require 'java'
@@ -34,11 +41,15 @@ class NewRelic::Agent::Instrumentation::MetricFrame # :nodoc:
     @jruby_cpu_start = jruby_cpu_time
     @process_cpu_start = process_cpu
   end
-  
+
+  # Indicate that we are entering a measured controller action or task.
+  # Make sure you unwind every push with a pop call.
   def push(category, path)
     @path_stack.push [category, path]
   end
   
+  # Indicate that you don't want to keep the currently saved transaction
+  # information
   def self.abort_transaction!
     current.abort_transaction! if current
   end
