@@ -539,7 +539,7 @@ module NewRelic::Agent
       request.content_type = "application/octet-stream"
       request.body = opts[:data]
       
-      log.debug "connect to #{opts[:collector]}#{opts[:uri]}"
+      log.debug "Connect to #{opts[:collector]}#{opts[:uri]}"
       
       response = nil
       http = control.http_connection(collector)      
@@ -590,7 +590,13 @@ module NewRelic::Agent
     # send a message via post
     def invoke_remote(method, *args)
       #determines whether to zip the data or send plain
-      post_data, encoding = compress_data(args)
+      begin
+        post_data, encoding = compress_data(args)
+      rescue PostTooBigException => e
+        puts "Data was too big"
+        puts args.inspect
+        raise
+      end
       
       response = send_request({:uri => remote_method_uri(method), :encoding => encoding, :collector => collector, :data => post_data})
 

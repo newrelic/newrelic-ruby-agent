@@ -104,7 +104,6 @@ module NewRelic
     require 'new_relic/agent/samplers/mongrel_sampler'
     require 'new_relic/agent/samplers/object_sampler'
     require 'set'
-    require 'sync'
     require 'thread'
     require 'resolv'
     require 'timeout'
