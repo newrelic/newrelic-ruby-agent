@@ -192,7 +192,7 @@ module NewRelic
     # running it's better to use this method to register instrumentation than
     # just loading the files directly, although that probably also works. 
     def add_instrumentation file_pattern
-      NewRelic::Control.instance.add_instrumenation file_pattern
+      NewRelic::Control.instance.add_instrumentation file_pattern
     end
 
     # This method sets the block sent to this method as a sql obfuscator. 
