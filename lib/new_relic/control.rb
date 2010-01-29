@@ -258,6 +258,7 @@ module NewRelic
       http_class = Net::HTTP::Proxy(proxy_server.name, proxy_server.port, 
                                     proxy_server.user, proxy_server.password)
       http = http_class.new(host.ip || host.name, host.port)
+      log.debug("Http Connection opened to #{host.ip||host.name}:#{host.port}")
       if use_ssl?
         http.use_ssl = true
         if verify_certificate?
