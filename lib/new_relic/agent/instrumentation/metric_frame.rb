@@ -131,7 +131,7 @@ class NewRelic::Agent::Instrumentation::MetricFrame # :nodoc:
   private
   
   def recording_web_transaction?
-    if category.index("Controller") == 0
+    0 == category.index("Controller")
   end
   
   def update_apdex(stat, duration, failed)
