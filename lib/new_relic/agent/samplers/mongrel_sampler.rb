@@ -3,6 +3,7 @@ module NewRelic::Agent::Samplers
   class MongrelSampler < NewRelic::Agent::Sampler
     def initialize
       super :mongrel
+      raise Unsupported, "Mongrel not running" unless NewRelic::Control.instance.local_env.mongrel
     end
     def queue_stats
       stats_engine.get_stats("Mongrel/Queue Length", false)

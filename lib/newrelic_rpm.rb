@@ -14,6 +14,11 @@
 # directly.
 #
 require 'new_relic/control'
+begin
+  require 'rpm_contrib'
+rescue LoadError
+  # Contrib gem not being used.
+end
 
 def log!(message)
   STDERR.puts "[NewRelic] #{message}"

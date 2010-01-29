@@ -30,6 +30,9 @@ module NewRelic::Agent
       # Add an instance of Sampler to be invoked about every 10 seconds on a background
       # thread.
       def add_sampler sampler
+        periodic_samplers.each do |s|
+          raise "Sampler #{sampler.id} is already registered.  Don't call add_sampler directly anymore." if s.id == sampler.id
+        end
         periodic_samplers << sampler
         sampler.stats_engine = self
         log.debug "Adding sampler #{sampler.id.to_s}"

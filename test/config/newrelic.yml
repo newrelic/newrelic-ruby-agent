@@ -10,9 +10,9 @@ test:
   port: 3000
   log_level: info
   capture_params: true
-  enabled: false
-  developer: true
-  monitor_daemons: false
+  agent_enabled: false
+  monitor_mode: false
+  developer_mode: true
   disable_samplers: true
   api_host: 127.0.0.1
   api_port: 443

@@ -301,6 +301,17 @@ module NewRelic
       NewRelic::Agent.agent = NewRelic::Agent::ShimAgent.instance
     end
     
+    # Add instrumentation.  Don't call this directly.  Use NewRelic::Agent#add_instrumentation.
+    # This will load the file synchronously if we've already loaded the default
+    # instrumentation.
+    #
+    def add_instrumentation pattern
+      if @instrumented
+        load_instrumentation_files pattern
+      else
+        @instrumentation_files << pattern
+      end
+    end
     def install_instrumentation
       return if @instrumented
       
@@ -312,43 +323,28 @@ module NewRelic
       instrumentation_files = [ ] <<
       File.join(instrumentation_path, '*.rb') <<
       File.join(instrumentation_path, app.to_s, '*.rb')
-      instrumentation_files.each do | pattern |
-        Dir.glob(pattern) do |file|
-          begin
-            log.debug "Processing instrumentation file '#{file}'"
-            require file
-          rescue => e
-            log.error "Error loading instrumentation file '#{file}': #{e}"
-            log.debug e.backtrace.join("\n")
-          end
-        end
-      end
-      
+      instrumentation_files.each { | pattern |  load_instrumentation_files pattern }
       log.debug "Finished instrumentation"
     end
     
     def load_samplers
       agent = NewRelic::Agent.instance
-      agent.stats_engine.add_sampler NewRelic::Agent::Samplers::MongrelSampler.new if local_env.mongrel
-      
-      if NewRelic::Agent::Samplers::CpuSampler.supported_on_this_platform?
-        agent.stats_engine.add_harvest_sampler NewRelic::Agent::Samplers::CpuSampler.new
-      end
-      
-      if NewRelic::Agent::Samplers::ObjectSampler.supported_on_this_platform?
-        agent.stats_engine.add_harvest_sampler NewRelic::Agent::Samplers::ObjectSampler.new
-      end
-      
-      begin
-        if NewRelic::Agent::Samplers::MemorySampler.supported_on_this_platform?
-          agent.stats_engine.add_sampler NewRelic::Agent::Samplers::MemorySampler.new
+      NewRelic::Agent::Sampler.sampler_classes.each do | subclass |
+        begin
+          log.debug "#{subclass.name} not supported on this platform." and next if not subclass.supported_on_this_platform?
+          sampler = subclass.new
+          if subclass.use_harvest_sampler?
+            agent.stats_engine.add_harvest_sampler sampler
+            log.info "Registered #{subclass.name} for harvest time sampling"
+          else            
+            agent.stats_engine.add_sampler sampler
+            log.info "Registered #{subclass.name} for periodic sampling"
+          end
+        rescue NewRelic::Agent::Sampler::Unsupported => e
+          log.info "#{subclass} sampler not available: #{e}"
+        rescue => e
+          log.error "Error registering sampler: #{e}, #{e.backtrace.join("\n")}"
         end
-      rescue RuntimeError => e
-        log.error "Cannot add memory sampling: #{e}"
-      end
-      # Add sampler for DelayedJob worker
-      if local_env.delayed_worker
-        agent.stats_engine.add_sampler NewRelic::Agent::Samplers::DelayedJobLockSampler.new
       end
     end
     
@@ -392,6 +388,7 @@ module NewRelic
       s['agent_enabled'] = s.delete('monitor_daemons') if s['agent_enabled'].nil? && s.include?('monitor_daemons')
       s
     end
+    
     # Control subclasses may override this, but it can be called multiple times.
     def setup_log
       @log_file = "#{log_path}/newrelic_agent.log"
@@ -401,73 +398,86 @@ module NewRelic
       
       def @log.format_message(severity, timestamp, progname, msg)
         "[#{timestamp.strftime("%m/%d/%y %H:%M:%S %z")} #{Socket.gethostname} (#{$$})] #{severity} : #{msg}\n" 
+      end
+      
+      # set the log level as specified in the config file
+      case fetch("log_level","info").downcase
+      when "debug" then @log.level = Logger::DEBUG
+      when "info" then @log.level = Logger::INFO
+      when "warn" then @log.level = Logger::WARN
+      when "error" then @log.level = Logger::ERROR
+      when "fatal" then @log.level = Logger::FATAL
+      else @log.level = Logger::INFO
+      end
+      @log
     end
     
-    # set the log level as specified in the config file
-    case fetch("log_level","info").downcase
-      when "debug"; @log.level = Logger::DEBUG
-      when "info"; @log.level = Logger::INFO
-      when "warn"; @log.level = Logger::WARN
-      when "error"; @log.level = Logger::ERROR
-      when "fatal"; @log.level = Logger::FATAL
-    else @log.level = Logger::INFO
+    def to_stdout(msg)
+      STDOUT.puts "** [NewRelic] " + msg 
     end
-    @log
-  end
-  
-  def to_stdout(msg)
-    STDOUT.puts "** [NewRelic] " + msg 
-  end
-  
-  def config_file
-    File.expand_path(File.join(root,"config","newrelic.yml"))
-  end
-  
-  def log_path
-    path = File.join(root,'log')
-    unless File.directory? path
-      path = '.'
+    
+    def config_file
+      File.expand_path(File.join(root,"config","newrelic.yml"))
     end
-    File.expand_path(path)
-  end
-  
-  # Create the concrete class for environment specific behavior:
-  def self.new_instance
-    @local_env = NewRelic::LocalEnvironment.new
-    if @local_env.framework == :test
-      require File.join(newrelic_root, "test", "config", "test_control.rb")
-      NewRelic::Control::Test.new @local_env
-    else
-      require "new_relic/control/#{@local_env.framework}.rb"
-      NewRelic::Control.const_get(@local_env.framework.to_s.capitalize).new @local_env
+    
+    def log_path
+      path = File.join(root,'log')
+      unless File.directory? path
+        path = '.'
+      end
+      File.expand_path(path)
     end
-  end
-  
-  def initialize local_env
-    @local_env = local_env
-    newrelic_file = config_file
-    # Next two are for populating the newrelic.yml via erb binding, necessary
-    # when using the default newrelic.yml file
-    generated_for_user = ''
-    license_key=''
-    if !File.exists?(config_file)
-      log! "Cannot find newrelic.yml file at #{config_file}."
-      @yaml = {}
-    else
-      @yaml = YAML.load(ERB.new(File.read(config_file)).result(binding))
+    
+    # Create the concrete class for environment specific behavior:
+    def self.new_instance
+      @local_env = NewRelic::LocalEnvironment.new
+      if @local_env.framework == :test
+        require File.join(newrelic_root, "test", "config", "test_control.rb")
+        NewRelic::Control::Test.new @local_env
+      else
+        require "new_relic/control/#{@local_env.framework}.rb"
+        NewRelic::Control.const_get(@local_env.framework.to_s.capitalize).new @local_env
+      end
     end
-  rescue ScriptError, StandardError => e
-    puts e
-    puts e.backtrace.join("\n")
-    raise "Error reading newrelic.yml file: #{e}"
+    
+    def initialize local_env
+      @local_env = local_env
+      newrelic_file = config_file
+      # Next two are for populating the newrelic.yml via erb binding, necessary
+      # when using the default newrelic.yml file
+      generated_for_user = ''
+      license_key=''
+      if !File.exists?(config_file)
+        log! "Cannot find newrelic.yml file at #{config_file}."
+        @yaml = {}
+      else
+        @yaml = YAML.load(ERB.new(File.read(config_file)).result(binding))
+      end
+    rescue ScriptError, StandardError => e
+      puts e
+      puts e.backtrace.join("\n")
+      raise "Error reading newrelic.yml file: #{e}"
+    end
+    
+    # The root directory for the plugin or gem
+    def self.newrelic_root
+      File.expand_path(File.join(File.dirname(__FILE__),"..",".."))
+    end
+    def newrelic_root
+      self.class.newrelic_root
+    end
+    
+    def load_instrumentation_files pattern
+      Dir.glob(pattern) do |file|
+        begin
+          log.debug "Processing instrumentation file '#{file}'"
+          require file
+        rescue => e
+          log.error "Error loading instrumentation file '#{file}': #{e}"
+          log.debug e.backtrace.join("\n")
+        end
+      end
+    end
+    
   end
-  
-  # The root directory for the plugin or gem
-  def self.newrelic_root
-    File.expand_path(File.join(File.dirname(__FILE__),"..",".."))
-  end
-  def newrelic_root
-    self.class.newrelic_root
-  end
-end
 end

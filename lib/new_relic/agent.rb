@@ -186,6 +186,15 @@ module NewRelic
       @agent.shutdown
     end        
 
+    # Add instrumentation files to the agent.  The argument should be a glob
+    # matching ruby scripts which will be executed at the time instrumentation 
+    # is loaded.  Since instrumentation is not loaded when the agent is not
+    # running it's better to use this method to register instrumentation than
+    # just loading the files directly, although that probably also works. 
+    def add_instrumentation file_pattern
+      NewRelic::Control.instance.add_instrumenation file_pattern
+    end
+
     # This method sets the block sent to this method as a sql obfuscator. 
     # The block will be called with a single String SQL statement to obfuscate.
     # The method must return the obfuscated String SQL. 

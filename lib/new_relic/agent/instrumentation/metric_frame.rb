@@ -79,6 +79,7 @@ class NewRelic::Agent::Instrumentation::MetricFrame # :nodoc:
   end
   
   def record_apdex
+    return unless recording_web_transaction?
     ending = Time.now.to_f
     summary_stat = NewRelic::Agent.instance.stats_engine.get_custom_stats("Apdex", NewRelic::ApdexStats)
     controller_stat = NewRelic::Agent.instance.stats_engine.get_custom_stats("Apdex/#{path}", NewRelic::ApdexStats)
@@ -95,7 +96,7 @@ class NewRelic::Agent::Instrumentation::MetricFrame # :nodoc:
   def recorded_metrics
     metrics = [ metric_name ]
     if @path_stack.size == 1
-      if category.index("Controller") == 0
+      if recording_web_transaction?
         metrics += ["Controller", "HttpDispatcher"]
       else
         metrics += ["#{category}/all", "OtherTransaction/all"]
@@ -128,6 +129,10 @@ class NewRelic::Agent::Instrumentation::MetricFrame # :nodoc:
   end
   
   private
+  
+  def recording_web_transaction?
+    if category.index("Controller") == 0
+  end
   
   def update_apdex(stat, duration, failed)
     apdex_t = NewRelic::Control.instance.apdex_t
