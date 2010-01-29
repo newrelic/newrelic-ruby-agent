@@ -17,7 +17,7 @@ module NewRelic::Agent
     # Specifies the version of the agent's communication protocol with
     # the NewRelic hosted site.
     
-    PROTOCOL_VERSION = 6
+    PROTOCOL_VERSION = 8
     
     attr_reader :obfuscator
     attr_reader :stats_engine
@@ -430,8 +430,10 @@ module NewRelic::Agent
         # assume that the data was received. chances are that it was
         metric_ids = nil
       end
-      
-      @metric_ids.merge! metric_ids if metric_ids
+
+      if metric_ids
+        @metric_ids.merge! Hash[*metric_ids].invert
+      end
       
       log.debug "#{now}: sent #{@unsent_timeslice_data.length} timeslices (#{@agent_id}) in #{Time.now - now} seconds"
       
