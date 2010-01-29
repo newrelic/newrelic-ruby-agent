@@ -4,7 +4,7 @@ module NewRelic
     MAJOR = 2
     MINOR = 10
     TINY  = 2
-    EXPERIMENTAL = 1
+    EXPERIMENTAL = 2
     STRING = [MAJOR, MINOR, TINY, EXPERIMENTAL].compact.join('.')
   end
   

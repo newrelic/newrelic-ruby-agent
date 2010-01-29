@@ -1,4 +1,14 @@
-v2.10.2.0
+v2.10.2.2.
+  * extract contributed instrumentation into new contrib gem: http://github.com/newrelic/rpm_contrib
+  * expanded support for queue length and queue time
+  * remove calls to starts_with to fix Sinatra and non-rails deployments
+  * fix problem with apdex recording
+  * switch to jeweler for gem building
+  * minor fixes, test improvements, doc and rakefile improvements
+v2.10.2.1.
+  * fix bugs with Sinatra app instrumentation 
+  * minor doc updates
+v2.10.2.0.
   * beta release of 2.10
 v2.10.1.
   * rack support, including metal; ignores 404s; requires a module inclusion (see docs)

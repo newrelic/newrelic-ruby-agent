@@ -9,7 +9,7 @@ AUTHOR = "Bill Kayser"
 EMAIL = "support@newrelic.com"
 HOMEPAGE = "http://www.github.com/newrelic/rpm"
 SUMMARY = "New Relic Ruby Performance Monitoring Agent"
-
+URGENT_README = "README-#{GEM_VERSION}"
 # See http://www.rubygems.org/read/chapter/20 
 begin
   require 'jeweler'
@@ -28,10 +28,11 @@ http://github.com/newrelic/rpm/tree/master.
     gem.homepage = HOMEPAGE
     gem.author = AUTHOR
     gem.version = GEM_VERSION
-    gem.files = FileList['**/*'].to_a
+    gem.files = FileList['**/*'].to_a - ['init.rb']
     gem.test_files = [] # You can't really run the tests unless the gem is installed.
     gem.rdoc_options << "--line-numbers" << "--inline-source" << "--title" << "New Relic RPM" << "README.md"
     gem.files.reject! { |fn| fn =~ /Rakefile|pkg\// }
+    gem.post_install_message = File.read(URGENT_README) if File.exists?(URGENT_README) 
   end
   Jeweler::GemcutterTasks.new
 rescue LoadError
