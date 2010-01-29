@@ -1,4 +1,5 @@
 # run unit tests for the NewRelic Agent
+
 if defined? Rake::TestTask
   namespace :test do
     AGENT_HOME = File.expand_path(File.join(File.dirname(__FILE__), "..",".."))
@@ -9,5 +10,6 @@ if defined? Rake::TestTask
       t.verbose = true
     end
     Rake::Task['test:newrelic'].comment = "Run the unit tests for the Agent"
+    task :default => :newrelic
   end
 end

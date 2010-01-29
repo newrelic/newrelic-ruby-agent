@@ -8,6 +8,8 @@ class NewRelic::Control::Merb < NewRelic::Control
   end
   
   def to_stdout(msg)
+    Merb.logger.info("NewRelic ~ " + msg)
+  rescue Exception => e
     STDOUT.puts "NewRelic ~ " + msg 
   end
   

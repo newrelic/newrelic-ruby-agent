@@ -611,7 +611,7 @@ module NewRelic::Agent
     end
     
     def graceful_disconnect
-      if @connected && !(control.server.name == "localhost" && control.dispatcher_instance_id == '3000')
+      if @connected && !control.developer_mode?
         begin
           log.debug "Sending graceful shutdown message to #{control.server}"
           
