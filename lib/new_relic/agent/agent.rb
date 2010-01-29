@@ -27,6 +27,7 @@ module NewRelic::Agent
     attr_reader :record_sql
     attr_reader :histogram
     attr_reader :metric_ids
+    attr_reader :should_send_errors
     
     # Should only be called by NewRelic::Control
     def self.instance
@@ -308,7 +309,7 @@ module NewRelic::Agent
       @stats_engine = NewRelic::Agent::StatsEngine.new
       @transaction_sampler = NewRelic::Agent::TransactionSampler.new
       @stats_engine.transaction_sampler = @transaction_sampler
-      @error_collector = NewRelic::Agent::ErrorCollector.new(self)
+      @error_collector = NewRelic::Agent::ErrorCollector.new
       
       @request_timeout = NewRelic::Control.instance.fetch('timeout', 2 * 60)
       

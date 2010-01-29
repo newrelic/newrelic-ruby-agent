@@ -13,8 +13,7 @@ module NewRelic::Agent
     
     attr_accessor :enabled
     
-    def initialize(agent = nil)
-      @agent = agent
+    def initialize
       @errors = []
       # lookup of exception class names to ignore.  Hash for fast access
       @ignore = {}
@@ -50,14 +49,16 @@ module NewRelic::Agent
         exception = @ignore_filter.call(exception)
         return if exception.nil?
       end
+      NewRelic::Agent.get_stats("Errors/all").increment_count
+      return unless NewRelic::Agent.instance.should_send_errors
+      
       action_path ||= NewRelic::Agent.instance.stats_engine.scope_name || ''
-      error_stat.increment_count
       
       data = {}
       
       data[:request_params] = normalize_params(filtered_params) if NewRelic::Control.instance.capture_params
 
-      data[:custom_params] = normalize_params(@agent.custom_params) if @agent
+      data[:custom_params] = normalize_params(NewRelic::Agent.instance.custom_params) 
       
       data[:request_uri] = request.path if request
       data[:request_uri] ||= ""
@@ -109,9 +110,6 @@ module NewRelic::Agent
     end
     
     private
-    def error_stat
-      @error_stat ||= NewRelic::Agent.get_stats("Errors/all")
-    end
     def log
       NewRelic::Control.instance.log
     end

@@ -1,16 +1,28 @@
 # A struct holding the information required to measure a controller
 # action.  This is put on the thread local.  Handles the issue of
 # re-entrancy, or nested action calls.
-class NewRelic::Agent::Instrumentation::MetricFrame # :nodoc:
+#
+# This class is not part of the public API.  Avoid making calls on it directly.
+#
+class NewRelic::Agent::Instrumentation::MetricFrame 
   attr_accessor :start, :apdex_start, :exception, 
                 :filtered_params, :available_request, :force_flag, 
                 :jruby_cpu_start, :process_cpu_start, :database_metric_name
   
-  def self.current
-    Thread.current[:newrelic_metric_frame] ||= new
+  # Return the currently active metric frame, or nil.  Call with +true+
+  # to create a new metric frame if one is not already on the thread.
+  def self.current(create_if_empty=nil)
+    Thread.current[:newrelic_metric_frame] ||= create_if_empty && new
+  end
+  
+  # This is the name of the model currently assigned to database 
+  # measurements, overriding the default. 
+  def self.database_metric_name
+    current && current.database_metric_name
   end
   
   @@java_classes_loaded = false
+  
   if defined? JRuby
     begin
       require 'java'
@@ -29,9 +41,17 @@ class NewRelic::Agent::Instrumentation::MetricFrame # :nodoc:
     @jruby_cpu_start = jruby_cpu_time
     @process_cpu_start = process_cpu
   end
-  
+
+  # Indicate that we are entering a measured controller action or task.
+  # Make sure you unwind every push with a pop call.
   def push(category, path)
     @path_stack.push [category, path]
+  end
+  
+  # Indicate that you don't want to keep the currently saved transaction
+  # information
+  def self.abort_transaction!
+    current.abort_transaction! if current
   end
   
   # Call this to ensure that the current transaction is not saved
@@ -72,12 +92,27 @@ class NewRelic::Agent::Instrumentation::MetricFrame # :nodoc:
           NewRelic::Agent.get_stats_no_scope(NewRelic::Metrics::USER_TIME).record_data_point(cpu_burn)
         end
         NewRelic::Agent.instance.transaction_sampler.notice_transaction_cpu_time(cpu_burn) if cpu_burn
-        NewRelic::Agent.instance.histogram.process(Time.now.to_f - start)
+        NewRelic::Agent.instance.histogram.process(Time.now.to_f - start) if recording_web_transaction?(category)
       end      
     end
     NewRelic::Agent.instance.stats_engine.scope_name = metric_name 
   end
   
+  # If we have an active metric frame, notice the error and increment the error metric.
+  def self.notice_error(e, custom_params={})
+    if current
+      current.notice_error(e, custom_params)
+    else
+      NewRelic::Agent.instance.error_collector.notice_error(e, nil, nil, custom_params)
+    end
+  end
+  
+  def notice_error(e, custom_params={})
+    if exception != e
+      NewRelic::Agent.instance.error_collector.notice_error(e, nil, metric_name, filtered_params.merge(custom_params))
+      self.exception = e
+    end
+  end
   def record_apdex
     return unless recording_web_transaction?
     ending = Time.now.to_f
@@ -130,8 +165,8 @@ class NewRelic::Agent::Instrumentation::MetricFrame # :nodoc:
   
   private
   
-  def recording_web_transaction?
-    0 == category.index("Controller")
+  def recording_web_transaction?(cat = category)
+    0 == cat.index("Controller")
   end
   
   def update_apdex(stat, duration, failed)

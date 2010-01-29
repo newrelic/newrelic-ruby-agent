@@ -185,17 +185,9 @@ module NewRelic::Agent::Instrumentation
     #     newrelic_ignore :only => 'invoke_operation'
     #   end
     #
-    # By passing a block in combination with specific arguments, you can 
-    # invoke this directly to capture high level information in
-    # several contexts:
     #
-    # * Pass <tt>:category => :controller</tt> and <tt>:name => actionname</tt>
-    #   to treat the block as if it were a controller action, invoked
-    #   inside a real action.  <tt>:name</tt> is the name of the method, and is
-    #   used in the metric name.
-    #
-    # When invoked directly, pass in a block to measure with some
-    # combination of options:
+    # When invoking this method explicitly as in the example above, pass in a 
+    # block to measure with some combination of options:
     #
     # * <tt>:category => :controller</tt> indicates that this is a
     #   controller action and will appear with all the other actions.  This
@@ -210,11 +202,14 @@ module NewRelic::Agent::Instrumentation
     #   web transaction whose name is a normalized URI, where  'normalized'
     #   means the URI does not have any elements with data in them such
     #   as in many REST URIs.
+    # * <tt>:name => action_name</tt> is used to specify the action
+    #   name used as part of the metric name
     # * <tt>:params => {...}</tt> to provide information about the context
     #   of the call, used in transaction trace display, for example:
     #   <tt>:params => { :account => @account.name, :file => file.name }</tt>
-    # * <tt>:name => action_name</tt> is used to specify the action
-    #   name used as part of the metric name
+    #
+    # Seldomly used options:
+    #
     # * <tt>:force => true</tt> indicates you should capture all
     #   metrics even if the #newrelic_ignore directive was specified
     # * <tt>:class_name => aClass.name</tt> is used to override the name
@@ -253,10 +248,7 @@ module NewRelic::Agent::Instrumentation
             perform_action_without_newrelic_trace(*args)
           end
         rescue Exception => e
-          if frame_data.exception != e
-            NewRelic::Agent.instance.error_collector.notice_error(e, nil, frame_data.metric_name, frame_data.filtered_params)
-            frame_data.exception = e
-          end
+          frame_data.notice_error(e)
           raise
         ensure
           NewRelic::Agent::BusyCalculator.dispatcher_finish
@@ -267,12 +259,22 @@ module NewRelic::Agent::Instrumentation
         end
       end
     end
+
+    protected
+    # Should be implemented in the dispatcher class
+    def newrelic_response_code; end
     
-    # Experimental
+    def newrelic_request_headers
+      self.respond_to?(:request) && self.request.respond_to?(:headers) && self.request.headers
+    end
+    
+    private
+    
+    # Profile the instrumented call.  Dev mode only.  Experimental. 
     def perform_action_with_newrelic_profile(args)
       frame_data = _push_metric_frame(block_given? ? args : [])
       NewRelic::Agent.trace_execution_scoped frame_data.metric_name do
-        MetricFrame.current.start_transaction
+        MetricFrame.current(true).start_transaction
         NewRelic::Agent.disable_all_tracing do
           # turn on profiling
           profile = RubyProf.profile do
@@ -292,7 +294,7 @@ module NewRelic::Agent::Instrumentation
     # Write a metric frame onto a thread local if there isn't already one there.
     # If there is one, just update it.
     def _push_metric_frame(args) # :nodoc:
-      frame_data = MetricFrame.current
+      frame_data = MetricFrame.current(true)
       
       frame_data.apdex_start ||= _detect_upstream_wait(frame_data.start)
       
@@ -311,9 +313,7 @@ module NewRelic::Agent::Instrumentation
       frame_data.available_request ||= (respond_to? :request) ? request : nil
       frame_data
     end
-    
-    protected
-    
+        
     def _convert_args_to_path(args)
       options =  args.last.is_a?(Hash) ? args.pop : {}
       category = 'Controller'
@@ -384,12 +384,6 @@ module NewRelic::Agent::Instrumentation
       NewRelic::Agent.agent.stats_engine.get_stats_no_scope 'HttpDispatcher'  
     end
     
-    # Should be implemented in the dispatcher class
-    def newrelic_response_code; end
-    
-    def newrelic_request_headers
-      self.respond_to?(:request) && self.request.respond_to?(:headers) && self.request.headers
-    end
     
   end 
 end  

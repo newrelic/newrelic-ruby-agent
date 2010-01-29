@@ -320,10 +320,10 @@ module NewRelic
       # Instrumentation for the key code points inside rails for monitoring by NewRelic.
       # note this file is loaded only if the newrelic agent is enabled (through config/newrelic.yml)
       instrumentation_path = File.join(File.dirname(__FILE__), 'agent','instrumentation')
-      instrumentation_files = [ ] <<
+      @instrumentation_files <<
       File.join(instrumentation_path, '*.rb') <<
       File.join(instrumentation_path, app.to_s, '*.rb')
-      instrumentation_files.each { | pattern |  load_instrumentation_files pattern }
+      @instrumentation_files.each { | pattern |  load_instrumentation_files pattern }
       log.debug "Finished instrumentation"
     end
     
@@ -442,6 +442,7 @@ module NewRelic
     
     def initialize local_env
       @local_env = local_env
+      @instrumentation_files = []
       newrelic_file = config_file
       # Next two are for populating the newrelic.yml via erb binding, necessary
       # when using the default newrelic.yml file
