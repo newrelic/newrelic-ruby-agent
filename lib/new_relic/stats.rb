@@ -47,7 +47,7 @@ module NewRelic
       stats.merge! other_stats
     end
     
-    # split into an array of timesclices whose
+    # split into an array of timeslices whose
     # time boundaries start on (begin_time + (n * duration)) and whose
     # end time ends on (begin_time * (n + 1) * duration), except for the
     # first and last elements, whose begin time and end time are the begin
@@ -213,10 +213,11 @@ module NewRelic
       [@call_count, @total_call_time.to_i, @total_exclusive_time.to_i]
     end
 
-		def apdex_score
-			s, t, f = get_apdex
-			(s.to_f + (t.to_f / 2)) / (s+t+f).to_f
-		end
+    def apdex_score
+      s, t, f = get_apdex
+      (s.to_f + (t.to_f / 2)) / (s+t+f).to_f
+    end
+
     private
     def to_ms(number)
       (number*1000).round

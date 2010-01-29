@@ -9,6 +9,8 @@ end
 class NewRelic::Agent::AgentTestController < NewRelic::Agent::SuperclassController
   filter_parameter_logging :social_security_number
   
+  @@headers_to_add = nil
+  
   def rescue_action(e) raise e end
   
   ActionController::Routing::Routes.draw do | map |
@@ -36,6 +38,20 @@ class NewRelic::Agent::AgentTestController < NewRelic::Agent::SuperclassControll
       internal_action
     end    
   end
+
+  def self.set_some_headers(hash_of_headers)
+    @@headers_to_add ||= {}
+    @@headers_to_add.merge!(hash_of_headers)
+  end
+
+  def self.clear_headers
+    @@headers_to_add = nil
+  end
+
+  def newrelic_request_headers
+    @@headers_to_add
+  end
+  
   private
   def internal_action
     perform_action_with_newrelic_trace(:name => 'internal_traced_action', :force => true) do

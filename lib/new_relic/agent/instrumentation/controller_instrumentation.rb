@@ -355,17 +355,29 @@ module NewRelic::Agent::Instrumentation
     
     def _detect_upstream_wait(now)
       if newrelic_request_headers
-        entry_time = newrelic_request_headers['HTTP_X_REQUEST_START'] and
-        entry_time = entry_time[/t=(\d+)/, 1 ] and 
-        http_entry_time = entry_time.to_f/1e6
+        if entry_time = newrelic_request_headers['HTTP_X_REQUEST_START']
+          if queue_depth = newrelic_request_headers['HTTP_X_HEROKU_QUEUE_DEPTH']
+            http_entry_time = entry_time.to_f / 1e3
+            _record_heroku_queue_depth(queue_depth)
+          else # apache / nginx
+            apache_parsed_time = entry_time[/t=(\d+)/, 1]
+            http_entry_time = apache_parsed_time.to_f/1e6 if apache_parsed_time
+          end
+        end
       end
       # If we didn't find the custom header, look for the mongrel timestamp
       http_entry_time ||= Thread.current[:started_on] and http_entry_time = http_entry_time.to_f
       if http_entry_time
-        queue_stat = NewRelic::Agent.agent.stats_engine.get_stats_no_scope 'WebFrontend/Mongrel/Average Queue Time'  
-        queue_stat.trace_call(now - http_entry_time)
+        queue_stat = NewRelic::Agent.agent.stats_engine.get_stats_no_scope 'WebFrontend/Mongrel/Average Queue Time'
+        total_time = (now - http_entry_time)
+        queue_stat.trace_call(total_time) unless total_time < 0 # using remote timestamps could lead to negative queue time
       end
       http_entry_time || now
+    end
+
+    def _record_heroku_queue_depth(header)
+      length_stat = NewRelic::Agent.agent.stats_engine.get_stats_no_scope('Mongrel/Queue Length')
+      length_stat.trace_call(header.to_i)
     end
     
     def _dispatch_stat
