@@ -126,7 +126,9 @@ module NewRelic
     end
     
     def mongrel
-      return @mongrel if @mongrel || ! defined? ::Mongrel::HttpServer 
+      # Note that the odd defined? sequence is necessary to work around a bug in an older version
+      # of JRuby.
+      return @mongrel if @mongrel || ! (defined?(::Mongrel) && defined?(::Mongrel::HttpServer)) 
       ObjectSpace.each_object(Mongrel::HttpServer) do |mongrel|
         @mongrel = mongrel
       end unless defined?(::JRuby) && !JRuby.runtime.is_object_space_enabled
@@ -134,7 +136,7 @@ module NewRelic
     end
     
     def unicorn
-      return @unicorn if @unicorn || ! defined? ::Unicorn::HttpServer 
+      return @unicorn if @unicorn || ! (defined?(::Unicorn) && defined?(::Unicorn::HttpServer)) 
       ObjectSpace.each_object(Unicorn::HttpServer) do |unicorn|
         @unicorn = unicorn
       end unless defined?(::JRuby) && !JRuby.runtime.is_object_space_enabled
@@ -162,13 +164,16 @@ module NewRelic
     def discover_framework
       # Although you can override the framework with NEWRELIC_FRAMEWORK this
       # is not advisable since it implies certain api's being available.
+      #
+      # Note that the odd defined? sequence is necessary to work around a bug in an older version
+      # of JRuby.
       @framework = case
         when ENV['NEWRELIC_FRAMEWORK'] then ENV['NEWRELIC_FRAMEWORK'].to_sym
-        when defined? ::NewRelic::TEST then :test
-        when defined? ::Merb::Plugins then :merb
-        when defined? ::Rails then :rails
-        when defined? ::Sinatra::Base then :sinatra      
-        when defined? ::NewRelic::IA then :external
+        when defined?(::NewRelic::TEST) then :test
+        when defined?(::Merb) && defined?(::Merb::Plugins) then :merb
+        when defined?(::Rails) then :rails
+        when defined?(::Sinatra) && defined?(::Sinatra::Base) then :sinatra      
+        when defined?(::NewRelic::IA) then :external
       else :ruby
       end      
     end
@@ -189,7 +194,7 @@ module NewRelic
     end
 
     def check_for_webrick
-      return unless defined?(::WEBrick::VERSION)
+      return unless defined?(::WEBrick) && defined?(::WEBrick::VERSION)
       @dispatcher = :webrick
       if defined?(::OPTIONS) && OPTIONS.respond_to?(:fetch) 
         # OPTIONS is set by script/server
@@ -205,7 +210,7 @@ module NewRelic
 
     # this case covers starting by mongrel_rails
     def check_for_mongrel
-      return unless defined?(::Mongrel::HttpServer) 
+      return unless defined?(::Mongrel) && defined?(::Mongrel::HttpServer)
       @dispatcher = :mongrel
       
       # Get the port from the server if it's started
@@ -239,7 +244,7 @@ module NewRelic
     end
     
     def check_for_thin
-      if defined? ::Thin::Server
+      if defined?(::Thin) && defined?(::Thin::Server)
         # This case covers the thin web dispatcher
         # Same issue as above- we assume only one instance per process
         ObjectSpace.each_object(Thin::Server) do |thin_dispatcher|
@@ -269,7 +274,7 @@ module NewRelic
     end
     
     def check_for_passenger
-      if defined?(::Passenger::AbstractServer) || defined?(::IN_PHUSION_PASSENGER) 
+      if (defined?(::Passenger) && defined?(::Passenger::AbstractServer)) || defined?(::IN_PHUSION_PASSENGER) 
         @dispatcher = :passenger
       end
     end
