@@ -79,6 +79,7 @@ module NewRelic
     require 'new_relic/version'
     require 'new_relic/local_environment'
     require 'new_relic/stats'
+    require 'new_relic/metrics'
     require 'new_relic/metric_spec'
     require 'new_relic/metric_data'
     require 'new_relic/metric_parser'
@@ -291,7 +292,7 @@ module NewRelic
     # Add parameters to the current transaction trace on the call stack.
     #
     def add_custom_parameters(params)
-      agent.add_custom_parameters(params)
+      NewRelic::Agent::Instrumentation::MetricFrame.add_custom_parameters(params)
     end
     
     alias add_request_parameters add_custom_parameters
