@@ -292,7 +292,7 @@ module NewRelic
     # Add parameters to the current transaction trace on the call stack.
     #
     def add_custom_parameters(params)
-      NewRelic::Agent::Instrumentation::MetricFrame.add_custom_parameters(params)
+      agent.add_custom_parameters(params)
     end
     
     alias add_request_parameters add_custom_parameters
