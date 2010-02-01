@@ -226,7 +226,7 @@ module NewRelic
     end
     
     def check_for_unicorn
-      return unless defined?(::Unicorn::HttpServer)
+      return unless defined?(::Unicorn) && defined?(::Unicorn::HttpServer)
       
       # unlike mongrel, unicorn manages muliple threads and ports, so we 
       # have to map multiple processes into one instance, as we do with passenger
