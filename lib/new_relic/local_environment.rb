@@ -234,7 +234,7 @@ module NewRelic
     end
       
     def check_for_sinatra
-      return unless defined?(::Sinatra::Base)
+      return unless defined?(::Sinatra) && defined?(::Sinatra::Base)
       @dispatcher = :sinatra
     end
     
