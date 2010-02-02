@@ -14,7 +14,7 @@ module NewRelic::Agent
     BUILDER_KEY = :transaction_sample_builder
 
     attr_accessor :stack_trace_threshold, :random_sampling, :sampling_rate
-    attr_reader :samples, :last_sample
+    attr_reader :samples, :last_sample, :disabled
     
     def initialize
       @samples = []
@@ -34,6 +34,7 @@ module NewRelic::Agent
     end
 
     def disable
+      @disabled = true
       NewRelic::Agent.instance.stats_engine.remove_transaction_sampler self
     end
     
@@ -43,7 +44,7 @@ module NewRelic::Agent
     end
     
     def notice_first_scope_push(time)
-      start_builder(time)
+      start_builder(time) unless disabled
     end
     
     def notice_push_scope(scope, time=Time.now.to_f)
@@ -78,6 +79,7 @@ module NewRelic::Agent
   
     def notice_pop_scope(scope, time = Time.now.to_f)
       return unless builder
+      raise "frozen already???" if builder.sample.frozen?
       builder.trace_exit(scope, time)
     end
     
@@ -108,7 +110,7 @@ module NewRelic::Agent
     end
     
     def notice_transaction(path, request=nil, params={})
-      builder.set_transaction_info(path, request, params) if start_builder
+      builder.set_transaction_info(path, request, params) if !disabled && builder
     end
     
     def ignore_transaction
@@ -151,6 +153,7 @@ module NewRelic::Agent
     # and clear the collected sample list. 
     
     def harvest(previous = nil, slow_threshold = 2.0)
+      return [] if disabled
       result = []
       previous ||= []
       
@@ -199,7 +202,7 @@ module NewRelic::Agent
     private 
     
       def start_builder(time=nil)
-        if Thread::current[:record_tt] == false || !NewRelic::Agent.is_execution_traced?
+        if disabled || Thread::current[:record_tt] == false || !NewRelic::Agent.is_execution_traced?
           clear_builder
         else
           Thread::current[BUILDER_KEY] ||= TransactionSampleBuilder.new(time) 
@@ -264,7 +267,7 @@ module NewRelic::Agent
         return
       end
       @sample.root_segment.end_trace(time - @sample_start)
-      @sample.params[:custom_params] = normalize_params(NewRelic::Agent.instance.custom_params)
+      @sample.params[:custom_params] = normalize_params(NewRelic::Agent::Instrumentation::MetricFrame.custom_parameters)
       @sample.freeze
       @current_segment = nil
     end

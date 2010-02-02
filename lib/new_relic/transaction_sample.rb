@@ -107,28 +107,24 @@ module NewRelic
         str
       end
       def to_debug_str(depth)
-        tab = "" 
-        depth.times {tab << "  "}
-        
+        tab = "  " * depth 
         s = tab.clone
-        s << ">> #{metric_name}: #{(@entry_timestamp*1000).round}\n"
+        s << ">> #{'%3i ms' % (@entry_timestamp*1000)} [#{self.class.name.split("::").last}] #{metric_name} \n"
         unless params.empty?
-          s << "#{tab}#{tab}{\n"
           params.each do |k,v|
-            s << "#{tab}#{tab}#{k}: #{v}\n"
+            s << "#{tab}    -#{'%-16s' % k}: #{v.to_s[0..80]}\n"
           end
-          s << "#{tab}#{tab}}\n"
         end
         called_segments.each do |cs|
           s << cs.to_debug_str(depth + 1)
         end
-        s << tab
-        s << "<< #{metric_name}: "
+        s << tab + "<< "
         s << case @exit_timestamp
-          when nil then 'n/a'
-          when Numeric then (@exit_timestamp*1000).round.to_s
+          when nil then ' n/a'
+          when Numeric then '%3i ms' % (@exit_timestamp*1000)
           else @exit_timestamp.to_s
-        end << "\n"
+        end
+        s << " #{metric_name}\n"
       end
       
       def called_segments
@@ -288,7 +284,6 @@ module NewRelic
     end
 
     class FakeSegment < Segment
-
       public :parent_segment=
     end
 
@@ -403,7 +398,8 @@ module NewRelic
       @start_time - @@start_time.to_f
     end
     
-    def to_json(options = {})
+    # Used in the server only
+    def to_json(options = {}) #:nodoc:
       map = {:sample_id => @sample_id,
         :start_time => @start_time,
         :root_segment => @root_segment}
@@ -413,7 +409,8 @@ module NewRelic
       map.to_json
     end
     
-    def self.from_json(json)
+    # Used in the Server only
+    def self.from_json(json) #:nodoc:
       json = ActiveSupport::JSON.decode(json) if json.is_a?(String)
       
       if json.is_a?(Array)

@@ -58,7 +58,7 @@ module NewRelic::Agent
       
       data[:request_params] = normalize_params(filtered_params) if NewRelic::Control.instance.capture_params
 
-      data[:custom_params] = normalize_params(NewRelic::Agent.instance.custom_params) 
+      data[:custom_params] = normalize_params(NewRelic::Agent::Instrumentation::MetricFrame.custom_parameters) 
       
       data[:request_uri] = request.path if request
       data[:request_uri] ||= ""
