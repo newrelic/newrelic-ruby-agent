@@ -87,7 +87,7 @@ module NewRelic::Agent
       
       @lock.synchronize do
         if @errors.length >= MAX_ERROR_QUEUE_LENGTH
-          log.info("The error reporting queue has reached #{MAX_ERROR_QUEUE_LENGTH}. This error will not be reported to RPM: #{exception.message}")
+          log.warn("The error reporting queue has reached #{MAX_ERROR_QUEUE_LENGTH}. This error will not be reported to RPM: #{exception.message}")
         else
           @errors << noticed_error
         end

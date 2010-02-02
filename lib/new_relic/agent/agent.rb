@@ -45,7 +45,8 @@ module NewRelic::Agent
     def ensure_worker_thread_started
       return unless control.agent_enabled? && control.monitor_mode? && !@invalid_license
       if !running?
-        log.info "Detected that the worker loop is not running.  Restarting."
+        # We got some reports of threading errors in Unicorn with this.
+        log.debug "Detected that the worker loop is not running.  Restarting." rescue nil
         # Assume we've been forked, clear out stats that are left over from parent process
         reset_stats
         launch_worker_thread
@@ -150,7 +151,11 @@ module NewRelic::Agent
 
       @local_host = determine_host
       
-      log.info "Web container: #{control.dispatcher.to_s}"
+      if control.dispatcher.nil? || control.dispatcher.empty?
+        log.info "No dispatcher detected."
+      else
+        log.info "Web dispatcher: #{control.dispatcher.to_s}"
+      end
       
       @started = true
       

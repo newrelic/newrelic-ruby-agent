@@ -260,10 +260,7 @@ module NewRelic::Agent
       # log forensics and return gracefully
       if @sample.frozen?
         log = NewRelic::Control.instance.log
-        
-        log.warn "Unexpected double-freeze of Transaction Trace Object."
-        log.info "Please send this diagnostic data to New Relic"
-        log.info @sample.to_s
+        log.error "Unexpected double-freeze of Transaction Trace Object: \n#{@sample.to_s}"
         return
       end
       @sample.root_segment.end_trace(time - @sample_start)

@@ -23,9 +23,9 @@ class NewRelic::Control::Rails < NewRelic::Control
     if !agent_enabled?
       # Might not be running if it does not think mongrel, thin, passenger, etc
       # is running, if it things it's a rake task, or if the agent_enabled is false.
-      RAILS_DEFAULT_LOGGER.info "New Relic Agent not running."
+      ::RAILS_DEFAULT_LOGGER.info "New Relic Agent not running."
     else
-      RAILS_DEFAULT_LOGGER.info "Starting the New Relic Agent."
+      ::RAILS_DEFAULT_LOGGER.info "Starting the New Relic Agent."
       install_developer_mode rails_config if developer_mode?
     end
   end
