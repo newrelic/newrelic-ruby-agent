@@ -29,9 +29,6 @@ test:
   yval: yes
   sval: sure
     
-  # checks for loading classes on the background thread
-  check_bg_loading: true
-
   transaction_tracer:
     record_sql: raw
     transaction_threshold: Apdex_f # case insensitive
