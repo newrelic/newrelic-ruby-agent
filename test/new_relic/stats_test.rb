@@ -93,14 +93,6 @@ class NewRelic::StatsTest < Test::Unit::TestCase
     assert_equal(s1.calls_per_minute, 2)
   end
 
-  def test_calls_per_second
-    s1 = NewRelic::TestObjectForStats.new
-    s1.call_count = 90
-    s1.begin_time = Time.at(0)
-    s1.end_time = Time.at(30)
-    assert_equal(s1.calls_per_second, 3)
-  end
-
   def test_total_call_time_per_minute
     s1 = NewRelic::TestObjectForStats.new
     s1.begin_time = Time.at(0)
