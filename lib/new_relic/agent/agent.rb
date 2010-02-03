@@ -151,7 +151,7 @@ module NewRelic::Agent
 
       @local_host = determine_host
       
-      if control.dispatcher.nil? || control.dispatcher.empty?
+      if control.dispatcher.nil? || control.dispatcher.to_s.empty?
         log.info "No dispatcher detected."
       else
         log.info "Web dispatcher: #{control.dispatcher.to_s}"
