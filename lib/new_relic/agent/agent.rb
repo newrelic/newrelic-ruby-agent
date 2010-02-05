@@ -154,8 +154,9 @@ module NewRelic::Agent
       if control.dispatcher.nil? || control.dispatcher.to_s.empty?
         log.info "No dispatcher detected."
       else
-        log.info "Web dispatcher: #{control.dispatcher.to_s}"
+        log.info "Dispatcher: #{control.dispatcher.to_s}"
       end
+      log.info "Application: #{control.app_names.join(", ")}" unless control.app_names.empty?
       
       @started = true
       
