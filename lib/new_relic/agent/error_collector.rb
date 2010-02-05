@@ -32,7 +32,7 @@ module NewRelic::Agent
     end
     
     def ignore_error_filter(&block)
-      @ignore_filter = block.to_proc
+      @ignore_filter = block
     end
     
     
