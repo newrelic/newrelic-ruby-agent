@@ -1,4 +1,5 @@
 require 'set'
+require 'new_relic/version'
 
 module NewRelic 
   # An instance of LocalEnvironment is responsible for determining
@@ -204,7 +205,7 @@ module NewRelic
     end
     
     def check_for_fastcgi
-      return unless defined? ::FCGI
+      return unless defined?(::FCGI)
       @dispatcher = :fastcgi
     end
 
@@ -240,6 +241,17 @@ module NewRelic
       
     def check_for_sinatra
       return unless defined?(::Sinatra) && defined?(::Sinatra::Base)
+      
+      begin
+        version = ::Sinatra::VERSION
+      rescue
+        $stderr.puts("Error determining Sinatra version")
+      end
+
+      if ::NewRelic::VersionNumber.new('0.9.2') > version
+        $stderr.puts("Your Sinatra version is #{version}, we highly recommend upgrading to >=0.9.2"
+      end
+
       @dispatcher = :sinatra
     end
     
