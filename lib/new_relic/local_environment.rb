@@ -249,7 +249,7 @@ module NewRelic
       end
 
       if ::NewRelic::VersionNumber.new('0.9.2') > version
-        $stderr.puts("Your Sinatra version is #{version}, we highly recommend upgrading to >=0.9.2"
+        $stderr.puts("Your Sinatra version is #{version}, we highly recommend upgrading to >=0.9.2")
       end
 
       @dispatcher = :sinatra
