@@ -1,4 +1,6 @@
 v2.10.2.2.
+  * allow override of the RPM application name via 'rpm_app_name' environment variable
+  * revised Delayed::Job instrumentation so no manual_start is required 
   * extract contributed instrumentation into new contrib gem: http://github.com/newrelic/rpm_contrib
   * expanded support for queue length and queue time
   * remove calls to starts_with to fix Sinatra and non-rails deployments
