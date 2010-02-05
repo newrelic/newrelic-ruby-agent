@@ -1,6 +1,6 @@
 v2.10.2.2.
   * moved the background task instrumentation into a separate tab in the RPM UI
-  * allow override of the RPM application name via 'rpm_app_name' environment variable
+  * allow override of the RPM application name via RPM_APP_NAME environment variable
   * revised Delayed::Job instrumentation so no manual_start is required 
   * extract contributed instrumentation into new contrib gem: http://github.com/newrelic/rpm_contrib
   * expanded support for queue length and queue time

@@ -74,7 +74,7 @@ module NewRelic
     # is called at most once.
     #
     def init_plugin(options={})
-      options['app_name'] ||= ENV['rpm_app_name'] if ENV['rpm_app_name']
+      options['app_name'] ||= ENV['RPM_APP_NAME'] if ENV['RPM_APP_NAME']
  
       require 'new_relic/agent'
       # Merge the stringified options into the config as overrides:
