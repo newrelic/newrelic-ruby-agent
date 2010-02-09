@@ -114,8 +114,19 @@ class NewRelic::Agent::Instrumentation::MetricFrame
       self.exception = e
     end
   end
+  
+  # Add context parameters to the metric frame.  This information will be passed in to errors
+  # and transaction traces.  Keys and Values should be strings, numbers or date/times.
+  def self.add_custom_parameters(p)
+    current.add_custom_parameters(p) if current
+  end
+  
+  def self.custom_parameters
+    (current && current.custom_parameters) ? current.custom_parameters : {}
+  end
+  
   def record_apdex
-    return unless recording_web_transaction?
+    return unless recording_web_transaction? && NewRelic::Agent.is_execution_traced?
     ending = Time.now.to_f
     summary_stat = NewRelic::Agent.instance.stats_engine.get_custom_stats("Apdex", NewRelic::ApdexStats)
     controller_stat = NewRelic::Agent.instance.stats_engine.get_custom_stats("Apdex/#{path}", NewRelic::ApdexStats)
@@ -164,8 +175,16 @@ class NewRelic::Agent::Instrumentation::MetricFrame
     @database_metric_name=previous
   end
   
+  def custom_parameters
+    @custom_parameters ||= {}
+  end
+
+  def add_custom_parameters(p)
+    custom_parameters.merge!(p)
+  end
+
   private
-  
+
   def recording_web_transaction?(cat = category)
     0 == cat.index("Controller")
   end
