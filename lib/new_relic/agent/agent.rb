@@ -241,10 +241,10 @@ module NewRelic::Agent
           harvest_and_send_errors
         end
       end
-      log.debug("Running worker loop")
+      log.debug "Running worker loop"
       @task_loop.run
     rescue StandardError
-      log.debug("Error in worker loop: #{$!}")
+      log.debug "Error in worker loop: #{$!}"
       @connected = false
       raise
     end
@@ -459,7 +459,7 @@ module NewRelic::Agent
           retry if @traces.shift
         end
         
-        log.debug "#{now}: sent slowest sample (#{@agent_id}) in #{Time.now - now} seconds"
+        log.debug "Sent slowest sample (#{@agent_id}) in #{Time.now - now} seconds"
       end
       
       # if we succeed sending this sample, then we don't need to keep
