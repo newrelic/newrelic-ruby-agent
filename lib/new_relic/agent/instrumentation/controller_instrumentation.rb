@@ -317,23 +317,19 @@ module NewRelic::Agent::Instrumentation
         
     def _convert_args_to_path(args)
       options =  args.last.is_a?(Hash) ? args.pop : {}
-      category = 'Controller'
       params = options[:params] || {}
-      unless path = options[:path]
-        category = case options[:category]
+      category = case options[:category]
         when :controller, nil then 'Controller'
-        when :task then 'Controller' #'OtherTransaction/Background' # 'Task'
+        when :task then 'OtherTransaction/Background' # 'Task'
         when :rack then 'Controller/Rack' #'WebTransaction/Rack'
         when :uri then 'Controller' #'WebTransaction/Uri'
         when :sinatra then 'Controller/Sinatra' #'WebTransaction/Uri'
         # for internal use only
         else options[:category].to_s
-        end
-        # To be consistent with the ActionController::Base#controller_path used in rails to determine the
-        # metric path, we drop the controller off the end of the path if there is one.
+      end
+      unless path = options[:path]
         action = options[:name] || args.first 
         metric_class = options[:class_name] || (self.is_a?(Class) ? self.name : self.class.name)
-        
         path = metric_class
         path += ('/' + action) if action
       end
