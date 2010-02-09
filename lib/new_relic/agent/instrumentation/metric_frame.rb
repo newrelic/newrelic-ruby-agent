@@ -45,6 +45,7 @@ class NewRelic::Agent::Instrumentation::MetricFrame
   # Indicate that we are entering a measured controller action or task.
   # Make sure you unwind every push with a pop call.
   def push(category, path)
+    NewRelic::Agent.instance.transaction_sampler.notice_first_scope_push(start)
     @path_stack.push [category, path]
   end
   
@@ -94,9 +95,14 @@ class NewRelic::Agent::Instrumentation::MetricFrame
         end
         NewRelic::Agent.instance.transaction_sampler.notice_transaction_cpu_time(cpu_burn) if cpu_burn
         NewRelic::Agent.instance.histogram.process(Time.now.to_f - start) if recording_web_transaction?(category)
+        NewRelic::Agent.instance.transaction_sampler.notice_scope_empty      
       end      
+      NewRelic::Agent.instance.stats_engine.end_transaction
+      Thread.current[:newrelic_metric_frame] = nil
+    else # path stack not empty
+      # change the transaction name back to whatever was on the stack.  
+      NewRelic::Agent.instance.stats_engine.scope_name = metric_name
     end
-    NewRelic::Agent.instance.stats_engine.scope_name = metric_name 
   end
   
   # If we have an active metric frame, notice the error and increment the error metric.

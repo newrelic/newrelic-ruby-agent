@@ -237,26 +237,27 @@ module NewRelic::Agent::Instrumentation
       return perform_action_with_newrelic_profile(args, &block) if NewRelic::Control.instance.profiling?
       
       frame_data = _push_metric_frame(block_given? ? args : [])
-      
-      NewRelic::Agent.trace_execution_scoped frame_data.recorded_metrics, :force => frame_data.force_flag do
-        frame_data.start_transaction
-        begin
-          NewRelic::Agent::BusyCalculator.dispatcher_start frame_data.start
-          if block_given?
-            yield
-          else
-            perform_action_without_newrelic_trace(*args)
+      begin      
+        NewRelic::Agent.trace_execution_scoped frame_data.recorded_metrics, :force => frame_data.force_flag do
+          frame_data.start_transaction
+          begin
+            NewRelic::Agent::BusyCalculator.dispatcher_start frame_data.start
+            if block_given?
+              yield
+            else
+              perform_action_without_newrelic_trace(*args)
+            end
+          rescue Exception => e
+            frame_data.notice_error(e)
+            raise
           end
-        rescue Exception => e
-          frame_data.notice_error(e)
-          raise
-        ensure
-          NewRelic::Agent::BusyCalculator.dispatcher_finish
-          # Look for a metric frame in the thread local and process it.
-          # Clear the thread local when finished to ensure it only gets called once.
-          frame_data.record_apdex unless _is_filtered?('ignore_apdex')
-          frame_data.pop
         end
+      ensure
+        NewRelic::Agent::BusyCalculator.dispatcher_finish
+        # Look for a metric frame in the thread local and process it.
+        # Clear the thread local when finished to ensure it only gets called once.
+        frame_data.record_apdex unless _is_filtered?('ignore_apdex')
+        frame_data.pop
       end
     end
 

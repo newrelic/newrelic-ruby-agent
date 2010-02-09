@@ -62,14 +62,14 @@ class TaskInstrumentationTest < Test::Unit::TestCase
   def test_reentrancy
     assert_equal 0, NewRelic::Agent::BusyCalculator.busy_count
     run_task_inner(1)
+    assert_equal 1, @agent.stats_engine.get_stats_no_scope('Controller/TaskInstrumentationTest/inner_task_0').call_count
+    assert_equal 1, @agent.stats_engine.get_stats_no_scope('Controller/TaskInstrumentationTest/inner_task_1').call_count
     compare_metrics %w[
       Controller
       Controller/TaskInstrumentationTest/inner_task_0:Controller/TaskInstrumentationTest/inner_task_1
       Controller/TaskInstrumentationTest/inner_task_0
       Controller/TaskInstrumentationTest/inner_task_1
       ], @agent.stats_engine.metrics.grep(/^Controller/)
-    assert_equal 1, @agent.stats_engine.get_stats_no_scope('Controller/TaskInstrumentationTest/inner_task_0').call_count
-    assert_equal 1, @agent.stats_engine.get_stats_no_scope('Controller/TaskInstrumentationTest/inner_task_1').call_count
   end
   
   def test_transaction
@@ -77,6 +77,7 @@ class TaskInstrumentationTest < Test::Unit::TestCase
     assert_nil @agent.transaction_sampler.last_sample
     assert_equal @agent.transaction_sampler, @agent.stats_engine.instance_variable_get("@transaction_sampler")
     run_task_outer(10)
+    assert_equal 0, @agent.transaction_sampler.scope_depth, "existing unfinished sample"
     @agent.stats_engine.metrics.sort.each do |n|
       stat = @agent.stats_engine.get_stats_no_scope(n)
       #      puts "#{'%-26s' % n}: #{stat.call_count} calls @ #{stat.average_call_time} sec/call"

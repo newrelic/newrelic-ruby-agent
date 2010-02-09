@@ -46,10 +46,7 @@ module NewRelic::Agent
             capture_gc_time
           end
         end
-        if @transaction_sampler
-          @transaction_sampler.notice_first_scope_push(time) if stack.empty? 
-          @transaction_sampler.notice_push_scope metric, time
-        end
+        @transaction_sampler.notice_push_scope metric, time if @transaction_sampler
         scope = ScopeStackElement.new(metric, deduct_call_time_from_parent)
         stack.push scope
         scope
@@ -68,11 +65,7 @@ module NewRelic::Agent
             stack.last.children_time += scope.children_time
           end
         end
-        
-        if @transaction_sampler
-          @transaction_sampler.notice_pop_scope(scope.name, time)
-          @transaction_sampler.notice_scope_empty(time) if stack.empty? 
-        end
+        @transaction_sampler.notice_pop_scope(scope.name, time) if @transaction_sampler
         scope
       end
       

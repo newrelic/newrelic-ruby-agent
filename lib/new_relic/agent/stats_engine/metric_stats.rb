@@ -30,7 +30,7 @@ module NewRelic::Agent
           stats = stats_hash[spec] ||= NewRelic::MethodTraceStats.new 
         else  
           stats = stats_hash[metric_name] ||= NewRelic::MethodTraceStats.new 
-          if use_scope && scope_name
+          if use_scope && scope_name && scope_name != metric_name 
             spec = NewRelic::MetricSpec.new metric_name, scope_name
             scoped_stats = stats_hash[spec] ||= NewRelic::ScopedMethodTraceStats.new(stats) 
             stats = scoped_stats
