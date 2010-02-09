@@ -79,6 +79,7 @@ module NewRelic
     require 'new_relic/version'
     require 'new_relic/local_environment'
     require 'new_relic/stats'
+    require 'new_relic/metrics'
     require 'new_relic/metric_spec'
     require 'new_relic/metric_data'
     require 'new_relic/metric_parser'
