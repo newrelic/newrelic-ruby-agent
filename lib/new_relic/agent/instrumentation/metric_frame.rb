@@ -71,18 +71,19 @@ class NewRelic::Agent::Instrumentation::MetricFrame
   def category
     @path_stack.last.first  
   end
+  
   def path
     @path_stack.last.last
   end
   
+  # Unwind one stack level.  It knows if it's back at the outermost caller and
+  # does the appropriate wrapup of the context.
   def pop
     category, path = @path_stack.pop
     if category.nil?
       NewRelic::Control.instance.log.error "Underflow in metric frames: #{caller.join("\n   ")}"
     end
-    # change the transaction name back to whatever was on the stack.  
     if @path_stack.empty?
-      Thread.current[:newrelic_metric_frame] = nil
       if NewRelic::Agent.is_execution_traced?
         cpu_burn = nil
         if @process_cpu_start

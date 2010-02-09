@@ -45,7 +45,8 @@ module NewRelic::Agent
     def ensure_worker_thread_started
       return unless control.agent_enabled? && control.monitor_mode? && !@invalid_license
       if !running?
-        log.info "Detected that the worker loop is not running.  Restarting."
+        # We got some reports of threading errors in Unicorn with this.
+        log.debug "Detected that the worker loop is not running.  Restarting." rescue nil
         # Assume we've been forked, clear out stats that are left over from parent process
         reset_stats
         launch_worker_thread
@@ -91,12 +92,10 @@ module NewRelic::Agent
     end
     
     def start_transaction
-      Thread::current[:custom_params] = nil
       @stats_engine.start_transaction
     end
     
     def end_transaction
-      Thread::current[:custom_params] = nil
       @stats_engine.end_transaction
     end
     
@@ -121,16 +120,6 @@ module NewRelic::Agent
     # to what it was before we pushed the current flag.
     def pop_trace_execution_flag
       Thread.current[:newrelic_untraced].pop if Thread.current[:newrelic_untraced]
-    end
-    
-    def add_custom_parameters(params)
-      p = Thread::current[:custom_params] || (Thread::current[:custom_params] = {})
-      
-      p.merge!(params)
-    end
-    
-    def custom_params
-      Thread::current[:custom_params] || {}
     end
     
     def set_sql_obfuscator(type, &block)
@@ -162,7 +151,11 @@ module NewRelic::Agent
 
       @local_host = determine_host
       
-      log.info "Web container: #{control.dispatcher.to_s}"
+      if control.dispatcher.nil? || control.dispatcher.empty?
+        log.info "No dispatcher detected."
+      else
+        log.info "Web dispatcher: #{control.dispatcher.to_s}"
+      end
       
       @started = true
       
@@ -539,7 +532,7 @@ module NewRelic::Agent
       request.content_type = "application/octet-stream"
       request.body = opts[:data]
       
-      log.debug "connect to #{opts[:collector]}#{opts[:uri]}"
+      log.debug "Connect to #{opts[:collector]}#{opts[:uri]}"
       
       response = nil
       http = control.http_connection(collector)      
