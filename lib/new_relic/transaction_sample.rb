@@ -131,16 +131,6 @@ module NewRelic
         @called_segments || EMPTY_ARRAY
       end
       
-      def freeze
-        params.freeze
-        if @called_segments
-          @called_segments.each do |s|
-            s.freeze
-          end
-        end
-        super
-      end
-      
       # return the total duration of this segment
       def duration
         (@exit_timestamp - @entry_timestamp).to_f
@@ -453,11 +443,6 @@ module NewRelic
       NewRelic::TransactionSample::Segment.new(relative_timestamp, metric_name, segment_id)    
     end
     
-    def freeze
-      @root_segment.freeze
-      super
-    end
-    
     def duration
       root_segment.duration
     end
@@ -509,7 +494,7 @@ module NewRelic
       delta = build_segment_with_omissions(sample, 0.0, @root_segment, sample.root_segment, regex)
       sample.root_segment.end_trace(@root_segment.exit_timestamp - delta)
       sample.profile = self.profile
-      sample.freeze
+      sample
     end
     
     # return a new transaction sample that can be sent to the RPM service.
@@ -530,7 +515,7 @@ module NewRelic
       end
       
       sample.root_segment.end_trace(@root_segment.exit_timestamp) 
-      sample.freeze
+      sample
     end
     
     def analyze
