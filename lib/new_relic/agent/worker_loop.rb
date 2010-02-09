@@ -59,7 +59,6 @@ module NewRelic::Agent
       # next invocation time.
       task = next_task
       
-      # sleep in chunks no longer than 1 second
       while Time.now < task.next_invocation_time
         
         # sleep until this next task's scheduled invocation time
@@ -69,7 +68,7 @@ module NewRelic::Agent
       end
       
       begin
-        task.execute
+        task.execute if keep_running
       rescue ServerError => e
         log.debug "Server Error: #{e}"
       rescue NewRelic::Agent::ForceRestartException => e

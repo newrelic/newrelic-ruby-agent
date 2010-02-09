@@ -1,4 +1,8 @@
 v2.10.2.2.
+  * send buffered data on shutdown
+  * moved the background task instrumentation into a separate tab in the RPM UI
+  * allow override of the RPM application name via NEWRELIC_APP_NAME environment variable
+  * revised Delayed::Job instrumentation so no manual_start is required 
   * extract contributed instrumentation into new contrib gem: http://github.com/newrelic/rpm_contrib
   * expanded support for queue length and queue time
   * remove calls to starts_with to fix Sinatra and non-rails deployments

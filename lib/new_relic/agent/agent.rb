@@ -154,8 +154,9 @@ module NewRelic::Agent
       if control.dispatcher.nil? || control.dispatcher.to_s.empty?
         log.info "No dispatcher detected."
       else
-        log.info "Web dispatcher: #{control.dispatcher.to_s}"
+        log.info "Dispatcher: #{control.dispatcher.to_s}"
       end
+      log.info "Application: #{control.app_names.join(", ")}" unless control.app_names.empty?
       
       @started = true
       
@@ -601,13 +602,16 @@ module NewRelic::Agent
     end
     
     def graceful_disconnect
-      if @connected && !control.developer_mode?
+      if @connected
         begin
           log.debug "Sending graceful shutdown message to #{control.server}"
           
-          @request_timeout = 10
+          @request_timeout = 5
           
           log.debug "Sending RPM service agent run shutdown message"
+          harvest_and_send_timeslice_data
+#          harvest_and_send_slowest_sample
+          harvest_and_send_errors
           invoke_remote :shutdown, @agent_id, Time.now.to_f
           
           log.debug "Graceful shutdown complete"
