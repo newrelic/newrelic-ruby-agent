@@ -79,6 +79,7 @@ module NewRelic
     require 'new_relic/version'
     require 'new_relic/local_environment'
     require 'new_relic/stats'
+    require 'new_relic/delayed_job_injection'
     require 'new_relic/metrics'
     require 'new_relic/metric_spec'
     require 'new_relic/metric_data'
@@ -269,10 +270,12 @@ module NewRelic
     end
 
     # Set a filter to be applied to errors that RPM will track.
-    # The block should return the exception to track (which could be different from
+    # The block should evalute to the exception to track (which could be different from
     # the original exception) or nil to ignore this exception.
     #
-    # The block is yielded to with the exception to filter.
+    # The block is yielded to with the exception to filter. 
+    # 
+    # Do not call return.
     #
     def ignore_error_filter(&block)
       agent.error_collector.ignore_error_filter(&block)
