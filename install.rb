@@ -37,6 +37,7 @@ Please review the README.md file for more information.
 E-mail support@newrelic.com with any problems or questions.
 
     EOF
+
   end  
 end
 
