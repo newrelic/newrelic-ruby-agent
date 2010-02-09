@@ -294,8 +294,8 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
     method_to_be_traced 1,2,3,false,'X'
   end
   
-  def check_time (t1, t2)
-    assert((t2-t1).abs < 0.01, "Times not close: #{t1} ~ #{t2}")
+  def check_time(t1, t2)
+    assert_in_delta t2, t1, 0.02
   end
   
   # =======================================================
