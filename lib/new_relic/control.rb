@@ -74,11 +74,15 @@ module NewRelic
     # is called at most once.
     #
     def init_plugin(options={})
+      options['app_name'] = ENV['RPM_APP_NAME'] if ENV['RPM_APP_NAME']
+ 
       require 'new_relic/agent'
       # Merge the stringified options into the config as overrides:
       logger_override = options.delete(:log)
-      environment_name = options.delete(:env)
-      self.env = environment_name if environment_name
+      environment_name = options.delete(:env) and self.env = environment_name
+      dispatcher = options.delete(:dispatcher) and @local_env.dispatcher = dispatcher 
+      dispatcher_instance_id = options.delete(:dispatcher_instance_id) and @local_env.dispatcher_instance_id = dispatcher_instance_id
+
       # Clear out the settings, if they've already been loaded.  It may be that
       # between calling init_plugin the first time and the second time, the env
       # has been overridden
