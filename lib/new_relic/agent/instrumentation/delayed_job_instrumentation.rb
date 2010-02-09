@@ -11,4 +11,4 @@ module NewRelic::Agent::Instrumentation::DelayedJobInstrumentation
     end
   end
   
-end #if defined?(Delayed::Job)
+end if defined?(Delayed::Job)
