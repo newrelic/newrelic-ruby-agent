@@ -14,15 +14,6 @@
 # directly.
 #
 require 'new_relic/control'
-begin
-  require 'rpm_contrib'
-rescue LoadError
-  # Contrib gem not being used.
-end
-
-def log!(message)
-  STDERR.puts "[NewRelic] #{message}"
-end
 
 # After verison 2.0 of Rails we can access the configuration directly.
 # We need it to add dev mode routes after initialization finished. 
