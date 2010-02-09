@@ -256,15 +256,9 @@ module NewRelic::Agent
       
       @task_loop = WorkerLoop.new(log)
       
-      if control['check_bg_loading']
-        log.warn "Agent background loading checking turned on"
-        require 'new_relic/agent/patch_const_missing'
-        ClassLoadingWatcher.enable_warning
-      end
       log.debug "Creating RPM worker thread."
       @worker_thread = Thread.new do
         begin
-          ClassLoadingWatcher.background_thread=Thread.current if control['check_bg_loading']
           NewRelic::Agent.disable_all_tracing do
             connect
             run_task_loop if @connected

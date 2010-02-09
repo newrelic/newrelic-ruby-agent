@@ -12,9 +12,6 @@ require 'new_relic/control'
 
 # Initializer for the NewRelic Agent
 
-# We use this to test the agent to ensure it's not loading classes inappropriately
-#require 'new_relic/agent/patch_const_missing'
-#ClassLoadingWatcher.flag_const_missing = true
 begin
   # JRuby's glassfish plugin is trying to run the Initializer twice,
   # which isn't a good thing so we ignore subsequent invocations here.
