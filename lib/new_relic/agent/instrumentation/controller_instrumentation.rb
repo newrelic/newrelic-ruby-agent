@@ -1,4 +1,4 @@
-
+require 'new_relic/agent/instrumentation/metric_frame'
 module NewRelic
   module Agent
     module Instrumentation
@@ -297,7 +297,7 @@ module NewRelic
     # Write a metric frame onto a thread local if there isn't already one there.
     # If there is one, just update it.
     def _push_metric_frame(args) # :nodoc:
-      frame_data = MetricFrame.current(true)
+      frame_data = NewRelic::Agent::Instrumentation::MetricFrame.current(true)
       
       frame_data.apdex_start ||= _detect_upstream_wait(frame_data.start)
       

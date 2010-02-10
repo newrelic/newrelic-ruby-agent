@@ -35,8 +35,6 @@ elsif defined? Merb
       end
     end
   end
-elsif defined? Rack && ENV['RACK_ENV']
-  NewRelic::Control.instance.init_plugin(:env => ENV['RACK_ENV'])
 else
   NewRelic::Control.instance.init_plugin
 end

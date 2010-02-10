@@ -6,7 +6,7 @@
 class NewRelic::Control::Ruby < NewRelic::Control
   
   def env
-    @env ||= ENV['RUBY_ENV'] || ENV['RAILS_ENV'] || 'development'
+    @env ||= ENV['RUBY_ENV'] || ENV['RAILS_ENV'] || ENV['RACK_ENV'] || 'development'
   end
   def root
     @root ||= ENV['APP_ROOT'] || Dir['.']
