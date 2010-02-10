@@ -5,7 +5,7 @@ module NewRelic::Agent::Samplers
     end
     
     def stats
-      stats_engine.get_stats("DJ/Locked Jobs", false)
+      stats_engine.get_stats("Custom/DJ Locked Jobs", false)
     end
     
     def local_env
