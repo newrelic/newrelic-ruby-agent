@@ -1,5 +1,6 @@
 require 'new_relic/control'
-module NewRelic::Agent
+module NewRelic
+module Agent
   # This module contains class methods added to support installing custom
   # metric tracers and executing for individual metrics.
   #
@@ -345,4 +346,5 @@ module NewRelic::Agent
       end
     end
   end
+end
 end

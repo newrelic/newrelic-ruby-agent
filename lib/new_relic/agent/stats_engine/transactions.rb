@@ -1,4 +1,5 @@
-module NewRelic::Agent
+module NewRelic
+module Agent
   class StatsEngine
         
     # Defines methods that stub out the stats engine methods
@@ -144,4 +145,5 @@ module NewRelic::Agent
       
     end
   end
+end
 end

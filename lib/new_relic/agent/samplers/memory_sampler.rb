@@ -1,4 +1,6 @@
-module NewRelic::Agent::Samplers
+module NewRelic
+  module Agent
+module Samplers
   
   class MemorySampler < NewRelic::Agent::Sampler
     attr_accessor :sampler
@@ -139,3 +141,5 @@ module NewRelic::Agent::Samplers
     end
   end    
 end  
+end
+end

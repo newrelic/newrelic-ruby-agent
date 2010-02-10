@@ -1,5 +1,5 @@
-
-module NewRelic::Agent
+module NewRelic
+module Agent
   
   class TransactionSampler
     
@@ -312,4 +312,5 @@ module NewRelic::Agent
     end
     
   end
+end
 end

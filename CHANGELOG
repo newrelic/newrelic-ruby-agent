@@ -1,4 +1,5 @@
 v2.10.3
+  * change default config file to ignore RoutingErrors
   * moved the background task instrumentation into a separate tab in the RPM UI
   * allow override of the RPM application name via NEWRELIC_APP_NAME environment variable
   * revised Delayed::Job instrumentation so no manual_start is required 

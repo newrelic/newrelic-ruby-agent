@@ -1,5 +1,7 @@
-
-module NewRelic::Agent::Instrumentation
+require 'new_relic/agent/instrumentation/metric_frame'
+module NewRelic
+  module Agent
+    module Instrumentation
   # == NewRelic instrumentation for controllers
   #
   # This instrumentation is applied to the action controller by default if the agent
@@ -295,7 +297,7 @@ module NewRelic::Agent::Instrumentation
     # Write a metric frame onto a thread local if there isn't already one there.
     # If there is one, just update it.
     def _push_metric_frame(args) # :nodoc:
-      frame_data = MetricFrame.current(true)
+      frame_data = NewRelic::Agent::Instrumentation::MetricFrame.current(true)
       
       frame_data.apdex_start ||= _detect_upstream_wait(frame_data.start)
       
@@ -384,3 +386,5 @@ module NewRelic::Agent::Instrumentation
     
   end 
 end  
+end
+end

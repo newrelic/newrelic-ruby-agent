@@ -10,6 +10,10 @@
 #    dependency 'newrelic_rpm'
 # in the Merb config/init.rb
 #
+# For Sinatra, do
+#    require 'newrelic_rpm'
+# after requiring 'sinatra'.
+#
 # For other frameworks, or to manage the agent manually, invoke NewRelic::Agent#manual_start
 # directly.
 #
@@ -30,7 +34,7 @@ elsif defined? Merb
         NewRelic::Control.instance.init_plugin
       end
     end
-  end  
+  end
 else
   NewRelic::Control.instance.init_plugin
 end

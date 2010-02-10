@@ -1,5 +1,6 @@
 # Add these methods to TransactionSample that enable performance analysis in the user interface.
-module NewRelic::TransactionAnalysis
+module NewRelic
+module TransactionAnalysis
   def database_time
     time_percentage(/^Database\/.*/)
   end
@@ -118,4 +119,6 @@ module NewRelic::TransactionAnalysis
       # percent value rounded to two digits:
       return (100 * fraction).round / 100.0
     end
+  end
 end
+

@@ -1,5 +1,6 @@
 require 'fileutils'
-module NewRelic::Rack
+module NewRelic
+module Rack
   class MetricApp
     def initialize(options)
       if options[:install]
@@ -53,4 +54,5 @@ module NewRelic::Rack
       response.finish
     end
   end
+end
 end
