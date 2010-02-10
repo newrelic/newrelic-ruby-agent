@@ -61,7 +61,9 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
     @stats_engine.expects(:add_harvest_sampler).once unless defined? JRuby
     @stats_engine.expects(:add_sampler).once
     NewRelic::Control.instance.load_samplers
-    assert_equal 5, NewRelic::Agent::Sampler.sampler_classes.size
+    sampler_count = 4
+    sampler_count += 1 if defined? Delayed::Job
+    assert_equal sampler_count, NewRelic::Agent::Sampler.sampler_classes.size
   end
   def test_memory__is_supported
     NewRelic::Agent::Samplers::MemorySampler.stubs(:platform).returns 'windows'
