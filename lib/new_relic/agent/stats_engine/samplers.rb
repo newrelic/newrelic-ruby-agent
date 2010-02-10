@@ -1,4 +1,5 @@
-module NewRelic::Agent
+module NewRelic
+module Agent
   class StatsEngine
     module Shim # :nodoc:
       def add_sampler(*args); end
@@ -71,4 +72,5 @@ module NewRelic::Agent
       end
     end
   end
+end
 end

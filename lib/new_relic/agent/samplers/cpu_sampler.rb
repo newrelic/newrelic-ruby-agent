@@ -1,4 +1,6 @@
-module NewRelic::Agent::Samplers
+module NewRelic
+  module Agent
+    module Samplers
   class CpuSampler < NewRelic::Agent::Sampler
     attr_reader :last_time
     def initialize
@@ -46,5 +48,7 @@ module NewRelic::Agent::Samplers
       @last_time = now
     end
   end
+end
+end
 end
 

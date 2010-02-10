@@ -1,4 +1,6 @@
-module NewRelic::Agent::Samplers
+module NewRelic
+  module Agent
+    module Samplers
   class DelayedJobLockSampler < NewRelic::Agent::Sampler
     def initialize
       super :delayed_job_lock
@@ -28,4 +30,6 @@ module NewRelic::Agent::Samplers
       stats.record_data_point locked_jobs
     end
   end
+end
+end
 end

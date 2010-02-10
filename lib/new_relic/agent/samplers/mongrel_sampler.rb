@@ -1,4 +1,6 @@
-module NewRelic::Agent::Samplers
+module NewRelic
+  module Agent
+module Samplers
   # NewRelic Instrumentation for Mongrel - tracks the queue length of the mongrel server.
   class MongrelSampler < NewRelic::Agent::Sampler
     def initialize
@@ -20,4 +22,6 @@ module NewRelic::Agent::Samplers
       end
     end
   end
+end
+end
 end

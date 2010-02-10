@@ -8,7 +8,8 @@ require 'stringio'
 # The NewRelic Agent collects performance data from ruby applications
 # in realtime as the application runs, and periodically sends that
 # data to the NewRelic server.
-module NewRelic::Agent
+module NewRelic
+  module Agent
   
   # The Agent is a singleton that is instantiated when the plugin is
   # activated.
@@ -635,4 +636,5 @@ module NewRelic::Agent
     end
   end
   
+end
 end

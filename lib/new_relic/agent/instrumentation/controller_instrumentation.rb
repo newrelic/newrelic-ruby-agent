@@ -1,5 +1,7 @@
 
-module NewRelic::Agent::Instrumentation
+module NewRelic
+  module Agent
+    module Instrumentation
   # == NewRelic instrumentation for controllers
   #
   # This instrumentation is applied to the action controller by default if the agent
@@ -384,3 +386,5 @@ module NewRelic::Agent::Instrumentation
     
   end 
 end  
+end
+end

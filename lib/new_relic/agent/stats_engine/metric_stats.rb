@@ -1,4 +1,5 @@
-module NewRelic::Agent
+module NewRelic
+module Agent
   class StatsEngine
     module MetricStats
       # The stats hash hashes either a metric name for an unscoped metric,
@@ -113,4 +114,5 @@ module NewRelic::Agent
       end
     end
   end
+end
 end
