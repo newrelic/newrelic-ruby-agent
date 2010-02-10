@@ -189,6 +189,12 @@ class NewRelic::Agent::Instrumentation::MetricFrame
     custom_parameters.merge!(p)
   end
 
+  def self.recording_web_transaction?
+    if c = Thread.current[:newrelic_metric_frame]
+      c.recording_web_transaction?
+    end
+  end
+  
   private
 
   def recording_web_transaction?(cat = category)
