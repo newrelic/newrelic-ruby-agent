@@ -8,7 +8,7 @@ if defined? Net::HTTP
           request_without_newrelic_trace(*args, &block)
         end
       else
-        self.class.trace_execution_unscoped(["External/#{@address}/Net::HTTP/#{args[0].method}", 
+        self.class.trace_execution_scoped(["External/#{@address}/Net::HTTP/#{args[0].method}", 
                                              "External/#{@address}/all",
                                              "External/allOther"]) do
           request_without_newrelic_trace(*args, &block)
