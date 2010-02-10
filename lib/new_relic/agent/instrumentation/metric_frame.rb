@@ -194,13 +194,13 @@ class NewRelic::Agent::Instrumentation::MetricFrame
       c.recording_web_transaction?
     end
   end
-  
-  private
 
   def recording_web_transaction?(cat = category)
     0 == cat.index("Controller")
   end
   
+  private
+
   def update_apdex(stat, duration, failed)
     apdex_t = NewRelic::Control.instance.apdex_t
     case
