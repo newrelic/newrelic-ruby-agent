@@ -31,12 +31,9 @@ module Samplers
       raise Unsupported, "Unsupported platform for getting memory: #{platform}" if @sampler.nil?
       raise Unsupported, "Unable to run #{@sampler}" unless @sampler.can_run?
     end
+    
     def self.supported_on_this_platform?
       defined?(JRuby) or platform =~ /linux|darwin9|darwin10|freebsd|solaris/
-    end
-
-    def self.use_harvest_sampler?
-      false
     end
 
     def self.platform
