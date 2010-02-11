@@ -40,7 +40,7 @@ module NewRelic
     # errors is an array of Exception Class Names
     #
     def ignore(errors)
-      errors.each { |error| @ignore[error] = true; log.debug("Ignoring error: '#{error}'") }
+      errors.each { |error| @ignore[error] = true; log.debug("Ignoring errors of type '#{error}'") }
     end
     
     def notice_error(exception, request=nil, action_path=nil, filtered_params={})

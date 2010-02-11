@@ -340,10 +340,10 @@ module NewRelic
           sampler = subclass.new
           if subclass.use_harvest_sampler?
             agent.stats_engine.add_harvest_sampler sampler
-            log.info "Registered #{subclass.name} for harvest time sampling"
+            log.debug "Registered #{subclass.name} for harvest time sampling"
           else            
             agent.stats_engine.add_sampler sampler
-            log.info "Registered #{subclass.name} for periodic sampling"
+            log.debug "Registered #{subclass.name} for periodic sampling"
           end
         rescue NewRelic::Agent::Sampler::Unsupported => e
           log.info "#{subclass} sampler not available: #{e}"
