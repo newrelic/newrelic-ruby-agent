@@ -300,7 +300,7 @@ module NewRelic
       frame_data = NewRelic::Agent::Instrumentation::MetricFrame.current(true)
       
       frame_data.apdex_start ||= _detect_upstream_wait(frame_data.start)
-      
+      _record_queue_length 
       # If a block was passed in, then the arguments represent options for the instrumentation,
       # not app method arguments.
       if args.any?
@@ -351,13 +351,25 @@ module NewRelic
         true
       end
     end
+    # Take a guess at a measure representing the number of requests waiting in mongrel
+    # or heroku.
+    def _record_queue_length
+      if newrelic_request_headers
+        if queue_depth = newrelic_request_headers['HTTP_X_HEROKU_QUEUE_DEPTH']
+          queue_depth = queue_depth.to_i rescue nil
+        elsif mongrel = NewRelic::Control.instance.local_env.mongrel
+          # Always subtrace 1 for the active mongrel
+          queue_depth = [mongrel.workers.list.length.to_i - 1, 0].max rescue nil
+        end
+        NewRelic::Agent.agent.stats_engine.get_stats_no_scope('Mongrel/Queue Length').trace_call(queue_depth) if queue_depth
+      end
+    end
     
     def _detect_upstream_wait(now)
       if newrelic_request_headers
         if entry_time = newrelic_request_headers['HTTP_X_REQUEST_START']
-          if queue_depth = newrelic_request_headers['HTTP_X_HEROKU_QUEUE_DEPTH']
+          if newrelic_request_headers['HTTP_X_HEROKU_QUEUE_DEPTH'] # this is a heroku measure
             http_entry_time = entry_time.to_f / 1e3
-            _record_heroku_queue_depth(queue_depth)
           else # apache / nginx
             apache_parsed_time = entry_time[/t=(\d+)/, 1]
             http_entry_time = apache_parsed_time.to_f/1e6 if apache_parsed_time
@@ -374,11 +386,6 @@ module NewRelic
       http_entry_time || now
     end
 
-    def _record_heroku_queue_depth(header)
-      length_stat = NewRelic::Agent.agent.stats_engine.get_stats_no_scope('Mongrel/Queue Length')
-      length_stat.trace_call(header.to_i)
-    end
-    
     def _dispatch_stat
       NewRelic::Agent.agent.stats_engine.get_stats_no_scope 'HttpDispatcher'  
     end

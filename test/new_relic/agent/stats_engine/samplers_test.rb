@@ -59,7 +59,7 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
   end
   def test_load_samplers
     @stats_engine.expects(:add_harvest_sampler).once unless defined? JRuby
-    @stats_engine.expects(:add_sampler).once
+    @stats_engine.expects(:add_sampler).never
     NewRelic::Control.instance.load_samplers
     sampler_count = 4
     sampler_count += 1 if defined? Delayed::Job

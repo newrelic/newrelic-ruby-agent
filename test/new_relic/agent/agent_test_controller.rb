@@ -66,7 +66,7 @@ class NewRelic::Agent::AgentTestController < NewRelic::Agent::SuperclassControll
   end
   
   def newrelic_request_headers
-    @@headers_to_add
+    @@headers_to_add ||= {}
   end
   
   private
