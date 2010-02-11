@@ -45,7 +45,6 @@ class AgentControllerTest < ActionController::TestCase
     metrics =  ['Apdex',
                 'Apdex/new_relic/agent/agent_test/action_with_error',
                 'HttpDispatcher',
-                'Controller',
                 'Controller/new_relic/agent/agent_test/action_with_error',
                 'Errors/all']
 
@@ -67,7 +66,6 @@ class AgentControllerTest < ActionController::TestCase
     metrics =  ['Apdex',
                 'Apdex/new_relic/agent/agent_test/action_with_error',
                 'HttpDispatcher',
-                'Controller',
                 'Controller/new_relic/agent/agent_test/action_with_error',
                 'Errors/all']
 
@@ -89,7 +87,6 @@ class AgentControllerTest < ActionController::TestCase
     metrics =  ['Apdex',
                 'Apdex/new_relic/agent/agent_test/action_with_before_filter_error',
                 'HttpDispatcher',
-                'Controller',
                 'Controller/new_relic/agent/agent_test/action_with_before_filter_error',
                 'Errors/all']
 
