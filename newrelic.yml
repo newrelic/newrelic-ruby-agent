@@ -172,6 +172,7 @@ common: &default_settings
   # disable_view_instrumentation: true
   # disable_activerecord_instrumentation: true
   # disable_memcache_instrumentation: true
+  # disable_dj: true
   
   # Certain types of instrumentation such as GC stats will not work if 
   # you are running multi-threaded.  Please let us know.

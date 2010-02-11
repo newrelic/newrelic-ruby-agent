@@ -15,4 +15,4 @@ Delayed::Worker.class_eval do
   
   alias initialize_without_new_relic initialize
   alias initialize initialize_with_new_relic
-end if defined? Delayed::Worker
+end if defined?(Delayed::Worker) and not NewRelic::Control.instance['disable_dj']
