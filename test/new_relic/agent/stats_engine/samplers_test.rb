@@ -61,7 +61,7 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
     @stats_engine.expects(:add_harvest_sampler).once unless defined? JRuby
     @stats_engine.expects(:add_sampler).never
     NewRelic::Control.instance.load_samplers
-    sampler_count = 3
+    sampler_count = 4
     assert_equal sampler_count, NewRelic::Agent::Sampler.sampler_classes.size, NewRelic::Agent::Sampler.sampler_classes.inspect
   end
   def test_memory__is_supported
