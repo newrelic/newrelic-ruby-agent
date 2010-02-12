@@ -63,7 +63,7 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
     NewRelic::Control.instance.load_samplers
     sampler_count = 3
     sampler_count += 1 if defined? Delayed::Job
-    assert_equal sampler_count, NewRelic::Agent::Sampler.sampler_classes.size
+    assert_equal sampler_count, NewRelic::Agent::Sampler.sampler_classes.size, NewRelic::Agent::Sampler.sampler_classes.inspect
   end
   def test_memory__is_supported
     NewRelic::Agent::Samplers::MemorySampler.stubs(:platform).returns 'windows'
