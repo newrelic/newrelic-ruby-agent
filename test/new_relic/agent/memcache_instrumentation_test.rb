@@ -5,7 +5,7 @@ class NewRelic::Agent::MemcacheInstrumentationTest < Test::Unit::TestCase
 
   # This implementation: http://seattlerb.rubyforge.org/memcache-client/
   def using_memcache_client?
-    MemCache.method_defined? :cache_get
+    ::MemCache.method_defined? :cache_get
   end
 
   def setup
@@ -13,10 +13,10 @@ class NewRelic::Agent::MemcacheInstrumentationTest < Test::Unit::TestCase
     @engine = NewRelic::Agent.instance.stats_engine
     
     if using_memcache_client?
-      @cache = MemCache.new('localhost')
+      @cache = ::MemCache.new('localhost')
     else
-      server = MemCache::Server.new('localhost')
-      @cache = MemCache.new(server)
+      server = ::MemCache::Server.new('localhost')
+      @cache = ::MemCache.new(server)
     end
     @key = 'schluessel'
     @task = 'task'
@@ -28,7 +28,7 @@ class NewRelic::Agent::MemcacheInstrumentationTest < Test::Unit::TestCase
       perform_action_with_newrelic_trace(@task) do
         @cache.send(method.to_sym, *[@key, *args])
       end
-    rescue MemCache::MemCacheError
+    rescue ::MemCache::MemCacheError
       # There's probably no memcached around
     end
   end
@@ -39,7 +39,7 @@ class NewRelic::Agent::MemcacheInstrumentationTest < Test::Unit::TestCase
       perform_action_with_newrelic_trace(@task, :category => :task) do
         @cache.send(method.to_sym, *[@key, *args])
       end
-    rescue MemCache::MemCacheError
+    rescue ::MemCache::MemCacheError
       # There's probably no memcached around
     end
   end
