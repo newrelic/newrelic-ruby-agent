@@ -7,20 +7,19 @@ v2.10.3
   * send buffered data on shutdown
   * expanded support for queue length and queue time
   * remove calls to starts_with to fix Sinatra and non-rails deployments
-  * fix problem with apdex recording
+  * fix problem with apdex scores recording too low in some circumstances
   * switch to jeweler for gem building
   * minor fixes, test improvements, doc and rakefile improvements
   * fix incompatibility with Hoptoad where Hoptoad was not getting errors handled by New Relic
-  * many other bug fixes and documentation improvements
+  * many other optimizations, bug fixes and documentation improvements
 
-v2.10.2.1.
+v2.10.2.
+  * beta release of 2.10
   * fix bugs with Sinatra app instrumentation 
   * minor doc updates
   
-v2.10.2.0.
-  * beta release of 2.10
-  
 v2.10.1.
+  * alpha release of 2.10
   * rack support, including metal; ignores 404s; requires a module inclusion (see docs)
   * sinatra support, displays actions named by the URI pattern matched
   * add API method to abort transaction recording for in-flight transactions
@@ -56,6 +55,7 @@ v2.10.1.
   * optimization: reduce wakeup times for harvest thread
   
 v2.10.0.
+  * alpha release of 2.10
   * support unicorn
   * instrumentation of GC for REE and MRE with GC patch
   * support agent restarting when changes are made to the account
