@@ -59,30 +59,14 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
   end
   def test_load_samplers
     @stats_engine.expects(:add_harvest_sampler).once unless defined? JRuby
-    @stats_engine.expects(:add_sampler).once
+    @stats_engine.expects(:add_sampler).never
     NewRelic::Control.instance.load_samplers
-    assert_equal 4, NewRelic::Agent::Sampler.sampler_classes.size
+    sampler_count = 4
+    assert_equal sampler_count, NewRelic::Agent::Sampler.sampler_classes.size, NewRelic::Agent::Sampler.sampler_classes.inspect
   end
   def test_memory__is_supported
     NewRelic::Agent::Samplers::MemorySampler.stubs(:platform).returns 'windows'
     assert !NewRelic::Agent::Samplers::MemorySampler.supported_on_this_platform? || defined? JRuby
-  end
-  def test_mongrel 
-    NewRelic::Agent::BusyCalculator.stubs('is_busy?'.to_sym).returns(false)  
-    mongrel = mock()
-    NewRelic::Control.instance.local_env.stubs(:mongrel).returns(mongrel)
-    list = mock()
-    workers = mock()
-    workers.stubs(:list).returns(list)
-    list.stubs(:length).returns(3)
-    mongrel.expects(:workers).returns(workers).at_least_once
-    s = NewRelic::Agent::Samplers::MongrelSampler.new
-    s.stats_engine = @stats_engine
-    s.poll
-    s.poll
-    s.poll
-    assert_equal 3, s.queue_stats.call_count
-    assert_equal 3, s.queue_stats.average_call_time, "mongrel queue length"
   end
   
 end

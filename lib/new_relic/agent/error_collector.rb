@@ -40,32 +40,38 @@ module NewRelic
     # errors is an array of Exception Class Names
     #
     def ignore(errors)
-      errors.each { |error| @ignore[error] = true; log.debug("Ignoring error: '#{error}'") }
+      errors.each { |error| @ignore[error] = true; log.debug("Ignoring errors of type '#{error}'") }
     end
     
-    def notice_error(exception, request=nil, action_path=nil, filtered_params={})
+    # Notice the error with the given available options:
+    #
+    # * :uri => The request path, minus any request params or query string.
+    # * :referer => The URI of the referer
+    # * :metric => The metric name associated with the transaction
+    # * :request_params => Request parameters, already filtered if necessary
+    # * :custom_params => Custom parameters
+    def notice_error(exception, options={})
       return unless @enabled
       return if @ignore[exception.class.name] 
       if @ignore_filter
         exception = @ignore_filter.call(exception)
         return if exception.nil?
       end
+
+      action_path     = options[:metric] || NewRelic::Agent.instance.stats_engine.scope_name || ''
+      filtered_params = options[:request_params] || {}
+
       NewRelic::Agent.get_stats("Errors/all").increment_count
       return unless NewRelic::Agent.instance.should_send_errors
       
-      action_path ||= NewRelic::Agent.instance.stats_engine.scope_name || ''
-      
       data = {}
       
-      data[:request_params] = normalize_params(filtered_params) if NewRelic::Control.instance.capture_params
+      data[:request_params] = normalize_params(options[:request_params]) if NewRelic::Control.instance.capture_params && options[:request_params]
 
-      data[:custom_params] = normalize_params(NewRelic::Agent::Instrumentation::MetricFrame.custom_parameters) 
+      data[:custom_params] = normalize_params(options[:custom_params]) if options[:custom_params]
       
-      data[:request_uri] = request.path if request
-      data[:request_uri] ||= ""
-      
-      data[:request_referer] = request.referer if request
-      data[:request_referer] ||= ""
+      data[:request_uri] = options[:uri] || ''
+      data[:request_referer] = options[:referer] || ''
       
       data[:rails_root] = NewRelic::Control.instance.root
       
@@ -87,8 +93,8 @@ module NewRelic
       noticed_error = NewRelic::NoticedError.new(action_path, data, exception)
       
       @lock.synchronize do
-        if @errors.length >= MAX_ERROR_QUEUE_LENGTH
-          log.warn("The error reporting queue has reached #{MAX_ERROR_QUEUE_LENGTH}. This error will not be reported to RPM: #{exception.message}")
+        if @errors.length == MAX_ERROR_QUEUE_LENGTH
+          log.warn("The error reporting queue has reached #{MAX_ERROR_QUEUE_LENGTH}. The error detail for this and subsequent errors will not be transmitted to RPM until the queued errors have been sent: #{exception.message}")
         else
           @errors << noticed_error
         end

@@ -113,10 +113,10 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     not_as_slow = @sampler.harvest(slowest, 0)[0]
     assert not_as_slow == slowest
     
-    run_sample_trace { sleep 0.6 }
+    run_sample_trace { sleep 0.601 }
     new_slowest = @sampler.harvest(slowest, 0)[0]
     assert new_slowest != slowest
-    assert new_slowest.duration >= 0.6
+    assert new_slowest.duration >= 0.600, "Slowest duration must be > 0.6: #{new_slowest.duration}"
   end
   
   
