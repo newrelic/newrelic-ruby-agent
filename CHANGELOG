@@ -11,6 +11,7 @@ v2.10.3
   * switch to jeweler for gem building
   * minor fixes, test improvements, doc and rakefile improvements
   * fix incompatibility with Hoptoad where Hoptoad was not getting errors handled by New Relic
+  * many other bug fixes and documentation improvements
 
 v2.10.2.1.
   * fix bugs with Sinatra app instrumentation 
