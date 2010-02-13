@@ -3,8 +3,8 @@ module NewRelic
   module VERSION #:nodoc:
     MAJOR = 2
     MINOR = 10
-    TINY  = 2
-    EXPERIMENTAL = 3
+    TINY  = 3
+    EXPERIMENTAL = nil 
     STRING = [MAJOR, MINOR, TINY, EXPERIMENTAL].compact.join('.')
   end
   
