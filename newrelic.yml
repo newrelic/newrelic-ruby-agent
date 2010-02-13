@@ -156,9 +156,10 @@ common: &default_settings
     capture_source: true    
     
     # To stop specific errors from reporting to RPM, set this property
-    # to comma separated values
+    # to comma separated values.  Default is to ignore routing errors
+    # which are how 404's get triggered.
     #
-    #ignore_errors: ActionController::RoutingError, ...
+    ignore_errors: ActionController::RoutingError
 
   # (Advanced) Uncomment this to ensure the cpu and memory samplers
   # won't run.  Useful when you are using the agent to monitor an
@@ -171,6 +172,7 @@ common: &default_settings
   # disable_view_instrumentation: true
   # disable_activerecord_instrumentation: true
   # disable_memcache_instrumentation: true
+  # disable_dj: true
   
   # Certain types of instrumentation such as GC stats will not work if 
   # you are running multi-threaded.  Please let us know.
