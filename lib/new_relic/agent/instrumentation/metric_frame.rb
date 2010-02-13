@@ -7,9 +7,9 @@
 module NewRelic::Agent::Instrumentation
   class MetricFrame 
     attr_accessor :start, :apdex_start, :exception, 
-                :filtered_params, :available_request, :force_flag, 
+                :filtered_params, :force_flag, 
                 :jruby_cpu_start, :process_cpu_start, :database_metric_name
-    
+                
     # Return the currently active metric frame, or nil.  Call with +true+
     # to create a new metric frame if one is not already on the thread.
     def self.current(create_if_empty=nil)
@@ -55,6 +55,31 @@ module NewRelic::Agent::Instrumentation
     def self.abort_transaction!
       current.abort_transaction! if current
     end
+
+    # Give the current metric frame a request context.  Use this to 
+    # get the URI and referer.  The request is interpreted loosely
+    # as a Rack::Request or an ActionController::AbstractRequest.
+    def request=(request)
+      @request = request
+    end
+    
+    # For the current web transaction, return the path of the URI minus the host part and query string, or nil.
+    def uri
+      return @uri if @uri || @request.nil?
+      approximate_uri = case
+        when @request.respond_to?(:fullpath) then @request.fullpath
+        when @request.respond_to?(:uri) then @request.uri
+        when @request.respond_to?(:url) then @request.url
+      end
+      @uri = approximate_uri[%r{^(https?://.*?)?(/[^?]*)}, 2] || '/' if approximate_uri
+    end
+    
+    # For the current web transaction, return the full referer, minus the host string, or nil.
+    def referer
+      return @referer if @referer || @request.nil? || !@request.respond_to?(:referer) || !@request.referer 
+      @referer = @request.referer[%r{^[^?]+}] 
+    end
+
     
     # Call this to ensure that the current transaction is not saved
     def abort_transaction!
@@ -66,7 +91,7 @@ module NewRelic::Agent::Instrumentation
       NewRelic::Agent.instance.stats_engine.start_transaction metric_name
       # Only push the transaction context info once, on entry:
       if @path_stack.size == 1
-        NewRelic::Agent.instance.transaction_sampler.notice_transaction(metric_name, available_request, filtered_params)
+        NewRelic::Agent.instance.transaction_sampler.notice_transaction(metric_name, uri, filtered_params)
       end
     end
     
@@ -107,17 +132,17 @@ module NewRelic::Agent::Instrumentation
     end
     
     # If we have an active metric frame, notice the error and increment the error metric.
-    def self.notice_error(e, custom_params={})
+    def self.notice_error(e, custom_params=nil)
       if current
         current.notice_error(e, custom_params)
       else
-        NewRelic::Agent.instance.error_collector.notice_error(e, nil, nil, custom_params)
+        NewRelic::Agent.instance.error_collector.notice_error(e, :custom_params => custom_params)
       end
     end
     
-    def notice_error(e, custom_params={})
+    def notice_error(e, custom_params=nil)
       if exception != e
-        NewRelic::Agent.instance.error_collector.notice_error(e, nil, metric_name, filtered_params.merge(custom_params))
+        NewRelic::Agent.instance.error_collector.notice_error(e, :referer => referer, :uri => uri, :metric => metric_name, :request_params => filtered_params, :custom_params => custom_params)
         self.exception = e
       end
     end

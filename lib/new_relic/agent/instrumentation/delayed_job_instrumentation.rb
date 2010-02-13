@@ -1,6 +1,6 @@
 require 'new_relic/agent/instrumentation/controller_instrumentation'
 
-if defined?(Delayed::Job)
+if defined?(Delayed::Job) and not NewRelic::Control.instance['disable_dj']
   module NewRelic
     module Agent
       module Instrumentation

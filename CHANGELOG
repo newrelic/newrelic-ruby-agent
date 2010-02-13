@@ -1,4 +1,5 @@
 v2.10.3
+  * optimization to reduce overhead: move background samplers into foreground thread
   * change default config file to ignore RoutingErrors
   * moved the background task instrumentation into a separate tab in the RPM UI
   * allow override of the RPM application name via NEWRELIC_APP_NAME environment variable
@@ -9,11 +10,16 @@ v2.10.3
   * fix problem with apdex recording
   * switch to jeweler for gem building
   * minor fixes, test improvements, doc and rakefile improvements
+  * fix incompatibility with Hoptoad where Hoptoad was not getting errors handled by New Relic
+  * many other bug fixes and documentation improvements
+
 v2.10.2.1.
   * fix bugs with Sinatra app instrumentation 
   * minor doc updates
+  
 v2.10.2.0.
   * beta release of 2.10
+  
 v2.10.1.
   * rack support, including metal; ignores 404s; requires a module inclusion (see docs)
   * sinatra support, displays actions named by the URI pattern matched
@@ -47,6 +53,7 @@ v2.10.1.
   * added # of GC calls to GC instrumentation
   * renamed the dispatcher metric
   * refactored stats_engine code for readability
+  * optimization: reduce wakeup times for harvest thread
   
 v2.10.0.
   * support unicorn

@@ -4,6 +4,8 @@ module NewRelic
   class DelayedJobLockSampler < NewRelic::Agent::Sampler
     def initialize
       super :delayed_job_lock
+      raise Unsupported, "DJ instrumentation disabled" if NewRelic::Control.instance['disable_dj'] 
+      raise Unsupported, "No DJ worker present" if NewRelic::DelayedJobInjection.worker_name
     end
     
     def stats
@@ -19,7 +21,7 @@ module NewRelic
     end
     
     def locked_jobs
-      Delayed::Job.count(:conditions => {:locked_by => worker_name})
+      Delayed::Job.count(:conditions => {:locked_by => NewRelic::DelayedJobInjection.worker_name})
     end
     
     def self.supported_on_this_platform?

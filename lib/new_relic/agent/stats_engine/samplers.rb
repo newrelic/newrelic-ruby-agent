@@ -9,13 +9,18 @@ module Agent
     
     module Samplers
       
-      POLL_PERIOD = 10
+      # By default a sampler polls on harvest time, once a minute.  However you can 
+      # override #use_harvest_sampler? to return false and it will sample
+      # every POLL_PERIOD seconds on a background thread.
+      POLL_PERIOD = 20
       
       def spawn_sampler_thread
         
         return if !@sampler_process.nil? && @sampler_process == $$ 
         
         # start up a thread that will periodically poll for metric samples
+        return if periodic_samplers.empty?
+        
         @sampler_thread = Thread.new do
           while true do
             begin

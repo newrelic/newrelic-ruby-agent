@@ -470,7 +470,8 @@ module NewRelic
         case v
           when Enumerable then v.map(&:to_s).sort.join("; ")
           when String then v
-          when Float then '%6.3s' % v 
+          when Float then '%6.3s' % v
+          when nil then ''
         else
           raise "unexpected value type for #{k}: '#{v}' (#{v.class})"
         end << "\n"

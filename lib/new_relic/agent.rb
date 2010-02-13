@@ -103,7 +103,6 @@ module NewRelic
     
     require 'new_relic/agent/samplers/cpu_sampler'
     require 'new_relic/agent/samplers/memory_sampler'
-    require 'new_relic/agent/samplers/mongrel_sampler'
     require 'new_relic/agent/samplers/object_sampler'
     require 'new_relic/agent/samplers/delayed_job_lock_sampler'
     require 'set'
@@ -289,7 +288,7 @@ module NewRelic
     # * <tt>extra_params</tt> is a hash of name value pairs to appear alongside
     #   the exception in RPM.
     #
-    def notice_error(exception, extra_params = {})
+    def notice_error(exception, extra_params = nil)
       NewRelic::Agent::Instrumentation::MetricFrame.notice_error(exception, extra_params)
     end
 
