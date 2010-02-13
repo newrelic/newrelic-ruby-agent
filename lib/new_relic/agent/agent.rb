@@ -8,7 +8,8 @@ require 'stringio'
 # The NewRelic Agent collects performance data from ruby applications
 # in realtime as the application runs, and periodically sends that
 # data to the NewRelic server.
-module NewRelic::Agent
+module NewRelic
+  module Agent
   
   # The Agent is a singleton that is instantiated when the plugin is
   # activated.
@@ -277,8 +278,7 @@ module NewRelic::Agent
           control.log! "Unable to establish connection with the server.  Run with log level set to debug for more information."
         rescue Exception => e
           @connected = false
-          control.log! e, :error
-          control.log! e.backtrace.join("\n  "), :error
+          log.error "Terminating worker loop: #{e.class.name}: #{e}\n  #{e.backtrace.join("\n  ")}"
         end
       end
       @worker_thread['newrelic_label'] = 'Worker Loop'
@@ -635,4 +635,5 @@ module NewRelic::Agent
     end
   end
   
+end
 end

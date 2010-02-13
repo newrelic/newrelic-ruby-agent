@@ -1,4 +1,5 @@
-module NewRelic::Agent
+module NewRelic
+module Agent
   
   # A worker loop executes a set of registered tasks on a single thread.  
   # A task is a proc or block with a specified call period in seconds.  
@@ -114,4 +115,5 @@ module NewRelic::Agent
       end
     end
   end
+end
 end

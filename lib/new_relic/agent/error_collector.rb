@@ -1,5 +1,6 @@
 
-module NewRelic::Agent
+module NewRelic
+  module Agent
   class ErrorCollector
     include CollectionHelper
     
@@ -114,4 +115,5 @@ module NewRelic::Agent
       NewRelic::Control.instance.log
     end
   end
+end
 end
