@@ -2,15 +2,17 @@ require 'new_relic/agent/instrumentation/metric_frame'
 module NewRelic
   module Agent
     module Instrumentation
-  # == NewRelic instrumentation for controllers
+  # == NewRelic instrumentation for controller actions and tasks
   #
-  # This instrumentation is applied to the action controller by default if the agent
-  # is actively collecting statistics.  It will collect statistics for the 
-  # given action.
+  # This instrumentation is applied to the action controller to collect
+  # metrics for every web request.
   #
-  # In cases where you don't want to instrument the top level action, but instead
-  # have other methods which are dispatched to by your action, and you want to treat
-  # these as distinct actions, then what you need to do is use
+  # It can also be used to capture performance information for 
+  # background tasks and other non-web transactions, including
+  # detailed transaction traces and traced errors.
+  #
+  # For details on how to instrument background tasks see
+  # ClassMethods#add_transaction_tracer and
   # #perform_action_with_newrelic_trace
   #
   module ControllerInstrumentation
@@ -209,6 +211,7 @@ module NewRelic
     # * <tt>:params => {...}</tt> to provide information about the context
     #   of the call, used in transaction trace display, for example:
     #   <tt>:params => { :account => @account.name, :file => file.name }</tt>
+    #   These are treated similarly to request parameters in web transactions.
     #
     # Seldomly used options:
     #
@@ -220,6 +223,8 @@ module NewRelic
     # * <tt>:path => metric_path</tt> is *deprecated* in the public API.  It
     #   allows you to set the entire metric after the category part.  Overrides
     #   all the other options.
+    # * <tt>:request => Rack::Request#new(env)</tt> is used to pass in a 
+    #   request object that may respond to uri and referer.
     #
     # If a single argument is passed in, it is treated as a metric
     # path.  This form is deprecated.
@@ -392,7 +397,6 @@ module NewRelic
     def _dispatch_stat
       NewRelic::Agent.agent.stats_engine.get_stats_no_scope 'HttpDispatcher'  
     end
-    
     
   end 
 end  
