@@ -1,11 +1,15 @@
-module NewRelic::Agent::Samplers
+module NewRelic
+  module Agent
+    module Samplers
   class DelayedJobLockSampler < NewRelic::Agent::Sampler
     def initialize
       super :delayed_job_lock
+      raise Unsupported, "DJ instrumentation disabled" if NewRelic::Control.instance['disable_dj'] 
+      raise Unsupported, "No DJ worker present" if NewRelic::DelayedJobInjection.worker_name
     end
     
     def stats
-      stats_engine.get_stats("DJ/Locked Jobs", false)
+      stats_engine.get_stats("Custom/DJ Locked Jobs", false)
     end
     
     def local_env
@@ -17,7 +21,7 @@ module NewRelic::Agent::Samplers
     end
     
     def locked_jobs
-      Delayed::Job.count(:conditions => {:locked_by => worker_name})
+      Delayed::Job.count(:conditions => {:locked_by => NewRelic::DelayedJobInjection.worker_name})
     end
     
     def self.supported_on_this_platform?
@@ -28,4 +32,6 @@ module NewRelic::Agent::Samplers
       stats.record_data_point locked_jobs
     end
   end
+end
+end
 end
