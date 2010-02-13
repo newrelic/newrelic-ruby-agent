@@ -16,6 +16,20 @@ class NewRelic::Agent::NetInstrumentationTest < Test::Unit::TestCase
     assert_equal %w[External/www.google.com/Net::HTTP/GET External/allOther External/www.google.com/all].sort,
        @engine.metrics.sort 
   end
+
+  def test_background
+    perform_action_with_newrelic_trace("task", :category => :task) do
+      url = URI.parse('http://www.google.com/index.html')
+      res = Net::HTTP.start(url.host, url.port) {|http|
+        http.get('/index.html')
+      }
+      assert_match /<head>/, res.body
+    end
+    assert_equal @engine.metrics.select{|m| m =~ /^External/}.sort, 
+       %w[External/www.google.com/Net::HTTP/GET External/allOther External/www.google.com/all
+       External/www.google.com/Net::HTTP/GET:OtherTransaction/Background/NewRelic::Agent::NetInstrumentationTest/task].sort
+  end
+
   def test_transactional
     perform_action_with_newrelic_trace("task") do
       url = URI.parse('http://www.google.com/index.html')

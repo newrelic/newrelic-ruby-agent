@@ -28,8 +28,31 @@ class AgentControllerTest < ActionController::TestCase
     Thread.current[:newrelic_ignore_controller] = nil
     super
     NewRelic::Agent.shutdown
+    NewRelic::Agent::AgentTestController.clear_headers
   end
   
+  def test_mongrel_queue
+    engine.clear_stats
+    NewRelic::Control.instance.local_env.stubs(:mongrel).returns( stub('mongrel', :workers => stub('workers', :list => stub('list', :length => '10'))))
+    
+    get :index
+    assert_equal 1, stats('HttpDispatcher').call_count
+    assert_equal 1, engine.get_stats_no_scope('Mongrel/Queue Length').call_count
+    assert_equal 9, engine.get_stats_no_scope('Mongrel/Queue Length').total_call_time
+    assert_equal 0, engine.get_stats_no_scope('WebFrontend/Mongrel/Average Queue Time').call_count
+  end
+  
+  def test_heroku_queue
+    engine.clear_stats
+    NewRelic::Control.instance.local_env.stubs(:mongrel).returns( stub('mongrel', :workers => stub('workers', :list => stub('list', :length => '10'))))
+    NewRelic::Agent::AgentTestController.set_some_headers 'HTTP_X_HEROKU_QUEUE_DEPTH'=>'15'
+    get :index
+    assert_equal 1, stats('HttpDispatcher').call_count
+    assert_equal 1, engine.get_stats_no_scope('Mongrel/Queue Length').call_count
+    assert_equal 15, engine.get_stats_no_scope('Mongrel/Queue Length').total_call_time
+    assert_equal 0, engine.get_stats_no_scope('WebFrontend/Mongrel/Average Queue Time').call_count
+
+  end
   def test_metric__ignore
     engine.clear_stats
     compare_metrics [], engine.metrics
@@ -45,7 +68,6 @@ class AgentControllerTest < ActionController::TestCase
     metrics =  ['Apdex',
                 'Apdex/new_relic/agent/agent_test/action_with_error',
                 'HttpDispatcher',
-                'Controller',
                 'Controller/new_relic/agent/agent_test/action_with_error',
                 'Errors/all']
 
@@ -67,7 +89,6 @@ class AgentControllerTest < ActionController::TestCase
     metrics =  ['Apdex',
                 'Apdex/new_relic/agent/agent_test/action_with_error',
                 'HttpDispatcher',
-                'Controller',
                 'Controller/new_relic/agent/agent_test/action_with_error',
                 'Errors/all']
 
@@ -89,7 +110,6 @@ class AgentControllerTest < ActionController::TestCase
     metrics =  ['Apdex',
                 'Apdex/new_relic/agent/agent_test/action_with_before_filter_error',
                 'HttpDispatcher',
-                'Controller',
                 'Controller/new_relic/agent/agent_test/action_with_before_filter_error',
                 'Errors/all']
 
