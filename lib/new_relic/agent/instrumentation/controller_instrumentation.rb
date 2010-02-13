@@ -304,16 +304,19 @@ module NewRelic
       # If a block was passed in, then the arguments represent options for the instrumentation,
       # not app method arguments.
       if args.any?
-        frame_data.force_flag = args.last.is_a?(Hash) && args.last[:force]
+        if options = args.last.is_a?(Hash) && args.last
+          frame_data.force_flag = options[:force] 
+          frame_data.request = options[:request] if options[:request]
+        end
         category, path, available_params = _convert_args_to_path(args)
       else
         category = 'Controller'
         path = newrelic_metric_path
-        available_params = self.respond_to?(:params) ? self.params : {} 
+        available_params = self.respond_to?(:params) ? self.params : {}
+        frame_data.request = self.request if self.respond_to? :request
       end
       frame_data.push(category, path)
       frame_data.filtered_params = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
-      frame_data.request = self.request if self.respond_to? :request
       frame_data
     end
         

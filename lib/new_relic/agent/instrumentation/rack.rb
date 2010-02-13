@@ -1,8 +1,4 @@
 require 'new_relic/agent/instrumentation/controller_instrumentation'
-begin
-  require 'rack/request'
-rescue LoadError
-end
 
 module NewRelic
   module Agent
@@ -81,11 +77,10 @@ module NewRelic
       #      
       module Rack
         def newrelic_request_headers
-          @newrelic_env
+          @newrelic_request.env
         end
         def call_with_newrelic(*args)
-          @newrelic_env = args.first
-          @newrelic_request = Rack::Request.new(@newrelic_env) if defined?(Rack::Request)
+          @newrelic_request = ::Rack::Request.new(args.first)
           perform_action_with_newrelic_trace(:category => :rack, :request => @newrelic_request) do
             result = call_without_newrelic(*args)
             # Ignore cascaded calls
