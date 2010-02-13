@@ -67,19 +67,19 @@ module NewRelic::Agent::Instrumentation
     def uri
       return @uri if @uri || @request.nil?
       approximate_uri = case
-        when @request.respond_to?(:fullpath) then @request.fullpath
-        when @request.respond_to?(:uri) then @request.uri
         when @request.respond_to?(:url) then @request.url
+        when @request.respond_to?(:uri) then @request.uri
+        when @request.respond_to?(:fullpath) then @request.fullpath
+        when @request.respond_to?(:path) then @request.path
       end
-      @uri = approximate_uri[%r{^(https?://.*?)?(/[^?]*)}, 2] || '/' if approximate_uri
+      @uri = approximate_uri.split('?').first || '/' if approximate_uri
     end
     
     # For the current web transaction, return the full referer, minus the host string, or nil.
     def referer
       return @referer if @referer || @request.nil? || !@request.respond_to?(:referer) || !@request.referer 
-      @referer = @request.referer[%r{^[^?]+}] 
+      @referer = @request.referer.split('?').first
     end
-
     
     # Call this to ensure that the current transaction is not saved
     def abort_transaction!
