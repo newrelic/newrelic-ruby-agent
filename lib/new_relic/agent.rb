@@ -288,7 +288,7 @@ module NewRelic
     # * <tt>extra_params</tt> is a hash of name value pairs to appear alongside
     #   the exception in RPM.
     #
-    def notice_error(exception, extra_params = {})
+    def notice_error(exception, extra_params = nil)
       NewRelic::Agent::Instrumentation::MetricFrame.notice_error(exception, extra_params)
     end
 

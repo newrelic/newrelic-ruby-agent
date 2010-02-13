@@ -313,7 +313,7 @@ module NewRelic
       end
       frame_data.push(category, path)
       frame_data.filtered_params = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
-      frame_data.available_request ||= (respond_to? :request) ? request : nil
+      frame_data.request = self.request if self.respond_to? :request
       frame_data
     end
         

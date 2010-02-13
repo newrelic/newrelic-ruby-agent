@@ -24,7 +24,7 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
   end
   def test_empty
     @error_collector.harvest_errors([])
-    @error_collector.notice_error(nil, nil, 'path', {:x => 'y'})
+    @error_collector.notice_error(nil, :metric=> 'path', :request_params => {:x => 'y'})
     errors = @error_collector.harvest_errors([])
     
     assert_equal errors.length, 1
@@ -39,7 +39,7 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
 
   end
   def test_simple
-    @error_collector.notice_error(Exception.new("message"), FakeRequest.new('/myurl/'), 'path', {:x => 'y'})
+    @error_collector.notice_error(Exception.new("message"), :uri => '/myurl/', :metric => 'path', :referer => 'test_referer', :request_params => {:x => 'y'})
     
     old_errors = []
     errors = @error_collector.harvest_errors(old_errors)
@@ -63,7 +63,7 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
   def test_long_message
     #yes, times 500. it's a 5000 byte string. Assuming strings are
     #still 1 byte / char.
-    @error_collector.notice_error(Exception.new("1234567890" * 500), FakeRequest.new('/myurl/'), 'path', {:x => 'y'})
+    @error_collector.notice_error(Exception.new("1234567890" * 500), :uri => '/myurl/', :metric => 'path', :request_params => {:x => 'y'})
     
     old_errors = []
     errors = @error_collector.harvest_errors(old_errors)
@@ -76,13 +76,13 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
   end
   
   def test_collect_failover
-    @error_collector.notice_error(Exception.new("message"), nil, 'first', {:x => 'y'})
+    @error_collector.notice_error(Exception.new("message"), :metric => 'first', :request_params => {:x => 'y'}) 
     
     errors = @error_collector.harvest_errors([])
     
-    @error_collector.notice_error(Exception.new("message"), nil, 'second', {:x => 'y'})
-    @error_collector.notice_error(Exception.new("message"), nil, 'path', {:x => 'y'})
-    @error_collector.notice_error(Exception.new("message"), nil, 'path', {:x => 'y'})
+    @error_collector.notice_error(Exception.new("message"), :metric => 'second', :request_params => {:x => 'y'}) 
+    @error_collector.notice_error(Exception.new("message"), :metric => 'path', :request_params => {:x => 'y'}) 
+    @error_collector.notice_error(Exception.new("message"), :metric => 'path', :request_params => {:x => 'y'}) 
     
     errors = @error_collector.harvest_errors(errors)
     
@@ -90,8 +90,8 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
     assert_equal 'first', errors.first.path
     
     # add two more
-    @error_collector.notice_error(Exception.new("message"), nil, 'path', {:x => 'y'})
-    @error_collector.notice_error(Exception.new("message"), nil, 'last', {:x => 'y'})
+    @error_collector.notice_error(Exception.new("message"), :metric => 'path', :request_params => {:x => 'y'}) 
+    @error_collector.notice_error(Exception.new("message"), :metric => 'last', :request_params => {:x => 'y'}) 
     
     errors = @error_collector.harvest_errors(nil)
     assert_equal 5, errors.length
@@ -106,7 +106,7 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
     
     silence_stream(::STDERR) do
      (max_q_length + 5).times do |n|
-        @error_collector.notice_error(Exception.new("exception #{n}"), nil, "path", {:x => n})
+        @error_collector.notice_error(Exception.new("exception #{n}"), :metric => "path", :request_params => {:x => n}) 
       end
     end
     
@@ -137,7 +137,7 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
     
     
     types.each do |test|
-      @error_collector.notice_error(Exception.new("message"), nil, 'path', {:x => test[0]})
+      @error_collector.notice_error(Exception.new("message"), :metric => 'path', :request_params => {:x => test[0]}) 
       
       assert_equal test[1], @error_collector.harvest_errors([])[0].params[:request_params][:x]
     end
@@ -147,7 +147,7 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
   def test_exclude
     @error_collector.ignore(["ActionController::RoutingError"])
     
-    @error_collector.notice_error(ActionController::RoutingError.new("message"), nil, 'path', {:x => 'y'})
+    @error_collector.notice_error(ActionController::RoutingError.new("message"), :metric => 'path', :request_params => {:x => 'y'}) 
     
     errors = @error_collector.harvest_errors([])
     
@@ -163,7 +163,7 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
       end
     end
     
-    @error_collector.notice_error(ActionController::RoutingError.new("message"), nil, 'path', {:x => 'y'})
+    @error_collector.notice_error(ActionController::RoutingError.new("message"), :metric => 'path', :request_params => {:x => 'y'}) 
     
     errors = @error_collector.harvest_errors([])
     

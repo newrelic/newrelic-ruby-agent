@@ -35,7 +35,7 @@ class RpmAgentTest < ActiveSupport::TestCase
       ignore_called = true
       nil
     end
-    NewRelic::Agent.notice_error(ActionController::RoutingError.new("message"), :x => "y")
+    NewRelic::Agent.notice_error(ActionController::RoutingError.new("message"), :request_params => {:x => "y"})
     assert ignore_called   
     NewRelic::Agent.ignore_error_filter
     

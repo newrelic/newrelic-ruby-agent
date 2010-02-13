@@ -1,4 +1,8 @@
 require 'new_relic/agent/instrumentation/controller_instrumentation'
+begin
+  require 'rack/request'
+rescue LoadError
+end
 
 module NewRelic
   module Agent
@@ -52,9 +56,9 @@ module NewRelic
       #
       # == Cascading or chained calls
       #
-      # You should avoid instrumenting nested calls.  So if you are using Rack::Cascade
-      # to fall through the action, or you are chaining through to the next middleware 
-      # which will have it's own controller instrumentation, then you will want to
+      # Calls which return a 404 will not have transactions recorded, but 
+      # any calls to instrumented frameworks like ActiveRecord will still be
+      # captured even if the result is a 404.  To avoid this you need to
       # instrument only when you are the endpoint.
       #
       # In these cases, you should not include or extend the Rack module but instead
@@ -81,7 +85,8 @@ module NewRelic
         end
         def call_with_newrelic(*args)
           @newrelic_env = args.first
-          perform_action_with_newrelic_trace(:category => :rack, :params => {:uri => @newrelic_env['REQUEST_PATH']}) do
+          @newrelic_request = Rack::Request.new(@newrelic_env) if defined?(Rack::Request)
+          perform_action_with_newrelic_trace(:category => :rack, :request => @newrelic_request) do
             result = call_without_newrelic(*args)
             # Ignore cascaded calls
             MetricFrame.abort_transaction! if result.first == 404
