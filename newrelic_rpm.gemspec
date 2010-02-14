@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{newrelic_rpm}
-  s.version = "2.10.2.3"
+  s.version = "2.10.3"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Bill Kayser"]
-  s.date = %q{2010-02-09}
+  s.date = %q{2010-02-13}
   s.description = %q{New Relic RPM is a Ruby performance management system, developed by
 New Relic, Inc (http://www.newrelic.com).  RPM provides you with deep
 information about the performance of your Ruby on Rails or Merb
@@ -20,7 +20,8 @@ http://github.com/newrelic/rpm/tree/master.
   s.email = %q{support@newrelic.com}
   s.executables = ["mongrel_rpm", "newrelic_cmd"]
   s.extra_rdoc_files = [
-    "LICENSE",
+    "CHANGELOG",
+     "LICENSE",
      "README.md"
   ]
   s.files = [
@@ -59,7 +60,6 @@ http://github.com/newrelic/rpm/tree/master.
      "lib/new_relic/agent/samplers/cpu_sampler.rb",
      "lib/new_relic/agent/samplers/delayed_job_lock_sampler.rb",
      "lib/new_relic/agent/samplers/memory_sampler.rb",
-     "lib/new_relic/agent/samplers/mongrel_sampler.rb",
      "lib/new_relic/agent/samplers/object_sampler.rb",
      "lib/new_relic/agent/shim_agent.rb",
      "lib/new_relic/agent/stats_engine.rb",
@@ -125,6 +125,7 @@ http://github.com/newrelic/rpm/tree/master.
      "test/new_relic/agent/error_collector_test.rb",
      "test/new_relic/agent/method_tracer_test.rb",
      "test/new_relic/agent/metric_data_test.rb",
+     "test/new_relic/agent/metric_frame_test.rb",
      "test/new_relic/agent/mock_ar_connection.rb",
      "test/new_relic/agent/mock_scope_listener.rb",
      "test/new_relic/agent/net_instrumentation_test.rb",
@@ -183,7 +184,15 @@ http://github.com/newrelic/rpm/tree/master.
      "ui/views/newrelic/threads.rhtml"
   ]
   s.homepage = %q{http://www.github.com/newrelic/rpm}
-  s.rdoc_options = ["--charset=UTF-8", "--line-numbers", "--inline-source", "--title", "New Relic RPM", "README.md"]
+  s.post_install_message = %q{
+Please see http://support.newrelic.com/faqs/docs/ruby-agent-release-notes
+for a complete description of the features and enhancements available
+in version 2.10 of the Ruby Agent.
+
+For details on this specific release, refer to the CHANGELOG file.
+
+}
+  s.rdoc_options = ["--charset=UTF-8", "--line-numbers", "--inline-source", "--title", "New Relic RPM"]
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.5}
   s.summary = %q{New Relic Ruby Performance Monitoring Agent}
