@@ -98,4 +98,4 @@ class NewRelic::Agent::MemcacheInstrumentationTest < Test::Unit::TestCase
     end
   end
 
-end
+end if defined? MemCache
