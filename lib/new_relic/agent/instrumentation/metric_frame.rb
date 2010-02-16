@@ -66,6 +66,7 @@ module NewRelic::Agent::Instrumentation
       return @uri if @uri || @request.nil?
       approximate_uri = case
         when @request.respond_to?(:fullpath) then @request.fullpath
+        when @request.respond_to?(:path) then @request.path
         when @request.respond_to?(:uri) then @request.uri
         when @request.respond_to?(:url) then @request.url
       end
