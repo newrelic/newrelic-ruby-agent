@@ -9,7 +9,12 @@ module NewRelic::Agent::Instrumentation
     attr_accessor :start, :apdex_start, :exception, 
                 :filtered_params, :force_flag, 
                 :jruby_cpu_start, :process_cpu_start, :database_metric_name
-                
+          
+    # Give the current metric frame a request context.  Use this to 
+    # get the URI and referer.  The request is interpreted loosely
+    # as a Rack::Request or an ActionController::AbstractRequest.
+    attr_accessor :request
+    
     # Return the currently active metric frame, or nil.  Call with +true+
     # to create a new metric frame if one is not already on the thread.
     def self.current(create_if_empty=nil)
@@ -55,24 +60,17 @@ module NewRelic::Agent::Instrumentation
     def self.abort_transaction!
       current.abort_transaction! if current
     end
-
-    # Give the current metric frame a request context.  Use this to 
-    # get the URI and referer.  The request is interpreted loosely
-    # as a Rack::Request or an ActionController::AbstractRequest.
-    def request=(request)
-      @request = request
-    end
     
     # For the current web transaction, return the path of the URI minus the host part and query string, or nil.
     def uri
       return @uri if @uri || @request.nil?
       approximate_uri = case
-        when @request.respond_to?(:url) then @request.url
-        when @request.respond_to?(:uri) then @request.uri
         when @request.respond_to?(:fullpath) then @request.fullpath
         when @request.respond_to?(:path) then @request.path
+        when @request.respond_to?(:uri) then @request.uri
+        when @request.respond_to?(:url) then @request.url
       end
-      @uri = approximate_uri.split('?').first || '/' if approximate_uri
+      @uri = approximate_uri[%r{^(https?://.*?)?(/[^?]*)}, 2] || '/' if approximate_uri
     end
     
     # For the current web transaction, return the full referer, minus the host string, or nil.

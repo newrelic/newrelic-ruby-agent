@@ -318,8 +318,8 @@ module NewRelic
         category = 'Controller'
         path = newrelic_metric_path
         available_params = self.respond_to?(:params) ? self.params : {}
-        frame_data.request = self.request if self.respond_to? :request
       end
+      frame_data.request ||= self.request if self.respond_to? :request
       frame_data.push(category, path)
       frame_data.filtered_params = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
       frame_data
