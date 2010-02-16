@@ -1,5 +1,6 @@
 v2.10.4
   * Fix incompatibility with Capistrano 2.5.16
+  * Strip down URLs reported in transactions and errors to path only.
   
 v2.10.3
   * optimization to reduce overhead: move background samplers into foreground thread

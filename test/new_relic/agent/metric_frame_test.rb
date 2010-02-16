@@ -32,20 +32,20 @@ class NewRelic::Agent::MetricFrameTest < Test::Unit::TestCase
   def test_request_parsing__uri
     request = stub(:uri => 'http://creature.com/path?hello=bob#none', :referer => '/path/hello?bob=none&foo=bar')
     f.request = request
-    assert_equal "http://creature.com/path", f.uri
+    assert_equal "/path", f.uri
     assert_equal "/path/hello", f.referer
   end
   
   def test_request_parsing__hostname_only
     request = stub(:uri => 'http://creature.com')
     f.request = request
-    assert_equal "http://creature.com", f.uri
+    assert_equal "/", f.uri
     assert_nil f.referer
   end
   def test_request_parsing__slash
     request = stub(:uri => 'http://creature.com/')
     f.request = request
-    assert_equal "http://creature.com/", f.uri
+    assert_equal "/", f.uri
     assert_nil f.referer
   end
 end
