@@ -1,3 +1,6 @@
+v2.10.4
+  * Fix incompatibility with Capistrano 2.5.16
+  
 v2.10.3
   * optimization to reduce overhead: move background samplers into foreground thread
   * change default config file to ignore RoutingErrors
