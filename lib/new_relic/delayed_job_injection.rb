@@ -15,7 +15,7 @@ Delayed::Worker.class_eval do
     when self.class.respond_to?(:default_name) then self.class.default_name
     end
     dispatcher_instance_id = worker_name || "host:#{Socket.gethostname} pid:#{Process.pid}" rescue "pid:#{Process.pid}"
-    self.class.say "RPM Monitoring DJ worker #{dispatcher_instance_id}"
+    say "RPM Monitoring DJ worker #{dispatcher_instance_id}"
     NewRelic::Agent.manual_start :dispatcher => :delayed_job, :dispatcher_instance_id => dispatcher_instance_id
     NewRelic::DelayedJobInjection.worker_name = worker_name
   end
