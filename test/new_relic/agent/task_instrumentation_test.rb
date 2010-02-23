@@ -130,6 +130,21 @@ class TaskInstrumentationTest < Test::Unit::TestCase
     end
   end
   
+  def test_custom_params
+    NewRelic::Agent.instance.stubs(:should_send_errors).returns(true)
+    @agent.error_collector.ignore_error_filter
+    @agent.error_collector.harvest_errors([])
+    assert_equal @agent.error_collector, NewRelic::Agent.instance.error_collector
+    assert_raise RuntimeError do
+      run_task_exception
+    end
+    error = @agent.error_collector.harvest_errors([]).first
+    assert_equal "Controller/TaskInstrumentationTest/run_task_exception", error.path
+    assert_not_nil error.params[:stack_trace]
+    assert_not_nil error.params[:custom_params]
+    
+  end
+  
   def test_instrument_bg
     run_background_job
     stat_names = %w[OtherTransaction/Background/TaskInstrumentationTest/run_background_job
@@ -160,6 +175,7 @@ class TaskInstrumentationTest < Test::Unit::TestCase
   end
   
   def run_task_exception
+    NewRelic::Agent.add_custom_parameters(:custom_one => 'one custom val')
     assert_equal 1, NewRelic::Agent::BusyCalculator.busy_count
     raise "This is an error"
   end

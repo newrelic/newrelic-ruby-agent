@@ -130,17 +130,19 @@ module NewRelic::Agent::Instrumentation
     end
     
     # If we have an active metric frame, notice the error and increment the error metric.
-    def self.notice_error(e, custom_params=nil)
+    def self.notice_error(e, additional_params=nil)
       if current
-        current.notice_error(e, custom_params)
+        current.notice_error(e, additional_params)
       else
-        NewRelic::Agent.instance.error_collector.notice_error(e, :custom_params => custom_params)
+        NewRelic::Agent.instance.error_collector.notice_error(e, :custom_params => additional_params)
       end
     end
     
-    def notice_error(e, custom_params=nil)
+    def notice_error(e, additional_params=nil)
+      params = custom_parameters
+      params = params.merge(additional_params) if additional_params
       if exception != e
-        NewRelic::Agent.instance.error_collector.notice_error(e, :referer => referer, :uri => uri, :metric => metric_name, :request_params => filtered_params, :custom_params => custom_params)
+        NewRelic::Agent.instance.error_collector.notice_error(e, :referer => referer, :uri => uri, :metric => metric_name, :request_params => filtered_params, :custom_params => params)
         self.exception = e
       end
     end
