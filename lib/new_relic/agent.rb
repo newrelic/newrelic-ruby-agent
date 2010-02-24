@@ -298,7 +298,9 @@ module NewRelic
       NewRelic::Agent::Instrumentation::MetricFrame.add_custom_parameters(params)
     end
     
-    alias add_request_parameters add_custom_parameters
+    # The #add_request_parameters method is aliased to #add_custom_parameters
+    # and is now deprecated.
+    alias add_request_parameters add_custom_parameters #:nodoc:
     
     # Yield to a block that is run with a database metric name context.  This means
     # the Database instrumentation will use this for the metric name if it does not
