@@ -32,7 +32,7 @@ http://github.com/newrelic/rpm/tree/master.
     gem.test_files = [] # You can't really run the tests unless the gem is installed.
     gem.rdoc_options << "--line-numbers" << "--inline-source" << "--title" << "New Relic RPM"
     gem.files.reject! { |fn| fn =~ /Rakefile|pkg\// }
-    gem.extra_rdoc_files = %w[CHANGELOG README.md LICENSE]
+    gem.extra_rdoc_files = %w[CHANGELOG LICENSE]
     if File.exists?(URGENT_README)
       gem.post_install_message = File.read(URGENT_README)
     else
@@ -81,6 +81,7 @@ require 'rake/rdoctask'
 Rake::RDocTask.new do |rdoc|
   rdoc.rdoc_dir = 'rdoc'
   rdoc.title = SUMMARY
-  rdoc.rdoc_files.include('README*')
+  rdoc.rdoc_files.include('LICENSE')
+  rdoc.rdoc_files.include('CHANGELOG')
   rdoc.rdoc_files.include('lib/**/*.rb')
 end
