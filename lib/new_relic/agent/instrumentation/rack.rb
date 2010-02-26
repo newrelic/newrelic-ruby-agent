@@ -12,6 +12,7 @@ module NewRelic
       # NewRelic::Agent::Instrumentation::ControllerInstrumentation::ClassMethods#add_transaction_tracer
       #
       # Example:
+      #   require 'newrelic_rpm'
       #   require 'new_relic/agent/instrumentation/rack'
       #   class Middleware
       #     def call(env)
@@ -26,6 +27,7 @@ module NewRelic
       # If you are using Metal, be sure and extend the your Metal class with the
       # Rack instrumentation:
       #
+      #   require 'newrelic_rpm'
       #   require 'new_relic/agent/instrumentation/rack'
       #   class MetalApp
       #     def self.call(env)
@@ -41,6 +43,7 @@ module NewRelic
       # be more specific and pass in name, then omit including the Rack instrumentation
       # and instead follow this example:
       #
+      #   require 'newrelic_rpm'
       #   require 'new_relic/agent/instrumentation/controller_instrumentation'
       #   class Middleware
       #     include NewRelic::Agent::Instrumentation::ControllerInstrumentation
