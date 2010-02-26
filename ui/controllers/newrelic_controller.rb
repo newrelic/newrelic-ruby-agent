@@ -47,7 +47,7 @@ class NewrelicController < ActionController::Base
   end
   
   def file
-    file_name=params[:file].join
+    file_name=Array(params[:file]).join
     file_name=~/^.*[.]([^.]*)$/
     ext=$1
     case ext
