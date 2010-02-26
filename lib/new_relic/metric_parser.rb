@@ -99,6 +99,7 @@ module NewRelic
     def segment_2; segments[2]; end
     def segment_3; segments[3]; end
     def segment_4; segments[4]; end
+    def segment_5; segments[5]; end
     def last_segment; segments.last; end
     
     # This is the suffix used for call rate or throughput.  By default, it's cpm

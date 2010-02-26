@@ -102,12 +102,12 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     
     run_sample_trace
     run_sample_trace
-    run_sample_trace { sleep 0.5 }
+    run_sample_trace { sleep 0.51 }
     run_sample_trace
     run_sample_trace
     
     slowest = @sampler.harvest(nil, 0)[0]
-    assert slowest.duration >= 0.5
+    assert slowest.duration >= 0.5, "sample duration: #{slowest.duration}"
     
     run_sample_trace { sleep 0.2 }
     not_as_slow = @sampler.harvest(slowest, 0)[0]
