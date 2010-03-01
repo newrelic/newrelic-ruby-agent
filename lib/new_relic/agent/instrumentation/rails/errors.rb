@@ -1,16 +1,16 @@
 
 ActionController::Base.class_eval do
   
-  # Make a note of an exception associated with the currently executin
+  # Make a note of an exception associated with the currently executing
   # controller action.  Note that this used to be available on Object
   # but we replaced that global method with NewRelic::Agent#notice_error.
   # Use that one outside of controller actions.
   def newrelic_notice_error(exception, custom_params = {})
-    NewRelic::Agent::Instrumentation::MetricFrame.notice_error exception, custom_params
+    NewRelic::Agent::Instrumentation::MetricFrame.notice_error exception, :custom_params => custom_params, :request => request
   end
   
   def rescue_action_with_newrelic_trace(exception)
-    NewRelic::Agent::Instrumentation::MetricFrame.notice_error exception
+    NewRelic::Agent::Instrumentation::MetricFrame.notice_error exception, :request => request 
     rescue_action_without_newrelic_trace exception
   end
   

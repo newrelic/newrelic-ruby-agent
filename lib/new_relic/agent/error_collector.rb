@@ -45,11 +45,13 @@ module NewRelic
     
     # Notice the error with the given available options:
     #
-    # * :uri => The request path, minus any request params or query string.
-    # * :referer => The URI of the referer
-    # * :metric => The metric name associated with the transaction
-    # * :request_params => Request parameters, already filtered if necessary
-    # * :custom_params => Custom parameters
+    # * <tt>:uri</tt> => The request path, minus any request params or query string.
+    # * <tt>:referer</tt> => The URI of the referer
+    # * <tt>:metric</tt> => The metric name associated with the transaction
+    # * <tt>:request_params</tt> => Request parameters, already filtered if necessary
+    # * <tt>:custom_params</tt> => Custom parameters
+    #
+    # If anything is left over, it's added to custom params
     def notice_error(exception, options={})
       return unless @enabled
       return if @ignore[exception.class.name] 
@@ -58,23 +60,22 @@ module NewRelic
         return if exception.nil?
       end
 
-      action_path     = options[:metric] || NewRelic::Agent.instance.stats_engine.scope_name || ''
-      filtered_params = options[:request_params] || {}
-
       NewRelic::Agent.get_stats("Errors/all").increment_count
       return unless NewRelic::Agent.instance.should_send_errors
-      
-      data = {}
-      
-      data[:request_params] = normalize_params(options[:request_params]) if NewRelic::Control.instance.capture_params && options[:request_params]
 
-      data[:custom_params] = normalize_params(options[:custom_params]) if options[:custom_params]
+      data = {}
+      data[:request_uri] = options.delete(:uri) || ''
+      data[:request_referer] = options.delete(:referer) || ''
+
+      action_path     = options.delete(:metric) || NewRelic::Agent.instance.stats_engine.scope_name || ''
+      request_params = options.delete(:request_params)
+      custom_params = options.delete(:custom_params) || {}
+      # If anything else is left over, treat it like a custom param:
+      custom_params.merge! options
       
-      data[:request_uri] = options[:uri] || ''
-      data[:request_referer] = options[:referer] || ''
-      
+      data[:request_params] = normalize_params(request_params) if NewRelic::Control.instance.capture_params && request_params
+      data[:custom_params] = normalize_params(custom_params) unless custom_params.empty?
       data[:rails_root] = NewRelic::Control.instance.root
-      
       data[:file_name] = exception.file_name if exception.respond_to?('file_name')
       data[:line_number] = exception.line_number if exception.respond_to?('line_number')
       
