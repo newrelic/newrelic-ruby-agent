@@ -326,8 +326,8 @@ module NewRelic
           :agent_version => NewRelic::VERSION::STRING, 
           :environment => environment,
           :settings => control.settings,
-          :validate_seed => ENV['NR_VALIDATE_SEED'],
-          :validate_token => ENV['NR_VALIDATE_TOKEN'] }
+          :validate_seed => control.validate_seed,
+          :validate_token => control.validate_token }
         
         host = invoke_remote(:get_redirect_host)
         

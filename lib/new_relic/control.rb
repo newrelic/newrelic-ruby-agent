@@ -214,6 +214,12 @@ module NewRelic
     def app_names
       self['app_name'] ? self['app_name'].split(';') : []
     end
+    def validate_seed
+      self['validate_seed'] || ENV['NR_VALIDATE_SEED']   
+    end
+    def validate_token
+      self['validate_token'] || ENV['NR_VALIDATE_TOKEN']
+    end
     
     def use_ssl?
       @use_ssl ||= fetch('ssl', false)
