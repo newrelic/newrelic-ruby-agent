@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{newrelic_rpm}
-  s.version = "2.10.5"
+  s.version = "2.10.6"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Bill Kayser"]
-  s.date = %q{2010-02-19}
+  s.date = %q{2010-03-01}
   s.description = %q{New Relic RPM is a Ruby performance management system, developed by
 New Relic, Inc (http://www.newrelic.com).  RPM provides you with deep
 information about the performance of your Ruby on Rails or Merb
@@ -21,8 +21,7 @@ http://github.com/newrelic/rpm/tree/master.
   s.executables = ["mongrel_rpm", "newrelic_cmd"]
   s.extra_rdoc_files = [
     "CHANGELOG",
-     "LICENSE",
-     "README.md"
+     "LICENSE"
   ]
   s.files = [
     "CHANGELOG",
@@ -123,6 +122,7 @@ http://github.com/newrelic/rpm/tree/master.
      "test/new_relic/agent/busy_calculator_test.rb",
      "test/new_relic/agent/collection_helper_test.rb",
      "test/new_relic/agent/error_collector_test.rb",
+     "test/new_relic/agent/memcache_instrumentation_test.rb",
      "test/new_relic/agent/method_tracer_test.rb",
      "test/new_relic/agent/metric_data_test.rb",
      "test/new_relic/agent/metric_frame_test.rb",
@@ -194,7 +194,7 @@ For details on this specific release, refer to the CHANGELOG file.
 }
   s.rdoc_options = ["--charset=UTF-8", "--line-numbers", "--inline-source", "--title", "New Relic RPM"]
   s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.3.5}
+  s.rubygems_version = %q{1.3.6}
   s.summary = %q{New Relic Ruby Performance Monitoring Agent}
 
   if s.respond_to? :specification_version then
