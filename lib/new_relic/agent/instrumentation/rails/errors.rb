@@ -10,8 +10,8 @@ ActionController::Base.class_eval do
   end
   
   def rescue_action_with_newrelic_trace(exception)
-    NewRelic::Agent::Instrumentation::MetricFrame.notice_error exception, :request => request 
     rescue_action_without_newrelic_trace exception
+    NewRelic::Agent::Instrumentation::MetricFrame.notice_error exception, :request => request 
   end
   
   # Compare with #alias_method_chain, which is not available in 
