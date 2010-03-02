@@ -172,8 +172,8 @@ module NewRelic::Agent::Instrumentation
       ending = Time.now.to_f
       summary_stat = NewRelic::Agent.instance.stats_engine.get_custom_stats("Apdex", NewRelic::ApdexStats)
       controller_stat = NewRelic::Agent.instance.stats_engine.get_custom_stats("Apdex/#{path}", NewRelic::ApdexStats)
-      update_apdex(summary_stat, ending - apdex_start, exception)
-      update_apdex(controller_stat, ending - start, exception)
+      self.class.update_apdex(summary_stat, ending - apdex_start, exception)
+      self.class.update_apdex(controller_stat, ending - start, exception)
     end
     
     def metric_name
@@ -255,9 +255,9 @@ module NewRelic::Agent::Instrumentation
       return approximate_uri[%r{^(https?://.*?)?(/[^?]*)}, 2] || '/' if approximate_uri
     end 
     
-    private
-    
-    def update_apdex(stat, duration, failed)
+    # Record an apdex value for the given stat.  non-nil 'failed'
+    # the apdex should be recorded as a failure regardless of duration.
+    def self.update_apdex(stat, duration, failed)
       apdex_t = NewRelic::Control.instance.apdex_t
       case
       when failed
@@ -270,6 +270,8 @@ module NewRelic::Agent::Instrumentation
         stat.record_apdex_f
       end
     end  
+    
+    private
     
     def process_cpu
       return nil if defined? JRuby
