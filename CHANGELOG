@@ -1,3 +1,5 @@
+v2.10.6
+  * Fix missing URL and referer on some traced errors and transactions
 v2.10.5
   * Fix bug in delayed_job instrumentation occurring when there was no DJ log
   

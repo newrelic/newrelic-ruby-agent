@@ -285,11 +285,17 @@ module NewRelic
     # if there is one.
     # 
     # * <tt>exception</tt> is the exception which will be recorded
-    # * <tt>extra_params</tt> is a hash of name value pairs to appear alongside
-    #   the exception in RPM.
+    # Options:
+    # * <tt>:uri</tt> => The request path, minus any request params or query string.
+    # * <tt>:referer</tt> => The URI of the referer
+    # * <tt>:metric</tt> => The metric name associated with the transaction
+    # * <tt>:request_params</tt> => Request parameters, already filtered if necessary
+    # * <tt>:custom_params</tt> => Custom parameters
     #
-    def notice_error(exception, extra_params = nil)
-      NewRelic::Agent::Instrumentation::MetricFrame.notice_error(exception, extra_params)
+    # Anything left over is treated as custom params
+    #
+    def notice_error(exception, options={})
+      NewRelic::Agent::Instrumentation::MetricFrame.notice_error(exception, options)
     end
 
     # Add parameters to the current transaction trace on the call stack.

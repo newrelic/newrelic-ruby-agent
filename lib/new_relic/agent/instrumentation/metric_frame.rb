@@ -63,22 +63,14 @@ module NewRelic::Agent::Instrumentation
     
     # For the current web transaction, return the path of the URI minus the host part and query string, or nil.
     def uri
-      return @uri if @uri || @request.nil?
-      approximate_uri = case
-        when @request.respond_to?(:fullpath) then @request.fullpath
-        when @request.respond_to?(:path) then @request.path
-        when @request.respond_to?(:uri) then @request.uri
-        when @request.respond_to?(:url) then @request.url
-      end
-      @uri = approximate_uri[%r{^(https?://.*?)?(/[^?]*)}, 2] || '/' if approximate_uri
+      @uri ||= self.class.uri_from_request(@request) unless @request.nil?
     end
     
     # For the current web transaction, return the full referer, minus the host string, or nil.
     def referer
-      return @referer if @referer || @request.nil? || !@request.respond_to?(:referer) || !@request.referer 
-      @referer = @request.referer.split('?').first
+      @referer ||= self.class.referer_from_request(@request)
     end
-    
+   
     # Call this to ensure that the current transaction is not saved
     def abort_transaction!
       NewRelic::Agent.instance.transaction_sampler.ignore_transaction
@@ -130,19 +122,37 @@ module NewRelic::Agent::Instrumentation
     end
     
     # If we have an active metric frame, notice the error and increment the error metric.
-    def self.notice_error(e, additional_params=nil)
+    # Options:
+    # * <tt>:request</tt> => Request object to get the uri and referer
+    # * <tt>:uri</tt> => The request path, minus any request params or query string.
+    # * <tt>:referer</tt> => The URI of the referer
+    # * <tt>:metric</tt> => The metric name associated with the transaction
+    # * <tt>:request_params</tt> => Request parameters, already filtered if necessary
+    # * <tt>:custom_params</tt> => Custom parameters
+    # Anything left over is treated as custom params
+
+    def self.notice_error(e, options={})
+      if request = options.delete(:request)
+        options[:referer] = referer_from_request(request)
+        options[:uri] = uri_from_request(request)
+      end
       if current
-        current.notice_error(e, additional_params)
+        current.notice_error(e, options)
       else
-        NewRelic::Agent.instance.error_collector.notice_error(e, :custom_params => additional_params)
+        NewRelic::Agent.instance.error_collector.notice_error(e, options)
       end
     end
     
-    def notice_error(e, additional_params=nil)
+    # Do not call this.  Invoke the class method instead.
+    def notice_error(e, options={}) # :nodoc:
       params = custom_parameters
-      params = params.merge(additional_params) if additional_params
+      options[:referer] = referer if referer
+      options[:request_params] = filtered_params if filtered_params 
+      options[:uri] = uri if uri
+      options[:metric] = metric_name
+      options.merge!(custom_parameters)
       if exception != e
-        NewRelic::Agent.instance.error_collector.notice_error(e, :referer => referer, :uri => uri, :metric => metric_name, :request_params => filtered_params, :custom_params => params)
+        NewRelic::Agent.instance.error_collector.notice_error(e, options)
         self.exception = e
       end
     end
@@ -162,8 +172,8 @@ module NewRelic::Agent::Instrumentation
       ending = Time.now.to_f
       summary_stat = NewRelic::Agent.instance.stats_engine.get_custom_stats("Apdex", NewRelic::ApdexStats)
       controller_stat = NewRelic::Agent.instance.stats_engine.get_custom_stats("Apdex/#{path}", NewRelic::ApdexStats)
-      update_apdex(summary_stat, ending - apdex_start, exception)
-      update_apdex(controller_stat, ending - start, exception)
+      self.class.update_apdex(summary_stat, ending - apdex_start, exception)
+      self.class.update_apdex(controller_stat, ending - start, exception)
     end
     
     def metric_name
@@ -225,9 +235,29 @@ module NewRelic::Agent::Instrumentation
       0 == cat.index("Controller")
     end
     
-    private
+    # Make a safe attempt to get the referer from a request object, generally successful when
+    # it's a Rack request.
+    def self.referer_from_request(request)
+      if request && request.respond_to?(:referer)
+        request.referer.to_s.split('?').first
+      end
+    end
     
-    def update_apdex(stat, duration, failed)
+    # Make a safe attempt to get the URI, without the host and query string.
+    def self.uri_from_request(request)
+      approximate_uri = case
+        when request.respond_to?(:fullpath) then request.fullpath
+        when request.respond_to?(:path) then request.path
+        when request.respond_to?(:request_uri) then request.request_uri
+        when request.respond_to?(:uri) then request.uri
+        when request.respond_to?(:url) then request.url
+      end
+      return approximate_uri[%r{^(https?://.*?)?(/[^?]*)}, 2] || '/' if approximate_uri
+    end 
+    
+    # Record an apdex value for the given stat.  non-nil 'failed'
+    # the apdex should be recorded as a failure regardless of duration.
+    def self.update_apdex(stat, duration, failed)
       apdex_t = NewRelic::Control.instance.apdex_t
       case
       when failed
@@ -240,6 +270,8 @@ module NewRelic::Agent::Instrumentation
         stat.record_apdex_f
       end
     end  
+    
+    private
     
     def process_cpu
       return nil if defined? JRuby
