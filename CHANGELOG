@@ -1,11 +1,15 @@
 v2.10.6
-  * Fix missing URL and referer on some traced errors and transactions
+  * fix missing URL and referer on some traced errors and transactions
+  * gather traced errors *after* executing the rescue chain in ActionController
+  * always load controller instrumentation
+  * pick up token validation from newrelic.yml
+  
 v2.10.5
-  * Fix bug in delayed_job instrumentation occurring when there was no DJ log
+  * fix bug in delayed_job instrumentation occurring when there was no DJ log
   
 v2.10.4
-  * Fix incompatibility with Capistrano 2.5.16
-  * Strip down URLs reported in transactions and errors to path only
+  * fix incompatibility with Capistrano 2.5.16
+  * strip down URLs reported in transactions and errors to path only
   
 v2.10.3
   * optimization to reduce overhead: move background samplers into foreground thread
