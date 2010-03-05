@@ -23,6 +23,13 @@ module NewRelic
     alias environment dispatcher
     
     def initialize
+      # Extend self with any any submodules of LocalEnvironment.  These can override
+      # the discover methods to discover new framworks and dispatchers.  
+      NewRelic::LocalEnvironment.constants.each do | const |
+        mod = NewRelic::LocalEnvironment.const_get const
+        self.extend mod if mod.instance_of? Module
+      end
+      
       discover_framework
       discover_dispatcher
       @dispatcher = nil if @dispatcher == :none
@@ -155,7 +162,7 @@ module NewRelic
     # Although you can override the framework with NEWRELIC_DISPATCHER this
     # is not advisable since it implies certain api's being available.
     def discover_dispatcher
-      @dispatcher = ENV['NEWRELIC_DISPATCHER'] && ENV['NEWRELIC_DISPATCHER'].to_sym
+      @dispatcher ||= ENV['NEWRELIC_DISPATCHER'] && ENV['NEWRELIC_DISPATCHER'].to_sym
       dispatchers = %w[passenger torquebox glassfish thin mongrel litespeed webrick fastcgi unicorn sinatra]
       while dispatchers.any? && @dispatcher.nil?
         send 'check_for_'+(dispatchers.shift)
@@ -168,7 +175,7 @@ module NewRelic
       #
       # Note that the odd defined? sequence is necessary to work around a bug in an older version
       # of JRuby.
-      @framework = case
+      @framework ||= case
         when ENV['NEWRELIC_FRAMEWORK'] then ENV['NEWRELIC_FRAMEWORK'].to_sym
         when defined?(::NewRelic::TEST) then :test
         when defined?(::Merb) && defined?(::Merb::Plugins) then :merb
