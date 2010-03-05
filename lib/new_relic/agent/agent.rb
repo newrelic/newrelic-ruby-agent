@@ -320,6 +320,7 @@ module NewRelic
       begin
         sleep connect_retry_period.to_i
         environment = control['send_environment_info'] != false ? control.local_env.snapshot : []
+        log.debug "Connecting with validation seed/token: #{control.validate_seed}/#{control.validate_token}" if control.validate_seed
         @agent_id ||= invoke_remote :start, @local_host, {
           :pid => $$, 
           :launch_time => @launch_time.to_f, 
