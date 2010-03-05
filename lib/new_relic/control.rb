@@ -446,7 +446,10 @@ module NewRelic
         require File.join(newrelic_root, "test", "config", "test_control.rb")
         NewRelic::Control::Test.new @local_env
       else
-        require "new_relic/control/#{@local_env.framework}.rb"
+        begin
+          require "new_relic/control/#{@local_env.framework}.rb"
+        rescue LoadError
+        end
         NewRelic::Control.const_get(@local_env.framework.to_s.capitalize).new @local_env
       end
     end
