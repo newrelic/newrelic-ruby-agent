@@ -1,3 +1,8 @@
+v2.10.7
+  * fix problem with the Authlogic metric names which caused errors in
+    developer mode.  Authlogic metrics now adhere to the convention of
+    prefixing the name with  'Custom'
+    
 v2.10.6
   * fix missing URL and referer on some traced errors and transactions
   * gather traced errors *after* executing the rescue chain in ActionController
