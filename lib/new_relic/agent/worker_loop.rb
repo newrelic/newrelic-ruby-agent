@@ -1,75 +1,54 @@
+require 'thread'
 module NewRelic
-module Agent
-  
-  # A worker loop executes a set of registered tasks on a single thread.  
-  # A task is a proc or block with a specified call period in seconds.  
-  class WorkerLoop
+  module Agent
     
-    attr_reader :log
-    attr_reader :pid
-    
-    def initialize(log = Logger.new(STDERR))
-      @tasks = []
-      @log = log
-      @should_run = true
-      @pid = $$
-    end
-    
-    # Run infinitely, calling the registered tasks at their specified
-    # call periods.  The caller is responsible for creating the thread
-    # that runs this worker loop
-    def run
-      while keep_running do
-        run_next_task
-      end
-    end
-    
-    def keep_running
-      @should_run && (@pid == $$)
-    end
-    
-    def stop
-      @should_run = false
-    end
-    
-    MIN_CALL_PERIOD = 0.1
-    
-    # add a task to the worker loop.  The task will be called approximately once
-    # every call_period seconds.  The task is passed as a block
-    def add_task(call_period, desc="", &task_proc)
-      if call_period < MIN_CALL_PERIOD
-        raise ArgumentError, "Invalid Call Period (must be > #{MIN_CALL_PERIOD}): #{call_period}" 
-      end
-      @tasks << LoopTask.new(call_period, desc, &task_proc)
-    end
-    
-    private 
-    def next_task
-      @tasks.inject do |soonest, task|
-       (task.next_invocation_time < soonest.next_invocation_time) ? task : soonest
-      end
-    end
-    
-    def run_next_task
-      if @tasks.empty?
-        sleep 5.0
-        return
+    # A worker loop executes a set of registered tasks on a single thread.  
+    # A task is a proc or block with a specified call period in seconds.  
+    class WorkerLoop
+      
+      attr_reader :pid
+      
+      def initialize
+        @lock = Mutex.new
+        @log = log
+        @should_run = true
+        @pid = $$
       end
       
-      # get the next task to be executed, which is the task with the lowest (ie, soonest)
-      # next invocation time.
-      task = next_task
-      
-      while Time.now < task.next_invocation_time
-        
-        # sleep until this next task's scheduled invocation time
-        sleep_time = task.next_invocation_time - Time.now
-        sleep sleep_time if sleep_time > 0
-        return if !keep_running
+      def log
+        NewRelic::Control.instance.log
+      end
+      # Run infinitely, calling the registered tasks at their specified
+      # call periods.  The caller is responsible for creating the thread
+      # that runs this worker loop
+      def run(period, &block)
+        @period = period
+        @next_invocation_time = Time.now + @period
+        @task = block
+        while keep_running do
+          now = Time.now
+          while now < @next_invocation_time
+            # sleep until this next task's scheduled invocation time
+            sleep_time = @next_invocation_time - now
+            sleep sleep_time if sleep_time > 0
+            now = Time.now
+          end
+          run_task if keep_running
+        end
       end
       
-      begin
-        task.execute if keep_running
+      def keep_running
+        @should_run && @pid == $$
+      end
+      
+      def stop
+        @should_run = false
+      end
+      
+      def run_task
+        @lock.synchronize do
+          @task.call 
+        end if keep_running
       rescue ServerError => e
         log.debug "Server Error: #{e}"
       rescue NewRelic::Agent::ForceRestartException => e
@@ -86,34 +65,16 @@ module Agent
           log.debug message
           log.debug e.backtrace.join("\n")
         end
-      rescue Timeout::Error, NewRelic::Agent::IgnoreSilentlyException
+      rescue Timeout::Error, NewRelic::Agent::ServerConnectionException
         # Want to ignore these because they are handled already
       rescue ScriptError, StandardError => e 
         log.error "Error running task in Agent Worker Loop '#{e}': #{e.backtrace.first}" 
         log.debug e.backtrace.join("\n")
-      end
-    end
-    
-    class LoopTask
-      
-      def initialize(call_period, desc="", &task_proc) 
-        @call_period = call_period
-        @last_invocation_time = Time.now
-        @task = task_proc
-        @desc = desc
-      end
-      def to_s
-        "Task[#{@desc}]"
-      end
-      def next_invocation_time
-        @last_invocation_time + @call_period
-      end
-      
-      def execute
-        @last_invocation_time = Time.now
-        @task.call
+      ensure
+        while @next_invocation_time < Time.now
+          @next_invocation_time += @period
+        end        
       end
     end
   end
-end
 end

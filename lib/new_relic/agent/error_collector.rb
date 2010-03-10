@@ -61,7 +61,6 @@ module NewRelic
       end
 
       NewRelic::Agent.get_stats("Errors/all").increment_count
-      return unless NewRelic::Agent.instance.should_send_errors
 
       data = {}
       data[:request_uri] = options.delete(:uri) || ''

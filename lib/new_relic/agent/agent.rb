@@ -24,11 +24,9 @@ module NewRelic
     attr_reader :stats_engine
     attr_reader :transaction_sampler
     attr_reader :error_collector
-    attr_reader :task_loop
     attr_reader :record_sql
     attr_reader :histogram
     attr_reader :metric_ids
-    attr_reader :should_send_errors
     
     # Should only be called by NewRelic::Control
     def self.instance
@@ -162,7 +160,8 @@ module NewRelic
       @started = true
       
       sampler_config = control.fetch('transaction_tracer', {})
-      @use_transaction_sampler = sampler_config.fetch('enabled', true)
+      @should_send_samples = sampler_config.fetch('enabled', true)
+      log.info "Transaction tracing not enabled." if not @should_send_samples
       
       @record_sql = sampler_config.fetch('record_sql', :obfuscated).to_sym
       
@@ -178,11 +177,6 @@ module NewRelic
       end
       @slowest_transaction_threshold = @slowest_transaction_threshold.to_f
       
-      if @use_transaction_sampler
-        log.info "Transaction tracing threshold is #{@slowest_transaction_threshold} seconds." 
-      else
-        log.info "Transaction tracing not enabled."
-      end
       @explain_threshold = sampler_config.fetch('explain_threshold', 0.5).to_f
       @explain_enabled = sampler_config.fetch('explain_enabled', true)
       @random_sample = sampler_config.fetch('random_sample', false)
@@ -216,54 +210,36 @@ module NewRelic
       @collector ||= control.server
     end
     
-    # Connect to the server, and run the worker loop forever.
-    # Will not return.
-    def run_task_loop
-      # determine the reporting period (server based)          
-      # note if the agent attempts to report more frequently than
-      # the specified report data, then it will be ignored.
-      
-      control.log! "Reporting performance data every #{@report_period} seconds."        
-      @task_loop.add_task(@report_period, "Timeslice Data Send") do 
-        harvest_and_send_timeslice_data
-      end
-      
-      if @should_send_samples && @use_transaction_sampler
-        @task_loop.add_task(@report_period, "Transaction Sampler Send") do 
-          harvest_and_send_slowest_sample
-        end
-      elsif !control.developer_mode?
-        # We still need the sampler for dev mode.
-        @transaction_sampler.disable
-      end
-      
-      if @should_send_errors && @error_collector.enabled
-        @task_loop.add_task(@report_period, "Error Send") do 
-          harvest_and_send_errors
-        end
-      end
-      log.debug "Running worker loop"
-      @task_loop.run
-    rescue StandardError
-      log.debug "Error in worker loop: #{$!}"
-      @connected = false
-      raise
-    end
-    
     def launch_worker_thread
       if (control.dispatcher == :passenger && $0 =~ /ApplicationSpawner/)
         log.debug "Process is passenger spawner - don't connect to RPM service"
         return
       end
       
-      @task_loop = WorkerLoop.new(log)
+      @task_loop = WorkerLoop.new
       
       log.debug "Creating RPM worker thread."
       @worker_thread = Thread.new do
         begin
           NewRelic::Agent.disable_all_tracing do
-            connect
-            run_task_loop if @connected
+            # We try to connect.  If this returns false that means
+            # the server rejected us for a licensing reason and we should 
+            # just exit the thread.
+            if connect
+              # disable transaction sampling if disabled by the server and we're not in dev mode
+              if !control.developer_mode? && !@should_send_samples
+                @transaction_sampler.disable
+              end
+              control.log! "Reporting performance data every #{@report_period} seconds."
+              log.debug "Running worker loop"
+              # note if the agent attempts to report more frequently than allowed by the server
+              # the server will start dropping data.
+              @task_loop.run(@report_period) do
+                harvest_and_send_timeslice_data
+                harvest_and_send_slowest_sample if @should_send_samples
+                harvest_and_send_errors if error_collector.enabled
+              end 
+            end
           end
         rescue NewRelic::Agent::ForceRestartException => e
           log.info e.message
@@ -321,6 +297,7 @@ module NewRelic
       begin
         sleep connect_retry_period.to_i
         environment = control['send_environment_info'] != false ? control.local_env.snapshot : []
+        log.debug "Connecting with validation seed/token: #{control.validate_seed}/#{control.validate_token}" if control.validate_seed
         @agent_id ||= invoke_remote :start, @local_host, {
           :pid => $$, 
           :launch_time => @launch_time.to_f, 
@@ -341,19 +318,20 @@ module NewRelic
         
         # Ask the server for permission to send transaction samples.
         # determined by subscription license.
-        @should_send_samples = invoke_remote :should_collect_samples, @agent_id
+        @should_send_samples &&= invoke_remote :should_collect_samples, @agent_id
         
         if @should_send_samples
           sampling_rate = invoke_remote :sampling_rate, @agent_id if @random_sample
           @transaction_sampler.sampling_rate = sampling_rate
           log.info "Transaction sample rate: #{@transaction_sampler.sampling_rate}" if sampling_rate
+          log.info "Transaction tracing threshold is #{@slowest_transaction_threshold} seconds." 
         end
         
         # Ask for permission to collect error data
-        @should_send_errors = invoke_remote :should_collect_errors, @agent_id
+        error_collector.enabled &&= invoke_remote(:should_collect_errors, @agent_id)
         
-        log.info "Transaction traces will be sent to the RPM service" if @use_transaction_sampler && @should_send_samples
-        log.info "Errors will be sent to the RPM service" if @error_collector.enabled && @should_send_errors
+        log.info "Transaction traces will be sent to the RPM service." if @should_send_samples
+        log.info "Errors will be sent to the RPM service." if error_collector.enabled
         
         @connected = true
         
@@ -607,9 +585,7 @@ module NewRelic
           @request_timeout = 5
           
           log.debug "Sending RPM service agent run shutdown message"
-          harvest_and_send_timeslice_data
-#          harvest_and_send_slowest_sample
-          harvest_and_send_errors
+          @task_loop.run_task
           invoke_remote :shutdown, @agent_id, Time.now.to_f
           
           log.debug "Graceful shutdown complete"

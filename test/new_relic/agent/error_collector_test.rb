@@ -16,11 +16,9 @@ end
 class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
   
   def setup
+    super
     @error_collector = NewRelic::Agent::ErrorCollector.new
-    NewRelic::Agent.instance.stubs(:should_send_errors).returns(true)
-  end
-  def teardown
-    
+    @error_collector.stubs(:enabled).returns(true)
   end
   def test_empty
     @error_collector.harvest_errors([])
