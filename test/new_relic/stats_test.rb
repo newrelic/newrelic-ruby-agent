@@ -129,7 +129,35 @@ class NewRelic::StatsTest < Test::Unit::TestCase
     s1.total_exclusive_time = 20
     assert_equal((2.0 / 3.0), s1.exclusive_time_percentage)
   end
-  
+
+  def test_sum_merge
+    s1 = NewRelic::MethodTraceStats.new
+    s2 = NewRelic::MethodTraceStats.new
+    s1.trace_call 10
+    s2.trace_call 20
+    s2.freeze
+    
+    validate s1, 1, 10, 10, 10
+    validate s2, 1, 20, 20, 20
+    s1.sum_merge! s2
+    validate s1, 1, (10+20), 10 + 20, 20 + 10
+    validate s2, 1, 20, 20, 20
+  end
+
+  def test_sum_merge_with_exclusive
+    s1 = NewRelic::MethodTraceStats.new
+    s2 = NewRelic::MethodTraceStats.new
+
+    s1.trace_call 10, 5
+    s2.trace_call 20, 10
+    s2.freeze
+
+    validate s1, 1, 10, 10, 10, 5
+    validate s2, 1, 20, 20, 20, 10
+    s1.sum_merge! s2
+    validate s1, 1, (10+20), 10 + 20, 20 + 10, (10+5)
+  end
+
   def test_merge
     s1 = NewRelic::MethodTraceStats.new
     s2 = NewRelic::MethodTraceStats.new
