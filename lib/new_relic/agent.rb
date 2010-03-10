@@ -123,11 +123,11 @@ module NewRelic
     
     # Used to blow out of a periodic task without logging a an error, such as for routine
     # failures.
-    class IgnoreSilentlyException < StandardError; end
+    class ServerConnectionException < StandardError; end
     
     # Used for when a transaction trace or error report has too much
     # data, so we reset the queue to clear the extra-large item
-    class PostTooBigException < IgnoreSilentlyException; end
+    class PostTooBigException < ServerConnectionException; end
     
     # Reserved for future use.  Meant to represent a problem on the server side.
     class ServerError < StandardError; end

@@ -274,8 +274,9 @@ module NewRelic
           # Wait a short time before trying to reconnect
           sleep 30
           retry
-        rescue IgnoreSilentlyException
+        rescue ServerConnectionException => e
           control.log! "Unable to establish connection with the server.  Run with log level set to debug for more information."
+          log.debug("#{e.class.name}: #{e.message}\n#{e.backtrace.first}")
         rescue Exception => e
           @connected = false
           log.error "Terminating worker loop: #{e.class.name}: #{e}\n  #{e.backtrace.join("\n  ")}"
@@ -364,7 +365,7 @@ module NewRelic
         
       rescue Timeout::Error, StandardError => e
         log.info "Unable to establish connection with New Relic RPM Service at #{control.server}"
-        unless e.instance_of? IgnoreSilentlyException
+        unless e.instance_of? ServerConnectionException
           log.error e.message
           log.debug e.backtrace.join("\n")
         end
@@ -376,7 +377,7 @@ module NewRelic
           when 3..5 then
           connect_retry_period, period_msg = 60 * 2, "2 minutes"
         else 
-          connect_retry_period, period_msg = 10*60, "10 minutes"
+          connect_retry_period, period_msg = 10 * 60, "10 minutes"
         end
         log.info "Will re-attempt in #{period_msg}" 
         retry
@@ -540,14 +541,12 @@ module NewRelic
         raise
       end
       if response.is_a? Net::HTTPServiceUnavailable
-        log.debug(response.body || response.message)
-        raise IgnoreSilentlyException
+        raise ServerConnectionException, "Service unavailable: #{response.body || response.message}"
       elsif response.is_a? Net::HTTPGatewayTimeOut
         log.debug("Timed out getting response: #{response.message}")
         raise Timeout::Error, response.message
       elsif !(response.is_a? Net::HTTPSuccess)
-        log.debug "Unexpected response from server: #{response.code}: #{response.message}"
-        raise IgnoreSilentlyException
+        raise ServerConnectionException, "Unexpected response from server: #{response.code}: #{response.message}" 
       end
       response
     end
@@ -597,8 +596,7 @@ module NewRelic
       Thread.exit
     rescue SystemCallError, SocketError => e
       # These include Errno connection errors 
-      log.debug "Recoverable error connecting to the server: #{e}"
-      raise IgnoreSilentlyException
+      raise ServerConnectionException, "Recoverable error connecting to the server: #{e}"
     end
     
     def graceful_disconnect
