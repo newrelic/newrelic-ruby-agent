@@ -87,8 +87,8 @@ module NewRelic
       # between calling init_plugin the first time and the second time, the env
       # has been overridden
       @settings = nil
-      
-      options.each { |sym, val | self[sym.to_s] = val unless sym == :config }
+      settings
+      merge_options(options)
       if logger_override
         @log = logger_override
         # Try to grab the log filename
@@ -480,6 +480,22 @@ module NewRelic
     end
     def newrelic_root
       self.class.newrelic_root
+    end
+    
+    # Merge the given options into the config options.
+    # They might be a nested hash
+    def merge_options(options, hash=self)
+      options.each do |key, val |
+        case
+        when key == :config then next 
+        when val.is_a?(Hash)
+          merge_options(val, hash[key.to_s] ||= {})
+        when val.nil?
+          hash.delete(key.to_s)
+        else 
+          hash[key.to_s] = val
+        end
+      end
     end
     
     def load_instrumentation_files pattern
