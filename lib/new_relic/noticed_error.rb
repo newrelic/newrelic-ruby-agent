@@ -1,6 +1,6 @@
 # This class encapsulates an error that was noticed by RPM in a managed app.
 class NewRelic::NoticedError
-  extend NewRelic::Agent::CollectionHelper
+  extend NewRelic::CollectionHelper
   attr_accessor :path, :timestamp, :params, :exception_class, :message
   
   def initialize(path, data, exception, timestamp = Time.now)

@@ -2,7 +2,7 @@
 module NewRelic
   module Agent
   class ErrorCollector
-    include CollectionHelper
+    include NewRelic::CollectionHelper
     
     # Defined the methods that need to be stubbed out when the
     # agent is disabled

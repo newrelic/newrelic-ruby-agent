@@ -11,7 +11,7 @@ class NewRelic::Agent::CollectionHelperTest < Test::Unit::TestCase
     super
   end
   
-  include NewRelic::Agent::CollectionHelper
+  include NewRelic::CollectionHelper
   def test_string
     val = (('A'..'Z').to_a.join * 100).to_s
     assert_equal val[0...256] + "...", normalize_params(val)
