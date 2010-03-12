@@ -1,6 +1,5 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
 require 'active_record_fixtures'
-
 class ActiveRecordInstrumentationTest < Test::Unit::TestCase
   include NewRelic::Agent::Instrumentation::ControllerInstrumentation
   def setup
@@ -69,7 +68,8 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
       ActiveRecord/ActiveRecordFixtures::Order/find
       ]
     expected += %W[Database/SQL/insert] if ActiveRecord::Base.configurations[RAILS_ENV]['adapter'] =~ /jdbc/  
-    expected += %W[ActiveRecord/create Database/SQL/other] unless  ActiveRecord::Base.configurations[RAILS_ENV]['adapter'] =~ /jdbc|sqlite/  
+    expected += %W[ActiveRecord/create] unless  ActiveRecord::Base.configurations[RAILS_ENV]['adapter'] =~ /jdbc/  
+    expected += %W[Database/SQL/other] unless  ActiveRecord::Base.configurations[RAILS_ENV]['adapter'] =~ /jdbc|sqlite/  
     expected += %W[ActiveRecord/ActiveRecordFixtures::Order/create] unless ActiveRecord::Base.configurations[RAILS_ENV]['adapter'] =~ /jdbc/  
     expected += %W[ActiveRecord/save ActiveRecord/ActiveRecordFixtures::Order/save] if NewRelic::Control.instance.rails_version < '2.1.0'   
     compare_metrics expected, metrics
