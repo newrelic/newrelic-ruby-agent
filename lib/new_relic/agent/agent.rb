@@ -54,7 +54,7 @@ module NewRelic
       @worker_thread = nil
       
       # We got some reports of threading errors in Unicorn with this.
-      log.debug "Detected that the worker thread is not running.  Restarting." rescue nil
+      log.debug "Detected that the worker thread is not running in #$$.  Restarting." rescue nil
       # Assume we've been forked if there's a worker_loop already created.
       # Clear out stats that are left over from parent process when we know the parent process
       # did not try to establish a connection
@@ -300,8 +300,8 @@ module NewRelic
     # there's a bad license key.
     def connect
       if $0 =~ /ApplicationSpawner|master/
-        log.debug "Process is master spawner (#$0)- don't connect to RPM service"
-        return false
+        log.debug "Process is master spawner (#$0) -- don't connect to RPM service"
+        return nil
       end
       # wait a few seconds for the web server to boot, necessary in development
       connect_retry_period = 5
