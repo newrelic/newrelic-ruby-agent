@@ -5,7 +5,7 @@ module NewRelic
   # An instance of LocalEnvironment is responsible for determining
   # three things: 
   #
-  # * Framework - :rails, :merb, :ruby, :external, :test
+  # * Framework - :rails, :rails3, :merb, :ruby, :external, :test
   # * Dispatcher - A supported dispatcher, or nil (:mongrel, :thin, :passenger, :webrick, etc)
   # * Dispatcher Instance ID, which distinguishes agents on a single host from each other
   #
@@ -17,7 +17,7 @@ module NewRelic
 
     attr_accessor :dispatcher # mongrel, thin, webrick, or possibly nil
     attr_accessor :dispatcher_instance_id # used to distinguish instances of a dispatcher from each other, may be nil
-    attr_accessor :framework # rails, merb, external, ruby, test
+    attr_accessor :framework # rails, rails3, merb, external, ruby, test
     attr_reader :mongrel    # The mongrel instance, if there is one, captured as a convenience
     attr_reader :processors # The number of cpus, if detected, or nil
     alias environment dispatcher
@@ -179,11 +179,19 @@ module NewRelic
         when ENV['NEWRELIC_FRAMEWORK'] then ENV['NEWRELIC_FRAMEWORK'].to_sym
         when defined?(::NewRelic::TEST) then :test
         when defined?(::Merb) && defined?(::Merb::Plugins) then :merb
-        when defined?(::Rails) then :rails
+        when defined?(::Rails) then check_rails_version
         when defined?(::Sinatra) && defined?(::Sinatra::Base) then :sinatra      
         when defined?(::NewRelic::IA) then :external
       else :ruby
       end      
+    end
+
+    def check_rails_version
+      if Rails::VERSION::MAJOR < 3     
+        :rails
+      else
+        :rails3
+      end
     end
 
     def check_for_torquebox
