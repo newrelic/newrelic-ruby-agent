@@ -5,7 +5,7 @@ module NewRelic
     def initialize
       super :delayed_job_lock
       raise Unsupported, "DJ instrumentation disabled" if NewRelic::Control.instance['disable_dj'] 
-      raise Unsupported, "No DJ worker present" if NewRelic::DelayedJobInjection.worker_name
+      raise Unsupported, "No DJ worker present" unless NewRelic::DelayedJobInjection.worker_name
     end
     
     def stats
