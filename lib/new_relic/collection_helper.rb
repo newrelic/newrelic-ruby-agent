@@ -1,6 +1,5 @@
 module NewRelic
-  module Agent
-    module CollectionHelper
+  module CollectionHelper
   # Transform parameter hash into a hash whose values are strictly
   # strings
   def normalize_params(params)
@@ -65,6 +64,5 @@ module NewRelic
       truncate(flatten(string), len)     
     end
   end
-end
-end
+  end
 end

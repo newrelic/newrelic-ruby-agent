@@ -223,7 +223,7 @@ module Agent
   class TransactionSampleBuilder
     attr_reader :current_segment, :sample
     
-    include CollectionHelper
+    include NewRelic::CollectionHelper
     
     def initialize(time=nil)
       time ||= Time.now.to_f
