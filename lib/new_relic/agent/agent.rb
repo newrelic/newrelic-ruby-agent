@@ -37,26 +37,30 @@ module NewRelic
       raise "This method no longer supported.  Instead use the class method NewRelic::Agent.manual_start"
     end
     
-    # this method makes sure that the agent is running. it's important
-    # for passenger where processes are forked and the agent is
-    # dormant
+    # This method attempts to detect when we're in a forked process and tries
+    # to re-establish a new agent run.  It's important
+    # for passenger/unicorn/etc where processes are forked and the worker
+    # loop thread is no longer alive.
     #
     def ensure_worker_thread_started
-      return unless control.agent_enabled? && control.monitor_mode? && !@invalid_license
-      if !running?
-        # We got some reports of threading errors in Unicorn with this.
-        log.debug "Detected that the worker loop is not running.  Restarting." rescue nil
-        # Assume we've been forked, clear out stats that are left over from parent process
-        reset_stats
-        launch_worker_thread
-        @stats_engine.spawn_sampler_thread
-      end
-    end
-    
-    # True if the worker thread has been started.  Doesn't necessarily
-    # mean we are connected
-    def running?
-      control.agent_enabled? && control.monitor_mode? && @task_loop && @task_loop.pid == $$
+      return if !control.agent_enabled? || @invalid_license
+      
+      # @connected gets false after we fail to connect or have an error
+      # connecting.  @connected has nil if we haven't finished trying to connect.
+      # or we didn't attempt a connection because this is the master process
+      return unless @worker_thread && !@worker_thread.alive? && @connected != false 
+      
+      # This ensures that we don't enter this block again 
+      @worker_thread = nil
+      
+      # We got some reports of threading errors in Unicorn with this.
+      log.debug "Detected that the worker thread is not running.  Restarting." rescue nil
+      # Assume we've been forked if there's a worker_loop already created.
+      # Clear out stats that are left over from parent process when we know the parent process
+      # did not try to establish a connection
+      reset_stats if @connected.nil?
+      start_new_run
+      @stats_engine.spawn_sampler_thread
     end
     
     # True if we have initialized and completed 'start'
@@ -192,7 +196,7 @@ module NewRelic
           @invalid_license = true
           control.log! "Invalid license key: #{control.license_key}", :error
         else     
-          launch_worker_thread
+          start_new_run
           # When the VM shuts down, attempt to send a message to the
           # server that this agent run is stopping, assuming it has
           # successfully connected
@@ -201,7 +205,7 @@ module NewRelic
           at_exit { shutdown } unless [:sinatra, :unicorn].include? NewRelic::Control.instance.dispatcher
         end
       end
-      control.log! "New Relic RPM Agent #{NewRelic::VERSION::STRING} Initialized: pid = #{$$}"
+      control.log! "New Relic RPM Agent #{NewRelic::VERSION::STRING} Initialized: pid = #$$"
       control.log! "Agent Log found in #{NewRelic::Control.instance.log_file}" if NewRelic::Control.instance.log_file
     end
 
@@ -210,22 +214,19 @@ module NewRelic
       @collector ||= control.server
     end
     
-    def launch_worker_thread
-      if (control.dispatcher == :passenger && $0 =~ /ApplicationSpawner/)
-        log.debug "Process is passenger spawner - don't connect to RPM service"
-        return
-      end
-      
+    # Try to launch the worker thread and connect to the server
+    def start_new_run
       @task_loop = WorkerLoop.new
-      
       log.debug "Creating RPM worker thread."
       @worker_thread = Thread.new do
         begin
           NewRelic::Agent.disable_all_tracing do
             # We try to connect.  If this returns false that means
             # the server rejected us for a licensing reason and we should 
-            # just exit the thread.
-            if connect
+            # just exit the thread.  If it returns nil
+            # that means it didn't try to connect because we're in the master
+            @connected = connect
+            if @connected
               # disable transaction sampling if disabled by the server and we're not in dev mode
               if !control.developer_mode? && !@should_send_samples
                 @transaction_sampler.disable
@@ -238,7 +239,8 @@ module NewRelic
                 harvest_and_send_timeslice_data
                 harvest_and_send_slowest_sample if @should_send_samples
                 harvest_and_send_errors if error_collector.enabled
-              end 
+              end
+              @connected = false
             end
           end
         rescue NewRelic::Agent::ForceRestartException => e
@@ -246,18 +248,25 @@ module NewRelic
           # disconnect and start over.
           # clear the stats engine
           reset_stats
-          @connected = false
+          @connected = nil
           # Wait a short time before trying to reconnect
           sleep 30
           retry
+        rescue ForceDisconnectException => e
+          # when a disconnect is requested, stop the current thread, which
+          # is the worker thread that gathers data and talks to the
+          # server.
+          log.error "RPM forced this agent to disconnect (#{e.message})"
+          @connected = false
         rescue ServerConnectionException => e
           control.log! "Unable to establish connection with the server.  Run with log level set to debug for more information."
           log.debug("#{e.class.name}: #{e.message}\n#{e.backtrace.first}")
-        rescue Exception => e
           @connected = false
+        rescue Exception => e
           log.error "Terminating worker loop: #{e.class.name}: #{e}\n  #{e.backtrace.join("\n  ")}"
-        end
-      end
+          @connected = false
+        end # begin
+      end # thread new
       @worker_thread['newrelic_label'] = 'Worker Loop'
     end
     
@@ -290,6 +299,10 @@ module NewRelic
     # connection with the server and we should not retry, such as if
     # there's a bad license key.
     def connect
+      if $0 =~ /ApplicationSpawner|master/
+        log.debug "Process is master spawner (#$0)- don't connect to RPM service"
+        return false
+      end
       # wait a few seconds for the web server to boot, necessary in development
       connect_retry_period = 5
       connect_attempts = 0
@@ -406,6 +419,7 @@ module NewRelic
       end if metric_ids 
       
       log.debug "#{now}: sent #{@unsent_timeslice_data.length} timeslices (#{@agent_id}) in #{Time.now - now} seconds"
+      puts "#{now}: sent #{@unsent_timeslice_data.length} timeslices (#{@agent_id}) in #{Time.now - now} seconds"
       
       # if we successfully invoked this web service, then clear the unsent message cache.
       @unsent_timeslice_data = {}
@@ -564,14 +578,6 @@ module NewRelic
     rescue ForceRestartException => e
       log.info e.message
       raise
-    rescue ForceDisconnectException => e
-      log.error "RPM forced this agent to disconnect (#{e.message})\n" \
-      "Restart this process to resume monitoring via rpm.newrelic.com."
-      # when a disconnect is requested, stop the current thread, which
-      # is the worker thread that gathers data and talks to the
-      # server.
-      @connected = false
-      Thread.exit
     rescue SystemCallError, SocketError => e
       # These include Errno connection errors 
       raise ServerConnectionException, "Recoverable error connecting to the server: #{e}"
@@ -583,9 +589,9 @@ module NewRelic
           log.debug "Sending graceful shutdown message to #{control.server}"
           
           @request_timeout = 5
-          
-          log.debug "Sending RPM service agent run shutdown message"
+          log.debug "Flushing unsent metric data to server"
           @task_loop.run_task
+          log.debug "Sending RPM service agent run shutdown message"
           invoke_remote :shutdown, @agent_id, Time.now.to_f
           
           log.debug "Graceful shutdown complete"

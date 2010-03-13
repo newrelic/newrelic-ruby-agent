@@ -6,13 +6,13 @@ module NewRelic
     # A task is a proc or block with a specified call period in seconds.  
     class WorkerLoop
       
-      attr_reader :pid
-      
       def initialize
-        @lock = Mutex.new
         @log = log
         @should_run = true
-        @pid = $$
+      end
+      
+      def lock
+        @@lock ||= Mutex.new
       end
       
       def log
@@ -38,7 +38,7 @@ module NewRelic
       end
       
       def keep_running
-        @should_run && @pid == $$
+        @should_run
       end
       
       def stop
@@ -46,12 +46,12 @@ module NewRelic
       end
       
       def run_task
-        @lock.synchronize do
+        lock.synchronize do
           @task.call 
-        end if keep_running
+        end
       rescue ServerError => e
         log.debug "Server Error: #{e}"
-      rescue NewRelic::Agent::ForceRestartException => e
+      rescue NewRelic::Agent::ForceRestartException, NewRelic::Agent::ForceDisconnectException
         # blow out the loop
         raise
       rescue RuntimeError => e
