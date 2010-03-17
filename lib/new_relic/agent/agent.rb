@@ -139,7 +139,7 @@ module NewRelic
     end
 
     def log
-      NewRelic::Control.instance.log
+      NewRelic::Agent.logger
     end  
     
     # Start up the agent.  This verifies that the agent_enabled? is
@@ -207,7 +207,7 @@ module NewRelic
         end
       end
       control.log! "New Relic RPM Agent #{NewRelic::VERSION::STRING} Initialized: pid = #$$"
-      control.log! "Agent Log found in #{NewRelic::Control.instance.log_file}" if NewRelic::Control.instance.log_file
+      control.log! "Agent Log found in #{NewRelic::Agent.logger_file}" if NewRelic::Agent.logger_file
     end
 
     private

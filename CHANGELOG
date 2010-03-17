@@ -11,6 +11,8 @@ v2.10.7
   * allow more correct overriding of transaction trace settings in the 
     call to #manual_start
   * simplify WorkerLoop and add better protection for concurrency
+  * added NewRelic::Agent.logger to the public api to write to the agent 
+    log file.
     
 v2.10.6
   * fix missing URL and referer on some traced errors and transactions

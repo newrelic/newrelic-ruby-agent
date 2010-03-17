@@ -101,7 +101,7 @@ module NewRelic::Agent::Instrumentation
     def pop
       category, path = @path_stack.pop
       if category.nil?
-        NewRelic::Control.instance.log.error "Underflow in metric frames: #{caller.join("\n   ")}"
+        NewRelic::Agent.logger.error "Underflow in metric frames: #{caller.join("\n   ")}"
       end
       if @path_stack.empty?
         if NewRelic::Agent.is_execution_traced?
