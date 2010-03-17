@@ -166,7 +166,7 @@ module NewRelic
     # Get the logger for the agent.  Available after the agent has initialized.
     # This sends output to the agent log file.
     def logger
-      NewRelic::Agent.logger
+      NewRelic::Control.instance.log
     end
     
     # Call this to manually start the Agent in situations where the Agent does
