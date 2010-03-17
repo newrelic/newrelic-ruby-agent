@@ -230,8 +230,6 @@ module NewRelic
     # path.  This form is deprecated.
     def perform_action_with_newrelic_trace(*args, &block)
       
-      NewRelic::Agent.instance.ensure_worker_thread_started
-      
       # Skip instrumentation based on the value of 'do_not_trace' and if 
       # we aren't calling directly with a block.
       if !block_given? && _is_filtered?('do_not_trace')
