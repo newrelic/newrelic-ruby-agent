@@ -1,4 +1,5 @@
 v2.10.7
+  * fix regression in merb support which caused merb apps not to start
   * fix bug in delayed_job instrumentation that caused the job queue sampler
     to run in the wrong place
   * change startup sequence and code that restarts the worker loop
