@@ -43,8 +43,9 @@ module NewRelic
     # loop thread is no longer alive.
     #
     def ensure_worker_thread_started
-      return if !control.agent_enabled? || @invalid_license
       
+      return if !control.agent_enabled? || @invalid_license
+
       # @connected gets false after we fail to connect or have an error
       # connecting.  @connected has nil if we haven't finished trying to connect.
       # or we didn't attempt a connection because this is the master process
@@ -225,7 +226,7 @@ module NewRelic
             # the server rejected us for a licensing reason and we should 
             # just exit the thread.  If it returns nil
             # that means it didn't try to connect because we're in the master
-            @connected = connect
+            connect
             if @connected
               # disable transaction sampling if disabled by the server and we're not in dev mode
               if !control.developer_mode? && !@should_send_samples
@@ -298,13 +299,21 @@ module NewRelic
     # keep calling this.  Return false if we could not establish a
     # connection with the server and we should not retry, such as if
     # there's a bad license key.
-    def connect
+    #
+    # Set keep_retrying=false to disable retrying and return asap, such as when
+    # invoked in the foreground.  Otherwise this runs until a successful
+    # connection is made, or the server rejects us.
+    
+    def connect(keep_retrying = true)
+      # Don't reconnect if we've already connected in this process
+      return if @connected && @connected_pid == $$
+      
       if $0 =~ /ApplicationSpawner|master/
         log.debug "Process is master spawner (#$0) -- don't connect to RPM service"
         return nil
       end
       # wait a few seconds for the web server to boot, necessary in development
-      connect_retry_period = 5
+      connect_retry_period = keep_retrying ? 5 : 0
       connect_attempts = 0
       @agent_id = nil
       begin
@@ -346,13 +355,14 @@ module NewRelic
         log.info "Transaction traces will be sent to the RPM service." if @should_send_samples
         log.info "Errors will be sent to the RPM service." if error_collector.enabled
         
+        @connected_pid = $$
         @connected = true
         
       rescue LicenseException => e
         control.log! e.message, :error
         control.log! "Visit NewRelic.com to obtain a valid license key, or to upgrade your account."
         @invalid_license = true
-        return false
+        @connected = false
         
       rescue Timeout::Error, StandardError => e
         log.info "Unable to establish connection with New Relic RPM Service at #{control.server}"
@@ -361,17 +371,21 @@ module NewRelic
           log.debug e.backtrace.join("\n")
         end
         # retry logic
-        connect_attempts += 1
-        case connect_attempts
+        if keep_retrying
+          connect_attempts += 1
+          case connect_attempts
           when 1..2
-          connect_retry_period, period_msg = 60, "1 minute"
-          when 3..5 then
-          connect_retry_period, period_msg = 60 * 2, "2 minutes"
-        else 
-          connect_retry_period, period_msg = 10 * 60, "10 minutes"
+            connect_retry_period, period_msg = 60, "1 minute"
+          when 3..5 
+            connect_retry_period, period_msg = 60 * 2, "2 minutes"
+          else 
+            connect_retry_period, period_msg = 5 * 60, "5 minutes"
+          end
+          log.info "Will re-attempt in #{period_msg}" 
+          retry
+        else
+          @connected = false
         end
-        log.info "Will re-attempt in #{period_msg}" 
-        retry
       end
     end
       
@@ -591,15 +605,17 @@ module NewRelic
           @request_timeout = 5
           log.debug "Flushing unsent metric data to server"
           @task_loop.run_task
-          log.debug "Sending RPM service agent run shutdown message"
-          invoke_remote :shutdown, @agent_id, Time.now.to_f
-          
-          log.debug "Graceful shutdown complete"
-          
+          if @connected_pid == $$
+            log.debug "Sending RPM service agent run shutdown message"
+            invoke_remote :shutdown, @agent_id, Time.now.to_f
+          else
+            log.debug "This agent connected from #{@connected_pid}--not sending shutdown"
+          end
+          log.debug "Graceful disconnect complete"
         rescue Timeout::Error, StandardError 
         end
       else
-        log.debug "Bypassing graceful shutdown - agent not connected"
+        log.debug "Bypassing graceful disconnect - agent not connected"
       end
     end
     def default_sql_obfuscator(sql)
