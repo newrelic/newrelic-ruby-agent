@@ -138,11 +138,12 @@ class TaskInstrumentationTest < Test::Unit::TestCase
     assert_raise RuntimeError do
       run_task_exception
     end
-    error = @agent.error_collector.harvest_errors([]).first
+    errors = @agent.error_collector.harvest_errors([])
+    assert_equal 1, errors.size
+    error = errors.first
     assert_equal "Controller/TaskInstrumentationTest/run_task_exception", error.path
     assert_not_nil error.params[:stack_trace]
     assert_not_nil error.params[:custom_params]
-    
   end
   
   def test_instrument_bg
