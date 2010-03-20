@@ -11,7 +11,7 @@ if defined?(PhusionPassenger)
       # We want to reset the stats from the stats engine in case any carried
       # over into the spawned process.  Don't clear them in case any were
       # cached.
-      NewRelic::Agent.instance.stats_engine.reset_stats
+      NewRelic::Agent.after_fork
     else 
       # We're in conservative spawning mode. We don't need to do anything.
     end

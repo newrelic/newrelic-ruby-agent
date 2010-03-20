@@ -4,7 +4,7 @@ module Agent
     module Shim # :nodoc:
       def add_sampler(*args); end
       def add_harvest_sampler(*args); end
-      def spawn_sampler_thread(*args); end
+      def start_sampler_thread(*args); end
     end
     
     module Samplers
@@ -14,7 +14,7 @@ module Agent
       # every POLL_PERIOD seconds on a background thread.
       POLL_PERIOD = 20
       
-      def spawn_sampler_thread
+      def start_sampler_thread
         
         return if @sampler_thread && @sampler_thread.alive?
         

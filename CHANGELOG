@@ -1,4 +1,8 @@
 v2.10.7
+  * removed the ensure_worker_thread started and instead defined an after_fork
+    handler that will set up the agent properly in forked processes.
+  * change at_exit handler so the shutdown always goes after other shutdown 
+    handlers
   * fix regression in merb support which caused merb apps not to start
   * fix bug in delayed_job instrumentation that caused the job queue sampler
     to run in the wrong place
