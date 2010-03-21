@@ -1,15 +1,28 @@
-v2.10.7
+v2.11.0
+  * memcache key recording for transaction traces (experimental)
+  * removed the ensure_worker_thread started and instead defined an after_fork
+    handler that will set up the agent properly in forked processes.
+  * change at_exit handler so the shutdown always goes after other shutdown 
+    handlers
+  * add visibility to active record db transactions in the rpm transaction
+    traces (thanks to jeremy kemper)
+  * fix regression in merb support which caused merb apps not to start
   * fix bug in delayed_job instrumentation that caused the job queue sampler
     to run in the wrong place
   * change startup sequence and code that restarts the worker loop
     thread
-  * detect the unicorn master and dont start the agent
+  * detect the unicorn master and dont start the agent; hook in after_fork
   * fix problem with the Authlogic metric names which caused errors in
     developer mode.  Authlogic metrics now adhere to the convention of
     prefixing the name with  'Custom'
   * allow more correct overriding of transaction trace settings in the 
     call to #manual_start
   * simplify WorkerLoop and add better protection for concurrency
+  * added NewRelic::Agent.logger to the public api to write to the agent 
+    log file.
+  * optimizations to background thread, controller instrumentation, memory
+    usage
+  * add logger method to public_api
     
 v2.10.6
   * fix missing URL and referer on some traced errors and transactions
