@@ -12,7 +12,7 @@ module NewRelic
       def initialize
         # Makes the unit tests happy
         Thread::current[:newrelic_scope_stack] = nil
-        spawn_sampler_thread
+        start_sampler_thread
       end
       
       def log

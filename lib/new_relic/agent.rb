@@ -76,7 +76,6 @@ module NewRelic
   module Agent
     extend self
 
-
     require 'new_relic/version'
     require 'new_relic/local_environment'
     require 'new_relic/stats'
@@ -185,15 +184,21 @@ module NewRelic
     #
     def manual_start(options={})
       raise unless Hash === options
-      # Ignore all args but hash options
-      options.merge! :agent_enabled => true 
-      NewRelic::Control.instance.init_plugin options
+      NewRelic::Control.instance.init_plugin({ :agent_enabled => true, :sync_startup => true }.merge(options))
     end
     
+    # Register this method as a callback for processes that fork
+    # jobs.  If the master/parent connects to the agent prior to forking
+    # the agent in the forked process will use that agent_run.  
+    # Otherwise the forked process will establish a new connection
+    # with the server.
+    def after_fork
+      agent.after_fork
+    end
     # Shutdown the agent.  Call this before exiting.  Sends any queued data
     # and kills the background thread.
     def shutdown
-      @agent.shutdown
+      agent.shutdown
     end        
 
     # Add instrumentation files to the agent.  The argument should be a glob
@@ -284,7 +289,7 @@ module NewRelic
     #
     # The block is yielded to with the exception to filter. 
     # 
-    # Do not call return.
+    # Return the new block or the existing filter Proc if no block is passed.
     #
     def ignore_error_filter(&block)
       agent.error_collector.ignore_error_filter(&block)

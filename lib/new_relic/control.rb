@@ -99,14 +99,14 @@ module NewRelic
       Module.send :include, NewRelic::Agent::MethodTracer::ClassMethods
       Module.send :include, NewRelic::Agent::MethodTracer::InstanceMethods
       init_config(options)
-      if agent_enabled? && !@started
+      NewRelic::Agent.agent = NewRelic::Agent::Agent.instance
+      if agent_enabled? && !NewRelic::Agent.instance.started?
         setup_log unless logger_override
         start_agent
         install_instrumentation
         load_samplers unless self['disable_samplers']
         local_env.gather_environment_info
         append_environment_info
-        @started = true
       elsif !agent_enabled?
         install_shim
       end
@@ -114,7 +114,6 @@ module NewRelic
     
     # Install the real agent into the Agent module, and issue the start command.
     def start_agent
-      NewRelic::Agent.agent = NewRelic::Agent::Agent.instance
       NewRelic::Agent.agent.start
     end
     
@@ -184,6 +183,10 @@ module NewRelic
     end
     def post_size_limit
       fetch('post_size_limit', 2 * 1024 * 1024)
+    end
+    
+    def sync_startup
+      fetch('sync_startup', false)
     end
     # True if dev mode or monitor mode are enabled, and we are running
     # inside a valid dispatcher like mongrel or passenger.  Can be overridden

@@ -11,7 +11,9 @@ class RpmAgentTest < ActiveSupport::TestCase
     NewRelic::Agent.manual_start
     @agent = NewRelic::Agent.instance
   end
+  
   def teardown
+    NewRelic::Agent.shutdown
     NewRelic::Control.instance['app_name']=nil
     NewRelic::Control.instance['dispatcher']=nil
     NewRelic::Control.instance['dispatcher_instance_id']=nil
@@ -37,8 +39,7 @@ class RpmAgentTest < ActiveSupport::TestCase
     end
     NewRelic::Agent.notice_error(ActionController::RoutingError.new("message"), :request_params => {:x => "y"})
     assert ignore_called   
-    NewRelic::Agent.ignore_error_filter
-    
+    NewRelic::Agent.instance.error_collector.instance_variable_set '@ignore_filter', nil
   end
   
   def test_startup_shutdown
@@ -58,6 +59,18 @@ class RpmAgentTest < ActiveSupport::TestCase
     assert @agent.started?
   end
   
+  def test_manual_start
+    NewRelic::Agent.instance.expects(:connect).once
+    NewRelic::Agent.instance.expects(:start_worker_thread).once
+    NewRelic::Agent.instance.instance_variable_set '@started', nil
+    NewRelic::Agent.manual_start :monitor_mode => true, :license_key => ('x' * 40)
+  end
+  
+  def test_post_fork_handler
+    NewRelic::Agent.manual_start :monitor_mode => true, :license_key => ('x' * 40)
+    NewRelic::Agent.after_fork    
+    NewRelic::Agent.after_fork    
+  end
   def test_manual_overrides
     NewRelic::Agent.manual_start :app_name => "testjobs", :dispatcher_instance_id => "mailer"
     assert_equal "testjobs", NewRelic::Control.instance.app_names[0]

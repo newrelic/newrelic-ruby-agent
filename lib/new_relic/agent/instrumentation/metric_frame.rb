@@ -20,7 +20,6 @@ module NewRelic::Agent::Instrumentation
     def self.current(create_if_empty=nil)
       f = Thread.current[:newrelic_metric_frame]
       return f if f || !create_if_empty
-      NewRelic::Agent.instance.ensure_worker_thread_started
       Thread.current[:newrelic_metric_frame] = new
     end
     
@@ -28,6 +27,10 @@ module NewRelic::Agent::Instrumentation
     # measurements, overriding the default. 
     def self.database_metric_name
       current && current.database_metric_name
+    end
+
+    def self.referer
+      current && current.referer
     end
     
     @@java_classes_loaded = false
