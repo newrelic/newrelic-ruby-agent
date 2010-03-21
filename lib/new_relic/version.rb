@@ -4,8 +4,8 @@ module NewRelic
     MAJOR = 2
     MINOR = 10
     TINY  = 7
-    EXPERIMENTAL = nil 
-    STRING = [MAJOR, MINOR, TINY, EXPERIMENTAL].compact.join('.')
+    BUILD = 0 # Set to nil for a release, 'beta1', 'alpha', etc for prerelease builds
+    STRING = [MAJOR, MINOR, TINY, BUILD].compact.join('.')
   end
   
   # Helper class for managing version comparisons 
@@ -14,7 +14,7 @@ module NewRelic
     include Comparable
     def initialize(version_string)
       version_string ||= '1.0.0'
-      @parts = version_string.split('.').map{|n| n.to_i }
+      @parts = version_string.split('.').map{|n| n =~ /^\d+$/ ? n.to_i : n}
     end
     def major_version; @parts[0]; end
     def minor_version; @parts[1]; end
@@ -42,11 +42,12 @@ module NewRelic
       a, b = parts1.first, parts2.first
       case
         when a.nil? && b.nil? then 0
-        when a.nil? then -1
-        when b.nil? then 1
-        when a == b
-          compare(parts1[1..-1], parts2[1..-1])
-        else
+        when a.nil? then b.is_a?(Fixnum) ?  -1 : 1
+        when b.nil? then -compare(parts2, parts1)
+        when a.to_s == b.to_s then compare(parts1[1..-1], parts2[1..-1])
+        when a.is_a?(String) then b.is_a?(Fixnum) ?  -1 : (a <=> b)
+        when b.is_a?(String) then -compare(parts2, parts1) 
+        else # they are both fixnums, not nil
           a <=> b
       end
     end
