@@ -94,7 +94,7 @@ module Agent
       alias trace_method_execution_no_scope trace_execution_unscoped #:nodoc:
       
       # Trace a given block with stats and keep track of the caller.  
-      # See #add_method_tracer for a description of the arguments.
+      # See NewRelic::Agent::MethodTracer::ClassMethods#add_method_tracer for a description of the arguments.
       # +metric_names+ is either a single name or an array of metric names.
       # If more than one metric is passed, the +produce_metric+ option only applies to the first.  The
       # others are always recorded.  Only the first metric is pushed onto the scope stack.
