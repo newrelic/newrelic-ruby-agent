@@ -1,4 +1,4 @@
-v2.10.7
+v2.11.0
   * removed the ensure_worker_thread started and instead defined an after_fork
     handler that will set up the agent properly in forked processes.
   * change at_exit handler so the shutdown always goes after other shutdown 
@@ -8,7 +8,7 @@ v2.10.7
     to run in the wrong place
   * change startup sequence and code that restarts the worker loop
     thread
-  * detect the unicorn master and dont start the agent
+  * detect the unicorn master and dont start the agent; hook in after_fork
   * fix problem with the Authlogic metric names which caused errors in
     developer mode.  Authlogic metrics now adhere to the convention of
     prefixing the name with  'Custom'
@@ -17,6 +17,8 @@ v2.10.7
   * simplify WorkerLoop and add better protection for concurrency
   * added NewRelic::Agent.logger to the public api to write to the agent 
     log file.
+  * optimizations to background thread, controller instrumentation, memory
+    usage
     
 v2.10.6
   * fix missing URL and referer on some traced errors and transactions
