@@ -1,8 +1,11 @@
 v2.11.0
+  * memcache key recording for transaction traces (experimental)
   * removed the ensure_worker_thread started and instead defined an after_fork
     handler that will set up the agent properly in forked processes.
   * change at_exit handler so the shutdown always goes after other shutdown 
     handlers
+  * add visibility to active record db transactions in the rpm transaction
+    traces (thanks to jeremy kemper)
   * fix regression in merb support which caused merb apps not to start
   * fix bug in delayed_job instrumentation that caused the job queue sampler
     to run in the wrong place
@@ -19,6 +22,7 @@ v2.11.0
     log file.
   * optimizations to background thread, controller instrumentation, memory
     usage
+  * add logger method to public_api
     
 v2.10.6
   * fix missing URL and referer on some traced errors and transactions
