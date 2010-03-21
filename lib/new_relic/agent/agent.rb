@@ -196,7 +196,7 @@ module NewRelic
           control.log! "Invalid license key: #{control.license_key}", :error
         else     
           # Do the connect in the foreground if we are in sync mode
-          connect(false) if control.sync_startup
+          NewRelic::Agent.disable_all_tracing { connect(false) } if control.sync_startup
           
           # Start the event loop and initiate connection if necessary
           start_worker_thread
@@ -255,6 +255,7 @@ module NewRelic
           # disconnect and start over.
           # clear the stats engine
           reset_stats
+          @metric_ids = {}
           @connected = nil
           # Wait a short time before trying to reconnect
           sleep 30
@@ -312,7 +313,7 @@ module NewRelic
       return if @connected
       
       # wait a few seconds for the web server to boot, necessary in development
-      connect_retry_period = keep_retrying ? 5 : 0
+      connect_retry_period = keep_retrying ? 10 : 0
       connect_attempts = 0
       @agent_id = nil
       begin
@@ -320,9 +321,10 @@ module NewRelic
         # Running in the Passenger or Unicorn spawners?
         if $0 =~ /ApplicationSpawner|master/
           log.debug "Process is master spawner (#$0) -- don't connect to RPM service"
-          @connected = nil and return 
+          @connected = nil
+          return 
         else 
-          log.debug "Connected Process (#$$): #$0, #{$*.join(' ')}\n#{RUBY_DESCRIPTION}"
+          log.debug "Connecting Process to RPM: #$0"
         end
         environment = control['send_environment_info'] != false ? control.local_env.snapshot : []
         log.debug "Connecting with validation seed/token: #{control.validate_seed}/#{control.validate_token}" if control.validate_seed
@@ -403,7 +405,6 @@ module NewRelic
     end
     def reset_stats
       @stats_engine.reset_stats
-      @metric_ids = {}
       @unsent_errors = []
       @traces = nil
       @unsent_timeslice_data = {}
