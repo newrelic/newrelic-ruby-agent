@@ -33,9 +33,12 @@ module NewRelic
     end
     
     def ignore_error_filter(&block)
-      @ignore_filter = block
+      if block
+        @ignore_filter = block
+      else
+        @ignore_error_filter
+      end
     end
-    
     
     # errors is an array of Exception Class Names
     #
