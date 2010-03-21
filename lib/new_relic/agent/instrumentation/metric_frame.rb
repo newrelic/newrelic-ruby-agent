@@ -18,7 +18,10 @@ module NewRelic::Agent::Instrumentation
     # Return the currently active metric frame, or nil.  Call with +true+
     # to create a new metric frame if one is not already on the thread.
     def self.current(create_if_empty=nil)
-      Thread.current[:newrelic_metric_frame] ||= create_if_empty && new
+      f = Thread.current[:newrelic_metric_frame]
+      return f if f || !create_if_empty
+      NewRelic::Agent.instance.ensure_worker_thread_started
+      Thread.current[:newrelic_metric_frame] = new
     end
     
     # This is the name of the model currently assigned to database 
