@@ -118,7 +118,7 @@ module NewRelic
     
     private
     def log
-      NewRelic::Control.instance.log
+      NewRelic::Agent.logger
     end
   end
 end

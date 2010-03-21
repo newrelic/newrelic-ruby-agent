@@ -5,16 +5,16 @@ module Rack
     def initialize(options)
       if options[:install]
         FileUtils.copy File.join(File.dirname(__FILE__), "newrelic.yml"), "."
-        NewRelic::Control.instance.log.info "==============================="
-        NewRelic::Control.instance.log.info "A newrelic.yml template was copied to #{File.expand_path('.')}."
-        NewRelic::Control.instance.log.info "Please add a license key to the file and restart #{$0}"
+        NewRelic::Agent.logger.info "==============================="
+        NewRelic::Agent.logger.info "A newrelic.yml template was copied to #{File.expand_path('.')}."
+        NewRelic::Agent.logger.info "Please add a license key to the file and restart #{$0}"
         exit 0
       end
       options[:app_name] ||= 'EPM Monitor'
       options[:disable_samplers] = true
       NewRelic::Agent.manual_start options
       unless NewRelic::Control.instance.license_key
-        NewRelic::Control.instance.log.error "Please add a valid license key to newrelic.yml."
+        NewRelic::Agent.logger.error "Please add a valid license key to newrelic.yml."
         exit 1
       end
     end

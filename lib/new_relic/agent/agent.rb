@@ -138,7 +138,7 @@ module NewRelic
     end
 
     def log
-      NewRelic::Control.instance.log
+      NewRelic::Agent.logger
     end  
     
     # Start up the agent.  This verifies that the agent_enabled? is
