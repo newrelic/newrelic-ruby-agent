@@ -48,6 +48,19 @@ class NewRelic::VersionNumberTest < Test::Unit::TestCase
                 999]
     assert_equal values, values.map{|v| NewRelic::VersionNumber.new v}.sort.map(&:to_s)
   end
+  def test_prerelease
+    v0 = NewRelic::VersionNumber.new '1.2.0.beta'
+    assert_equal [1,2,0,'beta'], v0.parts
+    assert v0 > '1.1.9.0'
+    assert v0 > '1.1.9.alpha'
+    assert v0 > '1.2.0.alpha'
+    assert v0 == '1.2.0.beta'
+    assert v0 < '1.2.1'
+    assert v0 < '1.2.0'
+    assert v0 < '1.2.0.c'
+    assert v0 < '1.2.0.0'
+    
+  end
   def test_compare_string
     v0 = NewRelic::VersionNumber.new '1.2.0'
     v1 = NewRelic::VersionNumber.new '2.2.2'
