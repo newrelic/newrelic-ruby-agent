@@ -12,26 +12,15 @@ unless NewRelic::Control.instance['disable_memcache_instrumentation']
           metrics = ["MemCache/#{method_name}", 
                      (NewRelic::Agent::Instrumentation::MetricFrame.recording_web_transaction? ? 'MemCache/allWeb' : 'MemCache/allOther')]
           self.class.trace_execution_scoped(metrics) do
-            t0 = Time.now.to_f
-            begin
-              #{method_name}_without_newrelic_trace(*args)
-            ensure
-              #{memcache_key_snippet(method_name)}
-            end
+            #{method_name}_without_newrelic_trace(*args)
           end
         end
         alias #{method_name}_without_newrelic_trace #{method_name}
         alias #{method_name} #{method_name}_with_newrelic_trace
     EOD
-      end
-
-      def self.memcache_key_snippet(method_name)
-        return "" unless NewRelic::Control.instance['capture_memcache_keys']        
-        "NewRelic::Agent.instance.transaction_sampler.notice_sql('Memcached #{method_name.to_s}: ' + args.first.inspect, nil, Time.now.to_f - t0) rescue nil"
-      end
-      
-    
-
+  end
+  # Support for libmemcached through Evan Weaver's memcached wrapper
+  # http://blog.evanweaver.com/files/doc/fauna/memcached/classes/Memcached.html    
   %w[get get_multi set add incr decr delete replace append prepand cas].each do | method_name |
     instrument_method(::MemCache, method_name) if defined? ::MemCache  
     instrument_method(::Memcached, method_name) if defined? ::Memcached  
