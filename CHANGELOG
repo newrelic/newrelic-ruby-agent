@@ -1,6 +1,5 @@
 v2.11.0
   * rails3 instrumentation (no developer mode support yet)
-  * memcache key recording for transaction traces (experimental)
   * removed the ensure_worker_thread started and instead defined an after_fork
     handler that will set up the agent properly in forked processes.
   * change at_exit handler so the shutdown always goes after other shutdown 
