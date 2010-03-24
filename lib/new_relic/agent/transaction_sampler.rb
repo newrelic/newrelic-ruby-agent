@@ -124,30 +124,39 @@ module Agent
       builder.set_transaction_cpu_time(cpu_time) if builder
     end
     
+    MAX_DATA_LENGTH = 16384
+    def notice_extra_data(msg, config, duration, key, config_key)
+      return unless builder
+      segment = builder.current_segment
+      if segment
+        current_message = segment[key]
+        message = current_message + ";\n" + msg if current_message
+        if message.length > (MAX_DATA_LENGTH - 4)
+          message = message[0..MAX_DATA_LENGTH - 4] + '...'
+        end
+
+        segment[key] = message
+        segment[config_key] = config
+        segment[:backtrace] = caller.join("\n") if duration >= @stack_trace_threshold
+      end
+    end
+
+    private :notice_extra_data
         
     # some statements (particularly INSERTS with large BLOBS
     # may be very large; we should trim them to a maximum usable length
     # config is the driver configuration for the connection
     MAX_SQL_LENGTH = 16384
     def notice_sql(sql, config, duration)
-      return unless builder
       if Thread::current[:record_sql] != false
-        segment = builder.current_segment
-        if segment
-          current_sql = segment[:sql]
-          sql = current_sql + ";\n" + sql if current_sql
-
-          if sql.length > (MAX_SQL_LENGTH - 4)
-            sql = sql[0..MAX_SQL_LENGTH-4] + '...'
-          end
-          
-          segment[:sql] = sql
-          segment[:connection_config] = config
-          segment[:backtrace] = caller.join("\n") if duration >= @stack_trace_threshold 
-        end
+        notice_extra_data(sql, config, duration, :sql, :connection_config)
       end
     end
 
+    def notice_nosql(key, type, duration)
+      type = 'memcache' unless type
+      notice_extra_data(key, type, duration, :key, :type)
+    end
     
     # get the set of collected samples, merging into previous samples,
     # and clear the collected sample list. 

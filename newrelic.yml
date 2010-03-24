@@ -174,6 +174,12 @@ common: &default_settings
   # disable_memcache_instrumentation: true
   # disable_dj: true
 
+  # If you're interested in capturing memcache keys as though they
+  # were SQL uncomment this flag. Note that this does increase
+  # overhead slightly on every memcached call, and can have security
+  # implications if your memcached keys are sensitive
+  # capture_memcache_keys: true
+  
   # Certain types of instrumentation such as GC stats will not work if 
   # you are running multi-threaded.  Please let us know.
   # multi_threaded = false
