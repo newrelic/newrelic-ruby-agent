@@ -27,7 +27,7 @@ unless NewRelic::Control.instance['disable_memcache_instrumentation']
 
       def self.memcache_key_snippet(method_name)
         return "" unless NewRelic::Control.instance['capture_memcache_keys']        
-        "NewRelic::Agent.instance.transaction_sampler.notice_nosql(args.first.inspect, 'memcache', Time.now.to_f - t0) rescue nil"
+        "NewRelic::Agent.instance.transaction_sampler.notice_nosql(args.first.inspect, Time.now.to_f - t0) rescue nil"
       end
       
     

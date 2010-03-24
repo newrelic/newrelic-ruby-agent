@@ -125,7 +125,7 @@ module Agent
     end
     
     MAX_DATA_LENGTH = 16384
-    def notice_extra_data(message, config, duration, key, config_key)
+    def notice_extra_data(message, duration, key, config=nil, config_key=nil)
       return unless builder
       segment = builder.current_segment
       if segment
@@ -136,7 +136,7 @@ module Agent
         end
 
         segment[key] = message
-        segment[config_key] = config
+        segment[config_key] = config if config_key
         segment[:backtrace] = caller.join("\n") if duration >= @stack_trace_threshold
       end
     end
@@ -149,13 +149,12 @@ module Agent
     MAX_SQL_LENGTH = 16384
     def notice_sql(sql, config, duration)
       if Thread::current[:record_sql] != false
-        notice_extra_data(sql, config, duration, :sql, :connection_config)
+        notice_extra_data(sql, duration, :sql, config, :connection_config)
       end
     end
 
-    def notice_nosql(key, type, duration)
-      type = 'memcache' unless type
-      notice_extra_data(key, type, duration, :key, :type)
+    def notice_nosql(key, duration)
+      notice_extra_data(key, duration, :key)
     end
     
     # get the set of collected samples, merging into previous samples,
