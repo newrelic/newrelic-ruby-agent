@@ -125,12 +125,12 @@ module Agent
     end
     
     MAX_DATA_LENGTH = 16384
-    def notice_extra_data(msg, config, duration, key, config_key)
+    def notice_extra_data(message, config, duration, key, config_key)
       return unless builder
       segment = builder.current_segment
       if segment
         current_message = segment[key]
-        message = current_message + ";\n" + msg if current_message
+        message = current_message + ";\n" + message if current_message
         if message.length > (MAX_DATA_LENGTH - 4)
           message = message[0..MAX_DATA_LENGTH - 4] + '...'
         end
