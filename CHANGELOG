@@ -1,5 +1,9 @@
 v2.11.1
   * memcache key recording for transaction traces (experimental)
+  * renamed executable 'newrelic_cmd' to 'newrelic'; old name still supported
+    for backward compatibility
+  * added 'newrelic install' command to install a newrelic.yml file in the
+    current directory
   
 v2.11.0
   * rails3 instrumentation (no developer mode support yet)
