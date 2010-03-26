@@ -18,6 +18,14 @@ module NewRelic
       end
     end
     
+    def info(message)
+      STDOUT.puts message
+    end
+    
+    def err(message)
+      STDERR.puts message
+    end    
+    
     def initialize(command_line_args)
       if Hash === command_line_args
         # command line args is an options hash
@@ -36,7 +44,7 @@ module NewRelic
     def self.inherited(subclass)
       @commands << subclass
     end
-
+    
     cmds = File.expand_path(File.join(File.dirname(__FILE__), 'commands', '*.rb'))
     Dir[cmds].each{|command| require command }
     
@@ -73,14 +81,6 @@ module NewRelic
           exit failure.exit_code
         end
       end
-      
-      def info message
-        STDOUT.puts message
-      end
-      
-      def err message
-        STDERR.puts message
-      end      
     end
   end
   

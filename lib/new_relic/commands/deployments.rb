@@ -11,7 +11,6 @@ require 'rexml/document'
 require 'new_relic/control' unless defined? NewRelic::Control
 
 class NewRelic::Command::Deployments < NewRelic::Command
-  
   attr_reader :config
   def self.command; "deployments"; end 
   

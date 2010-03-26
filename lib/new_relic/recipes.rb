@@ -16,7 +16,7 @@ make_notify_task = lambda do
     desc "Record a deployment in New Relic RPM (rpm.newrelic.com)"
     task :notice_deployment, :roles => :app, :except => {:no_release => true } do
       rails_env = fetch(:newrelic_rails_env, fetch(:rails_env, "production"))
-      require File.join(File.dirname(__FILE__), 'commands', 'deployments.rb')
+      require File.join(File.dirname(__FILE__), 'command.rb')
       begin
         # Try getting the changelog from the server.  Then fall back to local changelog
         # if it doesn't work.  Problem is that I don't know what directory the .git is
@@ -52,12 +52,12 @@ make_notify_task = lambda do
           :description => description,
           :appname => appname }
         logger.debug "Uploading deployment to New Relic"
-        deployment = NewRelic::Commands::Deployments.new deploy_options
+        deployment = NewRelic::Command::Deployments.new deploy_options
         deployment.run
         logger.info "Uploaded deployment information to New Relic"
       rescue ScriptError => e
         logger.info "error creating New Relic deployment (#{e})\n#{e.backtrace.join("\n")}"
-      rescue NewRelic::Commands::CommandFailure => e
+      rescue NewRelic::Command::CommandFailure => e
         logger.info "unable to notify New Relic of the deployment (#{e})... skipping"
       rescue Capistrano::CommandError
         logger.info "unable to notify New Relic of the deployment... skipping"
