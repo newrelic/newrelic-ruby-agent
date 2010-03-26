@@ -1,11 +1,12 @@
-require File.expand_path(File.join(File.dirname(__FILE__),'../../lib/new_relic/commands/deployments'))
+require File.expand_path(File.join(File.dirname(__FILE__),'/../test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__),'/../../lib/new_relic/commands/deployments'))
 require 'rubygems'
 require 'mocha'
 
 class NewRelic::DeploymentsTest < Test::Unit::TestCase
   
   def setup
-    NewRelic::Commands::Deployments.class_eval do
+    NewRelic::Command::Deployments.class_eval do
       attr_accessor :messages, :exit_status, :errors, :revision
       def err(message); @errors = @errors ? @errors + message : message; end
       def info(message); @messages = @messages ? @messages + message : message; end
@@ -20,20 +21,20 @@ class NewRelic::DeploymentsTest < Test::Unit::TestCase
   end
   def test_help
     begin
-      NewRelic::Commands::Deployments.new "-h"
+      NewRelic::Command::Deployments.new "-h"
       fail "should have thrown"
-    rescue NewRelic::Commands::CommandFailure => c
+    rescue NewRelic::Command::CommandFailure => c
       assert_match /^Usage/, c.message
     end
   end
   def test_bad_command
-    assert_raise OptionParser::InvalidOption do
-      NewRelic::Commands::Deployments.new ["-foo", "bar"]
+    assert_raise NewRelic::Command::CommandFailure do
+      NewRelic::Command::Deployments.new ["-foo", "bar"]
     end
   end
   def test_interactive
     mock_the_connection
-    @deployment = NewRelic::Commands::Deployments.new :appname => 'APP', :revision => 3838, :user => 'Bill', :description => "Some lengthy description"
+    @deployment = NewRelic::Command::Deployments.new :appname => 'APP', :revision => 3838, :user => 'Bill', :description => "Some lengthy description"
     assert_nil @deployment.exit_status
     assert_nil @deployment.errors
     assert_equal '3838', @deployment.revision
@@ -44,7 +45,7 @@ class NewRelic::DeploymentsTest < Test::Unit::TestCase
   def test_command_line_run
     mock_the_connection
     #    @mock_response.expects(:body).returns("<xml>deployment</xml>")
-    @deployment = NewRelic::Commands::Deployments.new(%w[-a APP -r 3838 --user=Bill] << "Some lengthy description")
+    @deployment = NewRelic::Command::Deployments.new(%w[-a APP -r 3838 --user=Bill] << "Some lengthy description")
     assert_nil @deployment.exit_status
     assert_nil @deployment.errors
     assert_equal '3838', @deployment.revision

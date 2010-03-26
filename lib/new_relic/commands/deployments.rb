@@ -104,6 +104,7 @@ class NewRelic::Command::Deployments < NewRelic::Command
              "Specify the revision being deployed") { | r | @revision = r }
       o.on("-c", "--changes", 
              "Read in a change log from the standard input") { @changelog = STDIN.read }
+      yield o if block_given?
     end
   end
   

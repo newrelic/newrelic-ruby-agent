@@ -4,4 +4,10 @@
 
 $LOAD_PATH << File.expand_path(File.join(File.dirname(__FILE__), '..','lib'))
 require 'new_relic/command'
-NewRelic::Command.run
+begin
+  NewRelic::Command.run
+rescue NewRelic::Command::CommandFailure => failure
+  STDERR.puts failure.message
+  STDERR.puts failure.options if failure.options
+  exit 1
+end

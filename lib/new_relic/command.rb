@@ -8,13 +8,11 @@ module NewRelic
   class Command
     attr_accessor :leftover
     # Capture a failure to execute the command.
-    # Ask it for a return status to exit the vm with,
-    # if appropriate.
     class CommandFailure < StandardError
-      attr_reader :exit_code
-      def initialize message, return_status=nil
+      attr_reader :options
+      def initialize message, opt_parser=nil
         super message
-        @exit_code = return_status || 0
+        @options = opt_parser
       end
     end
     
@@ -34,10 +32,13 @@ module NewRelic
         end
       else
         # parse command line args.  Throw an exception on a bad arg.
-        @leftover = options.parse(command_line_args)
+        @options = options do | opts |
+          opts.on("-h", "Show this help") {  raise CommandFailure, opts.to_s }
+        end
+        @leftover = @options.parse(command_line_args)
       end
     rescue OptionParser::ParseError => e 
-      raise CommandFailure, e.message
+      raise CommandFailure.new e.message, @options
     end
     
     @commands = []
@@ -74,13 +75,10 @@ module NewRelic
         STDERR.puts options
       else
         command_class = @commands.find{ |c| c.command == command} 
-        begin
-          command_class.new(extra).run
-        rescue NewRelic::Command::CommandFailure => failure
-          STDERR.puts failure.message
-          exit failure.exit_code
-        end
+        command_class.new(extra).run
       end
+    rescue OptionParser::InvalidOption => e
+      raise NewRelic::Command::CommandFailure, e.message
     end
   end
   

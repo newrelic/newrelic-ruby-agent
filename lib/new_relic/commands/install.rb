@@ -67,6 +67,7 @@ E-mail support@newrelic.com with any problems or questions.
              "Use the given license key") { | e | @license_key = e }
       o.on("-d", "--destdir=name", String,
                "Write the newrelic.yml to the given directory, default is '.'") { | e | @dest_dir = e }
+      yield o if block_given?
     end
   end
   
