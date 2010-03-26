@@ -104,7 +104,7 @@ class RpmAgentTest < ActiveSupport::TestCase
     response_mock.stubs(:message).returns("bogus error")
     
     for code in %w[500 504 400 302 503] do 
-      assert_raise NewRelic::Agent::IgnoreSilentlyException, "Ignore #{code}" do
+      assert_raise NewRelic::Agent::ServerConnectionException, "Ignore #{code}" do
         response_mock.stubs(:code).returns(code)
         NewRelic::Agent.agent.invoke_remote  :get_data_report_period, 0
       end

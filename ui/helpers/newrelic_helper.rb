@@ -1,7 +1,6 @@
 require 'pathname'
-require 'new_relic/agent/collection_helper'
 module NewrelicHelper
-  include NewRelic::Agent::CollectionHelper
+  include NewRelic::CollectionHelper
   
   # return the host that serves static content (css, metric documentation, images, etc)
   # that supports the desktop edition.

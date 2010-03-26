@@ -75,7 +75,8 @@ module NewRelic
   # support at New Relic for help.
   module Agent
     extend self
-    
+
+
     require 'new_relic/version'
     require 'new_relic/local_environment'
     require 'new_relic/stats'
@@ -84,6 +85,7 @@ module NewRelic
     require 'new_relic/metric_spec'
     require 'new_relic/metric_data'
     require 'new_relic/metric_parser'
+    require 'new_relic/collection_helper'
     require 'new_relic/transaction_analysis'
     require 'new_relic/transaction_sample'
     require 'new_relic/noticed_error'
@@ -95,7 +97,6 @@ module NewRelic
     require 'new_relic/agent/method_tracer'
     require 'new_relic/agent/worker_loop'
     require 'new_relic/agent/stats_engine'
-    require 'new_relic/agent/collection_helper'
     require 'new_relic/agent/transaction_sampler'
     require 'new_relic/agent/error_collector'
     require 'new_relic/agent/busy_calculator'
@@ -123,11 +124,11 @@ module NewRelic
     
     # Used to blow out of a periodic task without logging a an error, such as for routine
     # failures.
-    class IgnoreSilentlyException < StandardError; end
+    class ServerConnectionException < StandardError; end
     
     # Used for when a transaction trace or error report has too much
     # data, so we reset the queue to clear the extra-large item
-    class PostTooBigException < IgnoreSilentlyException; end
+    class PostTooBigException < ServerConnectionException; end
     
     # Reserved for future use.  Meant to represent a problem on the server side.
     class ServerError < StandardError; end

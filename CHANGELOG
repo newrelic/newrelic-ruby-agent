@@ -1,3 +1,16 @@
+v2.10.7
+  * fix bug in delayed_job instrumentation that caused the job queue sampler
+    to run in the wrong place
+  * change startup sequence and code that restarts the worker loop
+    thread
+  * detect the unicorn master and dont start the agent
+  * fix problem with the Authlogic metric names which caused errors in
+    developer mode.  Authlogic metrics now adhere to the convention of
+    prefixing the name with  'Custom'
+  * allow more correct overriding of transaction trace settings in the 
+    call to #manual_start
+  * simplify WorkerLoop and add better protection for concurrency
+    
 v2.10.6
   * fix missing URL and referer on some traced errors and transactions
   * gather traced errors *after* executing the rescue chain in ActionController

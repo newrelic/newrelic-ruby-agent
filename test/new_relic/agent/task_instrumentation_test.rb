@@ -131,7 +131,7 @@ class TaskInstrumentationTest < Test::Unit::TestCase
   end
   
   def test_custom_params
-    NewRelic::Agent.instance.stubs(:should_send_errors).returns(true)
+    @agent.error_collector.stubs(:enabled).returns(true)
     @agent.error_collector.ignore_error_filter
     @agent.error_collector.harvest_errors([])
     assert_equal @agent.error_collector, NewRelic::Agent.instance.error_collector

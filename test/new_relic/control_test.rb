@@ -90,15 +90,22 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   
   def test_transaction_threshold__default
     
-    forced_start :transaction_tracer => {}
+    forced_start :transaction_tracer => { :transaction_threshold => nil}
     assert_nil c['transaction_tracer']['transaction_threshold']
     assert_equal 2.0, NewRelic::Agent::Agent.instance.instance_variable_get('@slowest_transaction_threshold')
   end
   
   def test_transaction_threshold__override
-    forced_start :transaction_tracer => { 'transaction_threshold' => 1}
+    forced_start :transaction_tracer => { :transaction_threshold => 1}
     assert_equal 1, c['transaction_tracer']['transaction_threshold']
     assert_equal 1, NewRelic::Agent::Agent.instance.instance_variable_get('@slowest_transaction_threshold')
+  end
+  def test_merging_options
+    NewRelic::Control.send :public, :merge_options
+    @c.merge_options :api_port => 66, :transaction_tracer => { :explain_threshold => 2.0 }
+    assert_equal 66, NewRelic::Control.instance['api_port']
+    assert_equal 2.0, NewRelic::Control.instance['transaction_tracer']['explain_threshold']
+    assert_equal 'raw', NewRelic::Control.instance['transaction_tracer']['record_sql']
   end
   private
   def forced_start overrides = {}

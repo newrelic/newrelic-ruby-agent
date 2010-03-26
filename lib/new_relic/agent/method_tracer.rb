@@ -23,12 +23,12 @@ module Agent
   # To instrument a class method:
   #
   #     require 'new_relic/agent/method_tracer'
-  #     class A
-  #       extend NewRelic::Agent::MethodTracer
+  #     class An
   #       def self.process
   #         ...
   #       end
   #       class << self
+  #         include NewRelic::Agent::MethodTracer
   #         add_method_tracer :process
   #       end
   #     end

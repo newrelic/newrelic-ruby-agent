@@ -2,7 +2,7 @@
 module NewRelic
   module Agent
   class ErrorCollector
-    include CollectionHelper
+    include NewRelic::CollectionHelper
     
     # Defined the methods that need to be stubbed out when the
     # agent is disabled
@@ -61,7 +61,6 @@ module NewRelic
       end
 
       NewRelic::Agent.get_stats("Errors/all").increment_count
-      return unless NewRelic::Agent.instance.should_send_errors
 
       data = {}
       data[:request_uri] = options.delete(:uri) || ''
