@@ -88,7 +88,9 @@ module NewRelic
         end
         
         begin
-          graceful_disconnect
+          NewRelic::Agent.disable_all_tracing do
+            graceful_disconnect
+          end
         rescue => e
           log.error e
           log.error e.backtrace.join("\n")
@@ -604,9 +606,7 @@ module NewRelic
     
     def graceful_disconnect
       if @connected
-        begin
-          log.debug "Sending graceful shutdown message to #{control.server}"
-          
+        begin          
           @request_timeout = 10
           log.debug "Flushing unsent metric data to server"
           @worker_loop.run_task
@@ -614,7 +614,7 @@ module NewRelic
             log.debug "Sending RPM service agent run shutdown message"
             invoke_remote :shutdown, @agent_id, Time.now.to_f
           else
-            log.debug "This agent connected from #{@connected_pid}--not sending shutdown"
+            log.debug "This agent connected from parent process #{@connected_pid}--not sending shutdown"
           end
           log.debug "Graceful disconnect complete"
         rescue Timeout::Error, StandardError 

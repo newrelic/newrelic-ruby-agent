@@ -146,6 +146,7 @@ module NewRelic
         EOC
         alias_method "#{method.to_s}_without_newrelic_transaction_trace", method.to_s
         alias_method method.to_s, "#{method.to_s}_with_newrelic_transaction_trace"
+        NewRelic::Control.instance.log.debug("Traced transaction: class = #{self.name}, method = #{method.to_s}, options = #{options.inspect}")
       end
     end
     
@@ -307,7 +308,8 @@ module NewRelic
       # If a block was passed in, then the arguments represent options for the instrumentation,
       # not app method arguments.
       if args.any?
-        if options = args.last.is_a?(Hash) && args.last
+        if args.last.is_a?(Hash)
+          options = args.last
           frame_data.force_flag = options[:force] 
           frame_data.request = options[:request] if options[:request]
         end
