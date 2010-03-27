@@ -14,6 +14,13 @@ v2.11.0
   * add visibility to active record db transactions in the rpm transaction
     traces (thanks to jeremy kemper)
   * fix regression in merb support which caused merb apps not to start
+  * added NewRelic::Agent.logger to the public api to write to the agent 
+    log file.
+  * optimizations to background thread, controller instrumentation, memory
+    usage
+  * add logger method to public_api
+    
+v2.10.8
   * fix bug in delayed_job instrumentation that caused the job queue sampler
     to run in the wrong place
   * change startup sequence and code that restarts the worker loop
@@ -25,11 +32,7 @@ v2.11.0
   * allow more correct overriding of transaction trace settings in the 
     call to #manual_start
   * simplify WorkerLoop and add better protection for concurrency
-  * added NewRelic::Agent.logger to the public api to write to the agent 
-    log file.
-  * optimizations to background thread, controller instrumentation, memory
-    usage
-  * add logger method to public_api
+  * preliminary support for rails3
     
 v2.10.6
   * fix missing URL and referer on some traced errors and transactions
