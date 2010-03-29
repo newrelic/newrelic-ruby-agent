@@ -189,12 +189,24 @@ module NewRelic
     end
     
     # Register this method as a callback for processes that fork
-    # jobs.  If the master/parent connects to the agent prior to forking
-    # the agent in the forked process will use that agent_run.  
-    # Otherwise the forked process will establish a new connection
-    # with the server.
-    def after_fork
-      agent.after_fork
+    # jobs.  
+    #
+    # Pass <tt>:force_reconnect => true</tt> to force the agent to
+    # reconnect to the server and start a worker loop for sending
+    # data.
+    #
+    # If the master/parent connects to the agent prior to forking the
+    # agent in the forked process will use that agent_run.  Otherwise
+    # the forked process will establish a new connection with the
+    # server.
+    # 
+    # Use this especially when you fork the process to run background
+    # jobs or other work.  If you are doing this with a web dispatcher
+    # that forks worker processes then you will need to force the
+    # agent to reconnect, which it won't do by default.  Passenger and
+    # Unicorn are already handled, nothing special needed for them.
+    def after_fork(options={})
+      agent.after_fork(options)
     end
     
     # Clear out any unsent metric data.
