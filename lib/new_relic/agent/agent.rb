@@ -215,6 +215,17 @@ module NewRelic
       control.log! "New Relic RPM Agent #{NewRelic::VERSION::STRING} Initialized: pid = #$$"
       control.log! "Agent Log found in #{NewRelic::Control.instance.log_file}" if NewRelic::Control.instance.log_file
     end
+    
+    # Clear out the metric data, errors, and transaction traces.  Reset the histogram data.
+    def reset_stats
+      @stats_engine.reset_stats
+      @unsent_errors = []
+      @traces = nil
+      @unsent_timeslice_data = {}
+      @last_harvest_time = Time.now
+      @launch_time = Time.now
+      @histogram = NewRelic::Histogram.new(NewRelic::Control.instance.apdex_t / 10)
+    end
 
     private
     def collector
@@ -402,15 +413,6 @@ module NewRelic
     
     def determine_home_directory
       control.root
-    end
-    def reset_stats
-      @stats_engine.reset_stats
-      @unsent_errors = []
-      @traces = nil
-      @unsent_timeslice_data = {}
-      @last_harvest_time = Time.now
-      @launch_time = Time.now
-      @histogram = NewRelic::Histogram.new(NewRelic::Control.instance.apdex_t / 10)
     end
     
     def harvest_and_send_timeslice_data

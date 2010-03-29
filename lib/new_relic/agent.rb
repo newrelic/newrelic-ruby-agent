@@ -196,6 +196,12 @@ module NewRelic
     def after_fork
       agent.after_fork
     end
+    
+    # Clear out any unsent metric data.
+    def reset_stats
+      agent.reset_stats
+    end
+
     # Shutdown the agent.  Call this before exiting.  Sends any queued data
     # and kills the background thread.
     def shutdown
