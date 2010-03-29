@@ -3,7 +3,7 @@ require 'optparse'
 # Run the command given by the first argument.  Right
 # now all we have is deployments. We hope to have other
 # kinds of events here later.
-
+$LOAD_PATH << "#{File.dirname(__FILE__)}/.."
 module NewRelic
   class Command
     attr_accessor :leftover
