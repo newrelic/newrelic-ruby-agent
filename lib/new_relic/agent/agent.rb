@@ -19,6 +19,14 @@ module NewRelic
     # the NewRelic hosted site.
     
     PROTOCOL_VERSION = 8
+    # 14105: v8 (tag 2.10.3)
+    # (no v7)
+    # 10379: v6 (not tagged)
+    # 4078:  v5 (tag 2.5.4)
+    # 2292:  v4 (tag 2.3.6)
+    # 1754:  v3 (tag 2.3.0)
+    # 534:   v2 (shows up in 2.1.0, our first tag)
+    
     
     attr_reader :obfuscator
     attr_reader :stats_engine
@@ -38,15 +46,15 @@ module NewRelic
     end
     
     # This method should be called in a forked process after a fork.
-    # It assumes the parent process started the agent.  It clears any
-    # metrics carried over from the parent process, and restarts 
-    # the worker thread and sampler threads.
+    # It assumes the parent process initialized the agent, but does
+    # not assume the agent started.  
     #
-    # In addition, if the parent process had not connected to the server
-    # because it was a Passenger or Unicorn spawner, it will
-    # initiate the connection and create a new agent run.
+    # * It clears any metrics carried over from the parent process
+    # * Restarts the sampler thread if necessary
+    # * Initiates a new agent run and worker loop unless that was done
+    #   in the parent process and +:force_reconnect+ is not true
     #
-    def after_fork
+    def after_fork(options={})
       
       # @connected gets false after we fail to connect or have an error
       # connecting.  @connected has nil if we haven't finished trying to connect.
@@ -62,7 +70,7 @@ module NewRelic
 
       # Clear out stats that are left over from parent process
       reset_stats
-      start_worker_thread
+      start_worker_thread(options[:force_reconnect])
       @stats_engine.start_sampler_thread
     end
     
@@ -215,6 +223,17 @@ module NewRelic
       control.log! "New Relic RPM Agent #{NewRelic::VERSION::STRING} Initialized: pid = #$$"
       control.log! "Agent Log found in #{NewRelic::Control.instance.log_file}" if NewRelic::Control.instance.log_file
     end
+    
+    # Clear out the metric data, errors, and transaction traces.  Reset the histogram data.
+    def reset_stats
+      @stats_engine.reset_stats
+      @unsent_errors = []
+      @traces = nil
+      @unsent_timeslice_data = {}
+      @last_harvest_time = Time.now
+      @launch_time = Time.now
+      @histogram = NewRelic::Histogram.new(NewRelic::Control.instance.apdex_t / 10)
+    end
 
     private
     def collector
@@ -222,8 +241,7 @@ module NewRelic
     end
     
     # Try to launch the worker thread and connect to the server
-    def start_worker_thread
-      @worker_loop = WorkerLoop.new
+    def start_worker_thread(force_reconnect=false)
       log.debug "Creating RPM worker thread."
       @worker_thread = Thread.new do
         begin
@@ -231,23 +249,25 @@ module NewRelic
             # We try to connect.  If this returns false that means
             # the server rejected us for a licensing reason and we should 
             # just exit the thread.  If it returns nil
-            # that means it didn't try to connect because we're in the master
-            connect if not @connected
+            # that means it didn't try to connect because we're in the master.
+            connect if !@connected or force_reconnect
             if @connected
               # disable transaction sampling if disabled by the server and we're not in dev mode
               if !control.developer_mode? && !@should_send_samples
                 @transaction_sampler.disable
               end
-              control.log! "Reporting performance data every #{@report_period} seconds."
+              log.info "Reporting performance data every #{@report_period} seconds."
               log.debug "Running worker loop"
               # note if the agent attempts to report more frequently than allowed by the server
               # the server will start dropping data.
+              @worker_loop = WorkerLoop.new
               @worker_loop.run(@report_period) do
                 harvest_and_send_timeslice_data
                 harvest_and_send_slowest_sample if @should_send_samples
                 harvest_and_send_errors if error_collector.enabled
               end
-              @connected = true
+            else
+              log.debug "No connection.  Worker thread finished."
             end
           end
         rescue NewRelic::Agent::ForceRestartException => e
@@ -309,8 +329,6 @@ module NewRelic
     # connection is made, or the server rejects us.
     
     def connect(keep_retrying = true)
-      # Don't reconnect if we've already got a connection.
-      return if @connected
       
       # wait a few seconds for the web server to boot, necessary in development
       connect_retry_period = keep_retrying ? 10 : 0
@@ -402,15 +420,6 @@ module NewRelic
     
     def determine_home_directory
       control.root
-    end
-    def reset_stats
-      @stats_engine.reset_stats
-      @unsent_errors = []
-      @traces = nil
-      @unsent_timeslice_data = {}
-      @last_harvest_time = Time.now
-      @launch_time = Time.now
-      @histogram = NewRelic::Histogram.new(NewRelic::Control.instance.apdex_t / 10)
     end
     
     def harvest_and_send_timeslice_data
