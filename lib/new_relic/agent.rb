@@ -31,8 +31,8 @@
 #
 # == Configuring the Agent
 # 
-# All agent configuration is done in the <tt>newrelic.yml</tt> file.  This
-# file is by default read from the +config+ directory of the
+# All agent configuration is done in the <tt>newrelic.yml</tt> file.
+# This file is by default read from the +config+ directory of the
 # application root and is subsequently searched for in the application
 # root directory, and then in a <tt>~/.newrelic</tt> directory
 #
@@ -171,16 +171,17 @@ module NewRelic
     # Call this to manually start the Agent in situations where the Agent does
     # not auto-start.
     # 
-    # When the app environment loads, so does the Agent. However, the Agent will
-    # only connect to RPM if a web front-end is found. If you want to selectively monitor
-    # ruby processes that don't use web plugins, then call this method in your
-    # code and the Agent will fire up and start reporting to RPM.
+    # When the app environment loads, so does the Agent. However, the
+    # Agent will only connect to RPM if a web front-end is found. If
+    # you want to selectively monitor ruby processes that don't use
+    # web plugins, then call this method in your code and the Agent
+    # will fire up and start reporting to RPM.
     #
-    # Options are passed in as overrides for values in the newrelic.yml, such
-    # as app_name.  In addition, the option +log+ will take a logger that
-    # will be used instead of the standard file logger.  The setting for
-    # the newrelic.yml section to use (ie, RAILS_ENV) can be overridden
-    # with an :env argument.
+    # Options are passed in as overrides for values in the
+    # newrelic.yml, such as app_name.  In addition, the option +log+
+    # will take a logger that will be used instead of the standard
+    # file logger.  The setting for the newrelic.yml section to use
+    # (ie, RAILS_ENV) can be overridden with an :env argument.
     #
     def manual_start(options={})
       raise unless Hash === options
@@ -201,19 +202,21 @@ module NewRelic
       agent.shutdown
     end        
 
-    # Add instrumentation files to the agent.  The argument should be a glob
-    # matching ruby scripts which will be executed at the time instrumentation 
-    # is loaded.  Since instrumentation is not loaded when the agent is not
-    # running it's better to use this method to register instrumentation than
-    # just loading the files directly, although that probably also works. 
+    # Add instrumentation files to the agent.  The argument should be
+    # a glob matching ruby scripts which will be executed at the time
+    # instrumentation is loaded.  Since instrumentation is not loaded
+    # when the agent is not running it's better to use this method to
+    # register instrumentation than just loading the files directly,
+    # although that probably also works.
     def add_instrumentation file_pattern
       NewRelic::Control.instance.add_instrumentation file_pattern
     end
 
-    # This method sets the block sent to this method as a sql obfuscator. 
-    # The block will be called with a single String SQL statement to obfuscate.
-    # The method must return the obfuscated String SQL. 
-    # If chaining of obfuscators is required, use type = :before or :after
+    # This method sets the block sent to this method as a sql
+    # obfuscator.  The block will be called with a single String SQL
+    # statement to obfuscate.  The method must return the obfuscated
+    # String SQL.  If chaining of obfuscators is required, use type =
+    # :before or :after
     #
     # type = :before, :replace, :after
     #
@@ -257,9 +260,9 @@ module NewRelic
       end
     end
     
-    # Cancel the collection of the current transaction in progress, if any.
-    # Only affects the transaction started on this thread once it has started
-    # and before it has completed.
+    # Cancel the collection of the current transaction in progress, if
+    # any.  Only affects the transaction started on this thread once
+    # it has started and before it has completed.
     def abort_transaction!
       # The class may not be loaded if the agent is disabled
       if defined? NewRelic::Agent::Instrumentation::MetricFrame
@@ -267,10 +270,11 @@ module NewRelic
       end
     end
     
-    # Yield to the block without collecting any metrics or traces in any of the
-    # subsequent calls.  If executed recursively, will keep track of the first
-    # entry point and turn on tracing again after leaving that block.
-    # This uses the thread local +newrelic_untrace+
+    # Yield to the block without collecting any metrics or traces in
+    # any of the subsequent calls.  If executed recursively, will keep
+    # track of the first entry point and turn on tracing again after
+    # leaving that block.  This uses the thread local
+    # +newrelic_untrace+
     def disable_all_tracing
       agent.push_trace_execution_flag(false)
       yield
@@ -283,9 +287,10 @@ module NewRelic
       Thread.current[:newrelic_untraced].nil? || Thread.current[:newrelic_untraced].last != false      
     end
 
-    # Set a filter to be applied to errors that RPM will track.
-    # The block should evalute to the exception to track (which could be different from
-    # the original exception) or nil to ignore this exception.
+    # Set a filter to be applied to errors that RPM will track.  The
+    # block should evalute to the exception to track (which could be
+    # different from the original exception) or nil to ignore this
+    # exception.
     #
     # The block is yielded to with the exception to filter. 
     # 
@@ -295,8 +300,8 @@ module NewRelic
       agent.error_collector.ignore_error_filter(&block)
     end
     
-    # Record the given error in RPM.  It will be passed through the #ignore_error_filter
-    # if there is one.
+    # Record the given error in RPM.  It will be passed through the
+    # #ignore_error_filter if there is one.
     # 
     # * <tt>exception</tt> is the exception which will be recorded
     # Options:
@@ -322,13 +327,14 @@ module NewRelic
     # and is now deprecated.
     alias add_request_parameters add_custom_parameters #:nodoc:
     
-    # Yield to a block that is run with a database metric name context.  This means
-    # the Database instrumentation will use this for the metric name if it does not
-    # otherwise know about a model.  This is re-entrant.
+    # Yield to a block that is run with a database metric name
+    # context.  This means the Database instrumentation will use this
+    # for the metric name if it does not otherwise know about a model.
+    # This is re-entrant.
     #
     # * <tt>model</tt> is the DB model class
-    # * <tt>method</tt> is the name of the finder method or other method to identify the operation with.
-    #
+    # * <tt>method</tt> is the name of the finder method or other
+    #   method to identify the operation with.
     def with_database_metric_name(model, method, &block)
       if frame = NewRelic::Agent::Instrumentation::MetricFrame.current
         frame.with_database_metric_name(model, method, &block)
