@@ -36,7 +36,7 @@ module NewRelic
       if block
         @ignore_filter = block
       else
-        @ignore_error_filter
+        @ignore_filter
       end
     end
     
