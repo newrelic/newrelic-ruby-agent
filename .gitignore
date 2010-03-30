@@ -5,4 +5,3 @@ pkg/
 *.gem
 !rails
 Manifest*
-newrelic_rpm.gemspec
