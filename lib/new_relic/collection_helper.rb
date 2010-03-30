@@ -1,5 +1,7 @@
 module NewRelic
   module CollectionHelper
+  DEFAULT_TRUNCATION_SIZE=256
+  
   # Transform parameter hash into a hash whose values are strictly
   # strings
   def normalize_params(params)
@@ -49,7 +51,7 @@ module NewRelic
       else "#<#{object.class.to_s}>"
     end
   end
-  def truncate(string, len=256)
+  def truncate(string, len=DEFAULT_TRUNCATION_SIZE)
     case string
     when Symbol then string
     when nil then ""
