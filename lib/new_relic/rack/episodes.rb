@@ -27,6 +27,14 @@ module NewRelic
 
       def process
         measures = @request['ets'].split(',').map { |str| str.split(':') }
+        url = @request['url']
+=begin wip        
+        if defined?(::Routing) && defined?(::Routing::Routes)
+          
+        end
+        Routing::Routes.recognize(request)
+=end
+        NewRelic::Agent.logger.debug "Capturing measures from #{url}:\n   #{measures.inspect}"
         measures.each do | name, value |
           metric_name = "Client/#{name}"
           NewRelic::Agent.instance.stats_engine.get_stats_no_scope(metric_name).record_data_point(value.to_f / 1000.0)
