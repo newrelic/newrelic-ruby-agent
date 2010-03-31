@@ -173,6 +173,10 @@ module NewRelic
     def developer_mode?
       fetch('developer_mode', fetch('developer'))
     end
+    
+    def episodes_enabled?
+      fetch('episodes_enabled', true)
+    end
     # True if the app runs in multi-threaded mode
     def multi_threaded?
       fetch('multi_threaded')

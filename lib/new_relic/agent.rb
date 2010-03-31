@@ -107,6 +107,7 @@ module NewRelic
     require 'new_relic/agent/samplers/memory_sampler'
     require 'new_relic/agent/samplers/object_sampler'
     require 'new_relic/agent/samplers/delayed_job_lock_sampler'
+    require 'new_relic/rack/episodes'
     require 'set'
     require 'thread'
     require 'resolv'
