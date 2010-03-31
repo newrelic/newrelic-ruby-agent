@@ -339,7 +339,7 @@ module NewRelic
       begin
         sleep connect_retry_period.to_i
         # Running in the Passenger or Unicorn spawners?
-        if $0 =~ /ApplicationSpawner|master/
+        if $0 =~ /ApplicationSpawner|unicorn.* master/
           log.debug "Process is master spawner (#$0) -- don't connect to RPM service"
           @connected = nil
           return 
