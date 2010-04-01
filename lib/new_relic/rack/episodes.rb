@@ -4,7 +4,7 @@ module NewRelic
   module Rack
     class Episodes
       
-      BEACON_URL = "/newrelic-episodes"
+      BEACON_URL = "/newrelic/episodes/page_load"
       def initialize(app)
         @app = app
       end
@@ -28,13 +28,12 @@ module NewRelic
       def process
         measures = @request['ets'].split(',').map { |str| str.split(':') }
         url = @request['url']
-=begin wip        
-        if defined?(::Routing) && defined?(::Routing::Routes)
-          
+        if false and defined?(::ActionController::Routing::Routes)
+          params = ::ActionController::Routing::Routes.recognize_path(url) rescue {}
+          controller, action = params.values_at :controller, :action
         end
-        Routing::Routes.recognize(request)
-=end
-        NewRelic::Agent.logger.debug "Capturing measures from #{url}:\n   #{measures.inspect}"
+
+        NewRelic::Agent.logger.debug "Capturing measures from #{url} (#{controller}##{action}):\n   #{measures.inspect}"
         measures.each do | name, value |
           metric_name = "Client/#{name}"
           NewRelic::Agent.instance.stats_engine.get_stats_no_scope(metric_name).record_data_point(value.to_f / 1000.0)

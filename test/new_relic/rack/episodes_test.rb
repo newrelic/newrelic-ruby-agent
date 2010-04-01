@@ -16,11 +16,11 @@ class EpisodesTest < Test::Unit::TestCase
   def test_match
     @e.expects(:process).times(3)
     @app.expects(:call).times(2)
-    @e.call(mock_env('/newrelic-episodes/stuff'))    
-    @e.call(mock_env('/newrelic-episodes'))
-    @e.call(mock_env('/newrelic-episodes?'))
+    @e.call(mock_env('/newrelic/episodes/page_load/stuff'))    
+    @e.call(mock_env('/newrelic/episodes/page_load'))
+    @e.call(mock_env('/newrelic/episodes/page_load?'))
     
-    @e.call(mock_env('/v2/newrelic-episodes?'))
+    @e.call(mock_env('/v2/newrelic/episodes/page_load?'))
     @e.call(mock_env('/v2'))
   end
   
@@ -29,7 +29,7 @@ class EpisodesTest < Test::Unit::TestCase
     args = "ets=backend:2807,onload:7641,frontend:4835,pageready:7642,totaltime:7642&" +
            "url=/v2&"+
            "userAgent=Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.6; en-US; rv:1.9.2.2) Gecko/20100316 Firefox/3.6.2"
-    v = @e.call(mock_env("/newrelic-episodes?#{args}"))
+    v = @e.call(mock_env("/newrelic/episodes/page_load?#{args}"))
     assert_equal 3, v.size
     assert_equal 204, v[0]
     compare_metrics %w[
@@ -82,5 +82,9 @@ class EpisodesTest < Test::Unit::TestCase
          'rack.url_scheme'              => 'http',
          'rack.version'                 => '11'
     ]
+  end
+  
+  def mock_routes
+    ActionController::Routing::Routes.nil;
   end
 end
