@@ -26,7 +26,7 @@ module NewRelic
       @capture_source = config.fetch('capture_source', true)
       
       ignore_errors = config.fetch('ignore_errors', "")
-      ignore_errors = ignore_errors.split(",")
+      ignore_errors = ignore_errors.split(",") if ignore_errors.is_a? String
       ignore_errors.each { |error| error.strip! } 
       ignore(ignore_errors)
       @lock = Mutex.new
