@@ -31,7 +31,7 @@ http://github.com/newrelic/rpm/tree/master.
     gem.files = FileList['**/*'].to_a - ['init.rb']
     gem.test_files = [] # You can't really run the tests unless the gem is installed.
     gem.rdoc_options << "--line-numbers" << "--inline-source" << "--title" << "New Relic RPM"
-    gem.files.reject! { |fn| fn =~ /Rakefile|pkg\// }
+    gem.files.reject! { |fn| fn =~ /Rakefile|pkg\/|rdoc\// }
     gem.extra_rdoc_files = %w[CHANGELOG LICENSE]
     if File.exists?(URGENT_README)
       gem.post_install_message = File.read(URGENT_README)
