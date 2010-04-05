@@ -9,9 +9,9 @@ module NewRelic
         @app = app
       end
       def call(env)
-#        env.each.to_a.sort_by(&:first).each do | k, v |
-#        puts "      '#{'%-28s'%k}' => '#{v}'"
-#        end
+        #        env.each.to_a.sort_by(&:first).each do | k, v |
+        #        puts "      '#{'%-28s'%k}' => '#{v}'"
+        #        end
         path = env["REQUEST_PATH"].to_s.squeeze("/")
         NewRelic::Agent.logger.info "Path = '#{path}'"
         if path.index(BEACON_URL) == 0
@@ -22,19 +22,18 @@ module NewRelic
           @app.call(env)
         end
       end
-
+      
       private
-
+      
       def process
         measures = @request['ets'].split(',').map { |str| str.split(':') }
         url = @request['url']
         user_agent = @request['userAgent']
-        puts "useragent: #{user_agent}"
         if false and defined?(::ActionController::Routing::Routes)
           params = ::ActionController::Routing::Routes.recognize_path(url) rescue {}
           controller, action = params.values_at :controller, :action
         end
-
+        
         NewRelic::Agent.logger.debug "Capturing measures from #{url} (#{controller}##{action}):\n   #{measures.inspect}"
         measures.each do | name, value |
           metric_name = "Client/#{name}"
@@ -51,47 +50,51 @@ module NewRelic
       
       def identify_browser_and_os(user_agent)
         user_agent = user_agent.downcase
-
+        
         # tests for browser version
         # for safari and firefox we take the major and minor version - e.g. Firefox 2.1 or Safari 4.0
         # for all other browsers we take only the major version - e.g. IE 7, Chrome 3
-
+        
         # ignored but potentially popular browsers: 
         # - mozilla or gecko-based but non-firefox browsers
-
-        if user_agent[/opera/]
+        
+        case user_agent
+        when /opera/
           browser = 'Opera'
           version = ($1 || 0).to_i if user_agent[/opera(?:.*version)?[ \/](\d+)\./]
-        elsif user_agent[/chrome(?:\/(\d+)\.)?/] # chrome must go before safari
+        when /chrome(?:\/(\d+)\.)?/  # chrome must go before safari
           browser = 'Chrome'
           version = ($1 || 0).to_i
-        elsif user_agent[/safari|applewebkit\//]
+        when /safari|applewebkit\//
           browser = 'Safari'
           version = $1.to_f if user_agent[/version\/(\d+\.\d+)/] # safari used Version/* starting from 3.0
-        elsif user_agent[/msie (\d+)\./]
+        when /msie (\d+)\./
           browser = 'IE'
           version = $1.to_i
-        elsif user_agent[/compatible/].nil? && user_agent[/like firefox\//].nil? && user_agent[/firefox\//]
-          browser = 'Firefox'
-          version = $1.to_f if user_agent[/firefox\/(\d+\.\d+)/]
-        elsif user_agent[/compatible/].nil? && user_agent[/gecko\/?/]
-          browser = 'Mozilla Gecko'
-          version = $1.to_f if user_agent[/rv:(\d+\.\d+)/]
+        else if user_agent[/compatible/].nil? 
+          if user_agent[/like firefox\//].nil? && user_agent[/firefox\//]
+            browser = 'Firefox'
+            version = $1.to_f if user_agent[/firefox\/(\d+\.\d+)/]
+          elsif user_agent[/gecko\/?/]
+            browser = 'Mozilla Gecko'
+            version = $1.to_f if user_agent[/rv:(\d+\.\d+)/]
+          end
         end
-
-        if user_agent[/windows/]
-          os = 'Windows'
-        elsif user_agent[/iphone/] # iphone must go before mac
-          os = 'iPhone'
-        elsif user_agent[/macintosh|mac os/]
-          os = 'Mac'
-        elsif user_agent[/linux/]
-          os = 'Linux'
-        end
-
-        return browser || 'Unknown', version || 0, os || 'Unknown'
       end
-
+      
+      if user_agent[/windows/]
+        os = 'Windows'
+      elsif user_agent[/iphone/] # iphone must go before mac
+        os = 'iPhone'
+      elsif user_agent[/macintosh|mac os/]
+        os = 'Mac'
+      elsif user_agent[/linux/]
+        os = 'Linux'
+      end
+      
+      return browser || 'Unknown', version || 0, os || 'Unknown'
     end
+    
   end
+end
 end
