@@ -236,7 +236,7 @@ module NewRelic
       #this can only be on when SSL is enabled
       @verify_certificate ||= ( use_ssl? ? fetch('verify_certificate', false) : false)
     end
-    
+
     def server
       @remote_server ||= server_from_host(nil)  
     end
@@ -439,7 +439,7 @@ module NewRelic
     end
     
     def log_path
-      path = File.join(root,'log')
+      path = self['log_path'] || File.join(root,'log')
       unless File.directory? path
         path = '.'
       end
