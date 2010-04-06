@@ -63,26 +63,24 @@ class NewRelic::Command::Deployments < NewRelic::Command
       if response.is_a? Net::HTTPSuccess
         info "Recorded deployment to '#{@appname}' (#{@description || Time.now })"
       else
-        err_string = [ "Unexpected response from server: #{response.code}: #{response.message}" ]
-        begin
+        err_string = begin
           doc = REXML::Document.new(response.body)
-          doc.elements.each('errors/error') do |error|
-            err_string << "Error: #{error.text}"
-          end
+          "Deployment not recorded: "+ doc.elements['errors/error'].map(&:to_s).join("; ") 
         rescue
+          "Deployment not recorded: #{response.code}: #{response.message}"
         end
-        raise NewRelic::Command::CommandFailure.new(err_string.join("\n"), -1)
+        raise NewRelic::Command::CommandFailure, err_string
       end 
     rescue SystemCallError, SocketError => e
       # These include Errno connection errors 
       err_string = "Transient error attempting to connect to #{config.api_server} (#{e})"
-      raise NewRelic::Command::CommandFailure.new(err_string, -1)
+      raise NewRelic::Command::CommandFailure.new(err_string)
     rescue NewRelic::Command::CommandFailure
       raise
     rescue Exception => e
       err "Unexpected error attempting to connect to #{config.api_server}"
       info "#{e}: #{e.backtrace.join("\n   ")}"
-      raise NewRelic::Command::CommandFailure.new(e.to_s, -1)
+      raise NewRelic::Command::CommandFailure.new(e.to_s)
     end
   end
   
