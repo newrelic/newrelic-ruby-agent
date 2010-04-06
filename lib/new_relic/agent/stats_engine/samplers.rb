@@ -69,10 +69,10 @@ module Agent
       end
       
       def harvest_samplers
-        @harvest_samplers ||= []
+        @harvest_samplers ||= Set.new
       end
       def periodic_samplers
-        @periodic_samplers ||= []
+        @periodic_samplers ||= Set.new
       end
     end
   end
