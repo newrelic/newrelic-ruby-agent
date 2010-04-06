@@ -232,7 +232,7 @@ module NewRelic
       #this can only be on when SSL is enabled
       @verify_certificate ||= ( use_ssl? ? fetch('verify_certificate', false) : false)
     end
-    
+
     def server
       @remote_server ||= server_from_host(nil)  
     end
@@ -405,7 +405,7 @@ module NewRelic
     
     # Control subclasses may override this, but it can be called multiple times.
     def setup_log
-      @log_file = "#{log_path}/newrelic_agent.log"
+      @log_file = "#{log_path}/#{log_file_name}"
       @log = Logger.new @log_file
       
       # change the format just for our logger
@@ -435,11 +435,17 @@ module NewRelic
     end
     
     def log_path
-      path = File.join(root,'log')
-      unless File.directory? path
-        path = '.'
-      end
-      File.expand_path(path)
+      @log_path ||= begin
+                      path = self['log_file_path'] || File.join(root,'log')
+                      unless File.directory? path
+                        path = '.'
+                      end
+                      File.expand_path(path)
+                    end
+    end
+
+    def log_file_name
+      @log_file_name ||= fetch('log_file_name', 'newrelic_agent.log')
     end
     
     # Create the concrete class for environment specific behavior:
