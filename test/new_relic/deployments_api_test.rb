@@ -1,4 +1,5 @@
-require File.expand_path(File.join(File.dirname(__FILE__),'../../lib/new_relic/commands/deployments'))
+require File.expand_path(File.join(File.dirname(__FILE__),'/../test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__),'/../../lib/new_relic/command'))
 require 'rubygems'
 require 'mocha'
 
