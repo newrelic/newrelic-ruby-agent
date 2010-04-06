@@ -11,6 +11,7 @@ require File.expand_path(File.join(NEWRELIC_PLUGIN_DIR, "..","..","..","config",
 require 'test_help'
 require 'mocha'
 require 'test/unit'
+require 'shoulda'
 
 def assert_between(floor, ceiling, value, message = nil)
   assert floor <= value && value <= ceiling,
