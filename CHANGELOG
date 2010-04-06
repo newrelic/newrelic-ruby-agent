@@ -1,6 +1,7 @@
 v2.11.2
   * fix for unicorn not reporting when the proc line had 'master' in it
-  * allow overriding the logfiled directory via 'log_path' in newrelic.yml
+  * allow overriding the log file directory via 'log_file_path' in newrelic.yml
+  * allow overriding the log name via 'log_file_name' in newrelic.yml
 
 v2.11.1
   * republished gem without generated rdocs
