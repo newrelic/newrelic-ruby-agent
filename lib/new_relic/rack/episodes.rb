@@ -55,9 +55,6 @@ module NewRelic
         # for safari and firefox we take the major and minor version - e.g. Firefox 2.1 or Safari 4.0
         # for all other browsers we take only the major version - e.g. IE 7, Chrome 3
         
-        # ignored but potentially popular browsers: 
-        # - mozilla or gecko-based but non-firefox browsers
-        
         case user_agent
         when /opera/
           browser = 'Opera'
