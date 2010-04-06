@@ -32,6 +32,7 @@ http://github.com/newrelic/rpm/tree/master.
     gem.test_files = [] # You can't really run the tests unless the gem is installed.
     gem.rdoc_options << "--line-numbers" << "--inline-source" << "--title" << "New Relic RPM"
     gem.files.reject! { |fn| fn =~ /Rakefile|pkg\/|rdoc\// }
+    gem.add_development_dependency "jeweler"
     gem.extra_rdoc_files = %w[CHANGELOG LICENSE]
     if File.exists?(URGENT_README)
       gem.post_install_message = File.read(URGENT_README)
@@ -51,6 +52,7 @@ For details on this specific release, refer to the CHANGELOG file.
 rescue LoadError
   puts "Jeweler (or a dependency) not available. Install it with: gem install jeweler"
 end
+
 
 load "#{File.dirname(__FILE__)}/lib/tasks/all.rb"
 
@@ -84,4 +86,10 @@ Rake::RDocTask.new do |rdoc|
   rdoc.rdoc_files.include('LICENSE')
   rdoc.rdoc_files.include('CHANGELOG')
   rdoc.rdoc_files.include('lib/**/*.rb')
+end
+
+begin
+  require 'sdoc_helpers'
+rescue LoadError
+  puts "sdoc support not enabled. Please gem install sdoc-helpers."
 end
