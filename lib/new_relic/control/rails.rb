@@ -119,6 +119,7 @@ class NewRelic::Control::Rails < NewRelic::Control
   # Collect the Rails::Info into an associative array as well as the list of plugins
   def append_environment_info
     local_env.append_environment_value('Rails version'){ ::Rails::VERSION::STRING }
+    local_env.append_environment_value('Routes') { ActionController::Routing::Routes.routes.size }
     if rails_version >= NewRelic::VersionNumber.new('2.2.0')
       local_env.append_environment_value('Rails threadsafe') do
         ::Rails.configuration.action_controller.allow_concurrency == true
