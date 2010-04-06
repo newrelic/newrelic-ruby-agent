@@ -95,11 +95,11 @@ class NewRelic::Command::Deployments < NewRelic::Command
              "Set the application name.",
              "Default is app_name setting in newrelic.yml") { | e | @appname = e }
       o.on("-e", "--environment=name", String,
-               "Override the (RAILS|MERB|RUBY)_ENV setting",
+               "Override the (RAILS|MERB|RUBY|RACK)_ENV setting",
                "currently: #{config.env}") { | e | @environment = e }
       o.on("-u", "--user=USER", String,
-             "Specify the user deploying.",
-             "Default: #{@user}") { | u | @user = u }
+             "Specify the user deploying, for information only",
+             "Default: #{@user || '<none>'}") { | u | @user = u }
       o.on("-r", "--revision=REV", String,
              "Specify the revision being deployed") { | r | @revision = r }
       o.on("-c", "--changes", 
