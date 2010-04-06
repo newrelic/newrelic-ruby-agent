@@ -33,6 +33,8 @@ http://github.com/newrelic/rpm/tree/master.
     gem.rdoc_options << "--line-numbers" << "--inline-source" << "--title" << "New Relic RPM"
     gem.files.reject! { |fn| fn =~ /Rakefile|pkg\// }
     gem.add_development_dependency "jeweler"
+    gem.add_development_dependency "mocha"
+    gem.add_development_dependency "shoulda"
     gem.extra_rdoc_files = %w[CHANGELOG LICENSE]
     if File.exists?(URGENT_README)
       gem.post_install_message = File.read(URGENT_README)
