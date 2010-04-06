@@ -7,6 +7,12 @@ class MetricParserTest < Test::Unit::TestCase
     assert_equal "MemCache read", m.developer_name
   end
 
+  def test_memcache__all
+    m = NewRelic::MetricParser.for_metric_named "MemCache/all"
+    assert_equal "MemCache All Operations", m.developer_name
+    assert_equal "All Operations", m.operation
+  end
+
   def test_view__short
     i = NewRelic::MetricParser.parse("View/.rhtml Processing")
     assert_equal "ERB compilation", i.developer_name
