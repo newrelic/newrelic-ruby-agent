@@ -47,6 +47,10 @@ common: &default_settings
   # information separate from that of your application.  Specify its
   # log level here.
   log_level: info
+
+  # If you wish to override the location of the log file, you can
+  # uncomment this and enter a path here:
+  # log_path: /var/log/newrelic/
   
   # The newrelic agent communicates with the RPM service via http by
   # default.  If you want to communicate via https to increase
