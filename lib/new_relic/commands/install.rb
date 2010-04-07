@@ -26,7 +26,7 @@ class NewRelic::Command::Install < NewRelic::Command
       end
     end
     @license_key ||= '<PASTE LICENSE KEY HERE>'
-    @generated_for_user ||= @user_string || "Generated on #{Time.now.strftime('%b %d, %Y')} from version #{NewRelic::VERSION::STRING}"
+    @generated_for_user ||= @user_string || "Generated on #{Time.now.strftime('%b %d, %Y')}, from version #{NewRelic::VERSION::STRING}"
   end
   
   def run

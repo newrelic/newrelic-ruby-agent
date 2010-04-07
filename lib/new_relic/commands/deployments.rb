@@ -26,7 +26,7 @@ class NewRelic::Command::Deployments < NewRelic::Command
   def initialize command_line_args
     @config = NewRelic::Control.instance
     super(command_line_args)
-    @description = @leftover && @leftover.join(" ")
+    @description ||= @leftover && @leftover.join(" ")
     @user ||= ENV['USER']
     config.env = @environment if @environment
     @appname ||= config.app_names[0] || config.env || 'development'
