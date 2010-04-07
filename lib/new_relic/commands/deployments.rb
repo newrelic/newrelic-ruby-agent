@@ -63,13 +63,9 @@ class NewRelic::Command::Deployments < NewRelic::Command
       if response.is_a? Net::HTTPSuccess
         info "Recorded deployment to '#{@appname}' (#{@description || Time.now })"
       else
-        err_string = begin
-          doc = REXML::Document.new(response.body)
-          "Deployment not recorded: "+ doc.elements['errors/error'].map(&:to_s).join("; ") 
-        rescue
-          "Deployment not recorded: #{response.code}: #{response.message}"
-        end
-        raise NewRelic::Command::CommandFailure, err_string
+        err_string = REXML::Document.new(response.body).elements['errors/error'].map(&:to_s).join("; ") rescue  response.message
+        puts "response: #{response.body}"
+        raise NewRelic::Command::CommandFailure, "Deployment not recorded: #{err_string}"
       end 
     rescue SystemCallError, SocketError => e
       # These include Errno connection errors 
