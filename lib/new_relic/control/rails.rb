@@ -11,13 +11,9 @@ class NewRelic::Control::Rails < NewRelic::Control
   end
   
   def log_path
-    path = log_path || ::RAILS_DEFAULT_LOGGER.instance_eval do
+    path = super || ::RAILS_DEFAULT_LOGGER.instance_eval do
       File.dirname(@log.path) rescue File.dirname(@logdev.filename) 
-<<<<<<< HEAD:lib/new_relic/control/rails.rb
-    end rescue super
-=======
     end rescue File.join(root, 'log')
->>>>>>> d1df503... fix middleware better:lib/new_relic/control/rails.rb
     File.expand_path(path)
   end
   # In versions of Rails prior to 2.0, the rails config was only available to 
