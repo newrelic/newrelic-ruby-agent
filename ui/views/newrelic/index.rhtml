@@ -15,18 +15,20 @@
                     </td>
                     <td/>
                 </tr>
-            </thead><%= render :partial => 'sample', :collection => @samples %>
+                </thead><% @samples.each do |sample| %>
+                  <%= render :partial => :sample, :object => sample %>
+                <% end %>
         </table>
 		</td>
 		<td valign=top>
-        <%= link_to_if @samples.size > 0, "Clear Transactions (#{@samples.size})", :action => 'reset' %><br/>
-        <%= link_to "List Threads", :action => 'threads' %><br/>
+        <%= link_to_if @samples.size > 0, "Clear Transactions (#{@samples.size})", 'reset' %><br/>
+        <%= link_to "List Threads", 'threads' %><br/>
 		<% if NewRelic::Control.instance.profiling_available? %>
 		  <p><b>Profiling available:</b>
 		  <% if NewRelic::Control.instance.profiling? %>
-            <%= link_to "Stop Profiling", :action => 'profile', :stop => true %>
+            <%= link_to "Stop Profiling", 'profile?stop=true'%>
 	      <% else %>
-            <%= link_to "Start Profiling", :action => 'profile', :start => true %>
+            <%= link_to "Start Profiling", 'profile?start=true' %>
 		  <% end %>
 		  </p>
 		<% else %>

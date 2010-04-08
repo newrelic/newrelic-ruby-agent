@@ -21,4 +21,4 @@
   <%= render_sample_details(@sample) %>
 </table>
 
-<%= render :partial => agent_views_path('segment_limit_message') if trace_row_display_limit_reached %>
+<%= render :partial => 'segment_limit_message' if trace_row_display_limit_reached %>

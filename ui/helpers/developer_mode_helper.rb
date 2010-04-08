@@ -1,6 +1,9 @@
 require 'pathname'
-module NewrelicHelper
+require File.expand_path('../google_pie_chart', __FILE__)
+module NewRelic::DeveloperModeHelper
   include NewRelic::CollectionHelper
+
+  private
   
   # return the host that serves static content (css, metric documentation, images, etc)
   # that supports the desktop edition.
@@ -47,8 +50,12 @@ module NewrelicHelper
   def render_backtrace
     if @segment[:backtrace]
       content_tag('h3', 'Application Stack Trace') + 
-      render(:partial => agent_views_path('stack_trace'), :locals => {:segment => @segment})
+      render(:partial => 'stack_trace')
     end
+  end
+
+  def h(text)
+    text
   end
   
   def agent_views_path(path)
@@ -75,7 +82,7 @@ module NewrelicHelper
     if using_textmate?
       "txmt://open?url=file://#{file}&line=#{line}"
     else
-      url_for :action => 'show_source', :file => file, :line => line, :anchor => 'selected_line'
+      "show_source?file=#{file}&amp;line=#{line}&amp;anchor=selected_line"
     end
   end
   
@@ -88,7 +95,7 @@ module NewrelicHelper
     if source_available && segment[:backtrace] && (source_url = url_for_source(application_caller(segment[:backtrace])))
       link_to dev_name(segment.metric_name), source_url
     else
-      h(dev_name(segment.metric_name))
+      dev_name(segment.metric_name)
     end
   end
   
@@ -102,14 +109,14 @@ module NewrelicHelper
   end
   
   def write_stack_trace_line(trace_line)
-    link_to h(trace_line), url_for_source(trace_line)
+    link_to trace_line, url_for_source(trace_line)
   end
   
   # write a link to the source for a trace
   def link_to_source(trace)
-    image_url = url_for(:controller => :newrelic, :action => :file, :file => (using_textmate? ? "textmate.png" : "file_icon.png"))
+    image_url = 'file/images/' + (using_textmate? ? "textmate.png" : "file_icon.png")
     
-    link_to image_tag(image_url, :alt => (title = 'View Source'), :title => title), url_for_source(application_caller(trace))
+    link_to "<img src=#{image_url} alt=\"View Source\" title=\"View Source\"/>", url_for_source(application_caller(trace))
   end
   
   # print the formatted timestamp for a segment
@@ -131,17 +138,15 @@ module NewrelicHelper
   end
   
   def expanded_image_path()
-    url_for(:controller => :newrelic, :action => :file, :file => 'arrow-open.png')
+    '/newrelic/file/images/arrow-open.png'
   end
   
   def collapsed_image_path()
-    url_for(:controller => :newrelic, :action => :file, :file => 'arrow-close.png')
+    '/newrelic/file/images/arrow-close.png'
   end
   
   def explain_sql_url(segment)
-    url_for(:action => :explain_sql, 
-      :id => @sample.sample_id, 
-      :segment => segment.segment_id)
+    "explain_sql?id=#{@sample.sample_id}&amp;segment=#{segment.segment_id}"
   end
   
   def segment_duration_value(segment)
@@ -149,7 +154,7 @@ module NewrelicHelper
   end
   
   def line_wrap_sql(sql)
-    h(sql.gsub(/\,/,', ').squeeze(' ')) if sql
+    sql.gsub(/\,/,', ').squeeze(' ') if sql
   end
   
   def render_sample_details(sample)
@@ -158,7 +163,7 @@ module NewrelicHelper
     first_segment = sample.root_segment.called_segments.first
     
     # render the segments, then the css classes to indent them
-    render_segment_details(first_segment) + render_indentation_classes(@indentation_depth)
+    render_segment_details(first_segment).to_s + render_indentation_classes(@indentation_depth).to_s
   end
   
   # the rows logger plugin disables the sql tracing functionality of the NewRelic agent -
@@ -171,10 +176,7 @@ module NewrelicHelper
     if depth > 0
       if !segment.called_segments.empty?
         row_class =segment_child_row_class(segment)
-        link_to_function(tag('img', :src => collapsed_image_path, :id => "image_#{row_class}",
-            :class_for_children => row_class, 
-            :class => (!segment.called_segments.empty?) ? 'parent_segment_image' : 'child_segment_image'), 
-            "toggle_row_class(this)")
+        link_to_function("<img src=\"#{collapsed_image_path}\" id=\"image_#{row_class}\" class_for_children=\"#{row_class}\" class=\"#{(!segment.called_segments.empty?) ? 'parent_segment_image' : 'child_segment_image'}\"", "toggle_row_class(this)")
       end
     end
   end
@@ -218,7 +220,7 @@ module NewrelicHelper
   end
   
   def explain_sql_link(segment, child_sql = false)
-    link_to 'SQL', explain_sql_url(segment), sql_link_mouseover_options(segment)
+    link_to 'SQL', explain_sql_url(segment)+ '"' + sql_link_mouseover_options(segment).map {|k,v| "#{k}=\"#{v}\""}.join(' ')+ 'fake=\"'
   end
   
   def explain_sql_links(segment)
@@ -257,7 +259,7 @@ module NewrelicHelper
       html = ''
     else
       repeat = segment.parent_segment.detail_segments.length if segment.parent_segment.is_a?(NewRelic::TransactionSample::CompositeSegment)
-      html = render(:partial => agent_views_path('segment'), :object => segment, :locals => {:indent => depth, :repeat => repeat})
+      html = render(:partial => 'segment', :object => [segment, depth, repeat])
       depth += 1
     end
     
@@ -286,8 +288,46 @@ module NewrelicHelper
   def show_view_link(title, page_name)
     link_to_function("[#{title}]", "show_view('#{page_name}')");
   end
+
+  
+  def link_to(name, location)
+    location = "/newrelic/#{location}" unless /:\/\// =~ location
+    "<a href=\"#{location}\">#{name}</a>"
+  end
+
+  def link_to_if(predicate, text, location="")
+    if predicate
+      link_to(text, location)
+    else
+      text
+    end
+  end
+
+  def link_to_unless_current(text, hash)
+    unless params[hash.keys[0].to_s]
+      link_to(text,"?#{hash.keys[0]}=#{hash.values[0]}")
+    else
+      text
+    end
+  end
+  
+  def cycle(even, odd)
+    @cycle ||= 'a'
+    if @cycle == 'a'
+      @cycle = 'b'
+      even
+    else
+      @cycle = 'a'
+      odd
+    end
+  end
+
+  def link_to_function(title, javascript)
+    "<a href=\"#\" onclick=\"#{javascript}; return false;\">#{title}</a>"
+  end
+
   def mime_type_from_extension(extension)
-    extension = extension[/[^.]*$/].downcase
+    extension = extension[/[^.]*$/].dncase
     case extension
       when 'png'; 'image/png'
       when 'gif'; 'image/gif'

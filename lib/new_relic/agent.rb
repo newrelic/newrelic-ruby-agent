@@ -108,6 +108,7 @@ module NewRelic
     require 'new_relic/agent/samplers/object_sampler'
     require 'new_relic/agent/samplers/delayed_job_lock_sampler'
     require 'new_relic/rack/episodes'
+    require File.expand_path('../../../ui/middleware/developer_mode', __FILE__)
     require 'set'
     require 'thread'
     require 'resolv'
