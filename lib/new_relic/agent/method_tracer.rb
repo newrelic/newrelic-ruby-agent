@@ -315,7 +315,7 @@ module Agent
         alias_method method_name, _traced_method_name(method_name, metric_name_code)
         
         NewRelic::Control.instance.log.debug("Traced method: class = #{self.name}, method = #{method_name}, "+
-        "metric = '#{metric_name_code}', options: #{options.inspect}")
+        "metric = '#{metric_name_code}'")
       end
       
       # For tests only because tracers must be removed in reverse-order
