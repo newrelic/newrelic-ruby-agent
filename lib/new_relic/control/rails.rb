@@ -11,9 +11,9 @@ class NewRelic::Control::Rails < NewRelic::Control
   end
   
   def log_path
-    path = ::RAILS_DEFAULT_LOGGER.instance_eval do
+    path = super || ::RAILS_DEFAULT_LOGGER.instance_eval do
       File.dirname(@log.path) rescue File.dirname(@logdev.filename) 
-    end rescue super
+    end rescue File.join(root, 'log')
     File.expand_path(path)
   end
   # In versions of Rails prior to 2.0, the rails config was only available to 
