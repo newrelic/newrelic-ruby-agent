@@ -53,7 +53,15 @@ module NewRelic
     # * Restarts the sampler thread if necessary
     # * Initiates a new agent run and worker loop unless that was done
     #   in the parent process and +:force_reconnect+ is not true
-    #
+    # 
+    # Options:
+    # * <tt>:force_reconnect => true</tt> to force the spawned process to 
+    #   establish a new connection, such as when forking a long running process.
+    #   The default is false--it will only connect to the server if the parent
+    #   had not connected.
+    # * <tt>:keep_retrying => false</tt> if we try to initiate a new 
+    #   connection, this tells me to only try it once so this method returns
+    #   quickly if there is some kind of latency with the server.
     def after_fork(options={})
       
       # @connected gets false after we fail to connect or have an error
@@ -70,7 +78,10 @@ module NewRelic
 
       # Clear out stats that are left over from parent process
       reset_stats
-      start_worker_thread(options[:force_reconnect])
+      
+      # Don't ever check to see if this is a spawner.  If we're in a forked process
+      # I'm pretty sure we're not also forking new instances.
+      start_worker_thread(options.merge(:check_for_spawner => false))
       @stats_engine.start_sampler_thread
     end
     
@@ -204,7 +215,7 @@ module NewRelic
           control.log! "Invalid license key: #{control.license_key}", :error
         else     
           # Do the connect in the foreground if we are in sync mode
-          NewRelic::Agent.disable_all_tracing { connect(false) } if control.sync_startup
+          NewRelic::Agent.disable_all_tracing { connect(:keep_retrying => false) } if control.sync_startup
           
           # Start the event loop and initiate connection if necessary
           start_worker_thread
@@ -240,8 +251,10 @@ module NewRelic
       @collector ||= control.server
     end
     
-    # Try to launch the worker thread and connect to the server
-    def start_worker_thread(force_reconnect=false)
+    # Try to launch the worker thread and connect to the server.
+    # 
+    # See #connect for a description of connection_options.
+    def start_worker_thread(connection_options = {})
       log.debug "Creating RPM worker thread."
       @worker_thread = Thread.new do
         begin
@@ -250,7 +263,7 @@ module NewRelic
             # the server rejected us for a licensing reason and we should 
             # just exit the thread.  If it returns nil
             # that means it didn't try to connect because we're in the master.
-            connect if !@connected or force_reconnect
+            connect(connection_options)
             if @connected
               # disable transaction sampling if disabled by the server and we're not in dev mode
               if !control.developer_mode? && !@should_send_samples
@@ -327,8 +340,22 @@ module NewRelic
     # Set keep_retrying=false to disable retrying and return asap, such as when
     # invoked in the foreground.  Otherwise this runs until a successful
     # connection is made, or the server rejects us.
+    #
+    # * <tt>:keep_retrying => false</tt> to only try to connect once, and
+    #   return with the connection set to nil.  This ensures we may try again
+    #   later (default true).
+    # * <tt>force_reconnect => true</tt> if you want to establish a new connection
+    #   to the server before running the worker loop.  This means you get a separate
+    #   agent run and RPM sees it as a separate instance (default is false).  
+    # * <tt>:check_for_spawner => false</tt> to omit the check to see if we are
+    #   an application spawner.  We detect the spawner and stop the agent so we don't
+    #   report stats from a spawner.  You don't want to do this check if you _know_
+    #   you are not in a spawner (default is true).
     
-    def connect(keep_retrying = true)
+    def connect(options)
+      return if @connected && !options[:force_reconnect]      
+      keep_retrying = options[:keep_retrying].nil? || options[:keep_retrying]
+      check_for_spawner = options[:check_for_spawner].nil? || options[:check_for_spawner]
       
       # wait a few seconds for the web server to boot, necessary in development
       connect_retry_period = keep_retrying ? 10 : 0
@@ -337,7 +364,7 @@ module NewRelic
       begin
         sleep connect_retry_period.to_i
         # Running in the Passenger or Unicorn spawners?
-        if $0 =~ /ApplicationSpawner|^unicorn\S* master/
+        if check_for_spawner && $0 =~ /ApplicationSpawner|^unicorn\S* master/
           log.debug "Process is master spawner (#$0) -- don't connect to RPM service"
           @connected = nil
           return 
