@@ -28,7 +28,7 @@ class EpisodesTest < Test::Unit::TestCase
   def test_process
     
     args = "ets=backend:2807,onload:7641,frontend:4835,pageready:7642,totaltime:7642&" +
-           "url=/v2&"+
+           "url=/bogosity/bogus_action&"+
            "userAgent=#{CGI::escape("Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.6; en-US; rv:1.9.2.2) Gecko/20100316 Firefox/3.6.2")}"
     v = @e.call(mock_env("/newrelic/episodes/page_load?#{args}"))
     assert_equal 3, v.size
@@ -39,16 +39,16 @@ class EpisodesTest < Test::Unit::TestCase
       'Client/backend',
       'Client/onload',
       'Client/pageready',
-      'Client/totaltime/Mac Firefox 3.6',
-      'Client/frontend/Mac Firefox 3.6',
-      'Client/backend/Mac Firefox 3.6',
-      'Client/onload/Mac Firefox 3.6',
-      'Client/pageready/Mac Firefox 3.6'
+      'Client/totaltime/Mac/Firefox/3.6',
+      'Client/frontend/Mac/Firefox/3.6',
+      'Client/backend/Mac/Firefox/3.6',
+      'Client/onload/Mac/Firefox/3.6',
+      'Client/pageready/Mac/Firefox/3.6'
       ], @agent.stats_engine.metrics.grep(/^Client/)
     totaltime = @agent.stats_engine.get_stats_no_scope('Client/totaltime')
     assert_equal 1, totaltime.call_count
     assert_equal 7.642, totaltime.average_call_time
-    totaltime = @agent.stats_engine.get_stats_no_scope('Client/totaltime/Mac Firefox 3.6')
+    totaltime = @agent.stats_engine.get_stats_no_scope('Client/totaltime/Mac/Firefox/3.6')
     assert_equal 1, totaltime.call_count
     assert_equal 7.642, totaltime.average_call_time
   end
