@@ -13,7 +13,7 @@ module NewRelic
         #        puts "      '#{'%-28s'%k}' => '#{v}'"
         #        end
         path = env["REQUEST_PATH"].to_s.squeeze("/")
-        NewRelic::Agent.logger.info "Path = '#{path}'"
+        NewRelic::Agent.logger.debug "Episodes middleware sees '#{path}'"
         if path.index(BEACON_URL) == 0
           @request = ::Rack::Request.new(env)
           @response = ::Rack::Response.new([],204)
@@ -29,20 +29,25 @@ module NewRelic
         measures = @request['ets'].split(',').map { |str| str.split(':') }
         url = @request['url']
         user_agent = @request['userAgent']
-        if false and defined?(::ActionController::Routing::Routes)
-          params = ::ActionController::Routing::Routes.recognize_path(url) rescue {}
+        if defined?(::ActionController::Routing::Routes)
+          routes = ::ActionController::Routing::Routes
+          params = routes.recognize_path(url, :method => :get) rescue {}
           controller, action = params.values_at :controller, :action
+          scope_name = "Controller/#{controller}/#{action}" if controller && action
         end
         
-        NewRelic::Agent.logger.debug "Capturing measures from #{url} (#{controller}##{action}):\n   #{measures.inspect}"
+        NewRelic::Agent.logger.debug "Capturing measures from #{url} (#{scope_name}):\n   #{measures.inspect}"
         measures.each do | name, value |
           metric_name = "Client/#{name}"
-          NewRelic::Agent.instance.stats_engine.get_stats_no_scope(metric_name).record_data_point(value.to_f / 1000.0)
+          seconds_value = value.to_f / 1000.0
+          # We capture summary metrics for all controllers
+          NewRelic::Agent.instance.stats_engine.get_stats_no_scope(metric_name).record_data_point(seconds_value)
           
+          # We capture summary metrics for browser/os dimensions blamed to the controllers.
           if user_agent
             browser, version, os = identify_browser_and_os(user_agent)
-            browser_metric_name = "Client/#{name}/#{os} #{browser} #{version}"
-            NewRelic::Agent.instance.stats_engine.get_stats_no_scope(browser_metric_name).record_data_point(value.to_f / 1000.0)
+            browser_metric_name = "Client/#{name}/#{os}/#{browser}/#{version}"
+            NewRelic::Agent.instance.stats_engine.get_stats(browser_metric_name, true, false, scope_name).record_data_point(seconds_value)
           end
         end
         @response.finish

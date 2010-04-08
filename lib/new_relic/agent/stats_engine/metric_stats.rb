@@ -24,15 +24,15 @@ module Agent
       
       # If use_scope is true, two chained metrics are created, one with scope and one without
       # If scoped_metric_only is true, only a scoped metric is created (used by rendering metrics which by definition are per controller only)
-      def get_stats(metric_name, use_scope = true, scoped_metric_only = false)
-        
+      def get_stats(metric_name, use_scope = true, scoped_metric_only = false, scope = nil)
+        scope ||= scope_name if use_scope
         if scoped_metric_only
-          spec = NewRelic::MetricSpec.new metric_name, scope_name
+          spec = NewRelic::MetricSpec.new metric_name, scope
           stats = stats_hash[spec] ||= NewRelic::MethodTraceStats.new 
         else  
           stats = stats_hash[metric_name] ||= NewRelic::MethodTraceStats.new 
-          if use_scope && scope_name && scope_name != metric_name 
-            spec = NewRelic::MetricSpec.new metric_name, scope_name
+          if scope && scope != metric_name 
+            spec = NewRelic::MetricSpec.new metric_name, scope
             scoped_stats = stats_hash[spec] ||= NewRelic::ScopedMethodTraceStats.new(stats) 
             stats = scoped_stats
           end
