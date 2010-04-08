@@ -46,7 +46,7 @@ class NewRelic::DeveloperMode
       explain_sql
     when /show_source/
       show_source
-    when /^\/newrelic/
+    when /^\/newrelic$/
       index
     else
       @app.call(env)
