@@ -15,11 +15,22 @@ module NewRelic::Agent::Instrumentation
     # as a Rack::Request or an ActionController::AbstractRequest.
     attr_accessor :request
     
+    
+    @@check_server_connection = false
+    def self.check_server_connection=(value)
+      @@check_server_connection = value
+    end
     # Return the currently active metric frame, or nil.  Call with +true+
     # to create a new metric frame if one is not already on the thread.
     def self.current(create_if_empty=nil)
       f = Thread.current[:newrelic_metric_frame]
       return f if f || !create_if_empty
+      
+      # Reconnect to the server if necessary.  This is only done
+      # for old versions of passenger that don't implement an explicit after_fork
+      # event.
+      NewRelic::Agent.instance.after_fork(:keep_retrying => false) if @@check_server_connection
+      
       Thread.current[:newrelic_metric_frame] = new
     end
     
