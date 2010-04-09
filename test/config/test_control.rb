@@ -1,6 +1,6 @@
-require 'new_relic/control/rails'
+require 'new_relic/control/frameworks/rails'
 
-class NewRelic::Control::Test < NewRelic::Control::Rails #:nodoc:
+class NewRelic::Control::Frameworks::Test < NewRelic::Control::Frameworks::Rails #:nodoc:
   def env
     'test'
   end
@@ -18,6 +18,7 @@ class NewRelic::Control::Test < NewRelic::Control::Rails #:nodoc:
   def log!(msg, level=:info)
     log.send level, msg if log
   end
+
 
   # Add the default route in case it's missing.  Need it for testing.
   def install_devmode_route

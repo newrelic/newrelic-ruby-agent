@@ -3,7 +3,7 @@
 # including ./, ./config, $HOME/.newrelic and $HOME/.
 # It loads the settings from the newrelic.yml section
 # based on the value of RUBY_ENV or RAILS_ENV. 
-class NewRelic::Control::Ruby < NewRelic::Control
+class NewRelic::Control::Frameworks::Ruby < NewRelic::Control
   
   def env
     @env ||= ENV['RUBY_ENV'] || ENV['RAILS_ENV'] || ENV['RACK_ENV'] || 'development'

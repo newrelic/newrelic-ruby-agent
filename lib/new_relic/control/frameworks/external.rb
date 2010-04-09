@@ -2,9 +2,9 @@
 # The New Relic Infrastructure Agent.  We want to call this
 # out specifically because in this context we are not monitoring
 # the running process, but actually external things.
-require 'new_relic/control/ruby'
+require 'new_relic/control/frameworks/ruby'
 
-class NewRelic::Control::External < NewRelic::Control::Ruby
+class NewRelic::Control::Frameworks::External < NewRelic::Control::Frameworks::Ruby
 
   def init_config(options={})
     super

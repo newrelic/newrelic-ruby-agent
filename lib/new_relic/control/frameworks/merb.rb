@@ -1,4 +1,4 @@
-class NewRelic::Control::Merb < NewRelic::Control
+class NewRelic::Control::Frameworks::Merb < NewRelic::Control
   
   def env
     @env ||= ::Merb.env

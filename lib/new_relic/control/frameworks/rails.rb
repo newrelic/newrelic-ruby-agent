@@ -1,8 +1,8 @@
 # Control subclass instantiated when Rails is detected.  Contains
 # Rails specific configuration, instrumentation, environment values, 
 # etc.
-class NewRelic::Control::Rails < NewRelic::Control
-  
+class NewRelic::Control::Frameworks::Rails < NewRelic::Control
+
   def env
     @env ||= RAILS_ENV.dup
   end
@@ -107,7 +107,7 @@ class NewRelic::Control::Rails < NewRelic::Control
       end
     end
   end
-  
+
   def install_shim
     super
     require 'new_relic/agent/instrumentation/controller_instrumentation'
