@@ -16,5 +16,11 @@ if defined?(PhusionPassenger)
       # We're in conservative spawning mode. We don't need to do anything.
     end
   end
+
+elsif (defined?(::Passenger) && defined?(::Passenger::AbstractServer)) || defined?(::IN_PHUSION_PASSENGER) 
+  # We're on an older version of passenger
+  NewRelic::Agent.logger.warn "An older version of Phusion Passenger has been detected.  We recommend using at least release 2.1.1."
+
+  NewRelic::Agent::Instrumentation::MetricFrame.check_server_connection = true
   
 end 
