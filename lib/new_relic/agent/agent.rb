@@ -382,6 +382,9 @@ module NewRelic
             else
               log.debug "Connecting Process to RPM: #$0"
             end
+            host = invoke_remote(:get_redirect_host)
+            @collector = control.server_from_host(host) if host
+            
             environment = control['send_environment_info'] != false ? control.local_env.snapshot : []
             log.debug "Connecting with validation seed/token: #{control.validate_seed}/#{control.validate_token}" if control.validate_seed
             @agent_id ||= invoke_remote :start, @local_host, {
@@ -393,9 +396,7 @@ module NewRelic
               :validate_seed => control.validate_seed,
               :validate_token => control.validate_token }
 
-            host = invoke_remote(:get_redirect_host)
 
-            @collector = control.server_from_host(host) if host
 
             @report_period = invoke_remote :get_data_report_period, @agent_id
 
