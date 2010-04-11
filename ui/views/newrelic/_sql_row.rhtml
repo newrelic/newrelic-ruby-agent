@@ -5,7 +5,12 @@
     <td> <%= link_to_source(segment[:backtrace]) %> </td>
 	<td align=left>
 		<div class="sql_statement">
-			<small><%= line_wrap_sql(segment[:sql] || segment[:sql_obfuscated]) %></small>
+                  <small>
+                    <% if segment[:sql] || segment[:sql_obfuscated] %>
+                      <%= line_wrap_sql(segment[:sql] || segment[:sql_obfuscated]) %>
+                    <% else %>
+                      Non-sql query: <%= segment.metric_name %> <%= line_wrap_sql(segment[:key]) %>
+                   <% end %></small>
 		</div>
 	</td>
 </tr>
