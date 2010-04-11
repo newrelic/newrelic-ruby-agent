@@ -257,6 +257,8 @@ module NewRelic
                 at_exit { at_exit { shutdown } }
               end
             end
+          else
+            control.log! "Agent configured not to send data in this environment - edit newrelic.yml to change this"
           end
           control.log! "New Relic RPM Agent #{NewRelic::VERSION::STRING} Initialized: pid = #$$"
           control.log! "Agent Log found in #{NewRelic::Control.instance.log_file}" if NewRelic::Control.instance.log_file
