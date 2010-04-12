@@ -1,5 +1,6 @@
 v2.12.0
   * Developer mode is now a rack middleware and can be used on any framework
+  * Support basic instrumentation for ActsAsSolr and Sunspot
 
 v2.11.2
   * memcache key recording for transaction traces (experimental)
