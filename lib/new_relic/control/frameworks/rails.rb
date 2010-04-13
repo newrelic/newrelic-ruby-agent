@@ -54,6 +54,8 @@ class NewRelic::Control::Frameworks::Rails < NewRelic::Control
       rescue Exception => e
         to_stdout "Error installing New Relic Developer Mode: #{e.inspect}"
       end
+    else
+      to_stdout "Developer mode not available for Rails versions prior to 2.2"
     end
   end
   
