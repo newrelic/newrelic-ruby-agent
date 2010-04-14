@@ -13,7 +13,7 @@ class NewRelic::Agent::ShimAgent < NewRelic::Agent::Agent
     @transaction_sampler.extend NewRelic::Agent::TransactionSampler::Shim
     @error_collector.extend NewRelic::Agent::ErrorCollector::Shim
   end
-  def after_fork; end
+  def after_fork *args; end
   def start *args; end
   def shutdown; end
   def push_trace_execution_flag(*args); end
