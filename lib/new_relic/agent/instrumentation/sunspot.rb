@@ -1,8 +1,16 @@
 if defined?(Sunspot)
   module Sunspot
     class << self
-    %w(index index! commit search more_like_this remove remove! remove_by_id remove_by_id! remove_all remove_all! batch).each do |method|
-        add_method_tracer method, "Solr/Sunspot/#{method}"
+      %w(index index!).each do |method|
+        add_method_tracer method, 'SolrClient/Sunspot/index'
+      end
+      add_method_tracer :commit, 'SolrClient/Sunspot/commit'
+
+      %[search more_like_this].each do |method|
+        add_method_tracer method, 'SolrClient/Sunspot/query'
+      end
+      %w[remove remove! remove_by_id remove_by_id! remove_all remove_all!].each do |method|
+        add_method_tracer method, 'SolrClient/Sunspot/delete'
       end
     end
   end

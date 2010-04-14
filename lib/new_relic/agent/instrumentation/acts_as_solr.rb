@@ -5,7 +5,7 @@ if defined?(ActsAsSolr)
       module ActsAsSolrInstrumentation
         module ParserMethodsInstrumentation
           def parse_query_with_newrelic(*args)
-            self.class.trace_execution_scoped(["Solr/ActsAsSolr/query"]) do
+            self.class.trace_execution_scoped(["SolrClient/ActsAsSolr/query"]) do
               t0 = Time.now.to_f
               begin
                 parse_query_without_newrelic(*args)
@@ -28,7 +28,17 @@ if defined?(ActsAsSolr)
     end
 
     module ClassMethods
-      add_method_tracer :find_by_solr, 'Solr/ActsAsSolr/find_by_solr'
+      %w[find_by_solr find_id_by_solr multi_solr_search count_by_solr].each do |method|
+        add_method_tracer method, 'SolrClient/ActsAsSolr/query'
+      end
+      add_method_tracer :rebuild_solr_index, 'SolrClient/ActsAsSolr/index'
+    end
+
+    module CommonMethods
+      add_method_tracer :solr_add, 'SolrClient/ActsAsSolr/add'
+      add_method_tracer :solr_delete, 'SolrClient/ActsAsSolr/delete'
+      add_method_tracer :solr_commit, 'SolrClient/ActsAsSolr/commit'
+      add_method_tracer :solr_optimize, 'SolrClient/ActsAsSolr/optimize'
     end
   end
 end
