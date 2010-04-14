@@ -45,6 +45,9 @@ module Agent
       
       # Add a sampler to be invoked just before each harvest.
       def add_harvest_sampler sampler
+        harvest_samplers.each do |s|
+          raise "Sampler #{sampler.id} is already registered.  Don't call add_sampler directly anymore." if s.id == sampler.id
+        end
         harvest_samplers << sampler
         sampler.stats_engine = self
         log.debug "Adding harvest time sampler: #{sampler.id.to_s}"
@@ -69,10 +72,10 @@ module Agent
       end
       
       def harvest_samplers
-        @harvest_samplers ||= Set.new
+        @harvest_samplers ||= []
       end
       def periodic_samplers
-        @periodic_samplers ||= Set.new
+        @periodic_samplers ||= []
       end
     end
   end
