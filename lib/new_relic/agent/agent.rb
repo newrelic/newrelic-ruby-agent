@@ -44,16 +44,12 @@ module NewRelic
         @obfuscator = method(:default_sql_obfuscator)
       end
 
-
-
-
       module ClassMethods
         # Should only be called by NewRelic::Control
         def instance
           @instance ||= self.new
         end
       end
-
 
       module InstanceMethods
 
@@ -74,6 +70,8 @@ module NewRelic
         # It assumes the parent process initialized the agent, but does
         # not assume the agent started.
         #
+        # The call is idempotent, but not re-entrant.
+        # 
         # * It clears any metrics carried over from the parent process
         # * Restarts the sampler thread if necessary
         # * Initiates a new agent run and worker loop unless that was done
@@ -93,7 +91,7 @@ module NewRelic
           # connecting.  @connected has nil if we haven't finished trying to connect.
           # or we didn't attempt a connection because this is the master process
 
-          log.debug "Agent received after_fork notice in #$$: [#{control.agent_enabled?}; monitor=#{control.monitor_mode?}; connected: #{@connected.inspect}; thread=#{@worker_thread.inspect}]"
+          # log.debug "Agent received after_fork notice in #$$: [#{control.agent_enabled?}; monitor=#{control.monitor_mode?}; connected: #{@connected.inspect}; thread=#{@worker_thread.inspect}]"
           return if !control.agent_enabled? or
             !control.monitor_mode? or
             @connected == false or
@@ -113,6 +111,12 @@ module NewRelic
         # True if we have initialized and completed 'start'
         def started?
           @started
+        end
+        
+        # Return nil if not yet connected, true if successfully started
+        # and false if we failed to start.
+        def connected?
+          @connected
         end
 
         # Attempt a graceful shutdown of the agent.
