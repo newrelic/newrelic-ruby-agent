@@ -67,7 +67,10 @@ module NewRelic
         end
       rescue Timeout::Error, NewRelic::Agent::ServerConnectionException
         # Want to ignore these because they are handled already
-      rescue ScriptError, StandardError => e 
+      rescue SystemExit, NoMemoryError, SignalException
+        raise
+      rescue Exception => e
+        # Don't blow out the stack for anything that hasn't already propagated
         log.error "Error running task in Agent Worker Loop '#{e}': #{e.backtrace.first}" 
         log.debug e.backtrace.join("\n")
       ensure
