@@ -3,6 +3,8 @@ require 'new_relic/version'
 require 'erb'
 
 class NewRelic::Command::Install < NewRelic::Command
+
+  NO_LICENSE_KEY = "<PASTE LICENSE KEY HERE>"
   
   def self.command; "install"; end 
   
@@ -14,7 +16,7 @@ class NewRelic::Command::Install < NewRelic::Command
   #
   # Will throw CommandFailed exception if there's any error.
   # 
-  attr_reader :dest_dir, :license_key, :generated_for_user, :quiet, :src_file
+  attr_reader :dest_dir, :license_key, :generated_for_user, :quiet, :src_file, :app_name
   def initialize command_line_args={}
     super command_line_args
     if !@dest_dir
@@ -25,7 +27,9 @@ class NewRelic::Command::Install < NewRelic::Command
         @dest_dir = "."
       end
     end
-    @license_key ||= '<PASTE LICENSE KEY HERE>'
+    @license_key ||= NO_LICENSE_KEY
+    @app_name ||= @leftover
+    raise CommandFailure.new("Application name required.", @options) unless @app_name && @app_name.size > 0
     @generated_for_user ||= @user_string || "Generated on #{Time.now.strftime('%b %d, %Y')}, from version #{NewRelic::VERSION::STRING}"
   end
   
@@ -40,12 +44,14 @@ class NewRelic::Command::Install < NewRelic::Command
 
 Installed a default configuration file at 
 #{dest_file}.
+    EOF
+    puts <<-EOF unless quiet || @license_key != NO_LICENSE_KEY 
 
 To monitor your application in production mode, sign up for an account
 at www.newrelic.com, and replace the newrelic.yml file with the one
 you receive upon registration.
-
-Please review the README.md file for more information.
+    EOF
+    puts <<-EOF unless quiet
 
 E-mail support@newrelic.com with any problems or questions.
 
@@ -62,7 +68,7 @@ E-mail support@newrelic.com with any problems or questions.
   private
   
   def options
-    OptionParser.new "Usage: #{$0} #{self.class.command} [ OPTIONS]", 40 do |o|
+    OptionParser.new "Usage: #{$0} #{self.class.command} [ OPTIONS] 'application name'", 40 do |o|
       o.on("-l", "--license_key=NAME", String,
              "Use the given license key") { | e | @license_key = e }
       o.on("-d", "--destdir=name", String,

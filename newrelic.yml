@@ -31,7 +31,7 @@ common: &default_settings
   # "All UI" then specify a semicolon separated list of up to three
   # distinct names.  If you comment this out, it defaults to the 
   # capitalized RAILS_ENV (i.e., Production, Staging, etc)
-  app_name: My Application
+  app_name: <%= @app_name %>
 
   # When "true", the agent collects performance data about your 
   # application and reports this data to the NewRelic RPM service at 
@@ -237,4 +237,4 @@ production:
 staging:
   <<: *default_settings
   monitor_mode: true
-  app_name: My Application (Staging)
+  app_name: <%= @app_name %> (Staging)
