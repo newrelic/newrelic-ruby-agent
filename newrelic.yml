@@ -50,8 +50,8 @@ common: &default_settings
 
   # If you wish to override the location of the log file, you can
   # uncomment this
-  # log_file_path: /var/log
-  # log_file_name: newrelic_agent.log
+  #log_file_path: ./log
+  #log_file_name: newrelic_agent.log
   
   # The newrelic agent communicates with the RPM service via http by
   # default.  If you want to communicate via https to increase
