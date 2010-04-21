@@ -44,7 +44,7 @@ module Agent
     end
     
     def notice_first_scope_push(time)
-      start_builder(time) unless disabled
+      start_builder(time.to_f) unless disabled
     end
     
     def notice_push_scope(scope, time=Time.now.to_f)
@@ -125,6 +125,7 @@ module Agent
     end
     
     MAX_DATA_LENGTH = 16384
+    # duration is seconds, float value.
     def notice_extra_data(message, duration, key, config=nil, config_key=nil)
       return unless builder
       segment = builder.current_segment
@@ -146,6 +147,7 @@ module Agent
     # some statements (particularly INSERTS with large BLOBS
     # may be very large; we should trim them to a maximum usable length
     # config is the driver configuration for the connection
+    # duration is seconds, float value.
     MAX_SQL_LENGTH = 16384
     def notice_sql(sql, config, duration)
       if Thread::current[:record_sql] != false
@@ -153,6 +155,7 @@ module Agent
       end
     end
 
+    # duration is seconds, float value.
     def notice_nosql(key, duration)
       notice_extra_data(key, duration, :key)
     end

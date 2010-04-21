@@ -12,7 +12,7 @@ unless NewRelic::Control.instance['disable_memcache_instrumentation']
           metrics = ["MemCache/#{method_name}", 
                      (NewRelic::Agent::Instrumentation::MetricFrame.recording_web_transaction? ? 'MemCache/allWeb' : 'MemCache/allOther')]
           self.class.trace_execution_scoped(metrics) do
-            t0 = Time.now.to_f
+            t0 = Time.now
             begin
               #{method_name}_without_newrelic_trace(*args)
             ensure
@@ -27,7 +27,7 @@ unless NewRelic::Control.instance['disable_memcache_instrumentation']
 
       def self.memcache_key_snippet(method_name)
         return "" unless NewRelic::Control.instance['capture_memcache_keys']        
-        "NewRelic::Agent.instance.transaction_sampler.notice_nosql(args.first.inspect, Time.now.to_f - t0) rescue nil"
+        "NewRelic::Agent.instance.transaction_sampler.notice_nosql(args.first.inspect, (Time.now - t0).to_f) rescue nil"
       end
       
     

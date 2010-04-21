@@ -1,7 +1,8 @@
 v2.12.0
-  * Developer mode is now a rack middleware and can be used on any framework
-    It is no longer supported on versions of Rails prior to 2.2.
-  * Support basic instrumentation for ActsAsSolr and Sunspot
+  * developer mode is now a rack middleware and can be used on any framework;
+    it is no longer supported on versions of Rails prior to 2.2.
+  * support basic instrumentation for ActsAsSolr and Sunspot
+  * optimization to execution time measurement
 
 v2.11.2
   * memcache key recording for transaction traces (experimental)

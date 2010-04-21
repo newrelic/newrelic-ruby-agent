@@ -50,7 +50,7 @@ if defined? DataMapper
       t0 = Time.now
       result = log_without_newrelic_instrumentation(sql, name, &block)
       
-      NewRelic::Agent.instance.transaction_sampler.notice_sql(sql, config, Time.now - t0)
+      NewRelic::Agent.instance.transaction_sampler.notice_sql(sql, config, (Time.now - t0).to_f)
       
       result
     end

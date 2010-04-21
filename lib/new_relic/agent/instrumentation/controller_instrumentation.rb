@@ -373,6 +373,9 @@ module NewRelic
       end
     end
     
+    # Return a Time instance representing the upstream start time.
+    # now is a Time instance to fall back on if no other candidate
+    # for the start time is found.
     def _detect_upstream_wait(now)
       if newrelic_request_headers
         if entry_time = newrelic_request_headers['HTTP_X_REQUEST_START']
@@ -389,11 +392,11 @@ module NewRelic
       if http_entry_time
         queue_stat = NewRelic::Agent.agent.stats_engine.get_stats_no_scope 'WebFrontend/Mongrel/Average Queue Time'
         total_time = (now - http_entry_time)
-        queue_stat.trace_call(total_time) unless total_time < 0 # using remote timestamps could lead to negative queue time
+        queue_stat.trace_call(total_time.to_f) unless total_time.to_f <= 0.0 # using remote timestamps could lead to negative queue time
       end
-      http_entry_time || now
+      return http_entry_time ? Time.at(http_entry_time) : now 
     end
-
+    
     def _dispatch_stat
       NewRelic::Agent.agent.stats_engine.get_stats_no_scope 'HttpDispatcher'  
     end

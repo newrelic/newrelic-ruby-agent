@@ -6,9 +6,13 @@
 #
 module NewRelic::Agent::Instrumentation
   class MetricFrame 
-    attr_accessor :start, :apdex_start, :exception, 
-                :filtered_params, :force_flag, 
-                :jruby_cpu_start, :process_cpu_start, :database_metric_name
+    attr_accessor :start       # A Time instance for the start time, never nil 
+    attr_accessor :apdex_start # A Time instance used for calculating the apdex score, which
+                               # might end up being @start, or it might be further upstream if
+                               # we can find a request header for the queue entry time
+    attr_accessor :exception, 
+                  :filtered_params, :force_flag, 
+                  :jruby_cpu_start, :process_cpu_start, :database_metric_name
           
     # Give the current metric frame a request context.  Use this to 
     # get the URI and referer.  The request is interpreted loosely
@@ -59,7 +63,7 @@ module NewRelic::Agent::Instrumentation
     attr_reader :depth
     
     def initialize
-      @start = Time.now.to_f
+      @start = Time.now
       @path_stack = [] # stack of [controller, path] elements
       @jruby_cpu_start = jruby_cpu_time
       @process_cpu_start = process_cpu
@@ -127,7 +131,7 @@ module NewRelic::Agent::Instrumentation
             NewRelic::Agent.get_stats_no_scope(NewRelic::Metrics::USER_TIME).record_data_point(cpu_burn)
           end
           NewRelic::Agent.instance.transaction_sampler.notice_transaction_cpu_time(cpu_burn) if cpu_burn
-          NewRelic::Agent.instance.histogram.process(Time.now.to_f - start) if recording_web_transaction?(category)
+          NewRelic::Agent.instance.histogram.process((Time.now - start).to_f) if recording_web_transaction?(category)
           NewRelic::Agent.instance.transaction_sampler.notice_scope_empty      
         end      
         NewRelic::Agent.instance.stats_engine.end_transaction
@@ -186,7 +190,7 @@ module NewRelic::Agent::Instrumentation
     
     def record_apdex
       return unless recording_web_transaction? && NewRelic::Agent.is_execution_traced?
-      ending = Time.now.to_f
+      ending = Time.now
       summary_stat = NewRelic::Agent.instance.stats_engine.get_custom_stats("Apdex", NewRelic::ApdexStats)
       controller_stat = NewRelic::Agent.instance.stats_engine.get_custom_stats("Apdex/#{path}", NewRelic::ApdexStats)
       self.class.update_apdex(summary_stat, ending - apdex_start, exception)
@@ -275,6 +279,7 @@ module NewRelic::Agent::Instrumentation
     # Record an apdex value for the given stat.  non-nil 'failed'
     # the apdex should be recorded as a failure regardless of duration.
     def self.update_apdex(stat, duration, failed)
+      duration = duration.to_f
       apdex_t = NewRelic::Control.instance.apdex_t
       case
       when failed

@@ -60,11 +60,11 @@ if defined?(ActiveRecord) && defined?(ActiveRecord::Base) && !NewRelic::Control.
               metrics = [metric, "ActiveRecord/all"]
               metrics << "ActiveRecord/#{metric_name}" if metric_name
               self.class.trace_execution_scoped(metrics) do
-                t0 = Time.now.to_f
+                t0 = Time.now
                 begin
                   log_without_newrelic_instrumentation(sql, name, &block) 
                 ensure
-                  NewRelic::Agent.instance.transaction_sampler.notice_sql(sql, supported_config, Time.now.to_f - t0) 
+                  NewRelic::Agent.instance.transaction_sampler.notice_sql(sql, supported_config, (Time.now - t0).to_f) 
                 end
               end
             end

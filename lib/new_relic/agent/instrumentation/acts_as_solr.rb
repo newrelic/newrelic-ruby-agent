@@ -6,11 +6,11 @@ if defined?(ActsAsSolr)
         module ParserMethodsInstrumentation
           def parse_query_with_newrelic(*args)
             self.class.trace_execution_scoped(["SolrClient/ActsAsSolr/query"]) do
-              t0 = Time.now.to_f
+              t0 = Time.now
               begin
                 parse_query_without_newrelic(*args)
               ensure
-                NewRelic::Agent.instance.transaction_sampler.notice_nosql(args.first.inspect, Time.now.to_f - t0) rescue nil
+                NewRelic::Agent.instance.transaction_sampler.notice_nosql(args.first.inspect, (Time.now - t0).to_f) rescue nil
               end
             end
             

@@ -24,7 +24,7 @@ module NewRelic
     end
   end
   
-  def dispatcher_finish(end_time = Time.now.to_f)
+  def dispatcher_finish(end_time = Time.now)
     callers = Thread.current[:busy_entries] -= 1
     # Ignore nested calls
     return if callers > 0
@@ -32,7 +32,7 @@ module NewRelic
       if @entrypoint_stack.empty?
         NewRelic::Agent.logger.error("Stack underflow tracking dispatcher entry and exit!\n  #{caller.join("  \n")}") 
       else
-        @accumulator += (end_time - @entrypoint_stack.pop)
+        @accumulator += (end_time - @entrypoint_stack.pop).to_f
       end
     end
   end
@@ -48,7 +48,7 @@ module NewRelic
     Thread.current[:busy_entries] = 0
     @lock ||= Mutex.new
     @accumulator = 0
-    @harvest_start = Time.now.to_f
+    @harvest_start = Time.now
   end
   
   self.reset
@@ -56,7 +56,7 @@ module NewRelic
   # Called before uploading to to the server to collect current busy stats.
   def harvest_busy
     busy = 0
-    t0 = Time.now.to_f
+    t0 = Time.now
     @lock.synchronize do
       busy = accumulator
       @accumulator = 0
@@ -64,7 +64,7 @@ module NewRelic
       # Walk through the stack and capture all times up to 
       # now for entrypoints
       @entrypoint_stack.size.times do |frame| 
-        busy += (t0 - @entrypoint_stack[frame])
+        busy += (t0 - @entrypoint_stack[frame]).to_f
         @entrypoint_stack[frame] = t0
       end
       
@@ -72,7 +72,7 @@ module NewRelic
     
     busy = 0.0 if busy < 0.0 # don't go below 0%
     
-    time_window = (t0 - harvest_start)
+    time_window = (t0 - harvest_start).to_f
     time_window = 1.0 if time_window == 0.0  # protect against divide by zero
     
     busy = busy / time_window
