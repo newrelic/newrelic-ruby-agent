@@ -46,7 +46,6 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
       raise "Standard Error Test"
     end
     assert stop
-    puts @log
   end
 
   def test_task_error__server
