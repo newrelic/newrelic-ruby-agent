@@ -1,7 +1,5 @@
 v2.11.2
   * fix for unicorn not reporting when the proc line had 'master' in it
-  * allow overriding the log file directory via 'log_file_path' in newrelic.yml
-  * allow overriding the log name via 'log_file_name' in newrelic.yml
   * fix regression for passenger 2.0 and earlier
   * fix after_fork in the shim
 
