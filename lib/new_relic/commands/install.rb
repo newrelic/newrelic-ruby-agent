@@ -30,7 +30,7 @@ class NewRelic::Command::Install < NewRelic::Command
     @license_key ||= NO_LICENSE_KEY
     @app_name ||= @leftover
     raise CommandFailure.new("Application name required.", @options) unless @app_name && @app_name.size > 0
-    @generated_for_user ||= @user_string || "Generated on #{Time.now.strftime('%b %d, %Y')}, from version #{NewRelic::VERSION::STRING}"
+    @generated_for_user ||= @user_string || ""
   end
   
   def run

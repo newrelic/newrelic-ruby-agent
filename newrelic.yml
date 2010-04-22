@@ -3,13 +3,16 @@
 # Rails applications with deep visibility and low overhead.  For more
 # information, visit www.newrelic.com.
 #
-# <%= generated_for_user %>
+# Generated <%= Time.now.strftime('%b %d, %Y') %>, for version <%= NewRelic::VERSION::STRING %>
 #
-# here are the settings that are common to all environments
+# <%= generated_for_user %>
+
+
+# Here are the settings that are common to all environments
 common: &default_settings
   # ============================== LICENSE KEY ===============================
 
-  # You must specify the licence key associated with your New Relic
+  # You must specify the license key associated with your New Relic
   # account.  This key binds your Agent's data to your account in the
   # New Relic RPM service.
   license_key: '<%= license_key %>'
@@ -198,7 +201,7 @@ common: &default_settings
 # the environment
 
 # NOTE if your application has other named environments, you should
-# provide newrelic conifguration settings for these enviromnents here.
+# provide newrelic configuration settings for these environments here.
 
 development:
   <<: *default_settings
@@ -227,7 +230,7 @@ test:
 # Turn on the agent in production for 24x7 monitoring.  NewRelic
 # testing shows an average performance impact of < 5 ms per
 # transaction, you you can leave this on all the time without
-# incurring any user-visible performance degredation.
+# incurring any user-visible performance degradation.
 production:
   <<: *default_settings
   monitor_mode: true
