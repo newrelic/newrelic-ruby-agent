@@ -47,8 +47,15 @@ module NewRelic
       def new_instance
         @local_env = NewRelic::LocalEnvironment.new
         if @local_env.framework == :test
-          require File.join(newrelic_root, "test", "config", "test_control.rb")
-          NewRelic::Control::Frameworks::Test.new @local_env
+          # You can set this env var if you want to run the tests
+          # without Rails.
+          if ENV['SKIP_RAILS']
+            require "new_relic/control/frameworks/ruby.rb"
+            NewRelic::Control::Frameworks::Ruby.new @local_env
+          else
+            require File.join(newrelic_root, "test", "config", "test_control.rb")
+            NewRelic::Control::Frameworks::Test.new @local_env
+          end
         else
           begin
             require "new_relic/control/frameworks/#{@local_env.framework}.rb"
