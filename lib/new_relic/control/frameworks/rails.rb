@@ -27,12 +27,12 @@ class NewRelic::Control::Frameworks::Rails < NewRelic::Control
     else
       ::RAILS_DEFAULT_LOGGER.info "Starting the New Relic Agent."
       install_developer_mode rails_config if developer_mode?
-      install_episodes rails_config if episodes_enabled?
+      install_episodes rails_config
     end
   end
   
   def install_episodes(config)
-    return if config.nil? || !config.respond_to?(:middleware)
+    return if config.nil? || !config.respond_to?(:middleware) || !defined?(NewRelic::Rack::Episodes) || !episodes_enabled?
     config.middleware.use NewRelic::Rack::Episodes
     RAILS_DEFAULT_LOGGER.info "Installed episodes middleware"
   end

@@ -1,3 +1,5 @@
+# Run faster standalone
+# ENV['SKIP_RAILS'] = 'true'
 require File.expand_path(File.join(File.dirname(__FILE__),'..', '..', 'test_helper'))
 require 'rack'
 
@@ -5,7 +7,9 @@ class EpisodesTest < Test::Unit::TestCase
   
   def setup
     super
-    @app = mock()
+    
+    @app = Mocha::Mockery.instance.named_mock 'Episodes'
+    #@app = mock('Episodes')
     @e = NewRelic::Rack::Episodes.new(@app)
     NewRelic::Agent.manual_start
     @agent = NewRelic::Agent.instance
@@ -29,7 +33,7 @@ class EpisodesTest < Test::Unit::TestCase
     
     args = "ets=backend:2807,onload:7641,frontend:4835,pageready:7642,totaltime:7642&" +
            "url=/bogosity/bogus_action&"+
-           "userAgent=#{CGI::escape("Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.6; en-US; rv:1.9.2.2) Gecko/20100316 Firefox/3.6.2")}"
+           "userAgent=#{Rack::Utils.escape("Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.6; en-US; rv:1.9.2.2) Gecko/20100316 Firefox/3.6.2")}"
     v = @e.call(mock_env("/newrelic/episodes/page_load?#{args}"))
     assert_equal 3, v.size
     assert_equal 204, v[0]
@@ -310,4 +314,4 @@ class EpisodesTest < Test::Unit::TestCase
   def mock_routes
     ActionController::Routing::Routes.nil;
   end
-end
+end if defined? NewRelic::Rack::Episodes
