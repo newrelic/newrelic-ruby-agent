@@ -2,7 +2,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 ##require 'new_relic/agent/agent'
 ##require 'new_relic/local_environment'
 
-class RpmAgentTest < ActiveSupport::TestCase
+class RpmAgentTest < Test::Unit::TestCase # ActiveSupport::TestCase
   
   attr_reader :agent
   

@@ -1,16 +1,27 @@
 module NewRelic; TEST = true; end unless defined? NewRelic::TEST
-#ENV['NEWRELIC_ENABLE'] = 'true'
 ENV['RAILS_ENV'] = 'test'
 NEWRELIC_PLUGIN_DIR = File.expand_path(File.join(File.dirname(__FILE__),".."))
 $LOAD_PATH << File.join(NEWRELIC_PLUGIN_DIR,"test")
 $LOAD_PATH << File.join(NEWRELIC_PLUGIN_DIR,"ui/helpers")
 $LOAD_PATH.uniq!
 
-require File.expand_path(File.join(NEWRELIC_PLUGIN_DIR, "..","..","..","config","environment"))
-
-require 'test_help'
-require 'mocha'
+require 'rubygems'
+# We can speed things up in tests that don't need to load rails.
+# You can also run the tests in a mode without rails.  Many tests 
+# will be skipped.
+if ENV['SKIP_RAILS']
+  $LOAD_PATH << File.join(NEWRELIC_PLUGIN_DIR, "lib")
+  require File.join(NEWRELIC_PLUGIN_DIR, "lib/newrelic_rpm")
+else
+  begin
+    require File.expand_path(File.join(NEWRELIC_PLUGIN_DIR, "..","..","..","config","environment"))
+    require 'test_help'
+  rescue LoadError
+    puts "Unable to load Rails for tests"
+  end
+end
 require 'test/unit'
+require 'mocha'
 require 'shoulda'
 
 def assert_between(floor, ceiling, value, message = nil)

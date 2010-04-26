@@ -2,7 +2,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..', 'test_helper'))
 require "test/unit"
 require "mocha"
 ##require 'new_relic/local_environment'
-class EnvironmentTest < ActiveSupport::TestCase
+class EnvironmentTest < Test::Unit::TestCase # ActiveSupport::TestCase
   
   def teardown
     # To remove mock server instances from ObjectSpace

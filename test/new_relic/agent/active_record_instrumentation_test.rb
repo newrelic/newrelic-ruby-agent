@@ -1,6 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
-require 'active_record_fixtures'
 class ActiveRecordInstrumentationTest < Test::Unit::TestCase
+  require 'active_record_fixtures'
   include NewRelic::Agent::Instrumentation::ControllerInstrumentation
   def setup
     super
@@ -284,4 +284,4 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
   def isMysql?
     ActiveRecordFixtures::Order.connection.class.name =~ /mysql/i 
   end
-end
+end if defined? Rails

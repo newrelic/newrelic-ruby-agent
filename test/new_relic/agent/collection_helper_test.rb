@@ -1,6 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
 require 'ostruct'
-require 'active_record_fixtures'
+#require 'active_record_fixtures'
 class NewRelic::Agent::CollectionHelperTest < Test::Unit::TestCase
   
   def setup

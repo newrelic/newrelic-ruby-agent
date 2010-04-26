@@ -1,3 +1,5 @@
+# Run faster standalone
+ENV['SKIP_RAILS'] = 'true'
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
 class NewRelic::Agent::BusyCalculatorTest < Test::Unit::TestCase
   attr_reader :now
