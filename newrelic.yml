@@ -3,7 +3,7 @@
 # Rails applications with deep visibility and low overhead.  For more
 # information, visit www.newrelic.com.
 #
-# Generated <%= Time.now.strftime('%b %d, %Y') %>, for version <%= NewRelic::VERSION::STRING %>
+# Generated <%= Time.now.strftime('%B %d, %Y') %>, for version <%= NewRelic::VERSION::STRING %>
 #
 # <%= generated_for_user %>
 
