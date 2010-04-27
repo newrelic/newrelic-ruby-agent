@@ -6,8 +6,8 @@
 	<td align=left>
 		<div class="sql_statement">
                   <small>
-                    <% if segment[:sql] || segment[:sql_obfuscated] %>
-                      <%= line_wrap_sql(segment[:sql] || segment[:sql_obfuscated]) %>
+                    <% if segment[:sql] %>
+                      <%= line_wrap_sql(segment[:sql] ) %>
                     <% else %>
                       Non-sql query: <%= segment.metric_name %> <%= line_wrap_sql(segment[:key]) %>
                    <% end %></small>
