@@ -392,35 +392,39 @@ module NewRelic
             
             environment = control['send_environment_info'] != false ? control.local_env.snapshot : []
             log.debug "Connecting with validation seed/token: #{control.validate_seed}/#{control.validate_token}" if control.validate_seed
-            @agent_id ||= invoke_remote :start, @local_host, {
+            connect_data = invoke_remote :connect,
               :pid => $$,
-              :launch_time => @launch_time.to_f,
+              :host => @local_host,
+              :app_name => control.app_names,
+              :language => 'ruby',
               :agent_version => NewRelic::VERSION::STRING,
               :environment => environment,
               :settings => control.settings,
-              :validate_seed => control.validate_seed,
-              :validate_token => control.validate_token }
+              :validate => {:seed => control.validate_seed,
+                            :token => control.validate_token }
 
-
-
-            @report_period = invoke_remote :get_data_report_period, @agent_id
+            connect_data.symbolize_keys!
+            
+            @agent_id = connect_data[:agent_run_id]
+            @report_period = connect_data[:data_report_period]
 
             control.log! "Connected to NewRelic Service at #{@collector}"
             log.debug "Agent ID = #{@agent_id}."
+            log.debug "Connection data = #{connect_data.inspect}"
 
             # Ask the server for permission to send transaction samples.
             # determined by subscription license.
-            @should_send_samples &&= invoke_remote :should_collect_samples, @agent_id
+            @should_send_samples &&= connect_data[:collect_traces]
 
             if @should_send_samples
-              sampling_rate = invoke_remote :sampling_rate, @agent_id if @random_sample
+              sampling_rate = connect_data[:sampling_rate] if @random_sample
               @transaction_sampler.sampling_rate = sampling_rate
               log.info "Transaction sample rate: #{@transaction_sampler.sampling_rate}" if sampling_rate
               log.info "Transaction tracing threshold is #{@slowest_transaction_threshold} seconds."
             end
 
             # Ask for permission to collect error data
-            error_collector.enabled &&= invoke_remote(:should_collect_errors, @agent_id)
+            error_collector.enabled &&= connect_data[:collect_errors]
 
             log.info "Transaction traces will be sent to the RPM service." if @should_send_samples
             log.info "Errors will be sent to the RPM service." if error_collector.enabled
