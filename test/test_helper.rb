@@ -23,6 +23,7 @@ end
 require 'test/unit'
 require 'mocha'
 require 'shoulda'
+require 'test_contexts'
 
 def assert_between(floor, ceiling, value, message = nil)
   assert floor <= value && value <= ceiling,

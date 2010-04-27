@@ -499,11 +499,12 @@ module NewRelic
     end
     
     # return a new transaction sample that can be sent to the RPM service.
-    # this involves potentially one or more of the following options 
+    # this involves potentially one or more of the following options
+    # 
     #   :explain_sql : run EXPLAIN on all queries whose response times equal the value for this key
     #       (for example :explain_sql => 2.0 would explain everything over 2 seconds.  0.0 would explain everything.)
     #   :keep_backtraces : keep backtraces, significantly increasing size of trace (off by default)
-    #   :obfuscate_sql : clear sql fields of potentially sensitive values (higher overhead, better security)
+    #   :record_sql => [ :raw | :obfuscated] : copy over the sql, obfuscating if necessary
     def prepare_to_send(options={})
       sample = TransactionSample.new(@start_time, sample_id)
       
@@ -620,15 +621,16 @@ module NewRelic
           when :backtrace
             target_called_segment[k]=v if options[:keep_backtraces]
           when :sql
-            sql = v
-
             # run an EXPLAIN on this sql if specified.
-            if options[:explain_enabled] && options[:explain_sql] && source_called_segment.duration > options[:explain_sql].to_f
+            if options[:record_sql] && options[:record_sql] && options[:explain_sql] && source_called_segment.duration > options[:explain_sql].to_f
               target_called_segment[:explanation] = source_called_segment.explain_sql
             end
             
-            target_called_segment[:sql]=sql if options[:record_sql] == :raw
-            target_called_segment[:sql_obfuscated] = TransactionSample.obfuscate_sql(sql) if options[:record_sql] == :obfuscated
+            target_called_segment[:sql] = case options[:record_sql]
+              when :raw then v
+              when :obfuscated then TransactionSample.obfuscate_sql(v)
+              else raise "Invalid value for record_sql: #{options[:record_sql]}"
+            end if options[:record_sql]
           when :connection_config
             # don't copy it
           else

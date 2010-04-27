@@ -520,7 +520,10 @@ module NewRelic
               # explain only the sql statements whose segments' execution
               # times exceed our threshold (to avoid unnecessary overhead
               # of running explains on fast queries.)
-              traces = @traces.collect {|trace| trace.prepare_to_send(:explain_sql => @explain_threshold, :record_sql => @record_sql, :keep_backtraces => true, :explain_enabled => @explain_enabled)}
+              options = { :keep_backtraces => true }
+              options[:record_sql] = @record_sql unless @record_sql == :off 
+              options[:explain_sql] = @explain_threshold if @explain_enabled
+              traces = @traces.collect {|trace| trace.prepare_to_send(options)}
               invoke_remote :transaction_sample_data, @agent_id, traces
             rescue PostTooBigException
               # we tried to send too much data, drop the first trace and
