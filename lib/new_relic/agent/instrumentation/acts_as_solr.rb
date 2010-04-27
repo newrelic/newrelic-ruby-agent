@@ -1,4 +1,4 @@
-if defined?(ActsAsSolr)
+if defined?(::ActsAsSolr)
   
   module NewRelic
     module Instrumentation
@@ -20,21 +20,21 @@ if defined?(ActsAsSolr)
     end
   end
 
-  module ActsAsSolr
-    module ParserMethods
+  ::ActsAsSolr.module_eval do
+    module ParserMethods #:nodoc
       include NewRelic::Instrumentation::ActsAsSolrInstrumentation::ParserMethodsInstrumentation
       alias :parse_query_without_newrelic :parse_query
       alias :parse_query :parse_query_with_newrelic
     end
 
-    module ClassMethods
+    module ClassMethods #:nodoc
       %w[find_by_solr find_id_by_solr multi_solr_search count_by_solr].each do |method|
         add_method_tracer method, 'SolrClient/ActsAsSolr/query'
       end
       add_method_tracer :rebuild_solr_index, 'SolrClient/ActsAsSolr/index'
     end
 
-    module CommonMethods
+    module CommonMethods #:nodoc
       add_method_tracer :solr_add, 'SolrClient/ActsAsSolr/add'
       add_method_tracer :solr_delete, 'SolrClient/ActsAsSolr/delete'
       add_method_tracer :solr_commit, 'SolrClient/ActsAsSolr/commit'
