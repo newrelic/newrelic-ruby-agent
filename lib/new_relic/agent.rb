@@ -1,4 +1,4 @@
-# = New Relic Agent
+# = New Relic RPM Agent
 #
 # New Relic RPM is a performance monitoring application for Ruby
 # applications running in production.  For more information on RPM
@@ -10,43 +10,24 @@
 # or for monitoring and analysis at http://rpm.newrelic.com with just
 # about any Ruby application.
 #
-# For detailed information on configuring or customizing the RPM Agent
-# please visit our {support and documentation site}[http://support.newrelic.com].
-#
-# == Starting the Agent as a Gem
-#
-# For Rails, add:
-#    config.gem 'newrelic_rpm'
-# to your initialization sequence.
-#
-# For merb, do 
-#    dependency 'newrelic_rpm'
-# in the Merb config/init.rb
-#
-# For Sinatra, just require the +newrelic_rpm+ gem and it will
-# automatically detect Sinatra and instrument all the handlers.
-#
-# For other frameworks, or to manage the agent manually, 
-# invoke NewRelic::Agent#manual_start directly.
-#
-# == Configuring the Agent
-# 
-# All agent configuration is done in the <tt>newrelic.yml</tt> file.
-# This file is by default read from the +config+ directory of the
-# application root and is subsequently searched for in the application
-# root directory, and then in a <tt>~/.newrelic</tt> directory
+# == Getting Started
+# For instructions on installation and setup, see
+# the README[link:./files/README_rdoc.html] file. 
 #
 # == Using with Rack/Metal
 #
-# To instrument middlewares, refer to the docs in 
+# To instrument Rack middlwares or Metal apps, refer to the docs in 
 # NewRelic::Agent::Instrumentation::Rack.
 #
 # == Agent API
 #
 # For details on the Agent API, refer to NewRelic::Agent.
-# 
 #
-# :main: lib/new_relic/agent.rb
+# == Customizing RPM
+# 
+# For detailed information on customizing the RPM Agent
+# please visit our {support and documentation site}[http://support.newrelic.com].
+#
 module NewRelic
   # == Agent APIs
   # This module contains the public API methods for the Agent.
@@ -107,7 +88,6 @@ module NewRelic
     require 'new_relic/agent/samplers/memory_sampler'
     require 'new_relic/agent/samplers/object_sampler'
     require 'new_relic/agent/samplers/delayed_job_lock_sampler'
-    require File.expand_path('../../../ui/middleware/developer_mode', __FILE__)
     require 'set'
     require 'thread'
     require 'resolv'

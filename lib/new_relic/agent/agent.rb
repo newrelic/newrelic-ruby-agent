@@ -5,14 +5,13 @@ require 'logger'
 require 'zlib'
 require 'stringio'
 
-# The NewRelic Agent collects performance data from ruby applications
-# in realtime as the application runs, and periodically sends that
-# data to the NewRelic server.
 module NewRelic
   module Agent
 
     # The Agent is a singleton that is instantiated when the plugin is
-    # activated.
+    # activated.  It collects performance data from ruby applications
+    # in realtime as the application runs, and periodically sends that
+    # data to the NewRelic server.
     class Agent
 
       # Specifies the version of the agent's communication protocol with

@@ -44,7 +44,8 @@ class NewRelic::Control::Frameworks::Rails < NewRelic::Control
     @installed = true
     if rails_config && rails_config.respond_to?(:middleware)
       begin
-        rails_config.middleware.use NewRelic::DeveloperMode
+        require 'new_relic/rack/developer_mode'
+        rails_config.middleware.use NewRelic::Rack::DeveloperMode
         
         # inform user that the dev edition is available if we are running inside
         # a webserver process

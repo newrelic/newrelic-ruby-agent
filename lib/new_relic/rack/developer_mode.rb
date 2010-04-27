@@ -3,10 +3,11 @@ require 'rack/request'
 require 'rack/response'
 require 'rack/file'
 
-class NewRelic::DeveloperMode
+module NewRelic::Rack
+class DeveloperMode
   
-  VIEW_PATH = File.expand_path('../../views/', __FILE__)
-  HELPER_PATH = File.expand_path('../../helpers/', __FILE__)
+  VIEW_PATH = File.expand_path('../../../../ui/views/', __FILE__)
+  HELPER_PATH = File.expand_path('../../../../ui/helpers/', __FILE__)
   require File.join(HELPER_PATH, 'developer_mode_helper.rb')
 
   include NewRelic::DeveloperModeHelper
@@ -215,9 +216,9 @@ class NewRelic::DeveloperMode
 
     controller_metric = @sample.root_segment.called_segments.first.metric_name
     
-    controller_segments = controller_metric.split('/')
-    @sample_controller_name = controller_segments[1..-2].join('/').camelize+"Controller"
-    @sample_action_name = controller_segments[-1].underscore
+    metric_parser = NewRelic::MetricParser.for_metric_named controller_metric
+    @sample_controller_name = metric_parser.controller_name
+    @sample_action_name = metric_parser.action_name
     
     render(:show_sample)
   end
@@ -252,4 +253,5 @@ class NewRelic::DeveloperMode
     segment_id = params['segment'].to_i
     @segment = @sample.find_segment(segment_id)
   end  
+end
 end

@@ -9,37 +9,19 @@ AUTHOR = "Bill Kayser"
 EMAIL = "support@newrelic.com"
 HOMEPAGE = "http://www.github.com/newrelic/rpm"
 SUMMARY = "New Relic Ruby Performance Monitoring Agent"
-URGENT_README = "README-#{GEM_VERSION}"
-# See http://www.rubygems.org/read/chapter/20 
-begin
-  require 'jeweler'
-  Jeweler::Tasks.new do |gem|
-    gem.name = GEM_NAME
-    gem.summary = SUMMARY
-    gem.description = <<-EOF
+INSTALLATION_NOTES = "InstallationNotes.md"
+RDOC_FILES = FileList['README*','LICENSE','newrelic.yml', 'CHANGELOG']
+
+DESCRIPTION = <<-EOF
 New Relic RPM is a Ruby performance management system, developed by
 New Relic, Inc (http://www.newrelic.com).  RPM provides you with deep
 information about the performance of your Ruby on Rails or Merb
 application as it runs in production. The New Relic Agent is
 dual-purposed as a either a Rails plugin or a Gem, hosted on
 http://github.com/newrelic/rpm/tree/master.
-    EOF
-    gem.email = EMAIL
-    gem.homepage = HOMEPAGE
-    gem.author = AUTHOR
-    gem.version = GEM_VERSION
-    gem.files = FileList['**/*'].to_a - ['init.rb']
-    gem.test_files = [] # You can't really run the tests unless the gem is installed.
-    gem.rdoc_options << "--line-numbers" << "--inline-source" << "--title" << "New Relic RPM"
-    gem.files.reject! { |fn| fn =~ /Rakefile|pkg\// }
-    gem.add_development_dependency "jeweler"
-    gem.add_development_dependency "mocha"
-    gem.add_development_dependency "shoulda"
-    gem.extra_rdoc_files = %w[CHANGELOG LICENSE]
-    if File.exists?(URGENT_README)
-      gem.post_install_message = File.read(URGENT_README)
-    else
-      gem.post_install_message = <<-EOF
+EOF
+
+INSTALLATION_POSTSCRIPT =  <<-EOF
 
 Please see http://support.newrelic.com/faqs/docs/ruby-agent-release-notes
 for a complete description of the features and enhancements available
@@ -47,7 +29,36 @@ in version #{GEM_VERSION.split('.')[0..1].join('.')} of the Ruby Agent.
 
 For details on this specific release, refer to the CHANGELOG file.
 
-      EOF
+EOF
+
+# See http://www.rubygems.org/read/chapter/20
+  
+begin
+  require 'jeweler'
+  Jeweler::Tasks.new do |gem|
+    gem.name = GEM_NAME
+    gem.description = DESCRIPTION
+    gem.summary = SUMMARY
+    gem.email = EMAIL
+    gem.homepage = HOMEPAGE
+    gem.author = AUTHOR
+    gem.version = GEM_VERSION
+    gem.files = FileList['**/*']
+    gem.test_files = [] # You can't really run the tests unless the gem is installed.
+    gem.rdoc_options <<
+      "--line-numbers" <<
+      "--inline-source" <<
+      "--title" << SUMMARY
+      "-m" << "README.rdoc"
+    gem.files.reject! { |fn| fn =~ /Rakefile|init.rb|#{INSTALLATION_NOTES}|pkg\// }
+    gem.add_development_dependency "jeweler"
+    gem.add_development_dependency "mocha"
+    gem.add_development_dependency "shoulda"
+    gem.extra_rdoc_files = RDOC_FILES
+    if File.exists?(INSTALLATION_NOTES)
+      gem.post_install_message = File.read(INSTALLATION_NOTES) + INSTALLATION_POSTSCRIPT
+    else
+      gem.post_install_message = INSTALLATION_POSTSCRIPT
     end
   end
   Jeweler::GemcutterTasks.new
@@ -84,10 +95,10 @@ task :default => :test
 require 'rake/rdoctask'
 Rake::RDocTask.new do |rdoc|
   rdoc.rdoc_dir = 'rdoc'
-  rdoc.title = SUMMARY
-  rdoc.rdoc_files.include('LICENSE')
-  rdoc.rdoc_files.include('CHANGELOG')
-  rdoc.rdoc_files.include('lib/**/*.rb')
+  rdoc.title = "#{SUMMARY} (v#{GEM_VERSION})"
+  rdoc.main = "README.rdoc"
+  rdoc.rdoc_files =  FileList['lib/**/*.rb'] + RDOC_FILES
+  rdoc.inline_source = true
 end
 
 begin
