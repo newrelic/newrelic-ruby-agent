@@ -616,6 +616,8 @@ module NewRelic
           elsif response.is_a? Net::HTTPGatewayTimeOut
             log.debug("Timed out getting response: #{response.message}")
             raise Timeout::Error, response.message
+          elsif response.is_a? Net::HTTPRequestEntityTooLarge
+            raise PostTooBigException
           elsif !(response.is_a? Net::HTTPSuccess)
             raise NewRelic::Agent::ServerConnectionException, "Unexpected response from server: #{response.code}: #{response.message}"
           end
