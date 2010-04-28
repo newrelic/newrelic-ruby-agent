@@ -209,7 +209,6 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
     
     sample = sample.prepare_to_send(:record_sql => :obfuscated, :explain_sql => 0.0)
     segment = sample.root_segment.called_segments.first.called_segments.first.called_segments.first
-    assert_nil segment.params[:sql], "SQL should have been removed."
     explanations = segment.params[:explanation]
     if isMysql? || isPostgres?
       assert_not_nil explanations, "No explains in segment: #{segment}"
