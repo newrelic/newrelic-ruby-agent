@@ -214,9 +214,11 @@ module NewRelic
           log.info "Application: #{control.app_names.join(", ")}" unless control.app_names.empty?
 
           sampler_config = control.fetch('transaction_tracer', {})
+          # TODO: Should move this state into the transaction sampler instance
           @should_send_samples = sampler_config.fetch('enabled', true)
-          log.info "Transaction tracing not enabled." if not @should_send_samples
-
+          @should_send_random_samples = sampler_config.fetch('random_sample', false)
+          @explain_threshold = sampler_config.fetch('explain_threshold', 0.5).to_f
+          @explain_enabled = sampler_config.fetch('explain_enabled', true)
           @record_sql = sampler_config.fetch('record_sql', :obfuscated).to_sym
 
           # use transaction_threshold: 4.0 to force the TT collection
@@ -231,12 +233,7 @@ module NewRelic
           end
           @slowest_transaction_threshold = @slowest_transaction_threshold.to_f
 
-          @explain_threshold = sampler_config.fetch('explain_threshold', 0.5).to_f
-          @explain_enabled = sampler_config.fetch('explain_enabled', true)
-          @random_sample = sampler_config.fetch('random_sample', false)
           log.warn "Agent is configured to send raw SQL to RPM service" if @record_sql == :raw
-          # Initialize transaction sampler
-          @transaction_sampler.random_sampling = @random_sample
 
           if control.monitor_mode?
             if !control.license_key
@@ -417,16 +414,19 @@ module NewRelic
             @should_send_samples &&= connect_data[:collect_traces]
 
             if @should_send_samples
-              sampling_rate = connect_data[:sampling_rate] if @random_sample
-              @transaction_sampler.sampling_rate = sampling_rate
+              if @should_send_random_samples
+                @transaction_sampler.random_sampling = true
+                @transaction_sampler.sampling_rate = connect_data[:sampling_rate]
+              end
               log.info "Transaction sample rate: #{@transaction_sampler.sampling_rate}" if sampling_rate
               log.info "Transaction tracing threshold is #{@slowest_transaction_threshold} seconds."
+            else
+              log.info "Transaction traces will not be sent to the RPM service." 
             end
 
             # Ask for permission to collect error data
             error_collector.enabled &&= connect_data[:collect_errors]
 
-            log.info "Transaction traces will be sent to the RPM service." if @should_send_samples
             log.info "Errors will be sent to the RPM service." if error_collector.enabled
 
             @connected_pid = $$

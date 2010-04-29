@@ -74,8 +74,6 @@ class NewRelic::Control::Frameworks::Rails < NewRelic::Control
   
   protected 
 
-
-
   def rails_vendor_root
     File.join(root,'vendor','rails')
   end
