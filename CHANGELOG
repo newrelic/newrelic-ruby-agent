@@ -8,6 +8,7 @@ v2.12.0
     for backward compatibility
   * added 'newrelic install' command to install a newrelic.yml file in the
     current directory
+  * allow customization of log directories with newrelic.yml settings
   * optimization to execution time measurement
   * optimization to startup sequence
 

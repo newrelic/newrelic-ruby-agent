@@ -24,6 +24,7 @@ common: &default_settings
   # it from running with Rake or the console.  Set to false to
   # completely turn the agent off regardless of the other settings.
   # Valid values are true, false and auto.
+  #
   # agent_enabled: auto
   
   # Application Name
@@ -32,8 +33,15 @@ common: &default_settings
   # into a RPM "application" on your home dashboard page. If you want
   # to map this instance into multiple apps, like "AJAX Requests" and
   # "All UI" then specify a semicolon separated list of up to three
-  # distinct names.  If you comment this out, it defaults to the 
-  # capitalized RAILS_ENV (i.e., Production, Staging, etc)
+  # distinct names, or a yaml list.  Defaults to the 
+  # capitalized RAILS_ENV or RACK_ENV (i.e., Production, Staging, etc)
+  #
+  # Example:
+  #
+  #   app_name:
+  #       - Ajax Service
+  #       - All Services
+  # 
   app_name: <%= @app_name %>
 
   # When "true", the agent collects performance data about your 

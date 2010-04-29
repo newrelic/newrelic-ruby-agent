@@ -49,12 +49,13 @@ module NewRelic
         if @local_env.framework == :test
           # You can set this env var if you want to run the tests
           # without Rails.
+          config = File.expand_path("../../../test/config/newrelic.yml", __FILE__)
           if ENV['SKIP_RAILS']
             require "new_relic/control/frameworks/ruby.rb"
-            NewRelic::Control::Frameworks::Ruby.new @local_env
+            NewRelic::Control::Frameworks::Ruby.new @local_env, config
           else
-            require File.join(newrelic_root, "test", "config", "test_control.rb")
-            NewRelic::Control::Frameworks::Test.new @local_env
+            require "config/test_control"
+            NewRelic::Control::Frameworks::Test.new @local_env, config
           end
         else
           begin
@@ -67,7 +68,7 @@ module NewRelic
 
       # The root directory for the plugin or gem
       def newrelic_root
-        File.expand_path(File.join(File.dirname(__FILE__),"..",".."))
+        File.expand_path("../../..", __FILE__)
       end
     end
     extend ClassMethods
@@ -169,19 +170,19 @@ module NewRelic
       File.expand_path(File.join(root,"config","newrelic.yml"))
     end
     
-    def initialize local_env
+    def initialize local_env, config_file_override=nil
       @local_env = local_env
       @instrumentation_files = []
-      newrelic_file = config_file
+      newrelic_file = config_file_override || config_file
       # Next two are for populating the newrelic.yml via erb binding, necessary
       # when using the default newrelic.yml file
       generated_for_user = ''
       license_key=''
-      if !File.exists?(config_file)
-        log! "Cannot find newrelic.yml file at #{config_file}."
+      if !File.exists?(newrelic_file)
+        log! "Cannot find read #{newrelic_file}."
         @yaml = {}
       else
-        @yaml = YAML.load(ERB.new(File.read(config_file)).result(binding))
+        @yaml = YAML.load(ERB.new(File.read(newrelic_file)).result(binding))
       end
     rescue ScriptError, StandardError => e
       puts e

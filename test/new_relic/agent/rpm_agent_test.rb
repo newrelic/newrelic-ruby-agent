@@ -1,3 +1,4 @@
+ENV['SKIP_RAILS'] = 'true'
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 ##require 'new_relic/agent/agent'
 ##require 'new_relic/local_environment'
@@ -14,7 +15,6 @@ class RpmAgentTest < Test::Unit::TestCase # ActiveSupport::TestCase
   
   def teardown
     NewRelic::Agent.shutdown
-    NewRelic::Control.instance['app_name']=nil
     NewRelic::Control.instance['dispatcher']=nil
     NewRelic::Control.instance['dispatcher_instance_id']=nil
   end
@@ -37,7 +37,7 @@ class RpmAgentTest < Test::Unit::TestCase # ActiveSupport::TestCase
       ignore_called = true
       nil
     end
-    NewRelic::Agent.notice_error(ActionController::RoutingError.new("message"), :request_params => {:x => "y"})
+    NewRelic::Agent.notice_error(StandardError.new("message"), :request_params => {:x => "y"})
     assert ignore_called   
     NewRelic::Agent.instance.error_collector.instance_variable_set '@ignore_filter', nil
   end
@@ -76,6 +76,7 @@ class RpmAgentTest < Test::Unit::TestCase # ActiveSupport::TestCase
     assert_equal "testjobs", NewRelic::Control.instance.app_names[0]
     assert_equal "mailer", NewRelic::Control.instance.dispatcher_instance_id
   end
+    
   def test_restart
     NewRelic::Agent.manual_start :app_name => "noapp", :dispatcher_instance_id => ""
     NewRelic::Agent.manual_start :app_name => "testjobs", :dispatcher_instance_id => "mailer"

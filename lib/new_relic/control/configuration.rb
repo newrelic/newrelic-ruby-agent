@@ -105,7 +105,11 @@ module NewRelic
         (self['dispatcher'] && self['dispatcher'].to_sym) || @local_env.dispatcher
       end
       def app_names
-        self['app_name'] ? self['app_name'].split(';') : []
+        case self['app_name']
+        when Array then self['app_name']
+        when String then self['app_name'].split(';')
+        else [ env ]
+        end
       end
       def validate_seed
         self['validate_seed'] || ENV['NR_VALIDATE_SEED']   

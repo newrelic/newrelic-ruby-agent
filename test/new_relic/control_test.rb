@@ -1,3 +1,4 @@
+ENV['SKIP_RAILS'] = 'true'
 require File.expand_path(File.join(File.dirname(__FILE__),'/../test_helper'))
 
 class NewRelic::ControlTest < Test::Unit::TestCase
@@ -33,7 +34,8 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   end
   
   def test_test_config
-    assert_equal :rails, c.app
+    assert_equal :rails, c.app if defined? Rails
+    assert_equal :test, c.app if !defined? Rails
     assert_equal :test, c.framework
     assert_match /test/i, c.dispatcher_instance_id
     assert_equal nil, c.dispatcher
@@ -44,12 +46,16 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   
   def test_root
     assert File.directory?(NewRelic::Control.newrelic_root), NewRelic::Control.newrelic_root
-    assert File.directory?(File.join(NewRelic::Control.newrelic_root, "lib")), NewRelic::Control.newrelic_root +  "/lib"
+    if defined?(Rails)
+      assert File.directory?(File.join(NewRelic::Control.newrelic_root, "lib")), NewRelic::Control.newrelic_root +  "/lib"
+    end
   end
   
   def test_info
     props = NewRelic::Control.instance.local_env.snapshot
-    assert_match /jdbc|postgres|mysql|sqlite/, props.assoc('Database adapter').last
+    if defined?(Rails)
+      assert_match /jdbc|postgres|mysql|sqlite/, props.assoc('Database adapter').last, props.inspect
+    end
   end
   
   def test_resolve_ip
@@ -62,6 +68,10 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     assert_equal 'heyheyhey', c['erb_value']
     assert_equal '', c['message']
     assert_equal '', c['license_key']
+  end
+
+  def test_appnames
+    assert_equal %w[a b c], NewRelic::Control.instance.app_names
   end
   
   def test_config_booleans

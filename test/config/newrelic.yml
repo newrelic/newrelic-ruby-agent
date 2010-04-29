@@ -20,6 +20,10 @@ test:
   license_key: '<%= license_key %>'
   agent_enabled: auto
   apdex_t: 1.1
+  app_name:
+    - a
+    - b
+    - c
 
   # Some fixtures for newrelic.yml parsing tests
   erb_value: <%= 'hey'*3 %>

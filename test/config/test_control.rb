@@ -7,18 +7,15 @@ class NewRelic::Control::Frameworks::Test < NewRelic::Control::Frameworks::Rails
   def app
     :rails
   end
-  def config_file
-    File.join(File.dirname(__FILE__), "newrelic.yml")
-  end
-  def initialize local_env
-    super local_env
+  
+  def initialize *args
+    super
     setup_log 
   end
   # when running tests, don't write out stderr
   def log!(msg, level=:info)
     log.send level, msg if log
   end
-
 
   # Add the default route in case it's missing.  Need it for testing.
   def install_devmode_route
