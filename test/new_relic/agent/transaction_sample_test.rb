@@ -55,6 +55,30 @@ class NewRelic::TransationSampleTest < Test::Unit::TestCase
         assert got_one
       end
       
+      should "have sql rows when sql is recorded" do
+        s = @t.prepare_to_send(:explain_sql => 0.00000001)
+        
+        assert s.sql_segments.empty?
+        s.root_segment[:sql] = 'hello'
+        assert !s.sql_segments.empty?
+      end
+      
+      should "have sql rows when sql is obfuscated" do
+        s = @t.prepare_to_send(:explain_sql => 0.00000001)
+        
+        assert s.sql_segments.empty?
+        s.root_segment[:sql_obfuscated] = 'hello'
+        assert !s.sql_segments.empty?
+      end
+      
+      should "have sql rows when recording non-sql keys" do
+        s = @t.prepare_to_send(:explain_sql => 0.00000001)
+        
+        assert s.sql_segments.empty?
+        s.root_segment[:key] = 'hello'
+        assert !s.sql_segments.empty?
+      end
+      
       should "catch exceptions" do
         @connection_stub.expects(:execute).raises
         # the sql connection will throw

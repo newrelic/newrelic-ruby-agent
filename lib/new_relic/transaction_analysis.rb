@@ -97,7 +97,7 @@ module TransactionAnalysis
   def sql_segments
     segments = []
     each_segment do |segment|
-      segments << segment if segment[:sql] || segment[:key]
+      segments << segment if segment[:sql] || segment[:sql_obfuscated] || segment[:key]
     end
     segments
   end
