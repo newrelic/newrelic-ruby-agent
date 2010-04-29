@@ -417,8 +417,8 @@ module NewRelic
               if @should_send_random_samples
                 @transaction_sampler.random_sampling = true
                 @transaction_sampler.sampling_rate = connect_data[:sampling_rate]
+                log.info "Transaction sampling enabled, rate = #{@transaction_sampler.sampling_rate}"
               end
-              log.info "Transaction sample rate: #{@transaction_sampler.sampling_rate}" if sampling_rate
               log.info "Transaction tracing threshold is #{@slowest_transaction_threshold} seconds."
             else
               log.info "Transaction traces will not be sent to the RPM service." 
