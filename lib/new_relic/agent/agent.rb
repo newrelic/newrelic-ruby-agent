@@ -28,6 +28,7 @@ module NewRelic
 
 
       def initialize
+        
         @launch_time = Time.now
 
         @metric_ids = {}
@@ -603,8 +604,9 @@ module NewRelic
 
           response = nil
           http = control.http_connection(collector)
+          http.read_timeout = nil
           begin
-            timeout(@request_timeout) do
+            NewRelic::TimerLib.timeout(@request_timeout) do
               response = http.request(request)
             end
           rescue Timeout::Error

@@ -9,4 +9,7 @@ Rack based framework, in addition to Rails.  To install developer mode
 in a non-Rails application, just add NewRelic::Rack::DeveloperMode to
 your middleware stack.
 
+If you are using JRuby, we recommend using at least version 1.4 or 
+later because of issues with the implementation of the timeout library.
+
 Refer to the README.md file for more information.

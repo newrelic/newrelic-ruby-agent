@@ -4,6 +4,8 @@ v2.12.0
     README for details
   * support basic instrumentation for ActsAsSolr and Sunspot
   * memcache key recording for transaction traces (experimental)
+  * use system_timer gem if available, fall back to timeout lib
+  * address instability issues in JRuby 1.2
   * renamed executable 'newrelic_cmd' to 'newrelic'; old name still supported
     for backward compatibility
   * added 'newrelic install' command to install a newrelic.yml file in the
