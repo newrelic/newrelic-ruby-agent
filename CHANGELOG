@@ -1,3 +1,6 @@
+v2.11.3
+  * fix bug in startup when running JRuby
+
 v2.11.2
   * fix for unicorn not reporting when the proc line had 'master' in it
   * fix regression for passenger 2.0 and earlier
