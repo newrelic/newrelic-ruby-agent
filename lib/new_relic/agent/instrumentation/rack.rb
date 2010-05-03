@@ -22,21 +22,32 @@ module NewRelic
       #     include NewRelic::Agent::Instrumentation::Rack
       #   end
       #
-      # == Instrumenting Metal
+      # == Instrumenting Metal and Cascading Middlewares
       #
-      # If you are using Metal, be sure and extend the your Metal class with the
-      # Rack instrumentation:
+      # Metal apps and apps belonging to Rack::Cascade middleware
+      # follow a convention of returning a 404 for all requests except
+      # the ones they are set up to handle.  This means that New Relic
+      # needs to ignore these calls when they return a 404.
       #
-      #   require 'newrelic_rpm'
-      #   require 'new_relic/agent/instrumentation/rack'
+      # In these cases, you should not include or extend the Rack
+      # module but instead include
+      # NewRelic::Agent::Instrumentation::ControllerInstrumentation.
+      # Here's how that might look for a Metal app:
+      #
+      #   require 'new_relic/agent/instrumentation/controller_instrumentation'
       #   class MetalApp
+      #     extend NewRelic::Agent::Instrumentation::ControllerInstrumentation
       #     def self.call(env)
-      #       ...
+      #       if should_do_my_thing?
+      #         perform_action_with_newrelic_trace(:category => :rack) do
+      #           return my_response(env)
+      #         end
+      #       else
+      #         return [404, {"Content-Type" => "text/html"}, ["Not Found"]]
+      #       end
       #     end
-      #     # Do the include after the call method is defined:
-      #     extend NewRelic::Agent::Instrumentation::Rack
       #   end
-      #
+      #      
       # == Overriding the metric name
       #
       # By default the middleware is identified only by its class, but if you want to 
@@ -53,31 +64,6 @@ module NewRelic
       #     add_transaction_tracer :call, :category => :rack, :name => 'my app'
       #   end
       #
-      # == Cascading or chained calls
-      #
-      # Calls which return a 404 will not have transactions recorded, but 
-      # any calls to instrumented frameworks like ActiveRecord will still be
-      # captured even if the result is a 404.  To avoid this you need to
-      # instrument only when you are the endpoint.
-      #
-      # In these cases, you should not include or extend the Rack module but instead
-      # include NewRelic::Agent::Instrumentation::ControllerInstrumentation.
-      # Here's how that might look:
-      #
-      #   require 'new_relic/agent/instrumentation/controller_instrumentation'
-      #   class MetalApp
-      #     extend NewRelic::Agent::Instrumentation::ControllerInstrumentation
-      #     def self.call(env)
-      #       if should_do_my_thing?
-      #         perform_action_with_newrelic_trace(:category => :rack) do
-      #           return my_response(env)
-      #         end
-      #       else
-      #         return [404, {"Content-Type" => "text/html"}, ["Not Found"]]
-      #       end
-      #     end
-      #   end
-      #      
       module Rack
         def newrelic_request_headers
           @newrelic_request.env
