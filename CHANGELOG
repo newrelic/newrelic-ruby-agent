@@ -1,3 +1,6 @@
+v2.11.4
+  * add solr instrumentation files
+
 v2.11.3
   * fix bug in startup when running JRuby
 
