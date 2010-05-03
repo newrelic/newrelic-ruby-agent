@@ -250,12 +250,13 @@ module NewRelic
 
               # Our shutdown handler needs to run after other shutdown handlers
               # that may be doing things like running the app (hello sinatra).
-              if RUBY_VERSION =~ /rubinius/i
+              if RUBY_VERSION =~ /rubinius/i 
                 list = at_exit { shutdown }
-                # move the shutdown handler to the front of the list, to execute last:
+                # move the shutdown handler to the front of the list, to
+                # execute last:
                 list.unshift(list.pop)
-              elsif !defined?(JRuby) or !defined(Sinatra::Application)
-                at_exit { at_exit { shutdown } }
+              elsif !defined?(JRuby) or !defined?(Sinatra::Application)
+                at_exit { at_exit { shutdown } } 
               end
             end
           else
