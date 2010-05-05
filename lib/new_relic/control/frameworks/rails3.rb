@@ -15,17 +15,18 @@ class NewRelic::Control::Frameworks::Rails3 < NewRelic::Control
     ::Rails.logger
   end
   
-  def base_log_file
-    logger.instance_eval {
-      @log.path
-    }
-  rescue
-    File.join(root, 'log')
+  
+  def log!(msg, level=:info)
+    return unless should_log?
+    logger.send(level, msg)
+  rescue Exception => e
+    super
   end
-  private :base_log_file
 
-  def log_path
-    @log_path ||= File.expand_path(File.dirname(base_log_file))
+  def to_stdout(msg)
+    logger.info(msg)
+  rescue
+    super
   end
 
   def vendor_root

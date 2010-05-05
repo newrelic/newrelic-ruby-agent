@@ -10,12 +10,6 @@ class NewRelic::Control::Frameworks::Rails < NewRelic::Control
     RAILS_ROOT
   end
   
-  def log_path
-    path = super || ::RAILS_DEFAULT_LOGGER.instance_eval do
-      File.dirname(@log.path) rescue File.dirname(@logdev.filename) 
-    end rescue File.join(root, 'log')
-    File.expand_path(path)
-  end
   # In versions of Rails prior to 2.0, the rails config was only available to 
   # the init.rb, so it had to be passed on from there.  
   def init_config(options={})
@@ -23,9 +17,9 @@ class NewRelic::Control::Frameworks::Rails < NewRelic::Control
     if !agent_enabled?
       # Might not be running if it does not think mongrel, thin, passenger, etc
       # is running, if it things it's a rake task, or if the agent_enabled is false.
-      ::RAILS_DEFAULT_LOGGER.info "New Relic Agent not running."
+      log! "New Relic Agent not running."
     else
-      ::RAILS_DEFAULT_LOGGER.info "Starting the New Relic Agent."
+      log! "Starting the New Relic Agent."
       install_developer_mode rails_config if developer_mode?
       install_episodes rails_config
     end
@@ -35,6 +29,7 @@ class NewRelic::Control::Frameworks::Rails < NewRelic::Control
     return if config.nil? || !config.respond_to?(:middleware) || !episodes_enabled?
     config.after_initialize do 
       config.middleware.use NewRelic::Rack::Episodes if defined?(NewRelic::Rack::Episodes)
+      log! "Installed episodes middleware"
       ::RAILS_DEFAULT_LOGGER.info "Installed episodes middleware"
     end
   end
@@ -51,21 +46,30 @@ class NewRelic::Control::Frameworks::Rails < NewRelic::Control
         # a webserver process
         if @local_env.dispatcher_instance_id
           port = @local_env.dispatcher_instance_id.to_s =~ /^\d+/ ? ":#{local_env.dispatcher_instance_id}" : ":port" 
-          to_stdout "NewRelic Agent Developer Mode enabled."
-          to_stdout "To view performance information, go to http://localhost#{port}/newrelic"
+          log!("NewRelic Agent Developer Mode enabled.")
+          log!("To view performance information, go to http://localhost#{port}/newrelic")
         end
       rescue Exception => e
-        to_stdout "Error installing New Relic Developer Mode: #{e.inspect}"
+        log!("Error installing New Relic Developer Mode: #{e.inspect}", :error)
       end
     else
-      to_stdout "Developer mode not available for Rails versions prior to 2.2"
+      log!("Developer mode not available for Rails versions prior to 2.2", :warn)
+    end
+  end
+  
+  def log!(msg, level=:info)
+    return unless should_log?
+    begin
+      ::RAILS_DEFAULT_LOGGER.send(level, msg)
+    rescue Exception => e
+      super
     end
   end
   
   def to_stdout(message)
     ::RAILS_DEFAULT_LOGGER.info(message)
   rescue Exception => e
-    STDOUT.puts(message)
+    super
   end
   
   def rails_version
