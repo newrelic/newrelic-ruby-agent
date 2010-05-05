@@ -143,9 +143,9 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
   
   
   def test_exclude
-    @error_collector.ignore(["ActionController::RoutingError"])
+    @error_collector.ignore(["::ActionController::RoutingError"])
     
-    @error_collector.notice_error(ActionController::RoutingError.new("message"), :metric => 'path', :request_params => {:x => 'y'}) 
+    @error_collector.notice_error(::ActionController::RoutingError.new("message"), :metric => 'path', :request_params => {:x => 'y'}) 
     
     errors = @error_collector.harvest_errors([])
     
@@ -154,14 +154,14 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
   
   def test_exclude_block
     @error_collector.ignore_error_filter do |e|
-      if e.is_a? ActionController::RoutingError
+      if e.is_a? ::ActionController::RoutingError
         nil
       else
         e
       end
     end
     
-    @error_collector.notice_error(ActionController::RoutingError.new("message"), :metric => 'path', :request_params => {:x => 'y'}) 
+    @error_collector.notice_error(::ActionController::RoutingError.new("message"), :metric => 'path', :request_params => {:x => 'y'}) 
     
     errors = @error_collector.harvest_errors([])
     

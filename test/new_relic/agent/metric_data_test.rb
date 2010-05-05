@@ -1,27 +1,24 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
-require 'test/unit'
-
 
 class NewRelic::Agent::MetricDataTest < Test::Unit::TestCase
-  
   
   # test to make sure the MetricData class can serialize to json
   def test_json
     spec = NewRelic::MetricSpec.new("controller", "metric#find")
     
-    import = ActiveSupport::JSON.decode(spec.to_json)
+    import = ::ActiveSupport::JSON.decode(spec.to_json)
     
     compare_spec(spec, import)
     
     stats = NewRelic::MethodTraceStats.new
     
-    import = ActiveSupport::JSON.decode(stats.to_json)
+    import = ::ActiveSupport::JSON.decode(stats.to_json)
     
     compare_stat(stats, import)
     
     metric_data = NewRelic::MetricData.new(spec, stats, 10)
     
-    import = ActiveSupport::JSON.decode(metric_data.to_json)
+    import = ::ActiveSupport::JSON.decode(metric_data.to_json)
     
     compare_metric_data(metric_data, import)
   end
