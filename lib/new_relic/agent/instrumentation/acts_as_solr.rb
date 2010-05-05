@@ -20,7 +20,7 @@ if defined?(::ActsAsSolr)
     end
   end
 
-  ::ActsAsSolr.module_eval do
+  module ActsAsSolr
     module ParserMethods #:nodoc
       include NewRelic::Instrumentation::ActsAsSolrInstrumentation::ParserMethodsInstrumentation
       alias :parse_query_without_newrelic :parse_query
