@@ -1,4 +1,4 @@
-v2.12.0
+v2.13.0
   * developer mode is now a rack middleware and can be used on any framework;
     it is no longer supported on versions of Rails prior to 2.2; see 
     README for details
@@ -14,8 +14,13 @@ v2.12.0
   * optimization to execution time measurement
   * optimization to startup sequence
 
+v2.12.0
+  * add instrumentation for sunspot and acts_as_solr
+
+v2.11.3
+  * fix bug in startup when running JRuby
+
 v2.11.2
-    
   * fix for unicorn not reporting when the proc line had 'master' in it
   * fix regression for passenger 2.0 and earlier
   * fix after_fork in the shim
