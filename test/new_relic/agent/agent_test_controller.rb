@@ -10,18 +10,7 @@ class NewRelic::Agent::AgentTestController < NewRelic::Agent::SuperclassControll
   filter_parameter_logging :social_security_number
   
   @@headers_to_add = nil
-  
-  # Suggested by cee-dub for merb tests.  I'm actually amazed if our tests work with merb.
-  if defined?(Merb::Router)
-    Merb::Router.prepare do |r|
-      match('/:controller(/:action)(.:format)').register
-    end
-  else
-    ActionController::Routing::Routes.draw do | map |
-      map.connect ':controller/:action.:format'
-    end
-  end
-  
+
   def index
     sleep params['wait'].to_i if params['wait']
     render :text => params.inspect
