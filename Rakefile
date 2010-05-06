@@ -29,6 +29,9 @@ in version #{GEM_VERSION.split('.')[0..1].join('.')} of the Ruby Agent.
 
 For details on this specific release, refer to the CHANGELOG file.
 
+Notice: Developer Mode now supports only Rails 2.3+ - refer to README
+for instructions for previous versions
+
 EOF
 
 # See http://www.rubygems.org/read/chapter/20

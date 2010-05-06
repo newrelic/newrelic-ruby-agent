@@ -1,7 +1,7 @@
 v2.13.0
   * developer mode is now a rack middleware and can be used on any framework;
-    it is no longer supported on versions of Rails prior to 2.2; see 
-    README for details
+    it is no longer supported automatically on versions of Rails prior to 2.3;
+    see README for details
   * support basic instrumentation for ActsAsSolr and Sunspot
   * memcache key recording for transaction traces (experimental)
   * use system_timer gem if available, fall back to timeout lib

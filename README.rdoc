@@ -126,8 +126,11 @@ all environments but +development+.
 ==== Developer Mode in Rails
 
 Developer Mode is available automatically in Rails Applications
-based on Rails 2.2 and later.  No additional configuration is
+based on Rails 2.3 and later.  No additional configuration is
 required.
+
+For earlier versions of Rails that support Rack, you can use
+a +config.ru+ as below.
 
 ==== Developer Mode in Rack Applications
 
