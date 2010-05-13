@@ -3,7 +3,7 @@ class NewRelic::MetricParser::Controller < NewRelic::MetricParser
   def is_controller?
     true
   end
-  
+
   # If the controller name segments look like a file path, convert it to the controller
   # class name.  If it begins with a capital letter, assume it's already a class name.
   # We only expect a lower case letter with Rails, so we'll be able to use camelize for 
@@ -25,6 +25,9 @@ class NewRelic::MetricParser::Controller < NewRelic::MetricParser
     "#{controller_name}##{action_name}"
   end
   
+  def is_web_transaction?
+    true
+  end
   # return the cpu measuring equivalent.  It may be nil since this metric was not
   # present in earlier versions of the agent.
   def cpu_metric
@@ -52,5 +55,9 @@ class NewRelic::MetricParser::Controller < NewRelic::MetricParser
 
   def call_rate_suffix
     'rpm'
+  end
+  
+  def summary_metrics
+    %w[HttpDispatcher]
   end
 end
