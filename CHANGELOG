@@ -1,8 +1,9 @@
 v2.13.0
+  * added record_transaction method to the api to allow recording
+    details from web and background transactions occurring outside RPM
   * developer mode is now a rack middleware and can be used on any framework;
     it is no longer supported automatically on versions of Rails prior to 2.3;
     see README for details
-  * support basic instrumentation for ActsAsSolr and Sunspot
   * memcache key recording for transaction traces (experimental)
   * use system_timer gem if available, fall back to timeout lib
   * address instability issues in JRuby 1.2
@@ -15,7 +16,7 @@ v2.13.0
   * optimization to startup sequence
 
 v2.12.0
-  * add instrumentation for sunspot and acts_as_solr
+  * support basic instrumentation for ActsAsSolr and Sunspot
 
 v2.11.3
   * fix bug in startup when running JRuby
