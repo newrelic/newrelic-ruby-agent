@@ -79,7 +79,6 @@ module NewRelic
     require 'new_relic/version'
     require 'new_relic/local_environment'
     require 'new_relic/stats'
-    require 'new_relic/delayed_job_injection'
     require 'new_relic/metrics'
     require 'new_relic/metric_spec'
     require 'new_relic/metric_data'
@@ -326,7 +325,8 @@ module NewRelic
     # Record the given error in RPM.  It will be passed through the
     # #ignore_error_filter if there is one.
     # 
-    # * <tt>exception</tt> is the exception which will be recorded
+    # * <tt>exception</tt> is the exception which will be recorded.  May also be
+    #   an error message.
     # Options:
     # * <tt>:uri</tt> => The request path, minus any request params or query string.
     # * <tt>:referer</tt> => The URI of the referer
@@ -334,7 +334,7 @@ module NewRelic
     # * <tt>:request_params</tt> => Request parameters, already filtered if necessary
     # * <tt>:custom_params</tt> => Custom parameters
     #
-    # Anything left over is treated as custom params
+    # Anything left over is treated as custom params.
     #
     def notice_error(exception, options={})
       NewRelic::Agent::Instrumentation::MetricFrame.notice_error(exception, options)
