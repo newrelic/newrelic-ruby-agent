@@ -60,7 +60,6 @@ module NewRelic
     require 'new_relic/version'
     require 'new_relic/local_environment'
     require 'new_relic/stats'
-    require 'new_relic/delayed_job_injection'
     require 'new_relic/metrics'
     require 'new_relic/metric_spec'
     require 'new_relic/metric_data'
@@ -308,7 +307,8 @@ module NewRelic
     # Record the given error in RPM.  It will be passed through the
     # #ignore_error_filter if there is one.
     # 
-    # * <tt>exception</tt> is the exception which will be recorded
+    # * <tt>exception</tt> is the exception which will be recorded.  May also be
+    #   an error message.
     # Options:
     # * <tt>:uri</tt> => The request path, minus any request params or query string.
     # * <tt>:referer</tt> => The URI of the referer
@@ -316,7 +316,7 @@ module NewRelic
     # * <tt>:request_params</tt> => Request parameters, already filtered if necessary
     # * <tt>:custom_params</tt> => Custom parameters
     #
-    # Anything left over is treated as custom params
+    # Anything left over is treated as custom params.
     #
     def notice_error(exception, options={})
       NewRelic::Agent::Instrumentation::MetricFrame.notice_error(exception, options)
@@ -346,6 +346,33 @@ module NewRelic
       else
         yield
       end
+    end
+    
+    # Record a web transaction from an external source.  This will 
+    # process the response time, error, and score an apdex value.
+    #
+    # == Identifying the transaction
+    # * <tt>:uri => uri</tt> to record the value for a given web request.
+    #   If not provided, just record the aggregate dispatcher and apdex scores.
+    # * <tt>:metric => metric_name</tt> to record with a general metric name
+    #   like +OtherTransaction/Background/Class/method+.  Ignored if +uri+ is
+    #   provided.
+    #
+    # == Error options
+    # Provide one of the following: 
+    # * <tt>:is_error => true</tt> if an unknown error occurred
+    # * <tt>:error_message => msg</tt> if an error message is available
+    # * <tt>:exception => exception</tt> if a ruby exception is recorded
+    #
+    # == Misc options
+    # Additional information captured in errors
+    # * <tt>:referer => referer_url</tt>
+    # * <tt>:request_params => hash</tt> to record a set of name/value pairs as the
+    #   request parameters.
+    # * <tt>:custom_params => hash</tt> to record extra information in traced errors
+    #
+    def record_transaction(response_sec, options = {})
+      agent.record_transaction(response_sec, options)
     end
   end 
 end  
