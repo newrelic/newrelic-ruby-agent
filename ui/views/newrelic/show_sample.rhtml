@@ -1,4 +1,4 @@
-<script type="text/javascript" src="<%= url_for(:controller => :newrelic, :action => :file, :file => 'transaction_sample.js') %>"></script>
+<script type="text/javascript" src="/newrelic/file/javascript/transaction_sample.js"></script>
 <div id='summary_table'>
 <table class="light_background">
   <tr>
@@ -43,7 +43,7 @@
     <tr>
       <th valign="top">HTTP Params:</th>
       <td>
-        <%= link_to_function("#{@request_params.length}...", "show_request_params()", :id => "params_link") %>
+        <a href="#" onClick="show_request_params()" id="params_link"><%= @request_params.length %>...</a>
 
           <div id='request_params' style="display: none;">
           <small>
@@ -72,9 +72,8 @@
 	<br/>
 	<%= %w[show_sample_summary show_sample_sql show_sample_detail].collect do |p|
 		options = {:align => 'center', :id => p}
-		options[:style] = 'display: none' unless p == params[:action]
+		options[:style] = 'display: none' unless p == params['action']
 		content_tag('div', render(:partial => p), options)
-	end.join(' ')%>
-	<% end -%>
-
+	end.join(' ') %>
+	<% end %>
 </div>

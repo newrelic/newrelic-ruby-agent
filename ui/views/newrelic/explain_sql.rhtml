@@ -1,3 +1,4 @@
+<script type="text/javascript" src="/newrelic/file/javascript/transaction_sample.js"></script>
 <h3>Statement Analysis</h3>
 <table>
 <% colspan = @explanation ? @explanation.length : 1 %>
@@ -34,7 +35,7 @@
 	<td><%= with_delimiter(to_ms(@segment.duration)) %> ms</td>
 </tr>
 <% if @explanation %>
-	<%= render :partial => agent_views_path('explain_plans') %>
+	<%= render :partial => 'explain_plans' %>
 <% end %>
 </table>
 
