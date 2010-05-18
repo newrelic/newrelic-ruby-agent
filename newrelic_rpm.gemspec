@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{newrelic_rpm}
-  s.version = "2.12.0"
+  s.version = "2.13.0.beta1"
 
-  s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
+  s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
   s.authors = ["Bill Kayser"]
-  s.date = %q{2010-05-13}
+  s.date = %q{2010-05-18}
   s.description = %q{New Relic RPM is a Ruby performance management system, developed by
 New Relic, Inc (http://www.newrelic.com).  RPM provides you with deep
 information about the performance of your Ruby on Rails or Merb
@@ -18,16 +18,19 @@ dual-purposed as a either a Rails plugin or a Gem, hosted on
 http://github.com/newrelic/rpm/tree/master.
 }
   s.email = %q{support@newrelic.com}
-  s.executables = ["mongrel_rpm", "newrelic_cmd"]
+  s.executables = ["mongrel_rpm", "newrelic", "newrelic_cmd"]
   s.extra_rdoc_files = [
     "CHANGELOG",
-     "LICENSE"
+     "LICENSE",
+     "README.rdoc",
+     "newrelic.yml"
   ]
   s.files = [
     "CHANGELOG",
      "LICENSE",
-     "README.md",
+     "README.rdoc",
      "bin/mongrel_rpm",
+     "bin/newrelic",
      "bin/newrelic_cmd",
      "cert/cacert.pem",
      "install.rb",
@@ -72,15 +75,21 @@ http://github.com/newrelic/rpm/tree/master.
      "lib/new_relic/agent/transaction_sampler.rb",
      "lib/new_relic/agent/worker_loop.rb",
      "lib/new_relic/collection_helper.rb",
+     "lib/new_relic/command.rb",
      "lib/new_relic/commands/deployments.rb",
-     "lib/new_relic/commands/new_relic_commands.rb",
+     "lib/new_relic/commands/install.rb",
      "lib/new_relic/control.rb",
-     "lib/new_relic/control/external.rb",
-     "lib/new_relic/control/merb.rb",
-     "lib/new_relic/control/rails.rb",
-     "lib/new_relic/control/rails3.rb",
-     "lib/new_relic/control/ruby.rb",
-     "lib/new_relic/control/sinatra.rb",
+     "lib/new_relic/control/configuration.rb",
+     "lib/new_relic/control/frameworks/external.rb",
+     "lib/new_relic/control/frameworks/merb.rb",
+     "lib/new_relic/control/frameworks/rails.rb",
+     "lib/new_relic/control/frameworks/rails3.rb",
+     "lib/new_relic/control/frameworks/ruby.rb",
+     "lib/new_relic/control/frameworks/sinatra.rb",
+     "lib/new_relic/control/instrumentation.rb",
+     "lib/new_relic/control/logging_methods.rb",
+     "lib/new_relic/control/profiling.rb",
+     "lib/new_relic/control/server_methods.rb",
      "lib/new_relic/delayed_job_injection.rb",
      "lib/new_relic/histogram.rb",
      "lib/new_relic/local_environment.rb",
@@ -102,14 +111,17 @@ http://github.com/newrelic/rpm/tree/master.
      "lib/new_relic/metric_spec.rb",
      "lib/new_relic/metrics.rb",
      "lib/new_relic/noticed_error.rb",
+     "lib/new_relic/rack/developer_mode.rb",
      "lib/new_relic/rack/metric_app.rb",
      "lib/new_relic/rack/mongrel_rpm.ru",
      "lib/new_relic/rack/newrelic.yml",
      "lib/new_relic/rack_app.rb",
      "lib/new_relic/recipes.rb",
      "lib/new_relic/stats.rb",
+     "lib/new_relic/timer_lib.rb",
      "lib/new_relic/transaction_analysis.rb",
      "lib/new_relic/transaction_sample.rb",
+     "lib/new_relic/url_rule.rb",
      "lib/new_relic/version.rb",
      "lib/new_relic_api.rb",
      "lib/newrelic_rpm.rb",
@@ -132,7 +144,6 @@ http://github.com/newrelic/rpm/tree/master.
      "test/new_relic/agent/method_tracer_test.rb",
      "test/new_relic/agent/metric_data_test.rb",
      "test/new_relic/agent/metric_frame_test.rb",
-     "test/new_relic/agent/mock_ar_connection.rb",
      "test/new_relic/agent/mock_scope_listener.rb",
      "test/new_relic/agent/net_instrumentation_test.rb",
      "test/new_relic/agent/rpm_agent_test.rb",
@@ -150,15 +161,14 @@ http://github.com/newrelic/rpm/tree/master.
      "test/new_relic/environment_test.rb",
      "test/new_relic/metric_parser_test.rb",
      "test/new_relic/metric_spec_test.rb",
+     "test/new_relic/rack/episodes_test.rb",
      "test/new_relic/shim_agent_test.rb",
      "test/new_relic/stats_test.rb",
      "test/new_relic/version_number_test.rb",
+     "test/test_contexts.rb",
      "test/test_helper.rb",
-     "test/ui/newrelic_controller_test.rb",
-     "test/ui/newrelic_helper_test.rb",
-     "ui/controllers/newrelic_controller.rb",
+     "ui/helpers/developer_mode_helper.rb",
      "ui/helpers/google_pie_chart.rb",
-     "ui/helpers/newrelic_helper.rb",
      "ui/views/layouts/newrelic_default.rhtml",
      "ui/views/newrelic/_explain_plans.rhtml",
      "ui/views/newrelic/_sample.rhtml",
@@ -172,33 +182,51 @@ http://github.com/newrelic/rpm/tree/master.
      "ui/views/newrelic/_stack_trace.rhtml",
      "ui/views/newrelic/_table.rhtml",
      "ui/views/newrelic/explain_sql.rhtml",
-     "ui/views/newrelic/images/arrow-close.png",
-     "ui/views/newrelic/images/arrow-open.png",
-     "ui/views/newrelic/images/blue_bar.gif",
-     "ui/views/newrelic/images/file_icon.png",
-     "ui/views/newrelic/images/gray_bar.gif",
-     "ui/views/newrelic/images/new-relic-rpm-desktop.gif",
-     "ui/views/newrelic/images/new_relic_rpm_desktop.gif",
-     "ui/views/newrelic/images/textmate.png",
+     "ui/views/newrelic/file/images/arrow-close.png",
+     "ui/views/newrelic/file/images/arrow-open.png",
+     "ui/views/newrelic/file/images/blue_bar.gif",
+     "ui/views/newrelic/file/images/file_icon.png",
+     "ui/views/newrelic/file/images/gray_bar.gif",
+     "ui/views/newrelic/file/images/new-relic-rpm-desktop.gif",
+     "ui/views/newrelic/file/images/new_relic_rpm_desktop.gif",
+     "ui/views/newrelic/file/images/textmate.png",
+     "ui/views/newrelic/file/javascript/jquery-1.4.2.js",
+     "ui/views/newrelic/file/javascript/transaction_sample.js",
+     "ui/views/newrelic/file/stylesheets/style.css",
      "ui/views/newrelic/index.rhtml",
-     "ui/views/newrelic/javascript/prototype-scriptaculous.js",
-     "ui/views/newrelic/javascript/transaction_sample.js",
      "ui/views/newrelic/sample_not_found.rhtml",
      "ui/views/newrelic/show_sample.rhtml",
      "ui/views/newrelic/show_source.rhtml",
-     "ui/views/newrelic/stylesheets/style.css",
      "ui/views/newrelic/threads.rhtml"
   ]
   s.homepage = %q{http://www.github.com/newrelic/rpm}
   s.post_install_message = %q{
+PLEASE NOTE:
+
+Developer Mode is now a Rack middleware.
+
+RPM Developer Mode is no longer available in Rails 2.1 and earlier.
+However, starting in version 2.12 you can use Developer Mode in any
+Rack based framework, in addition to Rails.  To install developer mode
+in a non-Rails application, just add NewRelic::Rack::DeveloperMode to
+your middleware stack.
+
+If you are using JRuby, we recommend using at least version 1.4 or 
+later because of issues with the implementation of the timeout library.
+
+Refer to the README.md file for more information.
+
 Please see http://support.newrelic.com/faqs/docs/ruby-agent-release-notes
 for a complete description of the features and enhancements available
-in version 2.12 of the Ruby Agent.
+in version 2.13 of the Ruby Agent.
 
 For details on this specific release, refer to the CHANGELOG file.
 
+Notice: Developer Mode now supports only Rails 2.3+ - refer to README
+for instructions for previous versions
+
 }
-  s.rdoc_options = ["--charset=UTF-8", "--line-numbers", "--inline-source", "--title", "New Relic RPM"]
+  s.rdoc_options = ["--charset=UTF-8", "--line-numbers", "--inline-source", "--title", "New Relic Ruby Performance Monitoring Agent"]
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.6}
   s.summary = %q{New Relic Ruby Performance Monitoring Agent}
@@ -209,11 +237,17 @@ For details on this specific release, refer to the CHANGELOG file.
 
     if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
       s.add_development_dependency(%q<jeweler>, [">= 0"])
+      s.add_development_dependency(%q<mocha>, [">= 0"])
+      s.add_development_dependency(%q<shoulda>, [">= 0"])
     else
       s.add_dependency(%q<jeweler>, [">= 0"])
+      s.add_dependency(%q<mocha>, [">= 0"])
+      s.add_dependency(%q<shoulda>, [">= 0"])
     end
   else
     s.add_dependency(%q<jeweler>, [">= 0"])
+    s.add_dependency(%q<mocha>, [">= 0"])
+    s.add_dependency(%q<shoulda>, [">= 0"])
   end
 end
 
