@@ -67,7 +67,7 @@ module Agent
       #
       def trace_execution_unscoped(metric_names, options={})
         return yield unless NewRelic::Agent.is_execution_traced?
-        t0 = Time.now.to_f
+        t0 = Time.now
         stats = Array(metric_names).map do | metric_name |
           NewRelic::Agent.instance.stats_engine.get_stats_no_scope metric_name
         end
@@ -76,7 +76,7 @@ module Agent
           yield
         ensure
           NewRelic::Agent.instance.pop_trace_execution_flag if options[:force]
-          duration = Time.now.to_f - t0              # for some reason this is 3 usec faster than Time - Time
+          duration = (Time.now - t0).to_f              # for some reason this is 3 usec faster than Time - Time
           stats.each { |stat| stat.trace_call(duration) }
         end
       end
@@ -110,7 +110,7 @@ module Agent
         produce_metric               = options[:metric] != false
         deduct_call_time_from_parent = options[:deduct_call_time_from_parent] != false
         scoped_metric_only           = produce_metric && options[:scoped_metric_only]
-        t0 = Time.now.to_f
+        t0 = Time.now
         if metric_names.instance_of? Array
           first_name = metric_names.first
           metric_stats = []
@@ -131,7 +131,7 @@ module Agent
           # Keep a reference to the scope we are pushing so we can do a sanity check making
           # sure when we pop we get the one we 'expected'
           NewRelic::Agent.instance.push_trace_execution_flag(true) if options[:force] 
-          expected_scope = NewRelic::Agent.instance.stats_engine.push_scope(first_name, t0, deduct_call_time_from_parent)
+          expected_scope = NewRelic::Agent.instance.stats_engine.push_scope(first_name, t0.to_f, deduct_call_time_from_parent)
         rescue => e
           NewRelic::Control.instance.log.error("Caught exception in trace_method_execution header. Metric name = #{first_name}, exception = #{e}")
           NewRelic::Control.instance.log.error(e.backtrace.join("\n"))
@@ -140,13 +140,13 @@ module Agent
         begin
           yield
         ensure
-          t1 = Time.now.to_f
-          duration = t1 - t0
+          t1 = Time.now
+          duration = (t1 - t0).to_f
           
           begin
             NewRelic::Agent.instance.pop_trace_execution_flag if options[:force]
             if expected_scope
-              scope = NewRelic::Agent.instance.stats_engine.pop_scope expected_scope, duration, t1
+              scope = NewRelic::Agent.instance.stats_engine.pop_scope expected_scope, duration, t1.to_f
               exclusive = duration - scope.children_time
               metric_stats.each { |stats| stats.trace_call(duration, exclusive) }
             end
@@ -280,14 +280,14 @@ module Agent
           code = <<-CODE
         def #{_traced_method_name(method_name, metric_name_code)}(*args, &block)
           #{header}
-          t0 = Time.now.to_f
+          t0 = Time.now
           stats = NewRelic::Agent.instance.stats_engine.get_stats_no_scope "#{metric_name_code}"
           begin
             #{"NewRelic::Agent.instance.push_trace_execution_flag(true)\n" if options[:force]}
             #{_untraced_method_name(method_name, metric_name_code)}(*args, &block)\n
           ensure
             #{"NewRelic::Agent.instance.pop_trace_execution_flag\n" if options[:force] }
-            duration = Time.now.to_f - t0
+            duration = (Time.now - t0).to_f
             stats.trace_call(duration)
             #{options[:code_footer]}
           end
