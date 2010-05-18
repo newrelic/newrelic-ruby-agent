@@ -67,7 +67,7 @@ module NewRelic
     end
     
     def apdex_metric_path
-      "Apdex/#{segments[1..-1].join('/')}"
+      %Q[Apdex/#{segments[1..-1].join('/')}]
     end
     
     # A short name for legends in the graphs
@@ -81,6 +81,8 @@ module NewRelic
       nil
     end
     
+    # Category is a UI description of the general 
+    # category of metrics for this metric.
     def category
       segments[0]
     end
@@ -112,7 +114,11 @@ module NewRelic
     def url
     ''
     end
-    
+    # Return the list of dispatcher metrics that correspond to this metric.  That is, 
+    # the summary metrics which should also be recorded when this metric is recorded.
+    def summary_metrics
+      []
+    end
     # returns a hash of params for url_for(), giving you a drilldown URL to an RPM page for this metric
     # define in subclasses - TB 2009-12-18
     # def drilldown_url(metric_id); end

@@ -10,12 +10,7 @@ class NewRelic::Agent::AgentTestController < NewRelic::Agent::SuperclassControll
   filter_parameter_logging :social_security_number
   
   @@headers_to_add = nil
-  
-#  def rescue_action(e) raise e end
-  
-  ActionController::Routing::Routes.draw do | map |
-    map.connect ':controller/:action.:format'
-  end
+
   def index
     sleep params['wait'].to_i if params['wait']
     render :text => params.inspect

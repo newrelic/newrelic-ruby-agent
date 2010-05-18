@@ -1,0 +1,2 @@
+class NewRelic::UrlRule
+end

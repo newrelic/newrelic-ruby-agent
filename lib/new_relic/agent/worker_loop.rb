@@ -9,6 +9,8 @@ module NewRelic
       def initialize
         @log = log
         @should_run = true
+        @next_invocation_time = Time.now 
+        @period = 60.0
       end
       
       def lock
@@ -21,8 +23,8 @@ module NewRelic
       # Run infinitely, calling the registered tasks at their specified
       # call periods.  The caller is responsible for creating the thread
       # that runs this worker loop
-      def run(period, &block)
-        @period = period
+      def run(period=nil, &block)
+        @period = period if period
         @next_invocation_time = Time.now + @period
         @task = block
         while keep_running do
@@ -56,22 +58,19 @@ module NewRelic
         raise
       rescue RuntimeError => e
         # This is probably a server error which has been logged in the server along
-        # with your account name.  Check and see if the agent listener is in the
-        # stack trace and log it quietly if it is.
-        message = "Error running task in worker loop, likely a server error (#{e})"
-        if e.backtrace.grep(/agent_listener/).empty?
-          log.error message
-        else
-          log.debug message
-          log.debug e.backtrace.join("\n")
-        end
+        # with your account name.
+        log.error "Error running task in worker loop, likely a server error (#{e})"
+        log.debug e.backtrace.join("\n")
       rescue Timeout::Error, NewRelic::Agent::ServerConnectionException
         # Want to ignore these because they are handled already
-      rescue ScriptError, StandardError => e 
+      rescue SystemExit, NoMemoryError, SignalException
+        raise
+      rescue Exception => e
+        # Don't blow out the stack for anything that hasn't already propagated
         log.error "Error running task in Agent Worker Loop '#{e}': #{e.backtrace.first}" 
         log.debug e.backtrace.join("\n")
       ensure
-        while @next_invocation_time < Time.now
+        while @next_invocation_time < Time.now && @period > 0
           @next_invocation_time += @period
         end        
       end

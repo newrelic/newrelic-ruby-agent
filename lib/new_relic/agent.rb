@@ -1,4 +1,4 @@
-# = New Relic Agent
+# = New Relic RPM Agent
 #
 # New Relic RPM is a performance monitoring application for Ruby
 # applications running in production.  For more information on RPM
@@ -10,43 +10,24 @@
 # or for monitoring and analysis at http://rpm.newrelic.com with just
 # about any Ruby application.
 #
-# For detailed information on configuring or customizing the RPM Agent
-# please visit our {support and documentation site}[http://support.newrelic.com].
-#
-# == Starting the Agent as a Gem
-#
-# For Rails, add:
-#    config.gem 'newrelic_rpm'
-# to your initialization sequence.
-#
-# For merb, do 
-#    dependency 'newrelic_rpm'
-# in the Merb config/init.rb
-#
-# For Sinatra, just require the +newrelic_rpm+ gem and it will
-# automatically detect Sinatra and instrument all the handlers.
-#
-# For other frameworks, or to manage the agent manually, 
-# invoke NewRelic::Agent#manual_start directly.
-#
-# == Configuring the Agent
-# 
-# All agent configuration is done in the <tt>newrelic.yml</tt> file.
-# This file is by default read from the +config+ directory of the
-# application root and is subsequently searched for in the application
-# root directory, and then in a <tt>~/.newrelic</tt> directory
+# == Getting Started
+# For instructions on installation and setup, see
+# the README[link:./files/README_rdoc.html] file. 
 #
 # == Using with Rack/Metal
 #
-# To instrument middlewares, refer to the docs in 
+# To instrument Rack middlwares or Metal apps, refer to the docs in 
 # NewRelic::Agent::Instrumentation::Rack.
 #
 # == Agent API
 #
 # For details on the Agent API, refer to NewRelic::Agent.
-# 
 #
-# :main: lib/new_relic/agent.rb
+# == Customizing RPM
+# 
+# For detailed information on customizing the RPM Agent
+# please visit our {support and documentation site}[http://support.newrelic.com].
+#
 module NewRelic
   # == Agent APIs
   # This module contains the public API methods for the Agent.
@@ -79,7 +60,6 @@ module NewRelic
     require 'new_relic/version'
     require 'new_relic/local_environment'
     require 'new_relic/stats'
-    require 'new_relic/delayed_job_injection'
     require 'new_relic/metrics'
     require 'new_relic/metric_spec'
     require 'new_relic/metric_data'
@@ -87,8 +67,10 @@ module NewRelic
     require 'new_relic/collection_helper'
     require 'new_relic/transaction_analysis'
     require 'new_relic/transaction_sample'
+    require 'new_relic/url_rule'
     require 'new_relic/noticed_error'
     require 'new_relic/histogram'
+    require 'new_relic/timer_lib'
     
     require 'new_relic/agent/chained_call'
     require 'new_relic/agent/agent'
@@ -110,7 +92,6 @@ module NewRelic
     require 'set'
     require 'thread'
     require 'resolv'
-    require 'timeout'
     
     # An exception that is thrown by the server if the agent license is invalid.
     class LicenseException < StandardError; end
@@ -326,7 +307,8 @@ module NewRelic
     # Record the given error in RPM.  It will be passed through the
     # #ignore_error_filter if there is one.
     # 
-    # * <tt>exception</tt> is the exception which will be recorded
+    # * <tt>exception</tt> is the exception which will be recorded.  May also be
+    #   an error message.
     # Options:
     # * <tt>:uri</tt> => The request path, minus any request params or query string.
     # * <tt>:referer</tt> => The URI of the referer
@@ -334,7 +316,7 @@ module NewRelic
     # * <tt>:request_params</tt> => Request parameters, already filtered if necessary
     # * <tt>:custom_params</tt> => Custom parameters
     #
-    # Anything left over is treated as custom params
+    # Anything left over is treated as custom params.
     #
     def notice_error(exception, options={})
       NewRelic::Agent::Instrumentation::MetricFrame.notice_error(exception, options)
@@ -364,6 +346,33 @@ module NewRelic
       else
         yield
       end
+    end
+    
+    # Record a web transaction from an external source.  This will 
+    # process the response time, error, and score an apdex value.
+    #
+    # == Identifying the transaction
+    # * <tt>:uri => uri</tt> to record the value for a given web request.
+    #   If not provided, just record the aggregate dispatcher and apdex scores.
+    # * <tt>:metric => metric_name</tt> to record with a general metric name
+    #   like +OtherTransaction/Background/Class/method+.  Ignored if +uri+ is
+    #   provided.
+    #
+    # == Error options
+    # Provide one of the following: 
+    # * <tt>:is_error => true</tt> if an unknown error occurred
+    # * <tt>:error_message => msg</tt> if an error message is available
+    # * <tt>:exception => exception</tt> if a ruby exception is recorded
+    #
+    # == Misc options
+    # Additional information captured in errors
+    # * <tt>:referer => referer_url</tt>
+    # * <tt>:request_params => hash</tt> to record a set of name/value pairs as the
+    #   request parameters.
+    # * <tt>:custom_params => hash</tt> to record extra information in traced errors
+    #
+    def record_transaction(response_sec, options = {})
+      agent.record_transaction(response_sec, options)
     end
   end 
 end  

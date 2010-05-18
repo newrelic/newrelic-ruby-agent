@@ -1,8 +1,8 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
-require 'action_controller/base'
-require 'new_relic/agent/agent_test_controller'
 
 class AgentControllerTest < ActionController::TestCase
+  require 'action_controller/base'
+  require 'new_relic/agent/agent_test_controller'
   
   self.controller_class = NewRelic::Agent::AgentTestController
   
@@ -12,6 +12,19 @@ class AgentControllerTest < ActionController::TestCase
   # setup is not called.
   def initialize name
     super name
+
+  # Suggested by cee-dub for merb tests.  I'm actually amazed if our tests work with merb.
+  if defined?(Merb::Router)
+    Merb::Router.prepare do |r|
+      match('/:controller(/:action)(.:format)').register
+    end
+  else
+    ActionController::Routing::Routes.draw do | map |
+      map.connect '/:controller/:action.:format'
+      map.connect '/:controller/:action'
+    end
+  end
+  
     Thread.current[:newrelic_ignore_controller] = nil
     NewRelic::Agent.manual_start
     @agent = NewRelic::Agent.instance
@@ -220,7 +233,7 @@ class AgentControllerTest < ActionController::TestCase
     queue_time_stat = stats('WebFrontend/Mongrel/Average Queue Time')
     
     # no request start header
-    get :index
+    get 'index'
     assert_equal 0, queue_length_stat.call_count
 
     # apache version of header
@@ -271,4 +284,5 @@ class AgentControllerTest < ActionController::TestCase
     engine.get_stats_no_scope(name)
   end
   
-end
+end if defined? Rails
+

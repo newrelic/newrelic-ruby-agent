@@ -4,11 +4,17 @@ module Rack
   class MetricApp
     def initialize(options)
       if options[:install]
-        FileUtils.copy File.join(File.dirname(__FILE__), "newrelic.yml"), "."
-        NewRelic::Agent.logger.info "==============================="
-        NewRelic::Agent.logger.info "A newrelic.yml template was copied to #{File.expand_path('.')}."
-        NewRelic::Agent.logger.info "Please add a license key to the file and restart #{$0}"
-        exit 0
+        src = File.join(File.dirname(__FILE__), "newrelic.yml")
+        require 'new_relic/command'  
+        begin
+          NewRelic::Command::Install.new(:quiet => true, :src_file => src).run    
+          NewRelic::Agent.logger.info "A newrelic.yml template was copied to #{File.expand_path('.')}."
+          NewRelic::Agent.logger.info "Please add a license key to the file and restart #{$0}"
+          exit 0
+        rescue NewRelic::Command::CommandFailure => e
+          NewRelic::Agent.logger.error e.message
+          exit 1
+        end
       end
       options[:app_name] ||= 'EPM Monitor'
       options[:disable_samplers] = true

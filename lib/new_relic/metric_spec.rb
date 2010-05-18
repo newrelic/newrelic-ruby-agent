@@ -4,7 +4,7 @@ class NewRelic::MetricSpec
   attr_accessor   :name
   attr_accessor   :scope
   
-  MAX_LENGTH = 100
+  MAX_LENGTH = 255
   # Need a "zero-arg" constructor so it can be instantiated from java (using
   # jruby) for sending responses to ruby agents from the java collector.
   #
@@ -14,8 +14,8 @@ class NewRelic::MetricSpec
   end
   
   def truncate!
-    self.name = name[0...100] if name && name.size > 100
-    self.scope = scope[0...100] if scope && scope.size > 100
+    self.name = name[0...MAX_LENGTH] if name && name.size > MAX_LENGTH
+    self.scope = scope[0...MAX_LENGTH] if scope && scope.size > MAX_LENGTH
   end
   
   def ==(o)

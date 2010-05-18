@@ -44,7 +44,7 @@ module NewRelic
       self
     end
 
-    def merge! (other_stats)
+    def merge!(other_stats)
       Array(other_stats).each do |s|
         self.total_call_time += s.total_call_time
         self.total_exclusive_time += s.total_exclusive_time
@@ -59,7 +59,7 @@ module NewRelic
       self
     end
     
-    def merge (other_stats)
+    def merge(other_stats)
       stats = self.clone
       stats.merge! other_stats
     end

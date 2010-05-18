@@ -55,15 +55,16 @@ module NewRelic
     # * <tt>:custom_params</tt> => Custom parameters
     #
     # If anything is left over, it's added to custom params
+    # If exception is nil, the error count is bumped and no traced error is recorded
     def notice_error(exception, options={})
       return unless @enabled
-      return if @ignore[exception.class.name] 
-      if @ignore_filter
+      return if exception && @ignore[exception.class.name] 
+      if @ignore_filter && exception
         exception = @ignore_filter.call(exception)
         return if exception.nil?
       end
-
       NewRelic::Agent.get_stats("Errors/all").increment_count
+      return if exception.nil?
 
       data = {}
       data[:request_uri] = options.delete(:uri) || ''
@@ -91,7 +92,7 @@ module NewRelic
         inside_exception = exception
       end
 
-      data[:stack_trace] = inside_exception ? inside_exception.backtrace : '<no stack trace>'
+      data[:stack_trace] = (inside_exception && inside_exception.respond_to?('backtrace')) ? inside_exception.backtrace : '<no stack trace>'
       
       noticed_error = NewRelic::NoticedError.new(action_path, data, exception)
       

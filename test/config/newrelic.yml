@@ -20,6 +20,11 @@ test:
   license_key: '<%= license_key %>'
   agent_enabled: auto
   apdex_t: 1.1
+  app_name:
+    - a
+    - b
+    - c
+  log_file_path: <%= RAILS_ROOT %>/log
 
   # Some fixtures for newrelic.yml parsing tests
   erb_value: <%= 'hey'*3 %>

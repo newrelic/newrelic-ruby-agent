@@ -11,7 +11,7 @@ class NewRelic::MetricParser::MemCache < NewRelic::MetricParser
   end
 
   def all?
-    segments[1]['all'] == 0
+    segments[1].index('all') == 0
   end
   def operation
     all? ? 'All Operations' : segments[1]

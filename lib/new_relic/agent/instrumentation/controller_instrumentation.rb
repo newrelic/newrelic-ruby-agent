@@ -146,6 +146,7 @@ module NewRelic
         EOC
         alias_method "#{method.to_s}_without_newrelic_transaction_trace", method.to_s
         alias_method method.to_s, "#{method.to_s}_with_newrelic_transaction_trace"
+        NewRelic::Control.instance.log.debug("Traced transaction: class = #{self.name}, method = #{method.to_s}, options = #{options.inspect}")
       end
     end
     
@@ -307,7 +308,8 @@ module NewRelic
       # If a block was passed in, then the arguments represent options for the instrumentation,
       # not app method arguments.
       if args.any?
-        if options = args.last.is_a?(Hash) && args.last
+        if args.last.is_a?(Hash)
+          options = args.last
           frame_data.force_flag = options[:force] 
           frame_data.request = options[:request] if options[:request]
         end
@@ -318,7 +320,7 @@ module NewRelic
         available_params = self.respond_to?(:params) ? self.params : {}
       end
       frame_data.request ||= self.request if self.respond_to? :request
-      frame_data.push(category, path)
+      frame_data.push(category + '/'+ path)
       frame_data.filtered_params = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
       frame_data
     end
@@ -371,6 +373,9 @@ module NewRelic
       end
     end
     
+    # Return a Time instance representing the upstream start time.
+    # now is a Time instance to fall back on if no other candidate
+    # for the start time is found.
     def _detect_upstream_wait(now)
       if newrelic_request_headers
         if entry_time = newrelic_request_headers['HTTP_X_REQUEST_START']
@@ -387,11 +392,11 @@ module NewRelic
       if http_entry_time
         queue_stat = NewRelic::Agent.agent.stats_engine.get_stats_no_scope 'WebFrontend/Mongrel/Average Queue Time'
         total_time = (now - http_entry_time)
-        queue_stat.trace_call(total_time) unless total_time < 0 # using remote timestamps could lead to negative queue time
+        queue_stat.trace_call(total_time.to_f) unless total_time.to_f <= 0.0 # using remote timestamps could lead to negative queue time
       end
-      http_entry_time || now
+      return http_entry_time ? Time.at(http_entry_time) : now 
     end
-
+    
     def _dispatch_stat
       NewRelic::Agent.agent.stats_engine.get_stats_no_scope 'HttpDispatcher'  
     end

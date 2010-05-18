@@ -1,17 +1,6 @@
+# Run faster standalone
+ENV['SKIP_RAILS'] = 'true'
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
-require 'test/unit'
-
-class FakeRequest
-  attr_reader :path
-  
-  def initialize(path)
-    @path = path
-  end
-  
-  def referer
-    "test_referer"
-  end
-end
 
 class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
   
@@ -25,15 +14,18 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
     @error_collector.notice_error(nil, :metric=> 'path', :request_params => {:x => 'y'})
     errors = @error_collector.harvest_errors([])
     
-    assert_equal errors.length, 1
+    assert_equal 0, errors.length
+
+    @error_collector.notice_error('Some error message', :metric=> 'path', :request_params => {:x => 'y'})
+    errors = @error_collector.harvest_errors([])
     
     err = errors.first
-    assert_equal '<no message>', err.message 
+    assert_equal 'Some error message', err.message 
     assert_equal 'y', err.params[:request_params][:x]
     assert_equal '', err.params[:request_uri]
     assert_equal '', err.params[:request_referer]
     assert_equal 'path', err.path 
-    assert_equal '<no exception>', err.exception_class
+    assert_equal 'Error', err.exception_class
 
   end
   def test_simple
@@ -102,7 +94,7 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
     
     max_q_length = 20     # for some reason I can't read the constant in ErrorCollector
     
-    silence_stream(::STDERR) do
+    silence_stream(::STDOUT) do
      (max_q_length + 5).times do |n|
         @error_collector.notice_error(Exception.new("exception #{n}"), :metric => "path", :request_params => {:x => n}) 
       end
@@ -143,9 +135,9 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
   
   
   def test_exclude
-    @error_collector.ignore(["ActionController::RoutingError"])
+    @error_collector.ignore(["IOError"])
     
-    @error_collector.notice_error(ActionController::RoutingError.new("message"), :metric => 'path', :request_params => {:x => 'y'}) 
+    @error_collector.notice_error(IOError.new("message"), :metric => 'path', :request_params => {:x => 'y'}) 
     
     errors = @error_collector.harvest_errors([])
     
@@ -154,14 +146,14 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
   
   def test_exclude_block
     @error_collector.ignore_error_filter do |e|
-      if e.is_a? ActionController::RoutingError
+      if e.is_a? IOError
         nil
       else
         e
       end
     end
     
-    @error_collector.notice_error(ActionController::RoutingError.new("message"), :metric => 'path', :request_params => {:x => 'y'}) 
+    @error_collector.notice_error(IOError.new("message"), :metric => 'path', :request_params => {:x => 'y'}) 
     
     errors = @error_collector.harvest_errors([])
     

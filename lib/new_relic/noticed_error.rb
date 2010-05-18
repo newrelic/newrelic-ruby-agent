@@ -7,7 +7,7 @@ class NewRelic::NoticedError
     self.path = path
     self.params = NewRelic::NoticedError.normalize_params(data)
     
-    self.exception_class = exception ? exception.class.name : '<no exception>'
+    self.exception_class = exception.is_a?(Exception) ? exception.class.name : 'Error'
     
     if exception.respond_to?('original_exception')
       self.message = exception.original_exception.message.to_s

@@ -4,7 +4,10 @@ class NewRelic::MetricParser::ActiveRecord < NewRelic::MetricParser
   def model_class
     return segments[1]
   end
-  
+
+  def is_database?
+    true
+  end
   def legend_name
     if name == 'ActiveRecord/all'
       'Database'

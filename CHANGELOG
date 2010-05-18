@@ -1,7 +1,24 @@
+v2.13.0
+  * added record_transaction method to the api to allow recording
+    details from web and background transactions occurring outside RPM
+  * developer mode is now a rack middleware and can be used on any framework;
+    it is no longer supported automatically on versions of Rails prior to 2.3;
+    see README for details
+  * memcache key recording for transaction traces (experimental)
+  * use system_timer gem if available, fall back to timeout lib
+  * address instability issues in JRuby 1.2
   * renamed executable 'newrelic_cmd' to 'newrelic'; old name still supported
     for backward compatibility
   * added 'newrelic install' command to install a newrelic.yml file in the
     current directory
+  * allow customization of log directories with newrelic.yml settings
+  * optimization to execution time measurement
+  * optimization to startup sequence
+
+v2.12.1
+  * fix race condition in Delayed::Job instrumentation loading
+  * fix glassfish detection in latest glassfish gem
+  
 v2.12.0
   * support basic instrumentation for ActsAsSolr and Sunspot
 
@@ -12,7 +29,7 @@ v2.11.2
   * fix for unicorn not reporting when the proc line had 'master' in it
   * fix regression for passenger 2.0 and earlier
   * fix after_fork in the shim
-
+  
 v2.11.1
   * republished gem without generated rdocs
 
@@ -30,7 +47,6 @@ v2.11.0
   * optimizations to background thread, controller instrumentation, memory
     usage
   * add logger method to public_api
-  * support list notation for ignored exceptions in the newrelic.yml
     
 v2.10.8
   * fix bug in delayed_job instrumentation that caused the job queue sampler

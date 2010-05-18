@@ -3,13 +3,16 @@
 # Rails applications with deep visibility and low overhead.  For more
 # information, visit www.newrelic.com.
 #
-# <%= generated_for_user %>
+# Generated <%= Time.now.strftime('%B %d, %Y') %>, for version <%= NewRelic::VERSION::STRING %>
 #
-# here are the settings that are common to all environments
+# <%= generated_for_user %>
+
+
+# Here are the settings that are common to all environments
 common: &default_settings
   # ============================== LICENSE KEY ===============================
 
-  # You must specify the licence key associated with your New Relic
+  # You must specify the license key associated with your New Relic
   # account.  This key binds your Agent's data to your account in the
   # New Relic RPM service.
   license_key: '<%= license_key %>'
@@ -21,6 +24,7 @@ common: &default_settings
   # it from running with Rake or the console.  Set to false to
   # completely turn the agent off regardless of the other settings.
   # Valid values are true, false and auto.
+  #
   # agent_enabled: auto
   
   # Application Name
@@ -29,9 +33,16 @@ common: &default_settings
   # into a RPM "application" on your home dashboard page. If you want
   # to map this instance into multiple apps, like "AJAX Requests" and
   # "All UI" then specify a semicolon separated list of up to three
-  # distinct names.  If you comment this out, it defaults to the 
-  # capitalized RAILS_ENV (i.e., Production, Staging, etc)
-  app_name: My Application
+  # distinct names, or a yaml list.  Defaults to the 
+  # capitalized RAILS_ENV or RACK_ENV (i.e., Production, Staging, etc)
+  #
+  # Example:
+  #
+  #   app_name:
+  #       - Ajax Service
+  #       - All Services
+  # 
+  app_name: <%= @app_name %>
 
   # When "true", the agent collects performance data about your 
   # application and reports this data to the NewRelic RPM service at 
@@ -48,6 +59,12 @@ common: &default_settings
   # log level here.
   log_level: info
 
+  # If you wish to override the location of the log file, you can
+  # uncomment this:
+  #
+  # log_file_path: ./log
+  # log_file_name: newrelic_agent.log
+  
   # The newrelic agent communicates with the RPM service via http by
   # default.  If you want to communicate via https to increase
   # security, then turn on SSL by setting this value to true.  Note,
@@ -174,6 +191,12 @@ common: &default_settings
   # disable_memcache_instrumentation: true
   # disable_dj: true
 
+  # If you're interested in capturing memcache keys as though they
+  # were SQL uncomment this flag. Note that this does increase
+  # overhead slightly on every memcached call, and can have security
+  # implications if your memcached keys are sensitive
+  # capture_memcache_keys: true
+  
   # Certain types of instrumentation such as GC stats will not work if 
   # you are running multi-threaded.  Please let us know.
   # multi_threaded = false
@@ -186,7 +209,7 @@ common: &default_settings
 # the environment
 
 # NOTE if your application has other named environments, you should
-# provide newrelic conifguration settings for these enviromnents here.
+# provide newrelic configuration settings for these environments here.
 
 development:
   <<: *default_settings
@@ -215,7 +238,7 @@ test:
 # Turn on the agent in production for 24x7 monitoring.  NewRelic
 # testing shows an average performance impact of < 5 ms per
 # transaction, you you can leave this on all the time without
-# incurring any user-visible performance degredation.
+# incurring any user-visible performance degradation.
 production:
   <<: *default_settings
   monitor_mode: true
@@ -226,4 +249,4 @@ production:
 staging:
   <<: *default_settings
   monitor_mode: true
-  app_name: My Application (Staging)
+  app_name: <%= @app_name %> (Staging)

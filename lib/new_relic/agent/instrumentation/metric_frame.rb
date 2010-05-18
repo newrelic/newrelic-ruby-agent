@@ -6,9 +6,13 @@
 #
 module NewRelic::Agent::Instrumentation
   class MetricFrame 
-    attr_accessor :start, :apdex_start, :exception, 
-                :filtered_params, :force_flag, 
-                :jruby_cpu_start, :process_cpu_start, :database_metric_name
+    attr_accessor :start       # A Time instance for the start time, never nil 
+    attr_accessor :apdex_start # A Time instance used for calculating the apdex score, which
+                               # might end up being @start, or it might be further upstream if
+                               # we can find a request header for the queue entry time
+    attr_accessor :exception, 
+                  :filtered_params, :force_flag, 
+                  :jruby_cpu_start, :process_cpu_start, :database_metric_name
           
     # Give the current metric frame a request context.  Use this to 
     # get the URI and referer.  The request is interpreted loosely
@@ -59,7 +63,7 @@ module NewRelic::Agent::Instrumentation
     attr_reader :depth
     
     def initialize
-      @start = Time.now.to_f
+      @start = Time.now
       @path_stack = [] # stack of [controller, path] elements
       @jruby_cpu_start = jruby_cpu_time
       @process_cpu_start = process_cpu
@@ -67,9 +71,9 @@ module NewRelic::Agent::Instrumentation
     
     # Indicate that we are entering a measured controller action or task.
     # Make sure you unwind every push with a pop call.
-    def push(category, path)
+    def push(m)
       NewRelic::Agent.instance.transaction_sampler.notice_first_scope_push(start)
-      @path_stack.push [category, path]
+      @path_stack.push NewRelic::MetricParser.for_metric_named(m)
     end
     
     # Indicate that you don't want to keep the currently saved transaction
@@ -102,10 +106,11 @@ module NewRelic::Agent::Instrumentation
       end
     end
     
-    def category
-      @path_stack.last.first  
+    def current_metric
+      @path_stack.last
     end
     
+    # Return the path, the part of the metric after the category
     def path
       @path_stack.last.last
     end
@@ -113,8 +118,8 @@ module NewRelic::Agent::Instrumentation
     # Unwind one stack level.  It knows if it's back at the outermost caller and
     # does the appropriate wrapup of the context.
     def pop
-      category, path = @path_stack.pop
-      if category.nil?
+      metric = @path_stack.pop
+      if metric.nil?
         NewRelic::Agent.logger.error "Underflow in metric frames: #{caller.join("\n   ")}"
       end
       if @path_stack.empty?
@@ -127,7 +132,7 @@ module NewRelic::Agent::Instrumentation
             NewRelic::Agent.get_stats_no_scope(NewRelic::Metrics::USER_TIME).record_data_point(cpu_burn)
           end
           NewRelic::Agent.instance.transaction_sampler.notice_transaction_cpu_time(cpu_burn) if cpu_burn
-          NewRelic::Agent.instance.histogram.process(Time.now.to_f - start) if recording_web_transaction?(category)
+          NewRelic::Agent.instance.histogram.process((Time.now - start).to_f) if metric.is_web_transaction?
           NewRelic::Agent.instance.transaction_sampler.notice_scope_empty      
         end      
         NewRelic::Agent.instance.stats_engine.end_transaction
@@ -184,30 +189,21 @@ module NewRelic::Agent::Instrumentation
      (current && current.custom_parameters) ? current.custom_parameters : {}
     end
     
-    def record_apdex
+    def record_apdex()
       return unless recording_web_transaction? && NewRelic::Agent.is_execution_traced?
-      ending = Time.now.to_f
-      summary_stat = NewRelic::Agent.instance.stats_engine.get_custom_stats("Apdex", NewRelic::ApdexStats)
-      controller_stat = NewRelic::Agent.instance.stats_engine.get_custom_stats("Apdex/#{path}", NewRelic::ApdexStats)
-      self.class.update_apdex(summary_stat, ending - apdex_start, exception)
-      self.class.update_apdex(controller_stat, ending - start, exception)
+      t = Time.now
+      self.class.record_apdex(current_metric, t - start, t - apdex_start, !exception.nil?)
     end
     
     def metric_name
       return nil if @path_stack.empty?
-      category + '/' + path 
+      current_metric.name
     end
     
     # Return the array of metrics to record for the current metric frame.
     def recorded_metrics
       metrics = [ metric_name ]
-      if @path_stack.size == 1
-        if recording_web_transaction?
-          metrics += ["HttpDispatcher"]
-        else
-          metrics += ["#{category}/all", "OtherTransaction/all"]
-        end
-      end
+      metrics += current_metric.summary_metrics if @path_stack.size == 1
       metrics
     end
     
@@ -248,8 +244,12 @@ module NewRelic::Agent::Instrumentation
       end
     end
     
-    def recording_web_transaction?(cat = category)
-      0 == cat.index("Controller")
+    def recording_web_transaction?
+      current_metric && current_metric.is_web_transaction?
+    end
+    
+    def is_web_transaction?(metric)
+      0 == metric.index("Controller")
     end
     
     # Make a safe attempt to get the referer from a request object, generally successful when
@@ -272,9 +272,17 @@ module NewRelic::Agent::Instrumentation
       return approximate_uri[%r{^(https?://.*?)?(/[^?]*)}, 2] || '/' if approximate_uri
     end 
     
+    def self.record_apdex(current_metric, action_duration, total_duration, is_error)
+      summary_stat = NewRelic::Agent.instance.stats_engine.get_custom_stats("Apdex", NewRelic::ApdexStats)
+      controller_stat = NewRelic::Agent.instance.stats_engine.get_custom_stats(current_metric.apdex_metric_path, NewRelic::ApdexStats)
+      update_apdex(summary_stat, total_duration, is_error)
+      update_apdex(controller_stat, action_duration, is_error)
+    end
+
     # Record an apdex value for the given stat.  non-nil 'failed'
     # the apdex should be recorded as a failure regardless of duration.
     def self.update_apdex(stat, duration, failed)
+      duration = duration.to_f
       apdex_t = NewRelic::Control.instance.apdex_t
       case
       when failed

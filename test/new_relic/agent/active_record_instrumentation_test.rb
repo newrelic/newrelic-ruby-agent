@@ -1,6 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
-require 'active_record_fixtures'
 class ActiveRecordInstrumentationTest < Test::Unit::TestCase
+  require 'active_record_fixtures'
   include NewRelic::Agent::Instrumentation::ControllerInstrumentation
   def setup
     super
@@ -172,7 +172,7 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
     segment = sample.root_segment.called_segments.first.called_segments.first.called_segments.first
     assert_match /^SELECT \* FROM ["`]?#{ActiveRecordFixtures::Order.table_name}["`]?$/i, segment.params[:sql].strip
     NewRelic::TransactionSample::Segment.any_instance.expects(:explain_sql).returns([])
-    sample = sample.prepare_to_send(:obfuscate_sql => true, :explain_enabled => true, :explain_sql => 0.0)
+    sample = sample.prepare_to_send(:record_sql => :obfuscated, :explain_sql => 0.0)
     segment = sample.root_segment.called_segments.first.called_segments.first
   end
   def test_prepare_to_send
@@ -188,7 +188,7 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
     assert_not_nil sql_segment, sample.to_s
     assert_match /^SELECT /, sql_segment.params[:sql]
     assert sql_segment.duration > 0.0, "Segment duration must be greater than zero."
-    sample = sample.prepare_to_send(:record_sql => :raw, :explain_enabled => true, :explain_sql => 0.0)
+    sample = sample.prepare_to_send(:record_sql => :raw, :explain_sql => 0.0)
     sql_segment = sample.root_segment.called_segments.first.called_segments.first.called_segments.first
     assert_match /^SELECT /, sql_segment.params[:sql]
     explanations = sql_segment.params[:explanation]
@@ -207,9 +207,8 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
     
     sample = NewRelic::Agent.instance.transaction_sampler.last_sample
     
-    sample = sample.prepare_to_send(:obfuscate_sql => true, :explain_enabled => true, :explain_sql => 0.0)
+    sample = sample.prepare_to_send(:record_sql => :obfuscated, :explain_sql => 0.0)
     segment = sample.root_segment.called_segments.first.called_segments.first.called_segments.first
-    assert_nil segment.params[:sql], "SQL should have been removed."
     explanations = segment.params[:explanation]
     if isMysql? || isPostgres?
       assert_not_nil explanations, "No explains in segment: #{segment}"
@@ -284,4 +283,4 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
   def isMysql?
     ActiveRecordFixtures::Order.connection.class.name =~ /mysql/i 
   end
-end
+end if defined? Rails

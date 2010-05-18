@@ -1,3 +1,6 @@
+# Run faster standalone
+ENV['SKIP_RAILS'] = 'true'
+
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
 
 class TaskInstrumentationTest < Test::Unit::TestCase
@@ -94,7 +97,7 @@ class TaskInstrumentationTest < Test::Unit::TestCase
   def test_abort
     @acct = 'Redrocks'
     perform_action_with_newrelic_trace(:name => 'hello', :force => true, :params => { :account => @acct}) do
-      RAILS_DEFAULT_LOGGER.info "Hello world"
+      self.class.inspect
       NewRelic::Agent.abort_transaction!
     end
     # We record the controller metric still, but abort any transaction recording.
@@ -106,7 +109,7 @@ class TaskInstrumentationTest < Test::Unit::TestCase
     assert_equal @agent, NewRelic::Agent.instance
     @acct = 'Redrocks'
     perform_action_with_newrelic_trace(:name => 'hello', :force => true, :params => { :account => @acct}) do
-      RAILS_DEFAULT_LOGGER.info "Hello world"
+      self.class.inspect
     end
     @agent.stats_engine.metrics.sort.each do |n|
       stat = @agent.stats_engine.get_stats_no_scope(n)
