@@ -1,5 +1,6 @@
 v2.12.1
   * fix race condition in Delayed::Job instrumentation loading
+  * fix glassfish detection in latest glassfish gem
 
 v2.12.0
   * support basic instrumentation for ActsAsSolr and Sunspot
