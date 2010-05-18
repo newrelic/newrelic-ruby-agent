@@ -115,8 +115,8 @@ class NewRelic::Agent::CollectionHelperTest < Test::Unit::TestCase
       #puts e.backtrace.join("\n")
       #puts "\n\n"
       clean_trace = strip_nr_from_backtrace(e.backtrace)
-      assert_equal 0, clean_trace.grep(/newrelic_rpm/).size, clean_trace.grep(/newrelic_rpm/)
-      assert_equal 0, clean_trace.grep(/trace/).size, clean_trace.grep(/trace/)
+      assert_equal 0, clean_trace.grep(/newrelic_rpm/).size, clean_trace.inspect
+      assert_equal 0, clean_trace.grep(/trace/).size, clean_trace.inspect
       assert_equal 3, clean_trace.grep(/find/).size, "should see three frames with 'find' in them (#{e}): \n#{clean_trace.join("\n")}"
     ensure
       ActiveRecordFixtures.teardown

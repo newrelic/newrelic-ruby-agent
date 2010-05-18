@@ -61,6 +61,34 @@ module NewRelic
         attr_reader :histogram
         attr_reader :metric_ids
 
+
+        def record_transaction(duration_seconds, options={})
+          is_error = options[:is_error] || options[:error_message] || options[:exception]
+          metric = options[:metric]
+          metric ||= options[:uri] # normalize this with url rules
+          
+          metric_info = NewRelic::MetricParser.for_metric_named(metric)
+
+          if metric_info.is_web_transaction?
+            NewRelic::Agent::Instrumentation::MetricFrame.record_apdex(metric_info, duration_seconds, duration_seconds, is_error)
+            histogram.process(duration_seconds) 
+          end
+          metrics = metric_info.summary_metrics
+          metrics << metric
+          metrics.each do |name|
+            stats = stats_engine.get_stats_no_scope(name)
+            stats.record_data_point(duration_seconds)
+          end
+          
+          if is_error
+            if error_message
+              e = Exception.new error_message if error_message
+              error_collector.notice_error e, :uri => uri, :metric => uri
+            end
+          end
+          # busy time ?
+        end
+
         # This method is deprecated.  Use NewRelic::Agent.manual_start
         def manual_start(ignored=nil, also_ignored=nil)
           raise "This method no longer supported.  Instead use the class method NewRelic::Agent.manual_start"
@@ -238,9 +266,9 @@ module NewRelic
 
           if control.monitor_mode?
             if !control.license_key
-              control.log! "No license key found.  Please edit your newrelic.yml file and insert your license key.", :error
+              log.error "No license key found.  Please edit your newrelic.yml file and insert your license key.", :error
             elsif  control.license_key.length != 40
-              control.log! "Invalid license key: #{control.license_key}", :error
+              log.error "Invalid license key: #{control.license_key}", :error
             else
               # Do the connect in the foreground if we are in sync mode
               NewRelic::Agent.disable_all_tracing { connect(:keep_retrying => false) } if control.sync_startup
@@ -331,7 +359,7 @@ module NewRelic
               log.error "RPM forced this agent to disconnect (#{e.message})"
               @connected = false
             rescue NewRelic::Agent::ServerConnectionException => e
-              control.log! "Unable to establish connection with the server.  Run with log level set to debug for more information."
+              log.error "Unable to establish connection with the server.  Run with log level set to debug for more information."
               log.debug("#{e.class.name}: #{e.message}\n#{e.backtrace.first}")
               @connected = false
             rescue Exception => e
@@ -388,7 +416,6 @@ module NewRelic
             end
             host = invoke_remote(:get_redirect_host)
             @collector = control.server_from_host(host) if host
-            
             environment = control['send_environment_info'] != false ? control.local_env.snapshot : []
             log.debug "Connecting with validation seed/token: #{control.validate_seed}/#{control.validate_token}" if control.validate_seed
             connect_data = invoke_remote :connect,
@@ -435,8 +462,8 @@ module NewRelic
             @connected = true
 
           rescue NewRelic::Agent::LicenseException => e
-            control.log! e.message, :error
-            control.log! "Visit NewRelic.com to obtain a valid license key, or to upgrade your account."
+            log.error e.message
+            log.info "Visit NewRelic.com to obtain a valid license key, or to upgrade your account."
             @connected = false
 
           rescue Timeout::Error, StandardError => e

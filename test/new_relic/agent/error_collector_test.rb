@@ -14,15 +14,18 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
     @error_collector.notice_error(nil, :metric=> 'path', :request_params => {:x => 'y'})
     errors = @error_collector.harvest_errors([])
     
-    assert_equal errors.length, 1
+    assert_equal 0, errors.length
+
+    @error_collector.notice_error('Some error message', :metric=> 'path', :request_params => {:x => 'y'})
+    errors = @error_collector.harvest_errors([])
     
     err = errors.first
-    assert_equal '<no message>', err.message 
+    assert_equal 'Some error message', err.message 
     assert_equal 'y', err.params[:request_params][:x]
     assert_equal '', err.params[:request_uri]
     assert_equal '', err.params[:request_referer]
     assert_equal 'path', err.path 
-    assert_equal '<no exception>', err.exception_class
+    assert_equal 'Error', err.exception_class
 
   end
   def test_simple

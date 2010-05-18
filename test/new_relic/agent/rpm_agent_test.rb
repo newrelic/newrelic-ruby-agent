@@ -136,4 +136,10 @@ class RpmAgentTest < Test::Unit::TestCase # ActiveSupport::TestCase
       NewRelic::Agent.agent.invoke_remote  :get_data_report_period, 0xFEFE
     end
   end
+  
+  def test_record_transaction_api
+    
+    NewRelic::Agent.record_transaction 0.5, :uri => "/users/create?foo=bar"
+
+  end
 end
