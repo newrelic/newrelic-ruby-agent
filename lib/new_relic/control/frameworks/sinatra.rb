@@ -1,7 +1,7 @@
 
-require 'new_relic/control/ruby'
+require 'new_relic/control/frameworks/ruby'
 
-class NewRelic::Control::Sinatra < NewRelic::Control::Ruby
+class NewRelic::Control::Frameworks::Sinatra < NewRelic::Control::Frameworks::Ruby
   
   def env
     @env ||= ENV['RACK_ENV'] || ENV['RAILS_ENV'] || 'development'
