@@ -127,5 +127,10 @@ module NewRelic
       @name = name
     end
     
+    # These would be reflected properly by method missing; consider
+    # this an optimization
+    def is_controller?; false; end
+    def is_transaction?; false; end
+    
   end  
 end

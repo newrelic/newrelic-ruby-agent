@@ -2,6 +2,10 @@
 # Task is "Background", "Resque", "DelayedJob" etc.
 
 class NewRelic::MetricParser::OtherTransaction < NewRelic::MetricParser
+  
+  def is_transaction?
+    true
+  end
   def task
     segments[1]
   end
