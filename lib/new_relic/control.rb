@@ -71,17 +71,12 @@ module NewRelic
     # in a mode where tracers are not installed then we should not start the agent.
     #
     # Subclasses are not allowed to override, but must implement init_config({}) which
-    # is called one or more times.
+    # is called at most once.
     #
     def init_plugin(options={})
       options['app_name'] = ENV['NEWRELIC_APP_NAME'] if ENV['NEWRELIC_APP_NAME']
  
       require 'new_relic/agent'
-      
-      # Load the DJ injection now.  If you do it sooner, DJ might not be loaded and
-      # you'll miss it.
-      require 'new_relic/delayed_job_injection'
-      
       # Merge the stringified options into the config as overrides:
       logger_override = options.delete(:log)
       environment_name = options.delete(:env) and self.env = environment_name
