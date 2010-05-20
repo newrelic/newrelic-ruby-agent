@@ -1,4 +1,5 @@
 v2.12.1
+  * fix bug in profile mode
   * fix race condition in Delayed::Job instrumentation loading
   * fix glassfish detection in latest glassfish gem
 
