@@ -17,8 +17,8 @@ class NewRelic::Agent::CollectionHelperTest < Test::Unit::TestCase
     assert_equal val[0...256] + "...", normalize_params(val)
   end
   def test_array
-    new_array = normalize_params [ 1000 ] * 50
-    assert_equal 20, new_array.size
+    new_array = normalize_params [ 1000 ] * 2000
+    assert_equal 1024, new_array.size
     assert_equal '1000', new_array[0]
   end
   def test_boolean
