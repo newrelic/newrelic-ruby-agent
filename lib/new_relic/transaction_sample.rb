@@ -16,14 +16,14 @@ module NewRelic
       ].freeze
   
   class TransactionSample
+    
+    attr_accessor :params, :root_segment
     EMPTY_ARRAY = [].freeze
     
     @@start_time = Time.now
 
     include TransactionAnalysis
     class Segment
-      
-      
       attr_reader :entry_timestamp
       # The exit timestamp will be relative except for the outermost sample which will 
       # have a timestamp.
@@ -64,35 +64,6 @@ module NewRelic
           map[:params] = @params
         end
         map.to_json
-      end
-      
-      def self.from_json(json, id_generator)
-        json = ActiveSupport::JSON.decode(json) if json.is_a?(String)
-        if json.is_a?(Array)
-          entry_timestamp = json[0].to_f / 1000
-          exit_timestamp = json[1].to_f / 1000
-          metric_name = json[2]
-          params = json[3]
-          called_segments = json[4]
-        else
-          entry_timestamp = json["entry_timestamp"].to_f
-          exit_timestamp = json["exit_timestamp"].to_f
-          metric_name =  json["metric_name"]       
-          params = json["params"]
-          
-          called_segments = json["called_segments"]
-        end
-        segment = Segment.new(entry_timestamp, metric_name, id_generator.next_id)
-        segment.end_trace exit_timestamp
-        if params
-          segment.send :params=, HashWithIndifferentAccess.new(params)
-        end
-        if called_segments
-          called_segments.each do |child|
-            segment.add_called_segment(self.from_json(child, id_generator))
-          end
-        end
-        segment
       end
       
       def path_string
@@ -250,6 +221,11 @@ module NewRelic
         explanations
       end
 
+      def params=(p)
+        @params = p
+      end
+        
+
       def handle_exception_in_explain(e)
         x = 1 # this is here so that code coverage knows we've entered this block
         # swallow failed attempts to run an explain.  One example of a failure is the
@@ -267,9 +243,6 @@ module NewRelic
       protected
         def parent_segment=(s)
           @parent_segment = s
-        end
-        def params=(p)
-          @params = p
         end
     end
 
@@ -321,7 +294,6 @@ module NewRelic
       def obfuscate_sql(sql)
         NewRelic::Agent.instance.obfuscator.call(sql) 
       end
-      
       
       def get_connection(config)
         @@connections ||= {}
@@ -399,36 +371,7 @@ module NewRelic
       map.to_json
     end
     
-    # Used in the Server only
-    def self.from_json(json) #:nodoc:
-      json = ActiveSupport::JSON.decode(json) if json.is_a?(String)
-      
-      if json.is_a?(Array)
-        start_time = json[0].to_f / 1000
-        custom_params = HashWithIndifferentAccess.new(json[2])
-        params = {:request_params => HashWithIndifferentAccess.new(json[1]), 
-              :custom_params => custom_params}
-        cpu_time = custom_params.delete(:cpu_time)
-        sample_id = nil
-        params[:cpu_time] = cpu_time.to_f / 1000 if cpu_time
-        root = json[3]
-      else
-        start_time = json["start_time"].to_f 
-        sample_id = json["sample_id"].to_i
-        params = json["params"] 
-        root = json["root_segment"]
-      end
-      
-      sample = TransactionSample.new(start_time, sample_id)
-      
-      if params
-        sample.send :params=, HashWithIndifferentAccess.new(params)
-      end
-      if root
-        sample.send :root_segment=, Segment.from_json(root, IDGenerator.new)
-      end
-      sample
-    end
+   
 
     def start_time
       Time.at(@start_time)
@@ -534,10 +477,6 @@ module NewRelic
       
     end
     
-  protected
-    def root_segment=(segment)
-      @root_segment = segment
-    end
     def params=(params)
       @params = params
     end
@@ -643,14 +582,5 @@ module NewRelic
       end
     end
     
-    # Generates segment ids for json transaction segments
-    class IDGenerator
-      def initialize
-        @next_id = 0        
-      end
-      def next_id
-        @next_id += 1
-      end
-    end
   end
 end

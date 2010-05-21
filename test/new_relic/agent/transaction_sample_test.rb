@@ -1,9 +1,7 @@
 ENV['SKIP_RAILS'] = 'true'
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
+require File.expand_path('../../../test_helper.rb', __FILE__) 
 
-
-
-class NewRelic::TransationSampleTest < Test::Unit::TestCase
+class NewRelic::TransactionSampleTest < Test::Unit::TestCase
   extend TestContexts
   include TransactionSampleTestHelper
   ::SQL_STATEMENT = "SELECT * from sandwiches"
@@ -189,4 +187,6 @@ class NewRelic::TransationSampleTest < Test::Unit::TestCase
     end
     
   end
+  
+  
 end
