@@ -152,8 +152,8 @@ module NewRelic
       @unicorn
     end
 
-    # Obsolete method for DelayedJob instrumentation support, which is
-    # now in the rpm_contrib gem.
+    # Obsolete method for DelayedJob instrumentation support.  Now all DJ instrumentation
+    # is bundled in the newrelic_rpm gem and nobody should be invoking this method.
     def delayed_worker=(worker)
       $stderr.puts "WARNING: obsolete call to delayed_worker=(worker).  Please remove custom DJ instrumentation."
     end
