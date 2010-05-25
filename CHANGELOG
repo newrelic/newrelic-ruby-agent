@@ -14,6 +14,7 @@ v2.13.0
   * allow customization of log directories with newrelic.yml settings
   * optimization to execution time measurement
   * optimization to startup sequence
+  * try creating log directory if it doesn't exist
 
 v2.12.1
   * fix race condition in Delayed::Job instrumentation loading
