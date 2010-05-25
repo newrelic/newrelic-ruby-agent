@@ -43,11 +43,11 @@ module NewRelic
         # set the log level as specified in the config file
         
         case fetch("log_level","info").downcase
-          when "debug" then @log.level = Logger::DEBUG
-          when "info" then @log.level = Logger::INFO
-          when "warn" then @log.level = Logger::WARN
-          when "error" then @log.level = Logger::ERROR
-          when "fatal" then @log.level = Logger::FATAL
+          when "debug" then log.level = Logger::DEBUG
+          when "info" then log.level = Logger::INFO
+          when "warn" then log.level = Logger::WARN
+          when "error" then log.level = Logger::ERROR
+          when "fatal" then log.level = Logger::FATAL
         else log.level = Logger::INFO
         end
         log
