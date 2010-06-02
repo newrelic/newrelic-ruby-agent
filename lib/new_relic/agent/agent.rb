@@ -468,9 +468,11 @@ module NewRelic
             @connected = false
 
           rescue Timeout::Error, StandardError => e
-            log.info "Unable to establish connection with New Relic RPM Service at #{control.server}"
-            unless e.instance_of? NewRelic::Agent::ServerConnectionException
-              log.error e.message
+            if e.instance_of? NewRelic::Agent::ServerConnectionException
+              log.info "Unable to establish connection with New Relic RPM Service at #{control.server}: #{e.message}"
+              log.debug e.backtrace.join("\n")
+            else
+              log.error "Error establishing connection with New Relic RPM Service at #{control.server}: #{e.message}"
               log.debug e.backtrace.join("\n")
             end
             # retry logic
@@ -643,14 +645,14 @@ module NewRelic
             raise
           end
           if response.is_a? Net::HTTPServiceUnavailable
-            raise NewRelic::Agent::ServerConnectionException, "Service unavailable: #{response.body || response.message}"
+            raise NewRelic::Agent::ServerConnectionException, "Service unavailable (#{response.code}): #{response.message}"
           elsif response.is_a? Net::HTTPGatewayTimeOut
             log.debug("Timed out getting response: #{response.message}")
             raise Timeout::Error, response.message
           elsif response.is_a? Net::HTTPRequestEntityTooLarge
             raise PostTooBigException
           elsif !(response.is_a? Net::HTTPSuccess)
-            raise NewRelic::Agent::ServerConnectionException, "Unexpected response from server: #{response.code}: #{response.message}"
+            raise NewRelic::Agent::ServerConnectionException, "Unexpected response from server (#{response.code}): #{response.message}"
           end
           response
         end
