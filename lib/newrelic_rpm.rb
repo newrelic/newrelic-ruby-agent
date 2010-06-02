@@ -19,22 +19,18 @@
 #
 require 'new_relic/control'
 
-# After verison 2.0 of Rails we can access the configuration directly.
-# We need it to add dev mode routes after initialization finished. 
-if defined? Rails.configuration
-  Rails.configuration.after_initialize do
-    NewRelic::Control.instance.init_plugin :config => Rails.configuration
-  end
-elsif defined? Merb
+if defined? Merb
   module NewRelic
     class MerbBootLoader < Merb::BootLoader
       after Merb::BootLoader::ChooseAdapter
-
       def self.run
         NewRelic::Control.instance.init_plugin
       end
     end
   end
 else
-  NewRelic::Control.instance.init_plugin
+  # After verison 2.0 of Rails we can access the configuration directly.
+  # We need it to add dev mode routes after initialization finished.
+  config = Rails.configuration if defined?(Rails.configuration)
+  NewRelic::Control.instance.init_plugin :config => config
 end

@@ -15,6 +15,8 @@ v2.13.0
   * optimization to execution time measurement
   * optimization to startup sequence
   * try creating log directory if it doesn't exist
+  * change startup sequence so that instrumentation is installed after all
+    other gems and plugins have loaded
 v2.12.2
   * workaround bug found in some rubies that caused a segv and/or NoMemoryError
     when deflating content for upload
