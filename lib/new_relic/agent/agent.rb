@@ -398,7 +398,10 @@ module NewRelic
         #   you are not in a spawner (default is true).
 
         def connect(options)
-          return if @connected && !options[:force_reconnect]
+          # Don't proceed if we already connected (@connected=true) or if we tried
+          # to connect and were rejected with prejudice because of a license issue
+          # (@connected=false).
+          return if !@connected.nil? && !options[:force_reconnect]
           keep_retrying = options[:keep_retrying].nil? || options[:keep_retrying]
           check_for_spawner = options[:check_for_spawner].nil? || options[:check_for_spawner]
 
@@ -608,8 +611,10 @@ module NewRelic
 
           dump_size = dump.size
 
-          # small payloads don't need compression
-          return [dump, 'identity'] if dump_size < 2000
+          # Compress if content is smaller than 64kb.  There are problems
+          # with bugs in Ruby in some versions that expose us to a risk of
+          # segfaults if we compress aggressively.
+          return [dump, 'identity'] if dump_size < (64*1024)
 
           # medium payloads get fast compression, to save CPU
           # big payloads get all the compression possible, to stay under
@@ -627,7 +632,7 @@ module NewRelic
         end
 
         def send_request(opts)
-          request = Net::HTTP::Post.new(opts[:uri], 'CONTENT-ENCODING' => opts[:encoding], 'ACCEPT-ENCODING' => 'gzip', 'HOST' => opts[:collector].name)
+          request = Net::HTTP::Post.new(opts[:uri], 'CONTENT-ENCODING' => opts[:encoding], 'HOST' => opts[:collector].name)  
           request.content_type = "application/octet-stream"
           request.body = opts[:data]
 
