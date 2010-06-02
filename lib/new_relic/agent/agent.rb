@@ -434,23 +434,22 @@ module NewRelic
               :validate => {:seed => control.validate_seed,
                             :token => control.validate_token }
 
-            connect_data.symbolize_keys!
-            
-            @agent_id = connect_data[:agent_run_id]
-            @report_period = connect_data[:data_report_period]
+            @agent_id = connect_data['agent_run_id']
+            @report_period = connect_data['data_report_period']
+            @url_rules = connect_data['url_rules']
 
             control.log! "Connected to NewRelic Service at #{@collector}"
-            log.debug "Agent ID = #{@agent_id}."
+            log.debug "Agent Run       = #{@agent_id}."
             log.debug "Connection data = #{connect_data.inspect}"
 
             # Ask the server for permission to send transaction samples.
             # determined by subscription license.
-            @should_send_samples &&= connect_data[:collect_traces]
+            @should_send_samples &&= connect_data['collect_traces']
 
             if @should_send_samples
               if @should_send_random_samples
                 @transaction_sampler.random_sampling = true
-                @transaction_sampler.sampling_rate = connect_data[:sampling_rate]
+                @transaction_sampler.sampling_rate = connect_data['sampling_rate']
                 log.info "Transaction sampling enabled, rate = #{@transaction_sampler.sampling_rate}"
               end
               log.info "Transaction tracing threshold is #{@slowest_transaction_threshold} seconds."
@@ -459,7 +458,7 @@ module NewRelic
             end
 
             # Ask for permission to collect error data
-            error_collector.enabled &&= connect_data[:collect_errors]
+            error_collector.enabled &&= connect_data['collect_errors']
 
             log.info "Errors will be sent to the RPM service." if error_collector.enabled
 
