@@ -15,6 +15,9 @@ v2.13.0
   * optimization to execution time measurement
   * optimization to startup sequence
   * try creating log directory if it doesn't exist
+v2.12.2
+  * workaround bug found in some rubies that caused a segv and/or NoMemoryError
+    when deflating content for upload
 
 v2.12.1
   * fix race condition in Delayed::Job instrumentation loading

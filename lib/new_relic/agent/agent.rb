@@ -605,8 +605,10 @@ module NewRelic
 
           dump_size = dump.size
 
-          # small payloads don't need compression
-          return [dump, 'identity'] if dump_size < 2000
+          # Compress if content is smaller than 64kb.  There are problems
+          # with bugs in Ruby in some versions that expose us to a risk of
+          # segfaults if we compress aggressively.
+          return [dump, 'identity'] if dump_size < (64*1024)
 
           # medium payloads get fast compression, to save CPU
           # big payloads get all the compression possible, to stay under
@@ -624,7 +626,7 @@ module NewRelic
         end
 
         def send_request(opts)
-          request = Net::HTTP::Post.new(opts[:uri], 'CONTENT-ENCODING' => opts[:encoding], 'ACCEPT-ENCODING' => 'gzip', 'HOST' => opts[:collector].name)
+          request = Net::HTTP::Post.new(opts[:uri], 'CONTENT-ENCODING' => opts[:encoding], 'HOST' => opts[:collector].name)  
           request.content_type = "application/octet-stream"
           request.body = opts[:data]
 
@@ -642,14 +644,14 @@ module NewRelic
             raise
           end
           if response.is_a? Net::HTTPServiceUnavailable
-            raise NewRelic::Agent::ServerConnectionException, "Service unavailable: #{response.body || response.message}"
+            raise NewRelic::Agent::ServerConnectionException, "Service unavailable (#{response.code}): #{response.message}"
           elsif response.is_a? Net::HTTPGatewayTimeOut
             log.debug("Timed out getting response: #{response.message}")
             raise Timeout::Error, response.message
           elsif response.is_a? Net::HTTPRequestEntityTooLarge
             raise PostTooBigException
           elsif !(response.is_a? Net::HTTPSuccess)
-            raise NewRelic::Agent::ServerConnectionException, "Unexpected response from server: #{response.code}: #{response.message}"
+            raise NewRelic::Agent::ServerConnectionException, "Unexpected response from server (#{response.code}): #{response.message}"
           end
           response
         end
