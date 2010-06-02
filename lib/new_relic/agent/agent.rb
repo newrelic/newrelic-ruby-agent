@@ -288,10 +288,10 @@ module NewRelic
               end
             end
           else
-            control.log! "Agent configured not to send data in this environment - edit newrelic.yml to change this"
+            log.warn "Agent configured not to send data in this environment - edit newrelic.yml to change this"
           end
-          control.log! "New Relic RPM Agent #{NewRelic::VERSION::STRING} Initialized: pid = #$$"
-          control.log! "Agent Log found in #{NewRelic::Control.instance.log_file}" if NewRelic::Control.instance.log_file
+          log.info "New Relic RPM Agent #{NewRelic::VERSION::STRING} Initialized: pid = #$$"
+          log.info "Agent Log found in #{NewRelic::Control.instance.log_file}" if NewRelic::Control.instance.log_file
         end
 
         # Clear out the metric data, errors, and transaction traces.  Reset the histogram data.
@@ -330,7 +330,7 @@ module NewRelic
                   end
                   log.info "Reporting performance data every #{@report_period} seconds."
                   log.debug "Running worker loop"
-                  # note if the agent attempts to report more frequently than allowed by the server
+                  # Note if the agent attempts to report more frequently than allowed by the server
                   # the server will start dropping data.
                   @worker_loop = WorkerLoop.new
                   @worker_loop.run(@report_period) do
@@ -396,7 +396,10 @@ module NewRelic
         #   you are not in a spawner (default is true).
 
         def connect(options)
-          return if @connected && !options[:force_reconnect]
+          # Don't proceed if we already connected (@connected=true) or if we tried
+          # to connect and were rejected with prejudice because of a license issue
+          # (@connected=false).
+          return if !@connected.nil? && !options[:force_reconnect]
           keep_retrying = options[:keep_retrying].nil? || options[:keep_retrying]
           check_for_spawner = options[:check_for_spawner].nil? || options[:check_for_spawner]
 
@@ -467,9 +470,11 @@ module NewRelic
             @connected = false
 
           rescue Timeout::Error, StandardError => e
-            log.info "Unable to establish connection with New Relic RPM Service at #{control.server}"
-            unless e.instance_of? NewRelic::Agent::ServerConnectionException
-              log.error e.message
+            if e.instance_of? NewRelic::Agent::ServerConnectionException
+              log.info "Unable to establish connection with New Relic RPM Service at #{control.server}: #{e.message}"
+              log.debug e.backtrace.join("\n")
+            else
+              log.error "Error establishing connection with New Relic RPM Service at #{control.server}: #{e.message}"
               log.debug e.backtrace.join("\n")
             end
             # retry logic
