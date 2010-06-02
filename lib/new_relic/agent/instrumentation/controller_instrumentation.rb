@@ -280,20 +280,22 @@ module NewRelic
     # Profile the instrumented call.  Dev mode only.  Experimental. 
     def perform_action_with_newrelic_profile(args)
       frame_data = _push_metric_frame(block_given? ? args : [])
+      val = nil
       NewRelic::Agent.trace_execution_scoped frame_data.metric_name do
         MetricFrame.current(true).start_transaction
         NewRelic::Agent.disable_all_tracing do
           # turn on profiling
           profile = RubyProf.profile do
             if block_given?
-              yield
+              val = yield
             else
-              perform_action_without_newrelic_trace(*args)
+              val = perform_action_without_newrelic_trace(*args)
             end
           end
           NewRelic::Agent.instance.transaction_sampler.notice_profile profile
         end
       end
+      return val
     ensure
       frame_data.pop
     end
