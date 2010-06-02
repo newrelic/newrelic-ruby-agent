@@ -70,7 +70,7 @@ module NewRelic
         log.error "Error running task in Agent Worker Loop '#{e}': #{e.backtrace.first}" 
         log.debug e.backtrace.join("\n")
       ensure
-        while @next_invocation_time < Time.now && @period > 0
+        while @next_invocation_time <= Time.now && @period > 0
           @next_invocation_time += @period
         end        
       end
