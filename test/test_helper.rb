@@ -10,7 +10,11 @@ require 'rubygems'
 # You can also run the tests in a mode without rails.  Many tests 
 # will be skipped.
 if ENV['SKIP_RAILS']
-  RAILS_ROOT = "#{File.dirname(__FILE__)}/.." unless defined?(RAILS_ROOT)
+  dirs = File.dirname(__FILE__).split('/')
+  while dirs.any? && !File.directory?((dirs+%w[log]).join('/'))
+    dirs.pop
+  end
+  RAILS_ROOT = dirs.any? ? dirs.join("/") : "#{File.dirname(__FILE__)}/.." unless defined?(RAILS_ROOT)
   $LOAD_PATH << File.join(NEWRELIC_PLUGIN_DIR, "lib")
   require File.join(NEWRELIC_PLUGIN_DIR, "lib/newrelic_rpm")
 else
