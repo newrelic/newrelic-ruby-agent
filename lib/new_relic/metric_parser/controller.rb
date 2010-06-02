@@ -1,8 +1,7 @@
 class NewRelic::MetricParser::Controller < NewRelic::MetricParser
 
-  def is_controller?
-    true
-  end
+  def is_controller?; true; end
+  def is_transaction?; true; end
 
   # If the controller name segments look like a file path, convert it to the controller
   # class name.  If it begins with a capital letter, assume it's already a class name.

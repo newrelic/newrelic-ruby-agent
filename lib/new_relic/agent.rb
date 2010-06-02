@@ -322,7 +322,8 @@ module NewRelic
       NewRelic::Agent::Instrumentation::MetricFrame.notice_error(exception, options)
     end
 
-    # Add parameters to the current transaction trace on the call stack.
+    # Add parameters to the current transaction trace (and traced error if any)
+    # on the call stack.
     #
     def add_custom_parameters(params)
       NewRelic::Agent::Instrumentation::MetricFrame.add_custom_parameters(params)
