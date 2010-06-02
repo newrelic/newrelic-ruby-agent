@@ -60,7 +60,7 @@ module NewRelic
         attr_reader :record_sql
         attr_reader :histogram
         attr_reader :metric_ids
-
+        attr_reader :url_rules
 
         def record_transaction(duration_seconds, options={})
           is_error = options[:is_error] || options[:error_message] || options[:exception]
@@ -278,13 +278,15 @@ module NewRelic
 
               # Our shutdown handler needs to run after other shutdown handlers
               # that may be doing things like running the app (hello sinatra).
-              if RUBY_VERSION =~ /rubinius/i 
-                list = at_exit { shutdown }
-                # move the shutdown handler to the front of the list, to
-                # execute last:
-                list.unshift(list.pop)
-              elsif !defined?(JRuby) or !defined?(Sinatra::Application)
-                at_exit { at_exit { shutdown } } 
+              if control.send_data_on_exit
+                if RUBY_VERSION =~ /rubinius/i 
+                  list = at_exit { shutdown }
+                  # move the shutdown handler to the front of the list, to
+                  # execute last:
+                  list.unshift(list.pop)
+                elsif !defined?(JRuby) or !defined?(Sinatra::Application)
+                  at_exit { at_exit { shutdown } } 
+                end
               end
             end
           else

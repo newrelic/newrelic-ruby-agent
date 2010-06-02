@@ -17,6 +17,9 @@ v2.13.0
   * try creating log directory if it doesn't exist
   * change startup sequence so that instrumentation is installed after all
     other gems and plugins have loaded
+  * add option to override automatic flushing of data on exit--send_data_on_exit
+    defaults to 'true'
+    
 v2.12.2
   * workaround bug found in some rubies that caused a segv and/or NoMemoryError
     when deflating content for upload

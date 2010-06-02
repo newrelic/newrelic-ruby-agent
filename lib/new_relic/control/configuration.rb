@@ -73,13 +73,14 @@ module NewRelic
       def monitor_mode?
         fetch('monitor_mode', fetch('enabled'))
       end
+      
       # True if we are capturing data and displaying in /newrelic
       def developer_mode?
         fetch('developer_mode', fetch('developer'))
       end
       
       def episodes_enabled?
-        fetch('episodes_enabled', true)
+        fetch('episodes_enabled', false)
       end
       # True if the app runs in multi-threaded mode
       def multi_threaded?
@@ -92,15 +93,25 @@ module NewRelic
       def post_size_limit
         fetch('post_size_limit', 2 * 1024 * 1024)
       end
-      
+    
+      # Configuration option of the same name to indicate that we should connect
+      # to RPM synchronously on startup.  This means when the agent is loaded it 
+      # won't return without trying to set up the server connection at least once
+      # which can make startup take longer.  Defaults to false.
       def sync_startup
         fetch('sync_startup', false)
       end
-
-      
+    
+      # Configuration option of the same name to indicate that we should flush
+      # data to the server on exiting.  Defaults to true.
+      def send_data_on_exit
+        fetch('send_data_on_exit', true)
+      end
+        
       def dispatcher_instance_id
         self['dispatcher_instance_id'] || @local_env.dispatcher_instance_id
       end
+      
       def dispatcher
         (self['dispatcher'] && self['dispatcher'].to_sym) || @local_env.dispatcher
       end
