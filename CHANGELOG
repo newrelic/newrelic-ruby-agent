@@ -15,7 +15,11 @@ v2.13.0
   * optimization to execution time measurement
   * optimization to startup sequence
   * try creating log directory if it doesn't exist
-
+  * change startup sequence so that instrumentation is installed after all
+    other gems and plugins have loaded
+  * add option to override automatic flushing of data on exit--send_data_on_exit
+    defaults to 'true'
+    
 v2.12.1
   * fix race condition in Delayed::Job instrumentation loading
   * fix glassfish detection in latest glassfish gem

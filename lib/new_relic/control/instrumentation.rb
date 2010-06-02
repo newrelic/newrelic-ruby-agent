@@ -33,18 +33,13 @@ module NewRelic
         end
       end
       def install_instrumentation
-        return if @instrumented
-        
-        @instrumented = true
-        
-        # Instrumentation for the key code points inside rails for monitoring by NewRelic.
-        # note this file is loaded only if the newrelic agent is enabled (through config/newrelic.yml)
-        instrumentation_path = File.join(File.dirname(__FILE__), '..', 'agent','instrumentation')
-        @instrumentation_files <<
-          File.join(instrumentation_path, '*.rb') <<
-          File.join(instrumentation_path, app.to_s, '*.rb')
-        @instrumentation_files.each { | pattern |  load_instrumentation_files pattern }
-        log.debug "Finished instrumentation"
+        if defined?(Rails.initialized?) && !Rails.initialized?
+          Rails.configuration.after_initialize do
+            _install_instrumentation
+          end
+        else
+          _install_instrumentation
+        end
       end
       
       def load_samplers
@@ -68,6 +63,22 @@ module NewRelic
         end
       end
       
+      private
+      
+      def _install_instrumentation
+        return if @instrumented
+        
+        @instrumented = true
+        
+        # Instrumentation for the key code points inside rails for monitoring by NewRelic.
+        # note this file is loaded only if the newrelic agent is enabled (through config/newrelic.yml)
+        instrumentation_path = File.join(File.dirname(__FILE__), '..', 'agent','instrumentation')
+        @instrumentation_files <<
+        File.join(instrumentation_path, '*.rb') <<
+        File.join(instrumentation_path, app.to_s, '*.rb')
+        @instrumentation_files.each { | pattern |  load_instrumentation_files pattern }
+        log.debug "Finished instrumentation"
+      end
     end
   end
 end

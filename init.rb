@@ -12,24 +12,26 @@ require 'new_relic/control'
 
 # Initializer for the NewRelic Agent
 
-begin
-  # JRuby's glassfish plugin is trying to run the Initializer twice,
-  # which isn't a good thing so we ignore subsequent invocations here.
-  if ! defined?(::NEWRELIC_STARTED)
-    ::NEWRELIC_STARTED = "#{caller.join("\n")}"
+# After verison 2.0 of Rails we can access the configuration directly.
+# We need it to add dev mode routes after initialization finished. 
 
-    NewRelic::Control.instance.init_plugin(defined?(config) ? {:config => config} : {})
-  else
-    NewRelic::Control.instance.log.debug "Attempt to initialize the plugin twice!"
-    NewRelic::Control.instance.log.debug "Original call: \n#{::NEWRELIC_STARTED}"
-    NewRelic::Control.instance.log.debug "Here we are now: \n#{caller.join("\n")}"
+begin
+
+  current_config = if defined?(config)
+    config
+  elsif defined?(Rails.configuration)
+    Rails.configuration
   end
+  
+  NewRelic::Control.instance.init_plugin :config => current_config
+  
 rescue => e
   NewRelic::Control.instance.log! "Error initializing New Relic plugin (#{e})", :error
   NewRelic::Control.instance.log!  e.backtrace.join("\n"), :error
   NewRelic::Control.instance.log! "Agent is disabled."
 end
-#ClassLoadingWatcher.flag_const_missing = nil
 
+#ClassLoadingWatcher.flag_const_missing = nil
+# 
 # ::RAILS_DEFAULT_LOGGER.warn "RPM detected environment: #{NewRelic::Control.instance.local_env.to_s}, RAILS_ENV: #{RAILS_ENV}"
 # ::RAILS_DEFAULT_LOGGER.warn "Enabled? #{NewRelic::Control.instance.agent_enabled?}"
