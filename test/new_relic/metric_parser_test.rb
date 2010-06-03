@@ -1,18 +1,19 @@
+ENV['SKIP_RAILS'] = 'true'
 require File.expand_path(File.join(File.dirname(__FILE__),'..', 'test_helper'))
 
 class MetricParserTest < Test::Unit::TestCase
-
+  
   def test_memcache
     m = NewRelic::MetricParser.for_metric_named "MemCache/read"
     assert_equal "MemCache read", m.developer_name
   end
-
+  
   def test_memcache__all
     m = NewRelic::MetricParser.for_metric_named "MemCache/all"
     assert_equal "MemCache All Operations", m.developer_name
     assert_equal "All Operations", m.operation
   end
-
+  
   def test_view__short
     i = NewRelic::MetricParser.parse("View/.rhtml Processing")
     assert_equal "ERB compilation", i.developer_name
@@ -163,7 +164,7 @@ class MetricParserTest < Test::Unit::TestCase
     assert_equal "All venus calls", m.legend_name
     assert_nil m.operation
     assert_equal 'all', m.library
-
+    
     m = NewRelic::MetricParser.for_metric_named("External/venus/Net::Http/get")
     assert !m.all?
     assert !m.hosts_all?
@@ -174,5 +175,52 @@ class MetricParserTest < Test::Unit::TestCase
     assert_equal 'Net::Http', m.library
     
     
+  end
+  
+  context "with apdex" do
+    
+    context "client" do
+      setup do
+        @client_name = NewRelic::MetricParser::Apdex.client_metric(NewRelic::Control.instance.apdex_t)
+        @apdex_client = NewRelic::MetricParser.for_metric_named(@client_name)
+      end
+      should "produce a client metric name" do
+        assert_equal "Apdex/Client/#{NewRelic::Control.instance.apdex_t}", @client_name
+      end
+      should "display the apdex value in " do
+        assert_equal "Apdex Client (1.1)", @apdex_client.developer_name   
+      end
+      should "act like a client score" do
+        assert ! @apdex_client.is_summary?
+        assert @apdex_client.is_client?
+      end
+      should "display nicely" do
+        assert_equal "Apdex Client (#{NewRelic::Control.instance.apdex_t})", @apdex_client.developer_name
+      end
+
+    end
+    
+    context "summary" do
+      setup do 
+        @apdex_summary = NewRelic::MetricParser.for_metric_named('Apdex')
+      end
+      
+      should "act like a summary" do
+        assert @apdex_summary.is_summary?
+        assert ! @apdex_summary.is_client?
+      end
+    end
+    context "controller score" do
+      setup do
+        @controller_apdex = NewRelic::MetricParser.for_metric_named('Apdex/sessions/guest_index')
+      end
+      should "act like a controller" do
+        assert ! @controller_apdex.is_summary?
+        assert ! @controller_apdex.is_client?
+      end
+      should "display nicely" do
+        assert_equal "Apdex sessions/guest_index", @controller_apdex.developer_name
+      end
+    end
   end
 end
