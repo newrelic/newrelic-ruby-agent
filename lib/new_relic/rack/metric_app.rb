@@ -26,13 +26,16 @@ module Rack
     end
     def call(env)
       request = ::Rack::Request.new env
-      segments = request.url.gsub(/^.*?\/metrics\//, '').split("?")[0].split("/")
-      metric = "Custom/" + segments.join("/")
-      raise "Expected value parameter!" unless request['value']
-      data = request['value'].to_f
-      stats = NewRelic::Agent.get_stats(metric, false)
-      stats.record_data_point data
-      response = ::Rack::Response.new "#{metric}=#{data}" 
+
+      if !(request['uri'] || request['metric'])
+        response = ::Rack::Response.new "Missing URI or Metric parameter"
+      elsif !request['value']
+        response = :: Rack::Response.new "Missing value parameter!" 
+      else
+        NewRelic::Agent.record_transaction( request['value'].to_f, request )
+        response = ::Rack::Response.new request.params.collect { |k, v| "#{k}=#{v} " }.join
+      end
+
       response.finish
     end
   end

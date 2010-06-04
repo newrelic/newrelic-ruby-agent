@@ -18,7 +18,7 @@ use Rack::ShowExceptions
 map "/" do
   run NewRelic::Rack::Status.new
 end
-map "/metrics" do
+map "/newrelic/record_value" do
   run NewRelic::Rack::MetricApp.new(options)
 end
 
