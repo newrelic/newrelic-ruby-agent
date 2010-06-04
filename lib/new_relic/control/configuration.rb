@@ -80,7 +80,7 @@ module NewRelic
       end
       
       def episodes_enabled?
-        fetch('episodes_enabled', false)
+        fetch('episodes_enabled', true)
       end
       # True if the app runs in multi-threaded mode
       def multi_threaded?
