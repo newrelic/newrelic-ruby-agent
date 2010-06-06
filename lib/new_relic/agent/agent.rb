@@ -125,7 +125,7 @@ module NewRelic
             @connected == false or
             @worker_thread && @worker_thread.alive?
 
-          log.debug "Detected that the worker thread is not running in #$$.  Restarting."
+          log.info "Starting the worker thread in #$$ after forking."
 
           # Clear out stats that are left over from parent process
           reset_stats
@@ -224,7 +224,7 @@ module NewRelic
 
         # Start up the agent.  This verifies that the agent_enabled? is
         # true and initializes the sampler based on the current
-        # controluration settings.  Then it will fire up the background
+        # configuration settings.  Then it will fire up the background
         # thread for sending data to the server if applicable.
         def start
           if started?
@@ -263,34 +263,35 @@ module NewRelic
           @slowest_transaction_threshold = @slowest_transaction_threshold.to_f
 
           log.warn "Agent is configured to send raw SQL to RPM service" if @record_sql == :raw
-
-          if control.monitor_mode?
-            if !control.license_key
-              log.error "No license key found.  Please edit your newrelic.yml file and insert your license key.", :error
-            elsif  control.license_key.length != 40
-              log.error "Invalid license key: #{control.license_key}", :error
-            else
-              # Do the connect in the foreground if we are in sync mode
-              NewRelic::Agent.disable_all_tracing { connect(:keep_retrying => false) } if control.sync_startup
-
-              # Start the event loop and initiate connection if necessary
-              start_worker_thread
-
-              # Our shutdown handler needs to run after other shutdown handlers
-              # that may be doing things like running the app (hello sinatra).
-              if control.send_data_on_exit
-                if RUBY_VERSION =~ /rubinius/i 
-                  list = at_exit { shutdown }
-                  # move the shutdown handler to the front of the list, to
-                  # execute last:
-                  list.unshift(list.pop)
-                elsif !defined?(JRuby) or !defined?(Sinatra::Application)
-                  at_exit { at_exit { shutdown } } 
-                end
+          
+          case
+          when !control.monitor_mode?
+            log.warn "Agent configured not to send data in this environment - edit newrelic.yml to change this"
+          when !control.license_key
+            log.error "No license key found.  Please edit your newrelic.yml file and insert your license key."
+          when control.license_key.length != 40
+            log.error "Invalid license key: #{control.license_key}"
+          when [:passenger, :unicorn].include?(control.dispatcher)  
+            log.info "Connecting workers after forking."
+          else
+            # Do the connect in the foreground if we are in sync mode
+            NewRelic::Agent.disable_all_tracing { connect(:keep_retrying => false) } if control.sync_startup
+            
+            # Start the event loop and initiate connection if necessary
+            start_worker_thread
+            
+            # Our shutdown handler needs to run after other shutdown handlers
+            # that may be doing things like running the app (hello sinatra).
+            if control.send_data_on_exit
+              if RUBY_VERSION =~ /rubinius/i 
+                list = at_exit { shutdown }
+                # move the shutdown handler to the front of the list, to
+                # execute last:
+                list.unshift(list.pop)
+              elsif !defined?(JRuby) or !defined?(Sinatra::Application)
+                at_exit { at_exit { shutdown } } 
               end
             end
-          else
-            log.warn "Agent configured not to send data in this environment - edit newrelic.yml to change this"
           end
           log.info "New Relic RPM Agent #{NewRelic::VERSION::STRING} Initialized: pid = #$$"
           log.info "Agent Log found in #{NewRelic::Control.instance.log_file}" if NewRelic::Control.instance.log_file
@@ -411,14 +412,7 @@ module NewRelic
           @agent_id = nil
           begin
             sleep connect_retry_period.to_i
-            # Running in the Passenger or Unicorn spawners?
-            if check_for_spawner && $0 =~ /ApplicationSpawner|^unicorn\S* master/
-              log.debug "Process is master spawner (#$0) -- don't connect to RPM service"
-              @connected = nil
-              return
-            else
-              log.debug "Connecting Process to RPM: #$0"
-            end
+            log.debug "Connecting Process to RPM: #$0"
             host = invoke_remote(:get_redirect_host)
             @collector = control.server_from_host(host) if host
             environment = control['send_environment_info'] != false ? control.local_env.snapshot : []
@@ -452,15 +446,15 @@ module NewRelic
                 @transaction_sampler.sampling_rate = connect_data['sampling_rate']
                 log.info "Transaction sampling enabled, rate = #{@transaction_sampler.sampling_rate}"
               end
-              log.info "Transaction tracing threshold is #{@slowest_transaction_threshold} seconds."
+              log.debug "Transaction tracing threshold is #{@slowest_transaction_threshold} seconds."
             else
-              log.info "Transaction traces will not be sent to the RPM service." 
+              log.debug "Transaction traces will not be sent to the RPM service." 
             end
 
             # Ask for permission to collect error data
             error_collector.enabled &&= connect_data['collect_errors']
 
-            log.info "Errors will be sent to the RPM service." if error_collector.enabled
+            log.debug "Errors will be sent to the RPM service." if error_collector.enabled
 
             @connected_pid = $$
             @connected = true
@@ -503,6 +497,10 @@ module NewRelic
 
         def determine_home_directory
           control.root
+        end
+        
+        def is_application_spawner?
+          $0 =~ /ApplicationSpawner|^unicorn\S* master/
         end
 
         def harvest_and_send_timeslice_data
