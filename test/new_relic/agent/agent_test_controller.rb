@@ -23,6 +23,10 @@ class NewRelic::Agent::AgentTestController < NewRelic::Agent::SuperclassControll
   def _filter_parameters(params)
     filter_parameters params
   end
+  def action_inline
+    render(:inline => "<%= 'foo' %>fah")
+  end
+  
   def action_to_render
     render :text => params.inspect
   end
