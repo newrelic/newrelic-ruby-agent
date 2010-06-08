@@ -1,4 +1,5 @@
 v2.12.2
+  * fix for regression in Rails 2.1 inline rendering
   * workaround bug found in some rubies that caused a segv and/or NoMemoryError
     when deflating content for upload
   * avoid creating connection thread in unicorn/passenger spawners
