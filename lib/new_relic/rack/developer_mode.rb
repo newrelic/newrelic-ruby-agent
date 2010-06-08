@@ -63,7 +63,7 @@ class DeveloperMode
 
   def reset
     NewRelic::Agent.instance.transaction_sampler.reset!
-    index
+    Rack::Response.new{|r| r.redirect('/newrelic/')}.finish
   end
 
   def explain_sql
