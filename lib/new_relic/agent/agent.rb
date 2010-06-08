@@ -63,10 +63,10 @@ module NewRelic
         attr_reader :url_rules
 
         def record_transaction(duration_seconds, options={})
-          is_error = options[:is_error] || options[:error_message] || options[:exception]
-          metric = options[:metric]
-          metric ||= options[:uri] # normalize this with url rules
-          
+          is_error = options['is_error'] || options['error_message'] || options['exception']
+          metric = options['metric']
+          metric ||= options['uri'] # normalize this with url rules
+          raise "metric or uri arguments required" unless metric
           metric_info = NewRelic::MetricParser.for_metric_named(metric)
 
           if metric_info.is_web_transaction?
@@ -132,7 +132,7 @@ module NewRelic
 
           # Don't ever check to see if this is a spawner.  If we're in a forked process
           # I'm pretty sure we're not also forking new instances.
-          start_worker_thread(options.merge(:check_for_spawner => false))
+          start_worker_thread(options)
           @stats_engine.start_sampler_thread
         end
 
@@ -393,18 +393,12 @@ module NewRelic
         # * <tt>force_reconnect => true</tt> if you want to establish a new connection
         #   to the server before running the worker loop.  This means you get a separate
         #   agent run and RPM sees it as a separate instance (default is false).
-        # * <tt>:check_for_spawner => false</tt> to omit the check to see if we are
-        #   an application spawner.  We detect the spawner and stop the agent so we don't
-        #   report stats from a spawner.  You don't want to do this check if you _know_
-        #   you are not in a spawner (default is true).
-
         def connect(options)
           # Don't proceed if we already connected (@connected=true) or if we tried
           # to connect and were rejected with prejudice because of a license issue
           # (@connected=false).
           return if !@connected.nil? && !options[:force_reconnect]
           keep_retrying = options[:keep_retrying].nil? || options[:keep_retrying]
-          check_for_spawner = options[:check_for_spawner].nil? || options[:check_for_spawner]
 
           # wait a few seconds for the web server to boot, necessary in development
           connect_retry_period = keep_retrying ? 10 : 0

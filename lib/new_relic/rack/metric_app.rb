@@ -20,8 +20,7 @@ module Rack
       options[:disable_samplers] = true
       NewRelic::Agent.manual_start options
       unless NewRelic::Control.instance.license_key
-        NewRelic::Agent.logger.error "Please add a valid license key to newrelic.yml."
-        exit 1
+        raise "Please add a valid license key to newrelic.yml."
       end
     end
     def call(env)

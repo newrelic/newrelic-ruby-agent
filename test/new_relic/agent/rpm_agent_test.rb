@@ -128,8 +128,13 @@ class RpmAgentTest < Test::Unit::TestCase # ActiveSupport::TestCase
     end
     
     context "with transaction api" do
+      should "reject empty arguments" do
+        assert_raises RuntimeError do
+          NewRelic::Agent.record_transaction 0.5
+        end
+      end
       should "record a transaction" do
-        NewRelic::Agent.record_transaction 0.5, :uri => "/users/create?foo=bar"
+        NewRelic::Agent.record_transaction 0.5, 'uri' => "/users/create?foo=bar"
       end
       
     end
