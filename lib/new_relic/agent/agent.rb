@@ -63,10 +63,10 @@ module NewRelic
         attr_reader :url_rules
 
         def record_transaction(duration_seconds, options={})
-          is_error = options[:is_error] || options[:error_message] || options[:exception]
-          metric = options[:metric]
-          metric ||= options[:uri] # normalize this with url rules
-          
+          is_error = options['is_error'] || options['error_message'] || options['exception']
+          metric = options['metric']
+          metric ||= options['uri'] # normalize this with url rules
+          raise "metric or uri arguments required" unless metric
           metric_info = NewRelic::MetricParser.for_metric_named(metric)
           
           puts "recording transaction - reponse_time=#{duration_seconds}"
