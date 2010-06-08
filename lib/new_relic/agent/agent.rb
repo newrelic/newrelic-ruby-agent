@@ -68,12 +68,19 @@ module NewRelic
           metric ||= options['uri'] # normalize this with url rules
           raise "metric or uri arguments required" unless metric
           metric_info = NewRelic::MetricParser.for_metric_named(metric)
+          
+          puts "recording transaction - reponse_time=#{duration_seconds}"
+          puts "uri=#{options[:uri]}"
+          puts "metric=#{metric}"
+          puts "metric_info=#{metric_info}"
 
           if metric_info.is_web_transaction?
+            puts "recording web transaction"
             NewRelic::Agent::Instrumentation::MetricFrame.record_apdex(metric_info, duration_seconds, duration_seconds, is_error)
             histogram.process(duration_seconds) 
           end
           metrics = metric_info.summary_metrics
+
           metrics << metric
           metrics.each do |name|
             stats = stats_engine.get_stats_no_scope(name)
