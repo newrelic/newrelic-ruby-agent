@@ -26,17 +26,15 @@ module NewRelic
       end
       def call(env)
         request = ::Rack::Request.new env
-
-        if !(request['uri'] || request['metric'])
-          response = ::Rack::Response.new "Missing URI or Metric parameter"
-        elsif !request['value']
-          response = :: Rack::Response.new "Missing value parameter!" 
+        params = request.params
+        if !(params['uri'] || params['metric'])
+          [400, { 'Content-Type' => 'text/plain' },  "Missing 'uri' or 'metric' parameter: #{params.inspect}" ]
+        elsif !params['value']
+          [400, { 'Content-Type' => 'text/plain' },  "Missing 'value' parameter: #{params.inspect}" ]
         else
-          NewRelic::Agent.record_transaction( request['value'].to_f, request )
-          response = ::Rack::Response.new request.params.collect { |k, v| "#{k}=#{v} " }.join
+          NewRelic::Agent.record_transaction( params['value'].to_f, params )
+          ::Rack::Response.new(params.collect { |k, v| "#{k}=#{v} " }.join).finish
         end
-
-        response.finish
       end
     end
     class Status
