@@ -14,7 +14,7 @@ if defined? ActionController
     end
     # this is for template rendering, as opposed to partial rendering.
     ActionView::Template.class_eval do
-      add_method_tracer :render, 'View/#{path_without_extension[%r{^(/.*/)?(.*)$},2]}.#{@view.template_format}.#{extension}/Rendering'
+      add_method_tracer :render, 'View/#{(path_without_extension || @view.controller.newrelic_metric_path)[%r{^(/.*/)?(.*)$},2]}.#{@view.template_format}.#{extension}/Rendering'
     end
 
     when /^2\./   # Rails 2.2-2.*

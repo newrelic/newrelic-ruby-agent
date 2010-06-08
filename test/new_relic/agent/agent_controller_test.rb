@@ -64,7 +64,13 @@ class AgentControllerTest < ActionController::TestCase
     assert_equal 1, engine.get_stats_no_scope('Mongrel/Queue Length').call_count
     assert_equal 15, engine.get_stats_no_scope('Mongrel/Queue Length').total_call_time
     assert_equal 0, engine.get_stats_no_scope('WebFrontend/Mongrel/Average Queue Time').call_count
-
+  end
+  
+  def test_render_inline
+    engine.clear_stats
+    get :action_inline
+    assert_equal 'foofah', @response.body
+    compare_metrics %w[Controller/new_relic/agent/agent_test/action_inline], engine.metrics.grep(/^Controller/)
   end
   def test_metric__ignore
     engine.clear_stats
