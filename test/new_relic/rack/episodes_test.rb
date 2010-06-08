@@ -38,7 +38,7 @@ class EpisodesTest < Test::Unit::TestCase
     assert_equal 3, v.size
     assert_equal 204, v[0]
     compare_metrics %w[
-      Apdex/Client
+      Apdex/Client/4.4
       Client/totaltime
       Client/frontend
       Client/backend

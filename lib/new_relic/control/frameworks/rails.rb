@@ -26,11 +26,13 @@ class NewRelic::Control::Frameworks::Rails < NewRelic::Control
   end
   
   def install_episodes(config)
-    return if config.nil? || !config.respond_to?(:middleware) || !episodes_enabled? || !defined?(NewRelic::Rack::Episodes)
+    return if config.nil? || !config.respond_to?(:middleware) || !episodes_enabled?
     config.after_initialize do 
-      config.middleware.use NewRelic::Rack::Episodes 
-      log! "Installed episodes middleware"
-      ::RAILS_DEFAULT_LOGGER.info "Installed episodes middleware"
+      if defined?(NewRelic::Rack::Episodes)
+        config.middleware.use NewRelic::Rack::Episodes 
+        log! "Installed episodes middleware"
+        ::RAILS_DEFAULT_LOGGER.info "Installed episodes middleware"
+      end
     end
   end
   
