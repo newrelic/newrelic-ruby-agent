@@ -63,19 +63,22 @@ module NewRelic
         attr_reader :url_rules
 
         def record_transaction(duration_seconds, options={})
-          is_error = options['is_error'] || options['error_message'] || options['exception']
+          uri = options['uri']
+          error_message = options['error_message'] || options['exception']
           metric = options['metric']
-          metric ||= options['uri'] # normalize this with url rules
-          raise "metric or uri arguments required" unless metric
+
+          is_error = options['is_error'] || error_message
+          metric ||= uri # normalize this with url rules
+          
           metric_info = NewRelic::MetricParser.for_metric_named(metric)
           
-          puts "recording transaction - reponse_time=#{duration_seconds}"
-          puts "uri=#{options[:uri]}"
-          puts "metric=#{metric}"
-          puts "metric_info=#{metric_info}"
-
+          log.debug "recording transaction - reponse_time=#{duration_seconds}"
+          log.debug "uri=#{uri}"
+          log.debug "metric=#{metric}"
+          log.debug "error message=#{error_message}"
+          
           if metric_info.is_web_transaction?
-            puts "recording web transaction"
+            log.debug "recorded web transaction"
             NewRelic::Agent::Instrumentation::MetricFrame.record_apdex(metric_info, duration_seconds, duration_seconds, is_error)
             histogram.process(duration_seconds) 
           end
@@ -132,14 +135,14 @@ module NewRelic
             @connected == false or
             @worker_thread && @worker_thread.alive?
 
-          log.info "Starting the worker thread in #$$ after forking."
+          log.debug "Detected that the worker thread is not running in #$$.  Restarting."
 
           # Clear out stats that are left over from parent process
           reset_stats
 
           # Don't ever check to see if this is a spawner.  If we're in a forked process
           # I'm pretty sure we're not also forking new instances.
-          start_worker_thread(options)
+          start_worker_thread(options.merge(:check_for_spawner => false))
           @stats_engine.start_sampler_thread
         end
 
@@ -231,7 +234,7 @@ module NewRelic
 
         # Start up the agent.  This verifies that the agent_enabled? is
         # true and initializes the sampler based on the current
-        # configuration settings.  Then it will fire up the background
+        # controluration settings.  Then it will fire up the background
         # thread for sending data to the server if applicable.
         def start
           if started?
@@ -270,35 +273,34 @@ module NewRelic
           @slowest_transaction_threshold = @slowest_transaction_threshold.to_f
 
           log.warn "Agent is configured to send raw SQL to RPM service" if @record_sql == :raw
-          
-          case
-          when !control.monitor_mode?
-            log.warn "Agent configured not to send data in this environment - edit newrelic.yml to change this"
-          when !control.license_key
-            log.error "No license key found.  Please edit your newrelic.yml file and insert your license key."
-          when control.license_key.length != 40
-            log.error "Invalid license key: #{control.license_key}"
-          when [:passenger, :unicorn].include?(control.dispatcher)  
-            log.info "Connecting workers after forking."
-          else
-            # Do the connect in the foreground if we are in sync mode
-            NewRelic::Agent.disable_all_tracing { connect(:keep_retrying => false) } if control.sync_startup
-            
-            # Start the event loop and initiate connection if necessary
-            start_worker_thread
-            
-            # Our shutdown handler needs to run after other shutdown handlers
-            # that may be doing things like running the app (hello sinatra).
-            if control.send_data_on_exit
-              if RUBY_VERSION =~ /rubinius/i 
-                list = at_exit { shutdown }
-                # move the shutdown handler to the front of the list, to
-                # execute last:
-                list.unshift(list.pop)
-              elsif !defined?(JRuby) or !defined?(Sinatra::Application)
-                at_exit { at_exit { shutdown } } 
+
+          if control.monitor_mode?
+            if !control.license_key
+              log.error "No license key found.  Please edit your newrelic.yml file and insert your license key.", :error
+            elsif  control.license_key.length != 40
+              log.error "Invalid license key: #{control.license_key}", :error
+            else
+              # Do the connect in the foreground if we are in sync mode
+              NewRelic::Agent.disable_all_tracing { connect(:keep_retrying => false) } if control.sync_startup
+
+              # Start the event loop and initiate connection if necessary
+              start_worker_thread
+
+              # Our shutdown handler needs to run after other shutdown handlers
+              # that may be doing things like running the app (hello sinatra).
+              if control.send_data_on_exit
+                if RUBY_VERSION =~ /rubinius/i 
+                  list = at_exit { shutdown }
+                  # move the shutdown handler to the front of the list, to
+                  # execute last:
+                  list.unshift(list.pop)
+                elsif !defined?(JRuby) or !defined?(Sinatra::Application)
+                  at_exit { at_exit { shutdown } } 
+                end
               end
             end
+          else
+            log.warn "Agent configured not to send data in this environment - edit newrelic.yml to change this"
           end
           log.info "New Relic RPM Agent #{NewRelic::VERSION::STRING} Initialized: pid = #$$"
           log.info "Agent Log found in #{NewRelic::Control.instance.log_file}" if NewRelic::Control.instance.log_file
@@ -400,12 +402,18 @@ module NewRelic
         # * <tt>force_reconnect => true</tt> if you want to establish a new connection
         #   to the server before running the worker loop.  This means you get a separate
         #   agent run and RPM sees it as a separate instance (default is false).
+        # * <tt>:check_for_spawner => false</tt> to omit the check to see if we are
+        #   an application spawner.  We detect the spawner and stop the agent so we don't
+        #   report stats from a spawner.  You don't want to do this check if you _know_
+        #   you are not in a spawner (default is true).
+
         def connect(options)
           # Don't proceed if we already connected (@connected=true) or if we tried
           # to connect and were rejected with prejudice because of a license issue
           # (@connected=false).
           return if !@connected.nil? && !options[:force_reconnect]
           keep_retrying = options[:keep_retrying].nil? || options[:keep_retrying]
+          check_for_spawner = options[:check_for_spawner].nil? || options[:check_for_spawner]
 
           # wait a few seconds for the web server to boot, necessary in development
           connect_retry_period = keep_retrying ? 10 : 0
@@ -413,7 +421,14 @@ module NewRelic
           @agent_id = nil
           begin
             sleep connect_retry_period.to_i
-            log.debug "Connecting Process to RPM: #$0"
+            # Running in the Passenger or Unicorn spawners?
+            if check_for_spawner && $0 =~ /ApplicationSpawner|^unicorn\S* master/
+              log.debug "Process is master spawner (#$0) -- don't connect to RPM service"
+              @connected = nil
+              return
+            else
+              log.debug "Connecting Process to RPM: #$0"
+            end
             host = invoke_remote(:get_redirect_host)
             @collector = control.server_from_host(host) if host
             environment = control['send_environment_info'] != false ? control.local_env.snapshot : []
@@ -447,15 +462,15 @@ module NewRelic
                 @transaction_sampler.sampling_rate = connect_data['sampling_rate']
                 log.info "Transaction sampling enabled, rate = #{@transaction_sampler.sampling_rate}"
               end
-              log.debug "Transaction tracing threshold is #{@slowest_transaction_threshold} seconds."
+              log.info "Transaction tracing threshold is #{@slowest_transaction_threshold} seconds."
             else
-              log.debug "Transaction traces will not be sent to the RPM service." 
+              log.info "Transaction traces will not be sent to the RPM service." 
             end
 
             # Ask for permission to collect error data
             error_collector.enabled &&= connect_data['collect_errors']
 
-            log.debug "Errors will be sent to the RPM service." if error_collector.enabled
+            log.info "Errors will be sent to the RPM service." if error_collector.enabled
 
             @connected_pid = $$
             @connected = true
@@ -498,10 +513,6 @@ module NewRelic
 
         def determine_home_directory
           control.root
-        end
-        
-        def is_application_spawner?
-          $0 =~ /ApplicationSpawner|^unicorn\S* master/
         end
 
         def harvest_and_send_timeslice_data
