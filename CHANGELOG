@@ -1,3 +1,6 @@
+v2.12.3
+  * fix regression in startup sequence
+
 v2.12.2
   * fix for regression in Rails 2.1 inline rendering
   * workaround bug found in some rubies that caused a segv and/or NoMemoryError
