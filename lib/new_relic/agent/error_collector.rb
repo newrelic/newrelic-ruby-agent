@@ -103,6 +103,7 @@ module NewRelic
           @errors << noticed_error
         end
       end
+      exception
     end
     
     # Get the errors currently queued up.  Unsent errors are left 
