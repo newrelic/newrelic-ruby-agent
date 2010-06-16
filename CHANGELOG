@@ -1,10 +1,8 @@
 v2.13.0
-  * added record_transaction method to the api to allow recording
-    details from web and background transactions occurring outside RPM
   * developer mode is now a rack middleware and can be used on any framework;
     it is no longer supported automatically on versions of Rails prior to 2.3;
     see README for details
-  * memcache key recording for transaction traces (experimental)
+  * memcache key recording for transaction traces
   * use system_timer gem if available, fall back to timeout lib
   * address instability issues in JRuby 1.2
   * renamed executable 'newrelic_cmd' to 'newrelic'; old name still supported
@@ -17,15 +15,24 @@ v2.13.0
     other gems and plugins have loaded
   * add option to override automatic flushing of data on exit--send_data_on_exit
     defaults to 'true'
+  * ignored errors no longer affect apdex score
+  * added record_transaction method to the api to allow recording
+    details from web and background transactions occurring outside RPM
     
+v2.12.3
+  * fix regression in startup sequence
+
 v2.12.2
+  * fix for regression in Rails 2.1 inline rendering
   * workaround bug found in some rubies that caused a segv and/or NoMemoryError
     when deflating content for upload
+  * avoid creating connection thread in unicorn/passenger spawners
 
 v2.12.1
+  * fix bug in profile mode
   * fix race condition in Delayed::Job instrumentation loading
   * fix glassfish detection in latest glassfish gem
-  
+
 v2.12.0
   * support basic instrumentation for ActsAsSolr and Sunspot
 
