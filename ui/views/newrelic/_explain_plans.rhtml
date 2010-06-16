@@ -17,11 +17,11 @@
   <tr>
   <th align=right>Plan</th>
   <td><p class="plan">
-  <% @explanation.each do |row| -%>
-      <% row.each do |col| -%>
+  <% @explanation.each do |row| %>
+      <% row.each do |col| %>
 <%= h(col) %>
-      <% end -%>
-  <% end -%>
+      <% end %>
+  <% end %>
   </p></td>
   </tr>
 <% end %>
