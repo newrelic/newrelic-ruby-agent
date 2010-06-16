@@ -175,13 +175,13 @@ module NewRelic
     alias requests_per_minute calls_per_minute
     
     def to_s
-      "<#{Time.at(begin_time)}, #{Time.at(end_time)}> count:#{call_count} total:#{total_call_time}"
+      summary
     end
 
     # Summary string to facilitate testing
     def summary
-      format = "%m/%d %I:%M%p"
-      "[#{Time.at(begin_time).strftime(format)}, #{'%2.3fs' % duration}; #{'%4i' % call_count} calls #{'%4i' % to_ms(average_call_time)} ms]"
+      format = "%m/%d/%y %I:%M%p"
+      "[#{Time.at(begin_time).utc.strftime(format)} UTC, #{'%2.3fs' % duration}; #{'%2i' % call_count} calls #{'%4i' % to_ms(average_call_time)} ms]"
     end
     
     # round all of the values to n decimal points
