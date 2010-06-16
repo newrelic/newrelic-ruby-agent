@@ -1,3 +1,4 @@
+ENV['SKIP_RAILS'] = 'true'
 require File.expand_path(File.join(File.dirname(__FILE__),'..', 'test_helper'))
 ##require "new_relic/stats"
 
@@ -28,7 +29,7 @@ class NewRelic::StatsTest < Test::Unit::TestCase
   def test_to_s
     s1 = NewRelic::MethodTraceStats.new
     s1.trace_call 10
-    assert_equal(s1.to_s, "Begin=0.0, Duration=0.0 s, Count=1, Total=10000, Total Exclusive=10000, Avg=10000, Min=10000, Max=10000, StdDev=0")
+    assert_equal("[01/01/70 12:00AM UTC, 0.000s;  1 calls 10000 ms]", s1.to_s)
   end
 
   def test_time_str
@@ -60,7 +61,7 @@ class NewRelic::StatsTest < Test::Unit::TestCase
   def test_multiply_by
     s1 = NewRelic::MethodTraceStats.new
     s1.trace_call 10
-    assert_equal(s1.multiply_by(10).to_s, "Begin=0.0, Duration=0.0 s, Count=10, Total=100000, Total Exclusive=10000, Avg=10000, Min=10000, Max=10000, StdDev=0")
+    assert_equal("[01/01/70 12:00AM UTC, 0.000s; 10 calls 10000 ms]", s1.multiply_by(10).to_s)
   end
 
   def test_get_apdex
