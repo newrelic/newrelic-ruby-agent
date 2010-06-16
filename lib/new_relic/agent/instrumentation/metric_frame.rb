@@ -174,8 +174,8 @@ module NewRelic::Agent::Instrumentation
       options[:metric] = metric_name
       options.merge!(custom_parameters)
       if exception != e
-        NewRelic::Agent.instance.error_collector.notice_error(e, options)
-        self.exception = e
+        result = NewRelic::Agent.instance.error_collector.notice_error(e, options)
+        self.exception = result if result
       end
     end
     
