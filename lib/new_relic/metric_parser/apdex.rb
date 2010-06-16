@@ -17,7 +17,7 @@ class NewRelic::MetricParser::Apdex < NewRelic::MetricParser
   
   # Apdex/Client/N
   def apdex_t
-    is_client? && segments[2]
+    is_client? && segments[2].to_f
   end
   
   def developer_name

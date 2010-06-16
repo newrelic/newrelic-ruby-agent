@@ -175,17 +175,9 @@ module NewRelic
     alias requests_per_minute calls_per_minute
     
     def to_s
-      s = "Begin=#{begin_time}, "
-      s << "Duration=#{duration} s, "
-      s << "Count=#{call_count}, "
-      s << "Total=#{to_ms(total_call_time)}, "
-      s << "Total Exclusive=#{to_ms(total_exclusive_time)}, "
-      s << "Avg=#{to_ms(average_call_time)}, "
-      s << "Min=#{to_ms(min_call_time)}, "
-      s << "Max=#{to_ms(max_call_time)}, "
-      s << "StdDev=#{to_ms(standard_deviation)}"
+      "<#{Time.at(begin_time)}, #{Time.at(end_time)}> count:#{call_count} total:#{total_call_time}"
     end
-    
+
     # Summary string to facilitate testing
     def summary
       format = "%m/%d %I:%M%p"
