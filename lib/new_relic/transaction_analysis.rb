@@ -94,10 +94,10 @@ module TransactionAnalysis
   
   # return an array of sql statements executed by this transaction
   # each element in the array contains [sql, parent_segment_metric_name, duration]
-  def sql_segments
+  def sql_segments(show_non_sql_segments = true)
     segments = []
     each_segment do |segment|
-      segments << segment if segment[:sql] || segment[:sql_obfuscated] || segment[:key]
+      segments << segment if segment[:sql] || segment[:sql_obfuscated] || (show_non_sql_segments && segment[:key])
     end
     segments
   end

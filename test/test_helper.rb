@@ -19,10 +19,11 @@ if ENV['SKIP_RAILS']
   require File.join(NEWRELIC_PLUGIN_DIR, "lib/newrelic_rpm")
 else
   begin
-    require File.expand_path(File.join(NEWRELIC_PLUGIN_DIR, "..","..","..","config","environment"))
+    require File.expand_path("../../../config/environment", NEWRELIC_PLUGIN_DIR)
     require 'test_help'
   rescue LoadError
-    puts "Unable to load Rails for tests"
+    puts "Unable to load Rails for New Relic tests: try setting the environment variable SKIP_RAILS=false"
+    raise
   end
 end
 require 'test/unit'

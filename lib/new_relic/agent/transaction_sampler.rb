@@ -33,6 +33,11 @@ module Agent
       b and b.sample_id
     end
 
+    def enable
+      @disabled = false
+      NewRelic::Agent.instance.stats_engine.transaction_sampler = self
+    end
+
     def disable
       @disabled = true
       NewRelic::Agent.instance.stats_engine.remove_transaction_sampler self

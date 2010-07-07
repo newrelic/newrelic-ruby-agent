@@ -245,7 +245,7 @@ module NewRelic
 
           sampler_config = control.fetch('transaction_tracer', {})
           # TODO: Should move this state into the transaction sampler instance
-          @should_send_samples = sampler_config.fetch('enabled', true)
+          @should_send_samples = @config_should_send_samples = sampler_config.fetch('enabled', true)
           @should_send_random_samples = sampler_config.fetch('random_sample', false)
           @explain_threshold = sampler_config.fetch('explain_threshold', 0.5).to_f
           @explain_enabled = sampler_config.fetch('explain_enabled', true)
@@ -331,6 +331,8 @@ module NewRelic
                   # disable transaction sampling if disabled by the server and we're not in dev mode
                   if !control.developer_mode? && !@should_send_samples
                     @transaction_sampler.disable
+                  else
+                    @transaction_sampler.enable # otherwise ensure TT's are enabled
                   end
                   log.info "Reporting performance data every #{@report_period} seconds."
                   log.debug "Running worker loop"
@@ -433,7 +435,7 @@ module NewRelic
 
             # Ask the server for permission to send transaction samples.
             # determined by subscription license.
-            @should_send_samples &&= connect_data['collect_traces']
+            @should_send_samples = @config_should_send_samples && connect_data['collect_traces']
 
             if @should_send_samples
               if @should_send_random_samples
@@ -447,7 +449,7 @@ module NewRelic
             end
 
             # Ask for permission to collect error data
-            error_collector.enabled &&= connect_data['collect_errors']
+            error_collector.enabled = error_collector.config_enabled && connect_data['collect_errors']
 
             log.debug "Errors will be sent to the RPM service." if error_collector.enabled
 

@@ -13,7 +13,8 @@ module NewRelic
     MAX_ERROR_QUEUE_LENGTH = 20 unless defined? MAX_ERROR_QUEUE_LENGTH
     
     attr_accessor :enabled
-    
+    attr_reader :config_enabled
+
     def initialize
       @errors = []
       # lookup of exception class names to ignore.  Hash for fast access
@@ -22,7 +23,7 @@ module NewRelic
 
       config = NewRelic::Control.instance.fetch('error_collector', {})
       
-      @enabled = config.fetch('enabled', true)
+      @enabled = @config_enabled = config.fetch('enabled', true)
       @capture_source = config.fetch('capture_source', true)
       
       ignore_errors = config.fetch('ignore_errors', "")
