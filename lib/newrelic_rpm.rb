@@ -28,9 +28,20 @@ if defined? Merb
       end
     end
   end
-else
-  # After verison 2.0 of Rails we can access the configuration directly.
-  # We need it to add dev mode routes after initialization finished.
-  config = Rails.configuration if defined?(Rails.configuration)
-  NewRelic::Control.instance.init_plugin :config => config
+elsif defined?(Rails)
+  if Rails.respond_to?(:version) && Rails.version =~ /^3/
+    module NewRelic
+      class Railtie < Rails::Railtie
+
+        initializer "newrelic_rpm.start_plugin" do |app|
+	  NewRelic::Control.instance.init_plugin(:config => app.config)
+        end
+      end
+    end      
+  else
+    # After verison 2.0 of Rails we can access the configuration directly.
+    # We need it to add dev mode routes after initialization finished.
+    config = Rails.configuration if defined?(Rails.configuration)
+    NewRelic::Control.instance.init_plugin :config => config
+  end
 end
