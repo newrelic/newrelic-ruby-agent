@@ -99,7 +99,7 @@ module NewRelic
       
       @lock.synchronize do
         if @errors.length == MAX_ERROR_QUEUE_LENGTH
-          log.warn("The error reporting queue has reached #{MAX_ERROR_QUEUE_LENGTH}. The error detail for this and subsequent errors will not be transmitted to RPM until the queued errors have been sent: #{exception.message}")
+          log.warn("The error reporting queue has reached #{MAX_ERROR_QUEUE_LENGTH}. The error detail for this and subsequent errors will not be transmitted to RPM until the queued errors have been sent: #{exception}")
         else
           @errors << noticed_error
         end

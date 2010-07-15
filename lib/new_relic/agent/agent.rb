@@ -82,10 +82,14 @@ module NewRelic
           end
           
           if is_error
-            if error_message
-              e = Exception.new error_message if error_message
-              error_collector.notice_error e, :uri => uri, :metric => uri
+            if options['exception']
+              e = options['exception']
+            elsif options['error_message']
+              e = Exception.new options['error_message']
+            else
+              e = Exception.new 'Unknown Error'
             end
+            error_collector.notice_error e, :uri => options['uri'], :metric => metric
           end
           # busy time ?
         end
