@@ -28,7 +28,7 @@ if defined? Merb
       end
     end
   end
-elsif defined?(Rails)
+elsif defined? Rails
   if Rails.respond_to?(:version) && Rails.version =~ /^3/
     module NewRelic
       class Railtie < Rails::Railtie
@@ -44,4 +44,6 @@ elsif defined?(Rails)
     config = Rails.configuration if defined?(Rails.configuration)
     NewRelic::Control.instance.init_plugin :config => config
   end
+else
+  NewRelic::Control.instance.init_plugin
 end
