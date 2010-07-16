@@ -5,7 +5,7 @@ require 'rake/testtask'
 
 GEM_NAME = "newrelic_rpm"
 GEM_VERSION = NewRelic::VERSION::STRING
-AUTHORS = ["Bill Kayser", "Justin George"]
+AUTHOR = "Bill Kayser"
 EMAIL = "support@newrelic.com"
 HOMEPAGE = "http://www.github.com/newrelic/rpm"
 SUMMARY = "New Relic Ruby Performance Monitoring Agent"
@@ -44,7 +44,7 @@ begin
     gem.summary = SUMMARY
     gem.email = EMAIL
     gem.homepage = HOMEPAGE
-    gem.authors = AUTHORS
+    gem.author = AUTHOR
     gem.version = GEM_VERSION
     gem.files = FileList['**/*']
     gem.test_files = [] # You can't really run the tests unless the gem is installed.
