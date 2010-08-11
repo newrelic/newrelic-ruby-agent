@@ -32,8 +32,24 @@ module NewRelic
         is_client? && segments[2].to_f
       end
       
-      def os_and_browser
-        is_browser_summary? && segments[3..-1].join(' ')
+      def platform
+        is_browser_summary? && segments[3]
+      end
+
+      def browser
+        is_browser_summary? && segments[4]
+      end
+
+      def browser_version
+        is_browser_summary? && segments[5]
+      end
+
+      def user_agent
+        is_browser_summary? && segments[4..-1].join(" ")
+      end
+
+      def platform_and_user_agent
+        is_browser_summary? && segments[3..-1].join(" ")
       end
       
       def developer_name
