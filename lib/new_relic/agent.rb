@@ -63,7 +63,6 @@ module NewRelic
     require 'new_relic/metrics'
     require 'new_relic/metric_spec'
     require 'new_relic/metric_data'
-    require 'new_relic/metric_parser'
     require 'new_relic/collection_helper'
     require 'new_relic/transaction_analysis'
     require 'new_relic/transaction_sample'

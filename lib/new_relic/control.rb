@@ -93,6 +93,8 @@ module NewRelic
     # is called one or more times.
     #
     def init_plugin(options={})
+      require 'conditional_vendored_metric_parser'
+      
       options['app_name'] = ENV['NEWRELIC_APP_NAME'] if ENV['NEWRELIC_APP_NAME']
 
       require 'new_relic/agent'

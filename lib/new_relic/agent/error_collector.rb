@@ -105,6 +105,8 @@ module NewRelic
         end
       end
       exception
+    rescue Exception => e
+      log.error("Error capturing an error, yodawg. #{e}")
     end
 
     # Get the errors currently queued up.  Unsent errors are left
