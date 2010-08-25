@@ -51,7 +51,7 @@ module NewRelic
     
     def self.run
       
-      @command_names = @commands.map(&:command)
+      @command_names = @commands.map{ |c| c.command }
       
       extra = []
       options = ARGV.options do |opts|

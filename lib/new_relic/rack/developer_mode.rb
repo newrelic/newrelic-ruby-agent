@@ -123,7 +123,7 @@ class DeveloperMode
         view = "_#{view[:partial]}"
       end
     end
-    binding = Proc.new {}
+    binding = Proc.new {}.binding
     if layout
       body = render_with_layout(view) do
         render_without_layout(view, binding)
@@ -142,7 +142,7 @@ class DeveloperMode
   # that block are interpolated into the layout
   def render_with_layout(view)
     body = ERB.new(File.read(File.join(VIEW_PATH, 'layouts/newrelic_default.rhtml')))
-    body.result(Proc.new {})
+    body.result(Proc.new {}.binding)
   end
 
   # you have to pass a binding to this (a proc) so that ERB can have

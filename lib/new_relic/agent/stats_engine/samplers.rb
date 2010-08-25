@@ -36,11 +36,11 @@ module Agent
       # thread.
       def add_sampler sampler
         periodic_samplers.each do |s|
-          raise "Sampler #{sampler.id} is already registered.  Don't call add_sampler directly anymore." if s.id == sampler.id
+          raise "Sampler #{sampler.object_id} is already registered.  Don't call add_sampler directly anymore." if s.object_id == sampler.object_id
         end
         periodic_samplers << sampler
         sampler.stats_engine = self
-        log.debug "Adding sampler #{sampler.id.to_s}"
+        log.debug "Adding sampler #{sampler.object_id.to_s}"
       end
       
       # Add a sampler to be invoked just before each harvest.
