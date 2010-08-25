@@ -52,11 +52,11 @@ module Agent
       start_builder(time.to_f) unless disabled
     end
     
-    def notice_push_scope(scope, time=Time.now.to_f)
+    def notice_push_scope(scope, time=Time.now)
       
       return unless builder
       
-      builder.trace_entry(scope, time)
+      builder.trace_entry(scope, time.to_f)
       
       # in developer mode, capture the stack trace with the segment.
       # this is cpu and memory expensive and therefore should not be
@@ -82,20 +82,20 @@ module Agent
       builder.scope_depth
     end
   
-    def notice_pop_scope(scope, time = Time.now.to_f)
+    def notice_pop_scope(scope, time = Time.now)
       return unless builder
       raise "frozen already???" if builder.sample.frozen?
-      builder.trace_exit(scope, time)
+      builder.trace_exit(scope, time.to_f)
     end
     
     # This is called when we are done with the transaction.  We've
     # unwound the stack to the top level.
-    def notice_scope_empty(time=Time.now.to_f)
+    def notice_scope_empty(time=Time.now)
       
       last_builder = builder
       return unless last_builder
 
-      last_builder.finish_trace(time)
+      last_builder.finish_trace(time.to_f)
       clear_builder
       return if last_builder.ignored?
     
@@ -241,10 +241,9 @@ module Agent
     
     include NewRelic::CollectionHelper
     
-    def initialize(time=nil)
-      time ||= Time.now.to_f
-      @sample = NewRelic::TransactionSample.new(time)
-      @sample_start = time
+    def initialize(time=Time.now)
+      @sample = NewRelic::TransactionSample.new(time.to_f)
+      @sample_start = time.to_f
       @current_segment = @sample.root_segment
     end
 
@@ -258,7 +257,7 @@ module Agent
       @ignore = true
     end
     def trace_entry(metric_name, time)
-      segment = @sample.create_segment(time - @sample_start, metric_name)
+      segment = @sample.create_segment(time.to_f - @sample_start, metric_name)
       @current_segment.add_called_segment(segment)
       @current_segment = segment
     end
@@ -267,7 +266,7 @@ module Agent
       if metric_name != @current_segment.metric_name
         fail "unbalanced entry/exit: #{metric_name} != #{@current_segment.metric_name}"
       end
-      @current_segment.end_trace(time - @sample_start)
+      @current_segment.end_trace(time.to_f - @sample_start)
       @current_segment = @current_segment.parent_segment
     end
     
@@ -279,7 +278,7 @@ module Agent
         log.error "Unexpected double-freeze of Transaction Trace Object: \n#{@sample.to_s}"
         return
       end
-      @sample.root_segment.end_trace(time - @sample_start)
+      @sample.root_segment.end_trace(time.to_f - @sample_start)
       @sample.params[:custom_params] = normalize_params(NewRelic::Agent::Instrumentation::MetricFrame.custom_parameters)
       @sample.freeze
       @current_segment = nil
