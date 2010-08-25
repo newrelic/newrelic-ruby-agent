@@ -13,7 +13,7 @@ module NewRelic
               @local_env.dispatcher_instance_id = app_names.first
             end
           end
-          
+
         end
         @settings
       end
@@ -36,29 +36,29 @@ module NewRelic
       def merge_options(options, hash=self)
         options.each do |key, val |
           case
-          when key == :config then next 
+          when key == :config then next
           when val.is_a?(Hash)
             merge_options(val, hash[key.to_s] ||= {})
           when val.nil?
             hash.delete(key.to_s)
-          else 
+          else
             hash[key.to_s] = val
           end
         end
       end
-      
+
       def [](key)
         fetch(key)
       end
-      
+
       def []=(key, value)
         settings[key] = value
       end
-      
+
       def fetch(key, default=nil)
         settings.fetch(key, default)
       end
-      
+
       def apdex_t
         # Always initialized with a default
         fetch('apdex_t').to_f
@@ -73,12 +73,12 @@ module NewRelic
       def monitor_mode?
         fetch('monitor_mode', fetch('enabled'))
       end
-      
+
       # True if we are capturing data and displaying in /newrelic
       def developer_mode?
         fetch('developer_mode', fetch('developer'))
       end
-      
+
       def episodes_enabled?
         fetch('episodes_enabled', true)
       end
@@ -93,25 +93,25 @@ module NewRelic
       def post_size_limit
         fetch('post_size_limit', 2 * 1024 * 1024)
       end
-    
+
       # Configuration option of the same name to indicate that we should connect
-      # to RPM synchronously on startup.  This means when the agent is loaded it 
+      # to RPM synchronously on startup.  This means when the agent is loaded it
       # won't return without trying to set up the server connection at least once
       # which can make startup take longer.  Defaults to false.
       def sync_startup
         fetch('sync_startup', false)
       end
-    
+
       # Configuration option of the same name to indicate that we should flush
       # data to the server on exiting.  Defaults to true.
       def send_data_on_exit
         fetch('send_data_on_exit', true)
       end
-        
+
       def dispatcher_instance_id
         self['dispatcher_instance_id'] || @local_env.dispatcher_instance_id
       end
-      
+
       def dispatcher
         (self['dispatcher'] && self['dispatcher'].to_sym) || @local_env.dispatcher
       end
@@ -123,17 +123,17 @@ module NewRelic
         end
       end
       def validate_seed
-        self['validate_seed'] || ENV['NR_VALIDATE_SEED']   
+        self['validate_seed'] || ENV['NR_VALIDATE_SEED']
       end
       def validate_token
         self['validate_token'] || ENV['NR_VALIDATE_TOKEN']
       end
-      
+
       def use_ssl?
         @use_ssl = fetch('ssl', false) unless @use_ssl
         @use_ssl
       end
-      
+
       def verify_certificate?
         unless @verify_certificate
           unless use_ssl?

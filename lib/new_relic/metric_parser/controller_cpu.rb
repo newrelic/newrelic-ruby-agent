@@ -1,7 +1,7 @@
 class NewRelic::MetricParser::ControllerCPU < NewRelic::MetricParser
-  
+
   def is_controller_cpu?; true; end
-  
+
   def controller_name
     segments[1..-2].join('/').camelize+"Controller"
   end
@@ -17,7 +17,7 @@ class NewRelic::MetricParser::ControllerCPU < NewRelic::MetricParser
   def base_metric_name
     "Controller/" + segments[1..-1].join('/')
   end
-  
+
   def short_name
     # standard controller actions
     if segments.length > 1
@@ -26,7 +26,7 @@ class NewRelic::MetricParser::ControllerCPU < NewRelic::MetricParser
       'All Controller Actions'
     end
   end
-  
+
   def url
     '/' + segments[1..-1].join('/')
   end

@@ -6,9 +6,9 @@ module NewRelic
       def profiling?
         @profiling
       end
-      
+
       def profiling_available?
-        @profiling_available ||= 
+        @profiling_available ||=
           begin
             require 'ruby-prof'
             true

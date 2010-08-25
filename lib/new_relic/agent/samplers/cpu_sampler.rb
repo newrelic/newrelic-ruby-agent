@@ -7,7 +7,7 @@ module NewRelic
       super :cpu
       poll
     end
-    
+
     def user_util_stats
       stats_engine.get_stats_no_scope("CPU/User/Utilization")
     end
@@ -20,11 +20,11 @@ module NewRelic
     def systemtime_stats
       stats_engine.get_stats_no_scope("CPU/System Time")
     end
-    
+
     def self.supported_on_this_platform?
       not defined?(JRuby)
     end
-    
+
     def poll
       now = Time.now
       t = Process.times
@@ -37,7 +37,7 @@ module NewRelic
 
         systemtime_stats.record_data_point(systemtime) if systemtime >= 0
         usertime_stats.record_data_point(usertime) if usertime >= 0
-        
+
         # Calculate the true utilization by taking cpu times and dividing by
         # elapsed time X num_processors.
         user_util_stats.record_data_point usertime / (elapsed * num_processors)

@@ -5,11 +5,11 @@ class NewRelic::MetricParser::Controller < NewRelic::MetricParser
 
   # If the controller name segments look like a file path, convert it to the controller
   # class name.  If it begins with a capital letter, assume it's already a class name.
-  # We only expect a lower case letter with Rails, so we'll be able to use camelize for 
+  # We only expect a lower case letter with Rails, so we'll be able to use camelize for
   # that.
   def controller_name
     path = segments[1..-2].join('/')
-    path < 'a' ? path : path.camelize+"Controller" 
+    path < 'a' ? path : path.camelize+"Controller"
   end
 
   def action_name
@@ -19,11 +19,11 @@ class NewRelic::MetricParser::Controller < NewRelic::MetricParser
       segments[-1]
     end
   end
-  
+
   def developer_name
     "#{controller_name}##{action_name}"
   end
-  
+
   def is_web_transaction?
     true
   end
@@ -32,7 +32,7 @@ class NewRelic::MetricParser::Controller < NewRelic::MetricParser
   def cpu_metric
     Metric.lookup((["ControllerCPU"] + segments[1..-1]).join('/'), :create => false)
   end
-  
+
   def short_name
     # standard controller actions
     if segments.length > 1
@@ -41,12 +41,12 @@ class NewRelic::MetricParser::Controller < NewRelic::MetricParser
       'All Controller Actions'
     end
   end
-  
+
   def url
     '/' + segments[1..-1].join('/')
   end
-  
-  # this is used to match transaction traces to controller actions.  
+
+  # this is used to match transaction traces to controller actions.
   # TT's don't have a preceding slash :P
   def tt_path
     segments[1..-1].join('/')
@@ -55,7 +55,7 @@ class NewRelic::MetricParser::Controller < NewRelic::MetricParser
   def call_rate_suffix
     'rpm'
   end
-  
+
   def summary_metrics
     %w[HttpDispatcher]
   end

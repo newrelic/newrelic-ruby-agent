@@ -21,7 +21,7 @@ Delayed::Worker.class_eval do
     NewRelic::DelayedJobInjection.worker_name = worker_name
     NewRelic::Agent.manual_start :dispatcher => :delayed_job, :dispatcher_instance_id => dispatcher_instance_id
   end
-  
+
   alias initialize_without_new_relic initialize
   alias initialize initialize_with_new_relic
 end if defined?(::Delayed::Worker) and not NewRelic::Control.instance['disable_dj']

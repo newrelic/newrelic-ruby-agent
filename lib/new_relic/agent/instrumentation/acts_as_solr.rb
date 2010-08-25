@@ -1,5 +1,5 @@
 if defined?(::ActsAsSolr)
-  
+
   module NewRelic
     module Instrumentation
       module ActsAsSolrInstrumentation
@@ -13,7 +13,7 @@ if defined?(::ActsAsSolr)
                 NewRelic::Agent.instance.transaction_sampler.notice_nosql(args.first.inspect, (Time.now - t0).to_f) rescue nil
               end
             end
-            
+
           end
         end
       end

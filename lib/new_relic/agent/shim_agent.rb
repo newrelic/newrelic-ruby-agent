@@ -6,7 +6,7 @@ module NewRelic
     class ShimAgent < NewRelic::Agent::Agent
       def self.instance
         @instance ||= self.new
-      end  
+      end
       def initialize
         super
         @histogram.extend NewRelic::Histogram::Shim

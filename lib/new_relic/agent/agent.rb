@@ -28,7 +28,7 @@ module NewRelic
 
 
       def initialize
-        
+
         @launch_time = Time.now
 
         @metric_ids = {}
@@ -68,10 +68,10 @@ module NewRelic
           metric ||= options['uri'] # normalize this with url rules
           raise "metric or uri arguments required" unless metric
           metric_info = NewRelic::MetricParser.for_metric_named(metric)
-          
+
           if metric_info.is_web_transaction?
             NewRelic::Agent::Instrumentation::MetricFrame.record_apdex(metric_info, duration_seconds, duration_seconds, is_error)
-            histogram.process(duration_seconds) 
+            histogram.process(duration_seconds)
           end
           metrics = metric_info.summary_metrics
 
@@ -80,7 +80,7 @@ module NewRelic
             stats = stats_engine.get_stats_no_scope(name)
             stats.record_data_point(duration_seconds)
           end
-          
+
           if is_error
             if options['exception']
               e = options['exception']
@@ -104,7 +104,7 @@ module NewRelic
         # not assume the agent started.
         #
         # The call is idempotent, but not re-entrant.
-        # 
+        #
         # * It clears any metrics carried over from the parent process
         # * Restarts the sampler thread if necessary
         # * Initiates a new agent run and worker loop unless that was done
@@ -145,7 +145,7 @@ module NewRelic
         def started?
           @started
         end
-        
+
         # Return nil if not yet connected, true if successfully started
         # and false if we failed to start.
         def connected?
@@ -268,7 +268,7 @@ module NewRelic
           @slowest_transaction_threshold = @slowest_transaction_threshold.to_f
 
           log.warn "Agent is configured to send raw SQL to RPM service" if @record_sql == :raw
-          
+
           case
           when !control.monitor_mode?
             log.warn "Agent configured not to send data in this environment - edit newrelic.yml to change this"
@@ -276,25 +276,25 @@ module NewRelic
             log.error "No license key found.  Please edit your newrelic.yml file and insert your license key."
           when control.license_key.length != 40
             log.error "Invalid license key: #{control.license_key}"
-          when [:passenger, :unicorn].include?(control.dispatcher)  
+          when [:passenger, :unicorn].include?(control.dispatcher)
             log.info "Connecting workers after forking."
           else
             # Do the connect in the foreground if we are in sync mode
             NewRelic::Agent.disable_all_tracing { connect(:keep_retrying => false) } if control.sync_startup
-            
+
             # Start the event loop and initiate connection if necessary
             start_worker_thread
-            
+
             # Our shutdown handler needs to run after other shutdown handlers
             # that may be doing things like running the app (hello sinatra).
             if control.send_data_on_exit
-              if RUBY_VERSION =~ /rubinius/i 
+              if RUBY_VERSION =~ /rubinius/i
                 list = at_exit { shutdown }
                 # move the shutdown handler to the front of the list, to
                 # execute last:
                 list.unshift(list.pop)
               elsif !defined?(JRuby) or !defined?(Sinatra::Application)
-                at_exit { at_exit { shutdown } } 
+                at_exit { at_exit { shutdown } }
               end
             end
           end
@@ -338,7 +338,7 @@ module NewRelic
                   else
                     @transaction_sampler.enable # otherwise ensure TT's are enabled
                   end
-                  
+
                   log.info "Reporting performance data every #{@report_period} seconds."
                   log.debug "Running worker loop"
                   # Note if the agent attempts to report more frequently than allowed by the server
@@ -450,7 +450,7 @@ module NewRelic
               end
               log.debug "Transaction tracing threshold is #{@slowest_transaction_threshold} seconds."
             else
-              log.debug "Transaction traces will not be sent to the RPM service." 
+              log.debug "Transaction traces will not be sent to the RPM service."
             end
 
             # Ask for permission to collect error data
@@ -500,7 +500,7 @@ module NewRelic
         def determine_home_directory
           control.root
         end
-        
+
         def is_application_spawner?
           $0 =~ /ApplicationSpawner|^unicorn\S* master/
         end
@@ -556,7 +556,7 @@ module NewRelic
               # times exceed our threshold (to avoid unnecessary overhead
               # of running explains on fast queries.)
               options = { :keep_backtraces => true }
-              options[:record_sql] = @record_sql unless @record_sql == :off 
+              options[:record_sql] = @record_sql unless @record_sql == :off
               options[:explain_sql] = @explain_threshold if @explain_enabled
               traces = @traces.collect {|trace| trace.prepare_to_send(options)}
               invoke_remote :transaction_sample_data, @agent_id, traces
@@ -632,7 +632,7 @@ module NewRelic
         end
 
         def send_request(opts)
-          request = Net::HTTP::Post.new(opts[:uri], 'CONTENT-ENCODING' => opts[:encoding], 'HOST' => opts[:collector].name)  
+          request = Net::HTTP::Post.new(opts[:uri], 'CONTENT-ENCODING' => opts[:encoding], 'HOST' => opts[:collector].name)
           request.content_type = "application/octet-stream"
           request.body = opts[:data]
 

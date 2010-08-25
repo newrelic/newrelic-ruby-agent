@@ -47,10 +47,10 @@ module NewRelic
       #       end
       #     end
       #   end
-      #      
+      #
       # == Overriding the metric name
       #
-      # By default the middleware is identified only by its class, but if you want to 
+      # By default the middleware is identified only by its class, but if you want to
       # be more specific and pass in name, then omit including the Rack instrumentation
       # and instead follow this example:
       #

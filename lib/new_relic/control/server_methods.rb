@@ -1,41 +1,41 @@
 module NewRelic
   class Control
-    
+
     # Structs holding info for the remote server and proxy server
     class Server < Struct.new :name, :port, :ip #:nodoc:
       def to_s; "#{name}:#{port}"; end
     end
-    
+
     ProxyServer = Struct.new :name, :port, :user, :password #:nodoc:
-    
+
     module ServerMethods
 
       def server
-        @remote_server ||= server_from_host(nil)  
-      end
-      
-      def api_server
-        api_host = self['api_host'] || 'rpm.newrelic.com' 
-        @api_server ||= 
-          NewRelic::Control::Server.new \
-        api_host, 
-        (self['api_port'] || self['port'] || (use_ssl? ? 443 : 80)).to_i, 
-        nil
-      end
-      
-      def proxy_server
-        @proxy_server ||=
-          NewRelic::Control::ProxyServer.new self['proxy_host'], self['proxy_port'], self['proxy_user'], self['proxy_pass'] 
-      end
-      
-      def server_from_host(hostname=nil)
-        host = hostname || self['host'] || 'collector.newrelic.com'
-        
-        # if the host is not an IP address, turn it into one
-        NewRelic::Control::Server.new host, (self['port'] || (use_ssl? ? 443 : 80)).to_i, convert_to_ip_address(host) 
+        @remote_server ||= server_from_host(nil)
       end
 
-      # Look up the ip address of the host using the pure ruby lookup 
+      def api_server
+        api_host = self['api_host'] || 'rpm.newrelic.com'
+        @api_server ||=
+          NewRelic::Control::Server.new \
+        api_host,
+        (self['api_port'] || self['port'] || (use_ssl? ? 443 : 80)).to_i,
+        nil
+      end
+
+      def proxy_server
+        @proxy_server ||=
+          NewRelic::Control::ProxyServer.new self['proxy_host'], self['proxy_port'], self['proxy_user'], self['proxy_pass']
+      end
+
+      def server_from_host(hostname=nil)
+        host = hostname || self['host'] || 'collector.newrelic.com'
+
+        # if the host is not an IP address, turn it into one
+        NewRelic::Control::Server.new host, (self['port'] || (use_ssl? ? 443 : 80)).to_i, convert_to_ip_address(host)
+      end
+
+      # Look up the ip address of the host using the pure ruby lookup
       # to prevent blocking.  If that fails, fall back to the regular
       # IPSocket library.  Return nil if we can't find the host ip
       # address and don't have a good default.
@@ -56,7 +56,7 @@ module NewRelic
         end
         ip_address
       end
-      
+
       # Return the Net::HTTP with proxy configuration given the NewRelic::Control::Server object.
       # Default is the collector but for api calls you need to pass api_server
       #
@@ -67,7 +67,7 @@ module NewRelic
       def http_connection(host = nil)
         host ||= server
         # Proxy returns regular HTTP if @proxy_host is nil (the default)
-        http_class = Net::HTTP::Proxy(proxy_server.name, proxy_server.port, 
+        http_class = Net::HTTP::Proxy(proxy_server.name, proxy_server.port,
                                       proxy_server.user, proxy_server.password)
         http = http_class.new(host.ip || host.name, host.port)
         log.debug("Http Connection opened to #{host.ip||host.name}:#{host.port}")

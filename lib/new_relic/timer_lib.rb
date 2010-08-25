@@ -23,5 +23,5 @@ module NewRelic #:nodoc:
     require 'timeout'
     TimerLib = Timeout
   end
-  
+
 end

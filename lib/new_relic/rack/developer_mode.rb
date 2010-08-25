@@ -5,7 +5,7 @@ require 'rack/file'
 
 module NewRelic::Rack
 class DeveloperMode
-  
+
   VIEW_PATH = File.expand_path('../../../../ui/views/', __FILE__)
   HELPER_PATH = File.expand_path('../../../../ui/helpers/', __FILE__)
   require File.join(HELPER_PATH, 'developer_mode_helper.rb')
@@ -22,7 +22,7 @@ class DeveloperMode
   end
 
   protected
-  
+
   def _call(env)
     @req = Rack::Request.new(env)
     @rendered = false
@@ -53,9 +53,9 @@ class DeveloperMode
       @app.call(env)
     end
   end
-  
+
   private
-  
+
   def index
     get_samples
     render(:index)
@@ -69,18 +69,18 @@ class DeveloperMode
   def explain_sql
     get_segment
 
-    return render(:sample_not_found) unless @sample 
+    return render(:sample_not_found) unless @sample
 
     @sql = @segment[:sql]
     @trace = @segment[:backtrace]
-    
-    if NewRelic::Agent.agent.record_sql == :obfuscated  
+
+    if NewRelic::Agent.agent.record_sql == :obfuscated
       @obfuscated_sql = @segment.obfuscated_sql
     end
-    
+
     explanations = @segment.explain_sql
     if explanations
-      @explanation = explanations.first 
+      @explanation = explanations.first
       if !@explanation.blank?
         first_row = @explanation.first
         # Show the standard headers if it looks like a mysql explain plan
@@ -99,11 +99,11 @@ class DeveloperMode
     NewRelic::Control.instance.profiling = params['start'] == 'true'
     index
   end
-  
+
   def threads
     render(:threads)
   end
-  
+
   def render(view, layout=true)
     add_rack_array = true
     if view.is_a? Hash
@@ -117,7 +117,7 @@ class DeveloperMode
           render({:partial => view[:partial], :object => object})
         end.join(' ')
       end
-      
+
       if view[:partial]
         add_rack_array = false
         view = "_#{view[:partial]}"
@@ -150,7 +150,7 @@ class DeveloperMode
   def render_without_layout(view, binding)
     ERB.new(File.read(File.join(VIEW_PATH, 'newrelic', view.to_s + '.rhtml')), nil, nil, 'frobnitz').result(binding)
   end
-    
+
   def content_tag(tag, contents, opts={})
     opt_values = opts.map {|k, v| "#{k}=\"#{v}\"" }.join(' ')
     "<#{tag} #{opt_values}>#{contents}</#{tag}>"
@@ -159,7 +159,7 @@ class DeveloperMode
   def sample
     @sample || @samples[0]
   end
-  
+
   def params
     @req.params
   end
@@ -167,13 +167,13 @@ class DeveloperMode
   def segment
     @segment
   end
-  
+
 
   # show the selected source file with the highlighted selected line
   def show_source
     @filename = params['file']
     line_number = params['line'].to_i
-    
+
     if !File.readable?(@filename)
       @source="<p>Unable to read #{@filename}.</p>"
       return
@@ -185,7 +185,7 @@ class DeveloperMode
       return
     end
     @source = ""
-    
+
     @source << "<pre>"
     file.each_line do |line|
       # place an anchor 6 lines above the selected line (if the line # < 6)
@@ -193,7 +193,7 @@ class DeveloperMode
         @source << "</pre><pre id = 'selected_line'>"
         @source << line.rstrip
         @source << "</pre><pre>"
-        
+
         # highlight the selected line
       elsif file.lineno == line_number
         @source << "</pre><pre class = 'selected_source_line'>"
@@ -204,36 +204,36 @@ class DeveloperMode
       end
     end
     render(:show_source)
-  end  
-  
+  end
+
   def show_sample_data
     get_sample
-    
-    return render(:sample_not_found) unless @sample 
-    
+
+    return render(:sample_not_found) unless @sample
+
     @request_params = @sample.params['request_params'] || {}
     @custom_params = @sample.params['custom_params'] || {}
 
     controller_metric = @sample.root_segment.called_segments.first.metric_name
-    
+
     metric_parser = NewRelic::MetricParser.for_metric_named controller_metric
     @sample_controller_name = metric_parser.controller_name
     @sample_action_name = metric_parser.action_name
-    
+
     render(:show_sample)
   end
-  
+
     def get_samples
     @samples = NewRelic::Agent.instance.transaction_sampler.samples.select do |sample|
       sample.params[:path] != nil
     end
-    
+
     return @samples = @samples.sort{|x,y| y.omit_segments_with('(Rails/Application Code Loading)|(Database/.*/.+ Columns)').duration <=>
         x.omit_segments_with('(Rails/Application Code Loading)|(Database/.*/.+ Columns)').duration} if params['h']
     return @samples = @samples.sort{|x,y| x.params[:uri] <=> y.params[:uri]} if params['u']
     @samples = @samples.reverse
   end
-  
+
   def get_sample
     get_samples
     id = params['id']
@@ -245,13 +245,13 @@ class DeveloperMode
       end
     end
   end
-  
+
   def get_segment
     get_sample
     return unless @sample
-    
+
     segment_id = params['segment'].to_i
     @segment = @sample.find_segment(segment_id)
-  end  
+  end
 end
 end

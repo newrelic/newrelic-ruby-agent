@@ -5,9 +5,9 @@ module NewRelic
       def initialize(options)
         if options[:install]
           src = File.join(File.dirname(__FILE__), "newrelic.yml")
-          require 'new_relic/command'  
+          require 'new_relic/command'
           begin
-            NewRelic::Command::Install.new(:quiet => true, :src_file => src).run    
+            NewRelic::Command::Install.new(:quiet => true, :src_file => src).run
             NewRelic::Agent.logger.info "A newrelic.yml template was copied to #{File.expand_path('.')}."
             NewRelic::Agent.logger.info "Please add a license key to the file and restart #{$0}"
             exit 0

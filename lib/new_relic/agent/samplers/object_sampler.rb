@@ -8,7 +8,7 @@ module NewRelic
         end
 
         def stats
-          stats_engine.get_stats_no_scope("GC/objects")          
+          stats_engine.get_stats_no_scope("GC/objects")
         end
 
         def self.supported_on_this_platform?

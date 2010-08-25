@@ -1,5 +1,5 @@
 class NewRelic::MetricParser::External < NewRelic::MetricParser
-  
+
   def all?
     host == 'all' || host == 'allWeb' || host == 'allOther'
   end
@@ -36,7 +36,7 @@ class NewRelic::MetricParser::External < NewRelic::MetricParser
     end
   end
   def developer_name
-    case 
+    case
     when all?
       'All External'
     when hosts_all?

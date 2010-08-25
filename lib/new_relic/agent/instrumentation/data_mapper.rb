@@ -2,7 +2,7 @@
 # NewRelic instrumentation for DataMapper
 # For now, we have to refer to all db metrics as "ActiveRecord"
 if defined? DataMapper
-  
+
   DataMapper::Model.class_eval do
     add_method_tracer :get, 'ActiveRecord/#{self.name}/find'
     add_method_tracer :first, 'ActiveRecord/#{self.name}/find'
@@ -37,7 +37,7 @@ if defined? DataMapper
         log_with_capture_sql(sql, name, &block)
       end
     end
-    
+
     def log_with_capture_sql(sql, name, &block)
       if @@my_sql_defined && self.is_a?(ActiveRecord::ConnectionAdapters::MysqlAdapter)
         config = @config
@@ -46,12 +46,12 @@ if defined? DataMapper
       else
         config = nil
       end
-      
+
       t0 = Time.now
       result = log_without_newrelic_instrumentation(sql, name, &block)
-      
+
       NewRelic::Agent.instance.transaction_sampler.notice_sql(sql, config, (Time.now - t0).to_f)
-      
+
       result
     end
   end

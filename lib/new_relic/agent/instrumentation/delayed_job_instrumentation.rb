@@ -14,8 +14,8 @@ if defined?(Delayed::Job) and not NewRelic::Control.instance['disable_dj']
               add_transaction_tracer "invoke_job", :category => 'OtherTransaction/DelayedJob'
             end
           end
-          
-        end 
+
+        end
       end
     end
   end

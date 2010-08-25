@@ -11,30 +11,30 @@ require 'new_relic/control/configuration'
 require 'new_relic/control/server_methods'
 require 'new_relic/control/instrumentation'
 
-module NewRelic 
-  
+module NewRelic
+
   # The Control is a singleton responsible for the startup and
-  # initialization sequence.  The initializer uses a LocalEnvironment to 
+  # initialization sequence.  The initializer uses a LocalEnvironment to
   # detect the framework and instantiates the framework specific
   # subclass.
   #
   # The Control also implements some of the public API for the agent.
-  # 
+  #
   class Control
     # used for framework-specific subclasses
     module Frameworks; end
-    
+
     include Profiling
     include LoggingMethods
     include Configuration
     include ServerMethods
     include Instrumentation
-    
+
     # The env is the setting used to identify which section of the newrelic.yml
     # to load.  This defaults to a framework specific value, such as ENV['RAILS_ENV']
     # but can be overridden as long as you set it before calling #init_plugin
     attr_writer :env
-    
+
     attr_reader :local_env
 
     module ClassMethods
@@ -42,7 +42,7 @@ module NewRelic
       def instance
         @instance ||= new_instance
       end
-      
+
       # Create the concrete class for environment specific behavior:
       def new_instance
         @local_env = NewRelic::LocalEnvironment.new
@@ -72,7 +72,7 @@ module NewRelic
       end
     end
     extend ClassMethods
-    
+
     # Initialize the plugin/gem and start the agent.  This does the necessary configuration based on the
     # framework environment and determines whether or not to start the agent.  If the
     # agent is not going to be started then it loads the agent shim which has stubs
@@ -81,8 +81,8 @@ module NewRelic
     # This may be invoked multiple times, as long as you don't attempt to uninstall
     # the agent after it has been started.
     #
-    # If the plugin is initialized and it determines that the agent is not enabled, it 
-    # will skip starting it and install the shim.  But if you later call this with 
+    # If the plugin is initialized and it determines that the agent is not enabled, it
+    # will skip starting it and install the shim.  But if you later call this with
     # <tt>:agent_enabled => true</tt>, then it will install the real agent and start it.
     #
     # What determines whether the agent is launched is the result of calling agent_enabled?
@@ -94,17 +94,17 @@ module NewRelic
     #
     def init_plugin(options={})
       options['app_name'] = ENV['NEWRELIC_APP_NAME'] if ENV['NEWRELIC_APP_NAME']
-      
+
       require 'new_relic/agent'
-      
+
       # Load the DJ injection now.  If you do it sooner, DJ might not be loaded and
       # you'll miss it.
       require 'new_relic/delayed_job_injection'
-      
+
       # Merge the stringified options into the config as overrides:
       logger_override = options.delete(:log)
       environment_name = options.delete(:env) and self.env = environment_name
-      dispatcher = options.delete(:dispatcher) and @local_env.dispatcher = dispatcher 
+      dispatcher = options.delete(:dispatcher) and @local_env.dispatcher = dispatcher
       dispatcher_instance_id = options.delete(:dispatcher_instance_id) and @local_env.dispatcher_instance_id = dispatcher_instance_id
 
       # Clear out the settings, if they've already been loaded.  It may be that
@@ -135,12 +135,12 @@ module NewRelic
         install_shim
       end
     end
-    
+
     # Install the real agent into the Agent module, and issue the start command.
     def start_agent
       NewRelic::Agent.agent.start
     end
-    
+
     # True if dev mode or monitor mode are enabled, and we are running
     # inside a valid dispatcher like mongrel or passenger.  Can be overridden
     # by NEWRELIC_ENABLE env variable, monitor_daemons config option when true, or
@@ -148,14 +148,14 @@ module NewRelic
     def agent_enabled?
       return false if !developer_mode? && !monitor_mode?
       return self['agent_enabled'].to_s =~ /true|on|yes/i if !self['agent_enabled'].nil? && self['agent_enabled'] != 'auto'
-      return false if ENV['NEWRELIC_ENABLE'].to_s =~ /false|off|no/i 
+      return false if ENV['NEWRELIC_ENABLE'].to_s =~ /false|off|no/i
       return true if self['monitor_daemons'].to_s =~ /true|on|yes/i
       return true if ENV['NEWRELIC_ENABLE'].to_s =~ /true|on|yes/i
       # When in 'auto' mode the agent is enabled if there is a known
       # dispatcher running
       return true if @local_env.dispatcher != nil
     end
-    
+
     def app
       @local_env.framework
     end
@@ -164,17 +164,17 @@ module NewRelic
     def to_s
       "Control[#{self.app}]"
     end
-    
+
     protected
-    
+
     # Append framework specific environment information for uploading to
     # the server for change detection.  Override in subclasses
     def append_environment_info; end
-    
+
     def config_file
       File.expand_path(File.join(root,"config","newrelic.yml"))
     end
-    
+
     def initialize local_env, config_file_override=nil
       @local_env = local_env
       @instrumentation_files = []
@@ -194,10 +194,10 @@ module NewRelic
       puts e.backtrace.join("\n")
       raise "Error reading newrelic.yml file: #{e}"
     end
-    
+
     def newrelic_root
       self.class.newrelic_root
     end
-    
+
   end
 end
