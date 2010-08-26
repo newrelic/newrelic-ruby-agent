@@ -5,10 +5,10 @@
 
 Gem::Specification.new do |s|
   s.name = %q{newrelic_rpm}
-  s.version = "2.13.0.beta6"
+  s.version = "2.13.0.beta7"
 
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
-  s.authors = ["Bill Kayser"]
+  s.authors = ["Bill Kayser", "Justin George"]
   s.date = %q{2010-07-16}
   s.description = %q{New Relic RPM is a Ruby performance management system, developed by
 New Relic, Inc (http://www.newrelic.com).  RPM provides you with deep
