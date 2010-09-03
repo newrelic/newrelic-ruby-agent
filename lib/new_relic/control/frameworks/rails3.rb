@@ -1,7 +1,7 @@
 # Control subclass instantiated when Rails is detected.  Contains
 # Rails specific configuration, instrumentation, environment values,
 # etc.
-class NewRelic::Control::Frameworks::Rails3 < NewRelic::Control
+class NewRelic::Control::Frameworks::Rails3 < NewRelic::Control::Frameworks::Rails
 
   def env
     @env ||= ::Rails.env.to_s
@@ -37,17 +37,6 @@ class NewRelic::Control::Frameworks::Rails3 < NewRelic::Control
     @rails_version ||= NewRelic::VersionNumber.new(::Rails::VERSION::STRING)
   end
 
-  def init_config(options={})
-    rails_config=options[:config]
-    if !agent_enabled?
-      # Might not be running if it does not think mongrel, thin, passenger, etc
-      # is running, if it things it's a rake task, or if the agent_enabled is false.
-      logger.info "New Relic Agent not running."
-    else
-      logger.info "Starting the New Relic Agent."
-    end
-  end
-
   protected
 
   # Collect the Rails::Info into an associative array as well as the list of plugins
@@ -65,12 +54,6 @@ class NewRelic::Control::Frameworks::Rails3 < NewRelic::Control
       end
     end
     local_env.append_plugin_list { ::Rails.configuration.plugins }
-  end
-
-  def install_shim
-    super
-    require 'new_relic/agent/instrumentation/controller_instrumentation'
-    ActionController::Base.send :include, NewRelic::Agent::Instrumentation::ControllerInstrumentation::Shim
   end
 
 end
