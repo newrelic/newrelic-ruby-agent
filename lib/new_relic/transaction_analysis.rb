@@ -49,7 +49,7 @@ module TransactionAnalysis
 
     def developer_name
       return @metric_name if @metric_name == 'Remainder'
-      NewRelic::MetricParser.parse(@metric_name).developer_name
+      NewRelic::MetricParser::MetricParser.parse(@metric_name).developer_name
     end
   end
 
