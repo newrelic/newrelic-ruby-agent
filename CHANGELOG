@@ -63,6 +63,7 @@ v2.11.0
   * optimizations to background thread, controller instrumentation, memory
     usage
   * add logger method to public_api
+  * support list notation for ignored exceptions in the newrelic.yml
     
 v2.10.8
   * fix bug in delayed_job instrumentation that caused the job queue sampler
