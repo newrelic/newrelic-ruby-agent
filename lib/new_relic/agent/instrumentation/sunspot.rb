@@ -5,7 +5,7 @@ if defined?(::Sunspot)
         add_method_tracer method, 'SolrClient/Sunspot/index'
       end
       add_method_tracer :commit, 'SolrClient/Sunspot/commit'
-      
+
       %w[search more_like_this].each do |method|
         add_method_tracer method, 'SolrClient/Sunspot/query'
       end

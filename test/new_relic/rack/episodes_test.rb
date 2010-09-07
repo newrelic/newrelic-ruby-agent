@@ -39,6 +39,7 @@ class EpisodesTest < Test::Unit::TestCase
     assert_equal 204, v[0]
     compare_metrics %w[
       Apdex/Client/4.4
+      Apdex/Client/4.4/Mac/Firefox/3.6
       Client/totaltime
       Client/frontend
       Client/backend

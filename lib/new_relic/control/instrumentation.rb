@@ -12,7 +12,7 @@ module NewRelic
           end
         end
       end
-      
+
       # Install stubs to the proper location so the app code will not fail
       # if the agent is not running.
       def install_shim
@@ -20,7 +20,7 @@ module NewRelic
         raise "Cannot install the Agent shim after instrumentation has already been installed!" if @instrumented
         NewRelic::Agent.agent = NewRelic::Agent::ShimAgent.instance
       end
-      
+
       # Add instrumentation.  Don't call this directly.  Use NewRelic::Agent#add_instrumentation.
       # This will load the file synchronously if we've already loaded the default
       # instrumentation.
@@ -52,7 +52,7 @@ module NewRelic
         # an error if rails has not been initialised. which is totally sane.
         _delayed_instrumentation
       end
-      
+
       def load_samplers
         agent = NewRelic::Agent.instance
         NewRelic::Agent::Sampler.sampler_classes.each do | subclass |
@@ -62,7 +62,7 @@ module NewRelic
             if subclass.use_harvest_sampler?
               agent.stats_engine.add_harvest_sampler sampler
               log.debug "Registered #{subclass.name} for harvest time sampling"
-            else            
+            else
               agent.stats_engine.add_sampler sampler
               log.debug "Registered #{subclass.name} for periodic sampling"
             end
@@ -73,14 +73,14 @@ module NewRelic
           end
         end
       end
-      
+
       private
-      
+
       def _install_instrumentation
         return if @instrumented
-        
+
         @instrumented = true
-        
+
         # Instrumentation for the key code points inside rails for monitoring by NewRelic.
         # note this file is loaded only if the newrelic agent is enabled (through config/newrelic.yml)
         instrumentation_path = File.join(File.dirname(__FILE__), '..', 'agent','instrumentation')

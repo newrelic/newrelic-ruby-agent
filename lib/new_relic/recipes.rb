@@ -1,6 +1,6 @@
 # When installed as a plugin this is loaded automatically.
 #
-# When installed as a gem, you need to add 
+# When installed as a gem, you need to add
 #  require 'new_relic/recipes'
 # to your deploy.rb
 #
@@ -9,10 +9,10 @@
 # If it fails, it will not affect the task execution or do a rollback.
 #
 make_notify_task = lambda do
-  
+
   namespace :newrelic do
-    
-    # on all deployments, notify RPM 
+
+    # on all deployments, notify RPM
     desc "Record a deployment in New Relic RPM (rpm.newrelic.com)"
     task :notice_deployment, :roles => :app, :except => {:no_release => true } do
       rails_env = fetch(:newrelic_rails_env, fetch(:rails_env, "production"))
@@ -22,7 +22,7 @@ make_notify_task = lambda do
         # if it doesn't work.  Problem is that I don't know what directory the .git is
         # in when using git.  I could possibly use the remote cache but i don't know
         # if that's always there.
-=begin        
+=begin
         run "cd #{current_release}; #{log_command}" do | io, stream_id, output |
           changelog = output
         end
@@ -42,13 +42,13 @@ make_notify_task = lambda do
           end
           changelog = `#{log_command}`
         end
-        new_revision = rev || source.query_revision(source.head()) do |cmd| 
+        new_revision = rev || source.query_revision(source.head()) do |cmd|
           logger.debug "executing locally: '#{cmd}'"
-          `#{cmd}` 
+          `#{cmd}`
         end
         deploy_options = { :environment => rails_env,
           :revision => new_revision,
-          :changelog => changelog, 
+          :changelog => changelog,
           :description => description,
           :appname => appname }
         logger.debug "Uploading deployment to New Relic"

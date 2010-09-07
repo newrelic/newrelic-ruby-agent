@@ -3,7 +3,7 @@ if defined?(Sinatra::Base)
   module NewRelic
     module Agent
       module Instrumentation
-        # NewRelic instrumentation for Sinatra applications.  Sinatra actions will 
+        # NewRelic instrumentation for Sinatra applications.  Sinatra actions will
         # appear in the UI similar to controller actions, and have breakdown charts
         # and transaction traces.
         #
@@ -11,9 +11,9 @@ if defined?(Sinatra::Base)
         # to match them.  HTTP operations are not distinguished.  Multiple matches
         # will all be tracked as separate actions.
         module Sinatra
-          
+
           include NewRelic::Agent::Instrumentation::ControllerInstrumentation
-          
+
           def route_eval_with_newrelic(&block_arg)
             path = unescape(@request.path_info)
             name = path
@@ -33,13 +33,13 @@ if defined?(Sinatra::Base)
             end
           end
         end
-        
+
         ::Sinatra::Base.class_eval do
           include NewRelic::Agent::Instrumentation::Sinatra
           alias route_eval_without_newrelic route_eval
           alias route_eval route_eval_with_newrelic
         end
-        
+
       end
     end
   end

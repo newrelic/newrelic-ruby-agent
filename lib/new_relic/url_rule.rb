@@ -3,12 +3,12 @@
 # Insantiated strictly by Marshal.
 class NewRelic::UrlRule
   attr_reader :match_expression, :replacement, :eval_order, :terminate_chain
-  
+
   def apply url
     return nil
   end
-  
+
   class RuleSet
-    
+
   end
 end

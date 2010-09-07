@@ -1,9 +1,9 @@
 require 'set'
 require 'new_relic/version'
 
-module NewRelic 
+module NewRelic
   # An instance of LocalEnvironment is responsible for determining
-  # three things: 
+  # three things:
   #
   # * Framework - :rails, :rails3, :merb, :ruby, :external, :test
   # * Dispatcher - A supported dispatcher, or nil (:mongrel, :thin, :passenger, :webrick, etc)
@@ -11,7 +11,7 @@ module NewRelic
   #
   # If the environment can't be determined, it will be set to
   # nil and dispatcher_instance_id will have nil.
-  # 
+  #
   # NewRelic::LocalEnvironment should be accessed through NewRelic::Control#env (via the NewRelic::Control singleton).
   class LocalEnvironment
 
@@ -21,15 +21,15 @@ module NewRelic
     attr_reader :mongrel    # The mongrel instance, if there is one, captured as a convenience
     attr_reader :processors # The number of cpus, if detected, or nil
     alias environment dispatcher
-    
+
     def initialize
       # Extend self with any any submodules of LocalEnvironment.  These can override
-      # the discover methods to discover new framworks and dispatchers.  
+      # the discover methods to discover new framworks and dispatchers.
       NewRelic::LocalEnvironment.constants.each do | const |
         mod = NewRelic::LocalEnvironment.const_get const
         self.extend mod if mod.instance_of? Module
       end
-      
+
       discover_framework
       discover_dispatcher
       @dispatcher = nil if @dispatcher == :none
@@ -38,32 +38,32 @@ module NewRelic
       @config = Hash.new
     end
 
-    # Add the given key/value pair to the app environment 
+    # Add the given key/value pair to the app environment
     # settings.  Must pass either a value or a block.  Block
     # is called to get the value and any raised errors are
     # silently ignored.
     def append_environment_value name, value = nil
-      value = yield if block_given? 
+      value = yield if block_given?
       @config[name] = value if value
     rescue Exception
-      # puts "#{e}\n  #{e.backtrace.join("\n  ")}" 
-      raise if @framework == :test 
+      # puts "#{e}\n  #{e.backtrace.join("\n  ")}"
+      raise if @framework == :test
     end
 
     def append_gem_list
       @gems += yield
     rescue Exception => e
       # puts "#{e}\n  #{e.backtrace.join("\n  ")}"
-      raise if @framework == :test 
+      raise if @framework == :test
     end
-  
+
     def append_plugin_list
       @plugins += yield
     rescue Exception
-      # puts "#{e}\n  #{e.backtrace.join("\n  ")}" 
-      raise if @framework == :test 
+      # puts "#{e}\n  #{e.backtrace.join("\n  ")}"
+      raise if @framework == :test
     end
-    
+
     def dispatcher_instance_id
       if @dispatcher_instance_id.nil?
         if @dispatcher.nil?
@@ -72,7 +72,7 @@ module NewRelic
       end
       @dispatcher_instance_id
     end
-        
+
     # Collect base statistics about the environment and record them for
     # comparison and change detection.
     def gather_environment_info
@@ -91,7 +91,7 @@ module NewRelic
       end
       append_environment_value('OS version') { `uname -v` }
       append_environment_value('OS') { `uname -s` } ||
-      append_environment_value('OS') { ENV['OS'] } 
+      append_environment_value('OS') { ENV['OS'] }
       append_environment_value('Arch') { `uname -p` } ||
       append_environment_value('Arch') { ENV['PROCESSOR_ARCHITECTURE'] }
       # See what the number of cpus is, works only on linux.
@@ -129,23 +129,23 @@ module NewRelic
     # Returns an associative array
     def snapshot
       i = @config.to_a
-      i << [ 'Plugin List', @plugins.to_a] if not @plugins.empty? 
+      i << [ 'Plugin List', @plugins.to_a] if not @plugins.empty?
       i << [ 'Gems', @gems.to_a] if not @gems.empty?
       i
     end
-    
+
     def mongrel
       # Note that the odd defined? sequence is necessary to work around a bug in an older version
       # of JRuby.
-      return @mongrel if @mongrel || ! (defined?(::Mongrel) && defined?(::Mongrel::HttpServer)) 
+      return @mongrel if @mongrel || ! (defined?(::Mongrel) && defined?(::Mongrel::HttpServer))
       ObjectSpace.each_object(Mongrel::HttpServer) do |mongrel|
         @mongrel = mongrel
       end unless defined?(::JRuby) && !JRuby.runtime.is_object_space_enabled
       @mongrel
     end
-    
+
     def unicorn
-      return @unicorn if @unicorn || ! (defined?(::Unicorn) && defined?(::Unicorn::HttpServer)) 
+      return @unicorn if @unicorn || ! (defined?(::Unicorn) && defined?(::Unicorn::HttpServer))
       ObjectSpace.each_object(Unicorn::HttpServer) do |unicorn|
         @unicorn = unicorn
       end unless defined?(::JRuby) && !JRuby.runtime.is_object_space_enabled
@@ -159,7 +159,7 @@ module NewRelic
     end
 
     private
-    
+
     # Although you can override the framework with NEWRELIC_DISPATCHER this
     # is not advisable since it implies certain api's being available.
     def discover_dispatcher
@@ -169,7 +169,7 @@ module NewRelic
         send 'check_for_'+(dispatchers.shift)
       end
     end
-    
+
     def discover_framework
       # Although you can override the framework with NEWRELIC_FRAMEWORK this
       # is not advisable since it implies certain api's being available.
@@ -181,14 +181,14 @@ module NewRelic
         when defined?(::NewRelic::TEST) then :test
         when defined?(::Merb) && defined?(::Merb::Plugins) then :merb
         when defined?(::Rails) then check_rails_version
-        when defined?(::Sinatra) && defined?(::Sinatra::Base) then :sinatra      
+        when defined?(::Sinatra) && defined?(::Sinatra::Base) then :sinatra
         when defined?(::NewRelic::IA) then :external
       else :ruby
-      end      
+      end
     end
 
     def check_rails_version
-      if Rails::VERSION::MAJOR < 3     
+      if Rails::VERSION::MAJOR < 3
         :rails
       else
         :rails3
@@ -197,7 +197,7 @@ module NewRelic
 
     def check_for_torquebox
       return unless defined?(::JRuby) &&
-         ( Java::OrgTorqueboxRailsWebDeployers::RailsRackDeployer rescue nil) 
+         ( Java::OrgTorqueboxRailsWebDeployers::RailsRackDeployer rescue nil)
       @dispatcher = :torquebox
     end
 
@@ -214,13 +214,13 @@ module NewRelic
     def check_for_webrick
       return unless defined?(::WEBrick) && defined?(::WEBrick::VERSION)
       @dispatcher = :webrick
-      if defined?(::OPTIONS) && OPTIONS.respond_to?(:fetch) 
+      if defined?(::OPTIONS) && OPTIONS.respond_to?(:fetch)
         # OPTIONS is set by script/server
         @dispatcher_instance_id = OPTIONS.fetch(:port)
       end
       @dispatcher_instance_id = default_port unless @dispatcher_instance_id
     end
-    
+
     def check_for_fastcgi
       return unless defined?(::FCGI)
       @dispatcher = :fastcgi
@@ -230,35 +230,35 @@ module NewRelic
     def check_for_mongrel
       return unless defined?(::Mongrel) && defined?(::Mongrel::HttpServer)
       @dispatcher = :mongrel
-      
+
       # Get the port from the server if it's started
 
       if mongrel && mongrel.respond_to?(:port)
         @dispatcher_instance_id = mongrel.port.to_s
       end
-      
+
       # Get the port from the configurator if one was created
       if @dispatcher_instance_id.nil? && defined?(::Mongrel::Configurator)
         ObjectSpace.each_object(Mongrel::Configurator) do |mongrel|
           @dispatcher_instance_id = mongrel.defaults[:port] && mongrel.defaults[:port].to_s
         end unless defined?(::JRuby) && !JRuby.runtime.is_object_space_enabled
       end
-      
+
       # Still can't find the port.  Let's look at ARGV to fall back
       @dispatcher_instance_id = default_port if @dispatcher_instance_id.nil?
     end
-    
+
     def check_for_unicorn
       return unless defined?(::Unicorn) && defined?(::Unicorn::HttpServer)
-      
-      # unlike mongrel, unicorn manages muliple threads and ports, so we 
+
+      # unlike mongrel, unicorn manages muliple threads and ports, so we
       # have to map multiple processes into one instance, as we do with passenger
       @dispatcher = :unicorn
     end
-      
+
     def check_for_sinatra
       return unless defined?(::Sinatra) && defined?(::Sinatra::Base)
-      
+
       begin
         version = ::Sinatra::VERSION
       rescue
@@ -271,7 +271,7 @@ module NewRelic
 
       @dispatcher = :sinatra
     end
-    
+
     def check_for_thin
       if defined?(::Thin) && defined?(::Thin::Server)
         # This case covers the thin web dispatcher
@@ -295,19 +295,19 @@ module NewRelic
         @dispatcher_instance_id = default_port
       end
     end
-    
+
     def check_for_litespeed
       if caller.pop =~ /fcgi-bin\/RailsRunner\.rb/
         @dispatcher = :litespeed
       end
     end
-    
+
     def check_for_passenger
-      if (defined?(::Passenger) && defined?(::Passenger::AbstractServer)) || defined?(::IN_PHUSION_PASSENGER) 
+      if (defined?(::Passenger) && defined?(::Passenger::AbstractServer)) || defined?(::IN_PHUSION_PASSENGER)
         @dispatcher = :passenger
       end
     end
-    
+
 
     def default_port
       require 'optparse'
@@ -319,8 +319,8 @@ module NewRelic
       end
       default_port
     end
-    
-    public 
+
+    public
     def to_s
       s = "LocalEnvironment["
       s << @framework.to_s

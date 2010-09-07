@@ -15,15 +15,15 @@ module NewRelic
         @options = opt_parser
       end
     end
-    
+
     def info(message)
       STDOUT.puts message
     end
-    
+
     def err(message)
       STDERR.puts message
-    end    
-    
+    end
+
     def initialize(command_line_args)
       if Hash === command_line_args
         # command line args is an options hash
@@ -37,22 +37,22 @@ module NewRelic
         end
         @leftover = @options.parse(command_line_args)
       end
-    rescue OptionParser::ParseError => e 
+    rescue OptionParser::ParseError => e
       raise CommandFailure.new e.message, @options
     end
-    
+
     @commands = []
     def self.inherited(subclass)
       @commands << subclass
     end
-    
+
     cmds = File.expand_path(File.join(File.dirname(__FILE__), 'commands', '*.rb'))
     Dir[cmds].each{|command| require command }
-    
+
     def self.run
-      
+
       @command_names = @commands.map{ |c| c.command }
-      
+
       extra = []
       options = ARGV.options do |opts|
         script_name = File.basename($0)
@@ -74,12 +74,12 @@ module NewRelic
         STDERR.puts "Unrecognized command: #{command}"
         STDERR.puts options
       else
-        command_class = @commands.find{ |c| c.command == command} 
+        command_class = @commands.find{ |c| c.command == command}
         command_class.new(extra).run
       end
     rescue OptionParser::InvalidOption => e
       raise NewRelic::Command::CommandFailure, e.message
     end
   end
-  
+
 end

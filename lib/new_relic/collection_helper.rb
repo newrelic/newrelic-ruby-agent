@@ -24,10 +24,10 @@ module NewRelic
       truncate(flatten(params))
     end
   end
-  
+
   # Return an array of strings (backtrace), cleaned up for readability
   # Return nil if there is no backtrace
-  
+
   def strip_nr_from_backtrace(backtrace)
     if backtrace
       # this is for 1.9.1, where strings no longer have Enumerable
@@ -40,12 +40,12 @@ module NewRelic
     end
     backtrace
   end
-  
+
   private
-  
+
   # Convert any kind of object to a short string.
   def flatten(object)
-    s = case object 
+    s = case object
       when nil then ''
       when object.instance_of?(String) then object
       when String then String.new(object)  # convert string subclasses to strings
@@ -64,7 +64,7 @@ module NewRelic
       end
       real_string
     else
-      truncate(flatten(string), len)     
+      truncate(flatten(string), len)
     end
   end
   end
