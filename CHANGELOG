@@ -1,3 +1,6 @@
+v2.13.1
+  * Add missing require in rails 3 framework control
+
 v2.13.0
   * developer mode is now a rack middleware and can be used on any framework;
     it is no longer supported automatically on versions of Rails prior to 2.3;
@@ -63,6 +66,7 @@ v2.11.0
   * optimizations to background thread, controller instrumentation, memory
     usage
   * add logger method to public_api
+  * support list notation for ignored exceptions in the newrelic.yml
     
 v2.10.8
   * fix bug in delayed_job instrumentation that caused the job queue sampler
