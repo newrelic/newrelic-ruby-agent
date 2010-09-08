@@ -1,3 +1,6 @@
+v2.13.1
+  * Add missing require in rails 3 framework control
+
 v2.13.0
   * developer mode is now a rack middleware and can be used on any framework;
     it is no longer supported automatically on versions of Rails prior to 2.3;
