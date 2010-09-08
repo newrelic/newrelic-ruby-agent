@@ -1,6 +1,7 @@
 # Control subclass instantiated when Rails is detected.  Contains
 # Rails specific configuration, instrumentation, environment values,
 # etc.
+require 'new_relic/control/frameworks/rails'
 class NewRelic::Control::Frameworks::Rails3 < NewRelic::Control::Frameworks::Rails
 
   def env
