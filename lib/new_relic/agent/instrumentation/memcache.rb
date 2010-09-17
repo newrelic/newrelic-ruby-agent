@@ -32,7 +32,7 @@ unless NewRelic::Control.instance['disable_memcache_instrumentation']
 
 
 
-  %w[get get_multi set add incr decr delete replace append prepand cas].each do | method_name |
+  %w[get get_multi set add incr decr delete replace append prepend cas].each do | method_name |
     instrument_method(::MemCache, method_name) if defined? ::MemCache
     instrument_method(::Memcached, method_name) if defined? ::Memcached
   end
