@@ -3,6 +3,7 @@
 # See:
 #     http://www.deveiate.org/code/Ruby-MemCache/ (Gem: Ruby-MemCache)
 #     http://seattlerb.rubyforge.org/memcache-client/ (Gem: memcache-client)
+#     http://github.com/mperham/dalli (Gem: dalli)
 unless NewRelic::Control.instance['disable_memcache_instrumentation']
 
   def self.instrument_method(the_class, method_name)
@@ -35,6 +36,7 @@ unless NewRelic::Control.instance['disable_memcache_instrumentation']
   %w[get get_multi set add incr decr delete replace append prepend cas].each do | method_name |
     instrument_method(::MemCache, method_name) if defined? ::MemCache
     instrument_method(::Memcached, method_name) if defined? ::Memcached
+    instrument_method(::Dalli::Client, method_name) if defined? ::Dalli::Client
   end
 
 end

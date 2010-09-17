@@ -1,45 +1,48 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
 
+memcached_ready = false
+classes = {
+  'memcache' => 'MemCache',
+  'dalli' => 'Dalli::Client',
+}
+begin
+  TCPSocket.new('localhost', 11211)
+  classes.each do |req, const|
+    begin
+      require req
+      MEMCACHED_CLASS = const.constantize
+      puts "Testing #{MEMCACHED_CLASS}"
+      memcached_ready = true
+    rescue LoadError
+    rescue NameError
+    end
+  end
+rescue Errno::ECONNREFUSED
+end
+
 class NewRelic::Agent::MemcacheInstrumentationTest < Test::Unit::TestCase
   include NewRelic::Agent::Instrumentation::ControllerInstrumentation
-  
-  # This implementation: http://seattlerb.rubyforge.org/memcache-client/
-  def using_memcache_client?
-    ::MemCache.method_defined? :cache_get
-  end
-  
+
   def setup
     NewRelic::Agent.manual_start
     @engine = NewRelic::Agent.instance.stats_engine
     
-    if using_memcache_client?
-      @cache = ::MemCache.new('localhost')
-    else
-      server = ::MemCache::Server.new('localhost')
-      @cache = ::MemCache.new(server)
-    end
+    @cache = MEMCACHED_CLASS.new('localhost')
+    @cache.flush_all
     @key = 'schluessel'
   end
   
   def _call_test_method_in_web_transaction(method, *args)
     @engine.clear_stats
-    begin
-      perform_action_with_newrelic_trace(:name=>'action', :category => :controller) do
-        @cache.send(method.to_sym, *[@key, *args])
-      end
-    rescue ::MemCache::MemCacheError
-      # There's probably no memcached around
+    perform_action_with_newrelic_trace(:name=>'action', :category => :controller) do
+      @cache.send(method.to_sym, *[@key, *args])
     end
   end
   
   def _call_test_method_in_background_task(method, *args)
     @engine.clear_stats
-    begin
-      perform_action_with_newrelic_trace(:name => 'bg_task', :category => :task) do
-        @cache.send(method.to_sym, *[@key, *args])
-      end
-    rescue ::MemCache::MemCacheError
-      # There's probably no memcached around
+    perform_action_with_newrelic_trace(:name => 'bg_task', :category => :task) do
+      @cache.send(method.to_sym, *[@key, *args])
     end
   end
   
@@ -100,4 +103,4 @@ class NewRelic::Agent::MemcacheInstrumentationTest < Test::Unit::TestCase
     end
   end
   
-end if defined? MemCache
+end if memcached_ready
