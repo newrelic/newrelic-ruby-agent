@@ -36,7 +36,6 @@ module NewRelic
 end
 
 if defined?(ActionController) && defined?(ActionController::Base)
-  puts "ApplicationController is defined"
   class ActionController::Base
     include NewRelic::Agent::Instrumentation::ControllerInstrumentation
     include NewRelic::Agent::Instrumentation::Rails3::ActionController
