@@ -23,7 +23,7 @@ module NewRelic
           'host' => 'collector.newrelic.com',
           'ssl' => false,
           'log_level' => 'info',
-          'apdex_t' => 1.0
+          'apdex_t' => 0.5
         }
         s.merge! settings_hash if settings_hash
         # monitor_daemons replaced with agent_enabled

@@ -1,3 +1,13 @@
+v2.13.3
+  * Dalli instrumentation from Mike Perham (thanks Mike)
+  * Datamapper instrumentation from Jordan Ritter (thanks Jordan)
+  * Apdex now defaults to 0.5
+    !!! Please be aware that if you are not setting an apdex, 
+    !!! this will cause a change in the apparent performance of your app.
+
+v2.13.2
+  * Remove a puts. Yes, a whole release for a puts.
+
 v2.13.1
   * Add missing require in rails 3 framework control
 
