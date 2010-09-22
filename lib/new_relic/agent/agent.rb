@@ -67,7 +67,7 @@ module NewRelic
           metric = options['metric']
           metric ||= options['uri'] # normalize this with url rules
           raise "metric or uri arguments required" unless metric
-          metric_info = NewRelic::MetricParser.for_metric_named(metric)
+          metric_info = NewRelic::MetricParser::MetricParser.for_metric_named(metric)
 
           if metric_info.is_web_transaction?
             NewRelic::Agent::Instrumentation::MetricFrame.record_apdex(metric_info, duration_seconds, duration_seconds, is_error)

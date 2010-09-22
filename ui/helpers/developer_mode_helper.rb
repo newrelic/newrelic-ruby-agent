@@ -87,7 +87,7 @@ module NewRelic::DeveloperModeHelper
   end
   
   def dev_name(metric_name)
-    NewRelic::MetricParser.parse(metric_name).developer_name
+    NewRelic::MetricParser::MetricParser.parse(metric_name).developer_name
   end
   
   # write the metric label for a segment metric in the detail view

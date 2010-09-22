@@ -56,7 +56,17 @@ you receive upon registration.
 E-mail support@newrelic.com with any problems or questions.
 
     EOF
+    puts <<-EOF
 
+Installing the plugin from Rubyforge is deprecated. This repository will not be updated after January 2011
+
+Please use one of the following options:
+
+Gems: gem install newrelic_rpm
+
+Github! git clone git://github.com/newrelic/rpm.git vendor/plugins/newrelic_rpm
+
+    EOF
   end
 
   def content

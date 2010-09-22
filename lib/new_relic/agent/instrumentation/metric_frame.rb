@@ -75,7 +75,7 @@ module NewRelic
         # Make sure you unwind every push with a pop call.
         def push(m)
           NewRelic::Agent.instance.transaction_sampler.notice_first_scope_push(start)
-          @path_stack.push NewRelic::MetricParser.for_metric_named(m)
+          @path_stack.push NewRelic::MetricParser::MetricParser.for_metric_named(m)
         end
 
         # Indicate that you don't want to keep the currently saved transaction
