@@ -1,99 +1,134 @@
-# NewRelic instrumentation for DataMapper
+## NewRelic instrumentation for DataMapper
 #
-# NOTE: Changed all the base references to "Database/", lacking any docs
-# explaining why they needed to remain "AR", and following the conventions used
-# by all the other rpm-contrib database instrumentations.
+# Instrumenting DM has different key challenges versus AR:
+#
+#   1. The hooking of SQL logging in DM is decoupled from any knowledge of the
+#      Model#method that invoked it.  But on the positive side, the duration is
+#      already calculated for you (and it happens inside the C-based DO code, so
+#      it's faster than a Ruby equivalent).
+#
+#   2. There are a lot more entry points that need to be hooked in order to
+#      understand call flow: DM::Model (model class) vs. DM::Resource (model
+#      instance) vs. DM::Collection (collection of model instances).  And
+#      others.
+#
+#   3. Strategic Eager Loading (SEL) combined with separately-grouped
+#      lazy-loaded attributes presents a unique problem for tying resulting
+#      SEL-invoked SQL calls to their proper scope.
+#
+# NOTE: On using "Database" versus "ActiveRecord" as base metric name
+#
+#   Using "Database" as the metric name base seems to properly identify methods
+#   as being DB-related in call graphs, but certain RPM views that show
+#   aggregations of DB CPM, etc still seem to rely solely on "ActiveRecord"
+#   being the base name, thus AFAICT "Database" calls to this are lost.  (Though
+#   I haven't yet tested "Database/SQL/{find/save/destroy/all}" yet, as it seems
+#   like an intuitively good name to use.)
+#
+#   So far I think these are the rules:
+#
+#     - ActiveRecord/{find/save/destroy} populates "Database Throughput" and
+#       "Database Response Time" in the Database tab. [non-scoped]
+#
+#     - ActiveRecord/all populates the main Overview tab of DB time.  (still
+#       unsure about this one). [non-scoped]
+#
+#     These metrics are represented as :push_scope => false or included as the
+#     non-first metric in trace_execution_scoped() (docs say only first counts
+#     towards scope) so they don't show up ine normal call graph/trace.
 #
 # FIXME:
 #
-#   (1) Still missing the instrumentation to catch all SELs (effect is that some
-#       SQL breakdowns contain more than one SQL statement).
+#   (1) Multiple SQL queries sometimes show up under a single trace scope.
+#
+#       The symptom occurs because of multiple calls to notice_sql() while under
+#       the same current_segment scope.  In other words, it's symptomatic of
+#       some missing/uninstrumented "entry points" that would otherwise have
+#       shown up as separate new line items in the trace call graph with the
+#       related SQL attached to them instead.
+#
+#   (2) Database/#{model}/#{method} populates the "Database / Top 5 operations"
+#       graph key correctly, but no data for them will actually show up.
+#       Switching to AR corrects this.
+#
+#   (3) Hooking DM::Resource#query appears to catch SEL cases (I *think*), so I
+#       named the metric "load".  However I don't observe any SQL being attached
+#       to the scope of those calls, so possible causes:
+#
+#       (a) something is wrong with either the code or my assumptions related to
+#           how current_segment/scope works when notice_* functions are called
+#
+#       (b) I'm straight up wrong about DM::Resource#query being invoked to SEL
+#           lazy-loaded attributes
+#
+#       But for certain DM::Resource#query is being invoked to do *something*
+#       that is probably useful in this context.
 
 if defined? ::DataMapper
 
   # DM::Model class methods
-  #
-  # Need to capture the ! methods too (bypass validation/don't hydrate
-  # instances)
   ::DataMapper::Model.class_eval do
 
-    add_method_tracer :get,      'Database/#{self.name}/get'
-    add_method_tracer :first,    'Database/#{self.name}/first'
-    add_method_tracer :last,     'Database/#{self.name}/last'
-    add_method_tracer :all,      'Database/#{self.name}/all'
+    add_method_tracer :get,      'ActiveRecord/#{self.name}/get'
+    add_method_tracer :first,    'ActiveRecord/#{self.name}/first'
+    add_method_tracer :last,     'ActiveRecord/#{self.name}/last'
+    add_method_tracer :all,      'ActiveRecord/#{self.name}/all'
 
-    add_method_tracer :create,   'Database/#{self.name}/create'
-    add_method_tracer :create!,  'Database/#{self.name}/create'
-    add_method_tracer :update,   'Database/#{self.name}/update'
-    add_method_tracer :update!,  'Database/#{self.name}/update'
-    add_method_tracer :destroy,  'Database/#{self.name}/destroy'
-    add_method_tracer :destroy!, 'Database/#{self.name}/destroy'
+    add_method_tracer :create,   'ActiveRecord/#{self.name}/create'
+    add_method_tracer :create!,  'ActiveRecord/#{self.name}/create'
+    add_method_tracer :update,   'ActiveRecord/#{self.name}/update'
+    add_method_tracer :update!,  'ActiveRecord/#{self.name}/update'
+    add_method_tracer :destroy,  'ActiveRecord/#{self.name}/destroy'
+    add_method_tracer :destroy!, 'ActiveRecord/#{self.name}/destroy'
 
     # For partial dm-ar-finders and dm-aggregates support:
     for method in [ :aggregate, :find, :find_by_sql ] do
       next unless method_defined? method
-      add_method_tracer(method, 'Database/#{self.name}/' + method.to_s)
+      add_method_tracer(method, 'ActiveRecord/#{self.name}/' + method.to_s)
     end
 
   end
 
-  ::DataMapper::Collection.class_eval do
-    add_method_tracer :get,      'Database/#{self.name}/get'
-    add_method_tracer :first,    'Database/#{self.name}/first'
-    add_method_tracer :last,     'Database/#{self.name}/last'
-    #add_method_tracer :all,      'Database/#{self.name}/all'
+  # DM's Model instance (Resource) methods
+  ::DataMapper::Resource.class_eval do
 
-    add_method_tracer :create,   'Database/#{self.name}/create'
-    add_method_tracer :create!,  'Database/#{self.name}/create'
-    add_method_tracer :update,   'Database/#{self.name}/update'
-    add_method_tracer :update!,  'Database/#{self.name}/update'
-    add_method_tracer :destroy,  'Database/#{self.name}/destroy'
-    add_method_tracer :destroy!, 'Database/#{self.name}/destroy'
+    add_method_tracer :query,   'ActiveRecord/#{self.class.name[/[^:]*$/]}/load'
+    add_method_tracer :update,  'ActiveRecord/#{self.class.name[/[^:]*$/]}/update'
+    add_method_tracer :save,    'ActiveRecord/#{self.class.name[/[^:]*$/]}/save'
+    add_method_tracer :destroy, 'ActiveRecord/#{self.class.name[/[^:]*$/]}/destroy'
+
+  end
+
+  # DM's Collection instance methods
+  ::DataMapper::Collection.class_eval do
+
+    add_method_tracer :get,      'ActiveRecord/#{self.name}/get'
+    add_method_tracer :first,    'ActiveRecord/#{self.name}/first'
+    add_method_tracer :last,     'ActiveRecord/#{self.name}/last'
+    add_method_tracer :all,      'ActiveRecord/#{self.name}/all'
+
+    add_method_tracer :create,   'ActiveRecord/#{self.name}/create'
+    add_method_tracer :create!,  'ActiveRecord/#{self.name}/create'
+    add_method_tracer :update,   'ActiveRecord/#{self.name}/update'
+    add_method_tracer :update!,  'ActiveRecord/#{self.name}/update'
+    add_method_tracer :destroy,  'ActiveRecord/#{self.name}/destroy'
+    add_method_tracer :destroy!, 'ActiveRecord/#{self.name}/destroy'
 
     # For dm-aggregates support:
     for method in [ :aggregate, :find ] do
       next unless method_defined? method
-      add_method_tracer(method, 'Database/#{self.name}/' + method.to_s)
+      add_method_tracer(method, 'ActiveRecord/#{self.name}/' + method.to_s)
     end
-  end
-
-  # DM's Model instance (Resource) methods
-  #
-  # FIXME: The value of the old "execute"/load is fairly shallow, as it gets
-  # called a lot just to access models that may have already been loaded through
-  # SEL on the Collection, though that's not always the case as SEL might also
-  # trigger additional SQL to get lazy-loaded attributes.  Sure does clutter up
-  # the traces though.  While they don't seem to be tied to the generation of
-  # SQL queries, I suspect this is related to balls
-  #
-  # NOTE: The AR instrumentation appears to always put "ActiveRecord/all" as an
-  # encapsulating scope.  Since these are basically the CRUD methods, I changed
-  # all the :push_scope => false versions to 'Database/all'.
-
-  ::DataMapper::Resource.class_eval do
-
-    #for method in [:query] do
-    #  add_method_tracer method, 'Database/#{self.class.name[/[^:]*$/]}/load'
-    #  add_method_tracer method, 'Database/all', :push_scope => false
-    #end
-
-    for method in [:update, :save] do
-      add_method_tracer method, 'Database/#{self.class.name[/[^:]*$/]}/save'
-      add_method_tracer method, 'Database/all', :push_scope => false
-    end
-
-    add_method_tracer :destroy, 'Database/#{self.class.name[/[^:]*$/]}/destroy'
-    add_method_tracer :destroy, 'Database/all', :push_scope => false
 
   end
 
+  # NOTE: DM::Transaction basically calls commit() twice, so as-is it will show
+  # up in traces twice -- second time subordinate to the first's scope.  Works
+  # well enough.
   ::DataMapper::Transaction.module_eval do
-    add_method_tracer :commit, 'Database/#{self.class.name[/[^:]*$/]}/transaction'
+    add_method_tracer :commit, 'ActiveRecord/#{self.class.name[/[^:]*$/]}/commit'
   end if defined? ::DataMapper::Transaction
 
-  # TODO: Figure out what these were (from AR instrumentation):
-  #  NewRelic::Control.instance['disable_activerecord_instrumentation']
-  #  NewRelic::Control.instance['skip_ar_instrumentation']
   module NewRelic
     module Agent
       module Instrumentation
@@ -106,43 +141,38 @@ if defined? ::DataMapper
             end
           end
 
-          # Unlike in AR, log is called in DM after the query actually ran, with
-          # duration and so forth.  Since already have metrics, there's nothing
-          # more to measure, so just log.
+          # Unlike in AR, log is called in DM after the query actually ran,
+          # complete with metrics.  Since DO has already calculated the
+          # duration, there's nothing more to measure, so just record and log.
           #
-          # NOTE: NewRelic::Agent.instance.transaction_sampler.scope_depth
-          # starts at 0 in sinatra, so the old test for < 2 is worthless.
-          #
-          # NOTE: Tried to copy the AR instrumentation, but I can't entirely
-          # intuit how the [] of metrics for trace_execution_scoped interplays
-          # with the rest of a given trace.
-          #
-          # It looks as if the AR instrumentation builds the scope as:
-          #
-          #  [
-          #    metric = ActiveRecord/#{model}/#{operation} ||
-          #             NewRelic::Agent::Instrumentation::MetricFrame.database_metric_name ||
-          #             Database/SQL/{select,update,insert,delete,show,other} || nil,
-          #    ActiveRecord/all,
-          #    ActiveRecord/#{operation},
-          #  ]
-          #
-          # and avoids notice_sql if it couldn't discern the metric (nil).
-          #
-          # TODO: Do we need to do anything with trace_execution_scoped() here?
-          # Problem is, at this point in DO we can't determine what the
-          # Adapter's CRUD operation was, though we could infer it from the SQL.
-          #
+          # We rely on the assumption that all possible entry points have been
+          # hooked with tracers, ensuring that notice_sql attaches this SQL to
+          # the proper call scope.
           def log_with_newrelic_instrumentation(msg)
-            # TODO: What is the expected format of the configuration (2nd arg)?
-            if NewRelic::Agent.is_execution_traced?
-              NewRelic::Agent.instance.transaction_sampler.notice_sql(msg.query, nil, msg.duration / 1000000.0)
+            return unless NewRelic::Agent.is_execution_traced?
+            return unless operation = case msg.query
+              when /^select/i          then 'find'
+              when /^(update|insert)/i then 'save'
+              when /^delete/i          then 'destroy'
+              else nil
+            end
+
+            connection_uri = self.to_s
+            duration       = msg.duration / 1000000.0
+
+            # Attach SQL to current segment/scope.
+            NewRelic::Agent.instance.transaction_sampler.notice_sql(msg.query, connection_uri, duration)
+
+            # Record query duration associated with each of the desired metrics.
+            metrics = [ "ActiveRecord/#{operation}", 'ActiveRecord/all' ]
+            metrics.each do |metric|
+              NewRelic::Agent.instance.stats_engine.get_stats_no_scope(metric).trace_call(duration)
             end
           ensure
             log_without_newrelic_instrumentation(msg)
           end
-        end # DataMapperInstrumentation
 
+        end # DataMapperInstrumentation
       end # Instrumentation
     end # Agent
   end # NewRelic
