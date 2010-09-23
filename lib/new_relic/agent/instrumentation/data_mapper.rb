@@ -42,10 +42,10 @@
 #   (1) Multiple SQL queries sometimes show up under a single trace scope.
 #
 #       The symptom occurs because of multiple calls to notice_sql() while under
-#       the same current_segment scope.  In other words, it's symptomatic of
-#       some missing/uninstrumented "entry points" that would otherwise have
-#       shown up as separate new line items in the trace call graph with the
-#       related SQL attached to them instead.
+#       the same current_segment scope.  In other words, I think it's
+#       symptomatic of some missing/uninstrumented "entry points" that would
+#       otherwise have shown up as separate new line items in the trace call
+#       graph with the related SQL attached to it instead.
 #
 #   (2) Database/#{model}/#{method} populates the "Database / Top 5 operations"
 #       graph key correctly, but no data for them will actually show up.
