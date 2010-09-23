@@ -33,5 +33,5 @@ end
 
 #ClassLoadingWatcher.flag_const_missing = nil
 # 
-# ::RAILS_DEFAULT_LOGGER.warn "RPM detected environment: #{NewRelic::Control.instance.local_env.to_s}, RAILS_ENV: #{RAILS_ENV}"
+# ::RAILS_DEFAULT_LOGGER.warn "RPM detected environment: #{NewRelic::Control.instance.local_env.to_s}, Rails.env: #{Rails.env}"
 # ::RAILS_DEFAULT_LOGGER.warn "Enabled? #{NewRelic::Control.instance.agent_enabled?}"

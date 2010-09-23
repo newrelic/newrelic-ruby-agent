@@ -162,7 +162,7 @@ module NewRelic
     # newrelic.yml, such as app_name.  In addition, the option +log+
     # will take a logger that will be used instead of the standard
     # file logger.  The setting for the newrelic.yml section to use
-    # (ie, RAILS_ENV) can be overridden with an :env argument.
+    # (ie, Rails.env) can be overridden with an :env argument.
     #
     def manual_start(options={})
       raise unless Hash === options

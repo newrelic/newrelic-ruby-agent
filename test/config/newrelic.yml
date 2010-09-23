@@ -24,7 +24,7 @@ test:
     - a
     - b
     - c
-  log_file_path: <%= RAILS_ROOT %>/log
+  log_file_path: <%= Rails.root %>/log
 
   # Some fixtures for newrelic.yml parsing tests
   erb_value: <%= 'hey'*3 %>

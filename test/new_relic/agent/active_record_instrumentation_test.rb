@@ -40,7 +40,7 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
   # call.  the others are ignored.
   def test_query_cache
     # Not sure why we get a transaction error with sqlite
-    return if ActiveRecord::Base.configurations[RAILS_ENV]['adapter'] =~ /sqlite/  
+    return if ActiveRecord::Base.configurations[Rails.env]['adapter'] =~ /sqlite/  
     ActiveRecordFixtures::Order.cache do
       m = ActiveRecordFixtures::Order.create :id => 0, :name => 'jeff'
       ActiveRecordFixtures::Order.find(:all)
@@ -67,10 +67,10 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
       ActiveRecord/find
       ActiveRecord/ActiveRecordFixtures::Order/find
       ]
-    expected += %W[Database/SQL/insert] if ActiveRecord::Base.configurations[RAILS_ENV]['adapter'] =~ /jdbc/  
-    expected += %W[ActiveRecord/create] unless  ActiveRecord::Base.configurations[RAILS_ENV]['adapter'] =~ /jdbc/  
-    expected += %W[Database/SQL/other] unless  ActiveRecord::Base.configurations[RAILS_ENV]['adapter'] =~ /jdbc|sqlite/  
-    expected += %W[ActiveRecord/ActiveRecordFixtures::Order/create] unless ActiveRecord::Base.configurations[RAILS_ENV]['adapter'] =~ /jdbc/  
+    expected += %W[Database/SQL/insert] if ActiveRecord::Base.configurations[Rails.env]['adapter'] =~ /jdbc/  
+    expected += %W[ActiveRecord/create] unless  ActiveRecord::Base.configurations[Rails.env]['adapter'] =~ /jdbc/  
+    expected += %W[Database/SQL/other] unless  ActiveRecord::Base.configurations[Rails.env]['adapter'] =~ /jdbc|sqlite/  
+    expected += %W[ActiveRecord/ActiveRecordFixtures::Order/create] unless ActiveRecord::Base.configurations[Rails.env]['adapter'] =~ /jdbc/  
     expected += %W[ActiveRecord/save ActiveRecord/ActiveRecordFixtures::Order/save] if NewRelic::Control.instance.rails_version < '2.1.0'   
     compare_metrics expected, metrics
     assert_equal 1, NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Order/find").call_count
@@ -100,12 +100,12 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
     expected_metrics += %W[
     Database/SQL/other 
     Database/SQL/show
-    ] unless ActiveRecord::Base.configurations[RAILS_ENV]['adapter'] =~ /jdbc|sqlite/  
+    ] unless ActiveRecord::Base.configurations[Rails.env]['adapter'] =~ /jdbc|sqlite/  
     expected_metrics += %W[
     ActiveRecord/create
     ActiveRecord/ActiveRecordFixtures::Shipment/create
     ActiveRecord/ActiveRecordFixtures::Order/create
-    ] unless ActiveRecord::Base.configurations[RAILS_ENV]['adapter'] =~ /jdbc/  
+    ] unless ActiveRecord::Base.configurations[Rails.env]['adapter'] =~ /jdbc/  
     
     compare_metrics expected_metrics, metrics
     # This number may be different with different db adapters, not sure
@@ -141,7 +141,7 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
   end
   
   def test_show_sql
-    return if ActiveRecord::Base.configurations[RAILS_ENV]['adapter'] =~ /sqlite/  
+    return if ActiveRecord::Base.configurations[Rails.env]['adapter'] =~ /sqlite/  
     list = ActiveRecordFixtures::Order.connection.execute "show tables"
     metrics = NewRelic::Agent.instance.stats_engine.metrics
     compare_metrics %W[
@@ -262,7 +262,7 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
   
   def test_rescue_handling
     # Not sure why we get a transaction error with sqlite
-    return if ActiveRecord::Base.configurations[RAILS_ENV]['adapter'] =~ /sqlite/  
+    return if ActiveRecord::Base.configurations[Rails.env]['adapter'] =~ /sqlite/  
     begin
       ActiveRecordFixtures::Order.transaction do
         raise ActiveRecord::ActiveRecordError.new('preserve-me!') 
@@ -278,7 +278,7 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
   private
   
   def isPostgres?
-    ActiveRecordFixtures::Order.configurations[RAILS_ENV]['adapter'] =~ /postgres/
+    ActiveRecordFixtures::Order.configurations[Rails.env]['adapter'] =~ /postgres/
   end
   def isMysql?
     ActiveRecordFixtures::Order.connection.class.name =~ /mysql/i 

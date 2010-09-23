@@ -4,10 +4,10 @@
 class NewRelic::Control::Frameworks::Rails < NewRelic::Control
 
   def env
-    @env ||= RAILS_ENV.dup
+    @env ||= Rails.env.dup
   end
   def root
-    RAILS_ROOT
+    Rails.root
   end
 
   # In versions of Rails prior to 2.0, the rails config was only available to
@@ -92,7 +92,7 @@ class NewRelic::Control::Frameworks::Rails < NewRelic::Control
         ::Rails.configuration.action_controller.allow_concurrency == true
       end
     end
-    local_env.append_environment_value('Rails Env') { ENV['RAILS_ENV'] }
+    local_env.append_environment_value('Rails Env') { ENV['Rails.env'] }
     if rails_version >= NewRelic::VersionNumber.new('2.1.0')
       local_env.append_gem_list do
         ::Rails.configuration.gems.map do | gem |

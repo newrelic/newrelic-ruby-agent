@@ -31,7 +31,7 @@ module NewRelic
     include Instrumentation
 
     # The env is the setting used to identify which section of the newrelic.yml
-    # to load.  This defaults to a framework specific value, such as ENV['RAILS_ENV']
+    # to load.  This defaults to a framework specific value, such as ENV['Rails.env']
     # but can be overridden as long as you set it before calling #init_plugin
     attr_writer :env
 

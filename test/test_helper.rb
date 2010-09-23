@@ -1,5 +1,5 @@
 module NewRelic; TEST = true; end unless defined? NewRelic::TEST
-ENV['RAILS_ENV'] = 'test'
+ENV['Rails.env'] = 'test'
 NEWRELIC_PLUGIN_DIR = File.expand_path(File.join(File.dirname(__FILE__),".."))
 $LOAD_PATH << File.join(NEWRELIC_PLUGIN_DIR,"test")
 $LOAD_PATH << File.join(NEWRELIC_PLUGIN_DIR,"ui/helpers")
@@ -14,7 +14,7 @@ if ENV['SKIP_RAILS']
   while dirs.any? && !File.directory?((dirs+%w[log]).join('/'))
     dirs.pop
   end
-  RAILS_ROOT = dirs.any? ? dirs.join("/") : "#{File.dirname(__FILE__)}/.." unless defined?(RAILS_ROOT)
+  Rails.root = dirs.any? ? dirs.join("/") : "#{File.dirname(__FILE__)}/.." unless defined?(Rails.root)
   $LOAD_PATH << File.join(NEWRELIC_PLUGIN_DIR, "lib")
   require File.join(NEWRELIC_PLUGIN_DIR, "lib/newrelic_rpm")
 else

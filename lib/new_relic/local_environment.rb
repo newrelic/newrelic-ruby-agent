@@ -112,7 +112,7 @@ module NewRelic
       # The name of the database adapter for the current environment.
       if defined? ::ActiveRecord
         append_environment_value 'Database adapter' do
-          ActiveRecord::Base.configurations[RAILS_ENV]['adapter']
+          ActiveRecord::Base.configurations[Rails.env]['adapter']
         end
         append_environment_value 'Database schema version' do
           ActiveRecord::Migrator.current_version
