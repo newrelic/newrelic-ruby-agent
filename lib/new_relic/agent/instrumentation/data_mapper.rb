@@ -36,33 +36,6 @@
 #     These metrics are represented as :push_scope => false or included as the
 #     non-first metric in trace_execution_scoped() (docs say only first counts
 #     towards scope) so they don't show up ine normal call graph/trace.
-#
-# FIXME:
-#
-#   (1) Multiple SQL queries sometimes show up under a single trace scope.
-#
-#       The symptom occurs because of multiple calls to notice_sql() while under
-#       the same current_segment scope.  In other words, I think it's
-#       symptomatic of some missing/uninstrumented "entry points" that would
-#       otherwise have shown up as separate new line items in the trace call
-#       graph with the related SQL attached to it instead.
-#
-#   (2) Database/#{model}/#{method} populates the "Database / Top 5 operations"
-#       graph key correctly, but no data for them will actually show up.
-#       Switching to AR corrects this.
-#
-#   (3) Hooking DM::Resource#query appears to catch SEL cases (I *think*), so I
-#       named the metric "load".  However I don't observe any SQL being attached
-#       to the scope of those calls, so possible causes:
-#
-#       (a) something is wrong with either the code or my assumptions related to
-#           how current_segment/scope works when notice_* functions are called
-#
-#       (b) I'm straight up wrong about DM::Resource#query being invoked to SEL
-#           lazy-loaded attributes
-#
-#       But for certain DM::Resource#query is being invoked to do *something*
-#       that is probably useful in this context.
 
 if defined? ::DataMapper
 
@@ -81,7 +54,7 @@ if defined? ::DataMapper
     add_method_tracer :destroy,  'ActiveRecord/#{self.name}/destroy'
     add_method_tracer :destroy!, 'ActiveRecord/#{self.name}/destroy'
 
-    # For partial dm-ar-finders and dm-aggregates support:
+    # For dm-aggregates and partial dm-ar-finders support:
     for method in [ :aggregate, :find, :find_by_sql ] do
       next unless method_defined? method
       add_method_tracer(method, 'ActiveRecord/#{self.name}/' + method.to_s)
@@ -102,20 +75,22 @@ if defined? ::DataMapper
   # DM's Collection instance methods
   ::DataMapper::Collection.class_eval do
 
-    add_method_tracer :get,      'ActiveRecord/#{self.name}/get'
-    add_method_tracer :first,    'ActiveRecord/#{self.name}/first'
-    add_method_tracer :last,     'ActiveRecord/#{self.name}/last'
-    add_method_tracer :all,      'ActiveRecord/#{self.name}/all'
+    add_method_tracer :get,       'ActiveRecord/#{self.name}/get'
+    add_method_tracer :first,     'ActiveRecord/#{self.name}/first'
+    add_method_tracer :last,      'ActiveRecord/#{self.name}/last'
+    add_method_tracer :all,       'ActiveRecord/#{self.name}/all'
 
-    add_method_tracer :create,   'ActiveRecord/#{self.name}/create'
-    add_method_tracer :create!,  'ActiveRecord/#{self.name}/create'
-    add_method_tracer :update,   'ActiveRecord/#{self.name}/update'
-    add_method_tracer :update!,  'ActiveRecord/#{self.name}/update'
-    add_method_tracer :destroy,  'ActiveRecord/#{self.name}/destroy'
-    add_method_tracer :destroy!, 'ActiveRecord/#{self.name}/destroy'
+    add_method_tracer :lazy_load, 'ActiveRecord/#{self.name}/lazy_load'
+
+    add_method_tracer :create,    'ActiveRecord/#{self.name}/create'
+    add_method_tracer :create!,   'ActiveRecord/#{self.name}/create'
+    add_method_tracer :update,    'ActiveRecord/#{self.name}/update'
+    add_method_tracer :update!,   'ActiveRecord/#{self.name}/update'
+    add_method_tracer :destroy,   'ActiveRecord/#{self.name}/destroy'
+    add_method_tracer :destroy!,  'ActiveRecord/#{self.name}/destroy'
 
     # For dm-aggregates support:
-    for method in [ :aggregate, :find ] do
+    for method in [ :aggregate ] do
       next unless method_defined? method
       add_method_tracer(method, 'ActiveRecord/#{self.name}/' + method.to_s)
     end
@@ -157,11 +132,11 @@ if defined? ::DataMapper
               else nil
             end
 
-            connection_uri = self.to_s
-            duration       = msg.duration / 1000000.0
+            # FYI: self.to_s will yield connection URI string.
+            duration = msg.duration / 1000000.0
 
             # Attach SQL to current segment/scope.
-            NewRelic::Agent.instance.transaction_sampler.notice_sql(msg.query, connection_uri, duration)
+            NewRelic::Agent.instance.transaction_sampler.notice_sql(msg.query, nil, duration)
 
             # Record query duration associated with each of the desired metrics.
             metrics = [ "ActiveRecord/#{operation}", 'ActiveRecord/all' ]
