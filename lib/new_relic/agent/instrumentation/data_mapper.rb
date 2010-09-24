@@ -65,10 +65,12 @@ if defined? ::DataMapper
   # DM's Model instance (Resource) methods
   ::DataMapper::Resource.class_eval do
 
-    add_method_tracer :query,   'ActiveRecord/#{self.class.name[/[^:]*$/]}/load'
-    add_method_tracer :update,  'ActiveRecord/#{self.class.name[/[^:]*$/]}/update'
-    add_method_tracer :save,    'ActiveRecord/#{self.class.name[/[^:]*$/]}/save'
-    add_method_tracer :destroy, 'ActiveRecord/#{self.class.name[/[^:]*$/]}/destroy'
+    add_method_tracer :update,   'ActiveRecord/#{self.class.name[/[^:]*$/]}/update'
+    add_method_tracer :update!,  'ActiveRecord/#{self.class.name[/[^:]*$/]}/update'
+    add_method_tracer :save,     'ActiveRecord/#{self.class.name[/[^:]*$/]}/save'
+    add_method_tracer :save!,    'ActiveRecord/#{self.class.name[/[^:]*$/]}/save'
+    add_method_tracer :destroy,  'ActiveRecord/#{self.class.name[/[^:]*$/]}/destroy'
+    add_method_tracer :destroy!, 'ActiveRecord/#{self.class.name[/[^:]*$/]}/destroy'
 
   end
 
