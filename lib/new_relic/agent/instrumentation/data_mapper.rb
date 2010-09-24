@@ -99,6 +99,17 @@ if defined? ::DataMapper
 
   end
 
+  # DM::Validations overrides Model#create, but currently in a way that makes it
+  # impossible to instrument from one place.  I've got a patch pending inclusion
+  # to make it instrumentable by putting the create method inside ClassMethods.
+  # This will pick it up if/when that patch is accepted.
+  ::DataMapper::Validations::ClassMethods.class_eval do
+
+    next unless method_defined? :create
+    add_method_tracer :create,   'ActiveRecord/#{self.name}/create'
+
+  end if defined? ::DataMapper::Validations::ClassMethods
+
   # NOTE: DM::Transaction basically calls commit() twice, so as-is it will show
   # up in traces twice -- second time subordinate to the first's scope.  Works
   # well enough.
