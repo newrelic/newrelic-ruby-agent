@@ -8,7 +8,7 @@
 # The task will run on app servers except where no_release is true.
 # If it fails, it will not affect the task execution or do a rollback.
 #
-make_notify_task = lambda do
+make_notify_task = Proc.new do
 
   namespace :newrelic do
 
