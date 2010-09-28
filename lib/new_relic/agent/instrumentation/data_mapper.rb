@@ -167,6 +167,6 @@ if defined? ::DataMapper
 
   ::DataObjects::Connection.class_eval do
     include ::NewRelic::Agent::Instrumentation::DataMapperInstrumentation
-  end
+  end if defined? ::DataObjects::Connection
 
 end # if defined? DataMapper
