@@ -2,59 +2,83 @@ module NewRelic
   module Agent
     class StatsEngine
       module MetricStats
+        class SynchronizedHash < Hash
+          def initialize(*args)
+            @mutex = Mutex.new
+            super
+          end
+          
+          def []=(*args)
+            @mutex.synchronize {
+              super
+            }
+          end
+
+          def [](*args)
+            @mutex.synchronize {
+              super
+            }
+          end
+
+          def clear(*args)
+            @mutex.synchronize {
+              super
+            }
+          end
+
+          def delete(*args)
+            @mutex.synchronize {
+              super
+            }
+          end
+          
+          def delete_if(*args)
+            @mutex.synchronize {
+              super
+            }
+          end
+        end
+        
         # The stats hash hashes either a metric name for an unscoped metric,
         # or a metric_spec for a scoped metric value.
         def lookup_stat(metric_name)
-          @mutex.synchronize {
-            stats_hash[metric_name]
-          }
+          stats_hash[metric_name]
         end
 
         def metrics
-          @mutex.synchronize {
-            stats_hash.keys.map(&:to_s)
-          }
+          stats_hash.keys.map(&:to_s)
         end
 
         def get_stats_no_scope(metric_name)
-          @mutex.synchronize {
-            stats_hash[metric_name] ||= NewRelic::MethodTraceStats.new
-          }
+          stats_hash[metric_name] ||= NewRelic::MethodTraceStats.new
         end
 
         # This version allows a caller to pass a stat class to use
         #
         def get_custom_stats(metric_name, stat_class)
-          @mutex.synchronize {
-            stats_hash[metric_name] ||= stat_class.new
-          }
+          stats_hash[metric_name] ||= stat_class.new
         end
 
         # If use_scope is true, two chained metrics are created, one with scope and one without
         # If scoped_metric_only is true, only a scoped metric is created (used by rendering metrics which by definition are per controller only)
         def get_stats(metric_name, use_scope = true, scoped_metric_only = false, scope = nil)
-          @mutex.synchronize {
             scope ||= scope_name if use_scope
             if scoped_metric_only
               spec = NewRelic::MetricSpec.new metric_name, scope
-              stats = stats_hash[spec] ||= NewRelic::MethodTraceStats.new
+              stats = stats_hash[spec] || initialize_metric(spec)
             else
               stats = stats_hash[metric_name] ||= NewRelic::MethodTraceStats.new
               if scope && scope != metric_name
                 spec = NewRelic::MetricSpec.new metric_name, scope
-                scoped_stats = stats_hash[spec] ||= NewRelic::ScopedMethodTraceStats.new(stats)
-                stats = scoped_stats
+                stats = stats_hash[spec] ||= NewRelic::ScopedMethodTraceStats.new(stats)
               end
             end
             stats
-          }
         end
 
         def lookup_stats(metric_name, scope_name = nil)
-          @mutex.synchronize {
             stats_hash[NewRelic::MetricSpec.new(metric_name, scope_name)] ||
             stats_hash[metric_name]
-          }
         end
         # Harvest the timeslice data.  First recombine current statss
         # with any previously
@@ -66,7 +90,6 @@ module NewRelic
         # sacrificing efficiency.
         # +++
         def harvest_timeslice_data(previous_timeslice_data, metric_ids)
-          @mutex.synchronize {
             timeslice_data = {}
             poll harvest_samplers
             stats_hash.keys.each do | metric_spec |
@@ -109,33 +132,21 @@ module NewRelic
             end
 
             timeslice_data
-          }
         end
 
         # Remove all stats.  For test code only.
         def clear_stats
-          @mutex.synchronize {
-            stats_hash.clear
-            NewRelic::Agent::BusyCalculator.reset
-          }
+          stats_hash.clear
+          NewRelic::Agent::BusyCalculator.reset
         end
 
         # Reset each of the stats, such as when a new passenger instance starts up.
         def reset_stats
-          @mutex.synchronize {
-            stats_hash.values.each { |s| s.reset }
-          }
+          stats_hash.values.each { |s| s.reset }
         end
 
         def stats_hash
-          @stats_hash
-        end
-
-        def create_metric_stats_mutex
-          @mutex = Mutex.new
-          @mutex.synchronize {
-            @stats_hash = {}
-          }
+          @stats_hash ||= SynchronizedHash.new
         end
       end
     end

@@ -13,7 +13,6 @@ module NewRelic
         # Makes the unit tests happy
         Thread::current[:newrelic_scope_stack] = nil
         start_sampler_thread
-        create_metric_stats_mutex
       end
 
       def log
