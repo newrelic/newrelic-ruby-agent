@@ -44,15 +44,11 @@ class NewRelic::Control::Frameworks::Rails3 < NewRelic::Control::Frameworks::Rai
   def append_environment_info
     local_env.append_environment_value('Rails version'){ version }
     local_env.append_environment_value('Rails threadsafe') do
-      ::Rails.configuration.action_controller.allow_concurrency == true
+      true == ::Rails.configuration.action_controller.allow_concurrency
     end
     local_env.append_environment_value('Rails Env') { env }
     local_env.append_gem_list do
-      ::Rails.configuration.gems.map do | gem |
-        version = (gem.respond_to?(:version) && gem.version) ||
-          (gem.specification.respond_to?(:version) && gem.specification.version)
-        gem.name + (version ? "(#{version})" : "")
-      end
+      bundler_gem_list
     end
     local_env.append_plugin_list { ::Rails.configuration.plugins }
   end
