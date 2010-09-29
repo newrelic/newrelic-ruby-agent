@@ -8,7 +8,7 @@ module NewRelic::DeveloperModeHelper
   # return the host that serves static content (css, metric documentation, images, etc)
   # that supports the desktop edition.
   def server
-    NewRelic::Control.instance['desktop_server'] || "http://rpm.newrelic.com"
+    NewRelic::Control.instance['desktop_server'] || "https://rpm.newrelic.com"
   end
   
   # limit of how many detail/SQL rows we display - very large data sets (~10000+) crash browsers
