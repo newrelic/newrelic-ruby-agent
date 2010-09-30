@@ -1,9 +1,7 @@
 <tr class='<%= cycle('even_row', 'odd_row') %>'>
 	<td>
 			<%= write_summary_segment_label object %>
-			<small>
-			<%= link_to "?", url_for_metric_doc(object.metric_name) %>
-      </small>
+
 	</td>
 	<td align=left> <%= object.call_count %></td>
 	<td align=right><%= with_delimiter(to_ms(object.exclusive_time)) %> ms</td>
