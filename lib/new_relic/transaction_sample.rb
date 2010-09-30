@@ -202,8 +202,10 @@ module NewRelic
                 # Note: have to convert from native column element types to string so we can
                 # serialize.  Esp. for postgresql.
                 # Can't use map.  Suck it up.
+                # Can too use map. Lrn2prgm
                 if explain_resultset.respond_to?(:each)
-                  explain_resultset.each { | row | rows << row.map(&:to_s) }
+                  explain_resultset.extend Enumerable unless explain_resultset.respond_to?(:map)
+                  rows = explain_resultset.map { | row | row.map(&:to_s) }
                 else
                   rows << [ explain_resultset ]
                 end
