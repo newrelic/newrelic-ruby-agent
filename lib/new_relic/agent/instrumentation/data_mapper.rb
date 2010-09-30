@@ -99,6 +99,15 @@ if defined? ::DataMapper
 
   end
 
+  # Catch the two entry points into DM::Repository::Adapter that bypass CRUD
+  # (for when SQL is run directly).
+  ::DataMapper::Adapters::DataObjectsAdapter.class_eval do
+
+    add_method_tracer :select,  'ActiveRecord/#{self.class.name[/[^:]*$/]}/select'
+    add_method_tracer :execute, 'ActiveRecord/#{self.class.name[/[^:]*$/]}/execute'
+
+  end if defined? ::DataMapper::Adapters::DataObjectsAdapter
+
   # DM::Validations overrides Model#create, but currently in a way that makes it
   # impossible to instrument from one place.  I've got a patch pending inclusion
   # to make it instrumentable by putting the create method inside ClassMethods.
@@ -139,9 +148,9 @@ if defined? ::DataMapper
           def log_with_newrelic_instrumentation(msg)
             return unless NewRelic::Agent.is_execution_traced?
             return unless operation = case msg.query
-              when /^select/i          then 'find'
-              when /^(update|insert)/i then 'save'
-              when /^delete/i          then 'destroy'
+              when /^\s*select/i          then 'find'
+              when /^\s*(update|insert)/i then 'save'
+              when /^\s*delete/i          then 'destroy'
               else nil
             end
 
@@ -167,6 +176,6 @@ if defined? ::DataMapper
 
   ::DataObjects::Connection.class_eval do
     include ::NewRelic::Agent::Instrumentation::DataMapperInstrumentation
-  end
+  end if defined? ::DataObjects::Connection
 
 end # if defined? DataMapper
