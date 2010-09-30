@@ -1,3 +1,5 @@
+v2.13.4
+
 v2.13.3
   * Dalli instrumentation from Mike Perham (thanks Mike)
   * Datamapper instrumentation from Jordan Ritter (thanks Jordan)
