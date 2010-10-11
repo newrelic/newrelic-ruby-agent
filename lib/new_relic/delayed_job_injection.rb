@@ -19,7 +19,7 @@ Delayed::Worker.class_eval do
     dispatcher_instance_id = worker_name || "host:#{Socket.gethostname} pid:#{Process.pid}" rescue "pid:#{Process.pid}"
     say "RPM Monitoring DJ worker #{dispatcher_instance_id}"
     NewRelic::DelayedJobInjection.worker_name = worker_name
-    NewRelic::Agent.manual_start :dispatcher => :delayed_job, :dispatcher_instance_id => dispatcher_instance_id
+    NewRelic::Control.instance.init_plugin :dispatcher => :delayed_job, :dispatcher_instance_id => dispatcher_instance_id
   end
 
   alias initialize_without_new_relic initialize
