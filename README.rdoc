@@ -5,7 +5,7 @@ New Relic, Inc (http://www.newrelic.com).  RPM provides you with deep
 information about the performance of your Ruby on Rails or Merb
 application as it runs in production. The New Relic Agent is
 dual-purposed as a either a Rails plugin or a Gem, hosted on
-github[http://github.com/newrelic/rpm/tree/master] and Rubyforge.
+github[http://github.com/newrelic/rpm/tree/master].
 
 The New Relic Agent runs in one of two modes:
 
@@ -60,12 +60,17 @@ and then in a <tt>~/.newrelic</tt> directory
 
 === Rails Installation
 
-You can install the agent as a plug-in or a Gem.  To install the agent
-as a Rails plug-in, do the following:
+You can install the agent as a Gem:
 
-    script/plugin install http://newrelic.rubyforge.org/svn/newrelic_rpm
+For Bundler:
+
+Add the following line to your Gemfile:
+
+    gem 'newrelic_rpm'
+
+For Rails 2.x without Bundler:
    
-If using the Agent as a gem, edit +environment.rb+ and add to the initalizer block:
+edit +environment.rb+ and add to the initalizer block:
 
     config.gem "newrelic_rpm" 
 
