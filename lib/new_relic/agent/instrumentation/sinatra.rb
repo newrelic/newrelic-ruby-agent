@@ -28,6 +28,7 @@ if defined?(Sinatra::Base)
             # strip off leading ^ and / chars and trailing $ and /
             name.gsub!(%r{^[/^]*(.*?)[/\$\?]*$}, '\1')
             name = 'root' if name.empty?
+            name.insert(0, @request.env['REQUEST_METHOD'] + ' ')
             perform_action_with_newrelic_trace(:category => :sinatra, :name => name) do
               route_eval_without_newrelic(&block_arg)
             end
