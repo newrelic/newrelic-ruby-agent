@@ -83,7 +83,7 @@ module NewRelic
 
         # Instrumentation for the key code points inside rails for monitoring by NewRelic.
         # note this file is loaded only if the newrelic agent is enabled (through config/newrelic.yml)
-        instrumentation_path = File.join(File.dirname(__FILE__), '..', 'agent','instrumentation')
+        instrumentation_path = File.expand_path(File.join(File.dirname(__FILE__), '..', 'agent','instrumentation'))
         @instrumentation_files <<
         File.join(instrumentation_path, '*.rb') <<
         File.join(instrumentation_path, app.to_s, '*.rb')
