@@ -18,6 +18,7 @@ begin
     end
   end
 rescue Errno::ECONNREFUSED
+rescue Errno::ETIMEDOUT
 end
 
 class NewRelic::Agent::MemcacheInstrumentationTest < Test::Unit::TestCase
