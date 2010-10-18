@@ -21,6 +21,18 @@
         </table>
 		</td>
 		<td valign=top>
+                          <% if defined?(Unicorn) || defined?(Passenger) %>
+                          <div class="flash">
+                          <p id="errorExplanation">
+                            We've noticed you're running a forking web server, like Unicorn or Passenger. See Below</p><p> Developer mode may be unpredictable, 
+                            since those servers run many processes and developer mode is entirely in the process.</p><p> We suggest you try Thin, 
+                            Mongrel, or another single-process web server for development mode.</p><p>
+                            (You can ignore this message if you're sure that you're running only one process, and it's not being reaped when inactive.)
+                         </p>
+                          </div>
+                          <% end %>
+
+
         <%= link_to_if @samples.size > 0, "Clear Transactions (#{@samples.size})", 'reset' %><br/>
         <%= link_to "List Threads", 'threads' %><br/>
 		<% if NewRelic::Control.instance.profiling_available? %>
