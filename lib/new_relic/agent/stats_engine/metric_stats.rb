@@ -76,6 +76,12 @@ module NewRelic
             stats
         end
 
+        def lookup_stats(metric_name, scope_name = nil)
+            stats_hash[NewRelic::MetricSpec.new(metric_name, scope_name)] ||
+            stats_hash[metric_name]
+        end
+
+
         # Harvest the timeslice data.  First recombine current statss
         # with any previously
         # unsent metrics, clear out stats cache, and return the current
