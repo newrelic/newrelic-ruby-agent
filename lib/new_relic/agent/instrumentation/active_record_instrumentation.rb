@@ -6,6 +6,12 @@ if defined?(ActiveRecord) && defined?(ActiveRecord::Base) && !NewRelic::Control.
     module Agent
       module Instrumentation
         module ActiveRecordInstrumentation
+          DEFAULT_METRICS = {}
+          %w[select update insert delete show other].each do |x|
+            DEFAULT_METRICS[x] == "Database/SQL/#{x}"
+          end
+          DEFAULT_METRICS['all'] = 'ActiveRecord/all'
+          
 
           def self.included(instrumented_class)
             instrumented_class.class_eval do
@@ -15,6 +21,13 @@ if defined?(ActiveRecord) && defined?(ActiveRecord::Base) && !NewRelic::Control.
             end
           end
 
+          METRIC_CACHE = {}
+
+          def get_metric_from_cache(model, metric_name)
+            METRIC_CACHE[model] ||= {}
+            METRIC_CACHE[model][metric_name] ||= "ActiveRecord/#{model}/#{metric_name}"
+          end
+          
           def log_with_newrelic_instrumentation(sql, name, &block)
 
             return log_without_newrelic_instrumentation(sql, name, &block) unless NewRelic::Agent.is_execution_traced?
@@ -37,7 +50,8 @@ if defined?(ActiveRecord) && defined?(ActiveRecord::Base) && !NewRelic::Control.
                                 operation
                               end
                             end
-              metric = "ActiveRecord/#{model}/#{metric_name}" if metric_name
+              metric = get_metric_from_cache(model, metric_name) if metric_name
+              #metric = "ActiveRecord/#{model}/#{metric_name}" if metric_name
             end
 
             if metric.nil?
@@ -47,9 +61,9 @@ if defined?(ActiveRecord) && defined?(ActiveRecord::Base) && !NewRelic::Control.
                   # Could not determine the model/operation so let's find a better
                   # metric.  If it doesn't match the regex, it's probably a show
                   # command or some DDL which we'll ignore.
-                  metric = "Database/SQL/#{$1.downcase}"
+                  metric = DEFAULT_METRICS[$1.downcase]
                 else
-                  metric = "Database/SQL/other"
+                  metric = DEFAULT_METRICS['other']
                 end
               end
             end
@@ -57,7 +71,7 @@ if defined?(ActiveRecord) && defined?(ActiveRecord::Base) && !NewRelic::Control.
             if !metric
               log_without_newrelic_instrumentation(sql, name, &block)
             else
-              metrics = [metric, "ActiveRecord/all"]
+              metrics = [metric, DEFAULT_METRICS['all']]
               metrics << "ActiveRecord/#{metric_name}" if metric_name
               self.class.trace_execution_scoped(metrics) do
                 t0 = Time.now

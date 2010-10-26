@@ -9,8 +9,10 @@ class NewRelic::MetricSpec
   # jruby) for sending responses to ruby agents from the java collector.
   #
   def initialize(metric_name = '', metric_scope = '')
-    self.name = (metric_name || '') && metric_name[0...MAX_LENGTH]
-    self.scope = metric_scope && metric_scope[0...MAX_LENGTH]
+    self.name = metric_name
+    self.scope = metric_scope
+    self.truncate!
+    self
   end
 
   def truncate!
