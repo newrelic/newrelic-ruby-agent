@@ -36,6 +36,8 @@ module NewRelic
         @entry_timestamp = timestamp
         @metric_name = metric_name || '<unknown>'
         @segment_id = segment_id || object_id
+        @called_segments = []
+        @params = {}
       end
 
       def end_trace(timestamp)
@@ -43,7 +45,6 @@ module NewRelic
       end
 
       def add_called_segment(s)
-        @called_segments ||= []
         @called_segments << s
         s.parent_segment = self
       end
@@ -152,7 +153,7 @@ module NewRelic
       end
 
       def params
-        @params ||= {}
+        @params
       end
 
       # call the provided block for this segment and each
