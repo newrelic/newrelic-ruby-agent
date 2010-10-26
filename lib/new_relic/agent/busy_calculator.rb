@@ -24,10 +24,6 @@ module NewRelic
         end
       end
 
-      def find_total_time(end_time)
-        (end_time - @entrypoint_stack.pop).to_f
-      end
-
       def dispatcher_finish(end_time = Time.now)
         callers = Thread.current[:busy_entries] -= 1
         # Ignore nested calls
@@ -36,7 +32,7 @@ module NewRelic
           if @entrypoint_stack.empty?
             NewRelic::Agent.logger.error("Stack underflow tracking dispatcher entry and exit!\n  #{caller.join("  \n")}")
           else
-            @accumulator += find_total_time(end_time)
+            @accumulator += (end_time - @entrypoint_stack.pop).to_f
           end
         end
       end

@@ -103,18 +103,14 @@ module Agent
         @last_sample = last_builder.sample
 
         @random_sample = @last_sample if @random_sampling
-        
-        if NewRelic::Control.instance.developer_mode?
-          @samples << @last_sample
-          # ensure we don't collect more than a specified number of samples in memory
-          @samples.shift while @samples.length > @max_samples
-        end
-        
+
+        # ensure we don't collect more than a specified number of samples in memory
+        @samples << @last_sample if NewRelic::Control.instance.developer_mode?
+        @samples.shift while @samples.length > @max_samples
 
         if @slowest_sample.nil? || @slowest_sample.duration < @last_sample.duration
           @slowest_sample = @last_sample
         end
-        @last_sample = nil
       end
     end
 
@@ -217,8 +213,6 @@ module Agent
     def reset!
       @samples = []
       @last_sample = nil
-      @random_sample = nil
-      self
     end
 
     private
