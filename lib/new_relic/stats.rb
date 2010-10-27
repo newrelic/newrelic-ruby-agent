@@ -105,8 +105,7 @@ module NewRelic
     def is_reset?
       call_count == 0 && total_call_time == 0.0 && total_exclusive_time == 0.0
     end
-    
-    BASE_TIME = Time.at(0)
+
     def reset
       self.call_count = 0
       self.total_call_time = 0.0
@@ -114,8 +113,8 @@ module NewRelic
       self.min_call_time = 0.0
       self.max_call_time = 0.0
       self.sum_of_squares = 0.0
-      self.begin_time = BASE_TIME
-      self.end_time = BASE_TIME
+      self.begin_time = Time.at(0)
+      self.end_time = Time.at(0)
     end
 
     def as_percentage_of(other_stats)
@@ -187,7 +186,13 @@ module NewRelic
 
     # round all of the values to n decimal points
     def round!
-      nil
+      self.total_call_time = round_to_3(total_call_time)
+      self.total_exclusive_time = round_to_3(total_exclusive_time)
+      self.min_call_time = round_to_3(min_call_time)
+      self.max_call_time = round_to_3(max_call_time)
+      self.sum_of_squares = round_to_3(sum_of_squares)
+      self.begin_time = begin_time
+      self.end_time = end_time
     end
 
     # calculate this set of stats to be a percentage fraction
@@ -233,7 +238,7 @@ module NewRelic
     end
 
     def round_to_3(val)
-      val.to_f
+      (val * 1000).round / 1000.0
     end
   end
 
