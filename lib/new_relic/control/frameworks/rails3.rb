@@ -50,7 +50,7 @@ class NewRelic::Control::Frameworks::Rails3 < NewRelic::Control::Frameworks::Rai
     local_env.append_gem_list do
       bundler_gem_list
     end
-    local_env.append_plugin_list { ::Rails.configuration.plugins }
+    local_env.append_plugin_list { ::Rails.configuration.plugins.to_a }
   end
 
 end
