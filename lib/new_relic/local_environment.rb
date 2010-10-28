@@ -205,10 +205,18 @@ module NewRelic
       return unless defined?(::JRuby) &&
         (((com.sun.grizzly.jruby.rack.DefaultRackApplicationFactory rescue nil) &&
           defined?(com::sun::grizzly::jruby::rack::DefaultRackApplicationFactory)) ||
-         ((org.jruby.rack.DefaultRackApplicationFactory rescue nil) &&
-          defined?(org::jruby::rack::DefaultRackApplicationFactory)) ||
-         defined?(::GlassFish::Server))
+          (jruby_rack? && defined?(::GlassFish::Server)))
       @dispatcher = :glassfish
+    end
+
+    def check_for_trinidad
+      return unless defined?(::JRuby) && jruby_rack? && defined?(::Trinidad::Server)
+      @dispatcher = :trinidad
+    end
+
+    def jruby_rack?
+      ((org.jruby.rack.DefaultRackApplicationFactory rescue nil) &&
+          defined?(org::jruby::rack::DefaultRackApplicationFactory))
     end
 
     def check_for_webrick
