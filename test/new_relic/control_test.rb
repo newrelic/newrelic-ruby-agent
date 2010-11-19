@@ -62,7 +62,7 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     assert_equal nil, c.send(:convert_to_ip_address, 'localhost')
     assert_equal nil, c.send(:convert_to_ip_address, 'q1239988737.us')
     # This might fail if you don't have a valid, accessible, DNS server
-    assert_equal '65.74.177.194', c.send(:convert_to_ip_address, 'rpm.newrelic.com')
+    assert_equal '204.93.223.152', c.send(:convert_to_ip_address, 'rpm.newrelic.com')
   end
   def test_config_yaml_erb
     assert_equal 'heyheyhey', c['erb_value']
