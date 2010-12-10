@@ -61,9 +61,34 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   def test_resolve_ip
     assert_equal nil, c.send(:convert_to_ip_address, 'localhost')
     assert_equal nil, c.send(:convert_to_ip_address, 'q1239988737.us')
-    # This might fail if you don't have a valid, accessible, DNS server
-    assert_equal '204.93.223.152', c.send(:convert_to_ip_address, 'rpm.newrelic.com')
+    # This will fail if you don't have a valid, accessible, DNS server
+    assert_equal '204.93.223.153', c.send(:convert_to_ip_address, 'collector.newrelic.com')
   end
+  
+  class FakeResolv
+    def self.getaddress(host)
+      raise 'deliberately broken'
+    end
+  end
+  
+  def test_resolve_ip_with_broken_dns
+    # Here be dragons: disable the ruby DNS lookup methods we use so
+    # that it will actually fail to resolve.
+    old_resolv = Resolv
+    old_ipsocket = IPSocket
+    Object.instance_eval { remove_const :Resolv}
+    Object.instance_eval {remove_const:'IPSocket' }
+    assert_equal(nil, c.send(:convert_to_ip_address, 'collector.newrelic.com'), "DNS is down, should be no IP for server")
+    
+    Object.instance_eval {const_set('Resolv', old_resolv); const_set('IPSocket', old_ipsocket)}
+    # these are here to make sure that the constant tomfoolery above
+    # has not broket the system unduly
+    assert_equal old_resolv, Resolv
+    assert_equal old_ipsocket, IPSocket
+  end
+    
+    
+  
   def test_config_yaml_erb
     assert_equal 'heyheyhey', c['erb_value']
     assert_equal '', c['message']

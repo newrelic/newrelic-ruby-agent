@@ -44,17 +44,23 @@ module NewRelic
         # needs it in host form
         return host if verify_certificate?
         return nil if host.nil? || host.downcase == "localhost"
-        # Fall back to known ip address in the common case
-        ip_address = '65.74.177.195' if host.downcase == 'collector.newrelic.com'
+        ip = resolve_ip_address(host)
+        log.info "Resolved #{host} to #{ip}"
+        ip
+      end
+
+      def resolve_ip_address(host)
+        Resolv.getaddress(host)
+      rescue Exception => e
+        log.warn("DNS Error caching IP address: #{e}")
+        log.debug(e.backtrace.join("\n   "))
         begin
-          ip_address = Resolv.getaddress(host)
-          log.info "Resolved #{host} to #{ip_address}"
-        rescue => e
-          log.warn "DNS Error caching IP address: #{e}"
-          log.debug e.backtrace.join("\n   ")
-          ip_address = IPSocket::getaddress host rescue ip_address
+          log.info("Trying native DNS lookup since Resolv failed")
+          IPSocket.getaddress(host)
+        rescue Exception => e
+          log.error("Could not look up server address: #{e}")
+          nil
         end
-        ip_address
       end
 
       # Return the Net::HTTP with proxy configuration given the NewRelic::Control::Server object.
