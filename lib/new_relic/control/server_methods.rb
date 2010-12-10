@@ -34,11 +34,11 @@ module NewRelic
         # if the host is not an IP address, turn it into one
         NewRelic::Control::Server.new host, (self['port'] || (use_ssl? ? 443 : 80)).to_i, convert_to_ip_address(host)
       end
-
-      # Look up the ip address of the host using the pure ruby lookup
-      # to prevent blocking.  If that fails, fall back to the regular
-      # IPSocket library.  Return nil if we can't find the host ip
-      # address and don't have a good default.
+      
+      # Check to see if we need to look up the IP address
+      # If it's an IP address already, we pass it through.
+      # If it's nil, or localhost, we don't bother.
+      # Otherwise, use `resolve_ip_address` to find one
       def convert_to_ip_address(host)
         # here we leave it as a host name since the cert verification
         # needs it in host form
@@ -48,7 +48,11 @@ module NewRelic
         log.info "Resolved #{host} to #{ip}"
         ip
       end
-
+      
+      # Look up the ip address of the host using the pure ruby lookup
+      # to prevent blocking.  If that fails, fall back to the regular
+      # IPSocket library.  Return nil if we can't find the host ip
+      # address and don't have a good default.
       def resolve_ip_address(host)
         Resolv.getaddress(host)
       rescue Exception => e
