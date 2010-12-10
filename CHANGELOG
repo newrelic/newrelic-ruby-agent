@@ -1,4 +1,5 @@
 v2.13.4
+  * Update DNS lookup code to remove hardcoded IP addresses
 
 v2.13.3
   * Dalli instrumentation from Mike Perham (thanks Mike)
