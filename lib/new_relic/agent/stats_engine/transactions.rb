@@ -41,8 +41,8 @@ module Agent
         if collecting_gc?
           if stack.empty?
             # reset the gc time so we only include gc time spent during this call
-            @last_gc_timestamp = GC.time
-            @last_gc_count = GC.collections
+            @last_gc_timestamp = gc_time
+            @last_gc_count = gc_collections
           else
             capture_gc_time
           end
@@ -113,17 +113,45 @@ module Agent
 
       # Make sure we don't do this in a multi-threaded environment
       def collecting_gc?
-        @@collecting_gc ||= GC.respond_to?(:time) && GC.respond_to?(:collections) && !NewRelic::Control.instance.multi_threaded?
+        if !defined?(@@collecting_gc)
+          @@collecting_gc = false
+          if !NewRelic::Control.instance.multi_threaded?
+            @@collecting_gc = true if GC.respond_to?(:time) && GC.respond_to?(:collections) # 1.8.x
+            @@collecting_gc = true if defined?(GC::Profiler) && GC::Profiler.enabled? # 1.9.2
+          end  
+        end
+        @@collecting_gc
+      end
+
+      # The total number of times the garbage collector has run since
+      # profiling was enabled
+      def gc_collections
+        if GC.respond_to?(:count)
+          GC.count
+        elsif GC.respond_to?(:collections)
+          GC.collections
+        end
+      end
+
+      # The total amount of time taken by garbage collection since
+      # profiling was enabled
+      def gc_time
+        if GC.respond_to?(:time)
+          GC.time
+        elsif defined?(GC::Profiler) && GC::Profiler.respond_to?(:total_time)
+          # The 1.9 profiler returns a time in usec
+          GC::Profiler.total_time * 1000000.0
+        end
       end
 
       # Assumes collecting_gc?
       def capture_gc_time
         # Skip this if we are already in this segment
         return if !scope_stack.empty? && scope_stack.last.name == "GC/cumulative"
-        num_calls = GC.collections - @last_gc_count
-        elapsed = (GC.time - @last_gc_timestamp).to_f
-        @last_gc_timestamp = GC.time
-        @last_gc_count = GC.collections
+        num_calls = gc_collections - @last_gc_count
+        elapsed = (gc_time - @last_gc_timestamp).to_f
+        @last_gc_timestamp = gc_time
+        @last_gc_count = gc_collections
         if num_calls > 0
           # µs to seconds
           elapsed = elapsed / 1000000.0
