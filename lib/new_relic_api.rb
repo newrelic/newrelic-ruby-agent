@@ -122,7 +122,7 @@ module NewRelicApi
       def fix_fields(*fields)
         fields.to_a.each do |field|
           define_method field do
-            yield super
+            yield super()
           end
         end
       end
@@ -203,10 +203,10 @@ module NewRelicApi
     # Returns the color value for this threshold (Gray, Green, Yellow or Red).
     def color_value
       case threshold_value
-        when 3: 'Red'
-        when 2: 'Yellow'
-        when 1: 'Green'
-      else 'Gray'
+        when 3 then 'Red'
+        when 2 then 'Yellow'
+        when 1 then 'Green'
+        else 'Gray'
       end
     end
 
