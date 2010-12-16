@@ -124,8 +124,10 @@ class NewRelic::Control::Frameworks::Rails < NewRelic::Control::Frameworks::Ruby
 
   def install_shim
     super
-    require 'new_relic/agent/instrumentation/controller_instrumentation'
-    ActionController::Base.send :include, NewRelic::Agent::Instrumentation::ControllerInstrumentation::Shim
+    if defined?(ActionController) && defined?(ActionController::Base)
+      require 'new_relic/agent/instrumentation/controller_instrumentation'
+      ::ActionController::Base.send :include, NewRelic::Agent::Instrumentation::ControllerInstrumentation::Shim
+    end
   end
 
 end

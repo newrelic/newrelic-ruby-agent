@@ -9,7 +9,7 @@ class NewRelic::Control::Frameworks::Rails3 < NewRelic::Control::Frameworks::Rai
   end
 
   def root
-    @root ||= Rails.root.to_s
+    @root ||= ::Rails.root.to_s
   end
 
   def logger
