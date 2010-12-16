@@ -8,33 +8,9 @@ $LOAD_PATH << File.join(NEWRELIC_PLUGIN_DIR,"ui/helpers")
 $LOAD_PATH.uniq!
 
 require 'rubygems'
-# We can speed things up in tests that don't need to load rails.
-# You can also run the tests in a mode without rails.  Many tests 
-# will be skipped.
-if ENV['SKIP_RAILS']
-  dirs = File.dirname(__FILE__).split('/')
-  while dirs.any? && !File.directory?((dirs+%w[log]).join('/'))
-    dirs.pop
-  end
-  RAILS_ROOT = dirs.any? ? dirs.join("/") : "#{File.dirname(__FILE__)}/.." unless defined?(RAILS_ROOT)
-  $LOAD_PATH << File.join(NEWRELIC_PLUGIN_DIR, "lib")
-  require File.join(NEWRELIC_PLUGIN_DIR, "lib/newrelic_rpm")
-else
-  begin
-    require 'config/environment'
-    begin
-      require 'test_help'
-    rescue LoadError
-      # ignore load problems on test help - it doesn't exist in rails 3
-    end
-    
-  rescue LoadError
-    puts "Unable to load Rails for New Relic tests: try setting the environment variable SKIP_RAILS=false"
-    raise
-  end
-end
-require 'new_relic/agent'
-NewRelic::Agent.manual_start
+
+require 'config/environment'
+
 require 'test/unit'
 require 'shoulda'
 require 'test_contexts'
