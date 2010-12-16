@@ -1,5 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
-require 'action_controller/test_case'
+require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 class AgentControllerTest < ActionController::TestCase
   require 'action_controller/base'
   require 'new_relic/agent/agent_test_controller'
