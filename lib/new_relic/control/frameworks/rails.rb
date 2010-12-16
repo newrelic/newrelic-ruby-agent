@@ -125,7 +125,7 @@ class NewRelic::Control::Frameworks::Rails < NewRelic::Control::Frameworks::Ruby
   def install_shim
     super
     require 'new_relic/agent/instrumentation/controller_instrumentation'
-    ::ActionController::Base.instance_eval {
+    ::ActionController::Base.class_eval {
       include NewRelic::Agent::Instrumentation::ControllerInstrumentation::Shim
     }
   end

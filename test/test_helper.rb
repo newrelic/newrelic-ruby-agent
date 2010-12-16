@@ -5,12 +5,12 @@ $LOAD_PATH << '.'
 $LOAD_PATH << '../../..'
 $LOAD_PATH << File.join(NEWRELIC_PLUGIN_DIR,"test")
 $LOAD_PATH << File.join(NEWRELIC_PLUGIN_DIR,"ui/helpers")
+$LOAD_PATH << File.expand_path('.')
 $LOAD_PATH.uniq!
 
 require 'rubygems'
 
 require 'config/environment'
-
 require 'test/unit'
 require 'shoulda'
 require 'test_contexts'
