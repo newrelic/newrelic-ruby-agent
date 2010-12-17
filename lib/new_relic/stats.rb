@@ -135,6 +135,9 @@ module NewRelic
       end_time - begin_time
     end
 
+    def midpoint
+      begin_time + (duration/2)
+    end
     def calls_per_minute
       if duration.zero?
         0
