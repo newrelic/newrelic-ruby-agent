@@ -1,8 +1,7 @@
 module NewRelic; TEST = true; end unless defined? NewRelic::TEST
 ENV['RAILS_ENV'] = 'test'
 NEWRELIC_PLUGIN_DIR = File.expand_path(File.join(File.dirname(__FILE__),".."))
-$LOAD_PATH << '.'
-$LOAD_PATH << '../../..'
+$LOAD_PATH << File.join(NEWRELIC_PLUGIN_DIR,"lib")
 $LOAD_PATH << File.join(NEWRELIC_PLUGIN_DIR,"test")
 $LOAD_PATH << File.join(NEWRELIC_PLUGIN_DIR,"ui/helpers")
 $LOAD_PATH << File.expand_path('.')
@@ -32,6 +31,20 @@ end
 def assert_between(floor, ceiling, value, message = nil)
   assert floor <= value && value <= ceiling,
   message || "expected #{floor} <= #{value} <= #{ceiling}"
+end
+
+def generate_metric_counts(*metrics)
+  metrics.inject({}) do |sum, metric|
+    sum[metric] = NewRelic::Agent.get_stats(metric).call_count
+    sum
+  end
+end
+
+def assert_calls_metrics(*metrics)
+  first_metrics = generate_metric_counts(*metrics)
+  yield
+  last_metrics = generate_metric_counts(*metrics)
+  assert_not_equal first_metrics, last_metrics, "should have changed these metrics"
 end
 
 def compare_metrics expected_list, actual_list
