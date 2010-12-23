@@ -199,7 +199,7 @@ module NewRelic
 
         def metric_name
           return nil if @path_stack.empty?
-          current_metric.name
+          current_metric.metric_name
         end
 
         # Return the array of metrics to record for the current metric frame.
@@ -276,7 +276,7 @@ module NewRelic
 
         def self.record_apdex(current_metric, action_duration, total_duration, is_error)
           summary_stat = NewRelic::Agent.instance.stats_engine.get_custom_stats("Apdex", NewRelic::ApdexStats)
-          controller_stat = NewRelic::Agent.instance.stats_engine.get_custom_stats(current_metric.apdex_metric_path, NewRelic::ApdexStats)
+          controller_stat = NewRelic::Agent.instance.stats_engine.get_custom_stats(current_metric.apdex_metric_name, NewRelic::ApdexStats)
           update_apdex(summary_stat, total_duration, is_error)
           update_apdex(controller_stat, action_duration, is_error)
         end
