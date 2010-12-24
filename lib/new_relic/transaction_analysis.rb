@@ -47,9 +47,9 @@ module TransactionAnalysis
       @total_time / @sample.duration
     end
 
-    def developer_name
+    def ui_name
       return @metric_name if @metric_name == 'Remainder'
-      NewRelic::MetricParser::MetricParser.parse(@metric_name).developer_name
+      NewRelic::MetricParser::MetricParser.parse(@metric_name).ui_name
     end
   end
 
