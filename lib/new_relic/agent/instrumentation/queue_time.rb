@@ -2,7 +2,7 @@ module NewRelic
   module Agent
     module Instrumentation
       module QueueTime
-        MAIN_HEADER = 'X_REQUEST_START'
+        MAIN_HEADER = 'HTTP_X_REQUEST_START'
         
         HEADER_REGEX = /([^\s\/,(t=)]+)? ?t=([0-9]+)/
         SERVER_METRIC = 'WebFrontend/WebServer/'

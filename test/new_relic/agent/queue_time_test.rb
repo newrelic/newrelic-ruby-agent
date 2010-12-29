@@ -18,7 +18,7 @@ class QueueTimeTest < Test::Unit::TestCase
     env = {}
     time1 = ((Time.now - 2).to_f * 1_000_000.0).to_i
     time2 = ((Time.now - 1).to_f * 1_000_000.0).to_i
-    env['X_REQUEST_START'] = "servera t=#{time1}, serverb t=#{time2}"
+    env['HTTP_X_REQUEST_START'] = "servera t=#{time1}, serverb t=#{time2}"
     assert_calls_metrics('WebFrontend/WebServer/all', 'WebFrontend/WebServer/servera', 'WebFrontend/WebServer/serverb') do
       parse_queue_time_from(env)
     end
@@ -30,7 +30,7 @@ class QueueTimeTest < Test::Unit::TestCase
   # test for backwards compatibility with old header
   def test_parse_queue_time_from_with_no_server_name
     assert_calls_metrics('WebFrontend/WebServer/all') do
-      parse_queue_time_from({'X_REQUEST_START' => "t=#{convert_to_microseconds(Time.now) - 1000000}"})
+      parse_queue_time_from({'HTTP_X_REQUEST_START' => "t=#{convert_to_microseconds(Time.now) - 1000000}"})
     end
     check_metric('WebFrontend/WebServer/all', 1.0, 0.1)
   end
