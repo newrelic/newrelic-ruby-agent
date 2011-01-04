@@ -1,0 +1,3 @@
+[submodule "vendor/gems/dependency_detection"]
+	path = vendor/gems/dependency_detection
+	url = /Users/justin/work/dependency_detection/.git
