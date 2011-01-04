@@ -18,6 +18,8 @@
 # directly.
 #
 require 'new_relic/control'
+require 'conditional_vendored_dependency_detection'
+
 if defined? Merb
   module NewRelic
     class MerbBootLoader < Merb::BootLoader

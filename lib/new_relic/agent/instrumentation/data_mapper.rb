@@ -37,145 +37,166 @@
 #     non-first metric in trace_execution_scoped() (docs say only first counts
 #     towards scope) so they don't show up ine normal call graph/trace.
 
-if defined? ::DataMapper
+DependencyDetector.defer do
+  depends_on do
+    defined?(::DataMapper)
+  end
+  
+  executes_on(:'DataMapper::Model') do
+    class_eval do
+      add_method_tracer :get,      'ActiveRecord/#{self.name}/get'
+      add_method_tracer :first,    'ActiveRecord/#{self.name}/first'
+      add_method_tracer :last,     'ActiveRecord/#{self.name}/last'
+      add_method_tracer :all,      'ActiveRecord/#{self.name}/all'
 
-  # DM::Model class methods
-  ::DataMapper::Model.class_eval do
+      add_method_tracer :create,   'ActiveRecord/#{self.name}/create'
+      add_method_tracer :create!,  'ActiveRecord/#{self.name}/create'
+      add_method_tracer :update,   'ActiveRecord/#{self.name}/update'
+      add_method_tracer :update!,  'ActiveRecord/#{self.name}/update'
+      add_method_tracer :destroy,  'ActiveRecord/#{self.name}/destroy'
+      add_method_tracer :destroy!, 'ActiveRecord/#{self.name}/destroy'
 
-    add_method_tracer :get,      'ActiveRecord/#{self.name}/get'
-    add_method_tracer :first,    'ActiveRecord/#{self.name}/first'
-    add_method_tracer :last,     'ActiveRecord/#{self.name}/last'
-    add_method_tracer :all,      'ActiveRecord/#{self.name}/all'
+      # For dm-aggregates and partial dm-ar-finders support:
+      for method in [ :aggregate, :find, :find_by_sql ] do
+        next unless method_defined? method
+        add_method_tracer(method, 'ActiveRecord/#{self.name}/' + method.to_s)
+      end
 
-    add_method_tracer :create,   'ActiveRecord/#{self.name}/create'
-    add_method_tracer :create!,  'ActiveRecord/#{self.name}/create'
-    add_method_tracer :update,   'ActiveRecord/#{self.name}/update'
-    add_method_tracer :update!,  'ActiveRecord/#{self.name}/update'
-    add_method_tracer :destroy,  'ActiveRecord/#{self.name}/destroy'
-    add_method_tracer :destroy!, 'ActiveRecord/#{self.name}/destroy'
-
-    # For dm-aggregates and partial dm-ar-finders support:
-    for method in [ :aggregate, :find, :find_by_sql ] do
-      next unless method_defined? method
-      add_method_tracer(method, 'ActiveRecord/#{self.name}/' + method.to_s)
     end
-
   end
+  
+  executes_on(:'DataMapper::Resource') do
+    class_eval do
+      add_method_tracer :update,   'ActiveRecord/#{self.class.name[/[^:]*$/]}/update'
+      add_method_tracer :update!,  'ActiveRecord/#{self.class.name[/[^:]*$/]}/update'
+      add_method_tracer :save,     'ActiveRecord/#{self.class.name[/[^:]*$/]}/save'
+      add_method_tracer :save!,    'ActiveRecord/#{self.class.name[/[^:]*$/]}/save'
+      add_method_tracer :destroy,  'ActiveRecord/#{self.class.name[/[^:]*$/]}/destroy'
+      add_method_tracer :destroy!, 'ActiveRecord/#{self.class.name[/[^:]*$/]}/destroy'
 
-  # DM's Model instance (Resource) methods
-  ::DataMapper::Resource.class_eval do
-
-    add_method_tracer :update,   'ActiveRecord/#{self.class.name[/[^:]*$/]}/update'
-    add_method_tracer :update!,  'ActiveRecord/#{self.class.name[/[^:]*$/]}/update'
-    add_method_tracer :save,     'ActiveRecord/#{self.class.name[/[^:]*$/]}/save'
-    add_method_tracer :save!,    'ActiveRecord/#{self.class.name[/[^:]*$/]}/save'
-    add_method_tracer :destroy,  'ActiveRecord/#{self.class.name[/[^:]*$/]}/destroy'
-    add_method_tracer :destroy!, 'ActiveRecord/#{self.class.name[/[^:]*$/]}/destroy'
-
-  end
-
-  # DM's Collection instance methods
-  ::DataMapper::Collection.class_eval do
-
-    add_method_tracer :get,       'ActiveRecord/#{self.name}/get'
-    add_method_tracer :first,     'ActiveRecord/#{self.name}/first'
-    add_method_tracer :last,      'ActiveRecord/#{self.name}/last'
-    add_method_tracer :all,       'ActiveRecord/#{self.name}/all'
-
-    add_method_tracer :lazy_load, 'ActiveRecord/#{self.name}/lazy_load'
-
-    add_method_tracer :create,    'ActiveRecord/#{self.name}/create'
-    add_method_tracer :create!,   'ActiveRecord/#{self.name}/create'
-    add_method_tracer :update,    'ActiveRecord/#{self.name}/update'
-    add_method_tracer :update!,   'ActiveRecord/#{self.name}/update'
-    add_method_tracer :destroy,   'ActiveRecord/#{self.name}/destroy'
-    add_method_tracer :destroy!,  'ActiveRecord/#{self.name}/destroy'
-
-    # For dm-aggregates support:
-    for method in [ :aggregate ] do
-      next unless method_defined? method
-      add_method_tracer(method, 'ActiveRecord/#{self.name}/' + method.to_s)
     end
-
   end
 
-  # Catch the two entry points into DM::Repository::Adapter that bypass CRUD
-  # (for when SQL is run directly).
-  ::DataMapper::Adapters::DataObjectsAdapter.class_eval do
+  executes_on(:'DataMapper::Collection') do
+    class_eval do
+      # DM's Collection instance methods
+      add_method_tracer :get,       'ActiveRecord/#{self.name}/get'
+      add_method_tracer :first,     'ActiveRecord/#{self.name}/first'
+      add_method_tracer :last,      'ActiveRecord/#{self.name}/last'
+      add_method_tracer :all,       'ActiveRecord/#{self.name}/all'
 
-    add_method_tracer :select,  'ActiveRecord/#{self.class.name[/[^:]*$/]}/select'
-    add_method_tracer :execute, 'ActiveRecord/#{self.class.name[/[^:]*$/]}/execute'
+      add_method_tracer :lazy_load, 'ActiveRecord/#{self.name}/lazy_load'
 
-  end if defined? ::DataMapper::Adapters::DataObjectsAdapter
+      add_method_tracer :create,    'ActiveRecord/#{self.name}/create'
+      add_method_tracer :create!,   'ActiveRecord/#{self.name}/create'
+      add_method_tracer :update,    'ActiveRecord/#{self.name}/update'
+      add_method_tracer :update!,   'ActiveRecord/#{self.name}/update'
+      add_method_tracer :destroy,   'ActiveRecord/#{self.name}/destroy'
+      add_method_tracer :destroy!,  'ActiveRecord/#{self.name}/destroy'
+
+      # For dm-aggregates support:
+      for method in [ :aggregate ] do
+        next unless method_defined? method
+        add_method_tracer(method, 'ActiveRecord/#{self.name}/' + method.to_s)
+      end
+
+    end
+  end
+end
+
+DependencyDetection.defer do
+  executes_on(:'DataMapper::Adapters::DataObjectsAdapter') do
+    # Catch the two entry points into DM::Repository::Adapter that bypass CRUD
+    # (for when SQL is run directly).
+    class_eval do
+
+      add_method_tracer :select,  'ActiveRecord/#{self.class.name[/[^:]*$/]}/select'
+      add_method_tracer :execute, 'ActiveRecord/#{self.class.name[/[^:]*$/]}/execute'
+
+    end
+  end
+end
+
+DependencyDetection.defer do
 
   # DM::Validations overrides Model#create, but currently in a way that makes it
   # impossible to instrument from one place.  I've got a patch pending inclusion
   # to make it instrumentable by putting the create method inside ClassMethods.
   # This will pick it up if/when that patch is accepted.
-  ::DataMapper::Validations::ClassMethods.class_eval do
+  executes_on(:'DataMapper::Validations::ClassMethods') do
+    class_eval do
 
-    next unless method_defined? :create
-    add_method_tracer :create,   'ActiveRecord/#{self.name}/create'
+      next unless method_defined? :create
+      add_method_tracer :create,   'ActiveRecord/#{self.name}/create'
 
-  end if defined? ::DataMapper::Validations::ClassMethods
+    end
+  end
+end
 
-  # NOTE: DM::Transaction basically calls commit() twice, so as-is it will show
-  # up in traces twice -- second time subordinate to the first's scope.  Works
-  # well enough.
-  ::DataMapper::Transaction.module_eval do
-    add_method_tracer :commit, 'ActiveRecord/#{self.class.name[/[^:]*$/]}/commit'
-  end if defined? ::DataMapper::Transaction
+DependencyDetection.defer do
+# NOTE: DM::Transaction basically calls commit() twice, so as-is it will show
+# up in traces twice -- second time subordinate to the first's scope.  Works
+# well enough.
+  executes_on(:'DataMapper::Transaction') do
+    module_eval do
+      add_method_tracer :commit, 'ActiveRecord/#{self.class.name[/[^:]*$/]}/commit'
+    end
+  end
+end
 
-  module NewRelic
-    module Agent
-      module Instrumentation
-        module DataMapperInstrumentation
 
-          def self.included(klass)
-            klass.class_eval do
-              alias_method :log_without_newrelic_instrumentation, :log
-              alias_method :log, :log_with_newrelic_instrumentation
-            end
+module NewRelic
+  module Agent
+    module Instrumentation
+      module DataMapperInstrumentation
+
+        def self.included(klass)
+          klass.class_eval do
+            alias_method :log_without_newrelic_instrumentation, :log
+            alias_method :log, :log_with_newrelic_instrumentation
           end
+        end
 
-          # Unlike in AR, log is called in DM after the query actually ran,
-          # complete with metrics.  Since DO has already calculated the
-          # duration, there's nothing more to measure, so just record and log.
-          #
-          # We rely on the assumption that all possible entry points have been
-          # hooked with tracers, ensuring that notice_sql attaches this SQL to
-          # the proper call scope.
-          def log_with_newrelic_instrumentation(msg)
-            return unless NewRelic::Agent.is_execution_traced?
-            return unless operation = case msg.query
-              when /^\s*select/i          then 'find'
-              when /^\s*(update|insert)/i then 'save'
-              when /^\s*delete/i          then 'destroy'
-              else nil
-            end
+        # Unlike in AR, log is called in DM after the query actually ran,
+        # complete with metrics.  Since DO has already calculated the
+        # duration, there's nothing more to measure, so just record and log.
+        #
+        # We rely on the assumption that all possible entry points have been
+        # hooked with tracers, ensuring that notice_sql attaches this SQL to
+        # the proper call scope.
+        def log_with_newrelic_instrumentation(msg)
+          return unless NewRelic::Agent.is_execution_traced?
+          return unless operation = case msg.query
+                                    when /^\s*select/i          then 'find'
+                                    when /^\s*(update|insert)/i then 'save'
+                                    when /^\s*delete/i          then 'destroy'
+                                    else nil
+                                    end
 
-            # FYI: self.to_s will yield connection URI string.
-            duration = msg.duration / 1000000.0
+          # FYI: self.to_s will yield connection URI string.
+          duration = msg.duration / 1000000.0
 
-            # Attach SQL to current segment/scope.
-            NewRelic::Agent.instance.transaction_sampler.notice_sql(msg.query, nil, duration)
+          # Attach SQL to current segment/scope.
+          NewRelic::Agent.instance.transaction_sampler.notice_sql(msg.query, nil, duration)
 
-            # Record query duration associated with each of the desired metrics.
-            metrics = [ "ActiveRecord/#{operation}", 'ActiveRecord/all' ]
-            metrics.each do |metric|
-              NewRelic::Agent.instance.stats_engine.get_stats_no_scope(metric).trace_call(duration)
-            end
-          ensure
-            log_without_newrelic_instrumentation(msg)
+          # Record query duration associated with each of the desired metrics.
+          metrics = [ "ActiveRecord/#{operation}", 'ActiveRecord/all' ]
+          metrics.each do |metric|
+            NewRelic::Agent.instance.stats_engine.get_stats_no_scope(metric).trace_call(duration)
           end
+        ensure
+          log_without_newrelic_instrumentation(msg)
+        end
 
-        end # DataMapperInstrumentation
-      end # Instrumentation
-    end # Agent
-  end # NewRelic
+      end # DataMapperInstrumentation
+    end # Instrumentation
+  end # Agent
+end # NewRelic
 
-  ::DataObjects::Connection.class_eval do
-    include ::NewRelic::Agent::Instrumentation::DataMapperInstrumentation
-  end if defined? ::DataObjects::Connection
-
-end # if defined? DataMapper
+DependencyDetection.defer do
+  executes_on(:'DataObjects::Connection') do
+    class_eval do
+      include ::NewRelic::Agent::Instrumentation::DataMapperInstrumentation
+    end
+  end
+end
