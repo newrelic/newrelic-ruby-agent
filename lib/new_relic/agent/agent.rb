@@ -385,6 +385,14 @@ module NewRelic
           NewRelic::Control.instance
         end
 
+        def tried_to_connect?(options)
+          !@connected.nil? && !options[:force_reconnect]
+        end
+
+        def should_keep_retrying?(options)
+          options[:keep_retrying].nil? || options[:keep_retrying]
+        end
+
         # Connect to the server and validate the license.  If successful,
         # @connected has true when finished.  If not successful, you can
         # keep calling this.  Return false if we could not establish a
@@ -405,11 +413,10 @@ module NewRelic
           # Don't proceed if we already connected (@connected=true) or if we tried
           # to connect and were rejected with prejudice because of a license issue
           # (@connected=false).
-          return if !@connected.nil? && !options[:force_reconnect]
-          keep_retrying = options[:keep_retrying].nil? || options[:keep_retrying]
+          return if tried_to_connect?(options)
 
           # wait a few seconds for the web server to boot, necessary in development
-          connect_retry_period = keep_retrying ? 10 : 0
+          connect_retry_period = should_keep_retrying?(options) ? 10 : 0
           connect_attempts = 0
           @agent_id = nil
           begin
@@ -475,7 +482,7 @@ module NewRelic
               log.debug e.backtrace.join("\n")
             end
             # retry logic
-            if keep_retrying
+            if should_keep_retrying?(options)
               connect_attempts += 1
               case connect_attempts
               when 1..2
