@@ -37,6 +37,7 @@ module NewRelic
         @transaction_sampler = NewRelic::Agent::TransactionSampler.new
         @stats_engine.transaction_sampler = @transaction_sampler
         @error_collector = NewRelic::Agent::ErrorCollector.new
+        @connect_attempts = 0
 
         @request_timeout = NewRelic::Control.instance.fetch('timeout', 2 * 60)
 
@@ -390,8 +391,31 @@ module NewRelic
         end
 
         def should_keep_retrying?(options)
-          options[:keep_retrying].nil? || options[:keep_retrying]
+          @keep_retrying = (options[:keep_retrying].nil? || options[:keep_retrying])
         end
+
+        def get_retry_period
+          return 600 if connect_attempts > 6
+          tries * 60
+        end
+
+        def increment_retry_period!
+          connect_retry_period = get_retry_period
+        end
+
+        def should_retry?
+            if @keep_retrying
+              connect_attempts += 1
+              increment_retry_period!
+              log.info "Will re-attempt in #{connect_retry_period} seconds"
+              true
+            else
+              disconnect
+              false
+            end
+        end
+        attr_accessor :connect_retry_period
+        attr_accessor :connect_attempts
 
         # Connect to the server and validate the license.  If successful,
         # @connected has true when finished.  If not successful, you can
@@ -416,11 +440,9 @@ module NewRelic
           return if tried_to_connect?(options)
 
           # wait a few seconds for the web server to boot, necessary in development
-          connect_retry_period = should_keep_retrying?(options) ? 10 : 0
-          connect_attempts = 0
-          @agent_id = nil
+          @connect_retry_period = should_keep_retrying?(options) ? 10 : 0
           begin
-            sleep connect_retry_period.to_i
+            sleep connect_retry_period
             log.debug "Connecting Process to RPM: #$0"
             host = invoke_remote(:get_redirect_host)
             @collector = control.server_from_host(host) if host
@@ -481,21 +503,10 @@ module NewRelic
               log.error "Error establishing connection with New Relic RPM Service at #{control.server}: #{e.message}"
               log.debug e.backtrace.join("\n")
             end
-            # retry logic
-            if should_keep_retrying?(options)
-              connect_attempts += 1
-              case connect_attempts
-              when 1..2
-                connect_retry_period, period_msg = 60, "1 minute"
-              when 3..5
-                connect_retry_period, period_msg = 60 * 2, "2 minutes"
-              else
-                connect_retry_period, period_msg = 5 * 60, "5 minutes"
-              end
-              log.info "Will re-attempt in #{period_msg}"
+            if should_retry?
               retry
             else
-              @connected = nil
+              disconnect
             end
           end
         end
