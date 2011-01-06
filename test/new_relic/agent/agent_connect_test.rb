@@ -80,6 +80,27 @@ class NewRelic::Agent::AgentConnectTest < Test::Unit::TestCase
   def test_attr_accessor_connect_attempts
     assert_accessor(:connect_attempts)
   end
+
+  def test_log_error
+    error = mock('error')
+    error.expects(:backtrace).once.returns(["line", "secondline"])
+    error.expects(:message).once.returns("message")
+    fake_control = mock()
+    fake_control.expects(:server).returns("server")
+    self.expects(:control).once.returns(fake_control)
+    log.expects(:error).with("Error establishing connection with New Relic RPM Service at server: message")
+    log.expects(:debug).with("line\nsecondline")
+    log_error(error)
+  end
+
+  def test_handle_license_error
+    error = mock('error')
+    self.expects(:disconnect).once
+    log.expects(:error).once.with("error message")
+    log.expects(:info).once.with("Visit NewRelic.com to obtain a valid license key, or to upgrade your account.")
+    error.expects(:message).returns("error message")
+    handle_license_error(error)
+  end
   
   private
 

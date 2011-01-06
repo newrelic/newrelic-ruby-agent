@@ -400,7 +400,7 @@ module NewRelic
 
           def get_retry_period
             return 600 if self.connect_attempts > 6
-            self.connect_attempts * 60
+            connect_attempts * 60
           end
 
           def increment_retry_period!
@@ -409,7 +409,7 @@ module NewRelic
 
           def should_retry?
             if @keep_retrying
-              self.connect_attempts=(self.connect_attempts + 1)
+              self.connect_attempts=(connect_attempts + 1)
               increment_retry_period!
               log.info "Will re-attempt in #{connect_retry_period} seconds"
               true
@@ -417,6 +417,17 @@ module NewRelic
               disconnect
               false
             end
+          end
+
+          def log_error(error)
+            log.error "Error establishing connection with New Relic RPM Service at #{control.server}: #{error.message}"
+            log.debug error.backtrace.join("\n")
+          end
+
+          def handle_license_error(error)
+            log.error error.message
+            log.info "Visit NewRelic.com to obtain a valid license key, or to upgrade your account."
+            disconnect
           end
         end
         include Connect
@@ -495,18 +506,9 @@ module NewRelic
             @connected = true
 
           rescue NewRelic::Agent::LicenseException => e
-            log.error e.message
-            log.info "Visit NewRelic.com to obtain a valid license key, or to upgrade your account."
-            @connected = false
-
+            handle_license_error(e)
           rescue Timeout::Error, StandardError => e
-            if e.instance_of? NewRelic::Agent::ServerConnectionException
-              log.info "Unable to establish connection with New Relic RPM Service at #{control.server}: #{e.message}"
-              log.debug e.backtrace.join("\n")
-            else
-              log.error "Error establishing connection with New Relic RPM Service at #{control.server}: #{e.message}"
-              log.debug e.backtrace.join("\n")
-            end
+            log_error(e)
             if should_retry?
               retry
             else
