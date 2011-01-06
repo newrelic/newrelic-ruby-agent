@@ -95,11 +95,6 @@ module NewRelic
           # busy time ?
         end
 
-        # This method is deprecated.  Use NewRelic::Agent.manual_start
-        def manual_start(ignored=nil, also_ignored=nil)
-          raise "This method no longer supported.  Instead use the class method NewRelic::Agent.manual_start"
-        end
-
         # This method should be called in a forked process after a fork.
         # It assumes the parent process initialized the agent, but does
         # not assume the agent started.
@@ -385,27 +380,36 @@ module NewRelic
         def control
           NewRelic::Control.instance
         end
+        
+        module Connect
+          attr_accessor :connect_retry_period
+          attr_accessor :connect_attempts
 
-        def tried_to_connect?(options)
-          !@connected.nil? && !options[:force_reconnect]
-        end
+          def disconnect
+            @connected = false
+            true
+          end
 
-        def should_keep_retrying?(options)
-          @keep_retrying = (options[:keep_retrying].nil? || options[:keep_retrying])
-        end
+          def tried_to_connect?(options)
+            !(@connected.nil? || options[:force_reconnect])
+          end
 
-        def get_retry_period
-          return 600 if connect_attempts > 6
-          tries * 60
-        end
+          def should_keep_retrying?(options)
+            @keep_retrying = (options[:keep_retrying].nil? || options[:keep_retrying])
+          end
 
-        def increment_retry_period!
-          connect_retry_period = get_retry_period
-        end
+          def get_retry_period
+            return 600 if self.connect_attempts > 6
+            self.connect_attempts * 60
+          end
 
-        def should_retry?
+          def increment_retry_period!
+            self.connect_retry_period=(get_retry_period)
+          end
+
+          def should_retry?
             if @keep_retrying
-              connect_attempts += 1
+              self.connect_attempts=(self.connect_attempts + 1)
               increment_retry_period!
               log.info "Will re-attempt in #{connect_retry_period} seconds"
               true
@@ -413,9 +417,9 @@ module NewRelic
               disconnect
               false
             end
+          end
         end
-        attr_accessor :connect_retry_period
-        attr_accessor :connect_attempts
+        include Connect
 
         # Connect to the server and validate the license.  If successful,
         # @connected has true when finished.  If not successful, you can
@@ -449,15 +453,15 @@ module NewRelic
             environment = control['send_environment_info'] != false ? control.local_env.snapshot : []
             log.debug "Connecting with validation seed/token: #{control.validate_seed}/#{control.validate_token}" if control.validate_seed
             connect_data = invoke_remote :connect,
-              :pid => $$,
-              :host => @local_host,
-              :app_name => control.app_names,
-              :language => 'ruby',
-              :agent_version => NewRelic::VERSION::STRING,
-              :environment => environment,
-              :settings => control.settings,
-              :validate => {:seed => control.validate_seed,
-                            :token => control.validate_token }
+            :pid => $$,
+            :host => @local_host,
+            :app_name => control.app_names,
+            :language => 'ruby',
+            :agent_version => NewRelic::VERSION::STRING,
+            :environment => environment,
+            :settings => control.settings,
+            :validate => {:seed => control.validate_seed,
+              :token => control.validate_token }
 
             @agent_id = connect_data['agent_run_id']
             @report_period = connect_data['data_report_period']
