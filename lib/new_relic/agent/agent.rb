@@ -429,6 +429,40 @@ module NewRelic
             log.info "Visit NewRelic.com to obtain a valid license key, or to upgrade your account."
             disconnect
           end
+          
+          def log_seed_token
+            if control.validate_seed
+              log.debug "Connecting with validation seed/token: #{control.validate_seed}/#{control.validate_token}"
+            end
+          end
+
+          def environment_for_connect
+            control['send_environment_info'] != false ? control.local_env.snapshot : []
+          end
+
+          def validate_settings
+            {
+              :seed => control.validate_seed,
+              :token => control.validate_token
+            }
+          end
+
+          def connect_settings
+            {
+              :pid => $$,
+              :host => @local_host,
+              :app_name => control.app_names,
+              :language => 'ruby',
+              :agent_version => NewRelic::VERSION::STRING,
+              :environment => environment_for_connect,
+              :settings => control.settings,
+              :validate => validate_settings
+            }
+          end
+          def connect_to_server
+            log_seed_token
+            connect_data = invoke_remote(:connect, connect_settings)
+          end
         end
         include Connect
 
@@ -461,18 +495,7 @@ module NewRelic
             log.debug "Connecting Process to RPM: #$0"
             host = invoke_remote(:get_redirect_host)
             @collector = control.server_from_host(host) if host
-            environment = control['send_environment_info'] != false ? control.local_env.snapshot : []
-            log.debug "Connecting with validation seed/token: #{control.validate_seed}/#{control.validate_token}" if control.validate_seed
-            connect_data = invoke_remote :connect,
-            :pid => $$,
-            :host => @local_host,
-            :app_name => control.app_names,
-            :language => 'ruby',
-            :agent_version => NewRelic::VERSION::STRING,
-            :environment => environment,
-            :settings => control.settings,
-            :validate => {:seed => control.validate_seed,
-              :token => control.validate_token }
+            connect_data = connect_to_server
 
             @agent_id = connect_data['agent_run_id']
             @report_period = connect_data['data_report_period']

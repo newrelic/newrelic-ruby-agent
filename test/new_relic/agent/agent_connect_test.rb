@@ -101,8 +101,73 @@ class NewRelic::Agent::AgentConnectTest < Test::Unit::TestCase
     error.expects(:message).returns("error message")
     handle_license_error(error)
   end
+
+  def test_log_seed_token
+    fake_control = mocked_control
+    fake_control.expects(:validate_seed).times(2).returns("many seeds")
+    fake_control.expects(:validate_token).once.returns("a token, man")
+    log.expects(:debug).with("Connecting with validation seed/token: many seeds/a token, man").once
+    log_seed_token
+  end
+
+  def test_no_seed_token
+    fake_control = mocked_control
+    fake_control.expects(:validate_seed).once.returns(nil)
+    log.expects(:debug).never
+    log_seed_token
+  end
+  
+  def mocks_for_positive_environment_for_connect(value_for_control)
+    control = mocked_control
+    control.expects(:'[]').with('send_environment_info').once.returns(value_for_control)
+    fake_env = mock('local_env')
+    fake_env.expects(:snapshot).once.returns("snapshot")
+    control.expects(:local_env).once.returns(fake_env)
+  end
+  
+  def test_environment_for_connect_nil
+    mocks_for_positive_environment_for_connect(nil)
+    assert_equal 'snapshot', environment_for_connect
+  end
+
+  def test_environment_for_connect_positive
+    mocks_for_positive_environment_for_connect(true)
+    assert_equal 'snapshot', environment_for_connect
+  end
+
+  def test_environment_for_connect_negative
+    control = mocked_control
+    control.expects(:'[]').with('send_environment_info').once.returns(false)
+    assert_equal [], environment_for_connect
+  end
+
+  def test_validate_settings
+    control = mocked_control
+    control.expects(:validate_seed).once
+    control.expects(:validate_token).once
+    assert_equal({:seed => nil, :token => nil}, validate_settings)
+  end
+
+  def test_connect_settings
+    control = mocked_control
+    control.expects(:app_names)
+    control.expects(:settings)
+    self.expects(:validate_settings)
+    self.expects(:environment_for_connect)
+    keys = %w(pid host app_name language agent_version environment settings validate)
+    value = connect_settings
+    keys.each do |k|
+      assert(value.has_key?(k.to_sym), "should include the key #{k}")
+    end
+  end
   
   private
+
+  def mocked_control
+    fake_control = mock('control')
+    self.stubs(:control).returns(fake_control)
+    fake_control
+  end
 
   def log
     @logger ||= Object.new
