@@ -160,6 +160,30 @@ class NewRelic::Agent::AgentConnectTest < Test::Unit::TestCase
       assert(value.has_key?(k.to_sym), "should include the key #{k}")
     end
   end
+
+  def test_configure_error_collector_base
+    fake_collector = mocked_error_collector
+    fake_collector.expects(:config_enabled).returns(false)
+    fake_collector.expects(:enabled=).with(false)
+    log.expects(:debug).with("Errors will not be sent to the RPM service.")
+    configure_error_collector!(false)
+  end
+
+  def test_configure_error_collector_enabled
+    fake_collector = mocked_error_collector
+    fake_collector.expects(:config_enabled).returns(true)
+    fake_collector.expects(:enabled=).with(true)
+    log.expects(:debug).with("Errors will be sent to the RPM service.")
+    configure_error_collector!(true)
+  end
+
+  def test_configure_error_collector_server_disabled
+    fake_collector = mocked_error_collector
+    fake_collector.expects(:config_enabled).returns(true)
+    fake_collector.expects(:enabled=).with(false)
+    log.expects(:debug).with("Errors will not be sent to the RPM service.")
+    configure_error_collector!(false)
+  end
   
   private
 
@@ -167,6 +191,12 @@ class NewRelic::Agent::AgentConnectTest < Test::Unit::TestCase
     fake_control = mock('control')
     self.stubs(:control).returns(fake_control)
     fake_control
+  end
+
+  def mocked_error_collector
+    fake_collector = mock('error collector')
+    self.stubs(:error_collector).returns(fake_collector)
+    fake_collector
   end
 
   def log

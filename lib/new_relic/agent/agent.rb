@@ -463,6 +463,17 @@ module NewRelic
             log_seed_token
             connect_data = invoke_remote(:connect, connect_settings)
           end
+
+          def configure_error_collector!(server_enabled)
+            # Ask for permission to collect error data
+            enabled = if error_collector.config_enabled && server_enabled
+                        error_collector.enabled = true
+                      else
+                        error_collector.enabled = false
+                      end
+            log.debug "Errors will #{enabled ? '' : 'not '}be sent to the RPM service."
+          end
+
         end
         include Connect
 
@@ -519,11 +530,8 @@ module NewRelic
             else
               log.debug "Transaction traces will not be sent to the RPM service."
             end
-
-            # Ask for permission to collect error data
-            error_collector.enabled = error_collector.config_enabled && connect_data['collect_errors']
-
-            log.debug "Errors will be sent to the RPM service." if error_collector.enabled
+            
+            configure_error_collector!(connect_data['collect_errors'])
 
             @connected_pid = $$
             @connected = true
