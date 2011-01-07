@@ -473,7 +473,34 @@ module NewRelic
                       end
             log.debug "Errors will #{enabled ? '' : 'not '}be sent to the RPM service."
           end
+          
+          def enable_random_samples!(sample_rate)
+            @transaction_sampler.random_sampling = true
+            @transaction_sampler.sampling_rate = sample_rate
+            log.info "Transaction sampling enabled, rate = #{@transaction_sampler.sampling_rate}"
+          end
+          
 
+          def configure_transaction_tracer!(server_enabled, sample_rate)
+            # Ask the server for permission to send transaction samples.
+            # determined by subscription license.
+            @should_send_samples = @config_should_send_samples && server_enabled
+
+            if @should_send_samples
+              # I don't think this is ever true, but...
+              enable_random_samples!(sample_rate) if @should_send_random_samples
+              log.debug "Transaction tracing threshold is #{@slowest_transaction_threshold} seconds."
+            else
+              log.debug "Transaction traces will not be sent to the RPM service."
+            end
+          end
+
+          def set_collector_host!
+            host = invoke_remote(:get_redirect_host)
+            if host
+              @collector = control.server_from_host(host)
+            end
+          end
         end
         include Connect
 
@@ -504,8 +531,8 @@ module NewRelic
           begin
             sleep connect_retry_period
             log.debug "Connecting Process to RPM: #$0"
-            host = invoke_remote(:get_redirect_host)
-            @collector = control.server_from_host(host) if host
+            set_collector_host!
+
             connect_data = connect_to_server
 
             @agent_id = connect_data['agent_run_id']
@@ -516,21 +543,7 @@ module NewRelic
             log.debug "Agent Run       = #{@agent_id}."
             log.debug "Connection data = #{connect_data.inspect}"
 
-            # Ask the server for permission to send transaction samples.
-            # determined by subscription license.
-            @should_send_samples = @config_should_send_samples && connect_data['collect_traces']
-
-            if @should_send_samples
-              if @should_send_random_samples
-                @transaction_sampler.random_sampling = true
-                @transaction_sampler.sampling_rate = connect_data['sampling_rate']
-                log.info "Transaction sampling enabled, rate = #{@transaction_sampler.sampling_rate}"
-              end
-              log.debug "Transaction tracing threshold is #{@slowest_transaction_threshold} seconds."
-            else
-              log.debug "Transaction traces will not be sent to the RPM service."
-            end
-            
+            configure_transaction_tracer!(connect_data['collect_traces'], connect_data['sample_rate'])
             configure_error_collector!(connect_data['collect_errors'])
 
             @connected_pid = $$

@@ -184,6 +184,63 @@ class NewRelic::Agent::AgentConnectTest < Test::Unit::TestCase
     log.expects(:debug).with("Errors will not be sent to the RPM service.")
     configure_error_collector!(false)
   end
+
+  def test_enable_random_samples
+    sampling_rate = 10
+    ts = @transaction_sampler = mock('ts')
+    ts.expects(:random_sampling=).with(true)
+    ts.expects(:sampling_rate=).with(sampling_rate)
+    ts.expects(:sampling_rate).returns(sampling_rate)
+    log.expects(:info).with("Transaction sampling enabled, rate = 10")
+    enable_random_samples!(sampling_rate)
+  end
+
+  def test_configure_transaction_tracer_positive
+    @config_should_send_samples = true
+    @slowest_transaction_threshold = 5
+    log.expects(:debug).with('Transaction tracing threshold is 5 seconds.')
+    configure_transaction_tracer!(true, 10)
+    assert @should_send_samples
+  end
+
+  def test_configure_transaction_tracer_negative
+    @config_should_send_samples = false
+    log.expects(:debug).with('Transaction traces will not be sent to the RPM service.')
+    configure_transaction_tracer!(true, 10)
+    assert !@should_send_samples
+  end
+
+  def test_configure_transaction_tracer_server_disabled
+    @config_should_send_samples = true
+    log.expects(:debug).with('Transaction traces will not be sent to the RPM service.')
+    configure_transaction_tracer!(false, 10)
+    assert !@should_send_samples
+  end
+
+  def test_set_collector_host_positive
+    control = mocked_control
+    self.expects(:invoke_remote).with(:get_redirect_host).returns('collector-deux.newrelic.com')
+    control.expects(:server_from_host).with('collector-deux.newrelic.com').returns('correct')
+    set_collector_host!
+    assert_equal 'correct', @collector
+  end
+
+  def test_set_collector_host_negative
+    @collector = 'initial value'
+    control = mocked_control
+    self.expects(:invoke_remote).with(:get_redirect_host).returns(nil)
+    set_collector_host!
+    assert_equal 'initial value', @collector, "should not modify collector value"
+  end
+
+  def test_configure_transaction_tracer_random_samples
+    @config_should_send_samples = true
+    @should_send_random_samples = true
+    self.expects(:enable_random_samples!).with(10)
+    log.expects(:debug)
+    configure_transaction_tracer!(true, 10)
+    assert @should_send_samples
+  end
   
   private
 
