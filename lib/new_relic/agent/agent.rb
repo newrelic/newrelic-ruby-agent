@@ -223,48 +223,65 @@ module NewRelic
           NewRelic::Agent.logger
         end
 
+        module Start
+          def already_started?
+            control.log!("Agent Started Already!", :error); return true if started?
+          end
+
+          def disabled?
+            !control.agent_enabled?
+          end
+          
+          def log_dispatcher
+            dispatcher_name = control.dispatcher.to_s
+            dispatcher_name = "None detected." if dispatcher_name.empty?
+            log.info "Dispatcher: #{dispatcher_name}"
+          end
+          
+          def log_app_names
+            log.info "Application: #{control.app_names.join(", ")}"
+          end
+
+          def config_transaction_tracer
+            sampler_config = control.fetch('transaction_tracer', {})
+            # TODO: Should move this state into the transaction sampler instance
+            @should_send_samples = @config_should_send_samples = sampler_config.fetch('enabled', true)
+            @should_send_random_samples = sampler_config.fetch('random_sample', false)
+            @explain_threshold = sampler_config.fetch('explain_threshold', 0.5).to_f
+            @explain_enabled = sampler_config.fetch('explain_enabled', true)
+            @record_sql = sampler_config.fetch('record_sql', :obfuscated).to_sym
+
+            # use transaction_threshold: 4.0 to force the TT collection
+            # threshold to 4 seconds
+            # use transaction_threshold: apdex_f to use your apdex t value
+            # multiplied by 4
+            # undefined transaction_threshold defaults to 2.0
+            apdex_f = 4 * NewRelic::Control.instance.apdex_t
+            @slowest_transaction_threshold = sampler_config.fetch('transaction_threshold', 2.0)
+            if @slowest_transaction_threshold =~ /apdex_f/i
+              @slowest_transaction_threshold = apdex_f
+            end
+            @slowest_transaction_threshold = @slowest_transaction_threshold.to_f
+
+            log.warn "Agent is configured to send raw SQL to RPM service" if @record_sql == :raw
+          end
+        end
+
+        include Start
+
         # Start up the agent.  This verifies that the agent_enabled? is
         # true and initializes the sampler based on the current
         # configuration settings.  Then it will fire up the background
         # thread for sending data to the server if applicable.
         def start
-          if started?
-            control.log! "Agent Started Already!", :error
-            return
-          end
-          return if !control.agent_enabled?
+          return if already_started? || disabled?
           @started = true
           @local_host = determine_host
 
-          if control.dispatcher.nil? || control.dispatcher.to_s.empty?
-            log.info "No dispatcher detected."
-          else
-            log.info "Dispatcher: #{control.dispatcher.to_s}"
-          end
-          log.info "Application: #{control.app_names.join(", ")}" unless control.app_names.empty?
+          log_dispatcher
+          log_app_names
 
-          sampler_config = control.fetch('transaction_tracer', {})
-          # TODO: Should move this state into the transaction sampler instance
-          @should_send_samples = @config_should_send_samples = sampler_config.fetch('enabled', true)
-          @should_send_random_samples = sampler_config.fetch('random_sample', false)
-          @explain_threshold = sampler_config.fetch('explain_threshold', 0.5).to_f
-          @explain_enabled = sampler_config.fetch('explain_enabled', true)
-          @record_sql = sampler_config.fetch('record_sql', :obfuscated).to_sym
-
-          # use transaction_threshold: 4.0 to force the TT collection
-          # threshold to 4 seconds
-          # use transaction_threshold: apdex_f to use your apdex t value
-          # multiplied by 4
-          # undefined transaction_threshold defaults to 2.0
-          apdex_f = 4 * NewRelic::Control.instance.apdex_t
-          @slowest_transaction_threshold = sampler_config.fetch('transaction_threshold', 2.0)
-          if @slowest_transaction_threshold =~ /apdex_f/i
-            @slowest_transaction_threshold = apdex_f
-          end
-          @slowest_transaction_threshold = @slowest_transaction_threshold.to_f
-
-          log.warn "Agent is configured to send raw SQL to RPM service" if @record_sql == :raw
-
+          config_transaction_tracer
           case
           when !control.monitor_mode?
             log.warn "Agent configured not to send data in this environment - edit newrelic.yml to change this"
