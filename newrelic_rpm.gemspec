@@ -126,6 +126,7 @@ http://github.com/newrelic/rpm/tree/master.
     "test/new_relic/agent/active_record_instrumentation_test.rb",
     "test/new_relic/agent/agent_connect_test.rb",
     "test/new_relic/agent/agent_controller_test.rb",
+    "test/new_relic/agent/agent_start_test.rb",
     "test/new_relic/agent/agent_test_controller.rb",
     "test/new_relic/agent/busy_calculator_test.rb",
     "test/new_relic/agent/collection_helper_test.rb",

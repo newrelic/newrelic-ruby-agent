@@ -46,9 +46,65 @@ class NewRelic::Agent::AgentStartTest < Test::Unit::TestCase
   def test_log_app_names
     control = mocked_control
     log = mocked_log
-    control.expects(:app_names).returns([zam, zam, zabam])
+    control.expects(:app_names).returns(%w(zam zam zabam))
     log.expects(:info).with("Application: zam, zam, zabam")
     log_app_names
+  end
+
+  def test_apdex_f
+    NewRelic::Control.instance.expects(:apdex_t).returns(10)
+    assert_equal 40, apdex_f
+  end
+
+  def test_apdex_f_threshold_positive
+    self.expects(:sampler_config).returns({'transaction_threshold' => 'apdex_f'})
+    assert apdex_f_threshold?
+  end
+
+  def test_apdex_f_threshold_negative
+    self.expects(:sampler_config).returns({'transaction_threshold' => 'WHEE'})
+    assert !apdex_f_threshold?
+  end
+
+  def test_set_sql_recording_default
+    self.expects(:sampler_config).returns({})
+    self.expects(:log_sql_transmission_warning?)
+    set_sql_recording!
+    assert_equal :obfuscated, @record_sql, " should default to :obfuscated, was #{@record_sql}"
+  end
+
+  def test_set_sql_recording_none
+    self.expects(:sampler_config).returns({'record_sql' => 'none'})
+    self.expects(:log_sql_transmission_warning?)
+    set_sql_recording!
+    assert_equal :none, @record_sql, "should be set to :none, was #{@record_sql}"
+  end
+  
+  def test_set_sql_recording_raw
+    self.expects(:sampler_config).returns({'record_sql' => 'raw'})
+    self.expects(:log_sql_transmission_warning?)
+    set_sql_recording!
+    assert_equal :raw, @record_sql, "should be set to :raw, was #{@record_sql}"
+  end
+
+  def test_log_sql_transmission_warning_negative
+    log = mocked_log
+    @record_sql = :obfuscated
+    log.expects(:warn).never
+    log_sql_transmission_warning?
+  end
+
+  def test_log_sql_transmission_warning_positive
+    log = mocked_log
+    @record_sql = :raw
+    log.expects(:warn).once.with('Agent is configured to send raw SQL to RPM service')
+    log_sql_transmission_warning?
+  end
+
+  def test_sampler_config
+    control = mocked_control
+    control.expects(:fetch).with('transaction_tracer', {})
+    sampler_config
   end
 
   def test_config_transaction_tracer
@@ -60,16 +116,16 @@ class NewRelic::Agent::AgentStartTest < Test::Unit::TestCase
   private
 
   def mocked_log
-    log = mock('log')
-    self.stub(:log).returns(log)
-    log
+    fake_log = mock('log')
+    self.stubs(:log).returns(fake_log)
+    fake_log
   end
 
 
   def mocked_control
-    control = mock('control')
-    self.stub(:control).returns(control)
-    control
+    fake_control = mock('control')
+    self.stubs(:control).returns(fake_control)
+    fake_control
   end
 end
 

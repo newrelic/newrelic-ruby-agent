@@ -225,7 +225,10 @@ module NewRelic
 
         module Start
           def already_started?
-            control.log!("Agent Started Already!", :error); return true if started?
+            if started?
+              control.log!("Agent Started Already!", :error)
+              true
+            end
           end
 
           def disabled?
@@ -242,28 +245,39 @@ module NewRelic
             log.info "Application: #{control.app_names.join(", ")}"
           end
 
+          def apdex_f
+            (4 * NewRelic::Control.instance.apdex_t).to_f
+          end
+
+          def apdex_f_threshold?
+            sampler_config.fetch('transaction_threshold', '') =~ /apdex_f/i            
+          end
+
+          def set_sql_recording!
+            @record_sql = sampler_config.fetch('record_sql', :obfuscated).to_sym
+            log_sql_transmission_warning?
+          end
+
+          def log_sql_transmission_warning?
+            return unless @record_sql == :raw
+            log.warn "Agent is configured to send raw SQL to RPM service"
+          end
+
+          def sampler_config
+            control.fetch('transaction_tracer', {})
+          end
+
           def config_transaction_tracer
-            sampler_config = control.fetch('transaction_tracer', {})
-            # TODO: Should move this state into the transaction sampler instance
             @should_send_samples = @config_should_send_samples = sampler_config.fetch('enabled', true)
             @should_send_random_samples = sampler_config.fetch('random_sample', false)
             @explain_threshold = sampler_config.fetch('explain_threshold', 0.5).to_f
             @explain_enabled = sampler_config.fetch('explain_enabled', true)
-            @record_sql = sampler_config.fetch('record_sql', :obfuscated).to_sym
-
-            # use transaction_threshold: 4.0 to force the TT collection
-            # threshold to 4 seconds
-            # use transaction_threshold: apdex_f to use your apdex t value
-            # multiplied by 4
-            # undefined transaction_threshold defaults to 2.0
-            apdex_f = 4 * NewRelic::Control.instance.apdex_t
-            @slowest_transaction_threshold = sampler_config.fetch('transaction_threshold', 2.0)
-            if @slowest_transaction_threshold =~ /apdex_f/i
-              @slowest_transaction_threshold = apdex_f
-            end
-            @slowest_transaction_threshold = @slowest_transaction_threshold.to_f
-
-            log.warn "Agent is configured to send raw SQL to RPM service" if @record_sql == :raw
+            set_sql_recording!
+            
+            # default to 2.0, string 'apdex_f' will turn into your
+            # apdex * 4
+            @slowest_transaction_threshold = sampler_config.fetch('transaction_threshold', 2.0).to_f
+            @slowest_transaction_threshold = apdex_f if apdex_f_threshold?
           end
         end
 
