@@ -241,6 +241,31 @@ class NewRelic::Agent::AgentConnectTest < Test::Unit::TestCase
     configure_transaction_tracer!(true, 10)
     assert @should_send_samples
   end
+
+  def test_query_server_for_configuration
+    self.expects(:set_collector_host!)
+    self.expects(:connect_to_server).returns("so happy")
+    self.expects(:finish_setup).with("so happy")
+    query_server_for_configuration
+  end
+
+  def test_finish_setup
+    config = {
+      'agent_run_id' => 'fishsticks',
+      'data_report_period' => 'pasta sauce',
+      'url_rules' => 'tamales',
+      'collect_traces' => true,
+      'collect_errors' => true,
+      'sample_rate' => 10
+    }
+    self.expects(:log_connection!).with(config)
+    self.expects(:configure_transaction_tracer!).with(true, 10)
+    self.expects(:configure_error_collector!).with(true)
+    finish_setup(config)
+    assert_equal 'fishsticks', @agent_id
+    assert_equal 'pasta sauce', @report_period
+    assert_equal 'tamales', @url_rules
+  end
   
   private
 

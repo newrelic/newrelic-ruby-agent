@@ -501,6 +501,27 @@ module NewRelic
               @collector = control.server_from_host(host)
             end
           end
+
+          def query_server_for_configuration
+            set_collector_host!
+            
+            finish_setup(connect_to_server)
+          end
+          def finish_setup(config_data)
+            @agent_id = config_data['agent_run_id']
+            @report_period = config_data['data_report_period']
+            @url_rules = config_data['url_rules']
+
+            log_connection!(config_data)
+            configure_transaction_tracer!(config_data['collect_traces'], config_data['sample_rate'])
+            configure_error_collector!(config_data['collect_errors'])
+          end
+
+          def log_connection!(config_data)
+            control.log! "Connected to NewRelic Service at #{@collector}"
+            log.debug "Agent Run       = #{@agent_id}."
+            log.debug "Connection data = #{config_data.inspect}"
+          end
         end
         include Connect
 
@@ -523,7 +544,7 @@ module NewRelic
         def connect(options)
           # Don't proceed if we already connected (@connected=true) or if we tried
           # to connect and were rejected with prejudice because of a license issue
-          # (@connected=false).
+          # (@connected=false), unless we're forced to by force_reconnect.
           return if tried_to_connect?(options)
 
           # wait a few seconds for the web server to boot, necessary in development
@@ -531,24 +552,9 @@ module NewRelic
           begin
             sleep connect_retry_period
             log.debug "Connecting Process to RPM: #$0"
-            set_collector_host!
-
-            connect_data = connect_to_server
-
-            @agent_id = connect_data['agent_run_id']
-            @report_period = connect_data['data_report_period']
-            @url_rules = connect_data['url_rules']
-
-            control.log! "Connected to NewRelic Service at #{@collector}"
-            log.debug "Agent Run       = #{@agent_id}."
-            log.debug "Connection data = #{connect_data.inspect}"
-
-            configure_transaction_tracer!(connect_data['collect_traces'], connect_data['sample_rate'])
-            configure_error_collector!(connect_data['collect_errors'])
-
+            query_server_for_configuration
             @connected_pid = $$
             @connected = true
-
           rescue NewRelic::Agent::LicenseException => e
             handle_license_error(e)
           rescue Timeout::Error, StandardError => e
