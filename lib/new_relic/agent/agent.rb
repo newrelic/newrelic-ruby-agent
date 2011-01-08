@@ -239,7 +239,7 @@ module NewRelic
           
           def log_dispatcher
             dispatcher_name = control.dispatcher.to_s
-            dispatcher_name = "None detected." if dispatcher_name.empty?
+            return if log_if(dispatcher_name.empty?, :info, "No dispatcher detected.")
             log.info "Dispatcher: #{dispatcher_name}"
           end
           
@@ -261,8 +261,7 @@ module NewRelic
           end
 
           def log_sql_transmission_warning?
-            return unless @record_sql == :raw
-            log.warn "Agent is configured to send raw SQL to RPM service"
+            log_if((@record_sql == :raw), :warn, "Agent is configured to send raw SQL to RPM service")
           end
 
           def sampler_config
@@ -306,23 +305,29 @@ module NewRelic
 
           def notify_log_file_location
             log_file = NewRelic::Control.instance.log_file
-            log.info "Agent Log found in #{log_file}" if log_file
+            log_if(log_file, :info, "Agent Log found in #{log_file}")
           end
 
           def log_version_and_pid
             log.info "New Relic RPM Agent #{NewRelic::VERSION::STRING} Initialized: pid = #{$$}"
           end
+          
+          def log_if(boolean, level, message)
+            self.log.send(level, message) if boolean
+            boolean
+          end
 
+          def log_unless(boolean, level, message)
+            self.log.send(level, message) unless boolean
+            boolean
+          end
+          
           def monitoring?
-            should_monitor = control.monitor_mode?
-            log.warn "Agent configured not to send data in this environment - edit newrelic.yml to change this" unless should_monitor
-            should_monitor
+            log_unless(control.monitor_mode?, :warn, "Agent configured not to send data in this environment - edit newrelic.yml to change this")
           end
 
           def has_license_key?
-            has_key = control.license_key
-            log.error "No license key found.  Please edit your newrelic.yml file and insert your license key." unless has_key
-            has_key
+            log_unless(control.license_key, :error, "No license key found.  Please edit your newrelic.yml file and insert your license key.")
           end
 
           def has_correct_license_key?
@@ -331,15 +336,11 @@ module NewRelic
           
           def correct_license_length
             key = control.license_key
-            correct_length = (key.length == 40)
-            log.error "Invalid license key: #{key}" unless correct_length
-            correct_length
+            log_unless((key.length == 40), :error, "Invalid license key: #{key}")
           end
 
           def using_forking_dispatcher?
-            forking = [:passenger, :unicorn].include?(control.dispatcher)
-            log.info "Connecting workers after forking." if forking
-            forking
+            log_if([:passenger, :unicorn].include?(control.dispatcher), :info, "Connecting workers after forking.")
           end
             
           def check_config_and_start_agent

@@ -39,7 +39,7 @@ class NewRelic::Agent::AgentStartTest < Test::Unit::TestCase
     control = mocked_control
     log = mocked_log
     control.expects(:dispatcher).returns('')
-    log.expects(:info).with("Dispatcher: None detected.")
+    log.expects(:info).with("No dispatcher detected.")
     log_dispatcher
   end
 
@@ -97,7 +97,7 @@ class NewRelic::Agent::AgentStartTest < Test::Unit::TestCase
   def test_log_sql_transmission_warning_positive
     log = mocked_log
     @record_sql = :raw
-    log.expects(:warn).once.with('Agent is configured to send raw SQL to RPM service')
+    log.expects(:send).with(:warn, 'Agent is configured to send raw SQL to RPM service')
     log_sql_transmission_warning?
   end
 
@@ -164,7 +164,7 @@ class NewRelic::Agent::AgentStartTest < Test::Unit::TestCase
   def test_notify_log_file_location_positive
     log = mocked_log
     NewRelic::Control.instance.expects(:log_file).returns('CHUD CHUD CHUD')
-    log.expects(:info).with("Agent Log found in CHUD CHUD CHUD")
+    log.expects(:send).with(:info, "Agent Log found in CHUD CHUD CHUD")
     notify_log_file_location
   end
 
@@ -185,7 +185,7 @@ class NewRelic::Agent::AgentStartTest < Test::Unit::TestCase
     control = mocked_control
     log = mocked_log
     control.expects(:monitor_mode?).returns(false)
-    log.expects(:warn).with("Agent configured not to send data in this environment - edit newrelic.yml to change this")
+    log.expects(:send).with(:warn, "Agent configured not to send data in this environment - edit newrelic.yml to change this")
     assert !monitoring?
   end
 
@@ -199,7 +199,7 @@ class NewRelic::Agent::AgentStartTest < Test::Unit::TestCase
     control = mocked_control
     control.expects(:license_key).returns(nil)
     log = mocked_log
-    log.expects(:error).with('No license key found.  Please edit your newrelic.yml file and insert your license key.')
+    log.expects(:send).with(:error, 'No license key found.  Please edit your newrelic.yml file and insert your license key.')
     assert !has_license_key?
   end
 
@@ -224,7 +224,7 @@ class NewRelic::Agent::AgentStartTest < Test::Unit::TestCase
     control = mocked_control
     log = mocked_log
     control.expects(:license_key).returns("a"*30)
-    log.expects(:error).with("Invalid license key: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+    log.expects(:send).with(:error, "Invalid license key: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
     assert !correct_license_length
   end
 
@@ -232,7 +232,7 @@ class NewRelic::Agent::AgentStartTest < Test::Unit::TestCase
     control = mocked_control
     control.expects(:dispatcher).returns(:passenger)
     log = mocked_log
-    log.expects(:info).with("Connecting workers after forking.")
+    log.expects(:send).with(:info, "Connecting workers after forking.")
     assert using_forking_dispatcher?
   end
 
@@ -242,6 +242,27 @@ class NewRelic::Agent::AgentStartTest < Test::Unit::TestCase
     assert !using_forking_dispatcher?
   end
 
+  def test_log_unless_positive
+    # should not log
+    assert log_unless(true, :warn, "DURRR")
+  end
+  def test_log_unless_negative
+    # should log
+    log = mocked_log
+    log.expects(:send).with(:warn, "DURRR")
+    assert !log_unless(false, :warn, "DURRR")
+  end
+
+  def test_log_if_positive
+    log = mocked_log
+    log.expects(:send).with(:warn, "WHEE")
+    assert log_if(true, :warn, "WHEE")
+  end
+
+  def test_log_if_negative
+    assert !log_if(false, :warn, "WHEE")
+  end
+  
   private
 
   def mocked_log
