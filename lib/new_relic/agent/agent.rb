@@ -222,7 +222,9 @@ module NewRelic
         def log
           NewRelic::Agent.logger
         end
-
+        
+        # Herein lies the corpse of the former 'start' method. May
+        # it's unmatched flog score rest in pieces.
         module Start
           def already_started?
             if started?
@@ -266,7 +268,10 @@ module NewRelic
           def sampler_config
             control.fetch('transaction_tracer', {})
           end
-
+          
+          # this entire method should be done on the transaction
+          # sampler object, rather than here. We should pass in the
+          # sampler config.
           def config_transaction_tracer
             @should_send_samples = @config_should_send_samples = sampler_config.fetch('enabled', true)
             @should_send_random_samples = sampler_config.fetch('random_sample', false)
@@ -279,39 +284,12 @@ module NewRelic
             @slowest_transaction_threshold = sampler_config.fetch('transaction_threshold', 2.0).to_f
             @slowest_transaction_threshold = apdex_f if apdex_f_threshold?
           end
-        end
 
-        include Start
+          def connect_in_foreground
+            NewRelic::Agent.disable_all_tracing { connect(:keep_retrying => false) }
+          end
 
-        # Start up the agent.  This verifies that the agent_enabled? is
-        # true and initializes the sampler based on the current
-        # configuration settings.  Then it will fire up the background
-        # thread for sending data to the server if applicable.
-        def start
-          return if already_started? || disabled?
-          @started = true
-          @local_host = determine_host
-
-          log_dispatcher
-          log_app_names
-
-          config_transaction_tracer
-          case
-          when !control.monitor_mode?
-            log.warn "Agent configured not to send data in this environment - edit newrelic.yml to change this"
-          when !control.license_key
-            log.error "No license key found.  Please edit your newrelic.yml file and insert your license key."
-          when control.license_key.length != 40
-            log.error "Invalid license key: #{control.license_key}"
-          when [:passenger, :unicorn].include?(control.dispatcher)
-            log.info "Connecting workers after forking."
-          else
-            # Do the connect in the foreground if we are in sync mode
-            NewRelic::Agent.disable_all_tracing { connect(:keep_retrying => false) } if control.sync_startup
-
-            # Start the event loop and initiate connection if necessary
-            start_worker_thread
-
+          def install_exit_handler
             # Our shutdown handler needs to run after other shutdown handlers
             # that may be doing things like running the app (hello sinatra).
             if control.send_data_on_exit
@@ -325,8 +303,66 @@ module NewRelic
               end
             end
           end
-          log.info "New Relic RPM Agent #{NewRelic::VERSION::STRING} Initialized: pid = #$$"
-          log.info "Agent Log found in #{NewRelic::Control.instance.log_file}" if NewRelic::Control.instance.log_file
+
+          def notify_log_file_location
+            log_file = NewRelic::Control.instance.log_file
+            log.info "Agent Log found in #{log_file}" if log_file
+          end
+
+          def log_version_and_pid
+            log.info "New Relic RPM Agent #{NewRelic::VERSION::STRING} Initialized: pid = #{$$}"
+          end
+
+          def monitoring?
+            should_monitor = control.monitor_mode?
+            log.warn "Agent configured not to send data in this environment - edit newrelic.yml to change this" unless should_monitor
+            should_monitor
+          end
+
+          def has_license_key?
+            has_key = control.license_key
+            log.error "No license key found.  Please edit your newrelic.yml file and insert your license key." unless has_key
+            has_key
+          end
+
+          def has_correct_license_key?
+            has_license_key? && correct_license_length
+          end
+          
+          def correct_license_length
+            key = control.license_key
+            correct_length = (key.length == 40)
+            log.error "Invalid license key: #{key}" unless correct_length
+            correct_length
+          end
+
+          def using_forking_dispatcher?
+            forking = [:passenger, :unicorn].include?(control.dispatcher)
+            log.info "Connecting workers after forking." if forking
+            forking
+          end
+            
+          def check_config_and_start_agent
+            return unless monitoring? && has_correct_license_key?
+            return if using_forking_dispatcher?
+            connect_in_foreground if control.sync_startup
+            start_worker_thread
+            install_exit_handler
+          end
+        end
+
+        include Start
+
+        def start
+          return if already_started? || disabled?
+          @started = true
+          @local_host = determine_host
+          log_dispatcher
+          log_app_names
+          config_transaction_tracer
+          check_config_and_start_agent
+          log_version_and_pid
+          notify_log_file_location
         end
 
         # Clear out the metric data, errors, and transaction traces.  Reset the histogram data.

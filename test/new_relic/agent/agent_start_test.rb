@@ -108,11 +108,140 @@ class NewRelic::Agent::AgentStartTest < Test::Unit::TestCase
   end
 
   def test_config_transaction_tracer
-    # needs more breakage!
-    assert false
+    assert false, "this needs more tests"
   end
   
+  def test_check_config_and_start_agent_disabled
+    self.expects(:monitoring?).returns(false)
+    check_config_and_start_agent
+  end
+
+  def test_check_config_and_start_agent_incorrect_key
+    self.expects(:monitoring?).returns(true)
+    self.expects(:has_correct_license_key?).returns(false)
+    check_config_and_start_agent
+  end
   
+  def test_check_config_and_start_agent_forking
+    self.expects(:monitoring?).returns(true)
+    self.expects(:has_correct_license_key?).returns(true)
+    self.expects(:using_forking_dispatcher?).returns(true)
+    check_config_and_start_agent
+  end
+
+  def test_check_config_and_start_agent_normal
+    self.expects(:monitoring?).returns(true)
+    self.expects(:has_correct_license_key?).returns(true)
+    self.expects(:using_forking_dispatcher?).returns(false)
+    control = mocked_control
+    control.expects(:sync_startup).returns(false)
+    self.expects(:start_worker_thread)
+    self.expects(:install_exit_handler)
+    check_config_and_start_agent
+  end
+  
+  def test_check_config_and_start_agent_sync
+    self.expects(:monitoring?).returns(true)
+    self.expects(:has_correct_license_key?).returns(true)
+    self.expects(:using_forking_dispatcher?).returns(false)
+    control = mocked_control
+    control.expects(:sync_startup).returns(true)
+    self.expects(:connect_in_foreground)
+    self.expects(:start_worker_thread)
+    self.expects(:install_exit_handler)
+    check_config_and_start_agent
+  end
+  
+  def test_connect_in_foreground
+    self.expects(:connect).with({:keep_retrying => false })
+    connect_in_foreground
+  end
+
+  def test_install_exit_handler
+    assert false, "this needs better tests"
+  end
+
+  def test_notify_log_file_location_positive
+    log = mocked_log
+    NewRelic::Control.instance.expects(:log_file).returns('CHUD CHUD CHUD')
+    log.expects(:info).with("Agent Log found in CHUD CHUD CHUD")
+    notify_log_file_location
+  end
+
+  def test_notify_log_file_location_negative
+    log = mocked_log
+    NewRelic::Control.instance.expects(:log_file).returns(nil)
+    notify_log_file_location
+  end
+
+  def test_monitoring_positive
+    control = mocked_control
+    control.expects(:monitor_mode?).returns(true)
+    log = mocked_log
+    assert monitoring?
+  end
+
+  def test_monitoring_negative
+    control = mocked_control
+    log = mocked_log
+    control.expects(:monitor_mode?).returns(false)
+    log.expects(:warn).with("Agent configured not to send data in this environment - edit newrelic.yml to change this")
+    assert !monitoring?
+  end
+
+  def test_has_license_key_positive
+    control = mocked_control
+    control.expects(:license_key).returns("a" * 40)
+    assert has_license_key?
+  end
+
+  def test_has_license_key_negative
+    control = mocked_control
+    control.expects(:license_key).returns(nil)
+    log = mocked_log
+    log.expects(:error).with('No license key found.  Please edit your newrelic.yml file and insert your license key.')
+    assert !has_license_key?
+  end
+
+  def test_has_correct_license_key_positive
+    self.expects(:has_license_key?).returns(true)
+    self.expects(:correct_license_length).returns(true)
+    assert has_correct_license_key?
+  end
+
+  def test_has_correct_license_key_negative
+    self.expects(:has_license_key?).returns(false)
+    assert !has_correct_license_key?
+  end
+
+  def test_correct_license_length_positive
+    control = mocked_control
+    control.expects(:license_key).returns("a" * 40)
+    assert correct_license_length
+  end
+
+  def test_correct_license_length_negative
+    control = mocked_control
+    log = mocked_log
+    control.expects(:license_key).returns("a"*30)
+    log.expects(:error).with("Invalid license key: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+    assert !correct_license_length
+  end
+
+  def test_using_forking_dispatcher_positive
+    control = mocked_control
+    control.expects(:dispatcher).returns(:passenger)
+    log = mocked_log
+    log.expects(:info).with("Connecting workers after forking.")
+    assert using_forking_dispatcher?
+  end
+
+  def test_using_forking_dispatcher_negative
+    control = mocked_control
+    control.expects(:dispatcher).returns(:frobnitz)
+    assert !using_forking_dispatcher?
+  end
+
   private
 
   def mocked_log
