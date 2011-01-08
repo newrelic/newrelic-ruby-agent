@@ -229,6 +229,38 @@ module NewRelic
         #     end
         #
 
+        module AddMethodTracer
+          ALLOWED_KEYS = [:force, :metric, :push_scope, :deduct_call_time_from_parent, :code_header, :code_footer, :scoped_metric_only].freeze
+          
+          def unrecognized_keys(expected, given)
+            given.keys - expected
+          end
+          
+          def any_unrecognized_keys?(expected, given)
+            unrecognized_keys(expected, given).any?
+          end
+
+          def check_for_illegal_keys!(options)
+            raise 'not a hash' unless options.is_a?(Hash)
+            if any_unrecognized_keys?(ALLOWED_KEYS, options)
+              raise "Unrecognized options in add_method_tracer_call: #{unrecognized_keys(ALLOWED_KEYS, options).join(', ')}"
+            end
+          end
+          
+          def validate_options(method_name, metric_name_code, options)
+            raise TypeError.new("provided options must be a Hash") unless options.is_a?(Hash)
+            check_for_illegal_keys!(options)
+
+            defaults = {:push_scope => true, :metric => true, :force => false, :code_header => "", :code_footer => "", :scoped_metric_only => false}
+            options = defaults.merge(options)
+            if options[:deduct_call_time_from_parent].nil?
+              options[:deduct_call_time_from_parent] = !!options[:metric]
+            end
+            options
+          end
+        end
+        include AddMethodTracer
+
         def add_method_tracer(method_name, metric_name_code=nil, options = {})
           options = validate_options(method_name, metric_name_code, options)
           klass = (self === Module) ? "self" : "self.class"

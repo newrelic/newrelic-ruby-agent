@@ -134,10 +134,10 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
   def test_tt_only
     
     assert_nil @scope_listener.scope["c2"]
-    self.class.add_method_tracer :method_c1, "c1", true
+    self.class.add_method_tracer :method_c1, "c1", :push_scope => true
     
     self.class.add_method_tracer :method_c2, "c2", :metric => false
-    self.class.add_method_tracer :method_c3, "c3", false
+    self.class.add_method_tracer :method_c3, "c3", :push_scope => false
     
     method_c1
     

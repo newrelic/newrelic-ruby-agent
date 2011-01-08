@@ -124,6 +124,7 @@ http://github.com/newrelic/rpm/tree/master.
     "test/config/newrelic.yml",
     "test/config/test_control.rb",
     "test/new_relic/agent/active_record_instrumentation_test.rb",
+    "test/new_relic/agent/add_method_tracer_test.rb",
     "test/new_relic/agent/agent_connect_test.rb",
     "test/new_relic/agent/agent_controller_test.rb",
     "test/new_relic/agent/agent_start_test.rb",
