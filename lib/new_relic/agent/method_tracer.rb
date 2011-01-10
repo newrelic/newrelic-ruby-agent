@@ -246,22 +246,22 @@ module NewRelic
             end
           end
           
-          def validate_options(method_name, metric_name_code, options)
+          def set_deduct_call_time_based_on_metric(options)
+            {:deduct_call_time_from_parent => !!options[:metric]}.merge(options)
+          end
+
+          DEFAULT_SETTINGS = {:push_scope => true, :metric => true, :force => false, :code_header => "", :code_footer => "", :scoped_metric_only => false}.freeze
+          
+          def validate_options(options)
             raise TypeError.new("provided options must be a Hash") unless options.is_a?(Hash)
             check_for_illegal_keys!(options)
-
-            defaults = {:push_scope => true, :metric => true, :force => false, :code_header => "", :code_footer => "", :scoped_metric_only => false}
-            options = defaults.merge(options)
-            if options[:deduct_call_time_from_parent].nil?
-              options[:deduct_call_time_from_parent] = !!options[:metric]
-            end
-            options
+            set_deduct_call_time_based_on_metric(DEFAULT_SETTINGS.merge(options))
           end
         end
         include AddMethodTracer
 
         def add_method_tracer(method_name, metric_name_code=nil, options = {})
-          options = validate_options(method_name, metric_name_code, options)
+          options = validate_options(options)
           klass = (self === Module) ? "self" : "self.class"
           # Default to the class where the method is defined.
           metric_name_code = "Custom/#{self.name}/#{method_name.to_s}" unless metric_name_code
