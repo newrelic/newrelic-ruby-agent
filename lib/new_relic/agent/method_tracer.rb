@@ -133,8 +133,8 @@ module NewRelic
             NewRelic::Agent.instance.push_trace_execution_flag(true) if options[:force]
             expected_scope = NewRelic::Agent.instance.stats_engine.push_scope(first_name, t0.to_f, deduct_call_time_from_parent)
           rescue => e
-            NewRelic::Control.instance.log.error("Caught exception in trace_method_execution header. Metric name = #{first_name}, exception = #{e}")
-            NewRelic::Control.instance.log.error(e.backtrace.join("\n"))
+            log.error("Caught exception in trace_method_execution header. Metric name = #{first_name}, exception = #{e}")
+            log.error(e.backtrace.join("\n"))
           end
 
           begin
@@ -151,8 +151,8 @@ module NewRelic
                 metric_stats.each { |stats| stats.trace_call(duration, exclusive) }
               end
             rescue => e
-              NewRelic::Control.instance.log.error("Caught exception in trace_method_execution footer. Metric name = #{first_name}, exception = #{e}")
-              NewRelic::Control.instance.log.error(e.backtrace.join("\n"))
+              log.error("Caught exception in trace_method_execution footer. Metric name = #{first_name}, exception = #{e}")
+              log.error(e.backtrace.join("\n"))
             end
           end
         end
@@ -250,62 +250,72 @@ module NewRelic
             {:deduct_call_time_from_parent => !!options[:metric]}.merge(options)
           end
 
+          def check_for_push_scope_and_metric(options)
+            unless options[:push_scope] || options[:metric]
+              raise "Can't add a tracer where push_scope is false and metric is false"
+            end
+          end
+
           DEFAULT_SETTINGS = {:push_scope => true, :metric => true, :force => false, :code_header => "", :code_footer => "", :scoped_metric_only => false}.freeze
           
           def validate_options(options)
             raise TypeError.new("provided options must be a Hash") unless options.is_a?(Hash)
             check_for_illegal_keys!(options)
-            set_deduct_call_time_based_on_metric(DEFAULT_SETTINGS.merge(options))
+            options = set_deduct_call_time_based_on_metric(DEFAULT_SETTINGS.merge(options))
+            check_for_push_scope_and_metric(options)
+            options
           end
-        end
-        include AddMethodTracer
-
-        def add_method_tracer(method_name, metric_name_code=nil, options = {})
-          options = validate_options(options)
-          klass = (self === Module) ? "self" : "self.class"
+          
           # Default to the class where the method is defined.
-          metric_name_code = "Custom/#{self.name}/#{method_name.to_s}" unless metric_name_code
-
-          unless method_defined?(method_name) || private_method_defined?(method_name)
-            NewRelic::Control.instance.log.warn("Did not trace #{self.name}##{method_name} because that method does not exist")
-            return
+          def default_metric_name_code(method_name)
+            "Custom/#{self.name}/#{method_name.to_s}"
+          end
+          
+          def log
+            NewRelic::Control.instance.log
+          end
+          
+          def method_exists?(method_name)
+            exists = method_defined?(method_name) || private_method_defined?(method_name)
+            log.warn("Did not trace #{self.name}##{method_name} because that method does not exist") unless exists
+            exists
           end
 
-          traced_method_name = _traced_method_name(method_name, metric_name_code)
-          if method_defined? traced_method_name
-            NewRelic::Control.instance.log.warn("Attempt to trace a method twice with the same metric: Method = #{method_name}, Metric Name = #{metric_name_code}")
-            return
+          def traced_method_exists?(method_name, metric_name_code)
+            exists = method_defined?(_traced_method_name(method_name, metric_name_code))
+            log.warn("Attempt to trace a method twice with the same metric: Method = #{method_name}, Metric Name = #{metric_name_code}") if exists
+            exists
           end
 
-          fail "Can't add a tracer where push_scope is false and metric is false" if options[:push_scope] == false && !options[:metric]
-
-          header = ""
-          if !options[:force]
-            header << "return #{_untraced_method_name(method_name, metric_name_code)}(*args, &block) unless NewRelic::Agent.is_execution_traced?\n"
+          def assemble_code_header(method_name, metric_name_code, options)
+            unless options[:force]
+              "return #{_untraced_method_name(method_name, metric_name_code)}(*args, &block) unless NewRelic::Agent.is_execution_traced?\n"
+            end.to_s + options[:code_header].to_s
           end
-          header << options[:code_header] if options[:code_header]
-          if options[:push_scope] == false
-            code = <<-CODE
-              def #{_traced_method_name(method_name, metric_name_code)}(*args, &block)
-                #{header}
-                t0 = Time.now
-                stats = NewRelic::Agent.instance.stats_engine.get_stats_no_scope "#{metric_name_code}"
-                begin
-                  #{"NewRelic::Agent.instance.push_trace_execution_flag(true)\n" if options[:force]}
-                  #{_untraced_method_name(method_name, metric_name_code)}(*args, &block)\n
-                ensure
-                  #{"NewRelic::Agent.instance.pop_trace_execution_flag\n" if options[:force] }
-                  duration = (Time.now - t0).to_f
-                  stats.trace_call(duration)
-                  #{options[:code_footer]}
-                end
+
+          def method_without_push_scope(method_name, metric_name_code, options)
+            "def #{_traced_method_name(method_name, metric_name_code)}(*args, &block)
+              #{assemble_code_header(method_name, metric_name_code, options)}
+              t0 = Time.now
+              stats = NewRelic::Agent.instance.stats_engine.get_stats_no_scope \"#{metric_name_code}\"
+              begin
+                #{"NewRelic::Agent.instance.push_trace_execution_flag(true)\n" if options[:force]}
+                #{_untraced_method_name(method_name, metric_name_code)}(*args, &block)\n
+              ensure
+                #{"NewRelic::Agent.instance.pop_trace_execution_flag\n" if options[:force] }
+                duration = (Time.now - t0).to_f
+                stats.trace_call(duration)
+                #{options[:code_footer]}
               end
-            CODE
-          else
-          code = <<-CODE
-            def #{_traced_method_name(method_name, metric_name_code)}(*args, &block)
+            end"
+          end
+
+          def method_with_push_scope(method_name, metric_name_code, options)
+            klass = (self === Module) ? "self" : "self.class"
+
+            "def #{_traced_method_name(method_name, metric_name_code)}(*args, &block)
               #{options[:code_header]}
-              result = #{klass}.trace_execution_scoped("#{metric_name_code}",
+              result = #{klass}.trace_execution_scoped(\"#{metric_name_code}\",
                         :metric => #{options[:metric]},
                         :forced => #{options[:force]},
                         :deduct_call_time_from_parent => #{options[:deduct_call_time_from_parent]},
@@ -314,16 +324,33 @@ module NewRelic
               end
               #{options[:code_footer]}
               result
-            end
-            CODE
+            end"
           end
-          class_eval code, __FILE__, __LINE__
 
+          def code_to_eval(method_name, metric_name_code, options)
+            options = validate_options(options)
+            if options[:push_scope]
+              method_with_push_scope(method_name, metric_name_code, options)
+            else
+              method_without_push_scope(method_name, metric_name_code, options)
+            end
+          end
+        end
+        include AddMethodTracer
+
+        def add_method_tracer(method_name, metric_name_code=nil, options = {})
+          return unless method_exists?(method_name)
+          metric_name_code ||= default_metric_name_code(method_name)
+          return if traced_method_exists?(method_name, metric_name_code)          
+
+          traced_method = code_to_eval(method_name, metric_name_code, options)
+          
+          class_eval traced_method, __FILE__, __LINE__
           alias_method _untraced_method_name(method_name, metric_name_code), method_name
           alias_method method_name, _traced_method_name(method_name, metric_name_code)
-
-          NewRelic::Control.instance.log.debug("Traced method: class = #{self.name}, method = #{method_name}, "+
-                                               "metric = '#{metric_name_code}'")
+          log.debug("Traced method: class = #{self.name},"+
+                    "method = #{method_name}, "+
+                    "metric = '#{metric_name_code}'")
         end
 
         # For tests only because tracers must be removed in reverse-order
