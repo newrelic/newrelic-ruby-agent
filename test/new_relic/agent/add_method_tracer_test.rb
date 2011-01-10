@@ -24,10 +24,13 @@ class NewRelic::Agent::AgentStartTest < Test::Unit::TestCase
   end
 
   def test_check_for_illegal_keys_positive
-    assert false, "Needs more tests"
+    assert_raise(RuntimeError) do
+      check_for_illegal_keys!({:unknown_key => nil})
+    end
   end
 
   def test_check_for_illegal_keys_negative
-    assert false, "Needs more tests"
+    test_keys = Hash[ALLOWED_KEYS.map {|x| [x, nil]}]
+    check_for_illegal_keys!(test_keys)
   end
 end

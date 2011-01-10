@@ -241,7 +241,6 @@ module NewRelic
           end
 
           def check_for_illegal_keys!(options)
-            raise 'not a hash' unless options.is_a?(Hash)
             if any_unrecognized_keys?(ALLOWED_KEYS, options)
               raise "Unrecognized options in add_method_tracer_call: #{unrecognized_keys(ALLOWED_KEYS, options).join(', ')}"
             end
