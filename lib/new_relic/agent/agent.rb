@@ -288,16 +288,23 @@ module NewRelic
             NewRelic::Agent.disable_all_tracing { connect(:keep_retrying => false) }
           end
 
+          def using_rubinius?
+            RUBY_VERSION =~ /rubinius/i            
+          end
+          
+          def using_jruby?
+            defined?(JRuby) 
+          end
+          
+          def using_sinatra?
+            defined?(Sinatra::Application)
+          end
+          
           def install_exit_handler
             # Our shutdown handler needs to run after other shutdown handlers
             # that may be doing things like running the app (hello sinatra).
             if control.send_data_on_exit
-              if RUBY_VERSION =~ /rubinius/i
-                list = at_exit { shutdown }
-                # move the shutdown handler to the front of the list, to
-                # execute last:
-                list.unshift(list.pop)
-              elsif !defined?(JRuby) or !defined?(Sinatra::Application)
+              if not(using_rubinius? || using_jruby? || using_sinatra?)
                 at_exit { at_exit { shutdown } }
               end
             end

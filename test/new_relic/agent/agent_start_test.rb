@@ -108,7 +108,18 @@ class NewRelic::Agent::AgentStartTest < Test::Unit::TestCase
   end
 
   def test_config_transaction_tracer
-    assert false, "this needs more tests"
+    fake_sampler_config = mock('sampler config')
+    self.expects(:sampler_config).times(5).returns(fake_sampler_config)
+    fake_sampler_config.expects(:fetch).with('enabled', true)
+    fake_sampler_config.expects(:fetch).with('random_sample', false)
+    fake_sampler_config.expects(:fetch).with('explain_threshold', 0.5)
+    fake_sampler_config.expects(:fetch).with('explain_enabled', true)
+    self.expects(:set_sql_recording!)
+    
+    fake_sampler_config.expects(:fetch).with('transaction_threshold', 2.0)
+    self.expects(:apdex_f_threshold?).returns(true)
+    self.expects(:apdex_f)
+    config_transaction_tracer
   end
   
   def test_check_config_and_start_agent_disabled
@@ -156,10 +167,30 @@ class NewRelic::Agent::AgentStartTest < Test::Unit::TestCase
     self.expects(:connect).with({:keep_retrying => false })
     connect_in_foreground
   end
-
-  def test_install_exit_handler
-    assert false, "this needs better tests"
+  
+  def at_exit
+    yield
   end
+  private :at_exit
+  
+  def test_install_exit_handler_positive
+    control = mocked_control
+    control.expects(:send_data_on_exit).returns(true)
+    self.expects(:using_rubinius?).returns(false)
+    self.expects(:using_jruby?).returns(false)
+    self.expects(:using_sinatra?).returns(false)
+    # we are overriding at_exit above, to immediately return, so we can
+    # test the shutdown logic. It's somewhat unfortunate, but we can't
+    # kill the interpreter during a test.
+    self.expects(:shutdown)
+    install_exit_handler
+  end
+  
+  def test_install_exit_handler_negative
+    control = mocked_control
+    control.expects(:send_data_on_exit).returns(false)
+    install_exit_handler
+  end  
 
   def test_notify_log_file_location_positive
     log = mocked_log

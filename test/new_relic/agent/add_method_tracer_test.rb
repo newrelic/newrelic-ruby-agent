@@ -130,8 +130,15 @@ class NewRelic::Agent::AgentStartTest < Test::Unit::TestCase
     assert_equal "return method_name_without_tracing(*args, &block) unless NewRelic::Agent.is_execution_traced?\nCODE HEADER", assemble_code_header('test_method', 'Custom/Test/test_method', opts)
   end
 
-  def test_check_for_push_scope_and_metric
-    assert false, 'more tests'
+  def test_check_for_push_scope_and_metric_positive
+    check_for_push_scope_and_metric({:push_scope => true})
+    check_for_push_scope_and_metric({:metric => true})
+  end
+
+  def test_check_for_push_scope_and_metric_negative
+    assert_raise(RuntimeError) do
+      check_for_push_scope_and_metric({:push_scope => false, :metric => false})
+    end
   end
 
   def test_code_to_eval_scoped
