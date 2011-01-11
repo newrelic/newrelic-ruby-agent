@@ -190,7 +190,21 @@ class NewRelic::Agent::AgentStartTest < Test::Unit::TestCase
     control = mocked_control
     control.expects(:send_data_on_exit).returns(false)
     install_exit_handler
-  end  
+  end
+
+  def test_install_exit_handler_weird_ruby
+    control = mocked_control
+    control.expects(:send_data_on_exit).times(3).returns(true)
+    self.expects(:using_rubinius?).returns(false)
+    self.expects(:using_jruby?).returns(false)
+    self.expects(:using_sinatra?).returns(true)
+    install_exit_handler
+    self.expects(:using_rubinius?).returns(false)
+    self.expects(:using_jruby?).returns(true)
+    install_exit_handler
+    self.expects(:using_rubinius?).returns(true)
+    install_exit_handler
+  end
 
   def test_notify_log_file_location_positive
     log = mocked_log

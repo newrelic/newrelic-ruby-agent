@@ -300,13 +300,16 @@ module NewRelic
             defined?(Sinatra::Application)
           end
           
+          # we should not set an at_exit block if people are using
+          # these as they don't do standard at_exit behavior per MRI/YARV
+          def weird_ruby?
+            using_rubinius? || using_jruby? || using_sinatra?
+          end
+          
           def install_exit_handler
+            if control.send_data_on_exit && !weird_ruby?
             # Our shutdown handler needs to run after other shutdown handlers
-            # that may be doing things like running the app (hello sinatra).
-            if control.send_data_on_exit
-              if not(using_rubinius? || using_jruby? || using_sinatra?)
-                at_exit { at_exit { shutdown } }
-              end
+              at_exit { at_exit { shutdown } }
             end
           end
 
