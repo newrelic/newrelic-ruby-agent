@@ -308,7 +308,7 @@ module NewRelic
           
           def install_exit_handler
             if control.send_data_on_exit && !weird_ruby?
-            # Our shutdown handler needs to run after other shutdown handlers
+              # Our shutdown handler needs to run after other shutdown handlers
               at_exit { at_exit { shutdown } }
             end
           end
@@ -392,13 +392,77 @@ module NewRelic
           @collector ||= control.server
         end
 
-        # Try to launch the worker thread and connect to the server.
-        #
-        # See #connect for a description of connection_options.
-        def start_worker_thread(connection_options = {})
-          log.debug "Creating RPM worker thread."
-          @worker_thread = Thread.new do
-            begin
+        module StartWorkerThread
+
+          def check_transaction_sampler_status
+            # disable transaction sampling if disabled by the server
+            # and we're not in dev mode
+            if control.developer_mode? || @should_send_samples
+              @transaction_sampler.enable
+            else
+              @transaction_sampler.disable
+            end
+          end
+
+          def log_worker_loop_start
+            log.info "Reporting performance data every #{@report_period} seconds."
+            log.debug "Running worker loop"
+          end
+
+          def create_and_run_worker_loop
+            @worker_loop = WorkerLoop.new
+            @worker_loop.run(@report_period) do
+              harvest_and_send_timeslice_data
+              harvest_and_send_slowest_sample if @should_send_samples
+              harvest_and_send_errors if error_collector.enabled
+            end
+          end
+
+          def handle_force_restart(error)
+            log.info error.message
+            # disconnect and start over.
+            # clear the stats engine
+            reset_stats
+            @metric_ids = {}
+            @connected = nil
+            # Wait a short time before trying to reconnect
+            sleep 30
+          end
+
+          def handle_force_disconnect(error)
+            # when a disconnect is requested, stop the current thread, which
+            # is the worker thread that gathers data and talks to the
+            # server.
+            log.error "RPM forced this agent to disconnect (#{error.message})"
+            disconnect
+          end
+
+          def handle_server_connection_problem(error)
+            log.error "Unable to establish connection with the server.  Run with log level set to debug for more information."
+            log.debug("#{error.class.name}: #{error.message}\n#{error.backtrace.first}")
+            disconnect
+          end
+
+          def handle_other_error(error)
+            log.error "Terminating worker loop: #{error.class.name}: #{error.message}\n  #{error.backtrace.join("\n  ")}"
+            disconnect
+          end
+
+          def catch_errors
+            yield
+          rescue NewRelic::Agent::ForceRestartException => e
+            handle_force_restart(e)
+            retry
+          rescue NewRelic::Agent::ForceDisconnectException => e
+            handle_force_disconnect(e)
+          rescue NewRelic::Agent::ServerConnectionException => e
+            handle_server_connection_problem(e)
+          rescue Exception => e
+            handle_other_error(e)
+          end
+          
+          def deferred_work!
+            catch_errors do
               NewRelic::Agent.disable_all_tracing do
                 # We try to connect.  If this returns false that means
                 # the server rejected us for a licensing reason and we should
@@ -406,51 +470,25 @@ module NewRelic
                 # that means it didn't try to connect because we're in the master.
                 connect(connection_options)
                 if @connected
-                  # disable transaction sampling if disabled by the server and we're not in dev mode
-                  if !control.developer_mode? && !@should_send_samples
-                    @transaction_sampler.disable
-                  else
-                    @transaction_sampler.enable # otherwise ensure TT's are enabled
-                  end
-
-                  log.info "Reporting performance data every #{@report_period} seconds."
-                  log.debug "Running worker loop"
-                  # Note if the agent attempts to report more frequently than allowed by the server
-                  # the server will start dropping data.
-                  @worker_loop = WorkerLoop.new
-                  @worker_loop.run(@report_period) do
-                    harvest_and_send_timeslice_data
-                    harvest_and_send_slowest_sample if @should_send_samples
-                    harvest_and_send_errors if error_collector.enabled
-                  end
+                  check_transaction_sampler_status
+                  log_worker_loop_start
+                  create_and_run_worker_loop
                 else
-                  log.debug "No connection.  Worker thread finished."
+                  log.debug "No connection.  Worker thread ending."
                 end
               end
-            rescue NewRelic::Agent::ForceRestartException => e
-              log.info e.message
-              # disconnect and start over.
-              # clear the stats engine
-              reset_stats
-              @metric_ids = {}
-              @connected = nil
-              # Wait a short time before trying to reconnect
-              sleep 30
-              retry
-            rescue NewRelic::Agent::ForceDisconnectException => e
-              # when a disconnect is requested, stop the current thread, which
-              # is the worker thread that gathers data and talks to the
-              # server.
-              log.error "RPM forced this agent to disconnect (#{e.message})"
-              @connected = false
-            rescue NewRelic::Agent::ServerConnectionException => e
-              log.error "Unable to establish connection with the server.  Run with log level set to debug for more information."
-              log.debug("#{e.class.name}: #{e.message}\n#{e.backtrace.first}")
-              @connected = false
-            rescue Exception => e
-              log.error "Terminating worker loop: #{e.class.name}: #{e}\n  #{e.backtrace.join("\n  ")}"
-              @connected = false
-            end # begin
+            end
+          end
+        end
+        include StartWorkerThread
+        
+        # Try to launch the worker thread and connect to the server.
+        #
+        # See #connect for a description of connection_options.
+        def start_worker_thread(connection_options = {})
+          log.debug "Creating RPM worker thread."
+          @worker_thread = Thread.new do
+            deferred_work!
           end # thread new
           @worker_thread['newrelic_label'] = 'Worker Loop'
         end
@@ -627,21 +665,20 @@ module NewRelic
 
           # wait a few seconds for the web server to boot, necessary in development
           @connect_retry_period = should_keep_retrying?(options) ? 10 : 0
-          begin
-            sleep connect_retry_period
-            log.debug "Connecting Process to RPM: #$0"
-            query_server_for_configuration
-            @connected_pid = $$
-            @connected = true
-          rescue NewRelic::Agent::LicenseException => e
-            handle_license_error(e)
-          rescue Timeout::Error, StandardError => e
-            log_error(e)
-            if should_retry?
-              retry
-            else
-              disconnect
-            end
+
+          sleep connect_retry_period
+          log.debug "Connecting Process to RPM: #$0"
+          query_server_for_configuration
+          @connected_pid = $$
+          @connected = true
+        rescue NewRelic::Agent::LicenseException => e
+          handle_license_error(e)
+        rescue Timeout::Error, StandardError => e
+          log_error(e)
+          if should_retry?
+            retry
+          else
+            disconnect
           end
         end
 
