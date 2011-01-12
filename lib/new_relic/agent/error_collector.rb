@@ -54,7 +54,7 @@ module NewRelic
 
       def filtered_by_error_filter?(error)
         return unless @ignore_filter
-        !!@ignore_filter.call(error)
+        !@ignore_filter.call(error)
       end
       
       def filtered_error?(error)

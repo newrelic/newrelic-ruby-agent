@@ -30,26 +30,26 @@ class NewRelic::Agent::ErrorCollectorNoticeErrorTest < Test::Unit::TestCase
 
   def test_filtered_by_error_filter_positive
     error = mocked_error
-    @ignore_filter = lambda { |x| assert_equal error, x; true  }    
+    @ignore_filter = lambda { |x| assert_equal error, x; false  }    
     assert filtered_by_error_filter?(error)
   end
 
   def test_filtered_by_error_filter_negative
     error = mocked_error
-    @ignore_filter = lambda { |x| assert_equal error, x; false  }
+    @ignore_filter = lambda { |x| assert_equal error, x; true  }
     assert !filtered_by_error_filter?(error)
   end
 
   def test_error_is_ignored_positive
-    assert false
+    assert false, 'needs more tests'
   end
 
   def test_error_is_ignored_negative
-    assert false
+    assert false, 'needs more tests'
   end
 
   def test_error_is_ignored_no_error
-    assert !error_is_ignored?(nil)
+    assert !error_is_ignored?(nil), 'should not ignore nil'
   end
 
   private
