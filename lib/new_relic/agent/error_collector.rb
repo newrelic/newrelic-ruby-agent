@@ -47,6 +47,27 @@ module NewRelic
       errors.each { |error| @ignore[error] = true; log.debug("Ignoring errors of type '#{error}'") }
     end
 
+    module NoticeError
+      def disabled?
+        !@enabled
+      end
+
+      def filtered_by_error_filter?(error)
+        return unless @ignore_filter
+        !!@ignore_filter.call(error)
+      end
+      
+      def filtered_error?(error)
+        @ignore[error.class.name] || filtered_by_error_filter?(error)
+      end
+      
+      def error_is_ignored?(error)
+        error && filtered_error?(error)
+      end
+    end
+
+    include NoticeError
+
     # Notice the error with the given available options:
     #
     # * <tt>:uri</tt> => The request path, minus any request params or query string.
@@ -59,14 +80,9 @@ module NewRelic
     # If exception is nil, the error count is bumped and no traced error is recorded
     def notice_error(exception, options={})
       return unless @enabled
-      return if exception && @ignore[exception.class.name]
-      if @ignore_filter && exception
-        exception = @ignore_filter.call(exception)
-        return if exception.nil?
-      end
+      return if error_is_ignored?(exception)
       NewRelic::Agent.get_stats("Errors/all").increment_count
       return if exception.nil?
-
       data = {}
       data[:request_uri] = options.delete(:uri) || ''
       data[:request_referer] = options.delete(:referer) || ''
