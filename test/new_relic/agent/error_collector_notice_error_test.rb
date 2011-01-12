@@ -41,11 +41,15 @@ class NewRelic::Agent::ErrorCollectorNoticeErrorTest < Test::Unit::TestCase
   end
 
   def test_error_is_ignored_positive
-    assert false, 'needs more tests'
+    error = mocked_error
+    self.expects(:filtered_error?).with(error).returns(true)    
+    assert error_is_ignored?(error)
   end
 
   def test_error_is_ignored_negative
-    assert false, 'needs more tests'
+    error = mocked_error
+    self.expects(:filtered_error?).with(error).returns(false)
+    assert !error_is_ignored?(error)
   end
 
   def test_error_is_ignored_no_error
