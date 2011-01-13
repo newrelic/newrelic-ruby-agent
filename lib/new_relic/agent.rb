@@ -72,6 +72,7 @@ module NewRelic
     require 'new_relic/timer_lib'
 
     require 'new_relic/agent/chained_call'
+    require 'new_relic/agent/browser_monitoring'
     require 'new_relic/agent/agent'
     require 'new_relic/agent/shim_agent'
     require 'new_relic/agent/method_tracer'
@@ -376,6 +377,20 @@ module NewRelic
     #
     def record_transaction(response_sec, options = {})
       agent.record_transaction(response_sec, options)
+    end
+    
+    # PRE-RELEASE
+    # Returns a Javascript string which should be injected into the very top of the response body
+    #
+    def browser_instrumentation_header(options={})
+      agent.browser_instrumentation_header(options)
+    end
+    
+    # PRE-RELEASE
+    # Returns a Javascript string which should be injected into the very bottom of the response body
+    #
+    def browser_instrumentation_footer(options={})
+      agent.browser_instrumentation_footer(options={})
     end
   end
 end

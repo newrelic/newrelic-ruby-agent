@@ -736,6 +736,7 @@ module NewRelic
 
       extend ClassMethods
       include InstanceMethods
+      include BrowserMonitoring
     end
   end
 end

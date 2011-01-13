@@ -20,6 +20,8 @@ module NewRelic
       def shutdown; end
       def push_trace_execution_flag(*args); end
       def pop_trace_execution_flag(*args); end
+      def browser_instrumentation_header(options={}); end
+      def browser_instrumentation_footer(options={}); end
     end
   end
 end
