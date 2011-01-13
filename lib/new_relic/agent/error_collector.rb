@@ -56,13 +56,28 @@ module NewRelic
         return unless @ignore_filter
         !@ignore_filter.call(error)
       end
-      
+
       def filtered_error?(error)
         @ignore[error.class.name] || filtered_by_error_filter?(error)
       end
-      
+
       def error_is_ignored?(error)
         error && filtered_error?(error)
+      end
+
+      def increment_error_count!
+        NewRelic::Agent.get_stats("Errors/all").increment_count
+      end
+
+      def should_exit_notice_error?(exception)
+        if @enabled
+          if !error_is_ignored?(exception)
+            increment_error_count!
+            return exception.nil?
+          end
+        end
+        # disabled or an ignored error, per above
+        true
       end
     end
 
@@ -79,10 +94,7 @@ module NewRelic
     # If anything is left over, it's added to custom params
     # If exception is nil, the error count is bumped and no traced error is recorded
     def notice_error(exception, options={})
-      return unless @enabled
-      return if error_is_ignored?(exception)
-      NewRelic::Agent.get_stats("Errors/all").increment_count
-      return if exception.nil?
+      return if should_exit_notice_error?(exception)
       data = {}
       data[:request_uri] = options.delete(:uri) || ''
       data[:request_referer] = options.delete(:referer) || ''

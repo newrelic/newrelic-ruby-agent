@@ -2,7 +2,39 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 class NewRelic::Agent::ErrorCollectorNoticeErrorTest < Test::Unit::TestCase
   require 'new_relic/agent/error_collector'
   include NewRelic::Agent::ErrorCollector::NoticeError
-  
+
+  def test_should_exit_notice_error_disabled
+    error = mocked_error
+    @enabled = false
+    assert should_exit_notice_error?(error)
+  end
+
+  def test_should_exit_notice_error_nil
+    error = nil
+    @enabled = true
+    self.expects(:error_is_ignored?).with(error).returns(false)
+    # we increment it for the case that someone calls
+    # NewRelic::Agent.notice_error(foo) # foo is nil
+    # (which is probably not a good idea but is the existing api)
+    self.expects(:increment_error_count!)
+    assert should_exit_notice_error?(error)
+  end
+
+  def test_should_exit_notice_error_positive
+    error = mocked_error
+    @enabled = true
+    self.expects(:error_is_ignored?).with(error).returns(true)
+    assert should_exit_notice_error?(error)
+  end
+
+  def test_should_exit_notice_error_negative
+    error = mocked_error
+    @enabled = true
+    self.expects(:error_is_ignored?).with(error).returns(false)
+    self.expects(:increment_error_count!)
+    assert !should_exit_notice_error?(error)
+  end
+
   def test_filtered_error_positive
     @ignore = {'an_error' => true}
     error = mocked_error
@@ -23,14 +55,14 @@ class NewRelic::Agent::ErrorCollectorNoticeErrorTest < Test::Unit::TestCase
   end
 
   def test_filtered_by_error_filter_empty
-    # should return right away when there's no filter    
+    # should return right away when there's no filter
     @ignore_filter = nil
     assert !filtered_by_error_filter?(nil)
   end
 
   def test_filtered_by_error_filter_positive
     error = mocked_error
-    @ignore_filter = lambda { |x| assert_equal error, x; false  }    
+    @ignore_filter = lambda { |x| assert_equal error, x; false  }
     assert filtered_by_error_filter?(error)
   end
 
@@ -42,7 +74,7 @@ class NewRelic::Agent::ErrorCollectorNoticeErrorTest < Test::Unit::TestCase
 
   def test_error_is_ignored_positive
     error = mocked_error
-    self.expects(:filtered_error?).with(error).returns(true)    
+    self.expects(:filtered_error?).with(error).returns(true)
     assert error_is_ignored?(error)
   end
 
