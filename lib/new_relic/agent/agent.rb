@@ -61,6 +61,10 @@ module NewRelic
         attr_reader :histogram
         attr_reader :metric_ids
         attr_reader :url_rules
+        attr_reader :browser_monitoring_key
+        attr_reader :shard
+        attr_reader :application_id
+        attr_reader :browser_apdex
 
         def record_transaction(duration_seconds, options={})
           is_error = options['is_error'] || options['error_message'] || options['exception']
@@ -433,6 +437,10 @@ module NewRelic
             @agent_id = connect_data['agent_run_id']
             @report_period = connect_data['data_report_period']
             @url_rules = connect_data['url_rules']
+            @browser_monitoring_key = connect_data['browser_key']
+            @shard = connect_data['shard']
+            @application_id = connect_data['application_id']
+            @browser_apdex = connect_data['browser_apdex']
 
             control.log! "Connected to NewRelic Service at #{@collector}"
             log.debug "Agent Run       = #{@agent_id}."
