@@ -128,6 +128,24 @@ class NewRelic::Agent::ErrorCollectorNoticeErrorTest < Test::Unit::TestCase
     assert over_queue_limit?('hooray')
   end
 
+  def test_exception_info
+    exception = mock('exception')
+    self.expects(:sense_method).with(exception, 'file_name').returns('file_name')
+    self.expects(:sense_method).with(exception, 'line_number').returns('line_number')    
+    self.expects(:extract_source).with(exception).returns('source')
+    self.expects(:extract_stack_trace).with(exception).returns('stack_trace')
+    assert_equal({:file_name => 'file_name', :line_number => 'line_number', :source => 'source', :stack_trace => 'stack_trace'},
+                 exception_info(exception))
+  end
+
+  def test_add_to_error_queue
+    exception = mock('exception')
+    @lock = Mutex.new
+    @errors = []
+    self.expects(:over_queue_limit?).with(exception).returns(false)
+    assert_equal(['foo'], add_to_error_queue('foo', exception))
+  end
+
   def test_should_exit_notice_error_disabled
     error = mocked_error
     @enabled = false
