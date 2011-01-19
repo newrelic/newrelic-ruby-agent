@@ -3,6 +3,33 @@ class NewRelic::Agent::ErrorCollectorNoticeErrorTest < Test::Unit::TestCase
   require 'new_relic/agent/error_collector'
   include NewRelic::Agent::ErrorCollector::NoticeError
   
+  def test_error_params_from_options_mocked
+    options = {:initial => 'options'}
+    self.expects(:uri_ref_and_root).returns({:hi => 'there', :hello => 'bad'})
+    self.expects(:normalized_request_and_custom_params).with({:initial => 'options'}).returns({:hello => 'world'})
+    assert_equal({:hi => 'there', :hello => 'world'}, error_params_from_options(options))
+  end
+
+  module Winner
+    def winner
+      'yay'
+    end
+  end
+  
+  def test_sense_method
+    object = Object.new
+    object.extend(Winner)
+    assert !sense_method(object, 'blab')
+    assert_equal 'yay', sense_method(object, 'winner')
+  end
+
+  def test_fetch_from_options
+    options = {:hello => 'world'}
+    assert_equal 'world', fetch_from_options(options, :hello, '')
+    assert_equal '', fetch_from_options(options, :none, '')
+    assert_equal({}, options)
+  end
+  
   def test_uri_ref_and_root_default
     fake_control = mocked_control
     fake_control.expects(:root).returns('rootbeer')
@@ -56,26 +83,51 @@ class NewRelic::Agent::ErrorCollectorNoticeErrorTest < Test::Unit::TestCase
     assert_equal({:request_params => nil, :custom_params => {}}, normalized_request_and_custom_params({}))
   end
 
-  def test_error_params_default
-    self.expects(:normalize_params).with(nil).returns(nil)
-    self.expects(:normalize_params).with({}).returns({})
-    fake_control = mocked_control
-    fake_control.expects(:root).returns('rootbeer')
-    fake_control.expects(:capture_params).returns(true)
-    options = {}
-    assert_equal({:request_referer => '', :rails_root => 'rootbeer', :request_uri => '', :custom_params => {}, :request_params => nil}, error_params_from_options(options))
+  def test_extract_source_base
+    @capture_source = true
+    self.expects(:sense_method).with(nil, 'source_extract')
+    assert_equal(nil, extract_source(nil))
   end
 
-  def test_error_params_uri_and_ref
-    self.expects(:normalize_params).with(nil).returns(nil)
-    self.expects(:normalize_params).with({}).returns({})
-    fake_control = mocked_control
-    fake_control.expects(:root).returns('rootbeer')
-    fake_control.expects(:capture_params).returns(true)
-    options = {:uri => 'whee', :referer => 'bang'}
-    assert_equal({:request_referer => 'bang', :rails_root => 'rootbeer', :request_uri => 'whee', :custom_params => {}, :request_params => nil}, error_params_from_options(options))
+  def test_extract_source_disabled
+    @capture_source = false
+    assert_equal(nil, extract_source(mock('exception')))
   end
-  
+
+  def test_extract_source_with_source
+    self.expects(:sense_method).with('happy', 'source_extract').returns('THE SOURCE')
+    @capture_source = true
+    assert_equal('THE SOURCE', extract_source('happy'))
+  end
+
+  def test_extract_stack_trace
+    exception = mock('exception')
+    self.expects(:sense_method).with(exception, 'original_exception')
+    self.expects(:sense_method).with(exception, 'backtrace')
+    assert_equal('<no stack trace>', extract_stack_trace(exception))
+  end
+
+  def test_extract_stack_trace_positive
+    orig = mock('original')
+    exception = mock('exception')
+    self.expects(:sense_method).with(exception, 'original_exception').returns(orig)
+    self.expects(:sense_method).with(orig, 'backtrace').returns('STACK STACK STACK')
+    assert_equal('STACK STACK STACK', extract_stack_trace(exception))
+  end
+
+  def test_over_queue_limit_negative
+    @errors = []
+    assert !over_queue_limit?(nil)
+  end
+
+  def test_over_queue_limit_positive
+    @errors = %w(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21)
+    fake_log = mock('log')
+    self.expects(:log).returns(fake_log)
+    fake_log.expects(:warn).with('The error reporting queue has reached 20. The error detail for this and subsequent errors will not be transmitted to RPM until the queued errors have been sent: hooray')
+    assert over_queue_limit?('hooray')
+  end
+
   def test_should_exit_notice_error_disabled
     error = mocked_error
     @enabled = false
