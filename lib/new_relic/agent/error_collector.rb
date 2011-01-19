@@ -33,6 +33,10 @@ module NewRelic
       @lock = Mutex.new
     end
 
+    def control
+      NewRelic::Control.instance
+    end
+
     def ignore_error_filter(&block)
       if block
         @ignore_filter = block
@@ -79,6 +83,78 @@ module NewRelic
         # disabled or an ignored error, per above
         true
       end
+
+      def fetch_from_options(options, key, default=nil)
+        options.delete(key) || default
+      end
+
+      def uri_ref_and_root(options)
+        {
+          :request_uri => fetch_from_options(options, :uri, ''),
+          :request_referer => fetch_from_options(options, :referer, ''),
+          :rails_root => control.root
+        }
+      end
+
+      def custom_params_from_opts(options)
+        # If anything else is left over, treat it like a custom param:        
+        fetch_from_options(options, :custom_params, {}).merge(options)
+      end
+
+      def request_params_from_opts(options)
+        value = options.delete(:request_params)
+        if control.capture_params
+          value
+        else
+          nil
+        end
+      end
+      
+      def normalized_request_and_custom_params(options)
+        {
+          :request_params => normalize_params(request_params_from_opts(options)),
+          :custom_params  => normalize_params(custom_params_from_opts(options))
+        }
+      end
+      
+      def error_params_from_options(options)
+        uri_ref_and_root(options).merge(normalized_request_and_custom_params(options))
+      end
+
+      def sense_method(object, method)
+        object.send(method) if object.respond_to?(method)
+      end
+
+      def extract_source(exception)
+        sense_method(exception, 'source_extract') if @capture_source
+      end
+
+      def extract_stack_trace(exception)
+        actual_exception = sense_method(exception, 'original_exception') || exception
+        sense_method(actual_exception, 'backtrace') || '<no stack trace>'
+      end
+
+      def exception_info(exception)
+        {
+          :file_name => sense_method(exception, 'file_name'),
+          :line_number => sense_method(exception, 'line_number'),
+          :source => extract_source(exception),
+          :stack_trace => extract_stack_trace(exception)
+        }
+      end
+
+      def over_queue_limit?(exception)
+        over_limit = (@errors.length >= MAX_ERROR_QUEUE_LENGTH)
+        log.warn("The error reporting queue has reached #{MAX_ERROR_QUEUE_LENGTH}. The error detail for this and subsequent errors will not be transmitted to RPM until the queued errors have been sent: #{exception}") if over_limit
+        over_limit
+      end
+      
+
+      def add_to_error_queue(noticed_error, exception)
+        @lock.synchronize do
+          @errors << noticed_error unless over_queue_limit?(exception)
+        end
+      end
     end
 
     include NoticeError
@@ -95,43 +171,9 @@ module NewRelic
     # If exception is nil, the error count is bumped and no traced error is recorded
     def notice_error(exception, options={})
       return if should_exit_notice_error?(exception)
-      data = {}
-      data[:request_uri] = options.delete(:uri) || ''
-      data[:request_referer] = options.delete(:referer) || ''
-
-      action_path     = options.delete(:metric) || NewRelic::Agent.instance.stats_engine.scope_name || ''
-      request_params = options.delete(:request_params)
-      custom_params = options.delete(:custom_params) || {}
-      # If anything else is left over, treat it like a custom param:
-      custom_params.merge! options
-
-      data[:request_params] = normalize_params(request_params) if NewRelic::Control.instance.capture_params && request_params
-      data[:custom_params] = normalize_params(custom_params) unless custom_params.empty?
-      data[:rails_root] = NewRelic::Control.instance.root
-      data[:file_name] = exception.file_name if exception.respond_to?('file_name')
-      data[:line_number] = exception.line_number if exception.respond_to?('line_number')
-
-      if @capture_source && exception.respond_to?('source_extract')
-        data[:source] = exception.source_extract
-      end
-
-      if exception.respond_to? 'original_exception'
-        inside_exception = exception.original_exception
-      else
-        inside_exception = exception
-      end
-
-      data[:stack_trace] = (inside_exception && inside_exception.respond_to?('backtrace')) ? inside_exception.backtrace : '<no stack trace>'
-
-      noticed_error = NewRelic::NoticedError.new(action_path, data, exception)
-
-      @lock.synchronize do
-        if @errors.length == MAX_ERROR_QUEUE_LENGTH
-          log.warn("The error reporting queue has reached #{MAX_ERROR_QUEUE_LENGTH}. The error detail for this and subsequent errors will not be transmitted to RPM until the queued errors have been sent: #{exception}")
-        else
-          @errors << noticed_error
-        end
-      end
+      action_path     = fetch_from_options(options, :metric, (NewRelic::Agent.instance.stats_engine.scope_name || ''))
+      exception_options = error_params_from_options(options).merge(exception_info(exception))
+      add_to_error_queue(NewRelic::NoticedError.new(action_path, exception_options, exception), exception)
       exception
     rescue Exception => e
       log.error("Error capturing an error, yodawg. #{e}")
