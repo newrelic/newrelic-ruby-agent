@@ -138,12 +138,22 @@ class NewRelic::Agent::ErrorCollectorNoticeErrorTest < Test::Unit::TestCase
                  exception_info(exception))
   end
 
-  def test_add_to_error_queue
+  def test_add_to_error_queue_positive
     exception = mock('exception')
     @lock = Mutex.new
     @errors = []
     self.expects(:over_queue_limit?).with(exception).returns(false)
-    assert_equal(['foo'], add_to_error_queue('foo', exception))
+    add_to_error_queue('foo', exception)
+    assert_equal(['foo'], @errors)
+  end
+
+  def test_add_to_error_queue_negative
+    exception = mock('exception')
+    @lock = Mutex.new
+    @errors = []
+    self.expects(:over_queue_limit?).with(exception).returns(true)
+    add_to_error_queue('foo', exception)
+    assert_equal([], @errors)    
   end
 
   def test_should_exit_notice_error_disabled
