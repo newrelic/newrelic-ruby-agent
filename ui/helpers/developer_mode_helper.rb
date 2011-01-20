@@ -1,5 +1,7 @@
 require 'pathname'
 require File.expand_path('../google_pie_chart', __FILE__)
+require 'new_relic/collection_helper'
+require 'new_relic/metric_parser/metric_parser'
 module NewRelic::DeveloperModeHelper
   include NewRelic::CollectionHelper
 
