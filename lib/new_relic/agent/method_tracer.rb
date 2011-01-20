@@ -116,6 +116,24 @@ module NewRelic
           def get_stats_unscoped(name)
             stat_engine.get_stats_no_scope(name)
           end
+
+          def main_stat(metric, options)
+            get_stats_scoped(metric, options[:scoped_metric_only])
+          end
+          
+          def get_metric_stats(metrics, options)
+            metrics = Array(metrics)
+            first_name = metrics.shift
+            stats = metrics.map do | name |
+              get_stats_unscoped(name)
+            end
+            stats.unshift(main_stat(first_name, options)) if options[:metric]
+            [first_name, stats]
+          end
+
+          def set_if_nil(hash, key)
+            hash[key] = true if hash[key].nil?
+          end
         end
         include TraceExecutionScoped
         # Trace a given block with stats and keep track of the caller.
@@ -129,25 +147,16 @@ module NewRelic
         # on the server.
 
         def trace_execution_scoped(metric_names, options={})
-
           return yield if trace_disabled?(options)
-          metric_names = Array(metric_names)
-          first_name = metric_names.shift
-          produce_metric               = options[:metric] != false
-          deduct_call_time_from_parent = options[:deduct_call_time_from_parent] != false
-          scoped_metric_only           = produce_metric && options[:scoped_metric_only]
+          set_if_nil(options, :metric)
+          set_if_nil(options, :deduct_call_time_from_parent)
           t0 = Time.now
-          metric_stats = []
-          metric_stats << get_stats_scoped(first_name, scoped_metric_only) if produce_metric
-          metric_names.each do | name |
-            metric_stats << get_stats_unscoped(name)
-          end
-
+          first_name, metric_stats = get_metric_stats(metric_names, options)
           begin
             # Keep a reference to the scope we are pushing so we can do a sanity check making
             # sure when we pop we get the one we 'expected'
             agent_instance.push_trace_execution_flag(true) if options[:force]
-            expected_scope = stat_engine.push_scope(first_name, t0.to_f, deduct_call_time_from_parent)
+            expected_scope = stat_engine.push_scope(first_name, t0.to_f, options[:deduct_call_time_from_parent])
           rescue => e
             log.error("Caught exception in trace_method_execution header. Metric name = #{first_name}, exception = #{e}")
             log.error(e.backtrace.join("\n"))
