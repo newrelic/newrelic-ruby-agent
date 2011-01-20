@@ -66,6 +66,15 @@ class NewRelic::Agent::AgentStartTest < Test::Unit::TestCase
     assert_equal 2, stats.length
   end
 
+  def test_set_if_nil
+    h = {}
+    set_if_nil(h, :foo)
+    assert h[:foo]
+    h[:bar] = false
+    set_if_nil(h, :bar)
+    assert !h[:bar]
+  end
+
   private
 
   def mocked_object(name)
