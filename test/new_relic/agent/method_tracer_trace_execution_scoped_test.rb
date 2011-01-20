@@ -41,11 +41,6 @@ class NewRelic::Agent::AgentStartTest < Test::Unit::TestCase
     assert_equal NewRelic::Agent.instance, agent_instance
   end
 
-  def test_first_name
-    assert_equal 'foo', first_name('foo')
-    assert_equal 'foo', first_name(['foo', 'bar'])
-  end
-
   private
 
   def mocked_object(name)

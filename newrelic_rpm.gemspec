@@ -136,6 +136,7 @@ http://github.com/newrelic/rpm/tree/master.
     "test/new_relic/agent/error_collector_test.rb",
     "test/new_relic/agent/memcache_instrumentation_test.rb",
     "test/new_relic/agent/method_tracer_test.rb",
+    "test/new_relic/agent/method_tracer_trace_execution_scoped_test.rb",
     "test/new_relic/agent/metric_data_test.rb",
     "test/new_relic/agent/metric_frame_test.rb",
     "test/new_relic/agent/mock_scope_listener.rb",
