@@ -155,7 +155,7 @@ module NewRelic
           def trace_execution_scoped_header(metric, t0, options)
             log_errors("trace_execution_scoped header", metric) do
               push_flag!(options[:force])
-              stat_engine.push_scope(first_name, t0.to_f, options[:deduct_call_time_from_parent])
+              stat_engine.push_scope(metric, t0.to_f, options[:deduct_call_time_from_parent])
             end
           end
 

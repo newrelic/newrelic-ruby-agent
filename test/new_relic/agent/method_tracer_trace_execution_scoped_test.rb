@@ -119,6 +119,16 @@ class NewRelic::Agent::AgentStartTest < Test::Unit::TestCase
       raise "should not propagate out of block"
     end
   end
+
+  def test_trace_execution_scoped_header
+    options = {:force => false, :deduct_call_time_from_parent => false}
+    self.expects(:log_errors).with('trace_execution_scoped header', 'foo').yields
+    self.expects(:push_flag!).with(false)
+    fakestats = mocked_object('stat_engine')
+    fakestats.expects(:push_scope).with('foo', 1.0, false)
+    trace_execution_scoped_header('foo', Time.at(1), options)
+  end
+  
   private
 
   def mocked_object(name)
