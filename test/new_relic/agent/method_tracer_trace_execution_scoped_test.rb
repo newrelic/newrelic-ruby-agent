@@ -205,8 +205,6 @@ class NewRelic::Agent::AgentStartTest < Test::Unit::TestCase
 
     assert ran, 'should run contents of the block'
   end
-
-  
   
   private
 
