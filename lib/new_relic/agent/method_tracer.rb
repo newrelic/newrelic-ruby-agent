@@ -162,16 +162,13 @@ module NewRelic
           def trace_execution_scoped_footer(t0, t1, first_name, metric_stats, expected_scope, options)
             duration = (t1 - t0).to_f
 
-            begin
-              agent_instance.pop_trace_execution_flag if options[:force]
+            log_errors("trace_method_execution footer", first_name) do
+              pop_flag!(options[:force])
               if expected_scope
                 scope = stat_engine.pop_scope expected_scope, duration, t1.to_f
                 exclusive = duration - scope.children_time
                 metric_stats.each { |stats| stats.trace_call(duration, exclusive) }
               end
-            rescue => e
-              log.error("Caught exception in trace_method_execution footer. Metric name = #{first_name}, exception = #{e}")
-              log.error(e.backtrace.join("\n"))
             end
           end
           
