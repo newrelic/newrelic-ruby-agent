@@ -188,6 +188,26 @@ class NewRelic::Agent::AgentStartTest < Test::Unit::TestCase
     assert_equal 1172, value, 'should return the contents of the block'
   end
   
+  def test_trace_execution_scoped_with_error
+    passed_in_opts = {}
+    opts_after_correction = {:metric => true, :deduct_call_time_from_parent => true}
+    self.expects(:trace_disabled?).returns(false)
+    self.expects(:get_metric_stats).with(['metric', 'array'], opts_after_correction).returns(['metric', ['stats']])
+    self.expects(:trace_execution_scoped_header).with('metric', opts_after_correction).returns(['start_time', 'expected_scope'])
+    self.expects(:trace_execution_scoped_footer).with('start_time', 'metric', ['stats'], 'expected_scope', nil)
+    ran = false
+    assert_raises(RuntimeError) do
+      trace_execution_scoped(['metric', 'array'], passed_in_opts) do
+        ran = true
+        raise 'wtfmate'
+      end
+    end
+
+    assert ran, 'should run contents of the block'
+  end
+
+  
+  
   private
 
   def mocked_object(name)
