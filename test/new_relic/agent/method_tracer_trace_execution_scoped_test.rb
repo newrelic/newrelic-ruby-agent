@@ -105,7 +105,18 @@ class NewRelic::Agent::AgentStartTest < Test::Unit::TestCase
     end
     assert ran, "should run the contents of the block"
   end
-  
+
+  def test_log_errors_with_return
+    self.expects(:log).never
+    ran = false
+    return_val = log_errors('name', 'metric') do
+      ran = true
+      'happy trees'
+    end
+
+    assert ran, "should run contents of block"
+    assert_equal 'happy trees', return_val, "should return contents of the block"
+  end
 
   def test_log_errors_with_error
     fakelog = mocked_log
@@ -126,7 +137,24 @@ class NewRelic::Agent::AgentStartTest < Test::Unit::TestCase
     self.expects(:push_flag!).with(false)
     fakestats = mocked_object('stat_engine')
     fakestats.expects(:push_scope).with('foo', 1.0, false)
-    trace_execution_scoped_header('foo', Time.at(1), options)
+    trace_execution_scoped_header('foo', options, 1.0)
+  end
+
+  def test_trace_execution_scoped_footer
+    t0 = 1.0
+    t1 = 2.0
+    metric = 'foo'
+    metric_stats = [mock('fakestat')]
+    metric_stats.first.expects(:trace_call).with(1.0, 0.5)
+    expected_scope = 'an expected scope'
+    engine = mocked_object('stat_engine')
+    scope = mock('scope')
+    engine.expects(:pop_scope).with('an expected scope', 1.0, 2.0).returns(scope)
+    scope.expects(:children_time).returns(0.5)
+    self.expects(:pop_flag!).with(false)
+    self.expects(:log_errors).with('trace_method_execution footer', 'foo').yields
+
+    trace_execution_scoped_footer(t0, t1, metric, metric_stats, expected_scope, false)
   end
   
   private

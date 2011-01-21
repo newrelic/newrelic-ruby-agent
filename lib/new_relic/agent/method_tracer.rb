@@ -144,28 +144,26 @@ module NewRelic
           end
 
           def log_errors(code_area, metric)
-            begin
-              yield
-            rescue => e
-              log.error("Caught exception in #{code_area}. Metric name = #{metric}, exception = #{e}")
-              log.error(e.backtrace.join("\n"))
-            end
+            yield
+          rescue => e
+            log.error("Caught exception in #{code_area}. Metric name = #{metric}, exception = #{e}")
+            log.error(e.backtrace.join("\n"))
           end
 
-          def trace_execution_scoped_header(metric, t0, options)
+          def trace_execution_scoped_header(metric, options, t0=Time.now.to_f)
             log_errors("trace_execution_scoped header", metric) do
               push_flag!(options[:force])
-              stat_engine.push_scope(metric, t0.to_f, options[:deduct_call_time_from_parent])
+              [t0, stat_engine.push_scope(metric, t0, options[:deduct_call_time_from_parent])]
             end
           end
 
-          def trace_execution_scoped_footer(t0, t1, first_name, metric_stats, expected_scope, options)
-            duration = (t1 - t0).to_f
+          def trace_execution_scoped_footer(t0, t1, first_name, metric_stats, expected_scope, forced)
+            duration = t1 - t0
 
             log_errors("trace_method_execution footer", first_name) do
-              pop_flag!(options[:force])
+              pop_flag!(forced)
               if expected_scope
-                scope = stat_engine.pop_scope expected_scope, duration, t1.to_f
+                scope = stat_engine.pop_scope(expected_scope, duration, t1)
                 exclusive = duration - scope.children_time
                 metric_stats.each { |stats| stats.trace_call(duration, exclusive) }
               end
@@ -188,23 +186,13 @@ module NewRelic
           return yield if trace_disabled?(options)
           set_if_nil(options, :metric)
           set_if_nil(options, :deduct_call_time_from_parent)
-          t0 = Time.now
           first_name, metric_stats = get_metric_stats(metric_names, options)
-          begin
-            # Keep a reference to the scope we are pushing so we can do a sanity check making
-            # sure when we pop we get the one we 'expected'
-            agent_instance.push_trace_execution_flag(true) if options[:force]
-            expected_scope = stat_engine.push_scope(first_name, t0.to_f, options[:deduct_call_time_from_parent])
-          rescue => e
-            log.error("Caught exception in trace_method_execution header. Metric name = #{first_name}, exception = #{e}")
-            log.error(e.backtrace.join("\n"))
-          end
+          start_time, expected_scope = trace_execution_scoped_header(first_name, options)
 
           begin
             yield
           ensure
-            t1 = Time.now            
-            trace_execution_scoped_footer(t0, t1, first_name, metric_stats, expected_scope, options)
+            trace_execution_scoped_footer(start_time, Time.now.to_f, first_name, metric_stats, expected_scope, options)
           end
         end
       end
