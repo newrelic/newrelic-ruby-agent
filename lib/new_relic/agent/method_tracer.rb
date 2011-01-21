@@ -151,16 +151,19 @@ module NewRelic
           end
 
           def trace_execution_scoped_header(metric, options, t0=Time.now.to_f)
-            log_errors("trace_execution_scoped header", metric) do
+            scope = log_errors("trace_execution_scoped header", metric) do
               push_flag!(options[:force])
-              [t0, stat_engine.push_scope(metric, t0, options[:deduct_call_time_from_parent])]
+              scope = stat_engine.push_scope(metric, t0, options[:deduct_call_time_from_parent])
             end
+            # needed in case we have an error, above, to always return
+            # the start time.
+            [t0, scope]
           end
 
-          def trace_execution_scoped_footer(t0, t1, first_name, metric_stats, expected_scope, forced)
-            duration = t1 - t0
-
+          def trace_execution_scoped_footer(t0, first_name, metric_stats, expected_scope, forced, t1=Time.now.to_f)
             log_errors("trace_method_execution footer", first_name) do
+              duration = t1 - t0
+              
               pop_flag!(forced)
               if expected_scope
                 scope = stat_engine.pop_scope(expected_scope, duration, t1)
@@ -169,32 +172,33 @@ module NewRelic
               end
             end
           end
+
+          # Trace a given block with stats and keep track of the caller.
+          # See NewRelic::Agent::MethodTracer::ClassMethods#add_method_tracer for a description of the arguments.
+          # +metric_names+ is either a single name or an array of metric names.
+          # If more than one metric is passed, the +produce_metric+ option only applies to the first.  The
+          # others are always recorded.  Only the first metric is pushed onto the scope stack.
+          #
+          # Generally you pass an array of metric names if you want to record the metric under additional
+          # categories, but generally this *should never ever be done*.  Most of the time you can aggregate
+          # on the server.
+
+          def trace_execution_scoped(metric_names, options={})
+            return yield if trace_disabled?(options)
+            set_if_nil(options, :metric)
+            set_if_nil(options, :deduct_call_time_from_parent)
+            first_name, metric_stats = get_metric_stats(metric_names, options)
+            start_time, expected_scope = trace_execution_scoped_header(first_name, options)
+            begin
+              yield
+            ensure
+              trace_execution_scoped_footer(start_time, first_name, metric_stats, expected_scope, options[:force])
+            end
+          end
           
         end
         include TraceExecutionScoped
-        # Trace a given block with stats and keep track of the caller.
-        # See NewRelic::Agent::MethodTracer::ClassMethods#add_method_tracer for a description of the arguments.
-        # +metric_names+ is either a single name or an array of metric names.
-        # If more than one metric is passed, the +produce_metric+ option only applies to the first.  The
-        # others are always recorded.  Only the first metric is pushed onto the scope stack.
-        #
-        # Generally you pass an array of metric names if you want to record the metric under additional
-        # categories, but generally this *should never ever be done*.  Most of the time you can aggregate
-        # on the server.
 
-        def trace_execution_scoped(metric_names, options={})
-          return yield if trace_disabled?(options)
-          set_if_nil(options, :metric)
-          set_if_nil(options, :deduct_call_time_from_parent)
-          first_name, metric_stats = get_metric_stats(metric_names, options)
-          start_time, expected_scope = trace_execution_scoped_header(first_name, options)
-
-          begin
-            yield
-          ensure
-            trace_execution_scoped_footer(start_time, Time.now.to_f, first_name, metric_stats, expected_scope, options)
-          end
-        end
       end
 
       module ClassMethods

@@ -154,7 +154,38 @@ class NewRelic::Agent::AgentStartTest < Test::Unit::TestCase
     self.expects(:pop_flag!).with(false)
     self.expects(:log_errors).with('trace_method_execution footer', 'foo').yields
 
-    trace_execution_scoped_footer(t0, t1, metric, metric_stats, expected_scope, false)
+    trace_execution_scoped_footer(t0, metric, metric_stats, expected_scope, false, t1)
+  end
+  
+  def test_trace_execution_scoped_disabled
+    self.expects(:trace_disabled?).returns(true)
+    # make sure the method doesn't beyond the abort
+    self.expects(:set_if_nil).never
+    ran = false
+    value = trace_execution_scoped(nil, {:options => 'hash'}) do
+      ran = true
+      1172
+    end
+
+    assert ran, 'should run contents of block'
+    assert_equal 1172, value, 'should return contents of block'
+  end
+
+  def test_trace_execution_scoped_default
+    passed_in_opts = {}
+    opts_after_correction = {:metric => true, :deduct_call_time_from_parent => true}
+    self.expects(:trace_disabled?).returns(false)
+    self.expects(:get_metric_stats).with(['metric', 'array'], opts_after_correction).returns(['metric', ['stats']])
+    self.expects(:trace_execution_scoped_header).with('metric', opts_after_correction).returns(['start_time', 'expected_scope'])
+    self.expects(:trace_execution_scoped_footer).with('start_time', 'metric', ['stats'], 'expected_scope', nil)
+    ran = false
+    value = trace_execution_scoped(['metric', 'array'], passed_in_opts) do
+      ran = true
+      1172
+    end
+
+    assert ran, 'should run contents of the block'
+    assert_equal 1172, value, 'should return the contents of the block'
   end
   
   private
