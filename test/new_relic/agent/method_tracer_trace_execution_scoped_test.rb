@@ -75,6 +75,50 @@ class NewRelic::Agent::AgentStartTest < Test::Unit::TestCase
     assert !h[:bar]
   end
 
+  def test_push_flag_true
+    fake_agent = mocked_object('agent_instance')
+    fake_agent.expects(:push_trace_execution_flag).with(true)
+    push_flag!(true)
+  end
+
+  def test_push_flag_false
+    self.expects(:agent_instance).never
+    push_flag!(false)
+  end
+
+  def test_pop_flag_true
+    fake_agent = mocked_object('agent_instance')
+    fake_agent.expects(:pop_trace_execution_flag)
+    pop_flag!(true)
+  end
+
+  def test_pop_flag_true
+    self.expects(:agent_instance).never
+    pop_flag!(false)
+  end
+
+  def test_log_errors_base
+    self.expects(:log).never
+    ran = false
+    log_errors("name", "metric") do
+      ran = true
+    end
+    assert ran, "should run the contents of the block"
+  end
+  
+
+  def test_log_errors_with_error
+    fakelog = mocked_log
+    # normally I don't do this, but we really don't care what the
+    # backtrace looks like, beyond that it actually gets logged. Also,
+    # the mocks are reversed because apparently order matters.
+    fakelog.expects(:error).with(any_parameters)
+    fakelog.expects(:error).with("Caught exception in name. Metric name = metric, exception = should not propagate out of block")
+    
+    log_errors("name", "metric") do
+      raise "should not propagate out of block"
+    end
+  end
   private
 
   def mocked_object(name)

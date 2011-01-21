@@ -134,6 +134,35 @@ module NewRelic
           def set_if_nil(hash, key)
             hash[key] = true if hash[key].nil?
           end
+
+          def push_flag!(forced)
+            agent_instance.push_trace_execution_flag(true) if forced
+          end
+
+          def pop_flag!(forced)
+            agent_instance.pop_trace_execution_flag if forced
+          end
+
+          def log_errors(code_area, metric)
+            begin
+              yield
+            rescue => e
+              log.error("Caught exception in #{code_area}. Metric name = #{metric}, exception = #{e}")
+              log.error(e.backtrace.join("\n"))
+            end
+          end
+
+          def trace_execution_scoped_header(metric, t0, options)
+            log_errors("trace_execution_scoped header", metric) do
+              push_flag!(options[:force])
+              stat_engine.push_scope(first_name, t0.to_f, options[:deduct_call_time_from_parent])
+            end
+          end
+
+          def trace_execution_scoped_footer(expected_scope, t0, t1, metric, stats, forced)
+
+          end
+          
         end
         include TraceExecutionScoped
         # Trace a given block with stats and keep track of the caller.
