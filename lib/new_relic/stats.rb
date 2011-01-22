@@ -17,7 +17,8 @@ module NewRelic
         "%.0f ms" % value_ms
       end
     end
-
+    
+    # makes sure we aren't dividing by zero
     def checked_calculation(numerator, denominator)
       if denominator == 0
         0.0
@@ -352,20 +353,18 @@ module NewRelic
   end
 
   class ScopedMethodTraceStats < MethodTraceStats
+    attr_accessor :unscoped_stats
     def initialize(unscoped_stats)
       super()
-      @unscoped_stats = unscoped_stats
+      self.unscoped_stats = unscoped_stats
     end
     def trace_call(call_time, exclusive_time = call_time)
-      @unscoped_stats.trace_call call_time, exclusive_time
+      unscoped_stats.trace_call call_time, exclusive_time
       super call_time, exclusive_time
     end
     def record_multiple_data_points(total_value, count=1)
-      @unscoped_stats.record_multiple_data_points(total_value, count)
+      unscoped_stats.record_multiple_data_points(total_value, count)
       super total_value, count
-    end
-    def unscoped_stats
-      @unscoped_stats
     end
   end
 end
