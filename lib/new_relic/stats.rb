@@ -31,17 +31,28 @@ module NewRelic
     # - used to compose multiple metrics e.g. dispatcher time + mongrel queue time
     def sum_merge! (other_stats)
       Array(other_stats).each do |s|
-        self.total_call_time += s.total_call_time
+        self.total_call_time      += s.total_call_time
         self.total_exclusive_time += s.total_exclusive_time
-        self.min_call_time += s.min_call_time
-        self.max_call_time += s.max_call_time
-        #self.call_count += s.call_count - do not add call count because we are stacking these times on top of each other
-        self.sum_of_squares += s.sum_of_squares if s.sum_of_squares
-        self.begin_time = s.begin_time if s.begin_time.to_f < begin_time.to_f || begin_time.to_f == 0.0
-        self.end_time = s.end_time if s.end_time.to_f > end_time.to_f
+        self.min_call_time        += s.min_call_time
+        self.max_call_time        += s.max_call_time
+        self.sum_of_squares       += s.sum_of_squares
+        update_times(s)
       end
 
       self
+    end
+
+    def update_times(other)
+      self.begin_time = other.begin_time if should_replace_begin_time?(other)
+      self.end_time = other.end_time if should_replace_end_time?(other)
+    end
+
+    def should_replace_end_time?(other)
+      end_time.to_f < other.end_time.to_f
+    end
+
+    def should_replace_begin_time?(other)
+      other.begin_time.to_f < begin_time.to_f || begin_time.to_f == 0.0
     end
 
     def merge!(other_stats)
@@ -51,9 +62,8 @@ module NewRelic
         self.min_call_time = s.min_call_time if (s.min_call_time < min_call_time && s.call_count > 0) || call_count == 0
         self.max_call_time = s.max_call_time if s.max_call_time > max_call_time
         self.call_count += s.call_count
-        self.sum_of_squares += s.sum_of_squares if s.sum_of_squares
-        self.begin_time = s.begin_time if s.begin_time.to_f < begin_time.to_f || begin_time.to_f == 0.0
-        self.end_time = s.end_time if s.end_time.to_f > end_time.to_f
+        self.sum_of_squares += s.sum_of_squares
+        update_times(s)
       end
 
       self
