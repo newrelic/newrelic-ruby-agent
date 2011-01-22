@@ -29,7 +29,7 @@ class NewRelic::StatsTest < Test::Unit::TestCase
   def test_to_s
     s1 = NewRelic::MethodTraceStats.new
     s1.trace_call 10
-    assert_equal("[01/01/70 12:00AM UTC, 0.000s;  1 calls 10000 ms]", s1.to_s)
+    assert_equal("[01/01/70 12:00AM UTC, 0.000s;  1 calls   10s]", s1.to_s)
   end
 
   def test_time_str
@@ -61,7 +61,7 @@ class NewRelic::StatsTest < Test::Unit::TestCase
   def test_multiply_by
     s1 = NewRelic::MethodTraceStats.new
     s1.trace_call 10
-    assert_equal("[01/01/70 12:00AM UTC, 0.000s; 10 calls 10000 ms]", s1.multiply_by(10).to_s)
+    assert_equal("[01/01/70 12:00AM UTC, 0.000s; 10 calls   10s]", s1.multiply_by(10).to_s)
   end
 
   def test_get_apdex

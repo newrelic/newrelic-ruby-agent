@@ -181,7 +181,7 @@ module NewRelic
     # Summary string to facilitate testing
     def summary
       format = "%m/%d/%y %I:%M%p"
-      "[#{Time.at(begin_time).utc.strftime(format)} UTC, #{'%2.3fs' % duration}; #{'%2i' % call_count} calls #{'%4i' % average_call_time}]"
+      "[#{Time.at(begin_time).utc.strftime(format)} UTC, #{'%2.3fs' % duration}; #{'%2i' % call_count} calls #{'%4i' % average_call_time}s]"
     end
 
     # calculate this set of stats to be a percentage fraction
