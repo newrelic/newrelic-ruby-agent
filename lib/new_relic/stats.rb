@@ -18,13 +18,19 @@ module NewRelic
       end
     end
 
+    def checked_calculation(numerator, denominator)
+      if denominator == 0
+        0.0
+      else
+        numerator / denominator
+      end
+    end
+    
     def average_call_time
-      return 0 if call_count == 0
-      total_call_time / call_count
+      checked_calculation(total_call_time, call_count)
     end
     def average_exclusive_time
-      return 0 if call_count == 0
-      total_exclusive_time / call_count
+      checked_calculation(total_exclusive_time, call_count)
     end
 
     # merge by adding to average response time
@@ -149,17 +155,12 @@ module NewRelic
     end
 
     def as_percentage_of(other_stats)
-      return 0 if other_stats.total_call_time == 0
-      return (total_call_time / other_stats.total_call_time) * 100.0
+      checked_calculation(total_call_time, other_stats.total_call_time) * 100.0
     end
 
     # the stat total_call_time is a percent
     def as_percentage
-      if call_count.zero?
-        0
-      else
-        (total_call_time / call_count) * 100.0
-      end
+      average_call_time * 100.0
     end
 
     def duration
@@ -167,11 +168,7 @@ module NewRelic
     end
 
     def calls_per_minute
-      if duration.zero?
-        0
-      else
-        (call_count / duration.to_f) * 60.0
-      end
+      checked_calculation(call_count, duration) * 60
     end
 
     def total_call_time_per_minute
@@ -192,13 +189,11 @@ module NewRelic
     # returns the time spent in this component as a percentage of the total
     # time window.
     def time_percentage
-      return 0 if duration == 0
-      total_call_time / duration
+      checked_calculation(total_call_time, duration)
     end
 
     def exclusive_time_percentage
-      return 0 if duration == 0
-      total_exclusive_time / duration
+      checked_calculation(total_exclusive_time, duration)
     end
 
     alias average_value average_call_time
