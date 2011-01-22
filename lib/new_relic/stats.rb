@@ -181,18 +181,7 @@ module NewRelic
     # Summary string to facilitate testing
     def summary
       format = "%m/%d/%y %I:%M%p"
-      "[#{Time.at(begin_time).utc.strftime(format)} UTC, #{'%2.3fs' % duration}; #{'%2i' % call_count} calls #{'%4i' % to_ms(average_call_time)} ms]"
-    end
-
-    # round all of the values to n decimal points
-    def round!
-      self.total_call_time = round_to_3(total_call_time)
-      self.total_exclusive_time = round_to_3(total_exclusive_time)
-      self.min_call_time = round_to_3(min_call_time)
-      self.max_call_time = round_to_3(max_call_time)
-      self.sum_of_squares = round_to_3(sum_of_squares)
-      self.begin_time = begin_time
-      self.end_time = end_time
+      "[#{Time.at(begin_time).utc.strftime(format)} UTC, #{'%2.3fs' % duration}; #{'%2i' % call_count} calls #{'%4i' % average_call_time}]"
     end
 
     # calculate this set of stats to be a percentage fraction
@@ -220,7 +209,6 @@ module NewRelic
       self
     end
 
-
     # returns s,t,f
     def get_apdex
       [@call_count, @total_call_time.to_i, @total_exclusive_time.to_i]
@@ -229,16 +217,6 @@ module NewRelic
     def apdex_score
       s, t, f = get_apdex
       (s.to_f + (t.to_f / 2)) / (s+t+f).to_f
-    end
-
-    private
-
-    def to_ms(number)
-      (number*1000).round
-    end
-
-    def round_to_3(val)
-      (val * 1000).round / 1000.0
     end
   end
 

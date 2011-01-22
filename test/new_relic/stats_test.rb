@@ -208,18 +208,6 @@ class NewRelic::StatsTest < Test::Unit::TestCase
     s1.merge! merges
     validate s1, 3, 3, 1, 1
   end
-  def test_round
-    stats = NewRelic::MethodTraceStats.new
-    stats.record_data_point(0.125222, 0.025)
-    stats.record_data_point(0.125222, 0.025)
-    stats.record_data_point(0.125222, 0.025)
-    assert_equal 0.047041647852, stats.sum_of_squares
-    assert_equal 0.375666, stats.total_call_time
-    stats.round!
-    assert_equal 0.376, stats.total_call_time
-    assert_equal 0.047, stats.sum_of_squares
-    
-  end
   
   def test_freeze
     s1 = NewRelic::MethodTraceStats.new
