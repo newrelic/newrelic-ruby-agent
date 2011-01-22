@@ -9,12 +9,12 @@ module NewRelic
 
     def time_str(value_ms)
       case
-        when value_ms >= 10000
-       "%.1f s" % (value_ms / 1000.0)
-        when value_ms >= 5000
-       "%.2f s" % (value_ms / 1000.0)
+      when value_ms >= 10000
+        "%.1f s" % (value_ms / 1000.0)
+      when value_ms >= 5000
+        "%.2f s" % (value_ms / 1000.0)
       else
-       "%.0f ms" % value_ms
+        "%.0f ms" % value_ms
       end
     end
 
@@ -30,19 +30,24 @@ module NewRelic
     # merge by adding to average response time
     # - used to compose multiple metrics e.g. dispatcher time + mongrel queue time
     def sum_merge! (other_stats)
-      Array(other_stats).each do |s|
-        self.total_call_time      += s.total_call_time
-        self.total_exclusive_time += s.total_exclusive_time
-        self.min_call_time        += s.min_call_time
-        self.max_call_time        += s.max_call_time
-        self.sum_of_squares       += s.sum_of_squares
-        update_times(s)
+      Array(other_stats).each do |other|
+        self.sum_attributes(other)
       end
-
       self
     end
 
-    def update_times(other)
+    def sum_attributes(other)
+      update_totals(other)
+      stack_min_max_from(other)
+      update_boundaries(other)
+    end
+
+    def stack_min_max_from(other)
+      self.min_call_time += other.min_call_time
+      self.max_call_time += other.max_call_time
+    end
+
+    def update_boundaries(other)
       self.begin_time = other.begin_time if should_replace_begin_time?(other)
       self.end_time = other.end_time if should_replace_end_time?(other)
     end
@@ -55,15 +60,31 @@ module NewRelic
       other.begin_time.to_f < begin_time.to_f || begin_time.to_f == 0.0
     end
 
+    def update_totals(other)
+      self.total_call_time      += other.total_call_time
+      self.total_exclusive_time += other.total_exclusive_time
+      self.sum_of_squares       += other.sum_of_squares      
+    end
+
+    def min_time_less?(other)
+      (other.min_call_time < min_call_time && other.call_count > 0) || call_count == 0
+    end
+
+    def expand_min_max_to(other)
+        self.min_call_time = other.min_call_time if min_time_less?(other)
+        self.max_call_time = other.max_call_time if other.max_call_time > max_call_time      
+    end
+
+    def merge_attributes(other)
+      update_totals(other)
+      expand_min_max_to(other)
+      self.call_count += other.call_count
+      update_boundaries(other)
+    end
+    
     def merge!(other_stats)
-      Array(other_stats).each do |s|
-        self.total_call_time += s.total_call_time
-        self.total_exclusive_time += s.total_exclusive_time
-        self.min_call_time = s.min_call_time if (s.min_call_time < min_call_time && s.call_count > 0) || call_count == 0
-        self.max_call_time = s.max_call_time if s.max_call_time > max_call_time
-        self.call_count += s.call_count
-        self.sum_of_squares += s.sum_of_squares
-        update_times(s)
+      Array(other_stats).each do |other|
+        merge_attributes(other)
       end
 
       self
@@ -71,7 +92,7 @@ module NewRelic
 
     def merge(other_stats)
       stats = self.clone
-      stats.merge! other_stats
+      stats.merge!(other_stats)
     end
 
     # split into an array of timeslices whose
@@ -252,11 +273,11 @@ module NewRelic
 
     def to_json(*a)
       {'call_count' => call_count,
-      'min_call_time' => min_call_time,
-      'max_call_time' => max_call_time,
-      'total_call_time' => total_call_time,
-      'total_exclusive_time' => total_exclusive_time,
-      'sum_of_squares' => sum_of_squares}.to_json(*a)
+        'min_call_time' => min_call_time,
+        'max_call_time' => max_call_time,
+        'total_call_time' => total_call_time,
+        'total_exclusive_time' => total_exclusive_time,
+        'sum_of_squares' => sum_of_squares}.to_json(*a)
     end
 
 
