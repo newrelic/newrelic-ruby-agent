@@ -65,6 +65,8 @@ module NewRelic
         attr_reader :shard
         attr_reader :application_id
         attr_reader :browser_apdex
+        attr_reader :beacon
+        attr_reader :episodes_file_path
 
         def record_transaction(duration_seconds, options={})
           is_error = options['is_error'] || options['error_message'] || options['exception']
@@ -441,6 +443,8 @@ module NewRelic
             @shard = connect_data['shard']
             @application_id = connect_data['application_id']
             @browser_apdex = connect_data['browser_apdex']
+            @beacon = connect_data['beacon']
+            @episodes_file_path = connect_data['episodes_file_path']
 
             control.log! "Connected to NewRelic Service at #{@collector}"
             log.debug "Agent Run       = #{@agent_id}."
