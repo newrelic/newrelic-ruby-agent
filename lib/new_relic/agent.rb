@@ -381,6 +381,8 @@ module NewRelic
     
     # PRE-RELEASE
     # Returns a Javascript string which should be injected into the very top of the response body
+    # == options
+    # * <tt>:protocol => 'http' or 'https'
     #
     def browser_instrumentation_header(options={})
       agent.browser_instrumentation_header(options)

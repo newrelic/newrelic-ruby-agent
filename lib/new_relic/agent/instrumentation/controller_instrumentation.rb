@@ -394,6 +394,7 @@ module NewRelic
       if http_entry_time
         queue_stat = NewRelic::Agent.agent.stats_engine.get_stats_no_scope 'WebFrontend/Mongrel/Average Queue Time'
         total_time = (now - http_entry_time)
+        Thread.current[:queue_time] = total_time    # HACK ALERT - this is used to communicate with the browser monitoring code
         queue_stat.trace_call(total_time.to_f) unless total_time.to_f <= 0.0 # using remote timestamps could lead to negative queue time
       end
       return http_entry_time ? Time.at(http_entry_time) : now
