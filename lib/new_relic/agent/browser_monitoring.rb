@@ -7,9 +7,7 @@ module NewRelic
         
         return "" if browser_key.nil?
 
-        shard = NewRelic::Agent.instance.shard
         application_id = NewRelic::Agent.instance.application_id
-        browser_apdex = NewRelic::Agent.instance.browser_apdex
         beacon = NewRelic::Agent.instance.beacon
         episodes_file_path = NewRelic::Agent.instance.episodes_file_path
         transaction_name = Thread::current[:newrelic_scope_name] 
@@ -24,9 +22,7 @@ module NewRelic
     if (EPISODES.isCompatible) {
       EPISODES.setBeacon("#{beacon}");
       EPISODES.setLicenseKey("#{browser_key}");
-      EPISODES.setShard("#{shard}");
       EPISODES.setApplicationID("#{application_id}");
-      EPISODES.setApdexT("#{browser_apdex}");
       EPISODES.setTransactionName("#{transaction_name}");
     }
   </script>
