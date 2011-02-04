@@ -3,7 +3,7 @@ module NewRelic
     module BrowserMonitoring
       def browser_instrumentation_header(options={})
         
-        options = {:protocol => 'http'}.merge(options)
+        options = {:protocol => 'https'}.merge(options)
         
         license_key = NewRelic::Agent.instance.browser_monitoring_key
         
