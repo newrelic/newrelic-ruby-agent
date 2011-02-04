@@ -20,7 +20,7 @@ module NewRelic
         file = "\"#{options[:protocol]}://#{episodes_file}\""
         
 <<-eos
-<script src=#{file} type="text/javascript"></script><script type="text/javascript" charset="utf-8">EPISODES.setContext("#{beacon}","#{license_key}","#{application_id}","#{transaction_name}")</script>
+<script src=#{file} type="text/javascript"></script><script type="text/javascript" charset="utf-8">NR_RUM.setContext("#{beacon}","#{license_key}","#{application_id}","#{transaction_name}")</script>
 eos
       end
       
@@ -36,7 +36,7 @@ eos
           app_time = ((Time.now - frame.start).to_f * 1000.0).round
  
 <<-eos
-<script type="text/javascript" charset="utf-8">EPISODES.recordFooter(#{queue_time},#{app_time})</script>
+<script type="text/javascript" charset="utf-8">NR_RUM.recordFooter(#{queue_time},#{app_time})</script>
 eos
         end
       end
