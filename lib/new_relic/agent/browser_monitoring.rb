@@ -11,13 +11,13 @@ module NewRelic
 
         application_id = NewRelic::Agent.instance.application_id
         beacon = NewRelic::Agent.instance.beacon
-        episodes_file_path = NewRelic::Agent.instance.episodes_file_path
+        episodes_file = NewRelic::Agent.instance.episodes_file
  
         transaction_name = Thread::current[:newrelic_scope_name] || "<unknown>"
         
         # Agents are hard-coded to a particular episodes JS file. This allows for radical future change
         # to the contents of that file
-        file = "\"#{options[:protocol]}://#{episodes_file_path}/episodes_1.js\""
+        file = "\"#{options[:protocol]}://#{episodes_file}\""
         
 <<-eos
 <script src=#{file} type="text/javascript"></script><script type="text/javascript" charset="utf-8">EPISODES.setContext("#{beacon}","#{license_key}","#{application_id}","#{transaction_name}")</script>

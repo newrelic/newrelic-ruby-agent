@@ -64,7 +64,7 @@ module NewRelic
         attr_reader :browser_monitoring_key
         attr_reader :application_id
         attr_reader :beacon
-        attr_reader :episodes_file_path
+        attr_reader :episodes_file
 
         def record_transaction(duration_seconds, options={})
           is_error = options['is_error'] || options['error_message'] || options['exception']
@@ -440,7 +440,7 @@ module NewRelic
             @browser_monitoring_key = connect_data['browser_key']
             @application_id = connect_data['application_id']
             @beacon = connect_data['beacon']
-            @episodes_file_path = connect_data['episodes_file_path']
+            @episodes_file = connect_data['episodes_file']
 
             control.log! "Connected to NewRelic Service at #{@collector}"
             log.debug "Agent Run       = #{@agent_id}."
