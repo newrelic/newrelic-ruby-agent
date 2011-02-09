@@ -42,7 +42,7 @@ module NewRelic
     # settings.  Must pass either a value or a block.  Block
     # is called to get the value and any raised errors are
     # silently ignored.
-    def append_environment_value name, value = nil
+    def append_environment_value(name, value = nil)
       value = yield if block_given?
       @config[name] = value if value
     rescue Exception
@@ -73,35 +73,49 @@ module NewRelic
       @dispatcher_instance_id
     end
 
-    # Collect base statistics about the environment and record them for
-    # comparison and change detection.
-    def gather_environment_info
-      append_environment_value 'Framework', @framework.to_s
-      append_environment_value 'Dispatcher', @dispatcher.to_s if @dispatcher
-      append_environment_value 'Dispatcher instance id', @dispatcher_instance_id if @dispatcher_instance_id
-      # This just creates a lot of keys
-      # append_environment_value('Application root') { File.expand_path(NewRelic::Control.instance.root) }
+    def gather_ruby_info
       append_environment_value('Ruby version'){ RUBY_VERSION }
       append_environment_value('Ruby description'){ RUBY_DESCRIPTION } if defined? ::RUBY_DESCRIPTION
       append_environment_value('Ruby platform') { RUBY_PLATFORM }
       append_environment_value('Ruby patchlevel') { RUBY_PATCHLEVEL }
+      # room here for other ruby implementations, when.
       if defined? ::JRUBY_VERSION
-        append_environment_value('JRuby version') { JRUBY_VERSION }
-        append_environment_value('Java VM version') { ENV_JAVA['java.vm.version']}
+        gather_jruby_info
       end
-      append_environment_value('OS version') { `uname -v` }
-      append_environment_value('OS') { `uname -s` } ||
-      append_environment_value('OS') { ENV['OS'] }
-      append_environment_value('Arch') { `uname -p` } ||
-      append_environment_value('Arch') { ENV['PROCESSOR_ARCHITECTURE'] }
-      # See what the number of cpus is, works only on linux.
+    end
+    
+    def gather_jruby_info
+      append_environment_value('JRuby version') { JRUBY_VERSION }
+      append_environment_value('Java VM version') { ENV_JAVA['java.vm.version']}
+    end
+    
+    # See what the number of cpus is, works only on linux.    
+    def gather_cpu_info
+      return unless File.readable? '/proc/cpuinfo'
       @processors = append_environment_value('Processors') do
         processors = File.readlines('/proc/cpuinfo').select { |line| line =~ /^processor\s*:/ }.size
         raise "Cannot determine the number of processors in /proc/cpuinfo" unless processors > 0
         processors
-      end if File.readable? '/proc/cpuinfo'
-      # The current Rails environment (development, test, or production).
-      append_environment_value('Environment') { NewRelic::Control.instance.env }
+      end
+    end
+
+    def gather_architecture_info
+      append_environment_value('Arch') { `uname -p` } ||
+        append_environment_value('Arch') { ENV['PROCESSOR_ARCHITECTURE'] }
+    end
+
+    def gather_os_info
+      append_environment_value('OS version') { `uname -v` }
+      append_environment_value('OS') { `uname -s` } ||
+        append_environment_value('OS') { ENV['OS'] }
+    end
+    
+    def gather_system_info
+      gather_architecture_info
+      gather_cpu_info
+    end
+
+    def gather_revision_info
       # Look for a capistrano file indicating the current revision:
       rev_file = File.join(NewRelic::Control.instance.root, "REVISION")
       if File.readable?(rev_file) && File.size(rev_file) < 64
@@ -109,22 +123,58 @@ module NewRelic
           File.open(rev_file) { | file | file.readline.strip }
         end
       end
-      # The name of the database adapter for the current environment.
-      if defined? ::ActiveRecord
-        append_environment_value 'Database adapter' do
-          ActiveRecord::Base.configurations[RAILS_ENV]['adapter']
-        end
-        append_environment_value 'Database schema version' do
-          ActiveRecord::Migrator.current_version
-        end
+    end
+
+    def gather_ar_adapter_info
+      # The name of the database adapter for the current environment.      
+      append_environment_value 'Database adapter' do
+        ActiveRecord::Base.configurations[rails_root]['adapter']
       end
-      if defined? ::DataMapper
-        append_environment_value 'DataMapper version' do
-          require 'dm-core/version'
-          DataMapper::VERSION
-        end
+      append_environment_value 'Database schema version' do
+        ActiveRecord::Migrator.current_version
       end
     end
+
+    def gather_dm_adapter_info
+      append_environment_value 'DataMapper version' do
+        require 'dm-core/version'
+        DataMapper::VERSION
+      end
+    end
+
+    def gather_db_info
+      # room here for more database adapters, when.
+      if defined? ::ActiveRecord
+        gather_ar_adapter_info
+      end
+      if defined? ::DataMapper
+        gather_dm_adapter_info
+      end
+    end
+
+    def rails_root
+      if defined?(Rails) && Rails.respond_to?(:root)
+        Rails.root
+      else
+        RAILS_ROOT
+      end
+    end
+
+    # Collect base statistics about the environment and record them for
+    # comparison and change detection.
+    def gather_environment_info
+      append_environment_value 'Framework', @framework.to_s
+      append_environment_value 'Dispatcher', @dispatcher.to_s if @dispatcher
+      append_environment_value 'Dispatcher instance id', @dispatcher_instance_id if @dispatcher_instance_id
+      append_environment_value('Environment') { NewRelic::Control.instance.env }
+      
+      # miscellaneous other helpful debugging information
+      gather_ruby_info
+      gather_system_info
+      gather_revision_info
+      gather_db_info
+    end
+    
     # Take a snapshot of the environment information for this application
     # Returns an associative array
     def snapshot
@@ -134,28 +184,30 @@ module NewRelic
       i
     end
 
+    def working_juby?
+      !(defined?(::JRuby) && Jruby.respond_to?(:runtime) && !JRuby.runtime.is_object_space_enabled)
+    end
+
+    def find_class_in_object_space(klass)
+      ObjectSpace.each_object(klass) do |x|
+        return x
+      end
+    end
+
     def mongrel
-      # Note that the odd defined? sequence is necessary to work around a bug in an older version
-      # of JRuby.
-      return @mongrel if @mongrel || ! (defined?(::Mongrel) && defined?(::Mongrel::HttpServer))
-      ObjectSpace.each_object(Mongrel::HttpServer) do |mongrel|
-        @mongrel = mongrel
-      end unless defined?(::JRuby) && !JRuby.runtime.is_object_space_enabled
+      return @mongrel if @mongrel
+      if defined?(::Mongrel) && defined?(::Mongrel::HttpServer) && working_jruby?
+        @mongrel = find_class_in_object_space(::Mongrel::HttpServer)
+      end
       @mongrel
     end
 
     def unicorn
-      return @unicorn if @unicorn || ! (defined?(::Unicorn) && defined?(::Unicorn::HttpServer))
-      ObjectSpace.each_object(Unicorn::HttpServer) do |unicorn|
-        @unicorn = unicorn
-      end unless defined?(::JRuby) && !JRuby.runtime.is_object_space_enabled
+      return @unicorn if @unicorn
+      if (defined?(::Unicorn) && defined?(::Unicorn::HttpServer)) && working_jruby?
+        @unicorn = find_class_in_object_space(::Unicorn::HttpServer)
+      end
       @unicorn
-    end
-
-    # Obsolete method for DelayedJob instrumentation support.  Now all DJ instrumentation
-    # is bundled in the newrelic_rpm gem and nobody should be invoking this method.
-    def delayed_worker=(worker)
-      $stderr.puts "WARNING: obsolete call to delayed_worker=(worker).  Please remove custom DJ instrumentation."
     end
 
     private
@@ -177,14 +229,14 @@ module NewRelic
       # Note that the odd defined? sequence is necessary to work around a bug in an older version
       # of JRuby.
       @framework ||= case
-        when ENV['NEWRELIC_FRAMEWORK'] then ENV['NEWRELIC_FRAMEWORK'].to_sym
-        when defined?(::NewRelic::TEST) then :test
-        when defined?(::Merb) && defined?(::Merb::Plugins) then :merb
-        when defined?(::Rails) then check_rails_version
-        when defined?(::Sinatra) && defined?(::Sinatra::Base) then :sinatra
-        when defined?(::NewRelic::IA) then :external
-      else :ruby
-      end
+                     when ENV['NEWRELIC_FRAMEWORK'] then ENV['NEWRELIC_FRAMEWORK'].to_sym
+                     when defined?(::NewRelic::TEST) then :test
+                     when defined?(::Merb) && defined?(::Merb::Plugins) then :merb
+                     when defined?(::Rails) then check_rails_version
+                     when defined?(::Sinatra) && defined?(::Sinatra::Base) then :sinatra
+                     when defined?(::NewRelic::IA) then :external
+                     else :ruby
+                     end
     end
 
     def check_rails_version
@@ -197,7 +249,7 @@ module NewRelic
 
     def check_for_torquebox
       return unless defined?(::JRuby) &&
-         ( Java::OrgTorqueboxRailsWebDeployers::RailsRackDeployer rescue nil)
+        ( Java::OrgTorqueboxRailsWebDeployers::RailsRackDeployer rescue nil)
       @dispatcher = :torquebox
     end
 
