@@ -3,6 +3,7 @@ require 'rack/request'
 require 'rack/response'
 require 'rack/file'
 require 'new_relic/metric_parser/metric_parser'
+require 'new_relic/collection_helper'
 
 module NewRelic
   module Rack
