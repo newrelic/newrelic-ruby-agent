@@ -1,4 +1,5 @@
-v2.13.5
+v2.13.4.eum1
+  * Add preliminary work on end user monitoring
   * Moved the API helper to the gihtub newrelic_api gem.
 
 v2.13.4
