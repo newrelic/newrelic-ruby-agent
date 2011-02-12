@@ -32,25 +32,31 @@ module Agent
         @sampler_thread['newrelic_label'] = 'Sampler Tasks'
       end
 
+      private
+      
+      def add_sampler_to(sampler_array, sampler)
+        raise "Sampler #{sampler.inspect} is already registered.  Don't call add_sampler directly anymore." if sampler_array.include?(sampler)
+        sampler_array << sampler
+        sampler.stats_engine = self
+      end
+
+      def log_added_sampler(type, sampler)
+        log.debug "Adding #{type} sampler: #{sampler.inspect}"
+      end
+      
+      public
+
       # Add an instance of Sampler to be invoked about every 10 seconds on a background
       # thread.
-      def add_sampler sampler
-        periodic_samplers.each do |s|
-          raise "Sampler #{sampler.object_id} is already registered.  Don't call add_sampler directly anymore." if s.object_id == sampler.object_id
-        end
-        periodic_samplers << sampler
-        sampler.stats_engine = self
-        log.debug "Adding sampler #{sampler.object_id.to_s}"
+      def add_sampler(sampler)
+        add_sampler_to(periodic_samplers, sampler)
+        log_added_sampler('periodic', sampler)
       end
 
       # Add a sampler to be invoked just before each harvest.
-      def add_harvest_sampler sampler
-        harvest_samplers.each do |s|
-          raise "Sampler #{sampler.id} is already registered.  Don't call add_sampler directly anymore." if s.id == sampler.id
-        end
-        harvest_samplers << sampler
-        sampler.stats_engine = self
-        log.debug "Adding harvest time sampler: #{sampler.id.to_s}"
+      def add_harvest_sampler(sampler)
+        add_sampler_to(harvest_samplers, sampler)
+        log_added_sampler('harvest-time', sampler)
       end
 
       private

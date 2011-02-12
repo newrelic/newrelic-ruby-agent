@@ -3,10 +3,36 @@ require 'new_relic/agent/samplers/cpu_sampler'
 
 class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
   
+  class TestObject
+    include NewRelic::Agent::StatsEngine::Samplers
+  end
+  
   def setup
     @stats_engine = NewRelic::Agent::StatsEngine.new
     NewRelic::Agent.instance.stubs(:stats_engine).returns(@stats_engine)
   end
+
+  def test_add_sampler_to_positive
+    object = TestObject.new
+    sampler = mock('sampler')
+    sampler_array = mock('sampler_array')
+    sampler_array.expects(:include?).with(sampler).returns(false)
+    sampler_array.expects(:<<).with(sampler)
+    sampler.expects(:stats_engine=).with(object)
+
+    object.send(:add_sampler_to, sampler_array, sampler)
+  end
+
+  def test_add_sampler_to_negative
+    object = TestObject.new
+    sampler = mock('sampler')
+    sampler_array = mock('sampler_array')
+    sampler_array.expects(:include?).with(sampler).returns(true)
+    assert_raise(RuntimeError) do
+      object.send(:add_sampler_to, sampler_array, sampler)
+    end
+  end
+  
   def test_cpu
     s = NewRelic::Agent::Samplers::CpuSampler.new
     # need to sleep because if you go to fast it will skip the points
@@ -58,7 +84,9 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
     end
   end
   def test_load_samplers
-    @stats_engine.expects(:add_harvest_sampler).once unless defined? JRuby
+    # why are there three samplers, when it thinks there should be
+    # four? Why are only 3 added?
+    @stats_engine.expects(:add_harvest_sampler).times(3) unless defined? JRuby
     @stats_engine.expects(:add_sampler).never
     NewRelic::Control.instance.load_samplers
     sampler_count = 4

@@ -18,15 +18,6 @@ make_notify_task = Proc.new do
       rails_env = fetch(:newrelic_rails_env, fetch(:rails_env, "production"))
       require File.join(File.dirname(__FILE__), 'command.rb')
       begin
-        # Try getting the changelog from the server.  Then fall back to local changelog
-        # if it doesn't work.  Problem is that I don't know what directory the .git is
-        # in when using git.  I could possibly use the remote cache but i don't know
-        # if that's always there.
-=begin
-        run "cd #{current_release}; #{log_command}" do | io, stream_id, output |
-          changelog = output
-        end
-=end
         # allow overrides to be defined for revision, description, changelog and appname
         rev = fetch(:newrelic_revision) if exists?(:newrelic_revision)
         description = fetch(:newrelic_desc) if exists?(:newrelic_desc)

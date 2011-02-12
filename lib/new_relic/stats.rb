@@ -9,51 +9,89 @@ module NewRelic
 
     def time_str(value_ms)
       case
-        when value_ms >= 10000
-       "%.1f s" % (value_ms / 1000.0)
-        when value_ms >= 5000
-       "%.2f s" % (value_ms / 1000.0)
+      when value_ms >= 10000
+        "%.1f s" % (value_ms / 1000.0)
+      when value_ms >= 5000
+        "%.2f s" % (value_ms / 1000.0)
       else
-       "%.0f ms" % value_ms
+        "%.0f ms" % value_ms
       end
     end
-
+    
+    # makes sure we aren't dividing by zero
+    def checked_calculation(numerator, denominator)
+      if denominator == 0
+        0.0
+      else
+        numerator / denominator
+      end
+    end
+    
     def average_call_time
-      return 0 if call_count == 0
-      total_call_time / call_count
+      checked_calculation(total_call_time, call_count)
     end
     def average_exclusive_time
-      return 0 if call_count == 0
-      total_exclusive_time / call_count
+      checked_calculation(total_exclusive_time, call_count)
     end
 
     # merge by adding to average response time
     # - used to compose multiple metrics e.g. dispatcher time + mongrel queue time
     def sum_merge! (other_stats)
-      Array(other_stats).each do |s|
-        self.total_call_time += s.total_call_time
-        self.total_exclusive_time += s.total_exclusive_time
-        self.min_call_time += s.min_call_time
-        self.max_call_time += s.max_call_time
-        #self.call_count += s.call_count - do not add call count because we are stacking these times on top of each other
-        self.sum_of_squares += s.sum_of_squares if s.sum_of_squares
-        self.begin_time = s.begin_time if s.begin_time.to_f < begin_time.to_f || begin_time.to_f == 0.0
-        self.end_time = s.end_time if s.end_time.to_f > end_time.to_f
+      Array(other_stats).each do |other|
+        self.sum_attributes(other)
       end
-
       self
     end
 
+    def sum_attributes(other)
+      update_totals(other)
+      stack_min_max_from(other)
+      update_boundaries(other)
+    end
+
+    def stack_min_max_from(other)
+      self.min_call_time += other.min_call_time
+      self.max_call_time += other.max_call_time
+    end
+
+    def update_boundaries(other)
+      self.begin_time = other.begin_time if should_replace_begin_time?(other)
+      self.end_time = other.end_time if should_replace_end_time?(other)
+    end
+
+    def should_replace_end_time?(other)
+      end_time.to_f < other.end_time.to_f
+    end
+
+    def should_replace_begin_time?(other)
+      other.begin_time.to_f < begin_time.to_f || begin_time.to_f == 0.0
+    end
+
+    def update_totals(other)
+      self.total_call_time      += other.total_call_time
+      self.total_exclusive_time += other.total_exclusive_time
+      self.sum_of_squares       += other.sum_of_squares      
+    end
+
+    def min_time_less?(other)
+      (other.min_call_time < min_call_time && other.call_count > 0) || call_count == 0
+    end
+
+    def expand_min_max_to(other)
+        self.min_call_time = other.min_call_time if min_time_less?(other)
+        self.max_call_time = other.max_call_time if other.max_call_time > max_call_time      
+    end
+
+    def merge_attributes(other)
+      update_totals(other)
+      expand_min_max_to(other)
+      self.call_count += other.call_count
+      update_boundaries(other)
+    end
+    
     def merge!(other_stats)
-      Array(other_stats).each do |s|
-        self.total_call_time += s.total_call_time
-        self.total_exclusive_time += s.total_exclusive_time
-        self.min_call_time = s.min_call_time if (s.min_call_time < min_call_time && s.call_count > 0) || call_count == 0
-        self.max_call_time = s.max_call_time if s.max_call_time > max_call_time
-        self.call_count += s.call_count
-        self.sum_of_squares += s.sum_of_squares if s.sum_of_squares
-        self.begin_time = s.begin_time if s.begin_time.to_f < begin_time.to_f || begin_time.to_f == 0.0
-        self.end_time = s.end_time if s.end_time.to_f > end_time.to_f
+      Array(other_stats).each do |other|
+        merge_attributes(other)
       end
 
       self
@@ -61,7 +99,7 @@ module NewRelic
 
     def merge(other_stats)
       stats = self.clone
-      stats.merge! other_stats
+      stats.merge!(other_stats)
     end
 
     # split into an array of timeslices whose
@@ -118,17 +156,12 @@ module NewRelic
     end
 
     def as_percentage_of(other_stats)
-      return 0 if other_stats.total_call_time == 0
-      return (total_call_time / other_stats.total_call_time) * 100.0
+      checked_calculation(total_call_time, other_stats.total_call_time) * 100.0
     end
 
     # the stat total_call_time is a percent
     def as_percentage
-      if call_count.zero?
-        0
-      else
-        (total_call_time / call_count) * 100.0
-      end
+      average_call_time * 100.0
     end
 
     def duration
@@ -136,11 +169,7 @@ module NewRelic
     end
 
     def calls_per_minute
-      if duration.zero?
-        0
-      else
-        (call_count / duration.to_f) * 60.0
-      end
+      checked_calculation(call_count, duration) * 60
     end
 
     def total_call_time_per_minute
@@ -161,13 +190,11 @@ module NewRelic
     # returns the time spent in this component as a percentage of the total
     # time window.
     def time_percentage
-      return 0 if duration == 0
-      total_call_time / duration
+      checked_calculation(total_call_time, duration)
     end
 
     def exclusive_time_percentage
-      return 0 if duration == 0
-      total_exclusive_time / duration
+      checked_calculation(total_exclusive_time, duration)
     end
 
     alias average_value average_call_time
@@ -181,18 +208,7 @@ module NewRelic
     # Summary string to facilitate testing
     def summary
       format = "%m/%d/%y %I:%M%p"
-      "[#{Time.at(begin_time).utc.strftime(format)} UTC, #{'%2.3fs' % duration}; #{'%2i' % call_count} calls #{'%4i' % to_ms(average_call_time)} ms]"
-    end
-
-    # round all of the values to n decimal points
-    def round!
-      self.total_call_time = round_to_3(total_call_time)
-      self.total_exclusive_time = round_to_3(total_exclusive_time)
-      self.min_call_time = round_to_3(min_call_time)
-      self.max_call_time = round_to_3(max_call_time)
-      self.sum_of_squares = round_to_3(sum_of_squares)
-      self.begin_time = begin_time
-      self.end_time = end_time
+      "[#{Time.at(begin_time).utc.strftime(format)} UTC, #{'%2.3fs' % duration}; #{'%2i' % call_count} calls #{'%4i' % average_call_time}s]"
     end
 
     # calculate this set of stats to be a percentage fraction
@@ -220,7 +236,6 @@ module NewRelic
       self
     end
 
-
     # returns s,t,f
     def get_apdex
       [@call_count, @total_call_time.to_i, @total_exclusive_time.to_i]
@@ -229,16 +244,6 @@ module NewRelic
     def apdex_score
       s, t, f = get_apdex
       (s.to_f + (t.to_f / 2)) / (s+t+f).to_f
-    end
-
-    private
-
-    def to_ms(number)
-      (number*1000).round
-    end
-
-    def round_to_3(val)
-      (val * 1000).round / 1000.0
     end
   end
 
@@ -264,11 +269,11 @@ module NewRelic
 
     def to_json(*a)
       {'call_count' => call_count,
-      'min_call_time' => min_call_time,
-      'max_call_time' => max_call_time,
-      'total_call_time' => total_call_time,
-      'total_exclusive_time' => total_exclusive_time,
-      'sum_of_squares' => sum_of_squares}.to_json(*a)
+        'min_call_time' => min_call_time,
+        'max_call_time' => max_call_time,
+        'total_call_time' => total_call_time,
+        'total_exclusive_time' => total_exclusive_time,
+        'sum_of_squares' => sum_of_squares}.to_json(*a)
     end
 
 
@@ -348,20 +353,18 @@ module NewRelic
   end
 
   class ScopedMethodTraceStats < MethodTraceStats
+    attr_accessor :unscoped_stats
     def initialize(unscoped_stats)
       super()
-      @unscoped_stats = unscoped_stats
+      self.unscoped_stats = unscoped_stats
     end
     def trace_call(call_time, exclusive_time = call_time)
-      @unscoped_stats.trace_call call_time, exclusive_time
+      unscoped_stats.trace_call call_time, exclusive_time
       super call_time, exclusive_time
     end
     def record_multiple_data_points(total_value, count=1)
-      @unscoped_stats.record_multiple_data_points(total_value, count)
+      unscoped_stats.record_multiple_data_points(total_value, count)
       super total_value, count
-    end
-    def unscoped_stats
-      @unscoped_stats
     end
   end
 end

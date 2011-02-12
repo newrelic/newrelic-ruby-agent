@@ -1,6 +1,8 @@
 module NewRelic; TEST = true; end unless defined? NewRelic::TEST
 ENV['RAILS_ENV'] = 'test'
 NEWRELIC_PLUGIN_DIR = File.expand_path(File.join(File.dirname(__FILE__),".."))
+$LOAD_PATH << '.'
+$LOAD_PATH << '../../..'
 $LOAD_PATH << File.join(NEWRELIC_PLUGIN_DIR,"test")
 $LOAD_PATH << File.join(NEWRELIC_PLUGIN_DIR,"ui/helpers")
 $LOAD_PATH.uniq!
@@ -24,7 +26,7 @@ if ENV['SKIP_RAILS'] || rails_config_missing?
   require File.join(NEWRELIC_PLUGIN_DIR, "lib/newrelic_rpm")
 else
   begin
-    require File.expand_path("../../../config/environment", NEWRELIC_PLUGIN_DIR)
+    require 'config/environment'
     require 'test_help'
   rescue LoadError
     puts "Unable to load Rails for New Relic tests: try setting the environment variable SKIP_RAILS=false"

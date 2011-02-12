@@ -2,6 +2,8 @@ require 'rack'
 require 'rack/request'
 require 'rack/response'
 require 'rack/file'
+require 'new_relic/metric_parser/metric_parser'
+require 'new_relic/collection_helper'
 
 module NewRelic
   module Rack
@@ -10,7 +12,7 @@ module NewRelic
       VIEW_PATH = File.expand_path('../../../../ui/views/', __FILE__)
       HELPER_PATH = File.expand_path('../../../../ui/helpers/', __FILE__)
       require File.join(HELPER_PATH, 'developer_mode_helper.rb')
-      require 'new_relic/metric_parser/metric_parser'
+
 
       include NewRelic::DeveloperModeHelper
 
