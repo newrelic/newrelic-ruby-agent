@@ -107,10 +107,6 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
       assert_equal i.to_s, err.params[:request_params][:x], err.params.inspect
     end
   end
-
-  def silence_stream(x=nil)
-    yield
-  end
   
   # Why would anyone undef these methods?
   class TestClass

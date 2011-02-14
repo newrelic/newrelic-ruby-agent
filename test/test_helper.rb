@@ -11,12 +11,7 @@ require 'rubygems'
 # We can speed things up in tests that don't need to load rails.
 # You can also run the tests in a mode without rails.  Many tests 
 # will be skipped.
-
-def rails_config_missing?
-  !File.exists?(File.expand_path('../../../config/environment.rb', NEWRELIC_PLUGIN_DIR))
-end
-
-if ENV['SKIP_RAILS'] || rails_config_missing?
+if ENV['SKIP_RAILS']
   dirs = File.dirname(__FILE__).split('/')
   while dirs.any? && !File.directory?((dirs+%w[log]).join('/'))
     dirs.pop
