@@ -32,25 +32,9 @@ module NewRelic
           @instrumentation_files << pattern
         end
       end
-
-      def _delayed_instrumentation
-        Rails.configuration.after_initialize do
-          _install_instrumentation
-        end
-      rescue
-        _install_instrumentation
-      end
-
+      
       def install_instrumentation
-        if defined?(Rails) && !Rails.initialized?
-          _delayed_instrumentation
-        else
-          _install_instrumentation
-        end
-      rescue NameError
-        # needed in the rails 3 case, where Rails.initialized? raises
-        # an error if rails has not been initialised. which is totally sane.
-        _delayed_instrumentation
+        _install_instrumentation
       end
 
       def load_samplers

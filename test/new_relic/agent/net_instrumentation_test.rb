@@ -26,7 +26,7 @@ class NewRelic::Agent::NetInstrumentationTest < Test::Unit::TestCase
       assert_match /<head>/, res.body
     end
     assert_equal %w[External/www.google.com/Net::HTTP/GET External/allOther External/www.google.com/all
-       External/www.google.com/Net::HTTP/GET:OtherTransaction/Background/NewRelic::Agent::NetInstrumentationTest/task].sort, engine.metrics.select{|m| m =~ /^External/}.sort
+       External/www.google.com/Net::HTTP/GET:OtherTransaction/Background/NewRelic::Agent::NetInstrumentationTest/task].sort, @engine.metrics.select{|m| m =~ /^External/}.sort
   end
 
   def test_transactional
