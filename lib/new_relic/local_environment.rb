@@ -128,7 +128,7 @@ module NewRelic
     def gather_ar_adapter_info
       # The name of the database adapter for the current environment.      
       append_environment_value 'Database adapter' do
-        ActiveRecord::Base.configurations[rails_root]['adapter']
+        ActiveRecord::Base.configurations[NewRelic::Control.instance.env]['adapter']
       end
       append_environment_value 'Database schema version' do
         ActiveRecord::Migrator.current_version
@@ -149,14 +149,6 @@ module NewRelic
       end
       if defined? ::DataMapper
         gather_dm_adapter_info
-      end
-    end
-
-    def rails_root
-      if defined?(Rails) && Rails.respond_to?(:root)
-        Rails.root
-      else
-        RAILS_ROOT
       end
     end
 
