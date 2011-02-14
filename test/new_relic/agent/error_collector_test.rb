@@ -160,4 +160,10 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
     assert_equal 0, errors.length
   end
   
+  private
+  def silence_stream(*args)
+    super
+  rescue NoMethodError
+    yield
+  end
 end
