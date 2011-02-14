@@ -25,9 +25,8 @@ class NewRelic::Agent::NetInstrumentationTest < Test::Unit::TestCase
       }
       assert_match /<head>/, res.body
     end
-    assert_equal @engine.metrics.select{|m| m =~ /^External/}.sort, 
-       %w[External/www.google.com/Net::HTTP/GET External/allOther External/www.google.com/all
-       External/www.google.com/Net::HTTP/GET:OtherTransaction/Background/NewRelic::Agent::NetInstrumentationTest/task].sort
+    assert_equal %w[External/www.google.com/Net::HTTP/GET External/allOther External/www.google.com/all
+       External/www.google.com/Net::HTTP/GET:OtherTransaction/Background/NewRelic::Agent::NetInstrumentationTest/task].sort, engine.metrics.select{|m| m =~ /^External/}.sort
   end
 
   def test_transactional
@@ -38,9 +37,8 @@ class NewRelic::Agent::NetInstrumentationTest < Test::Unit::TestCase
       }
       assert_match /<head>/, res.body
     end
-    assert_equal @engine.metrics.select{|m| m =~ /^External/}.sort, 
-       %w[External/www.google.com/Net::HTTP/GET External/allWeb External/www.google.com/all
-       External/www.google.com/Net::HTTP/GET:Controller/NewRelic::Agent::NetInstrumentationTest/task].sort
+    assert_equal %w[External/www.google.com/Net::HTTP/GET External/allWeb External/www.google.com/all
+       External/www.google.com/Net::HTTP/GET:Controller/NewRelic::Agent::NetInstrumentationTest/task].sort, @engine.metrics.select{|m| m =~ /^External/}.sort
   end
   def test_get__simple
     Net::HTTP.get URI.parse('http://www.google.com/index.html')
