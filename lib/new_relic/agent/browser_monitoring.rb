@@ -5,6 +5,21 @@ module NewRelic
         
         options = {:protocol => 'https'}.merge(options)
         
+        return "" if NewRelic::Agent.instance.browser_monitoring_key.nil?
+        
+        episodes_file = NewRelic::Agent.instance.episodes_file
+ 
+        # Agents are hard-coded to a particular episodes JS file. This allows for radical future change
+        # to the contents of that file
+        file = "\"#{options[:protocol]}://#{episodes_file}\""
+        
+<<-eos
+<script src=#{file} type="text/javascript"></script>
+eos
+      end
+      
+      def browser_instrumentation_footer(options={})
+        
         license_key = NewRelic::Agent.instance.browser_monitoring_key
         
         return "" if license_key.nil?
@@ -15,19 +30,6 @@ module NewRelic
  
         transaction_name = Thread::current[:newrelic_scope_name] || "<unknown>"
         
-        # Agents are hard-coded to a particular episodes JS file. This allows for radical future change
-        # to the contents of that file
-        file = "\"#{options[:protocol]}://#{episodes_file}\""
-        
-<<-eos
-<script src=#{file} type="text/javascript"></script><script type="text/javascript" charset="utf-8">NREUM.setContext("#{beacon}","#{license_key}","#{application_id}","#{transaction_name}")</script>
-eos
-      end
-      
-      def browser_instrumentation_footer(options={})
-        
-        return "" if NewRelic::Agent.instance.browser_monitoring_key.nil?
-        
         frame = Thread.current[:newrelic_metric_frame]
         
         if frame && frame.start
@@ -36,7 +38,7 @@ eos
           app_time = ((Time.now - frame.start).to_f * 1000.0).round
  
 <<-eos
-<script type="text/javascript" charset="utf-8">NREUM.recordFooter(#{queue_time},#{app_time})</script>
+<script type="text/javascript" charset="utf-8">NREUM.setContext("#{beacon}","#{license_key}","#{application_id}","#{transaction_name}","#{queue_time}","#{app_time}")</script>
 eos
         end
       end
