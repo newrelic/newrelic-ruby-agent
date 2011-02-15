@@ -1,3 +1,5 @@
+require 'new_relic/agent/sampler'
+
 module NewRelic
   module Agent
     module Samplers
