@@ -39,7 +39,8 @@ require 'test/unit'
 require 'shoulda'
 require 'test_contexts'
 require 'mocha'
-
+require 'mocha/integration/test_unit'
+require 'mocha/integration/test_unit/assertion_counter'
 class Test::Unit::TestCase
   include Mocha::API
 
