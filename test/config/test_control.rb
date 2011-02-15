@@ -1,6 +1,14 @@
 require 'new_relic/control/frameworks/rails'
+require 'new_relic/control/frameworks/rails3'
 
-class NewRelic::Control::Frameworks::Test < NewRelic::Control::Frameworks::Rails #:nodoc:
+if defined?(Rails) && Rails.respond_to?(:version) && Rails.version.to_i == 3
+  parent_class = NewRelic::Control::Frameworks::Rails3
+else
+  parent_class = NewRelic::Control::Frameworks::Rails
+end
+
+
+class NewRelic::Control::Frameworks::Test < parent_class
   def env
     'test'
   end
