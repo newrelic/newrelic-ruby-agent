@@ -3,18 +3,21 @@ module NewRelic
     module BrowserMonitoring
       def browser_instrumentation_header(options={})
         
-        options = {:protocol => 'https'}.merge(options)
-        
         return "" if NewRelic::Agent.instance.browser_monitoring_key.nil?
         
-        episodes_file = NewRelic::Agent.instance.episodes_file
- 
-        # Agents are hard-coded to a particular episodes JS file. This allows for radical future change
-        # to the contents of that file
-        file = "\"#{options[:protocol]}://#{episodes_file}\""
+        episodes_file = "//" + NewRelic::Agent.instance.episodes_file
         
 <<-eos
-<script src=#{file} type="text/javascript"></script>
+<script>
+var EPISODES=EPISODES||{};
+EPISODES.q=[];
+EPISODES.q.push(["mark","firstbyte",new Date().getTime()]);
+(function() {
+ var e=document.createElement("script");e.type="text/javascript";e.async=true;
+ e.src=document.location.protocol+"#{episodes_file}";
+ var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(e,s);
+})();
+</script>
 eos
       end
       
@@ -38,7 +41,7 @@ eos
           app_time = ((Time.now - frame.start).to_f * 1000.0).round
  
 <<-eos
-<script type="text/javascript" charset="utf-8">NREUM.setContext("#{beacon}","#{license_key}","#{application_id}","#{transaction_name}","#{queue_time}","#{app_time}")</script>
+<script type="text/javascript" charset="utf-8">EPISODES.q.push(["nrfinish","#{beacon}","#{license_key}","#{application_id}","#{transaction_name}","#{queue_time}","#{app_time}"])</script>
 eos
         end
       end
