@@ -22,7 +22,7 @@ if ENV['SKIP_RAILS']
 else
   begin
     require 'config/environment'
-    require 'test_help'
+    #require 'test_help'
   rescue LoadError
     puts "Unable to load Rails for New Relic tests: try setting the environment variable SKIP_RAILS=false"
     raise
