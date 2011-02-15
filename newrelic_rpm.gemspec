@@ -149,6 +149,7 @@ http://github.com/newrelic/rpm/tree/master.
     "test/new_relic/agent/task_instrumentation_test.rb",
     "test/new_relic/agent/testable_agent.rb",
     "test/new_relic/agent/transaction_sample_builder_test.rb",
+    "test/new_relic/agent/transaction_sample_subtest_test.rb",
     "test/new_relic/agent/transaction_sample_test.rb",
     "test/new_relic/agent/transaction_sampler_test.rb",
     "test/new_relic/agent/worker_loop_test.rb",

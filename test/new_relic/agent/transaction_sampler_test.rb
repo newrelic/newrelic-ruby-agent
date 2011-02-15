@@ -28,6 +28,11 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     @sampler = NewRelic::Agent::TransactionSampler.new
     stats_engine.transaction_sampler = @sampler
   end
+
+  def teardown
+    @sampler.send(:clear_builder)
+  end
+  
   
   def test_multiple_samples
     
@@ -94,7 +99,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
   def test_sample_id 
     run_sample_trace do 
-      assert @sampler.current_sample_id != 0, @sampler.current_sample_id 
+      assert((@sampler.current_sample_id && @sampler.current_sample_id != 0), @sampler.current_sample_id.to_s + ' should not be zero')
     end
   end
   
@@ -261,6 +266,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   def test_segment_obfuscated
     
     @sampler.notice_first_scope_push Time.now.to_f
+    @sampler.notice_push_scope "foo"
     
     orig_sql = "SELECT * from Jim where id=66"
     
@@ -270,6 +276,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     
     assert_equal orig_sql, segment[:sql]
     assert_equal "SELECT * from Jim where id=?", segment.obfuscated_sql
+    @sampler.notice_pop_scope "foo"
   end
   
   
