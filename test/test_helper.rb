@@ -33,6 +33,8 @@ else
     raise
   end
 end
+require 'new_relic/agent'
+NewRelic::Agent.manual_start
 require 'test/unit'
 require 'mocha'
 require 'shoulda'
