@@ -22,7 +22,12 @@ if ENV['SKIP_RAILS']
 else
   begin
     require 'config/environment'
-    #require 'test_help'
+    begin
+      require 'test_help'
+    rescue LoadError
+      # ignore load problems on test help - it doesn't exist in rails 3
+    end
+    
   rescue LoadError
     puts "Unable to load Rails for New Relic tests: try setting the environment variable SKIP_RAILS=false"
     raise
