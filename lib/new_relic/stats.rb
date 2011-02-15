@@ -20,7 +20,7 @@ module NewRelic
     
     # makes sure we aren't dividing by zero
     def checked_calculation(numerator, denominator)
-      if denominator == 0
+      if denominator.nil? || denominator == 0
         0.0
       else
         numerator / denominator
@@ -165,7 +165,7 @@ module NewRelic
     end
 
     def duration
-      end_time - begin_time
+      end_time ? (end_time - begin_time) : 0.0
     end
 
     def calls_per_minute
@@ -208,7 +208,7 @@ module NewRelic
     # Summary string to facilitate testing
     def summary
       format = "%m/%d/%y %I:%M%p"
-      "[#{Time.at(begin_time).utc.strftime(format)} UTC, #{'%2.3fs' % duration}; #{'%2i' % call_count} calls #{'%4i' % average_call_time}s]"
+      "[#{Time.at(begin_time.to_f).utc.strftime(format)} UTC, #{'%2.3fs' % duration.to_f}; #{'%2i' % call_count.to_i} calls #{'%4i' % average_call_time.to_f}s]"
     end
 
     # calculate this set of stats to be a percentage fraction

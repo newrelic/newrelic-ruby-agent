@@ -157,7 +157,7 @@ class NewRelic::MetricSpecTest < Test::Unit::TestCase
     
     s3 = s1.merge(s2)
     
-    assert(s1.sum_of_squares, 4*4 + 7*7)
+    assert_equal(s1.sum_of_squares, 4*4 + 7*7)
     assert_in_delta(s1.standard_deviation, 1.5, 0.01)
     
     assert_in_delta(s2.standard_deviation, 1.5, 0.01)

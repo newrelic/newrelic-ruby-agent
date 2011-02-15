@@ -36,9 +36,17 @@ end
 require 'new_relic/agent'
 NewRelic::Agent.manual_start
 require 'test/unit'
-require 'mocha'
 require 'shoulda'
 require 'test_contexts'
+require 'mocha'
+
+class Test::Unit::TestCase
+  include Mocha::API
+
+  def teardown
+    mocha_teardown
+  end
+end
 
 def assert_between(floor, ceiling, value, message = nil)
   assert floor <= value && value <= ceiling,

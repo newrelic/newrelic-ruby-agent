@@ -91,7 +91,7 @@ class RpmAgentTest < Test::Unit::TestCase # ActiveSupport::TestCase
         end
         assert_equal false, Thread::current[:record_sql]
       end
-      assert !Thread::current[:record_sql], Thread::current[:record_sql]
+      assert !Thread::current[:record_sql]
       @agent.set_record_sql(nil)
     end
     
