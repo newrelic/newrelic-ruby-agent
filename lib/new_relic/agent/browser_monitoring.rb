@@ -29,8 +29,6 @@ eos
 
         application_id = NewRelic::Agent.instance.application_id
         beacon = NewRelic::Agent.instance.beacon
-        episodes_file = NewRelic::Agent.instance.episodes_file
- 
         transaction_name = Thread::current[:newrelic_scope_name] || "<unknown>"
         
         frame = Thread.current[:newrelic_metric_frame]
