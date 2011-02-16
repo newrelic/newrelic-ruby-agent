@@ -22,8 +22,12 @@ class AgentControllerTest < ActionController::TestCase
     ActionController::Routing::Routes.draw do | map |
       map.connect '/:controller/:action.:format'
       map.connect '/:controller/:action'
-    end
+      end
   end
+
+    if defined?(Rails) && Rails.respond_to?(:application) && Rails.application.respond_to?(:routes)
+      @routes = Rails.application.routes
+    end
   
     Thread.current[:newrelic_ignore_controller] = nil
     NewRelic::Agent.manual_start

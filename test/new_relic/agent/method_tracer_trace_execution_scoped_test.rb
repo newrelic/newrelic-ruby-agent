@@ -1,19 +1,25 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
-class NewRelic::Agent::AgentStartTest < Test::Unit::TestCase
+class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Test::Unit::TestCase
   require 'new_relic/agent/method_tracer'
   include NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScoped
   
   def test_trace_disabled_negative
     self.expects(:traced?).returns(false)
     options = {:force => false}
-    assert !(trace_disabled?(options))
+    assert trace_disabled?(options)
   end
   
-  def test_trace_disabled_negative
+  def test_trace_disabled_forced
     self.expects(:traced?).returns(false)
     options = {:force => true}
     assert !(trace_disabled?(options))
   end
+
+  def test_trace_disabled_positive
+    self.expects(:traced?).returns(true)
+    options = {:force => false}
+    assert !(trace_disabled?(options))
+  end  
 
   def test_get_stats_unscoped
     fake_engine = mocked_object('stat_engine')
@@ -92,7 +98,7 @@ class NewRelic::Agent::AgentStartTest < Test::Unit::TestCase
     pop_flag!(true)
   end
 
-  def test_pop_flag_true
+  def test_pop_flag_false
     self.expects(:agent_instance).never
     pop_flag!(false)
   end
