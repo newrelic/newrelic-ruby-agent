@@ -170,7 +170,7 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
     sample = NewRelic::Agent.instance.transaction_sampler.last_sample
     
     segment = sample.root_segment.called_segments.first.called_segments.first.called_segments.first
-    assert_match /^SELECT \* FROM ["`]?#{ActiveRecordFixtures::Order.table_name}["`]?$/i, segment.params[:sql].strip
+    assert_match %r{^SELECT (["`]?#{ActiveRecordFixtures::Order.table_name}["`]?.)?\* FROM ["`]?#{ActiveRecordFixtures::Order.table_name}["`]?$}, segment.params[:sql].strip #" - stupid editor
     NewRelic::TransactionSample::Segment.any_instance.expects(:explain_sql).returns([])
     sample = sample.prepare_to_send(:record_sql => :obfuscated, :explain_sql => 0.0)
     segment = sample.root_segment.called_segments.first.called_segments.first
