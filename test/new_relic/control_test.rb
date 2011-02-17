@@ -34,8 +34,13 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   end
   
   def test_test_config
-    assert_equal :rails, c.app if defined? Rails
-    assert_equal :test, c.app if !defined? Rails
+    if defined?(Rails) && Rails.respond_to?(:version) && Rails.version.to_i > 2
+      assert_equal :rails3, c.app
+    elsif defined?(Rails)
+      assert_equal :rails, c.app      
+    else
+      assert_equal :test, c.app
+    end
     assert_equal :test, c.framework
     assert_match /test/i, c.dispatcher_instance_id
     assert_equal nil, c.dispatcher

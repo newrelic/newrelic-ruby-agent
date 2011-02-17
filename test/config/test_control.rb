@@ -13,7 +13,11 @@ class NewRelic::Control::Frameworks::Test < parent_class
     'test'
   end
   def app
-    :rails
+    if defined?(Rails) && Rails.respond_to?(:version) && Rails.version.to_i == 3
+      :rails3
+    else
+      :rails
+    end
   end
   
   def initialize *args

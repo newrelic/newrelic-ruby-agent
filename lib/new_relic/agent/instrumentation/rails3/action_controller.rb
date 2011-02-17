@@ -30,7 +30,7 @@ module NewRelic
               end
             end
 
-            perform_action_with_newrelic_trace(:category => :controller, :name => self.action_name, :params => request.filtered_parameters, :class_name => self.class.name)  do
+            perform_action_with_newrelic_trace(:category => :controller, :name => self.action_name, :path => newrelic_metric_path, :params => request.filtered_parameters, :class_name => self.class.name)  do
               super
             end
           end
