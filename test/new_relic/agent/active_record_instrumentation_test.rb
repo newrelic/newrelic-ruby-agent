@@ -54,6 +54,9 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
   end
   
   def test_metric_names
+    if self.respond_to?(:omit)
+      omit(defined?(Rails) && Rails.respond_to?(:version) && Rails.version.to_i == 3)
+    end
     m = ActiveRecordFixtures::Order.create :id => 0, :name => 'jeff'
     m = ActiveRecordFixtures::Order.find(m.id)
     m.id = 999
@@ -77,6 +80,9 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
     assert_equal (defined?(JRuby) ? 0 : 1), NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Order/create").call_count
   end
   def test_join_metrics
+    if self.respond_to?(:omit)
+      omit(defined?(Rails) && Rails.respond_to?(:version) && Rails.version.to_i == 3)
+    end    
     m = ActiveRecordFixtures::Order.create :name => 'jeff'
     m = ActiveRecordFixtures::Order.find(m.id)
     s = m.shipments.create
