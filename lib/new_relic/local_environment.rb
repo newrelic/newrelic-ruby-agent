@@ -128,7 +128,10 @@ module NewRelic
     def gather_ar_adapter_info
       # The name of the database adapter for the current environment.      
       append_environment_value 'Database adapter' do
-        ActiveRecord::Base.configurations[NewRelic::Control.instance.env]['adapter']
+        config = ActiveRecord::Base.configurations[NewRelic::Control.instance.env]
+        if config
+          config['adapter']
+        end
       end
       append_environment_value 'Database schema version' do
         ActiveRecord::Migrator.current_version
