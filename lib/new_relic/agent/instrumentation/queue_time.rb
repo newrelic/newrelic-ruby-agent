@@ -13,17 +13,19 @@ module NewRelic
           ALL_SERVER_METRIC = 'WebFrontend/WebServer/all'
           ALL_MIDDLEWARE_METRIC = 'Middleware/all'
         end
-
+        
+        # XXX example method for future usage in the ControllerInstrumentation
         def main_method_to_be_named
           end_time = Time.now
           add_end_time_header(end_time, env)
-          parse_queue_time_from(env)
           parse_middleware_time_from(env)
+          parse_queue_time_from(env)
+          parse_server_time_from(env)          
         end
         
-        # main method to extract queue time info from env hash,
+        # main method to extract server time info from env hash,
         # records individual server metrics and one roll-up for all servers
-        def parse_queue_time_from(env)
+        def parse_server_time_from(env)
           end_time = parse_end_time(env)
           matches = get_matches_from_header(MAIN_HEADER, env)
           
@@ -76,7 +78,7 @@ module NewRelic
         # next: Time.at(1001), ['a', Time.at(1000)]
         # see tests for more
         def record_individual_server_stats(end_time, matches) # (Time, [[String, Time]]) -> nil
-            record_individual_stat_of_type(:record_queue_time_for, end_time, matches)
+            record_individual_stat_of_type(:record_server_time_for, end_time, matches)
         end
 
         def record_individual_middleware_stats(end_time, matches)
@@ -103,7 +105,7 @@ module NewRelic
         end
         
         # basically just assembles the metric name
-        def record_queue_time_for(name, start_time, end_time) # (Maybe String, Time, Time) -> nil
+        def record_server_time_for(name, start_time, end_time) # (Maybe String, Time, Time) -> nil
           record_time_stat(SERVER_METRIC + name, start_time, end_time) if name
         end
 

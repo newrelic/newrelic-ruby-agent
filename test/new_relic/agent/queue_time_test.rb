@@ -17,15 +17,31 @@ class QueueTimeTest < Test::Unit::TestCase
     env[APP_HEADER] = "t=#{convert_to_microseconds(Time.at(1002))}"
   end
 
+  def test_combined_middleware_and_server
+    env = {}
+    env[MAIN_HEADER] = "t=#{convert_to_microseconds(Time.at(1000))}"
+    env[MIDDLEWARE_HEADER] = "t=#{convert_to_microseconds(Time.at(1001))}"
+    # this should also include queue time
+    create_test_start_time(env)
+
+    assert_calls_metrics('WebFrontend/WebServer/all', 'Middleware/all') do
+      parse_server_time_from(env)
+      parse_middleware_time_from(env)
+    end
+    
+    check_metric('WebFrontend/WebServer/all', 1.0, 0.001)
+    check_metric('Middleware/all', 1.0, 0.001)
+  end
+
   # initial base case, a router and a static content server
-  def test_parse_queue_time_from_initial
+  def test_parse_server_time_from_initial
     env = {}
     create_test_start_time(env)
     time1 = convert_to_microseconds(Time.at(1000))
     time2 = convert_to_microseconds(Time.at(1001))
     env['HTTP_X_REQUEST_START'] = "servera t=#{time1}, serverb t=#{time2}"
     assert_calls_metrics('WebFrontend/WebServer/all', 'WebFrontend/WebServer/servera', 'WebFrontend/WebServer/serverb') do
-      parse_queue_time_from(env)
+      parse_server_time_from(env)
     end
     check_metric('WebFrontend/WebServer/all', 2.0, 0.1)
     check_metric('WebFrontend/WebServer/servera', 1.0, 0.1)
@@ -33,18 +49,18 @@ class QueueTimeTest < Test::Unit::TestCase
   end
 
   # test for backwards compatibility with old header
-  def test_parse_queue_time_from_with_no_server_name
+  def test_parse_server_time_from_with_no_server_name
     env = {'HTTP_X_REQUEST_START' => "t=#{convert_to_microseconds(Time.at(1001))}"}
     create_test_start_time(env)
     assert_calls_metrics('WebFrontend/WebServer/all') do
-      parse_queue_time_from(env)
+      parse_server_time_from(env)
     end
     check_metric('WebFrontend/WebServer/all', 1.0, 0.1)
   end
 
-  def test_parse_queue_time_from_with_no_header
+  def test_parse_server_time_from_with_no_header
     assert_calls_metrics('WebFrontend/WebServer/all') do
-      parse_queue_time_from({})
+      parse_server_time_from({})
     end
   end
   
@@ -118,12 +134,12 @@ class QueueTimeTest < Test::Unit::TestCase
   end
 
   # trivial test but the method doesn't do much
-  def test_record_queue_time_for
+  def test_record_server_time_for
     name = 'foo'
     time = Time.at(1000)
     start_time = Time.at(1001)
     self.expects(:record_time_stat).with('WebFrontend/WebServer/foo', time, start_time)
-    record_queue_time_for(name, time, start_time)
+    record_server_time_for(name, time, start_time)
   end
 
   def test_record_time_stat
