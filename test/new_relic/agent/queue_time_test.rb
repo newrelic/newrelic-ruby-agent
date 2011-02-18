@@ -13,11 +13,16 @@ class QueueTimeTest < Test::Unit::TestCase
     assert_between (value - delta), (value + delta), time, "Metric #{metric} not in expected range: was #{time} but expected in #{value - delta} to #{value + delta}!"
   end
 
+  def create_test_start_time(env)
+    env[APP_HEADER] = "t=#{convert_to_microseconds(Time.at(1002))}"
+  end
+
   # initial base case, a router and a static content server
   def test_parse_queue_time_from_initial
     env = {}
-    time1 = ((Time.now - 2).to_f * 1_000_000.0).to_i
-    time2 = ((Time.now - 1).to_f * 1_000_000.0).to_i
+    create_test_start_time(env)
+    time1 = convert_to_microseconds(Time.at(1000))
+    time2 = convert_to_microseconds(Time.at(1001))
     env['HTTP_X_REQUEST_START'] = "servera t=#{time1}, serverb t=#{time2}"
     assert_calls_metrics('WebFrontend/WebServer/all', 'WebFrontend/WebServer/servera', 'WebFrontend/WebServer/serverb') do
       parse_queue_time_from(env)
@@ -26,11 +31,13 @@ class QueueTimeTest < Test::Unit::TestCase
     check_metric('WebFrontend/WebServer/servera', 1.0, 0.1)
     check_metric('WebFrontend/WebServer/serverb', 1.0, 0.1)
   end
-  
+
   # test for backwards compatibility with old header
   def test_parse_queue_time_from_with_no_server_name
+    env = {'HTTP_X_REQUEST_START' => "t=#{convert_to_microseconds(Time.at(1001))}"}
+    create_test_start_time(env)
     assert_calls_metrics('WebFrontend/WebServer/all') do
-      parse_queue_time_from({'HTTP_X_REQUEST_START' => "t=#{convert_to_microseconds(Time.now) - 1000000}"})
+      parse_queue_time_from(env)
     end
     check_metric('WebFrontend/WebServer/all', 1.0, 0.1)
   end
@@ -39,6 +46,21 @@ class QueueTimeTest < Test::Unit::TestCase
     assert_calls_metrics('WebFrontend/WebServer/all') do
       parse_queue_time_from({})
     end
+  end
+  
+  def test_parse_middleware_time
+    env = {}
+    create_test_start_time(env)
+    time1 = convert_to_microseconds(Time.at(1000))
+    time2 = convert_to_microseconds(Time.at(1001))
+
+    env['HTTP_X_MIDDLEWARE_START'] = "base t=#{time1}, second t=#{time2}"
+    assert_calls_metrics('Middleware/all', 'Middleware/base', 'Middleware/second') do
+      parse_middleware_time_from(env)
+    end
+    check_metric('Middleware/all', 2.0, 0.1)
+    check_metric('Middleware/base', 1.0, 0.1)
+    check_metric('Middleware/second', 1.0, 0.1)
   end
 
   # each server should be one second, and the total would be 2 seconds
@@ -51,16 +73,16 @@ class QueueTimeTest < Test::Unit::TestCase
     check_metric('WebFrontend/WebServer/bar', 1.0, 0.1)
   end
 
-  def test_record_rollup_stat
+  def test_record_rollup_server_stat
     assert_calls_metrics('WebFrontend/WebServer/all') do
-      record_rollup_stat(Time.at(1001), [['a', Time.at(1000)]])
+      record_rollup_server_stat(Time.at(1001), [['a', Time.at(1000)]])
     end
     check_metric('WebFrontend/WebServer/all', 1.0, 0.1)
   end
 
-  def test_record_rollup_stat_no_data
+  def test_record_rollup_server_stat_no_data
     assert_calls_metrics('WebFrontend/WebServer/all') do
-      record_rollup_stat(Time.at(1001), [])
+      record_rollup_server_stat(Time.at(1001), [])
     end
     check_metric('WebFrontend/WebServer/all', 0.0, 0.001)
   end
@@ -99,7 +121,7 @@ class QueueTimeTest < Test::Unit::TestCase
     end
   end
 
-    def test_convert_to_microseconds
+  def test_convert_to_microseconds
     assert_equal((1_000_000_000), convert_to_microseconds(Time.at(1000)), 'time at 1000 seconds past epoch should be 1,000,000,000 usec')
     assert_equal 1_000_000_000, convert_to_microseconds(1_000_000_000), 'should not mess with a number if passed in'
     assert_raises(TypeError) do
@@ -113,5 +135,54 @@ class QueueTimeTest < Test::Unit::TestCase
     assert_raises(TypeError) do
       convert_from_microseconds('10000000000')
     end
+  end
+
+  def test_add_end_time_header
+    env = {}
+    start_time = Time.at(1)
+    add_end_time_header(start_time, env)
+    assert_equal({'HTTP_X_APPLICATION_START' => "t=#{convert_to_microseconds(Time.at(1))}"}, env, "should add the header to the env hash")
+  end
+
+  def test_parse_end_time_base
+    env = {}
+    env['HTTP_X_APPLICATION_START'] = "t=#{convert_to_microseconds(Time.at(1))}"
+    start_time = parse_end_time(env)
+    assert_equal(Time.at(1), start_time, "should pull the correct start time from the app header")
+  end
+
+  def test_get_matches_from_header
+    env = {'A HEADER' => 't=1000000'}
+    self.expects(:convert_from_microseconds).with(1000000).returns(Time.at(1))
+    matches = get_matches_from_header('A HEADER', env)
+    assert_equal [[nil, Time.at(1)]], matches, "should pull the correct time from the string"
+  end
+
+  def test_convert_to_name_time_pair
+    name = :foo
+    time = "1000000"
+
+    pair = convert_to_name_time_pair(name, time)
+    assert_equal [:foo, Time.at(1)], pair
+  end
+  
+  def test_get_matches
+    str = "servera t=1000000, serverb t=1000000"
+    matches = get_matches(str) # start a fire
+    assert_equal [['servera', '1000000'], ['serverb', '1000000']], matches
+  end
+
+  def test_matches_with_bad_data
+    str = "stephan is a dumb lol"
+    matches = get_matches(str)
+    assert_equal [], matches
+
+    str = "t=100"
+    matches = get_matches(str)
+    assert_equal [[nil, '100']], matches
+
+    str = nil
+    matches = get_matches(str)
+    assert_equal [], matches
   end
 end
