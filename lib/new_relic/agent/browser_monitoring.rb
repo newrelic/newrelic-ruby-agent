@@ -7,18 +7,13 @@ module NewRelic
         
         episodes_file = "//" + NewRelic::Agent.instance.episodes_file
         
-<<-eos
-<script>
-var EPISODES=EPISODES||{};
-EPISODES.q=[];
-EPISODES.q.push(["mark","firstbyte",new Date().getTime()]);
-(function() {
- var e=document.createElement("script");e.type="text/javascript";e.async=true;
- e.src=document.location.protocol+"#{episodes_file}";
- var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(e,s);
-})();
-</script>
-eos
+        if options[:manual_js_load]
+          load_js = ""
+        else
+          load_js = "(function() { var e=document.createElement(\"script\");e.type=\"text/javascript\";e.async=true; e.src=document.location.protocol+\"#{episodes_file}\"; var s=document.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})();"
+        end
+      
+        "<script>var EPISODES=EPISODES||{};EPISODES.q=[];EPISODES.q.push([\"mark\",\"firstbyte\",new Date().getTime()]);#{load_js}</script>"
       end
       
       def browser_instrumentation_footer(options={})

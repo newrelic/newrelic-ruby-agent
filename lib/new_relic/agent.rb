@@ -382,7 +382,7 @@ module NewRelic
     # PRE-RELEASE
     # Returns a Javascript string which should be injected into the very top of the response body
     # == options
-    # * <tt>:protocol => 'http' or 'https'
+    # * <tt>:manual_js_load => true or false [default = true], when false don't inject loading of New Relic js file. Used when you embedded our JS into your own rollup JS file
     #
     def browser_instrumentation_header(options={})
       agent.browser_instrumentation_header(options)
