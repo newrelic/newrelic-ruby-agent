@@ -9,7 +9,9 @@ module NewRelic
           
           HEADER_REGEX = /([^\s\/,(t=)]+)? ?t=([0-9]+)/
           SERVER_METRIC = 'WebFrontend/WebServer/'
-          ALL_METRIC = 'WebFrontend/WebServer/all'
+          MIDDLEWARE_METRIC = 'Middleware/'
+          ALL_SERVER_METRIC = 'WebFrontend/WebServer/all'
+          ALL_MIDDLEWARE_METRIC = 'Middleware/all'
         end
 
         def main_method_to_be_named
@@ -24,7 +26,7 @@ module NewRelic
         def parse_queue_time_from(env)
           end_time = parse_end_time(env)
           matches = get_matches_from_header(MAIN_HEADER, env)
-            
+          
           record_individual_server_stats(end_time, matches)
           record_rollup_server_stat(end_time, matches)
         end
@@ -53,6 +55,16 @@ module NewRelic
         def convert_to_name_time_pair(name, time)
           [name, convert_from_microseconds(time.to_i)]
         end
+
+        def record_individual_stat_of_type(type, end_time, matches)
+          matches = matches.sort_by {|name, time| time }
+          matches.reverse!
+          matches.inject(end_time) {|end_time, pair|
+            name, time = pair
+            self.send(type, name, time, end_time)
+            time
+          }
+        end
         
         # goes through the list of servers and records each one in
         # reverse order, subtracting the time for each successive
@@ -64,22 +76,25 @@ module NewRelic
         # next: Time.at(1001), ['a', Time.at(1000)]
         # see tests for more
         def record_individual_server_stats(end_time, matches) # (Time, [[String, Time]]) -> nil
-          matches = matches.sort_by {|name, time| time }
-          matches.reverse!
-          matches.inject(end_time) {|end_time, pair|
-            name, time = pair
-            record_queue_time_for(name, time, end_time)
-            time # becomes end_time on the next loop
-          }
+            record_individual_stat_of_type(:record_queue_time_for, end_time, matches)
         end
 
+        def record_individual_middleware_stats(end_time, matches)
+            record_individual_stat_of_type(:record_middleware_time_for, end_time, matches)
+        end
+        
         # records the total time for all servers in a rollup metric
         def record_rollup_server_stat(end_time, matches) # (Time, [String, Time]) -> nil
           # default to the start time if we have no header
           first_time = find_oldest_time(matches) || end_time
-          record_time_stat(ALL_METRIC, first_time, end_time)
+          record_time_stat(ALL_SERVER_METRIC, first_time, end_time)
         end
-        
+
+        def record_rollup_middleware_stat(end_time, matches)
+          first_time = find_oldest_time(matches) || end_time
+          record_time_stat(ALL_MIDDLEWARE_METRIC, first_time, end_time)
+        end
+                
         # searches for the first server to touch a request
         def find_oldest_time(matches) # [[String, Time]] -> Time
           matches.map do |name, time|
@@ -90,6 +105,10 @@ module NewRelic
         # basically just assembles the metric name
         def record_queue_time_for(name, start_time, end_time) # (Maybe String, Time, Time) -> nil
           record_time_stat(SERVER_METRIC + name, start_time, end_time) if name
+        end
+
+        def record_middleware_time_for(name, start_time, end_time)
+          record_time_stat(MIDDLEWARE_METRIC + name, start_time, end_time)
         end
 
         # Checks that the time is not negative, and does the actual

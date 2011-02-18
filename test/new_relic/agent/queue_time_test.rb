@@ -86,6 +86,21 @@ class QueueTimeTest < Test::Unit::TestCase
     end
     check_metric('WebFrontend/WebServer/all', 0.0, 0.001)
   end
+
+  def test_record_rollup_middleware_stat
+    assert_calls_metrics('Middleware/all') do
+      record_rollup_middleware_stat(Time.at(1001), [['a', Time.at(1000)]])
+    end
+    check_metric('Middleware/all', 1.0, 0.1)
+  end
+
+  def test_record_rollup_middleware_stat_no_data
+    assert_calls_metrics('Middleware/all') do
+      record_rollup_middleware_stat(Time.at(1001), [])
+    end
+    check_metric('Middleware/all', 0.0, 0.001)
+  end
+  
   
   # check all the combinations to make sure that ordering doesn't
   # affect the return value
@@ -184,5 +199,14 @@ class QueueTimeTest < Test::Unit::TestCase
     str = nil
     matches = get_matches(str)
     assert_equal [], matches
+  end
+  # each server should be one second, and the total would be 2 seconds
+  def test_record_individual_middleware_stats
+    matches = [['foo', Time.at(1000)], ['bar', Time.at(1001)]]
+    assert_calls_metrics('Middleware/foo', 'Middleware/bar') do
+      record_individual_middleware_stats(Time.at(1002), matches)
+    end
+    check_metric('Middleware/foo', 1.0, 0.1)
+    check_metric('Middleware/bar', 1.0, 0.1)
   end
 end
