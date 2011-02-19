@@ -1,21 +1,37 @@
 module NewRelic; TEST = true; end unless defined? NewRelic::TEST
 ENV['RAILS_ENV'] = 'test'
 NEWRELIC_PLUGIN_DIR = File.expand_path(File.join(File.dirname(__FILE__),".."))
-$LOAD_PATH << File.join(NEWRELIC_PLUGIN_DIR,"lib")
+$LOAD_PATH << '.'
+$LOAD_PATH << '../../..'
 $LOAD_PATH << File.join(NEWRELIC_PLUGIN_DIR,"test")
 $LOAD_PATH << File.join(NEWRELIC_PLUGIN_DIR,"ui/helpers")
-$LOAD_PATH << File.expand_path('.')
 $LOAD_PATH.uniq!
 
 require 'rubygems'
+# We can speed things up in tests that don't need to load rails.
+# You can also run the tests in a mode without rails.  Many tests 
+# will be skipped.
 
-require 'config/environment'
+begin
+ require 'config/environment'
+  begin
+   require 'test_help'
+  rescue LoadError
+    # ignore load problems on test help - it doesn't exist in rails 3
+  end
+  
+rescue LoadError
+  puts "Unable to load Rails for New Relic tests"
+  raise
+end
+
 require 'test/unit'
 require 'shoulda'
 require 'test_contexts'
 require 'mocha'
 require 'mocha/integration/test_unit'
 require 'mocha/integration/test_unit/assertion_counter'
+
 class Test::Unit::TestCase
   include Mocha::API
 

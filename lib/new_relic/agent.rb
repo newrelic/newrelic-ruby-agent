@@ -70,7 +70,8 @@ module NewRelic
     require 'new_relic/noticed_error'
     require 'new_relic/histogram'
     require 'new_relic/timer_lib'
-
+    
+    require 'new_relic/agent'
     require 'new_relic/agent/chained_call'
     require 'new_relic/agent/agent'
     require 'new_relic/agent/shim_agent'

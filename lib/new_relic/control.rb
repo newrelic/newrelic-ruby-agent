@@ -1,5 +1,7 @@
 require 'yaml'
+require 'conditional_vendored_metric_parser'
 require 'new_relic/local_environment'
+
 require 'singleton'
 require 'erb'
 require 'socket'
@@ -10,6 +12,9 @@ require 'new_relic/control/logging_methods'
 require 'new_relic/control/configuration'
 require 'new_relic/control/server_methods'
 require 'new_relic/control/instrumentation'
+
+require 'new_relic/agent'
+require 'new_relic/delayed_job_injection'
 
 module NewRelic
 
@@ -47,16 +52,9 @@ module NewRelic
       def new_instance
         @local_env = NewRelic::LocalEnvironment.new
         if @local_env.framework == :test
-          # You can set this env var if you want to run the tests
-          # without Rails.
           config = File.expand_path("../../../test/config/newrelic.yml", __FILE__)
-          if ENV['SKIP_RAILS']
-            require "new_relic/control/frameworks/ruby.rb"
-            NewRelic::Control::Frameworks::Ruby.new @local_env, config
-          else
-            require "config/test_control"
-            NewRelic::Control::Frameworks::Test.new @local_env, config
-          end
+          require "config/test_control"
+          NewRelic::Control::Frameworks::Test.new @local_env, config
         else
           begin
             require "new_relic/control/frameworks/#{@local_env.framework}.rb"
@@ -93,15 +91,7 @@ module NewRelic
     # is called one or more times.
     #
     def init_plugin(options={})
-      require 'conditional_vendored_metric_parser'
-      
       options['app_name'] = ENV['NEWRELIC_APP_NAME'] if ENV['NEWRELIC_APP_NAME']
-
-      require 'new_relic/agent'
-
-      # Load the DJ injection now.  If you do it sooner, DJ might not be loaded and
-      # you'll miss it.
-      require 'new_relic/delayed_job_injection'
 
       # Merge the stringified options into the config as overrides:
       logger_override = options.delete(:log)

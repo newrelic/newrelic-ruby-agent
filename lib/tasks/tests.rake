@@ -14,5 +14,6 @@ if defined? Rake::TestTask
       t.verbose = true
     end
     Rake::Task['test:newrelic'].comment = "Run the unit tests for the Agent"
+    task :newrelic => :environment
   end
 end

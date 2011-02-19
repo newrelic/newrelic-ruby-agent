@@ -18,7 +18,6 @@
 # directly.
 #
 require 'new_relic/control'
-
 if defined? Merb
   module NewRelic
     class MerbBootLoader < Merb::BootLoader
@@ -41,8 +40,8 @@ elsif defined? Rails
   else
     # After verison 2.0 of Rails we can access the configuration directly.
     # We need it to add dev mode routes after initialization finished.
-    config = Rails.configuration if defined?(Rails.configuration)
-    NewRelic::Control.instance.init_plugin :config => config
+      config = Rails.configuration
+      NewRelic::Control.instance.init_plugin :config => config
   end
 else
   NewRelic::Control.instance.init_plugin

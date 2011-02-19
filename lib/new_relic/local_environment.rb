@@ -128,9 +128,12 @@ module NewRelic
     def gather_ar_adapter_info
       # The name of the database adapter for the current environment.      
       append_environment_value 'Database adapter' do
-        config = ActiveRecord::Base.configurations[NewRelic::Control.instance.env]
-        if config
-          config['adapter']
+        if defined?(ActiveRecord) && defined?(ActiveRecord::Base) &&
+            ActiveRecord::Base.respond_to?(:configurations)
+          config = ActiveRecord::Base.configurations[NewRelic::Control.instance.env]
+          if config
+            config['adapter']
+          end
         end
       end
       append_environment_value 'Database schema version' do
@@ -252,7 +255,7 @@ module NewRelic
       return unless defined?(::JRuby) &&
         (((com.sun.grizzly.jruby.rack.DefaultRackApplicationFactory rescue nil) &&
           defined?(com::sun::grizzly::jruby::rack::DefaultRackApplicationFactory)) ||
-          (jruby_rack? && defined?(::GlassFish::Server)))
+         (jruby_rack? && defined?(::GlassFish::Server)))
       @dispatcher = :glassfish
     end
 
@@ -263,7 +266,7 @@ module NewRelic
 
     def jruby_rack?
       ((org.jruby.rack.DefaultRackApplicationFactory rescue nil) &&
-          defined?(org::jruby::rack::DefaultRackApplicationFactory))
+       defined?(org::jruby::rack::DefaultRackApplicationFactory))
     end
 
     def check_for_webrick
