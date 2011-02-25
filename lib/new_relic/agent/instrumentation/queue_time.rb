@@ -123,14 +123,20 @@ module NewRelic
         
         # records the total time for all servers in a rollup metric
         def record_rollup_server_stat(end_time, matches) # (Time, [String, Time]) -> nil
-          # default to the start time if we have no header
-          first_time = find_oldest_time(matches) || end_time
-          record_time_stat(ALL_SERVER_METRIC, first_time, end_time)
+          record_rollup_stat_of_type(ALL_SERVER_METRIC, end_time, matches)
         end
 
         def record_rollup_middleware_stat(end_time, matches)
+          record_rollup_stat_of_type(ALL_MIDDLEWARE_METRIC, end_time, matches)
+        end
+
+        def record_rollup_queue_stat(end_time, matches)
+          record_rollup_stat_of_type(ALL_QUEUE_METRIC, end_time, matches)
+        end
+
+        def record_rollup_stat_of_type(metric, end_time, matches)
           first_time = find_oldest_time(matches) || end_time
-          record_time_stat(ALL_MIDDLEWARE_METRIC, first_time, end_time)
+          record_time_stat(metric, first_time, end_time)
         end
                 
         # searches for the first server to touch a request

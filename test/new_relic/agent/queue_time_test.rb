@@ -14,29 +14,67 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
   def test_parse_frontend_headers
     self.expects(:current_time).returns('END_TIME')
     self.expects(:add_end_time_header).with('END_TIME', {:env => 'hash'})
+    # ordering is important here, unfortunately, the mocks don't
+    # support that kind of checking.
     self.expects(:parse_middleware_time_from).with({:env => 'hash'})
     self.expects(:parse_queue_time_from).with({:env => 'hash'})
     self.expects(:parse_server_time_from).with({:env => 'hash'})
-    parse_queue_headers({:env => 'hash'})
+    parse_frontend_headers({:env => 'hash'})
   end
 
-  def test_parse_frontend_headers_functional
-    raise 'needs tests'
+  def test_all_combined_frontend_headers
+    env = {}
+    env[MAIN_HEADER] = "t=#{convert_to_microseconds(Time.at(1000))}"
+    env[QUEUE_HEADER] = "t=#{convert_to_microseconds(Time.at(1001))}"        
+    env[MIDDLEWARE_HEADER] = "t=#{convert_to_microseconds(Time.at(1002))}"
+
+    env[APP_HEADER] = "t=#{convert_to_microseconds(Time.at(1003))}"
+
+    assert_calls_metrics('WebFrontend/WebServer/all', 'WebFrontend/QueueTime', 'Middleware/all') do
+      parse_middleware_time_from(env)
+      parse_queue_time_from(env)
+      parse_server_time_from(env)
+    end
+    
+    check_metric_time('WebFrontend/WebServer/all', 1.0, 0.001)
+    check_metric_time('WebFrontend/QueueTime', 1.0, 0.001)    
+    check_metric_time('Middleware/all', 1.0, 0.001)
   end
 
   def test_combined_middleware_and_queue
-    raise 'needs tests'
+    env = {}
+    env[QUEUE_HEADER] = "t=#{convert_to_microseconds(Time.at(1000))}"
+    env[MIDDLEWARE_HEADER] = "t=#{convert_to_microseconds(Time.at(1001))}"    
+    create_test_start_time(env)
+
+    assert_calls_metrics('Middleware/all', 'WebFrontend/QueueTime') do
+      parse_middleware_time_from(env)      
+      parse_queue_time_from(env)
+    end
+    
+    check_metric_time('Middleware/all', 1.0, 0.001)
+    check_metric_time('WebFrontend/QueueTime', 1.0, 0.001)        
   end
 
   def test_combined_queue_and_server
-    raise 'needs tests'
+    env = {}
+    env[MAIN_HEADER] = "t=#{convert_to_microseconds(Time.at(1000))}"
+    env[QUEUE_HEADER] = "t=#{convert_to_microseconds(Time.at(1001))}"
+    create_test_start_time(env)
+
+    assert_calls_metrics('WebFrontend/WebServer/all', 'WebFrontend/QueueTime') do
+      parse_queue_time_from(env)
+      parse_server_time_from(env)
+    end
+    
+    check_metric_time('WebFrontend/WebServer/all', 1.0, 0.001)
+    check_metric_time('WebFrontend/QueueTime', 1.0, 0.001)    
   end
 
   def test_combined_middleware_and_server
     env = {}
     env[MAIN_HEADER] = "t=#{convert_to_microseconds(Time.at(1000))}"
     env[MIDDLEWARE_HEADER] = "t=#{convert_to_microseconds(Time.at(1001))}"
-    # this should also include queue time
     create_test_start_time(env)
 
     assert_calls_metrics('WebFrontend/WebServer/all', 'Middleware/all') do
@@ -103,7 +141,16 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
   end
 
   def test_parse_queue_time
-    raise 'needs tests'
+    env = {}
+    create_test_start_time(env)
+    time1 = convert_to_microseconds(Time.at(1000))
+
+    env['HTTP_X_QUEUE_START'] = 't=#{time1}'
+    assert_calls_metrics('WebFrontend/QueueTime') do
+      parse_queue_time_from(env)
+    end
+    
+    check_metric_time('WebFrontend/QueueTime', 2.0, 0.1)
   end
 
   def test_check_for_alternate_queue_length
@@ -147,7 +194,21 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
     end
     check_metric_time('Middleware/all', 0.0, 0.001)
   end
-  
+
+  def test_record_rollup_queue_stat
+    assert_calls_metrics('WebFrontend/QueueTime') do
+      record_rollup_queue_stat(Time.at(1001), [[nil, Time.at(1000)]])
+    end
+    check_metric_time('WebFrontend/QueueTime', 1.0, 0.1)
+  end
+
+  def test_record_rollup_queue_stat_no_data
+    assert_calls_metrics('WebFrontend/QueueTime') do
+      record_rollup_queue_stat(Time.at(1001), [])
+    end
+    check_metric_time('WebFrontend/QueueTime', 0.0, 0.001)
+  end
+
   
   # check all the combinations to make sure that ordering doesn't
   # affect the return value
