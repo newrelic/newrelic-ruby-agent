@@ -13,9 +13,9 @@ require 'rubygems'
 # will be skipped.
 
 begin
- require 'config/environment'
+  require 'config/environment'
   begin
-   require 'test_help'
+    require 'test_help'
   rescue LoadError
     # ignore load problems on test help - it doesn't exist in rails 3
   end
@@ -44,9 +44,30 @@ class Test::Unit::TestCase
   end
 end
 
-def assert_between(floor, ceiling, value, message = nil)
-  assert floor <= value && value <= ceiling,
-  message || "expected #{floor} <= #{value} <= #{ceiling}"
+def assert_between(floor, ceiling, value, message="expected #{floor} <= #{value} <= #{ceiling}")
+  assert((floor <= value && value <= ceiling), message)
+end
+
+def check_metric_time(metric, value, delta)
+  time = NewRelic::Agent.get_stats(metric).total_call_time
+  assert_between((value - delta), (value + delta), time)
+end
+
+def check_metric_count(metric, value)
+  count = NewRelic::Agent.get_stats(metric).call_count
+  assert_equal(value, count, "should have the correct number of calls")
+end
+
+def check_unscoped_metric_count(metric, value)
+  count = NewRelic::Agent.get_stats_unscoped(metric).call_count
+  assert_equal(value, count, "should have the correct number of calls")
+end
+
+def generate_unscoped_metric_counts(*metrics)
+  metrics.inject({}) do |sum, metric|
+    sum[metric] = NewRelic::Agent.get_stats_no_scope(metric).call_count
+    sum
+  end
 end
 
 def generate_metric_counts(*metrics)
@@ -56,12 +77,27 @@ def generate_metric_counts(*metrics)
   end
 end
 
+def assert_does_not_call_metrics(*metrics)
+  first_metrics = generate_metric_counts(*metrics)
+  yield
+  last_metrics = generate_metric_counts(*metrics)
+  assert_equal first_metrics, last_metrics, "should not have changed these metrics"
+end
+
 def assert_calls_metrics(*metrics)
   first_metrics = generate_metric_counts(*metrics)
   yield
   last_metrics = generate_metric_counts(*metrics)
   assert_not_equal first_metrics, last_metrics, "should have changed these metrics"
 end
+
+def assert_calls_unscoped_metrics(*metrics)
+  first_metrics = generate_unscoped_metric_counts(*metrics)
+  yield
+  last_metrics = generate_unscoped_metric_counts(*metrics)
+  assert_not_equal first_metrics, last_metrics, "should have changed these metrics"
+end
+
 
 def compare_metrics expected_list, actual_list
   actual = Set.new actual_list

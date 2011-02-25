@@ -1,5 +1,5 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
-class QueueTimeTest < Test::Unit::TestCase
+class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
   require 'new_relic/agent/instrumentation/queue_time'
   include NewRelic::Agent::Instrumentation::QueueTime
   
@@ -7,12 +7,6 @@ class QueueTimeTest < Test::Unit::TestCase
     NewRelic::Agent.instance.stats_engine.clear_stats
   end
   
-  # test helper method
-  def check_metric(metric, value, delta)
-    time = NewRelic::Agent.get_stats(metric).total_call_time
-    assert_between (value - delta), (value + delta), time, "Metric #{metric} not in expected range: was #{time} but expected in #{value - delta} to #{value + delta}!"
-  end
-
   def create_test_start_time(env)
     env[APP_HEADER] = "t=#{convert_to_microseconds(Time.at(1002))}"
   end
@@ -30,8 +24,8 @@ class QueueTimeTest < Test::Unit::TestCase
       parse_middleware_time_from(env)
     end
     
-    check_metric('WebFrontend/WebServer/all', 1.0, 0.001)
-    check_metric('Middleware/all', 1.0, 0.001)
+    check_metric_time('WebFrontend/WebServer/all', 1.0, 0.001)
+    check_metric_time('Middleware/all', 1.0, 0.001)
   end
 
   # initial base case, a router and a static content server
@@ -44,9 +38,9 @@ class QueueTimeTest < Test::Unit::TestCase
     assert_calls_metrics('WebFrontend/WebServer/all', 'WebFrontend/WebServer/servera', 'WebFrontend/WebServer/serverb') do
       parse_server_time_from(env)
     end
-    check_metric('WebFrontend/WebServer/all', 2.0, 0.1)
-    check_metric('WebFrontend/WebServer/servera', 1.0, 0.1)
-    check_metric('WebFrontend/WebServer/serverb', 1.0, 0.1)
+    check_metric_time('WebFrontend/WebServer/all', 2.0, 0.1)
+    check_metric_time('WebFrontend/WebServer/servera', 1.0, 0.1)
+    check_metric_time('WebFrontend/WebServer/serverb', 1.0, 0.1)
   end
 
   # test for backwards compatibility with old header
@@ -56,7 +50,7 @@ class QueueTimeTest < Test::Unit::TestCase
     assert_calls_metrics('WebFrontend/WebServer/all') do
       parse_server_time_from(env)
     end
-    check_metric('WebFrontend/WebServer/all', 1.0, 0.1)
+    check_metric_time('WebFrontend/WebServer/all', 1.0, 0.1)
   end
 
   def test_parse_server_time_from_with_no_header
@@ -75,9 +69,9 @@ class QueueTimeTest < Test::Unit::TestCase
     assert_calls_metrics('Middleware/all', 'Middleware/base', 'Middleware/second') do
       parse_middleware_time_from(env)
     end
-    check_metric('Middleware/all', 2.0, 0.1)
-    check_metric('Middleware/base', 1.0, 0.1)
-    check_metric('Middleware/second', 1.0, 0.1)
+    check_metric_time('Middleware/all', 2.0, 0.1)
+    check_metric_time('Middleware/base', 1.0, 0.1)
+    check_metric_time('Middleware/second', 1.0, 0.1)
   end
 
   # each server should be one second, and the total would be 2 seconds
@@ -86,36 +80,36 @@ class QueueTimeTest < Test::Unit::TestCase
     assert_calls_metrics('WebFrontend/WebServer/foo', 'WebFrontend/WebServer/bar') do
       record_individual_server_stats(Time.at(1002), matches)
     end
-    check_metric('WebFrontend/WebServer/foo', 1.0, 0.1)
-    check_metric('WebFrontend/WebServer/bar', 1.0, 0.1)
+    check_metric_time('WebFrontend/WebServer/foo', 1.0, 0.1)
+    check_metric_time('WebFrontend/WebServer/bar', 1.0, 0.1)
   end
 
   def test_record_rollup_server_stat
     assert_calls_metrics('WebFrontend/WebServer/all') do
       record_rollup_server_stat(Time.at(1001), [['a', Time.at(1000)]])
     end
-    check_metric('WebFrontend/WebServer/all', 1.0, 0.1)
+    check_metric_time('WebFrontend/WebServer/all', 1.0, 0.1)
   end
 
   def test_record_rollup_server_stat_no_data
     assert_calls_metrics('WebFrontend/WebServer/all') do
       record_rollup_server_stat(Time.at(1001), [])
     end
-    check_metric('WebFrontend/WebServer/all', 0.0, 0.001)
+    check_metric_time('WebFrontend/WebServer/all', 0.0, 0.001)
   end
 
   def test_record_rollup_middleware_stat
     assert_calls_metrics('Middleware/all') do
       record_rollup_middleware_stat(Time.at(1001), [['a', Time.at(1000)]])
     end
-    check_metric('Middleware/all', 1.0, 0.1)
+    check_metric_time('Middleware/all', 1.0, 0.1)
   end
 
   def test_record_rollup_middleware_stat_no_data
     assert_calls_metrics('Middleware/all') do
       record_rollup_middleware_stat(Time.at(1001), [])
     end
-    check_metric('Middleware/all', 0.0, 0.001)
+    check_metric_time('Middleware/all', 0.0, 0.001)
   end
   
   
@@ -147,7 +141,7 @@ class QueueTimeTest < Test::Unit::TestCase
     assert_calls_metrics('WebFrontend/WebServer/foo') do
       record_time_stat('WebFrontend/WebServer/foo', Time.at(1000), Time.at(1001))
     end
-    check_metric('WebFrontend/WebServer/foo', 1.0, 0.1)
+    check_metric_time('WebFrontend/WebServer/foo', 1.0, 0.1)
     assert_raises(RuntimeError) do
       record_time_stat('foo', Time.at(1001), Time.at(1000))
     end
@@ -223,7 +217,7 @@ class QueueTimeTest < Test::Unit::TestCase
     assert_calls_metrics('Middleware/foo', 'Middleware/bar') do
       record_individual_middleware_stats(Time.at(1002), matches)
     end
-    check_metric('Middleware/foo', 1.0, 0.1)
-    check_metric('Middleware/bar', 1.0, 0.1)
+    check_metric_time('Middleware/foo', 1.0, 0.1)
+    check_metric_time('Middleware/bar', 1.0, 0.1)
   end
 end
