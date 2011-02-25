@@ -5,23 +5,32 @@ module NewRelic
         unless defined?(MAIN_HEADER)
           MAIN_HEADER = 'HTTP_X_REQUEST_START'
           MIDDLEWARE_HEADER = 'HTTP_X_MIDDLEWARE_START'
+          QUEUE_HEADER = 'HTTP_X_QUEUE_START'
+          ALT_QUEUE_HEADER = 'HTTP_X_QUEUE_TIME'
           APP_HEADER = 'HTTP_X_APPLICATION_START'
           
           HEADER_REGEX = /([^\s\/,(t=)]+)? ?t=([0-9]+)/
           SERVER_METRIC = 'WebFrontend/WebServer/'
           MIDDLEWARE_METRIC = 'Middleware/'
+          # no individual queue metric - more than one queue?!
           ALL_SERVER_METRIC = 'WebFrontend/WebServer/all'
           ALL_MIDDLEWARE_METRIC = 'Middleware/all'
+          ALL_QUEUE_METRIC = 'WebFrontend/QueueTime'
+        end
+
+        def current_time
+          Time.now
         end
         
-        # XXX example method for future usage in the ControllerInstrumentation
-        def main_method_to_be_named
-          end_time = Time.now
-          add_end_time_header(end_time, env)
+        def parse_frontend_headers(env)
+          add_end_time_header(current_time, env)
           parse_middleware_time_from(env)
           parse_queue_time_from(env)
-          parse_server_time_from(env)          
+          parse_server_time_from(env)
         end
+        
+        private
+
         
         # main method to extract server time info from env hash,
         # records individual server metrics and one roll-up for all servers
@@ -39,9 +48,36 @@ module NewRelic
 
           record_individual_middleware_stats(end_time, matches)
           record_rollup_middleware_stat(end_time, matches)
+          # notice this bit: we reset the end time to the earliest
+          # middleware tag so that other frontend metrics don't
+          # include this time.
+          add_end_time_header(find_oldest_time(matches), env)
         end
-        
-        private
+
+        def parse_queue_time_from(env)
+          first_time = nil          
+          end_time = parse_end_time(env)
+          alternate_length = check_for_alternate_queue_length(env)
+          if alternate_length
+            # skip all that fancy-dan stuff
+            NewRelic::Agent.get_stats(ALL_QUEUE_METRIC).trace_call(alternate_length)
+            first_time = (end_time - alternate_length) # should be a time
+          else
+            matches = get_matches_from_header(QUEUE_HEADER, env)
+            record_rollup_queue_stat(end_time, matches)
+            first_time = find_oldest_time(matches)
+          end
+          # notice this bit: we reset the end time to the earliest
+          # queue tag or the start time minus the queue time so that
+          # other frontend metrics don't include this time.
+          add_end_time_header(first_time, env)
+        end
+
+        def check_for_alternate_queue_length(env)
+          header = env[ALT_QUEUE_HEADER]
+          return nil unless header
+          (header.gsub('t=', '').to_i / 1_000_000.0)
+        end
 
         def get_matches_from_header(header, env)
           return [] if env.nil?
@@ -63,7 +99,7 @@ module NewRelic
           matches.reverse!
           matches.inject(end_time) {|end_time, pair|
             name, time = pair
-            self.send(type, name, time, end_time)
+            self.send(type, name, time, end_time) if name
             time
           }
         end
@@ -78,11 +114,11 @@ module NewRelic
         # next: Time.at(1001), ['a', Time.at(1000)]
         # see tests for more
         def record_individual_server_stats(end_time, matches) # (Time, [[String, Time]]) -> nil
-            record_individual_stat_of_type(:record_server_time_for, end_time, matches)
+          record_individual_stat_of_type(:record_server_time_for, end_time, matches)
         end
 
         def record_individual_middleware_stats(end_time, matches)
-            record_individual_stat_of_type(:record_middleware_time_for, end_time, matches)
+          record_individual_stat_of_type(:record_middleware_time_for, end_time, matches)
         end
         
         # records the total time for all servers in a rollup metric
@@ -138,7 +174,7 @@ module NewRelic
         def convert_to_microseconds(time) # Time -> Int
           raise TypeError.new('Cannot convert a non-time into microseconds') unless time.is_a?(Time) || time.is_a?(Numeric)
           return time if time.is_a?(Numeric)
-          (time.to_f * 1000000).to_i
+          (time.to_f * 1_000_000).to_i
         end
         
         # convert a time from the header value (time in microseconds)
@@ -146,7 +182,7 @@ module NewRelic
         def convert_from_microseconds(int) # Int -> Time
           raise TypeError.new('Cannot convert a non-number into a time') unless int.is_a?(Time) || int.is_a?(Numeric)
           return int if int.is_a?(Time)
-          Time.at((int / 1000000.0))
+          Time.at((int / 1_000_000.0))
         end
       end
     end

@@ -11,6 +11,27 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
     env[APP_HEADER] = "t=#{convert_to_microseconds(Time.at(1002))}"
   end
 
+  def test_parse_frontend_headers
+    self.expects(:current_time).returns('END_TIME')
+    self.expects(:add_end_time_header).with('END_TIME', {:env => 'hash'})
+    self.expects(:parse_middleware_time_from).with({:env => 'hash'})
+    self.expects(:parse_queue_time_from).with({:env => 'hash'})
+    self.expects(:parse_server_time_from).with({:env => 'hash'})
+    parse_queue_headers({:env => 'hash'})
+  end
+
+  def test_parse_frontend_headers_functional
+    raise 'needs tests'
+  end
+
+  def test_combined_middleware_and_queue
+    raise 'needs tests'
+  end
+
+  def test_combined_queue_and_server
+    raise 'needs tests'
+  end
+
   def test_combined_middleware_and_server
     env = {}
     env[MAIN_HEADER] = "t=#{convert_to_microseconds(Time.at(1000))}"
@@ -19,8 +40,8 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
     create_test_start_time(env)
 
     assert_calls_metrics('WebFrontend/WebServer/all', 'Middleware/all') do
-      parse_server_time_from(env)
       parse_middleware_time_from(env)
+      parse_server_time_from(env)
     end
     
     check_metric_time('WebFrontend/WebServer/all', 1.0, 0.001)
@@ -51,6 +72,14 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
     end
     check_metric_time('WebFrontend/WebServer/all', 1.0, 0.1)
   end
+  
+  def test_parse_server_time_from_with_bad_header
+    env = {'HTTP_X_REQUEST_START' => 't=t=t=t='}
+    create_test_start_time(env)
+    assert_calls_metrics('WebFrontend/WebServer/all') do
+      parse_server_time_from(env)
+    end
+  end
 
   def test_parse_server_time_from_with_no_header
     assert_calls_metrics('WebFrontend/WebServer/all') do
@@ -71,6 +100,14 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
     check_metric_time('Middleware/all', 2.0, 0.1)
     check_metric_time('Middleware/base', 1.0, 0.1)
     check_metric_time('Middleware/second', 1.0, 0.1)
+  end
+
+  def test_parse_queue_time
+    raise 'needs tests'
+  end
+
+  def test_check_for_alternate_queue_length
+    raise 'needs tests'
   end
 
   # each server should be one second, and the total would be 2 seconds
