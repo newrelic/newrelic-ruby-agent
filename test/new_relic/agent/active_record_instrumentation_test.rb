@@ -330,14 +330,12 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
     perform_action_with_newrelic_trace :name => 'bogosity' do
       ActiveRecordFixtures::Order.add_delay
       ActiveRecordFixtures::Order.find(:all)
-    end    
-    sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+    end
     
-    segment = sample.root_segment.called_segments.first.called_segments.first.called_segments.first
-    assert_match %r{^SELECT (["`]?#{ActiveRecordFixtures::Order.table_name}["`]?.)?\* FROM ["`]?#{ActiveRecordFixtures::Order.table_name}["`]?$}, segment.params[:sql].strip #" - stupid editor
-    NewRelic::TransactionSample::Segment.any_instance.expects(:explain_sql).returns([])
-    sample = sample.prepare_to_send(:record_sql => :obfuscated, :explain_sql => 0.0)
-    segment = sample.root_segment.called_segments.first.called_segments.first
+    # that's a mouthful. perhaps we should ponder our API.
+    segment = NewRelic::Agent.instance.transaction_sampler.last_sample.root_segment.called_segments.first.called_segments.first.called_segments.first
+    regex = /^SELECT (["`]?#{ActiveRecordFixtures::Order.table_name}["`]?.)?\* FROM ["`]?#{ActiveRecordFixtures::Order.table_name}["`]?$/
+    assert_match regex, segment.params[:sql].strip
   end
   def test_prepare_to_send
     perform_action_with_newrelic_trace :name => 'bogosity' do
@@ -347,8 +345,8 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
     sample = NewRelic::Agent.instance.transaction_sampler.last_sample
     assert_not_nil sample
     assert_equal 3, sample.count_segments, sample.to_s
-    # 
-    sql_segment = sample.root_segment.called_segments.first.called_segments.first.called_segments.first rescue nil
+
+    sql_segment = sample.root_segment.called_segments.first.called_segments.first.called_segments.first
     assert_not_nil sql_segment, sample.to_s
     assert_match /^SELECT /, sql_segment.params[:sql]
     assert sql_segment.duration > 0.0, "Segment duration must be greater than zero."
@@ -439,12 +437,14 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
     end
     def test_named_scope
       ActiveRecordFixtures::Order.create :name => 'Jeff'
-      s = NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Order/find")
-      before_count = s.call_count
-      x = ActiveRecordFixtures::Order.jeffs.find(:all)
-      assert_equal 1, x.size
-      se = NewRelic::Agent.instance.stats_engine
-      assert_equal before_count+1, s.call_count
+      
+      find_metric = "ActiveRecord/ActiveRecordFixtures::Order/find"
+      
+      check_metric_count(find_metric, 0)
+      assert_calls_metrics(find_metric) do
+        x = ActiveRecordFixtures::Order.jeffs.find(:all)
+      end
+      check_metric_count(find_metric, 1)
     end
   end
 
@@ -455,29 +455,34 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
       raise "Error" if sql =~ /select/
       true
     end
-    ActiveRecordFixtures::Order.connection.select_rows "select * from #{ActiveRecordFixtures::Order.table_name}" rescue nil
+
+    expected_metrics = %W[ActiveRecord/all Database/SQL/select]
+
+    assert_calls_metrics(*expected_metrics) do
+      begin
+        ActiveRecordFixtures::Order.connection.select_rows "select * from #{ActiveRecordFixtures::Order.table_name}"
+      rescue RuntimeError => e
+        # catch only the error we raise above
+        raise unless e.message == 'Error'
+      end
+    end
     metrics = NewRelic::Agent.instance.stats_engine.metrics
-    compare_metrics %W[
-    ActiveRecord/all
-    Database/SQL/select
-    ], metrics
-    assert_equal 1, NewRelic::Agent.get_stats("Database/SQL/select").call_count
-    assert_equal 1, NewRelic::Agent.get_stats("ActiveRecord/all").call_count
+    compare_metrics expected_metrics, metrics
+    check_metric_count('Database/SQL/select', 1)
+    check_metric_count('ActiveRecord/all', 1)    
   end
 
   def test_rescue_handling
     # Not sure why we get a transaction error with sqlite
-    return if ActiveRecord::Base.configurations[RAILS_ENV]['adapter'] =~ /sqlite/  
+    return if isSqlite?
+    
     begin
       ActiveRecordFixtures::Order.transaction do
         raise ActiveRecord::ActiveRecordError.new('preserve-me!') 
       end
     rescue ActiveRecord::ActiveRecordError => e
       assert_equal 'preserve-me!', e.message
-    rescue
-      fail "Rescue2: Got something COMPLETELY unexpected: $!:#{$!.inspect}"
     end
-    
   end
 
   private
