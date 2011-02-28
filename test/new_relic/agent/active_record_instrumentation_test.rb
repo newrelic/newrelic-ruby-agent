@@ -262,7 +262,7 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
     end
     check_metric_count("ActiveRecord/ActiveRecordFixtures::Order/find", 1)
     check_metric_count("ActiveRecord/ActiveRecordFixtures::Shipment/find", 1)
-    check_metric_count("Database/SQL/insert", 3)
+    check_metric_count("Database/SQL/insert", 1)
     check_metric_count("Database/SQL/delete", 1)           
   end
 
