@@ -145,7 +145,7 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
     create_test_start_time(env)
     time1 = convert_to_microseconds(Time.at(1000))
 
-    env['HTTP_X_QUEUE_START'] = 't=#{time1}'
+    env['HTTP_X_QUEUE_START'] = "t=#{time1}"
     assert_calls_metrics('WebFrontend/QueueTime') do
       parse_queue_time_from(env)
     end
@@ -154,7 +154,14 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
   end
 
   def test_check_for_alternate_queue_length
-    raise 'needs tests'
+    env = {}
+    create_test_start_time(env)
+    env['HTTP_X_QUEUE_TIME'] = '1000000'
+    assert_calls_metrics('WebFrontend/QueueTime') do
+      parse_queue_time_from(env)
+    end
+
+    check_metric_time('WebFrontend/QueueTime', 1.0, 0.001)
   end
 
   # each server should be one second, and the total would be 2 seconds
