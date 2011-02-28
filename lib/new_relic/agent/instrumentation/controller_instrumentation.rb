@@ -375,28 +375,16 @@ module NewRelic
       end
     end
 
+    include NewRelic::Agent::Instrumentation::QueueTime
+
     # Return a Time instance representing the upstream start time.
     # now is a Time instance to fall back on if no other candidate
     # for the start time is found.
     def _detect_upstream_wait(now)
       if newrelic_request_headers
-        if entry_time = newrelic_request_headers['HTTP_X_REQUEST_START']
-          if newrelic_request_headers['HTTP_X_HEROKU_QUEUE_DEPTH'] # this is a heroku measure
-            http_entry_time = entry_time.to_f / 1e3
-          else # apache / nginx
-            apache_parsed_time = entry_time[/t=(\d+)/, 1]
-            http_entry_time = apache_parsed_time.to_f/1e6 if apache_parsed_time
-          end
-        end
+        parse_frontend_headers(newrelic_request_headers)
       end
-      # If we didn't find the custom header, look for the mongrel timestamp
-      http_entry_time ||= Thread.current[:started_on] and http_entry_time = http_entry_time.to_f
-      if http_entry_time
-        queue_stat = NewRelic::Agent.agent.stats_engine.get_stats_no_scope 'WebFrontend/Mongrel/Average Queue Time'
-        total_time = (now - http_entry_time)
-        queue_stat.trace_call(total_time.to_f) unless total_time.to_f <= 0.0 # using remote timestamps could lead to negative queue time
-      end
-      return http_entry_time ? Time.at(http_entry_time) : now
+      now
     end
 
     def _dispatch_stat

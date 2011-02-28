@@ -22,7 +22,8 @@ module NewRelic
           Time.now
         end
         
-        def parse_frontend_headers(env)
+        def parse_frontend_headers(headers)
+          env = headers.dup
           add_end_time_header(current_time, env)
           parse_middleware_time_from(env)
           parse_queue_time_from(env)
@@ -167,6 +168,7 @@ module NewRelic
         end
 
         def add_end_time_header(end_time, env) # (Time, Env) -> nil
+          return unless end_time
           env[APP_HEADER] = "t=#{convert_to_microseconds(end_time)}"
         end
 

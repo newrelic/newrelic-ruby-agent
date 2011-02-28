@@ -61,13 +61,54 @@ class AgentControllerTest < ActionController::TestCase
   
   def test_heroku_queue
     engine.clear_stats
-    NewRelic::Control.instance.local_env.stubs(:mongrel).returns( stub('mongrel', :workers => stub('workers', :list => stub('list', :length => '10'))))
     NewRelic::Agent::AgentTestController.set_some_headers 'HTTP_X_HEROKU_QUEUE_DEPTH'=>'15'
     get :index
     assert_equal 1, stats('HttpDispatcher').call_count
     assert_equal 1, engine.get_stats_no_scope('Mongrel/Queue Length').call_count
     assert_equal 15, engine.get_stats_no_scope('Mongrel/Queue Length').total_call_time
     assert_equal 0, engine.get_stats_no_scope('WebFrontend/Mongrel/Average Queue Time').call_count
+  end
+
+  def test_new_queue_integration
+    engine.clear_stats
+    start = ((Time.now - 1).to_f * 1_000_000).to_i
+    NewRelic::Agent::AgentTestController.set_some_headers 'HTTP_X_QUEUE_START'=> "t=#{start}"
+    get :index
+
+    check_metric_time('WebFrontend/QueueTime', 1, 0.1)
+  end
+  
+
+  def test_new_middleware_integration
+    engine.clear_stats
+    start = ((Time.now - 1).to_f * 1_000_000).to_i
+    NewRelic::Agent::AgentTestController.set_some_headers 'HTTP_X_MIDDLEWARE_START'=> "t=#{start}"
+    get :index
+
+    check_metric_time('Middleware/all', 1, 0.1)
+  end
+
+  def test_new_server_time_integration
+    engine.clear_stats
+    start = ((Time.now - 1).to_f * 1_000_000).to_i
+    NewRelic::Agent::AgentTestController.set_some_headers 'HTTP_X_REQUEST_START'=> "t=#{start}"
+    get :index
+
+    check_metric_time('WebFrontend/WebServer/all', 1, 0.1)
+  end
+
+  def test_new_frontend_work_integration
+    engine.clear_stats
+    times = [Time.now - 3, Time.now - 2, Time.now - 1]
+    times.map! {|t| (t.to_f * 1_000_000).to_i }
+    NewRelic::Agent::AgentTestController.set_some_headers({
+                                                            'HTTP_X_SERVER_START'=> "t=#{times[0]}", 'HTTP_X_QUEUE_START' => "t=#{times[1]}", 'HTTP_X_MIDDLEWARE_START' => "t=#{times[2]}"})
+    get :index
+    
+    
+    check_metric_time('WebFrontend/WebServer/all', 1, 0.1)
+    check_metric_time('Middleware/all', 1, 0.1)
+    check_metric_time('WebFrontend/QueueTime', 1, 0.1)    
   end
   
   def test_render_inline
