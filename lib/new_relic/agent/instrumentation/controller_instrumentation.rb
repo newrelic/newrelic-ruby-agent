@@ -357,14 +357,13 @@ module NewRelic
     end
 
     # Filter out
-    def _is_filtered?(key)
-      ignore_actions = self.class.newrelic_read_attr(key) if self.class.respond_to? :newrelic_read_attr
-      case ignore_actions
+    def _is_filtered?(key, current = action_name.to_sym)
+      ignored = self.class.newrelic_read_attr(key) if self.class.respond_to? :newrelic_read_attr
+      case ignored
       when nil; false
       when Hash
-        only_actions = Array(ignore_actions[:only])
-        except_actions = Array(ignore_actions[:except])
-        only_actions.include?(action_name.to_sym) || (except_actions.any? && !except_actions.include?(action_name.to_sym))
+        only, except = Array(ignored[:only]), Array(ignored[:except])
+        only.include?(current) || (except.any? && !except.include?(current))
       else
         true
       end
