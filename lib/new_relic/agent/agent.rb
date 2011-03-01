@@ -462,7 +462,7 @@ module NewRelic
             handle_other_error(e)
           end
           
-          def deferred_work!
+          def deferred_work!(connection_options)
             catch_errors do
               NewRelic::Agent.disable_all_tracing do
                 # We try to connect.  If this returns false that means
@@ -489,7 +489,7 @@ module NewRelic
         def start_worker_thread(connection_options = {})
           log.debug "Creating RPM worker thread."
           @worker_thread = Thread.new do
-            deferred_work!
+            deferred_work!(connection_options)
           end # thread new
           @worker_thread['newrelic_label'] = 'Worker Loop'
         end

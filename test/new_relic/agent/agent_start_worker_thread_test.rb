@@ -5,25 +5,22 @@ class NewRelic::Agent::AgentStartTest < Test::Unit::TestCase
   
   def test_deferred_work_connects
     self.expects(:catch_errors).yields
-    self.expects(:connection_options).returns('connection options')
     self.expects(:connect).with('connection options')
     @connected = true
     self.expects(:check_transaction_sampler_status)
     self.expects(:log_worker_loop_start)
     self.expects(:create_and_run_worker_loop)
-    deferred_work!
+    deferred_work!('connection_options')
   end
 
   def test_deferred_work_connect_failed
     self.expects(:catch_errors).yields
-    self.expects(:connection_options).returns('connection options')
     self.expects(:connect).with('connection options')
     @connected = false
     fake_log = mocked_log
     fake_log.expects(:debug).with("No connection.  Worker thread ending.")
-    deferred_work!
+    deferred_work!('connection_options')
   end
-  
 
   def test_check_transaction_sampler_status_enabled
     control = mocked_control
