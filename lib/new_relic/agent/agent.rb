@@ -4,7 +4,6 @@ require 'net/http'
 require 'logger'
 require 'zlib'
 require 'stringio'
-require 'new_relic/agent/browser_monitoring'
 
 module NewRelic
   module Agent
