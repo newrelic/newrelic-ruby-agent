@@ -233,7 +233,7 @@ module NewRelic
 
       # Skip instrumentation based on the value of 'do_not_trace' and if
       # we aren't calling directly with a block.
-      if !block_given? && _is_filtered?('do_not_trace')
+      if !block_given? && do_not_trace?
         # Also ignore all instrumentation in the call sequence
         NewRelic::Agent.disable_all_tracing do
           return perform_action_without_newrelic_trace(*args)
@@ -262,7 +262,7 @@ module NewRelic
         NewRelic::Agent::BusyCalculator.dispatcher_finish
         # Look for a metric frame in the thread local and process it.
         # Clear the thread local when finished to ensure it only gets called once.
-        frame_data.record_apdex unless _is_filtered?('ignore_apdex')
+        frame_data.record_apdex unless ignore_apdex?
         frame_data.pop
       end
     end
@@ -273,6 +273,14 @@ module NewRelic
 
     def newrelic_request_headers
       self.respond_to?(:request) && self.request.respond_to?(:headers) && self.request.headers
+    end
+
+    def do_not_trace?
+      _is_filtered?('do_not_trace')
+    end
+
+    def ignore_apdex?
+      _is_filtered?('ignore_apdex')
     end
 
     private
