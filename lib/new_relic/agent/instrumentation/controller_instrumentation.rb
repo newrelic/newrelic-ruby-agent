@@ -1,4 +1,5 @@
 require 'new_relic/agent/instrumentation/metric_frame'
+require 'new_relic/agent/instrumentation/queue_time'
 module NewRelic
   module Agent
     module Instrumentation
