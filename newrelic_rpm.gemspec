@@ -118,7 +118,6 @@ http://github.com/newrelic/rpm/tree/master.
      "lib/tasks/install.rake",
      "lib/tasks/tests.rake",
      "newrelic.yml",
-     "newrelic_rpm-2.13.5.alpha.gem",
      "newrelic_rpm.gemspec",
      "recipes/newrelic.rb",
      "test/active_record_fixtures.rb",
