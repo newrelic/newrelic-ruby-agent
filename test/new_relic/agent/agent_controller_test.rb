@@ -322,8 +322,8 @@ class AgentControllerTest < ActionController::TestCase
     queue_time_stat = stats('WebFrontend/QueueTime')
     
     # heroku version
-    request_start = ((Time.now.to_f - 0.5) * 1e3).to_i.to_s
-    NewRelic::Agent::AgentTestController.set_some_headers({'HTTP_X_QUEUE_START' => request_start, 'HTTP_X_HEROKU_QUEUE_DEPTH' => '0'})
+    request_start = ((Time.now.to_f - 0.5) * 1e6).to_i.to_s
+    NewRelic::Agent::AgentTestController.set_some_headers({'HTTP_X_QUEUE_START' => "t=#{request_start}", 'HTTP_X_HEROKU_QUEUE_DEPTH' => '0'})
     get :index
     assert_equal(0, queue_length_stat.total_call_time, 'queue should be empty')
     assert_equal(1, queue_time_stat.call_count, 'should have seen the queue header once')
@@ -340,8 +340,8 @@ class AgentControllerTest < ActionController::TestCase
     queue_time_stat = stats('WebFrontend/QueueTime')    
 
     # heroku version with queue length > 0
-    request_start = ((Time.now.to_f - 0.5) * 1e3).to_i.to_s
-    NewRelic::Agent::AgentTestController.set_some_headers({'HTTP_X_QUEUE_START' => request_start, 'HTTP_X_HEROKU_QUEUE_DEPTH' => '3'})
+    request_start = ((Time.now.to_f - 0.5) * 1e6).to_i.to_s
+    NewRelic::Agent::AgentTestController.set_some_headers({'HTTP_X_QUEUE_START' => "t=#{request_start}", 'HTTP_X_HEROKU_QUEUE_DEPTH' => '3'})
     get :index
     
     assert_equal(1, queue_length_stat.call_count, 'queue should have been seen once')
