@@ -344,7 +344,11 @@ class ActiveRecordInstrumentationTest < Test::Unit::TestCase
     end
     sample = NewRelic::Agent.instance.transaction_sampler.last_sample
     assert_not_nil sample
-    assert_equal 3, sample.count_segments, sample.to_s
+    
+    includes_gc = false
+    sample.each_segment {|s| includes_gc ||= s.metric_name =~ /GC/ }
+    
+    assert_equal (includes_gc ? 4 : 3), sample.count_segments, sample.to_s
 
     sql_segment = sample.root_segment.called_segments.first.called_segments.first.called_segments.first
     assert_not_nil sql_segment, sample.to_s
