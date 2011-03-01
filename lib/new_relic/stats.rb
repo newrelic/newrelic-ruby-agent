@@ -168,6 +168,9 @@ module NewRelic
       end_time ? (end_time - begin_time) : 0.0
     end
 
+    def midpoint
+      begin_time + (duration/2)
+    end
     def calls_per_minute
       checked_calculation(call_count, duration) * 60
     end

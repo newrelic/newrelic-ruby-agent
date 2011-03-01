@@ -1,3 +1,6 @@
+v2.13.5
+  * Moved the API helper to the gihtub newrelic_api gem.
+
 v2.13.4
   * Update DNS lookup code to remove hardcoded IP addresses
 

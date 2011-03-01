@@ -264,6 +264,11 @@ module NewRelic
         # Look for a metric frame in the thread local and process it.
         # Clear the thread local when finished to ensure it only gets called once.
         frame_data.record_apdex unless _is_filtered?('ignore_apdex')
+        
+        if Thread::current[:browser_request]
+          NewRelic::Agent.instance.stats_engine.get_stats_no_scope("HttpDispatcherWithBrowser").record_data_point(Time.now - frame_data.start)
+        end
+        
         frame_data.pop
       end
     end
