@@ -7,6 +7,7 @@ module NewRelic
           MIDDLEWARE_HEADER = 'HTTP_X_MIDDLEWARE_START'
           QUEUE_HEADER = 'HTTP_X_QUEUE_START'
           ALT_QUEUE_HEADER = 'HTTP_X_QUEUE_TIME'
+          HEROKU_QUEUE_HEADER = 'HTTP_X_HEROKU_QUEUE_WAIT_TIME'
           APP_HEADER = 'HTTP_X_APPLICATION_START'
           
           HEADER_REGEX = /([^\s\/,(t=)]+)? ?t=([0-9]+)/
@@ -77,9 +78,17 @@ module NewRelic
         end
 
         def check_for_alternate_queue_length(env)
+          heroku_length = check_for_heroku_queue_length(env)
+          return heroku_length if heroku_length
           header = env[ALT_QUEUE_HEADER]
           return nil unless header
           (header.gsub('t=', '').to_i / 1_000_000.0)
+        end
+
+        def check_for_heroku_queue_length(env)
+          header = env[HEROKU_QUEUE_HEADER]
+          return nil unless header
+          (header.gsub(/[^0-9]/, '').to_i / 1_000.0)
         end
 
         def get_matches_from_header(header, env)
