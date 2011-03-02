@@ -391,6 +391,10 @@ module NewRelic
         parse_frontend_headers(newrelic_request_headers)
       end
       now
+    rescue Exception => e
+      NewRelic::Control.instance.log.error("Error detecting upstream wait time: #{e}")
+      NewRelic::Control.instance.log.debug("#{e.backtrace[0..20]}")
+      now
     end
 
     def _dispatch_stat

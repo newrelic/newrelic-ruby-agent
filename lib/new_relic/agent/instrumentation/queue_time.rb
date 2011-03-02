@@ -18,11 +18,10 @@ module NewRelic
           ALL_QUEUE_METRIC = 'WebFrontend/QueueTime'
         end
 
-        def current_time
-          Time.now
-        end
-        
         def parse_frontend_headers(headers)
+          # these methods add internal state, so we dup so other parts
+          # of the app don't have to worry about it.
+          # May have performance implications with very large env hashes
           env = headers.dup
           add_end_time_header(current_time, env)
           parse_middleware_time_from(env)
@@ -31,7 +30,10 @@ module NewRelic
         end
         
         private
-
+        
+        def current_time
+          Time.now
+        end
         
         # main method to extract server time info from env hash,
         # records individual server metrics and one roll-up for all servers
