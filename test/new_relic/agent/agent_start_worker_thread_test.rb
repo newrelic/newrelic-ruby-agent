@@ -1,11 +1,11 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
-class NewRelic::Agent::AgentStartTest < Test::Unit::TestCase
+class NewRelic::Agent::AgentStartWorkerThread < Test::Unit::TestCase
   require 'new_relic/agent/agent'
   include NewRelic::Agent::Agent::StartWorkerThread
   
   def test_deferred_work_connects
     self.expects(:catch_errors).yields
-    self.expects(:connect).with('connection options')
+    self.expects(:connect).with('connection_options')
     @connected = true
     self.expects(:check_transaction_sampler_status)
     self.expects(:log_worker_loop_start)
@@ -15,7 +15,7 @@ class NewRelic::Agent::AgentStartTest < Test::Unit::TestCase
 
   def test_deferred_work_connect_failed
     self.expects(:catch_errors).yields
-    self.expects(:connect).with('connection options')
+    self.expects(:connect).with('connection_options')
     @connected = false
     fake_log = mocked_log
     fake_log.expects(:debug).with("No connection.  Worker thread ending.")
