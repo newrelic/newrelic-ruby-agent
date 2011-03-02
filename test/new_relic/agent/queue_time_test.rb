@@ -164,6 +164,43 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
     check_metric_time('WebFrontend/QueueTime', 1.0, 0.001)
   end
 
+  def test_check_for_alternate_queue_length_override
+    env = {}
+    create_test_start_time(env)
+    env['HTTP_X_QUEUE_START'] = 't=1' # obviously incorrect
+    env['HTTP_X_QUEUE_TIME'] = '1000000'
+    assert_calls_metrics('WebFrontend/QueueTime') do
+      parse_queue_time_from(env)
+    end
+
+    # alternate queue should override normal header
+    check_metric_time('WebFrontend/QueueTime', 1.0, 0.001)
+  end
+
+  def test_check_for_heroku_queue_length
+    env = {}
+    create_test_start_time(env)
+    env['HTTP_X_HEROKU_QUEUE_WAIT_TIME'] = '1000'
+    assert_calls_metrics('WebFrontend/QueueTime') do
+      parse_queue_time_from(env)
+    end
+
+    check_metric_time('WebFrontend/QueueTime', 1.0, 0.001)    
+  end
+
+  def test_check_for_heroku_queue_length_override
+    env = {}
+    create_test_start_time(env)
+    env['HTTP_X_QUEUE_TIME'] = '10000000' # ten MEEELION useconds
+    env['HTTP_X_HEROKU_QUEUE_WAIT_TIME'] = '1000'
+    assert_calls_metrics('WebFrontend/QueueTime') do
+      parse_queue_time_from(env)
+    end
+
+    # heroku queue should override alternate queue
+    check_metric_time('WebFrontend/QueueTime', 1.0, 0.001)
+  end
+
   # each server should be one second, and the total would be 2 seconds
   def test_record_individual_server_stats
     matches = [['foo', Time.at(1000)], ['bar', Time.at(1001)]]
