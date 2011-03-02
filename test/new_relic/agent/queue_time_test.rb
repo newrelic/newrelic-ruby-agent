@@ -250,6 +250,12 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
       record_time_stat('foo', Time.at(1001), Time.at(1000))
     end
   end
+  
+  def test_record_time_stat_with_end_after_start
+    record_time_stat('WebFrontend/WebServer/foo', 2, 1)
+  rescue RuntimeError => e
+    assert_equal("should not provide an end time less than start time: 1 is less than 2", e.message)
+  end
 
   def test_convert_to_microseconds
     assert_equal((1_000_000_000), convert_to_microseconds(Time.at(1000)), 'time at 1000 seconds past epoch should be 1,000,000,000 usec')
