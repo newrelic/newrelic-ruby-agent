@@ -1,6 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
 require 'action_controller/test_case'
-class AgentControllerTest < ActionController::TestCase
+class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
   require 'action_controller/base'
   require 'new_relic/agent/agent_test_controller'
   

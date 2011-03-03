@@ -1,5 +1,5 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
-class ActiveRecordInstrumentationTest < Test::Unit::TestCase
+class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::Unit::TestCase
   require 'active_record_fixtures'
   include NewRelic::Agent::Instrumentation::ControllerInstrumentation
   def setup

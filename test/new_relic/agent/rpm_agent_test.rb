@@ -1,7 +1,7 @@
 ENV['SKIP_RAILS'] = 'true'
 require File.expand_path('../../../test_helper', __FILE__) 
 
-class RpmAgentTest < Test::Unit::TestCase # ActiveSupport::TestCase
+class NewRelic::Agent::RpmAgentTest < Test::Unit::TestCase # ActiveSupport::TestCase
   extend TestContexts
   
   attr_reader :agent

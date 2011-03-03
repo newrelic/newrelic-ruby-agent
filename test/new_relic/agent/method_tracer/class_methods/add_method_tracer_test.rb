@@ -1,7 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 
 require 'set'
-class NewRelic::Agent::AgentStartTest < Test::Unit::TestCase
+class NewRelic::Agent::Agent::MethodTracer::ClassMethods::AddMethodTracerTest < Test::Unit::TestCase
   require 'new_relic/agent/method_tracer'
   include NewRelic::Agent::MethodTracer::ClassMethods::AddMethodTracer
 

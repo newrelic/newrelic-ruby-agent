@@ -13,7 +13,6 @@ end; end
 
 
 class NewRelic::StatsTest < Test::Unit::TestCase
-  
   def test_sum_attributes
     first  = NewRelic::TestObjectForStats.new
     second = mock('other object')
