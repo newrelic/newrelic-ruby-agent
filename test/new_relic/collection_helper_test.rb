@@ -1,4 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
+require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper')) 
 require 'ostruct'
 require 'active_record_fixtures' if defined?(::ActiveRecord)
 
@@ -118,7 +118,7 @@ class NewRelic::CollectionHelperTest < Test::Unit::TestCase
       #puts "\n\n"
       clean_trace = strip_nr_from_backtrace(e.backtrace)
       assert_equal 0, clean_trace.grep(/newrelic_rpm/).size, clean_trace.inspect
-      assert_equal 0, clean_trace.grep(/trace/).size, clean_trace.inspect
+      assert_equal 1, clean_trace.grep(/trace/).size, clean_trace.inspect
       assert (clean_trace.grep(/find/).size >= 3), "should see at least three frames with 'find' in them (#{e}): \n#{clean_trace.join("\n")}"
     ensure
       ActiveRecordFixtures.teardown

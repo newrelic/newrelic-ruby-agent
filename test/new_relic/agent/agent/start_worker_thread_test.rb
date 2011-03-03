@@ -1,5 +1,5 @@
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
-class NewRelic::Agent::Agent::StartWorkerThread < Test::Unit::TestCase
+require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper')) 
+class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
   require 'new_relic/agent/agent'
   include NewRelic::Agent::Agent::StartWorkerThread
   

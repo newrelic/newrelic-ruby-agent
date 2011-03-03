@@ -1,7 +1,4 @@
-# Run faster standalone
-ENV['SKIP_RAILS'] = 'true'
-
-require File.expand_path('../../../test_helper', __FILE__) 
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 
 class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Test::Unit::TestCase
   include NewRelic::Agent::Instrumentation::ControllerInstrumentation

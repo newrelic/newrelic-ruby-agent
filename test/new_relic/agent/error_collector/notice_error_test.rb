@@ -1,4 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
+require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper')) 
 class NewRelic::Agent::ErrorCollector::NoticeErrorTest < Test::Unit::TestCase
   require 'new_relic/agent/error_collector'
   include NewRelic::Agent::ErrorCollector::NoticeError

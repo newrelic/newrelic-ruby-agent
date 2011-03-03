@@ -1,13 +1,13 @@
-ENV['SKIP_RAILS'] = 'true'
 require File.expand_path(File.join(File.dirname(__FILE__),'/../test_helper'))
-
 class NewRelic::ControlTest < Test::Unit::TestCase
   
   attr_reader :c
   
   def setup
-    NewRelic::Agent.manual_start
+    
+    NewRelic::Agent.manual_start(:dispatcher_instance_id => 'test')
     @c =  NewRelic::Control.instance
+    raise 'oh geez, wrong class' unless NewRelic::Control.instance.is_a?(::NewRelic::Control::Frameworks::Test)
   end
   def shutdown
     NewRelic::Agent.shutdown

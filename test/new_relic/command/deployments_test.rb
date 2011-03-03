@@ -1,5 +1,5 @@
-require File.expand_path(File.join(File.dirname(__FILE__),'/../test_helper'))
-require File.expand_path(File.join(File.dirname(__FILE__),'/../../lib/new_relic/command'))
+require File.expand_path(File.join(File.dirname(__FILE__),'/../../test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__),'/../../../lib/new_relic/command'))
 
 class NewRelic::Command::DeploymentsTest < Test::Unit::TestCase
   

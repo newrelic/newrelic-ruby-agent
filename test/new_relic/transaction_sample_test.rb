@@ -1,5 +1,4 @@
-ENV['SKIP_RAILS'] = 'true'
-require File.expand_path('../../../test_helper.rb', __FILE__) 
+require File.expand_path('../../test_helper.rb', __FILE__) 
 
 class NewRelic::TransactionSampleTest < Test::Unit::TestCase
   include TransactionSampleTestHelper
