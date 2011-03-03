@@ -72,9 +72,22 @@ if defined?(ActiveRecord) && defined?(ActiveRecord::Base) && !NewRelic::Control.
 
         end
 
-        # instrumentation to catch logged SQL statements in sampled transactions
-        ActiveRecord::ConnectionAdapters::AbstractAdapter.module_eval do
-          include ::NewRelic::Agent::Instrumentation::ActiveRecordInstrumentation
+        
+        def instrument_active_record_adapters
+            # instrumentation to catch logged SQL statements in sampled transactions
+            ActiveRecord::ConnectionAdapters::AbstractAdapter.module_eval do
+              include ::NewRelic::Agent::Instrumentation::ActiveRecordInstrumentation
+          end
+        end
+
+        module_function :instrument_active_record_adapters
+        
+        if defined?(Rails) && Rails.respond_to?(:configuration) && Rails.configuration.respond_to?(:after_initialize)
+          Rails.configuration.after_initialize do
+            instrument_active_record_adapters
+          end
+        else
+          instrument_active_record_adapters
         end
 
         # This instrumentation will add an extra scope to the transaction traces
