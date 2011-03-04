@@ -1,13 +1,13 @@
-ENV['SKIP_RAILS'] = 'true'
 require File.expand_path(File.join(File.dirname(__FILE__),'/../test_helper'))
-
 class NewRelic::ControlTest < Test::Unit::TestCase
   
   attr_reader :c
   
   def setup
-    NewRelic::Agent.manual_start
+    
+    NewRelic::Agent.manual_start(:dispatcher_instance_id => 'test')
     @c =  NewRelic::Control.instance
+    raise 'oh geez, wrong class' unless NewRelic::Control.instance.is_a?(::NewRelic::Control::Frameworks::Test)
   end
   def shutdown
     NewRelic::Agent.shutdown
@@ -119,6 +119,7 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     assert_equal 4.4, NewRelic::Agent::Agent.instance.instance_variable_get('@slowest_transaction_threshold')
   end
   def test_log_file_name
+    NewRelic::Control.instance.setup_log
     assert_match /newrelic_agent.log$/, c.instance_variable_get('@log_file')
   end
    

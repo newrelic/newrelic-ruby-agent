@@ -1,6 +1,6 @@
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
+require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper')) 
 
-class NewRelic::Agent::NetInstrumentationTest < Test::Unit::TestCase
+class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::TestCase
   include NewRelic::Agent::Instrumentation::ControllerInstrumentation
   def setup
     NewRelic::Agent.manual_start
@@ -33,7 +33,7 @@ class NewRelic::Agent::NetInstrumentationTest < Test::Unit::TestCase
       assert_match /<head>/, res.body
     end
     assert_equal %w[External/www.google.com/Net::HTTP/GET External/allOther External/www.google.com/all
-       External/www.google.com/Net::HTTP/GET:OtherTransaction/Background/NewRelic::Agent::NetInstrumentationTest/task].sort, metrics_without_gc.select{|m| m =~ /^External/}.sort
+       External/www.google.com/Net::HTTP/GET:OtherTransaction/Background/NewRelic::Agent::Instrumentation::NetInstrumentationTest/task].sort, metrics_without_gc.select{|m| m =~ /^External/}.sort
   end
 
   def test_transactional
@@ -45,7 +45,7 @@ class NewRelic::Agent::NetInstrumentationTest < Test::Unit::TestCase
       assert_match /<head>/, res.body
     end
     assert_equal %w[External/www.google.com/Net::HTTP/GET External/allWeb External/www.google.com/all
-       External/www.google.com/Net::HTTP/GET:Controller/NewRelic::Agent::NetInstrumentationTest/task].sort, metrics_without_gc.select{|m| m =~ /^External/}.sort
+       External/www.google.com/Net::HTTP/GET:Controller/NewRelic::Agent::Instrumentation::NetInstrumentationTest/task].sort, metrics_without_gc.select{|m| m =~ /^External/}.sort
   end
   def test_get__simple
     Net::HTTP.get URI.parse('http://www.google.com/index.html')

@@ -1,9 +1,7 @@
-require File.expand_path(File.join(File.dirname(__FILE__),'/../test_helper'))
-require File.expand_path(File.join(File.dirname(__FILE__),'/../../lib/new_relic/command'))
-require 'rubygems'
-require 'mocha'
+require File.expand_path(File.join(File.dirname(__FILE__),'/../../test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__),'/../../../lib/new_relic/command'))
 
-class NewRelic::DeploymentsTest < Test::Unit::TestCase
+class NewRelic::Command::DeploymentsTest < Test::Unit::TestCase
   
   def setup
     NewRelic::Command::Deployments.class_eval do

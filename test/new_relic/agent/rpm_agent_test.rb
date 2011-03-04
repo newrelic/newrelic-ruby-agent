@@ -1,7 +1,7 @@
 ENV['SKIP_RAILS'] = 'true'
 require File.expand_path('../../../test_helper', __FILE__) 
 
-class RpmAgentTest < Test::Unit::TestCase # ActiveSupport::TestCase
+class NewRelic::Agent::RpmAgentTest < Test::Unit::TestCase # ActiveSupport::TestCase
   extend TestContexts
   
   attr_reader :agent
@@ -48,6 +48,7 @@ class RpmAgentTest < Test::Unit::TestCase # ActiveSupport::TestCase
       assert !@agent.started?
       @agent.start
       assert @agent.started?
+      NewRelic::Agent.shutdown
     end
     
     should "manual_start" do
@@ -55,17 +56,20 @@ class RpmAgentTest < Test::Unit::TestCase # ActiveSupport::TestCase
       NewRelic::Agent.instance.expects(:start_worker_thread).once
       NewRelic::Agent.instance.instance_variable_set '@started', nil
       NewRelic::Agent.manual_start :monitor_mode => true, :license_key => ('x' * 40)
+      NewRelic::Agent.shutdown      
     end
     
     should "post_fork_handler" do
       NewRelic::Agent.manual_start :monitor_mode => true, :license_key => ('x' * 40)
       NewRelic::Agent.after_fork    
-      NewRelic::Agent.after_fork    
+      NewRelic::Agent.after_fork
+      NewRelic::Agent.shutdown
     end
     should "manual_overrides" do
       NewRelic::Agent.manual_start :app_name => "testjobs", :dispatcher_instance_id => "mailer"
       assert_equal "testjobs", NewRelic::Control.instance.app_names[0]
       assert_equal "mailer", NewRelic::Control.instance.dispatcher_instance_id
+      NewRelic::Agent.shutdown
     end
     
     should "restart" do
@@ -73,6 +77,7 @@ class RpmAgentTest < Test::Unit::TestCase # ActiveSupport::TestCase
       NewRelic::Agent.manual_start :app_name => "testjobs", :dispatcher_instance_id => "mailer"
       assert_equal "testjobs", NewRelic::Control.instance.app_names[0]
       assert_equal "mailer", NewRelic::Control.instance.dispatcher_instance_id
+      NewRelic::Agent.shutdown
     end
     
     should "send_timeslice_data" do

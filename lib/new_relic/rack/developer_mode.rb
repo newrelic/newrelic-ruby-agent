@@ -21,20 +21,20 @@ module NewRelic
       end
 
       def call(env)
-        return @app.call(env) unless /^\/newrelic/ =~ Rack::Request.new(env).path_info
+        return @app.call(env) unless /^\/newrelic/ =~ ::Rack::Request.new(env).path_info
         dup._call(env)
       end
 
       protected
 
       def _call(env)
-        @req = Rack::Request.new(env)
+        @req = ::Rack::Request.new(env)
         @rendered = false
         case @req.path_info
         when /profile/
           profile
         when /file/
-          Rack::File.new(VIEW_PATH).call(env)
+          ::Rack::File.new(VIEW_PATH).call(env)
         when /index/
           index
         when /threads/
@@ -67,7 +67,7 @@ module NewRelic
 
       def reset
         NewRelic::Agent.instance.transaction_sampler.reset!
-        Rack::Response.new{|r| r.redirect('/newrelic/')}.finish
+        ::Rack::Response.new{|r| r.redirect('/newrelic/')}.finish
       end
 
       def explain_sql
@@ -136,7 +136,7 @@ module NewRelic
           body = render_without_layout(view, binding)
         end
         if add_rack_array
-          Rack::Response.new(body).finish
+          ::Rack::Response.new(body).finish
         else
           body
         end
