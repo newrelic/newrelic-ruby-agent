@@ -17,7 +17,6 @@
 # For other frameworks, or to manage the agent manually, invoke NewRelic::Agent#manual_start
 # directly.
 #
-require 'conditional_vendored_dependency_detection'
 require 'new_relic/control'
 
 if defined? Merb

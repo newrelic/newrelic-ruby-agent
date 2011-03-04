@@ -24,6 +24,7 @@ rescue LoadError
   puts "Unable to load Rails for New Relic tests"
   raise
 end
+require 'newrelic_rpm'
 
 require 'test/unit'
 require 'shoulda'

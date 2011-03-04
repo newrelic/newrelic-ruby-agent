@@ -1,5 +1,6 @@
 require 'yaml'
 require 'conditional_vendored_metric_parser'
+require 'conditional_vendored_dependency_detection'
 require 'new_relic/local_environment'
 
 require 'singleton'
