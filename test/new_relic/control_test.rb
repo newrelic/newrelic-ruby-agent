@@ -119,6 +119,7 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     assert_equal 4.4, NewRelic::Agent::Agent.instance.instance_variable_get('@slowest_transaction_threshold')
   end
   def test_log_file_name
+    NewRelic::Control.instance.setup_log
     assert_match /newrelic_agent.log$/, c.instance_variable_get('@log_file')
   end
    
