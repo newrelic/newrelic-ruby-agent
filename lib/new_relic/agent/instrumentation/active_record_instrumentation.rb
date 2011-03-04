@@ -67,33 +67,34 @@ module NewRelic
         end
 
       end
-      DependencyDetection.defer do
-        depends_on do
-          defined?(ActiveRecord) && defined?(ActiveRecord::Base)
-        end
+    end
+  end
+end
 
-        depends_on do
-          !NewRelic::Control.instance['skip_ar_instrumentation']
-        end
+DependencyDetection.defer do
+  depends_on do
+    defined?(ActiveRecord) && defined?(ActiveRecord::Base)
+  end
 
-        depends_on do
-          !NewRelic::Control.instance['disable_activerecord_instrumentation']
-        end
+  depends_on do
+    !NewRelic::Control.instance['skip_ar_instrumentation']
+  end
 
-        executes do
-          ActiveRecord::ConnectionAdapters::AbstractAdapter.module_eval do
-            include ::NewRelic::Agent::Instrumentation::ActiveRecordInstrumentation
-          end
-        end
+  depends_on do
+    !NewRelic::Control.instance['disable_activerecord_instrumentation']
+  end
 
-        executes do
-          ActiveRecord::Base.class_eval do
-            class << self
-              add_method_tracer :find_by_sql, 'ActiveRecord/#{self.name}/find_by_sql', :metric => false
-              add_method_tracer :transaction, 'ActiveRecord/#{self.name}/transaction', :metric => false
-            end
-          end
-        end
+  executes do
+    ActiveRecord::ConnectionAdapters::AbstractAdapter.module_eval do
+      include ::NewRelic::Agent::Instrumentation::ActiveRecordInstrumentation
+    end
+  end
+
+  executes do
+    ActiveRecord::Base.class_eval do
+      class << self
+        add_method_tracer :find_by_sql, 'ActiveRecord/#{self.name}/find_by_sql', :metric => false
+        add_method_tracer :transaction, 'ActiveRecord/#{self.name}/transaction', :metric => false
       end
     end
   end

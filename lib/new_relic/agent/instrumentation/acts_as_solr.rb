@@ -34,23 +34,29 @@ DependencyDetection.defer do
     defined?(ActsAsSolr::CommonMethods)
   end
   
-  executes_on(:'ActsAsSolr::ParserMethods') do
-    include NewRelic::Instrumentation::ActsAsSolrInstrumentation::ParserMethodsInstrumentation
-    alias :parse_query_without_newrelic :parse_query
-    alias :parse_query :parse_query_with_newrelic
+  executes do
+    ActsAsSolr::ParserMethods.module_eval do
+      include NewRelic::Instrumentation::ActsAsSolrInstrumentation::ParserMethodsInstrumentation
+      alias :parse_query_without_newrelic :parse_query
+      alias :parse_query :parse_query_with_newrelic
+    end
   end
   
-  executes_on(:'ActsAsSolr::ClassMethods') do
-    %w[find_by_solr find_id_by_solr multi_solr_search count_by_solr].each do |method|
-      add_method_tracer method, 'SolrClient/ActsAsSolr/query'
+  executes do
+    ActsAsSolr::ClassMethods.module_eval do
+      %w[find_by_solr find_id_by_solr multi_solr_search count_by_solr].each do |method|
+        add_method_tracer method, 'SolrClient/ActsAsSolr/query'
+      end
+      add_method_tracer :rebuild_solr_index, 'SolrClient/ActsAsSolr/index'
     end
-    add_method_tracer :rebuild_solr_index, 'SolrClient/ActsAsSolr/index'
   end
 
-  executes_on(:'ActsAsSolr::CommonMethods') do
-    add_method_tracer :solr_add, 'SolrClient/ActsAsSolr/add'
-    add_method_tracer :solr_delete, 'SolrClient/ActsAsSolr/delete'
-    add_method_tracer :solr_commit, 'SolrClient/ActsAsSolr/commit'
-    add_method_tracer :solr_optimize, 'SolrClient/ActsAsSolr/optimize'
+  executes do
+    ActsAsSolr::CommonMethods.module_eval do
+      add_method_tracer :solr_add, 'SolrClient/ActsAsSolr/add'
+      add_method_tracer :solr_delete, 'SolrClient/ActsAsSolr/delete'
+      add_method_tracer :solr_commit, 'SolrClient/ActsAsSolr/commit'
+      add_method_tracer :solr_optimize, 'SolrClient/ActsAsSolr/optimize'
+    end
   end
 end
