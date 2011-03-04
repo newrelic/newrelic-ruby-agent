@@ -29,11 +29,10 @@ module NewRelic
                        alias #{method_name} #{method_name}_with_newrelic_trace
                        EOD
         end
-      end
-
-      def memcache_key_snippet(method_name)
-        return "" unless NewRelic::Control.instance['capture_memcache_keys']
-        "NewRelic::Agent.instance.transaction_sampler.notice_nosql(args.first.inspect, (Time.now - t0).to_f) rescue nil"
+        def memcache_key_snippet(method_name)
+          return "" unless NewRelic::Control.instance['capture_memcache_keys']
+          "NewRelic::Agent.instance.transaction_sampler.notice_nosql(args.first.inspect, (Time.now - t0).to_f) rescue nil"
+        end
       end
     end
   end
