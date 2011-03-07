@@ -39,10 +39,14 @@ elsif defined? Rails
       end
     end
   else
+    if Rails.respond_to?(:configuration)
     # After verison 2.0 of Rails we can access the configuration directly.
     # We need it to add dev mode routes after initialization finished.
       config = Rails.configuration
       NewRelic::Control.instance.init_plugin :config => config
+    else
+      NewRelic::Control.instance.init_plugin
+    end
   end
 else
   NewRelic::Control.instance.init_plugin

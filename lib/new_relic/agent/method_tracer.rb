@@ -401,10 +401,10 @@ module NewRelic
         # may get removed as well.
         def remove_method_tracer(method_name, metric_name_code) # :nodoc:
           return unless NewRelic::Control.instance.agent_enabled?
-
           if method_defined? "#{_traced_method_name(method_name, metric_name_code)}"
             alias_method method_name, "#{_untraced_method_name(method_name, metric_name_code)}"
             undef_method "#{_traced_method_name(method_name, metric_name_code)}"
+            log.debug("removed method tracer #{method_name} #{metric_name_code}\n")
           else
             raise "No tracer for '#{metric_name_code}' on method '#{method_name}'"
           end

@@ -45,13 +45,13 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
   attr_reader :stats_engine
   
   def setup
-    super
     NewRelic::Agent.manual_start
     @stats_engine = NewRelic::Agent.instance.stats_engine
     @stats_engine.clear_stats
     @scope_listener = NewRelic::Agent::MockScopeListener.new
     @old_sampler = NewRelic::Agent.instance.transaction_sampler
     @stats_engine.transaction_sampler = @scope_listener
+    super
   end
 
   def teardown
@@ -99,6 +99,8 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
     method_to_be_traced 1,2,3,true,METRIC
     elapsed = Time.now - t1
     
+    self.class.remove_method_tracer :method_to_be_traced, METRIC
+    
     stats = @stats_engine.get_stats(METRIC)
     check_time stats.total_call_time, elapsed
     assert stats.call_count == 1
@@ -122,13 +124,13 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
     
     stats = @stats_engine.get_stats("Custom/#{self.class.name}/simple_method")
     assert stats.call_count == 1
-    
   end
 
   def test_method_traced?
     assert !self.class.method_traced?(:method_to_be_traced, METRIC)
     self.class.add_method_tracer :method_to_be_traced, METRIC
     assert self.class.method_traced?(:method_to_be_traced, METRIC)
+    self.class.remove_method_tracer :method_to_be_traced, METRIC        
   end
   
   def test_tt_only
@@ -171,6 +173,8 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
     t1 = Time.now
     method_to_be_traced 1,2,3,true,METRIC
     elapsed = Time.now - t1
+
+    self.class.remove_method_tracer :method_to_be_traced, METRIC
     
     stats = @stats_engine.get_stats(METRIC)
     check_time stats.total_call_time, elapsed
@@ -186,6 +190,8 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
     t1 = Time.now
     method_to_be_traced 1,2,3,true,expected_metric
     elapsed = Time.now - t1
+    
+    self.class.remove_method_tracer :method_to_be_traced, metric_code    
     
     stats = @stats_engine.get_stats(expected_metric)
     check_time stats.total_call_time, elapsed

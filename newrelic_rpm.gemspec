@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Bill Kayser", "Justin George"]
-  s.date = %q{2011-03-03}
+  s.date = %q{2011-03-07}
   s.description = %q{New Relic RPM is a Ruby performance management system, developed by
 New Relic, Inc (http://www.newrelic.com).  RPM provides you with deep
 information about the performance of your Ruby on Rails or Merb
@@ -18,7 +18,7 @@ dual-purposed as a either a Rails plugin or a Gem, hosted on
 http://github.com/newrelic/rpm/tree/master.
 }
   s.email = %q{support@newrelic.com}
-  s.executables = ["mongrel_rpm", "newrelic", "newrelic_cmd"]
+  s.executables = ["newrelic_cmd", "newrelic", "mongrel_rpm"]
   s.extra_rdoc_files = [
     "CHANGELOG",
     "LICENSE",
@@ -34,6 +34,7 @@ http://github.com/newrelic/rpm/tree/master.
     "bin/newrelic_cmd",
     "cert/cacert.pem",
     "install.rb",
+    "lib/conditional_vendored_dependency_detection.rb",
     "lib/conditional_vendored_metric_parser.rb",
     "lib/new_relic/agent.rb",
     "lib/new_relic/agent/agent.rb",
@@ -124,44 +125,41 @@ http://github.com/newrelic/rpm/tree/master.
     "test/active_record_fixtures.rb",
     "test/config/newrelic.yml",
     "test/config/test_control.rb",
-    "test/new_relic/agent/active_record_instrumentation_test.rb",
-    "test/new_relic/agent/add_method_tracer_test.rb",
-    "test/new_relic/agent/agent_connect_test.rb",
-    "test/new_relic/agent/agent_controller_test.rb",
-    "test/new_relic/agent/agent_start_test.rb",
-    "test/new_relic/agent/agent_start_worker_thread_test.rb",
+    "test/new_relic/agent/agent/connect_test.rb",
+    "test/new_relic/agent/agent/start_test.rb",
+    "test/new_relic/agent/agent/start_worker_thread_test.rb",
     "test/new_relic/agent/agent_test_controller.rb",
+    "test/new_relic/agent/agent_test_controller_test.rb",
     "test/new_relic/agent/apdex_from_server_test.rb",
     "test/new_relic/agent/busy_calculator_test.rb",
-    "test/new_relic/agent/collection_helper_test.rb",
-    "test/new_relic/agent/error_collector_notice_error_test.rb",
+    "test/new_relic/agent/error_collector/notice_error_test.rb",
     "test/new_relic/agent/error_collector_test.rb",
+    "test/new_relic/agent/instrumentation/active_record_instrumentation_test.rb",
+    "test/new_relic/agent/instrumentation/metric_frame_test.rb",
+    "test/new_relic/agent/instrumentation/net_instrumentation_test.rb",
+    "test/new_relic/agent/instrumentation/queue_time_test.rb",
+    "test/new_relic/agent/instrumentation/task_instrumentation_test.rb",
     "test/new_relic/agent/memcache_instrumentation_test.rb",
+    "test/new_relic/agent/method_tracer/class_methods/add_method_tracer_test.rb",
+    "test/new_relic/agent/method_tracer/instance_methods/trace_execution_scoped_test.rb",
     "test/new_relic/agent/method_tracer_test.rb",
-    "test/new_relic/agent/method_tracer_trace_execution_scoped_test.rb",
-    "test/new_relic/agent/metric_data_test.rb",
-    "test/new_relic/agent/metric_frame_test.rb",
     "test/new_relic/agent/mock_scope_listener.rb",
-    "test/new_relic/agent/net_instrumentation_test.rb",
-    "test/new_relic/agent/queue_time_test.rb",
     "test/new_relic/agent/rpm_agent_test.rb",
     "test/new_relic/agent/stats_engine/metric_stats_test.rb",
     "test/new_relic/agent/stats_engine/samplers_test.rb",
     "test/new_relic/agent/stats_engine/stats_engine_test.rb",
-    "test/new_relic/agent/task_instrumentation_test.rb",
-    "test/new_relic/agent/testable_agent.rb",
     "test/new_relic/agent/transaction_sample_builder_test.rb",
-    "test/new_relic/agent/transaction_sample_subtest_test.rb",
-    "test/new_relic/agent/transaction_sample_test.rb",
     "test/new_relic/agent/transaction_sampler_test.rb",
     "test/new_relic/agent/worker_loop_test.rb",
+    "test/new_relic/collection_helper_test.rb",
+    "test/new_relic/command/deployments_test.rb",
     "test/new_relic/control_test.rb",
-    "test/new_relic/deployments_api_test.rb",
-    "test/new_relic/environment_test.rb",
+    "test/new_relic/local_environment_test.rb",
     "test/new_relic/metric_spec_test.rb",
     "test/new_relic/rack/episodes_test.rb",
-    "test/new_relic/shim_agent_test.rb",
     "test/new_relic/stats_test.rb",
+    "test/new_relic/transaction_sample_subtest_test.rb",
+    "test/new_relic/transaction_sample_test.rb",
     "test/new_relic/version_number_test.rb",
     "test/test_contexts.rb",
     "test/test_helper.rb",
@@ -196,6 +194,10 @@ http://github.com/newrelic/rpm/tree/master.
     "ui/views/newrelic/show_sample.rhtml",
     "ui/views/newrelic/show_source.rhtml",
     "ui/views/newrelic/threads.rhtml",
+    "vendor/gems/dependency_detection-0.0.1.build/LICENSE",
+    "vendor/gems/dependency_detection-0.0.1.build/README",
+    "vendor/gems/dependency_detection-0.0.1.build/lib/dependency_detection.rb",
+    "vendor/gems/dependency_detection-0.0.1.build/lib/dependency_detection/version.rb",
     "vendor/gems/metric_parser-0.1.0.pre1/LICENSE",
     "vendor/gems/metric_parser-0.1.0.pre1/README",
     "vendor/gems/metric_parser-0.1.0.pre1/lib/metric_parser.rb",
@@ -271,7 +273,7 @@ for instructions for previous versions
 }
   s.rdoc_options = ["--line-numbers", "--inline-source", "--title", "New Relic Ruby Performance Monitoring Agent"]
   s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.5.0}
+  s.rubygems_version = %q{1.5.2}
   s.summary = %q{New Relic Ruby Performance Monitoring Agent}
 
   if s.respond_to? :specification_version then

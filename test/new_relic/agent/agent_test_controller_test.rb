@@ -43,12 +43,13 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
   
   def teardown
     Thread.current[:newrelic_ignore_controller] = nil
-    super
     NewRelic::Agent.shutdown
     NewRelic::Agent::AgentTestController.clear_headers
+    super
   end
   
   def test_mongrel_queue
+    NewRelic::Agent::AgentTestController.clear_headers        
     engine.clear_stats
     NewRelic::Control.instance.local_env.stubs(:mongrel).returns( stub('mongrel', :workers => stub('workers', :list => stub('list', :length => '10'))))
     
@@ -70,6 +71,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
   end
 
   def test_new_queue_integration
+    NewRelic::Agent::AgentTestController.clear_headers    
     engine.clear_stats
     start = ((Time.now - 1).to_f * 1_000_000).to_i
     NewRelic::Agent::AgentTestController.set_some_headers 'HTTP_X_QUEUE_START'=> "t=#{start}"
@@ -89,6 +91,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
   end
 
   def test_new_server_time_integration
+    NewRelic::Agent::AgentTestController.clear_headers    
     engine.clear_stats
     start = ((Time.now - 1).to_f * 1_000_000).to_i
     NewRelic::Agent::AgentTestController.set_some_headers 'HTTP_X_REQUEST_START'=> "t=#{start}"
@@ -298,7 +301,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
   end
 
   def test_queue_headers_apache
-
+    NewRelic::Agent::AgentTestController.clear_headers    
     engine.clear_stats
     queue_length_stat = stats('Mongrel/Queue Length')
     queue_time_stat = stats('WebFrontend/QueueTime')

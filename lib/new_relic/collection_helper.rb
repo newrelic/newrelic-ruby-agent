@@ -33,7 +33,7 @@ module NewRelic
       # this is for 1.9.1, where strings no longer have Enumerable
       backtrace = backtrace.split("\n") if String === backtrace
       # strip newrelic from the trace
-      backtrace = backtrace.reject {|line| line =~ /new_relic\/agent\// }
+      backtrace = backtrace.reject {|line| line =~ /new_?relic/ }
       # rename methods back to their original state
       # GJV - 4/6/10 - adding .to_s call since we were seeing line as a Fixnum in some cases
       backtrace = backtrace.collect {|line| line.to_s.gsub(/_without_(newrelic|trace)/, "")}

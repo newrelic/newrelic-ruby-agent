@@ -135,7 +135,7 @@ module NewRelic
 
         # Remove all stats.  For test code only.
         def clear_stats
-          stats_hash.clear
+          @stats_hash = SynchronizedHash.new
           NewRelic::Agent::BusyCalculator.reset
         end
 

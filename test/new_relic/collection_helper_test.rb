@@ -6,8 +6,8 @@ require 'new_relic/collection_helper'
 class NewRelic::CollectionHelperTest < Test::Unit::TestCase
   
   def setup
+    NewRelic::Agent.manual_start    
     super
-    NewRelic::Agent.manual_start
   end
   def teardown
     super
@@ -114,11 +114,11 @@ class NewRelic::CollectionHelperTest < Test::Unit::TestCase
       flunk "should throw"
     rescue => e
       #puts e
-      #puts e.backtrace.join("\n")
+      #puts e.backtrace.grep(/trace/).join("\n")
       #puts "\n\n"
       clean_trace = strip_nr_from_backtrace(e.backtrace)
-      assert_equal 0, clean_trace.grep(/newrelic_rpm/).size, clean_trace.inspect
-      assert_equal 1, clean_trace.grep(/trace/).size, clean_trace.inspect
+      assert_equal 0, clean_trace.grep(/newrelic_rpm/).size, clean_trace.join("\n")
+      assert_equal 0, clean_trace.grep(/trace/).size, clean_trace.join("\n")
       assert (clean_trace.grep(/find/).size >= 3), "should see at least three frames with 'find' in them (#{e}): \n#{clean_trace.join("\n")}"
     ensure
       ActiveRecordFixtures.teardown
