@@ -10,10 +10,10 @@ module NewRelic
         if options[:manual_js_load]
           load_js = ""
         else
-          load_js = "(function() { var e=document.createElement(\"script\");e.type=\"text/javascript\";e.async=true; e.src=document.location.protocol+\"#{episodes_file}\"; var s=document.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})();"
+          load_js = "(function(){var e=document.createElement(\"script\");e.type=\"text/javascript\";e.async=true;e.src=document.location.protocol+\"#{episodes_file}\";var s=document.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})();"
         end
       
-        "<script>var NREUM=NREUM||{};NREUM.q=[];NREUM.q.push([\"mark\",\"firstbyte\",new Date().getTime()]);#{load_js}</script>"
+        "<script>var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);#{load_js}</script>"
       end
       
       def browser_instrumentation_footer(options={})
@@ -35,7 +35,7 @@ module NewRelic
           app_time = ((Time.now - frame.start).to_f * 1000.0).round
  
 <<-eos
-<script type="text/javascript" charset="utf-8">NREUM.q.push(["nrfinish2","#{beacon}","#{license_key}","#{application_id}","#{obf}","#{queue_time}","#{app_time}"])</script>
+<script type="text/javascript" charset="utf-8">NREUMQ.push(["nrfinish2","#{beacon}","#{license_key}","#{application_id}","#{obf}","#{queue_time}","#{app_time}"])</script>
 eos
         end
       end
