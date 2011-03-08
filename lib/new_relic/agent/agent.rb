@@ -256,7 +256,20 @@ module NewRelic
           end
 
           def set_sql_recording!
-            @record_sql = sampler_config.fetch('record_sql', :obfuscated).to_sym
+            record_sql_config = sampler_config.fetch('record_sql', :obfuscated)
+            case record_sql_config.to_s
+            when 'off'
+              @record_sql = :off
+            when 'none'
+              @record_sql = :off
+            when 'false'
+              @record_sql = :off
+            when 'raw'
+              @record_sql = :raw
+            else
+              @record_sql = :obfuscated
+            end
+            
             log_sql_transmission_warning?
           end
 
