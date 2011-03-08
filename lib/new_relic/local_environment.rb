@@ -182,7 +182,7 @@ module NewRelic
       i
     end
 
-    def working_juby?
+    def working_jruby?
       !(defined?(::JRuby) && Jruby.respond_to?(:runtime) && !JRuby.runtime.is_object_space_enabled)
     end
 
