@@ -57,7 +57,12 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
   def teardown
     @stats_engine.transaction_sampler = @old_sampler
     @stats_engine.clear_stats
-    self.class.remove_method_tracer :method_to_be_traced, @metric_name if @metric_name
+    begin
+      self.class.remove_method_tracer :method_to_be_traced, @metric_name if @metric_name
+    rescue RuntimeError
+      # ignore 'no tracer' errors from remove method tracer
+    end
+    
     @metric_name = nil
     super
   end
@@ -98,8 +103,13 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
     t1 = Time.now
     method_to_be_traced 1,2,3,true,METRIC
     elapsed = Time.now - t1
-    
-    self.class.remove_method_tracer :method_to_be_traced, METRIC
+
+    begin
+      self.class.remove_method_tracer :method_to_be_traced, METRIC
+    rescue RuntimeError
+      # ignore 'no tracer' errors from remove method tracer
+    end        
+
     
     stats = @stats_engine.get_stats(METRIC)
     check_time stats.total_call_time, elapsed
@@ -130,7 +140,11 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
     assert !self.class.method_traced?(:method_to_be_traced, METRIC)
     self.class.add_method_tracer :method_to_be_traced, METRIC
     assert self.class.method_traced?(:method_to_be_traced, METRIC)
-    self.class.remove_method_tracer :method_to_be_traced, METRIC        
+    begin
+      self.class.remove_method_tracer :method_to_be_traced, METRIC
+    rescue RuntimeError
+      # ignore 'no tracer' errors from remove method tracer
+    end                  
   end
   
   def test_tt_only
@@ -173,8 +187,12 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
     t1 = Time.now
     method_to_be_traced 1,2,3,true,METRIC
     elapsed = Time.now - t1
-
-    self.class.remove_method_tracer :method_to_be_traced, METRIC
+    
+    begin
+      self.class.remove_method_tracer :method_to_be_traced, METRIC
+    rescue RuntimeError
+      # ignore 'no tracer' errors from remove method tracer
+    end                  
     
     stats = @stats_engine.get_stats(METRIC)
     check_time stats.total_call_time, elapsed
@@ -190,8 +208,12 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
     t1 = Time.now
     method_to_be_traced 1,2,3,true,expected_metric
     elapsed = Time.now - t1
-    
-    self.class.remove_method_tracer :method_to_be_traced, metric_code    
+
+    begin
+      self.class.remove_method_tracer :method_to_be_traced, metric_code
+    rescue RuntimeError
+      # ignore 'no tracer' errors from remove method tracer
+    end      
     
     stats = @stats_engine.get_stats(expected_metric)
     check_time stats.total_call_time, elapsed
