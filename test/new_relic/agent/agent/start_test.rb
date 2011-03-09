@@ -73,11 +73,18 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
     assert_equal :obfuscated, @record_sql, " should default to :obfuscated, was #{@record_sql}"
   end
 
+  def test_set_sql_recording_off
+    self.expects(:sampler_config).returns({'record_sql' => 'off'})
+    self.expects(:log_sql_transmission_warning?)
+    set_sql_recording!
+    assert_equal :off, @record_sql, "should be set to :off, was #{@record_sql}"
+  end
+  
   def test_set_sql_recording_none
     self.expects(:sampler_config).returns({'record_sql' => 'none'})
     self.expects(:log_sql_transmission_warning?)
     set_sql_recording!
-    assert_equal :none, @record_sql, "should be set to :none, was #{@record_sql}"
+    assert_equal :off, @record_sql, "should be set to :off, was #{@record_sql}"
   end
   
   def test_set_sql_recording_raw
@@ -85,6 +92,13 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
     self.expects(:log_sql_transmission_warning?)
     set_sql_recording!
     assert_equal :raw, @record_sql, "should be set to :raw, was #{@record_sql}"
+  end
+
+  def test_set_sql_recording_falsy
+    self.expects(:sampler_config).returns({'record_sql' => false})
+    self.expects(:log_sql_transmission_warning?)
+    set_sql_recording!
+    assert_equal :off, @record_sql, "should be set to :off, was #{@record_sql}"
   end
 
   def test_log_sql_transmission_warning_negative
