@@ -3,24 +3,30 @@ require 'base64'
 module NewRelic
   module Agent
     module BrowserMonitoring
-      def browser_instrumentation_header(options={})
+      
+      def browser_timing_short_header
+        return "" if NewRelic::Agent.instance.browser_monitoring_key.nil?
+
+        "<script>var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()])</script>"
+      end
+      
+      def browser_timing_header(protocol=nil)
         
         return "" if NewRelic::Agent.instance.browser_monitoring_key.nil?
         
         episodes_file = "//" + NewRelic::Agent.instance.episodes_file
         
-        if options[:manual_js_load]
-          load_js = ""
-        elsif options[:protocol]
-          load_js = "(function(){var d=document;var e=d.createElement(\"script\");e.type=\"text/javascript\";e.async=true;e.src=\"#{options[:protocol]}#{episodes_file}\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})();"
+        if protocol
+          protocol = "\"#{protocol}:"
         else
-          load_js = "(function(){var d=document;var e=d.createElement(\"script\");e.type=\"text/javascript\";e.async=true;e.src=((\"http:\"===d.location.protocol)?\"http:\":\"https:\")+\"#{episodes_file}\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})();"
+          protocol = "((\"http:\"===d.location.protocol)?\"http:\":\"https:\")+\""
         end
       
+        load_js = "(function(){var d=document;var e=d.createElement(\"script\");e.type=\"text/javascript\";e.async=true;e.src=#{protocol}#{episodes_file}\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})()"
         "<script>var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);#{load_js}</script>"
       end
       
-      def browser_instrumentation_footer(options={})
+      def browser_timing_footer
         
         license_key = NewRelic::Agent.instance.browser_monitoring_key
         

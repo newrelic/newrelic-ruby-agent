@@ -382,17 +382,38 @@ module NewRelic
     # PRE-RELEASE
     # Returns a Javascript string which should be injected into the very top of the response body
     # == options
-    # * <tt>:manual_js_load => true or false [default = true], when false don't inject loading of New Relic js file. Used when you embedded our JS into your own rollup JS file
+    # * <tt>:protocol => if nil then autodetect the protocol for loading the javascript file from newrelic. If set, use specified protocol.
+    #                    Legal values "http" and "https" 
     #
-    def browser_instrumentation_header(options={})
-      agent.browser_instrumentation_header(options)
+    def browser_timing_header(protocol=nil)
+      agent.browser_timing_header(protocol)
+    end
+        
+    
+    # PRE-RELEASE
+    # Returns a Javascript string which should be injected into the very top of the response body. Use this
+    # if you bundle our eum.js file manually
+    #
+    def browser_timing_short_header
+      agent.browser_timing_short_header
     end
     
     # PRE-RELEASE
     # Returns a Javascript string which should be injected into the very bottom of the response body
     #
-    def browser_instrumentation_footer(options={})
-      agent.browser_instrumentation_footer(options={})
+    def browser_timing_footer
+      agent.browser_timing_footer
     end
+    
+    # FOR BACKWARD COMPATIBILITY (REMOVE BEFORE GA)
+    def browser_instrumentation_header(options={})
+      agent.browser_timing_header
+    end
+
+    # FOR BACKWARD COMPATIBILITY (REMOVE BEFORE GA)
+    def browser_instrumentation_footer(options={})
+      agent.browser_timing_footer
+    end
+    
   end
 end
