@@ -11,8 +11,10 @@ module NewRelic
         
         if options[:manual_js_load]
           load_js = ""
+        elsif options[:protocol]
+          load_js = "(function(){var d=document;var e=d.createElement(\"script\");e.type=\"text/javascript\";e.async=true;e.src=\"#{options[:protocol]}#{episodes_file}\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})();"
         else
-          load_js = "(function(){var e=document.createElement(\"script\");e.type=\"text/javascript\";e.async=true;e.src=document.location.protocol+\"#{episodes_file}\";var s=document.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})();"
+          load_js = "(function(){var d=document;var e=d.createElement(\"script\");e.type=\"text/javascript\";e.async=true;e.src=((\"http:\"===d.location.protocol)?\"http:\":\"https:\")+\"#{episodes_file}\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})();"
         end
       
         "<script>var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);#{load_js}</script>"
