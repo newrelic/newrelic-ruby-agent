@@ -197,7 +197,7 @@ module NewRelic
 
     def check_for_torquebox
       return unless defined?(::JRuby) &&
-         ( Java::OrgTorqueboxRailsWebDeployers::RailsRackDeployer rescue nil)
+         ( org.torquebox::TorqueBox rescue nil)
       @dispatcher = :torquebox
     end
 
