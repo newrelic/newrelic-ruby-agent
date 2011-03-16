@@ -1,3 +1,7 @@
+v2.13.6
+  * Dependency detection framework to prevent multi-loading or early-loading
+    of instrumentation files
+
 v2.13.5
   * Moved the API helper to the github newrelic_api gem.
   * Revamped queue time to include server, queue, and middleware time
