@@ -24,6 +24,8 @@ module NewRelic
         end
 
         def self.supported_on_this_platform?
+          # Process.times on JRuby reports wall clock elapsed time,
+          # not actual cpu time used, so we cannot use this sampler there.
           not defined?(JRuby)
         end
 
