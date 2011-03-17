@@ -85,8 +85,10 @@ DependencyDetection.defer do
   end
 
   executes do
-    ActiveRecord::ConnectionAdapters::AbstractAdapter.module_eval do
-      include ::NewRelic::Agent::Instrumentation::ActiveRecordInstrumentation
+    Rails.configuration.after_initialize do
+      ActiveRecord::ConnectionAdapters::AbstractAdapter.module_eval do
+        include ::NewRelic::Agent::Instrumentation::ActiveRecordInstrumentation
+      end
     end
   end
 
