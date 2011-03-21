@@ -62,24 +62,87 @@ module NewRelic
         # If use_scope is true, two chained metrics are created, one with scope and one without
         # If scoped_metric_only is true, only a scoped metric is created (used by rendering metrics which by definition are per controller only)
         def get_stats(metric_name, use_scope = true, scoped_metric_only = false, scope = nil)
-            scope ||= scope_name if use_scope
-            if scoped_metric_only
+          scope ||= scope_name if use_scope
+          if scoped_metric_only
+            spec = NewRelic::MetricSpec.new metric_name, scope
+            stats = stats_hash[spec] ||= NewRelic::MethodTraceStats.new
+          else
+            stats = stats_hash[metric_name] ||= NewRelic::MethodTraceStats.new
+            if scope && scope != metric_name
               spec = NewRelic::MetricSpec.new metric_name, scope
-              stats = stats_hash[spec] ||= NewRelic::MethodTraceStats.new
-            else
-              stats = stats_hash[metric_name] ||= NewRelic::MethodTraceStats.new
-              if scope && scope != metric_name
-                spec = NewRelic::MetricSpec.new metric_name, scope
-                stats = stats_hash[spec] ||= NewRelic::ScopedMethodTraceStats.new(stats)
-              end
+              stats = stats_hash[spec] ||= NewRelic::ScopedMethodTraceStats.new(stats)
             end
-            stats
+          end
+          stats
         end
 
         def lookup_stats(metric_name, scope_name = nil)
-            stats_hash[NewRelic::MetricSpec.new(metric_name, scope_name)] ||
+          stats_hash[NewRelic::MetricSpec.new(metric_name, scope_name)] ||
             stats_hash[metric_name]
         end
+        
+
+        module Harvest
+          
+          def get_stats_hash_from(engine_or_hash)
+            if engine_or_hash.is_a?(StatsEngine)
+              engine_or_hash.stats_hash
+            else
+              engine_or_hash
+            end
+          end
+
+          def coerce_to_metric_spec(metric_spec)
+            if metric_spec.is_a?(NewRelic::MetricSpec)
+              metric_spec
+            else
+              NewRelic::MetricSpec.new(metric_spec)
+            end
+          end
+
+          def clone_and_reset_stats(metric_spec, stats)
+            if stats.nil?
+              raise "Nil stats for #{metric_spec.name} (#{metric_spec.scope})"
+            end
+
+            stats_copy = stats.clone
+            stats.reset
+            stats_copy
+          end
+          
+          # if the previous timeslice data has not been reported (due to an error of some sort)
+          # then we need to merge this timeslice with the previously accumulated - but not sent
+          # data
+          def merge_old_data!(metric_spec, stats, old_data)
+            metric_data = old_data[metric_spec]
+            stats.merge!(metric_data.stats) unless metric_data.nil?
+          end
+
+          def add_data_to_send_unless_empty(data, stats, metric_spec, id)
+            # don't bother collecting and reporting stats that have
+            # zero-values for this timeslice. significant
+            # performance boost and storage savings.            
+            return if stats.is_reset?
+            data[metric_spec] = NewRelic::MetricData.new((id ? nil : metric_spec), stats, id)
+          end
+          
+          def merge_stats(other_engine_or_hash, metric_ids)
+            previous_timeslice_data = get_stats_hash_from(other_engine_or_hash)
+            
+            timeslice_data = {}          
+            stats_hash.each do | metric_spec, stats |
+
+              metric_spec = coerce_to_metric_spec(metric_spec)
+              stats_copy = clone_and_reset_stats(metric_spec, stats)
+              merge_old_data!(metric_spec, stats_copy, previous_timeslice_data)
+              add_data_to_send_unless_empty(timeslice_data, stats_copy, metric_spec, metric_ids[metric_spec])
+            end
+            timeslice_data
+          end
+          
+        end
+        include Harvest
+        
         # Harvest the timeslice data.  First recombine current statss
         # with any previously
         # unsent metrics, clear out stats cache, and return the current
@@ -90,47 +153,9 @@ module NewRelic
         # sacrificing efficiency.
         # +++
         def harvest_timeslice_data(previous_timeslice_data, metric_ids)
-            timeslice_data = {}
-            poll harvest_samplers
-            stats_hash.keys.each do | metric_spec |
 
-
-              # get a copy of the stats collected since the last harvest, and clear
-              # the stats inside our hash table for the next time slice.
-              stats = stats_hash[metric_spec]
-
-              # we have an optimization for unscoped metrics
-              if !(metric_spec.is_a? NewRelic::MetricSpec)
-                metric_spec = NewRelic::MetricSpec.new metric_spec
-              end
-
-              if stats.nil?
-                raise "Nil stats for #{metric_spec.name} (#{metric_spec.scope})"
-              end
-
-              stats_copy = stats.clone
-              stats.reset
-
-              # if the previous timeslice data has not been reported (due to an error of some sort)
-              # then we need to merge this timeslice with the previously accumulated - but not sent
-              # data
-              previous_metric_data = previous_timeslice_data[metric_spec]
-              stats_copy.merge! previous_metric_data.stats unless previous_metric_data.nil?
-
-              # don't bother collecting and reporting stats that have zero-values for this timeslice.
-              # significant performance boost and storage savings.
-              unless stats_copy.is_reset?
-
-                id = metric_ids[metric_spec]
-                metric_spec_for_transport = id ? nil : metric_spec
-
-                metric_data = NewRelic::MetricData.new(metric_spec_for_transport, stats_copy, id)
-
-                timeslice_data[metric_spec] = metric_data
-              end
-            end
-
-            timeslice_data
+          poll harvest_samplers
+          merge_stats(previous_timeslice_data, metric_ids)
         end
 
         # Remove all stats.  For test code only.

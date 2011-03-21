@@ -13,6 +13,7 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
     @engine.harvest_timeslice_data({},{})
     super
   end
+  
   def test_get_no_scope
     s1 = @engine.get_stats "a"
     s2 = @engine.get_stats "a"
