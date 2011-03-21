@@ -1,3 +1,7 @@
+v2.13.7
+  * Forking background jobs can now use an experimental new method of 
+    sending data to the server (reduces overhead)
+
 v2.13.6
   * Dependency detection framework to prevent multi-loading or early-loading
     of instrumentation files
