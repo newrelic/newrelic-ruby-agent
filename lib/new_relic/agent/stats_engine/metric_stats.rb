@@ -127,14 +127,14 @@ module NewRelic
           end
           
           def merge_stats(other_engine_or_hash, metric_ids)
-            previous_timeslice_data = get_stats_hash_from(other_engine_or_hash)
+            old_data = get_stats_hash_from(other_engine_or_hash)
             
             timeslice_data = {}          
             stats_hash.each do | metric_spec, stats |
 
               metric_spec = coerce_to_metric_spec(metric_spec)
               stats_copy = clone_and_reset_stats(metric_spec, stats)
-              merge_old_data!(metric_spec, stats_copy, previous_timeslice_data)
+              merge_old_data!(metric_spec, stats_copy, old_data)
               add_data_to_send_unless_empty(timeslice_data, stats_copy, metric_spec, metric_ids[metric_spec])
             end
             timeslice_data
