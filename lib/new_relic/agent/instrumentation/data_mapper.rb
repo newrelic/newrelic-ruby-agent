@@ -37,7 +37,7 @@
 #     non-first metric in trace_execution_scoped() (docs say only first counts
 #     towards scope) so they don't show up ine normal call graph/trace.
 
-DependencyDetector.defer do
+DependencyDetection.defer do
   depends_on do
     defined?(::DataMapper)
   end
