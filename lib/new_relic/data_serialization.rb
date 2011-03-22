@@ -1,10 +1,17 @@
+require 'fileutils'
 module NewRelic
   class DataSerialization
+    
+    def create_file_if_needed
+      FileUtils.touch(file_path) unless File.exists?(file_path)
+    end
+    
     def dump(object)
       Marshal.dump(object)
     end
 
     def dump_to_file(object)
+      create_file_if_needed
       File.open(file_path, 'a') do |f|
         f.puts(dump(object))
       end
@@ -25,6 +32,7 @@ module NewRelic
     end
 
     def truncate_file
+      create_file_if_needed      
       File.truncate(file_path, 0)
     end
 
