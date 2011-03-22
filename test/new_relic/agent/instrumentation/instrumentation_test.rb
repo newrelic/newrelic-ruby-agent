@@ -5,6 +5,7 @@ class NewRelic::Agent::Instrumentation::InstrumentationTest < Test::Unit::TestCa
     Dir.glob(NEWRELIC_PLUGIN_DIR + '/lib/new_relic/agent/instrumentation/**/*.rb') do |f|
       require f
     end
+    require 'new_relic/delayed_job_injection'
   end
 end
 
