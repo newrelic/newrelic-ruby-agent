@@ -52,5 +52,4 @@ class NewRelic::Control::Frameworks::Rails3 < NewRelic::Control::Frameworks::Rai
     end
     local_env.append_plugin_list { ::Rails.configuration.plugins.to_a }
   end
-
 end

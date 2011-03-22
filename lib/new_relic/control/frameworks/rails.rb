@@ -129,5 +129,14 @@ class NewRelic::Control::Frameworks::Rails < NewRelic::Control::Frameworks::Ruby
       include NewRelic::Agent::Instrumentation::ControllerInstrumentation::Shim
     }
   end
+
+  def _install_instrumentation
+    super
+    if defined?(Rails) && Rails.respond_to?(:configuration) && Rails.configuration.respond_to?(:after_initialize)
+      Rails.configuration.after_initialize do
+        DependencyDetection.detect!
+      end
+    end
+  end
 end
 
