@@ -77,24 +77,28 @@ module NewRelic
     end
     extend ClassMethods
 
-    # Initialize the plugin/gem and start the agent.  This does the necessary configuration based on the
-    # framework environment and determines whether or not to start the agent.  If the
-    # agent is not going to be started then it loads the agent shim which has stubs
-    # for all the external api.
+    # Initialize the plugin/gem and start the agent.  This does the
+    # necessary configuration based on the framework environment and
+    # determines whether or not to start the agent.  If the agent is
+    # not going to be started then it loads the agent shim which has
+    # stubs for all the external api.
     #
-    # This may be invoked multiple times, as long as you don't attempt to uninstall
-    # the agent after it has been started.
+    # This may be invoked multiple times, as long as you don't attempt
+    # to uninstall the agent after it has been started.
     #
-    # If the plugin is initialized and it determines that the agent is not enabled, it
-    # will skip starting it and install the shim.  But if you later call this with
-    # <tt>:agent_enabled => true</tt>, then it will install the real agent and start it.
+    # If the plugin is initialized and it determines that the agent is
+    # not enabled, it will skip starting it and install the shim.  But
+    # if you later call this with <tt>:agent_enabled => true</tt>,
+    # then it will install the real agent and start it.
     #
-    # What determines whether the agent is launched is the result of calling agent_enabled?
-    # This will indicate whether the instrumentation should/will be installed.  If we're
-    # in a mode where tracers are not installed then we should not start the agent.
+    # What determines whether the agent is launched is the result of
+    # calling agent_enabled?  This will indicate whether the
+    # instrumentation should/will be installed.  If we're in a mode
+    # where tracers are not installed then we should not start the
+    # agent.
     #
-    # Subclasses are not allowed to override, but must implement init_config({}) which
-    # is called one or more times.
+    # Subclasses are not allowed to override, but must implement
+    # init_config({}) which is called one or more times.
     #
     def init_plugin(options={})
       options['app_name'] = ENV['NEWRELIC_APP_NAME'] if ENV['NEWRELIC_APP_NAME']
