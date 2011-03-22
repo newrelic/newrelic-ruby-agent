@@ -88,4 +88,15 @@ DependencyDetection.defer do
     NewRelic::Control.instance.init_plugin
   end
 end
+
+DependencyDetection.defer do
+  depends_on do
+    !defined?(Rails)
+  end
+
+  executes do
+    NewRelic::Control.instance.init_plugin
+  end
+end
+
 DependencyDetection.detect!
