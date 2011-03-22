@@ -28,19 +28,25 @@ class NewRelic::TransactionAnalysisTest < Test::Unit::TestCase
     data = breakdown_data
     assert_equal 'Controller/foo', data[0].metric_name    
   end
-
-  def test_breakdown_data_limit_six
+  
+  # kind of a hairy test, we're making sure that the data is truncated
+  # to one element by the limit
+  def test_breakdown_data_limit_one
     root_segment = mock('root_segment')
     other_segment = mock('other_segment')
     other_segment.expects(:metric_name).twice.returns('Controller/foo')
     other_segment.expects(:duration).returns(0.1)
     other_segment.expects(:exclusive_duration).returns(0.1)
-    self.expects(:each_segment).multiple_yields(root_segment, other_segment)
-    self.expects(:root_segment).twice.returns(root_segment)
+    yet_another = mock('another segment')
+    yet_another.expects(:metric_name).twice.returns('Controller/bar')
+    yet_another.expects(:duration).returns(0.2)
+    yet_another.expects(:exclusive_duration).returns(0.2)    
+    self.expects(:each_segment).multiple_yields(root_segment, other_segment, yet_another)
+    self.expects(:root_segment).times(3).returns(root_segment)
     self.expects(:duration).returns(0.1)
-    data = breakdown_data(6)
+    data = breakdown_data(1)
     assert_equal 1, data.size
-    assert_equal 'Controller/foo', data[0].metric_name
+    assert_equal 'Controller/bar', data[0].metric_name
   end
 
   def test_breakdown_data_remainder
