@@ -41,9 +41,21 @@ DependencyDetection.defer do
   depends_on do
     defined?(::DataMapper)
   end
+
+  depends_on do
+    defined?(DataMapper::Model)
+  end
+
+  depends_on do
+    defined?(DataMapper::Resource)
+  end
+
+  depends_on do
+    defined?(DataMapper::Collection)
+  end
   
-  executes_on(:'DataMapper::Model') do
-    class_eval do
+  executes do
+    DataMapper::Model.class_eval do
       add_method_tracer :get,      'ActiveRecord/#{self.name}/get'
       add_method_tracer :first,    'ActiveRecord/#{self.name}/first'
       add_method_tracer :last,     'ActiveRecord/#{self.name}/last'
@@ -64,9 +76,9 @@ DependencyDetection.defer do
 
     end
   end
-  
-  executes_on(:'DataMapper::Resource') do
-    class_eval do
+
+  executes do
+    DataMapper::Resource.class_eval do
       add_method_tracer :update,   'ActiveRecord/#{self.class.name[/[^:]*$/]}/update'
       add_method_tracer :update!,  'ActiveRecord/#{self.class.name[/[^:]*$/]}/update'
       add_method_tracer :save,     'ActiveRecord/#{self.class.name[/[^:]*$/]}/save'
@@ -77,8 +89,8 @@ DependencyDetection.defer do
     end
   end
 
-  executes_on(:'DataMapper::Collection') do
-    class_eval do
+  executes do
+    DataMapper::Collection.class_eval do
       # DM's Collection instance methods
       add_method_tracer :get,       'ActiveRecord/#{self.name}/get'
       add_method_tracer :first,     'ActiveRecord/#{self.name}/first'
@@ -105,10 +117,16 @@ DependencyDetection.defer do
 end
 
 DependencyDetection.defer do
-  executes_on(:'DataMapper::Adapters::DataObjectsAdapter') do
+  
+  depends_on do
+    defined?(DataMapper) && defined?(DataMapper::Adapters) && defined?(DataMapper::Adapters::DataObjectsAdapter)
+  end
+  
+  executes do
+    
     # Catch the two entry points into DM::Repository::Adapter that bypass CRUD
     # (for when SQL is run directly).
-    class_eval do
+    DataMapper::Adapters::DataObjectsAdapter.class_eval do
 
       add_method_tracer :select,  'ActiveRecord/#{self.class.name[/[^:]*$/]}/select'
       add_method_tracer :execute, 'ActiveRecord/#{self.class.name[/[^:]*$/]}/execute'
@@ -119,26 +137,33 @@ end
 
 DependencyDetection.defer do
 
+  depends_on do
+    defined?(DataMapper) && defined?(DataMapper::Validations) && defined?(DataMapper::Validations::ClassMethods)
+  end
+  
   # DM::Validations overrides Model#create, but currently in a way that makes it
   # impossible to instrument from one place.  I've got a patch pending inclusion
   # to make it instrumentable by putting the create method inside ClassMethods.
   # This will pick it up if/when that patch is accepted.
-  executes_on(:'DataMapper::Validations::ClassMethods') do
-    class_eval do
-
+  executes do
+    DataMapper::Validations::ClassMethods.class_eval do
       next unless method_defined? :create
       add_method_tracer :create,   'ActiveRecord/#{self.name}/create'
-
     end
   end
 end
 
 DependencyDetection.defer do
-# NOTE: DM::Transaction basically calls commit() twice, so as-is it will show
-# up in traces twice -- second time subordinate to the first's scope.  Works
-# well enough.
-  executes_on(:'DataMapper::Transaction') do
-    module_eval do
+
+  depends_on do
+    defined?(DataMapper) && defined?(DataMapper::Transaction)
+  end
+  
+  # NOTE: DM::Transaction basically calls commit() twice, so as-is it will show
+  # up in traces twice -- second time subordinate to the first's scope.  Works
+  # well enough.
+  executes do
+    DataMapper::Transaction.module_eval do
       add_method_tracer :commit, 'ActiveRecord/#{self.class.name[/[^:]*$/]}/commit'
     end
   end
@@ -194,8 +219,13 @@ module NewRelic
 end # NewRelic
 
 DependencyDetection.defer do
-  executes_on(:'DataObjects::Connection') do
-    class_eval do
+  
+  depends_on do
+    defined?(DataObjects) && defined?(DataObjects::Connection)
+  end
+  
+  executes do
+    DataObjects::Connection.class_eval do
       include ::NewRelic::Agent::Instrumentation::DataMapperInstrumentation
     end
   end
