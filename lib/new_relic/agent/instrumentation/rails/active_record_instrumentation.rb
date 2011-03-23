@@ -77,6 +77,10 @@ DependencyDetection.defer do
   end
 
   depends_on do
+    defined?(Rails) && Rails.respond_to?(:version) && Rails.version.to_i == 2
+  end
+
+  depends_on do
     !NewRelic::Control.instance['skip_ar_instrumentation']
   end
 

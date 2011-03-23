@@ -41,10 +41,20 @@ module NewRelic
   end
 end
 
-if defined?(ActionController) && defined?(ActionController::Base)
-  class ActionController::Base
-    include NewRelic::Agent::Instrumentation::ControllerInstrumentation
-    include NewRelic::Agent::Instrumentation::Rails3::ActionController
+DependencyDetection.defer do
+  depends_on do
+    defined?(Rails) && Rails.respond_to?(:version) && Rails.version.to_i == 3
+  end
+  
+  depends_on do
+    defined?(ActionController) && defined?(ActionController::Base)
+  end
+  
+  executes do
+    class ActionController::Base
+      include NewRelic::Agent::Instrumentation::ControllerInstrumentation
+      include NewRelic::Agent::Instrumentation::Rails3::ActionController
+    end
   end
 end
 

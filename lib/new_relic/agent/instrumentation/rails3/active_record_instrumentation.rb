@@ -5,9 +5,11 @@ module NewRelic
 
         def self.included(instrumented_class)
           instrumented_class.class_eval do
-            alias_method :log_without_newrelic_instrumentation, :log
-            alias_method :log, :log_with_newrelic_instrumentation
-            protected :log
+            unless instrumented_class.method_defined?(:log_without_newrelic_instrumentation)
+              alias_method :log_without_newrelic_instrumentation, :log
+              alias_method :log, :log_with_newrelic_instrumentation
+              protected :log
+            end
           end
         end
 
@@ -74,6 +76,10 @@ end
 DependencyDetection.defer do
   depends_on do
     defined?(ActiveRecord) && defined?(ActiveRecord::Base)
+  end
+
+  depends_on do
+    defined?(Rails) && Rails.respond_to?(:version) && Rails.version.to_i == 3
   end
 
   depends_on do
