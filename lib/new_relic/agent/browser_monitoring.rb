@@ -5,32 +5,35 @@ module NewRelic
     module BrowserMonitoring
       
       def browser_timing_short_header
-        return "" if browser_monitoring_key.nil?
+        return "" if NewRelic::Agent.instance.browser_monitoring_key.nil?
+
         "<script>var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()])</script>"
       end
       
       def browser_timing_header(protocol=nil)
-
-        return "" if browser_monitoring_key.nil?
-
+        
+        return "" if NewRelic::Agent.instance.browser_monitoring_key.nil?
+        
+        episodes_file = "//" + NewRelic::Agent.instance.episodes_file
+        
         if protocol
-          if !protocol.eql?("http") && !protocol.eql?("https")
-            protocol = "\"https:"
-          else
-            protocol = "\"#{protocol}:"
-          end
+          protocol = "\"#{protocol}:"
         else
           protocol = "((\"http:\"===d.location.protocol)?\"http:\":\"https:\")+\""
         end
-
-        load_js = "(function(){var d=document;var e=d.createElement(\"script\");e.type=\"text/javascript\";e.async=true;e.src=#{protocol}//#{episodes_file}\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})()"
+      
+        load_js = "(function(){var d=document;var e=d.createElement(\"script\");e.type=\"text/javascript\";e.async=true;e.src=#{protocol}#{episodes_file}\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})()"
         "<script>var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);#{load_js}</script>"
       end
       
       def browser_timing_footer
         
-        return "" if browser_monitoring_key.nil?
+        license_key = NewRelic::Agent.instance.browser_monitoring_key
         
+        return "" if license_key.nil?
+
+        application_id = NewRelic::Agent.instance.application_id
+        beacon = NewRelic::Agent.instance.beacon
         transaction_name = Thread::current[:newrelic_scope_name] || "<unknown>"
         obf = obfuscate(transaction_name)
         
