@@ -23,7 +23,8 @@ module NewRelic
             require "new_relic/control/frameworks/#{@local_env.framework}.rb"
           rescue LoadError
           end
-          NewRelic::Control::Frameworks.const_get(@local_env.framework.to_s.capitalize).new @local_env
+          klass = NewRelic::Control::Frameworks.const_get(@local_env.framework.to_s.capitalize)
+          klass.new @local_env
         end
       end
 

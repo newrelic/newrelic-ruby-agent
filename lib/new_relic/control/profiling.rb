@@ -20,5 +20,6 @@ module NewRelic
         @profiling = profiling_available? && val && defined?(RubyProf)
       end
     end
+    include Profiling
   end
 end

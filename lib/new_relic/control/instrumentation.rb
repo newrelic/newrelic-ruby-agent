@@ -76,5 +76,6 @@ module NewRelic
         log.debug "Finished instrumentation"
       end
     end
+    include Instrumentation
   end
 end

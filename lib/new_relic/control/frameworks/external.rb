@@ -3,11 +3,14 @@
 # out specifically because in this context we are not monitoring
 # the running process, but actually external things.
 require 'new_relic/control/frameworks/ruby'
-
-class NewRelic::Control::Frameworks::External < NewRelic::Control::Frameworks::Ruby
-
-  def init_config(options={})
-    super
+module NewRelic
+  class Control
+    module Frameworks
+      class External < NewRelic::Control::Frameworks::Ruby
+        def init_config(options={})
+          super
+        end
+      end
+    end
   end
-
 end

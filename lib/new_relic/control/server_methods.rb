@@ -93,6 +93,8 @@ module NewRelic
         http
       end
     end
+
+    include ServerMethods
   end
 end
 

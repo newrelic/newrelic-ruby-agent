@@ -146,5 +146,6 @@ module NewRelic
         @verify_certificate
       end
     end
+    include Configuration
   end
 end

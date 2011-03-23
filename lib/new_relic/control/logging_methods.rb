@@ -70,5 +70,6 @@ module NewRelic
         fetch('log_file_name', 'newrelic_agent.log')
       end
     end
+    include LoggingMethods
   end
 end
