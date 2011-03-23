@@ -17,8 +17,8 @@ DependencyDetection.defer do
   
   executes do
     Delayed::Worker.class_eval do
-      def start_with_new_relic(*args)
-        start_without_new_relic(*args)
+      def initialize_with_new_relic(*args)
+        initialize_without_new_relic(*args)
         worker_name = case
                       when self.respond_to?(:name) then self.name
                       when self.class.respond_to?(:default_name) then self.class.default_name
@@ -29,8 +29,8 @@ DependencyDetection.defer do
         NewRelic::Control.instance.init_plugin :dispatcher => :delayed_job, :dispatcher_instance_id => dispatcher_instance_id
       end
 
-      alias start_without_new_relic start
-      alias start start_with_new_relic
+      alias initialize_without_new_relic initialize
+      alias initialize initialize_with_new_relic
     end
   end
 end
