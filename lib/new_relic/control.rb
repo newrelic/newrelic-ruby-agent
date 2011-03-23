@@ -13,9 +13,11 @@ require 'new_relic/control/logging_methods'
 require 'new_relic/control/configuration'
 require 'new_relic/control/server_methods'
 require 'new_relic/control/instrumentation'
+require 'new_relic/control/class_methods'
 
 require 'new_relic/agent'
 require 'new_relic/delayed_job_injection'
+
 
 module NewRelic
 
@@ -42,40 +44,6 @@ module NewRelic
     attr_writer :env
 
     attr_reader :local_env
-
-    module ClassMethods
-      # Access the Control singleton, lazy initialized
-      def instance
-        @instance ||= new_instance
-      end
-      
-      def mark_browser_request
-        Thread::current[:browser_request] = true
-      end
-      
-
-      # Create the concrete class for environment specific behavior:
-      def new_instance
-        @local_env = NewRelic::LocalEnvironment.new
-        if @local_env.framework == :test
-          config = File.expand_path("../../../test/config/newrelic.yml", __FILE__)
-          require "config/test_control"
-          NewRelic::Control::Frameworks::Test.new @local_env, config
-        else
-          begin
-            require "new_relic/control/frameworks/#{@local_env.framework}.rb"
-          rescue LoadError
-          end
-          NewRelic::Control::Frameworks.const_get(@local_env.framework.to_s.capitalize).new @local_env
-        end
-      end
-
-      # The root directory for the plugin or gem
-      def newrelic_root
-        File.expand_path("../../..", __FILE__)
-      end
-    end
-    extend ClassMethods
 
     # Initialize the plugin/gem and start the agent.  This does the
     # necessary configuration based on the framework environment and
@@ -108,6 +76,7 @@ module NewRelic
       environment_name = options.delete(:env) and self.env = environment_name
       dispatcher = options.delete(:dispatcher) and @local_env.dispatcher = dispatcher
       dispatcher_instance_id = options.delete(:dispatcher_instance_id) and @local_env.dispatcher_instance_id = dispatcher_instance_id
+
 
       # Clear out the settings, if they've already been loaded.  It may be that
       # between calling init_plugin the first time and the second time, the env

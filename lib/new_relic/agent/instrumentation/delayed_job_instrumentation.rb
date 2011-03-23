@@ -11,13 +11,34 @@ DependencyDetection.defer do
   
   executes do
     Delayed::Job.class_eval do
-    include NewRelic::Agent::Instrumentation::ControllerInstrumentation
-    if self.instance_methods.include?('name')
-      add_transaction_tracer "invoke_job", :category => 'OtherTransaction/DelayedJob', :path => '#{self.name}'
-    else
-      add_transaction_tracer "invoke_job", :category => 'OtherTransaction/DelayedJob'
+      include NewRelic::Agent::Instrumentation::ControllerInstrumentation
+      if self.instance_methods.include?('name')
+        add_transaction_tracer "invoke_job", :category => 'OtherTransaction/DelayedJob', :path => '#{self.name}'
+      else
+        add_transaction_tracer "invoke_job", :category => 'OtherTransaction/DelayedJob'
+      end
     end
   end
+
+  executes do
+    Delayed::Job.instance_eval do
+      if self.respond_to?('after_fork')
+        if method_defined?(:after_fork)
+          def after_fork_with_newrelic
+            NewRelic::Agent.after_fork(:force_reconnect => true)
+            after_fork_without_newrelic
+          end
+
+          alias_method :after_fork_without_newrelic, :after_fork
+          alias_method :after_fork, :after_fork_with_newrelic
+        else
+          def after_fork
+            NewRelic::Agent.after_fork(:force_reconnect => true)
+            super
+          end
+        end
+      end
+    end
   end
 end
 
