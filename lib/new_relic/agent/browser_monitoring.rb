@@ -13,11 +13,16 @@ module NewRelic
       def browser_timing_header        
         return "" if NewRelic::Agent.instance.browser_monitoring_key.nil?
         
-        episodes_url = NewRelic::Agent.instance.episodes_url
-      
-        load_js = "(function(){var d=document;var e=d.createElement(\"script\");e.type=\"text/javascript\";e.async=true;e.src=\"#{episodes_url}\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})()"
+        @header_script ||= begin
+          puts "compute header"
+          episodes_url = NewRelic::Agent.instance.episodes_url
         
-        "<script>var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);#{load_js}</script>"
+          load_js = "(function(){var d=document;var e=d.createElement(\"script\");e.type=\"text/javascript\";e.async=true;e.src=\"#{episodes_url}\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})()"
+          
+          "<script>var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);#{load_js}</script>"
+        end
+        
+        @header_script
       end
       
       def browser_timing_footer        
