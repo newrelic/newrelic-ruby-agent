@@ -3,34 +3,22 @@ require 'base64'
 module NewRelic
   module Agent
     module BrowserMonitoring
-      
-      def browser_timing_short_header
-        return "" if NewRelic::Agent.instance.browser_monitoring_key.nil?
-
-        "<script>var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()])</script>"
-      end
+    
       
       def browser_timing_header        
-        return "" if NewRelic::Agent.instance.browser_monitoring_key.nil?
-        
-        @header_script ||= begin
-          episodes_url = NewRelic::Agent.instance.episodes_url
-        
-          load_js = "(function(){var d=document;var e=d.createElement(\"script\");e.type=\"text/javascript\";e.async=true;e.src=\"#{episodes_url}\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})()"
-          
-          "<script>var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);#{load_js}</script>"
-        end
-        
-        @header_script
+        return "" if NewRelic::Agent.instance.beacon_configuration.nil?
+        NewRelic::Agent.instance.beacon_configuration.browser_timing_header
       end
       
       def browser_timing_footer        
-        license_key = NewRelic::Agent.instance.browser_monitoring_key
+        config = NewRelic::Agent.instance.beacon_configuration
+        return "" if config.nil?
+        license_key = config.browser_monitoring_key
         
         return "" if license_key.nil?
 
-        application_id = NewRelic::Agent.instance.application_id
-        beacon = NewRelic::Agent.instance.beacon
+        application_id = config.application_id
+        beacon = config.beacon
         transaction_name = Thread::current[:newrelic_scope_name] || "<unknown>"
         obf = obfuscate(transaction_name)
         

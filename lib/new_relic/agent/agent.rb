@@ -61,10 +61,7 @@ module NewRelic
         attr_reader :histogram
         attr_reader :metric_ids
         attr_reader :url_rules
-        attr_reader :browser_monitoring_key
-        attr_reader :application_id
-        attr_reader :beacon
-        attr_reader :episodes_url
+        attr_reader :beacon_configuration
 
         def record_transaction(duration_seconds, options={})
           is_error = options['is_error'] || options['error_message'] || options['exception']
@@ -437,10 +434,7 @@ module NewRelic
             @agent_id = connect_data['agent_run_id']
             @report_period = connect_data['data_report_period']
             @url_rules = connect_data['url_rules']
-            @browser_monitoring_key = connect_data['browser_key']
-            @application_id = connect_data['application_id']
-            @beacon = connect_data['beacon']
-            @episodes_url = connect_data['episodes_url']
+            @beacon_configuration = BeaconConfiguration.new(connect_data)
 
             control.log! "Connected to NewRelic Service at #{@collector}"
             log.debug "Agent Run       = #{@agent_id}."
