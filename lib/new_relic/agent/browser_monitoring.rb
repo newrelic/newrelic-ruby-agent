@@ -14,7 +14,6 @@ module NewRelic
         return "" if NewRelic::Agent.instance.browser_monitoring_key.nil?
         
         @header_script ||= begin
-          puts "compute header"
           episodes_url = NewRelic::Agent.instance.episodes_url
         
           load_js = "(function(){var d=document;var e=d.createElement(\"script\");e.type=\"text/javascript\";e.async=true;e.src=\"#{episodes_url}\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})()"
