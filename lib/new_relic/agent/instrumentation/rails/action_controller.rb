@@ -16,6 +16,13 @@ if defined? ActionController
     ActionView::Template.class_eval do
       add_method_tracer :render, 'View/#{(path_without_extension || @view.controller.newrelic_metric_path)[%r{^(/.*/)?(.*)$},2]}.#{@view.template_format}.#{extension}/Rendering'
     end
+    ActionView::Template.class_eval do
+      alias_method :source_without_newrelic, :source
+      
+      def source
+        NewRelic::Agent.autoinstrument_source source_without_newrelic
+      end
+    end if NewRelic::Control.instance['auto_enable_real_user_monitoring']
 
     when /^2\./   # Rails 2.2-2.*
     ActionView::RenderablePartial.module_eval do
@@ -24,6 +31,14 @@ if defined? ActionController
     ActionView::Template.class_eval do
       add_method_tracer :render, 'View/#{path[%r{^(/.*/)?(.*)$},2]}/Rendering'
     end
+    ActionView::Template.class_eval do
+      alias_method :source_without_newrelic, :source
+      
+      def source
+        NewRelic::Agent.autoinstrument_source source_without_newrelic
+      end
+    end if NewRelic::Control.instance['auto_enable_real_user_monitoring']
+    
   end unless NewRelic::Control.instance['disable_view_instrumentation']
 
   ActionController::Base.class_eval do

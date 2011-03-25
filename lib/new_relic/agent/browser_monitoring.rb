@@ -49,5 +49,28 @@ eos
         [obfuscated].pack("m0").chomp
       end
     end
+    
+    def autoinstrument_source(source)
+      if source =~ /(.*<html>)(.*)(<body)(.*)(<\/body>.*<\/html>.*)/mi
+        newrelic_header = "<%= NewRelic::Agent.browser_timing_header %>"
+        newrelic_footer = "<%= NewRelic::Agent.browser_timing_footer %>"
+
+        source = $1
+        after_html = $2
+          
+        body_tag = $3
+        body = $4
+        close = $5
+          
+        if $2 =~ /(.*)(<head>)(.*)/mi
+          source << $1 << $2 << newrelic_header << $3
+        else
+          source << newrelic_header << after_html          
+        end
+          
+        source << body_tag << body << newrelic_footer << close
+      end
+      source
+    end
   end
 end
