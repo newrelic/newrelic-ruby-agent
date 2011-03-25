@@ -1,7 +1,7 @@
 require 'rack'
 
 module NewRelic::Rack
-  class Episodes
+  class BrowserMonitoring
     def initialize(app, options = {})
       @app = app
     end
@@ -15,7 +15,7 @@ module NewRelic::Rack
       def call!(env)
         @env = env.dup
         status, @headers, response = @app.call(@env)      
-        if should_instrument?(@headers)
+        if should_instrument?(@headers, status)
           @headers.delete('Content-Length')
           response = Rack::Response.new(
             autoinstrument_source(response.respond_to?(:body) ? response.body : response),
@@ -29,16 +29,21 @@ module NewRelic::Rack
         end
       end
       
-      def should_instrument?(headers)
-        headers["Content-Type"] && headers["Content-Type"].include?("text/html")
+      def should_instrument?(headers, status)
+        status == 200 && headers["Content-Type"] && headers["Content-Type"].include?("text/html")
       end
       
     def autoinstrument_source(source)
+      start = Time.now
+            
       source.join! if source.is_a? Array
-      if source =~ /(.*<html>)(.*)(<body)(.*)(<\/body>.*<\/html>.*)/mi
+      
+      @regexp ||= Regexp.new('(.*<html[^>]*>)(.*)(<body)(.*)(<\/body>.*<\/html>.*)', Regexp::IGNORECASE | Regexp::MULTILINE) 
+      
+      if @regexp =~ source
         newrelic_header = NewRelic::Agent.browser_timing_header
         newrelic_footer = NewRelic::Agent.browser_timing_footer
-
+        
         source = $1
         after_html = $2
           
@@ -54,6 +59,8 @@ module NewRelic::Rack
           
         source << body_tag << body << newrelic_footer << close
       end
+      
+      puts "total time to parse: #{Time.now - start}"
       source
     end
   end
