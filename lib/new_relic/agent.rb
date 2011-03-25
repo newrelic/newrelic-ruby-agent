@@ -386,15 +386,6 @@ module NewRelic
       agent.browser_timing_header
     end
         
-    
-    # PRE-RELEASE
-    # Returns a Javascript string which should be injected into the very top of the response body. Use this
-    # if you bundle our eum.js file manually
-    #
-    def browser_timing_short_header
-      agent.browser_timing_short_header
-    end
-    
     # PRE-RELEASE
     # Returns a Javascript string which should be injected into the very bottom of the response body
     #

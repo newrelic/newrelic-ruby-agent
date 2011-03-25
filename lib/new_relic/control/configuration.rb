@@ -79,9 +79,10 @@ module NewRelic
         fetch('developer_mode', fetch('developer'))
       end
 
-      def episodes_enabled?
-        fetch('episodes_enabled', true)
+      def browser_monitoring_enabled?
+        fetch('browser_monitoring', fetch('enabled', false))
       end
+      
       # True if the app runs in multi-threaded mode
       def multi_threaded?
         fetch('multi_threaded')

@@ -35,7 +35,7 @@ module NewRelic
         NewRelic::Agent.instance.beacon_configuration.browser_timing_header
       end
       
-      def browser_timing_footer        
+      def browser_timing_footer
         config = NewRelic::Agent.instance.beacon_configuration
         return "" if config.nil?
         license_key = config.browser_monitoring_key
@@ -57,6 +57,8 @@ module NewRelic
 <<-eos
 <script type="text/javascript" charset="utf-8">NREUMQ.push(["nrf2","#{beacon}","#{license_key}",#{application_id},"#{obf}",#{queue_time},#{app_time}])</script>
 eos
+        else
+          ""
         end
       end
       
