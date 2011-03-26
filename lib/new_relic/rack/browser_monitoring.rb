@@ -52,7 +52,7 @@ module NewRelic::Rack
           head_pos = body_start
         end
         
-        source = source[0..(head_pos-1)] + header + source[head_pos..(body_close-1)] + footer + source[body_close..source.length]
+        source = source[0..(head_pos-1)] + header + source[head_pos..(body_close-1)] + footer + source[body_close..-1]
         
         @headers['Content-Length'] = source.length.to_s if @headers['Content-Length'] 
         
