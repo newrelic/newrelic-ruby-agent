@@ -14,9 +14,8 @@ module NewRelic::Rack
       # thread safe version using shallow copy of env
       def call!(env)
         @env = env.dup
-        status, @headers, response = @app.call(@env)      
+        status, @headers, response = @app.call(@env)
         if should_instrument?(@headers, status)
-          @headers.delete('Content-Length')
           response = Rack::Response.new(
             autoinstrument_source(response.respond_to?(:body) ? response.body : response),
             status,
@@ -32,36 +31,42 @@ module NewRelic::Rack
       def should_instrument?(headers, status)
         status == 200 && headers["Content-Type"] && headers["Content-Type"].include?("text/html")
       end
-      
+
+
     def autoinstrument_source(source)
       start = Time.now
-            
-      source.join! if source.is_a? Array
+      body_start = source.index("<body")
+      body_close = source.rindex("</body>")
       
-      @regexp ||= Regexp.new('(.*<html[^>]*>)(.*)(<body)(.*)(<\/body>.*<\/html>.*)', Regexp::IGNORECASE | Regexp::MULTILINE) 
-      
-      if @regexp =~ source
-        newrelic_header = NewRelic::Agent.browser_timing_header
-        newrelic_footer = NewRelic::Agent.browser_timing_footer
-        
-        source = $1
-        after_html = $2
-          
-        body_tag = $3
-        body = $4
-        close = $5
-          
-        if $2 =~ /(.*)(<head>)(.*)/mi
-          source << $1 << $2 << newrelic_header << $3
+      if body_start && body_close
+        footer = browser_footer
+        header = browser_header
+
+        # FIXME bail if the header or footer is empty
+
+        head_close = source[0..body_start].rindex("</head>")
+        if head_close
+          head_pos = head_close
         else
-          source << newrelic_header << after_html          
+          head_pos = body_start
         end
-          
-        source << body_tag << body << newrelic_footer << close
+#        puts "BROWSER TAGS INJECTED: Total time to parse: #{Time.now - start}"
+        
+        if @headers['Content-Length']
+          @headers['Content-Length'] = (header.length + footer.length + @headers['Content-Length'].to_i).to_s
+        end
+        return source[0..(head_pos-1)] + header + source[head_pos..(body_close-1)] + footer + source[body_close..source.length]
       end
-      
-      puts "total time to parse: #{Time.now - start}"
+#      puts "total time to parse: #{Time.now - start}"
       source
+    end
+        
+    def browser_header
+      NewRelic::Agent.browser_timing_header
+    end
+    
+    def browser_footer
+      NewRelic::Agent.browser_timing_footer
     end
   end
 end
