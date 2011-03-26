@@ -79,8 +79,8 @@ module NewRelic
         fetch('developer_mode', fetch('developer'))
       end
 
-      def browser_monitoring_enabled?
-        fetch('browser_monitoring', fetch('enabled', false))
+      def browser_monitoring_auto_instrument?
+        fetch('browser_monitoring', fetch('auto_instrument', false))
       end
       
       # True if the app runs in multi-threaded mode
