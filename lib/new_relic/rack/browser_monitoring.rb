@@ -2,6 +2,7 @@ require 'rack'
 
 module NewRelic::Rack
   class BrowserMonitoring
+
     def initialize(app, options = {})
       @app = app
     end
@@ -11,30 +12,28 @@ module NewRelic::Rack
       call! env
     end
 
-      # thread safe version using shallow copy of env
-      def call!(env)
-        @env = env.dup
-        status, @headers, response = @app.call(@env)
-        if should_instrument?(@headers, status)
-          response = Rack::Response.new(
-            autoinstrument_source(response.respond_to?(:body) ? response.body : response),
-            status,
-            @headers
-          )
-          response.finish
-          response.to_a
-        else
-          [status, @headers, response]
-        end
+    # thread safe version using shallow copy of env
+    def call!(env)
+      @env = env.dup
+      status, @headers, response = @app.call(@env)
+      if should_instrument?(@headers, status) && (browser_header != "")
+        response = Rack::Response.new(autoinstrument_source(response), status, @headers)
+        response.finish
+      else
+        [status, @headers, response]
       end
-      
-      def should_instrument?(headers, status)
-        status == 200 && headers["Content-Type"] && headers["Content-Type"].include?("text/html")
-      end
+    end
+    
+    def should_instrument?(headers, status)
+      status == 200 && headers["Content-Type"] && headers["Content-Type"].include?("text/html")
+    end
 
+    def autoinstrument_source(response)      
+#      start = Time.now
 
-    def autoinstrument_source(source)
-      start = Time.now
+      source = ""
+      response.each {|f| source << f}
+
       body_start = source.index("<body")
       body_close = source.rindex("</body>")
       
@@ -42,22 +41,24 @@ module NewRelic::Rack
         footer = browser_footer
         header = browser_header
 
-        # FIXME bail if the header or footer is empty
+        head_open = source.index("<head")
 
-        head_close = source[0..body_start].rindex("</head>")
-        if head_close
-          head_pos = head_close
+        if head_open
+          head_close = source.index(">", head_open)
+          
+          head_pos = head_close + 1
         else
+          # put the header right above body start
           head_pos = body_start
         end
-#        puts "BROWSER TAGS INJECTED: Total time to parse: #{Time.now - start}"
         
-        if @headers['Content-Length']
-          @headers['Content-Length'] = (header.length + footer.length + @headers['Content-Length'].to_i).to_s
-        end
-        return source[0..(head_pos-1)] + header + source[head_pos..(body_close-1)] + footer + source[body_close..source.length]
+        source = source[0..(head_pos-1)] + header + source[head_pos..(body_close-1)] + footer + source[body_close..source.length]
+        
+        @headers['Content-Length'] = source.length.to_s if @headers['Content-Length'] 
+        
+#        puts "Total time to parse (ms): #{(Time.now - start) * 1000}"
       end
-#      puts "total time to parse: #{Time.now - start}"
+
       source
     end
         
