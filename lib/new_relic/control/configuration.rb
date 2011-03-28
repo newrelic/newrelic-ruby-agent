@@ -80,7 +80,13 @@ module NewRelic
       end
 
       def browser_monitoring_auto_instrument?
-        fetch('browser_monitoring', fetch('auto_instrument', false))
+        bm = fetch('browser_monitoring')
+        
+        if bm.nil?
+          false
+        else
+          bm.fetch('auto_instrument', false)
+        end
       end
       
       # True if the app runs in multi-threaded mode
