@@ -44,12 +44,13 @@ module NewRelic
 
         application_id = config.application_id
         beacon = config.beacon
-        transaction_name = Thread::current[:newrelic_scope_name] || "<unknown>"
-        obf = obfuscate(transaction_name)
         
+        transaction_name = Thread::current[:newrelic_scope_name] || "<unknown>"
         frame = Thread.current[:newrelic_metric_frame]
         
         if frame && frame.start
+          obf = obfuscate(transaction_name)
+          
           # HACK ALERT - there's probably a better way for us to get the queue-time
           queue_time = ((Thread.current[:queue_time] || 0).to_f * 1000.0).round
           app_time = ((Time.now - frame.start).to_f * 1000.0).round
