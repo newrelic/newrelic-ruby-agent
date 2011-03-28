@@ -67,6 +67,10 @@ module NewRelic
         end
       end
 
+      def cert_file_path
+        File.expand_path(File.join(newrelic_root, 'cert', 'cacert.pem'))
+      end
+
       # Return the Net::HTTP with proxy configuration given the NewRelic::Control::Server object.
       # Default is the collector but for api calls you need to pass api_server
       #
@@ -85,7 +89,7 @@ module NewRelic
           http.use_ssl = true
           if verify_certificate?
             http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-            http.ca_file = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'cert', 'cacert.pem'))
+            http.ca_file = cert_file_path
           else
             http.verify_mode = OpenSSL::SSL::VERIFY_NONE
           end

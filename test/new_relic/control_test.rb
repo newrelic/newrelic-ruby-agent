@@ -13,6 +13,19 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     NewRelic::Agent.shutdown
   end
 
+  def test_cert_file_path
+    assert @c.cert_file_path
+    assert_equal File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'cert', 'cacert.pem')), @c.cert_file_path
+  end
+  
+  def test_cert_file
+    assert `openssl verify -CAfile #{@c.cert_file_path} #{@c.send(:newrelic_root)}/cert/site.pem` =~ /OK/
+  end
+
+  def test_old_cert_file
+    assert `openssl verify -CAfile #{@c.cert_file_path} #{@c.send(:newrelic_root)}/cert/oldsite.pem` =~ /OK/
+  end  
+
   def test_monitor_mode
     assert ! @c.monitor_mode?
     @c.settings.delete 'enabled'
