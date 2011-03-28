@@ -1,4 +1,5 @@
 require 'new_relic/agent/sampler'
+require 'new_relic/delayed_job_injection'
 
 module NewRelic
   module Agent

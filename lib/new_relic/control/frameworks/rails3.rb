@@ -8,11 +8,11 @@ module NewRelic
       class Rails3 < NewRelic::Control::Frameworks::Rails
 
         def env
-          @env ||= ::Rails.env.to_s
+          ::Rails.env.to_s
         end
 
         def root
-          @root ||= ::Rails.root.to_s
+          ::Rails.root.to_s
         end
 
         def logger

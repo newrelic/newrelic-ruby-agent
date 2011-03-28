@@ -1,6 +1,14 @@
 module NewRelic
   class Control
     module InstanceMethods
+      # The env is the setting used to identify which section of the newrelic.yml
+      # to load.  This defaults to a framework specific value, such as ENV['RAILS_ENV']
+      # but can be overridden as long as you set it before calling #init_plugin
+      attr_writer :env
+
+      attr_reader :local_env
+
+      
       # Initialize the plugin/gem and start the agent.  This does the
       # necessary configuration based on the framework environment and
       # determines whether or not to start the agent.  If the agent is
