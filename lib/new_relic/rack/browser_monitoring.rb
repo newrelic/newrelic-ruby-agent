@@ -12,10 +12,10 @@ module NewRelic::Rack
       result = @app.call(env)   # [status, headers, response]
       
       if (NewRelic::Agent.browser_timing_header != "") && should_instrument?(result[0], result[1])
-        response_string = autoinstrument_source(response, result[1])
+        response_string = autoinstrument_source(result[2], result[1])
         
         if (response_string)
-          Rack::Response.new(response_string, status, result[1]).finish
+          Rack::Response.new(response_string, result[0], result[1]).finish
         else
           result
         end
