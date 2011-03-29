@@ -314,19 +314,15 @@ module NewRelic
             "Custom/#{self.name}/#{method_name.to_s}"
           end
           
-          def log
-            NewRelic::Control.instance.log
-          end
-          
           def method_exists?(method_name)
             exists = method_defined?(method_name) || private_method_defined?(method_name)
-            log.warn("Did not trace #{self.name}##{method_name} because that method does not exist") unless exists
+            NewRelic::Control.instance.log.warn("Did not trace #{self.name}##{method_name} because that method does not exist") unless exists
             exists
           end
 
           def traced_method_exists?(method_name, metric_name_code)
             exists = method_defined?(_traced_method_name(method_name, metric_name_code))
-            log.warn("Attempt to trace a method twice with the same metric: Method = #{method_name}, Metric Name = #{metric_name_code}") if exists
+            NewRelic::Control.instance.log.warn("Attempt to trace a method twice with the same metric: Method = #{method_name}, Metric Name = #{metric_name_code}") if exists
             exists
           end
 
@@ -391,7 +387,7 @@ module NewRelic
           class_eval traced_method, __FILE__, __LINE__
           alias_method _untraced_method_name(method_name, metric_name_code), method_name
           alias_method method_name, _traced_method_name(method_name, metric_name_code)
-          log.debug("Traced method: class = #{self.name},"+
+          NewRelic::Control.instance.log.debug("Traced method: class = #{self.name},"+
                     "method = #{method_name}, "+
                     "metric = '#{metric_name_code}'")
         end
@@ -404,7 +400,7 @@ module NewRelic
           if method_defined? "#{_traced_method_name(method_name, metric_name_code)}"
             alias_method method_name, "#{_untraced_method_name(method_name, metric_name_code)}"
             undef_method "#{_traced_method_name(method_name, metric_name_code)}"
-            log.debug("removed method tracer #{method_name} #{metric_name_code}\n")
+            NewRelic::Control.instance.log.debug("removed method tracer #{method_name} #{metric_name_code}\n")
           else
             raise "No tracer for '#{metric_name_code}' on method '#{method_name}'"
           end
