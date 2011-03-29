@@ -18,6 +18,12 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     ActiveRecordFixtures.teardown
     NewRelic::Agent.shutdown
   end
+
+  #####################################################################
+  # Note: If these tests are failing, most likely the problem is that #
+  # the active record instrumentation is not loading for whichever    #
+  # version of rails you're testing at the moment.                    #
+  #####################################################################
   
   def test_agent_setup
     assert NewRelic::Agent.instance.class == NewRelic::Agent::Agent
