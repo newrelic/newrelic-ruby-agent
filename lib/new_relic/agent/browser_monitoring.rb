@@ -30,9 +30,7 @@ module NewRelic
     end
 
     module BrowserMonitoring
-      
-      LICENSE_BYTES = NewRelic::Control.instance.license_key.bytes.to_a
-      
+            
       def browser_timing_header        
         return "" if NewRelic::Agent.instance.beacon_configuration.nil?
         NewRelic::Agent.instance.beacon_configuration.browser_timing_header
@@ -70,9 +68,10 @@ eos
 
       def obfuscate(text)
         obfuscated = ""
+        @@license_bytes ||= NewRelic::Control.instance.license_key.bytes.to_a
         
         text.bytes.each_with_index do |byte, i|
-          obfuscated.concat((byte ^ LICENSE_BYTES[i % 13]))
+          obfuscated.concat((byte ^ @@license_bytes[i % 13]))
         end
         
         [obfuscated].pack("m0").chomp
