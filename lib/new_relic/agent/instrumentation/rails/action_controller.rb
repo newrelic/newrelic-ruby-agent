@@ -4,7 +4,7 @@ DependencyDetection.defer do
   end
 
   depends_on do
-    defined?(Rails) && Rails.respond_to?(:version) && Rails.version.to_i == 2
+    defined?(Rails) && Rails::VERSION::MAJOR.to_i == 2
   end
 
   depends_on do
@@ -46,7 +46,7 @@ DependencyDetection.defer do
   end
 
   depends_on do
-    defined?(Rails) && Rails.respond_to?(:version) && Rails.version.to_i == 2
+    defined?(Rails) && Rails::VERSION::MAJOR.to_i == 2
   end
 
   executes do

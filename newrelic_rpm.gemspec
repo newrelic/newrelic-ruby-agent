@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Bill Kayser", "Justin George"]
-  s.date = %q{2011-03-28}
+  s.date = %q{2011-03-29}
   s.description = %q{New Relic RPM is a Ruby performance management system, developed by
 New Relic, Inc (http://www.newrelic.com).  RPM provides you with deep
 information about the performance of your Ruby on Rails or Merb
@@ -33,6 +33,8 @@ http://github.com/newrelic/rpm/tree/master.
     "bin/newrelic",
     "bin/newrelic_cmd",
     "cert/cacert.pem",
+    "cert/oldsite.pem",
+    "cert/site.pem",
     "install.rb",
     "lib/conditional_vendored_dependency_detection.rb",
     "lib/conditional_vendored_metric_parser.rb",

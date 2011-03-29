@@ -19,11 +19,13 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   end
   
   def test_cert_file
-    assert `openssl verify -CAfile #{@c.cert_file_path} #{@c.send(:newrelic_root)}/cert/site.pem` =~ /OK/
+    result = `openssl verify -CAfile #{@c.cert_file_path} #{@c.send(:newrelic_root)}/cert/site.pem`
+    assert (result =~ /OK/), 'Should verify certificate: ' + result
   end
 
   def test_old_cert_file
-    assert `openssl verify -CAfile #{@c.cert_file_path} #{@c.send(:newrelic_root)}/cert/oldsite.pem` =~ /OK/
+    result = `openssl verify -CAfile #{@c.cert_file_path} #{@c.send(:newrelic_root)}/cert/oldsite.pem`
+    assert (result =~ /OK/), 'Should verify the old certificate: ' + result
   end  
 
   def test_monitor_mode
@@ -47,7 +49,7 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   end
   
   def test_test_config
-    if defined?(Rails) && Rails.respond_to?(:version) && Rails.version.to_i > 2
+    if defined?(Rails) && Rails::VERSION::MAJOR.to_i == 3
       assert_equal :rails3, c.app
     elsif defined?(Rails)
       assert_equal :rails, c.app      
