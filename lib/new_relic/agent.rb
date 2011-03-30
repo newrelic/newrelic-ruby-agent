@@ -1,3 +1,4 @@
+require 'new_relic/control'
 # = New Relic RPM Agent
 #
 # New Relic RPM is a performance monitoring application for Ruby
