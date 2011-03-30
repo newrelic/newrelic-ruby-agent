@@ -17,6 +17,7 @@ module TestContexts
       yield
       
       def teardown
+        super
         NewRelic::Agent.shutdown
         @log_data.reset
         NewRelic::Control.instance['dispatcher']=nil

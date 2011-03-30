@@ -10,6 +10,10 @@ module ActiveRecordFixtures
   def teardown
     ActiveRecordFixtures::Shipment.teardown
     ActiveRecordFixtures::Order.teardown
+    begin
+      super
+    rescue Exception => e
+    end
   end
   class Order < ActiveRecord::Base
     self.table_name = 'newrelic_test_orders'

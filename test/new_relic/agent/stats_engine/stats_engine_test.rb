@@ -11,6 +11,7 @@ class NewRelic::Agent::StatsEngine::TransactionsTest < Test::Unit::TestCase
   end
   def teardown
     @engine.harvest_timeslice_data({},{})
+    super
   end
   
   def test_scope

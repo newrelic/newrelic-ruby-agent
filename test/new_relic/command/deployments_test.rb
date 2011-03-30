@@ -12,6 +12,7 @@ class NewRelic::Command::DeploymentsTest < Test::Unit::TestCase
     end
   end
   def teardown
+    super
     return unless @deployment
     puts @deployment.errors
     puts @deployment.messages

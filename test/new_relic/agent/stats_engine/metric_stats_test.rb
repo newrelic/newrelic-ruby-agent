@@ -11,6 +11,7 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
   end
   def teardown
     @engine.harvest_timeslice_data({},{})
+    super
   end
   def test_get_no_scope
     s1 = @engine.get_stats "a"

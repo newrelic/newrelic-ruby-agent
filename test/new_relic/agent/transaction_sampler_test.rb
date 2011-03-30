@@ -30,6 +30,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   end
 
   def teardown
+    super
     @sampler.send(:clear_builder)
   end
   
