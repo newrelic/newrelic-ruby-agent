@@ -41,6 +41,20 @@ module NewRelic
   end
 end
 
+module TestModuleWithLog
+  extend self
+  def other_method
+    #just here to be traced
+    log "12345"
+  end
+  
+  def log( msg )
+    msg
+  end
+  include NewRelic::Agent::MethodTracer
+  add_method_tracer :other_method, 'Custom/foo/bar'
+end 
+
 class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
   attr_reader :stats_engine
   
@@ -65,6 +79,12 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
     
     @metric_name = nil
     super
+  end
+
+  def test_preserve_logging
+    p TestModuleWithLog.method(:other_method).inspect
+    p TestModuleWithLog.method(:log).inspect
+    assert_equal '12345', TestModuleWithLog.other_method
   end
   
   def test_basic
