@@ -82,8 +82,6 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
   end
 
   def test_preserve_logging
-    p TestModuleWithLog.method(:other_method).inspect
-    p TestModuleWithLog.method(:log).inspect
     assert_equal '12345', TestModuleWithLog.other_method
   end
   
