@@ -1,5 +1,5 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'test_helper'))
-require 'new_relic/agent/instrumentation/metric_frame'
+require 'new_relic/agent/instrumentation/metric_frame/pop'
 class NewRelic::Agent::Instrumentation::MetricFrame::PopTest < Test::Unit::TestCase
   include NewRelic::Agent::Instrumentation::MetricFrame::Pop
 

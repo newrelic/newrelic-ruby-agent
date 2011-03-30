@@ -1,3 +1,5 @@
+require 'new_relic/agent/instrumentation/metric_frame/pop'
+
 # A struct holding the information required to measure a controller
 # action.  This is put on the thread local.  Handles the issue of
 # re-entrancy, or nested action calls.
@@ -8,6 +10,9 @@ module NewRelic
   module Agent
     module Instrumentation
       class MetricFrame
+        # helper module refactored out of the `pop` method
+        include Pop
+        
         attr_accessor :start       # A Time instance for the start time, never nil
         attr_accessor :apdex_start # A Time instance used for calculating the apdex score, which
         # might end up being @start, or it might be further upstream if
@@ -76,7 +81,7 @@ module NewRelic
         end
         
         def agent
-          agent
+          NewRelic::Agent.instance
         end
 
         def transaction_sampler
@@ -134,83 +139,6 @@ module NewRelic
           @path_stack.last.last
         end
 
-        module Pop
-          
-          def clear_thread_metric_frame!
-            Thread.current[:newrelic_metric_frame] = nil
-          end
-          
-          def set_new_scope!(metric)
-            agent.stats_engine.scope_name = metric
-          end
-
-          def log_underflow
-            NewRelic::Agent.logger.error "Underflow in metric frames: #{caller.join("\n   ")}"
-          end
-
-          def process_histogram_for_transaction(ending)
-            agent.histogram.process((ending - start).to_f)
-          end
-
-          def notice_scope_empty
-            transaction_sampler.notice_scope_empty
-          end
-          
-          def record_transaction_cpu
-            burn = cpu_burn
-            transaction_sampler.notice_transaction_cpu_time(burn) if burn
-          end
-
-          def normal_cpu_burn
-            return unless @process_cpu_start
-            process_cpu - @process_cpu_start            
-          end
-
-          def jruby_cpu_burn
-            return unless @jruby_cpu_start
-            burn = (jruby_cpu_time - @jruby_cpu_start)
-            record_jruby_cpu_burn(burn)
-            burn
-          end
-          
-          # we need to do this here because the normal cpu sampler
-          # process doesn't work on JRuby. See the cpu_sampler.rb file
-          # to understand where cpu is recorded for non-jruby processes
-          def record_jruby_cpu_burn(burn)
-            NewRelic::Agent.get_stats_no_scope(NewRelic::Metrics::USER_TIME).record_data_point(burn)
-          end
-
-          def cpu_burn
-            normal_cpu_burn || jruby_cpu_burn
-          end
-
-          def end_transaction!
-            agent.stats_engine.end_transaction
-          end
-
-          def notify_transaction_sampler(web_transaction)
-            record_transaction_cpu
-            process_histogram_for_transaction(Time.now) if web_transaction
-            notice_scope_empty
-          end
-
-          def traced?
-            NewRelic::Agent.is_execution_traced?
-          end
-          
-          def handle_empty_path_stack(metric)
-            raise 'path stack not empty' unless @path_stack.empty?
-            notify_transaction_sampler(metric.is_web_transaction?) if traced?
-            end_transaction!
-            clear_thread_metric_frame!
-          end
-
-          def current_stack_metric
-            metric_name
-          end
-        end
-        include Pop
-        
         # Unwind one stack level.  It knows if it's back at the outermost caller and
         # does the appropriate wrapup of the context.
         def pop
@@ -390,7 +318,6 @@ module NewRelic
           java_utime = threadMBean.getCurrentThreadUserTime()  # ns
           -1 == java_utime ? 0.0 : java_utime/1e9
         end
-
       end
     end
   end
