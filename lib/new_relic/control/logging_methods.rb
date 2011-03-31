@@ -28,28 +28,41 @@ module NewRelic
       def should_log?
         @settings && agent_enabled?
       end
+      
+      # set the log level as specified in the config file
+      def set_log_level!(logger)
+        case fetch("log_level","info").downcase
+          when "debug" then logger.level = Logger::DEBUG
+          when "info" then logger.level = Logger::INFO
+          when "warn" then logger.level = Logger::WARN
+          when "error" then logger.level = Logger::ERROR
+          when "fatal" then logger.level = Logger::FATAL
+          else logger.level = Logger::INFO
+        end
+        logger
+      end
+      
+      # change the format just for our logger
+      def set_log_format!(logger)
+        def logger.format_message(severity, timestamp, progname, msg)
+          "[#{timestamp.strftime("%m/%d/%y %H:%M:%S %z")} #{Socket.gethostname} (#{$$})] #{severity} : #{msg}\n"
+        end
+        logger
+      end
 
+      # Create the logger using the configuration variables
+      #
       # Control subclasses may override this, but it can be called multiple times.
       def setup_log
         @log_file = "#{log_path}/#{log_file_name}"
         @log = Logger.new(@log_file) rescue nil
-
-        # change the format just for our logger
-
-        def log.format_message(severity, timestamp, progname, msg)
-          "[#{timestamp.strftime("%m/%d/%y %H:%M:%S %z")} #{Socket.gethostname} (#{$$})] #{severity} : #{msg}\n"
+        if @log
+          set_log_format!(@log)
+          set_log_level!(@log)
         end
-
-        # set the log level as specified in the config file
-
-        case fetch("log_level","info").downcase
-          when "debug" then log.level = Logger::DEBUG
-          when "info" then log.level = Logger::INFO
-          when "warn" then log.level = Logger::WARN
-          when "error" then log.level = Logger::ERROR
-          when "fatal" then log.level = Logger::FATAL
-        else log.level = Logger::INFO
-        end
+        # note this is not the variable from above - it is the `log`
+        # method, which returns a default logger if none is setup
+        # above
         log
       end
 
@@ -58,7 +71,7 @@ module NewRelic
       end
 
       def log_path
-        return if @log_path
+        return @log_path if @log_path
         @log_path = File.expand_path(fetch('log_file_path', 'log/'))
         if !File.directory?(@log_path) && ! (Dir.mkdir(@log_path) rescue nil)
           log!("Error creating New Relic log directory '#{@log_path}'", :error)
