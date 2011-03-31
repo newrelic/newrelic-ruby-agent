@@ -381,23 +381,11 @@ module NewRelic
     
     # PRE-RELEASE
     # Returns a Javascript string which should be injected into the very top of the response body
-    # == options
-    # * <tt>:protocol => if nil then autodetect the protocol for loading the javascript file from newrelic. If set, use specified protocol.
-    #                    Legal values "http" and "https" 
     #
-    def browser_timing_header(protocol=nil)
-      agent.browser_timing_header(protocol)
+    def browser_timing_header
+      agent.browser_timing_header
     end
         
-    
-    # PRE-RELEASE
-    # Returns a Javascript string which should be injected into the very top of the response body. Use this
-    # if you bundle our eum.js file manually
-    #
-    def browser_timing_short_header
-      agent.browser_timing_short_header
-    end
-    
     # PRE-RELEASE
     # Returns a Javascript string which should be injected into the very bottom of the response body
     #
