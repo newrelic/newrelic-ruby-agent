@@ -55,6 +55,9 @@ module NewRelic
           # HACK ALERT - there's probably a better way for us to get the queue-time
           queue_time = ((Thread.current[:queue_time] || 0).to_f * 1000.0).round
           app_time = ((Time.now - frame.start).to_f * 1000.0).round
+          
+          queue_time = 0 if queue_time < 0
+          app_time = 0 if app_time < 0
  
 <<-eos
 <script type="text/javascript" charset="utf-8">NREUMQ.push(["nrf2","#{beacon}","#{license_key}",#{application_id},"#{obf}",#{queue_time},#{app_time}])</script>
