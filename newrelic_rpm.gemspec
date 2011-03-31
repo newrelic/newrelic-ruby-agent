@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Bill Kayser", "Justin George"]
-  s.date = %q{2011-03-30}
+  s.date = %q{2011-03-31}
   s.description = %q{New Relic RPM is a Ruby performance management system, developed by
 New Relic, Inc (http://www.newrelic.com).  RPM provides you with deep
 information about the performance of your Ruby on Rails or Merb
@@ -278,7 +278,7 @@ for instructions for previous versions
 }
   s.rdoc_options = ["--line-numbers", "--inline-source", "--title", "New Relic Ruby Performance Monitoring Agent"]
   s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.3.7}
+  s.rubygems_version = %q{1.3.6}
   s.summary = %q{New Relic Ruby Performance Monitoring Agent}
 
   if s.respond_to? :specification_version then

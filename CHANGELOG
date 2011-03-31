@@ -1,4 +1,9 @@
-v2.13.6
+v2.14.1
+  * Avoid overriding methods named 'log' when including the MethodTracer module
+  * Ensure that all load paths for 'new_relic/agent' go through 'new_relic/control' first
+  * Remove some debugging output from tests
+
+v2.14.0
   * Dependency detection framework to prevent multi-loading or early-loading
     of instrumentation files
 
