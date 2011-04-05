@@ -143,14 +143,44 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
     assert_equal(1, s.truncate(1))
   end
 
-  def test_truncate_with_children
+  def test_truncate_with_a_child
     s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
     
     fake_segment = mock('segment')
     fake_segment.expects(:parent_segment=).with(s)
     fake_segment.expects(:truncate).with(1).returns(1)
 
-    fail "you try to test it, I mean, really."
+    s.add_called_segment(fake_segment)
+
+    assert_equal(0, s.truncate(1))
+    assert_equal([fake_segment], s.called_segments)
+  end
+
+  def test_truncate_with_multiple_children
+    s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
+
+    fake_segment = mock('segment')
+    fake_segment.expects(:truncate).with(2).returns(2)
+
+    other_segment = mock('other segment')
+    other_segment.expects(:truncate).with(1).returns(1)
+
+    s.called_segments = [fake_segment, other_segment]
+    assert_equal(0, s.truncate(2))
+    assert_equal([fake_segment, other_segment], s.called_segments)
+  end
+
+  def test_truncate_removes_elements
+    s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
+
+    fake_segment = mock('segment')
+    fake_segment.expects(:truncate).with(1).returns(1)
+
+    other_segment = mock('other segment')
+
+    s.called_segments = [fake_segment, other_segment]
+    assert_equal(0, s.truncate(1))
+    assert_equal([fake_segment], s.called_segments)
   end
 
   def test_key_equals

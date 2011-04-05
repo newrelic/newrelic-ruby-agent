@@ -103,18 +103,15 @@ module NewRelic
       # Walk through the tree and truncate the segments
       def truncate(max)
         return max unless @called_segments
-        i = 0
-        @called_segments.each do | segment |
-          max = segment.truncate(max)
-          max -= 1
-          if max <= 0
-            @called_segments = @called_segments[0..i]
-            break
-          else
-            i += 1
-          end
+        last_index = 0
+        remaining = max
+        @called_segments.each_with_index do |segment, index|
+          remaining = (segment.truncate(remaining) - 1)
+          last_index = index
+          break if remaining <= 0
         end
-        max
+        @called_segments = @called_segments[0..last_index]
+        remaining
       end
 
       def []=(key, value)
