@@ -150,7 +150,8 @@ class NewRelic::Control::LoggingMethodsTest < Test::Unit::TestCase
   end
 
   def test_log_file_name
-    @base.expects(:fetch).with('log_file_name', 'newrelic_agent.log')
+    @base.expects(:fetch).with('log_file_name', 'newrelic_agent.log').returns('log_file_name')
+    assert_equal 'log_file_name', @base.log_file_name
   end
 end
 
