@@ -31,17 +31,17 @@ module NewRelic
       end
 
       def to_json
-        map = {:entry_timestamp => @entry_timestamp,
+        hash = {
+          :entry_timestamp => @entry_timestamp,
           :exit_timestamp => @exit_timestamp,
           :metric_name => @metric_name,
-          :segment_id => @segment_id}
-        if @called_segments && !@called_segments.empty?
-          map[:called_segments] = @called_segments
-        end
-        if @params && !@params.empty?
-          map[:params] = @params
-        end
-        map.to_json
+          :segment_id => @segment_id,
+        }
+        
+        hash[:called_segments] = called_segments if !called_segments.empty?
+        hash[:params] = @params if @params && !@params.empty?
+
+        hash.to_json
       end
 
       def path_string
@@ -90,16 +90,14 @@ module NewRelic
       def exclusive_duration
         d = duration
 
-        if @called_segments
-          @called_segments.each do |segment|
-            d -= segment.duration
-          end
+        called_segments.each do |segment|
+          d -= segment.duration
         end
         d
       end
       def count_segments
         count = 1
-        @called_segments.each { | seg | count  += seg.count_segments } if @called_segments
+        called_segments.each { | seg | count  += seg.count_segments }
         count
       end
       # Walk through the tree and truncate the segments
@@ -192,7 +190,7 @@ module NewRelic
                 # this is because a remote database call will likely hang the VM
                 sleep 0.05
               end
-            rescue => e
+            rescue Exception => e
               handle_exception_in_explain(e)
             end
           end
@@ -201,17 +199,18 @@ module NewRelic
         explanations
       end
 
+      def handle_exception_in_explain(e)
+        # guarantees no throw from explain_sql
+        NewRelic::Control.instance.log.error("Error getting explain plan: #{e.message}")
+        NewRelic::Control.instance.log.debug(e.backtrace.join("\n"))
+      rescue Exception
+      end
+      
+
       def params=(p)
         @params = p
       end
 
-
-      def handle_exception_in_explain(e)
-        x = 1 # this is here so that code coverage knows we've entered this block
-        # swallow failed attempts to run an explain.  One example of a failure is the
-        # connection for the sql statement is to a different db than the default connection
-        # specified in AR::Base
-      end
       def obfuscated_sql
         TransactionSample.obfuscate_sql(params[:sql])
       end
