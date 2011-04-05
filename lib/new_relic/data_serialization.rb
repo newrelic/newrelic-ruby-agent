@@ -37,10 +37,12 @@ module NewRelic
     end
 
     def should_send_data
+      # TODO get configuration from main control
       (File.size(file_path) >= 10_000)
     end
 
     def file_path
+      # TODO get configuration from main control
       './log/newrelic_agent_store.db'
     end
   end
