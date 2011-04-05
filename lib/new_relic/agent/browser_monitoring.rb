@@ -7,18 +7,21 @@ module NewRelic
       attr_reader :application_id
       attr_reader :browser_monitoring_key
       attr_reader :beacon
+      attr_reader :rum_enabled
       
       def initialize(connect_data)
         @browser_monitoring_key = connect_data['browser_key']
         @application_id = connect_data['application_id']
         @beacon = connect_data['beacon']
-        
+        @rum_enabled = connect_data['rum.enabled']
+        @rum_enabled = true if @rum_enabled.nil?
         @browser_timing_header = build_browser_timing_header(connect_data)
       end
     
       def build_browser_timing_header(connect_data)
+        return "" if !@rum_enabled
         return "" if @browser_monitoring_key.nil?
-        
+          
         episodes_url = connect_data['episodes_url']
         load_episodes_file = connect_data['rum.load_episodes_file']
         load_episodes_file = true if load_episodes_file.nil?
@@ -39,8 +42,8 @@ module NewRelic
       def browser_timing_footer
         config = NewRelic::Agent.instance.beacon_configuration
         return "" if config.nil?
+        return "" if !config.rum_enabled
         license_key = config.browser_monitoring_key
-        
         return "" if license_key.nil?
 
         application_id = config.application_id
