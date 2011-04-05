@@ -77,7 +77,7 @@ module NewRelic
       end
 
       def called_segments
-        @called_segments || EMPTY_ARRAY
+        @called_segments || []
       end
 
       # return the total duration of this segment
