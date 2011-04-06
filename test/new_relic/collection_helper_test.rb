@@ -1,18 +1,18 @@
-require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper')) 
+require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
 require 'ostruct'
 require 'active_record_fixtures' if defined?(::ActiveRecord)
 
 require 'new_relic/collection_helper'
 class NewRelic::CollectionHelperTest < Test::Unit::TestCase
-  
+
   def setup
-    NewRelic::Agent.manual_start    
+    NewRelic::Agent.manual_start
     super
   end
   def teardown
     super
   end
-  
+
   include NewRelic::CollectionHelper
   def test_string
     val = (('A'..'Z').to_a.join * 100).to_s
@@ -58,7 +58,7 @@ class NewRelic::CollectionHelperTest < Test::Unit::TestCase
     assert_equal Hash["ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEF..." => (("0"*256) + "...")], normalize_params({ val => '0' * 512 })
   end
   class MyHash < Hash
-    
+
   end
   # Test to ensure that hash subclasses are properly converted
   def test_hash_subclass
@@ -67,19 +67,19 @@ class NewRelic::CollectionHelperTest < Test::Unit::TestCase
     custom_params = { :one => {:hash => { :a => :b}, :myhash => h }}
     nh = normalize_params(custom_params)
     myhash = custom_params[:one][:myhash]
-    assert_equal MyHash, myhash.class 
+    assert_equal MyHash, myhash.class
     myhash = nh[:one][:myhash]
-    assert_equal Hash, myhash.class 
+    assert_equal Hash, myhash.class
   end
-  
+
   class MyEnumerable
     include Enumerable
-    
+
     def each
       yield "1"
     end
   end
-  
+
   def test_enumerable
     e = MyEnumerable.new
     custom_params = { :one => {:hash => { :a => :b}, :myenum => e }}
@@ -87,25 +87,25 @@ class NewRelic::CollectionHelperTest < Test::Unit::TestCase
     myenum = nh[:one][:myenum]
     assert_match /MyEnumerable/, myenum
   end
-  
+
   def test_stringio
     # Verify StringIO works like this normally:
     s = StringIO.new "start" + ("foo bar bat " * 1000)
     val = nil
-    s.each { | entry | val = entry; break } 
+    s.each { | entry | val = entry; break }
     assert_match /^startfoo bar/, val
 
     # make sure stringios aren't affected by calling normalize_params:
     s = StringIO.new "start" + ("foo bar bat " * 1000)
     v = normalize_params({ :foo => s.string })
-    s.each { | entry | val = entry; break } 
+    s.each { | entry | val = entry; break }
     assert_match /^startfoo bar/, val
   end
-  
+
   def test_object
     assert_equal ["foo", '#<OpenStruct>'], normalize_params(['foo', OpenStruct.new('z'=>'q')])
   end
-  
+
   def test_strip_backtrace
     begin
       ActiveRecordFixtures.setup

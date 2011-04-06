@@ -25,7 +25,7 @@ module NewRelic
     attr_reader :root_segment
     attr_reader :params
     attr_reader :sample_id
-    
+
     @@start_time = Time.now
 
     include TransactionAnalysis
@@ -82,7 +82,7 @@ module NewRelic
       count = count_segments
       return if count < max
       @root_segment.truncate(max + 1)
-      
+
       ensure_segment_count_set(count)
     end
 

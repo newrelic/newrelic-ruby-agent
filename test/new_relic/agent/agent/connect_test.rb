@@ -1,4 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__),'..', '..', '..','test_helper')) 
+require File.expand_path(File.join(File.dirname(__FILE__),'..', '..', '..','test_helper'))
 class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   require 'new_relic/agent/agent'
   include NewRelic::Agent::Agent::Connect
@@ -9,7 +9,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     @connect_attempts = 1
     @connect_retry_period = 0
   end
-  
+
   def test_tried_to_connect?
     # base case, should default to false
     assert !tried_to_connect?({})
@@ -20,7 +20,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     @connected = true
     assert tried_to_connect?({})
   end
-  
+
   def test_tried_to_connect_forced
     # is false if force_reconnect is true
     assert !tried_to_connect?({:force_reconnect => true})
@@ -116,7 +116,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     log.expects(:debug).never
     log_seed_token
   end
-  
+
   def mocks_for_positive_environment_for_connect(value_for_control)
     control = mocked_control
     control.expects(:'[]').with('send_environment_info').once.returns(value_for_control)
@@ -124,7 +124,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     fake_env.expects(:snapshot).once.returns("snapshot")
     control.expects(:local_env).once.returns(fake_env)
   end
-  
+
   def test_environment_for_connect_nil
     mocks_for_positive_environment_for_connect(nil)
     assert_equal 'snapshot', environment_for_connect
@@ -266,7 +266,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     assert_equal 'pasta sauce', @report_period
     assert_equal 'tamales', @url_rules
   end
-  
+
   private
 
   def mocked_control

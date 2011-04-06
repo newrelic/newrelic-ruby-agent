@@ -1,15 +1,15 @@
-require File.expand_path(File.join(File.dirname(__FILE__),'..', '..','test_helper')) 
+require File.expand_path(File.join(File.dirname(__FILE__),'..', '..','test_helper'))
 require 'new_relic/transaction_analysis/segment_summary'
 class NewRelic::TransactionAnalysis::SegmentSummaryTest < Test::Unit::TestCase
-  
+
   def setup
     @sample = mock('sample')
     @ss = NewRelic::TransactionAnalysis::SegmentSummary.new('Controller/foo', @sample)
   end
-  
+
   # these are mostly stub tests just making sure that the API doesn't
   # change if anyone ever needs to modify it.
-  
+
   def test_insert
     segment = mock('segment')
     segment.expects(:metric_name).returns('Controller/foo')
@@ -45,7 +45,7 @@ class NewRelic::TransactionAnalysis::SegmentSummaryTest < Test::Unit::TestCase
     @ss.exclusive_time = nil
     assert_equal 0, @ss.exclusive_time_percentage
   end
-  
+
   def test_exclusive_time_percentage
     @ss.exclusive_time = 0.05
     @sample.expects(:duration).returns(0.1).times(3)

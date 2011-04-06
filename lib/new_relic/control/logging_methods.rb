@@ -28,7 +28,7 @@ module NewRelic
       def should_log?
         @settings && agent_enabled?
       end
-      
+
       # set the log level as specified in the config file
       def set_log_level!(logger)
         case fetch("log_level","info").downcase
@@ -41,7 +41,7 @@ module NewRelic
         end
         logger
       end
-      
+
       # change the format just for our logger
       def set_log_format!(logger)
         def logger.format_message(severity, timestamp, progname, msg)

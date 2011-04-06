@@ -5,7 +5,7 @@ class MinimalRackApp
   def initialize(return_value)
     @return_value = return_value
   end
-  
+
   def call(env)
     @return_value
   end
@@ -29,7 +29,7 @@ class NewRelic::Agent::Instrumentation::RackTest < Test::Unit::TestCase
   def test_basic_rack_app_ignores_404
     NewRelic::Agent::Instrumentation::MetricFrame.expects(:abort_transaction!)
     x = MinimalRackApp.new([404, {}, ["whee"]])
-    assert_equal [404, {}, ["whee"]], x.call({})    
+    assert_equal [404, {}, ["whee"]], x.call({})
   end
 end
 

@@ -1,13 +1,13 @@
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
+require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require 'action_controller/test_case'
 class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
   require 'action_controller/base'
   require 'new_relic/agent/agent_test_controller'
-  
+
   self.controller_class = NewRelic::Agent::AgentTestController
-  
+
   attr_accessor :agent, :engine
-  
+
   # Normally you can do this with #setup but for some reason in rails 2.0.2
   # setup is not called.
   def initialize name
@@ -28,7 +28,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     if defined?(Rails) && Rails.respond_to?(:application) && Rails.application.respond_to?(:routes)
       @routes = Rails.application.routes
     end
-  
+
     Thread.current[:newrelic_ignore_controller] = nil
     NewRelic::Agent.manual_start
     @agent = NewRelic::Agent.instance
@@ -40,26 +40,26 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     end
     @engine = @agent.stats_engine
   end
-  
+
   def teardown
     Thread.current[:newrelic_ignore_controller] = nil
     NewRelic::Agent.shutdown
     NewRelic::Agent::AgentTestController.clear_headers
     super
   end
-  
+
   def test_mongrel_queue
-    NewRelic::Agent::AgentTestController.clear_headers        
+    NewRelic::Agent::AgentTestController.clear_headers
     engine.clear_stats
     NewRelic::Control.instance.local_env.stubs(:mongrel).returns( stub('mongrel', :workers => stub('workers', :list => stub('list', :length => '10'))))
-    
+
     get :index
     assert_equal 1, stats('HttpDispatcher').call_count
     assert_equal 1, engine.get_stats_no_scope('Mongrel/Queue Length').call_count
     assert_equal 9, engine.get_stats_no_scope('Mongrel/Queue Length').total_call_time
     assert_equal 0, engine.get_stats_no_scope('WebFrontend/Mongrel/Average Queue Time').call_count
   end
-  
+
   def test_heroku_queue
     engine.clear_stats
     NewRelic::Agent::AgentTestController.set_some_headers 'HTTP_X_HEROKU_QUEUE_DEPTH'=>'15'
@@ -71,7 +71,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
   end
 
   def test_new_queue_integration
-    NewRelic::Agent::AgentTestController.clear_headers    
+    NewRelic::Agent::AgentTestController.clear_headers
     engine.clear_stats
     start = ((Time.now - 1).to_f * 1_000_000).to_i
     NewRelic::Agent::AgentTestController.set_some_headers 'HTTP_X_QUEUE_START'=> "t=#{start}"
@@ -79,7 +79,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
 
     check_metric_time('WebFrontend/QueueTime', 1, 0.1)
   end
-  
+
 
   def test_new_middleware_integration
     engine.clear_stats
@@ -91,7 +91,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
   end
 
   def test_new_server_time_integration
-    NewRelic::Agent::AgentTestController.clear_headers    
+    NewRelic::Agent::AgentTestController.clear_headers
     engine.clear_stats
     start = ((Time.now - 1).to_f * 1_000_000).to_i
     NewRelic::Agent::AgentTestController.set_some_headers 'HTTP_X_REQUEST_START'=> "t=#{start}"
@@ -107,13 +107,13 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     NewRelic::Agent::AgentTestController.set_some_headers({
                                                             'HTTP_X_REQUEST_START'=> "t=#{times[0]}", 'HTTP_X_QUEUE_START' => "t=#{times[1]}", 'HTTP_X_MIDDLEWARE_START' => "t=#{times[2]}"})
     get :index
-    
-    
+
+
     check_metric_time('WebFrontend/WebServer/all', 1, 0.1)
     check_metric_time('Middleware/all', 1, 0.1)
-    check_metric_time('WebFrontend/QueueTime', 1, 0.1)    
+    check_metric_time('WebFrontend/QueueTime', 1, 0.1)
   end
-  
+
   def test_render_inline
     engine.clear_stats
     get :action_inline
@@ -126,7 +126,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     get :action_to_ignore
     compare_metrics [], engine.metrics
   end
-  
+
   def test_controller_rescued_error
     engine.clear_stats
     assert_raise RuntimeError do
@@ -149,7 +149,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     assert_equal 1, score[2], 'failing'
     assert_equal 0, score[1], 'tol'
     assert_equal 0, score[0], 'satisfied'
-   
+
   end
   def test_controller_error
     engine.clear_stats
@@ -226,7 +226,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
       end
     end
     assert_nil Thread.current[:newrelic_ignore_controller]
-    
+
   end
   def test_metric__dispatched
     engine = @agent.stats_engine
@@ -247,7 +247,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
       # you might get here if you don't have the default route installed.
     end
   end
-  
+
   def test_controller_params
     assert agent.transaction_sampler
     num_samples = NewRelic::Agent.instance.transaction_sampler.samples.length
@@ -257,7 +257,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     assert_equal num_samples + 1, samples.length
     assert_equal "[FILTERED]", samples.last.params[:request_params]["social_security_number"]
   end
-  
+
   def test_controller_params
     agent.transaction_sampler.reset!
     get :index, 'number' => "001-555-1212"
@@ -266,10 +266,10 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     assert_equal 5, s.first.params.size
   end
 
-  
+
   def test_busycalculation
     engine.clear_stats
-    
+
     assert_equal 0, NewRelic::Agent::BusyCalculator.busy_count
     get :index, 'social_security_number' => "001-555-1212", 'wait' => '1.0'
     NewRelic::Agent::BusyCalculator.harvest_busy
@@ -280,7 +280,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     assert stats('Instance/Busy').total_call_time > 0.5, stats('Instance/Busy').inspect
     assert_equal 0, stats('WebFrontend/Mongrel/Average Queue Time').call_count
   end
-  
+
   def test_histogram
     engine.clear_stats
     get :index, 'social_security_number' => "001-555-1212"
@@ -294,18 +294,18 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     engine.clear_stats
     queue_length_stat = stats('Mongrel/Queue Length')
     queue_time_stat = stats('WebFrontend/QueueTime')
-    
+
     # no request start header
     get 'index'
     assert_equal 0, queue_length_stat.call_count
   end
 
   def test_queue_headers_apache
-    NewRelic::Agent::AgentTestController.clear_headers    
+    NewRelic::Agent::AgentTestController.clear_headers
     engine.clear_stats
     queue_length_stat = stats('Mongrel/Queue Length')
     queue_time_stat = stats('WebFrontend/QueueTime')
-    
+
     # apache version of header
     request_start = ((Time.now.to_f - 0.5) * 1e6).to_i.to_s
     NewRelic::Agent::AgentTestController.set_some_headers({'HTTP_X_QUEUE_START' => "t=#{request_start}"})
@@ -317,13 +317,13 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
 
   end
   def test_queue_headers_heroku
-    
+
     engine.clear_stats
-    NewRelic::Agent::AgentTestController.clear_headers    
+    NewRelic::Agent::AgentTestController.clear_headers
 
     queue_length_stat = stats('Mongrel/Queue Length')
     queue_time_stat = stats('WebFrontend/QueueTime')
-    
+
     # heroku version
     request_start = ((Time.now.to_f - 0.5) * 1e6).to_i.to_s
     NewRelic::Agent::AgentTestController.set_some_headers({'HTTP_X_QUEUE_START' => "t=#{request_start}", 'HTTP_X_HEROKU_QUEUE_DEPTH' => '0'})
@@ -335,18 +335,18 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
   end
 
   def test_queue_headers_heroku_queue_length
-    
+
     engine.clear_stats
     NewRelic::Agent::AgentTestController.clear_headers
-    
+
     queue_length_stat = stats('Mongrel/Queue Length')
-    queue_time_stat = stats('WebFrontend/QueueTime')    
+    queue_time_stat = stats('WebFrontend/QueueTime')
 
     # heroku version with queue length > 0
     request_start = ((Time.now.to_f - 0.5) * 1e6).to_i.to_s
     NewRelic::Agent::AgentTestController.set_some_headers({'HTTP_X_QUEUE_START' => "t=#{request_start}", 'HTTP_X_HEROKU_QUEUE_DEPTH' => '3'})
     get :index
-    
+
     assert_equal(1, queue_length_stat.call_count, 'queue should have been seen once')
     assert_equal(1, queue_time_stat.call_count, 'should have seen the queue header once')
     assert(queue_time_stat.total_call_time > 0.1, "Queue time should be longer than 100ms")
@@ -355,11 +355,11 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
 
     NewRelic::Agent::AgentTestController.clear_headers
   end
-  
+
   private
   def stats(name)
     engine.get_stats_no_scope(name)
   end
-  
+
 end if defined? Rails
 

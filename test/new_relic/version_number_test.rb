@@ -1,6 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..', 'test_helper'))
 class NewRelic::VersionNumberTest < Test::Unit::TestCase
-  
+
   def test_comparison__first
     versions = %w[1.0.0 0.1.0 0.0.1 10.0.1 1.10.0].map {|s| NewRelic::VersionNumber.new s }
     assert_equal %w[0.0.1 0.1.0 1.0.0 1.10.0 10.0.1], versions.sort.map(&:to_s)
@@ -35,14 +35,14 @@ class NewRelic::VersionNumberTest < Test::Unit::TestCase
     assert v3 > v0
   end
   def test_sort
-    values = %w[1.1.1 
-                1.1.99 
-                1.1.999 
-                2.0.6 
-                2.6.5 
-                2.7 
-                2.7.1 
-                2.7.2 
+    values = %w[1.1.1
+                1.1.99
+                1.1.999
+                2.0.6
+                2.6.5
+                2.7
+                2.7.1
+                2.7.2
                 2.7.2.0
                 3
                 999]
@@ -59,7 +59,7 @@ class NewRelic::VersionNumberTest < Test::Unit::TestCase
     assert v0 < '1.2.0'
     assert v0 < '1.2.0.c'
     assert v0 < '1.2.0.0'
-    
+
   end
   def test_compare_string
     v0 = NewRelic::VersionNumber.new '1.2.0'

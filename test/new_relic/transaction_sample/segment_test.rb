@@ -23,7 +23,7 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
     s.end_trace(t)
     assert_equal(t, s.exit_timestamp)
   end
-  
+
   def test_add_called_segment
     s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
     assert_equal [], s.called_segments
@@ -34,25 +34,25 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
   end
 
   def test_to_s
-    s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)    
+    s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
     s.expects(:to_debug_str).with(0)
     s.to_s
   end
 
   def test_to_json
     t = Time.now
-    s = NewRelic::TransactionSample::Segment.new(t, 'Custom/test/metric', nil)    
+    s = NewRelic::TransactionSample::Segment.new(t, 'Custom/test/metric', nil)
     assert_equal({ :entry_timestamp => t, :exit_timestamp => nil, :metric_name => 'Custom/test/metric', :segment_id => s.object_id }.to_json, s.to_json)
   end
 
   def test_path_string
     s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
     assert_equal("Custom/test/metric[]", s.path_string)
-    
+
     fake_segment = mock('segment')
     fake_segment.expects(:parent_segment=).with(s)
     fake_segment.expects(:path_string).returns('Custom/other/metric[]')
-    
+
 
     s.add_called_segment(fake_segment)
     assert_equal("Custom/test/metric[Custom/other/metric[]]", s.path_string)
@@ -75,7 +75,7 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
   end
 
   def test_called_segments_default
-    s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)    
+    s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
     assert_equal([], s.called_segments)
   end
 
@@ -87,14 +87,14 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
 
     assert_equal([fake_segment], s.called_segments)
   end
-  
+
   def test_duration
     fake_entry_timestamp = mock('entry timestamp')
     fake_exit_timestamp = mock('exit timestamp')
     fake_result = mock('numeric')
     fake_exit_timestamp.expects(:-).with(fake_entry_timestamp).returns(fake_result)
     fake_result.expects(:to_f).returns(0.5)
-    
+
     s = NewRelic::TransactionSample::Segment.new(fake_entry_timestamp, 'Custom/test/metric', nil)
     s.end_trace(fake_exit_timestamp)
     assert_equal(0.5, s.duration)
@@ -110,11 +110,11 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
     s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
 
     s.expects(:duration).returns(0.5)
-    
+
     fake_segment = mock('segment')
     fake_segment.expects(:parent_segment=).with(s)
     fake_segment.expects(:duration).returns(0.1)
-    
+
     s.add_called_segment(fake_segment)
 
     assert_equal(0.4, s.exclusive_duration)
@@ -147,7 +147,7 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
     s.called_segments = [dup, dup]
     assert_equal(3, s.truncate(3))
   end
-  
+
 
   def test_truncate_default
     s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
@@ -157,7 +157,7 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
 
   def test_truncate_with_a_child
     s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
-    
+
     fake_segment = mock('segment')
     fake_segment.expects(:parent_segment=).with(s)
     fake_segment.expects(:truncate).with(1).returns(1)
@@ -204,7 +204,7 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
     params = {}
     s.params = params
     assert_equal(params, s.params)
-    
+
     # should delegate to the same hash we have above
     s[:foo] = 'correct'
 
@@ -216,12 +216,12 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
     s.params = {:foo => 'correct'}
     assert_equal('correct', s[:foo])
   end
-  
+
   def test_params
     s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
 
     # should have a default value
-    assert_equal(nil, s.instance_eval { @params })    
+    assert_equal(nil, s.instance_eval { @params })
     assert_equal({}, s.params)
 
     # should otherwise take the value from the @params var
@@ -247,7 +247,7 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
     fake_segment = mock('segment')
     fake_segment.expects(:parent_segment=).with(s)
     fake_segment.expects(:each_segment).yields(fake_segment)
-    
+
     s.add_called_segment(fake_segment)
 
     count = 0
@@ -266,7 +266,7 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
   end
 
   def test_find_segment_not_found
-    s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)    
+    s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
     assert_equal(nil, s.find_segment(-1))
   end
 
@@ -274,20 +274,20 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
     s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
     id_to_find = s.segment_id
     # should return itself in the base case
-    assert_equal(s, s.find_segment(id_to_find))    
+    assert_equal(s, s.find_segment(id_to_find))
   end
-  
+
   def test_explain_sql
     # TODO holy mother of god
     raise 'needs more tests'
   end
-  
+
   def test_params_equal
     s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
     assert_equal(nil, s.instance_eval { @params })
-    
+
     params = {:foo => 'correct'}
-    
+
     s.params = params
     assert_equal(params, s.instance_eval { @params })
   end

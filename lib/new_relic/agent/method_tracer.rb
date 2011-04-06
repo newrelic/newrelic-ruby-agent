@@ -90,7 +90,7 @@ module NewRelic
         end
 
         alias trace_method_execution_no_scope trace_execution_unscoped #:nodoc:
-        
+
         module TraceExecutionScoped
           def agent_instance
             NewRelic::Agent.instance
@@ -99,7 +99,7 @@ module NewRelic
           def traced?
             NewRelic::Agent.is_execution_traced?
           end
-          
+
           def trace_disabled?(options)
             !(traced? || options[:force])
           end
@@ -118,7 +118,7 @@ module NewRelic
           def main_stat(metric, options)
             get_stats_scoped(metric, options[:scoped_metric_only])
           end
-          
+
           def get_metric_stats(metrics, options)
             metrics = Array(metrics)
             first_name = metrics.shift
@@ -161,7 +161,7 @@ module NewRelic
           def trace_execution_scoped_footer(t0, first_name, metric_stats, expected_scope, forced, t1=Time.now.to_f)
             log_errors("trace_method_execution footer", first_name) do
               duration = t1 - t0
-              
+
               pop_flag!(forced)
               if expected_scope
                 scope = stat_engine.pop_scope(expected_scope, duration, t1)
@@ -193,7 +193,7 @@ module NewRelic
               trace_execution_scoped_footer(start_time, first_name, metric_stats, expected_scope, options[:force])
             end
           end
-          
+
         end
         include TraceExecutionScoped
 
@@ -272,11 +272,11 @@ module NewRelic
 
         module AddMethodTracer
           ALLOWED_KEYS = [:force, :metric, :push_scope, :deduct_call_time_from_parent, :code_header, :code_footer, :scoped_metric_only].freeze
-          
+
           def unrecognized_keys(expected, given)
             given.keys - expected
           end
-          
+
           def any_unrecognized_keys?(expected, given)
             unrecognized_keys(expected, given).any?
           end
@@ -286,7 +286,7 @@ module NewRelic
               raise "Unrecognized options in add_method_tracer_call: #{unrecognized_keys(ALLOWED_KEYS, options).join(', ')}"
             end
           end
-          
+
           def set_deduct_call_time_based_on_metric(options)
             {:deduct_call_time_from_parent => !!options[:metric]}.merge(options)
           end
@@ -298,7 +298,7 @@ module NewRelic
           end
 
           DEFAULT_SETTINGS = {:push_scope => true, :metric => true, :force => false, :code_header => "", :code_footer => "", :scoped_metric_only => false}.freeze
-          
+
           def validate_options(options)
             raise TypeError.new("provided options must be a Hash") unless options.is_a?(Hash)
             check_for_illegal_keys!(options)
@@ -306,12 +306,12 @@ module NewRelic
             check_for_push_scope_and_metric(options)
             options
           end
-          
+
           # Default to the class where the method is defined.
           def default_metric_name_code(method_name)
             "Custom/#{self.name}/#{method_name.to_s}"
           end
-          
+
           def method_exists?(method_name)
             exists = method_defined?(method_name) || private_method_defined?(method_name)
             NewRelic::Control.instance.log.warn("Did not trace #{self.name}##{method_name} because that method does not exist") unless exists
@@ -378,10 +378,10 @@ module NewRelic
         def add_method_tracer(method_name, metric_name_code=nil, options = {})
           return unless method_exists?(method_name)
           metric_name_code ||= default_metric_name_code(method_name)
-          return if traced_method_exists?(method_name, metric_name_code)          
+          return if traced_method_exists?(method_name, metric_name_code)
 
           traced_method = code_to_eval(method_name, metric_name_code, options)
-          
+
           class_eval traced_method, __FILE__, __LINE__
           alias_method _untraced_method_name(method_name, metric_name_code), method_name
           alias_method method_name, _traced_method_name(method_name, metric_name_code)

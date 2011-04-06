@@ -1,4 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__),'..', 'test_helper')) 
+require File.expand_path(File.join(File.dirname(__FILE__),'..', 'test_helper'))
 require 'new_relic/data_serialization'
 class NewRelic::DataSerializationTest < Test::Unit::TestCase
   def setup
@@ -11,7 +11,7 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
     @ds.truncate_file
     assert_equal [], @ds.load_from_file
   end
-  
+
   def test_dump
     result = @ds.dump({'whee' => 'whee'})
     assert_equal "\004\b{\006\"\twhee\"\twhee", result

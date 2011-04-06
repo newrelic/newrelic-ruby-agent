@@ -16,7 +16,7 @@ class NewRelic::TransactionSample::SummarySegmentTest < Test::Unit::TestCase
   end
 
   private
-  
+
   @@seg_count = 0
   def mock_segment
     @@seg_count += 1

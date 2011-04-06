@@ -222,7 +222,7 @@ module NewRelic
         def log
           NewRelic::Agent.logger
         end
-        
+
         # Herein lies the corpse of the former 'start' method. May
         # it's unmatched flog score rest in pieces.
         module Start
@@ -236,13 +236,13 @@ module NewRelic
           def disabled?
             !control.agent_enabled?
           end
-          
+
           def log_dispatcher
             dispatcher_name = control.dispatcher.to_s
             return if log_if(dispatcher_name.empty?, :info, "No dispatcher detected.")
             log.info "Dispatcher: #{dispatcher_name}"
           end
-          
+
           def log_app_names
             log.info "Application: #{control.app_names.join(", ")}"
           end
@@ -252,7 +252,7 @@ module NewRelic
           end
 
           def apdex_f_threshold?
-            sampler_config.fetch('transaction_threshold', '') =~ /apdex_f/i            
+            sampler_config.fetch('transaction_threshold', '') =~ /apdex_f/i
           end
 
           def set_sql_recording!
@@ -269,7 +269,7 @@ module NewRelic
             else
               @record_sql = :obfuscated
             end
-            
+
             log_sql_transmission_warning?
           end
 
@@ -280,7 +280,7 @@ module NewRelic
           def sampler_config
             control.fetch('transaction_tracer', {})
           end
-          
+
           # this entire method should be done on the transaction
           # sampler object, rather than here. We should pass in the
           # sampler config.
@@ -290,7 +290,7 @@ module NewRelic
             @explain_threshold = sampler_config.fetch('explain_threshold', 0.5).to_f
             @explain_enabled = sampler_config.fetch('explain_enabled', true)
             set_sql_recording!
-            
+
             # default to 2.0, string 'apdex_f' will turn into your
             # apdex * 4
             @slowest_transaction_threshold = sampler_config.fetch('transaction_threshold', 2.0).to_f
@@ -302,23 +302,23 @@ module NewRelic
           end
 
           def using_rubinius?
-            RUBY_VERSION =~ /rubinius/i            
+            RUBY_VERSION =~ /rubinius/i
           end
-          
+
           def using_jruby?
-            defined?(JRuby) 
+            defined?(JRuby)
           end
-          
+
           def using_sinatra?
             defined?(Sinatra::Application)
           end
-          
+
           # we should not set an at_exit block if people are using
           # these as they don't do standard at_exit behavior per MRI/YARV
           def weird_ruby?
             using_rubinius? || using_jruby? || using_sinatra?
           end
-          
+
           def install_exit_handler
             if control.send_data_on_exit && !weird_ruby?
               # Our shutdown handler needs to run after other shutdown handlers
@@ -334,7 +334,7 @@ module NewRelic
           def log_version_and_pid
             log.info "New Relic RPM Agent #{NewRelic::VERSION::STRING} Initialized: pid = #{$$}"
           end
-          
+
           def log_if(boolean, level, message)
             self.log.send(level, message) if boolean
             boolean
@@ -344,7 +344,7 @@ module NewRelic
             self.log.send(level, message) unless boolean
             boolean
           end
-          
+
           def monitoring?
             log_unless(control.monitor_mode?, :warn, "Agent configured not to send data in this environment - edit newrelic.yml to change this")
           end
@@ -356,7 +356,7 @@ module NewRelic
           def has_correct_license_key?
             has_license_key? && correct_license_length
           end
-          
+
           def correct_license_length
             key = control.license_key
             log_unless((key.length == 40), :error, "Invalid license key: #{key}")
@@ -365,7 +365,7 @@ module NewRelic
           def using_forking_dispatcher?
             log_if([:passenger, :unicorn].include?(control.dispatcher), :info, "Connecting workers after forking.")
           end
-            
+
           def check_config_and_start_agent
             return unless monitoring? && has_correct_license_key?
             return if using_forking_dispatcher?
@@ -473,7 +473,7 @@ module NewRelic
           rescue Exception => e
             handle_other_error(e)
           end
-          
+
           def deferred_work!(connection_options)
             catch_errors do
               NewRelic::Agent.disable_all_tracing do
@@ -494,7 +494,7 @@ module NewRelic
           end
         end
         include StartWorkerThread
-        
+
         # Try to launch the worker thread and connect to the server.
         #
         # See #connect for a description of connection_options.
@@ -509,7 +509,7 @@ module NewRelic
         def control
           NewRelic::Control.instance
         end
-        
+
         module Connect
           attr_accessor :connect_retry_period
           attr_accessor :connect_attempts
@@ -558,7 +558,7 @@ module NewRelic
             log.info "Visit NewRelic.com to obtain a valid license key, or to upgrade your account."
             disconnect
           end
-          
+
           def log_seed_token
             if control.validate_seed
               log.debug "Connecting with validation seed/token: #{control.validate_seed}/#{control.validate_token}"
@@ -602,13 +602,13 @@ module NewRelic
                       end
             log.debug "Errors will #{enabled ? '' : 'not '}be sent to the RPM service."
           end
-          
+
           def enable_random_samples!(sample_rate)
             @transaction_sampler.random_sampling = true
             @transaction_sampler.sampling_rate = sample_rate
             log.info "Transaction sampling enabled, rate = #{@transaction_sampler.sampling_rate}"
           end
-          
+
 
           def configure_transaction_tracer!(server_enabled, sample_rate)
             # Ask the server for permission to send transaction samples.
@@ -633,7 +633,7 @@ module NewRelic
 
           def query_server_for_configuration
             set_collector_host!
-            
+
             finish_setup(connect_to_server)
           end
           def finish_setup(config_data)

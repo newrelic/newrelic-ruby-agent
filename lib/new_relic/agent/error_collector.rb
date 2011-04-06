@@ -97,7 +97,7 @@ module NewRelic
       end
 
       def custom_params_from_opts(options)
-        # If anything else is left over, treat it like a custom param:        
+        # If anything else is left over, treat it like a custom param:
         fetch_from_options(options, :custom_params, {}).merge(options)
       end
 
@@ -109,14 +109,14 @@ module NewRelic
           nil
         end
       end
-      
+
       def normalized_request_and_custom_params(options)
         {
           :request_params => normalize_params(request_params_from_opts(options)),
           :custom_params  => normalize_params(custom_params_from_opts(options))
         }
       end
-      
+
       def error_params_from_options(options)
         uri_ref_and_root(options).merge(normalized_request_and_custom_params(options))
       end
@@ -148,7 +148,7 @@ module NewRelic
         log.warn("The error reporting queue has reached #{MAX_ERROR_QUEUE_LENGTH}. The error detail for this and subsequent errors will not be transmitted to RPM until the queued errors have been sent: #{exception}") if over_limit
         over_limit
       end
-      
+
 
       def add_to_error_queue(noticed_error, exception)
         @lock.synchronize do

@@ -7,7 +7,7 @@ module NewRelic
             @mutex = Mutex.new
             super
           end
-          
+
           def []=(*args)
             @mutex.synchronize {
               super
@@ -31,14 +31,14 @@ module NewRelic
               super
             }
           end
-          
+
           def delete_if(*args)
             @mutex.synchronize {
               super
             }
           end
         end
-        
+
         # The stats hash hashes either a metric name for an unscoped metric,
         # or a metric_spec for a scoped metric value.
         def lookup_stat(metric_name)
@@ -80,10 +80,10 @@ module NewRelic
           stats_hash[NewRelic::MetricSpec.new(metric_name, scope_name)] ||
             stats_hash[metric_name]
         end
-        
+
 
         module Harvest
-          
+
           def get_stats_hash_from(engine_or_hash)
             if engine_or_hash.is_a?(StatsEngine)
               engine_or_hash.stats_hash
@@ -109,7 +109,7 @@ module NewRelic
             stats.reset
             stats_copy
           end
-          
+
           # if the previous timeslice data has not been reported (due to an error of some sort)
           # then we need to merge this timeslice with the previously accumulated - but not sent
           # data
@@ -121,15 +121,15 @@ module NewRelic
           def add_data_to_send_unless_empty(data, stats, metric_spec, id)
             # don't bother collecting and reporting stats that have
             # zero-values for this timeslice. significant
-            # performance boost and storage savings.            
+            # performance boost and storage savings.
             return if stats.is_reset?
             data[metric_spec] = NewRelic::MetricData.new((id ? nil : metric_spec), stats, id)
           end
-          
+
           def merge_stats(other_engine_or_hash, metric_ids)
             old_data = get_stats_hash_from(other_engine_or_hash)
-            
-            timeslice_data = {}          
+
+            timeslice_data = {}
             stats_hash.each do | metric_spec, stats |
 
               metric_spec = coerce_to_metric_spec(metric_spec)
@@ -139,10 +139,10 @@ module NewRelic
             end
             timeslice_data
           end
-          
+
         end
         include Harvest
-        
+
         # Harvest the timeslice data.  First recombine current statss
         # with any previously
         # unsent metrics, clear out stats cache, and return the current

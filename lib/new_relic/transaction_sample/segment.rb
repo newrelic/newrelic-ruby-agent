@@ -37,7 +37,7 @@ module NewRelic
           :metric_name => @metric_name,
           :segment_id => @segment_id,
         }
-        
+
         hash[:called_segments] = called_segments if !called_segments.empty?
         hash[:params] = @params if @params && !@params.empty?
 
@@ -210,7 +210,7 @@ module NewRelic
         NewRelic::Control.instance.log.debug(e.backtrace.join("\n"))
       rescue Exception
       end
-      
+
 
       def params=(p)
         @params = p

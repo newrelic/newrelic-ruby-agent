@@ -12,7 +12,7 @@ module NewRelic
       class MetricFrame
         # helper module refactored out of the `pop` method
         include Pop
-        
+
         attr_accessor :start       # A Time instance for the start time, never nil
         attr_accessor :apdex_start # A Time instance used for calculating the apdex score, which
         # might end up being @start, or it might be further upstream if
@@ -79,7 +79,7 @@ module NewRelic
           @jruby_cpu_start = jruby_cpu_time
           @process_cpu_start = process_cpu
         end
-        
+
         def agent
           NewRelic::Agent.instance
         end
@@ -87,10 +87,10 @@ module NewRelic
         def transaction_sampler
           agent.transaction_sampler
         end
-        
+
         private :agent
         private :transaction_sampler
-        
+
 
         # Indicate that we are entering a measured controller action or task.
         # Make sure you unwind every push with a pop call.

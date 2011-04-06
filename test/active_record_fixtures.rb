@@ -37,7 +37,7 @@ module ActiveRecordFixtures
       end
     end
   end
-  
+
   class Shipment < ActiveRecord::Base
     self.table_name = 'newrelic_test_shipment'
     has_and_belongs_to_many :orders, :class_name => 'ActiveRecordFixtures::Order'
@@ -46,14 +46,14 @@ module ActiveRecordFixtures
         # no other columns
       end
       connection.create_table 'orders_shipments', :force => true, :id => false do |t|
-        t.column :order_id, :integer 
-        t.column :shipment_id, :integer 
+        t.column :order_id, :integer
+        t.column :shipment_id, :integer
       end
     end
-    
+
     def self.teardown
       connection.drop_table 'orders_shipments'
       connection.drop_table self.table_name
     end
-  end    
+  end
 end

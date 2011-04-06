@@ -99,7 +99,7 @@ DependencyDetection.defer do
   depends_on do
     defined?(::Sequel) && defined?(::Sequel::Database)
   end
-  
+
   executes do
     ::Sequel::Database.class_eval do
       include ::NewRelic::Agent::Instrumentation::SequelInstrumentation

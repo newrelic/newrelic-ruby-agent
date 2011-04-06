@@ -83,13 +83,13 @@ module NewRelic
         gather_jruby_info
       end
     end
-    
+
     def gather_jruby_info
       append_environment_value('JRuby version') { JRUBY_VERSION }
       append_environment_value('Java VM version') { ENV_JAVA['java.vm.version']}
     end
-    
-    # See what the number of cpus is, works only on linux.    
+
+    # See what the number of cpus is, works only on linux.
     def gather_cpu_info
       return unless File.readable? '/proc/cpuinfo'
       @processors = append_environment_value('Processors') do
@@ -109,7 +109,7 @@ module NewRelic
       append_environment_value('OS') { `uname -s` } ||
         append_environment_value('OS') { ENV['OS'] }
     end
-    
+
     def gather_system_info
       gather_architecture_info
       gather_cpu_info
@@ -126,7 +126,7 @@ module NewRelic
     end
 
     def gather_ar_adapter_info
-      # The name of the database adapter for the current environment.      
+      # The name of the database adapter for the current environment.
       append_environment_value 'Database adapter' do
         if defined?(ActiveRecord) && defined?(ActiveRecord::Base) &&
             ActiveRecord::Base.respond_to?(:configurations)
@@ -165,14 +165,14 @@ module NewRelic
       append_environment_value 'Dispatcher', @dispatcher.to_s if @dispatcher
       append_environment_value 'Dispatcher instance id', @dispatcher_instance_id if @dispatcher_instance_id
       append_environment_value('Environment') { NewRelic::Control.instance.env }
-      
+
       # miscellaneous other helpful debugging information
       gather_ruby_info
       gather_system_info
       gather_revision_info
       gather_db_info
     end
-    
+
     # Take a snapshot of the environment information for this application
     # Returns an associative array
     def snapshot

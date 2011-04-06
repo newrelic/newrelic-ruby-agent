@@ -1,5 +1,5 @@
 ENV['SKIP_RAILS'] = 'true'
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper')) 
+require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 
 class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
   def setup
@@ -9,7 +9,7 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
     @worker_loop.stubs(:log).returns(@logger)
     @test_start_time = Time.now
   end
-  
+
   def test_add_task
     @x = false
     @worker_loop.run(0) do
@@ -18,7 +18,7 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
     end
     assert @x
   end
-  
+
   def test_density
     # This shows how the tasks stay aligned with the period and don't drift.
     count = 0
@@ -46,7 +46,7 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
     assert done
   end
   class BadBoy < Exception; end
-    
+
   def test_task_error__exception
     @logger.expects(:error).once
     @logger.expects(:debug).once

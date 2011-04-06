@@ -11,7 +11,7 @@ module NewRelic
       module Memcache
         module_function
         def instrument_method(the_class, method_name)
-          return unless the_class.method_defined? method_name.to_sym          
+          return unless the_class.method_defined? method_name.to_sym
                      the_class.class_eval <<-EOD
                        def #{method_name}_with_newrelic_trace(*args)
                          metrics = ["MemCache/#{method_name}",

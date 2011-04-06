@@ -30,7 +30,7 @@ class NewRelic::Control::LoggingMethodsTest < Test::Unit::TestCase
   def test_logbang_basic
     @base.expects(:should_log?).returns(true)
     @base.expects(:to_stdout).with('whee')
-    @base.instance_eval { @log = nil }    
+    @base.instance_eval { @log = nil }
     @base.log!('whee')
   end
 
@@ -108,7 +108,7 @@ class NewRelic::Control::LoggingMethodsTest < Test::Unit::TestCase
     @base.expects(:set_log_level!).with(fake_logger)
     assert_equal fake_logger, @base.setup_log
     assert_equal fake_logger, @base.instance_eval { @log }
-    assert_equal 'logpath/logfilename', @base.instance_eval { @log_file }    
+    assert_equal 'logpath/logfilename', @base.instance_eval { @log_file }
   end
 
   def test_to_stdout
@@ -120,9 +120,9 @@ class NewRelic::Control::LoggingMethodsTest < Test::Unit::TestCase
     @base.instance_eval { @log_path = 'logpath' }
     assert_equal 'logpath', @base.log_path
   end
-  
+
   def test_log_path_path_exists
-    @base.instance_eval { @log_path = nil }    
+    @base.instance_eval { @log_path = nil }
     @base.expects(:fetch).with('log_file_path', 'log/').returns('log/')
     assert File.directory?('log/')
     assert_equal File.expand_path('log/'), @base.log_path
@@ -130,7 +130,7 @@ class NewRelic::Control::LoggingMethodsTest < Test::Unit::TestCase
 
   def test_log_path_path_created
     path = File.expand_path('tmp/log_path_test')
-    @base.instance_eval { @log_path = nil }    
+    @base.instance_eval { @log_path = nil }
     @base.expects(:fetch).with('log_file_path', 'log/').returns('tmp/log_path_test')
     assert !File.directory?(path) || FileUtils.rmdir(path)
     @base.expects(:log!).never
@@ -140,7 +140,7 @@ class NewRelic::Control::LoggingMethodsTest < Test::Unit::TestCase
 
   def test_log_path_path_unable_to_create
     path = File.expand_path('tmp/log_path_test')
-    @base.instance_eval { @log_path = nil }    
+    @base.instance_eval { @log_path = nil }
     @base.expects(:fetch).with('log_file_path', 'log/').returns('tmp/log_path_test')
     assert !File.directory?(path) || FileUtils.rmdir(path)
     @base.expects(:log!).with("Error creating New Relic log directory '#{path}'", :error)

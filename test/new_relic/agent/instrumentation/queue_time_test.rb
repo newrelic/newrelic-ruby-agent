@@ -2,11 +2,11 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'te
 class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
   require 'new_relic/agent/instrumentation/queue_time'
   include NewRelic::Agent::Instrumentation::QueueTime
-  
+
   def setup
     NewRelic::Agent.instance.stats_engine.clear_stats
   end
-  
+
   def create_test_start_time(env)
     env[APP_HEADER] = "t=#{convert_to_microseconds(Time.at(1002))}"
   end
@@ -25,7 +25,7 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
   def test_all_combined_frontend_headers
     env = {}
     env[MAIN_HEADER] = "t=#{convert_to_microseconds(Time.at(1000))}"
-    env[QUEUE_HEADER] = "t=#{convert_to_microseconds(Time.at(1001))}"        
+    env[QUEUE_HEADER] = "t=#{convert_to_microseconds(Time.at(1001))}"
     env[MIDDLEWARE_HEADER] = "t=#{convert_to_microseconds(Time.at(1002))}"
 
     env[APP_HEADER] = "t=#{convert_to_microseconds(Time.at(1003))}"
@@ -35,25 +35,25 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
       parse_queue_time_from(env)
       parse_server_time_from(env)
     end
-    
+
     check_metric_time('WebFrontend/WebServer/all', 1.0, 0.001)
-    check_metric_time('WebFrontend/QueueTime', 1.0, 0.001)    
+    check_metric_time('WebFrontend/QueueTime', 1.0, 0.001)
     check_metric_time('Middleware/all', 1.0, 0.001)
   end
 
   def test_combined_middleware_and_queue
     env = {}
     env[QUEUE_HEADER] = "t=#{convert_to_microseconds(Time.at(1000))}"
-    env[MIDDLEWARE_HEADER] = "t=#{convert_to_microseconds(Time.at(1001))}"    
+    env[MIDDLEWARE_HEADER] = "t=#{convert_to_microseconds(Time.at(1001))}"
     create_test_start_time(env)
 
     assert_calls_metrics('Middleware/all', 'WebFrontend/QueueTime') do
-      parse_middleware_time_from(env)      
+      parse_middleware_time_from(env)
       parse_queue_time_from(env)
     end
-    
+
     check_metric_time('Middleware/all', 1.0, 0.001)
-    check_metric_time('WebFrontend/QueueTime', 1.0, 0.001)        
+    check_metric_time('WebFrontend/QueueTime', 1.0, 0.001)
   end
 
   def test_combined_queue_and_server
@@ -66,9 +66,9 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
       parse_queue_time_from(env)
       parse_server_time_from(env)
     end
-    
+
     check_metric_time('WebFrontend/WebServer/all', 1.0, 0.001)
-    check_metric_time('WebFrontend/QueueTime', 1.0, 0.001)    
+    check_metric_time('WebFrontend/QueueTime', 1.0, 0.001)
   end
 
   def test_combined_middleware_and_server
@@ -81,7 +81,7 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
       parse_middleware_time_from(env)
       parse_server_time_from(env)
     end
-    
+
     check_metric_time('WebFrontend/WebServer/all', 1.0, 0.001)
     check_metric_time('Middleware/all', 1.0, 0.001)
   end
@@ -110,7 +110,7 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
     end
     check_metric_time('WebFrontend/WebServer/all', 1.0, 0.1)
   end
-  
+
   def test_parse_server_time_from_with_bad_header
     env = {'HTTP_X_REQUEST_START' => 't=t=t=t='}
     create_test_start_time(env)
@@ -124,7 +124,7 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
       parse_server_time_from({})
     end
   end
-  
+
   def test_parse_middleware_time
     env = {}
     create_test_start_time(env)
@@ -149,7 +149,7 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
     assert_calls_metrics('WebFrontend/QueueTime') do
       parse_queue_time_from(env)
     end
-    
+
     check_metric_time('WebFrontend/QueueTime', 2.0, 0.1)
   end
 
@@ -185,7 +185,7 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
       parse_queue_time_from(env)
     end
 
-    check_metric_time('WebFrontend/QueueTime', 1.0, 0.001)    
+    check_metric_time('WebFrontend/QueueTime', 1.0, 0.001)
   end
 
   def test_check_for_heroku_queue_length_override
@@ -253,7 +253,7 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
     check_metric_time('WebFrontend/QueueTime', 0.0, 0.001)
   end
 
-  
+
   # check all the combinations to make sure that ordering doesn't
   # affect the return value
   def test_find_oldest_time
@@ -287,7 +287,7 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
       record_time_stat('foo', Time.at(1001), Time.at(1000))
     end
   end
-  
+
   def test_record_time_stat_with_end_after_start
     record_time_stat('WebFrontend/WebServer/foo', 2, 1)
   rescue RuntimeError => e
@@ -338,7 +338,7 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
     pair = convert_to_name_time_pair(name, time)
     assert_equal [:foo, Time.at(1)], pair
   end
-  
+
   def test_get_matches
     str = "servera t=1000000, serverb t=1000000"
     matches = get_matches(str) # start a fire
