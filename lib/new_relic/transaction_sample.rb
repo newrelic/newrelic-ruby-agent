@@ -79,15 +79,15 @@ module NewRelic
     end
 
     def truncate(max)
-      original_count = count_segments
+      count = count_segments
+      return if count < max
+      @root_segment.truncate(max + 1)
+      
+      ensure_segment_count_set(count)
+    end
 
-      return if original_count <= max
-
-      @root_segment.truncate(max-1)
-
-      if params[:segment_count].nil?
-        params[:segment_count] = original_count
-      end
+    def ensure_segment_count_set(count)
+      params[:segment_count] ||= count
     end
 
     # offset from start of app

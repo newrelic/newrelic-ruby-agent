@@ -102,16 +102,24 @@ module NewRelic
       end
       # Walk through the tree and truncate the segments
       def truncate(max)
-        return max unless @called_segments
-        last_index = 0
-        remaining = max
-        @called_segments.each_with_index do |segment, index|
-          remaining = (segment.truncate(remaining) - 1)
-          last_index = index
-          break if remaining <= 0
-        end
-        @called_segments = @called_segments[0..last_index]
-        remaining
+        return 1 unless @called_segments
+        total, self.called_segments = truncate_each_child(max - 1)
+        total+1
+      end
+
+      def truncate_each_child(max)
+        total = 0
+        accumulator = []
+        called_segments.each { | s |
+          if total == max
+            true
+          else
+            total += s.truncate(max - total)
+            accumulator << s
+          end
+        }
+        total
+        [total, accumulator]
       end
 
       def []=(key, value)

@@ -135,7 +135,19 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
     s.add_called_segment(fake_segment)
 
     assert_equal(2, s.count_segments)
+    end
+
+  def test_truncate_returns_number_of_elements
+    s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
+    assert_equal(1, s.truncate(1))
+    dup = s.dup
+    s.called_segments = [dup]
+    assert_equal(2, s.truncate(2))
+
+    s.called_segments = [dup, dup]
+    assert_equal(3, s.truncate(3))
   end
+  
 
   def test_truncate_default
     s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
@@ -152,21 +164,24 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
 
     s.add_called_segment(fake_segment)
 
-    assert_equal(0, s.truncate(1))
+    assert_equal(2, s.truncate(2))
     assert_equal([fake_segment], s.called_segments)
+
+    assert_equal(1, s.truncate(1))
+    assert_equal([], s.called_segments)
   end
 
   def test_truncate_with_multiple_children
     s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
 
     fake_segment = mock('segment')
-    fake_segment.expects(:truncate).with(2).returns(2)
+    fake_segment.expects(:truncate).with(2).returns(1)
 
     other_segment = mock('other segment')
     other_segment.expects(:truncate).with(1).returns(1)
 
     s.called_segments = [fake_segment, other_segment]
-    assert_equal(0, s.truncate(2))
+    assert_equal(3, s.truncate(3))
     assert_equal([fake_segment, other_segment], s.called_segments)
   end
 
@@ -179,7 +194,7 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
     other_segment = mock('other segment')
 
     s.called_segments = [fake_segment, other_segment]
-    assert_equal(0, s.truncate(1))
+    assert_equal(2, s.truncate(2))
     assert_equal([fake_segment], s.called_segments)
   end
 
