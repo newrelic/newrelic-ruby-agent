@@ -70,8 +70,51 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
     assert_equal("Custom/test/metric{Custom/other/metric}", s.to_s_compact)
   end
 
-  def test_to_debug_str
-    raise 'needs more tests'
+  def test_to_debug_str_basic
+    s = NewRelic::TransactionSample::Segment.new(0.0, 'Custom/test/metric', nil)
+    assert_equal(">>   0 ms [Segment] Custom/test/metric \n<<  n/a Custom/test/metric\n", s.to_debug_str(0))
+  end
+
+  def test_to_debug_str_closed
+    s = NewRelic::TransactionSample::Segment.new(0.0, 'Custom/test/metric', nil)
+    s.end_trace(0.1)
+    assert_equal(">>   0 ms [Segment] Custom/test/metric \n<< 100 ms Custom/test/metric\n", s.to_debug_str(0))
+  end
+
+  def test_to_debug_str_one_child
+    s = NewRelic::TransactionSample::Segment.new(0.0, 'Custom/test/metric', nil)
+    s.add_called_segment(NewRelic::TransactionSample::Segment.new(0.1, 'Custom/test/other', nil))
+    assert_equal(">>   0 ms [Segment] Custom/test/metric \n  >> 100 ms [Segment] Custom/test/other \n  <<  n/a Custom/test/other\n<<  n/a Custom/test/metric\n", s.to_debug_str(0))
+    # try closing it
+    s.called_segments.first.end_trace(0.15)
+    s.end_trace(0.2)
+    assert_equal(">>   0 ms [Segment] Custom/test/metric \n  >> 100 ms [Segment] Custom/test/other \n  << 150 ms Custom/test/other\n<< 200 ms Custom/test/metric\n", s.to_debug_str(0))
+  end
+
+  def test_to_debug_str_multichild
+    s = NewRelic::TransactionSample::Segment.new(0.0, 'Custom/test/metric', nil)
+    s.add_called_segment(NewRelic::TransactionSample::Segment.new(0.1, 'Custom/test/other', nil))
+    s.add_called_segment(NewRelic::TransactionSample::Segment.new(0.11, 'Custom/test/extra', nil))
+    assert_equal(">>   0 ms [Segment] Custom/test/metric \n  >> 100 ms [Segment] Custom/test/other \n  <<  n/a Custom/test/other\n  >> 110 ms [Segment] Custom/test/extra \n  <<  n/a Custom/test/extra\n<<  n/a Custom/test/metric\n", s.to_debug_str(0))
+    ending = 0.12
+    s.called_segments.each { |x| x.end_trace(ending += 0.01) }
+    s.end_trace(0.2)
+    assert_equal(">>   0 ms [Segment] Custom/test/metric \n  >> 100 ms [Segment] Custom/test/other \n  << 130 ms Custom/test/other\n  >> 110 ms [Segment] Custom/test/extra \n  << 140 ms Custom/test/extra\n<< 200 ms Custom/test/metric\n", s.to_debug_str(0))
+  end
+
+  def test_to_debug_str_nested
+    inner = NewRelic::TransactionSample::Segment.new(0.2, 'Custom/test/inner', nil)
+    middle = NewRelic::TransactionSample::Segment.new(0.1, 'Custom/test/middle', nil)
+    s = NewRelic::TransactionSample::Segment.new(0.0, 'Custom/test/metric', nil)
+    middle.add_called_segment(inner)
+    s.add_called_segment(middle)
+    assert_equal(">>   0 ms [Segment] Custom/test/metric \n  >> 100 ms [Segment] Custom/test/middle \n    >> 200 ms [Segment] Custom/test/inner \n    <<  n/a Custom/test/inner\n  <<  n/a Custom/test/middle\n<<  n/a Custom/test/metric\n", s.to_debug_str(0))
+
+    # close them
+    inner.end_trace(0.21)
+    middle.end_trace(0.22)
+    s.end_trace(0.23)
+    assert_equal(">>   0 ms [Segment] Custom/test/metric \n  >> 100 ms [Segment] Custom/test/middle \n    >> 200 ms [Segment] Custom/test/inner \n    << 210 ms Custom/test/inner\n  << 220 ms Custom/test/middle\n<< 230 ms Custom/test/metric\n", s.to_debug_str(0))
   end
 
   def test_called_segments_default
