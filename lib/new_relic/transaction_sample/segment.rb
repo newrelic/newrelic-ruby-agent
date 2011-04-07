@@ -157,58 +157,75 @@ module NewRelic
         nil
       end
 
-      # perform this in the runtime environment of a managed application, to explain the sql
-      # statement(s) executed within a segment of a transaction sample.
-      # returns an array of explanations (which is an array rows consisting of
-      # an array of strings for each column returned by the the explain query)
-      # Note this happens only for statements whose execution time exceeds a threshold (e.g. 500ms)
-      # and only within the slowest transaction in a report period, selected for shipment to RPM
+      # perform this in the runtime environment of a managed
+      # application, to explain the sql statement(s) executed within a
+      # segment of a transaction sample.  returns an array of
+      # explanations (which is an array rows consisting of an array of
+      # strings for each column returned by the the explain query)
+      # Note this happens only for statements whose execution time
+      # exceeds a threshold (e.g. 500ms) and only within the slowest
+      # transaction in a report period, selected for shipment to RPM
       def explain_sql
         sql = params[:sql]
         return nil unless sql && params[:connection_config]
         statements = sql.split(";\n")
-        explanations = []
-        statements.each do |statement|
-          if statement.split($;, 2)[0].upcase == 'SELECT'
-            explain_resultset = []
-            begin
-              connection = NewRelic::TransactionSample.get_connection(params[:connection_config])
-              if connection
-                # The resultset type varies for different drivers.  Only thing you can count on is
-                # that it implements each.  Also: can't use select_rows because the native postgres
-                # driver doesn't know that method.
-                explain_resultset = connection.execute("EXPLAIN #{statement}") if connection
-                rows = []
-                # Note: we can't use map.
-                # Note: have to convert from native column element types to string so we can
-                # serialize.  Esp. for postgresql.
-                # Can't use map.  Suck it up.
-                # Can too use map. Lrn2prgm
-                if explain_resultset.respond_to?(:each)
-                  explain_resultset.extend Enumerable unless explain_resultset.respond_to?(:map)
-                  rows = explain_resultset.map { | row | row.map(&:to_s) }
-                else
-                  rows << [ explain_resultset ]
-                end
-                explanations << rows
-                # sleep for a very short period of time in order to yield to the main thread
-                # this is because a remote database call will likely hang the VM
-                sleep 0.05
-              end
-            rescue Exception => e
-              handle_exception_in_explain(e)
-            end
-          end
+        statements.map! do |statement|
+          # a small sleep to make sure we yield back to the parent
+          # thread regularly, if there are many explains
+          sleep(0.05)
+          explain_statement(statement, params[:connection_config])
         end
-
-        explanations
+        statements.compact!
+        statements
       end
 
-      def handle_exception_in_explain(e)
-        # guarantees no throw from explain_sql
-        NewRelic::Control.instance.log.error("Error getting explain plan: #{e.message}")
-        NewRelic::Control.instance.log.debug(e.backtrace.join("\n"))
-      rescue Exception
+      def explain_statement(statement, config)
+        if is_select?(statement)
+          handle_exception_in_explain do
+            connection = NewRelic::TransactionSample.get_connection(config)
+            process_resultset(connection.execute("EXPLAIN #{statement}")) if connection
+          end
+        end
+      end
+
+      def is_select?(statement)
+        # split the string into at most two segments on the
+        # system-defined field separator character
+        first_word, rest_of_statement = statement.split($;, 2)
+        (first_word.upcase == 'SELECT')
+      end
+
+      def process_resultset(items)
+        # The resultset type varies for different drivers.  Only thing you can count on is
+        # that it implements each.  Also: can't use select_rows because the native postgres
+        # driver doesn't know that method.
+
+        if items.respond_to?(:each)
+          rows = []
+          items.each do |row|
+            columns = []
+            row.each do |column|
+              columns << column.to_s
+            end
+            rows << columns
+          end
+          rows
+        else
+          [items]
+        end
+      end
+
+
+      def handle_exception_in_explain
+        yield
+      rescue Exception => e
+        begin
+          # guarantees no throw from explain_sql
+          NewRelic::Control.instance.log.error("Error getting explain plan: #{e.message}")
+          NewRelic::Control.instance.log.debug(e.backtrace.join("\n"))
+        rescue Exception
+          # double exception. throw up your hands
+        end
       end
 
 

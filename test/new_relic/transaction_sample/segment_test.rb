@@ -75,10 +75,22 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
     assert_equal(">>   0 ms [Segment] Custom/test/metric \n<<  n/a Custom/test/metric\n", s.to_debug_str(0))
   end
 
+  def test_to_debug_str_with_params
+    s = NewRelic::TransactionSample::Segment.new(0.0, 'Custom/test/metric', nil)
+    s.params = {:whee => 'a param'}
+    assert_equal(">>   0 ms [Segment] Custom/test/metric \n    -whee            : a param\n<<  n/a Custom/test/metric\n", s.to_debug_str(0))
+  end
+
   def test_to_debug_str_closed
     s = NewRelic::TransactionSample::Segment.new(0.0, 'Custom/test/metric', nil)
     s.end_trace(0.1)
     assert_equal(">>   0 ms [Segment] Custom/test/metric \n<< 100 ms Custom/test/metric\n", s.to_debug_str(0))
+  end
+
+  def test_to_debug_str_closed_with_nonnumeric
+    s = NewRelic::TransactionSample::Segment.new(0.0, 'Custom/test/metric', nil)
+    s.end_trace("0.1")
+    assert_equal(">>   0 ms [Segment] Custom/test/metric \n<< 0.1 Custom/test/metric\n", s.to_debug_str(0))
   end
 
   def test_to_debug_str_one_child
@@ -320,9 +332,72 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
     assert_equal(s, s.find_segment(id_to_find))
   end
 
-  def test_explain_sql
-    # TODO holy mother of god
-    raise 'needs more tests'
+  def test_explain_sql_no_sql
+    s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
+    s.params = {:sql => nil}
+    assert_equal(nil, s.explain_sql)
+  end
+
+  def test_explain_sql_no_connection_config
+    s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
+    s.params = {:sql => 'foo', :connection_config => nil}
+    assert_equal(nil, s.explain_sql)
+  end
+
+  def test_explain_sql_non_select
+    s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
+    s.params = {:sql => 'foo', :connection_config => mock('config')}
+    assert_equal([], s.explain_sql)
+  end
+
+  def test_explain_sql_one_select_no_connection
+    s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
+    s.params = {:sql => 'SELECT', :connection_config => mock('config')}
+    assert_equal([], s.explain_sql)
+  end
+
+  def test_explain_sql_one_select_with_connection
+    s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
+    config = mock('config')
+    s.params = {:sql => 'SELECT', :connection_config => config}
+    connection = mock('connection')
+    # two rows, two columns
+    connection.expects(:execute).with('EXPLAIN SELECT').returns([["string", "string"], ["string", "string"]])
+    NewRelic::TransactionSample.expects(:get_connection).with(config).returns(connection)
+    assert_equal([[['string', 'string'], ['string', 'string']]], s.explain_sql)
+  end
+
+  # this basically casts the resultset to an array of rows, which are
+  # arrays of columns
+  def test_process_resultset
+    s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
+    items = mock('bar')
+    row = ["column"]
+    items.expects(:respond_to?).with(:each).returns(true)
+    items.expects(:each).yields(row)
+    assert_equal([["column"]], s.process_resultset(items))
+  end
+
+  def test_explain_sql_two_selects_with_connection
+    s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
+    config = mock('config')
+    s.params = {:sql => "SELECT true();\nSELECT false()", :connection_config => config}
+    connection = mock('connection')
+    # two rows, two columns
+    connection.expects(:execute).returns([["string", "string"], ["string", "string"]]).twice
+    NewRelic::TransactionSample.expects(:get_connection).with(config).returns(connection).twice
+    assert_equal([[['string', 'string'], ['string', 'string']], [['string', 'string'], ['string', 'string']]], s.explain_sql)
+  end
+
+  def test_explain_sql_raising_an_error
+    s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
+    config = mock('config')
+    s.params = {:sql => 'SELECT', :connection_config => config}
+    connection = mock('connection')
+    NewRelic::TransactionSample.expects(:get_connection).with(config).raises(RuntimeError.new("whee"))
+    assert_nothing_raised do
+      s.explain_sql
+    end
   end
 
   def test_params_equal
@@ -337,12 +412,14 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
 
   def test_handle_exception_in_explain
     s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
-    fake_error = mock('error')
+    fake_error = Exception.new
     fake_error.expects(:message).returns('a message')
-    fake_error.expects(:backtrace).returns(['a backtrace'])
     NewRelic::Control.instance.log.expects(:error).with('Error getting explain plan: a message')
-    NewRelic::Control.instance.log.expects(:debug).with('a backtrace')
-    s.handle_exception_in_explain(fake_error)
+    # backtrace can be basically any string, just should get logged
+    NewRelic::Control.instance.log.expects(:debug).with(instance_of(String))
+    s.handle_exception_in_explain do
+      raise(fake_error)
+    end
   end
 
   def test_obfuscated_sql
