@@ -93,6 +93,14 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     assert_equal "", footer
   end
 
+  def test_browser_timing_footer_with_no_metric_frame
+    Thread.current[:newrelic_metric_frame] = nil
+    NewRelic::Agent.instance.expects(:beacon_configuration).returns( NewRelic::Agent::BeaconConfiguration.new({"browser_key" => "browserKey", "application_id" => "apId", "beacon"=>"beacon", "episodes_url"=>"this_is_my_file"}))
+    footer = browser_timing_footer
+    assert_equal('', footer)
+  end
+    
+
  # def test_browser_timing_footer_not_execution_traced
  #   footer = nil
  #   NewRelic::Agent.disable_all_tracing do
