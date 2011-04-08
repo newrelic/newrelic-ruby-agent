@@ -6,11 +6,6 @@ module NewRelic
         @instance ||= new_instance
       end
       
-      def mark_browser_request
-        Thread::current[:browser_request] = true
-      end
-      
-
       # Create the concrete class for environment specific behavior:
       def new_instance
         @local_env = NewRelic::LocalEnvironment.new

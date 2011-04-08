@@ -1,3 +1,6 @@
+v2.14.1.rum1
+  * Add preliminary work on real user monitoring
+
 v2.14.1
   * Avoid overriding methods named 'log' when including the MethodTracer module
   * Ensure that all load paths for 'new_relic/agent' go through 'new_relic/control' first

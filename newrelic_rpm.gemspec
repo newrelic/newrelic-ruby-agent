@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{newrelic_rpm}
-  s.version = "2.14.1"
+  s.version = "2.14.1.rum1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Bill Kayser", "Justin George"]
-  s.date = %q{2011-03-31}
+  s.date = %q{2011-04-08}
   s.description = %q{New Relic RPM is a Ruby performance management system, developed by
 New Relic, Inc (http://www.newrelic.com).  RPM provides you with deep
 information about the performance of your Ruby on Rails or Merb
@@ -40,6 +40,7 @@ http://github.com/newrelic/rpm/tree/master.
     "lib/conditional_vendored_metric_parser.rb",
     "lib/new_relic/agent.rb",
     "lib/new_relic/agent/agent.rb",
+    "lib/new_relic/agent/browser_monitoring.rb",
     "lib/new_relic/agent/busy_calculator.rb",
     "lib/new_relic/agent/chained_call.rb",
     "lib/new_relic/agent/error_collector.rb",
@@ -107,6 +108,7 @@ http://github.com/newrelic/rpm/tree/master.
     "lib/new_relic/metric_spec.rb",
     "lib/new_relic/metrics.rb",
     "lib/new_relic/noticed_error.rb",
+    "lib/new_relic/rack/browser_monitoring.rb",
     "lib/new_relic/rack/developer_mode.rb",
     "lib/new_relic/rack/metric_app.rb",
     "lib/new_relic/rack/mongrel_rpm.ru",
@@ -135,6 +137,7 @@ http://github.com/newrelic/rpm/tree/master.
     "test/new_relic/agent/agent_test_controller.rb",
     "test/new_relic/agent/agent_test_controller_test.rb",
     "test/new_relic/agent/apdex_from_server_test.rb",
+    "test/new_relic/agent/browser_monitoring_test.rb",
     "test/new_relic/agent/busy_calculator_test.rb",
     "test/new_relic/agent/error_collector/notice_error_test.rb",
     "test/new_relic/agent/error_collector_test.rb",
