@@ -183,7 +183,7 @@ module NewRelic
     end
 
     def working_jruby?
-      !(defined?(::JRuby) && Jruby.respond_to?(:runtime) && !JRuby.runtime.is_object_space_enabled)
+      !(defined?(::JRuby) && JRuby.respond_to?(:runtime) && !JRuby.runtime.is_object_space_enabled)
     end
 
     def find_class_in_object_space(klass)
