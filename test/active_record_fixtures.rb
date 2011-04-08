@@ -24,9 +24,9 @@ module ActiveRecordFixtures
       end
     end
     def self.add_delay
-      # Introduce a 500 ms delay into db operations on Orders
+      # Introduce a 5 ms delay into db operations on Orders
       def connection.log_info *args
-        sleep 0.5
+        sleep 0.005
         super *args
       end
     end
