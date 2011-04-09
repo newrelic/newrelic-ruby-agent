@@ -1,7 +1,7 @@
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..', 'test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__),'..','..', 'test_helper'))
 
 
-class NewRelic::Agent::StatsEngine::TransactionsTest < Test::Unit::TestCase
+class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
   def setup
     NewRelic::Agent.manual_start
     @engine = NewRelic::Agent::StatsEngine.new
@@ -93,27 +93,27 @@ class NewRelic::Agent::StatsEngine::TransactionsTest < Test::Unit::TestCase
     t1 = Time.now
 
     expected1 = @engine.push_scope "a"
-    sleep 0.1
+    sleep 0.001
     t2 = Time.now
 
     expected2 = @engine.push_scope "b"
-    sleep 0.2
+    sleep 0.002
     t3 = Time.now
 
     expected = @engine.push_scope "c"
-    sleep 0.3
+    sleep 0.003
     scope = @engine.pop_scope expected, Time.now - t3
 
     t4 = Time.now
 
     check_time_approximate 0, scope.children_time
-    check_time_approximate 0.3, @engine.peek_scope.children_time
+    check_time_approximate 0.003, @engine.peek_scope.children_time
 
-    sleep 0.1
+    sleep 0.001
     t5 = Time.now
 
     expected = @engine.push_scope "d"
-    sleep 0.2
+    sleep 0.002
     scope = @engine.pop_scope expected, Time.now - t5
 
     t6 = Time.now

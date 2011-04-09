@@ -1,7 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..', 'test_helper'))
 class NewRelic::LocalEnvironmentTest < Test::Unit::TestCase
 
-  def teardown
+  def self.teardown
     # To remove mock server instances from ObjectSpace
     ObjectSpace.garbage_collect
     super

@@ -108,21 +108,21 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
     run_sample_trace
     run_sample_trace
-    run_sample_trace { sleep 0.51 }
+    run_sample_trace { sleep 0.011 }
     run_sample_trace
     run_sample_trace
 
     slowest = @sampler.harvest(nil, 0)[0]
-    assert slowest.duration >= 0.5, "sample duration: #{slowest.duration}"
+    assert slowest.duration >= 0.01, "sample duration: #{slowest.duration}"
 
-    run_sample_trace { sleep 0.2 }
+    run_sample_trace { sleep 0.005 }
     not_as_slow = @sampler.harvest(slowest, 0)[0]
     assert not_as_slow == slowest
 
-    run_sample_trace { sleep 0.601 }
+    run_sample_trace { sleep 0.0601 }
     new_slowest = @sampler.harvest(slowest, 0)[0]
     assert new_slowest != slowest
-    assert new_slowest.duration >= 0.600, "Slowest duration must be > 0.6: #{new_slowest.duration}"
+    assert new_slowest.duration >= 0.0600, "Slowest duration must be > 0.06: #{new_slowest.duration}"
   end
 
 
@@ -144,7 +144,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
       t = Thread.new(@sampler) do |the_sampler|
         @sampler = the_sampler
         100.times do
-          run_sample_trace { sleep 0.01 }
+          run_sample_trace { sleep 0.0001 }
         end
       end
 

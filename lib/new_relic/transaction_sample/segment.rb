@@ -172,7 +172,7 @@ module NewRelic
         statements.map! do |statement|
           # a small sleep to make sure we yield back to the parent
           # thread regularly, if there are many explains
-          sleep(0.05)
+          sleep(0.0001)
           explain_statement(statement, params[:connection_config])
         end
         statements.compact!

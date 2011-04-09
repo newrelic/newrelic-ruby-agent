@@ -126,7 +126,7 @@ module TransactionSampleTestHelper
 
     sql.each {|sql_statement| sampler.notice_sql(sql_statement, {:adapter => "test"}, 0 ) }
 
-    sleep 1.0
+    sleep 0.02
     yield if block_given?
     sampler.notice_pop_scope "a"
     sampler.notice_scope_empty

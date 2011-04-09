@@ -89,7 +89,7 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
     metric = "hello"
     t1 = Time.now
     self.class.trace_execution_scoped metric do
-      sleep 1
+      sleep 0.05
       assert metric == @stats_engine.peek_scope.name
     end
     elapsed = Time.now - t1
@@ -103,7 +103,7 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
     metric = "hello"
     t1 = Time.now
     self.class.trace_method_execution metric, true, true, true do
-      sleep 1
+      sleep 0.05
       assert metric == @stats_engine.peek_scope.name
     end
     elapsed = Time.now - t1
@@ -341,13 +341,13 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
   end
 
   def check_time(t1, t2)
-    assert_in_delta t2, t1, 0.02
+    assert_in_delta t2, t1, 0.05
   end
 
   # =======================================================
   # test methods to be traced
   def method_to_be_traced(x, y, z, is_traced, expected_metric)
-    sleep 0.1
+    sleep 0.01
     assert x == 1
     assert y == 2
     assert z == 3
@@ -360,7 +360,7 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
   end
 
   def method_with_block(x, y, z, is_traced, expected_metric, &block)
-    sleep 0.1
+    sleep 0.01
     assert x == 1
     assert y == 2
     assert z == 3
