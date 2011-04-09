@@ -126,7 +126,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   end
 
 
-  def test_preare_to_send
+  def test_prepare_to_send
 
     run_sample_trace { sleep 0.2 }
     sample = @sampler.harvest(nil, 0)[0]
