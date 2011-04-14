@@ -9,12 +9,16 @@
 	<table width="100%" class="segment_list_table">
 		<thead>
 		<tr>
-			<td>Timestamp</td>
-			<td colspan="2">Duration</td>
+			<td>
+                          <%= link_to_if params['d'], "Timestamp", "show_sample_sql?id=#{sample.sample_id}" %>
+                        </td>
+			<td colspan="2">
+                          <%= link_to_if !params['d'], "Duration", "show_sample_sql?id=#{sample.sample_id}&d=y" %>
+                        </td>
 			<td>SQL</td>
 		</tr>
 		</thead>
 		
-		<%= render :partial => 'sql_row', :collection => @sample.sql_segments[0...trace_row_display_limit] %>
+                <%= render :partial => 'sql_row', :collection => @sql_segments[0...trace_row_display_limit] %>
 	</table>
   <% end %>
