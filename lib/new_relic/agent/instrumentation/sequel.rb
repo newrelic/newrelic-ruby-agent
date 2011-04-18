@@ -38,10 +38,10 @@ DependencyDetection.defer do
     # Sequel's Dataset instance methods
     ::Sequel::Dataset.class_eval do
 
-      add_method_tracer :execute,        'ActiveRecord/#{model ? model.name : "Dataset#{first_source}"}/find'
-      add_method_tracer :execute_insert, 'ActiveRecord/#{model ? model.name : "Dataset#{first_source}"}/create'
-      add_method_tracer :execute_dui,    'ActiveRecord/#{model ? model.name : "Dataset#{first_source}"}/update'
-      add_method_tracer :execute_ddl,    'ActiveRecord/#{model ? model.name : "Dataset#{first_source}"}/all'
+      add_method_tracer :execute,        'ActiveRecord/#{defined?(model) && model ? model.name : "Dataset#{first_source}"}/find'
+      add_method_tracer :execute_insert, 'ActiveRecord/#{defined?(model) && model ? model.name : "Dataset#{first_source}"}/create'
+      add_method_tracer :execute_dui,    'ActiveRecord/#{defined?(model) && model ? model.name : "Dataset#{first_source}"}/update'
+      add_method_tracer :execute_ddl,    'ActiveRecord/#{defined?(model) && model ? model.name : "Dataset#{first_source}"}/all'
 
     end
 
@@ -99,7 +99,7 @@ DependencyDetection.defer do
   depends_on do
     defined?(::Sequel) && defined?(::Sequel::Database)
   end
-  
+
   executes do
     ::Sequel::Database.class_eval do
       include ::NewRelic::Agent::Instrumentation::SequelInstrumentation
