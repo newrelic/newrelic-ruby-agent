@@ -105,7 +105,6 @@ module Agent
 
         if stack && stack.empty?
           Thread::current[:newrelic_scope_stack] = nil
-          Thread::current[:newrelic_scope_name] = nil
         end
       end
 

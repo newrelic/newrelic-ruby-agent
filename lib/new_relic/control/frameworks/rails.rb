@@ -25,19 +25,15 @@ module NewRelic
           else
             log! "Starting the New Relic Agent."
             install_developer_mode rails_config if developer_mode?
-            install_episodes rails_config
+            install_browser_monitoring rails_config
           end
         end
 
-        def install_episodes(config)
-          return if config.nil? || !config.respond_to?(:middleware) || !episodes_enabled?
-          config.after_initialize do
-            if defined?(NewRelic::Rack::Episodes)
-              config.middleware.use NewRelic::Rack::Episodes
-              log! "Installed episodes middleware"
-              ::RAILS_DEFAULT_LOGGER.info "Installed episodes middleware"
-            end
-          end
+        def install_browser_monitoring(config)
+          return if config.nil? || !config.respond_to?(:middleware) || !browser_monitoring_auto_instrument?
+          require 'new_relic/rack/browser_monitoring'
+          config.middleware.use NewRelic::Rack::BrowserMonitoring
+          ::RAILS_DEFAULT_LOGGER.info "Installed browser monitoring middleware"
         end
 
         def install_developer_mode(rails_config)

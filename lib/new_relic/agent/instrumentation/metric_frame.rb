@@ -138,7 +138,7 @@ module NewRelic
               NewRelic::Agent.instance.transaction_sampler.notice_scope_empty
             end
             NewRelic::Agent.instance.stats_engine.end_transaction
-            Thread.current[:newrelic_metric_frame] = nil
+#            Thread.current[:newrelic_metric_frame] = nil
           else # path stack not empty
             # change the transaction name back to whatever was on the stack.
             NewRelic::Agent.instance.stats_engine.scope_name = metric_name
