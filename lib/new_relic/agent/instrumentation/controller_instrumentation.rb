@@ -384,7 +384,7 @@ module NewRelic
         # for the start time is found.
         def _detect_upstream_wait(now)
           if newrelic_request_headers
-            parse_frontend_headers(newrelic_request_headers)
+            Thread.current[:queue_time] = parse_frontend_headers(newrelic_request_headers)
           end
           now
         rescue Exception => e

@@ -26,8 +26,10 @@ module NewRelic
           env = headers.dup
           add_end_time_header(current_time, env)
           parse_middleware_time_from(env)
-          parse_queue_time_from(env)
+          queue_time = parse_queue_time_from(env)
           parse_server_time_from(env)
+          # returned for the controller instrumentation
+          queue_time
         end
         
         private
@@ -75,6 +77,11 @@ module NewRelic
           # queue tag or the start time minus the queue time so that
           # other frontend metrics don't include this time.
           add_end_time_header(first_time, env)
+          if first_time && end_time
+            (end_time.to_f - first_time.to_f).to_f
+          else
+            0.0
+          end
         end
 
         def check_for_alternate_queue_length(env)

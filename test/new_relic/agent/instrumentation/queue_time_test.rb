@@ -17,9 +17,9 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
     # ordering is important here, unfortunately, the mocks don't
     # support that kind of checking.
     self.expects(:parse_middleware_time_from).with({:env => 'hash'})
-    self.expects(:parse_queue_time_from).with({:env => 'hash'})
+    self.expects(:parse_queue_time_from).with({:env => 'hash'}).returns(1.0)
     self.expects(:parse_server_time_from).with({:env => 'hash'})
-    parse_frontend_headers({:env => 'hash'})
+    assert_equal(1.0, parse_frontend_headers({:env => 'hash'}), "should return the queue time")
   end
 
   def test_all_combined_frontend_headers
@@ -32,7 +32,7 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
 
     assert_calls_metrics('WebFrontend/WebServer/all', 'WebFrontend/QueueTime', 'Middleware/all') do
       parse_middleware_time_from(env)
-      parse_queue_time_from(env)
+      assert_equal(1.0, parse_queue_time_from(env))
       parse_server_time_from(env)
     end
     
@@ -49,7 +49,7 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
 
     assert_calls_metrics('Middleware/all', 'WebFrontend/QueueTime') do
       parse_middleware_time_from(env)      
-      parse_queue_time_from(env)
+      assert_equal(1.0, parse_queue_time_from(env))
     end
     
     check_metric_time('Middleware/all', 1.0, 0.001)
@@ -63,7 +63,7 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
     create_test_start_time(env)
 
     assert_calls_metrics('WebFrontend/WebServer/all', 'WebFrontend/QueueTime') do
-      parse_queue_time_from(env)
+      assert_equal(1.0, parse_queue_time_from(env))
       parse_server_time_from(env)
     end
     
@@ -147,7 +147,7 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
 
     env['HTTP_X_QUEUE_START'] = "t=#{time1}"
     assert_calls_metrics('WebFrontend/QueueTime') do
-      parse_queue_time_from(env)
+      assert_equal(2.0, parse_queue_time_from(env))
     end
     
     check_metric_time('WebFrontend/QueueTime', 2.0, 0.1)
@@ -158,7 +158,7 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
     create_test_start_time(env)
     env['HTTP_X_QUEUE_TIME'] = '1000000'
     assert_calls_metrics('WebFrontend/QueueTime') do
-      parse_queue_time_from(env)
+      assert_equal(1.0, parse_queue_time_from(env))
     end
 
     check_metric_time('WebFrontend/QueueTime', 1.0, 0.001)
@@ -170,7 +170,7 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
     env['HTTP_X_QUEUE_START'] = 't=1' # obviously incorrect
     env['HTTP_X_QUEUE_TIME'] = '1000000'
     assert_calls_metrics('WebFrontend/QueueTime') do
-      parse_queue_time_from(env)
+      assert_equal(1.0, parse_queue_time_from(env))
     end
 
     # alternate queue should override normal header
@@ -182,7 +182,7 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
     create_test_start_time(env)
     env['HTTP_X_HEROKU_QUEUE_WAIT_TIME'] = '1000'
     assert_calls_metrics('WebFrontend/QueueTime') do
-      parse_queue_time_from(env)
+      assert_equal(1.0, parse_queue_time_from(env))
     end
 
     check_metric_time('WebFrontend/QueueTime', 1.0, 0.001)    
@@ -194,7 +194,7 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
     env['HTTP_X_QUEUE_TIME'] = '10000000' # ten MEEELION useconds
     env['HTTP_X_HEROKU_QUEUE_WAIT_TIME'] = '1000'
     assert_calls_metrics('WebFrontend/QueueTime') do
-      parse_queue_time_from(env)
+      assert_equal(1.0, parse_queue_time_from(env))
     end
 
     # heroku queue should override alternate queue
