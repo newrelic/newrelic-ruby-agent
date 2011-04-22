@@ -87,7 +87,7 @@ eos
         key_bytes = NewRelic::Agent.instance.beacon_configuration.license_bytes
         index = 0
         text.each_byte{|byte|
-          obfuscated.concat((byte ^ key_bytes[index % 13]))
+          obfuscated.concat((byte ^ key_bytes[index % 13].to_i))
           index+=1
         }
         

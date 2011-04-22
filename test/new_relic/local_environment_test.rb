@@ -15,13 +15,13 @@ class NewRelic::LocalEnvironmentTest < Test::Unit::TestCase
   
   def test_environment
     e = NewRelic::LocalEnvironment.new
-    assert_equal nil, e.environment
+    assert(nil == e.environment) # working around a bug in 1.9.1
     assert_match /test/i, e.dispatcher_instance_id
   end
   def test_no_webrick
     Object.const_set :OPTIONS, 'foo'
     e = NewRelic::LocalEnvironment.new
-    assert_equal nil, e.environment
+    assert(nil == e.environment) # working around a bug in 1.9.1
     assert_match /test/i, e.dispatcher_instance_id
     Object.class_eval { remove_const :OPTIONS }
   end
