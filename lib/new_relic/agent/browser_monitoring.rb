@@ -77,9 +77,7 @@ eos
 
       def obfuscate(text)
         obfuscated = ""
-        puts "beacon" + NewRelic::Agent.instance.beacon_configuration.to_s
         key_bytes = NewRelic::Agent.instance.beacon_configuration.license_bytes
-        puts "key" + key_bytes.to_s
         index = 0
         text.each_byte{|byte|
           obfuscated.concat((byte ^ key_bytes[index % 13]))
