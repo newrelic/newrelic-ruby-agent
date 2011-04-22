@@ -69,7 +69,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     assert footer.include?("<script type=\"text/javascript\" charset=\"utf-8\">NREUMQ.push([\"nrf2\",")
   end
 
-  def test_browser_timing_footer_with_no_browser_key
+  def test_browser_timing_footer_with_no_browser_key_rum_enabled
     NewRelic::Agent.instance.expects(:beacon_configuration).returns( NewRelic::Agent::BeaconConfiguration.new({"rum.enabled" => true, "application_id" => "apId", "beacon"=>"beacon", "episodes_url"=>"this_is_my_file"}))
     footer = browser_timing_footer
     assert_equal "", footer
@@ -86,7 +86,10 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     fake_metric_frame.expects(:start).returns(Time.now).twice
 
     Thread.current[:newrelic_metric_frame] = fake_metric_frame
-    NewRelic::Agent.instance.expects(:beacon_configuration).returns( NewRelic::Agent::BeaconConfiguration.new({"browser_key" => "browserKey", "application_id" => "apId", "beacon"=>"beacon", "episodes_url"=>"this_is_my_file"}))
+      
+    license_bytes = [];
+    ("a" * 13).each_byte {|byte| license_bytes << byte}
+    NewRelic::Agent.instance.expects(:beacon_configuration).returns( NewRelic::Agent::BeaconConfiguration.new({"browser_key" => "browserKey", "application_id" => "apId", "beacon"=>"beacon", "episodes_url"=>"this_is_my_file", "license_bytes" => license_bytes})).once
     footer = browser_timing_footer
     assert footer.include?("<script type=\"text/javascript\" charset=\"utf-8\">NREUMQ.push([\"nrf2\",")
   end
