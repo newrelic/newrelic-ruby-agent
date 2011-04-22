@@ -25,12 +25,12 @@ module NewRelic
           else
             log! "Starting the New Relic Agent."
             install_developer_mode rails_config if developer_mode?
-            install_browser_monitoring rails_config
+            install_browser_monitoring(rails_config)
           end
         end
         
         def install_browser_monitoring(config)
-          return if config.nil? || !config.respond_to?(:middleware) || !browser_monitoring
+          return if config.nil? || !config.respond_to?(:middleware) || !browser_monitoring_auto_instrument?
           
           require 'new_relic/rack/browser_monitoring'
           config.middleware.use NewRelic::Rack::BrowserMonitoring
