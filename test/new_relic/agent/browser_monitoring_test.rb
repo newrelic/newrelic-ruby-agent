@@ -21,7 +21,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
  # def test_browser_timing_short_header_not_execution_traced
  #   header = nil
  #   NewRelic::Agent.disable_all_tracing do
-  #    header = browser_timing_short_header
+ #    header = browser_timing_short_header
  #   end
  #   assert_equal "", header
  # end
@@ -83,13 +83,15 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
   
   def test_browser_timing_footer_with_rum_enabled_not_specified
     fake_metric_frame = mock("aFakeMetricFrame")
-    fake_metric_frame.expects(:start).returns(Time.now).twice
+    fake_metric_frame.expects(:start).returns(Time.now).at_least_once
 
     Thread.current[:newrelic_metric_frame] = fake_metric_frame
       
     license_bytes = [];
     ("a" * 13).each_byte {|byte| license_bytes << byte}
-    NewRelic::Agent.instance.expects(:beacon_configuration).returns( NewRelic::Agent::BeaconConfiguration.new({"browser_key" => "browserKey", "application_id" => "apId", "beacon"=>"beacon", "episodes_url"=>"this_is_my_file", "license_bytes" => license_bytes})).once
+    config =  NewRelic::Agent::BeaconConfiguration.new({"browser_key" => "browserKey", "application_id" => "apId", "beacon"=>"beacon", "episodes_url"=>"this_is_my_file", "license_bytes" => license_bytes})
+    config.expects(:license_bytes).returns(license_bytes)
+    NewRelic::Agent.instance.expects(:beacon_configuration).returns(config).at_least_once
     footer = browser_timing_footer
     assert footer.include?("<script type=\"text/javascript\" charset=\"utf-8\">NREUMQ.push([\"nrf2\",")
   end
