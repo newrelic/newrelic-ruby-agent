@@ -10,15 +10,19 @@ class NewRelic::Agent::Instrumentation::ControllerInstrumentationTest < Test::Un
     object = TestObject.new
     # should return the start time above by default
     object.expects(:newrelic_request_headers).returns({:request => 'headers'}).twice
-    object.expects(:parse_frontend_headers).with({:request => 'headers'}).returns(1.0)
+    object.expects(:parse_frontend_headers).with({:request => 'headers'}).returns(start_time)
     assert_equal(start_time, object.send(:_detect_upstream_wait, start_time))
-    assert_equal(1.0, Thread.current[:queue_time])
+    assert_equal(0.0, Thread.current[:queue_time])
   end
   
   def test_detect_upstream_wait_with_upstream
-    # should return the start time from the headers for use in the
-    # apdex calculation
-    raise 'should test this case'
+    start_time = Time.now
+    runs_at = start_time + 1
+    object = TestObject.new
+    object.expects(:newrelic_request_headers).returns(true).twice
+    object.expects(:parse_frontend_headers).returns(start_time)
+    assert_equal(start_time, object.send(:_detect_upstream_wait, runs_at))
+    assert_equal(1.0, Thread.current[:queue_time])
   end
 
   def test_detect_upstream_wait_swallows_errors

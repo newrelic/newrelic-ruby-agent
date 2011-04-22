@@ -25,11 +25,11 @@ module NewRelic
           # May have performance implications with very large env hashes
           env = headers.dup
           add_end_time_header(current_time, env)
-          parse_middleware_time_from(env)
-          queue_time = parse_queue_time_from(env)
-          parse_server_time_from(env)
+          middleware_start = parse_middleware_time_from(env)
+          queue_start = parse_queue_time_from(env)
+          server_start = parse_server_time_from(env)
           # returned for the controller instrumentation
-          queue_time
+          [middleware_start, queue_start, server_start].min
         end
         
         private
@@ -53,35 +53,31 @@ module NewRelic
           matches = get_matches_from_header(MIDDLEWARE_HEADER, env)
 
           record_individual_middleware_stats(end_time, matches)
-          record_rollup_middleware_stat(end_time, matches)
+          oldest_time = record_rollup_middleware_stat(end_time, matches)
           # notice this bit: we reset the end time to the earliest
           # middleware tag so that other frontend metrics don't
           # include this time.
-          add_end_time_header(find_oldest_time(matches), env)
+          add_end_time_header(oldest_time, env)
+          oldest_time
         end
 
         def parse_queue_time_from(env)
-          first_time = nil          
+          oldest_time = nil          
           end_time = parse_end_time(env)
           alternate_length = check_for_alternate_queue_length(env)
           if alternate_length
             # skip all that fancy-dan stuff
             NewRelic::Agent.get_stats(ALL_QUEUE_METRIC).trace_call(alternate_length)
-            first_time = (end_time - alternate_length) # should be a time
+            oldest_time = (end_time - alternate_length) # should be a time
           else
             matches = get_matches_from_header(QUEUE_HEADER, env)
-            record_rollup_queue_stat(end_time, matches)
-            first_time = find_oldest_time(matches)
+            oldest_time = record_rollup_queue_stat(end_time, matches)
           end
           # notice this bit: we reset the end time to the earliest
           # queue tag or the start time minus the queue time so that
           # other frontend metrics don't include this time.
-          add_end_time_header(first_time, env)
-          if first_time && end_time
-            (end_time.to_f - first_time.to_f).to_f
-          else
-            0.0
-          end
+          add_end_time_header(oldest_time, env)
+          oldest_time
         end
 
         def check_for_alternate_queue_length(env)
@@ -154,8 +150,9 @@ module NewRelic
         end
 
         def record_rollup_stat_of_type(metric, end_time, matches)
-          first_time = find_oldest_time(matches) || end_time
-          record_time_stat(metric, first_time, end_time)
+          oldest_time = find_oldest_time(matches) || end_time
+          record_time_stat(metric, oldest_time, end_time)
+          oldest_time
         end
                 
         # searches for the first server to touch a request

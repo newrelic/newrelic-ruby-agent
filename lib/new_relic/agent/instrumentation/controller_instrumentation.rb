@@ -383,10 +383,12 @@ module NewRelic
         # now is a Time instance to fall back on if no other candidate
         # for the start time is found.
         def _detect_upstream_wait(now)
+          queue_start = nil
           if newrelic_request_headers
-            Thread.current[:queue_time] = parse_frontend_headers(newrelic_request_headers)
+            queue_start = parse_frontend_headers(newrelic_request_headers)
+            Thread.current[:queue_time] = (now.to_f - queue_start.to_f) if queue_start
           end
-          now
+          queue_start || now
         rescue Exception => e
           NewRelic::Control.instance.log.error("Error detecting upstream wait time: #{e}")
           NewRelic::Control.instance.log.debug("#{e.backtrace[0..20]}")

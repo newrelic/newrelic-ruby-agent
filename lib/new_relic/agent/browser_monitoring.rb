@@ -8,6 +8,7 @@ module NewRelic
       attr_reader :browser_monitoring_key
       attr_reader :beacon
       attr_reader :rum_enabled
+      attr_reader :license_bytes
       
       def initialize(connect_data)
         @browser_monitoring_key = connect_data['browser_key']
@@ -16,6 +17,15 @@ module NewRelic
         @rum_enabled = connect_data['rum.enabled']
         @rum_enabled = true if @rum_enabled.nil?
         @browser_timing_header = build_browser_timing_header(connect_data)
+      end
+
+      def license_bytes
+        if @license_bytes.nil?
+          @license_bytes = []
+          NewRelic::Control.instance.license_key.each_byte {|byte| @license_bytes << byte}
+        else
+          @license_bytes
+        end
       end
     
       def build_browser_timing_header(connect_data)
@@ -74,11 +84,13 @@ eos
 
       def obfuscate(text)
         obfuscated = ""
-        @@license_bytes ||= NewRelic::Control.instance.license_key.bytes.to_a
+        key_bytes = NewRelic::Agent.instance.beacon_configuration.license_bytes
         
-        text.bytes.each_with_index do |byte, i|
-          obfuscated.concat((byte ^ @@license_bytes[i % 13]))
-        end
+        index = 0
+        text.each_byte{|byte|
+          obfuscated.concat((byte ^ key_bytes[index % 13]))
+          index+=1
+        }
         
         [obfuscated].pack("m0").chomp
       end

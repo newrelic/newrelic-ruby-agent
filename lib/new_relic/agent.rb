@@ -380,21 +380,21 @@ module NewRelic
     def record_transaction(response_sec, options = {})
       agent.record_transaction(response_sec, options)
     end
-        
+
     # PRE-RELEASE
-    # Returns a Javascript string which should be injected into the very top of the 
+    # Returns a Javascript string which should be injected into the very top of the response body
     #
     def browser_timing_header
       agent.browser_timing_header
     end
-        
+
     # PRE-RELEASE
-    # Returns a Javascript string which should be injected into the very bottom of t
+    # Returns a Javascript string which should be injected into the very bottom of the response body
     #
     def browser_timing_footer
       agent.browser_timing_footer
     end
-    
+
     # FOR BACKWARD COMPATIBILITY (REMOVE BEFORE GA)
     def browser_instrumentation_header(options={})
       agent.browser_timing_header
