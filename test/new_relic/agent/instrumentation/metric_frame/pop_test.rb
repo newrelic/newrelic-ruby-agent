@@ -10,11 +10,29 @@ class NewRelic::Agent::Instrumentation::MetricFrame::PopTest < Test::Unit::TestC
     @agent = mock('agent')
     @transaction_sampler = mock('transaction sampler')
   end
+
+  def teardown
+    Thread.current[:newrelic_start_time] = nil
+    Thread.current[:newrelic_metric_frame] = nil
+  end
   
   def test_clear_thread_metric_frame
     Thread.current[:newrelic_metric_frame] = 'whee'
     clear_thread_metric_frame!
     assert_equal nil, Thread.current[:newrelic_metric_frame], 'should nil out the thread var'
+  end
+
+  def test_set_last_start_time
+    start_time = Time.now
+    mock_frame = mock('frame')
+    mock_frame.expects(:respond_to?).with(:start).returns(true)
+    mock_frame.expects(:start).returns(start_time)
+    Thread.current[:newrelic_start_time] = nil
+    Thread.current[:newrelic_metric_frame] = mock_frame
+    
+    set_last_start_time!
+
+    assert_equal(start_time, Thread.current[:newrelic_start_time], "should set the start time correctly: #{start_time.inspect} expected but was #{Thread.current[:newrelic_start_time].inspect}")
   end
 
   def test_set_new_scope
@@ -23,6 +41,7 @@ class NewRelic::Agent::Instrumentation::MetricFrame::PopTest < Test::Unit::TestC
     fakeengine = mock('stats_engine')
     fakeagent.expects(:stats_engine).returns(fakeengine)
     fakeengine.expects(:scope_name=).with('A METRIC')
+    
     set_new_scope!('A METRIC')
   end
 
@@ -133,6 +152,7 @@ class NewRelic::Agent::Instrumentation::MetricFrame::PopTest < Test::Unit::TestC
     fakemetric.expects(:is_web_transaction?).returns(true)
     self.expects(:notify_transaction_sampler).with(true)
     self.expects(:end_transaction!)
+    self.expects(:set_last_start_time!)
     self.expects(:clear_thread_metric_frame!)
     handle_empty_path_stack(fakemetric)
   end
@@ -144,6 +164,7 @@ class NewRelic::Agent::Instrumentation::MetricFrame::PopTest < Test::Unit::TestC
     fakemetric.expects(:is_web_transaction?).returns(false)
     self.expects(:notify_transaction_sampler).with(false)
     self.expects(:end_transaction!)
+    self.expects(:set_last_start_time!)    
     self.expects(:clear_thread_metric_frame!)
     handle_empty_path_stack(fakemetric)
   end
@@ -161,6 +182,7 @@ class NewRelic::Agent::Instrumentation::MetricFrame::PopTest < Test::Unit::TestC
     fakemetric = mock('metric')
     fakemetric.expects(:is_web_transaction?).never
     self.expects(:end_transaction!)
+    self.expects(:set_last_start_time!)    
     self.expects(:clear_thread_metric_frame!)
     handle_empty_path_stack(fakemetric)
   end

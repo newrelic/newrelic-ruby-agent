@@ -15,6 +15,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
 
   def teardown
     mocha_teardown
+    Thread.current[:newrelic_start_time] = nil
     Thread.current[:newrelic_metric_frame] = nil
   end
 
@@ -60,10 +61,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
   def test_browser_timing_footer
     NewRelic::Control.instance.expects(:license_key).returns("a" * 13)
 
-    fake_metric_frame = mock("aFakeMetricFrame")
-    fake_metric_frame.expects(:start).returns(Time.now).twice
-
-    Thread.current[:newrelic_metric_frame] = fake_metric_frame
+    Thread.current[:newrelic_start_time] = Time.now
 
     footer = browser_timing_footer
     assert footer.include?("<script type=\"text/javascript\" charset=\"utf-8\">NREUMQ.push([\"nrf2\",")
@@ -82,10 +80,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
    end
   
   def test_browser_timing_footer_with_rum_enabled_not_specified
-    fake_metric_frame = mock("aFakeMetricFrame")
-    fake_metric_frame.expects(:start).returns(Time.now).at_least_once
-
-    Thread.current[:newrelic_metric_frame] = fake_metric_frame
+    Thread.current[:newrelic_start_time] = Time.now
       
     license_bytes = [];
     ("a" * 13).each_byte {|byte| license_bytes << byte}
@@ -102,8 +97,8 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     assert_equal "", footer
   end
 
-  def test_browser_timing_footer_with_no_metric_frame
-    Thread.current[:newrelic_metric_frame] = nil
+  def test_browser_timing_footer_with_no_start_time
+    Thread.current[:newrelic_start_time] = nil
     NewRelic::Agent.instance.expects(:beacon_configuration).returns( NewRelic::Agent::BeaconConfiguration.new({"browser_key" => "browserKey", "application_id" => "apId", "beacon"=>"beacon", "episodes_url"=>"this_is_my_file"}))
     footer = browser_timing_footer
     assert_equal('', footer)
