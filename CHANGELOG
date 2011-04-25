@@ -1,9 +1,8 @@
-v2.15.0
-  * Forking background jobs can now use an experimental new method of 
-    sending data to the server (reduces overhead)
+v3.1.0
+  * Experimental support for aggregating data from short-running processes
 
-v2.14.1.rum1
-  * Add preliminary work on real user monitoring
+v3.0.0
+  * Support for Real User Monitoring
 
 v2.14.1
   * Avoid overriding methods named 'log' when including the MethodTracer module
