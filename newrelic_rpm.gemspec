@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{newrelic_rpm}
-  s.version = "3.0.0.alpha"
+  s.version = "3.1.0.alpha"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Bill Kayser", "Justin George"]
@@ -44,6 +44,7 @@ http://github.com/newrelic/rpm/tree/master.
     "lib/new_relic/agent/busy_calculator.rb",
     "lib/new_relic/agent/chained_call.rb",
     "lib/new_relic/agent/error_collector.rb",
+    "lib/new_relic/agent/instrumentation.rb",
     "lib/new_relic/agent/instrumentation/active_merchant.rb",
     "lib/new_relic/agent/instrumentation/acts_as_solr.rb",
     "lib/new_relic/agent/instrumentation/authlogic.rb",
@@ -54,6 +55,7 @@ http://github.com/newrelic/rpm/tree/master.
     "lib/new_relic/agent/instrumentation/merb/controller.rb",
     "lib/new_relic/agent/instrumentation/merb/errors.rb",
     "lib/new_relic/agent/instrumentation/metric_frame.rb",
+    "lib/new_relic/agent/instrumentation/metric_frame/pop.rb",
     "lib/new_relic/agent/instrumentation/net.rb",
     "lib/new_relic/agent/instrumentation/passenger_instrumentation.rb",
     "lib/new_relic/agent/instrumentation/queue_time.rb",
@@ -100,6 +102,7 @@ http://github.com/newrelic/rpm/tree/master.
     "lib/new_relic/control/logging_methods.rb",
     "lib/new_relic/control/profiling.rb",
     "lib/new_relic/control/server_methods.rb",
+    "lib/new_relic/data_serialization.rb",
     "lib/new_relic/delayed_job_injection.rb",
     "lib/new_relic/histogram.rb",
     "lib/new_relic/local_environment.rb",
@@ -118,7 +121,12 @@ http://github.com/newrelic/rpm/tree/master.
     "lib/new_relic/stats.rb",
     "lib/new_relic/timer_lib.rb",
     "lib/new_relic/transaction_analysis.rb",
+    "lib/new_relic/transaction_analysis/segment_summary.rb",
     "lib/new_relic/transaction_sample.rb",
+    "lib/new_relic/transaction_sample/composite_segment.rb",
+    "lib/new_relic/transaction_sample/fake_segment.rb",
+    "lib/new_relic/transaction_sample/segment.rb",
+    "lib/new_relic/transaction_sample/summary_segment.rb",
     "lib/new_relic/url_rule.rb",
     "lib/new_relic/version.rb",
     "lib/newrelic_rpm.rb",
@@ -144,9 +152,11 @@ http://github.com/newrelic/rpm/tree/master.
     "test/new_relic/agent/instrumentation/active_record_instrumentation_test.rb",
     "test/new_relic/agent/instrumentation/controller_instrumentation_test.rb",
     "test/new_relic/agent/instrumentation/instrumentation_test.rb",
+    "test/new_relic/agent/instrumentation/metric_frame/pop_test.rb",
     "test/new_relic/agent/instrumentation/metric_frame_test.rb",
     "test/new_relic/agent/instrumentation/net_instrumentation_test.rb",
     "test/new_relic/agent/instrumentation/queue_time_test.rb",
+    "test/new_relic/agent/instrumentation/rack_test.rb",
     "test/new_relic/agent/instrumentation/task_instrumentation_test.rb",
     "test/new_relic/agent/memcache_instrumentation_test.rb",
     "test/new_relic/agent/method_tracer/class_methods/add_method_tracer_test.rb",
@@ -154,19 +164,29 @@ http://github.com/newrelic/rpm/tree/master.
     "test/new_relic/agent/method_tracer_test.rb",
     "test/new_relic/agent/mock_scope_listener.rb",
     "test/new_relic/agent/rpm_agent_test.rb",
+    "test/new_relic/agent/sampler_test.rb",
+    "test/new_relic/agent/stats_engine/metric_stats/harvest_test.rb",
     "test/new_relic/agent/stats_engine/metric_stats_test.rb",
     "test/new_relic/agent/stats_engine/samplers_test.rb",
-    "test/new_relic/agent/stats_engine/stats_engine_test.rb",
+    "test/new_relic/agent/stats_engine_test.rb",
     "test/new_relic/agent/transaction_sample_builder_test.rb",
     "test/new_relic/agent/transaction_sampler_test.rb",
     "test/new_relic/agent/worker_loop_test.rb",
     "test/new_relic/collection_helper_test.rb",
     "test/new_relic/command/deployments_test.rb",
+    "test/new_relic/control/logging_methods_test.rb",
     "test/new_relic/control_test.rb",
+    "test/new_relic/data_serialization_test.rb",
     "test/new_relic/local_environment_test.rb",
     "test/new_relic/metric_spec_test.rb",
     "test/new_relic/rack/episodes_test.rb",
     "test/new_relic/stats_test.rb",
+    "test/new_relic/transaction_analysis/segment_summary_test.rb",
+    "test/new_relic/transaction_analysis_test.rb",
+    "test/new_relic/transaction_sample/composite_segment_test.rb",
+    "test/new_relic/transaction_sample/fake_segment_test.rb",
+    "test/new_relic/transaction_sample/segment_test.rb",
+    "test/new_relic/transaction_sample/summary_segment_test.rb",
     "test/new_relic/transaction_sample_subtest_test.rb",
     "test/new_relic/transaction_sample_test.rb",
     "test/new_relic/version_number_test.rb",
@@ -272,7 +292,7 @@ Refer to the README.md file for more information.
 
 Please see http://support.newrelic.com/faqs/docs/ruby-agent-release-notes
 for a complete description of the features and enhancements available
-in version 3.0 of the Ruby Agent.
+in version 3.1 of the Ruby Agent.
 
 For details on this specific release, refer to the CHANGELOG file.
 
