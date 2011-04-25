@@ -28,7 +28,6 @@ class NewRelic::Agent::Instrumentation::ControllerInstrumentationTest < Test::Un
   def test_detect_upstream_wait_swallows_errors
     start_time = Time.now
     object = TestObject.new
-    Thread.current[:queue_time] = nil
     # should return the start time above when an error is raised
     object.expects(:newrelic_request_headers).returns({:request => 'headers'}).twice
     object.expects(:parse_frontend_headers).with({:request => 'headers'}).raises("an error")
