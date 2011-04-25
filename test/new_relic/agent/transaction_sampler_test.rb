@@ -33,7 +33,10 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     super
     @sampler.send(:clear_builder)
   end
-  
+
+  def test_sampling_rate_equals
+    raise 'need a test for this method'
+  end
   
   def test_multiple_samples
     

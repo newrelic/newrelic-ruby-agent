@@ -44,8 +44,8 @@ module Agent
     end
 
     def sampling_rate=(val)
-      @sampling_rate = val
-      @harvest_count = rand(val)
+      @sampling_rate = val.to_i
+      @harvest_count = rand(val.to_i).to_i
     end
 
     def notice_first_scope_push(time)
@@ -182,7 +182,7 @@ module Agent
         if @random_sampling
           @harvest_count += 1
 
-          if (@harvest_count % @sampling_rate) == 0
+          if (@harvest_count.to_i % @sampling_rate.to_i) == 0
             result << @random_sample if @random_sample
           else
             @random_sample = nil   # if we don't nil this out, then we won't send the slowest if slowest == @random_sample
