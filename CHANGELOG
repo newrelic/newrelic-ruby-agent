@@ -1,5 +1,5 @@
-v2.14.1.rum1
-  * Add preliminary work on real user monitoring
+v3.0.0
+  * Support for Real User Monitoring
 
 v2.14.1
   * Avoid overriding methods named 'log' when including the MethodTracer module

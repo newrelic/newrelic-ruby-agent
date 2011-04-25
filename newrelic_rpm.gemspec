@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{newrelic_rpm}
-  s.version = "2.14.1.rum1"
+  s.version = "3.0.0.alpha"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Bill Kayser", "Justin George"]
-  s.date = %q{2011-04-08}
+  s.date = %q{2011-04-25}
   s.description = %q{New Relic RPM is a Ruby performance management system, developed by
 New Relic, Inc (http://www.newrelic.com).  RPM provides you with deep
 information about the performance of your Ruby on Rails or Merb
@@ -142,6 +142,7 @@ http://github.com/newrelic/rpm/tree/master.
     "test/new_relic/agent/error_collector/notice_error_test.rb",
     "test/new_relic/agent/error_collector_test.rb",
     "test/new_relic/agent/instrumentation/active_record_instrumentation_test.rb",
+    "test/new_relic/agent/instrumentation/controller_instrumentation_test.rb",
     "test/new_relic/agent/instrumentation/instrumentation_test.rb",
     "test/new_relic/agent/instrumentation/metric_frame_test.rb",
     "test/new_relic/agent/instrumentation/net_instrumentation_test.rb",
@@ -271,7 +272,7 @@ Refer to the README.md file for more information.
 
 Please see http://support.newrelic.com/faqs/docs/ruby-agent-release-notes
 for a complete description of the features and enhancements available
-in version 2.14 of the Ruby Agent.
+in version 3.0 of the Ruby Agent.
 
 For details on this specific release, refer to the CHANGELOG file.
 
