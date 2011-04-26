@@ -31,7 +31,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
   def teardown
     super
-    @sampler.send(:clear_builder)
+    Thread.current[:transaction_sample_builder] = nil
   end
 
   def test_initialize
