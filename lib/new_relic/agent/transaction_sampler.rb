@@ -1,3 +1,5 @@
+require 'new_relic/agent'
+require 'new_relic/control'
 require 'new_relic/agent/transaction_sample_builder'
 module NewRelic
   module Agent

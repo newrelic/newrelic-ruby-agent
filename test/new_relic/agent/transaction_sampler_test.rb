@@ -615,11 +615,20 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   end
 
   def test_start_builder_disabled
+    Thread.current[:transaction_sample_builder] = 'not nil.'
     @sampler.expects(:disabled).returns(true)    
     @sampler.send(:start_builder)
-    assert_equal(nil, Thread.current[:transaction_sample_builder], "should set up a new builder by default")
+    assert_equal(nil, Thread.current[:transaction_sample_builder], "should clear the transaction builder when disabled")
   end
-
+  
+  def test_start_builder_dont_replace_existing_builder
+    fake_builder = mock('transaction sample builder')
+    Thread.current[:transaction_sample_builder] = fake_builder
+    @sampler.expects(:disabled).returns(false)
+    @sampler.send(:start_builder)
+    assert_equal(fake_builder, Thread.current[:transaction_sample_builder], "should not overwrite an existing transaction sample builder")
+  end
+  
   def test_builder
     Thread.current[:transaction_sample_builder] = 'shamalamadingdong, brother.'
     assert_equal('shamalamadingdong, brother.', @sampler.send(:builder), 'should return the value from the thread local variable')
