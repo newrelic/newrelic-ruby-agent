@@ -38,7 +38,12 @@ module NewRelic
     
         load_js = load_episodes_file ? "(function(){var d=document;var e=d.createElement(\"script\");e.type=\"text/javascript\";e.async=true;e.src=\"#{episodes_url}\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})()" : ""
             
-        "<script>var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);#{load_js}</script>"
+        value = "<script>var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);#{load_js}</script>"
+        if value.respond_to?(:html_safe)
+          value.html_safe
+        else
+          value
+        end
       end
     end
 
@@ -62,7 +67,8 @@ module NewRelic
         transaction_name = Thread.current[:newrelic_most_recent_transaction] || "<unknown>"
         start_time = Thread.current[:newrelic_start_time]
         queue_time = (Thread.current[:newrelic_queue_time].to_f * 1000.0).round
-
+        
+        value = ''
         if start_time
           
           obf = obfuscate(transaction_name)
@@ -71,11 +77,14 @@ module NewRelic
           queue_time = 0.0 if queue_time < 0
           app_time = 0.0 if app_time < 0
  
-<<-eos
+          value = <<-eos
 <script type="text/javascript" charset="utf-8">NREUMQ.push(["nrf2","#{beacon}","#{license_key}",#{application_id},"#{obf}",#{queue_time},#{app_time}])</script>
 eos
+        end
+        if value.respond_to?(:html_safe)
+          value.html_safe
         else
-          ""
+          value
         end
       end
       

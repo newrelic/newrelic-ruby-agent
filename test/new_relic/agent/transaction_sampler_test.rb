@@ -34,7 +34,152 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     @sampler.send(:clear_builder)
   end
 
+  # TODO this class needs better coverage and breakdown of large methods
 
+  def test_initialize
+    defaults =      {
+        :samples => [],
+        :harvest_count => 0,
+        :max_samples => 100,
+        :random_sample => nil,
+      }
+    defaults.each do |variable, default_value|
+      assert_equal(default_value, @sampler.instance_variable_get('@' + variable.to_s))
+    end
+    
+    segment_limit = @sampler.instance_variable_get('@segment_limit')
+    assert(segment_limit.is_a?(Numeric), "Segment limit should be numeric")
+    assert(segment_limit > 0, "Segment limit should be above zero")
+
+    stack_trace_threshold = @sampler.instance_variable_get('@stack_trace_threshold')
+    assert(stack_trace_threshold.is_a?((0.1).class), "Stack trace threshold should be a #{(0.1).class.inspect}, but is #{stack_trace_threshold.inspect}")
+    assert(stack_trace_threshold > 0.0, "Stack trace threshold should be above zero")
+    
+    lock = @sampler.instance_variable_get('@samples_lock')
+    assert(lock.is_a?(Mutex), "Samples lock should be a mutex, is: #{lock.inspect}")
+  end
+
+  def test_current_sample_id_default
+    builder = mock('builder')
+    builder.expects(:sample_id).returns(11111)
+    @sampler.expects(:builder).returns(builder)
+    assert_equal(11111, @sampler.current_sample_id)
+  end
+
+  def test_current_sample_id_no_builder
+    @sampler.expects(:builder).returns(nil)
+    assert_equal(nil, @sampler.current_sample_id)
+  end
+  
+  def test_enable
+    assert_equal(nil, @sampler.instance_variable_get('@disabled'))
+    @sampler.enable
+    assert_equal(false, @sampler.instance_variable_get('@disabled'))
+    assert_equal(@sampler, NewRelic::Agent.instance.stats_engine.instance_variable_get('@transaction_sampler'))
+  end
+
+  def test_disable
+    assert_equal(nil, @sampler.instance_variable_get('@disabled'))
+    @sampler.disable
+    assert_equal(true, @sampler.instance_variable_get('@disabled'))
+    assert_equal(nil, NewRelic::Agent.instance.stats_engine.instance_variable_get('@transaction_sampler'))
+  end
+
+  def test_sampling_rate_equals_default
+    @sampler.sampling_rate = 1
+    assert_equal(1, @sampler.instance_variable_get('@sampling_rate'))
+    # rand(1) is always zero, so we can be sure here
+    assert_equal(0, @sampler.instance_variable_get('@harvest_count'))
+  end
+
+  def test_sampling_rate_equals_with_a_float
+    @sampler.sampling_rate = 5.5
+    assert_equal(5, @sampler.instance_variable_get('@sampling_rate'))
+    harvest_count = @sampler.instance_variable_get('@harvest_count')
+    assert((0..4).include?(harvest_count), "should be in the range 0..4")
+  end
+
+  def test_notice_first_scope_push_default
+    @sampler.expects(:disabled).returns(false)
+    @sampler.expects(:start_builder).with(100.0)
+    @sampler.notice_first_scope_push(Time.at(100))
+  end
+
+  def test_notice_first_scope_push_disabled
+    @sampler.expects(:disabled).returns(true)
+    @sampler.expects(:start_builder).never
+    @sampler.notice_first_scope_push(Time.at(100))
+  end
+
+  def test_notice_push_scope_no_builder
+    @sampler.expects(:builder)
+    assert_equal(nil, @sampler.notice_push_scope('a scope'))
+  end
+
+  def test_notice_push_scope_with_builder
+    NewRelic::Control.instance.expects(:developer_mode?).returns(false)
+    builder = mock('builder')
+    builder.expects(:trace_entry).with('a scope', 100.0)
+    @sampler.expects(:builder).returns(builder).twice
+    
+    @sampler.notice_push_scope('a scope', Time.at(100))
+  end
+
+  def test_notice_push_scope_in_dev_mode
+    NewRelic::Control.instance.expects(:developer_mode?).returns(true)
+    
+    builder = mock('builder')
+    builder.expects(:trace_entry).with('a scope', 100.0)
+    @sampler.expects(:builder).returns(builder).twice
+    @sampler.expects(:capture_segment_trace)
+
+    @sampler.notice_push_scope('a scope', Time.at(100))
+  end
+
+  def test_scope_depth_no_builder
+    @sampler.expects(:builder).returns(nil)
+    assert_equal(0, @sampler.scope_depth, "should default to zero with no builder")
+  end
+
+  def test_scope_depth_with_builder
+    builder = mock('builder')
+    builder.expects(:scope_depth).returns('scope_depth')
+    @sampler.expects(:builder).returns(builder).twice
+    
+    assert_equal('scope_depth', @sampler.scope_depth, "should delegate scope depth to the builder")
+  end
+
+  def test_notice_pop_scope_no_builder
+    @sampler.expects(:builder).returns(nil)
+    assert_equal(nil, @sampler.notice_pop_scope('a scope', Time.at(100)))
+  end
+
+  def test_notice_pop_scope_with_frozen_sample
+    builder = mock('builder')
+    sample = mock('sample')
+    builder.expects(:sample).returns(sample)
+    sample.expects(:frozen?).returns(true)
+    @sampler.expects(:builder).returns(builder).twice
+    
+    assert_raise(RuntimeError) do
+      @sampler.notice_pop_scope('a scope', Time.at(100))
+    end
+  end
+
+  def test_notice_pop_scope_builder_delegation
+    builder = mock('builder')
+    builder.expects(:trace_exit).with('a scope', 100.0)
+    sample = mock('sample')
+    builder.expects(:sample).returns(sample)
+    sample.expects(:frozen?).returns(false)
+    @sampler.expects(:builder).returns(builder).times(3)
+
+    @sampler.notice_pop_scope('a scope', Time.at(100))
+  end
+
+  # Tests below this line are functional tests for the sampler, not
+  # unit tests per se
+  
   def test_multiple_samples
 
     run_sample_trace
@@ -108,21 +253,21 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
     run_sample_trace
     run_sample_trace
-    run_sample_trace { sleep 0.011 }
+    run_sample_trace { sleep 0.0051 }
     run_sample_trace
     run_sample_trace
 
     slowest = @sampler.harvest(nil, 0)[0]
-    assert slowest.duration >= 0.01, "sample duration: #{slowest.duration}"
-
-    run_sample_trace { sleep 0.005 }
+    assert slowest.duration >= 0.005, "sample duration: #{slowest.duration}"
+    
+    run_sample_trace { sleep 0.002 }
     not_as_slow = @sampler.harvest(slowest, 0)[0]
     assert not_as_slow == slowest
-
-    run_sample_trace { sleep 0.0601 }
+    
+    run_sample_trace { sleep 0.00601 }
     new_slowest = @sampler.harvest(slowest, 0)[0]
     assert new_slowest != slowest
-    assert new_slowest.duration >= 0.0600, "Slowest duration must be > 0.06: #{new_slowest.duration}"
+    assert new_slowest.duration >= 0.006, "Slowest duration must be > 0.006: #{new_slowest.duration}"
   end
 
 
@@ -139,11 +284,11 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
   def test_multithread
     threads = []
-
-    20.times do
+    
+    5.times do
       t = Thread.new(@sampler) do |the_sampler|
         @sampler = the_sampler
-        100.times do
+        10.times do
           run_sample_trace { sleep 0.0001 }
         end
       end
