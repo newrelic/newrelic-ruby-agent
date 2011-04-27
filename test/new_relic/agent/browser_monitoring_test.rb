@@ -6,6 +6,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
   include NewRelic::Agent::BrowserMonitoring
 
   def setup
+    NewRelic::Agent.manual_start
     @browser_monitoring_key = "fred"
     @episodes_file = "this_is_my_file"
     NewRelic::Agent.instance.instance_eval do
@@ -50,13 +51,21 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     assert_equal "", header
   end
 
-  #def test_browser_timing_header_not_execution_traced
-  #   header = nil
-  #   NewRelic::Agent.disable_all_tracing do
-  #     header = browser_timing_header
-  #   end
-  #   assert_equal "", header
-  # end
+  def test_browser_timing_header_disable_all_tracing
+     header = nil
+     NewRelic::Agent.disable_all_tracing do
+       header = browser_timing_header
+     end
+     assert_equal "", header
+   end
+   
+  def test_browser_timing_header_disable_transaction_tracing
+    header = nil
+    NewRelic::Agent.disable_transaction_tracing do
+      header = browser_timing_header
+    end
+    assert_equal "", header
+  end
 
   def test_browser_timing_footer
     NewRelic::Control.instance.expects(:license_key).returns("a" * 13)
@@ -73,7 +82,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     assert_equal "", footer
   end
   
-  def test_browser_timing_footer_with_no_browser_key_deux
+  def test_browser_timing_footer_with_no_browser_key_rum_disabled
      NewRelic::Agent.instance.expects(:beacon_configuration).returns( NewRelic::Agent::BeaconConfiguration.new({"rum.enabled" => false, "application_id" => "apId", "beacon"=>"beacon", "episodes_url"=>"this_is_my_file"}))
      footer = browser_timing_footer
      assert_equal "", footer
@@ -105,14 +114,19 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
   end
     
 
- # def test_browser_timing_footer_not_execution_traced
- #   footer = nil
- #   NewRelic::Agent.disable_all_tracing do
-    
- #       Thread.current[:newrelic_untraced] = [false]
- #   puts Thread.current[:newrelic_untraced].last
- #     footer = browser_timing_footer
- #   end
- #   assert_equal "", footer
- # end
+  def test_browser_timing_footer_disable_all_tracing
+    footer = nil
+    NewRelic::Agent.disable_all_tracing do
+      footer = browser_timing_footer
+    end
+    assert_equal "", footer
+  end
+  
+  def test_browser_timing_footer_disable_transaction_tracing
+    footer = nil
+    NewRelic::Agent.disable_transaction_tracing do
+      footer = browser_timing_footer
+    end
+    assert_equal "", footer
+  end
 end

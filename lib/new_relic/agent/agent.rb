@@ -199,7 +199,12 @@ module NewRelic
         # Push flag indicating whether we should be tracing in this
         # thread.
         def push_trace_execution_flag(should_trace=false)
-          (Thread.current[:newrelic_untraced] ||= []) << should_trace
+          value = Thread.current[:newrelic_untraced]
+          if (value.nil?)
+            Thread.current[:newrelic_untraced] = []
+          end
+
+          Thread.current[:newrelic_untraced] << should_trace
         end
 
         # Pop the current trace execution status.  Restore trace execution status
