@@ -9,6 +9,17 @@ DependencyDetection.defer do
     defined?(::Sequel)
   end
 
+  depends_on do
+    # this instrumentation is only valid for Sequel 3.22.x or greater
+    begin
+      (Sequel::MAJOR == 3 && Sequel::MINOR >= 22)
+    rescue Exception => e
+      # default to never loading the instrumentation if those
+      # constants are not defined - typically Sequel <2.11.x
+      false
+    end
+  end
+
   executes do
     # Sequel::Model class methods
     ::Sequel::Model::ClassMethods.class_eval do
