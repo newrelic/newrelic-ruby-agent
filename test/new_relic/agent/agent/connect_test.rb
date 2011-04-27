@@ -197,7 +197,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
 
   def test_enable_random_samples_with_no_sampling_rate
     # testing that we set a sane default for sampling rate
-    sampling_rate = nil
+    sampling_rate = 0
     ts = @transaction_sampler = mock('ts')
     ts.expects(:random_sampling=).with(true)
     ts.expects(:sampling_rate=).with(10)
