@@ -544,6 +544,20 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     assert_equal([sample], result, "should add the random sample to the array")
   end
 
+  def test_add_random_sample_to_sampling_rate_zero
+    @sampler.instance_eval { @random_sampling = true }    
+    sample = mock('sample')
+    @sampler.instance_eval {
+      @harvest_count = 3
+      @sampling_rate = 0
+      @random_sample = sample
+    }
+    result = []
+    @sampler.add_random_sample_to(result)
+    assert_equal([], result, "should not add the sample to the array")
+  end
+  
+
   def test_add_samples_to_no_data
     result = []
     slow_threshold = 2.0

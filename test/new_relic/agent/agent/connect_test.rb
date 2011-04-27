@@ -195,6 +195,27 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     enable_random_samples!(sampling_rate)
   end
 
+  def test_enable_random_samples_with_no_sampling_rate
+    # testing that we set a sane default for sampling rate
+    sampling_rate = nil
+    ts = @transaction_sampler = mock('ts')
+    ts.expects(:random_sampling=).with(true)
+    ts.expects(:sampling_rate=).with(10)
+    ts.expects(:sampling_rate).returns(10)
+    log.expects(:info).with("Transaction sampling enabled, rate = 10")
+    enable_random_samples!(sampling_rate)
+  end
+
+  def test_configure_transaction_tracer_with_random_sampling
+    @config_should_send_samples = true
+    @should_send_random_samples = true
+    @slowest_transaction_threshold = 5
+    log.expects(:debug).with('Transaction tracing threshold is 5 seconds.')
+    self.expects(:enable_random_samples!).with(10)
+    configure_transaction_tracer!(true, 10)
+    assert @should_send_samples
+  end
+  
   def test_configure_transaction_tracer_positive
     @config_should_send_samples = true
     @slowest_transaction_threshold = 5

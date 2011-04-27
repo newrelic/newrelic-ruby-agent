@@ -29,6 +29,7 @@ module NewRelic
         # sampling - we pull 1 @random_sample in every @sampling_rate harvests
         @harvest_count = 0
         @random_sample = nil
+        @sampling_rate = 10
 
         # @segment_limit and @stack_trace_threshold come from the
         # configuration file, with built-in defaults that should
@@ -293,7 +294,7 @@ module NewRelic
       # 
       # random sampling is very, very seldom used
       def add_random_sample_to(result)
-        return unless @random_sampling
+        return unless @random_sampling && @sampling_rate && @sampling_rate.to_i > 0
         @harvest_count += 1
         if (@harvest_count.to_i % @sampling_rate.to_i) == 0
           result << @random_sample if @random_sample

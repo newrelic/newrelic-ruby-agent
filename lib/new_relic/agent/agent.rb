@@ -605,6 +605,7 @@ module NewRelic
           end
           
           def enable_random_samples!(sample_rate)
+            sample_rate ||= 10 # a sane default for random sampling
             @transaction_sampler.random_sampling = true
             @transaction_sampler.sampling_rate = sample_rate
             log.info "Transaction sampling enabled, rate = #{@transaction_sampler.sampling_rate}"
