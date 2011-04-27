@@ -15,8 +15,8 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
     middleware_start = Time.at(1002)
     queue_start = Time.at(1001)
     server_start = Time.at(1000)
-    Time.expects(:now).returns('END_TIME') # whee!
-    self.expects(:add_end_time_header).with('END_TIME', {:env => 'hash'})
+    Time.stubs(:now).returns(Time.at(1003)) # whee!
+    self.expects(:add_end_time_header).with(Time.at(1003), {:env => 'hash'})
     # ordering is important here, unfortunately, the mocks don't
     # support that kind of checking.
     self.expects(:parse_middleware_time_from).with({:env => 'hash'}).returns(middleware_start)
