@@ -13,6 +13,24 @@ end; end
 
 
 class NewRelic::StatsTest < Test::Unit::TestCase
+  
+  def test_checked_calculation_standard
+    obj = NewRelic::TestObjectForStats.new
+
+    assert_equal(1.0, obj.checked_calculation(1, 1))
+    
+  end
+
+  def test_checked_calculation_with_zero
+    obj = NewRelic::TestObjectForStats.new    
+    assert_equal(0.0, obj.checked_calculation(1, 0))
+  end
+
+  def test_checked_calculation_should_return_floats
+    obj = NewRelic::TestObjectForStats.new
+    assert_equal(0.5, obj.checked_calculation(1, 2))
+  end
+
   def test_sum_attributes
     first  = NewRelic::TestObjectForStats.new
     second = mock('other object')
