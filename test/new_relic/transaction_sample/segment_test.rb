@@ -351,8 +351,14 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
   end
 
   def test_explain_sql_one_select_no_connection
+    # NB this test raises an error in the log, much as it might if a
+    # user supplied a config that was not valid. This is generally
+    # expected behavior - the get_connection method shouldn't allow
+    # errors to percolate up.
+    config = mock('config')
+    config.stubs(:[]).returns(nil)
     s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
-    s.params = {:sql => 'SELECT', :connection_config => mock('config')}
+    s.params = {:sql => 'SELECT', :connection_config => config}
     assert_equal([], s.explain_sql)
   end
 
