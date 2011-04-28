@@ -65,7 +65,6 @@ http://github.com/newrelic/rpm/tree/master.
     "lib/new_relic/agent/instrumentation/rails3/action_controller.rb",
     "lib/new_relic/agent/instrumentation/rails3/active_record_instrumentation.rb",
     "lib/new_relic/agent/instrumentation/rails3/errors.rb",
-    "lib/new_relic/agent/instrumentation/sequel.rb",
     "lib/new_relic/agent/instrumentation/sinatra.rb",
     "lib/new_relic/agent/instrumentation/sunspot.rb",
     "lib/new_relic/agent/instrumentation/unicorn_instrumentation.rb",
