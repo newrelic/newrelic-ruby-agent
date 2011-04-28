@@ -3,15 +3,15 @@ class NewRelic::MetricParser::Jsp < NewRelic::MetricParser::MetricParser
   def pie_chart_label
     short_name
   end
-  
+
   def short_name
     segments[-1]
   end
-  
+
   def controller_name
     file_name
   end
-  
+
   def tooltip_name
     developer_name
   end
@@ -23,7 +23,7 @@ class NewRelic::MetricParser::Jsp < NewRelic::MetricParser::MetricParser
   def developer_name
     file_name
   end
-  
+
   def url
     '/' + file_name
   end

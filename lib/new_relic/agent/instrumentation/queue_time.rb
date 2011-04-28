@@ -33,7 +33,7 @@ module NewRelic
         end
 
         private
-        
+
         # main method to extract server time info from env hash,
         # records individual server metrics and one roll-up for all servers
         def parse_server_time_from(env)
@@ -58,7 +58,7 @@ module NewRelic
         end
 
         def parse_queue_time_from(env)
-          oldest_time = nil          
+          oldest_time = nil
           end_time = parse_end_time(env)
           alternate_length = check_for_alternate_queue_length(env)
           if alternate_length

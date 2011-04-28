@@ -24,7 +24,7 @@ DependencyDetection.defer do
       add_method_tracer :decode_response, "WebService/Soap/XML Decode"
       add_method_tracer :encode_response, "WebService/Soap/XML Encode"
     end
-    
+
     if defined?(ActionController) && defined?(ActionController::Base)
       ActionController::Base.class_eval do
         if method_defined? :perform_invocation

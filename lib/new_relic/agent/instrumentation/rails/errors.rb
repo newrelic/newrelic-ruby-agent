@@ -6,7 +6,7 @@ DependencyDetection.defer do
   depends_on do
     defined?(Rails) && Rails::VERSION::MAJOR.to_i == 2
   end
-  
+
   executes do
 
     ActionController::Base.class_eval do

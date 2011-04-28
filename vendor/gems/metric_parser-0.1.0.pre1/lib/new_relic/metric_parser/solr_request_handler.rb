@@ -1,6 +1,6 @@
 #require 'new_relic/metric_parser/java'
 class NewRelic::MetricParser::SolrRequestHandler < NewRelic::MetricParser::MetricParser
-  
+
   def short_name
     if segments[1] == "org.apache.solr.handler.XmlUpdateRequestHandler"
       "UpdateProcessor"

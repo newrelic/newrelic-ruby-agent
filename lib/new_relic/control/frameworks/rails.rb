@@ -28,10 +28,10 @@ module NewRelic
             install_browser_monitoring(rails_config)
           end
         end
-        
+
         def install_browser_monitoring(config)
           return if config.nil? || !config.respond_to?(:middleware) || !browser_monitoring_auto_instrument?
-          
+
           require 'new_relic/rack/browser_monitoring'
           config.middleware.use NewRelic::Rack::BrowserMonitoring
           ::RAILS_DEFAULT_LOGGER.info "Installed browser monitoring middleware"

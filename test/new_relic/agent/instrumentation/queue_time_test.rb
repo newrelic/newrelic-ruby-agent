@@ -51,7 +51,7 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
     create_test_start_time(env)
 
     assert_calls_metrics('Middleware/all', 'WebFrontend/QueueTime') do
-      parse_middleware_time_from(env)      
+      parse_middleware_time_from(env)
       assert_equal(Time.at(1000), parse_queue_time_from(env))
     end
 

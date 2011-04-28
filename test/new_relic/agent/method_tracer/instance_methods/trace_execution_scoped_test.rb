@@ -1,14 +1,14 @@
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','..','test_helper')) 
+require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','..','test_helper'))
 class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest < Test::Unit::TestCase
   require 'new_relic/agent/method_tracer'
   include NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScoped
-  
+
   def test_trace_disabled_negative
     self.expects(:traced?).returns(false)
     options = {:force => false}
     assert trace_disabled?(options)
   end
-  
+
   def test_trace_disabled_forced
     self.expects(:traced?).returns(false)
     options = {:force => true}
@@ -19,7 +19,7 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
     self.expects(:traced?).returns(true)
     options = {:force => false}
     assert !(trace_disabled?(options))
-  end  
+  end
 
   def test_get_stats_unscoped
     fake_engine = mocked_object('stat_engine')
@@ -28,13 +28,13 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
   end
 
   def test_get_stats_scoped_scoped_only
-    fake_engine = mocked_object('stat_engine')    
+    fake_engine = mocked_object('stat_engine')
     fake_engine.expects(:get_stats).with('foob', true, true).returns('fakestats')
     assert_equal 'fakestats', get_stats_scoped('foob', true)
   end
 
   def test_get_stats_scoped_no_scoped_only
-    fake_engine = mocked_object('stat_engine')    
+    fake_engine = mocked_object('stat_engine')
     fake_engine.expects(:get_stats).with('foob', true, false).returns('fakestats')
     assert_equal 'fakestats', get_stats_scoped('foob', false)
   end
@@ -113,7 +113,7 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
   end
 
   def test_log_errors_with_return
-    NewRelic::Control.instance.expects(:log).never    
+    NewRelic::Control.instance.expects(:log).never
     ran = false
     return_val = log_errors('name', 'metric') do
       ran = true
@@ -132,7 +132,7 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
     # the mocks are reversed because apparently order matters.
     fakelog.expects(:error).with(any_parameters)
     fakelog.expects(:error).with("Caught exception in name. Metric name = metric, exception = should not propagate out of block")
-    
+
     log_errors("name", "metric") do
       raise "should not propagate out of block"
     end
@@ -163,7 +163,7 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
 
     trace_execution_scoped_footer(t0, metric, metric_stats, expected_scope, false, t1)
   end
-  
+
   def test_trace_execution_scoped_disabled
     self.expects(:trace_disabled?).returns(true)
     # make sure the method doesn't beyond the abort
@@ -194,7 +194,7 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
     assert ran, 'should run contents of the block'
     assert_equal 1172, value, 'should return the contents of the block'
   end
-  
+
   def test_trace_execution_scoped_with_error
     passed_in_opts = {}
     opts_after_correction = {:metric => true, :deduct_call_time_from_parent => true}
@@ -212,7 +212,7 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
 
     assert ran, 'should run contents of the block'
   end
-  
+
   private
 
   def mocked_object(name)
@@ -220,8 +220,8 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
     self.stubs(name).returns(object)
     object
   end
-  
-  
+
+
   def mocked_log
     mocked_object('log')
   end

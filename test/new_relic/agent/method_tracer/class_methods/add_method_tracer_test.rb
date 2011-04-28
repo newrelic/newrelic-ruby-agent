@@ -122,7 +122,7 @@ module NewRelic
               self.expects(:method_defined?).returns(false)
               assert !traced_method_exists?(nil, nil)
             end
-            
+
             def test_assemble_code_header_forced
               opts = {:force => true, :code_header => 'CODE HEADER'}
               assert_equal "CODE HEADER", assemble_code_header('test_method', 'Custom/Test/test_method', opts)

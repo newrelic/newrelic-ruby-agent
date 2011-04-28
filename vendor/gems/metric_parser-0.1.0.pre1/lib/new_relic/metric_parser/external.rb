@@ -2,7 +2,7 @@ require 'new_relic/metric_parser'
 module NewRelic
   module MetricParser
     class External < NewRelic::MetricParser::MetricParser
-      
+
       def all?
         host == 'all' || host == 'allWeb' || host == 'allOther'
       end
@@ -39,7 +39,7 @@ module NewRelic
         end
       end
       def developer_name
-        case 
+        case
         when all?
           'All External'
         when hosts_all?

@@ -25,18 +25,18 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     header = browser_timing_header
     assert_equal "", header
     end
-    
+
   def test_browser_timing_header
     header = browser_timing_header
     assert_equal "<script>var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);(function(){var d=document;var e=d.createElement(\"script\");e.type=\"text/javascript\";e.async=true;e.src=\"this_is_my_file\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})()</script>", header
   end
-  
+
   def test_browser_timing_header_with_rum_enabled_not_specified
     NewRelic::Agent.instance.expects(:beacon_configuration).at_least_once.returns( NewRelic::Agent::BeaconConfiguration.new({"browser_key" => "browserKey", "application_id" => "apId", "beacon"=>"beacon", "episodes_url"=>"this_is_my_file"}))
     header = browser_timing_header
     assert_equal "<script>var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);(function(){var d=document;var e=d.createElement(\"script\");e.type=\"text/javascript\";e.async=true;e.src=\"this_is_my_file\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})()</script>", header
   end
-  
+
   def test_browser_timing_header_with_rum_enabled_false
     NewRelic::Agent.instance.expects(:beacon_configuration).twice.returns( NewRelic::Agent::BeaconConfiguration.new({"rum.enabled" => false, "browser_key" => "browserKey", "application_id" => "apId", "beacon"=>"beacon", "episodes_url"=>"this_is_my_file"}))
     header = browser_timing_header
@@ -50,7 +50,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
      end
      assert_equal "", header
    end
-   
+
   def test_browser_timing_header_disable_transaction_tracing
     header = nil
     NewRelic::Agent.disable_transaction_tracing do
@@ -73,16 +73,16 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     footer = browser_timing_footer
     assert_equal "", footer
   end
-  
+
   def test_browser_timing_footer_with_no_browser_key_rum_disabled
      NewRelic::Agent.instance.expects(:beacon_configuration).returns( NewRelic::Agent::BeaconConfiguration.new({"rum.enabled" => false, "application_id" => "apId", "beacon"=>"beacon", "episodes_url"=>"this_is_my_file"}))
      footer = browser_timing_footer
      assert_equal "", footer
    end
-  
+
   def test_browser_timing_footer_with_rum_enabled_not_specified
     Thread.current[:newrelic_start_time] = Time.now
-      
+
     license_bytes = [];
     ("a" * 13).each_byte {|byte| license_bytes << byte}
     config =  NewRelic::Agent::BeaconConfiguration.new({"browser_key" => "browserKey", "application_id" => "apId", "beacon"=>"beacon", "episodes_url"=>"this_is_my_file", "license_bytes" => license_bytes})
@@ -104,7 +104,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     footer = browser_timing_footer
     assert_equal('', footer)
   end
-    
+
 
   def test_browser_timing_footer_disable_all_tracing
     footer = nil
@@ -113,7 +113,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     end
     assert_equal "", footer
   end
-  
+
   def test_browser_timing_footer_disable_transaction_tracing
     footer = nil
     NewRelic::Agent.disable_transaction_tracing do

@@ -14,7 +14,7 @@ class NewRelic::Agent::Instrumentation::ControllerInstrumentationTest < Test::Un
     assert_equal(start_time, object.send(:_detect_upstream_wait, start_time))
     assert_equal(0.0, Thread.current[:newrelic_queue_time])
   end
-  
+
   def test_detect_upstream_wait_with_upstream
     start_time = Time.now
     runs_at = start_time + 1

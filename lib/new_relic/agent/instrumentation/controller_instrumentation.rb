@@ -264,7 +264,7 @@ module NewRelic
             # Look for a metric frame in the thread local and process it.
             # Clear the thread local when finished to ensure it only gets called once.
             frame_data.record_apdex unless _is_filtered?('ignore_apdex')
-            
+
             frame_data.pop
           end
         end

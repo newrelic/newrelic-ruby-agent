@@ -5,7 +5,7 @@ DependencyDetection.defer do
   depends_on do
     defined?(Merb) && defined?(Merb::Controller)
   end
-  
+
   executes do
     require 'merb-core/controller/merb_controller'
 

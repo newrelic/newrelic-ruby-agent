@@ -45,11 +45,11 @@ DependencyDetection.defer do
   depends_on do
     defined?(Rails) && Rails::VERSION::MAJOR.to_i == 3
   end
-  
+
   depends_on do
     defined?(ActionController) && defined?(ActionController::Base)
   end
-  
+
   executes do
     class ActionController::Base
       include NewRelic::Agent::Instrumentation::ControllerInstrumentation

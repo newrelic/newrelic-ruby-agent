@@ -18,6 +18,6 @@ DependencyDetection.defer do
     }
     Merb::Dispatcher::DefaultException.before error_notifier
     Exceptions.before error_notifier
-    
+
   end
 end

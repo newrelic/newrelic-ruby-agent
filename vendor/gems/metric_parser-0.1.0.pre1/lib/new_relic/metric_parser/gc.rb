@@ -1,5 +1,5 @@
 class NewRelic::MetricParser::GC < NewRelic::MetricParser::MetricParser
-  
+
   def developer_name
     if segments.length == 1
       "GC"
@@ -9,7 +9,7 @@ class NewRelic::MetricParser::GC < NewRelic::MetricParser::MetricParser
       "GC - #{segment_1}"
     end
   end
-  
+
   def short_name
     if segments.length > 1
       developer_name

@@ -24,7 +24,7 @@ module NewRelic
         # size - it's only used by developer mode
         @samples = []
         @max_samples = 100
-        
+
         # @harvest_count is a count of harvests used for random
         # sampling - we pull 1 @random_sample in every @sampling_rate harvests
         @harvest_count = 0
@@ -50,21 +50,21 @@ module NewRelic
         b=builder
         b and b.sample_id
       end
-      
+
       # Enable the transaction sampler - this also registers it with
       # the statistics engine.
       def enable
         @disabled = false
         NewRelic::Agent.instance.stats_engine.transaction_sampler = self
       end
-      
+
       # Disable the transaction sampler - this also deregisters it
       # with the statistics engine.
       def disable
         @disabled = true
         NewRelic::Agent.instance.stats_engine.remove_transaction_sampler(self)
       end
-      
+
       # Set with an integer value n, this takes one in every n
       # harvested samples. It also resets the harvest count to a
       # random integer between 0 and (n-1)
@@ -73,14 +73,14 @@ module NewRelic
         @harvest_count = rand(val.to_i).to_i
       end
 
-      
+
       # Creates a new transaction sample builder, unless the
       # transaction sampler is disabled. Takes a time parameter for
       # the start of the transaction sample
       def notice_first_scope_push(time)
         start_builder(time.to_f) unless disabled
       end
-      
+
       # This delegates to the builder to create a new open transaction
       # segment for the specified scope, beginning at the optionally
       # specified time.
@@ -94,7 +94,7 @@ module NewRelic
 
         capture_segment_trace if NewRelic::Control.instance.developer_mode?
       end
-      
+
       # in developer mode, capture the stack trace with the segment.
       # this is cpu and memory expensive and therefore should not be
       # turned on in production mode
@@ -112,7 +112,7 @@ module NewRelic
           segment[:backtrace] = trace
         end
       end
-      
+
       # Defaults to zero, otherwise delegated to the transaction
       # sample builder
       def scope_depth
@@ -120,7 +120,7 @@ module NewRelic
 
         builder.scope_depth
       end
-      
+
       # Informs the transaction sample builder about the end of a
       # traced scope
       def notice_pop_scope(scope, time = Time.now)
@@ -162,7 +162,7 @@ module NewRelic
         store_sample_for_developer_mode(sample)
         store_slowest_sample(sample)
       end
-      
+
       # Only active when random sampling is true - this is very rarely
       # used. Always store the most recent sample so that random
       # sampling can pick a few of the samples to store, upon harvest
@@ -180,19 +180,19 @@ module NewRelic
         @samples << sample
         truncate_samples
       end
-      
+
       # Sets @slowest_sample to the passed in sample if it is slower
       # than the current sample in @slowest_sample
       def store_slowest_sample(sample)
         @slowest_sample = sample if slowest_sample?(@slowest_sample, sample)
       end
-      
+
       # Checks to see if the old sample exists, or if it's duration is
       # less than the new sample
       def slowest_sample?(old_sample, new_sample)
         old_sample.nil? || (new_sample.duration > old_sample.duration)
       end
-      
+
       # Smashes the @samples array down to the length of @max_samples
       # by taking the last @max_samples elements of the array
       def truncate_samples
@@ -200,13 +200,13 @@ module NewRelic
           @samples = @samples[-@max_samples..-1]
         end
       end
-      
+
       # Delegates to the builder to store the path, uri, and
       # parameters if the sampler is active
       def notice_transaction(path, uri=nil, params={})
         builder.set_transaction_info(path, uri, params) if !disabled && builder
       end
-      
+
       # Tells the builder to ignore a transaction, if we are currently
       # creating one. Only causes the sample to be ignored upon end of
       # the transaction, and does not change the metrics gathered
@@ -219,7 +219,7 @@ module NewRelic
       def notice_profile(profile)
         builder.set_profile(profile) if builder
       end
-      
+
       # Sets the CPU time used by a transaction, delegates to the builder
       def notice_transaction_cpu_time(cpu_time)
         builder.set_transaction_cpu_time(cpu_time) if builder
@@ -252,7 +252,7 @@ module NewRelic
           message
         end
       end
-      
+
       # Allows the addition of multiple pieces of metadata to one
       # segment - i.e. traced method calls multiple sql queries
       def append_new_message(old_message, message)
@@ -262,7 +262,7 @@ module NewRelic
           message
         end
       end
-      
+
       # Appends a backtrace to a segment if that segment took longer
       # than the specified duration
       def append_backtrace(segment, duration)
@@ -278,7 +278,7 @@ module NewRelic
           notice_extra_data(sql, duration, :sql, config, :connection_config)
         end
       end
-      
+
       # Adds non-sql metadata to a segment - generally the memcached
       # key
       #
@@ -286,12 +286,12 @@ module NewRelic
       def notice_nosql(key, duration)
         notice_extra_data(key, duration, :key)
       end
-      
+
       # Every 1/n harvests, adds the most recent sample to the harvest
       # array if it exists. Makes sure that the random sample is not
       # also the slowest sample for this harvest by `uniq!`ing the
       # result array
-      # 
+      #
       # random sampling is very, very seldom used
       def add_random_sample_to(result)
         return unless @random_sampling && @sampling_rate && @sampling_rate.to_i > 0
@@ -302,7 +302,7 @@ module NewRelic
         result.uniq!
         nil # don't assume this method returns anything
       end
-      
+
       # Returns an array of slow samples, with either one or two
       # elements - one element unless random sampling is enabled. The
       # sample returned will be the slowest sample among those
@@ -347,7 +347,7 @@ module NewRelic
       end
 
       private
-      
+
       # Checks to see if the transaction sampler is disabled, if
       # transaction trace recording is disabled by a thread local, or
       # if execution is untraced - if so it clears the transaction

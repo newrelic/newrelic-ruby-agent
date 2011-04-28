@@ -1,5 +1,5 @@
 class NewRelic::MetricParser::WebTransaction < NewRelic::MetricParser::MetricParser
-    
+
   def is_web_transaction?; true; end
   def is_transaction?; true; end
 
@@ -9,13 +9,13 @@ class NewRelic::MetricParser::WebTransaction < NewRelic::MetricParser::MetricPar
     # class name.  If it begins with a capital letter, assume it's already a class name
     def controller_name
       path = segments[2..-2].join('/')
-      path < 'a' ? path : camelize(path)+"Controller" 
+      path < 'a' ? path : camelize(path)+"Controller"
     end
-    
+
     def action_name
       segments[-1]
     end
-    
+
     def developer_name
       if action_name
         "#{controller_name}##{action_name}"
@@ -25,7 +25,7 @@ class NewRelic::MetricParser::WebTransaction < NewRelic::MetricParser::MetricPar
     end
     def short_name
       developer_name
-      
+
     end
 
     private
@@ -44,32 +44,32 @@ class NewRelic::MetricParser::WebTransaction < NewRelic::MetricParser::MetricPar
     def action_name; segments[3]; end
     def controller_name; segments[2]; end
   end
-  
+
   module Rack
     include Task
 
     def is_web_transaction?; true; end
     def category; 'Rack App'; end
   end
-  
+
   module Spring
     def category; 'Spring Transaction'; end
   end
-  
+
   module SpringView
     def is_web_transaction?; true; end
     def category; 'Spring View'; end
   end
-  
+
   module SpringController
     def is_web_transaction?; true; end
     def category; 'Spring Controller'; end
   end
-  
+
   module Solr
     def category; 'Solr Request'; end
   end
-  
+
   module CXF
     def category; 'CXF Transaction'; end
   end
@@ -86,24 +86,24 @@ class NewRelic::MetricParser::WebTransaction < NewRelic::MetricParser::MetricPar
       pattern
     end
   end
-  
+
   module Sinatra
     include Pattern
     def is_web_transaction?; true; end
     def category; 'Sinatra'; end
   end
-  
+
   def initialize(name)
     super
     if %w[Sinatra Spring SpringController SpringView Solr CXF Task Pattern Rack Controller].include?(segment_1)
       self.extend NewRelic::MetricParser::WebTransaction.const_get(segment_1)
     end
   end
-  
+
   def developer_name
     url
   end
-  
+
   def short_name
     if segments.length > 2
       developer_name
@@ -111,21 +111,21 @@ class NewRelic::MetricParser::WebTransaction < NewRelic::MetricParser::MetricPar
       'All Web Transactions'
     end
   end
-  
+
   def url
     '/' + segments[2..-1].join('/')
   end
-  
-  # this is used to match transaction traces to controller actions.  
+
+  # this is used to match transaction traces to controller actions.
   # TT's don't have a preceding slash :P
   def tt_path
     segments[2..-1].join('/')
   end
-  
+
   def call_rate_suffix
     'rpm'
   end
-    
+
   # default to v2 Web Transactions tab
   def drilldown_url(metric_id)
     {:controller => '/v2/transactions', :action => 'index', :anchor => "id=#{metric_id}"}

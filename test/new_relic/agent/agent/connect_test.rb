@@ -215,7 +215,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     configure_transaction_tracer!(true, 10)
     assert @should_send_samples
   end
-  
+
   def test_configure_transaction_tracer_positive
     @config_should_send_samples = true
     @slowest_transaction_threshold = 5

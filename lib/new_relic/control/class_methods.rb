@@ -5,7 +5,7 @@ module NewRelic
       def instance
         @instance ||= new_instance
       end
-      
+
       # Create the concrete class for environment specific behavior:
       def new_instance
         @local_env = NewRelic::LocalEnvironment.new
