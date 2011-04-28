@@ -2,6 +2,19 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 module NewRelic
   module Agent
     class AgentTest < Test::Unit::TestCase
+      
+      def test_agent_harvest_transaction_traces
+        assert_equal([], NewRelic::Agent.instance.harvest_transaction_traces, 'should return harvested transaction traces')
+      end
+
+      def test_agent_harvest_metrics
+        assert_equal([], NewRelic::Agent.instance.harvest_metrics, 'should return harvested timeslices')
+      end
+
+      def test_agent_harvest_errors
+        assert_equal([], NewRelic::Agent.instance.harvest_errors, 'should return harvested errors')
+      end
+      
       def test_sql_normalization
 
         # basic statement
