@@ -8,7 +8,7 @@ DependencyDetection.defer do
   depends_on do
     defined?(::Delayed) && defined?(::Delayed::Job)
   end
-  
+
   executes do
     Delayed::Job.class_eval do
       include NewRelic::Agent::Instrumentation::ControllerInstrumentation

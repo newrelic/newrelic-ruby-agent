@@ -17,7 +17,7 @@ module NewRelic
         "%.0f ms" % value_ms
       end
     end
-    
+
     # makes sure we aren't dividing by zero
     def checked_calculation(numerator, denominator)
       if denominator.nil? || denominator == 0
@@ -26,7 +26,7 @@ module NewRelic
         numerator.to_f / denominator
       end
     end
-    
+
     def average_call_time
       checked_calculation(total_call_time, call_count)
     end
@@ -70,7 +70,7 @@ module NewRelic
     def update_totals(other)
       self.total_call_time      += other.total_call_time
       self.total_exclusive_time += other.total_exclusive_time
-      self.sum_of_squares       += other.sum_of_squares      
+      self.sum_of_squares       += other.sum_of_squares
     end
 
     def min_time_less?(other)
@@ -79,7 +79,7 @@ module NewRelic
 
     def expand_min_max_to(other)
         self.min_call_time = other.min_call_time if min_time_less?(other)
-        self.max_call_time = other.max_call_time if other.max_call_time > max_call_time      
+        self.max_call_time = other.max_call_time if other.max_call_time > max_call_time
     end
 
     def merge_attributes(other)
@@ -88,7 +88,7 @@ module NewRelic
       self.call_count += other.call_count
       update_boundaries(other)
     end
-    
+
     def merge!(other_stats)
       Array(other_stats).each do |other|
         merge_attributes(other)

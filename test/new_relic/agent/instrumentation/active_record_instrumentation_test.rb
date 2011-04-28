@@ -1,4 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper')) 
+require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::Unit::TestCase
   require 'active_record_fixtures'
   include NewRelic::Agent::Instrumentation::ControllerInstrumentation
@@ -12,7 +12,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     puts e
     puts e.backtrace.join("\n")
   end
-  
+
   def teardown
     super
     ActiveRecordFixtures.teardown
@@ -24,16 +24,16 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
   # the active record instrumentation is not loading for whichever    #
   # version of rails you're testing at the moment.                    #
   #####################################################################
-  
+
   def test_agent_setup
     assert NewRelic::Agent.instance.class == NewRelic::Agent::Agent
   end
-  
+
   def test_finder
     ActiveRecordFixtures::Order.create :id => 0, :name => 'jeff'
-    
+
     find_metric = "ActiveRecord/ActiveRecordFixtures::Order/find"
-    
+
     assert_calls_metrics(find_metric) do
       ActiveRecordFixtures::Order.find(:all)
       check_metric_count(find_metric, 1)
@@ -48,7 +48,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     end
     check_metric_count(find_metric, 3)
   end
-  
+
   # multiple duplicate find calls should only cause metric trigger on the first
   # call.  the others are ignored.
   def test_query_cache
@@ -61,13 +61,13 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
       assert_calls_metrics(find_metric) do
         ActiveRecordFixtures::Order.find(:all)
       end
-      
+
       check_metric_count(find_metric, 1)
 
       assert_calls_metrics(find_metric) do
         10.times { ActiveRecordFixtures::Order.find m.id }
       end
-      check_metric_count(find_metric, 2)      
+      check_metric_count(find_metric, 2)
     end
   end
 
@@ -80,8 +80,8 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
       ActiveRecord/find
       ActiveRecord/ActiveRecordFixtures::Order/find
       Database/SQL/insert]
-    
-    if NewRelic::Control.instance.rails_version < '2.1.0'   
+
+    if NewRelic::Control.instance.rails_version < '2.1.0'
       expected += %W[ActiveRecord/save ActiveRecord/ActiveRecordFixtures::Order/save]
     end
 
@@ -92,7 +92,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
       m.save!
     end
     metrics = NewRelic::Agent.instance.stats_engine.metrics
-    
+
     compare_metrics expected, metrics
     check_metric_count("ActiveRecord/ActiveRecordFixtures::Order/find", 1)
     # zero because jruby uses a different mysql adapter
@@ -111,10 +111,10 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
       ActiveRecord/create
       ActiveRecord/ActiveRecordFixtures::Order/create]
 
-    if NewRelic::Control.instance.rails_version < '2.1.0'     
+    if NewRelic::Control.instance.rails_version < '2.1.0'
       expected += %W[ActiveRecord/save ActiveRecord/ActiveRecordFixtures::Order/save]
     end
-    
+
     assert_calls_metrics(*expected) do
       m = ActiveRecordFixtures::Order.create :id => 0, :name => 'jeff'
       m = ActiveRecordFixtures::Order.find(m.id)
@@ -122,18 +122,18 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
       m.save!
     end
     metrics = NewRelic::Agent.instance.stats_engine.metrics
-    
+
     compare_metrics expected, metrics
     check_metric_count("ActiveRecord/ActiveRecordFixtures::Order/find", 1)
     check_metric_count("ActiveRecord/ActiveRecordFixtures::Order/create", 1)
   end
 
-  
+
   def test_metric_names_standard
     # fails due to a bug in rails 3 - log does not provide the correct
     # transaction type - it returns 'SQL' instead of 'Foo Create', for example.
     return if rails3? || defined?(JRuby) || isSqlite?
-    
+
     expected = %W[
       ActiveRecord/all
       ActiveRecord/find
@@ -142,24 +142,24 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
       Database/SQL/other
       ActiveRecord/ActiveRecordFixtures::Order/create]
 
-    if NewRelic::Control.instance.rails_version < '2.1.0'   
+    if NewRelic::Control.instance.rails_version < '2.1.0'
       expected += %W[ActiveRecord/save ActiveRecord/ActiveRecordFixtures::Order/save]
     end
-    
+
     assert_calls_metrics(*expected) do
       m = ActiveRecordFixtures::Order.create :id => 0, :name => 'jeff'
       m = ActiveRecordFixtures::Order.find(m.id)
       m.id = 999
       m.save!
     end
-    
+
     metrics = NewRelic::Agent.instance.stats_engine.metrics
-    
+
     compare_metrics expected, metrics
     check_metric_count("ActiveRecord/ActiveRecordFixtures::Order/find", 1)
-    check_metric_count("ActiveRecord/ActiveRecordFixtures::Order/create", 1)    
+    check_metric_count("ActiveRecord/ActiveRecordFixtures::Order/create", 1)
   end
-  
+
   def test_join_metrics_jruby
     return unless defined?(JRuby)
     return if rails3?
@@ -174,7 +174,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     ActiveRecord/ActiveRecordFixtures::Order/find
     ActiveRecord/ActiveRecordFixtures::Shipment/find
     ]
-    
+
     assert_calls_metrics(*expected_metrics) do
       m = ActiveRecordFixtures::Order.create :name => 'jeff'
       m = ActiveRecordFixtures::Order.find(m.id)
@@ -182,16 +182,16 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
       m.shipments.to_a
       m.destroy
     end
-    
+
     metrics = NewRelic::Agent.instance.stats_engine.metrics
-    
+
     compare_metrics expected_metrics, metrics
-    
+
     check_metric_time('ActiveRecord/all', NewRelic::Agent.get_stats("ActiveRecord/all").total_exclusive_time, 0)
     check_metric_count("ActiveRecord/ActiveRecordFixtures::Order/find", 1)
     check_metric_count("ActiveRecord/ActiveRecordFixtures::Shipment/find", 1)
     check_metric_count("Database/SQL/insert", 3)
-    check_metric_count("Database/SQL/delete", 1)    
+    check_metric_count("Database/SQL/delete", 1)
   end
 
   def test_join_metrics_sqlite
@@ -212,7 +212,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     ActiveRecord/ActiveRecordFixtures::Shipment/create
     ActiveRecord/ActiveRecordFixtures::Order/create
     ]
-    
+
     assert_calls_metrics(*expected_metrics) do
       m = ActiveRecordFixtures::Order.create :name => 'jeff'
       m = ActiveRecordFixtures::Order.find(m.id)
@@ -220,7 +220,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
       m.shipments.to_a
       m.destroy
     end
-    
+
     metrics = NewRelic::Agent.instance.stats_engine.metrics
     compare_metrics expected_metrics, metrics
     if !(defined?(RUBY_DESCRIPTION) && RUBY_DESCRIPTION =~ /Enterprise Edition/)
@@ -229,8 +229,8 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     check_metric_count("ActiveRecord/ActiveRecordFixtures::Order/find", 1)
     check_metric_count("ActiveRecord/ActiveRecordFixtures::Shipment/find", 1)
     check_metric_count("Database/SQL/insert", 3)
-    check_metric_count("Database/SQL/delete", 1)       
-  end  
+    check_metric_count("Database/SQL/delete", 1)
+  end
 
   def test_join_metrics_standard
     return if (defined?(Rails) && Rails.respond_to?(:version) && Rails.version.to_i == 3)
@@ -245,21 +245,21 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     ActiveRecord/find
     ActiveRecord/ActiveRecordFixtures::Order/find
     ActiveRecord/ActiveRecordFixtures::Shipment/find
-    Database/SQL/other 
+    Database/SQL/other
     Database/SQL/show
     ActiveRecord/create
     ActiveRecord/ActiveRecordFixtures::Shipment/create
     ActiveRecord/ActiveRecordFixtures::Order/create
-    ]    
-    
+    ]
+
     assert_calls_metrics(*expected_metrics) do
       m = ActiveRecordFixtures::Order.create :name => 'jeff'
       m = ActiveRecordFixtures::Order.find(m.id)
       s = m.shipments.create
       m.shipments.to_a
       m.destroy
-    end    
-    
+    end
+
     metrics = NewRelic::Agent.instance.stats_engine.metrics
 
     compare_metrics expected_metrics, metrics
@@ -269,14 +269,14 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     check_metric_count("ActiveRecord/ActiveRecordFixtures::Order/find", 1)
     check_metric_count("ActiveRecord/ActiveRecordFixtures::Shipment/find", 1)
     check_metric_count("Database/SQL/insert", 1)
-    check_metric_count("Database/SQL/delete", 1)           
+    check_metric_count("Database/SQL/delete", 1)
   end
 
   def test_direct_sql
     assert_nil NewRelic::Agent::Instrumentation::MetricFrame.current
-    assert_nil NewRelic::Agent.instance.stats_engine.scope_name 
+    assert_nil NewRelic::Agent.instance.stats_engine.scope_name
     assert_equal 0, NewRelic::Agent.instance.stats_engine.metrics.size, NewRelic::Agent.instance.stats_engine.metrics.inspect
-    
+
     expected_metrics = %W[
     ActiveRecord/all
     Database/SQL/select
@@ -285,10 +285,10 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     assert_calls_unscoped_metrics(*expected_metrics) do
       ActiveRecordFixtures::Order.connection.select_rows "select * from #{ActiveRecordFixtures::Order.table_name}"
     end
-    
+
     metrics = NewRelic::Agent.instance.stats_engine.metrics
     compare_metrics(expected_metrics, metrics)
-    
+
     check_unscoped_metric_count('Database/SQL/select', 1)
 
   end
@@ -301,22 +301,22 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     assert_calls_unscoped_metrics(*expected_metrics) do
       ActiveRecordFixtures::Order.connection.execute "begin"
     end
-    
+
     metrics = NewRelic::Agent.instance.stats_engine.metrics
-    
+
     compare_metrics expected_metrics, metrics
     check_unscoped_metric_count('Database/SQL/other', 1)
   end
 
   def test_show_sql
     return if isSqlite?
-    
+
     expected_metrics = %W[ActiveRecord/all Database/SQL/show]
-    
+
     assert_calls_metrics(*expected_metrics) do
       ActiveRecordFixtures::Order.connection.execute "show tables"
     end
-    metrics = NewRelic::Agent.instance.stats_engine.metrics    
+    metrics = NewRelic::Agent.instance.stats_engine.metrics
     compare_metrics expected_metrics, metrics
     check_unscoped_metric_count('Database/SQL/show', 1)
   end
@@ -337,7 +337,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
       ActiveRecordFixtures::Order.add_delay
       ActiveRecordFixtures::Order.find(:all)
     end
-    
+
     # that's a mouthful. perhaps we should ponder our API.
     segment = NewRelic::Agent.instance.transaction_sampler.last_sample.root_segment.called_segments.first.called_segments.first.called_segments.first
     regex = /^SELECT (["`]?#{ActiveRecordFixtures::Order.table_name}["`]?.)?\* FROM ["`]?#{ActiveRecordFixtures::Order.table_name}["`]?$/
@@ -350,10 +350,10 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     end
     sample = NewRelic::Agent.instance.transaction_sampler.last_sample
     assert_not_nil sample
-    
+
     includes_gc = false
     sample.each_segment {|s| includes_gc ||= s.metric_name =~ /GC/ }
-    
+
     assert_equal (includes_gc ? 4 : 3), sample.count_segments, sample.to_s
 
     sql_segment = sample.root_segment.called_segments.first.called_segments.first.called_segments.first
@@ -366,7 +366,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     explanations = sql_segment.params[:explanation]
     if isMysql? || isPostgres?
       assert_not_nil explanations, "No explains in segment: #{sql_segment}"
-      assert_equal 1, explanations.size,"No explains in segment: #{sql_segment}" 
+      assert_equal 1, explanations.size,"No explains in segment: #{sql_segment}"
       assert_equal 1, explanations.first.size
     end
   end
@@ -378,18 +378,18 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
       ActiveRecordFixtures::Order.add_delay
       ActiveRecordFixtures::Order.find(:all)
     end
-    
+
     sample = NewRelic::Agent.instance.transaction_sampler.last_sample
-    
+
     sample = sample.prepare_to_send(:record_sql => :obfuscated, :explain_sql => 0.0)
     segment = sample.root_segment.called_segments.first.called_segments.first.called_segments.first
     explanations = segment.params[:explanation]
     assert_not_nil explanations, "No explains in segment: #{segment}"
-    assert_equal 1, explanations.size,"No explains in segment: #{segment}" 
+    assert_equal 1, explanations.size,"No explains in segment: #{segment}"
     assert_equal 1, explanations.first.size
 
     assert_equal "1;SIMPLE;#{ActiveRecordFixtures::Order.table_name};ALL;;;;;1;", explanations.first.first.join(';')
-    
+
     s = NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Order/find")
     assert_equal 1, s.call_count
   end
@@ -403,22 +403,22 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
       ActiveRecordFixtures::Order.add_delay
       ActiveRecordFixtures::Order.find(:all)
     end
-    
+
     sample = NewRelic::Agent.instance.transaction_sampler.last_sample
-    
+
     sample = sample.prepare_to_send(:record_sql => :obfuscated, :explain_sql => 0.0)
     segment = sample.root_segment.called_segments.first.called_segments.first.called_segments.first
     explanations = segment.params[:explanation]
 
     assert_not_nil explanations, "No explains in segment: #{segment}"
-    assert_equal 1, explanations.size,"No explains in segment: #{segment}" 
+    assert_equal 1, explanations.size,"No explains in segment: #{segment}"
     assert_equal 1, explanations.first.size
 
     assert_equal Array, explanations.class
     assert_equal Array, explanations[0].class
     assert_equal Array, explanations[0][0].class
-    assert_match /Seq Scan on test_data/, explanations[0][0].join(";") 
-    
+    assert_match /Seq Scan on test_data/, explanations[0][0].join(";")
+
     s = NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Order/find")
     assert_equal 1, s.call_count
   end
@@ -430,12 +430,12 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
       ActiveRecordFixtures::Order.add_delay
       ActiveRecordFixtures::Order.find(:all)
     end
-    
+
     sample = NewRelic::Agent.instance.transaction_sampler.last_sample
-    
+
     sample = sample.prepare_to_send(:record_sql => :obfuscated, :explain_sql => 0.0)
     segment = sample.root_segment.called_segments.first.called_segments.first.called_segments.first
-    
+
     s = NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Order/find")
     assert_equal 1, s.call_count
   end
@@ -447,9 +447,9 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     end
     def test_named_scope
       ActiveRecordFixtures::Order.create :name => 'Jeff'
-      
+
       find_metric = "ActiveRecord/ActiveRecordFixtures::Order/find"
-      
+
       check_metric_count(find_metric, 0)
       assert_calls_metrics(find_metric) do
         x = ActiveRecordFixtures::Order.jeffs.find(:all)
@@ -479,16 +479,16 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     metrics = NewRelic::Agent.instance.stats_engine.metrics
     compare_metrics expected_metrics, metrics
     check_metric_count('Database/SQL/select', 1)
-    check_metric_count('ActiveRecord/all', 1)    
+    check_metric_count('ActiveRecord/all', 1)
   end
 
   def test_rescue_handling
     # Not sure why we get a transaction error with sqlite
     return if isSqlite?
-    
+
     begin
       ActiveRecordFixtures::Order.transaction do
-        raise ActiveRecord::ActiveRecordError.new('preserve-me!') 
+        raise ActiveRecord::ActiveRecordError.new('preserve-me!')
       end
     rescue ActiveRecord::ActiveRecordError => e
       assert_equal 'preserve-me!', e.message
@@ -505,7 +505,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     ActiveRecordFixtures::Order.configurations[RAILS_ENV]['adapter'] =~ /postgres/i
   end
   def isMysql?
-    ActiveRecordFixtures::Order.connection.class.name =~ /mysql/i 
+    ActiveRecordFixtures::Order.connection.class.name =~ /mysql/i
   end
 
   def isSqlite?

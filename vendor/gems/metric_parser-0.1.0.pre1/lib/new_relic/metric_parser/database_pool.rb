@@ -1,5 +1,5 @@
 class NewRelic::MetricParser::DatabasePool < NewRelic::MetricParser::MetricParser
-  
+
   def developer_name
     segs = segments
     if segs.length > 3
@@ -8,7 +8,7 @@ class NewRelic::MetricParser::DatabasePool < NewRelic::MetricParser::MetricParse
       name
     end
   end
-  
+
   def pie_chart_label
     short_name
   end
@@ -16,7 +16,7 @@ class NewRelic::MetricParser::DatabasePool < NewRelic::MetricParser::MetricParse
   def tooltip_name
     developer_name + " " + last_segment
   end
-  
+
   # class name with/out package name and method name
   def short_name
     developer_name

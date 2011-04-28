@@ -1,4 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper')) 
+require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 
 class NewRelic::Agent::Instrumentation::MetricFrameTest < Test::Unit::TestCase
 
@@ -6,7 +6,7 @@ class NewRelic::Agent::Instrumentation::MetricFrameTest < Test::Unit::TestCase
   def setup
     @f = NewRelic::Agent::Instrumentation::MetricFrame.new
   end
-  
+
   def test_request_parsing__none
     assert_nil f.uri
     assert_nil f.referer
@@ -34,7 +34,7 @@ class NewRelic::Agent::Instrumentation::MetricFrameTest < Test::Unit::TestCase
     assert_equal "/path", f.uri
     assert_equal "/path/hello", f.referer
   end
-  
+
   def test_request_parsing__hostname_only
     request = stub(:uri => 'http://creature.com')
     f.request = request

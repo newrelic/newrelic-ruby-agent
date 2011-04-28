@@ -28,10 +28,10 @@ module NewRelic
             install_browser_monitoring(rails_config)
           end
         end
-        
+
         def install_browser_monitoring(config)
           return if config.nil? || !config.respond_to?(:middleware) || !browser_monitoring_auto_instrument?
-          
+
           require 'new_relic/rack/browser_monitoring'
           config.middleware.use NewRelic::Rack::BrowserMonitoring
           ::RAILS_DEFAULT_LOGGER.info "Installed browser monitoring middleware"
@@ -92,7 +92,7 @@ module NewRelic
             gem.name + (version ? "(#{version})" : "")
           end
         end
-        
+
         # Collect the Rails::Info into an associative array as well as the list of plugins
         def append_environment_info
           local_env.append_environment_value('Rails version'){ ::Rails::VERSION::STRING }
@@ -121,7 +121,7 @@ module NewRelic
             end
           end
         end
-        
+
         def install_shim
           super
           require 'new_relic/agent/instrumentation/controller_instrumentation'

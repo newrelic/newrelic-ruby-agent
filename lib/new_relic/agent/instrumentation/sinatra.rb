@@ -4,7 +4,7 @@ DependencyDetection.defer do
   depends_on do
     defined?(::Sinatra) && defined?(::Sinatra::Base)
   end
-  
+
   executes do
     ::Sinatra::Base.class_eval do
       include NewRelic::Agent::Instrumentation::Sinatra

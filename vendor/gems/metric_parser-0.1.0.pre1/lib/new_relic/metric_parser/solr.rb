@@ -1,5 +1,5 @@
 class NewRelic::MetricParser::Solr < NewRelic::MetricParser::MetricParser
-  
+
   def short_name
     if segments[1] == "org.apache.solr.search.SolrIndexSearcher"
       "SolrIndexSearcher"
@@ -11,7 +11,7 @@ class NewRelic::MetricParser::Solr < NewRelic::MetricParser::MetricParser
   end
 
   def legend_name
-    if all? 
+    if all?
       'Solr'
     else
       super
@@ -19,7 +19,7 @@ class NewRelic::MetricParser::Solr < NewRelic::MetricParser::MetricParser
   end
 
   def category; 'Solr Query'; end
-    
+
   private
   def all?
     name == Metric::SOLR_ALL_WEB

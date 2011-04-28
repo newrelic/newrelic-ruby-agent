@@ -32,7 +32,7 @@ module NewRelic
           @instrumentation_files << pattern
         end
       end
-      
+
       def install_instrumentation
         _install_instrumentation
       end

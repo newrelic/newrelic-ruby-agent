@@ -8,7 +8,7 @@ module NewRelic
 
       attr_reader :local_env
 
-      
+
       # Initialize the plugin/gem and start the agent.  This does the
       # necessary configuration based on the framework environment and
       # determines whether or not to start the agent.  If the agent is
@@ -116,7 +116,7 @@ module NewRelic
           []
         end
       end
-      
+
       def config_file
         File.expand_path(File.join(root,"config","newrelic.yml"))
       end

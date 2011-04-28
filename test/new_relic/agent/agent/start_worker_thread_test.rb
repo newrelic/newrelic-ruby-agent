@@ -1,8 +1,8 @@
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper')) 
+require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
   require 'new_relic/agent/agent'
   include NewRelic::Agent::Agent::StartWorkerThread
-  
+
   def test_deferred_work_connects
     self.expects(:catch_errors).yields
     self.expects(:connect).with('connection_options')
@@ -71,7 +71,7 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
     self.expects(:harvest_and_send_errors)
     create_and_run_worker_loop
   end
-  
+
   def test_handle_force_restart
     # hooray for methods with no branches
     error = mock('exception')
@@ -80,12 +80,12 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
     log.expects(:info).with('a message')
     self.expects(:reset_stats)
     self.expects(:sleep).with(30)
-    
+
     @metric_ids = 'this is not an empty hash'
     @connected = true
-    
+
     handle_force_restart(error)
-    
+
     assert_equal({}, @metric_ids)
     assert @connected.nil?
   end
@@ -125,7 +125,7 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
     self.expects(:disconnect)
     handle_other_error(error)
   end
-  
+
   def test_catch_errors_force_restart
     @runs = 0
     error = NewRelic::Agent::ForceRestartException.new
@@ -138,7 +138,7 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
     end
     assert_equal 3, @runs, 'should retry the block when it fails'
   end
-  
+
   private
 
   def mocked_log

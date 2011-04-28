@@ -3,7 +3,7 @@ module NewRelic
   module MetricParser
     class ActiveRecord < NewRelic::MetricParser::MetricParser
       def is_active_record? ; true; end
-      
+
       def model_class
         return segments[1]
       end

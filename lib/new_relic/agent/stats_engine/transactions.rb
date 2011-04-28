@@ -119,7 +119,7 @@ module Agent
           if !NewRelic::Control.instance.multi_threaded?
             @@collecting_gc = true if GC.respond_to?(:time) && GC.respond_to?(:collections) # 1.8.x
             @@collecting_gc = true if defined?(GC::Profiler) && GC::Profiler.enabled? # 1.9.2
-          end  
+          end
         end
         @@collecting_gc
       end

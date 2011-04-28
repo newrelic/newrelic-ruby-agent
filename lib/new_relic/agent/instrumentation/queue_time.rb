@@ -9,7 +9,7 @@ module NewRelic
           ALT_QUEUE_HEADER = 'HTTP_X_QUEUE_TIME'
           HEROKU_QUEUE_HEADER = 'HTTP_X_HEROKU_QUEUE_WAIT_TIME'
           APP_HEADER = 'HTTP_X_APPLICATION_START'
-          
+
           HEADER_REGEX = /([^\s\/,(t=)]+)? ?t=([0-9]+)/
           SERVER_METRIC = 'WebFrontend/WebServer/'
           MIDDLEWARE_METRIC = 'Middleware/'
@@ -31,15 +31,15 @@ module NewRelic
           # returned for the controller instrumentation
           [middleware_start, queue_start, server_start].min
         end
-        
+
         private
-        
+
         # main method to extract server time info from env hash,
         # records individual server metrics and one roll-up for all servers
         def parse_server_time_from(env)
           end_time = parse_end_time(env)
           matches = get_matches_from_header(MAIN_HEADER, env)
-          
+
           record_individual_server_stats(end_time, matches)
           record_rollup_server_stat(end_time, matches)
         end
@@ -58,7 +58,7 @@ module NewRelic
         end
 
         def parse_queue_time_from(env)
-          oldest_time = nil          
+          oldest_time = nil
           end_time = parse_end_time(env)
           alternate_length = check_for_alternate_queue_length(env)
           if alternate_length
@@ -114,7 +114,7 @@ module NewRelic
             time
           }
         end
-        
+
         # goes through the list of servers and records each one in
         # reverse order, subtracting the time for each successive
         # server from the earlier ones in the list.
@@ -131,7 +131,7 @@ module NewRelic
         def record_individual_middleware_stats(end_time, matches)
           record_individual_stat_of_type(:record_middleware_time_for, end_time, matches)
         end
-        
+
         # records the total time for all servers in a rollup metric
         def record_rollup_server_stat(end_time, matches) # (Time, [String, Time]) -> nil
           record_rollup_stat_of_type(ALL_SERVER_METRIC, end_time, matches)
@@ -150,14 +150,14 @@ module NewRelic
           record_time_stat(metric, oldest_time, end_time)
           oldest_time
         end
-                
+
         # searches for the first server to touch a request
         def find_oldest_time(matches) # [[String, Time]] -> Time
           matches.map do |name, time|
             time
           end.min
         end
-        
+
         # basically just assembles the metric name
         def record_server_time_for(name, start_time, end_time) # (Maybe String, Time, Time) -> nil
           record_time_stat(SERVER_METRIC + name, start_time, end_time) if name
@@ -195,7 +195,7 @@ module NewRelic
           return time if time.is_a?(Numeric)
           (time.to_f * 1_000_000).to_i
         end
-        
+
         # convert a time from the header value (time in microseconds)
         # into a ruby time object
         def convert_from_microseconds(int) # Int -> Time

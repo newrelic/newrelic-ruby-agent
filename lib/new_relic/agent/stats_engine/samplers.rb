@@ -33,7 +33,7 @@ module Agent
       end
 
       private
-      
+
       def add_sampler_to(sampler_array, sampler)
         raise "Sampler #{sampler.inspect} is already registered.  Don't call add_sampler directly anymore." if sampler_array.include?(sampler)
         sampler_array << sampler
@@ -43,7 +43,7 @@ module Agent
       def log_added_sampler(type, sampler)
         log.debug "Adding #{type} sampler: #{sampler.inspect}"
       end
-      
+
       public
 
       # Add an instance of Sampler to be invoked about every 10 seconds on a background

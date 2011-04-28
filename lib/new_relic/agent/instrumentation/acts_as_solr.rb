@@ -25,7 +25,7 @@ DependencyDetection.defer do
   depends_on do
     defined?(ActsAsSolr::ParserMethods)
   end
-  
+
   depends_on do
     defined?(ActsAsSolr::ClassMethods)
   end
@@ -33,7 +33,7 @@ DependencyDetection.defer do
   depends_on do
     defined?(ActsAsSolr::CommonMethods)
   end
-  
+
   executes do
     ActsAsSolr::ParserMethods.module_eval do
       include NewRelic::Instrumentation::ActsAsSolrInstrumentation::ParserMethodsInstrumentation
@@ -41,7 +41,7 @@ DependencyDetection.defer do
       alias :parse_query :parse_query_with_newrelic
     end
   end
-  
+
   executes do
     ActsAsSolr::ClassMethods.module_eval do
       %w[find_by_solr find_id_by_solr multi_solr_search count_by_solr].each do |method|

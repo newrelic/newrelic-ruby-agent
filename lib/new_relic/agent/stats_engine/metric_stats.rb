@@ -7,7 +7,7 @@ module NewRelic
             @mutex = Mutex.new
             super
           end
-          
+
           def []=(*args)
             @mutex.synchronize {
               super
@@ -31,14 +31,14 @@ module NewRelic
               super
             }
           end
-          
+
           def delete_if(*args)
             @mutex.synchronize {
               super
             }
           end
         end
-        
+
         # The stats hash hashes either a metric name for an unscoped metric,
         # or a metric_spec for a scoped metric value.
         def lookup_stat(metric_name)

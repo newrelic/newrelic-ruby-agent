@@ -1,4 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper')) 
+require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   require 'new_relic/agent/agent'
   include NewRelic::Agent::Agent::Start
@@ -14,7 +14,7 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
     self.expects(:started?).returns(false)
     assert !already_started?
   end
-  
+
   def test_disabled_positive
     control = mocked_control
     control.expects(:agent_enabled?).returns(false)
@@ -79,14 +79,14 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
     set_sql_recording!
     assert_equal :off, @record_sql, "should be set to :off, was #{@record_sql}"
   end
-  
+
   def test_set_sql_recording_none
     self.expects(:sampler_config).returns({'record_sql' => 'none'})
     self.expects(:log_sql_transmission_warning?)
     set_sql_recording!
     assert_equal :off, @record_sql, "should be set to :off, was #{@record_sql}"
   end
-  
+
   def test_set_sql_recording_raw
     self.expects(:sampler_config).returns({'record_sql' => 'raw'})
     self.expects(:log_sql_transmission_warning?)
@@ -129,13 +129,13 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
     fake_sampler_config.expects(:fetch).with('explain_threshold', 0.5)
     fake_sampler_config.expects(:fetch).with('explain_enabled', true)
     self.expects(:set_sql_recording!)
-    
+
     fake_sampler_config.expects(:fetch).with('transaction_threshold', 2.0)
     self.expects(:apdex_f_threshold?).returns(true)
     self.expects(:apdex_f)
     config_transaction_tracer
   end
-  
+
   def test_check_config_and_start_agent_disabled
     self.expects(:monitoring?).returns(false)
     check_config_and_start_agent
@@ -146,7 +146,7 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
     self.expects(:has_correct_license_key?).returns(false)
     check_config_and_start_agent
   end
-  
+
   def test_check_config_and_start_agent_forking
     self.expects(:monitoring?).returns(true)
     self.expects(:has_correct_license_key?).returns(true)
@@ -164,7 +164,7 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
     self.expects(:install_exit_handler)
     check_config_and_start_agent
   end
-  
+
   def test_check_config_and_start_agent_sync
     self.expects(:monitoring?).returns(true)
     self.expects(:has_correct_license_key?).returns(true)
@@ -176,17 +176,17 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
     self.expects(:install_exit_handler)
     check_config_and_start_agent
   end
-  
+
   def test_connect_in_foreground
     self.expects(:connect).with({:keep_retrying => false })
     connect_in_foreground
   end
-  
+
   def at_exit
     yield
   end
   private :at_exit
-  
+
   def test_install_exit_handler_positive
     control = mocked_control
     control.expects(:send_data_on_exit).returns(true)
@@ -199,7 +199,7 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
     self.expects(:shutdown)
     install_exit_handler
   end
-  
+
   def test_install_exit_handler_negative
     control = mocked_control
     control.expects(:send_data_on_exit).returns(false)
@@ -321,7 +321,7 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   def test_log_if_negative
     assert !log_if(false, :warn, "WHEE")
   end
-  
+
   private
 
   def mocked_log

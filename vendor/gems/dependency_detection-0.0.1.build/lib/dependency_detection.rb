@@ -1,6 +1,6 @@
 require 'dependency_detection/version'
 module DependencyDetection
-  
+
   module_function
   @@items = []
   def defer(&block)
@@ -8,7 +8,7 @@ module DependencyDetection
     item.instance_eval(&block)
     @@items << item
   end
-  
+
   def detect!
     @@items.each do |item|
       if item.dependencies_satisfied?
@@ -16,7 +16,7 @@ module DependencyDetection
       end
     end
   end
-  
+
   class Dependent
     attr_reader :executed
     def executed!
@@ -29,7 +29,7 @@ module DependencyDetection
       @dependencies = []
       @executes = []
     end
-    
+
     def dependencies_satisfied?
       !executed and check_dependencies
     end

@@ -14,10 +14,10 @@ module NewRelic
           end
         end
       end
-      
+
       def initialize(name)
         super
-        
+
         if segment_1 == "Hibernate"
           self.extend NewRelic::MetricParser::ORM::Hibernate
         end

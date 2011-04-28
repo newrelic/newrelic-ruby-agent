@@ -53,7 +53,7 @@ DependencyDetection.defer do
   depends_on do
     defined?(DataMapper::Collection)
   end
-  
+
   executes do
     DataMapper::Model.class_eval do
       add_method_tracer :get,      'ActiveRecord/#{self.name}/get'
@@ -117,13 +117,13 @@ DependencyDetection.defer do
 end
 
 DependencyDetection.defer do
-  
+
   depends_on do
     defined?(DataMapper) && defined?(DataMapper::Adapters) && defined?(DataMapper::Adapters::DataObjectsAdapter)
   end
-  
+
   executes do
-    
+
     # Catch the two entry points into DM::Repository::Adapter that bypass CRUD
     # (for when SQL is run directly).
     DataMapper::Adapters::DataObjectsAdapter.class_eval do
@@ -140,7 +140,7 @@ DependencyDetection.defer do
   depends_on do
     defined?(DataMapper) && defined?(DataMapper::Validations) && defined?(DataMapper::Validations::ClassMethods)
   end
-  
+
   # DM::Validations overrides Model#create, but currently in a way that makes it
   # impossible to instrument from one place.  I've got a patch pending inclusion
   # to make it instrumentable by putting the create method inside ClassMethods.
@@ -158,7 +158,7 @@ DependencyDetection.defer do
   depends_on do
     defined?(DataMapper) && defined?(DataMapper::Transaction)
   end
-  
+
   # NOTE: DM::Transaction basically calls commit() twice, so as-is it will show
   # up in traces twice -- second time subordinate to the first's scope.  Works
   # well enough.
@@ -219,11 +219,11 @@ module NewRelic
 end # NewRelic
 
 DependencyDetection.defer do
-  
+
   depends_on do
     defined?(DataObjects) && defined?(DataObjects::Connection)
   end
-  
+
   executes do
     DataObjects::Connection.class_eval do
       include ::NewRelic::Agent::Instrumentation::DataMapperInstrumentation

@@ -18,7 +18,7 @@ module NewRelic
           "#{file_name(segments[-2])} Partial"
         when ".rhtml Processing"
           "ERB compilation"
-        else 
+        else
           segments[1..-1]
         end
       end
@@ -30,15 +30,15 @@ module NewRelic
           "#{file_name(segments[1..-2].join(NewRelic::MetricParser::MetricParser::SEPARATOR))} Partial"
         when ".rhtml Processing"
           "ERB compilation"
-        else 
+        else
           segments[1..-1].join("/")
         end
       end
-      
+
       def short_name
         segments[1..-2].join(NewRelic::MetricParser::MetricParser::SEPARATOR)
       end
-      
+
       def controller_name
         template_label
       end
@@ -51,7 +51,7 @@ module NewRelic
       def developer_name
         template_label
       end
-      
+
       def url
         '/' + file_name(segments[1..-2].join('/'))
       end

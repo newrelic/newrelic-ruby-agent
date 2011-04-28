@@ -4,12 +4,12 @@ module NewRelic
     class Java < NewRelic::MetricParser::MetricParser
       JavaParser
       def initialize(name)
-        super    
+        super
         if segments.length > 2
           self.extend NewRelic::MetricParser::JavaParser
         end
       end
-      
+
       def pie_chart_label
         short_name
       end
@@ -17,11 +17,11 @@ module NewRelic
       def tooltip_name
         developer_name
       end
-      
+
       def full_class_name
         segment_1
       end
-      
+
       def method_name
         segment_2
       end

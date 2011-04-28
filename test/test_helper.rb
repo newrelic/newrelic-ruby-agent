@@ -9,7 +9,7 @@ $LOAD_PATH.uniq!
 
 require 'rubygems'
 # We can speed things up in tests that don't need to load rails.
-# You can also run the tests in a mode without rails.  Many tests 
+# You can also run the tests in a mode without rails.  Many tests
 # will be skipped.
 
 begin
@@ -19,7 +19,7 @@ begin
   rescue LoadError
     # ignore load problems on test help - it doesn't exist in rails 3
   end
-  
+
 rescue LoadError
   puts "Unable to load Rails for New Relic tests"
   raise
@@ -121,16 +121,16 @@ module TransactionSampleTestHelper
     sampler.notice_first_scope_push Time.now.to_f
     sampler.notice_transaction '/path', nil, :jim => "cool"
     sampler.notice_push_scope "a"
-    
+
     sampler.notice_transaction '/path/2', nil, :jim => "cool"
-    
+
     sql.each {|sql_statement| sampler.notice_sql(sql_statement, {:adapter => "test"}, 0 ) }
-    
+
     sleep 1.0
     yield if block_given?
     sampler.notice_pop_scope "a"
     sampler.notice_scope_empty
-    
+
     sampler.samples[0]
   end
 end
