@@ -20,14 +20,6 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     Thread.current[:newrelic_metric_frame] = nil
   end
 
- # def test_browser_timing_short_header_not_execution_traced
- #   header = nil
- #   NewRelic::Agent.disable_all_tracing do
- #    header = browser_timing_short_header
- #   end
- #   assert_equal "", header
- # end
-
   def test_browser_timing_header_with_no_beacon_configuration
     NewRelic::Agent.instance.expects(:beacon_configuration).returns( nil)
     header = browser_timing_header
