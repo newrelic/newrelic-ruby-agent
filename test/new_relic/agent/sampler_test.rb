@@ -11,7 +11,9 @@ class NewRelic::Agent::SamplerTest < Test::Unit::TestCase
   end
 
   def test_sampler_classes_should_be_an_array
-    raise 'need to cover this instance'
+    sampler_classes = NewRelic::Agent::Sampler.instance_variable_get('@sampler_classes')
+    assert(sampler_classes.is_a?(Array), 'Sampler classes should be saved as an array')
+    assert(sampler_classes.include?(NewRelic::Agent::Samplers::CpuSampler), 'Sampler classes should include the CPU sampler')
   end
 
 end
