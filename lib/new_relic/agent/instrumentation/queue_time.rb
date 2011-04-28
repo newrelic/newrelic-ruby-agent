@@ -24,7 +24,7 @@ module NewRelic
           # of the app don't have to worry about it.
           # May have performance implications with very large env hashes
           env = headers.dup
-          add_end_time_header(current_time, env)
+          add_end_time_header(Time.now, env)
           middleware_start = parse_middleware_time_from(env)
           queue_start = parse_queue_time_from(env)
           server_start = parse_server_time_from(env)
@@ -33,11 +33,7 @@ module NewRelic
         end
 
         private
-
-        def current_time
-          Time.now
-        end
-
+        
         # main method to extract server time info from env hash,
         # records individual server metrics and one roll-up for all servers
         def parse_server_time_from(env)

@@ -104,7 +104,7 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
   end
 
   def test_log_errors_base
-    self.expects(:log).never
+    NewRelic::Control.instance.expects(:log).never
     ran = false
     log_errors("name", "metric") do
       ran = true
@@ -113,7 +113,7 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
   end
 
   def test_log_errors_with_return
-    self.expects(:log).never
+    NewRelic::Control.instance.expects(:log).never    
     ran = false
     return_val = log_errors('name', 'metric') do
       ran = true
@@ -125,7 +125,8 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
   end
 
   def test_log_errors_with_error
-    fakelog = mocked_log
+    fakelog = mock('log')
+    NewRelic::Control.instance.expects(:log).returns(fakelog).at_least_once
     # normally I don't do this, but we really don't care what the
     # backtrace looks like, beyond that it actually gets logged. Also,
     # the mocks are reversed because apparently order matters.

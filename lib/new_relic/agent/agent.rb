@@ -199,7 +199,12 @@ module NewRelic
         # Push flag indicating whether we should be tracing in this
         # thread.
         def push_trace_execution_flag(should_trace=false)
-          (Thread.current[:newrelic_untraced] ||= []) << should_trace
+          value = Thread.current[:newrelic_untraced]
+          if (value.nil?)
+            Thread.current[:newrelic_untraced] = []
+          end
+
+          Thread.current[:newrelic_untraced] << should_trace
         end
 
         # Pop the current trace execution status.  Restore trace execution status
@@ -605,6 +610,7 @@ module NewRelic
           end
 
           def enable_random_samples!(sample_rate)
+            sample_rate = 10 unless sample_rate.to_i > 0# a sane default for random sampling
             @transaction_sampler.random_sampling = true
             @transaction_sampler.sampling_rate = sample_rate
             log.info "Transaction sampling enabled, rate = #{@transaction_sampler.sampling_rate}"

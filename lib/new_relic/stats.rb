@@ -23,7 +23,7 @@ module NewRelic
       if denominator.nil? || denominator == 0
         0.0
       else
-        numerator / denominator
+        numerator.to_f / denominator
       end
     end
 
