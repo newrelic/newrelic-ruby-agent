@@ -274,7 +274,7 @@ module NewRelic
       # config is the driver configuration for the connection
       # duration is seconds, float value.
       def notice_sql(sql, config, duration)
-        if Thread::current[:record_sql] != false
+        if NewRelic::Agent.is_sql_recorded?
           notice_extra_data(sql, duration, :sql, config, :connection_config)
         end
       end
@@ -355,7 +355,7 @@ module NewRelic
       # new transaction sample builder with the stated time as a
       # starting point and saves it in the thread local variable
       def start_builder(time=nil)
-        if disabled || Thread::current[:record_tt] == false || !NewRelic::Agent.is_execution_traced?
+        if disabled || !NewRelic::Agent.is_transaction_traced? || !NewRelic::Agent.is_execution_traced?
           clear_builder
         else
           Thread::current[BUILDER_KEY] ||= TransactionSampleBuilder.new(time)
