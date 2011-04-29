@@ -52,20 +52,20 @@ module NewRelic
       def browser_timing_header
         return "" if NewRelic::Agent.instance.beacon_configuration.nil?
 
-        return "" if Thread::current[:record_tt] == false || !NewRelic::Agent.is_execution_traced?
-
+        return "" if !NewRelic::Agent.is_transaction_traced? || !NewRelic::Agent.is_execution_traced?
+          
         NewRelic::Agent.instance.beacon_configuration.browser_timing_header
       end
 
       def browser_timing_footer
         config = NewRelic::Agent.instance.beacon_configuration
-        return "" if config.nil?
-        return "" if !config.rum_enabled
+        return "" if config.nil? || !config.rum_enabled
+       
         license_key = config.browser_monitoring_key
         return "" if license_key.nil?
 
-        return "" if Thread::current[:record_tt] == false || !NewRelic::Agent.is_execution_traced?
-
+        return "" if !NewRelic::Agent.is_transaction_traced? || !NewRelic::Agent.is_execution_traced?
+          
         application_id = config.application_id
         beacon = config.beacon
 
