@@ -18,6 +18,7 @@ module NewRelic
       def after_fork *args; end
       def start *args; end
       def shutdown; end
+      def serialize; end
       def push_trace_execution_flag(*args); end
       def pop_trace_execution_flag(*args); end
       def browser_timing_header; "" end

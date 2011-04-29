@@ -662,6 +662,25 @@ module NewRelic
         end
         include Connect
 
+        def serialize
+          accumulator = []
+          accumulator << harvest_timeslice_data
+          accumulator << harvest_transaction_traces if @transaction_sampler
+          accumulator << harvest_errors if @error_collector
+          accumulator
+        end
+
+        public :serialize
+        
+        def merge_data_from(data)
+          metrics, transaction_traces, errors = data
+          @stats_engine.merge_data(metrics)
+          @traces = @traces + transaction_traces if transaction_traces
+          @unsent_errors = @unsent_errors + errors if errors
+        end
+
+        public :merge_data_from
+        
         # Connect to the server and validate the license.  If successful,
         # @connected has true when finished.  If not successful, you can
         # keep calling this.  Return false if we could not establish a

@@ -126,6 +126,12 @@ module NewRelic
             data[metric_spec] = NewRelic::MetricData.new((id ? nil : metric_spec), stats, id)
           end
 
+          def merge_data(metric_data_hash)
+            metric_data_hash.each do |metric_spec, metric_data|
+              stats_hash[metric_spec].merge!(metric_data.stats)
+            end
+          end
+
           def merge_stats(other_engine_or_hash, metric_ids)
             old_data = get_stats_hash_from(other_engine_or_hash)
 
