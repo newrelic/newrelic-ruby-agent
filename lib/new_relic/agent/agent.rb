@@ -897,6 +897,7 @@ module NewRelic
 
         # send a message via post
         def invoke_remote(method, *args)
+          now = Time.now
           #determines whether to zip the data or send plain
           post_data, encoding = compress_data(args)
 
@@ -910,6 +911,9 @@ module NewRelic
         rescue SystemCallError, SocketError => e
           # These include Errno connection errors
           raise NewRelic::Agent::ServerConnectionException, "Recoverable error connecting to the server: #{e}"
+        ensure
+          NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote').record_data_point((Time.now - now).to_f)
+          NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote/' + method.to_s).record_data_point((Time.now - now).to_f)          
         end
 
         def graceful_disconnect
