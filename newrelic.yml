@@ -59,6 +59,15 @@ common: &default_settings
   # log level here.
   log_level: info
 
+  # Optionally set the path to the log file This is expanded from the
+  # root directory (may be relative or absolute, e.g. 'log/' or
+  # '/var/log/') The agent will attempt to create this directory if it
+  # does not exist.
+  # log_file_path: 'log/'
+  
+  # Optionally set the name of the log file, defaults to 'newrelic_agent.log'
+  # log_file_name: 'newrelic_agent.log'
+
   # The newrelic agent communicates with the RPM service via http by
   # default.  If you want to communicate via https to increase
   # security, then turn on SSL by setting this value to true.  Note,
