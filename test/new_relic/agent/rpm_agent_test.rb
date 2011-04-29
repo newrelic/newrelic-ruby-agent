@@ -90,15 +90,15 @@ class NewRelic::Agent::RpmAgentTest < Test::Unit::TestCase # ActiveSupport::Test
     end
     should "set_record_sql" do
       @agent.set_record_sql(false)
-      assert !Thread::current[:record_sql]
+      assert !NewRelic::Agent.is_sql_recorded?
       NewRelic::Agent.disable_sql_recording do
-        assert_equal false, Thread::current[:record_sql]
+        assert_equal false, NewRelic::Agent.is_sql_recorded?
         NewRelic::Agent.disable_sql_recording do
-          assert_equal false, Thread::current[:record_sql]
+          assert_equal false, NewRelic::Agent.is_sql_recorded?
         end
-        assert_equal false, Thread::current[:record_sql]
+        assert_equal false, NewRelic::Agent.is_sql_recorded?
       end
-      assert !Thread::current[:record_sql]
+      assert !NewRelic::Agent.is_sql_recorded?
       @agent.set_record_sql(nil)
     end
 
