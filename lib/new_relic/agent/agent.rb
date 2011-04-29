@@ -64,6 +64,18 @@ module NewRelic
         attr_reader :url_rules
         attr_reader :beacon_configuration
 
+        def unsent_errors_size
+          @unsent_errors.length if @unsent_errors
+        end
+
+        def unsent_traces_size
+          @traces.length if @traces
+        end
+
+        def unsent_timeslice_data
+          @unsent_timeslice_data.keys.length
+        end
+
         def record_transaction(duration_seconds, options={})
           is_error = options['is_error'] || options['error_message'] || options['exception']
           metric = options['metric']
@@ -674,7 +686,7 @@ module NewRelic
         
         def merge_data_from(data)
           metrics, transaction_traces, errors = data
-          @stats_engine.merge_data(metrics)
+          @stats_engine.merge_data(metrics) if metrics
           if transaction_traces
             if @traces
               @traces = @traces + transaction_traces

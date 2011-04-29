@@ -12,8 +12,8 @@ module NewRelic
 
     def dump_to_file(object)
       create_file_if_needed
-      File.open(file_path, 'a') do |f|
-        f.puts(dump(object))
+      File.open(file_path, 'w') do |f|
+        f.write(dump(object))
       end
     end
 
@@ -23,9 +23,7 @@ module NewRelic
 
     def load_from_file
       File.open(file_path, 'r') do |f|
-        f.readlines.map do |line|
-          load(line)
-        end
+        load(f.read)
       end
     rescue EOFError => e
       nil

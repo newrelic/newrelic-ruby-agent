@@ -208,6 +208,17 @@ module NewRelic
       agent.shutdown
     end
 
+    def save_data
+      @ds = NewRelic::DataSerialization.new
+      @ds.dump_to_file(agent.serialize)
+    end
+
+    def load_data
+      @ds = NewRelic::DataSerialization.new
+      agent.merge_data_from(@ds.load_from_file)
+      {:metrics => agent.stats_engine.metrics.length, :traces => agent.unsent_traces_size, :errors => agent.unsent_errors_size}
+    end
+
     # Add instrumentation files to the agent.  The argument should be
     # a glob matching ruby scripts which will be executed at the time
     # instrumentation is loaded.  Since instrumentation is not loaded
