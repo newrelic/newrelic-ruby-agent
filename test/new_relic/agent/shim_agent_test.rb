@@ -9,24 +9,25 @@ module NewRelic
       end
 
       def test_serialize
-        @agent = NewRelic::Agent::ShimAgent.new
-        assert_equal(nil, @agent.send(:serialize), "should return nil when shut down")
+        assert_equal(nil, @agent.serialize, "should return nil when shut down")
+      end
+
+      def test_merge_data_from
+        assert_equal(nil, @agent.merge_data_from(mock('metric data')))
       end
       
       def test_harvest_transaction_traces
-        @agent = NewRelic::Agent::ShimAgent.new        
         assert_equal(nil, @agent.send(:harvest_transaction_traces), 'should return nil when shut down')
       end
       
       def test_harvest_timeslice_data
-        @agent = NewRelic::Agent::ShimAgent.new        
         assert_equal(nil, @agent.send(:harvest_timeslice_data), 'should return nil when shut down')
       end
       
       def test_harvest_errors
-        @agent = NewRelic::Agent::ShimAgent.new        
         assert_equal(nil, @agent.send(:harvest_errors), 'should return nil when shut down')
       end
+
     end
   end
 end
