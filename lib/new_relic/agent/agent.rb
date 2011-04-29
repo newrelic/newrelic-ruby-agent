@@ -675,8 +675,20 @@ module NewRelic
         def merge_data_from(data)
           metrics, transaction_traces, errors = data
           @stats_engine.merge_data(metrics)
-          @traces = @traces + transaction_traces if transaction_traces
-          @unsent_errors = @unsent_errors + errors if errors
+          if transaction_traces
+            if @traces
+              @traces = @traces + transaction_traces
+            else
+              @traces = transaction_traces
+            end
+          end
+          if errors
+            if @unsent_errors
+              @unsent_errors = @unsent_errors + errors
+            else
+              @unsent_errors = errors
+            end
+          end
         end
 
         public :merge_data_from
