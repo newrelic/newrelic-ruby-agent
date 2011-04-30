@@ -443,6 +443,7 @@ module NewRelic
           def create_and_run_worker_loop
             @worker_loop = WorkerLoop.new
             @worker_loop.run(@report_period) do
+              NewRelic::Agent.load_data
               harvest_and_send_slowest_sample if @should_send_samples
               harvest_and_send_errors if error_collector.enabled
               harvest_and_send_timeslice_data
@@ -676,9 +677,9 @@ module NewRelic
 
         def serialize
           accumulator = []
-          accumulator << harvest_timeslice_data
-          accumulator << harvest_transaction_traces if @transaction_sampler
-          accumulator << harvest_errors if @error_collector
+          accumulator[0] = harvest_timeslice_data
+          accumulator[1] = harvest_transaction_traces if @transaction_sampler
+          accumulator[2] = harvest_errors if @error_collector
           accumulator
         end
 
@@ -732,6 +733,7 @@ module NewRelic
 
           sleep connect_retry_period
           log.debug "Connecting Process to RPM: #$0"
+          NewRelic::Agent.load_data          
           query_server_for_configuration
           @connected_pid = $$
           @connected = true
@@ -983,14 +985,16 @@ module NewRelic
           if @connected
             begin
               @request_timeout = 10
-              log.debug "Flushing unsent metric data to server"
-              @worker_loop.run_task
-              if @connected_pid == $$
-                log.debug "Sending RPM service agent run shutdown message"
-                invoke_remote :shutdown, @agent_id, Time.now.to_f
-              else
-                log.debug "This agent connected from parent process #{@connected_pid}--not sending shutdown"
-              end
+              log.debug "Serializing agent data to disk"
+              NewRelic::Agent.save_data
+#              log.debug "Flushing unsent metric data to server"
+#              @worker_loop.run_task
+#              if @connected_pid == $$
+#                log.debug "Sending RPM service agent run shutdown message"
+#                invoke_remote :shutdown, @agent_id, Time.now.to_f
+#              else
+#                log.debug "This agent connected from parent process #{@connected_pid}--not sending shutdown"
+#              end
               log.debug "Graceful disconnect complete"
             rescue Timeout::Error, StandardError
             end

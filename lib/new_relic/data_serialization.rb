@@ -19,6 +19,8 @@ module NewRelic
 
     def load(dump)
       Marshal.load(dump)
+    rescue ArgumentError => e
+      nil
     end
 
     def load_from_file
