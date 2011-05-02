@@ -143,16 +143,17 @@ module NewRelic
         }
       end
 
-      def over_queue_limit?(exception)
+      def over_queue_limit?(noticed_error)
+        message = noticed_error.message
         over_limit = (@errors.length >= MAX_ERROR_QUEUE_LENGTH)
-        log.warn("The error reporting queue has reached #{MAX_ERROR_QUEUE_LENGTH}. The error detail for this and subsequent errors will not be transmitted to RPM until the queued errors have been sent: #{exception}") if over_limit
+        log.warn("The error reporting queue has reached #{MAX_ERROR_QUEUE_LENGTH}. The error detail for this and subsequent errors will not be transmitted to RPM until the queued errors have been sent: #{message}") if over_limit
         over_limit
       end
 
 
-      def add_to_error_queue(noticed_error, exception)
+      def add_to_error_queue(noticed_error)
         @lock.synchronize do
-          @errors << noticed_error unless over_queue_limit?(exception)
+          @errors << noticed_error unless over_queue_limit?(noticed_error)
         end
       end
     end
@@ -173,7 +174,7 @@ module NewRelic
       return if should_exit_notice_error?(exception)
       action_path     = fetch_from_options(options, :metric, (NewRelic::Agent.instance.stats_engine.scope_name || ''))
       exception_options = error_params_from_options(options).merge(exception_info(exception))
-      add_to_error_queue(NewRelic::NoticedError.new(action_path, exception_options, exception), exception)
+      add_to_error_queue(NewRelic::NoticedError.new(action_path, exception_options, exception))
       exception
     rescue Exception => e
       log.error("Error capturing an error, yodawg. #{e}")
@@ -181,16 +182,16 @@ module NewRelic
 
     # Get the errors currently queued up.  Unsent errors are left
     # over from a previous unsuccessful attempt to send them to the server.
-    # We first clear out all unsent errors before sending the newly queued errors.
     def harvest_errors(unsent_errors)
-      if unsent_errors && !unsent_errors.empty?
-        return unsent_errors
-      else
-        @lock.synchronize do
-          errors = @errors
-          @errors = []
-          return errors
+      @lock.synchronize do
+        errors = @errors
+        @errors = []
+        
+        if unsent_errors && !unsent_errors.empty?
+          errors = errors + unsent_errors
         end
+        
+        errors
       end
     end
 

@@ -715,30 +715,37 @@ module NewRelic
           $0 =~ /ApplicationSpawner|^unicorn\S* master/
         end
 
-        def harvest_and_send_timeslice_data
-
+        def harvest_timeslice_data(time=Time.now)
+          # this creates timeslices that are harvested below
           NewRelic::Agent::BusyCalculator.harvest_busy
-
-          now = Time.now
 
           @unsent_timeslice_data ||= {}
           @unsent_timeslice_data = @stats_engine.harvest_timeslice_data(@unsent_timeslice_data, @metric_ids)
-
+          @unsent_timeslice_data
+        end
+        
+        def fill_metric_id_cache(pairs_of_specs_and_ids)
+          Array(pairs_of_specs_and_ids).each do |metric_spec, metric_id|
+            @metric_ids[metric_spec] = metric_id
+          end
+        end
+        
+        def harvest_and_send_timeslice_data
+          now = Time.now
+          harvest_timeslice_data(now)
           begin
             # In this version of the protocol, we get back an assoc array of spec to id.
-            metric_ids = invoke_remote(:metric_data, @agent_id,
+            metric_specs_and_ids = invoke_remote(:metric_data, @agent_id,
                                        @last_harvest_time.to_f,
                                        now.to_f,
                                        @unsent_timeslice_data.values)
 
           rescue Timeout::Error
             # assume that the data was received. chances are that it was
-            metric_ids = nil
+            metric_specs_and_ids = []
           end
-
-          metric_ids.each do | spec, id |
-            @metric_ids[spec] = id
-          end if metric_ids
+          
+          fill_metric_id_cache(metric_specs_and_ids)
 
           log.debug "#{now}: sent #{@unsent_timeslice_data.length} timeslices (#{@agent_id}) in #{Time.now - now} seconds"
 
@@ -752,9 +759,13 @@ module NewRelic
           # then the metric data is downsampled for another timeslices
         end
 
-        def harvest_and_send_slowest_sample
+        def harvest_transaction_traces
           @traces = @transaction_sampler.harvest(@traces, @slowest_transaction_threshold)
-
+          @traces
+        end
+        
+        def harvest_and_send_slowest_sample
+          harvest_transaction_traces
           unless @traces.empty?
             now = Time.now
             log.debug "Sending (#{@traces.length}) transaction traces"
@@ -789,9 +800,14 @@ module NewRelic
           # determined of the entire period since the last reported
           # sample.
         end
-
-        def harvest_and_send_errors
+        
+        def harvest_errors
           @unsent_errors = @error_collector.harvest_errors(@unsent_errors)
+          @unsent_errors
+        end
+        
+        def harvest_and_send_errors
+          harvest_errors
           if @unsent_errors && @unsent_errors.length > 0
             log.debug "Sending #{@unsent_errors.length} errors"
             begin
