@@ -167,7 +167,7 @@ module NewRelic
     # (ie, RAILS_ENV) can be overridden with an :env argument.
     #
     def manual_start(options={})
-      raise unless Hash === options
+      raise "Options must be a hash" unless Hash === options
       NewRelic::Control.instance.init_plugin({ :agent_enabled => true, :sync_startup => true }.merge(options))
     end
 
