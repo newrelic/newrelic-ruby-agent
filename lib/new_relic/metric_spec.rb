@@ -26,7 +26,7 @@ class NewRelic::MetricSpec
     self.class == o.class &&
     name.eql?(o.name) &&
     # coerce scope to a string and compare
-     (scope || '') == (o.scope || '')
+     scope.to_s == o.scope.to_s
   end
 
   def hash
@@ -52,6 +52,10 @@ class NewRelic::MetricSpec
 
   def to_s
     "#{name}:#{scope}"
+  end
+
+  def inspect
+    "#<NewRelic::MetricSpec '#{name}':'#{scope}'>"
   end
 
   def to_json(*a)

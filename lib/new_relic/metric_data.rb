@@ -38,5 +38,8 @@ module NewRelic
       "#{metric_spec.name}(#{metric_spec.scope}): #{stats}" if metric_spec
       "#{metric_id}: #{stats}" if metric_spec.nil?
     end
+    def inspect
+      "#<MetricData metric_spec:#{metric_spec.inspect}, stats:#{stats.inspect}, metric_id:#{metric_id.inspect}>"
+    end
   end
 end

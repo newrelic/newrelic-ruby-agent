@@ -353,6 +353,10 @@ module NewRelic
       @call_count += value
     end
 
+    def inspect
+      "#<NewRelic::MethodTraceStats #{summary} >"
+    end
+
   end
 
   class ScopedMethodTraceStats < MethodTraceStats
