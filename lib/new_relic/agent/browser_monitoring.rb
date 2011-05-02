@@ -50,14 +50,18 @@ module NewRelic
     module BrowserMonitoring
 
       def browser_timing_header
+        #return no header if already instrumented with a header
+        return "" if Thread.current[:newrelic_most_recent_transaction][:rum_header_added]
         return "" if NewRelic::Agent.instance.beacon_configuration.nil?
 
         return "" if !NewRelic::Agent.is_transaction_traced? || !NewRelic::Agent.is_execution_traced?
-          
+        Thread.current[:newrelic_most_recent_transaction][:rum_header_added] = true
         NewRelic::Agent.instance.beacon_configuration.browser_timing_header
       end
 
       def browser_timing_footer
+        #return no footer if already instrumented or if the footer is requested before/without a header
+        return "" if Thread.current[:newrelic_most_recent_transaction][:rum_footer_added] || !Thread.current[:newrelic_most_recent_transaction][:rum_header_added]
         config = NewRelic::Agent.instance.beacon_configuration
         return "" if config.nil? || !config.rum_enabled
        
@@ -69,7 +73,7 @@ module NewRelic
         application_id = config.application_id
         beacon = config.beacon
 
-        transaction_name = Thread.current[:newrelic_most_recent_transaction] || "<unknown>"
+        transaction_name = Thread.current[:newrelic_most_recent_transaction][:scope_name] || "<unknown>"
         start_time = Thread.current[:newrelic_start_time]
         queue_time = (Thread.current[:newrelic_queue_time].to_f * 1000.0).round
 
@@ -86,6 +90,7 @@ module NewRelic
 <script type="text/javascript" charset="utf-8">NREUMQ.push(["nrf2","#{beacon}","#{license_key}",#{application_id},"#{obf}",#{queue_time},#{app_time}])</script>
 eos
         end
+        Thread.current[:newrelic_most_recent_transaction][:rum_footer_added] = true
         if value.respond_to?(:html_safe)
           value.html_safe
         else
