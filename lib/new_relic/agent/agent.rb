@@ -443,10 +443,16 @@ module NewRelic
           def create_and_run_worker_loop
             @worker_loop = WorkerLoop.new
             @worker_loop.run(@report_period) do
-              NewRelic::Agent.load_data
-              harvest_and_send_slowest_sample if @should_send_samples
-              harvest_and_send_errors if error_collector.enabled
-              harvest_and_send_timeslice_data
+              if @connected_pid == $$ || DataSerialization.new.should_send_data
+                NewRelic::Control.instance.log.debug("Sending data to server")
+                NewRelic::Agent.load_data
+                harvest_and_send_slowest_sample if @should_send_samples
+                harvest_and_send_errors if error_collector.enabled
+                harvest_and_send_timeslice_data
+              else
+                NewRelic::Control.instance.log.debug("Serializing data to disk")                
+                NewRelic::Agent.save_data
+              end
             end
           end
 

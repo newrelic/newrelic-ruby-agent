@@ -38,7 +38,7 @@ module NewRelic
 
     def should_send_data
       # TODO get configuration from main control
-      (File.size(file_path) >= 10_000)
+      (File.size(file_path) >= 100_000)
     end
 
     def file_path
