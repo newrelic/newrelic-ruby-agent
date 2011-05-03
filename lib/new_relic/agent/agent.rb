@@ -787,6 +787,8 @@ module NewRelic
         
         def harvest_and_send_timeslice_data
           now = Time.now
+          NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote').record_data_point(0.0)
+          NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote/metric_data').record_data_point(0.0)
           harvest_timeslice_data(now)
           begin
             # In this version of the protocol, we get back an assoc array of spec to id.
