@@ -5,6 +5,7 @@ v3.0.0
     setting the path and name of the agent log file
   * Improve reliability of statistics calculations
   * Remove some previously deprecated methods
+  * Remove Sequel instrumentation pending more work
 
 v2.14.1
   * Avoid overriding methods named 'log' when including the MethodTracer module
