@@ -431,9 +431,9 @@ module NewRelic
           def create_and_run_worker_loop
             @worker_loop = WorkerLoop.new
             @worker_loop.run(@report_period) do
-              harvest_and_send_timeslice_data
               harvest_and_send_slowest_sample if @should_send_samples
               harvest_and_send_errors if error_collector.enabled
+              harvest_and_send_timeslice_data
             end
           end
 
@@ -487,7 +487,7 @@ module NewRelic
                 # the server rejected us for a licensing reason and we should
                 # just exit the thread.  If it returns nil
                 # that means it didn't try to connect because we're in the master.
-                connect(connection_options)
+                connect(connection_options) unless @connected
                 if @connected
                   check_transaction_sampler_status
                   log_worker_loop_start
@@ -632,6 +632,7 @@ module NewRelic
           end
 
           def set_collector_host!
+            return if @collector
             host = invoke_remote(:get_redirect_host)
             if host
               @collector = control.server_from_host(host)
