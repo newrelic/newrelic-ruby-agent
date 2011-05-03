@@ -720,6 +720,10 @@ module NewRelic
           # this creates timeslices that are harvested below
           NewRelic::Agent::BusyCalculator.harvest_busy
 
+          now = Time.now
+          NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote').record_data_point(0.0)
+          NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote/metric_data').record_data_point(0.0)
+
           @unsent_timeslice_data ||= {}
           @unsent_timeslice_data = @stats_engine.harvest_timeslice_data(@unsent_timeslice_data, @metric_ids)
           @unsent_timeslice_data
