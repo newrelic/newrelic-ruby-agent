@@ -431,9 +431,9 @@ module NewRelic
           def create_and_run_worker_loop
             @worker_loop = WorkerLoop.new
             @worker_loop.run(@report_period) do
-              harvest_and_send_timeslice_data
               harvest_and_send_slowest_sample if @should_send_samples
               harvest_and_send_errors if error_collector.enabled
+              harvest_and_send_timeslice_data
             end
           end
 
