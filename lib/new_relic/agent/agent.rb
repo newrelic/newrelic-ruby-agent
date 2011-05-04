@@ -443,16 +443,10 @@ module NewRelic
           def create_and_run_worker_loop
             @worker_loop = WorkerLoop.new
             @worker_loop.run(@report_period) do
-              if @connected_pid == $$ || DataSerialization.new.should_send_data
-                NewRelic::Control.instance.log.debug("Sending data to server")
-                NewRelic::Agent.load_data
-                harvest_and_send_slowest_sample if @should_send_samples
-                harvest_and_send_errors if error_collector.enabled
-                harvest_and_send_timeslice_data
-              else
-                NewRelic::Control.instance.log.debug("Serializing data to disk")                
-                NewRelic::Agent.save_data
-              end
+              NewRelic::Agent.load_data
+              harvest_and_send_errors
+              harvest_and_send_slowest_sample
+              harvest_and_send_timeslice_data
             end
           end
 
@@ -683,7 +677,7 @@ module NewRelic
 
         def serialize
           accumulator = []
-          accumulator[0] = harvest_timeslice_data
+          accumulator[0] = nil #harvest_timeslice_data
           accumulator[1] = harvest_transaction_traces if @transaction_sampler
           accumulator[2] = harvest_errors if @error_collector
           accumulator
@@ -739,7 +733,6 @@ module NewRelic
 
           sleep connect_retry_period
           log.debug "Connecting Process to RPM: #$0"
-          NewRelic::Agent.load_data          
           query_server_for_configuration
           @connected_pid = $$
           @connected = true
@@ -769,10 +762,6 @@ module NewRelic
         def harvest_timeslice_data(time=Time.now)
           # this creates timeslices that are harvested below
           NewRelic::Agent::BusyCalculator.harvest_busy
-
-          now = Time.now
-          NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote').record_data_point(0.0)
-          NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote/metric_data').record_data_point(0.0)
 
           @unsent_timeslice_data ||= {}
           @unsent_timeslice_data = @stats_engine.harvest_timeslice_data(@unsent_timeslice_data, @metric_ids)
@@ -993,16 +982,16 @@ module NewRelic
           if @connected
             begin
               @request_timeout = 10
+              log.debug "Flushing unsent metric data to server"
+              harvest_and_send_timeslice_data
               log.debug "Serializing agent data to disk"
               NewRelic::Agent.save_data
-#              log.debug "Flushing unsent metric data to server"
-#              @worker_loop.run_task
-#              if @connected_pid == $$
-#                log.debug "Sending RPM service agent run shutdown message"
-#                invoke_remote :shutdown, @agent_id, Time.now.to_f
-#              else
-#                log.debug "This agent connected from parent process #{@connected_pid}--not sending shutdown"
-#              end
+              if @connected_pid == $$
+                log.debug "Sending RPM service agent run shutdown message"
+                invoke_remote :shutdown, @agent_id, Time.now.to_f
+              else
+                log.debug "This agent connected from parent process #{@connected_pid}--not sending shutdown"
+              end
               log.debug "Graceful disconnect complete"
             rescue Timeout::Error, StandardError
             end
