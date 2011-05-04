@@ -30,11 +30,16 @@ module NewRelic
         end
 
         def install_browser_monitoring(config)
+          return if @browser_monitoring_installed
+          @browser_monitoring_installed = true
           return if config.nil? || !config.respond_to?(:middleware) || !browser_monitoring_auto_instrument?
-
-          require 'new_relic/rack/browser_monitoring'
-          config.middleware.use NewRelic::Rack::BrowserMonitoring
-          ::RAILS_DEFAULT_LOGGER.info "Installed browser monitoring middleware"
+          begin
+            require 'new_relic/rack/browser_monitoring'
+            config.middleware.use NewRelic::Rack::BrowserMonitoring
+            log!("Installed New Relic Browser Monitoring middleware", :info)
+          rescue Exception => e
+            log!("Error installing New Relic Browser Monitoring middleware: #{e.inspect}", :error)
+          end
         end
 
         def install_developer_mode(rails_config)
