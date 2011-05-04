@@ -19,8 +19,12 @@ module ActiveRecordFixtures
     self.table_name = 'newrelic_test_orders'
     has_and_belongs_to_many :shipments, :class_name => 'ActiveRecordFixtures::Shipment'
     def self.setup
-      connection.create_table self.table_name, :force => true do |t|
-        t.column :name, :string
+      unless connection.table_exists?(self.table_name)
+        connection.create_table self.table_name, :force => true do |t|
+          t.column :name, :string
+        end
+      else
+        connection.execute("delete from #{self.table_name}")
       end
     end
     def self.add_delay
@@ -31,7 +35,6 @@ module ActiveRecordFixtures
       end
     end
     def self.teardown
-      connection.drop_table table_name
       def connection.log_info *args
         super *args
       end
@@ -42,18 +45,21 @@ module ActiveRecordFixtures
     self.table_name = 'newrelic_test_shipment'
     has_and_belongs_to_many :orders, :class_name => 'ActiveRecordFixtures::Order'
     def self.setup
-      connection.create_table self.table_name, :force => true do |t|
-        # no other columns
+      unless connection.table_exists?(self.table_name)
+        connection.create_table self.table_name, :force => true do |t|
+          # no other columns
+        end
+        connection.create_table 'orders_shipments', :force => true, :id => false do |t|
+          t.column :order_id, :integer
+          t.column :shipment_id, :integer
+        end        
+      else
+        connection.execute("delete from #{self.table_name}")
       end
-      connection.create_table 'orders_shipments', :force => true, :id => false do |t|
-        t.column :order_id, :integer
-        t.column :shipment_id, :integer
-      end
+      
+      
     end
-
     def self.teardown
-      connection.drop_table 'orders_shipments'
-      connection.drop_table self.table_name
     end
   end
 end

@@ -143,8 +143,7 @@ module NewRelic
         }
       end
 
-      def over_queue_limit?(noticed_error)
-        message = noticed_error.message
+      def over_queue_limit?(message)
         over_limit = (@errors.length >= MAX_ERROR_QUEUE_LENGTH)
         log.warn("The error reporting queue has reached #{MAX_ERROR_QUEUE_LENGTH}. The error detail for this and subsequent errors will not be transmitted to RPM until the queued errors have been sent: #{message}") if over_limit
         over_limit
@@ -153,7 +152,7 @@ module NewRelic
 
       def add_to_error_queue(noticed_error)
         @lock.synchronize do
-          @errors << noticed_error unless over_queue_limit?(noticed_error)
+          @errors << noticed_error unless over_queue_limit?(noticed_error.message)
         end
       end
     end
@@ -188,7 +187,7 @@ module NewRelic
         @errors = []
         
         if unsent_errors && !unsent_errors.empty?
-          errors = errors + unsent_errors
+          errors = unsent_errors + errors
         end
         
         errors

@@ -51,25 +51,6 @@ module NewRelic
         @agent.merge_data_from([{}, [], []])
       end
 
-      def test_merge_data_from_actual_agent
-        NewRelic::Agent.manual_start
-
-        data = NewRelic::Agent.instance.serialize
-
-        @agent.merge_data_from(data)
-        assert_equal(data, @agent.serialize)
-      end
-
-      def test_merge_data_from_actual_agent_method_traced
-        100.times do
-          @agent.stats_engine.get_stats_no_scope('foo/bar').record_data_point(0.1)
-        end
-        data = @agent.serialize
-        NewRelic::Agent.manual_start
-        NewRelic::Agent.instance.merge_data_from(data)
-        NewRelic::Agent.shutdown
-      end
-
       def test_sql_normalization
 
         # basic statement

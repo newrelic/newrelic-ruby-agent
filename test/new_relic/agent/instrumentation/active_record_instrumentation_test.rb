@@ -2,10 +2,14 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_h
 class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::Unit::TestCase
   require 'active_record_fixtures'
   include NewRelic::Agent::Instrumentation::ControllerInstrumentation
-
+  
+  @@setup = false
   def setup
     super
-    NewRelic::Agent.manual_start
+    unless @@setup
+      NewRelic::Agent.manual_start
+      @setup = true
+    end
     ActiveRecordFixtures.setup
     NewRelic::Agent.instance.transaction_sampler.reset!
     NewRelic::Agent.instance.stats_engine.clear_stats
@@ -16,7 +20,6 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
 
   def teardown
     super
-    ActiveRecordFixtures.teardown
     NewRelic::Agent.shutdown
   end
 
@@ -374,6 +377,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
 
   def test_transaction_mysql
     return unless isMysql? && !defined?(JRuby)
+    ActiveRecordFixtures.setup
     sample = NewRelic::Agent.instance.transaction_sampler.reset!
     perform_action_with_newrelic_trace :name => 'bogosity' do
       ActiveRecordFixtures::Order.add_delay
@@ -387,9 +391,11 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     explanations = segment.params[:explanation]
     assert_not_nil explanations, "No explains in segment: #{segment}"
     assert_equal 1, explanations.size,"No explains in segment: #{segment}"
-    assert_equal 1, explanations.first.size
+    assert_equal 1, explanations.first.size, "should be one row of explanation"
 
-    assert_equal "1;SIMPLE;#{ActiveRecordFixtures::Order.table_name};ALL;;;;;1;", explanations.first.first.join(';')
+    row = explanations.first.first
+    assert_equal 10, row.size
+    assert_equal ['1', 'SIMPLE', ActiveRecordFixtures::Order.table_name], row[0..2]
 
     s = NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Order/find")
     assert_equal 1, s.call_count

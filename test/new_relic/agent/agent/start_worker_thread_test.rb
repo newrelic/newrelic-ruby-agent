@@ -60,15 +60,13 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
   def test_create_and_run_worker_loop
     @report_period = 30
     @should_send_samples = true
-    fake_collector = mock('error collector')
-    self.expects(:error_collector).returns(fake_collector)
     wl = mock('worker loop')
     NewRelic::Agent::WorkerLoop.expects(:new).returns(wl)
     wl.expects(:run).with(30).yields
     self.expects(:harvest_and_send_timeslice_data)
     self.expects(:harvest_and_send_slowest_sample)
-    fake_collector.expects(:enabled).returns(true)
     self.expects(:harvest_and_send_errors)
+    NewRelic::Agent.expects(:load_data)
     create_and_run_worker_loop
   end
 
