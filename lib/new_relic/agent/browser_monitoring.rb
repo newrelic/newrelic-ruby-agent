@@ -50,18 +50,18 @@ module NewRelic
     module BrowserMonitoring
 
       def browser_timing_header
-        #return no header if already instrumented with a header
-        return "" if Thread.current[:newrelic_most_recent_transaction][:rum_header_added]
+        #return no header if outside a transaction, if already instrumented with a header, or if tracing is disabled
+        return "" if Thread.current[:newrelic_most_recent_transaction].nil? || Thread.current[:newrelic_most_recent_transaction][:rum_header_added]
         return "" if NewRelic::Agent.instance.beacon_configuration.nil?
-
         return "" if !NewRelic::Agent.is_transaction_traced? || !NewRelic::Agent.is_execution_traced?
+        
         Thread.current[:newrelic_most_recent_transaction][:rum_header_added] = true
         NewRelic::Agent.instance.beacon_configuration.browser_timing_header
       end
 
       def browser_timing_footer
         #return no footer if already instrumented or if the footer is requested before/without a header
-        return "" if Thread.current[:newrelic_most_recent_transaction][:rum_footer_added] || !Thread.current[:newrelic_most_recent_transaction][:rum_header_added]
+        return "" if Thread.current[:newrelic_most_recent_transaction].nil? || Thread.current[:newrelic_most_recent_transaction][:rum_footer_added] || !Thread.current[:newrelic_most_recent_transaction][:rum_header_added]
         config = NewRelic::Agent.instance.beacon_configuration
         return "" if config.nil? || !config.rum_enabled
        

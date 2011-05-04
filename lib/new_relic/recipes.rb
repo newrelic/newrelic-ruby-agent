@@ -4,7 +4,7 @@
 #  require 'new_relic/recipes'
 # to your deploy.rb
 #
-# Defined deploy:notify_rpm which will send information about the deploy to RPM.
+# Defined deploy:notify_rpm which will send information about the deploy to New Relic.
 # The task will run on app servers except where no_release is true.
 # If it fails, it will not affect the task execution or do a rollback.
 #
@@ -12,8 +12,8 @@ make_notify_task = Proc.new do
 
   namespace :newrelic do
 
-    # on all deployments, notify RPM
-    desc "Record a deployment in New Relic RPM (rpm.newrelic.com)"
+    # on all deployments, notify New Relic
+    desc "Record a deployment in New Relic (rpm.newrelic.com)"
     task :notice_deployment, :roles => :app, :except => {:no_release => true } do
       rails_env = fetch(:newrelic_rails_env, fetch(:rails_env, "production"))
       require File.join(File.dirname(__FILE__), 'command.rb')
