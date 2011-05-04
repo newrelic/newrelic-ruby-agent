@@ -677,9 +677,9 @@ module NewRelic
 
         def serialize
           accumulator = []
-          accumulator[0] = nil #harvest_timeslice_data
           accumulator[1] = harvest_transaction_traces if @transaction_sampler
           accumulator[2] = harvest_errors if @error_collector
+          accumulator[0] = harvest_timeslice_data
           accumulator
         end
 
@@ -982,8 +982,8 @@ module NewRelic
           if @connected
             begin
               @request_timeout = 10
-              log.debug "Flushing unsent metric data to server"
-              harvest_and_send_timeslice_data
+#              log.debug "Flushing unsent metric data to server"
+#              harvest_and_send_timeslice_data
               log.debug "Serializing agent data to disk"
               NewRelic::Agent.save_data
               if @connected_pid == $$

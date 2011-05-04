@@ -128,8 +128,8 @@ module NewRelic
 
           def merge_data(metric_data_hash)
             metric_data_hash.each do |metric_spec, metric_data|
-              new_data = stats_hash[metric_spec]
-              if new_data
+              new_data = lookup_stats(metric_spec.name, metric_spec.scope)
+              value = if new_data
                 new_data.merge!(metric_data.stats)
               else
                 stats_hash[metric_spec] = metric_data.stats
