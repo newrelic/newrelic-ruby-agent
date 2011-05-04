@@ -209,15 +209,12 @@ module NewRelic
     end
 
     def save_data
-      @ds = NewRelic::DataSerialization.new
       load_data
-      @ds.dump_to_file(agent.serialize)
+      NewRelic::DataSerialization.dump_to_file(agent.serialize)
     end
 
     def load_data
-      @ds = NewRelic::DataSerialization.new
-      agent.merge_data_from(@ds.load_from_file)
-      @ds.truncate_file
+      agent.merge_data_from(NewRelic::DataSerialization.load_from_file)
       {:metrics => agent.stats_engine.metrics.length, :traces => agent.unsent_traces_size, :errors => agent.unsent_errors_size}
     end
 
