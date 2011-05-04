@@ -9,6 +9,25 @@ class NewRelic::Agent::StatsEngine::MetricStats::HarvestTest < Test::Unit::TestC
     merge_stats({}, {})
   end
 
+  def test_merge_stats_with_nil_stats
+    metric_ids = mock('metric ids')
+    mock_stats_hash = mock('stats_hash')
+    mock_spec = mock('spec')
+    mock_stats = mock('stats')
+    mock_stats_hash.expects(:each).yields(mock_spec, mock_stats)
+    self.stats_hash = mock_stats_hash
+
+    self.expects(:coerce_to_metric_spec).with(mock_spec).returns(mock_spec)
+    self.expects(:clone_and_reset_stats).with(mock_spec, mock_stats).returns(mock_stats)
+    self.expects(:merge_old_data!).with(mock_spec, mock_stats, {})
+    metric_ids.expects(:[]).with(mock_spec).returns('an id')
+    self.expects(:add_data_to_send_unless_empty).with({}, mock_stats, mock_spec, 'an id')
+
+    
+    merge_stats({}, metric_ids)
+  end
+  
+
   def test_get_stats_hash_from_hash
     assert_equal({}, get_stats_hash_from({}))
   end
@@ -59,7 +78,7 @@ class NewRelic::Agent::StatsEngine::MetricStats::HarvestTest < Test::Unit::TestC
     stats = mock('stats') # doesn't matter
     old_data_hash = {metric_spec => nil}
     merge_old_data!(metric_spec, stats, old_data_hash)
-  end  
+  end
 
   def test_add_data_to_send_unless_empty_when_is_empty
     stats = mock('stats')
@@ -77,6 +96,7 @@ class NewRelic::Agent::StatsEngine::MetricStats::HarvestTest < Test::Unit::TestC
     data.expects(:[]=).with(metric_spec, is_a(NewRelic::MetricData))
     add_data_to_send_unless_empty(data, stats, metric_spec, id)
   end
+
 end
 
 

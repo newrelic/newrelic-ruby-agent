@@ -9,12 +9,12 @@ module NewRelic
 
       def load_from_file
         create_file_if_needed        
-        File.open(file_path, 'r+') do |f|
+        (File.open(file_path, 'r+') do |f|
           result = load(f.read)
           f.truncate(0)
           result
-        end
-      rescue EOFError => e
+        end)
+      rescue(EOFError) => e
         nil
       end
       

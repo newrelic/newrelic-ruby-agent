@@ -162,7 +162,8 @@ module NewRelic
         # Anything left over is treated as custom params
 
         def self.notice_error(e, options={})
-          if request = options.delete(:request)
+          request = options.delete(:request)          
+          if request
             options[:referer] = referer_from_request(request)
             options[:uri] = uri_from_request(request)
           end
@@ -247,7 +248,8 @@ module NewRelic
         end
 
         def self.recording_web_transaction?
-          if c = Thread.current[:newrelic_metric_frame]
+          c = Thread.current[:newrelic_metric_frame]
+          if c
             c.recording_web_transaction?
           end
         end

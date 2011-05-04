@@ -25,6 +25,20 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
     assert_equal(server_start, parse_frontend_headers({:env => 'hash'}), "should return the oldest start time")
   end
 
+  def test_parse_frontend_headers_should_return_earliest_start
+    middleware_start = Time.at(1002)
+    queue_start = Time.at(1000)
+    server_start = Time.at(1001)
+    Time.stubs(:now).returns(Time.at(1003)) # whee!
+    self.expects(:add_end_time_header).with(Time.at(1003), {:env => 'hash'})
+    # ordering is important here, unfortunately, the mocks don't
+    # support that kind of checking.
+    self.expects(:parse_middleware_time_from).with({:env => 'hash'}).returns(middleware_start)
+    self.expects(:parse_queue_time_from).with({:env => 'hash'}).returns(queue_start)
+    self.expects(:parse_server_time_from).with({:env => 'hash'}).returns(server_start)
+    assert_equal(queue_start, parse_frontend_headers({:env => 'hash'}), "should return the oldest start time")
+  end
+
   def test_all_combined_frontend_headers
     env = {}
     env[MAIN_HEADER] = "t=#{convert_to_microseconds(Time.at(1000))}"

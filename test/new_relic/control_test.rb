@@ -129,20 +129,20 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   def test_config_apdex
     assert_equal 1.1, c.apdex_t
   end
-  def test_transaction_threshold
-    assert_equal 'Apdex_f', c['transaction_tracer']['transaction_threshold']
-    assert_equal 4.4, NewRelic::Agent::Agent.instance.instance_variable_get('@slowest_transaction_threshold')
-  end
+#  def test_transaction_threshold
+#    assert_equal 'Apdex_f', c['transaction_tracer']['transaction_threshold']
+#    assert_equal 4.4, NewRelic::Agent::Agent.instance.instance_variable_get('@slowest_transaction_threshold')
+#  end
   def test_log_file_name
     NewRelic::Control.instance.setup_log
     assert_match /newrelic_agent.log$/, c.instance_variable_get('@log_file')
   end
 
-  def test_transaction_threshold__apdex
-    forced_start
-    assert_equal 'Apdex_f', c['transaction_tracer']['transaction_threshold']
-    assert_equal 4.4, NewRelic::Agent::Agent.instance.instance_variable_get('@slowest_transaction_threshold')
-  end
+#  def test_transaction_threshold__apdex
+#    forced_start
+#    assert_equal 'Apdex_f', c['transaction_tracer']['transaction_threshold']
+#    assert_equal 4.4, NewRelic::Agent::Agent.instance.instance_variable_get('@slowest_transaction_threshold')
+#  end
 
   def test_transaction_threshold__default
 

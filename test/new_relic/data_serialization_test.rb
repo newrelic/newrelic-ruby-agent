@@ -1,7 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..', 'test_helper'))
 require 'new_relic/data_serialization'
 class NewRelic::DataSerializationTest < Test::Unit::TestCase
-  def test_load_data
+  def test_load_from_file
     file = './log/newrelic_agent_store.db'
     File.open(file, 'w') do |f|
       f.write(Marshal.dump('a happy string'))
@@ -10,7 +10,7 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
     assert_equal(0, File.size(file), "Should not leave any data in the file")
   end
 
-  def test_save_data
+  def test_dump_to_file
     file = './log/newrelic_agent_store.db'
     expected_contents = Marshal.dump('a happy string')
     NewRelic::DataSerialization.dump_to_file('a happy string')
