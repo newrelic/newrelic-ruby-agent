@@ -33,6 +33,13 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     assert_equal "<script>var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);(function(){var d=document;var e=d.createElement(\"script\");e.type=\"text/javascript\";e.async=true;e.src=\"this_is_my_file\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})()</script>", header
   end
   
+  def test_browser_timing_header_outside_transaction
+    Thread.current[:newrelic_most_recent_transaction] = nil
+    header = browser_timing_header
+    assert_equal "", header
+  end
+
+  
   def test_browser_timing_header_twice
     header = browser_timing_header
     assert_equal "<script>var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);(function(){var d=document;var e=d.createElement(\"script\");e.type=\"text/javascript\";e.async=true;e.src=\"this_is_my_file\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})()</script>", header
@@ -78,6 +85,12 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     assert footer.include?("<script type=\"text/javascript\" charset=\"utf-8\">NREUMQ.push([\"nrf2\",")
   end
   
+  def test_browser_timing_footer_outside_transaction
+    Thread.current[:newrelic_most_recent_transaction] = nil
+    footer = browser_timing_footer
+    assert_equal "", footer
+  end
+
   def test_browser_timing_footer_without_calling_header
     footer = browser_timing_footer
     assert_equal "", footer
