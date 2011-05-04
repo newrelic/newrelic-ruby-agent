@@ -68,7 +68,7 @@ class NewRelic::Agent::BusyCalculatorTest < Test::Unit::TestCase
 
     assert_equal 1, @instance_busy.call_count
     # 3 + 6 = 9, or 90%
-    assert_in_delta 0.90, @instance_busy.total_call_time, 0.025
+    assert_in_delta 0.90, @instance_busy.total_call_time, 0.1
 
   end
   def test_dont_ignore_zero_counts
