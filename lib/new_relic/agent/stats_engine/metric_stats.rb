@@ -39,24 +39,18 @@ module NewRelic
           end
         end
 
-        # The stats hash hashes either a metric name for an unscoped metric,
-        # or a metric_spec for a scoped metric value.
-        def lookup_stat(metric_name)
-          stats_hash[metric_name]
-        end
-
         def metrics
           stats_hash.keys.map(&:to_s)
         end
 
         def get_stats_no_scope(metric_name)
-          stats_hash[metric_name] ||= NewRelic::MethodTraceStats.new
+          stats_hash[NewRelic::MetricSpec.new(metric_name, '')] ||= NewRelic::MethodTraceStats.new
         end
 
         # This version allows a caller to pass a stat class to use
         #
         def get_custom_stats(metric_name, stat_class)
-          stats_hash[metric_name] ||= stat_class.new
+          stats_hash[NewRelic::MetricSpec.new(metric_name)] ||= stat_class.new
         end
 
         # If use_scope is true, two chained metrics are created, one with scope and one without
@@ -67,7 +61,7 @@ module NewRelic
             spec = NewRelic::MetricSpec.new metric_name, scope
             stats = stats_hash[spec] ||= NewRelic::MethodTraceStats.new
           else
-            stats = stats_hash[metric_name] ||= NewRelic::MethodTraceStats.new
+            stats = stats_hash[NewRelic::MetricSpec.new(metric_name)] ||= NewRelic::MethodTraceStats.new
             if scope && scope != metric_name
               spec = NewRelic::MetricSpec.new metric_name, scope
               stats = stats_hash[spec] ||= NewRelic::ScopedMethodTraceStats.new(stats)
@@ -76,14 +70,24 @@ module NewRelic
           stats
         end
 
-        def lookup_stats(metric_name, scope_name = nil)
-          stats_hash[NewRelic::MetricSpec.new(metric_name, scope_name)] ||
-            stats_hash[metric_name]
+        def lookup_stats(metric_name, scope_name = '')
+          stats_hash[NewRelic::MetricSpec.new(metric_name, scope_name)]
         end
-
 
         module Harvest
 
+          def merge_data(metric_data_hash)
+            metric_data_hash.each do |metric_spec, metric_data|
+              new_data = lookup_stats(metric_spec.name, metric_spec.scope)
+              if new_data
+                new_data.merge!(metric_data.stats)
+              else
+                stats_hash[metric_spec] = metric_data.stats
+              end
+            end
+          end
+
+          private
           def get_stats_hash_from(engine_or_hash)
             if engine_or_hash.is_a?(StatsEngine)
               engine_or_hash.stats_hash
@@ -124,17 +128,6 @@ module NewRelic
             # performance boost and storage savings.
             return if stats.is_reset?
             data[metric_spec] = NewRelic::MetricData.new((id ? nil : metric_spec), stats, id)
-          end
-
-          def merge_data(metric_data_hash)
-            metric_data_hash.each do |metric_spec, metric_data|
-              new_data = lookup_stats(metric_spec.name, metric_spec.scope)
-              if new_data
-                new_data.merge!(metric_data.stats)
-              else
-                stats_hash[metric_spec] = metric_data.stats
-              end
-            end
           end
 
           def merge_stats(other_engine_or_hash, metric_ids)

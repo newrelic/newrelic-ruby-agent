@@ -51,6 +51,7 @@ class NewRelic::MetricSpec
   end
 
   def to_s
+    return name if scope.empty?
     "#{name}:#{scope}"
   end
 

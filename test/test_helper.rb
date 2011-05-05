@@ -100,21 +100,11 @@ def assert_calls_unscoped_metrics(*metrics)
 end
 
 
-def compare_metrics expected_list, actual_list
-  actual = Set.new actual_list
+def compare_metrics(expected, actual)
   actual.delete('GC/cumulative') # in case we are in REE
-  expected = Set.new expected_list
-  assert_equal expected.to_a.sort, actual.to_a.sort, "extra: #{(actual - expected).to_a.join(", ")}; missing: #{(expected - actual).to_a.join(", ")}"
+  assert_equal(expected.to_a.sort, actual.to_a.sort, "extra: #{(actual - expected).to_a.inspect}; missing: #{(expected - actual).to_a.inspect}")
 end
-=begin Enable this to see test names as they run
-Test::Unit::TestCase.class_eval do
-  def run_with_info *args, &block
-    puts "#{self.class.name.underscore}/#{@method_name}"
-    run_without_info *args, &block
-  end
-  alias_method_chain :run, :info
-end
-=end
+
 module TransactionSampleTestHelper
   def make_sql_transaction(*sql)
     sampler = NewRelic::Agent::TransactionSampler.new

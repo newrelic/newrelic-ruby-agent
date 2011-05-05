@@ -175,9 +175,9 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
 
     method_c1
 
-    assert_not_nil @stats_engine.lookup_stat("c1")
-    assert_nil @stats_engine.lookup_stat("c2")
-    assert_not_nil @stats_engine.lookup_stat("c3")
+    assert_not_nil @stats_engine.lookup_stats("c1")
+    assert_nil @stats_engine.lookup_stats("c2")
+    assert_not_nil @stats_engine.lookup_stats("c3")
 
     assert_not_nil @scope_listener.scope["c2"]
   end
