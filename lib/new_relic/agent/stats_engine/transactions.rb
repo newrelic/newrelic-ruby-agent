@@ -92,6 +92,7 @@ module Agent
 
       # Start a new transaction, unless one is already in progress
       def start_transaction(name = nil)
+        Thread.current[:newrelic_most_recent_transaction] = nil
         Thread::current[:newrelic_scope_stack] ||= []
         self.scope_name = name if name
       end
