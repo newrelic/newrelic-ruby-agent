@@ -31,7 +31,7 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
       end
     end
     elapsed = Time.now - start
-    assert_in_delta 0.019, elapsed, 0.002
+    assert_in_delta 0.019, elapsed, 0.02
   end
   def test_task_error__standard
     @logger.expects(:debug)

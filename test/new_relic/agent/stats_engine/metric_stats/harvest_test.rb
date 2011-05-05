@@ -45,10 +45,12 @@ class NewRelic::Agent::StatsEngine::MetricStats::HarvestTest < Test::Unit::TestC
   end  
 
   def test_clone_and_reset_stats_nil
-    spec = NewRelic::MetricSpec.new('foo')
+    spec = NewRelic::MetricSpec.new('foo', 'bar')
     stats = nil
-    assert_raise(RuntimeError) do
+    begin
       clone_and_reset_stats(spec, stats)
+    rescue RuntimeError => e
+      assert_equal("Nil stats for foo (bar)", e.message)
     end
   end
 
@@ -91,12 +93,57 @@ class NewRelic::Agent::StatsEngine::MetricStats::HarvestTest < Test::Unit::TestC
     stats = mock('stats')
     stats.expects(:is_reset?).returns(false)
     metric_spec = mock('spec')
-    id = mock('id')
-
-    data.expects(:[]=).with(metric_spec, is_a(NewRelic::MetricData))
-    add_data_to_send_unless_empty(data, stats, metric_spec, id)
+    
+    NewRelic::MetricData.expects(:new).with(metric_spec, stats, nil).returns('metric data')
+    data.expects(:[]=).with(metric_spec, 'metric data')
+    add_data_to_send_unless_empty(data, stats, metric_spec, nil)
   end
 
+  def test_add_data_to_send_unless_empty_with_id
+    data = mock('data hash')
+    stats = mock('stats')
+    stats.expects(:is_reset?).returns(false)
+    metric_spec = mock('spec')
+    id = mock('id')
+    
+    NewRelic::MetricData.expects(:new).with(nil, stats, id).returns('metric data')
+    data.expects(:[]=).with(metric_spec, 'metric data')
+    assert_equal 'metric data', add_data_to_send_unless_empty(data, stats, metric_spec, id)
+  end
+
+  def test_merge_data_basic
+    mock_stats_hash = mock('stats hash')
+    self.stats_hash = mock_stats_hash
+    merge_data({})
+  end
+
+  def test_merge_data_new_and_old_data
+    stats = NewRelic::MethodTraceStats.new
+    stats.record_data_point(1.0)
+    new_stats = NewRelic::MethodTraceStats.new
+    new_stats.record_data_point(2.0)
+    self.expects(:lookup_stats).with('Custom/test/method', '').returns(new_stats)
+    assert_equal(2.0, new_stats.total_call_time)    
+    
+    metric_spec = NewRelic::MetricSpec.new('Custom/test/method')
+    mock_stats_hash = mock('stats_hash')
+    self.stats_hash = mock_stats_hash
+    merge_data({metric_spec => NewRelic::MetricData.new(metric_spec, stats, nil)})
+    assert_equal(3.0, new_stats.total_call_time)    
+  end
+
+  def test_merge_data_old_data
+    stats = NewRelic::MethodTraceStats.new
+    stats.record_data_point(1.0)
+    self.expects(:lookup_stats).returns(nil)
+    
+    metric_spec = NewRelic::MetricSpec.new('Custom/test/method')
+    mock_stats_hash = mock('stats_hash')
+    mock_stats_hash.expects(:[]=).with(metric_spec, stats)
+    self.stats_hash = mock_stats_hash
+    merge_data({metric_spec => NewRelic::MetricData.new(metric_spec, stats, nil)})
+  end
+    
 end
 
 
