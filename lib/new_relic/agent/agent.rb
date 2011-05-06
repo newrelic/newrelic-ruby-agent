@@ -684,7 +684,7 @@ module NewRelic
         end
 
         public :serialize
-        
+
         def merge_data_from(data)
           metrics, transaction_traces, errors = data
           @stats_engine.merge_data(metrics) if metrics
@@ -705,7 +705,7 @@ module NewRelic
         end
 
         public :merge_data_from
-        
+
         # Connect to the server and validate the license.  If successful,
         # @connected has true when finished.  If not successful, you can
         # keep calling this.  Return false if we could not establish a
@@ -767,13 +767,13 @@ module NewRelic
           @unsent_timeslice_data = @stats_engine.harvest_timeslice_data(@unsent_timeslice_data, @metric_ids)
           @unsent_timeslice_data
         end
-        
+
         def fill_metric_id_cache(pairs_of_specs_and_ids)
           Array(pairs_of_specs_and_ids).each do |metric_spec, metric_id|
             @metric_ids[metric_spec] = metric_id
           end
         end
-        
+
         def harvest_and_send_timeslice_data
           now = Time.now
           NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote').record_data_point(0.0)
@@ -790,7 +790,7 @@ module NewRelic
             # assume that the data was received. chances are that it was
             metric_specs_and_ids = []
           end
-          
+
           fill_metric_id_cache(metric_specs_and_ids)
 
           log.debug "#{now}: sent #{@unsent_timeslice_data.length} timeslices (#{@agent_id}) in #{Time.now - now} seconds"
@@ -809,7 +809,7 @@ module NewRelic
           @traces = @transaction_sampler.harvest(@traces, @slowest_transaction_threshold)
           @traces
         end
-        
+
         def harvest_and_send_slowest_sample
           harvest_transaction_traces
           unless @traces.empty?
@@ -846,12 +846,12 @@ module NewRelic
           # determined of the entire period since the last reported
           # sample.
         end
-        
+
         def harvest_errors
           @unsent_errors = @error_collector.harvest_errors(@unsent_errors)
           @unsent_errors
         end
-        
+
         def harvest_and_send_errors
           harvest_errors
           if @unsent_errors && @unsent_errors.length > 0
@@ -975,7 +975,7 @@ module NewRelic
           raise NewRelic::Agent::ServerConnectionException, "Recoverable error connecting to the server: #{e}"
         ensure
           NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote').record_data_point((Time.now - now).to_f)
-          NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote/' + method.to_s).record_data_point((Time.now - now).to_f)          
+          NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote/' + method.to_s).record_data_point((Time.now - now).to_f)
         end
 
         def graceful_disconnect

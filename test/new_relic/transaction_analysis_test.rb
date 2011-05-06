@@ -20,11 +20,11 @@ class NewRelic::TransactionAnalysisTest < Test::Unit::TestCase
     root_segment = mock('root_segment')
     # this is for 1.9 compatibility - calling each on something calls
     # #to_a on it - which is fun and exciting
-    root_segment.stubs(:to_a).returns([root_segment])    
+    root_segment.stubs(:to_a).returns([root_segment])
     other_segment = mock('other_segment')
     # this is for 1.9 compatibility - calling each on something calls
     # #to_a on it - which is fun and exciting
-    other_segment.stubs(:to_a).returns([other_segment])    
+    other_segment.stubs(:to_a).returns([other_segment])
     other_segment.expects(:metric_name).twice.returns('Controller/foo')
     other_segment.expects(:duration).returns(0.1)
     other_segment.expects(:exclusive_duration).returns(0.1)
@@ -45,14 +45,14 @@ class NewRelic::TransactionAnalysisTest < Test::Unit::TestCase
     other_segment = mock('other_segment')
     # this is for 1.9 compatibility - calling each on something calls
     # #to_a on it - which is fun and exciting
-    other_segment.stubs(:to_a).returns([other_segment])    
+    other_segment.stubs(:to_a).returns([other_segment])
     other_segment.expects(:metric_name).twice.returns('Controller/foo')
     other_segment.expects(:duration).returns(0.1)
     other_segment.expects(:exclusive_duration).returns(0.1)
     yet_another = mock('another segment')
     # this is for 1.9 compatibility - calling each on something calls
     # #to_a on it - which is fun and exciting
-    yet_another.stubs(:to_a).returns([yet_another])    
+    yet_another.stubs(:to_a).returns([yet_another])
     yet_another.expects(:metric_name).twice.returns('Controller/bar')
     yet_another.expects(:duration).returns(0.2)
     yet_another.expects(:exclusive_duration).returns(0.2)
@@ -68,11 +68,11 @@ class NewRelic::TransactionAnalysisTest < Test::Unit::TestCase
     root_segment = mock('root_segment')
     # this is for 1.9 compatibility - calling each on something calls
     # #to_a on it - which is fun and exciting
-    root_segment.stubs(:to_a).returns([root_segment])    
+    root_segment.stubs(:to_a).returns([root_segment])
     other_segment = mock('other_segment')
     # this is for 1.9 compatibility - calling each on something calls
     # #to_a on it - which is fun and exciting
-    other_segment.stubs(:to_a).returns([other_segment])        
+    other_segment.stubs(:to_a).returns([other_segment])
     other_segment.expects(:metric_name).twice.returns('Controller/foo')
     other_segment.expects(:duration).returns(0.1)
     other_segment.expects(:exclusive_duration).returns(0.1)
@@ -97,7 +97,7 @@ class NewRelic::TransactionAnalysisTest < Test::Unit::TestCase
     other_segment.expects(:[]).with(:sql).returns(true)
     # this is for 1.9 compatibility - calling each on something calls
     # #to_a on it - which is fun and exciting
-    other_segment.stubs(:to_a).returns([other_segment])    
+    other_segment.stubs(:to_a).returns([other_segment])
     self.expects(:each_segment).multiple_yields(root_segment, other_segment)
     assert_equal [other_segment], sql_segments
   end

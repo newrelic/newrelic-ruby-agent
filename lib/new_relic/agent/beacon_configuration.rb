@@ -39,7 +39,7 @@ module NewRelic
       def build_browser_timing_header(connect_data)
         return "" if !@rum_enabled
         return "" if @browser_monitoring_key.nil?
-        
+
         value = basic_javascript(connect_data)
         if value.respond_to?(:html_safe)
           value.html_safe

@@ -2,7 +2,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 module NewRelic
   module Agent
     class ShimAgentTest < Test::Unit::TestCase
-      
+
       def setup
         super
         @agent = NewRelic::Agent::ShimAgent.new

@@ -302,11 +302,11 @@ module NewRelic
     def is_execution_traced?
       Thread.current[:newrelic_untraced].nil? || Thread.current[:newrelic_untraced].last != false
     end
-    
+
     def is_transaction_traced?
       Thread::current[:record_tt] != false
     end
-    
+
     def is_sql_recorded?
       Thread::current[:record_sql] != false
     end

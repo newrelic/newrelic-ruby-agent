@@ -52,12 +52,12 @@ module ActiveRecordFixtures
         connection.create_table 'orders_shipments', :force => true, :id => false do |t|
           t.column :order_id, :integer
           t.column :shipment_id, :integer
-        end        
+        end
       else
         connection.execute("delete from #{self.table_name}")
       end
-      
-      
+
+
     end
     def self.teardown
     end

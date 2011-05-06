@@ -36,7 +36,7 @@ class NewRelic::Agent::BeaconConfigurationTest < Test::Unit::TestCase
     NewRelic::Control.instance.expects(:license_key).never
     assert_equal([97] * 40, bc.license_bytes, "should return the cached value if it exists")
   end
-  
+
   def test_license_bytes_should_set_instance_cache
     connect_data = {}
     bc = NewRelic::Agent::BeaconConfiguration.new(connect_data)
@@ -52,14 +52,14 @@ class NewRelic::Agent::BeaconConfigurationTest < Test::Unit::TestCase
     bc.instance_eval { @rum_enabled = false }
     assert_equal '', bc.build_browser_timing_header(connect_data), "should not return a header when rum enabled is false"
   end
-  
+
   def test_build_browser_timing_header_enabled_but_no_key
     connect_data = {}
     bc = NewRelic::Agent::BeaconConfiguration.new(connect_data)
     bc.instance_eval { @rum_enabled = true; @browser_monitoring_key = nil }
     assert_equal '', bc.build_browser_timing_header(connect_data), "should not return a header when browser_monitoring_key is nil"
   end
-  
+
   def test_build_browser_timing_header_enabled_checking_for_episodes_url
     connect_data = {'episodes_url' => 'an episodes url'}
     bc = NewRelic::Agent::BeaconConfiguration.new(connect_data)
@@ -83,7 +83,7 @@ class NewRelic::Agent::BeaconConfigurationTest < Test::Unit::TestCase
     # should just pass through the data
     bc.basic_javascript(mock_data)
   end
-  
+
   def test_build_browser_timing_header_should_html_safe_header
     mock_javascript = mock('javascript')
     connect_data = {'browser_key' => 'a' * 40}
@@ -94,13 +94,13 @@ class NewRelic::Agent::BeaconConfigurationTest < Test::Unit::TestCase
     mock_javascript.expects(:html_safe)
     bc.build_browser_timing_header(connect_data)
   end
-  
+
   def test_load_file_js_load_episodes_file_false
     connect_data = {'rum.load_episodes_file' => false}
     bc = NewRelic::Agent::BeaconConfiguration.new(connect_data)
     assert_equal '', bc.load_file_js(connect_data), "should be empty when load episodes file is false"
   end
-  
+
   def test_load_file_js_load_episodes_file_missing
     connect_data = {}
     bc = NewRelic::Agent::BeaconConfiguration.new(connect_data)
@@ -112,7 +112,7 @@ class NewRelic::Agent::BeaconConfigurationTest < Test::Unit::TestCase
     bc = NewRelic::Agent::BeaconConfiguration.new(connect_data)
     assert_equal(183, bc.load_file_js(connect_data).size, "should output the javascript when rum.load_episodes_file is true")
   end
-  
+
   def test_load_file_js_load_episodes_file_with_episodes_url
     connect_data = {'episodes_url' => 'an episodes url'}
     bc = NewRelic::Agent::BeaconConfiguration.new(connect_data)

@@ -1,7 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 class NewRelic::Agent::SamplerTest < Test::Unit::TestCase
   require 'new_relic/agent/sampler'
-  
+
   def test_inherited_should_append_subclasses_to_sampler_classes
     test_class = Class.new(NewRelic::Agent::Sampler)
     sampler_classes = NewRelic::Agent::Sampler.instance_eval { @sampler_classes }

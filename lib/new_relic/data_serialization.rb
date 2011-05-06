@@ -8,7 +8,7 @@ module NewRelic
       end
 
       def load_from_file
-        create_file_if_needed        
+        create_file_if_needed
         (File.open(file_path, 'r+') do |f|
           result = load(f.read)
           f.truncate(0)
@@ -17,20 +17,20 @@ module NewRelic
       rescue(EOFError) => e
         nil
       end
-      
+
       def dump_to_file(object)
         create_file_if_needed
         File.open(file_path, 'w') do |f|
           f.write(dump(object))
         end
       end
-      
+
       private
-      
+
       def max_size
         100_000
       end
-      
+
       def create_file_if_needed
         FileUtils.touch(file_path) unless File.exists?(file_path)
       end

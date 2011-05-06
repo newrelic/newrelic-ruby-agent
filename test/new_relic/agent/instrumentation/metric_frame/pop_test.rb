@@ -5,7 +5,7 @@ class NewRelic::Agent::Instrumentation::MetricFrame::PopTest < Test::Unit::TestC
 
   attr_reader :agent
   attr_reader :transaction_sampler
-  
+
   def setup
     @agent = mock('agent')
     @transaction_sampler = mock('transaction sampler')
@@ -15,7 +15,7 @@ class NewRelic::Agent::Instrumentation::MetricFrame::PopTest < Test::Unit::TestC
     Thread.current[:newrelic_start_time] = nil
     Thread.current[:newrelic_metric_frame] = nil
   end
-  
+
   def test_clear_thread_metric_frame
     Thread.current[:newrelic_metric_frame] = 'whee'
     clear_thread_metric_frame!
@@ -29,7 +29,7 @@ class NewRelic::Agent::Instrumentation::MetricFrame::PopTest < Test::Unit::TestC
     mock_frame.expects(:start).returns(start_time)
     Thread.current[:newrelic_start_time] = nil
     Thread.current[:newrelic_metric_frame] = mock_frame
-    
+
     set_last_start_time!
 
     assert_equal(start_time, Thread.current[:newrelic_start_time], "should set the start time correctly: #{start_time.inspect} expected but was #{Thread.current[:newrelic_start_time].inspect}")
@@ -41,7 +41,7 @@ class NewRelic::Agent::Instrumentation::MetricFrame::PopTest < Test::Unit::TestC
     fakeengine = mock('stats_engine')
     fakeagent.expects(:stats_engine).returns(fakeengine)
     fakeengine.expects(:scope_name=).with('A METRIC')
-    
+
     set_new_scope!('A METRIC')
   end
 
@@ -81,7 +81,7 @@ class NewRelic::Agent::Instrumentation::MetricFrame::PopTest < Test::Unit::TestC
     self.expects(:process_cpu).returns(4)
     assert_equal 1, normal_cpu_burn
   end
-  
+
   def test_normal_cpu_burn_negative
     @process_cpu_start = nil
     self.expects(:process_cpu).never
@@ -101,7 +101,7 @@ class NewRelic::Agent::Instrumentation::MetricFrame::PopTest < Test::Unit::TestC
     self.expects(:record_jruby_cpu_burn).never
     assert_equal nil, jruby_cpu_burn
   end
-  
+
   def test_record_jruby_cpu_burn
     NewRelic::Agent.get_stats_no_scope(NewRelic::Metrics::USER_TIME).expects(:record_data_point).with(1.0)
     record_jruby_cpu_burn(1.0)
@@ -164,7 +164,7 @@ class NewRelic::Agent::Instrumentation::MetricFrame::PopTest < Test::Unit::TestC
     fakemetric.expects(:is_web_transaction?).returns(false)
     self.expects(:notify_transaction_sampler).with(false)
     self.expects(:end_transaction!)
-    self.expects(:set_last_start_time!)    
+    self.expects(:set_last_start_time!)
     self.expects(:clear_thread_metric_frame!)
     handle_empty_path_stack(fakemetric)
   end
@@ -182,7 +182,7 @@ class NewRelic::Agent::Instrumentation::MetricFrame::PopTest < Test::Unit::TestC
     fakemetric = mock('metric')
     fakemetric.expects(:is_web_transaction?).never
     self.expects(:end_transaction!)
-    self.expects(:set_last_start_time!)    
+    self.expects(:set_last_start_time!)
     self.expects(:clear_thread_metric_frame!)
     handle_empty_path_stack(fakemetric)
   end

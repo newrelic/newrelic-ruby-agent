@@ -162,7 +162,7 @@ module NewRelic
         # Anything left over is treated as custom params
 
         def self.notice_error(e, options={})
-          request = options.delete(:request)          
+          request = options.delete(:request)
           if request
             options[:referer] = referer_from_request(request)
             options[:uri] = uri_from_request(request)

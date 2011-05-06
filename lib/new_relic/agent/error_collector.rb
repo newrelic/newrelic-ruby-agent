@@ -185,11 +185,11 @@ module NewRelic
       @lock.synchronize do
         errors = @errors
         @errors = []
-        
+
         if unsent_errors && !unsent_errors.empty?
           errors = unsent_errors + errors
         end
-        
+
         errors
       end
     end

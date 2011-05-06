@@ -4,7 +4,7 @@ module NewRelic
     module Instrumentation
       class MetricFrame
         module Pop
-          
+
           def clear_thread_metric_frame!
             Thread.current[:newrelic_metric_frame] = nil
           end
@@ -15,7 +15,7 @@ module NewRelic
               Thread.current[:newrelic_start_time] = Thread.current[:newrelic_metric_frame].start
             end
           end
-          
+
           def set_new_scope!(metric)
             agent.stats_engine.scope_name = metric
           end
@@ -31,7 +31,7 @@ module NewRelic
           def notice_scope_empty
             transaction_sampler.notice_scope_empty
           end
-          
+
           def record_transaction_cpu
             burn = cpu_burn
             transaction_sampler.notice_transaction_cpu_time(burn) if burn
@@ -39,7 +39,7 @@ module NewRelic
 
           def normal_cpu_burn
             return unless @process_cpu_start
-            process_cpu - @process_cpu_start            
+            process_cpu - @process_cpu_start
           end
 
           def jruby_cpu_burn
@@ -48,7 +48,7 @@ module NewRelic
             record_jruby_cpu_burn(burn)
             burn
           end
-          
+
           # we need to do this here because the normal cpu sampler
           # process doesn't work on JRuby. See the cpu_sampler.rb file
           # to understand where cpu is recorded for non-jruby processes
@@ -73,7 +73,7 @@ module NewRelic
           def traced?
             NewRelic::Agent.is_execution_traced?
           end
-          
+
           def handle_empty_path_stack(metric)
             raise 'path stack not empty' unless @path_stack.empty?
             notify_transaction_sampler(metric.is_web_transaction?) if traced?
