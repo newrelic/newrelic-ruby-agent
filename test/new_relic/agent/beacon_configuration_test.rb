@@ -113,7 +113,7 @@ class NewRelic::Agent::BeaconConfigurationTest < Test::Unit::TestCase
     assert_equal(183, bc.load_file_js(connect_data).size, "should output the javascript when rum.load_episodes_file is true")
   end
   
-  def test_load_file_js_load_episodes_file_present
+  def test_load_file_js_load_episodes_file_with_episodes_url
     connect_data = {'episodes_url' => 'an episodes url'}
     bc = NewRelic::Agent::BeaconConfiguration.new(connect_data)
     assert(bc.load_file_js(connect_data).include?('an episodes url'), "should include the episodes url by default")

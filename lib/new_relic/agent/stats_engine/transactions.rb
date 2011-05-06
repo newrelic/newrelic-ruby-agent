@@ -92,7 +92,6 @@ module Agent
 
       # Start a new transaction, unless one is already in progress
       def start_transaction(name = nil)
-        Thread.current[:newrelic_most_recent_transaction] = nil
         Thread::current[:newrelic_scope_stack] ||= []
         self.scope_name = name if name
       end
@@ -103,10 +102,9 @@ module Agent
       #
       def end_transaction
         stack = scope_stack
-
+              
         if stack && stack.empty?
-          #name, RUM header added, RUM footer added
-          Thread.current[:newrelic_most_recent_transaction] = {:scope_name => Thread.current[:newrelic_scope_name], :rum_header_added => false, :rum_footer_added => false}
+          Thread::current[:newrelic_most_recent_transaction] = Thread::current[:newrelic_scope_name]
           Thread::current[:newrelic_scope_stack] = nil
           Thread::current[:newrelic_scope_name] = nil
         end
