@@ -221,7 +221,8 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     beacon = ''
     license_key = ''
     application_id = 1
-    
+
+    Thread.current[:newrelic_queue_time] = nil
     Thread.current[:newrelic_start_time] = Time.now
     Thread.current[:newrelic_most_recent_transaction] = 'most recent transaction'
 
