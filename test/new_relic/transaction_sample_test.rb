@@ -87,8 +87,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
 
         explanations.each do |explanation|
           assert_kind_of Array, explanation
-          assert_kind_of Array, explanation[0]
-          assert_equal "QUERY RESULT", explanation[0][0]
+          assert_equal "QUERY RESULT", explanation.join('')
           explain_count += 1
         end
       end

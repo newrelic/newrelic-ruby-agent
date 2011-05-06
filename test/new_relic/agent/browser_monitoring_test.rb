@@ -234,6 +234,9 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
 
   def test_html_safe_if_needed_unsafed
     string = mock('string')
+    # here to handle 1.9 encoding - we stub this out because it should
+    # be handled automatically and is outside the scope of this test
+    string.stubs(:respond_to?).with(:encoding).returns(false)
     string.expects(:respond_to?).with(:html_safe).returns(false)
     assert_equal(string, html_safe_if_needed(string))
   end
@@ -242,6 +245,9 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     string = mock('string')
     string.expects(:respond_to?).with(:html_safe).returns(true)
     string.expects(:html_safe).returns(string)
+    # here to handle 1.9 encoding - we stub this out because it should
+    # be handled automatically and is outside the scope of this test
+    string.stubs(:respond_to?).with(:encoding).returns(false)    
     assert_equal(string, html_safe_if_needed(string))
   end
 
