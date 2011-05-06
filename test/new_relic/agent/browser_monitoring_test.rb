@@ -223,7 +223,9 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     application_id = 1
 
     Thread.current[:newrelic_queue_time] = nil
-    Thread.current[:newrelic_start_time] = Time.now
+    # mocking this because JRuby thinks that Time.now - Time.now
+    # always takes at least 1ms
+    self.expects(:browser_monitoring_app_time).returns(0)
     Thread.current[:newrelic_most_recent_transaction] = 'most recent transaction'
 
     self.expects(:obfuscate).with('most recent transaction').returns('most recent transaction')
