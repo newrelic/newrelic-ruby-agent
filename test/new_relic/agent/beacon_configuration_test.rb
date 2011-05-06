@@ -60,11 +60,11 @@ class NewRelic::Agent::BeaconConfigurationTest < Test::Unit::TestCase
     assert_equal '', bc.build_browser_timing_header(connect_data), "should not return a header when browser_monitoring_key is nil"
   end
   
-  def test_build_browser_timing_header_enabled_but_no_key
+  def test_build_browser_timing_header_enabled_checking_for_episodes_url
     connect_data = {'episodes_url' => 'an episodes url'}
     bc = NewRelic::Agent::BeaconConfiguration.new(connect_data)
-    bc.instance_eval { @rum_enabled = true; @browser_monitoring_key = nil }
-    assert_equal('', bc.build_browser_timing_header(connect_data), "should not return JS when there is no browser monitoring key")
+    bc.instance_eval { @rum_enabled = true; @browser_monitoring_key = 'a' * 40 }
+    assert(bc.build_browser_timing_header(connect_data).include?('an episodes url'), "should include the episodes url in the javascript")
   end
 
   def test_build_browser_timing_header_enabled_with_key
