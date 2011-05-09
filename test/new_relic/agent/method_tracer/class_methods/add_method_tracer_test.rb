@@ -38,19 +38,19 @@ module NewRelic
               assert_equal "Custom/#{name}/test_method", default_metric_name_code('test_method')
             end
 
-            def test_method_exists_positive
+            def test_newrelic_method_exists_positive
               self.expects(:method_defined?).returns(true)
-              assert method_exists?('test_method')
+              assert newrelic_method_exists?('test_method')
             end
 
-            def test_method_exists_negative
+            def test_newrelic_method_exists_negative
               self.expects(:method_defined?).returns(false)
               self.expects(:private_method_defined?).returns(false)
 
               fake_log = mock('log')
               NewRelic::Control.instance.expects(:log).returns(fake_log)
               fake_log.expects(:warn).with("Did not trace #{name}#test_method because that method does not exist")
-              assert !method_exists?('test_method')
+              assert !newrelic_method_exists?('test_method')
             end
 
             def test_set_deduct_call_time_based_on_metric_positive

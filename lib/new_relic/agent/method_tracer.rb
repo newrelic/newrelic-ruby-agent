@@ -314,7 +314,7 @@ module NewRelic
             "Custom/#{self.name}/#{method_name.to_s}"
           end
 
-          def method_exists?(method_name)
+          def newrelic_method_exists?(method_name)
             exists = method_defined?(method_name) || private_method_defined?(method_name)
             NewRelic::Control.instance.log.warn("Did not trace #{self.name}##{method_name} because that method does not exist") unless exists
             exists
@@ -378,7 +378,7 @@ module NewRelic
         include AddMethodTracer
 
         def add_method_tracer(method_name, metric_name_code=nil, options = {})
-          return unless method_exists?(method_name)
+          return unless newrelic_method_exists?(method_name)
           metric_name_code ||= default_metric_name_code(method_name)
           return if traced_method_exists?(method_name, metric_name_code)
 
