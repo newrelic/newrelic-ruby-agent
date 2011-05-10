@@ -196,59 +196,11 @@ module NewRelic
       sample
     end
 
-    def analyze
-      sample = self
-      original_path_string = nil
-      loop do
-        original_path_string = sample.path_string.to_s
-        new_sample = sample.dup
-        new_sample.root_segment = sample.root_segment.dup
-        new_sample.root_segment.called_segments = analyze_called_segments(root_segment.called_segments)
-        sample = new_sample
-        return sample if sample.path_string.to_s == original_path_string
-      end
-
-    end
-
     def params=(params)
       @params = params
     end
 
   private
-
-    def analyze_called_segments(called_segments)
-      path = nil
-      like_segments = []
-
-      segments = []
-
-      called_segments.each do |segment|
-        segment = segment.dup
-        segment.called_segments = analyze_called_segments(segment.called_segments)
-
-        current_path = segment.path_string
-        if path == current_path
-          like_segments << segment
-        else
-          segments += summarize_segments(like_segments)
-
-          like_segments.clear
-          like_segments << segment
-          path = current_path
-        end
-      end
-      segments += summarize_segments(like_segments)
-
-      segments
-    end
-
-    def summarize_segments(like_segments)
-      if like_segments.length > COLLAPSE_SEGMENTS_THRESHOLD
-        [CompositeSegment.new(like_segments)]
-      else
-        like_segments
-      end
-    end
 
     def build_segment_with_omissions(new_sample, time_delta, source_segment, target_segment, regex)
       source_segment.called_segments.each do |source_called_segment|
