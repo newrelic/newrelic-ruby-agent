@@ -44,4 +44,19 @@ class NewRelic::Control::ClassMethodsTest < Test::Unit::TestCase
     @base.expects(:local_env).returns(local_env)
     @base.load_test_framework
   end
+
+  def test_load_framework_class_existing
+    %w[rails rails3 sinatra ruby merb external].each do |type|
+      @base.load_framework_class(type)
+    end
+  end
+  
+  def test_load_framework_class_missing
+    # this is used to allow other people to insert frameworks without
+    # having the file in our agent, i.e. define your own
+    # NewRelic::Control::Framework::FooBar
+    assert_raise(NameError) do
+      @base.load_framework_class('missing')
+    end
+  end
 end

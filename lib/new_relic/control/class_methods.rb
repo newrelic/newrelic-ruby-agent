@@ -28,8 +28,10 @@ module NewRelic
 
       def load_framework_class(framework)
         begin
-          require "new_relic/control/frameworks/#{framework}.rb"
+          require "new_relic/control/frameworks/#{framework}"
         rescue LoadError
+          # maybe it is already loaded by some external system
+          # i.e. rpm_contrib or user extensions?
         end
         NewRelic::Control::Frameworks.const_get(framework.to_s.capitalize)
       end
