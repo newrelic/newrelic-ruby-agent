@@ -845,6 +845,7 @@ module NewRelic
 
         def send_request(opts)
           request = Net::HTTP::Post.new(opts[:uri], 'CONTENT-ENCODING' => opts[:encoding], 'HOST' => opts[:collector].name)
+          request['user-agent'] = user_agent
           request.content_type = "application/octet-stream"
           request.body = opts[:data]
 
@@ -895,6 +896,10 @@ module NewRelic
           uri = "/agent_listener/#{PROTOCOL_VERSION}/#{control.license_key}/#{method}"
           uri << "?run_id=#{@agent_id}" if @agent_id
           uri
+        end
+
+        def user_agent
+          "NewRelic-RubyAgent/#{NewRelic::VERSION::STRING}"
         end
 
         # send a message via post
