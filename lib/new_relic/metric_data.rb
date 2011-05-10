@@ -17,9 +17,7 @@ module NewRelic
     def original_spec
       @original_spec || @metric_spec
     end
-    def metric_spec
-      @metric_spec
-    end
+
     def metric_spec= new_spec
       @original_spec = @metric_spec if @metric_spec
       @metric_spec = new_spec
@@ -35,8 +33,11 @@ module NewRelic
     end
 
     def to_s
-      "#{metric_spec.name}(#{metric_spec.scope}): #{stats}" if metric_spec
-      "#{metric_id}: #{stats}" if metric_spec.nil?
+      if metric_spec
+        "#{metric_spec.name}(#{metric_spec.scope}): #{stats}"
+      else
+        "#{metric_id}: #{stats}"
+      end
     end
     def inspect
       "#<MetricData metric_spec:#{metric_spec.inspect}, stats:#{stats.inspect}, metric_id:#{metric_id.inspect}>"
