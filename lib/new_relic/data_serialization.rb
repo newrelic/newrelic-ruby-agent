@@ -7,19 +7,6 @@ module NewRelic
         (File.size(file_path) >= max_size)
       end
 
-      def with_locked_store(mode)
-        File.open(file_path, mode) do |f|
-          f.flock(File::LOCK_EX)
-          begin
-            yield(f)
-          ensure
-            f.flock(File::LOCK_UN)
-          end
-        end
-      rescue Exception => e
-        puts e.inspect
-      end
-
       def load_from_file
         create_file_if_needed
         with_locked_store('r+') do |f|
@@ -39,6 +26,19 @@ module NewRelic
       end
 
       private
+
+      def with_locked_store(mode)
+        File.open(file_path, mode) do |f|
+          f.flock(File::LOCK_EX)
+          begin
+            yield(f)
+          ensure
+            f.flock(File::LOCK_UN)
+          end
+        end
+      rescue Exception => e
+        puts e.inspect
+      end
 
       def get_data_from_file(f)
         data = f.read

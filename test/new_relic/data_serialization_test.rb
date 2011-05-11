@@ -19,6 +19,20 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
     assert_equal(expected_contents, File.read(file), "should have dumped the contents")
   end
 
+  def test_dump_to_file_yields_old_data
+    file = './log/newrelic_agent_store.db'
+    expected_contents = 'a happy string'
+    File.open(file, 'w') do |f|
+      f.write(Marshal.dump(expected_contents))
+    end
+    contents = nil
+    NewRelic::DataSerialization.dump_to_file do |old_data|
+      contents = old_data
+      'a happy string'
+    end
+    assert_equal(contents, expected_contents, "should have dumped the contents")
+  end
+
   def test_round_trip
     NewRelic::DataSerialization.dump_to_file do
       'a' * 30
