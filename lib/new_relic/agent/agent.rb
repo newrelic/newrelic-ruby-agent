@@ -900,8 +900,11 @@ module NewRelic
 
         def user_agent
           ruby_description = ''
+          # note the trailing space!
           ruby_description << "(ruby #{::RUBY_VERSION} #{::RUBY_PLATFORM}) " if defined?(::RUBY_VERSION) && defined?(::RUBY_PLATFORM)
-          "NewRelic-RubyAgent/#{NewRelic::VERSION::STRING} #{ruby_description}zlib/#{Zlib.zlib_version}"
+          zlib_version = ''
+          zlib_version << "zlib/#{Zlib.zlib_version}" if defined?(::Zlib) && Zlib.respond_to?(:zlib_version)
+          "NewRelic-RubyAgent/#{NewRelic::VERSION::STRING} #{ruby_description}#{zlib_version}"
         end
 
         # send a message via post
