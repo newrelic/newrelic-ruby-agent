@@ -19,7 +19,7 @@ module ActiveRecordFixtures
     self.table_name = 'newrelic_test_orders'
     has_and_belongs_to_many :shipments, :class_name => 'ActiveRecordFixtures::Shipment'
     def self.setup
-      unless connection.table_exists?(self.table_name)
+      unless check_for_table
         connection.create_table self.table_name, :force => true do |t|
           t.column :name, :string
         end
@@ -27,6 +27,13 @@ module ActiveRecordFixtures
         connection.execute("delete from #{self.table_name}")
       end
     end
+
+    def self.check_for_table
+      connection.table_exists?(self.table_name)
+    rescue Exception => e
+      false
+    end
+    
     def self.add_delay
       # Introduce a 5 ms delay into db operations on Orders
       def connection.log_info *args
@@ -45,7 +52,7 @@ module ActiveRecordFixtures
     self.table_name = 'newrelic_test_shipment'
     has_and_belongs_to_many :orders, :class_name => 'ActiveRecordFixtures::Order'
     def self.setup
-      unless connection.table_exists?(self.table_name)
+      unless check_for_table
         connection.create_table self.table_name, :force => true do |t|
           # no other columns
         end
@@ -56,7 +63,11 @@ module ActiveRecordFixtures
       else
         connection.execute("delete from #{self.table_name}")
       end
-
+    def self.check_for_table
+      connection.table_exists?(self.table_name)
+    rescue Exception => e
+      false
+    end
 
     end
     def self.teardown
