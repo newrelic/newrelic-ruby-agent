@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{newrelic_rpm}
-  s.version = "3.1.0.alpha"
+  s.version = "3.1.0.beta1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Bill Kayser", "Justin George"]
@@ -168,6 +168,7 @@ http://github.com/newrelic/rpm/tree/master.
     "test/new_relic/agent/mock_scope_listener.rb",
     "test/new_relic/agent/rpm_agent_test.rb",
     "test/new_relic/agent/sampler_test.rb",
+    "test/new_relic/agent/shim_agent_test.rb",
     "test/new_relic/agent/stats_engine/metric_stats/harvest_test.rb",
     "test/new_relic/agent/stats_engine/metric_stats_test.rb",
     "test/new_relic/agent/stats_engine/samplers_test.rb",
@@ -177,10 +178,12 @@ http://github.com/newrelic/rpm/tree/master.
     "test/new_relic/agent/worker_loop_test.rb",
     "test/new_relic/collection_helper_test.rb",
     "test/new_relic/command/deployments_test.rb",
+    "test/new_relic/control/class_methods_test.rb",
     "test/new_relic/control/logging_methods_test.rb",
     "test/new_relic/control_test.rb",
     "test/new_relic/data_serialization_test.rb",
     "test/new_relic/local_environment_test.rb",
+    "test/new_relic/metric_data_test.rb",
     "test/new_relic/metric_spec_test.rb",
     "test/new_relic/rack/episodes_test.rb",
     "test/new_relic/stats_test.rb",
