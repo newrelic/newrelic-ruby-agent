@@ -103,7 +103,9 @@ class NewRelic::MetricDataTest < Test::Unit::TestCase
 
   def test_to_json_no_metric_id
     md = NewRelic::MetricData.new(NewRelic::MetricSpec.new('Custom/test/method', ''), NewRelic::MethodTraceStats.new, nil)
-    assert_equal('{"metric_spec":{"name":"Custom/test/method","scope":""},"stats":{"total_exclusive_time":0.0,"min_call_time":0.0,"call_count":0,"sum_of_squares":0.0,"total_call_time":0.0,"max_call_time":0.0},"metric_id":null}', md.to_json, "should include the metric spec and have a null metric_id")
+    json = md.to_json
+    assert(json.include?('"Custom/test/method"'), "should include the metric spec in the json")
+    assert(json.include?('"metric_id":null}'), "should have a null metric_id")
   end
 
   def test_to_json_with_metric_id
