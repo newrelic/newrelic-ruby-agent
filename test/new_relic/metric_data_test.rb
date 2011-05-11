@@ -29,8 +29,8 @@ class NewRelic::MetricDataTest < Test::Unit::TestCase
     metric_id = mock('metric_id')    
     md1 = NewRelic::MetricData.new(spec, stats, metric_id)
     md2 = NewRelic::MetricData.new(other_spec, stats, metric_id)
-    assert_false(md1.eql?(md2), "The example metric data objects should not be eql?: #{md1.inspect} #{md2.inspect}")
-    assert_false(md2.eql?(md1), "The example metric data objects should not be eql?: #{md1.inspect} #{md2.inspect}")    
+    assert(!md1.eql?(md2), "The example metric data objects should not be eql?: #{md1.inspect} #{md2.inspect}")
+    assert(!md2.eql?(md1), "The example metric data objects should not be eql?: #{md1.inspect} #{md2.inspect}")    
   end
   def test_eql_unequal_stats
     spec = mock('metric_spec')
