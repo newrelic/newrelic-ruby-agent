@@ -125,7 +125,7 @@ module NewRelic
       @agent
     end
 
-    def agent= new_instance #:nodoc:
+    def agent=(new_instance)#:nodoc:
       @agent = new_instance
     end
 
@@ -224,7 +224,7 @@ module NewRelic
     # when the agent is not running it's better to use this method to
     # register instrumentation than just loading the files directly,
     # although that probably also works.
-    def add_instrumentation file_pattern
+    def add_instrumentation(file_pattern)
       NewRelic::Control.instance.add_instrumentation file_pattern
     end
 
