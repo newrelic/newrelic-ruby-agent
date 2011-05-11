@@ -25,7 +25,7 @@ module NewRelic
       # that runs this worker loop.  This will run the task immediately.
       def run(period=nil, &block)
         @period = period if period
-        @next_invocation_time = (Time.now + period)
+        @next_invocation_time = (Time.now + @period)
         @task = block
         while keep_running do
           now = Time.now

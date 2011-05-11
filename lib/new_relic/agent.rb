@@ -204,13 +204,15 @@ module NewRelic
 
     # Shutdown the agent.  Call this before exiting.  Sends any queued data
     # and kills the background thread.
-    def shutdown
-      agent.shutdown
+    def shutdown(options = {})
+      agent.shutdown(options)
     end
 
     def save_data
-      load_data
-      NewRelic::DataSerialization.dump_to_file(agent.serialize)
+      NewRelic::DataSerialization.dump_to_file do |old_data|
+        agent.merge_data_from(old_data)
+        agent.serialize
+      end
     end
 
     def load_data

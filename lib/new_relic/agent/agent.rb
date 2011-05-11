@@ -162,9 +162,11 @@ module NewRelic
         end
 
         # Attempt a graceful shutdown of the agent.
-        def shutdown
+        def shutdown(options={})
+          run_loop_before_exit = options.fetch(:force_send, false)
           return if not started?
           if @worker_loop
+            @worker_loop.run_task if run_loop_before_exit
             @worker_loop.stop
 
             log.debug "Starting Agent shutdown"
