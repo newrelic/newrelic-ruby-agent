@@ -63,13 +63,14 @@ module ActiveRecordFixtures
       else
         connection.execute("delete from #{self.table_name}")
       end
+    end
     def self.check_for_table
       connection.table_exists?(self.table_name)
     rescue Exception => e
       false
     end
 
-    end
+    
     def self.teardown
     end
   end
