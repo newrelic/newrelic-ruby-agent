@@ -4,6 +4,7 @@ require 'net/http'
 require 'logger'
 require 'zlib'
 require 'stringio'
+require 'new_relic/data_serialization'
 
 module NewRelic
   module Agent
