@@ -19,6 +19,7 @@ module NewRelic
         options[:app_name] ||= 'EPM Monitor'
         options[:disable_samplers] = true
         NewRelic::Agent.manual_start options
+        NewRelic::Agent.logger.warn "This rack app is deprecated - it will be removed in the next version of the Ruby Agent"
         unless NewRelic::Control.instance.license_key
           raise "Please add a valid license key to newrelic.yml."
         end

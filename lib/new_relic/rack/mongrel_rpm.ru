@@ -15,6 +15,8 @@ require 'new_relic/rack_app'
 # use Rack::ShowExceptions
 # use Rack::Reloader if ENV['RACK_ENV'] == 'development'
 
+puts "This Rack Metric Collection system is deprecated - it will be removed in the next version of the Ruby Agent"
+
 map "/newrelic/record_value" do
   run NewRelic::Rack::MetricApp.new(options)
 end
