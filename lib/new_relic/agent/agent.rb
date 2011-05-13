@@ -74,6 +74,7 @@ module NewRelic
         end
 
         def unsent_timeslice_data
+          @unsent_timeslice_data ||= {}
           @unsent_timeslice_data.keys.length
         end
 

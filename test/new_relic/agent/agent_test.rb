@@ -37,6 +37,49 @@ module NewRelic
         @agent.merge_data_from([{}])
       end
 
+      def test_unsent_errors_size_empty
+        @agent.instance_eval {
+          @unsent_errors = nil
+        }
+        assert_equal(nil, @agent.unsent_errors_size)
+      end
+
+      def test_unsent_errors_size_with_errors
+        @agent.instance_eval {
+          @unsent_errors = ['an error']
+        }
+        assert_equal(1, @agent.unsent_errors_size)
+      end
+      
+      def test_unsent_traces_size_empty
+        @agent.instance_eval {
+          @traces = nil
+        }
+        assert_equal(nil, @agent.unsent_traces_size)
+      end
+
+      def test_unsent_traces_size_with_traces
+        @agent.instance_eval {
+          @traces = ['a trace']
+        }
+        assert_equal(1, @agent.unsent_traces_size)
+      end
+
+      def test_unsent_timeslice_data_empty
+        @agent.instance_eval {
+          @unsent_timeslice_data = nil
+        }
+        assert_equal(0, @agent.unsent_timeslice_data, "should have zero timeslice data to start")
+        assert_equal({}, @agent.instance_variable_get('@unsent_timeslice_data'), "should initialize the timeslice data to an empty hash if it is empty")
+      end
+
+      def test_unsent_timeslice_data_with_errors
+        @agent.instance_eval {
+          @unsent_timeslice_data = {:key => 'value'}
+        }
+        assert_equal(1, @agent.unsent_timeslice_data, "should have the key from above")
+      end
+      
       def test_merge_data_from_all_three_empty
         unsent_timeslice_data = mock('unsent timeslice data')
         unsent_errors = mock('unsent errors')
