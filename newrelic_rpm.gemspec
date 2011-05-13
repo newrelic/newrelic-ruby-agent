@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{newrelic_rpm}
-  s.version = "3.1.0.beta2"
+  s.version = "3.2.0.alpha"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Bill Kayser", "Justin George"]
@@ -105,7 +105,6 @@ http://github.com/newrelic/rpm/
     "lib/new_relic/control/server_methods.rb",
     "lib/new_relic/data_serialization.rb",
     "lib/new_relic/delayed_job_injection.rb",
-    "lib/new_relic/histogram.rb",
     "lib/new_relic/local_environment.rb",
     "lib/new_relic/merbtasks.rb",
     "lib/new_relic/metric_data.rb",
@@ -114,10 +113,6 @@ http://github.com/newrelic/rpm/
     "lib/new_relic/noticed_error.rb",
     "lib/new_relic/rack/browser_monitoring.rb",
     "lib/new_relic/rack/developer_mode.rb",
-    "lib/new_relic/rack/metric_app.rb",
-    "lib/new_relic/rack/mongrel_rpm.ru",
-    "lib/new_relic/rack/newrelic.yml",
-    "lib/new_relic/rack_app.rb",
     "lib/new_relic/recipes.rb",
     "lib/new_relic/stats.rb",
     "lib/new_relic/timer_lib.rb",
@@ -298,8 +293,13 @@ Refer to the README.md file for more information.
 
 Please see http://github.com/newrelic/rpm/blob/master/CHANGELOG
 for a complete description of the features and enhancements available
-in version 3.1 of the Ruby Agent.
-  
+in version 3.2 of the Ruby Agent.
+
+For details on this specific release, refer to the CHANGELOG file.
+
+Notice: Developer Mode now supports only Rails 2.3+ - refer to README
+for instructions for previous versions
+
 }
   s.rdoc_options = ["--line-numbers", "--inline-source", "--title", "New Relic Ruby Agent"]
   s.require_paths = ["lib"]

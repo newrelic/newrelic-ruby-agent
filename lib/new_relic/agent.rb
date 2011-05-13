@@ -70,7 +70,6 @@ module NewRelic
     require 'new_relic/transaction_sample'
     require 'new_relic/url_rule'
     require 'new_relic/noticed_error'
-    require 'new_relic/histogram'
     require 'new_relic/timer_lib'
 
     require 'new_relic/agent'

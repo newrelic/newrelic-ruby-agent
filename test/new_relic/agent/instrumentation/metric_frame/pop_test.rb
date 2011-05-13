@@ -37,14 +37,6 @@ class NewRelic::Agent::Instrumentation::MetricFrame::PopTest < Test::Unit::TestC
     log_underflow
   end
 
-  def test_process_histogram_for_transaction
-    fakehistogram = mock('histogram')
-    agent.expects(:histogram).returns(fakehistogram)
-    self.expects(:start).returns(2)
-    fakehistogram.expects(:process).with(1.0)
-    process_histogram_for_transaction(3)
-  end
-
   def test_notice_scope_empty
     transaction_sampler.expects(:notice_scope_empty)
     notice_scope_empty
@@ -115,14 +107,12 @@ class NewRelic::Agent::Instrumentation::MetricFrame::PopTest < Test::Unit::TestC
 
   def test_notify_transaction_sampler_true
     self.expects(:record_transaction_cpu)
-    self.expects(:process_histogram_for_transaction)
     self.expects(:notice_scope_empty)
     notify_transaction_sampler(true)
   end
 
   def test_notify_transaction_sampler_false
     self.expects(:record_transaction_cpu)
-    self.expects(:process_histogram_for_transaction).never
     self.expects(:notice_scope_empty)
     notify_transaction_sampler(false)
   end

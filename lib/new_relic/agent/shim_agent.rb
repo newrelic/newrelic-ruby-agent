@@ -9,7 +9,6 @@ module NewRelic
       end
       def initialize
         super
-        @histogram.extend NewRelic::Histogram::Shim
         @stats_engine.extend NewRelic::Agent::StatsEngine::Shim
         @stats_engine.extend NewRelic::Agent::StatsEngine::Transactions::Shim
         @transaction_sampler.extend NewRelic::Agent::TransactionSampler::Shim

@@ -281,16 +281,6 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     assert_equal 0, stats('WebFrontend/Mongrel/Average Queue Time').call_count
   end
 
-  def test_histogram
-    engine.clear_stats
-    get :index, 'social_security_number' => "001-555-1212"
-    stats_engine = NewRelic::Agent.instance.stats_engine
-    bucket = NewRelic::Agent.instance.stats_engine.metrics.find { | m | m =~ /^Response Times/ }
-    assert_not_nil bucket, "Bucket contents: #{bucket.inspect}, #{stats_engine.metrics.inspect}"
-    bucket_stats = stats(bucket)
-    assert_equal 1, bucket_stats.call_count, "expected the bucket to have a call, but instead got: #{bucket_stats.inspect}"
-  end
-
   def test_queue_headers_no_header
     engine.clear_stats
     queue_length_stat = stats('Mongrel/Queue Length')

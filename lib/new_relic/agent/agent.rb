@@ -33,7 +33,6 @@ module NewRelic
         @launch_time = Time.now
 
         @metric_ids = {}
-        @histogram = NewRelic::Histogram.new(NewRelic::Control.instance.apdex_t / 10)
         @stats_engine = NewRelic::Agent::StatsEngine.new
         @transaction_sampler = NewRelic::Agent::TransactionSampler.new
         @stats_engine.transaction_sampler = @transaction_sampler
@@ -60,7 +59,6 @@ module NewRelic
         attr_reader :transaction_sampler
         attr_reader :error_collector
         attr_reader :record_sql
-        attr_reader :histogram
         attr_reader :metric_ids
         attr_reader :url_rules
         attr_reader :beacon_configuration
@@ -87,7 +85,6 @@ module NewRelic
 
           if metric_info.is_web_transaction?
             NewRelic::Agent::Instrumentation::MetricFrame.record_apdex(metric_info, duration_seconds, duration_seconds, is_error)
-            histogram.process(duration_seconds)
           end
           metrics = metric_info.summary_metrics
 
@@ -411,7 +408,7 @@ module NewRelic
           notify_log_file_location
         end
 
-        # Clear out the metric data, errors, and transaction traces.  Reset the histogram data.
+        # Clear out the metric data, errors, and transaction traces.
         def reset_stats
           @stats_engine.reset_stats
           @unsent_errors = []
@@ -419,7 +416,6 @@ module NewRelic
           @unsent_timeslice_data = {}
           @last_harvest_time = Time.now
           @launch_time = Time.now
-          @histogram = NewRelic::Histogram.new(NewRelic::Control.instance.apdex_t / 10)
         end
 
         private
