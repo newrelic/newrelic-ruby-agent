@@ -138,8 +138,8 @@ common: &default_settings
   transaction_tracer:
   
     # Transaction tracer is enabled by default. Set this to false to
-    # turn it off. This feature is only available at the Silver and
-    # above product levels.
+    # turn it off. This feature is only available at the Professional
+    # and above product levels.
     enabled: true
     
     # Threshold in seconds for when to collect a transaction
@@ -176,7 +176,7 @@ common: &default_settings
   error_collector:
     
     # Error collector is enabled by default. Set this to false to turn
-    # it off. This feature is only available at the Silver and above
+    # it off. This feature is only available at the Professional and above
     # product levels
     enabled: true
     
