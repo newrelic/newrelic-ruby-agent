@@ -231,7 +231,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     self.expects(:obfuscate).with('most recent transaction').returns('most recent transaction')
     
     value = footer_js_string(beacon, license_key, application_id)
-    assert_equal('<script type="text/javascript" charset="utf-8">NREUMQ.push(["nrf2","","",1,"most recent transaction",0,0])</script>', value, "should return the javascript given some default values")
+    assert_equal('<script type="text/javascript" charset="utf-8">NREUMQ.push(["nrf2","","",1,"most recent transaction",0,0,new Date().getTime()])</script>', value, "should return the javascript given some default values")
   end
 
   def test_html_safe_if_needed_unsafed
