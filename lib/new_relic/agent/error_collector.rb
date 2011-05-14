@@ -145,7 +145,7 @@ module NewRelic
 
       def over_queue_limit?(message)
         over_limit = (@errors.length >= MAX_ERROR_QUEUE_LENGTH)
-        log.warn("The error reporting queue has reached #{MAX_ERROR_QUEUE_LENGTH}. The error detail for this and subsequent errors will not be transmitted to RPM until the queued errors have been sent: #{message}") if over_limit
+        log.warn("The error reporting queue has reached #{MAX_ERROR_QUEUE_LENGTH}. The error detail for this and subsequent errors will not be transmitted to New Relic until the queued errors have been sent: #{message}") if over_limit
         over_limit
       end
 

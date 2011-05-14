@@ -1,16 +1,16 @@
 require 'new_relic/control'
 require 'new_relic/data_serialization'
-# = New Relic RPM Agent
+# = New Relic Ruby Agent
 #
-# New Relic RPM is a performance monitoring application for Ruby
-# applications running in production.  For more information on RPM
-# please visit http://www.newrelic.com.
+# New Relic is a performance monitoring application for applications
+# running in production.  For more information on New Relic please visit
+# http://www.newrelic.com.
 #
-# The New Relic Agent can be installed in Rails applications to gather
-# runtime performance metrics, traces, and errors for display in a
-# Developer Mode UI (mapped to /newrelic in your application server)
-# or for monitoring and analysis at http://rpm.newrelic.com with just
-# about any Ruby application.
+# The New Relic Ruby Agent can be installed in Rails applications to
+# gather runtime performance metrics, traces, and errors for display
+# in a Developer Mode middleware (mapped to /newrelic in your application
+# server) or for monitoring and analysis at http://rpm.newrelic.com
+# with just about any Ruby application.
 #
 # == Getting Started
 # For instructions on installation and setup, see
@@ -21,18 +21,18 @@ require 'new_relic/data_serialization'
 # To instrument Rack middlwares or Metal apps, refer to the docs in
 # NewRelic::Agent::Instrumentation::Rack.
 #
-# == Agent API
+# == Ruby Agent API
 #
-# For details on the Agent API, refer to NewRelic::Agent.
+# For details on the Ruby Agent API, refer to NewRelic::Agent.
 #
-# == Customizing RPM
+# == Customizing the Ruby Agent
 #
-# For detailed information on customizing the RPM Agent
+# For detailed information on customizing the Ruby Agent
 # please visit our {support and documentation site}[http://support.newrelic.com].
 #
 module NewRelic
-  # == Agent APIs
-  # This module contains the public API methods for the Agent.
+  # == Ruby Agent APIs
+  # This module contains the public API methods for the Ruby Agent.
   #
   # For adding custom instrumentation to method invocations, refer to
   # the docs in the class NewRelic::Agent::MethodTracer.
@@ -40,7 +40,7 @@ module NewRelic
   # For information on how to customize the controller
   # instrumentation, or to instrument something other than Rails so
   # that high level dispatcher actions or background tasks show up as
-  # first class operations in RPM, refer to
+  # first class operations in New Relic, refer to
   # NewRelic::Agent::Instrumentation::ControllerInstrumentation and
   # NewRelic::Agent::Instrumentation::ControllerInstrumentation::ClassMethods.
   #
@@ -156,10 +156,10 @@ module NewRelic
     # not auto-start.
     #
     # When the app environment loads, so does the Agent. However, the
-    # Agent will only connect to RPM if a web front-end is found. If
+    # Agent will only connect to the service if a web front-end is found. If
     # you want to selectively monitor ruby processes that don't use
     # web plugins, then call this method in your code and the Agent
-    # will fire up and start reporting to RPM.
+    # will fire up and start reporting to the service.
     #
     # Options are passed in as overrides for values in the
     # newrelic.yml, such as app_name.  In addition, the option +log+
@@ -314,10 +314,10 @@ module NewRelic
       Thread::current[:record_sql] != false
     end
 
-    # Set a filter to be applied to errors that RPM will track.  The
-    # block should evalute to the exception to track (which could be
-    # different from the original exception) or nil to ignore this
-    # exception.
+    # Set a filter to be applied to errors that the Ruby Agent will
+    # track.  The block should evalute to the exception to track
+    # (which could be different from the original exception) or nil to
+    # ignore this exception.
     #
     # The block is yielded to with the exception to filter.
     #
@@ -327,7 +327,7 @@ module NewRelic
       agent.error_collector.ignore_error_filter(&block)
     end
 
-    # Record the given error in RPM.  It will be passed through the
+    # Record the given error.  It will be passed through the
     # #ignore_error_filter if there is one.
     #
     # * <tt>exception</tt> is the exception which will be recorded.  May also be

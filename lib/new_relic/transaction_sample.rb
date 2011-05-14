@@ -174,8 +174,9 @@ module NewRelic
       sample
     end
 
-    # return a new transaction sample that can be sent to the RPM service.
-    # this involves potentially one or more of the following options
+    # Return a new transaction sample that can be sent to the New
+    # Relic service. This involves potentially one or more of the
+    # following options
     #
     #   :explain_sql : run EXPLAIN on all queries whose response times equal the value for this key
     #       (for example :explain_sql => 2.0 would explain everything over 2 seconds.  0.0 would explain everything.)

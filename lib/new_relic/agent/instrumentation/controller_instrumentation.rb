@@ -175,7 +175,7 @@ module NewRelic
         # dispatches to more specific operation methods based on a
         # parameter (very dangerous, btw!).  With this instrumentation,
         # the +invoke_operation+ action is ignored but the operation
-        # methods show up in RPM as if they were first class controller
+        # methods show up in New Relic as if they were first class controller
         # actions
         #
         #   MyController < ActionController::Base
@@ -199,7 +199,7 @@ module NewRelic
         #   controller action and will appear with all the other actions.  This
         #   is the default.
         # * <tt>:category => :task</tt> indicates that this is a
-        #   background task and will show up in RPM with other background
+        #   background task and will show up in New Relic with other background
         #   tasks instead of in the controllers list
         # * <tt>:category => :rack</tt> if you are instrumenting a rack
         #   middleware call.  The <tt>:name</tt> is optional, useful if you

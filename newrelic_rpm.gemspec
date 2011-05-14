@@ -10,10 +10,10 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Bill Kayser", "Justin George"]
   s.date = %q{2011-05-11}
-  s.description = %q{New Relic RPM is a Ruby performance management system, developed by
-New Relic, Inc (http://www.newrelic.com).  RPM provides you with deep
-information about the performance of your Ruby on Rails or Merb
-application as it runs in production. The New Relic Agent is
+  s.description = %q{New Relic is a performance management system, developed by
+New Relic, Inc (http://www.newrelic.com). New Relic provides you with deep
+information about the performance of your Rails or Ruby
+application as it runs in production. The New Relic Ruby Agent is
 dual-purposed as a either a Rails plugin or a Gem, hosted on
 http://github.com/newrelic/rpm/tree/master.
 }

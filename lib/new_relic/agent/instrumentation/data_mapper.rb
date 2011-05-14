@@ -19,7 +19,7 @@
 # NOTE: On using "Database" versus "ActiveRecord" as base metric name
 #
 #   Using "Database" as the metric name base seems to properly identify methods
-#   as being DB-related in call graphs, but certain RPM views that show
+#   as being DB-related in call graphs, but certain New Relic views that show
 #   aggregations of DB CPM, etc still seem to rely solely on "ActiveRecord"
 #   being the base name, thus AFAICT "Database" calls to this are lost.  (Though
 #   I haven't yet tested "Database/SQL/{find/save/destroy/all}" yet, as it seems

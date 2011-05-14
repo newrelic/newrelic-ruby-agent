@@ -157,14 +157,15 @@ module NewRelic
         nil
       end
 
-      # perform this in the runtime environment of a managed
+      # Perform this in the runtime environment of a managed
       # application, to explain the sql statement(s) executed within a
-      # segment of a transaction sample.  returns an array of
+      # segment of a transaction sample. Returns an array of
       # explanations (which is an array rows consisting of an array of
       # strings for each column returned by the the explain query)
       # Note this happens only for statements whose execution time
       # exceeds a threshold (e.g. 500ms) and only within the slowest
-      # transaction in a report period, selected for shipment to RPM
+      # transaction in a report period, selected for shipment to New
+      # Relic
       def explain_sql
         sql = params[:sql]
         return nil unless sql && params[:connection_config]

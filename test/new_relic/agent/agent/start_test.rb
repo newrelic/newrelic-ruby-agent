@@ -111,7 +111,7 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   def test_log_sql_transmission_warning_positive
     log = mocked_log
     @record_sql = :raw
-    log.expects(:send).with(:warn, 'Agent is configured to send raw SQL to RPM service')
+    log.expects(:send).with(:warn, 'Agent is configured to send raw SQL to the service')
     log_sql_transmission_warning?
   end
 

@@ -92,7 +92,7 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
     error = mock('exception')
     error.expects(:message).returns('a message')
     log = mocked_log
-    log.expects(:error).with("RPM forced this agent to disconnect (a message)")
+    log.expects(:error).with("New Relic forced this agent to disconnect (a message)")
     self.expects(:disconnect)
     handle_force_disconnect(error)
   end

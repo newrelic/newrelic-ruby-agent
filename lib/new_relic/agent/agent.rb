@@ -296,7 +296,7 @@ module NewRelic
           end
 
           def log_sql_transmission_warning?
-            log_if((@record_sql == :raw), :warn, "Agent is configured to send raw SQL to RPM service")
+            log_if((@record_sql == :raw), :warn, "Agent is configured to send raw SQL to the service")
           end
 
           def sampler_config
@@ -354,7 +354,7 @@ module NewRelic
           end
 
           def log_version_and_pid
-            log.info "New Relic RPM Agent #{NewRelic::VERSION::STRING} Initialized: pid = #{$$}"
+            log.info "New Relic Ruby Agent #{NewRelic::VERSION::STRING} Initialized: pid = #{$$}"
           end
 
           def log_if(boolean, level, message)
@@ -469,7 +469,7 @@ module NewRelic
             # when a disconnect is requested, stop the current thread, which
             # is the worker thread that gathers data and talks to the
             # server.
-            log.error "RPM forced this agent to disconnect (#{error.message})"
+            log.error "New Relic forced this agent to disconnect (#{error.message})"
             disconnect
           end
 
@@ -522,7 +522,7 @@ module NewRelic
         #
         # See #connect for a description of connection_options.
         def start_worker_thread(connection_options = {})
-          log.debug "Creating RPM worker thread."
+          log.debug "Creating Ruby Agent worker thread."
           @worker_thread = Thread.new do
             deferred_work!(connection_options)
           end # thread new
@@ -572,7 +572,7 @@ module NewRelic
           end
 
           def log_error(error)
-            log.error "Error establishing connection with New Relic RPM Service at #{control.server}: #{error.message}"
+            log.error "Error establishing connection with New Relic Service at #{control.server}: #{error.message}"
             log.debug error.backtrace.join("\n")
           end
 
@@ -623,7 +623,7 @@ module NewRelic
                       else
                         error_collector.enabled = false
                       end
-            log.debug "Errors will #{enabled ? '' : 'not '}be sent to the RPM service."
+            log.debug "Errors will #{enabled ? '' : 'not '}be sent to the New Relic service."
           end
 
           def enable_random_samples!(sample_rate)
@@ -644,7 +644,7 @@ module NewRelic
               enable_random_samples!(sample_rate) if @should_send_random_samples
               log.debug "Transaction tracing threshold is #{@slowest_transaction_threshold} seconds."
             else
-              log.debug "Transaction traces will not be sent to the RPM service."
+              log.debug "Transaction traces will not be sent to the New Relic service."
             end
           end
 
@@ -725,7 +725,7 @@ module NewRelic
         #   later (default true).
         # * <tt>force_reconnect => true</tt> if you want to establish a new connection
         #   to the server before running the worker loop.  This means you get a separate
-        #   agent run and RPM sees it as a separate instance (default is false).
+        #   agent run and New Relic sees it as a separate instance (default is false).
         def connect(options)
           # Don't proceed if we already connected (@connected=true) or if we tried
           # to connect and were rejected with prejudice because of a license issue
@@ -736,7 +736,7 @@ module NewRelic
           @connect_retry_period = should_keep_retrying?(options) ? 10 : 0
 
           sleep connect_retry_period
-          log.debug "Connecting Process to RPM: #$0"
+          log.debug "Connecting Process to New Relic: #$0"
           query_server_for_configuration
           @connected_pid = $$
           @connected = true
@@ -923,7 +923,7 @@ module NewRelic
               response = http.request(request)
             end
           rescue Timeout::Error
-            log.warn "Timed out trying to post data to RPM (timeout = #{@request_timeout} seconds)" unless @request_timeout < 30
+            log.warn "Timed out trying to post data to New Relic (timeout = #{@request_timeout} seconds)" unless @request_timeout < 30
             raise
           end
           if response.is_a? Net::HTTPServiceUnavailable
@@ -1001,7 +1001,7 @@ module NewRelic
               log.debug "Serializing agent data to disk"
               NewRelic::Agent.save_data
               if @connected_pid == $$
-                log.debug "Sending RPM service agent run shutdown message"
+                log.debug "Sending New Relic service agent run shutdown message"
                 invoke_remote :shutdown, @agent_id, Time.now.to_f
               else
                 log.debug "This agent connected from parent process #{@connected_pid}--not sending shutdown"

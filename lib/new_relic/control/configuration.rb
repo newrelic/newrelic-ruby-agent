@@ -97,7 +97,7 @@ module NewRelic
       end
 
       # Configuration option of the same name to indicate that we should connect
-      # to RPM synchronously on startup.  This means when the agent is loaded it
+      # to New Relic synchronously on startup.  This means when the agent is loaded it
       # won't return without trying to set up the server connection at least once
       # which can make startup take longer.  Defaults to false.
       def sync_startup

@@ -15,7 +15,7 @@ module NewRelic
     # Stores statistics for response times falling in a particular range.
     # A bucket has a min and max response time.  A response time event
     # falls in a bucket if min <= r/t < max.  A bucket also
-    # has an associated metric for reporting data to RPM.  The
+    # has an associated metric for reporting data to New Relic.  The
     # bucket range is encoded in the metic name
     class Bucket
 
