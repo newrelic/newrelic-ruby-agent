@@ -3,4 +3,9 @@ require 'new_relic/rack/browser_monitoring'
 require 'new_relic/rack/developer_mode'
 class NewRelic::Rack::AllTest < Test::Unit::TestCase
   # just here to load the files above
+
+  def test_truth
+    assert true
+  end
 end
+
