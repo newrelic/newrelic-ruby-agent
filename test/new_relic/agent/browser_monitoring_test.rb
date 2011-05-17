@@ -260,4 +260,12 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     output = obfuscate(text)
     assert_equal('YCJrZXV2fih5Y25vaCFtZSR2a2ZkZSp/aXV1', output, "should output obfuscated text")
   end
+
+  def test_obfuscate_long_string
+    text = 'a happy piece of small text' * 5
+    key = (1..40).to_a
+    NewRelic::Agent.instance.beacon_configuration.expects(:license_bytes).returns(key)
+    output = obfuscate(text)
+    assert_equal('YCJrZXV2fih5Y25vaCFtZSR2a2ZkZSp/aXV1YyNsZHZ3cSl6YmluZCJsYiV1amllZit4aHl2YiRtZ3d4cCp7ZWhiZyNrYyZ0ZWhmZyx5ZHp3ZSVuZnh5cyt8ZGRhZiRqYCd7ZGtnYC11Z3twZCZvaXl6cix9aGdgYSVpYSh6Z2pgYSF2Znxx', output, "should output obfuscated text")
+  end
 end

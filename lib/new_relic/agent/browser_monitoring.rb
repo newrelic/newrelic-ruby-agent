@@ -76,7 +76,7 @@ module NewRelic
           index+=1
         }
 
-        [obfuscated].pack("m0").chomp
+        [obfuscated].pack("m0").gsub("\n", '')
       end
     end
   end
