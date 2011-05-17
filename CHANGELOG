@@ -1,5 +1,7 @@
-v3.1.0
-  * Experimental support for aggregating data from short-running processes using NewRelic::Agent.load_data and NewRelic::Agent.save_data
+v3.1.0 
+  * Experimental support for aggregating data from short-running
+    processes using NewRelic::Agent.load_data and
+    NewRelic::Agent.save_data
 
 v3.0.0
   * Support for Real User Monitoring
