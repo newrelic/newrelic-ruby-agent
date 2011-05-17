@@ -29,7 +29,7 @@ module NewRelic
         return "" unless connect_data.fetch('rum.load_episodes_file', true)
 
         episodes_url = connect_data.fetch('episodes_url', '')
-        "(function(){var d=document;var e=d.createElement(\"script\");e.type=\"text/javascript\";e.async=true;e.src=\"#{episodes_url}\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})()"
+        "(function(){var d=document;var e=d.createElement(\"script\");e.async=true;e.src=\"#{episodes_url}\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})()"
       end
 
       def basic_javascript(connect_data)

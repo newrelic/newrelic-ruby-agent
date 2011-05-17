@@ -56,7 +56,7 @@ module NewRelic
 
       def footer_js_string(beacon, license_key, application_id)
         obfuscated_transaction_name = obfuscate(browser_monitoring_transaction_name)
-        html_safe_if_needed("<script type=\"text/javascript\" charset=\"utf-8\">NREUMQ.push([\"nrf2\",\"#{beacon}\",\"#{license_key}\",#{application_id},\"#{obfuscated_transaction_name}\",#{browser_monitoring_queue_time},#{browser_monitoring_app_time},new Date().getTime()])</script>")
+        html_safe_if_needed("<script charset=\"utf-8\">NREUMQ.push([\"nrf2\",\"#{beacon}\",\"#{license_key}\",#{application_id},\"#{obfuscated_transaction_name}\",#{browser_monitoring_queue_time},#{browser_monitoring_app_time},new Date().getTime()])</script>")
       end
 
       def html_safe_if_needed(string)
