@@ -134,13 +134,13 @@ module NewRelic
     # Get or create a statistics gatherer that will aggregate numerical data
     # under a metric name.
     #
-    # +metric_name+ should follow a slash separated path convention.  Application
+    # +metric_name+ should follow a slash separated path convention. Application
     # specific metrics should begin with "Custom/".
     #
     # Return a NewRelic::Stats that accepts data
     # via calls to add_data_point(value).
     def get_stats(metric_name, use_scope=false)
-      @agent.stats_engine.get_stats(metric_name, use_scope)
+      agent.stats_engine.get_stats(metric_name, use_scope)
     end
 
     alias get_stats_no_scope get_stats
@@ -204,7 +204,7 @@ module NewRelic
 
     # Shutdown the agent.  Call this before exiting.  Sends any queued data
     # and kills the background thread.
-    def shutdown(options = {})
+    def shutdown(options={})
       agent.shutdown(options)
     end
 
@@ -287,10 +287,7 @@ module NewRelic
     # any.  Only affects the transaction started on this thread once
     # it has started and before it has completed.
     def abort_transaction!
-      # The class may not be loaded if the agent is disabled
-      if defined? NewRelic::Agent::Instrumentation::MetricFrame
-        NewRelic::Agent::Instrumentation::MetricFrame.abort_transaction!
-      end
+      NewRelic::Agent::Instrumentation::MetricFrame.abort_transaction!
     end
 
     # Yield to the block without collecting any metrics or traces in
