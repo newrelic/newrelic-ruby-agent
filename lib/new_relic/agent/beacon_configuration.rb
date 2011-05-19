@@ -40,8 +40,7 @@ module NewRelic
         return "" if !@rum_enabled
         return "" if @browser_monitoring_key.nil?
         
-        # TODO: Justin - can you review this? Given that this is a constant string is this work necessary?
-        value = JS_HEADER
+        value = JS_HEADER.dup
         if value.respond_to?(:html_safe)
           value.html_safe
         else
