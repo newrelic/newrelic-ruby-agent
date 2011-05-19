@@ -9,6 +9,12 @@ module NewRelic::Rack
 
     # method required by Rack interface
     def call(env)
+      
+      # clear out the thread locals we use in case this is a static request
+      Thread.current[:newrelic_most_recent_transaction] = nil
+      Thread.current[:newrelic_start_time] = Time.now
+      Thread.current[:newrelic_queue_time] = 0
+      
       result = @app.call(env)   # [status, headers, response]
 
       if (NewRelic::Agent.browser_timing_header != "") && should_instrument?(result[0], result[1])
