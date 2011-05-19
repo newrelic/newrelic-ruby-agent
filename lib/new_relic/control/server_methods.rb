@@ -68,7 +68,7 @@ module NewRelic
       end
 
       def cert_file_path
-        File.expand_path(File.join(newrelic_root, 'cert', 'cacert.pem'))
+        self.fetch('cert_file', File.expand_path(File.join(newrelic_root, 'cert', 'cacert.pem')))
       end
 
       # Return the Net::HTTP with proxy configuration given the NewRelic::Control::Server object.
