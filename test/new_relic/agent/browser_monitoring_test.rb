@@ -30,13 +30,13 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
 
   def test_browser_timing_header
     header = browser_timing_header
-    assert_equal "<script>var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);(function(){var d=document;var e=d.createElement(\"script\");e.type=\"text/javascript\";e.async=true;e.src=\"this_is_my_file\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})()</script>", header
+    assert_equal "<script>var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);</script>", header
   end
   
   def test_browser_timing_header_with_rum_enabled_not_specified
     NewRelic::Agent.instance.expects(:beacon_configuration).at_least_once.returns( NewRelic::Agent::BeaconConfiguration.new({"browser_key" => "browserKey", "application_id" => "apId", "beacon"=>"beacon", "episodes_url"=>"this_is_my_file"}))
     header = browser_timing_header
-    assert_equal "<script>var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);(function(){var d=document;var e=d.createElement(\"script\");e.type=\"text/javascript\";e.async=true;e.src=\"this_is_my_file\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})()</script>", header
+    assert_equal "<script>var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);</script>", header
   end
 
   def test_browser_timing_header_with_rum_enabled_false
@@ -68,7 +68,8 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     Thread.current[:newrelic_start_time] = Time.now
 
     footer = browser_timing_footer
-    assert footer.include?("<script type=\"text/javascript\" charset=\"utf-8\">NREUMQ.push([\"nrf2\",")
+    snippet = "<script>(function(){var d=document;var e=d.createElement(\"script\");e.async=true;e.src=\"this_is_my_file\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})();NREUMQ.push([\"nrf2\","
+    assert footer.include?(snippet), "Expected footer to include snippet: #{snippet}, but instead was #{footer}"
   end
   
   def test_browser_timing_footer_without_calling_header
@@ -100,8 +101,10 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     config.expects(:license_bytes).returns(license_bytes)
     NewRelic::Agent.instance.expects(:beacon_configuration).returns(config).at_least_once
     footer = browser_timing_footer
-    assert footer.include?("<script type=\"text/javascript\" charset=\"utf-8\">NREUMQ.push([\"nrf2\",")
-    assert footer.include?("])</script>")
+    beginning_snippet = "(function(){var d=document;var e=d.createElement(\"script\");e.async=true;e.src=\"this_is_my_file\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})();NREUMQ.push([\"nrf2\","
+    ending_snippet = "])</script>"
+    assert(footer.include?(beginning_snippet), "expected footer to include beginning snippet: #{beginning_snippet}, but was #{footer}")
+    assert(footer.include?(ending_snippet), "expected footer to include ending snippet: #{ending_snippet}, but was #{footer}")
   end
 
   def test_browser_timing_footer_with_no_beacon_configuration
@@ -176,7 +179,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
 
   def test_browser_monitoring_transaction_name_nil
     Thread.current[:newrelic_most_recent_transaction] = nil
-    assert_equal('<unknown>', browser_monitoring_transaction_name, "should fill in a default when it is nil")
+    assert_equal('<static page>', browser_monitoring_transaction_name, "should fill in a default when it is nil")
   end
 
   def test_browser_monitoring_start_time
@@ -231,7 +234,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     self.expects(:obfuscate).with('most recent transaction').returns('most recent transaction')
     
     value = footer_js_string(beacon, license_key, application_id)
-    assert_equal('<script type="text/javascript" charset="utf-8">NREUMQ.push(["nrf2","","",1,"most recent transaction",0,0,new Date().getTime()])</script>', value, "should return the javascript given some default values")
+    assert_equal('<script>(function(){var d=document;var e=d.createElement("script");e.async=true;e.src="this_is_my_file";var s=d.getElementsByTagName("script")[0];s.parentNode.insertBefore(e,s);})();NREUMQ.push(["nrf2","","",1,"most recent transaction",0,0,new Date().getTime()])</script>', value, "should return the javascript given some default values")
   end
 
   def test_html_safe_if_needed_unsafed

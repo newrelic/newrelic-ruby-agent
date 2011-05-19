@@ -36,11 +36,15 @@ module NewRelic
         "(function(){var d=document;var e=d.createElement(\"script\");e.async=true;e.src=\"#{episodes_url}\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})();"
       end
 
+      def javascript_header
+        JS_HEADER.dup
+      end
+
       def build_browser_timing_header
         return "" if !@rum_enabled
         return "" if @browser_monitoring_key.nil?
         
-        value = JS_HEADER.dup
+        value = javascript_header
         if value.respond_to?(:html_safe)
           value.html_safe
         else
