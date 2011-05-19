@@ -179,7 +179,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
 
   def test_browser_monitoring_transaction_name_nil
     Thread.current[:newrelic_most_recent_transaction] = nil
-    assert_equal('<static page>', browser_monitoring_transaction_name, "should fill in a default when it is nil")
+    assert_equal('<unknown>', browser_monitoring_transaction_name, "should fill in a default when it is nil")
   end
 
   def test_browser_monitoring_start_time
