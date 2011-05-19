@@ -30,13 +30,13 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
 
   def test_browser_timing_header
     header = browser_timing_header
-    assert_equal "<script>var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);(function(){var d=document;var e=d.createElement(\"script\");e.type=\"text/javascript\";e.async=true;e.src=\"this_is_my_file\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})()</script>", header
+    assert_equal "<script>var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);</script>", header
   end
 
   def test_browser_timing_header_with_rum_enabled_not_specified
     NewRelic::Agent.instance.expects(:beacon_configuration).at_least_once.returns( NewRelic::Agent::BeaconConfiguration.new({"browser_key" => "browserKey", "application_id" => "apId", "beacon"=>"beacon", "episodes_url"=>"this_is_my_file"}))
     header = browser_timing_header
-    assert_equal "<script>var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);(function(){var d=document;var e=d.createElement(\"script\");e.type=\"text/javascript\";e.async=true;e.src=\"this_is_my_file\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})()</script>", header
+    assert_equal "<script>var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);</script>", header
   end
 
   def test_browser_timing_header_with_rum_enabled_false
@@ -68,7 +68,8 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     Thread.current[:newrelic_start_time] = Time.now
 
     footer = browser_timing_footer
-    assert footer.include?("<script type=\"text/javascript\" charset=\"utf-8\">NREUMQ.push([\"nrf2\",")
+    snippet = "<script>(function(){var d=document;var e=d.createElement(\"script\");e.async=true;e.src=\"this_is_my_file\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})();NREUMQ.push([\"nrf2\","
+    assert footer.include?(snippet), "Expected footer to include snippet: #{snippet}, but instead was #{footer}"
   end
 
   def test_browser_timing_footer_without_calling_header
@@ -100,8 +101,10 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     config.expects(:license_bytes).returns(license_bytes)
     NewRelic::Agent.instance.expects(:beacon_configuration).returns(config).at_least_once
     footer = browser_timing_footer
-    assert footer.include?("<script type=\"text/javascript\" charset=\"utf-8\">NREUMQ.push([\"nrf2\",")
-    assert footer.include?("])</script>")
+    beginning_snippet = "(function(){var d=document;var e=d.createElement(\"script\");e.async=true;e.src=\"this_is_my_file\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})();NREUMQ.push([\"nrf2\","
+    ending_snippet = "])</script>"
+    assert(footer.include?(beginning_snippet), "expected footer to include beginning snippet: #{beginning_snippet}, but was #{footer}")
+    assert(footer.include?(ending_snippet), "expected footer to include ending snippet: #{ending_snippet}, but was #{footer}")
   end
 
   def test_browser_timing_footer_with_no_beacon_configuration
@@ -231,7 +234,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     self.expects(:obfuscate).with('most recent transaction').returns('most recent transaction')
 
     value = footer_js_string(beacon, license_key, application_id)
-    assert_equal('<script type="text/javascript" charset="utf-8">NREUMQ.push(["nrf2","","",1,"most recent transaction",0,0])</script>', value, "should return the javascript given some default values")
+    assert_equal('<script>(function(){var d=document;var e=d.createElement("script");e.async=true;e.src="this_is_my_file";var s=d.getElementsByTagName("script")[0];s.parentNode.insertBefore(e,s);})();NREUMQ.push(["nrf2","","",1,"most recent transaction",0,0,new Date().getTime()])</script>', value, "should return the javascript given some default values")
   end
 
   def test_html_safe_if_needed_unsafed
@@ -259,5 +262,13 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     NewRelic::Agent.instance.beacon_configuration.expects(:license_bytes).returns(key)
     output = obfuscate(text)
     assert_equal('YCJrZXV2fih5Y25vaCFtZSR2a2ZkZSp/aXV1', output, "should output obfuscated text")
+  end
+
+  def test_obfuscate_long_string
+    text = 'a happy piece of small text' * 5
+    key = (1..40).to_a
+    NewRelic::Agent.instance.beacon_configuration.expects(:license_bytes).returns(key)
+    output = obfuscate(text)
+    assert_equal('YCJrZXV2fih5Y25vaCFtZSR2a2ZkZSp/aXV1YyNsZHZ3cSl6YmluZCJsYiV1amllZit4aHl2YiRtZ3d4cCp7ZWhiZyNrYyZ0ZWhmZyx5ZHp3ZSVuZnh5cyt8ZGRhZiRqYCd7ZGtnYC11Z3twZCZvaXl6cix9aGdgYSVpYSh6Z2pgYSF2Znxx', output, "should output obfuscated text")
   end
 end
