@@ -34,7 +34,7 @@ module NewRelic
       end
 
       def browser_monitoring_transaction_name
-        Thread.current[:newrelic_most_recent_transaction] || "<static page>"
+        Thread.current[:newrelic_most_recent_transaction] || "<unknown>"
       end
       
       def browser_monitoring_start_time
