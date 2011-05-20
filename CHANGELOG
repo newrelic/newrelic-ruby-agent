@@ -3,6 +3,10 @@ v3.1.0
     processes using NewRelic::Agent.load_data and
     NewRelic::Agent.save_data
 
+v3.0.1 
+  * Updated Real User Monitoring to reduce javascript size and improve
+    compatibility, fix a few known bugs
+
 v3.0.0
   * Support for Real User Monitoring
   * Back end work on internals to improve reliability
