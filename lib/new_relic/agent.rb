@@ -217,8 +217,13 @@ module NewRelic
     end
 
     def load_data
-      agent.merge_data_from(NewRelic::DataSerialization.load_from_file)
-      {:metrics => agent.stats_engine.metrics.length, :traces => agent.unsent_traces_size, :errors => agent.unsent_errors_size}
+      value = nil
+      NewRelic::DataSerialization.dump_to_file do |old_data|
+        agent.merge_data_from(old_data)
+        value = {:metrics => agent.stats_engine.metrics.length, :traces => agent.unsent_traces_size, :errors => agent.unsent_errors_size}
+        nil # return nil so nothing is written to the file
+      end
+      value
     end
 
     # Add instrumentation files to the agent.  The argument should be

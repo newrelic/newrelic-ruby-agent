@@ -996,10 +996,16 @@ module NewRelic
           if @connected
             begin
               @request_timeout = 10
-#              log.debug "Flushing unsent metric data to server"
-#              harvest_and_send_timeslice_data
-              log.debug "Serializing agent data to disk"
-              NewRelic::Agent.save_data
+              if NewRelic::DataSerialization.should_send_data?
+                log.debug "Sending data to New Relic Service"
+                NewRelic::Agent.load_data
+                harvest_and_send_errors
+                harvest_and_send_slowest_sample
+                harvest_and_send_timeslice_data
+              else
+                log.debug "Serializing agent data to disk"
+                NewRelic::Agent.save_data
+              end
               if @connected_pid == $$
                 log.debug "Sending New Relic service agent run shutdown message"
                 invoke_remote :shutdown, @agent_id, Time.now.to_f
