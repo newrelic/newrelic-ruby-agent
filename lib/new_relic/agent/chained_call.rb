@@ -1,5 +1,5 @@
-# This is used to allow obfuscators to be chained.
-
+# This class is used by NewRelic::Agent.set_sql_obfuscator to chain multiple
+# obfuscation blocks when not using the default :replace action
 class NewRelic::ChainedCall
   def initialize(block1, block2)
     @block1 = block1

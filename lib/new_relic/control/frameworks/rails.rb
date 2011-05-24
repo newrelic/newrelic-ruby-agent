@@ -1,10 +1,10 @@
-# Control subclass instantiated when Rails is detected.  Contains
-# Rails specific configuration, instrumentation, environment values,
-# etc.
 require 'new_relic/control/frameworks/ruby'
 module NewRelic
   class Control
     module Frameworks
+      # Control subclass instantiated when Rails is detected.  Contains
+      # Rails specific configuration, instrumentation, environment values,
+      # etc.
       class Rails < NewRelic::Control::Frameworks::Ruby
 
         def env

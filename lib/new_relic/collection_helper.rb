@@ -1,11 +1,15 @@
 module NewRelic
+  # This module contains methods that help to normalize collections of
+  # data before we transmit them to the server.
   module CollectionHelper
-  DEFAULT_TRUNCATION_SIZE=256
-  DEFAULT_ARRAY_TRUNCATION_SIZE=1024
-  # Transform parameter hash into a hash whose values are strictly
-  # strings
-  def normalize_params(params)
-    case params
+    DEFAULT_TRUNCATION_SIZE=256
+    DEFAULT_ARRAY_TRUNCATION_SIZE=1024
+    # Transform parameter hash into a hash whose values are strictly
+    # strings, and limits their length to the DEFAULT_TRUNCATION_SIZE
+    # also limits arrays to DEFAULT_ARRAY_TRUNCATION_SIZE to make sure
+    # we don't include uselessly large amounts of data
+    def normalize_params(params)
+      case params
       when Symbol, FalseClass, TrueClass, nil
         params
       when Numeric
@@ -20,50 +24,53 @@ module NewRelic
         new_params
       when Array
         params.first(DEFAULT_ARRAY_TRUNCATION_SIZE).map{|item| normalize_params(item)}
-    else
-      truncate(flatten(params))
-    end
-  end
-
-  # Return an array of strings (backtrace), cleaned up for readability
-  # Return nil if there is no backtrace
-
-  def strip_nr_from_backtrace(backtrace)
-    if backtrace
-      # this is for 1.9.1, where strings no longer have Enumerable
-      backtrace = backtrace.split("\n") if String === backtrace
-      backtrace = backtrace.reject {|line| line =~ /new_?relic/ }
-      # rename methods back to their original state
-      backtrace = backtrace.collect {|line| line.to_s.gsub(/_without_(newrelic|trace)/, "")}
-    end
-    backtrace
-  end
-
-  private
-
-  # Convert any kind of object to a short string.
-  def flatten(object)
-    s = case object
-      when nil then ''
-      when object.instance_of?(String) then object
-      when String then String.new(object)  # convert string subclasses to strings
-      else "#<#{object.class.to_s}>"
-    end
-  end
-  def truncate(string, len=DEFAULT_TRUNCATION_SIZE)
-    case string
-    when Symbol then string
-    when nil then ""
-    when String
-      real_string = flatten(string)
-      if real_string.size > len
-        real_string = real_string.slice(0...len)
-        real_string << "..."
+      else
+        truncate(flatten(params))
       end
-      real_string
-    else
-      truncate(flatten(string), len)
     end
-  end
+
+    # Return an array of strings (backtrace), cleaned up for
+    # readability by removing layers of Ruby Agent code from the
+    # backtrace and renaming instrumented methods back to their
+    # original names.
+    #
+    # Return nil if there is no backtrace
+    def strip_nr_from_backtrace(backtrace)
+      if backtrace
+        # this is for 1.9.1, where strings no longer have Enumerable
+        backtrace = backtrace.split("\n") if String === backtrace
+        backtrace = backtrace.reject {|line| line =~ /new_?relic/ }
+        # rename methods back to their original state
+        backtrace = backtrace.collect {|line| line.to_s.gsub(/_without_(newrelic|trace)/, "")}
+      end
+      backtrace
+    end
+
+    private
+
+    # Convert any kind of object to a short string.
+    def flatten(object)
+      s = case object
+          when nil then ''
+          when object.instance_of?(String) then object
+          when String then String.new(object)  # convert string subclasses to strings
+          else "#<#{object.class.to_s}>"
+          end
+    end
+    def truncate(string, len=DEFAULT_TRUNCATION_SIZE)
+      case string
+      when Symbol then string
+      when nil then ""
+      when String
+        real_string = flatten(string)
+        if real_string.size > len
+          real_string = real_string.slice(0...len)
+          real_string << "..."
+        end
+        real_string
+      else
+        truncate(flatten(string), len)
+      end
+    end
   end
 end
