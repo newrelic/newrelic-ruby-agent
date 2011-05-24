@@ -9,7 +9,7 @@ module NewRelic
       attr_reader :rum_enabled
       attr_reader :license_bytes
 
-      JS_HEADER = "<script>var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);</script>"
+      JS_HEADER = "<script type=\"text/javascript\">var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);</script>"
 
       def initialize(connect_data)
         @browser_monitoring_key = connect_data['browser_key']
@@ -17,8 +17,11 @@ module NewRelic
         @beacon = connect_data['beacon']
         @rum_enabled = connect_data['rum.enabled']
         @rum_enabled = true if @rum_enabled.nil?
+        NewRelic::Control.instance.log.warn("Real User Monitoring is disabled for this agent. Edit your configuration to change this.") unless @rum_enabled
         @browser_timing_header = build_browser_timing_header
-        @browser_timing_static_footer = build_load_file_js(connect_data) 
+        NewRelic::Control.instance.log.debug("Browser timing header: #{@browser_timing_header.inspect}")
+        @browser_timing_static_footer = build_load_file_js(connect_data)
+        NewRelic::Control.instance.log.debug("Browser timing static footer: #{@browser_timing_static_footer.inspect}")
       end
 
       def license_bytes
@@ -33,7 +36,7 @@ module NewRelic
         return "" unless connect_data.fetch('rum.load_episodes_file', true)
 
         episodes_url = connect_data.fetch('episodes_url', '')
-        "(function(){var d=document;var e=d.createElement(\"script\");e.async=true;e.src=\"#{episodes_url}\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})();"
+        "(function(){var d=document;var e=d.createElement(\"script\");e.async=true;e.src=\"#{episodes_url}\";e.type=\"text/javascript\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})();"
       end
 
       def javascript_header
