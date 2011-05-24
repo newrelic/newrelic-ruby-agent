@@ -210,7 +210,7 @@ module NewRelic
     end
 
     def save_data
-      NewRelic::DataSerialization.dump_to_file do |old_data|
+      NewRelic::DataSerialization.read_and_write_to_file do |old_data|
         agent.merge_data_from(old_data)
         agent.serialize
       end
@@ -218,7 +218,7 @@ module NewRelic
 
     def load_data
       value = nil
-      NewRelic::DataSerialization.dump_to_file do |old_data|
+      NewRelic::DataSerialization.read_and_write_to_file do |old_data|
         agent.merge_data_from(old_data)
         value = {:metrics => agent.stats_engine.metrics.length, :traces => agent.unsent_traces_size, :errors => agent.unsent_errors_size}
         nil # return nil so nothing is written to the file

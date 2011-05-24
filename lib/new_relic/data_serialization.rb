@@ -6,8 +6,8 @@ module NewRelic
         # TODO get configuration from main control
         (File.size(file_path) >= max_size)
       end
-
-      def dump_to_file
+      
+      def read_and_write_to_file
         with_locked_store do |f|
           result = (yield get_data_from_file(f))
           f.rewind
