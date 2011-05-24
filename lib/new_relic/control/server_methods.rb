@@ -6,8 +6,6 @@ module NewRelic
       def to_s; "#{name}:#{port}"; end
     end
 
-    ProxyServer = Struct.new :name, :port, :user, :password #:nodoc:
-
     module ServerMethods
 
       def server
@@ -22,12 +20,7 @@ module NewRelic
         (self['api_port'] || self['port'] || (use_ssl? ? 443 : 80)).to_i,
         nil
       end
-
-      def proxy_server
-        @proxy_server ||=
-          NewRelic::Control::ProxyServer.new self['proxy_host'], self['proxy_port'], self['proxy_user'], self['proxy_pass']
-      end
-
+      
       def server_from_host(hostname=nil)
         host = hostname || self['host'] || 'collector.newrelic.com'
 
