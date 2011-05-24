@@ -30,13 +30,13 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
 
   def test_browser_timing_header
     header = browser_timing_header
-    assert_equal "<script>var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);</script>", header
+    assert_equal "<script type=\"text/javascript\">var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);</script>", header
   end
   
   def test_browser_timing_header_with_rum_enabled_not_specified
     NewRelic::Agent.instance.expects(:beacon_configuration).at_least_once.returns( NewRelic::Agent::BeaconConfiguration.new({"browser_key" => "browserKey", "application_id" => "apId", "beacon"=>"beacon", "episodes_url"=>"this_is_my_file"}))
     header = browser_timing_header
-    assert_equal "<script>var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);</script>", header
+    assert_equal "<script type=\"text/javascript\">var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);</script>", header
   end
 
   def test_browser_timing_header_with_rum_enabled_false
@@ -68,7 +68,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     Thread.current[:newrelic_start_time] = Time.now
 
     footer = browser_timing_footer
-    snippet = "<script>(function(){var d=document;var e=d.createElement(\"script\");e.async=true;e.src=\"this_is_my_file\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})();NREUMQ.push([\"nrf2\","
+    snippet = "<script type=\"text/javascript\">(function(){var d=document;var e=d.createElement(\"script\");e.async=true;e.src=\"this_is_my_file\";e.type=\"text/javascript\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})();NREUMQ.push([\"nrf2\","
     assert footer.include?(snippet), "Expected footer to include snippet: #{snippet}, but instead was #{footer}"
   end
   
@@ -101,7 +101,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     config.expects(:license_bytes).returns(license_bytes)
     NewRelic::Agent.instance.expects(:beacon_configuration).returns(config).at_least_once
     footer = browser_timing_footer
-    beginning_snippet = "(function(){var d=document;var e=d.createElement(\"script\");e.async=true;e.src=\"this_is_my_file\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})();NREUMQ.push([\"nrf2\","
+    beginning_snippet = "(function(){var d=document;var e=d.createElement(\"script\");e.async=true;e.src=\"this_is_my_file\";e.type=\"text/javascript\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})();NREUMQ.push([\"nrf2\","
     ending_snippet = "])</script>"
     assert(footer.include?(beginning_snippet), "expected footer to include beginning snippet: #{beginning_snippet}, but was #{footer}")
     assert(footer.include?(ending_snippet), "expected footer to include ending snippet: #{ending_snippet}, but was #{footer}")
@@ -234,7 +234,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     self.expects(:obfuscate).with('most recent transaction').returns('most recent transaction')
     
     value = footer_js_string(beacon, license_key, application_id)
-    assert_equal('<script>(function(){var d=document;var e=d.createElement("script");e.async=true;e.src="this_is_my_file";var s=d.getElementsByTagName("script")[0];s.parentNode.insertBefore(e,s);})();NREUMQ.push(["nrf2","","",1,"most recent transaction",0,0,new Date().getTime()])</script>', value, "should return the javascript given some default values")
+    assert_equal('<script type="text/javascript">(function(){var d=document;var e=d.createElement("script");e.async=true;e.src="this_is_my_file";e.type="text/javascript";var s=d.getElementsByTagName("script")[0];s.parentNode.insertBefore(e,s);})();NREUMQ.push(["nrf2","","",1,"most recent transaction",0,0,new Date().getTime()])</script>', value, "should return the javascript given some default values")
   end
 
   def test_html_safe_if_needed_unsafed
