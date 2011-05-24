@@ -17,8 +17,11 @@ module NewRelic
         @beacon = connect_data['beacon']
         @rum_enabled = connect_data['rum.enabled']
         @rum_enabled = true if @rum_enabled.nil?
+        NewRelic::Control.instance.log.warn("Real User Monitoring is disabled for this agent. Edit your configuration to change this.") unless @rum_enabled
         @browser_timing_header = build_browser_timing_header
-        @browser_timing_static_footer = build_load_file_js(connect_data) 
+        NewRelic::Control.instance.log.debug("Browser timing header: #{@browser_timing_header.inspect}")
+        @browser_timing_static_footer = build_load_file_js(connect_data)
+        NewRelic::Control.instance.log.debug("Browser timing static footer: #{@browser_timing_static_footer.inspect}")
       end
 
       def license_bytes
