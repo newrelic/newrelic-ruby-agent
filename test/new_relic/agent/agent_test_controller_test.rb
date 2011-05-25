@@ -189,7 +189,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
                 'Middleware/all',
                 'WebFrontend/WebServer/all']
 
-    compare_metrics metrics, engine.metrics.reject{|m| m.index('Response')==0 || m.index('CPU')==0}
+    compare_metrics metrics, engine.metrics.reject{|m| m.index('Response')==0 || m.index('CPU')==0 || m.index('GC')==0}
     assert_equal 1, engine.get_stats_no_scope("Controller/new_relic/agent/agent_test/action_with_before_filter_error").call_count
     assert_equal 1, engine.get_stats_no_scope("Errors/all").call_count
     apdex = engine.get_stats_no_scope("Apdex")
