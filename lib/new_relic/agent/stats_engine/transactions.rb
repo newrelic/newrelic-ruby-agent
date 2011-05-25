@@ -84,6 +84,7 @@ module Agent
       # via controller actions
       def scope_name=(transaction)
         Thread::current[:newrelic_scope_name] = transaction
+        Thread::current[:newrelic_most_recent_transaction] = transaction
       end
 
       def scope_name
@@ -104,7 +105,6 @@ module Agent
         stack = scope_stack
               
         if stack && stack.empty?
-          Thread::current[:newrelic_most_recent_transaction] = Thread::current[:newrelic_scope_name]
           Thread::current[:newrelic_scope_stack] = nil
           Thread::current[:newrelic_scope_name] = nil
         end

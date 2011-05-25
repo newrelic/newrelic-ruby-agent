@@ -65,7 +65,7 @@ module NewRelic
         attr_reader :depth
 
         def initialize
-          @start = Time.now
+          Thread.current[:newrelic_start_time] = @start = Time.now
           @path_stack = [] # stack of [controller, path] elements
           @jruby_cpu_start = jruby_cpu_time
           @process_cpu_start = process_cpu
@@ -138,7 +138,6 @@ module NewRelic
               NewRelic::Agent.instance.transaction_sampler.notice_scope_empty
             end
             NewRelic::Agent.instance.stats_engine.end_transaction
-            Thread.current[:newrelic_start_time] = (Thread.current[:newrelic_metric_frame].start rescue nil)
             Thread.current[:newrelic_metric_frame] = nil
           else # path stack not empty
             # change the transaction name back to whatever was on the stack.
