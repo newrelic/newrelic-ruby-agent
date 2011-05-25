@@ -74,7 +74,7 @@ module NewRelic
         attr_reader :depth
 
         def initialize
-          @start = Time.now
+          Thread.current[:newrelic_start_time] = @start = Time.now
           @path_stack = [] # stack of [controller, path] elements
           @jruby_cpu_start = jruby_cpu_time
           @process_cpu_start = process_cpu

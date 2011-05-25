@@ -9,13 +9,6 @@ module NewRelic
             Thread.current[:newrelic_metric_frame] = nil
           end
 
-          def set_last_start_time!
-            frame = Thread.current[:newrelic_metric_frame]
-            if frame && frame.respond_to?(:start)
-              Thread.current[:newrelic_start_time] = Thread.current[:newrelic_metric_frame].start
-            end
-          end
-
           def set_new_scope!(metric)
             agent.stats_engine.scope_name = metric
           end
@@ -78,7 +71,6 @@ module NewRelic
             raise 'path stack not empty' unless @path_stack.empty?
             notify_transaction_sampler(metric.is_web_transaction?) if traced?
             end_transaction!
-            set_last_start_time!
             clear_thread_metric_frame!
           end
 
