@@ -9,7 +9,7 @@ module NewRelic
         # If we try to get a log before one has been set up, return a stdout log
         unless @log
           l = Logger.new(STDOUT)
-          l.level = Logger::INFO
+          l.level = Logger::DEBUG
           return l
         end
         @log
