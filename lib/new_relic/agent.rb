@@ -197,7 +197,7 @@ module NewRelic
       agent.after_fork(options)
     end
 
-    # Clear out any unsent metric data.
+    # Clear out any unsent metric data. See NewRelic::Agent::Agent#reset_stats
     def reset_stats
       agent.reset_stats
     end
@@ -207,14 +207,30 @@ module NewRelic
     def shutdown(options={})
       agent.shutdown(options)
     end
-
+    
+    # a method used to serialize short-running processes to disk, so
+    # we don't incur the overhead of reporting to the server for every
+    # fork/invocation of a small job.
+    #
+    # Functionally, this loads the data from the file into the agent
+    # (to avoid losing data by overwriting) and then serializes the
+    # agent data to the file again. See also #load_data
     def save_data
       NewRelic::DataSerialization.read_and_write_to_file do |old_data|
         agent.merge_data_from(old_data)
         agent.serialize
       end
     end
+    
+    # used to load data from the disk during the harvest cycle to send
+    # it. This method also clears the file so data should never be
+    # sent more than once.
 
+    # Note that only one transaction trace will be sent even if many
+    # are serialized, since the slowest is sent.
+    #
+    # See also the complement to this method, #save_data - used when a
+    # process is shutting down
     def load_data
       value = nil
       NewRelic::DataSerialization.read_and_write_to_file do |old_data|
