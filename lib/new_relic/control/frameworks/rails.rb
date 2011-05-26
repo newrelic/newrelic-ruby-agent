@@ -11,7 +11,11 @@ module NewRelic
           @env ||= RAILS_ENV.dup
         end
         def root
-          RAILS_ROOT
+          if defined?(RAILS_ROOT) && RAILS_ROOT.to_s != ''
+            RAILS_ROOT.to_s
+          else
+            super
+          end
         end
 
         # In versions of Rails prior to 2.0, the rails config was only available to
@@ -66,12 +70,10 @@ module NewRelic
         end
 
         def log!(msg, level=:info)
-          return unless should_log?
-          begin
-            ::RAILS_DEFAULT_LOGGER.send(level, msg)
-          rescue Exception => e
-            super
-          end
+          super unless should_log?
+          ::RAILS_DEFAULT_LOGGER.send(level, msg)
+        rescue Exception => e
+          super
         end
 
         def to_stdout(message)

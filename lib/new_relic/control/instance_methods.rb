@@ -130,7 +130,7 @@ module NewRelic
         generated_for_user = ''
         license_key=''
         if !File.exists?(newrelic_file)
-          log! "Cannot find read #{newrelic_file}."
+          puts "Cannot find or read #{newrelic_file}"
           @yaml = {}
         else
           @yaml = YAML.load(ERB.new(File.read(newrelic_file)).result(binding))
@@ -139,6 +139,10 @@ module NewRelic
         puts e
         puts e.backtrace.join("\n")
         raise "Error reading newrelic.yml file: #{e}"
+      end
+
+      def root
+        '.'
       end
 
       def newrelic_root
