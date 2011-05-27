@@ -443,10 +443,7 @@ module NewRelic
           def create_and_run_worker_loop
             @worker_loop = WorkerLoop.new
             @worker_loop.run(@report_period) do
-              NewRelic::Agent.load_data
-              harvest_and_send_errors
-              harvest_and_send_slowest_sample
-              harvest_and_send_timeslice_data
+              save_or_transmit_data              
             end
           end
 
@@ -782,9 +779,9 @@ module NewRelic
           begin
             # In this version of the protocol, we get back an assoc array of spec to id.
             metric_specs_and_ids = invoke_remote(:metric_data, @agent_id,
-                                       @last_harvest_time.to_f,
-                                       now.to_f,
-                                       @unsent_timeslice_data.values)
+                                                 @last_harvest_time.to_f,
+                                                 now.to_f,
+                                                 @unsent_timeslice_data.values)
 
           rescue Timeout::Error
             # assume that the data was received. chances are that it was
@@ -987,21 +984,24 @@ module NewRelic
           NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote').record_data_point((Time.now - now).to_f)
           NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote/' + method.to_s).record_data_point((Time.now - now).to_f)
         end
-
+        
+        def save_or_transmit_data
+          if NewRelic::DataSerialization.should_send_data?
+            log.debug "Sending data to New Relic Service"
+            NewRelic::Agent.load_data
+            harvest_and_send_errors
+            harvest_and_send_slowest_sample
+            harvest_and_send_timeslice_data
+          else
+            log.debug "Serializing agent data to disk"
+            NewRelic::Agent.save_data
+          end
+        end
         def graceful_disconnect
           if @connected
             begin
               @request_timeout = 10
-              if NewRelic::DataSerialization.should_send_data?
-                log.debug "Sending data to New Relic Service"
-                NewRelic::Agent.load_data
-                harvest_and_send_errors
-                harvest_and_send_slowest_sample
-                harvest_and_send_timeslice_data
-              else
-                log.debug "Serializing agent data to disk"
-                NewRelic::Agent.save_data
-              end
+              save_or_transmit_data
               if @connected_pid == $$
                 log.debug "Sending New Relic service agent run shutdown message"
                 invoke_remote :shutdown, @agent_id, Time.now.to_f

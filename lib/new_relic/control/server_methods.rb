@@ -6,40 +6,42 @@ module NewRelic
       def to_s; "#{name}:#{port}"; end
     end
 
+    ProxyServer = Struct.new :name, :port, :user, :password #:nodoc:
+
     module ServerMethods
-      
-      # get a default server from the configuration file and cache it
-      # for future use
+
       def server
         @remote_server ||= server_from_host(nil)
       end
-      
-      # server used to call out to the api for things like deployments
-      # (the main usage) and optionally from within user code
+
       def api_server
         api_host = self['api_host'] || 'rpm.newrelic.com'
         @api_server ||=
-          NewRelic::Control::Server.new(api_host, (self['api_port'] || self['port'] || (use_ssl? ? 443 : 80)).to_i, nil)
+          NewRelic::Control::Server.new \
+        api_host,
+        (self['api_port'] || self['port'] || (use_ssl? ? 443 : 80)).to_i,
+        nil
       end
 
-      # returns a NewRelic::Control::Server with the correct host,
-      # port, and looked-up IP address. We do this to cache the IP so
-      # that the agent will never block looking up an IP address
+      def proxy_server
+        @proxy_server ||=
+          NewRelic::Control::ProxyServer.new self['proxy_host'], self['proxy_port'], self['proxy_user'], self['proxy_pass']
+      end
+
       def server_from_host(hostname=nil)
         host = hostname || self['host'] || 'collector.newrelic.com'
 
         # if the host is not an IP address, turn it into one
-        NewRelic::Control::Server.new(host, (self['port'] || (use_ssl? ? 443 : 80)).to_i, convert_to_ip_address(host))
+        NewRelic::Control::Server.new host, (self['port'] || (use_ssl? ? 443 : 80)).to_i, convert_to_ip_address(host)
       end
 
       # Check to see if we need to look up the IP address
       # If it's an IP address already, we pass it through.
       # If it's nil, or localhost, we don't bother.
-      # Otherwise, use resolve_ip_address to find one
+      # Otherwise, use `resolve_ip_address` to find one
       def convert_to_ip_address(host)
         # here we leave it as a host name since the cert verification
-        # needs it in host form in order to make sure the host matches
-        # the certificate
+        # needs it in host form
         return host if verify_certificate?
         return nil if host.nil? || host.downcase == "localhost"
         ip = resolve_ip_address(host)
@@ -66,7 +68,7 @@ module NewRelic
       end
 
       def cert_file_path
-        self.fetch('cert_file', File.expand_path(File.join(newrelic_root, 'cert', 'cacert.pem')))
+        File.expand_path(File.join(newrelic_root, 'cert', 'cacert.pem'))
       end
 
       # Return the Net::HTTP with proxy configuration given the NewRelic::Control::Server object.
