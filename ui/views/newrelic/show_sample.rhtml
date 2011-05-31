@@ -70,9 +70,10 @@
 		<%= show_view_link 'SQL', 'show_sample_sql' %>
 	</div>
 	<br/>
+        
 	<%= %w[show_sample_summary show_sample_sql show_sample_detail].collect do |p|
 		options = {:align => 'center', :id => p}
-		options[:style] = 'display: none' unless p == params['action']
+		options[:style] = 'display: none' unless @req.path.include?(p)
 		content_tag('div', render(:partial => p), options)
 	end.join(' ') %>
 	<% end %>
