@@ -16,6 +16,7 @@ DependencyDetection.defer do
     NewRelic::Control.instance.log.info("Attempting to install Delayed Job initialization hook")
     value = defined?(::Delayed) && defined?(::Delayed::Worker)
     NewRelic::Control.instance.log.info("Delayed Job and Delayed Worker instrumentation #{value ? 'is' : 'is not'} being installed")
+    value
   end
 
   executes do
