@@ -24,8 +24,8 @@ module NewRelic
       # The to_stdout may be implemented differently by different config subclasses.
       # This will NOT print anything if tracers are not enabled
       def log!(msg, level=:info)
-        return unless should_log?
         to_stdout msg
+        return unless should_log?
         log.send level, msg if @log
       end
       

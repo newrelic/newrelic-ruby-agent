@@ -144,7 +144,7 @@ module NewRelic
         generated_for_user = ''
         license_key=''
         if !File.exists?(newrelic_file)
-          log! "Cannot find read #{newrelic_file}."
+          puts "Cannot find or read #{newrelic_file}"
           @yaml = {}
         else
           @yaml = YAML.load(ERB.new(File.read(newrelic_file)).result(binding))
@@ -155,6 +155,10 @@ module NewRelic
         raise "Error reading newrelic.yml file: #{e}"
       end
       
+      def root
+        '.'
+      end
+
       # Delegates to the class method newrelic_root, implemented by
       # each subclass
       def newrelic_root
