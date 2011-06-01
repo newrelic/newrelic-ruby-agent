@@ -54,4 +54,28 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
     end
     assert(NewRelic::DataSerialization.should_send_data?, 'Should be over limit')
   end
+
+  def test_read_until_eoferror
+    file = './log/newrelic_agent_store.db'    
+    File.open(file, 'w') do |f|
+      f.write("a" * 10_001)
+    end
+    value = ""
+    File.open(file,'r') do |f|
+      value << NewRelic::DataSerialization.instance_eval { read_until_eof_error(f) }
+    end
+    assert_equal('a' * 10_001, value, "should retrieve all the contents from the string and not raise EOFerrors")
+  end
+  def test_write_contents_nonblockingly
+    file = './log/newrelic_agent_store.db'    
+    File.open(file, 'w') do |f|
+      f.write("") # write nothing! NOTHING
+    end
+
+    File.open(file, 'w') do |f|
+      NewRelic::DataSerialization.instance_eval { write_contents_nonblockingly(f, 'a' * 10_001) }
+    end
+    value = File.read(file)
+    assert_equal('a' * 10_001, value, "should write a couple thousand 'a's to a file without exploding")
+  end
 end
