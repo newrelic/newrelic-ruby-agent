@@ -117,11 +117,29 @@ class NewRelic::CollectionHelperTest < Test::Unit::TestCase
       #puts e.backtrace.grep(/trace/).join("\n")
       #puts "\n\n"
       clean_trace = strip_nr_from_backtrace(e.backtrace)
-      assert_equal 0, clean_trace.grep(/newrelic_rpm/).size, clean_trace.join("\n")
-      assert_equal 0, clean_trace.grep(/trace/).size, clean_trace.join("\n")
-      assert (clean_trace.grep(/find/).size >= 3), "should see at least three frames with 'find' in them (#{e}): \n#{clean_trace.join("\n")}"
+      assert_equal(0, clean_trace.grep(/newrelic_rpm/).size,
+               "should remove all instances of new relic from backtrace but got: #{clean_trace.join("\n")}")
+      assert_equal(0, clean_trace.grep(/trace/).size, 
+                   "should remove trace method tags from method names but got: #{clean_trace.join("\n")}")
+      assert((clean_trace.grep(/find/).size >= 3),
+             "should see at least three frames with 'find' in them (#{e}): \n#{clean_trace.join("\n")}")
     ensure
       ActiveRecordFixtures.teardown
     end
   end if defined?(::ActiveRecord)
+
+  def test_disabled_strip_backtrace
+    NewRelic::Control.instance['disable_backtrace_cleanup'] = true
+    begin
+      flunk "should throw"
+    rescue => e
+      clean_trace = strip_nr_from_backtrace(e.backtrace)
+      assert_equal(1, clean_trace.grep(/new_relic/).size,
+            "should not remove instances of new relic from backtrace but got: #{clean_trace.join("\n")}")
+      assert_equal(1, clean_trace.grep(/trace/).size, 
+                   "should not remove trace method tags from method names but got: #{clean_trace.join("\n")}")
+#       assert (clean_trace.grep(/find/).size >= 3), "should see at least three frames with 'find' in them (#{e}): \n#{clean_trace.join("\n")}"
+    end
+    NewRelic::Control.instance['disable_backtrace_cleanup'] = false
+  end
 end

@@ -158,6 +158,10 @@ module NewRelic
         end
         @verify_certificate
       end
+
+      def disable_backtrace_cleanup?
+        fetch('disable_backtrace_cleanup')
+      end
     end
     include Configuration
   end
