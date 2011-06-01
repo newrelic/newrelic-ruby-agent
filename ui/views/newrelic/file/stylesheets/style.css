@@ -310,6 +310,12 @@ div.flash.notice
 	text-decoration: underline;
 }
 
+.segment_list_table thead a
+{
+        color: white;
+        text-decoration: underline;
+}
+
 .application_stack_trace, .full_stack_trace
 {	
 	font-family: monospace;
