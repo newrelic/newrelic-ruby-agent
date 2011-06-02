@@ -13,7 +13,7 @@ The New Relic Ruby Agent runs in one of two modes:
 
 Low overhead instrumentation that captures detailed information on
 your application running in production and transmits them to
-rpm.newrelic.com where you can monitor them in real time.
+newrelic.com where you can monitor them in real time.
 
 ==== Developer Mode
 
@@ -39,7 +39,7 @@ Environments" section under "Getting Started".
 
 = Getting Started
 
-Install the RPM agent as a gem.  If you are using Rails you can
+Install the Ruby Agent as a gem.  If you are using Rails you can
 install the gem as a plug-in--details below.
 
    gem install newrelic_rpm
