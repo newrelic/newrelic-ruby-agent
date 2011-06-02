@@ -31,9 +31,9 @@ module NewRelic
       private
 
       def store_too_large?
-        size = File.size(file_path)
-        NewRelic::Control.instance.log.debug("Store was #{size} bytes, sending data") if size > max_size
-        size > max_size
+        size = File.size(file_path) > max_size
+        NewRelic::Control.instance.log.debug("Store was oversize, sending data") if size
+        size
       rescue Errno::ENOENT
         FileUtils.touch(file_path)
         retry
