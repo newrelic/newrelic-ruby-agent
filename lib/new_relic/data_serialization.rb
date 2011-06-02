@@ -21,24 +21,40 @@ module NewRelic
           result = (yield get_data_from_file(f))
           f.rewind
           write_contents_nonblockingly(f, dump(result)) if result
-          FileUtils.touch(semaphore_path)
         end
       end
 
+      def update_last_sent!
+        FileUtils.touch(semaphore_path)
+      end
+      
       private
 
       def store_too_large?
-        File.size(file_path) >= max_size
+        size = File.size(file_path)
+        NewRelic::Control.instance.log.debug("Store was #{size} bytes, sending data") if size > max_size
+        size > max_size
+      rescue Errno::ENOENT
+        FileUtils.touch(file_path)
+        retry
       end
 
       def store_too_old?
-        (File.mtime(file_path).to_i - Time.now.to_i) > 60.0
+        age = (Time.now.to_i - File.mtime(file_path).to_i)
+        NewRelic::Control.instance.log.debug("Store was #{age} seconds old, sending data") if age > 60
+        age > 60
+      rescue Errno::ENOENT
+        FileUtils.touch(file_path)
+        retry
       end
 
       def semaphore_too_old?
-        (File.mtime(semaphore_path).to_i - Time.now.to_i) > 60
+        age = (Time.now.to_i - File.mtime(semaphore_path).to_i)
+        NewRelic::Control.instance.log.debug("Pid was #{age} seconds old, sending data") if age > 60
+        age > 60
       rescue Errno::ENOENT
         FileUtils.touch(semaphore_path)
+        retry
       end
         
       def with_locked_store

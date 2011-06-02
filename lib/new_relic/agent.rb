@@ -238,6 +238,7 @@ module NewRelic
         value = {:metrics => agent.stats_engine.metrics.length, :traces => agent.unsent_traces_size, :errors => agent.unsent_errors_size}
         nil # return nil so nothing is written to the file
       end
+      NewRelic::DataSerialization.update_last_sent!
       value
     end
 
