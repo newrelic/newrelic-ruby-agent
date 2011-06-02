@@ -20,6 +20,7 @@ module NewRelic
         with_locked_store do |f|
           result = (yield get_data_from_file(f))
           f.rewind
+          f.truncate(0)
           write_contents_nonblockingly(f, dump(result)) if result
         end
       end
@@ -42,7 +43,7 @@ module NewRelic
       def store_too_old?
         age = (Time.now.to_i - File.mtime(file_path).to_i)
         NewRelic::Control.instance.log.debug("Store was #{age} seconds old, sending data") if age > 60
-        age > 60
+        age > 50
       rescue Errno::ENOENT
         FileUtils.touch(file_path)
         retry
