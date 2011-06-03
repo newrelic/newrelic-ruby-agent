@@ -36,7 +36,19 @@ module NewRelic
         return "" unless connect_data.fetch('rum.load_episodes_file', true)
 
         episodes_url = connect_data.fetch('episodes_url', '')
-        "(function(){var d=document;var e=d.createElement(\"script\");e.async=true;e.src=\"#{episodes_url}\";e.type=\"text/javascript\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})();"
+        
+        s = 
+<<-eos
+NREUMQ.f = function() {
+NREUMQ.push(["load",new Date().getTime()]);
+var e=document.createElement(\"script\");
+e.type=\"text/javascript\";e.async=true;e.src=\"#{episodes_url}\";
+document.body.appendChild(e);  
+if (NREUMQ.a) NREUMQ.a();
+};
+NREUMQ.a=window.onload;window.onload=NREUMQ.f;          
+eos
+        s
       end
 
       def javascript_header
