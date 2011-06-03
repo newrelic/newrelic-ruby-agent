@@ -68,7 +68,10 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     Thread.current[:newrelic_start_time] = Time.now
 
     footer = browser_timing_footer
-    snippet = "<script type=\"text/javascript\">(function(){var d=document;var e=d.createElement(\"script\");e.async=true;e.src=\"this_is_my_file\";e.type=\"text/javascript\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})();NREUMQ.push([\"nrf2\","
+    snippet = '<script type="text/javascript">NREUMQ.f = function() {
+NREUMQ.push(["load",new Date().getTime()]);
+var e=document.createElement("script");
+e.type="text/javascript";e.async=true;e.src="'
     assert footer.include?(snippet), "Expected footer to include snippet: #{snippet}, but instead was #{footer}"
   end
 
@@ -101,7 +104,10 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     config.expects(:license_bytes).returns(license_bytes)
     NewRelic::Agent.instance.expects(:beacon_configuration).returns(config).at_least_once
     footer = browser_timing_footer
-    beginning_snippet = "(function(){var d=document;var e=d.createElement(\"script\");e.async=true;e.src=\"this_is_my_file\";e.type=\"text/javascript\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})();NREUMQ.push([\"nrf2\","
+    beginning_snippet = '<script type="text/javascript">NREUMQ.f = function() {
+NREUMQ.push(["load",new Date().getTime()]);
+var e=document.createElement("script");
+e.type="text/javascript";e.async=true;e.src="'
     ending_snippet = "])</script>"
     assert(footer.include?(beginning_snippet), "expected footer to include beginning snippet: #{beginning_snippet}, but was #{footer}")
     assert(footer.include?(ending_snippet), "expected footer to include ending snippet: #{ending_snippet}, but was #{footer}")
@@ -234,7 +240,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     self.expects(:obfuscate).with('most recent transaction').returns('most recent transaction')
 
     value = footer_js_string(beacon, license_key, application_id)
-    assert_equal('<script type="text/javascript">(function(){var d=document;var e=d.createElement("script");e.async=true;e.src="this_is_my_file";e.type="text/javascript";var s=d.getElementsByTagName("script")[0];s.parentNode.insertBefore(e,s);})();NREUMQ.push(["nrf2","","",1,"most recent transaction",0,0,new Date().getTime()])</script>', value, "should return the javascript given some default values")
+    assert_equal("<script type=\"text/javascript\">NREUMQ.f = function() {\nNREUMQ.push([\"load\",new Date().getTime()]);\nvar e=document.createElement(\"script\");\ne.type=\"text/javascript\";e.async=true;e.src=\"this_is_my_file\";\ndocument.body.appendChild(e);  \nif (NREUMQ.a) NREUMQ.a();\n};\nNREUMQ.a=window.onload;window.onload=NREUMQ.f;          \nNREUMQ.push([\"nrf2\",\"\",\"\",1,\"most recent transaction\",0,0,new Date().getTime()])</script>", value, "should return the javascript given some default values")
   end
 
   def test_html_safe_if_needed_unsafed
