@@ -1,6 +1,6 @@
 DependencyDetection.defer do
   depends_on do
-    defined?(ActiveMerchant)
+    defined?(ActiveMerchant) && defined?(ActiveMerchant::Billing)
   end
 
   executes do
