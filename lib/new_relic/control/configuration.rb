@@ -67,7 +67,7 @@ module NewRelic
       end
 
       def license_key
-        fetch('license_key')
+        fetch('license_key', ENV['NEWRELIC_LICENSE_KEY'])
       end
       
       def capture_params
