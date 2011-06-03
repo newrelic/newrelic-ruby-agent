@@ -19,13 +19,16 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   end
 
   def test_cert_file
-    result = `openssl verify -CAfile #{@c.cert_file_path} #{@c.send(:newrelic_root)}/cert/site.pem`
-    assert (result =~ /OK/), 'Should verify certificate: ' + result
-  end
+    require 'socket'
+    require 'openssl'
 
-  def test_old_cert_file
-    result = `openssl verify -CAfile #{@c.cert_file_path} #{@c.send(:newrelic_root)}/cert/oldsite.pem`
-    assert (result =~ /OK/), 'Should verify the old certificate: ' + result
+    s   = TCPSocket.new 'collector.newrelic.com', 443
+    ctx = OpenSSL::SSL::SSLContext.new
+    ctx.ca_path = @c.cert_file_path
+    ctx.verify_mode = OpenSSL::SSL::VERIFY_PEER
+    s   = OpenSSL::SSL::SSLSocket.new s, ctx
+    s.connect
+    # should not raise an error
   end
 
   def test_monitor_mode
