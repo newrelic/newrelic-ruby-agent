@@ -37,18 +37,16 @@ module NewRelic
 
         episodes_url = connect_data.fetch('episodes_url', '')
         
-        s = 
 <<-eos
-NREUMQ.f = function() {
+if (!NREUMQ.f) NREUMQ.f=function() {
 NREUMQ.push(["load",new Date().getTime()]);
 var e=document.createElement(\"script\");
 e.type=\"text/javascript\";e.async=true;e.src=\"#{episodes_url}\";
-document.body.appendChild(e);  
-if (NREUMQ.a) NREUMQ.a();
+document.body.appendChild(e);
+if(NREUMQ.a)NREUMQ.a();
 };
-NREUMQ.a=window.onload;window.onload=NREUMQ.f;          
+if(window.onload!==NREUMQ.f){NREUMQ.a=window.onload;window.onload=NREUMQ.f;};
 eos
-        s
       end
 
       def javascript_header
