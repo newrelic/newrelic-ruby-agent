@@ -153,6 +153,12 @@ module Agent
         elapsed = (gc_time - @last_gc_timestamp).to_f
         @last_gc_timestamp = gc_time
         @last_gc_count = gc_collections
+        
+        if defined?(GC::Profiler)
+          GC::Profiler.clear
+          @last_gc_timestamp = 0
+        end
+        
         if num_calls > 0
           # µs to seconds
           elapsed = elapsed / 1000000.0
