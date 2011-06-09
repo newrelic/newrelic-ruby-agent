@@ -17,8 +17,16 @@ module NewRelic
 
       private
 
+      def open_arguments
+        if defined?(Encoding)
+          [file_path, File::RDWR | File::CREAT, {:external_encoding => '-', :internal_encoding => nil}]
+        else
+          [file_path, File::RDWR | File::CREAT]
+        end
+      end
+      
       def with_locked_store
-        File.open(file_path, File::RDWR | File::CREAT) do |f|
+        File.open(*open_arguments) do |f|
           f.flock(File::LOCK_EX)
           begin
             yield(f)
@@ -27,8 +35,8 @@ module NewRelic
           end
         end
       rescue Exception => e
-        puts e.inspect
-        puts e.backtrace.split("\n")
+        NewRelic::Control.instance.log.error("Error serializing data to disk: #{e.inspect}")
+        NewRelic::Control.instance.log.debug(e.backtrace.split("\n"))
       end
 
       def get_data_from_file(f)
