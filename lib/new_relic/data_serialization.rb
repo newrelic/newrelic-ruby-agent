@@ -28,6 +28,7 @@ module NewRelic
         end
       rescue Exception => e
         puts e.inspect
+        puts e.backtrace.split("\n")
       end
 
       def get_data_from_file(f)
