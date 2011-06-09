@@ -181,6 +181,7 @@ http://github.com/newrelic/rpm/
     "test/new_relic/metric_data_test.rb",
     "test/new_relic/metric_spec_test.rb",
     "test/new_relic/rack/all_test.rb",
+    "test/new_relic/rack/developer_mode_test.rb",
     "test/new_relic/stats_test.rb",
     "test/new_relic/transaction_analysis/segment_summary_test.rb",
     "test/new_relic/transaction_analysis_test.rb",
