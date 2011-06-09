@@ -19,7 +19,7 @@ module NewRelic
 
       def open_arguments
         if defined?(Encoding)
-          [file_path, File::RDWR | File::CREAT, {:external_encoding => '-', :internal_encoding => nil}]
+          [file_path, File::RDWR | File::CREAT, {:internal_encoding => nil}]
         else
           [file_path, File::RDWR | File::CREAT]
         end
