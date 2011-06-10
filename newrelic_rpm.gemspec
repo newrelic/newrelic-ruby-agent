@@ -8,8 +8,8 @@ Gem::Specification.new do |s|
   s.version = "3.2.0.alpha"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["Bill Kayser", "Justin George"]
-  s.date = %q{2011-05-20}
+  s.authors = ["Bill Kayser", "Justin George", "Jon Guymon"]
+  s.date = %q{2011-06-10}
   s.description = %q{New Relic is a performance management system, developed by New Relic,
 Inc (http://www.newrelic.com).  New Relic provides you with deep
 information about the performance of your web application as it runs
