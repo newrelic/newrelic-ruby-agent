@@ -24,7 +24,7 @@ class NewRelic::ControlTest < Test::Unit::TestCase
 
     s   = TCPSocket.new 'collector.newrelic.com', 443
     ctx = OpenSSL::SSL::SSLContext.new
-    ctx.ca_path = @c.cert_file_path
+    ctx.ca_file = @c.cert_file_path
     ctx.verify_mode = OpenSSL::SSL::VERIFY_PEER
     s   = OpenSSL::SSL::SSLSocket.new s, ctx
     s.connect
