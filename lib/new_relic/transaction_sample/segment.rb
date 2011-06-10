@@ -15,11 +15,13 @@ module NewRelic
         @metric_name = metric_name || '<unknown>'
         @segment_id = segment_id || object_id
       end
-
+      
+      # sets the final timestamp on a segment to indicate the exit
+      # point of the segment
       def end_trace(timestamp)
         @exit_timestamp = timestamp
       end
-
+      
       def add_called_segment(s)
         @called_segments ||= []
         @called_segments << s
@@ -100,7 +102,8 @@ module NewRelic
         called_segments.each { | seg | count  += seg.count_segments }
         count
       end
-      # Walk through the tree and truncate the segments
+      # Walk through the tree and truncate the segments in a
+      # depth-first manner
       def truncate(max)
         return 1 unless @called_segments
         total, self.called_segments = truncate_each_child(max - 1)

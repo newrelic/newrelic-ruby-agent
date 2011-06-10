@@ -46,12 +46,15 @@ module NewRelic
       end
 
       module ClassMethods
-        # Should only be called by NewRelic::Control
+        # Should only be called by NewRelic::Control - returns a
+        # memoized singleton instance of the agent, creating one if needed
         def instance
           @instance ||= self.new
         end
       end
-
+      
+      # Holds all the methods defined on NewRelic::Agent::Agent
+      # instances
       module InstanceMethods
 
         attr_reader :obfuscator
@@ -62,15 +65,21 @@ module NewRelic
         attr_reader :metric_ids
         attr_reader :url_rules
         attr_reader :beacon_configuration
-
+        
+        # Returns the length of the unsent errors array, if it exists,
+        # otherwise nil
         def unsent_errors_size
           @unsent_errors.length if @unsent_errors
         end
-
+        
+        # Returns the length of the traces array, if it exists,
+        # otherwise nil
         def unsent_traces_size
           @traces.length if @traces
         end
-
+        
+        # Initializes the unsent timeslice data hash, if needed, and
+        # returns the number of keys it contains
         def unsent_timeslice_data
           @unsent_timeslice_data ||= {}
           @unsent_timeslice_data.keys.length
@@ -79,6 +88,9 @@ module NewRelic
         # fakes out a transaction that did not happen in this process
         # by creating apdex, summary metrics, and recording statistics
         # for the transaction
+        # 
+        # This method is *deprecated* - it may be removed in future
+        # versions of the agent
         def record_transaction(duration_seconds, options={})
           is_error = options['is_error'] || options['error_message'] || options['exception']
           metric = options['metric']
@@ -304,7 +316,8 @@ module NewRelic
           def log_app_names
             log.info "Application: #{control.app_names.join(", ")}"
           end
-
+          
+          # apdex_f is always 4 times the apdex_t
           def apdex_f
             (4 * NewRelic::Control.instance.apdex_t).to_f
           end
@@ -497,7 +510,8 @@ module NewRelic
           notify_log_file_location
         end
 
-        # Clear out the metric data, errors, and transaction traces.
+        # Clear out the metric data, errors, and transaction traces,
+        # making sure the agent is in a fresh state
         def reset_stats
           @stats_engine.reset_stats
           @unsent_errors = []
@@ -511,7 +525,10 @@ module NewRelic
         def collector
           @collector ||= control.server
         end
-
+        
+        # All of this module used to be contained in the
+        # start_worker_thread method - this is an artifact of
+        # refactoring and can be moved, renamed, etc at will
         module StartWorkerThread
 
           # disable transaction sampling if disabled by the server
@@ -635,7 +652,10 @@ module NewRelic
         def control
           NewRelic::Control.instance
         end
-
+        
+        # This module is an artifact of a refactoring of the connect
+        # method - all of its methods are used in that context, so it
+        # can be refactored at will. It should be fully tested
         module Connect
           attr_accessor :connect_retry_period
           attr_accessor :connect_attempts
@@ -841,7 +861,9 @@ module NewRelic
             configure_transaction_tracer!(config_data['collect_traces'], config_data['sample_rate'])
             configure_error_collector!(config_data['collect_errors'])
           end
-
+          
+          # Logs when we connect to the server, for debugging purposes
+          # - makes sure we know if an agent has not connected
           def log_connection!(config_data)
             control.log! "Connected to NewRelic Service at #{@collector}"
             log.debug "Agent Run       = #{@agent_id}."

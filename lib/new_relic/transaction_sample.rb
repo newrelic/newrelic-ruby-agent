@@ -34,7 +34,11 @@ module NewRelic
       def obfuscate_sql(sql)
         NewRelic::Agent.instance.obfuscator.call(sql)
       end
-
+      
+      # Returns a cached connection for a given ActiveRecord
+      # configuration - these are stored or reopened as needed, and if
+      # we cannot get one, we ignore it and move on without explaining
+      # the sql
       def get_connection(config)
         @@connections ||= {}
 
@@ -51,7 +55,8 @@ module NewRelic
           nil
         end
       end
-
+      
+      # Closes all the connections in the internal connection cache
       def close_connections
         @@connections ||= {}
         @@connections.values.each do |connection|
@@ -77,7 +82,10 @@ module NewRelic
     def count_segments
       @root_segment.count_segments - 1    # don't count the root segment
     end
-
+    
+    # Truncates the transaction sample to a maximum length determined
+    # by the passed-in parameter. Operates recursively on the entire
+    # tree of transaction segments in a depth-first manner
     def truncate(max)
       count = count_segments
       return if count < max
@@ -85,7 +93,9 @@ module NewRelic
 
       ensure_segment_count_set(count)
     end
-
+    
+    # makes sure that the parameter cache for segment count is set to
+    # the correct value
     def ensure_segment_count_set(count)
       params[:segment_count] ||= count
     end
@@ -122,7 +132,9 @@ module NewRelic
     def duration
       root_segment.duration
     end
-
+    
+    # Iterates recursively over each segment in the entire transaction
+    # sample tree
     def each_segment(&block)
       @root_segment.each_segment(&block)
     end
@@ -130,7 +142,9 @@ module NewRelic
     def to_s_compact
       @root_segment.to_s_compact
     end
-
+    
+    # Searches the tree recursively for the segment with the given
+    # id. note that this is an internal id, not an ActiveRecord id
     def find_segment(id)
       @root_segment.find_segment(id)
     end
@@ -202,7 +216,8 @@ module NewRelic
     end
 
   private
-
+    
+    # This is badly in need of refactoring
     def build_segment_with_omissions(new_sample, time_delta, source_segment, target_segment, regex)
       source_segment.called_segments.each do |source_called_segment|
         # if this segment's metric name matches the given regular expression, bail
@@ -233,6 +248,8 @@ module NewRelic
     end
 
     # see prepare_to_send for what we do with options
+    #
+    # This is badly in need of refactoring
     def build_segment_for_transfer(new_sample, source_segment, target_segment, options)
       source_segment.called_segments.each do |source_called_segment|
         target_called_segment = new_sample.create_segment(

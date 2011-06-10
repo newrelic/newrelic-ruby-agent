@@ -276,18 +276,26 @@ module NewRelic
         def newrelic_request_headers
           self.respond_to?(:request) && self.request.respond_to?(:headers) && self.request.headers
         end
-
+        
+        # overrideable method to determine whether to trace an action
+        # or not - you may override this in your controller and supply
+        # your own logic for ignoring transactions.
         def do_not_trace?
           _is_filtered?('do_not_trace')
         end
-
+        
+        # overrideable method to determine whether to trace an action
+        # for purposes of apdex measurement - you can use this to
+        # ignore things like api calls or other fast non-user-facing
+        # actions
         def ignore_apdex?
           _is_filtered?('ignore_apdex')
         end
 
         private
 
-        # Profile the instrumented call.  Dev mode only.  Experimental.
+        # Profile the instrumented call.  Dev mode only.  Experimental
+        # - should definitely not be used on production applications
         def perform_action_with_newrelic_profile(args)
           frame_data = _push_metric_frame(block_given? ? args : [])
           val = nil
@@ -358,7 +366,8 @@ module NewRelic
           [category, path, params]
         end
 
-        # Filter out
+        # Filter out a request if it matches one of our parameters for
+        # ignoring it - the key is either 'do_not_trace' or 'ignore_apdex'
         def _is_filtered?(key)
           ignore_actions = self.class.newrelic_read_attr(key) if self.class.respond_to? :newrelic_read_attr
           case ignore_actions
@@ -402,7 +411,9 @@ module NewRelic
           NewRelic::Control.instance.log.debug("#{e.backtrace[0..20]}")
           now
         end
-
+        
+        # returns the NewRelic::MethodTraceStats object associated
+        # with the dispatcher time measurement
         def _dispatch_stat
           NewRelic::Agent.agent.stats_engine.get_stats_no_scope 'HttpDispatcher'
         end
