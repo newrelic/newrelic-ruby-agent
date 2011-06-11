@@ -49,9 +49,9 @@ module NewRelic::Rack
         if source.include?('X-UA-Compatible')
           # put at end of header if UA-Compatible meta tag found
           head_pos = source.index("</head>")          
-        elsif head_open = source.index("<head>")
+        elsif head_open = source.index("<head")
           # put at the beginning of the header
-          head_pos = head_open + 6
+          head_pos = source.index(">", head_open) + 1
         else
           # put the header right above body start
           head_pos = body_start
