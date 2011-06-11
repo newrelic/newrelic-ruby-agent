@@ -72,4 +72,11 @@ EOL
     
     assert(last_response.body.include?("#{NewRelic::Agent.browser_timing_footer}</body>"), last_response.body)
   end
+
+  def test_should_not_throw_exception_on_empty_reponse
+    @doc = ''
+    get '/'
+
+    assert last_response.ok?
+  end
 end
