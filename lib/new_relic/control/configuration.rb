@@ -88,6 +88,11 @@ module NewRelic
       def multi_threaded?
         fetch('multi_threaded')
       end
+
+      def disable_serialization?
+        fetch('disable_serialization', false)
+      end
+      
       # True if we should view files in textmate
       def use_textmate?
         fetch('textmate')
