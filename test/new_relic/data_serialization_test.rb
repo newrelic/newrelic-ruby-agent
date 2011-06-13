@@ -78,4 +78,17 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
     value = File.read(file)
     assert_equal('a' * 10_001, value, "should write a couple thousand 'a's to a file without exploding")
   end
+
+  def test_should_send_data_disabled
+    NewRelic::Control.instance.expects(:disable_serialization?).returns(true)
+    assert(NewRelic::DataSerialization.should_send_data?, 'should send data when disabled')
+  end
+
+  def test_should_send_data_under_limit
+    NewRelic::DataSerialization.expects(:max_size).returns(20)
+    NewRelic::DataSerialization.read_and_write_to_file do
+      "a" * 10
+    end
+    assert(!NewRelic::DataSerialization.should_send_data?, 'Should be under the limit')
+  end
 end
