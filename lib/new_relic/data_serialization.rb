@@ -3,8 +3,12 @@ module NewRelic
   class DataSerialization
     module ClassMethods
       def should_send_data?
-        # TODO get configuration from main control
-        (File.size(file_path) >= max_size)
+        NewRelic::Control.instance.disable_serialization? || (File.size(file_path) >= max_size)
+      rescue Exception => e
+        # This is not what we really should do here, but the fail-safe
+        # behavior is to do what the older agent did: send data every
+        # time we think we might want to send data.
+        true
       end
       
       def read_and_write_to_file
