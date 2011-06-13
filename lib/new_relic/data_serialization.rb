@@ -7,8 +7,7 @@ module NewRelic
       # right away. If not, we presumably store it for later sending
       # (handled elsewhere)
       def should_send_data?
-        # TODO get configuration from main control
-        store_too_large? || store_too_old? || semaphore_too_old?
+       NewRelic::Control.instance.disable_serialization? || store_too_large? || store_too_old? || semaphore_too_old?
       rescue (ENV['CATCH_EXCEPTION'] ? Exception : Class.new) => e
         # This is not what we really should do here, but the fail-safe
         # behavior is to do what the older agent did: send data every
