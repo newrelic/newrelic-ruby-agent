@@ -3,7 +3,9 @@ require 'new_relic/control'
 require 'new_relic/agent/transaction_sample_builder'
 module NewRelic
   module Agent
-
+    
+    # This class contains the logic of sampling a transaction -
+    # creation and modification of transaction samples
     class TransactionSampler
 
       # Module defining methods stubbed out when the agent is disabled

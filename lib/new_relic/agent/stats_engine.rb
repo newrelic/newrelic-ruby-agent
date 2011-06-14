@@ -4,6 +4,7 @@ require 'new_relic/agent/stats_engine/transactions'
 
 module NewRelic
   module Agent
+    # This class handles all the statistics gathering for the agent
     class StatsEngine
       include MetricStats
       include Samplers

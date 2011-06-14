@@ -6,14 +6,20 @@ module Agent
       def add_harvest_sampler(*args); end
       def start_sampler_thread(*args); end
     end
-
+    
+    # Contains statistics engine extensions to support the concept of samplers
     module Samplers
 
       # By default a sampler polls on harvest time, once a minute.  However you can
       # override #use_harvest_sampler? to return false and it will sample
       # every POLL_PERIOD seconds on a background thread.
       POLL_PERIOD = 20
-
+      
+      # starts the sampler thread which runs periodically, rather than
+      # at harvest time. This is deprecated, and should not actually
+      # be used - mo threads mo problems
+      #
+      # returns unless there are actually periodic samplers to run
       def start_sampler_thread
 
         return if @sampler_thread && @sampler_thread.alive?

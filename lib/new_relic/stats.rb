@@ -1,12 +1,13 @@
 
 module NewRelic
   module Stats
-
+    
+    # a stat is absent if its call count equals zero
     def absent?
-      # guess on absent values
       call_count == 0
     end
-
+    
+    # outputs a useful human-readable time given a value in milliseconds
     def time_str(value_ms)
       case
       when value_ms >= 10000
@@ -26,7 +27,7 @@ module NewRelic
         numerator.to_f / denominator
       end
     end
-
+    
     def average_call_time
       checked_calculation(total_call_time, call_count)
     end
@@ -336,7 +337,10 @@ module NewRelic
     end
 
     alias trace_call record_data_point
-
+    
+    # Records multiple data points as one method call - this handles
+    # all the aggregation that would be done with multiple
+    # record_data_point calls
     def record_multiple_data_points(total_value, count=1)
       return record_data_point(total_value) if count == 1
       @call_count += count
@@ -348,11 +352,13 @@ module NewRelic
       @sum_of_squares += (avg_val * avg_val) * count
       self
     end
-
+    
+    # increments the call_count by one
     def increment_count(value = 1)
       @call_count += value
     end
-
+    
+    # outputs a human-readable version of the MethodTraceStats object
     def inspect
       "#<NewRelic::MethodTraceStats #{summary} >"
     end
@@ -369,6 +375,9 @@ module NewRelic
       unscoped_stats.trace_call call_time, exclusive_time
       super call_time, exclusive_time
     end
+    # Records multiple data points as one method call - this handles
+    # all the aggregation that would be done with multiple
+    # trace_call calls    
     def record_multiple_data_points(total_value, count=1)
       unscoped_stats.record_multiple_data_points(total_value, count)
       super total_value, count

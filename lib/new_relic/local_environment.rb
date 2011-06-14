@@ -14,12 +14,16 @@ module NewRelic
   #
   # NewRelic::LocalEnvironment should be accessed through NewRelic::Control#env (via the NewRelic::Control singleton).
   class LocalEnvironment
-
-    attr_accessor :dispatcher # mongrel, thin, webrick, or possibly nil
-    attr_accessor :dispatcher_instance_id # used to distinguish instances of a dispatcher from each other, may be nil
-    attr_accessor :framework # rails, rails3, merb, external, ruby, test
-    attr_reader :mongrel    # The mongrel instance, if there is one, captured as a convenience
-    attr_reader :processors # The number of cpus, if detected, or nil
+    
+    # mongrel, thin, webrick, or possibly nil
+    attr_accessor :dispatcher
+    # used to distinguish instances of a dispatcher from each other, may be nil
+    attr_writer :dispatcher_instance_id
+    # rails, rails3, merb, external, ruby, test, etc
+    attr_accessor :framework
+    # The number of cpus, if detected, or nil - many platforms do not
+    # support this :(
+    attr_reader :processors 
     alias environment dispatcher
 
     def initialize
@@ -49,21 +53,27 @@ module NewRelic
       # puts "#{e}\n  #{e.backtrace.join("\n  ")}"
       raise if @framework == :test
     end
-
+    
+    # yields to the block and appends the returned value to the list
+    # of gems - this catches errors that might be raised in the block
     def append_gem_list
       @gems += yield
     rescue Exception => e
       # puts "#{e}\n  #{e.backtrace.join("\n  ")}"
       raise if @framework == :test
     end
-
+    
+    # yields to the block and appends the returned value to the list
+    # of plugins - this catches errors that might be raised in the block
     def append_plugin_list
       @plugins += yield
     rescue Exception
       # puts "#{e}\n  #{e.backtrace.join("\n  ")}"
       raise if @framework == :test
     end
-
+    
+    # An instance id pulled from either @dispatcher_instance_id or by
+    # splitting out the first part of the running file
     def dispatcher_instance_id
       if @dispatcher_instance_id.nil?
         if @dispatcher.nil?
@@ -72,7 +82,9 @@ module NewRelic
       end
       @dispatcher_instance_id
     end
-
+    
+    # Interrogates some common ruby constants for useful information
+    # about what kind of ruby environment the agent is running in
     def gather_ruby_info
       append_environment_value('Ruby version'){ RUBY_VERSION }
       append_environment_value('Ruby description'){ RUBY_DESCRIPTION } if defined? ::RUBY_DESCRIPTION
@@ -83,13 +95,14 @@ module NewRelic
         gather_jruby_info
       end
     end
-
+    
+    # like gather_ruby_info but for the special case of JRuby
     def gather_jruby_info
       append_environment_value('JRuby version') { JRUBY_VERSION }
       append_environment_value('Java VM version') { ENV_JAVA['java.vm.version']}
     end
 
-    # See what the number of cpus is, works only on linux.
+    # See what the number of cpus is, works only on some linux variants
     def gather_cpu_info
       return unless File.readable? '/proc/cpuinfo'
       @processors = append_environment_value('Processors') do
@@ -98,25 +111,30 @@ module NewRelic
         processors
       end
     end
-
+    
+    # Grabs the architecture string from either `uname -p` or the env
+    # variable PROCESSOR_ARCHITECTURE
     def gather_architecture_info
       append_environment_value('Arch') { `uname -p` } ||
         append_environment_value('Arch') { ENV['PROCESSOR_ARCHITECTURE'] }
     end
-
+    
+    # gathers OS info from either `uname -v`, `uname -s`, or the OS
+    # env variable
     def gather_os_info
       append_environment_value('OS version') { `uname -v` }
       append_environment_value('OS') { `uname -s` } ||
         append_environment_value('OS') { ENV['OS'] }
     end
-
+    
+    # Gathers the architecture and cpu info
     def gather_system_info
       gather_architecture_info
       gather_cpu_info
     end
-
+    
+    # Looks for a capistrano file indicating the current revision
     def gather_revision_info
-      # Look for a capistrano file indicating the current revision:
       rev_file = File.join(NewRelic::Control.instance.root, "REVISION")
       if File.readable?(rev_file) && File.size(rev_file) < 64
         append_environment_value('Revision') do
@@ -124,9 +142,11 @@ module NewRelic
         end
       end
     end
-
+    
+    # The name of the AR database adapter for the current environment and
+    # the current schema version
     def gather_ar_adapter_info
-      # The name of the database adapter for the current environment.
+      
       append_environment_value 'Database adapter' do
         if defined?(ActiveRecord) && defined?(ActiveRecord::Base) &&
             ActiveRecord::Base.respond_to?(:configurations)
@@ -140,14 +160,17 @@ module NewRelic
         ActiveRecord::Migrator.current_version
       end
     end
-
+    
+    # Datamapper version
     def gather_dm_adapter_info
       append_environment_value 'DataMapper version' do
         require 'dm-core/version'
         DataMapper::VERSION
       end
     end
-
+    
+    # sensing for which adapter is defined, then appends the relevant
+    # config information
     def gather_db_info
       # room here for more database adapters, when.
       if defined? ::ActiveRecord
@@ -181,17 +204,22 @@ module NewRelic
       i << [ 'Gems', @gems.to_a] if not @gems.empty?
       i
     end
-
+    
+    # it's a working jruby if it has the runtime method, and object
+    # space is enabled
     def working_jruby?
       !(defined?(::JRuby) && JRuby.respond_to?(:runtime) && !JRuby.runtime.is_object_space_enabled)
     end
-
+    
+    # Runs through all the objects in ObjectSpace to find the first one that
+    # match the provided class
     def find_class_in_object_space(klass)
       ObjectSpace.each_object(klass) do |x|
         return x
       end
     end
-
+    
+    # Sets the @mongrel instance variable if we can find a Mongrel::HttpServer
     def mongrel
       return @mongrel if @mongrel
       if defined?(::Mongrel) && defined?(::Mongrel::HttpServer) && working_jruby?
@@ -199,7 +227,8 @@ module NewRelic
       end
       @mongrel
     end
-
+    
+    # sets the @unicorn instance variable if we can find a Unicorn::HttpServer
     def unicorn
       return @unicorn if @unicorn
       if (defined?(::Unicorn) && defined?(::Unicorn::HttpServer)) && working_jruby?
@@ -379,6 +408,7 @@ module NewRelic
     end
 
     public
+    # outputs a human-readable description
     def to_s
       s = "LocalEnvironment["
       s << @framework.to_s

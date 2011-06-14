@@ -1,7 +1,10 @@
 module NewRelic
   module Agent
     class StatsEngine
+      # Handles methods related to actual Metric collection
       module MetricStats
+        # A simple mutex-synchronized hash to make sure our statistics
+        # are internally consistent even in truly-threaded rubies like JRuby
         class SynchronizedHash < Hash
           def initialize(*args)
             @mutex = Mutex.new
@@ -38,17 +41,20 @@ module NewRelic
             }
           end
         end
-
+        
+        # Returns all of the metric names of all the stats in the engine
         def metrics
           stats_hash.keys.map(&:to_s)
         end
-
+        
+        # a simple accessor for looking up a stat with no scope -
+        # returns a new stats object if no stats object for that
+        # metric exists yet
         def get_stats_no_scope(metric_name)
           stats_hash[NewRelic::MetricSpec.new(metric_name, '')] ||= NewRelic::MethodTraceStats.new
         end
 
         # This version allows a caller to pass a stat class to use
-        #
         def get_custom_stats(metric_name, stat_class)
           stats_hash[NewRelic::MetricSpec.new(metric_name)] ||= stat_class.new
         end
@@ -69,13 +75,21 @@ module NewRelic
           end
           stats
         end
-
+        
+        # Returns a stat if one exists, otherwise returns nil. If you
+        # want auto-initialization, use one of get_stats or get_stats_no_scope
         def lookup_stats(metric_name, scope_name = '')
           stats_hash[NewRelic::MetricSpec.new(metric_name, scope_name)]
         end
-
+        
+        # This module was extracted from the harvest method and should
+        # be refactored
         module Harvest
-
+          
+          # merge data from previous harvests into this stats engine -
+          # takes into account the case where there are new stats for
+          # that metric, and the case where there is no current data
+          # for that metric
           def merge_data(metric_data_hash)
             metric_data_hash.each do |metric_spec, metric_data|
               new_data = lookup_stats(metric_spec.name, metric_spec.scope)
@@ -172,7 +186,9 @@ module NewRelic
         def reset_stats
           stats_hash.values.each { |s| s.reset }
         end
-
+        
+        # returns a memoized SynchronizedHash that holds the actual
+        # instances of Stats keyed off their MetricName
         def stats_hash
           @stats_hash ||= SynchronizedHash.new
         end

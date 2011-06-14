@@ -1,5 +1,7 @@
 require 'fileutils'
 module NewRelic
+  # Handles serialization of data to disk, to save on contacting the
+  # server. Lowers both server and client overhead, if the disk is not overloaded
   class DataSerialization
     module ClassMethods
       # Check whether the store is too large, too old, or the
@@ -14,7 +16,9 @@ module NewRelic
         # time we think we might want to send data.
         true
       end
-      
+
+      # A combined locked read/write from the store file - reduces
+      # contention by not acquiring the lock and file handle twice
       def read_and_write_to_file
         with_locked_store do |f|
           result = (yield get_data_from_file(f))
@@ -23,7 +27,9 @@ module NewRelic
           write_contents_nonblockingly(f, dump(result)) if result
         end
       end
-
+      
+      # touches the age file that determines whether we should send
+      # data now or not
       def update_last_sent!
         FileUtils.touch(semaphore_path)
       end
