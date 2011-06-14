@@ -1,16 +1,39 @@
 module NewRelic
   module Agent
+    # This class contains the configuration data for setting up RUM
+    # headers and footers - acts as a cache of this data so we don't
+    # need to look it up or reconfigure it every request
     class BeaconConfiguration
+
+      # the statically generated header - generated when the beacon
+      # configuration is created - does not vary per page
       attr_reader :browser_timing_header
+
+      # the static portion of the RUM footer - this part does not vary
+      # by which request is in progress
       attr_reader :browser_timing_static_footer
+      
+      # the application id we include in the javascript -
+      # crossreferences with the application id on the collectors
       attr_reader :application_id
+
+      # the key used for browser monitoring. This is different from
+      # the account key
       attr_reader :browser_monitoring_key
+
+      # which beacon we should report to - set by startup of the agent
       attr_reader :beacon
+
+      # whether RUM is enabled or not - determined based on server and
+      # local config
       attr_reader :rum_enabled
-      attr_reader :license_bytes
-
+      
+      # A static javascript header that is identical for every account
+      # and application
       JS_HEADER = "<script type=\"text/javascript\">var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);</script>"
-
+      
+      # Creates a new browser configuration data. Argument is a hash
+      # of configuration values from the server
       def initialize(connect_data)
         @browser_monitoring_key = connect_data['browser_key']
         @application_id = connect_data['application_id']
@@ -23,7 +46,9 @@ module NewRelic
         @browser_timing_static_footer = build_load_file_js(connect_data)
         NewRelic::Control.instance.log.debug("Browser timing static footer: #{@browser_timing_static_footer.inspect}")
       end
-
+      
+      # returns a memoized version of the bytes in the license key for
+      # obscuring transaction names in the javascript
       def license_bytes
         if @license_bytes.nil?
           @license_bytes = []
@@ -31,7 +56,11 @@ module NewRelic
         end
         @license_bytes
       end
-
+      
+      # returns a snippet of text that does not change
+      # per-transaction. Is empty when rum is disabled, or we are not
+      # including the episodes file dynamically (i.e. the user
+      # includes it themselves)
       def build_load_file_js(connect_data)
         return "" unless connect_data.fetch('rum.load_episodes_file', true)
 
@@ -49,10 +78,13 @@ if(window.onload!==NREUMQ.f){NREUMQ.a=window.onload;window.onload=NREUMQ.f;};
 eos
       end
 
+      # returns a copy of the static javascript header, in case people
+      # are munging strings somewhere down the line
       def javascript_header
         JS_HEADER.dup
       end
-
+      
+      # Returns the header string, properly html-safed if needed
       def build_browser_timing_header
         return "" if !@rum_enabled
         return "" if @browser_monitoring_key.nil?

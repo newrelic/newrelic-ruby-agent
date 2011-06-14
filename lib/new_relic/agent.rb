@@ -323,11 +323,15 @@ module NewRelic
     def is_execution_traced?
       Thread.current[:newrelic_untraced].nil? || Thread.current[:newrelic_untraced].last != false
     end
-
+    
+    # helper method to check the thread local to determine whether the
+    # transaction in progress is traced or not
     def is_transaction_traced?
       Thread::current[:record_tt] != false
     end
-
+    
+    # helper method to check the thread local to determine whether sql
+    # is being recorded or not
     def is_sql_recorded?
       Thread::current[:record_sql] != false
     end

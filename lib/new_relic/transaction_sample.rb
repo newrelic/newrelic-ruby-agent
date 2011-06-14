@@ -3,8 +3,11 @@ require 'new_relic/transaction_sample/summary_segment'
 require 'new_relic/transaction_sample/fake_segment'
 require 'new_relic/transaction_sample/composite_segment'
 module NewRelic
+  # the number of segments that need to exist before we roll them up
+  # into one segment with multiple executions
   COLLAPSE_SEGMENTS_THRESHOLD = 2
 
+  # columns for a mysql explain plan
   MYSQL_EXPLAIN_COLUMNS = [
         "Id",
         "Select Type",

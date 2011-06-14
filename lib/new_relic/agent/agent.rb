@@ -44,7 +44,8 @@ module NewRelic
         @last_harvest_time = Time.now
         @obfuscator = method(:default_sql_obfuscator)
       end
-
+      
+      # contains all the class-level methods for NewRelic::Agent::Agent
       module ClassMethods
         # Should only be called by NewRelic::Control - returns a
         # memoized singleton instance of the agent, creating one if needed
@@ -56,14 +57,27 @@ module NewRelic
       # Holds all the methods defined on NewRelic::Agent::Agent
       # instances
       module InstanceMethods
-
+        
+        # holds a proc that is used to obfuscate sql statements
         attr_reader :obfuscator
+        # the statistics engine that holds all the timeslice data
         attr_reader :stats_engine
+        # the transaction sampler that handles recording transactions
         attr_reader :transaction_sampler
+        # error collector is a simple collection of recorded errors
         attr_reader :error_collector
+        # whether we should record raw, obfuscated, or no sql
         attr_reader :record_sql
+        # a cached set of metric_ids to save the collector some time -
+        # it returns a metric id for every metric name we send it, and
+        # in the future we transmit using the metric id only
         attr_reader :metric_ids
+        # in theory a set of rules applied by the agent to the output
+        # of its metrics. Currently unimplemented
         attr_reader :url_rules
+        # a configuration for the Real User Monitoring system -
+        # handles things like static setup of the header for inclusion
+        # into pages
         attr_reader :beacon_configuration
         
         # Returns the length of the unsent errors array, if it exists,
@@ -540,7 +554,9 @@ module NewRelic
               @transaction_sampler.disable
             end
           end
-
+          
+          # logs info about the worker loop so users can see when the
+          # agent actually begins running in the background
           def log_worker_loop_start
             log.info "Reporting performance data every #{@report_period} seconds."
             log.debug "Running worker loop"
@@ -657,7 +673,10 @@ module NewRelic
         # method - all of its methods are used in that context, so it
         # can be refactored at will. It should be fully tested
         module Connect
+          # the frequency with which we should try to connect to the
+          # server at the moment.
           attr_accessor :connect_retry_period
+          # number of attempts we've made to contact the server
           attr_accessor :connect_attempts
 
           # Disconnect just sets connected to false, which prevents
