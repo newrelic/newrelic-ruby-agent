@@ -21,7 +21,9 @@ class BrowserMonitoringTest < Test::Unit::TestCase
   <body>im some body text</body>
 </html>
 EOL
-    mock_app = lambda { |env| [200, {'Content-Type' => 'text/html'}, @doc] }
+    mock_app = lambda do |env|
+      [200, {'Content-Type' => 'text/html'}, Rack::Response.new(@doc)]
+    end
     NewRelic::Rack::BrowserMonitoring.new(mock_app)
   end
 

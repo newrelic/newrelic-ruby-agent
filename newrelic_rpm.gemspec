@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Bill Kayser", "Justin George", "Jon Guymon"]
-  s.date = %q{2011-06-10}
+  s.date = %q{2011-06-15}
   s.description = %q{New Relic is a performance management system, developed by New Relic,
 Inc (http://www.newrelic.com).  New Relic provides you with deep
 information about the performance of your web application as it runs
@@ -92,6 +92,7 @@ http://github.com/newrelic/rpm/
     "lib/new_relic/control.rb",
     "lib/new_relic/control/class_methods.rb",
     "lib/new_relic/control/configuration.rb",
+    "lib/new_relic/control/frameworks.rb",
     "lib/new_relic/control/frameworks/external.rb",
     "lib/new_relic/control/frameworks/merb.rb",
     "lib/new_relic/control/frameworks/rails.rb",
@@ -171,9 +172,11 @@ http://github.com/newrelic/rpm/
     "test/new_relic/agent/transaction_sample_builder_test.rb",
     "test/new_relic/agent/transaction_sampler_test.rb",
     "test/new_relic/agent/worker_loop_test.rb",
+    "test/new_relic/agent_test.rb",
     "test/new_relic/collection_helper_test.rb",
     "test/new_relic/command/deployments_test.rb",
     "test/new_relic/control/class_methods_test.rb",
+    "test/new_relic/control/configuration_test.rb",
     "test/new_relic/control/logging_methods_test.rb",
     "test/new_relic/control_test.rb",
     "test/new_relic/data_serialization_test.rb",
@@ -181,6 +184,7 @@ http://github.com/newrelic/rpm/
     "test/new_relic/metric_data_test.rb",
     "test/new_relic/metric_spec_test.rb",
     "test/new_relic/rack/all_test.rb",
+    "test/new_relic/rack/browser_monitoring_test.rb",
     "test/new_relic/rack/developer_mode_test.rb",
     "test/new_relic/stats_test.rb",
     "test/new_relic/transaction_analysis/segment_summary_test.rb",
@@ -295,12 +299,7 @@ Refer to the README.md file for more information.
 Please see http://github.com/newrelic/rpm/blob/master/CHANGELOG
 for a complete description of the features and enhancements available
 in version 3.2 of the Ruby Agent.
-
-For details on this specific release, refer to the CHANGELOG file.
-
-Notice: Developer Mode now supports only Rails 2.3+ - refer to README
-for instructions for previous versions
-
+  
 }
   s.rdoc_options = ["--line-numbers", "--inline-source", "--title", "New Relic Ruby Agent"]
   s.require_paths = ["lib"]
