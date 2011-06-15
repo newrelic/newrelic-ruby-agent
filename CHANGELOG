@@ -1,7 +1,8 @@
 v3.1.0 
-  * Experimental support for aggregating data from short-running
-    processes using NewRelic::Agent.load_data and
-    NewRelic::Agent.save_data
+  * Support for aggregating data from short-running
+    processes to reduce reporting overhead
+  * Numerous bug fixes
+  * Increased unit test coverage
 
 v3.0.1 
   * Updated Real User Monitoring to reduce javascript size and improve
