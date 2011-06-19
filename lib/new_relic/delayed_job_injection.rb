@@ -15,7 +15,11 @@ DependencyDetection.defer do
   depends_on do
     defined?(::Delayed) && defined?(::Delayed::Worker)
   end
-
+  
+  executes do
+    NewRelic::Agent.logger.debug 'Installing DelayedJob instrumentation hooks'
+  end
+  
   executes do
     Delayed::Worker.class_eval do
       def initialize_with_new_relic(*args)

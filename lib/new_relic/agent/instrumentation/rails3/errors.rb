@@ -24,6 +24,10 @@ DependencyDetection.defer do
   end
 
   executes do
+    NewRelic::Agent.logger.debug 'Installing Rails3 Error instrumentation'
+  end
+
+  executes do
     class ActionController::Base
       include NewRelic::Agent::Instrumentation::Rails3::Errors
     end

@@ -6,6 +6,10 @@ DependencyDetection.defer do
   end
 
   executes do
+    NewRelic::Agent.logger.debug 'Installing AuthLogic instrumentation'
+  end  
+  
+  executes do
     AuthLogic::Session::Base.class_eval do
       add_method_tracer :find, 'Custom/Authlogic/find'
     end

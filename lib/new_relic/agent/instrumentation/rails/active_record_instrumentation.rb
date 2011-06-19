@@ -87,7 +87,11 @@ DependencyDetection.defer do
   depends_on do
     !NewRelic::Control.instance['disable_activerecord_instrumentation']
   end
-
+  
+  executes do
+    NewRelic::Agent.logger.debug 'Installing Rails ActiveRecord instrumentation'
+  end
+  
   executes do
     ActiveRecord::ConnectionAdapters::AbstractAdapter.module_eval do
       include ::NewRelic::Agent::Instrumentation::ActiveRecordInstrumentation

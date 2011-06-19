@@ -2,7 +2,11 @@ DependencyDetection.defer do
   depends_on do
     defined?(Net) && defined?(Net::HTTP)
   end
-
+  
+  executes do
+    NewRelic::Agent.logger.debug 'Installing Net instrumentation'
+  end
+  
   executes do
     Net::HTTP.class_eval do
       def request_with_newrelic_trace(*args, &block)

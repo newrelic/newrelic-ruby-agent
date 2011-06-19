@@ -33,7 +33,11 @@ DependencyDetection.defer do
   depends_on do
     defined?(ActsAsSolr::CommonMethods)
   end
-
+  
+  executes do
+    NewRelic::Agent.logger.debug 'Installing ActsAsSolr instrumentation'
+  end
+  
   executes do
     ActsAsSolr::ParserMethods.module_eval do
       include NewRelic::Instrumentation::ActsAsSolrInstrumentation::ParserMethodsInstrumentation

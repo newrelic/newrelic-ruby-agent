@@ -6,6 +6,10 @@ DependencyDetection.defer do
   end
 
   executes do
+    NewRelic::Agent.logger.debug 'Installing Sinatra instrumentation'
+  end
+
+  executes do
     ::Sinatra::Base.class_eval do
       include NewRelic::Agent::Instrumentation::Sinatra
       alias route_eval_without_newrelic route_eval
