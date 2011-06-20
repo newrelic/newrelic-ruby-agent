@@ -1,6 +1,12 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..', 'test_helper'))
 require 'new_relic/data_serialization'
 class NewRelic::DataSerializationTest < Test::Unit::TestCase
+  
+  def setup
+    FileUtils.rm_rf('./log/newrelic_agent_store.db')
+    FileUtils.rm_rf('./log/newrelic_agent_store.age')    
+  end
+  
   def test_read_and_write_from_file_read_only
     file = './log/newrelic_agent_store.db'
     File.open(file, 'w') do |f|
@@ -85,13 +91,10 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
   end
 
   def test_should_send_data_under_limit
-    NewRelic::DataSerialization.stubs(:max_size).returns(20)
-    NewRelic::DataSerialization.class_eval{ truncate_file }
-    NewRelic::DataSerialization.read_and_write_to_file do
-      "a" * 10
+    NewRelic::DataSerialization.expects(:max_size).returns(20)
+    NewRelic::DataSerialization.read_and_write_to_file do | old_data |
+      "a" * 5
     end
-
-#     raise NewRelic::DataSerialization.class_eval{ File.size(file_path) }.inspect
     
     assert(!NewRelic::DataSerialization.should_send_data?, 'Should be under the limit')
   end

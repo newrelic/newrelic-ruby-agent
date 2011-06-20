@@ -124,7 +124,9 @@ module NewRelic
 
       def load(dump)
         Marshal.load(dump)
-      rescue ArgumentError => e
+      rescue ArgumentError, TypeError => e
+        NewRelic::Control.instance.log.error("Error loading data from newrelic_agent_store.db: #{e.inspect}")
+        NewRelic::Control.instance.log.debug(e.backtrace.inspect)
         nil
       end
 
