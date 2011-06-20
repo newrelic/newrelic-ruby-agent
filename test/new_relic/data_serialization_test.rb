@@ -85,10 +85,14 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
   end
 
   def test_should_send_data_under_limit
-    NewRelic::DataSerialization.expects(:max_size).returns(20)
+    NewRelic::DataSerialization.stubs(:max_size).returns(20)
+    NewRelic::DataSerialization.class_eval{ truncate_file }
     NewRelic::DataSerialization.read_and_write_to_file do
       "a" * 10
     end
+
+#     raise NewRelic::DataSerialization.class_eval{ File.size(file_path) }.inspect
+    
     assert(!NewRelic::DataSerialization.should_send_data?, 'Should be under the limit')
   end
 end
