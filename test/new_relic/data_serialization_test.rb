@@ -1,6 +1,12 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..', 'test_helper'))
 require 'new_relic/data_serialization'
 class NewRelic::DataSerializationTest < Test::Unit::TestCase
+  
+  def setup
+    FileUtils.rm_rf('./log/newrelic_agent_store.db')
+    FileUtils.rm_rf('./log/newrelic_agent_store.age')    
+  end
+  
   def test_read_and_write_from_file_read_only
     file = './log/newrelic_agent_store.db'
     File.open(file, 'w') do |f|
@@ -55,16 +61,41 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
     assert(NewRelic::DataSerialization.should_send_data?, 'Should be over limit')
   end
 
+  def test_read_until_eoferror
+    file = './log/newrelic_agent_store.db'    
+    File.open(file, 'w') do |f|
+      f.write("a" * 10_001)
+    end
+    value = ""
+    File.open(file,'r') do |f|
+      value << NewRelic::DataSerialization.instance_eval { read_until_eof_error(f) }
+    end
+    assert_equal('a' * 10_001, value, "should retrieve all the contents from the string and not raise EOFerrors")
+  end
+  def test_write_contents_nonblockingly
+    file = './log/newrelic_agent_store.db'    
+    File.open(file, 'w') do |f|
+      f.write("") # write nothing! NOTHING
+    end
+
+    File.open(file, 'w') do |f|
+      NewRelic::DataSerialization.instance_eval { write_contents_nonblockingly(f, 'a' * 10_001) }
+    end
+    value = File.read(file)
+    assert_equal('a' * 10_001, value, "should write a couple thousand 'a's to a file without exploding")
+  end
+
   def test_should_send_data_disabled
     NewRelic::Control.instance.expects(:disable_serialization?).returns(true)
     assert(NewRelic::DataSerialization.should_send_data?, 'should send data when disabled')
   end
 
   def test_should_send_data_under_limit
-    NewRelic::DataSerialization.expects(:max_size).returns(50)
-    NewRelic::DataSerialization.read_and_write_to_file do
+    NewRelic::DataSerialization.expects(:max_size).returns(20)
+    NewRelic::DataSerialization.read_and_write_to_file do | old_data |
       "a" * 5
     end
+    
     assert(!NewRelic::DataSerialization.should_send_data?, 'Should be under the limit')
   end
 end

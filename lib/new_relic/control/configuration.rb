@@ -1,5 +1,7 @@
 module NewRelic
   class Control
+    # used to contain methods to look up settings from the
+    # configuration located in newrelic.yml
     module Configuration
       def settings
         unless @settings
@@ -65,11 +67,13 @@ module NewRelic
       end
 
       def license_key
-        fetch('license_key')
+        fetch('license_key', ENV['NEWRELIC_LICENSE_KEY'])
       end
+      
       def capture_params
         fetch('capture_params')
       end
+      
       # True if we are sending data to the server, monitoring production
       def monitor_mode?
         fetch('monitor_mode', fetch('enabled'))
@@ -79,12 +83,14 @@ module NewRelic
       def developer_mode?
         fetch('developer_mode', fetch('developer'))
       end
-
+      
+      # whether we should install the
+      # NewRelic::Rack::BrowserMonitoring middleware automatically on
+      # Rails applications
       def browser_monitoring_auto_instrument?
         fetch('browser_monitoring', {}).fetch('auto_instrument', true)
       end
 
-      # True if the app runs in multi-threaded mode
       def multi_threaded?
         fetch('multi_threaded')
       end
@@ -97,6 +103,8 @@ module NewRelic
       def use_textmate?
         fetch('textmate')
       end
+      
+      # defaults to 2MiB
       def post_size_limit
         fetch('post_size_limit', 2 * 1024 * 1024)
       end
@@ -135,12 +143,15 @@ module NewRelic
       def validate_token
         self['validate_token'] || ENV['NR_VALIDATE_TOKEN']
       end
-
+      
       def use_ssl?
         @use_ssl = fetch('ssl', false) unless @use_ssl
         @use_ssl
       end
-
+      
+      # only verify certificates if you're very sure you want this
+      # level of security, it includes possibly app-crashing dns
+      # lookups every connection to the server
       def verify_certificate?
         unless @verify_certificate
           unless use_ssl?
@@ -150,6 +161,10 @@ module NewRelic
           end
         end
         @verify_certificate
+      end
+
+      def disable_backtrace_cleanup?
+        fetch('disable_backtrace_cleanup')
       end
     end
     include Configuration

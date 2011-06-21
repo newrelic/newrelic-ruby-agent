@@ -206,7 +206,7 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
     assert_raises(RuntimeError) do
       trace_execution_scoped(['metric', 'array'], passed_in_opts) do
         ran = true
-        raise 'wtfmate'
+        raise 'raising a test error'
       end
     end
 

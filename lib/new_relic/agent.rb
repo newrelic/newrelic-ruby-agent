@@ -70,7 +70,6 @@ module NewRelic
     require 'new_relic/transaction_sample'
     require 'new_relic/url_rule'
     require 'new_relic/noticed_error'
-    require 'new_relic/histogram'
     require 'new_relic/timer_lib'
 
     require 'new_relic/agent'
@@ -135,13 +134,13 @@ module NewRelic
     # Get or create a statistics gatherer that will aggregate numerical data
     # under a metric name.
     #
-    # +metric_name+ should follow a slash separated path convention.  Application
+    # +metric_name+ should follow a slash separated path convention. Application
     # specific metrics should begin with "Custom/".
     #
     # Return a NewRelic::Stats that accepts data
     # via calls to add_data_point(value).
     def get_stats(metric_name, use_scope=false)
-      @agent.stats_engine.get_stats(metric_name, use_scope)
+      agent.stats_engine.get_stats(metric_name, use_scope)
     end
 
     alias get_stats_no_scope get_stats
@@ -198,24 +197,40 @@ module NewRelic
       agent.after_fork(options)
     end
 
-    # Clear out any unsent metric data.
+    # Clear out any unsent metric data. See NewRelic::Agent::Agent#reset_stats
     def reset_stats
       agent.reset_stats
     end
 
     # Shutdown the agent.  Call this before exiting.  Sends any queued data
     # and kills the background thread.
-    def shutdown(options = {})
+    def shutdown(options={})
       agent.shutdown(options)
     end
-
+    
+    # a method used to serialize short-running processes to disk, so
+    # we don't incur the overhead of reporting to the server for every
+    # fork/invocation of a small job.
+    #
+    # Functionally, this loads the data from the file into the agent
+    # (to avoid losing data by overwriting) and then serializes the
+    # agent data to the file again. See also #load_data
     def save_data
       NewRelic::DataSerialization.read_and_write_to_file do |old_data|
         agent.merge_data_from(old_data)
         agent.serialize
       end
     end
+    
+    # used to load data from the disk during the harvest cycle to send
+    # it. This method also clears the file so data should never be
+    # sent more than once.
 
+    # Note that only one transaction trace will be sent even if many
+    # are serialized, since the slowest is sent.
+    #
+    # See also the complement to this method, #save_data - used when a
+    # process is shutting down
     def load_data
       value = nil
       NewRelic::DataSerialization.read_and_write_to_file do |old_data|
@@ -223,6 +238,7 @@ module NewRelic
         value = {:metrics => agent.stats_engine.metrics.length, :traces => agent.unsent_traces_size, :errors => agent.unsent_errors_size}
         nil # return nil so nothing is written to the file
       end
+      NewRelic::DataSerialization.update_last_sent!
       value
     end
 
@@ -288,10 +304,7 @@ module NewRelic
     # any.  Only affects the transaction started on this thread once
     # it has started and before it has completed.
     def abort_transaction!
-      # The class may not be loaded if the agent is disabled
-      if defined? NewRelic::Agent::Instrumentation::MetricFrame
-        NewRelic::Agent::Instrumentation::MetricFrame.abort_transaction!
-      end
+      NewRelic::Agent::Instrumentation::MetricFrame.abort_transaction!
     end
 
     # Yield to the block without collecting any metrics or traces in
@@ -310,11 +323,15 @@ module NewRelic
     def is_execution_traced?
       Thread.current[:newrelic_untraced].nil? || Thread.current[:newrelic_untraced].last != false
     end
-
+    
+    # helper method to check the thread local to determine whether the
+    # transaction in progress is traced or not
     def is_transaction_traced?
       Thread::current[:record_tt] != false
     end
-
+    
+    # helper method to check the thread local to determine whether sql
+    # is being recorded or not
     def is_sql_recorded?
       Thread::current[:record_sql] != false
     end

@@ -2,8 +2,19 @@ require 'base64'
 require 'new_relic/agent/beacon_configuration'
 module NewRelic
   module Agent
+    # This module contains support for Real User Monitoring - the
+    # javascript generation and configuration
     module BrowserMonitoring
-
+      
+      # This method returns a string suitable for inclusion in a page
+      # - known as 'manual instrumentation' for Real User
+      # Monitoring. Can return either a script tag with associated
+      # javascript, or in the case of disabled Real User Monitoring,
+      # an empty string
+      #
+      # This is the header string - it should be placed as high in the
+      # page as is reasonably possible - that is, before any style or
+      # javascript inclusions, but after any header-related meta tags
       def browser_timing_header
         return "" if NewRelic::Agent.instance.beacon_configuration.nil?
         return "" if !NewRelic::Agent.is_transaction_traced? || !NewRelic::Agent.is_execution_traced?
@@ -11,6 +22,14 @@ module NewRelic
         NewRelic::Agent.instance.beacon_configuration.browser_timing_header
       end
 
+      # This method returns a string suitable for inclusion in a page
+      # - known as 'manual instrumentation' for Real User
+      # Monitoring. Can return either a script tag with associated
+      # javascript, or in the case of disabled Real User Monitoring,
+      # an empty string
+      #
+      # This is the footer string - it should be placed as low in the
+      # page as is reasonably possible.
       def browser_timing_footer
         config = NewRelic::Agent.instance.beacon_configuration
         return "" if config.nil? || !config.rum_enabled || config.browser_monitoring_key.nil?

@@ -5,10 +5,10 @@
 
 Gem::Specification.new do |s|
   s.name = %q{newrelic_rpm}
-  s.version = "3.1.0"
+  s.version = "3.2.0.alpha"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["Bill Kayser", "Justin George"]
+  s.authors = ["Bill Kayser", "Justin George", "Jon Guymon"]
   s.date = %q{2011-06-15}
   s.description = %q{New Relic is a performance management system, developed by New Relic,
 Inc (http://www.newrelic.com).  New Relic provides you with deep
@@ -92,6 +92,7 @@ http://github.com/newrelic/rpm/
     "lib/new_relic/control.rb",
     "lib/new_relic/control/class_methods.rb",
     "lib/new_relic/control/configuration.rb",
+    "lib/new_relic/control/frameworks.rb",
     "lib/new_relic/control/frameworks/external.rb",
     "lib/new_relic/control/frameworks/merb.rb",
     "lib/new_relic/control/frameworks/rails.rb",
@@ -105,7 +106,6 @@ http://github.com/newrelic/rpm/
     "lib/new_relic/control/server_methods.rb",
     "lib/new_relic/data_serialization.rb",
     "lib/new_relic/delayed_job_injection.rb",
-    "lib/new_relic/histogram.rb",
     "lib/new_relic/local_environment.rb",
     "lib/new_relic/merbtasks.rb",
     "lib/new_relic/metric_data.rb",
@@ -114,10 +114,6 @@ http://github.com/newrelic/rpm/
     "lib/new_relic/noticed_error.rb",
     "lib/new_relic/rack/browser_monitoring.rb",
     "lib/new_relic/rack/developer_mode.rb",
-    "lib/new_relic/rack/metric_app.rb",
-    "lib/new_relic/rack/mongrel_rpm.ru",
-    "lib/new_relic/rack/newrelic.yml",
-    "lib/new_relic/rack_app.rb",
     "lib/new_relic/recipes.rb",
     "lib/new_relic/stats.rb",
     "lib/new_relic/timer_lib.rb",
@@ -176,9 +172,11 @@ http://github.com/newrelic/rpm/
     "test/new_relic/agent/transaction_sample_builder_test.rb",
     "test/new_relic/agent/transaction_sampler_test.rb",
     "test/new_relic/agent/worker_loop_test.rb",
+    "test/new_relic/agent_test.rb",
     "test/new_relic/collection_helper_test.rb",
     "test/new_relic/command/deployments_test.rb",
     "test/new_relic/control/class_methods_test.rb",
+    "test/new_relic/control/configuration_test.rb",
     "test/new_relic/control/logging_methods_test.rb",
     "test/new_relic/control_test.rb",
     "test/new_relic/data_serialization_test.rb",
@@ -300,7 +298,7 @@ Refer to the README.md file for more information.
 
 Please see http://github.com/newrelic/rpm/blob/master/CHANGELOG
 for a complete description of the features and enhancements available
-in version 3.1 of the Ruby Agent.
+in version 3.2 of the Ruby Agent.
   
 }
   s.rdoc_options = ["--line-numbers", "--inline-source", "--title", "New Relic Ruby Agent"]

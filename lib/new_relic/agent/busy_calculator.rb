@@ -14,7 +14,10 @@ module NewRelic
 
       # For testability, add accessors:
       attr_reader :harvest_start, :accumulator
-
+      
+      # sets up busy calculations based on the start and end of
+      # transactions - used for a rough estimate of what percentage of
+      # wall clock time is spent processing requests
       def dispatcher_start(time)
         Thread.current[:busy_entries] ||= 0
         callers = Thread.current[:busy_entries] += 1
@@ -23,7 +26,10 @@ module NewRelic
           @entrypoint_stack.push time
         end
       end
-
+      
+      # called when a transaction finishes, to add time to the
+      # instance variable accumulator. this is harvested when we send
+      # data to the server
       def dispatcher_finish(end_time = Time.now)
         callers = Thread.current[:busy_entries] -= 1
         # Ignore nested calls
@@ -36,7 +42,9 @@ module NewRelic
           end
         end
       end
-
+      
+      # this returns the size of the entry point stack, which
+      # determines how many transactions are running
       def busy_count
         @entrypoint_stack.size
       end

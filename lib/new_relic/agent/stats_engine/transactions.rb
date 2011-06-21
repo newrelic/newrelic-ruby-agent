@@ -1,10 +1,9 @@
+# -*- coding: utf-8 -*-
 module NewRelic
 module Agent
   class StatsEngine
-
-    # Defines methods that stub out the stats engine methods
-    # when the agent is disabled
-
+    # A simple stack element that tracks the current name and length
+    # of the executing stack
     class ScopeStackElement
       attr_reader :name, :deduct_call_time_from_parent
       attr_accessor :children_time
@@ -14,8 +13,13 @@ module Agent
         @children_time = 0
       end
     end
-
+    
+    # Handles pushing and popping elements onto an internal stack that
+    # tracks where time should be allocated in Transaction Traces
     module Transactions
+      
+      # Defines methods that stub out the stats engine methods
+      # when the agent is disabled
       module Shim # :nodoc:
         def start_transaction(*args); end
         def end_transaction; end
@@ -25,16 +29,21 @@ module Agent
         def scope_name; end
         def pop_scope(*args); end
       end
-
+      
+      # add a new transaction sampler, unless we're currently in a
+      # transaction (then we fail)
       def transaction_sampler= sampler
         fail "Can't add a scope listener midflight in a transaction" if scope_stack.any?
         @transaction_sampler = sampler
       end
-
+      
+      # removes a transaction sampler
       def remove_transaction_sampler(l)
         @transaction_sampler = nil
       end
-
+      
+      # Pushes a scope onto the transaction stack - this generates a
+      # TransactionSample::Segment at the end of transaction execution
       def push_scope(metric, time = Time.now.to_f, deduct_call_time_from_parent = true)
 
         stack = scope_stack
@@ -52,7 +61,9 @@ module Agent
         stack.push scope
         scope
       end
-
+      
+      # Pops a scope off the transaction stack - this updates the
+      # transaction sampler that we've finished execution of a traced method
       def pop_scope(expected_scope, duration, time=Time.now.to_f)
         capture_gc_time if collecting_gc?
         stack = scope_stack
@@ -69,7 +80,8 @@ module Agent
         @transaction_sampler.notice_pop_scope(scope.name, time) if @transaction_sampler
         scope
       end
-
+      
+      # Returns the latest ScopeStackElement
       def peek_scope
         scope_stack.last
       end
@@ -86,7 +98,8 @@ module Agent
         Thread::current[:newrelic_scope_name] = transaction
         Thread::current[:newrelic_most_recent_transaction] = transaction
       end
-
+      
+      # Returns the current scope name from the thread local
       def scope_name
         Thread::current[:newrelic_scope_name]
       end
@@ -173,7 +186,8 @@ module Agent
           pop_scope(gc_scope, elapsed, time)
         end
       end
-
+      
+      # Returns the current scope stack, memoized to a thread local variable
       def scope_stack
         Thread::current[:newrelic_scope_stack] ||= []
       end

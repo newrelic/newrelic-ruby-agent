@@ -87,13 +87,13 @@ class NewRelic::Agent::BeaconConfigurationTest < Test::Unit::TestCase
   def test_build_load_file_js_load_episodes_file_missing
     connect_data = {}
     bc = NewRelic::Agent::BeaconConfiguration.new(connect_data)
-    assert_equal(184, bc.build_load_file_js(connect_data).size, "should output the javascript when there is no configuration")
+    assert_equal(304, bc.build_load_file_js(connect_data).size, "should output the javascript when there is no configuration")
   end
 
   def test_build_load_file_js_load_episodes_file_present
     connect_data = {'rum.load_episodes_file' => true}
     bc = NewRelic::Agent::BeaconConfiguration.new(connect_data)
-    assert_equal(184, bc.build_load_file_js(connect_data).size, "should output the javascript when rum.load_episodes_file is true")
+    assert_equal(304, bc.build_load_file_js(connect_data).size, "should output the javascript when rum.load_episodes_file is true")
   end
   
   def test_build_load_file_js_load_episodes_file_with_episodes_url

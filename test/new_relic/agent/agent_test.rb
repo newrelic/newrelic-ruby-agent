@@ -8,6 +8,22 @@ module NewRelic
         @agent = NewRelic::Agent::Agent.new
       end
 
+      def test_save_or_transmit_data_should_save
+        NewRelic::Agent.expects(:save_data).once
+        @agent.expects(:harvest_and_send_timeslice_data).never
+        NewRelic::DataSerialization.expects(:should_send_data?).returns(false)
+        @agent.instance_eval { save_or_transmit_data }
+      end
+      
+      def test_save_or_transmit_data_should_transmit
+        NewRelic::Agent.expects(:load_data)
+        @agent.expects(:harvest_and_send_timeslice_data)
+        @agent.expects(:harvest_and_send_slowest_sample)
+        @agent.expects(:harvest_and_send_errors)
+        NewRelic::DataSerialization.expects(:should_send_data?).returns(true)
+        @agent.instance_eval { save_or_transmit_data }
+      end
+      
       def test_serialize
         assert_equal([{}, [], []], @agent.send(:serialize), "should return nil when shut down")
       end

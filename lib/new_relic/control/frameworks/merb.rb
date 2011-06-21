@@ -1,6 +1,7 @@
 module NewRelic
   class Control
     module Frameworks
+      # Includes limited support for Merb
       class Merb < NewRelic::Control
 
         def env

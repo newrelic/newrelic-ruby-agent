@@ -17,10 +17,6 @@ module NewRelic
             NewRelic::Agent.logger.error "Underflow in metric frames: #{caller.join("\n   ")}"
           end
 
-          def process_histogram_for_transaction(ending)
-            agent.histogram.process((ending - start).to_f)
-          end
-
           def notice_scope_empty
             transaction_sampler.notice_scope_empty
           end
@@ -59,7 +55,6 @@ module NewRelic
 
           def notify_transaction_sampler(web_transaction)
             record_transaction_cpu
-            process_histogram_for_transaction(Time.now) if web_transaction
             notice_scope_empty
           end
 
