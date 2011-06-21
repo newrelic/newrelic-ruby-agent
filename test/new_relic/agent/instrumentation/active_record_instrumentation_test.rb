@@ -450,7 +450,11 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
   # These are only valid for rails 2.1 and later
   if NewRelic::Control.instance.rails_version >= NewRelic::VersionNumber.new("2.1.0")
     ActiveRecordFixtures::Order.class_eval do
-      named_scope :jeffs, :conditions => { :name => 'Jeff' }
+      if NewRelic::Control.instance.rails_version < NewRelic::VersionNumber.new("3.1")
+        named_scope :jeffs, :conditions => { :name => 'Jeff' }
+      else
+        scope :jeffs, :conditions => { :name => 'Jeff' }
+      end      
     end
     def test_named_scope
       ActiveRecordFixtures::Order.create :name => 'Jeff'
@@ -508,15 +512,19 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     (defined?(Rails) && Rails.respond_to?(:version) && Rails.version.to_i == 3)
   end
 
+  def rails_env
+    rails3? ? ::Rails.env : RAILS_ENV
+  end
+
   def isPostgres?
-    ActiveRecordFixtures::Order.configurations[RAILS_ENV]['adapter'] =~ /postgres/i
+    ActiveRecordFixtures::Order.configurations[rails_env]['adapter'] =~ /postgres/i
   end
   def isMysql?
     ActiveRecordFixtures::Order.connection.class.name =~ /mysql/i
   end
 
   def isSqlite?
-    ActiveRecord::Base.configurations[RAILS_ENV]['adapter'] =~ /sqlite/i
+    ActiveRecord::Base.configurations[rails_env]['adapter'] =~ /sqlite/i
   end
 
 end
