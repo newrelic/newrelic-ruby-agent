@@ -131,7 +131,7 @@ module NewRelic
       end
 
       def truncate_file
-        create_file_if_needed
+        FileUtils.touch(file_path)
         File.truncate(file_path, 0)
       end
 
