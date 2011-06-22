@@ -45,7 +45,8 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
       check_metric_count(find_metric, 2)
     end
 
-    return if NewRelic::Control.instance.rails_version < "2.3.4"
+    return if NewRelic::Control.instance.rails_version < "2.3.4" ||
+      NewRelic::Control.instance.rails_version >= "3.1"
 
     assert_calls_metrics(find_metric) do
       ActiveRecordFixtures::Order.exists?(["name=?", 'jeff'])

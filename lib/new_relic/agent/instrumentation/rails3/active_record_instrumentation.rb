@@ -28,7 +28,7 @@ module NewRelic
             model = parts.first
             operation = parts.last.downcase
             metric_name = case operation
-                          when 'load' then 'find'
+                          when 'load', 'count', 'exists' then 'find'
                           when 'indexes', 'columns' then nil # fall back to DirectSQL
                           when 'destroy', 'find', 'save', 'create' then operation
                           when 'update' then 'save'
