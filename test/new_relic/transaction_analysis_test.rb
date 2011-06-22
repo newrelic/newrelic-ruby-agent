@@ -28,7 +28,7 @@ class NewRelic::TransactionAnalysisTest < Test::Unit::TestCase
     other_segment.expects(:metric_name).twice.returns('Controller/foo')
     other_segment.expects(:duration).returns(0.1)
     other_segment.expects(:exclusive_duration).returns(0.1)
-    self.expects(:each_segment).multiple_yields(root_segment, other_segment)
+    self.expects(:each_segment_with_nest_tracking).multiple_yields(root_segment, other_segment)
     self.expects(:root_segment).twice.returns(root_segment)
     self.expects(:duration).returns(0.1)
     data = breakdown_data
@@ -56,7 +56,7 @@ class NewRelic::TransactionAnalysisTest < Test::Unit::TestCase
     yet_another.expects(:metric_name).twice.returns('Controller/bar')
     yet_another.expects(:duration).returns(0.2)
     yet_another.expects(:exclusive_duration).returns(0.2)
-    self.expects(:each_segment).multiple_yields(root_segment, other_segment, yet_another)
+    self.expects(:each_segment_with_nest_tracking).multiple_yields(root_segment, other_segment, yet_another)
     self.expects(:root_segment).times(3).returns(root_segment)
     self.expects(:duration).returns(0.1)
     data = breakdown_data(1)
@@ -76,7 +76,7 @@ class NewRelic::TransactionAnalysisTest < Test::Unit::TestCase
     other_segment.expects(:metric_name).twice.returns('Controller/foo')
     other_segment.expects(:duration).returns(0.1)
     other_segment.expects(:exclusive_duration).returns(0.1)
-    self.expects(:each_segment).multiple_yields(root_segment, other_segment)
+    self.expects(:each_segment_with_nest_tracking).multiple_yields(root_segment, other_segment)
     self.expects(:root_segment).twice.returns(root_segment)
     self.expects(:duration).returns(0.2)
     data = breakdown_data

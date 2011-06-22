@@ -63,6 +63,20 @@ class NewRelic::TransactionAnalysis::SegmentSummaryTest < Test::Unit::TestCase
     assert_equal 0.5, @ss.total_time_percentage
   end
 
+  def test_nesting_total_time
+    segment = mock('segment')
+    segment.expects(:metric_name).twice.returns('Controller/foo')
+    segment.expects(:duration).returns(0.1)
+    segment.expects(:exclusive_duration).returns(0)
+    @ss << segment
+    segment.expects(:exclusive_duration).returns(0.1)
+    @ss.current_nest_count += 1
+    @ss << segment
+    assert_equal 0.1, @ss.total_time
+    assert_equal 0.1, @ss.exclusive_time
+    assert_equal 2, @ss.call_count
+  end
+
   def test_ui_name_default
     @ss.metric_name = 'Remainder'
     assert_equal 'Remainder', @ss.ui_name

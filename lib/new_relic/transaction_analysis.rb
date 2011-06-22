@@ -15,11 +15,12 @@ module NewRelic
     # limit the data set to the top n
     def breakdown_data(limit = nil)
       metric_hash = {}
-      each_segment do |segment|
+      each_segment_with_nest_tracking do |segment|
         unless segment == root_segment
           metric_name = segment.metric_name
           metric_hash[metric_name] ||= SegmentSummary.new(metric_name, self)
           metric_hash[metric_name] << segment
+          metric_hash[metric_name]
         end
       end
 

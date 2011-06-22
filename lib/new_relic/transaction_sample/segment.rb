@@ -151,6 +151,21 @@ module NewRelic
         end
       end
 
+      # call the provided block for this segment and each
+      # of the called segments while keeping track of nested segments
+      def each_segment_with_nest_tracking(&block)
+        summary = block.call self
+        summary.current_nest_count += 1 if summary
+
+        if @called_segments
+          @called_segments.each do |segment|
+            segment.each_segment_with_nest_tracking(&block)
+          end
+        end
+
+        summary.current_nest_count -= 1 if summary
+      end
+
       def find_segment(id)
         return self if @segment_id == id
         called_segments.each do |segment|

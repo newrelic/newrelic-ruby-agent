@@ -313,6 +313,17 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
     assert_equal(2, count)
   end
 
+  def test_each_segment_with_nest_tracking
+    s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
+
+    summary = mock('summary')
+    summary.expects(:current_nest_count).twice.returns(0).then.returns(1)
+    summary.expects(:current_nest_count=).twice
+    s.each_segment_with_nest_tracking do |x|
+      summary
+    end
+  end
+
   def test_find_segment_default
     s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
     id_to_find = s.segment_id
