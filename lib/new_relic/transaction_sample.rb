@@ -142,6 +142,12 @@ module NewRelic
       @root_segment.each_segment(&block)
     end
 
+    # Iterates recursively over each segment in the entire transaction
+    # sample tree while keeping track of nested segments
+    def each_segment_with_nest_tracking(&block)
+      @root_segment.each_segment_with_nest_tracking(&block)
+    end
+
     def to_s_compact
       @root_segment.to_s_compact
     end
