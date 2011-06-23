@@ -2,8 +2,8 @@ require 'new_relic/control'
 
 module NewRelic
   module CollectionHelper
-  DEFAULT_TRUNCATION_SIZE=256
-  DEFAULT_ARRAY_TRUNCATION_SIZE=1024
+  DEFAULT_TRUNCATION_SIZE=16 * 1024
+  DEFAULT_ARRAY_TRUNCATION_SIZE=128
   # Transform parameter hash into a hash whose values are strictly
   # strings
   def normalize_params(params)
@@ -17,7 +17,7 @@ module NewRelic
       when Hash
         new_params = {}
         params.each do | key, value |
-          new_params[truncate(normalize_params(key),32)] = normalize_params(value)
+          new_params[truncate(normalize_params(key),64)] = normalize_params(value)
         end
         new_params
       when Array
