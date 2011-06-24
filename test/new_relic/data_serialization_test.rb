@@ -3,6 +3,7 @@ require 'new_relic/data_serialization'
 class NewRelic::DataSerializationTest < Test::Unit::TestCase
   
   def setup
+    NewRelic::Control.instance['log_file_path'] = './log'
     FileUtils.rm_rf('./log/newrelic_agent_store.db')
     FileUtils.rm_rf('./log/newrelic_agent_store.age')    
   end
@@ -72,6 +73,7 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
     end
     assert_equal('a' * 10_001, value, "should retrieve all the contents from the string and not raise EOFerrors")
   end
+  
   def test_write_contents_nonblockingly
     file = './log/newrelic_agent_store.db'    
     File.open(file, 'w') do |f|
@@ -102,5 +104,21 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
   def test_should_handle_empty_spool_file
     NewRelic::Control.instance.log.expects(:error).never
     assert_nil NewRelic::DataSerialization.instance_eval { load('') }
+  end
+
+  def test_spool_file_location_respects_log_file_path_setting
+    NewRelic::Control.instance['log_file_path'] = "./tmp"
+    NewRelic::DataSerialization.read_and_write_to_file do |_|
+      'a' * 30
+    end
+    assert(File.exists?('./tmp/newrelic_agent_store.db'),
+           "Spool file not created at user specified location")
+  end
+
+  def test_age_file_location_respects_log_file_path_setting
+    NewRelic::Control.instance['log_file_path'] = "./tmp"
+    NewRelic::DataSerialization.update_last_sent!
+    assert(File.exists?('./tmp/newrelic_agent_store.age'),
+           "Age file not created at user specified location")
   end
 end

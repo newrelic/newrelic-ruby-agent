@@ -140,13 +140,11 @@ module NewRelic
       end
 
       def file_path
-        # TODO get configuration from main control
-        './log/newrelic_agent_store.db'
+        "#{NewRelic::Control.instance.log_file_path}/newrelic_agent_store.db"
       end
 
       def semaphore_path
-        # TODO get configuration from main control
-        './log/newrelic_agent_store.age'
+        "#{NewRelic::Control.instance.log_file_path}/newrelic_agent_store.age"
       end
     end
     extend ClassMethods
