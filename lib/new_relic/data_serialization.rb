@@ -123,6 +123,10 @@ module NewRelic
       end
 
       def load(dump)
+        if dump.size == 0
+          NewRelic::Control.instance.log.debug("Spool file empty.")
+          return nil
+        end
         Marshal.load(dump)
       rescue ArgumentError, TypeError => e
         NewRelic::Control.instance.log.error("Error loading data from newrelic_agent_store.db: #{e.inspect}")

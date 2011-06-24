@@ -98,4 +98,9 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
     
     assert(!NewRelic::DataSerialization.should_send_data?, 'Should be under the limit')
   end
+
+  def test_should_handle_empty_spool_file
+    NewRelic::Control.instance.log.expects(:error).never
+    assert_nil NewRelic::DataSerialization.instance_eval { load('') }
+  end
 end
