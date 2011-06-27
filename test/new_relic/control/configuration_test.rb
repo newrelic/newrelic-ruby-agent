@@ -13,7 +13,8 @@ class NewRelic::Control::ConfigurationTest < Test::Unit::TestCase
   end
   
   def test_log_file_path_uses_default_if_not_set
-    assert_equal(File.join(Rails.root, 'log'),
+    root = ::Rails::VERSION::MAJOR == 3 ? Rails.root : RAILS_ROOT
+    assert_equal(File.join(root, 'log'),
                  NewRelic::Control.instance.log_file_path)
   end
 
