@@ -93,12 +93,13 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
   end
 
   def test_should_send_data_under_limit
-    NewRelic::DataSerialization.expects(:max_size).returns(20)
+    NewRelic::DataSerialization.expects(:max_size).returns(2000)
     NewRelic::DataSerialization.read_and_write_to_file do | old_data |
       "a" * 5
     end
     
-    assert(!NewRelic::DataSerialization.should_send_data?, 'Should be under the limit')
+    assert(!NewRelic::DataSerialization.should_send_data?,
+           'Should be under the limit')
   end
 
   def test_should_handle_empty_spool_file
