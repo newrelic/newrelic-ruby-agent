@@ -101,7 +101,7 @@ end
 
 
 def compare_metrics(expected, actual)
-  actual.delete('GC/cumulative') # in case we are in REE
+  actual.delete_if {|a| a.include?('GC/cumulative') } # in case we are in REE
   assert_equal(expected.to_a.sort, actual.to_a.sort, "extra: #{(actual - expected).to_a.inspect}; missing: #{(expected - actual).to_a.inspect}")
 end
 
