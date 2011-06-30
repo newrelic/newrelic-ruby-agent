@@ -22,7 +22,7 @@ dependencies: []
 
 description: A standard way to parse New Relic metric names
 email: 
-- justin@newrelic.com
+- support@newrelic.com
 executables: []
 
 extensions: []
