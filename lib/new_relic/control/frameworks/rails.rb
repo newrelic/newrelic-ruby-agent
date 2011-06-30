@@ -64,7 +64,7 @@ module NewRelic
             rescue Exception => e
               log!("Error installing New Relic Developer Mode: #{e.inspect}", :error)
             end
-          else
+          elsif rails_config
             log!("Developer mode not available for Rails versions prior to 2.2", :warn)
           end
         end
