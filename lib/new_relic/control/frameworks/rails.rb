@@ -17,6 +17,9 @@ module NewRelic
             super
           end
         end
+        def logger
+          ::RAILS_DEFAULT_LOGGER
+        end
 
         # In versions of Rails prior to 2.0, the rails config was only available to
         # the init.rb, so it had to be passed on from there.  This is a best effort to 
@@ -84,13 +87,13 @@ module NewRelic
 
         def log!(msg, level=:info)
           super unless should_log?
-          ::RAILS_DEFAULT_LOGGER.send(level, msg)
+          logger.send(level, msg)
         rescue Exception => e
           super
         end
 
         def to_stdout(message)
-          ::RAILS_DEFAULT_LOGGER.info(message)
+          logger.info(message)
         rescue Exception => e
           super
         end
