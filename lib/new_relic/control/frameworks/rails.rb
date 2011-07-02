@@ -139,8 +139,8 @@ module NewRelic
 
         def _install_instrumentation
           super
-          if defined?(Rails) && Rails.respond_to?(:configuration) && Rails.configuration.respond_to?(:after_initialize)
-            Rails.configuration.after_initialize do
+          if defined?(::Rails) && ::Rails.respond_to?(:configuration) && ::Rails.configuration.respond_to?(:after_initialize)
+            ::Rails.configuration.after_initialize do
               DependencyDetection.detect!
             end
           end
