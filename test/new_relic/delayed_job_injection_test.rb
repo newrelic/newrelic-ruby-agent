@@ -9,7 +9,10 @@ module NewRelic
                                             'tempoarily not allowed')
       NewRelic::Agent.stubs(:respond_to?).with(:logger).returns(false)
       
-      DependencyDetection.detect!
+      assert DependencyDetection.detect!
+
+      ::Delayed.class_eval { remove_const('Worker') }
+      Object.class_eval { remove_const('Delayed') }
     end
   end
 end
