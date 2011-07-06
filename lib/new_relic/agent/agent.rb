@@ -440,7 +440,8 @@ module NewRelic
           # incorrectly, sending the log file to who-knows-where
           def notify_log_file_location
             log_file = NewRelic::Control.instance.log_file
-            log_if(log_file, :info, "Agent Log found in #{log_file}")
+            log_if(File.exists?(log_file.to_s), :info,
+                   "Agent Log found in #{log_file}")
           end
 
           # Classy logging of the agent version and the current pid,

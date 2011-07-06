@@ -222,8 +222,8 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
 
   def test_notify_log_file_location_positive
     log = mocked_log
-    NewRelic::Control.instance.expects(:log_file).returns('CHUD CHUD CHUD')
-    log.expects(:send).with(:info, "Agent Log found in CHUD CHUD CHUD")
+    NewRelic::Control.instance.expects(:log_file).returns('./')
+    log.expects(:send).with(:info, "Agent Log found in ./")
     notify_log_file_location
   end
 
