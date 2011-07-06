@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{newrelic_rpm}
-  s.version = "3.1.1.alpha"
+  s.version = "3.1.1.beta1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["Bill Kayser", "Justin George", "Jon Guymon"]
-  s.date = %q{2011-06-21}
+  s.authors = ["Bill Kayser", "Jon Guymon", "Justin George", "Darin Swanson"]
+  s.date = %q{2011-07-06}
   s.description = %q{New Relic is a performance management system, developed by New Relic,
 Inc (http://www.newrelic.com).  New Relic provides you with deep
 information about the performance of your web application as it runs
@@ -180,6 +180,7 @@ http://github.com/newrelic/rpm/
     "test/new_relic/control/logging_methods_test.rb",
     "test/new_relic/control_test.rb",
     "test/new_relic/data_serialization_test.rb",
+    "test/new_relic/delayed_job_injection_test.rb",
     "test/new_relic/local_environment_test.rb",
     "test/new_relic/metric_data_test.rb",
     "test/new_relic/metric_spec_test.rb",
@@ -295,7 +296,7 @@ Refer to the README.md file for more information.
 
 Please see http://github.com/newrelic/rpm/blob/master/CHANGELOG
 for a complete description of the features and enhancements available
-in version 3.2 of the Ruby Agent.
+in version 3.1 of the Ruby Agent.
   
 }
   s.rdoc_options = ["--line-numbers", "--inline-source", "--title", "New Relic Ruby Agent"]

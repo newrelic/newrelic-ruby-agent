@@ -1,3 +1,6 @@
+v3.1.1
+  * Support for Rails 3.1 (thanks to Ben Hoskings via github)
+
 v3.1.0 
   * Support for aggregating data from short-running
     processes to reduce reporting overhead
