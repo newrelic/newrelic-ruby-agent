@@ -3,7 +3,7 @@ module NewRelic
   class DelayedJobInstrumentationTest < Test::Unit::TestCase
     def test_skip_logging_if_no_logger_found
       Object.const_set('Delayed', Module.new)
-      ::Delayed.const_set('Worker', true)
+      ::Delayed.const_set('Worker', Class.new)
       
       NewRelic::Agent.stubs(:logger).raises(NoMethodError,
                                             'tempoarily not allowed')
