@@ -11,7 +11,6 @@ module NewRelic
       
       assert DependencyDetection.detect!
 
-      ::Delayed.class_eval { remove_const('Worker') }
       Object.class_eval { remove_const('Delayed') }
     end
   end
