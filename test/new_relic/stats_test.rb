@@ -34,9 +34,12 @@ class NewRelic::StatsTest < Test::Unit::TestCase
   def test_sum_attributes
     first  = NewRelic::TestObjectForStats.new
     second = mock('other object')
+    first.expects(:call_count).returns(6)
+    second.expects(:call_count).returns(8)
     first.expects(:update_totals).with(second)
     first.expects(:stack_min_max_from).with(second)
     first.expects(:update_boundaries).with(second)
+    first.expects(:call_count=).with(8)
     first.sum_attributes(second)
   end
 

@@ -47,6 +47,7 @@ module NewRelic
     def sum_attributes(other)
       update_totals(other)
       stack_min_max_from(other)
+      self.call_count = [self.call_count, other.call_count].max
       update_boundaries(other)
     end
 
