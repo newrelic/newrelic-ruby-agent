@@ -36,7 +36,7 @@ require 'mocha/integration/test_unit/assertion_counter'
 class Test::Unit::TestCase
   include Mocha::API
 
-  # FIXME delete this trick when we stop supporting rails2.0.x
+  # we can delete this trick when we stop supporting rails2.0.x
   if ENV['BRANCH'] != 'rails20'
     # a hack because rails2.0.2 does not like double teardowns
     def teardown

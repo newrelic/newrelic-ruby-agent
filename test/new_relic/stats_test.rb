@@ -202,9 +202,6 @@ class NewRelic::StatsTest < Test::Unit::TestCase
   def test_apdex_score
     s1 = NewRelic::MethodTraceStats.new
     s1.trace_call 10
-    # FIXME make this test the real logic
-    # don't ask me what this means, but it's what's coming out the
-    # other end when I actually run it.
     assert_in_delta(s1.apdex_score, 0.285714285714286, 0.0000001)
   end
 
