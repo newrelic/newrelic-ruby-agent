@@ -8,6 +8,10 @@ DependencyDetection.defer do
   end
 
   executes do
+    NewRelic::Agent.logger.debug 'Installing Rails Error instrumentation'
+  end  
+  
+  executes do
 
     ActionController::Base.class_eval do
 

@@ -183,7 +183,11 @@ module NewRelic
         assert_equal "12" + sql + "3", @agent.obfuscator.call(sql)
       end
 
-
+      def test_should_not_log_log_file_location_if_no_log_file
+        NewRelic::Control.instance.stubs(:log_file).returns('/vasrkjn4b3b4')
+        @agent.expects(:log).never
+        @agent.notify_log_file_location
+      end
     end
   end
 end

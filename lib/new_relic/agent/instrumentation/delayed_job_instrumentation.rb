@@ -8,7 +8,11 @@ DependencyDetection.defer do
   depends_on do
     defined?(::Delayed) && defined?(::Delayed::Job)
   end
-
+  
+  executes do
+    NewRelic::Agent.logger.debug 'Installing DelayedJob instrumentation'
+  end
+  
   executes do
     Delayed::Job.class_eval do
       include NewRelic::Agent::Instrumentation::ControllerInstrumentation

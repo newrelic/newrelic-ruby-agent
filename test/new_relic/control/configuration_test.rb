@@ -12,5 +12,14 @@ class NewRelic::Control::ConfigurationTest < Test::Unit::TestCase
     license_key
   end
   
-    
+  def test_log_file_path_uses_default_if_not_set
+    root = ::Rails::VERSION::MAJOR == 3 ? Rails.root : RAILS_ROOT
+    assert_equal(File.join(root, 'log'),
+                 NewRelic::Control.instance.log_file_path)
+  end
+
+  def test_log_file_path_uses_given_value
+    NewRelic::Control.instance['log_file_path'] = '/lerg'
+    assert_equal '/lerg', NewRelic::Control.instance.log_file_path
+  end
 end

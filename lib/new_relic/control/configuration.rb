@@ -149,6 +149,10 @@ module NewRelic
         @use_ssl
       end
       
+      def log_file_path
+        fetch('log_file_path', 'log/')
+      end
+      
       # only verify certificates if you're very sure you want this
       # level of security, it includes possibly app-crashing dns
       # lookups every connection to the server

@@ -14,16 +14,21 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     super name
 
   # Suggested by cee-dub for merb tests.  I'm actually amazed if our tests work with merb.
-  if defined?(Merb::Router)
-    Merb::Router.prepare do |r|
-      match('/:controller(/:action)(.:format)').register
-    end
-  else
-    ActionController::Routing::Routes.draw do | map |
-      map.connect '/:controller/:action.:format'
-      map.connect '/:controller/:action'
+    if defined?(Merb::Router)
+      Merb::Router.prepare do |r|
+        match('/:controller(/:action)(.:format)').register
       end
-  end
+    elsif NewRelic::Control.instance.rails_version < NewRelic::VersionNumber.new("3.0")
+      ActionController::Routing::Routes.draw do |map|
+        map.connect '/:controller/:action.:format'
+        map.connect '/:controller/:action'
+      end
+    else
+      Rails.application.routes.draw do
+        match '/:controller/:action.:format'
+        match '/:controller/:action'
+      end    
+    end
 
     if defined?(Rails) && Rails.respond_to?(:application) && Rails.application.respond_to?(:routes)
       @routes = Rails.application.routes

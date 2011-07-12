@@ -4,6 +4,10 @@ DependencyDetection.defer do
   end
 
   executes do
+    NewRelic::Agent.logger.debug 'Installing Rails Sunspot instrumentation'
+  end
+  
+  executes do
     ::Sunspot.module_eval do
       class << self
         %w(index index!).each do |method|

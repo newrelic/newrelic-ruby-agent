@@ -123,6 +123,10 @@ module NewRelic
       end
 
       def load(dump)
+        if dump.size == 0
+          NewRelic::Control.instance.log.debug("Spool file empty.")
+          return nil
+        end
         Marshal.load(dump)
       rescue ArgumentError, TypeError => e
         NewRelic::Control.instance.log.error("Error loading data from newrelic_agent_store.db: #{e.inspect}")
@@ -136,13 +140,11 @@ module NewRelic
       end
 
       def file_path
-        # TODO get configuration from main control
-        './log/newrelic_agent_store.db'
+        "#{NewRelic::Control.instance.log_file_path}/newrelic_agent_store.db"
       end
 
       def semaphore_path
-        # TODO get configuration from main control
-        './log/newrelic_agent_store.age'
+        "#{NewRelic::Control.instance.log_file_path}/newrelic_agent_store.age"
       end
     end
     extend ClassMethods

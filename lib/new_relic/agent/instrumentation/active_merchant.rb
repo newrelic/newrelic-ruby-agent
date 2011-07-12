@@ -2,7 +2,11 @@ DependencyDetection.defer do
   depends_on do
     defined?(ActiveMerchant)
   end
-
+  
+  executes do
+    NewRelic::Agent.logger.debug 'Installing ActiveMerchant instrumentation'
+  end
+  
   executes do
     ActiveMerchant::Billing::Gateway.implementations.each do |gateway|
       gateway.class_eval do

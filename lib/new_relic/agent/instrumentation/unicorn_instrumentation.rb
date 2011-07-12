@@ -2,7 +2,11 @@ DependencyDetection.defer do
   depends_on do
     defined?(::Unicorn) && defined?(::Unicorn::HttpServer)
   end
-
+  
+  executes do
+    NewRelic::Agent.logger.debug 'Installing Unicorn instrumentation'
+  end
+  
   executes do
     Unicorn::HttpServer.class_eval do
       NewRelic::Agent.logger.debug "Installing Unicorn worker hook."

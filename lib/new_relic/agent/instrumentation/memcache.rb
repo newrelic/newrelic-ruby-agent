@@ -45,7 +45,11 @@ DependencyDetection.defer do
   depends_on do
     !NewRelic::Control.instance['disable_memcache_instrumentation']
   end
-
+  
+  executes do
+    NewRelic::Agent.logger.debug 'Installing Memcached instrumentation'
+  end
+  
   executes do
     %w[get get_multi set add incr decr delete replace append prepend cas].each do | method_name |
       NewRelic::Agent::Instrumentation::Memcache.instrument_method(::MemCache, method_name) if defined? ::MemCache
