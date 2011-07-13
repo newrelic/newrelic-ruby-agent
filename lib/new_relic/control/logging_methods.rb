@@ -83,16 +83,21 @@ module NewRelic
         STDOUT.puts "** [NewRelic] " + msg
       end
       
-      # sets up and caches the log path, attempting to create it if it
-      #does not exist. this comes from the configuration variable
-      #'log_file_path' in the configuration file.
+      # Sets up and caches the log path, attempting to create it if it
+      # does not exist. this comes from the configuration variable
+      # 'log_file_path' in the configuration file.
       def log_path
         return @log_path if @log_path
-        @log_path = File.expand_path(fetch('log_file_path', 'log/'))
-        if !File.directory?(@log_path) && ! (Dir.mkdir(@log_path) rescue nil)
-          log!("Error creating New Relic log directory '#{@log_path}'", :error)
+        path_setting = fetch('log_file_path', 'log')
+        for abs_path in [ File.expand_path(path_setting),
+                          File.expand_path(File.join(root, path_setting)) ] do
+           if File.directory?(abs_path) || (Dir.mkdir(abs_path) rescue nil)
+             @log_path = abs_path[%r{^(.*?)/?$}]
+             break
+           end
         end
-        @log_path
+        log!("Error creating log directory for New Relic log file: '#{abs_path}'", :error) unless @log_path
+        @log_path ||= path_setting
       end
       
       # Retrieves the log file's name from the config file option

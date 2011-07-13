@@ -9,11 +9,10 @@ module NewRelic
       # right away. If not, we presumably store it for later sending
       # (handled elsewhere)
       def should_send_data?
-       NewRelic::Control.instance.disable_serialization? || store_too_large? || store_too_old? || semaphore_too_old?
-      rescue (ENV['CATCH_EXCEPTION'] ? Exception : Class.new) => e
-        # This is not what we really should do here, but the fail-safe
-        # behavior is to do what the older agent did: send data every
-        # time we think we might want to send data.
+        NewRelic::Control.instance.disable_serialization? || store_too_large? || store_too_old? || semaphore_too_old?
+      rescue Exception => e
+        NewRelic::Control.instance.disable_serialization = true
+        NewRelic::Control.instance.log.warn("Disabling serialization: #{e.message}")
         true
       end
 
@@ -26,12 +25,16 @@ module NewRelic
           f.truncate(0)
           write_contents_nonblockingly(f, dump(result)) if result
         end
+      rescue Errno::ENOENT => e
+        NewRelic::Control.instance.log.warn(e.message)
       end
       
       # touches the age file that determines whether we should send
       # data now or not
       def update_last_sent!
         FileUtils.touch(semaphore_path)
+      rescue Errno::ENOENT => e
+        NewRelic::Control.instance.log.warn(e.message)
       end
       
       private
@@ -94,7 +97,7 @@ module NewRelic
 
       def write_contents_nonblockingly(f, string)
         result = 0
-        while(result < string.length)
+        while (result < string.length)
           result += f.write_nonblock(string)
         end
       rescue Errno::EAGAIN, Errno::EINTR
@@ -140,11 +143,11 @@ module NewRelic
       end
 
       def file_path
-        "#{NewRelic::Control.instance.log_file_path}/newrelic_agent_store.db"
+        "#{NewRelic::Control.instance.log_path}/newrelic_agent_store.db"
       end
 
       def semaphore_path
-        "#{NewRelic::Control.instance.log_file_path}/newrelic_agent_store.age"
+        "#{NewRelic::Control.instance.log_path}/newrelic_agent_store.age"
       end
     end
     extend ClassMethods

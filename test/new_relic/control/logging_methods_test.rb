@@ -5,6 +5,7 @@ require 'fileutils'
 class BaseLoggingMethods
   # stub class to enable testing of the module
   include NewRelic::Control::LoggingMethods
+  def root; "."; end
 end
 
 class NewRelic::Control::LoggingMethodsTest < Test::Unit::TestCase
@@ -123,15 +124,15 @@ class NewRelic::Control::LoggingMethodsTest < Test::Unit::TestCase
 
   def test_log_path_path_exists
     @base.instance_eval { @log_path = nil }
-    @base.expects(:fetch).with('log_file_path', 'log/').returns('log/')
-    assert File.directory?('log/')
-    assert_equal File.expand_path('log/'), @base.log_path
+    @base.expects(:fetch).with('log_file_path', 'log').returns('log')
+    assert File.directory?('log')
+    assert_equal File.expand_path('log'), @base.log_path
   end
 
   def test_log_path_path_created
     path = File.expand_path('tmp/log_path_test')
     @base.instance_eval { @log_path = nil }
-    @base.expects(:fetch).with('log_file_path', 'log/').returns('tmp/log_path_test')
+    @base.expects(:fetch).with('log_file_path', 'log').returns('tmp/log_path_test')
     assert !File.directory?(path) || FileUtils.rmdir(path)
     @base.expects(:log!).never
     assert_equal path, @base.log_path
@@ -141,11 +142,11 @@ class NewRelic::Control::LoggingMethodsTest < Test::Unit::TestCase
   def test_log_path_path_unable_to_create
     path = File.expand_path('tmp/log_path_test')
     @base.instance_eval { @log_path = nil }
-    @base.expects(:fetch).with('log_file_path', 'log/').returns('tmp/log_path_test')
+    @base.expects(:fetch).with('log_file_path', 'log').returns('tmp/log_path_test')
     assert !File.directory?(path) || FileUtils.rmdir(path)
-    @base.expects(:log!).with("Error creating New Relic log directory '#{path}'", :error)
+    @base.expects(:log!).with("Error creating log directory for New Relic log file: '#{path}'", :error)
     Dir.expects(:mkdir).with(path).raises('cannot make directory bro!')
-    assert_equal path, @base.log_path
+    assert_equal 'tmp/log_path_test', @base.log_path
     assert !File.directory?(path)
   end
 
