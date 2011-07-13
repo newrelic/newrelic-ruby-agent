@@ -106,16 +106,14 @@ class NewRelic::CollectionHelperTest < Test::Unit::TestCase
     assert_equal ["foo", '#<OpenStruct>'], normalize_params(['foo', OpenStruct.new('z'=>'q')])
   end
 
-  def test_strip_backtrace
+  def test_strip_stackdump
     begin
       ActiveRecordFixtures.setup
-#      ActiveRecordFixtures::Order.add_delay
       ActiveRecordFixtures::Order.find 0
       flunk "should throw"
     rescue => e
-      #puts e
-      #puts e.backtrace.grep(/trace/).join("\n")
-      #puts "\n\n"
+      # puts e
+      # puts e.backtrace
       clean_trace = strip_nr_from_backtrace(e.backtrace)
       assert_equal(0, clean_trace.grep(/newrelic_rpm/).size,
                "should remove all instances of new relic from backtrace but got: #{clean_trace.join("\n")}")

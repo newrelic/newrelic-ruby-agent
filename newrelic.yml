@@ -63,7 +63,7 @@ common: &default_settings
   # root directory (may be relative or absolute, e.g. 'log/' or
   # '/var/log/') The agent will attempt to create this directory if it
   # does not exist.
-  # log_file_path: 'log/'
+  # log_file_path: 'log'
   
   # Optionally set the name of the log file, defaults to 'newrelic_agent.log'
   # log_file_name: 'newrelic_agent.log'

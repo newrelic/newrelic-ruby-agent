@@ -441,7 +441,7 @@ module NewRelic
           def notify_log_file_location
             log_file = NewRelic::Control.instance.log_file
             log_if(File.exists?(log_file.to_s), :info,
-                   "Agent Log found in #{log_file}")
+                   "Agent Log at #{log_file}")
           end
 
           # Classy logging of the agent version and the current pid,
