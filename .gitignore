@@ -7,3 +7,6 @@ pkg/
 Manifest*
 .idea/
 tmp/
+
+/log/
+/lerg/

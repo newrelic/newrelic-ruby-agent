@@ -1,15 +1,23 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..', 'test_helper'))
 require 'new_relic/data_serialization'
 class NewRelic::DataSerializationTest < Test::Unit::TestCase
+
+  attr_reader :file, :path
   
   def setup
     NewRelic::Control.instance['log_file_path'] = './log'
-    FileUtils.rm_rf('./log/newrelic_agent_store.db')
-    FileUtils.rm_rf('./log/newrelic_agent_store.age')    
+    @path = NewRelic::Control.instance.log_path
+    @file = "#{path}/newrelic_agent_store.db"
+    Dir.mkdir(path) if !File.directory?(path)
+    FileUtils.rm_rf(@file)
+    FileUtils.rm_rf("#{@path}/newrelic_agent_store.age")
+  end
+  
+  def teardown
+    NewRelic::Control.instance['disable_serialization'] = false # this gets set to true in some tests
   end
   
   def test_read_and_write_from_file_read_only
-    file = './log/newrelic_agent_store.db'
     File.open(file, 'w') do |f|
       f.write(Marshal.dump('a happy string'))
     end
@@ -20,8 +28,16 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
     assert_equal(0, File.size(file), "Should not leave any data in the file")
   end
 
+  def test_bad_paths
+    NewRelic::Control.instance.expects(:log_path).returns("/bad/path")
+    assert NewRelic::DataSerialization.should_send_data?
+    NewRelic::DataSerialization.read_and_write_to_file do
+      'a happy string'
+    end
+    assert !File.exists?(file)
+  end
+  
   def test_read_and_write_to_file_dumping_contents
-    file = './log/newrelic_agent_store.db'
     expected_contents = Marshal.dump('a happy string')
     NewRelic::DataSerialization.read_and_write_to_file do
       'a happy string'
@@ -30,7 +46,6 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
   end
 
   def test_read_and_write_to_file_yields_old_data
-    file = './log/newrelic_agent_store.db'
     expected_contents = 'a happy string'
     File.open(file, 'w') do |f|
       f.write(Marshal.dump(expected_contents))
@@ -54,8 +69,9 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
     end
   end
 
-  def test_should_send_data
-    NewRelic::DataSerialization.expects(:max_size).returns(20)
+  def test_should_send_data_when_over_limit
+#    NewRelic::DataSerialization.expects(:max_size).returns(20)
+    NewRelic::DataSerialization.stubs(:max_size).returns(20)
     NewRelic::DataSerialization.read_and_write_to_file do
       "a" * 30
     end
@@ -63,7 +79,6 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
   end
 
   def test_read_until_eoferror
-    file = './log/newrelic_agent_store.db'    
     File.open(file, 'w') do |f|
       f.write("a" * 10_001)
     end
@@ -75,7 +90,6 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
   end
   
   def test_write_contents_nonblockingly
-    file = './log/newrelic_agent_store.db'    
     File.open(file, 'w') do |f|
       f.write("") # write nothing! NOTHING
     end
@@ -108,7 +122,8 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
   end
 
   def test_spool_file_location_respects_log_file_path_setting
-    NewRelic::Control.instance['log_file_path'] = "./tmp"
+    NewRelic::Control.instance.expects(:log_path).returns('./tmp')
+    Dir.mkdir('./tmp') if !File.directory?('./tmp')
     NewRelic::DataSerialization.read_and_write_to_file do |_|
       'a' * 30
     end
@@ -117,7 +132,8 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
   end
 
   def test_age_file_location_respects_log_file_path_setting
-    NewRelic::Control.instance['log_file_path'] = "./tmp"
+    NewRelic::Control.instance.expects(:log_path).returns('./tmp')
+    Dir.mkdir('./tmp') if !File.directory?('./tmp')
     NewRelic::DataSerialization.update_last_sent!
     assert(File.exists?('./tmp/newrelic_agent_store.age'),
            "Age file not created at user specified location")
