@@ -232,14 +232,19 @@ module NewRelic
     # See also the complement to this method, #save_data - used when a
     # process is shutting down
     def load_data
-      value = nil
-      NewRelic::DataSerialization.read_and_write_to_file do |old_data|
-        agent.merge_data_from(old_data)
-        value = {:metrics => agent.stats_engine.metrics.length, :traces => agent.unsent_traces_size, :errors => agent.unsent_errors_size}
-        nil # return nil so nothing is written to the file
+      if !NewRelic::Control.instance['disable_serialization']
+        NewRelic::DataSerialization.read_and_write_to_file do |old_data|
+          agent.merge_data_from(old_data)
+          nil # return nil so nothing is written to the file
+        end
+        NewRelic::DataSerialization.update_last_sent!
       end
-      NewRelic::DataSerialization.update_last_sent!
-      value
+      
+      {
+        :metrics => agent.stats_engine.metrics.length,
+        :traces => agent.unsent_traces_size,
+        :errors => agent.unsent_errors_size
+      }
     end
 
     # Add instrumentation files to the agent.  The argument should be
