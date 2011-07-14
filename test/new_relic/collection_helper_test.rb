@@ -72,13 +72,7 @@ class NewRelic::CollectionHelperTest < Test::Unit::TestCase
     assert_equal Hash, myhash.class
   end
 
-  class MyEnumerable
-    include Enumerable
 
-    def each
-      yield "1"
-    end
-  end
 
   def test_enumerable
     e = MyEnumerable.new
@@ -101,43 +95,55 @@ class NewRelic::CollectionHelperTest < Test::Unit::TestCase
     s.each { | entry | val = entry; break }
     assert_match /^startfoo bar/, val
   end
-
+  class MyEnumerable
+    include Enumerable
+    
+    def each
+      yield "1"
+    end
+  end
+  
   def test_object
     assert_equal ["foo", '#<OpenStruct>'], normalize_params(['foo', OpenStruct.new('z'=>'q')])
   end
 
-  def test_strip_stackdump
-    begin
-      ActiveRecordFixtures.setup
-      ActiveRecordFixtures::Order.find 0
-      flunk "should throw"
-    rescue => e
-      # puts e
-      # puts e.backtrace
-      clean_trace = strip_nr_from_backtrace(e.backtrace)
-      assert_equal(0, clean_trace.grep(/newrelic_rpm/).size,
-               "should remove all instances of new relic from backtrace but got: #{clean_trace.join("\n")}")
-      assert_equal(0, clean_trace.grep(/trace/).size, 
-                   "should remove trace method tags from method names but got: #{clean_trace.join("\n")}")
-      assert((clean_trace.grep(/find/).size >= 3),
-             "should see at least three frames with 'find' in them (#{e}): \n#{clean_trace.join("\n")}")
-    ensure
-      ActiveRecordFixtures.teardown
-    end
-  end if defined?(::ActiveRecord)
+  def test_strip_backtrace
+    clean_trace = strip_nr_from_backtrace(mock_backtrace)
+    assert_equal(0, clean_trace.grep(/newrelic_rpm/).size,
+                 "should remove all instances of new relic from backtrace but got: #{clean_trace.join("\n")}")
+    assert_equal(0, clean_trace.grep(/trace/).size, 
+                     "should remove trace method tags from method names but got: #{clean_trace.join("\n")}")
+    assert((clean_trace.grep(/find/).size >= 3),
+               "should see at least three frames with 'find' in them: \n#{clean_trace.join("\n")}")
+  end
 
   def test_disabled_strip_backtrace
     NewRelic::Control.instance['disable_backtrace_cleanup'] = true
-    begin
-      flunk "should throw"
-    rescue => e
-      clean_trace = strip_nr_from_backtrace(e.backtrace)
-      assert_equal(1, clean_trace.grep(/new_relic/).size,
+    clean_trace = strip_nr_from_backtrace(mock_backtrace)
+    assert_equal(1, clean_trace.grep(/new_relic/).size,
             "should not remove instances of new relic from backtrace but got: #{clean_trace.join("\n")}")
-      assert_equal(1, clean_trace.grep(/trace/).size, 
+    assert_equal(1, clean_trace.grep(/_trace/).size, 
                    "should not remove trace method tags from method names but got: #{clean_trace.join("\n")}")
-#       assert (clean_trace.grep(/find/).size >= 3), "should see at least three frames with 'find' in them (#{e}): \n#{clean_trace.join("\n")}"
-    end
+    #       assert (clean_trace.grep(/find/).size >= 3), "should see at least three frames with 'find' in them (#{e}): \n#{clean_trace.join("\n")}"
     NewRelic::Control.instance['disable_backtrace_cleanup'] = false
+  end
+  
+  private 
+  def mock_backtrace
+    [
+   %q{/home/app/gems/activerecord-2.3.12/lib/active_record/base.rb:1620:in `find_one_without_trace'}, 
+   %q{/home/app/gems/activerecord-2.3.12/lib/active_record/base.rb:1620:in `find_one'}, 
+   %q{/home/app/gems/activerecord-2.3.12/lib/active_record/base.rb:1603:in `find_from_ids'}, 
+   %q{./test/new_relic/collection_helper_test.rb:112:in `test_strip_stackdump'}, 
+   %q{/home/app/gems/mocha-0.9.8/lib/mocha/integration/test_unit/ruby_version_186_and_above.rb:19:in `__send__'}, 
+   %q{/home/app/gems/mocha-0.9.8/lib/mocha/integration/test_unit/ruby_version_186_and_above.rb:19:in `run'}, 
+   %q{/home/app/test/unit/testsuite.rb:34:in `run'}, 
+   %q{/home/app/test/unit/testsuite.rb:33:in `each'}, 
+   %q{/home/app/test/unit/testsuite.rb:33:in `run'}, 
+   %q{/home/app/test/unit/testsuite.rb:34:in `run'}, 
+   %q{/home/app/test/unit/testsuite.rb:33:in `each'}, 
+   %q{/home/app/test/unit/testsuite.rb:33:in `run'}, 
+   %q{/home/app/test/unit/ui/testrunnermediator.rb:46:in `run_suite'}
+   ]
   end
 end

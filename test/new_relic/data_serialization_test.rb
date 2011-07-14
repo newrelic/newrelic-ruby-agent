@@ -29,7 +29,7 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
   end
 
   def test_bad_paths
-    NewRelic::Control.instance.expects(:log_path).returns("/bad/path")
+    NewRelic::Control.instance.stubs(:log_path).returns("/bad/path")
     assert NewRelic::DataSerialization.should_send_data?
     NewRelic::DataSerialization.read_and_write_to_file do
       'a happy string'
