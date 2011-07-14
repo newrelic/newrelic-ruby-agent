@@ -145,7 +145,7 @@ class NewRelic::Control::LoggingMethodsTest < Test::Unit::TestCase
     @base.expects(:fetch).with('log_file_path', 'log').returns('tmp/log_path_test')
     assert !File.directory?(path) || FileUtils.rmdir(path)
     @base.expects(:log!).with("Error creating log directory for New Relic log file: '#{path}'", :error)
-    Dir.expects(:mkdir).with(path).raises('cannot make directory bro!')
+    Dir.expects(:mkdir).with(path).raises('cannot make directory bro!').at_least_once
     assert_equal 'tmp/log_path_test', @base.log_path
     assert !File.directory?(path)
   end
