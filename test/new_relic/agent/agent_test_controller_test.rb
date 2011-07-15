@@ -16,7 +16,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
       test_initialization
     end
   else
-    alias setup test_initialization
+    alias_method :setup, :test_initialization
   end
 
   
