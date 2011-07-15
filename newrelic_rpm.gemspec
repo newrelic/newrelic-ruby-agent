@@ -130,7 +130,6 @@ http://github.com/newrelic/rpm/
     "lib/tasks/all.rb",
     "lib/tasks/install.rake",
     "lib/tasks/tests.rake",
-    "log/newrelic_agent.log",
     "newrelic.yml",
     "newrelic_rpm.gemspec",
     "recipes/newrelic.rb",
