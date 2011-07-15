@@ -11,9 +11,9 @@ module NewRelic
       # logger pointing to standard out, if we're trying to log before
       # a log exists
       def log
-        unless @log
+        if !@log
           l = Logger.new(STDOUT)
-          l.level = Logger::INFO
+          l.level = Logger::INFO          
           return l
         end
         @log
@@ -55,7 +55,8 @@ module NewRelic
       # patches the logger's format_message method to change the format just for our logger
       def set_log_format!(logger)
         def logger.format_message(severity, timestamp, progname, msg)
-          "[#{timestamp.strftime("%m/%d/%y %H:%M:%S %z")} #{Socket.gethostname} (#{$$})] #{severity} : #{msg}\n"
+          prefix = @logdev.dev == STDOUT ? '** [NewRelic]' : ''
+          prefix + "[#{timestamp.strftime("%m/%d/%y %H:%M:%S %z")} #{Socket.gethostname} (#{$$})] #{severity} : #{msg}\n"
         end
         logger
       end
@@ -64,8 +65,14 @@ module NewRelic
       #
       # Control subclasses may override this, but it can be called multiple times.
       def setup_log
-        @log_file = "#{log_path}/#{log_file_name}"
-        @log = Logger.new(@log_file) rescue nil
+        if log_to_stdout?
+          @log = Logger.new(STDOUT) 
+        else
+          @log_file = "#{log_path}/#{log_file_name}"
+          @log = Logger.new(@log_file) rescue nil
+          @log ||= Logger.new(STDOUT) # failsafe to STDOUT
+        end
+        
         if @log
           set_log_format!(@log)
           set_log_level!(@log)
@@ -88,18 +95,32 @@ module NewRelic
       # 'log_file_path' in the configuration file.
       def log_path
         return @log_path if @log_path
-        path_setting = fetch('log_file_path', 'log')
+        if log_to_stdout?
+          @log_path = nil
+        else
+          @log_path = find_or_create_file_path(fetch('log_file_path', 'log'))
+          log!("Error creating log directory for New Relic log file, using standard out.", :error) unless @log_path
+        end
+        @log_path
+      end
+        
+      def find_or_create_file_path(path_setting)
         for abs_path in [ File.expand_path(path_setting),
                           File.expand_path(File.join(root, path_setting)) ] do
-           if File.directory?(abs_path) || (Dir.mkdir(abs_path) rescue nil)
-             @log_path = abs_path[%r{^(.*?)/?$}]
-             break
-           end
+          if File.directory?(abs_path) || (Dir.mkdir(abs_path) rescue nil)
+            return abs_path[%r{^(.*?)/?$}]
+          end
         end
-        log!("Error creating log directory for New Relic log file: '#{abs_path}'", :error) unless @log_path
-        @log_path ||= path_setting
+        nil
       end
-      
+
+      def log_to_stdout?
+        return true if @stdout
+        if fetch('log_file_path', 'log') == 'STDOUT'
+          @stdout = true
+        end
+      end
+        
       # Retrieves the log file's name from the config file option
       #'log_file_name', defaulting to 'newrelic_agent.log'
       def log_file_name
