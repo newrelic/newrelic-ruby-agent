@@ -2,7 +2,8 @@ v3.1.1
   * Support for Rails 3.1 (thanks to Ben Hoskings via github)
   * Support for Rubinius
   * Fixed issues affecting some Delayed Job users where log files were not appearing
-  * Fixed an issue where some instrumentation might not get loaded in Rails apps  * Fix for memcached cas method (thanks to anonymous contributor)
+  * Fixed an issue where some instrumentation might not get loaded in Rails apps
+  * Fix for memcached cas method (thanks to Andrew Long and Joseph Palermo )
   * Fix for logger deprecation warning (thanks to Jonathan del Strother via github)
 
 v3.1.0 
