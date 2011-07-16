@@ -7,18 +7,6 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
   self.controller_class = NewRelic::Agent::AgentTestController
 
   attr_accessor :agent, :engine
-
-  # Normally you can do this with #setup but for some reason in rails 2.0.2
-  # setup is not called.
-  if NewRelic::Control.instance.rails_version <= '2.1.0'
-    def initialize name
-      super name
-      test_initialization
-    end
-  else
-    alias_method :setup, :test_initialization
-  end
-
   
   def test_initialization
   # Suggested by cee-dub for merb tests.  I'm actually amazed if our tests work with merb.
@@ -52,6 +40,17 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
       newrelic_ignore_apdex :only => :action_to_ignore_apdex
     end
     @engine = @agent.stats_engine
+  end
+  
+  # Normally you can do this with #setup but for some reason in rails 2.0.2
+  # setup is not called.
+  if NewRelic::Control.instance.rails_version <= '2.1.0'
+    def initialize name
+      super name
+      test_initialization
+    end
+  else
+    alias_method :setup, :test_initialization
   end
 
   def teardown
