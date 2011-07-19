@@ -25,6 +25,7 @@ module Agent
         def end_transaction; end
         def push_scope(*args); end
         def transaction_sampler=(*args); end
+        def sql_sampler=(*args); end
         def scope_name=(*args); end
         def scope_name; end
         def pop_scope(*args); end
@@ -42,6 +43,15 @@ module Agent
         @transaction_sampler = nil
       end
       
+      def sql_sampler= sampler
+        fail "Can't add a scope listener midflight in a transaction" if scope_stack.any?
+        @sql_sampler = sampler
+      end
+
+      def remove_transaction_sampler(l)
+        @sql_sampler = nil
+      end
+
       # Pushes a scope onto the transaction stack - this generates a
       # TransactionSample::Segment at the end of transaction execution
       def push_scope(metric, time = Time.now.to_f, deduct_call_time_from_parent = true)

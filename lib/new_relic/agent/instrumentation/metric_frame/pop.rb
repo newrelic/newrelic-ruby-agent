@@ -19,6 +19,7 @@ module NewRelic
 
           def notice_scope_empty
             transaction_sampler.notice_scope_empty
+            sql_sampler.notice_scope_empty
           end
 
           def record_transaction_cpu

@@ -40,6 +40,7 @@ module NewRelic
         sampler_config = config.fetch('transaction_tracer', {})
         @segment_limit = sampler_config.fetch('limit_segments', 4000)
         @stack_trace_threshold = sampler_config.fetch('stack_trace_threshold', 0.500).to_f
+        @explain_threshold = sampler_config.fetch('explain_threshold', 0.5).to_f
 
         # This lock is used to synchronize access to the @last_sample
         # and related variables. It can become necessary on JRuby or
@@ -275,9 +276,12 @@ module NewRelic
       # may be very large; we should trim them to a maximum usable length
       # config is the driver configuration for the connection
       # duration is seconds, float value.
-      def notice_sql(sql, config, duration)
+      def notice_extra_data(sql, config, duration)
         if NewRelic::Agent.is_sql_recorded?
           notice_extra_data(sql, duration, :sql, config, :connection_config)
+          if duration > 1000
+            
+          end
         end
       end
 

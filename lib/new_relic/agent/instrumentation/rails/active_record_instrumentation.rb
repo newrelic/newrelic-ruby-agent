@@ -61,6 +61,7 @@ module NewRelic
                 log_without_newrelic_instrumentation(sql, name, &block)
               ensure
                 NewRelic::Agent.instance.transaction_sampler.notice_sql(sql, supported_config, (Time.now - t0).to_f)
+                NewRelic::Agent.instance.sql_sampler.notice_sql(sql, supported_config, (Time.now - t0).to_f)
               end
             end
           end

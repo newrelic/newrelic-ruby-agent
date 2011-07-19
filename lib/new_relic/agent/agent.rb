@@ -35,7 +35,9 @@ module NewRelic
         @metric_ids = {}
         @stats_engine = NewRelic::Agent::StatsEngine.new
         @transaction_sampler = NewRelic::Agent::TransactionSampler.new
+        @sql_sampler = NewRelic::Agent::SqlSampler.new
         @stats_engine.transaction_sampler = @transaction_sampler
+        @stats_engine.sql_sampler = @sql_sampler
         @error_collector = NewRelic::Agent::ErrorCollector.new
         @connect_attempts = 0
 
@@ -64,6 +66,7 @@ module NewRelic
         attr_reader :stats_engine
         # the transaction sampler that handles recording transactions
         attr_reader :transaction_sampler
+        attr_reader :sql_sampler
         # error collector is a simple collection of recorded errors
         attr_reader :error_collector
         # whether we should record raw, obfuscated, or no sql
@@ -556,6 +559,16 @@ module NewRelic
             end
           end
           
+          def check_sql_sampler_status
+            # disable sql sampling if disabled by the server
+            # and we're not in dev mode
+            if control.developer_mode? || @should_send_samples
+              @sql_sampler.enable
+            else
+              @sql_sampler.disable
+            end
+          end
+
           # logs info about the worker loop so users can see when the
           # agent actually begins running in the background
           def log_worker_loop_start
@@ -641,6 +654,7 @@ module NewRelic
                 connect(connection_options)
                 if @connected
                   check_transaction_sampler_status
+                  check_sql_sampler_status
                   log_worker_loop_start
                   create_and_run_worker_loop
                   # never reaches here unless there is a problem or
