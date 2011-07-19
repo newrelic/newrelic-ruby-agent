@@ -7,12 +7,8 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
   self.controller_class = NewRelic::Agent::AgentTestController
 
   attr_accessor :agent, :engine
-
-  # Normally you can do this with #setup but for some reason in rails 2.0.2
-  # setup is not called.
-  def initialize name
-    super name
-
+  
+  def test_initialization
   # Suggested by cee-dub for merb tests.  I'm actually amazed if our tests work with merb.
     if defined?(Merb::Router)
       Merb::Router.prepare do |r|
@@ -44,6 +40,17 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
       newrelic_ignore_apdex :only => :action_to_ignore_apdex
     end
     @engine = @agent.stats_engine
+  end
+  
+  # Normally you can do this with #setup but for some reason in rails 2.0.2
+  # setup is not called.
+  if NewRelic::Control.instance.rails_version <= '2.1.0'
+    def initialize name
+      super name
+      test_initialization
+    end
+  else
+    alias_method :setup, :test_initialization
   end
 
   def teardown
@@ -245,12 +252,8 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     assert_not_nil engine.lookup_stats('Controller/NewRelic::Agent::AgentTestController/internal_traced_action')
   end
   def test_action_instrumentation
-    begin
-      get :index, :foo => 'bar'
-      assert_match /bar/, @response.body
-      #rescue ActionController::RoutingError
-      # you might get here if you don't have the default route installed.
-    end
+    get :index, :foo => 'bar'
+    assert_match /bar/, @response.body
   end
 
   def test_controller_params
@@ -274,7 +277,6 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
 
   def test_busycalculation
     engine.clear_stats
-
     assert_equal 0, NewRelic::Agent::BusyCalculator.busy_count
     get :index, 'social_security_number' => "001-555-1212", 'wait' => '0.05'
     NewRelic::Agent::BusyCalculator.harvest_busy

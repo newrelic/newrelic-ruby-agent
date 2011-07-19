@@ -13,13 +13,13 @@ module NewRelic
         def instrument_method(the_class, method_name)
           return unless the_class.method_defined? method_name.to_sym
                      the_class.class_eval <<-EOD
-                       def #{method_name}_with_newrelic_trace(*args)
+                       def #{method_name}_with_newrelic_trace(*args, &block)
                          metrics = ["MemCache/#{method_name}",
                                     (NewRelic::Agent::Instrumentation::MetricFrame.recording_web_transaction? ? 'MemCache/allWeb' : 'MemCache/allOther')]
                          self.class.trace_execution_scoped(metrics) do
                            t0 = Time.now
                            begin
-                             #{method_name}_without_newrelic_trace(*args)
+                             #{method_name}_without_newrelic_trace(*args, &block)
                            ensure
                              #{memcache_key_snippet(method_name)}
                            end

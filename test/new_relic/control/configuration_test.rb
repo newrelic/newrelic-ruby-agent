@@ -31,8 +31,10 @@ class NewRelic::Control::ConfigurationTest < Test::Unit::TestCase
   end
 
   def test_log_file_path_uses_given_value
-    NewRelic::Control.instance['log_file_path'] = '/lerg'
+    Dir.stubs(:mkdir).returns(true)
+    NewRelic::Control.instance['log_file_path'] = 'lerg'
     NewRelic::Control.instance.setup_log
-    assert_equal "#{@root}/lerg/newrelic_agent.log", NewRelic::Control.instance.log_file
+    assert_match(/\/lerg\/newrelic_agent.log/,
+                 NewRelic::Control.instance.log_file)
   end
 end

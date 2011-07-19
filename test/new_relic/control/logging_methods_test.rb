@@ -5,12 +5,15 @@ require 'fileutils'
 class BaseLoggingMethods
   # stub class to enable testing of the module
   include NewRelic::Control::LoggingMethods
+  include NewRelic::Control::Configuration
   def root; "."; end
 end
 
 class NewRelic::Control::LoggingMethodsTest < Test::Unit::TestCase
   def setup
     @base = BaseLoggingMethods.new
+    @base.settings['log_file_path'] = 'log/'
+    @base.settings['log_file_name'] = 'newrelic_agent.log'
     super
   end
 
@@ -37,6 +40,7 @@ class NewRelic::Control::LoggingMethodsTest < Test::Unit::TestCase
 
   def test_logbang_should_not_log
     @base.expects(:should_log?).returns(false)
+    @base.stubs(:to_stdout)
     assert_equal nil, @base.log!('whee')
   end
 
@@ -90,20 +94,10 @@ class NewRelic::Control::LoggingMethodsTest < Test::Unit::TestCase
     assert fake_logger.respond_to?(:format_message)
   end
 
-  def test_setup_log_file_not_exist
-    @base.expects(:log_path).returns('logpath')
-    @base.expects(:log_file_name).returns('logfilename')
-    fake_logger = mock('logger')
-    @base.expects(:log).returns(fake_logger)
-    @base.setup_log
-    assert_equal nil, @base.instance_eval { @log }
-    assert_equal 'logpath/logfilename', @base.instance_eval { @log_file }
-  end
-
   def test_setup_log_existing_file
     fake_logger = mock('logger')
     Logger.expects(:new).with('logpath/logfilename').returns(fake_logger)
-    @base.expects(:log_path).returns('logpath')
+    @base.expects(:log_path).returns('logpath').at_least_once
     @base.expects(:log_file_name).returns('logfilename')
     @base.expects(:set_log_format!).with(fake_logger)
     @base.expects(:set_log_level!).with(fake_logger)
@@ -123,8 +117,7 @@ class NewRelic::Control::LoggingMethodsTest < Test::Unit::TestCase
   end
 
   def test_log_path_path_exists
-    @base.instance_eval { @log_path = nil }
-    @base.expects(:fetch).with('log_file_path', 'log').returns('log')
+    @base.settings['log_file_path'] = 'log'
     assert File.directory?('log')
     assert_equal File.expand_path('log'), @base.log_path
   end
@@ -132,7 +125,7 @@ class NewRelic::Control::LoggingMethodsTest < Test::Unit::TestCase
   def test_log_path_path_created
     path = File.expand_path('tmp/log_path_test')
     @base.instance_eval { @log_path = nil }
-    @base.expects(:fetch).with('log_file_path', 'log').returns('tmp/log_path_test')
+    @base.settings['log_file_path'] = 'tmp/log_path_test'
     assert !File.directory?(path) || FileUtils.rmdir(path)
     @base.expects(:log!).never
     assert_equal path, @base.log_path
@@ -142,17 +135,34 @@ class NewRelic::Control::LoggingMethodsTest < Test::Unit::TestCase
   def test_log_path_path_unable_to_create
     path = File.expand_path('tmp/log_path_test')
     @base.instance_eval { @log_path = nil }
-    @base.expects(:fetch).with('log_file_path', 'log').returns('tmp/log_path_test')
+    @base.settings['log_file_path'] = 'tmp/log_path_test'
     assert !File.directory?(path) || FileUtils.rmdir(path)
-    @base.expects(:log!).with("Error creating log directory for New Relic log file: '#{path}'", :error)
-    Dir.expects(:mkdir).with(path).raises('cannot make directory bro!')
-    assert_equal 'tmp/log_path_test', @base.log_path
+    @base.expects(:log!).with("Error creating log directory tmp/log_path_test, using standard out for logging.", :warn)
+    Dir.expects(:mkdir).with(path).raises('cannot make directory bro!').twice # once for the relative directory, once for the directory relative to Rails.root
+    assert_nil @base.log_path
     assert !File.directory?(path)
+    assert_equal STDOUT, @base.log.instance_eval { @logdev }.dev    
   end
 
   def test_log_file_name
     @base.expects(:fetch).with('log_file_name', 'newrelic_agent.log').returns('log_file_name')
     assert_equal 'log_file_name', @base.log_file_name
+  end
+
+  def test_log_to_stdout_when_log_file_path_set_to_STDOUT
+    @base.stubs(:fetch).returns('whatever')
+    @base.expects(:fetch).with('log_file_path', 'log').returns('STDOUT')
+    Dir.expects(:mkdir).never
+    @base.setup_log
+    assert_equal STDOUT, @base.log.instance_eval { @logdev }.dev    
+  end
+
+  def test_logs_to_stdout_include_newrelic_prefix
+    @base.stubs(:fetch).returns('whatever')
+    @base.expects(:fetch).with('log_file_path', 'log').returns('STDOUT')
+    STDOUT.expects(:write).with(regexp_matches(/\*\* \[NewRelic\].*whee/))
+    @base.setup_log
+    @base.log.info('whee')
   end
 end
 

@@ -151,6 +151,13 @@ module NewRelic
       assert_equal(NewRelic::Agent.agent, NewRelic::Agent.instance, "should return the same agent for both identical methods")
     end
 
+    def test_load_data_should_not_write_files_when_serialization_disabled
+      NewRelic::Control.instance['disable_serialization'] = true
+      NewRelic::DataSerialization.expects(:read_and_write_to_file).never
+      NewRelic::Agent.load_data
+      NewRelic::Control.instance['disable_serialization'] = false
+    end
+
     private
 
     def mocked_agent
