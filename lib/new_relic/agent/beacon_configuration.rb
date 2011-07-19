@@ -62,20 +62,26 @@ module NewRelic
       # including the episodes file dynamically (i.e. the user
       # includes it themselves)
       def build_load_file_js(connect_data)
-        return "" unless connect_data.fetch('rum.load_episodes_file', true)
-
-        episodes_url = connect_data.fetch('episodes_url', '')
-        
-<<-eos
+        js = <<-EOS
 if (!NREUMQ.f) NREUMQ.f=function() {
 NREUMQ.push(["load",new Date().getTime()]);
+EOS
+    
+        if connect_data.fetch('rum.load_episodes_file', true)
+          episodes_url = connect_data.fetch('episodes_url', '')          
+          js << <<-EOS
 var e=document.createElement(\"script\");
 e.type=\"text/javascript\";e.async=true;e.src=\"#{episodes_url}\";
 document.body.appendChild(e);
+EOS
+        end
+    
+        js << <<-EOS
 if(NREUMQ.a)NREUMQ.a();
 };
 if(window.onload!==NREUMQ.f){NREUMQ.a=window.onload;window.onload=NREUMQ.f;};
-eos
+EOS
+        js
       end
 
       # returns a copy of the static javascript header, in case people
