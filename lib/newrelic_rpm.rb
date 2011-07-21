@@ -18,7 +18,7 @@
 # directly.
 #
 require 'new_relic/control'
-if defined? Merb
+if defined?(Merb) && defined?(Merb::BootLoader)
   module NewRelic
     class MerbBootLoader < Merb::BootLoader
       after Merb::BootLoader::ChooseAdapter
