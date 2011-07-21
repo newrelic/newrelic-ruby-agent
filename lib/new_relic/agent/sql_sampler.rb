@@ -85,6 +85,12 @@ module NewRelic
         end
       end
 
+      def merge(sql_traces)
+        @samples_lock.synchronize do
+#FIXME we need to merge the sql_traces array back into the @sql_traces hash
+#          @sql_traces.merge! sql_traces
+        end
+      end
 
       def harvest
         return [] if disabled
@@ -94,11 +100,9 @@ module NewRelic
           @sql_traces = {}
         end
         
-        unless result.empty?
-          NewRelic::Agent.instance.log.debug "Harvesting #{result.count} sql trace(s)"
-        end
-        
         #FIXME sort on max duration, trim list
+        
+        #FIXME obfuscate sql if necessary
         result
       end
 

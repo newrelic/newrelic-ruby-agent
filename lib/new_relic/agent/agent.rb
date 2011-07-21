@@ -1069,10 +1069,12 @@ module NewRelic
           # FIXME add the code to try to resend if our connection is down
           sql_traces = @sql_sampler.harvest
           unless sql_traces.empty?
-            log.debug "Sending (#{sql_traces.count}) sql trace(s)"
+            log.debug "Sending (#{sql_traces.count}) sql traces"
             begin
               response = invoke_remote :sql_trace_data, sql_traces
 #              log.debug "Sql trace response: #{response}"
+            rescue
+              @sql_sampler.merge sql_traces 
             end
           end
         end
