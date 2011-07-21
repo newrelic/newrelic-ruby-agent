@@ -1065,6 +1065,18 @@ module NewRelic
           @traces
         end
 
+        def harvest_and_send_slowest_sql
+          # FIXME add the code to try to resend if our connection is down
+          sql_traces = @sql_sampler.harvest
+          unless sql_traces.empty?
+            log.debug "Sending (#{sql_traces.count}) sql trace(s)"
+            begin
+              response = invoke_remote :sql_trace_data, sql_traces
+#              log.debug "Sql trace response: #{response}"
+            end
+          end
+        end
+
         # This handles getting the transaction traces and then sending
         # them across the wire.  This includes gathering SQL
         # explanations, stripping out stack traces, and normalizing
@@ -1279,6 +1291,7 @@ module NewRelic
             NewRelic::Agent.load_data
             harvest_and_send_errors
             harvest_and_send_slowest_sample
+            harvest_and_send_slowest_sql
             harvest_and_send_timeslice_data
           else
             log.debug "Serializing agent data to disk"

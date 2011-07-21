@@ -5,10 +5,12 @@ class NewRelic::Agent::Instrumentation::MetricFrame::PopTest < Test::Unit::TestC
 
   attr_reader :agent
   attr_reader :transaction_sampler
+  attr_reader :sql_sampler
 
   def setup
     @agent = mock('agent')
     @transaction_sampler = mock('transaction sampler')
+    @sql_sampler = mock('sql sampler')
   end
 
   def teardown
@@ -39,6 +41,7 @@ class NewRelic::Agent::Instrumentation::MetricFrame::PopTest < Test::Unit::TestC
 
   def test_notice_scope_empty
     transaction_sampler.expects(:notice_scope_empty)
+    sql_sampler.expects(:notice_scope_empty)
     notice_scope_empty
   end
 

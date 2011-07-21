@@ -276,12 +276,9 @@ module NewRelic
       # may be very large; we should trim them to a maximum usable length
       # config is the driver configuration for the connection
       # duration is seconds, float value.
-      def notice_extra_data(sql, config, duration)
+      def notice_sql(sql, config, duration)
         if NewRelic::Agent.is_sql_recorded?
           notice_extra_data(sql, duration, :sql, config, :connection_config)
-          if duration > 1000
-            
-          end
         end
       end
 

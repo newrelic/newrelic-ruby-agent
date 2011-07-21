@@ -87,15 +87,20 @@ module NewRelic
         def transaction_sampler
           agent.transaction_sampler
         end
+        
+        def sql_sampler
+          agent.sql_sampler
+        end
 
         private :agent
         private :transaction_sampler
-
+        private :sql_sampler        
 
         # Indicate that we are entering a measured controller action or task.
         # Make sure you unwind every push with a pop call.
         def push(m)
           transaction_sampler.notice_first_scope_push(start)
+          sql_sampler.notice_first_scope_push(start)
           @path_stack.push NewRelic::MetricParser::MetricParser.for_metric_named(m)
         end
 
