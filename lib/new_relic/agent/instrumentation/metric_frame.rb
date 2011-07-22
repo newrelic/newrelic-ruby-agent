@@ -132,6 +132,7 @@ module NewRelic
           # Only push the transaction context info once, on entry:
           if @path_stack.size == 1
             transaction_sampler.notice_transaction(metric_name, uri, filtered_params)
+            sql_sampler.notice_transaction(metric_name, uri, filtered_params)
           end
         end
 
