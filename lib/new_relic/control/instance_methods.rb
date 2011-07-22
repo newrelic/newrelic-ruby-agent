@@ -147,6 +147,7 @@ module NewRelic
           puts "Cannot find or read #{newrelic_file}"
           @yaml = {}
         else
+#           YAML::ENGINE.yamler = 'syck' if RUBY_VERSION.to_f >= 1.9
           @yaml = YAML.load(ERB.new(File.read(newrelic_file)).result(binding))
         end
       rescue ScriptError, StandardError => e
