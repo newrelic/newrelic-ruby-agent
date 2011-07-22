@@ -162,7 +162,6 @@ module NewRelic
         @metric_name = metric_name
         @duration = duration
         @backtrace = backtrace
-        puts backtrace
       end
     end
     
