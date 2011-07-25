@@ -70,8 +70,11 @@ module NewRelic
         end
 
         def log!(msg, level=:info)
-          super unless should_log?
-          ::RAILS_DEFAULT_LOGGER.send(level, msg)
+          if should_log?
+            ::RAILS_DEFAULT_LOGGER.send(level, msg)
+          else
+            super
+          end
         rescue Exception => e
           super
         end

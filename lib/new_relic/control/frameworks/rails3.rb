@@ -30,8 +30,11 @@ module NewRelic
 
 
         def log!(msg, level=:info)
-          super unless should_log?
-          logger.send(level, msg)
+          if should_log?
+            logger.send(level, msg)
+          else
+            super
+          end
         rescue Exception => e
           super
         end
