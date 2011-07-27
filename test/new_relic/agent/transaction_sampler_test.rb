@@ -77,10 +77,10 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   end
 
   def test_disable
-    assert_equal(nil, @sampler.instance_variable_get('@disabled'))
+    assert_nil @sampler.instance_variable_get('@disabled')
     @sampler.disable
-    assert_equal(true, @sampler.instance_variable_get('@disabled'))
-    assert_equal(nil, NewRelic::Agent.instance.stats_engine.instance_variable_get('@transaction_sampler'))
+    assert @sampler.instance_variable_get('@disabled')
+    assert_nil NewRelic::Agent.instance.stats_engine.instance_variable_get('@transaction_sampler')
   end
 
   def test_sampling_rate_equals_default

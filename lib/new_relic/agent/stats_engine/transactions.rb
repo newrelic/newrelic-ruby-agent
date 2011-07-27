@@ -48,7 +48,7 @@ module Agent
         @sql_sampler = sampler
       end
 
-      def remove_transaction_sampler(l)
+      def remove_sql_sampler(l)
         @sql_sampler = nil
       end
 
