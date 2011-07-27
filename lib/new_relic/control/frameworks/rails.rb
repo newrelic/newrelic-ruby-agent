@@ -71,13 +71,15 @@ module NewRelic
 
         def log!(msg, level=:info)
           super unless should_log?
-          ::RAILS_DEFAULT_LOGGER.send(level, msg)
+          logger = ::Rails.respond_to?(:logger) ? Rails.logger : ::RAILS_DEFAULT_LOGGER
+          logger.send(level, msg)
         rescue Exception => e
           super
         end
 
         def to_stdout(message)
-          ::RAILS_DEFAULT_LOGGER.info(message)
+          logger = ::Rails.respond_to?(:logger) ? Rails.logger : ::RAILS_DEFAULT_LOGGER
+          logger.info(message)
         rescue Exception => e
           super
         end
