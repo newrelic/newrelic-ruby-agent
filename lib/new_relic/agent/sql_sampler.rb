@@ -166,21 +166,30 @@ module NewRelic
     end
     
     class SqlTrace
+      attr_reader :path
+      attr_reader :url
       attr_reader :sql_id
       attr_reader :sql
       attr_reader :database_metric_name
-      attr_reader :stats
-      attr_reader :path
-      attr_reader :url
+
+      attr_reader :call_count
+      attr_reader :total_call_time
+      attr_reader :min_call_time
+      attr_reader :max_call_time
+
       attr_reader :params
-      
+
       def initialize(obfuscated_sql, slow_sql, path, uri)
         @params = {} #FIXME
         @sql_id = obfuscated_sql.hash
         set_primary slow_sql, path, uri
-        @stats = MethodTraceStats.new
-        @stats.record_data_point slow_sql.duration
-#        @duration = slow_sql.duration
+
+        stats = MethodTraceStats.new
+        stats.record_data_point slow_sql.duration
+        @call_count = stats.call_count
+        @total_call_time = stats.total_call_time
+        @min_call_time = stats.min_call_time
+        @max_call_time = stats.max_call_time
       end
       
       def set_primary(slow_sql, path, uri)
@@ -202,23 +211,6 @@ module NewRelic
       
       def to_json(*a)
         [@path, @url, @sql_id, @sql, @database_metric_name, @stats.call_count, @stats.total_call_time, @stats.min_call_time, @stats.max_call_time, @params].to_json(*a)
-      end
-      
-      # these methods are for the server side aggregator
-      def call_count
-        @stats.call_count
-      end
-      
-      def total_call_time
-        @stats.total_call_time
-      end
-      
-      def min_call_time
-        @stats.min_call_time
-      end
-      
-      def max_call_time
-        @stats.max_call_time
       end
     end
   end
