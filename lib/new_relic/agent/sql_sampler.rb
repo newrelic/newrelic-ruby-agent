@@ -179,19 +179,17 @@ module NewRelic
 
       attr_reader :params
 
+      attr_reader :stats
+
       def initialize(obfuscated_sql, slow_sql, path, uri)
         @params = {} #FIXME
         @sql_id = obfuscated_sql.hash
         set_primary slow_sql, path, uri
 
-        stats = MethodTraceStats.new
-        stats.record_data_point slow_sql.duration
-        @call_count = stats.call_count
-        @total_call_time = stats.total_call_time
-        @min_call_time = stats.min_call_time
-        @max_call_time = stats.max_call_time
+        @stats = MethodTraceStats.new
+        record_data_point slow_sql.duration
       end
-      
+
       def set_primary(slow_sql, path, uri)
         @sql = slow_sql.sql
         @database_metric_name = slow_sql.metric_name
@@ -205,12 +203,21 @@ module NewRelic
         if slow_sql.duration > @stats.max_call_time
           set_primary slow_sql, path, uri
         end
-        
-        @stats.record_data_point slow_sql.duration
+
+        record_data_point slow_sql.duration
+      end
+
+      def record_data_point(duration)
+        @stats.record_data_point duration
+
+        @call_count = @stats.call_count
+        @total_call_time = @stats.total_call_time
+        @min_call_time = @stats.min_call_time
+        @max_call_time = @stats.max_call_time
       end
       
       def to_json(*a)
-        [@path, @url, @sql_id, @sql, @database_metric_name, @stats.call_count, @stats.total_call_time, @stats.min_call_time, @stats.max_call_time, @params].to_json(*a)
+        [@path, @url, @sql_id, @sql, @database_metric_name, @call_count, @total_call_time, @min_call_time, @max_call_time, @params].to_json(*a)
       end
     end
   end
