@@ -10,11 +10,12 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
     @file = "#{path}/newrelic_agent_store.db"
     Dir.mkdir(path) if !File.directory?(path)
     FileUtils.rm_rf(@file)
-    FileUtils.rm_rf("#{@path}/newrelic_agent_store.age")
+    FileUtils.rm_rf("#{@path}/newrelic_agent_store.pid")
   end
   
   def teardown
-    NewRelic::Control.instance['disable_serialization'] = false # this gets set to true in some tests
+    # this gets set to true in some tests
+    NewRelic::Control.instance['disable_serialization'] = false
   end
   
   def test_read_and_write_from_file_read_only
@@ -112,8 +113,8 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
       "a" * 5
     end
     
-    assert(!NewRelic::DataSerialization.should_send_data?,
-           'Should be under the limit')
+    assert_false(NewRelic::DataSerialization.should_send_data?,
+                 'Should be under the limit')
   end
 
   def test_should_handle_empty_spool_file
@@ -135,7 +136,16 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
     NewRelic::Control.instance.expects(:log_path).returns('./tmp')
     Dir.mkdir('./tmp') if !File.directory?('./tmp')
     NewRelic::DataSerialization.update_last_sent!
-    assert(File.exists?('./tmp/newrelic_agent_store.age'),
+    assert(File.exists?('./tmp/newrelic_agent_store.pid'),
            "Age file not created at user specified location")
+  end
+  
+  def test_pid_age_creates_pid_file_if_none_exists
+    assert_false(File.exists?("#{@path}/newrelic_agent_store.pid"),
+                 'pid file found, should not be there')
+    assert_false(NewRelic::DataSerialization.pid_too_old?,
+                 "new pid should not be too old")
+    assert(File.exists?("#{@path}/newrelic_agent_store.pid"),
+           'pid file not found, should be there')
   end
 end

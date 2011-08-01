@@ -5,11 +5,12 @@ module NewRelic
   class DataSerialization
     module ClassMethods
       # Check whether the store is too large, too old, or the
-      # semaphore file is too old. If so, we should send the data
+      # pid file is too old. If so, we should send the data
       # right away. If not, we presumably store it for later sending
       # (handled elsewhere)
       def should_send_data?
-        NewRelic::Control.instance.disable_serialization? || store_too_large? || store_too_old? || semaphore_too_old?
+        NewRelic::Control.instance.disable_serialization? || store_too_large? ||
+          store_too_old? || pid_too_old?
       rescue Exception => e
         NewRelic::Control.instance.disable_serialization = true
         NewRelic::Control.instance.log.warn("Disabling serialization: #{e.message}")
@@ -32,40 +33,32 @@ module NewRelic
       # touches the age file that determines whether we should send
       # data now or not
       def update_last_sent!
-        FileUtils.touch(semaphore_path)
-      rescue Errno::ENOENT => e
-        NewRelic::Control.instance.log.warn(e.message)
+        FileUtils.touch(pid_file_path)
       end
       
-      private
-
-      def store_too_large?
-        size = File.size(file_path) > max_size
-        NewRelic::Control.instance.log.debug("Store was oversize, sending data") if size
-        size
-      rescue Errno::ENOENT
-        FileUtils.touch(file_path)
-        retry
+      def pid_too_old?
+        create_pid_file unless File.exists?(pid_file_path)
+        age = (Time.now.to_i - File.mtime(pid_file_path).to_i)
+        NewRelic::Control.instance.log.debug("Pid was #{age} seconds old, sending data") if age > 60
+        age > 60
       end
-
+      
       def store_too_old?
+        FileUtils.touch(file_path) unless File.exists?(file_path)
         age = (Time.now.to_i - File.mtime(file_path).to_i)
         NewRelic::Control.instance.log.debug("Store was #{age} seconds old, sending data") if age > 60
         age > 50
-      rescue Errno::ENOENT
-        FileUtils.touch(file_path)
-        retry
+      end      
+    
+      def store_too_large?
+        FileUtils.touch(file_path) unless File.exists?(file_path)
+        size = File.size(file_path) > max_size
+        NewRelic::Control.instance.log.debug("Store was oversize, sending data") if size
+        size
       end
-
-      def semaphore_too_old?
-        age = (Time.now.to_i - File.mtime(semaphore_path).to_i)
-        NewRelic::Control.instance.log.debug("Pid was #{age} seconds old, sending data") if age > 60
-        age > 60
-      rescue Errno::ENOENT
-        FileUtils.touch(semaphore_path)
-        retry
-      end
-        
+      
+      private
+      
       def open_arguments
         if defined?(Encoding)
           [file_path, File::RDWR | File::CREAT, {:internal_encoding => nil}]
@@ -141,13 +134,17 @@ module NewRelic
         FileUtils.touch(file_path)
         File.truncate(file_path, 0)
       end
-
+      
+      def create_pid_file
+        File.open(pid_file_path, 'w') {|f| f.write $$ }
+      end
+      
       def file_path
         "#{NewRelic::Control.instance.log_path}/newrelic_agent_store.db"
       end
 
-      def semaphore_path
-        "#{NewRelic::Control.instance.log_path}/newrelic_agent_store.age"
+      def pid_file_path
+        "#{NewRelic::Control.instance.log_path}/newrelic_agent_store.pid"
       end
     end
     extend ClassMethods
