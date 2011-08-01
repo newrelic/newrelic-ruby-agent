@@ -147,9 +147,16 @@ module NewRelic
     alias get_stats_no_scope get_stats
 
     # Get the logger for the agent.  Available after the agent has initialized.
-    # This sends output to the agent log file.
+    # This sends output to the agent log file.  If the agent has not initialized
+    # a standard output logger is returned.
     def logger
-      NewRelic::Control.instance.log
+      control = NewRelic::Control.instance(false)
+      if control
+        control.log
+      else
+        require 'logger'
+        @stdoutlog ||= Logger.new $stdout
+      end
     end
 
     # Call this to manually start the Agent in situations where the Agent does
