@@ -17,7 +17,7 @@ class NewRelic::Command::Deployments < NewRelic::Command
   # Initialize the deployment uploader with command line args.
   # Use -h to see options.
   # When command_line_args is a hash, we are invoking directly and
-  # it's treated as an options with optional sttring values for
+  # it's treated as an options with optional string values for
   # :user, :description, :appname, :revision, :environment,
   # and :changes.
   #
