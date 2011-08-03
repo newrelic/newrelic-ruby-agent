@@ -120,10 +120,9 @@ module NewRelic
           @sql_traces = {}
         end
         
-        #FIXME sort on max duration, trim list
-        
         #FIXME obfuscate sql if necessary
-        result
+        
+        result.sort{|a,b| b.max_call_time <=> a.max_call_time}[0,20]
       end
 
       # reset samples without rebooting the web server
