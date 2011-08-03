@@ -13,7 +13,7 @@ module NewRelic
       end
 
       attr_reader :disabled
-      
+
       # this is for unit tests only
       attr_reader :sql_traces
 
@@ -45,23 +45,23 @@ module NewRelic
         @disabled = true
         NewRelic::Agent.instance.stats_engine.remove_sql_sampler(self)
       end
-      
+
       def notice_transaction(path, uri=nil, params={})
         transaction_data.set_transaction_info(path, uri, params) if !disabled && transaction_data
       end
-      
+
       def notice_first_scope_push(time)
         create_transaction_data
       end
-      
+
       def create_transaction_data
         Thread.current[:new_relic_sql_data] = TransactionSqlData.new
       end
-      
+
       def transaction_data
         Thread.current[:new_relic_sql_data]
       end
-      
+
       def clear_transaction_data
         Thread.current[:new_relic_sql_data] = nil
       end
@@ -71,7 +71,7 @@ module NewRelic
       def notice_scope_empty(time=Time.now)
         data = transaction_data
         clear_transaction_data
-        
+
         if data.sql_data.count > 0
           @samples_lock.synchronize do
             NewRelic::Agent.instance.log.debug "Harvesting #{data.sql_data.count} slow transaction sql statement(s)"
@@ -80,7 +80,7 @@ module NewRelic
           end
         end
       end
-      
+
       # this should always be called under the @samples_lock
       def harvest_slow_sql(transaction_sql_data)
         transaction_sql_data.sql_data.each do |sql_item|
@@ -89,7 +89,7 @@ module NewRelic
           if sql_trace
             sql_trace.aggregate sql_item, transaction_sql_data.path, transaction_sql_data.uri
           else
-            @sql_traces[obfuscated_sql] = SqlTrace.new(obfuscated_sql, sql_item, transaction_sql_data.path, transaction_sql_data.uri)
+            @sql_traces[obfuscated_sql] = SqlTraceStats.new(obfuscated_sql, sql_item, transaction_sql_data.path, transaction_sql_data.uri)
           end
         end
 
@@ -119,9 +119,9 @@ module NewRelic
           result = @sql_traces.values
           @sql_traces = {}
         end
-        
+
         #FIXME obfuscate sql if necessary
-        
+
         result.sort{|a,b| b.max_call_time <=> a.max_call_time}[0,10]
       end
 
@@ -132,30 +132,30 @@ module NewRelic
       private
 
     end
-    
+
     class TransactionSqlData
       attr_reader :path
       attr_reader :uri
       attr_reader :params
       attr_reader :sql_data
-      
+
       def initialize
         @sql_data = []
       end
-      
+
       def set_transaction_info(path, uri, params)
         @path = path
         @uri = uri
         @params = params
       end
     end
-    
+
     class SlowSql
       attr_reader :sql
       attr_reader :metric_name
       attr_reader :duration
       attr_reader :backtrace
-      
+
       def initialize(sql, metric_name, duration, backtrace = nil)
         @sql = sql
         @metric_name = metric_name
@@ -163,29 +163,20 @@ module NewRelic
         @backtrace = backtrace
       end
     end
-    
-    class SqlTrace
+
+    class SqlTraceStats < MethodTraceStats
       attr_reader :path
       attr_reader :url
       attr_reader :sql_id
       attr_reader :sql
       attr_reader :database_metric_name
-
-      attr_reader :call_count
-      attr_reader :total_call_time
-      attr_reader :min_call_time
-      attr_reader :max_call_time
-
       attr_reader :params
 
-      attr_reader :stats
-
       def initialize(obfuscated_sql, slow_sql, path, uri)
+        super()
         @params = {} #FIXME
         @sql_id = obfuscated_sql.hash
         set_primary slow_sql, path, uri
-
-        @stats = MethodTraceStats.new
         record_data_point slow_sql.duration
       end
 
@@ -197,24 +188,15 @@ module NewRelic
         # FIXME
         @params[:backtrace] = slow_sql.backtrace if slow_sql.backtrace
       end
-      
+
       def aggregate(slow_sql, path, uri)
-        if slow_sql.duration > @stats.max_call_time
+        if slow_sql.duration > max_call_time
           set_primary slow_sql, path, uri
         end
 
         record_data_point slow_sql.duration
       end
 
-      def record_data_point(duration)
-        @stats.record_data_point duration
-
-        @call_count = @stats.call_count
-        @total_call_time = @stats.total_call_time
-        @min_call_time = @stats.min_call_time
-        @max_call_time = @stats.max_call_time
-      end
-      
       def to_json(*a)
         [@path, @url, @sql_id, @sql, @database_metric_name, @call_count, @total_call_time, @min_call_time, @max_call_time, @params].to_json(*a)
       end
