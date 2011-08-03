@@ -45,22 +45,6 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
       
     assert_equal 2, @sampler.sql_traces.count
   end
-
-  def test_harvest_should_not_take_more_than_20
-    data = NewRelic::Agent::TransactionSqlData.new
-    data.set_transaction_info("WebTransaction/Controller/c/a", "/c/a", {})
-    25.times do |i|
-      data.sql_data << NewRelic::Agent::SlowSql.new("select * from test#{(i+97).chr}",
-                                                    "Database/test#{(i+97).chr}/select",
-                                                    i)
-    end
-    
-    @sampler.harvest_slow_sql data
-    result = @sampler.harvest
-    
-    assert_equal(20, result.size)
-    assert_equal(24, result.sort{|a,b| b.max_call_time <=> a.max_call_time}.first.total_call_time)
-  end
   
   def test_sql_aggregation
     sql_trace = NewRelic::Agent::SqlTrace.new("select * from test", 
@@ -86,5 +70,20 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
       
     sql_traces = @sampler.harvest
     assert_equal 2, sql_traces.count
+  end
+
+  def test_harvest_should_not_take_more_than_10
+    data = NewRelic::Agent::TransactionSqlData.new
+    data.set_transaction_info("WebTransaction/Controller/c/a", "/c/a", {})
+    15.times do |i|
+      data.sql_data << NewRelic::Agent::SlowSql.new("select * from test#{(i+97).chr}",
+                                                    "Database/test#{(i+97).chr}/select", i)
+    end
+    
+    @sampler.harvest_slow_sql data
+    result = @sampler.harvest
+    
+    assert_equal(10, result.size)
+    assert_equal(14, result.sort{|a,b| b.max_call_time <=> a.max_call_time}.first.total_call_time)
   end
 end

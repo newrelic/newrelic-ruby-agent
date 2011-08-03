@@ -122,7 +122,7 @@ module NewRelic
         
         #FIXME obfuscate sql if necessary
         
-        result.sort{|a,b| b.max_call_time <=> a.max_call_time}[0,20]
+        result.sort{|a,b| b.max_call_time <=> a.max_call_time}[0,10]
       end
 
       # reset samples without rebooting the web server
