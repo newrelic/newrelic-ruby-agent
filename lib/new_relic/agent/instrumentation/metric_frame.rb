@@ -79,6 +79,7 @@ module NewRelic
           @jruby_cpu_start = jruby_cpu_time
           @process_cpu_start = process_cpu
           Thread.current[:last_metric_frame] = self
+          Thread.current[:tt_guid] = nil
         end
 
         def agent

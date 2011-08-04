@@ -64,6 +64,10 @@ module NewRelic
         (Thread.current[:last_metric_frame]) ? (Thread.current[:last_metric_frame].user_attributes[key] || "") : ""
       end
       
+      def tt_guid
+        Thread.current[:tt_guid] || ""
+      end
+      
       def clamp_to_positive(value)
         return 0.0 if value < 0
         value
@@ -84,7 +88,7 @@ module NewRelic
         account = obfuscate(metric_frame_attribute(:account))
         product = obfuscate(metric_frame_attribute(:product))
         
-        html_safe_if_needed("<script type=\"text/javascript\">#{NewRelic::Agent.instance.beacon_configuration.browser_timing_static_footer}NREUMQ.push([\"nrf2\",\"#{beacon}\",\"#{license_key}\",#{application_id},\"#{obfuscated_transaction_name}\",#{browser_monitoring_queue_time},#{browser_monitoring_app_time},new Date().getTime(),\"#{user}\",\"#{account}\",\"#{product}\"])</script>")
+        html_safe_if_needed("<script type=\"text/javascript\">#{NewRelic::Agent.instance.beacon_configuration.browser_timing_static_footer}NREUMQ.push([\"nrf2\",\"#{beacon}\",\"#{license_key}\",#{application_id},\"#{obfuscated_transaction_name}\",#{browser_monitoring_queue_time},#{browser_monitoring_app_time},new Date().getTime(),\"#{tt_guid}\",\"#{user}\",\"#{account}\",\"#{product}\"])</script>")
       end
 
       def html_safe_if_needed(string)

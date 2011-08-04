@@ -18,7 +18,8 @@ module NewRelic
 
       BUILDER_KEY = :transaction_sample_builder
 
-      attr_accessor :stack_trace_threshold, :random_sampling, :sampling_rate
+      attr_accessor :stack_trace_threshold, :random_sampling, :sampling_rate, :slow_capture_threshold
+
       attr_reader :samples, :last_sample, :disabled
 
       def initialize
@@ -32,7 +33,8 @@ module NewRelic
         @harvest_count = 0
         @random_sample = nil
         @sampling_rate = 10
-
+        @slow_capture_threshold = 2.0
+        
         # @segment_limit and @stack_trace_threshold come from the
         # configuration file, with built-in defaults that should
         # suffice for most customers
@@ -187,7 +189,13 @@ module NewRelic
       # Sets @slowest_sample to the passed in sample if it is slower
       # than the current sample in @slowest_sample
       def store_slowest_sample(sample)
-        @slowest_sample = sample if slowest_sample?(@slowest_sample, sample)
+        if slowest_sample?(@slowest_sample, sample)
+          @slowest_sample = sample 
+          
+          if sample.duration >= @slow_capture_threshold
+            Thread.current[:tt_guid] = sample.create_guid
+          end
+        end
       end
 
       # Checks to see if the old sample exists, or if it's duration is

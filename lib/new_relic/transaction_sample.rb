@@ -86,6 +86,12 @@ module NewRelic
       @root_segment.count_segments - 1    # don't count the root segment
     end
     
+    def create_guid
+      guid = (0..16).to_a.map{|a| rand(16).to_s(16)}.join  # a 64 bit random GUID
+      @params[:request_params][:guid] = guid
+      guid
+    end
+    
     # Truncates the transaction sample to a maximum length determined
     # by the passed-in parameter. Operates recursively on the entire
     # tree of transaction segments in a depth-first manner
