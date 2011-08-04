@@ -834,10 +834,13 @@ module NewRelic
             # Ask the server for permission to send transaction samples.
             # determined by subscription license.
             @should_send_samples = @config_should_send_samples && server_enabled
-
+            
             if @should_send_samples
               # I don't think this is ever true, but...
               enable_random_samples!(sample_rate) if @should_send_random_samples
+              
+              @transaction_sampler.slow_capture_threshold = @slowest_transaction_threshold
+              
               log.debug "Transaction tracing threshold is #{@slowest_transaction_threshold} seconds."
             else
               log.debug "Transaction traces will not be sent to the New Relic service."
