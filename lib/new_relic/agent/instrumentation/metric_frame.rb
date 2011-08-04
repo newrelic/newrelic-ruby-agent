@@ -78,6 +78,7 @@ module NewRelic
           @path_stack = [] # stack of [controller, path] elements
           @jruby_cpu_start = jruby_cpu_time
           @process_cpu_start = process_cpu
+          Thread.current[:last_metric_frame] = self
         end
 
         def agent
@@ -193,11 +194,19 @@ module NewRelic
         def self.add_custom_parameters(p)
           current.add_custom_parameters(p) if current
         end
-
+        
         def self.custom_parameters
           (current && current.custom_parameters) ? current.custom_parameters : {}
         end
 
+        def self.set_user_attributes(attributes)
+          current.set_user_attributes(attributes) if current 
+        end
+
+        def self.user_attributes
+          (current) ? current.user_attributes : {}
+        end
+          
         def record_apdex()
           return unless recording_web_transaction? && NewRelic::Agent.is_execution_traced?
           t = Time.now
@@ -242,9 +251,17 @@ module NewRelic
         def custom_parameters
           @custom_parameters ||= {}
         end
+        
+        def user_attributes
+          @user_atrributes ||= {}
+        end
 
         def add_custom_parameters(p)
           custom_parameters.merge!(p)
+        end
+        
+        def set_user_attributes(attributes)
+          user_attributes.merge!(attributes)
         end
 
         def self.recording_web_transaction?

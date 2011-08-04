@@ -373,6 +373,19 @@ module NewRelic
     def add_custom_parameters(params)
       NewRelic::Agent::Instrumentation::MetricFrame.add_custom_parameters(params)
     end
+    
+    # Set attributes about the user making this request. These attributes will be automatically
+    # appended to any Transaction Trace or Error that is collected. These attributes
+    # will also be collected for RUM requests.
+    #
+    # Attributes (hash)
+    # * <tt>:user</tt> => user name or ID
+    # * <tt>:account</tt> => account name or ID
+    # * <tt>:product</tt> => product name or level
+    #
+    def set_user_attributes(attributes)
+      NewRelic::Agent::Instrumentation::MetricFrame.set_user_attributes(attributes)
+    end
 
     # The #add_request_parameters method is aliased to #add_custom_parameters
     # and is now deprecated.
