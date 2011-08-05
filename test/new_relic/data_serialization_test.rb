@@ -113,8 +113,8 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
       "a" * 5
     end
     
-    assert_false(NewRelic::DataSerialization.should_send_data?,
-                 'Should be under the limit')
+    assert(!NewRelic::DataSerialization.should_send_data?,
+           'Should be under the limit')
   end
 
   def test_should_handle_empty_spool_file
@@ -141,10 +141,10 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
   end
   
   def test_pid_age_creates_pid_file_if_none_exists
-    assert_false(File.exists?("#{@path}/newrelic_agent_store.pid"),
-                 'pid file found, should not be there')
-    assert_false(NewRelic::DataSerialization.pid_too_old?,
-                 "new pid should not be too old")
+    assert(!File.exists?("#{@path}/newrelic_agent_store.pid"),
+           'pid file found, should not be there')
+    assert(!NewRelic::DataSerialization.pid_too_old?,
+           "new pid should not be too old")
     assert(File.exists?("#{@path}/newrelic_agent_store.pid"),
            'pid file not found, should be there')
   end
