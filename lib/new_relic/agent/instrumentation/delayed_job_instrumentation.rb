@@ -6,7 +6,8 @@ DependencyDetection.defer do
   end
 
   depends_on do
-    defined?(::Delayed) && defined?(::Delayed::Job)
+    defined?(::Delayed) && defined?(::Delayed::Job) &&
+      Delayed::Job.respond_to?(:invoke_job)
   end
   
   executes do
