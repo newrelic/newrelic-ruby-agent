@@ -156,6 +156,8 @@ module NewRelic
           @last_sample = last_builder.sample
           store_sample(@last_sample)
         end
+
+        Thread.current[:tt_guid] = @last_sample.guid
       end
 
       # Samples can be stored in three places: the random sample
@@ -190,11 +192,7 @@ module NewRelic
       # than the current sample in @slowest_sample
       def store_slowest_sample(sample)
         if slowest_sample?(@slowest_sample, sample)
-          @slowest_sample = sample 
-          
-          if sample.duration >= @slow_capture_threshold
-            Thread.current[:tt_guid] = sample.create_guid
-          end
+          @slowest_sample = sample
         end
       end
 

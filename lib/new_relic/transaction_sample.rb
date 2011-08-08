@@ -23,7 +23,7 @@ module NewRelic
 
   class TransactionSample
 
-    attr_accessor :params, :root_segment
+    attr_accessor :params, :root_segment, :guid
     attr_accessor :profile
     attr_reader :root_segment
     attr_reader :params
@@ -80,16 +80,12 @@ module NewRelic
       @root_segment = create_segment 0.0, "ROOT"
       @params = {}
       @params[:request_params] = {}
+      
+      @guid = (0..15).to_a.map{|a| rand(16).to_s(16)}.join  # a 64 bit random GUID
     end
 
     def count_segments
       @root_segment.count_segments - 1    # don't count the root segment
-    end
-    
-    def create_guid
-      guid = (0..16).to_a.map{|a| rand(16).to_s(16)}.join  # a 64 bit random GUID
-      @params[:request_params][:guid] = guid
-      guid
     end
     
     # Truncates the transaction sample to a maximum length determined
