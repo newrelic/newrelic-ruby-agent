@@ -86,4 +86,19 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
     assert_equal(10, result.size)
     assert_equal(14, result.sort{|a,b| b.max_call_time <=> a.max_call_time}.first.total_call_time)
   end
+
+  def test_harvest_should_aggregate_similar_queries
+    data = NewRelic::Agent::TransactionSqlData.new
+    data.set_transaction_info "WebTransaction/Controller/c/a", "/c/a", {}
+    queries = [
+               NewRelic::Agent::SlowSql.new("select * from test where foo in (1, 2)", "Database/test/select", 1.5), 
+               NewRelic::Agent::SlowSql.new("select * from test where foo in (1,2, 3,4,  5,6, 'snausage')", "Database/test/select", 1.2), 
+               NewRelic::Agent::SlowSql.new("select * from test2 where foo in (1,2)", "Database/test2/select", 1.1)
+              ]
+    data.sql_data.concat(queries)
+    @sampler.harvest_slow_sql data
+      
+    sql_traces = @sampler.harvest
+    assert_equal 2, sql_traces.count    
+  end
 end

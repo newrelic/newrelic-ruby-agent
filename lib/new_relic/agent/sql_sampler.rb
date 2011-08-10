@@ -84,7 +84,7 @@ module NewRelic
       # this should always be called under the @samples_lock
       def harvest_slow_sql(transaction_sql_data)
         transaction_sql_data.sql_data.each do |sql_item|
-          obfuscated_sql = NewRelic::Agent.instance.send(:default_sql_obfuscator, sql_item.sql)
+          obfuscated_sql = sql_item.obfuscated_sql
           sql_trace = @sql_traces[obfuscated_sql]
           if sql_trace
             sql_trace.aggregate sql_item, transaction_sql_data.path, transaction_sql_data.uri
@@ -161,6 +161,10 @@ module NewRelic
         @metric_name = metric_name
         @duration = duration
         @backtrace = backtrace
+      end
+
+      def obfuscated_sql
+        NewRelic::Agent.instance.send(:default_sql_obfuscator, sql).gsub(/\?\,\s*/, '')
       end
     end
 
