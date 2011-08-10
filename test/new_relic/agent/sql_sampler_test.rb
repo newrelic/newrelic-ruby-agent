@@ -47,7 +47,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
   end
   
   def test_sql_aggregation
-    sql_trace = NewRelic::Agent::SqlTraceStats.new("select * from test", 
+    sql_trace = NewRelic::Agent::SqlTrace.new("select * from test", 
       NewRelic::Agent::SlowSql.new("select * from test", "Database/test/select", 1.2), "tx_name", "uri")
       
     sql_trace.aggregate NewRelic::Agent::SlowSql.new("select * from test", "Database/test/select", 1.5), "slowest_tx_name", "slow_uri"

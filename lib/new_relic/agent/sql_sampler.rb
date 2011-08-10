@@ -89,7 +89,7 @@ module NewRelic
           if sql_trace
             sql_trace.aggregate sql_item, transaction_sql_data.path, transaction_sql_data.uri
           else
-            @sql_traces[obfuscated_sql] = SqlTraceStats.new(obfuscated_sql, sql_item, transaction_sql_data.path, transaction_sql_data.uri)
+            @sql_traces[obfuscated_sql] = SqlTrace.new(obfuscated_sql, sql_item, transaction_sql_data.path, transaction_sql_data.uri)
           end
         end
 
@@ -164,7 +164,7 @@ module NewRelic
       end
     end
 
-    class SqlTraceStats < MethodTraceStats
+    class SqlTrace < MethodTraceStats
       attr_reader :path
       attr_reader :url
       attr_reader :sql_id
