@@ -384,6 +384,8 @@ module NewRelic
           # sampler object, rather than here. We should pass in the
           # sampler config.
           def config_transaction_tracer
+            # Reinitialize the transaction tracer
+            @transaction_sampler = NewRelic::Agent::TransactionSampler.new
             @should_send_samples = @config_should_send_samples = sampler_config.fetch('enabled', true)
             @should_send_random_samples = sampler_config.fetch('random_sample', false)
             @explain_threshold = sampler_config.fetch('explain_threshold', 0.5).to_f
@@ -522,7 +524,6 @@ module NewRelic
           @local_host = determine_host
           log_dispatcher
           log_app_names
-          config_transaction_tracer
           check_config_and_start_agent
           log_version_and_pid
           notify_log_file_location
@@ -818,6 +819,8 @@ module NewRelic
           # are allowed to send errors. Pretty simple, and logs at
           # debug whether errors will or will not be sent.
           def configure_error_collector!(server_enabled)
+            # Reinitialize the error collector
+            @error_collector = NewRelic::Agent::ErrorCollector.new
             # Ask for permission to collect error data
             enabled = if error_collector.config_enabled && server_enabled
                         error_collector.enabled = true
@@ -890,7 +893,10 @@ module NewRelic
             @report_period = config_data['data_report_period']
             @url_rules = config_data['url_rules']
             @beacon_configuration = BeaconConfiguration.new(config_data)
+            @server_side_config_enabled = config_data['listen_to_server_config']
 
+            control.merge_server_side_config(config_data) if @server_side_config_enabled
+            config_transaction_tracer
             log_connection!(config_data)
             configure_transaction_tracer!(config_data['collect_traces'], config_data['sample_rate'])
             configure_error_collector!(config_data['collect_errors'])

@@ -49,6 +49,20 @@ module NewRelic
         end
       end
 
+      def merge_server_side_config(data)
+        config = Hash.new
+        data.each_pair do |key, value|
+          if key.include?('.')
+            key = key.split('.')
+            config[key.first] ||= Hash.new
+            config[key.first][key[1]] = value
+          else
+            config[key] = value
+          end
+        end
+        merge_options(config)
+      end
+
       def [](key)
         fetch(key)
       end
