@@ -228,6 +228,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     @slowest_transaction_threshold = 5
     log.expects(:debug).with('Transaction tracing threshold is 5 seconds.')
     self.expects(:enable_random_samples!).with(10)
+    @transaction_sampler = mock('transaction sampler', :slow_capture_threshold= => true)
     configure_transaction_tracer!(true, 10)
     assert @should_send_samples
   end
@@ -235,6 +236,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   def test_configure_transaction_tracer_positive
     @config_should_send_samples = true
     @slowest_transaction_threshold = 5
+    @transaction_sampler = mock('transaction sampler', :slow_capture_threshold= => true)
     log.expects(:debug).with('Transaction tracing threshold is 5 seconds.')
     configure_transaction_tracer!(true, 10)
     assert @should_send_samples
@@ -343,6 +345,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   def test_configure_transaction_tracer_random_samples
     @config_should_send_samples = true
     @should_send_random_samples = true
+    @transaction_sampler = mock('transaction sampler', :slow_capture_threshold= => true)
     self.expects(:enable_random_samples!).with(10)
     log.expects(:debug)
     configure_transaction_tracer!(true, 10)

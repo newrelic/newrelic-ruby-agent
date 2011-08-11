@@ -234,11 +234,19 @@ var e=document.createElement("script");'
     # always takes at least 1ms
     self.expects(:browser_monitoring_app_time).returns(0)
     Thread.current[:newrelic_most_recent_transaction] = 'most recent transaction'
+    frame = Thread.current[:last_metric_frame] = mock('metric frame')
+    user_attributes = {:user => "user", :account => "account", :product => "product"}
+    frame.expects(:user_attributes).returns(user_attributes).at_least_once
 
     self.expects(:obfuscate).with('most recent transaction').returns('most recent transaction')
+    self.expects(:obfuscate).with('user').returns('user')
+    self.expects(:obfuscate).with('account').returns('account')
+    self.expects(:obfuscate).with('product').returns('product')
+
+    Thread.current[:tt_guid] = "guid"
 
     value = footer_js_string(beacon, license_key, application_id)
-    assert_equal("<script type=\"text/javascript\">if (!NREUMQ.f) NREUMQ.f=function() {\nNREUMQ.push([\"load\",new Date().getTime()]);\nvar e=document.createElement(\"script\");\ne.type=\"text/javascript\";e.async=true;e.src=\"this_is_my_file\";\ndocument.body.appendChild(e);\nif(NREUMQ.a)NREUMQ.a();\n};\nif(window.onload!==NREUMQ.f){NREUMQ.a=window.onload;window.onload=NREUMQ.f;};\nNREUMQ.push([\"nrf2\",\"\",\"\",1,\"most recent transaction\",0,0,new Date().getTime()])</script>", value, "should return the javascript given some default values")
+    assert_equal("<script type=\"text/javascript\">if (!NREUMQ.f) NREUMQ.f=function() {\nNREUMQ.push([\"load\",new Date().getTime()]);\nvar e=document.createElement(\"script\");\ne.type=\"text/javascript\";e.async=true;e.src=\"this_is_my_file\";\ndocument.body.appendChild(e);\nif(NREUMQ.a)NREUMQ.a();\n};\nif(window.onload!==NREUMQ.f){NREUMQ.a=window.onload;window.onload=NREUMQ.f;};\nNREUMQ.push([\"nrf2\",\"\",\"\",1,\"most recent transaction\",0,0,new Date().getTime(),\"guid\",\"user\",\"account\",\"product\"])</script>", value, "should return the javascript given some default values")
   end
 
   def test_html_safe_if_needed_unsafed
