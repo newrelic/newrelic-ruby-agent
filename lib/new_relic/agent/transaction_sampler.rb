@@ -26,6 +26,7 @@ module NewRelic
         # @samples is an array of recent samples up to @max_samples in
         # size - it's only used by developer mode
         @samples = []
+        @force_persist = []
         @max_samples = 100
 
         # @harvest_count is a count of harvests used for random
@@ -171,6 +172,7 @@ module NewRelic
         store_random_sample(sample)
         store_sample_for_developer_mode(sample)
         store_slowest_sample(sample)
+        store_force_persist(sample) if Thread.current[:force_persist]
       end
 
       # Only active when random sampling is true - this is very rarely
@@ -180,6 +182,10 @@ module NewRelic
         if @random_sampling
           @random_sample = sample
         end
+      end
+      
+      def store_force_persist(sample)
+        @force_persist << sample
       end
 
       # Samples take up a ton of memory, so we only store a lot of
@@ -278,7 +284,7 @@ module NewRelic
       # Appends a backtrace to a segment if that segment took longer
       # than the specified duration
       def append_backtrace(segment, duration)
-        segment[:backtrace] = caller.join("\n") if duration >= @stack_trace_threshold
+        segment[:backtrace] = caller.join("\n") if (duration >= @stack_trace_threshold || Thread.current[:capture_deep_tt])
       end
 
       # some statements (particularly INSERTS with large BLOBS
@@ -314,6 +320,14 @@ module NewRelic
         result.uniq!
         nil # don't assume this method returns anything
       end
+      
+      def add_force_persist_to(result)
+        if @force_persist.length > 0
+          result.concat(@force_persist)
+          
+          @force_persist = []
+        end
+      end
 
       # Returns an array of slow samples, with either one or two
       # elements - one element unless random sampling is enabled. The
@@ -326,7 +340,10 @@ module NewRelic
         result.compact!
         result = result.sort_by { |x| x.duration }
         result = result[-1..-1] || []
+        
         add_random_sample_to(result)
+        add_force_persist_to(result)
+        
         result
       end
 
@@ -344,10 +361,32 @@ module NewRelic
           @random_sample = nil
           @last_sample = nil
         end
+        
+        # Clamp the number of TTs we'll keep in memory and send
+        #
+        result = clamp_number_tts(result, 20) if result.length > 20
+        
         # Truncate the samples at 2100 segments. The UI will clamp them at 2000 segments anyway.
         # This will save us memory and bandwidth.
         result.each { |sample| sample.truncate(@segment_limit) }
         result
+      end
+      
+      # JON - THIS CODE NEEDS A UNIT TEST
+      def clamp_number_tts(tts, limit)
+        tts.sort! do |a,b|
+          if a.force_persist && b.force_persist
+            b.duration <=> a.duration
+          elsif a.force_persist
+            -1
+          elsif b.force_persist
+            1
+          else
+            b.duration <=> a.duration
+          end
+        end        
+        
+        tts[0..(limit-1)]  
       end
 
       # reset samples without rebooting the web server

@@ -16,6 +16,31 @@ module NewRelic::Rack
       Thread.current[:tt_guid] = nil
       Thread.current[:newrelic_start_time] = Time.now
       Thread.current[:newrelic_queue_time] = 0
+      Thread.current[:force_persist] = nil
+      Thread.current[:capture_deep_tt] = nil
+      
+      req = Rack::Request.new(env)
+      
+      agent_flag = req.cookies['NRAGENT']
+      
+      if (agent_flag)
+        s = agent_flag.split("=")
+        if (s.length == 2)
+          if s[0] == "ct" && s[1] == "true"
+            Thread.current[:force_persist] = true
+          end
+        end
+      end
+      
+      # Not sure how we feel about productizing this...
+      if (req.params['nr_capture_deep_tt'])
+        Thread.current[:force_persist] = true
+        Thread.current[:capture_deep_tt] = true
+      end
+      
+      if (req.params['nr_capture_tt'])
+        Thread.current[:force_persist] = true
+      end
       
       result = @app.call(env)   # [status, headers, response]
 
