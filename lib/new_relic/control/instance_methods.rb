@@ -147,8 +147,9 @@ module NewRelic
           puts "Cannot find or read #{newrelic_file}"
           @yaml = {}
         else
-          YAML::ENGINE.yamler = 'syck' if defined?(YAML::ENGINE)
+          old_yamler, YAML::ENGINE.yamler = YAML::ENGINE.yamler, 'syck' if defined?(YAML::ENGINE)
           @yaml = YAML.load(ERB.new(File.read(newrelic_file)).result(binding))
+          YAML::ENGINE.yamler = old_yamler if defined?(YAML::ENGINE)
         end
       rescue ScriptError, StandardError => e
         puts e
