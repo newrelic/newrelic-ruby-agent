@@ -334,70 +334,6 @@ module NewRelic
             log.info "Application: #{control.app_names.join(", ")}"
           end
           
-          # apdex_f is always 4 times the apdex_t
-          def apdex_f
-            (4 * NewRelic::Control.instance.apdex_t).to_f
-          end
-
-          # If the transaction threshold is set to the string
-          # 'apdex_f', we use 4 times the apdex_t value to record
-          # transactions. This gears well with using apdex since you
-          # will attempt to send any transactions that register as 'failing'
-          def apdex_f_threshold?
-            sampler_config.fetch('transaction_threshold', '') =~ /apdex_f/i
-          end
-
-          # Sets the sql recording configuration by trying to detect
-          # any attempt to disable the sql collection - 'off',
-          # 'false', 'none', and friends. Otherwise, we accept 'raw',
-          # and unrecognized values default to 'obfuscated'
-          def set_sql_recording!
-            record_sql_config = sampler_config.fetch('record_sql', :obfuscated)
-            case record_sql_config.to_s
-            when 'off'
-              @record_sql = :off
-            when 'none'
-              @record_sql = :off
-            when 'false'
-              @record_sql = :off
-            when 'raw'
-              @record_sql = :raw
-            else
-              @record_sql = :obfuscated
-            end
-
-            log_sql_transmission_warning?
-          end
-
-          # Warn the user when we are sending raw sql across the wire
-          # - they should probably be using ssl when this is true
-          def log_sql_transmission_warning?
-            log_if((@record_sql == :raw), :warn, "Agent is configured to send raw SQL to the service")
-          end
-
-          # gets the sampler configuration from the control object's settings
-          def sampler_config
-            control.fetch('transaction_tracer', {})
-          end
-
-          # this entire method should be done on the transaction
-          # sampler object, rather than here. We should pass in the
-          # sampler config.
-          def config_transaction_tracer
-            # Reinitialize the transaction tracer
-            @transaction_sampler = NewRelic::Agent::TransactionSampler.new
-            @should_send_samples = @config_should_send_samples = sampler_config.fetch('enabled', true)
-            @should_send_random_samples = sampler_config.fetch('random_sample', false)
-            @explain_threshold = sampler_config.fetch('explain_threshold', 0.5).to_f
-            @explain_enabled = sampler_config.fetch('explain_enabled', true)
-            set_sql_recording!
-
-            # default to 2.0, string 'apdex_f' will turn into your
-            # apdex * 4
-            @slowest_transaction_threshold = sampler_config.fetch('transaction_threshold', 2.0).to_f
-            @slowest_transaction_threshold = apdex_f if apdex_f_threshold?
-          end
-
           # Connecting in the foreground blocks further startup of the
           # agent until we have a connection - useful in cases where
           # you're trying to log a very-short-running process and want
@@ -524,6 +460,7 @@ module NewRelic
           @local_host = determine_host
           log_dispatcher
           log_app_names
+          config_transaction_tracer
           check_config_and_start_agent
           log_version_and_pid
           notify_log_file_location
@@ -845,6 +782,24 @@ module NewRelic
             log.info "Transaction sampling enabled, rate = #{@transaction_sampler.sampling_rate}"
           end
 
+          # this entire method should be done on the transaction
+          # sampler object, rather than here. We should pass in the
+          # sampler config.
+          def config_transaction_tracer
+            # Reconfigure the transaction tracer
+            @transaction_sampler.configure!
+            @should_send_samples = @config_should_send_samples = sampler_config.fetch('enabled', true)
+            @should_send_random_samples = sampler_config.fetch('random_sample', false)
+            @explain_threshold = sampler_config.fetch('explain_threshold', 0.5).to_f
+            @explain_enabled = sampler_config.fetch('explain_enabled', true)
+            set_sql_recording!
+
+            # default to 2.0, string 'apdex_f' will turn into your
+            # apdex * 4
+            @slowest_transaction_threshold = sampler_config.fetch('transaction_threshold', 2.0).to_f
+            @slowest_transaction_threshold = apdex_f if apdex_f_threshold?
+          end
+
           # Enables or disables the transaction tracer and sets its
           # options based on the options provided to the
           # method.
@@ -860,6 +815,52 @@ module NewRelic
             else
               log.debug "Transaction traces will not be sent to the New Relic service."
             end
+          end
+
+          # apdex_f is always 4 times the apdex_t
+          def apdex_f
+            (4 * NewRelic::Control.instance.apdex_t).to_f
+          end
+
+          # If the transaction threshold is set to the string
+          # 'apdex_f', we use 4 times the apdex_t value to record
+          # transactions. This gears well with using apdex since you
+          # will attempt to send any transactions that register as 'failing'
+          def apdex_f_threshold?
+            sampler_config.fetch('transaction_threshold', '') =~ /apdex_f/i
+          end
+
+          # Sets the sql recording configuration by trying to detect
+          # any attempt to disable the sql collection - 'off',
+          # 'false', 'none', and friends. Otherwise, we accept 'raw',
+          # and unrecognized values default to 'obfuscated'
+          def set_sql_recording!
+            record_sql_config = sampler_config.fetch('record_sql', :obfuscated)
+            case record_sql_config.to_s
+            when 'off'
+              @record_sql = :off
+            when 'none'
+              @record_sql = :off
+            when 'false'
+              @record_sql = :off
+            when 'raw'
+              @record_sql = :raw
+            else
+              @record_sql = :obfuscated
+            end
+
+            log_sql_transmission_warning?
+          end
+
+          # Warn the user when we are sending raw sql across the wire
+          # - they should probably be using ssl when this is true
+          def log_sql_transmission_warning?
+            log.warn("Agent is configured to send raw SQL to the service") if @record_sql == :raw
+          end
+
+          # gets the sampler configuration from the control object's settings
+          def sampler_config
+            control.fetch('transaction_tracer', {})
           end
 
           # Asks the collector to tell us which sub-collector we

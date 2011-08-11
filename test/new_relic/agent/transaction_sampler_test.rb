@@ -57,6 +57,15 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     assert(lock.is_a?(Mutex), "Samples lock should be a mutex, is: #{lock.inspect}")
   end
 
+  def test_configure
+    control = NewRelic::Control.instance
+    control.merge_options('transaction_tracer' => {'stack_trace_threshold' => 5.0, 'limit_segments' => 20, 'explain_threshold' => 4.0})
+    @sampler.configure!
+    assert_equal 20, @sampler.instance_variable_get('@segment_limit')
+    assert_equal 5.0, @sampler.instance_variable_get('@stack_trace_threshold')
+    assert_equal 4.0, @sampler.instance_variable_get('@explain_threshold')
+  end
+
   def test_current_sample_id_default
     builder = mock('builder')
     builder.expects(:sample_id).returns(11111)
