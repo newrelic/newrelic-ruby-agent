@@ -34,7 +34,15 @@ module NewRelic
         @random_sample = nil
         @sampling_rate = 10
         @slow_capture_threshold = 2.0
-        
+        configure!
+
+        # This lock is used to synchronize access to the @last_sample
+        # and related variables. It can become necessary on JRuby or
+        # any 'honest-to-god'-multithreaded system
+        @samples_lock = Mutex.new
+      end
+
+      def configure!
         # @segment_limit and @stack_trace_threshold come from the
         # configuration file, with built-in defaults that should
         # suffice for most customers
@@ -43,11 +51,6 @@ module NewRelic
         @segment_limit = sampler_config.fetch('limit_segments', 4000)
         @stack_trace_threshold = sampler_config.fetch('stack_trace_threshold', 0.500).to_f
         @explain_threshold = sampler_config.fetch('explain_threshold', 0.5).to_f
-
-        # This lock is used to synchronize access to the @last_sample
-        # and related variables. It can become necessary on JRuby or
-        # any 'honest-to-god'-multithreaded system
-        @samples_lock = Mutex.new
       end
 
       # Returns the current sample id, delegated from `builder`

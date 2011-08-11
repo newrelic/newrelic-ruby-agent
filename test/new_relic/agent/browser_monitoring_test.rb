@@ -100,7 +100,7 @@ var e=document.createElement("script");'
     license_bytes = [];
     ("a" * 13).each_byte {|byte| license_bytes << byte}
     config =  NewRelic::Agent::BeaconConfiguration.new({"browser_key" => "browserKey", "application_id" => "apId", "beacon"=>"beacon", "episodes_url"=>"this_is_my_file", "license_bytes" => license_bytes})
-    config.expects(:license_bytes).returns(license_bytes)
+    config.expects(:license_bytes).returns(license_bytes).at_least_once
     NewRelic::Agent.instance.expects(:beacon_configuration).returns(config).at_least_once
     footer = browser_timing_footer
     beginning_snippet = '<script type="text/javascript">if (!NREUMQ.f) NREUMQ.f=function() {
