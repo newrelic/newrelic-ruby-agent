@@ -37,4 +37,10 @@ class NewRelic::Control::ConfigurationTest < Test::Unit::TestCase
     assert_match(/\/lerg\/newrelic_agent.log/,
                  NewRelic::Control.instance.log_file)
   end
+
+  def test_server_side_config_ignores_yaml
+    settings.merge! 'ssl' => false, 'transaction_tracer' => {'enabled' => true, 'stack_trace_threshold' => 1.0}, 'error_collector' => {'enabled' => true, 'ignore_errors' => 'ActiveRecord::RecordNotFound'}, 'capture_params' => false
+    merge_server_side_config 'transaction_tracer.enabled' => false, 'error_collector.enabled' => false
+    assert_equal({'ssl' => false, 'transaction_tracer' => {'enabled' => false}, 'error_collector' => {'enabled' => false}}, settings)
+  end
 end
