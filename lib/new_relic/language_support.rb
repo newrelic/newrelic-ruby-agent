@@ -14,7 +14,24 @@ module NewRelic::LanguageSupport
       end
     end
   end
-    
+  
+  module Control
+    def self.included(base)
+      # need to use syck rather than psych when possible
+      if defined?(::YAML::ENGINE)
+        base.class_eval do
+          def load_newrelic_yml(*args)
+            yamler = ::YAML::ENGINE.yamler
+            ::YAML::ENGINE.yamler = 'syck'
+            val = super
+            ::YAML::ENGINE.yamler = yamler
+            val
+          end
+        end
+      end
+    end
+  end
+  
   module SynchronizedHash
     def self.included(base)
       # need to lock iteration of stats hash in 1.9.x

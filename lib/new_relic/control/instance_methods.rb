@@ -1,5 +1,9 @@
+require 'new_relic/language_support'
+
 module NewRelic
   class Control
+    include NewRelic::LanguageSupport::Control
+
     # Contains methods that relate to the runtime usage of the control
     # object. Note that these are subject to override in the
     # NewRelic::Control::Framework classes that are actually instantiated
@@ -147,13 +151,16 @@ module NewRelic
           puts "Cannot find or read #{newrelic_file}"
           @yaml = {}
         else
-          YAML::ENGINE.yamler = 'syck' if defined?(YAML::ENGINE)
-          @yaml = YAML.load(ERB.new(File.read(newrelic_file)).result(binding))
+          @yaml = load_newrelic_yml(newrelic_file, binding)
         end
       rescue ScriptError, StandardError => e
         puts e
         puts e.backtrace.join("\n")
         raise "Error reading newrelic.yml file: #{e}"
+      end
+      
+      def load_newrelic_yml(path, binding)
+        YAML.load(ERB.new(File.read(path)).result(binding))
       end
       
       def root
