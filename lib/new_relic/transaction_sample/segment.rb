@@ -240,7 +240,7 @@ module NewRelic
       rescue Exception => e
         begin
           # guarantees no throw from explain_sql
-          NewRelic::Control.instance.log.error("Error getting explain plan: #{e.message}")
+          NewRelic::Control.instance.log.error("Error getting query plan: #{e.message}")
           NewRelic::Control.instance.log.debug(e.backtrace.join("\n"))
         rescue Exception
           # double exception. throw up your hands

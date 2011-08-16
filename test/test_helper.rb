@@ -21,8 +21,18 @@ begin
   end
 
 rescue LoadError
-  puts "Unable to load Rails for New Relic tests"
-  raise
+  # To run the tests against a standalone agent build, you need to
+  # add a rails app to the load path.  It can be 2.* to 3.*.  It should
+  # referenc newrelic_rpm in the Gemfile with a :path option pointing 
+  # to this work directory.
+  guess = File.expand_path("../../../rpm", __FILE__)
+  if $LOAD_PATH.include? guess
+    puts "Unable to load Rails for New Relic tests.  See note in test_helper.rb"
+    raise
+  else
+    $LOAD_PATH << guess
+    retry
+  end
 end
 require 'newrelic_rpm'
 

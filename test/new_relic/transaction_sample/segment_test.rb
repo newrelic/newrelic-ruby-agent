@@ -431,7 +431,7 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
     s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
     fake_error = Exception.new
     fake_error.expects(:message).returns('a message')
-    NewRelic::Control.instance.log.expects(:error).with('Error getting explain plan: a message')
+    NewRelic::Control.instance.log.expects(:error).with('Error getting query plan: a message')
     # backtrace can be basically any string, just should get logged
     NewRelic::Control.instance.log.expects(:debug).with(instance_of(String))
     s.handle_exception_in_explain do
