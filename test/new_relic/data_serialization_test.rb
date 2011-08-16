@@ -148,4 +148,34 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
     assert(File.exists?("#{@path}/newrelic_agent_store.pid"),
            'pid file not found, should be there')
   end
+
+  def test_loading_does_not_seg_fault_if_gc_triggers
+    Thread.abort_on_exception = true
+    rcv,snd = IO.pipe
+    
+    write = Thread.new do
+      obj = ('a'..'z').inject({}){|h,s|h[s.intern]=s*1024;h}
+      data = Marshal.dump(obj)
+      snd.write(data[0,data.size/2])
+      sleep(0.1)
+      snd.write(data[(data.size/2)..-1])
+    end
+    
+    read = Thread.new do
+      lock = Mutex.new
+      lock.synchronize do
+        NewRelic::DataSerialization.class_eval { load(rcv) }
+      end
+    end
+
+    gc = Thread.new do
+      100.times do
+        GC.start
+      end
+    end
+
+    write.join
+    read.join
+    gc.join
+  end
 end

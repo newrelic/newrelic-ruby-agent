@@ -1,8 +1,12 @@
 require 'fileutils'
+require 'new_relic/language_support'
+
 module NewRelic
   # Handles serialization of data to disk, to save on contacting the
   # server. Lowers both server and client overhead, if the disk is not overloaded
   class DataSerialization
+    include NewRelic::LanguageSupport::DataSerialization
+    
     module ClassMethods
       # Check whether the store is too large, too old, or the
       # pid file is too old. If so, we should send the data
@@ -117,9 +121,9 @@ module NewRelic
       def dump(object)
         Marshal.dump(object)
       end
-
+      
       def load(dump)
-        if dump.size == 0
+        if dump.respond_to?(:size) && dump.size == 0
           NewRelic::Control.instance.log.debug("Spool file empty.")
           return nil
         end

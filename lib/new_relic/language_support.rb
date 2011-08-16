@@ -1,4 +1,20 @@
-module NewRelic::LanguageSupport  
+module NewRelic::LanguageSupport
+  module DataSerialization
+    def self.included(base)
+      # need to disable GC during marshal load in 1.8.7
+      if ::RUBY_VERSION == '1.8.7'
+        base.class_eval do
+          def self.load(*args)
+            GC.disable
+            val = super
+            GC.enable
+            val
+          end
+        end
+      end
+    end
+  end
+    
   module SynchronizedHash
     def self.included(base)
       # need to lock iteration of stats hash in 1.9.x
