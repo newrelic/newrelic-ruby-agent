@@ -2,7 +2,7 @@ module NewRelic::LanguageSupport
   module DataSerialization
     def self.included(base)
       # need to disable GC during marshal load in 1.8.7
-      if ::RUBY_VERSION == '1.8.7'
+      if ::RUBY_VERSION == '1.8.7' && !defined?(::JRUBY_VERSION)
         base.class_eval do
           def self.load(*args)
             GC.disable
