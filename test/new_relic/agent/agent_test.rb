@@ -33,7 +33,26 @@ module NewRelic
       end
 
       def test_harvest_timeslice_data
-        assert_equal({}, @agent.send(:harvest_timeslice_data), 'should return timeslice data')
+        assert_equal({}, @agent.send(:harvest_timeslice_data),
+                     'should return timeslice data')
+      end
+
+      def test_harvest_timelice_data_should_be_thread_safe
+        2000.times do |i|
+          @agent.stats_engine.stats_hash[i.to_s] = NewRelic::StatsBase.new
+        end
+        
+        harvest = Thread.new do
+          @agent.send(:harvest_timeslice_data)
+        end
+
+        app = Thread.new do
+          @agent.stats_engine.stats_hash["a"] = NewRelic::StatsBase.new
+        end
+        
+        assert_nothing_raised do
+          [app, harvest].each{|t| t.join}
+        end
       end
 
       def test_harvest_errors
