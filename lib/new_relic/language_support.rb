@@ -1,4 +1,6 @@
 module NewRelic::LanguageSupport
+  extend self
+  
   module DataSerialization
     def self.included(base)
       # need to disable GC during marshal load in 1.8.7
