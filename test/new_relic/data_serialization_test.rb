@@ -171,18 +171,19 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
     end
 
     gc = Thread.new do
-      100.times do
+      10.times do
         GC.start
       end
     end
 
     begin
-      Timeout::timeout(2) do
+      Timeout::timeout(1) do
         write.join
         read.join
         gc.join
       end
     rescue Timeout::Error
+      # rubinius deadlocks which seems to be a rubinius bug
       raise unless NewRelic::LanguageSupport.using_rubinius?
     end
     # should not seg fault
