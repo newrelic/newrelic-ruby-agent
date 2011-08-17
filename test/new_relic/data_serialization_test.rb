@@ -150,6 +150,8 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
   end
 
   def test_loading_does_not_seg_fault_if_gc_triggers
+    require 'timeout'
+    
     Thread.abort_on_exception = true
     rcv,snd = IO.pipe
     
@@ -174,8 +176,15 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
       end
     end
 
-    write.join
-    read.join
-    gc.join
+    begin
+      Timeout::timeout(2) do
+        write.join
+        read.join
+        gc.join
+      end
+    rescue Timeout::Error
+      raise unless NewRelic::LanguageSupport.using_rubinius?
+    end
+    # should not seg fault
   end
 end

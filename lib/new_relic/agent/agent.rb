@@ -402,16 +402,6 @@ module NewRelic
             NewRelic::Agent.disable_all_tracing { connect(:keep_retrying => false) }
           end
 
-          # Are we in boss mode, using rubinius?
-          def using_rubinius?
-            RUBY_VERSION =~ /rubinius/i
-          end
-
-          # Is this really a world-within-a-world, running JRuby?
-          def using_jruby?
-            defined?(JRuby)
-          end
-
           # If we're using sinatra, old versions run in an at_exit
           # block so we should probably know that
           def using_sinatra?
@@ -421,7 +411,9 @@ module NewRelic
           # we should not set an at_exit block if people are using
           # these as they don't do standard at_exit behavior per MRI/YARV
           def weird_ruby?
-            using_rubinius? || using_jruby? || using_sinatra?
+            NewRelic::LanguageSupport.using_rubinius? ||
+              NewRelic::LanguageSupport.using_jruby? ||
+              using_sinatra?
           end
 
           # Installs our exit handler, which exploits the weird
