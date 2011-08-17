@@ -55,7 +55,7 @@ module NewRelic
           else
             metrics = [metric, "ActiveRecord/all"]
             metrics << "ActiveRecord/#{metric_name}" if metric_name
-            metrics << "Database/Server/#{supported_config[:host] || "localhost"}" if supported_config
+            metrics << "DatabaseServer/#{supported_config[:host] || "localhost"}" if supported_config
             
             self.class.trace_execution_scoped(metrics) do
               t0 = Time.now
