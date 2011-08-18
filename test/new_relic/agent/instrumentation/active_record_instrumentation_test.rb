@@ -133,7 +133,6 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     check_metric_count("ActiveRecord/ActiveRecordFixtures::Order/create", 1)
   end
 
-
   def test_metric_names_standard
     # fails due to a bug in rails 3 - log does not provide the correct
     # transaction type - it returns 'SQL' instead of 'Foo Create', for example.
@@ -148,11 +147,12 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
       ActiveRecord/ActiveRecordFixtures::Order/create]
 
     if NewRelic::Control.instance.rails_version < '2.1.0'
-      expected += %W[ActiveRecord/save ActiveRecord/ActiveRecordFixtures::Order/save]
+      expected += ['ActiveRecord/save',
+                   'ActiveRecord/ActiveRecordFixtures::Order/save']
     end
 
     assert_calls_metrics(*expected) do
-      m = ActiveRecordFixtures::Order.create :id => 0, :name => 'jeff'
+      m = ActiveRecordFixtures::Order.create :id => 0, :name => 'donkey'
       m = ActiveRecordFixtures::Order.find(m.id)
       m.id = 999
       m.save!
@@ -315,6 +315,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
 
   def test_show_sql
     return if isSqlite?
+    return if isPostgres?
 
     expected_metrics = %W[ActiveRecord/all Database/SQL/show]
 
@@ -368,11 +369,11 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     sample = sample.prepare_to_send(:record_sql => :raw, :explain_sql => 0.0)
     sql_segment = sample.root_segment.called_segments.first.called_segments.first.called_segments.first
     assert_match /^SELECT /, sql_segment.params[:sql]
-    explanations = sql_segment.params[:explanation]
+    explanations = sql_segment.params[:explain_plan]
     if isMysql? || isPostgres?
       assert_not_nil explanations, "No explains in segment: #{sql_segment}"
-      assert_equal 1, explanations.size,"No explains in segment: #{sql_segment}"
-      assert_equal 1, explanations.first.size
+      assert_equal(2, explanations.size,
+                   "No explains in segment: #{sql_segment}")
     end
   end
 
@@ -389,14 +390,17 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
 
     sample = sample.prepare_to_send(:record_sql => :obfuscated, :explain_sql => 0.0)
     segment = sample.root_segment.called_segments.first.called_segments.first.called_segments.first
-    explanations = segment.params[:explanation]
-    assert_not_nil explanations, "No explains in segment: #{segment}"
-    assert_equal 1, explanations.size,"No explains in segment: #{segment}"
-    assert_equal 1, explanations.first.size, "should be one row of explanation"
+    explanation = segment.params[:explain_plan]
+    assert_not_nil explanation, "No explains in segment: #{segment}"
+    assert_equal 2, explanation.size,"No explains in segment: #{segment}"
 
-    row = explanations.first.first
-    assert_equal 10, row.size
-    assert_equal ['1', 'SIMPLE', ActiveRecordFixtures::Order.table_name], row[0..2]
+    assert_equal 10, explanation[0].size
+    ['id', 'select_type', 'table'].each do |c|
+      assert explanation[0].include?(c)
+    end
+    ['1', 'SIMPLE', ActiveRecordFixtures::Order.table_name].each do |c|
+      assert explanation[1].include?(c)
+    end
 
     s = NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Order/find")
     assert_equal 1, s.call_count
@@ -416,16 +420,14 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
 
     sample = sample.prepare_to_send(:record_sql => :obfuscated, :explain_sql => 0.0)
     segment = sample.root_segment.called_segments.first.called_segments.first.called_segments.first
-    explanations = segment.params[:explanation]
+    explanations = segment.params[:explain_plan]
 
     assert_not_nil explanations, "No explains in segment: #{segment}"
     assert_equal 1, explanations.size,"No explains in segment: #{segment}"
     assert_equal 1, explanations.first.size
 
-    assert_equal Array, explanations.class
-    assert_equal Array, explanations[0].class
-    assert_equal Array, explanations[0][0].class
-    assert_match /Seq Scan on test_data/, explanations[0][0].join(";")
+    assert_equal("Explain Plan", explanations[0][0])
+    assert_match /Seq Scan on test_data/, explanations[0][1].join(";")
 
     s = NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Order/find")
     assert_equal 1, s.call_count

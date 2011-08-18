@@ -176,7 +176,7 @@ module NewRelic
       end
 
       # Perform this in the runtime environment of a managed
-      # application, to explain the sql statement(s) executed within a
+      # application, to explain the sql statement executed within a
       # segment of a transaction sample. Returns an array of
       # explanations (which is an array rows consisting of an array of
       # strings for each column returned by the the explain query)
@@ -187,22 +187,19 @@ module NewRelic
       def explain_sql
         sql = params[:sql]
         return nil unless sql && params[:connection_config]
-        statements = sql.split(";\n")
-        statements.map! do |statement|
-          # a small sleep to make sure we yield back to the parent
-          # thread regularly, if there are many explains
-          sleep(0.0001)
-          explain_statement(statement, params[:connection_config])
-        end
-        statements.compact!
-        statements
+        statement = sql.split(";\n")[0] # only explain the first
+        explain_statement(statement, params[:connection_config]) || []
       end
 
       def explain_statement(statement, config)
         if is_select?(statement)
           handle_exception_in_explain do
             connection = NewRelic::TransactionSample.get_connection(config)
-            process_resultset(connection.execute("EXPLAIN #{statement}")) if connection
+            plan = nil
+            if connection
+              plan = process_resultset(connection.execute("EXPLAIN #{statement}"))
+            end
+            return plan
           end
         end
       end
@@ -218,29 +215,36 @@ module NewRelic
         # The resultset type varies for different drivers.  Only thing you can count on is
         # that it implements each.  Also: can't use select_rows because the native postgres
         # driver doesn't know that method.
-
-        if items.respond_to?(:each)
-          rows = []
-          items.each do |row|
-            columns = []
-            row.each do |column|
-              columns << column.to_s
-            end
-            rows << columns
+        
+        headers = values = []
+        if items.respond_to?(:each_hash)
+          items.each_hash do |row|
+            headers = row.keys
+            values = headers.map{|h| row[h] }
           end
-          rows
+        elsif items.respond_to?(:each)
+          items.each do |row|
+            if row.kind_of?(Hash)
+              headers = row.keys
+              values = headers.map{|h| row[h] }
+            else
+              values = row
+            end
+          end
         else
-          [items]
+          values = [items]
         end
+        
+        headers = nil if headers.empty?
+        [headers, values]
       end
-
 
       def handle_exception_in_explain
         yield
       rescue Exception => e
         begin
           # guarantees no throw from explain_sql
-          NewRelic::Control.instance.log.error("Error getting explain plan: #{e.message}")
+          NewRelic::Control.instance.log.error("Error getting query plan: #{e.message}")
           NewRelic::Control.instance.log.debug(e.backtrace.join("\n"))
         rescue Exception
           # double exception. throw up your hands

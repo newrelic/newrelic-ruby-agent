@@ -5,6 +5,8 @@ v3.1.1
   * Fixed an issue where some instrumentation might not get loaded in Rails apps
   * Fix for memcached cas method (thanks to Andrew Long and Joseph Palermo )
   * Fix for logger deprecation warning (thanks to Jonathan del Strother via github)
+  * Support for logging to STDOUT
+  * Support for Spymemcached client on jruby
 
 v3.1.0 
   * Support for aggregating data from short-running

@@ -2,9 +2,10 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 
 memcached_ready = false
 classes = {
-  'memcache' => 'MemCache'
+#   'memcache' => 'MemCache'
 #   'dalli' => 'Dalli::Client'
 #   'memcached' => 'Memcached'
+  'spymemcached' => 'Spymemcached'
 }
 begin
   TCPSocket.new('localhost', 11211)
@@ -29,17 +30,29 @@ class NewRelic::Agent::MemcacheInstrumentationTest < Test::Unit::TestCase
     NewRelic::Agent.manual_start
     @engine = NewRelic::Agent.instance.stats_engine
     
-    if MEMCACHED_CLASS.name == 'Memcached'
+    case MEMCACHED_CLASS.name
+    when 'Memcached'
       @cache = MEMCACHED_CLASS.new('localhost', :support_cas => true)
-      @cache.flush
+    when 'Spymemcached'
+      @cache = MEMCACHED_CLASS.new('localhost:11211')
     else
       @cache = MEMCACHED_CLASS.new('localhost')
-      @cache.flush_all
     end
     @key = 'schluessel'
     @cache.set('schluessel', 1)
   end
-
+  
+  def teardown
+    if MEMCACHED_CLASS.name == 'Memecached'
+      @cache.flush
+    elsif MEMCACHED_CLASS.name == 'Spymemcached'
+      @cache.flush
+      @cache.instance_eval{ @client.shutdown }
+    else
+      @cache.flush_all
+    end
+  end
+  
   def _call_test_method_in_web_transaction(method, *args)
     @engine.clear_stats
     perform_action_with_newrelic_trace(:name=>'action', :category => :controller) do
@@ -55,7 +68,9 @@ class NewRelic::Agent::MemcacheInstrumentationTest < Test::Unit::TestCase
   end
 
   def test_reads__web
-    %w[get get_multi].each do |method|
+    commands = ['get']
+    commands << 'get_multi' unless MEMCACHED_CLASS.name == 'Spymemcached'
+    commands.each do |method|
       if @cache.class.method_defined?(method)
         _call_test_method_in_web_transaction(method)
         compare_metrics ["MemCache/#{method}", "MemCache/allWeb", "MemCache/#{method}:Controller/NewRelic::Agent::MemcacheInstrumentationTest/action"],
@@ -84,7 +99,9 @@ class NewRelic::Agent::MemcacheInstrumentationTest < Test::Unit::TestCase
   end
 
   def test_reads__background
-    %w[get get_multi].each do |method|
+    commands = ['get']
+    commands << 'get_multi' unless MEMCACHED_CLASS.name == 'Spymemcached'
+    commands.each do |method|    
       if @cache.class.method_defined?(method)
         _call_test_method_in_background_task(method)
         compare_metrics ["MemCache/#{method}", "MemCache/allOther", "MemCache/#{method}:OtherTransaction/Background/NewRelic::Agent::MemcacheInstrumentationTest/bg_task"],
