@@ -389,9 +389,9 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
     # two rows, two columns
     connection.expects(:execute).with('EXPLAIN SELECT').returns(result)
     NewRelic::TransactionSample.expects(:get_connection).with(config).returns(connection)
-    assert_equal([["select_type", "key_len", "table", "id", "possible_keys", "type", "Extra", "rows", "ref", "key"],
-                  ["SIMPLE", nil, "blogs", "1", nil, "ALL", "", "2", nil, nil]],
-                 s.explain_sql)
+    
+    assert_equal(plan.keys.sort, s.explain_sql[0].sort)
+    assert_equal(plan.values.compact.sort, s.explain_sql[1].compact.sort)    
   end
 
   # this basically casts the resultset to an array of rows, which are

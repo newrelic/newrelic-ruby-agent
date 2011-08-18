@@ -185,10 +185,12 @@ module NewRelic
       # transaction in a report period, selected for shipment to New
       # Relic
       def explain_sql
+        return @explain_sql if @explain_sql
         sql = params[:sql]
         return nil unless sql && params[:connection_config]
         statement = sql.split(";\n")[0] # only explain the first
-        explain_statement(statement, params[:connection_config]) || []
+        @explain_sql = explain_statement(statement, params[:connection_config]) || []
+        @explain_sql
       end
 
       def explain_statement(statement, config)
