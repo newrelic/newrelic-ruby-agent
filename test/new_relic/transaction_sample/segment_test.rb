@@ -373,37 +373,47 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
     assert_equal([], s.explain_sql)
   end
 
-  def test_explain_sql_one_select_with_connection
+  def test_explain_sql_one_select_with_mysql_connection
     s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
-    config = mock('config')
+    config = {:adapter => 'mysql'}
+    config.default('val')
     s.params = {:sql => 'SELECT', :connection_config => config}
     connection = mock('connection')
+    plan = {
+      "select_type"=>"SIMPLE", "key_len"=>nil, "table"=>"blogs", "id"=>"1",
+      "possible_keys"=>nil, "type"=>"ALL", "Extra"=>"", "rows"=>"2",
+      "ref"=>nil, "key"=>nil
+    }
+    result = mock('explain plan')
+    result.expects(:each_hash).yields(plan)
     # two rows, two columns
-    connection.expects(:execute).with('EXPLAIN SELECT').returns([["string", "string"], ["string", "string"]])
+    connection.expects(:execute).with('EXPLAIN SELECT').returns(result)
     NewRelic::TransactionSample.expects(:get_connection).with(config).returns(connection)
-    assert_equal([[['string', 'string'], ['string', 'string']]], s.explain_sql)
+    assert_equal([["select_type", "key_len", "table", "id", "possible_keys", "type", "Extra", "rows", "ref", "key"],
+                  ["SIMPLE", nil, "blogs", "1", nil, "ALL", "", "2", nil, nil]],
+                 s.explain_sql)
   end
 
   # this basically casts the resultset to an array of rows, which are
   # arrays of columns
   def test_process_resultset
     s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
-    items = mock('bar')
-    row = ["column"]
-    items.expects(:respond_to?).with(:each).returns(true)
-    items.expects(:each).yields(row)
-    assert_equal([["column"]], s.process_resultset(items))
+    items = [["column"]]
+    assert_equal([nil, ["column"]], s.process_resultset(items))
   end
 
-  def test_explain_sql_two_selects_with_connection
+  def test_explain_sql_one_select_with_pg_connection
     s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
-    config = mock('config')
-    s.params = {:sql => "SELECT true();\nSELECT false()", :connection_config => config}
+    config = {:adapter => 'postgresql'}
+    config.default('val')
+    s.params = {:sql => "SELECT true()", :connection_config => config}
     connection = mock('connection')
     # two rows, two columns
-    connection.expects(:execute).returns([["string", "string"], ["string", "string"]]).twice
-    NewRelic::TransactionSample.expects(:get_connection).with(config).returns(connection).twice
-    assert_equal([[['string', 'string'], ['string', 'string']], [['string', 'string'], ['string', 'string']]], s.explain_sql)
+    connection.expects(:execute).returns([{"QUERY PLAN"=>"Seq Scan on foo (cost=0.00..11.40 rows=140 width=540)"}])
+    NewRelic::TransactionSample.expects(:get_connection).with(config).returns(connection)
+    assert_equal([['QUERY PLAN'],
+                   ['Seq Scan on foo (cost=0.00..11.40 rows=140 width=540)']],
+                 s.explain_sql)
   end
 
   def test_explain_sql_raising_an_error
@@ -431,7 +441,7 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
     s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
     fake_error = Exception.new
     fake_error.expects(:message).returns('a message')
-    NewRelic::Control.instance.log.expects(:error).with('Error getting explain plan: a message')
+    NewRelic::Control.instance.log.expects(:error).with('Error getting query plan: a message')
     # backtrace can be basically any string, just should get logged
     NewRelic::Control.instance.log.expects(:debug).with(instance_of(String))
     s.handle_exception_in_explain do

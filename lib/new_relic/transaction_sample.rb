@@ -269,19 +269,21 @@ module NewRelic
 
         target_segment.add_called_segment target_called_segment
         source_called_segment.params.each do |k,v|
-        case k
+          case k
           when :backtrace
             target_called_segment[k]=v if options[:keep_backtraces]
           when :sql
             # run an EXPLAIN on this sql if specified.
-            if options[:record_sql] && options[:record_sql] && options[:explain_sql] && source_called_segment.duration > options[:explain_sql].to_f
-              target_called_segment[:explanation] = source_called_segment.explain_sql
+            if options[:record_sql] && options[:record_sql] &&
+                options[:explain_sql] &&
+                source_called_segment.duration > options[:explain_sql].to_f
+              target_called_segment[:explain_plan] = source_called_segment.explain_sql
             end
-
+            
             target_called_segment[:sql] = case options[:record_sql]
-              when :raw then v
-              when :obfuscated then TransactionSample.obfuscate_sql(v)
-              else raise "Invalid value for record_sql: #{options[:record_sql]}"
+            when :raw then v
+            when :obfuscated then TransactionSample.obfuscate_sql(v)
+            else raise "Invalid value for record_sql: #{options[:record_sql]}"
             end if options[:record_sql]
           when :connection_config
             # don't copy it

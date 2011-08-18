@@ -1,6 +1,7 @@
 .DS\_Store
 .svn/
 *~
+*.rbc
 pkg/
 *.gem
 !rails

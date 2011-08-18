@@ -10,11 +10,12 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
     @file = "#{path}/newrelic_agent_store.db"
     Dir.mkdir(path) if !File.directory?(path)
     FileUtils.rm_rf(@file)
-    FileUtils.rm_rf("#{@path}/newrelic_agent_store.age")
+    FileUtils.rm_rf("#{@path}/newrelic_agent_store.pid")
   end
   
   def teardown
-    NewRelic::Control.instance['disable_serialization'] = false # this gets set to true in some tests
+    # this gets set to true in some tests
+    NewRelic::Control.instance['disable_serialization'] = false
   end
   
   def test_read_and_write_from_file_read_only
@@ -135,7 +136,56 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
     NewRelic::Control.instance.expects(:log_path).returns('./tmp')
     Dir.mkdir('./tmp') if !File.directory?('./tmp')
     NewRelic::DataSerialization.update_last_sent!
-    assert(File.exists?('./tmp/newrelic_agent_store.age'),
+    assert(File.exists?('./tmp/newrelic_agent_store.pid'),
            "Age file not created at user specified location")
+  end
+  
+  def test_pid_age_creates_pid_file_if_none_exists
+    assert(!File.exists?("#{@path}/newrelic_agent_store.pid"),
+           'pid file found, should not be there')
+    assert(!NewRelic::DataSerialization.pid_too_old?,
+           "new pid should not be too old")
+    assert(File.exists?("#{@path}/newrelic_agent_store.pid"),
+           'pid file not found, should be there')
+  end
+
+  def test_loading_does_not_seg_fault_if_gc_triggers
+    require 'timeout'
+    
+    Thread.abort_on_exception = true
+    rcv,snd = IO.pipe
+    
+    write = Thread.new do
+      obj = ('a'..'z').inject({}){|h,s|h[s.intern]=s*1024;h}
+      data = Marshal.dump(obj)
+      snd.write(data[0,data.size/2])
+      sleep(0.1)
+      snd.write(data[(data.size/2)..-1])
+    end
+    
+    read = Thread.new do
+      lock = Mutex.new
+      lock.synchronize do
+        NewRelic::DataSerialization.class_eval { load(rcv) }
+      end
+    end
+
+    gc = Thread.new do
+      10.times do
+        GC.start
+      end
+    end
+
+    begin
+      Timeout::timeout(1) do
+        write.join
+        read.join
+        gc.join
+      end
+    rescue Timeout::Error
+      # rubinius deadlocks which seems to be a rubinius bug
+      raise unless NewRelic::LanguageSupport.using_rubinius?
+    end
+    # should not seg fault
   end
 end

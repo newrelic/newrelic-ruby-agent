@@ -105,8 +105,8 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   def test_install_exit_handler_positive
     control = mocked_control
     control.expects(:send_data_on_exit).returns(true)
-    self.expects(:using_rubinius?).returns(false)
-    self.expects(:using_jruby?).returns(false)
+    NewRelic::LanguageSupport.expects(:using_rubinius?).returns(false)
+    NewRelic::LanguageSupport.expects(:using_jruby?).returns(false)
     self.expects(:using_sinatra?).returns(false)
     # we are overriding at_exit above, to immediately return, so we can
     # test the shutdown logic. It's somewhat unfortunate, but we can't
@@ -124,14 +124,14 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   def test_install_exit_handler_weird_ruby
     control = mocked_control
     control.expects(:send_data_on_exit).times(3).returns(true)
-    self.expects(:using_rubinius?).returns(false)
-    self.expects(:using_jruby?).returns(false)
+    NewRelic::LanguageSupport.expects(:using_rubinius?).returns(false)
+    NewRelic::LanguageSupport.expects(:using_jruby?).returns(false)
     self.expects(:using_sinatra?).returns(true)
     install_exit_handler
-    self.expects(:using_rubinius?).returns(false)
-    self.expects(:using_jruby?).returns(true)
+    NewRelic::LanguageSupport.expects(:using_rubinius?).returns(false)
+    NewRelic::LanguageSupport.expects(:using_jruby?).returns(true)
     install_exit_handler
-    self.expects(:using_rubinius?).returns(true)
+    NewRelic::LanguageSupport.expects(:using_rubinius?).returns(true)
     install_exit_handler
   end
 

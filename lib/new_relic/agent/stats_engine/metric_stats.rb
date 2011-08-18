@@ -1,3 +1,6 @@
+require 'sync'
+require 'new_relic/language_support'
+
 module NewRelic
   module Agent
     class StatsEngine
@@ -5,40 +8,29 @@ module NewRelic
       module MetricStats
         # A simple mutex-synchronized hash to make sure our statistics
         # are internally consistent even in truly-threaded rubies like JRuby
-        class SynchronizedHash < Hash
+        class SynchronizedHash < ::Hash
+          include NewRelic::LanguageSupport::SynchronizedHash
+          
           def initialize(*args)
-            @mutex = Mutex.new
             super
+          ensure
+            extend Sync_m
           end
-
+                    
           def []=(*args)
-            @mutex.synchronize {
-              super
-            }
-          end
-
-          def [](*args)
-            @mutex.synchronize {
-              super
-            }
+            sync_synchronize { super }
           end
 
           def clear(*args)
-            @mutex.synchronize {
-              super
-            }
+            sync_synchronize { super }
           end
 
           def delete(*args)
-            @mutex.synchronize {
-              super
-            }
+            sync_synchronize { super }
           end
 
           def delete_if(*args)
-            @mutex.synchronize {
-              super
-            }
+            sync_synchronize { super }
           end
         end
         

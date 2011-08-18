@@ -21,7 +21,7 @@ unless ENV['FAST_TESTS']
         http.get('/index.html')
       }
       assert_match /<head>/, res.body
-      assert_equal %w[External/www.google.com/Net::HTTP/GET External/allOther External/www.google.com/all].sort,
+      assert_equal %w[External/all External/www.google.com/Net::HTTP/GET External/allOther External/www.google.com/all].sort,
       metrics_without_gc.sort
     end
 
@@ -33,7 +33,7 @@ unless ENV['FAST_TESTS']
         }
         assert_match /<head>/, res.body
       end
-      assert_equal %w[External/www.google.com/Net::HTTP/GET External/allOther External/www.google.com/all
+      assert_equal %w[External/all External/www.google.com/Net::HTTP/GET External/allOther External/www.google.com/all
        External/www.google.com/Net::HTTP/GET:OtherTransaction/Background/NewRelic::Agent::Instrumentation::NetInstrumentationTest/task].sort, metrics_without_gc.select{|m| m =~ /^External/}.sort
     end
 
@@ -45,13 +45,13 @@ unless ENV['FAST_TESTS']
         }
         assert_match /<head>/, res.body
       end
-      assert_equal %w[External/www.google.com/Net::HTTP/GET External/allWeb External/www.google.com/all
+      assert_equal %w[External/all External/www.google.com/Net::HTTP/GET External/allWeb External/www.google.com/all
        External/www.google.com/Net::HTTP/GET:Controller/NewRelic::Agent::Instrumentation::NetInstrumentationTest/task].sort, metrics_without_gc.select{|m| m =~ /^External/}.sort
     end
     def test_get__simple
       Net::HTTP.get URI.parse('http://www.google.com/index.html')
       assert_equal metrics_without_gc.sort,
-      %w[External/www.google.com/Net::HTTP/GET External/allOther External/www.google.com/all].sort
+      %w[External/all External/www.google.com/Net::HTTP/GET External/allOther External/www.google.com/all].sort
     end
     def test_ignore
       NewRelic::Agent.disable_all_tracing do
@@ -67,7 +67,7 @@ unless ENV['FAST_TESTS']
       res = Net::HTTP.start(url.host, url.port) {|http|
         http.head('/index.html')
       }
-      assert_equal %w[External/www.google.com/Net::HTTP/HEAD External/allOther External/www.google.com/all].sort,
+      assert_equal %w[External/all External/www.google.com/Net::HTTP/HEAD External/allOther External/www.google.com/all].sort,
       metrics_without_gc.sort
     end
 
@@ -76,7 +76,7 @@ unless ENV['FAST_TESTS']
       res = Net::HTTP.start(url.host, url.port) {|http|
         http.post('/index.html','data')
       }
-      assert_equal %w[External/www.google.com/Net::HTTP/POST External/allOther External/www.google.com/all].sort,
+      assert_equal %w[External/all External/www.google.com/Net::HTTP/POST External/allOther External/www.google.com/all].sort,
       metrics_without_gc.sort
     end
 
