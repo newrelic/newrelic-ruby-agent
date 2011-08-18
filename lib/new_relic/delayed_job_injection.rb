@@ -27,6 +27,7 @@ DependencyDetection.defer do
         dispatcher_instance_id = worker_name || "host:#{Socket.gethostname} pid:#{Process.pid}" rescue "pid:#{Process.pid}"
         say "New Relic Ruby Agent Monitoring DJ worker #{dispatcher_instance_id}"
         NewRelic::DelayedJobInjection.worker_name = worker_name
+        NewRelic::Agent.after_fork
         NewRelic::Control.instance.init_plugin :dispatcher => :delayed_job, :dispatcher_instance_id => dispatcher_instance_id
       end
 
