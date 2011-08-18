@@ -188,4 +188,24 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
     end
     # should not seg fault
   end
+
+  def test_dump_should_be_thread_safe
+    stats_hash = {}
+
+    2000.times do |i|
+      stats_hash[i.to_s] = NewRelic::StatsBase.new
+    end
+        
+    harvest = Thread.new do
+      NewRelic::DataSerialization.class_eval { dump(stats_hash) }
+    end
+    
+    app = Thread.new do
+      stats_hash["a"] = NewRelic::StatsBase.new
+    end
+    
+    assert_nothing_raised do
+      [app, harvest].each{|t| t.join}
+    end    
+  end
 end

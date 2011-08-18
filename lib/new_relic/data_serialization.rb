@@ -119,7 +119,7 @@ module NewRelic
       end
 
       def dump(object)
-        Marshal.dump(object)
+        Marshal.dump(object.clone)
       end
       
       def load(dump)
