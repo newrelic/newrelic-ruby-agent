@@ -39,7 +39,11 @@ module NewRelic
 
         module ActionView
           def _render_template(template, layout = nil, options = {}) #:nodoc:
-            NewRelic::Agent.trace_execution_scoped "View/#{template.virtual_path}/Rendering" do
+            if template.respond_to?(:virtual_path)
+              NewRelic::Agent.trace_execution_scoped "View/#{template.virtual_path}/Rendering" do
+                super
+              end
+            else
               super
             end
           end
@@ -91,6 +95,7 @@ DependencyDetection.defer do
       include NewRelic::Agent::Instrumentation::Rails3::ActionView
     end
     old_klass = ActionView::Partials::PartialRenderer
+    ActionView::Partials.send :remove_const, :PartialRenderer
     ActionView::Partials::PartialRenderer = Class.new(old_klass)
     class ActionView::Partials::PartialRenderer
       def render_partial(*args)
