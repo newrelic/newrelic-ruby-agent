@@ -177,7 +177,7 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
       end
     end
 
-    Timeout::timeout(1) do
+    Timeout::timeout(5) do
       write.join
       read.join
       gc.join
