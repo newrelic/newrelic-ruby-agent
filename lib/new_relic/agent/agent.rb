@@ -369,7 +369,7 @@ module NewRelic
           end
 
           def using_forking_dispatcher?
-            log_if([:passenger, :unicorn].include?(control.dispatcher), :info, "Connecting workers after forking.")
+            log_if([:passenger, :unicorn, :puppet_master].include?(control.dispatcher), :info, "Connecting workers after forking.")
           end
 
           def check_config_and_start_agent
