@@ -252,7 +252,8 @@ module NewRelic
         return unless builder
         segment = builder.current_segment
         if segment
-          segment[key] = truncate_message(append_new_message(segment[key], message))
+          segment[key] = truncate_message(append_new_message(segment[key],
+                                                             message))
           segment[config_key] = config if config_key
           append_backtrace(segment, duration)
         end

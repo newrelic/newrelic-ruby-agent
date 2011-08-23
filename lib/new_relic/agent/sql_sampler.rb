@@ -18,7 +18,6 @@ module NewRelic
       attr_reader :sql_traces
 
       def initialize
-
         config = NewRelic::Control.instance
         sampler_config = config.fetch('transaction_tracer', {})
         @explain_threshold = sampler_config.fetch('explain_threshold', 0.5).to_f
@@ -66,7 +65,6 @@ module NewRelic
         Thread.current[:new_relic_sql_data] = nil
       end
 
-
       # This is called when we are done with the transaction.
       def notice_scope_empty(time=Time.now)
         data = transaction_data
@@ -84,12 +82,14 @@ module NewRelic
       # this should always be called under the @samples_lock
       def harvest_slow_sql(transaction_sql_data)
         transaction_sql_data.sql_data.each do |sql_item|
-          obfuscated_sql = sql_item.obfuscated_sql
+          obfuscated_sql = sql_item.normalize
           sql_trace = @sql_traces[obfuscated_sql]
           if sql_trace
-            sql_trace.aggregate sql_item, transaction_sql_data.path, transaction_sql_data.uri
+            sql_trace.aggregate(sql_item, transaction_sql_data.path,
+                                transaction_sql_data.uri)
           else
-            @sql_traces[obfuscated_sql] = SqlTrace.new(obfuscated_sql, sql_item, transaction_sql_data.path, transaction_sql_data.uri)
+            @sql_traces[obfuscated_sql] = SqlTrace.new(obfuscated_sql,
+                sql_item, transaction_sql_data.path, transaction_sql_data.uri)
           end
         end
 
@@ -100,7 +100,8 @@ module NewRelic
         if NewRelic::Agent.is_sql_recorded?
           if duration > @explain_threshold
             backtrace = caller.join("\n")
-            transaction_data.sql_data << SlowSql.new(sql, metric_name, duration, backtrace)
+            transaction_data.sql_data << SlowSql.new(sql, metric_name, config,
+                                                     duration, backtrace)
           end
         end
       end
@@ -118,19 +119,15 @@ module NewRelic
         @samples_lock.synchronize do
           result = @sql_traces.values
           @sql_traces = {}
-        end
-
-        #FIXME obfuscate sql if necessary
-
-        result.sort{|a,b| b.max_call_time <=> a.max_call_time}[0,10]
+        end        
+        slowest = result.sort{|a,b| b.max_call_time <=> a.max_call_time}[0,10]
+        slowest.each {|trace| trace.prepare_to_send }
+        slowest
       end
 
       # reset samples without rebooting the web server
       def reset!
       end
-
-      private
-
     end
 
     class TransactionSqlData
@@ -156,15 +153,26 @@ module NewRelic
       attr_reader :duration
       attr_reader :backtrace
 
-      def initialize(sql, metric_name, duration, backtrace = nil)
+      def initialize(sql, metric_name, config, duration, backtrace = nil)
         @sql = sql
         @metric_name = metric_name
+        @config = config
         @duration = duration
         @backtrace = backtrace
       end
 
-      def obfuscated_sql
-        NewRelic::Agent.instance.send(:default_sql_obfuscator, sql).gsub(/\?\,\s*/, '')
+      def obfuscate
+        NewRelic::Agent.instance.obfuscator.call(@sql)
+      end
+
+      def normalize
+        NewRelic::Agent.instance.send(:default_sql_obfuscator, @sql) \
+          .gsub(/\?\,\s*/, '')
+      end
+
+      def explain
+        return nil unless @sql && @config
+        NewRelic::Agent::Database.explain_sql(@sql, @config)
       end
     end
 
@@ -185,6 +193,7 @@ module NewRelic
       end
 
       def set_primary(slow_sql, path, uri)
+        @slow_sql = slow_sql
         @sql = slow_sql.sql
         @database_metric_name = slow_sql.metric_name
         @path = path
@@ -200,7 +209,20 @@ module NewRelic
 
         record_data_point slow_sql.duration
       end
+      
+      def prepare_to_send
+        begin
+          params[:explain_plan] = @slow_sql.explain
+        ensure
+          NewRelic::Agent::Database.close_connections
+        end
+        @sql = @slow_sql.obfuscate if need_to_obfuscate?
+      end
 
+      def need_to_obfuscate?
+        NewRelic::Control.instance['transaction_tracer']['record_sql'] == 'obfuscated'
+      end
+      
       def to_json(*a)
         [@path, @url, @sql_id, @sql, @database_metric_name, @call_count, @total_call_time, @min_call_time, @max_call_time, @params].to_json(*a)
       end

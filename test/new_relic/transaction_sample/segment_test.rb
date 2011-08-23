@@ -343,87 +343,12 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
     assert_equal(s, s.find_segment(id_to_find))
   end
 
-  def test_explain_sql_no_sql
-    s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
-    s.params = {:sql => nil}
-    assert_equal(nil, s.explain_sql)
-  end
-
-  def test_explain_sql_no_connection_config
-    s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
-    s.params = {:sql => 'foo', :connection_config => nil}
-    assert_equal(nil, s.explain_sql)
-  end
-
-  def test_explain_sql_non_select
-    s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
-    s.params = {:sql => 'foo', :connection_config => mock('config')}
-    assert_equal([], s.explain_sql)
-  end
-
-  def test_explain_sql_one_select_no_connection
-    # NB this test raises an error in the log, much as it might if a
-    # user supplied a config that was not valid. This is generally
-    # expected behavior - the get_connection method shouldn't allow
-    # errors to percolate up.
-    config = mock('config')
-    config.stubs(:[]).returns(nil)
-    s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
-    s.params = {:sql => 'SELECT', :connection_config => config}
-    assert_equal([], s.explain_sql)
-  end
-
-  def test_explain_sql_one_select_with_mysql_connection
-    s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
-    config = {:adapter => 'mysql'}
-    config.default('val')
-    s.params = {:sql => 'SELECT', :connection_config => config}
-    connection = mock('connection')
-    plan = {
-      "select_type"=>"SIMPLE", "key_len"=>nil, "table"=>"blogs", "id"=>"1",
-      "possible_keys"=>nil, "type"=>"ALL", "Extra"=>"", "rows"=>"2",
-      "ref"=>nil, "key"=>nil
-    }
-    result = mock('explain plan')
-    result.expects(:each_hash).yields(plan)
-    # two rows, two columns
-    connection.expects(:execute).with('EXPLAIN SELECT').returns(result)
-    NewRelic::TransactionSample.expects(:get_connection).with(config).returns(connection)
-    
-    assert_equal(plan.keys.sort, s.explain_sql[0].sort)
-    assert_equal(plan.values.compact.sort, s.explain_sql[1][0].compact.sort)    
-  end
-
-  def test_process_resultset
-    s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
-    resultset = [["column"]]
-    assert_equal([nil, [["column"]]], s.process_resultset(resultset))
-  end
-
-  def test_explain_sql_one_select_with_pg_connection
-    s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
-    config = {:adapter => 'postgresql'}
-    config.default('val')
-    s.params = {:sql => "select count(id) from blogs limit 1;", :connection_config => config}
-    connection = mock('connection')
-    plan = [{"QUERY PLAN"=>"Limit  (cost=11.75..11.76 rows=1 width=4)"},
-            {"QUERY PLAN"=>"  ->  Aggregate  (cost=11.75..11.76 rows=1 width=4)"},
-            {"QUERY PLAN"=>"        ->  Seq Scan on blogs  (cost=0.00..11.40 rows=140 width=4)"}]
-    connection.expects(:execute).returns(plan)
-    NewRelic::TransactionSample.expects(:get_connection).with(config).returns(connection)
-    assert_equal([['QUERY PLAN'],
-                  [["Limit  (cost=11.75..11.76 rows=1 width=4)"],
-                   ["  ->  Aggregate  (cost=11.75..11.76 rows=1 width=4)"],
-                   ["        ->  Seq Scan on blogs  (cost=0.00..11.40 rows=140 width=4)"]]],
-                 s.explain_sql)
-  end
-
   def test_explain_sql_raising_an_error
     s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
     config = mock('config')
     s.params = {:sql => 'SELECT', :connection_config => config}
     connection = mock('connection')
-    NewRelic::TransactionSample.expects(:get_connection).with(config).raises(RuntimeError.new("whee"))
+    NewRelic::Agent::Database.expects(:get_connection).with(config).raises(RuntimeError.new("whee"))
     assert_nothing_raised do
       s.explain_sql
     end
@@ -438,25 +363,12 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
     s.params = params
     assert_equal(params, s.instance_eval { @params })
   end
-
-  def test_handle_exception_in_explain
-    s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
-    fake_error = Exception.new
-    fake_error.expects(:message).returns('a message')
-    NewRelic::Control.instance.log.expects(:error).with('Error getting query plan: a message')
-    # backtrace can be basically any string, just should get logged
-    NewRelic::Control.instance.log.expects(:debug).with(instance_of(String))
-    s.handle_exception_in_explain do
-      raise(fake_error)
-    end
-  end
-
+  
   def test_obfuscated_sql
-    sql = 'some sql'
+    sql = 'select * from table where id = 1'
     s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
     s[:sql] = sql
-    NewRelic::TransactionSample.expects(:obfuscate_sql).with(sql)
-    s.obfuscated_sql
+    assert_equal('select * from table where id = ?', s.obfuscated_sql)
   end
 
   def test_called_segments_equals

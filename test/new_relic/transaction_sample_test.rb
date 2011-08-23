@@ -8,7 +8,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
     @connection_stub = Mocha::Mockery.instance.named_mock('connection')
     @connection_stub.stubs(:execute).returns([['QUERY RESULT']])
 
-    NewRelic::TransactionSample.stubs(:get_connection).returns @connection_stub
+    NewRelic::Agent::Database.stubs(:get_connection).returns @connection_stub
     @t = make_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
   end
 
