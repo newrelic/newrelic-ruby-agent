@@ -1,18 +1,29 @@
-# Control subclass instantiated when Rails is detected.  Contains
-# Rails specific configuration, instrumentation, environment values,
-# etc.
 require 'new_relic/control/frameworks/rails'
 module NewRelic
   class Control
     module Frameworks
+      # Control subclass instantiated when Rails is detected.  Contains
+      # Rails 3.0+  specific configuration, instrumentation, environment values,
+      # etc. Many methods are inherited from the
+      # NewRelic::Control::Frameworks::Rails class, where the two do
+      # not differ
       class Rails3 < NewRelic::Control::Frameworks::Rails
 
         def env
           ::Rails.env.to_s
         end
-
+        
+        # Rails can return an empty string from this method, causing
+        # the agent not to start even when it is properly in a rails 3
+        # application, so we test the value to make sure it actually
+        # has contents, and bail to the parent class if it is empty.
         def root
-          ::Rails.root.to_s
+          value = ::Rails.root.to_s
+          if value.empty?
+            super
+          else
+            value
+          end
         end
 
         def logger
@@ -21,7 +32,7 @@ module NewRelic
 
 
         def log!(msg, level=:info)
-          return unless should_log?
+          super unless should_log?
           logger.send(level, msg)
         rescue Exception => e
           super

@@ -35,11 +35,12 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
 
   def test_cpu
     s = NewRelic::Agent::Samplers::CpuSampler.new
-    # need to sleep because if you go to fast it will skip the points
+    # need to set this instance value to prevent it skipping a 'too
+    # fast' poll time
     s.stats_engine = @stats_engine
-    sleep 2
+    s.instance_eval { @last_time = Time.now - 1.1 }
     s.poll
-    sleep 2
+    s.instance_eval { @last_time = Time.now - 1.1 }
     s.poll
     assert_equal 2, s.systemtime_stats.call_count
     assert_equal 2, s.usertime_stats.call_count

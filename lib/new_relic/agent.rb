@@ -1,15 +1,16 @@
 require 'new_relic/control'
-# = New Relic RPM Agent
+require 'new_relic/data_serialization'
+# = New Relic Ruby Agent
 #
-# New Relic RPM is a performance monitoring application for Ruby
-# applications running in production.  For more information on RPM
-# please visit http://www.newrelic.com.
+# New Relic is a performance monitoring application for applications
+# running in production.  For more information on New Relic please visit
+# http://www.newrelic.com.
 #
-# The New Relic Agent can be installed in Rails applications to gather
-# runtime performance metrics, traces, and errors for display in a
-# Developer Mode UI (mapped to /newrelic in your application server)
-# or for monitoring and analysis at http://rpm.newrelic.com with just
-# about any Ruby application.
+# The New Relic Ruby Agent can be installed in Rails applications to
+# gather runtime performance metrics, traces, and errors for display
+# in a Developer Mode middleware (mapped to /newrelic in your application
+# server) or for monitoring and analysis at http://rpm.newrelic.com
+# with just about any Ruby application.
 #
 # == Getting Started
 # For instructions on installation and setup, see
@@ -20,18 +21,18 @@ require 'new_relic/control'
 # To instrument Rack middlwares or Metal apps, refer to the docs in
 # NewRelic::Agent::Instrumentation::Rack.
 #
-# == Agent API
+# == Ruby Agent API
 #
-# For details on the Agent API, refer to NewRelic::Agent.
+# For details on the Ruby Agent API, refer to NewRelic::Agent.
 #
-# == Customizing RPM
+# == Customizing the Ruby Agent
 #
-# For detailed information on customizing the RPM Agent
+# For detailed information on customizing the Ruby Agent
 # please visit our {support and documentation site}[http://support.newrelic.com].
 #
 module NewRelic
-  # == Agent APIs
-  # This module contains the public API methods for the Agent.
+  # == Ruby Agent APIs
+  # This module contains the public API methods for the Ruby Agent.
   #
   # For adding custom instrumentation to method invocations, refer to
   # the docs in the class NewRelic::Agent::MethodTracer.
@@ -39,7 +40,7 @@ module NewRelic
   # For information on how to customize the controller
   # instrumentation, or to instrument something other than Rails so
   # that high level dispatcher actions or background tasks show up as
-  # first class operations in RPM, refer to
+  # first class operations in New Relic, refer to
   # NewRelic::Agent::Instrumentation::ControllerInstrumentation and
   # NewRelic::Agent::Instrumentation::ControllerInstrumentation::ClassMethods.
   #
@@ -69,7 +70,6 @@ module NewRelic
     require 'new_relic/transaction_sample'
     require 'new_relic/url_rule'
     require 'new_relic/noticed_error'
-    require 'new_relic/histogram'
     require 'new_relic/timer_lib'
 
     require 'new_relic/agent'
@@ -125,7 +125,7 @@ module NewRelic
       @agent
     end
 
-    def agent= new_instance #:nodoc:
+    def agent=(new_instance)#:nodoc:
       @agent = new_instance
     end
 
@@ -134,13 +134,13 @@ module NewRelic
     # Get or create a statistics gatherer that will aggregate numerical data
     # under a metric name.
     #
-    # +metric_name+ should follow a slash separated path convention.  Application
+    # +metric_name+ should follow a slash separated path convention. Application
     # specific metrics should begin with "Custom/".
     #
     # Return a NewRelic::Stats that accepts data
     # via calls to add_data_point(value).
     def get_stats(metric_name, use_scope=false)
-      @agent.stats_engine.get_stats(metric_name, use_scope)
+      agent.stats_engine.get_stats(metric_name, use_scope)
     end
 
     alias get_stats_no_scope get_stats
@@ -155,10 +155,10 @@ module NewRelic
     # not auto-start.
     #
     # When the app environment loads, so does the Agent. However, the
-    # Agent will only connect to RPM if a web front-end is found. If
+    # Agent will only connect to the service if a web front-end is found. If
     # you want to selectively monitor ruby processes that don't use
     # web plugins, then call this method in your code and the Agent
-    # will fire up and start reporting to RPM.
+    # will fire up and start reporting to the service.
     #
     # Options are passed in as overrides for values in the
     # newrelic.yml, such as app_name.  In addition, the option +log+
@@ -167,7 +167,7 @@ module NewRelic
     # (ie, RAILS_ENV) can be overridden with an :env argument.
     #
     def manual_start(options={})
-      raise unless Hash === options
+      raise "Options must be a hash" unless Hash === options
       NewRelic::Control.instance.init_plugin({ :agent_enabled => true, :sync_startup => true }.merge(options))
     end
 
@@ -197,15 +197,54 @@ module NewRelic
       agent.after_fork(options)
     end
 
-    # Clear out any unsent metric data.
+    # Clear out any unsent metric data. See NewRelic::Agent::Agent#reset_stats
     def reset_stats
       agent.reset_stats
     end
 
     # Shutdown the agent.  Call this before exiting.  Sends any queued data
     # and kills the background thread.
-    def shutdown
-      agent.shutdown
+    def shutdown(options={})
+      agent.shutdown(options)
+    end
+    
+    # a method used to serialize short-running processes to disk, so
+    # we don't incur the overhead of reporting to the server for every
+    # fork/invocation of a small job.
+    #
+    # Functionally, this loads the data from the file into the agent
+    # (to avoid losing data by overwriting) and then serializes the
+    # agent data to the file again. See also #load_data
+    def save_data
+      NewRelic::DataSerialization.read_and_write_to_file do |old_data|
+        agent.merge_data_from(old_data)
+        agent.serialize
+      end
+    end
+    
+    # used to load data from the disk during the harvest cycle to send
+    # it. This method also clears the file so data should never be
+    # sent more than once.
+
+    # Note that only one transaction trace will be sent even if many
+    # are serialized, since the slowest is sent.
+    #
+    # See also the complement to this method, #save_data - used when a
+    # process is shutting down
+    def load_data
+      if !NewRelic::Control.instance['disable_serialization']
+        NewRelic::DataSerialization.read_and_write_to_file do |old_data|
+          agent.merge_data_from(old_data)
+          nil # return nil so nothing is written to the file
+        end
+        NewRelic::DataSerialization.update_last_sent!
+      end
+      
+      {
+        :metrics => agent.stats_engine.metrics.length,
+        :traces => agent.unsent_traces_size,
+        :errors => agent.unsent_errors_size
+      }
     end
 
     # Add instrumentation files to the agent.  The argument should be
@@ -214,7 +253,7 @@ module NewRelic
     # when the agent is not running it's better to use this method to
     # register instrumentation than just loading the files directly,
     # although that probably also works.
-    def add_instrumentation file_pattern
+    def add_instrumentation(file_pattern)
       NewRelic::Control.instance.add_instrumentation file_pattern
     end
 
@@ -270,10 +309,7 @@ module NewRelic
     # any.  Only affects the transaction started on this thread once
     # it has started and before it has completed.
     def abort_transaction!
-      # The class may not be loaded if the agent is disabled
-      if defined? NewRelic::Agent::Instrumentation::MetricFrame
-        NewRelic::Agent::Instrumentation::MetricFrame.abort_transaction!
-      end
+      NewRelic::Agent::Instrumentation::MetricFrame.abort_transaction!
     end
 
     # Yield to the block without collecting any metrics or traces in
@@ -293,18 +329,22 @@ module NewRelic
       Thread.current[:newrelic_untraced].nil? || Thread.current[:newrelic_untraced].last != false
     end
     
+    # helper method to check the thread local to determine whether the
+    # transaction in progress is traced or not
     def is_transaction_traced?
       Thread::current[:record_tt] != false
     end
     
+    # helper method to check the thread local to determine whether sql
+    # is being recorded or not
     def is_sql_recorded?
       Thread::current[:record_sql] != false
     end
 
-    # Set a filter to be applied to errors that RPM will track.  The
-    # block should evalute to the exception to track (which could be
-    # different from the original exception) or nil to ignore this
-    # exception.
+    # Set a filter to be applied to errors that the Ruby Agent will
+    # track.  The block should evalute to the exception to track
+    # (which could be different from the original exception) or nil to
+    # ignore this exception.
     #
     # The block is yielded to with the exception to filter.
     #
@@ -314,7 +354,7 @@ module NewRelic
       agent.error_collector.ignore_error_filter(&block)
     end
 
-    # Record the given error in RPM.  It will be passed through the
+    # Record the given error.  It will be passed through the
     # #ignore_error_filter if there is one.
     #
     # * <tt>exception</tt> is the exception which will be recorded.  May also be

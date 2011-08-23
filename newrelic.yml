@@ -1,7 +1,7 @@
 #
-# This file configures the NewRelic RPM Agent, NewRelic RPM monitors
+# This file configures the New Relic Ruby Agent, New Relic monitors
 # Rails applications with deep visibility and low overhead.  For more
-# information, visit www.newrelic.com.
+# information, visit www.newrelic.com
 #
 # Generated <%= Time.now.strftime('%B %d, %Y') %>, for version <%= NewRelic::VERSION::STRING %>
 #
@@ -14,7 +14,7 @@ common: &default_settings
 
   # You must specify the license key associated with your New Relic
   # account.  This key binds your Agent's data to your account in the
-  # New Relic RPM service.
+  # New Relic service.
   license_key: '<%= license_key %>'
   
   # Agent Enabled (Rails Only)
@@ -27,14 +27,14 @@ common: &default_settings
   #
   # agent_enabled: auto
   
-  # Application Name
-  # Set this to be the name of your application as you'd like it show
-  # up in RPM.  RPM will then auto-map instances of your application
-  # into a RPM "application" on your home dashboard page. If you want
-  # to map this instance into multiple apps, like "AJAX Requests" and
-  # "All UI" then specify a semicolon separated list of up to three
-  # distinct names, or a yaml list.  Defaults to the 
-  # capitalized RAILS_ENV or RACK_ENV (i.e., Production, Staging, etc)
+  # Application Name Set this to be the name of your application as
+  # you'd like it show up in New Relic. The service will then auto-map
+  # instances of your application into an "application" on your
+  # dashboard page. If you want to map this instance into multiple
+  # apps, like "AJAX Requests" and "All UI" then specify a semicolon
+  # separated list of up to three distinct names, or a yaml list.
+  # Defaults to the capitalized RAILS_ENV or RACK_ENV (i.e.,
+  # Production, Staging, etc)
   #
   # Example:
   #
@@ -45,7 +45,7 @@ common: &default_settings
   app_name: <%= @app_name %>
 
   # When "true", the agent collects performance data about your 
-  # application and reports this data to the NewRelic RPM service at 
+  # application and reports this data to the New Relic service at 
   # newrelic.com. This global switch is normally overridden for each 
   # environment below. (formerly called 'enabled')
   monitor_mode: true
@@ -63,12 +63,12 @@ common: &default_settings
   # root directory (may be relative or absolute, e.g. 'log/' or
   # '/var/log/') The agent will attempt to create this directory if it
   # does not exist.
-  # log_file_path: 'log/'
+  # log_file_path: 'log'
   
   # Optionally set the name of the log file, defaults to 'newrelic_agent.log'
   # log_file_name: 'newrelic_agent.log'
 
-  # The newrelic agent communicates with the RPM service via http by
+  # The newrelic agent communicates with the service via http by
   # default.  If you want to communicate via https to increase
   # security, then turn on SSL by setting this value to true.  Note,
   # this will result in increased CPU overhead to perform the
@@ -83,7 +83,7 @@ common: &default_settings
   # you send us needs end-to-end verified certificates.
   #
   # This means we cannot cache the DNS lookup, so each request to the
-  # RPM service will perform a lookup. It also means that we cannot
+  # service will perform a lookup. It also means that we cannot
   # use a non-blocking lookup, so in a worst case, if you have DNS
   # problems, your app may block indefinitely.
   # verify_certificate: true
@@ -110,7 +110,7 @@ common: &default_settings
       # into web pages. Set this attribute to false to turn off this behavior.
       auto_instrument: true
 
-  # Proxy settings for connecting to the RPM server.
+  # Proxy settings for connecting to the service.
   #
   # If a proxy is used, the host setting is required.  Other settings
   # are optional.  Default port is 8080.
@@ -132,7 +132,7 @@ common: &default_settings
 
 
   # Transaction tracer captures deep information about slow
-  # transactions and sends this to the RPM service once a
+  # transactions and sends this to the service once a
   # minute. Included in the transaction is the exact call sequence of
   # the transactions including any SQL statements issued.
   transaction_tracer:
@@ -145,9 +145,9 @@ common: &default_settings
     # Threshold in seconds for when to collect a transaction
     # trace. When the response time of a controller action exceeds
     # this threshold, a transaction trace will be recorded and sent to
-    # RPM. Valid values are any float value, or (default) "apdex_f",
-    # which will use the threshold for an dissatisfying Apdex
-    # controller action - four times the Apdex T value.
+    # the service. Valid values are any float value, or (default)
+    # "apdex_f", which will use the threshold for an dissatisfying
+    # Apdex controller action - four times the Apdex T value.
     transaction_threshold: apdex_f
  
     # When transaction tracer is on, SQL statements can optionally be
@@ -158,7 +158,7 @@ common: &default_settings
     
     # Threshold in seconds for when to collect stack trace for a SQL
     # call. In other words, when SQL statements exceed this threshold,
-    # then capture and send to RPM the current stack trace. This is
+    # then capture and send the current stack trace. This is
     # helpful for pinpointing where long SQL calls originate from
     stack_trace_threshold: 0.500
 
@@ -172,7 +172,7 @@ common: &default_settings
     # explain_threshold: 0.5
   
   # Error collector captures information about uncaught exceptions and
-  # sends them to RPM for viewing
+  # sends them to the service for viewing
   error_collector:
     
     # Error collector is enabled by default. Set this to false to turn
@@ -185,7 +185,7 @@ common: &default_settings
     # related.
     capture_source: true    
     
-    # To stop specific errors from reporting to RPM, set this property
+    # To stop specific errors from reporting to New Relic, set this property
     # to comma separated values.  Default is to ignore routing errors
     # which are how 404's get triggered.
     #
@@ -226,7 +226,7 @@ common: &default_settings
 
 development:
   <<: *default_settings
-  # Turn off communication to RPM service in development mode (also 
+  # Turn off communication to New Relic service in development mode (also 
   # 'enabled').
   # NOTE: for initial evaluation purposes, you may want to temporarily 
   # turn the agent on in development mode.

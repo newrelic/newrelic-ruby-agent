@@ -100,21 +100,11 @@ def assert_calls_unscoped_metrics(*metrics)
 end
 
 
-def compare_metrics expected_list, actual_list
-  actual = Set.new actual_list
-  actual.delete('GC/cumulative') # in case we are in REE
-  expected = Set.new expected_list
-  assert_equal expected.to_a.sort, actual.to_a.sort, "extra: #{(actual - expected).to_a.join(", ")}; missing: #{(expected - actual).to_a.join(", ")}"
+def compare_metrics(expected, actual)
+  actual.delete_if {|a| a.include?('GC/cumulative') } # in case we are in REE
+  assert_equal(expected.to_a.sort, actual.to_a.sort, "extra: #{(actual - expected).to_a.inspect}; missing: #{(expected - actual).to_a.inspect}")
 end
-=begin Enable this to see test names as they run
-Test::Unit::TestCase.class_eval do
-  def run_with_info *args, &block
-    puts "#{self.class.name.underscore}/#{@method_name}"
-    run_without_info *args, &block
-  end
-  alias_method_chain :run, :info
-end
-=end
+
 module TransactionSampleTestHelper
   def make_sql_transaction(*sql)
     sampler = NewRelic::Agent::TransactionSampler.new
@@ -126,11 +116,29 @@ module TransactionSampleTestHelper
 
     sql.each {|sql_statement| sampler.notice_sql(sql_statement, {:adapter => "test"}, 0 ) }
 
-    sleep 1.0
+    sleep 0.02
     yield if block_given?
     sampler.notice_pop_scope "a"
     sampler.notice_scope_empty
 
     sampler.samples[0]
   end
+
+  def run_sample_trace_on(sampler, path='/path')
+    sampler.notice_first_scope_push Time.now.to_f
+    sampler.notice_transaction path, path, {}
+    sampler.notice_push_scope "Controller/sandwiches/index"
+    sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'", nil, 0)
+    sampler.notice_push_scope "ab"
+    sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'white'", nil, 0)
+    yield sampler if block_given?
+    sampler.notice_pop_scope "ab"
+    sampler.notice_push_scope "lew"
+    sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'french'", nil, 0)
+    sampler.notice_pop_scope "lew"
+    sampler.notice_pop_scope "Controller/sandwiches/index"
+    sampler.notice_scope_empty
+    sampler.samples[0]
+  end
+
 end

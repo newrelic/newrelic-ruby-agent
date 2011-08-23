@@ -13,9 +13,11 @@ module NewRelic
           end
         end
 
-        def log_with_newrelic_instrumentation(sql, name, &block)
+        def log_with_newrelic_instrumentation(*args, &block)
 
-          return log_without_newrelic_instrumentation(sql, name, &block) unless NewRelic::Agent.is_execution_traced?
+          return log_without_newrelic_instrumentation(*args, &block) unless NewRelic::Agent.is_execution_traced?
+
+          sql, name, binds = args
 
           # Capture db config if we are going to try to get the explain plans
           if (defined?(ActiveRecord::ConnectionAdapters::MysqlAdapter) && self.is_a?(ActiveRecord::ConnectionAdapters::MysqlAdapter)) ||
@@ -26,7 +28,7 @@ module NewRelic
             model = parts.first
             operation = parts.last.downcase
             metric_name = case operation
-                          when 'load' then 'find'
+                          when 'load', 'count', 'exists' then 'find'
                           when 'indexes', 'columns' then nil # fall back to DirectSQL
                           when 'destroy', 'find', 'save', 'create' then operation
                           when 'update' then 'save'
@@ -53,14 +55,15 @@ module NewRelic
           end
 
           if !metric
-            log_without_newrelic_instrumentation(sql, name, &block)
+            log_without_newrelic_instrumentation(*args, &block)
           else
             metrics = [metric, "ActiveRecord/all"]
             metrics << "ActiveRecord/#{metric_name}" if metric_name
             self.class.trace_execution_scoped(metrics) do
+              sql, name, binds = args
               t0 = Time.now
               begin
-                log_without_newrelic_instrumentation(sql, name, &block)
+                log_without_newrelic_instrumentation(*args, &block)
               ensure
                 NewRelic::Agent.instance.transaction_sampler.notice_sql(sql, supported_config, (Time.now - t0).to_f)
               end
@@ -89,7 +92,11 @@ DependencyDetection.defer do
   depends_on do
     !NewRelic::Control.instance['disable_activerecord_instrumentation']
   end
-
+  
+  executes do
+    NewRelic::Agent.logger.debug 'Installing Rails3 ActiveRecord instrumentation'
+  end
+  
   executes do
     Rails.configuration.after_initialize do
       ActiveRecord::ConnectionAdapters::AbstractAdapter.module_eval do

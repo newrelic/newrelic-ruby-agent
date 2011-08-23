@@ -30,13 +30,13 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
 
   def test_browser_timing_header
     header = browser_timing_header
-    assert_equal "<script>var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);</script>", header
+    assert_equal "<script type=\"text/javascript\">var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);</script>", header
   end
-  
+
   def test_browser_timing_header_with_rum_enabled_not_specified
     NewRelic::Agent.instance.expects(:beacon_configuration).at_least_once.returns( NewRelic::Agent::BeaconConfiguration.new({"browser_key" => "browserKey", "application_id" => "apId", "beacon"=>"beacon", "episodes_url"=>"this_is_my_file"}))
     header = browser_timing_header
-    assert_equal "<script>var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);</script>", header
+    assert_equal "<script type=\"text/javascript\">var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);</script>", header
   end
 
   def test_browser_timing_header_with_rum_enabled_false
@@ -68,15 +68,17 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     Thread.current[:newrelic_start_time] = Time.now
 
     footer = browser_timing_footer
-    snippet = "<script>(function(){var d=document;var e=d.createElement(\"script\");e.async=true;e.src=\"this_is_my_file\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})();NREUMQ.push([\"nrf2\","
+    snippet = '<script type="text/javascript">if (!NREUMQ.f) NREUMQ.f=function() {
+NREUMQ.push(["load",new Date().getTime()]);
+var e=document.createElement("script");'
     assert footer.include?(snippet), "Expected footer to include snippet: #{snippet}, but instead was #{footer}"
   end
-  
+
   def test_browser_timing_footer_without_calling_header
     footer = browser_timing_footer
     assert_equal "", footer
   end
-  
+
   def test_browser_timing_footer_with_no_browser_key_rum_enabled
     browser_timing_header
     NewRelic::Agent.instance.expects(:beacon_configuration).returns( NewRelic::Agent::BeaconConfiguration.new({"rum.enabled" => true, "application_id" => "apId", "beacon"=>"beacon", "episodes_url"=>"this_is_my_file"}))
@@ -101,7 +103,9 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     config.expects(:license_bytes).returns(license_bytes)
     NewRelic::Agent.instance.expects(:beacon_configuration).returns(config).at_least_once
     footer = browser_timing_footer
-    beginning_snippet = "(function(){var d=document;var e=d.createElement(\"script\");e.async=true;e.src=\"this_is_my_file\";var s=d.getElementsByTagName(\"script\")[0];s.parentNode.insertBefore(e,s);})();NREUMQ.push([\"nrf2\","
+    beginning_snippet = '<script type="text/javascript">if (!NREUMQ.f) NREUMQ.f=function() {
+NREUMQ.push(["load",new Date().getTime()]);
+var e=document.createElement("script");'
     ending_snippet = "])</script>"
     assert(footer.include?(beginning_snippet), "expected footer to include beginning snippet: #{beginning_snippet}, but was #{footer}")
     assert(footer.include?(ending_snippet), "expected footer to include ending snippet: #{ending_snippet}, but was #{footer}")
@@ -155,13 +159,13 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     self.expects(:browser_monitoring_start_time).returns(nil)
     assert_equal('', generate_footer_js, "should not send javascript when there is no start time")
   end
-  
+
   def test_generate_footer_js_with_start_time
     self.expects(:browser_monitoring_start_time).returns(Time.at(100))
     fake_bc = mock('beacon configuration')
     fake_bc.expects(:application_id).returns(1)
     fake_bc.expects(:beacon).returns('beacon')
-    fake_bc.expects(:browser_monitoring_key).returns('a' * 40)    
+    fake_bc.expects(:browser_monitoring_key).returns('a' * 40)
     NewRelic::Agent.instance.expects(:beacon_configuration).returns(fake_bc)
     self.expects(:footer_js_string).with('beacon', 'a' * 40, 1).returns('footer js')
     assert_equal('footer js', generate_footer_js, 'should generate and return the footer JS when there is a start time')
@@ -171,7 +175,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     Thread.current[:newrelic_most_recent_transaction] = 'a transaction name'
     assert_equal('a transaction name', browser_monitoring_transaction_name, "should take the value from the thread local")
   end
-  
+
   def test_browser_monitoring_transaction_name_empty
     Thread.current[:newrelic_most_recent_transaction] = ''
     assert_equal('', browser_monitoring_transaction_name, "should take the value even when it is empty")
@@ -204,7 +208,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     Thread.current[:newrelic_queue_time] = nil
     assert_equal(0.0, browser_monitoring_queue_time, 'should return zero when there is no queue time')
   end
-  
+
   def test_browser_monitoring_queue_time_zero
     Thread.current[:newrelic_queue_time] = 0.0
     assert_equal(0.0, browser_monitoring_queue_time, 'should return zero when there is zero queue time')
@@ -213,7 +217,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
   def test_browser_monitoring_queue_time_ducks
     Thread.current[:newrelic_queue_time] = 'a duck'
     assert_equal(0.0, browser_monitoring_queue_time, 'should return zero when there is an incorrect queue time')
-  end    
+  end
 
   def test_browser_monitoring_queue_time_nonzero
     Thread.current[:newrelic_queue_time] = 3.00002
@@ -232,9 +236,9 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     Thread.current[:newrelic_most_recent_transaction] = 'most recent transaction'
 
     self.expects(:obfuscate).with('most recent transaction').returns('most recent transaction')
-    
+
     value = footer_js_string(beacon, license_key, application_id)
-    assert_equal('<script>(function(){var d=document;var e=d.createElement("script");e.async=true;e.src="this_is_my_file";var s=d.getElementsByTagName("script")[0];s.parentNode.insertBefore(e,s);})();NREUMQ.push(["nrf2","","",1,"most recent transaction",0,0,new Date().getTime()])</script>', value, "should return the javascript given some default values")
+    assert_equal("<script type=\"text/javascript\">if (!NREUMQ.f) NREUMQ.f=function() {\nNREUMQ.push([\"load\",new Date().getTime()]);\nvar e=document.createElement(\"script\");\ne.type=\"text/javascript\";e.async=true;e.src=\"this_is_my_file\";\ndocument.body.appendChild(e);\nif(NREUMQ.a)NREUMQ.a();\n};\nif(window.onload!==NREUMQ.f){NREUMQ.a=window.onload;window.onload=NREUMQ.f;};\nNREUMQ.push([\"nrf2\",\"\",\"\",1,\"most recent transaction\",0,0,new Date().getTime()])</script>", value, "should return the javascript given some default values")
   end
 
   def test_html_safe_if_needed_unsafed
@@ -245,14 +249,14 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     string.expects(:respond_to?).with(:html_safe).returns(false)
     assert_equal(string, html_safe_if_needed(string))
   end
-  
+
   def test_html_safe_if_needed_safed
     string = mock('string')
     string.expects(:respond_to?).with(:html_safe).returns(true)
     string.expects(:html_safe).returns(string)
     # here to handle 1.9 encoding - we stub this out because it should
     # be handled automatically and is outside the scope of this test
-    string.stubs(:respond_to?).with(:encoding).returns(false)    
+    string.stubs(:respond_to?).with(:encoding).returns(false)
     assert_equal(string, html_safe_if_needed(string))
   end
 

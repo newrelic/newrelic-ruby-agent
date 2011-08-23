@@ -8,11 +8,15 @@ DependencyDetection.defer do
   depends_on do
     defined?(::Delayed) && defined?(::Delayed::Job)
   end
-
+  
+  executes do
+    NewRelic::Agent.logger.debug 'Installing DelayedJob instrumentation'
+  end
+  
   executes do
     Delayed::Job.class_eval do
       include NewRelic::Agent::Instrumentation::ControllerInstrumentation
-      if self.instance_methods.include?('name')
+      if self.instance_methods.include?('name') || self.instance_methods.include?(:name)
         add_transaction_tracer "invoke_job", :category => 'OtherTransaction/DelayedJob', :path => '#{self.name}'
       else
         add_transaction_tracer "invoke_job", :category => 'OtherTransaction/DelayedJob'

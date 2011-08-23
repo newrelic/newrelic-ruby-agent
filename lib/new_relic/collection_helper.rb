@@ -1,3 +1,5 @@
+require 'new_relic/control'
+
 module NewRelic
   module CollectionHelper
   DEFAULT_TRUNCATION_SIZE=256
@@ -29,14 +31,13 @@ module NewRelic
   # Return nil if there is no backtrace
 
   def strip_nr_from_backtrace(backtrace)
-    if backtrace
+    if backtrace && !NewRelic::Control.instance.disable_backtrace_cleanup?
       # this is for 1.9.1, where strings no longer have Enumerable
       backtrace = backtrace.split("\n") if String === backtrace
-      # strip newrelic from the trace
-      backtrace = backtrace.reject {|line| line =~ /new_?relic/ }
+      backtrace = backtrace.map &:to_s
+      backtrace = backtrace.reject {|line| line.include?(NewRelic::Control.newrelic_root) }
       # rename methods back to their original state
-      # GJV - 4/6/10 - adding .to_s call since we were seeing line as a Fixnum in some cases
-      backtrace = backtrace.collect {|line| line.to_s.gsub(/_without_(newrelic|trace)/, "")}
+      backtrace = backtrace.collect {|line| line.gsub(/_without_(newrelic|trace)/, "")}
     end
     backtrace
   end

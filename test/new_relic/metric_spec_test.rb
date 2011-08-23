@@ -59,6 +59,14 @@ class NewRelic::MetricSpecTest < Test::Unit::TestCase
     compare_metric_data(metric_data, import)
   end
 
+  def test_truncate!
+    spec = NewRelic::MetricSpec.new('a', 'b')
+    spec.name = "a" * 300
+    spec.scope = "b" * 300
+    spec.truncate!
+    assert_equal("a" * 255, spec.name, "should have shortened the name")
+    assert_equal("b" * 255, spec.scope, "should have shortened the scope")
+  end
 
   private
 

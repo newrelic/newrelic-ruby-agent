@@ -5,33 +5,28 @@ require 'rake/testtask'
 
 GEM_NAME = "newrelic_rpm"
 GEM_VERSION = NewRelic::VERSION::STRING
-AUTHORS = "Bill Kayser", "Justin George"
+AUTHORS = "Bill Kayser", "Jon Guymon", "Justin George", "Darin Swanson"
 EMAIL = "support@newrelic.com"
 HOMEPAGE = "http://www.github.com/newrelic/rpm"
-SUMMARY = "New Relic Ruby Performance Monitoring Agent"
+SUMMARY = "New Relic Ruby Agent"
 INSTALLATION_NOTES = "InstallationNotes.md"
 RDOC_FILES = FileList['README*','LICENSE','newrelic.yml', 'CHANGELOG']
 
 DESCRIPTION = <<-EOF
-New Relic RPM is a Ruby performance management system, developed by
-New Relic, Inc (http://www.newrelic.com).  RPM provides you with deep
-information about the performance of your Ruby on Rails or Merb
-application as it runs in production. The New Relic Agent is
-dual-purposed as a either a Rails plugin or a Gem, hosted on
-http://github.com/newrelic/rpm/tree/master.
+New Relic is a performance management system, developed by New Relic,
+Inc (http://www.newrelic.com).  New Relic provides you with deep
+information about the performance of your web application as it runs
+in production. The New Relic Ruby Agent is dual-purposed as a either a
+Gem or plugin, hosted on
+http://github.com/newrelic/rpm/
 EOF
 
 INSTALLATION_POSTSCRIPT =  <<-EOF
 
-Please see http://support.newrelic.com/faqs/docs/ruby-agent-release-notes
+Please see http://github.com/newrelic/rpm/blob/master/CHANGELOG
 for a complete description of the features and enhancements available
 in version #{GEM_VERSION.split('.')[0..1].join('.')} of the Ruby Agent.
-
-For details on this specific release, refer to the CHANGELOG file.
-
-Notice: Developer Mode now supports only Rails 2.3+ - refer to README
-for instructions for previous versions
-
+  
 EOF
 
 # See http://www.rubygems.org/read/chapter/20

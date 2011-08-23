@@ -6,7 +6,11 @@ DependencyDetection.defer do
   depends_on do
     Merb::Dispatcher::DefaultException.respond_to?(:before)
   end
-
+  
+  executes do
+    NewRelic::Agent.logger.debug 'Installing Merb Errors instrumentation'
+  end
+  
   executes do
 
     # Hook in the notification to merb

@@ -7,7 +7,7 @@ class NewRelic::Agent::SuperclassController <  ActionController::Base
 end
 # This is a controller class used in testing controller instrumentation
 class NewRelic::Agent::AgentTestController < NewRelic::Agent::SuperclassController
-  filter_parameter_logging :social_security_number
+  # filter_parameter_logging :social_security_number
 
   @@headers_to_add = nil
 

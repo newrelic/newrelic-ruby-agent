@@ -124,7 +124,7 @@ class NewRelic::Agent::ErrorCollector::NoticeErrorTest < Test::Unit::TestCase
     @errors = %w(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21)
     fake_log = mock('log')
     self.expects(:log).returns(fake_log)
-    fake_log.expects(:warn).with('The error reporting queue has reached 20. The error detail for this and subsequent errors will not be transmitted to RPM until the queued errors have been sent: hooray')
+    fake_log.expects(:warn).with('The error reporting queue has reached 20. The error detail for this and subsequent errors will not be transmitted to New Relic until the queued errors have been sent: hooray')
     assert over_queue_limit?('hooray')
   end
 
@@ -139,20 +139,22 @@ class NewRelic::Agent::ErrorCollector::NoticeErrorTest < Test::Unit::TestCase
   end
 
   def test_add_to_error_queue_positive
-    exception = mock('exception')
+    noticed_error = mock('noticed_error')
+    noticed_error.expects(:message).returns('a message')
     @lock = Mutex.new
     @errors = []
-    self.expects(:over_queue_limit?).with(exception).returns(false)
-    add_to_error_queue('foo', exception)
-    assert_equal(['foo'], @errors)
+    self.expects(:over_queue_limit?).with('a message').returns(false)
+    add_to_error_queue(noticed_error)
+    assert_equal([noticed_error], @errors)
   end
 
   def test_add_to_error_queue_negative
-    exception = mock('exception')
+    noticed_error = mock('noticed_error')
+    noticed_error.expects(:message).returns('a message')
     @lock = Mutex.new
     @errors = []
-    self.expects(:over_queue_limit?).with(exception).returns(true)
-    add_to_error_queue('foo', exception)
+    self.expects(:over_queue_limit?).with('a message').returns(true)
+    add_to_error_queue(noticed_error)
     assert_equal([], @errors)
   end
 

@@ -743,7 +743,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     assert((slowest.duration >= 0.09), "expected sample duration >= 0.09, but was: #{slowest.duration.inspect}")
     # this assert is here to make sure the test remains valid
     assert((slowest.duration <= 0.15), "expected sample duration <= 0.15, but was: #{slowest.duration.inspect}")
-    
+
 
     run_sample_trace { sleep 0.0001 }
     not_as_slow = @sampler.harvest(slowest, 0)[0]

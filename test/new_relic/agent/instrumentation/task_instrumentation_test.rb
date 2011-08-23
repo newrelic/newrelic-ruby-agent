@@ -155,7 +155,6 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Test::Unit::Te
   private
 
   def run_task_inner(n)
-    sleep 0.1
     return if n == 0
     assert_equal 1, NewRelic::Agent::BusyCalculator.busy_count
     run_task_inner(n-1)

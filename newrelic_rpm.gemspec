@@ -5,17 +5,17 @@
 
 Gem::Specification.new do |s|
   s.name = %q{newrelic_rpm}
-  s.version = "3.0.1"
+  s.version = "3.1.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["Bill Kayser", "Justin George"]
-  s.date = %q{2011-05-20}
-  s.description = %q{New Relic RPM is a Ruby performance management system, developed by
-New Relic, Inc (http://www.newrelic.com).  RPM provides you with deep
-information about the performance of your Ruby on Rails or Merb
-application as it runs in production. The New Relic Agent is
-dual-purposed as a either a Rails plugin or a Gem, hosted on
-http://github.com/newrelic/rpm/tree/master.
+  s.authors = ["Bill Kayser", "Jon Guymon", "Justin George", "Darin Swanson"]
+  s.date = %q{2011-07-28}
+  s.description = %q{New Relic is a performance management system, developed by New Relic,
+Inc (http://www.newrelic.com).  New Relic provides you with deep
+information about the performance of your web application as it runs
+in production. The New Relic Ruby Agent is dual-purposed as a either a
+Gem or plugin, hosted on
+http://github.com/newrelic/rpm/
 }
   s.email = %q{support@newrelic.com}
   s.executables = ["newrelic_cmd", "newrelic", "mongrel_rpm"]
@@ -45,6 +45,7 @@ http://github.com/newrelic/rpm/tree/master.
     "lib/new_relic/agent/busy_calculator.rb",
     "lib/new_relic/agent/chained_call.rb",
     "lib/new_relic/agent/error_collector.rb",
+    "lib/new_relic/agent/instrumentation.rb",
     "lib/new_relic/agent/instrumentation/active_merchant.rb",
     "lib/new_relic/agent/instrumentation/acts_as_solr.rb",
     "lib/new_relic/agent/instrumentation/authlogic.rb",
@@ -55,6 +56,7 @@ http://github.com/newrelic/rpm/tree/master.
     "lib/new_relic/agent/instrumentation/merb/controller.rb",
     "lib/new_relic/agent/instrumentation/merb/errors.rb",
     "lib/new_relic/agent/instrumentation/metric_frame.rb",
+    "lib/new_relic/agent/instrumentation/metric_frame/pop.rb",
     "lib/new_relic/agent/instrumentation/net.rb",
     "lib/new_relic/agent/instrumentation/passenger_instrumentation.rb",
     "lib/new_relic/agent/instrumentation/queue_time.rb",
@@ -90,6 +92,7 @@ http://github.com/newrelic/rpm/tree/master.
     "lib/new_relic/control.rb",
     "lib/new_relic/control/class_methods.rb",
     "lib/new_relic/control/configuration.rb",
+    "lib/new_relic/control/frameworks.rb",
     "lib/new_relic/control/frameworks/external.rb",
     "lib/new_relic/control/frameworks/merb.rb",
     "lib/new_relic/control/frameworks/rails.rb",
@@ -101,8 +104,8 @@ http://github.com/newrelic/rpm/tree/master.
     "lib/new_relic/control/logging_methods.rb",
     "lib/new_relic/control/profiling.rb",
     "lib/new_relic/control/server_methods.rb",
+    "lib/new_relic/data_serialization.rb",
     "lib/new_relic/delayed_job_injection.rb",
-    "lib/new_relic/histogram.rb",
     "lib/new_relic/local_environment.rb",
     "lib/new_relic/merbtasks.rb",
     "lib/new_relic/metric_data.rb",
@@ -111,15 +114,16 @@ http://github.com/newrelic/rpm/tree/master.
     "lib/new_relic/noticed_error.rb",
     "lib/new_relic/rack/browser_monitoring.rb",
     "lib/new_relic/rack/developer_mode.rb",
-    "lib/new_relic/rack/metric_app.rb",
-    "lib/new_relic/rack/mongrel_rpm.ru",
-    "lib/new_relic/rack/newrelic.yml",
-    "lib/new_relic/rack_app.rb",
     "lib/new_relic/recipes.rb",
     "lib/new_relic/stats.rb",
     "lib/new_relic/timer_lib.rb",
     "lib/new_relic/transaction_analysis.rb",
+    "lib/new_relic/transaction_analysis/segment_summary.rb",
     "lib/new_relic/transaction_sample.rb",
+    "lib/new_relic/transaction_sample/composite_segment.rb",
+    "lib/new_relic/transaction_sample/fake_segment.rb",
+    "lib/new_relic/transaction_sample/segment.rb",
+    "lib/new_relic/transaction_sample/summary_segment.rb",
     "lib/new_relic/url_rule.rb",
     "lib/new_relic/version.rb",
     "lib/newrelic_rpm.rb",
@@ -147,9 +151,11 @@ http://github.com/newrelic/rpm/tree/master.
     "test/new_relic/agent/instrumentation/active_record_instrumentation_test.rb",
     "test/new_relic/agent/instrumentation/controller_instrumentation_test.rb",
     "test/new_relic/agent/instrumentation/instrumentation_test.rb",
+    "test/new_relic/agent/instrumentation/metric_frame/pop_test.rb",
     "test/new_relic/agent/instrumentation/metric_frame_test.rb",
     "test/new_relic/agent/instrumentation/net_instrumentation_test.rb",
     "test/new_relic/agent/instrumentation/queue_time_test.rb",
+    "test/new_relic/agent/instrumentation/rack_test.rb",
     "test/new_relic/agent/instrumentation/task_instrumentation_test.rb",
     "test/new_relic/agent/memcache_instrumentation_test.rb",
     "test/new_relic/agent/method_tracer/class_methods/add_method_tracer_test.rb",
@@ -157,19 +163,37 @@ http://github.com/newrelic/rpm/tree/master.
     "test/new_relic/agent/method_tracer_test.rb",
     "test/new_relic/agent/mock_scope_listener.rb",
     "test/new_relic/agent/rpm_agent_test.rb",
+    "test/new_relic/agent/sampler_test.rb",
+    "test/new_relic/agent/shim_agent_test.rb",
+    "test/new_relic/agent/stats_engine/metric_stats/harvest_test.rb",
     "test/new_relic/agent/stats_engine/metric_stats_test.rb",
     "test/new_relic/agent/stats_engine/samplers_test.rb",
-    "test/new_relic/agent/stats_engine/stats_engine_test.rb",
+    "test/new_relic/agent/stats_engine_test.rb",
     "test/new_relic/agent/transaction_sample_builder_test.rb",
     "test/new_relic/agent/transaction_sampler_test.rb",
     "test/new_relic/agent/worker_loop_test.rb",
+    "test/new_relic/agent_test.rb",
     "test/new_relic/collection_helper_test.rb",
     "test/new_relic/command/deployments_test.rb",
+    "test/new_relic/control/class_methods_test.rb",
+    "test/new_relic/control/configuration_test.rb",
+    "test/new_relic/control/logging_methods_test.rb",
     "test/new_relic/control_test.rb",
+    "test/new_relic/data_serialization_test.rb",
+    "test/new_relic/delayed_job_injection_test.rb",
     "test/new_relic/local_environment_test.rb",
+    "test/new_relic/metric_data_test.rb",
     "test/new_relic/metric_spec_test.rb",
-    "test/new_relic/rack/episodes_test.rb",
+    "test/new_relic/rack/all_test.rb",
+    "test/new_relic/rack/browser_monitoring_test.rb",
+    "test/new_relic/rack/developer_mode_test.rb",
     "test/new_relic/stats_test.rb",
+    "test/new_relic/transaction_analysis/segment_summary_test.rb",
+    "test/new_relic/transaction_analysis_test.rb",
+    "test/new_relic/transaction_sample/composite_segment_test.rb",
+    "test/new_relic/transaction_sample/fake_segment_test.rb",
+    "test/new_relic/transaction_sample/segment_test.rb",
+    "test/new_relic/transaction_sample/summary_segment_test.rb",
     "test/new_relic/transaction_sample_subtest_test.rb",
     "test/new_relic/transaction_sample_test.rb",
     "test/new_relic/version_number_test.rb",
@@ -207,11 +231,8 @@ http://github.com/newrelic/rpm/tree/master.
     "ui/views/newrelic/show_source.rhtml",
     "ui/views/newrelic/threads.rhtml",
     "vendor/gems/dependency_detection-0.0.1.build/LICENSE",
-    "vendor/gems/dependency_detection-0.0.1.build/README",
     "vendor/gems/dependency_detection-0.0.1.build/lib/dependency_detection.rb",
     "vendor/gems/dependency_detection-0.0.1.build/lib/dependency_detection/version.rb",
-    "vendor/gems/metric_parser-0.1.0.pre1/LICENSE",
-    "vendor/gems/metric_parser-0.1.0.pre1/README",
     "vendor/gems/metric_parser-0.1.0.pre1/lib/metric_parser.rb",
     "vendor/gems/metric_parser-0.1.0.pre1/lib/new_relic/metric_parser.rb",
     "vendor/gems/metric_parser-0.1.0.pre1/lib/new_relic/metric_parser/action_mailer.rb",
@@ -262,7 +283,7 @@ PLEASE NOTE:
 
 Developer Mode is now a Rack middleware.
 
-RPM Developer Mode is no longer available in Rails 2.1 and earlier.
+Developer Mode is no longer available in Rails 2.1 and earlier.
 However, starting in version 2.12 you can use Developer Mode in any
 Rack based framework, in addition to Rails.  To install developer mode
 in a non-Rails application, just add NewRelic::Rack::DeveloperMode to
@@ -273,20 +294,15 @@ later because of issues with the implementation of the timeout library.
 
 Refer to the README.md file for more information.
 
-Please see http://support.newrelic.com/faqs/docs/ruby-agent-release-notes
+Please see http://github.com/newrelic/rpm/blob/master/CHANGELOG
 for a complete description of the features and enhancements available
-in version 3.0 of the Ruby Agent.
-
-For details on this specific release, refer to the CHANGELOG file.
-
-Notice: Developer Mode now supports only Rails 2.3+ - refer to README
-for instructions for previous versions
-
+in version 3.1 of the Ruby Agent.
+  
 }
-  s.rdoc_options = ["--line-numbers", "--inline-source", "--title", "New Relic Ruby Performance Monitoring Agent"]
+  s.rdoc_options = ["--line-numbers", "--inline-source", "--title", "New Relic Ruby Agent"]
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.6}
-  s.summary = %q{New Relic Ruby Performance Monitoring Agent}
+  s.summary = %q{New Relic Ruby Agent}
 
   if s.respond_to? :specification_version then
     current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION

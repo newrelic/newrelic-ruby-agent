@@ -2,20 +2,24 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_h
 class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::Unit::TestCase
   require 'active_record_fixtures'
   include NewRelic::Agent::Instrumentation::ControllerInstrumentation
+
+  @@setup = false
   def setup
     super
-    NewRelic::Agent.manual_start
+    unless @@setup
+      NewRelic::Agent.manual_start
+      @setup = true
+    end
     ActiveRecordFixtures.setup
     NewRelic::Agent.instance.transaction_sampler.reset!
     NewRelic::Agent.instance.stats_engine.clear_stats
-  rescue
+  rescue Exception => e
     puts e
     puts e.backtrace.join("\n")
   end
 
   def teardown
     super
-    ActiveRecordFixtures.teardown
     NewRelic::Agent.shutdown
   end
 
@@ -41,7 +45,8 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
       check_metric_count(find_metric, 2)
     end
 
-    return if NewRelic::Control.instance.rails_version < "2.3.4"
+    return if NewRelic::Control.instance.rails_version < "2.3.4" ||
+      NewRelic::Control.instance.rails_version >= "3.1"
 
     assert_calls_metrics(find_metric) do
       ActiveRecordFixtures::Order.exists?(["name=?", 'jeff'])
@@ -373,6 +378,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
 
   def test_transaction_mysql
     return unless isMysql? && !defined?(JRuby)
+    ActiveRecordFixtures.setup
     sample = NewRelic::Agent.instance.transaction_sampler.reset!
     perform_action_with_newrelic_trace :name => 'bogosity' do
       ActiveRecordFixtures::Order.add_delay
@@ -386,9 +392,11 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     explanations = segment.params[:explanation]
     assert_not_nil explanations, "No explains in segment: #{segment}"
     assert_equal 1, explanations.size,"No explains in segment: #{segment}"
-    assert_equal 1, explanations.first.size
+    assert_equal 1, explanations.first.size, "should be one row of explanation"
 
-    assert_equal "1;SIMPLE;#{ActiveRecordFixtures::Order.table_name};ALL;;;;;1;", explanations.first.first.join(';')
+    row = explanations.first.first
+    assert_equal 10, row.size
+    assert_equal ['1', 'SIMPLE', ActiveRecordFixtures::Order.table_name], row[0..2]
 
     s = NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Order/find")
     assert_equal 1, s.call_count
@@ -443,7 +451,11 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
   # These are only valid for rails 2.1 and later
   if NewRelic::Control.instance.rails_version >= NewRelic::VersionNumber.new("2.1.0")
     ActiveRecordFixtures::Order.class_eval do
-      named_scope :jeffs, :conditions => { :name => 'Jeff' }
+      if NewRelic::Control.instance.rails_version < NewRelic::VersionNumber.new("3.1")
+        named_scope :jeffs, :conditions => { :name => 'Jeff' }
+      else
+        scope :jeffs, :conditions => { :name => 'Jeff' }
+      end      
     end
     def test_named_scope
       ActiveRecordFixtures::Order.create :name => 'Jeff'
@@ -501,15 +513,19 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     (defined?(Rails) && Rails.respond_to?(:version) && Rails.version.to_i == 3)
   end
 
+  def rails_env
+    rails3? ? ::Rails.env : RAILS_ENV
+  end
+
   def isPostgres?
-    ActiveRecordFixtures::Order.configurations[RAILS_ENV]['adapter'] =~ /postgres/i
+    ActiveRecordFixtures::Order.configurations[rails_env]['adapter'] =~ /postgres/i
   end
   def isMysql?
     ActiveRecordFixtures::Order.connection.class.name =~ /mysql/i
   end
 
   def isSqlite?
-    ActiveRecord::Base.configurations[RAILS_ENV]['adapter'] =~ /sqlite/i
+    ActiveRecord::Base.configurations[rails_env]['adapter'] =~ /sqlite/i
   end
 
 end

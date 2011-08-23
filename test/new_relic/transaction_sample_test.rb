@@ -116,4 +116,55 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
     end
   end
 
+  def test_path_string
+    s = @t.prepare_to_send(:explain_sql => 0.1)
+    fake_segment = mock('segment')
+    fake_segment.expects(:path_string).returns('a path string')
+    s.instance_eval do
+      @root_segment = fake_segment
+    end
+
+    assert_equal('a path string', s.path_string)
+  end
+
+  def test_params_equals
+    s = @t.prepare_to_send(:explain_sql => 0.1)
+    s.params = {:params => 'hash' }
+    assert_equal({:params => 'hash'}, s.params, "should have the specified hash, but instead was #{s.params}")
+  end
+
+  class Hat
+    # just here to mess with the to_s logic in transaction samples
+  end
+
+  def test_to_s_with_bad_object
+    s = @t.prepare_to_send(:explain_sql => 0.1)
+    s.params[:fake] = Hat.new
+    assert_raise(RuntimeError) do
+      s.to_s
+    end
+  end
+  
+  def test_to_s_includes_keys
+    s = @t.prepare_to_send(:explain_sql => 0.1)
+    s.params[:fake_key] = 'a fake param'
+    assert(s.to_s.include?('fake_key'), "should include 'fake_key' but instead was (#{s.to_s})")
+    assert(s.to_s.include?('a fake param'), "should include 'a fake param' but instead was (#{s.to_s})")
+  end
+
+  def test_find_segment
+    s = @t.prepare_to_send(:explain_sql => 0.1)
+    fake_segment = mock('segment')
+    fake_segment.expects(:find_segment).with(1).returns('a segment')
+    s.instance_eval do
+      @root_segment = fake_segment
+    end
+
+    assert_equal('a segment', s.find_segment(1))
+  end
+
+  def test_timestamp
+    s = @t.prepare_to_send(:explain_sql => 0.1)
+    assert(s.timestamp.instance_of?(Float), "s.timestamp should be a Float, but is #{s.timestamp.class.inspect}")
+  end
 end

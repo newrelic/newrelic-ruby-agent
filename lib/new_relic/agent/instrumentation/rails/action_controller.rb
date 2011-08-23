@@ -1,3 +1,5 @@
+# FIXME: this should be a separate dependency block for each kind of
+# view instrumentation
 DependencyDetection.defer do
   depends_on do
     defined?(ActionController) && defined?(ActionController::Base)
@@ -11,8 +13,7 @@ DependencyDetection.defer do
     !NewRelic::Control.instance['disable_view_instrumentation']
   end
 
-  executes do
-
+  executes do    
     case Rails::VERSION::STRING
 
     when /^(1\.|2\.0)/  # Rails 1.* - 2.0
@@ -48,9 +49,12 @@ DependencyDetection.defer do
   depends_on do
     defined?(Rails) && Rails::VERSION::MAJOR.to_i == 2
   end
+  
+  executes do
+    NewRelic::Agent.logger.debug 'Installing Rails Controller instrumentation'
+  end
 
   executes do
-
     ActionController::Base.class_eval do
       include NewRelic::Agent::Instrumentation::ControllerInstrumentation
 

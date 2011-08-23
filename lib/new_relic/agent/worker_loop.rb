@@ -12,20 +12,23 @@ module NewRelic
         @next_invocation_time = Time.now
         @period = 60.0
       end
-
+      
+      # returns a class-level memoized mutex to make sure we don't run overlapping
       def lock
         @@lock ||= Mutex.new
       end
-
+      
+      # a helper to access the NewRelic::Control.instance.log
       def log
         NewRelic::Control.instance.log
       end
+      
       # Run infinitely, calling the registered tasks at their specified
       # call periods.  The caller is responsible for creating the thread
       # that runs this worker loop.  This will run the task immediately.
       def run(period=nil, &block)
         @period = period if period
-        @next_invocation_time = (Time.now + period)
+        @next_invocation_time = (Time.now + @period)
         @task = block
         while keep_running do
           now = Time.now
@@ -38,15 +41,20 @@ module NewRelic
           run_task if keep_running
         end
       end
-
+      
+      # a simple accessor for @should_run
       def keep_running
         @should_run
       end
-
+      
+      # Sets @should_run to false. Returns false
       def stop
         @should_run = false
       end
-
+      
+      # Executes the block given to the worker loop, and handles many
+      # possible errors. Also updates the execution time so that the
+      # next run occurs on schedule, even if we execute at some odd time
       def run_task
         begin
           lock.synchronize do

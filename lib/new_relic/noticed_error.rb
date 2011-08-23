@@ -1,4 +1,4 @@
-# This class encapsulates an error that was noticed by RPM in a managed app.
+# This class encapsulates an error that was noticed by New Relic in a managed app.
 class NewRelic::NoticedError
   extend NewRelic::CollectionHelper
   attr_accessor :path, :timestamp, :params, :exception_class, :message

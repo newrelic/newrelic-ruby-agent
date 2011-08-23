@@ -1,23 +1,43 @@
-# Control subclass instantiated when Rails is detected.  Contains
-# Rails specific configuration, instrumentation, environment values,
-# etc.
 require 'new_relic/control/frameworks/ruby'
 module NewRelic
   class Control
     module Frameworks
+      # Control subclass instantiated when Rails is detected.  Contains
+      # Rails specific configuration, instrumentation, environment values,
+      # etc.
       class Rails < NewRelic::Control::Frameworks::Ruby
 
         def env
           @env ||= RAILS_ENV.dup
         end
         def root
-          RAILS_ROOT
+          if defined?(RAILS_ROOT) && RAILS_ROOT.to_s != ''
+            RAILS_ROOT.to_s
+          else
+            super
+          end
+        end
+        def logger
+          ::RAILS_DEFAULT_LOGGER
         end
 
         # In versions of Rails prior to 2.0, the rails config was only available to
-        # the init.rb, so it had to be passed on from there.
+        # the init.rb, so it had to be passed on from there.  This is a best effort to 
+        # find a config and use that.
         def init_config(options={})
-          rails_config=options[:config]
+          rails_config = options[:config]
+          if !rails_config && defined?(::Rails) && ::Rails.respond_to?(:configuration)
+            rails_config = ::Rails.configuration
+          end
+          # Install the dependency detection, 
+          if rails_config && ::Rails.configuration.respond_to?(:after_initialize)
+            rails_config.after_initialize do
+              # This will insure we load all the instrumentation as late as possible.  If the agent
+              # is not enabled, it will load a limited amount of instrumentation.  See 
+              # delayed_job_injection.rb
+              DependencyDetection.detect!
+            end
+          end          
           if !agent_enabled?
             # Might not be running if it does not think mongrel, thin, passenger, etc
             # is running, if it things it's a rake task, or if the agent_enabled is false.
@@ -66,16 +86,14 @@ module NewRelic
         end
 
         def log!(msg, level=:info)
-          return unless should_log?
-          begin
-            ::RAILS_DEFAULT_LOGGER.send(level, msg)
-          rescue Exception => e
-            super
-          end
+          super unless should_log?
+          logger.send(level, msg)
+        rescue Exception => e
+          super
         end
 
         def to_stdout(message)
-          ::RAILS_DEFAULT_LOGGER.info(message)
+          logger.info(message)
         rescue Exception => e
           super
         end
@@ -135,14 +153,6 @@ module NewRelic
           }
         end
 
-        def _install_instrumentation
-          super
-          if defined?(Rails) && Rails.respond_to?(:configuration) && Rails.configuration.respond_to?(:after_initialize)
-            Rails.configuration.after_initialize do
-              DependencyDetection.detect!
-            end
-          end
-        end
       end
     end
   end

@@ -32,7 +32,7 @@ class NewRelic::Command::Deployments < NewRelic::Command
     @appname ||= config.app_names[0] || config.env || 'development'
   end
 
-  # Run the Deployment upload in RPM via Active Resource.
+  # Run the Deployment upload in New Relic via Active Resource.
   # Will possibly print errors and exit the VM
   def run
     begin

@@ -7,23 +7,24 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
   self.controller_class = NewRelic::Agent::AgentTestController
 
   attr_accessor :agent, :engine
-
-  # Normally you can do this with #setup but for some reason in rails 2.0.2
-  # setup is not called.
-  def initialize name
-    super name
-
+  
+  def test_initialization
   # Suggested by cee-dub for merb tests.  I'm actually amazed if our tests work with merb.
-  if defined?(Merb::Router)
-    Merb::Router.prepare do |r|
-      match('/:controller(/:action)(.:format)').register
-    end
-  else
-    ActionController::Routing::Routes.draw do | map |
-      map.connect '/:controller/:action.:format'
-      map.connect '/:controller/:action'
+    if defined?(Merb::Router)
+      Merb::Router.prepare do |r|
+        match('/:controller(/:action)(.:format)').register
       end
-  end
+    elsif NewRelic::Control.instance.rails_version < NewRelic::VersionNumber.new("3.0")
+      ActionController::Routing::Routes.draw do |map|
+        map.connect '/:controller/:action.:format'
+        map.connect '/:controller/:action'
+      end
+    else
+      Rails.application.routes.draw do
+        match '/:controller/:action.:format'
+        match '/:controller/:action'
+      end    
+    end
 
     if defined?(Rails) && Rails.respond_to?(:application) && Rails.application.respond_to?(:routes)
       @routes = Rails.application.routes
@@ -39,6 +40,17 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
       newrelic_ignore_apdex :only => :action_to_ignore_apdex
     end
     @engine = @agent.stats_engine
+  end
+  
+  # Normally you can do this with #setup but for some reason in rails 2.0.2
+  # setup is not called.
+  if NewRelic::Control.instance.rails_version <= '2.1.0'
+    def initialize name
+      super name
+      test_initialization
+    end
+  else
+    alias_method :setup, :test_initialization
   end
 
   def teardown
@@ -189,7 +201,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
                 'Middleware/all',
                 'WebFrontend/WebServer/all']
 
-    compare_metrics metrics, engine.metrics.reject{|m| m.index('Response')==0 || m.index('CPU')==0}
+    compare_metrics metrics, engine.metrics.reject{|m| m.index('Response')==0 || m.index('CPU')==0 || m.index('GC')==0}
     assert_equal 1, engine.get_stats_no_scope("Controller/new_relic/agent/agent_test/action_with_before_filter_error").call_count
     assert_equal 1, engine.get_stats_no_scope("Errors/all").call_count
     apdex = engine.get_stats_no_scope("Apdex")
@@ -232,20 +244,16 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     engine = @agent.stats_engine
     get :entry_action
     assert_nil Thread.current[:newrelic_ignore_controller]
-    assert_nil engine.lookup_stat('Controller/agent_test/entry_action')
-    assert_nil engine.lookup_stat('Controller/agent_test_controller/entry_action')
-    assert_nil engine.lookup_stat('Controller/AgentTestController/entry_action')
-    assert_nil engine.lookup_stat('Controller/NewRelic::Agent::AgentTestController/internal_action')
-    assert_nil engine.lookup_stat('Controller/NewRelic::Agent::AgentTestController_controller/internal_action')
-    assert_not_nil engine.lookup_stat('Controller/NewRelic::Agent::AgentTestController/internal_traced_action')
+    assert_nil engine.lookup_stats('Controller/agent_test/entry_action')
+    assert_nil engine.lookup_stats('Controller/agent_test_controller/entry_action')
+    assert_nil engine.lookup_stats('Controller/AgentTestController/entry_action')
+    assert_nil engine.lookup_stats('Controller/NewRelic::Agent::AgentTestController/internal_action')
+    assert_nil engine.lookup_stats('Controller/NewRelic::Agent::AgentTestController_controller/internal_action')
+    assert_not_nil engine.lookup_stats('Controller/NewRelic::Agent::AgentTestController/internal_traced_action')
   end
   def test_action_instrumentation
-    begin
-      get :index, :foo => 'bar'
-      assert_match /bar/, @response.body
-      #rescue ActionController::RoutingError
-      # you might get here if you don't have the default route installed.
-    end
+    get :index, :foo => 'bar'
+    assert_match /bar/, @response.body
   end
 
   def test_controller_params
@@ -269,25 +277,15 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
 
   def test_busycalculation
     engine.clear_stats
-
     assert_equal 0, NewRelic::Agent::BusyCalculator.busy_count
-    get :index, 'social_security_number' => "001-555-1212", 'wait' => '1.0'
+    get :index, 'social_security_number' => "001-555-1212", 'wait' => '0.05'
     NewRelic::Agent::BusyCalculator.harvest_busy
 
     assert_equal 1, stats('Instance/Busy').call_count
     assert_equal 1, stats('HttpDispatcher').call_count
     # We are probably busy about 99% of the time, but lets make sure it's at least 50
-    assert stats('Instance/Busy').total_call_time > 0.5, stats('Instance/Busy').inspect
+    assert stats('Instance/Busy').total_call_time > (0.5 * 0.05), stats('Instance/Busy').inspect
     assert_equal 0, stats('WebFrontend/Mongrel/Average Queue Time').call_count
-  end
-
-  def test_histogram
-    engine.clear_stats
-    get :index, 'social_security_number' => "001-555-1212"
-    bucket = NewRelic::Agent.instance.stats_engine.metrics.find { | m | m =~ /^Response Times/ }
-    assert_not_nil bucket
-    bucket_stats = stats(bucket)
-    assert_equal 1, bucket_stats.call_count
   end
 
   def test_queue_headers_no_header

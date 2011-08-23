@@ -8,6 +8,7 @@ require 'erb'
 require 'socket'
 require 'net/https'
 require 'logger'
+require 'new_relic/control/frameworks'
 require 'new_relic/control/profiling'
 require 'new_relic/control/logging_methods'
 require 'new_relic/control/configuration'
@@ -30,9 +31,6 @@ module NewRelic
   # The Control also implements some of the public API for the agent.
   #
   class Control
-    # used for framework-specific subclasses
-    module Frameworks; end
-
     # done in a subfile for load order purposes
     # extend ClassMethods
     # include InstanceMethods

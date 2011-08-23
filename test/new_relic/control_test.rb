@@ -17,15 +17,37 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     assert @c.cert_file_path
     assert_equal File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'cert', 'cacert.pem')), @c.cert_file_path
   end
-
+  
+  # This test does not actually use the ruby agent in any way - it's
+  # testing that the CA file we ship actually validates our server's
+  # certificate. It's used for customers who enable verify_certificate
   def test_cert_file
-    result = `openssl verify -CAfile #{@c.cert_file_path} #{@c.send(:newrelic_root)}/cert/site.pem`
-    assert (result =~ /OK/), 'Should verify certificate: ' + result
-  end
+    require 'socket'
+    require 'openssl'
 
-  def test_old_cert_file
-    result = `openssl verify -CAfile #{@c.cert_file_path} #{@c.send(:newrelic_root)}/cert/oldsite.pem`
-    assert (result =~ /OK/), 'Should verify the old certificate: ' + result
+    s   = TCPSocket.new 'collector.newrelic.com', 443
+    ctx = OpenSSL::SSL::SSLContext.new
+    ctx.ca_file = @c.cert_file_path
+    ctx.verify_mode = OpenSSL::SSL::VERIFY_PEER
+    s   = OpenSSL::SSL::SSLSocket.new s, ctx
+    s.connect
+    # should not raise an error
+  end
+  
+  # see above, but for staging, as well. This allows us to test new
+  # certificates in a non-customer-facing place before setting them
+  # live.
+  def test_staging_cert_file
+    require 'socket'
+    require 'openssl'
+
+    s   = TCPSocket.new 'staging-collector.newrelic.com', 443
+    ctx = OpenSSL::SSL::SSLContext.new
+    ctx.ca_file = @c.cert_file_path
+    ctx.verify_mode = OpenSSL::SSL::VERIFY_PEER
+    s   = OpenSSL::SSL::SSLSocket.new s, ctx
+    s.connect
+    # should not raise an error
   end
 
   def test_monitor_mode
@@ -58,7 +80,7 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     end
     assert_equal :test, c.framework
     assert_match /test/i, c.dispatcher_instance_id
-    assert("" == c.dispatcher.to_s)
+    assert("" == c.dispatcher.to_s, "Expected dispatcher to be empty, but was #{c.dispatcher.to_s}")
     assert !c['enabled']
     assert_equal false, c['monitor_mode']
     c.local_env
@@ -129,20 +151,20 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   def test_config_apdex
     assert_equal 1.1, c.apdex_t
   end
-  def test_transaction_threshold
-    assert_equal 'Apdex_f', c['transaction_tracer']['transaction_threshold']
-    assert_equal 4.4, NewRelic::Agent::Agent.instance.instance_variable_get('@slowest_transaction_threshold')
-  end
+#  def test_transaction_threshold
+#    assert_equal 'Apdex_f', c['transaction_tracer']['transaction_threshold']
+#    assert_equal 4.4, NewRelic::Agent::Agent.instance.instance_variable_get('@slowest_transaction_threshold')
+#  end
   def test_log_file_name
     NewRelic::Control.instance.setup_log
     assert_match /newrelic_agent.log$/, c.instance_variable_get('@log_file')
   end
 
-  def test_transaction_threshold__apdex
-    forced_start
-    assert_equal 'Apdex_f', c['transaction_tracer']['transaction_threshold']
-    assert_equal 4.4, NewRelic::Agent::Agent.instance.instance_variable_get('@slowest_transaction_threshold')
-  end
+#  def test_transaction_threshold__apdex
+#    forced_start
+#    assert_equal 'Apdex_f', c['transaction_tracer']['transaction_threshold']
+#    assert_equal 4.4, NewRelic::Agent::Agent.instance.instance_variable_get('@slowest_transaction_threshold')
+#  end
 
   def test_transaction_threshold__default
 

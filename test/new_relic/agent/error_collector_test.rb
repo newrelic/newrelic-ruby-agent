@@ -72,22 +72,21 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
 
     @error_collector.notice_error(Exception.new("message"), :metric => 'second', :request_params => {:x => 'y'})
     @error_collector.notice_error(Exception.new("message"), :metric => 'path', :request_params => {:x => 'y'})
-    @error_collector.notice_error(Exception.new("message"), :metric => 'path', :request_params => {:x => 'y'})
+    @error_collector.notice_error(Exception.new("message"), :metric => 'last', :request_params => {:x => 'y'})
 
     errors = @error_collector.harvest_errors(errors)
 
-    assert_equal 1, errors.length
+    assert_equal 4, errors.length
     assert_equal 'first', errors.first.path
+    assert_equal 'last', errors.last.path
 
-    # add two more
-    @error_collector.notice_error(Exception.new("message"), :metric => 'path', :request_params => {:x => 'y'})
+    @error_collector.notice_error(Exception.new("message"), :metric => 'first', :request_params => {:x => 'y'})
     @error_collector.notice_error(Exception.new("message"), :metric => 'last', :request_params => {:x => 'y'})
 
     errors = @error_collector.harvest_errors(nil)
-    assert_equal 5, errors.length
-    assert_equal 'second', errors.first.path
+    assert_equal 2, errors.length
+    assert_equal 'first', errors.first.path
     assert_equal 'last', errors.last.path
-
   end
 
   def test_queue_overflow

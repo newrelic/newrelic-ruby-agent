@@ -1,3 +1,5 @@
+require 'new_relic/agent/instrumentation/metric_frame/pop'
+
 # A struct holding the information required to measure a controller
 # action.  This is put on the thread local.  Handles the issue of
 # re-entrancy, or nested action calls.
@@ -8,6 +10,9 @@ module NewRelic
   module Agent
     module Instrumentation
       class MetricFrame
+        # helper module refactored out of the `pop` method
+        include Pop
+
         attr_accessor :start       # A Time instance for the start time, never nil
         attr_accessor :apdex_start # A Time instance used for calculating the apdex score, which
         # might end up being @start, or it might be further upstream if
@@ -35,7 +40,7 @@ module NewRelic
           # Reconnect to the server if necessary.  This is only done
           # for old versions of passenger that don't implement an explicit after_fork
           # event.
-          NewRelic::Agent.instance.after_fork(:keep_retrying => false) if @@check_server_connection
+          agent.after_fork(:keep_retrying => false) if @@check_server_connection
 
           Thread.current[:newrelic_metric_frame] = new
         end
@@ -48,6 +53,10 @@ module NewRelic
 
         def self.referer
           current && current.referer
+        end
+
+        def self.agent
+          NewRelic::Agent.instance
         end
 
         @@java_classes_loaded = false
@@ -65,16 +74,28 @@ module NewRelic
         attr_reader :depth
 
         def initialize
-          @start = Time.now
+          Thread.current[:newrelic_start_time] = @start = Time.now
           @path_stack = [] # stack of [controller, path] elements
           @jruby_cpu_start = jruby_cpu_time
           @process_cpu_start = process_cpu
         end
 
+        def agent
+          NewRelic::Agent.instance
+        end
+
+        def transaction_sampler
+          agent.transaction_sampler
+        end
+
+        private :agent
+        private :transaction_sampler
+
+
         # Indicate that we are entering a measured controller action or task.
         # Make sure you unwind every push with a pop call.
         def push(m)
-          NewRelic::Agent.instance.transaction_sampler.notice_first_scope_push(start)
+          transaction_sampler.notice_first_scope_push(start)
           @path_stack.push NewRelic::MetricParser::MetricParser.for_metric_named(m)
         end
 
@@ -96,15 +117,16 @@ module NewRelic
 
         # Call this to ensure that the current transaction is not saved
         def abort_transaction!
-          NewRelic::Agent.instance.transaction_sampler.ignore_transaction
+          transaction_sampler.ignore_transaction
         end
-        # This needs to be called after entering the call to trace the controller action, otherwise
-        # the controller action blames itself.  It gets reset in the normal #pop call.
+        # This needs to be called after entering the call to trace the
+        # controller action, otherwise the controller action blames
+        # itself.  It gets reset in the normal #pop call.
         def start_transaction
-          NewRelic::Agent.instance.stats_engine.start_transaction metric_name
+          agent.stats_engine.start_transaction metric_name
           # Only push the transaction context info once, on entry:
           if @path_stack.size == 1
-            NewRelic::Agent.instance.transaction_sampler.notice_transaction(metric_name, uri, filtered_params)
+            transaction_sampler.notice_transaction(metric_name, uri, filtered_params)
           end
         end
 
@@ -121,28 +143,11 @@ module NewRelic
         # does the appropriate wrapup of the context.
         def pop
           metric = @path_stack.pop
-          if metric.nil?
-            NewRelic::Agent.logger.error "Underflow in metric frames: #{caller.join("\n   ")}"
-          end
+          log_underflow if metric.nil?
           if @path_stack.empty?
-            if NewRelic::Agent.is_execution_traced?
-              cpu_burn = nil
-              if @process_cpu_start
-                cpu_burn = process_cpu - @process_cpu_start
-              elsif @jruby_cpu_start
-                cpu_burn = jruby_cpu_time - @jruby_cpu_start
-                NewRelic::Agent.get_stats_no_scope(NewRelic::Metrics::USER_TIME).record_data_point(cpu_burn)
-              end
-              NewRelic::Agent.instance.transaction_sampler.notice_transaction_cpu_time(cpu_burn) if cpu_burn
-              NewRelic::Agent.instance.histogram.process((Time.now - start).to_f) if metric.is_web_transaction?
-              NewRelic::Agent.instance.transaction_sampler.notice_scope_empty
-            end
-            NewRelic::Agent.instance.stats_engine.end_transaction
-            Thread.current[:newrelic_start_time] = (Thread.current[:newrelic_metric_frame].start rescue nil)
-            Thread.current[:newrelic_metric_frame] = nil
-          else # path stack not empty
-            # change the transaction name back to whatever was on the stack.
-            NewRelic::Agent.instance.stats_engine.scope_name = metric_name
+            handle_empty_path_stack(metric)
+          else
+            set_new_scope!(current_stack_metric)
           end
         end
 
@@ -157,14 +162,15 @@ module NewRelic
         # Anything left over is treated as custom params
 
         def self.notice_error(e, options={})
-          if request = options.delete(:request)
+          request = options.delete(:request)
+          if request
             options[:referer] = referer_from_request(request)
             options[:uri] = uri_from_request(request)
           end
           if current
             current.notice_error(e, options)
           else
-            NewRelic::Agent.instance.error_collector.notice_error(e, options)
+            agent.error_collector.notice_error(e, options)
           end
         end
 
@@ -177,7 +183,7 @@ module NewRelic
           options[:metric] = metric_name
           options.merge!(custom_parameters)
           if exception != e
-            result = NewRelic::Agent.instance.error_collector.notice_error(e, options)
+            result = agent.error_collector.notice_error(e, options)
             self.exception = result if result
           end
         end
@@ -242,7 +248,8 @@ module NewRelic
         end
 
         def self.recording_web_transaction?
-          if c = Thread.current[:newrelic_metric_frame]
+          c = Thread.current[:newrelic_metric_frame]
+          if c
             c.recording_web_transaction?
           end
         end
@@ -276,8 +283,8 @@ module NewRelic
         end
 
         def self.record_apdex(current_metric, action_duration, total_duration, is_error)
-          summary_stat = NewRelic::Agent.instance.stats_engine.get_custom_stats("Apdex", NewRelic::ApdexStats)
-          controller_stat = NewRelic::Agent.instance.stats_engine.get_custom_stats(current_metric.apdex_metric_path, NewRelic::ApdexStats)
+          summary_stat = agent.stats_engine.get_custom_stats("Apdex", NewRelic::ApdexStats)
+          controller_stat = agent.stats_engine.get_custom_stats(current_metric.apdex_metric_path, NewRelic::ApdexStats)
           update_apdex(summary_stat, total_duration, is_error)
           update_apdex(controller_stat, action_duration, is_error)
         end
@@ -313,7 +320,6 @@ module NewRelic
           java_utime = threadMBean.getCurrentThreadUserTime()  # ns
           -1 == java_utime ? 0.0 : java_utime/1e9
         end
-
       end
     end
   end

@@ -1,11 +1,11 @@
-# A control used when no framework is detected.
-# Looks for a newrelic.yml file in several locations
-# including ./, ./config, $HOME/.newrelic and $HOME/.
-# It loads the settings from the newrelic.yml section
-# based on the value of RUBY_ENV or RAILS_ENV.
 module NewRelic
   class Control
     module Frameworks
+      # A control used when no framework is detected - the default.
+      # Looks for a newrelic.yml file in several locations including
+      # ./, ./config, $HOME/.newrelic and $HOME/.  It loads the
+      # settings from the newrelic.yml section based on the value of
+      # RUBY_ENV or RAILS_ENV.
       class Ruby < NewRelic::Control
 
         def env

@@ -224,6 +224,11 @@ module NewRelic
         @sample_controller_name = metric_parser.controller_name
         @sample_action_name = metric_parser.action_name
 
+        @sql_segments = @sample.sql_segments
+        if params['d']
+          @sql_segments.sort!{|a,b| b.duration <=> a.duration }
+        end
+        
         render(:show_sample)
       end
 

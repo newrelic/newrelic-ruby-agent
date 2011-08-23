@@ -175,7 +175,7 @@ module NewRelic
         # dispatches to more specific operation methods based on a
         # parameter (very dangerous, btw!).  With this instrumentation,
         # the +invoke_operation+ action is ignored but the operation
-        # methods show up in RPM as if they were first class controller
+        # methods show up in New Relic as if they were first class controller
         # actions
         #
         #   MyController < ActionController::Base
@@ -199,7 +199,7 @@ module NewRelic
         #   controller action and will appear with all the other actions.  This
         #   is the default.
         # * <tt>:category => :task</tt> indicates that this is a
-        #   background task and will show up in RPM with other background
+        #   background task and will show up in New Relic with other background
         #   tasks instead of in the controllers list
         # * <tt>:category => :rack</tt> if you are instrumenting a rack
         #   middleware call.  The <tt>:name</tt> is optional, useful if you
@@ -234,7 +234,7 @@ module NewRelic
 
           # Skip instrumentation based on the value of 'do_not_trace' and if
           # we aren't calling directly with a block.
-          if !block_given? && _is_filtered?('do_not_trace')
+          if !block_given? && do_not_trace?
             # Also ignore all instrumentation in the call sequence
             NewRelic::Agent.disable_all_tracing do
               return perform_action_without_newrelic_trace(*args)
@@ -263,7 +263,7 @@ module NewRelic
             NewRelic::Agent::BusyCalculator.dispatcher_finish
             # Look for a metric frame in the thread local and process it.
             # Clear the thread local when finished to ensure it only gets called once.
-            frame_data.record_apdex unless _is_filtered?('ignore_apdex')
+            frame_data.record_apdex unless ignore_apdex?
 
             frame_data.pop
           end
@@ -276,10 +276,26 @@ module NewRelic
         def newrelic_request_headers
           self.respond_to?(:request) && self.request.respond_to?(:headers) && self.request.headers
         end
+        
+        # overrideable method to determine whether to trace an action
+        # or not - you may override this in your controller and supply
+        # your own logic for ignoring transactions.
+        def do_not_trace?
+          _is_filtered?('do_not_trace')
+        end
+        
+        # overrideable method to determine whether to trace an action
+        # for purposes of apdex measurement - you can use this to
+        # ignore things like api calls or other fast non-user-facing
+        # actions
+        def ignore_apdex?
+          _is_filtered?('ignore_apdex')
+        end
 
         private
 
-        # Profile the instrumented call.  Dev mode only.  Experimental.
+        # Profile the instrumented call.  Dev mode only.  Experimental
+        # - should definitely not be used on production applications
         def perform_action_with_newrelic_profile(args)
           frame_data = _push_metric_frame(block_given? ? args : [])
           val = nil
@@ -350,7 +366,8 @@ module NewRelic
           [category, path, params]
         end
 
-        # Filter out
+        # Filter out a request if it matches one of our parameters for
+        # ignoring it - the key is either 'do_not_trace' or 'ignore_apdex'
         def _is_filtered?(key)
           ignore_actions = self.class.newrelic_read_attr(key) if self.class.respond_to? :newrelic_read_attr
           case ignore_actions
@@ -394,7 +411,9 @@ module NewRelic
           NewRelic::Control.instance.log.debug("#{e.backtrace[0..20]}")
           now
         end
-
+        
+        # returns the NewRelic::MethodTraceStats object associated
+        # with the dispatcher time measurement
         def _dispatch_stat
           NewRelic::Agent.agent.stats_engine.get_stats_no_scope 'HttpDispatcher'
         end

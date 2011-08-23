@@ -88,7 +88,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     fake_control = mock()
     fake_control.expects(:server).returns("server")
     self.expects(:control).once.returns(fake_control)
-    log.expects(:error).with("Error establishing connection with New Relic RPM Service at server: message")
+    log.expects(:error).with("Error establishing connection with New Relic Service at server: message")
     log.expects(:debug).with("line\nsecondline")
     log_error(error)
   end
@@ -165,7 +165,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     fake_collector = mocked_error_collector
     fake_collector.expects(:config_enabled).returns(false)
     fake_collector.expects(:enabled=).with(false)
-    log.expects(:debug).with("Errors will not be sent to the RPM service.")
+    log.expects(:debug).with("Errors will not be sent to the New Relic service.")
     configure_error_collector!(false)
   end
 
@@ -173,7 +173,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     fake_collector = mocked_error_collector
     fake_collector.expects(:config_enabled).returns(true)
     fake_collector.expects(:enabled=).with(true)
-    log.expects(:debug).with("Errors will be sent to the RPM service.")
+    log.expects(:debug).with("Errors will be sent to the New Relic service.")
     configure_error_collector!(true)
   end
 
@@ -181,7 +181,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     fake_collector = mocked_error_collector
     fake_collector.expects(:config_enabled).returns(true)
     fake_collector.expects(:enabled=).with(false)
-    log.expects(:debug).with("Errors will not be sent to the RPM service.")
+    log.expects(:debug).with("Errors will not be sent to the New Relic service.")
     configure_error_collector!(false)
   end
 
@@ -226,14 +226,14 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
 
   def test_configure_transaction_tracer_negative
     @config_should_send_samples = false
-    log.expects(:debug).with('Transaction traces will not be sent to the RPM service.')
+    log.expects(:debug).with('Transaction traces will not be sent to the New Relic service.')
     configure_transaction_tracer!(true, 10)
     assert !@should_send_samples
   end
 
   def test_configure_transaction_tracer_server_disabled
     @config_should_send_samples = true
-    log.expects(:debug).with('Transaction traces will not be sent to the RPM service.')
+    log.expects(:debug).with('Transaction traces will not be sent to the New Relic service.')
     configure_transaction_tracer!(false, 10)
     assert !@should_send_samples
   end

@@ -1,11 +1,18 @@
 module NewRelic
   class Control
+    # Contains methods that relate to the runtime usage of the control
+    # object. Note that these are subject to override in the
+    # NewRelic::Control::Framework classes that are actually instantiated
     module InstanceMethods
       # The env is the setting used to identify which section of the newrelic.yml
       # to load.  This defaults to a framework specific value, such as ENV['RAILS_ENV']
       # but can be overridden as long as you set it before calling #init_plugin
       attr_writer :env
 
+      # The local environment contains all the information we report
+      # to the server about what kind of application this is, what
+      # gems and plugins it uses, and many other kinds of
+      # machine-dependent information useful in debugging
       attr_reader :local_env
 
 
@@ -90,13 +97,14 @@ module NewRelic
         # dispatcher running
         return true if @local_env.dispatcher != nil
       end
-
+      
+      # Asks the LocalEnvironment instance which framework should be loaded
       def app
         @local_env.framework
       end
       alias framework app
-
-      def to_s
+      
+      def to_s #:nodoc:
         "Control[#{self.app}]"
       end
 
@@ -105,7 +113,9 @@ module NewRelic
       # Append framework specific environment information for uploading to
       # the server for change detection.  Override in subclasses
       def append_environment_info; end
-
+      
+      # Asks bundler to tell us which gemspecs are loaded in the
+      # current process
       def bundler_gem_list
         if defined?(Bundler) && Bundler.instance_eval do @load end
           Bundler.load.specs.map do | spec |
@@ -116,11 +126,15 @@ module NewRelic
           []
         end
       end
-
+      
+      # path to the config file, defaults to the "#{root}/config/newrelic.yml"
       def config_file
         File.expand_path(File.join(root,"config","newrelic.yml"))
       end
-
+      
+      # initializes the control instance with a local environment and
+      # an optional config file override. Checks for the config file
+      # and loads it.
       def initialize local_env, config_file_override=nil
         @local_env = local_env
         @instrumentation_files = []
@@ -130,9 +144,10 @@ module NewRelic
         generated_for_user = ''
         license_key=''
         if !File.exists?(newrelic_file)
-          log! "Cannot find read #{newrelic_file}."
+          puts "Cannot find or read #{newrelic_file}"
           @yaml = {}
         else
+          YAML::ENGINE.yamler = 'syck' if defined?(YAML::ENGINE)
           @yaml = YAML.load(ERB.new(File.read(newrelic_file)).result(binding))
         end
       rescue ScriptError, StandardError => e
@@ -140,7 +155,13 @@ module NewRelic
         puts e.backtrace.join("\n")
         raise "Error reading newrelic.yml file: #{e}"
       end
+      
+      def root
+        '.'
+      end
 
+      # Delegates to the class method newrelic_root, implemented by
+      # each subclass
       def newrelic_root
         self.class.newrelic_root
       end
