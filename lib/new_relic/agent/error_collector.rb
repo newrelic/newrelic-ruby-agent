@@ -24,7 +24,6 @@ module NewRelic
         @errors = []
         # lookup of exception class names to ignore.  Hash for fast access
         @ignore = {}
-        @ignore_filter = nil
 
         config = NewRelic::Control.instance.fetch('error_collector', {})
 
@@ -45,10 +44,13 @@ module NewRelic
       
       # Returns the error filter proc that is used to check if an
       # error should be reported. When given a block, resets the
-      # filter to the provided block
+      # filter to the provided block.  The define_method() is used to
+      # wrap the block in a lambda so return statements don't result in a
+      # LocalJump exception.
       def ignore_error_filter(&block)
         if block
-          @ignore_filter = block
+          self.class.class_eval { define_method(:ignore_filter_proc, &block) }
+          @ignore_filter = method(:ignore_filter_proc)
         else
           @ignore_filter
         end

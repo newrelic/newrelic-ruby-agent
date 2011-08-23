@@ -1,3 +1,9 @@
+v3.1.2
+  * Fixed some thread safety issues
+  * Work around for Ruby 1.8.7 Marshal crash bug
+  * Numerous community patches (Gabriel Horner, Bradley Harris, Diego Garcia, 
+    Tommy Sullivan, Greg Hazel, John Thomas Marino, Paul Elliott, Pan Thomakos)
+
 v3.1.1
   * Support for Rails 3.1 (thanks to Ben Hoskings via github)
   * Support for Rubinius
