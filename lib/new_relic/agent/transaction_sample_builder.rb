@@ -51,7 +51,7 @@ module NewRelic
         end
         @sample.root_segment.end_trace(time.to_f - @sample_start)
         @sample.params[:custom_params] = normalize_params(NewRelic::Agent::Instrumentation::MetricFrame.custom_parameters)
-        @sample.force_persist = true if Thread.current[:force_persist]
+        @sample.force_persist = true if Thread.current[:force_persist] || Thread.current[:capture_if_greater_than_apdex_t]
         @sample.freeze
         @current_segment = nil
       end

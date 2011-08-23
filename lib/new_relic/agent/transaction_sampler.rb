@@ -172,7 +172,10 @@ module NewRelic
         store_random_sample(sample)
         store_sample_for_developer_mode(sample)
         store_slowest_sample(sample)
-        store_force_persist(sample) if Thread.current[:force_persist]
+        
+        if Thread.current[:force_persist] || (Thread.current[:capture_if_greater_than_apdex_t] && sample.duration > NewRelic::Control.instance.apdex_t)
+          store_force_persist(sample)
+        end
       end
 
       # Only active when random sampling is true - this is very rarely

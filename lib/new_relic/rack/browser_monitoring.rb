@@ -17,6 +17,7 @@ module NewRelic::Rack
       Thread.current[:newrelic_start_time] = Time.now
       Thread.current[:newrelic_queue_time] = 0
       Thread.current[:force_persist] = nil
+      Thread.current[:capture_if_greater_than_apdex_t] = nil
       Thread.current[:capture_deep_tt] = nil
       
       req = Rack::Request.new(env)
@@ -27,7 +28,7 @@ module NewRelic::Rack
         s = agent_flag.split("=")
         if (s.length == 2)
           if s[0] == "ct" && s[1] == "true"
-            Thread.current[:force_persist] = true
+            Thread.current[:capture_if_greater_than_apdex_t] = true
           end
         end
       end
