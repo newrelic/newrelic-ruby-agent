@@ -399,7 +399,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
       assert explanation[0].include?(c)
     end
     ['1', 'SIMPLE', ActiveRecordFixtures::Order.table_name].each do |c|
-      assert explanation[1].include?(c)
+      assert explanation[1][0].include?(c)
     end
 
     s = NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Order/find")

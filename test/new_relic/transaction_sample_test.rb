@@ -84,7 +84,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
         explanation = segment.params[:explain_plan]
 
         assert_kind_of Array, explanation
-        assert_equal([nil, ["QUERY RESULT"]], explanation)
+        assert_equal([nil, [["QUERY RESULT"]]], explanation)
       end
     end
   end
