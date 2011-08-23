@@ -12,7 +12,11 @@ DependencyDetection.defer do
   depends_on do
     !NewRelic::Control.instance['disable_view_instrumentation']
   end
-
+  
+  executes do
+    NewRelic::Agent.logger.debug 'Installing Rails View instrumentation'
+  end
+  
   executes do    
     case Rails::VERSION::STRING
 
