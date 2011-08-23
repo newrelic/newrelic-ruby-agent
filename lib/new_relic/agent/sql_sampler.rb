@@ -162,16 +162,15 @@ module NewRelic
       end
 
       def obfuscate
-        NewRelic::Agent.instance.obfuscator.call(@sql)
+        NewRelic::Agent::Database.obfuscate_sql(@sql)
       end
 
       def normalize
-        NewRelic::Agent.instance.send(:default_sql_obfuscator, @sql) \
-          .gsub(/\?\,\s*/, '')
+        NewRelic::Agent::Database::Obfuscator.instance \
+          .default_sql_obfuscator(@sql).gsub(/\?\,\s*/, '')
       end
 
       def explain
-        return nil unless @sql && @config
         NewRelic::Agent::Database.explain_sql(@sql, @config)
       end
     end

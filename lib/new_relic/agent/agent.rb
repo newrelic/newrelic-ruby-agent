@@ -44,7 +44,7 @@ module NewRelic
         @request_timeout = NewRelic::Control.instance.fetch('timeout', 2 * 60)
 
         @last_harvest_time = Time.now
-        @obfuscator = method(:default_sql_obfuscator)
+        @obfuscator = lambda {|sql| NewRelic::Agent::Database.default_sql_obfuscator(sql) }
       end
       
       # contains all the class-level methods for NewRelic::Agent::Agent
@@ -272,29 +272,6 @@ module NewRelic
         # to what it was before we pushed the current flag.
         def pop_trace_execution_flag
           Thread.current[:newrelic_untraced].pop if Thread.current[:newrelic_untraced]
-        end
-
-        # Sets the sql obfuscator used to clean up sql when sending it
-        # to the server. Possible types are:
-        #
-        # :before => sets the block to run before the existing
-        # obfuscators
-        #
-        # :after => sets the block to run after the existing
-        # obfuscator(s)
-        #
-        # :replace => removes the current obfuscator and replaces it
-        # with the provided block
-        def set_sql_obfuscator(type, &block)
-          if type == :before
-            @obfuscator = NewRelic::ChainedCall.new(block, @obfuscator)
-          elsif type == :after
-            @obfuscator = NewRelic::ChainedCall.new(@obfuscator, block)
-          elsif type == :replace
-            @obfuscator = block
-          else
-            fail "unknown sql_obfuscator type #{type}"
-          end
         end
 
         # Shorthand to the NewRelic::Agent.logger method
@@ -1324,17 +1301,6 @@ module NewRelic
           else
             log.debug "Bypassing graceful disconnect - agent not connected"
           end
-        end
-        def default_sql_obfuscator(sql)
-          sql = sql.dup
-          # This is hardly readable.  Use the unit tests.
-          # remove single quoted strings:
-          sql.gsub!(/'(.*?[^\\'])??'(?!')/, '?')
-          # remove double quoted strings:
-          sql.gsub!(/"(.*?[^\\"])??"(?!")/, '?')
-          # replace all number literals
-          sql.gsub!(/\d+/, "?")
-          sql
         end
       end
 

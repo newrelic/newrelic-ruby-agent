@@ -1,3 +1,5 @@
+require 'singleton'
+
 module NewRelic
   # columns for a mysql explain plan
   MYSQL_EXPLAIN_COLUMNS = [
@@ -18,43 +20,21 @@ module NewRelic
       extend self
       
       def obfuscate_sql(sql)
-        NewRelic::Agent.instance.obfuscator.call(sql)
-      end
-
-      # Returns a cached connection for a given ActiveRecord
-      # configuration - these are stored or reopened as needed, and if
-      # we cannot get one, we ignore it and move on without explaining
-      # the sql
-      def get_connection(config)
-        @@connections ||= {}
-
-        connection = @@connections[config]
-
-        return connection if connection
-
-        begin
-          connection = ActiveRecord::Base.send("#{config[:adapter]}_connection", config)
-          @@connections[config] = connection
-        rescue => e
-          NewRelic::Agent.agent.log.error("Caught exception #{e} trying to get connection to DB for explain. Control: #{config}")
-          NewRelic::Agent.agent.log.error(e.backtrace.join("\n"))
-          nil
-        end
+        Obfuscator.instance.obfuscator.call(sql)
       end
       
-      # Closes all the connections in the internal connection cache
-      def close_connections
-        @@connections ||= {}
-        @@connections.values.each do |connection|
-          begin
-            connection.disconnect!
-          rescue
-          end
-        end
-
-        @@connections = {}
+      def set_sql_obfuscator(type, &block)
+        Obfuscator.instance.set_sql_obfuscator(type, &block)
       end
- 
+      
+      def get_connection(config)
+        ConnectionManager.instance.get_connection(config)
+      end
+
+      def close_connections
+        ConnectionManager.instance.close_connections
+      end
+      
       # Perform this in the runtime environment of a managed
       # application, to explain the sql statement executed within a
       # segment of a transaction sample. Returns an array of
@@ -130,6 +110,93 @@ module NewRelic
         # system-defined field separator character
         first_word, rest_of_statement = statement.split($;, 2)
         (first_word.upcase == 'SELECT')
+      end
+
+      class ConnectionManager
+        include Singleton
+        
+        # Returns a cached connection for a given ActiveRecord
+        # configuration - these are stored or reopened as needed, and if
+        # we cannot get one, we ignore it and move on without explaining
+        # the sql
+        def get_connection(config)
+          @connections ||= {}
+          
+          connection = @connections[config]
+          
+          return connection if connection
+          
+          begin
+            connection = ActiveRecord::Base.send("#{config[:adapter]}_connection", config)
+            @connections[config] = connection
+          rescue => e
+            NewRelic::Agent.agent.log.error("Caught exception #{e} trying to get connection to DB for explain. Control: #{config}")
+            NewRelic::Agent.agent.log.error(e.backtrace.join("\n"))
+            nil
+          end
+        end
+        
+        # Closes all the connections in the internal connection cache
+        def close_connections
+          @connections ||= {}
+          @connections.values.each do |connection|
+            begin
+              connection.disconnect!
+            rescue
+            end
+          end
+          
+          @connections = {}
+        end
+      end
+
+      class Obfuscator
+        include Singleton
+        
+        attr_reader :obfuscator
+        
+        def initialize
+          reset
+        end
+
+        def reset
+          @obfuscator = method(:default_sql_obfuscator)
+        end
+        
+        # Sets the sql obfuscator used to clean up sql when sending it
+        # to the server. Possible types are:
+        #
+        # :before => sets the block to run before the existing
+        # obfuscators
+        #
+        # :after => sets the block to run after the existing
+        # obfuscator(s)
+        #
+        # :replace => removes the current obfuscator and replaces it
+        # with the provided block
+        def set_sql_obfuscator(type, &block)
+          if type == :before
+            @obfuscator = NewRelic::ChainedCall.new(block, @obfuscator)
+          elsif type == :after
+            @obfuscator = NewRelic::ChainedCall.new(@obfuscator, block)
+          elsif type == :replace
+            @obfuscator = block
+          else
+            fail "unknown sql_obfuscator type #{type}"
+          end
+        end
+        
+        def default_sql_obfuscator(sql)
+          sql = sql.dup
+          # This is hardly readable.  Use the unit tests.
+          # remove single quoted strings:
+          sql.gsub!(/'(.*?[^\\'])??'(?!')/, '?')
+          # remove double quoted strings:
+          sql.gsub!(/"(.*?[^\\"])??"(?!")/, '?')
+          # replace all number literals
+          sql.gsub!(/\d+/, "?")
+          sql
+        end
       end
     end
   end
