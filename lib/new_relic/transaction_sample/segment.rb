@@ -185,10 +185,12 @@ module NewRelic
       # transaction in a report period, selected for shipment to New
       # Relic
       def explain_sql
+        return @explain_sql if @explain_sql
         sql = params[:sql]
         return nil unless sql && params[:connection_config]
         statement = sql.split(";\n")[0] # only explain the first
-        explain_statement(statement, params[:connection_config]) || []
+        @explain_sql = explain_statement(statement, params[:connection_config])
+        return @explain_sql || []
       end
 
       def explain_statement(statement, config)
@@ -216,19 +218,20 @@ module NewRelic
         # that it implements each.  Also: can't use select_rows because the native postgres
         # driver doesn't know that method.
         
-        headers = values = []
+        headers = []
+        values = []
         if items.respond_to?(:each_hash)
           items.each_hash do |row|
             headers = row.keys
-            values = headers.map{|h| row[h] }
+            values << headers.map{|h| row[h] }
           end
         elsif items.respond_to?(:each)
           items.each do |row|
             if row.kind_of?(Hash)
               headers = row.keys
-              values = headers.map{|h| row[h] }
+              values << headers.map{|h| row[h] }
             else
-              values = row
+              values << row
             end
           end
         else

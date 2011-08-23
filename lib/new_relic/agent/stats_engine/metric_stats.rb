@@ -10,13 +10,8 @@ module NewRelic
         # are internally consistent even in truly-threaded rubies like JRuby
         class SynchronizedHash < ::Hash
           include NewRelic::LanguageSupport::SynchronizedHash
+          include Sync_m
           
-          def initialize(*args)
-            super
-          ensure
-            extend Sync_m
-          end
-                    
           def []=(*args)
             sync_synchronize { super }
           end

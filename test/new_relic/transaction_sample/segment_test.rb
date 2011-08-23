@@ -389,30 +389,32 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
     # two rows, two columns
     connection.expects(:execute).with('EXPLAIN SELECT').returns(result)
     NewRelic::TransactionSample.expects(:get_connection).with(config).returns(connection)
-    assert_equal([["select_type", "key_len", "table", "id", "possible_keys", "type", "Extra", "rows", "ref", "key"],
-                  ["SIMPLE", nil, "blogs", "1", nil, "ALL", "", "2", nil, nil]],
-                 s.explain_sql)
+    
+    assert_equal(plan.keys.sort, s.explain_sql[0].sort)
+    assert_equal(plan.values.compact.sort, s.explain_sql[1][0].compact.sort)    
   end
 
-  # this basically casts the resultset to an array of rows, which are
-  # arrays of columns
   def test_process_resultset
     s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
-    items = [["column"]]
-    assert_equal([nil, ["column"]], s.process_resultset(items))
+    resultset = [["column"]]
+    assert_equal([nil, [["column"]]], s.process_resultset(resultset))
   end
 
   def test_explain_sql_one_select_with_pg_connection
     s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
     config = {:adapter => 'postgresql'}
     config.default('val')
-    s.params = {:sql => "SELECT true()", :connection_config => config}
+    s.params = {:sql => "select count(id) from blogs limit 1;", :connection_config => config}
     connection = mock('connection')
-    # two rows, two columns
-    connection.expects(:execute).returns([{"QUERY PLAN"=>"Seq Scan on foo (cost=0.00..11.40 rows=140 width=540)"}])
+    plan = [{"QUERY PLAN"=>"Limit  (cost=11.75..11.76 rows=1 width=4)"},
+            {"QUERY PLAN"=>"  ->  Aggregate  (cost=11.75..11.76 rows=1 width=4)"},
+            {"QUERY PLAN"=>"        ->  Seq Scan on blogs  (cost=0.00..11.40 rows=140 width=4)"}]
+    connection.expects(:execute).returns(plan)
     NewRelic::TransactionSample.expects(:get_connection).with(config).returns(connection)
     assert_equal([['QUERY PLAN'],
-                   ['Seq Scan on foo (cost=0.00..11.40 rows=140 width=540)']],
+                  [["Limit  (cost=11.75..11.76 rows=1 width=4)"],
+                   ["  ->  Aggregate  (cost=11.75..11.76 rows=1 width=4)"],
+                   ["        ->  Seq Scan on blogs  (cost=0.00..11.40 rows=140 width=4)"]]],
                  s.explain_sql)
   end
 

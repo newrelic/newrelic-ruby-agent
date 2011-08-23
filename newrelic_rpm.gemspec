@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Bill Kayser", "Jon Guymon", "Justin George", "Darin Swanson"]
-  s.date = %q{2011-07-28}
+  s.date = %q{2011-08-18}
   s.description = %q{New Relic is a performance management system, developed by New Relic,
 Inc (http://www.newrelic.com).  New Relic provides you with deep
 information about the performance of your web application as it runs
@@ -18,7 +18,7 @@ Gem or plugin, hosted on
 http://github.com/newrelic/rpm/
 }
   s.email = %q{support@newrelic.com}
-  s.executables = ["newrelic_cmd", "newrelic", "mongrel_rpm"]
+  s.executables = ["mongrel_rpm", "newrelic", "newrelic_cmd"]
   s.extra_rdoc_files = [
     "CHANGELOG",
     "LICENSE",
@@ -107,6 +107,7 @@ http://github.com/newrelic/rpm/
     "lib/new_relic/control/server_methods.rb",
     "lib/new_relic/data_serialization.rb",
     "lib/new_relic/delayed_job_injection.rb",
+    "lib/new_relic/language_support.rb",
     "lib/new_relic/local_environment.rb",
     "lib/new_relic/merbtasks.rb",
     "lib/new_relic/metric_data.rb",

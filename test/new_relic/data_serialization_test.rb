@@ -161,6 +161,7 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
       snd.write(data[0,data.size/2])
       sleep(0.1)
       snd.write(data[(data.size/2)..-1])
+      snd.close
     end
     
     read = Thread.new do
@@ -176,16 +177,31 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
       end
     end
 
-    begin
-      Timeout::timeout(1) do
-        write.join
-        read.join
-        gc.join
-      end
-    rescue Timeout::Error
-      # rubinius deadlocks which seems to be a rubinius bug
-      raise unless NewRelic::LanguageSupport.using_rubinius?
+    Timeout::timeout(5) do
+      write.join
+      read.join
+      gc.join
     end
     # should not seg fault
+  end
+
+  def test_dump_should_be_thread_safe
+    stats_hash = {}
+
+    2000.times do |i|
+      stats_hash[i.to_s] = NewRelic::StatsBase.new
+    end
+        
+    harvest = Thread.new do
+      NewRelic::DataSerialization.class_eval { dump(stats_hash) }
+    end
+    
+    app = Thread.new do
+      stats_hash["a"] = NewRelic::StatsBase.new
+    end
+    
+    assert_nothing_raised do
+      [app, harvest].each{|t| t.join}
+    end    
   end
 end
