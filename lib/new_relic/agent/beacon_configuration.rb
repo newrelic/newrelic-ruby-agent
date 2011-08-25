@@ -30,7 +30,7 @@ module NewRelic
       
       # A static javascript header that is identical for every account
       # and application
-      JS_HEADER = "<script type=\"text/javascript\">var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);</script>"
+      JS_HEADER = "<script type=\"text/javascript\">var NREUMQ=NREUMQ||[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);</script>"
       
       # Creates a new browser configuration data. Argument is a hash
       # of configuration values from the server
@@ -63,7 +63,7 @@ module NewRelic
       # includes it themselves)
       def build_load_file_js(connect_data)
         js = <<-EOS
-if (!NREUMQ.f) NREUMQ.f=function() {
+if (!NREUMQ.f) { NREUMQ.f=function() {
 NREUMQ.push(["load",new Date().getTime()]);
 EOS
     
@@ -79,7 +79,8 @@ EOS
         js << <<-EOS
 if(NREUMQ.a)NREUMQ.a();
 };
-if(window.onload!==NREUMQ.f){NREUMQ.a=window.onload;window.onload=NREUMQ.f;};
+NREUMQ.a=window.onload;window.onload=NREUMQ.f;
+};
 EOS
         js
       end
