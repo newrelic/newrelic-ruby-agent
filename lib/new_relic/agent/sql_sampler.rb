@@ -167,7 +167,7 @@ module NewRelic
 
       def normalize
         NewRelic::Agent::Database::Obfuscator.instance \
-          .default_sql_obfuscator(@sql).gsub(/\?\,\s*/, '')
+          .default_sql_obfuscator(@sql).gsub(/\?\s*\,\s*/, '')
       end
 
       def explain
