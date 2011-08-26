@@ -403,7 +403,6 @@ module NewRelic
           queue_start = nil
           if newrelic_request_headers
             queue_start = parse_frontend_headers(newrelic_request_headers)
-            Thread.current[:newrelic_queue_time] = (now.to_f - queue_start.to_f) if queue_start
           end
           queue_start || now
         rescue Exception => e

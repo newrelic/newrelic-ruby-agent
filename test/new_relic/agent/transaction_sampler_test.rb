@@ -215,7 +215,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     builder.expects(:ignored?).returns(false)
 
     sample = mock('sample')
-    sample.expects(:guid).returns("blah blah blah")
     builder.expects(:sample).returns(sample)
     @sampler.expects(:store_sample).with(sample)
 

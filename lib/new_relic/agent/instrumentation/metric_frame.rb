@@ -74,12 +74,11 @@ module NewRelic
         attr_reader :depth
 
         def initialize
-          Thread.current[:newrelic_start_time] = @start = Time.now
+          @start = Time.now
           @path_stack = [] # stack of [controller, path] elements
           @jruby_cpu_start = jruby_cpu_time
           @process_cpu_start = process_cpu
           Thread.current[:last_metric_frame] = self
-          Thread.current[:tt_guid] = nil
         end
 
         def agent
@@ -261,6 +260,10 @@ module NewRelic
         
         def user_attributes
           @user_atrributes ||= {}
+        end
+        
+        def queue_time
+          apdex_start - start
         end
 
         def add_custom_parameters(p)

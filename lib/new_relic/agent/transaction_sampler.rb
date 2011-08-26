@@ -160,8 +160,6 @@ module NewRelic
           @last_sample = last_builder.sample
           store_sample(@last_sample)
         end
-
-        Thread.current[:tt_guid] = @last_sample.guid
       end
 
       # Samples can be stored in three places: the random sample

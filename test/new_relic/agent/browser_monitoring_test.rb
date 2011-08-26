@@ -12,14 +12,12 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     NewRelic::Agent.instance.instance_eval do
       @beacon_configuration = NewRelic::Agent::BeaconConfiguration.new({"rum.enabled" => true, "browser_key" => "browserKey", "application_id" => "apId", "beacon"=>"beacon", "episodes_url"=>"this_is_my_file"})
     end
-    Thread.current[:newrelic_most_recent_transaction] = "MyCoolTransaction"
+    Thread.current[:last_metric_frame] = nil
+    Thread.current[:current_transaction_sample] = nil
   end
 
   def teardown
     mocha_teardown
-    Thread.current[:newrelic_start_time] = nil
-    Thread.current[:newrelic_metric_frame] = nil
-    Thread.current[:newrelic_most_recent_transaction] = nil
   end
 
   def test_browser_timing_header_with_no_beacon_configuration
@@ -30,13 +28,13 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
 
   def test_browser_timing_header
     header = browser_timing_header
-    assert_equal "<script type=\"text/javascript\">var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);</script>", header
+    assert_equal "<script type=\"text/javascript\">var NREUMQ=NREUMQ||[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);</script>", header
   end
 
   def test_browser_timing_header_with_rum_enabled_not_specified
     NewRelic::Agent.instance.expects(:beacon_configuration).at_least_once.returns( NewRelic::Agent::BeaconConfiguration.new({"browser_key" => "browserKey", "application_id" => "apId", "beacon"=>"beacon", "episodes_url"=>"this_is_my_file"}))
     header = browser_timing_header
-    assert_equal "<script type=\"text/javascript\">var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);</script>", header
+    assert_equal "<script type=\"text/javascript\">var NREUMQ=NREUMQ||[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);</script>", header
   end
 
   def test_browser_timing_header_with_rum_enabled_false
@@ -65,19 +63,13 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     browser_timing_header
     NewRelic::Control.instance.expects(:license_key).returns("a" * 13)
 
-    Thread.current[:newrelic_start_time] = Time.now
-
     footer = browser_timing_footer
-    snippet = '<script type="text/javascript">if (!NREUMQ.f) NREUMQ.f=function() {
+    snippet = '<script type="text/javascript">if (!NREUMQ.f) { NREUMQ.f=function() {
 NREUMQ.push(["load",new Date().getTime()]);
 var e=document.createElement("script");'
     assert footer.include?(snippet), "Expected footer to include snippet: #{snippet}, but instead was #{footer}"
   end
 
-  def test_browser_timing_footer_without_calling_header
-    footer = browser_timing_footer
-    assert_equal "", footer
-  end
 
   def test_browser_timing_footer_with_no_browser_key_rum_enabled
     browser_timing_header
@@ -95,7 +87,6 @@ var e=document.createElement("script");'
 
   def test_browser_timing_footer_with_rum_enabled_not_specified
     browser_timing_header
-    Thread.current[:newrelic_start_time] = Time.now
 
     license_bytes = [];
     ("a" * 13).each_byte {|byte| license_bytes << byte}
@@ -103,7 +94,7 @@ var e=document.createElement("script");'
     config.expects(:license_bytes).returns(license_bytes).at_least_once
     NewRelic::Agent.instance.expects(:beacon_configuration).returns(config).at_least_once
     footer = browser_timing_footer
-    beginning_snippet = '<script type="text/javascript">if (!NREUMQ.f) NREUMQ.f=function() {
+    beginning_snippet = '<script type="text/javascript">if (!NREUMQ.f) { NREUMQ.f=function() {
 NREUMQ.push(["load",new Date().getTime()]);
 var e=document.createElement("script");'
     ending_snippet = "])</script>"
@@ -120,8 +111,11 @@ var e=document.createElement("script");'
 
   def test_browser_timing_footer_with_no_start_time
     browser_timing_header
-    Thread.current[:newrelic_start_time] = nil
     NewRelic::Agent.instance.expects(:beacon_configuration).returns( NewRelic::Agent::BeaconConfiguration.new({"browser_key" => "browserKey", "application_id" => "apId", "beacon"=>"beacon", "episodes_url"=>"this_is_my_file"}))
+    
+    Thread.current[:current_transaction_sample] = mock('transaction sample')
+    Thread.current[:current_transaction_sample].expects(:start_time).returns(nil)
+    
     footer = browser_timing_footer
     assert_equal('', footer)
   end
@@ -157,7 +151,7 @@ var e=document.createElement("script");'
 
   def test_generate_footer_js_null_case
     self.expects(:browser_monitoring_start_time).returns(nil)
-    assert_equal('', generate_footer_js, "should not send javascript when there is no start time")
+    assert_equal('', generate_footer_js(NewRelic::Agent.instance.beacon_configuration), "should not send javascript when there is no start time")
   end
 
   def test_generate_footer_js_with_start_time
@@ -166,28 +160,30 @@ var e=document.createElement("script");'
     fake_bc.expects(:application_id).returns(1)
     fake_bc.expects(:beacon).returns('beacon')
     fake_bc.expects(:browser_monitoring_key).returns('a' * 40)
-    NewRelic::Agent.instance.expects(:beacon_configuration).returns(fake_bc)
-    self.expects(:footer_js_string).with('beacon', 'a' * 40, 1).returns('footer js')
-    assert_equal('footer js', generate_footer_js, 'should generate and return the footer JS when there is a start time')
+    NewRelic::Agent.instance.stubs(:beacon_configuration).returns(fake_bc)
+    self.expects(:footer_js_string).with(NewRelic::Agent.instance.beacon_configuration, 'beacon', 'a' * 40, 1).returns('footer js')
+    assert_equal('footer js', generate_footer_js(NewRelic::Agent.instance.beacon_configuration), 'should generate and return the footer JS when there is a start time')
   end
 
   def test_browser_monitoring_transaction_name_basic
-    Thread.current[:newrelic_most_recent_transaction] = 'a transaction name'
+    NewRelic::Agent.instance.stats_engine.scope_name = 'a transaction name'
     assert_equal('a transaction name', browser_monitoring_transaction_name, "should take the value from the thread local")
   end
 
   def test_browser_monitoring_transaction_name_empty
-    Thread.current[:newrelic_most_recent_transaction] = ''
+    NewRelic::Agent.instance.stats_engine.scope_name = ''
     assert_equal('', browser_monitoring_transaction_name, "should take the value even when it is empty")
   end
 
   def test_browser_monitoring_transaction_name_nil
-    Thread.current[:newrelic_most_recent_transaction] = nil
+    NewRelic::Agent.instance.stats_engine.scope_name = nil
     assert_equal('<unknown>', browser_monitoring_transaction_name, "should fill in a default when it is nil")
   end
 
   def test_browser_monitoring_start_time
-    Thread.current[:newrelic_start_time] = Time.at(100)
+    Thread.current[:current_transaction_sample] = mock('transaction sample')
+    Thread.current[:current_transaction_sample].stubs(:start_time).returns(Time.at(100))
+    Thread.current[:current_transaction_sample].stubs(:guid).returns('ABC')
     assert_equal(Time.at(100), browser_monitoring_start_time, "should take the value from the thread local")
   end
 
@@ -205,22 +201,24 @@ var e=document.createElement("script");'
   end
 
   def test_browser_monitoring_queue_time_nil
-    Thread.current[:newrelic_queue_time] = nil
     assert_equal(0.0, browser_monitoring_queue_time, 'should return zero when there is no queue time')
   end
 
   def test_browser_monitoring_queue_time_zero
-    Thread.current[:newrelic_queue_time] = 0.0
+    frame = Thread.current[:last_metric_frame] = mock('metric frame')
+    frame.expects(:queue_time).returns(0.0)
     assert_equal(0.0, browser_monitoring_queue_time, 'should return zero when there is zero queue time')
   end
 
   def test_browser_monitoring_queue_time_ducks
-    Thread.current[:newrelic_queue_time] = 'a duck'
+    frame = Thread.current[:last_metric_frame] = mock('metric frame')
+    frame.expects(:queue_time).returns('a duck')
     assert_equal(0.0, browser_monitoring_queue_time, 'should return zero when there is an incorrect queue time')
   end
 
   def test_browser_monitoring_queue_time_nonzero
-    Thread.current[:newrelic_queue_time] = 3.00002
+    frame = Thread.current[:last_metric_frame] = mock('metric frame')
+    frame.expects(:queue_time).returns(3.00002)
     assert_equal(3000, browser_monitoring_queue_time, 'should return a rounded time')
   end
 
@@ -229,24 +227,26 @@ var e=document.createElement("script");'
     license_key = ''
     application_id = 1
 
-    Thread.current[:newrelic_queue_time] = nil
     # mocking this because JRuby thinks that Time.now - Time.now
     # always takes at least 1ms
     self.expects(:browser_monitoring_app_time).returns(0)
-    Thread.current[:newrelic_most_recent_transaction] = 'most recent transaction'
+    NewRelic::Agent.instance.stats_engine.scope_name = 'most recent transaction'
     frame = Thread.current[:last_metric_frame] = mock('metric frame')
     user_attributes = {:user => "user", :account => "account", :product => "product"}
     frame.expects(:user_attributes).returns(user_attributes).at_least_once
+    frame.expects(:queue_time).returns(0)
 
-    self.expects(:obfuscate).with('most recent transaction').returns('most recent transaction')
-    self.expects(:obfuscate).with('user').returns('user')
-    self.expects(:obfuscate).with('account').returns('account')
-    self.expects(:obfuscate).with('product').returns('product')
+    Thread.current[:current_transaction_sample] = mock('transaction sample')
+    Thread.current[:current_transaction_sample].stubs(:start_time).returns(Time.at(100))
+    Thread.current[:current_transaction_sample].stubs(:guid).returns('ABC')
 
-    Thread.current[:tt_guid] = "guid"
+    self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'most recent transaction').returns('most recent transaction')
+    self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'user').returns('user')
+    self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'account').returns('account')
+    self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'product').returns('product')
 
-    value = footer_js_string(beacon, license_key, application_id)
-    assert_equal("<script type=\"text/javascript\">if (!NREUMQ.f) NREUMQ.f=function() {\nNREUMQ.push([\"load\",new Date().getTime()]);\nvar e=document.createElement(\"script\");\ne.type=\"text/javascript\";e.async=true;e.src=\"this_is_my_file\";\ndocument.body.appendChild(e);\nif(NREUMQ.a)NREUMQ.a();\n};\nif(window.onload!==NREUMQ.f){NREUMQ.a=window.onload;window.onload=NREUMQ.f;};\nNREUMQ.push([\"nrf2\",\"\",\"\",1,\"most recent transaction\",0,0,new Date().getTime(),\"guid\",\"user\",\"account\",\"product\"])</script>", value, "should return the javascript given some default values")
+    value = footer_js_string(NewRelic::Agent.instance.beacon_configuration, beacon, license_key, application_id)
+    assert_equal("<script type=\"text/javascript\">if (!NREUMQ.f) { NREUMQ.f=function() {\nNREUMQ.push([\"load\",new Date().getTime()]);\nvar e=document.createElement(\"script\");\ne.type=\"text/javascript\";e.async=true;e.src=\"this_is_my_file\";\ndocument.body.appendChild(e);\nif(NREUMQ.a)NREUMQ.a();\n};\nNREUMQ.a=window.onload;window.onload=NREUMQ.f;\n};\nNREUMQ.push([\"nrf2\",\"\",\"\",1,\"most recent transaction\",0,0,new Date().getTime(),\"ABC\",\"user\",\"account\",\"product\"])</script>", value, "should return the javascript given some default values")
   end
 
   def test_html_safe_if_needed_unsafed
@@ -272,7 +272,7 @@ var e=document.createElement("script");'
     text = 'a happy piece of small text'
     key = (1..40).to_a
     NewRelic::Agent.instance.beacon_configuration.expects(:license_bytes).returns(key)
-    output = obfuscate(text)
+    output = obfuscate(NewRelic::Agent.instance.beacon_configuration, text)
     assert_equal('YCJrZXV2fih5Y25vaCFtZSR2a2ZkZSp/aXV1', output, "should output obfuscated text")
   end
 
@@ -280,7 +280,7 @@ var e=document.createElement("script");'
     text = 'a happy piece of small text' * 5
     key = (1..40).to_a
     NewRelic::Agent.instance.beacon_configuration.expects(:license_bytes).returns(key)
-    output = obfuscate(text)
+    output = obfuscate(NewRelic::Agent.instance.beacon_configuration, text)
     assert_equal('YCJrZXV2fih5Y25vaCFtZSR2a2ZkZSp/aXV1YyNsZHZ3cSl6YmluZCJsYiV1amllZit4aHl2YiRtZ3d4cCp7ZWhiZyNrYyZ0ZWhmZyx5ZHp3ZSVuZnh5cyt8ZGRhZiRqYCd7ZGtnYC11Z3twZCZvaXl6cix9aGdgYSVpYSh6Z2pgYSF2Znxx', output, "should output obfuscated text")
   end
 end

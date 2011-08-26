@@ -14,7 +14,6 @@ class NewRelic::Agent::Instrumentation::MetricFrame::PopTest < Test::Unit::TestC
   end
 
   def teardown
-    Thread.current[:newrelic_start_time] = nil
     Thread.current[:newrelic_metric_frame] = nil
   end
 
