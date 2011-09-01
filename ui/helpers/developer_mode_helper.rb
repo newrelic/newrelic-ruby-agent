@@ -27,8 +27,8 @@ module NewRelic::DeveloperModeHelper
   def application_caller(trace)
     trace = strip_nr_from_backtrace(trace) unless params[:show_nr]
     trace.each do |trace_line|
-      file = file_and_line(trace_line).first
-      unless exclude_file_from_stack_trace?(file, false)
+      file, line, gem = file_and_line(trace_line)
+      unless file && exclude_file_from_stack_trace?(file, false, gem)
         return trace_line
       end
     end
@@ -38,8 +38,8 @@ module NewRelic::DeveloperModeHelper
   def application_stack_trace(trace, include_rails = false)
     trace = strip_nr_from_backtrace(trace) unless params[:show_nr]
     trace.reject do |trace_line|
-      file = file_and_line(trace_line).first
-      exclude_file_from_stack_trace?(file, include_rails)
+      file, line, gem = file_and_line(trace_line)
+      file && exclude_file_from_stack_trace?(file, include_rails, gem)
     end
   end
 
@@ -60,7 +60,7 @@ module NewRelic::DeveloperModeHelper
 
   def url_for_source(trace_line)
     file, line = file_and_line(trace_line)
-
+    return "#" if file.nil?
     begin
       file = Pathname.new(file).realpath
     rescue Errno::ENOENT
@@ -70,7 +70,6 @@ module NewRelic::DeveloperModeHelper
     rescue
       # catch all other exceptions.  We're going to create an invalid link below, but that's okay.
     end
-
     if using_textmate?
       "txmt://open?url=file://#{file}&line=#{line}"
     else
@@ -230,8 +229,14 @@ module NewRelic::DeveloperModeHelper
   end
 
   private
+  # return three objects, the file path, the line in the file, and the gem the file belongs to 
+  # if found
   def file_and_line(stack_trace_line)
-    stack_trace_line.match(/(.*):(\d+)/)[1..2]
+    if stack_trace_line =~ /^(?:(\w+) \([\d.]*\) )?(.*):(\d+)/
+      return $2, $3, $1
+    else
+      return nil
+    end
   end
 
   def using_textmate?
@@ -262,9 +267,10 @@ module NewRelic::DeveloperModeHelper
     html
   end
 
-  def exclude_file_from_stack_trace?(file, include_rails)
+  def exclude_file_from_stack_trace?(file, include_rails, gem=nil)
     return false if include_rails
     return true if file !~ /\.(rb|java)/
+    return true if %w[rack activerecord activeresource activesupport actionpack railties].include? gem
     %w[/actionmailer/
              /activerecord
              /activeresource
