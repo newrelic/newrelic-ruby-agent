@@ -89,7 +89,7 @@ module NewRelic
       end
 
       def browser_monitoring_transaction_name
-        current_transaction.params[:path]
+        current_transaction.params[:path] || "(unknown)"
       end
 
       def browser_monitoring_start_time
