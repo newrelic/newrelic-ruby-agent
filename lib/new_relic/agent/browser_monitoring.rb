@@ -7,6 +7,9 @@ module NewRelic
     module BrowserMonitoring
       
       class DummyTransactionSample
+        def initialize
+          @params = {:path => '(unknown)'}
+        end
         
         def start_time
           Time.now
@@ -16,6 +19,9 @@ module NewRelic
           ""
         end
         
+        def params
+          @params
+        end
       end
       
       class DummyMetricFrame
@@ -83,7 +89,7 @@ module NewRelic
       end
 
       def browser_monitoring_transaction_name
-        NewRelic::Agent.instance.stats_engine.scope_name || "<unknown>"
+        current_transaction.params[:path]
       end
 
       def browser_monitoring_start_time
