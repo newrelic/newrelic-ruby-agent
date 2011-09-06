@@ -46,7 +46,8 @@ module NewRelic
       end
 
       def notice_transaction(path, uri=nil, params={})
-        transaction_data.set_transaction_info(path, uri, params) if !disabled && transaction_data
+        guid = NewRelic::Agent.instance.transaction_sampler.builder.sample.guid
+        transaction_data.set_transaction_info(path, uri, params, guid) if !disabled && transaction_data
       end
 
       def notice_first_scope_push(time)
@@ -135,15 +136,17 @@ module NewRelic
       attr_reader :uri
       attr_reader :params
       attr_reader :sql_data
+      attr_reader :guid
 
       def initialize
         @sql_data = []
       end
 
-      def set_transaction_info(path, uri, params)
+      def set_transaction_info(path, uri, params, guid)
         @path = path
         @uri = uri
         @params = params
+        @guid = guid
       end
     end
 

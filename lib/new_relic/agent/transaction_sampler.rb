@@ -399,8 +399,6 @@ module NewRelic
         @slowest_sample = nil
       end
 
-      private
-
       # Checks to see if the transaction sampler is disabled, if
       # transaction trace recording is disabled by a thread local, or
       # if execution is untraced - if so it clears the transaction
