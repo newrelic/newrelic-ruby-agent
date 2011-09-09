@@ -16,8 +16,6 @@ module NewRelic
           "#{file_name(segments[-2])} Template"
         when "Partial"
           "#{file_name(segments[-2])} Partial"
-        when "Collection"
-          "#{file_name(segments[-2])} Collection"
         when ".rhtml Processing"
           "ERB compilation"
         else
@@ -30,8 +28,6 @@ module NewRelic
           "#{file_name(segments[1..-2].join(NewRelic::MetricParser::MetricParser::SEPARATOR))} Template"
         when "Partial"
           "#{file_name(segments[1..-2].join(NewRelic::MetricParser::MetricParser::SEPARATOR))} Partial"
-        when "Collection"
-          "#{file_name(segments[1..-2].join(NewRelic::MetricParser::MetricParser::SEPARATOR))} Collection"
         when ".rhtml Processing"
           "ERB compilation"
         else

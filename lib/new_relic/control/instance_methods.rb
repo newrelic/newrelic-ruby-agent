@@ -45,6 +45,7 @@ module NewRelic
       #
       def init_plugin(options={})
         options['app_name'] = ENV['NEWRELIC_APP_NAME'] if ENV['NEWRELIC_APP_NAME']
+        options['app_name'] ||= ENV['NEW_RELIC_APP_NAME'] if ENV['NEW_RELIC_APP_NAME']
 
         # Merge the stringified options into the config as overrides:
         logger_override = options.delete(:log)

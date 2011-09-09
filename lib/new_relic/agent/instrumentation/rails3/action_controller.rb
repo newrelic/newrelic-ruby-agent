@@ -36,21 +36,6 @@ module NewRelic
           end
 
         end
-
-        module ActionView
-          def _render_template(template, layout = nil, options = {}) #:nodoc:
-            if template.respond_to?(:virtual_path)
-              NewRelic::Agent.trace_execution_scoped "View/#{template.virtual_path}/Rendering" do
-                super
-              end
-            else
-              super
-            end
-          end
-
-          module PartialRenderer
-          end
-        end
       end
     end
   end
@@ -77,39 +62,3 @@ DependencyDetection.defer do
   end
 end
 
-DependencyDetection.defer do
-  depends_on do
-    defined?(ActionView) && defined?(ActionView::Base) && defined?(ActionView::Partials)
-  end
-
-  depends_on do
-    defined?(Rails) && Rails::VERSION::MAJOR.to_i == 3
-  end
-
-  depends_on do
-    !NewRelic::Control.instance['disable_view_instrumentation']
-  end
-
-  executes do
-    class ActionView::Base
-      include NewRelic::Agent::Instrumentation::Rails3::ActionView
-    end
-    old_klass = ActionView::Partials::PartialRenderer
-    ActionView::Partials.send :remove_const, :PartialRenderer
-    ActionView::Partials::PartialRenderer = Class.new(old_klass)
-    class ActionView::Partials::PartialRenderer
-      def render_partial(*args)
-        NewRelic::Agent.trace_execution_scoped "View/#{@template.virtual_path}/Partial" do
-          super
-        end
-      end
-
-      def render_collection(*args)
-        name = @template ? @template.virtual_path : "Mixed"
-        NewRelic::Agent.trace_execution_scoped "View/#{name}/Collection" do
-          super
-        end
-      end
-    end
-  end
-end
