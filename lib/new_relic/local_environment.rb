@@ -217,6 +217,7 @@ module NewRelic
       ObjectSpace.each_object(klass) do |x|
         return x
       end
+      return nil
     end
     
     # Sets the @mongrel instance variable if we can find a Mongrel::HttpServer
@@ -228,15 +229,6 @@ module NewRelic
       @mongrel
     end
     
-    # sets the @unicorn instance variable if we can find a Unicorn::HttpServer
-    def unicorn
-      return @unicorn if @unicorn
-      if (defined?(::Unicorn) && defined?(::Unicorn::HttpServer)) && working_jruby?
-        @unicorn = find_class_in_object_space(::Unicorn::HttpServer)
-      end
-      @unicorn
-    end
-
     private
 
     # Although you can override the framework with NEWRELIC_DISPATCHER this
@@ -336,11 +328,11 @@ module NewRelic
     end
 
     def check_for_unicorn
-      return unless defined?(::Unicorn) && defined?(::Unicorn::HttpServer)
-
-      # unlike mongrel, unicorn manages muliple threads and ports, so we
-      # have to map multiple processes into one instance, as we do with passenger
-      @dispatcher = :unicorn
+      if (defined?(::Unicorn) && defined?(::Unicorn::HttpServer)) && working_jruby?
+        v = find_class_in_object_space(::Unicorn::HttpServer)
+        @dispatcher = :unicorn if v 
+        puts "We DETECTED UNICORN???: #{v.inspect}"
+      end
     end
 
     def check_for_sinatra
