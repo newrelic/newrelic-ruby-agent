@@ -1,9 +1,10 @@
 # ENV['SKIP_RAILS'] = 'true'
 require File.expand_path(File.join(File.dirname(__FILE__),'..', '..',
                                    'test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','ui',
+                                   'helpers','developer_mode_helper.rb'))
 
 ENV['RACK_ENV'] = 'test'
-require 'ui/helpers/developer_mode_helper.rb'
 class DeveloperModeTest < Test::Unit::TestCase
   include NewRelic::DeveloperModeHelper
   
