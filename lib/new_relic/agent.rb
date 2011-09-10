@@ -305,7 +305,8 @@ module NewRelic
 
     # Check to see if we are capturing metrics currently on this thread.
     def is_execution_traced?
-      Thread.current[:newrelic_untraced].nil? || Thread.current[:newrelic_untraced].last != false
+      untraced = Thread.current[:newrelic_untrace]
+      untraced.nil? || untraced.last != false
     end
     
     # helper method to check the thread local to determine whether the
