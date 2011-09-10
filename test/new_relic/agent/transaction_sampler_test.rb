@@ -115,7 +115,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   end
 
   def test_notice_push_scope_with_builder
-    NewRelic::Control.instance.expects(:developer_mode?).returns(false)
+    NewRelic::Control.instance.expects(:developer_mode_installed?).returns(false)
     builder = mock('builder')
     builder.expects(:trace_entry).with('a scope', 100.0)
     @sampler.expects(:builder).returns(builder).twice
@@ -124,7 +124,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   end
 
   def test_notice_push_scope_in_dev_mode
-    NewRelic::Control.instance.expects(:developer_mode?).returns(true)
+    NewRelic::Control.instance.expects(:developer_mode_installed?).returns(true)
 
     builder = mock('builder')
     builder.expects(:trace_entry).with('a scope', 100.0)
@@ -230,7 +230,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   end
 
   def test_store_sample_for_developer_mode_in_dev_mode
-    NewRelic::Control.instance.expects(:developer_mode?).returns(true)
+    NewRelic::Control.instance.expects(:developer_mode_installed?).returns(true)
     sample = mock('sample')
     @sampler.expects(:truncate_samples)
     @sampler.store_sample_for_developer_mode(sample)
@@ -238,7 +238,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   end
 
   def test_store_sample_for_developer_mode_no_dev
-    NewRelic::Control.instance.expects(:developer_mode?).returns(false)
+    NewRelic::Control.instance.expects(:developer_mode_installed?).returns(false)
     sample = mock('sample')
     @sampler.store_sample_for_developer_mode(sample)
     assert_equal([], @sampler.instance_variable_get('@samples'))

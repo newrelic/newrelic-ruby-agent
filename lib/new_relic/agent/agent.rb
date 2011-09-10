@@ -541,7 +541,7 @@ module NewRelic
           # disable transaction sampling if disabled by the server
           # and we're not in dev mode
           def check_transaction_sampler_status
-            if control.developer_mode? || @should_send_samples
+            if control.developer_mode_installed? || @should_send_samples
               @transaction_sampler.enable
             else
               @transaction_sampler.disable
