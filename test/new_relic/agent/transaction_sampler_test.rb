@@ -527,18 +527,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     assert_equal([], result, "should not add samples to the array when harvest count is not moduli sampling rate")
   end
 
-  def test_add_random_sample_to_duplicate
-    @sampler.instance_eval { @random_sampling = true }
-    sample = mock('sample')
-    @sampler.instance_eval {
-      @harvest_count = 1
-      @sampling_rate = 2
-      @random_sample = sample
-    }
-    result = [sample]
-    @sampler.add_random_sample_to(result)
-    assert_equal([sample], result, "should not add duplicate samples to the array")
-  end
 
   def test_add_random_sample_to_activated
     @sampler.instance_eval { @random_sampling = true }

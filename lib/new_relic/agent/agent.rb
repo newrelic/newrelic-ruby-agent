@@ -1161,16 +1161,16 @@ module NewRelic
         def compress_data(object)
           dump = Marshal.dump(object)
 
-          # this checks to make sure mongrel won't choke on big uploads
-          check_post_size(dump)
-
           dump_size = dump.size
 
           return [dump, 'identity'] if dump_size < (64*1024)
 
-          compression = dump_size < 2000000 ? Zlib::BEST_SPEED : Zlib::BEST_COMPRESSION
+          compressed_dump = Zlib::Deflate.deflate(dump, Zlib::DEFAULT_COMPRESSION)
 
-          [Zlib::Deflate.deflate(dump, compression), 'deflate']
+          # this checks to make sure mongrel won't choke on big uploads
+          check_post_size(compressed_dump)
+
+          [compressed_dump, 'deflate']
         end
 
         # Raises a PostTooBigException if the post_string is longer

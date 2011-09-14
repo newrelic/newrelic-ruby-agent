@@ -166,18 +166,23 @@ var e=document.createElement("script");'
   end
 
   def test_browser_monitoring_transaction_name_basic
+    Thread.current[:current_transaction_sample] = mock('transaction sample')
+    Thread.current[:current_transaction_sample].stubs(:params).returns({:path => 'a transaction name'})
+
     NewRelic::Agent.instance.stats_engine.scope_name = 'a transaction name'
     assert_equal('a transaction name', browser_monitoring_transaction_name, "should take the value from the thread local")
   end
 
   def test_browser_monitoring_transaction_name_empty
-    NewRelic::Agent.instance.stats_engine.scope_name = ''
+    Thread.current[:current_transaction_sample] = mock('transaction sample')
+    Thread.current[:current_transaction_sample].stubs(:params).returns({:path => ''})
     assert_equal('', browser_monitoring_transaction_name, "should take the value even when it is empty")
   end
 
   def test_browser_monitoring_transaction_name_nil
-    NewRelic::Agent.instance.stats_engine.scope_name = nil
-    assert_equal('<unknown>', browser_monitoring_transaction_name, "should fill in a default when it is nil")
+    Thread.current[:current_transaction_sample] = mock('transaction sample')
+    Thread.current[:current_transaction_sample].stubs(:params).returns({})
+    assert_equal('(unknown)', browser_monitoring_transaction_name, "should fill in a default when it is nil")
   end
 
   def test_browser_monitoring_start_time
@@ -230,7 +235,6 @@ var e=document.createElement("script");'
     # mocking this because JRuby thinks that Time.now - Time.now
     # always takes at least 1ms
     self.expects(:browser_monitoring_app_time).returns(0)
-    NewRelic::Agent.instance.stats_engine.scope_name = 'most recent transaction'
     frame = Thread.current[:last_metric_frame] = mock('metric frame')
     user_attributes = {:user => "user", :account => "account", :product => "product"}
     frame.expects(:user_attributes).returns(user_attributes).at_least_once
@@ -239,7 +243,8 @@ var e=document.createElement("script");'
     Thread.current[:current_transaction_sample] = mock('transaction sample')
     Thread.current[:current_transaction_sample].stubs(:start_time).returns(Time.at(100))
     Thread.current[:current_transaction_sample].stubs(:guid).returns('ABC')
-
+    Thread.current[:current_transaction_sample].stubs(:params).returns({:path => 'most recent transaction'})
+    
     self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'most recent transaction').returns('most recent transaction')
     self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'user').returns('user')
     self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'account').returns('account')

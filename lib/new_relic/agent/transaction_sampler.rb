@@ -187,6 +187,12 @@ module NewRelic
       
       def store_force_persist(sample)
         @force_persist << sample
+
+        # WARNING - this clamp should be configurable
+        if @force_persist.length > 15
+          @force_persist.sort! {|a,b| b.duration <=> a.duration}
+          @force_persist = @force_persist[0..14]
+        end
       end
 
       # Samples take up a ton of memory, so we only store a lot of
@@ -319,16 +325,12 @@ module NewRelic
         if (@harvest_count.to_i % @sampling_rate.to_i) == 0
           result << @random_sample if @random_sample
         end
-        result.uniq!
         nil # don't assume this method returns anything
       end
       
       def add_force_persist_to(result)
-        if @force_persist.length > 0
-          result.concat(@force_persist)
-          
-          @force_persist = []
-        end
+        result.concat(@force_persist)
+        @force_persist = []
       end
 
       # Returns an array of slow samples, with either one or two
@@ -346,7 +348,7 @@ module NewRelic
         add_random_sample_to(result)
         add_force_persist_to(result)
         
-        result
+        result.uniq
       end
 
       # get the set of collected samples, merging into previous samples,
@@ -356,8 +358,10 @@ module NewRelic
       def harvest(previous = [], slow_threshold = 2.0)
         return [] if disabled
         result = Array(previous)
+        
         @samples_lock.synchronize do
           result = add_samples_to(result, slow_threshold)
+                    
           # clear previous transaction samples
           @slowest_sample = nil
           @random_sample = nil
