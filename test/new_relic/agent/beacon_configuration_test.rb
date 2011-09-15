@@ -89,7 +89,6 @@ class NewRelic::Agent::BeaconConfigurationTest < Test::Unit::TestCase
   def test_build_load_file_js_load_episodes_file_missing
     connect_data = {}
     bc = NewRelic::Agent::BeaconConfiguration.new(connect_data)
-    
     s = "if (!NREUMQ.f) { NREUMQ.f=function() {\nNREUMQ.push([\"load\",new Date().getTime()]);\nvar e=document.createElement(\"script\");\ne.type=\"text/javascript\";e.async=true;e.src=\"\";\ndocument.body.appendChild(e);\nif(NREUMQ.a)NREUMQ.a();\n};\nNREUMQ.a=window.onload;window.onload=NREUMQ.f;\n};\n"
     
     assert_equal(s, bc.build_load_file_js(connect_data))
@@ -98,7 +97,6 @@ class NewRelic::Agent::BeaconConfigurationTest < Test::Unit::TestCase
   def test_build_load_file_js_load_episodes_file_present
     connect_data = {'rum.load_episodes_file' => true}
     bc = NewRelic::Agent::BeaconConfiguration.new(connect_data)
-    
     s = "if (!NREUMQ.f) { NREUMQ.f=function() {\nNREUMQ.push([\"load\",new Date().getTime()]);\nvar e=document.createElement(\"script\");\ne.type=\"text/javascript\";e.async=true;e.src=\"\";\ndocument.body.appendChild(e);\nif(NREUMQ.a)NREUMQ.a();\n};\nNREUMQ.a=window.onload;window.onload=NREUMQ.f;\n};\n"
     
     assert_equal(s, bc.build_load_file_js(connect_data))

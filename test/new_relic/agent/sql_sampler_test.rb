@@ -98,7 +98,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
                               'guid')
     queries = [
                NewRelic::Agent::SlowSql.new("select * from test where foo in (1, 2)", "Database/test/select", {}, 1.5), 
-               NewRelic::Agent::SlowSql.new("select * from test where foo in (1,2, 3,4,  5,6, 'snausage')", "Database/test/select", {}, 1.2), 
+               NewRelic::Agent::SlowSql.new("select * from test where foo in (1,2, 3 ,4,  5,6, 'snausage')", "Database/test/select", {}, 1.2), 
                NewRelic::Agent::SlowSql.new("select * from test2 where foo in (1,2)", "Database/test2/select", {}, 1.1)
               ]
     data.sql_data.concat(queries)

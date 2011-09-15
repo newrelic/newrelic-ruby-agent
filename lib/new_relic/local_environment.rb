@@ -217,6 +217,7 @@ module NewRelic
       ObjectSpace.each_object(klass) do |x|
         return x
       end
+      return nil
     end
     
     # Sets the @mongrel instance variable if we can find a Mongrel::HttpServer
@@ -228,21 +229,13 @@ module NewRelic
       @mongrel
     end
     
-    # sets the @unicorn instance variable if we can find a Unicorn::HttpServer
-    def unicorn
-      return @unicorn if @unicorn
-      if (defined?(::Unicorn) && defined?(::Unicorn::HttpServer)) && working_jruby?
-        @unicorn = find_class_in_object_space(::Unicorn::HttpServer)
-      end
-      @unicorn
-    end
-
     private
 
     # Although you can override the framework with NEWRELIC_DISPATCHER this
     # is not advisable since it implies certain api's being available.
     def discover_dispatcher
       @dispatcher ||= ENV['NEWRELIC_DISPATCHER'] && ENV['NEWRELIC_DISPATCHER'].to_sym
+      @dispatcher ||= ENV['NEW_RELIC_DISPATCHER'] && ENV['NEW_RELIC_DISPATCHER'].to_sym
       dispatchers = %w[passenger torquebox glassfish thin mongrel litespeed webrick fastcgi unicorn sinatra]
       while dispatchers.any? && @dispatcher.nil?
         send 'check_for_'+(dispatchers.shift)
@@ -257,6 +250,7 @@ module NewRelic
       # of JRuby.
       @framework ||= case
                      when ENV['NEWRELIC_FRAMEWORK'] then ENV['NEWRELIC_FRAMEWORK'].to_sym
+                     when ENV['NEW_RELIC_FRAMEWORK'] then ENV['NEW_RELIC_FRAMEWORK'].to_sym
                      when defined?(::NewRelic::TEST) then :test
                      when defined?(::Merb) && defined?(::Merb::Plugins) then :merb
                      when defined?(::Rails) then check_rails_version
@@ -336,11 +330,11 @@ module NewRelic
     end
 
     def check_for_unicorn
-      return unless defined?(::Unicorn) && defined?(::Unicorn::HttpServer)
-
-      # unlike mongrel, unicorn manages muliple threads and ports, so we
-      # have to map multiple processes into one instance, as we do with passenger
-      @dispatcher = :unicorn
+      if (defined?(::Unicorn) && defined?(::Unicorn::HttpServer)) && working_jruby?
+        v = find_class_in_object_space(::Unicorn::HttpServer)
+        @dispatcher = :unicorn if v 
+        puts "We DETECTED UNICORN???: #{v.inspect}"
+      end
     end
 
     def check_for_sinatra

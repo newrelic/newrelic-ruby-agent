@@ -35,7 +35,10 @@ module NewRelic
       # this is for 1.9.1, where strings no longer have Enumerable
       backtrace = backtrace.split("\n") if String === backtrace
       backtrace = backtrace.map &:to_s
-      backtrace = backtrace.reject {|line| line.include?(NewRelic::Control.newrelic_root) }
+      backtrace = backtrace.reject do |line|
+        line.include?(NewRelic::Control.newrelic_root) or
+        line =~ /^newrelic_rpm\s/
+      end
       # rename methods back to their original state
       backtrace = backtrace.collect {|line| line.gsub(/_without_(newrelic|trace)/, "")}
     end

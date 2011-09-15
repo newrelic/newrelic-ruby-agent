@@ -35,7 +35,6 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
 
   def test_finder
     ActiveRecordFixtures::Order.create :id => 0, :name => 'jeff'
-
     find_metric = "ActiveRecord/ActiveRecordFixtures::Order/find"
 
     assert_calls_metrics(find_metric) do
@@ -44,14 +43,20 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
       ActiveRecordFixtures::Order.find_all_by_name "jeff"
       check_metric_count(find_metric, 2)
     end
+  end
 
+  def test_exists
     return if NewRelic::Control.instance.rails_version < "2.3.4" ||
-      NewRelic::Control.instance.rails_version >= "3.1"
+      NewRelic::Control.instance.rails_version >= "3.0.7"
+
+    ActiveRecordFixtures::Order.create :id => 0, :name => 'jeff'
+
+    find_metric = "ActiveRecord/ActiveRecordFixtures::Order/find"    
 
     assert_calls_metrics(find_metric) do
       ActiveRecordFixtures::Order.exists?(["name=?", 'jeff'])
+      check_metric_count(find_metric, 1)
     end
-    check_metric_count(find_metric, 3)
   end
 
   # multiple duplicate find calls should only cause metric trigger on the first

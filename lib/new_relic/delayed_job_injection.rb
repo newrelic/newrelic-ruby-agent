@@ -13,7 +13,7 @@ end
 
 DependencyDetection.defer do
   depends_on do
-    defined?(::Delayed) && defined?(::Delayed::Worker)
+    defined?(::Delayed) && defined?(::Delayed::Worker) && !NewRelic::Control.instance['disable_dj']
   end
   
   executes do

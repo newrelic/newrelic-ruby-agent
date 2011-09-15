@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Bill Kayser", "Jon Guymon", "Justin George", "Darin Swanson"]
-  s.date = %q{2011-08-18}
+  s.date = %q{2011-09-09}
   s.description = %q{New Relic is a performance management system, developed by New Relic,
 Inc (http://www.newrelic.com).  New Relic provides you with deep
 information about the performance of your web application as it runs
@@ -18,7 +18,7 @@ Gem or plugin, hosted on
 http://github.com/newrelic/rpm/
 }
   s.email = %q{support@newrelic.com}
-  s.executables = ["mongrel_rpm", "newrelic", "newrelic_cmd"]
+  s.executables = ["newrelic_cmd", "newrelic", "mongrel_rpm"]
   s.extra_rdoc_files = [
     "CHANGELOG",
     "LICENSE",
@@ -44,6 +44,7 @@ http://github.com/newrelic/rpm/
     "lib/new_relic/agent/browser_monitoring.rb",
     "lib/new_relic/agent/busy_calculator.rb",
     "lib/new_relic/agent/chained_call.rb",
+    "lib/new_relic/agent/database.rb",
     "lib/new_relic/agent/error_collector.rb",
     "lib/new_relic/agent/instrumentation.rb",
     "lib/new_relic/agent/instrumentation/active_merchant.rb",
@@ -148,6 +149,7 @@ http://github.com/newrelic/rpm/
     "test/new_relic/agent/beacon_configuration_test.rb",
     "test/new_relic/agent/browser_monitoring_test.rb",
     "test/new_relic/agent/busy_calculator_test.rb",
+    "test/new_relic/agent/database_test.rb",
     "test/new_relic/agent/error_collector/notice_error_test.rb",
     "test/new_relic/agent/error_collector_test.rb",
     "test/new_relic/agent/instrumentation/active_record_instrumentation_test.rb",
@@ -189,6 +191,7 @@ http://github.com/newrelic/rpm/
     "test/new_relic/metric_spec_test.rb",
     "test/new_relic/rack/all_test.rb",
     "test/new_relic/rack/browser_monitoring_test.rb",
+    "test/new_relic/rack/developer_mode_helper_test.rb",
     "test/new_relic/rack/developer_mode_test.rb",
     "test/new_relic/stats_test.rb",
     "test/new_relic/transaction_analysis/segment_summary_test.rb",
