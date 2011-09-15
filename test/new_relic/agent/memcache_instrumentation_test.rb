@@ -2,10 +2,10 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 
 memcached_ready = false
 classes = {
-#   'memcache' => 'MemCache'
-#   'dalli' => 'Dalli::Client'
-#   'memcached' => 'Memcached'
-  'spymemcached' => 'Spymemcached'
+#   'memcache' => 'MemCache',
+#   'dalli' => 'Dalli::Client',
+  'memcached' => 'Memcached'
+#   'spymemcached' => 'Spymemcached'
 }
 begin
   TCPSocket.new('localhost', 11211)
@@ -23,9 +23,15 @@ rescue Errno::ECONNREFUSED
 rescue Errno::ETIMEDOUT
 end
 
+# this is to test that instrumentation loads if there is a bogus
+# constant defined
+# if !defined?(::MemCache)
+#   class ::MemCache; end
+# end
+
 class NewRelic::Agent::MemcacheInstrumentationTest < Test::Unit::TestCase
   include NewRelic::Agent::Instrumentation::ControllerInstrumentation
-
+  
   def setup
     NewRelic::Agent.manual_start
     @engine = NewRelic::Agent.instance.stats_engine
@@ -43,7 +49,7 @@ class NewRelic::Agent::MemcacheInstrumentationTest < Test::Unit::TestCase
   end
   
   def teardown
-    if MEMCACHED_CLASS.name == 'Memecached'
+    if MEMCACHED_CLASS.name == 'Memcached'
       @cache.flush
     elsif MEMCACHED_CLASS.name == 'Spymemcached'
       @cache.flush
@@ -139,6 +145,16 @@ class NewRelic::Agent::MemcacheInstrumentationTest < Test::Unit::TestCase
       compare_metrics expected_metrics, @engine.metrics.select{|m| m =~ /^memcache.*/i}
       assert_equal 3, @cache.get(@key)
     end    
-  end
-
+  end  
 end if memcached_ready
+
+# class NewRelic::Agent::MemcacheInstrumentationInstallationTest < Test::Unit::TestCase
+
+  
+#   def test_should_load_instrumentation_if_bogus_constants_are_defined
+#     NewRelic::Agent::Instrumentation::Memcache.expects(:instrument_methods) \
+#       .with(Memcached, anything)
+
+#     DependencyDetection.detect!
+#   end
+# end
