@@ -44,27 +44,35 @@ DependencyDetection.defer do
   depends_on do
     !NewRelic::Control.instance['disable_memcache_instrumentation']
   end
-  
-  executes do
-    NewRelic::Agent.logger.debug 'Installing Memcached instrumentation'
+
+  depends_on do
+    defined?(::MemCache) || defined?(::Memcached) ||
+      defined?(::Dalli::Client) || defined?(::Spymemcached)
   end
-  
+    
   executes do
     commands = %w[get get_multi set add incr decr delete replace append prepend]
     if defined? ::MemCache
       NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::MemCache,
-                                                                   commands)
-    elsif defined? ::Memcached
+                                                                    commands)
+      NewRelic::Agent.logger.debug 'Installing MemCache instrumentation'
+    end
+    if defined? ::Memcached
       commands << 'cas'
       NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::Memcached,
-                                                                   commands)
-    elsif defined? ::Dalli::Client
+                                                                    commands)
+      NewRelic::Agent.logger.debug 'Installing Memcached instrumentation'
+    end
+    if defined? ::Dalli::Client
       NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::Dalli::Client,
-                                                                   commands)
-    elsif defined? ::Spymemcached
+                                                                    commands)
+      NewRelic::Agent.logger.debug 'Installing Dalli Memcache instrumentation'
+    end
+    if defined? ::Spymemcached
       commands << 'multiget'
       NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::Spymemcached,
-                                                                   commands)
+                                                                    commands)
+      NewRelic::Agent.logger.debug 'Installing Spymemcached instrumentation'
     end
   end
 end
