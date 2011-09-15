@@ -52,6 +52,7 @@ class NewRelic::Control::ConfigurationTest < Test::Unit::TestCase
     config = stub('rails config', :middleware => middleware)
     middleware.expects(:use).with(NewRelic::Rack::BrowserMonitoring)
     NewRelic::Control.instance['browser_monitoring'] = { 'auto_instrument' => true }
+    NewRelic::Control.instance.instance_eval { @browser_monitoring_installed = false }
 
     NewRelic::Control.instance.install_browser_monitoring(config)
   end
@@ -61,7 +62,10 @@ class NewRelic::Control::ConfigurationTest < Test::Unit::TestCase
     config = stub('rails config', :middleware => middleware)
     middleware.expects(:use).never
     NewRelic::Control.instance['browser_monitoring'] = { 'auto_instrument' => false }
+    NewRelic::Control.instance.instance_eval { @browser_monitoring_installed = false }
+    
+    NewRelic::Control.instance.install_browser_monitoring(config)
 
-    NewRelic::Control.instance.install_browser_monitoring(config)    
+    NewRelic::Control.instance['browser_monitoring'] = { 'auto_instrument' => true }
   end
 end
