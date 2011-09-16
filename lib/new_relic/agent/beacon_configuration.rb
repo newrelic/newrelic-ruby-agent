@@ -28,6 +28,13 @@ module NewRelic
       # local config
       attr_reader :rum_enabled
       
+      # whether JSONP is used to communicate with the Beacon or not
+      attr_reader :rum_jsonp
+      
+      # RUM footer command used for 'finish' - based on whether JSONP is
+      # being used. 'nrfj' for JSONP, otherwise 'nrf2'
+      attr_reader :finish_command
+      
       # A static javascript header that is identical for every account
       # and application
       JS_HEADER = "<script type=\"text/javascript\">var NREUMQ=NREUMQ||[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);</script>"
@@ -45,6 +52,10 @@ module NewRelic
         NewRelic::Control.instance.log.debug("Browser timing header: #{@browser_timing_header.inspect}")
         @browser_timing_static_footer = build_load_file_js(connect_data)
         NewRelic::Control.instance.log.debug("Browser timing static footer: #{@browser_timing_static_footer.inspect}")
+        @rum_jsonp = connect_data['rum.jsonp']
+        @rum_jsonp = true if @rum_jsonp.nil?
+        NewRelic::Control.instance.log.debug("Real User Monitoring is using JSONP protocol") if @rum_jsonp
+        @finish_command = @rum_jsonp ?  'nrfj' : 'nrf2'
       end
       
       # returns a memoized version of the bytes in the license key for

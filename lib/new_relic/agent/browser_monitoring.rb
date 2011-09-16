@@ -132,7 +132,7 @@ module NewRelic
         account = obfuscate(config, metric_frame_attribute(:account))
         product = obfuscate(config, metric_frame_attribute(:product))
         
-        html_safe_if_needed("<script type=\"text/javascript\">#{config.browser_timing_static_footer}NREUMQ.push([\"nrf2\",\"#{beacon}\",\"#{license_key}\",#{application_id},\"#{obfuscated_transaction_name}\",#{browser_monitoring_queue_time},#{browser_monitoring_app_time},new Date().getTime(),\"#{tt_guid}\",\"#{user}\",\"#{account}\",\"#{product}\"])</script>")
+        html_safe_if_needed("<script type=\"text/javascript\">#{config.browser_timing_static_footer}NREUMQ.push([\"#{config.finish_command}\",\"#{beacon}\",\"#{license_key}\",#{application_id},\"#{obfuscated_transaction_name}\",#{browser_monitoring_queue_time},#{browser_monitoring_app_time},new Date().getTime(),\"#{tt_guid}\",\"#{user}\",\"#{account}\",\"#{product}\"])</script>")
       end
 
       def html_safe_if_needed(string)
