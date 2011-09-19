@@ -118,7 +118,8 @@ module NewRelic
 
       def log_to_stdout?
         return true if @stdout
-        if fetch('log_file_path', 'log') == 'STDOUT'
+        destination = ENV['NEW_RELIC_LOG'] || fetch('log_file_path', 'log')
+        if destination.upcase == 'STDOUT'
           @stdout = true
         end
       end

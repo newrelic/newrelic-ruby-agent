@@ -164,5 +164,22 @@ class NewRelic::Control::LoggingMethodsTest < Test::Unit::TestCase
     @base.setup_log
     @base.log.info('whee')
   end
-end
 
+  def test_set_stdout_destination_from_NEW_RELIC_LOG_env_var
+    @base.stubs(:fetch).returns('whatever')
+    ENV['NEW_RELIC_LOG'] = 'stdout'
+    Dir.expects(:mkdir).never
+    @base.setup_log
+    assert_equal STDOUT, @base.log.instance_eval { @logdev }.dev
+    ENV['NEW_RELIC_LOG'] = nil
+  end
+
+  def test_set_file_destination_from_NEW_RELIC_LOG_env_var
+    @base.stubs(:fetch).returns('whatever')
+    ENV['NEW_RELIC_LOG'] = 'log/file.log'
+    @base.setup_log
+    assert_equal 'log', @base.log_file_path
+    assert_equal 'file.log', @base.log_file_name
+    ENV['NEW_RELIC_LOG'] = nil    
+  end
+end
