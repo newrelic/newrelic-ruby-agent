@@ -41,7 +41,7 @@ module NewRelic
           if !agent_enabled?
             # Might not be running if it does not think mongrel, thin, passenger, etc
             # is running, if it things it's a rake task, or if the agent_enabled is false.
-            log! "New Relic Agent not running."
+            log! "New Relic Agent not running." unless env == "test"
           else
             log! "Starting the New Relic Agent."
             install_developer_mode rails_config if developer_mode?
