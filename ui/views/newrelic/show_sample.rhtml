@@ -62,7 +62,7 @@
 <br/>
 <div id="view_sample">
 	<% if @sample.profile %>
-	  <%= profile_table(@sample.profile) %> 
+	  <%= profile_table(@sample, @profile_options) %>
 	<% else %>
 	<div align=center width="100%">
 		<%= show_view_link 'Summary', 'show_sample_summary' %>

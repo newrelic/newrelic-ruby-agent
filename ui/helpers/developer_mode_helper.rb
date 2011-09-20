@@ -343,10 +343,25 @@ module NewRelic::DeveloperModeHelper
     parts.join '.'
   end
 
-  def profile_table(profile)
+  SORT_REPLACEMENTS = {
+      "Total" => :total_time,
+      "Self" => :self_time,
+      "Child" => :children_time,
+      "Wait" => :wait_time
+  }
+
+  def profile_table(sample, options)
     out = StringIO.new
-    printer = RubyProf::GraphHtmlPrinter.new(profile)
-    printer.print(out, :min_percent=>0.5)
-    out.string[/<body>(.*)<\/body>/im, 0].gsub('<table>', '<table class=profile>')
+    printer = RubyProf::GraphHtmlPrinter.new(sample.profile)
+    printer.print(out, options)
+    out = out.string[/<body>(.*)<\/body>/im, 0].gsub('<table>', '<table class=profile>')
+    SORT_REPLACEMENTS.each do |text, param|
+      replacement = (options[:sort_method] == param) ?
+          "<th> #{text}&nbsp;&darr;</th>" :
+          "<th>#{link_to text, "show_sample_summary?id=#{sample.sample_id}&sort=#{param}"}</th>"
+
+      out.gsub!(/<th> +#{text}<\/th>/, replacement)
+    end
+    out
   end
 end
