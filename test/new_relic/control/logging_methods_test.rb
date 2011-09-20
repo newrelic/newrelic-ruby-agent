@@ -178,7 +178,7 @@ class NewRelic::Control::LoggingMethodsTest < Test::Unit::TestCase
     @base.stubs(:fetch).returns('whatever')
     ENV['NEW_RELIC_LOG'] = 'log/file.log'
     @base.setup_log
-    assert_equal 'log', @base.log_file_path
+    assert_equal 'log', File.basename(@base.log_path)
     assert_equal 'file.log', @base.log_file_name
     ENV['NEW_RELIC_LOG'] = nil    
   end
