@@ -228,6 +228,9 @@ module NewRelic
         if params['d']
           @sql_segments.sort!{|a,b| b.duration <=> a.duration }
         end
+
+        sort_method = params['sort'] || :total_time
+        @profile_options = {:min_percent => 0.5, :sort_method => sort_method.to_sym}
         
         render(:show_sample)
       end
