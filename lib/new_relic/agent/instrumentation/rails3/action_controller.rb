@@ -85,7 +85,11 @@ DependencyDetection.defer do
   depends_on do
     !NewRelic::Control.instance['disable_view_instrumentation']
   end
-
+  
+  executes do
+    NewRelic::Agent.logger.debug 'Installing Rails 3 view instrumentation'
+  end
+  
   executes do
     class ActionView::Base
       include NewRelic::Agent::Instrumentation::Rails3::ActionView
