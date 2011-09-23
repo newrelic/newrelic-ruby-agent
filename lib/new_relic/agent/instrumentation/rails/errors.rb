@@ -1,4 +1,6 @@
 DependencyDetection.defer do
+  @name = :rails2_error
+  
   depends_on do
     defined?(ActionController) && defined?(ActionController::Base)
   end
@@ -8,7 +10,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.debug 'Installing Rails Error instrumentation'
+    NewRelic::Agent.logger.debug 'Installing Rails 2 Error instrumentation'
   end  
   
   executes do

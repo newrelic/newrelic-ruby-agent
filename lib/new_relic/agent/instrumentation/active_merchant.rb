@@ -1,4 +1,6 @@
 DependencyDetection.defer do
+  @name = :active_merchant
+  
   depends_on do
     defined?(ActiveMerchant) && defined?(ActiveMerchant::Billing)
   end

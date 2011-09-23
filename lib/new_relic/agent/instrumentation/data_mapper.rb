@@ -38,6 +38,8 @@
 #     towards scope) so they don't show up ine normal call graph/trace.
 
 DependencyDetection.defer do
+  @name = :data_mapper
+  
   depends_on do
     defined?(::DataMapper)
   end

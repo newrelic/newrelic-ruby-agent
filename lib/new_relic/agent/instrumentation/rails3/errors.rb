@@ -15,6 +15,8 @@ module NewRelic
 end
 
 DependencyDetection.defer do
+  @name = :rails3_error
+  
   depends_on do
     defined?(::Rails) && ::Rails.respond_to?(:version) && ::Rails.version.to_i == 3
   end

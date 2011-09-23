@@ -79,6 +79,8 @@ module NewRelic
 end
 
 DependencyDetection.defer do
+  @name = :rails3_active_record
+  
   depends_on do
     defined?(ActiveRecord) && defined?(ActiveRecord::Base)
   end
@@ -96,7 +98,7 @@ DependencyDetection.defer do
   end
   
   executes do
-    NewRelic::Agent.logger.debug 'Installing Rails3 ActiveRecord instrumentation'
+    NewRelic::Agent.logger.debug 'Installing Rails 3 ActiveRecord instrumentation'
   end
   
   executes do

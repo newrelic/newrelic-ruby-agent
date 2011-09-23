@@ -41,6 +41,8 @@ module NewRelic
 end
 
 DependencyDetection.defer do
+  @name = :memcache
+  
   depends_on do
     !NewRelic::Control.instance['disable_memcache_instrumentation']
   end

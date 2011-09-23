@@ -53,6 +53,8 @@ module NewRelic
 end
 
 DependencyDetection.defer do
+  @name = :rails3_controller
+  
   depends_on do
     defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i == 3
   end
@@ -62,7 +64,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.debug 'Installing Rails3 Controller instrumentation'
+    NewRelic::Agent.logger.debug 'Installing Rails 3 Controller instrumentation'
   end  
   
   executes do
@@ -74,6 +76,8 @@ DependencyDetection.defer do
 end
 
 DependencyDetection.defer do
+  @name = :rails3_view
+  
   depends_on do
     defined?(ActionView) && defined?(ActionView::Base) && defined?(ActionView::Partials)
   end
