@@ -333,7 +333,6 @@ module NewRelic
       if (defined?(::Unicorn) && defined?(::Unicorn::HttpServer)) && working_jruby?
         v = find_class_in_object_space(::Unicorn::HttpServer)
         @dispatcher = :unicorn if v 
-        puts "We DETECTED UNICORN???: #{v.inspect}"
       end
     end
 
