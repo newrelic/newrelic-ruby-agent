@@ -3,6 +3,9 @@ v3.2.0
     actual server is running
   * Improve developer mode backtraces to support ruby 1.9.2, windows, and fix
     nil de-reference in developer mode
+  * Fixed some cases where Memcache instrumentation was failing to load
+  * Added View instrumentation back for Rails 3.1
+  * Ability to set log destination by NEW_RELIC_LOG env var
   
 v3.1.2
   * Fixed some thread safety issues
