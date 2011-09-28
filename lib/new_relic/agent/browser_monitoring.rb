@@ -19,6 +19,14 @@ module NewRelic
           ""
         end
         
+        def force_persist
+          false
+        end
+        
+        def duration
+          0
+        end
+        
         def params
           @params
         end
@@ -109,7 +117,9 @@ module NewRelic
       end
       
       def tt_guid
-        current_transaction.guid
+        txn = current_transaction
+        return txn.guid if txn.force_persist && txn.duration > NewRelic::Control.instance.apdex_t
+        ""
       end
       
       def clamp_to_positive(value)
