@@ -95,7 +95,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
     data = NewRelic::Agent::TransactionSqlData.new
     data.set_transaction_info "WebTransaction/Controller/c/a", "/c/a", {}
     queries = [
-               NewRelic::Agent::SlowSql.new("select * from test where foo in (1, 2)", "Database/test/select", {}, 1.5), 
+               NewRelic::Agent::SlowSql.new("select  * from test where foo in (1, 2)  ", "Database/test/select", {}, 1.5), 
                NewRelic::Agent::SlowSql.new("select * from test where foo in (1,2, 3 ,4,  5,6, 'snausage')", "Database/test/select", {}, 1.2), 
                NewRelic::Agent::SlowSql.new("select * from test2 where foo in (1,2)", "Database/test2/select", {}, 1.1)
               ]
@@ -132,4 +132,8 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
     assert_equal(["bar0", "bar1", "bar2"],
                  sql_traces[1].params[:explain_plan][1][0].sort)
   end
+
+#   def test_sql_trace_creates_proper_hash_id_for_query
+    
+#   end
 end
