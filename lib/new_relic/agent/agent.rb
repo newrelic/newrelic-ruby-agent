@@ -1069,6 +1069,10 @@ module NewRelic
           unless @traces.empty?
             now = Time.now
             log.debug "Sending (#{@traces.length}) transaction traces"
+            
+            # REMOVE THIS BEFORE SHIPPING
+            log.info "Sending tts with GUIDS #{@traces.collect{|t| t.guid}.join(",")}"
+            
             begin
               options = { :keep_backtraces => true }
               options[:record_sql] = @record_sql unless @record_sql == :off
