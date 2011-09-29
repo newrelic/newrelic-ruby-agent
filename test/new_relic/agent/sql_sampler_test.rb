@@ -132,8 +132,4 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
     assert_equal(["bar0", "bar1", "bar2"],
                  sql_traces[1].params[:explain_plan][1][0].sort)
   end
-
-#   def test_sql_trace_creates_proper_hash_id_for_query
-    
-#   end
 end
