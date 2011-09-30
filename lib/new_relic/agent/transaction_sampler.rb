@@ -350,9 +350,19 @@ module NewRelic
         result = result[-1..-1] || []
         
         add_random_sample_to(result)
+        
+        #REMOVE BEFORE SHIPPING
+        before_fp = result.length # DEBUGGING
         add_force_persist_to(result)
+        after_fp = result.length  # DEBUGGING
         
         result.uniq
+        after_uniq = result.length # DEBUGGING
+        #TODO: REMOVE LOGGGING
+        log = NewRelic::Control.instance.log
+        log.info "BeforeFP: #{before_fp} AfterFP: #{after_fp} AfterUNIQ: #{after_uniq}"
+        
+        result
       end
 
       # get the set of collected samples, merging into previous samples,
