@@ -329,10 +329,6 @@ module NewRelic
       end
       
       def add_force_persist_to(result)
-        #TODO: REMOVE LOGGGING
-        log = NewRelic::Control.instance.log
-        log.info "Harvest force_persist: #{@force_persist.length}"
-        
         result.concat(@force_persist)
         @force_persist = []
       end
@@ -384,7 +380,15 @@ module NewRelic
         
         # Clamp the number of TTs we'll keep in memory and send
         #
+        
+        # REMOVE BEFORE SHIPPING
+        before_clamp = result.length
+        
         result = clamp_number_tts(result, 20) if result.length > 20
+        
+        # REMOVE BEFORE SHIPPING
+        log = NewRelic::Control.instance.log
+        log.info "Before clamp: #{before_clamp} After clamp: #{result.length}"
         
         # Truncate the samples at 2100 segments. The UI will clamp them at 2000 segments anyway.
         # This will save us memory and bandwidth.

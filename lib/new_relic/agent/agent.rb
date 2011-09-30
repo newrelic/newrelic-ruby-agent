@@ -1065,7 +1065,14 @@ module NewRelic
         # segments' execution times exceed our threshold (to avoid
         # unnecessary overhead of running explains on fast queries.)
         def harvest_and_send_slowest_sample
+          # REMOVE THIS BEFORE SHIPPING
+          log.info "BEGIN HARVEST"
+          
           harvest_transaction_traces
+          
+          # REMOVE THIS BEFORE SHIPPING
+          log.info "END HARVEST - #{@traces.length}"
+          
           unless @traces.empty?
             now = Time.now
             # CHANGE BACK TO DEBUG LEVEL BEFORE SHIPPTING
