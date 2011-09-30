@@ -358,7 +358,7 @@ module NewRelic
       def harvest(previous = [], slow_threshold = 2.0)
         # REMOVE BEFORE SHIPPING
         log = NewRelic::Control.instance.log
-        log.info "Sampler Harvest: #{caller()[0]}"
+        log.info "Sampler Harvest: #{caller()[0..1].join("\n")}"
         
         return [] if disabled
         result = Array(previous)
