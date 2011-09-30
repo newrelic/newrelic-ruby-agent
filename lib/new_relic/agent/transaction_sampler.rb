@@ -346,19 +346,9 @@ module NewRelic
         result = result[-1..-1] || []
         
         add_random_sample_to(result)
-        
-        #REMOVE BEFORE SHIPPING
-        before_fp = result.length # DEBUGGING
         add_force_persist_to(result)
-        after_fp = result.length  # DEBUGGING
         
         result.uniq
-        after_uniq = result.length # DEBUGGING
-        #TODO: REMOVE LOGGGING
-        log = NewRelic::Control.instance.log
-        log.info "BeforeFP: #{before_fp} AfterFP: #{after_fp} AfterUNIQ: #{after_uniq}"
-        
-        result
       end
 
       # get the set of collected samples, merging into previous samples,
@@ -366,6 +356,10 @@ module NewRelic
       # specified @segment_limit to save memory and bandwith
       # transmitting samples to the server.
       def harvest(previous = [], slow_threshold = 2.0)
+        # REMOVE BEFORE SHIPPING
+        log = NewRelic::Control.instance.log
+        log.info "Sampler Harvest: #{caller()[0]}"
+        
         return [] if disabled
         result = Array(previous)
         
@@ -380,15 +374,7 @@ module NewRelic
         
         # Clamp the number of TTs we'll keep in memory and send
         #
-        
-        # REMOVE BEFORE SHIPPING
-        before_clamp = result.length
-        
         result = clamp_number_tts(result, 20) if result.length > 20
-        
-        # REMOVE BEFORE SHIPPING
-        log = NewRelic::Control.instance.log
-        log.info "Before clamp: #{before_clamp} After clamp: #{result.length}"
         
         # Truncate the samples at 2100 segments. The UI will clamp them at 2000 segments anyway.
         # This will save us memory and bandwidth.
