@@ -329,6 +329,10 @@ module NewRelic
       end
       
       def add_force_persist_to(result)
+        #TODO: REMOVE LOGGGING
+        log = NewRelic::Control.instance.log
+        log.info "Harvest force_persist: #{@force_persist.length}"
+        
         result.concat(@force_persist)
         @force_persist = []
       end

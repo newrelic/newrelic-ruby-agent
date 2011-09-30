@@ -1068,7 +1068,8 @@ module NewRelic
           harvest_transaction_traces
           unless @traces.empty?
             now = Time.now
-            log.debug "Sending (#{@traces.length}) transaction traces"
+            # CHANGE BACK TO DEBUG LEVEL BEFORE SHIPPTING
+            log.info "Sending (#{@traces.length}) transaction traces"
             
             # REMOVE THIS BEFORE SHIPPING
             log.info "Sending tts with GUIDS #{@traces.collect{|t| t.guid}.join(",")}"
