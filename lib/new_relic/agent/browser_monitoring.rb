@@ -142,14 +142,7 @@ module NewRelic
         account = obfuscate(config, metric_frame_attribute(:account))
         product = obfuscate(config, metric_frame_attribute(:product))
         
-        #TO BE REMOVED - EXTRA DEBUG PARAMETERS
-        txn = current_transaction
-        force_persist = txn.force_persist
-        duration = txn.duration
-        apt = NewRelic::Control.instance.apdex_t
-        capture = Thread.current[:capture_if_greater_than_apdex_t]
-        
-        html_safe_if_needed("<script type=\"text/javascript\">#{config.browser_timing_static_footer}NREUMQ.push([\"#{config.finish_command}\",\"#{beacon}\",\"#{license_key}\",#{application_id},\"#{obfuscated_transaction_name}\",#{browser_monitoring_queue_time},#{browser_monitoring_app_time},new Date().getTime(),\"#{tt_guid}\",\"#{user}\",\"#{account}\",\"#{product}\",\"#{capture}\",\"#{force_persist}\",#{duration},#{apt}])</script>")
+        html_safe_if_needed("<script type=\"text/javascript\">#{config.browser_timing_static_footer}NREUMQ.push([\"#{config.finish_command}\",\"#{beacon}\",\"#{license_key}\",#{application_id},\"#{obfuscated_transaction_name}\",#{browser_monitoring_queue_time},#{browser_monitoring_app_time},new Date().getTime(),\"#{tt_guid}\",\"#{user}\",\"#{account}\",\"#{product}\"])</script>")
       end
 
       def html_safe_if_needed(string)
