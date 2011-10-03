@@ -186,7 +186,7 @@ module NewRelic
       def initialize(normalized_query, slow_sql, path, uri)
         super()
         @params = {} #FIXME
-        @sql_id = normalized_query.hash
+        @sql_id = normalized_query.hash.modulo(2**31-1) # modulo ensures sql_id fits in an INT(11)
         set_primary slow_sql, path, uri
         record_data_point slow_sql.duration
       end

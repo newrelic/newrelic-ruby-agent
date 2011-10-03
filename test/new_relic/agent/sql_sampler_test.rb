@@ -132,4 +132,14 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
     assert_equal(["bar0", "bar1", "bar2"],
                  sql_traces[1].params[:explain_plan][1][0].sort)
   end
+
+  def test_sql_id_fits_in_a_mysql_int_11
+    sql_trace = NewRelic::Agent::SqlTrace.new("select * from test", 
+            NewRelic::Agent::SlowSql.new("select * from test",
+                "Database/test/select", {}, 1.2),
+        "tx_name", "uri")
+    
+    assert -2147483648 <= sql_trace.sql_id, "sql_id too small"
+    assert 2147483647 >= sql_trace.sql_id, "sql_id too large"
+  end
 end
