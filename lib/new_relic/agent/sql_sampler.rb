@@ -19,7 +19,8 @@ module NewRelic
 
       def initialize
         config = NewRelic::Control.instance
-        sampler_config = config.fetch('transaction_tracer', {})
+        sampler_config = config.fetch('sql_tracer',
+                                      config.fetch('transaction_tracer', {}))
         @explain_threshold = sampler_config.fetch('explain_threshold', 0.5).to_f
 #        @stack_trace_threshold = sampler_config.fetch('stack_trace_threshold', 0.500).to_f
         @sql_traces = {}
@@ -43,6 +44,10 @@ module NewRelic
       def disable
         @disabled = true
         NewRelic::Agent.instance.stats_engine.remove_sql_sampler(self)
+      end
+
+      def enabled?
+        !@disabled
       end
 
       def notice_transaction(path, uri=nil, params={})

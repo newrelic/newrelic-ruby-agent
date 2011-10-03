@@ -71,6 +71,10 @@ module NewRelic
         NewRelic::Agent.instance.stats_engine.remove_transaction_sampler(self)
       end
 
+      def enabled?
+        !@disabled
+      end
+
       # Set with an integer value n, this takes one in every n
       # harvested samples. It also resets the harvest count to a
       # random integer between 0 and (n-1)
