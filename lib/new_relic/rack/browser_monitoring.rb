@@ -28,14 +28,15 @@ module NewRelic::Rack
         end
       end
       
-      # Not sure how we feel about productizing this...
+      # Two experimental options for allowing TT capture based on http params
+      #
       if (req.params['nr_capture_deep_tt'])
-        Thread.current[:force_persist] = true
-        Thread.current[:capture_deep_tt] = true
+        # Thread.current[:force_persist] = true
+        # Thread.current[:capture_deep_tt] = true
       end
       
       if (req.params['nr_capture_tt'])
-        Thread.current[:force_persist] = true
+        # Thread.current[:force_persist] = true
       end
       
       result = @app.call(env)   # [status, headers, response]
