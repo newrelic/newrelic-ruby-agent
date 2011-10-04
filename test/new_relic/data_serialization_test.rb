@@ -103,8 +103,9 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
   end
 
   def test_should_send_data_disabled
-    NewRelic::Control.instance[:disable_serialization] = true
-    assert(NewRelic::DataSerialization.should_send_data?, 'should send data when disabled')
+    NewRelic::Control.instance.disable_serialization = true
+    assert(NewRelic::DataSerialization.should_send_data?,
+           'should send data when disabled')
   end
 
   def test_should_send_data_under_limit
