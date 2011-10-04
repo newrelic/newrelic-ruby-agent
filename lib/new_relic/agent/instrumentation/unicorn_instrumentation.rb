@@ -1,4 +1,6 @@
 DependencyDetection.defer do
+  @name = :unicorn
+
   depends_on do
     defined?(::Unicorn) && defined?(::Unicorn::HttpServer)
   end
@@ -9,7 +11,6 @@ DependencyDetection.defer do
   
   executes do
     Unicorn::HttpServer.class_eval do
-      NewRelic::Agent.logger.debug "Installing Unicorn worker hook."
       old_worker_loop = instance_method(:worker_loop)
       define_method(:worker_loop) do | worker |
         NewRelic::Agent.after_fork(:force_reconnect => true)

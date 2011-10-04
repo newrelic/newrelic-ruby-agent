@@ -1,4 +1,6 @@
 DependencyDetection.defer do
+  @name = :sunspot
+
   depends_on do
     defined?(::Sunspot)
   end

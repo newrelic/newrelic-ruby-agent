@@ -1,4 +1,6 @@
 DependencyDetection.defer do
+  @name = :authlogic
+  
   depends_on do
     defined?(AuthLogic) &&
       defined?(AuthLogic::Session) &&

@@ -97,7 +97,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
     data.set_transaction_info("WebTransaction/Controller/c/a", "/c/a", {},
                               'guid')
     queries = [
-               NewRelic::Agent::SlowSql.new("select * from test where foo in (1, 2)", "Database/test/select", {}, 1.5), 
+               NewRelic::Agent::SlowSql.new("select  * from test where foo in (1, 2)  ", "Database/test/select", {}, 1.5), 
                NewRelic::Agent::SlowSql.new("select * from test where foo in (1,2, 3 ,4,  5,6, 'snausage')", "Database/test/select", {}, 1.2), 
                NewRelic::Agent::SlowSql.new("select * from test2 where foo in (1,2)", "Database/test2/select", {}, 1.1)
               ]
@@ -145,5 +145,15 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
 
     assert_equal(NewRelic::Agent.instance.transaction_sampler.builder.sample.guid,
                  NewRelic::Agent.instance.sql_sampler.transaction_data.guid)
+  end
+  
+  def test_sql_id_fits_in_a_mysql_int_11
+    sql_trace = NewRelic::Agent::SqlTrace.new("select * from test", 
+            NewRelic::Agent::SlowSql.new("select * from test",
+                "Database/test/select", {}, 1.2),
+        "tx_name", "uri")
+    
+    assert -2147483648 <= sql_trace.sql_id, "sql_id too small"
+    assert 2147483647 >= sql_trace.sql_id, "sql_id too large"
   end
 end

@@ -1,4 +1,6 @@
 DependencyDetection.defer do
+  @name = :passenger
+  
   depends_on do
     defined?(PhusionPassenger)
   end

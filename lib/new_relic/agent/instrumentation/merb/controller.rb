@@ -1,7 +1,8 @@
 require 'set'
 
 DependencyDetection.defer do
-
+  @name = :merb_controller
+  
   depends_on do
     defined?(Merb) && defined?(Merb::Controller)
   end

@@ -83,13 +83,13 @@ module NewRelic
       # this should always be called under the @samples_lock
       def harvest_slow_sql(transaction_sql_data)
         transaction_sql_data.sql_data.each do |sql_item|
-          obfuscated_sql = sql_item.normalize
-          sql_trace = @sql_traces[obfuscated_sql]
+          normalized_sql = sql_item.normalize
+          sql_trace = @sql_traces[normalized_sql]
           if sql_trace
             sql_trace.aggregate(sql_item, transaction_sql_data.path,
                                 transaction_sql_data.uri)
           else
-            @sql_traces[obfuscated_sql] = SqlTrace.new(obfuscated_sql,
+            @sql_traces[normalized_sql] = SqlTrace.new(normalized_sql,
                 sql_item, transaction_sql_data.path, transaction_sql_data.uri)
           end
         end
@@ -170,7 +170,7 @@ module NewRelic
 
       def normalize
         NewRelic::Agent::Database::Obfuscator.instance \
-          .default_sql_obfuscator(@sql).gsub(/\?\s*\,\s*/, '')
+          .default_sql_obfuscator(@sql).gsub(/\?\s*\,\s*/, '').gsub(/\s/, '')
       end
 
       def explain
@@ -186,10 +186,10 @@ module NewRelic
       attr_reader :database_metric_name
       attr_reader :params
 
-      def initialize(obfuscated_sql, slow_sql, path, uri)
+      def initialize(normalized_query, slow_sql, path, uri)
         super()
         @params = {} #FIXME
-        @sql_id = obfuscated_sql.hash
+        @sql_id = normalized_query.hash.modulo(2**31-1) # modulo ensures sql_id fits in an INT(11)
         set_primary slow_sql, path, uri
         record_data_point slow_sql.duration
       end

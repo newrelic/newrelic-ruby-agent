@@ -4,13 +4,13 @@ module NewRelic
     class MemCache < NewRelic::MetricParser::MetricParser
       def is_memcache?; true; end
 
-      # for MemCache metrics, the short name is actually
+      # for Memcache metrics, the short name is actually
       # the full name
       def short_name
-        name
+        'Memcache'
       end
       def developer_name
-        "MemCache #{segments[1..-1].join '/'}"
+        "Memcache #{segments[1..-1].join '/'}"
       end
 
       def all?
@@ -22,19 +22,19 @@ module NewRelic
       def legend_name
         case segments[1]
         when 'allWeb'
-          "MemCache"
+          "Memcache"
         when 'allOther'
-          "Non-web MemCache"
+          "Non-web Memcache"
         else
-          "MemCache #{operation} operations"
+          "Memcache #{operation} operations"
         end
       end
       def tooltip_name
         case segments[1]
         when 'allWeb'
-          "MemCache calls from web transactions"
+          "Memcache calls from web transactions"
         when 'allOther'
-          "MemCache calls from non-web transactions"
+          "Memcache calls from non-web transactions"
         else
           "MemCache #{operation} operations"
         end
@@ -43,11 +43,11 @@ module NewRelic
       def developer_name
         case segments[1]
         when 'allWeb'
-          "Web MemCache"
+          "Web Memcache"
         when 'allOther'
-          "Non-web MemCache"
+          "Non-web Memcache"
         else
-          "MemCache #{operation}"
+          "Memcache #{operation}"
         end
       end
     end

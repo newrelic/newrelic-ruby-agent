@@ -17,8 +17,13 @@ module DependencyDetection
     end
   end
 
+  def dependency_by_name(name)
+    @@items.find {|i| i.name == name }
+  end
+
   class Dependent
     attr_reader :executed
+    attr_reader :name
     def executed!
       @executed = true
     end

@@ -15,8 +15,8 @@ module NewRelic
             next unless the_class.method_defined? method_name.to_sym
             the_class.class_eval <<-EOD
               def #{method_name}_with_newrelic_trace(*args, &block)
-                metrics = ["MemCache/#{method_name}",
-                           (NewRelic::Agent::Instrumentation::MetricFrame.recording_web_transaction? ? 'MemCache/allWeb' : 'MemCache/allOther')]
+                metrics = ["Memcache/#{method_name}",
+                           (NewRelic::Agent::Instrumentation::MetricFrame.recording_web_transaction? ? 'Memcache/allWeb' : 'Memcache/allOther')]
                 self.class.trace_execution_scoped(metrics) do
                   t0 = Time.now
                   begin
@@ -41,6 +41,8 @@ module NewRelic
 end
 
 DependencyDetection.defer do
+  @name = :memcache
+  
   depends_on do
     !NewRelic::Control.instance['disable_memcache_instrumentation']
   end

@@ -18,6 +18,8 @@ module NewRelic
 end
 
 DependencyDetection.defer do
+  @name = :acts_as_solr
+  
   depends_on do
     defined?(ActsAsSolr)
   end

@@ -156,5 +156,7 @@ class NewRelic::Agent::DatabaseTest < Test::Unit::TestCase
     end
     
     assert_equal "12" + sql + "3", NewRelic::Agent::Database.obfuscate_sql(sql)
+
+    NewRelic::Agent::Database::Obfuscator.instance.reset
   end
 end

@@ -1,4 +1,6 @@
 DependencyDetection.defer do
+  @name = :net
+
   depends_on do
     defined?(Net) && defined?(Net::HTTP)
   end

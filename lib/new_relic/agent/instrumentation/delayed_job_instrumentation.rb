@@ -1,6 +1,8 @@
 require 'new_relic/agent/instrumentation/controller_instrumentation'
 
 DependencyDetection.defer do
+  @name = :delayed_job
+  
   depends_on do
     !NewRelic::Control.instance['disable_dj']
   end

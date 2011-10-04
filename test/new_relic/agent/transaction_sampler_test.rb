@@ -660,6 +660,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     @sampler.expects(:disabled).returns(false)
     @sampler.send(:start_builder)
     assert_equal(fake_builder, Thread.current[:transaction_sample_builder], "should not overwrite an existing transaction sample builder")
+    Thread.current[:transaction_sample_builder] = nil
   end
 
   def test_builder
