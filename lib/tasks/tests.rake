@@ -1,3 +1,7 @@
+task :environment do
+  require(File.join('/', 'Users', 'gnarg', 'code', 'newrelic', 'rpm_test_app', 'config', 'environment'))
+end
+
 # run unit tests for the NewRelic Agent
 begin
   require 'rake/test_task'
