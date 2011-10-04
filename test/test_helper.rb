@@ -12,12 +12,8 @@ require 'rubygems'
 # You can also run the tests in a mode without rails.  Many tests
 # will be skipped.
 
-# require 'fakeweb'
-# FakeWeb.allow_net_connect = false
-
 begin
-  # require 'config/environment'
-  require(File.join('/', 'Users', 'gnarg', 'code', 'newrelic', 'rpm_test_app', 'config', 'environment'))
+  require 'config/environment'
   begin
     require 'test_help'
   rescue LoadError
