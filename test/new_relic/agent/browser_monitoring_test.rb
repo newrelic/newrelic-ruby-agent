@@ -240,10 +240,12 @@ var e=document.createElement("script");'
     frame.expects(:user_attributes).returns(user_attributes).at_least_once
     frame.expects(:queue_time).returns(0)
 
-    Thread.current[:current_transaction_sample] = mock('transaction sample')
-    Thread.current[:current_transaction_sample].stubs(:start_time).returns(Time.at(100))
-    Thread.current[:current_transaction_sample].stubs(:guid).returns('ABC')
-    Thread.current[:current_transaction_sample].stubs(:params).returns({:path => 'most recent transaction'})
+    Thread.current[:current_transaction_sample] = sample = mock('transaction sample')
+    sample.stubs(:start_time).returns(Time.at(100))
+    sample.stubs(:guid).returns('ABC')
+    sample.stubs(:params).returns({:path => 'most recent transaction'})
+    sample.stubs(:force_persist).returns(true)
+    sample.stubs(:duration).returns(12.0)
     
     self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'most recent transaction').returns('most recent transaction')
     self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'user').returns('user')
@@ -251,7 +253,7 @@ var e=document.createElement("script");'
     self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'product').returns('product')
 
     value = footer_js_string(NewRelic::Agent.instance.beacon_configuration, beacon, license_key, application_id)
-    assert_equal("<script type=\"text/javascript\">if (!NREUMQ.f) { NREUMQ.f=function() {\nNREUMQ.push([\"load\",new Date().getTime()]);\nvar e=document.createElement(\"script\");\ne.type=\"text/javascript\";e.async=true;e.src=\"this_is_my_file\";\ndocument.body.appendChild(e);\nif(NREUMQ.a)NREUMQ.a();\n};\nNREUMQ.a=window.onload;window.onload=NREUMQ.f;\n};\nNREUMQ.push([\"nrf2\",\"\",\"\",1,\"most recent transaction\",0,0,new Date().getTime(),\"ABC\",\"user\",\"account\",\"product\"])</script>", value, "should return the javascript given some default values")
+    assert_equal("<script type=\"text/javascript\">if (!NREUMQ.f) { NREUMQ.f=function() {\nNREUMQ.push([\"load\",new Date().getTime()]);\nvar e=document.createElement(\"script\");\ne.type=\"text/javascript\";e.async=true;e.src=\"this_is_my_file\";\ndocument.body.appendChild(e);\nif(NREUMQ.a)NREUMQ.a();\n};\nNREUMQ.a=window.onload;window.onload=NREUMQ.f;\n};\nNREUMQ.push([\"nrfj\",\"\",\"\",1,\"most recent transaction\",0,0,new Date().getTime(),\"ABC\",\"user\",\"account\",\"product\"])</script>", value, "should return the javascript given some default values")
   end
 
   def test_html_safe_if_needed_unsafed

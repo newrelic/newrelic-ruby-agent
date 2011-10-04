@@ -566,6 +566,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   def test_add_samples_to_one_result
     sample = mock('sample')
     sample.expects(:duration).returns(1).at_least_once
+    sample.stubs(:force_persist).returns(false)
     result = [sample]
     slow_threshold = 2.0
     @sampler.instance_eval { @slowest_sample = nil }
@@ -598,6 +599,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     slower_sample.expects(:duration).returns(10.0).at_least_once
     faster_sample = mock('faster')
     faster_sample.expects(:duration).returns(5.0).at_least_once
+    faster_sample.stubs(:force_persist).returns(false)
     result = [faster_sample]
     slow_threshold = 2.0
     @sampler.instance_eval { @slowest_sample = slower_sample }
@@ -608,6 +610,8 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   def test_add_samples_to_keep_older_slower_sample
     slower_sample = mock('slower')
     slower_sample.expects(:duration).returns(10.0).at_least_once
+    slower_sample.stubs(:force_persist).returns(false)
+    
     faster_sample = mock('faster')
     faster_sample.expects(:duration).returns(5.0).at_least_once
     result = [slower_sample]
@@ -616,6 +620,24 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     @sampler.expects(:add_random_sample_to).with([slower_sample])
     assert_equal([slower_sample], @sampler.add_samples_to(result, slow_threshold))
   end
+  
+  
+  def test_keep_force_persist
+    sample1 = mock('regular')
+    sample1.stubs(:duration).returns(10)
+    sample1.stubs(:force_persist).returns(false)
+    
+    sample2 = mock('force_persist')
+    sample2.stubs(:duration).returns(1)
+    sample2.stubs(:force_persist).returns(true)
+    
+    result = @sampler.add_samples_to([sample1,sample2], 2.0)
+    
+    assert_equal 2, result.length
+    assert_equal sample1, result[0]
+    assert_equal sample2, result[1]
+  end
+  
 
   def test_start_builder_default
     Thread.current[:record_tt] = true

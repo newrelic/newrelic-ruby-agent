@@ -338,12 +338,22 @@ module NewRelic
       # sample returned will be the slowest sample among those
       # available during this harvest
       def add_samples_to(result, slow_threshold)
+        
+        # pull out force persist
+        force_persist = result.select {|sample| sample.force_persist} || []
+        result.reject! {|sample| sample.force_persist}
+        
+        force_persist.each {|sample| store_force_persist(sample)}
+        
+        
+        # Now get the slowest sample
         if @slowest_sample && @slowest_sample.duration >= slow_threshold
           result << @slowest_sample
         end
+
         result.compact!
         result = result.sort_by { |x| x.duration }
-        result = result[-1..-1] || []
+        result = result[-1..-1] || []               # take the slowest sample
         
         add_random_sample_to(result)
         add_force_persist_to(result)
