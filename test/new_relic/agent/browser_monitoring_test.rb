@@ -75,8 +75,8 @@ var e=document.createElement("script");'
   end
 
   def test_browser_timing_footer_without_calling_header
-    footer = browser_timing_footer
-    assert_equal "", footer
+    Thread.current[:newrelic_start_time] = nil    
+    assert_equal "", browser_timing_footer
   end
 
   def test_browser_timing_footer_with_no_browser_key_rum_enabled

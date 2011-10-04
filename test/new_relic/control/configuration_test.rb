@@ -12,7 +12,7 @@ class NewRelic::Control::ConfigurationTest < Test::Unit::TestCase
   end
   
   def teardown
-    NewRelic::Control.instance.settings.delete 'log_file_path'
+    NewRelic::Control.instance.settings.delete('log_file_path')
   end
   
   def test_license_key_defaults_to_env_variable
@@ -37,6 +37,7 @@ class NewRelic::Control::ConfigurationTest < Test::Unit::TestCase
     NewRelic::Control.instance.setup_log
     assert_match(/\/lerg\/newrelic_agent.log/,
                  NewRelic::Control.instance.log_file)
+    NewRelic::Control.instance.settings.delete('log_file_path') # = nil    
   end
 
   def test_server_side_config_ignores_yaml

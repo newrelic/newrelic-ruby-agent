@@ -16,6 +16,7 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
   def teardown
     # this gets set to true in some tests
     NewRelic::Control.instance['disable_serialization'] = false
+    mocha_teardown
   end
   
   def test_read_and_write_from_file_read_only
@@ -71,7 +72,6 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
   end
 
   def test_should_send_data_when_over_limit
-#    NewRelic::DataSerialization.expects(:max_size).returns(20)
     NewRelic::DataSerialization.stubs(:max_size).returns(20)
     NewRelic::DataSerialization.read_and_write_to_file do
       "a" * 30
@@ -103,17 +103,17 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
   end
 
   def test_should_send_data_disabled
-    NewRelic::Control.instance.expects(:disable_serialization?).returns(true)
+    NewRelic::Control.instance[:disable_serialization] = true
     assert(NewRelic::DataSerialization.should_send_data?, 'should send data when disabled')
   end
 
   def test_should_send_data_under_limit
     NewRelic::DataSerialization.expects(:max_size).returns(2000)
-    NewRelic::DataSerialization.read_and_write_to_file do | old_data |
+    NewRelic::DataSerialization.read_and_write_to_file do |old_data|
       "a" * 5
     end
     
-    assert(!NewRelic::DataSerialization.should_send_data?,
+    assert(!NewRelic::DataSerialization.store_too_large?,
            'Should be under the limit')
   end
 
