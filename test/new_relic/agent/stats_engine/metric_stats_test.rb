@@ -9,6 +9,7 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
     puts e
     puts e.backtrace.join("\n")
   end
+  
   def teardown
     @engine.harvest_timeslice_data({},{})
     super
@@ -28,6 +29,7 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
   end
 
   def test_harvest
+    @engine.clear_stats
     s1 = @engine.get_stats "a"
     s2 = @engine.get_stats "c"
 
@@ -35,47 +37,46 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
     s2.trace_call 1
     s2.trace_call 3
 
-    assert @engine.get_stats("a").call_count == 1
-    assert @engine.get_stats("a").total_call_time == 10
+    assert_equal 1, @engine.get_stats("a").call_count
+    assert_equal 10, @engine.get_stats("a").total_call_time
 
-    assert @engine.get_stats("c").call_count == 2
-    assert @engine.get_stats("c").total_call_time == 4
+    assert_equal 2, @engine.get_stats("c").call_count
+    assert_equal 4, @engine.get_stats("c").total_call_time
 
     metric_data = @engine.harvest_timeslice_data({}, {}).values
-
+    
     # after harvest, all the metrics should be reset
-    assert @engine.get_stats("a").call_count == 0
-    assert @engine.get_stats("a").total_call_time == 0
+    assert_equal 0, @engine.get_stats("a").call_count
+    assert_equal 0, @engine.get_stats("a").total_call_time
 
-    assert @engine.get_stats("c").call_count == 0
-    assert @engine.get_stats("c").total_call_time == 0
+    assert_equal 0, @engine.get_stats("c").call_count
+    assert_equal 0, @engine.get_stats("c").total_call_time
 
     metric_data = metric_data.reverse if metric_data[0].metric_spec.name != "a"
 
-    assert metric_data[0].metric_spec.name == "a"
+    assert_equal 'a', metric_data[0].metric_spec.name
 
-    assert metric_data[0].stats.call_count == 1
-    assert metric_data[0].stats.total_call_time == 10
+    assert_equal 1, metric_data[0].stats.call_count
+    assert_equal 10, metric_data[0].stats.total_call_time
   end
 
   def test_harvest_with_merge
     s = @engine.get_stats "a"
     s.trace_call 1
 
-    assert @engine.get_stats("a").call_count == 1
+    assert_equal 1, @engine.get_stats("a").call_count
 
     harvest = @engine.harvest_timeslice_data({}, {})
-    assert s.call_count == 0
+    assert_equal 0, s.call_count
     s.trace_call 2
-    assert s.call_count == 1
+    assert_equal 1, s.call_count
 
     # this calk should merge the contents of the previous harvest,
     # so the stats for metric "a" should have 2 data points
     harvest = @engine.harvest_timeslice_data(harvest, {})
     stats = harvest.fetch(NewRelic::MetricSpec.new("a")).stats
-    assert stats.call_count == 2
-    assert stats.total_call_time == 3
+    assert_equal 2, stats.call_count
+    assert_equal 3, stats.total_call_time
   end
-
 end
 
