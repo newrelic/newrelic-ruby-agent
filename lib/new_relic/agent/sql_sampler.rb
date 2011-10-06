@@ -46,7 +46,9 @@ module NewRelic
       end
 
       def notice_transaction(path, uri=nil, params={})
-        guid = 0 #NewRelic::Agent.instance.transaction_sampler.builder.sample.guid
+        if NewRelic::Agent.instance.transaction_sampler.builder
+          guid = NewRelic::Agent.instance.transaction_sampler.builder.sample.guid
+        end
         transaction_data.set_transaction_info(path, uri, params, guid) if !disabled && transaction_data
       end
 
