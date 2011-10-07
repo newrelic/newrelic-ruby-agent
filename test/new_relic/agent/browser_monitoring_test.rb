@@ -71,7 +71,6 @@ var e=document.createElement("script");'
   end
 
   def test_browser_timing_footer_without_calling_header
-    Thread.current[:newrelic_start_time] = nil    
     assert_equal "", browser_timing_footer
   end
 
@@ -188,7 +187,20 @@ var e=document.createElement("script");'
     Thread.current[:current_transaction_sample].stubs(:params).returns({})
     assert_equal('(unknown)', browser_monitoring_transaction_name, "should fill in a default when it is nil")
   end
+  
+  def test_browser_monitoring_transaction_name_when_tt_disabled
+    @sampler = NewRelic::Agent.instance.transaction_sampler
+    @sampler.disable
+    @sampler.notice_first_scope_push Time.now.to_f
+    @sampler.notice_transaction "/path", nil, {}
+    @sampler.notice_push_scope "a"
+    @sampler.notice_pop_scope "a"
+    @sampler.notice_scope_empty
 
+    assert_not_equal('(unknown)', browser_monitoring_transaction_name,
+                     "should name transaction when transaction tracing disabled")
+  end
+  
   def test_browser_monitoring_start_time
     Thread.current[:current_transaction_sample] = mock('transaction sample')
     Thread.current[:current_transaction_sample].stubs(:start_time).returns(Time.at(100))
