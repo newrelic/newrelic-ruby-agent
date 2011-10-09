@@ -6,32 +6,7 @@ module NewRelic
     # javascript generation and configuration
     module BrowserMonitoring
       
-      class DummyTransactionSample
-        def initialize
-          @params = {:path => '(unknown)'}
-        end
-        
-        def start_time
-          Time.now
-        end
-        
-        def guid
-          ""
-        end
-        
-        def force_persist
-          false
-        end
-        
-        def duration
-          0
-        end
-        
-        def params
-          @params
-        end
-      end
-      
+     
       class DummyMetricFrame
         def initialize
           @attributes = {}
@@ -45,9 +20,7 @@ module NewRelic
           0.0
         end
       end
-      
-      @@dummy_transaction_sample = DummyTransactionSample.new
-      
+            
       @@dummy_metric_frame = DummyMetricFrame.new
       
       
@@ -97,17 +70,13 @@ module NewRelic
       end
 
       def browser_monitoring_transaction_name
-        current_transaction.params[:path] || "(unknown)"
+        NewRelic::Agent::TransactionInfo.get.transaction_name
       end
 
       def browser_monitoring_start_time
-        current_transaction.start_time
+        NewRelic::Agent::TransactionInfo.get.start_time
       end
-      
-      def current_transaction
-        Thread.current[:current_transaction_sample] || @@dummy_transaction_sample
-      end
-      
+            
       def metric_frame_attribute(key)
         current_metric_frame.user_attributes[key] || ""
       end
@@ -117,7 +86,7 @@ module NewRelic
       end
       
       def tt_guid
-        txn = current_transaction
+        txn = NewRelic::Agent::TransactionInfo.get
         return txn.guid if txn.force_persist && txn.duration > NewRelic::Control.instance.apdex_t
         ""
       end

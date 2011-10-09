@@ -24,8 +24,7 @@ module NewRelic
       @params[:request_params] = {}
       
       @guid = (0..15).to_a.map{|a| rand(16).to_s(16)}.join  # a 64 bit random GUID
-      
-      Thread.current[:current_transaction_sample] = self
+      NewRelic::Agent::TransactionInfo.get.guid = @guid
     end
 
     def count_segments

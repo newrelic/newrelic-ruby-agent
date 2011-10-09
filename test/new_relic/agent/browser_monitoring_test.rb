@@ -13,7 +13,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
       @beacon_configuration = NewRelic::Agent::BeaconConfiguration.new({"rum.enabled" => true, "browser_key" => "browserKey", "application_id" => "apId", "beacon"=>"beacon", "episodes_url"=>"this_is_my_file"})
     end
     Thread.current[:last_metric_frame] = nil
-    Thread.current[:current_transaction_sample] = nil
+    NewRelic::Agent::TransactionInfo.clear
   end
 
   def teardown
@@ -70,10 +70,6 @@ var e=document.createElement("script");'
     assert footer.include?(snippet), "Expected footer to include snippet: #{snippet}, but instead was #{footer}"
   end
 
-  def test_browser_timing_footer_without_calling_header
-    assert_equal "", browser_timing_footer
-  end
-
   def test_browser_timing_footer_with_no_browser_key_rum_enabled
     browser_timing_header
     NewRelic::Agent.instance.expects(:beacon_configuration).returns( NewRelic::Agent::BeaconConfiguration.new({"rum.enabled" => true, "application_id" => "apId", "beacon"=>"beacon", "episodes_url"=>"this_is_my_file"}))
@@ -110,17 +106,6 @@ var e=document.createElement("script");'
     NewRelic::Agent.instance.expects(:beacon_configuration).returns( nil)
     footer = browser_timing_footer
     assert_equal "", footer
-  end
-
-  def test_browser_timing_footer_with_no_start_time
-    browser_timing_header
-    NewRelic::Agent.instance.expects(:beacon_configuration).returns( NewRelic::Agent::BeaconConfiguration.new({"browser_key" => "browserKey", "application_id" => "apId", "beacon"=>"beacon", "episodes_url"=>"this_is_my_file"}))
-    
-    Thread.current[:current_transaction_sample] = mock('transaction sample')
-    Thread.current[:current_transaction_sample].expects(:start_time).returns(nil)
-    
-    footer = browser_timing_footer
-    assert_equal('', footer)
   end
 
 
@@ -169,22 +154,22 @@ var e=document.createElement("script");'
   end
 
   def test_browser_monitoring_transaction_name_basic
-    Thread.current[:current_transaction_sample] = mock('transaction sample')
-    Thread.current[:current_transaction_sample].stubs(:params).returns({:path => 'a transaction name'})
+    mock = mock('transaction sample')
+    NewRelic::Agent::TransactionInfo.set(mock)
+    mock.stubs(:transaction_name).returns('a transaction name')
 
-    NewRelic::Agent.instance.stats_engine.scope_name = 'a transaction name'
     assert_equal('a transaction name', browser_monitoring_transaction_name, "should take the value from the thread local")
   end
 
   def test_browser_monitoring_transaction_name_empty
-    Thread.current[:current_transaction_sample] = mock('transaction sample')
-    Thread.current[:current_transaction_sample].stubs(:params).returns({:path => ''})
+    mock = mock('transaction sample')
+    NewRelic::Agent::TransactionInfo.set(mock)
+
+    mock.stubs(:transaction_name).returns('')
     assert_equal('', browser_monitoring_transaction_name, "should take the value even when it is empty")
   end
 
   def test_browser_monitoring_transaction_name_nil
-    Thread.current[:current_transaction_sample] = mock('transaction sample')
-    Thread.current[:current_transaction_sample].stubs(:params).returns({})
     assert_equal('(unknown)', browser_monitoring_transaction_name, "should fill in a default when it is nil")
   end
   
@@ -202,9 +187,12 @@ var e=document.createElement("script");'
   end
   
   def test_browser_monitoring_start_time
-    Thread.current[:current_transaction_sample] = mock('transaction sample')
-    Thread.current[:current_transaction_sample].stubs(:start_time).returns(Time.at(100))
-    Thread.current[:current_transaction_sample].stubs(:guid).returns('ABC')
+    mock = mock('transaction info')
+    
+    NewRelic::Agent::TransactionInfo.set(mock)
+    
+    mock.stubs(:start_time).returns(Time.at(100))
+    mock.stubs(:guid).returns('ABC')
     assert_equal(Time.at(100), browser_monitoring_start_time, "should take the value from the thread local")
   end
 
@@ -256,10 +244,12 @@ var e=document.createElement("script");'
     frame.expects(:user_attributes).returns(user_attributes).at_least_once
     frame.expects(:queue_time).returns(0)
 
-    Thread.current[:current_transaction_sample] = sample = mock('transaction sample')
+    sample = mock('transaction info')
+    NewRelic::Agent::TransactionInfo.set(sample)
+    
     sample.stubs(:start_time).returns(Time.at(100))
     sample.stubs(:guid).returns('ABC')
-    sample.stubs(:params).returns({:path => 'most recent transaction'})
+    sample.stubs(:transaction_name).returns('most recent transaction')
     sample.stubs(:force_persist).returns(true)
     sample.stubs(:duration).returns(12.0)
     

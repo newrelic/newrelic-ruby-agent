@@ -171,7 +171,7 @@ module NewRelic
         store_sample_for_developer_mode(sample)
         store_slowest_sample(sample)
         
-        if Thread.current[:force_persist] || (Thread.current[:capture_if_greater_than_apdex_t] && sample.duration > NewRelic::Control.instance.apdex_t)
+        if NewRelic::Agent::TransactionInfo.get.force_persist_sample?(sample)
           store_force_persist(sample)
         end
       end

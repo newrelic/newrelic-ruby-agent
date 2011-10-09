@@ -10,11 +10,6 @@ module NewRelic::Rack
     # method required by Rack interface
     def call(env)
       
-      # clear out the thread locals we use in case this is a static request
-      Thread.current[:force_persist] = nil
-      Thread.current[:capture_if_greater_than_apdex_t] = nil
-      Thread.current[:capture_deep_tt] = nil
-      
       req = Rack::Request.new(env)
       
       agent_flag = req.cookies['NRAGENT']
@@ -23,7 +18,7 @@ module NewRelic::Rack
         s = agent_flag.split("=")
         if (s.length == 2)
           if s[0] == "ct" && s[1] == "true"
-            Thread.current[:capture_if_greater_than_apdex_t] = true
+            NewRelic::Agent::TransactionInfo.get.capture_if_greater_than_apdex_t = true
           end
         end
       end
@@ -31,12 +26,12 @@ module NewRelic::Rack
       # Two experimental options for allowing TT capture based on http params
       #
       if (req.params['nr_capture_deep_tt'])
-        # Thread.current[:force_persist] = true
-        # Thread.current[:capture_deep_tt] = true
+        # NewRelic::Agent::TransactionInfo.get.force_persist = true
+        # NewRelic::Agent::TransactionInfo.get.capture_deep_tt = true
       end
       
       if (req.params['nr_capture_tt'])
-        # Thread.current[:force_persist] = true
+        # NewRelic::Agent::TransactionInfo.get.force_persist = true
       end
       
       result = @app.call(env)   # [status, headers, response]
@@ -47,7 +42,7 @@ module NewRelic::Rack
         if (response_string)
           response = Rack::Response.new(response_string, result[0], result[1])
 
-          if (Thread.current[:capture_if_greater_than_apdex_t])
+          if (NewRelic::Agent::TransactionInfo.get.capture_if_greater_than_apdex_t)
             # clear the cookie
             response.set_cookie("NRAGENT", {:value => "ct=false", :path => "/", :expires => Time.now+24*60*60})
           end
