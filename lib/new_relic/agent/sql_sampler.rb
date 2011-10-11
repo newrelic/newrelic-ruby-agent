@@ -30,6 +30,7 @@ module NewRelic
       
       def configure!
         @explain_threshold = config.fetch('explain_threshold', 0.5).to_f
+        @explain_enabled = config.fetch('explain_enabled', true)
         @stack_trace_threshold = config.fetch('stack_trace_threshold',
                                               0.5).to_f
       end
@@ -224,7 +225,7 @@ module NewRelic
       
       def prepare_to_send
         begin
-          params[:explain_plan] = @slow_sql.explain
+          params[:explain_plan] = @slow_sql.explain if need_to_explain?
         ensure
           NewRelic::Agent::Database.close_connections
         end
@@ -232,7 +233,15 @@ module NewRelic
       end
 
       def need_to_obfuscate?
-        NewRelic::Control.instance['transaction_tracer']['record_sql'] == 'obfuscated'
+        control = NewRelic::Control.instance
+          control.fetch('slow_sql',
+                        control.fetch('transaction_tracer', {}))['record_sql'] == 'obfuscated'
+      end
+
+      def need_to_explain?
+        control = NewRelic::Control.instance
+          control.fetch('slow_sql',
+                        control.fetch('transaction_tracer', {}))['explain_enabled']
       end
       
       def to_json(*a)
