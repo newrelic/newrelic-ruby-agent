@@ -186,7 +186,7 @@ module NewRelic
       def initialize(normalized_query, slow_sql, path, uri)
         super()
         @params = {} #FIXME
-        @sql_id = normalized_query.hash.modulo(2**31-1) # modulo ensures sql_id fits in an INT(11)
+        @sql_id = consistent_hash(normalized_query)
         set_primary slow_sql, path, uri
         record_data_point slow_sql.duration
       end
@@ -224,6 +224,19 @@ module NewRelic
       
       def to_json(*a)
         [@path, @url, @sql_id, @sql, @database_metric_name, @call_count, @total_call_time, @min_call_time, @max_call_time, @params].to_json(*a)
+      end
+
+      private
+
+      def consistent_hash(string)
+        if NewRelic::LanguageSupport.using_19?
+          # String#hash is salted differently on every VM start in 1.9
+          # modulo ensures sql_id fits in an INT(11)
+          require 'digest/md5'
+          Digest::MD5.base64digest(string).unpack('q*')[0].modulo(2**31-1)
+        else
+          string.hash
+        end
       end
     end
   end

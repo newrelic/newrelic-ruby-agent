@@ -43,7 +43,7 @@ module NewRelic::LanguageSupport
   module SynchronizedHash
     def self.included(base)
       # need to lock iteration of stats hash in 1.9.x
-      if ::RUBY_VERSION.split('.')[0,2] == ['1','9'] ||
+      if NewRelic::LanguageSupport.using_19? ||
           NewRelic::LanguageSupport.using_jruby?
         base.class_eval do
           def each(*args, &block)
@@ -62,5 +62,9 @@ module NewRelic::LanguageSupport
   # Is this really a world-within-a-world, running JRuby?
   def using_jruby?
     defined?(::RUBY_ENGINE) && ::RUBY_ENGINE == 'jruby'
+  end
+
+  def using_19?
+    ::RUBY_VERSION.split('.')[0,2] == ['1','9']
   end
 end
