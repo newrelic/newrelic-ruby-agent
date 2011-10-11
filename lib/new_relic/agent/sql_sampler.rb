@@ -18,11 +18,7 @@ module NewRelic
       attr_reader :sql_traces
 
       def initialize
-        config = NewRelic::Control.instance
-        sampler_config = config.fetch('sql_tracer',
-                                      config.fetch('transaction_tracer', {}))
-        @explain_threshold = sampler_config.fetch('explain_threshold', 0.5).to_f
-#        @stack_trace_threshold = sampler_config.fetch('stack_trace_threshold', 0.500).to_f
+        configure!
         @sql_traces = {}
         clear_transaction_data
 
@@ -31,7 +27,19 @@ module NewRelic
         # any 'honest-to-god'-multithreaded system
         @samples_lock = Mutex.new
       end
+      
+      def configure!
+        @explain_threshold = config.fetch('explain_threshold', 0.5).to_f
+        @stack_trace_threshold = config.fetch('stack_trace_threshold',
+                                              0.5).to_f
+      end
 
+      def config
+        control = NewRelic::Control.instance
+        control.fetch('sql_tracer',
+                      control.fetch('transaction_tracer', {}))
+      end
+      
       # Enable the sql sampler - this also registers it with
       # the statistics engine.
       def enable

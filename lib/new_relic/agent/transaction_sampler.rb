@@ -19,6 +19,7 @@ module NewRelic
       BUILDER_KEY = :transaction_sample_builder
 
       attr_accessor :stack_trace_threshold, :random_sampling, :sampling_rate
+      attr_accessor :explain_threshold, :explain_enabled, :transaction_threshold
       attr_reader :samples, :last_sample, :disabled
 
       def initialize
@@ -46,9 +47,14 @@ module NewRelic
         # suffice for most customers
         config = NewRelic::Control.instance
         sampler_config = config.fetch('transaction_tracer', {})
+        
+        # enable if sampler_config.fetch('enabled', true)
+        
         @segment_limit = sampler_config.fetch('limit_segments', 4000)
         @stack_trace_threshold = sampler_config.fetch('stack_trace_threshold', 0.500).to_f
         @explain_threshold = sampler_config.fetch('explain_threshold', 0.5).to_f
+        @explain_enabled = sampler_config.fetch('explain_enabled', true)
+        @transaction_threshold = sampler_config.fetch('transation_threshold', 2.0)
       end
 
       # Returns the current sample id, delegated from `builder`
