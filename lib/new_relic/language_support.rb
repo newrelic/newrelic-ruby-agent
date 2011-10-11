@@ -47,7 +47,7 @@ module NewRelic::LanguageSupport
           NewRelic::LanguageSupport.using_jruby?
         base.class_eval do
           def each(*args, &block)
-            sync_synchronize(:SH) { super }
+            @lock.synchronize { super }
           end
         end
       end

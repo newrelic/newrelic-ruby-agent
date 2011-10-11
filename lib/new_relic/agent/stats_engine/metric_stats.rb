@@ -1,4 +1,3 @@
-require 'sync'
 require 'new_relic/language_support'
 
 module NewRelic
@@ -10,22 +9,25 @@ module NewRelic
         # are internally consistent even in truly-threaded rubies like JRuby
         class SynchronizedHash < ::Hash
           include NewRelic::LanguageSupport::SynchronizedHash
-          include Sync_m
+          
+          def initialize
+            @lock = Mutex.new
+          end
           
           def []=(*args)
-            sync_synchronize { super }
+            @lock.synchronize { super }
           end
 
           def clear(*args)
-            sync_synchronize { super }
+            @lock.synchronize { super }
           end
 
           def delete(*args)
-            sync_synchronize { super }
+            @lock.synchronize { super }
           end
 
           def delete_if(*args)
-            sync_synchronize { super }
+            @lock.synchronize { super }
           end
         end
         
