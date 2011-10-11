@@ -36,7 +36,7 @@ module NewRelic
 
       def config
         control = NewRelic::Control.instance
-        control.fetch('sql_tracer',
+        control.fetch('slow_sql',
                       control.fetch('transaction_tracer', {}))
       end
       

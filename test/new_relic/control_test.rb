@@ -192,7 +192,7 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   end
 
   def test_sql_tracer_disabled
-    forced_start(:sql_tracer => { :enabled => false },
+    forced_start(:slow_sql => { :enabled => false },
                  :developer_mode => false, :monitor_mode => true)
     NewRelic::Agent::Agent.instance.check_sql_sampler_status
     
