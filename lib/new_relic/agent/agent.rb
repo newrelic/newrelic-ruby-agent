@@ -329,8 +329,8 @@ module NewRelic
           # we should not set an at_exit block if people are using
           # these as they don't do standard at_exit behavior per MRI/YARV
           def weird_ruby?
-            NewRelic::LanguageSupport.using_rubinius? ||
-              NewRelic::LanguageSupport.using_jruby? ||
+            NewRelic::LanguageSupport.using_engine?('rbx') ||
+              NewRelic::LanguageSupport.using_engine?('jruby') ||
               using_sinatra?
           end
 
@@ -469,7 +469,7 @@ module NewRelic
           def check_sql_sampler_status
             # disable sql sampling if disabled by the server
             # and we're not in dev mode
-            if control.developer_mode? || @should_send_samples
+            if @sql_sampler.config.fetch('enabled', true) && ['raw', 'obfuscated'].include?(@sql_sampler.config.fetch('record_sql', 'obfuscated').to_s)
               @sql_sampler.enable
             else
               @sql_sampler.disable
@@ -757,10 +757,9 @@ module NewRelic
           def config_transaction_tracer
             # Reconfigure the transaction tracer
             @transaction_sampler.configure!
+            @sql_sampler.configure!
             @should_send_samples = @config_should_send_samples = sampler_config.fetch('enabled', true)
             @should_send_random_samples = sampler_config.fetch('random_sample', false)
-            @explain_threshold = sampler_config.fetch('explain_threshold', 0.5).to_f
-            @explain_enabled = sampler_config.fetch('explain_enabled', true)
             set_sql_recording!
 
             # default to 2.0, string 'apdex_f' will turn into your
@@ -832,7 +831,7 @@ module NewRelic
 
           # gets the sampler configuration from the control object's settings
           def sampler_config
-            control.fetch('transaction_tracer', {})
+            NewRelic::Control.instance.fetch('transaction_tracer', {})
           end
 
           # Asks the collector to tell us which sub-collector we
@@ -1076,7 +1075,9 @@ module NewRelic
             begin
               options = { :keep_backtraces => true }
               options[:record_sql] = @record_sql unless @record_sql == :off
-              options[:explain_sql] = @explain_threshold if @explain_enabled
+              if @transaction_sampler.explain_enabled
+                options[:explain_sql] = @transaction_sampler.explain_threshold
+              end
               traces = @traces.collect {|trace| trace.prepare_to_send(options)}
               invoke_remote :transaction_sample_data, @agent_id, traces
             rescue PostTooBigException

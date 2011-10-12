@@ -207,19 +207,22 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   end
 
   def test_config_transaction_tracer
-    @transaction_sampler = mock('transaction sampler', :configure! => true)
-    fake_sampler_config = mock('sampler config')
-    self.expects(:sampler_config).times(5).returns(fake_sampler_config)
-    fake_sampler_config.expects(:fetch).with('enabled', true)
-    fake_sampler_config.expects(:fetch).with('random_sample', false)
-    fake_sampler_config.expects(:fetch).with('explain_threshold', 0.5)
-    fake_sampler_config.expects(:fetch).with('explain_enabled', true)
-    self.expects(:set_sql_recording!)
+    NewRelic::Control.instance.settings['transaction_tracer'] = {
+      'enabled' => true,
+      'random_sample' => false,
+      'explain_threshold' => 0.75,
+      'explain_enabled' => true
+    }
+    
+    @transaction_sampler = NewRelic::Agent::TransactionSampler.new
+    @sql_sampler = NewRelic::Agent::SqlSampler.new
 
-    fake_sampler_config.expects(:fetch).with('transaction_threshold', 2.0)
-    self.expects(:apdex_f_threshold?).returns(true)
-    self.expects(:apdex_f)
     config_transaction_tracer
+
+    assert @transaction_sampler.enabled?
+    assert_equal 0.75, @transaction_sampler.explain_threshold
+    assert @transaction_sampler.explain_enabled
+#     assert_equal 1.5, @transaction_sampler.transaction_threshold
   end
 
   def test_configure_transaction_tracer_with_random_sampling
@@ -321,8 +324,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   end
 
   def test_sampler_config
-    control = mocked_control
-    control.expects(:fetch).with('transaction_tracer', {})
+    NewRelic::Control.instance.expects(:fetch).with('transaction_tracer', {})
     sampler_config
   end
 
@@ -368,12 +370,12 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
       'collect_errors' => true,
       'sample_rate' => 10
     }
-    control = mocked_control
-    control.expects(:fetch).with('transaction_tracer', {}).returns({'enabled' => true}).at_least_once
+    NewRelic::Control.instance.settings['transaction_tracer'] = {'enabled' => true}
     self.expects(:log_connection!).with(config)
     self.expects(:configure_transaction_tracer!).with(true, 10)
     self.expects(:configure_error_collector!).with(true)
     @transaction_sampler = mock('transaction sampler', :configure! => true)
+    @sql_sampler = mock('sql sampler', :configure! => true)    
     finish_setup(config)
     assert_equal 'fishsticks', @agent_id
     assert_equal 'pasta sauce', @report_period

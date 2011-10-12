@@ -32,7 +32,7 @@ module NewRelic
         to_debug_str(0)
       end
 
-      def to_json
+      def to_json(options={})
         hash = {
           :entry_timestamp => @entry_timestamp,
           :exit_timestamp => @exit_timestamp,

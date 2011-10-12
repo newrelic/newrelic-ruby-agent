@@ -147,6 +147,21 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
                  NewRelic::Agent.instance.sql_sampler.transaction_data.guid)
   end
   
+  def test_should_not_collect_explain_plans_when_disabled
+    NewRelic::Control.instance['slow_sql'] = { 'explain_enabled' => false }
+    data = NewRelic::Agent::TransactionSqlData.new
+    data.set_transaction_info "WebTransaction/Controller/c/a", "/c/a", {}
+    
+    queries = [
+               NewRelic::Agent::SlowSql.new("select * from test", "Database/test/select", {}, 1.5)
+              ]
+    data.sql_data.concat(queries)
+    @sampler.harvest_slow_sql data   
+    sql_traces = @sampler.harvest
+    assert_equal(nil, sql_traces[0].params[:explain_plan])
+    NewRelic::Control.instance['slow_sql'] = { 'explain_enabled' => true }
+  end
+
   def test_sql_id_fits_in_a_mysql_int_11
     sql_trace = NewRelic::Agent::SqlTrace.new("select * from test", 
             NewRelic::Agent::SlowSql.new("select * from test",
