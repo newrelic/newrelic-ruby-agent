@@ -12,11 +12,11 @@ module NewRelic
       end
       
       def force_persist_sample?(sample)
-        force_persist || (capture_if_greater_than_apdex_t && sample.duration > NewRelic::Control.instance.apdex_t)
+        self.force_persist=(capture_if_greater_than_apdex_t && sample.duration > NewRelic::Control.instance.apdex_t)
       end
       
       def guid
-        if force_persist && duration > NewRelic::Control.instance.apdex_t
+        if force_persist
           @guid
         else
           ""
@@ -25,10 +25,6 @@ module NewRelic
       
       def guid=(value)
         @guid = value
-      end
-      
-      def duration
-        Time.now - start_time
       end
       
       def TransactionInfo.get()

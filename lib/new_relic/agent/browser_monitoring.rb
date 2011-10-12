@@ -86,9 +86,7 @@ module NewRelic
       end
       
       def tt_guid
-        txn = NewRelic::Agent::TransactionInfo.get
-        return txn.guid if txn.force_persist && txn.duration > NewRelic::Control.instance.apdex_t
-        ""
+        NewRelic::Agent::TransactionInfo.get.guid
       end
       
       def clamp_to_positive(value)
