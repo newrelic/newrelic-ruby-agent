@@ -329,8 +329,8 @@ module NewRelic
           # we should not set an at_exit block if people are using
           # these as they don't do standard at_exit behavior per MRI/YARV
           def weird_ruby?
-            NewRelic::LanguageSupport.using_rubinius? ||
-              NewRelic::LanguageSupport.using_jruby? ||
+            NewRelic::LanguageSupport.using_engine?('rbx') ||
+              NewRelic::LanguageSupport.using_engine?('jruby') ||
               using_sinatra?
           end
 
