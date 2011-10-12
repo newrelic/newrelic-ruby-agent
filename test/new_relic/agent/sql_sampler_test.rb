@@ -150,10 +150,12 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
   def test_should_not_collect_explain_plans_when_disabled
     NewRelic::Control.instance['slow_sql'] = { 'explain_enabled' => false }
     data = NewRelic::Agent::TransactionSqlData.new
-    data.set_transaction_info "WebTransaction/Controller/c/a", "/c/a", {}
+    data.set_transaction_info("WebTransaction/Controller/c/a", "/c/a", {},
+                              'guid')
     
     queries = [
-               NewRelic::Agent::SlowSql.new("select * from test", "Database/test/select", {}, 1.5)
+               NewRelic::Agent::SlowSql.new("select * from test",
+                                            "Database/test/select", {}, 1.5)
               ]
     data.sql_data.concat(queries)
     @sampler.harvest_slow_sql data   

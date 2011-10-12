@@ -141,7 +141,7 @@ var e=document.createElement("script");'
     self.expects(:browser_monitoring_start_time).returns(nil)
     assert_equal('', generate_footer_js(NewRelic::Agent.instance.beacon_configuration), "should not send javascript when there is no start time")
   end
-
+ 
   def test_generate_footer_js_with_start_time
     self.expects(:browser_monitoring_start_time).returns(Time.at(100))
     fake_bc = mock('beacon configuration')
@@ -181,9 +181,13 @@ var e=document.createElement("script");'
     @sampler.notice_push_scope "a"
     @sampler.notice_pop_scope "a"
     @sampler.notice_scope_empty
-
-    assert_not_equal('(unknown)', browser_monitoring_transaction_name,
-                     "should name transaction when transaction tracing disabled")
+    
+    begin
+      assert_not_equal('(unknown)', browser_monitoring_transaction_name,
+                   "should name transaction when transaction tracing disabled")
+    ensure
+      @sampler.enable
+    end
   end
   
   def test_browser_monitoring_start_time
