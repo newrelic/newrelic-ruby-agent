@@ -192,17 +192,23 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   end
 
   def test_sql_tracer_disabled
-    forced_start(:slow_sql => { :enabled => false },
-                 :developer_mode => false, :monitor_mode => true)
+    forced_start(:slow_sql => { :enabled => false }, :monitor_mode => true)
     NewRelic::Agent::Agent.instance.check_sql_sampler_status
     
     assert(!NewRelic::Agent::Agent.instance.sql_sampler.enabled?,
            'sql tracer enabled when config calls for disabled')
     
-    @control['developer_mode'] = true
     @control['monitor_mode'] = false
   end
   
+  def test_sql_tracer_disabled_with_record_sql_false
+    forced_start(:slow_sql => { :enabled => true, :record_sql => 'off' })
+    NewRelic::Agent::Agent.instance.check_sql_sampler_status
+    
+    assert(!NewRelic::Agent::Agent.instance.sql_sampler.enabled?,
+           'sql tracer enabled when config calls for disabled')
+  end
+
   def test_merging_options
     NewRelic::Control.send :public, :merge_options
     @control.merge_options :api_port => 66, :transaction_tracer => { :explain_threshold => 2.0 }

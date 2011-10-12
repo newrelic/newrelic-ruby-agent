@@ -469,7 +469,7 @@ module NewRelic
           def check_sql_sampler_status
             # disable sql sampling if disabled by the server
             # and we're not in dev mode
-            if control.developer_mode? || @sql_sampler.config['enabled']
+            if @sql_sampler.config.fetch('enabled', true) && ['raw', 'obfuscated'].include?(@sql_sampler.config.fetch('record_sql', 'obfuscated').to_s)
               @sql_sampler.enable
             else
               @sql_sampler.disable
