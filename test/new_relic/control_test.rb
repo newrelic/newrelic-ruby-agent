@@ -13,10 +13,10 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     NewRelic::Agent.shutdown
   end
 
-#   def test_cert_file_path
-#     assert @control.cert_file_path
-#     assert_equal File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'cert', 'cacert.pem')), @control.cert_file_path
-#   end
+  def test_cert_file_path
+    assert @control.cert_file_path
+    assert_equal File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'cert', 'cacert.pem')), @control.cert_file_path
+  end
   
   # This test does not actually use the ruby agent in any way - it's
   # testing that the CA file we ship actually validates our server's
@@ -207,6 +207,19 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     
     assert(!NewRelic::Agent::Agent.instance.sql_sampler.enabled?,
            'sql tracer enabled when config calls for disabled')
+  end
+
+  def test_sql_tracer_disabled_when_TT_disabled
+    forced_start(:transaction_tracer => { :enabled => false },
+                 :slow_sql => { :enabled => true },
+                 :developer_mode => false, :monitor_mode => true)
+    NewRelic::Agent::Agent.instance.check_sql_sampler_status
+    
+    assert(!NewRelic::Agent::Agent.instance.sql_sampler.enabled?,
+           'sql enabled when transaction tracer disabled')
+    
+    @control['developer_mode'] = true
+    @control['monitor_mode'] = false    
   end
 
   def test_merging_options

@@ -33,7 +33,6 @@ module NewRelic
         @explain_enabled = config.fetch('explain_enabled', true)
         @stack_trace_threshold = config.fetch('stack_trace_threshold',
                                               0.5).to_f
-        # config.fetch('enabled', true) ? self.enable : self.disable
       end
 
       def config

@@ -1,6 +1,8 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..', '..', '..','test_helper'))
 class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   require 'new_relic/agent/agent'
+  
+  # I don't like this, we should be testing a third party, not ourselves -Jon
   include NewRelic::Agent::Agent::Connect
 
   def setup
@@ -8,6 +10,8 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     @keep_retrying = nil
     @connect_attempts = 1
     @connect_retry_period = 0
+    @transaction_sampler = NewRelic::Agent::TransactionSampler.new
+    @sql_sampler = NewRelic::Agent::SqlSampler.new    
   end
 
   def test_tried_to_connect?
@@ -213,9 +217,6 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
       'explain_threshold' => 0.75,
       'explain_enabled' => true
     }
-    
-    @transaction_sampler = NewRelic::Agent::TransactionSampler.new
-    @sql_sampler = NewRelic::Agent::SqlSampler.new
 
     config_transaction_tracer
 
@@ -263,45 +264,45 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   end
 
   def test_apdex_f_threshold_positive
-    self.expects(:sampler_config).returns({'transaction_threshold' => 'apdex_f'})
+    NewRelic::Control.instance.settings['transaction_tracer'] = { 'transaction_threshold' => 'apdex_f' }
     assert apdex_f_threshold?
   end
 
   def test_apdex_f_threshold_negative
-    self.expects(:sampler_config).returns({'transaction_threshold' => 'WHEE'})
+    NewRelic::Control.instance.settings['transaction_tracer'] = { 'transaction_threshold' => 'WHEE' }
     assert !apdex_f_threshold?
   end
 
   def test_set_sql_recording_default
-    self.expects(:sampler_config).returns({})
+    NewRelic::Control.instance.settings['transaction_tracer'] = { }
     self.expects(:log_sql_transmission_warning?)
     set_sql_recording!
     assert_equal :obfuscated, @record_sql, " should default to :obfuscated, was #{@record_sql}"
   end
 
   def test_set_sql_recording_off
-    self.expects(:sampler_config).returns({'record_sql' => 'off'})
+    NewRelic::Control.instance.settings['transaction_tracer'] = {'record_sql' => 'off'}
     self.expects(:log_sql_transmission_warning?)
     set_sql_recording!
     assert_equal :off, @record_sql, "should be set to :off, was #{@record_sql}"
   end
 
   def test_set_sql_recording_none
-    self.expects(:sampler_config).returns({'record_sql' => 'none'})
+    NewRelic::Control.instance.settings['transaction_tracer'] = {'record_sql' => 'none'}    
     self.expects(:log_sql_transmission_warning?)
     set_sql_recording!
     assert_equal :off, @record_sql, "should be set to :off, was #{@record_sql}"
   end
 
   def test_set_sql_recording_raw
-    self.expects(:sampler_config).returns({'record_sql' => 'raw'})
+    NewRelic::Control.instance.settings['transaction_tracer'] = {'record_sql' => 'raw'}        
     self.expects(:log_sql_transmission_warning?)
     set_sql_recording!
     assert_equal :raw, @record_sql, "should be set to :raw, was #{@record_sql}"
   end
 
   def test_set_sql_recording_falsy
-    self.expects(:sampler_config).returns({'record_sql' => false})
+    NewRelic::Control.instance.settings['transaction_tracer'] = {'record_sql' => false}            
     self.expects(:log_sql_transmission_warning?)
     set_sql_recording!
     assert_equal :off, @record_sql, "should be set to :off, was #{@record_sql}"
@@ -319,11 +320,6 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     @record_sql = :raw
     log.expects(:warn).with('Agent is configured to send raw SQL to the service')
     log_sql_transmission_warning?
-  end
-
-  def test_sampler_config
-    NewRelic::Control.instance.expects(:fetch).with('transaction_tracer', {})
-    sampler_config
   end
 
   def test_set_collector_host_positive
@@ -371,8 +367,9 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     self.expects(:log_connection!).with(config)
     self.expects(:configure_transaction_tracer!).with(true, 10)
     self.expects(:configure_error_collector!).with(true)
-    @transaction_sampler = mock('transaction sampler', :configure! => true)
-    @sql_sampler = mock('sql sampler', :configure! => true)    
+    @transaction_sampler = stub('transaction sampler', :configure! => true,
+                                :config => {})
+    @sql_sampler = stub('sql sampler', :configure! => true)    
     finish_setup(config)
     assert_equal 'fishsticks', @agent_id
     assert_equal 'pasta sauce', @report_period
