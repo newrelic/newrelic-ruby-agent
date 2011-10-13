@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{newrelic_rpm}
-  s.version = "3.2.0.beta1"
+  s.version = "3.2.0.beta2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["Bill Kayser", "Jon Guymon", "Justin George", "Darin Swanson"]
-  s.date = %q{2011-09-23}
+  s.authors = [%q{Bill Kayser}, %q{Jon Guymon}, %q{Justin George}, %q{Darin Swanson}]
+  s.date = %q{2011-10-13}
   s.description = %q{New Relic is a performance management system, developed by New Relic,
 Inc (http://www.newrelic.com).  New Relic provides you with deep
 information about the performance of your web application as it runs
@@ -18,7 +18,7 @@ Gem or plugin, hosted on
 http://github.com/newrelic/rpm/
 }
   s.email = %q{support@newrelic.com}
-  s.executables = ["mongrel_rpm", "newrelic", "newrelic_cmd"]
+  s.executables = [%q{mongrel_rpm}, %q{newrelic}, %q{newrelic_cmd}]
   s.extra_rdoc_files = [
     "CHANGELOG",
     "LICENSE",
@@ -305,9 +305,9 @@ for a complete description of the features and enhancements available
 in version 3.2 of the Ruby Agent.
   
 }
-  s.rdoc_options = ["--line-numbers", "--inline-source", "--title", "New Relic Ruby Agent"]
-  s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.6}
+  s.rdoc_options = [%q{--line-numbers}, %q{--inline-source}, %q{--title}, %q{New Relic Ruby Agent}]
+  s.require_paths = [%q{lib}]
   s.summary = %q{New Relic Ruby Agent}
 
   if s.respond_to? :specification_version then
