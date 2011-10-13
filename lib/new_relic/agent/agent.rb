@@ -37,7 +37,6 @@ module NewRelic
         @transaction_sampler = NewRelic::Agent::TransactionSampler.new
         @sql_sampler = NewRelic::Agent::SqlSampler.new
         @stats_engine.transaction_sampler = @transaction_sampler
-        @stats_engine.sql_sampler = @sql_sampler
         @error_collector = NewRelic::Agent::ErrorCollector.new
         @connect_attempts = 0
 
@@ -775,8 +774,7 @@ module NewRelic
             # Ask the server for permission to send transaction samples.
             # determined by subscription license.
             @transaction_sampler.config['enabled'] = server_enabled
-            @sql_sampler.disable unless @transaction_sampler.config['enabled']
-            
+            @sql_sampler.configure!
             @should_send_samples = @config_should_send_samples && server_enabled
 
             if @should_send_samples

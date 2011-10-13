@@ -33,6 +33,14 @@ module NewRelic
         @explain_enabled = config.fetch('explain_enabled', true)
         @stack_trace_threshold = config.fetch('stack_trace_threshold',
                                               0.5).to_f
+        if config.fetch('enabled', true) &&
+            NewRelic::Control.instance['transaction_tracer'].fetch('enabled',
+                                                                   true) &&
+            NewRelic::Control.instance.fetch('collect_traces', true)
+          enable
+        else
+          disable
+        end
       end
 
       def config
@@ -45,14 +53,12 @@ module NewRelic
       # the statistics engine.
       def enable
         @disabled = false
-        NewRelic::Agent.instance.stats_engine.sql_sampler = self
       end
 
       # Disable the sql sampler - this also deregisters it
       # with the statistics engine.
       def disable
         @disabled = true
-        NewRelic::Agent.instance.stats_engine.remove_sql_sampler(self)
       end
 
       def enabled?
