@@ -36,7 +36,7 @@ module NewRelic
       # Merge the given options into the config options.
       # They might be a nested hash
       def merge_options(options, hash=self)
-        options.each do |key, val |
+        options.each do |key, val|
           case
           when key == :config then next
           when val.is_a?(Hash)
@@ -66,6 +66,7 @@ module NewRelic
 
       def remove_server_controlled_configs
         settings.delete('transaction_tracer')
+        settings.delete('slow_sql')
         settings.delete('error_collector')
         settings.delete('capture_params')
       end

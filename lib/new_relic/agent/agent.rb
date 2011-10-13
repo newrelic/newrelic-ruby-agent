@@ -774,6 +774,9 @@ module NewRelic
           def configure_transaction_tracer!(server_enabled, sample_rate)
             # Ask the server for permission to send transaction samples.
             # determined by subscription license.
+            @transaction_sampler.config['enabled'] = server_enabled
+            @sql_sampler.disable unless @transaction_sampler.config['enabled']
+            
             @should_send_samples = @config_should_send_samples && server_enabled
 
             if @should_send_samples
