@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{newrelic_rpm}
-  s.version = "3.2.0.beta2"
+  s.version = "3.2.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = [%q{Bill Kayser}, %q{Jon Guymon}, %q{Justin George}, %q{Darin Swanson}]
