@@ -67,7 +67,7 @@ module NewRelic
 
       def reset
         NewRelic::Agent.instance.transaction_sampler.reset!
-        NewRelic::Agent.instance.sql_sampler.reset
+        NewRelic::Agent.instance.sql_sampler.reset!
         ::Rack::Response.new{|r| r.redirect('/newrelic/')}.finish
       end
 
