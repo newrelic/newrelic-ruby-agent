@@ -254,7 +254,7 @@ var e=document.createElement("script");'
     sample.stubs(:start_time).returns(Time.at(100))
     sample.stubs(:guid).returns('ABC')
     sample.stubs(:transaction_name).returns('most recent transaction')
-    sample.stubs(:force_persist).returns(true)
+    sample.stubs(:include_guid?).returns(true)
     sample.stubs(:duration).returns(12.0)
     
     self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'most recent transaction').returns('most recent transaction')
