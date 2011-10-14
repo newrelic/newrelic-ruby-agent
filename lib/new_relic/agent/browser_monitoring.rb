@@ -86,7 +86,9 @@ module NewRelic
       end
       
       def tt_guid
-        NewRelic::Agent::TransactionInfo.get.guid
+        txn = NewRelic::Agent::TransactionInfo.get
+        return txn.guid if txn.include_guid?
+        ""
       end
       
       def clamp_to_positive(value)

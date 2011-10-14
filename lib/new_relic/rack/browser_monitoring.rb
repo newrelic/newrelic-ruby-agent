@@ -12,6 +12,9 @@ module NewRelic::Rack
       
       req = Rack::Request.new(env)
       
+      # clear any previous transaction info
+      NewRelic::Agent::TransactionInfo.clear
+      
       agent_flag = req.cookies['NRAGENT']
       
       if (agent_flag)
