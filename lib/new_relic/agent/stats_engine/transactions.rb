@@ -127,8 +127,8 @@ module Agent
       # Make sure we don't do this in a multi-threaded environment
       def collecting_gc?
         if !NewRelic::Control.instance.multi_threaded?
-          (GC.respond_to?(:time) && GC.respond_to?(:collections)) ||  # railsbench
-            (defined?(GC::Profiler) && GC::Profiler.enabled?) # 1.9
+          (::GC.respond_to?(:time) && ::GC.respond_to?(:collections)) ||  # railsbench
+            (defined?(::GC::Profiler) && ::GC::Profiler.enabled?) # 1.9
         end
       end
 
@@ -161,7 +161,8 @@ module Agent
         elapsed = (gc_time - @last_gc_timestamp).to_f
         @last_gc_timestamp = gc_time
         @last_gc_count = gc_collections
-        
+
+        # zero the GC counters on 1.9 to prevent memory leak
         if defined?(GC::Profiler)
           GC::Profiler.clear
           @last_gc_timestamp = 0

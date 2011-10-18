@@ -9,8 +9,10 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
     puts e
     puts e.backtrace.join("\n")
   end
+  
   def teardown
     @engine.harvest_timeslice_data({},{})
+    mocha_teardown
     super
   end
 
@@ -176,10 +178,29 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
   end
 
 
+  def test_collect_gc_data
+    if NewRelic::LanguageSupport.using_version?('1.8')
+      ::GC.stubs(:time).returns(1000000, 4000000)
+      ::GC.stubs(:collections).returns(1, 2)
+    elsif NewRelic::LanguageSupport.using_version?('1.9')
+      ::GC::Profiler.stubs(:enabled?).returns(true)
+      ::GC::Profiler.stubs(:total_time).returns(1000, 4000) 
+      ::GC.stubs(:count).returns(1, 2)
+    end
+    
+    engine = NewRelic::Agent.instance.stats_engine
+    scope = engine.push_scope "scope"
+    engine.start_transaction
+    engine.pop_scope scope, 0.01
+    engine.end_transaction
+    
+    gc_stats = engine.get_stats('GC/cumulative')
+    assert_equal 1, gc_stats.call_count
+    assert_equal 3.0, gc_stats.total_call_time
+  end
+  
   private
   def check_time_approximate(expected, actual)
     assert((expected - actual).abs < 0.1, "Expected between #{expected - 0.1} and #{expected + 0.1}, got #{actual}")
   end
-
 end
-
