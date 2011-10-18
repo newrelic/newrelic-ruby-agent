@@ -45,7 +45,6 @@ module Agent
       # Pushes a scope onto the transaction stack - this generates a
       # TransactionSample::Segment at the end of transaction execution
       def push_scope(metric, time = Time.now.to_f, deduct_call_time_from_parent = true)
-
         stack = scope_stack
         if collecting_gc?
           if stack.empty?
@@ -127,14 +126,10 @@ module Agent
 
       # Make sure we don't do this in a multi-threaded environment
       def collecting_gc?
-        if !defined?(@@collecting_gc)
-          @@collecting_gc = false
-          if !NewRelic::Control.instance.multi_threaded?
-            @@collecting_gc = true if GC.respond_to?(:time) && GC.respond_to?(:collections) # 1.8.x
-            @@collecting_gc = true if defined?(GC::Profiler) && GC::Profiler.enabled? # 1.9.2
-          end
+        if !NewRelic::Control.instance.multi_threaded?
+          (GC.respond_to?(:time) && GC.respond_to?(:collections)) ||  # railsbench
+            (defined?(GC::Profiler) && GC::Profiler.enabled?) # 1.9
         end
-        @@collecting_gc
       end
 
       # The total number of times the garbage collector has run since
@@ -153,8 +148,8 @@ module Agent
         if GC.respond_to?(:time)
           GC.time
         elsif defined?(GC::Profiler) && GC::Profiler.respond_to?(:total_time)
-          # The 1.9 profiler returns a time in usec
-          GC::Profiler.total_time * 1000000.0
+          # The 1.9 profiler returns a time in msec
+          GC::Profiler.total_time * 1000.0
         end
       end
 
@@ -174,7 +169,7 @@ module Agent
         
         if num_calls > 0
           # µs to seconds
-          elapsed = elapsed / 1000000.0
+          elapsed = elapsed / 1_000_000.0
           # Allocate the GC time to a scope as if the GC just ended
           # right now.
           time = Time.now.to_f
@@ -191,7 +186,6 @@ module Agent
       def scope_stack
         Thread::current[:newrelic_scope_stack] ||= []
       end
-
     end
   end
 end
