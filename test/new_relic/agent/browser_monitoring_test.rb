@@ -4,7 +4,8 @@ require "new_relic/agent/browser_monitoring"
 
 class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
   include NewRelic::Agent::BrowserMonitoring
-
+  include NewRelic::Agent::Instrumentation::ControllerInstrumentation
+  
   def setup
     NewRelic::Agent.manual_start
     @browser_monitoring_key = "fred"
@@ -176,19 +177,17 @@ var e=document.createElement("script");'
   def test_browser_monitoring_transaction_name_when_tt_disabled
     @sampler = NewRelic::Agent.instance.transaction_sampler
     @sampler.disable
-    @sampler.notice_first_scope_push Time.now.to_f
-    @sampler.notice_transaction "/path", nil, {}
-    @sampler.notice_push_scope "a"
-    @sampler.notice_pop_scope "a"
-    @sampler.notice_scope_empty
-    
-    begin
-      assert_not_equal('(unknown)', browser_monitoring_transaction_name,
-                   "should name transaction when transaction tracing disabled")
-    ensure
-      @sampler.enable
+
+    perform_action_with_newrelic_trace(:name => 'disabled_transactions') do
+      self.class.inspect
     end
+        
+    assert_match(/disabled_transactions/, browser_monitoring_transaction_name,
+                 "should name transaction when transaction tracing disabled")
+  ensure
+    @sampler.enable
   end
+  
   
   def test_browser_monitoring_start_time
     mock = mock('transaction info')

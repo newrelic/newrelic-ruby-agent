@@ -230,20 +230,20 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     @config_should_send_samples = true
     @should_send_random_samples = true
     @slowest_transaction_threshold = 5
-    log.expects(:debug).with('Transaction tracing threshold is 5 seconds.')
+    log.stubs(:debug)
     self.expects(:enable_random_samples!).with(10)
-    @transaction_sampler = mock('transaction sampler', :slow_capture_threshold= => true)
     configure_transaction_tracer!(true, 10)
     assert @should_send_samples
+    assert_equal 5, @transaction_sampler.slow_capture_threshold
   end
 
   def test_configure_transaction_tracer_positive
     @config_should_send_samples = true
     @slowest_transaction_threshold = 5
-    @transaction_sampler = mock('transaction sampler', :slow_capture_threshold= => true)
-    log.expects(:debug).with('Transaction tracing threshold is 5 seconds.')
+    log.stubs(:debug)
     configure_transaction_tracer!(true, 10)
     assert @should_send_samples
+    assert_equal 5, @transaction_sampler.slow_capture_threshold
   end
 
   def test_configure_transaction_tracer_negative
@@ -338,16 +338,6 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     self.expects(:invoke_remote).with(:get_redirect_host).returns(nil)
     set_collector_host!
     assert_equal 'initial value', @collector, "should not modify collector value"
-  end
-
-  def test_configure_transaction_tracer_random_samples
-    @config_should_send_samples = true
-    @should_send_random_samples = true
-    @transaction_sampler = mock('transaction sampler', :slow_capture_threshold= => true)
-    self.expects(:enable_random_samples!).with(10)
-    log.expects(:debug)
-    configure_transaction_tracer!(true, 10)
-    assert @should_send_samples
   end
 
   def test_query_server_for_configuration
