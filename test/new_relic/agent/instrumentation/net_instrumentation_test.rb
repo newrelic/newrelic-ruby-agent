@@ -20,7 +20,7 @@ unless ENV['FAST_TESTS']
       res = Net::HTTP.start(url.host, url.port) {|http|
         http.get('/index.html')
       }
-      assert_match /<head>/, res.body
+      assert_match /<head>/i, res.body
       assert_equal %w[External/all External/www.google.com/Net::HTTP/GET External/allOther External/www.google.com/all].sort,
       metrics_without_gc.sort
     end
@@ -31,7 +31,7 @@ unless ENV['FAST_TESTS']
         res = Net::HTTP.start(url.host, url.port) {|http|
           http.get('/index.html')
         }
-        assert_match /<head>/, res.body
+        assert_match /<head>/i, res.body
       end
       assert_equal %w[External/all External/www.google.com/Net::HTTP/GET External/allOther External/www.google.com/all
        External/www.google.com/Net::HTTP/GET:OtherTransaction/Background/NewRelic::Agent::Instrumentation::NetInstrumentationTest/task].sort, metrics_without_gc.select{|m| m =~ /^External/}.sort
@@ -43,7 +43,7 @@ unless ENV['FAST_TESTS']
         res = Net::HTTP.start(url.host, url.port) {|http|
           http.get('/index.html')
         }
-        assert_match /<head>/, res.body
+        assert_match /<head>/i, res.body
       end
       assert_equal %w[External/all External/www.google.com/Net::HTTP/GET External/allWeb External/www.google.com/all
        External/www.google.com/Net::HTTP/GET:Controller/NewRelic::Agent::Instrumentation::NetInstrumentationTest/task].sort, metrics_without_gc.select{|m| m =~ /^External/}.sort
