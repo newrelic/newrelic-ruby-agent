@@ -31,16 +31,16 @@ module NewRelic
         Time.now - start_time
       end
       
-      def TransactionInfo.get()
-        Thread.current[:transaction_info] || (Thread.current[:transaction_info] = TransactionInfo.new)
+      def self.get()
+        Thread.current[:newrelic_transaction_info] ||= TransactionInfo.new
       end
       
-      def TransactionInfo.set(instance)
-        Thread.current[:transaction_info] = instance
+      def self.set(instance)
+        Thread.current[:newrelic_transaction_info] = instance
       end
       
-      def TransactionInfo.clear
-        Thread.current[:transaction_info] = nil
+      def self.clear
+        Thread.current[:newrelic_transaction_info] = nil
       end
       
     end

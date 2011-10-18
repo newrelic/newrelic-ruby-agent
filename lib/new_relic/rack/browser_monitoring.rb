@@ -17,9 +17,9 @@ module NewRelic::Rack
       
       agent_flag = req.cookies['NRAGENT']
       
-      if (agent_flag)
+      if agent_flag
         s = agent_flag.split("=")
-        if (s.length == 2)
+        if s.length == 2
           if s[0] == "ct" && s[1] == "true"
             NewRelic::Agent::TransactionInfo.get.capture_if_greater_than_apdex_t = true
           end
@@ -28,12 +28,12 @@ module NewRelic::Rack
       
       # Two experimental options for allowing TT capture based on http params
       #
-      if (req.params['nr_capture_deep_tt'])
+      if req.params['nr_capture_deep_tt']
         # NewRelic::Agent::TransactionInfo.get.force_persist = true
         # NewRelic::Agent::TransactionInfo.get.capture_deep_tt = true
       end
       
-      if (req.params['nr_capture_tt'])
+      if req.params['nr_capture_tt']
         # NewRelic::Agent::TransactionInfo.get.force_persist = true
       end
       
@@ -42,10 +42,10 @@ module NewRelic::Rack
       if (NewRelic::Agent.browser_timing_header != "") && should_instrument?(result[0], result[1])
         response_string = autoinstrument_source(result[2], result[1])
 
-        if (response_string)
+        if response_string
           response = Rack::Response.new(response_string, result[0], result[1])
 
-          if (NewRelic::Agent::TransactionInfo.get.capture_if_greater_than_apdex_t)
+          if NewRelic::Agent::TransactionInfo.get.capture_if_greater_than_apdex_t
             # clear the cookie
             response.set_cookie("NRAGENT", {:value => "ct=false", :path => "/", :expires => Time.now+24*60*60})
           end
