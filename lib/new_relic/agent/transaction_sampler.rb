@@ -48,16 +48,18 @@ module NewRelic
         # @segment_limit and @stack_trace_threshold come from the
         # configuration file, with built-in defaults that should
         # suffice for most customers
-        config = NewRelic::Control.instance
-        sampler_config = config.fetch('transaction_tracer', {})
         
-        # enable if sampler_config.fetch('enabled', true)
+        # enable if config.fetch('enabled', true)
         
-        @segment_limit = sampler_config.fetch('limit_segments', 4000)
-        @stack_trace_threshold = sampler_config.fetch('stack_trace_threshold', 0.500).to_f
-        @explain_threshold = sampler_config.fetch('explain_threshold', 0.5).to_f
-        @explain_enabled = sampler_config.fetch('explain_enabled', true)
-        @transaction_threshold = sampler_config.fetch('transation_threshold', 2.0)
+        @segment_limit = config.fetch('limit_segments', 4000)
+        @stack_trace_threshold = config.fetch('stack_trace_threshold', 0.500).to_f
+        @explain_threshold = config.fetch('explain_threshold', 0.5).to_f
+        @explain_enabled = config.fetch('explain_enabled', true)
+        @transaction_threshold = config.fetch('transation_threshold', 2.0)
+      end
+
+      def config
+        NewRelic::Control.instance.fetch('transaction_tracer', {})
       end
 
       # Returns the current sample id, delegated from `builder`

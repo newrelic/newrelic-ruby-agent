@@ -37,7 +37,6 @@ module NewRelic
         @transaction_sampler = NewRelic::Agent::TransactionSampler.new
         @sql_sampler = NewRelic::Agent::SqlSampler.new
         @stats_engine.transaction_sampler = @transaction_sampler
-        @stats_engine.sql_sampler = @sql_sampler
         @error_collector = NewRelic::Agent::ErrorCollector.new
         @connect_attempts = 0
 
@@ -469,7 +468,7 @@ module NewRelic
           def check_sql_sampler_status
             # disable sql sampling if disabled by the server
             # and we're not in dev mode
-            if @sql_sampler.config.fetch('enabled', true) && ['raw', 'obfuscated'].include?(@sql_sampler.config.fetch('record_sql', 'obfuscated').to_s)
+            if @sql_sampler.config.fetch('enabled', true) && ['raw', 'obfuscated'].include?(@sql_sampler.config.fetch('record_sql', 'obfuscated').to_s) && @transaction_sampler.config.fetch('enabled', true)
               @sql_sampler.enable
             else
               @sql_sampler.disable
@@ -758,13 +757,13 @@ module NewRelic
             # Reconfigure the transaction tracer
             @transaction_sampler.configure!
             @sql_sampler.configure!
-            @should_send_samples = @config_should_send_samples = sampler_config.fetch('enabled', true)
-            @should_send_random_samples = sampler_config.fetch('random_sample', false)
+            @should_send_samples = @config_should_send_samples = @transaction_sampler.config.fetch('enabled', true)
+            @should_send_random_samples = @transaction_sampler.config.fetch('random_sample', false)
             set_sql_recording!
 
             # default to 2.0, string 'apdex_f' will turn into your
             # apdex * 4
-            @slowest_transaction_threshold = sampler_config.fetch('transaction_threshold', 2.0).to_f
+            @slowest_transaction_threshold = @transaction_sampler.config.fetch('transaction_threshold', 2.0).to_f
             @slowest_transaction_threshold = apdex_f if apdex_f_threshold?
           end
 
@@ -774,6 +773,8 @@ module NewRelic
           def configure_transaction_tracer!(server_enabled, sample_rate)
             # Ask the server for permission to send transaction samples.
             # determined by subscription license.
+            @transaction_sampler.config['enabled'] = server_enabled
+            @sql_sampler.configure!
             @should_send_samples = @config_should_send_samples && server_enabled
             
             if @should_send_samples
@@ -798,7 +799,7 @@ module NewRelic
           # transactions. This gears well with using apdex since you
           # will attempt to send any transactions that register as 'failing'
           def apdex_f_threshold?
-            sampler_config.fetch('transaction_threshold', '') =~ /apdex_f/i
+            @transaction_sampler.config.fetch('transaction_threshold', '') =~ /apdex_f/i
           end
 
           # Sets the sql recording configuration by trying to detect
@@ -806,7 +807,7 @@ module NewRelic
           # 'false', 'none', and friends. Otherwise, we accept 'raw',
           # and unrecognized values default to 'obfuscated'
           def set_sql_recording!
-            record_sql_config = sampler_config.fetch('record_sql', :obfuscated)
+            record_sql_config = @transaction_sampler.config.fetch('record_sql', :obfuscated)
             case record_sql_config.to_s
             when 'off'
               @record_sql = :off
@@ -827,11 +828,6 @@ module NewRelic
           # - they should probably be using ssl when this is true
           def log_sql_transmission_warning?
             log.warn("Agent is configured to send raw SQL to the service") if @record_sql == :raw
-          end
-
-          # gets the sampler configuration from the control object's settings
-          def sampler_config
-            NewRelic::Control.instance.fetch('transaction_tracer', {})
           end
 
           # Asks the collector to tell us which sub-collector we

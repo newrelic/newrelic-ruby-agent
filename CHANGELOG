@@ -1,11 +1,12 @@
 v3.2.0
   * Fix over-detection of mongrel and unicorn and only start the agent when
     actual server is running
-  * Improve developer mode backtraces to support ruby 1.9.2, windows, and fix
-    nil de-reference in developer mode
+  * Improve developer mode backtraces to support ruby 1.9.2, windows
   * Fixed some cases where Memcache instrumentation was failing to load
-  * Added View instrumentation back for Rails 3.1
   * Ability to set log destination by NEW_RELIC_LOG env var
+  * Fix to mutex lib load issue
+  * Performance enhancements (thanks to Jeremy Kemper)
+  * Fix overly verbose STDOUT message (thanks to Anselm Helbig)
   
 v3.1.2
   * Fixed some thread safety issues

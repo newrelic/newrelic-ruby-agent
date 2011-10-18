@@ -7,7 +7,6 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
     stats_engine = NewRelic::Agent::StatsEngine.new
     agent.stubs(:stats_engine).returns(stats_engine)
     @sampler = NewRelic::Agent::SqlSampler.new
-    stats_engine.sql_sampler = @sampler
     @connection = stub('ActiveRecord connection', :execute => 'result')
     NewRelic::Agent::Database.stubs(:get_connection).returns(@connection)
   end
