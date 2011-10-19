@@ -858,9 +858,13 @@ module NewRelic
             @report_period = config_data['data_report_period']
             @url_rules = config_data['url_rules']
             @beacon_configuration = BeaconConfiguration.new(config_data)
-            @server_side_config_enabled = config_data['listen_to_server_config']
-
-            control.merge_server_side_config(config_data) if @server_side_config_enabled
+            server_side_config = config_data['agent_config']
+            
+            if server_side_config
+              control.merge_server_side_config(server_side_config)
+              log.info "Using config from server"
+              log.debug "Server provided config: #{server_side_config.inspect}"
+            end
             config_transaction_tracer
             log_connection!(config_data)
             configure_transaction_tracer!(config_data['collect_traces'], config_data['sample_rate'])
