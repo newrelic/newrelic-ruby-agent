@@ -259,7 +259,8 @@ module NewRelic
       private
 
       def consistent_hash(string)
-        if NewRelic::LanguageSupport.using_version?('1.9.2')
+        if NewRelic::LanguageSupport.using_version?('1.9.2') ||
+            NewRelic::LanguageSupport.using_engine?('rbx')
           # String#hash is salted differently on every VM start in 1.9
           # modulo ensures sql_id fits in an INT(11)
           require 'digest/md5'
