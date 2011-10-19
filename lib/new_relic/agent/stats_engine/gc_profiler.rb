@@ -6,6 +6,7 @@ module NewRelic
         def self.init
           @profiler = RailsBench.new if RailsBench.enabled?
           @profiler = Ruby19.new if Ruby19.enabled?
+          @profiler = Rubinius.new if Rubinius.enabled?
         end
 
         def self.capture
@@ -32,6 +33,8 @@ module NewRelic
             
             record_gc_metric(num_calls, elapsed)
           end
+
+          def reset; end
           
           protected
                     
@@ -68,8 +71,6 @@ module NewRelic
           def call_count
             ::GC.collections
           end
-          
-          def reset; end
         end
         
         class Ruby19 < Profiler
@@ -89,6 +90,29 @@ module NewRelic
             ::GC::Profiler.clear
             @last_timestamp = 0
           end
+        end
+
+        class Rubinius < Profiler
+          def self.enabled?
+            if NewRelic::LanguageSupport.using_engine?('rbx')
+              require 'rubinius/agent'
+              true
+            else
+              false
+            end
+          end
+
+          def call_time
+            agent = ::Rubinius::Agent.loopback
+            (agent.get('system.gc.young.total_wallclock')[1] +
+              agent.get('system.gc.full.total_wallclock')[1]) * 1000
+          end
+
+          def call_count
+            agent = ::Rubinius::Agent.loopback
+            agent.get('system.gc.young.count')[1] +
+              agent.get('system.gc.full.count')[1]
+          end          
         end
       end
     end
