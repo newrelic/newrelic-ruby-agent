@@ -1,0 +1,96 @@
+# -*- coding: utf-8 -*-
+module NewRelic
+  module Agent
+    class StatsEngine
+      module GCProfiler
+        def self.init
+          @profiler = RailsBench.new if RailsBench.enabled?
+          @profiler = Ruby19.new if Ruby19.enabled?
+        end
+
+        def self.capture
+          @profiler.capture if @profiler
+        end
+        
+        class Profiler
+          def initialize
+            if self.class.enabled?
+              @last_timestamp = call_time
+              @last_count = call_count
+            end
+          end
+          
+          def capture
+            return unless self.class.enabled?
+            return if !scope_stack.empty? && scope_stack.last.name == "GC/cumulative"
+            
+            num_calls = call_count - @last_count
+            elapsed = (call_time - @last_timestamp).to_f
+            @last_timestamp = call_time
+            @last_count = call_count
+            reset
+            
+            record_gc_metric(num_calls, elapsed)
+          end
+          
+          protected
+                    
+          def record_gc_metric(num_calls, elapsed)
+            if num_calls > 0
+              # µs to seconds
+              elapsed = elapsed / 1_000_000.0
+              # Allocate the GC time to a scope as if the GC just ended
+              # right now.
+              time = Time.now.to_f
+              gc_scope = NewRelic::Agent.instance.stats_engine.push_scope("GC/cumulative", time - elapsed)
+              # GC stats are collected into a blamed metric which allows
+              # us to show the stats controller by controller
+              gc_stats = NewRelic::Agent.get_stats(gc_scope.name, true)
+              gc_stats.record_multiple_data_points(elapsed, num_calls)
+              NewRelic::Agent.instance.stats_engine.pop_scope(gc_scope, elapsed, time)
+            end
+          end
+
+          def scope_stack
+            Thread::current[:newrelic_scope_stack] ||= []
+          end        
+        end
+        
+        class RailsBench < Profiler
+          def self.enabled?
+            ::GC.respond_to?(:time) && ::GC.respond_to?(:collections)
+          end
+          
+          def call_time
+            ::GC.time
+          end
+          
+          def call_count
+            ::GC.collections
+          end
+          
+          def reset; end
+        end
+        
+        class Ruby19 < Profiler
+          def self.enabled?
+            defined?(::GC::Profiler) && ::GC::Profiler.enabled?
+          end
+          
+          def call_time
+            ::GC::Profiler.total_time * 1000.0
+          end
+          
+          def call_count
+            ::GC.count
+          end
+          
+          def reset
+            ::GC::Profiler.clear
+            @last_timestamp = 0
+          end
+        end
+      end
+    end
+  end
+end
