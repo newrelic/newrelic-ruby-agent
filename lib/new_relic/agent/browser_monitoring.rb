@@ -111,10 +111,6 @@ module NewRelic
         account = obfuscate(config, metric_frame_attribute(:account))
         product = obfuscate(config, metric_frame_attribute(:product))
         
-        # TODO: REMOVE DEBUG LOGGING
-        log = NewRelic::Control.instance.log
-        log.info "App: #{browser_monitoring_app_time.to_s} Capture: #{NewRelic::Agent::TransactionInfo.get.capture_if_greater_than_apdex_t} Duration: #{NewRelic::Agent::TransactionInfo.get.duration} GUID: #{tt_guid}"
-        
         html_safe_if_needed("<script type=\"text/javascript\">#{config.browser_timing_static_footer}NREUMQ.push([\"#{config.finish_command}\",\"#{beacon}\",\"#{license_key}\",#{application_id},\"#{obfuscated_transaction_name}\",#{browser_monitoring_queue_time},#{browser_monitoring_app_time},new Date().getTime(),\"#{tt_guid}\",\"#{user}\",\"#{account}\",\"#{product}\"])</script>")
       end
 
