@@ -857,10 +857,19 @@ module NewRelic
             @agent_id = config_data['agent_run_id']
             @report_period = config_data['data_report_period']
             @url_rules = config_data['url_rules']
-            @beacon_configuration = BeaconConfiguration.new(config_data)
-            server_side_config = config_data['agent_config']
             
-            if server_side_config
+            # TODO: REVIEW BEFORE SHIPPING - beacon requires server side settings to be configured
+            server_side_config = config_data['agent_config']
+            bc = config_data
+            if server_side_config && !server_side_config.empty?
+              bc = Hash.new
+              bc.merge!(config_data)
+              bc.merge!(server_side_config)
+            end
+            
+            @beacon_configuration = BeaconConfiguration.new(bc)
+            
+            if server_side_config && !server_side_config.empty?
               control.merge_server_side_config(server_side_config)
               log.info "Using config from server"
               log.debug "Server provided config: #{server_side_config.inspect}"
