@@ -34,6 +34,7 @@ module NewRelic
         @stack_trace_threshold = config.fetch('stack_trace_threshold',
                                               0.5).to_f
         if config.fetch('enabled', true) &&
+            NewRelic::Control.instance['transaction_tracer'] &&
             NewRelic::Control.instance['transaction_tracer'].fetch('enabled',
                                                                    true) &&
             NewRelic::Control.instance.fetch('collect_traces', true)
