@@ -9,8 +9,10 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
     puts e
     puts e.backtrace.join("\n")
   end
+  
   def teardown
     @engine.harvest_timeslice_data({},{})
+    mocha_teardown
     super
   end
 
@@ -169,17 +171,50 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
     @engine.pop_scope scope2, 10
     @engine.pop_scope scope1, 10
 
-    assert_equal 0, scope4.children_time
-    assert_equal 10, scope3.children_time
-    assert_equal 10, scope2.children_time
-    assert_equal 10, scope1.children_time
+    assert_equal 0, scope4.children_time.round
+    assert_equal 10, scope3.children_time.round
+    assert_equal 10, scope2.children_time.round
+    assert_equal 10, scope1.children_time.round
   end
 
 
+  def test_collect_gc_data
+    GC.disable
+    if NewRelic::LanguageSupport.using_engine?('rbx')
+      agent = ::Rubinius::Agent.loopback
+      agent.stubs(:get).with('system.gc.young.total_wallclock') \
+        .returns([:value, 1000], [:value, 2500])
+      agent.stubs(:get).with('system.gc.full.total_wallclock') \
+        .returns([:value, 2000], [:value, 3500])
+      agent.stubs(:get).with('system.gc.young.count') \
+        .returns([:value, 1], [:value, 2])
+      agent.stubs(:get).with('system.gc.full.count') \
+        .returns([:value, 1], [:value, 2])
+      ::Rubinius::Agent.stubs(:loopback).returns(agent)
+    elsif NewRelic::LanguageSupport.using_version?('1.9')
+      ::GC::Profiler.stubs(:enabled?).returns(true)
+      ::GC::Profiler.stubs(:total_time).returns(1000, 4000) 
+      ::GC.stubs(:count).returns(1, 3)      
+    elsif NewRelic::LanguageSupport.using_version?('1.8')
+      ::GC.stubs(:time).returns(1000000, 4000000)
+      ::GC.stubs(:collections).returns(1, 3)
+    end
+    
+    engine = NewRelic::Agent.instance.stats_engine
+    scope = engine.push_scope "scope"
+    engine.start_transaction
+    engine.pop_scope scope, 0.01
+    engine.end_transaction
+    
+    gc_stats = engine.get_stats('GC/cumulative')
+    assert_equal 2, gc_stats.call_count
+    assert_equal 3.0, gc_stats.total_call_time
+  ensure
+    GC.enable
+  end
+  
   private
   def check_time_approximate(expected, actual)
     assert((expected - actual).abs < 0.1, "Expected between #{expected - 0.1} and #{expected + 0.1}, got #{actual}")
   end
-
 end
-

@@ -266,12 +266,12 @@ module NewRelic
       def consistent_hash(string)
         if NewRelic::LanguageSupport.using_version?('1.9.2')
           # String#hash is salted differently on every VM start in 1.9
-          # modulo ensures sql_id fits in an INT(11)
           require 'digest/md5'
-          Digest::MD5.hexdigest(string).hex.modulo(2**31-1)
+          Digest::MD5.hexdigest(string).hex
         else
           string.hash
-        end
+        end.modulo(2**31-1)
+        # modulo ensures sql_id fits in an INT(11)
       end
     end
   end
