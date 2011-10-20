@@ -2,7 +2,7 @@ module NewRelic
   module Agent
     class TransactionInfo
       
-      attr_accessor :capture_if_greater_than_apdex_t, :capture_deep_tt, :transaction_name
+      attr_accessor :token, :capture_deep_tt, :transaction_name
       attr_reader :start_time
       
       def initialize
@@ -12,11 +12,11 @@ module NewRelic
       end
       
       def force_persist_sample?(sample)
-        capture_if_greater_than_apdex_t && sample.duration > NewRelic::Control.instance.apdex_t
+        token && sample.duration > NewRelic::Control.instance.apdex_t
       end
       
       def include_guid?
-        capture_if_greater_than_apdex_t && duration > NewRelic::Control.instance.apdex_t
+        token && duration > NewRelic::Control.instance.apdex_t
       end
       
       def guid

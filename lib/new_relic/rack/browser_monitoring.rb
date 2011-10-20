@@ -20,8 +20,8 @@ module NewRelic::Rack
       if agent_flag
         s = agent_flag.split("=")
         if s.length == 2
-          if s[0] == "ct" && s[1] == "true"
-            NewRelic::Agent::TransactionInfo.get.capture_if_greater_than_apdex_t = true
+          if s[0] == "tk" && s[1]
+            NewRelic::Agent::TransactionInfo.get.token = s[1]
           end
         end
       end
@@ -45,9 +45,9 @@ module NewRelic::Rack
         if response_string
           response = Rack::Response.new(response_string, result[0], result[1])
 
-          if NewRelic::Agent::TransactionInfo.get.capture_if_greater_than_apdex_t
+          if NewRelic::Agent::TransactionInfo.get.token
             # clear the cookie
-            response.set_cookie("NRAGENT", {:value => "ct=false", :path => "/", :expires => Time.now+24*60*60})
+            response.set_cookie("NRAGENT", {:value => "tk=", :path => "/", :expires => Time.now+24*60*60})
           end
 
           response.finish

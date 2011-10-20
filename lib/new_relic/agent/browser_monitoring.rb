@@ -91,6 +91,10 @@ module NewRelic
         ""
       end
       
+      def tt_token
+        return NewRelic::Agent::TransactionInfo.get.token
+      end
+      
       def clamp_to_positive(value)
         return 0.0 if value < 0
         value
@@ -111,7 +115,7 @@ module NewRelic
         account = obfuscate(config, metric_frame_attribute(:account))
         product = obfuscate(config, metric_frame_attribute(:product))
         
-        html_safe_if_needed("<script type=\"text/javascript\">#{config.browser_timing_static_footer}NREUMQ.push([\"#{config.finish_command}\",\"#{beacon}\",\"#{license_key}\",#{application_id},\"#{obfuscated_transaction_name}\",#{browser_monitoring_queue_time},#{browser_monitoring_app_time},new Date().getTime(),\"#{tt_guid}\",\"#{user}\",\"#{account}\",\"#{product}\"])</script>")
+        html_safe_if_needed("<script type=\"text/javascript\">#{config.browser_timing_static_footer}NREUMQ.push([\"#{config.finish_command}\",\"#{beacon}\",\"#{license_key}\",#{application_id},\"#{obfuscated_transaction_name}\",#{browser_monitoring_queue_time},#{browser_monitoring_app_time},new Date().getTime(),\"#{tt_guid}\",\"#{tt_token}\",\"#{user}\",\"#{account}\",\"#{product}\"])</script>")
       end
 
       def html_safe_if_needed(string)
