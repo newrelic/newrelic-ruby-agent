@@ -874,6 +874,9 @@ module NewRelic
               log.info "Using config from server"
               log.debug "Server provided config: #{server_side_config.inspect}"
             end
+            
+            @beacon_configuration = BeaconConfiguration.new(config_data)            
+            
             config_transaction_tracer
             log_connection!(config_data)
             configure_transaction_tracer!(config_data['collect_traces'], config_data['sample_rate'])
