@@ -9,11 +9,8 @@ module NewRelic
 
   class TransactionSample
 
-    attr_accessor :params, :root_segment
-    attr_accessor :profile
-    attr_reader :root_segment
-    attr_reader :params
-    attr_reader :sample_id
+    attr_accessor :params, :root_segment, :profile, :force_persist, :guid
+    attr_reader :root_segment, :params, :sample_id
 
     @@start_time = Time.now
 
@@ -25,12 +22,15 @@ module NewRelic
       @root_segment = create_segment 0.0, "ROOT"
       @params = {}
       @params[:request_params] = {}
+      
+      @guid = (0..15).to_a.map{|a| rand(16).to_s(16)}.join  # a 64 bit random GUID
+      NewRelic::Agent::TransactionInfo.get.guid = @guid
     end
 
     def count_segments
       @root_segment.count_segments - 1    # don't count the root segment
     end
-    
+        
     # Truncates the transaction sample to a maximum length determined
     # by the passed-in parameter. Operates recursively on the entire
     # tree of transaction segments in a depth-first manner
@@ -154,6 +154,8 @@ module NewRelic
       sample = TransactionSample.new(@start_time, sample_id)
 
       sample.params.merge! self.params
+      sample.guid = self.guid
+      sample.force_persist = self.force_persist if self.force_persist
 
       begin
         build_segment_for_transfer(sample, @root_segment, sample.root_segment, options)

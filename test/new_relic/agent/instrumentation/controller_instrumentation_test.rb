@@ -12,7 +12,6 @@ class NewRelic::Agent::Instrumentation::ControllerInstrumentationTest < Test::Un
     object.expects(:newrelic_request_headers).returns({:request => 'headers'}).twice
     object.expects(:parse_frontend_headers).with({:request => 'headers'}).returns(start_time)
     assert_equal(start_time, object.send(:_detect_upstream_wait, start_time))
-    assert_equal(0.0, Thread.current[:newrelic_queue_time])
   end
 
   def test_detect_upstream_wait_with_upstream
@@ -22,7 +21,6 @@ class NewRelic::Agent::Instrumentation::ControllerInstrumentationTest < Test::Un
     object.expects(:newrelic_request_headers).returns(true).twice
     object.expects(:parse_frontend_headers).returns(start_time)
     assert_equal(start_time, object.send(:_detect_upstream_wait, runs_at))
-    assert_equal(1.0, Thread.current[:newrelic_queue_time])
   end
 
   def test_detect_upstream_wait_swallows_errors

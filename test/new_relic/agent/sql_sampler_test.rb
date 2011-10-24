@@ -36,7 +36,8 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
   
   def test_harvest_slow_sql
     data = NewRelic::Agent::TransactionSqlData.new
-    data.set_transaction_info "WebTransaction/Controller/c/a", "/c/a", {}
+    data.set_transaction_info("WebTransaction/Controller/c/a", "/c/a", {},
+                              'guid')
     data.sql_data.concat [
       NewRelic::Agent::SlowSql.new("select * from test", "Database/test/select", {}, 1.5), 
       NewRelic::Agent::SlowSql.new("select * from test", "Database/test/select", {}, 1.2), 
@@ -64,8 +65,8 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
   
   def test_harvest
     data = NewRelic::Agent::TransactionSqlData.new
-    data.set_transaction_info "WebTransaction/Controller/c/a", "/c/a", {}
-    
+    data.set_transaction_info("WebTransaction/Controller/c/a", "/c/a", {},
+                              'guid')
     data.sql_data.concat [NewRelic::Agent::SlowSql.new("select * from test", "Database/test/select", {}, 1.5), 
                           NewRelic::Agent::SlowSql.new("select * from test", "Database/test/select", {}, 1.2), 
                           NewRelic::Agent::SlowSql.new("select * from test2", "Database/test2/select", {}, 1.1)]
@@ -77,7 +78,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
 
   def test_harvest_should_not_take_more_than_10
     data = NewRelic::Agent::TransactionSqlData.new
-    data.set_transaction_info("WebTransaction/Controller/c/a", "/c/a", {})
+    data.set_transaction_info("WebTransaction/Controller/c/a", "/c/a", {}, 'guid')
     15.times do |i|
       data.sql_data << NewRelic::Agent::SlowSql.new("select * from test#{(i+97).chr}",
                                                     "Database/test#{(i+97).chr}/select", {}, i)
@@ -92,7 +93,8 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
 
   def test_harvest_should_aggregate_similar_queries
     data = NewRelic::Agent::TransactionSqlData.new
-    data.set_transaction_info "WebTransaction/Controller/c/a", "/c/a", {}
+    data.set_transaction_info("WebTransaction/Controller/c/a", "/c/a", {},
+                              'guid')
     queries = [
                NewRelic::Agent::SlowSql.new("select  * from test where foo in (1, 2)  ", "Database/test/select", {}, 1.5), 
                NewRelic::Agent::SlowSql.new("select * from test where foo in (1,2, 3 ,4,  5,6, 'snausage')", "Database/test/select", {}, 1.2), 
@@ -112,8 +114,8 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
      .returns([{"header0" => 'bar0', "header1" => 'bar1', "header2" => 'bar2'}])
 
     data = NewRelic::Agent::TransactionSqlData.new
-    data.set_transaction_info "WebTransaction/Controller/c/a", "/c/a", {}
-    
+    data.set_transaction_info("WebTransaction/Controller/c/a", "/c/a", {},
+                              'guid')
     queries = [
                NewRelic::Agent::SlowSql.new("select * from test", "Database/test/select", {}, 1.5), 
                NewRelic::Agent::SlowSql.new("select * from test", "Database/test/select", {}, 1.2), 
@@ -132,13 +134,27 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
                  sql_traces[1].params[:explain_plan][1][0].sort)
   end
 
+  def test_sql_trace_should_include_transaction_guid
+    txn_sampler = NewRelic::Agent::TransactionSampler.new
+    NewRelic::Agent.instance.stats_engine.transaction_sampler = txn_sampler
+    txn_sampler.start_builder(Time.now)
+    txn_sampler.notice_transaction('a path', 'a uri', {:some => :params})
+    @sampler.create_transaction_data
+    @sampler.notice_transaction('a path', 'a uri', {:some => :params})
+
+    assert_equal(NewRelic::Agent.instance.transaction_sampler.builder.sample.guid,
+                 NewRelic::Agent.instance.sql_sampler.transaction_data.guid)
+  end
+  
   def test_should_not_collect_explain_plans_when_disabled
     NewRelic::Control.instance['slow_sql'] = { 'explain_enabled' => false }
     data = NewRelic::Agent::TransactionSqlData.new
-    data.set_transaction_info "WebTransaction/Controller/c/a", "/c/a", {}
+    data.set_transaction_info("WebTransaction/Controller/c/a", "/c/a", {},
+                              'guid')
     
     queries = [
-               NewRelic::Agent::SlowSql.new("select * from test", "Database/test/select", {}, 1.5)
+               NewRelic::Agent::SlowSql.new("select * from test",
+                                            "Database/test/select", {}, 1.5)
               ]
     data.sql_data.concat(queries)
     @sampler.harvest_slow_sql data   

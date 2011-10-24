@@ -87,7 +87,6 @@ module Agent
       # via controller actions
       def scope_name=(transaction)
         Thread::current[:newrelic_scope_name] = transaction
-        Thread::current[:newrelic_most_recent_transaction] = transaction
       end
       
       # Returns the current scope name from the thread local

@@ -776,10 +776,13 @@ module NewRelic
             @transaction_sampler.config['enabled'] = server_enabled
             @sql_sampler.configure!
             @should_send_samples = @config_should_send_samples && server_enabled
-
+            
             if @should_send_samples
               # I don't think this is ever true, but...
               enable_random_samples!(sample_rate) if @should_send_random_samples
+              
+              @transaction_sampler.slow_capture_threshold = @slowest_transaction_threshold
+              
               log.debug "Transaction tracing threshold is #{@slowest_transaction_threshold} seconds."
             else
               log.debug "Transaction traces will not be sent to the New Relic service."
@@ -1077,6 +1080,10 @@ module NewRelic
           unless @traces.empty?
             now = Time.now
             log.debug "Sending (#{@traces.length}) transaction traces"
+            
+            # REMOVE THIS BEFORE SHIPPING
+            log.info "Sending tts with GUIDS #{@traces.collect{|t| t.guid}.join(",")}"
+            
             begin
               options = { :keep_backtraces => true }
               options[:record_sql] = @record_sql unless @record_sql == :off
@@ -1148,16 +1155,16 @@ module NewRelic
         def compress_data(object)
           dump = Marshal.dump(object)
 
-          # this checks to make sure mongrel won't choke on big uploads
-          check_post_size(dump)
-
           dump_size = dump.size
 
           return [dump, 'identity'] if dump_size < (64*1024)
 
-          compression = dump_size < 2000000 ? Zlib::BEST_SPEED : Zlib::BEST_COMPRESSION
+          compressed_dump = Zlib::Deflate.deflate(dump, Zlib::DEFAULT_COMPRESSION)
 
-          [Zlib::Deflate.deflate(dump, compression), 'deflate']
+          # this checks to make sure mongrel won't choke on big uploads
+          check_post_size(compressed_dump)
+
+          [compressed_dump, 'deflate']
         end
 
         # Raises a PostTooBigException if the post_string is longer

@@ -10,18 +10,47 @@ module NewRelic::Rack
     # method required by Rack interface
     def call(env)
       
-      # clear out the thread locals we use in case this is a static request
-      Thread.current[:newrelic_most_recent_transaction] = nil
-      Thread.current[:newrelic_start_time] = Time.now
-      Thread.current[:newrelic_queue_time] = 0
+      req = Rack::Request.new(env)
+      
+      # clear any previous transaction info
+      NewRelic::Agent::TransactionInfo.clear
+      
+      agent_flag = req.cookies['NRAGENT']
+      
+      if agent_flag
+        s = agent_flag.split("=")
+        if s.length == 2
+          if s[0] == "tk" && s[1]
+            NewRelic::Agent::TransactionInfo.get.token = s[1]
+          end
+        end
+      end
+      
+      # Two experimental options for allowing TT capture based on http params
+      #
+      if req.params['nr_capture_deep_tt']
+        # NewRelic::Agent::TransactionInfo.get.force_persist = true
+        # NewRelic::Agent::TransactionInfo.get.capture_deep_tt = true
+      end
+      
+      if req.params['nr_capture_tt']
+        # NewRelic::Agent::TransactionInfo.get.force_persist = true
+      end
       
       result = @app.call(env)   # [status, headers, response]
-
+      
       if (NewRelic::Agent.browser_timing_header != "") && should_instrument?(result[0], result[1])
         response_string = autoinstrument_source(result[2], result[1])
 
-        if (response_string)
-          Rack::Response.new(response_string, result[0], result[1]).finish
+        if response_string
+          response = Rack::Response.new(response_string, result[0], result[1])
+
+          if NewRelic::Agent::TransactionInfo.get.token
+            # clear the cookie
+            response.set_cookie("NRAGENT", {:value => "tk=", :path => "/", :expires => Time.now+24*60*60})
+          end
+
+          response.finish
         else
           result
         end
@@ -65,4 +94,5 @@ module NewRelic::Rack
       source
     end
   end
+  
 end

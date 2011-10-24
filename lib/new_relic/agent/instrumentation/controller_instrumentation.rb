@@ -340,7 +340,9 @@ module NewRelic
             available_params = self.respond_to?(:params) ? self.params : {}
           end
           frame_data.request ||= self.request if self.respond_to? :request
-          frame_data.push(category + '/'+ path)
+          transaction_name = category + '/' + path
+          frame_data.push(transaction_name)
+          NewRelic::Agent::TransactionInfo.get.transaction_name = transaction_name
           frame_data.filtered_params = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
           frame_data
         end
@@ -403,7 +405,6 @@ module NewRelic
           queue_start = nil
           if newrelic_request_headers
             queue_start = parse_frontend_headers(newrelic_request_headers)
-            Thread.current[:newrelic_queue_time] = (now.to_f - queue_start.to_f) if queue_start
           end
           queue_start || now
         rescue Exception => e
