@@ -36,7 +36,7 @@ module NewRelic::Rack
 
     def autoinstrument_source(response, headers)
       source = nil
-      response.each {|fragment| (source) ? (source << fragment) : (source = fragment)}
+      response.each {|fragment| source ? (source << fragment.to_s) : (source = fragment)}
       return nil unless source
       
       body_start = source.index("<body")
