@@ -857,19 +857,13 @@ module NewRelic
           # Can accommodate most arbitrary data - anything extra is
           # ignored unless we say to do something with it here.
           def finish_setup(config_data)
-            server_side_config = config_data['agent_config']
-            if server_side_config && !server_side_config.empty?
-              config_data.merge!(server_side_config)
-              control.merge_server_side_config(server_side_config)
-              log.info "Using config from server"
-              log.debug "Server provided config: #{server_side_config.inspect}"
-            end
-            
             @agent_id = config_data['agent_run_id']
             @report_period = config_data['data_report_period']
             @url_rules = config_data['url_rules']
-            @beacon_configuration = BeaconConfiguration.new(config_data)            
-            
+            @beacon_configuration = BeaconConfiguration.new(config_data)
+            @server_side_config_enabled = config_data['listen_to_server_config']
+
+            control.merge_server_side_config(config_data) if @server_side_config_enabled
             config_transaction_tracer
             log_connection!(config_data)
             configure_transaction_tracer!(config_data['collect_traces'], config_data['sample_rate'])
