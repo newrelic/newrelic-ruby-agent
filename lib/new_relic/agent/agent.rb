@@ -863,6 +863,11 @@ module NewRelic
             @beacon_configuration = BeaconConfiguration.new(config_data)
             @server_side_config_enabled = config_data['listen_to_server_config']
 
+            if @server_side_config_enabled
+              log.info "Using config from server"
+              log.debug "Server provided config: #{config_data.inspect}"
+            end
+
             control.merge_server_side_config(config_data) if @server_side_config_enabled
             config_transaction_tracer
             log_connection!(config_data)
