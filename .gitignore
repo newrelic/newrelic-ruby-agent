@@ -9,6 +9,8 @@ Manifest*
 .idea/
 tmp/
 TAGS
+*.swp
+*.swo
 
 /log/
 /lerg/
