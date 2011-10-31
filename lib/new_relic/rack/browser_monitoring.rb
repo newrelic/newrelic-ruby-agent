@@ -46,8 +46,8 @@ module NewRelic::Rack
           response = Rack::Response.new(response_string, result[0], result[1])
 
           if NewRelic::Agent::TransactionInfo.get.token
-            # clear the cookie
-            response.set_cookie("NRAGENT", {:value => "tk=", :path => "/", :expires => Time.now+24*60*60})
+            # clear the cookie via expiration in the past
+            response.set_cookie("NRAGENT", {:value => "tk=", :path => "/", :expires => Time.now-(24* 60*60)})
           end
 
           response.finish
