@@ -1,3 +1,6 @@
+v3.2.0.1
+  * Updated LICENSE
+  * Updated links to support docs
 v3.2.0
   * Fix over-detection of mongrel and unicorn and only start the agent when
     actual server is running
