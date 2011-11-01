@@ -1,3 +1,10 @@
+v3.3.0
+  * fix for GC instrumentation when using Ruby 1.9
+  * new feature to correlate browser and server transaction traces
+  * new feature to trace slow sql statements
+  * fix to help cope with malformed rack responses
+  * do not try to instrument versions of ActiveMerchant that are too old
+
 v3.2.0
   * Fix over-detection of mongrel and unicorn and only start the agent when
     actual server is running

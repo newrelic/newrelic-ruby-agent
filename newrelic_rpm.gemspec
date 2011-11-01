@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{newrelic_rpm}
-  s.version = "3.3.0.alpha"
+  s.version = "3.3.0.beta1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = [%q{Bill Kayser}, %q{Jon Guymon}, %q{Justin George}, %q{Darin Swanson}]
-  s.date = %q{2011-10-24}
+  s.date = %q{2011-11-01}
   s.description = %q{New Relic is a performance management system, developed by New Relic,
 Inc (http://www.newrelic.com).  New Relic provides you with deep
 information about the performance of your web application as it runs
@@ -85,6 +85,7 @@ http://github.com/newrelic/rpm/
     "lib/new_relic/agent/stats_engine/metric_stats.rb",
     "lib/new_relic/agent/stats_engine/samplers.rb",
     "lib/new_relic/agent/stats_engine/transactions.rb",
+    "lib/new_relic/agent/transaction_info.rb",
     "lib/new_relic/agent/transaction_sample_builder.rb",
     "lib/new_relic/agent/transaction_sampler.rb",
     "lib/new_relic/agent/worker_loop.rb",
@@ -189,6 +190,7 @@ http://github.com/newrelic/rpm/
     "test/new_relic/delayed_job_injection_test.rb",
     "test/new_relic/local_environment_test.rb",
     "test/new_relic/metric_data_test.rb",
+    "test/new_relic/metric_parser/metric_parser_test.rb",
     "test/new_relic/metric_spec_test.rb",
     "test/new_relic/rack/all_test.rb",
     "test/new_relic/rack/browser_monitoring_test.rb",
@@ -303,7 +305,7 @@ Refer to the README.md file for more information.
 
 Please see http://github.com/newrelic/rpm/blob/master/CHANGELOG
 for a complete description of the features and enhancements available
-in version 3.2 of the Ruby Agent.
+in version 3.3 of the Ruby Agent.
   
 }
   s.rubygems_version = %q{1.3.6}
