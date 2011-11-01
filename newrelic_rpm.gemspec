@@ -4,12 +4,12 @@
 # -*- encoding: utf-8 -*-
 
 Gem::Specification.new do |s|
-  s.name = %q{newrelic_rpm}
-  s.version = "3.2.0"
+  s.name = "newrelic_rpm"
+  s.version = "3.2.0.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = [%q{Bill Kayser}, %q{Jon Guymon}, %q{Justin George}, %q{Darin Swanson}]
-  s.date = %q{2011-10-13}
+  s.date = %q{2011-11-01}
   s.description = %q{New Relic is a performance management system, developed by New Relic,
 Inc (http://www.newrelic.com).  New Relic provides you with deep
 information about the performance of your web application as it runs
