@@ -8,44 +8,11 @@ module NewRelic
             alias_method :log_without_newrelic_instrumentation, :log
             alias_method :log, :log_with_newrelic_instrumentation
             protected :log
-          end
-          
+          end          
         end
         
-        def _db_type
-          if @_nr_db_type.nil?
-            if (defined?(ActiveRecord::ConnectionAdapters::MysqlAdapter) && self.is_a?(ActiveRecord::ConnectionAdapters::MysqlAdapter)) ||
-              (defined?(ActiveRecord::ConnectionAdapters::Mysql2Adapter) && self.is_a?(ActiveRecord::ConnectionAdapters::Mysql2Adapter))
-              @_nr_db_type = "mysql"
-            elsif (defined?(ActiveRecord::ConnectionAdapters::PostgreSQLAdapter) && self.is_a?(ActiveRecord::ConnectionAdapters::PostgreSQLAdapter))
-              @_nr_db_type = "postgres"
-            else
-              @_nr_db_type = ""
-            end
-          end
-          
-          @_nr_db_type
-        end
-        
-        def _db_config
-          if @_nr_setup_db_config.nil?
-            if (defined?(ActiveRecord::ConnectionAdapters::MysqlAdapter) && self.is_a?(ActiveRecord::ConnectionAdapters::MysqlAdapter)) ||
-              (defined?(ActiveRecord::ConnectionAdapters::Mysql2Adapter) && self.is_a?(ActiveRecord::ConnectionAdapters::Mysql2Adapter)) ||
-              (defined?(ActiveRecord::ConnectionAdapters::PostgreSQLAdapter) && self.is_a?(ActiveRecord::ConnectionAdapters::PostgreSQLAdapter))
-              @_nr_db_config = @config
-            end
-            @_nr_setup_db_config = true
-          end
-                    
-          @_nr_db_config
-        end
-
         def log_with_newrelic_instrumentation(sql, name, &block)
-
           return log_without_newrelic_instrumentation(sql, name, &block) unless NewRelic::Agent.is_execution_traced?
-
-          # Capture db config if we are going to try to get the explain plans
-          supported_config = _db_config
           
           if name && (parts = name.split " ") && parts.size == 2
             model = parts.first
@@ -82,7 +49,11 @@ module NewRelic
           else
             metrics = [metric, "ActiveRecord/all"]
             metrics << "ActiveRecord/#{metric_name}" if metric_name
-            metrics << "RemoteService/sql/#{_db_type}/#{supported_config[:host] || "localhost"}" if supported_config
+            if NewRelic::Agent::Database.config && NewRelic::Agent::Database.config[:adapter]
+              type = NewRelic::Agent::Database.config[:adapter].sub(/\d*/, '')
+              host = NewRelic::Agent::Database.config[:host] || 'localhost'
+              metrics << "RemoteService/sql/#{type}/#{host}"
+            end
             
             self.class.trace_execution_scoped(metrics) do
               t0 = Time.now
@@ -90,8 +61,10 @@ module NewRelic
                 log_without_newrelic_instrumentation(sql, name, &block)
               ensure
                 elapsed_time = (Time.now - t0).to_f
-                NewRelic::Agent.instance.transaction_sampler.notice_sql(sql, supported_config, elapsed_time)
-                NewRelic::Agent.instance.sql_sampler.notice_sql(sql, metric, supported_config, elapsed_time)
+                NewRelic::Agent.instance.transaction_sampler.notice_sql(sql, NewRelic::Agent::Database.config,
+                                                                        elapsed_time)
+                NewRelic::Agent.instance.sql_sampler.notice_sql(sql, metric, NewRelic::Agent::Database.config,
+                                                                elapsed_time)
               end
             end
           end
@@ -133,6 +106,7 @@ DependencyDetection.defer do
 
   executes do
     ActiveRecord::Base.class_eval do
+      NewRelic::Agent::Database::ConnectionManager.instance.config = connection.instance_eval{ @config }
       class << self
         add_method_tracer :find_by_sql, 'ActiveRecord/#{self.name}/find_by_sql', :metric => false
         add_method_tracer :transaction, 'ActiveRecord/#{self.name}/transaction', :metric => false

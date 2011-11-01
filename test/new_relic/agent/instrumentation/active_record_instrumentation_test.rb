@@ -3,13 +3,9 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
   require 'active_record_fixtures'
   include NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
-  @@setup = false
   def setup
     super
-    unless @@setup
-      NewRelic::Agent.manual_start
-      @setup = true
-    end
+    NewRelic::Agent.manual_start
     ActiveRecordFixtures.setup
     NewRelic::Agent.instance.transaction_sampler.reset!
     NewRelic::Agent.instance.stats_engine.clear_stats

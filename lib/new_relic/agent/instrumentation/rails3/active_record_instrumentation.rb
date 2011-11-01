@@ -19,12 +19,6 @@ module NewRelic
 
           sql, name, binds = args
 
-          # Capture db config if we are going to try to get the explain plans
-          if (defined?(ActiveRecord::ConnectionAdapters::MysqlAdapter) && self.is_a?(ActiveRecord::ConnectionAdapters::MysqlAdapter)) ||
-              (defined?(ActiveRecord::ConnectionAdapters::Mysql2Adapter) && self.is_a?(ActiveRecord::ConnectionAdapters::Mysql2Adapter)) ||
-              (defined?(ActiveRecord::ConnectionAdapters::PostgreSQLAdapter) && self.is_a?(ActiveRecord::ConnectionAdapters::PostgreSQLAdapter))
-            supported_config = @config
-          end
           if name && (parts = name.split " ") && parts.size == 2
             model = parts.first
             operation = parts.last.downcase
@@ -60,14 +54,22 @@ module NewRelic
           else
             metrics = [metric, "ActiveRecord/all"]
             metrics << "ActiveRecord/#{metric_name}" if metric_name
+            if NewRelic::Agent::Database.config && NewRelic::Agent::Database.config[:adapter]
+              type = NewRelic::Agent::Database.config[:adapter].sub(/\d*/, '')
+              host = NewRelic::Agent::Database.config[:host] || 'localhost'
+              metrics << "RemoteService/sql/#{type}/#{host}"
+            end            
+            
             self.class.trace_execution_scoped(metrics) do
               sql, name, binds = args
               t0 = Time.now
               begin
                 log_without_newrelic_instrumentation(*args, &block)
               ensure
-                NewRelic::Agent.instance.transaction_sampler.notice_sql(sql, supported_config, (Time.now - t0).to_f)
-                NewRelic::Agent.instance.sql_sampler.notice_sql(sql, metric, supported_config, (Time.now - t0).to_f)
+                NewRelic::Agent.instance.transaction_sampler.notice_sql(sql, NewRelic::Agent::Database.config,
+                                                                        (Time.now - t0).to_f)
+                NewRelic::Agent.instance.sql_sampler.notice_sql(sql, metric, NewRelic::Agent::Database.config,
+                                                                (Time.now - t0).to_f)
               end
             end
           end
@@ -112,6 +114,7 @@ DependencyDetection.defer do
   executes do
     Rails.configuration.after_initialize do
       ActiveRecord::Base.class_eval do
+        NewRelic::Agent::Database::ConnectionManager.instance.config = connection.instance_eval{ @config }
         class << self
           add_method_tracer :find_by_sql, 'ActiveRecord/#{self.name}/find_by_sql', :metric => false
           add_method_tracer :transaction, 'ActiveRecord/#{self.name}/transaction', :metric => false
