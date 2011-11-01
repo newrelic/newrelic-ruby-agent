@@ -85,7 +85,9 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
       ActiveRecord/all
       ActiveRecord/find
       ActiveRecord/ActiveRecordFixtures::Order/find
-      Database/SQL/insert]
+      Database/SQL/insert
+      RemoteService/sql/mysql/localhost
+    ]
 
     if NewRelic::Control.instance.rails_version < '2.1.0'
       expected += %W[ActiveRecord/save ActiveRecord/ActiveRecordFixtures::Order/save]
@@ -180,6 +182,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     ActiveRecord/find
     ActiveRecord/ActiveRecordFixtures::Order/find
     ActiveRecord/ActiveRecordFixtures::Shipment/find
+    RemoteService/sql/mysql/localhost
     ]
 
     assert_calls_metrics(*expected_metrics) do
