@@ -163,7 +163,7 @@ online.  Refer to instructions in *Getting Started*, below.
 = Support
 
 Reach out to us--and to fellow users--at
-support.newrelic.com[http://support.newrelic.com/discussions/support].
+support.newrelic.com[http://support.newrelic.com/].
 There you'll find documentation, FAQs, and forums where you can submit
 suggestions and discuss New Relic with staff and other users.
 
@@ -171,7 +171,7 @@ Also available is community support on IRC: we generally use #newrelic
 on irc.freenode.net
 
 Find a bug?  E-mail support@newrelic.com, or post it to
-support.newrelic.com[http://support.newrelic.com/discussions/support].
+support.newrelic.com[http://support.newrelic.com/].
 
 Thank you, and may your application scale to infinity plus one.  
 

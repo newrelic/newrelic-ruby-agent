@@ -96,7 +96,7 @@ common: &default_settings
   # as Tolerating transactions; and more than four times the apdex_t
   # value as Frustrating transactions. 
   # For more about the Apdex standard, see
-  # http://support.newrelic.com/faqs/general/apdex
+  # http://newrelic.com/docs/general/apdex
 
   apdex_t: 0.5
   
