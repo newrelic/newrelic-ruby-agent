@@ -46,8 +46,9 @@ module NewRelic
 
       def config
         control = NewRelic::Control.instance
-        control.fetch('slow_sql',
-                      control.fetch('transaction_tracer', {}))
+        # Default slow_sql config values to transaction tracer config
+        control.fetch('transaction_tracer', {}).
+          merge( control.fetch('slow_sql', {}) )
       end
       
       # Enable the sql sampler - this also registers it with

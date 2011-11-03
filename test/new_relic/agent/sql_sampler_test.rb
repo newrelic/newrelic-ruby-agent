@@ -172,4 +172,16 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
     assert -2147483648 <= sql_trace.sql_id, "sql_id too small"
     assert 2147483647 >= sql_trace.sql_id, "sql_id too large"
   end
+
+  def test_config_values_default_to_transaction_tracer_config
+
+    NewRelic::Control.instance['slow_sql'] = { "explain_enabled"=> false }
+
+    assert_equal NewRelic::Agent.instance.sql_sampler.config['stack_trace_threshold'], 0.1 # transaction_tracer default
+    assert_equal NewRelic::Agent.instance.sql_sampler.config['explain_enabled'], false
+
+    # put things back how we found them
+    NewRelic::Control.instance['slow_sql'] = { "explain_enabled"=> true }
+
+  end
 end
