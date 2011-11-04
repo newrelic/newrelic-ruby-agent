@@ -266,6 +266,12 @@ var e=document.createElement("script");'
     assert_equal("<script type=\"text/javascript\">if (!NREUMQ.f) { NREUMQ.f=function() {\nNREUMQ.push([\"load\",new Date().getTime()]);\nvar e=document.createElement(\"script\");\ne.type=\"text/javascript\";e.async=true;e.src=\"this_is_my_file\";\ndocument.body.appendChild(e);\nif(NREUMQ.a)NREUMQ.a();\n};\nNREUMQ.a=window.onload;window.onload=NREUMQ.f;\n};\nNREUMQ.push([\"nrfj\",\"\",\"\",1,\"most recent transaction\",0,0,new Date().getTime(),\"ABC\",\"0123456789ABCDEF\",\"user\",\"account\",\"product\"])</script>", value, "should return the javascript given some default values")
   end
 
+  def test_use_nrf2_footer_when_auto_rum_disabled
+    NewRelic::Control.instance['browser_monitoring'] = { 'auto_instrument' => false }
+    value = footer_js_string(NewRelic::Agent.instance.beacon_configuration, '', '', 1)
+    assert_match(/nrf2/, value, "footer should use nrf2 when auto-rum disabled")
+  end
+
   def test_html_safe_if_needed_unsafed
     string = mock('string')
     # here to handle 1.9 encoding - we stub this out because it should

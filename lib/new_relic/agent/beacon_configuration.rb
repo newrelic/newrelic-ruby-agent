@@ -33,7 +33,14 @@ module NewRelic
       
       # RUM footer command used for 'finish' - based on whether JSONP is
       # being used. 'nrfj' for JSONP, otherwise 'nrf2'
-      attr_reader :finish_command
+      def finish_command
+        if NewRelic::Control.instance.fetch('browser_monitoring', {}) \
+            .fetch('auto_instrument', true)
+          @finish_command
+        else
+          'nrf2'
+        end
+      end
       
       # A static javascript header that is identical for every account
       # and application
