@@ -22,6 +22,7 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   # testing that the CA file we ship actually validates our server's
   # certificate. It's used for customers who enable verify_certificate
   def test_cert_file
+    return if ::RUBY_VERSION == '1.9.3'
     require 'socket'
     require 'openssl'
 
@@ -38,6 +39,7 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   # certificates in a non-customer-facing place before setting them
   # live.
   def test_staging_cert_file
+    return if ::RUBY_VERSION == '1.9.3'
     require 'socket'
     require 'openssl'
 
