@@ -43,4 +43,9 @@ DependencyDetection.defer do
     end
   end
 end
-DependencyDetection.detect!
+
+# If Rails is defined, this gets called in an after_initialize hook
+# see NewRelic::Control::Frameworks::Rails#init_config
+unless defined?(Rails)
+  DependencyDetection.detect!
+end
