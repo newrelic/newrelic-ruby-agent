@@ -49,9 +49,9 @@ module NewRelic
           else
             metrics = [metric, "ActiveRecord/all"]
             metrics << "ActiveRecord/#{metric_name}" if metric_name
-            if NewRelic::Agent::Database.config && NewRelic::Agent::Database.config[:adapter]
-              type = NewRelic::Agent::Database.config[:adapter].sub(/\d*/, '')
-              host = NewRelic::Agent::Database.config[:host] || 'localhost'
+            if @config && @config[:adapter]
+              type = @config[:adapter].sub(/\d*/, '')
+              host = @config[:host] || 'localhost'
               metrics << "RemoteService/sql/#{type}/#{host}"
             end
             
@@ -61,10 +61,10 @@ module NewRelic
                 log_without_newrelic_instrumentation(sql, name, &block)
               ensure
                 elapsed_time = (Time.now - t0).to_f
-                NewRelic::Agent.instance.transaction_sampler.notice_sql(sql, NewRelic::Agent::Database.config,
-                                                                        elapsed_time)
-                NewRelic::Agent.instance.sql_sampler.notice_sql(sql, metric, NewRelic::Agent::Database.config,
-                                                                elapsed_time)
+                NewRelic::Agent.instance.transaction_sampler.notice_sql(sql,
+                                                          @config, elapsed_time)
+                NewRelic::Agent.instance.sql_sampler.notice_sql(sql, metric,
+                                                          @config, elapsed_time)
               end
             end
           end
@@ -106,7 +106,6 @@ DependencyDetection.defer do
 
   executes do
     ActiveRecord::Base.class_eval do
-      NewRelic::Agent::Database::ConnectionManager.instance.config = connection.instance_eval{ @config }
       class << self
         add_method_tracer :find_by_sql, 'ActiveRecord/#{self.name}/find_by_sql', :metric => false
         add_method_tracer :transaction, 'ActiveRecord/#{self.name}/transaction', :metric => false

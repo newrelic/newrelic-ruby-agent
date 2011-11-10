@@ -1,4 +1,5 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+
 class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::Unit::TestCase
   require 'active_record_fixtures'
   include NewRelic::Agent::Instrumentation::ControllerInstrumentation
@@ -139,20 +140,22 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
   def test_metric_names_standard
     # fails due to a bug in rails 3 - log does not provide the correct
     # transaction type - it returns 'SQL' instead of 'Foo Create', for example.
-    return if rails3? || defined?(JRuby) || isSqlite?
-
+    return if defined?(JRuby) || isSqlite?
+    
     expected = %W[
       ActiveRecord/all
       ActiveRecord/find
-      ActiveRecord/ActiveRecordFixtures::Order/find
       ActiveRecord/create
+      ActiveRecord/ActiveRecordFixtures::Order/find
+      ActiveRecord/ActiveRecordFixtures::Order/create
       Database/SQL/other
-      RemoteService/sql/mysql/localhost      
-      ActiveRecord/ActiveRecordFixtures::Order/create]
+      RemoteService/sql/mysql/localhost]
 
     if NewRelic::Control.instance.rails_version < '2.1.0'
       expected += ['ActiveRecord/save',
                    'ActiveRecord/ActiveRecordFixtures::Order/save']
+    elsif NewRelic::Control.instance.rails_version >= '3.0.0'
+      expected << 'Database/SQL/insert'
     end
 
     assert_calls_metrics(*expected) do
@@ -163,10 +166,14 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     end
 
     metrics = NewRelic::Agent.instance.stats_engine.metrics
-
+        
     compare_metrics expected, metrics
     check_metric_count("ActiveRecord/ActiveRecordFixtures::Order/find", 1)
-    check_metric_count("ActiveRecord/ActiveRecordFixtures::Order/create", 1)
+    if NewRelic::Control.instance.rails_version < '3.0.0'
+      check_metric_count("ActiveRecord/ActiveRecordFixtures::Order/create", 1)
+    else
+      check_metric_count("Database/SQL/insert", 1)
+    end
   end
 
   def test_join_metrics_jruby
@@ -346,6 +353,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     metrics = NewRelic::Agent.instance.stats_engine.metrics
     compare_metrics [], metrics
   end
+  
   def test_run_explains
     perform_action_with_newrelic_trace :name => 'bogosity' do
       ActiveRecordFixtures::Order.add_delay
@@ -353,10 +361,12 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     end
 
     # that's a mouthful. perhaps we should ponder our API.
-    segment = NewRelic::Agent.instance.transaction_sampler.last_sample.root_segment.called_segments.first.called_segments.first.called_segments.first
+    segment = NewRelic::Agent.instance.transaction_sampler.last_sample \
+      .root_segment.called_segments[0].called_segments[0].called_segments[0]
     regex = /^SELECT (["`]?#{ActiveRecordFixtures::Order.table_name}["`]?.)?\* FROM ["`]?#{ActiveRecordFixtures::Order.table_name}["`]?$/
     assert_match regex, segment.params[:sql].strip
   end
+  
   def test_prepare_to_send
     perform_action_with_newrelic_trace :name => 'bogosity' do
       ActiveRecordFixtures::Order.add_delay
@@ -517,7 +527,31 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
       assert_equal 'preserve-me!', e.message
     end
   end
+  
+  def test_remote_service_metric_respects_dynamic_connection_config
+    return unless isMysql?
 
+#     puts NewRelic::Agent::Database.config.inspect
+    
+    ActiveRecordFixtures::Shipment.connection.execute('SHOW TABLES');
+    assert(NewRelic::Agent.get_stats('RemoteService/sql/mysql/localhost').call_count != 0)
+
+    config = ActiveRecordFixtures::Shipment.connection.instance_eval { @config }    
+    config[:host] = '127.0.0.1'
+    connection = ActiveRecordFixtures::Shipment.establish_connection(config)
+    
+#     puts ActiveRecord::Base.connection.instance_eval { @config }.inspect
+#     puts NewRelic::Agent::Database.config.inspect
+    
+    ActiveRecordFixtures::Shipment.connection.execute('SHOW TABLES');
+    assert(NewRelic::Agent.get_stats('RemoteService/sql/mysql/127.0.0.1').call_count != 0)
+
+    config[:host] = 'localhost'
+    ActiveRecordFixtures::Shipment.establish_connection(config)
+
+#     raise NewRelic::Agent.instance.stats_engine.inspect
+  end
+  
   private
 
   def rails3?
@@ -538,5 +572,4 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
   def isSqlite?
     ActiveRecord::Base.configurations[rails_env]['adapter'] =~ /sqlite/i
   end
-
 end

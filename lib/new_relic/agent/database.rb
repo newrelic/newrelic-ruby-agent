@@ -35,14 +35,6 @@ module NewRelic
         ConnectionManager.instance.close_connections
       end
       
-      def config
-        ConnectionManager.instance.config
-      end
-      
-      def config=(other)
-        ConnectionManager.instance.config = other
-      end
-
       # Perform this in the runtime environment of a managed
       # application, to explain the sql statement executed within a
       # segment of a transaction sample. Returns an array of
@@ -119,12 +111,10 @@ module NewRelic
         first_word, rest_of_statement = statement.split($;, 2)
         (first_word.upcase == 'SELECT')
       end
-
+      
       class ConnectionManager
         include Singleton
 
-        attr_accessor :config
-        
         # Returns a cached connection for a given ActiveRecord
         # configuration - these are stored or reopened as needed, and if
         # we cannot get one, we ignore it and move on without explaining
