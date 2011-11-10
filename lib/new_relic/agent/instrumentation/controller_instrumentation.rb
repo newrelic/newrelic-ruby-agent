@@ -231,6 +231,7 @@ module NewRelic
         # If a single argument is passed in, it is treated as a metric
         # path.  This form is deprecated.
         def perform_action_with_newrelic_trace(*args, &block)
+          NewRelic::Agent::TransactionInfo.clear
 
           # Skip instrumentation based on the value of 'do_not_trace' and if
           # we aren't calling directly with a block.

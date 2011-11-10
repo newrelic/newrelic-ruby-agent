@@ -21,6 +21,25 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     mocha_teardown
   end
 
+  def test_browser_monitoring_start_time_is_reset_each_request
+    controller = Object.new
+    def controller.perform_action_without_newrelic_trace(method, options={});
+      # noop; instrument me
+    end
+    def controller.newrelic_metric_path; "foo"; end
+    controller.extend ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
+    controller.extend ::NewRelic::Agent::BrowserMonitoring
+
+    controller.perform_action_with_newrelic_trace(:index)
+    first_request_start_time = controller.send(:browser_monitoring_start_time)
+    controller.perform_action_with_newrelic_trace(:index)
+    second_request_start_time = controller.send(:browser_monitoring_start_time)
+
+    # assert that these aren't the same time object
+    # the start time should be reinitialized each request to the controller
+    assert !(first_request_start_time.equal? second_request_start_time)
+  end
+
   def test_browser_timing_header_with_no_beacon_configuration
     NewRelic::Agent.instance.expects(:beacon_configuration).returns( nil)
     header = browser_timing_header
