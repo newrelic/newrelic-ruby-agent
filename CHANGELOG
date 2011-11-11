@@ -1,3 +1,7 @@
+v3.3.1
+  * improved Ruby 1.8.6 support
+  * fix for issues with RAILS_ROOT deprecation warnings
+
 v3.3.0
   * fix for GC instrumentation when using Ruby 1.9
   * new feature to correlate browser and server transaction traces
