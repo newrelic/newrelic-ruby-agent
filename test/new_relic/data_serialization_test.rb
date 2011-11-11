@@ -151,6 +151,7 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
   end
 
   def test_loading_does_not_seg_fault_if_gc_triggers
+    return if NewRelic::LanguageSupport.using_version?('1.8.6')
     require 'timeout'
     
     Thread.abort_on_exception = true

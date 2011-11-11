@@ -31,7 +31,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
     # this sql will not be captured
     @sampler.notice_sql "select * from test", "Database/test/select", nil, 0
     assert_not_nil @sampler.transaction_data
-    assert_equal 2, @sampler.transaction_data.sql_data.count
+    assert_equal 2, @sampler.transaction_data.sql_data.size
   end
   
   def test_harvest_slow_sql
@@ -45,7 +45,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
     ]
     @sampler.harvest_slow_sql data
       
-    assert_equal 2, @sampler.sql_traces.count
+    assert_equal 2, @sampler.sql_traces.size
   end
   
   def test_sql_aggregation
@@ -73,7 +73,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
     @sampler.harvest_slow_sql data
       
     sql_traces = @sampler.harvest
-    assert_equal 2, sql_traces.count
+    assert_equal 2, sql_traces.size
   end
 
   def test_harvest_should_not_take_more_than_10
@@ -104,7 +104,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
     @sampler.harvest_slow_sql data
       
     sql_traces = @sampler.harvest
-    assert_equal 2, sql_traces.count    
+    assert_equal 2, sql_traces.size
   end
 
   def test_harvest_should_collect_explain_plans
