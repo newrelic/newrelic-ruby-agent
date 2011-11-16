@@ -46,7 +46,8 @@ module NewRelic
       # clears any existing transaction info object and initializes a new one.
       # This starts the timer for the transaction.
       def self.reset
-        clear && get
+        clear
+        get
       end
 
     end
