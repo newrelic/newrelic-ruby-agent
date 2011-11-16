@@ -22,8 +22,8 @@ module NewRelic
       @root_segment = create_segment 0.0, "ROOT"
       @params = {}
       @params[:request_params] = {}
-      
-      @guid = (0..15).to_a.map{|a| rand(16).to_s(16)}.join  # a 64 bit random GUID
+
+      @guid = generate_guid
       NewRelic::Agent::TransactionInfo.get.guid = @guid
     end
 
@@ -172,6 +172,10 @@ module NewRelic
     end
 
   private
+    
+    def generate_guid
+      (0..15).to_a.map{|a| rand(16).to_s(16)}.join  # a 64 bit random GUID
+    end
     
     # This is badly in need of refactoring
     def build_segment_with_omissions(new_sample, time_delta, source_segment, target_segment, regex)

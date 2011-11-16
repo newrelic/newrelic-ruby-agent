@@ -111,11 +111,21 @@ EOL
     assert last_response.ok?
   end
   
-  def test_transaction_token_is_in_footer_when_set_by_cookie
-    transaction_token = '1234567890987654321'
-    set_cookie "NRAGENT=tk=#{transaction_token}"
+  def test_token_is_set_in_footer_when_set_by_cookie
+    token = '1234567890987654321'
+    set_cookie "NRAGENT=tk=#{token}"
     get '/'
 
-    assert(last_response.body.include?(transaction_token), last_response.body)
+    assert(last_response.body.include?(token), last_response.body)
+  end
+
+  def test_guid_is_set_in_footer_when_token_is_set
+    guid = 'abcdefgfedcba'
+    NewRelic::TransactionSample.any_instance.stubs(:generate_guid).returns(guid)
+    NewRelic::Control.instance.stubs(:apdex_t).returns(0.0001)
+    set_cookie "NRAGENT=tk=token"
+    get '/'
+
+    assert(last_response.body.include?(guid), last_response.body)
   end
 end
