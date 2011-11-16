@@ -21,7 +21,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     mocha_teardown
   end
 
-  def test_browser_monitoring_start_time_is_reset_each_request
+  def test_browser_monitoring_start_time_is_reset_each_request_when_auto_instrument_is_disabled
     controller = Object.new
     def controller.perform_action_without_newrelic_trace(method, options={});
       # noop; instrument me
@@ -29,6 +29,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     def controller.newrelic_metric_path; "foo"; end
     controller.extend ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
     controller.extend ::NewRelic::Agent::BrowserMonitoring
+    NewRelic::Control.instance['browser_monitoring'] = { 'auto_instrument' => false }
 
     controller.perform_action_with_newrelic_trace(:index)
     first_request_start_time = controller.send(:browser_monitoring_start_time)

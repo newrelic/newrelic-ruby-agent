@@ -13,7 +13,7 @@ require 'rubygems'
 # will be skipped.
 
 begin
-  require 'config/environment'
+  require '/Users/sam/dev/rpm_test_app/config/environment'
   begin
     require 'test_help'
   rescue LoadError

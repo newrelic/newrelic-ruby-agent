@@ -52,7 +52,7 @@ module NewRelic
         def install_browser_monitoring(config)
           return if @browser_monitoring_installed
           @browser_monitoring_installed = true
-          return if config.nil? || !config.respond_to?(:middleware) || !browser_monitoring_auto_instrument?
+          return if config.nil? || !config.respond_to?(:middleware) || ! browser_monitoring_auto_instrument?
           begin
             require 'new_relic/rack/browser_monitoring'
             config.middleware.use NewRelic::Rack::BrowserMonitoring
