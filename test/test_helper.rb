@@ -13,7 +13,8 @@ require 'rubygems'
 # will be skipped.
 
 begin
-  require '/Users/sam/dev/rpm_test_app/config/environment'
+  require 'config/environment'
+  # require File.join(File.dirname(__FILE__),'..','..','rpm_test_app','config','environment')
   begin
     require 'test_help'
   rescue LoadError
