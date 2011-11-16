@@ -100,8 +100,8 @@ EOL
   def test_insert_timing_footer_right_before_html_body_close
     get '/'
     
-    assert(last_response.body.include?("#{NewRelic::Agent.browser_timing_footer}</body>"),
-           last_response.body)
+    assert_match(/.*NREUMQ\.push.*new Date\(\)\.getTime\(\),"","","","",""\]\)<\/script><\/body>/,
+                 last_response.body)
   end
   
   def test_should_not_throw_exception_on_empty_reponse
