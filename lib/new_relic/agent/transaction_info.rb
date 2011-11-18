@@ -45,9 +45,28 @@ module NewRelic
 
       # clears any existing transaction info object and initializes a new one.
       # This starts the timer for the transaction.
-      def self.reset
+      def self.start(request=nil)
         clear
-        get
+        instance = get
+        
+        if request
+          agent_flag = request.cookies['NRAGENT']
+          if agent_flag
+            s = agent_flag.split("=")
+            if s.length == 2
+              if s[0] == "tk" && s[1]
+                instance.token = s[1]
+              end
+            end
+          end
+        end
+      end
+
+      def self.end(request=nil)
+        if NewRelic::TransactionInfo.get.token
+          # clear the cookie via expiration in the past
+          response.set_cookie("NRAGENT", {:value => "tk=", :path => "/", :expires => Time.now-(24* 60*60)})
+        end
       end
 
     end
