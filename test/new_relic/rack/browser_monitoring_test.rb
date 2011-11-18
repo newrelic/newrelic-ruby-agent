@@ -5,6 +5,14 @@ require 'new_relic/rack/browser_monitoring'
 
 ENV['RACK_ENV'] = 'test'
 
+# we should expand the environments we support, any rack app could
+# benefit from auto-rum, but the truth of the matter is that atm
+# we only support Rails >= 2.3
+def middleware_supported?
+  ::Rails::VERSION::MAJOR >= 2 && ::Rails::VERSION::MINOR >= 3
+end
+
+if middleware_supported?
 class BrowserMonitoringTest < Test::Unit::TestCase
   include Rack::Test::Methods
   
@@ -115,7 +123,7 @@ EOL
     token = '1234567890987654321'
     set_cookie "NRAGENT=tk=#{token}"
     get '/'
-
+    
     assert(last_response.body.include?(token), last_response.body)
   end
 
@@ -128,4 +136,5 @@ EOL
 
     assert(last_response.body.include?(guid), last_response.body)
   end
+end
 end
