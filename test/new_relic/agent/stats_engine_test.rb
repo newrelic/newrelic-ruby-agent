@@ -193,7 +193,7 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
       ::Rubinius::Agent.stubs(:loopback).returns(agent)
     elsif NewRelic::LanguageSupport.using_version?('1.9')
       ::GC::Profiler.stubs(:enabled?).returns(true)
-      ::GC::Profiler.stubs(:total_time).returns(1000, 4000) 
+      ::GC::Profiler.stubs(:total_time).returns(1.0, 4.0) 
       ::GC.stubs(:count).returns(1, 3)      
     elsif NewRelic::LanguageSupport.using_version?('1.8')
       ::GC.stubs(:time).returns(1000000, 4000000)
