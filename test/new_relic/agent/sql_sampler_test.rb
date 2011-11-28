@@ -174,7 +174,6 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
   end
 
   def test_config_values_default_to_transaction_tracer_config
-
     NewRelic::Control.instance['slow_sql'] = { "explain_enabled"=> false }
 
     assert_equal NewRelic::Agent.instance.sql_sampler.config['stack_trace_threshold'], 0.1 # transaction_tracer default
@@ -182,6 +181,22 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
 
     # put things back how we found them
     NewRelic::Control.instance['slow_sql'] = { "explain_enabled"=> true }
+  end
 
+  def test_sends_obfuscated_queries_when_configured
+    NewRelic::Control.instance['transaction_tracer'] = { 'record_sql' => 'obfuscated' }
+    
+    data = NewRelic::Agent::TransactionSqlData.new
+    data.set_transaction_info("WebTransaction/Controller/c/a", "/c/a", {},
+                              'guid')
+    data.sql_data.concat([NewRelic::Agent::SlowSql.new("select * from test where foo = 'bar'",
+                                                       "Database/test/select", {}, 1.5), 
+                          NewRelic::Agent::SlowSql.new("select * from test where foo in (1,2,3,4,5)",
+                                                       "Database/test/select", {}, 1.2)])
+    @sampler.harvest_slow_sql(data)      
+    sql_traces = @sampler.harvest
+
+    assert_equal('select * from test where foo = ?', sql_traces[0].sql)
+    assert_equal('select * from test where foo in (?,?,?,?,?)', sql_traces[1].sql)        
   end
 end

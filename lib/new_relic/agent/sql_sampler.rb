@@ -48,7 +48,7 @@ module NewRelic
         control = NewRelic::Control.instance
         # Default slow_sql config values to transaction tracer config
         control.fetch('transaction_tracer', {}).
-          merge( control.fetch('slow_sql', {}) )
+          merge(control.fetch('slow_sql', {}))
       end
       
       # Enable the sql sampler - this also registers it with
@@ -247,8 +247,8 @@ module NewRelic
       
       def agent_config
         control = NewRelic::Control.instance
-        control.fetch('slow_sql',
-                      control.fetch('transaction_tracer', {}))
+        control.fetch('transaction_tracer', {}).
+          merge(control.fetch('slow_sql', {}))
       end
       
       def need_to_obfuscate?
