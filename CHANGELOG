@@ -1,6 +1,8 @@
 v3.3.1
   * improved Ruby 1.8.6 support
   * fix for issues with RAILS_ROOT deprecation warnings
+  * fixed incorrect 1.9 GC time reporting
+  * obfusction for Slow SQL queries respects transaction trace config
 
 v3.3.0
   * fix for GC instrumentation when using Ruby 1.9
