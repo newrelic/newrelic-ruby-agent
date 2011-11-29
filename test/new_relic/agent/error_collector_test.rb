@@ -3,12 +3,12 @@ ENV['SKIP_RAILS'] = 'true'
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 
 class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
-
   def setup
     super
     @error_collector = NewRelic::Agent::ErrorCollector.new
     @error_collector.stubs(:enabled).returns(true)
   end
+  
   def test_empty
     @error_collector.harvest_errors([])
     @error_collector.notice_error(nil, :metric=> 'path', :request_params => {:x => 'y'})
@@ -26,8 +26,8 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
     assert_equal '', err.params[:request_referer]
     assert_equal 'path', err.path
     assert_equal 'Error', err.exception_class
-
   end
+  
   def test_simple
     @error_collector.notice_error(Exception.new("message"), :uri => '/myurl/', :metric => 'path', :referer => 'test_referer', :request_params => {:x => 'y'})
 
@@ -153,6 +153,23 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
     errors = @error_collector.harvest_errors([])
 
     assert_equal 1, errors.length
+  end
+
+  def test_obfuscates_error_messages_when_high_security_is_set
+    NewRelic::Control.instance['high_security'] = true
+    
+    @error_collector.notice_error(Exception.new("YO SQL BAD: serect * flom test where foo = 'bar'"))
+    @error_collector.notice_error(Exception.new("YO SQL BAD: serect * flom test where foo in (1,2,3,4,5)"))
+
+    old_errors = []
+    errors = @error_collector.harvest_errors([])
+
+    assert_equal('YO SQL BAD: serect * flom test where foo = ?',
+                 errors[0].message)
+    assert_equal('YO SQL BAD: serect * flom test where foo in (?,?,?,?,?)',
+                 errors[1].message)
+    
+    NewRelic::Control.instance['high_security'] = nil
   end
 
   private
