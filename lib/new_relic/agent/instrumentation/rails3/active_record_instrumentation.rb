@@ -38,12 +38,16 @@ module NewRelic
           if metric.nil?
             metric = NewRelic::Agent::Instrumentation::MetricFrame.database_metric_name
             if metric.nil?
-              if sql =~ /^(select|update|insert|delete|show)/i
-                # Could not determine the model/operation so let's find a better
-                # metric.  If it doesn't match the regex, it's probably a show
-                # command or some DDL which we'll ignore.
-                metric = "Database/SQL/#{$1.downcase}"
-              else
+              begin
+                if sql =~ /^(select|update|insert|delete|show)/i
+                  # Could not determine the model/operation so let's find a better
+                  # metric.  If it doesn't match the regex, it's probably a show
+                  # command or some DDL which we'll ignore.
+                  metric = "Database/SQL/#{$1.downcase}"
+                else
+                  metric = "Database/SQL/other"
+                end
+              rescue ArgumentError => e
                 metric = "Database/SQL/other"
               end
             end
