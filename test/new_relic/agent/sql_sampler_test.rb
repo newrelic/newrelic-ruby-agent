@@ -147,7 +147,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
   end
   
   def test_should_not_collect_explain_plans_when_disabled
-    NewRelic::Control.instance['slow_sql'] = { 'explain_enabled' => false }
+    NewRelic::Control.instance['transaction_tracer'] = { 'explain_enabled' => false }
     data = NewRelic::Agent::TransactionSqlData.new
     data.set_transaction_info("WebTransaction/Controller/c/a", "/c/a", {},
                               'guid')
@@ -160,7 +160,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
     @sampler.harvest_slow_sql data   
     sql_traces = @sampler.harvest
     assert_equal(nil, sql_traces[0].params[:explain_plan])
-    NewRelic::Control.instance['slow_sql'] = { 'explain_enabled' => true }
+    NewRelic::Control.instance['transaction_tracer'] = { 'explain_enabled' => true }
   end
 
   def test_sql_id_fits_in_a_mysql_int_11
@@ -171,16 +171,6 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
     
     assert -2147483648 <= sql_trace.sql_id, "sql_id too small"
     assert 2147483647 >= sql_trace.sql_id, "sql_id too large"
-  end
-
-  def test_config_values_default_to_transaction_tracer_config
-    NewRelic::Control.instance['slow_sql'] = { "explain_enabled"=> false }
-
-    assert_equal NewRelic::Agent.instance.sql_sampler.config['stack_trace_threshold'], 0.1 # transaction_tracer default
-    assert_equal NewRelic::Agent.instance.sql_sampler.config['explain_enabled'], false
-
-    # put things back how we found them
-    NewRelic::Control.instance['slow_sql'] = { "explain_enabled"=> true }
   end
 
   def test_sends_obfuscated_queries_when_configured

@@ -43,14 +43,22 @@ module NewRelic
           disable
         end
       end
-
+      
       def config
-        control = NewRelic::Control.instance
-        # Default slow_sql config values to transaction tracer config
-        control.fetch('transaction_tracer', {}).
-          merge(control.fetch('slow_sql', {}))
+        self.class.config
       end
       
+      def self.config
+        control = NewRelic::Control.instance
+        txn_config = control.fetch('transaction_tracer', {})
+
+        if txn_config.fetch('enabled', true) && control.has_slow_sql_config?
+          txn_config['enabled'] = control['slow_sql']['enabled']
+        end
+        
+        txn_config
+      end
+                  
       # Enable the sql sampler - this also registers it with
       # the statistics engine.
       def enable
@@ -246,9 +254,7 @@ module NewRelic
       end
       
       def agent_config
-        control = NewRelic::Control.instance
-        control.fetch('transaction_tracer', {}).
-          merge(control.fetch('slow_sql', {}))
+        NewRelic::Agent::SqlSampler.config
       end
       
       def need_to_obfuscate?
