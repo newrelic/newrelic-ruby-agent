@@ -27,13 +27,16 @@ module NewRelic::LanguageSupport
     def self.included(base)
       # need to use syck rather than psych when possible
       if defined?(::YAML::ENGINE)
-        base.class_eval do
-          def load_newrelic_yml(*args)
-            yamler = ::YAML::ENGINE.yamler
-            ::YAML::ENGINE.yamler = 'syck'
-            val = super
-            ::YAML::ENGINE.yamler = yamler
-            val
+        unless NewRelic::LanguageSupport.using_engine?('jruby') &&
+                NewRelic::LanguageSupport.using_version?('1.9')
+          base.class_eval do
+            def load_newrelic_yml(*args)
+              yamler = ::YAML::ENGINE.yamler
+              ::YAML::ENGINE.yamler = 'syck'
+              val = super
+              ::YAML::ENGINE.yamler = yamler
+              val
+            end
           end
         end
       end
