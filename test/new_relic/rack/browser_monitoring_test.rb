@@ -17,8 +17,6 @@ class BrowserMonitoringTest < Test::Unit::TestCase
   include Rack::Test::Methods
   
   class TestApp
-#     include NewRelic::Agent::Instrumentation::ControllerInstrumentation
-    
     def self.doc=(other)
       @@doc = other
     end
@@ -38,7 +36,6 @@ class BrowserMonitoringTest < Test::Unit::TestCase
 EOL
       [200, {'Content-Type' => 'text/html'}, Rack::Response.new(@@doc)]
     end
-#     add_transaction_tracer :call, :category => :rack
     include NewRelic::Agent::Instrumentation::Rack
   end
   
