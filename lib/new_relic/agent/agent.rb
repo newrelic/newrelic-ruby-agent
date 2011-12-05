@@ -1281,6 +1281,13 @@ module NewRelic
             log.debug "Serializing agent data to disk"
             NewRelic::Agent.save_data
           end
+        rescue Exception => e
+          NewRelic::Control.instance.disable_serialization = true
+          NewRelic::Control.instance.log.warn("Disabling serialization: #{e.message}")
+          retry_count ||= 0
+          retry_count += 1
+          retry unless retry_count > 1
+          raise e
         end
 
         # This method contacts the server to send remaining data and
