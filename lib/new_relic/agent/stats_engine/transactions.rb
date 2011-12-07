@@ -46,7 +46,6 @@ module Agent
       # TransactionSample::Segment at the end of transaction execution
       def push_scope(metric, time = Time.now.to_f, deduct_call_time_from_parent = true)
         stack = scope_stack
-        stack.empty? ? GCProfiler.init : GCProfiler.capture
         @transaction_sampler.notice_push_scope metric, time if @transaction_sampler
         scope = ScopeStackElement.new(metric, deduct_call_time_from_parent)
         stack.push scope
@@ -56,7 +55,6 @@ module Agent
       # Pops a scope off the transaction stack - this updates the
       # transaction sampler that we've finished execution of a traced method
       def pop_scope(expected_scope, duration, time=Time.now.to_f)
-        GCProfiler.capture
         stack = scope_stack
         scope = stack.pop
         fail "unbalanced pop from blame stack, got #{scope ? scope.name : 'nil'}, expected #{expected_scope ? expected_scope.name : 'nil'}" if scope != expected_scope
@@ -98,6 +96,7 @@ module Agent
       def start_transaction(name = nil)
         Thread::current[:newrelic_scope_stack] ||= []
         self.scope_name = name if name
+        GCProfiler.init
       end
 
       # Try to clean up gracefully, otherwise we leave things hanging around on thread locals.
@@ -105,6 +104,7 @@ module Agent
       # and is ignored.
       #
       def end_transaction
+        GCProfiler.capture
         stack = scope_stack
 
         if stack && stack.empty?
