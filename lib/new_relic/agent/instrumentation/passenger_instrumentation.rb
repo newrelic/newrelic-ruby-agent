@@ -28,8 +28,9 @@ DependencyDetection.defer do
   end
 
   executes do
-    # We're on an older version of passenger
-    NewRelic::Agent.logger.warn "An older version of Phusion Passenger has been detected.  We recommend using at least release 2.1.1."
+    ## We're on an older version of passenger
+    ## FIXME: This warning is printing on current version of passenger
+    # NewRelic::Agent.logger.warn "An older version of Phusion Passenger has been detected.  We recommend using at least release 2.1.1."
 
     NewRelic::Agent::Instrumentation::MetricFrame.check_server_connection = true
   end
