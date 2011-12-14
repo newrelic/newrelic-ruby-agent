@@ -84,6 +84,8 @@ module NewRelic
       rescue Exception => e
         NewRelic::Control.instance.log.error("Error serializing data to disk: #{e.inspect}")
         NewRelic::Control.instance.log.debug(e.backtrace.split("\n"))
+        # re-raise so that serialization will be disabled higher up the stack
+        raise e
       end
 
       def get_data_from_file(f)
