@@ -22,16 +22,16 @@ module NewRelic
             end
           end
 
-          def process_action(*args)
+          def process_action_with_newrelic_trace(*args)
             # skip instrumentation if we are in an ignored action
             if _is_filtered?('do_not_trace')
               NewRelic::Agent.disable_all_tracing do
-                return super
+                return process_action_without_newrelic_trace(*args)
               end
             end
 
             perform_action_with_newrelic_trace(:category => :controller, :name => self.action_name, :path => newrelic_metric_path, :params => request.filtered_parameters, :class_name => self.class.name)  do
-              super
+              process_action_without_newrelic_trace(*args)
             end
           end
 
@@ -71,6 +71,7 @@ DependencyDetection.defer do
     class ActionController::Base
       include NewRelic::Agent::Instrumentation::ControllerInstrumentation
       include NewRelic::Agent::Instrumentation::Rails3::ActionController
+      alias_method_chain :process_action, :newrelic_trace
     end
   end
 end
