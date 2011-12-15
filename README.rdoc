@@ -68,10 +68,10 @@ Add the following line to your Gemfile:
     gem 'newrelic_rpm'
 
 For Rails 2.x without Bundler:
-   
+
 edit +environment.rb+ and add to the initalizer block:
 
-    config.gem "newrelic_rpm" 
+    config.gem "newrelic_rpm"
 
 === Merb Installation
 
@@ -81,7 +81,7 @@ To monitor a merb app install the newrelic_rpm gem and add
 
 to your init.rb file.
 
-=== Sinatra Installation 
+=== Sinatra Installation
 
 To use the Ruby Agent with a Sinatra app, add
     require 'newrelic_rpm'
@@ -91,12 +91,12 @@ Then make sure you set RACK_ENV to the environment corresponding to the
 configuration definitions in the newrelic.yml file; i.e., development,
 staging, production, etc.
 
-To use Developer Mode in Sinatra, add NewRelic::Rack::DeveloperMode to 
+To use Developer Mode in Sinatra, add NewRelic::Rack::DeveloperMode to
 the middleware stack.  See the +config.ru+ sample below.
 
 === Other Environments
 
-You can use the Ruby Agent to monitor any Ruby application.  Add 
+You can use the Ruby Agent to monitor any Ruby application.  Add
     require 'newrelic_rpm'
 to your startup sequence and then manually start the agent using
     NewRelic::Agent.manual_start
@@ -173,7 +173,8 @@ on irc.freenode.net
 Find a bug?  E-mail support@newrelic.com, or post it to
 support.newrelic.com[http://support.newrelic.com/].
 
-Thank you, and may your application scale to infinity plus one.  
+Thank you, and may your application scale to infinity plus one.
 
 Lew Cirne, Founder and CEO<br/>
 New Relic, Inc.
+
