@@ -151,5 +151,5 @@ module TransactionSampleTestHelper
     sampler.notice_scope_empty
     sampler.samples[0]
   end
-
+  module_function :run_sample_trace_on
 end

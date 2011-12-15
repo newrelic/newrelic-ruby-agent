@@ -16,7 +16,7 @@ module NewRelic
       # memory and data retention
       MAX_ERROR_QUEUE_LENGTH = 20 unless defined? MAX_ERROR_QUEUE_LENGTH
 
-      attr_accessor :enabled
+      attr_accessor :enabled, :errors
       attr_reader :config_enabled
       
       # Returns a new error collector
