@@ -106,7 +106,11 @@ module NewRelic
     def gather_cpu_info
       return unless File.readable? '/proc/cpuinfo'
       @processors = append_environment_value('Processors') do
-        processors = File.readlines('/proc/cpuinfo').select { |line| line =~ /^processor\s*:/ }.size
+        # We do not read the file directly because of a kernel bug in linux prior to 2.6.30
+        # that makes ruby IO hang on select() calls to /proc/* files forever
+        processors = File.popen('cat /proc/cpuinfo') do |pipe|
+          pipe.readlines.select { |line| line =~ /^processor\s*:/ }.size
+        end
         raise "Cannot determine the number of processors in /proc/cpuinfo" unless processors > 0
         processors
       end

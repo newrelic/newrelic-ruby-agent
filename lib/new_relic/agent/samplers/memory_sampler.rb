@@ -122,9 +122,11 @@ module NewRelic
           # Returns the amount of resident memory this process is using in MB
           #
           def get_memory
-            File.open(proc_status_file, "r") do |f|
-              while !f.eof?
-                if f.readline =~ /RSS:\s*(\d+) kB/i
+            # We do not read the file directly because of a kernel bug in linux prior to 2.6.30
+            # that makes ruby IO hang on select() calls to /proc/* files forever
+            File.popen("cat #{proc_status_file}") do |pipe|
+              pipe.readlines.each do |line|
+                if line =~ /RSS:\s*(\d+) kB/i
                   return $1.to_f / 1024.0
                 end
               end
