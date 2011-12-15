@@ -911,7 +911,7 @@ module NewRelic
           @stats_engine.merge_data(metrics) if metrics
           if transaction_traces
             if @traces
-              @traces = @traces + transaction_traces
+              @traces += transaction_traces
             else
               @traces = transaction_traces
             end
