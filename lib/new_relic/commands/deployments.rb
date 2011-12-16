@@ -72,7 +72,7 @@ class NewRelic::Command::Deployments < NewRelic::Command
       raise NewRelic::Command::CommandFailure.new(err_string)
     rescue NewRelic::Command::CommandFailure
       raise
-    rescue Exception => e
+    rescue => e
       err "Unexpected error attempting to connect to #{config.api_server}"
       info "#{e}: #{e.backtrace.join("\n   ")}"
       raise NewRelic::Command::CommandFailure.new(e.to_s)

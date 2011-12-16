@@ -10,7 +10,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     ActiveRecordFixtures.setup
     NewRelic::Agent.instance.transaction_sampler.reset!
     NewRelic::Agent.instance.stats_engine.clear_stats
-  rescue Exception => e
+  rescue => e
     puts e
     puts e.backtrace.join("\n")
   end

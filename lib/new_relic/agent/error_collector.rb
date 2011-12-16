@@ -223,7 +223,7 @@ module NewRelic
         exception_options = error_params_from_options(options).merge(exception_info(exception))
         add_to_error_queue(NewRelic::NoticedError.new(action_path, exception_options, exception))
         exception
-      rescue Exception => e
+      rescue => e
         log.error("Error capturing an error, yodawg. #{e}")
       end
 

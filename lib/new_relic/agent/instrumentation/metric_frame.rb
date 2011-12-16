@@ -67,7 +67,7 @@ module NewRelic
             include_class 'java.lang.management.ManagementFactory'
             include_class 'com.sun.management.OperatingSystemMXBean'
             @@java_classes_loaded = true
-          rescue Exception => e
+          rescue => e
           end
         end
 

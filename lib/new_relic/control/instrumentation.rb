@@ -17,7 +17,7 @@ module NewRelic
           begin
             log.debug "Processing instrumentation file '#{file}'"
             require file.to_s
-          rescue Exception => e
+          rescue => e
             log.error "Error loading instrumentation file '#{file}': #{e}"
             log.debug e.backtrace.join("\n")
           end

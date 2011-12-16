@@ -57,7 +57,7 @@ module NewRelic
             require 'new_relic/rack/browser_monitoring'
             config.middleware.use NewRelic::Rack::BrowserMonitoring
             log!("Installed New Relic Browser Monitoring middleware", :info)
-          rescue Exception => e
+          rescue => e
             log!("Error installing New Relic Browser Monitoring middleware: #{e.inspect}", :error)
           end
         end
@@ -77,7 +77,7 @@ module NewRelic
                 log!("NewRelic Agent Developer Mode enabled.")
                 log!("To view performance information, go to http://localhost#{port}/newrelic")
               end
-            rescue Exception => e
+            rescue => e
               log!("Error installing New Relic Developer Mode: #{e.inspect}", :error)
             end
           elsif rails_config
@@ -92,14 +92,14 @@ module NewRelic
           else
             super
           end
-        rescue Exception => e
+        rescue => e
           super
         end
 
         def to_stdout(message)
           logger = ::Rails.respond_to?(:logger) ? ::Rails.logger : ::RAILS_DEFAULT_LOGGER
           logger.info(message)
-        rescue Exception => e
+        rescue => e
           super
         end
 

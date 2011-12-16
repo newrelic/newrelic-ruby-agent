@@ -37,7 +37,7 @@ module NewRelic
           else
             super
           end
-        rescue Exception => e
+        rescue => e
           super
         end
 
