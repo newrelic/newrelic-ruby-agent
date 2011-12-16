@@ -16,7 +16,7 @@ module NewRelic
         NewRelic::Control.instance.disable_serialization? || store_too_large? ||
           store_too_old? || pid_too_old? ||
           NewRelic::LanguageSupport.using_version?('1.8.6')
-      rescue Exception => e
+      rescue => e
         NewRelic::Control.instance.disable_serialization = true
         NewRelic::Control.instance.log.warn("Disabling serialization: #{e.message}")
         true
@@ -81,7 +81,7 @@ module NewRelic
             f.flock(File::LOCK_UN)
           end
         end
-      rescue Exception => e
+      rescue => e
         NewRelic::Control.instance.log.error("Error serializing data to disk: #{e.inspect}")
         NewRelic::Control.instance.log.debug(e.backtrace.split("\n"))
         # re-raise so that serialization will be disabled higher up the stack

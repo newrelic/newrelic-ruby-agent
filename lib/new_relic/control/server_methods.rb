@@ -63,13 +63,13 @@ module NewRelic
       # address and don't have a good default.
       def resolve_ip_address(host)
         Resolv.getaddress(host)
-      rescue Exception => e
+      rescue => e
         log.warn("DNS Error caching IP address: #{e}")
         log.debug(e.backtrace.join("\n   "))
         begin
           log.info("Trying native DNS lookup since Resolv failed")
           IPSocket.getaddress(host)
-        rescue Exception => e
+        rescue => e
           log.error("Could not look up server address: #{e}")
           nil
         end

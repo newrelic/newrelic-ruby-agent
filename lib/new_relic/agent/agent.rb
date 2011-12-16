@@ -129,9 +129,9 @@ module NewRelic
             if options['exception']
               e = options['exception']
             elsif options['error_message']
-              e = Exception.new options['error_message']
+              e = StandardError.new options['error_message']
             else
-              e = Exception.new 'Unknown Error'
+              e = StandardError.new 'Unknown Error'
             end
             error_collector.notice_error e, :uri => options['uri'], :metric => metric
           end
@@ -538,7 +538,7 @@ module NewRelic
             handle_force_disconnect(e)
           rescue NewRelic::Agent::ServerConnectionException => e
             handle_server_connection_problem(e)
-          rescue Exception => e
+          rescue => e
             handle_other_error(e)
           end
 
@@ -1281,7 +1281,7 @@ module NewRelic
             log.debug "Serializing agent data to disk"
             NewRelic::Agent.save_data
           end
-        rescue Exception => e
+        rescue => e
           NewRelic::Control.instance.disable_serialization = true
           NewRelic::Control.instance.log.warn("Disabling serialization: #{e.message}")
           retry_count ||= 0

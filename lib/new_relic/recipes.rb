@@ -54,7 +54,7 @@ make_notify_task = Proc.new do
         logger.info e.message
       rescue Capistrano::CommandError
         logger.info "Unable to notify New Relic of the deployment... skipping"
-      rescue Exception => e
+      rescue => e
         logger.info "Error creating New Relic deployment (#{e})\n#{e.backtrace.join("\n")}"
       end
       # WIP: For rollbacks, let's update the deployment we created with an indication of the failure:

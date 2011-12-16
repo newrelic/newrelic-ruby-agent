@@ -12,7 +12,7 @@ module ActiveRecordFixtures
     ActiveRecordFixtures::Order.teardown
     begin
       super
-    rescue Exception => e
+    rescue => e
     end
   end
   class Order < ActiveRecord::Base
@@ -30,7 +30,7 @@ module ActiveRecordFixtures
 
     def self.check_for_table
       connection.table_exists?(self.table_name)
-    rescue Exception => e
+    rescue => e
       false
     end
     
@@ -66,7 +66,7 @@ module ActiveRecordFixtures
     end
     def self.check_for_table
       connection.table_exists?(self.table_name) && connection.table_exists?('orders_shipments')
-    rescue Exception => e
+    rescue => e
       false
     end
 

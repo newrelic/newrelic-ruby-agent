@@ -49,7 +49,7 @@ module NewRelic
     def append_environment_value(name, value = nil)
       value = yield if block_given?
       @config[name] = value if value
-    rescue Exception
+    rescue
       # puts "#{e}\n  #{e.backtrace.join("\n  ")}"
       raise if @framework == :test
     end
@@ -58,7 +58,7 @@ module NewRelic
     # of gems - this catches errors that might be raised in the block
     def append_gem_list
       @gems += yield
-    rescue Exception => e
+    rescue => e
       # puts "#{e}\n  #{e.backtrace.join("\n  ")}"
       raise if @framework == :test
     end
@@ -67,7 +67,7 @@ module NewRelic
     # of plugins - this catches errors that might be raised in the block
     def append_plugin_list
       @plugins += yield
-    rescue Exception
+    rescue
       # puts "#{e}\n  #{e.backtrace.join("\n  ")}"
       raise if @framework == :test
     end

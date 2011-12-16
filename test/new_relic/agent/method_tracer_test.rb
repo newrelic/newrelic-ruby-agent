@@ -309,11 +309,11 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
       metric = "hey"
       self.class.trace_execution_scoped metric do
         assert @stats_engine.peek_scope.name == metric
-        throw Exception.new
+        throw StandardError.new
       end
 
       assert false # should never get here
-    rescue Exception
+    rescue StandardError
       # make sure the scope gets popped
       assert @stats_engine.peek_scope == nil
     end

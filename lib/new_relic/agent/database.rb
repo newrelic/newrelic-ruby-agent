@@ -95,12 +95,12 @@ module NewRelic
 
       def handle_exception_in_explain
         yield
-      rescue Exception => e
+      rescue => e
         begin
           # guarantees no throw from explain_sql
           NewRelic::Control.instance.log.error("Error getting query plan: #{e.message}")
           NewRelic::Control.instance.log.debug(e.backtrace.join("\n"))
-        rescue Exception
+        rescue
           # double exception. throw up your hands
         end
       end

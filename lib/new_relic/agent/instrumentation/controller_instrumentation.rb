@@ -256,7 +256,7 @@ module NewRelic
                 else
                   perform_action_without_newrelic_trace(*args)
                 end
-              rescue Exception => e
+              rescue => e
                 frame_data.notice_error(e)
                 raise
               end
@@ -425,7 +425,7 @@ module NewRelic
             queue_start = parse_frontend_headers(newrelic_request_headers)
           end
           queue_start || now
-        rescue Exception => e
+        rescue => e
           NewRelic::Control.instance.log.error("Error detecting upstream wait time: #{e}")
           NewRelic::Control.instance.log.debug("#{e.backtrace[0..20]}")
           now
