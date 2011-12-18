@@ -16,7 +16,12 @@ module NewRelic
         def notice_scope_empty(*args); end
       end
 
-      BUILDER_KEY = :transaction_sample_builder
+      # Active TransactionSampleBuilders.
+      #
+      # We use a Hash indexed by Thread, rather than a thread-local, to allow
+      # for multiple fibers within the same thread.
+      #
+      ACTIVE_BUILDERS = {}
 
       attr_accessor :stack_trace_threshold, :random_sampling, :sampling_rate
       attr_accessor :explain_threshold, :explain_enabled, :transaction_threshold
@@ -430,24 +435,23 @@ module NewRelic
       # if execution is untraced - if so it clears the transaction
       # sample builder from the thread local, otherwise it generates a
       # new transaction sample builder with the stated time as a
-      # starting point and saves it in the thread local variable
+      # starting point.
       def start_builder(time=nil)
         if disabled || !NewRelic::Agent.is_transaction_traced? || !NewRelic::Agent.is_execution_traced?
           clear_builder
         else
-          Thread::current[BUILDER_KEY] ||= TransactionSampleBuilder.new(time)
+          ACTIVE_BUILDERS[Thread::current] ||= TransactionSampleBuilder.new(time)
         end
       end
 
-      # The current thread-local transaction sample builder
+      # The current thread's transaction sample builder
       def builder
-        Thread::current[BUILDER_KEY]
+        ACTIVE_BUILDERS[Thread::current]
       end
 
-      # Sets the thread local variable storing the transaction sample
-      # builder to nil to clear it
+      # Discard the current thread's transaction sample builder
       def clear_builder
-        Thread::current[BUILDER_KEY] = nil
+        ACTIVE_BUILDERS[Thread::current] = nil
       end
 
     end
