@@ -185,17 +185,20 @@ module NewRelic
             fail "unknown sql_obfuscator type #{type}"
           end
         end
+
+        SINGLE_QUOTE_MATCHER = Regexp.new(/'(?:[^']|'')*'/)
+        DOUBLE_QUOTE_MATCHER = Regexp.new(/"(?:[^"]|"")*"/)
+        INTEGER_MATCHER = Regexp.new(/\b\d+\b/)
         
         def default_sql_obfuscator(sql)
-          sql = sql.dup
-          # This is hardly readable.  Use the unit tests.
-          # remove single quoted strings:
-          sql.gsub!(/'(.*?[^\\'])??'(?!')/, '?')
-          # remove double quoted strings:
-          sql.gsub!(/"(.*?[^\\"])??"(?!")/, '?')
-          # replace all number literals
-          sql.gsub!(/\d+/, "?")
-          sql
+          s = sql.dup
+          # clear out \ escaped quotes, they interfere with the "real" matchers
+          s.gsub!(/\\"/, '')
+          s.gsub!(/\\'/, '')
+          s.gsub!(DOUBLE_QUOTE_MATCHER, '?')
+          s.gsub!(SINGLE_QUOTE_MATCHER, '?')
+          s.gsub!(INTEGER_MATCHER, "?")
+          s
         end
       end
     end
