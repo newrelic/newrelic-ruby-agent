@@ -172,21 +172,6 @@ class NewRelic::StatsTest < Test::Unit::TestCase
     assert_equal(s1.time_str(20000), "20.0 s")
   end
 
-  def test_fraction_of
-    s1 = NewRelic::MethodTraceStats.new
-    s2 = NewRelic::MethodTraceStats.new
-    s1.trace_call 10
-    s2.trace_call 20
-    assert_equal(s1.fraction_of(s2).to_s, 'NaN')
-  end
-
-  def test_fraction_of2
-    s1 = NewRelic::MethodTraceStats.new
-    s1.trace_call 10
-    s2 = NewRelic::MethodTraceStats.new
-    assert_equal(s1.fraction_of(s2).to_s, 'NaN')
-  end
-
   def test_multiply_by
     s1 = NewRelic::MethodTraceStats.new
     s1.trace_call 10
