@@ -185,21 +185,37 @@ module NewRelic
             fail "unknown sql_obfuscator type #{type}"
           end
         end
-
-        SINGLE_QUOTE_MATCHER = Regexp.new(/'(?:[^']|'')*'/)
-        DOUBLE_QUOTE_MATCHER = Regexp.new(/"(?:[^"]|"")*"/)
-        INTEGER_MATCHER = Regexp.new(/\b\d+\b/)
         
         def default_sql_obfuscator(sql)
-          s = sql.dup
-          # clear out \ escaped quotes, they interfere with the "real" matchers
-          s.gsub!(/\\"/, '')
-          s.gsub!(/\\'/, '')
-          s.gsub!(DOUBLE_QUOTE_MATCHER, '?')
-          s.gsub!(SINGLE_QUOTE_MATCHER, '?')
-          s.gsub!(INTEGER_MATCHER, "?")
-          s
+          stmt = sql.kind_of?(Statement) ? sql : Statement.new(sql)
+          adapter = stmt.adapter
+          obfuscated = remove_escaped_quotes(stmt)
+          obfuscated = obfuscate_single_quote_literals(obfuscated)
+          if !(adapter.to_s =~ /postgres/ || adapter.to_s =~ /sqlite/)
+            obfuscated = obfuscate_double_quote_literals(obfuscated)
+          end
+          obfuscate_numeric_literals(obfuscated)
         end
+
+        def remove_escaped_quotes(sql)
+          sql.gsub(/\\"/, '').gsub(/\\'/, '')
+        end
+
+        def obfuscate_single_quote_literals(sql)
+          sql.gsub(/'(?:[^']|'')*'/, '?')
+        end
+
+        def obfuscate_double_quote_literals(sql)
+          sql.gsub(/"(?:[^"]|"")*"/, '?')
+        end
+
+        def obfuscate_numeric_literals(sql)
+          sql.gsub(/\b\d+\b/, "?")
+        end
+      end
+
+      class Statement < String        
+        attr_accessor :adapter
       end
     end
   end

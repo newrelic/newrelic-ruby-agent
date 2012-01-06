@@ -1,6 +1,7 @@
 require 'new_relic/agent'
 require 'new_relic/control'
 require 'new_relic/agent/transaction_sample_builder'
+
 module NewRelic
   module Agent
     
@@ -270,8 +271,14 @@ module NewRelic
         return unless builder
         segment = builder.current_segment
         if segment
-          segment[key] = truncate_message(append_new_message(segment[key],
-                                                             message))
+          new_message = truncate_message(append_new_message(segment[key],
+                                                            message))
+          if key == :sql && config.respond_to?(:has_key?) && config.has_key?(:adapter)
+            segment[key] = Database::Statement.new(new_message)
+            segment[key].adapter = config[:adapter]
+          else
+            segment[key] = new_message
+          end
           segment[config_key] = config if config_key
           append_backtrace(segment, duration)
         end
