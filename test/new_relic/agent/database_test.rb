@@ -92,8 +92,19 @@ class NewRelic::Agent::DatabaseTest < Test::Unit::TestCase
     assert_equal(%q[SELECT `table`.`column` FROM `table` WHERE `table`.`column` = ? AND `table`.`other_column` = ? LIMIT ?],
                  NewRelic::Agent::Database.obfuscate_sql(select))
   end
+
+  def test_obfuscation_postgresql_basic
+    insert = NewRelic::Agent::Database::Statement.new(%q[INSERT INTO "X" values('test',0, 1 , 2, 'test')])
+    insert.adapter = :postgresql
+    assert_equal('INSERT INTO "X" values(?,?, ? , ?, ?)',
+                 NewRelic::Agent::Database.obfuscate_sql(insert))
+    select = NewRelic::Agent::Database::Statement.new(%q[SELECT "table"."column" FROM "table" WHERE "table"."column" = 'value' AND "table"."other_column" = 'other value' LIMIT 1])
+    select.adapter = :postgresql
+    assert_equal(%q[SELECT "table"."column" FROM "table" WHERE "table"."column" = ? AND "table"."other_column" = ? LIMIT ?],
+                 NewRelic::Agent::Database.obfuscate_sql(select))  
+  end
   
-  def test_obfuscation_mysql_escaped_literals
+  def test_obfuscation_escaped_literals
     insert = %q[INSERT INTO X values('', 'jim''s ssn',0, 1 , 'jim''s son''s son', """jim''s"" hat", "\"jim''s secret\"")]
     assert_equal("INSERT INTO X values(?, ?,?, ? , ?, ?, ?)",
                  NewRelic::Agent::Database.obfuscate_sql(insert))
@@ -104,7 +115,14 @@ class NewRelic::Agent::DatabaseTest < Test::Unit::TestCase
     assert_equal(%q[SELECT * FROM `table_007` LIMIT ?],
                  NewRelic::Agent::Database.obfuscate_sql(select))
   end
-      
+  
+  def test_obfuscation_postgresql_integers_in_identifiers
+    select = NewRelic::Agent::Database::Statement.new(%q[SELECT * FROM "table_007" LIMIT 1])
+    select.adapter = :postgresql
+    assert_equal(%q[SELECT * FROM "table_007" LIMIT ?],
+                 NewRelic::Agent::Database.obfuscate_sql(select))
+  end
+
   def test_sql_obfuscation_filters
     NewRelic::Agent::Database.set_sql_obfuscator(:replace) do |string|
       "1" + string
