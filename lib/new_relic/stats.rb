@@ -104,43 +104,6 @@ module NewRelic
       stats.merge!(other_stats)
     end
 
-    # split into an array of timeslices whose
-    # time boundaries start on (begin_time + (n * duration)) and whose
-    # end time ends on (begin_time * (n + 1) * duration), except for the
-    # first and last elements, whose begin time and end time are the begin
-    # and end times of this stats instance, respectively.  Yield to caller
-    # for the code that creates the actual stats instance
-    def split(rollup_begin_time, rollup_period)
-      rollup_begin_time = rollup_begin_time.to_f
-      rollup_begin_time += ((self.begin_time - rollup_begin_time) / rollup_period).floor * rollup_period
-
-      current_begin_time = self.begin_time
-      current_end_time = rollup_begin_time + rollup_period
-
-      return [self] if current_end_time >= self.end_time
-
-      timeslices = []
-      while current_end_time < self.end_time do
-        ts = yield(current_begin_time, current_end_time)
-        if ts
-          ts.fraction_of(self)
-          timeslices << ts
-        end
-        current_begin_time = current_end_time
-        current_end_time = current_begin_time + rollup_period
-      end
-
-      if self.end_time > current_begin_time
-        percentage = rollup_period / self.duration + (self.begin_time - rollup_begin_time) / rollup_period
-        ts = yield(current_begin_time, self.end_time)
-        if ts
-          ts.fraction_of(self)
-          timeslices << ts
-        end
-      end
-
-      timeslices
-    end
 
     def is_reset?
       call_count == 0 && total_call_time == 0.0 && total_exclusive_time == 0.0
@@ -214,22 +177,6 @@ module NewRelic
     def summary
       format = "%m/%d/%y %I:%M%p"
       "[#{Time.at(begin_time.to_f).utc.strftime(format)} UTC, #{'%2.3fs' % duration.to_f}; #{'%2i' % call_count.to_i} calls #{'%4i' % average_call_time.to_f}s]"
-    end
-
-    # calculate this set of stats to be a percentage fraction
-    # of the provided stats, which has an overlapping time window.
-    # used as a key part of the split algorithm
-    def fraction_of(s)
-      min_end = (end_time < s.end_time ? end_time : s.end_time)
-      max_begin = (begin_time > s.begin_time ? begin_time : s.begin_time)
-      percentage = (min_end - max_begin) / s.duration
-
-      self.total_exclusive_time = s.total_exclusive_time * percentage
-      self.total_call_time = s.total_call_time * percentage
-      self.min_call_time = s.min_call_time
-      self.max_call_time = s.max_call_time
-      self.call_count = s.call_count * percentage
-      self.sum_of_squares = (s.sum_of_squares || 0) * percentage
     end
 
     # multiply the total time and rate by the given percentage
