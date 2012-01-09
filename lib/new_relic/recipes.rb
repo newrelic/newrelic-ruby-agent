@@ -33,10 +33,14 @@ make_notify_task = Proc.new do
           end
           changelog = `#{log_command}`
         end
-        new_revision = rev || source.query_revision(source.head()) do |cmd|
-          logger.debug "executing locally: '#{cmd}'"
-          `#{cmd}`
+        if rev.nil?
+          rev = source.query_revision(source.head()) do |cmd|
+            logger.debug "executing locally: '#{cmd}'"
+            `#{cmd}`
+          end
+          rev = rev[0..6] if scm == :git
         end
+        new_revision = rev
         deploy_options = { :environment => rails_env,
           :revision => new_revision,
           :changelog => changelog,
