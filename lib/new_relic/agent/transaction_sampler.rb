@@ -343,6 +343,7 @@ module NewRelic
         @harvest_count += 1
         if (@harvest_count.to_i % @sampling_rate.to_i) == 0
           result << @random_sample if @random_sample
+          @harvest_count = 0
         end
         nil # don't assume this method returns anything
       end
