@@ -194,7 +194,8 @@ module NewRelic
           if !(adapter.to_s =~ /postgres/ || adapter.to_s =~ /sqlite/)
             obfuscated = obfuscate_double_quote_literals(obfuscated)
           end
-          obfuscate_numeric_literals(obfuscated)
+          obfuscated = obfuscate_numeric_literals(obfuscated)
+          obfuscated.to_s # return back to a regular String
         end
 
         def remove_escaped_quotes(sql)

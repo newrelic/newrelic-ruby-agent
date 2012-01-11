@@ -234,7 +234,7 @@ module NewRelic
               when :raw then v
               when :obfuscated then NewRelic::Agent::Database.obfuscate_sql(v)
               else raise "Invalid value for record_sql: #{options[:record_sql]}"
-            end if options[:record_sql]
+            end.to_s if options[:record_sql]
           when :connection_config
             # don't copy it
           else
