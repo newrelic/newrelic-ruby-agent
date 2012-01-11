@@ -83,9 +83,9 @@ module NewRelic
           @obfuscated_sql = @segment.obfuscated_sql
         end
 
-        explanations = @segment.explain_sql
+        headers, explanations = @segment.explain_sql
         if explanations
-          @explanation = explanations.first
+          @explanation = explanations
           if !@explanation.blank?
             first_row = @explanation.first
             # Show the standard headers if it looks like a mysql explain plan
