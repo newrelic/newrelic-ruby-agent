@@ -15,13 +15,13 @@ module NewRelic::Rack
         # NewRelic::Agent::TransactionInfo.get.force_persist = true
         # NewRelic::Agent::TransactionInfo.get.capture_deep_tt = true
       # end
-      
+
       # if req.params['nr_capture_tt']
         # NewRelic::Agent::TransactionInfo.get.force_persist = true
       # end
-      
+
       result = @app.call(env)   # [status, headers, response]
-      
+
       if (NewRelic::Agent.browser_timing_header != "") && should_instrument?(result[0], result[1])
         response_string = autoinstrument_source(result[2], result[1])
 
@@ -37,24 +37,25 @@ module NewRelic::Rack
     end
 
     def should_instrument?(status, headers)
-      status == 200 && headers["Content-Type"] && headers["Content-Type"].include?("text/html")
+      status == 200 && headers["Content-Type"] && headers["Content-Type"].include?("text/html") &&
+        !headers['Content-Disposition'].to_s.include?('attachment')
     end
 
     def autoinstrument_source(response, headers)
       source = nil
       response.each {|fragment| source ? (source << fragment.to_s) : (source = fragment.to_s)}
       return nil unless source
-      
+
       body_start = source.index("<body")
       body_close = source.rindex("</body>")
 
       if body_start && body_close
         footer = NewRelic::Agent.browser_timing_footer
         header = NewRelic::Agent.browser_timing_header
-                  
+
         if source.include?('X-UA-Compatible')
           # put at end of header if UA-Compatible meta tag found
-          head_pos = source.index("</head>")          
+          head_pos = source.index("</head>")
         elsif head_open = source.index("<head")
           # put at the beginning of the header
           head_pos = source.index(">", head_open) + 1
@@ -71,5 +72,5 @@ module NewRelic::Rack
       source
     end
   end
-  
+
 end
