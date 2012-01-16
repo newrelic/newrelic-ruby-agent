@@ -124,11 +124,9 @@ module NewRelic
           def get_memory
             # We do not read the file directly because of a kernel bug in linux prior to 2.6.30
             # that makes ruby IO hang on select() calls to /proc/* files forever
-            File.popen("cat #{proc_status_file}") do |pipe|
-              pipe.readlines.each do |line|
-                if line =~ /RSS:\s*(\d+) kB/i
-                  return $1.to_f / 1024.0
-                end
+            File.popen("cat #{proc_status_file}").readlines.each do |line|
+              if line =~ /RSS:\s*(\d+) kB/i
+                return $1.to_f / 1024.0
               end
             end
             raise "Unable to find RSS in #{proc_status_file}"
