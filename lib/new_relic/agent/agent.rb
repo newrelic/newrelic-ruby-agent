@@ -44,6 +44,7 @@ module NewRelic
 
         @last_harvest_time = Time.now
         @obfuscator = lambda {|sql| NewRelic::Agent::Database.default_sql_obfuscator(sql) }
+        @forked = false
       end
       
       # contains all the class-level methods for NewRelic::Agent::Agent
@@ -158,7 +159,7 @@ module NewRelic
         #   connection, this tells me to only try it once so this method returns
         #   quickly if there is some kind of latency with the server.
         def after_fork(options={})
-
+          @forked = true
           # @connected gets false after we fail to connect or have an error
           # connecting.  @connected has nil if we haven't finished trying to connect.
           # or we didn't attempt a connection because this is the master process
@@ -179,7 +180,11 @@ module NewRelic
           start_worker_thread(options)
           @stats_engine.start_sampler_thread
         end
-
+        
+        def forked?
+          @forked
+        end
+        
         # True if we have initialized and completed 'start'
         def started?
           @started
@@ -1288,6 +1293,8 @@ module NewRelic
           retry_count += 1
           retry unless retry_count > 1
           raise e
+        ensure
+          NewRelic::Agent::Database.close_connections unless forked?
         end
 
         # This method contacts the server to send remaining data and

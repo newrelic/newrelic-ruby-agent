@@ -22,6 +22,14 @@ module NewRelic
       mock_agent.expects(:after_fork).with({})
       NewRelic::Agent.after_fork
     end
+
+    def test_after_fork_sets_forked_flag
+      agent = NewRelic::Agent::Agent.new
+      assert !agent.forked?
+      agent.after_fork
+
+      assert agent.forked?
+    end
     
     def test_reset_stats
       mock_agent = mocked_agent

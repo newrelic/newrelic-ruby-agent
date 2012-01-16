@@ -157,12 +157,8 @@ module NewRelic
       sample.guid = self.guid
       sample.force_persist = self.force_persist if self.force_persist
 
-      begin
-        build_segment_for_transfer(sample, @root_segment, sample.root_segment, options)
-      ensure
-        NewRelic::Agent::Database.close_connections
-      end
-
+      build_segment_for_transfer(sample, @root_segment, sample.root_segment, options)
+      
       sample.root_segment.end_trace(@root_segment.exit_timestamp)
       sample
     end

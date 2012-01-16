@@ -23,7 +23,22 @@ module NewRelic
         NewRelic::DataSerialization.expects(:should_send_data?).returns(true)
         @agent.instance_eval { save_or_transmit_data }
       end
+
+      def test_save_or_transmit_data_should_close_explain_db_connections
+        NewRelic::Agent.stubs(:save_data)
+        NewRelic::DataSerialization.expects(:should_send_data?).returns(false)
+        NewRelic::Agent::Database.expects(:close_connections)
+        @agent.instance_eval { save_or_transmit_data }
+      end
       
+      def test_save_or_transmit_data_should_not_close_db_connections_if_forked
+        NewRelic::Agent.stubs(:save_data)
+        NewRelic::DataSerialization.expects(:should_send_data?).returns(false)
+        NewRelic::Agent::Database.expects(:close_connections).never
+        @agent.after_fork
+        @agent.instance_eval { save_or_transmit_data }
+      end
+
       def test_serialize
         assert_equal([{}, [], []], @agent.send(:serialize), "should return nil when shut down")
       end
