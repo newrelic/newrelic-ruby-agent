@@ -107,7 +107,7 @@ module NewRelic
       return unless File.readable? '/proc/cpuinfo'
       @processors = append_environment_value('Processors') do
         cpuinfo = File.open("/proc/cpuinfo") {|f| f.read_nonblock(4096).strip }
-        processors = cpuinfo.select {|line| line =~ /^processor\s*:/ }.size
+        processors = cpuinfo.split("\n").select {|line| line =~ /^processor\s*:/ }.size
         
         raise "Cannot determine the number of processors in /proc/cpuinfo" unless processors > 0
         processors
