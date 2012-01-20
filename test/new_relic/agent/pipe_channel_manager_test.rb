@@ -5,6 +5,10 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
   def setup
     NewRelic::Agent.manual_start
   end
+
+  def teardown
+    ActiveRecord::Base.connection.reconnect!
+  end
   
   def test_registering_a_pipe
     NewRelic::Agent::PipeChannelManager.listener.wake.in.expects(:<<).with('.')    
@@ -21,7 +25,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
     engine.get_stats_no_scope(metric).record_data_point(1.0)
     
     listener = start_listener_with_pipe(666)    
-    
+
     pid = Process.fork do
       NewRelic::Agent.after_fork
       new_engine = NewRelic::Agent::StatsEngine.new
@@ -29,7 +33,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
       listener.pipes[666].in << Marshal.dump(:stats => new_engine.harvest_timeslice_data({}, {}))
     end
     Process.wait(pid)
-      
+    
     assert_equal(3.0, engine.lookup_stats(metric).total_call_time)    
 
     listener.stop
