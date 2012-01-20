@@ -1,5 +1,8 @@
 v3.3.2
   * deployments recipe change: truncate git SHAs to 7 characters
+  * Fixes for obfuscation of PostgreSQL and SQLite queries
+  * Fix for lost database connections when using a forking framework
+  * Workaround for RedHat kernel bug which prevented blocking reads of /proc fs
   
 v3.3.1
   * improved Ruby 1.8.6 support
