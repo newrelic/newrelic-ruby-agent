@@ -158,9 +158,6 @@ module NewRelic
           end
         end
       end
-      append_environment_value 'Database schema version' do
-        ActiveRecord::Migrator.current_version
-      end
     end
     
     # Datamapper version
