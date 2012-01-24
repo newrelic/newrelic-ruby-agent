@@ -103,13 +103,28 @@ module NewRelic
     end
 
     # See what the number of cpus is, works only on some linux variants
-    def gather_cpu_info
-      return unless File.readable? '/proc/cpuinfo'
+    def gather_cpu_info(proc_file='/proc/cpuinfo')
+      return unless File.readable? proc_file
       @processors = append_environment_value('Processors') do
-        cpuinfo = File.open("/proc/cpuinfo") {|f| f.read_nonblock(4096).strip }
+        cpuinfo = ''
+        File.open(proc_file) do |f|
+          loop do
+            begin
+              cpuinfo << f.read_nonblock(4096).strip
+            rescue EOFError
+              break
+            rescue Errno::EWOULDBLOCK, Errno::EAGAIN
+              cpuinfo = ''
+              break # don't select file handle, just give up
+            end
+          end
+        end
         processors = cpuinfo.split("\n").select {|line| line =~ /^processor\s*:/ }.size
-        
-        raise "Cannot determine the number of processors in /proc/cpuinfo" unless processors > 0
+
+        if processors == 0
+          processors = 1 # assume there is at least one processor
+          NewRelic::Agent.logger.warn("Cannot determine the number of processors in #{proc_file}")
+        end
         processors
       end
     end
