@@ -186,6 +186,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     ActiveRecord/ActiveRecordFixtures::Order/destroy
     Database/SQL/insert
     Database/SQL/delete
+    Database/SQL/show
     ActiveRecord/find
     ActiveRecord/ActiveRecordFixtures::Order/find
     ActiveRecord/ActiveRecordFixtures::Shipment/find

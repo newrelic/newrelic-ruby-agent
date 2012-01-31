@@ -179,7 +179,7 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
 
 
   def test_collect_gc_data
-    GC.disable
+    GC.disable unless NewRelic::LanguageSupport.using_engine?('jruby')
     if NewRelic::LanguageSupport.using_engine?('rbx')
       agent = ::Rubinius::Agent.loopback
       agent.stubs(:get).with('system.gc.young.total_wallclock') \
@@ -210,7 +210,7 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
     assert_equal 2, gc_stats.call_count
     assert_equal 3.0, gc_stats.total_call_time
   ensure
-    GC.enable
+    GC.enable unless NewRelic::LanguageSupport.using_engine?('jruby')
   end
   
   private
