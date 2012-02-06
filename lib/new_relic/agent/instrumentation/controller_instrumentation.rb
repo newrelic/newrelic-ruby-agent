@@ -379,7 +379,7 @@ module NewRelic
                      end
           unless path = options[:path]
             action = options[:name] || args.first
-            metric_class = options[:class_name] || (self.is_a?(Class) ? self.name : self.class.name)
+            metric_class = options[:class_name] || ((self.is_a?(Class)||self.is_a?(Module)) ? self.name : self.class.name)
             path = metric_class
             path += ('/' + action) if action
           end
