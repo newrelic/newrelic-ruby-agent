@@ -3,6 +3,7 @@ v3.3.2
   * Fixes for obfuscation of PostgreSQL and SQLite queries
   * Fix for lost database connections when using a forking framework
   * Workaround for RedHat kernel bug which prevented blocking reads of /proc fs
+  * Do not trap signals when handling exceptions
   
 v3.3.1
   * improved Ruby 1.8.6 support
