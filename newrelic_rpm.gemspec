@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{newrelic_rpm}
-  s.version = "3.3.2.beta1"
+  s.version = "3.3.2.beta2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Bill Kayser", "Jon Guymon", "Justin George", "Darin Swanson"]
-  s.date = %q{2012-01-20}
+  s.date = %q{2012-02-10}
   s.description = %q{New Relic is a performance management system, developed by New Relic,
 Inc (http://www.newrelic.com).  New Relic provides you with deep
 information about the performance of your web application as it runs
@@ -140,6 +140,7 @@ http://github.com/newrelic/rpm/
     "test/active_record_fixtures.rb",
     "test/config/newrelic.yml",
     "test/config/test_control.rb",
+    "test/fixtures/proc_cpuinfo.txt",
     "test/new_relic/agent/agent/connect_test.rb",
     "test/new_relic/agent/agent/start_test.rb",
     "test/new_relic/agent/agent/start_worker_thread_test.rb",
@@ -285,9 +286,28 @@ http://github.com/newrelic/rpm/
     "vendor/gems/metric_parser-0.1.0.pre1/lib/new_relic/metric_parser/web_service.rb",
     "vendor/gems/metric_parser-0.1.0.pre1/lib/new_relic/metric_parser/web_transaction.rb"
   ]
-  s.rubygems_version = %q{1.3.6}
-  s.homepage = "http://www.github.com/newrelic/rpm"
-  s.post_install_message = "\nPLEASE NOTE:\n\nDeveloper Mode is now a Rack middleware.\n\nDeveloper Mode is no longer available in Rails 2.1 and earlier.\nHowever, starting in version 2.12 you can use Developer Mode in any\nRack based framework, in addition to Rails.  To install developer mode\nin a non-Rails application, just add NewRelic::Rack::DeveloperMode to\nyour middleware stack.\n\nIf you are using JRuby, we recommend using at least version 1.4 or \nlater because of issues with the implementation of the timeout library.\n\nRefer to the README.md file for more information.\n\nPlease see http://github.com/newrelic/rpm/blob/master/CHANGELOG\nfor a complete description of the features and enhancements available\nin version 3.3 of the Ruby Agent.\n  \n"
+  s.homepage = %q{http://www.github.com/newrelic/rpm}
+  s.post_install_message = %q{
+PLEASE NOTE:
+
+Developer Mode is now a Rack middleware.
+
+Developer Mode is no longer available in Rails 2.1 and earlier.
+However, starting in version 2.12 you can use Developer Mode in any
+Rack based framework, in addition to Rails.  To install developer mode
+in a non-Rails application, just add NewRelic::Rack::DeveloperMode to
+your middleware stack.
+
+If you are using JRuby, we recommend using at least version 1.4 or 
+later because of issues with the implementation of the timeout library.
+
+Refer to the README.md file for more information.
+
+Please see http://github.com/newrelic/rpm/blob/master/CHANGELOG
+for a complete description of the features and enhancements available
+in version 3.3 of the Ruby Agent.
+  
+}
   s.rdoc_options = ["--line-numbers", "--inline-source", "--title", "New Relic Ruby Agent"]
   s.require_paths = ["lib"]
   s.summary = "New Relic Ruby Agent"
