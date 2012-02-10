@@ -69,4 +69,16 @@ class NewRelic::Control::ConfigurationTest < Test::Unit::TestCase
 
     NewRelic::Control.instance['browser_monitoring'] = { 'auto_instrument' => true }
   end
+
+  def test_data_serialization_default_off
+    DependencyDetection.send(:class_variable_set, '@@items', [])
+    assert NewRelic::Control.instance.disable_serialization?
+  end
+
+  def test_data_serialization_default_on_when_using_resque
+    DependencyDetection.defer { @name = :resque }
+    DependencyDetection.dependency_by_name(:resque).executed!
+    assert !NewRelic::Control.instance.disable_serialization?
+    DependencyDetection.send(:class_variable_set, '@@items', [])
+  end
 end
