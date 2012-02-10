@@ -119,7 +119,7 @@ module NewRelic
       end
 
       def disable_serialization?
-        fetch('disable_serialization', false)
+        fetch('disable_serialization', !DependencyDetection.installed?(:resque))
       end
       def disable_serialization=(b)
         self['disable_serialization'] = b

@@ -21,6 +21,11 @@ module DependencyDetection
     @@items.find {|i| i.name == name }
   end
 
+  def installed?(name)
+    item = dependency_by_name(name)
+    item && item.executed
+  end
+
   class Dependent
     attr_reader :executed
     attr_reader :name
