@@ -1,10 +1,22 @@
-if defined?(Palmade::PuppetMaster::ThinPuppet)
-  Palmade::PuppetMaster::ThinPuppet.class_eval do
-    NewRelic::Agent.logger.debug "Installing Puppet Master worker hook."
-    old_worker_loop = instance_method(:work_loop)
-    define_method(:work_loop) do | *args |
-      NewRelic::Agent.after_fork(:force_reconnect => true)
-      old_worker_loop.bind(self).call(*args)
+DependencyDetection.defer do
+  depends_on do
+    defined?(::Palmade) && defined?(::Palmade::PuppetMaster) &&
+      defined?(::Palmade::PuppetMaster::Puppets) &&
+      defined?(::Palmade::PuppetMaster::Puppets::Base)
+  end
+
+  executes do
+    NewRelic::Agent.logger.debug 'Installing Puppet Master instrumentation'
+  end
+
+  executes do
+    Palmade::PuppetMaster::Puppets::Base.class_eval do
+      NewRelic::Agent.logger.debug "Installing Puppet Master puppet hook."
+      old_after_fork = instance_method(:after_fork)
+      define_method(:after_fork) do |worker|
+        NewRelic::Agent.after_fork(:force_reconnect => true)
+        old_after_fork.bind(self).call(worker)
+      end
     end
   end
 end
