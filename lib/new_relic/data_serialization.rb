@@ -42,21 +42,21 @@ module NewRelic
       end
       
       def pid_too_old?
-        create_pid_file unless File.exists?(pid_file_path)
+        return true unless File.exists?(pid_file_path)
         age = (Time.now.to_i - File.mtime(pid_file_path).to_i)
         NewRelic::Control.instance.log.debug("Pid was #{age} seconds old, sending data") if age > 60
         age > 60
       end
       
       def store_too_old?
-        FileUtils.touch(file_path) unless File.exists?(file_path)
+        return true unless File.exists?(file_path)
         age = (Time.now.to_i - File.mtime(file_path).to_i)
         NewRelic::Control.instance.log.debug("Store was #{age} seconds old, sending data") if age > 60
         age > 50
       end      
     
       def store_too_large?
-        FileUtils.touch(file_path) unless File.exists?(file_path)
+        return true unless File.exists?(file_path)
         size = File.size(file_path) > max_size
         NewRelic::Control.instance.log.debug("Store was oversize, sending data") if size
         size
@@ -136,16 +136,7 @@ module NewRelic
         NewRelic::Control.instance.log.debug(e.backtrace.inspect)
         nil
       end
-
-      def truncate_file
-        FileUtils.touch(file_path)
-        File.truncate(file_path, 0)
-      end
-      
-      def create_pid_file
-        File.open(pid_file_path, 'w') {|f| f.write $$ }
-      end
-      
+            
       def file_path
         "#{NewRelic::Control.instance.log_path}/newrelic_agent_store.db"
       end

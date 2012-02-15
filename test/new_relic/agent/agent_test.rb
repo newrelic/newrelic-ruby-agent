@@ -16,6 +16,7 @@ module NewRelic
       end
       
       def test_save_or_transmit_data_should_transmit
+        NewRelic::Control.instance.stubs(:disable_serialization?).returns(false)
         NewRelic::Agent.expects(:load_data)
         @agent.expects(:harvest_and_send_timeslice_data)
         @agent.expects(:harvest_and_send_slowest_sample)

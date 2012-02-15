@@ -1277,7 +1277,7 @@ module NewRelic
         def save_or_transmit_data
           if NewRelic::DataSerialization.should_send_data?
             log.debug "Sending data to New Relic Service"
-            NewRelic::Agent.load_data
+            NewRelic::Agent.load_data unless NewRelic::Control.instance.disable_serialization?
             harvest_and_send_errors
             harvest_and_send_slowest_sample
             harvest_and_send_slowest_sql
