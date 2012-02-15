@@ -29,15 +29,6 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
     end
     assert_equal(0, File.size(file), "Should not leave any data in the file")
   end
-
-  def test_bad_paths
-    NewRelic::Control.instance.stubs(:log_path).returns("/bad/path")
-    assert NewRelic::DataSerialization.should_send_data?
-    NewRelic::DataSerialization.read_and_write_to_file do
-      'a happy string'
-    end
-    assert !File.exists?(file)
-  end
   
   def test_read_and_write_to_file_dumping_contents
     expected_contents = Marshal.dump('a happy string')
@@ -144,12 +135,20 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
   def test_pid_age_creates_pid_file_if_none_exists
     assert(!File.exists?("#{@path}/newrelic_agent_store.pid"),
            'pid file found, should not be there')
-    assert(!NewRelic::DataSerialization.pid_too_old?,
-           "new pid should not be too old")
+    NewRelic::DataSerialization.update_last_sent!
     assert(File.exists?("#{@path}/newrelic_agent_store.pid"),
            'pid file not found, should be there')
   end
-
+  
+  def test_should_not_create_files_if_serialization_disabled
+    NewRelic::Control.instance['disable_serialization'] = true
+    NewRelic::DataSerialization.should_send_data?
+    assert(!File.exists?("#{@path}/newrelic_agent_store.db"),
+           'db file created when serialization disabled')
+    assert(!File.exists?("#{@path}/newrelic_agent_store.pid"),
+           'pid file created when serialization disabled')
+  end
+  
   def test_loading_does_not_seg_fault_if_gc_triggers
     return if NewRelic::LanguageSupport.using_version?('1.8.6')
     require 'timeout'
