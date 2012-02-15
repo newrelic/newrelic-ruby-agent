@@ -396,7 +396,9 @@ module NewRelic
     end
 
     def check_for_puppet_master
-      return unless defined?(::Palmade::PuppetMaster) && defined?(::Palmade::PuppetMaster::ThinPuppet)
+      return unless defined?(::Palmade) && defined?(::Palmade::PuppetMaster) &&
+                    defined?(::Palmade::PuppetMaster::Puppets) &&
+                    defined?(::Palmade::PuppetMaster::Puppets::Base)
 
       # unlike mongrel, unicorn manages muliple threads and ports, so we
       # have to map multiple processes into one instance, as we do with passenger
