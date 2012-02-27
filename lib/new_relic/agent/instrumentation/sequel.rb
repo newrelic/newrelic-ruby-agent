@@ -49,10 +49,10 @@ DependencyDetection.defer do
     # Sequel's Dataset instance methods
     ::Sequel::Dataset.class_eval do
 
-      add_method_tracer :execute,        'ActiveRecord/#{self.respond_to?(:model) ? self.model.name : self.sql}/find'
-      add_method_tracer :execute_insert, 'ActiveRecord/#{self.respond_to?(:model) ? self.model.name : self.sql}/create'
-      add_method_tracer :execute_dui,    'ActiveRecord/#{self.respond_to?(:model) ? self.model.name : self.sql}/update'
-      add_method_tracer :execute_ddl,    'ActiveRecord/#{self.respond_to?(:model) ? self.model.name : self.sql}/all'
+      add_method_tracer :execute,        'ActiveRecord/#{self.respond_to?(:model) ? self.model.name : "Dataset"}/find'
+      add_method_tracer :execute_insert, 'ActiveRecord/#{self.respond_to?(:model) ? self.model.name : "Dataset"}/create'
+      add_method_tracer :execute_dui,    'ActiveRecord/#{self.respond_to?(:model) ? self.model.name : "Dataset"}/update'
+      add_method_tracer :execute_ddl,    'ActiveRecord/#{self.respond_to?(:model) ? self.model.name : "Dataset"}/all'
 
     end
 
