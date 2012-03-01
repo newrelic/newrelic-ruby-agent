@@ -172,7 +172,7 @@ module NewRelic
         def record_time_stat(name, start_time, end_time) # (String, Time, Time) -> nil
           total_time = end_time - start_time
           if total_time < 0
-            raise "should not provide an end time less than start time: #{end_time.strftime('%s.%N')} is less than #{start_time.strftime('%s.%N')}"
+            raise "should not provide an end time less than start time: #{end_time.strftime('%s.%N')} is less than #{start_time.strftime('%s.%N')}. total time is #{total_time}."
           else
             NewRelic::Agent.get_stats(name).trace_call(total_time)
           end
