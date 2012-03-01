@@ -35,7 +35,7 @@ pwd
 rm -rf tmp
 mkdir -p tmp
 cd tmp
-git clone $RPM_TEST_APP_CLONE_URL rpm_test_app
+git clone --depth=1 $RPM_TEST_APP_CLONE_URL rpm_test_app
 cd rpm_test_app
 git checkout -t origin/$BRANCH || git checkout $BRANCH
 mkdir -p log
@@ -44,7 +44,7 @@ if [ "x$BRANCH" == "xrails20" ]; then
   mkdir -p vendor/plugins
   ln -s ../../../.. vendor/plugins/newrelic_rpm
 else
-  sed -i '' 's/gem .newrelic_rpm.*$/gem "newrelic_rpm", :path => "\.\.\/\.\.\/"/' Gemfile
+  perl -p -i'.bak' -e 's#gem .newrelic_rpm.*$#gem "newrelic_rpm", :path => "\.\.\/\.\.\/"#' Gemfile
 fi
 
 rvm --force gemset delete ruby_agent_tests
