@@ -42,7 +42,7 @@ mkdir -p log
 mkdir -p tmp
 if [ "x$BRANCH" == "xrails20" ]; then
   mkdir -p vendor/plugins
-  ln -s ../../../.. vendor/plugins/newrelic_rpm
+  git clone ../.. vendor/plugins/newrelic_rpm
 else
   perl -p -i'.bak' -e 's#gem .newrelic_rpm.*$#gem "newrelic_rpm", :path => "\.\.\/\.\.\/"#' Gemfile
 fi
