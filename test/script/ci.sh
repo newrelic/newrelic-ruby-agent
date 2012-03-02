@@ -73,9 +73,9 @@ else
   perl -p -i'.bak' -e 's#gem .newrelic_rpm.*$#gem "newrelic_rpm", :path => "\.\.\/\.\.\/"#' Gemfile
 fi
 
-rvm --force gemset delete ruby_agent_tests
-rvm gemset create ruby_agent_tests
-rvm gemset use ruby_agent_tests
+rvm --force gemset delete ruby_agent_tests_$BRANCH
+rvm gemset create ruby_agent_tests_$BRANCH
+rvm gemset use ruby_agent_tests_$BRANCH
 
 gem install bundler --no-rdoc --no-ri
 
