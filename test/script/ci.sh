@@ -5,7 +5,7 @@ echo "Running in $(pwd)"
 
 
 # print commands in this script as they're invoked
-set -x
+# set -x
 # fail if any command fails
 set -e
 
