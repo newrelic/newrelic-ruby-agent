@@ -83,6 +83,9 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
   end
 
   def test_new_queue_integration
+    # make this test deterministic
+    Time.stubs(:now => Time.at(2))
+
     NewRelic::Agent::AgentTestController.clear_headers
     engine.clear_stats
     start = ((Time.now - 1).to_f * 1_000_000).to_i
@@ -94,6 +97,9 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
 
 
   def test_new_middleware_integration
+    # make this test deterministic
+    Time.stubs(:now => Time.at(2))
+
     engine.clear_stats
     start = ((Time.now - 1).to_f * 1_000_000).to_i
     NewRelic::Agent::AgentTestController.set_some_headers 'HTTP_X_MIDDLEWARE_START'=> "t=#{start}"
@@ -103,6 +109,9 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
   end
 
   def test_new_server_time_integration
+    # make this test deterministic
+    Time.stubs(:now => Time.at(2))
+
     NewRelic::Agent::AgentTestController.clear_headers
     engine.clear_stats
     start = ((Time.now - 1).to_f * 1_000_000).to_i
@@ -113,6 +122,9 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
   end
 
   def test_new_frontend_work_integration
+    # make this test deterministic
+    Time.stubs(:now => Time.at(10))
+
     engine.clear_stats
     times = [Time.now - 3, Time.now - 2, Time.now - 1]
     times.map! {|t| (t.to_f * 1_000_000).to_i }
@@ -299,6 +311,9 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
   end
 
   def test_queue_headers_apache
+    # make this test deterministic
+    Time.stubs(:now => Time.at(10))
+
     NewRelic::Agent::AgentTestController.clear_headers
     engine.clear_stats
     queue_length_stat = stats('Mongrel/Queue Length')
@@ -315,6 +330,8 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
 
   end
   def test_queue_headers_heroku
+    # make this test deterministic
+    Time.stubs(:now => Time.at(10))
 
     engine.clear_stats
     NewRelic::Agent::AgentTestController.clear_headers
@@ -333,6 +350,8 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
   end
 
   def test_queue_headers_heroku_queue_length
+    # make this test deterministic
+    Time.stubs(:now => Time.at(10))
 
     engine.clear_stats
     NewRelic::Agent::AgentTestController.clear_headers
