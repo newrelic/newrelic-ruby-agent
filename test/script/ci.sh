@@ -48,7 +48,7 @@ if [ "x$RPM_TEST_APP_CLONE_URL" == "x" ]; then
 fi
 
 . "$HOME/.rvm/scripts/rvm"
-rvm $RUBY
+rvm use $RUBY || rvm install $RUBY
 echo `which ruby`
 
 # make sure that we're in the project root
