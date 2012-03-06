@@ -45,4 +45,4 @@ cd gems
 
 # create a tarfile including the gem and the gemspec
 gem_version=`ls *.gem | sed 's/\.gem$//' | sed 's/newrelic_rpm-//'`
-tar czvf newrelic_rpm_agent-${gem_version}tar.gz *
+tar czvf newrelic_rpm_agent-${gem_version}.tar.gz *
