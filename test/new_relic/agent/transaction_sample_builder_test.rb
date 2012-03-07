@@ -159,7 +159,13 @@ class NewRelic::Agent::TransationSampleBuilderTest < Test::Unit::TestCase
     @builder.finish_trace(Time.now.to_f)
     validate_builder
   end
-
+  
+  def test_trace_should_not_record_more_than_segment_limit
+    @builder.segment_limit = 3
+    8.times {|i| build_segment i.to_s }
+    assert_equal 3, @builder.sample.count_segments
+  end
+  
   def validate_builder(check_names = true)
     validate_segment @builder.sample.root_segment, check_names
   end
