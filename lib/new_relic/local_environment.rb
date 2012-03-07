@@ -250,7 +250,7 @@ module NewRelic
     def discover_dispatcher
       @dispatcher ||= ENV['NEWRELIC_DISPATCHER'] && ENV['NEWRELIC_DISPATCHER'].to_sym
       @dispatcher ||= ENV['NEW_RELIC_DISPATCHER'] && ENV['NEW_RELIC_DISPATCHER'].to_sym
-      dispatchers = %w[passenger torquebox glassfish thin mongrel litespeed webrick fastcgi unicorn sinatra]
+      dispatchers = %w[passenger puppet_master torquebox glassfish thin mongrel litespeed webrick fastcgi unicorn sinatra]
       while dispatchers.any? && @dispatcher.nil?
         send 'check_for_'+(dispatchers.shift)
       end
@@ -402,6 +402,15 @@ module NewRelic
       end
     end
 
+    def check_for_puppet_master
+      return unless defined?(::Palmade) && defined?(::Palmade::PuppetMaster) &&
+                    defined?(::Palmade::PuppetMaster::Puppets) &&
+                    defined?(::Palmade::PuppetMaster::Puppets::Base)
+
+      # unlike mongrel, unicorn manages muliple threads and ports, so we
+      # have to map multiple processes into one instance, as we do with passenger
+      @dispatcher = :puppet_master
+    end
 
     def default_port
       require 'optparse'

@@ -404,7 +404,7 @@ module NewRelic
           # requests, we need to wait until the children are forked
           # before connecting, otherwise the parent process sends odd data
           def using_forking_dispatcher?
-            log_if([:passenger, :unicorn].include?(control.dispatcher), :info, "Connecting workers after forking.")
+            log_if([:passenger, :unicorn, :puppet_master].include?(control.dispatcher), :info, "Connecting workers after forking.")
           end
 
           # Sanity-check the agent configuration and start the agent,
