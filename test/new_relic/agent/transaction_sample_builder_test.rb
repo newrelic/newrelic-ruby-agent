@@ -42,7 +42,7 @@ class NewRelic::Agent::TransationSampleBuilderTest < Test::Unit::TestCase
     begin
       builder.sample
       assert false
-    rescue Exception => e
+    rescue => e
       # expected
     end
 
@@ -52,7 +52,7 @@ class NewRelic::Agent::TransationSampleBuilderTest < Test::Unit::TestCase
 
     begin
       build_segment "b"
-      assert_false
+      assert false
     rescue TypeError => e
       # expected
     end

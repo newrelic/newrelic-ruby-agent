@@ -10,7 +10,7 @@ module NewRelic
       class Rails3 < NewRelic::Control::Frameworks::Rails
 
         def env
-          ::Rails.env.to_s
+          @env ||= ::Rails.env.to_s
         end
         
         # Rails can return an empty string from this method, causing
@@ -32,9 +32,12 @@ module NewRelic
 
 
         def log!(msg, level=:info)
-          super unless should_log?
-          logger.send(level, msg)
-        rescue Exception => e
+          if should_log?
+            logger.send(level, msg)
+          else
+            super
+          end
+        rescue => e
           super
         end
 

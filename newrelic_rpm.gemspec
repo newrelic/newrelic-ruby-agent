@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{newrelic_rpm}
-  s.version = "3.1.1"
+  s.version = "3.3.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Bill Kayser", "Jon Guymon", "Justin George", "Darin Swanson"]
-  s.date = %q{2011-07-28}
+  s.date = %q{2012-02-16}
   s.description = %q{New Relic is a performance management system, developed by New Relic,
 Inc (http://www.newrelic.com).  New Relic provides you with deep
 information about the performance of your web application as it runs
@@ -44,9 +44,11 @@ http://github.com/newrelic/rpm/
     "lib/new_relic/agent/browser_monitoring.rb",
     "lib/new_relic/agent/busy_calculator.rb",
     "lib/new_relic/agent/chained_call.rb",
+    "lib/new_relic/agent/database.rb",
     "lib/new_relic/agent/error_collector.rb",
     "lib/new_relic/agent/instrumentation.rb",
     "lib/new_relic/agent/instrumentation/active_merchant.rb",
+    "lib/new_relic/agent/instrumentation/active_record.rb",
     "lib/new_relic/agent/instrumentation/acts_as_solr.rb",
     "lib/new_relic/agent/instrumentation/authlogic.rb",
     "lib/new_relic/agent/instrumentation/controller_instrumentation.rb",
@@ -63,10 +65,8 @@ http://github.com/newrelic/rpm/
     "lib/new_relic/agent/instrumentation/rack.rb",
     "lib/new_relic/agent/instrumentation/rails/action_controller.rb",
     "lib/new_relic/agent/instrumentation/rails/action_web_service.rb",
-    "lib/new_relic/agent/instrumentation/rails/active_record_instrumentation.rb",
     "lib/new_relic/agent/instrumentation/rails/errors.rb",
     "lib/new_relic/agent/instrumentation/rails3/action_controller.rb",
-    "lib/new_relic/agent/instrumentation/rails3/active_record_instrumentation.rb",
     "lib/new_relic/agent/instrumentation/rails3/errors.rb",
     "lib/new_relic/agent/instrumentation/sinatra.rb",
     "lib/new_relic/agent/instrumentation/sunspot.rb",
@@ -78,10 +78,13 @@ http://github.com/newrelic/rpm/
     "lib/new_relic/agent/samplers/memory_sampler.rb",
     "lib/new_relic/agent/samplers/object_sampler.rb",
     "lib/new_relic/agent/shim_agent.rb",
+    "lib/new_relic/agent/sql_sampler.rb",
     "lib/new_relic/agent/stats_engine.rb",
+    "lib/new_relic/agent/stats_engine/gc_profiler.rb",
     "lib/new_relic/agent/stats_engine/metric_stats.rb",
     "lib/new_relic/agent/stats_engine/samplers.rb",
     "lib/new_relic/agent/stats_engine/transactions.rb",
+    "lib/new_relic/agent/transaction_info.rb",
     "lib/new_relic/agent/transaction_sample_builder.rb",
     "lib/new_relic/agent/transaction_sampler.rb",
     "lib/new_relic/agent/worker_loop.rb",
@@ -106,6 +109,7 @@ http://github.com/newrelic/rpm/
     "lib/new_relic/control/server_methods.rb",
     "lib/new_relic/data_serialization.rb",
     "lib/new_relic/delayed_job_injection.rb",
+    "lib/new_relic/language_support.rb",
     "lib/new_relic/local_environment.rb",
     "lib/new_relic/merbtasks.rb",
     "lib/new_relic/metric_data.rb",
@@ -136,6 +140,7 @@ http://github.com/newrelic/rpm/
     "test/active_record_fixtures.rb",
     "test/config/newrelic.yml",
     "test/config/test_control.rb",
+    "test/fixtures/proc_cpuinfo.txt",
     "test/new_relic/agent/agent/connect_test.rb",
     "test/new_relic/agent/agent/start_test.rb",
     "test/new_relic/agent/agent/start_worker_thread_test.rb",
@@ -146,6 +151,7 @@ http://github.com/newrelic/rpm/
     "test/new_relic/agent/beacon_configuration_test.rb",
     "test/new_relic/agent/browser_monitoring_test.rb",
     "test/new_relic/agent/busy_calculator_test.rb",
+    "test/new_relic/agent/database_test.rb",
     "test/new_relic/agent/error_collector/notice_error_test.rb",
     "test/new_relic/agent/error_collector_test.rb",
     "test/new_relic/agent/instrumentation/active_record_instrumentation_test.rb",
@@ -165,6 +171,7 @@ http://github.com/newrelic/rpm/
     "test/new_relic/agent/rpm_agent_test.rb",
     "test/new_relic/agent/sampler_test.rb",
     "test/new_relic/agent/shim_agent_test.rb",
+    "test/new_relic/agent/sql_sampler_test.rb",
     "test/new_relic/agent/stats_engine/metric_stats/harvest_test.rb",
     "test/new_relic/agent/stats_engine/metric_stats_test.rb",
     "test/new_relic/agent/stats_engine/samplers_test.rb",
@@ -183,9 +190,11 @@ http://github.com/newrelic/rpm/
     "test/new_relic/delayed_job_injection_test.rb",
     "test/new_relic/local_environment_test.rb",
     "test/new_relic/metric_data_test.rb",
+    "test/new_relic/metric_parser/metric_parser_test.rb",
     "test/new_relic/metric_spec_test.rb",
     "test/new_relic/rack/all_test.rb",
     "test/new_relic/rack/browser_monitoring_test.rb",
+    "test/new_relic/rack/developer_mode_helper_test.rb",
     "test/new_relic/rack/developer_mode_test.rb",
     "test/new_relic/stats_test.rb",
     "test/new_relic/transaction_analysis/segment_summary_test.rb",
@@ -296,13 +305,12 @@ Refer to the README.md file for more information.
 
 Please see http://github.com/newrelic/rpm/blob/master/CHANGELOG
 for a complete description of the features and enhancements available
-in version 3.1 of the Ruby Agent.
+in version 3.3 of the Ruby Agent.
   
 }
   s.rdoc_options = ["--line-numbers", "--inline-source", "--title", "New Relic Ruby Agent"]
   s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.3.6}
-  s.summary = %q{New Relic Ruby Agent}
+  s.summary = "New Relic Ruby Agent"
 
   if s.respond_to? :specification_version then
     current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION

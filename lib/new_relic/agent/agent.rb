@@ -35,6 +35,7 @@ module NewRelic
         @metric_ids = {}
         @stats_engine = NewRelic::Agent::StatsEngine.new
         @transaction_sampler = NewRelic::Agent::TransactionSampler.new
+        @sql_sampler = NewRelic::Agent::SqlSampler.new
         @stats_engine.transaction_sampler = @transaction_sampler
         @error_collector = NewRelic::Agent::ErrorCollector.new
         @connect_attempts = 0
@@ -42,7 +43,7 @@ module NewRelic
         @request_timeout = NewRelic::Control.instance.fetch('timeout', 2 * 60)
 
         @last_harvest_time = Time.now
-        @obfuscator = method(:default_sql_obfuscator)
+        @obfuscator = lambda {|sql| NewRelic::Agent::Database.default_sql_obfuscator(sql) }
       end
       
       # contains all the class-level methods for NewRelic::Agent::Agent
@@ -64,6 +65,7 @@ module NewRelic
         attr_reader :stats_engine
         # the transaction sampler that handles recording transactions
         attr_reader :transaction_sampler
+        attr_reader :sql_sampler
         # error collector is a simple collection of recorded errors
         attr_reader :error_collector
         # whether we should record raw, obfuscated, or no sql
@@ -127,9 +129,9 @@ module NewRelic
             if options['exception']
               e = options['exception']
             elsif options['error_message']
-              e = Exception.new options['error_message']
+              e = StandardError.new options['error_message']
             else
-              e = Exception.new 'Unknown Error'
+              e = StandardError.new 'Unknown Error'
             end
             error_collector.notice_error e, :uri => options['uri'], :metric => metric
           end
@@ -271,29 +273,6 @@ module NewRelic
           Thread.current[:newrelic_untraced].pop if Thread.current[:newrelic_untraced]
         end
 
-        # Sets the sql obfuscator used to clean up sql when sending it
-        # to the server. Possible types are:
-        #
-        # :before => sets the block to run before the existing
-        # obfuscators
-        #
-        # :after => sets the block to run after the existing
-        # obfuscator(s)
-        #
-        # :replace => removes the current obfuscator and replaces it
-        # with the provided block
-        def set_sql_obfuscator(type, &block)
-          if type == :before
-            @obfuscator = NewRelic::ChainedCall.new(block, @obfuscator)
-          elsif type == :after
-            @obfuscator = NewRelic::ChainedCall.new(@obfuscator, block)
-          elsif type == :replace
-            @obfuscator = block
-          else
-            fail "unknown sql_obfuscator type #{type}"
-          end
-        end
-
         # Shorthand to the NewRelic::Agent.logger method
         def log
           NewRelic::Agent.logger
@@ -331,68 +310,6 @@ module NewRelic
             log.info "Application: #{control.app_names.join(", ")}"
           end
           
-          # apdex_f is always 4 times the apdex_t
-          def apdex_f
-            (4 * NewRelic::Control.instance.apdex_t).to_f
-          end
-
-          # If the transaction threshold is set to the string
-          # 'apdex_f', we use 4 times the apdex_t value to record
-          # transactions. This gears well with using apdex since you
-          # will attempt to send any transactions that register as 'failing'
-          def apdex_f_threshold?
-            sampler_config.fetch('transaction_threshold', '') =~ /apdex_f/i
-          end
-
-          # Sets the sql recording configuration by trying to detect
-          # any attempt to disable the sql collection - 'off',
-          # 'false', 'none', and friends. Otherwise, we accept 'raw',
-          # and unrecognized values default to 'obfuscated'
-          def set_sql_recording!
-            record_sql_config = sampler_config.fetch('record_sql', :obfuscated)
-            case record_sql_config.to_s
-            when 'off'
-              @record_sql = :off
-            when 'none'
-              @record_sql = :off
-            when 'false'
-              @record_sql = :off
-            when 'raw'
-              @record_sql = :raw
-            else
-              @record_sql = :obfuscated
-            end
-
-            log_sql_transmission_warning?
-          end
-
-          # Warn the user when we are sending raw sql across the wire
-          # - they should probably be using ssl when this is true
-          def log_sql_transmission_warning?
-            log_if((@record_sql == :raw), :warn, "Agent is configured to send raw SQL to the service")
-          end
-
-          # gets the sampler configuration from the control object's settings
-          def sampler_config
-            control.fetch('transaction_tracer', {})
-          end
-
-          # this entire method should be done on the transaction
-          # sampler object, rather than here. We should pass in the
-          # sampler config.
-          def config_transaction_tracer
-            @should_send_samples = @config_should_send_samples = sampler_config.fetch('enabled', true)
-            @should_send_random_samples = sampler_config.fetch('random_sample', false)
-            @explain_threshold = sampler_config.fetch('explain_threshold', 0.5).to_f
-            @explain_enabled = sampler_config.fetch('explain_enabled', true)
-            set_sql_recording!
-
-            # default to 2.0, string 'apdex_f' will turn into your
-            # apdex * 4
-            @slowest_transaction_threshold = sampler_config.fetch('transaction_threshold', 2.0).to_f
-            @slowest_transaction_threshold = apdex_f if apdex_f_threshold?
-          end
-
           # Connecting in the foreground blocks further startup of the
           # agent until we have a connection - useful in cases where
           # you're trying to log a very-short-running process and want
@@ -400,16 +317,6 @@ module NewRelic
           # (typically 20 seconds) exists
           def connect_in_foreground
             NewRelic::Agent.disable_all_tracing { connect(:keep_retrying => false) }
-          end
-
-          # Are we in boss mode, using rubinius?
-          def using_rubinius?
-            RUBY_VERSION =~ /rubinius/i
-          end
-
-          # Is this really a world-within-a-world, running JRuby?
-          def using_jruby?
-            defined?(JRuby)
           end
 
           # If we're using sinatra, old versions run in an at_exit
@@ -421,7 +328,9 @@ module NewRelic
           # we should not set an at_exit block if people are using
           # these as they don't do standard at_exit behavior per MRI/YARV
           def weird_ruby?
-            using_rubinius? || using_jruby? || using_sinatra?
+            NewRelic::LanguageSupport.using_engine?('rbx') ||
+              NewRelic::LanguageSupport.using_engine?('jruby') ||
+              using_sinatra?
           end
 
           # Installs our exit handler, which exploits the weird
@@ -556,6 +465,16 @@ module NewRelic
             end
           end
           
+          def check_sql_sampler_status
+            # disable sql sampling if disabled by the server
+            # and we're not in dev mode
+            if @sql_sampler.config.fetch('enabled', true) && ['raw', 'obfuscated'].include?(@sql_sampler.config.fetch('record_sql', 'obfuscated').to_s) && @transaction_sampler.config.fetch('enabled', true)
+              @sql_sampler.enable
+            else
+              @sql_sampler.disable
+            end
+          end
+
           # logs info about the worker loop so users can see when the
           # agent actually begins running in the background
           def log_worker_loop_start
@@ -619,7 +538,7 @@ module NewRelic
             handle_force_disconnect(e)
           rescue NewRelic::Agent::ServerConnectionException => e
             handle_server_connection_problem(e)
-          rescue Exception => e
+          rescue => e
             handle_other_error(e)
           end
 
@@ -641,6 +560,7 @@ module NewRelic
                 connect(connection_options)
                 if @connected
                   check_transaction_sampler_status
+                  check_sql_sampler_status
                   log_worker_loop_start
                   create_and_run_worker_loop
                   # never reaches here unless there is a problem or
@@ -804,6 +724,8 @@ module NewRelic
           # are allowed to send errors. Pretty simple, and logs at
           # debug whether errors will or will not be sent.
           def configure_error_collector!(server_enabled)
+            # Reinitialize the error collector
+            @error_collector = NewRelic::Agent::ErrorCollector.new
             # Ask for permission to collect error data
             enabled = if error_collector.config_enabled && server_enabled
                         error_collector.enabled = true
@@ -828,21 +750,84 @@ module NewRelic
             log.info "Transaction sampling enabled, rate = #{@transaction_sampler.sampling_rate}"
           end
 
+          # this entire method should be done on the transaction
+          # sampler object, rather than here. We should pass in the
+          # sampler config.
+          def config_transaction_tracer
+            # Reconfigure the transaction tracer
+            @transaction_sampler.configure!
+            @sql_sampler.configure!
+            @should_send_samples = @config_should_send_samples = @transaction_sampler.config.fetch('enabled', true)
+            @should_send_random_samples = @transaction_sampler.config.fetch('random_sample', false)
+            set_sql_recording!
+
+            # default to 2.0, string 'apdex_f' will turn into your
+            # apdex * 4
+            @slowest_transaction_threshold = @transaction_sampler.config.fetch('transaction_threshold', 2.0).to_f
+            @slowest_transaction_threshold = apdex_f if apdex_f_threshold?
+          end
+
           # Enables or disables the transaction tracer and sets its
           # options based on the options provided to the
           # method.
           def configure_transaction_tracer!(server_enabled, sample_rate)
             # Ask the server for permission to send transaction samples.
             # determined by subscription license.
+            @transaction_sampler.config['enabled'] = server_enabled
+            @sql_sampler.configure!
             @should_send_samples = @config_should_send_samples && server_enabled
-
+            
             if @should_send_samples
               # I don't think this is ever true, but...
               enable_random_samples!(sample_rate) if @should_send_random_samples
+              
+              @transaction_sampler.slow_capture_threshold = @slowest_transaction_threshold
+              
               log.debug "Transaction tracing threshold is #{@slowest_transaction_threshold} seconds."
             else
               log.debug "Transaction traces will not be sent to the New Relic service."
             end
+          end
+
+          # apdex_f is always 4 times the apdex_t
+          def apdex_f
+            (4 * NewRelic::Control.instance.apdex_t).to_f
+          end
+
+          # If the transaction threshold is set to the string
+          # 'apdex_f', we use 4 times the apdex_t value to record
+          # transactions. This gears well with using apdex since you
+          # will attempt to send any transactions that register as 'failing'
+          def apdex_f_threshold?
+            @transaction_sampler.config.fetch('transaction_threshold', '') =~ /apdex_f/i
+          end
+
+          # Sets the sql recording configuration by trying to detect
+          # any attempt to disable the sql collection - 'off',
+          # 'false', 'none', and friends. Otherwise, we accept 'raw',
+          # and unrecognized values default to 'obfuscated'
+          def set_sql_recording!
+            record_sql_config = @transaction_sampler.config.fetch('record_sql', :obfuscated)
+            case record_sql_config.to_s
+            when 'off'
+              @record_sql = :off
+            when 'none'
+              @record_sql = :off
+            when 'false'
+              @record_sql = :off
+            when 'raw'
+              @record_sql = :raw
+            else
+              @record_sql = :obfuscated
+            end
+
+            log_sql_transmission_warning?
+          end
+
+          # Warn the user when we are sending raw sql across the wire
+          # - they should probably be using ssl when this is true
+          def log_sql_transmission_warning?
+            log.warn("Agent is configured to send raw SQL to the service") if @record_sql == :raw
           end
 
           # Asks the collector to tell us which sub-collector we
@@ -876,7 +861,15 @@ module NewRelic
             @report_period = config_data['data_report_period']
             @url_rules = config_data['url_rules']
             @beacon_configuration = BeaconConfiguration.new(config_data)
+            @server_side_config_enabled = config_data['listen_to_server_config']
 
+            if @server_side_config_enabled
+              log.info "Using config from server"
+              log.debug "Server provided config: #{config_data.inspect}"
+            end
+
+            control.merge_server_side_config(config_data) if @server_side_config_enabled
+            config_transaction_tracer
             log_connection!(config_data)
             configure_transaction_tracer!(config_data['collect_traces'], config_data['sample_rate'])
             configure_error_collector!(config_data['collect_errors'])
@@ -1051,6 +1044,20 @@ module NewRelic
           @traces
         end
 
+        def harvest_and_send_slowest_sql
+          # FIXME add the code to try to resend if our connection is down
+          sql_traces = @sql_sampler.harvest
+          unless sql_traces.empty?
+            log.debug "Sending (#{sql_traces.size}) sql traces"
+            begin
+              response = invoke_remote :sql_trace_data, sql_traces
+#              log.debug "Sql trace response: #{response}"
+            rescue
+              @sql_sampler.merge sql_traces 
+            end
+          end
+        end
+
         # This handles getting the transaction traces and then sending
         # them across the wire.  This includes gathering SQL
         # explanations, stripping out stack traces, and normalizing
@@ -1062,10 +1069,13 @@ module NewRelic
           unless @traces.empty?
             now = Time.now
             log.debug "Sending (#{@traces.length}) transaction traces"
+            
             begin
               options = { :keep_backtraces => true }
               options[:record_sql] = @record_sql unless @record_sql == :off
-              options[:explain_sql] = @explain_threshold if @explain_enabled
+              if @transaction_sampler.explain_enabled
+                options[:explain_sql] = @transaction_sampler.explain_threshold
+              end
               traces = @traces.collect {|trace| trace.prepare_to_send(options)}
               invoke_remote :transaction_sample_data, @agent_id, traces
             rescue PostTooBigException
@@ -1131,16 +1141,16 @@ module NewRelic
         def compress_data(object)
           dump = Marshal.dump(object)
 
-          # this checks to make sure mongrel won't choke on big uploads
-          check_post_size(dump)
-
           dump_size = dump.size
 
           return [dump, 'identity'] if dump_size < (64*1024)
 
-          compression = dump_size < 2000000 ? Zlib::BEST_SPEED : Zlib::BEST_COMPRESSION
+          compressed_dump = Zlib::Deflate.deflate(dump, Zlib::DEFAULT_COMPRESSION)
 
-          [Zlib::Deflate.deflate(dump, compression), 'deflate']
+          # this checks to make sure mongrel won't choke on big uploads
+          check_post_size(compressed_dump)
+
+          [compressed_dump, 'deflate']
         end
 
         # Raises a PostTooBigException if the post_string is longer
@@ -1262,14 +1272,22 @@ module NewRelic
         def save_or_transmit_data
           if NewRelic::DataSerialization.should_send_data?
             log.debug "Sending data to New Relic Service"
-            NewRelic::Agent.load_data
+            NewRelic::Agent.load_data unless NewRelic::Control.instance.disable_serialization?
             harvest_and_send_errors
             harvest_and_send_slowest_sample
+            harvest_and_send_slowest_sql
             harvest_and_send_timeslice_data
           else
             log.debug "Serializing agent data to disk"
             NewRelic::Agent.save_data
           end
+        rescue => e
+          NewRelic::Control.instance.disable_serialization = true
+          NewRelic::Control.instance.log.warn("Disabling serialization: #{e.message}")
+          retry_count ||= 0
+          retry_count += 1
+          retry unless retry_count > 1
+          raise e
         end
 
         # This method contacts the server to send remaining data and
@@ -1296,17 +1314,6 @@ module NewRelic
           else
             log.debug "Bypassing graceful disconnect - agent not connected"
           end
-        end
-        def default_sql_obfuscator(sql)
-          sql = sql.dup
-          # This is hardly readable.  Use the unit tests.
-          # remove single quoted strings:
-          sql.gsub!(/'(.*?[^\\'])??'(?!')/, '?')
-          # remove double quoted strings:
-          sql.gsub!(/"(.*?[^\\"])??"(?!")/, '?')
-          # replace all number literals
-          sql.gsub!(/\d+/, "?")
-          sql
         end
       end
 

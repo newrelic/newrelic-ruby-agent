@@ -22,7 +22,7 @@ module NewRelic
             end
           elsif platform =~ /darwin9/ # 10.5
             @sampler = ShellPS.new("ps -o rsz")
-          elsif platform =~ /darwin10/ # 10.6
+          elsif platform =~ /darwin1[01]/ # 10.6 & 10.7
             @sampler = ShellPS.new("ps -o rss")
           elsif platform =~ /freebsd/
             @sampler = ShellPS.new("ps -o rss")
@@ -122,18 +122,17 @@ module NewRelic
           # Returns the amount of resident memory this process is using in MB
           #
           def get_memory
-            File.open(proc_status_file, "r") do |f|
-              while !f.eof?
-                if f.readline =~ /RSS:\s*(\d+) kB/i
-                  return $1.to_f / 1024.0
-                end
-              end
+            proc_status = File.open(proc_status_file, "r") {|f| f.read_nonblock(4096).strip }
+            if proc_status =~ /RSS:\s*(\d+) kB/i
+              return $1.to_f / 1024.0
             end
             raise "Unable to find RSS in #{proc_status_file}"
           end
+
           def proc_status_file
             "/proc/#{$$}/status"
           end
+
           def to_s
             "proc status file sampler: #{proc_status_file}"
           end

@@ -28,9 +28,16 @@ module NewRelic
       # local config
       attr_reader :rum_enabled
       
+      # whether JSONP is used to communicate with the Beacon or not
+      attr_reader :rum_jsonp
+      
+      # RUM footer command used for 'finish' - based on whether JSONP is
+      # being used. 'nrfj' for JSONP, otherwise 'nrf2'
+      attr_reader :finish_command
+      
       # A static javascript header that is identical for every account
       # and application
-      JS_HEADER = "<script type=\"text/javascript\">var NREUMQ=[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);</script>"
+      JS_HEADER = "<script type=\"text/javascript\">var NREUMQ=NREUMQ||[];NREUMQ.push([\"mark\",\"firstbyte\",new Date().getTime()]);</script>"
       
       # Creates a new browser configuration data. Argument is a hash
       # of configuration values from the server
@@ -45,6 +52,10 @@ module NewRelic
         NewRelic::Control.instance.log.debug("Browser timing header: #{@browser_timing_header.inspect}")
         @browser_timing_static_footer = build_load_file_js(connect_data)
         NewRelic::Control.instance.log.debug("Browser timing static footer: #{@browser_timing_static_footer.inspect}")
+        @rum_jsonp = connect_data['rum.jsonp']
+        @rum_jsonp = true if @rum_jsonp.nil?
+        NewRelic::Control.instance.log.debug("Real User Monitoring is using JSONP protocol") if @rum_jsonp
+        @finish_command = @rum_jsonp ?  'nrfj' : 'nrf2'
       end
       
       # returns a memoized version of the bytes in the license key for
@@ -63,7 +74,7 @@ module NewRelic
       # includes it themselves)
       def build_load_file_js(connect_data)
         js = <<-EOS
-if (!NREUMQ.f) NREUMQ.f=function() {
+if (!NREUMQ.f) { NREUMQ.f=function() {
 NREUMQ.push(["load",new Date().getTime()]);
 EOS
     
@@ -79,7 +90,8 @@ EOS
         js << <<-EOS
 if(NREUMQ.a)NREUMQ.a();
 };
-if(window.onload!==NREUMQ.f){NREUMQ.a=window.onload;window.onload=NREUMQ.f;};
+NREUMQ.a=window.onload;window.onload=NREUMQ.f;
+};
 EOS
         js
       end

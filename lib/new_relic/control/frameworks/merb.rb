@@ -13,7 +13,7 @@ module NewRelic
 
         def to_stdout(msg)
           Merb.logger.info("NewRelic ~ " + msg)
-        rescue Exception => e
+        rescue => e
           STDOUT.puts "NewRelic ~ " + msg
         end
 

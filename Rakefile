@@ -42,6 +42,7 @@ begin
     gem.authors = AUTHORS
     gem.version = GEM_VERSION
     gem.files = FileList['**/*']
+    gem.files.exclude *File.read(File.join(File.dirname(__FILE__), '.gitignore')).split
     gem.test_files = [] # You can't really run the tests unless the gem is installed.
     gem.rdoc_options <<
       "--line-numbers" <<

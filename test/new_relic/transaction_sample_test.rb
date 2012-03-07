@@ -6,9 +6,9 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
 
   def setup
     @connection_stub = Mocha::Mockery.instance.named_mock('connection')
-    @connection_stub.stubs(:execute).returns('QUERY RESULT')
+    @connection_stub.stubs(:execute).returns([['QUERY RESULT']])
 
-    NewRelic::TransactionSample.stubs(:get_connection).returns @connection_stub
+    NewRelic::Agent::Database.stubs(:get_connection).returns @connection_stub
     @t = make_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
   end
 
@@ -19,7 +19,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
   def test_not_record_sql_when_record_sql_off
     s = @t.prepare_to_send(:explain_sql => 0.00000001)
     s.each_segment do |segment|
-      assert_nil segment.params[:explanation]
+      assert_nil segment.params[:explain_plan]
       assert_nil segment.params[:sql]
     end
   end
@@ -29,7 +29,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
     got_one = false
     s.each_segment do |segment|
       fail if segment.params[:obfuscated_sql]
-      got_one = got_one || segment.params[:explanation] || segment.params[:sql]
+      got_one = got_one || segment.params[:explain_plan] || segment.params[:sql]
     end
     assert got_one
   end
@@ -40,7 +40,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
 
     got_one = false
     s.each_segment do |segment|
-      got_one = got_one || segment.params[:explanation] || segment.params[:sql]
+      got_one = got_one || segment.params[:explain_plan] || segment.params[:sql]
     end
 
     assert got_one
@@ -77,22 +77,16 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
   end
 
   def test_have_explains
-
     s = @t.prepare_to_send(:record_sql => :obfuscated, :explain_sql => 0.00000001)
-
-    explain_count = 0
+    
     s.each_segment do |segment|
-      if segment.params[:explanation]
-        explanations = segment.params[:explanation]
+      if segment.params[:explain_plan]
+        explanation = segment.params[:explain_plan]
 
-        explanations.each do |explanation|
-          assert_kind_of Array, explanation
-          assert_equal "QUERY RESULT", explanation.join('')
-          explain_count += 1
-        end
+        assert_kind_of Array, explanation
+        assert_equal([nil, [["QUERY RESULT"]]], explanation)
       end
     end
-    assert_equal 2, explain_count
   end
 
   def test_not_record_sql_without_record_sql_option
@@ -104,7 +98,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
     s = t.prepare_to_send(:explain_sql => 0.00000001)
 
     s.each_segment do |segment|
-      assert_nil segment.params[:explanation]
+      assert_nil segment.params[:explain_plan]
       assert_nil segment.params[:sql]
     end
   end

@@ -270,20 +270,15 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
     check_metric_time('WebFrontend/QueueTime', 0.0, 0.001)
   end
 
-
-  # check all the combinations to make sure that ordering doesn't
-  # affect the return value
   def test_find_oldest_time
-    test_arrays = [
+    test_array = [
+                   ['c', Time.at(1002)],                   
                    ['a', Time.at(1000)],
                    ['b', Time.at(1001)],
-                   ['c', Time.at(1002)],
                    ['d', Time.at(1000)],
                   ]
-    test_arrays = test_arrays.permutation
-    test_arrays.each do |test_array|
-      assert_equal find_oldest_time(test_array), Time.at(1000), "Should be the oldest time in the array"
-    end
+    assert_equal(find_oldest_time(test_array), Time.at(1000),
+                 "Should be the oldest time in the array")
   end
 
   # trivial test but the method doesn't do much

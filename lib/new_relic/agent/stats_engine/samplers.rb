@@ -74,7 +74,7 @@ module Agent
           begin
             sampled_item.poll
             false # it's okay.  don't delete it.
-          rescue Exception => e
+          rescue => e
             log.error "Removing #{sampled_item} from list"
             log.error e
             log.debug e.backtrace.to_s

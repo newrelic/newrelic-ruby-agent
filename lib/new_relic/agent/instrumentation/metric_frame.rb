@@ -67,17 +67,18 @@ module NewRelic
             include_class 'java.lang.management.ManagementFactory'
             include_class 'com.sun.management.OperatingSystemMXBean'
             @@java_classes_loaded = true
-          rescue Exception => e
+          rescue => e
           end
         end
 
         attr_reader :depth
 
         def initialize
-          Thread.current[:newrelic_start_time] = @start = Time.now
+          @start = Time.now
           @path_stack = [] # stack of [controller, path] elements
           @jruby_cpu_start = jruby_cpu_time
           @process_cpu_start = process_cpu
+          Thread.current[:last_metric_frame] = self
         end
 
         def agent
@@ -87,15 +88,20 @@ module NewRelic
         def transaction_sampler
           agent.transaction_sampler
         end
+        
+        def sql_sampler
+          agent.sql_sampler
+        end
 
         private :agent
         private :transaction_sampler
-
+        private :sql_sampler        
 
         # Indicate that we are entering a measured controller action or task.
         # Make sure you unwind every push with a pop call.
         def push(m)
           transaction_sampler.notice_first_scope_push(start)
+          sql_sampler.notice_first_scope_push(start)
           @path_stack.push NewRelic::MetricParser::MetricParser.for_metric_named(m)
         end
 
@@ -127,6 +133,7 @@ module NewRelic
           # Only push the transaction context info once, on entry:
           if @path_stack.size == 1
             transaction_sampler.notice_transaction(metric_name, uri, filtered_params)
+            sql_sampler.notice_transaction(metric_name, uri, filtered_params)
           end
         end
 
@@ -193,11 +200,19 @@ module NewRelic
         def self.add_custom_parameters(p)
           current.add_custom_parameters(p) if current
         end
-
+        
         def self.custom_parameters
           (current && current.custom_parameters) ? current.custom_parameters : {}
         end
 
+        def self.set_user_attributes(attributes)
+          current.set_user_attributes(attributes) if current 
+        end
+
+        def self.user_attributes
+          (current) ? current.user_attributes : {}
+        end
+          
         def record_apdex()
           return unless recording_web_transaction? && NewRelic::Agent.is_execution_traced?
           t = Time.now
@@ -242,9 +257,21 @@ module NewRelic
         def custom_parameters
           @custom_parameters ||= {}
         end
+        
+        def user_attributes
+          @user_atrributes ||= {}
+        end
+        
+        def queue_time
+          apdex_start - start
+        end
 
         def add_custom_parameters(p)
           custom_parameters.merge!(p)
+        end
+        
+        def set_user_attributes(attributes)
+          user_attributes.merge!(attributes)
         end
 
         def self.recording_web_transaction?

@@ -231,6 +231,8 @@ module NewRelic
         # If a single argument is passed in, it is treated as a metric
         # path.  This form is deprecated.
         def perform_action_with_newrelic_trace(*args, &block)
+          request = newrelic_request(args)
+          NewRelic::Agent::TransactionInfo.reset(request)
 
           # Skip instrumentation based on the value of 'do_not_trace' and if
           # we aren't calling directly with a block.
@@ -254,7 +256,7 @@ module NewRelic
                 else
                   perform_action_without_newrelic_trace(*args)
                 end
-              rescue Exception => e
+              rescue => e
                 frame_data.notice_error(e)
                 raise
               end
@@ -270,6 +272,22 @@ module NewRelic
         end
 
         protected
+
+        def newrelic_request(args)
+          opts = args.first
+          # passed as a parameter to add_transaction_tracer
+          if opts.respond_to?(:keys) && opts.respond_to?(:[]) && opts[:request]
+            opts[:request]
+          # in a Rack app
+          elsif opts.respond_to?(:keys) && opts.respond_to?(:[]) &&
+              opts['rack.version']
+            Rack::Request.new(args)
+          # in a Rails app
+          elsif self.respond_to?(:request)
+            self.request
+          end
+        end
+
         # Should be implemented in the dispatcher class
         def newrelic_response_code; end
 
@@ -340,7 +358,9 @@ module NewRelic
             available_params = self.respond_to?(:params) ? self.params : {}
           end
           frame_data.request ||= self.request if self.respond_to? :request
-          frame_data.push(category + '/'+ path)
+          transaction_name = category + '/' + path
+          frame_data.push(transaction_name)
+          NewRelic::Agent::TransactionInfo.get.transaction_name = transaction_name
           frame_data.filtered_params = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
           frame_data
         end
@@ -359,7 +379,7 @@ module NewRelic
                      end
           unless path = options[:path]
             action = options[:name] || args.first
-            metric_class = options[:class_name] || (self.is_a?(Class) ? self.name : self.class.name)
+            metric_class = options[:class_name] || ((self.is_a?(Class)||self.is_a?(Module)) ? self.name : self.class.name)
             path = metric_class
             path += ('/' + action) if action
           end
@@ -403,10 +423,9 @@ module NewRelic
           queue_start = nil
           if newrelic_request_headers
             queue_start = parse_frontend_headers(newrelic_request_headers)
-            Thread.current[:newrelic_queue_time] = (now.to_f - queue_start.to_f) if queue_start
           end
           queue_start || now
-        rescue Exception => e
+        rescue => e
           NewRelic::Control.instance.log.error("Error detecting upstream wait time: #{e}")
           NewRelic::Control.instance.log.debug("#{e.backtrace[0..20]}")
           now

@@ -1,4 +1,6 @@
 DependencyDetection.defer do
+  @name = :net
+
   depends_on do
     defined?(Net) && defined?(Net::HTTP)
   end
@@ -10,7 +12,7 @@ DependencyDetection.defer do
   executes do
     Net::HTTP.class_eval do
       def request_with_newrelic_trace(*args, &block)
-        metrics = ["External/#{@address}/Net::HTTP/#{args[0].method}","External/#{@address}/all"]
+        metrics = ["External/#{@address}/Net::HTTP/#{args[0].method}", "External/#{@address}/all", "External/all"]
         if NewRelic::Agent::Instrumentation::MetricFrame.recording_web_transaction?
           metrics << "External/allWeb"
         else

@@ -10,11 +10,13 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
     @file = "#{path}/newrelic_agent_store.db"
     Dir.mkdir(path) if !File.directory?(path)
     FileUtils.rm_rf(@file)
-    FileUtils.rm_rf("#{@path}/newrelic_agent_store.age")
+    FileUtils.rm_rf("#{@path}/newrelic_agent_store.pid")
   end
   
   def teardown
-    NewRelic::Control.instance['disable_serialization'] = false # this gets set to true in some tests
+    # this gets set to true in some tests
+    NewRelic::Control.instance['disable_serialization'] = false
+    mocha_teardown
   end
   
   def test_read_and_write_from_file_read_only
@@ -26,15 +28,6 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
       nil # must explicitly return nil or the return value will be dumped
     end
     assert_equal(0, File.size(file), "Should not leave any data in the file")
-  end
-
-  def test_bad_paths
-    NewRelic::Control.instance.stubs(:log_path).returns("/bad/path")
-    assert NewRelic::DataSerialization.should_send_data?
-    NewRelic::DataSerialization.read_and_write_to_file do
-      'a happy string'
-    end
-    assert !File.exists?(file)
   end
   
   def test_read_and_write_to_file_dumping_contents
@@ -70,7 +63,6 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
   end
 
   def test_should_send_data_when_over_limit
-#    NewRelic::DataSerialization.expects(:max_size).returns(20)
     NewRelic::DataSerialization.stubs(:max_size).returns(20)
     NewRelic::DataSerialization.read_and_write_to_file do
       "a" * 30
@@ -102,17 +94,18 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
   end
 
   def test_should_send_data_disabled
-    NewRelic::Control.instance.expects(:disable_serialization?).returns(true)
-    assert(NewRelic::DataSerialization.should_send_data?, 'should send data when disabled')
+    NewRelic::Control.instance.disable_serialization = true
+    assert(NewRelic::DataSerialization.should_send_data?,
+           'should send data when disabled')
   end
 
   def test_should_send_data_under_limit
     NewRelic::DataSerialization.expects(:max_size).returns(2000)
-    NewRelic::DataSerialization.read_and_write_to_file do | old_data |
+    NewRelic::DataSerialization.read_and_write_to_file do |old_data|
       "a" * 5
     end
     
-    assert(!NewRelic::DataSerialization.should_send_data?,
+    assert(!NewRelic::DataSerialization.store_too_large?,
            'Should be under the limit')
   end
 
@@ -135,7 +128,81 @@ class NewRelic::DataSerializationTest < Test::Unit::TestCase
     NewRelic::Control.instance.expects(:log_path).returns('./tmp')
     Dir.mkdir('./tmp') if !File.directory?('./tmp')
     NewRelic::DataSerialization.update_last_sent!
-    assert(File.exists?('./tmp/newrelic_agent_store.age'),
+    assert(File.exists?('./tmp/newrelic_agent_store.pid'),
            "Age file not created at user specified location")
+  end
+  
+  def test_pid_age_creates_pid_file_if_none_exists
+    assert(!File.exists?("#{@path}/newrelic_agent_store.pid"),
+           'pid file found, should not be there')
+    NewRelic::DataSerialization.update_last_sent!
+    assert(File.exists?("#{@path}/newrelic_agent_store.pid"),
+           'pid file not found, should be there')
+  end
+  
+  def test_should_not_create_files_if_serialization_disabled
+    NewRelic::Control.instance['disable_serialization'] = true
+    NewRelic::DataSerialization.should_send_data?
+    assert(!File.exists?("#{@path}/newrelic_agent_store.db"),
+           'db file created when serialization disabled')
+    assert(!File.exists?("#{@path}/newrelic_agent_store.pid"),
+           'pid file created when serialization disabled')
+  end
+  
+  def test_loading_does_not_seg_fault_if_gc_triggers
+    return if NewRelic::LanguageSupport.using_version?('1.8.6')
+    require 'timeout'
+    
+    Thread.abort_on_exception = true
+    rcv,snd = IO.pipe
+    
+    write = Thread.new do
+      obj = ('a'..'z').inject({}){|h,s|h[s.intern]=s*1024;h}
+      data = Marshal.dump(obj)
+      snd.write(data[0,data.size/2])
+      sleep(0.1)
+      snd.write(data[(data.size/2)..-1])
+      snd.close
+    end
+    
+    read = Thread.new do
+      lock = Mutex.new
+      lock.synchronize do
+        NewRelic::DataSerialization.class_eval { load(rcv) }
+      end
+    end
+
+    gc = Thread.new do
+      10.times do
+        GC.start
+      end
+    end
+
+    Timeout::timeout(5) do
+      write.join
+      read.join
+      gc.join
+    end
+    # should not seg fault
+  end
+
+  def test_dump_should_be_thread_safe
+    stats_hash = {}
+
+    2000.times do |i|
+      stats_hash[i.to_s] = NewRelic::StatsBase.new
+    end
+        
+    harvest = Thread.new do
+      NewRelic::DataSerialization.class_eval { dump(stats_hash) }
+    end
+    
+    app = Thread.new do
+      stats_hash["a"] = NewRelic::StatsBase.new
+    end
+    
+    assert_nothing_raised do
+      [app, harvest].each{|t| t.join}
+    end    
   end
 end

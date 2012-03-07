@@ -1,4 +1,6 @@
 DependencyDetection.defer do
+  @name = :rails_action_web_service
+  
   depends_on do
     defined?(ActionWebService)
   end

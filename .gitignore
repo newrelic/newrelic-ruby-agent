@@ -1,12 +1,17 @@
 .DS\_Store
 .svn/
 *~
+*.rbc
 pkg/
 *.gem
 !rails
 Manifest*
 .idea/
 tmp/
+TAGS
+tags
+*.swp
+*.swo
 
 /log/
 /lerg/

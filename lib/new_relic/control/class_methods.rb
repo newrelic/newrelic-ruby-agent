@@ -3,9 +3,10 @@ module NewRelic
     # class-level methods for lazy creation of NewRelic::Control and
     # NewRelic::LocalEnvironment instances.
     module ClassMethods
-      # Access the Control singleton, lazy initialized
-      def instance
-        @instance ||= new_instance
+      # Access the Control singleton, lazy initialized.  Default will instantiate a new
+      # instance or pass false to defer
+      def instance(create=true)
+        @instance ||= create && new_instance
       end
       
       # Access the LocalEnvironment singleton, lazy initialized

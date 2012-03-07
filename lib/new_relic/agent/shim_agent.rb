@@ -12,15 +12,16 @@ module NewRelic
         @stats_engine.extend NewRelic::Agent::StatsEngine::Shim
         @stats_engine.extend NewRelic::Agent::StatsEngine::Transactions::Shim
         @transaction_sampler.extend NewRelic::Agent::TransactionSampler::Shim
+        @sql_sampler.extend NewRelic::Agent::SqlSampler::Shim
         @error_collector.extend NewRelic::Agent::ErrorCollector::Shim
       end
       def after_fork *args; end
       def start *args; end
-      def shutdown; end
+      def shutdown *args; end
       def serialize; end
-      def merge_data_from(*args); end
-      def push_trace_execution_flag(*args); end
-      def pop_trace_execution_flag(*args); end
+      def merge_data_from *args; end
+      def push_trace_execution_flag *args; end
+      def pop_trace_execution_flag *args; end
       def browser_timing_header; "" end
       def browser_timing_footer; "" end
     end

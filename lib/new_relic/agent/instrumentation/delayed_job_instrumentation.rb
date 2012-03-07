@@ -1,12 +1,16 @@
 require 'new_relic/agent/instrumentation/controller_instrumentation'
 
 DependencyDetection.defer do
+  @name = :delayed_job
+  
   depends_on do
     !NewRelic::Control.instance['disable_dj']
   end
 
   depends_on do
-    defined?(::Delayed) && defined?(::Delayed::Job)
+    # double check because of old JRuby bug 
+    defined?(::Delayed) && defined?(::Delayed::Job) &&
+      Delayed::Job.method_defined?(:invoke_job)
   end
   
   executes do

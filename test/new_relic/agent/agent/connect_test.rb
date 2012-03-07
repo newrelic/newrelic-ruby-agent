@@ -1,6 +1,8 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..', '..', '..','test_helper'))
 class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   require 'new_relic/agent/agent'
+  
+  # I don't like this, we should be testing a third party, not ourselves -Jon
   include NewRelic::Agent::Agent::Connect
 
   def setup
@@ -8,6 +10,8 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     @keep_retrying = nil
     @connect_attempts = 1
     @connect_retry_period = 0
+    @transaction_sampler = NewRelic::Agent::TransactionSampler.new
+    @sql_sampler = NewRelic::Agent::SqlSampler.new    
   end
 
   def test_tried_to_connect?
@@ -206,22 +210,40 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     enable_random_samples!(sampling_rate)
   end
 
+  def test_config_transaction_tracer
+    NewRelic::Control.instance.settings['transaction_tracer'] = {
+      'enabled' => true,
+      'random_sample' => false,
+      'explain_threshold' => 0.75,
+      'explain_enabled' => true
+    }
+
+    config_transaction_tracer
+
+    assert @transaction_sampler.enabled?
+    assert_equal 0.75, @transaction_sampler.explain_threshold
+    assert @transaction_sampler.explain_enabled
+#     assert_equal 1.5, @transaction_sampler.transaction_threshold
+  end
+
   def test_configure_transaction_tracer_with_random_sampling
     @config_should_send_samples = true
     @should_send_random_samples = true
     @slowest_transaction_threshold = 5
-    log.expects(:debug).with('Transaction tracing threshold is 5 seconds.')
+    log.stubs(:debug)
     self.expects(:enable_random_samples!).with(10)
     configure_transaction_tracer!(true, 10)
     assert @should_send_samples
+    assert_equal 5, @transaction_sampler.slow_capture_threshold
   end
 
   def test_configure_transaction_tracer_positive
     @config_should_send_samples = true
     @slowest_transaction_threshold = 5
-    log.expects(:debug).with('Transaction tracing threshold is 5 seconds.')
+    log.stubs(:debug)
     configure_transaction_tracer!(true, 10)
     assert @should_send_samples
+    assert_equal 5, @transaction_sampler.slow_capture_threshold
   end
 
   def test_configure_transaction_tracer_negative
@@ -236,6 +258,70 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     log.expects(:debug).with('Transaction traces will not be sent to the New Relic service.')
     configure_transaction_tracer!(false, 10)
     assert !@should_send_samples
+  end
+
+  def test_apdex_f
+    NewRelic::Control.instance.expects(:apdex_t).returns(10)
+    assert_equal 40, apdex_f
+  end
+
+  def test_apdex_f_threshold_positive
+    NewRelic::Control.instance.settings['transaction_tracer'] = { 'transaction_threshold' => 'apdex_f' }
+    assert apdex_f_threshold?
+  end
+
+  def test_apdex_f_threshold_negative
+    NewRelic::Control.instance.settings['transaction_tracer'] = { 'transaction_threshold' => 'WHEE' }
+    assert !apdex_f_threshold?
+  end
+
+  def test_set_sql_recording_default
+    NewRelic::Control.instance.settings['transaction_tracer'] = { }
+    self.expects(:log_sql_transmission_warning?)
+    set_sql_recording!
+    assert_equal :obfuscated, @record_sql, " should default to :obfuscated, was #{@record_sql}"
+  end
+
+  def test_set_sql_recording_off
+    NewRelic::Control.instance.settings['transaction_tracer'] = {'record_sql' => 'off'}
+    self.expects(:log_sql_transmission_warning?)
+    set_sql_recording!
+    assert_equal :off, @record_sql, "should be set to :off, was #{@record_sql}"
+  end
+
+  def test_set_sql_recording_none
+    NewRelic::Control.instance.settings['transaction_tracer'] = {'record_sql' => 'none'}    
+    self.expects(:log_sql_transmission_warning?)
+    set_sql_recording!
+    assert_equal :off, @record_sql, "should be set to :off, was #{@record_sql}"
+  end
+
+  def test_set_sql_recording_raw
+    NewRelic::Control.instance.settings['transaction_tracer'] = {'record_sql' => 'raw'}        
+    self.expects(:log_sql_transmission_warning?)
+    set_sql_recording!
+    assert_equal :raw, @record_sql, "should be set to :raw, was #{@record_sql}"
+  end
+
+  def test_set_sql_recording_falsy
+    NewRelic::Control.instance.settings['transaction_tracer'] = {'record_sql' => false}            
+    self.expects(:log_sql_transmission_warning?)
+    set_sql_recording!
+    assert_equal :off, @record_sql, "should be set to :off, was #{@record_sql}"
+  end
+
+  def test_log_sql_transmission_warning_negative
+    log = mocked_log
+    @record_sql = :obfuscated
+    log.expects(:warn).never
+    log_sql_transmission_warning?
+  end
+
+  def test_log_sql_transmission_warning_positive
+    log = mocked_log
+    @record_sql = :raw
+    log.expects(:warn).with('Agent is configured to send raw SQL to the service')
+    log_sql_transmission_warning?
   end
 
   def test_set_collector_host_positive
@@ -254,15 +340,6 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     assert_equal 'initial value', @collector, "should not modify collector value"
   end
 
-  def test_configure_transaction_tracer_random_samples
-    @config_should_send_samples = true
-    @should_send_random_samples = true
-    self.expects(:enable_random_samples!).with(10)
-    log.expects(:debug)
-    configure_transaction_tracer!(true, 10)
-    assert @should_send_samples
-  end
-
   def test_query_server_for_configuration
     self.expects(:set_collector_host!)
     self.expects(:connect_to_server).returns("so happy")
@@ -279,9 +356,13 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
       'collect_errors' => true,
       'sample_rate' => 10
     }
+    NewRelic::Control.instance.settings['transaction_tracer'] = {'enabled' => true}
     self.expects(:log_connection!).with(config)
     self.expects(:configure_transaction_tracer!).with(true, 10)
     self.expects(:configure_error_collector!).with(true)
+    @transaction_sampler = stub('transaction sampler', :configure! => true,
+                                :config => {})
+    @sql_sampler = stub('sql sampler', :configure! => true)    
     finish_setup(config)
     assert_equal 'fishsticks', @agent_id
     assert_equal 'pasta sauce', @report_period
@@ -294,6 +375,12 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     fake_control = mock('control')
     self.stubs(:control).returns(fake_control)
     fake_control
+  end
+
+  def mocked_log
+    fake_log = mock('log')
+    self.stubs(:log).returns(fake_log)
+    fake_log
   end
 
   def mocked_error_collector

@@ -36,7 +36,7 @@ module NewRelic
       # Merge the given options into the config options.
       # They might be a nested hash
       def merge_options(options, hash=self)
-        options.each do |key, val |
+        options.each do |key, val|
           case
           when key == :config then next
           when val.is_a?(Hash)
@@ -47,6 +47,28 @@ module NewRelic
             hash[key.to_s] = val
           end
         end
+      end
+
+      def merge_server_side_config(data)
+        remove_server_controlled_configs
+        config = Hash.new
+        data.each_pair do |key, value|
+          if key.include?('.')
+            key = key.split('.')
+            config[key.first] ||= Hash.new
+            config[key.first][key[1]] = value
+          else
+            config[key] = value
+          end
+        end
+        merge_options(config)
+      end
+
+      def remove_server_controlled_configs
+        settings.delete('transaction_tracer')
+        settings.delete('slow_sql')
+        settings.delete('error_collector')
+        settings.delete('capture_params')
       end
 
       def [](key)
@@ -67,7 +89,8 @@ module NewRelic
       end
 
       def license_key
-        fetch('license_key', ENV['NEWRELIC_LICENSE_KEY'])
+        env_setting = ENV['NEW_RELIC_LICENSE_KEY'] || ENV['NEWRELIC_LICENSE_KEY']
+        fetch('license_key', env_setting)
       end
       
       def capture_params
@@ -96,7 +119,7 @@ module NewRelic
       end
 
       def disable_serialization?
-        fetch('disable_serialization', false)
+        fetch('disable_serialization', !DependencyDetection.installed?(:resque))
       end
       def disable_serialization=(b)
         self['disable_serialization'] = b
@@ -172,6 +195,10 @@ module NewRelic
 
       def disable_backtrace_cleanup?
         fetch('disable_backtrace_cleanup')
+      end
+
+      def has_slow_sql_config?
+        self['slow_sql'] && self['slow_sql'].has_key?('enabled')
       end
     end
     include Configuration
