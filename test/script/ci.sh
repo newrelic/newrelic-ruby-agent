@@ -77,7 +77,12 @@ rvm --force gemset delete ruby_agent_tests_$BRANCH
 rvm gemset create ruby_agent_tests_$BRANCH
 rvm gemset use ruby_agent_tests_$BRANCH
 
-gem install bundler --no-rdoc --no-ri
+if [ "x$RUBY" == "x1.8.6" ]; then
+  # Bundler 1.1 dropped support for ruby 1.8.6
+  gem install bundler -v'~>1.0.0' --no-rdoc --no-ri
+else
+  gem install bundler --no-rdoc --no-ri
+fi
 
 
 export RAILS_ENV=test
