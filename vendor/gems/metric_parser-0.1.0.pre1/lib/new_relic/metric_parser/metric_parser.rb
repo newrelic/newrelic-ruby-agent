@@ -81,9 +81,12 @@ module NewRelic
         segments[0]
       end
 
+
+      EMPTY_SEGMENTS_HASH = [].freeze
+      SEGMENTS_CACHE = {}
       def segments
-        return [] if !name
-        @segments ||= name.split(SEPARATOR).freeze
+        name || (return EMPTY_SEGMENTS_HASH)
+        SEGMENTS_CACHE[name] ||= name.split(SEPARATOR).freeze
       end
 
       # --
