@@ -19,35 +19,27 @@ module NewRelic
     def initialize(time = Time.now.to_f, sample_id = nil)
       @sample_id = sample_id || object_id
       @start_time = time
+      @params = { :segment_count => -1, :request_params => {} }
+      @segment_count = -1
       @root_segment = create_segment 0.0, "ROOT"
-      @params = {}
-      @params[:request_params] = {}
 
       @guid = generate_guid
       NewRelic::Agent::TransactionInfo.get.guid = @guid
     end
 
     def count_segments
-      @root_segment.count_segments - 1    # don't count the root segment
+      @segment_count
     end
         
     # Truncates the transaction sample to a maximum length determined
     # by the passed-in parameter. Operates recursively on the entire
     # tree of transaction segments in a depth-first manner
     def truncate(max)
-      count = count_segments
-      return if count < max
+      return if @segment_count < max
       @root_segment.truncate(max + 1)
-
-      ensure_segment_count_set(count)
+      @segment_count = max
     end
     
-    # makes sure that the parameter cache for segment count is set to
-    # the correct value
-    def ensure_segment_count_set(count)
-      params[:segment_count] ||= count
-    end
-
     # offset from start of app
     def timestamp
       @start_time - @@start_time.to_f
@@ -74,6 +66,8 @@ module NewRelic
 
     def create_segment(relative_timestamp, metric_name, segment_id = nil)
       raise TypeError.new("Frozen Transaction Sample") if frozen?
+      @params[:segment_count] += 1
+      @segment_count += 1
       NewRelic::TransactionSample::Segment.new(relative_timestamp, metric_name, segment_id)
     end
 
@@ -115,6 +109,7 @@ module NewRelic
           when Enumerable then v.map(&:to_s).sort.join("; ")
           when String then v
           when Float then '%6.3s' % v
+          when Fixnum then v.to_s
           when nil then ''
         else
           raise "unexpected value type for #{k}: '#{v}' (#{v.class})"
@@ -133,9 +128,10 @@ module NewRelic
       regex = Regexp.new(regex)
 
       sample = TransactionSample.new(@start_time, sample_id)
-
-      params.each {|k,v| sample.params[k] = v}
-
+      
+      sample.params = params.dup
+      sample.params[:segment_count] = 0
+      
       delta = build_segment_with_omissions(sample, 0.0, @root_segment, sample.root_segment, regex)
       sample.root_segment.end_trace(@root_segment.exit_timestamp - delta)
       sample.profile = self.profile

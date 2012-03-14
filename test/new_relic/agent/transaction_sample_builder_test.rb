@@ -94,8 +94,10 @@ class NewRelic::Agent::TransationSampleBuilderTest < Test::Unit::TestCase
 
     should_be_a_copy = sample.omit_segments_with('OMIT NOTHING')
     validate_segment should_be_a_copy.root_segment, false
-
-    assert sample.to_s == should_be_a_copy.to_s
+    
+    assert_equal sample.params, should_be_a_copy.params
+    assert_equal(sample.root_segment.to_debug_str(0),
+                 should_be_a_copy.root_segment.to_debug_str(0))
 
     without_code_loading = sample.omit_segments_with('Rails/Application Code Loading')
     validate_segment without_code_loading.root_segment, false
