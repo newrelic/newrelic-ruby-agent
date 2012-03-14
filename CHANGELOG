@@ -1,3 +1,7 @@
+v3.3.3
+  * Improved Sinatra instrumentation
+  * Limit the number of nodes collected in long running transactions to prevent leaking memory
+
 v3.3.2
   * deployments recipe change: truncate git SHAs to 7 characters
   * Fixes for obfuscation of PostgreSQL and SQLite queries
