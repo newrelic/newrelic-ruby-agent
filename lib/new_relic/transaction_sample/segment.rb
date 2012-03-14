@@ -97,11 +97,13 @@ module NewRelic
         end
         d
       end
+      
       def count_segments
         count = 1
         called_segments.each { | seg | count  += seg.count_segments }
         count
       end
+      
       # Walk through the tree and truncate the segments in a
       # depth-first manner
       def truncate(max)

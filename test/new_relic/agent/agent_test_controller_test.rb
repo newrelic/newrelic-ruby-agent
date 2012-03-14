@@ -283,7 +283,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     get :index, 'number' => "001-555-1212"
     s = agent.transaction_sampler.harvest(nil, 0.0)
     assert_equal 1, s.size
-    assert_equal 5, s.first.params.size
+    assert_equal 6, s.first.params.size
   end
 
 
