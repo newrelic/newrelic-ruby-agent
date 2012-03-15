@@ -1,3 +1,5 @@
+require 'erb'
+
 module NewRelic
   module Agent
     class TransactionInfo
@@ -48,17 +50,22 @@ module NewRelic
       def self.reset(request=nil)
         clear
         instance = get
+        instance.token = get_token(request)
+      end
 
-        if request
-          agent_flag = request.cookies['NRAGENT']
-          if agent_flag
-            s = agent_flag.split("=")
-            if s.length == 2
-              if s[0] == "tk" && s[1]
-                instance.token = s[1]
-              end
+      def self.get_token(request)
+        return nil unless request
+        
+        agent_flag = request.cookies['NRAGENT']
+        if agent_flag
+          s = agent_flag.split("=")
+          if s.length == 2
+            if s[0] == "tk" && s[1]
+              ERB::Util.h(s[1])
             end
           end
+        else
+          nil
         end
       end
     end
