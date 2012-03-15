@@ -170,6 +170,7 @@ Gem::Specification.new do |s|
     "test/new_relic/agent/stats_engine/metric_stats_test.rb",
     "test/new_relic/agent/stats_engine/samplers_test.rb",
     "test/new_relic/agent/stats_engine_test.rb",
+    "test/new_relic/agent/transaction_info_test.rb",
     "test/new_relic/agent/transaction_sample_builder_test.rb",
     "test/new_relic/agent/transaction_sampler_test.rb",
     "test/new_relic/agent/worker_loop_test.rb",
