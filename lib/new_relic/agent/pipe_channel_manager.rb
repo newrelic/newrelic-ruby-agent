@@ -21,8 +21,11 @@ module NewRelic
         
         def initialize
           @out, @in = IO.pipe
+          if defined?(::Encoding::ASCII_8BIT)
+            @in.set_encoding(::Encoding::ASCII_8BIT)
+          end
         end
-
+        
         def close
           @out.close unless @out.closed?
           @in.close unless @in.closed?

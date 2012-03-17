@@ -244,10 +244,17 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     assert_equal 2.0, NewRelic::Control.instance['transaction_tracer']['explain_threshold']
     assert_equal 'raw', NewRelic::Control.instance['transaction_tracer']['record_sql']
   end
-
+  
+  def test_starting_channel_listener
+    listener = mock('listener')
+    listener.expects(:start).returns(true)
+    NewRelic::Agent::PipeChannelManager.expects(:listener).returns(listener)
+    forced_start(:start_channel_listener => true)
+  end
+  
   private
 
-  def forced_start overrides = {}
+  def forced_start(overrides={})
     NewRelic::Agent.manual_start overrides
     # This is to force the agent to start again.
     NewRelic::Agent.instance.stubs(:started?).returns(nil)

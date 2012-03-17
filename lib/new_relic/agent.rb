@@ -1,5 +1,7 @@
+require 'forwardable'
 require 'new_relic/control'
 require 'new_relic/data_serialization'
+
 # = New Relic Ruby Agent
 #
 # New Relic is a performance monitoring application for applications
@@ -58,7 +60,8 @@ module NewRelic
   # support at New Relic for help.
   module Agent
     extend self
-
+    extend Forwardable
+    
     require 'new_relic/version'
     require 'new_relic/local_environment'
     require 'new_relic/stats'
@@ -465,8 +468,6 @@ module NewRelic
       agent.browser_timing_footer
     end
     
-    def register_report_channel(id)
-      
-    end
+    def_delegator :'NewRelic::Agent::PipeChannelManager', :register_report_channel
   end
 end

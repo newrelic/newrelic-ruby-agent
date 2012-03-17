@@ -30,6 +30,10 @@ module NewRelic
 
       assert agent.forked?
     end
+
+    def test_after_fork_with_report_to_channel
+      assert false
+    end
     
     def test_reset_stats
       mock_agent = mocked_agent
@@ -177,7 +181,13 @@ module NewRelic
       NewRelic::Agent.load_data
       NewRelic::Control.instance['disable_serialization'] = false
     end
-
+    
+    def test_register_report_channel
+      NewRelic::Agent.register_report_channel(:channel_id)
+      assert NewRelic::Agent::PipeChannelManager.channels[:channel_id] \
+        .kind_of?(NewRelic::Agent::PipeChannelManager::Pipe)
+    end
+    
     private
 
     def mocked_agent
