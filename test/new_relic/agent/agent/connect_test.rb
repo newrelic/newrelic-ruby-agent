@@ -158,11 +158,25 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     control.expects(:settings)
     self.expects(:validate_settings)
     self.expects(:environment_for_connect)
+    self.expects(:determine_host)
     keys = %w(pid host app_name language agent_version environment settings validate)
     value = connect_settings
     keys.each do |k|
       assert(value.has_key?(k.to_sym), "should include the key #{k}")
     end
+  end
+
+  def test_determine_host_default
+    control = mocked_control
+    control.expects(:'[]').with('hostname').once.returns(nil)
+    Socket.expects(:gethostname).once.returns('hostname')
+    assert_equal('hostname', determine_host)
+  end
+
+  def test_determine_host_set_in_config
+    control = mocked_control
+    control.expects(:'[]').with('hostname').once.returns('custom-hostname')
+    assert_equal('custom-hostname', determine_host)
   end
 
   def test_configure_error_collector_base
