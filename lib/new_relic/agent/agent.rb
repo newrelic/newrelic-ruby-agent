@@ -29,7 +29,6 @@ module NewRelic
 
 
       def initialize
-
         @launch_time = Time.now
 
         @metric_ids = {}
@@ -40,11 +39,14 @@ module NewRelic
         @error_collector = NewRelic::Agent::ErrorCollector.new
         @connect_attempts = 0
 
-        @request_timeout = NewRelic::Control.instance.fetch('timeout', 2 * 60)
+        @request_timeout = control.fetch('timeout', 2 * 60)
 
         @last_harvest_time = Time.now
         @obfuscator = lambda {|sql| NewRelic::Agent::Database.default_sql_obfuscator(sql) }
         @forked = false
+
+        @service = NewRelic::Agent::NewRelicService.new(self, control.license_key,
+                                                        control.server)
       end
       
       # contains all the class-level methods for NewRelic::Agent::Agent
