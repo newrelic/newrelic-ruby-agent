@@ -47,8 +47,6 @@ fi
 
 bundle
 script/run
-bundle exec script/post_to_dashboard
-
-
+bundle exec script/post_log_to_dashboard
 
 
