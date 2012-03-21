@@ -167,6 +167,13 @@ class NewRelic::Agent::TransationSampleBuilderTest < Test::Unit::TestCase
     8.times {|i| build_segment i.to_s }
     assert_equal 3, @builder.sample.count_segments
   end
+
+  # regression
+  def test_trace_should_log_segment_reached_once
+    @builder.segment_limit = 3
+    NewRelic::Control.instance.log.expects(:debug).once
+    8.times {|i| build_segment i.to_s }
+  end
   
   def validate_builder(check_names = true)
     validate_segment @builder.sample.root_segment, check_names
