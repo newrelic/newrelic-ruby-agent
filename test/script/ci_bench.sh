@@ -16,13 +16,6 @@ if [ "x$RUBY" == "x" ]; then
   exit 1
 fi
 
-if [[ `which rvm | grep [r]vm | wc -l` -eq 1 ]]; then
-  echo "detected rvm, skipping install"
-else
-  gem install rvm
-fi
-
-
 
 . "$HOME/.rvm/scripts/rvm"
 rvm use $RUBY || rvm install $RUBY
