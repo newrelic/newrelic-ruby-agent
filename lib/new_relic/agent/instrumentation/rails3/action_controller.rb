@@ -83,6 +83,24 @@ DependencyDetection.defer do
   end
   
   executes do
-    # TODO
+    ActionView::TemplateRenderer.class_eval do
+      include NewRelic::Agent::MethodTracer
+      str = %q"View/#{determine_template(args[1]).identifier.split('/')[-2..-1].join('/')}/Rendering"
+      add_method_tracer :render, str
+    end
+    ActionView::PartialRenderer.class_eval do
+      include NewRelic::Agent::MethodTracer
+
+      def render_with_newrelic(*args, &block)
+        setup(*args, &block)
+        str = "View/#{((p = find_partial) ? p.identifier : @path.to_s).sub(Rails.root.to_s + '/', '').sub('app/views/', '')}/Partial"
+        trace_execution_scoped str do
+          render_without_newrelic(*args, &block)
+        end
+      end
+
+      alias_method :render_without_newrelic, :render
+      alias_method :render, :render_with_newrelic
+    end 
   end
 end
