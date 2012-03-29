@@ -18,6 +18,7 @@ module NewRelic
 
       def initialize(app)
         @app = app
+        NewRelic::Control.instance.developer_mode_installed!
       end
 
       def call(env)

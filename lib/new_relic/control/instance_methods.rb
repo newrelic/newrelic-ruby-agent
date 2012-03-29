@@ -88,6 +88,14 @@ module NewRelic
         NewRelic::Agent.agent.start
       end
 
+      def developer_mode_installed!
+        @developer_mode_installed = true
+      end
+
+      def developer_mode_installed?
+        @developer_mode_enabled
+      end
+
       # True if dev mode or monitor mode are enabled, and we are running
       # inside a valid dispatcher like mongrel or passenger.  Can be overridden
       # by NEWRELIC_ENABLE env variable, monitor_daemons config option when true, or
@@ -143,6 +151,7 @@ module NewRelic
       def initialize local_env, config_file_override=nil
         @local_env = local_env
         @instrumentation_files = []
+        @developer_mode_installed = false
         newrelic_file = config_file_override || config_file
         # Next two are for populating the newrelic.yml via erb binding, necessary
         # when using the default newrelic.yml file

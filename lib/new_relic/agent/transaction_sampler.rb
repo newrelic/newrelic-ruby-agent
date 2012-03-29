@@ -114,14 +114,13 @@ module NewRelic
 
         builder.trace_entry(scope, time.to_f)
 
-        capture_segment_trace if NewRelic::Control.instance.developer_mode?
+        capture_segment_trace if NewRelic::Control.instance.developer_mode_installed?
       end
 
       # in developer mode, capture the stack trace with the segment.
       # this is cpu and memory expensive and therefore should not be
       # turned on in production mode
       def capture_segment_trace
-        return unless NewRelic::Control.instance.developer_mode?
         segment = builder.current_segment
         if segment
           # Strip stack frames off the top that match /new_relic/agent/
@@ -211,7 +210,7 @@ module NewRelic
       # Samples take up a ton of memory, so we only store a lot of
       # them in developer mode - we truncate to @max_samples
       def store_sample_for_developer_mode(sample)
-        return unless NewRelic::Control.instance.developer_mode?
+        return unless NewRelic::Control.instance.developer_mode_installed?
         @samples = [] unless @samples
         @samples << sample
         truncate_samples
