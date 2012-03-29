@@ -46,7 +46,7 @@ end
 
 DependencyDetection.defer do
   @name = :rails3_controller
-  
+
   depends_on do
     defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i == 3
   end
@@ -57,8 +57,8 @@ DependencyDetection.defer do
 
   executes do
     NewRelic::Agent.logger.debug 'Installing Rails 3 Controller instrumentation'
-  end  
-  
+  end
+
   executes do
     class ActionController::Base
       include NewRelic::Agent::Instrumentation::ControllerInstrumentation
@@ -69,7 +69,7 @@ end
 
 DependencyDetection.defer do
   @name = :rails3_view
-  
+
   depends_on do
     defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i == 3 && ::Rails::VERSION::MINOR.to_i >= 1
   end
@@ -77,17 +77,30 @@ DependencyDetection.defer do
   depends_on do
     !NewRelic::Control.instance['disable_view_instrumentation']
   end
-  
+
   executes do
     NewRelic::Agent.logger.debug 'Installing Rails 3 view instrumentation'
   end
-  
+
   executes do
     ActionView::TemplateRenderer.class_eval do
       include NewRelic::Agent::MethodTracer
-      str = %q"View/#{determine_template(args[1]).identifier.split('/')[-2..-1].join('/')}/Rendering"
+      # namespaced helper methods
+      module NewRelic
+        extend self
+        def template_metric(template)
+          if template.identifier.include? '/' # this is a filepath
+            template.identifier.split('/')[-2..-1].join('/')
+          else
+            template # TODO: Metric explosion here
+          end
+        end
+      end
+
+      str = %q"View/#{NewRelic.template_metric(determine_template(args[1]))}/Rendering"
       add_method_tracer :render, str
     end
+
     ActionView::PartialRenderer.class_eval do
       include NewRelic::Agent::MethodTracer
 
@@ -101,6 +114,6 @@ DependencyDetection.defer do
 
       alias_method :render_without_newrelic, :render
       alias_method :render, :render_with_newrelic
-    end 
+    end
   end
 end
