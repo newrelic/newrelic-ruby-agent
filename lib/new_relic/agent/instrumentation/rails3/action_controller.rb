@@ -70,8 +70,10 @@ end
 DependencyDetection.defer do
   @name = :rails3_view
 
+  # We can't be sure that this wil work with future versions of Rails 3.
+  # Currently enabled for Rails 3.1 and 3.2
   depends_on do
-    defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i == 3 && ::Rails::VERSION::MINOR.to_i >= 1
+    defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i == 3 && ([1,2].member?(::Rails::VERSION::MINOR.to_i))
   end
 
   depends_on do
@@ -97,8 +99,17 @@ DependencyDetection.defer do
         end
       end
 
-      str = %q"View/#{NewRelic.template_metric(determine_template(args[1]))}/Rendering"
-      add_method_tracer :render, str
+      def render_with_newrelic(context, options)
+        # This is needed for rails 3.2 compatibility
+        @details = extract_details(options) if respond_to? :extract_details
+        str = "View/#{NewRelic.template_metric(determine_template(options))}/Rendering"
+        trace_execution_scoped str do
+          render_without_newrelic(context, options)
+        end
+      end
+
+      alias_method :render_without_newrelic, :render
+      alias_method :render, :render_with_newrelic
     end
 
     ActionView::PartialRenderer.class_eval do
