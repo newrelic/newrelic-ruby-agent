@@ -40,11 +40,13 @@ module NewRelic
         module ActionView
           module NewRelic
             extend self
-            def template_metric(identifier)
-              if identifier.include? '/' # this is a filepath
+            def template_metric(identifier, options = {})
+              if options[:file]
+                "file"
+              elsif identifier.include? '/' # this is a filepath
                 identifier.split('/')[-2..-1].join('/')
               else
-                identifier # TODO: Metric explosion here
+                identifier
               end
             end
             def render_type(file_path)
@@ -96,21 +98,26 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.debug 'Installing Rails 3 view instrumentation'
+    NewRelic::Agent.logger.debug 'Installing Rails 3.0 view instrumentation'
   end
 
   executes do
     ActionView::Template.class_eval do
-
-      def render_with_newrelic(view, local, &block)
-        render_without_newrelic(view, local, &block)
+      include NewRelic::Agent::MethodTracer
+      def render_with_newrelic(*args, &block)
+        options = if @virtual_path && @virtual_path.starts_with?('/') # file render
+          {:file => true }
+        else
+          {}
+        end
+        str = "View/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.template_metric(@identifier, options)}/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.render_type(@identifier)}"
+        trace_execution_scoped str do
+          render_without_newrelic(*args, &block)
+        end
       end
 
       alias_method :render_without_newrelic, :render
       alias_method :render, :render_with_newrelic
-
-      str = %q"View/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.template_metric(@identifier)}/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.render_type(@identifier)}"
-      add_method_tracer :render, str
 
     end
   end
@@ -130,7 +137,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.debug 'Installing Rails 3 view instrumentation'
+    NewRelic::Agent.logger.debug 'Installing Rails 3.1/3.2 view instrumentation'
   end
 
   executes do
@@ -141,7 +148,7 @@ DependencyDetection.defer do
       def render_with_newrelic(context, options)
         # This is needed for rails 3.2 compatibility
         @details = extract_details(options) if respond_to? :extract_details
-        str = "View/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.template_metric(determine_template(options).identifier)}/Rendering"
+        str = "View/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.template_metric(determine_template(options).identifier, options)}/Rendering"
         trace_execution_scoped str do
           render_without_newrelic(context, options)
         end
