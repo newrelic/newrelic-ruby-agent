@@ -47,6 +47,14 @@ module NewRelic
                 identifier # TODO: Metric explosion here
               end
             end
+            def render_type(file_path)
+              file = File.basename(file_path)
+              if file.starts_with?('_')
+                return 'Partial'
+              else
+                return 'Rendering'
+              end
+            end
           end
         end
       end
@@ -101,7 +109,7 @@ DependencyDetection.defer do
       alias_method :render_without_newrelic, :render
       alias_method :render, :render_with_newrelic
 
-      str = %q"View/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.template_metric(@identifier)}/#{File.basename(@identifier).starts_with?('_') ? 'Partial' : 'Rendering'}"
+      str = %q"View/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.template_metric(@identifier)}/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.render_type(@identifier)}"
       add_method_tracer :render, str
 
     end
@@ -148,7 +156,7 @@ DependencyDetection.defer do
 
       def render_with_newrelic(*args, &block)
         setup(*args, &block)
-        str = "View/#{((p = find_partial) ? p.identifier : @path.to_s).sub(Rails.root.to_s + '/', '').sub('app/views/', '')}/Partial"
+        str = "View/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.template_metric(find_partial.identifier)}/Partial"
         trace_execution_scoped str do
           render_without_newrelic(*args, &block)
         end
