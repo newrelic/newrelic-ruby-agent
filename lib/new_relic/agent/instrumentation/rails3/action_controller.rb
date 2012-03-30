@@ -38,6 +38,16 @@ module NewRelic
         end
 
         module ActionView
+          module NewRelic
+            extend self
+            def template_metric(identifier)
+              if identifier.include? '/' # this is a filepath
+                identifier.split('/')[-2..-1].join('/')
+              else
+                identifier # TODO: Metric explosion here
+              end
+            end
+          end
         end
       end
     end
@@ -66,9 +76,40 @@ DependencyDetection.defer do
     end
   end
 end
+DependencyDetection.defer do
+  @name = :rails30_view
+
+  depends_on do
+    defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i == 3 && ::Rails::VERSION::MINOR.to_i == 0
+  end
+
+  depends_on do
+    !NewRelic::Control.instance['disable_view_instrumentation']
+  end
+
+  executes do
+    NewRelic::Agent.logger.debug 'Installing Rails 3 view instrumentation'
+  end
+
+  executes do
+    ActionView::Template.class_eval do
+
+      def render_with_newrelic(view, local, &block)
+        render_without_newrelic(view, local, &block)
+      end
+
+      alias_method :render_without_newrelic, :render
+      alias_method :render, :render_with_newrelic
+
+      str = %q"View/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.template_metric(@identifier)}/#{File.basename(@identifier).starts_with?('_') ? 'Partial' : 'Rendering'}"
+      add_method_tracer :render, str
+
+    end
+  end
+end
 
 DependencyDetection.defer do
-  @name = :rails3_view
+  @name = :rails31_view
 
   # We can't be sure that this wil work with future versions of Rails 3.
   # Currently enabled for Rails 3.1 and 3.2
@@ -88,21 +129,11 @@ DependencyDetection.defer do
     ActionView::TemplateRenderer.class_eval do
       include NewRelic::Agent::MethodTracer
       # namespaced helper methods
-      module NewRelic
-        extend self
-        def template_metric(template)
-          if template.identifier.include? '/' # this is a filepath
-            template.identifier.split('/')[-2..-1].join('/')
-          else
-            template # TODO: Metric explosion here
-          end
-        end
-      end
 
       def render_with_newrelic(context, options)
         # This is needed for rails 3.2 compatibility
         @details = extract_details(options) if respond_to? :extract_details
-        str = "View/#{NewRelic.template_metric(determine_template(options))}/Rendering"
+        str = "View/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.template_metric(determine_template(options).identifier)}/Rendering"
         trace_execution_scoped str do
           render_without_newrelic(context, options)
         end
