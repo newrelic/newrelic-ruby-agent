@@ -38,6 +38,9 @@ module NewRelic
           segment = @sample.create_segment(time.to_f - @sample_start, metric_name)
           @current_segment.add_called_segment(segment)
           @current_segment = segment
+          if @sample.count_segments == @segment_limit
+            NewRelic::Control.instance.log.debug("Segment limit of #{@segment_limit} reached, ceasing collection.")
+          end
         end
       end
 

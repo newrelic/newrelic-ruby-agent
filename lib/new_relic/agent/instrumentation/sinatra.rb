@@ -58,7 +58,7 @@ module NewRelic
             name = '(unknown)'
             verb = http_verb(request)
             
-            routes[verb].each do |pattern, keys, conditions, block|
+            Array(routes[verb]).each do |pattern, keys, conditions, block|
               if pattern = yield(pattern, keys, conditions)
                 name = pattern
               end

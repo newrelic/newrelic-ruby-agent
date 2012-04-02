@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "newrelic_rpm"
-  s.version = "3.3.3.beta1"
+  s.version = "3.3.4.alpha"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Bill Kayser", "Jon Guymon", "Justin George", "Darin Swanson"]
-  s.date = "2012-03-14"
+  s.date = "2012-03-29"
   s.description = "New Relic is a performance management system, developed by New Relic,\nInc (http://www.newrelic.com).  New Relic provides you with deep\ninformation about the performance of your web application as it runs\nin production. The New Relic Ruby Agent is dual-purposed as a either a\nGem or plugin, hosted on\nhttp://github.com/newrelic/rpm/\n"
   s.email = "support@newrelic.com"
   s.executables = ["newrelic_cmd", "mongrel_rpm", "newrelic"]
@@ -170,6 +170,7 @@ Gem::Specification.new do |s|
     "test/new_relic/agent/stats_engine/metric_stats_test.rb",
     "test/new_relic/agent/stats_engine/samplers_test.rb",
     "test/new_relic/agent/stats_engine_test.rb",
+    "test/new_relic/agent/transaction_info_test.rb",
     "test/new_relic/agent/transaction_sample_builder_test.rb",
     "test/new_relic/agent/transaction_sampler_test.rb",
     "test/new_relic/agent/worker_loop_test.rb",
@@ -200,6 +201,9 @@ Gem::Specification.new do |s|
     "test/new_relic/transaction_sample_subtest_test.rb",
     "test/new_relic/transaction_sample_test.rb",
     "test/new_relic/version_number_test.rb",
+    "test/script/build_test_gem.sh",
+    "test/script/ci.sh",
+    "test/script/ci_bench.sh",
     "test/test_contexts.rb",
     "test/test_helper.rb",
     "ui/helpers/developer_mode_helper.rb",

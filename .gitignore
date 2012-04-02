@@ -15,4 +15,5 @@ tags
 
 /log/
 /lerg/
-gems/
+gems/newrelic_rpm.gemspec
+gems/newrelic_rpm*.tar.gz

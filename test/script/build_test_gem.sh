@@ -25,7 +25,10 @@ rm -rf gems/
 mkdir gems
 
 # an identifier including the hudson build number and the git sha1
-BUILD_ID=$BUILD_NUMBER.$SHA1
+
+# FIXME: don't include the $SHA1 since some of our builds systems are confused
+# by this.
+BUILD_ID=$BUILD_NUMBER #.$SHA1
 
 # rewrite the version file, setting the patch identifier to include the
 # BUILD_ID
