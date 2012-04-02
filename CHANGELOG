@@ -1,3 +1,6 @@
+v3.3.4
+  * Rails 3 view instrumentation
+
 v3.3.3
   * Improved Sinatra instrumentation
   * Limit the number of nodes collected in long running transactions to prevent leaking memory
