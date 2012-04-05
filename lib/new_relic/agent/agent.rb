@@ -45,8 +45,7 @@ module NewRelic
         @obfuscator = lambda {|sql| NewRelic::Agent::Database.default_sql_obfuscator(sql) }
         @forked = false
 
-        @service = NewRelic::Agent::NewRelicService.new(self, control.license_key,
-                                                        control.server)
+#         @service = NewRelic::Agent::Agent::NewRelicService.new
       end
       
       # contains all the class-level methods for NewRelic::Agent::Agent
@@ -724,7 +723,7 @@ module NewRelic
           # connect data passed back from the server
           def connect_to_server
             log_seed_token
-            connect_data = invoke_remote(:connect, connect_settings)
+            @service.connect(connect_settings)
           end
 
           # Configures the error collector if the server says that we
@@ -851,7 +850,7 @@ module NewRelic
           # Sets the collector host and connects to the server, then
           # invokes the final configuration with the returned data
           def query_server_for_configuration
-            set_collector_host!
+            @service.get_redirect_host
 
             finish_setup(connect_to_server)
           end
@@ -1021,19 +1020,12 @@ module NewRelic
           NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote').record_data_point(0.0)
           NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote/metric_data').record_data_point(0.0)
           harvest_timeslice_data(now)
-          begin
-            # In this version of the protocol, we get back an assoc array of spec to id.
-            metric_specs_and_ids = invoke_remote(:metric_data, @agent_id,
-                                                 @last_harvest_time.to_f,
-                                                 now.to_f,
-                                                 @unsent_timeslice_data.values)
-
-          rescue Timeout::Error
-            # assume that the data was received. chances are that it
-            # was. Also, lol.
-            metric_specs_and_ids = []
-          end
-
+          # In this version of the protocol, we get back an assoc array of spec to id.            
+          metric_specs_and_ids = @service.metric_data(@agent_id,
+                                                      @last_harvest_time.to_f,
+                                                      now.to_f,
+                                                      @unsent_timeslice_data.values)
+          metric_specs_and_ids ||= []
           fill_metric_id_cache(metric_specs_and_ids)
 
           log.debug "#{now}: sent #{@unsent_timeslice_data.length} timeslices (#{@agent_id}) in #{Time.now - now} seconds"
@@ -1057,8 +1049,7 @@ module NewRelic
           unless sql_traces.empty?
             log.debug "Sending (#{sql_traces.size}) sql traces"
             begin
-              response = invoke_remote :sql_trace_data, sql_traces
-#              log.debug "Sql trace response: #{response}"
+              @service.sql_trace_data(sql_traces)
             rescue
               @sql_sampler.merge sql_traces 
             end
@@ -1084,7 +1075,7 @@ module NewRelic
                 options[:explain_sql] = @transaction_sampler.explain_threshold
               end
               traces = @traces.collect {|trace| trace.prepare_to_send(options)}
-              invoke_remote :transaction_sample_data, @agent_id, traces
+              @service.transaction_sample_data(@agent_id, traces)
             rescue PostTooBigException
               # we tried to send too much data, drop the first trace and
               # try again
@@ -1117,7 +1108,7 @@ module NewRelic
           if @unsent_errors && @unsent_errors.length > 0
             log.debug "Sending #{@unsent_errors.length} errors"
             begin
-              invoke_remote :error_data, @agent_id, @unsent_errors
+              @service.error_data(@agent_id, @unsent_errors)
             rescue PostTooBigException
               @unsent_errors.shift
               retry
@@ -1313,7 +1304,7 @@ module NewRelic
               save_or_transmit_data
               if @connected_pid == $$
                 log.debug "Sending New Relic service agent run shutdown message"
-                invoke_remote :shutdown, @agent_id, Time.now.to_f
+                @service.shutdown(@agent_id, Time.now.to_f)
               else
                 log.debug "This agent connected from parent process #{@connected_pid}--not sending shutdown"
               end
@@ -1325,7 +1316,40 @@ module NewRelic
           end
         end
       end
+      
+      # XXX
+      class NewRelicService
+        def connect(settings)
+          NewRelic::Agent.agent.send(:invoke_remote, :connect, settings)
+        end
 
+        def get_redirect_host
+          NewRelic::Agent.agent.set_collector_host!
+        end
+
+        def shutdown(agent_id, time)
+          NewRelic::Agent.agent.send(:invoke_remote, :shutdown, agent_id, time)
+        end
+
+        def metric_data(agent_id, last_harvest_time, now,
+                                   unsent_timeslice_data)
+          NewRelic::Agent.agent.send(:invoke_remote, :metric_data, agent_id, last_harvest_time, now,
+                                              unsent_timeslice_data)
+        end
+        
+        def error_data(agent_id, unsent_errors)
+          NewRelic::Agent.agent.send(:invoke_remote, :error_data, agent_id, unsent_errors)
+        end
+
+        def transaction_sample_data(agent_id, traces)
+          NewRelic::Agent.agent.send(:invoke_remote, :transaction_sample_data, agent_id, traces)
+        end
+
+        def sql_trace_data(sql_traces)
+          NewRelic::Agent.agent.send(:invoke_remote, :sql_trace_data, sql_traces)
+        end
+      end
+      
       extend ClassMethods
       include InstanceMethods
       include BrowserMonitoring

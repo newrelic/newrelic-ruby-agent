@@ -1,17 +1,32 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..', '..', '..','test_helper'))
-class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
-  require 'new_relic/agent/agent'
-  
-  # I don't like this, we should be testing a third party, not ourselves -Jon
-  include NewRelic::Agent::Agent::Connect
+require File.expand_path(File.join(File.dirname(__FILE__),'..', '..', '..','fake_collector'))
+require 'new_relic/agent/agent'
+require 'ostruct'
 
+class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
+  include NewRelic::Agent::Agent::Connect
+  
   def setup
     @connected = nil
     @keep_retrying = nil
     @connect_attempts = 1
     @connect_retry_period = 0
     @transaction_sampler = NewRelic::Agent::TransactionSampler.new
-    @sql_sampler = NewRelic::Agent::SqlSampler.new    
+    @sql_sampler = NewRelic::Agent::SqlSampler.new
+    @service = NewRelic::Agent::Agent::NewRelicService.new # XXX
+
+    @fake_collector = FakeCollector.new
+    #     @fake_collector.run
+  end
+
+  def control
+    OpenStruct.new('validate_seed' => false,
+                   '[]' => nil,
+                   'local_env' => OpenStruct.new('snapshot' => []))
+  end
+
+  def teardown
+#     @collector.stop
   end
 
   def test_tried_to_connect?
@@ -341,10 +356,24 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   end
 
   def test_query_server_for_configuration
-    self.expects(:set_collector_host!)
     self.expects(:connect_to_server).returns("so happy")
     self.expects(:finish_setup).with("so happy")
+    @service.expects(:get_redirect_host)
     query_server_for_configuration
+  end
+
+  def test_connect_to_server_gets_config_from_collector
+    @fake_collector.run
+    NewRelic::Agent.manual_start(:host => 'localhost', :port => '30303',
+                                 :license_key => '1234567890')
+
+    @fake_collector.mock['connect'] = {'agent_id' => 23, 'config' => 'a lot'}
+    response = connect_to_server
+    assert_equal 23, response['agent_id']
+    assert_equal 'a lot', response['config']
+
+    NewRelic::Agent.shutdown
+    @fake_collector.stop
   end
 
   def test_finish_setup

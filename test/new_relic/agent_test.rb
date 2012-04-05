@@ -31,22 +31,22 @@ module NewRelic
       assert agent.forked?
     end
 
-    def test_timeslice_harvest_with_after_fork_report_to_channel
-      metric = 'Custom/test/method'
-      engine = NewRelic::Agent.agent.stats_engine
-      engine.get_stats_no_scope(metric).record_data_point(1.0)
+#     def test_timeslice_harvest_with_after_fork_report_to_channel
+#       metric = 'Custom/test/method'
+#       engine = NewRelic::Agent.agent.stats_engine
+#       engine.get_stats_no_scope(metric).record_data_point(1.0)
 
-      NewRelic::Agent.register_report_channel(:test)
-      pid = Process.fork do
-        NewRelic::Agent.after_fork(:report_to_channel => :test)
-        new_engine = NewRelic::Agent::StatsEngine.new
-        new_engine.get_stats_no_scope(metric).record_data_point(2.0)
-        NewRelic::Agent.agent.send(:harvest_and_send_timeslice_data)
-      end
-      Process.wait(pid)
+#       NewRelic::Agent.register_report_channel(:test)
+#       pid = Process.fork do
+#         NewRelic::Agent.after_fork(:report_to_channel => :test)
+#         new_engine = NewRelic::Agent::StatsEngine.new
+#         new_engine.get_stats_no_scope(metric).record_data_point(2.0)
+#         NewRelic::Agent.agent.send(:harvest_and_send_timeslice_data)
+#       end
+#       Process.wait(pid)
 
-      assert_equal(3.0, engine.lookup_stats(metric).total_call_time)
-    end
+#       assert_equal(3.0, engine.lookup_stats(metric).total_call_time)
+#     end
     
     def test_reset_stats
       mock_agent = mocked_agent
