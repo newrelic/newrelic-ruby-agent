@@ -43,9 +43,6 @@ module NewRelic
               super
             end
           end
-
-          module PartialRenderer
-          end
         end
       end
     end
@@ -79,7 +76,7 @@ DependencyDetection.defer do
   @name = :rails3_view
   
   depends_on do
-    defined?(ActionView) && defined?(ActionView::Base) && defined?(ActionView::Partials)
+    defined?(ActionView) && defined?(ActionView::Base) && (defined?(ActionView::Partials) || defined?(ActionView::PartialRenderer))
   end
 
   depends_on do
@@ -98,9 +95,15 @@ DependencyDetection.defer do
     class ActionView::Base
       include NewRelic::Agent::Instrumentation::Rails3::ActionView
     end
-    old_klass = ActionView::Partials::PartialRenderer
-    ActionView::Partials::PartialRenderer = Class.new(old_klass)
-    class ActionView::Partials::PartialRenderer
+    old_klass = defined?(ActionView::Partials) ? ActionView::Partials::PartialRenderer : ActionView::PartialRenderer
+    new_klass = silence_warnings do
+      if defined?(ActionView::Partials::PartialRenderer)
+        ActionView::Partials::PartialRenderer = Class.new(old_klass)
+      else
+        ActionView::PartialRenderer = Class.new(old_klass)
+      end
+    end
+    new_klass.class_eval do
       def render_partial(*args)
         NewRelic::Agent.trace_execution_scoped "View/#{@template.virtual_path}/Partial" do
           super
