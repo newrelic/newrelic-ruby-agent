@@ -65,6 +65,7 @@ Gem::Specification.new do |s|
     "lib/new_relic/agent/instrumentation/sinatra.rb",
     "lib/new_relic/agent/instrumentation/sunspot.rb",
     "lib/new_relic/agent/instrumentation/unicorn_instrumentation.rb",
+    "lib/new_relic/agent/instrumentation/rainbows_instrumentation.rb",
     "lib/new_relic/agent/method_tracer.rb",
     "lib/new_relic/agent/sampler.rb",
     "lib/new_relic/agent/samplers/cpu_sampler.rb",
