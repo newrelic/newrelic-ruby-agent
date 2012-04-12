@@ -1,3 +1,5 @@
+# require 'ruby-debug'
+
 module NewRelic
   module Agent
     class NewRelicService
@@ -83,6 +85,8 @@ module NewRelic
         now = Time.now
         #determines whether to zip the data or send plain
         post_data, encoding = compress_data(args)
+
+#         debugger
         
         response = send_request(:uri       => remote_method_uri(method),
                                 :encoding  => encoding,

@@ -18,9 +18,14 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   end
 
   def control
-    OpenStruct.new('validate_seed' => false,
-                   '[]' => nil,
-                   'local_env' => OpenStruct.new('snapshot' => []))
+    fake_control = OpenStruct.new('validate_seed' => false,
+                                  'local_env' => OpenStruct.new('snapshot' => []))
+    fake_control.instance_eval do
+      def [](key)
+        return nil
+      end
+    end
+    fake_control
   end
 
   def test_tried_to_connect?
@@ -340,18 +345,16 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   end
 
   def test_connect_to_server_gets_config_from_collector
-    @fake_collector = FakeCollector.new    
-    @fake_collector.run
+    $fake_collector.run
     NewRelic::Agent.manual_start(:host => 'localhost', :port => '30303',
                                  :license_key => '1234567890')
     
-    @fake_collector.mock['connect'] = {'agent_id' => 23, 'config' => 'a lot'}
+    $fake_collector.mock['connect'] = {'agent_id' => 23, 'config' => 'a lot'}
     response = connect_to_server
     assert_equal 23, response['agent_id']
     assert_equal 'a lot', response['config']
 
     NewRelic::Agent.shutdown
-    @fake_collector.stop
   end
 
   def test_finish_setup

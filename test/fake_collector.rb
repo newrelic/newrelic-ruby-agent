@@ -1,13 +1,14 @@
 require 'rubygems'
 require 'rack'
 require 'uri'
+require 'socket'
+require 'timeout'
 
 class FakeCollector
   attr_accessor :agent_data, :mock
   
   def initialize
     @id_counter = 0
-    @agent_data = []
     @base_expectations = {
       'get_redirect_host'       => 'localhost',
       'connect'                 => { 'agent_run_id' => agent_run_id },
@@ -39,20 +40,26 @@ class FakeCollector
   end
 
   def run(port=30303)
-    @thread = Thread.new do
-      Rack::Handler::WEBrick.run(self, :Port => port)
+    if is_port_available?('127.0.0.1', port)
+      @thread = Thread.new do
+        Rack::Handler::WEBrick.run(self, :Port => port)
+      end
+      loop do
+        break if !is_port_available?('127.0.0.1', port)
+        sleep 0.01
+      end
     end
-    sleep 0.2
   end
 
   def stop
     Rack::Handler::WEBrick.shutdown
-    sleep 0.2
-    @thread.kill
+    @thread.join
   end
 
   def reset
     @mock = @base_expectations.dup
+    @id_counter = 0
+    @agent_data = []
   end
   
   class AgentPost
@@ -62,7 +69,24 @@ class FakeCollector
       @method = method
       @body = body
     end
-  end  
+  end
+  
+  def is_port_available?(ip, port)
+    begin
+      Timeout::timeout(1) do
+        begin
+          s = TCPSocket.new(ip, port)
+          s.close
+          return false
+        rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH
+          return true
+        end
+      end
+    rescue Timeout::Error
+    end
+    
+    return true
+  end
 end
 
 if $0 == __FILE__
