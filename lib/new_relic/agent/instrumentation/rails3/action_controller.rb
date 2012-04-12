@@ -77,29 +77,28 @@ end
 
 DependencyDetection.defer do
   @name = :rails3_view
-  
+
   depends_on do
     defined?(ActionView) && defined?(ActionView::Base) && defined?(ActionView::Partials)
   end
 
   depends_on do
-    defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i == 3 && ::Rails::VERSION::MINOR.to_i >= 1
+    defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i == 3 && ::Rails::VERSION::MINOR.to_i == 0
   end
 
   depends_on do
     !NewRelic::Control.instance['disable_view_instrumentation']
   end
-  
+
   executes do
     NewRelic::Agent.logger.debug 'Installing Rails 3 view instrumentation'
   end
-  
+
   executes do
-    class ActionView::Base
-      include NewRelic::Agent::Instrumentation::Rails3::ActionView
-    end
     old_klass = ActionView::Partials::PartialRenderer
-    ActionView::Partials::PartialRenderer = Class.new(old_klass)
+    silence_warnings do # we know what we're doing here
+      ActionView::PartialRenderer = Class.new(old_klass)
+    end
     class ActionView::Partials::PartialRenderer
       def render_partial(*args)
         NewRelic::Agent.trace_execution_scoped "View/#{@template.virtual_path}/Partial" do
@@ -110,6 +109,60 @@ DependencyDetection.defer do
       def render_collection(*args)
         name = @template ? @template.virtual_path : "Mixed"
         NewRelic::Agent.trace_execution_scoped "View/#{name}/Collection" do
+          super
+        end
+      end
+    end
+  end
+end
+
+DependencyDetection.defer do
+  @name = :rails3_1_view
+
+  depends_on do
+    defined?(ActionView) && defined?(ActionView::Base) && defined?(ActionView::PartialRenderer)
+  end
+
+  depends_on do
+    defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i == 3 && ::Rails::VERSION::MINOR.to_i >= 1
+  end
+
+  depends_on do
+    !NewRelic::Control.instance['disable_view_instrumentation']
+  end
+
+  executes do
+    NewRelic::Agent.logger.debug 'Installing Rails 3 view instrumentation'
+  end
+
+  executes do
+    old_klass = ActionView::PartialRenderer
+    silence_warnings do # we know what we're doing here
+      ActionView::PartialRenderer = Class.new(old_klass)
+    end
+    class ActionView::PartialRenderer
+      def render_partial(*args)
+        NewRelic::Agent.trace_execution_scoped "View/#{@template.virtual_path}/Partial" do
+          super
+        end
+      end
+
+      def render_collection(*args)
+        name = @template ? @template.virtual_path : "Mixed"
+        NewRelic::Agent.trace_execution_scoped "View/#{name}/Collection" do
+          super
+        end
+      end
+    end
+
+    old_klass = ActionView::TemplateRenderer
+    silence_warnings do # we know what we're doing here
+      ActionView::TemplateRenderer = Class.new(old_klass)
+    end
+    class ActionView::TemplateRenderer
+      def render_template(*args)
+        template = args.first
+        NewRelic::Agent.trace_execution_scoped "View/#{template.virtual_path}/Rendering" do
           super
         end
       end
