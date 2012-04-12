@@ -162,7 +162,7 @@ DependencyDetection.defer do
     class ActionView::TemplateRenderer
       def render_template(*args)
         template = args.first
-        NewRelic::Agent.trace_execution_scoped "View/#{template.virtual_path}/Rendering" do
+        NewRelic::Agent.trace_execution_scoped "View/#{template.respond_to?(:virtual_path) ? template.virtual_path : "Text"}/Rendering" do
           super
         end
       end
