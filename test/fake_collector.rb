@@ -8,15 +8,16 @@ class FakeCollector
   def initialize
     @id_counter = 0
     @agent_data = []
-    @mock = {
+    @base_expectations = {
       'get_redirect_host'       => 'localhost',
       'connect'                 => { 'agent_run_id' => agent_run_id },
       'metric_data'             => { 'Some/Metric/Spec' => 1 },
-      'sql_trace_data'          => 'ok',
-      'transaction_sample_data' => 'ok',
-      'error_data'              => 'ok',
-      'shutdown'                => 'ok',
+      'sql_trace_data'          => nil,
+      'transaction_sample_data' => nil,
+      'error_data'              => nil,
+      'shutdown'                => nil,
     }
+    reset
   end
 
   def agent_run_id
@@ -31,19 +32,27 @@ class FakeCollector
       method = $1
       res.write Marshal.dump(@mock[method])
       run_id = uri.query =~ /run_id=(\d+)/ ? $1 : nil
+      req.body.rewind
       @agent_data << AgentPost.new(method, Marshal.load(req.body.read), run_id)
     end
     res.finish
   end
 
   def run(port=30303)
-    Thread.new do
+    @thread = Thread.new do
       Rack::Handler::WEBrick.run(self, :Port => port)
     end
+    sleep 0.2
   end
 
   def stop
     Rack::Handler::WEBrick.shutdown
+    sleep 0.2
+    @thread.kill
+  end
+
+  def reset
+    @mock = @base_expectations.dup
   end
   
   class AgentPost
@@ -64,7 +73,6 @@ if $0 == __FILE__
     def setup
       @collector = FakeCollector.new
       @collector.run
-      sleep 0.5
     end
 
     def teardown
@@ -101,7 +109,7 @@ if $0 == __FILE__
       response = invoke('sql_trace_data?run_id=2',
                         ['trace', 'trace', 'trace'])
 
-      assert_equal 'ok', response
+      assert_nil response
       post = @collector.agent_data[0]
       assert_equal 'sql_trace_data', post.method
       assert_equal ['trace', 'trace', 'trace'], post.body
@@ -112,7 +120,7 @@ if $0 == __FILE__
       response = invoke('transaction_sample_data?run_id=3',
                         ['node', ['node', 'node'], 'node'])
 
-      assert_equal 'ok', response
+      assert_nil response
       post = @collector.agent_data[0]
       assert_equal 'transaction_sample_data', post.method
       assert_equal ['node', ['node', 'node'], 'node'], post.body
@@ -122,7 +130,7 @@ if $0 == __FILE__
     def test_error_data
       response = invoke('error_data?run_id=4', ['error'])
       
-      assert_equal 'ok', response
+      assert_nil response
       post = @collector.agent_data[0]
       assert_equal 'error_data', post.method
       assert_equal ['error'], post.body
@@ -131,7 +139,7 @@ if $0 == __FILE__
     def test_shutdown
       response = invoke('shutdown?run_id=1')
 
-      assert_equal 'ok', response
+      assert_nil response
       assert_equal 'shutdown', @collector.agent_data[0].method
     end
 
@@ -157,12 +165,18 @@ if $0 == __FILE__
                   'transaction_sample_data', 'shutdown']
       assert_equal expected.sort, @collector.agent_data.map(&:method).sort
     end
-    
+
+    def test_reset
+      @collector.mock['get_redirect_host'] = 'never!'
+      @collector.reset
+      assert_equal 'localhost', @collector.mock['get_redirect_host']
+    end
+   
     def invoke(method, post={})
       uri = URI.parse("http://127.0.0.1:30303/agent_listener/8/12345/#{method}")
       request = Net::HTTP::Post.new("#{uri.path}?#{uri.query}")
       request.body = Marshal.dump(post)
-      response = Net::HTTP.start(uri.hostname, uri.port) do |http|
+      response = Net::HTTP.start(uri.host, uri.port) do |http|
         http.request(request)
       end
       Marshal.load(response.body)

@@ -13,20 +13,14 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     @connect_retry_period = 0
     @transaction_sampler = NewRelic::Agent::TransactionSampler.new
     @sql_sampler = NewRelic::Agent::SqlSampler.new
-    @service = NewRelic::Agent::Agent::NewRelicService.new # XXX
-
-    @fake_collector = FakeCollector.new
-    #     @fake_collector.run
+    server = NewRelic::Control::Server.new('localhost', 30303)
+    @service = NewRelic::Agent::NewRelicService.new('abcdef', server)
   end
 
   def control
     OpenStruct.new('validate_seed' => false,
                    '[]' => nil,
                    'local_env' => OpenStruct.new('snapshot' => []))
-  end
-
-  def teardown
-#     @collector.stop
   end
 
   def test_tried_to_connect?
@@ -339,34 +333,18 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     log_sql_transmission_warning?
   end
 
-  def test_set_collector_host_positive
-    control = mocked_control
-    self.expects(:invoke_remote).with(:get_redirect_host).returns('collector-deux.newrelic.com')
-    control.expects(:server_from_host).with('collector-deux.newrelic.com').returns('correct')
-    set_collector_host!
-    assert_equal 'correct', @collector
-  end
-
-  def test_set_collector_host_negative
-    @collector = 'initial value'
-    control = mocked_control
-    self.expects(:invoke_remote).with(:get_redirect_host).returns(nil)
-    set_collector_host!
-    assert_equal 'initial value', @collector, "should not modify collector value"
-  end
-
   def test_query_server_for_configuration
     self.expects(:connect_to_server).returns("so happy")
     self.expects(:finish_setup).with("so happy")
-    @service.expects(:get_redirect_host)
     query_server_for_configuration
   end
 
   def test_connect_to_server_gets_config_from_collector
+    @fake_collector = FakeCollector.new    
     @fake_collector.run
     NewRelic::Agent.manual_start(:host => 'localhost', :port => '30303',
                                  :license_key => '1234567890')
-
+    
     @fake_collector.mock['connect'] = {'agent_id' => 23, 'config' => 'a lot'}
     response = connect_to_server
     assert_equal 23, response['agent_id']
@@ -393,7 +371,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
                                 :config => {})
     @sql_sampler = stub('sql sampler', :configure! => true)    
     finish_setup(config)
-    assert_equal 'fishsticks', @agent_id
+    assert_equal 'fishsticks', @service.agent_id
     assert_equal 'pasta sauce', @report_period
     assert_equal 'tamales', @url_rules
   end
