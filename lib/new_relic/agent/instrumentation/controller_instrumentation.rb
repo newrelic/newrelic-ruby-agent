@@ -26,6 +26,7 @@ module NewRelic
         module ClassMethodsShim # :nodoc:
           def newrelic_ignore(*args); end
           def newrelic_ignore_apdex(*args); end
+          def newrelic_ignore_enduser(*args); end
         end
 
         module Shim # :nodoc:
@@ -49,6 +50,10 @@ module NewRelic
           # Accepts :except and :only options, as with #newrelic_ignore.
           def newrelic_ignore_apdex(specifiers={})
             newrelic_ignore_aspect('ignore_apdex', specifiers)
+          end
+
+          def newrelic_ignore_enduser(specifiers={})
+            newrelic_ignore_aspect('ignore_enduser', specifiers)
           end
 
           def newrelic_ignore_aspect(property, specifiers={}) # :nodoc:
@@ -270,8 +275,9 @@ module NewRelic
             # Look for a metric frame in the thread local and process it.
             # Clear the thread local when finished to ensure it only gets called once.
             frame_data.record_apdex unless ignore_apdex?
-
             frame_data.pop
+            
+            NewRelic::Agent::TransactionInfo.get.ignore_end_user = true if ignore_enduser?
           end
         end
 
@@ -312,6 +318,10 @@ module NewRelic
         # actions
         def ignore_apdex?
           _is_filtered?('ignore_apdex')
+        end
+        
+        def ignore_enduser?
+          _is_filtered?('ignore_enduser')
         end
 
         private

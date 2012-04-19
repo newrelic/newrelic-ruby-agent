@@ -11,6 +11,7 @@ module NewRelic
         @guid = ""
         @transaction_name = "(unknown)"
         @start_time = Time.now
+        @ignore_end_user = false
       end
 
       def force_persist_sample?(sample)
@@ -31,6 +32,14 @@ module NewRelic
 
       def duration
         Time.now - start_time
+      end
+      
+      def ignore_end_user?
+        @ignore_end_user
+      end
+      
+      def ignore_end_user=(value)
+        @ignore_end_user = value
       end
 
       def self.get()
