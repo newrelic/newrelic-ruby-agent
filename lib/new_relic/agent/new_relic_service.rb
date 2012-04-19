@@ -37,21 +37,21 @@ module NewRelic
         invoke_remote(:get_redirect_host)
       end
 
-      def shutdown(agent_id, time)
-        invoke_remote(:shutdown, agent_id, time)
+      def shutdown(time)
+        invoke_remote(:shutdown, @agent_id, time)
       end
 
-      def metric_data(agent_id, last_harvest_time, now, unsent_timeslice_data)
-        invoke_remote(:metric_data, agent_id, last_harvest_time, now,
+      def metric_data(last_harvest_time, now, unsent_timeslice_data)
+        invoke_remote(:metric_data, @agent_id, last_harvest_time, now,
                       unsent_timeslice_data)
       end
       
-      def error_data(agent_id, unsent_errors)
-        invoke_remote(:error_data, agent_id, unsent_errors)
+      def error_data(unsent_errors)
+        invoke_remote(:error_data, @agent_id, unsent_errors)
       end
 
-      def transaction_sample_data(agent_id, traces)
-        invoke_remote(:transaction_sample_data, agent_id, traces)
+      def transaction_sample_data(traces)
+        invoke_remote(:transaction_sample_data, @agent_id, traces)
       end
 
       def sql_trace_data(sql_traces)
@@ -85,8 +85,6 @@ module NewRelic
         now = Time.now
         #determines whether to zip the data or send plain
         post_data, encoding = compress_data(args)
-
-#         debugger
         
         response = send_request(:uri       => remote_method_uri(method),
                                 :encoding  => encoding,

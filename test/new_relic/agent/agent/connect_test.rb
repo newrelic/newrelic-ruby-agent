@@ -345,6 +345,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   end
 
   def test_connect_to_server_gets_config_from_collector
+    $fake_collector ||= FakeCollector.new
     $fake_collector.run
     NewRelic::Agent.manual_start(:host => 'localhost', :port => '30303',
                                  :license_key => '1234567890')

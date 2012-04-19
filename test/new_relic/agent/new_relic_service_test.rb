@@ -1,7 +1,9 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'fake_collector'))
 
 class NewRelicServiceTest < Test::Unit::TestCase
   def setup
+    $fake_collector ||= FakeCollector.new
     $fake_collector.run
     $fake_collector.reset
 
@@ -42,25 +44,25 @@ class NewRelicServiceTest < Test::Unit::TestCase
 
   def test_shutdown
     $fake_collector.mock['shutdown'] = 'shut this bird down'
-    response = @service.shutdown(1, Time.now)
+    response = @service.shutdown(Time.now)
     assert_equal 'shut this bird down', response
   end
 
   def test_metric_data
     $fake_collector.mock['metric_data'] = 'met rick date uhhh'
-    response = @service.metric_data(1, Time.now - 60, Time.now, {})
+    response = @service.metric_data(Time.now - 60, Time.now, {})
     assert_equal 'met rick date uhhh', response
   end
 
   def test_error_data
     $fake_collector.mock['error_data'] = 'too human'
-    response = @service.error_data(1, [])
+    response = @service.error_data([])
     assert_equal 'too human', response    
   end
 
   def test_transaction_sample_data
     $fake_collector.mock['transaction_sample_data'] = 'MPC1000'
-    response = @service.transaction_sample_data(1, [])
+    response = @service.transaction_sample_data([])
     assert_equal 'MPC1000', response        
   end
 

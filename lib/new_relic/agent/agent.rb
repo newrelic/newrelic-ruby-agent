@@ -1007,8 +1007,7 @@ module NewRelic
           NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote/metric_data').record_data_point(0.0)
           harvest_timeslice_data(now)
           # In this version of the protocol, we get back an assoc array of spec to id.            
-          metric_specs_and_ids = @service.metric_data(@service.agent_id,
-                                                      @last_harvest_time.to_f,
+          metric_specs_and_ids = @service.metric_data(@last_harvest_time.to_f,
                                                       now.to_f,
                                                       @unsent_timeslice_data.values)
           metric_specs_and_ids ||= []
@@ -1061,7 +1060,7 @@ module NewRelic
                 options[:explain_sql] = @transaction_sampler.explain_threshold
               end
               traces = @traces.collect {|trace| trace.prepare_to_send(options)}
-              @service.transaction_sample_data(@service.agent_id, traces)
+              @service.transaction_sample_data(traces)
             rescue PostTooBigException
               # we tried to send too much data, drop the first trace and
               # try again
@@ -1094,7 +1093,7 @@ module NewRelic
           if @unsent_errors && @unsent_errors.length > 0
             log.debug "Sending #{@unsent_errors.length} errors"
             begin
-              @service.error_data(@service.agent_id, @unsent_errors)
+              @service.error_data(@unsent_errors)
             rescue PostTooBigException
               @unsent_errors.shift
               retry
@@ -1144,7 +1143,7 @@ module NewRelic
               save_or_transmit_data
               if @connected_pid == $$
                 log.debug "Sending New Relic service agent run shutdown message"
-                @service.shutdown(@service.agent_id, Time.now.to_f)
+                @service.shutdown(Time.now.to_f)
               else
                 log.debug "This agent connected from parent process #{@connected_pid}--not sending shutdown"
               end
