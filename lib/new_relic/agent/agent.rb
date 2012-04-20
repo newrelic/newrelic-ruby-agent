@@ -6,6 +6,7 @@ require 'zlib'
 require 'stringio'
 require 'new_relic/data_serialization'
 require 'new_relic/agent/new_relic_service'
+require 'new_relic/agent/pipe_service'
 
 module NewRelic
   module Agent
@@ -849,6 +850,7 @@ module NewRelic
           # Can accommodate most arbitrary data - anything extra is
           # ignored unless we say to do something with it here.
           def finish_setup(config_data)
+            return if config_data == nil
             @service.agent_id = config_data['agent_run_id']
             @report_period = config_data['data_report_period']
             @url_rules = config_data['url_rules']

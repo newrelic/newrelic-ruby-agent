@@ -380,6 +380,12 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     assert_equal 'tamales', @url_rules
   end
 
+  def test_finish_setup_without_config
+    @service.agent_id = 'blah'
+    finish_setup(nil)
+    assert_equal 'blah', @service.agent_id
+  end
+
   private
 
   def mocked_control
