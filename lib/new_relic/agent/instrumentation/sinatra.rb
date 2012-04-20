@@ -1,6 +1,8 @@
 require 'new_relic/agent/instrumentation/controller_instrumentation'
 
 DependencyDetection.defer do
+  @name = :sinatra
+  
   depends_on do
     defined?(::Sinatra) && defined?(::Sinatra::Base) &&
       Sinatra::Base.private_method_defined?(:dispatch!)

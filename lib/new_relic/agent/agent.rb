@@ -33,7 +33,7 @@ module NewRelic
 
         @service = NewRelic::Agent::NewRelicService.new(control.license_key, control.server)
       end
-      
+
       # contains all the class-level methods for NewRelic::Agent::Agent
       module ClassMethods
         # Should only be called by NewRelic::Control - returns a
@@ -69,7 +69,7 @@ module NewRelic
         # handles things like static setup of the header for inclusion
         # into pages
         attr_reader :beacon_configuration
-        attr_reader :service
+        attr_accessor :service
         
         # Returns the length of the unsent errors array, if it exists,
         # otherwise nil
@@ -151,7 +151,11 @@ module NewRelic
           # @connected gets false after we fail to connect or have an error
           # connecting.  @connected has nil if we haven't finished trying to connect.
           # or we didn't attempt a connection because this is the master process
-
+          
+          if channel_id = options[:report_to_channel]
+            @service = NewRelic::Agent::PipeService.new(channel_id)
+          end
+          
           # log.debug "Agent received after_fork notice in #$$: [#{control.agent_enabled?}; monitor=#{control.monitor_mode?}; connected: #{@connected.inspect}; thread=#{@worker_thread.inspect}]"
           return if !control.agent_enabled? or
             !control.monitor_mode? or

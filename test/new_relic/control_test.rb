@@ -1,6 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'/../test_helper'))
-class NewRelic::ControlTest < Test::Unit::TestCase
 
+class NewRelic::ControlTest < Test::Unit::TestCase
   attr_reader :control
 
   def setup
@@ -244,14 +244,7 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     assert_equal 2.0, NewRelic::Control.instance['transaction_tracer']['explain_threshold']
     assert_equal 'raw', NewRelic::Control.instance['transaction_tracer']['record_sql']
   end
-  
-  def test_starting_channel_listener
-    listener = mock('listener')
-    listener.expects(:start).returns(true)
-    NewRelic::Agent::PipeChannelManager.expects(:listener).returns(listener)
-    forced_start(:start_channel_listener => true)
-  end
-  
+    
   private
 
   def forced_start(overrides={})

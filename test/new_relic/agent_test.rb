@@ -1,4 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
+require 'ostruct'
+
 module NewRelic
   class MainAgentTest < Test::Unit::TestCase
     
@@ -64,6 +66,15 @@ module NewRelic
       mock_control = mocked_control
       mock_control.expects(:init_plugin).with({:agent_enabled => true, :sync_startup => false})
       NewRelic::Agent.manual_start(:sync_startup => false)
+    end
+
+    def test_manual_start_starts_channel_listener
+      mock_control = mocked_control
+      mock_control.stubs(:init_plugin)
+      NewRelic::Agent.manual_start(:start_channel_listener => true)
+      assert NewRelic::Agent::PipeChannelManager.listener.started?
+      NewRelic::Agent::PipeChannelManager.listener.stop
+      NewRelic::Agent.agent.service = NewRelic::Agent::NewRelicService.new
     end
 
     def test_logger
@@ -208,9 +219,21 @@ module NewRelic
       NewRelic::Agent.stubs(:agent).returns(agent)
       agent
     end
-
+    
     def mocked_control
-      control = mock('control')
+      server = NewRelic::Control::Server.new('localhost', 3000)
+      control = OpenStruct.new(:license_key => 'abcdef',
+                               :server => server)
+      control.instance_eval do
+        def [](key)
+          nil
+        end
+        
+        def fetch(k,d)
+          nil
+        end
+      end
+
       NewRelic::Control.stubs(:instance).returns(control)
       control
     end

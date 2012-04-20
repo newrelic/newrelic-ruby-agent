@@ -347,11 +347,15 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   def test_connect_to_server_gets_config_from_collector
     $fake_collector ||= FakeCollector.new
     $fake_collector.run
+    # sanity check
+    assert_equal('NewRelic::Agent::NewRelicService',
+                 NewRelic::Agent.agent.service.class.name)
     NewRelic::Agent.manual_start(:host => 'localhost', :port => '30303',
                                  :license_key => '1234567890')
-    
     $fake_collector.mock['connect'] = {'agent_id' => 23, 'config' => 'a lot'}
+
     response = connect_to_server
+
     assert_equal 23, response['agent_id']
     assert_equal 'a lot', response['config']
 

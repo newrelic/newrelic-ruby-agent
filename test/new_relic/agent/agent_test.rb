@@ -2,10 +2,16 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 module NewRelic
   module Agent
     class AgentTest < Test::Unit::TestCase
-
       def setup
         super
         @agent = NewRelic::Agent::Agent.new
+      end
+
+      def test_after_fork_reporting_to_channel
+        @agent.after_fork(:report_to_channel => 123)
+        assert(@agent.service.kind_of?(NewRelic::Agent::PipeService),
+               'Agent should use PipeService when directed to report to pipe channel')
+        assert_equal 123, @agent.service.channel_id
       end
 
       def test_save_or_transmit_data_should_save

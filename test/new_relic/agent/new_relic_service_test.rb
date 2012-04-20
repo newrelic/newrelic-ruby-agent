@@ -32,7 +32,6 @@ class NewRelicServiceTest < Test::Unit::TestCase
 
   def test_connect_sets_agent_id
     $fake_collector.mock['connect'] = {'agent_run_id' => 666}
-#     debugger
     @service.connect
     assert_equal 666, @service.agent_id
   end

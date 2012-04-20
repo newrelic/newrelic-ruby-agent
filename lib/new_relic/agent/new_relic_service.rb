@@ -19,7 +19,7 @@ module NewRelic
       attr_reader :collector
       attr_accessor :agent_id
       
-      def initialize(license_key, collector)
+      def initialize(license_key=control.license_key, collector=control.server)
         @license_key = license_key
         @collector = collector
         @request_timeout = NewRelic::Control.instance.fetch('timeout', 2 * 60)

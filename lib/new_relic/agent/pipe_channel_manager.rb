@@ -46,6 +46,7 @@ module NewRelic
         end
 
         def start
+          @started = true
           @thread = Thread.new do
             loop do
               clean_up_pipes
@@ -74,6 +75,8 @@ module NewRelic
         end
         
         def stop
+          @started = false
+          wake.in << '.'
           @thread.exit
           @thread.join # make sure we wait for the thread to exit
           close_all_pipes
@@ -90,7 +93,11 @@ module NewRelic
         
         def wake
           @wake ||= Pipe.new
-        end        
+        end
+
+        def started?
+          @started
+        end
 
         protected
         
