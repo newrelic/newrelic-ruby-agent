@@ -34,8 +34,12 @@ module NewRelic
       # page as is reasonably possible - that is, before any style or
       # javascript inclusions, but after any header-related meta tags
       def browser_timing_header
-        return "" if NewRelic::Agent.instance.beacon_configuration.nil?
-        return "" if !NewRelic::Agent.is_transaction_traced? || !NewRelic::Agent.is_execution_traced?
+        if NewRelic::Agent.instance.beacon_configuration.nil? || 
+           !NewRelic::Agent.is_transaction_traced? || 
+           !NewRelic::Agent.is_execution_traced? ||
+           NewRelic::Agent::TransactionInfo.get.ignore_end_user?
+          return ""
+        end
 
         NewRelic::Agent.instance.beacon_configuration.browser_timing_header
       end
@@ -50,8 +54,16 @@ module NewRelic
       # page as is reasonably possible.
       def browser_timing_footer
         config = NewRelic::Agent.instance.beacon_configuration
-        return "" if config.nil? || !config.rum_enabled || config.browser_monitoring_key.nil?
-        return "" if !NewRelic::Agent.is_transaction_traced? || !NewRelic::Agent.is_execution_traced?
+        
+        if config.nil? || 
+           !config.rum_enabled || 
+           config.browser_monitoring_key.nil? ||
+           !NewRelic::Agent.is_transaction_traced? || 
+           !NewRelic::Agent.is_execution_traced? ||
+           NewRelic::Agent::TransactionInfo.get.ignore_end_user?
+           return ""
+         end
+        
         generate_footer_js(config)
       end
 
