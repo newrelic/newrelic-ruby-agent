@@ -53,7 +53,7 @@ class NewRelic::Command::Deployments < NewRelic::Command
       uri = "/deployments.xml"
 
       raise "license_key was not set in newrelic.yml for #{config.env}" if config['license_key'].nil?
-      request = Net::HTTP::Post.new(uri, {'x-license-key' => config['license_key']})
+      request = Net::HTTP::Post.new(uri, {'x-api-key' => config['license_key']})
       request.content_type = "application/octet-stream"
 
       request.set_form_data(create_params)
