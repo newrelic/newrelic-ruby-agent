@@ -230,7 +230,7 @@ module NewRelic
         end
       end
 
-      # Checks to see if the old sample exists, or if it's duration is
+      # Checks to see if the old sample exists, or if its duration is
       # less than the new sample
       def slowest_sample?(old_sample, new_sample)
         old_sample.nil? || (new_sample.duration > old_sample.duration)

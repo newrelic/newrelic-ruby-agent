@@ -279,7 +279,7 @@ module NewRelic
         end
 
         # Herein lies the corpse of the former 'start' method. May
-        # it's unmatched flog score rest in pieces.
+        # its unmatched flog score rest in pieces.
         module Start
           # Check whether we have already started, which is an error condition
           def already_started?
