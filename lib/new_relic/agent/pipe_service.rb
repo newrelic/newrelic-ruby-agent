@@ -3,6 +3,8 @@ module NewRelic
     class PipeService
       attr_reader :channel_id
       attr_reader :buffer
+      attr_accessor :request_timeout
+      attr_accessor :agent_id
       
       def initialize(channel_id)
         @channel_id = channel_id

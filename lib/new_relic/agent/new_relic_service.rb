@@ -15,7 +15,7 @@ module NewRelic
       # 1754:  v3 (tag 2.3.0)
       # 534:   v2 (shows up in 2.1.0, our first tag)
       
-      attr_reader :request_timeout
+      attr_accessor :request_timeout
       attr_reader :collector
       attr_accessor :agent_id
       
