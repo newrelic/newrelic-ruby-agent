@@ -43,6 +43,8 @@ module NewRelic
             def template_metric(identifier, options = {})
               if options[:file]
                 "file"
+              elsif identifier.nil?
+                "(unknown)"
               elsif identifier.include? '/' # this is a filepath
                 identifier.split('/')[-2..-1].join('/')
               else
@@ -148,7 +150,8 @@ DependencyDetection.defer do
       def render_with_newrelic(context, options)
         # This is needed for rails 3.2 compatibility
         @details = extract_details(options) if respond_to? :extract_details
-        str = "View/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.template_metric(determine_template(options).identifier, options)}/Rendering"
+        identifier = determine_template(options) ? determine_template(options).identifier : nil
+        str = "View/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.template_metric(identifier, options)}/Rendering"
         trace_execution_scoped str do
           render_without_newrelic(context, options)
         end
@@ -163,7 +166,8 @@ DependencyDetection.defer do
 
       def render_with_newrelic(*args, &block)
         setup(*args, &block)
-        str = "View/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.template_metric(find_partial.identifier)}/Partial"
+        identifier = find_partial ? find_partial.identifier : nil
+        str = "View/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.template_metric(identifier)}/Partial"
         trace_execution_scoped str do
           render_without_newrelic(*args, &block)
         end
