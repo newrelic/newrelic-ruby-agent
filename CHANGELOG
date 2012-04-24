@@ -1,3 +1,6 @@
+v3.3.4.1
+ * Bug fix when rendering empty collection in Rails 3.1+
+
 v3.3.4
   * Rails 3 view instrumentation
 
