@@ -47,7 +47,8 @@ module NewRelic::Rack
       return nil unless source
 
       body_start = source.index("<body")
-      body_close = source.rindex("</body>")
+      # avoid using rindex, since it is very slow on JRuby <= 1.6.7 and MRI < 1.9.3 when source contains UTF-8
+      body_close = (m = '</body>'.reverse; (l = source.reverse.index(m)) && (source.length - m.length - l))
 
       if body_start && body_close
         footer = NewRelic::Agent.browser_timing_footer
