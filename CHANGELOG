@@ -1,3 +1,52 @@
+v3.3.4.1
+ * Bug fix when rendering empty collection in Rails 3.1+
+
+v3.3.4
+  * Rails 3 view instrumentation
+
+v3.3.3
+  * Improved Sinatra instrumentation
+  * Limit the number of nodes collected in long running transactions to prevent leaking memory
+
+v3.3.2.1
+  * [SECURITY] fix for cookie handling by End User Monitoring instrumentation
+
+v3.3.2
+  * deployments recipe change: truncate git SHAs to 7 characters
+  * Fixes for obfuscation of PostgreSQL and SQLite queries
+  * Fix for lost database connections when using a forking framework
+  * Workaround for RedHat kernel bug which prevented blocking reads of /proc fs
+  * Do not trap signals when handling exceptions
+  
+v3.3.1
+  * improved Ruby 1.8.6 support
+  * fix for issues with RAILS_ROOT deprecation warnings
+  * fixed incorrect 1.9 GC time reporting
+  * obfusction for Slow SQL queries respects transaction trace config
+  * fix for RUM instrumentation repoting bad timing info in some cases
+  * refactored ActiveRecord instrumentation, no longer requires Rails
+
+v3.3.0
+  * fix for GC instrumentation when using Ruby 1.9
+  * new feature to correlate browser and server transaction traces
+  * new feature to trace slow sql statements
+  * fix to help cope with malformed rack responses
+  * do not try to instrument versions of ActiveMerchant that are too old
+
+v3.2.0.1
+  * Updated LICENSE
+  * Updated links to support docs
+
+v3.2.0
+  * Fix over-detection of mongrel and unicorn and only start the agent when
+    actual server is running
+  * Improve developer mode backtraces to support ruby 1.9.2, windows
+  * Fixed some cases where Memcache instrumentation was failing to load
+  * Ability to set log destination by NEW_RELIC_LOG env var
+  * Fix to mutex lib load issue
+  * Performance enhancements (thanks to Jeremy Kemper)
+  * Fix overly verbose STDOUT message (thanks to Anselm Helbig)
+  
 v3.1.2
   * Fixed some thread safety issues
   * Work around for Ruby 1.8.7 Marshal crash bug

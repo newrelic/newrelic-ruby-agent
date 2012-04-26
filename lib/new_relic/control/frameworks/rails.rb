@@ -52,12 +52,12 @@ module NewRelic
         def install_browser_monitoring(config)
           return if @browser_monitoring_installed
           @browser_monitoring_installed = true
-          return if config.nil? || !config.respond_to?(:middleware) || !browser_monitoring_auto_instrument?
+          return if config.nil? || !config.respond_to?(:middleware) || ! browser_monitoring_auto_instrument?
           begin
             require 'new_relic/rack/browser_monitoring'
             config.middleware.use NewRelic::Rack::BrowserMonitoring
             log!("Installed New Relic Browser Monitoring middleware", :info)
-          rescue Exception => e
+          rescue => e
             log!("Error installing New Relic Browser Monitoring middleware: #{e.inspect}", :error)
           end
         end
@@ -77,29 +77,29 @@ module NewRelic
                 log!("NewRelic Agent Developer Mode enabled.")
                 log!("To view performance information, go to http://localhost#{port}/newrelic")
               end
-            rescue Exception => e
+            rescue => e
               log!("Error installing New Relic Developer Mode: #{e.inspect}", :error)
             end
-          else
+          elsif rails_config
             log!("Developer mode not available for Rails versions prior to 2.2", :warn)
           end
         end
 
         def log!(msg, level=:info)
           if should_log?
-            logger = ::Rails.respond_to?(:logger) ? Rails.logger : ::RAILS_DEFAULT_LOGGER
+            logger = ::Rails.respond_to?(:logger) ? ::Rails.logger : ::RAILS_DEFAULT_LOGGER
             logger.send(level, msg)
           else
             super
           end
-        rescue Exception => e
+        rescue => e
           super
         end
 
         def to_stdout(message)
-          logger = ::Rails.respond_to?(:logger) ? Rails.logger : ::RAILS_DEFAULT_LOGGER
+          logger = ::Rails.respond_to?(:logger) ? ::Rails.logger : ::RAILS_DEFAULT_LOGGER
           logger.info(message)
-        rescue Exception => e
+        rescue => e
           super
         end
 

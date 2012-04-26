@@ -2,24 +2,26 @@ require 'new_relic/control'
 
 module NewRelic
   module CollectionHelper
-  DEFAULT_TRUNCATION_SIZE=256
-  DEFAULT_ARRAY_TRUNCATION_SIZE=1024
+  DEFAULT_TRUNCATION_SIZE=16 * 1024
+  DEFAULT_ARRAY_TRUNCATION_SIZE=128
   # Transform parameter hash into a hash whose values are strictly
   # strings
   def normalize_params(params)
     case params
+      when Hash
+        # optimize for empty hash since that is often what this is called with.
+        return params if params.empty?
+        new_params = {}
+        params.each do | key, value |
+          new_params[truncate(normalize_params(key),64)] = normalize_params(value)
+        end
+        new_params
       when Symbol, FalseClass, TrueClass, nil
         params
       when Numeric
         truncate(params.to_s)
       when String
         truncate(params)
-      when Hash
-        new_params = {}
-        params.each do | key, value |
-          new_params[truncate(normalize_params(key),32)] = normalize_params(value)
-        end
-        new_params
       when Array
         params.first(DEFAULT_ARRAY_TRUNCATION_SIZE).map{|item| normalize_params(item)}
     else
@@ -35,7 +37,10 @@ module NewRelic
       # this is for 1.9.1, where strings no longer have Enumerable
       backtrace = backtrace.split("\n") if String === backtrace
       backtrace = backtrace.map &:to_s
-      backtrace = backtrace.reject {|line| line.include?(NewRelic::Control.newrelic_root) }
+      backtrace = backtrace.reject do |line|
+        line.include?(NewRelic::Control.newrelic_root) or
+        line =~ /^newrelic_rpm\s/
+      end
       # rename methods back to their original state
       backtrace = backtrace.collect {|line| line.gsub(/_without_(newrelic|trace)/, "")}
     end

@@ -117,7 +117,6 @@ class NewRelic::Control::LoggingMethodsTest < Test::Unit::TestCase
   end
 
   def test_log_path_path_exists
-    @base.instance_eval { @log_path = nil }
     @base.settings['log_file_path'] = 'log'
     assert File.directory?('log')
     assert_equal File.expand_path('log'), @base.log_path
@@ -138,8 +137,8 @@ class NewRelic::Control::LoggingMethodsTest < Test::Unit::TestCase
     @base.instance_eval { @log_path = nil }
     @base.settings['log_file_path'] = 'tmp/log_path_test'
     assert !File.directory?(path) || FileUtils.rmdir(path)
-    @base.expects(:log!).with("Error creating log directory for New Relic log file, using standard out.", :error)
-    Dir.expects(:mkdir).with(path).raises('cannot make directory bro!').at_least_once
+    @base.expects(:log!).with("Error creating log directory tmp/log_path_test, using standard out for logging.", :warn)
+    Dir.expects(:mkdir).with(path).raises('cannot make directory bro!').twice # once for the relative directory, once for the directory relative to Rails.root
     assert_nil @base.log_path
     assert !File.directory?(path)
     assert_equal STDOUT, @base.log.instance_eval { @logdev }.dev    
@@ -165,5 +164,22 @@ class NewRelic::Control::LoggingMethodsTest < Test::Unit::TestCase
     @base.setup_log
     @base.log.info('whee')
   end
-end
 
+  def test_set_stdout_destination_from_NEW_RELIC_LOG_env_var
+    @base.stubs(:fetch).returns('whatever')
+    ENV['NEW_RELIC_LOG'] = 'stdout'
+    Dir.expects(:mkdir).never
+    @base.setup_log
+    assert_equal STDOUT, @base.log.instance_eval { @logdev }.dev
+    ENV['NEW_RELIC_LOG'] = nil
+  end
+
+  def test_set_file_destination_from_NEW_RELIC_LOG_env_var
+    @base.stubs(:fetch).returns('whatever')
+    ENV['NEW_RELIC_LOG'] = 'log/file.log'
+    @base.setup_log
+    assert_equal 'log', File.basename(@base.log_path)
+    assert_equal 'file.log', @base.log_file_name
+    ENV['NEW_RELIC_LOG'] = nil    
+  end
+end

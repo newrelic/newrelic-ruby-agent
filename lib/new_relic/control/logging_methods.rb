@@ -91,15 +91,21 @@ module NewRelic
       end
       
       # Sets up and caches the log path, attempting to create it if it
-      # does not exist. this comes from the configuration variable
-      # 'log_file_path' in the configuration file.
+      # does not exist.  If it does not succeed, it prints an
+      # error and returns nil.
+      # This comes from the configuration variable 'log_file_path' in the configuration file.
       def log_path
         return @log_path if @log_path
         if log_to_stdout?
           @log_path = nil
         else
-          @log_path = find_or_create_file_path(fetch('log_file_path', 'log'))
-          log!("Error creating log directory for New Relic log file, using standard out.", :error) unless @log_path
+          if ENV['NEW_RELIC_LOG']
+            log_path_setting = File.dirname(ENV['NEW_RELIC_LOG'])
+          else
+            log_path_setting = fetch('log_file_path', 'log')
+          end
+          @log_path = find_or_create_file_path(log_path_setting)
+          log!("Error creating log directory #{log_path_setting}, using standard out for logging.", :warn) unless @log_path
         end
         @log_path
       end
@@ -116,7 +122,8 @@ module NewRelic
 
       def log_to_stdout?
         return true if @stdout
-        if fetch('log_file_path', 'log') == 'STDOUT'
+        destination = ENV['NEW_RELIC_LOG'] || fetch('log_file_path', 'log')
+        if destination.upcase == 'STDOUT'
           @stdout = true
         end
       end
@@ -124,7 +131,11 @@ module NewRelic
       # Retrieves the log file's name from the config file option
       #'log_file_name', defaulting to 'newrelic_agent.log'
       def log_file_name
-        fetch('log_file_name', 'newrelic_agent.log')
+        if ENV['NEW_RELIC_LOG']
+          File.basename(ENV['NEW_RELIC_LOG'])
+        else
+          fetch('log_file_name', 'newrelic_agent.log')
+        end
       end
     end
     include LoggingMethods

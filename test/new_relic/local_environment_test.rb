@@ -46,6 +46,7 @@ class NewRelic::LocalEnvironmentTest < Test::Unit::TestCase
 
     ::Passenger.class_eval { remove_const :AbstractServer }
   end
+  
   def test_snapshot
     e = NewRelic::LocalEnvironment.new
     s = e.snapshot
@@ -60,6 +61,19 @@ class NewRelic::LocalEnvironmentTest < Test::Unit::TestCase
     end
   end
 
+  def test_gather_cpu_info_successful
+    e = NewRelic::LocalEnvironment.new
+    e.gather_cpu_info(File.expand_path(File.join(File.dirname(__FILE__),'..', 'fixtures', 'proc_cpuinfo.txt')))
+    s = e.snapshot
+    assert_equal 24, s.assoc('Processors').last.to_i
+  end
+
+  def test_gather_cpu_info_failure
+    e = NewRelic::LocalEnvironment.new
+    e.gather_cpu_info(File.expand_path(File.join(File.dirname(__FILE__),'..', 'test_helper.rb')))
+    s = e.snapshot
+    assert_equal 1, s.assoc('Processors').last.to_i    
+  end
 
   def test_default_port
     e = NewRelic::LocalEnvironment.new
@@ -68,5 +82,4 @@ class NewRelic::LocalEnvironmentTest < Test::Unit::TestCase
     assert_equal '3121', e.send(:default_port)
     ARGV.pop
   end
-
 end

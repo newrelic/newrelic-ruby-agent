@@ -8,6 +8,12 @@ pkg/
 Manifest*
 .idea/
 tmp/
+TAGS
+tags
+*.swp
+*.swo
 
 /log/
 /lerg/
+gems/newrelic_rpm.gemspec
+gems/newrelic_rpm*.tar.gz

@@ -57,6 +57,15 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     assert(lock.is_a?(Mutex), "Samples lock should be a mutex, is: #{lock.inspect}")
   end
 
+  def test_configure
+    control = NewRelic::Control.instance
+    control.merge_options('transaction_tracer' => {'stack_trace_threshold' => 5.0, 'limit_segments' => 20, 'explain_threshold' => 4.0})
+    @sampler.configure!
+    assert_equal 20, @sampler.instance_variable_get('@segment_limit')
+    assert_equal 5.0, @sampler.instance_variable_get('@stack_trace_threshold')
+    assert_equal 4.0, @sampler.instance_variable_get('@explain_threshold')
+  end
+
   def test_current_sample_id_default
     builder = mock('builder')
     builder.expects(:sample_id).returns(11111)
@@ -77,10 +86,10 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   end
 
   def test_disable
-    assert_equal(nil, @sampler.instance_variable_get('@disabled'))
+    assert_nil @sampler.instance_variable_get('@disabled')
     @sampler.disable
-    assert_equal(true, @sampler.instance_variable_get('@disabled'))
-    assert_equal(nil, NewRelic::Agent.instance.stats_engine.instance_variable_get('@transaction_sampler'))
+    assert @sampler.instance_variable_get('@disabled')
+    assert_nil NewRelic::Agent.instance.stats_engine.instance_variable_get('@transaction_sampler')
   end
 
   def test_sampling_rate_equals_default
@@ -238,7 +247,8 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   end
 
   def test_store_sample_for_developer_mode_no_dev
-    NewRelic::Control.instance.expects(:developer_mode?).returns(false)
+    NewRelic::Control.instance.stubs(:developer_mode?).returns(false)
+    @sampler.configure!
     sample = mock('sample')
     @sampler.store_sample_for_developer_mode(sample)
     assert_equal([], @sampler.instance_variable_get('@samples'))
@@ -254,7 +264,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
     assert_equal(new_sample, @sampler.instance_variable_get('@slowest_sample'))
   end
-
 
   def test_store_slowest_sample_not_slowest
     old_sample = mock('old_sample')
@@ -288,7 +297,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     new_sample.expects(:duration).returns(1.0)
     assert_equal(true, @sampler.slowest_sample?(old_sample, new_sample))
   end
-
+    
   def test_truncate_samples_no_samples
     @sampler.instance_eval { @max_samples = 10 }
     @sampler.instance_eval { @samples = [] }
@@ -518,19 +527,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     assert_equal([], result, "should not add samples to the array when harvest count is not moduli sampling rate")
   end
 
-  def test_add_random_sample_to_duplicate
-    @sampler.instance_eval { @random_sampling = true }
-    sample = mock('sample')
-    @sampler.instance_eval {
-      @harvest_count = 1
-      @sampling_rate = 2
-      @random_sample = sample
-    }
-    result = [sample]
-    @sampler.add_random_sample_to(result)
-    assert_equal([sample], result, "should not add duplicate samples to the array")
-  end
-
   def test_add_random_sample_to_activated
     @sampler.instance_eval { @random_sampling = true }
     sample = mock('sample')
@@ -557,7 +553,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     assert_equal([], result, "should not add the sample to the array")
   end
 
-
   def test_add_samples_to_no_data
     result = []
     slow_threshold = 2.0
@@ -569,6 +564,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   def test_add_samples_to_one_result
     sample = mock('sample')
     sample.expects(:duration).returns(1).at_least_once
+    sample.stubs(:force_persist).returns(false)
     result = [sample]
     slow_threshold = 2.0
     @sampler.instance_eval { @slowest_sample = nil }
@@ -601,6 +597,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     slower_sample.expects(:duration).returns(10.0).at_least_once
     faster_sample = mock('faster')
     faster_sample.expects(:duration).returns(5.0).at_least_once
+    faster_sample.stubs(:force_persist).returns(false)
     result = [faster_sample]
     slow_threshold = 2.0
     @sampler.instance_eval { @slowest_sample = slower_sample }
@@ -611,6 +608,8 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   def test_add_samples_to_keep_older_slower_sample
     slower_sample = mock('slower')
     slower_sample.expects(:duration).returns(10.0).at_least_once
+    slower_sample.stubs(:force_persist).returns(false)
+    
     faster_sample = mock('faster')
     faster_sample.expects(:duration).returns(5.0).at_least_once
     result = [slower_sample]
@@ -619,6 +618,22 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     @sampler.expects(:add_random_sample_to).with([slower_sample])
     assert_equal([slower_sample], @sampler.add_samples_to(result, slow_threshold))
   end
+    
+  def test_keep_force_persist
+    sample1 = mock('regular')
+    sample1.stubs(:duration).returns(10)
+    sample1.stubs(:force_persist).returns(false)
+    
+    sample2 = mock('force_persist')
+    sample2.stubs(:duration).returns(1)
+    sample2.stubs(:force_persist).returns(true)
+    
+    result = @sampler.add_samples_to([sample1,sample2], 2.0)
+    
+    assert_equal 2, result.length
+    assert_equal sample1, result[0]
+    assert_equal sample2, result[1]
+  end  
 
   def test_start_builder_default
     Thread.current[:record_tt] = true
@@ -641,6 +656,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     @sampler.expects(:disabled).returns(false)
     @sampler.send(:start_builder)
     assert_equal(fake_builder, Thread.current[:transaction_sample_builder], "should not overwrite an existing transaction sample builder")
+    Thread.current[:transaction_sample_builder] = nil
   end
 
   def test_builder
@@ -659,7 +675,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   # generally usefully so
 
   def test_multiple_samples
-
     run_sample_trace
     run_sample_trace
     run_sample_trace
@@ -732,7 +747,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   # sample traces, for example. It's unfortunate, but we can't
   # reliably turn off GC on all versions of ruby under test
   def test_harvest_slowest
-
     run_sample_trace
     run_sample_trace
     run_sample_trace { sleep 0.1 }
@@ -755,9 +769,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     assert((new_slowest.duration >= 0.15), "Slowest duration must be >= 0.15, but was: #{new_slowest.duration.inspect}")
   end
 
-
   def test_prepare_to_send
-
     run_sample_trace { sleep 0.002 }
     sample = @sampler.harvest(nil, 0)[0]
 
@@ -784,7 +796,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   end
 
   def test_sample_with_parallel_paths
-
     assert_equal 0, @sampler.scope_depth
 
     @sampler.notice_first_scope_push Time.now.to_f
@@ -810,7 +821,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   end
 
   def test_double_scope_stack_empty
-
     @sampler.notice_first_scope_push Time.now.to_f
     @sampler.notice_transaction "/path", nil, {}
     @sampler.notice_push_scope "a"
@@ -825,7 +835,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
 
   def test_record_sql_off
-
     @sampler.notice_first_scope_push Time.now.to_f
 
     Thread::current[:record_sql] = false
@@ -849,8 +858,8 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     assert segment[:sql]
     assert segment[:backtrace]
   end
+  
   def test_stack_trace__scope
-
     @sampler.stack_trace_threshold = 0
     t = Time.now
     @sampler.notice_first_scope_push t.to_f
@@ -861,7 +870,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   end
 
   def test_nil_stacktrace
-
     @sampler.stack_trace_threshold = 2
 
     @sampler.notice_first_scope_push Time.now.to_f
@@ -875,7 +883,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   end
 
   def test_big_sql
-
     @sampler.notice_first_scope_push Time.now.to_f
 
     sql = "SADJKHASDHASD KAJSDH ASKDH ASKDHASDK JASHD KASJDH ASKDJHSAKDJHAS DKJHSADKJSAH DKJASHD SAKJDH SAKDJHS"
@@ -893,9 +900,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     assert sql.length <= 16384
   end
 
-
   def test_segment_obfuscated
-
     @sampler.notice_first_scope_push Time.now.to_f
     @sampler.notice_push_scope "foo"
 
@@ -910,7 +915,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     @sampler.notice_pop_scope "foo"
   end
 
-
   def test_param_capture
     [true, false].each do |capture|
       NewRelic::Control.instance.stubs(:capture_params).returns(capture)
@@ -923,23 +927,41 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
       assert_equal (capture) ? 1 : 0, tt.params[:request_params].length
     end
   end
-
-
+  
+  def test_should_not_collect_segments_beyond_limit
+    NewRelic::Control.instance.merge_options('transaction_tracer' => {
+                                               'limit_segments' => 3,
+                                             })
+    @sampler.configure!
+    run_sample_trace do
+      @sampler.notice_push_scope 'a1'
+      @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'hallah'", nil, 0)
+      @sampler.notice_push_scope 'a11'
+      @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'semolina'", nil, 0)
+      @sampler.notice_pop_scope "a11"
+      @sampler.notice_pop_scope "a1"
+    end
+    assert_equal 3, @sampler.samples[0].count_segments
+    NewRelic::Control.instance.merge_options('transaction_tracer' => {
+                                               'limit_segments' => 4000,
+                                             })
+  end
+  
   private
-  def run_sample_trace(&proc)
+  
+  def run_sample_trace
     @sampler.notice_first_scope_push Time.now.to_f
     @sampler.notice_transaction '/path', nil, {}
     @sampler.notice_push_scope "a"
     @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'", nil, 0)
     @sampler.notice_push_scope "ab"
     @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'white'", nil, 0)
-    proc.call if proc
+    yield if block_given?
     @sampler.notice_pop_scope "ab"
-    @sampler.notice_push_scope "lew"
+    @sampler.notice_push_scope "ac"
     @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'french'", nil, 0)
-    @sampler.notice_pop_scope "lew"
+    @sampler.notice_pop_scope "ac"
     @sampler.notice_pop_scope "a"
     @sampler.notice_scope_empty
   end
-
 end

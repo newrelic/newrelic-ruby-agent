@@ -51,91 +51,6 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
     log_app_names
   end
 
-  def test_apdex_f
-    NewRelic::Control.instance.expects(:apdex_t).returns(10)
-    assert_equal 40, apdex_f
-  end
-
-  def test_apdex_f_threshold_positive
-    self.expects(:sampler_config).returns({'transaction_threshold' => 'apdex_f'})
-    assert apdex_f_threshold?
-  end
-
-  def test_apdex_f_threshold_negative
-    self.expects(:sampler_config).returns({'transaction_threshold' => 'WHEE'})
-    assert !apdex_f_threshold?
-  end
-
-  def test_set_sql_recording_default
-    self.expects(:sampler_config).returns({})
-    self.expects(:log_sql_transmission_warning?)
-    set_sql_recording!
-    assert_equal :obfuscated, @record_sql, " should default to :obfuscated, was #{@record_sql}"
-  end
-
-  def test_set_sql_recording_off
-    self.expects(:sampler_config).returns({'record_sql' => 'off'})
-    self.expects(:log_sql_transmission_warning?)
-    set_sql_recording!
-    assert_equal :off, @record_sql, "should be set to :off, was #{@record_sql}"
-  end
-
-  def test_set_sql_recording_none
-    self.expects(:sampler_config).returns({'record_sql' => 'none'})
-    self.expects(:log_sql_transmission_warning?)
-    set_sql_recording!
-    assert_equal :off, @record_sql, "should be set to :off, was #{@record_sql}"
-  end
-
-  def test_set_sql_recording_raw
-    self.expects(:sampler_config).returns({'record_sql' => 'raw'})
-    self.expects(:log_sql_transmission_warning?)
-    set_sql_recording!
-    assert_equal :raw, @record_sql, "should be set to :raw, was #{@record_sql}"
-  end
-
-  def test_set_sql_recording_falsy
-    self.expects(:sampler_config).returns({'record_sql' => false})
-    self.expects(:log_sql_transmission_warning?)
-    set_sql_recording!
-    assert_equal :off, @record_sql, "should be set to :off, was #{@record_sql}"
-  end
-
-  def test_log_sql_transmission_warning_negative
-    log = mocked_log
-    @record_sql = :obfuscated
-    log.expects(:warn).never
-    log_sql_transmission_warning?
-  end
-
-  def test_log_sql_transmission_warning_positive
-    log = mocked_log
-    @record_sql = :raw
-    log.expects(:send).with(:warn, 'Agent is configured to send raw SQL to the service')
-    log_sql_transmission_warning?
-  end
-
-  def test_sampler_config
-    control = mocked_control
-    control.expects(:fetch).with('transaction_tracer', {})
-    sampler_config
-  end
-
-  def test_config_transaction_tracer
-    fake_sampler_config = mock('sampler config')
-    self.expects(:sampler_config).times(5).returns(fake_sampler_config)
-    fake_sampler_config.expects(:fetch).with('enabled', true)
-    fake_sampler_config.expects(:fetch).with('random_sample', false)
-    fake_sampler_config.expects(:fetch).with('explain_threshold', 0.5)
-    fake_sampler_config.expects(:fetch).with('explain_enabled', true)
-    self.expects(:set_sql_recording!)
-
-    fake_sampler_config.expects(:fetch).with('transaction_threshold', 2.0)
-    self.expects(:apdex_f_threshold?).returns(true)
-    self.expects(:apdex_f)
-    config_transaction_tracer
-  end
-
   def test_check_config_and_start_agent_disabled
     self.expects(:monitoring?).returns(false)
     check_config_and_start_agent
@@ -190,8 +105,8 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   def test_install_exit_handler_positive
     control = mocked_control
     control.expects(:send_data_on_exit).returns(true)
-    NewRelic::LanguageSupport.expects(:using_rubinius?).returns(false)
-    NewRelic::LanguageSupport.expects(:using_jruby?).returns(false)
+    NewRelic::LanguageSupport.expects(:using_engine?).with('rbx').returns(false)
+    NewRelic::LanguageSupport.expects(:using_engine?).with('jruby').returns(false)
     self.expects(:using_sinatra?).returns(false)
     # we are overriding at_exit above, to immediately return, so we can
     # test the shutdown logic. It's somewhat unfortunate, but we can't
@@ -209,14 +124,14 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   def test_install_exit_handler_weird_ruby
     control = mocked_control
     control.expects(:send_data_on_exit).times(3).returns(true)
-    NewRelic::LanguageSupport.expects(:using_rubinius?).returns(false)
-    NewRelic::LanguageSupport.expects(:using_jruby?).returns(false)
+    NewRelic::LanguageSupport.expects(:using_engine?).with('rbx').returns(false)
+    NewRelic::LanguageSupport.expects(:using_engine?).with('jruby').returns(false)
     self.expects(:using_sinatra?).returns(true)
     install_exit_handler
-    NewRelic::LanguageSupport.expects(:using_rubinius?).returns(false)
-    NewRelic::LanguageSupport.expects(:using_jruby?).returns(true)
+    NewRelic::LanguageSupport.expects(:using_engine?).with('rbx').returns(false)
+    NewRelic::LanguageSupport.expects(:using_engine?).with('jruby').returns(true)
     install_exit_handler
-    NewRelic::LanguageSupport.expects(:using_rubinius?).returns(true)
+    NewRelic::LanguageSupport.expects(:using_engine?).with('rbx').returns(true)
     install_exit_handler
   end
 

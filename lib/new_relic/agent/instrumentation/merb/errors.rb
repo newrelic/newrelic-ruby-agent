@@ -1,4 +1,6 @@
 DependencyDetection.defer do
+  @name = :merb_error
+
   depends_on do
     defined?(Merb) && defined?(Merb::Dispatcher) && defined?(Merb::Dispatcher::DefaultException)
   end

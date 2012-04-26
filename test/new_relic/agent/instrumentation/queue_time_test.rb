@@ -270,20 +270,15 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
     check_metric_time('WebFrontend/QueueTime', 0.0, 0.001)
   end
 
-
-  # check all the combinations to make sure that ordering doesn't
-  # affect the return value
   def test_find_oldest_time
-    test_arrays = [
+    test_array = [
+                   ['c', Time.at(1002)],                   
                    ['a', Time.at(1000)],
                    ['b', Time.at(1001)],
-                   ['c', Time.at(1002)],
                    ['d', Time.at(1000)],
                   ]
-    test_arrays = test_arrays.permutation
-    test_arrays.each do |test_array|
-      assert_equal find_oldest_time(test_array), Time.at(1000), "Should be the oldest time in the array"
-    end
+    assert_equal(find_oldest_time(test_array), Time.at(1000),
+                 "Should be the oldest time in the array")
   end
 
   # trivial test but the method doesn't do much
@@ -306,9 +301,9 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
   end
 
   def test_record_time_stat_with_end_after_start
-    record_time_stat('WebFrontend/WebServer/foo', 2, 1)
+    record_time_stat('WebFrontend/WebServer/foo', Time.at(1.0001), Time.at(1))
   rescue RuntimeError => e
-    assert_equal("should not provide an end time less than start time: 1 is less than 2", e.message)
+    assert_match(/should not provide an end time less than start time/, e.message)
   end
 
   def test_convert_to_microseconds

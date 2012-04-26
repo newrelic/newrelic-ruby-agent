@@ -1,6 +1,7 @@
 require 'new_relic/agent/stats_engine/metric_stats'
 require 'new_relic/agent/stats_engine/samplers'
 require 'new_relic/agent/stats_engine/transactions'
+require 'new_relic/agent/stats_engine/gc_profiler'
 
 module NewRelic
   module Agent

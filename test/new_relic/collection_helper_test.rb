@@ -15,12 +15,12 @@ class NewRelic::CollectionHelperTest < Test::Unit::TestCase
 
   include NewRelic::CollectionHelper
   def test_string
-    val = (('A'..'Z').to_a.join * 100).to_s
-    assert_equal val[0...256] + "...", normalize_params(val)
+    val = (('A'..'Z').to_a.join * 1024).to_s
+    assert_equal val[0...16384] + "...", normalize_params(val)
   end
   def test_array
     new_array = normalize_params [ 1000 ] * 2000
-    assert_equal 1024, new_array.size
+    assert_equal 128, new_array.size
     assert_equal '1000', new_array[0]
   end
   def test_boolean
@@ -55,7 +55,7 @@ class NewRelic::CollectionHelperTest < Test::Unit::TestCase
   end
   def test_hash
     val = ('A'..'Z').to_a.join * 100
-    assert_equal Hash["ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEF..." => (("0"*256) + "...")], normalize_params({ val => '0' * 512 })
+    assert_equal Hash[(val[0..63] + "...") => (("0"*16384) + "...")], normalize_params({ val => '0' * (16384*2) })
   end
   class MyHash < Hash
 

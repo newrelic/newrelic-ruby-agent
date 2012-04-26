@@ -12,6 +12,7 @@ module NewRelic
         @stats_engine.extend NewRelic::Agent::StatsEngine::Shim
         @stats_engine.extend NewRelic::Agent::StatsEngine::Transactions::Shim
         @transaction_sampler.extend NewRelic::Agent::TransactionSampler::Shim
+        @sql_sampler.extend NewRelic::Agent::SqlSampler::Shim
         @error_collector.extend NewRelic::Agent::ErrorCollector::Shim
       end
       def after_fork *args; end

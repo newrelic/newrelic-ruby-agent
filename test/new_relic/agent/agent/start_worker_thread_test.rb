@@ -8,6 +8,7 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
     self.expects(:connect).with('connection_options')
     @connected = true
     self.expects(:check_transaction_sampler_status)
+    self.expects(:check_sql_sampler_status)    
     self.expects(:log_worker_loop_start)
     self.expects(:create_and_run_worker_loop)
     deferred_work!('connection_options')

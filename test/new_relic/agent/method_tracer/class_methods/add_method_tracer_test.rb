@@ -104,7 +104,7 @@ module NewRelic
             end
 
             def test_check_for_illegal_keys_negative
-              test_keys = Hash[ALLOWED_KEYS.map {|x| [x, nil]}]
+              test_keys = Hash[*ALLOWED_KEYS.map {|x| [x, nil]}.flatten]
               check_for_illegal_keys!(test_keys)
             end
 

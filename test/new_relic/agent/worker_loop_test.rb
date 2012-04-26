@@ -45,7 +45,7 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
     end
     assert done
   end
-  class BadBoy < Exception; end
+  class BadBoy < StandardError; end
 
   def test_task_error__exception
     @logger.expects(:error).once

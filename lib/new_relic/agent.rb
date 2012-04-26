@@ -81,9 +81,12 @@ module NewRelic
     require 'new_relic/agent/worker_loop'
     require 'new_relic/agent/stats_engine'
     require 'new_relic/agent/transaction_sampler'
+    require 'new_relic/agent/sql_sampler'
     require 'new_relic/agent/error_collector'
     require 'new_relic/agent/busy_calculator'
     require 'new_relic/agent/sampler'
+    require 'new_relic/agent/database'
+    require 'new_relic/agent/transaction_info'
 
     require 'new_relic/agent/instrumentation/controller_instrumentation'
 
@@ -121,8 +124,7 @@ module NewRelic
 
     # The singleton Agent instance.  Used internally.
     def agent #:nodoc:
-      raise "Plugin not initialized!" if @agent.nil?
-      @agent
+      @agent || raise("Plugin not initialized!")
     end
 
     def agent=(new_instance)#:nodoc:
@@ -146,9 +148,16 @@ module NewRelic
     alias get_stats_no_scope get_stats
 
     # Get the logger for the agent.  Available after the agent has initialized.
-    # This sends output to the agent log file.
+    # This sends output to the agent log file.  If the agent has not initialized
+    # a standard output logger is returned.
     def logger
-      NewRelic::Control.instance.log
+      control = NewRelic::Control.instance(false)
+      if control
+        control.log
+      else
+        require 'logger'
+        @stdoutlog ||= Logger.new $stdout
+      end
     end
 
     # Call this to manually start the Agent in situations where the Agent does
@@ -272,7 +281,7 @@ module NewRelic
     #    end
     #
     def set_sql_obfuscator(type = :replace, &block)
-      agent.set_sql_obfuscator type, &block
+      NewRelic::Agent::Database.set_sql_obfuscator(type, &block)
     end
 
 
@@ -377,6 +386,19 @@ module NewRelic
     #
     def add_custom_parameters(params)
       NewRelic::Agent::Instrumentation::MetricFrame.add_custom_parameters(params)
+    end
+    
+    # Set attributes about the user making this request. These attributes will be automatically
+    # appended to any Transaction Trace or Error that is collected. These attributes
+    # will also be collected for RUM requests.
+    #
+    # Attributes (hash)
+    # * <tt>:user</tt> => user name or ID
+    # * <tt>:account</tt> => account name or ID
+    # * <tt>:product</tt> => product name or level
+    #
+    def set_user_attributes(attributes)
+      NewRelic::Agent::Instrumentation::MetricFrame.set_user_attributes(attributes)
     end
 
     # The #add_request_parameters method is aliased to #add_custom_parameters

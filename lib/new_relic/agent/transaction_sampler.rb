@@ -1,9 +1,10 @@
 require 'new_relic/agent'
 require 'new_relic/control'
 require 'new_relic/agent/transaction_sample_builder'
+
 module NewRelic
   module Agent
-    
+
     # This class contains the logic of sampling a transaction -
     # creation and modification of transaction samples
     class TransactionSampler
@@ -19,12 +20,16 @@ module NewRelic
       BUILDER_KEY = :transaction_sample_builder
 
       attr_accessor :stack_trace_threshold, :random_sampling, :sampling_rate
+      attr_accessor :explain_threshold, :explain_enabled, :transaction_threshold
+      attr_accessor :slow_capture_threshold
       attr_reader :samples, :last_sample, :disabled
 
       def initialize
+
         # @samples is an array of recent samples up to @max_samples in
         # size - it's only used by developer mode
         @samples = []
+        @force_persist = []
         @max_samples = 100
 
         # @harvest_count is a count of harvests used for random
@@ -32,19 +37,37 @@ module NewRelic
         @harvest_count = 0
         @random_sample = nil
         @sampling_rate = 10
-
-        # @segment_limit and @stack_trace_threshold come from the
-        # configuration file, with built-in defaults that should
-        # suffice for most customers
-        config = NewRelic::Control.instance
-        sampler_config = config.fetch('transaction_tracer', {})
-        @segment_limit = sampler_config.fetch('limit_segments', 4000)
-        @stack_trace_threshold = sampler_config.fetch('stack_trace_threshold', 0.500).to_f
+        @slow_capture_threshold = 2.0
+        configure!
 
         # This lock is used to synchronize access to the @last_sample
         # and related variables. It can become necessary on JRuby or
         # any 'honest-to-god'-multithreaded system
         @samples_lock = Mutex.new
+      end
+
+      def configure!
+        # @segment_limit and @stack_trace_threshold come from the
+        # configuration file, with built-in defaults that should
+        # suffice for most customers
+
+        # enable if config.fetch('enabled', true)
+
+        @segment_limit = config.fetch('limit_segments', 4000)
+        @stack_trace_threshold = config.fetch('stack_trace_threshold', 0.500).to_f
+        @explain_threshold = config.fetch('explain_threshold', 0.5).to_f
+        @explain_enabled = config.fetch('explain_enabled', true)
+        @transaction_threshold = config.fetch('transation_threshold', 2.0)
+
+        # Configure the sample storage policy.  Create a list of methods to be called.
+        @store_sampler_methods = [ :store_random_sample, :store_slowest_sample ]
+        if NewRelic::Control.instance.developer_mode?
+          @store_sampler_methods << :store_sample_for_developer_mode
+        end
+      end
+
+      def config
+        NewRelic::Control.instance.fetch('transaction_tracer', {})
       end
 
       # Returns the current sample id, delegated from `builder`
@@ -65,6 +88,10 @@ module NewRelic
       def disable
         @disabled = true
         NewRelic::Agent.instance.stats_engine.remove_transaction_sampler(self)
+      end
+
+      def enabled?
+        !@disabled
       end
 
       # Set with an integer value n, this takes one in every n
@@ -160,9 +187,11 @@ module NewRelic
       # @samples array, and the @slowest_sample variable if it is
       # slower than the current occupant of that slot
       def store_sample(sample)
-        store_random_sample(sample)
-        store_sample_for_developer_mode(sample)
-        store_slowest_sample(sample)
+        @store_sampler_methods.each{|sym| send sym, sample}
+        if NewRelic::Agent::TransactionInfo.get.force_persist_sample?(sample)
+          store_force_persist(sample)
+        end
+
       end
 
       # Only active when random sampling is true - this is very rarely
@@ -171,6 +200,16 @@ module NewRelic
       def store_random_sample(sample)
         if @random_sampling
           @random_sample = sample
+        end
+      end
+
+      def store_force_persist(sample)
+        @force_persist << sample
+
+        # WARNING - this clamp should be configurable
+        if @force_persist.length > 15
+          @force_persist.sort! {|a,b| b.duration <=> a.duration}
+          @force_persist = @force_persist[0..14]
         end
       end
 
@@ -186,7 +225,9 @@ module NewRelic
       # Sets @slowest_sample to the passed in sample if it is slower
       # than the current sample in @slowest_sample
       def store_slowest_sample(sample)
-        @slowest_sample = sample if slowest_sample?(@slowest_sample, sample)
+        if slowest_sample?(@slowest_sample, sample)
+          @slowest_sample = sample
+        end
       end
 
       # Checks to see if the old sample exists, or if it's duration is
@@ -236,7 +277,14 @@ module NewRelic
         return unless builder
         segment = builder.current_segment
         if segment
-          segment[key] = truncate_message(append_new_message(segment[key], message))
+          new_message = truncate_message(append_new_message(segment[key],
+                                                            message))
+          if key == :sql && config.respond_to?(:has_key?) && config.has_key?(:adapter)
+            segment[key] = Database::Statement.new(new_message)
+            segment[key].adapter = config[:adapter]
+          else
+            segment[key] = new_message
+          end
           segment[config_key] = config if config_key
           append_backtrace(segment, duration)
         end
@@ -268,7 +316,7 @@ module NewRelic
       # Appends a backtrace to a segment if that segment took longer
       # than the specified duration
       def append_backtrace(segment, duration)
-        segment[:backtrace] = caller.join("\n") if duration >= @stack_trace_threshold
+        segment[:backtrace] = caller.join("\n") if (duration >= @stack_trace_threshold || Thread.current[:capture_deep_tt])
       end
 
       # some statements (particularly INSERTS with large BLOBS
@@ -300,9 +348,14 @@ module NewRelic
         @harvest_count += 1
         if (@harvest_count.to_i % @sampling_rate.to_i) == 0
           result << @random_sample if @random_sample
+          @harvest_count = 0
         end
-        result.uniq!
         nil # don't assume this method returns anything
+      end
+
+      def add_force_persist_to(result)
+        result.concat(@force_persist)
+        @force_persist = []
       end
 
       # Returns an array of slow samples, with either one or two
@@ -310,14 +363,27 @@ module NewRelic
       # sample returned will be the slowest sample among those
       # available during this harvest
       def add_samples_to(result, slow_threshold)
+
+        # pull out force persist
+        force_persist = result.select {|sample| sample.force_persist} || []
+        result.reject! {|sample| sample.force_persist}
+
+        force_persist.each {|sample| store_force_persist(sample)}
+
+
+        # Now get the slowest sample
         if @slowest_sample && @slowest_sample.duration >= slow_threshold
           result << @slowest_sample
         end
+
         result.compact!
         result = result.sort_by { |x| x.duration }
-        result = result[-1..-1] || []
+        result = result[-1..-1] || []               # take the slowest sample
+
         add_random_sample_to(result)
-        result
+        add_force_persist_to(result)
+
+        result.uniq
       end
 
       # get the set of collected samples, merging into previous samples,
@@ -327,17 +393,41 @@ module NewRelic
       def harvest(previous = [], slow_threshold = 2.0)
         return [] if disabled
         result = Array(previous)
+
         @samples_lock.synchronize do
           result = add_samples_to(result, slow_threshold)
+
           # clear previous transaction samples
           @slowest_sample = nil
           @random_sample = nil
           @last_sample = nil
         end
+
+        # Clamp the number of TTs we'll keep in memory and send
+        #
+        result = clamp_number_tts(result, 20) if result.length > 20
+
         # Truncate the samples at 2100 segments. The UI will clamp them at 2000 segments anyway.
         # This will save us memory and bandwidth.
         result.each { |sample| sample.truncate(@segment_limit) }
         result
+      end
+
+      # JON - THIS CODE NEEDS A UNIT TEST
+      def clamp_number_tts(tts, limit)
+        tts.sort! do |a,b|
+          if a.force_persist && b.force_persist
+            b.duration <=> a.duration
+          elsif a.force_persist
+            -1
+          elsif b.force_persist
+            1
+          else
+            b.duration <=> a.duration
+          end
+        end
+
+        tts[0..(limit-1)]
       end
 
       # reset samples without rebooting the web server
@@ -347,8 +437,6 @@ module NewRelic
         @random_sample = nil
         @slowest_sample = nil
       end
-
-      private
 
       # Checks to see if the transaction sampler is disabled, if
       # transaction trace recording is disabled by a thread local, or

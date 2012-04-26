@@ -49,7 +49,7 @@ module NewRelic
     def append_environment_value(name, value = nil)
       value = yield if block_given?
       @config[name] = value if value
-    rescue Exception
+    rescue
       # puts "#{e}\n  #{e.backtrace.join("\n  ")}"
       raise if @framework == :test
     end
@@ -58,7 +58,7 @@ module NewRelic
     # of gems - this catches errors that might be raised in the block
     def append_gem_list
       @gems += yield
-    rescue Exception => e
+    rescue => e
       # puts "#{e}\n  #{e.backtrace.join("\n  ")}"
       raise if @framework == :test
     end
@@ -67,7 +67,7 @@ module NewRelic
     # of plugins - this catches errors that might be raised in the block
     def append_plugin_list
       @plugins += yield
-    rescue Exception
+    rescue
       # puts "#{e}\n  #{e.backtrace.join("\n  ")}"
       raise if @framework == :test
     end
@@ -103,11 +103,28 @@ module NewRelic
     end
 
     # See what the number of cpus is, works only on some linux variants
-    def gather_cpu_info
-      return unless File.readable? '/proc/cpuinfo'
+    def gather_cpu_info(proc_file='/proc/cpuinfo')
+      return unless File.readable? proc_file
       @processors = append_environment_value('Processors') do
-        processors = File.readlines('/proc/cpuinfo').select { |line| line =~ /^processor\s*:/ }.size
-        raise "Cannot determine the number of processors in /proc/cpuinfo" unless processors > 0
+        cpuinfo = ''
+        File.open(proc_file) do |f|
+          loop do
+            begin
+              cpuinfo << f.read_nonblock(4096).strip
+            rescue EOFError
+              break
+            rescue Errno::EWOULDBLOCK, Errno::EAGAIN
+              cpuinfo = ''
+              break # don't select file handle, just give up
+            end
+          end
+        end
+        processors = cpuinfo.split("\n").select {|line| line =~ /^processor\s*:/ }.size
+
+        if processors == 0
+          processors = 1 # assume there is at least one processor
+          NewRelic::Agent.logger.warn("Cannot determine the number of processors in #{proc_file}")
+        end
         processors
       end
     end
@@ -155,9 +172,6 @@ module NewRelic
             config['adapter']
           end
         end
-      end
-      append_environment_value 'Database schema version' do
-        ActiveRecord::Migrator.current_version
       end
     end
     
@@ -217,6 +231,7 @@ module NewRelic
       ObjectSpace.each_object(klass) do |x|
         return x
       end
+      return nil
     end
     
     # Sets the @mongrel instance variable if we can find a Mongrel::HttpServer
@@ -228,21 +243,13 @@ module NewRelic
       @mongrel
     end
     
-    # sets the @unicorn instance variable if we can find a Unicorn::HttpServer
-    def unicorn
-      return @unicorn if @unicorn
-      if (defined?(::Unicorn) && defined?(::Unicorn::HttpServer)) && working_jruby?
-        @unicorn = find_class_in_object_space(::Unicorn::HttpServer)
-      end
-      @unicorn
-    end
-
     private
 
     # Although you can override the framework with NEWRELIC_DISPATCHER this
     # is not advisable since it implies certain api's being available.
     def discover_dispatcher
       @dispatcher ||= ENV['NEWRELIC_DISPATCHER'] && ENV['NEWRELIC_DISPATCHER'].to_sym
+      @dispatcher ||= ENV['NEW_RELIC_DISPATCHER'] && ENV['NEW_RELIC_DISPATCHER'].to_sym
       dispatchers = %w[passenger torquebox glassfish thin mongrel litespeed webrick fastcgi unicorn sinatra]
       while dispatchers.any? && @dispatcher.nil?
         send 'check_for_'+(dispatchers.shift)
@@ -257,6 +264,7 @@ module NewRelic
       # of JRuby.
       @framework ||= case
                      when ENV['NEWRELIC_FRAMEWORK'] then ENV['NEWRELIC_FRAMEWORK'].to_sym
+                     when ENV['NEW_RELIC_FRAMEWORK'] then ENV['NEW_RELIC_FRAMEWORK'].to_sym
                      when defined?(::NewRelic::TEST) then :test
                      when defined?(::Merb) && defined?(::Merb::Plugins) then :merb
                      when defined?(::Rails) then check_rails_version
@@ -336,11 +344,10 @@ module NewRelic
     end
 
     def check_for_unicorn
-      return unless defined?(::Unicorn) && defined?(::Unicorn::HttpServer)
-
-      # unlike mongrel, unicorn manages muliple threads and ports, so we
-      # have to map multiple processes into one instance, as we do with passenger
-      @dispatcher = :unicorn
+      if (defined?(::Unicorn) && defined?(::Unicorn::HttpServer)) && working_jruby?
+        v = find_class_in_object_space(::Unicorn::HttpServer)
+        @dispatcher = :unicorn if v 
+      end
     end
 
     def check_for_sinatra

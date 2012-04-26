@@ -8,7 +8,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
     @connection_stub = Mocha::Mockery.instance.named_mock('connection')
     @connection_stub.stubs(:execute).returns([['QUERY RESULT']])
 
-    NewRelic::TransactionSample.stubs(:get_connection).returns @connection_stub
+    NewRelic::Agent::Database.stubs(:get_connection).returns @connection_stub
     @t = make_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
   end
 
@@ -160,5 +160,18 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
   def test_timestamp
     s = @t.prepare_to_send(:explain_sql => 0.1)
     assert(s.timestamp.instance_of?(Float), "s.timestamp should be a Float, but is #{s.timestamp.class.inspect}")
+  end
+
+  def test_count_segments
+    transaction = run_sample_trace_on(NewRelic::Agent::TransactionSampler.new) do |sampler|
+      sampler.notice_push_scope "level0"
+      sampler.notice_push_scope "level-1"
+      sampler.notice_push_scope "level-2"
+      sampler.notice_sql(::SQL_STATEMENT, nil, 0)
+      sampler.notice_pop_scope "level-2"
+      sampler.notice_pop_scope "level-1"
+      sampler.notice_pop_scope "level0"
+    end
+    assert_equal 6, transaction.count_segments
   end
 end

@@ -7,96 +7,39 @@ module NewRelic
   # into one segment with multiple executions
   COLLAPSE_SEGMENTS_THRESHOLD = 2
 
-  # columns for a mysql explain plan
-  MYSQL_EXPLAIN_COLUMNS = [
-        "Id",
-        "Select Type",
-        "Table",
-        "Type",
-        "Possible Keys",
-        "Key",
-        "Key Length",
-        "Ref",
-        "Rows",
-        "Extra"
-      ].freeze
-
   class TransactionSample
 
-    attr_accessor :params, :root_segment
-    attr_accessor :profile
-    attr_reader :root_segment
-    attr_reader :params
-    attr_reader :sample_id
+    attr_accessor :params, :root_segment, :profile, :force_persist, :guid
+    attr_reader :root_segment, :params, :sample_id
 
     @@start_time = Time.now
 
     include TransactionAnalysis
 
-    class << self
-      def obfuscate_sql(sql)
-        NewRelic::Agent.instance.obfuscator.call(sql)
-      end
-      
-      # Returns a cached connection for a given ActiveRecord
-      # configuration - these are stored or reopened as needed, and if
-      # we cannot get one, we ignore it and move on without explaining
-      # the sql
-      def get_connection(config)
-        @@connections ||= {}
-
-        connection = @@connections[config]
-
-        return connection if connection
-
-        begin
-          connection = ActiveRecord::Base.send("#{config[:adapter]}_connection", config)
-          @@connections[config] = connection
-        rescue => e
-          NewRelic::Agent.agent.log.error("Caught exception #{e} trying to get connection to DB for explain. Control: #{config}")
-          NewRelic::Agent.agent.log.error(e.backtrace.join("\n"))
-          nil
-        end
-      end
-      
-      # Closes all the connections in the internal connection cache
-      def close_connections
-        @@connections ||= {}
-        @@connections.values.each do |connection|
-          begin
-            connection.disconnect!
-          rescue
-          end
-        end
-
-        @@connections = {}
-      end
-
-    end
-
     def initialize(time = Time.now.to_f, sample_id = nil)
       @sample_id = sample_id || object_id
       @start_time = time
+      @params = { :segment_count => -1, :request_params => {} }
+      @segment_count = -1
       @root_segment = create_segment 0.0, "ROOT"
-      @params = {}
-      @params[:request_params] = {}
+
+      @guid = generate_guid
+      NewRelic::Agent::TransactionInfo.get.guid = @guid
     end
 
     def count_segments
-      @root_segment.count_segments - 1    # don't count the root segment
+      @segment_count
     end
-    
+
     # Truncates the transaction sample to a maximum length determined
     # by the passed-in parameter. Operates recursively on the entire
     # tree of transaction segments in a depth-first manner
     def truncate(max)
-      count = count_segments
-      return if count < max
+      return if @segment_count < max
       @root_segment.truncate(max + 1)
-
-      ensure_segment_count_set(count)
+      @segment_count = max
     end
-    
+
     # makes sure that the parameter cache for segment count is set to
     # the correct value
     def ensure_segment_count_set(count)
@@ -129,13 +72,15 @@ module NewRelic
 
     def create_segment(relative_timestamp, metric_name, segment_id = nil)
       raise TypeError.new("Frozen Transaction Sample") if frozen?
+      @params[:segment_count] += 1
+      @segment_count += 1
       NewRelic::TransactionSample::Segment.new(relative_timestamp, metric_name, segment_id)
     end
 
     def duration
       root_segment.duration
     end
-    
+
     # Iterates recursively over each segment in the entire transaction
     # sample tree
     def each_segment(&block)
@@ -151,7 +96,7 @@ module NewRelic
     def to_s_compact
       @root_segment.to_s_compact
     end
-    
+
     # Searches the tree recursively for the segment with the given
     # id. note that this is an internal id, not an ActiveRecord id
     def find_segment(id)
@@ -170,6 +115,7 @@ module NewRelic
           when Enumerable then v.map(&:to_s).sort.join("; ")
           when String then v
           when Float then '%6.3s' % v
+          when Fixnum then v.to_s
           when nil then ''
         else
           raise "unexpected value type for #{k}: '#{v}' (#{v.class})"
@@ -188,9 +134,10 @@ module NewRelic
       regex = Regexp.new(regex)
 
       sample = TransactionSample.new(@start_time, sample_id)
-
-      params.each {|k,v| sample.params[k] = v}
-
+      
+      sample.params = params.dup
+      sample.params[:segment_count] = 0
+      
       delta = build_segment_with_omissions(sample, 0.0, @root_segment, sample.root_segment, regex)
       sample.root_segment.end_trace(@root_segment.exit_timestamp - delta)
       sample.profile = self.profile
@@ -209,11 +156,13 @@ module NewRelic
       sample = TransactionSample.new(@start_time, sample_id)
 
       sample.params.merge! self.params
+      sample.guid = self.guid
+      sample.force_persist = self.force_persist if self.force_persist
 
       begin
         build_segment_for_transfer(sample, @root_segment, sample.root_segment, options)
       ensure
-        self.class.close_connections
+        NewRelic::Agent::Database.close_connections
       end
 
       sample.root_segment.end_trace(@root_segment.exit_timestamp)
@@ -225,7 +174,19 @@ module NewRelic
     end
 
   private
-    
+
+
+
+    HEX_DIGITS = (0..15).map{|i| i.to_s(16)}
+    # generate a random 64 bit uuid
+    def generate_guid
+      guid = ''
+      HEX_DIGITS.each do |a|
+        guid << HEX_DIGITS[rand(16)]
+      end
+      guid
+    end
+
     # This is badly in need of refactoring
     def build_segment_with_omissions(new_sample, time_delta, source_segment, target_segment, regex)
       source_segment.called_segments.each do |source_called_segment|
@@ -278,12 +239,12 @@ module NewRelic
                 source_called_segment.duration > options[:explain_sql].to_f
               target_called_segment[:explain_plan] = source_called_segment.explain_sql
             end
-            
+
             target_called_segment[:sql] = case options[:record_sql]
-            when :raw then v
-            when :obfuscated then TransactionSample.obfuscate_sql(v)
-            else raise "Invalid value for record_sql: #{options[:record_sql]}"
-            end if options[:record_sql]
+              when :raw then v
+              when :obfuscated then NewRelic::Agent::Database.obfuscate_sql(v)
+              else raise "Invalid value for record_sql: #{options[:record_sql]}"
+            end.to_s if options[:record_sql]
           when :connection_config
             # don't copy it
           else

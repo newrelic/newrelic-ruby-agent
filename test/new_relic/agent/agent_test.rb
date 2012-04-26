@@ -16,6 +16,7 @@ module NewRelic
       end
       
       def test_save_or_transmit_data_should_transmit
+        NewRelic::Control.instance.stubs(:disable_serialization?).returns(false)
         NewRelic::Agent.expects(:load_data)
         @agent.expects(:harvest_and_send_timeslice_data)
         @agent.expects(:harvest_and_send_slowest_sample)
@@ -127,79 +128,6 @@ module NewRelic
         unsent_errors.expects(:+).with([])
         unsent_traces.expects(:+).with([])
         @agent.merge_data_from([{}, [], []])
-      end
-
-      def test_sql_normalization
-
-        # basic statement
-        assert_equal "INSERT INTO X values(?,?, ? , ?)",
-        @agent.send(:default_sql_obfuscator, "INSERT INTO X values('test',0, 1 , 2)")
-
-        # escaped literals
-        assert_equal "INSERT INTO X values(?, ?,?, ? , ?)",
-        @agent.send(:default_sql_obfuscator, "INSERT INTO X values('', 'jim''s ssn',0, 1 , 'jim''s son''s son')")
-
-        # multiple string literals
-        assert_equal "INSERT INTO X values(?,?,?, ? , ?)",
-        @agent.send(:default_sql_obfuscator, "INSERT INTO X values('jim''s ssn','x',0, 1 , 2)")
-
-        # empty string literal
-        # NOTE: the empty string literal resolves to empty string, which for our purposes is acceptable
-        assert_equal "INSERT INTO X values(?,?,?, ? , ?)",
-        @agent.send(:default_sql_obfuscator, "INSERT INTO X values('','x',0, 1 , 2)")
-
-        # try a select statement
-        assert_equal "select * from table where name=? and ssn=?",
-        @agent.send(:default_sql_obfuscator, "select * from table where name='jim gochee' and ssn=0012211223")
-
-        # number literals embedded in sql - oh well
-        assert_equal "select * from table_? where name=? and ssn=?",
-        @agent.send(:default_sql_obfuscator, "select * from table_007 where name='jim gochee' and ssn=0012211223")
-      end
-
-      def test_sql_normalization__single_quotes
-        assert_equal "INSERT ? into table",
-        @agent.send(:default_sql_obfuscator, "INSERT 'this isn''t a real value' into table")
-        assert_equal "INSERT ? into table",
-        @agent.send(:default_sql_obfuscator, %q[INSERT '"' into table])
-        assert_equal "INSERT ? into table",
-        @agent.send(:default_sql_obfuscator, %q[INSERT ' "some text" \" ' into table])
-        #    could not get this one licked.  no biggie
-        #    assert_equal "INSERT ? into table",
-        #    @agent.send(:default_sql_obfuscator, %q[INSERT '\'' into table])
-        assert_equal "INSERT ? into table",
-        @agent.send(:default_sql_obfuscator, %q[INSERT ''' ' into table])
-      end
-      def test_sql_normalization__double_quotes
-        assert_equal "INSERT ? into table",
-        @agent.send(:default_sql_obfuscator, %q[INSERT "this isn't a real value" into table])
-        assert_equal "INSERT ? into table",
-        @agent.send(:default_sql_obfuscator, %q[INSERT "'" into table])
-        assert_equal "INSERT ? into table",
-        @agent.send(:default_sql_obfuscator, %q[INSERT " \" " into table])
-        assert_equal "INSERT ? into table",
-        @agent.send(:default_sql_obfuscator, %q[INSERT " 'some text' " into table])
-      end
-      def test_sql_obfuscation_filters
-        @agent.set_sql_obfuscator(:replace) do |string|
-          "1" + string
-        end
-
-        sql = "SELECT * FROM TABLE 123 'jim'"
-
-        assert_equal "1" + sql, @agent.obfuscator.call(sql)
-
-        @agent.set_sql_obfuscator(:before) do |string|
-          "2" + string
-        end
-
-        assert_equal "12" + sql, @agent.obfuscator.call(sql)
-
-        @agent.set_sql_obfuscator(:after) do |string|
-          string + "3"
-        end
-
-        assert_equal "12" + sql + "3", @agent.obfuscator.call(sql)
       end
 
       def test_should_not_log_log_file_location_if_no_log_file

@@ -12,8 +12,10 @@ module NewRelic
 end
 
 DependencyDetection.defer do
+  @name = :delayed_job_injection
+  
   depends_on do
-    defined?(::Delayed) && defined?(::Delayed::Worker)
+    defined?(::Delayed) && defined?(::Delayed::Worker) && !NewRelic::Control.instance['disable_dj']
   end
   
   executes do
@@ -41,4 +43,9 @@ DependencyDetection.defer do
     end
   end
 end
-DependencyDetection.detect!
+
+# If Rails is defined, this gets called in an after_initialize hook
+# see NewRelic::Control::Frameworks::Rails#init_config
+unless defined?(Rails)
+  DependencyDetection.detect!
+end

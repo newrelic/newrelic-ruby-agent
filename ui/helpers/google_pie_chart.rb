@@ -1,6 +1,5 @@
 
 # A wrapper around the google charts service.
-# TODO consider making generic and open sourcing
 class GooglePieChart
   attr_accessor :width, :height, :color
 

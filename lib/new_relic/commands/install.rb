@@ -52,21 +52,10 @@ at www.newrelic.com, and replace the newrelic.yml file with the one
 you receive upon registration.
     EOF
     puts <<-EOF unless quiet
-
+    
 E-mail support@newrelic.com with any problems or questions.
-
     EOF
-    puts <<-EOF
-
-Installing the plugin from Rubyforge is deprecated. This repository will not be updated after January 2011
-
-Please use one of the following options:
-
-Gems: gem install newrelic_rpm
-
-Github! git clone git://github.com/newrelic/rpm.git vendor/plugins/newrelic_rpm
-
-    EOF
+    
   end
 
   def content

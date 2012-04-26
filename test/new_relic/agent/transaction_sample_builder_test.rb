@@ -6,6 +6,14 @@ class NewRelic::Agent::TransationSampleBuilderTest < Test::Unit::TestCase
     @builder = NewRelic::Agent::TransactionSampleBuilder.new
   end
 
+  # if it doesn't the core app tests will break.  Not strictly necessary but
+  # we'll enforce it with this test for now.
+  def test_trace_entry_returns_segment
+    segment = @builder.trace_entry("/Foo/Bar", Time.now)
+    assert segment, "Segment should not be nil"
+    assert segment.is_a?(NewRelic::TransactionSample::Segment), "Segment should not be a #{segment.class.name}"
+  end
+
   def test_build_sample
     build_segment("a") do
       build_segment("aa") do
@@ -42,7 +50,7 @@ class NewRelic::Agent::TransationSampleBuilderTest < Test::Unit::TestCase
     begin
       builder.sample
       assert false
-    rescue Exception => e
+    rescue => e
       # expected
     end
 
@@ -94,8 +102,10 @@ class NewRelic::Agent::TransationSampleBuilderTest < Test::Unit::TestCase
 
     should_be_a_copy = sample.omit_segments_with('OMIT NOTHING')
     validate_segment should_be_a_copy.root_segment, false
-
-    assert sample.to_s == should_be_a_copy.to_s
+    
+    assert_equal sample.params, should_be_a_copy.params
+    assert_equal(sample.root_segment.to_debug_str(0),
+                 should_be_a_copy.root_segment.to_debug_str(0))
 
     without_code_loading = sample.omit_segments_with('Rails/Application Code Loading')
     validate_segment without_code_loading.root_segment, false
@@ -159,7 +169,21 @@ class NewRelic::Agent::TransationSampleBuilderTest < Test::Unit::TestCase
     @builder.finish_trace(Time.now.to_f)
     validate_builder
   end
+  
+  def test_trace_should_not_record_more_than_segment_limit
+    @builder.segment_limit = 3
+    8.times {|i| build_segment i.to_s }
+    assert_equal 3, @builder.sample.count_segments
+  end
 
+  # regression
+  def test_trace_should_log_segment_reached_once
+    @builder.segment_limit = 3
+    NewRelic::Control.instance.log.expects(:debug).once
+    8.times {|i| build_segment i.to_s }
+  end
+  
+  
   def validate_builder(check_names = true)
     validate_segment @builder.sample.root_segment, check_names
   end
