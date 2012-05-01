@@ -44,8 +44,8 @@ cd ruby_agent-tests
 #env
 #ls -al /home/hudson/.rvm/bin
 # source ~/.rvm/scripts/rvm
-rvm 1.9.2
-ruby -v
+#rvm 1.9.2
+#ruby -v
 
 # rvm --force gemset delete ruby_agent-tests
 
