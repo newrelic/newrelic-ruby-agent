@@ -29,8 +29,8 @@ cd $SCRATH_DIR
 git clone --depth=1 git@github.com:newrelic/ruby_agent-tests.git ruby_agent-tests
 git clone --depth=1 git@github.com:newrelic/rpm_contrib.git rpm_contrib
 
-if [ -x ../../ruby_agent ] ; then
-	ln -s ../../ruby_agent ./ruby_agent
+if [ -x ../../Ruby_Agent ] ; then
+	ln -s ../../Ruby_Agent ./ruby_agent
 else 
 	echo "Ruby_Agent is missing"
 	exit 1
