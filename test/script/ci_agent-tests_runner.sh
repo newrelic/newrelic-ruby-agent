@@ -12,7 +12,10 @@ echo $0
 script_dirname=`dirname $0`
 cd "$script_dirname/../../"
 pwd
-
+echo "Contents of current directory"
+ls -al
+echo "Contents of parent directory"
+ls -al ../
 
 
 if [ -x $SCRATH_DIR ] ; then
@@ -26,7 +29,7 @@ cd $SCRATH_DIR
 git clone --depth=1 git@github.com:newrelic/ruby_agent-tests.git ruby_agent-tests
 git clone --depth=1 git@github.com:newrelic/rpm_contrib.git rpm_contrib
 
-if [ -x ../../../ruby_agent ] ; then
+if [ -x ../../ruby_agent ] ; then
 	ln -s ../../ruby_agent ./ruby_agent
 else 
 	echo "Ruby_Agent is missing"
