@@ -47,7 +47,7 @@ module Agent
       end
 
       def log_added_sampler(type, sampler)
-        log.debug "Adding #{type} sampler: #{sampler.inspect}"
+        log.debug "Adding #{type} sampler: #{sampler.id}"
       end
 
       public
