@@ -3,19 +3,15 @@
 SCRATH_DIR=./agent-tests_tmp
 #git pull git@github.com:newrelic/ruby_agent-tests.git
 
-echo $PWD 
+#echo $PWD 
 script_dirname=`dirname $0`
-echo $script_dirname
-echo $0
+#echo $script_dirname
+#echo $0
 
 # make sure that we're in the project root
 script_dirname=`dirname $0`
 cd "$script_dirname/../../"
-pwd
-echo "Contents of current directory"
-ls -al
-echo "Contents of parent directory"
-ls -al ../
+
 
 
 if [ -x $SCRATH_DIR ] ; then
@@ -33,7 +29,7 @@ if [ -x ../../Ruby_Agent ] ; then
 	ln -s ../../Ruby_Agent ./ruby_agent
 else 
 	echo "*********** Ruby_Agent can't be found ***********"
-	exit 0
+	exit 1
 fi
 
 #exit 0
