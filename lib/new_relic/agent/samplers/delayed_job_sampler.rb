@@ -51,7 +51,6 @@ module NewRelic
 
         private
         def record(stat, size)
-          NewRelic::Agent.instance.log.debug "DelayedJob: recording #{stat.name}: #{size}"
           stat.record_data_point size
         end
       end
