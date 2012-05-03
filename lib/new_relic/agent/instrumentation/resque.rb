@@ -68,11 +68,10 @@ DependencyDetection.defer do
     end
 
     ::Resque.after_fork do |job|
-      NewRelic::Agent.after_fork(:force_reconnect   => false,
-                                 :report_to_channel => job.object_id)
+      NewRelic::Agent.after_fork(:report_to_channel => job.object_id)
     end
   end
 end 
 
 # call this now so it is memoized before potentially forking worker processes
-# NewRelic::LanguageSupport.can_fork?
+NewRelic::LanguageSupport.can_fork?

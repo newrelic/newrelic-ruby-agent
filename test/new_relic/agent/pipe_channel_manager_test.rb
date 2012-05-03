@@ -31,7 +31,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
         NewRelic::Agent.after_fork
         new_engine = NewRelic::Agent::StatsEngine.new
         new_engine.get_stats_no_scope(metric).record_data_point(2.0)
-        listener.pipes[666].in << Marshal.dump(:stats => new_engine.harvest_timeslice_data({}, {}))
+        listener.pipes[666].write(Marshal.dump(:stats => new_engine.harvest_timeslice_data({}, {})))
       end
       Process.wait(pid)
       
@@ -54,7 +54,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
         new_sampler = NewRelic::Agent::TransactionSampler.new
         sample = TransactionSampleTestHelper.run_sample_trace_on(new_sampler)
         new_sampler.store_force_persist(sample)
-        listener.pipes[667].in << Marshal.dump(:transaction_traces => new_sampler.harvest([], 0))
+        listener.pipes[667].write(Marshal.dump(:transaction_traces => new_sampler.harvest([], 0)))
       end
       Process.wait(pid)
       
@@ -80,7 +80,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
         new_sampler.notice_error(Exception.new("new message"), :uri => '/myurl/',
                                  :metric => 'path', :referer => 'test_referer',
                                  :request_params => {:x => 'y'})
-        listener.pipes[668].in << Marshal.dump(:error_traces => new_sampler.harvest_errors([]))
+        listener.pipes[668].write(Marshal.dump(:error_traces => new_sampler.harvest_errors([])))
       end
       Process.wait(pid)
       

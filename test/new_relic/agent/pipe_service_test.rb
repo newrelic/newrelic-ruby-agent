@@ -21,7 +21,9 @@ class PipeServiceTest < Test::Unit::TestCase
   def test_metric_data_buffers
     metric_data = generate_metric_data('Custom/test/method')
     @service.metric_data(0, 1, metric_data)
-    assert_equal metric_data, @service.buffer[:stats]
+    
+    expected_data = { metric_data[0].metric_spec => metric_data[0].stats }
+    assert_equal expected_data, @service.stats_engine.stats_hash
   end
   
   def test_transaction_sample_data
@@ -53,15 +55,15 @@ class PipeServiceTest < Test::Unit::TestCase
     pipe = NewRelic::Agent::PipeChannelManager.channels[456]
     pipe.in.close
     received_data = Marshal.load(pipe.out.read)
-
-    assert_equal 'Custom/something', received_data[:stats][0].metric_spec.name
+    
+    assert_equal 'Custom/something', received_data[:stats].keys.sort[0].name
     assert_equal ['txn0'], received_data[:transaction_traces]
     assert_equal ['err0'], received_data[:error_traces].sort
   end
 
   def generate_metric_data(metric_name, data=1.0)
-    engine = NewRelic::Agent.agent.stats_engine
+    engine = NewRelic::Agent::StatsEngine.new
     engine.get_stats_no_scope(metric_name).record_data_point(data)
-    engine.harvest_timeslice_data({},{}).values
+    engine.harvest_timeslice_data({}, {}).values
   end
 end

@@ -3,6 +3,7 @@ require 'rack'
 require 'uri'
 require 'socket'
 require 'timeout'
+require 'ostruct'
 
 class FakeCollector
   attr_accessor :agent_data, :mock
@@ -34,7 +35,9 @@ class FakeCollector
       res.write Marshal.dump(@mock[method])
       run_id = uri.query =~ /run_id=(\d+)/ ? $1 : nil
       req.body.rewind
-      @agent_data << AgentPost.new(method, Marshal.load(req.body.read), run_id)
+      @agent_data << OpenStruct.new(:method => method,
+                                    :body => Marshal.load(req.body.read),
+                                    :run_id => run_id)
     end
     res.finish
   end
@@ -61,16 +64,7 @@ class FakeCollector
     @id_counter = 0
     @agent_data = []
   end
-  
-  class AgentPost
-    attr_reader :run_id, :method, :body
-    def initialize(method, body, run_id)
-      @run_id = run_id.to_i
-      @method = method
-      @body = body
-    end
-  end
-  
+    
   def is_port_available?(ip, port)
     begin
       Timeout::timeout(1) do

@@ -30,6 +30,11 @@ module NewRelic
           @out.close unless @out.closed?
           @in.close unless @in.closed?
         end
+
+        def write(data)
+          @out.close unless @out.closed?
+          @in << data
+        end
       end
       
       class Listener
@@ -46,6 +51,7 @@ module NewRelic
         end
 
         def start
+          return if @started == true
           @started = true
           @thread = Thread.new do
             loop do
@@ -57,10 +63,11 @@ module NewRelic
                   next # found a new pipe, restart select
                 end
                 
+                close_in_handle_for(ready)
                 got = ready.read
-                if got.empty?
+                if got.empty? && ready.eof?
                   ready.close
-                  next # this pipe is already closed, move on
+                  next # this pipe done, move on
                 end
                 
                 payload = Marshal.load(got)
@@ -75,8 +82,9 @@ module NewRelic
         end
         
         def stop
+          return unless @started == true
           @started = false
-          wake.in << '.'
+          wake.in << '.' unless wake.in.closed?
           @thread.exit
           @thread.join # make sure we wait for the thread to exit
           close_all_pipes
@@ -103,7 +111,11 @@ module NewRelic
         
         def clean_up_pipes
           @pipes.reject! {|id, pipe| pipe.out.closed? }
-          @pipes.each {|id, pipe| pipe.in.close unless pipe.in.closed? }
+        end
+
+        def close_in_handle_for(out_handle)
+          in_handle = @pipes.values.find{|pipe| pipe.out == out_handle }.in
+          in_handle.close unless in_handle.closed?
         end
       end
     end

@@ -154,6 +154,7 @@ module NewRelic
           
           if channel_id = options[:report_to_channel]
             @service = NewRelic::Agent::PipeService.new(channel_id)
+            @connected_pid = $$
           end
           
           # log.debug "Agent received after_fork notice in #$$: [#{control.agent_enabled?}; monitor=#{control.monitor_mode?}; connected: #{@connected.inspect}; thread=#{@worker_thread.inspect}]"
@@ -841,8 +842,6 @@ module NewRelic
           # Sets the collector host and connects to the server, then
           # invokes the final configuration with the returned data
           def query_server_for_configuration
-#             @service.get_redirect_host
-
             finish_setup(connect_to_server)
           end
 
@@ -907,14 +906,15 @@ module NewRelic
         def merge_data_from(data)
           metrics, transaction_traces, errors = data
           @stats_engine.merge_data(metrics) if metrics
-          if transaction_traces
+          if transaction_traces && transaction_traces.respond_to?(:any?) &&
+              transaction_traces.any?
             if @traces
               @traces += transaction_traces
             else
               @traces = transaction_traces
             end
           end
-          if errors
+          if errors && errors.respond_to?(:any?) && errors.any?
             if @unsent_errors
               @unsent_errors = @unsent_errors + errors
             else
