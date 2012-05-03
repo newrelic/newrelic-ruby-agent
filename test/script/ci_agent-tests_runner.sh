@@ -32,8 +32,8 @@ git clone --depth=1 git@github.com:newrelic/rpm_contrib.git rpm_contrib
 if [ -x ../../Ruby_Agent ] ; then
 	ln -s ../../Ruby_Agent ./ruby_agent
 else 
-	echo "Ruby_Agent is missing"
-	exit 1
+	echo "*********** Ruby_Agent can't be found ***********"
+	exit 0
 fi
 
 #exit 0
