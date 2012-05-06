@@ -8,18 +8,20 @@ module NewRelic
   # strings
   def normalize_params(params)
     case params
+      when Hash
+        # optimize for empty hash since that is often what this is called with.
+        return params if params.empty?
+        new_params = {}
+        params.each do | key, value |
+          new_params[truncate(normalize_params(key),64)] = normalize_params(value)
+        end
+        new_params
       when Symbol, FalseClass, TrueClass, nil
         params
       when Numeric
         truncate(params.to_s)
       when String
         truncate(params)
-      when Hash
-        new_params = {}
-        params.each do | key, value |
-          new_params[truncate(normalize_params(key),64)] = normalize_params(value)
-        end
-        new_params
       when Array
         params.first(DEFAULT_ARRAY_TRUNCATION_SIZE).map{|item| normalize_params(item)}
     else

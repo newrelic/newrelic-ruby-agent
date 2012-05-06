@@ -4,7 +4,7 @@ require 'new_relic/agent/transaction_sample_builder'
 
 module NewRelic
   module Agent
-    
+
     # This class contains the logic of sampling a transaction -
     # creation and modification of transaction samples
     class TransactionSampler
@@ -25,6 +25,7 @@ module NewRelic
       attr_reader :samples, :last_sample, :disabled
 
       def initialize
+
         # @samples is an array of recent samples up to @max_samples in
         # size - it's only used by developer mode
         @samples = []
@@ -49,14 +50,20 @@ module NewRelic
         # @segment_limit and @stack_trace_threshold come from the
         # configuration file, with built-in defaults that should
         # suffice for most customers
-        
+
         # enable if config.fetch('enabled', true)
-        
+
         @segment_limit = config.fetch('limit_segments', 4000)
         @stack_trace_threshold = config.fetch('stack_trace_threshold', 0.500).to_f
         @explain_threshold = config.fetch('explain_threshold', 0.5).to_f
         @explain_enabled = config.fetch('explain_enabled', true)
         @transaction_threshold = config.fetch('transation_threshold', 2.0)
+
+        # Configure the sample storage policy.  Create a list of methods to be called.
+        @store_sampler_methods = [ :store_random_sample, :store_slowest_sample ]
+        if NewRelic::Control.instance.developer_mode?
+          @store_sampler_methods << :store_sample_for_developer_mode
+        end
       end
 
       def config
@@ -180,13 +187,11 @@ module NewRelic
       # @samples array, and the @slowest_sample variable if it is
       # slower than the current occupant of that slot
       def store_sample(sample)
-        store_random_sample(sample)
-        store_sample_for_developer_mode(sample)
-        store_slowest_sample(sample)
-        
+        @store_sampler_methods.each{|sym| send sym, sample}
         if NewRelic::Agent::TransactionInfo.get.force_persist_sample?(sample)
           store_force_persist(sample)
         end
+
       end
 
       # Only active when random sampling is true - this is very rarely
@@ -197,7 +202,7 @@ module NewRelic
           @random_sample = sample
         end
       end
-      
+
       def store_force_persist(sample)
         @force_persist << sample
 
@@ -347,7 +352,7 @@ module NewRelic
         end
         nil # don't assume this method returns anything
       end
-      
+
       def add_force_persist_to(result)
         result.concat(@force_persist)
         @force_persist = []
@@ -358,14 +363,14 @@ module NewRelic
       # sample returned will be the slowest sample among those
       # available during this harvest
       def add_samples_to(result, slow_threshold)
-        
+
         # pull out force persist
         force_persist = result.select {|sample| sample.force_persist} || []
         result.reject! {|sample| sample.force_persist}
-        
+
         force_persist.each {|sample| store_force_persist(sample)}
-        
-        
+
+
         # Now get the slowest sample
         if @slowest_sample && @slowest_sample.duration >= slow_threshold
           result << @slowest_sample
@@ -374,10 +379,10 @@ module NewRelic
         result.compact!
         result = result.sort_by { |x| x.duration }
         result = result[-1..-1] || []               # take the slowest sample
-        
+
         add_random_sample_to(result)
         add_force_persist_to(result)
-        
+
         result.uniq
       end
 
@@ -388,26 +393,26 @@ module NewRelic
       def harvest(previous = [], slow_threshold = 2.0)
         return [] if disabled
         result = Array(previous)
-        
+
         @samples_lock.synchronize do
           result = add_samples_to(result, slow_threshold)
-                    
+
           # clear previous transaction samples
           @slowest_sample = nil
           @random_sample = nil
           @last_sample = nil
         end
-        
+
         # Clamp the number of TTs we'll keep in memory and send
         #
         result = clamp_number_tts(result, 20) if result.length > 20
-        
+
         # Truncate the samples at 2100 segments. The UI will clamp them at 2000 segments anyway.
         # This will save us memory and bandwidth.
         result.each { |sample| sample.truncate(@segment_limit) }
         result
       end
-      
+
       # JON - THIS CODE NEEDS A UNIT TEST
       def clamp_number_tts(tts, limit)
         tts.sort! do |a,b|
@@ -420,9 +425,9 @@ module NewRelic
           else
             b.duration <=> a.duration
           end
-        end        
-        
-        tts[0..(limit-1)]  
+        end
+
+        tts[0..(limit-1)]
       end
 
       # reset samples without rebooting the web server
