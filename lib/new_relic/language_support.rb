@@ -86,4 +86,14 @@ module NewRelic::LanguageSupport
     numbers = version.split('.')
     numbers == ::RUBY_VERSION.split('.')[0, numbers.size]
   end
+
+  def test_forkability
+    child = Process.fork { exit! }
+    # calling wait here doesn't seem like it should necessary, but it seems to
+    # resolve some weird edge cases with resque forking.
+    Process.wait child
+    true
+  rescue NotImplementedError
+    false
+  end
 end
