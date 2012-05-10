@@ -2,6 +2,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_hel
 
 class PipeServiceTest < Test::Unit::TestCase
   def setup
+    NewRelic::Agent::PipeChannelManager.listener.stop    
     NewRelic::Agent::PipeChannelManager.register_report_channel(456)
     @service = NewRelic::Agent::PipeService.new(456)
   end

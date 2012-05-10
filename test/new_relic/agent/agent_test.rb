@@ -146,9 +146,9 @@ module NewRelic
           @unsent_timeslice_data = unsent_timeslice_data
           @traces = unsent_traces
         }
-        unsent_errors.expects(:+).with([])
-        unsent_traces.expects(:+).with([])
-        @agent.merge_data_from([{}, [], []])
+        unsent_traces.expects(:+).with([1,2,3])
+        unsent_errors.expects(:+).with([4,5,6])
+        @agent.merge_data_from([{}, [1,2,3], [4,5,6]])
       end
 
       def test_should_not_log_log_file_location_if_no_log_file

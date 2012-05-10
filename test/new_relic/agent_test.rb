@@ -46,7 +46,6 @@ module NewRelic
       metric = 'Custom/test/method'
       NewRelic::Agent.instance.stats_engine.get_stats_no_scope(metric) \
         .record_data_point(1.0)
-
       
       NewRelic::Agent.register_report_channel(:test) # before fork
       pid = Process.fork do
@@ -60,6 +59,8 @@ module NewRelic
       engine = NewRelic::Agent.agent.stats_engine
       assert_equal(3.0, engine.lookup_stats(metric).total_call_time)
       assert_equal(2, engine.lookup_stats(metric).call_count)
+
+      NewRelic::Agent::PipeChannelManager.listener.stop
     end
     
     def test_reset_stats
