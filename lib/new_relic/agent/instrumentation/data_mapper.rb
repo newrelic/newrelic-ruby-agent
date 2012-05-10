@@ -197,7 +197,7 @@ module NewRelic
         # the proper call scope.
         def log_with_newrelic_instrumentation(msg)
           return unless NewRelic::Agent.is_execution_traced?
-          return unless operation = case msg.query
+          return unless operation = case NewRelic::Helper.correctly_encoded(msg.query)
                                     when /^\s*select/i          then 'find'
                                     when /^\s*(update|insert)/i then 'save'
                                     when /^\s*delete/i          then 'destroy'
