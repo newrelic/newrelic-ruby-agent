@@ -1,9 +1,8 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'fake_collector'))
 
 class NewRelicServiceTest < Test::Unit::TestCase
   def setup
-    $fake_collector ||= FakeCollector.new
+    $fake_collector ||= NewRelic::FakeCollector.new
     $fake_collector.run
     $fake_collector.reset
 
@@ -76,4 +75,10 @@ class NewRelicServiceTest < Test::Unit::TestCase
     service = NewRelic::Agent::NewRelicService.new('abcdef', @server)
     assert_equal 600, service.request_timeout
   end
+  
+  def test_should_throw_received_errors
+    assert_raise NewRelic::Agent::ServerConnectionException do
+      @service.send(:invoke_remote, :bogus_method)
+    end
+  end  
 end

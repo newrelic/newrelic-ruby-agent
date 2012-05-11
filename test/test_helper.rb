@@ -44,6 +44,9 @@ require 'mocha'
 require 'mocha/integration/test_unit'
 require 'mocha/integration/test_unit/assertion_counter'
 
+require 'new_relic/fake_service'
+require 'new_relic/fake_collector'
+
 class Test::Unit::TestCase
   include Mocha::API
 

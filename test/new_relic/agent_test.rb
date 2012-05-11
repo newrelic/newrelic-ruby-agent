@@ -1,6 +1,4 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
-require File.expand_path(File.join(File.dirname(__FILE__),'..','fake_collector'))
-require File.expand_path(File.join(File.dirname(__FILE__),'..','fake_service'))
 require 'ostruct'
 
 module NewRelic
@@ -39,7 +37,8 @@ module NewRelic
       NewRelic::Control.instance.stubs(:agent_enabled?).returns(true)
       NewRelic::Control.instance.stubs(:monitor_mode?).returns(true)
             
-      NewRelic::Agent::Agent.instance.service = FakeService.new
+      NewRelic::Agent::Agent.instance.service = NewRelic::FakeService.new
+      NewRelic::Agent.shutdown
       NewRelic::Agent.manual_start(:license_key => ('1234567890' * 4),
                                    :start_channel_listener => true)
       
