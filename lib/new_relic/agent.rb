@@ -97,7 +97,7 @@ module NewRelic
     require 'new_relic/agent/samplers/cpu_sampler'
     require 'new_relic/agent/samplers/memory_sampler'
     require 'new_relic/agent/samplers/object_sampler'
-    require 'new_relic/agent/samplers/delayed_job_lock_sampler'
+    require 'new_relic/agent/samplers/delayed_job_sampler'
     require 'set'
     require 'thread'
     require 'resolv'
@@ -128,8 +128,7 @@ module NewRelic
 
     # The singleton Agent instance.  Used internally.
     def agent #:nodoc:
-      raise "Plugin not initialized!" if @agent.nil?
-      @agent
+      @agent || raise("Plugin not initialized!")
     end
 
     def agent=(new_instance)#:nodoc:

@@ -5,14 +5,14 @@
 
 Gem::Specification.new do |s|
   s.name = "newrelic_rpm"
-  s.version = "3.3.3.beta2"
+  s.version = "3.3.5.alpha"
 
-  s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
+  s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
   s.authors = ["Bill Kayser", "Jon Guymon", "Justin George", "Darin Swanson"]
-  s.date = "2012-03-15"
+  s.date = "2012-05-03"
   s.description = "New Relic is a performance management system, developed by New Relic,\nInc (http://www.newrelic.com).  New Relic provides you with deep\ninformation about the performance of your web application as it runs\nin production. The New Relic Ruby Agent is dual-purposed as a either a\nGem or plugin, hosted on\nhttp://github.com/newrelic/rpm/\n"
   s.email = "support@newrelic.com"
-  s.executables = ["newrelic", "mongrel_rpm", "newrelic_cmd"]
+  s.executables = ["newrelic_cmd", "newrelic", "mongrel_rpm"]
   s.extra_rdoc_files = [
     "CHANGELOG",
     "LICENSE",
@@ -68,7 +68,7 @@ Gem::Specification.new do |s|
     "lib/new_relic/agent/method_tracer.rb",
     "lib/new_relic/agent/sampler.rb",
     "lib/new_relic/agent/samplers/cpu_sampler.rb",
-    "lib/new_relic/agent/samplers/delayed_job_lock_sampler.rb",
+    "lib/new_relic/agent/samplers/delayed_job_sampler.rb",
     "lib/new_relic/agent/samplers/memory_sampler.rb",
     "lib/new_relic/agent/samplers/object_sampler.rb",
     "lib/new_relic/agent/shim_agent.rb",
@@ -103,6 +103,7 @@ Gem::Specification.new do |s|
     "lib/new_relic/control/server_methods.rb",
     "lib/new_relic/data_serialization.rb",
     "lib/new_relic/delayed_job_injection.rb",
+    "lib/new_relic/helper.rb",
     "lib/new_relic/language_support.rb",
     "lib/new_relic/local_environment.rb",
     "lib/new_relic/merbtasks.rb",
@@ -203,6 +204,8 @@ Gem::Specification.new do |s|
     "test/new_relic/version_number_test.rb",
     "test/script/build_test_gem.sh",
     "test/script/ci.sh",
+    "test/script/ci_agent-tests_runner.sh",
+    "test/script/ci_bench.sh",
     "test/test_contexts.rb",
     "test/test_helper.rb",
     "ui/helpers/developer_mode_helper.rb",
@@ -290,7 +293,6 @@ Gem::Specification.new do |s|
   s.summary = "New Relic Ruby Agent"
 
   if s.respond_to? :specification_version then
-    current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then

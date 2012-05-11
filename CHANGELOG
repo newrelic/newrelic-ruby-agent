@@ -1,3 +1,13 @@
+ * Don't raise when extracting metrics from SQL queries with non UTF-8 bytes.
+ * Replaced "Custom/DJ Locked Jobs" metric with three new metrics for monitoring 
+   DelayedJob: queue_length, failed_jobs, and locked_jobs, all under Workers/DelayedJob
+
+v3.3.4.1
+ * Bug fix when rendering empty collection in Rails 3.1+
+
+v3.3.4
+  * Rails 3 view instrumentation
+
 v3.3.3
   * Improved Sinatra instrumentation
   * Limit the number of nodes collected in long running transactions to prevent leaking memory

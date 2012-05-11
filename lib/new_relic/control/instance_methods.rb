@@ -156,9 +156,9 @@ module NewRelic
           @yaml = load_newrelic_yml(newrelic_file, binding)
         end
       rescue ScriptError, StandardError => e
-        puts e
-        puts e.backtrace.join("\n")
-        raise "Error reading newrelic.yml file: #{e}"
+        new_err = e.class.new("Error reading newrelic.yml file: #{e}")
+        new_err.set_backtrace(e.backtrace)
+        raise new_err
       end
       
       def load_newrelic_yml(path, binding)

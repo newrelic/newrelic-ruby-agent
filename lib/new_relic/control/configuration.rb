@@ -85,7 +85,7 @@ module NewRelic
 
       def apdex_t
         # Always initialized with a default
-        fetch('apdex_t').to_f
+        @apdex_t_float ||= fetch('apdex_t').to_f
       end
 
       def license_key

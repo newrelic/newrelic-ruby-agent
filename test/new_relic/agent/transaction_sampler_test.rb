@@ -247,7 +247,8 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   end
 
   def test_store_sample_for_developer_mode_no_dev
-    NewRelic::Control.instance.expects(:developer_mode?).returns(false)
+    NewRelic::Control.instance.stubs(:developer_mode?).returns(false)
+    @sampler.configure!
     sample = mock('sample')
     @sampler.store_sample_for_developer_mode(sample)
     assert_equal([], @sampler.instance_variable_get('@samples'))

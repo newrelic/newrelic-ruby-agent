@@ -41,6 +41,7 @@ module NewRelic
           if @sample.count_segments == @segment_limit
             NewRelic::Control.instance.log.debug("Segment limit of #{@segment_limit} reached, ceasing collection.")
           end
+          @current_segment
         end
       end
 

@@ -15,7 +15,7 @@ module NewRelic
     @@start_time = Time.now
 
     include TransactionAnalysis
-    
+
     def initialize(time = Time.now.to_f, sample_id = nil)
       @sample_id = sample_id || object_id
       @start_time = time
@@ -30,7 +30,7 @@ module NewRelic
     def count_segments
       @segment_count
     end
-        
+
     # Truncates the transaction sample to a maximum length determined
     # by the passed-in parameter. Operates recursively on the entire
     # tree of transaction segments in a depth-first manner
@@ -39,7 +39,13 @@ module NewRelic
       @root_segment.truncate(max + 1)
       @segment_count = max
     end
-    
+
+    # makes sure that the parameter cache for segment count is set to
+    # the correct value
+    def ensure_segment_count_set(count)
+      params[:segment_count] ||= count
+    end
+
     # offset from start of app
     def timestamp
       @start_time - @@start_time.to_f
@@ -74,7 +80,7 @@ module NewRelic
     def duration
       root_segment.duration
     end
-    
+
     # Iterates recursively over each segment in the entire transaction
     # sample tree
     def each_segment(&block)
@@ -90,7 +96,7 @@ module NewRelic
     def to_s_compact
       @root_segment.to_s_compact
     end
-    
+
     # Searches the tree recursively for the segment with the given
     # id. note that this is an internal id, not an ActiveRecord id
     def find_segment(id)
@@ -164,11 +170,19 @@ module NewRelic
     end
 
   private
-    
+
+
+
+    HEX_DIGITS = (0..15).map{|i| i.to_s(16)}
+    # generate a random 64 bit uuid
     def generate_guid
-      (0..15).to_a.map{|a| rand(16).to_s(16)}.join  # a 64 bit random GUID
+      guid = ''
+      HEX_DIGITS.each do |a|
+        guid << HEX_DIGITS[rand(16)]
+      end
+      guid
     end
-    
+
     # This is badly in need of refactoring
     def build_segment_with_omissions(new_sample, time_delta, source_segment, target_segment, regex)
       source_segment.called_segments.each do |source_called_segment|
@@ -221,7 +235,7 @@ module NewRelic
                 source_called_segment.duration > options[:explain_sql].to_f
               target_called_segment[:explain_plan] = source_called_segment.explain_sql
             end
-            
+
             target_called_segment[:sql] = case options[:record_sql]
               when :raw then v
               when :obfuscated then NewRelic::Agent::Database.obfuscate_sql(v)
