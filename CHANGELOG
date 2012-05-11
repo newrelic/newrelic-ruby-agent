@@ -1,3 +1,4 @@
+ * Don't raise when extracting metrics from SQL queries with non UTF-8 bytes.
  * Replaced "Custom/DJ Locked Jobs" metric with three new metrics for monitoring 
    DelayedJob: queue_length, failed_jobs, and locked_jobs, all under Workers/DelayedJob
 
