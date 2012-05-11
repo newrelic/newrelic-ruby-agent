@@ -30,7 +30,6 @@ Gem::Specification.new do |s|
     "cert/oldsite.pem",
     "cert/site.pem",
     "install.rb",
-    "lerg/newrelic_agent.log",
     "lib/conditional_vendored_dependency_detection.rb",
     "lib/conditional_vendored_metric_parser.rb",
     "lib/new_relic/agent.rb",
