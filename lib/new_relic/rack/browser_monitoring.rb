@@ -9,17 +9,6 @@ module NewRelic::Rack
 
     # method required by Rack interface
     def call(env)
-      # Two experimental options for allowing TT capture based on http params
-      #
-      # if req.params['nr_capture_deep_tt']
-        # NewRelic::Agent::TransactionInfo.get.force_persist = true
-        # NewRelic::Agent::TransactionInfo.get.capture_deep_tt = true
-      # end
-
-      # if req.params['nr_capture_tt']
-        # NewRelic::Agent::TransactionInfo.get.force_persist = true
-      # end
-
       result = @app.call(env)   # [status, headers, response]
 
       if (NewRelic::Agent.browser_timing_header != "") && should_instrument?(result[0], result[1])
@@ -46,19 +35,21 @@ module NewRelic::Rack
       response.each {|fragment| source ? (source << fragment.to_s) : (source = fragment.to_s)}
       return nil unless source
 
-      body_start = source.index("<body")
-      body_close = source.rindex("</body>")
 
-      if body_start && body_close
+      # Only scan the first 50k (roughly) then give up.
+      beginning_of_source = source[0..50_000]
+      # Don't scan for body close unless we find body start
+      if (body_start = beginning_of_source.index("<body")) && (body_close = source.rindex("</body>"))
+
         footer = NewRelic::Agent.browser_timing_footer
         header = NewRelic::Agent.browser_timing_header
 
-        if source.include?('X-UA-Compatible')
+        if beginning_of_source.include?('X-UA-Compatible')
           # put at end of header if UA-Compatible meta tag found
-          head_pos = source.index("</head>")
-        elsif head_open = source.index("<head")
+          head_pos = beginning_of_source.index("</head>")
+        elsif head_open = beginning_of_source.index("<head")
           # put at the beginning of the header
-          head_pos = source.index(">", head_open) + 1
+          head_pos = beginning_of_source.index(">", head_open) + 1
         else
           # put the header right above body start
           head_pos = body_start
