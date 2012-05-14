@@ -115,7 +115,7 @@ DependencyDetection.defer do
       add_method_tracer :destroy,  'ActiveRecord/#{self.class.name[/[^:]*$/]}/destroy'
       add_method_tracer :destroy!, 'ActiveRecord/#{self.class.name[/[^:]*$/]}/destroy'
 
-      add_method_tracer :update,   'ActiveRecord/all', :push_scope => false
+      add_method_tracer :update,   'ActiveRecord/save', :push_scope => false
       add_method_tracer :update!,  'ActiveRecord/save', :push_scope => false
       add_method_tracer :save,     'ActiveRecord/save', :push_scope => false
       add_method_tracer :save!,    'ActiveRecord/save', :push_scope => false
@@ -175,6 +175,11 @@ DependencyDetection.defer do
       add_method_tracer :select,  'ActiveRecord/#{self.class.name[/[^:]*$/]}/select'
       add_method_tracer :execute, 'ActiveRecord/#{self.class.name[/[^:]*$/]}/execute'
 
+      add_method_tracer :select,    'ActiveRecord/find', :push_scope => false
+      add_method_tracer :select,    'ActiveRecord/all', :push_scope => false
+
+      add_method_tracer :execute,    'ActiveRecord/save', :push_scope => false
+      add_method_tracer :execute,    'ActiveRecord/all', :push_scope => false
     end
   end
 end
