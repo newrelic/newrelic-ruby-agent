@@ -2,10 +2,16 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 module NewRelic
   module Agent
     class AgentTest < Test::Unit::TestCase
-
       def setup
         super
         @agent = NewRelic::Agent::Agent.new
+      end
+
+      def test_after_fork_reporting_to_channel
+        @agent.after_fork(:report_to_channel => 123)
+        assert(@agent.service.kind_of?(NewRelic::Agent::PipeService),
+               'Agent should use PipeService when directed to report to pipe channel')
+        assert_equal 123, @agent.service.channel_id
       end
 
       def test_save_or_transmit_data_should_save
@@ -24,7 +30,22 @@ module NewRelic
         NewRelic::DataSerialization.expects(:should_send_data?).returns(true)
         @agent.instance_eval { save_or_transmit_data }
       end
+
+      def test_save_or_transmit_data_should_close_explain_db_connections
+        NewRelic::Agent.stubs(:save_data)
+        NewRelic::DataSerialization.expects(:should_send_data?).returns(false)
+        NewRelic::Agent::Database.expects(:close_connections)
+        @agent.instance_eval { save_or_transmit_data }
+      end
       
+      def test_save_or_transmit_data_should_not_close_db_connections_if_forked
+        NewRelic::Agent.stubs(:save_data)
+        NewRelic::DataSerialization.expects(:should_send_data?).returns(false)
+        NewRelic::Agent::Database.expects(:close_connections).never
+        @agent.after_fork
+        @agent.instance_eval { save_or_transmit_data }
+      end
+
       def test_serialize
         assert_equal([{}, [], []], @agent.send(:serialize), "should return nil when shut down")
       end
@@ -125,9 +146,9 @@ module NewRelic
           @unsent_timeslice_data = unsent_timeslice_data
           @traces = unsent_traces
         }
-        unsent_errors.expects(:+).with([])
-        unsent_traces.expects(:+).with([])
-        @agent.merge_data_from([{}, [], []])
+        unsent_traces.expects(:+).with([1,2,3])
+        unsent_errors.expects(:+).with([4,5,6])
+        @agent.merge_data_from([{}, [1,2,3], [4,5,6]])
       end
 
       def test_should_not_log_log_file_location_if_no_log_file

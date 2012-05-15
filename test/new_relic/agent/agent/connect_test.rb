@@ -1,17 +1,30 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..', '..', '..','test_helper'))
-class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
-  require 'new_relic/agent/agent'
-  
-  # I don't like this, we should be testing a third party, not ourselves -Jon
-  include NewRelic::Agent::Agent::Connect
+require 'new_relic/agent/agent'
+require 'ostruct'
 
+class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
+  include NewRelic::Agent::Agent::Connect
+  
   def setup
     @connected = nil
     @keep_retrying = nil
     @connect_attempts = 1
     @connect_retry_period = 0
     @transaction_sampler = NewRelic::Agent::TransactionSampler.new
-    @sql_sampler = NewRelic::Agent::SqlSampler.new    
+    @sql_sampler = NewRelic::Agent::SqlSampler.new
+    server = NewRelic::Control::Server.new('localhost', 30303)
+    @service = NewRelic::Agent::NewRelicService.new('abcdef', server)
+  end
+
+  def control
+    fake_control = OpenStruct.new('validate_seed' => false,
+                                  'local_env' => OpenStruct.new('snapshot' => []))
+    fake_control.instance_eval do
+      def [](key)
+        return nil
+      end
+    end
+    fake_control
   end
 
   def test_tried_to_connect?
@@ -324,27 +337,24 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     log_sql_transmission_warning?
   end
 
-  def test_set_collector_host_positive
-    control = mocked_control
-    self.expects(:invoke_remote).with(:get_redirect_host).returns('collector-deux.newrelic.com')
-    control.expects(:server_from_host).with('collector-deux.newrelic.com').returns('correct')
-    set_collector_host!
-    assert_equal 'correct', @collector
-  end
-
-  def test_set_collector_host_negative
-    @collector = 'initial value'
-    control = mocked_control
-    self.expects(:invoke_remote).with(:get_redirect_host).returns(nil)
-    set_collector_host!
-    assert_equal 'initial value', @collector, "should not modify collector value"
-  end
-
   def test_query_server_for_configuration
-    self.expects(:set_collector_host!)
     self.expects(:connect_to_server).returns("so happy")
     self.expects(:finish_setup).with("so happy")
     query_server_for_configuration
+  end
+
+  def test_connect_to_server_gets_config_from_collector
+    service = NewRelic::FakeService.new
+    NewRelic::Agent::Agent.instance.service = service
+    NewRelic::Agent.manual_start
+    service.mock['connect'] = {'agent_run_id' => 23, 'config' => 'a lot'}
+
+    response = NewRelic::Agent.agent.connect_to_server
+
+    assert_equal 23, response['agent_run_id']
+    assert_equal 'a lot', response['config']
+
+    NewRelic::Agent.shutdown
   end
 
   def test_finish_setup
@@ -364,9 +374,15 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
                                 :config => {})
     @sql_sampler = stub('sql sampler', :configure! => true)    
     finish_setup(config)
-    assert_equal 'fishsticks', @agent_id
+    assert_equal 'fishsticks', @service.agent_id
     assert_equal 'pasta sauce', @report_period
     assert_equal 'tamales', @url_rules
+  end
+
+  def test_finish_setup_without_config
+    @service.agent_id = 'blah'
+    finish_setup(nil)
+    assert_equal 'blah', @service.agent_id
   end
 
   private

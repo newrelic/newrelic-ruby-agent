@@ -1,4 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
+require 'ostruct'
+
 module NewRelic
   class MainAgentTest < Test::Unit::TestCase
     
@@ -22,6 +24,43 @@ module NewRelic
       mock_agent.expects(:after_fork).with({})
       NewRelic::Agent.after_fork
     end
+
+    def test_after_fork_sets_forked_flag
+      agent = NewRelic::Agent::Agent.new
+      assert !agent.forked?
+      agent.after_fork
+
+      assert agent.forked?
+    end
+
+    def test_timeslice_harvest_with_after_fork_report_to_channel
+      NewRelic::Control.instance.stubs(:agent_enabled?).returns(true)
+      NewRelic::Control.instance.stubs(:monitor_mode?).returns(true)
+            
+      NewRelic::Agent::Agent.instance.service = NewRelic::FakeService.new
+      NewRelic::Agent.shutdown
+      NewRelic::Agent.manual_start(:license_key => ('1234567890' * 4),
+                                   :start_channel_listener => true)
+      
+      metric = 'Custom/test/method'
+      NewRelic::Agent.instance.stats_engine.get_stats_no_scope(metric) \
+        .record_data_point(1.0)
+      
+      NewRelic::Agent.register_report_channel(:test) # before fork
+      pid = Process.fork do
+        NewRelic::Agent.after_fork(:report_to_channel => :test)
+        NewRelic::Agent.agent.stats_engine.get_stats_no_scope(metric) \
+          .record_data_point(2.0)
+        exit
+      end
+      Process.wait(pid)
+      
+      engine = NewRelic::Agent.agent.stats_engine
+      assert_equal(3.0, engine.lookup_stats(metric).total_call_time)
+      assert_equal(2, engine.lookup_stats(metric).call_count)
+
+      NewRelic::Agent::PipeChannelManager.listener.stop
+    end
     
     def test_reset_stats
       mock_agent = mocked_agent
@@ -39,6 +78,15 @@ module NewRelic
       mock_control = mocked_control
       mock_control.expects(:init_plugin).with({:agent_enabled => true, :sync_startup => false})
       NewRelic::Agent.manual_start(:sync_startup => false)
+    end
+
+    def test_manual_start_starts_channel_listener
+      mock_control = mocked_control
+      mock_control.stubs(:init_plugin)
+      NewRelic::Agent.manual_start(:start_channel_listener => true)
+      assert NewRelic::Agent::PipeChannelManager.listener.started?
+      NewRelic::Agent::PipeChannelManager.listener.stop
+      NewRelic::Agent.agent.service = NewRelic::Agent::NewRelicService.new
     end
 
     def test_logger
@@ -169,7 +217,13 @@ module NewRelic
       NewRelic::Agent.load_data
       NewRelic::Control.instance['disable_serialization'] = false
     end
-
+    
+    def test_register_report_channel
+      NewRelic::Agent.register_report_channel(:channel_id)
+      assert NewRelic::Agent::PipeChannelManager.channels[:channel_id] \
+        .kind_of?(NewRelic::Agent::PipeChannelManager::Pipe)
+    end
+    
     private
 
     def mocked_agent
@@ -177,9 +231,21 @@ module NewRelic
       NewRelic::Agent.stubs(:agent).returns(agent)
       agent
     end
-
+    
     def mocked_control
-      control = mock('control')
+      server = NewRelic::Control::Server.new('localhost', 3000)
+      control = OpenStruct.new(:license_key => 'abcdef',
+                               :server => server)
+      control.instance_eval do
+        def [](key)
+          nil
+        end
+        
+        def fetch(k,d)
+          nil
+        end
+      end
+
       NewRelic::Control.stubs(:instance).returns(control)
       control
     end

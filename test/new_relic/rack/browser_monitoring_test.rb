@@ -9,7 +9,7 @@ ENV['RACK_ENV'] = 'test'
 # benefit from auto-rum, but the truth of the matter is that atm
 # we only support Rails >= 2.3
 def middleware_supported?
-  ::Rails::VERSION::MAJOR >= 2 && ::Rails::VERSION::MINOR >= 3
+  ::Rails::VERSION::STRING >= '2.3'
 end
 
 if middleware_supported?
@@ -139,4 +139,7 @@ EOL
     assert(last_response.body.include?(guid), last_response.body)
   end
 end
+else
+  warn "Skipping rum auto instrumentation tests"
 end
+

@@ -166,7 +166,6 @@ module NewRelic
       # It sets various instance variables to the finished sample,
       # depending on which settings are active. See `store_sample`
       def notice_scope_empty(time=Time.now)
-
         last_builder = builder
         return unless last_builder
 
@@ -363,7 +362,6 @@ module NewRelic
       # sample returned will be the slowest sample among those
       # available during this harvest
       def add_samples_to(result, slow_threshold)
-
         # pull out force persist
         force_persist = result.select {|sample| sample.force_persist} || []
         result.reject! {|sample| sample.force_persist}

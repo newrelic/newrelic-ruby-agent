@@ -52,7 +52,8 @@ module NewRelic
         environment_name = options.delete(:env) and self.env = environment_name
         dispatcher = options.delete(:dispatcher) and @local_env.dispatcher = dispatcher
         dispatcher_instance_id = options.delete(:dispatcher_instance_id) and @local_env.dispatcher_instance_id = dispatcher_instance_id
-
+        
+        NewRelic::Agent::PipeChannelManager.listener.start if options.delete(:start_channel_listener)
 
         # Clear out the settings, if they've already been loaded.  It may be that
         # between calling init_plugin the first time and the second time, the env

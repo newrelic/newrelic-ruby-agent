@@ -1,5 +1,7 @@
+require 'forwardable'
 require 'new_relic/control'
 require 'new_relic/data_serialization'
+
 # = New Relic Ruby Agent
 #
 # New Relic is a performance monitoring application for applications
@@ -58,7 +60,8 @@ module NewRelic
   # support at New Relic for help.
   module Agent
     extend self
-
+    extend Forwardable
+    
     require 'new_relic/version'
     require 'new_relic/local_environment'
     require 'new_relic/stats'
@@ -86,6 +89,7 @@ module NewRelic
     require 'new_relic/agent/busy_calculator'
     require 'new_relic/agent/sampler'
     require 'new_relic/agent/database'
+    require 'new_relic/agent/pipe_channel_manager'
     require 'new_relic/agent/transaction_info'
 
     require 'new_relic/agent/instrumentation/controller_instrumentation'
@@ -177,6 +181,9 @@ module NewRelic
     #
     def manual_start(options={})
       raise "Options must be a hash" unless Hash === options
+      if options[:start_channel_listener]
+        NewRelic::Agent::PipeChannelManager.listener.start
+      end
       NewRelic::Control.instance.init_plugin({ :agent_enabled => true, :sync_startup => true }.merge(options))
     end
 
@@ -462,6 +469,7 @@ module NewRelic
     def browser_timing_footer
       agent.browser_timing_footer
     end
-
+    
+    def_delegator :'NewRelic::Agent::PipeChannelManager', :register_report_channel
   end
 end
