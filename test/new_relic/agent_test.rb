@@ -32,34 +32,37 @@ module NewRelic
 
       assert agent.forked?
     end
+    
 
-    def test_timeslice_harvest_with_after_fork_report_to_channel
-      NewRelic::Control.instance.stubs(:agent_enabled?).returns(true)
-      NewRelic::Control.instance.stubs(:monitor_mode?).returns(true)
-            
-      NewRelic::Agent::Agent.instance.service = NewRelic::FakeService.new
-      NewRelic::Agent.shutdown
-      NewRelic::Agent.manual_start(:license_key => ('1234567890' * 4),
-                                   :start_channel_listener => true)
-      
-      metric = 'Custom/test/method'
-      NewRelic::Agent.instance.stats_engine.get_stats_no_scope(metric) \
-        .record_data_point(1.0)
-      
-      NewRelic::Agent.register_report_channel(:test) # before fork
-      pid = Process.fork do
-        NewRelic::Agent.after_fork(:report_to_channel => :test)
-        NewRelic::Agent.agent.stats_engine.get_stats_no_scope(metric) \
-          .record_data_point(2.0)
-        exit
+    if NewRelic::LanguageSupport.can_fork?  
+      def test_timeslice_harvest_with_after_fork_report_to_channel
+        NewRelic::Control.instance.stubs(:agent_enabled?).returns(true)
+        NewRelic::Control.instance.stubs(:monitor_mode?).returns(true)
+        
+        NewRelic::Agent::Agent.instance.service = NewRelic::FakeService.new
+        NewRelic::Agent.shutdown
+        NewRelic::Agent.manual_start(:license_key => ('1234567890' * 4),
+                                     :start_channel_listener => true)
+        
+        metric = 'Custom/test/method'
+        NewRelic::Agent.instance.stats_engine.get_stats_no_scope(metric) \
+          .record_data_point(1.0)
+        
+        NewRelic::Agent.register_report_channel(:test) # before fork
+        pid = Process.fork do
+          NewRelic::Agent.after_fork(:report_to_channel => :test)
+          NewRelic::Agent.agent.stats_engine.get_stats_no_scope(metric) \
+            .record_data_point(2.0)
+          exit
+        end
+        Process.wait(pid)
+        
+        engine = NewRelic::Agent.agent.stats_engine
+        assert_equal(3.0, engine.lookup_stats(metric).total_call_time)
+        assert_equal(2, engine.lookup_stats(metric).call_count)
+        
+        NewRelic::Agent::PipeChannelManager.listener.stop
       end
-      Process.wait(pid)
-      
-      engine = NewRelic::Agent.agent.stats_engine
-      assert_equal(3.0, engine.lookup_stats(metric).total_call_time)
-      assert_equal(2, engine.lookup_stats(metric).call_count)
-
-      NewRelic::Agent::PipeChannelManager.listener.stop
     end
     
     def test_reset_stats

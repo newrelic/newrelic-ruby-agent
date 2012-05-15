@@ -41,27 +41,29 @@ class PipeServiceTest < Test::Unit::TestCase
     @service.sql_trace_data(['sql'])
     assert_equal ['sql'], @service.buffer[:sql_traces]
   end
-  
-  def test_shutdown_writes_data_to_pipe
-    pid = Process.fork do
-      metric_data0 = generate_metric_data('Custom/something')
-      @service.metric_data(0.0, 0.1, metric_data0)
-      @service.transaction_sample_data(['txn0'])
-      @service.error_data(['err0'])
-      @service.sql_trace_data(['sql0'])      
-      @service.shutdown(Time.now)
+
+  if NewRelic::LanguageSupport.can_fork?    
+    def test_shutdown_writes_data_to_pipe
+      pid = Process.fork do
+        metric_data0 = generate_metric_data('Custom/something')
+        @service.metric_data(0.0, 0.1, metric_data0)
+        @service.transaction_sample_data(['txn0'])
+        @service.error_data(['err0'])
+        @service.sql_trace_data(['sql0'])      
+        @service.shutdown(Time.now)
+      end
+      Process.wait(pid)
+      
+      pipe = NewRelic::Agent::PipeChannelManager.channels[456]
+      pipe.in.close
+      received_data = Marshal.load(pipe.out.read)
+      
+      assert_equal 'Custom/something', received_data[:stats].keys.sort[0].name
+      assert_equal ['txn0'], received_data[:transaction_traces]
+      assert_equal ['err0'], received_data[:error_traces].sort
     end
-    Process.wait(pid)
-
-    pipe = NewRelic::Agent::PipeChannelManager.channels[456]
-    pipe.in.close
-    received_data = Marshal.load(pipe.out.read)
-    
-    assert_equal 'Custom/something', received_data[:stats].keys.sort[0].name
-    assert_equal ['txn0'], received_data[:transaction_traces]
-    assert_equal ['err0'], received_data[:error_traces].sort
   end
-
+  
   def generate_metric_data(metric_name, data=1.0)
     engine = NewRelic::Agent::StatsEngine.new
     engine.get_stats_no_scope(metric_name).record_data_point(data)
