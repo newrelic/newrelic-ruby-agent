@@ -27,5 +27,5 @@ fi
 cd multiverse
 #./ci_run.sh
 
-
+pwd
 
