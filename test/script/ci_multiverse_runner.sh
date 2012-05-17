@@ -30,5 +30,5 @@ cd multiverse
 pwd
 ls -l ../
 
-rvm list
+rvm use 1.9.3
 #script/runner
