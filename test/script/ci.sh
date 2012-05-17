@@ -62,7 +62,7 @@ cd tmp
 echo "cloning rpm test app from $RPM_TEST_APP_CLONE_URL"
 git clone --depth=1 $RPM_TEST_APP_CLONE_URL rpm_test_app
 echo "done"
-cd rpm_test_app
+cd rpm_test_app || true # rvm overrides cd and it's f-ing up the build by exiting 2
 git checkout -t origin/$BRANCH || git checkout $BRANCH
 mkdir -p log
 mkdir -p tmp
