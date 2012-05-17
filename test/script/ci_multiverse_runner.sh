@@ -28,4 +28,5 @@ cd multiverse
 #./ci_run.sh
 
 pwd
+ls -l ../
 
