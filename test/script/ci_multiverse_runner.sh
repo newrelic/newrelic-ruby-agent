@@ -30,3 +30,4 @@ cd multiverse
 pwd
 ls -l ../
 
+script/runner
