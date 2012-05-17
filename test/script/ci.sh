@@ -29,7 +29,7 @@ echo "Running in $(pwd)"
 
 
 # print commands in this script as they're invoked
-# set -x
+set -x
 # fail if any command fails
 set -e
 
@@ -59,7 +59,9 @@ pwd
 rm -rf tmp
 mkdir -p tmp
 cd tmp
+echo "cloning rpm test app from $RPM_TEST_APP_CLONE_URL"
 git clone --depth=1 $RPM_TEST_APP_CLONE_URL rpm_test_app
+echo "done"
 cd rpm_test_app
 git checkout -t origin/$BRANCH || git checkout $BRANCH
 mkdir -p log
@@ -73,9 +75,10 @@ else
   perl -p -i'.bak' -e 's#gem .newrelic_rpm.*$#gem "newrelic_rpm", :path => "\.\.\/\.\.\/"#' Gemfile
 fi
 
-rvm --force gemset delete ruby_agent_tests_$BRANCH
-rvm gemset create ruby_agent_tests_$BRANCH
-rvm gemset use ruby_agent_tests_$BRANCH
+# save time by reusing the gemset if it exists
+
+gemset=ruby_agent_tests_$BRANCH
+rvm gemset use $gemset || ( rvm gemset create $gemset && rvm gemset use $gemset )
 
 if [ "x$RUBY" == "x1.8.6" ]; then
   # Bundler 1.1 dropped support for ruby 1.8.6
