@@ -19,7 +19,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
     assert pipe.in.kind_of?(IO)
   end
   
-  if NewRelic::LanguageSupport.can_fork?  
+  if NewRelic::LanguageSupport.can_fork? && !NewRelic::LanguageSupport.using_version?('1.9.1')
     def test_listener_merges_timeslice_metrics
       metric = 'Custom/test/method'
       engine = NewRelic::Agent.agent.stats_engine

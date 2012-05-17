@@ -42,7 +42,7 @@ class PipeServiceTest < Test::Unit::TestCase
     assert_equal ['sql'], @service.buffer[:sql_traces]
   end
 
-  if NewRelic::LanguageSupport.can_fork?    
+  if NewRelic::LanguageSupport.can_fork? && !NewRelic::LanguageSupport.using_version?('1.9.1')
     def test_shutdown_writes_data_to_pipe
       pid = Process.fork do
         metric_data0 = generate_metric_data('Custom/something')

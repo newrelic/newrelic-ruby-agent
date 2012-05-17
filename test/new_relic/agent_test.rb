@@ -34,7 +34,7 @@ module NewRelic
     end
     
 
-    if NewRelic::LanguageSupport.can_fork?  
+    if NewRelic::LanguageSupport.can_fork? && !NewRelic::LanguageSupport.using_version?('1.9.1')
       def test_timeslice_harvest_with_after_fork_report_to_channel
         NewRelic::Control.instance.stubs(:agent_enabled?).returns(true)
         NewRelic::Control.instance.stubs(:monitor_mode?).returns(true)
