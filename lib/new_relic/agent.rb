@@ -156,7 +156,7 @@ module NewRelic
     # a standard output logger is returned.
     def logger
       control = NewRelic::Control.instance(false)
-      if control
+      if control && control.log
         control.log
       else
         require 'logger'
