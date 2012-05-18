@@ -521,6 +521,9 @@ module NewRelic
           # unknown state
           def handle_other_error(error)
             log.error "Terminating worker loop: #{error.class.name}: #{error.message}\n  #{error.backtrace.join("\n  ")}"
+          rescue # don't assume logger is set up if we're in an unknown state
+            warn "Terminating worker loop: #{error.class.name}: #{error.message}\n  #{error.backtrace.join("\n  ")}"
+          ensure
             disconnect
           end
 
