@@ -28,11 +28,13 @@ set -e
 # check for require environment variables
 if [ "x$RUBY" == "x" ]; then
   echo '$RUBY is undefined'
-  exit 1
+  echo 'defaulting to 1.9.3'
+  RUBY=1.9.3
 fi
 if [ "x$BRANCH" == "x" ]; then
   echo '$BRANCH is undefined'
-  exit 1
+  echo 'defaulting to rails31'
+  BRANCH=rails31
 fi
 
 . "$HOME/.rvm/scripts/rvm"

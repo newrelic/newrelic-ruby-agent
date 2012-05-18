@@ -1,3 +1,4 @@
+require 'timeout'
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 require 'new_relic/agent/pipe_channel_manager'
 
@@ -33,7 +34,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
         new_engine.get_stats_no_scope(metric).record_data_point(2.0)
         listener.pipes[666].write(Marshal.dump(:stats => new_engine.harvest_timeslice_data({}, {})))
       end
-      Process.wait(pid)
+      wait_for_listener_to_merge_data(listener, pid, 666)
       
       assert_equal(3.0, engine.lookup_stats(metric).total_call_time)    
 
@@ -56,7 +57,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
         new_sampler.store_force_persist(sample)
         listener.pipes[667].write(Marshal.dump(:transaction_traces => new_sampler.harvest([], 0)))
       end
-      Process.wait(pid)
+      wait_for_listener_to_merge_data(listener, pid, 667)
       
       assert_equal(2, NewRelic::Agent.agent.unsent_traces_size)
       
@@ -82,11 +83,27 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
                                  :request_params => {:x => 'y'})
         listener.pipes[668].write(Marshal.dump(:error_traces => new_sampler.harvest_errors([])))
       end
-      Process.wait(pid)
+      wait_for_listener_to_merge_data(listener, pid, 668)
+
       
       assert_equal(2, NewRelic::Agent.agent.unsent_errors_size)
       
       listener.stop
+    end
+  end
+
+  # Just because the forked child has exited doesn't mean that the pipes have
+  # been flushed and the parent process has completed merging the data.  Wait
+  # for the pipe to close before continuing (but timeout after 10 seconds).
+  def wait_for_listener_to_merge_data(listener, pid, pipe_id)
+    Timeout.timeout(10) do
+      Process.wait(pid)
+      loop do
+        break if ! listener.pipes[pipe_id]
+        break if listener.pipes[pipe_id].out.closed?
+        puts "waiting for pipe to be closed and data to be merged"
+        sleep 0.1
+      end
     end
   end
   
