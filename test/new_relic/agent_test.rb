@@ -55,7 +55,19 @@ module NewRelic
             .record_data_point(2.0)
           exit
         end
-        Process.wait(pid)
+        # Just because the forked child has exited doesn't mean that the pipes have
+        # been flushed and the parent process has completed merging the data.  Wait
+        # for the pipe to close before continuing (but timeout after 10 seconds).
+        Timeout.timeout(10) do
+          Process.wait(pid)
+          listener = NewRelic::Agent::PipeChannelManager.listener
+          loop do
+            break if ! listener.pipes[:test]
+            break if listener.pipes[:test].out.closed?
+            puts "waiting for pipe to be closed and data to be merged"
+            sleep 0.1
+          end
+        end
         
         engine = NewRelic::Agent.agent.stats_engine
         assert_equal(3.0, engine.lookup_stats(metric).total_call_time)
