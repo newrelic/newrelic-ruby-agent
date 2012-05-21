@@ -55,6 +55,7 @@ module NewRelic
             .record_data_point(2.0)
           exit
         end
+        Process.wait(pid)
         NewRelic::Agent::PipeChannelManager.listener.stop
         
         engine = NewRelic::Agent.agent.stats_engine
@@ -83,6 +84,9 @@ module NewRelic
 
     def test_manual_start_starts_channel_listener
       NewRelic::Agent.agent.service = NewRelic::FakeService.new
+#       mock_control = mocked_control
+#       mock_control.expects(:init_plugin).with({ :agent_enabled => true, :sync_startup => true,
+#                                                 :start_channel_listener => true })
       NewRelic::Agent.manual_start(:start_channel_listener => true)
       assert NewRelic::Agent::PipeChannelManager.listener.started?
       NewRelic::Agent::PipeChannelManager.listener.stop
