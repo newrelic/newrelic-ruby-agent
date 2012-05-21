@@ -747,32 +747,26 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   # sample traces, for example. It's unfortunate, but we can't
   # reliably turn off GC on all versions of ruby under test
   def test_harvest_slowest
-    test_duration = time_block do
-      run_sample_trace
-      run_sample_trace
-      run_sample_trace { sleep 0.1 }
-      run_sample_trace
-      run_sample_trace
-    end
+    run_sample_trace
+    run_sample_trace
+    run_sample_trace { sleep 0.1 }
+    run_sample_trace
+    run_sample_trace
 
     slowest = @sampler.harvest(nil, 0)[0]
-    assert((slowest.duration >= test_duration - 0.02),
-           "expected sample duration >= #{test_duration - 0.01}, but was: #{slowest.duration.inspect}")
-    # this assert is here to make sure the test remains valid
-    assert((slowest.duration <= test_duration + 0.02),
-           "expected sample duration <= #{test_duration + 0.01}, but was: #{slowest.duration.inspect}")
+    first_duration = slowest.duration
+    assert((first_duration >= 0.1),
+           "expected sample duration >= 0.1, but was: #{slowest.duration.inspect}")
 
     run_sample_trace { sleep 0.0001 }
     not_as_slow = @sampler.harvest(slowest, 0)[0]
     assert((not_as_slow == slowest), "Should re-harvest the same transaction since it should be slower than the new transaction - expected #{slowest.inspect} but got #{not_as_slow.inspect}")
 
-    test_duration = time_block do
-      run_sample_trace { sleep 0.25 }
-    end
+    run_sample_trace { sleep(first_duration + 0.1) }
 
     new_slowest = @sampler.harvest(slowest, 0)[0]
     assert((new_slowest != slowest), "Should not harvest the same trace since the new one should be slower")
-    assert((new_slowest.duration >= test_duration - 0.02), "Slowest duration must be >= #{test_duration - 0.01}, but was: #{new_slowest.duration.inspect}")
+    assert((new_slowest.duration >= first_duration + 0.1), "Slowest duration must be >= #{first_duration + 0.1}, but was: #{new_slowest.duration.inspect}")
   end
 
   def test_prepare_to_send
@@ -969,12 +963,5 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     @sampler.notice_pop_scope "ac"
     @sampler.notice_pop_scope "a"
     @sampler.notice_scope_empty
-  end
-
-  def time_block
-    start = Time.now
-    yield
-    stop = Time.now
-    stop.to_f - start.to_f
   end
 end
