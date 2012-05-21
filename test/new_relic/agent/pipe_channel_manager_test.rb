@@ -4,6 +4,7 @@ require 'new_relic/agent/pipe_channel_manager'
 
 class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
   def setup
+    NewRelic::Agent::PipeChannelManager.listener.close_all_pipes
     NewRelic::Agent.manual_start
   end
 
