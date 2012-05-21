@@ -756,10 +756,10 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     end
 
     slowest = @sampler.harvest(nil, 0)[0]
-    assert((slowest.duration >= test_duration - 0.01),
+    assert((slowest.duration >= test_duration - 0.02),
            "expected sample duration >= #{test_duration - 0.01}, but was: #{slowest.duration.inspect}")
     # this assert is here to make sure the test remains valid
-    assert((slowest.duration <= test_duration + 0.01),
+    assert((slowest.duration <= test_duration + 0.02),
            "expected sample duration <= #{test_duration + 0.01}, but was: #{slowest.duration.inspect}")
 
     run_sample_trace { sleep 0.0001 }
@@ -772,7 +772,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
     new_slowest = @sampler.harvest(slowest, 0)[0]
     assert((new_slowest != slowest), "Should not harvest the same trace since the new one should be slower")
-    assert((new_slowest.duration >= test_duration - 0.01), "Slowest duration must be >= #{test_duration - 0.01}, but was: #{new_slowest.duration.inspect}")
+    assert((new_slowest.duration >= test_duration - 0.02), "Slowest duration must be >= #{test_duration - 0.01}, but was: #{new_slowest.duration.inspect}")
   end
 
   def test_prepare_to_send
