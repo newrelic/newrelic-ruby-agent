@@ -60,6 +60,7 @@ pwd
 git clone $rpm_test_app_cache rpm_test_app
 cd rpm_test_app || true # rvm overrides cd and it's f-ing up the build by exiting 2
 git remote update
+git --version
 git pull --all
 
 git checkout -t origin/$BRANCH || git checkout $BRANCH
