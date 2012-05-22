@@ -57,7 +57,7 @@ rpm_test_app_cache=~/workspace/.rpm_test_app_cache
   cd $rpm_test_app_cache
 )
 pwd
-git clone "$rpm_test_app_cache" rpm_test_app
+git clone $rpm_test_app_cache rpm_test_app
 cd rpm_test_app || true # rvm overrides cd and it's f-ing up the build by exiting 2
 git remote update
 git pull --all
