@@ -56,8 +56,8 @@ rpm_test_app_cache="$WORKSPACE/.rpm_test_app_cache"
   git clone --mirror git://github.com/newrelic/rpm_test_app.git $rpm_test_app_cache || true
   cd $rpm_test_app_cache
 )
-
-git clone $rpm_test_app_cache rpm_test_app
+pwd
+git clone "$rpm_test_app_cache" rpm_test_app
 cd rpm_test_app || true # rvm overrides cd and it's f-ing up the build by exiting 2
 git remote update
 git pull --all
