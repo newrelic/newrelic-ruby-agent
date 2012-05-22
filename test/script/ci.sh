@@ -50,9 +50,9 @@ cd tmp
 
 
 #rpm_test_app_cache=~/.rpm_test_app_cache
-rpm_test_app_cache=$WORKSPACE/.rpm_test_app_cache
+rpm_test_app_cache="$WORKSPACE/.rpm_test_app_cache"
 (
-  echo "updating local cache of rpm_test_app"
+  echo "updating local cache of rpm_test_app in $rpm_test_app_cache"
   git clone --mirror git://github.com/newrelic/rpm_test_app.git $rpm_test_app_cache || true
   cd $rpm_test_app_cache
 )
