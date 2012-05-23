@@ -1,8 +1,9 @@
+v3.3.5.alpha
  * [FIX] Allow tracing of ! and ? methods
  * [PERF] Give up after scanning first 50k of the response in RUM
    auto-instrumentation.
- * [FIX] Don't raise when extracting metrics from SQL queries with non UTF-8
- * bytes.  Replaced "Custom/DJ Locked Jobs" metric with three new metrics for
+ * [FIX] Don't raise when extracting metrics from SQL queries with non UTF-8 bytes.
+ * Replaced "Custom/DJ Locked Jobs" metric with three new metrics for
    monitoring DelayedJob: queue_length, failed_jobs, and locked_jobs, all under
    Workers/DelayedJob
 
