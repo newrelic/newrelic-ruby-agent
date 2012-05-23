@@ -57,33 +57,19 @@ module NewRelic
             loop do
               clean_up_pipes
               pipes_to_listen_to = @pipes.values.map{|pipe| pipe.out} + [wake.out]
-              if ready = IO.select(pipes_to_listen_to)[0][0]
-                if ready == wake.out
-                  ready.read(1)
-                  next if should_keep_listening? # found a new pipe, restart select
-                else
-                  close_in_handle_for(ready)
-                  got = ready.read
-                  if got.empty? && ready.eof?
-                    ready.close
-                    next if should_keep_listening? # this pipe done, move on
-                  end
-                
-                  payload = Marshal.load(got)
-                  NewRelic::Agent.agent.merge_data_from([payload[:stats],
-                                                  payload[:transaction_traces],
-                                                  payload[:error_traces]])
-                  ready.close
-                end
-                break if !should_keep_listening?
+              
+              ready = IO.select(pipes_to_listen_to)[0][0] # block here for a ready pipe
+              
+              if ready == wake.out
+                ready.read(1)
+              else
+                merge_data_from_pipe(ready)
               end
+              
+              break if !should_keep_listening?
             end
           end
           sleep 0.001 # give time for the thread to spawn
-        end
-
-        def should_keep_listening?
-          @started || @pipes.values.find{|pipe| !pipe.in.closed?}
         end
         
         def stop
@@ -112,6 +98,23 @@ module NewRelic
         end
 
         protected
+
+        def merge_data_from_pipe(pipe)
+          close_in_handle_for(pipe)
+          got = pipe.read
+          
+          if !got.empty?
+            payload = Marshal.load(got)
+            NewRelic::Agent.agent.merge_data_from([payload[:stats],
+                                                   payload[:transaction_traces],
+                                                   payload[:error_traces]])
+          end
+          pipe.close
+        end
+        
+        def should_keep_listening?
+          @started || @pipes.values.find{|pipe| !pipe.in.closed?}
+        end
         
         def clean_up_pipes
           @pipes.reject! {|id, pipe| pipe.out.closed? }
