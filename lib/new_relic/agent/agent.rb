@@ -201,25 +201,25 @@ module NewRelic
           if @worker_loop
             @worker_loop.run_task if run_loop_before_exit
             @worker_loop.stop
+          end
 
-            log.debug "Starting Agent shutdown"
+          log.debug "Starting Agent shutdown"
 
-            # if litespeed, then ignore all future SIGUSR1 - it's
-            # litespeed trying to shut us down
+          # if litespeed, then ignore all future SIGUSR1 - it's
+          # litespeed trying to shut us down
 
-            if control.dispatcher == :litespeed
-              Signal.trap("SIGUSR1", "IGNORE")
-              Signal.trap("SIGTERM", "IGNORE")
+          if control.dispatcher == :litespeed
+            Signal.trap("SIGUSR1", "IGNORE")
+            Signal.trap("SIGTERM", "IGNORE")
+          end
+
+          begin
+            NewRelic::Agent.disable_all_tracing do
+              graceful_disconnect
             end
-
-            begin
-              NewRelic::Agent.disable_all_tracing do
-                graceful_disconnect
-              end
-            rescue => e
-              log.error e
-              log.error e.backtrace.join("\n")
-            end
+          rescue => e
+            log.error e
+            log.error e.backtrace.join("\n")
           end
           @started = nil
         end

@@ -50,9 +50,16 @@ class NewRelicServiceTest < Test::Unit::TestCase
   end
 
   def test_shutdown
+    @service.agent_id = 666
     @http_handle.respond_to(:shutdown, 'shut this bird down')
     response = @service.shutdown(Time.now)
     assert_equal 'shut this bird down', response
+  end
+
+  def test_should_not_shutdown_if_never_connected
+    @http_handle.respond_to(:shutdown, 'shut this bird down')
+    response = @service.shutdown(Time.now)
+    assert_nil response
   end
 
   def test_metric_data

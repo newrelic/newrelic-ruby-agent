@@ -34,7 +34,8 @@ module NewRelic
     end
     
 
-    if NewRelic::LanguageSupport.can_fork? && !NewRelic::LanguageSupport.using_version?('1.9.1')
+    if NewRelic::LanguageSupport.can_fork? &&
+        !NewRelic::LanguageSupport.using_version?('1.9.1')
       def test_timeslice_harvest_with_after_fork_report_to_channel
         NewRelic::Control.instance.stubs(:agent_enabled?).returns(true)
         NewRelic::Control.instance.stubs(:monitor_mode?).returns(true)
@@ -49,12 +50,11 @@ module NewRelic
           .record_data_point(1.0)
         
         NewRelic::Agent::PipeChannelManager.listener.close_all_pipes
-        NewRelic::Agent.register_report_channel(:test) # before fork
+        NewRelic::Agent.register_report_channel(:agent_test) # before fork
         pid = Process.fork do
-          NewRelic::Agent.after_fork(:report_to_channel => :test)
+          NewRelic::Agent.after_fork(:report_to_channel => :agent_test)
           NewRelic::Agent.agent.stats_engine.get_stats_no_scope(metric) \
             .record_data_point(2.0)
-          exit
         end
         Process.wait(pid)
         NewRelic::Agent::PipeChannelManager.listener.stop

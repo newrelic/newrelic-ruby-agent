@@ -38,7 +38,7 @@ module NewRelic
       end
 
       def shutdown(time)
-        invoke_remote(:shutdown, @agent_id, time)
+        invoke_remote(:shutdown, @agent_id, time) if @agent_id
       end
 
       def metric_data(last_harvest_time, now, unsent_timeslice_data)

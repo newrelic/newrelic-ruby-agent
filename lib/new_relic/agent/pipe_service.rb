@@ -35,7 +35,8 @@ module NewRelic
       def shutdown(time)
         @buffer[:stats] = @stats_engine.harvest_timeslice_data({}, {})
         payload = Marshal.dump(@buffer)
-        NewRelic::Agent::PipeChannelManager.channels[@channel_id].in << payload
+        NewRelic::Agent::PipeChannelManager.channels[@channel_id].write(payload)
+        NewRelic::Agent::PipeChannelManager.channels[@channel_id].close
         reset_buffer
       end
       
