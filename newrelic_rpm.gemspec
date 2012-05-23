@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
   s.authors = ["Bill Kayser", "Jon Guymon", "Justin George", "Darin Swanson"]
-  s.date = "2012-05-03"
+  s.date = "2012-05-23"
   s.description = "New Relic is a performance management system, developed by New Relic,\nInc (http://www.newrelic.com).  New Relic provides you with deep\ninformation about the performance of your web application as it runs\nin production. The New Relic Ruby Agent is dual-purposed as a either a\nGem or plugin, hosted on\nhttp://github.com/newrelic/rpm/\n"
   s.email = "support@newrelic.com"
   s.executables = ["newrelic_cmd", "newrelic", "mongrel_rpm"]
@@ -204,7 +204,6 @@ Gem::Specification.new do |s|
     "test/new_relic/version_number_test.rb",
     "test/script/build_test_gem.sh",
     "test/script/ci.sh",
-    "test/script/ci_agent-tests_runner.sh",
     "test/script/ci_bench.sh",
     "test/test_contexts.rb",
     "test/test_helper.rb",
