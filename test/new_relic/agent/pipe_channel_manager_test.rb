@@ -127,19 +127,6 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
       listener.timeout = 360
     end
   end
-
-  def test_pipes_are_cleaned_up_after_select_timeout
-    listener = start_listener_with_pipe(671)
-    listener.timeout = 0.1
-    listener.select_timeout = 0.1
-    sleep 0.2
-
-    assert(!NewRelic::Agent::PipeChannelManager.channels[671] ||
-           NewRelic::Agent::PipeChannelManager.channels[671].closed?)
-
-    listener.select_timeout = 60
-    listener.timeout = 360
-  end
   
   def start_listener_with_pipe(pipe_id)
     listener = NewRelic::Agent::PipeChannelManager.listener
