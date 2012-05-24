@@ -66,20 +66,20 @@ class PipeServiceTest < Test::Unit::TestCase
       assert_equal ['txn0'], received_data[:transaction_traces]
       assert_equal ['err0'], received_data[:error_traces].sort
     end
-  end
 
-  def test_shutdown_sends_EOF
-    received_data = data_from_forked_process do
-      @service.shutdown(Time.now)
+    def test_shutdown_sends_EOF
+      received_data = data_from_forked_process do
+        @service.shutdown(Time.now)
+      end
+      assert_equal 'EOF', received_data[:EOF]
     end
-    assert_equal 'EOF', received_data[:EOF]
-  end
-
-  def test_shutdown_closes_pipe
-    data_from_forked_process do
-      @service.shutdown(Time.now)
-      assert NewRelic::Agent::PipeChannelManager \
-        .channels[:pipe_service_test].closed?
+    
+    def test_shutdown_closes_pipe
+      data_from_forked_process do
+        @service.shutdown(Time.now)
+        assert NewRelic::Agent::PipeChannelManager \
+          .channels[:pipe_service_test].closed?
+      end
     end
   end
   

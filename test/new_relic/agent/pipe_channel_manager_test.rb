@@ -103,36 +103,36 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
       assert(!NewRelic::Agent::PipeChannelManager.channels[669] ||
              NewRelic::Agent::PipeChannelManager.channels[669].closed?)
     end
-  end
 
-  def test_pipes_close_after_no_data_timeout
-    listener = start_listener_with_pipe(670)
-    listener.timeout = 0.2
-    sleep 0.21
-
-    listener.register_pipe(760)
-    sleep 0.15
-    pid = Process.fork do
-      listener.pipes[760].write({})
+    def test_pipes_close_after_no_data_timeout
+      listener = start_listener_with_pipe(670)
+      listener.timeout = 0.2
+      sleep 0.21
+      
+      listener.register_pipe(760)
+      sleep 0.15
+      pid = Process.fork do
+        listener.pipes[760].write({})
+      end
+      Process.wait(pid)
+      sleep 0.17
+      listener.wake.in << '.'
+      
+      sleep 0.1
+      
+      assert(!NewRelic::Agent::PipeChannelManager.channels[670] ||
+             NewRelic::Agent::PipeChannelManager.channels[670].closed?)
+      assert !NewRelic::Agent::PipeChannelManager.channels[760].closed?
+      
+      listener.timeout = 360
     end
-    Process.wait(pid)
-    sleep 0.17
-    listener.wake.in << '.'
-
-    sleep 0.1
-
-    assert(!NewRelic::Agent::PipeChannelManager.channels[670] ||
-           NewRelic::Agent::PipeChannelManager.channels[670].closed?)
-    assert !NewRelic::Agent::PipeChannelManager.channels[760].closed?
-
-    listener.timeout = 360
   end
 
   def test_pipes_are_cleaned_up_after_select_timeout
     listener = start_listener_with_pipe(671)
-    listener.timeout = 0.2
-    listener.select_timeout = 0.2
-    sleep 0.22
+    listener.timeout = 0.1
+    listener.select_timeout = 0.1
+    sleep 0.2
 
     assert(!NewRelic::Agent::PipeChannelManager.channels[671] ||
            NewRelic::Agent::PipeChannelManager.channels[671].closed?)
