@@ -16,14 +16,15 @@ module NewRelic
       end
       
       class Pipe
-        attr_accessor :out
-        attr_accessor :in
+        attr_accessor :in, :out
+        attr_reader :last_read
         
         def initialize
           @out, @in = IO.pipe
           if defined?(::Encoding::ASCII_8BIT)
             @in.set_encoding(::Encoding::ASCII_8BIT)
           end
+          @last_read = Time.now
         end
         
         def close
@@ -33,16 +34,28 @@ module NewRelic
 
         def write(data)
           @out.close unless @out.closed?
-          @in << data
+          @in << Marshal.dump(data) + "\n\n"
+        end
+        
+        def read
+          @in.close unless @in.closed?
+          @last_read = Time.now
+          @out.gets("\n\n")
+        end
+
+        def closed?
+          @out.closed? && @in.closed?
         end
       end
       
       class Listener
         attr_reader   :thread
-        attr_accessor :pipes
+        attr_accessor :pipes, :timeout, :select_timeout
 
         def initialize
           @pipes = {}
+          @timeout = 360
+          @select_timeout = 60
         end
 
         def register_pipe(id)
@@ -57,18 +70,19 @@ module NewRelic
             loop do
               clean_up_pipes
               pipes_to_listen_to = @pipes.values.map{|pipe| pipe.out} + [wake.out]
-              
-              ready = IO.select(pipes_to_listen_to)[0][0] # block here for a ready pipe
-              
-              if ready == wake.out
-                ready.read(1)
-              else
-                merge_data_from_pipe(ready)
+              if ready = IO.select(pipes_to_listen_to, [], [], @select_timeout) 
+                pipe = ready[0][0]
+                if pipe == wake.out
+                  pipe.read(1)
+                else
+                  merge_data_from_pipe(pipe)
+                end
               end
               
               break if !should_keep_listening?
             end
           end
+          @thread #.abort_on_exception = true
           sleep 0.001 # give time for the thread to spawn
         end
         
@@ -99,17 +113,20 @@ module NewRelic
 
         protected
 
-        def merge_data_from_pipe(pipe)
-          close_in_handle_for(pipe)
+        def merge_data_from_pipe(pipe_handle)
+          pipe = find_pipe_for_handle(pipe_handle)
           got = pipe.read
           
-          if !got.empty?
+          if got && !got.empty?
             payload = Marshal.load(got)
-            NewRelic::Agent.agent.merge_data_from([payload[:stats],
-                                                   payload[:transaction_traces],
-                                                   payload[:error_traces]])
+            if payload == 'EOF'
+              pipe.close
+            else
+              NewRelic::Agent.agent.merge_data_from([payload[:stats],
+                                                     payload[:transaction_traces],
+                                                     payload[:error_traces]])
+            end
           end
-          pipe.close
         end
         
         def should_keep_listening?
@@ -117,14 +134,16 @@ module NewRelic
         end
         
         def clean_up_pipes
+          @pipes.values.each do |pipe|
+            if pipe.last_read.to_f + @timeout < Time.now.to_f
+              pipe.close unless pipe.closed?
+            end
+          end
           @pipes.reject! {|id, pipe| pipe.out.closed? }
         end
 
-        def close_in_handle_for(out_handle)
-          pipe = @pipes.values.find{|pipe| pipe.out == out_handle }
-          if pipe
-            pipe.in.close unless pipe.in.closed?
-          end
+        def find_pipe_for_handle(out_handle)
+          @pipes.values.find{|pipe| pipe.out == out_handle }
         end
       end
     end

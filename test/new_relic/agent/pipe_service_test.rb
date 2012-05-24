@@ -3,47 +3,53 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_hel
 class PipeServiceTest < Test::Unit::TestCase
   def setup
     NewRelic::Agent::PipeChannelManager.listener.stop    
-    NewRelic::Agent::PipeChannelManager.register_report_channel(456)
-    @service = NewRelic::Agent::PipeService.new(456)
-  end
-
-  def teardown
-    @service.send(:reset_buffer)
+    NewRelic::Agent::PipeChannelManager.register_report_channel(:pipe_service_test)
+    @service = NewRelic::Agent::PipeService.new(:pipe_service_test)
   end
   
   def test_constructor
-    assert_equal 456, @service.channel_id
+    assert_equal :pipe_service_test, @service.channel_id
   end
   
   def test_connect_returns_nil
     assert_nil @service.connect({}) 
   end
-    
-  def test_metric_data_buffers
-    metric_data = generate_metric_data('Custom/test/method')
-    @service.metric_data(0, 1, metric_data)
-    
-    expected_data = { metric_data[0].metric_spec => metric_data[0].stats }
-    assert_equal expected_data, @service.stats_engine.stats_hash
-  end
   
-  def test_transaction_sample_data
-    @service.transaction_sample_data(['txn'])
-    assert_equal ['txn'], @service.buffer[:transaction_traces]
-  end
+  if NewRelic::LanguageSupport.can_fork? &&
+      !NewRelic::LanguageSupport.using_version?('1.9.1')
 
-  def test_error_data
-    @service.error_data(['err'])
-    assert_equal ['err'], @service.buffer[:error_traces]
-  end
+    def test_metric_data
+      received_data = data_from_forked_process do
+        metric_data0 = generate_metric_data('Custom/something')
+        @service.metric_data(0.0, 0.1, metric_data0)
+      end
 
-  def test_sql_trace_data
-    @service.sql_trace_data(['sql'])
-    assert_equal ['sql'], @service.buffer[:sql_traces]
-  end
+      assert_equal 'Custom/something', received_data[:stats].keys.sort[0].name
+    end
 
-  if NewRelic::LanguageSupport.can_fork? && !NewRelic::LanguageSupport.using_version?('1.9.1')
-    def test_shutdown_writes_data_to_pipe
+    def test_transaction_sample_data
+      received_data = data_from_forked_process do
+        @service.transaction_sample_data(['txn'])
+      end
+
+      assert_equal ['txn'], received_data[:transaction_traces]
+    end
+
+    def test_error_data
+      received_data = data_from_forked_process do
+        @service.error_data(['err'])
+      end
+      assert_equal ['err'], received_data[:error_traces]
+    end
+
+    def test_sql_trace_data
+      received_data = data_from_forked_process do
+        @service.sql_trace_data(['sql'])
+      end
+      assert_equal ['sql'], received_data[:sql_traces]
+    end
+
+    def test_multiple_writes_to_pipe
       pid = Process.fork do
         metric_data0 = generate_metric_data('Custom/something')
         @service.metric_data(0.0, 0.1, metric_data0)
@@ -54,13 +60,26 @@ class PipeServiceTest < Test::Unit::TestCase
       end
       Process.wait(pid)
       
-      pipe = NewRelic::Agent::PipeChannelManager.channels[456]
-      pipe.in.close
-      received_data = Marshal.load(pipe.out.read)
+      received_data = read_from_pipe
       
       assert_equal 'Custom/something', received_data[:stats].keys.sort[0].name
       assert_equal ['txn0'], received_data[:transaction_traces]
       assert_equal ['err0'], received_data[:error_traces].sort
+    end
+  end
+
+  def test_shutdown_sends_EOF
+    received_data = data_from_forked_process do
+      @service.shutdown(Time.now)
+    end
+    assert_equal 'EOF', received_data[:EOF]
+  end
+
+  def test_shutdown_closes_pipe
+    data_from_forked_process do
+      @service.shutdown(Time.now)
+      assert NewRelic::Agent::PipeChannelManager \
+        .channels[:pipe_service_test].closed?
     end
   end
   
@@ -68,5 +87,27 @@ class PipeServiceTest < Test::Unit::TestCase
     engine = NewRelic::Agent::StatsEngine.new
     engine.get_stats_no_scope(metric_name).record_data_point(data)
     engine.harvest_timeslice_data({}, {}).values
+  end
+
+  def read_from_pipe
+    pipe = NewRelic::Agent::PipeChannelManager.channels[:pipe_service_test]
+    pipe.in.close
+    data = {}
+    while payload = pipe.out.gets("\n\n")
+      got = Marshal.load(payload)
+      if got == 'EOF'
+        got = {:EOF => 'EOF'}
+      end
+      data.merge!(got)
+    end
+    data
+  end
+
+  def data_from_forked_process
+    pid = Process.fork do
+      yield
+    end
+    Process.wait(pid)
+    read_from_pipe
   end
 end

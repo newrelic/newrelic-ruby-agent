@@ -84,10 +84,8 @@ module NewRelic
     end
 
     def test_manual_start_starts_channel_listener
+      NewRelic::Agent::PipeChannelManager.listener.stop
       NewRelic::Agent.agent.service = NewRelic::FakeService.new
-#       mock_control = mocked_control
-#       mock_control.expects(:init_plugin).with({ :agent_enabled => true, :sync_startup => true,
-#                                                 :start_channel_listener => true })
       NewRelic::Agent.manual_start(:start_channel_listener => true)
       assert NewRelic::Agent::PipeChannelManager.listener.started?
       NewRelic::Agent::PipeChannelManager.listener.stop

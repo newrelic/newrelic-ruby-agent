@@ -9,7 +9,6 @@ module NewRelic
         @collector = NewRelic::Control::Server.new(:name => 'parent',
                                                    :port => 0)
         @stats_engine = NewRelic::Agent::StatsEngine.new
-        reset_buffer
       end
       
       def connect(config)
@@ -18,38 +17,28 @@ module NewRelic
       
       def metric_data(last_harvest_time, now, unsent_timeslice_data)
         @stats_engine.merge_data(hash_from_metric_data(unsent_timeslice_data))
+        stats = @stats_engine.harvest_timeslice_data({}, {})
+        write_to_pipe(:stats => stats) if stats
       end
 
       def transaction_sample_data(transactions)
-        @buffer[:transaction_traces] += transactions
+        write_to_pipe(:transaction_traces => transactions) if transactions
       end
 
       def error_data(errors)
-        @buffer[:error_traces] += errors
+        write_to_pipe(:error_traces => errors) if errors
       end
 
       def sql_trace_data(sql)
-        @buffer[:sql_traces] += sql
+        write_to_pipe(:sql_traces => sql) if sql
       end
       
       def shutdown(time)
-        @buffer[:stats] = @stats_engine.harvest_timeslice_data({}, {})
-        payload = Marshal.dump(@buffer)
-        NewRelic::Agent::PipeChannelManager.channels[@channel_id].write(payload)
+        write_to_pipe('EOF')
         NewRelic::Agent::PipeChannelManager.channels[@channel_id].close
-        reset_buffer
       end
       
       private
-
-      def reset_buffer
-        @buffer = {
-          :stats => {},
-          :transaction_traces => [],
-          :error_traces => [],
-          :sql_traces => []
-        }
-      end
 
       def hash_from_metric_data(metric_data)
         metric_hash = {}
@@ -57,6 +46,10 @@ module NewRelic
           metric_hash[metric_entry.metric_spec] = metric_entry
         end
         metric_hash
+      end
+
+      def write_to_pipe(data)
+        NewRelic::Agent::PipeChannelManager.channels[@channel_id].write(data)
       end
     end
   end
