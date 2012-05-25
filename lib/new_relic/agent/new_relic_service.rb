@@ -1,5 +1,3 @@
-# require 'ruby-debug'
-
 module NewRelic
   module Agent
     class NewRelicService

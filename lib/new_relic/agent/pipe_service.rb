@@ -19,6 +19,7 @@ module NewRelic
         @stats_engine.merge_data(hash_from_metric_data(unsent_timeslice_data))
         stats = @stats_engine.harvest_timeslice_data({}, {})
         write_to_pipe(:stats => stats) if stats
+        {}
       end
 
       def transaction_sample_data(transactions)

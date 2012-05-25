@@ -1147,7 +1147,7 @@ module NewRelic
             begin
               @service.request_timeout = 10
               save_or_transmit_data
-              if @connected_pid == $$
+              if @connected_pid == $$ && !@service.kind_of?(NewRelic::Agent::NewRelicService)
                 log.debug "Sending New Relic service agent run shutdown message"
                 @service.shutdown(Time.now.to_f)
               else

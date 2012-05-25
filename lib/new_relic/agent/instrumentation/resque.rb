@@ -2,7 +2,8 @@ DependencyDetection.defer do
   @name = :resque
   
   depends_on do
-    defined?(::Resque::Job) && !NewRelic::Control.instance['disable_resque']  && !NewRelic::LanguageSupport.using_version?('1.9.1')
+    defined?(::Resque::Job) && !NewRelic::Control.instance['disable_resque']  &&
+      !NewRelic::LanguageSupport.using_version?('1.9.1')
   end
 
   executes do
@@ -24,8 +25,8 @@ DependencyDetection.defer do
           def around_perform_with_monitoring(*args)
             begin
               perform_action_with_newrelic_trace(:name => 'perform',
-                                                 :class_name => self.name,
-                                                 :category => 'OtherTransaction/ResqueJob') do
+                                   :class_name => self.name,
+                                   :category => 'OtherTransaction/ResqueJob') do
                 yield(*args)
               end
             ensure
