@@ -5,14 +5,14 @@
 
 Gem::Specification.new do |s|
   s.name = "newrelic_rpm"
-  s.version = "3.3.5.alpha"
+  s.version = "3.4.0.beta1"
 
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
   s.authors = ["Bill Kayser", "Jon Guymon", "Justin George", "Darin Swanson"]
-  s.date = "2012-05-03"
+  s.date = "2012-05-25"
   s.description = "New Relic is a performance management system, developed by New Relic,\nInc (http://www.newrelic.com).  New Relic provides you with deep\ninformation about the performance of your web application as it runs\nin production. The New Relic Ruby Agent is dual-purposed as a either a\nGem or plugin, hosted on\nhttp://github.com/newrelic/rpm/\n"
   s.email = "support@newrelic.com"
-  s.executables = ["newrelic_cmd", "newrelic", "mongrel_rpm"]
+  s.executables = ["newrelic", "mongrel_rpm", "newrelic_cmd"]
   s.extra_rdoc_files = [
     "CHANGELOG",
     "LICENSE",
@@ -62,10 +62,14 @@ Gem::Specification.new do |s|
     "lib/new_relic/agent/instrumentation/rails/errors.rb",
     "lib/new_relic/agent/instrumentation/rails3/action_controller.rb",
     "lib/new_relic/agent/instrumentation/rails3/errors.rb",
+    "lib/new_relic/agent/instrumentation/resque.rb",
     "lib/new_relic/agent/instrumentation/sinatra.rb",
     "lib/new_relic/agent/instrumentation/sunspot.rb",
     "lib/new_relic/agent/instrumentation/unicorn_instrumentation.rb",
     "lib/new_relic/agent/method_tracer.rb",
+    "lib/new_relic/agent/new_relic_service.rb",
+    "lib/new_relic/agent/pipe_channel_manager.rb",
+    "lib/new_relic/agent/pipe_service.rb",
     "lib/new_relic/agent/sampler.rb",
     "lib/new_relic/agent/samplers/cpu_sampler.rb",
     "lib/new_relic/agent/samplers/delayed_job_sampler.rb",
@@ -163,6 +167,9 @@ Gem::Specification.new do |s|
     "test/new_relic/agent/method_tracer/instance_methods/trace_execution_scoped_test.rb",
     "test/new_relic/agent/method_tracer_test.rb",
     "test/new_relic/agent/mock_scope_listener.rb",
+    "test/new_relic/agent/new_relic_service_test.rb",
+    "test/new_relic/agent/pipe_channel_manager_test.rb",
+    "test/new_relic/agent/pipe_service_test.rb",
     "test/new_relic/agent/rpm_agent_test.rb",
     "test/new_relic/agent/sampler_test.rb",
     "test/new_relic/agent/shim_agent_test.rb",
@@ -184,6 +191,8 @@ Gem::Specification.new do |s|
     "test/new_relic/control_test.rb",
     "test/new_relic/data_serialization_test.rb",
     "test/new_relic/delayed_job_injection_test.rb",
+    "test/new_relic/fake_collector.rb",
+    "test/new_relic/fake_service.rb",
     "test/new_relic/local_environment_test.rb",
     "test/new_relic/metric_data_test.rb",
     "test/new_relic/metric_parser/metric_parser_test.rb",
@@ -206,6 +215,7 @@ Gem::Specification.new do |s|
     "test/script/ci.sh",
     "test/script/ci_agent-tests_runner.sh",
     "test/script/ci_bench.sh",
+    "test/script/ci_multiverse_runner.sh",
     "test/test_contexts.rb",
     "test/test_helper.rb",
     "ui/helpers/developer_mode_helper.rb",
@@ -287,7 +297,7 @@ Gem::Specification.new do |s|
     "vendor/gems/metric_parser-0.1.0.pre1/lib/new_relic/metric_parser/web_transaction.rb"
   ]
   s.homepage = "http://www.github.com/newrelic/rpm"
-  s.post_install_message = "\nPLEASE NOTE:\n\nDeveloper Mode is now a Rack middleware.\n\nDeveloper Mode is no longer available in Rails 2.1 and earlier.\nHowever, starting in version 2.12 you can use Developer Mode in any\nRack based framework, in addition to Rails.  To install developer mode\nin a non-Rails application, just add NewRelic::Rack::DeveloperMode to\nyour middleware stack.\n\nIf you are using JRuby, we recommend using at least version 1.4 or \nlater because of issues with the implementation of the timeout library.\n\nRefer to the README.md file for more information.\n\nPlease see http://github.com/newrelic/rpm/blob/master/CHANGELOG\nfor a complete description of the features and enhancements available\nin version 3.3 of the Ruby Agent.\n  \n"
+  s.post_install_message = "\nPLEASE NOTE:\n\nDeveloper Mode is now a Rack middleware.\n\nDeveloper Mode is no longer available in Rails 2.1 and earlier.\nHowever, starting in version 2.12 you can use Developer Mode in any\nRack based framework, in addition to Rails.  To install developer mode\nin a non-Rails application, just add NewRelic::Rack::DeveloperMode to\nyour middleware stack.\n\nIf you are using JRuby, we recommend using at least version 1.4 or \nlater because of issues with the implementation of the timeout library.\n\nRefer to the README.md file for more information.\n\nPlease see http://github.com/newrelic/rpm/blob/master/CHANGELOG\nfor a complete description of the features and enhancements available\nin version 3.4 of the Ruby Agent.\n  \n"
   s.rdoc_options = ["--line-numbers", "--inline-source", "--title", "New Relic Ruby Agent"]
   s.require_paths = ["lib"]
   s.summary = "New Relic Ruby Agent"

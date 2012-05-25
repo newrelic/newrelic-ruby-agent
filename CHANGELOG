@@ -1,3 +1,8 @@
+v3.4.0
+ * Major refactor of data transmission mechanism.  This enabled child processes to send data to parent processes, which then send the data to the New Relic service.  This should only affect Resque users, dramatically improving their experience.
+ * Moved Resque instrumentation from rpm_contrib to main agent.  Resque users should discontinue use of rpm_contrib or upgrade to 2.1.11.
+
+v3.3.5
  * [FIX] Allow tracing of ! and ? methods
  * [PERF] Give up after scanning first 50k of the response in RUM
    auto-instrumentation.
