@@ -1,4 +1,4 @@
-v3.3.5.alpha
+v3.3.5.beta1
  * [FIX] Allow tracing of ! and ? methods
  * [PERF] Give up after scanning first 50k of the response in RUM
    auto-instrumentation.
