@@ -1,5 +1,11 @@
 #!/bin/bash -e
 
+if [ "x$RUBY" == "x" ] ; then
+	export RUBY=1.9.3
+fi
+
+echo "Tests will be run using $RUBY"
+
 SCRATH_DIR=./multiverse_tmp
 script_dirname=`dirname $0`
 
@@ -31,5 +37,5 @@ pwd
 ls -l ../
 
 source ~/.rvm/scripts/rvm
-rvm use 1.9.3
+rvm use $RUBY
 script/runner
