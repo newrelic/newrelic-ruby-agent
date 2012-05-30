@@ -12,6 +12,8 @@ script_dirname=`dirname $0`
 # make sure that we're in the project root
 cd "$script_dirname/../../"
 
+pwd 
+
 if [ -x $SCRATH_DIR ] ; then
 	echo "found tmp, deleting"
 	rm -fr $SCRATH_DIR
@@ -20,9 +22,12 @@ fi
 mkdir $SCRATH_DIR
 cd $SCRATH_DIR
 
+pwd 
+
 git clone --depth=1 git@github.com:newrelic/multiverse.git multiverse
 git clone --depth=1 git@github.com:newrelic/rpm_contrib.git rpm_contrib
 
+ls ../../
 if [ -x ../../Ruby_Agent ] ; then
 	ln -s ../../Ruby_Agent ./ruby_agent
 else
