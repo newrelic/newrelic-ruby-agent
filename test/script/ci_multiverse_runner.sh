@@ -24,7 +24,7 @@ cd $SCRATH_DIR
 
 pwd 
 if [[ $JOB_NAME =~ "Pangalactic" ]] ; then 
-	AGENT_LOCATION="../../../Ruby_Agent"
+	AGENT_LOCATION="../../../../Ruby_Agent"
 else
 	AGENT_LOCATION="../../Ruby_Agent"
 fi
