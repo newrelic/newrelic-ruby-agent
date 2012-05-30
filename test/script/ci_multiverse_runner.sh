@@ -33,8 +33,8 @@ git clone --depth=1 git@github.com:newrelic/multiverse.git multiverse
 git clone --depth=1 git@github.com:newrelic/rpm_contrib.git rpm_contrib
 
 echo "Looking for Ruby Agent at $AGENT_LOCATION"
-ls -l $AGENT_LOCATION
-exit 0
+ls -l ../../../../
+exit 0`
 if [ -x $AGENT_LOCATION ] ; then
 	ln -s $AGENT_LOCATION ./ruby_agent
 else
