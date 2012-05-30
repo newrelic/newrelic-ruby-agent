@@ -5,6 +5,7 @@ if [ "x$RUBY" == "x" ] ; then
 fi
 
 echo "Tests will be run using $RUBY"
+uname -a
 
 SCRATH_DIR=./multiverse_tmp
 script_dirname=`dirname $0`
@@ -24,7 +25,7 @@ cd $SCRATH_DIR
 
 pwd 
 if [[ $JOB_NAME =~ "Pangalactic" ]] ; then 
-	AGENT_LOCATION="../../../../Ruby_Agent"
+	AGENT_LOCATION="../../../Ruby_Agent"
 else
 	AGENT_LOCATION="../../Ruby_Agent"
 fi
@@ -33,7 +34,9 @@ git clone --depth=1 git@github.com:newrelic/multiverse.git multiverse
 git clone --depth=1 git@github.com:newrelic/rpm_contrib.git rpm_contrib
 
 echo "Looking for Ruby Agent at $AGENT_LOCATION"
-ls -l ../../../../
+ls -l ../../../
+ls -l /home/hudson/workspace/
+ls -l /home/hudson/workspace/workspace/
 
 if [ -x $AGENT_LOCATION ] ; then
 	ln -s $AGENT_LOCATION ./ruby_agent
