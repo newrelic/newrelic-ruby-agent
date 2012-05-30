@@ -23,7 +23,7 @@ mkdir $SCRATH_DIR
 cd $SCRATH_DIR
 
 pwd 
-if [[ $JOB =~ "Pangalactic" ]] ; then 
+if [[ $JOB_NAME =~ "Pangalactic" ]] ; then 
 	AGENT_LOCATION="../../../Ruby_Agent"
 else
 	AGENT_LOCATION="../../Ruby_Agent"
