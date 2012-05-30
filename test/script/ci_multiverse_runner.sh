@@ -23,15 +23,20 @@ mkdir $SCRATH_DIR
 cd $SCRATH_DIR
 
 pwd 
+if [[ $JOB =~ "Pangalactic" ]] ; then 
+	AGENT_LOCATION="../../../Ruby_Agent"
+else
+	AGENT_LOCATION="../../Ruby_Agent"
+fi
 
 git clone --depth=1 git@github.com:newrelic/multiverse.git multiverse
 git clone --depth=1 git@github.com:newrelic/rpm_contrib.git rpm_contrib
 
-ls ../../
-if [ -x ../../Ruby_Agent ] ; then
-	ln -s ../../Ruby_Agent ./ruby_agent
+echo "Looking for Ruby Agent at $AGENT_LOCATION"
+if [ -x $AGENT_LOCATION ] ; then
+	ln -s $AGENT_LOCATION ./ruby_agent
 else
-	echo "*********** Ruby_Agent can't be found ***********"
+	echo "*********** Ruby_Agent not found ***********"
 	exit 1
 fi
 
