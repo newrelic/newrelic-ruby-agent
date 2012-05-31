@@ -5,7 +5,7 @@ if [ "x$RUBY" == "x" ] ; then
 fi
 
 echo "Tests will be run using $RUBY"
-uname -a
+#uname -a
 
 SCRATH_DIR=./multiverse_tmp
 script_dirname=`dirname $0`
@@ -13,7 +13,7 @@ script_dirname=`dirname $0`
 # make sure that we're in the project root
 cd "$script_dirname/../../"
 
-pwd 
+#pwd 
 
 if [ -x $SCRATH_DIR ] ; then
 	echo "found tmp, deleting"
@@ -23,7 +23,7 @@ fi
 mkdir $SCRATH_DIR
 cd $SCRATH_DIR
 
-pwd 
+#pwd 
 if [[ $JOB_NAME =~ "Pangalactic" ]] ; then 
 	AGENT_LOCATION="../../../../../../Ruby_Agent"
 else
@@ -34,8 +34,8 @@ git clone --depth=1 git@github.com:newrelic/multiverse.git multiverse
 git clone --depth=1 git@github.com:newrelic/rpm_contrib.git rpm_contrib
 
 echo "Looking for Ruby Agent at $AGENT_LOCATION"
-ls -l ../../../../../../
-ls -l /home/hudson/workspace/
+#ls -l ../../../../../../
+#ls -l /home/hudson/workspace/
 
 if [ -x $AGENT_LOCATION ] ; then
 	ln -s $AGENT_LOCATION ./ruby_agent
@@ -47,8 +47,8 @@ fi
 cd multiverse
 #./ci_run.sh
 
-pwd
-ls -l ../
+#pwd
+#ls -l ../
 
 source ~/.rvm/scripts/rvm
 rvm use $RUBY
