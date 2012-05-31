@@ -1,5 +1,5 @@
-v3.3.5.beta1
- * [FIX] Allow tracing of ! and ? methods
+v3.3.5
+ * [FIX] Allow tracing of methods ending in ! and ?
  * [PERF] Give up after scanning first 50k of the response in RUM
    auto-instrumentation.
  * [FIX] Don't raise when extracting metrics from SQL queries with non UTF-8 bytes.
