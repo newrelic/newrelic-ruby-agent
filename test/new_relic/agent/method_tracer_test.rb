@@ -244,6 +244,7 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
     t1 = Time.now
     method_with_block(1,2,3,true,METRIC) do |scope|
       assert scope == METRIC
+      sleep 0.1 # pad the test a bit to increase the margin of error
     end
     elapsed = Time.now - t1
 
