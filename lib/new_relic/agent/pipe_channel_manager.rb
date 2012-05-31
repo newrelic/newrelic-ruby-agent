@@ -118,7 +118,7 @@ module NewRelic
           got = pipe.read
           
           if got && !got.empty?
-            payload = Marshal.load(got)
+            payload = unmarshal(got)
             if payload == 'EOF'
               pipe.close
             else
@@ -126,6 +126,16 @@ module NewRelic
                                                      payload[:transaction_traces],
                                                      payload[:error_traces]])
             end
+          end
+        end
+
+        def unmarshal(data)
+          if NewRelic::LanguageSupport.broken_gc?
+            NewRelic::LanguageSupport.with_disabled_gc do
+              Marshal.load(data)
+            end
+          else
+            Marshal.load(data)
           end
         end
         

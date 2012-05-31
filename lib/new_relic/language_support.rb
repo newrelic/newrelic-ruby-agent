@@ -59,6 +59,24 @@ module NewRelic::LanguageSupport
       engine == 'ruby'
     end
   end
+
+  def broken_gc?
+    NewRelic::LanguageSupport.using_version?('1.8.7') &&
+      RUBY_PATCHLEVEL < 348 &&
+      !NewRelic::LanguageSupport.using_engine?('jruby') &&
+      !NewRelic::LanguageSupport.using_engine?('rbx')
+  end
+
+  def with_disabled_gc
+    if defined?(::GC) && ::GC.respond_to?(:disable)
+      ::GC.disable
+      val = yield
+      ::GC.enable
+      val
+    else
+      yield
+    end
+  end
   
   def using_version?(version)
     numbers = version.split('.')
