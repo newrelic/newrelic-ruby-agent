@@ -201,25 +201,6 @@ module NewRelic
     def test_instance
       assert_equal(NewRelic::Agent.agent, NewRelic::Agent.instance, "should return the same agent for both identical methods")
     end
-
-    def test_load_data_should_disable_serialization_if_an_error_is_encountered
-      NewRelic::Control.instance['disable_serialization'] = false
-      NewRelic::DataSerialization.stubs(:should_send_data?).returns(false)
-      NewRelic::Agent.stubs(:save_data).raises(Errno::EACCES)
-      begin
-        NewRelic::Agent.instance.send(:save_or_transmit_data)
-      rescue Errno::EACCES; end
-      # should be true
-      assert(NewRelic::Control.instance['disable_serialization'])
-      NewRelic::Control.instance['disable_serialization'] = false
-    end
-
-    def test_load_data_should_not_write_files_when_serialization_disabled
-      NewRelic::Control.instance['disable_serialization'] = true
-      NewRelic::DataSerialization.expects(:read_and_write_to_file).never
-      NewRelic::Agent.load_data
-      NewRelic::Control.instance['disable_serialization'] = false
-    end
     
     def test_register_report_channel
       NewRelic::Agent.register_report_channel(:channel_id)

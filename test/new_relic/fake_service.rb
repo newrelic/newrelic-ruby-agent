@@ -34,7 +34,7 @@ module NewRelic
     
     def method_missing(method, *args)
       if @supported_methods.include?(method)
-        @agent_data << OpenStruct.new(:method => method, :params => args)
+        @agent_data << OpenStruct.new(:action => method, :params => args)
         @mock[method.to_s]
       else
         super

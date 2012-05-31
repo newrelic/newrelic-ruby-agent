@@ -1,6 +1,5 @@
 require 'forwardable'
 require 'new_relic/control'
-require 'new_relic/data_serialization'
 
 # = New Relic Ruby Agent
 #
@@ -222,45 +221,6 @@ module NewRelic
     # and kills the background thread.
     def shutdown(options={})
       agent.shutdown(options)
-    end
-    
-    # a method used to serialize short-running processes to disk, so
-    # we don't incur the overhead of reporting to the server for every
-    # fork/invocation of a small job.
-    #
-    # Functionally, this loads the data from the file into the agent
-    # (to avoid losing data by overwriting) and then serializes the
-    # agent data to the file again. See also #load_data
-    def save_data
-      NewRelic::DataSerialization.read_and_write_to_file do |old_data|
-        agent.merge_data_from(old_data)
-        agent.serialize
-      end
-    end
-    
-    # used to load data from the disk during the harvest cycle to send
-    # it. This method also clears the file so data should never be
-    # sent more than once.
-
-    # Note that only one transaction trace will be sent even if many
-    # are serialized, since the slowest is sent.
-    #
-    # See also the complement to this method, #save_data - used when a
-    # process is shutting down
-    def load_data
-      if !NewRelic::Control.instance['disable_serialization']
-        NewRelic::DataSerialization.read_and_write_to_file do |old_data|
-          agent.merge_data_from(old_data)
-          nil # return nil so nothing is written to the file
-        end
-        NewRelic::DataSerialization.update_last_sent!
-      end
-      
-      {
-        :metrics => agent.stats_engine.metrics.length,
-        :traces => agent.unsent_traces_size,
-        :errors => agent.unsent_errors_size
-      }
     end
 
     # Add instrumentation files to the agent.  The argument should be

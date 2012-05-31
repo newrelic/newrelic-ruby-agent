@@ -4,7 +4,6 @@ require 'net/http'
 require 'logger'
 require 'zlib'
 require 'stringio'
-require 'new_relic/data_serialization'
 require 'new_relic/agent/new_relic_service'
 require 'new_relic/agent/pipe_service'
 
@@ -485,7 +484,7 @@ module NewRelic
           def create_and_run_worker_loop
             @worker_loop = WorkerLoop.new
             @worker_loop.run(@report_period) do
-              save_or_transmit_data
+              transmit_data
             end
           end
 
@@ -1112,21 +1111,13 @@ module NewRelic
           end
         end
         
-        def save_or_transmit_data
-          if NewRelic::DataSerialization.should_send_data?
-            log.debug "Sending data to New Relic Service"
-            NewRelic::Agent.load_data unless NewRelic::Control.instance.disable_serialization?
-            harvest_and_send_errors
-            harvest_and_send_slowest_sample
-            harvest_and_send_slowest_sql
-            harvest_and_send_timeslice_data
-          else
-            log.debug "Serializing agent data to disk"
-            NewRelic::Agent.save_data
-          end
+        def transmit_data
+          log.debug "Sending data to New Relic Service"
+          harvest_and_send_errors
+          harvest_and_send_slowest_sample
+          harvest_and_send_slowest_sql
+          harvest_and_send_timeslice_data
         rescue => e
-          NewRelic::Control.instance.disable_serialization = true
-          NewRelic::Control.instance.log.warn("Disabling serialization: #{e.message}")
           retry_count ||= 0
           retry_count += 1
           retry unless retry_count > 1
@@ -1146,7 +1137,7 @@ module NewRelic
           if @connected
             begin
               @service.request_timeout = 10
-              save_or_transmit_data
+              transmit_data
               if @connected_pid == $$ && !@service.kind_of?(NewRelic::Agent::NewRelicService)
                 log.debug "Sending New Relic service agent run shutdown message"
                 @service.shutdown(Time.now.to_f)

@@ -5,6 +5,7 @@ module NewRelic
       def setup
         super
         @agent = NewRelic::Agent::Agent.new
+        @agent.service = NewRelic::FakeService.new
       end
 
       def test_after_fork_reporting_to_channel
@@ -13,37 +14,21 @@ module NewRelic
                'Agent should use PipeService when directed to report to pipe channel')
         assert_equal 123, @agent.service.channel_id
       end
-
-      def test_save_or_transmit_data_should_save
-        NewRelic::Agent.expects(:save_data).once
-        @agent.expects(:harvest_and_send_timeslice_data).never
-        NewRelic::DataSerialization.expects(:should_send_data?).returns(false)
-        @agent.instance_eval { save_or_transmit_data }
-      end
       
-      def test_save_or_transmit_data_should_transmit
-        NewRelic::Control.instance.stubs(:disable_serialization?).returns(false)
-        NewRelic::Agent.expects(:load_data)
-        @agent.expects(:harvest_and_send_timeslice_data)
-        @agent.expects(:harvest_and_send_slowest_sample)
-        @agent.expects(:harvest_and_send_errors)
-        NewRelic::DataSerialization.expects(:should_send_data?).returns(true)
-        @agent.instance_eval { save_or_transmit_data }
+      def test_transmit_data_should_transmit
+        @agent.instance_eval { transmit_data }
+        assert @agent.service.agent_data.any?
       end
 
-      def test_save_or_transmit_data_should_close_explain_db_connections
-        NewRelic::Agent.stubs(:save_data)
-        NewRelic::DataSerialization.expects(:should_send_data?).returns(false)
+      def test_transmit_data_should_close_explain_db_connections
         NewRelic::Agent::Database.expects(:close_connections)
-        @agent.instance_eval { save_or_transmit_data }
+        @agent.instance_eval { transmit_data }
       end
       
-      def test_save_or_transmit_data_should_not_close_db_connections_if_forked
-        NewRelic::Agent.stubs(:save_data)
-        NewRelic::DataSerialization.expects(:should_send_data?).returns(false)
+      def test_transmit_data_should_not_close_db_connections_if_forked
         NewRelic::Agent::Database.expects(:close_connections).never
         @agent.after_fork
-        @agent.instance_eval { save_or_transmit_data }
+        @agent.instance_eval { transmit_data }
       end
 
       def test_serialize

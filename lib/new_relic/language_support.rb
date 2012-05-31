@@ -1,28 +1,6 @@
 module NewRelic::LanguageSupport
   extend self
   
-  module DataSerialization
-    def self.included(base)
-      # need to disable GC during marshal load in 1.8.7
-      if NewRelic::LanguageSupport.using_version?('1.8.7') &&
-          !NewRelic::LanguageSupport.using_engine?('jruby') &&
-          !NewRelic::LanguageSupport.using_engine?('rbx')
-        base.class_eval do
-          def self.load(*args)
-            if defined?(::GC) && ::GC.respond_to?(:disable)
-              ::GC.disable
-              val = super
-              ::GC.enable
-              val
-            else
-              super
-            end
-          end
-        end
-      end
-    end
-  end
-  
   module Control
     def self.included(base)
       # need to use syck rather than psych when possible
