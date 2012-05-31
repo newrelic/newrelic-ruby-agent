@@ -70,7 +70,7 @@ if defined?(Capistrano::Version::MAJOR) && Capistrano::Version::MAJOR < 2
 else
   instance = Capistrano::Configuration.instance
   if instance
-    instance.load &make_notify_task
+    instance.load(&make_notify_task)
   else
     make_notify_task.call
   end
