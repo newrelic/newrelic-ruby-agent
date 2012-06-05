@@ -3,9 +3,10 @@
 export PATH=$PATH:$HOME/bin
 
 echo $HOME
-ls $HOME
-
 echo $PATH
+ls $HOME/bin
+
+
 
 if [ "x$RUBY" == "x" ] ; then
 	export RUBY=1.9.3
