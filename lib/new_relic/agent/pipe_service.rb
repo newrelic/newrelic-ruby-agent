@@ -1,14 +1,13 @@
 module NewRelic
   module Agent
     class PipeService
-      attr_reader :channel_id, :buffer, :stats_engine
+      attr_reader :channel_id, :buffer
       attr_accessor :request_timeout, :agent_id, :collector
       
       def initialize(channel_id)
         @channel_id = channel_id
         @collector = NewRelic::Control::Server.new(:name => 'parent',
                                                    :port => 0)
-        @stats_engine = NewRelic::Agent::StatsEngine.new
       end
       
       def connect(config)
@@ -16,9 +15,7 @@ module NewRelic
       end
       
       def metric_data(last_harvest_time, now, unsent_timeslice_data)
-        @stats_engine.merge_data(hash_from_metric_data(unsent_timeslice_data))
-        stats = @stats_engine.harvest_timeslice_data({}, {})
-        write_to_pipe(:stats => stats) if stats
+        write_to_pipe(:stats => hash_from_metric_data(unsent_timeslice_data))
         {}
       end
 

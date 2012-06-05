@@ -49,6 +49,10 @@ module NewRelic
         NewRelic::Agent.instance.stats_engine.get_stats_no_scope(metric) \
           .record_data_point(1.0)
         
+        # ensure that cached metric ids don't interfere with metric merging
+        NewRelic::Agent.agent.instance_variable_set(:@metric_ids,
+                                    {NewRelic::MetricSpec.new('Instance/Busy') => 1})
+        
         NewRelic::Agent::PipeChannelManager.listener.close_all_pipes
         NewRelic::Agent.register_report_channel(:agent_test) # before fork
         pid = Process.fork do
