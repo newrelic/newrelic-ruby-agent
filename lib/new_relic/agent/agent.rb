@@ -444,9 +444,6 @@ module NewRelic
         end
 
         private
-#         def collector
-#           @collector ||= control.collector
-#         end
         
         # All of this module used to be contained in the
         # start_worker_thread method - this is an artifact of
