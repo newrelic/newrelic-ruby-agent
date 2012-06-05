@@ -4,7 +4,7 @@ export PATH=$PATH:$HOME/bin
 
 echo $HOME
 echo $PATH
-ls $HOME/bin
+#ls $HOME/bin
 
 
 
