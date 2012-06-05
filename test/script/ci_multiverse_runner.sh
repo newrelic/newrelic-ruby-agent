@@ -1,6 +1,7 @@
 #!/bin/bash -e
 
-export PATH=$PATH:$HOME/hudson/bin
+export PATH=$PATH:$HOME/bin
+
 if [ "x$RUBY" == "x" ] ; then
 	export RUBY=1.9.3
 fi
