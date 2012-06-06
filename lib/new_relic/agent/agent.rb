@@ -866,7 +866,7 @@ module NewRelic
             config_transaction_tracer
             log_connection!(config_data)
             configure_transaction_tracer!(config_data['collect_traces'], config_data['sample_rate'])
-            configure_error_collector!(config_data['collect_errors'])
+            configure_error_collector!(config_data['error_collector.enabled'])
           end
           
           # Logs when we connect to the server, for debugging purposes
@@ -1006,8 +1006,6 @@ module NewRelic
         # transmission later
         def harvest_and_send_timeslice_data
           now = Time.now
-          NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote').record_data_point(0.0)
-          NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote/metric_data').record_data_point(0.0)
           harvest_timeslice_data(now)
           # In this version of the protocol, we get back an assoc array of spec to id.            
           metric_specs_and_ids = @service.metric_data(@last_harvest_time.to_f,
