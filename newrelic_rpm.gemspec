@@ -5,14 +5,14 @@
 
 Gem::Specification.new do |s|
   s.name = "newrelic_rpm"
-  s.version = "3.4.0.beta1"
+  s.version = "3.4.0.beta2"
 
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
   s.authors = ["Bill Kayser", "Jon Guymon", "Justin George", "Darin Swanson"]
-  s.date = "2012-05-31"
+  s.date = "2012-06-07"
   s.description = "New Relic is a performance management system, developed by New Relic,\nInc (http://www.newrelic.com).  New Relic provides you with deep\ninformation about the performance of your web application as it runs\nin production. The New Relic Ruby Agent is dual-purposed as a either a\nGem or plugin, hosted on\nhttp://github.com/newrelic/rpm/\n"
   s.email = "support@newrelic.com"
-  s.executables = ["mongrel_rpm", "newrelic", "newrelic_cmd"]
+  s.executables = ["newrelic_cmd", "newrelic", "mongrel_rpm"]
   s.extra_rdoc_files = [
     "CHANGELOG",
     "LICENSE",
@@ -105,7 +105,6 @@ Gem::Specification.new do |s|
     "lib/new_relic/control/logging_methods.rb",
     "lib/new_relic/control/profiling.rb",
     "lib/new_relic/control/server_methods.rb",
-    "lib/new_relic/data_serialization.rb",
     "lib/new_relic/delayed_job_injection.rb",
     "lib/new_relic/helper.rb",
     "lib/new_relic/language_support.rb",
@@ -189,7 +188,6 @@ Gem::Specification.new do |s|
     "test/new_relic/control/configuration_test.rb",
     "test/new_relic/control/logging_methods_test.rb",
     "test/new_relic/control_test.rb",
-    "test/new_relic/data_serialization_test.rb",
     "test/new_relic/delayed_job_injection_test.rb",
     "test/new_relic/fake_collector.rb",
     "test/new_relic/fake_service.rb",
