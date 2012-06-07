@@ -1,15 +1,17 @@
 v3.4.0
  * Major refactor of data transmission mechanism.  This enabled child processes to send data to parent processes, which then send the data to the New Relic service.  This should only affect Resque users, dramatically improving their experience.
  * Moved Resque instrumentation from rpm_contrib to main agent.  Resque users should discontinue use of rpm_contrib or upgrade to 2.1.11.
+ * Resolve issue with configuring the Error Collector when using server-side configuration.
 
 v3.3.5
- * [FIX] Allow tracing of ! and ? methods
+ * [FIX] Allow tracing of methods ending in ! and ?
  * [PERF] Give up after scanning first 50k of the response in RUM
    auto-instrumentation.
- * [FIX] Don't raise when extracting metrics from SQL queries with non UTF-8
- * bytes.  Replaced "Custom/DJ Locked Jobs" metric with three new metrics for
+ * [FIX] Don't raise when extracting metrics from SQL queries with non UTF-8 bytes.
+ * Replaced "Custom/DJ Locked Jobs" metric with new metrics for
    monitoring DelayedJob: queue_length, failed_jobs, and locked_jobs, all under
-   Workers/DelayedJob
+   Workers/DelayedJob.  queue_length is also broken out by queue name or priority
+   depending on the version of DelayedJob deployed.
 
 v3.3.4.1
  * Bug fix when rendering empty collection in Rails 3.1+
