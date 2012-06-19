@@ -15,6 +15,7 @@ module NewRelic
         def notice_push_scope(*args); end
         def notice_pop_scope(*args); end
         def notice_scope_empty(*args); end
+        def notice_transaction_cpu_time(*args); end
       end
 
       BUILDER_KEY = :transaction_sample_builder

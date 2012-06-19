@@ -5,6 +5,9 @@ module Agent
       def add_sampler(*args); end
       def add_harvest_sampler(*args); end
       def start_sampler_thread(*args); end
+      def get_stats_no_scope(*args); end
+      def get_stats(*args); end
+      def get_custom_stats(*args); end  
     end
     
     # Contains statistics engine extensions to support the concept of samplers
