@@ -1,4 +1,3 @@
-
 module NewRelic
   module Stats
     
@@ -196,6 +195,12 @@ module NewRelic
     def apdex_score
       s, t, f = get_apdex
       (s.to_f + (t.to_f / 2)) / (s+t+f).to_f
+    end
+
+    class ShimStats
+      def method_missing(method, *args, &block)
+        nil
+      end
     end
   end
 
