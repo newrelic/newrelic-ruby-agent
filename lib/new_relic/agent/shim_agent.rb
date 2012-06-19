@@ -3,7 +3,10 @@
 # invoke the Agent.
 module NewRelic
   module Agent
-    class ShimAgent 
+    class ShimAgent
+      attr_accessor :stats_engine
+      attr_accessor :transaction_sampler, :sql_sampler, :error_collector
+      
       def self.instance
         @instance ||= self.new
       end
