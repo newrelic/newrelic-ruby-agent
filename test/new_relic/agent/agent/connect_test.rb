@@ -363,7 +363,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
       'data_report_period' => 'pasta sauce',
       'url_rules' => 'tamales',
       'collect_traces' => true,
-      'error_collector.enabled' => true,
+      'collect_errors' => true,
       'sample_rate' => 10
     }
     NewRelic::Control.instance.settings['transaction_tracer'] = {'enabled' => true}
