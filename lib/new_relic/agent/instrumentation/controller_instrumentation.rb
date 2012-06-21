@@ -139,6 +139,7 @@ module NewRelic
               options_arg << %Q[:#{key} => #{valuestr}]
             end
             traced_method, punctuation = method.to_s.sub(/([?!=])$/, ''), $1
+            visibility = NewRelic::Helper.instance_method_visibility self, method
 
             class_eval <<-EOC
               def #{traced_method.to_s}_with_newrelic_transaction_trace#{punctuation}(*args, &block)
@@ -149,6 +150,7 @@ module NewRelic
             EOC
             alias_method "#{traced_method.to_s}_without_newrelic_transaction_trace#{punctuation}", method.to_s
             alias_method method.to_s, "#{traced_method.to_s}_with_newrelic_transaction_trace#{punctuation}"
+            send visibility, method
             NewRelic::Control.instance.log.debug("Traced transaction: class = #{self.name}, method = #{method.to_s}, options = #{options.inspect}")
           end
         end
