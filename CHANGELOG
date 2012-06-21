@@ -1,5 +1,6 @@
 
 v3.4.1.alpha ===> please note, I'm working on an actual Release Notes file using markdown.
+ * Preserve method visibility when methods are traced with #add_method_tracer and #add_transaction_tracer
 
 v3.4.0
  * Major refactor of data transmission mechanism.  This enabled child processes to send data to parent processes, which then send the data to the New Relic service.  This should only affect Resque users, dramatically improving their experience.
