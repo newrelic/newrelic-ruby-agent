@@ -114,7 +114,7 @@ module NewRelic
 
           response['X-NewRelic-Beacon-Url'] = beacon_url(request)
 
-          payload = %[{"application_id":"#{config.application_id}","transaction_name":"#{obfuscate(config, browser_monitoring_transaction_name)}","queue_time":#{browser_monitoring_queue_time},"app_time":#{browser_monitoring_app_time}}]
+          payload = %[ ["#{config.application_id}","#{obfuscate(config, browser_monitoring_transaction_name)}",#{browser_monitoring_queue_time},#{browser_monitoring_app_time}] ]
           response['X-NewRelic-App-Server-Metrics'] = payload
         end
       end
