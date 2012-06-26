@@ -53,7 +53,10 @@ module NewRelic
         return host if verify_certificate?
         return nil if host.nil? || host.downcase == "localhost"
         ip = resolve_ip_address(host)
-        log.info "Resolved #{host} to #{ip}"
+
+        # FIXME: commented out to squelch STDOUT output for RUBY-839
+        # should bring it back when logging / startup is fixed
+        # log.info "Resolved #{host} to #{ip}"
         ip
       end
 
