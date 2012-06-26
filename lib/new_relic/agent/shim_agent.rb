@@ -24,7 +24,6 @@ module NewRelic
       def browser_timing_header; "" end
       def browser_timing_footer; "" end
       def started?; false end
-      def record_sql(*args); end
     end
   end
 end
