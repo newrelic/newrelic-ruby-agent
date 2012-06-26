@@ -71,16 +71,14 @@ module NewRelic
         Module.send :include, NewRelic::Agent::MethodTracer::ClassMethods
         Module.send :include, NewRelic::Agent::MethodTracer::InstanceMethods
         init_config(options)
-        if agent_enabled?
-          NewRelic::Agent.agent = NewRelic::Agent::Agent.instance
-          if !NewRelic::Agent.instance.started?
-            setup_log unless logger_override
-            start_agent
-            install_instrumentation
-            load_samplers unless self['disable_samplers']
-            local_env.gather_environment_info
-            append_environment_info
-          end
+        NewRelic::Agent.agent = NewRelic::Agent::Agent.instance
+        if agent_enabled? && !NewRelic::Agent.instance.started?
+          setup_log unless logger_override
+          start_agent
+          install_instrumentation
+          load_samplers unless self['disable_samplers']
+          local_env.gather_environment_info
+          append_environment_info
         elsif !agent_enabled?
           install_shim
         end

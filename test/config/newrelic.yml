@@ -6,8 +6,8 @@ common: &default_settings
 
 test:
   <<: *default_settings
-  host: staging-collector.newrelic.com
-  port: 80
+  host: localhost
+  port: 3000
   log_level: info
   capture_params: true
   agent_enabled: false
