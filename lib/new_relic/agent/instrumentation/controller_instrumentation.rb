@@ -36,7 +36,6 @@ module NewRelic
           def new_relic_trace_controller_action(*args); yield; end
           def newrelic_metric_path; end
           def perform_action_with_newrelic_trace(*args); yield; end
-          def record_apdex_s(*args); end
         end
 
         module ClassMethods
