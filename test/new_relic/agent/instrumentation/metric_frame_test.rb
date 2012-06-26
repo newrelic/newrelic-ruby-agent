@@ -47,12 +47,4 @@ class NewRelic::Agent::Instrumentation::MetricFrameTest < Test::Unit::TestCase
     assert_equal "/", f.uri
     assert_nil f.referer
   end
-
-  def test_record_apdex_with_shim_agent
-    assert_nothing_raised do
-      f.apdex_start = f.start
-      f.push('Controller/test')
-      f.record_apdex
-    end
-  end
 end

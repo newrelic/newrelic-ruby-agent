@@ -28,7 +28,6 @@ module Agent
         def scope_name=(*args); end
         def scope_name; end
         def pop_scope(*args); end
-        def notice_sql(*atgs); end
       end
       
       # add a new transaction sampler, unless we're currently in a

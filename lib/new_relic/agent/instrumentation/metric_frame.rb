@@ -319,7 +319,6 @@ module NewRelic
         # Record an apdex value for the given stat.  when `failed`
         # the apdex should be recorded as a failure regardless of duration.
         def self.update_apdex(stat, duration, failed)
-          return unless stat # probably a Shim Agent
           duration = duration.to_f
           apdex_t = NewRelic::Control.instance.apdex_t
           case
