@@ -30,7 +30,10 @@ module NewRelic
         @obfuscator = lambda {|sql| NewRelic::Agent::Database.default_sql_obfuscator(sql) }
         @forked = false
 
-        @service = NewRelic::Agent::NewRelicService.new(control.license_key, control.server)
+        # FIXME: temporary work around for RUBY-839
+        if control.monitor_mode?
+          @service = NewRelic::Agent::NewRelicService.new(control.license_key, control.server)
+        end
       end
 
       # contains all the class-level methods for NewRelic::Agent::Agent
