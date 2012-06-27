@@ -128,7 +128,7 @@ module NewRelic
             payload = unmarshal(got)
             if payload == 'EOF'
               pipe.close
-            else
+            elsif payload
               NewRelic::Agent.agent.merge_data_from([payload[:stats],
                                                      payload[:transaction_traces],
                                                      payload[:error_traces]])
