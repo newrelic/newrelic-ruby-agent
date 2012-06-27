@@ -127,4 +127,14 @@ fi
 
 export RAILS_ENV=test
 bundle
-bundle exec rake --trace db:create:all ci:setup:testunit test:newrelic
+
+# FIXME:  Here we actually trigger the tests. Since the agent deals so heavily
+# in units of time we have many tests that assert that durations are measured
+# correctly.  These almost always pass, but as the CI machine has come under
+# heavier load there tend to be discrepencies between the duration measured in
+# the test and the duration the agent measures.  This is due to lags in CPU
+# scheduling since many processes are running on the box simultaneously.
+# To reduce the noise from these sporardic failures we rerun the test suite if
+# there are failures to see if they are transient (instead of re-running it by
+# hand).  Ultimately we'll move towards a more elegant solution.
+bundle exec rake --trace db:create:all test:newrelic || bundle exec rake --trace test:newrelic || bundle exec rake --trace test:newrelic
