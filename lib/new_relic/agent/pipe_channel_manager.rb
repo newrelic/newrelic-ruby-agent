@@ -121,7 +121,7 @@ module NewRelic
             payload = unmarshal(got)
             if payload == 'EOF'
               pipe.close
-            else
+            elsif payload
               NewRelic::Agent.agent.merge_data_from([payload[:stats],
                                                      payload[:transaction_traces],
                                                      payload[:error_traces]])
@@ -137,6 +137,8 @@ module NewRelic
           else
             Marshal.load(data)
           end
+        rescue ArgumentError => e
+          nil if e.message == 'marshal data too short'
         end
         
         def should_keep_listening?

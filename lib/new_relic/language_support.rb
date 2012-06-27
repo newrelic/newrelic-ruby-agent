@@ -69,9 +69,13 @@ module NewRelic::LanguageSupport
 
   def with_disabled_gc
     if defined?(::GC) && ::GC.respond_to?(:disable)
-      ::GC.disable
-      val = yield
-      ::GC.enable
+      val = nil
+      begin
+        ::GC.disable
+        val = yield
+      ensure
+        ::GC.enable
+      end
       val
     else
       yield
