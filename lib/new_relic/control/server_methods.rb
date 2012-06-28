@@ -53,7 +53,7 @@ module NewRelic
         return host if verify_certificate?
         return nil if host.nil? || host.downcase == "localhost"
         ip = resolve_ip_address(host)
-        log.info "Resolved #{host} to #{ip}"
+        log.debug "Resolved #{host} to #{ip}"
         ip
       end
 
