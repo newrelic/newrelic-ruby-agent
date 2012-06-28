@@ -260,11 +260,15 @@ module NewRelic
               frame_data.start_transaction
               begin
                 NewRelic::Agent::BusyCalculator.dispatcher_start frame_data.start
-                if block_given?
+                result = if block_given?
                   yield
                 else
                   perform_action_without_newrelic_trace(*args)
                 end
+                if defined?(request) && request && defined?(response) && response
+                  NewRelic::Agent::BrowserMonitoring.insert_mobile_response_header(request, response)
+                end
+                result
               rescue => e
                 frame_data.notice_error(e)
                 raise

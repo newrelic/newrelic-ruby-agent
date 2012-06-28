@@ -1,6 +1,8 @@
 ENV['SKIP_RAILS'] = 'true'
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require "new_relic/agent/browser_monitoring"
+require 'json'
+require 'ostruct'
 
 class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
   include NewRelic::Agent::BrowserMonitoring
@@ -319,5 +321,59 @@ var e=document.createElement("script");'
     NewRelic::Agent.instance.beacon_configuration.expects(:license_bytes).returns(key)
     output = obfuscate(NewRelic::Agent.instance.beacon_configuration, text)
     assert_equal('YCJrZXV2fih5Y25vaCFtZSR2a2ZkZSp/aXV1YyNsZHZ3cSl6YmluZCJsYiV1amllZit4aHl2YiRtZ3d4cCp7ZWhiZyNrYyZ0ZWhmZyx5ZHp3ZSVuZnh5cyt8ZGRhZiRqYCd7ZGtnYC11Z3twZCZvaXl6cix9aGdgYSVpYSh6Z2pgYSF2Znxx', output, "should output obfuscated text")
+  end
+  
+  def test_no_mobile_response_header_if_no_mobile_request_header_given
+    request = Rack::Request.new({})
+    response = Rack::Response.new
+    
+    NewRelic::Agent::BrowserMonitoring.insert_mobile_response_header(request, response)
+    assert_nil response['X-NewRelic-Beacon-Url']
+  end
+
+  def test_no_mobile_response_header_if_mobile_request_header_is_false
+    request = Rack::Request.new('HTTP_X_NEWRELIC_MOBILE_TRACE' => 'false')
+    response = Rack::Response.new
+
+    NewRelic::Agent::BrowserMonitoring.insert_mobile_response_header(request, response)
+    assert_nil response['X-NewRelic-Beacon-Url']
+  end
+  
+  def test_place_beacon_url_header_when_given_mobile_request_header
+    response = mobile_transaction    
+    assert_equal('http://beacon/mobile/1/browserKey',
+                 response['X-NewRelic-Beacon-Url'])
+  end
+  
+  def test_place_beacon_url_header_when_given_mobile_request_header_with_https
+    request = Rack::Request.new('X_NEWRELIC_MOBILE_TRACE' => 'true',
+                                'rack.url_scheme' => 'https')
+    response = mobile_transaction(request)
+    assert_equal('https://beacon/mobile/1/browserKey',
+                 response['X-NewRelic-Beacon-Url'])
+  end
+
+  def test_place_beacon_payload_head_when_given_mobile_request_header
+    response = mobile_transaction
+    
+    expected_payload = {
+      'application_id' => 'apId',
+      'transaction_name' => obfuscate(NewRelic::Agent.instance.beacon_configuration,
+                                      browser_monitoring_transaction_name),
+      'queue_time' => browser_monitoring_queue_time,
+      'app_time' => browser_monitoring_app_time
+    }
+    assert_equal(expected_payload,
+                 JSON.parse(response['X-NewRelic-App-Server-Metrics']))
+  end
+
+  def mobile_transaction(request=nil)
+    request ||= Rack::Request.new('X-NewRelic-Mobile-Trace' => 'true')
+    response = Rack::Response.new
+    txn_data = OpenStruct.new(:transaction_name => 'a transaction name',
+                              :start_time => Time.now)
+    NewRelic::Agent::TransactionInfo.set(txn_data)
+    NewRelic::Agent::BrowserMonitoring.insert_mobile_response_header(request, response)
+    response
   end
 end
