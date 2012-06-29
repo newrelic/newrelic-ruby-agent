@@ -1,7 +1,6 @@
 ENV['SKIP_RAILS'] = 'true'
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require "new_relic/agent/browser_monitoring"
-require 'json'
 require 'ostruct'
 
 class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
@@ -10,6 +9,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
   
   def setup
     NewRelic::Agent.manual_start
+    NewRelic::Control.instance['disable_mobile_headers'] = false
     @browser_monitoring_key = "fred"
     @episodes_file = "this_is_my_file"
     NewRelic::Agent.instance.instance_eval do
@@ -354,17 +354,12 @@ var e=document.createElement("script");'
   end
 
   def test_place_beacon_payload_head_when_given_mobile_request_header
-    response = mobile_transaction
+    response = mobile_transaction    
+    txn_name = obfuscate(NewRelic::Agent.instance.beacon_configuration,
+                         browser_monitoring_transaction_name)
+    expected_payload = %|["apId","#{txn_name}",#{browser_monitoring_queue_time},#{browser_monitoring_app_time}]|
     
-    expected_payload = {
-      'application_id' => 'apId',
-      'transaction_name' => obfuscate(NewRelic::Agent.instance.beacon_configuration,
-                                      browser_monitoring_transaction_name),
-      'queue_time' => browser_monitoring_queue_time,
-      'app_time' => browser_monitoring_app_time
-    }
-    assert_equal(expected_payload,
-                 JSON.parse(response['X-NewRelic-App-Server-Metrics']))
+    assert_equal expected_payload, response['X-NewRelic-App-Server-Metrics'].strip
   end
 
   def mobile_transaction(request=nil)

@@ -251,8 +251,9 @@ module NewRelic
               return perform_action_without_newrelic_trace(*args)
             end
           end
-
-          return perform_action_with_newrelic_profile(args, &block) if NewRelic::Control.instance.profiling?
+          
+          control = NewRelic::Control.instance
+          return perform_action_with_newrelic_profile(args, &block) if control.profiling?
 
           frame_data = _push_metric_frame(block_given? ? args : [])
           begin
@@ -265,7 +266,8 @@ module NewRelic
                 else
                   perform_action_without_newrelic_trace(*args)
                 end
-                if defined?(request) && request && defined?(response) && response
+                if defined?(request) && request && defined?(response) &&
+                    response && !control.fetch('disable_mobile_headers', true)
                   NewRelic::Agent::BrowserMonitoring.insert_mobile_response_header(request, response)
                 end
                 result
