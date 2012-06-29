@@ -354,6 +354,7 @@ var e=document.createElement("script");'
   end
 
   def test_place_beacon_payload_head_when_given_mobile_request_header
+    Time.stubs(:now).returns(6)
     response = mobile_transaction    
     txn_name = obfuscate(NewRelic::Agent.instance.beacon_configuration,
                          browser_monitoring_transaction_name)
@@ -366,7 +367,7 @@ var e=document.createElement("script");'
     request ||= Rack::Request.new('X-NewRelic-Mobile-Trace' => 'true')
     response = Rack::Response.new
     txn_data = OpenStruct.new(:transaction_name => 'a transaction name',
-                              :start_time => Time.now)
+                              :start_time => 5)
     NewRelic::Agent::TransactionInfo.set(txn_data)
     NewRelic::Agent::BrowserMonitoring.insert_mobile_response_header(request, response)
     response
