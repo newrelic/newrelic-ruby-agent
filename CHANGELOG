@@ -1,3 +1,5 @@
+ * Fix edge case in RUM auto instrumentation where X-UA-Compatible meta tag is present but </head> tag is missing.
+
 v3.4.0.1
  * Prevent the agent from resolving the collector address when disabled.
  * Fix for error collector configuration that was introduced during beta.
