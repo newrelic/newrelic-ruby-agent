@@ -44,22 +44,28 @@ module NewRelic::Rack
         footer = NewRelic::Agent.browser_timing_footer
         header = NewRelic::Agent.browser_timing_header
 
-        if beginning_of_source.include?('X-UA-Compatible')
+        head_pos = if beginning_of_source.include?('X-UA-Compatible')
           # put at end of header if UA-Compatible meta tag found
-          head_pos = beginning_of_source.index("</head>")
-        elsif head_open = beginning_of_source.index("<head")
+          beginning_of_source.index("</head>")
+       elsif head_open = beginning_of_source.index("<head")
           # put at the beginning of the header
-          head_pos = beginning_of_source.index(">", head_open) + 1
-        else
-          # put the header right above body start
-          head_pos = body_start
+          beginning_of_source.index(">", head_open) + 1
         end
+        # otherwise put the header right above body start
+        head_pos ||= body_start
 
-        source = source[0..(head_pos-1)] + header + source[head_pos..(body_close-1)] + footer + source[body_close..-1]
-
-        headers['Content-Length'] = source.length.to_s if headers['Content-Length']
+        # check that head_pos is less than body close.  If it's not something
+        # is really weird and we should punt.
+        if head_pos < body_close
+          # rebuild the source
+          source = source[0..(head_pos-1)] <<
+            header <<
+            source[head_pos..(body_close-1)] <<
+            footer <<
+            source[body_close..-1]
+        end
       end
-
+      headers['Content-Length'] = source.length.to_s if headers['Content-Length']
       source
     end
   end
