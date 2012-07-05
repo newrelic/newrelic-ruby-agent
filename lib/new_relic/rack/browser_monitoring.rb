@@ -59,6 +59,8 @@ module NewRelic::Rack
           # otherwise put the header right above body start
           body_start
         end
+        # otherwise put the header right above body start
+        head_pos ||= body_start
 
         # check that head_pos is less than body close.  If it's not something
         # is really weird and we should punt.
