@@ -148,9 +148,12 @@ module NewRelic
                  end
               end
             EOC
-            alias_method "#{traced_method.to_s}_without_newrelic_transaction_trace#{punctuation}", method.to_s
-            alias_method method.to_s, "#{traced_method.to_s}_with_newrelic_transaction_trace#{punctuation}"
+            without_method_name = "#{traced_method.to_s}_without_newrelic_transaction_trace#{punctuation}"
+            with_method_name = "#{traced_method.to_s}_with_newrelic_transaction_trace#{punctuation}"
+            alias_method without_method_name, method.to_s
+            alias_method method.to_s, with_method_name
             send visibility, method
+            send visibility, with_method_name
             NewRelic::Control.instance.log.debug("Traced transaction: class = #{self.name}, method = #{method.to_s}, options = #{options.inspect}")
           end
         end
