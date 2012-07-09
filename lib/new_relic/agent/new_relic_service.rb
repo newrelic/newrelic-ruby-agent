@@ -167,7 +167,7 @@ module NewRelic
             response = http.request(request)
           end
         rescue Timeout::Error
-          log.warn "Timed out trying to post data to New Relic (timeout = #{@request_timeout} seconds)" unless @service.request_timeout < 30
+          log.warn "Timed out trying to post data to New Relic (timeout = #{@request_timeout} seconds)" unless @request_timeout < 30
           raise
         end
         if response.is_a? Net::HTTPServiceUnavailable
