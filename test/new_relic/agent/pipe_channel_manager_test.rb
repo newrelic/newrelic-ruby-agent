@@ -103,6 +103,17 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
       assert(!NewRelic::Agent::PipeChannelManager.channels[669] ||
              NewRelic::Agent::PipeChannelManager.channels[669].closed?)
     end
+
+    def test_manager_does_not_crash_when_given_bad_data
+      listener = start_listener_with_pipe(670)
+      assert_nothing_raised do
+        pid = Process.fork do
+          listener.pipes[670].in << 'some unloadable garbage'
+        end
+        Process.wait(pid)
+        listener.stop
+      end
+    end
   end
   
   def start_listener_with_pipe(pipe_id)
