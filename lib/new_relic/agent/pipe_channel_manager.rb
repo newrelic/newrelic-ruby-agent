@@ -145,7 +145,7 @@ module NewRelic
             Marshal.load(data)
           end
         rescue StandardError => e
-          msg = "#{e.class.name} '#{e.message}' trying to load #{encode64(data)}"
+          msg = "#{e.class.name} '#{e.message}' trying to load #{Base64.encode64(data)}"
           NewRelic::Control.instance.log.debug(msg)
           nil
         end
