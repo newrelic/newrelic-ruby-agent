@@ -1,8 +1,15 @@
+require 'base64'
+
 module NewRelic
   module Agent
+
+    #--
+    # Manages the registering and servicing of pipes used by child
+    # processes to report data to their parent, rather than directly
+    # to the collector.
     module PipeChannelManager
       extend self
-      
+
       def register_report_channel(id)
         listener.register_pipe(id)
       end
@@ -137,10 +144,12 @@ module NewRelic
           else
             Marshal.load(data)
           end
-        rescue ArgumentError => e
-          nil if e.message == 'marshal data too short'
+        rescue StandardError => e
+          msg = "#{e.class.name} '#{e.message}' trying to load #{encode64(data)}"
+          NewRelic::Control.instance.log.debug(msg)
+          nil
         end
-        
+                
         def should_keep_listening?
           @started || @pipes.values.find{|pipe| !pipe.in.closed?}
         end
