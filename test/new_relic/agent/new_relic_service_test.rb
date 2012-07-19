@@ -2,7 +2,8 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_hel
 
 class NewRelicServiceTest < Test::Unit::TestCase
   def setup
-    @server = NewRelic::Control::Server.new('127.0.0.1', 30303)    
+    @server = NewRelic::Control::Server.new('somewhere.example.com',
+                                            30303, '10.10.10.10')
     @service = NewRelic::Agent::NewRelicService.new('license-key', @server)
     @http_handle = HTTPHandle.new
     NewRelic::Control.instance.stubs(:http_connection).returns(@http_handle)
@@ -21,18 +22,24 @@ class NewRelicServiceTest < Test::Unit::TestCase
   end
 
   def test_connect_sets_redirect_host
-    assert_equal '127.0.0.1', @service.collector.name
+    assert_equal 'somewhere.example.com', @service.collector.name
     @service.connect    
     assert_equal 'localhost', @service.collector.name
   end
-
+  
+  def test_connect_resets_cached_ip_address
+    assert_equal '10.10.10.10', @service.collector.ip
+    @service.connect    
+    assert_nil @service.collector.ip
+  end
+  
   def test_connect_uses_proxy_collector_if_no_redirect_host
     @http_handle.reset
     @http_handle.respond_to(:get_redirect_host, nil)
     @http_handle.respond_to(:connect, {'agent_run_id' => 1})
 
     @service.connect
-    assert_equal '127.0.0.1', @service.collector.name
+    assert_equal 'somewhere.example.com', @service.collector.name
   end
 
   def test_connect_sets_agent_id
@@ -97,7 +104,21 @@ class NewRelicServiceTest < Test::Unit::TestCase
       @service.send(:invoke_remote, :bogus_method)
     end
   end
+  
+  def test_should_connect_to_proxy_only_once_per_run
+    @service.expects(:get_redirect_host).once
 
+    @service.connect
+    @http_handle.respond_to(:metric_data, '0')
+    @service.metric_data(Time.now - 60, Time.now, {})
+    
+    @http_handle.respond_to(:transaction_sample_data, '1')
+    @service.transaction_sample_data([])
+
+    @http_handle.respond_to(:sql_trace_data, '2')
+    @service.sql_trace_data([])
+  end
+  
   class HTTPHandle
     attr_accessor :read_timeout, :route_table
 

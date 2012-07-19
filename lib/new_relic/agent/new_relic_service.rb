@@ -24,8 +24,9 @@ module NewRelic
       end
       
       def connect(settings={})
-        host = get_redirect_host
-        @collector.name = host if host
+        if host = get_redirect_host
+          @collector = NewRelic::Control::Server.new(host)
+        end
         response = invoke_remote(:connect, settings)
         @agent_id = response['agent_run_id']
         response
