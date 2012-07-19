@@ -30,7 +30,7 @@ class NewRelicServiceTest < Test::Unit::TestCase
   def test_connect_resets_cached_ip_address
     assert_equal '10.10.10.10', @service.collector.ip
     @service.connect    
-    assert_nil @service.collector.ip
+    assert_nil @service.collector.ip # 'localhost' resolves to nil
   end
   
   def test_connect_uses_proxy_collector_if_no_redirect_host
