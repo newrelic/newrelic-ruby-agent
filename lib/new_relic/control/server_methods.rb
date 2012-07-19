@@ -31,7 +31,10 @@ module NewRelic
       # information pulled from the config file
       def proxy_server
         @proxy_server ||=
-          NewRelic::Control::ProxyServer.new self['proxy_host'], self['proxy_port'], self['proxy_user'], self['proxy_pass']
+          NewRelic::Control::ProxyServer.new(self['proxy_host'],
+                                             self['proxy_port'],
+                                             self['proxy_user'],
+                                             self['proxy_pass'])
       end
       
       # turns a hostname into an ip address and returns a
@@ -40,7 +43,9 @@ module NewRelic
         host = hostname || self['host'] || 'collector.newrelic.com'
 
         # if the host is not an IP address, turn it into one
-        NewRelic::Control::Server.new host, (self['port'] || (use_ssl? ? 443 : 80)).to_i, convert_to_ip_address(host)
+        NewRelic::Control::Server.new(host,
+                                  (self['port'] || (use_ssl? ? 443 : 80)).to_i,
+                                  convert_to_ip_address(host))
       end
 
       # Check to see if we need to look up the IP address
