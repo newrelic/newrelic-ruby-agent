@@ -1,5 +1,5 @@
  
-v3.4.1
+v3.4.1.beta1
  * Fix edge case in RUM auto instrumentation where X-UA-Compatible meta tag is 
    present but </head> tag is missing.
  * Fixed reference to @service.request_timeout to @request_timeout in 
@@ -11,6 +11,7 @@ v3.4.1
  * Agent service does not connect to directed shard collector after connecting 
    to proxy
  * corrupt marshal data from pipe children crashing agent
+ * should reset RubyBench GC counter between polls
 
 v3.4.0.1
  * Prevent the agent from resolving the collector address when disabled.
