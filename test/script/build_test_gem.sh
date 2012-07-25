@@ -1,9 +1,13 @@
 #!/bin/bash
 
 # print commands in this script as they're invoked
-set -x
+#set -x
 # fail if any command fails
 set -e
+
+. "$HOME/.rvm/scripts/rvm"
+
+rvm use ree
 
 if [ "x$BUILD_NUMBER" == "x" ]; then
   echo '$BUILD_NUMBER is undefined'
