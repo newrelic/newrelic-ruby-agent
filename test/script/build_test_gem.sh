@@ -7,7 +7,9 @@ set -e
 
 . "$HOME/.rvm/scripts/rvm"
 
-rvm use 1.9.2
+rvm list
+
+exit 0
 
 if [ "x$BUILD_NUMBER" == "x" ]; then
   echo '$BUILD_NUMBER is undefined'
