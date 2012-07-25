@@ -7,7 +7,7 @@ set -e
 
 . "$HOME/.rvm/scripts/rvm"
 
-rvm 1.9.3
+#rvm 1.9.3
 
 
 if [ "x$BUILD_NUMBER" == "x" ]; then
