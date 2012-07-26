@@ -426,7 +426,6 @@ module NewRelic
         def start
           return if already_started? || disabled?
           @started = true
-          @local_host = determine_host
           log_dispatcher
           log_app_names
           config_transaction_tracer
@@ -684,6 +683,11 @@ module NewRelic
             control['send_environment_info'] != false ? control.local_env.snapshot : []
           end
 
+          # Who am I? Well, this method can tell you your hostname.
+          def determine_host
+            control['hostname'] || Socket.gethostname
+          end
+
           # These validation settings are used for cases where a
           # dynamic server is spun up for clients - partners can
           # include a seed and token to indicate that the host is
@@ -700,7 +704,7 @@ module NewRelic
           def connect_settings
             {
               :pid => $$,
-              :host => @local_host,
+              :host => determine_host,
               :app_name => control.app_names,
               :language => 'ruby',
               :agent_version => NewRelic::VERSION::STRING,
@@ -964,11 +968,6 @@ module NewRelic
           else
             disconnect
           end
-        end
-
-        # Who am I? Well, this method can tell you your hostname.
-        def determine_host
-          Socket.gethostname
         end
 
         # Delegates to the control class to determine the root
