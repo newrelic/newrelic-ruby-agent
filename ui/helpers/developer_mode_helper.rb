@@ -72,6 +72,8 @@ module NewRelic::DeveloperModeHelper
     end
     if using_textmate?
       "txmt://open?url=file://#{file}&line=#{line}"
+    elsif using_macvim?
+      "mvim://open?url=file://#{file}&line=#{line}"
     else
       "show_source?file=#{file}&amp;line=#{line}&amp;anchor=selected_line"
     end
@@ -237,6 +239,10 @@ module NewRelic::DeveloperModeHelper
     else
       return nil
     end
+  end
+
+  def using_macvim?
+    NewRelic::Control.instance.use_macvim?
   end
 
   def using_textmate?

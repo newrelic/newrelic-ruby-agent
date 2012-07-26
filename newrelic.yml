@@ -241,6 +241,8 @@ development:
   
   # Enable textmate links
   # textmate: true
+  # Enable macvim links
+  # macvim: true
 
 test:
   <<: *default_settings

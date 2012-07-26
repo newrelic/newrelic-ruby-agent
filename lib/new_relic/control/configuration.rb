@@ -125,6 +125,11 @@ module NewRelic
         self['disable_serialization'] = b
       end
       
+      # True if we should view files in MacVim
+      def use_macvim?
+        fetch('macvim')
+      end
+
       # True if we should view files in textmate
       def use_textmate?
         fetch('textmate')
