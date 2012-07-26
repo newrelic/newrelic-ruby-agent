@@ -2,7 +2,7 @@
 # New Relic Ruby Agent Release Notes #
 
 ### current version ###
-## v3.4.1.beta1 ##
+## v3.4.1 ##
 #### Bug Fixes ####
  * Fix edge case in RUM auto instrumentation where X-UA-Compatible meta tag is 
    present but </head> tag is missing.
