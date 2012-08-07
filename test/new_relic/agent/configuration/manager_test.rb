@@ -8,15 +8,15 @@ module NewRelic::Agent::Configuration
     end
 
     def teardown
-      default_source = NewRelic::Agent::Configuration::DefaultSource.new
+      default_source = NewRelic::Agent::Configuration::DEFAULTS
       @manager.instance_variable_set(:@config_stack, [ default_source ])
     end
-    
+
     def test_should_apply_config_sources_in_order
       @manager.apply_config({'foo' => 'default foo', 'bar' => 'default bar', 'baz' => 'default baz'})
       @manager.apply_config({'foo' => 'real foo'})
       @manager.apply_config({'foo' => 'wrong foo', 'bar' => 'real bar'}, 1)
-      
+
       assert_equal 'real foo', @manager['foo']
       assert_equal 'real bar', @manager['bar']
       assert_equal 'default baz', @manager['baz']
@@ -29,11 +29,11 @@ module NewRelic::Agent::Configuration
       test_source['baz'] = 'baz'
       @manager.apply_config(test_source)
 
-      assert_equal ::Hash, @manager.source('foo').class
-      assert_equal TestSource, @manager.source('bar').class
-      assert_equal TestSource, @manager.source('baz').class
+      assert_not_equal test_source, @manager.source('foo')
+      assert_equal test_source, @manager.source('bar')
+      assert_equal test_source, @manager.source('baz')
     end
-    
+
     def test_callable_value_for_config_should_return_computed_value
       @manager.apply_config({ 'foo'          => 'bar',
                               'simple_value' => Proc.new { '666' },
@@ -57,7 +57,7 @@ module NewRelic::Agent::Configuration
 
       assert_equal nil, @manager['test_config_accessor']
     end
-    
+
     class TestSource < ::Hash
       def test_config_accessor
         'some value'

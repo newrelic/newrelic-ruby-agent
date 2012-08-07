@@ -14,10 +14,11 @@ module NewRelic
           Configuration.manager
         end
       end
-      
+
       class Manager
         def initialize
-          @config_stack = [ DefaultSource.new, LegacySource.new ]
+          # remove LegacySource when we no longer need to defer to Control
+          @config_stack = [ LegacySource.new, DEFAULTS ]
         end
 
         def apply_config(source, level=0)
@@ -82,17 +83,22 @@ module NewRelic
         end
       end
 
-      class DefaultSource
-        alias_method :has_key?, :respond_to?
+      DEFAULTS = {
+        'enabled'            => true,
+        'monitor_mode'       => Proc.new { self['enabled'] },
+        'apdex_t'            => 0.5,
 
-        def enabled
-          true
-        end
+        'host'               => 'collector.newrelic.com',
+        'ssl'                => false,
+        'verify_certificate' => false,
+        'sync_startup'       => false,
+        'send_data_on_exit'  => true,
+        'post_size_limit'    => 2 * 1024 * 1024,
 
-        def monitor_mode
-          Proc.new { self['enabled'] }
-        end
-      end
+        'log_file_path'      => 'log/',
+        'log_level'          => 'info'
+      }.freeze
+
     end
   end
 end
