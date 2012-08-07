@@ -29,21 +29,39 @@ module NewRelic::Agent::Configuration
       test_source['baz'] = 'baz'
       @manager.apply_config(test_source)
 
-      assert_equal ::Hash, @manager.source('foo')
-      assert_equal TestSource, @manager.source('bar')
-      assert_equal TestSource, @manager.source('baz')
+      assert_equal ::Hash, @manager.source('foo').class
+      assert_equal TestSource, @manager.source('bar').class
+      assert_equal TestSource, @manager.source('baz').class
     end
     
     def test_callable_value_for_config_should_return_computed_value
       @manager.apply_config({ 'foo'          => 'bar',
                               'simple_value' => Proc.new { '666' },
-                              'reference'    => Proc.new { fetch('foo') } })
+                              'reference'    => Proc.new { self['foo'] } })
 
       assert_equal 'bar', @manager['foo']
       assert_equal '666', @manager['simple_value']
       assert_equal 'bar', @manager['reference']
     end
+
+    def test_source_accessors_should_be_available_as_keys
+      @manager.apply_config(TestSource.new)
+
+      assert_equal 'some value', @manager['test_config_accessor']
+    end
+
+    def test_should_not_apply_removed_sources
+      test_source = TestSource.new
+      @manager.apply_config(test_source)
+      @manager.remove_config(test_source)
+
+      assert_equal nil, @manager['test_config_accessor']
+    end
     
-    class TestSource < ::Hash; end
+    class TestSource < ::Hash
+      def test_config_accessor
+        'some value'
+      end
+    end
   end
 end

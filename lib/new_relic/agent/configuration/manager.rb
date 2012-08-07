@@ -1,28 +1,47 @@
+require 'forwardable'
+
 module NewRelic
   module Agent
     module Configuration
       def self.manager
-        @manager ||= Manager.new
+        @@manager ||= Manager.new
+      end
+
+      # This can be mixed in with minimal impact to provide easy
+      # access to the config manager
+      module Instance
+        def config
+          Configuration.manager
+        end
       end
       
       class Manager
         def initialize
-          @config_stack = [ DefaultSource.new ]
+          @config_stack = [ DefaultSource.new, LegacySource.new ]
         end
 
         def apply_config(source, level=0)
           @config_stack.insert(level, source)
         end
 
+        def remove_config(source)
+          @config_stack.delete(source)
+        end
+
         def source(key)
           @config_stack.each do |config|
-            return config.class if config.has_key?(key)
+            if config.respond_to?(key) || config.has_key?(key)
+              return config
+            end
           end
         end
-        
+
+        # TODO this should be memoized
         def [](key)
           @config_stack.each do |config|
-            if config.has_key?(key)
+            if config.respond_to?(key)
+              return config.send(key)
+            elsif config.has_key?(key)
               if config[key].respond_to?(:call)
                 return instance_eval &config[key]
               else
@@ -30,18 +49,50 @@ module NewRelic
               end
             end
           end
+          nil
         end
-        alias_method :fetch, :[]
-        
+
+        # TODO this should be memoized
+        def has_key?(key)
+          @config_stack.each do |config|
+            return true if config.has_key(key)
+          end
+          false
+        end
       end
 
       class LegacySource
+        extend Forwardable
+
+        def settings
+          NewRelic::Control.instance.settings
+        end
+        def_delegators :settings, :[], :has_key?
+
+        def respond_to?(method)
+          NewRelic::Control.instance.respond_to?(method) || super
+        end
+
         def method_missing(method, *args)
-          NewRelic::Control.instance.settings.send(method, *args)
+          if respond_to?(method)
+            NewRelic::Control.instance.send(method, *args)
+          else
+            super
+          end
         end
       end
 
-      class DefaultSource < ::Hash; end
+      class DefaultSource
+        alias_method :has_key?, :respond_to?
+
+        def enabled
+          true
+        end
+
+        def monitor_mode
+          Proc.new { self['enabled'] }
+        end
+      end
     end
   end
 end
