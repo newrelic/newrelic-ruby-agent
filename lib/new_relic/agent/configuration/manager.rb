@@ -44,7 +44,7 @@ module NewRelic
               return config.send(key)
             elsif config.has_key?(key)
               if config[key].respond_to?(:call)
-                return instance_eval &config[key]
+                return instance_eval(&config[key])
               else
                 return config[key]
               end
