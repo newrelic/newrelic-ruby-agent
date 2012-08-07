@@ -2,7 +2,16 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_h
 class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   require 'new_relic/agent/agent'
   include NewRelic::Agent::Agent::Start
+  
+  def setup
+    @config = {}
+    NewRelic::Agent.config.apply_config(@config)
+  end
 
+  def teardown
+    NewRelic::Agent.config.remove_config(@config)
+  end
+  
   def test_already_started_positive
     control = mocked_control
     control.expects(:log!).with("Agent Started Already!", :error)
@@ -149,16 +158,14 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   end
 
   def test_monitoring_positive
-    control = mocked_control
-    control.expects(:monitor_mode?).returns(true)
+    @config['monitor_mode'] = true
     log = mocked_log
     assert monitoring?
   end
 
   def test_monitoring_negative
-    control = mocked_control
     log = mocked_log
-    control.expects(:monitor_mode?).returns(false)
+    @config['monitor_mode'] = false
     log.expects(:send).with(:warn, "Agent configured not to send data in this environment - edit newrelic.yml to change this")
     assert !monitoring?
   end
