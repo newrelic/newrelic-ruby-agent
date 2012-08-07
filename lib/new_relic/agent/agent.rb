@@ -6,6 +6,7 @@ require 'zlib'
 require 'stringio'
 require 'new_relic/agent/new_relic_service'
 require 'new_relic/agent/pipe_service'
+require 'new_relic/agent/configuration/manager'
 
 module NewRelic
   module Agent
@@ -15,6 +16,8 @@ module NewRelic
     # in realtime as the application runs, and periodically sends that
     # data to the NewRelic server.
     class Agent
+      extend NewRelic::Agent::Configuration::Instance
+      
       def initialize
         @launch_time = Time.now
 
@@ -31,7 +34,7 @@ module NewRelic
         @forked = false
 
         # FIXME: temporary work around for RUBY-839
-        if control.monitor_mode?
+        if Agent.config['monitor_mode']
           @service = NewRelic::Agent::NewRelicService.new(control.license_key, control.server)
         end
       end
@@ -162,7 +165,7 @@ module NewRelic
           
           # log.debug "Agent received after_fork notice in #$$: [#{control.agent_enabled?}; monitor=#{control.monitor_mode?}; connected: #{@connected.inspect}; thread=#{@worker_thread.inspect}]"
           return if !control.agent_enabled? or
-            !control.monitor_mode? or
+            !Agent.config['monitor_mode'] or
             @connected == false or
             @worker_thread && @worker_thread.alive?
 
@@ -380,7 +383,7 @@ module NewRelic
           # Warn the user if they have configured their agent not to
           # send data, that way we can see this clearly in the log file
           def monitoring?
-            log_unless(control.monitor_mode?, :warn, "Agent configured not to send data in this environment - edit newrelic.yml to change this")
+            log_unless(Agent.config['monitor_mode'], :warn, "Agent configured not to send data in this environment - edit newrelic.yml to change this")
           end
 
           # Tell the user when the license key is missing so they can

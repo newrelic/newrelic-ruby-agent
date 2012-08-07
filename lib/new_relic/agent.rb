@@ -90,6 +90,7 @@ module NewRelic
     require 'new_relic/agent/database'
     require 'new_relic/agent/pipe_channel_manager'
     require 'new_relic/agent/transaction_info'
+    require 'new_relic/agent/configuration/manager'
 
     require 'new_relic/agent/instrumentation/controller_instrumentation'
 
@@ -100,7 +101,9 @@ module NewRelic
     require 'set'
     require 'thread'
     require 'resolv'
-
+    
+    extend NewRelic::Agent::Configuration::Instance
+    
     # An exception that is thrown by the server if the agent license is invalid.
     class LicenseException < StandardError; end
 
