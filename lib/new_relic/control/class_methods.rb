@@ -8,7 +8,7 @@ module NewRelic
       def instance(create=true)
         @instance ||= create && new_instance
       end
-      
+
       # Access the LocalEnvironment singleton, lazy initialized
       def local_env
         @local_env ||= NewRelic::LocalEnvironment.new
@@ -29,7 +29,7 @@ module NewRelic
         require "config/test_control"
         NewRelic::Control::Frameworks::Test.new(local_env, config)
       end
-      
+
       # Loads the specified framework class from the
       # NewRelic::Control::Frameworks module
       def load_framework_class(framework)
@@ -50,4 +50,3 @@ module NewRelic
     extend ClassMethods
   end
 end
-
