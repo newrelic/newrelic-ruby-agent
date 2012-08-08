@@ -24,7 +24,7 @@ module NewRelic
             files << File.join(ENV["HOME"], "newrelic.yml")
           end
           files << File.expand_path(ENV["NRCONFIG"]) if ENV["NRCONFIG"]
-          files.each do | file |
+          files.each do |file|
             return File.expand_path(file) if File.exists? file
           end
           return File.expand_path(files.first)
