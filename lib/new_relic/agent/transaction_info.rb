@@ -70,12 +70,25 @@ module NewRelic
           s = agent_flag.split("=")
           if s.length == 2
             if s[0] == "tk" && s[1]
-              ERB::Util.h(s[1])
+              ERB::Util.h(sanitize_token(s[1]))
             end
           end
         else
           nil
         end
+      end
+
+      # Run through a collection of regular expressions and set
+      # the token to an empty string if any of them match so that
+      # potential XSS attacks via the token are avoided
+      def self.sanitize_token(token)
+        [/"{3}.*"{3}/,/'{3}.*'{3}/,/^<{3}/,/^>{3}/].each do | check |
+          if ( check =~ token )
+            token = ''
+            break
+          end
+        end
+        token
       end
     end
   end
