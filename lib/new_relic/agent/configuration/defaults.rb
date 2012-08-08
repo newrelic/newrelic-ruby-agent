@@ -2,9 +2,11 @@ module NewRelic
   module Agent
     module Configuration
       DEFAULTS = {
-        'enabled'      => true,
-        'monitor_mode' => Proc.new { self['enabled'] },
-        'apdex_t'      => 0.5,
+        'config_path' => File.join('config', 'newrelic.yml'),
+
+        'enabled'       => true,
+        'monitor_mode'  => Proc.new { self['enabled'] },
+        'apdex_t'       => 0.5,
 
         'host'               => 'collector.newrelic.com',
         'ssl'                => false,
