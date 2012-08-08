@@ -27,7 +27,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_should_be_immutable
-      assert_raises RuntimeError do
+      assert_raises RuntimeError, TypeError do
         @source['host'] = 'somewhere.else'
       end
     end
