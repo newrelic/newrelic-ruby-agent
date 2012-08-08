@@ -22,22 +22,22 @@ module NewRelic
         end
 
         # In versions of Rails prior to 2.0, the rails config was only available to
-        # the init.rb, so it had to be passed on from there.  This is a best effort to 
+        # the init.rb, so it had to be passed on from there.  This is a best effort to
         # find a config and use that.
         def init_config(options={})
           rails_config = options[:config]
           if !rails_config && defined?(::Rails) && ::Rails.respond_to?(:configuration)
             rails_config = ::Rails.configuration
           end
-          # Install the dependency detection, 
+          # Install the dependency detection,
           if rails_config && ::Rails.configuration.respond_to?(:after_initialize)
             rails_config.after_initialize do
               # This will insure we load all the instrumentation as late as possible.  If the agent
-              # is not enabled, it will load a limited amount of instrumentation.  See 
+              # is not enabled, it will load a limited amount of instrumentation.  See
               # delayed_job_injection.rb
               DependencyDetection.detect!
             end
-          end          
+          end
           if !agent_enabled?
             # Might not be running if it does not think mongrel, thin, passenger, etc
             # is running, if it things it's a rake task, or if the agent_enabled is false.
@@ -114,7 +114,7 @@ module NewRelic
         end
 
         def rails_gem_list
-          ::Rails.configuration.gems.map do | gem |
+          ::Rails.configuration.gems.map do |gem|
             version = (gem.respond_to?(:version) && gem.version) ||
               (gem.specification.respond_to?(:version) && gem.specification.version)
             gem.name + (version ? "(#{version})" : "")
