@@ -1,4 +1,5 @@
 require 'forwardable'
+require File.join(File.dirname(__FILE__), 'defaults')
 
 module NewRelic
   module Agent
@@ -82,23 +83,6 @@ module NewRelic
           end
         end
       end
-
-      DEFAULTS = {
-        'enabled'            => true,
-        'monitor_mode'       => Proc.new { self['enabled'] },
-        'apdex_t'            => 0.5,
-
-        'host'               => 'collector.newrelic.com',
-        'ssl'                => false,
-        'verify_certificate' => false,
-        'sync_startup'       => false,
-        'send_data_on_exit'  => true,
-        'post_size_limit'    => 2 * 1024 * 1024,
-
-        'log_file_path'      => 'log/',
-        'log_level'          => 'info'
-      }.freeze
-
     end
   end
 end
