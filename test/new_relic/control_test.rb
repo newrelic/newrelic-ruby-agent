@@ -17,7 +17,7 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     assert @control.cert_file_path
     assert_equal File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'cert', 'cacert.pem')), @control.cert_file_path
   end
-  
+
   # This test does not actually use the ruby agent in any way - it's
   # testing that the CA file we ship actually validates our server's
   # certificate. It's used for customers who enable verify_certificate
@@ -34,7 +34,7 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     s.connect
     # should not raise an error
   end
-  
+
   # see above, but for staging, as well. This allows us to test new
   # certificates in a non-customer-facing place before setting them
   # live.
@@ -185,28 +185,28 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     forced_start(:transaction_tracer => { :enabled => false },
                  :developer_mode => false, :monitor_mode => true)
     NewRelic::Agent::Agent.instance.check_transaction_sampler_status
-    
+
     assert(!NewRelic::Agent::Agent.instance.transaction_sampler.enabled?,
            'transaction tracer enabled when config calls for disabled')
-    
+
     @control['developer_mode'] = true
     @control['monitor_mode'] = false
   end
-  
+
   def test_sql_tracer_disabled
     forced_start(:slow_sql => { :enabled => false }, :monitor_mode => true)
     NewRelic::Agent::Agent.instance.check_sql_sampler_status
-    
+
     assert(!NewRelic::Agent::Agent.instance.sql_sampler.enabled?,
            'sql tracer enabled when config calls for disabled')
-    
+
     @control['monitor_mode'] = false
   end
-  
+
   def test_sql_tracer_disabled_with_record_sql_false
     forced_start(:slow_sql => { :enabled => true, :record_sql => 'off' })
     NewRelic::Agent::Agent.instance.check_sql_sampler_status
-    
+
     assert(!NewRelic::Agent::Agent.instance.sql_sampler.enabled?,
            'sql tracer enabled when config calls for disabled')
   end
@@ -216,12 +216,12 @@ class NewRelic::ControlTest < Test::Unit::TestCase
                  :slow_sql => { :enabled => true },
                  :developer_mode => false, :monitor_mode => true)
     NewRelic::Agent::Agent.instance.check_sql_sampler_status
-    
+
     assert(!NewRelic::Agent::Agent.instance.sql_sampler.enabled?,
            'sql enabled when transaction tracer disabled')
-    
+
     @control['developer_mode'] = true
-    @control['monitor_mode'] = false    
+    @control['monitor_mode'] = false
   end
 
   def test_sql_tracer_disabled_when_tt_disabled_by_server
@@ -229,12 +229,12 @@ class NewRelic::ControlTest < Test::Unit::TestCase
                  :transaction_tracer => { :enabled => true },
                  :monitor_mode => true)
     NewRelic::Agent::Agent.instance.check_sql_sampler_status
-    NewRelic::Agent::Agent.instance.finish_setup('collect_traces' => false)    
-    
+    NewRelic::Agent::Agent.instance.finish_setup('collect_traces' => false)
+
     assert(!NewRelic::Agent::Agent.instance.sql_sampler.enabled?,
            'sql enabled when tracing disabled by server')
-    
-    @control['monitor_mode'] = false        
+
+    @control['monitor_mode'] = false
   end
 
   def test_merging_options
@@ -244,7 +244,7 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     assert_equal 2.0, NewRelic::Control.instance['transaction_tracer']['explain_threshold']
     assert_equal 'raw', NewRelic::Control.instance['transaction_tracer']['record_sql']
   end
-    
+
   private
 
   def forced_start(overrides={})
