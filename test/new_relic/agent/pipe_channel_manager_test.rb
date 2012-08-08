@@ -12,25 +12,25 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
     NewRelic::Agent::PipeChannelManager.listener.stop
     NewRelic::Agent.shutdown
   end
-  
+
   def test_registering_a_pipe
-    NewRelic::Agent::PipeChannelManager.listener.wake.in.expects(:<<).with('.')    
+    NewRelic::Agent::PipeChannelManager.listener.wake.in.expects(:<<).with('.')
     NewRelic::Agent::PipeChannelManager.register_report_channel(1)
     pipe = NewRelic::Agent::PipeChannelManager.channels[1]
-    
+
     assert pipe.out.kind_of?(IO)
     assert pipe.in.kind_of?(IO)
 
     NewRelic::Agent::PipeChannelManager.listener.close_all_pipes
   end
-  
+
   if NewRelic::LanguageSupport.can_fork? && !NewRelic::LanguageSupport.using_version?('1.9.1')
     def test_listener_merges_timeslice_metrics
       metric = 'Custom/test/method'
       engine = NewRelic::Agent.agent.stats_engine
       engine.get_stats_no_scope(metric).record_data_point(1.0)
-      
-      listener = start_listener_with_pipe(666)    
+
+      listener = start_listener_with_pipe(666)
 
       pid = Process.fork do
         NewRelic::Agent.after_fork
@@ -40,19 +40,19 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
       end
       Process.wait(pid)
       listener.stop
-      
-      assert_equal(3.0, engine.lookup_stats(metric).total_call_time)    
+
+      assert_equal(3.0, engine.lookup_stats(metric).total_call_time)
     end
 
     def test_listener_merges_transaction_traces
-      sampler = NewRelic::Agent.agent.transaction_sampler    
+      sampler = NewRelic::Agent.agent.transaction_sampler
       TransactionSampleTestHelper.run_sample_trace_on(sampler)
       NewRelic::Agent.agent.merge_data_from([nil, [sampler.samples], nil])
 
       assert_equal(1, NewRelic::Agent.agent.unsent_traces_size)
-      
+
       listener = start_listener_with_pipe(667)
-      
+
       pid = Process.fork do
         NewRelic::Agent.after_fork
         new_sampler = NewRelic::Agent::TransactionSampler.new
@@ -62,10 +62,10 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
       end
       Process.wait(pid)
       listener.stop
-      
+
       assert_equal(2, NewRelic::Agent.agent.unsent_traces_size)
     end
-    
+
     def test_listener_merges_error_traces
       sampler = NewRelic::Agent.agent.error_collector
       sampler.notice_error(Exception.new("message"), :uri => '/myurl/',
@@ -74,9 +74,9 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
       NewRelic::Agent.agent.merge_data_from([nil, nil, [sampler.errors]])
 
       assert_equal(1, NewRelic::Agent.agent.unsent_errors_size)
-      
+
       listener = start_listener_with_pipe(668)
-      
+
       pid = Process.fork do
         NewRelic::Agent.after_fork
         new_sampler = NewRelic::Agent::ErrorCollector.new
@@ -115,7 +115,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
       end
     end
   end
-  
+
   def start_listener_with_pipe(pipe_id)
     listener = NewRelic::Agent::PipeChannelManager.listener
     listener.start
