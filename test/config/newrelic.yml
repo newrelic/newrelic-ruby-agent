@@ -44,5 +44,6 @@ test:
   error_collector:
     enabled: true
     capture_source: true
-    
-  
+
+development:
+  host: the.wrong.host

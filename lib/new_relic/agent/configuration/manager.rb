@@ -1,5 +1,6 @@
 require 'forwardable'
-require File.join(File.dirname(__FILE__), 'defaults')
+require 'new_relic/agent/configuration/defaults'
+require 'new_relic/agent/configuration/yaml_source'
 
 module NewRelic
   module Agent
@@ -18,8 +19,11 @@ module NewRelic
 
       class Manager
         def initialize
-          # remove LegacySource when we no longer need to defer to Control
           @config_stack = [ LegacySource.new, DEFAULTS ]
+          yaml_config = YamlSource.new(NewRelic::Control.instance.root + '/' +
+                                         self['config_path'],
+                                       NewRelic::Control.instance.env)
+          apply_config(yaml_config, 1)
         end
 
         def apply_config(source, level=0)
