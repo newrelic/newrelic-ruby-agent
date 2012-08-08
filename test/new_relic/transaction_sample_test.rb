@@ -78,7 +78,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
 
   def test_have_explains
     s = @t.prepare_to_send(:record_sql => :obfuscated, :explain_sql => 0.00000001)
-    
+
     s.each_segment do |segment|
       if segment.params[:explain_plan]
         explanation = segment.params[:explain_plan]
@@ -138,7 +138,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
       s.to_s
     end
   end
-  
+
   def test_to_s_includes_keys
     s = @t.prepare_to_send(:explain_sql => 0.1)
     s.params[:fake_key] = 'a fake param'
