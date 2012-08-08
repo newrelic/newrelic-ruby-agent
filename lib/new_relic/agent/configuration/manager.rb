@@ -1,6 +1,7 @@
 require 'forwardable'
 require 'new_relic/agent/configuration/defaults'
 require 'new_relic/agent/configuration/yaml_source'
+require 'new_relic/agent/configuration/environment_source'
 
 module NewRelic
   module Agent
@@ -19,7 +20,7 @@ module NewRelic
 
       class Manager
         def initialize
-          @config_stack = [ LegacySource.new, DEFAULTS ]
+          @config_stack = [ EnvironmentSource.new, DEFAULTS ]
           yaml_config = YamlSource.new(NewRelic::Control.instance.root + '/' +
                                          self['config_path'],
                                        NewRelic::Control.instance.env)
