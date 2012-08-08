@@ -4,7 +4,10 @@ require 'new_relic/agent/configuration/yaml_source'
 module NewRelic::Agent::Configuration
   class YamlSourceTest < Test::Unit::TestCase
     def setup
-      @source = YamlSource.new('test/config/newrelic.yml', 'test')
+      test_yml_path = File.expand_path(File.join(File.dirname(__FILE__),
+                                                 '..','..','..',
+                                                 'config','newrelic.yml'))
+      @source = YamlSource.new(test_yml_path, 'test')
     end
 
     def test_should_load_given_yaml_file
