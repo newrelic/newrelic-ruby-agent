@@ -52,7 +52,7 @@ module NewRelic
         environment_name = options.delete(:env) and self.env = environment_name
         dispatcher = options.delete(:dispatcher) and @local_env.dispatcher = dispatcher
         dispatcher_instance_id = options.delete(:dispatcher_instance_id) and @local_env.dispatcher_instance_id = dispatcher_instance_id
-        
+
         NewRelic::Agent::PipeChannelManager.listener.start if options.delete(:start_channel_listener)
 
         # Clear out the settings, if they've already been loaded.  It may be that
@@ -103,13 +103,13 @@ module NewRelic
         # dispatcher running
         return true if @local_env.dispatcher != nil
       end
-      
+
       # Asks the LocalEnvironment instance which framework should be loaded
       def app
         @local_env.framework
       end
       alias framework app
-      
+
       def to_s #:nodoc:
         "Control[#{self.app}]"
       end
@@ -119,12 +119,12 @@ module NewRelic
       # Append framework specific environment information for uploading to
       # the server for change detection.  Override in subclasses
       def append_environment_info; end
-      
+
       # Asks bundler to tell us which gemspecs are loaded in the
       # current process
       def bundler_gem_list
         if defined?(Bundler) && Bundler.instance_eval do @load end
-          Bundler.load.specs.map do | spec |
+          Bundler.load.specs.map do |spec|
             version = (spec.respond_to?(:version) && spec.version)
             spec.name + (version ? "(#{version})" : "")
           end
@@ -132,12 +132,12 @@ module NewRelic
           []
         end
       end
-      
+
       # path to the config file, defaults to the "#{root}/config/newrelic.yml"
       def config_file
         File.expand_path(File.join(root,"config","newrelic.yml"))
       end
-      
+
       # initializes the control instance with a local environment and
       # an optional config file override. Checks for the config file
       # and loads it.
@@ -160,11 +160,11 @@ module NewRelic
         new_err.set_backtrace(e.backtrace)
         raise new_err
       end
-      
+
       def load_newrelic_yml(path, binding)
         YAML.load(ERB.new(File.read(path)).result(binding))
       end
-      
+
       def root
         '.'
       end
