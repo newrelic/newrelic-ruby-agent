@@ -4,9 +4,11 @@ module NewRelic
       DEFAULTS = {
         'config_path' => File.join('config', 'newrelic.yml'),
 
-        'enabled'       => true,
-        'monitor_mode'  => Proc.new { self['enabled'] },
-        'apdex_t'       => 0.5,
+        'enabled'        => true,
+        'monitor_mode'   => Proc.new { self['enabled'] },
+        'developer_mode' => false,
+        'developer'      => Proc.new { self['developer_mode'] },
+        'apdex_t'        => 0.5,
 
         'host'               => 'collector.newrelic.com',
         'ssl'                => false,
@@ -19,10 +21,13 @@ module NewRelic
         'log_level'     => 'info',
 
         'transaction_tracer.enabled'               => true,
+        'transaction_tracer.transaction_threshold' => Proc.new { self['apdex_t'] * 4 },
         'transaction_tracer.stack_trace_threshold' => 0.5,
         'transaction_tracer.explain_threshold'     => 0.5,
         'transaction_tracer.explain_enabled'       => true,
         'transaction_tracer.record_sql'            => 'obfuscated',
+        'transaction_tracer.limit_segments'        => 4000,
+        'transaction_tracer.random_sample'         => false,
 
         'slow_sql.enabled'               => Proc.new { self['transaction_tracer.enabled'] },
         'slow_sql.stack_trace_threshold' => Proc.new { self['transaction_tracer.stack_trace_threshold'] },

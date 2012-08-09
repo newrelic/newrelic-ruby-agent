@@ -469,7 +469,7 @@ module NewRelic
           def check_sql_sampler_status
             # disable sql sampling if disabled by the server
             # and we're not in dev mode
-            if @sql_sampler.config.fetch('enabled', true) && ['raw', 'obfuscated'].include?(@sql_sampler.config.fetch('record_sql', 'obfuscated').to_s) && @transaction_sampler.config.fetch('enabled', true)
+            if Agent.config['slow_sql.enabled'] && ['raw', 'obfuscated'].include?(Agent.config['slow_sql.record_sql']) && Agent.config['transaction_tracer.enabled']
               @sql_sampler.enable
             else
               @sql_sampler.disable
@@ -758,14 +758,13 @@ module NewRelic
             # Reconfigure the transaction tracer
             @transaction_sampler.configure!
             @sql_sampler.configure!
-            @should_send_samples = @config_should_send_samples = @transaction_sampler.config.fetch('enabled', true)
-            @should_send_random_samples = @transaction_sampler.config.fetch('random_sample', false)
+            @should_send_samples = @config_should_send_samples = Agent.config['transaction_tracer.enabled']
+            @should_send_random_samples = Agent.config['transaction_tracer.random_sample']
             set_sql_recording!
 
             # default to 2.0, string 'apdex_f' will turn into your
             # apdex * 4
-            @slowest_transaction_threshold = @transaction_sampler.config.fetch('transaction_threshold', 2.0).to_f
-            @slowest_transaction_threshold = apdex_f if apdex_f_threshold?
+            @slowest_transaction_threshold = Agent.config['transaction_tracer.transaction_threshold']
           end
 
           # Enables or disables the transaction tracer and sets its
@@ -795,20 +794,12 @@ module NewRelic
             (4 * NewRelic::Control.instance.apdex_t).to_f
           end
 
-          # If the transaction threshold is set to the string
-          # 'apdex_f', we use 4 times the apdex_t value to record
-          # transactions. This gears well with using apdex since you
-          # will attempt to send any transactions that register as 'failing'
-          def apdex_f_threshold?
-            @transaction_sampler.config.fetch('transaction_threshold', '') =~ /apdex_f/i
-          end
-
           # Sets the sql recording configuration by trying to detect
           # any attempt to disable the sql collection - 'off',
           # 'false', 'none', and friends. Otherwise, we accept 'raw',
           # and unrecognized values default to 'obfuscated'
           def set_sql_recording!
-            record_sql_config = @transaction_sampler.config.fetch('record_sql', :obfuscated)
+            record_sql_config = Agent.config['transaction_tracer.record_sql']
             case record_sql_config.to_s
             when 'off'
               @record_sql = :off
@@ -857,7 +848,7 @@ module NewRelic
           # ignored unless we say to do something with it here.
           def finish_setup(config_data)
             return if config_data == nil
-            @service.agent_id = config_data['agent_run_id']
+            @service.agent_id = config_data['agent_run_id'] if @service
             @report_period = config_data['data_report_period']
             @url_rules = config_data['url_rules']
             @beacon_configuration = BeaconConfiguration.new(config_data)
@@ -870,7 +861,7 @@ module NewRelic
 
             control.merge_server_side_config(config_data) if @server_side_config_enabled
             config_transaction_tracer
-            log_connection!(config_data)
+            log_connection!(config_data) if @service
             configure_transaction_tracer!(config_data['collect_traces'], config_data['sample_rate'])
             configure_error_collector!(config_data['collect_errors'])
           end

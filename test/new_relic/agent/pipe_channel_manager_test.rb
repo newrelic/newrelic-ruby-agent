@@ -4,11 +4,14 @@ require 'new_relic/agent/pipe_channel_manager'
 
 class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
   def setup
+    @test_config = { 'developer_mode' => true }
+    NewRelic::Agent.config.apply_config(@test_config)
     NewRelic::Agent::PipeChannelManager.listener.close_all_pipes
     NewRelic::Agent.manual_start
   end
 
   def teardown
+    NewRelic::Agent.config.remove_config(@test_config)
     NewRelic::Agent::PipeChannelManager.listener.stop
     NewRelic::Agent.shutdown
   end

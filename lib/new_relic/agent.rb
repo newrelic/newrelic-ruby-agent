@@ -90,7 +90,7 @@ module NewRelic
     require 'new_relic/agent/database'
     require 'new_relic/agent/pipe_channel_manager'
     require 'new_relic/agent/transaction_info'
-    require 'new_relic/agent/configuration/manager'
+    require 'new_relic/agent/configuration'
 
     require 'new_relic/agent/instrumentation/controller_instrumentation'
 

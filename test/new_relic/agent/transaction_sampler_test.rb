@@ -27,11 +27,15 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     agent.stubs(:stats_engine).returns(stats_engine)
     @sampler = NewRelic::Agent::TransactionSampler.new
     stats_engine.transaction_sampler = @sampler
+    @test_config = { 'developer_mode' => true }
+    NewRelic::Agent.config.apply_config(@test_config)
+    @sampler.configure!
   end
 
   def teardown
     super
     Thread.current[:transaction_sample_builder] = nil
+    NewRelic::Agent.config.remove_config(@test_config)
   end
 
   def test_initialize
@@ -58,12 +62,17 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   end
 
   def test_configure
-    control = NewRelic::Control.instance
-    control.merge_options('transaction_tracer' => {'stack_trace_threshold' => 5.0, 'limit_segments' => 20, 'explain_threshold' => 4.0})
-    @sampler.configure!
-    assert_equal 20, @sampler.instance_variable_get('@segment_limit')
-    assert_equal 5.0, @sampler.instance_variable_get('@stack_trace_threshold')
-    assert_equal 4.0, @sampler.instance_variable_get('@explain_threshold')
+    test_config = {
+      'transaction_tracer.stack_trace_threshold' => 5.0,
+      'transaction_tracer.limit_segments'        => 20,
+      'transaction_tracer.explain_threshold'     => 4.0
+    }
+    with_config(test_config) do
+      @sampler.configure!
+      assert_equal 20, @sampler.instance_variable_get('@segment_limit')
+      assert_equal 5.0, @sampler.instance_variable_get('@stack_trace_threshold')
+      assert_equal 4.0, @sampler.instance_variable_get('@explain_threshold')
+    end
   end
 
   def test_current_sample_id_default
@@ -124,17 +133,15 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   end
 
   def test_notice_push_scope_with_builder
-    NewRelic::Control.instance.expects(:developer_mode?).returns(false)
-    builder = mock('builder')
-    builder.expects(:trace_entry).with('a scope', 100.0)
-    @sampler.expects(:builder).returns(builder).twice
-
-    @sampler.notice_push_scope('a scope', Time.at(100))
+    with_config('developer_mode' => false) do
+      builder = mock('builder')
+      builder.expects(:trace_entry).with('a scope', 100.0)
+      @sampler.expects(:builder).returns(builder).twice
+      @sampler.notice_push_scope('a scope', Time.at(100))
+    end
   end
 
   def test_notice_push_scope_in_dev_mode
-    NewRelic::Control.instance.expects(:developer_mode?).returns(true)
-
     builder = mock('builder')
     builder.expects(:trace_entry).with('a scope', 100.0)
     @sampler.expects(:builder).returns(builder).twice
@@ -239,7 +246,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   end
 
   def test_store_sample_for_developer_mode_in_dev_mode
-    NewRelic::Control.instance.expects(:developer_mode?).returns(true)
     sample = mock('sample')
     @sampler.expects(:truncate_samples)
     @sampler.store_sample_for_developer_mode(sample)
@@ -247,11 +253,12 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   end
 
   def test_store_sample_for_developer_mode_no_dev
-    NewRelic::Control.instance.stubs(:developer_mode?).returns(false)
-    @sampler.configure!
-    sample = mock('sample')
-    @sampler.store_sample_for_developer_mode(sample)
-    assert_equal([], @sampler.instance_variable_get('@samples'))
+    with_config('developer_mode' => false) do
+      @sampler.configure!
+      sample = mock('sample')
+      @sampler.store_sample_for_developer_mode(sample)
+      assert_equal([], @sampler.instance_variable_get('@samples'))
+    end
   end
 
   def test_store_slowest_sample_new_is_slowest
@@ -927,28 +934,24 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
       assert_equal (capture) ? 1 : 0, tt.params[:request_params].length
     end
   end
-  
+
   def test_should_not_collect_segments_beyond_limit
-    NewRelic::Control.instance.merge_options('transaction_tracer' => {
-                                               'limit_segments' => 3,
-                                             })
-    @sampler.configure!
-    run_sample_trace do
-      @sampler.notice_push_scope 'a1'
-      @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'hallah'", nil, 0)
-      @sampler.notice_push_scope 'a11'
-      @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'semolina'", nil, 0)
-      @sampler.notice_pop_scope "a11"
-      @sampler.notice_pop_scope "a1"
+    with_config('transaction_tracer.limit_segments' => 3) do
+      @sampler.configure!
+      run_sample_trace do
+        @sampler.notice_push_scope 'a1'
+        @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'hallah'", nil, 0)
+        @sampler.notice_push_scope 'a11'
+        @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'semolina'", nil, 0)
+        @sampler.notice_pop_scope "a11"
+        @sampler.notice_pop_scope "a1"
+      end
+      assert_equal 3, @sampler.samples[0].count_segments
     end
-    assert_equal 3, @sampler.samples[0].count_segments
-    NewRelic::Control.instance.merge_options('transaction_tracer' => {
-                                               'limit_segments' => 4000,
-                                             })
   end
-  
+
   private
-  
+
   def run_sample_trace
     @sampler.notice_first_scope_push Time.now.to_f
     @sampler.notice_transaction '/path', nil, {}

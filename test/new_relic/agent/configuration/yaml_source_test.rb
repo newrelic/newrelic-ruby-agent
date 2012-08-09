@@ -26,6 +26,14 @@ module NewRelic::Agent::Configuration
       assert_equal 'raw', @source['transaction_tracer.record_sql']
     end
 
+    def test_should_ignore_apdex_f_setting_for_transaction_threshold
+      assert_equal nil, @source['transaction_tracer.transaction_threshold']
+    end
+
+    def test_should_correctly_handle_floats
+      assert_equal 1.1, @source['apdex_t']
+    end
+
     def test_should_be_immutable
       assert_raises RuntimeError, TypeError do
         @source['host'] = 'somewhere.else'

@@ -4,7 +4,7 @@ require 'ostruct'
 
 class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   include NewRelic::Agent::Agent::Connect
-  
+
   def setup
     @connected = nil
     @keep_retrying = nil
@@ -224,19 +224,18 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   end
 
   def test_config_transaction_tracer
-    NewRelic::Control.instance.settings['transaction_tracer'] = {
-      'enabled' => true,
-      'random_sample' => false,
-      'explain_threshold' => 0.75,
-      'explain_enabled' => true
+    test_config = {
+      'transaction_tracer.enabled' => true,
+      'transaction_tracer.random_sampler' => false,
+      'transaction_tracer.explain_threshold' => 0.75,
+      'transaction_tracer.explain_enabled' => true
     }
-
-    config_transaction_tracer
-
-    assert @transaction_sampler.enabled?
-    assert_equal 0.75, @transaction_sampler.explain_threshold
-    assert @transaction_sampler.explain_enabled
-#     assert_equal 1.5, @transaction_sampler.transaction_threshold
+    with_config(test_config) do
+      config_transaction_tracer
+      assert @transaction_sampler.enabled?
+      assert_equal 0.75, @transaction_sampler.explain_threshold
+      assert @transaction_sampler.explain_enabled
+    end
   end
 
   def test_configure_transaction_tracer_with_random_sampling
@@ -278,49 +277,42 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     assert_equal 40, apdex_f
   end
 
-  def test_apdex_f_threshold_positive
-    NewRelic::Control.instance.settings['transaction_tracer'] = { 'transaction_threshold' => 'apdex_f' }
-    assert apdex_f_threshold?
-  end
-
-  def test_apdex_f_threshold_negative
-    NewRelic::Control.instance.settings['transaction_tracer'] = { 'transaction_threshold' => 'WHEE' }
-    assert !apdex_f_threshold?
-  end
-
   def test_set_sql_recording_default
-    NewRelic::Control.instance.settings['transaction_tracer'] = { }
     self.expects(:log_sql_transmission_warning?)
     set_sql_recording!
     assert_equal :obfuscated, @record_sql, " should default to :obfuscated, was #{@record_sql}"
   end
 
   def test_set_sql_recording_off
-    NewRelic::Control.instance.settings['transaction_tracer'] = {'record_sql' => 'off'}
-    self.expects(:log_sql_transmission_warning?)
-    set_sql_recording!
-    assert_equal :off, @record_sql, "should be set to :off, was #{@record_sql}"
+    with_config('transaction_tracer.record_sql' => 'off') do
+      self.expects(:log_sql_transmission_warning?)
+      set_sql_recording!
+      assert_equal :off, @record_sql, "should be set to :off, was #{@record_sql}"
+    end
   end
 
   def test_set_sql_recording_none
-    NewRelic::Control.instance.settings['transaction_tracer'] = {'record_sql' => 'none'}    
-    self.expects(:log_sql_transmission_warning?)
-    set_sql_recording!
-    assert_equal :off, @record_sql, "should be set to :off, was #{@record_sql}"
+    with_config('transaction_tracer.record_sql' => 'none') do
+      self.expects(:log_sql_transmission_warning?)
+      set_sql_recording!
+      assert_equal :off, @record_sql, "should be set to :off, was #{@record_sql}"
+    end
   end
 
   def test_set_sql_recording_raw
-    NewRelic::Control.instance.settings['transaction_tracer'] = {'record_sql' => 'raw'}        
-    self.expects(:log_sql_transmission_warning?)
-    set_sql_recording!
-    assert_equal :raw, @record_sql, "should be set to :raw, was #{@record_sql}"
+    with_config('transaction_tracer.record_sql' => 'raw') do
+      self.expects(:log_sql_transmission_warning?)
+      set_sql_recording!
+      assert_equal :raw, @record_sql, "should be set to :raw, was #{@record_sql}"
+    end
   end
 
   def test_set_sql_recording_falsy
-    NewRelic::Control.instance.settings['transaction_tracer'] = {'record_sql' => false}            
-    self.expects(:log_sql_transmission_warning?)
-    set_sql_recording!
-    assert_equal :off, @record_sql, "should be set to :off, was #{@record_sql}"
+    with_config('transaction_tracer.record_sql' => false) do
+      self.expects(:log_sql_transmission_warning?)
+      set_sql_recording!
+      assert_equal :off, @record_sql, "should be set to :off, was #{@record_sql}"
+    end
   end
 
   def test_log_sql_transmission_warning_negative

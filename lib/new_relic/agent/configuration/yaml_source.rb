@@ -1,7 +1,9 @@
+require 'new_relic/agent/configuration'
+
 module NewRelic
   module Agent
     module Configuration
-      class YamlSource < ::Hash
+      class YamlSource < DottedHash
         def initialize(path, env)
           file = File.read(File.expand_path(path))
 
@@ -13,22 +15,16 @@ module NewRelic
           erb = ERB.new(file).result(binding)
           config = merge!(YAML.load(erb)[env])
 
-          # flatten to dotted notation
-          self.merge!(dot_flattened(config))
+          if config['transaction_tracer'] &&
+              config['transaction_tracer']['transaction_threshold'] =~ /apdex_f/i
+            config['transaction_tracer'].delete('transaction_threshold')
+          end
 
-          self.freeze
+          super(config)
         end
 
-        # turns {'a' => {'b' => 'c'}} into {'a.b' => 'c'}
-        def dot_flattened(nested_hash, names=[], result={})
-          nested_hash.each do |key, val|
-            if val.respond_to?(:has_key?)
-              dot_flattened(val, names + [key], result)
-            else
-              result[(names + [key]).join('.')] = val
-            end
-          end
-          result
+        def inspect
+          "#<YamlSource:#{object_id} #{super}>"
         end
       end
     end

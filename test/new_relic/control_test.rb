@@ -4,7 +4,6 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   attr_reader :control
 
   def setup
-    NewRelic::Agent.manual_start(:dispatcher_instance_id => 'test')
     @control =  NewRelic::Control.instance
     raise 'oh geez, wrong class' unless NewRelic::Control.instance.is_a?(::NewRelic::Control::Frameworks::Test)
   end
@@ -96,6 +95,7 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   end
 
   def test_info
+    NewRelic::Agent.manual_start(:dispatcher_instance_id => 'test')
     props = NewRelic::Control.instance.local_env.snapshot
     if defined?(Rails)
       assert_match /jdbc|postgres|mysql|sqlite/, props.assoc('Database adapter').last, props.inspect
@@ -149,35 +149,14 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     assert_equal control['sval'], 'sure'
   end
 
-  def test_config_apdex
-    assert_equal 1.1, control.apdex_t
-  end
-
-#  def test_transaction_threshold
-#    assert_equal 'Apdex_f', c['transaction_tracer']['transaction_threshold']
-#    assert_equal 4.4, NewRelic::Agent::Agent.instance.instance_variable_get('@slowest_transaction_threshold')
-#  end
-
   def test_log_file_name
     NewRelic::Control.instance.setup_log
     assert_match /newrelic_agent.log$/, control.instance_variable_get('@log_file')
   end
 
-#  def test_transaction_threshold__apdex
-#    forced_start
-#    assert_equal 'Apdex_f', c['transaction_tracer']['transaction_threshold']
-#    assert_equal 4.4, NewRelic::Agent::Agent.instance.instance_variable_get('@slowest_transaction_threshold')
-#  end
-
-  def test_transaction_threshold__default
-    forced_start :transaction_tracer => { :transaction_threshold => nil}
-    assert_nil control['transaction_tracer']['transaction_threshold']
-    assert_equal 2.0, NewRelic::Agent::Agent.instance.instance_variable_get('@slowest_transaction_threshold')
-  end
-
   def test_transaction_threshold__override
     forced_start :transaction_tracer => { :transaction_threshold => 1}
-    assert_equal 1, control['transaction_tracer']['transaction_threshold']
+    assert_equal 1, NewRelic::Agent.config['transaction_tracer.transaction_threshold']
     assert_equal 1, NewRelic::Agent::Agent.instance.instance_variable_get('@slowest_transaction_threshold')
   end
 
@@ -228,6 +207,7 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     forced_start(:slow_sql => { :enabled => true },
                  :transaction_tracer => { :enabled => true },
                  :monitor_mode => true)
+
     NewRelic::Agent::Agent.instance.check_sql_sampler_status
     NewRelic::Agent::Agent.instance.finish_setup('collect_traces' => false)
 

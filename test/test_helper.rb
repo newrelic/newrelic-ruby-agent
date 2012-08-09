@@ -14,7 +14,7 @@ require 'rubygems'
 
 begin
   require 'config/environment'
-  # require File.join(File.dirname(__FILE__),'..','..','rpm_test_app','config','environment')
+#   require File.join(File.dirname(__FILE__),'..','..','rpm_test_app','config','environment')
   begin
     require 'test_help'
   rescue LoadError
@@ -24,7 +24,7 @@ begin
 rescue LoadError
   # To run the tests against a standalone agent build, you need to
   # add a rails app to the load path.  It can be 2.* to 3.*.  It should
-  # referenc newrelic_rpm in the Gemfile with a :path option pointing 
+  # referenc newrelic_rpm in the Gemfile with a :path option pointing
   # to this work directory.
   guess = File.expand_path("../../../rpm", __FILE__)
   if $LOAD_PATH.include? guess
@@ -116,6 +116,12 @@ end
 def compare_metrics(expected, actual)
   actual.delete_if {|a| a.include?('GC/cumulative') } # in case we are in REE
   assert_equal(expected.to_a.sort, actual.to_a.sort, "extra: #{(actual - expected).to_a.inspect}; missing: #{(expected - actual).to_a.inspect}")
+end
+
+def with_config(config_hash)
+  NewRelic::Agent.config.apply_config(config_hash)
+  yield
+  NewRelic::Agent.config.remove_config(config_hash)
 end
 
 module TransactionSampleTestHelper

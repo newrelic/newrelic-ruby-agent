@@ -44,6 +44,7 @@ module NewRelic
       # init_config({}) which is called one or more times.
       #
       def init_plugin(options={})
+        Agent.config.apply_config(Agent::Configuration::DottedHash.new(options), 1)
         options['app_name'] = ENV['NEWRELIC_APP_NAME'] if ENV['NEWRELIC_APP_NAME']
         options['app_name'] ||= ENV['NEW_RELIC_APP_NAME'] if ENV['NEW_RELIC_APP_NAME']
 

@@ -17,8 +17,7 @@ module NewRelic
         @sample = NewRelic::TransactionSample.new(time.to_f)
         @sample_start = time.to_f
         @current_segment = @sample.root_segment
-        @segment_limit = NewRelic::Control.instance.fetch('transaction_tracer', {}) \
-          .fetch('limit_segments', 4000)
+        @segment_limit = Agent.config['transaction_tracer.limit_segments']
       end
 
       def sample_id

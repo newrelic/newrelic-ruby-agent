@@ -30,6 +30,10 @@ module NewRelic
 
           self.freeze
         end
+
+        def inspect
+          "#<EnvironmentSource:#{object_id} #{super}>"
+        end
       end
     end
   end
