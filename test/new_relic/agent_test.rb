@@ -3,7 +3,7 @@ require 'ostruct'
 
 module NewRelic
   class MainAgentTest < Test::Unit::TestCase
-    
+
     # mostly this module just passes through to the active agent
     # through the agent method or the control instance through
     # NewRelic::Control.instance . But it's nice to make sure.
@@ -12,7 +12,7 @@ module NewRelic
       super
       Thread.current[:newrelic_untraced] = nil
     end
-    
+
     def test_shutdown
       mock_agent = mocked_agent
       mock_agent.expects(:shutdown).with({})
@@ -32,27 +32,26 @@ module NewRelic
 
       assert agent.forked?
     end
-    
 
     if NewRelic::LanguageSupport.can_fork? &&
         !NewRelic::LanguageSupport.using_version?('1.9.1')
       def test_timeslice_harvest_with_after_fork_report_to_channel
         NewRelic::Control.instance.stubs(:agent_enabled?).returns(true)
         NewRelic::Control.instance.stubs(:monitor_mode?).returns(true)
-        
+
         NewRelic::Agent::Agent.instance.service = NewRelic::FakeService.new
         NewRelic::Agent.shutdown # make sure the agent is not already started
         NewRelic::Agent.manual_start(:license_key => ('1234567890' * 4),
                                      :start_channel_listener => true)
-        
+
         metric = 'Custom/test/method'
         NewRelic::Agent.instance.stats_engine.get_stats_no_scope(metric) \
           .record_data_point(1.0)
-        
+
         # ensure that cached metric ids don't interfere with metric merging
         NewRelic::Agent.agent.instance_variable_set(:@metric_ids,
                                     {NewRelic::MetricSpec.new('Instance/Busy') => 1})
-        
+
         NewRelic::Agent::PipeChannelManager.listener.close_all_pipes
         NewRelic::Agent.register_report_channel(:agent_test) # before fork
         pid = Process.fork do
@@ -62,13 +61,13 @@ module NewRelic
         end
         Process.wait(pid)
         NewRelic::Agent::PipeChannelManager.listener.stop
-        
+
         engine = NewRelic::Agent.agent.stats_engine
         assert_equal(3.0, engine.lookup_stats(metric).total_call_time)
         assert_equal(2, engine.lookup_stats(metric).call_count)
       end
     end
-    
+
     def test_reset_stats
       mock_agent = mocked_agent
       mock_agent.expects(:reset_stats)
@@ -80,7 +79,7 @@ module NewRelic
       mock_control.expects(:init_plugin).with({:agent_enabled => true, :sync_startup => true})
       NewRelic::Agent.manual_start
     end
-    
+
     def test_manual_start_with_opts
       mock_control = mocked_control
       mock_control.expects(:init_plugin).with({:agent_enabled => true, :sync_startup => false})
@@ -121,7 +120,7 @@ module NewRelic
       mock_stats_engine.expects(:get_stats).with('Custom/test/metric', false)
       NewRelic::Agent.get_stats('Custom/test/metric')
     end
-    
+
     # note that this is the same as get_stats above, they're just aliases
     def test_get_stats_no_scope
       agent = mocked_agent
@@ -166,7 +165,7 @@ module NewRelic
       Thread.current[:record_tt] = false
       assert_equal(false, NewRelic::Agent.is_transaction_traced?, 'should be false since the thread local is false')
     end
-    
+
     def test_is_sql_recorded_true
       Thread.current[:record_sql] = true
       assert_equal(true, NewRelic::Agent.is_sql_recorded?, 'should be true since the thread local is set')
@@ -181,7 +180,7 @@ module NewRelic
       Thread.current[:record_sql] = false
       assert_equal(false, NewRelic::Agent.is_sql_recorded?, 'should be false since the thread local is false')
     end
-    
+
     def test_is_execution_traced_true
       Thread.current[:newrelic_untraced] = [true, true]
       assert_equal(true, NewRelic::Agent.is_execution_traced?, 'should be true since the thread local is set')
@@ -201,18 +200,18 @@ module NewRelic
       Thread.current[:newrelic_untraced] = [true, false]
       assert_equal(false, NewRelic::Agent.is_execution_traced?, 'should be false since the thread local stack has the last element false')
     end
-    
+
     def test_instance
       assert_equal(NewRelic::Agent.agent, NewRelic::Agent.instance, "should return the same agent for both identical methods")
     end
-    
+
     def test_register_report_channel
       NewRelic::Agent.register_report_channel(:channel_id)
       assert NewRelic::Agent::PipeChannelManager.channels[:channel_id] \
         .kind_of?(NewRelic::Agent::PipeChannelManager::Pipe)
       NewRelic::Agent::PipeChannelManager.listener.close_all_pipes
     end
-    
+
     private
 
     def mocked_agent
@@ -220,7 +219,7 @@ module NewRelic
       NewRelic::Agent.stubs(:agent).returns(agent)
       agent
     end
-    
+
     def mocked_control
       server = NewRelic::Control::Server.new('localhost', 3000)
       control = OpenStruct.new(:license_key => 'abcdef',
@@ -229,7 +228,7 @@ module NewRelic
         def [](key)
           nil
         end
-        
+
         def fetch(k,d)
           nil
         end
