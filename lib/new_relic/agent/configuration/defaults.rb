@@ -6,8 +6,8 @@ module NewRelic
 
         'enabled'        => true,
         'monitor_mode'   => Proc.new { self['enabled'] },
-        'developer_mode' => false,
-        'developer'      => Proc.new { self['developer_mode'] },
+        'developer_mode' => Proc.new { self['developer'] },
+        'developer'      => false,
         'apdex_t'        => 0.5,
 
         'host'               => 'collector.newrelic.com',

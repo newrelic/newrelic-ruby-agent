@@ -5,6 +5,11 @@ module NewRelic
     module Configuration
       class YamlSource < DottedHash
         def initialize(path, env)
+          if !File.exists?(File.expand_path(path))
+            NewRelic::Control.instance.log.error('Unable to load configuration from #{path}')
+            return
+          end
+
           file = File.read(File.expand_path(path))
 
           # Next two are for populating the newrelic.yml via erb binding, necessary

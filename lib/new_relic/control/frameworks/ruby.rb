@@ -12,7 +12,7 @@ module NewRelic
           @env ||= ENV['RUBY_ENV'] || ENV['RAILS_ENV'] || ENV['RACK_ENV'] || 'development'
         end
         def root
-          @root ||= ENV['APP_ROOT'] || Dir['.']
+          @root ||= ENV['APP_ROOT'] || '.'
         end
         # Check a sequence of file locations for newrelic.yml
         def config_file
