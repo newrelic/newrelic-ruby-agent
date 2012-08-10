@@ -66,7 +66,7 @@ module NewRelic
         return nil unless request
         
         agent_flag = request.cookies['NRAGENT']
-        if agent_flag
+        if agent_flag and agent_flag.instance_of? String 
           s = agent_flag.split("=")
           if s.length == 2
             if s[0] == "tk" && s[1]
@@ -78,15 +78,13 @@ module NewRelic
         end
       end
 
-      # Run through a collection of regular expressions and set
-      # the token to an empty string if any of them match so that
+      # Run through a collection of unsafe characters ( in the context of the token ) 
+      # and set the token to an empty string if any of them are found in the token so that
       # potential XSS attacks via the token are avoided
       def self.sanitize_token(token)
-        [/"{3}.*"{3}/,/'{3}.*'{3}/,/^<{3}/,/^>{3}/].each do | check |
-          if ( check =~ token )
-            token = ''
-            break
-          end
+
+        if ( ['"',"'",'<','>'].any? { |unsafe_char| token.index(unsafe_char)} )
+          token = ''
         end
         token
       end
