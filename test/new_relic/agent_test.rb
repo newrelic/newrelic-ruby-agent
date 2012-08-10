@@ -19,6 +19,21 @@ module NewRelic
       NewRelic::Agent.shutdown
     end
 
+    def test_shutdown_removes_manual_startup_config
+      NewRelic::Agent.manual_start(:some_absurd_setting => true)
+      assert NewRelic::Agent.config['some_absurd_setting']
+      NewRelic::Agent.shutdown
+      assert !NewRelic::Agent.config['some_absurd_setting']
+    end
+
+    def test_shutdown_removes_server_config
+      NewRelic::Agent.manual_start
+      NewRelic::Agent.instance.finish_setup(:some_absurd_setting => true)
+      assert NewRelic::Agent.config['some_absurd_setting']
+      NewRelic::Agent.shutdown
+      assert !NewRelic::Agent.config['some_absurd_setting']
+    end
+
     def test_after_fork
       mock_agent = mocked_agent
       mock_agent.expects(:after_fork).with({})
@@ -36,35 +51,34 @@ module NewRelic
     if NewRelic::LanguageSupport.can_fork? &&
         !NewRelic::LanguageSupport.using_version?('1.9.1')
       def test_timeslice_harvest_with_after_fork_report_to_channel
-        NewRelic::Control.instance.stubs(:agent_enabled?).returns(true)
-        NewRelic::Control.instance.stubs(:monitor_mode?).returns(true)
+        with_config('agent_enabled' => true, 'monitor_mode' => true) do
+          NewRelic::Agent::Agent.instance.service = NewRelic::FakeService.new
+          NewRelic::Agent.shutdown # make sure the agent is not already started
+          NewRelic::Agent.manual_start(:license_key => ('1234567890' * 4),
+                                       :start_channel_listener => true)
 
-        NewRelic::Agent::Agent.instance.service = NewRelic::FakeService.new
-        NewRelic::Agent.shutdown # make sure the agent is not already started
-        NewRelic::Agent.manual_start(:license_key => ('1234567890' * 4),
-                                     :start_channel_listener => true)
+          metric = 'Custom/test/method'
+          NewRelic::Agent.instance.stats_engine.get_stats_no_scope(metric) \
+            .record_data_point(1.0)
 
-        metric = 'Custom/test/method'
-        NewRelic::Agent.instance.stats_engine.get_stats_no_scope(metric) \
-          .record_data_point(1.0)
+          # ensure that cached metric ids don't interfere with metric merging
+          NewRelic::Agent.agent.instance_variable_set(:@metric_ids,
+                            { NewRelic::MetricSpec.new('Instance/Busy') => 1 })
 
-        # ensure that cached metric ids don't interfere with metric merging
-        NewRelic::Agent.agent.instance_variable_set(:@metric_ids,
-                                    {NewRelic::MetricSpec.new('Instance/Busy') => 1})
+          NewRelic::Agent::PipeChannelManager.listener.close_all_pipes
+          NewRelic::Agent.register_report_channel(:agent_test) # before fork
+          pid = Process.fork do
+            NewRelic::Agent.after_fork(:report_to_channel => :agent_test)
+            NewRelic::Agent.agent.stats_engine.get_stats_no_scope(metric) \
+              .record_data_point(2.0)
+          end
+          Process.wait(pid)
+          NewRelic::Agent::PipeChannelManager.listener.stop
 
-        NewRelic::Agent::PipeChannelManager.listener.close_all_pipes
-        NewRelic::Agent.register_report_channel(:agent_test) # before fork
-        pid = Process.fork do
-          NewRelic::Agent.after_fork(:report_to_channel => :agent_test)
-          NewRelic::Agent.agent.stats_engine.get_stats_no_scope(metric) \
-            .record_data_point(2.0)
+          engine = NewRelic::Agent.agent.stats_engine
+          assert_equal(3.0, engine.lookup_stats(metric).total_call_time)
+          assert_equal(2, engine.lookup_stats(metric).call_count)
         end
-        Process.wait(pid)
-        NewRelic::Agent::PipeChannelManager.listener.stop
-
-        engine = NewRelic::Agent.agent.stats_engine
-        assert_equal(3.0, engine.lookup_stats(metric).total_call_time)
-        assert_equal(2, engine.lookup_stats(metric).call_count)
       end
     end
 

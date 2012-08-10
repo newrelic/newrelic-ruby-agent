@@ -16,15 +16,15 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   end
 
   def test_disabled_positive
-    control = mocked_control
-    control.expects(:agent_enabled?).returns(false)
-    assert disabled?
+    with_config('agent_enabled' => false) do
+      assert disabled?
+    end
   end
 
   def test_disabled_negative
-    control = mocked_control
-    control.expects(:agent_enabled?).returns(true)
-    assert !disabled?
+    with_config('agent_enabled' => true) do
+      assert !disabled?
+    end
   end
 
   def test_log_dispatcher_positive

@@ -17,8 +17,12 @@ module NewRelic
           @config_stack.insert(level, source)
         end
 
-        def remove_config(source)
-          @config_stack.delete(source)
+        def remove_config(source=nil)
+          if block_given?
+            @config_stack.delete_if {|c| yield c }
+          else
+            @config_stack.delete(source)
+          end
         end
 
         def source(key)

@@ -27,10 +27,6 @@ module NewRelic
 
           super(config)
         end
-
-        def inspect
-          "#<YamlSource:#{object_id} #{super}>"
-        end
       end
     end
   end

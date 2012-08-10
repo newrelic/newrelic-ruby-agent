@@ -21,6 +21,10 @@ module NewRelic
           self.freeze
         end
 
+        def inspect
+          "#<#{self.class.name}:#{object_id} #{super}>"
+        end
+
         protected
         # turns {'a' => {'b' => 'c'}} into {'a.b' => 'c'}
         def dot_flattened(nested_hash, names=[], result={})
@@ -33,6 +37,20 @@ module NewRelic
             end
           end
           result
+        end
+      end
+
+      class ManualSource < DottedHash; end
+
+      class ServerSource < DottedHash
+        def initialize(hash)
+          string_map = [
+            ['collect_traces', 'transaction_tracer.enabled'],
+            ['collect_traces', 'slow_sql.enabled']
+          ].each do |pair|
+            self[pair[1]] = hash[pair[0]] if hash[pair[0]] != nil
+          end
+          super
         end
       end
     end

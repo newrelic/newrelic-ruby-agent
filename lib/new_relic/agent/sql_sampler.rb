@@ -29,14 +29,10 @@ module NewRelic
       end
 
       def configure!
-        @explain_threshold = config.fetch('explain_threshold', 0.5).to_f
-        @explain_enabled = config.fetch('explain_enabled', true)
-        @stack_trace_threshold = config.fetch('stack_trace_threshold',
-                                              0.5).to_f
-        if config.fetch('enabled', true) &&
-            NewRelic::Control.instance['transaction_tracer'] &&
-            NewRelic::Control.instance['transaction_tracer'].fetch('enabled',
-                                                                   true) &&
+        @explain_threshold = Agent.config['slow_sql.explain_threshold']
+        @explain_enabled = Agent.config['sloq_sql.explain_enabled']
+        @stack_trace_threshold = Agent.config['slow_sql.stack_trace_threshold']
+        if Agent.config['slow_sql.enabled'] &&
             NewRelic::Control.instance.fetch('collect_traces', true)
           enable
         else

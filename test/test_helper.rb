@@ -118,10 +118,11 @@ def compare_metrics(expected, actual)
   assert_equal(expected.to_a.sort, actual.to_a.sort, "extra: #{(actual - expected).to_a.inspect}; missing: #{(expected - actual).to_a.inspect}")
 end
 
-def with_config(config_hash)
-  NewRelic::Agent.config.apply_config(config_hash)
+def with_config(config_hash, level=0)
+  config = NewRelic::Agent::Configuration::DottedHash.new(config_hash)
+  NewRelic::Agent.config.apply_config(config, level)
   yield
-  NewRelic::Agent.config.remove_config(config_hash)
+  NewRelic::Agent.config.remove_config(config)
 end
 
 module TransactionSampleTestHelper

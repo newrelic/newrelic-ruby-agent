@@ -155,66 +155,66 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   end
 
   def test_transaction_threshold__override
-    forced_start :transaction_tracer => { :transaction_threshold => 1}
-    assert_equal 1, NewRelic::Agent.config['transaction_tracer.transaction_threshold']
-    assert_equal 1, NewRelic::Agent::Agent.instance.instance_variable_get('@slowest_transaction_threshold')
+    with_config(:transaction_tracer => { :transaction_threshold => 1}) do
+      NewRelic::Agent.instance.config_transaction_tracer
+      assert_equal 1, NewRelic::Agent.config['transaction_tracer.transaction_threshold']
+      assert_equal 1, NewRelic::Agent.instance \
+        .instance_variable_get(:@slowest_transaction_threshold)
+    end
   end
 
   def test_transaction_tracer_disabled
-    forced_start(:transaction_tracer => { :enabled => false },
-                 :developer_mode => false, :monitor_mode => true)
-    NewRelic::Agent::Agent.instance.check_transaction_sampler_status
+    with_config(:transaction_tracer => { :enabled => false },
+                :developer_mode => false, :monitor_mode => true) do
+      NewRelic::Agent::Agent.instance.config_transaction_tracer
+      NewRelic::Agent::Agent.instance.check_transaction_sampler_status
 
-    assert(!NewRelic::Agent::Agent.instance.transaction_sampler.enabled?,
-           'transaction tracer enabled when config calls for disabled')
-
-    @control['developer_mode'] = true
-    @control['monitor_mode'] = false
+      assert(!NewRelic::Agent::Agent.instance.transaction_sampler.enabled?,
+             'transaction tracer enabled when config calls for disabled')
+    end
   end
 
   def test_sql_tracer_disabled
-    forced_start(:slow_sql => { :enabled => false }, :monitor_mode => true)
-    NewRelic::Agent::Agent.instance.check_sql_sampler_status
+    with_config(:slow_sql => { :enabled => false }, :monitor_mode => true) do
+      NewRelic::Agent.instance.sql_sampler.configure!
+      NewRelic::Agent::Agent.instance.check_sql_sampler_status
 
-    assert(!NewRelic::Agent::Agent.instance.sql_sampler.enabled?,
-           'sql tracer enabled when config calls for disabled')
-
-    @control['monitor_mode'] = false
+      assert(!NewRelic::Agent::Agent.instance.sql_sampler.enabled?,
+             'sql tracer enabled when config calls for disabled')
+    end
   end
 
   def test_sql_tracer_disabled_with_record_sql_false
-    forced_start(:slow_sql => { :enabled => true, :record_sql => 'off' })
-    NewRelic::Agent::Agent.instance.check_sql_sampler_status
+    with_config(:slow_sql => { :enabled => true, :record_sql => 'off' }) do
+      NewRelic::Agent::Agent.instance.check_sql_sampler_status
 
-    assert(!NewRelic::Agent::Agent.instance.sql_sampler.enabled?,
-           'sql tracer enabled when config calls for disabled')
+      assert(!NewRelic::Agent::Agent.instance.sql_sampler.enabled?,
+             'sql tracer enabled when config calls for disabled')
+    end
   end
 
   def test_sql_tracer_disabled_when_tt_disabled
-    forced_start(:transaction_tracer => { :enabled => false },
-                 :slow_sql => { :enabled => true },
-                 :developer_mode => false, :monitor_mode => true)
-    NewRelic::Agent::Agent.instance.check_sql_sampler_status
+    with_config(:transaction_tracer => { :enabled => false },
+                :slow_sql => { :enabled => true },
+                :developer_mode => false, :monitor_mode => true) do
+      NewRelic::Agent::Agent.instance.check_sql_sampler_status
 
-    assert(!NewRelic::Agent::Agent.instance.sql_sampler.enabled?,
-           'sql enabled when transaction tracer disabled')
-
-    @control['developer_mode'] = true
-    @control['monitor_mode'] = false
+      assert(!NewRelic::Agent::Agent.instance.sql_sampler.enabled?,
+             'sql enabled when transaction tracer disabled')
+    end
   end
 
   def test_sql_tracer_disabled_when_tt_disabled_by_server
-    forced_start(:slow_sql => { :enabled => true },
-                 :transaction_tracer => { :enabled => true },
-                 :monitor_mode => true)
+    with_config({ :slow_sql => { :enabled => true },
+                  :transaction_tracer => { :enabled => true },
+                  :monitor_mode => true}, 1) do
 
-    NewRelic::Agent::Agent.instance.check_sql_sampler_status
-    NewRelic::Agent::Agent.instance.finish_setup('collect_traces' => false)
+      NewRelic::Agent.instance.check_sql_sampler_status
+      NewRelic::Agent.instance.finish_setup('collect_traces' => false)
 
-    assert(!NewRelic::Agent::Agent.instance.sql_sampler.enabled?,
-           'sql enabled when tracing disabled by server')
-
-    @control['monitor_mode'] = false
+      assert(!NewRelic::Agent::Agent.instance.sql_sampler.enabled?,
+             'sql enabled when tracing disabled by server')
+    end
   end
 
   def test_merging_options
@@ -223,14 +223,5 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     assert_equal 66, NewRelic::Control.instance['api_port']
     assert_equal 2.0, NewRelic::Control.instance['transaction_tracer']['explain_threshold']
     assert_equal 'raw', NewRelic::Control.instance['transaction_tracer']['record_sql']
-  end
-
-  private
-
-  def forced_start(overrides={})
-    NewRelic::Agent.manual_start overrides
-    # This is to force the agent to start again.
-    NewRelic::Agent.instance.stubs(:started?).returns(nil)
-    NewRelic::Agent.instance.start
   end
 end

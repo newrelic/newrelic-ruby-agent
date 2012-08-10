@@ -164,9 +164,9 @@ module NewRelic
           end
           
           # log.debug "Agent received after_fork notice in #$$: [#{control.agent_enabled?}; monitor=#{control.monitor_mode?}; connected: #{@connected.inspect}; thread=#{@worker_thread.inspect}]"
-          return if !control.agent_enabled? or
-            !Agent.config['monitor_mode'] or
-            @connected == false or
+          return if !Agent.config['agent_enabled'] ||
+            !Agent.config['monitor_mode'] ||
+            @connected == false ||
             @worker_thread && @worker_thread.alive?
 
           log.info "Starting the worker thread in #$$ after forking."
@@ -226,6 +226,10 @@ module NewRelic
           rescue => e
             log.error e
             log.error e.backtrace.join("\n")
+          end
+          NewRelic::Agent.config.remove_config do |config|
+            config.class == NewRelic::Agent::Configuration::ManualSource ||
+              config.class == NewRelic::Agent::Configuration::ServerSource
           end
           @started = nil
         end
@@ -297,7 +301,7 @@ module NewRelic
           # 'agent_enabled' option (e.g. in a manual start), or
           # enabled normally through the configuration file
           def disabled?
-            !control.agent_enabled?
+            !Agent.config['agent_enabled']
           end
 
           # Logs the dispatcher to the log file to assist with
@@ -459,7 +463,7 @@ module NewRelic
           # disable transaction sampling if disabled by the server
           # and we're not in dev mode
           def check_transaction_sampler_status
-            if control.developer_mode? || @should_send_samples
+            if Agent.config['developer_mode'] || @should_send_samples
               @transaction_sampler.enable
             else
               @transaction_sampler.disable
@@ -773,7 +777,6 @@ module NewRelic
           def configure_transaction_tracer!(server_enabled, sample_rate)
             # Ask the server for permission to send transaction samples.
             # determined by subscription license.
-            @transaction_sampler.config['enabled'] = server_enabled
             @sql_sampler.configure!
             @should_send_samples = @config_should_send_samples && server_enabled
             
@@ -848,6 +851,10 @@ module NewRelic
           # ignored unless we say to do something with it here.
           def finish_setup(config_data)
             return if config_data == nil
+
+            server_config = NewRelic::Agent::Configuration::ServerSource.new(config_data)
+            Agent.config.apply_config(server_config, 1)
+
             @service.agent_id = config_data['agent_run_id'] if @service
             @report_period = config_data['data_report_period']
             @url_rules = config_data['url_rules']

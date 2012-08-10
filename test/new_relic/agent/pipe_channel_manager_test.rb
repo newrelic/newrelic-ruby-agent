@@ -11,9 +11,9 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
   end
 
   def teardown
-    NewRelic::Agent.config.remove_config(@test_config)
     NewRelic::Agent::PipeChannelManager.listener.stop
     NewRelic::Agent.shutdown
+    NewRelic::Agent.config.remove_config(@test_config)
   end
 
   def test_registering_a_pipe

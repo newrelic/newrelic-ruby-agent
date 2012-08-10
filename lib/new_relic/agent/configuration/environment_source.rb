@@ -1,7 +1,7 @@
 module NewRelic
   module Agent
     module Configuration
-      class EnvironmentSource < ::Hash
+      class EnvironmentSource < DottedHash
         def initialize
           string_map = {
             'NRCONFIG'              => 'config_path',
@@ -29,10 +29,6 @@ module NewRelic
           end
 
           self.freeze
-        end
-
-        def inspect
-          "#<EnvironmentSource:#{object_id} #{super}>"
         end
       end
     end

@@ -44,7 +44,7 @@ module NewRelic
       # init_config({}) which is called one or more times.
       #
       def init_plugin(options={})
-        Agent.config.apply_config(Agent::Configuration::DottedHash.new(options), 1)
+        Agent.config.apply_config(Agent::Configuration::ManualSource.new(options), 1)
         options['app_name'] = ENV['NEWRELIC_APP_NAME'] if ENV['NEWRELIC_APP_NAME']
         options['app_name'] ||= ENV['NEW_RELIC_APP_NAME'] if ENV['NEW_RELIC_APP_NAME']
 
@@ -73,14 +73,14 @@ module NewRelic
         Module.send :include, NewRelic::Agent::MethodTracer::InstanceMethods
         init_config(options)
         NewRelic::Agent.agent = NewRelic::Agent::Agent.instance
-        if agent_enabled? && !NewRelic::Agent.instance.started?
+        if Agent.config['agent_enabled'] && !NewRelic::Agent.instance.started?
           setup_log unless logger_override
           start_agent
           install_instrumentation
           load_samplers unless self['disable_samplers']
           local_env.gather_environment_info
           append_environment_info
-        elsif !agent_enabled?
+        elsif !Agent.config['agent_enabled']
           install_shim
         end
       end
