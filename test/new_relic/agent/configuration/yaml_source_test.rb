@@ -16,6 +16,20 @@ module NewRelic::Agent::Configuration
 
     def test_should_apply_erb_transformations
       assert_equal 'heyheyhey', @source['erb_value']
+      assert_equal '', @source['message']
+      assert_equal '', @source['license_key']
+    end
+
+    def test_config_booleans
+      assert_equal true, @source['tval']
+      assert_equal false, @source['fval']
+      assert_nil @source['not_in_yaml_val']
+      assert_equal true, @source['yval']
+      assert_equal 'sure', @source['sval']
+    end
+
+    def test_appnames
+      assert_equal %w[a b c], @source['app_name']
     end
 
     def test_should_load_the_config_for_the_correct_env

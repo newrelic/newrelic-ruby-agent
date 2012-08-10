@@ -131,24 +131,6 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     assert_equal old_ipsocket, IPSocket
   end
 
-  def test_config_yaml_erb
-    assert_equal 'heyheyhey', control['erb_value']
-    assert_equal '', control['message']
-    assert_equal '', control['license_key']
-  end
-
-  def test_appnames
-    assert_equal %w[a b c], NewRelic::Control.instance.app_names
-  end
-
-  def test_config_booleans
-    assert_equal control['tval'], true
-    assert_equal control['fval'], false
-    assert_nil control['not_in_yaml_val']
-    assert_equal control['yval'], true
-    assert_equal control['sval'], 'sure'
-  end
-
   def test_log_file_name
     NewRelic::Control.instance.setup_log
     assert_match /newrelic_agent.log$/, control.instance_variable_get('@log_file')
@@ -215,13 +197,5 @@ class NewRelic::ControlTest < Test::Unit::TestCase
       assert(!NewRelic::Agent::Agent.instance.sql_sampler.enabled?,
              'sql enabled when tracing disabled by server')
     end
-  end
-
-  def test_merging_options
-    NewRelic::Control.send :public, :merge_options
-    @control.merge_options :api_port => 66, :transaction_tracer => { :explain_threshold => 2.0 }
-    assert_equal 66, NewRelic::Control.instance['api_port']
-    assert_equal 2.0, NewRelic::Control.instance['transaction_tracer']['explain_threshold']
-    assert_equal 'raw', NewRelic::Control.instance['transaction_tracer']['record_sql']
   end
 end
