@@ -180,14 +180,6 @@ module NewRelic
   module Agent
     module Instrumentation
       module DataMapperInstrumentation
-
-        def self.included(klass)
-          klass.class_eval do
-            alias_method :log_without_newrelic_instrumentation, :log
-            alias_method :log, :log_with_newrelic_instrumentation
-          end
-        end
-
         # Unlike in AR, log is called in DM after the query actually ran,
         # complete with metrics.  Since DO has already calculated the
         # duration, there's nothing more to measure, so just record and log.
@@ -195,7 +187,7 @@ module NewRelic
         # We rely on the assumption that all possible entry points have been
         # hooked with tracers, ensuring that notice_sql attaches this SQL to
         # the proper call scope.
-        def log_with_newrelic_instrumentation(msg)
+        def log(msg)
           return unless NewRelic::Agent.is_execution_traced?
           return unless operation = case NewRelic::Helper.correctly_encoded(msg.query)
                                     when /^\s*select/i          then 'find'
@@ -216,7 +208,7 @@ module NewRelic
             NewRelic::Agent.instance.stats_engine.get_stats_no_scope(metric).trace_call(duration)
           end
         ensure
-          log_without_newrelic_instrumentation(msg)
+          super
         end
 
       end # DataMapperInstrumentation
