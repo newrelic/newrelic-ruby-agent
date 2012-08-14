@@ -42,8 +42,9 @@ if [ "x$JOB_NAME" == "x" ]; then
   echo 'defaulting to clrun'
   export PROJECT_NAME=clrun
 else
-  echo "setting PROJECT_NAME to $JOB_NAME"
-  export PROJECT_NAME="$JOB_NAME"
+  CLEANSED_NAME=`echo $JOB_NAME  | sed "s/label//" | sed "s/Portland//" | sed "s/BRANCH//" | sed "s/RUBY//" | sed "s/[=\/,\._]//g"`
+  echo "setting PROJECT_NAME to $CLEANSED_NAME"
+  export PROJECT_NAME="$CLEANSED_NAME"
 fi
 
 . "$HOME/.rvm/scripts/rvm"
