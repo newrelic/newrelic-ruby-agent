@@ -83,8 +83,8 @@ module NewRelic
       # potential XSS attacks via the token are avoided
       def self.sanitize_token(token)
 
-        if ( ['"',"'",'<','>'].any? { |unsafe_char| token.index(unsafe_char)} )
-          token = ''
+        if ( /[<>'"]/ =~ token )
+          token.replace("")
         end
         token
       end
