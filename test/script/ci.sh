@@ -37,10 +37,13 @@ if [ "x$BRANCH" == "x" ]; then
   export BRANCH=rails31
 fi
 
-if [ "x$PROJECT_NAME" == "x" ]; then
-  echo '$PROJECT_NAME is undefined'
+if [ "x$JOB_NAME" == "x" ]; then
+  echo '$JOB_NAME is undefined'
   echo 'defaulting to clrun'
   export PROJECT_NAME=clrun
+else
+  echo "setting PROJECT_NAME to $JOB_NAME"
+  export PROJECT_NAME="$JOB_NAME"
 fi
 
 . "$HOME/.rvm/scripts/rvm"
