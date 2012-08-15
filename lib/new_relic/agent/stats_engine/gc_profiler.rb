@@ -4,9 +4,10 @@ module NewRelic
     class StatsEngine
       module GCProfiler
         def self.init
-          @profiler = RailsBench.new if RailsBench.enabled?
-          @profiler = Ruby19.new if Ruby19.enabled?
           @profiler = Rubinius.new if Rubinius.enabled?
+          @profiler ||= RailsBench.new if RailsBench.enabled?
+          @profiler ||= Ruby19.new if Ruby19.enabled?
+          @profiler ||= RubiniusAgent.new if RubiniusAgent.enabled?
         end
 
         def self.capture
@@ -100,6 +101,20 @@ module NewRelic
         end
 
         class Rubinius < Profiler
+          def self.enabled?
+            defined?(::Rubinius::GC) && ::Rubinius::GC.respond_to?(:count)
+          end
+
+          def call_time
+            ::Rubinius::GC.time * 1000
+          end
+
+          def call_count
+            ::Rubinius::GC.count
+          end
+        end
+
+        class RubiniusAgent < Profiler
           def self.enabled?
             if NewRelic::LanguageSupport.using_engine?('rbx')
               require 'rubinius/agent'
