@@ -3,9 +3,9 @@ module NewRelic
     module Configuration
       DEFAULTS = {
         'config_path' => File.join('config', 'newrelic.yml'),
-        
+
         'enabled'        => true,
-        'monitor_mode'   => Proc.new { self['enabled'] },        
+        'monitor_mode'   => Proc.new { self['enabled'] },
 #         'agent_enabled'  => true,
 #         'enabled'        => Proc.new { self['agent_enabled'] },
 #         'monitor_mode'   => Proc.new { self['agent_enabled'] },
@@ -23,18 +23,18 @@ module NewRelic
         'log_file_path' => 'log/',
         'log_level'     => 'info',
 
-#         'disable_samplers'                     => false,
-#         'disable_resque'                       => false,
-#         'disable_dj'                           => false,
-#         'disable_view_instrumentation'         => false,
-#         'disable_backtrace_cleanup'            => false,
-#         'disable_activerecord_instrumentation' => false,
-#         'disable_memcache_instrumentation'     => false,
-#         'disable_mobile_headers'               => true,
+        'disable_samplers'                     => false,
+        'disable_resque'                       => false,
+        'disable_dj'                           => false,
+        'disable_view_instrumentation'         => false,
+        'disable_backtrace_cleanup'            => false,
+        'disable_activerecord_instrumentation' => false,
+        'disable_memcache_instrumentation'     => false,
+        'disable_mobile_headers'               => true,
 
-#         'capture_memcache_keys' => false,
-#         'multi_threaded'        => false,
-#         'textmate'              => false,
+        'capture_memcache_keys' => false,
+        'multi_threaded'        => false,
+        'textmate'              => false,
 
         'transaction_tracer.enabled'               => true,
         'transaction_tracer.transaction_threshold' => Proc.new { self['apdex_t'] * 4 },
@@ -49,11 +49,11 @@ module NewRelic
         'slow_sql.stack_trace_threshold' => Proc.new { self['transaction_tracer.stack_trace_threshold'] },
         'slow_sql.explain_threshold'     => Proc.new { self['transaction_tracer.explain_threshold'] },
         'slow_sql.explain_enabled'       => Proc.new { self['transaction_tracer.explain_enabled'] },
-        'slow_sql.record_sql'            => Proc.new { self['transaction_tracer.record_sql'] } #,
+        'slow_sql.record_sql'            => Proc.new { self['transaction_tracer.record_sql'] },
 
-#         'error_collector.enabled'        => true,
-#         'error_collector.capture_source' => true,
-#         'error_collector.ignore_errors'  => 'ActionController::RoutingError',
+        'error_collector.enabled'        => true,
+        'error_collector.capture_source' => true,
+        'error_collector.ignore_errors'  => 'ActionController::RoutingError',
       }.freeze
     end
   end

@@ -34,21 +34,23 @@ class NewRelic::Agent::RpmAgentTest < Test::Unit::TestCase # ActiveSupport::Test
     end
 
     should "startup_shutdown" do
-      @agent = NewRelic::Agent::ShimAgent.instance
-      @agent.shutdown
-      assert (not @agent.started?)
-      @agent.start
-      assert !@agent.started?
-      # this installs the real agent:
-      NewRelic::Agent.manual_start
-      @agent = NewRelic::Agent.instance
-      assert @agent != NewRelic::Agent::ShimAgent.instance
-      assert @agent.started?
-      @agent.shutdown
-      assert !@agent.started?
-      @agent.start
-      assert @agent.started?
-      NewRelic::Agent.shutdown
+      with_config('agent_enabled' => true) do
+        @agent = NewRelic::Agent::ShimAgent.instance
+        @agent.shutdown
+        assert (not @agent.started?)
+        @agent.start
+        assert !@agent.started?
+        # this installs the real agent:
+        NewRelic::Agent.manual_start
+        @agent = NewRelic::Agent.instance
+        assert @agent != NewRelic::Agent::ShimAgent.instance
+        assert @agent.started?
+        @agent.shutdown
+        assert !@agent.started?
+        @agent.start
+        assert @agent.started?
+        NewRelic::Agent.shutdown
+      end
     end
 
     should "manual_start" do
