@@ -177,20 +177,6 @@ module NewRelic
         fetch('log_file_path', 'log/')
       end
       
-      # only verify certificates if you're very sure you want this
-      # level of security, it includes possibly app-crashing dns
-      # lookups every connection to the server
-      def verify_certificate?
-        unless @verify_certificate
-          unless use_ssl?
-            @verify_certificate = false
-          else
-            @verify_certificate = fetch('verify_certificate', false)
-          end
-        end
-        @verify_certificate
-      end
-
       def disable_backtrace_cleanup?
         fetch('disable_backtrace_cleanup')
       end

@@ -21,7 +21,6 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   # testing that the CA file we ship actually validates our server's
   # certificate. It's used for customers who enable verify_certificate
   def test_cert_file
-    return if ::RUBY_VERSION == '1.9.3'
     require 'socket'
     require 'openssl'
 
@@ -38,7 +37,6 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   # certificates in a non-customer-facing place before setting them
   # live.
   def test_staging_cert_file
-    return if ::RUBY_VERSION == '1.9.3'
     require 'socket'
     require 'openssl'
 
@@ -107,6 +105,21 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     assert_equal nil, control.send(:convert_to_ip_address, 'q1239988737.us')
     # This will fail if you don't have a valid, accessible, DNS server
     assert_equal '204.93.223.153', control.send(:convert_to_ip_address, 'collector.newrelic.com')
+  end
+
+  def test_do_not_resolve_if_we_need_to_verify_a_cert
+    assert_equal nil, control.send(:convert_to_ip_address, 'localhost')
+    with_config('ssl' => true, 'verify_certificate' => true) do
+      assert_equal 'localhost', control.send(:convert_to_ip_address, 'localhost')
+    end
+  end
+
+  def test_api_server_default_values
+    control.instance_variable_set(:@api_server, nil)
+    with_config('api_host' => 'somewhere', 'api_port' => 8080) do
+      assert_equal 'somewhere', control.api_server.name
+      assert_equal 8080, control.api_server.port
+    end
   end
 
   class FakeResolv

@@ -14,6 +14,9 @@ module NewRelic
         'apdex_t'        => 0.5,
 
         'host'               => 'collector.newrelic.com',
+        'api_host'           => 'rpm.newrelic.com',
+        'port'               => Proc.new { self['ssl'] ? 443 : 80 },
+        'api_port'           => Proc.new { self['port'] },
         'ssl'                => false,
         'verify_certificate' => false,
         'sync_startup'       => false,

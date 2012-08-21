@@ -18,12 +18,7 @@ module NewRelic
       # the server we should contact for api requests, like uploading
       # deployments and the like
       def api_server
-        api_host = self['api_host'] || 'rpm.newrelic.com'
-        @api_server ||=
-          NewRelic::Control::Server.new \
-        api_host,
-        (self['api_port'] || self['port'] || (use_ssl? ? 443 : 80)).to_i,
-        nil
+        NewRelic::Control::Server.new(Agent.config['api_host'], Agent.config['api_port'], nil)
       end
       
       # a new instances of the proxy server - this passes through if
@@ -55,7 +50,7 @@ module NewRelic
       def convert_to_ip_address(host)
         # here we leave it as a host name since the cert verification
         # needs it in host form
-        return host if verify_certificate?
+        return host if Agent.config['ssl'] && Agent.config['verify_certificate']
         return nil if host.nil? || host.downcase == "localhost"
         ip = resolve_ip_address(host)
 
@@ -103,9 +98,9 @@ module NewRelic
                                       proxy_server.user, proxy_server.password)
         http = http_class.new(host.ip || host.name, host.port)
         log.debug("Http Connection opened to #{host.ip||host.name}:#{host.port}")
-        if use_ssl?
+        if Agent.config['ssl']
           http.use_ssl = true
-          if verify_certificate?
+          if Agent.config['verify_certificate']
             http.verify_mode = OpenSSL::SSL::VERIFY_PEER
             http.ca_file = cert_file_path
           else
