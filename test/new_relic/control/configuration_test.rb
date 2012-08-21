@@ -14,17 +14,7 @@ class NewRelic::Control::ConfigurationTest < Test::Unit::TestCase
   def teardown
     NewRelic::Control.instance.settings.delete('log_file_path')
   end
-  
-  def test_license_key_defaults_to_env_variable
-    ENV['NEWRELIC_LICENSE_KEY'] = nil
-    self.expects(:fetch).with('license_key', nil)
-    license_key
 
-    ENV['NEWRELIC_LICENSE_KEY'] = "a string"
-    self.expects(:fetch).with('license_key', 'a string')
-    license_key
-  end
-  
   def test_log_path_uses_default_if_not_set
     NewRelic::Control.instance.setup_log
     assert_equal(File.expand_path("log/newrelic_agent.log"),

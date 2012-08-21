@@ -89,8 +89,7 @@ module NewRelic
       end
 
       def license_key
-        env_setting = ENV['NEW_RELIC_LICENSE_KEY'] || ENV['NEWRELIC_LICENSE_KEY']
-        fetch('license_key', env_setting)
+        Agent.config['license_key']
       end
       
       def capture_params

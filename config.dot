@@ -5,7 +5,6 @@ digraph AgentEnabled {
   "[developer]"
   "[monitor_mode]"
   "[enabled]"
-  "[NEWRELIC_ENABLE]"
   "[slow_sql.explain_threshold]"
   "[slow_sql.stack_trace_threshold]"
   "[slow_sql.explain_enabled]"
@@ -19,6 +18,7 @@ digraph AgentEnabled {
   "[transaction_tracer.record_sql]"
   "[transaction_tracer.random_sample]"
   "[transaction_tracer.enabled]"
+  "[license_key]"
 
   node[color=red]
   "{agent_enabled}"
@@ -180,7 +180,7 @@ digraph AgentEnabled {
 
   "NoticeError#initialize"
 
-  "BrowserConfiguration#license_bytes"
+  "BeaconConfiguration#license_bytes"
 
   "ActiveRecord#depends_on"
   "DelayedJobInstrumentation#depends_on"
@@ -212,7 +212,6 @@ digraph AgentEnabled {
 #######
 
   "Control#init_plugin" -> "Control#agent_enabled?"
-  "Control#init_plugin" -> "Control#agent_enabled?"
   "Control#init_plugin" -> "Control#settings"
   "Control#init_plugin" -> "Control#setup_log"
   "Control#init_plugin" -> "Control#env"
@@ -229,8 +228,7 @@ digraph AgentEnabled {
   "Control#monitor_mode?" -> "{monitor_mode}"
   "Control#monitor_mode?" -> "{enabled}"
   "Control#should_log?" -> "Control#agent_enabled?" 
-  "Control#license_key" -> "{license_key}"
-  "Control#license_key" -> "{NEWRELIC_LICENSE_KEY}"
+  "Control#license_key" -> "[license_key]"
   "Control#apdex_t" -> "{apdex_t}"
   "Control#capture_params" -> "{capture_params}"
   "Control#browser_monitoring_auto_instrument?" -> "{browser_monitoring.auto_instrument}"
@@ -374,7 +372,7 @@ digraph AgentEnabled {
 
   "NoticeError#initialize" -> "{high_security}"
 
-  "BrowserConfiguration#license_bytes" -> "Control#license_key"
+  "BeaconConfiguration#license_bytes" -> "Control#license_key"
 
   "ActiveRecord#depends_on" -> "{skip_ar_instrumentation}"
   "ActiveRecord#depends_on" -> "{disable_activerecord_instrumentation}"
@@ -410,7 +408,6 @@ digraph AgentEnabled {
   "Deployments#initialize" -> "Control#env"
   "Deployments#run" -> "Control#http_connection"
   "Deployments#run" -> "Control#env"
-  "Deployments#run" -> "{license_key}"
+  "Deployments#run" -> "[license_key]"
   "Deployments#run" -> "Control#api_server"
-  "Deployments#run" -> "Control#env"
 }

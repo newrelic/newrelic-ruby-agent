@@ -76,6 +76,14 @@ module NewRelic::Agent::Configuration
       assert_equal nil, @manager['test_config_accessor']
     end
 
+    def test_should_read_license_key_from_env
+      ENV['NEWRELIC_LICENSE_KEY'] = 'right'
+      manager = NewRelic::Agent::Configuration::Manager.new
+      manager.apply_config({'license_key' => 'wrong'}, 1)
+
+      assert_equal 'right', manager['license_key']
+    end
+
     class TestSource < ::Hash
       def test_config_accessor
         'some value'

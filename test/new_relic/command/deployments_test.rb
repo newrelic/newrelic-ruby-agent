@@ -56,7 +56,19 @@ class NewRelic::Command::DeploymentsTest < Test::Unit::TestCase
 
     @deployment = nil
   end
+
+  def test_error_if_no_license_key
+    config = { 'license_key' => nil }
+    NewRelic::Agent.config.apply_config(config)
+      assert_raise do
+        deployment = NewRelic::Command::Deployments.new(%w[-a APP -r 3838 --user=Bill] << "Some lengthy description")
+        deployment.run
+      end
+    NewRelic::Agent.config.remove_config(config)
+  end
+
   private
+
   def mock_the_connection
     mock_connection = mock()
     @mock_response = mock()
@@ -64,5 +76,4 @@ class NewRelic::Command::DeploymentsTest < Test::Unit::TestCase
     mock_connection.expects(:request).returns(@mock_response)
     NewRelic::Control.instance.stubs(:http_connection).returns(mock_connection)
   end
-
 end
