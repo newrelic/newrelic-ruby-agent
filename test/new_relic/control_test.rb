@@ -114,11 +114,26 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     end
   end
 
-  def test_api_server_default_values
+  def test_api_server_uses_configured_values
     control.instance_variable_set(:@api_server, nil)
     with_config('api_host' => 'somewhere', 'api_port' => 8080) do
       assert_equal 'somewhere', control.api_server.name
       assert_equal 8080, control.api_server.port
+    end
+  end
+
+  def test_proxy_server_uses_configured_values
+    control.instance_variable_set(:@proxy_server, nil)
+    with_config('proxy_host' => 'proxytown', 'proxy_port' => 81) do
+      assert_equal 'proxytown', control.proxy_server.name
+      assert_equal 81, control.proxy_server.port
+    end
+  end
+
+  def test_server_from_host_uses_configured_values
+    with_config('host' => 'donkeytown', 'port' => 8080) do
+      assert_equal 'donkeytown', control.server_from_host.name
+      assert_equal 8080, control.server_from_host.port
     end
   end
 

@@ -168,11 +168,7 @@ module NewRelic
       def validate_token
         self['validate_token'] || ENV['NR_VALIDATE_TOKEN']
       end
-      
-      def use_ssl?
-        Agent.config['ssl']
-      end
-      
+
       def log_file_path
         fetch('log_file_path', 'log/')
       end

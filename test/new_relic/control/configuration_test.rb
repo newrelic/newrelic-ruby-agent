@@ -64,16 +64,4 @@ class NewRelic::Control::ConfigurationTest < Test::Unit::TestCase
     DependencyDetection.send(:class_variable_set, '@@items', [])
     assert NewRelic::Control.instance.disable_serialization?
   end
-  
-  def test_use_ssl
-    assert !NewRelic::Control.instance.use_ssl?
-    
-    with_config('ssl' => true) do
-      assert NewRelic::Control.instance.use_ssl?
-    end
-    
-    with_config('ssl' => false) do
-      assert !NewRelic::Control.instance.use_ssl?
-    end
-  end
 end
