@@ -22,6 +22,7 @@ module NewRelic
         'sync_startup'       => false,
         'send_data_on_exit'  => true,
         'post_size_limit'    => 2 * 1024 * 1024,
+        'timeout'            => 2 * 60,
 
         'log_file_path' => 'log/',
         'log_level'     => 'info',

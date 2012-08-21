@@ -20,7 +20,7 @@ module NewRelic
       def initialize(license_key=control.license_key, collector=control.server)
         @license_key = license_key
         @collector = collector
-        @request_timeout = NewRelic::Control.instance.fetch('timeout', 2 * 60)
+        @request_timeout = Agent.config['timeout']
       end
       
       def connect(settings={})

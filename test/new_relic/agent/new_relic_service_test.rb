@@ -94,9 +94,10 @@ class NewRelicServiceTest < Test::Unit::TestCase
   end
 
   def test_request_timeout
-    NewRelic::Control.instance['timeout'] = 600
-    service = NewRelic::Agent::NewRelicService.new('abcdef', @server)
-    assert_equal 600, service.request_timeout
+    with_config('timeout' => 600) do
+      service = NewRelic::Agent::NewRelicService.new('abcdef', @server)
+      assert_equal 600, service.request_timeout
+    end
   end
 
   def test_should_throw_received_errors

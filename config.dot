@@ -29,6 +29,7 @@ digraph AgentEnabled {
   "[proxy_pass]"
   "[host]"
   "[port]"
+  "[timeout]"
 
   node[color=red]
   "{agent_enabled}"
@@ -43,7 +44,6 @@ digraph AgentEnabled {
   "{error_collector.capture_source}"
   "{error_collector.ignore_errors}"
   "{disable_mobile_headers}"
-  "{timeout}"
   "{collect_traces}"
   "{transaction_tracer.enabled}"
   "{transaction_tracer.enabled}"
@@ -344,7 +344,7 @@ digraph AgentEnabled {
   "ControllerInstrumentation#perform_action_with_newrelic_trace" -> "{disable_mobile_headers}"
   "ControllerInstrumentation#perform_action_with_newrelic_trace" -> "Control#profiling?"
 
-  "NewRelicService#initialize" -> "{timeout}"
+  "NewRelicService#initialize" -> "[timeout]"
   "NewRelicService#initialize" -> "Control#license_key"
   "NewRelicService#initialize" -> "Control#server"
   "NewRelicService#check_post_size" -> "Control#post_size_limit"
