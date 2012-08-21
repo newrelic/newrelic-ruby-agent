@@ -19,6 +19,7 @@ digraph AgentEnabled {
   "[transaction_tracer.random_sample]"
   "[transaction_tracer.enabled]"
   "[license_key]"
+  "[ssl]"
 
   node[color=red]
   "{agent_enabled}"
@@ -60,7 +61,6 @@ digraph AgentEnabled {
   "{NR_VALIDATE_SEED}"
   "{validate_token}"
   "{NR_VALIDATE_TOKEN}"
-  "{ssl}"
   "{verify_certificate}"
   "{disable_backtrace_cleanup}"
   "{slow_sql.enabled}"
@@ -247,7 +247,7 @@ digraph AgentEnabled {
   "Control#validate_seed" -> "{NR_VALIDATE_SEED}"
   "Control#validate_token" -> "{validate_token}"
   "Control#validate_token" -> "{NR_VALIDATE_TOKEN}"
-  "Control#use_ssl?" -> "{ssl}"
+  "Control#use_ssl?" -> "[ssl]"
   "Control#log_file_path" -> "{log_file_path}"
   "Control#verify_certificate?" -> "{verify_certificate}"
   "Control#verify_certificate?" -> "Control#use_ssl?"
@@ -265,6 +265,7 @@ digraph AgentEnabled {
   "Control#proxy_server" -> "{proxy_user}"
   "Control#proxy_server" -> "{proxy_pass}"
   "Control#server_from_host" -> "{host}"
+  "Control#server_from_host" -> "{port}"
   "Control#server_from_host" -> "Control#use_ssl?"
   "Control#server_from_host" -> "Control#convert_to_ip_address"
   "Control#remove_server_controlled_configs" -> "{transaction_tracer*}"

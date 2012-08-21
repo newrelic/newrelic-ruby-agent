@@ -170,8 +170,7 @@ module NewRelic
       end
       
       def use_ssl?
-        @use_ssl = fetch('ssl', false) unless @use_ssl
-        @use_ssl
+        Agent.config['ssl']
       end
       
       def log_file_path
