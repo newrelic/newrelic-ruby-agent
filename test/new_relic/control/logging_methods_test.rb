@@ -60,14 +60,16 @@ class NewRelic::Control::LoggingMethodsTest < Test::Unit::TestCase
 
   def test_should_log_agent_disabled
     @base.instance_eval { @settings = true }
-    @base.expects(:agent_enabled?).returns(false)
-    assert !@base.should_log?
+    with_config('agent_enabled' => false) do
+      assert !@base.should_log?
+    end
   end
 
   def test_should_log_agent_enabled
     @base.instance_eval { @settings = true }
-    @base.expects(:agent_enabled?).returns(true)
-    assert @base.should_log?
+    with_config('agent_enabled' => true) do
+      assert @base.should_log?
+    end
   end
 
   def test_set_log_level_base

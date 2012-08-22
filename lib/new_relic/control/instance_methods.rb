@@ -73,14 +73,14 @@ module NewRelic
         Module.send :include, NewRelic::Agent::MethodTracer::InstanceMethods
         init_config(options)
         NewRelic::Agent.agent = NewRelic::Agent::Agent.instance
-        if agent_enabled? && !NewRelic::Agent.instance.started?
+        if Agent.config['agent_enabled'] && !NewRelic::Agent.instance.started?
           setup_log unless logger_override
           start_agent
           install_instrumentation
           load_samplers unless self['disable_samplers']
           local_env.gather_environment_info
           append_environment_info
-        elsif !agent_enabled?
+        elsif !Agent.config['agent_enabled']
           install_shim
         end
       end
@@ -88,14 +88,6 @@ module NewRelic
       # Install the real agent into the Agent module, and issue the start command.
       def start_agent
         NewRelic::Agent.agent.start
-      end
-
-      # True if dev mode or monitor mode are enabled, and we are running
-      # inside a valid dispatcher like mongrel or passenger.  Can be overridden
-      # by NEWRELIC_ENABLE env variable, monitor_daemons config option when true, or
-      # agent_enabled config option when true or false.
-      def agent_enabled?
-        Agent.config['agent_enabled']
       end
 
       # Asks the LocalEnvironment instance which framework should be loaded

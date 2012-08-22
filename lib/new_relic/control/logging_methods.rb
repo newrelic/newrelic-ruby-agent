@@ -32,7 +32,7 @@ module NewRelic
       # true if the agent has settings, and the agent is enabled,
       # otherwise false
       def should_log?
-        @settings && agent_enabled?
+        @settings && Agent.config['agent_enabled']
       end
 
       # set the log level as specified in the config file

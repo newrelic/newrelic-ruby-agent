@@ -82,7 +82,6 @@ digraph AgentEnabled {
 
   node[shape=box,color=orange]
   "Control#init_plugin"
-  "Control#agent_enabled?"
   "Control#merge_defaults"
   "Control#apdex_t"
   "Control#capture_params"
@@ -201,7 +200,7 @@ digraph AgentEnabled {
 
 #######
 
-  "Control#init_plugin" -> "Control#agent_enabled?"
+  "Control#init_plugin" -> "[agent_enabled]"
   "Control#init_plugin" -> "Control#settings"
   "Control#init_plugin" -> "Control#setup_log"
   "Control#init_plugin" -> "Control#env"
@@ -210,8 +209,7 @@ digraph AgentEnabled {
   "Control#merge_defaults" -> "[monitor_daemons]"
   "Control#merge_defaults" -> "{log_level}"
   "Control#merge_defaults" -> "{apdex_t}"
-  "Control#agent_enabled?" -> "[agent_enabled]"
-  "Control#should_log?" -> "Control#agent_enabled?" 
+  "Control#should_log?" -> "[agent_enabled]" 
   "Control#apdex_t" -> "{apdex_t}"
   "Control#capture_params" -> "{capture_params}"
   "Control#browser_monitoring_auto_instrument?" -> "{browser_monitoring.auto_instrument}"
@@ -276,9 +274,9 @@ digraph AgentEnabled {
   "LocalEnvironment#gather_environment_info" -> "Control#env"
 
   "Agent#initialize" -> "[monitor_mode]"
-  "Agent#after_fork" -> "Control#agent_enabled?"
+  "Agent#after_fork" -> "[agent_enabled]"
   "Agent#after_fork" -> "[monitor_mode]"
-  "Agent#disabled?" -> "Control#agent_enabled?"
+  "Agent#disabled?" -> "[agent_enabled]"
   "Agent#shutdown" -> "{force_send}"
   "Agent#shutdown" -> "Control#dispatcher"
   "Agent#has_license_key?" -> "[license_key]"
@@ -309,9 +307,9 @@ digraph AgentEnabled {
   "Agent#log_connection" -> "Control#log!"
   "Agent#manual_start" -> "Control#init_plugin"
 
-  "MethodTracer#remove_method_tracer" -> "Control#agent_enabled?"
+  "MethodTracer#remove_method_tracer" -> "[agent_enabled]"
 
-  "Rails#init_config" -> "Control#agent_enabled?"
+  "Rails#init_config" -> "[agent_enabled]"
   "Rails#init_config" -> "[developer_mode]"
 
   "ErrorCollector#initialize" -> "{error_collector.enabled}"

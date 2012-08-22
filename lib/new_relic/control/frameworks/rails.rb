@@ -38,7 +38,7 @@ module NewRelic
               DependencyDetection.detect!
             end
           end
-          if !agent_enabled?
+          if !Agent.config['agent_enabled']
             # Might not be running if it does not think mongrel, thin, passenger, etc
             # is running, if it things it's a rake task, or if the agent_enabled is false.
             log! "New Relic Agent not running."
