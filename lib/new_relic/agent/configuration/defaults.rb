@@ -6,9 +6,11 @@ module NewRelic
 
         'enabled'         => true,
         'monitor_mode'    => Proc.new { self['enabled'] },
-#         'agent_enabled'  => true,
-#         'enabled'        => Proc.new { self['agent_enabled'] },
-#         'monitor_mode'   => Proc.new { self['agent_enabled'] },
+        'agent_enabled'   => Proc.new do
+          self['enabled'] &&
+          (self['developer_mode'] || self['monitor_mode']) &&
+          !!NewRelic::Control.instance.dispatcher
+        end,
         'developer_mode'  => Proc.new { self['developer'] },
         'developer'       => false,
         'apdex_t'         => 0.5,

@@ -26,14 +26,23 @@ module NewRelic
             config['transaction_tracer'].delete('transaction_threshold')
           end
 
-          # turn string configurations into booleans
+          # turn string configurations into booleans, "auto" means
+          # defer to default
           ['agent_enabled', 'enabled', 'monitor_daemons'].each do |option|
-            if config[option]
+            if config[option] == 'auto'
+              config.delete(option)
+            elsif !config[option].nil? && !is_boolean?(config[option])
               config[option] = !!(config[option] =~ /yes|on|true/i)
             end
           end
 
           super(config)
+        end
+
+        protected
+
+        def is_boolean?(value)
+          value == !!value
         end
       end
     end

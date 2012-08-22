@@ -18,21 +18,21 @@ module NewRelic::Agent::Configuration
 
     def test_environment_booleans_truths_are_applied
       ENV['NEWRELIC_ENABLE'] = 'true'
-      assert EnvironmentSource.new['enabled']
+      assert EnvironmentSource.new['agent_enabled']
       ENV['NEWRELIC_ENABLE'] = 'on'
-      assert EnvironmentSource.new['enabled']
+      assert EnvironmentSource.new['agent_enabled']
       ENV['NEWRELIC_ENABLE'] = 'yes'
-      assert EnvironmentSource.new['enabled']
+      assert EnvironmentSource.new['agent_enabled']
       ENV.delete('NEWRELIC_ENABLE')
     end
 
     def test_environment_booleans_falsehoods_are_applied
       ENV['NEWRELIC_ENABLE'] = 'false'
-      assert !EnvironmentSource.new['enabled']
+      assert !EnvironmentSource.new['agent_enabled']
       ENV['NEWRELIC_ENABLE'] = 'off'
-      assert !EnvironmentSource.new['enabled']
+      assert !EnvironmentSource.new['agent_enabled']
       ENV['NEWRELIC_ENABLE'] = 'no'
-      assert !EnvironmentSource.new['enabled']
+      assert !EnvironmentSource.new['agent_enabled']
       ENV.delete('NEWRELIC_ENABLE')
     end
 

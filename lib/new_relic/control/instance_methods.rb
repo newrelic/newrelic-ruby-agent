@@ -95,14 +95,7 @@ module NewRelic
       # by NEWRELIC_ENABLE env variable, monitor_daemons config option when true, or
       # agent_enabled config option when true or false.
       def agent_enabled?
-        return false if !Agent.config['developer_mode'] && !Agent.config['monitor_mode']
-        return self['agent_enabled'].to_s =~ /true|on|yes/i if !self['agent_enabled'].nil? && self['agent_enabled'] != 'auto'
-        return false if !Agent.config['enabled']
-        return true if Agent.config['monitor_daemons']
-        return true if Agent.config['enabled']
-        # When in 'auto' mode the agent is enabled if there is a known
-        # dispatcher running
-        return true if @local_env.dispatcher != nil
+        Agent.config['agent_enabled']
       end
 
       # Asks the LocalEnvironment instance which framework should be loaded

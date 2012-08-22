@@ -13,8 +13,6 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   end
   
   def test_agent_enabled_environment_variable
-    NewRelic::Control.instance.settings['agent_enabled'] = nil
-
     ENV['NEWRELIC_ENABLE'] = 'false'
     reset_environment_config
     assert !NewRelic::Control.instance.agent_enabled?
