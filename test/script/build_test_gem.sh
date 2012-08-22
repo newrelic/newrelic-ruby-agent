@@ -17,7 +17,7 @@ if [ "x$BUILD_NUMBER" == "x" ]; then
 fi
 
 SHA1=`git log --pretty=format:'%h' -n 1`
-echo "building gem for commit $SHA"
+echo "building gem for commit $SHA1"
 
 if [[ `gem list jeweler | grep [j]eweler | wc -l` -eq 1 ]]; then
   echo "detected jeweler. skipping install"
