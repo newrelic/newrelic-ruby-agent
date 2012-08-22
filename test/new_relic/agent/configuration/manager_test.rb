@@ -4,7 +4,7 @@ require 'new_relic/agent/configuration/manager'
 module NewRelic::Agent::Configuration
   class ManagerTest < Test::Unit::TestCase
     def setup
-      @manager = NewRelic::Agent::Configuration.manager
+      @manager = NewRelic::Agent::Configuration::Manager.new
     end
 
     def test_should_apply_config_sources_in_order

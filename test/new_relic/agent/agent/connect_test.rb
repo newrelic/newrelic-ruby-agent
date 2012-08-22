@@ -14,6 +14,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     @sql_sampler = NewRelic::Agent::SqlSampler.new
     server = NewRelic::Control::Server.new('localhost', 30303)
     @service = NewRelic::Agent::NewRelicService.new('abcdef', server)
+    log.stubs(:warn)
   end
 
   def control
@@ -278,9 +279,11 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   end
 
   def test_set_sql_recording_default
-    self.expects(:log_sql_transmission_warning?)
-    set_sql_recording!
-    assert_equal :obfuscated, @record_sql, " should default to :obfuscated, was #{@record_sql}"
+    with_config('transaction_tracer.record_sql' => 'obfuscated') do
+      self.expects(:log_sql_transmission_warning?)
+      set_sql_recording!
+      assert_equal :obfuscated, @record_sql, " should default to :obfuscated, was #{@record_sql}"
+    end
   end
 
   def test_set_sql_recording_off

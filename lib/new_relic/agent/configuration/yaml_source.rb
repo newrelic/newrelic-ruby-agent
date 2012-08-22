@@ -25,6 +25,8 @@ module NewRelic
             config['transaction_tracer'].delete('transaction_threshold')
           end
 
+          # TODO deal with "auto" agent setting and other strings
+
           super(config)
         end
       end

@@ -88,6 +88,7 @@ digraph AgentEnabled {
   "{transaction_tracer*}"
   "{host}"
   "{api_port}"
+  "{disable_samplers}"
 
   node[shape=box,color=orange]
   "Control#init_plugin"
@@ -216,6 +217,7 @@ digraph AgentEnabled {
   "Control#init_plugin" -> "Control#settings"
   "Control#init_plugin" -> "Control#setup_log"
   "Control#init_plugin" -> "Control#env"
+  "Control#init_plugin" -> "{disable_samplers}"
   "Control#merge_defaults" -> "{agent_enabled}"
   "Control#merge_defaults" -> "{monitor_daemons}"
   "Control#agent_enabled?" -> "{agent_enabled}"

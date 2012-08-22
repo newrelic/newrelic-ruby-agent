@@ -8,9 +8,10 @@ module NewRelic
       class Manager
         def initialize
           @config_stack = [ EnvironmentSource.new, DEFAULTS ]
-          yaml_config = YamlSource.new("#{NewRelic::Control.instance.root}/#{self['config_path']}",
-                                       NewRelic::Control.instance.env)
-          apply_config(yaml_config, 1) if yaml_config
+          # letting Control handle this for now
+#           yaml_config = YamlSource.new("#{NewRelic::Control.instance.root}/#{self['config_path']}",
+#                                        NewRelic::Control.instance.env)
+#           apply_config(yaml_config, 1) if yaml_config
         end
 
         def apply_config(source, level=0)

@@ -163,6 +163,7 @@ module NewRelic
       end
 
       def load_newrelic_yml(path, binding)
+        Agent.config.apply_config(Agent::Configuration::YamlSource.new(path, env), 1)
         YAML.load(ERB.new(File.read(path)).result(binding))
       end
 
