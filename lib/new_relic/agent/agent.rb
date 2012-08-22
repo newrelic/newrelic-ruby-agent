@@ -35,7 +35,7 @@ module NewRelic
 
         # FIXME: temporary work around for RUBY-839
         if Agent.config['monitor_mode']
-          @service = NewRelic::Agent::NewRelicService.new(control.license_key, control.server)
+          @service = NewRelic::Agent::NewRelicService.new
         end
       end
 
@@ -393,7 +393,7 @@ module NewRelic
           # Tell the user when the license key is missing so they can
           # fix it by adding it to the file
           def has_license_key?
-            log_unless(control.license_key, :error, "No license key found.  Please edit your newrelic.yml file and insert your license key.")
+            log_unless(Agent.config['license_key'], :error, "No license key found.  Please edit your newrelic.yml file and insert your license key.")
           end
 
           # A correct license key exists and is of the proper length
@@ -404,7 +404,7 @@ module NewRelic
           # A license key is an arbitrary 40 character string,
           # usually looks something like a SHA1 hash
           def correct_license_length
-            key = control.license_key
+            key = Agent.config['license_key']
             log_unless((key.length == 40), :error, "Invalid license key: #{key}")
           end
 

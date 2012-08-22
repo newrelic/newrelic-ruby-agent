@@ -164,17 +164,17 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   end
 
   def test_has_license_key_positive
-    control = mocked_control
-    control.expects(:license_key).returns("a" * 40)
-    assert has_license_key?
+    with_config('license_key' => 'a' * 40) do
+      assert has_license_key?
+    end
   end
 
   def test_has_license_key_negative
-    control = mocked_control
-    control.expects(:license_key).returns(nil)
-    log = mocked_log
-    log.expects(:send).with(:error, 'No license key found.  Please edit your newrelic.yml file and insert your license key.')
-    assert !has_license_key?
+    with_config('license_key' => false) do
+      log = mocked_log
+      log.expects(:send).with(:error, 'No license key found.  Please edit your newrelic.yml file and insert your license key.')
+      assert !has_license_key?
+    end
   end
 
   def test_has_correct_license_key_positive
@@ -189,17 +189,17 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   end
 
   def test_correct_license_length_positive
-    control = mocked_control
-    control.expects(:license_key).returns("a" * 40)
-    assert correct_license_length
+    with_config('license_key' => 'a' * 40) do
+      assert correct_license_length
+    end
   end
 
   def test_correct_license_length_negative
-    control = mocked_control
-    log = mocked_log
-    control.expects(:license_key).returns("a"*30)
-    log.expects(:send).with(:error, "Invalid license key: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
-    assert !correct_license_length
+    with_config('license_key' => 'a' * 30) do
+      log = mocked_log
+      log.expects(:send).with(:error, "Invalid license key: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+      assert !correct_license_length
+    end
   end
 
   def test_using_forking_dispatcher_positive

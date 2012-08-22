@@ -83,14 +83,14 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
   end
 
   def test_browser_timing_footer
-    browser_timing_header
-    NewRelic::Control.instance.expects(:license_key).returns("a" * 13)
-
-    footer = browser_timing_footer
-    snippet = '<script type="text/javascript">if (!NREUMQ.f) { NREUMQ.f=function() {
+    with_config('license_key' => 'a' * 13) do
+      browser_timing_header
+      footer = browser_timing_footer
+      snippet = '<script type="text/javascript">if (!NREUMQ.f) { NREUMQ.f=function() {
 NREUMQ.push(["load",new Date().getTime()]);
 var e=document.createElement("script");'
-    assert footer.include?(snippet), "Expected footer to include snippet: #{snippet}, but instead was #{footer}"
+      assert footer.include?(snippet), "Expected footer to include snippet: #{snippet}, but instead was #{footer}"
+    end
   end
 
   def test_browser_timing_footer_with_no_browser_key_rum_enabled

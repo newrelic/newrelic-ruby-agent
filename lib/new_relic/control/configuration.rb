@@ -87,10 +87,6 @@ module NewRelic
         # Always initialized with a default
         @apdex_t_float ||= fetch('apdex_t').to_f
       end
-
-      def license_key
-        Agent.config['license_key']
-      end
       
       def capture_params
         fetch('capture_params')
