@@ -96,11 +96,6 @@ module NewRelic
       def monitor_mode?
         fetch('monitor_mode', fetch('enabled'))
       end
-
-      # True if we are capturing data and displaying in /newrelic
-      def developer_mode?
-        fetch('developer_mode', fetch('developer'))
-      end
       
       # whether we should install the
       # NewRelic::Rack::BrowserMonitoring middleware automatically on
