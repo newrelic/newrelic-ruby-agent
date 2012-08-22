@@ -95,7 +95,7 @@ module NewRelic
       # by NEWRELIC_ENABLE env variable, monitor_daemons config option when true, or
       # agent_enabled config option when true or false.
       def agent_enabled?
-        return false if !Agent.config['developer_mode'] && !monitor_mode?
+        return false if !Agent.config['developer_mode'] && !Agent.config['monitor_mode']
         return self['agent_enabled'].to_s =~ /true|on|yes/i if !self['agent_enabled'].nil? && self['agent_enabled'] != 'auto'
         return false if ENV['NEWRELIC_ENABLE'].to_s =~ /false|off|no/i
         return true if self['monitor_daemons'].to_s =~ /true|on|yes/i

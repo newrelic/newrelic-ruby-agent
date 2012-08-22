@@ -49,26 +49,6 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     # should not raise an error
   end
 
-  def test_monitor_mode
-    assert ! @control.monitor_mode?
-    @control.settings.delete 'enabled'
-    @control.settings.delete 'monitor_mode'
-    assert !@control.monitor_mode?
-    @control['enabled'] = false
-    assert ! @control.monitor_mode?
-    @control['enabled'] = true
-    assert @control.monitor_mode?
-    @control['monitor_mode'] = nil
-    assert !@control.monitor_mode?
-    @control['monitor_mode'] = false
-    assert !@control.monitor_mode?
-    @control['monitor_mode'] = true
-    assert @control.monitor_mode?
-  ensure
-    @control['enabled'] = false
-    @control['monitor_mode'] = false
-  end
-
   def test_test_config
     if defined?(Rails) && Rails::VERSION::MAJOR.to_i == 3
       assert_equal :rails3, control.app

@@ -91,12 +91,7 @@ module NewRelic
       def capture_params
         fetch('capture_params')
       end
-      
-      # True if we are sending data to the server, monitoring production
-      def monitor_mode?
-        fetch('monitor_mode', fetch('enabled'))
-      end
-      
+
       # whether we should install the
       # NewRelic::Rack::BrowserMonitoring middleware automatically on
       # Rails applications
