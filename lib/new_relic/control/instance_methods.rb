@@ -97,9 +97,9 @@ module NewRelic
       def agent_enabled?
         return false if !Agent.config['developer_mode'] && !Agent.config['monitor_mode']
         return self['agent_enabled'].to_s =~ /true|on|yes/i if !self['agent_enabled'].nil? && self['agent_enabled'] != 'auto'
-        return false if ENV['NEWRELIC_ENABLE'].to_s =~ /false|off|no/i
-        return true if self['monitor_daemons'].to_s =~ /true|on|yes/i
-        return true if ENV['NEWRELIC_ENABLE'].to_s =~ /true|on|yes/i
+        return false if !Agent.config['enabled']
+        return true if Agent.config['monitor_daemons']
+        return true if Agent.config['enabled']
         # When in 'auto' mode the agent is enabled if there is a known
         # dispatcher running
         return true if @local_env.dispatcher != nil

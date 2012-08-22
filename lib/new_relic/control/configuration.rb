@@ -29,7 +29,7 @@ module NewRelic
         }
         s.merge! settings_hash if settings_hash
         # monitor_daemons replaced with agent_enabled
-        s['agent_enabled'] = s.delete('monitor_daemons') if s['agent_enabled'].nil? && s.include?('monitor_daemons')
+        s['agent_enabled'] = Agent.config['monitor_daemons'] if s['agent_enabled'].nil? && !Agent.config['monitor_daemons'].nil?
         s
       end
 

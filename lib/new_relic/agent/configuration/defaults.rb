@@ -4,14 +4,15 @@ module NewRelic
       DEFAULTS = {
         'config_path' => File.join('config', 'newrelic.yml'),
 
-        'enabled'        => true,
-        'monitor_mode'   => Proc.new { self['enabled'] },
+        'enabled'         => true,
+        'monitor_mode'    => Proc.new { self['enabled'] },
 #         'agent_enabled'  => true,
 #         'enabled'        => Proc.new { self['agent_enabled'] },
 #         'monitor_mode'   => Proc.new { self['agent_enabled'] },
-        'developer_mode' => Proc.new { self['developer'] },
-        'developer'      => false,
-        'apdex_t'        => 0.5,
+        'developer_mode'  => Proc.new { self['developer'] },
+        'developer'       => false,
+        'apdex_t'         => 0.5,
+        'monitor_daemons' => false,
 
         'host'               => 'collector.newrelic.com',
         'api_host'           => 'rpm.newrelic.com',

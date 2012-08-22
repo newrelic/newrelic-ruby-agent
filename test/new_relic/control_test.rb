@@ -11,7 +11,34 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   def shutdown
     NewRelic::Agent.shutdown
   end
+  
+  def test_agent_enabled_environment_variable
+    NewRelic::Control.instance.settings['agent_enabled'] = nil
 
+    ENV['NEWRELIC_ENABLE'] = 'false'
+    reset_environment_config
+    assert !NewRelic::Control.instance.agent_enabled?
+    ENV['NEWRELIC_ENABLE'] = 'no'
+    reset_environment_config
+    assert !NewRelic::Control.instance.agent_enabled?
+    ENV['NEWRELIC_ENABLE'] = 'off'
+    reset_environment_config
+    assert !NewRelic::Control.instance.agent_enabled?
+
+    ENV['NEWRELIC_ENABLE'] = 'true'
+    reset_environment_config
+    assert NewRelic::Control.instance.agent_enabled?
+    ENV['NEWRELIC_ENABLE'] = 'yes'
+    reset_environment_config
+    assert NewRelic::Control.instance.agent_enabled?
+    ENV['NEWRELIC_ENABLE'] = 'on'
+    reset_environment_config
+    assert NewRelic::Control.instance.agent_enabled?
+
+    ENV['NEWRELIC_ENABLE'] = nil
+    reset_environment_config
+  end
+  
   def test_cert_file_path
     assert @control.cert_file_path
     assert_equal File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'cert', 'cacert.pem')), @control.cert_file_path
@@ -205,5 +232,12 @@ class NewRelic::ControlTest < Test::Unit::TestCase
       assert(!NewRelic::Agent::Agent.instance.sql_sampler.enabled?,
              'sql enabled when tracing disabled by server')
     end
+  end
+
+  private
+
+  def reset_environment_config
+    NewRelic::Agent::Configuration.manager.config_stack[0] =
+      NewRelic::Agent::Configuration::EnvironmentSource.new
   end
 end

@@ -22,10 +22,16 @@ module NewRelic
 
           if config['transaction_tracer'] &&
               config['transaction_tracer']['transaction_threshold'] =~ /apdex_f/i
+            # when value is "apdex_f" remove the config and defer to default
             config['transaction_tracer'].delete('transaction_threshold')
           end
 
-          # TODO deal with "auto" agent setting and other strings
+          # turn string configurations into booleans
+          ['agent_enabled', 'enabled', 'monitor_daemons'].each do |option|
+            if config[option]
+              config[option] = !!(config[option] =~ /yes|on|true/i)
+            end
+          end
 
           super(config)
         end

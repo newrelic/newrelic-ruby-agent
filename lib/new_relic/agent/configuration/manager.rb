@@ -6,6 +6,8 @@ module NewRelic
   module Agent
     module Configuration
       class Manager
+        attr_accessor :config_stack # mainly for testing
+
         def initialize
           @config_stack = [ EnvironmentSource.new, DEFAULTS ]
           # letting Control handle this for now
