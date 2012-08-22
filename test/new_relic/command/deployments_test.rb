@@ -60,7 +60,7 @@ class NewRelic::Command::DeploymentsTest < Test::Unit::TestCase
   def test_error_if_no_license_key
     config = { 'license_key' => nil }
     NewRelic::Agent.config.apply_config(config)
-      assert_raise do
+      assert_raise NewRelic::Command::CommandFailure do
         deployment = NewRelic::Command::Deployments.new(%w[-a APP -r 3838 --user=Bill] << "Some lengthy description")
         deployment.run
       end
