@@ -32,7 +32,6 @@ digraph AgentEnabled {
   "[apdex_t]"
   "[capture_params]"
   "[app_name]"
-  "[app_names]"
 
   node[color=red]
   "{force_send}"
@@ -111,6 +110,9 @@ digraph AgentEnabled {
   "Control#log!"
   "Control#env"
   "Control#profiling?"
+
+  node[color=green]
+  "Config#app_names"
 
   node[color=black]
   "LocalEnvironment#dispatcher_instance_id"
@@ -217,7 +219,7 @@ digraph AgentEnabled {
   "Control#log_file_path" -> "{log_file_path}"
   "Control#disable_backtrace_cleanup?" -> "{disable_backtrace_cleanup}"
   "Control#has_slow_sql_config?" -> "{slow_sql.enabled}"
-  "Control#settings" -> "[app_names]"
+  "Control#settings" -> "Config#app_names"
   "Control#settings" -> "LocalEnvironment#dispatcher_instance_id"
   "Control#settings" -> "{multi_homed}"
   "Control#api_server" -> "[api_host]"
@@ -270,8 +272,8 @@ digraph AgentEnabled {
   "Agent#check_config_and_start_agent" -> "Control#sync_startup"
   "Agent#install_exit_handler" -> "Control#sync_startup"
   "Agent#install_exit_handler" -> "Control#send_data_on_exit"
-  "Agent#log_app_names" -> "[app_names]"
-  "Agent#connect_settings" -> "[app_names]"
+  "Agent#log_app_names" -> "Config#app_names"
+  "Agent#connect_settings" -> "Config#app_names"
   "Agent#connect_settings" -> "Control#settings"
   "Agent#log_seed_token" -> "Control#validate_seed"
   "Agent#log_seed_token" -> "Control#validate_token"
@@ -362,10 +364,12 @@ digraph AgentEnabled {
 
   "CollectionHelper#strip_nr_from_backtrace" -> "Control#disable_backtrace_cleanup?"
 
-  "Deployments#initialize" -> "[app_names]"
+  "Deployments#initialize" -> "Config#app_names"
   "Deployments#initialize" -> "Control#env"
   "Deployments#run" -> "Control#http_connection"
   "Deployments#run" -> "Control#env"
   "Deployments#run" -> "[license_key]"
   "Deployments#run" -> "Control#api_server"
+
+  "Config#app_names" -> "[app_name]"
 }
