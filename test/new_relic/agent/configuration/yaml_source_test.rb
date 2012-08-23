@@ -48,12 +48,6 @@ module NewRelic::Agent::Configuration
       assert_equal 1.1, @source[:apdex_t]
     end
 
-    def test_should_be_immutable
-      assert_raises RuntimeError, TypeError do
-        @source[:host] = 'somewhere.else'
-      end
-    end
-
     def test_should_log_if_no_file_is_found
       NewRelic::Control.instance.log.expects(:error)
       source = YamlSource.new('no_such_file.yml', 'test')

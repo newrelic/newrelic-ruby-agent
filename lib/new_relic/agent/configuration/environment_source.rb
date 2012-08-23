@@ -27,8 +27,6 @@ module NewRelic
               self[val] = true
             end
           end
-
-          self.freeze
         end
       end
     end

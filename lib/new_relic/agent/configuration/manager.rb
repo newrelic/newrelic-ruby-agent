@@ -6,7 +6,7 @@ module NewRelic
   module Agent
     module Configuration
       class Manager
-        attr_accessor :config_stack # mainly for testing
+        attr_reader :config_stack # mainly for testing
 
         def initialize
           @config_stack = [ EnvironmentSource.new, DEFAULTS ]
@@ -17,7 +17,7 @@ module NewRelic
         end
 
         def apply_config(source, level=0)
-          @config_stack.insert(level, source)
+          @config_stack.insert(level, source.freeze)
         end
 
         def remove_config(source=nil)

@@ -26,8 +26,8 @@ module NewRelic
         :verify_certificate => false,
         :sync_startup       => false,
         :send_data_on_exit  => true,
-        :post_size_limit    => 2 * 1024 * 1024,
-        :timeout            => 2 * 60,
+        :post_size_limit    => 2 * 1024 * 1024, # 2 megs
+        :timeout            => 2 * 60,          # 2 minutes
 
         :log_file_path => 'log/',
         :log_level     => 'info',
