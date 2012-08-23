@@ -30,7 +30,7 @@ module NewRelic
 
         def source(key)
           @config_stack.each do |config|
-            if config.respond_to?(key) || config.has_key?(key)
+            if config.respond_to?(key.to_sym) || config.has_key?(key.to_sym)
               return config
             end
           end
