@@ -24,7 +24,7 @@ class NewRelic::CollectionHelperTest < Test::Unit::TestCase
     assert_equal '1000', new_array[0]
   end
   def test_boolean
-    np = normalize_params(NewRelic::Control.instance.settings)
+    np = normalize_params('monitor_mode' => false)
     assert_equal false, np['monitor_mode']
   end
   def test_string__singleton

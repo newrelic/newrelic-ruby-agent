@@ -132,11 +132,11 @@ EOL
   def test_guid_is_set_in_footer_when_token_is_set
     guid = 'abcdefgfedcba'
     NewRelic::TransactionSample.any_instance.stubs(:generate_guid).returns(guid)
-    NewRelic::Control.instance.stubs(:apdex_t).returns(0.0001)
     set_cookie "NRAGENT=tk=token"
-    get '/'
-
-    assert(last_response.body.include?(guid), last_response.body)
+    with_config('apdex_t' => 0.0001) do
+      get '/'
+      assert(last_response.body.include?(guid), last_response.body)
+    end
   end
 end
 else

@@ -274,8 +274,9 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   end
 
   def test_apdex_f
-    NewRelic::Control.instance.expects(:apdex_t).returns(10)
-    assert_equal 40, apdex_f
+    with_config('apdex_t' => 10) do
+      assert_equal 40, apdex_f
+    end
   end
 
   def test_set_sql_recording_default

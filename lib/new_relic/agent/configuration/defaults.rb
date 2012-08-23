@@ -8,7 +8,7 @@ module NewRelic
         'monitor_mode'    => Proc.new { self['enabled'] },
         'agent_enabled'   => Proc.new do
           self['enabled'] &&
-          (self['developer_mode'] || self['monitor_mode']) &&
+          (self['developer_mode'] || self['monitor_mode'] || self['monitor_daemons']) &&
           !!NewRelic::Control.instance.dispatcher
         end,
         'developer_mode'  => Proc.new { self['developer'] },

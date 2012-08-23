@@ -40,21 +40,6 @@ module NewRelic
         end
       end
 
-      def config
-        self.class.config
-      end
-
-      def self.config
-        control = NewRelic::Control.instance
-        txn_config = control.fetch('transaction_tracer', {})
-
-        if txn_config.fetch('enabled', true) && control.has_slow_sql_config?
-          txn_config['enabled'] = control['slow_sql']['enabled']
-        end
-
-        txn_config
-      end
-
       # Enable the sql sampler - this also registers it with
       # the statistics engine.
       def enable
@@ -245,16 +230,12 @@ module NewRelic
         @sql = @slow_sql.obfuscate if need_to_obfuscate?
       end
 
-      def agent_config
-        NewRelic::Agent::SqlSampler.config
-      end
-
       def need_to_obfuscate?
-        agent_config['record_sql'] == 'obfuscated'
+        Agent.config['slow_sql.record_sql'].to_s == 'obfuscated'
       end
 
       def need_to_explain?
-        agent_config['explain_enabled']
+        Agent.config['slow_sql.explain_enabled']
       end
 
       def to_json(*a)

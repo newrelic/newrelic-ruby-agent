@@ -60,8 +60,7 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     assert_equal :test, control.framework
     assert_match /test/i, control.dispatcher_instance_id
     assert("" == control.dispatcher.to_s, "Expected dispatcher to be empty, but was #{control.dispatcher.to_s}")
-    assert !control['enabled']
-    assert_equal false, control['monitor_mode']
+    assert_equal false, NewRelic::Agent.config['monitor_mode']
     control.local_env
   end
 

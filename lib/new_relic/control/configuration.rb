@@ -5,7 +5,7 @@ module NewRelic
     module Configuration
       def settings
         unless @settings
-          @settings = (@yaml && merge_defaults(@yaml[env])) || {}
+          @settings = (@yaml && @yaml[env]) || {}
           # At the time we bind the settings, we also need to run this little piece
           # of magic which allows someone to augment the id with the app name, necessary
           if self['multi_homed'] && app_names.size > 0
@@ -18,15 +18,6 @@ module NewRelic
 
         end
         @settings
-      end
-
-      def merge_defaults(settings_hash)
-        s = {
-          'apdex_t' => 0.5
-        }
-        s.merge! settings_hash if settings_hash
-        # monitor_daemons replaced with agent_enabled
-        s
       end
 
       # Merge the given options into the config options.
@@ -80,8 +71,7 @@ module NewRelic
       end
 
       def apdex_t
-        # Always initialized with a default
-        @apdex_t_float ||= fetch('apdex_t').to_f
+        Agent.config['apdex_t']
       end
       
       def capture_params

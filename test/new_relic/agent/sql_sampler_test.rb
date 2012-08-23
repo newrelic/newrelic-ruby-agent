@@ -146,20 +146,21 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
   end
 
   def test_should_not_collect_explain_plans_when_disabled
-    NewRelic::Control.instance['transaction_tracer'] = { 'explain_enabled' => false }
-    data = NewRelic::Agent::TransactionSqlData.new
-    data.set_transaction_info("WebTransaction/Controller/c/a", "/c/a", {},
-                              'guid')
+    with_config('transaction_tracer.explain_enabled' => false) do
+      data = NewRelic::Agent::TransactionSqlData.new
+      data.set_transaction_info("WebTransaction/Controller/c/a", "/c/a", {},
+                                'guid')
 
-    queries = [
-               NewRelic::Agent::SlowSql.new("select * from test",
-                                            "Database/test/select", {}, 1.5)
-              ]
-    data.sql_data.concat(queries)
-    @sampler.harvest_slow_sql data
-    sql_traces = @sampler.harvest
-    assert_equal(nil, sql_traces[0].params[:explain_plan])
-    NewRelic::Control.instance['transaction_tracer'] = { 'explain_enabled' => true }
+      queries = [
+                 NewRelic::Agent::SlowSql.new("select * from test",
+                                              "Database/test/select", {}, 1.5)
+                ]
+      data.sql_data.concat(queries)
+      @sampler.harvest_slow_sql data
+      sql_traces = @sampler.harvest
+      assert_equal(nil, sql_traces[0].params[:explain_plan])
+      NewRelic::Control.instance['transaction_tracer'] = { 'explain_enabled' => true }
+    end
   end
 
   def test_sql_id_fits_in_a_mysql_int_11
@@ -173,19 +174,19 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
   end
 
   def test_sends_obfuscated_queries_when_configured
-    NewRelic::Control.instance['transaction_tracer'] = { 'record_sql' => 'obfuscated' }
+    with_config('transaction_tracer.record_sql' => 'obfuscated') do
+      data = NewRelic::Agent::TransactionSqlData.new
+      data.set_transaction_info("WebTransaction/Controller/c/a", "/c/a", {},
+                                'guid')
+      data.sql_data.concat([NewRelic::Agent::SlowSql.new("select * from test where foo = 'bar'",
+                                                         "Database/test/select", {}, 1.5),
+                            NewRelic::Agent::SlowSql.new("select * from test where foo in (1,2,3,4,5)",
+                                                         "Database/test/select", {}, 1.2)])
+      @sampler.harvest_slow_sql(data)
+      sql_traces = @sampler.harvest
 
-    data = NewRelic::Agent::TransactionSqlData.new
-    data.set_transaction_info("WebTransaction/Controller/c/a", "/c/a", {},
-                              'guid')
-    data.sql_data.concat([NewRelic::Agent::SlowSql.new("select * from test where foo = 'bar'",
-                                                       "Database/test/select", {}, 1.5),
-                          NewRelic::Agent::SlowSql.new("select * from test where foo in (1,2,3,4,5)",
-                                                       "Database/test/select", {}, 1.2)])
-    @sampler.harvest_slow_sql(data)
-    sql_traces = @sampler.harvest
-
-    assert_equal('select * from test where foo = ?', sql_traces[0].sql)
-    assert_equal('select * from test where foo in (?,?,?,?,?)', sql_traces[1].sql)
+      assert_equal('select * from test where foo = ?', sql_traces[0].sql)
+      assert_equal('select * from test where foo in (?,?,?,?,?)', sql_traces[1].sql)
+    end
   end
 end

@@ -2,10 +2,7 @@ digraph AgentEnabled {
   node[color=green]
   "[agent_enabled]"
   "[developer_mode]"
-  "[developer]"
   "[monitor_mode]"
-  "[monitor_daemons]"
-  "[enabled]"
   "[slow_sql.explain_threshold]"
   "[slow_sql.stack_trace_threshold]"
   "[slow_sql.explain_enabled]"
@@ -32,9 +29,9 @@ digraph AgentEnabled {
   "[port]"
   "[timeout]"
   "[log_level]"
+  "[apdex_t]"
 
   node[color=red]
-  "{agent_enabled}"
   "{force_send}"
   "{error_collector.enabled}"
   "{error_collector.capture_source}"
@@ -51,11 +48,9 @@ digraph AgentEnabled {
   "{post_size_limit}"
   "{sync_startup}"
   "{send_data_on_exit}"
-  "{log_level}"
   "{log_file_path}"
   "{log_file_name}"
   "{high_security}"
-  "{apdex_t}"
   "{dispatcher_instance_id}"
   "{dispatcher}"
   "{app_name}"
@@ -65,8 +60,6 @@ digraph AgentEnabled {
   "{NR_VALIDATE_TOKEN}"
   "{disable_backtrace_cleanup}"
   "{slow_sql.enabled}"
-  "{slow_sql.explain_enabled}"
-  "{slow_sql.explain_threshold}"
   "{skip_ar_instrumentation}"
   "{disable_activerecord_instrumentation}"
   "{disable_dj}"
@@ -83,7 +76,6 @@ digraph AgentEnabled {
 
   node[shape=box,color=orange]
   "Control#init_plugin"
-  "Control#merge_defaults"
   "Control#apdex_t"
   "Control#capture_params"
   "Control#browser_monitoring_auto_instrument?"
@@ -161,7 +153,6 @@ digraph AgentEnabled {
   "NewRelicService#send_request"
 
   "SqlSampler#configure!"
-  "SqlSqmpler.config"
 
   "TransactionSampler#configure!"
   "TransactionSampler#notice_push_scope"
@@ -206,9 +197,8 @@ digraph AgentEnabled {
   "Control#init_plugin" -> "Control#setup_log"
   "Control#init_plugin" -> "Control#env"
   "Control#init_plugin" -> "{disable_samplers}"
-  "Control#merge_defaults" -> "{apdex_t}"
   "Control#should_log?" -> "[agent_enabled]" 
-  "Control#apdex_t" -> "{apdex_t}"
+  "Control#apdex_t" -> "[apdex_t]"
   "Control#capture_params" -> "{capture_params}"
   "Control#browser_monitoring_auto_instrument?" -> "{browser_monitoring.auto_instrument}"
   "Control#multi_threaded?" -> "{multi_threaded}"
@@ -229,7 +219,6 @@ digraph AgentEnabled {
   "Control#log_file_path" -> "{log_file_path}"
   "Control#disable_backtrace_cleanup?" -> "{disable_backtrace_cleanup}"
   "Control#has_slow_sql_config?" -> "{slow_sql.enabled}"
-  "Control#settings" -> "Control#merge_defaults"
   "Control#settings" -> "Control#app_names"
   "Control#settings" -> "LocalEnvironment#dispatcher_instance_id"
   "Control#settings" -> "{multi_homed}"
@@ -330,9 +319,6 @@ digraph AgentEnabled {
   "SqlSampler#configure!" -> "[slow_sql.explain_enabled]"
   "SqlSampler#configure!" -> "[slow_sql.stack_trace_threshold]"
   "SqlSampler#configure!" -> "[slow_sql.enabled]"
-  "SqlSqmpler.config" -> "{transaction_tracer.enabled}"
-  "SqlSqmpler.config" -> "{slow_sql.enabled}"
-  "SqlSqmpler.config" -> "Control#has_slow_sql_config?"
 
   "TransactionSampler#configure!" -> "[transaction_tracer.limit_segments]"
   "TransactionSampler#configure!" -> "[transaction_tracer.stack_trace_threshold]"
