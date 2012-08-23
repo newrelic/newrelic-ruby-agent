@@ -4,13 +4,17 @@ module NewRelic
   module Agent
     module Configuration
       class YamlSource < DottedHash
+        attr_accessor :file_path
+
         def initialize(path, env)
-          if !File.exists?(File.expand_path(path))
+          @file_path = File.expand_path(path)
+          if !File.exists?(@file_path)
             NewRelic::Control.instance.log.error('Unable to load configuration from #{path}')
             return
           end
 
-          file = File.read(File.expand_path(path))
+          file = File.read(@file_path)
+
 
           # Next two are for populating the newrelic.yml via erb binding, necessary
           # when using the default newrelic.yml file
