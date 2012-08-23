@@ -60,14 +60,14 @@ class NewRelic::Control::LoggingMethodsTest < Test::Unit::TestCase
 
   def test_should_log_agent_disabled
     @base.instance_eval { @settings = true }
-    with_config('agent_enabled' => false) do
+    with_config(:agent_enabled => false) do
       assert !@base.should_log?
     end
   end
 
   def test_should_log_agent_enabled
     @base.instance_eval { @settings = true }
-    with_config('agent_enabled' => true) do
+    with_config(:agent_enabled => true) do
       assert @base.should_log?
     end
   end
@@ -75,7 +75,7 @@ class NewRelic::Control::LoggingMethodsTest < Test::Unit::TestCase
   def test_set_log_level_base
     fake_logger = mock('logger')
     # bad configuration
-    with_config('log_level' => 'whee') do
+    with_config(:log_level => 'whee') do
       fake_logger.expects(:level=).with(Logger::INFO)
       assert_equal fake_logger, @base.set_log_level!(fake_logger)
     end
@@ -84,7 +84,7 @@ class NewRelic::Control::LoggingMethodsTest < Test::Unit::TestCase
   def test_set_log_level_with_each_level
     fake_logger = mock('logger')
     %w[debug info warn error fatal].each do |level|
-      with_config('log_level' => level) do
+      with_config(:log_level => level) do
         fake_logger.expects(:level=).with(Logger.const_get(level.upcase))
         assert_equal fake_logger, @base.set_log_level!(fake_logger)
       end

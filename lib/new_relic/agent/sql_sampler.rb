@@ -29,10 +29,10 @@ module NewRelic
       end
 
       def configure!
-        @explain_threshold = Agent.config['slow_sql.explain_threshold']
-        @explain_enabled = Agent.config['sloq_sql.explain_enabled']
-        @stack_trace_threshold = Agent.config['slow_sql.stack_trace_threshold']
-        if Agent.config['slow_sql.enabled'] &&
+        @explain_threshold = Agent.config[:'slow_sql.explain_threshold']
+        @explain_enabled = Agent.config[:'sloq_sql.explain_enabled']
+        @stack_trace_threshold = Agent.config[:'slow_sql.stack_trace_threshold']
+        if Agent.config[:'slow_sql.enabled'] &&
             NewRelic::Control.instance.fetch('collect_traces', true)
           enable
         else
@@ -231,11 +231,11 @@ module NewRelic
       end
 
       def need_to_obfuscate?
-        Agent.config['slow_sql.record_sql'].to_s == 'obfuscated'
+        Agent.config[:'slow_sql.record_sql'].to_s == 'obfuscated'
       end
 
       def need_to_explain?
-        Agent.config['slow_sql.explain_enabled']
+        Agent.config[:'slow_sql.explain_enabled']
       end
 
       def to_json(*a)

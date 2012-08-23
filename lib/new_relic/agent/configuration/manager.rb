@@ -40,13 +40,14 @@ module NewRelic
         def [](key)
           @config_stack.each do |config|
             next unless config
-            if config.respond_to?(key)
-              return config.send(key)
-            elsif config.has_key?(key)
-              if config[key].respond_to?(:call)
-                return instance_eval(&config[key])
+            accessor = key.to_sym
+            if config.respond_to?(accessor)
+              return config.send(accessor)
+            elsif config.has_key?(accessor)
+              if config[accessor].respond_to?(:call)
+                return instance_eval(&config[accessor])
               else
-                return config[key]
+                return config[accessor]
               end
             end
           end
@@ -57,15 +58,15 @@ module NewRelic
         def has_key?(key)
           @config_stack.each do |config|
             next unless config
-            return true if config.has_key(key)
+            return true if config.has_key(key.to_sym)
           end
           false
         end
 
         def app_names
-          case self['app_name']
-          when Array then self['app_name']
-          when String then self['app_name'].split(';')
+          case self[:app_name]
+          when Array then self[:app_name]
+          when String then self[:app_name].split(';')
           end
         end
       end

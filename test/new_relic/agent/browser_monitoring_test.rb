@@ -83,7 +83,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
   end
 
   def test_browser_timing_footer
-    with_config('license_key' => 'a' * 13) do
+    with_config(:license_key => 'a' * 13) do
       browser_timing_header
       footer = browser_timing_footer
       snippet = '<script type="text/javascript">if (!NREUMQ.f) { NREUMQ.f=function() {

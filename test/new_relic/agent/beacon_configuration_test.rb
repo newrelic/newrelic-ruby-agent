@@ -24,7 +24,7 @@ class NewRelic::Agent::BeaconConfigurationTest < Test::Unit::TestCase
   end
 
   def test_license_bytes_nil
-    with_config('license_key' => 'a' * 40) do
+    with_config(:license_key => 'a' * 40) do
       connect_data = {}
       bc = NewRelic::Agent::BeaconConfiguration.new(connect_data)
       assert_equal([97] * 40, bc.license_bytes, 'should return the bytes of the license key')
@@ -40,7 +40,7 @@ class NewRelic::Agent::BeaconConfigurationTest < Test::Unit::TestCase
   end
 
   def test_license_bytes_should_set_instance_cache
-    with_config('license_key' => 'a' * 40) do
+    with_config(:license_key => 'a' * 40) do
       connect_data = {}
       bc = NewRelic::Agent::BeaconConfiguration.new(connect_data)
       bc.instance_eval { @license_bytes = nil }

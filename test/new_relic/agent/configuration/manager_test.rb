@@ -7,16 +7,24 @@ module NewRelic::Agent::Configuration
       @manager = NewRelic::Agent::Configuration::Manager.new
     end
 
+    def test_should_use_indifferent_access
+      config = NewRelic::Agent::Configuration::DottedHash.new('string' => 'string', :symbol => 'symbol')
+      @manager.apply_config(config)
+      assert_equal 'string', @manager[:string]
+      assert_equal 'symbol', @manager['symbol']
+      @manager.remove_config(config)
+    end
+
     def test_should_apply_config_sources_in_order
       config0 = {
-        'foo' => 'default foo',
-        'bar' => 'default bar',
-        'baz' => 'default baz'
+        :foo => 'default foo',
+        :bar => 'default bar',
+        :baz => 'default baz'
       }
       @manager.apply_config(config0)
-      config1 = { 'foo' => 'real foo' }
+      config1 = { :foo => 'real foo' }
       @manager.apply_config(config1)
-      config2 = { 'foo' => 'wrong foo', 'bar' => 'real bar' }
+      config2 = { :foo => 'wrong foo', :bar => 'real bar' }
       @manager.apply_config(config2, 1)
 
       assert_equal 'real foo', @manager['foo']
@@ -29,16 +37,16 @@ module NewRelic::Agent::Configuration
     end
 
     def test_identifying_config_source
-      hash_source = {'foo' => 'foo', 'bar' => 'default'}
+      hash_source = {:foo => 'foo', :bar => 'default'}
       @manager.apply_config(hash_source)
       test_source = TestSource.new
-      test_source['bar'] = 'bar'
-      test_source['baz'] = 'baz'
+      test_source[:bar] = 'bar'
+      test_source[:baz] = 'baz'
       @manager.apply_config(test_source)
 
-      assert_not_equal test_source, @manager.source('foo')
-      assert_equal test_source, @manager.source('bar')
-      assert_equal test_source, @manager.source('baz')
+      assert_not_equal test_source, @manager.source(:foo)
+      assert_equal test_source, @manager.source(:bar)
+      assert_equal test_source, @manager.source(:baz)
 
       @manager.remove_config(hash_source)
       @manager.remove_config(test_source)
@@ -46,15 +54,15 @@ module NewRelic::Agent::Configuration
 
     def test_callable_value_for_config_should_return_computed_value
       source = {
-        'foo'          => 'bar',
-        'simple_value' => Proc.new { '666' },
-        'reference'    => Proc.new { self['foo'] }
+        :foo          => 'bar',
+        :simple_value => Proc.new { '666' },
+        :reference    => Proc.new { self['foo'] }
       }
       @manager.apply_config(source)
 
-      assert_equal 'bar', @manager['foo']
-      assert_equal '666', @manager['simple_value']
-      assert_equal 'bar', @manager['reference']
+      assert_equal 'bar', @manager[:foo]
+      assert_equal '666', @manager[:simple_value]
+      assert_equal 'bar', @manager[:reference]
 
       @manager.remove_config(source)
     end
@@ -63,7 +71,7 @@ module NewRelic::Agent::Configuration
       source = TestSource.new
       @manager.apply_config(source)
 
-      assert_equal 'some value', @manager['test_config_accessor']
+      assert_equal 'some value', @manager[:test_config_accessor]
 
       @manager.remove_config(source)
     end
@@ -79,7 +87,7 @@ module NewRelic::Agent::Configuration
     def test_should_read_license_key_from_env
       ENV['NEWRELIC_LICENSE_KEY'] = 'right'
       manager = NewRelic::Agent::Configuration::Manager.new
-      manager.apply_config({'license_key' => 'wrong'}, 1)
+      manager.apply_config({:license_key => 'wrong'}, 1)
 
       assert_equal 'right', manager['license_key']
     end

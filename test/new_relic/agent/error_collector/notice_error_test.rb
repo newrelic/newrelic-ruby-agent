@@ -57,7 +57,7 @@ class NewRelic::Agent::ErrorCollector::NoticeErrorTest < Test::Unit::TestCase
   end
 
   def test_request_params_from_opts_positive
-    with_config('capture_params' => true) do
+    with_config(:capture_params => true) do
       val = {:request_params => 'foo'}
       assert_equal('foo', request_params_from_opts(val))
       assert_equal({}, val, "should delete request_params key from hash")
@@ -65,7 +65,7 @@ class NewRelic::Agent::ErrorCollector::NoticeErrorTest < Test::Unit::TestCase
   end
 
   def test_request_params_from_opts_negative
-    with_config('capture_params' => false) do
+    with_config(:capture_params => false) do
       val = {:request_params => 'foo'}
       assert_equal(nil, request_params_from_opts(val))
       assert_equal({}, val, "should delete request_params key from hash")
@@ -75,7 +75,7 @@ class NewRelic::Agent::ErrorCollector::NoticeErrorTest < Test::Unit::TestCase
   def test_normalized_request_and_custom_params_base
     self.expects(:normalize_params).with(nil).returns(nil)
     self.expects(:normalize_params).with({}).returns({})
-    with_config('capture_params' => true) do
+    with_config(:capture_params => true) do
       assert_equal({:request_params => nil, :custom_params => {}},
                    normalized_request_and_custom_params({}))
     end

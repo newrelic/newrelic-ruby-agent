@@ -17,7 +17,7 @@ module NewRelic
         @sample = NewRelic::TransactionSample.new(time.to_f)
         @sample_start = time.to_f
         @current_segment = @sample.root_segment
-        @segment_limit = Agent.config['transaction_tracer.limit_segments']
+        @segment_limit = Agent.config[:'transaction_tracer.limit_segments']
       end
 
       def sample_id
@@ -92,7 +92,7 @@ module NewRelic
       def set_transaction_info(path, uri, params)
         @sample.params[:path] = path
 
-        if Agent.config['capture_params']
+        if Agent.config[:capture_params]
           params = normalize_params params
 
           @sample.params[:request_params].merge!(params)

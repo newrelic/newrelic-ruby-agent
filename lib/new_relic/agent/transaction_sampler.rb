@@ -50,15 +50,15 @@ module NewRelic
         # @segment_limit and @stack_trace_threshold come from the
         # configuration file, with built-in defaults that should
         # suffice for most customers
-        @segment_limit         = Agent.config['transaction_tracer.limit_segments']
-        @stack_trace_threshold = Agent.config['transaction_tracer.stack_trace_threshold']
-        @explain_threshold     = Agent.config['transaction_tracer.explain_threshold']
-        @explain_enabled       = Agent.config['transaction_tracer.explain_enabled']
-        @transaction_threshold = Agent.config['transaction_tracer.transation_threshold']
+        @segment_limit         = Agent.config[:'transaction_tracer.limit_segments']
+        @stack_trace_threshold = Agent.config[:'transaction_tracer.stack_trace_threshold']
+        @explain_threshold     = Agent.config[:'transaction_tracer.explain_threshold']
+        @explain_enabled       = Agent.config[:'transaction_tracer.explain_enabled']
+        @transaction_threshold = Agent.config[:'transaction_tracer.transation_threshold']
 
         # Configure the sample storage policy.  Create a list of methods to be called.
         @store_sampler_methods = [ :store_random_sample, :store_slowest_sample ]
-        if Agent.config['developer_mode']
+        if Agent.config[:developer_mode]
           @store_sampler_methods << :store_sample_for_developer_mode
         end
       end
@@ -118,14 +118,14 @@ module NewRelic
 
         builder.trace_entry(scope, time.to_f)
 
-        capture_segment_trace if Agent.config['developer_mode']
+        capture_segment_trace if Agent.config[:developer_mode]
       end
 
       # in developer mode, capture the stack trace with the segment.
       # this is cpu and memory expensive and therefore should not be
       # turned on in production mode
       def capture_segment_trace
-        return unless Agent.config['developer_mode']
+        return unless Agent.config[:developer_mode]
         segment = builder.current_segment
         if segment
           # Strip stack frames off the top that match /new_relic/agent/
@@ -212,7 +212,7 @@ module NewRelic
       # Samples take up a ton of memory, so we only store a lot of
       # them in developer mode - we truncate to @max_samples
       def store_sample_for_developer_mode(sample)
-        return unless Agent.config['developer_mode']
+        return unless Agent.config[:developer_mode]
         @samples = [] unless @samples
         @samples << sample
         truncate_samples

@@ -274,13 +274,13 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   end
 
   def test_apdex_f
-    with_config('apdex_t' => 10) do
+    with_config(:apdex_t => 10) do
       assert_equal 40, apdex_f
     end
   end
 
   def test_set_sql_recording_default
-    with_config('transaction_tracer.record_sql' => 'obfuscated') do
+    with_config(:'transaction_tracer.record_sql' => 'obfuscated') do
       self.expects(:log_sql_transmission_warning?)
       set_sql_recording!
       assert_equal :obfuscated, @record_sql, " should default to :obfuscated, was #{@record_sql}"
@@ -288,7 +288,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   end
 
   def test_set_sql_recording_off
-    with_config('transaction_tracer.record_sql' => 'off') do
+    with_config(:'transaction_tracer.record_sql' => 'off') do
       self.expects(:log_sql_transmission_warning?)
       set_sql_recording!
       assert_equal :off, @record_sql, "should be set to :off, was #{@record_sql}"
@@ -296,7 +296,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   end
 
   def test_set_sql_recording_none
-    with_config('transaction_tracer.record_sql' => 'none') do
+    with_config(:'transaction_tracer.record_sql' => 'none') do
       self.expects(:log_sql_transmission_warning?)
       set_sql_recording!
       assert_equal :off, @record_sql, "should be set to :off, was #{@record_sql}"
@@ -304,7 +304,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   end
 
   def test_set_sql_recording_raw
-    with_config('transaction_tracer.record_sql' => 'raw') do
+    with_config(:'transaction_tracer.record_sql' => 'raw') do
       self.expects(:log_sql_transmission_warning?)
       set_sql_recording!
       assert_equal :raw, @record_sql, "should be set to :raw, was #{@record_sql}"
@@ -312,7 +312,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   end
 
   def test_set_sql_recording_falsy
-    with_config('transaction_tracer.record_sql' => false) do
+    with_config(:'transaction_tracer.record_sql' => false) do
       self.expects(:log_sql_transmission_warning?)
       set_sql_recording!
       assert_equal :off, @record_sql, "should be set to :off, was #{@record_sql}"

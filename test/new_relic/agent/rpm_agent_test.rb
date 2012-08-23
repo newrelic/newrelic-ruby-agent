@@ -34,7 +34,7 @@ class NewRelic::Agent::RpmAgentTest < Test::Unit::TestCase # ActiveSupport::Test
     end
 
     should "startup_shutdown" do
-      with_config('agent_enabled' => true) do
+      with_config(:agent_enabled => true) do
         @agent = NewRelic::Agent::ShimAgent.instance
         @agent.shutdown
         assert (not @agent.started?)

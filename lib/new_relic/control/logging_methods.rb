@@ -32,7 +32,7 @@ module NewRelic
       # true if the agent has settings, and the agent is enabled,
       # otherwise false
       def should_log?
-        @settings && Agent.config['agent_enabled']
+        @settings && Agent.config[:agent_enabled]
       end
 
       # set the log level as specified in the config file
@@ -41,7 +41,7 @@ module NewRelic
       #error, and fatal
       # Defaults to info
       def set_log_level!(logger)
-        case Agent.config['log_level'].downcase
+        case Agent.config[:log_level].downcase
           when "debug" then logger.level = Logger::DEBUG
           when "info" then logger.level = Logger::INFO
           when "warn" then logger.level = Logger::WARN

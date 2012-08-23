@@ -34,7 +34,7 @@ module NewRelic
         @forked = false
 
         # FIXME: temporary work around for RUBY-839
-        if Agent.config['monitor_mode']
+        if Agent.config[:monitor_mode]
           @service = NewRelic::Agent::NewRelicService.new
         end
       end
@@ -164,8 +164,8 @@ module NewRelic
           end
           
           # log.debug "Agent received after_fork notice in #$$: [#{control.agent_enabled?}; monitor=#{control.monitor_mode?}; connected: #{@connected.inspect}; thread=#{@worker_thread.inspect}]"
-          return if !Agent.config['agent_enabled'] ||
-            !Agent.config['monitor_mode'] ||
+          return if !Agent.config[:agent_enabled] ||
+            !Agent.config[:monitor_mode] ||
             @connected == false ||
             @worker_thread && @worker_thread.alive?
 
@@ -301,7 +301,7 @@ module NewRelic
           # 'agent_enabled' option (e.g. in a manual start), or
           # enabled normally through the configuration file
           def disabled?
-            !Agent.config['agent_enabled']
+            !Agent.config[:agent_enabled]
           end
 
           # Logs the dispatcher to the log file to assist with
@@ -387,13 +387,13 @@ module NewRelic
           # Warn the user if they have configured their agent not to
           # send data, that way we can see this clearly in the log file
           def monitoring?
-            log_unless(Agent.config['monitor_mode'], :warn, "Agent configured not to send data in this environment - edit newrelic.yml to change this")
+            log_unless(Agent.config[:monitor_mode], :warn, "Agent configured not to send data in this environment - edit newrelic.yml to change this")
           end
 
           # Tell the user when the license key is missing so they can
           # fix it by adding it to the file
           def has_license_key?
-            log_unless(Agent.config['license_key'], :error, "No license key found.  Please edit your newrelic.yml file and insert your license key.")
+            log_unless(Agent.config[:license_key], :error, "No license key found.  Please edit your newrelic.yml file and insert your license key.")
           end
 
           # A correct license key exists and is of the proper length
@@ -404,7 +404,7 @@ module NewRelic
           # A license key is an arbitrary 40 character string,
           # usually looks something like a SHA1 hash
           def correct_license_length
-            key = Agent.config['license_key']
+            key = Agent.config[:license_key]
             log_unless((key.length == 40), :error, "Invalid license key: #{key}")
           end
 
@@ -463,7 +463,7 @@ module NewRelic
           # disable transaction sampling if disabled by the server
           # and we're not in dev mode
           def check_transaction_sampler_status
-            if Agent.config['developer_mode'] || @should_send_samples
+            if Agent.config[:developer_mode] || @should_send_samples
               @transaction_sampler.enable
             else
               @transaction_sampler.disable
@@ -473,7 +473,7 @@ module NewRelic
           def check_sql_sampler_status
             # disable sql sampling if disabled by the server
             # and we're not in dev mode
-            if Agent.config['slow_sql.enabled'] && ['raw', 'obfuscated'].include?(Agent.config['slow_sql.record_sql']) && Agent.config['transaction_tracer.enabled']
+            if Agent.config[:'slow_sql.enabled'] && ['raw', 'obfuscated'].include?(Agent.config[:'slow_sql.record_sql']) && Agent.config[:'transaction_tracer.enabled']
               @sql_sampler.enable
             else
               @sql_sampler.disable
@@ -762,13 +762,13 @@ module NewRelic
             # Reconfigure the transaction tracer
             @transaction_sampler.configure!
             @sql_sampler.configure!
-            @should_send_samples = @config_should_send_samples = Agent.config['transaction_tracer.enabled']
-            @should_send_random_samples = Agent.config['transaction_tracer.random_sample']
+            @should_send_samples = @config_should_send_samples = Agent.config[:'transaction_tracer.enabled']
+            @should_send_random_samples = Agent.config[:'transaction_tracer.random_sample']
             set_sql_recording!
 
             # default to 2.0, string 'apdex_f' will turn into your
             # apdex * 4
-            @slowest_transaction_threshold = Agent.config['transaction_tracer.transaction_threshold']
+            @slowest_transaction_threshold = Agent.config[:'transaction_tracer.transaction_threshold']
           end
 
           # Enables or disables the transaction tracer and sets its
@@ -802,7 +802,7 @@ module NewRelic
           # 'false', 'none', and friends. Otherwise, we accept 'raw',
           # and unrecognized values default to 'obfuscated'
           def set_sql_recording!
-            record_sql_config = Agent.config['transaction_tracer.record_sql']
+            record_sql_config = Agent.config[:'transaction_tracer.record_sql']
             case record_sql_config.to_s
             when 'off'
               @record_sql = :off

@@ -16,7 +16,7 @@ class NewRelicServiceTest < Test::Unit::TestCase
   end
 
   def test_initialize_uses_correct_license_key_settings
-    with_config('license_key' => 'abcde') do
+    with_config(:license_key => 'abcde') do
       service = NewRelic::Agent::NewRelicService.new
       assert_equal 'abcde', service.instance_variable_get(:@license_key)
     end
@@ -101,7 +101,7 @@ class NewRelicServiceTest < Test::Unit::TestCase
   end
 
   def test_request_timeout
-    with_config('timeout' => 600) do
+    with_config(:timeout => 600) do
       service = NewRelic::Agent::NewRelicService.new('abcdef', @server)
       assert_equal 600, service.request_timeout
     end

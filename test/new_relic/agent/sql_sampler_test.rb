@@ -146,7 +146,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
   end
 
   def test_should_not_collect_explain_plans_when_disabled
-    with_config('transaction_tracer.explain_enabled' => false) do
+    with_config(:'transaction_tracer.explain_enabled' => false) do
       data = NewRelic::Agent::TransactionSqlData.new
       data.set_transaction_info("WebTransaction/Controller/c/a", "/c/a", {},
                                 'guid')
@@ -174,7 +174,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
   end
 
   def test_sends_obfuscated_queries_when_configured
-    with_config('transaction_tracer.record_sql' => 'obfuscated') do
+    with_config(:'transaction_tracer.record_sql' => 'obfuscated') do
       data = NewRelic::Agent::TransactionSqlData.new
       data.set_transaction_info("WebTransaction/Controller/c/a", "/c/a", {},
                                 'guid')

@@ -497,7 +497,7 @@ module NewRelic
         # from when they were added, or else other tracers that were added to the same method
         # may get removed as well.
         def remove_method_tracer(method_name, metric_name_code) # :nodoc:
-          return unless Agent.config['agent_enabled']
+          return unless Agent.config[:agent_enabled]
           if method_defined? "#{_traced_method_name(method_name, metric_name_code)}"
             alias_method method_name, "#{_untraced_method_name(method_name, metric_name_code)}"
             undef_method "#{_traced_method_name(method_name, metric_name_code)}"

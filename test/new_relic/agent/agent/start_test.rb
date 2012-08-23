@@ -16,13 +16,13 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   end
 
   def test_disabled_positive
-    with_config('agent_enabled' => false) do
+    with_config(:agent_enabled => false) do
       assert disabled?
     end
   end
 
   def test_disabled_negative
-    with_config('agent_enabled' => true) do
+    with_config(:agent_enabled => true) do
       assert !disabled?
     end
   end
@@ -44,7 +44,7 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   end
 
   def test_log_app_names
-    with_config('app_name' => 'zam;zam;zabam') do
+    with_config(:app_name => 'zam;zam;zabam') do
       log = mocked_log
       log.expects(:info).with("Application: zam, zam, zabam")
       log_app_names
@@ -149,7 +149,7 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   end
 
   def test_monitoring_positive
-    with_config('monitor_mode' => true) do
+    with_config(:monitor_mode => true) do
       log = mocked_log
       assert monitoring?
     end
@@ -157,20 +157,20 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
 
   def test_monitoring_negative
     log = mocked_log
-    with_config('monitor_mode' => false) do
+    with_config(:monitor_mode => false) do
       log.expects(:send).with(:warn, "Agent configured not to send data in this environment - edit newrelic.yml to change this")
       assert !monitoring?
     end
   end
 
   def test_has_license_key_positive
-    with_config('license_key' => 'a' * 40) do
+    with_config(:license_key => 'a' * 40) do
       assert has_license_key?
     end
   end
 
   def test_has_license_key_negative
-    with_config('license_key' => false) do
+    with_config(:license_key => false) do
       log = mocked_log
       log.expects(:send).with(:error, 'No license key found.  Please edit your newrelic.yml file and insert your license key.')
       assert !has_license_key?
@@ -189,13 +189,13 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   end
 
   def test_correct_license_length_positive
-    with_config('license_key' => 'a' * 40) do
+    with_config(:license_key => 'a' * 40) do
       assert correct_license_length
     end
   end
 
   def test_correct_license_length_negative
-    with_config('license_key' => 'a' * 30) do
+    with_config(:license_key => 'a' * 30) do
       log = mocked_log
       log.expects(:send).with(:error, "Invalid license key: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
       assert !correct_license_length

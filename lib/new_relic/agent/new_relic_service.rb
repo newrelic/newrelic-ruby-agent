@@ -18,9 +18,9 @@ module NewRelic
       attr_accessor :agent_id
       
       def initialize(license_key=nil, collector=control.server)
-        @license_key = license_key || Agent.config['license_key']
+        @license_key = license_key || Agent.config[:license_key]
         @collector = collector
-        @request_timeout = Agent.config['timeout']
+        @request_timeout = Agent.config[:timeout]
       end
       
       def connect(settings={})

@@ -133,7 +133,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   end
 
   def test_notice_push_scope_with_builder
-    with_config('developer_mode' => false) do
+    with_config(:developer_mode => false) do
       builder = mock('builder')
       builder.expects(:trace_entry).with('a scope', 100.0)
       @sampler.expects(:builder).returns(builder).twice
@@ -253,7 +253,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   end
 
   def test_store_sample_for_developer_mode_no_dev
-    with_config('developer_mode' => false) do
+    with_config(:developer_mode => false) do
       @sampler.configure!
       sample = mock('sample')
       @sampler.store_sample_for_developer_mode(sample)
@@ -924,7 +924,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
   def test_param_capture
     [true, false].each do |capture|
-      with_config('capture_params' => capture) do
+      with_config(:capture_params => capture) do
         @sampler.notice_first_scope_push Time.now.to_f
         @sampler.notice_transaction('/path', nil, {:param => 'hi'})
         @sampler.notice_scope_empty
@@ -937,7 +937,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   end
 
   def test_should_not_collect_segments_beyond_limit
-    with_config('transaction_tracer.limit_segments' => 3) do
+    with_config(:'transaction_tracer.limit_segments' => 3) do
       @sampler.configure!
       run_sample_trace do
         @sampler.notice_push_scope 'a1'

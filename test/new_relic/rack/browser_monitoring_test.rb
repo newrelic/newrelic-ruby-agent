@@ -133,7 +133,7 @@ EOL
     guid = 'abcdefgfedcba'
     NewRelic::TransactionSample.any_instance.stubs(:generate_guid).returns(guid)
     set_cookie "NRAGENT=tk=token"
-    with_config('apdex_t' => 0.0001) do
+    with_config(:apdex_t => 0.0001) do
       get '/'
       assert(last_response.body.include?(guid), last_response.body)
     end

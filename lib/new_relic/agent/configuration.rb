@@ -18,6 +18,9 @@ module NewRelic
       class DottedHash < ::Hash
         def initialize(hash)
           self.merge!(dot_flattened(hash))
+          keys.each do |key|
+            self[(key.to_sym rescue key) || key] = delete(key)
+          end
           self.freeze
         end
 

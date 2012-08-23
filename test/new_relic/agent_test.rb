@@ -21,17 +21,17 @@ module NewRelic
 
     def test_shutdown_removes_manual_startup_config
       NewRelic::Agent.manual_start(:some_absurd_setting => true)
-      assert NewRelic::Agent.config['some_absurd_setting']
+      assert NewRelic::Agent.config[:some_absurd_setting]
       NewRelic::Agent.shutdown
-      assert !NewRelic::Agent.config['some_absurd_setting']
+      assert !NewRelic::Agent.config[:some_absurd_setting]
     end
 
     def test_shutdown_removes_server_config
       NewRelic::Agent.manual_start
       NewRelic::Agent.instance.finish_setup(:some_absurd_setting => true)
-      assert NewRelic::Agent.config['some_absurd_setting']
+      assert NewRelic::Agent.config[:some_absurd_setting]
       NewRelic::Agent.shutdown
-      assert !NewRelic::Agent.config['some_absurd_setting']
+      assert !NewRelic::Agent.config[:some_absurd_setting]
     end
 
     def test_after_fork
@@ -51,7 +51,7 @@ module NewRelic
     if NewRelic::LanguageSupport.can_fork? &&
         !NewRelic::LanguageSupport.using_version?('1.9.1')
       def test_timeslice_harvest_with_after_fork_report_to_channel
-        with_config('agent_enabled' => true, 'monitor_mode' => true) do
+        with_config(:agent_enabled => true, :monitor_mode => true) do
           NewRelic::Agent::Agent.instance.service = NewRelic::FakeService.new
           NewRelic::Agent.shutdown # make sure the agent is not already started
           NewRelic::Agent.manual_start(:license_key => ('1234567890' * 4),

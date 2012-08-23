@@ -71,7 +71,7 @@ module NewRelic
       end
 
       def apdex_t
-        Agent.config['apdex_t']
+        Agent.config[:apdex_t]
       end
       
       # whether we should install the
