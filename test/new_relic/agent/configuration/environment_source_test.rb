@@ -9,7 +9,6 @@ module NewRelic::Agent::Configuration
       assert_applied_string 'NEWRELIC_LICENSE_KEY', 'license_key'
       assert_applied_string 'NEW_RELIC_APP_NAME', 'app_name'
       assert_applied_string 'NEWRELIC_APP_NAME', 'app_name'
-      assert_applied_string 'NEW_RELIC_LOG', 'log_file_path'
       assert_applied_string 'NEW_RELIC_DISPATCHER', 'dispatcher'
       assert_applied_string 'NEWRELIC_DISPATCHER', 'dispatcher'
       assert_applied_string 'NEW_RELIC_FRAMEWORK', 'framework'
@@ -34,6 +33,20 @@ module NewRelic::Agent::Configuration
       ENV['NEWRELIC_ENABLE'] = 'no'
       assert !EnvironmentSource.new[:agent_enabled]
       ENV.delete('NEWRELIC_ENABLE')
+    end
+
+    def test_set_log_config_from_environment
+      ENV['NEW_RELIC_LOG'] = 'off/in/space.log'
+      source = EnvironmentSource.new
+      assert_equal 'off/in', source[:log_file_path]
+      assert_equal 'space.log', source[:log_file_name]
+    end
+
+    def test_set_log_config_STDOUT_from_environment
+      ENV['NEW_RELIC_LOG'] = 'STDOUT'
+      source = EnvironmentSource.new
+      assert_equal 'STDOUT', source[:log_file_name]
+      assert_equal 'STDOUT', source[:log_file_path]
     end
 
     def assert_applied_string(env_var, config_var)

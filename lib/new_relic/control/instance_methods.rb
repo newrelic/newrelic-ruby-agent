@@ -77,7 +77,7 @@ module NewRelic
           setup_log unless logger_override
           start_agent
           install_instrumentation
-          load_samplers unless self['disable_samplers']
+          load_samplers unless Agent.config['disable_samplers']
           local_env.gather_environment_info
           append_environment_info
         elsif !Agent.config[:agent_enabled]

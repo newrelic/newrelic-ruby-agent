@@ -58,7 +58,7 @@ class NewRelic::ControlTest < Test::Unit::TestCase
       assert_equal :test, control.app
     end
     assert_equal :test, control.framework
-    assert_match /test/i, control.dispatcher_instance_id
+    assert_match /test/i, control.local_env.dispatcher_instance_id
     assert("" == control.dispatcher.to_s, "Expected dispatcher to be empty, but was #{control.dispatcher.to_s}")
     assert_equal false, NewRelic::Agent.config[:monitor_mode]
     control.local_env
@@ -203,6 +203,22 @@ class NewRelic::ControlTest < Test::Unit::TestCase
 
       assert(!NewRelic::Agent::Agent.instance.sql_sampler.enabled?,
              'sql enabled when tracing disabled by server')
+    end
+  end
+
+  def test_init_plugin_loads_samplers_enabled
+    NewRelic::Agent.shutdown
+    with_config(:disable_samplers => false, :agent_enabled => true) do
+      NewRelic::Control.instance.init_plugin
+      assert NewRelic::Agent.instance.stats_engine.send(:harvest_samplers).any?
+    end
+  end
+
+  def test_init_plugin_loads_samplers_disabled
+    NewRelic::Agent.shutdown
+    with_config(:disable_samplers => true, :agent_enabled => true) do
+      NewRelic::Control.instance.init_plugin
+      assert_equal [], NewRelic::Agent.instance.stats_engine.send(:harvest_samplers)
     end
   end
 

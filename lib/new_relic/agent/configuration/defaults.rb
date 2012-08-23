@@ -17,6 +17,7 @@ module NewRelic
         :developer       => false,
         :apdex_t         => 0.5,
         :monitor_daemons => false,
+        :multi_homed     => false,
 
         :host               => 'collector.newrelic.com',
         :api_host           => 'rpm.newrelic.com',
@@ -29,6 +30,7 @@ module NewRelic
         :post_size_limit    => 2 * 1024 * 1024, # 2 megs
         :timeout            => 2 * 60,          # 2 minutes
 
+        :log_file_name => 'newrelic_agent.log',
         :log_file_path => 'log/',
         :log_level     => 'info',
 

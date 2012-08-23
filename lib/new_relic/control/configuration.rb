@@ -8,7 +8,7 @@ module NewRelic
           @settings = (@yaml && @yaml[env]) || {}
           # At the time we bind the settings, we also need to run this little piece
           # of magic which allows someone to augment the id with the app name, necessary
-          if self['multi_homed'] && Agent.config.app_names.size > 0
+          if Agent.config['multi_homed'] && Agent.config.app_names.size > 0
             if @local_env.dispatcher_instance_id
               @local_env.dispatcher_instance_id << ":#{Agent.config.app_names.first}"
             else
@@ -114,10 +114,6 @@ module NewRelic
       # data to the server on exiting.  Defaults to true.
       def send_data_on_exit
         fetch('send_data_on_exit', true)
-      end
-
-      def dispatcher_instance_id
-        self['dispatcher_instance_id'] || @local_env.dispatcher_instance_id
       end
 
       def dispatcher

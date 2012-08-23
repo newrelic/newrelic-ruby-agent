@@ -23,11 +23,12 @@ class NewRelic::Control::ConfigurationTest < Test::Unit::TestCase
 
   def test_log_file_path_uses_given_value
     Dir.stubs(:mkdir).returns(true)
-    NewRelic::Control.instance['log_file_path'] = 'lerg'
-    NewRelic::Control.instance.setup_log
-    assert_match(/\/lerg\/newrelic_agent.log/,
-                 NewRelic::Control.instance.log_file)
-    NewRelic::Control.instance.settings.delete('log_file_path') # = nil    
+    with_config(:log_file_path => 'lerg') do
+      NewRelic::Control.instance.setup_log
+      assert_match(/\/lerg\/newrelic_agent.log/,
+                   NewRelic::Control.instance.log_file)
+      NewRelic::Control.instance.settings.delete('log_file_path') # = nil
+    end
   end
 
   def test_server_side_config_ignores_yaml
