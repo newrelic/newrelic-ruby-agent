@@ -924,14 +924,15 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
   def test_param_capture
     [true, false].each do |capture|
-      NewRelic::Control.instance.stubs(:capture_params).returns(capture)
-      @sampler.notice_first_scope_push Time.now.to_f
-      @sampler.notice_transaction('/path', nil, {:param => 'hi'})
-      @sampler.notice_scope_empty
+      with_config('capture_params' => capture) do
+        @sampler.notice_first_scope_push Time.now.to_f
+        @sampler.notice_transaction('/path', nil, {:param => 'hi'})
+        @sampler.notice_scope_empty
 
-      tt = @sampler.harvest(nil,0)[0]
+        tt = @sampler.harvest(nil,0)[0]
 
-      assert_equal (capture) ? 1 : 0, tt.params[:request_params].length
+        assert_equal (capture) ? 1 : 0, tt.params[:request_params].length
+      end
     end
   end
 

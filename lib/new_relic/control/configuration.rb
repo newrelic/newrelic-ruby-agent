@@ -74,10 +74,6 @@ module NewRelic
         Agent.config['apdex_t']
       end
       
-      def capture_params
-        fetch('capture_params')
-      end
-
       # whether we should install the
       # NewRelic::Rack::BrowserMonitoring middleware automatically on
       # Rails applications

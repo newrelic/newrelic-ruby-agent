@@ -57,30 +57,28 @@ class NewRelic::Agent::ErrorCollector::NoticeErrorTest < Test::Unit::TestCase
   end
 
   def test_request_params_from_opts_positive
-    fake_control = mock('control')
-    self.expects(:control).returns(fake_control)
-    fake_control.expects(:capture_params).returns(true)
-    val = {:request_params => 'foo'}
-    assert_equal('foo', request_params_from_opts(val))
-    assert_equal({}, val, "should delete request_params key from hash")
+    with_config('capture_params' => true) do
+      val = {:request_params => 'foo'}
+      assert_equal('foo', request_params_from_opts(val))
+      assert_equal({}, val, "should delete request_params key from hash")
+    end
   end
 
   def test_request_params_from_opts_negative
-    fake_control = mock('control')
-    self.expects(:control).returns(fake_control)
-    fake_control.expects(:capture_params).returns(false)
-    val = {:request_params => 'foo'}
-    assert_equal(nil, request_params_from_opts(val))
-    assert_equal({}, val, "should delete request_params key from hash")
+    with_config('capture_params' => false) do
+      val = {:request_params => 'foo'}
+      assert_equal(nil, request_params_from_opts(val))
+      assert_equal({}, val, "should delete request_params key from hash")
+    end
   end
 
   def test_normalized_request_and_custom_params_base
     self.expects(:normalize_params).with(nil).returns(nil)
     self.expects(:normalize_params).with({}).returns({})
-    fake_control = mock('control')
-    self.expects(:control).returns(fake_control)
-    fake_control.expects(:capture_params).returns(true)
-    assert_equal({:request_params => nil, :custom_params => {}}, normalized_request_and_custom_params({}))
+    with_config('capture_params' => true) do
+      assert_equal({:request_params => nil, :custom_params => {}},
+                   normalized_request_and_custom_params({}))
+    end
   end
 
   def test_extract_source_base

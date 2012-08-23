@@ -92,7 +92,7 @@ module NewRelic
       def set_transaction_info(path, uri, params)
         @sample.params[:path] = path
 
-        if NewRelic::Control.instance.capture_params
+        if Agent.config['capture_params']
           params = normalize_params params
 
           @sample.params[:request_params].merge!(params)

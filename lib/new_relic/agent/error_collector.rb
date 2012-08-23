@@ -133,7 +133,7 @@ module NewRelic
         # returns nil
         def request_params_from_opts(options)
           value = options.delete(:request_params)
-          if control.capture_params
+          if Agent.config['capture_params']
             value
           else
             nil

@@ -30,6 +30,7 @@ digraph AgentEnabled {
   "[timeout]"
   "[log_level]"
   "[apdex_t]"
+  "[capture_params]"
 
   node[color=red]
   "{force_send}"
@@ -40,7 +41,6 @@ digraph AgentEnabled {
   "{collect_traces}"
   "{transaction_tracer.enabled}"
   "{transaction_tracer.enabled}"
-  "{capture_params}"
   "{browser_monitoring.auto_instrument}"
   "{multi_threaded}"
   "{disable_serialization}"
@@ -73,11 +73,11 @@ digraph AgentEnabled {
   "{error_collector*}"
   "{transaction_tracer*}"
   "{disable_samplers}"
+  "{capture_params}"
 
   node[shape=box,color=orange]
   "Control#init_plugin"
   "Control#apdex_t"
-  "Control#capture_params"
   "Control#browser_monitoring_auto_instrument?"
   "Control#multi_threaded?"
   "Control#disable_serialization?"
@@ -199,7 +199,6 @@ digraph AgentEnabled {
   "Control#init_plugin" -> "{disable_samplers}"
   "Control#should_log?" -> "[agent_enabled]" 
   "Control#apdex_t" -> "[apdex_t]"
-  "Control#capture_params" -> "{capture_params}"
   "Control#browser_monitoring_auto_instrument?" -> "{browser_monitoring.auto_instrument}"
   "Control#multi_threaded?" -> "{multi_threaded}"
   "Control#disable_serialization?" -> "{disable_serialization}"
@@ -302,7 +301,7 @@ digraph AgentEnabled {
   "ErrorCollector#initialize" -> "{error_collector.enabled}"
   "ErrorCollector#initialize" -> "{error_collector.capture_source}"
   "ErrorCollector#initialize" -> "{error_collector.ignore_errors}"
-  "ErrorCollector#request_params_from_opts" -> "Control#capture_params"
+  "ErrorCollector#request_params_from_opts" -> "[capture_params]"
 
   "ControllerInstrumentation#perform_action_with_newrelic_trace" -> "{disable_mobile_headers}"
   "ControllerInstrumentation#perform_action_with_newrelic_trace" -> "Control#profiling?"
@@ -356,7 +355,7 @@ digraph AgentEnabled {
   "TranactionInfo#include_guid?" -> "Control#apdex_t"
 
   "TransactionSampleBuilder#initialize" -> "[transaction_tracer.limit_segments]"
-  "TransactionSampleBuilder#set_transaction_info" -> "Control#capture_params"
+  "TransactionSampleBuilder#set_transaction_info" -> "[capture_params]"
 
   "Rails#install_browser_monitoring" -> "Control#browser_monitoring_auto_instrument?"
   "Rails#log!" -> "Control#should_log?"
