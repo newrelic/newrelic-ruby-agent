@@ -22,14 +22,10 @@ module NewRelic
 
       def merge_defaults(settings_hash)
         s = {
-          'host' => 'collector.newrelic.com',
-          'ssl' => false,
-          'log_level' => 'info',
           'apdex_t' => 0.5
         }
         s.merge! settings_hash if settings_hash
         # monitor_daemons replaced with agent_enabled
-        s['agent_enabled'] = Agent.config['monitor_daemons'] if s['agent_enabled'].nil? && !Agent.config['monitor_daemons'].nil?
         s
       end
 

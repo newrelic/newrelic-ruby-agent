@@ -41,7 +41,7 @@ module NewRelic
       #error, and fatal
       # Defaults to info
       def set_log_level!(logger)
-        case fetch("log_level","info").downcase
+        case Agent.config['log_level'].downcase
           when "debug" then logger.level = Logger::DEBUG
           when "info" then logger.level = Logger::INFO
           when "warn" then logger.level = Logger::WARN
