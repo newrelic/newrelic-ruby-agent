@@ -69,7 +69,7 @@ class NewRelic::Agent::RpmAgentTest < Test::Unit::TestCase # ActiveSupport::Test
     end
     should "manual_overrides" do
       NewRelic::Agent.manual_start :app_name => "testjobs", :dispatcher_instance_id => "mailer"
-      assert_equal "testjobs", NewRelic::Control.instance.app_names[0]
+      assert_equal "testjobs", NewRelic::Agent.config.app_names[0]
       assert_equal "mailer", NewRelic::Control.instance.dispatcher_instance_id
       NewRelic::Agent.shutdown
     end
@@ -77,7 +77,7 @@ class NewRelic::Agent::RpmAgentTest < Test::Unit::TestCase # ActiveSupport::Test
     should "restart" do
       NewRelic::Agent.manual_start :app_name => "noapp", :dispatcher_instance_id => ""
       NewRelic::Agent.manual_start :app_name => "testjobs", :dispatcher_instance_id => "mailer"
-      assert_equal "testjobs", NewRelic::Control.instance.app_names[0]
+      assert_equal "testjobs", NewRelic::Agent.config.app_names[0]
       assert_equal "mailer", NewRelic::Control.instance.dispatcher_instance_id
       NewRelic::Agent.shutdown
     end

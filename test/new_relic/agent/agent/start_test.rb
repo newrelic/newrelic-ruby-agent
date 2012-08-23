@@ -44,11 +44,11 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   end
 
   def test_log_app_names
-    control = mocked_control
-    log = mocked_log
-    control.expects(:app_names).returns(%w(zam zam zabam))
-    log.expects(:info).with("Application: zam, zam, zabam")
-    log_app_names
+    with_config('app_name' => 'zam;zam;zabam') do
+      log = mocked_log
+      log.expects(:info).with("Application: zam, zam, zabam")
+      log_app_names
+    end
   end
 
   def test_check_config_and_start_agent_disabled

@@ -4,6 +4,8 @@ module NewRelic
       DEFAULTS = {
         'config_path' => File.join('config', 'newrelic.yml'),
 
+        'app_name' => Proc.new { NewRelic::Control.instance.env },
+
         'enabled'         => true,
         'monitor_mode'    => Proc.new { self['enabled'] },
         'agent_enabled'   => Proc.new do
@@ -60,7 +62,7 @@ module NewRelic
 
         'error_collector.enabled'        => true,
         'error_collector.capture_source' => true,
-        'error_collector.ignore_errors'  => 'ActionController::RoutingError',
+        'error_collector.ignore_errors'  => 'ActionController::RoutingError'
       }.freeze
     end
   end

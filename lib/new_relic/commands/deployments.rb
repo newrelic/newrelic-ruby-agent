@@ -29,7 +29,7 @@ class NewRelic::Command::Deployments < NewRelic::Command
     @description ||= @leftover && @leftover.join(" ")
     @user ||= ENV['USER']
     config.env = @environment if @environment
-    @appname ||= config.app_names[0] || config.env || 'development'
+    @appname ||= NewRelic::Agent.config.app_names[0] || config.env || 'development'
   end
 
   # Run the Deployment upload in New Relic via Active Resource.

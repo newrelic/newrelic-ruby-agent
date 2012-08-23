@@ -61,6 +61,13 @@ module NewRelic
           end
           false
         end
+
+        def app_names
+          case self['app_name']
+          when Array then self['app_name']
+          when String then self['app_name'].split(';')
+          end
+        end
       end
     end
   end

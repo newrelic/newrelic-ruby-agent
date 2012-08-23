@@ -315,7 +315,7 @@ module NewRelic
 
           # Logs the configured application names
           def log_app_names
-            log.info "Application: #{control.app_names.join(", ")}"
+            log.info "Application: #{Agent.config.app_names.join(", ")}"
           end
           
           # Connecting in the foreground blocks further startup of the
@@ -708,7 +708,7 @@ module NewRelic
             {
               :pid => $$,
               :host => @local_host,
-              :app_name => control.app_names,
+              :app_name => Agent.config.app_names,
               :language => 'ruby',
               :agent_version => NewRelic::VERSION::STRING,
               :environment => environment_for_connect,

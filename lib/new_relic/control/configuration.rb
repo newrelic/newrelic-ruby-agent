@@ -8,11 +8,11 @@ module NewRelic
           @settings = (@yaml && @yaml[env]) || {}
           # At the time we bind the settings, we also need to run this little piece
           # of magic which allows someone to augment the id with the app name, necessary
-          if self['multi_homed'] && app_names.size > 0
+          if self['multi_homed'] && Agent.config.app_names.size > 0
             if @local_env.dispatcher_instance_id
-              @local_env.dispatcher_instance_id << ":#{app_names.first}"
+              @local_env.dispatcher_instance_id << ":#{Agent.config.app_names.first}"
             else
-              @local_env.dispatcher_instance_id = app_names.first
+              @local_env.dispatcher_instance_id = Agent.config.app_names.first
             end
           end
 
@@ -123,16 +123,11 @@ module NewRelic
       def dispatcher
         (self['dispatcher'] && self['dispatcher'].to_sym) || @local_env.dispatcher
       end
-      def app_names
-        case self['app_name']
-        when Array then self['app_name']
-        when String then self['app_name'].split(';')
-        else [ env ]
-        end
-      end
+
       def validate_seed
         self['validate_seed'] || ENV['NR_VALIDATE_SEED']
       end
+
       def validate_token
         self['validate_token'] || ENV['NR_VALIDATE_TOKEN']
       end
