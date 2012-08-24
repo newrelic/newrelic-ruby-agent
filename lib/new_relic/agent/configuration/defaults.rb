@@ -42,7 +42,8 @@ module NewRelic
         :disable_dj                           => false,
         :disable_view_instrumentation         => false,
         :disable_backtrace_cleanup            => false,
-        :disable_activerecord_instrumentation => false,
+        :skip_ar_instrumentation              => false,
+        :disable_activerecord_instrumentation => Proc.new { self[:skip_ar_instrumentation] },
         :disable_memcache_instrumentation     => false,
         :disable_mobile_headers               => true,
 

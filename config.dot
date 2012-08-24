@@ -51,13 +51,12 @@ digraph AgentEnabled {
   "[validate_seed]"
   "[validate_token]"
   "[disable_backtrace_cleanup]"
+  "[disable_activerecord_instrumentation]"
 
   node[color=red]
   "{collect_traces}"
   "{transaction_tracer.enabled}"
   "{transaction_tracer.enabled}"
-  "{skip_ar_instrumentation}"
-  "{disable_activerecord_instrumentation}"
   "{disable_dj}"
   "{capture_memcache_keys}"
   "{disable_memcache_instrumentation}"
@@ -287,8 +286,7 @@ digraph AgentEnabled {
 
   "BeaconConfiguration#license_bytes" -> "[license_key]"
 
-  "ActiveRecord#depends_on" -> "{skip_ar_instrumentation}"
-  "ActiveRecord#depends_on" -> "{disable_activerecord_instrumentation}"
+  "ActiveRecord#depends_on" -> "[disable_activerecord_instrumentation]"
 
   "DelayedJobInstrumentation#depends_on" -> "{disable_dj}"
 

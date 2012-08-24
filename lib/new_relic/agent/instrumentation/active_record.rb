@@ -100,11 +100,7 @@ DependencyDetection.defer do
   end
 
   depends_on do
-    !NewRelic::Control.instance['skip_ar_instrumentation']
-  end
-
-  depends_on do
-    !NewRelic::Control.instance['disable_activerecord_instrumentation']
+    !NewRelic::Agent.config[:disable_activerecord_instrumentation]
   end
   
   executes do
