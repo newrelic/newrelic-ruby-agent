@@ -48,7 +48,6 @@ digraph AgentEnabled {
   "{collect_traces}"
   "{transaction_tracer.enabled}"
   "{transaction_tracer.enabled}"
-  "{disable_serialization}"
   "{textmate}"
   "{post_size_limit}"
   "{sync_startup}"
@@ -75,7 +74,6 @@ digraph AgentEnabled {
   node[shape=box,color=orange]
   "Control#init_plugin"
   "Control#apdex_t"
-  "Control#disable_serialization?"
   "Control#use_textmate?"
   "Control#post_size_limit"
   "Control#sync_startup"
@@ -190,7 +188,6 @@ digraph AgentEnabled {
   "Control#init_plugin" -> "[disable_samplers]"
   "Control#should_log?" -> "[agent_enabled]" 
   "Control#apdex_t" -> "[apdex_t]"
-  "Control#disable_serialization?" -> "{disable_serialization}"
   "Control#use_textmate?" -> "{textmate}"
   "Control#post_size_limit" -> "{post_size_limit}"
   "Control#sync_startup" -> "{sync_startup}"

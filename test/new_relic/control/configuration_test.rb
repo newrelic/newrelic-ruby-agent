@@ -59,9 +59,4 @@ class NewRelic::Control::ConfigurationTest < Test::Unit::TestCase
       NewRelic::Control.instance.install_browser_monitoring(config)
     end
   end
-
-  def test_data_serialization_default_off
-    DependencyDetection.send(:class_variable_set, '@@items', [])
-    assert NewRelic::Control.instance.disable_serialization?
-  end
 end

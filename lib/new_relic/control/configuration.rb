@@ -73,14 +73,7 @@ module NewRelic
       def apdex_t
         Agent.config[:apdex_t]
       end
-      
-      def disable_serialization?
-        fetch('disable_serialization', true)
-      end
-      def disable_serialization=(b)
-        self['disable_serialization'] = b
-      end
-      
+
       # True if we should view files in textmate
       def use_textmate?
         fetch('textmate')
