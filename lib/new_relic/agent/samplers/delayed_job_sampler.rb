@@ -14,7 +14,7 @@ module NewRelic
       class DelayedJobSampler < NewRelic::Agent::Sampler
         def initialize
           super :delayed_job_queue
-          raise Unsupported, "DJ instrumentation disabled" if NewRelic::Control.instance['disable_dj']
+          raise Unsupported, "DJ instrumentation disabled" if Agent.config[:disable_dj]
           raise Unsupported, "No DJ worker present" unless NewRelic::DelayedJobInjection.worker_name
         end
 
