@@ -70,26 +70,20 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   end
 
   def test_check_config_and_start_agent_normal
-    self.expects(:monitoring?).returns(true)
-    self.expects(:has_correct_license_key?).returns(true)
-    self.expects(:using_forking_dispatcher?).returns(false)
-    control = mocked_control
-    control.expects(:sync_startup).returns(false)
     self.expects(:start_worker_thread)
     self.expects(:install_exit_handler)
-    check_config_and_start_agent
+    with_config(:sync_startup => false, :monitor_mode => true, :license_key => 'a' * 40) do
+      check_config_and_start_agent
+    end
   end
 
   def test_check_config_and_start_agent_sync
-    self.expects(:monitoring?).returns(true)
-    self.expects(:has_correct_license_key?).returns(true)
-    self.expects(:using_forking_dispatcher?).returns(false)
-    control = mocked_control
-    control.expects(:sync_startup).returns(true)
     self.expects(:connect_in_foreground)
     self.expects(:start_worker_thread)
     self.expects(:install_exit_handler)
-    check_config_and_start_agent
+    with_config(:sync_startup => true, :monitor_mode => true, :license_key => 'a' * 40) do
+      check_config_and_start_agent
+    end
   end
 
   def test_connect_in_foreground

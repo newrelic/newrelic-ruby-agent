@@ -74,14 +74,6 @@ module NewRelic
         Agent.config[:apdex_t]
       end
       
-      # Configuration option of the same name to indicate that we should connect
-      # to New Relic synchronously on startup.  This means when the agent is loaded it
-      # won't return without trying to set up the server connection at least once
-      # which can make startup take longer.  Defaults to false.
-      def sync_startup
-        fetch('sync_startup', false)
-      end
-
       # Configuration option of the same name to indicate that we should flush
       # data to the server on exiting.  Defaults to true.
       def send_data_on_exit

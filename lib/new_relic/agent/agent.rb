@@ -422,7 +422,7 @@ module NewRelic
           def check_config_and_start_agent
             return unless monitoring? && has_correct_license_key?
             return if using_forking_dispatcher?
-            connect_in_foreground if control.sync_startup
+            connect_in_foreground if Agent.config[:sync_startup]
             start_worker_thread
             install_exit_handler
           end
