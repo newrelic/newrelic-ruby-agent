@@ -19,6 +19,7 @@ module NewRelic
         :apdex_t         => 0.5,
         :monitor_daemons => false,
         :multi_homed     => false,
+        :high_security   => false,
 
         :host               => 'collector.newrelic.com',
         :api_host           => 'rpm.newrelic.com',

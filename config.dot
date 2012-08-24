@@ -47,12 +47,12 @@ digraph AgentEnabled {
   "[post_size_limit]"
   "[sync_startup]"
   "[send_data_on_exit]"
+  "[high_security]"
 
   node[color=red]
   "{collect_traces}"
   "{transaction_tracer.enabled}"
   "{transaction_tracer.enabled}"
-  "{high_security}"
   "{validate_seed}"
   "{NR_VALIDATE_SEED}"
   "{validate_token}"
@@ -144,7 +144,7 @@ digraph AgentEnabled {
   "TransactionSampler#capture_segment_trace"
   "TransactionSampler#store_segment_for_developer_mode"
 
-  "NoticeError#initialize"
+  "NoticedError#initialize"
 
   "BeaconConfiguration#license_bytes"
 
@@ -296,7 +296,7 @@ digraph AgentEnabled {
   "TransactionSampler#capture_segment_trace" -> "[developer_mode]"
   "TransactionSampler#store_segment_for_developer_mode" -> "[developer_mode]"
 
-  "NoticeError#initialize" -> "{high_security}"
+  "NoticedError#initialize" -> "[high_security]"
 
   "BeaconConfiguration#license_bytes" -> "[license_key]"
 
