@@ -154,7 +154,7 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   end
 
   def test_transaction_tracer_disabled
-    with_config(:transaction_tracer => { :enabled => false },
+    with_config(:'transaction_tracer.enabled' => false,
                 :developer_mode => false, :monitor_mode => true) do
       NewRelic::Agent::Agent.instance.config_transaction_tracer
       NewRelic::Agent::Agent.instance.check_transaction_sampler_status
@@ -165,7 +165,7 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   end
 
   def test_sql_tracer_disabled
-    with_config(:slow_sql => { :enabled => false }, :monitor_mode => true) do
+    with_config(:'slow_sql.enabled' => false, :monitor_mode => true) do
       NewRelic::Agent.instance.sql_sampler.configure!
       NewRelic::Agent::Agent.instance.check_sql_sampler_status
 
@@ -184,8 +184,8 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   end
 
   def test_sql_tracer_disabled_when_tt_disabled
-    with_config(:transaction_tracer => { :enabled => false },
-                :slow_sql => { :enabled => true },
+    with_config(:'transaction_tracer.enabled' => false,
+                :'slow_sql.enabled' => true,
                 :developer_mode => false, :monitor_mode => true) do
       NewRelic::Agent::Agent.instance.check_sql_sampler_status
 
@@ -195,12 +195,13 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   end
 
   def test_sql_tracer_disabled_when_tt_disabled_by_server
-    with_config({ :slow_sql => { :enabled => true },
-                  :transaction_tracer => { :enabled => true },
-                  :monitor_mode => true}, 1) do
+    with_config({:'slow_sql.enabled' => true,
+                  :'transaction_tracer.enabled' => true,
+                  :monitor_mode => true}, 2) do
 
       NewRelic::Agent.instance.check_sql_sampler_status
-      NewRelic::Agent.instance.finish_setup('collect_traces' => false)
+      NewRelic::Agent.instance.finish_setup('collect_traces' => false,
+                                            'listen_to_server_config' => true)
 
       assert(!NewRelic::Agent::Agent.instance.sql_sampler.enabled?,
              'sql enabled when tracing disabled by server')

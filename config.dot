@@ -58,13 +58,6 @@ digraph AgentEnabled {
   "[disable_view_instrumentation]"
   "[disable_resque]"
 
-  node[color=red]
-  "{collect_traces}"
-  "{slow_sql*}"
-  "{error_collector*}"
-  "{transaction_tracer*}"
-  "{capture_params}"
-
   node[shape=box,color=orange]
   "Control#init_plugin"
   "Control#apdex_t"
@@ -72,26 +65,20 @@ digraph AgentEnabled {
   "Control#api_server"
   "Control#proxy_server"
   "Control#server_from_host"
-  "Control#remove_server_controlled_configs"
   "Control#http_connection"
   "Control#set_log_level!"
   "Control#log_path"
   "Control#log_to_stdout?"
   "Control#convert_to_ip_address"
   "Control#server"
-  "Control#merge_server_side_config"
   "Control#setup_log"
   "Control#should_log?"
   "Control#log!"
-  "Control#env"
 
   node[color=green]
   "Config#app_names"
 
   node[color=black]
-  "LocalEnvironment#gather_ar_adapter_info"
-  "LocalEnvironment#gather_environment_info"
-
   "Agent#initialize"
   "Agent#after_fork"
   "Agent#disabled?"
@@ -170,7 +157,6 @@ digraph AgentEnabled {
   "Control#init_plugin" -> "[agent_enabled]"
   "Control#init_plugin" -> "Control#settings"
   "Control#init_plugin" -> "Control#setup_log"
-  "Control#init_plugin" -> "Control#env"
   "Control#init_plugin" -> "[disable_samplers]"
   "Control#should_log?" -> "[agent_enabled]" 
   "Control#apdex_t" -> "[apdex_t]"
@@ -185,11 +171,6 @@ digraph AgentEnabled {
   "Control#server_from_host" -> "[host]"
   "Control#server_from_host" -> "[port]"
   "Control#server_from_host" -> "Control#convert_to_ip_address"
-  "Control#remove_server_controlled_configs" -> "{transaction_tracer*}"
-  "Control#remove_server_controlled_configs" -> "{slow_sql*}"
-  "Control#remove_server_controlled_configs" -> "{error_collector*}"
-  "Control#remove_server_controlled_configs" -> "{capture_params}"
-  "Control#remove_server_controlled_configs" -> "Control#settings"
   "Control#http_connection" -> "[ssl]"
   "Control#http_connection" -> "[verify_certificate]"
   "Control#http_connection" -> "Control#proxy_server"
@@ -200,16 +181,12 @@ digraph AgentEnabled {
   "Control#convert_to_ip_address" -> "[ssl]"
   "Control#convert_to_ip_address" -> "[verify_certificate]"
   "Control#server" -> "Control#server_from_host"
-  "Control#merge_server_side_config" -> "Control#remove_server_controlled_configs"
   "Control#setup_log" -> "Control#set_log_level!"
   "Control#setup_log" -> "Control#log_path"
   "Control#setup_log" -> "Control#log_to_stdout?"
   "Control#setup_log" -> "[log_file_name]"
   "Control#log!" -> "Control#should_log?"
   "Control#log!" -> "Control#log_path"
-
-  "LocalEnvironment#gather_ar_adapter_info" -> "Control#env"
-  "LocalEnvironment#gather_environment_info" -> "Control#env"
 
   "Agent#initialize" -> "[monitor_mode]"
   "Agent#after_fork" -> "[agent_enabled]"
@@ -231,7 +208,6 @@ digraph AgentEnabled {
   "Agent#validate_settings" -> "[validate_seed]"
   "Agent#validate_settings" -> "[validate_token]"
   "Agent#log_error" -> "Control#server"
-  "Agent#finish_setup" -> "Control#merge_server_side_config"
   "Agent#monitoring?" -> "[monitor_mode]"
   "Agent#check_trasaction_sampler_status" -> "[developer_mode]"
   "Agent#check_sql_sampler_status" -> "[slow_sql.enabled]"
@@ -264,7 +240,6 @@ digraph AgentEnabled {
   "NewRelicService#connect" -> "Control#server_from_host"
   "NewRelicService#send_request" -> "Control#http_connection"
 
-  "SqlSampler#configure!" -> "{collect_traces}"
   "SqlSampler#configure!" -> "[slow_sql.explain_threshold]"
   "SqlSampler#configure!" -> "[slow_sql.explain_enabled]"
   "SqlSampler#configure!" -> "[slow_sql.stack_trace_threshold]"
@@ -314,9 +289,7 @@ digraph AgentEnabled {
   "CollectionHelper#strip_nr_from_backtrace" -> "[disable_backtrace_cleanup]"
 
   "Deployments#initialize" -> "Config#app_names"
-  "Deployments#initialize" -> "Control#env"
   "Deployments#run" -> "Control#http_connection"
-  "Deployments#run" -> "Control#env"
   "Deployments#run" -> "[license_key]"
   "Deployments#run" -> "Control#api_server"
 

@@ -32,8 +32,7 @@ module NewRelic
         @explain_threshold = Agent.config[:'slow_sql.explain_threshold']
         @explain_enabled = Agent.config[:'sloq_sql.explain_enabled']
         @stack_trace_threshold = Agent.config[:'slow_sql.stack_trace_threshold']
-        if Agent.config[:'slow_sql.enabled'] &&
-            NewRelic::Control.instance.fetch('collect_traces', true)
+        if Agent.config[:'slow_sql.enabled']
           enable
         else
           disable

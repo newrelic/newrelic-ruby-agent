@@ -713,7 +713,8 @@ module NewRelic
               :language => 'ruby',
               :agent_version => NewRelic::VERSION::STRING,
               :environment => environment_for_connect,
-              :settings => control.settings,
+#               :settings => control.settings,
+              :settings => Agent.config.flattened_config,
               :validate => validate_settings
             }
           end
@@ -826,17 +827,6 @@ module NewRelic
             log.warn("Agent is configured to send raw SQL to the service") if @record_sql == :raw
           end
 
-          # Asks the collector to tell us which sub-collector we
-          # should be reporting to, and then does the name resolution
-          # on that host so we don't block on DNS during the normal
-          # course of agent processing
-#           def set_collector_host!
-#             host = invoke_remote(:get_redirect_host)
-#             if host
-#               @collector = control.server_from_host(host)
-#             end
-#           end
-
           # Sets the collector host and connects to the server, then
           # invokes the final configuration with the returned data
           def query_server_for_configuration
@@ -852,22 +842,19 @@ module NewRelic
           # ignored unless we say to do something with it here.
           def finish_setup(config_data)
             return if config_data == nil
-
-            server_config = NewRelic::Agent::Configuration::ServerSource.new(config_data)
-            Agent.config.apply_config(server_config, 1)
-
+            
             @service.agent_id = config_data['agent_run_id'] if @service
             @report_period = config_data['data_report_period']
             @url_rules = config_data['url_rules']
             @beacon_configuration = BeaconConfiguration.new(config_data)
-            @server_side_config_enabled = config_data['listen_to_server_config']
 
-            if @server_side_config_enabled
+            if config_data['listen_to_server_config']
               log.info "Using config from server"
               log.debug "Server provided config: #{config_data.inspect}"
+              server_config = NewRelic::Agent::Configuration::ServerSource.new(config_data)
+              Agent.config.apply_config(server_config, 1)
             end
 
-            control.merge_server_side_config(config_data) if @server_side_config_enabled
             config_transaction_tracer
             log_connection!(config_data) if @service
             configure_transaction_tracer!(config_data['collect_traces'], config_data['sample_rate'])

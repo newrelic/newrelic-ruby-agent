@@ -92,6 +92,25 @@ module NewRelic::Agent::Configuration
       assert_equal 'right', manager['license_key']
     end
 
+    def test_config_values_should_be_memoized
+      @manager.apply_config(:setting => 'correct value')
+      assert_equal 'correct value', @manager[:setting]
+
+      @manager.config_stack.unshift(:setting => 'wrong value')
+      assert_equal 'correct value', @manager[:setting]
+    end
+
+    def test_flattened_config
+      @manager.instance_variable_set(:@config_stack, [])
+      @manager.apply_config(:eins => Proc.new { self[:one] })
+      @manager.apply_config(:one => 1)
+      @manager.apply_config(:two => 2)
+      @manager.apply_config(:three => 3)
+
+      assert_equal({ :eins => 1, :one => 1, :two => 2, :three => 3 },
+                   @manager.flattened_config)
+    end
+
     class TestSource < ::Hash
       def test_config_accessor
         'some value'

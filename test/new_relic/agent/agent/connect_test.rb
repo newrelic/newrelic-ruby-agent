@@ -168,7 +168,6 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   def test_connect_settings
     control = mocked_control
     NewRelic::Agent.config.expects(:app_names)
-    control.expects(:settings)
     self.expects(:validate_settings)
     self.expects(:environment_for_connect)
     keys = %w(pid host app_name language agent_version environment settings validate)

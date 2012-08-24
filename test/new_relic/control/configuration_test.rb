@@ -31,12 +31,6 @@ class NewRelic::Control::ConfigurationTest < Test::Unit::TestCase
     end
   end
 
-  def test_server_side_config_ignores_yaml
-    settings.merge! 'ssl' => false, 'transaction_tracer' => {'enabled' => true, 'stack_trace_threshold' => 1.0}, 'error_collector' => {'enabled' => true, 'ignore_errors' => 'ActiveRecord::RecordNotFound'}, 'capture_params' => false
-    merge_server_side_config 'transaction_tracer.enabled' => false, 'error_collector.enabled' => false
-    assert_equal({'ssl' => false, 'transaction_tracer' => {'enabled' => false}, 'error_collector' => {'enabled' => false}}, settings)
-  end
-
   def test_install_browser_monitoring
     require(File.expand_path(File.join(File.dirname(__FILE__),
                          '/../../../lib/new_relic/rack/browser_monitoring')))
