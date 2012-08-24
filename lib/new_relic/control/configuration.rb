@@ -73,10 +73,6 @@ module NewRelic
       def apdex_t
         Agent.config[:apdex_t]
       end
-
-      def has_slow_sql_config?
-        self['slow_sql'] && self['slow_sql'].has_key?('enabled')
-      end
     end
     include Configuration
   end

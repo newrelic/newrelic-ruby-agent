@@ -56,7 +56,6 @@ digraph AgentEnabled {
   "{collect_traces}"
   "{transaction_tracer.enabled}"
   "{transaction_tracer.enabled}"
-  "{slow_sql.enabled}"
   "{skip_ar_instrumentation}"
   "{disable_activerecord_instrumentation}"
   "{disable_dj}"
@@ -72,7 +71,6 @@ digraph AgentEnabled {
   node[shape=box,color=orange]
   "Control#init_plugin"
   "Control#apdex_t"
-  "Control#has_slow_sql_config?"
   "Control#settings"
   "Control#api_server"
   "Control#proxy_server"
@@ -179,7 +177,6 @@ digraph AgentEnabled {
   "Control#init_plugin" -> "[disable_samplers]"
   "Control#should_log?" -> "[agent_enabled]" 
   "Control#apdex_t" -> "[apdex_t]"
-  "Control#has_slow_sql_config?" -> "{slow_sql.enabled}"
   "Control#settings" -> "Config#app_names"
   "Control#settings" -> "[multi_homed]"
   "Control#api_server" -> "[api_host]"
