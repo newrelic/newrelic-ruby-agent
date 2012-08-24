@@ -30,6 +30,7 @@ module NewRelic
         :send_data_on_exit  => true,
         :post_size_limit    => 2 * 1024 * 1024, # 2 megs
         :timeout            => 2 * 60,          # 2 minutes
+        :force_send         => false,
 
         :log_file_name => 'newrelic_agent.log',
         :log_file_path => 'log/',

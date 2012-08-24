@@ -202,7 +202,7 @@ module NewRelic
         # :force_send => (true/false) # force the agent to send data
         # before shutting down
         def shutdown(options={})
-          run_loop_before_exit = options.fetch(:force_send, false)
+          run_loop_before_exit = Agent.config[:force_send]
           return if not started?
           if @worker_loop
             @worker_loop.run_task if run_loop_before_exit

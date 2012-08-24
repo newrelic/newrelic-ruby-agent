@@ -82,20 +82,26 @@ class NewRelic::Agent::ErrorCollector::NoticeErrorTest < Test::Unit::TestCase
   end
 
   def test_extract_source_base
-    @capture_source = true
-    self.expects(:sense_method).with(nil, 'source_extract')
-    assert_equal(nil, extract_source(nil))
+    with_config(:'error_collector.capture_source' => true) do
+      error_collector = NewRelic::Agent::ErrorCollector.new
+      error_collector.expects(:sense_method).with(nil, 'source_extract')
+      assert_equal(nil, error_collector.extract_source(nil))
+    end
   end
 
   def test_extract_source_disabled
-    @capture_source = false
-    assert_equal(nil, extract_source(mock('exception')))
+    with_config(:'error_collector.capture_source' => false) do
+      error_collector = NewRelic::Agent::ErrorCollector.new
+      assert_equal(nil, error_collector.extract_source(mock('exception')))
+    end
   end
 
   def test_extract_source_with_source
-    self.expects(:sense_method).with('happy', 'source_extract').returns('THE SOURCE')
-    @capture_source = true
-    assert_equal('THE SOURCE', extract_source('happy'))
+    with_config(:'error_collector.capture_source' => true) do
+      error_collector = NewRelic::Agent::ErrorCollector.new
+      error_collector.expects(:sense_method).with('happy', 'source_extract').returns('THE SOURCE')
+      assert_equal('THE SOURCE', error_collector.extract_source('happy'))
+    end
   end
 
   def test_extract_stack_trace
