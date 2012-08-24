@@ -25,24 +25,17 @@ module NewRelic
         # lookup of exception class names to ignore.  Hash for fast access
         @ignore = {}
 
-        config = NewRelic::Control.instance.fetch('error_collector', {})
-
         @enabled = @config_enabled = Agent.config[:'error_collector.enabled']
           # config.fetch('enabled', true)
         @capture_source = Agent.config[:'error_collector.capture_source']
 
-        ignore_errors = config.fetch('ignore_errors', "")
+        ignore_errors = Agent.config[:'error_collector.ignore_errors']
         ignore_errors = ignore_errors.split(",") if ignore_errors.is_a? String
         ignore_errors.each { |error| error.strip! }
         ignore(ignore_errors)
         @lock = Mutex.new
       end
-      
-      # Helper method to get the NewRelic::Control.instance
-      def control
-        NewRelic::Control.instance
-      end
-      
+
       # Returns the error filter proc that is used to check if an
       # error should be reported. When given a block, resets the
       # filter to the provided block.  The define_method() is used to
@@ -60,7 +53,10 @@ module NewRelic
       # errors is an array of Exception Class Names
       #
       def ignore(errors)
-        errors.each { |error| @ignore[error] = true; log.debug("Ignoring errors of type '#{error}'") }
+        errors.each do |error|
+          @ignore[error] = true
+          log.debug("Ignoring errors of type '#{error}'")
+        end
       end
       
       # This module was extracted from the notice_error method - it is
@@ -119,7 +115,7 @@ module NewRelic
           {
             :request_uri => fetch_from_options(options, :uri, ''),
             :request_referer => fetch_from_options(options, :referer, ''),
-            :rails_root => control.root
+            :rails_root => NewRelic::Control.instance.root
           }
         end
         

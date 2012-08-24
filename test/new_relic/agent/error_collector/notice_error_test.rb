@@ -199,22 +199,21 @@ class NewRelic::Agent::ErrorCollector::NoticeErrorTest < Test::Unit::TestCase
   end
 
   def test_filtered_error_positive
-    @ignore = {'an_error' => true}
-    error = mocked_error
-    error_class = mock('error class')
-    error.expects(:class).returns(error_class)
-    error_class.expects(:name).returns('an_error')
-    assert filtered_error?(error)
+    with_error_collector_config(:'error_collector.ignore_errors' => 'an_error') do |error_collector|
+      error = mocked_error
+      error_class = mock('error class')
+      error.expects(:class).returns(error_class)
+      error_class.expects(:name).returns('an_error')
+      assert error_collector.filtered_error?(error)
+    end
   end
 
   def test_filtered_error_negative
-    @ignore = {}
     error = mocked_error
     error_class = mock('error class')
     error.expects(:class).returns(error_class)
     error_class.expects(:name).returns('an_error')
-    self.expects(:filtered_by_error_filter?).with(error).returns(false)
-    assert !filtered_error?(error)
+    assert !NewRelic::Agent::ErrorCollector.new.filtered_error?(error)
   end
 
   def test_filtered_by_error_filter_empty
@@ -259,7 +258,7 @@ class NewRelic::Agent::ErrorCollector::NoticeErrorTest < Test::Unit::TestCase
 
   def mocked_control
     fake_control = mock('control')
-    self.stubs(:control).returns(fake_control)
+    NewRelic::Control.stubs(:instance).returns(fake_control)
     fake_control
   end
 
