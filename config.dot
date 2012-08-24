@@ -44,12 +44,12 @@ digraph AgentEnabled {
   "[force_send]"
   "[disable_mobile_headers]"
   "[textmate]"
+  "[post_size_limit]"
 
   node[color=red]
   "{collect_traces}"
   "{transaction_tracer.enabled}"
   "{transaction_tracer.enabled}"
-  "{post_size_limit}"
   "{sync_startup}"
   "{send_data_on_exit}"
   "{high_security}"
@@ -74,7 +74,6 @@ digraph AgentEnabled {
   node[shape=box,color=orange]
   "Control#init_plugin"
   "Control#apdex_t"
-  "Control#post_size_limit"
   "Control#sync_startup"
   "Control#send_data_on_exit"
   "Control#validate_seed"
@@ -187,7 +186,6 @@ digraph AgentEnabled {
   "Control#init_plugin" -> "[disable_samplers]"
   "Control#should_log?" -> "[agent_enabled]" 
   "Control#apdex_t" -> "[apdex_t]"
-  "Control#post_size_limit" -> "{post_size_limit}"
   "Control#sync_startup" -> "{sync_startup}"
   "Control#send_data_on_exit" -> "{send_data_on_exit}"
   "Control#validate_seed" -> "{validate_seed}"
@@ -283,7 +281,7 @@ digraph AgentEnabled {
   "NewRelicService#initialize" -> "[timeout]"
   "NewRelicService#initialize" -> "[license_key]"
   "NewRelicService#initialize" -> "Control#server"
-  "NewRelicService#check_post_size" -> "Control#post_size_limit"
+  "NewRelicService#check_post_size" -> "[post_size_limit]"
   "NewRelicService#connect" -> "Control#server_from_host"
   "NewRelicService#send_request" -> "Control#http_connection"
 

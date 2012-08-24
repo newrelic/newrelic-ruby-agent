@@ -137,7 +137,7 @@ module NewRelic
       # than the limit configured in the control object
       def check_post_size(post_string)
         # TODO: define this as a config option on the server side
-        return if post_string.size < control.post_size_limit
+        return if post_string.size < Agent.config[:post_size_limit]
         log.warn "Tried to send too much data: #{post_string.size} bytes"
         raise PostTooBigException
       end

@@ -74,11 +74,6 @@ module NewRelic
         Agent.config[:apdex_t]
       end
       
-      # defaults to 2MiB
-      def post_size_limit
-        fetch('post_size_limit', 2 * 1024 * 1024)
-      end
-
       # Configuration option of the same name to indicate that we should connect
       # to New Relic synchronously on startup.  This means when the agent is loaded it
       # won't return without trying to set up the server connection at least once
