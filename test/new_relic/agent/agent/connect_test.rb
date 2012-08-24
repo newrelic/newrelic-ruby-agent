@@ -121,18 +121,17 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   end
 
   def test_log_seed_token
-    fake_control = mocked_control
-    fake_control.expects(:validate_seed).times(2).returns("many seeds")
-    fake_control.expects(:validate_token).once.returns("a token, man")
-    log.expects(:debug).with("Connecting with validation seed/token: many seeds/a token, man").once
-    log_seed_token
+    with_config(:validate_seed => 'many seeds', :validate_token => 'a token, man') do
+      log.expects(:debug).with("Connecting with validation seed/token: many seeds/a token, man").once
+      log_seed_token
+    end
   end
 
   def test_no_seed_token
-    fake_control = mocked_control
-    fake_control.expects(:validate_seed).once.returns(nil)
-    log.expects(:debug).never
-    log_seed_token
+    with_config(:validate_seed => false) do
+      log.expects(:debug).never
+      log_seed_token
+    end
   end
 
   def mocks_for_positive_environment_for_connect(value_for_control)
@@ -160,10 +159,10 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   end
 
   def test_validate_settings
-    control = mocked_control
-    control.expects(:validate_seed).once
-    control.expects(:validate_token).once
-    assert_equal({:seed => nil, :token => nil}, validate_settings)
+    with_config(:validate_seed => 'seed', :validate_token => 'token') do
+      assert_equal 'seed', NewRelic::Agent.instance.validate_settings[:seed]
+      assert_equal 'token', NewRelic::Agent.instance.validate_settings[:token]
+    end
   end
 
   def test_connect_settings

@@ -73,19 +73,7 @@ module NewRelic
       def apdex_t
         Agent.config[:apdex_t]
       end
-      
-      def validate_seed
-        self['validate_seed'] || ENV['NR_VALIDATE_SEED']
-      end
 
-      def validate_token
-        self['validate_token'] || ENV['NR_VALIDATE_TOKEN']
-      end
-
-      def log_file_path
-        fetch('log_file_path', 'log/')
-      end
-      
       def disable_backtrace_cleanup?
         fetch('disable_backtrace_cleanup')
       end

@@ -681,8 +681,8 @@ module NewRelic
           # should debug log that fact so that debug logs include a
           # clue that token authentication is what will be used
           def log_seed_token
-            if control.validate_seed
-              log.debug "Connecting with validation seed/token: #{control.validate_seed}/#{control.validate_token}"
+            if Agent.config[:validate_seed]
+              log.debug "Connecting with validation seed/token: #{Agent.config[:validate_seed]}/#{Agent.config[:validate_token]}"
             end
           end
 
@@ -698,8 +698,8 @@ module NewRelic
           # allowed to connect, rather than setting a unique hostname
           def validate_settings
             {
-              :seed => control.validate_seed,
-              :token => control.validate_token
+              :seed => Agent.config[:validate_seed],
+              :token => Agent.config[:validate_token]
             }
           end
 
