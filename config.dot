@@ -41,9 +41,9 @@ digraph AgentEnabled {
   "[log_file_path]"
   "[dispatcher]"
   "[force_send]"
+  "[disable_mobile_headers]"
 
   node[color=red]
-  "{disable_mobile_headers}"
   "{collect_traces}"
   "{transaction_tracer.enabled}"
   "{transaction_tracer.enabled}"
@@ -289,8 +289,7 @@ digraph AgentEnabled {
   "ErrorCollector#initialize" -> "[error_collector.ignore_errors]"
   "ErrorCollector#request_params_from_opts" -> "[capture_params]"
 
-  "ControllerInstrumentation#perform_action_with_newrelic_trace" -> "{disable_mobile_headers}"
-  "ControllerInstrumentation#perform_action_with_newrelic_trace" -> "Control#profiling?"
+  "ControllerInstrumentation#perform_action_with_newrelic_trace" -> "[disable_mobile_headers]"
 
   "NewRelicService#initialize" -> "[timeout]"
   "NewRelicService#initialize" -> "[license_key]"

@@ -9,7 +9,8 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
   
   def setup
     NewRelic::Agent.manual_start
-    NewRelic::Control.instance['disable_mobile_headers'] = false
+    config = {:disable_mobile_headers => false }
+    NewRelic::Agent.config.apply_config(config)
     @browser_monitoring_key = "fred"
     @episodes_file = "this_is_my_file"
     NewRelic::Agent.instance.instance_eval do
@@ -17,6 +18,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     end
     Thread.current[:last_metric_frame] = nil
     NewRelic::Agent::TransactionInfo.clear
+    NewRelic::Agent.config.remove_config(config)
   end
 
   def teardown

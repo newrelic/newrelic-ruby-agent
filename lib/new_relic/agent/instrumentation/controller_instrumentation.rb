@@ -270,7 +270,7 @@ module NewRelic
                   perform_action_without_newrelic_trace(*args)
                 end
                 if defined?(request) && request && defined?(response) &&
-                    response && !control.fetch('disable_mobile_headers', true)
+                    response && !Agent.config[:disable_mobile_headers]
                   NewRelic::Agent::BrowserMonitoring.insert_mobile_response_header(request, response)
                 end
                 result
