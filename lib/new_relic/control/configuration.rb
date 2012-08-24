@@ -116,10 +116,6 @@ module NewRelic
         fetch('send_data_on_exit', true)
       end
 
-      def dispatcher
-        (self['dispatcher'] && self['dispatcher'].to_sym) || @local_env.dispatcher
-      end
-
       def validate_seed
         self['validate_seed'] || ENV['NR_VALIDATE_SEED']
       end

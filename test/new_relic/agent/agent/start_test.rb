@@ -28,19 +28,19 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   end
 
   def test_log_dispatcher_positive
-    control = mocked_control
     log = mocked_log
-    control.expects(:dispatcher).returns('Y U NO SERVE WEBPAGE')
-    log.expects(:info).with("Dispatcher: Y U NO SERVE WEBPAGE")
-    log_dispatcher
+    with_config(:dispatcher => 'Y U NO SERVE WEBPAGE') do
+      log.expects(:info).with("Dispatcher: Y U NO SERVE WEBPAGE")
+      log_dispatcher
+    end
   end
 
   def test_log_dispatcher_negative
-    control = mocked_control
     log = mocked_log
-    control.expects(:dispatcher).returns('')
-    log.expects(:info).with("No dispatcher detected.")
-    log_dispatcher
+    with_config(:dispatcher => '') do
+      log.expects(:info).with("No dispatcher detected.")
+      log_dispatcher
+    end
   end
 
   def test_log_app_names
@@ -203,17 +203,17 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   end
 
   def test_using_forking_dispatcher_positive
-    control = mocked_control
-    control.expects(:dispatcher).returns(:passenger)
-    log = mocked_log
-    log.expects(:send).with(:info, "Connecting workers after forking.")
-    assert using_forking_dispatcher?
+    with_config(:dispatcher => :passenger) do
+      log = mocked_log
+      log.expects(:send).with(:info, "Connecting workers after forking.")
+      assert using_forking_dispatcher?
+    end
   end
 
   def test_using_forking_dispatcher_negative
-    control = mocked_control
-    control.expects(:dispatcher).returns(:frobnitz)
-    assert !using_forking_dispatcher?
+    with_config(:dispatcher => :frobnitz) do
+      assert !using_forking_dispatcher?
+    end
   end
 
   def test_log_unless_positive

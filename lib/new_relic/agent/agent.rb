@@ -214,7 +214,7 @@ module NewRelic
           # if litespeed, then ignore all future SIGUSR1 - it's
           # litespeed trying to shut us down
 
-          if control.dispatcher == :litespeed
+          if Agent.config[:dispatcher] == :litespeed
             Signal.trap("SIGUSR1", "IGNORE")
             Signal.trap("SIGTERM", "IGNORE")
           end
@@ -308,7 +308,7 @@ module NewRelic
           # debugging. When no debugger is present, logs this fact to
           # assist with proper dispatcher detection
           def log_dispatcher
-            dispatcher_name = control.dispatcher.to_s
+            dispatcher_name = Agent.config[:dispatcher].to_s
             return if log_if(dispatcher_name.empty?, :info, "No dispatcher detected.")
             log.info "Dispatcher: #{dispatcher_name}"
           end
@@ -412,7 +412,8 @@ module NewRelic
           # requests, we need to wait until the children are forked
           # before connecting, otherwise the parent process sends odd data
           def using_forking_dispatcher?
-            log_if([:passenger, :unicorn].include?(control.dispatcher), :info, "Connecting workers after forking.")
+            log_if([:passenger, :unicorn].include?(Agent.config[:dispatcher]),
+                   :info, "Connecting workers after forking.")
           end
 
           # Sanity-check the agent configuration and start the agent,

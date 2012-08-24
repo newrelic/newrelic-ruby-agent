@@ -36,6 +36,7 @@ digraph AgentEnabled {
   "[disable_samplers]"
   "[log_file_name]"
   "[log_file_path]"
+  "[dispatcher]"
 
   node[color=red]
   "{force_send}"
@@ -54,7 +55,6 @@ digraph AgentEnabled {
   "{sync_startup}"
   "{send_data_on_exit}"
   "{high_security}"
-  "{dispatcher}"
   "{validate_seed}"
   "{NR_VALIDATE_SEED}"
   "{validate_token}"
@@ -83,7 +83,6 @@ digraph AgentEnabled {
   "Control#post_size_limit"
   "Control#sync_startup"
   "Control#send_data_on_exit"
-  "Control#dispatcher"
   "Control#validate_seed"
   "Control#validate_token"
   "Control#disable_backtrace_cleanup?"
@@ -110,7 +109,6 @@ digraph AgentEnabled {
   "Config#app_names"
 
   node[color=black]
-  "LocalEnvironment#dispatcher"
   "LocalEnvironment#gather_ar_adapter_info"
   "LocalEnvironment#gather_environment_info"
 
@@ -118,6 +116,7 @@ digraph AgentEnabled {
   "Agent#after_fork"
   "Agent#disabled?"
   "Agent#shutdown"
+  "Agent#using_forking_dispatcher?"
   "Agent#has_license_key?"
   "Agent#correct_license_length"
   "Agent#apdex_f"
@@ -202,8 +201,6 @@ digraph AgentEnabled {
   "Control#post_size_limit" -> "{post_size_limit}"
   "Control#sync_startup" -> "{sync_startup}"
   "Control#send_data_on_exit" -> "{send_data_on_exit}"
-  "Control#dispatcher" -> "{dispatcher}"
-  "Control#dispatcher" -> "LocalEnvironment#dispatcher"
   "Control#validate_seed" -> "{validate_seed}"
   "Control#validate_seed" -> "{NR_VALIDATE_SEED}"
   "Control#validate_token" -> "{validate_token}"
@@ -252,7 +249,8 @@ digraph AgentEnabled {
   "Agent#after_fork" -> "[monitor_mode]"
   "Agent#disabled?" -> "[agent_enabled]"
   "Agent#shutdown" -> "{force_send}"
-  "Agent#shutdown" -> "Control#dispatcher"
+  "Agent#shutdown" -> "[dispatcher]"
+  "Agent#using_forking_dispatcher?" -> "[dispatcher]"
   "Agent#has_license_key?" -> "[license_key]"
   "Agent#correct_license_length" -> "[license_key]"
   "Agent#apdex_f" -> "Control#apdex_t"

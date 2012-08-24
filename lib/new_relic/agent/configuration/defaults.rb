@@ -4,14 +4,15 @@ module NewRelic
       DEFAULTS = {
         :config_path => File.join('config', 'newrelic.yml'),
 
-        :app_name => Proc.new { NewRelic::Control.instance.env },
+        :app_name   => Proc.new { NewRelic::Control.instance.env },
+        :dispatcher => Proc.new { NewRelic::Control.instance.local_env.dispatcher },
 
         :enabled         => true,
         :monitor_mode    => Proc.new { self[:enabled] },
         :agent_enabled   => Proc.new do
           self[:enabled] &&
           (self[:developer_mode] || self[:monitor_mode] || self[:monitor_daemons]) &&
-          !!NewRelic::Control.instance.dispatcher
+          !!NewRelic::Control.instance.local_env.dispatcher
         end,
         :developer_mode  => Proc.new { self[:developer] },
         :developer       => false,
