@@ -63,10 +63,6 @@ module NewRelic
         end
       end
 
-      def config
-        NewRelic::Control.instance.fetch('transaction_tracer', {})
-      end
-
       # Returns the current sample id, delegated from `builder`
       def current_sample_id
         b=builder

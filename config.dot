@@ -61,7 +61,6 @@ digraph AgentEnabled {
   node[shape=box,color=orange]
   "Control#init_plugin"
   "Control#apdex_t"
-  "Control#settings"
   "Control#api_server"
   "Control#proxy_server"
   "Control#server_from_host"
@@ -155,13 +154,10 @@ digraph AgentEnabled {
 #######
 
   "Control#init_plugin" -> "[agent_enabled]"
-  "Control#init_plugin" -> "Control#settings"
   "Control#init_plugin" -> "Control#setup_log"
   "Control#init_plugin" -> "[disable_samplers]"
   "Control#should_log?" -> "[agent_enabled]" 
   "Control#apdex_t" -> "[apdex_t]"
-  "Control#settings" -> "Config#app_names"
-  "Control#settings" -> "[multi_homed]"
   "Control#api_server" -> "[api_host]"
   "Control#api_server" -> "[api_port]"
   "Control#proxy_server" -> "[proxy_host]"
@@ -202,7 +198,6 @@ digraph AgentEnabled {
   "Agent#install_exit_handler" -> "[send_data_on_exit]"
   "Agent#log_app_names" -> "Config#app_names"
   "Agent#connect_settings" -> "Config#app_names"
-  "Agent#connect_settings" -> "Control#settings"
   "Agent#log_seed_token" -> "[validate_seed]"
   "Agent#log_seed_token" -> "[validate_token]"
   "Agent#validate_settings" -> "[validate_seed]"

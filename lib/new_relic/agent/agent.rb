@@ -689,7 +689,7 @@ module NewRelic
           # Checks whether we should send environment info, and if so,
           # returns the snapshot from the local environment
           def environment_for_connect
-            control['send_environment_info'] != false ? control.local_env.snapshot : []
+            Agent.config[:send_environment_info] ? Control.instance.local_env.snapshot : []
           end
 
           # These validation settings are used for cases where a

@@ -56,12 +56,6 @@ module NewRelic
 
         NewRelic::Agent::PipeChannelManager.listener.start if options.delete(:start_channel_listener)
 
-        # Clear out the settings, if they've already been loaded.  It may be that
-        # between calling init_plugin the first time and the second time, the env
-        # has been overridden
-        @settings = nil
-        settings
-        merge_options(options)
         if logger_override
           @log = logger_override
           # Try to grab the log filename

@@ -10,10 +10,6 @@ class NewRelic::Control::ConfigurationTest < Test::Unit::TestCase
     NewRelic::Control.instance.instance_variable_set '@log_file', nil
     @root = ::Rails::VERSION::MAJOR == 3 ? Rails.root : RAILS_ROOT
   end
-  
-  def teardown
-    NewRelic::Control.instance.settings.delete('log_file_path')
-  end
 
   def test_log_path_uses_default_if_not_set
     NewRelic::Control.instance.setup_log
@@ -25,9 +21,8 @@ class NewRelic::Control::ConfigurationTest < Test::Unit::TestCase
     Dir.stubs(:mkdir).returns(true)
     with_config(:log_file_path => 'lerg') do
       NewRelic::Control.instance.setup_log
-      assert_match(/\/lerg\/newrelic_agent.log/,
+      assert_match(/\/lerg\/newrelic_agent.log$/,
                    NewRelic::Control.instance.log_file)
-      NewRelic::Control.instance.settings.delete('log_file_path') # = nil
     end
   end
 

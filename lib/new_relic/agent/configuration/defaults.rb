@@ -21,17 +21,18 @@ module NewRelic
         :multi_homed     => false,
         :high_security   => false,
 
-        :host               => 'collector.newrelic.com',
-        :api_host           => 'rpm.newrelic.com',
-        :port               => Proc.new { self[:ssl] ? 443 : 80 },
-        :api_port           => Proc.new { self[:port] },
-        :ssl                => false,
-        :verify_certificate => false,
-        :sync_startup       => false,
-        :send_data_on_exit  => true,
-        :post_size_limit    => 2 * 1024 * 1024, # 2 megs
-        :timeout            => 2 * 60,          # 2 minutes
-        :force_send         => false,
+        :host                  => 'collector.newrelic.com',
+        :api_host              => 'rpm.newrelic.com',
+        :port                  => Proc.new { self[:ssl] ? 443 : 80 },
+        :api_port              => Proc.new { self[:port] },
+        :ssl                   => false,
+        :verify_certificate    => false,
+        :sync_startup          => false,
+        :send_data_on_exit     => true,
+        :post_size_limit       => 2 * 1024 * 1024, # 2 megs
+        :timeout               => 2 * 60,          # 2 minutes
+        :force_send            => false,
+        :send_environment_info => true,
 
         :log_file_name => 'newrelic_agent.log',
         :log_file_path => 'log/',

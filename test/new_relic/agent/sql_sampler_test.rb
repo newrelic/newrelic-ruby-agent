@@ -159,7 +159,6 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
       @sampler.harvest_slow_sql data
       sql_traces = @sampler.harvest
       assert_equal(nil, sql_traces[0].params[:explain_plan])
-      NewRelic::Control.instance['transaction_tracer'] = { 'explain_enabled' => true }
     end
   end
 

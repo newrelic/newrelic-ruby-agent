@@ -134,28 +134,19 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     end
   end
 
-  def mocks_for_positive_environment_for_connect(value_for_control)
-    control = mocked_control
-    control.expects(:'[]').with('send_environment_info').once.returns(value_for_control)
+  def test_environment_for_connect_positive
     fake_env = mock('local_env')
     fake_env.expects(:snapshot).once.returns("snapshot")
-    control.expects(:local_env).once.returns(fake_env)
-  end
-
-  def test_environment_for_connect_nil
-    mocks_for_positive_environment_for_connect(nil)
-    assert_equal 'snapshot', environment_for_connect
-  end
-
-  def test_environment_for_connect_positive
-    mocks_for_positive_environment_for_connect(true)
-    assert_equal 'snapshot', environment_for_connect
+    NewRelic::Control.instance.expects(:local_env).once.returns(fake_env)
+    with_config(:send_environment_info => true) do
+      assert_equal 'snapshot', environment_for_connect
+    end
   end
 
   def test_environment_for_connect_negative
-    control = mocked_control
-    control.expects(:'[]').with('send_environment_info').once.returns(false)
-    assert_equal [], environment_for_connect
+    with_config(:send_environment_info => false) do
+      assert_equal [], environment_for_connect
+    end
   end
 
   def test_validate_settings
@@ -360,17 +351,18 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
       'collect_errors' => true,
       'sample_rate' => 10
     }
-    NewRelic::Control.instance.settings['transaction_tracer'] = {'enabled' => true}
     self.expects(:log_connection!).with(config)
     self.expects(:configure_transaction_tracer!).with(true, 10)
     self.expects(:configure_error_collector!).with(true)
     @transaction_sampler = stub('transaction sampler', :configure! => true,
                                 :config => {})
-    @sql_sampler = stub('sql sampler', :configure! => true)    
-    finish_setup(config)
-    assert_equal 'fishsticks', @service.agent_id
-    assert_equal 'pasta sauce', @report_period
-    assert_equal 'tamales', @url_rules
+    @sql_sampler = stub('sql sampler', :configure! => true)
+    with_config(:'transaction_tracer.enabled' => true) do
+      finish_setup(config)
+      assert_equal 'fishsticks', @service.agent_id
+      assert_equal 'pasta sauce', @report_period
+      assert_equal 'tamales', @url_rules
+    end
   end
 
   def test_finish_setup_without_config
