@@ -53,15 +53,13 @@ digraph AgentEnabled {
   "[disable_backtrace_cleanup]"
   "[disable_activerecord_instrumentation]"
   "[disable_dj]"
+  "[capture_memcache_keys]"
+  "[disable_memcache_instrumentation]"
+  "[disable_view_instrumentation]"
+  "[disable_resque]"
 
   node[color=red]
   "{collect_traces}"
-  "{transaction_tracer.enabled}"
-  "{transaction_tracer.enabled}"
-  "{capture_memcache_keys}"
-  "{disable_memcache_instrumentation}"
-  "{disable_view_instrumentation}"
-  "{disable_resque}"
   "{slow_sql*}"
   "{error_collector*}"
   "{transaction_tracer*}"
@@ -290,12 +288,12 @@ digraph AgentEnabled {
 
   "DelayedJobInstrumentation#depends_on" -> "[disable_dj]"
 
-  "Memcache#memcache_key_snippet" -> "{capture_memcache_keys}"
-  "Memcache#depends_on" -> "{disable_memcache_instrumentation}"
+  "Memcache#memcache_key_snippet" -> "[capture_memcache_keys]"
+  "Memcache#depends_on" -> "[disable_memcache_instrumentation]"
 
-  "Rails::ActionController#depends_on" -> "{disable_view_instrumentation}"
-  "Rails3::ActionController#depends_on" -> "{disable_view_instrumentation}"
-  "Resque#depends_on" -> "{disable_resque}"
+  "Rails::ActionController#depends_on" -> "[disable_view_instrumentation]"
+  "Rails3::ActionController#depends_on" -> "[disable_view_instrumentation]"
+  "Resque#depends_on" -> "[disable_resque]"
 
   "DelayedJobSampler#initialize" -> "[disable_dj]"
   "DelayedJobInjection#depends_on" -> "[disable_dj]"

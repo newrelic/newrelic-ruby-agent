@@ -2,7 +2,7 @@ DependencyDetection.defer do
   @name = :rails21_view
   
   depends_on do
-    !NewRelic::Control.instance['disable_view_instrumentation'] &&
+    !NewRelic::Agent.config[:disable_view_instrumentation] &&
     defined?(ActionController) && defined?(ActionController::Base) && defined?(ActionView::PartialTemplate) && defined?(ActionView::Template) &&
     defined?(Rails::VERSION::STRING) && Rails::VERSION::STRING =~ /^2\.1\./   # Rails 2.1 &&
   end
@@ -26,7 +26,7 @@ DependencyDetection.defer do
   @name = :old_rails_view
   
   depends_on do
-    !NewRelic::Control.instance['disable_view_instrumentation'] &&
+    !NewRelic::Agent.config[:disable_view_instrumentation] &&
     defined?(ActionController) && defined?(ActionController::Base) &&
     defined?(Rails::VERSION::STRING) && Rails::VERSION::STRING =~ /^(1\.|2\.0)/  # Rails 1.* - 2.0 
   end
@@ -47,7 +47,7 @@ DependencyDetection.defer do
   @name = :rails23_view
   
   depends_on do
-    !NewRelic::Control.instance['disable_view_instrumentation'] &&
+    !NewRelic::Agent.config[:disable_view_instrumentation] &&
     defined?(ActionView) && defined?(ActionView::Template) && defined?(ActionView::RenderablePartial) &&
     defined?(Rails::VERSION::STRING) && Rails::VERSION::STRING =~ /^2\.[23]/ 
   end

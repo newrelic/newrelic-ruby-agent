@@ -32,7 +32,7 @@ module NewRelic
          end      
         end
         def memcache_key_snippet(method_name)
-          return "" unless NewRelic::Control.instance['capture_memcache_keys']
+          return "" unless NewRelic::Agent.config[:capture_memcache_keys]
           "NewRelic::Agent.instance.transaction_sampler.notice_nosql(args.first.inspect, (Time.now - t0).to_f) rescue nil"
         end
       end
@@ -44,7 +44,7 @@ DependencyDetection.defer do
   @name = :memcache
   
   depends_on do
-    !NewRelic::Control.instance['disable_memcache_instrumentation']
+    !NewRelic::Agent.config[:disable_memcache_instrumentation]
   end
 
   depends_on do

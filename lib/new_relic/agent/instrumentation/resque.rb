@@ -2,7 +2,7 @@ DependencyDetection.defer do
   @name = :resque
   
   depends_on do
-    defined?(::Resque::Job) && !NewRelic::Control.instance['disable_resque']  &&
+    defined?(::Resque::Job) && !NewRelic::Agent.config[:disable_resque]  &&
       !NewRelic::LanguageSupport.using_version?('1.9.1')
   end
 
