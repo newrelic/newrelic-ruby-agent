@@ -46,7 +46,6 @@ module NewRelic
         :disable_mobile_headers               => true,
 
         :capture_memcache_keys => false,
-        :multi_threaded        => false,
         :textmate              => false,
 
         :'transaction_tracer.enabled'               => true,

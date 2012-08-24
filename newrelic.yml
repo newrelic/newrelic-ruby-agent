@@ -209,10 +209,6 @@ common: &default_settings
   # overhead slightly on every memcached call, and can have security
   # implications if your memcached keys are sensitive
   # capture_memcache_keys: true
-  
-  # Certain types of instrumentation such as GC stats will not work if 
-  # you are running multi-threaded.  Please let us know.
-  # multi_threaded = false
 
 # Application Environments
 # ------------------------------------------

@@ -74,10 +74,6 @@ module NewRelic
         Agent.config[:apdex_t]
       end
       
-      def multi_threaded?
-        fetch('multi_threaded')
-      end
-
       def disable_serialization?
         fetch('disable_serialization', true)
       end
