@@ -74,13 +74,6 @@ module NewRelic
         Agent.config[:apdex_t]
       end
       
-      # whether we should install the
-      # NewRelic::Rack::BrowserMonitoring middleware automatically on
-      # Rails applications
-      def browser_monitoring_auto_instrument?
-        fetch('browser_monitoring', {}).fetch('auto_instrument', true)
-      end
-
       def multi_threaded?
         fetch('multi_threaded')
       end

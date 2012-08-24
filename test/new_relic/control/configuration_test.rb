@@ -17,7 +17,7 @@ class NewRelic::Control::ConfigurationTest < Test::Unit::TestCase
 
   def test_log_path_uses_default_if_not_set
     NewRelic::Control.instance.setup_log
-    assert_equal(File.expand_path("log/newrelic_agent.log"),
+    assert_match(/log\/newrelic_agent.log$/,
                  NewRelic::Control.instance.log_file)
   end
 
@@ -43,22 +43,21 @@ class NewRelic::Control::ConfigurationTest < Test::Unit::TestCase
     middleware = stub('middleware config')
     config = stub('rails config', :middleware => middleware)
     middleware.expects(:use).with(NewRelic::Rack::BrowserMonitoring)
-    NewRelic::Control.instance['browser_monitoring'] = { 'auto_instrument' => true }
     NewRelic::Control.instance.instance_eval { @browser_monitoring_installed = false }
-
-    NewRelic::Control.instance.install_browser_monitoring(config)
+    with_config(:'browser_monitoring.auto_instrument' => true) do
+      NewRelic::Control.instance.install_browser_monitoring(config)
+    end
   end
 
   def test_install_browser_monitoring_should_not_install_when_not_configured
     middleware = stub('middleware config')
     config = stub('rails config', :middleware => middleware)
     middleware.expects(:use).never
-    NewRelic::Control.instance['browser_monitoring'] = { 'auto_instrument' => false }
     NewRelic::Control.instance.instance_eval { @browser_monitoring_installed = false }
     
-    NewRelic::Control.instance.install_browser_monitoring(config)
-
-    NewRelic::Control.instance['browser_monitoring'] = { 'auto_instrument' => true }
+    with_config(:'browser_monitoring.auto_instrument' => false) do
+      NewRelic::Control.instance.install_browser_monitoring(config)
+    end
   end
 
   def test_data_serialization_default_off

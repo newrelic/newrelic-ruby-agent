@@ -33,16 +33,17 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     def controller.newrelic_metric_path; "foo"; end
     controller.extend ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
     controller.extend ::NewRelic::Agent::BrowserMonitoring
-    NewRelic::Control.instance['browser_monitoring'] = { 'auto_instrument' => false }
 
-    controller.perform_action_with_newrelic_trace(:index)
-    first_request_start_time = controller.send(:browser_monitoring_start_time)
-    controller.perform_action_with_newrelic_trace(:index)
-    second_request_start_time = controller.send(:browser_monitoring_start_time)
+    with_config(:'browser_monitoring.auto_instrument' => false) do
+      controller.perform_action_with_newrelic_trace(:index)
+      first_request_start_time = controller.send(:browser_monitoring_start_time)
+      controller.perform_action_with_newrelic_trace(:index)
+      second_request_start_time = controller.send(:browser_monitoring_start_time)
 
-    # assert that these aren't the same time object
-    # the start time should be reinitialized each request to the controller
-    assert !(first_request_start_time.equal? second_request_start_time)
+      # assert that these aren't the same time object
+      # the start time should be reinitialized each request to the controller
+      assert !(first_request_start_time.equal? second_request_start_time)
+    end
   end
 
   def test_browser_timing_header_with_no_beacon_configuration

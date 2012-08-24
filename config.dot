@@ -19,6 +19,7 @@ digraph AgentEnabled {
   "[error_collector.capture_source]"
   "[error_collector.enabled]"
   "[error_collector.ignore_errors]"
+  "[browser_monitoring.auto_instrument]"
   "[license_key]"
   "[ssl]"
   "[verify_certificate]"
@@ -47,7 +48,6 @@ digraph AgentEnabled {
   "{collect_traces}"
   "{transaction_tracer.enabled}"
   "{transaction_tracer.enabled}"
-  "{browser_monitoring.auto_instrument}"
   "{multi_threaded}"
   "{disable_serialization}"
   "{textmate}"
@@ -76,7 +76,6 @@ digraph AgentEnabled {
   node[shape=box,color=orange]
   "Control#init_plugin"
   "Control#apdex_t"
-  "Control#browser_monitoring_auto_instrument?"
   "Control#multi_threaded?"
   "Control#disable_serialization?"
   "Control#use_textmate?"
@@ -103,7 +102,6 @@ digraph AgentEnabled {
   "Control#should_log?"
   "Control#log!"
   "Control#env"
-  "Control#profiling?"
 
   node[color=green]
   "Config#app_names"
@@ -194,7 +192,6 @@ digraph AgentEnabled {
   "Control#init_plugin" -> "[disable_samplers]"
   "Control#should_log?" -> "[agent_enabled]" 
   "Control#apdex_t" -> "[apdex_t]"
-  "Control#browser_monitoring_auto_instrument?" -> "{browser_monitoring.auto_instrument}"
   "Control#multi_threaded?" -> "{multi_threaded}"
   "Control#disable_serialization?" -> "{disable_serialization}"
   "Control#use_textmate?" -> "{textmate}"
@@ -342,7 +339,7 @@ digraph AgentEnabled {
   "TransactionSampleBuilder#initialize" -> "[transaction_tracer.limit_segments]"
   "TransactionSampleBuilder#set_transaction_info" -> "[capture_params]"
 
-  "Rails#install_browser_monitoring" -> "Control#browser_monitoring_auto_instrument?"
+  "Rails#install_browser_monitoring" -> "[browser_monitoring.auto_instrument]"
   "Rails#log!" -> "Control#should_log?"
   "Rails3#log!" -> "Control#should_log?"
 
