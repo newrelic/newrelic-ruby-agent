@@ -17,6 +17,7 @@ digraph AgentEnabled {
   "[transaction_tracer.random_sample]"
   "[transaction_tracer.enabled]"
   "[error_collector.capture_source]"
+  "[error_collector.enabled]"
   "[license_key]"
   "[ssl]"
   "[verify_certificate]"
@@ -41,7 +42,6 @@ digraph AgentEnabled {
   "[force_send]"
 
   node[color=red]
-  "{error_collector.enabled}"
   "{error_collector.ignore_errors}"
   "{disable_mobile_headers}"
   "{collect_traces}"
@@ -284,7 +284,7 @@ digraph AgentEnabled {
   "Rails#init_config" -> "[agent_enabled]"
   "Rails#init_config" -> "[developer_mode]"
 
-  "ErrorCollector#initialize" -> "{error_collector.enabled}"
+  "ErrorCollector#initialize" -> "[error_collector.enabled]"
   "ErrorCollector#initialize" -> "[error_collector.capture_source]"
   "ErrorCollector#initialize" -> "{error_collector.ignore_errors}"
   "ErrorCollector#request_params_from_opts" -> "[capture_params]"

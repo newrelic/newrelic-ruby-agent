@@ -27,7 +27,8 @@ module NewRelic
 
         config = NewRelic::Control.instance.fetch('error_collector', {})
 
-        @enabled = @config_enabled = config.fetch('enabled', true)
+        @enabled = @config_enabled = Agent.config[:'error_collector.enabled']
+          # config.fetch('enabled', true)
         @capture_source = Agent.config[:'error_collector.capture_source']
 
         ignore_errors = config.fetch('ignore_errors', "")
