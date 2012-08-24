@@ -70,7 +70,7 @@ module NewRelic::DeveloperModeHelper
     rescue
       # catch all other exceptions.  We're going to create an invalid link below, but that's okay.
     end
-    if using_textmate?
+    if NewRelic::Agent.config[:textmate]
       "txmt://open?url=file://#{file}&line=#{line}"
     else
       "show_source?file=#{file}&amp;line=#{line}&amp;anchor=selected_line"
@@ -105,7 +105,7 @@ module NewRelic::DeveloperModeHelper
 
   # write a link to the source for a trace
   def link_to_source(trace)
-    image_url = 'file/images/' + (using_textmate? ? "textmate.png" : "file_icon.png")
+    image_url = 'file/images/' + (NewRelic::Agent.config[:textmate] ? "textmate.png" : "file_icon.png")
 
     link_to "<img src=#{image_url} alt=\"View Source\" title=\"View Source\"/>", url_for_source(application_caller(trace))
   end
@@ -238,11 +238,6 @@ module NewRelic::DeveloperModeHelper
       return nil
     end
   end
-
-  def using_textmate?
-    NewRelic::Control.instance.use_textmate?
-  end
-
 
   def render_segment_details(segment, depth=0)
     @detail_segment_count ||= 0

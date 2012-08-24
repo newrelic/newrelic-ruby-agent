@@ -43,12 +43,12 @@ digraph AgentEnabled {
   "[dispatcher]"
   "[force_send]"
   "[disable_mobile_headers]"
+  "[textmate]"
 
   node[color=red]
   "{collect_traces}"
   "{transaction_tracer.enabled}"
   "{transaction_tracer.enabled}"
-  "{textmate}"
   "{post_size_limit}"
   "{sync_startup}"
   "{send_data_on_exit}"
@@ -74,7 +74,6 @@ digraph AgentEnabled {
   node[shape=box,color=orange]
   "Control#init_plugin"
   "Control#apdex_t"
-  "Control#use_textmate?"
   "Control#post_size_limit"
   "Control#sync_startup"
   "Control#send_data_on_exit"
@@ -188,7 +187,6 @@ digraph AgentEnabled {
   "Control#init_plugin" -> "[disable_samplers]"
   "Control#should_log?" -> "[agent_enabled]" 
   "Control#apdex_t" -> "[apdex_t]"
-  "Control#use_textmate?" -> "{textmate}"
   "Control#post_size_limit" -> "{post_size_limit}"
   "Control#sync_startup" -> "{sync_startup}"
   "Control#send_data_on_exit" -> "{send_data_on_exit}"

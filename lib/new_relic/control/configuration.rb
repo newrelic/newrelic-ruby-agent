@@ -73,11 +73,6 @@ module NewRelic
       def apdex_t
         Agent.config[:apdex_t]
       end
-
-      # True if we should view files in textmate
-      def use_textmate?
-        fetch('textmate')
-      end
       
       # defaults to 2MiB
       def post_size_limit
