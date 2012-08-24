@@ -74,12 +74,6 @@ module NewRelic
         Agent.config[:apdex_t]
       end
       
-      # Configuration option of the same name to indicate that we should flush
-      # data to the server on exiting.  Defaults to true.
-      def send_data_on_exit
-        fetch('send_data_on_exit', true)
-      end
-
       def validate_seed
         self['validate_seed'] || ENV['NR_VALIDATE_SEED']
       end

@@ -97,8 +97,6 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   private :at_exit
 
   def test_install_exit_handler_positive
-    control = mocked_control
-    control.expects(:send_data_on_exit).returns(true)
     NewRelic::LanguageSupport.expects(:using_engine?).with('rbx').returns(false)
     NewRelic::LanguageSupport.expects(:using_engine?).with('jruby').returns(false)
     self.expects(:using_sinatra?).returns(false)
@@ -106,27 +104,30 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
     # test the shutdown logic. It's somewhat unfortunate, but we can't
     # kill the interpreter during a test.
     self.expects(:shutdown)
-    install_exit_handler
+    with_config(:send_data_on_exit => true) do
+      install_exit_handler
+    end
   end
 
   def test_install_exit_handler_negative
-    control = mocked_control
-    control.expects(:send_data_on_exit).returns(false)
-    install_exit_handler
+    with_config(:send_data_on_exit => false) do
+      install_exit_handler
+    end
+    # should not raise excpetion
   end
 
   def test_install_exit_handler_weird_ruby
-    control = mocked_control
-    control.expects(:send_data_on_exit).times(3).returns(true)
-    NewRelic::LanguageSupport.expects(:using_engine?).with('rbx').returns(false)
-    NewRelic::LanguageSupport.expects(:using_engine?).with('jruby').returns(false)
-    self.expects(:using_sinatra?).returns(true)
-    install_exit_handler
-    NewRelic::LanguageSupport.expects(:using_engine?).with('rbx').returns(false)
-    NewRelic::LanguageSupport.expects(:using_engine?).with('jruby').returns(true)
-    install_exit_handler
-    NewRelic::LanguageSupport.expects(:using_engine?).with('rbx').returns(true)
-    install_exit_handler
+    with_config(:send_data_one_exit => true) do
+      NewRelic::LanguageSupport.expects(:using_engine?).with('rbx').returns(false)
+      NewRelic::LanguageSupport.expects(:using_engine?).with('jruby').returns(false)
+      self.expects(:using_sinatra?).returns(true)
+      install_exit_handler
+      NewRelic::LanguageSupport.expects(:using_engine?).with('rbx').returns(false)
+      NewRelic::LanguageSupport.expects(:using_engine?).with('jruby').returns(true)
+      install_exit_handler
+      NewRelic::LanguageSupport.expects(:using_engine?).with('rbx').returns(true)
+      install_exit_handler
+    end
   end
 
   def test_notify_log_file_location_positive

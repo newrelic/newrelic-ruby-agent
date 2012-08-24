@@ -345,7 +345,7 @@ module NewRelic
           # behavior of at_exit blocks to make sure it runs last, by
           # doing an at_exit within an at_exit block.
           def install_exit_handler
-            if control.send_data_on_exit && !weird_ruby?
+            if Agent.config[:send_data_on_exit] && !weird_ruby?
               # Our shutdown handler needs to run after other shutdown handlers
               at_exit { at_exit { shutdown } }
             end
