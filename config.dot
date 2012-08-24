@@ -50,12 +50,12 @@ digraph AgentEnabled {
   "[high_security]"
   "[validate_seed]"
   "[validate_token]"
+  "[disable_backtrace_cleanup]"
 
   node[color=red]
   "{collect_traces}"
   "{transaction_tracer.enabled}"
   "{transaction_tracer.enabled}"
-  "{disable_backtrace_cleanup}"
   "{slow_sql.enabled}"
   "{skip_ar_instrumentation}"
   "{disable_activerecord_instrumentation}"
@@ -72,7 +72,6 @@ digraph AgentEnabled {
   node[shape=box,color=orange]
   "Control#init_plugin"
   "Control#apdex_t"
-  "Control#disable_backtrace_cleanup?"
   "Control#has_slow_sql_config?"
   "Control#settings"
   "Control#api_server"
@@ -180,7 +179,6 @@ digraph AgentEnabled {
   "Control#init_plugin" -> "[disable_samplers]"
   "Control#should_log?" -> "[agent_enabled]" 
   "Control#apdex_t" -> "[apdex_t]"
-  "Control#disable_backtrace_cleanup?" -> "{disable_backtrace_cleanup}"
   "Control#has_slow_sql_config?" -> "{slow_sql.enabled}"
   "Control#settings" -> "Config#app_names"
   "Control#settings" -> "[multi_homed]"
@@ -320,7 +318,7 @@ digraph AgentEnabled {
   "Rails#log!" -> "Control#should_log?"
   "Rails3#log!" -> "Control#should_log?"
 
-  "CollectionHelper#strip_nr_from_backtrace" -> "Control#disable_backtrace_cleanup?"
+  "CollectionHelper#strip_nr_from_backtrace" -> "[disable_backtrace_cleanup]"
 
   "Deployments#initialize" -> "Config#app_names"
   "Deployments#initialize" -> "Control#env"

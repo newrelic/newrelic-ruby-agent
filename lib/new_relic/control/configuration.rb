@@ -74,10 +74,6 @@ module NewRelic
         Agent.config[:apdex_t]
       end
 
-      def disable_backtrace_cleanup?
-        fetch('disable_backtrace_cleanup')
-      end
-
       def has_slow_sql_config?
         self['slow_sql'] && self['slow_sql'].has_key?('enabled')
       end

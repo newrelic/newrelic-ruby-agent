@@ -118,14 +118,13 @@ class NewRelic::CollectionHelperTest < Test::Unit::TestCase
   end
 
   def test_disabled_strip_backtrace
-    NewRelic::Control.instance['disable_backtrace_cleanup'] = true
-    clean_trace = strip_nr_from_backtrace(mock_backtrace)
-    assert_equal(1, clean_trace.grep(/new_relic/).size,
-            "should not remove instances of new relic from backtrace but got: #{clean_trace.join("\n")}")
-    assert_equal(1, clean_trace.grep(/_trace/).size, 
+    with_config(:disable_backtrace_cleanup => true) do
+      clean_trace = strip_nr_from_backtrace(mock_backtrace)
+      assert_equal(1, clean_trace.grep(/new_relic/).size,
+                   "should not remove instances of new relic from backtrace but got: #{clean_trace.join("\n")}")
+      assert_equal(1, clean_trace.grep(/_trace/).size,
                    "should not remove trace method tags from method names but got: #{clean_trace.join("\n")}")
-    #       assert (clean_trace.grep(/find/).size >= 3), "should see at least three frames with 'find' in them (#{e}): \n#{clean_trace.join("\n")}"
-    NewRelic::Control.instance['disable_backtrace_cleanup'] = false
+    end
   end
   
   private 
