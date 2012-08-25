@@ -146,4 +146,16 @@ class NewRelic::Agent::DatabaseTest < Test::Unit::TestCase
 
     NewRelic::Agent::Database::Obfuscator.instance.reset
   end
+
+  def test_close_connections_closes_all_held_db_connections
+    foo_connection = mock('foo connection')
+    bar_connection = mock('bar connection')
+    NewRelic::Agent::Database::ConnectionManager.instance.instance_eval do
+      @connections = { :foo => foo_connection, :bar => bar_connection }      
+    end
+    foo_connection.expects(:disconnect!)
+    bar_connection.expects(:disconnect!)
+    
+    NewRelic::Agent::Database.close_connections
+  end
 end

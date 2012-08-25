@@ -64,7 +64,7 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
     wl = mock('worker loop')
     NewRelic::Agent::WorkerLoop.expects(:new).returns(wl)
     wl.expects(:run).with(30).yields
-    self.expects(:save_or_transmit_data)
+    self.expects(:transmit_data)
     create_and_run_worker_loop
   end
 

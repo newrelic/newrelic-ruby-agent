@@ -245,11 +245,7 @@ module NewRelic
       end
       
       def prepare_to_send
-        begin
-          params[:explain_plan] = @slow_sql.explain if need_to_explain?
-        ensure
-          NewRelic::Agent::Database.close_connections
-        end
+        params[:explain_plan] = @slow_sql.explain if need_to_explain?
         @sql = @slow_sql.obfuscate if need_to_obfuscate?
       end
       

@@ -72,6 +72,10 @@ module NewRelic
           def call_count
             ::GC.collections
           end
+
+          def reset
+            ::GC.clear_stats
+          end
         end
         
         class Ruby19 < Profiler

@@ -1,4 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
+require 'ostruct'
+
 module NewRelic
   class MainAgentTest < Test::Unit::TestCase
     
@@ -22,6 +24,50 @@ module NewRelic
       mock_agent.expects(:after_fork).with({})
       NewRelic::Agent.after_fork
     end
+
+    def test_after_fork_sets_forked_flag
+      agent = NewRelic::Agent::Agent.new
+      assert !agent.forked?
+      agent.after_fork
+
+      assert agent.forked?
+    end
+    
+
+    if NewRelic::LanguageSupport.can_fork? &&
+        !NewRelic::LanguageSupport.using_version?('1.9.1')
+      def test_timeslice_harvest_with_after_fork_report_to_channel
+        NewRelic::Control.instance.stubs(:agent_enabled?).returns(true)
+        NewRelic::Control.instance.stubs(:monitor_mode?).returns(true)
+        
+        NewRelic::Agent::Agent.instance.service = NewRelic::FakeService.new
+        NewRelic::Agent.shutdown # make sure the agent is not already started
+        NewRelic::Agent.manual_start(:license_key => ('1234567890' * 4),
+                                     :start_channel_listener => true)
+        
+        metric = 'Custom/test/method'
+        NewRelic::Agent.instance.stats_engine.get_stats_no_scope(metric) \
+          .record_data_point(1.0)
+        
+        # ensure that cached metric ids don't interfere with metric merging
+        NewRelic::Agent.agent.instance_variable_set(:@metric_ids,
+                                    {NewRelic::MetricSpec.new('Instance/Busy') => 1})
+        
+        NewRelic::Agent::PipeChannelManager.listener.close_all_pipes
+        NewRelic::Agent.register_report_channel(:agent_test) # before fork
+        pid = Process.fork do
+          NewRelic::Agent.after_fork(:report_to_channel => :agent_test)
+          NewRelic::Agent.agent.stats_engine.get_stats_no_scope(metric) \
+            .record_data_point(2.0)
+        end
+        Process.wait(pid)
+        NewRelic::Agent::PipeChannelManager.listener.stop
+        
+        engine = NewRelic::Agent.agent.stats_engine
+        assert_equal(3.0, engine.lookup_stats(metric).total_call_time)
+        assert_equal(2, engine.lookup_stats(metric).call_count)
+      end
+    end
     
     def test_reset_stats
       mock_agent = mocked_agent
@@ -39,6 +85,15 @@ module NewRelic
       mock_control = mocked_control
       mock_control.expects(:init_plugin).with({:agent_enabled => true, :sync_startup => false})
       NewRelic::Agent.manual_start(:sync_startup => false)
+    end
+
+    def test_manual_start_starts_channel_listener
+      NewRelic::Agent::PipeChannelManager.listener.stop
+      NewRelic::Agent.agent.service = NewRelic::FakeService.new
+      NewRelic::Agent.manual_start(:start_channel_listener => true)
+      assert NewRelic::Agent::PipeChannelManager.listener.started?
+      NewRelic::Agent::PipeChannelManager.listener.stop
+      NewRelic::Agent.shutdown
     end
 
     def test_logger
@@ -150,26 +205,14 @@ module NewRelic
     def test_instance
       assert_equal(NewRelic::Agent.agent, NewRelic::Agent.instance, "should return the same agent for both identical methods")
     end
-
-    def test_load_data_should_disable_serialization_if_an_error_is_encountered
-      NewRelic::Control.instance['disable_serialization'] = false
-      NewRelic::DataSerialization.stubs(:should_send_data?).returns(false)
-      NewRelic::Agent.stubs(:save_data).raises(Errno::EACCES)
-      begin
-        NewRelic::Agent.instance.send(:save_or_transmit_data)
-      rescue Errno::EACCES; end
-      # should be true
-      assert(NewRelic::Control.instance['disable_serialization'])
-      NewRelic::Control.instance['disable_serialization'] = false
+    
+    def test_register_report_channel
+      NewRelic::Agent.register_report_channel(:channel_id)
+      assert NewRelic::Agent::PipeChannelManager.channels[:channel_id] \
+        .kind_of?(NewRelic::Agent::PipeChannelManager::Pipe)
+      NewRelic::Agent::PipeChannelManager.listener.close_all_pipes
     end
-
-    def test_load_data_should_not_write_files_when_serialization_disabled
-      NewRelic::Control.instance['disable_serialization'] = true
-      NewRelic::DataSerialization.expects(:read_and_write_to_file).never
-      NewRelic::Agent.load_data
-      NewRelic::Control.instance['disable_serialization'] = false
-    end
-
+    
     private
 
     def mocked_agent
@@ -177,9 +220,21 @@ module NewRelic
       NewRelic::Agent.stubs(:agent).returns(agent)
       agent
     end
-
+    
     def mocked_control
-      control = mock('control')
+      server = NewRelic::Control::Server.new('localhost', 3000)
+      control = OpenStruct.new(:license_key => 'abcdef',
+                               :server => server)
+      control.instance_eval do
+        def [](key)
+          nil
+        end
+        
+        def fetch(k,d)
+          nil
+        end
+      end
+
       NewRelic::Control.stubs(:instance).returns(control)
       control
     end

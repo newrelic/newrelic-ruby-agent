@@ -74,11 +74,4 @@ class NewRelic::Control::ConfigurationTest < Test::Unit::TestCase
     DependencyDetection.send(:class_variable_set, '@@items', [])
     assert NewRelic::Control.instance.disable_serialization?
   end
-
-  def test_data_serialization_default_on_when_using_resque
-    DependencyDetection.defer { @name = :resque }
-    DependencyDetection.dependency_by_name(:resque).executed!
-    assert !NewRelic::Control.instance.disable_serialization?
-    DependencyDetection.send(:class_variable_set, '@@items', [])
-  end
 end

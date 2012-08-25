@@ -1,5 +1,6 @@
+require 'forwardable'
 require 'new_relic/control'
-require 'new_relic/data_serialization'
+
 # = New Relic Ruby Agent
 #
 # New Relic is a performance monitoring application for applications
@@ -58,7 +59,8 @@ module NewRelic
   # support at New Relic for help.
   module Agent
     extend self
-
+    extend Forwardable
+    
     require 'new_relic/version'
     require 'new_relic/local_environment'
     require 'new_relic/stats'
@@ -86,6 +88,7 @@ module NewRelic
     require 'new_relic/agent/busy_calculator'
     require 'new_relic/agent/sampler'
     require 'new_relic/agent/database'
+    require 'new_relic/agent/pipe_channel_manager'
     require 'new_relic/agent/transaction_info'
 
     require 'new_relic/agent/instrumentation/controller_instrumentation'
@@ -93,7 +96,7 @@ module NewRelic
     require 'new_relic/agent/samplers/cpu_sampler'
     require 'new_relic/agent/samplers/memory_sampler'
     require 'new_relic/agent/samplers/object_sampler'
-    require 'new_relic/agent/samplers/delayed_job_lock_sampler'
+    require 'new_relic/agent/samplers/delayed_job_sampler'
     require 'set'
     require 'thread'
     require 'resolv'
@@ -152,7 +155,7 @@ module NewRelic
     # a standard output logger is returned.
     def logger
       control = NewRelic::Control.instance(false)
-      if control
+      if control && control.log
         control.log
       else
         require 'logger'
@@ -177,6 +180,9 @@ module NewRelic
     #
     def manual_start(options={})
       raise "Options must be a hash" unless Hash === options
+      if options[:start_channel_listener]
+        NewRelic::Agent::PipeChannelManager.listener.start
+      end
       NewRelic::Control.instance.init_plugin({ :agent_enabled => true, :sync_startup => true }.merge(options))
     end
 
@@ -215,45 +221,6 @@ module NewRelic
     # and kills the background thread.
     def shutdown(options={})
       agent.shutdown(options)
-    end
-    
-    # a method used to serialize short-running processes to disk, so
-    # we don't incur the overhead of reporting to the server for every
-    # fork/invocation of a small job.
-    #
-    # Functionally, this loads the data from the file into the agent
-    # (to avoid losing data by overwriting) and then serializes the
-    # agent data to the file again. See also #load_data
-    def save_data
-      NewRelic::DataSerialization.read_and_write_to_file do |old_data|
-        agent.merge_data_from(old_data)
-        agent.serialize
-      end
-    end
-    
-    # used to load data from the disk during the harvest cycle to send
-    # it. This method also clears the file so data should never be
-    # sent more than once.
-
-    # Note that only one transaction trace will be sent even if many
-    # are serialized, since the slowest is sent.
-    #
-    # See also the complement to this method, #save_data - used when a
-    # process is shutting down
-    def load_data
-      if !NewRelic::Control.instance['disable_serialization']
-        NewRelic::DataSerialization.read_and_write_to_file do |old_data|
-          agent.merge_data_from(old_data)
-          nil # return nil so nothing is written to the file
-        end
-        NewRelic::DataSerialization.update_last_sent!
-      end
-      
-      {
-        :metrics => agent.stats_engine.metrics.length,
-        :traces => agent.unsent_traces_size,
-        :errors => agent.unsent_errors_size
-      }
     end
 
     # Add instrumentation files to the agent.  The argument should be
@@ -462,6 +429,7 @@ module NewRelic
     def browser_timing_footer
       agent.browser_timing_footer
     end
-
+    
+    def_delegator :'NewRelic::Agent::PipeChannelManager', :register_report_channel
   end
 end

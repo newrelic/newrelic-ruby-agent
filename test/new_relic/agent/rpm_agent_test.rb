@@ -83,7 +83,9 @@ class NewRelic::Agent::RpmAgentTest < Test::Unit::TestCase # ActiveSupport::Test
     should "send_timeslice_data" do
       # this test fails due to a rubinius bug
       return if NewRelic::LanguageSupport.using_engine?('rbx')
-      @agent.expects(:invoke_remote).returns({NewRelic::MetricSpec.new("/A/b/c") => 1, NewRelic::MetricSpec.new("/A/b/c", "/X") => 2, NewRelic::MetricSpec.new("/A/b/d") => 3 }.to_a)
+      @agent.service.expects(:metric_data).returns({ NewRelic::MetricSpec.new("/A/b/c") => 1,
+                                                     NewRelic::MetricSpec.new("/A/b/c", "/X") => 2,
+                                                     NewRelic::MetricSpec.new("/A/b/d") => 3 }.to_a)
       @agent.send :harvest_and_send_timeslice_data
       assert_equal 3, @agent.metric_ids.size
       assert_equal 3, @agent.metric_ids[NewRelic::MetricSpec.new("/A/b/d") ], @agent.metric_ids.inspect
@@ -106,34 +108,6 @@ class NewRelic::Agent::RpmAgentTest < Test::Unit::TestCase # ActiveSupport::Test
       assert_match /\d\.\d+\.\d+/, NewRelic::VERSION::STRING
     end
 
-    should "invoke_remote__ignore_non_200_results" do
-      NewRelic::Agent::Agent.class_eval do
-        public :invoke_remote
-      end
-      response_mock = mock()
-      Net::HTTP.any_instance.stubs(:request).returns(response_mock)
-      response_mock.stubs(:message).returns("bogus error")
-
-      for code in %w[500 504 400 302 503] do
-        assert_raise NewRelic::Agent::ServerConnectionException, "Ignore #{code}" do
-          response_mock.stubs(:code).returns(code)
-          NewRelic::Agent.agent.invoke_remote  :get_data_report_period, 0
-        end
-      end
-    end
-    should "invoke_remote__throw_other_errors" do
-      NewRelic::Agent::Agent.class_eval do
-        public :invoke_remote
-      end
-      response_mock = Net::HTTPSuccess.new  nil, nil, nil
-      response_mock.stubs(:body).returns("")
-      Marshal.stubs(:load).raises(RuntimeError, "marshal issue")
-      Net::HTTP.any_instance.stubs(:request).returns(response_mock)
-      assert_raise RuntimeError do
-        NewRelic::Agent.agent.invoke_remote  :get_data_report_period, 0xFEFE
-      end
-    end
-
     context "with transaction api" do
       should "reject empty arguments" do
         assert_raises RuntimeError do
@@ -143,7 +117,6 @@ class NewRelic::Agent::RpmAgentTest < Test::Unit::TestCase # ActiveSupport::Test
       should "record a transaction" do
         NewRelic::Agent.record_transaction 0.5, 'uri' => "/users/create?foo=bar"
       end
-
     end
   end
 end

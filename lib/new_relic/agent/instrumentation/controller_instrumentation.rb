@@ -138,15 +138,22 @@ module NewRelic
                          end
               options_arg << %Q[:#{key} => #{valuestr}]
             end
+            traced_method, punctuation = method.to_s.sub(/([?!=])$/, ''), $1
+            visibility = NewRelic::Helper.instance_method_visibility self, method
+
             class_eval <<-EOC
-              def #{method.to_s}_with_newrelic_transaction_trace(*args, &block)
+              def #{traced_method.to_s}_with_newrelic_transaction_trace#{punctuation}(*args, &block)
                 perform_action_with_newrelic_trace(#{options_arg.join(',')}) do
-                  #{method.to_s}_without_newrelic_transaction_trace(*args, &block)
+                  #{traced_method.to_s}_without_newrelic_transaction_trace#{punctuation}(*args, &block)
                  end
               end
             EOC
-            alias_method "#{method.to_s}_without_newrelic_transaction_trace", method.to_s
-            alias_method method.to_s, "#{method.to_s}_with_newrelic_transaction_trace"
+            without_method_name = "#{traced_method.to_s}_without_newrelic_transaction_trace#{punctuation}"
+            with_method_name = "#{traced_method.to_s}_with_newrelic_transaction_trace#{punctuation}"
+            alias_method without_method_name, method.to_s
+            alias_method method.to_s, with_method_name
+            send visibility, method
+            send visibility, with_method_name
             NewRelic::Control.instance.log.debug("Traced transaction: class = #{self.name}, method = #{method.to_s}, options = #{options.inspect}")
           end
         end

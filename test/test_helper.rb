@@ -44,6 +44,8 @@ require 'mocha'
 require 'mocha/integration/test_unit'
 require 'mocha/integration/test_unit/assertion_counter'
 
+require 'new_relic/fake_service'
+
 class Test::Unit::TestCase
   include Mocha::API
 
@@ -151,5 +153,5 @@ module TransactionSampleTestHelper
     sampler.notice_scope_empty
     sampler.samples[0]
   end
-
+  module_function :run_sample_trace_on
 end

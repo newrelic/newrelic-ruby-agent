@@ -481,9 +481,13 @@ module NewRelic
 
           traced_method = code_to_eval(method_name, metric_name_code, options)
 
+          visibility = NewRelic::Helper.instance_method_visibility self, method_name
+
           class_eval traced_method, __FILE__, __LINE__
           alias_method _untraced_method_name(method_name, metric_name_code), method_name
           alias_method method_name, _traced_method_name(method_name, metric_name_code)
+          send visibility, method_name
+          send visibility, _traced_method_name(method_name, metric_name_code)
           NewRelic::Control.instance.log.debug("Traced method: class = #{self.name},"+
                     "method = #{method_name}, "+
                     "metric = '#{metric_name_code}'")

@@ -23,7 +23,7 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
     # This shows how the tasks stay aligned with the period and don't drift.
     count = 0
     start = Time.now
-    @worker_loop.run(0.01) do
+    @worker_loop.run(0.03) do
       count +=1
       if count == 3
         @worker_loop.stop
@@ -31,7 +31,7 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
       end
     end
     elapsed = Time.now - start
-    assert_in_delta 0.03, elapsed, 0.02
+    assert_in_delta 0.09, elapsed, 0.03
   end
   def test_task_error__standard
     @logger.expects(:debug)

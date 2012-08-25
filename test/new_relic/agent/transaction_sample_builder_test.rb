@@ -183,7 +183,6 @@ class NewRelic::Agent::TransationSampleBuilderTest < Test::Unit::TestCase
     8.times {|i| build_segment i.to_s }
   end
   
-  
   def validate_builder(check_names = true)
     validate_segment @builder.sample.root_segment, check_names
   end
