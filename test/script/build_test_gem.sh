@@ -33,7 +33,7 @@ mkdir gems
 
 # FIXME: don't include the $SHA1 since some of our builds systems are confused
 # by this.
-BUILD_ID=$BUILD_NUMBER #.$SHA1
+BUILD_ID="$SHA1.$BUILD_NUMBER" #.$SHA1
 
 # rewrite the version file, setting the patch identifier to include the
 # BUILD_ID
