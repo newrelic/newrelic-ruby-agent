@@ -17,6 +17,10 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     log.stubs(:warn)
   end
 
+  def teardown
+    NewRelic::Agent::Agent.instance_variable_set(:@instance, nil)
+  end
+
   def control
     fake_control = OpenStruct.new('validate_seed' => false,
                                   'local_env' => OpenStruct.new('snapshot' => []))
@@ -369,6 +373,21 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     @service.agent_id = 'blah'
     finish_setup(nil)
     assert_equal 'blah', @service.agent_id
+  end
+
+  def test_set_apdex_t_from_server
+    service = NewRelic::FakeService.new
+    NewRelic::Agent::Agent.instance.service = service
+    service.mock['connect'] = {
+      'apdex_t' => 0.5,
+      'listen_to_server_config' => true
+    }
+    with_config(:sync_startup => true, :monitor_mode => true,
+                :license_key => 'a' * 40) do
+      NewRelic::Agent.manual_start
+      assert_equal 0.5, NewRelic::Control.instance.apdex_t
+      NewRelic::Agent.shutdown
+    end
   end
 
   private
