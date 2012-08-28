@@ -17,10 +17,6 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     log.stubs(:warn)
   end
 
-  def teardown
-    NewRelic::Agent::Agent.instance_variable_set(:@instance, nil)
-  end
-
   def control
     fake_control = OpenStruct.new('validate_seed' => false,
                                   'local_env' => OpenStruct.new('snapshot' => []))
@@ -388,6 +384,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
       assert_equal 0.5, NewRelic::Control.instance.apdex_t
       NewRelic::Agent.shutdown
     end
+    NewRelic::Agent::Agent.instance_variable_set(:@instance, nil)
   end
 
   private
