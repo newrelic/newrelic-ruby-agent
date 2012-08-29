@@ -60,7 +60,6 @@ digraph AgentEnabled {
 
   node[shape=box,color=orange]
   "Control#init_plugin"
-  "Control#apdex_t"
   "Control#api_server"
   "Control#proxy_server"
   "Control#server_from_host"
@@ -157,7 +156,6 @@ digraph AgentEnabled {
   "Control#init_plugin" -> "Control#setup_log"
   "Control#init_plugin" -> "[disable_samplers]"
   "Control#should_log?" -> "[agent_enabled]" 
-  "Control#apdex_t" -> "[apdex_t]"
   "Control#api_server" -> "[api_host]"
   "Control#api_server" -> "[api_port]"
   "Control#proxy_server" -> "[proxy_host]"
@@ -193,7 +191,7 @@ digraph AgentEnabled {
   "Agent#using_forking_dispatcher?" -> "[dispatcher]"
   "Agent#has_license_key?" -> "[license_key]"
   "Agent#correct_license_length" -> "[license_key]"
-  "Agent#apdex_f" -> "Control#apdex_t"
+  "Agent#apdex_f" -> "[apdex_t]"
   "Agent#check_config_and_start_agent" -> "[sync_startup]"
   "Agent#install_exit_handler" -> "[send_data_on_exit]"
   "Agent#log_app_names" -> "Config#app_names"
@@ -269,10 +267,10 @@ digraph AgentEnabled {
   "DelayedJobInjection#depends_on" -> "[disable_dj]"
   "DelayedJobInjection#executes" -> "Control#init_plugin"
 
-  "MetricFrame.update_apdex" -> "Control#apdex_t"
+  "MetricFrame.update_apdex" -> "[apdex_t]"
 
-  "TranactionInfo#force_persist_sample?" -> "Control#apdex_t"
-  "TranactionInfo#include_guid?" -> "Control#apdex_t"
+  "TranactionInfo#force_persist_sample?" -> "[apdex_t]"
+  "TranactionInfo#include_guid?" -> "[apdex_t]"
 
   "TransactionSampleBuilder#initialize" -> "[transaction_tracer.limit_segments]"
   "TransactionSampleBuilder#set_transaction_info" -> "[capture_params]"

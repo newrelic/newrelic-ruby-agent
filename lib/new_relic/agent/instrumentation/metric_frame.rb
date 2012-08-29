@@ -320,7 +320,7 @@ module NewRelic
         # the apdex should be recorded as a failure regardless of duration.
         def self.update_apdex(stat, duration, failed)
           duration = duration.to_f
-          apdex_t = NewRelic::Control.instance.apdex_t
+          apdex_t = Agent.config[:apdex_t]
           case
           when failed
             stat.record_apdex_f

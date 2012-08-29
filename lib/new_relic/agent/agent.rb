@@ -796,7 +796,7 @@ module NewRelic
 
           # apdex_f is always 4 times the apdex_t
           def apdex_f
-            (4 * NewRelic::Control.instance.apdex_t).to_f
+            (4 * Agent.config[:apdex_t]).to_f
           end
 
           # Sets the sql recording configuration by trying to detect

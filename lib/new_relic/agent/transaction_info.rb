@@ -15,11 +15,11 @@ module NewRelic
       end
 
       def force_persist_sample?(sample)
-        token && sample.duration > NewRelic::Control.instance.apdex_t
+        token && sample.duration > Agent.config[:apdex_t]
       end
 
       def include_guid?
-        token && duration > NewRelic::Control.instance.apdex_t
+        token && duration > Agent.config[:apdex_t]
       end
 
       def guid
