@@ -22,7 +22,7 @@ module NewRelic
           license_key = ''
 
           erb = ERB.new(file).result(binding)
-          config = merge!(YAML.load(erb)[env])
+          config = merge!(YAML.load(erb)[env] || {})
 
           if config['transaction_tracer'] &&
               config['transaction_tracer']['transaction_threshold'] =~ /apdex_f/i
