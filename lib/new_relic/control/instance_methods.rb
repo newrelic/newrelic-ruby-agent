@@ -94,6 +94,19 @@ module NewRelic
         "Control[#{self.app}]"
       end
 
+      # for backward compatibility with the old config interface
+      def [](key)
+        NewRelic::Agent.config[key.to_sym]
+      end
+
+      def settings
+        NewRelic::Agent.config.flattened_config
+      end
+
+      def dispatcher
+        NewRelic::Agent.config[:dispatcher]
+      end
+
       protected
 
       # Append framework specific environment information for uploading to
