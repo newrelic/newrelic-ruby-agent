@@ -713,7 +713,6 @@ module NewRelic
               :language => 'ruby',
               :agent_version => NewRelic::VERSION::STRING,
               :environment => environment_for_connect,
-#               :settings => control.settings,
               :settings => Agent.config.flattened_config,
               :validate => validate_settings
             }
