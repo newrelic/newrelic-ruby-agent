@@ -7,22 +7,26 @@ module NewRelic
         attr_accessor :file_path
 
         def initialize(path, env)
-          @file_path = File.expand_path(path)
-          if !File.exists?(@file_path)
-            NewRelic::Control.instance.log.error('Unable to load configuration from #{path}')
-            return
+          config = {}
+          begin
+            @file_path = File.expand_path(path)
+            if !File.exists?(@file_path)
+              NewRelic::Control.instance.log.error("Unable to load configuration from #{path}")
+              return
+            end
+
+            file = File.read(@file_path)
+
+            # Next two are for populating the newrelic.yml via erb binding, necessary
+            # when using the default newrelic.yml file
+            generated_for_user = ''
+            license_key = ''
+
+            erb = ERB.new(file).result(binding)
+            config = merge!(YAML.load(erb)[env] || {})
+          rescue ScriptError, StandardError => e
+            NewRelic::Control.instance.log.warn("Unable to read configuration file: #{e}")
           end
-
-          file = File.read(@file_path)
-
-
-          # Next two are for populating the newrelic.yml via erb binding, necessary
-          # when using the default newrelic.yml file
-          generated_for_user = ''
-          license_key = ''
-
-          erb = ERB.new(file).result(binding)
-          config = merge!(YAML.load(erb)[env] || {})
 
           if config['transaction_tracer'] &&
               config['transaction_tracer']['transaction_threshold'] =~ /apdex_f/i
