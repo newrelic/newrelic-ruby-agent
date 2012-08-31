@@ -42,7 +42,7 @@ if [ "x$JOB_NAME" == "x" ]; then
   echo 'defaulting to clrun'
   export PROJECT_NAME=clrun
 else
-  CLEANSED_NAME=`echo $JOB_NAME  | sed "s/label//" | sed "s/Portland//" | sed "s/BRANCH//" | sed "s/RUBY//" | sed "s/[=\/,\._]//g" | sed "s/ReleaseCandiate/RC/"`
+  CLEANSED_NAME=`echo $JOB_NAME  | sed "s/label//" | sed "s/Portland//" | sed "s/BRANCH//" | sed "s/RUBY//" | sed "s/[=\/,\._]//g" | sed "s/ReleaseCandidate/RC/"`
   echo "setting PROJECT_NAME to $CLEANSED_NAME"
   export PROJECT_NAME="$CLEANSED_NAME"
 fi
