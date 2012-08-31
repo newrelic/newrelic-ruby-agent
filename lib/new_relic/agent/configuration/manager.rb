@@ -79,7 +79,7 @@ module NewRelic
         def exclude_rails_config(hash, key)
           if defined?(::Rails::Configuration) &&
               hash[key].kind_of?(::Rails::Configuration)
-            hash.reject!(key)
+            hash.delete(key)
           end
         end
 
