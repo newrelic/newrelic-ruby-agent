@@ -3,7 +3,10 @@
 
 ### Next Up ###
 ## v3.4.2 ##
+ * The RUM NRAGENT tk value gets sanitized to prevent potential XSS vulnerabilities
 
+ * Refactoring of agent config code
+ 
 ### current version ###
 ## v3.4.1 ##
 #### Bug Fixes ####
