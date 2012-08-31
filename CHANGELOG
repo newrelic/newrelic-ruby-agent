@@ -2,7 +2,7 @@
 # New Relic Ruby Agent Release Notes #
 
 ### Next Up ###
-## v3.4.2 ##
+## v3.4.2.beta1 ##
  * The RUM NRAGENT tk value gets sanitized to prevent potential XSS vulnerabilities
 
  * Refactoring of agent config code
