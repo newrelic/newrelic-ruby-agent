@@ -70,7 +70,7 @@ module NewRelic
                 NewRelic::Control.instance.log.debug("#{e.class.name} : #{e.message} - when calling Proc for config key #{k}")
                 thawed_layer[k] = nil
               end
-              exclude_rails_config(thawed_layer, k)
+              thawed_layer.delete(:config)
             end
             flat.merge(thawed_layer)
           end

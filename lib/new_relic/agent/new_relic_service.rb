@@ -119,13 +119,9 @@ module NewRelic
       # big payloads get all the compression possible, to stay under
       # the 2,000,000 byte post threshold
       def compress_data(object)
-        dump = NewRelic::LanguageSupport.with_cautious_gc do
-          Marshal.dump(object)
-        end
+        dump = marshal_data(object)
 
-        dump_size = dump.size
-
-        return [dump, 'identity'] if dump_size < (64*1024)
+        return [dump, 'identity'] if dump.size < (64*1024)
 
         compressed_dump = Zlib::Deflate.deflate(dump, Zlib::DEFAULT_COMPRESSION)
 
@@ -133,6 +129,15 @@ module NewRelic
         check_post_size(compressed_dump)
 
         [compressed_dump, 'deflate']
+      end
+
+      def marshal_data(data)
+        NewRelic::LanguageSupport.with_cautious_gc do
+          Marshal.dump(data)
+        end
+      rescue => e
+        log.debug("#{e.class.name} : #{e.message} when marshalling #{object}")
+        raise
       end
 
       # Raises a PostTooBigException if the post_string is longer
