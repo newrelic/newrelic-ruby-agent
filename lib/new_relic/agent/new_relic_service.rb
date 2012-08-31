@@ -119,7 +119,9 @@ module NewRelic
       # big payloads get all the compression possible, to stay under
       # the 2,000,000 byte post threshold
       def compress_data(object)
-        dump = Marshal.dump(object)
+        dump = NewRelic::LanguageSupport.with_cautious_gc do
+          Marshal.dump(object)
+        end
 
         dump_size = dump.size
 
@@ -200,7 +202,9 @@ module NewRelic
       # so we can handle it in nonlocally
       def check_for_exception(response)
         dump = decompress_response(response)
-        value = Marshal.load(dump)
+        value = NewRelic::LanguageSupport.with_cautious_gc do
+          Marshal.load(dump)
+        end
         raise value if value.is_a? Exception
         value
       end

@@ -61,12 +61,25 @@ module NewRelic
         end
 
         def flattened_config
-          @config_stack.reverse.inject({}) do |flat,stack|
-            thawed_stack = stack.dup
-            thawed_stack.each do |k,v|
-              thawed_stack[k] = instance_eval(&v) if v.respond_to?(:call)
+          @config_stack.reverse.inject({}) do |flat,layer|
+            thawed_layer = layer.dup
+            thawed_layer.each do |k,v|
+              begin
+                thawed_layer[k] = instance_eval(&v) if v.respond_to?(:call)
+              rescue => e
+                NewRelic::Control.instance.log.debug("#{e.class.name} : #{e.message} - when calling Proc for config key #{k}")
+                thawed_layer[k] = nil
+              end
+              exclude_rails_config(thawed_layer, k)
             end
-            flat.merge(thawed_stack)
+            flat.merge(thawed_layer)
+          end
+        end
+
+        def exclude_rails_config(hash, key)
+          if defined?(::Rails::Configuration) &&
+              hash[key].kind_of?(::Rails::Configuration)
+            hash.reject!(key)
           end
         end
 
