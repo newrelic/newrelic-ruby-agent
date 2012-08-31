@@ -1,6 +1,7 @@
 require 'forwardable'
 require 'new_relic/agent/configuration/defaults'
 require 'new_relic/agent/configuration/yaml_source'
+require 'new_relic/agent/configuration/server_source'
 require 'new_relic/agent/configuration/environment_source'
 
 module NewRelic
