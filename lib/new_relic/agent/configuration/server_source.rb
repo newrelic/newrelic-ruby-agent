@@ -4,9 +4,9 @@ module NewRelic
       class ServerSource < DottedHash
         def initialize(hash)
           string_map = [
-             ['collect_traces', :'transaction_tracer.enabled'],
-             ['collect_traces', :'slow_sql.enabled'],
-             ['collect_errors', :'error_collector.enabled']
+             ['collect_traces', 'transaction_tracer.enabled'],
+             ['collect_traces', 'slow_sql.enabled'],
+             ['collect_errors', 'error_collector.enabled']
           ].each do |pair|
             hash[pair[1]] = hash[pair[0]] if hash[pair[0]] != nil
           end
