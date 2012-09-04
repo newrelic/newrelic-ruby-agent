@@ -223,11 +223,4 @@ class NewRelic::ControlTest < Test::Unit::TestCase
       assert_equal [], NewRelic::Agent.instance.stats_engine.send(:harvest_samplers)
     end
   end
-
-  private
-
-  def reset_environment_config
-    NewRelic::Agent::Configuration.manager.config_stack[0] =
-      NewRelic::Agent::Configuration::EnvironmentSource.new
-  end
 end

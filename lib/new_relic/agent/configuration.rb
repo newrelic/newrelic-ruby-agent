@@ -3,15 +3,11 @@ require 'new_relic/agent/configuration/manager'
 module NewRelic
   module Agent
     module Configuration
-      def self.manager
-        @@manager ||= Manager.new
-      end
-
       # This can be mixed in with minimal impact to provide easy
       # access to the config manager
       module Instance
         def config
-          Configuration.manager
+          @@manager ||= Manager.new
         end
       end
 
