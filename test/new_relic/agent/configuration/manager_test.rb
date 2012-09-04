@@ -111,6 +111,17 @@ module NewRelic::Agent::Configuration
                    @manager.flattened_config)
     end
 
+    def test_replacing_a_layer_by_class
+      old_config = NewRelic::Agent::Configuration::ManualSource.new(:test => 'wrong')
+      @manager.apply_config(old_config, 1)
+      new_config = NewRelic::Agent::Configuration::ManualSource.new(:test => 'right')
+      @manager.replace_or_add_config(new_config)
+
+      assert_equal 'right', @manager[:test]
+      assert_equal 3, @manager.config_stack.size
+      assert_equal 1, @manager.config_stack.index{|s| s.class.name.include?('ManualSource') }
+    end
+
     class TestSource < ::Hash
       def test_config_accessor
         'some value'

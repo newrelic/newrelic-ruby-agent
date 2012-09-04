@@ -31,6 +31,13 @@ module NewRelic
           expire_cache
         end
 
+        def replace_or_add_config(source, level=0)
+          idx = @config_stack.index do |s|
+            s.class == source.class && remove_config(s)
+          end
+          apply_config(source, idx || level)
+        end
+
         def source(key)
           @config_stack.each do |config|
             if config.respond_to?(key.to_sym) || config.has_key?(key.to_sym)
