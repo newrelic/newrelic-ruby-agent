@@ -44,7 +44,18 @@ module NewRelic
       # init_config({}) which is called one or more times.
       #
       def init_plugin(options={})
-        Agent.config.apply_config(Agent::Configuration::ManualSource.new(options), 1)
+        begin
+          path = @newrelic_file || Agent.config[:config_path]
+          yaml = Agent::Configuration::YamlSource.new(path, env)
+          Agent.config.replace_or_add_config(yaml, 1)
+        rescue ScriptError, StandardError => e
+          # Why do we need to do this?
+          new_err = e.class.new("Error reading newrelic.yml file: #{e}")
+          new_err.set_backtrace(e.backtrace)
+          raise new_err
+        end
+
+        Agent.config.replace_or_add_config(Agent::Configuration::ManualSource.new(options), 1)
         options['app_name'] = ENV['NEWRELIC_APP_NAME'] if ENV['NEWRELIC_APP_NAME']
         options['app_name'] ||= ENV['NEW_RELIC_APP_NAME'] if ENV['NEW_RELIC_APP_NAME']
 
@@ -131,18 +142,10 @@ module NewRelic
         File.expand_path(File.join(root,"config","newrelic.yml"))
       end
 
-      # initializes the control instance with a local environment and
-      # an optional config file override. Checks for the config file
-      # and loads it.
       def initialize local_env, config_file_override=nil
         @local_env = local_env
         @instrumentation_files = []
-        newrelic_file = config_file_override || config_file
-        Agent.config.apply_config(Agent::Configuration::YamlSource.new(newrelic_file, env), 1)
-      rescue ScriptError, StandardError => e
-        new_err = e.class.new("Error reading newrelic.yml file: #{e}")
-        new_err.set_backtrace(e.backtrace)
-        raise new_err
+        @newrelic_file = config_file_override || config_file
       end
 
       def root
