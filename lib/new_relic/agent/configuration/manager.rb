@@ -15,11 +15,6 @@ module NewRelic
         def initialize
           @config_stack = [ EnvironmentSource.new, DEFAULTS ]
           @cache = Hash.new {|hash,key| hash[key] = self.fetch(key) }
-
-          # letting Control handle this for now
-#           yaml_config = YamlSource.new("#{NewRelic::Control.instance.root}/#{self['config_path']}",
-#                                        NewRelic::Control.instance.env)
-#           apply_config(yaml_config, 1) if yaml_config
         end
 
         def apply_config(source, level=0)

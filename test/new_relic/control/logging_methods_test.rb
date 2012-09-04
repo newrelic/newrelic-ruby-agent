@@ -204,7 +204,7 @@ class NewRelic::Control::LoggingMethodsTest < Test::Unit::TestCase
   end
 
   def reset_environment_config
-    NewRelic::Agent::Configuration.manager.config_stack[0] =
+    NewRelic::Agent.config.config_stack[0] =
       NewRelic::Agent::Configuration::EnvironmentSource.new
   end
 end

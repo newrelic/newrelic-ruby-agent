@@ -138,25 +138,11 @@ module NewRelic
         @local_env = local_env
         @instrumentation_files = []
         newrelic_file = config_file_override || config_file
-        # Next two are for populating the newrelic.yml via erb binding, necessary
-        # when using the default newrelic.yml file
-        generated_for_user = ''
-        license_key=''
-        if !File.exists?(newrelic_file)
-          puts "Cannot find or read #{newrelic_file}"
-          @yaml = {}
-        else
-          @yaml = load_newrelic_yml(newrelic_file, binding)
-        end
+        Agent.config.apply_config(Agent::Configuration::YamlSource.new(newrelic_file, env), 1)
       rescue ScriptError, StandardError => e
         new_err = e.class.new("Error reading newrelic.yml file: #{e}")
         new_err.set_backtrace(e.backtrace)
         raise new_err
-      end
-
-      def load_newrelic_yml(path, binding)
-        Agent.config.apply_config(Agent::Configuration::YamlSource.new(path, env), 1)
-        YAML.load(ERB.new(File.read(path)).result(binding))
       end
 
       def root
