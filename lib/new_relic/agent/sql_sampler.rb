@@ -18,7 +18,6 @@ module NewRelic
       attr_reader :sql_traces
 
       def initialize
-        configure!
         @sql_traces = {}
         clear_transaction_data
 
@@ -28,38 +27,20 @@ module NewRelic
         @samples_lock = Mutex.new
       end
 
-      def configure!
-        @explain_threshold = Agent.config[:'slow_sql.explain_threshold']
-        @explain_enabled = Agent.config[:'sloq_sql.explain_enabled']
-        @stack_trace_threshold = Agent.config[:'slow_sql.stack_trace_threshold']
-        if Agent.config[:'slow_sql.enabled']
-          enable
-        else
-          disable
-        end
-      end
-
-      # Enable the sql sampler - this also registers it with
-      # the statistics engine.
-      def enable
-        @disabled = false
-      end
-
-      # Disable the sql sampler - this also deregisters it
-      # with the statistics engine.
-      def disable
-        @disabled = true
-      end
-
       def enabled?
-        !@disabled
+        Agent.config[:'slow_sql.enabled'] &&
+          (Agent.config[:'slow_sql.record_sql'] == 'raw' ||
+           Agent.config[:'slow_sql.record_sql'] == 'obfuscated') &&
+          Agent.config[:'transaction_tracer.enabled']
       end
 
       def notice_transaction(path, uri=nil, params={})
         if NewRelic::Agent.instance.transaction_sampler.builder
           guid = NewRelic::Agent.instance.transaction_sampler.builder.sample.guid
         end
-        transaction_data.set_transaction_info(path, uri, params, guid) if !disabled && transaction_data
+        if Agent.config[:'slow_sql.enabled'] && transaction_data
+          transaction_data.set_transaction_info(path, uri, params, guid)
+        end
       end
 
       def notice_first_scope_push(time)
@@ -111,7 +92,7 @@ module NewRelic
       def notice_sql(sql, metric_name, config, duration)
         return unless transaction_data
         if NewRelic::Agent.is_sql_recorded?
-          if duration > @explain_threshold
+          if duration > Agent.config[:'slow_sql.explain_threshold']
             backtrace = caller.join("\n")
             transaction_data.sql_data << SlowSql.new(sql, metric_name, config,
                                                      duration, backtrace)
@@ -127,7 +108,7 @@ module NewRelic
       end
 
       def harvest
-        return [] if disabled
+        return [] if !Agent.config[:'slow_sql.enabled']
         result = []
         @samples_lock.synchronize do
           result = @sql_traces.values

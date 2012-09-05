@@ -476,16 +476,6 @@ module NewRelic
             end
           end
           
-          def check_sql_sampler_status
-            # disable sql sampling if disabled by the server
-            # and we're not in dev mode
-            if Agent.config[:'slow_sql.enabled'] && ['raw', 'obfuscated'].include?(Agent.config[:'slow_sql.record_sql']) && Agent.config[:'transaction_tracer.enabled']
-              @sql_sampler.enable
-            else
-              @sql_sampler.disable
-            end
-          end
-
           # logs info about the worker loop so users can see when the
           # agent actually begins running in the background
           def log_worker_loop_start
@@ -571,7 +561,6 @@ module NewRelic
                 connect(connection_options)
                 if @connected
                   check_transaction_sampler_status
-                  check_sql_sampler_status
                   log_worker_loop_start
                   create_and_run_worker_loop
                   # never reaches here unless there is a problem or
@@ -767,7 +756,6 @@ module NewRelic
           def config_transaction_tracer
             # Reconfigure the transaction tracer
             @transaction_sampler.configure!
-            @sql_sampler.configure!
             @should_send_samples = @config_should_send_samples = Agent.config[:'transaction_tracer.enabled']
             @should_send_random_samples = Agent.config[:'transaction_tracer.random_sample']
             set_sql_recording!
@@ -783,7 +771,6 @@ module NewRelic
           def configure_transaction_tracer!(server_enabled, sample_rate)
             # Ask the server for permission to send transaction samples.
             # determined by subscription license.
-            @sql_sampler.configure!
             @should_send_samples = @config_should_send_samples && server_enabled
             
             if @should_send_samples
