@@ -1,6 +1,7 @@
 ENV['SKIP_RAILS'] = 'true'
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require "new_relic/agent/browser_monitoring"
+require "new_relic/rack/browser_monitoring"
 require 'ostruct'
 
 class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
@@ -370,7 +371,8 @@ var e=document.createElement("script");'
     request ||= Rack::Request.new('X-NewRelic-Mobile-Trace' => 'true')
     response = Rack::Response.new
     txn_data = OpenStruct.new(:transaction_name => 'a transaction name',
-                              :start_time => 5)
+                              :start_time => 5,
+                              :force_persist_sample? => false)
     NewRelic::Agent::TransactionInfo.set(txn_data)
     NewRelic::Agent::BrowserMonitoring.insert_mobile_response_header(request, response)
     response

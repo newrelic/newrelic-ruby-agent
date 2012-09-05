@@ -171,16 +171,18 @@ class NewRelic::Agent::TransationSampleBuilderTest < Test::Unit::TestCase
   end
   
   def test_trace_should_not_record_more_than_segment_limit
-    @builder.segment_limit = 3
-    8.times {|i| build_segment i.to_s }
-    assert_equal 3, @builder.sample.count_segments
+    with_config(:'transaction_tracer.limit_segments' => 3) do
+      8.times {|i| build_segment i.to_s }
+      assert_equal 3, @builder.sample.count_segments
+    end
   end
 
   # regression
   def test_trace_should_log_segment_reached_once
-    @builder.segment_limit = 3
-    NewRelic::Control.instance.log.expects(:debug).once
-    8.times {|i| build_segment i.to_s }
+    with_config(:'transaction_tracer.limit_segments' => 3) do
+      NewRelic::Control.instance.log.expects(:debug).once
+      8.times {|i| build_segment i.to_s }
+    end
   end
   
   def validate_builder(check_names = true)

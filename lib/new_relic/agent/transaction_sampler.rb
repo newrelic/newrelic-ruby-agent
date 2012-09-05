@@ -19,7 +19,7 @@ module NewRelic
 
       BUILDER_KEY = :transaction_sample_builder
 
-      attr_accessor :stack_trace_threshold, :random_sampling, :sampling_rate
+      attr_accessor :random_sampling, :sampling_rate
       attr_accessor :explain_threshold, :explain_enabled, :transaction_threshold
       attr_accessor :slow_capture_threshold
       attr_reader :samples, :last_sample, :disabled
@@ -50,8 +50,6 @@ module NewRelic
         # @segment_limit and @stack_trace_threshold come from the
         # configuration file, with built-in defaults that should
         # suffice for most customers
-        @segment_limit         = Agent.config[:'transaction_tracer.limit_segments']
-        @stack_trace_threshold = Agent.config[:'transaction_tracer.stack_trace_threshold']
         @explain_threshold     = Agent.config[:'transaction_tracer.explain_threshold']
         @explain_enabled       = Agent.config[:'transaction_tracer.explain_enabled']
         @transaction_threshold = Agent.config[:'transaction_tracer.transation_threshold']
@@ -308,7 +306,10 @@ module NewRelic
       # Appends a backtrace to a segment if that segment took longer
       # than the specified duration
       def append_backtrace(segment, duration)
-        segment[:backtrace] = caller.join("\n") if (duration >= @stack_trace_threshold || Thread.current[:capture_deep_tt])
+        if (duration >= Agent.config[:'transaction_tracer.stack_trace_threshold'] ||
+            Thread.current[:capture_deep_tt])
+          segment[:backtrace] = caller.join("\n")
+        end
       end
 
       # some statements (particularly INSERTS with large BLOBS
@@ -400,7 +401,7 @@ module NewRelic
 
         # Truncate the samples at 2100 segments. The UI will clamp them at 2000 segments anyway.
         # This will save us memory and bandwidth.
-        result.each { |sample| sample.truncate(@segment_limit) }
+        result.each { |sample| sample.truncate(Agent.config[:'transaction_tracer.limit_segments']) }
         result
       end
 
