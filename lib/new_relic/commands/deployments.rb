@@ -11,7 +11,7 @@ require 'rexml/document'
 require 'new_relic/control' unless defined? NewRelic::Control
 
 class NewRelic::Command::Deployments < NewRelic::Command
-  attr_reader :config
+  attr_reader :control
   def self.command; "deployments"; end
 
   # Initialize the deployment uploader with command line args.
@@ -24,12 +24,18 @@ class NewRelic::Command::Deployments < NewRelic::Command
   # Will throw CommandFailed exception if there's any error.
   #
   def initialize command_line_args
-    @config = NewRelic::Control.instance
+    @control = NewRelic::Control.instance
     super(command_line_args)
     @description ||= @leftover && @leftover.join(" ")
     @user ||= ENV['USER']
-    config.env = @environment if @environment
-    @appname ||= NewRelic::Agent.config.app_names[0] || config.env || 'development'
+    control.env = @environment if @environment
+    load_yaml_from_env(control.env)
+    @appname ||= NewRelic::Agent.config.app_names[0] || control.env || 'development'
+  end
+
+  def load_yaml_from_env(env)
+    yaml = NewRelic::Agent::Configuration::YamlSource.new(NewRelic::Agent.config[:config_path], env)
+    NewRelic::Agent.config.replace_or_add_config(yaml, 1)
   end
 
   # Run the Deployment upload in New Relic via Active Resource.
@@ -48,12 +54,13 @@ class NewRelic::Command::Deployments < NewRelic::Command
       }.each do |k, v|
         create_params["deployment[#{k}]"] = v unless v.nil? || v == ''
       end
-      http = config.http_connection(config.api_server)
+      http = control.http_connection(control.api_server)
 
       uri = "/deployments.xml"
 
-      if NewRelic::Agent.config[:license_key].nil?
-        raise "license_key was not set in newrelic.yml for #{config.env}"
+      if NewRelic::Agent.config[:license_key].nil? ||
+          NewRelic::Agent.config[:license_key].empty?
+        raise "license_key was not set in newrelic.yml for #{control.env}"
       end
       request = Net::HTTP::Post.new(uri, {'x-license-key' => NewRelic::Agent.config[:license_key]})
       request.content_type = "application/octet-stream"
@@ -70,12 +77,12 @@ class NewRelic::Command::Deployments < NewRelic::Command
       end
     rescue SystemCallError, SocketError => e
       # These include Errno connection errors
-      err_string = "Transient error attempting to connect to #{config.api_server} (#{e})"
+      err_string = "Transient error attempting to connect to #{control.api_server} (#{e})"
       raise NewRelic::Command::CommandFailure.new(err_string)
     rescue NewRelic::Command::CommandFailure
       raise
     rescue => e
-      err "Unexpected error attempting to connect to #{config.api_server}"
+      err "Unexpected error attempting to connect to #{control.api_server}"
       info "#{e}: #{e.backtrace.join("\n   ")}"
       raise NewRelic::Command::CommandFailure.new(e.to_s)
     end
@@ -91,7 +98,7 @@ class NewRelic::Command::Deployments < NewRelic::Command
              "Default is app_name setting in newrelic.yml") { | e | @appname = e }
       o.on("-e", "--environment=name", String,
                "Override the (RAILS|MERB|RUBY|RACK)_ENV setting",
-               "currently: #{config.env}") { | e | @environment = e }
+               "currently: #{control.env}") { | e | @environment = e }
       o.on("-u", "--user=USER", String,
              "Specify the user deploying, for information only",
              "Default: #{@user || '<none>'}") { | u | @user = u }
