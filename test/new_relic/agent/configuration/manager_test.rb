@@ -119,7 +119,8 @@ module NewRelic::Agent::Configuration
 
       assert_equal 'right', @manager[:test]
       assert_equal 3, @manager.config_stack.size
-      assert_equal 1, @manager.config_stack.index{|s| s.class.name.include?('ManualSource') }
+      assert_equal 1, @manager.config_stack.map{|s| s.class} \
+        .index(NewRelic::Agent::Configuration::ManualSource)
     end
 
     class TestSource < ::Hash
