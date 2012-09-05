@@ -121,8 +121,11 @@ end
 def with_config(config_hash, level=0)
   config = NewRelic::Agent::Configuration::DottedHash.new(config_hash)
   NewRelic::Agent.config.apply_config(config, level)
-  yield
-  NewRelic::Agent.config.remove_config(config)
+  begin
+    yield
+  ensure
+    NewRelic::Agent.config.remove_config(config)
+  end
 end
 
 module TransactionSampleTestHelper
