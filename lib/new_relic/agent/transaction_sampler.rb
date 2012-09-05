@@ -20,7 +20,6 @@ module NewRelic
       BUILDER_KEY = :transaction_sample_builder
 
       attr_accessor :random_sampling, :sampling_rate
-      attr_accessor :explain_threshold, :explain_enabled, :transaction_threshold
       attr_accessor :slow_capture_threshold
       attr_reader :samples, :last_sample, :disabled
 
@@ -47,13 +46,6 @@ module NewRelic
       end
 
       def configure!
-        # @segment_limit and @stack_trace_threshold come from the
-        # configuration file, with built-in defaults that should
-        # suffice for most customers
-        @explain_threshold     = Agent.config[:'transaction_tracer.explain_threshold']
-        @explain_enabled       = Agent.config[:'transaction_tracer.explain_enabled']
-        @transaction_threshold = Agent.config[:'transaction_tracer.transation_threshold']
-
         # Configure the sample storage policy.  Create a list of methods to be called.
         @store_sampler_methods = [ :store_random_sample, :store_slowest_sample ]
         if Agent.config[:developer_mode]
@@ -380,7 +372,7 @@ module NewRelic
 
       # get the set of collected samples, merging into previous samples,
       # and clear the collected sample list. Truncates samples to a
-      # specified @segment_limit to save memory and bandwith
+      # specified segment_limit to save memory and bandwith
       # transmitting samples to the server.
       def harvest(previous = [], slow_threshold = 2.0)
         return [] if disabled

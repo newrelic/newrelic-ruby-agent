@@ -213,21 +213,6 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     enable_random_samples!(sampling_rate)
   end
 
-  def test_config_transaction_tracer
-    test_config = {
-      'transaction_tracer.enabled' => true,
-      'transaction_tracer.random_sampler' => false,
-      'transaction_tracer.explain_threshold' => 0.75,
-      'transaction_tracer.explain_enabled' => true
-    }
-    with_config(test_config) do
-      config_transaction_tracer
-      assert @transaction_sampler.enabled?
-      assert_equal 0.75, @transaction_sampler.explain_threshold
-      assert @transaction_sampler.explain_enabled
-    end
-  end
-
   def test_configure_transaction_tracer_with_random_sampling
     @config_should_send_samples = true
     @should_send_random_samples = true
