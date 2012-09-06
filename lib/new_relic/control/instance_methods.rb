@@ -44,6 +44,18 @@ module NewRelic
       # init_config({}) which is called one or more times.
       #
       def init_plugin(options={})
+        begin
+          path = @newrelic_file || Agent.config[:config_path]
+          yaml = Agent::Configuration::YamlSource.new(path, env)
+          Agent.config.replace_or_add_config(yaml, 1)
+        rescue ScriptError, StandardError => e
+          # Why do we need to do this?
+          new_err = e.class.new("Error reading newrelic.yml file: #{e}")
+          new_err.set_backtrace(e.backtrace)
+          raise new_err
+        end
+
+        Agent.config.replace_or_add_config(Agent::Configuration::ManualSource.new(options), 1)
         options['app_name'] = ENV['NEWRELIC_APP_NAME'] if ENV['NEWRELIC_APP_NAME']
         options['app_name'] ||= ENV['NEW_RELIC_APP_NAME'] if ENV['NEW_RELIC_APP_NAME']
 
@@ -52,15 +64,9 @@ module NewRelic
         environment_name = options.delete(:env) and self.env = environment_name
         dispatcher = options.delete(:dispatcher) and @local_env.dispatcher = dispatcher
         dispatcher_instance_id = options.delete(:dispatcher_instance_id) and @local_env.dispatcher_instance_id = dispatcher_instance_id
-        
+
         NewRelic::Agent::PipeChannelManager.listener.start if options.delete(:start_channel_listener)
 
-        # Clear out the settings, if they've already been loaded.  It may be that
-        # between calling init_plugin the first time and the second time, the env
-        # has been overridden
-        @settings = nil
-        settings
-        merge_options(options)
         if logger_override
           @log = logger_override
           # Try to grab the log filename
@@ -72,14 +78,14 @@ module NewRelic
         Module.send :include, NewRelic::Agent::MethodTracer::InstanceMethods
         init_config(options)
         NewRelic::Agent.agent = NewRelic::Agent::Agent.instance
-        if agent_enabled? && !NewRelic::Agent.instance.started?
+        if Agent.config[:agent_enabled] && !NewRelic::Agent.instance.started?
           setup_log unless logger_override
           start_agent
           install_instrumentation
-          load_samplers unless self['disable_samplers']
+          load_samplers unless Agent.config['disable_samplers']
           local_env.gather_environment_info
           append_environment_info
-        elsif !agent_enabled?
+        elsif !Agent.config[:agent_enabled]
           install_shim
         end
       end
@@ -89,29 +95,27 @@ module NewRelic
         NewRelic::Agent.agent.start
       end
 
-      # True if dev mode or monitor mode are enabled, and we are running
-      # inside a valid dispatcher like mongrel or passenger.  Can be overridden
-      # by NEWRELIC_ENABLE env variable, monitor_daemons config option when true, or
-      # agent_enabled config option when true or false.
-      def agent_enabled?
-        return false if !developer_mode? && !monitor_mode?
-        return self['agent_enabled'].to_s =~ /true|on|yes/i if !self['agent_enabled'].nil? && self['agent_enabled'] != 'auto'
-        return false if ENV['NEWRELIC_ENABLE'].to_s =~ /false|off|no/i
-        return true if self['monitor_daemons'].to_s =~ /true|on|yes/i
-        return true if ENV['NEWRELIC_ENABLE'].to_s =~ /true|on|yes/i
-        # When in 'auto' mode the agent is enabled if there is a known
-        # dispatcher running
-        return true if @local_env.dispatcher != nil
-      end
-      
       # Asks the LocalEnvironment instance which framework should be loaded
       def app
         @local_env.framework
       end
       alias framework app
-      
+
       def to_s #:nodoc:
         "Control[#{self.app}]"
+      end
+
+      # for backward compatibility with the old config interface
+      def [](key)
+        NewRelic::Agent.config[key.to_sym]
+      end
+
+      def settings
+        NewRelic::Agent.config.flattened_config
+      end
+
+      def dispatcher
+        NewRelic::Agent.config[:dispatcher]
       end
 
       protected
@@ -119,12 +123,12 @@ module NewRelic
       # Append framework specific environment information for uploading to
       # the server for change detection.  Override in subclasses
       def append_environment_info; end
-      
+
       # Asks bundler to tell us which gemspecs are loaded in the
       # current process
       def bundler_gem_list
         if defined?(Bundler) && Bundler.instance_eval do @load end
-          Bundler.load.specs.map do | spec |
+          Bundler.load.specs.map do |spec|
             version = (spec.respond_to?(:version) && spec.version)
             spec.name + (version ? "(#{version})" : "")
           end
@@ -132,39 +136,18 @@ module NewRelic
           []
         end
       end
-      
+
       # path to the config file, defaults to the "#{root}/config/newrelic.yml"
       def config_file
         File.expand_path(File.join(root,"config","newrelic.yml"))
       end
-      
-      # initializes the control instance with a local environment and
-      # an optional config file override. Checks for the config file
-      # and loads it.
+
       def initialize local_env, config_file_override=nil
         @local_env = local_env
         @instrumentation_files = []
-        newrelic_file = config_file_override || config_file
-        # Next two are for populating the newrelic.yml via erb binding, necessary
-        # when using the default newrelic.yml file
-        generated_for_user = ''
-        license_key=''
-        if !File.exists?(newrelic_file)
-          puts "Cannot find or read #{newrelic_file}"
-          @yaml = {}
-        else
-          @yaml = load_newrelic_yml(newrelic_file, binding)
-        end
-      rescue ScriptError, StandardError => e
-        new_err = e.class.new("Error reading newrelic.yml file: #{e}")
-        new_err.set_backtrace(e.backtrace)
-        raise new_err
+        @newrelic_file = config_file_override || config_file
       end
-      
-      def load_newrelic_yml(path, binding)
-        YAML.load(ERB.new(File.read(path)).result(binding))
-      end
-      
+
       def root
         '.'
       end

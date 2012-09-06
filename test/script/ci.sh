@@ -29,12 +29,22 @@ set -e
 if [ "x$RUBY" == "x" ]; then
   echo '$RUBY is undefined'
   echo 'defaulting to 1.9.3'
-  RUBY=1.9.3
+  export RUBY=1.9.3
 fi
 if [ "x$BRANCH" == "x" ]; then
   echo '$BRANCH is undefined'
   echo 'defaulting to rails31'
-  BRANCH=rails31
+  export BRANCH=rails31
+fi
+
+if [ "x$JOB_NAME" == "x" ]; then
+  echo '$JOB_NAME is undefined'
+  echo 'defaulting to clrun'
+  export PROJECT_NAME=clrun
+else
+  CLEANSED_NAME=`echo $JOB_NAME  | sed "s/label//" | sed "s/Portland//" | sed "s/BRANCH//" | sed "s/RUBY//" | sed "s/[=\/,\._]//g" | sed "s/ReleaseCandidate/RC/"`
+  echo "setting PROJECT_NAME to $CLEANSED_NAME"
+  export PROJECT_NAME="$CLEANSED_NAME"
 fi
 
 . "$HOME/.rvm/scripts/rvm"
@@ -73,7 +83,7 @@ mysql: &mysql
   socket: <%= (`uname -s` =~ /Linux/ ) ? "" :"/tmp/mysql.sock" %>
   username: root
   host: localhost
-  database: <%= [ 'rails_blog', ENV['BRANCH'], ENV['RUBY'] ].compact.join('_') %>
+  database: <%= [ 'rails_blog', ENV['BRANCH'], ENV['RUBY'], ENV['PROJECT_NAME'] ].compact.join('_') %>
 
 # Shared properties for postgres.  This won't work with our schema but
 # Does work with agent tests

@@ -4,7 +4,6 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   attr_reader :control
 
   def setup
-    NewRelic::Agent.manual_start(:dispatcher_instance_id => 'test')
     @control =  NewRelic::Control.instance
     raise 'oh geez, wrong class' unless NewRelic::Control.instance.is_a?(::NewRelic::Control::Frameworks::Test)
   end
@@ -17,12 +16,11 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     assert @control.cert_file_path
     assert_equal File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'cert', 'cacert.pem')), @control.cert_file_path
   end
-  
+
   # This test does not actually use the ruby agent in any way - it's
   # testing that the CA file we ship actually validates our server's
   # certificate. It's used for customers who enable verify_certificate
   def test_cert_file
-    return if ::RUBY_VERSION == '1.9.3'
     require 'socket'
     require 'openssl'
 
@@ -34,12 +32,11 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     s.connect
     # should not raise an error
   end
-  
+
   # see above, but for staging, as well. This allows us to test new
   # certificates in a non-customer-facing place before setting them
   # live.
   def test_staging_cert_file
-    return if ::RUBY_VERSION == '1.9.3'
     require 'socket'
     require 'openssl'
 
@@ -52,26 +49,6 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     # should not raise an error
   end
 
-  def test_monitor_mode
-    assert ! @control.monitor_mode?
-    @control.settings.delete 'enabled'
-    @control.settings.delete 'monitor_mode'
-    assert !@control.monitor_mode?
-    @control['enabled'] = false
-    assert ! @control.monitor_mode?
-    @control['enabled'] = true
-    assert @control.monitor_mode?
-    @control['monitor_mode'] = nil
-    assert !@control.monitor_mode?
-    @control['monitor_mode'] = false
-    assert !@control.monitor_mode?
-    @control['monitor_mode'] = true
-    assert @control.monitor_mode?
-  ensure
-    @control['enabled'] = false
-    @control['monitor_mode'] = false
-  end
-
   def test_test_config
     if defined?(Rails) && Rails::VERSION::MAJOR.to_i == 3
       assert_equal :rails3, control.app
@@ -81,10 +58,10 @@ class NewRelic::ControlTest < Test::Unit::TestCase
       assert_equal :test, control.app
     end
     assert_equal :test, control.framework
-    assert_match /test/i, control.dispatcher_instance_id
-    assert("" == control.dispatcher.to_s, "Expected dispatcher to be empty, but was #{control.dispatcher.to_s}")
-    assert !control['enabled']
-    assert_equal false, control['monitor_mode']
+    assert_match /test/i, control.local_env.dispatcher_instance_id
+    assert("" == NewRelic::Agent.config[:dispatcher].to_s,
+           "Expected dispatcher to be empty, but was #{NewRelic::Agent.config[:dispatcher].to_s}")
+    assert_equal false, NewRelic::Agent.config[:monitor_mode]
     control.local_env
   end
 
@@ -96,6 +73,7 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   end
 
   def test_info
+    NewRelic::Agent.manual_start(:dispatcher_instance_id => 'test')
     props = NewRelic::Control.instance.local_env.snapshot
     if defined?(Rails)
       assert_match /jdbc|postgres|mysql|sqlite/, props.assoc('Database adapter').last, props.inspect
@@ -107,6 +85,36 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     assert_equal nil, control.send(:convert_to_ip_address, 'q1239988737.us')
     # This will fail if you don't have a valid, accessible, DNS server
     assert_equal '204.93.223.153', control.send(:convert_to_ip_address, 'collector.newrelic.com')
+  end
+
+  def test_do_not_resolve_if_we_need_to_verify_a_cert
+    assert_equal nil, control.send(:convert_to_ip_address, 'localhost')
+    with_config(:ssl => true, :verify_certificate => true) do
+      assert_equal 'localhost', control.send(:convert_to_ip_address, 'localhost')
+    end
+  end
+
+  def test_api_server_uses_configured_values
+    control.instance_variable_set(:@api_server, nil)
+    with_config(:api_host => 'somewhere', :api_port => 8080) do
+      assert_equal 'somewhere', control.api_server.name
+      assert_equal 8080, control.api_server.port
+    end
+  end
+
+  def test_proxy_server_uses_configured_values
+    control.instance_variable_set(:@proxy_server, nil)
+    with_config(:proxy_host => 'proxytown', :proxy_port => 81) do
+      assert_equal 'proxytown', control.proxy_server.name
+      assert_equal 81, control.proxy_server.port
+    end
+  end
+
+  def test_server_from_host_uses_configured_values
+    with_config(:host => 'donkeytown', :port => 8080) do
+      assert_equal 'donkeytown', control.server_from_host.name
+      assert_equal 8080, control.server_from_host.port
+    end
   end
 
   class FakeResolv
@@ -131,126 +139,88 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     assert_equal old_ipsocket, IPSocket
   end
 
-  def test_config_yaml_erb
-    assert_equal 'heyheyhey', control['erb_value']
-    assert_equal '', control['message']
-    assert_equal '', control['license_key']
-  end
-
-  def test_appnames
-    assert_equal %w[a b c], NewRelic::Control.instance.app_names
-  end
-
-  def test_config_booleans
-    assert_equal control['tval'], true
-    assert_equal control['fval'], false
-    assert_nil control['not_in_yaml_val']
-    assert_equal control['yval'], true
-    assert_equal control['sval'], 'sure'
-  end
-
-  def test_config_apdex
-    assert_equal 1.1, control.apdex_t
-  end
-
-#  def test_transaction_threshold
-#    assert_equal 'Apdex_f', c['transaction_tracer']['transaction_threshold']
-#    assert_equal 4.4, NewRelic::Agent::Agent.instance.instance_variable_get('@slowest_transaction_threshold')
-#  end
-
   def test_log_file_name
     NewRelic::Control.instance.setup_log
     assert_match /newrelic_agent.log$/, control.instance_variable_get('@log_file')
   end
 
-#  def test_transaction_threshold__apdex
-#    forced_start
-#    assert_equal 'Apdex_f', c['transaction_tracer']['transaction_threshold']
-#    assert_equal 4.4, NewRelic::Agent::Agent.instance.instance_variable_get('@slowest_transaction_threshold')
-#  end
-
-  def test_transaction_threshold__default
-    forced_start :transaction_tracer => { :transaction_threshold => nil}
-    assert_nil control['transaction_tracer']['transaction_threshold']
-    assert_equal 2.0, NewRelic::Agent::Agent.instance.instance_variable_get('@slowest_transaction_threshold')
-  end
-
   def test_transaction_threshold__override
-    forced_start :transaction_tracer => { :transaction_threshold => 1}
-    assert_equal 1, control['transaction_tracer']['transaction_threshold']
-    assert_equal 1, NewRelic::Agent::Agent.instance.instance_variable_get('@slowest_transaction_threshold')
+    with_config(:transaction_tracer => { :transaction_threshold => 1}) do
+      NewRelic::Agent.instance.config_transaction_tracer
+      assert_equal 1, NewRelic::Agent.config[:'transaction_tracer.transaction_threshold']
+      assert_equal 1, NewRelic::Agent.instance \
+        .instance_variable_get(:@slowest_transaction_threshold)
+    end
   end
 
   def test_transaction_tracer_disabled
-    forced_start(:transaction_tracer => { :enabled => false },
-                 :developer_mode => false, :monitor_mode => true)
-    NewRelic::Agent::Agent.instance.check_transaction_sampler_status
-    
-    assert(!NewRelic::Agent::Agent.instance.transaction_sampler.enabled?,
-           'transaction tracer enabled when config calls for disabled')
-    
-    @control['developer_mode'] = true
-    @control['monitor_mode'] = false
+    with_config(:'transaction_tracer.enabled' => false,
+                :developer_mode => false, :monitor_mode => true) do
+      NewRelic::Agent::Agent.instance.config_transaction_tracer
+      NewRelic::Agent::Agent.instance.check_transaction_sampler_status
+
+      assert(!NewRelic::Agent::Agent.instance.transaction_sampler.enabled?,
+             'transaction tracer enabled when config calls for disabled')
+    end
   end
-  
+
   def test_sql_tracer_disabled
-    forced_start(:slow_sql => { :enabled => false }, :monitor_mode => true)
-    NewRelic::Agent::Agent.instance.check_sql_sampler_status
-    
-    assert(!NewRelic::Agent::Agent.instance.sql_sampler.enabled?,
-           'sql tracer enabled when config calls for disabled')
-    
-    @control['monitor_mode'] = false
+    with_config(:'slow_sql.enabled' => false, :monitor_mode => true) do
+      NewRelic::Agent.instance.sql_sampler.configure!
+      NewRelic::Agent::Agent.instance.check_sql_sampler_status
+
+      assert(!NewRelic::Agent::Agent.instance.sql_sampler.enabled?,
+             'sql tracer enabled when config calls for disabled')
+    end
   end
-  
+
   def test_sql_tracer_disabled_with_record_sql_false
-    forced_start(:slow_sql => { :enabled => true, :record_sql => 'off' })
-    NewRelic::Agent::Agent.instance.check_sql_sampler_status
-    
-    assert(!NewRelic::Agent::Agent.instance.sql_sampler.enabled?,
-           'sql tracer enabled when config calls for disabled')
+    with_config(:slow_sql => { :enabled => true, :record_sql => 'off' }) do
+      NewRelic::Agent::Agent.instance.check_sql_sampler_status
+
+      assert(!NewRelic::Agent::Agent.instance.sql_sampler.enabled?,
+             'sql tracer enabled when config calls for disabled')
+    end
   end
 
   def test_sql_tracer_disabled_when_tt_disabled
-    forced_start(:transaction_tracer => { :enabled => false },
-                 :slow_sql => { :enabled => true },
-                 :developer_mode => false, :monitor_mode => true)
-    NewRelic::Agent::Agent.instance.check_sql_sampler_status
-    
-    assert(!NewRelic::Agent::Agent.instance.sql_sampler.enabled?,
-           'sql enabled when transaction tracer disabled')
-    
-    @control['developer_mode'] = true
-    @control['monitor_mode'] = false    
+    with_config(:'transaction_tracer.enabled' => false,
+                :'slow_sql.enabled' => true,
+                :developer_mode => false, :monitor_mode => true) do
+      NewRelic::Agent::Agent.instance.check_sql_sampler_status
+
+      assert(!NewRelic::Agent::Agent.instance.sql_sampler.enabled?,
+             'sql enabled when transaction tracer disabled')
+    end
   end
 
   def test_sql_tracer_disabled_when_tt_disabled_by_server
-    forced_start(:slow_sql => { :enabled => true },
-                 :transaction_tracer => { :enabled => true },
-                 :monitor_mode => true)
-    NewRelic::Agent::Agent.instance.check_sql_sampler_status
-    NewRelic::Agent::Agent.instance.finish_setup('collect_traces' => false)    
-    
-    assert(!NewRelic::Agent::Agent.instance.sql_sampler.enabled?,
-           'sql enabled when tracing disabled by server')
-    
-    @control['monitor_mode'] = false        
+    with_config({:'slow_sql.enabled' => true,
+                  :'transaction_tracer.enabled' => true,
+                  :monitor_mode => true}, 2) do
+
+      NewRelic::Agent.instance.check_sql_sampler_status
+      NewRelic::Agent.instance.finish_setup('collect_traces' => false,
+                                            'listen_to_server_config' => true)
+
+      assert(!NewRelic::Agent::Agent.instance.sql_sampler.enabled?,
+             'sql enabled when tracing disabled by server')
+    end
   end
 
-  def test_merging_options
-    NewRelic::Control.send :public, :merge_options
-    @control.merge_options :api_port => 66, :transaction_tracer => { :explain_threshold => 2.0 }
-    assert_equal 66, NewRelic::Control.instance['api_port']
-    assert_equal 2.0, NewRelic::Control.instance['transaction_tracer']['explain_threshold']
-    assert_equal 'raw', NewRelic::Control.instance['transaction_tracer']['record_sql']
+  def test_init_plugin_loads_samplers_enabled
+    NewRelic::Agent.shutdown
+    with_config(:disable_samplers => false, :agent_enabled => true) do
+      NewRelic::Control.instance.init_plugin
+      assert NewRelic::Agent.instance.stats_engine.send(:harvest_samplers).any?
+    end
   end
-    
-  private
 
-  def forced_start(overrides={})
-    NewRelic::Agent.manual_start overrides
-    # This is to force the agent to start again.
-    NewRelic::Agent.instance.stubs(:started?).returns(nil)
-    NewRelic::Agent.instance.start
+  def test_init_plugin_loads_samplers_disabled
+    NewRelic::Agent.shutdown
+    with_config(:disable_samplers => true, :agent_enabled => true) do
+      NewRelic::Control.instance.init_plugin
+      assert_equal [], NewRelic::Agent.instance.stats_engine.send(:harvest_samplers)
+    end
   end
 end

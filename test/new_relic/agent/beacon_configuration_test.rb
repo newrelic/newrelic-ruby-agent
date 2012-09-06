@@ -24,27 +24,29 @@ class NewRelic::Agent::BeaconConfigurationTest < Test::Unit::TestCase
   end
 
   def test_license_bytes_nil
-    connect_data = {}
-    NewRelic::Control.instance.expects(:license_key).returns('a' * 40).once
-    bc = NewRelic::Agent::BeaconConfiguration.new(connect_data)
-    assert_equal([97] * 40, bc.license_bytes, 'should return the bytes of the license key')
+    with_config(:license_key => 'a' * 40) do
+      connect_data = {}
+      bc = NewRelic::Agent::BeaconConfiguration.new(connect_data)
+      assert_equal([97] * 40, bc.license_bytes, 'should return the bytes of the license key')
+    end
   end
 
   def test_license_bytes_existing_bytes
     connect_data = {}
     bc = NewRelic::Agent::BeaconConfiguration.new(connect_data)
     bc.instance_eval { @license_bytes = [97] * 40 }
-    NewRelic::Control.instance.expects(:license_key).never
+    NewRelic::Agent.config.expects(:[]).with('license_key').never
     assert_equal([97] * 40, bc.license_bytes, "should return the cached value if it exists")
   end
 
   def test_license_bytes_should_set_instance_cache
-    connect_data = {}
-    bc = NewRelic::Agent::BeaconConfiguration.new(connect_data)
-    NewRelic::Control.instance.expects(:license_key).returns('a' * 40)
-    bc.instance_eval { @license_bytes = nil }
-    bc.license_bytes
-    assert_equal([97] * 40, bc.instance_variable_get('@license_bytes'), "should cache the license bytes for later")
+    with_config(:license_key => 'a' * 40) do
+      connect_data = {}
+      bc = NewRelic::Agent::BeaconConfiguration.new(connect_data)
+      bc.instance_eval { @license_bytes = nil }
+      bc.license_bytes
+      assert_equal([97] * 40, bc.instance_variable_get('@license_bytes'), "should cache the license bytes for later")
+    end
   end
 
   def test_build_browser_timing_header_disabled

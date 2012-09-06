@@ -12,7 +12,7 @@ module NewRelic
           @env ||= ENV['RUBY_ENV'] || ENV['RAILS_ENV'] || ENV['RACK_ENV'] || 'development'
         end
         def root
-          @root ||= ENV['APP_ROOT'] || Dir['.']
+          @root ||= ENV['APP_ROOT'] || '.'
         end
         # Check a sequence of file locations for newrelic.yml
         def config_file
@@ -24,7 +24,7 @@ module NewRelic
             files << File.join(ENV["HOME"], "newrelic.yml")
           end
           files << File.expand_path(ENV["NRCONFIG"]) if ENV["NRCONFIG"]
-          files.each do | file |
+          files.each do |file|
             return File.expand_path(file) if File.exists? file
           end
           return File.expand_path(files.first)

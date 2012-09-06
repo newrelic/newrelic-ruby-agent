@@ -2,6 +2,20 @@
 # New Relic Ruby Agent Release Notes #
 
 ### current version ###
+## v3.4.2 ##
+
+ * The RUM NRAGENT tk value gets sanitized to prevent potential XSS vulnerabilities
+
+   There was the potential for malicious code to be inserted into the token used
+   in Real User Monitoring and have it echoed back to a browser as an XSS exploit. 
+   The token now gets scrubbed to remove this potential problem.
+
+ * Refactoring of agent config code
+
+   The code that reads the configuration information and confirgures the agent
+   got substantially reorganized, consolidated, simplified, and made more robust.
+ 
+### previous versions ###
 ## v3.4.1 ##
 #### Bug Fixes ####
  * Fix edge case in RUM auto instrumentation where X-UA-Compatible meta tag is 
@@ -42,10 +56,10 @@
    example, out-of-band GC in Unicorn. fixed.
 
 
-### previous versions ###
 v3.4.0.1
  * Prevent the agent from resolving the collector address when disabled.
  * Fix for error collector configuration that was introduced during beta.
+ * Preserve method visibility when methods are traced with #add_method_tracer and #add_transaction_tracer
 
 v3.4.0
  * Major refactor of data transmission mechanism.  This enabled child processes to send data to parent processes, which then send the data to the New Relic service.  This should only affect Resque users, dramatically improving their experience.

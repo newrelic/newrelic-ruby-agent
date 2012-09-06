@@ -5,13 +5,13 @@
 
 Gem::Specification.new do |s|
   s.name = "newrelic_rpm"
-  s.version = "3.4.1"
+  s.version = "3.4.2"
 
-  s.authors = ["Bill Kayser", "Jon Guymon", "Justin George", "Darin Swanson"]
-  s.date = "2012-07-26"
+  s.authors = ["Bill Kayser", "Jon Guymon", "Justin George", "Darin Swanson", "Rob Saul"]
+  s.date = "2012-09-06"
   s.description = "New Relic is a performance management system, developed by New Relic,\nInc (http://www.newrelic.com).  New Relic provides you with deep\ninformation about the performance of your web application as it runs\nin production. The New Relic Ruby Agent is dual-purposed as a either a\nGem or plugin, hosted on\nhttp://github.com/newrelic/rpm/\n"
   s.email = "support@newrelic.com"
-  s.executables = ["mongrel_rpm", "newrelic_cmd", "newrelic"]
+  s.executables = ["newrelic_cmd", "newrelic", "mongrel_rpm"]
   s.extra_rdoc_files = [
     "CHANGELOG",
     "LICENSE",
@@ -37,6 +37,12 @@ Gem::Specification.new do |s|
     "lib/new_relic/agent/browser_monitoring.rb",
     "lib/new_relic/agent/busy_calculator.rb",
     "lib/new_relic/agent/chained_call.rb",
+    "lib/new_relic/agent/configuration.rb",
+    "lib/new_relic/agent/configuration/defaults.rb",
+    "lib/new_relic/agent/configuration/environment_source.rb",
+    "lib/new_relic/agent/configuration/manager.rb",
+    "lib/new_relic/agent/configuration/server_source.rb",
+    "lib/new_relic/agent/configuration/yaml_source.rb",
     "lib/new_relic/agent/database.rb",
     "lib/new_relic/agent/error_collector.rb",
     "lib/new_relic/agent/instrumentation.rb",
@@ -91,7 +97,6 @@ Gem::Specification.new do |s|
     "lib/new_relic/commands/install.rb",
     "lib/new_relic/control.rb",
     "lib/new_relic/control/class_methods.rb",
-    "lib/new_relic/control/configuration.rb",
     "lib/new_relic/control/frameworks.rb",
     "lib/new_relic/control/frameworks/external.rb",
     "lib/new_relic/control/frameworks/merb.rb",
@@ -148,6 +153,10 @@ Gem::Specification.new do |s|
     "test/new_relic/agent/beacon_configuration_test.rb",
     "test/new_relic/agent/browser_monitoring_test.rb",
     "test/new_relic/agent/busy_calculator_test.rb",
+    "test/new_relic/agent/configuration/environment_source_test.rb",
+    "test/new_relic/agent/configuration/manager_test.rb",
+    "test/new_relic/agent/configuration/server_source_test.rb",
+    "test/new_relic/agent/configuration/yaml_source_test.rb",
     "test/new_relic/agent/database_test.rb",
     "test/new_relic/agent/error_collector/notice_error_test.rb",
     "test/new_relic/agent/error_collector_test.rb",
@@ -184,7 +193,7 @@ Gem::Specification.new do |s|
     "test/new_relic/collection_helper_test.rb",
     "test/new_relic/command/deployments_test.rb",
     "test/new_relic/control/class_methods_test.rb",
-    "test/new_relic/control/configuration_test.rb",
+    "test/new_relic/control/frameworks/rails_test.rb",
     "test/new_relic/control/logging_methods_test.rb",
     "test/new_relic/control_test.rb",
     "test/new_relic/delayed_job_injection_test.rb",

@@ -15,7 +15,7 @@ DependencyDetection.defer do
   @name = :delayed_job_injection
   
   depends_on do
-    defined?(::Delayed) && defined?(::Delayed::Worker) && !NewRelic::Control.instance['disable_dj']
+    defined?(::Delayed) && defined?(::Delayed::Worker) && !NewRelic::Agent.config[:disable_dj]
   end
   
   executes do

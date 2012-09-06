@@ -5,11 +5,17 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
   ::SQL_STATEMENT = "SELECT * from sandwiches"
 
   def setup
+    @test_config = { 'developer_mode' => true }
+    NewRelic::Agent.config.apply_config(@test_config)
     @connection_stub = Mocha::Mockery.instance.named_mock('connection')
     @connection_stub.stubs(:execute).returns([['QUERY RESULT']])
 
     NewRelic::Agent::Database.stubs(:get_connection).returns @connection_stub
     @t = make_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
+  end
+
+  def teardown
+    NewRelic::Agent.config.remove_config(@test_config)
   end
 
   def test_be_recorded
@@ -78,7 +84,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
 
   def test_have_explains
     s = @t.prepare_to_send(:record_sql => :obfuscated, :explain_sql => 0.00000001)
-    
+
     s.each_segment do |segment|
       if segment.params[:explain_plan]
         explanation = segment.params[:explain_plan]
@@ -138,7 +144,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
       s.to_s
     end
   end
-  
+
   def test_to_s_includes_keys
     s = @t.prepare_to_send(:explain_sql => 0.1)
     s.params[:fake_key] = 'a fake param'

@@ -1,6 +1,8 @@
 ENV['SKIP_RAILS'] = 'true'
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require "new_relic/agent/browser_monitoring"
+require "new_relic/rack/browser_monitoring"
+require 'ostruct'
 
 class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
   include NewRelic::Agent::BrowserMonitoring
@@ -8,6 +10,8 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
   
   def setup
     NewRelic::Agent.manual_start
+    config = {:disable_mobile_headers => false }
+    NewRelic::Agent.config.apply_config(config)
     @browser_monitoring_key = "fred"
     @episodes_file = "this_is_my_file"
     NewRelic::Agent.instance.instance_eval do
@@ -15,6 +19,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     end
     Thread.current[:last_metric_frame] = nil
     NewRelic::Agent::TransactionInfo.clear
+    NewRelic::Agent.config.remove_config(config)
   end
 
   def teardown
@@ -29,16 +34,17 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     def controller.newrelic_metric_path; "foo"; end
     controller.extend ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
     controller.extend ::NewRelic::Agent::BrowserMonitoring
-    NewRelic::Control.instance['browser_monitoring'] = { 'auto_instrument' => false }
 
-    controller.perform_action_with_newrelic_trace(:index)
-    first_request_start_time = controller.send(:browser_monitoring_start_time)
-    controller.perform_action_with_newrelic_trace(:index)
-    second_request_start_time = controller.send(:browser_monitoring_start_time)
+    with_config(:'browser_monitoring.auto_instrument' => false) do
+      controller.perform_action_with_newrelic_trace(:index)
+      first_request_start_time = controller.send(:browser_monitoring_start_time)
+      controller.perform_action_with_newrelic_trace(:index)
+      second_request_start_time = controller.send(:browser_monitoring_start_time)
 
-    # assert that these aren't the same time object
-    # the start time should be reinitialized each request to the controller
-    assert !(first_request_start_time.equal? second_request_start_time)
+      # assert that these aren't the same time object
+      # the start time should be reinitialized each request to the controller
+      assert !(first_request_start_time.equal? second_request_start_time)
+    end
   end
 
   def test_browser_timing_header_with_no_beacon_configuration
@@ -81,14 +87,14 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
   end
 
   def test_browser_timing_footer
-    browser_timing_header
-    NewRelic::Control.instance.expects(:license_key).returns("a" * 13)
-
-    footer = browser_timing_footer
-    snippet = '<script type="text/javascript">if (!NREUMQ.f) { NREUMQ.f=function() {
+    with_config(:license_key => 'a' * 13) do
+      browser_timing_header
+      footer = browser_timing_footer
+      snippet = '<script type="text/javascript">if (!NREUMQ.f) { NREUMQ.f=function() {
 NREUMQ.push(["load",new Date().getTime()]);
 var e=document.createElement("script");'
-    assert footer.include?(snippet), "Expected footer to include snippet: #{snippet}, but instead was #{footer}"
+      assert footer.include?(snippet), "Expected footer to include snippet: #{snippet}, but instead was #{footer}"
+    end
   end
 
   def test_browser_timing_footer_with_no_browser_key_rum_enabled
@@ -319,5 +325,56 @@ var e=document.createElement("script");'
     NewRelic::Agent.instance.beacon_configuration.expects(:license_bytes).returns(key)
     output = obfuscate(NewRelic::Agent.instance.beacon_configuration, text)
     assert_equal('YCJrZXV2fih5Y25vaCFtZSR2a2ZkZSp/aXV1YyNsZHZ3cSl6YmluZCJsYiV1amllZit4aHl2YiRtZ3d4cCp7ZWhiZyNrYyZ0ZWhmZyx5ZHp3ZSVuZnh5cyt8ZGRhZiRqYCd7ZGtnYC11Z3twZCZvaXl6cix9aGdgYSVpYSh6Z2pgYSF2Znxx', output, "should output obfuscated text")
+  end
+  
+  def test_no_mobile_response_header_if_no_mobile_request_header_given
+    request = Rack::Request.new({})
+    response = Rack::Response.new
+    
+    NewRelic::Agent::BrowserMonitoring.insert_mobile_response_header(request, response)
+    assert_nil response['X-NewRelic-Beacon-Url']
+  end
+
+  def test_no_mobile_response_header_if_mobile_request_header_is_false
+    request = Rack::Request.new('HTTP_X_NEWRELIC_MOBILE_TRACE' => 'false')
+    response = Rack::Response.new
+
+    NewRelic::Agent::BrowserMonitoring.insert_mobile_response_header(request, response)
+    assert_nil response['X-NewRelic-Beacon-Url']
+  end
+  
+  def test_place_beacon_url_header_when_given_mobile_request_header
+    response = mobile_transaction    
+    assert_equal('http://beacon/mobile/1/browserKey',
+                 response['X-NewRelic-Beacon-Url'])
+  end
+  
+  def test_place_beacon_url_header_when_given_mobile_request_header_with_https
+    request = Rack::Request.new('X_NEWRELIC_MOBILE_TRACE' => 'true',
+                                'rack.url_scheme' => 'https')
+    response = mobile_transaction(request)
+    assert_equal('https://beacon/mobile/1/browserKey',
+                 response['X-NewRelic-Beacon-Url'])
+  end
+
+  def test_place_beacon_payload_head_when_given_mobile_request_header
+    Time.stubs(:now).returns(6)
+    response = mobile_transaction    
+    txn_name = obfuscate(NewRelic::Agent.instance.beacon_configuration,
+                         browser_monitoring_transaction_name)
+    expected_payload = %|["apId","#{txn_name}",#{browser_monitoring_queue_time},#{browser_monitoring_app_time}]|
+    
+    assert_equal expected_payload, response['X-NewRelic-App-Server-Metrics'].strip
+  end
+
+  def mobile_transaction(request=nil)
+    request ||= Rack::Request.new('X-NewRelic-Mobile-Trace' => 'true')
+    response = Rack::Response.new
+    txn_data = OpenStruct.new(:transaction_name => 'a transaction name',
+                              :start_time => 5,
+                              :force_persist_sample? => false)
+    NewRelic::Agent::TransactionInfo.set(txn_data)
+    NewRelic::Agent::BrowserMonitoring.insert_mobile_response_header(request, response)
+    response
   end
 end

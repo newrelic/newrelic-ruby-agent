@@ -15,6 +15,13 @@ class NewRelicServiceTest < Test::Unit::TestCase
     @http_handle.respond_to(:connect, connect_response)
   end
 
+  def test_initialize_uses_correct_license_key_settings
+    with_config(:license_key => 'abcde') do
+      service = NewRelic::Agent::NewRelicService.new
+      assert_equal 'abcde', service.instance_variable_get(:@license_key)
+    end
+  end
+
   def test_connect_sets_agent_id_and_config_data
     response = @service.connect
     assert_equal 1, response['agent_run_id']
@@ -94,9 +101,10 @@ class NewRelicServiceTest < Test::Unit::TestCase
   end
 
   def test_request_timeout
-    NewRelic::Control.instance['timeout'] = 600
-    service = NewRelic::Agent::NewRelicService.new('abcdef', @server)
-    assert_equal 600, service.request_timeout
+    with_config(:timeout => 600) do
+      service = NewRelic::Agent::NewRelicService.new('abcdef', @server)
+      assert_equal 600, service.request_timeout
+    end
   end
 
   def test_should_throw_received_errors

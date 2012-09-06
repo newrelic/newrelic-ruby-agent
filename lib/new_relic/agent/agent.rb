@@ -6,6 +6,7 @@ require 'zlib'
 require 'stringio'
 require 'new_relic/agent/new_relic_service'
 require 'new_relic/agent/pipe_service'
+require 'new_relic/agent/configuration/manager'
 
 module NewRelic
   module Agent
@@ -15,6 +16,8 @@ module NewRelic
     # in realtime as the application runs, and periodically sends that
     # data to the NewRelic server.
     class Agent
+      extend NewRelic::Agent::Configuration::Instance
+      
       def initialize
         @launch_time = Time.now
 
@@ -31,8 +34,8 @@ module NewRelic
         @forked = false
 
         # FIXME: temporary work around for RUBY-839
-        if control.monitor_mode?
-          @service = NewRelic::Agent::NewRelicService.new(control.license_key, control.server)
+        if Agent.config[:monitor_mode]
+          @service = NewRelic::Agent::NewRelicService.new
         end
       end
 
@@ -161,9 +164,9 @@ module NewRelic
           end
           
           # log.debug "Agent received after_fork notice in #$$: [#{control.agent_enabled?}; monitor=#{control.monitor_mode?}; connected: #{@connected.inspect}; thread=#{@worker_thread.inspect}]"
-          return if !control.agent_enabled? or
-            !control.monitor_mode? or
-            @connected == false or
+          return if !Agent.config[:agent_enabled] ||
+            !Agent.config[:monitor_mode] ||
+            @connected == false ||
             @worker_thread && @worker_thread.alive?
 
           log.info "Starting the worker thread in #$$ after forking."
@@ -199,7 +202,7 @@ module NewRelic
         # :force_send => (true/false) # force the agent to send data
         # before shutting down
         def shutdown(options={})
-          run_loop_before_exit = options.fetch(:force_send, false)
+          run_loop_before_exit = Agent.config[:force_send]
           return if not started?
           if @worker_loop
             @worker_loop.run_task if run_loop_before_exit
@@ -211,7 +214,7 @@ module NewRelic
           # if litespeed, then ignore all future SIGUSR1 - it's
           # litespeed trying to shut us down
 
-          if control.dispatcher == :litespeed
+          if Agent.config[:dispatcher] == :litespeed
             Signal.trap("SIGUSR1", "IGNORE")
             Signal.trap("SIGTERM", "IGNORE")
           end
@@ -223,6 +226,10 @@ module NewRelic
           rescue => e
             log.error e
             log.error e.backtrace.join("\n")
+          end
+          NewRelic::Agent.config.remove_config do |config|
+            config.class == NewRelic::Agent::Configuration::ManualSource ||
+              config.class == NewRelic::Agent::Configuration::ServerSource
           end
           @started = nil
         end
@@ -294,21 +301,21 @@ module NewRelic
           # 'agent_enabled' option (e.g. in a manual start), or
           # enabled normally through the configuration file
           def disabled?
-            !control.agent_enabled?
+            !Agent.config[:agent_enabled]
           end
 
           # Logs the dispatcher to the log file to assist with
           # debugging. When no debugger is present, logs this fact to
           # assist with proper dispatcher detection
           def log_dispatcher
-            dispatcher_name = control.dispatcher.to_s
+            dispatcher_name = Agent.config[:dispatcher].to_s
             return if log_if(dispatcher_name.empty?, :info, "No dispatcher detected.")
             log.info "Dispatcher: #{dispatcher_name}"
           end
 
           # Logs the configured application names
           def log_app_names
-            log.info "Application: #{control.app_names.join(", ")}"
+            log.info "Application: #{Agent.config.app_names.join(", ")}"
           end
           
           # Connecting in the foreground blocks further startup of the
@@ -338,7 +345,7 @@ module NewRelic
           # behavior of at_exit blocks to make sure it runs last, by
           # doing an at_exit within an at_exit block.
           def install_exit_handler
-            if control.send_data_on_exit && !weird_ruby?
+            if Agent.config[:send_data_on_exit] && !weird_ruby?
               # Our shutdown handler needs to run after other shutdown handlers
               at_exit { at_exit { shutdown } }
             end
@@ -380,13 +387,13 @@ module NewRelic
           # Warn the user if they have configured their agent not to
           # send data, that way we can see this clearly in the log file
           def monitoring?
-            log_unless(control.monitor_mode?, :warn, "Agent configured not to send data in this environment - edit newrelic.yml to change this")
+            log_unless(Agent.config[:monitor_mode], :warn, "Agent configured not to send data in this environment - edit newrelic.yml to change this")
           end
 
           # Tell the user when the license key is missing so they can
           # fix it by adding it to the file
           def has_license_key?
-            log_unless(control.license_key, :error, "No license key found.  Please edit your newrelic.yml file and insert your license key.")
+            log_unless(Agent.config[:license_key], :error, "No license key found.  Please edit your newrelic.yml file and insert your license key.")
           end
 
           # A correct license key exists and is of the proper length
@@ -397,7 +404,7 @@ module NewRelic
           # A license key is an arbitrary 40 character string,
           # usually looks something like a SHA1 hash
           def correct_license_length
-            key = control.license_key
+            key = Agent.config[:license_key]
             log_unless((key.length == 40), :error, "Invalid license key: #{key}")
           end
 
@@ -405,7 +412,8 @@ module NewRelic
           # requests, we need to wait until the children are forked
           # before connecting, otherwise the parent process sends odd data
           def using_forking_dispatcher?
-            log_if([:passenger, :unicorn].include?(control.dispatcher), :info, "Connecting workers after forking.")
+            log_if([:passenger, :unicorn].include?(Agent.config[:dispatcher]),
+                   :info, "Connecting workers after forking.")
           end
 
           # Sanity-check the agent configuration and start the agent,
@@ -414,7 +422,7 @@ module NewRelic
           def check_config_and_start_agent
             return unless monitoring? && has_correct_license_key?
             return if using_forking_dispatcher?
-            connect_in_foreground if control.sync_startup
+            connect_in_foreground if Agent.config[:sync_startup]
             start_worker_thread
             install_exit_handler
           end
@@ -456,7 +464,7 @@ module NewRelic
           # disable transaction sampling if disabled by the server
           # and we're not in dev mode
           def check_transaction_sampler_status
-            if control.developer_mode? || @should_send_samples
+            if Agent.config[:developer_mode] || @should_send_samples
               @transaction_sampler.enable
             else
               @transaction_sampler.disable
@@ -466,7 +474,7 @@ module NewRelic
           def check_sql_sampler_status
             # disable sql sampling if disabled by the server
             # and we're not in dev mode
-            if @sql_sampler.config.fetch('enabled', true) && ['raw', 'obfuscated'].include?(@sql_sampler.config.fetch('record_sql', 'obfuscated').to_s) && @transaction_sampler.config.fetch('enabled', true)
+            if Agent.config[:'slow_sql.enabled'] && ['raw', 'obfuscated'].include?(Agent.config[:'slow_sql.record_sql']) && Agent.config[:'transaction_tracer.enabled']
               @sql_sampler.enable
             else
               @sql_sampler.disable
@@ -673,15 +681,15 @@ module NewRelic
           # should debug log that fact so that debug logs include a
           # clue that token authentication is what will be used
           def log_seed_token
-            if control.validate_seed
-              log.debug "Connecting with validation seed/token: #{control.validate_seed}/#{control.validate_token}"
+            if Agent.config[:validate_seed]
+              log.debug "Connecting with validation seed/token: #{Agent.config[:validate_seed]}/#{Agent.config[:validate_token]}"
             end
           end
 
           # Checks whether we should send environment info, and if so,
           # returns the snapshot from the local environment
           def environment_for_connect
-            control['send_environment_info'] != false ? control.local_env.snapshot : []
+            Agent.config[:send_environment_info] ? Control.instance.local_env.snapshot : []
           end
 
           # These validation settings are used for cases where a
@@ -690,8 +698,8 @@ module NewRelic
           # allowed to connect, rather than setting a unique hostname
           def validate_settings
             {
-              :seed => control.validate_seed,
-              :token => control.validate_token
+              :seed => Agent.config[:validate_seed],
+              :token => Agent.config[:validate_token]
             }
           end
 
@@ -701,11 +709,11 @@ module NewRelic
             {
               :pid => $$,
               :host => @local_host,
-              :app_name => control.app_names,
+              :app_name => Agent.config.app_names,
               :language => 'ruby',
               :agent_version => NewRelic::VERSION::STRING,
               :environment => environment_for_connect,
-              :settings => control.settings,
+              :settings => Agent.config.flattened_config,
               :validate => validate_settings
             }
           end
@@ -755,14 +763,13 @@ module NewRelic
             # Reconfigure the transaction tracer
             @transaction_sampler.configure!
             @sql_sampler.configure!
-            @should_send_samples = @config_should_send_samples = @transaction_sampler.config.fetch('enabled', true)
-            @should_send_random_samples = @transaction_sampler.config.fetch('random_sample', false)
+            @should_send_samples = @config_should_send_samples = Agent.config[:'transaction_tracer.enabled']
+            @should_send_random_samples = Agent.config[:'transaction_tracer.random_sample']
             set_sql_recording!
 
             # default to 2.0, string 'apdex_f' will turn into your
             # apdex * 4
-            @slowest_transaction_threshold = @transaction_sampler.config.fetch('transaction_threshold', 2.0).to_f
-            @slowest_transaction_threshold = apdex_f if apdex_f_threshold?
+            @slowest_transaction_threshold = Agent.config[:'transaction_tracer.transaction_threshold']
           end
 
           # Enables or disables the transaction tracer and sets its
@@ -771,7 +778,6 @@ module NewRelic
           def configure_transaction_tracer!(server_enabled, sample_rate)
             # Ask the server for permission to send transaction samples.
             # determined by subscription license.
-            @transaction_sampler.config['enabled'] = server_enabled
             @sql_sampler.configure!
             @should_send_samples = @config_should_send_samples && server_enabled
             
@@ -789,15 +795,7 @@ module NewRelic
 
           # apdex_f is always 4 times the apdex_t
           def apdex_f
-            (4 * NewRelic::Control.instance.apdex_t).to_f
-          end
-
-          # If the transaction threshold is set to the string
-          # 'apdex_f', we use 4 times the apdex_t value to record
-          # transactions. This gears well with using apdex since you
-          # will attempt to send any transactions that register as 'failing'
-          def apdex_f_threshold?
-            @transaction_sampler.config.fetch('transaction_threshold', '') =~ /apdex_f/i
+            (4 * Agent.config[:apdex_t]).to_f
           end
 
           # Sets the sql recording configuration by trying to detect
@@ -805,7 +803,7 @@ module NewRelic
           # 'false', 'none', and friends. Otherwise, we accept 'raw',
           # and unrecognized values default to 'obfuscated'
           def set_sql_recording!
-            record_sql_config = @transaction_sampler.config.fetch('record_sql', :obfuscated)
+            record_sql_config = Agent.config[:'transaction_tracer.record_sql']
             case record_sql_config.to_s
             when 'off'
               @record_sql = :off
@@ -828,17 +826,6 @@ module NewRelic
             log.warn("Agent is configured to send raw SQL to the service") if @record_sql == :raw
           end
 
-          # Asks the collector to tell us which sub-collector we
-          # should be reporting to, and then does the name resolution
-          # on that host so we don't block on DNS during the normal
-          # course of agent processing
-#           def set_collector_host!
-#             host = invoke_remote(:get_redirect_host)
-#             if host
-#               @collector = control.server_from_host(host)
-#             end
-#           end
-
           # Sets the collector host and connects to the server, then
           # invokes the final configuration with the returned data
           def query_server_for_configuration
@@ -854,20 +841,21 @@ module NewRelic
           # ignored unless we say to do something with it here.
           def finish_setup(config_data)
             return if config_data == nil
-            @service.agent_id = config_data['agent_run_id']
+            
+            @service.agent_id = config_data['agent_run_id'] if @service
             @report_period = config_data['data_report_period']
             @url_rules = config_data['url_rules']
             @beacon_configuration = BeaconConfiguration.new(config_data)
-            @server_side_config_enabled = config_data['listen_to_server_config']
 
-            if @server_side_config_enabled
+            if config_data['listen_to_server_config']
               log.info "Using config from server"
               log.debug "Server provided config: #{config_data.inspect}"
+              server_config = NewRelic::Agent::Configuration::ServerSource.new(config_data)
+              Agent.config.apply_config(server_config, 1)
             end
 
-            control.merge_server_side_config(config_data) if @server_side_config_enabled
             config_transaction_tracer
-            log_connection!(config_data)
+            log_connection!(config_data) if @service
             configure_transaction_tracer!(config_data['collect_traces'], config_data['sample_rate'])
             configure_error_collector!(config_data['collect_errors'])
           end

@@ -16,39 +16,39 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   end
 
   def test_disabled_positive
-    control = mocked_control
-    control.expects(:agent_enabled?).returns(false)
-    assert disabled?
+    with_config(:agent_enabled => false) do
+      assert disabled?
+    end
   end
 
   def test_disabled_negative
-    control = mocked_control
-    control.expects(:agent_enabled?).returns(true)
-    assert !disabled?
+    with_config(:agent_enabled => true) do
+      assert !disabled?
+    end
   end
 
   def test_log_dispatcher_positive
-    control = mocked_control
     log = mocked_log
-    control.expects(:dispatcher).returns('Y U NO SERVE WEBPAGE')
-    log.expects(:info).with("Dispatcher: Y U NO SERVE WEBPAGE")
-    log_dispatcher
+    with_config(:dispatcher => 'Y U NO SERVE WEBPAGE') do
+      log.expects(:info).with("Dispatcher: Y U NO SERVE WEBPAGE")
+      log_dispatcher
+    end
   end
 
   def test_log_dispatcher_negative
-    control = mocked_control
     log = mocked_log
-    control.expects(:dispatcher).returns('')
-    log.expects(:info).with("No dispatcher detected.")
-    log_dispatcher
+    with_config(:dispatcher => '') do
+      log.expects(:info).with("No dispatcher detected.")
+      log_dispatcher
+    end
   end
 
   def test_log_app_names
-    control = mocked_control
-    log = mocked_log
-    control.expects(:app_names).returns(%w(zam zam zabam))
-    log.expects(:info).with("Application: zam, zam, zabam")
-    log_app_names
+    with_config(:app_name => 'zam;zam;zabam') do
+      log = mocked_log
+      log.expects(:info).with("Application: zam, zam, zabam")
+      log_app_names
+    end
   end
 
   def test_check_config_and_start_agent_disabled
@@ -70,26 +70,20 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   end
 
   def test_check_config_and_start_agent_normal
-    self.expects(:monitoring?).returns(true)
-    self.expects(:has_correct_license_key?).returns(true)
-    self.expects(:using_forking_dispatcher?).returns(false)
-    control = mocked_control
-    control.expects(:sync_startup).returns(false)
     self.expects(:start_worker_thread)
     self.expects(:install_exit_handler)
-    check_config_and_start_agent
+    with_config(:sync_startup => false, :monitor_mode => true, :license_key => 'a' * 40) do
+      check_config_and_start_agent
+    end
   end
 
   def test_check_config_and_start_agent_sync
-    self.expects(:monitoring?).returns(true)
-    self.expects(:has_correct_license_key?).returns(true)
-    self.expects(:using_forking_dispatcher?).returns(false)
-    control = mocked_control
-    control.expects(:sync_startup).returns(true)
     self.expects(:connect_in_foreground)
     self.expects(:start_worker_thread)
     self.expects(:install_exit_handler)
-    check_config_and_start_agent
+    with_config(:sync_startup => true, :monitor_mode => true, :license_key => 'a' * 40) do
+      check_config_and_start_agent
+    end
   end
 
   def test_connect_in_foreground
@@ -103,8 +97,6 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   private :at_exit
 
   def test_install_exit_handler_positive
-    control = mocked_control
-    control.expects(:send_data_on_exit).returns(true)
     NewRelic::LanguageSupport.expects(:using_engine?).with('rbx').returns(false)
     NewRelic::LanguageSupport.expects(:using_engine?).with('jruby').returns(false)
     self.expects(:using_sinatra?).returns(false)
@@ -112,27 +104,30 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
     # test the shutdown logic. It's somewhat unfortunate, but we can't
     # kill the interpreter during a test.
     self.expects(:shutdown)
-    install_exit_handler
+    with_config(:send_data_on_exit => true) do
+      install_exit_handler
+    end
   end
 
   def test_install_exit_handler_negative
-    control = mocked_control
-    control.expects(:send_data_on_exit).returns(false)
-    install_exit_handler
+    with_config(:send_data_on_exit => false) do
+      install_exit_handler
+    end
+    # should not raise excpetion
   end
 
   def test_install_exit_handler_weird_ruby
-    control = mocked_control
-    control.expects(:send_data_on_exit).times(3).returns(true)
-    NewRelic::LanguageSupport.expects(:using_engine?).with('rbx').returns(false)
-    NewRelic::LanguageSupport.expects(:using_engine?).with('jruby').returns(false)
-    self.expects(:using_sinatra?).returns(true)
-    install_exit_handler
-    NewRelic::LanguageSupport.expects(:using_engine?).with('rbx').returns(false)
-    NewRelic::LanguageSupport.expects(:using_engine?).with('jruby').returns(true)
-    install_exit_handler
-    NewRelic::LanguageSupport.expects(:using_engine?).with('rbx').returns(true)
-    install_exit_handler
+    with_config(:send_data_one_exit => true) do
+      NewRelic::LanguageSupport.expects(:using_engine?).with('rbx').returns(false)
+      NewRelic::LanguageSupport.expects(:using_engine?).with('jruby').returns(false)
+      self.expects(:using_sinatra?).returns(true)
+      install_exit_handler
+      NewRelic::LanguageSupport.expects(:using_engine?).with('rbx').returns(false)
+      NewRelic::LanguageSupport.expects(:using_engine?).with('jruby').returns(true)
+      install_exit_handler
+      NewRelic::LanguageSupport.expects(:using_engine?).with('rbx').returns(true)
+      install_exit_handler
+    end
   end
 
   def test_notify_log_file_location_positive
@@ -149,32 +144,32 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   end
 
   def test_monitoring_positive
-    control = mocked_control
-    control.expects(:monitor_mode?).returns(true)
-    log = mocked_log
-    assert monitoring?
+    with_config(:monitor_mode => true) do
+      log = mocked_log
+      assert monitoring?
+    end
   end
 
   def test_monitoring_negative
-    control = mocked_control
     log = mocked_log
-    control.expects(:monitor_mode?).returns(false)
-    log.expects(:send).with(:warn, "Agent configured not to send data in this environment - edit newrelic.yml to change this")
-    assert !monitoring?
+    with_config(:monitor_mode => false) do
+      log.expects(:send).with(:warn, "Agent configured not to send data in this environment - edit newrelic.yml to change this")
+      assert !monitoring?
+    end
   end
 
   def test_has_license_key_positive
-    control = mocked_control
-    control.expects(:license_key).returns("a" * 40)
-    assert has_license_key?
+    with_config(:license_key => 'a' * 40) do
+      assert has_license_key?
+    end
   end
 
   def test_has_license_key_negative
-    control = mocked_control
-    control.expects(:license_key).returns(nil)
-    log = mocked_log
-    log.expects(:send).with(:error, 'No license key found.  Please edit your newrelic.yml file and insert your license key.')
-    assert !has_license_key?
+    with_config(:license_key => false) do
+      log = mocked_log
+      log.expects(:send).with(:error, 'No license key found.  Please edit your newrelic.yml file and insert your license key.')
+      assert !has_license_key?
+    end
   end
 
   def test_has_correct_license_key_positive
@@ -189,31 +184,31 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   end
 
   def test_correct_license_length_positive
-    control = mocked_control
-    control.expects(:license_key).returns("a" * 40)
-    assert correct_license_length
+    with_config(:license_key => 'a' * 40) do
+      assert correct_license_length
+    end
   end
 
   def test_correct_license_length_negative
-    control = mocked_control
-    log = mocked_log
-    control.expects(:license_key).returns("a"*30)
-    log.expects(:send).with(:error, "Invalid license key: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
-    assert !correct_license_length
+    with_config(:license_key => 'a' * 30) do
+      log = mocked_log
+      log.expects(:send).with(:error, "Invalid license key: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+      assert !correct_license_length
+    end
   end
 
   def test_using_forking_dispatcher_positive
-    control = mocked_control
-    control.expects(:dispatcher).returns(:passenger)
-    log = mocked_log
-    log.expects(:send).with(:info, "Connecting workers after forking.")
-    assert using_forking_dispatcher?
+    with_config(:dispatcher => :passenger) do
+      log = mocked_log
+      log.expects(:send).with(:info, "Connecting workers after forking.")
+      assert using_forking_dispatcher?
+    end
   end
 
   def test_using_forking_dispatcher_negative
-    control = mocked_control
-    control.expects(:dispatcher).returns(:frobnitz)
-    assert !using_forking_dispatcher?
+    with_config(:dispatcher => :frobnitz) do
+      assert !using_forking_dispatcher?
+    end
   end
 
   def test_log_unless_positive

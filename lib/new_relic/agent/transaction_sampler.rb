@@ -19,7 +19,7 @@ module NewRelic
 
       BUILDER_KEY = :transaction_sample_builder
 
-      attr_accessor :stack_trace_threshold, :random_sampling, :sampling_rate
+      attr_accessor :random_sampling, :sampling_rate
       attr_accessor :explain_threshold, :explain_enabled, :transaction_threshold
       attr_accessor :slow_capture_threshold
       attr_reader :samples, :last_sample, :disabled
@@ -50,24 +50,15 @@ module NewRelic
         # @segment_limit and @stack_trace_threshold come from the
         # configuration file, with built-in defaults that should
         # suffice for most customers
-
-        # enable if config.fetch('enabled', true)
-
-        @segment_limit = config.fetch('limit_segments', 4000)
-        @stack_trace_threshold = config.fetch('stack_trace_threshold', 0.500).to_f
-        @explain_threshold = config.fetch('explain_threshold', 0.5).to_f
-        @explain_enabled = config.fetch('explain_enabled', true)
-        @transaction_threshold = config.fetch('transation_threshold', 2.0)
+        @explain_threshold     = Agent.config[:'transaction_tracer.explain_threshold']
+        @explain_enabled       = Agent.config[:'transaction_tracer.explain_enabled']
+        @transaction_threshold = Agent.config[:'transaction_tracer.transation_threshold']
 
         # Configure the sample storage policy.  Create a list of methods to be called.
         @store_sampler_methods = [ :store_random_sample, :store_slowest_sample ]
-        if NewRelic::Control.instance.developer_mode?
+        if Agent.config[:developer_mode]
           @store_sampler_methods << :store_sample_for_developer_mode
         end
-      end
-
-      def config
-        NewRelic::Control.instance.fetch('transaction_tracer', {})
       end
 
       # Returns the current sample id, delegated from `builder`
@@ -121,14 +112,14 @@ module NewRelic
 
         builder.trace_entry(scope, time.to_f)
 
-        capture_segment_trace if NewRelic::Control.instance.developer_mode?
+        capture_segment_trace if Agent.config[:developer_mode]
       end
 
       # in developer mode, capture the stack trace with the segment.
       # this is cpu and memory expensive and therefore should not be
       # turned on in production mode
       def capture_segment_trace
-        return unless NewRelic::Control.instance.developer_mode?
+        return unless Agent.config[:developer_mode]
         segment = builder.current_segment
         if segment
           # Strip stack frames off the top that match /new_relic/agent/
@@ -215,7 +206,7 @@ module NewRelic
       # Samples take up a ton of memory, so we only store a lot of
       # them in developer mode - we truncate to @max_samples
       def store_sample_for_developer_mode(sample)
-        return unless NewRelic::Control.instance.developer_mode?
+        return unless Agent.config[:developer_mode]
         @samples = [] unless @samples
         @samples << sample
         truncate_samples
@@ -315,7 +306,10 @@ module NewRelic
       # Appends a backtrace to a segment if that segment took longer
       # than the specified duration
       def append_backtrace(segment, duration)
-        segment[:backtrace] = caller.join("\n") if (duration >= @stack_trace_threshold || Thread.current[:capture_deep_tt])
+        if (duration >= Agent.config[:'transaction_tracer.stack_trace_threshold'] ||
+            Thread.current[:capture_deep_tt])
+          segment[:backtrace] = caller.join("\n")
+        end
       end
 
       # some statements (particularly INSERTS with large BLOBS
@@ -407,7 +401,7 @@ module NewRelic
 
         # Truncate the samples at 2100 segments. The UI will clamp them at 2000 segments anyway.
         # This will save us memory and bandwidth.
-        result.each { |sample| sample.truncate(@segment_limit) }
+        result.each { |sample| sample.truncate(Agent.config[:'transaction_tracer.limit_segments']) }
         result
       end
 

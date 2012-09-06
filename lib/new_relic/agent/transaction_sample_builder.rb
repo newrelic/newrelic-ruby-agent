@@ -9,7 +9,6 @@ module NewRelic
     # accessed by any other thread so no need for synchronization.
     class TransactionSampleBuilder
       attr_reader :current_segment, :sample
-      attr_accessor :segment_limit
 
       include NewRelic::CollectionHelper
 
@@ -17,8 +16,6 @@ module NewRelic
         @sample = NewRelic::TransactionSample.new(time.to_f)
         @sample_start = time.to_f
         @current_segment = @sample.root_segment
-        @segment_limit = NewRelic::Control.instance.fetch('transaction_tracer', {}) \
-          .fetch('limit_segments', 4000)
       end
 
       def sample_id
@@ -34,19 +31,20 @@ module NewRelic
       end
       
       def trace_entry(metric_name, time)
-        if @sample.count_segments < @segment_limit
+        segment_limit = Agent.config[:'transaction_tracer.limit_segments']
+        if @sample.count_segments < segment_limit
           segment = @sample.create_segment(time.to_f - @sample_start, metric_name)
           @current_segment.add_called_segment(segment)
           @current_segment = segment
-          if @sample.count_segments == @segment_limit
-            NewRelic::Control.instance.log.debug("Segment limit of #{@segment_limit} reached, ceasing collection.")
+          if @sample.count_segments == segment_limit
+            NewRelic::Control.instance.log.debug("Segment limit of #{segment_limit} reached, ceasing collection.")
           end
           @current_segment
         end
       end
 
       def trace_exit(metric_name, time)
-        return unless @sample.count_segments < @segment_limit
+        return unless @sample.count_segments < Agent.config[:'transaction_tracer.limit_segments']
         if metric_name != @current_segment.metric_name
           fail "unbalanced entry/exit: #{metric_name} != #{@current_segment.metric_name}"
         end
@@ -93,7 +91,7 @@ module NewRelic
       def set_transaction_info(path, uri, params)
         @sample.params[:path] = path
 
-        if NewRelic::Control.instance.capture_params
+        if Agent.config[:capture_params]
           params = normalize_params params
 
           @sample.params[:request_params].merge!(params)

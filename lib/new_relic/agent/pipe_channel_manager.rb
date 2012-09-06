@@ -41,7 +41,10 @@ module NewRelic
 
         def write(data)
           @out.close unless @out.closed?
-          @in << Marshal.dump(data) + "\n\n"
+          @in << NewRelic::LanguageSupport.with_cautious_gc do
+            Marshal.dump(data)
+          end
+          @in << "\n\n"
         end
         
         def read
@@ -137,11 +140,7 @@ module NewRelic
         end
 
         def unmarshal(data)
-          if NewRelic::LanguageSupport.broken_gc?
-            NewRelic::LanguageSupport.with_disabled_gc do
-              Marshal.load(data)
-            end
-          else
+          NewRelic::LanguageSupport.with_cautious_gc do
             Marshal.load(data)
           end
         rescue StandardError => e

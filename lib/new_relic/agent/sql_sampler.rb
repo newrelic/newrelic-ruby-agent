@@ -27,38 +27,18 @@ module NewRelic
         # any 'honest-to-god'-multithreaded system
         @samples_lock = Mutex.new
       end
-      
+
       def configure!
-        @explain_threshold = config.fetch('explain_threshold', 0.5).to_f
-        @explain_enabled = config.fetch('explain_enabled', true)
-        @stack_trace_threshold = config.fetch('stack_trace_threshold',
-                                              0.5).to_f
-        if config.fetch('enabled', true) &&
-            NewRelic::Control.instance['transaction_tracer'] &&
-            NewRelic::Control.instance['transaction_tracer'].fetch('enabled',
-                                                                   true) &&
-            NewRelic::Control.instance.fetch('collect_traces', true)
+        @explain_threshold = Agent.config[:'slow_sql.explain_threshold']
+        @explain_enabled = Agent.config[:'sloq_sql.explain_enabled']
+        @stack_trace_threshold = Agent.config[:'slow_sql.stack_trace_threshold']
+        if Agent.config[:'slow_sql.enabled']
           enable
         else
           disable
         end
       end
-      
-      def config
-        self.class.config
-      end
-      
-      def self.config
-        control = NewRelic::Control.instance
-        txn_config = control.fetch('transaction_tracer', {})
 
-        if txn_config.fetch('enabled', true) && control.has_slow_sql_config?
-          txn_config['enabled'] = control['slow_sql']['enabled']
-        end
-        
-        txn_config
-      end
-                  
       # Enable the sql sampler - this also registers it with
       # the statistics engine.
       def enable
@@ -152,7 +132,7 @@ module NewRelic
         @samples_lock.synchronize do
           result = @sql_traces.values
           @sql_traces = {}
-        end        
+        end
         slowest = result.sort{|a,b| b.max_call_time <=> a.max_call_time}[0,10]
         slowest.each {|trace| trace.prepare_to_send }
         slowest
@@ -243,24 +223,20 @@ module NewRelic
 
         record_data_point slow_sql.duration
       end
-      
+
       def prepare_to_send
         params[:explain_plan] = @slow_sql.explain if need_to_explain?
         @sql = @slow_sql.obfuscate if need_to_obfuscate?
       end
-      
-      def agent_config
-        NewRelic::Agent::SqlSampler.config
-      end
-      
+
       def need_to_obfuscate?
-        agent_config['record_sql'] == 'obfuscated'
+        Agent.config[:'slow_sql.record_sql'].to_s == 'obfuscated'
       end
 
       def need_to_explain?
-        agent_config['explain_enabled']
+        Agent.config[:'slow_sql.explain_enabled']
       end
-      
+
       def to_json(*a)
         [@path, @url, @sql_id, @sql, @database_metric_name, @call_count, @total_call_time, @min_call_time, @max_call_time, @params].to_json(*a)
       end

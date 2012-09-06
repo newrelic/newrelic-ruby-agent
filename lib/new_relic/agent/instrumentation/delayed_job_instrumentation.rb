@@ -4,7 +4,7 @@ DependencyDetection.defer do
   @name = :delayed_job
   
   depends_on do
-    !NewRelic::Control.instance['disable_dj']
+    !NewRelic::Agent.config[:disable_dj]
   end
 
   depends_on do

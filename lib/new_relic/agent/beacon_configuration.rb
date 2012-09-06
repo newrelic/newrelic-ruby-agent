@@ -63,7 +63,7 @@ module NewRelic
       def license_bytes
         if @license_bytes.nil?
           @license_bytes = []
-          NewRelic::Control.instance.license_key.each_byte {|byte| @license_bytes << byte}
+          Agent.config[:license_key].each_byte {|byte| @license_bytes << byte}
         end
         @license_bytes
       end

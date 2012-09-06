@@ -24,30 +24,30 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
   end
 
   def test_check_transaction_sampler_status_enabled
-    control = mocked_control
-    control.expects(:developer_mode?).returns(false)
-    @should_send_samples = true
-    @transaction_sampler = mock('transaction_sampler')
-    @transaction_sampler.expects(:enable)
-    check_transaction_sampler_status
+    with_config(:developer_mode => false) do
+      @should_send_samples = true
+      @transaction_sampler = mock('transaction_sampler')
+      @transaction_sampler.expects(:enable)
+      check_transaction_sampler_status
+    end
   end
 
   def test_check_transaction_sampler_status_devmode
-    control = mocked_control
-    control.expects(:developer_mode?).returns(true)
-    @should_send_samples = false
-    @transaction_sampler = mock('transaction_sampler')
-    @transaction_sampler.expects(:enable)
-    check_transaction_sampler_status
+    with_config(:developer_mode => true) do
+      @should_send_samples = false
+      @transaction_sampler = mock('transaction_sampler')
+      @transaction_sampler.expects(:enable)
+      check_transaction_sampler_status
+    end
   end
 
   def test_check_transaction_sampler_status_disabled
-    control = mocked_control
-    control.expects(:developer_mode?).returns(false)
-    @should_send_samples = false
-    @transaction_sampler = mock('transaction_sampler')
-    @transaction_sampler.expects(:disable)
-    check_transaction_sampler_status
+    with_config(:developer_mode => false) do
+      @should_send_samples = false
+      @transaction_sampler = mock('transaction_sampler')
+      @transaction_sampler.expects(:disable)
+      check_transaction_sampler_status
+    end
   end
 
   def test_log_worker_loop_start

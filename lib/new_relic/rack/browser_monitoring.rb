@@ -44,25 +44,37 @@ module NewRelic::Rack
         footer = NewRelic::Agent.browser_timing_footer
         header = NewRelic::Agent.browser_timing_header
 
-        head_pos = if beginning_of_source.include?('X-UA-Compatible')
-          # put at end of header if UA-Compatible meta tag found
+        x_ua_compatible_found = beginning_of_source.include?('X-UA-Compatible')
+
+        head_pos = if x_ua_compatible_found
+          # put at end of header if X-UA-Compatible meta tag found
+          NewRelic::Agent.logger.debug "Detected X-UA-Compatible meta tag. Attempting to insert RUM header at end of head."
           beginning_of_source.index("</head>")
-       elsif head_open = beginning_of_source.index("<head")
+        elsif head_open = beginning_of_source.index("<head")
+          NewRelic::Agent.logger.debug "Attempting to insert RUM header at beginning of head."
           # put at the beginning of the header
           beginning_of_source.index(">", head_open) + 1
+        else
+          NewRelic::Agent.logger.debug "Failed to detect head tag. Attempting to insert RUM header at above body tag."
+          # otherwise put the header right above body start
+          body_start
         end
-        # otherwise put the header right above body start
-        head_pos ||= body_start
 
         # check that head_pos is less than body close.  If it's not something
         # is really weird and we should punt.
-        if head_pos < body_close
+        if head_pos && (head_pos < body_close)
           # rebuild the source
           source = source[0..(head_pos-1)] <<
             header <<
             source[head_pos..(body_close-1)] <<
             footer <<
             source[body_close..-1]
+        else
+          if head_pos
+            NewRelic::Agent.logger.debug "Skipping RUM instrumentation. Failed to detect head tags."
+          else
+            NewRelic::Agent.logger.debug "Skipping RUM instrumentation. Detected head is after detected body close."
+          end
         end
       end
       headers['Content-Length'] = source.length.to_s if headers['Content-Length']

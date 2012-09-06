@@ -82,6 +82,14 @@ module NewRelic::LanguageSupport
     end
   end
   
+  def with_cautious_gc
+    if broken_gc?
+      with_disabled_gc { yield }
+    else
+      yield
+    end
+  end
+
   def using_version?(version)
     numbers = version.split('.')
     numbers == ::RUBY_VERSION.split('.')[0, numbers.size]

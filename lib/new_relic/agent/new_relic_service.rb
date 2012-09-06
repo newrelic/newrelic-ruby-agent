@@ -17,10 +17,10 @@ module NewRelic
       attr_reader :collector
       attr_accessor :agent_id
       
-      def initialize(license_key=control.license_key, collector=control.server)
-        @license_key = license_key
+      def initialize(license_key=nil, collector=control.server)
+        @license_key = license_key || Agent.config[:license_key]
         @collector = collector
-        @request_timeout = NewRelic::Control.instance.fetch('timeout', 2 * 60)
+        @request_timeout = Agent.config[:timeout]
       end
       
       def connect(settings={})
@@ -119,11 +119,9 @@ module NewRelic
       # big payloads get all the compression possible, to stay under
       # the 2,000,000 byte post threshold
       def compress_data(object)
-        dump = Marshal.dump(object)
+        dump = marshal_data(object)
 
-        dump_size = dump.size
-
-        return [dump, 'identity'] if dump_size < (64*1024)
+        return [dump, 'identity'] if dump.size < (64*1024)
 
         compressed_dump = Zlib::Deflate.deflate(dump, Zlib::DEFAULT_COMPRESSION)
 
@@ -133,11 +131,20 @@ module NewRelic
         [compressed_dump, 'deflate']
       end
 
+      def marshal_data(data)
+        NewRelic::LanguageSupport.with_cautious_gc do
+          Marshal.dump(data)
+        end
+      rescue => e
+        log.debug("#{e.class.name} : #{e.message} when marshalling #{object}")
+        raise
+      end
+
       # Raises a PostTooBigException if the post_string is longer
       # than the limit configured in the control object
       def check_post_size(post_string)
         # TODO: define this as a config option on the server side
-        return if post_string.size < control.post_size_limit
+        return if post_string.size < Agent.config[:post_size_limit]
         log.warn "Tried to send too much data: #{post_string.size} bytes"
         raise PostTooBigException
       end
@@ -200,7 +207,9 @@ module NewRelic
       # so we can handle it in nonlocally
       def check_for_exception(response)
         dump = decompress_response(response)
-        value = Marshal.load(dump)
+        value = NewRelic::LanguageSupport.with_cautious_gc do
+          Marshal.load(dump)
+        end
         raise value if value.is_a? Exception
         value
       end
