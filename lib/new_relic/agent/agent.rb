@@ -1037,8 +1037,8 @@ module NewRelic
             begin
               options = { :keep_backtraces => true }
               options[:record_sql] = @record_sql unless @record_sql == :off
-              if @transaction_sampler.explain_enabled
-                options[:explain_sql] = @transaction_sampler.explain_threshold
+              if Agent.config[:'transaction_tracer.explain_enabled']
+                options[:explain_sql] = Agent.config[:'transaction_tracer.explain_threshold']
               end
               traces = @traces.collect {|trace| trace.prepare_to_send(options)}
               @service.transaction_sample_data(traces)

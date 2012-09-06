@@ -39,6 +39,21 @@ module NewRelic
         assert_equal([], @agent.send(:harvest_transaction_traces), 'should return transaction traces')
       end
 
+      def test_harvest_and_send_slowest_sample
+        with_config(:'transaction_tracer.explain_threshold' => 2,
+                    :'transaction_tracer.explain_enabled' => true,
+                    :'transaction_tracer.record_sql' => 'raw') do
+          @agent.set_sql_recording!
+          trace = stub('transaction trace', :force_persist => true,
+                       :truncate => 4000)
+          trace.expects(:prepare_to_send).with(:record_sql => :raw,
+                                               :explain_sql => 2,
+                                               :keep_backtraces => true)
+          @agent.instance_variable_set(:@traces, [ trace ])
+          @agent.send :harvest_and_send_slowest_sample
+        end
+      end
+
       def test_harvest_timeslice_data
         assert_equal({}, @agent.send(:harvest_timeslice_data),
                      'should return timeslice data')
