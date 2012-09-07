@@ -7,11 +7,15 @@
 ### current version ###
 ## v3.4.2 ##
 
- * The RUM NRAGENT tk value gets sanitized to prevent potential XSS vulnerabilities
+ * The RUM NRAGENT tk value gets more robustly sanitized to prevent potential XSS vulnerabilities
 
-   There was the potential for malicious code to be inserted into the token used
-   in Real User Monitoring and have it echoed back to a browser as an XSS exploit.
-   The token now gets scrubbed to remove this potential problem.
+   The code that scrubes the token used in Real User Monitoring has been enhanced to be
+   more robust. 
+
+ * Support for Apdex T in server side configuration
+
+   For those using server side configuration the Ruby Agent now supports setting
+   the Apdex T value via the New Relic UI.
 
  * Refactoring of agent config code
 
