@@ -1,5 +1,8 @@
- 
+
 # New Relic Ruby Agent Release Notes #
+
+### Next Up ###
+## v3.4.3 ##
 
 ### current version ###
 ## v3.4.2 ##
@@ -7,14 +10,14 @@
  * The RUM NRAGENT tk value gets sanitized to prevent potential XSS vulnerabilities
 
    There was the potential for malicious code to be inserted into the token used
-   in Real User Monitoring and have it echoed back to a browser as an XSS exploit. 
+   in Real User Monitoring and have it echoed back to a browser as an XSS exploit.
    The token now gets scrubbed to remove this potential problem.
 
  * Refactoring of agent config code
 
    The code that reads the configuration information and confirgures the agent
    got substantially reorganized, consolidated, simplified, and made more robust.
- 
+
 ### previous versions ###
 ## v3.4.1 ##
 #### Bug Fixes ####
@@ -54,7 +57,6 @@
    On Ruby REE, the GC profiler does not reset the counter between polls. This
    is only a problem if GC could happen *between* transactions, as in, for 
    example, out-of-band GC in Unicorn. fixed.
-
 
 v3.4.0.1
  * Prevent the agent from resolving the collector address when disabled.
