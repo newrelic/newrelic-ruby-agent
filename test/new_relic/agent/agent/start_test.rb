@@ -3,6 +3,16 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   require 'new_relic/agent/agent'
   include NewRelic::Agent::Agent::Start
 
+  def setup
+    ENV['NEW_RELIC_APP_NAME'] = 'start_test'
+    NewRelic::Agent.reset_config
+  end
+
+  def teardown
+    ENV['NEW_RELIC_APP_NAME'] = nil
+    NewRelic::Agent.reset_config
+  end
+
   def test_already_started_positive
     control = mocked_control
     control.expects(:log!).with("Agent Started Already!", :error)
@@ -43,10 +53,35 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
     end
   end
 
-  def test_log_app_names
+  def test_log_app_names_string
     with_config(:app_name => 'zam;zam;zabam') do
       log = mocked_log
       log.expects(:info).with("Application: zam, zam, zabam")
+      log_app_names
+    end
+  end
+
+  def test_log_app_names_array
+    with_config(:app_name => ['zam', 'zam', 'zabam']) do
+      log = mocked_log
+      log.expects(:info).with("Application: zam, zam, zabam")
+      log_app_names
+    end
+  end
+
+  def test_log_app_names_with_env_var
+    # bad app name after env - used to cover the yaml config
+    with_config({:app_name => false}, 1) do
+      log = mocked_log
+      log.expects(:info).with("Application: start_test") # set in setup
+      log_app_names
+    end
+  end
+
+  def test_log_app_names_with_unknown
+    with_config(:app_name => false) do
+      log = mocked_log
+      log.expects(:error).with('Unable to determine application name. Please set the application name in your newrelic.yml or in a NEW_RELIC_APP_NAME environment variable.')
       log_app_names
     end
   end

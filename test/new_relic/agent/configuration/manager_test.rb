@@ -123,6 +123,23 @@ module NewRelic::Agent::Configuration
         .index(NewRelic::Agent::Configuration::ManualSource)
     end
 
+    def test_app_names_single
+      @manager.apply_config(:app_name => 'test')
+      assert_equal ['test'], @manager.app_names
+    end
+
+    def test_app_names_list
+      @manager.apply_config(:app_name => 'test0;test1;test2')
+      assert_equal ['test0', 'test1', 'test2'], @manager.app_names
+    end
+
+    def test_app_names_nil
+      # nil has special meaning, so we emulate with an object that
+      # will not respond as expected
+      @manager.apply_config(:app_name => Object.new)
+      assert_equal [], @manager.app_names
+    end
+
     class TestSource < ::Hash
       def test_config_accessor
         'some value'
