@@ -315,7 +315,12 @@ module NewRelic
 
           # Logs the configured application names
           def log_app_names
-            log.info "Application: #{Agent.config.app_names.join(", ")}"
+            names = Agent.config.app_names
+            if names.respond_to?(:any?) && names.any?
+              log.info "Application: #{names.join(", ")}"
+            else
+              log.error 'Unable to determine application name. Please set the application name in your newrelic.yml or in a NEW_RELIC_APP_NAME environment variable.'
+            end
           end
           
           # Connecting in the foreground blocks further startup of the

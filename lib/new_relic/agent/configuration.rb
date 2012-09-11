@@ -9,6 +9,11 @@ module NewRelic
         def config
           @@manager ||= Manager.new
         end
+
+        # for testing
+        def reset_config
+          @@manager = Manager.new
+        end
       end
 
       class DottedHash < ::Hash

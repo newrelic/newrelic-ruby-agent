@@ -89,6 +89,7 @@ module NewRelic
           case self[:app_name]
           when Array then self[:app_name]
           when String then self[:app_name].split(';')
+          else []
           end
         end
 
