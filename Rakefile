@@ -5,7 +5,7 @@ require 'rake/testtask'
 
 GEM_NAME = "newrelic_rpm"
 GEM_VERSION = NewRelic::VERSION::STRING
-AUTHORS = "Bill Kayser", "Jon Guymon", "Justin George", "Darin Swanson"
+AUTHORS = "Bill Kayser", "Jon Guymon", "Justin George", "Darin Swanson", "Rob Saul"
 EMAIL = "support@newrelic.com"
 HOMEPAGE = "http://www.github.com/newrelic/rpm"
 SUMMARY = "New Relic Ruby Agent"
