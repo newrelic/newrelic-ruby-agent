@@ -1,4 +1,5 @@
 require 'new_relic/control/frameworks/rails'
+require 'new_relic/rack/error_collector'
 module NewRelic
   class Control
     module Frameworks
@@ -30,6 +31,15 @@ module NewRelic
           ::Rails.logger
         end
 
+        def init_config(options={})
+          super
+          if Agent.config[:agent_enabled] && Agent.config[:'error_collector.enabled']
+            if !rails_config.middleware.respond_to?(:include?) ||
+                !rails_config.middleware.include?(NewRelic::Rack::ErrorCollector)
+              rails_config.middleware.use NewRelic::Rack::ErrorCollector
+            end
+          end
+        end
 
         def log!(msg, level=:info)
           if should_log?

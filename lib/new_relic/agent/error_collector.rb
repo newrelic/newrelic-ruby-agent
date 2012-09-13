@@ -196,7 +196,9 @@ module NewRelic
         # floor after logging a warning.
         def add_to_error_queue(noticed_error)
           @lock.synchronize do
-            @errors << noticed_error unless over_queue_limit?(noticed_error.message)
+            if !over_queue_limit?(noticed_error.message) && !@errors.include?(noticed_error)
+              @errors << noticed_error
+            end
           end
         end
       end
@@ -220,7 +222,7 @@ module NewRelic
         add_to_error_queue(NewRelic::NoticedError.new(action_path, exception_options, exception))
         exception
       rescue => e
-        log.error("Error capturing an error, yodawg. #{e}")
+        log.error("Error capturing an error #{e}")
       end
 
       # Get the errors currently queued up.  Unsent errors are left
