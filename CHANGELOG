@@ -5,6 +5,16 @@
 ## v3.4.3 ##
 
 ### current version ###
+## v3.4.2.1 ##
+
+* Fix issue when app_name is nil
+
+  If the app_name setting ends up being nil an exception got generated and the application
+  wouldn't run. This would notably occur when running a Heroku app locally without the
+  NEW_RELIC_APP_NAME environment variable set. A nil app_name is now detected and an
+  error logged specifying remediation.
+
+### previous versions ###
 ## v3.4.2 ##
 
  * The RUM NRAGENT tk value gets more robustly sanitized to prevent potential XSS vulnerabilities
@@ -22,7 +32,6 @@
    The code that reads the configuration information and confirgures the agent
    got substantially reorganized, consolidated, simplified, and made more robust.
 
-### previous versions ###
 ## v3.4.1 ##
 #### Bug Fixes ####
  * Fix edge case in RUM auto instrumentation where X-UA-Compatible meta tag is 
