@@ -7,11 +7,11 @@
 ### current version ###
 ## v3.4.2.1 ##
 
- * Fix issue when app_name is empty
+ * Fix issue when app_name is nil
 
-  If the app_name setting ends up be empty a exception got generated and the application
+  If the app_name setting ends up being nil an exception got generated and the application
   wouldn't run. This would notably occur when running a Heroku app locally without the
-  NEW_RELIC_APP_NAME environment variable set. An empty app_name is now detected and an
+  NEW_RELIC_APP_NAME environment variable set. A nil app_name is now detected and an
   error logged specifying remediation.
 
 ### previous versions ###
