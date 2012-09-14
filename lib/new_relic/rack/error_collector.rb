@@ -44,7 +44,7 @@ module NewRelic::Rack
     def newrelic_ignore_for_controller(controller_name)
       if controller_name
         controller_constant_name = (controller_name + "_controller").camelize
-        if Kernel.const_defined?(controller_constant_name)
+        if Object.const_defined?(controller_constant_name)
           controller = controller_constant_name.constantize
           controller.instance_variable_get(:@do_not_trace)
         end
