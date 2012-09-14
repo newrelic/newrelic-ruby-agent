@@ -5,13 +5,13 @@
 
 Gem::Specification.new do |s|
   s.name = "newrelic_rpm"
-  s.version = "3.4.2.1"
+  s.version = "3.4.3.alpha"
 
   s.authors = ["Bill Kayser", "Jon Guymon", "Justin George", "Darin Swanson", "Rob Saul"]
-  s.date = "2012-09-12"
+  s.date = "2012-09-14"
   s.description = "New Relic is a performance management system, developed by New Relic,\nInc (http://www.newrelic.com).  New Relic provides you with deep\ninformation about the performance of your web application as it runs\nin production. The New Relic Ruby Agent is dual-purposed as a either a\nGem or plugin, hosted on\nhttp://github.com/newrelic/rpm/\n"
   s.email = "support@newrelic.com"
-  s.executables = ["newrelic_cmd", "newrelic", "mongrel_rpm"]
+  s.executables = ["mongrel_rpm", "newrelic", "newrelic_cmd"]
   s.extra_rdoc_files = [
     "CHANGELOG",
     "LICENSE",
@@ -22,7 +22,6 @@ Gem::Specification.new do |s|
     "CHANGELOG",
     "LICENSE",
     "README.rdoc",
-    "ReleaseNotes.md",
     "bin/mongrel_rpm",
     "bin/newrelic",
     "bin/newrelic_cmd",
