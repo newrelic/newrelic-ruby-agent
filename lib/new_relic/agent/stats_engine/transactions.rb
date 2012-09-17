@@ -106,7 +106,7 @@ module Agent
       def end_transaction
         elapsed = GCProfiler.capture
         if @transaction_sampler && @transaction_sampler.last_sample
-          @transaction_sampler.last_sample.params['gc_time'] = elapsed
+          @transaction_sampler.last_sample.params[:gc_time] = elapsed
         end
         stack = scope_stack
 
