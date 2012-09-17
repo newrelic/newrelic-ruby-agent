@@ -204,6 +204,10 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
     end
 
     engine = NewRelic::Agent.instance.stats_engine
+    tracer = NewRelic::Agent::TransactionSampler.new
+    tracer.instance_variable_set(:@last_sample,
+                                 NewRelic::TransactionSample.new)
+    engine.transaction_sampler = tracer
     engine.start_transaction
     scope = engine.push_scope "scope"
     engine.pop_scope scope, 0.01
@@ -212,8 +216,7 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
     gc_stats = engine.get_stats('GC/cumulative')
     assert_equal 2, gc_stats.call_count
     assert_equal 3.0, gc_stats.total_call_time
-    assert_equal(3.0, NewRelic::Agent.instance.transaction_sampler \
-                   .last_sample.params[:gc_time])
+    assert_equal(3.0, tracer.last_sample.params[:gc_time])
   ensure
     GC.enable unless NewRelic::LanguageSupport.using_engine?('jruby')
   end
