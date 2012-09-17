@@ -9,7 +9,7 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
     puts e
     puts e.backtrace.join("\n")
   end
-  
+
   def teardown
     @engine.harvest_timeslice_data({},{})
     mocha_teardown
@@ -193,8 +193,8 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
       ::Rubinius::Agent.stubs(:loopback).returns(agent)
     elsif NewRelic::LanguageSupport.using_version?('1.9')
       ::GC::Profiler.stubs(:enabled?).returns(true)
-      ::GC::Profiler.stubs(:total_time).returns(1.0, 4.0) 
-      ::GC.stubs(:count).returns(1, 3)      
+      ::GC::Profiler.stubs(:total_time).returns(1.0, 4.0)
+      ::GC.stubs(:count).returns(1, 3)
     elsif NewRelic::LanguageSupport.using_version?('1.8.7') &&
         RUBY_DESCRIPTION =~ /Ruby Enterprise Edition/
       ::GC.stubs(:time).returns(1000000, 4000000)
@@ -202,20 +202,20 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
     else
       return true # no need to test if we're not collecting GC metrics
     end
-    
+
     engine = NewRelic::Agent.instance.stats_engine
-    scope = engine.push_scope "scope"
     engine.start_transaction
+    scope = engine.push_scope "scope"
     engine.pop_scope scope, 0.01
     engine.end_transaction
-    
+
     gc_stats = engine.get_stats('GC/cumulative')
     assert_equal 2, gc_stats.call_count
     assert_equal 3.0, gc_stats.total_call_time
   ensure
     GC.enable unless NewRelic::LanguageSupport.using_engine?('jruby')
   end
-  
+
   private
   def check_time_approximate(expected, actual)
     assert((expected - actual).abs < 0.1, "Expected between #{expected - 0.1} and #{expected + 0.1}, got #{actual}")

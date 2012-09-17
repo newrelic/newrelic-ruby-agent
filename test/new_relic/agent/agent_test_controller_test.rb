@@ -7,7 +7,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
   self.controller_class = NewRelic::Agent::AgentTestController
 
   attr_accessor :agent, :engine
-  
+
   def test_initialization
   # Suggested by cee-dub for merb tests.  I'm actually amazed if our tests work with merb.
     if defined?(Merb::Router)
@@ -23,7 +23,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
       Rails.application.routes.draw do
         match '/:controller/:action.:format'
         match '/:controller/:action'
-      end    
+      end
     end
 
     if defined?(Rails) && Rails.respond_to?(:application) && Rails.application.respond_to?(:routes)
@@ -41,7 +41,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     end
     @engine = @agent.stats_engine
   end
-  
+
   # Normally you can do this with #setup but for some reason in rails 2.0.2
   # setup is not called.
   if NewRelic::Control.instance.rails_version <= '2.1.0'
@@ -283,7 +283,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     get :index, 'number' => "001-555-1212"
     s = agent.transaction_sampler.harvest(nil, 0.0)
     assert_equal 1, s.size
-    assert_equal 6, s.first.params.size
+    assert_equal 7, s.first.params.size
   end
 
 
