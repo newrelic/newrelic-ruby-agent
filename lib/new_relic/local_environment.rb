@@ -397,7 +397,7 @@ module NewRelic
     end
 
     def check_for_passenger
-      if (defined?(::Passenger) && defined?(::Passenger::AbstractServer)) || defined?(::IN_PHUSION_PASSENGER)
+      if (defined?(::Passenger) && defined?(::Passenger::AbstractServer)) || defined?(::PhusionPassenger)
         @dispatcher = :passenger
       end
     end
