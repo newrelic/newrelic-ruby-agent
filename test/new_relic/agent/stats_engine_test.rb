@@ -216,7 +216,7 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
     gc_stats = engine.get_stats('GC/cumulative')
     assert_equal 2, gc_stats.call_count
     assert_equal 3.0, gc_stats.total_call_time
-    assert_equal(3.0, tracer.last_sample.params[:gc_time])
+    assert_equal(3.0, tracer.last_sample.params[:custom_params][:gc_time])
   ensure
     GC.enable unless NewRelic::LanguageSupport.using_engine?('jruby')
   end
