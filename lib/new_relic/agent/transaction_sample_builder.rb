@@ -61,8 +61,9 @@ module NewRelic
           return
         end
         @sample.root_segment.end_trace(time.to_f - @sample_start)
-        @sample.params[:custom_params] = normalize_params(NewRelic::Agent::Instrumentation::MetricFrame.custom_parameters)
-        
+        @sample.params[:custom_params] ||= {}
+        @sample.params[:custom_params].merge!(normalize_params(NewRelic::Agent::Instrumentation::MetricFrame.custom_parameters))
+
         @sample.force_persist = NewRelic::Agent::TransactionInfo.get.force_persist_sample?(sample)
         @sample.freeze
         @current_segment = nil
@@ -102,7 +103,8 @@ module NewRelic
       end
 
       def set_transaction_cpu_time(cpu_time)
-        @sample.params[:cpu_time] = cpu_time
+        @sample.params[:custom_params] ||= {}
+        @sample.params[:custom_params][:cpu_time] = cpu_time
       end
 
       def sample
