@@ -14,7 +14,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     @sql_sampler = NewRelic::Agent::SqlSampler.new
     server = NewRelic::Control::Server.new('localhost', 30303)
     @service = NewRelic::Agent::NewRelicService.new('abcdef', server)
-    log.stubs(:warn)
+    log.stubs(:warn => true, :info => true, :debug => true)
   end
 
   def control
@@ -334,7 +334,8 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
       'url_rules' => 'tamales',
       'collect_traces' => true,
       'collect_errors' => true,
-      'sample_rate' => 10
+      'sample_rate' => 10,
+      'agent_config' => { 'transaction_tracer.record_sql' => 'raw' }
     }
     self.expects(:log_connection!).with(config)
     self.expects(:configure_transaction_tracer!).with(true, 10)
@@ -347,6 +348,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
       assert_equal 'fishsticks', @service.agent_id
       assert_equal 'pasta sauce', @report_period
       assert_equal 'tamales', @url_rules
+      assert_equal 'raw', NewRelic::Agent.config[:'transaction_tracer.record_sql']
     end
   end
 
@@ -362,10 +364,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     def test_set_apdex_t_from_server
       service = NewRelic::FakeService.new
       NewRelic::Agent::Agent.instance.service = service
-      service.mock['connect'] = {
-        'apdex_t' => 0.5,
-        'listen_to_server_config' => true
-      }
+      service.mock['connect'] = { 'apdex_t' => 0.5 }
       with_config(:sync_startup => true, :monitor_mode => true,
                   :license_key => 'a' * 40) do
         NewRelic::Agent.manual_start

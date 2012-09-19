@@ -28,8 +28,8 @@ module NewRelic
 
     def test_shutdown_removes_server_config
       NewRelic::Agent.manual_start
-      NewRelic::Agent.instance.finish_setup('listen_to_server_config' => true,
-                                            :some_absurd_setting => true)
+      NewRelic::Agent.instance.finish_setup('agent_config' =>
+                                            { :some_absurd_setting => true })
       assert NewRelic::Agent.config[:some_absurd_setting]
       NewRelic::Agent.shutdown
       assert !NewRelic::Agent.config[:some_absurd_setting]
@@ -40,8 +40,7 @@ module NewRelic
                     'error_collector.enabled' => true,
                     :log_level => 'info' }, 2) do
         NewRelic::Agent.instance.finish_setup('log_level' => 'debug',
-                                'listen_to_server_config' => true,
-                             'transaction_tracer.enabled' => false,
+         'agent_config' => { 'transaction_tracer.enabled' => false },
                                          'collect_errors' => false)
         assert !NewRelic::Agent.config[:'transaction_tracer.enabled']
         assert !NewRelic::Agent.config[:'error_collector.enabled']
