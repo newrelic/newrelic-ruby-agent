@@ -839,12 +839,13 @@ module NewRelic
             @url_rules = config_data['url_rules']
             @beacon_configuration = BeaconConfiguration.new(config_data)
 
-            if config_data['listen_to_server_config']
+            if config_data['agent_config']
               log.info "Using config from server"
-              log.debug "Server provided config: #{config_data.inspect}"
-              server_config = NewRelic::Agent::Configuration::ServerSource.new(config_data)
-              Agent.config.apply_config(server_config, 1)
             end
+
+            log.debug "Server provided config: #{config_data.inspect}"
+            server_config = NewRelic::Agent::Configuration::ServerSource.new(config_data)
+            Agent.config.apply_config(server_config, 1)
 
             config_transaction_tracer
             log_connection!(config_data) if @service
