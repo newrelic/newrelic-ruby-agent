@@ -87,19 +87,7 @@ common: &default_settings
   # use a non-blocking lookup, so in a worst case, if you have DNS
   # problems, your app may block indefinitely.
   # verify_certificate: true
-  
-  # Set your application's Apdex threshold value with the 'apdex_t'
-  # setting, in seconds. The apdex_t value determines the buckets used
-  # to compute your overall Apdex score. 
-  # Requests that take less than apdex_t seconds to process will be
-  # classified as Satisfying transactions; more than apdex_t seconds
-  # as Tolerating transactions; and more than four times the apdex_t
-  # value as Frustrating transactions. 
-  # For more about the Apdex standard, see
-  # http://newrelic.com/docs/general/apdex
 
-  apdex_t: 0.5
-  
   #============================== Browser Monitoring ===============================
   # New Relic Real User Monitoring gives you insight into the performance real users are
   # experiencing with your website. This is accomplished by measuring the time it takes for

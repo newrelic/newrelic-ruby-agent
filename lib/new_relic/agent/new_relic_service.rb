@@ -3,7 +3,7 @@ module NewRelic
     class NewRelicService
       # Specifies the version of the agent's communication protocol with
       # the NewRelic hosted site.
-      
+
       PROTOCOL_VERSION = 9
       # 14105: v8 (tag 2.10.3)
       # (no v7)
@@ -12,17 +12,17 @@ module NewRelic
       # 2292:  v4 (tag 2.3.6)
       # 1754:  v3 (tag 2.3.0)
       # 534:   v2 (shows up in 2.1.0, our first tag)
-      
+
       attr_accessor :request_timeout
       attr_reader :collector
       attr_accessor :agent_id
-      
+
       def initialize(license_key=nil, collector=control.server)
         @license_key = license_key || Agent.config[:license_key]
         @collector = collector
         @request_timeout = Agent.config[:timeout]
       end
-      
+
       def connect(settings={})
         if host = get_redirect_host
           @collector = NewRelic::Control.instance.server_from_host(host)
@@ -44,7 +44,7 @@ module NewRelic
         invoke_remote(:metric_data, @agent_id, last_harvest_time, now,
                       unsent_timeslice_data)
       end
-      
+
       def error_data(unsent_errors)
         invoke_remote(:error_data, @agent_id, unsent_errors)
       end
@@ -58,24 +58,24 @@ module NewRelic
       end
 
       private
-      
+
       # A shorthand for NewRelic::Control.instance
       def control
         NewRelic::Control.instance
       end
-      
+
       # Shorthand to the NewRelic::Agent.logger method
       def log
         NewRelic::Agent.logger
       end
-      
+
       # The path on the server that we should post our data to
       def remote_method_uri(method)
         uri = "/agent_listener/#{PROTOCOL_VERSION}/#{@license_key}/#{method}"
         uri << "?run_id=#{@agent_id}" if @agent_id
         uri
       end
-      
+
       # send a message via post to the actual server. This attempts
       # to automatically compress the data via zlib if it is large
       # enough to be worth compressing, and handles any errors the
@@ -84,7 +84,7 @@ module NewRelic
         now = Time.now
         #determines whether to zip the data or send plain
         post_data, encoding = compress_data(args)
-        
+
         response = send_request(:uri       => remote_method_uri(method),
                                 :encoding  => encoding,
                                 :collector => @collector,
@@ -140,13 +140,13 @@ module NewRelic
         raise
       end
 
-      # Raises a PostTooBigException if the post_string is longer
+      # Raises an UnrecoverableServerException if the post_string is longer
       # than the limit configured in the control object
       def check_post_size(post_string)
         # TODO: define this as a config option on the server side
         return if post_string.size < Agent.config[:post_size_limit]
-        log.warn "Tried to send too much data: #{post_string.size} bytes"
-        raise PostTooBigException
+        log.debug "Tried to send too much data: #{post_string.size} bytes"
+        raise UnrecoverableServerException.new('413 Request Entity Too Large')
       end
 
       # Posts to the specified server
@@ -164,9 +164,9 @@ module NewRelic
         request['user-agent'] = user_agent
         request.content_type = "application/octet-stream"
         request.body = opts[:data]
-        
+
         log.debug "Connect to #{opts[:collector]}#{opts[:uri]}"
-        
+
         response = nil
         http = control.http_connection(@collector)
         http.read_timeout = nil
@@ -179,14 +179,16 @@ module NewRelic
           raise
         end
         if response.is_a? Net::HTTPServiceUnavailable
-          raise NewRelic::Agent::ServerConnectionException, "Service unavailable (#{response.code}): #{response.message}"
+          raise ServerConnectionException, "Service unavailable (#{response.code}): #{response.message}"
         elsif response.is_a? Net::HTTPGatewayTimeOut
           log.debug("Timed out getting response: #{response.message}")
           raise Timeout::Error, response.message
         elsif response.is_a? Net::HTTPRequestEntityTooLarge
-          raise PostTooBigException
+          raise UnrecoverableServerException, '413 Request Entity Too Large'
+        elsif response.is_a? Net::HTTPUnsupportedMediaType
+          raise UnrecoverableServerException, '415 Unsupported Media Type'
         elsif !(response.is_a? Net::HTTPSuccess)
-          raise NewRelic::Agent::ServerConnectionException, "Unexpected response from server (#{response.code}): #{response.message}"
+          raise ServerConnectionException, "Unexpected response from server (#{response.code}): #{response.message}"
         end
         response
       end

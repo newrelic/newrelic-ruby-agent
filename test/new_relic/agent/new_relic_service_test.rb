@@ -1,6 +1,25 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 
 class NewRelicServiceTest < Test::Unit::TestCase
+  def initialize(*_)
+    [ :HTTPSuccess,
+      :HTTPNotFound,
+      :HTTPRequestEntityTooLarge,
+      :HTTPUnsupportedMediaType ].each do |class_name|
+      extend_with_mock(class_name)
+    end
+    super
+  end
+
+  def extend_with_mock(class_name)
+    if !self.class.const_defined?(class_name)
+      klass = self.class.const_set(class_name,
+                Class.new(Object.const_get(:Net).const_get(class_name)))
+      klass.class_eval { include HTTPResponseMock }
+    end
+  end
+  protected :extend_with_mock
+
   def setup
     @server = NewRelic::Control::Server.new('somewhere.example.com',
                                             30303, '10.10.10.10')
@@ -30,16 +49,16 @@ class NewRelicServiceTest < Test::Unit::TestCase
 
   def test_connect_sets_redirect_host
     assert_equal 'somewhere.example.com', @service.collector.name
-    @service.connect    
+    @service.connect
     assert_equal 'localhost', @service.collector.name
   end
-  
+
   def test_connect_resets_cached_ip_address
     assert_equal '10.10.10.10', @service.collector.ip
-    @service.connect    
+    @service.connect
     assert_nil @service.collector.ip # 'localhost' resolves to nil
   end
-  
+
   def test_connect_uses_proxy_collector_if_no_redirect_host
     @http_handle.reset
     @http_handle.respond_to(:get_redirect_host, nil)
@@ -85,13 +104,13 @@ class NewRelicServiceTest < Test::Unit::TestCase
   def test_error_data
     @http_handle.respond_to(:error_data, 'too human')
     response = @service.error_data([])
-    assert_equal 'too human', response    
+    assert_equal 'too human', response
   end
 
   def test_transaction_sample_data
     @http_handle.respond_to(:transaction_sample_data, 'MPC1000')
     response = @service.transaction_sample_data([])
-    assert_equal 'MPC1000', response        
+    assert_equal 'MPC1000', response
   end
 
   def test_sql_trace_data
@@ -112,21 +131,37 @@ class NewRelicServiceTest < Test::Unit::TestCase
       @service.send(:invoke_remote, :bogus_method)
     end
   end
-  
+
   def test_should_connect_to_proxy_only_once_per_run
     @service.expects(:get_redirect_host).once
 
     @service.connect
     @http_handle.respond_to(:metric_data, '0')
     @service.metric_data(Time.now - 60, Time.now, {})
-    
+
     @http_handle.respond_to(:transaction_sample_data, '1')
     @service.transaction_sample_data([])
 
     @http_handle.respond_to(:sql_trace_data, '2')
     @service.sql_trace_data([])
   end
-  
+
+  # protocol 9
+  def test_should_raise_exception_on_413
+    @http_handle.respond_to(:metric_data, 'too big', 413)
+    assert_raise NewRelic::Agent::UnrecoverableServerException do
+      @service.metric_data(Time.now - 60, Time.now, {})
+    end
+  end
+
+  # protocol 9
+  def test_should_raise_exception_on_415
+    @http_handle.respond_to(:metric_data, 'too big', 415)
+    assert_raise NewRelic::Agent::UnrecoverableServerException do
+      @service.metric_data(Time.now - 60, Time.now, {})
+    end
+  end
+
   class HTTPHandle
     attr_accessor :read_timeout, :route_table
 
@@ -134,8 +169,17 @@ class NewRelicServiceTest < Test::Unit::TestCase
       reset
     end
 
-    def respond_to(method, payload)
-      register(HTTPResponse.new(Marshal.dump(payload))) do |request|
+    def respond_to(method, payload, code=200)
+      klass = HTTPSuccess
+      if code == 413
+        klass = HTTPRequestEntityTooLarge
+      elsif code == 415
+        klass = HTTPUnsupportedMediaType
+      elsif code >= 400
+        klass = HTTPServerError
+      end
+
+      register(klass.new(Marshal.dump(payload), code)) do |request|
         request.path.include?(method.to_s)
       end
     end
@@ -150,7 +194,7 @@ class NewRelicServiceTest < Test::Unit::TestCase
           return response
         end
       end
-      HTTPFailure.new('not found', 404)
+      HTTPNotFound.new('not found', 404)
     end
 
     def reset
@@ -172,9 +216,4 @@ class NewRelicServiceTest < Test::Unit::TestCase
       @headers[key]
     end
   end
-
-  HTTPResponse = Class.new(Net::HTTPOK)
-  HTTPResponse.class_eval { include HTTPResponseMock }
-  HTTPFailure = Class.new(Net::HTTPError)
-  HTTPFailure.class_eval { include HTTPResponseMock }
 end

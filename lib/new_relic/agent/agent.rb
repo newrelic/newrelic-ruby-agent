@@ -17,7 +17,7 @@ module NewRelic
     # data to the NewRelic server.
     class Agent
       extend NewRelic::Agent::Configuration::Instance
-      
+
       def initialize
         @launch_time = Time.now
 
@@ -47,11 +47,11 @@ module NewRelic
           @instance ||= self.new
         end
       end
-      
+
       # Holds all the methods defined on NewRelic::Agent::Agent
       # instances
       module InstanceMethods
-        
+
         # holds a proc that is used to obfuscate sql statements
         attr_reader :obfuscator
         # the statistics engine that holds all the timeslice data
@@ -75,19 +75,19 @@ module NewRelic
         # into pages
         attr_reader :beacon_configuration
         attr_accessor :service
-        
+
         # Returns the length of the unsent errors array, if it exists,
         # otherwise nil
         def unsent_errors_size
           @unsent_errors.length if @unsent_errors
         end
-        
+
         # Returns the length of the traces array, if it exists,
         # otherwise nil
         def unsent_traces_size
           @traces.length if @traces
         end
-        
+
         # Initializes the unsent timeslice data hash, if needed, and
         # returns the number of keys it contains
         def unsent_timeslice_data
@@ -98,7 +98,7 @@ module NewRelic
         # fakes out a transaction that did not happen in this process
         # by creating apdex, summary metrics, and recording statistics
         # for the transaction
-        # 
+        #
         # This method is *deprecated* - it may be removed in future
         # versions of the agent
         def record_transaction(duration_seconds, options={})
@@ -156,13 +156,13 @@ module NewRelic
           # @connected gets false after we fail to connect or have an error
           # connecting.  @connected has nil if we haven't finished trying to connect.
           # or we didn't attempt a connection because this is the master process
-          
+
           if channel_id = options[:report_to_channel]
             @service = NewRelic::Agent::PipeService.new(channel_id)
             @connected_pid = $$
             @metric_ids = {}
           end
-          
+
           # log.debug "Agent received after_fork notice in #$$: [#{control.agent_enabled?}; monitor=#{control.monitor_mode?}; connected: #{@connected.inspect}; thread=#{@worker_thread.inspect}]"
           return if !Agent.config[:agent_enabled] ||
             !Agent.config[:monitor_mode] ||
@@ -179,11 +179,11 @@ module NewRelic
           start_worker_thread(options)
           @stats_engine.start_sampler_thread
         end
-        
+
         def forked?
           @forked
         end
-        
+
         # True if we have initialized and completed 'start'
         def started?
           @started
@@ -322,7 +322,7 @@ module NewRelic
               log.error 'Unable to determine application name. Please set the application name in your newrelic.yml or in a NEW_RELIC_APP_NAME environment variable.'
             end
           end
-          
+
           # Connecting in the foreground blocks further startup of the
           # agent until we have a connection - useful in cases where
           # you're trying to log a very-short-running process and want
@@ -460,7 +460,7 @@ module NewRelic
         end
 
         private
-        
+
         # All of this module used to be contained in the
         # start_worker_thread method - this is an artifact of
         # refactoring and can be moved, renamed, etc at will
@@ -475,7 +475,7 @@ module NewRelic
               @transaction_sampler.disable
             end
           end
-          
+
           # logs info about the worker loop so users can see when the
           # agent actually begins running in the background
           def log_worker_loop_start
@@ -589,7 +589,7 @@ module NewRelic
         def control
           NewRelic::Control.instance
         end
-        
+
         # This module is an artifact of a refactoring of the connect
         # method - all of its methods are used in that context, so it
         # can be refactored at will. It should be fully tested
@@ -772,13 +772,13 @@ module NewRelic
             # Ask the server for permission to send transaction samples.
             # determined by subscription license.
             @should_send_samples = @config_should_send_samples && server_enabled
-            
+
             if @should_send_samples
               # I don't think this is ever true, but...
               enable_random_samples!(sample_rate) if @should_send_random_samples
-              
+
               @transaction_sampler.slow_capture_threshold = @slowest_transaction_threshold
-              
+
               log.debug "Transaction tracing threshold is #{@slowest_transaction_threshold} seconds."
             else
               log.debug "Transaction traces will not be sent to the New Relic service."
@@ -833,7 +833,7 @@ module NewRelic
           # ignored unless we say to do something with it here.
           def finish_setup(config_data)
             return if config_data == nil
-            
+
             @service.agent_id = config_data['agent_run_id'] if @service
             @report_period = config_data['data_report_period']
             @url_rules = config_data['url_rules']
@@ -852,7 +852,7 @@ module NewRelic
             configure_transaction_tracer!(config_data['collect_traces'], config_data['sample_rate'])
             configure_error_collector!(config_data['collect_errors'])
           end
-          
+
           # Logs when we connect to the server, for debugging purposes
           # - makes sure we know if an agent has not connected
           def log_connection!(config_data)
@@ -993,11 +993,16 @@ module NewRelic
           NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote').record_data_point(0.0)
           NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote/metric_data').record_data_point(0.0)
           harvest_timeslice_data(now)
-          # In this version of the protocol, we get back an assoc array of spec to id.            
-          metric_specs_and_ids = @service.metric_data(@last_harvest_time.to_f,
-                                                      now.to_f,
-                                                      @unsent_timeslice_data.values)
-          metric_specs_and_ids ||= []
+          # In this version of the protocol
+          # we get back an assoc array of spec to id.
+          metric_specs_and_ids = []
+          begin
+            metric_specs_and_ids = @service.metric_data(@last_harvest_time.to_f,
+                                                now.to_f,
+                                                @unsent_timeslice_data.values)
+          rescue UnrecoverableServerException => e
+            log.debug e.message
+          end
           fill_metric_id_cache(metric_specs_and_ids)
 
           log.debug "#{now}: sent #{@unsent_timeslice_data.length} timeslices (#{@service.agent_id}) in #{Time.now - now} seconds"
@@ -1022,8 +1027,11 @@ module NewRelic
             log.debug "Sending (#{sql_traces.size}) sql traces"
             begin
               @service.sql_trace_data(sql_traces)
-            rescue
-              @sql_sampler.merge sql_traces 
+            rescue UnrecoverableServerException => e
+              log.debug e.message
+            rescue => e
+              log.debug "Remerging SQL traces after #{e.class.name}: #{e.message}"
+              @sql_sampler.merge sql_traces
             end
           end
         end
@@ -1039,7 +1047,7 @@ module NewRelic
           unless @traces.empty?
             now = Time.now
             log.debug "Sending (#{@traces.length}) transaction traces"
-            
+
             begin
               options = { :keep_backtraces => true }
               options[:record_sql] = @record_sql unless @record_sql == :off
@@ -1048,13 +1056,10 @@ module NewRelic
               end
               traces = @traces.collect {|trace| trace.prepare_to_send(options)}
               @service.transaction_sample_data(traces)
-            rescue PostTooBigException
-              # we tried to send too much data, drop the first trace and
-              # try again
-              retry if @traces.shift
+              log.debug "Sent slowest sample (#{@service.agent_id}) in #{Time.now - now} seconds"
+            rescue UnrecoverableServerException => e
+              log.debug e.message
             end
-
-            log.debug "Sent slowest sample (#{@service.agent_id}) in #{Time.now - now} seconds"
           end
 
           # if we succeed sending this sample, then we don't need to keep
@@ -1081,9 +1086,8 @@ module NewRelic
             log.debug "Sending #{@unsent_errors.length} errors"
             begin
               @service.error_data(@unsent_errors)
-            rescue PostTooBigException
-              @unsent_errors.shift
-              retry
+            rescue UnrecoverableServerException => e
+              log.debug e.message
             end
             # if the remote invocation fails, then we never clear
             # @unsent_errors, and therefore we can re-attempt to send on
@@ -1092,7 +1096,7 @@ module NewRelic
             @unsent_errors = []
           end
         end
-        
+
         def transmit_data
           log.debug "Sending data to New Relic Service"
           harvest_and_send_errors
@@ -1134,7 +1138,7 @@ module NewRelic
           end
         end
       end
-            
+
       extend ClassMethods
       include InstanceMethods
       include BrowserMonitoring
