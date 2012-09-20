@@ -101,9 +101,9 @@ module NewRelic
     require 'set'
     require 'thread'
     require 'resolv'
-    
+
     extend NewRelic::Agent::Configuration::Instance
-    
+
     # An exception that is thrown by the server if the agent license is invalid.
     class LicenseException < StandardError; end
 
@@ -117,9 +117,9 @@ module NewRelic
     # failures.
     class ServerConnectionException < StandardError; end
 
-    # Used for when a transaction trace or error report has too much
-    # data, so we reset the queue to clear the extra-large item
-    class PostTooBigException < ServerConnectionException; end
+    # When a post is either too large or poorly formatted we should
+    # drop it and not try to resend
+    class UnrecoverableServerException < ServerConnectionException; end
 
     # Reserved for future use.  Meant to represent a problem on the server side.
     class ServerError < StandardError; end
