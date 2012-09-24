@@ -201,17 +201,14 @@ var e=document.createElement("script");'
   end
   
   def test_browser_monitoring_transaction_name_when_tt_disabled
-    @sampler = NewRelic::Agent.instance.transaction_sampler
-    @sampler.disable
-
-    perform_action_with_newrelic_trace(:name => 'disabled_transactions') do
-      self.class.inspect
-    end
+    with_config(:'transaction_tracer.enabled' => false) do
+      perform_action_with_newrelic_trace(:name => 'disabled_transactions') do
+        self.class.inspect
+      end
         
-    assert_match(/disabled_transactions/, browser_monitoring_transaction_name,
-                 "should name transaction when transaction tracing disabled")
-  ensure
-    @sampler.enable
+      assert_match(/disabled_transactions/, browser_monitoring_transaction_name,
+                   "should name transaction when transaction tracing disabled")
+    end
   end
   
   

@@ -66,8 +66,8 @@ module NewRelic
         !NewRelic::LanguageSupport.using_version?('1.9.1')
       def test_timeslice_harvest_with_after_fork_report_to_channel
         with_config(:agent_enabled => true, :monitor_mode => true) do
-          NewRelic::Agent::Agent.instance.service = NewRelic::FakeService.new
           NewRelic::Agent.shutdown # make sure the agent is not already started
+          NewRelic::Agent::Agent.instance.service = NewRelic::FakeService.new
           NewRelic::Agent.manual_start(:license_key => ('1234567890' * 4),
                                        :start_channel_listener => true)
 

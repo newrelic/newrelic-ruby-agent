@@ -129,6 +129,7 @@ def with_config(config_hash, level=0)
 end
 
 module TransactionSampleTestHelper
+  module_function
   def make_sql_transaction(*sql)
     sampler = NewRelic::Agent::TransactionSampler.new
     sampler.notice_first_scope_push Time.now.to_f
@@ -163,5 +164,4 @@ module TransactionSampleTestHelper
     sampler.notice_scope_empty
     sampler.samples[0]
   end
-  module_function :run_sample_trace_on
 end
