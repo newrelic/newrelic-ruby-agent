@@ -46,7 +46,7 @@ module Agent
       # TransactionSample::Segment at the end of transaction execution
       def push_scope(metric, time = Time.now.to_f, deduct_call_time_from_parent = true)
         stack = scope_stack
-        @transaction_sampler.notice_push_scope metric, time if @transaction_sampler
+        @transaction_sampler.notice_push_scope metric, time if sampler_enabled?
         scope = ScopeStackElement.new(metric, deduct_call_time_from_parent)
         stack.push scope
         scope
@@ -66,10 +66,14 @@ module Agent
             stack.last.children_time += scope.children_time
           end
         end
-        @transaction_sampler.notice_pop_scope(scope.name, time) if @transaction_sampler
+        @transaction_sampler.notice_pop_scope(scope.name, time) if sampler_enabled?
         scope
       end
-
+      
+      def sampler_enabled?
+        @transaction_sampler && Agent.config[:'transaction_tracer.enabled']
+      end
+      
       # Returns the latest ScopeStackElement
       def peek_scope
         scope_stack.last
