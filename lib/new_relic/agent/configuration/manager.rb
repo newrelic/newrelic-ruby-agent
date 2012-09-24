@@ -15,11 +15,13 @@ module NewRelic
         def initialize
           @config_stack = [ EnvironmentSource.new, DEFAULTS ]
           @cache = Hash.new {|hash,key| hash[key] = self.fetch(key) }
+          @callbacks = Hash.new {|hash,key| hash[key] = [] }
         end
 
         def apply_config(source, level=0)
+          invoke_callbacks(:add, source)
           @config_stack.insert(level, source.freeze)
-          expire_cache
+          reset_cache
         end
 
         def remove_config(source=nil)
@@ -28,7 +30,8 @@ module NewRelic
           else
             @config_stack.delete(source)
           end
-          expire_cache
+          reset_cache
+          invoke_callbacks(:remove, source)
         end
 
         def replace_or_add_config(source, level=0)
@@ -49,9 +52,7 @@ module NewRelic
           @config_stack.each do |config|
             next unless config
             accessor = key.to_sym
-            if config.respond_to?(accessor)
-              return config.send(accessor)
-            elsif config.has_key?(accessor)
+            if config.has_key?(accessor)
               if config[accessor].respond_to?(:call)
                 return instance_eval(&config[accessor])
               else
@@ -62,6 +63,26 @@ module NewRelic
           nil
         end
 
+        def register_callback(key, &proc)
+          @callbacks[key] << proc
+          proc.call(@cache[key])
+        end
+
+        def invoke_callbacks(direction, source)
+          return unless source
+          source.keys.each do |key|
+            if @cache[key] != source[key]
+              @callbacks[key].each do |proc|
+                if direction == :add
+                  proc.call(source[key])
+                else
+                  proc.call(@cache[key])
+                end
+              end
+            end
+          end
+        end
+
         def flattened_config
           @config_stack.reverse.inject({}) do |flat,layer|
             thawed_layer = layer.dup
@@ -69,19 +90,12 @@ module NewRelic
               begin
                 thawed_layer[k] = instance_eval(&v) if v.respond_to?(:call)
               rescue => e
-                NewRelic::Control.instance.log.debug("#{e.class.name} : #{e.message} - when calling Proc for config key #{k}")
+                NewRelic::Control.instance.log.debug("#{e.class.name} : #{e.message} - when accessing config key #{k}")
                 thawed_layer[k] = nil
               end
               thawed_layer.delete(:config)
             end
             flat.merge(thawed_layer)
-          end
-        end
-
-        def exclude_rails_config(hash, key)
-          if defined?(::Rails::Configuration) &&
-              hash[key].kind_of?(::Rails::Configuration)
-            hash.delete(key)
           end
         end
 
@@ -93,7 +107,7 @@ module NewRelic
           end
         end
 
-        def expire_cache
+        def reset_cache
           @cache = Hash.new {|hash,key| hash[key] = self.fetch(key) }
         end
       end
