@@ -21,18 +21,19 @@ module NewRelic
         :multi_homed     => false,
         :high_security   => false,
 
-        :host                  => 'collector.newrelic.com',
-        :api_host              => 'rpm.newrelic.com',
-        :port                  => Proc.new { self[:ssl] ? 443 : 80 },
-        :api_port              => Proc.new { self[:port] },
-        :ssl                   => false,
-        :verify_certificate    => false,
-        :sync_startup          => false,
-        :send_data_on_exit     => true,
-        :post_size_limit       => 2 * 1024 * 1024, # 2 megs
-        :timeout               => 2 * 60,          # 2 minutes
-        :force_send            => false,
-        :send_environment_info => true,
+        :host                   => 'collector.newrelic.com',
+        :api_host               => 'rpm.newrelic.com',
+        :port                   => Proc.new { self[:ssl] ? 443 : 80 },
+        :api_port               => Proc.new { self[:port] },
+        :ssl                    => false,
+        :verify_certificate     => false,
+        :sync_startup           => false,
+        :send_data_on_exit      => true,
+        :post_size_limit        => 2 * 1024 * 1024, # 2 megs
+        :timeout                => 2 * 60,          # 2 minutes
+        :force_send             => false,
+        :send_environment_info  => true,
+        :start_channel_listener => false,
 
         :log_file_name => 'newrelic_agent.log',
         :log_file_path => 'log/',
@@ -59,6 +60,7 @@ module NewRelic
         :'transaction_tracer.record_sql'            => 'obfuscated',
         :'transaction_tracer.limit_segments'        => 4000,
         :'transaction_tracer.random_sample'         => false,
+        :sample_rate                                => 10,
 
         :'slow_sql.enabled'               => Proc.new { self[:'transaction_tracer.enabled'] },
         :'slow_sql.stack_trace_threshold' => Proc.new { self[:'transaction_tracer.stack_trace_threshold'] },

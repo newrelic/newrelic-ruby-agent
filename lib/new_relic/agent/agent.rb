@@ -25,17 +25,24 @@ module NewRelic
         @stats_engine = NewRelic::Agent::StatsEngine.new
         @transaction_sampler = NewRelic::Agent::TransactionSampler.new
         @sql_sampler = NewRelic::Agent::SqlSampler.new
-        @stats_engine.transaction_sampler = @transaction_sampler
         @error_collector = NewRelic::Agent::ErrorCollector.new
         @connect_attempts = 0
 
         @last_harvest_time = Time.now
         @obfuscator = lambda {|sql| NewRelic::Agent::Database.default_sql_obfuscator(sql) }
         @forked = false
-
+        
         # FIXME: temporary work around for RUBY-839
         if Agent.config[:monitor_mode]
           @service = NewRelic::Agent::NewRelicService.new
+        end
+        
+        Agent.config.register_callback(:'transaction_tracer.enabled') do |enabled|
+          if enabled
+            @stats_engine.transaction_sampler = @transaction_sampler
+          else
+            @stats_engine.transaction_sampler = nil
+          end
         end
       end
 
