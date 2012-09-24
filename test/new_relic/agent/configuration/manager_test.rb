@@ -67,15 +67,6 @@ module NewRelic::Agent::Configuration
       @manager.remove_config(source)
     end
 
-    def test_source_accessors_should_be_available_as_keys
-      source = TestSource.new
-      @manager.apply_config(source)
-
-      assert_equal 'some value', @manager[:test_config_accessor]
-
-      @manager.remove_config(source)
-    end
-
     def test_should_not_apply_removed_sources
       test_source = TestSource.new
       @manager.apply_config(test_source)
@@ -123,21 +114,30 @@ module NewRelic::Agent::Configuration
         .index(NewRelic::Agent::Configuration::ManualSource)
     end
 
-    def test_app_names_single
-      @manager.apply_config(:app_name => 'test')
-      assert_equal ['test'], @manager.app_names
+    def test_registering_a_callback
+      observed_value = 'old'
+      @manager.apply_config(:test => 'original')
+
+      @manager.register_callback(:test) do |value|
+        observed_value = value
+      end
+      assert_equal 'original', observed_value
+
+      @manager.apply_config(:test => 'new')
+      assert_equal 'new', observed_value
     end
 
-    def test_app_names_list
-      @manager.apply_config(:app_name => 'test0;test1;test2')
-      assert_equal ['test0', 'test1', 'test2'], @manager.app_names
-    end
+    def test_callback_not_called_if_no_change
+      @manager.apply_config(:test => true, :other => false)
+      @manager.register_callback(:test) do |value|
+        state = 'wrong'
+      end
+      state = 'right'
+      config = {:test => true}
+      @manager.apply_config(config)
+      @manager.remove_config(config)
 
-    def test_app_names_nil
-      # nil has special meaning, so we emulate with an object that
-      # will not respond as expected
-      @manager.apply_config(:app_name => Object.new)
-      assert_equal [], @manager.app_names
+      assert_equal 'right', state
     end
 
     class TestSource < ::Hash
