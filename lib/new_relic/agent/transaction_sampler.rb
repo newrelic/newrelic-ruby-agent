@@ -41,13 +41,14 @@ module NewRelic
         # and related variables. It can become necessary on JRuby or
         # any 'honest-to-god'-multithreaded system
         @samples_lock = Mutex.new
-      end
 
-      def configure!
-        # Configure the sample storage policy.  Create a list of methods to be called.
-        @store_sampler_methods = [ :store_random_sample, :store_slowest_sample ]
-        if Agent.config[:developer_mode]
-          @store_sampler_methods << :store_sample_for_developer_mode
+        Agent.config.register_callback(:'transaction_tracer.enabled') do |enabled|
+          if enabled
+            threshold = Agent.config[:'transaction_tracer.transaction_threshold']
+            log.debug "Transaction tracing threshold is #{threshold} seconds."
+          else
+            log.debug "Transaction traces will not be sent to the New Relic service."
+          end
         end
       end
 
