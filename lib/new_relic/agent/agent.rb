@@ -160,6 +160,8 @@ module NewRelic
         #   quickly if there is some kind of latency with the server.
         def after_fork(options={})
           @forked = true
+          Agent.config.apply_config(NewRelic::Agent::Configuration::ManualSource.new(options), 1)
+
           # @connected gets false after we fail to connect or have an error
           # connecting.  @connected has nil if we haven't finished trying to connect.
           # or we didn't attempt a connection because this is the master process
@@ -742,21 +744,6 @@ module NewRelic
             log.debug "Errors will #{enabled ? '' : 'not '}be sent to the New Relic service."
           end
 
-          # Random sampling is enabled based on a sample rate, which
-          # is the n in "every 1/n transactions is added regardless of
-          # its length".
-          #
-          # uses a sane default for sampling rate if the sampling rate
-          # is zero, since the collector currently sends '0' as a
-          # sampling rate for all accounts, which is probably for
-          # legacy reasons
-          def enable_random_samples!(sample_rate)
-            sample_rate = 10 unless sample_rate.to_i > 0
-            @transaction_sampler.random_sampling = true
-            @transaction_sampler.sampling_rate = sample_rate
-            log.info "Transaction sampling enabled, rate = #{@transaction_sampler.sampling_rate}"
-          end
-
           # this entire method should be done on the transaction
           # sampler object, rather than here. We should pass in the
           # sampler config.
@@ -781,9 +768,6 @@ module NewRelic
             @should_send_samples = @config_should_send_samples && server_enabled
 
             if @should_send_samples
-              # I don't think this is ever true, but...
-              enable_random_samples!(sample_rate) if @should_send_random_samples
-
               @transaction_sampler.slow_capture_threshold = @slowest_transaction_threshold
 
               log.debug "Transaction tracing threshold is #{@slowest_transaction_threshold} seconds."

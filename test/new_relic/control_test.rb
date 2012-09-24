@@ -148,8 +148,6 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     with_config(:transaction_tracer => { :transaction_threshold => 1}) do
       NewRelic::Agent.instance.config_transaction_tracer
       assert_equal 1, NewRelic::Agent.config[:'transaction_tracer.transaction_threshold']
-      assert_equal 1, NewRelic::Agent.instance \
-        .instance_variable_get(:@slowest_transaction_threshold)
     end
   end
 

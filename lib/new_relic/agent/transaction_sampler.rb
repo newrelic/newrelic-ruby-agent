@@ -35,9 +35,7 @@ module NewRelic
         # sampling - we pull 1 @random_sample in every @sampling_rate harvests
         @harvest_count = 0
         @random_sample = nil
-        @sampling_rate = 10
-        @slow_capture_threshold = 2.0
-        configure!
+        @sampling_rate = Agent.config[:sample_rate]
 
         # This lock is used to synchronize access to the @last_sample
         # and related variables. It can become necessary on JRuby or
@@ -51,6 +49,10 @@ module NewRelic
         if Agent.config[:developer_mode]
           @store_sampler_methods << :store_sample_for_developer_mode
         end
+      end
+
+      def log
+        NewRelic::Control.instance.log
       end
 
       # Returns the current sample id, delegated from `builder`
@@ -74,7 +76,7 @@ module NewRelic
       end
 
       def enabled?
-        !@disabled
+        Agent.config[:'transaction_tracer.enabled'] || Agent.config[:developer_mode]
       end
 
       # Set with an integer value n, this takes one in every n
@@ -169,20 +171,26 @@ module NewRelic
       # @samples array, and the @slowest_sample variable if it is
       # slower than the current occupant of that slot
       def store_sample(sample)
-        @store_sampler_methods.each{|sym| send sym, sample}
+        sampler_methods = [ :store_slowest_sample ]
+        if Agent.config[:developer_mode]
+          sampler_methods << :store_sample_for_developer_mode
+        end
+        if Agent.config[:'transaction_tracer.random_sample']
+          sampler_methods << :store_random_sample
+        end
+
+        sampler_methods.each{|sym| send(sym, sample) }
+
         if NewRelic::Agent::TransactionInfo.get.force_persist_sample?(sample)
           store_force_persist(sample)
         end
-
       end
 
       # Only active when random sampling is true - this is very rarely
       # used. Always store the most recent sample so that random
       # sampling can pick a few of the samples to store, upon harvest
       def store_random_sample(sample)
-        if @random_sampling
-          @random_sample = sample
-        end
+        @random_sample = sample if Agent.config[:'transaction_tracer.random_sample']
       end
 
       def store_force_persist(sample)
@@ -329,9 +337,10 @@ module NewRelic
       #
       # random sampling is very, very seldom used
       def add_random_sample_to(result)
-        return unless @random_sampling && @sampling_rate && @sampling_rate.to_i > 0
+        return unless @random_sample &&
+          Agent.config[:sample_rate] && Agent.config[:sample_rate].to_i > 0
         @harvest_count += 1
-        if (@harvest_count.to_i % @sampling_rate.to_i) == 0
+        if (@harvest_count.to_i % Agent.config[:sample_rate].to_i) == 0
           result << @random_sample if @random_sample
           @harvest_count = 0
         end
