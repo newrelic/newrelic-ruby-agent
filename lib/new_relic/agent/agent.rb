@@ -749,7 +749,6 @@ module NewRelic
           # sampler config.
           def config_transaction_tracer
             # Reconfigure the transaction tracer
-            @transaction_sampler.configure!
             @should_send_samples = @config_should_send_samples = Agent.config[:'transaction_tracer.enabled']
             @should_send_random_samples = Agent.config[:'transaction_tracer.random_sample']
             set_sql_recording!

@@ -29,7 +29,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     stats_engine.transaction_sampler = @sampler
     @test_config = { :developer_mode => true }
     NewRelic::Agent.config.apply_config(@test_config)
-    @sampler.configure!
   end
 
   def teardown
@@ -220,7 +219,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
   def test_store_sample_for_developer_mode_no_dev
     with_config(:developer_mode => false) do
-      @sampler.configure!
       sample = mock('sample')
       @sampler.store_sample_for_developer_mode(sample)
       assert_equal([], @sampler.instance_variable_get('@samples'))
@@ -904,7 +902,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
   def test_should_not_collect_segments_beyond_limit
     with_config(:'transaction_tracer.limit_segments' => 3) do
-      @sampler.configure!
       run_sample_trace do
         @sampler.notice_push_scope 'a1'
         @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'hallah'", nil, 0)
