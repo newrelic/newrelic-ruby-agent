@@ -195,7 +195,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   def test_configure_transaction_tracer_with_random_sampling
     with_config(:'transaction_tracer.transaction_threshold' => 5,
                 :'transaction_tracer.random_sample' => true) do
-    log.stubs(:debug)
+      log.stubs(:debug)
       sample = TransactionSampleTestHelper.make_sql_transaction
       @transaction_sampler.store_sample(sample)
 
@@ -204,26 +204,27 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   end
 
   def test_configure_transaction_tracer_positive
-    @config_should_send_samples = true
-    @slowest_transaction_threshold = 5
-    log.stubs(:debug)
-    configure_transaction_tracer!(true, 10)
-    assert @should_send_samples
-    assert_equal 5, @transaction_sampler.slow_capture_threshold
+    with_config(:'transaction_tracer.enabled' => true) do
+      assert @transaction_sampler.enabled?
+    end
   end
 
   def test_configure_transaction_tracer_negative
-    @config_should_send_samples = false
-    log.expects(:debug).with('Transaction traces will not be sent to the New Relic service.')
-    configure_transaction_tracer!(true, 10)
-    assert !@should_send_samples
+    with_config(:'transaction_tracer.enabled' => false) do
+      assert @transaction_sampler.enabled?
+    end
+    
   end
 
   def test_configure_transaction_tracer_server_disabled
-    @config_should_send_samples = true
+    @transaction_sampler.stubs(:log).returns(log)
+    log.stubs(:debug)
     log.expects(:debug).with('Transaction traces will not be sent to the New Relic service.')
-    configure_transaction_tracer!(false, 10)
-    assert !@should_send_samples
+    config = NewRelic::Agent::Configuration::ServerSource.new('collect_traces' => false,
+                                                              'developer_mode' => false)
+    with_config(config) do
+      assert !@transaction_sampler.enabled?
+    end
   end
 
   def test_apdex_f
@@ -293,9 +294,9 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   end
 
   def test_connect_to_server_gets_config_from_collector
+    NewRelic::Agent.manual_start
     service = NewRelic::FakeService.new
     NewRelic::Agent::Agent.instance.service = service
-    NewRelic::Agent.manual_start
     service.mock['connect'] = {'agent_run_id' => 23, 'config' => 'a lot'}
 
     response = NewRelic::Agent.agent.connect_to_server
@@ -317,7 +318,6 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
       'agent_config' => { 'transaction_tracer.record_sql' => 'raw' }
     }
     self.expects(:log_connection!).with(config)
-    self.expects(:configure_transaction_tracer!).with(true, 10)
     self.expects(:configure_error_collector!).with(true)
     @transaction_sampler = stub('transaction sampler', :configure! => true,
                                 :config => {})

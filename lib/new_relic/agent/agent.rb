@@ -748,31 +748,7 @@ module NewRelic
           # sampler object, rather than here. We should pass in the
           # sampler config.
           def config_transaction_tracer
-            # Reconfigure the transaction tracer
-            @should_send_samples = @config_should_send_samples = Agent.config[:'transaction_tracer.enabled']
-            @should_send_random_samples = Agent.config[:'transaction_tracer.random_sample']
             set_sql_recording!
-
-            # default to 2.0, string 'apdex_f' will turn into your
-            # apdex * 4
-            @slowest_transaction_threshold = Agent.config[:'transaction_tracer.transaction_threshold']
-          end
-
-          # Enables or disables the transaction tracer and sets its
-          # options based on the options provided to the
-          # method.
-          def configure_transaction_tracer!(server_enabled, sample_rate)
-            # Ask the server for permission to send transaction samples.
-            # determined by subscription license.
-            @should_send_samples = @config_should_send_samples && server_enabled
-
-            if @should_send_samples
-              @transaction_sampler.slow_capture_threshold = @slowest_transaction_threshold
-
-              log.debug "Transaction tracing threshold is #{@slowest_transaction_threshold} seconds."
-            else
-              log.debug "Transaction traces will not be sent to the New Relic service."
-            end
           end
 
           # apdex_f is always 4 times the apdex_t
@@ -839,7 +815,6 @@ module NewRelic
 
             config_transaction_tracer
             log_connection!(config_data) if @service
-            configure_transaction_tracer!(config_data['collect_traces'], config_data['sample_rate'])
             configure_error_collector!(config_data['collect_errors'])
           end
 
