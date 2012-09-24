@@ -27,7 +27,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     agent.stubs(:stats_engine).returns(stats_engine)
     @sampler = NewRelic::Agent::TransactionSampler.new
     stats_engine.transaction_sampler = @sampler
-    @test_config = { 'developer_mode' => true }
+    @test_config = { :developer_mode => true }
     NewRelic::Agent.config.apply_config(@test_config)
     @sampler.configure!
   end
@@ -63,20 +63,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   def test_current_sample_id_no_builder
     @sampler.expects(:builder).returns(nil)
     assert_equal(nil, @sampler.current_sample_id)
-  end
-
-  def test_enable
-    assert_equal(nil, @sampler.instance_variable_get('@disabled'))
-    @sampler.enable
-    assert_equal(false, @sampler.instance_variable_get('@disabled'))
-    assert_equal(@sampler, NewRelic::Agent.instance.stats_engine.instance_variable_get('@transaction_sampler'))
-  end
-
-  def test_disable
-    assert_nil @sampler.instance_variable_get('@disabled')
-    @sampler.disable
-    assert @sampler.instance_variable_get('@disabled')
-    assert_nil NewRelic::Agent.instance.stats_engine.instance_variable_get('@transaction_sampler')
   end
 
   def test_sampling_rate_equals_default
@@ -209,18 +195,20 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   end
 
   def test_store_random_sample_no_random_sampling
-    @sampler.instance_eval { @random_sampling = false }
-    assert_equal(nil, @sampler.instance_variable_get('@random_sample'))
-    @sampler.store_random_sample(mock('sample'))
-    assert_equal(nil, @sampler.instance_variable_get('@random_sample'))
+    with_config(:'transaction_tracer.random_sample' => false) do
+      assert_equal(nil, @sampler.instance_variable_get('@random_sample'))
+      @sampler.store_random_sample(mock('sample'))
+      assert_equal(nil, @sampler.instance_variable_get('@random_sample'))
+    end
   end
 
   def test_store_random_sample_random_sampling
-    @sampler.instance_eval { @random_sampling = true }
-    sample = mock('sample')
-    assert_equal(nil, @sampler.instance_variable_get('@random_sample'))
-    @sampler.store_random_sample(sample)
-    assert_equal(sample, @sampler.instance_variable_get('@random_sample'))
+    with_config(:'transaction_tracer.random_sample' => true) do
+      sample = mock('sample')
+      assert_equal(nil, @sampler.instance_variable_get('@random_sample'))
+      @sampler.store_random_sample(sample)
+      assert_equal(sample, @sampler.instance_variable_get('@random_sample'))
+    end
   end
 
   def test_store_sample_for_developer_mode_in_dev_mode
@@ -516,16 +504,16 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   end
 
   def test_add_random_sample_to_activated
-    @sampler.instance_eval { @random_sampling = true }
-    sample = mock('sample')
-    @sampler.instance_eval {
-      @harvest_count = 3
-      @sampling_rate = 1
-      @random_sample = sample
-    }
-    result = []
-    @sampler.add_random_sample_to(result)
-    assert_equal([sample], result, "should add the random sample to the array")
+    with_config(:'transaction_tracer.random_sample' => true, :sample_rate => 1) do
+      sample = mock('sample')
+      @sampler.instance_eval {
+        @harvest_count = 3
+        @random_sample = sample
+      }
+      result = []
+      @sampler.add_random_sample_to(result)
+      assert_equal([sample], result, "should add the random sample to the array")
+    end
   end
 
   def test_add_random_sample_to_sampling_rate_zero

@@ -192,36 +192,15 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     configure_error_collector!(false)
   end
 
-  def test_enable_random_samples
-    sampling_rate = 10
-    ts = @transaction_sampler = mock('ts')
-    ts.expects(:random_sampling=).with(true)
-    ts.expects(:sampling_rate=).with(sampling_rate)
-    ts.expects(:sampling_rate).returns(sampling_rate)
-    log.expects(:info).with("Transaction sampling enabled, rate = 10")
-    enable_random_samples!(sampling_rate)
-  end
-
-  def test_enable_random_samples_with_no_sampling_rate
-    # testing that we set a sane default for sampling rate
-    sampling_rate = 0
-    ts = @transaction_sampler = mock('ts')
-    ts.expects(:random_sampling=).with(true)
-    ts.expects(:sampling_rate=).with(10)
-    ts.expects(:sampling_rate).returns(10)
-    log.expects(:info).with("Transaction sampling enabled, rate = 10")
-    enable_random_samples!(sampling_rate)
-  end
-
   def test_configure_transaction_tracer_with_random_sampling
-    @config_should_send_samples = true
-    @should_send_random_samples = true
-    @slowest_transaction_threshold = 5
+    with_config(:'transaction_tracer.transaction_threshold' => 5,
+                :'transaction_tracer.random_sample' => true) do
     log.stubs(:debug)
-    self.expects(:enable_random_samples!).with(10)
-    configure_transaction_tracer!(true, 10)
-    assert @should_send_samples
-    assert_equal 5, @transaction_sampler.slow_capture_threshold
+      sample = TransactionSampleTestHelper.make_sql_transaction
+      @transaction_sampler.store_sample(sample)
+
+      assert_equal sample, @transaction_sampler.instance_variable_get(:@random_sample)
+    end
   end
 
   def test_configure_transaction_tracer_positive
