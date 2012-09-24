@@ -31,19 +31,22 @@ module NewRelic
         @last_harvest_time = Time.now
         @obfuscator = lambda {|sql| NewRelic::Agent::Database.default_sql_obfuscator(sql) }
         @forked = false
-        
+
         # FIXME: temporary work around for RUBY-839
         if Agent.config[:monitor_mode]
           @service = NewRelic::Agent::NewRelicService.new
         end
-        
-        Agent.config.register_callback(:'transaction_tracer.enabled') do |enabled|
-          if enabled
+
+        txn_tracer_enabler = Proc.new do
+          if NewRelic::Agent.config[:'transaction_tracer.enabled'] ||
+              NewRelic::Agent.config[:developer_mode]
             @stats_engine.transaction_sampler = @transaction_sampler
           else
             @stats_engine.transaction_sampler = nil
           end
         end
+        Agent.config.register_callback(:'transaction_tracer.enabled', &txn_tracer_enabler)
+        Agent.config.register_callback(:developer_mode, &txn_tracer_enabler)
       end
 
       # contains all the class-level methods for NewRelic::Agent::Agent
