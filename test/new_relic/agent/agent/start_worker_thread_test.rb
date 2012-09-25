@@ -7,7 +7,6 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
     self.expects(:catch_errors).yields
     self.expects(:connect).with('connection_options')
     @connected = true
-    self.expects(:check_transaction_sampler_status)
     self.expects(:log_worker_loop_start)
     self.expects(:create_and_run_worker_loop)
     deferred_work!('connection_options')
@@ -20,33 +19,6 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
     fake_log = mocked_log
     fake_log.expects(:debug).with("No connection.  Worker thread ending.")
     deferred_work!('connection_options')
-  end
-
-  def test_check_transaction_sampler_status_enabled
-    with_config(:developer_mode => false) do
-      @should_send_samples = true
-      @transaction_sampler = mock('transaction_sampler')
-      @transaction_sampler.expects(:enable)
-      check_transaction_sampler_status
-    end
-  end
-
-  def test_check_transaction_sampler_status_devmode
-    with_config(:developer_mode => true) do
-      @should_send_samples = false
-      @transaction_sampler = mock('transaction_sampler')
-      @transaction_sampler.expects(:enable)
-      check_transaction_sampler_status
-    end
-  end
-
-  def test_check_transaction_sampler_status_disabled
-    with_config(:developer_mode => false) do
-      @should_send_samples = false
-      @transaction_sampler = mock('transaction_sampler')
-      @transaction_sampler.expects(:disable)
-      check_transaction_sampler_status
-    end
   end
 
   def test_log_worker_loop_start

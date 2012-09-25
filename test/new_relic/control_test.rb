@@ -154,9 +154,6 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   def test_transaction_tracer_disabled
     with_config(:'transaction_tracer.enabled' => false,
                 :developer_mode => false, :monitor_mode => true) do
-      NewRelic::Agent::Agent.instance.config_transaction_tracer
-      NewRelic::Agent::Agent.instance.check_transaction_sampler_status
-
       assert(!NewRelic::Agent::Agent.instance.transaction_sampler.enabled?,
              'transaction tracer enabled when config calls for disabled')
     end
