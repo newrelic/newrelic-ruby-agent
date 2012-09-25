@@ -62,20 +62,6 @@ module NewRelic
         b and b.sample_id
       end
 
-      # Enable the transaction sampler - this also registers it with
-      # the statistics engine.
-      def enable
-        @disabled = false
-        NewRelic::Agent.instance.stats_engine.transaction_sampler = self
-      end
-
-      # Disable the transaction sampler - this also deregisters it
-      # with the statistics engine.
-      def disable
-        @disabled = true
-        NewRelic::Agent.instance.stats_engine.remove_transaction_sampler(self)
-      end
-
       def enabled?
         Agent.config[:'transaction_tracer.enabled'] || Agent.config[:developer_mode]
       end
@@ -93,7 +79,7 @@ module NewRelic
       # transaction sampler is disabled. Takes a time parameter for
       # the start of the transaction sample
       def notice_first_scope_push(time)
-        start_builder(time.to_f) unless disabled
+        start_builder(time.to_f) if enabled?
       end
 
       # This delegates to the builder to create a new open transaction
@@ -238,7 +224,7 @@ module NewRelic
       # Delegates to the builder to store the path, uri, and
       # parameters if the sampler is active
       def notice_transaction(path, uri=nil, params={})
-        builder.set_transaction_info(path, uri, params) if !disabled && builder
+        builder.set_transaction_info(path, uri, params) if enabled? && builder
       end
 
       # Tells the builder to ignore a transaction, if we are currently
@@ -357,7 +343,7 @@ module NewRelic
       # elements - one element unless random sampling is enabled. The
       # sample returned will be the slowest sample among those
       # available during this harvest
-      def add_samples_to(result, slow_threshold)
+      def add_samples_to(result)
         # pull out force persist
         force_persist = result.select {|sample| sample.force_persist} || []
         result.reject! {|sample| sample.force_persist}
@@ -366,7 +352,9 @@ module NewRelic
 
 
         # Now get the slowest sample
-        if @slowest_sample && @slowest_sample.duration >= slow_threshold
+        if @slowest_sample &&
+            @slowest_sample.duration >=
+            Agent.config[:'transaction_tracer.transaction_threshold']
           result << @slowest_sample
         end
 
@@ -384,12 +372,12 @@ module NewRelic
       # and clear the collected sample list. Truncates samples to a
       # specified segment_limit to save memory and bandwith
       # transmitting samples to the server.
-      def harvest(previous = [], slow_threshold = 2.0)
-        return [] if disabled
+      def harvest(previous=[])
+        return [] if !enabled?
         result = Array(previous)
 
         @samples_lock.synchronize do
-          result = add_samples_to(result, slow_threshold)
+          result = add_samples_to(result)
 
           # clear previous transaction samples
           @slowest_sample = nil
@@ -439,7 +427,7 @@ module NewRelic
       # new transaction sample builder with the stated time as a
       # starting point and saves it in the thread local variable
       def start_builder(time=nil)
-        if disabled || !NewRelic::Agent.is_transaction_traced? || !NewRelic::Agent.is_execution_traced?
+        if !enabled? || !NewRelic::Agent.is_transaction_traced? || !NewRelic::Agent.is_execution_traced?
           clear_builder
         else
           Thread::current[BUILDER_KEY] ||= TransactionSampleBuilder.new(time)

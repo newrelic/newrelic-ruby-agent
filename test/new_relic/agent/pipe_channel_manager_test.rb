@@ -61,7 +61,9 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
         new_sampler = NewRelic::Agent::TransactionSampler.new
         sample = TransactionSampleTestHelper.run_sample_trace_on(new_sampler)
         new_sampler.store_force_persist(sample)
-        listener.pipes[667].write(:transaction_traces => new_sampler.harvest([], 0))
+        with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
+          listener.pipes[667].write(:transaction_traces => new_sampler.harvest([]))
+        end
       end
       Process.wait(pid)
       listener.stop

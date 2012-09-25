@@ -477,17 +477,6 @@ module NewRelic
         # start_worker_thread method - this is an artifact of
         # refactoring and can be moved, renamed, etc at will
         module StartWorkerThread
-
-          # disable transaction sampling if disabled by the server
-          # and we're not in dev mode
-          def check_transaction_sampler_status
-            if Agent.config[:developer_mode] || @should_send_samples
-              @transaction_sampler.enable
-            else
-              @transaction_sampler.disable
-            end
-          end
-
           # logs info about the worker loop so users can see when the
           # agent actually begins running in the background
           def log_worker_loop_start
@@ -572,7 +561,6 @@ module NewRelic
                 # that means it didn't try to connect because we're in the master.
                 connect(connection_options)
                 if @connected
-                  check_transaction_sampler_status
                   log_worker_loop_start
                   create_and_run_worker_loop
                   # never reaches here unless there is a problem or
@@ -984,7 +972,7 @@ module NewRelic
         # the transaction sampler, subject to the setting for slowest
         # transaction threshold
         def harvest_transaction_traces
-          @traces = @transaction_sampler.harvest(@traces, @slowest_transaction_threshold)
+          @traces = @transaction_sampler.harvest(@traces)
           @traces
         end
 
@@ -1074,7 +1062,10 @@ module NewRelic
         rescue => e
           retry_count ||= 0
           retry_count += 1
-          retry unless retry_count > 1
+          if retry_count <= 1
+            log.debug "retrying transmit_data after #{e}"
+            retry
+          end
           raise e
         ensure
           NewRelic::Agent::Database.close_connections unless forked?
@@ -1099,7 +1090,8 @@ module NewRelic
                 log.debug "This agent connected from parent process #{@connected_pid}--not sending shutdown"
               end
               log.debug "Graceful disconnect complete"
-            rescue Timeout::Error, StandardError
+            rescue Timeout::Error, StandardError => e
+              log.debug "Error when disconnecting #{e.class.name}: #{e.message}"
             end
           else
             log.debug "Bypassing graceful disconnect - agent not connected"
