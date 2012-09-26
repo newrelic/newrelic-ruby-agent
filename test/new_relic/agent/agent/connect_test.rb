@@ -169,27 +169,36 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   end
 
   def test_configure_error_collector_base
-    fake_collector = mocked_error_collector
-    fake_collector.expects(:config_enabled).returns(false)
-    fake_collector.expects(:enabled=).with(false)
-    log.expects(:debug).with("Errors will not be sent to the New Relic service.")
-    configure_error_collector!(false)
+    error_collector = NewRelic::Agent::ErrorCollector.new
+    NewRelic::Control.instance.log.stubs(:debug)
+    NewRelic::Control.instance.log.expects(:debug) \
+      .with("Errors will not be sent to the New Relic service.").at_least_once
+    with_config(:'error_collector.enabled' => false) do
+      # noop
+    end
   end
 
   def test_configure_error_collector_enabled
-    fake_collector = mocked_error_collector
-    fake_collector.expects(:config_enabled).returns(true)
-    fake_collector.expects(:enabled=).with(true)
-    log.expects(:debug).with("Errors will be sent to the New Relic service.")
-    configure_error_collector!(true)
+    with_config(:'error_collector.enabled' => false) do
+      error_collector = NewRelic::Agent::ErrorCollector.new
+      NewRelic::Control.instance.log.stubs(:debug)
+      NewRelic::Control.instance.log.expects(:debug) \
+        .with("Errors will be sent to the New Relic service.").at_least_once
+      with_config(:'error_collector.enabled' => true) do
+        # noop
+      end
+    end
   end
 
   def test_configure_error_collector_server_disabled
-    fake_collector = mocked_error_collector
-    fake_collector.expects(:config_enabled).returns(true)
-    fake_collector.expects(:enabled=).with(false)
-    log.expects(:debug).with("Errors will not be sent to the New Relic service.")
-    configure_error_collector!(false)
+    error_collector = NewRelic::Agent::ErrorCollector.new
+    NewRelic::Control.instance.log.stubs(:debug)
+    NewRelic::Control.instance.log.expects(:debug) \
+      .with("Errors will not be sent to the New Relic service.").at_least_once
+    config = NewRelic::Agent::Configuration::ServerSource.new('collect_errors' => false)
+    with_config(config) do
+      # noop
+    end
   end
 
   def test_configure_transaction_tracer_with_random_sampling
@@ -298,7 +307,6 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
       'agent_config' => { 'transaction_tracer.record_sql' => 'raw' }
     }
     self.expects(:log_connection!).with(config)
-    self.expects(:configure_error_collector!).with(true)
     @transaction_sampler = stub('transaction sampler', :configure! => true,
                                 :config => {})
     @sql_sampler = stub('sql sampler', :configure! => true)
