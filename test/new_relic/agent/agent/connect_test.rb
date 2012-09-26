@@ -213,7 +213,6 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     with_config(:'transaction_tracer.enabled' => false) do
       assert @transaction_sampler.enabled?
     end
-    
   end
 
   def test_configure_transaction_tracer_server_disabled
@@ -235,56 +234,37 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
 
   def test_set_sql_recording_default
     with_config(:'transaction_tracer.record_sql' => 'obfuscated') do
-      self.expects(:log_sql_transmission_warning?)
-      set_sql_recording!
-      assert_equal :obfuscated, @record_sql, " should default to :obfuscated, was #{@record_sql}"
+      assert_equal(:obfuscated, NewRelic::Agent::Database.record_sql_method,
+                   "should default to :obfuscated, was #{NewRelic::Agent::Database.record_sql_method}")
     end
   end
 
   def test_set_sql_recording_off
     with_config(:'transaction_tracer.record_sql' => 'off') do
-      self.expects(:log_sql_transmission_warning?)
-      set_sql_recording!
-      assert_equal :off, @record_sql, "should be set to :off, was #{@record_sql}"
+      assert_equal(:off, NewRelic::Agent::Database.record_sql_method,
+                   "should be set to :off, was #{NewRelic::Agent::Database.record_sql_method}")
     end
   end
 
   def test_set_sql_recording_none
     with_config(:'transaction_tracer.record_sql' => 'none') do
-      self.expects(:log_sql_transmission_warning?)
-      set_sql_recording!
-      assert_equal :off, @record_sql, "should be set to :off, was #{@record_sql}"
+      assert_equal(:off, NewRelic::Agent::Database.record_sql_method,
+                   "should be set to :off, was #{NewRelic::Agent::Database.record_sql_method}")
     end
   end
 
   def test_set_sql_recording_raw
     with_config(:'transaction_tracer.record_sql' => 'raw') do
-      self.expects(:log_sql_transmission_warning?)
-      set_sql_recording!
-      assert_equal :raw, @record_sql, "should be set to :raw, was #{@record_sql}"
+      assert_equal(:raw, NewRelic::Agent::Database.record_sql_method,
+                   "should be set to :raw, was #{NewRelic::Agent::Database.record_sql_method}")
     end
   end
 
   def test_set_sql_recording_falsy
     with_config(:'transaction_tracer.record_sql' => false) do
-      self.expects(:log_sql_transmission_warning?)
-      set_sql_recording!
-      assert_equal :off, @record_sql, "should be set to :off, was #{@record_sql}"
+      assert_equal(:off, NewRelic::Agent::Database.record_sql_method,
+                   "should be set to :off, was #{NewRelic::Agent::Database.record_sql_method}")
     end
-  end
-
-  def test_log_sql_transmission_warning_negative
-    log = mocked_log
-    @record_sql = :obfuscated
-    log.expects(:warn).never
-    log_sql_transmission_warning?
-  end
-
-  def test_log_sql_transmission_warning_positive
-    log = mocked_log
-    @record_sql = :raw
-    log.expects(:warn).with('Agent is configured to send raw SQL to the service')
-    log_sql_transmission_warning?
   end
 
   def test_query_server_for_configuration
