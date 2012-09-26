@@ -10,7 +10,7 @@ module NewRelic
       module Shim #:nodoc:
         def notice_error(*args); end
       end
-      
+
       # Maximum possible length of the queue - defaults to 20, may be
       # made configurable in the future. This is a tradeoff between
       # memory and data retention
@@ -18,7 +18,7 @@ module NewRelic
 
       attr_accessor :enabled, :errors
       attr_reader :config_enabled
-      
+
       # Returns a new error collector
       def initialize
         @errors = []
@@ -57,38 +57,33 @@ module NewRelic
           log.debug("Ignoring errors of type '#{error}'")
         end
       end
-      
+
       # This module was extracted from the notice_error method - it is
       # internally tested and can be refactored without major issues.
       module NoticeError
-        # Whether the error collector is disabled or not
-        def disabled?
-          !@enabled
-        end
-        
         # Checks the provided error against the error filter, if there
         # is an error filter
         def filtered_by_error_filter?(error)
           return unless @ignore_filter
           !@ignore_filter.call(error)
         end
-        
+
         # Checks the array of error names and the error filter against
         # the provided error
         def filtered_error?(error)
           @ignore[error.class.name] || filtered_by_error_filter?(error)
         end
-        
+
         # an error is ignored if it is nil or if it is filtered
         def error_is_ignored?(error)
           error && filtered_error?(error)
         end
-        
+
         # Increments a statistic that tracks total error rate
         def increment_error_count!
           NewRelic::Agent.get_stats("Errors/all").increment_count
         end
-        
+
         # whether we should return early from the notice_error process
         # - based on whether the error is ignored or the error
         # collector is disabled
@@ -102,12 +97,12 @@ module NewRelic
           # disabled or an ignored error, per above
           true
         end
-        
+
         # acts just like Hash#fetch, but deletes the key from the hash
         def fetch_from_options(options, key, default=nil)
           options.delete(key) || default
         end
-        
+
         # returns some basic option defaults pulled from the provided
         # options hash
         def uri_ref_and_root(options)
@@ -117,13 +112,13 @@ module NewRelic
             :rails_root => NewRelic::Control.instance.root
           }
         end
-        
+
         # If anything else is left over, we treat it like a custom param
         def custom_params_from_opts(options)
           # If anything else is left over, treat it like a custom param:
           fetch_from_options(options, :custom_params, {}).merge(options)
         end
-        
+
         # takes the request parameters out of the options hash, and
         # returns them if we are capturing parameters, otherwise
         # returns nil
@@ -135,7 +130,7 @@ module NewRelic
             nil
           end
         end
-        
+
         # normalizes the request and custom parameters before attaching
         # them to the error. See NewRelic::CollectionHelper#normalize_params
         def normalized_request_and_custom_params(options)
@@ -144,32 +139,32 @@ module NewRelic
             :custom_params  => normalize_params(custom_params_from_opts(options))
           }
         end
-        
+
         # Merges together many of the options into something that can
         # actually be attached to the error
         def error_params_from_options(options)
           uri_ref_and_root(options).merge(normalized_request_and_custom_params(options))
         end
-        
+
         # calls a method on an object, if it responds to it - used for
         # detection and soft fail-safe. Returns nil if the method does
         # not exist
         def sense_method(object, method)
           object.send(method) if object.respond_to?(method)
         end
-        
+
         # extracts source from the exception, if the exception supports
         # that method
         def extract_source(exception)
           sense_method(exception, 'source_extract') if @capture_source
         end
-        
+
         # extracts a stack trace from the exception for debugging purposes
         def extract_stack_trace(exception)
           actual_exception = sense_method(exception, 'original_exception') || exception
           sense_method(actual_exception, 'backtrace') || '<no stack trace>'
         end
-        
+
         # extracts a bunch of information from the exception to include
         # in the noticed error - some may or may not be available, but
         # we try to include all of it
@@ -181,7 +176,7 @@ module NewRelic
             :stack_trace => extract_stack_trace(exception)
           }
         end
-        
+
         # checks the size of the error queue to make sure we are under
         # the maximum limit, and logs a warning if we are over the limit.
         def over_queue_limit?(message)
@@ -190,7 +185,6 @@ module NewRelic
           over_limit
         end
 
-        
         # Synchronizes adding an error to the error queue, and checks if
         # the error queue is too long - if so, we drop the error on the
         # floor after logging a warning.

@@ -14,7 +14,7 @@ module NewRelic
                'Agent should use PipeService when directed to report to pipe channel')
         assert_equal 123, @agent.service.channel_id
       end
-      
+
       def test_transmit_data_should_transmit
         @agent.instance_eval { transmit_data }
         assert @agent.service.agent_data.any?
@@ -24,7 +24,7 @@ module NewRelic
         NewRelic::Agent::Database.expects(:close_connections)
         @agent.instance_eval { transmit_data }
       end
-      
+
       def test_transmit_data_should_not_close_db_connections_if_forked
         NewRelic::Agent::Database.expects(:close_connections).never
         @agent.after_fork
@@ -43,7 +43,6 @@ module NewRelic
         with_config(:'transaction_tracer.explain_threshold' => 2,
                     :'transaction_tracer.explain_enabled' => true,
                     :'transaction_tracer.record_sql' => 'raw') do
-          @agent.set_sql_recording!
           trace = stub('transaction trace', :force_persist => true,
                        :truncate => 4000)
           trace.expects(:prepare_to_send).with(:record_sql => :raw,
@@ -63,7 +62,7 @@ module NewRelic
         2000.times do |i|
           @agent.stats_engine.stats_hash[i.to_s] = NewRelic::StatsBase.new
         end
-        
+
         harvest = Thread.new do
           @agent.send(:harvest_timeslice_data)
         end
@@ -71,7 +70,7 @@ module NewRelic
         app = Thread.new do
           @agent.stats_engine.stats_hash["a"] = NewRelic::StatsBase.new
         end
-        
+
         assert_nothing_raised do
           [app, harvest].each{|t| t.join}
         end
@@ -107,7 +106,7 @@ module NewRelic
         }
         assert_equal(1, @agent.unsent_errors_size)
       end
-      
+
       def test_unsent_traces_size_empty
         @agent.instance_eval {
           @traces = nil
@@ -136,7 +135,7 @@ module NewRelic
         }
         assert_equal(1, @agent.unsent_timeslice_data, "should have the key from above")
       end
-      
+
       def test_merge_data_from_all_three_empty
         unsent_timeslice_data = mock('unsent timeslice data')
         unsent_errors = mock('unsent errors')

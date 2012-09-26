@@ -7,6 +7,7 @@ require 'stringio'
 require 'new_relic/agent/new_relic_service'
 require 'new_relic/agent/pipe_service'
 require 'new_relic/agent/configuration/manager'
+require 'new_relic/agent/database'
 
 module NewRelic
   module Agent
@@ -47,6 +48,11 @@ module NewRelic
         end
         Agent.config.register_callback(:'transaction_tracer.enabled', &txn_tracer_enabler)
         Agent.config.register_callback(:developer_mode, &txn_tracer_enabler)
+        Agent.config.register_callback(:'transaction_tracer.record_sql') do |config|
+          if config == 'raw'
+            NewRelic::Control.instance.log.warn("Agent is configured to send raw SQL to the service")
+          end
+        end
       end
 
       # contains all the class-level methods for NewRelic::Agent::Agent
@@ -454,7 +460,6 @@ module NewRelic
           @local_host = determine_host
           log_dispatcher
           log_app_names
-          config_transaction_tracer
           check_config_and_start_agent
           log_version_and_pid
           notify_log_file_location
@@ -735,44 +740,9 @@ module NewRelic
             log.debug "Errors will #{enabled ? '' : 'not '}be sent to the New Relic service."
           end
 
-          # this entire method should be done on the transaction
-          # sampler object, rather than here. We should pass in the
-          # sampler config.
-          def config_transaction_tracer
-            set_sql_recording!
-          end
-
           # apdex_f is always 4 times the apdex_t
           def apdex_f
             (4 * Agent.config[:apdex_t]).to_f
-          end
-
-          # Sets the sql recording configuration by trying to detect
-          # any attempt to disable the sql collection - 'off',
-          # 'false', 'none', and friends. Otherwise, we accept 'raw',
-          # and unrecognized values default to 'obfuscated'
-          def set_sql_recording!
-            record_sql_config = Agent.config[:'transaction_tracer.record_sql']
-            case record_sql_config.to_s
-            when 'off'
-              @record_sql = :off
-            when 'none'
-              @record_sql = :off
-            when 'false'
-              @record_sql = :off
-            when 'raw'
-              @record_sql = :raw
-            else
-              @record_sql = :obfuscated
-            end
-
-            log_sql_transmission_warning?
-          end
-
-          # Warn the user when we are sending raw sql across the wire
-          # - they should probably be using ssl when this is true
-          def log_sql_transmission_warning?
-            log.warn("Agent is configured to send raw SQL to the service") if @record_sql == :raw
           end
 
           # Sets the collector host and connects to the server, then
@@ -803,8 +773,6 @@ module NewRelic
             log.debug "Server provided config: #{config_data.inspect}"
             server_config = NewRelic::Agent::Configuration::ServerSource.new(config_data)
             Agent.config.apply_config(server_config, 1)
-
-            config_transaction_tracer
             log_connection!(config_data) if @service
             configure_error_collector!(config_data['collect_errors'])
           end
@@ -1006,7 +974,9 @@ module NewRelic
 
             begin
               options = { :keep_backtraces => true }
-              options[:record_sql] = @record_sql unless @record_sql == :off
+              if !(NewRelic::Agent::Database.record_sql_method == :off)
+                options[:record_sql] = NewRelic::Agent::Database.record_sql_method
+              end
               if Agent.config[:'transaction_tracer.explain_enabled']
                 options[:explain_sql] = Agent.config[:'transaction_tracer.explain_threshold']
               end

@@ -146,7 +146,6 @@ class NewRelic::ControlTest < Test::Unit::TestCase
 
   def test_transaction_threshold__override
     with_config(:transaction_tracer => { :transaction_threshold => 1}) do
-      NewRelic::Agent.instance.config_transaction_tracer
       assert_equal 1, NewRelic::Agent.config[:'transaction_tracer.transaction_threshold']
     end
   end
