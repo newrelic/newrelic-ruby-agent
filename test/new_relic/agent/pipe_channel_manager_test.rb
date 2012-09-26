@@ -45,6 +45,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
       listener.stop
 
       assert_equal(3.0, engine.lookup_stats(metric).total_call_time)
+      engine.reset_stats
     end
 
     def test_listener_merges_transaction_traces

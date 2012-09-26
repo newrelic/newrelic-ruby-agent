@@ -92,6 +92,7 @@ module NewRelic
           engine = NewRelic::Agent.agent.stats_engine
           assert_equal(3.0, engine.lookup_stats(metric).total_call_time)
           assert_equal(2, engine.lookup_stats(metric).call_count)
+          engine.reset_stats
         end
       end
     end
