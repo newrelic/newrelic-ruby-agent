@@ -50,6 +50,12 @@ module NewRelic
             log.debug "Transaction traces will not be sent to the New Relic service."
           end
         end
+
+        Agent.config.register_callback(:'transaction_tracer.record_sql') do |config|
+          if config == 'raw'
+            log.warn("Agent is configured to send raw SQL to the service")
+          end
+        end
       end
 
       def log

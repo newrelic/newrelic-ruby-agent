@@ -30,8 +30,7 @@ module NewRelic::Rack
       NewRelic::Agent.instance.error_collector.errors = []
 
       # sanity checks
-      NewRelic::Agent.instance.configure_error_collector!(true)
-      assert NewRelic::Agent.instance.error_collector.enabled
+      assert NewRelic::Agent.instance.error_collector.enabled?
       NewRelic::Agent.instance.error_collector \
         .instance_variable_set(:@ignore_filter, nil)
       assert !NewRelic::Agent.instance.error_collector.ignore_error_filter

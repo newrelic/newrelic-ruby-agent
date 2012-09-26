@@ -16,16 +16,13 @@ module NewRelic
       # memory and data retention
       MAX_ERROR_QUEUE_LENGTH = 20 unless defined? MAX_ERROR_QUEUE_LENGTH
 
-      attr_accessor :enabled, :errors
-      attr_reader :config_enabled
+      attr_accessor :errors
 
       # Returns a new error collector
       def initialize
         @errors = []
         # lookup of exception class names to ignore.  Hash for fast access
         @ignore = {}
-
-        @enabled = @config_enabled = Agent.config[:'error_collector.enabled']
         @capture_source = Agent.config[:'error_collector.capture_source']
 
         ignore_errors = Agent.config[:'error_collector.ignore_errors']
@@ -33,6 +30,14 @@ module NewRelic
         ignore_errors.each { |error| error.strip! }
         ignore(ignore_errors)
         @lock = Mutex.new
+
+        Agent.config.register_callback(:'error_collector.enabled') do |config_enabled|
+          log.debug "Errors will #{config_enabled ? '' : 'not '}be sent to the New Relic service."
+        end
+      end
+
+      def enabled?
+        Agent.config[:'error_collector.enabled']
       end
 
       # Returns the error filter proc that is used to check if an
@@ -88,7 +93,7 @@ module NewRelic
         # - based on whether the error is ignored or the error
         # collector is disabled
         def should_exit_notice_error?(exception)
-          if @enabled
+          if enabled?
             if !error_is_ignored?(exception)
               increment_error_count!
               return exception.nil? # exit early if the exception is nil

@@ -48,11 +48,6 @@ module NewRelic
         end
         Agent.config.register_callback(:'transaction_tracer.enabled', &txn_tracer_enabler)
         Agent.config.register_callback(:developer_mode, &txn_tracer_enabler)
-        Agent.config.register_callback(:'transaction_tracer.record_sql') do |config|
-          if config == 'raw'
-            NewRelic::Control.instance.log.warn("Agent is configured to send raw SQL to the service")
-          end
-        end
       end
 
       # contains all the class-level methods for NewRelic::Agent::Agent
@@ -725,21 +720,6 @@ module NewRelic
             @service.connect(connect_settings)
           end
 
-          # Configures the error collector if the server says that we
-          # are allowed to send errors. Pretty simple, and logs at
-          # debug whether errors will or will not be sent.
-          def configure_error_collector!(server_enabled)
-            # Reinitialize the error collector
-            @error_collector = NewRelic::Agent::ErrorCollector.new
-            # Ask for permission to collect error data
-            enabled = if error_collector.config_enabled && server_enabled
-                        error_collector.enabled = true
-                      else
-                        error_collector.enabled = false
-                      end
-            log.debug "Errors will #{enabled ? '' : 'not '}be sent to the New Relic service."
-          end
-
           # apdex_f is always 4 times the apdex_t
           def apdex_f
             (4 * Agent.config[:apdex_t]).to_f
@@ -774,7 +754,6 @@ module NewRelic
             server_config = NewRelic::Agent::Configuration::ServerSource.new(config_data)
             Agent.config.apply_config(server_config, 1)
             log_connection!(config_data) if @service
-            configure_error_collector!(config_data['collect_errors'])
           end
 
           # Logs when we connect to the server, for debugging purposes
