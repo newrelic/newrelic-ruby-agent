@@ -70,7 +70,9 @@ module NewRelic
 
         :'error_collector.enabled'        => true,
         :'error_collector.capture_source' => true,
-        :'error_collector.ignore_errors'  => 'ActionController::RoutingError'
+        :'error_collector.ignore_errors'  => 'ActionController::RoutingError',
+
+        :'browser_monitoring.auto_instrument' => true
       }.freeze
     end
   end
