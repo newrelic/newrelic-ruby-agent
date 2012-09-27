@@ -5,7 +5,7 @@ class NewRelic::NoticedError
   attr_reader :exception
 
   def initialize(path, data, exception, timestamp = Time.now)
-    @exception = exception
+    @exception_id = exception.object_id
     @path = path
     @params = NewRelic::NoticedError.normalize_params(data)
 
@@ -31,7 +31,7 @@ class NewRelic::NoticedError
 
   def ==(other)
     if other.respond_to?(:exception)
-      @exception.object_id == other.exception.object_id
+      @exception_id == other.exception.object_id
     else
       false
     end
