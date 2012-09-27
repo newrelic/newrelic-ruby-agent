@@ -7,7 +7,7 @@ require 'ostruct'
 class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
   include NewRelic::Agent::BrowserMonitoring
   include NewRelic::Agent::Instrumentation::ControllerInstrumentation
-  
+
   def setup
     NewRelic::Agent.manual_start
     config = {:disable_mobile_headers => false }
@@ -24,6 +24,10 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
 
   def teardown
     mocha_teardown
+  end
+
+  def test_auto_instrumentation_config_defaults_to_enabled
+    assert NewRelic::Agent.config[:'browser_monitoring.auto_instrument']
   end
 
   def test_browser_monitoring_start_time_is_reset_each_request_when_auto_instrument_is_disabled
@@ -168,7 +172,7 @@ var e=document.createElement("script");'
     self.expects(:browser_monitoring_start_time).returns(nil)
     assert_equal('', generate_footer_js(NewRelic::Agent.instance.beacon_configuration), "should not send javascript when there is no start time")
   end
- 
+
   def test_generate_footer_js_with_start_time
     self.expects(:browser_monitoring_start_time).returns(Time.at(100))
     fake_bc = mock('beacon configuration')
@@ -199,24 +203,23 @@ var e=document.createElement("script");'
   def test_browser_monitoring_transaction_name_nil
     assert_equal('(unknown)', browser_monitoring_transaction_name, "should fill in a default when it is nil")
   end
-  
+
   def test_browser_monitoring_transaction_name_when_tt_disabled
     with_config(:'transaction_tracer.enabled' => false) do
       perform_action_with_newrelic_trace(:name => 'disabled_transactions') do
         self.class.inspect
       end
-        
+
       assert_match(/disabled_transactions/, browser_monitoring_transaction_name,
                    "should name transaction when transaction tracing disabled")
     end
   end
-  
-  
+
   def test_browser_monitoring_start_time
     mock = mock('transaction info')
-    
+
     NewRelic::Agent::TransactionInfo.set(mock)
-    
+
     mock.stubs(:start_time).returns(Time.at(100))
     mock.stubs(:guid).returns('ABC')
     assert_equal(Time.at(100), browser_monitoring_start_time, "should take the value from the thread local")
@@ -272,14 +275,14 @@ var e=document.createElement("script");'
 
     sample = mock('transaction info')
     NewRelic::Agent::TransactionInfo.set(sample)
-    
+
     sample.stubs(:start_time).returns(Time.at(100))
     sample.stubs(:guid).returns('ABC')
     sample.stubs(:transaction_name).returns('most recent transaction')
     sample.stubs(:include_guid?).returns(true)
     sample.stubs(:duration).returns(12.0)
     sample.stubs(:token).returns('0123456789ABCDEF')
-    
+
     self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'most recent transaction').returns('most recent transaction')
     self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'user').returns('user')
     self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'account').returns('account')
@@ -323,11 +326,11 @@ var e=document.createElement("script");'
     output = obfuscate(NewRelic::Agent.instance.beacon_configuration, text)
     assert_equal('YCJrZXV2fih5Y25vaCFtZSR2a2ZkZSp/aXV1YyNsZHZ3cSl6YmluZCJsYiV1amllZit4aHl2YiRtZ3d4cCp7ZWhiZyNrYyZ0ZWhmZyx5ZHp3ZSVuZnh5cyt8ZGRhZiRqYCd7ZGtnYC11Z3twZCZvaXl6cix9aGdgYSVpYSh6Z2pgYSF2Znxx', output, "should output obfuscated text")
   end
-  
+
   def test_no_mobile_response_header_if_no_mobile_request_header_given
     request = Rack::Request.new({})
     response = Rack::Response.new
-    
+
     NewRelic::Agent::BrowserMonitoring.insert_mobile_response_header(request, response)
     assert_nil response['X-NewRelic-Beacon-Url']
   end
@@ -339,13 +342,13 @@ var e=document.createElement("script");'
     NewRelic::Agent::BrowserMonitoring.insert_mobile_response_header(request, response)
     assert_nil response['X-NewRelic-Beacon-Url']
   end
-  
+
   def test_place_beacon_url_header_when_given_mobile_request_header
-    response = mobile_transaction    
+    response = mobile_transaction
     assert_equal('http://beacon/mobile/1/browserKey',
                  response['X-NewRelic-Beacon-Url'])
   end
-  
+
   def test_place_beacon_url_header_when_given_mobile_request_header_with_https
     request = Rack::Request.new('X_NEWRELIC_MOBILE_TRACE' => 'true',
                                 'rack.url_scheme' => 'https')
@@ -356,11 +359,11 @@ var e=document.createElement("script");'
 
   def test_place_beacon_payload_head_when_given_mobile_request_header
     Time.stubs(:now).returns(6)
-    response = mobile_transaction    
+    response = mobile_transaction
     txn_name = obfuscate(NewRelic::Agent.instance.beacon_configuration,
                          browser_monitoring_transaction_name)
     expected_payload = %|["apId","#{txn_name}",#{browser_monitoring_queue_time},#{browser_monitoring_app_time}]|
-    
+
     assert_equal expected_payload, response['X-NewRelic-App-Server-Metrics'].strip
   end
 
