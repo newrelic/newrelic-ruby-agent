@@ -299,7 +299,6 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   def test_finish_setup
     config = {
       'agent_run_id' => 'fishsticks',
-      'data_report_period' => 'pasta sauce',
       'url_rules' => 'tamales',
       'collect_traces' => true,
       'collect_errors' => true,

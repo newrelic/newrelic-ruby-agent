@@ -22,21 +22,23 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
   end
 
   def test_log_worker_loop_start
-    @report_period = 30
     log = mocked_log
     log.expects(:info).with("Reporting performance data every 30 seconds.")
     log.expects(:debug).with("Running worker loop")
-    log_worker_loop_start
+    with_config(:data_report_period => 30) do
+      log_worker_loop_start
+    end
   end
 
   def test_create_and_run_worker_loop
-    @report_period = 30
     @should_send_samples = true
     wl = mock('worker loop')
     NewRelic::Agent::WorkerLoop.expects(:new).returns(wl)
     wl.expects(:run).with(30).yields
     self.expects(:transmit_data)
-    create_and_run_worker_loop
+    with_config(:data_report_period => 30) do
+      create_and_run_worker_loop
+    end
   end
 
   def test_handle_force_restart

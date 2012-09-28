@@ -482,7 +482,7 @@ module NewRelic
           # logs info about the worker loop so users can see when the
           # agent actually begins running in the background
           def log_worker_loop_start
-            log.info "Reporting performance data every #{@report_period} seconds."
+            log.info "Reporting performance data every #{Agent.config[:data_report_period]} seconds."
             log.debug "Running worker loop"
           end
 
@@ -490,7 +490,7 @@ module NewRelic
           # it should run every @report_period seconds
           def create_and_run_worker_loop
             @worker_loop = WorkerLoop.new
-            @worker_loop.run(@report_period) do
+            @worker_loop.run(Agent.config[:data_report_period]) do
               transmit_data
             end
           end
@@ -744,7 +744,6 @@ module NewRelic
             return if config_data == nil
 
             @service.agent_id = config_data['agent_run_id'] if @service
-            @report_period = config_data['data_report_period']
             @url_rules = config_data['url_rules']
             @beacon_configuration = BeaconConfiguration.new(config_data)
 
