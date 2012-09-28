@@ -182,7 +182,7 @@ module NewRelic
             @connected == false ||
             @worker_thread && @worker_thread.alive?
 
-          log.info "Starting the worker thread in #$$ after forking."
+          log.info "Starting the worker thread in #{$$} after forking."
 
           # Clear out stats that are left over from parent process
           reset_stats
@@ -405,13 +405,15 @@ module NewRelic
           # Warn the user if they have configured their agent not to
           # send data, that way we can see this clearly in the log file
           def monitoring?
-            log_unless(Agent.config[:monitor_mode], :warn, "Agent configured not to send data in this environment - edit newrelic.yml to change this")
+            log_unless(Agent.config[:monitor_mode], :warn,
+                       "Agent configured not to send data in this environment.")
           end
 
           # Tell the user when the license key is missing so they can
           # fix it by adding it to the file
           def has_license_key?
-            log_unless(Agent.config[:license_key], :error, "No license key found.  Please edit your newrelic.yml file and insert your license key.")
+            log_unless(Agent.config[:license_key], :warn,
+                       "No license key found in newrelic.yml config.")
           end
 
           # A correct license key exists and is of the proper length
@@ -759,9 +761,18 @@ module NewRelic
           # Logs when we connect to the server, for debugging purposes
           # - makes sure we know if an agent has not connected
           def log_connection!(config_data)
-            control.log! "Connected to NewRelic Service at #{@service.collector.name}"
+            log.info "Connected to NewRelic Service at #{@service.collector.name}"
             log.debug "Agent Run       = #{@service.agent_id}."
             log.debug "Connection data = #{config_data.inspect}"
+            if config_data['messages'] && config_data['messages'].any?
+              log_collector_messages(config_data['messages'])
+            end
+          end
+
+          def log_collector_messages(messages)
+            messages.each do |message|
+              log.send(message['level'].downcase.to_sym, message['message'])
+            end
           end
         end
         include Connect

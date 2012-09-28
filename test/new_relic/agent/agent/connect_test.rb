@@ -313,10 +313,27 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     with_config(:'transaction_tracer.enabled' => true) do
       finish_setup(config)
       assert_equal 'fishsticks', @service.agent_id
-      assert_equal 'pasta sauce', @report_period
       assert_equal 'tamales', @url_rules
       assert_equal 'raw', NewRelic::Agent.config[:'transaction_tracer.record_sql']
     end
+  end
+
+  def test_logging_collector_messages
+    NewRelic::Agent.manual_start
+    service = NewRelic::FakeService.new
+    NewRelic::Agent::Agent.instance.service = service
+    service.mock['connect'] = {
+      'agent_run_id' => 23, 'config' => 'a lot',
+      'messages' => [{ 'message' => 'beep boop', 'level' => 'INFO' },
+                     { 'message' => 'ha cha cha', 'level' => 'WARN' }]
+    }
+
+    NewRelic::Control.instance.log.stubs(:info)
+    NewRelic::Control.instance.log.expects(:info).with('beep boop')
+    NewRelic::Control.instance.log.expects(:warn).with('ha cha cha')
+
+    NewRelic::Agent.agent.query_server_for_configuration
+    NewRelic::Agent.shutdown
   end
 
   def test_finish_setup_without_config

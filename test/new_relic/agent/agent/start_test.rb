@@ -188,7 +188,7 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   def test_monitoring_negative
     log = mocked_log
     with_config(:monitor_mode => false) do
-      log.expects(:send).with(:warn, "Agent configured not to send data in this environment - edit newrelic.yml to change this")
+      log.expects(:send).with(:warn, "Agent configured not to send data in this environment.")
       assert !monitoring?
     end
   end
@@ -202,7 +202,7 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   def test_has_license_key_negative
     with_config(:license_key => false) do
       log = mocked_log
-      log.expects(:send).with(:error, 'No license key found.  Please edit your newrelic.yml file and insert your license key.')
+      log.expects(:send).with(:warn, 'No license key found in newrelic.yml config.')
       assert !has_license_key?
     end
   end
