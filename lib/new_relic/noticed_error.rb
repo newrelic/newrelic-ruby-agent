@@ -2,7 +2,7 @@
 class NewRelic::NoticedError
   extend NewRelic::CollectionHelper
   attr_accessor :path, :timestamp, :params, :exception_class, :message
-  attr_reader :exception
+  attr_reader :exception_id
 
   def initialize(path, data, exception, timestamp = Time.now)
     @exception_id = exception.object_id
@@ -30,8 +30,8 @@ class NewRelic::NoticedError
   end
 
   def ==(other)
-    if other.respond_to?(:exception)
-      @exception_id == other.exception.object_id
+    if other.respond_to?(:exception_id)
+      @exception_id == other.exception_id
     else
       false
     end
