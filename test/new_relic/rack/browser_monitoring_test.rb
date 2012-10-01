@@ -46,9 +46,10 @@ EOL
   def setup
     super
     clear_cookies
+    @config = { :browser_key => 'some browser key' }
+    NewRelic::Agent.config.apply_config(@config)
     NewRelic::Agent.manual_start
-    config = NewRelic::Agent::BeaconConfiguration.new("browser_key" => "browserKey",
-                                                      "application_id" => "apId",
+    config = NewRelic::Agent::BeaconConfiguration.new("application_id" => "apId",
                                                       "beacon"=>"beacon",
                                                       "episodes_url"=>"this_is_my_file")
     NewRelic::Agent.instance.stubs(:beacon_configuration).returns(config)
@@ -60,6 +61,7 @@ EOL
     clear_cookies
     mocha_teardown
     TestApp.doc = nil
+    NewRelic::Agent.config.remove_config(@config)
   end
 
   def test_make_sure_header_is_set
