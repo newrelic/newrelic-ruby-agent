@@ -10,19 +10,19 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
 
   def setup
     NewRelic::Agent.manual_start
-    config = {:disable_mobile_headers => false }
-    NewRelic::Agent.config.apply_config(config)
-    @browser_monitoring_key = "fred"
+    @config = {:disable_mobile_headers => false, :browser_key => 'browserKey' }
+    NewRelic::Agent.config.apply_config(@config)
     @episodes_file = "this_is_my_file"
     NewRelic::Agent.instance.instance_eval do
-      @beacon_configuration = NewRelic::Agent::BeaconConfiguration.new({"rum.enabled" => true, "browser_key" => "browserKey", "application_id" => "apId", "beacon"=>"beacon", "episodes_url"=>"this_is_my_file", 'rum.jsonp' => true})
+      @beacon_configuration = NewRelic::Agent::BeaconConfiguration.new({"rum.enabled" => true, "application_id" => "apId", "beacon"=>"beacon", "episodes_url"=>"this_is_my_file", 'rum.jsonp' => true})
     end
-    Thread.current[:last_metric_frame] = nil
-    NewRelic::Agent::TransactionInfo.clear
-    NewRelic::Agent.config.remove_config(config)
-  end
 
   def teardown
+    Thread.current[:last_metric_frame] = nil
+    NewRelic::Agent::TransactionInfo.clear
+    NewRelic::Agent.config.remove_config(@config)
+  end
+
     mocha_teardown
   end
 
@@ -102,10 +102,12 @@ var e=document.createElement("script");'
   end
 
   def test_browser_timing_footer_with_no_browser_key_rum_enabled
-    browser_timing_header
-    NewRelic::Agent.instance.expects(:beacon_configuration).returns( NewRelic::Agent::BeaconConfiguration.new({"rum.enabled" => true, "application_id" => "apId", "beacon"=>"beacon", "episodes_url"=>"this_is_my_file"}))
-    footer = browser_timing_footer
-    assert_equal "", footer
+    with_config(:browser_key => '') do
+      browser_timing_header
+      NewRelic::Agent.instance.expects(:beacon_configuration).returns( NewRelic::Agent::BeaconConfiguration.new({"rum.enabled" => true, "application_id" => "apId", "beacon"=>"beacon", "episodes_url"=>"this_is_my_file"}))
+      footer = browser_timing_footer
+      assert_equal "", footer
+    end
   end
 
   def test_browser_timing_footer_with_no_browser_key_rum_disabled
@@ -139,7 +141,6 @@ var e=document.createElement("script");'
     assert_equal "", footer
   end
 
-
   def test_browser_timing_footer_disable_all_tracing
     browser_timing_header
     footer = nil
@@ -158,14 +159,15 @@ var e=document.createElement("script");'
     assert_equal "", footer
   end
 
-  def test_browser_timing_footer_browser_monitoring_key_missing
-    fake_config = mock('beacon configuration')
-    NewRelic::Agent.instance.expects(:beacon_configuration).returns(fake_config)
-    fake_config.expects(:nil?).returns(false)
-    fake_config.expects(:rum_enabled).returns(true)
-    fake_config.expects(:browser_monitoring_key).returns(nil)
-    self.expects(:generate_footer_js).never
-    assert_equal('', browser_timing_footer, "should not return a footer when there is no key")
+  def test_browser_timing_footer_browser_key_missing
+    with_config(:browser_key => '') do
+      fake_config = mock('beacon configuration')
+      NewRelic::Agent.instance.expects(:beacon_configuration).returns(fake_config)
+      fake_config.expects(:nil?).returns(false)
+      fake_config.expects(:rum_enabled).returns(true)
+      self.expects(:generate_footer_js).never
+      assert_equal('', browser_timing_footer, "should not return a footer when there is no key")
+    end
   end
 
   def test_generate_footer_js_null_case
@@ -174,14 +176,16 @@ var e=document.createElement("script");'
   end
 
   def test_generate_footer_js_with_start_time
-    self.expects(:browser_monitoring_start_time).returns(Time.at(100))
-    fake_bc = mock('beacon configuration')
-    fake_bc.expects(:application_id).returns(1)
-    fake_bc.expects(:beacon).returns('beacon')
-    fake_bc.expects(:browser_monitoring_key).returns('a' * 40)
-    NewRelic::Agent.instance.stubs(:beacon_configuration).returns(fake_bc)
-    self.expects(:footer_js_string).with(NewRelic::Agent.instance.beacon_configuration, 'beacon', 'a' * 40, 1).returns('footer js')
-    assert_equal('footer js', generate_footer_js(NewRelic::Agent.instance.beacon_configuration), 'should generate and return the footer JS when there is a start time')
+    with_config(:browser_key => 'a' * 40) do
+      self.expects(:browser_monitoring_start_time).returns(Time.at(100))
+      fake_bc = mock('beacon configuration')
+      fake_bc.expects(:application_id).returns(1)
+      fake_bc.expects(:beacon).returns('beacon')
+      NewRelic::Agent.instance.stubs(:beacon_configuration).returns(fake_bc)
+      self.expects(:footer_js_string).with(NewRelic::Agent.instance.beacon_configuration, 'beacon', 'a' * 40, 1).returns('footer js')
+      assert_equal('footer js', generate_footer_js(NewRelic::Agent.instance.beacon_configuration),
+                   'should generate and return the footer JS when there is a start time')
+    end
   end
 
   def test_browser_monitoring_transaction_name_basic

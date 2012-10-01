@@ -34,8 +34,8 @@ module NewRelic
       # page as is reasonably possible - that is, before any style or
       # javascript inclusions, but after any header-related meta tags
       def browser_timing_header
-        if NewRelic::Agent.instance.beacon_configuration.nil? || 
-           !NewRelic::Agent.is_transaction_traced? || 
+        if NewRelic::Agent.instance.beacon_configuration.nil? ||
+           !NewRelic::Agent.is_transaction_traced? ||
            !NewRelic::Agent.is_execution_traced? ||
            NewRelic::Agent::TransactionInfo.get.ignore_end_user?
           return ""
@@ -54,16 +54,17 @@ module NewRelic
       # page as is reasonably possible.
       def browser_timing_footer
         config = NewRelic::Agent.instance.beacon_configuration
-        
-        if config.nil? || 
-           !config.rum_enabled || 
-           config.browser_monitoring_key.nil? ||
-           !NewRelic::Agent.is_transaction_traced? || 
-           !NewRelic::Agent.is_execution_traced? ||
-           NewRelic::Agent::TransactionInfo.get.ignore_end_user?
-           return ""
+
+        if config.nil? ||
+            !config.rum_enabled ||
+            Agent.config[:browser_key].nil? ||
+            Agent.config[:browser_key].empty? ||
+            !NewRelic::Agent.is_transaction_traced? ||
+            !NewRelic::Agent.is_execution_traced? ||
+            NewRelic::Agent::TransactionInfo.get.ignore_end_user?
+          return ""
          end
-        
+
         generate_footer_js(config)
       end
 
@@ -127,7 +128,7 @@ module NewRelic
 
       def beacon_url(request)
         config = NewRelic::Agent.instance.beacon_configuration
-        "#{request.scheme || 'http'}://#{config.beacon}/mobile/1/#{config.browser_monitoring_key}"
+        "#{request.scheme || 'http'}://#{config.beacon}/mobile/1/#{Agent.config[:browser_key]}"
       end
 
       private
@@ -136,9 +137,7 @@ module NewRelic
         if browser_monitoring_start_time
           application_id = config.application_id
           beacon = config.beacon
-          license_key = config.browser_monitoring_key
-
-          footer_js_string(config, beacon, license_key, application_id)
+          footer_js_string(config, beacon, Agent.config[:browser_key], application_id)
         else
           ''
         end
