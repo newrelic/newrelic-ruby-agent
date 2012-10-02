@@ -238,7 +238,7 @@ var e=document.createElement("script");'
   def test_browser_monitoring_app_time_nonzero
     start = Time.now
     self.expects(:browser_monitoring_start_time).returns(start - 1)
-    Time.expects(:now).returns(start)
+    Time.stubs(:now).returns(start)
     assert_equal(1000, browser_monitoring_app_time, 'should return a rounded time')
   end
 
