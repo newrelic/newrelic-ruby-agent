@@ -46,12 +46,16 @@ EOL
   def setup
     super
     clear_cookies
-    @config = { :browser_key => 'some browser key' }
+    @config = {
+      :browser_key => 'some browser key',
+      :beacon => 'beacon',
+      :application_id => 5,
+      :'rum.enabled' => true,
+      :episodes_url => 'this_is_my_file'
+    }
     NewRelic::Agent.config.apply_config(@config)
     NewRelic::Agent.manual_start
-    config = NewRelic::Agent::BeaconConfiguration.new("application_id" => "apId",
-                                                      "beacon"=>"beacon",
-                                                      "episodes_url"=>"this_is_my_file")
+    config = NewRelic::Agent::BeaconConfiguration.new
     NewRelic::Agent.instance.stubs(:beacon_configuration).returns(config)
     NewRelic::Agent.stubs(:is_transaction_traced?).returns(true)
   end

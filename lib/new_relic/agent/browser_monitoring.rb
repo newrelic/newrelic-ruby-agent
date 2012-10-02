@@ -5,25 +5,22 @@ module NewRelic
     # This module contains support for Real User Monitoring - the
     # javascript generation and configuration
     module BrowserMonitoring
-      
-     
       class DummyMetricFrame
         def initialize
           @attributes = {}
         end
-        
+
         def user_attributes
           @attributes
         end
-        
+
         def queue_time
           0.0
         end
       end
-            
+
       @@dummy_metric_frame = DummyMetricFrame.new
-      
-      
+
       # This method returns a string suitable for inclusion in a page
       # - known as 'manual instrumentation' for Real User
       # Monitoring. Can return either a script tag with associated
@@ -56,7 +53,7 @@ module NewRelic
         config = NewRelic::Agent.instance.beacon_configuration
 
         if config.nil? ||
-            !config.rum_enabled ||
+            !config.enabled? ||
             Agent.config[:browser_key].nil? ||
             Agent.config[:browser_key].empty? ||
             !NewRelic::Agent.is_transaction_traced? ||
@@ -115,7 +112,7 @@ module NewRelic
 
           response['X-NewRelic-Beacon-Url'] = beacon_url(request)
 
-          payload = %[ ["#{config.application_id}","#{obfuscate(config, browser_monitoring_transaction_name)}",#{browser_monitoring_queue_time},#{browser_monitoring_app_time}] ]
+          payload = %[ ["#{Agent.config[:application_id]}","#{obfuscate(config, browser_monitoring_transaction_name)}",#{browser_monitoring_queue_time},#{browser_monitoring_app_time}] ]
           response['X-NewRelic-App-Server-Metrics'] = payload
         end
       end
@@ -127,22 +124,19 @@ module NewRelic
       end
 
       def beacon_url(request)
-        config = NewRelic::Agent.instance.beacon_configuration
-        "#{request.scheme || 'http'}://#{config.beacon}/mobile/1/#{Agent.config[:browser_key]}"
+        "#{request.scheme || 'http'}://#{Agent.config[:beacon]}/mobile/1/#{Agent.config[:browser_key]}"
       end
 
       private
 
       def generate_footer_js(config)
         if browser_monitoring_start_time
-          application_id = config.application_id
-          beacon = config.beacon
-          footer_js_string(config, beacon, Agent.config[:browser_key], application_id)
+          footer_js_string(config)
         else
           ''
         end
       end
-            
+
       def metric_frame_attribute(key)
         current_metric_frame.user_attributes[key] || ""
       end
@@ -152,19 +146,19 @@ module NewRelic
         return txn.guid if txn.include_guid?
         ""
       end
-      
+
       def tt_token
         return NewRelic::Agent::TransactionInfo.get.token
       end
-      
-      def footer_js_string(config, beacon, license_key, application_id)
+
+      def footer_js_string(config)
         obfuscated_transaction_name = obfuscate(config, browser_monitoring_transaction_name)
-        
+
         user = obfuscate(config, metric_frame_attribute(:user))
         account = obfuscate(config, metric_frame_attribute(:account))
         product = obfuscate(config, metric_frame_attribute(:product))
-        
-        html_safe_if_needed("<script type=\"text/javascript\">#{config.browser_timing_static_footer}NREUMQ.push([\"#{config.finish_command}\",\"#{beacon}\",\"#{license_key}\",#{application_id},\"#{obfuscated_transaction_name}\",#{browser_monitoring_queue_time},#{browser_monitoring_app_time},new Date().getTime(),\"#{tt_guid}\",\"#{tt_token}\",\"#{user}\",\"#{account}\",\"#{product}\"])</script>")
+
+        html_safe_if_needed("<script type=\"text/javascript\">#{config.browser_timing_static_footer}NREUMQ.push([\"#{config.finish_command}\",\"#{Agent.config[:beacon]}\",\"#{Agent.config[:browser_key]}\",#{Agent.config[:application_id]},\"#{obfuscated_transaction_name}\",#{browser_monitoring_queue_time},#{browser_monitoring_app_time},new Date().getTime(),\"#{tt_guid}\",\"#{tt_token}\",\"#{user}\",\"#{account}\",\"#{product}\"])</script>")
       end
 
       def html_safe_if_needed(string)

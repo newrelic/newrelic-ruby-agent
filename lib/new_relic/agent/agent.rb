@@ -744,8 +744,6 @@ module NewRelic
             return if config_data == nil
 
             @service.agent_id = config_data['agent_run_id'] if @service
-            @url_rules = config_data['url_rules']
-            @beacon_configuration = BeaconConfiguration.new(config_data)
 
             if config_data['agent_config']
               log.info "Using config from server"
@@ -755,6 +753,8 @@ module NewRelic
             server_config = NewRelic::Agent::Configuration::ServerSource.new(config_data)
             Agent.config.apply_config(server_config, 1)
             log_connection!(config_data) if @service
+
+            @beacon_configuration = BeaconConfiguration.new
           end
 
           # Logs when we connect to the server, for debugging purposes

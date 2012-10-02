@@ -299,7 +299,6 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   def test_finish_setup
     config = {
       'agent_run_id' => 'fishsticks',
-      'url_rules' => 'tamales',
       'collect_traces' => true,
       'collect_errors' => true,
       'sample_rate' => 10,
@@ -312,7 +311,6 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     with_config(:'transaction_tracer.enabled' => true) do
       finish_setup(config)
       assert_equal 'fishsticks', @service.agent_id
-      assert_equal 'tamales', @url_rules
       assert_equal 'raw', NewRelic::Agent.config[:'transaction_tracer.record_sql']
     end
   end
