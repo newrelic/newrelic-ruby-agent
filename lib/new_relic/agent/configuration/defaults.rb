@@ -73,7 +73,10 @@ module NewRelic
         :'error_collector.capture_source' => true,
         :'error_collector.ignore_errors'  => 'ActionController::RoutingError',
 
-        :'browser_monitoring.auto_instrument' => true
+        :'rum.enabled'            => true,
+        :'rum.jsonp'              => true,
+        :'rum.load_episodes_file' => true,
+        :'browser_monitoring.auto_instrument' => Proc.new { self[:'rum.enabled'] }
       }.freeze
     end
   end
