@@ -64,10 +64,13 @@ if (!NREUMQ.f) { NREUMQ.f=function() {
 NREUMQ.push(["load",new Date().getTime()]);
 EOS
 
-        if Agent.config[:'rum.load_episodes_file']
+        if Agent.config[:'rum.load_episodes_file'] &&
+          Agent.config[:'rum.load_episodes_file'] != ''
           js << <<-EOS
-var e=document.createElement(\"script\");
-e.type=\"text/javascript\";e.async=true;e.src=\"#{Agent.config[:episodes_url]}\";
+var e=document.createElement("script");
+e.type="text/javascript";
+e.src=(("http:"===document.location.protocol)?"http:":"https:") + "//" +
+  "#{Agent.config[:episodes_url]}";
 document.body.appendChild(e);
 EOS
         end
