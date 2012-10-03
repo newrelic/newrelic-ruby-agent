@@ -97,8 +97,8 @@ class NewRelic::Agent::BeaconConfigurationTest < Test::Unit::TestCase
     assert_equal(s, bc.build_load_file_js)
   end
 
-  def test_build_load_file_js_load_episodes_file_with_episodes_url
-    with_config(:episodes_url => 'an episodes url') do
+  def test_build_load_file_js_load_episodes_file_with_episodes_file
+    with_config(:episodes_file => 'an episodes url') do
       bc = NewRelic::Agent::BeaconConfiguration.new
       assert(bc.build_load_file_js.include?('an episodes url'),
              "should include the episodes url by default")
