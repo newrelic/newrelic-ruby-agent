@@ -76,6 +76,20 @@ module NewRelic
         end
       end
 
+      def test_harvest_timeslice_data_should_not_warn_normally
+        NewRelic::Control.instance.log.expects(:warn).never
+        @agent.stats_engine.get_stats_no_scope('HttpDispatcher').record_data_point(1.0)
+        @agent.send(:harvest_timeslice_data)
+      end
+
+      def test_harvest_timeslice_data_should_warn_if_unicorn_and_no_web_metrics
+        NewRelic::Control.instance.log.expects(:warn) \
+          .with('Unicorn detected but no metric send, please see https://newrelic.com/docs/troubleshooting/im-using-unicorn-and-i-dont-see-any-data')
+        with_config(:dispatcher => 'unicorn') do
+          @agent.send(:harvest_timeslice_data)
+        end
+      end
+
       def test_harvest_errors
         assert_equal([], @agent.send(:harvest_errors), 'should return errors')
       end
