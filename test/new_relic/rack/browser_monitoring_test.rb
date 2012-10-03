@@ -51,7 +51,7 @@ EOL
       :beacon => 'beacon',
       :application_id => 5,
       :'rum.enabled' => true,
-      :episodes_url => 'this_is_my_file'
+      :episodes_file => 'this_is_my_file'
     }
     NewRelic::Agent.config.apply_config(@config)
     NewRelic::Agent.manual_start
@@ -116,7 +116,7 @@ EOL
   def test_insert_timing_footer_right_before_html_body_close
     get '/'
 
-    assert_match(/.*NREUMQ\.push.*new Date\(\)\.getTime\(\),"","","","",""\]\)<\/script><\/body>/,
+    assert_match(/.*NREUMQ\.push.*new Date\(\)\.getTime\(\),"","","","",""\]\);<\/script><\/body>/,
                  last_response.body)
   end
 

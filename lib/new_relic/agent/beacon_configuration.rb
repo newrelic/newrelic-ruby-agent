@@ -70,7 +70,7 @@ EOS
 var e=document.createElement("script");
 e.type="text/javascript";
 e.src=(("http:"===document.location.protocol)?"http:":"https:") + "//" +
-  "#{Agent.config[:episodes_url]}";
+  "#{Agent.config[:episodes_file]}";
 document.body.appendChild(e);
 EOS
         end
