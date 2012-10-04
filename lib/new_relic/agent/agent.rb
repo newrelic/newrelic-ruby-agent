@@ -886,17 +886,16 @@ module NewRelic
 
           @unsent_timeslice_data ||= {}
           @unsent_timeslice_data = @stats_engine.harvest_timeslice_data(@unsent_timeslice_data, @metric_ids)
-
-          warn_if_no_unicorn_metrics
-
+          warn_if_no_unicorn_metrics(@unsent_timeslice_data)
           @unsent_timeslice_data
         end
 
         # this is just a support band-aid until we get a chance to
         # overhaul the Unicorn instrumentation properly
-        def warn_if_no_unicorn_metrics
+        def warn_if_no_unicorn_metrics(metric_data)
           if Agent.config[:dispatcher].to_s == 'unicorn'
-            if @stats_engine.get_stats_no_scope('HttpDispatcher').call_count == 0
+            spec = MetricSpec.new('HttpDispatcher')
+            if metric_data[spec].nil? || metric_data[spec].stats.call_count == 0
               NewRelic::Control.instance.log.warn('Unicorn detected but no metric send, please see https://newrelic.com/docs/troubleshooting/im-using-unicorn-and-i-dont-see-any-data')
             end
           end
