@@ -22,7 +22,7 @@ module NewRelic
             end
           elsif platform =~ /darwin9/ # 10.5
             @sampler = ShellPS.new("ps -o rsz")
-          elsif platform =~ /darwin1[01]/ # 10.6 & 10.7
+          elsif platform =~ /darwin/ # 10.6 & higher
             @sampler = ShellPS.new("ps -o rss")
           elsif platform =~ /freebsd/
             @sampler = ShellPS.new("ps -o rss")
@@ -35,7 +35,7 @@ module NewRelic
         end
 
         def self.supported_on_this_platform?
-          defined?(JRuby) or platform =~ /linux|darwin9|darwin10|freebsd|solaris/
+          defined?(JRuby) or platform =~ /linux|darwin|freebsd|solaris/
         end
 
         def self.platform
