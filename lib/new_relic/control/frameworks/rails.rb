@@ -11,8 +11,8 @@ module NewRelic
           @env ||= RAILS_ENV.dup
         end
         def root
-          if defined?(RAILS_ROOT) && RAILS_ROOT.to_s != ''
-            RAILS_ROOT.to_s
+          if defined?(Rails.root) && Rails.root.to_s != ''
+            Rails.root.to_s
           else
             super
           end
