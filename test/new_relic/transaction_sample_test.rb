@@ -202,7 +202,8 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
     expected_array = [(@t.start_time.to_f * 1000).to_i,
                       (@t.duration * 1000).to_i,
                       @t.params[:path], @t.params[:uri],
-                      expected_compressed_data]
+                      expected_compressed_data,
+                      @t.guid, nil, !!@t.force_persist]
 
     assert_equal expected_array, @t.to_compressed_array
   end
