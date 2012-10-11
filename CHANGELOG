@@ -394,7 +394,7 @@ v2.10.1.
   * add 'multi_threaded' config option to indicate when the app is running
     multi-threaded, so we can disable some instrumentation
   * fix test failures in JRuby, REE
-  * improve Net::HTTP instrumentation so its more efficient and distinguishes calls
+  * improve Net::HTTP instrumentation so it's more efficient and distinguishes calls
     between web and non-web transactions.
   * database instrumentation notices all database commands in addition to the core commands
   * add support for textmate to dev mode
