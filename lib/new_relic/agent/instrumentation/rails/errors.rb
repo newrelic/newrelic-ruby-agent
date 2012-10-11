@@ -6,11 +6,11 @@ DependencyDetection.defer do
   end
 
   depends_on do
-    defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i == 2
+    defined?(Rails) && Rails::VERSION::MAJOR.to_s =~ /^(1|2)/
   end
 
   executes do
-    NewRelic::Agent.logger.debug 'Installing Rails 2 Error instrumentation'
+    NewRelic::Agent.logger.debug 'Installing Rails 1 - 2 Error instrumentation'
   end  
   
   executes do
