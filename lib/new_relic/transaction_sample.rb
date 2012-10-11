@@ -1,3 +1,6 @@
+require 'zlib'
+require 'base64'
+
 require 'new_relic/transaction_sample/segment'
 require 'new_relic/transaction_sample/summary_segment'
 require 'new_relic/transaction_sample/fake_segment'
@@ -51,15 +54,27 @@ module NewRelic
       @start_time - @@start_time.to_f
     end
 
-    # Used in the server only
-    def to_json(options = {}) #:nodoc:
-      map = {:sample_id => @sample_id,
-        :start_time => @start_time,
-        :root_segment => @root_segment}
-      if @params && !@params.empty?
-        map[:params] = @params
-      end
-      map.to_json
+    def to_json
+      JSON.dump(self.to_array)
+    end
+
+    def to_array
+      [@start_time.to_f, @params[:request_params], @params[:custom_params],
+       @root_segment.to_array]
+    end
+
+    def to_compressed_array
+      [(@start_time.to_f * 1000).to_i, (duration * 1000).to_i,
+       @params[:path], @params[:uri],
+       compress(self.to_json)]
+    end
+
+    def compress(string)
+      Base64.encode64(Zlib::Deflate.deflate(string, Zlib::DEFAULT_COMPRESSION))
+    end
+
+    def to_compressed_json
+      JSON.dump(self.to_compressed_array)
     end
 
     def start_time
@@ -134,10 +149,10 @@ module NewRelic
       regex = Regexp.new(regex)
 
       sample = TransactionSample.new(@start_time, sample_id)
-      
+
       sample.params = params.dup
       sample.params[:segment_count] = 0
-      
+
       delta = build_segment_with_omissions(sample, 0.0, @root_segment, sample.root_segment, regex)
       sample.root_segment.end_trace(@root_segment.exit_timestamp - delta)
       sample.profile = self.profile
@@ -160,7 +175,7 @@ module NewRelic
       sample.force_persist = self.force_persist if self.force_persist
 
       build_segment_for_transfer(sample, @root_segment, sample.root_segment, options)
-      
+
       sample.root_segment.end_trace(@root_segment.exit_timestamp)
       sample
     end
@@ -170,8 +185,6 @@ module NewRelic
     end
 
   private
-
-
 
     HEX_DIGITS = (0..15).map{|i| i.to_s(16)}
     # generate a random 64 bit uuid

@@ -969,7 +969,7 @@ module NewRelic
               if Agent.config[:'transaction_tracer.explain_enabled']
                 options[:explain_sql] = Agent.config[:'transaction_tracer.explain_threshold']
               end
-              traces = @traces.collect {|trace| trace.prepare_to_send(options)}
+              traces = @traces.map {|trace| trace.prepare_to_send(options) }
               @service.transaction_sample_data(traces)
               log.debug "Sent slowest sample (#{@service.agent_id}) in #{Time.now - now} seconds"
             rescue UnrecoverableServerException => e

@@ -39,10 +39,27 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
     s.to_s
   end
 
+  def test_to_array
+    parent = NewRelic::TransactionSample::Segment.new(1, 'Custom/test/parent', 1)
+    parent.params[:test] = 'value'
+    child = NewRelic::TransactionSample::Segment.new(2, 'Custom/test/child', 2)
+    child.end_trace(3)
+    parent.add_called_segment(child)
+    parent.end_trace(4)
+    expected_array = [1, 4, 'Custom/test/parent', {:test => 'value'},
+                      [[2, 3, 'Custom/test/child', {}, []]]]
+    assert_equal(expected_array, parent.to_array)
+  end
+
   def test_to_json
-    t = Time.now
-    s = NewRelic::TransactionSample::Segment.new(t, 'Custom/test/metric', nil)
-    assert_equal({ :entry_timestamp => t, :exit_timestamp => nil, :metric_name => 'Custom/test/metric', :segment_id => s.object_id }.to_json, s.to_json)
+    parent = NewRelic::TransactionSample::Segment.new(1, 'Custom/test/parent', 1)
+    parent.params[:test] = 'value'
+    child = NewRelic::TransactionSample::Segment.new(2, 'Custom/test/child', 2)
+    child.end_trace(3)
+    parent.add_called_segment(child)
+    parent.end_trace(4)
+    expected_string = "[1,4,\"Custom/test/parent\",{\"test\":\"value\"},[[2,3,\"Custom/test/child\",{},[]]]]"
+    assert_equal(expected_string, parent.to_json)
   end
 
   def test_path_string

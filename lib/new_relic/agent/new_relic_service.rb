@@ -1,3 +1,5 @@
+require 'json'
+
 module NewRelic
   module Agent
     class NewRelicService
@@ -50,7 +52,12 @@ module NewRelic
       end
 
       def transaction_sample_data(traces)
-        invoke_remote(:transaction_sample_data, @agent_id, traces)
+        data = JSON.dump([@agent_id, traces.map{|t| t.to_compressed_array}])
+        send_request(:uri       => remote_method_uri(:transaction_sample_data) \
+                                     + '&marshal_format=json',
+                     :encoding  => 'identity',
+                     :collector => @collector,
+                     :data      => data).body
       end
 
       def sql_trace_data(sql_traces)
@@ -91,13 +98,10 @@ module NewRelic
                                 :data      => post_data)
 
         # raises the right exception if the remote server tells it to die
-        return check_for_exception(response)
+        check_for_exception(response)
       rescue NewRelic::Agent::ForceRestartException => e
         log.info e.message
         raise
-      rescue SystemCallError, SocketError => e
-        # These include Errno connection errors
-        raise NewRelic::Agent::ServerConnectionException, "Recoverable error connecting to the server: #{e}"
       ensure
         NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote').record_data_point((Time.now - now).to_f)
         NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote/' + method.to_s).record_data_point((Time.now - now).to_f)
@@ -191,6 +195,9 @@ module NewRelic
           raise ServerConnectionException, "Unexpected response from server (#{response.code}): #{response.message}"
         end
         response
+      rescue SystemCallError, SocketError => e
+        # These include Errno connection errors
+        raise NewRelic::Agent::ServerConnectionException, "Recoverable error connecting to the server: #{e}"
       end
 
       # Decompresses the response from the server, if it is gzip

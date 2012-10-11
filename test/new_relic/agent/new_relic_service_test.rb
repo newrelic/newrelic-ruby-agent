@@ -108,7 +108,9 @@ class NewRelicServiceTest < Test::Unit::TestCase
   end
 
   def test_transaction_sample_data
-    @http_handle.respond_to(:transaction_sample_data, 'MPC1000')
+    @http_handle.register(HTTPSuccess.new('MPC1000', 200)) do |request|
+      request.path.include?('transaction_sample_data')
+    end
     response = @service.transaction_sample_data([])
     assert_equal 'MPC1000', response
   end
