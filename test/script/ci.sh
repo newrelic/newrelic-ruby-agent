@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script to run test suites in CI or in development mode.  This script handles
-# checking out test dependencies (currently rpm_test_app and it's dependencies)
+# checking out test dependencies (currently rpm_test_app and its dependencies)
 # and executing them.
 #
 # It relies on 2 environment variables:
