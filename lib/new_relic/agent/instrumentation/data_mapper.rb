@@ -66,7 +66,6 @@ DependencyDetection.defer do
       add_method_tracer :first,    'ActiveRecord/#{self.name}/first'
       add_method_tracer :last,     'ActiveRecord/#{self.name}/last'
       add_method_tracer :all,      'ActiveRecord/#{self.name}/all'
-
       add_method_tracer :create,   'ActiveRecord/#{self.name}/create'
       add_method_tracer :create!,  'ActiveRecord/#{self.name}/create'
       add_method_tracer :update,   'ActiveRecord/#{self.name}/update'
@@ -74,10 +73,34 @@ DependencyDetection.defer do
       add_method_tracer :destroy,  'ActiveRecord/#{self.name}/destroy'
       add_method_tracer :destroy!, 'ActiveRecord/#{self.name}/destroy'
 
+      add_method_tracer :get,    'ActiveRecord/find', :push_scope => false
+      add_method_tracer :first,  'ActiveRecord/find', :push_scope => false
+      add_method_tracer :last,   'ActiveRecord/find', :push_scope => false
+      add_method_tracer :all,    'ActiveRecord/find', :push_scope => false
+      add_method_tracer :create,   'ActiveRecord/save', :push_scope => false
+      add_method_tracer :create!,  'ActiveRecord/save', :push_scope => false
+      add_method_tracer :update,   'ActiveRecord/save', :push_scope => false
+      add_method_tracer :update!,  'ActiveRecord/save', :push_scope => false
+      add_method_tracer :destroy,  'ActiveRecord/destroy', :push_scope => false
+      add_method_tracer :destroy!, 'ActiveRecord/destroy', :push_scope => false
+
+      add_method_tracer :get,      'ActiveRecord/all', :push_scope => false
+      add_method_tracer :first,    'ActiveRecord/all', :push_scope => false
+      add_method_tracer :last,     'ActiveRecord/all', :push_scope => false
+      add_method_tracer :all,      'ActiveRecord/all', :push_scope => false
+      add_method_tracer :create,   'ActiveRecord/all', :push_scope => false
+      add_method_tracer :create!,  'ActiveRecord/all', :push_scope => false
+      add_method_tracer :update,   'ActiveRecord/all', :push_scope => false
+      add_method_tracer :update!,  'ActiveRecord/all', :push_scope => false
+      add_method_tracer :destroy,  'ActiveRecord/all', :push_scope => false
+      add_method_tracer :destroy!, 'ActiveRecord/all', :push_scope => false
+
       # For dm-aggregates and partial dm-ar-finders support:
       for method in [ :aggregate, :find, :find_by_sql ] do
         next unless method_defined? method
         add_method_tracer(method, 'ActiveRecord/#{self.name}/' + method.to_s)
+        add_method_tracer(method, 'ActiveRecord/find', :push_scope => false)
+        add_method_tracer(method, 'ActiveRecord/all', :push_scope => false)
       end
 
     end
@@ -92,6 +115,19 @@ DependencyDetection.defer do
       add_method_tracer :destroy,  'ActiveRecord/#{self.class.name[/[^:]*$/]}/destroy'
       add_method_tracer :destroy!, 'ActiveRecord/#{self.class.name[/[^:]*$/]}/destroy'
 
+      add_method_tracer :update,   'ActiveRecord/save', :push_scope => false
+      add_method_tracer :update!,  'ActiveRecord/save', :push_scope => false
+      add_method_tracer :save,     'ActiveRecord/save', :push_scope => false
+      add_method_tracer :save!,    'ActiveRecord/save', :push_scope => false
+      add_method_tracer :destroy,  'ActiveRecord/destroy', :push_scope => false
+      add_method_tracer :destroy!, 'ActiveRecord/destroy', :push_scope => false
+
+      add_method_tracer :update,   'ActiveRecord/all', :push_scope => false
+      add_method_tracer :update!,  'ActiveRecord/all', :push_scope => false
+      add_method_tracer :save,     'ActiveRecord/all', :push_scope => false
+      add_method_tracer :save!,    'ActiveRecord/all', :push_scope => false
+      add_method_tracer :destroy,  'ActiveRecord/all', :push_scope => false
+      add_method_tracer :destroy!, 'ActiveRecord/all', :push_scope => false
     end
   end
 
@@ -116,6 +152,8 @@ DependencyDetection.defer do
       for method in [ :aggregate ] do
         next unless method_defined? method
         add_method_tracer(method, 'ActiveRecord/#{self.name}/' + method.to_s)
+        add_method_tracer(method, 'ActiveRecord/find', :push_scope => false)
+        add_method_tracer(method, 'ActiveRecord/all', :push_scope => false)
       end
 
     end
@@ -137,6 +175,11 @@ DependencyDetection.defer do
       add_method_tracer :select,  'ActiveRecord/#{self.class.name[/[^:]*$/]}/select'
       add_method_tracer :execute, 'ActiveRecord/#{self.class.name[/[^:]*$/]}/execute'
 
+      add_method_tracer :select,    'ActiveRecord/find', :push_scope => false
+      add_method_tracer :select,    'ActiveRecord/all', :push_scope => false
+
+      add_method_tracer :execute,    'ActiveRecord/save', :push_scope => false
+      add_method_tracer :execute,    'ActiveRecord/all', :push_scope => false
     end
   end
 end
