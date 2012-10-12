@@ -99,7 +99,7 @@ module NewRelic
 
         class Rubinius < Profiler
           def self.enabled?
-            defined?(::Rubinius::GC) && ::Rubinius::GC.respond_to?(:count)
+            defined?(::Rubinius) && defined?(::Rubinius::GC) && ::Rubinius::GC.respond_to?(:count)
           end
 
           def call_time
