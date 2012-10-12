@@ -378,7 +378,7 @@ module NewRelic
 
             "def #{_traced_method_name(method_name, metric_name_code)}(*args, &block)
               #{options[:code_header]}
-              result = #{klass}.trace_execution_scoped(#{Array(metric_name_code).inspect},
+              result = #{klass}.trace_execution_scoped(\"#{metric_name_code}\",
                         :metric => #{options[:metric]},
                         :forced => #{options[:force]},
                         :deduct_call_time_from_parent => #{options[:deduct_call_time_from_parent]},
