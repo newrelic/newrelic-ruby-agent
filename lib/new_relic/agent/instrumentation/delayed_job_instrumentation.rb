@@ -25,7 +25,7 @@ DependencyDetection.defer do
       else
         add_transaction_tracer "invoke_job", :category => 'OtherTransaction/DelayedJob'
       end
-    end
+    end    
   end
 
   executes do
@@ -47,6 +47,21 @@ DependencyDetection.defer do
         end
       end
     end
+  end
+  
+  executes do
+    Delayed::Job.class_eval do
+      def invoke_job_with_queue_wait
+        total_time = self.class.db_time_now - created_at
+        raise "Queue wait time is < 0. Your clocks may be out of sync." if total_time < 0
+        
+        NewRelic::Agent.get_stats("Background/WaitTime").trace_call(total_time)
+        
+        invoke_job_without_queue_wait
+      end
+      
+      alias_method_chain :invoke_job, :queue_wait
+    end    
   end
 end
 
