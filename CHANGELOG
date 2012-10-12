@@ -4,6 +4,12 @@
 ### Next Up ###
 ## v3.5.1 ##
 
+ * Enabling Memory Profiling on Lion and Moutain Lion
+
+   The agent's list of supported platforms for memory profiling wasn't correctly checking
+   for more recent versions of OS X.
+
+
 ### current version ###
 ## v3.5.0 ##
 
