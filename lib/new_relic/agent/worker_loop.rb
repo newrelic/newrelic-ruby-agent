@@ -6,11 +6,13 @@ module NewRelic
     # A task is a proc or block with a specified call period in seconds.
     class WorkerLoop
 
-      def initialize
+      # Optional argument duration (in seconds) for how long the worker loop runs
+      def initialize(duration=nil)
         @log = log
         @should_run = true
         @next_invocation_time = Time.now
         @period = 60.0
+        @deadline = Time.now + duration if duration
       end
       
       # returns a class-level memoized mutex to make sure we don't run overlapping
@@ -31,23 +33,21 @@ module NewRelic
         @next_invocation_time = (Time.now + @period)
         @task = block
         while keep_running do
-          now = Time.now
-          while now < @next_invocation_time
+          while @now < @next_invocation_time
             # sleep until this next task's scheduled invocation time
-            sleep_time = @next_invocation_time - now
+            sleep_time = @next_invocation_time - @now
             sleep sleep_time if sleep_time > 0
-            now = Time.now
+            @now = Time.now
           end
           run_task if keep_running
         end
       end
       
-      # a simple accessor for @should_run
       def keep_running
-        @should_run
+        @now = Time.now
+        @should_run && (!@deadline || @now < @deadline)
       end
       
-      # Sets @should_run to false. Returns false
       def stop
         @should_run = false
       end

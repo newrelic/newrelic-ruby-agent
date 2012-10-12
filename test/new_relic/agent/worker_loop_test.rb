@@ -19,6 +19,16 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
     assert @x
   end
 
+  def test_with_duration
+    worker_loop = NewRelic::Agent::WorkerLoop.new(0.1)
+    count = 0
+    worker_loop.run(0.04) do
+      count += 1
+    end
+
+    assert_equal 2, count
+  end
+
   def test_density
     # This shows how the tasks stay aligned with the period and don't drift.
     count = 0
