@@ -35,7 +35,7 @@ module NewRelic
         end
 
         def self.supported_on_this_platform?
-          defined?(JRuby) or platform =~ /linux|darwin9|darwin10|freebsd|solaris/
+          defined?(JRuby) or platform =~ /linux|darwin|freebsd|solaris/
         end
 
         def self.platform
