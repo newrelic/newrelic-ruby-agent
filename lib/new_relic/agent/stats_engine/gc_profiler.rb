@@ -4,10 +4,10 @@ module NewRelic
     class StatsEngine
       module GCProfiler
         def self.init
+          @profiler = RailsBench.new if RailsBench.enabled?
+          @profiler = Ruby19.new if Ruby19.enabled?
           @profiler = Rubinius.new if Rubinius.enabled?
-          @profiler ||= RailsBench.new if RailsBench.enabled?
-          @profiler ||= Ruby19.new if Ruby19.enabled?
-          @profiler ||= RubiniusAgent.new if RubiniusAgent.enabled?
+          @profiler = RubiniusAgent.new if RubiniusAgent.enabled?
         end
 
         def self.capture
