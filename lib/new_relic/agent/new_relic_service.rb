@@ -79,6 +79,20 @@ module NewRelic
         invoke_remote(:sql_trace_data, sql_traces)
       end
 
+      def profile_data(profile)
+        return '' if RUBY_VERSION < '1.9'
+
+        require 'json'
+
+        # Broken because: 
+        # Marshal format = JSON
+        # Needs exception handling
+        send_request(:uri       => remote_method_uri('profile_data') + "&marshal_format=json",
+                                :encoding  => 'identity',
+                                :collector => @collector,
+                                :data      => JSON.dump(profile.to_compressed_array))
+      end
+
       private
 
       # A shorthand for NewRelic::Control.instance

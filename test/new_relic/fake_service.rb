@@ -7,7 +7,8 @@ module NewRelic
     def initialize
       @agent_data = []
       @supported_methods = [ :connect, :metric_data, :transaction_sample_data,
-                             :error_data, :sql_trace_data, :shutdown ]
+                             :error_data, :sql_trace_data, :profile_data,
+                             :shutdown ]
       @collector = NewRelic::Control::Server.new(:name => 'fakehost', :port => 0)
       @id_counter = 0
       @base_expectations = {

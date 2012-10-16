@@ -8,6 +8,7 @@ require 'new_relic/agent/new_relic_service'
 require 'new_relic/agent/pipe_service'
 require 'new_relic/agent/configuration/manager'
 require 'new_relic/agent/database'
+require 'new_relic/agent/thread_profile'
 
 module NewRelic
   module Agent
@@ -26,6 +27,7 @@ module NewRelic
         @stats_engine = NewRelic::Agent::StatsEngine.new
         @transaction_sampler = NewRelic::Agent::TransactionSampler.new
         @sql_sampler = NewRelic::Agent::SqlSampler.new
+        @thread_profiler = NewRelic::Agent::ThreadProfiler.new
         @error_collector = NewRelic::Agent::ErrorCollector.new
         @connect_attempts = 0
 
@@ -70,6 +72,8 @@ module NewRelic
         # the transaction sampler that handles recording transactions
         attr_reader :transaction_sampler
         attr_reader :sql_sampler
+        # begins a thread profile session when instructed by agent commands
+        attr_reader :thread_profiler
         # error collector is a simple collection of recorded errors
         attr_reader :error_collector
         # whether we should record raw, obfuscated, or no sql
@@ -981,6 +985,15 @@ module NewRelic
           # the slowest sample around - it has been sent already and we
           # can clear the collection and move on
           @traces = nil
+        end
+
+        def harvest_and_send_thread_profile
+          if @thread_profiler.finished?
+            profile = @thread_profiler.harvest
+
+            log.debug "Sending thread profile #{profile.profile_id}"
+            @service.profile_data(profile)
+          end
         end
 
         # Gets the collection of unsent errors from the error

@@ -2,14 +2,40 @@ require 'new_relic/agent/worker_loop'
 
 module NewRelic
   module Agent
+
+    class ThreadProfiler
+
+      def start(profile_id, duration, interval=0.1)
+        @profile = ThreadProfile.new(profile_id, duration, interval)
+        @profile.run
+      end
+
+      def harvest
+        profile = @profile
+        @profile = nil
+        profile
+      end
+
+      def finished?
+        @profile && @profile.finished?
+      end
+    end
+
     class ThreadProfile
 
-      attr_reader :traces, :poll_count, :sample_count
+      attr_reader :profile_id, :traces, :poll_count, :sample_count
 
-      def initialize(profile_id, duration)
+      def initialize(profile_id, duration, interval=0.1)
         @profile_id = profile_id
+
         @duration = duration
+        @interval = interval
+        @finished = false
+
         @traces = {
+          :agent => [],
+          :background => [],
+          :other => [],
           :request => []
         }
         @poll_count = 0
@@ -18,30 +44,43 @@ module NewRelic
 
       def run
         Thread.new do
-          NewRelic::Agent::WorkerLoop.new(@duration).run(0.1) do
+          Thread.current['newrelic_label'] = 'Thread Profiler'
+          NewRelic::Agent::WorkerLoop.new(@duration).run(@interval) do
             @poll_count += 1
             Thread.list.each do |t|
               @sample_count += 1
-              # TODO: Put each thread into the right bucket's aggregate...
+              if t.key?('newrelic_label')
+                aggregate(t.backtrace, @traces[:agent])
+              else
+                aggregate(t.backtrace, @traces[:request])
+              end
             end
           end
+          @finished = true
         end
       end
 
+      def finished?
+        @finished
+      end
+
       def to_compressed_array
-        traces = {"REQUEST" => @traces[:request].map{|t| t.to_array }}
-        compressed = block_given? ? yield(traces) : compress(traces)
+        traces = {
+          "OTHER" => @traces[:other].map{|t| t.to_array },
+          "REQUEST" => @traces[:request].map{|t| t.to_array },
+          "AGENT" => @traces[:agent].map{|t| t.to_array },
+          "BACKGROUND" => @traces[:background].map{|t| t.to_array }
+        }
 
         [NewRelic::Agent.config[:agent_run_id], 
           [[@profile_id,
             @start_time, 
             @stop_time, @poll_count, 
-            compressed,
+            ThreadProfile.compress(JSON.dump(traces)),
             @sample_count, 0]]]
       end
 
-      def compress(traces)
-        json = JSON.dump(traces)
+      def self.compress(json)
         compressed = Base64.encode64(Zlib::Deflate.deflate(json, Zlib::DEFAULT_COMPRESSION))
       end
 
@@ -91,7 +130,8 @@ module NewRelic
         end
 
         def to_array
-          [[@file, @method, @line_no], 1, 0,
+          [[@file, @method, @line_no],
+            @runnable_count, 0,
             @children.map {|c| c.to_array}]
         end
 

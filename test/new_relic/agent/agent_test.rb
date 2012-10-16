@@ -1,4 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require 'lib/new_relic/agent/thread_profile'
+
 module NewRelic
   module Agent
     class AgentTest < Test::Unit::TestCase
@@ -51,6 +53,21 @@ module NewRelic
           @agent.instance_variable_set(:@traces, [ trace ])
           @agent.send :harvest_and_send_slowest_sample
         end
+      end
+
+      def test_harvest_and_send_thread_profile
+        profile = NewRelic::Agent::ThreadProfile.new(-1, 0)
+        profile.aggregate(["chunky.rb:42:in `bacon'"], profile.traces[:other])
+        profile.instance_variable_set(:@finished, true)
+
+        @agent.thread_profiler.instance_variable_set(:@profile, profile)
+        @agent.service = NewRelic::FakeService.new
+
+        @agent.send :harvest_and_send_thread_profile
+
+        assert_equal([profile],
+                    @agent.service.agent_data \
+                      .find{|data| data.action == :profile_data}.params)
       end
 
       def test_harvest_timeslice_data

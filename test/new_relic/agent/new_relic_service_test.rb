@@ -119,6 +119,14 @@ class NewRelicServiceTest < Test::Unit::TestCase
     assert_equal 'explain this', response
   end
 
+  def test_profile_data
+    @http_handle.register(HTTPSuccess.new('profile', 200)) do |request| 
+      request.path.include?('profile_data') 
+    end 
+    response = @service.profile_data([]) 
+    assert_equal 'profile', response.body
+  end
+
   def test_request_timeout
     with_config(:timeout => 600) do
       service = NewRelic::Agent::NewRelicService.new('abcdef', @server)

@@ -42,6 +42,18 @@ class ThreadProfileTest < Test::Unit::TestCase
     other_thread.join
   end
 
+  def test_profiler_collects_into_agent_bucket
+    other_thread = Thread.new { sleep(0.3) }
+    other_thread['newrelic_label'] = "Some Other New Relic Thread" 
+
+    p = NewRelic::Agent::ThreadProfile.new(0, 0.21)
+    p.run
+
+    sleep(0.22)
+
+    assert_equal 2, p.traces[:agent].size
+  end
+
   def test_parse_backtrace
     trace = [
       "/Users/jclark/.rbenv/versions/1.9.3-p194/lib/ruby/1.9.1/irb.rb:69:in `catch'",
@@ -116,7 +128,7 @@ class ThreadProfileTest < Test::Unit::TestCase
     
     assert_equal([
         ["irb.rb", "catch", 69],
-        1, 0,
+        0, 0,
         []],
       node.to_array)
   end
@@ -129,11 +141,11 @@ class ThreadProfileTest < Test::Unit::TestCase
     
     assert_equal([
         ["irb.rb", "catch", 69],
-        1, 0,
+        0, 0,
         [
           [
             ['bacon.rb', 'yum', 42],
-            1,0,
+            0,0,
             []
           ]
         ]],
@@ -152,21 +164,53 @@ class ThreadProfileTest < Test::Unit::TestCase
   end
 
   def test_to_compressed_array
+    profile = NewRelic::Agent::ThreadProfile.new(-1, 0)
+    profile.instance_variable_set(:@start_time, 1350403938892.524)
+    profile.instance_variable_set(:@stop_time, 1350403939904.375)
+    profile.instance_variable_set(:@poll_count, 10)
+    profile.instance_variable_set(:@sample_count, 2)
+
+    trace = ["thread_profiler.py:1:in `<module>'"]
+    10.times { profile.aggregate(trace, profile.traces[:other]) }
+
+    trace = [
+      "/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/threading.py:489:in `__bootstrap'", 
+      "/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/threading.py:512:in `__bootstrap_inner'",
+      "/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/threading.py:480:in `run'",
+      "thread_profiler.py:76:in `_profiler_loop'",
+      "thread_profiler.py:103:in `_run_profiler'",
+      "thread_profiler.py:165:in `collect_thread_stacks'"]
+    10.times { profile.aggregate(trace, profile.traces[:agent]) }
+ 
+    expected = [42,
+      [[
+          -1, 
+          1350403938892.524, 
+          1350403939904.375, 
+          10, 
+          "eJy9klFPwjAUhf/LfW7WDQTUGBPUiYkGdAxelqXZRpGGrm1uS8xi/O924JQX\n9Un7dm77ndN7c19hlt7FCZxnWQZug7xYMYN6LSTHwDRA4KLWq53kl0CinEQh\nCUmW5zmBJH5axPPUk16MJ/E0/cGk0lLyyrGPS+uKamu943DQeX5HMtypz5In\nwv6vRCeZ1NoAGQ2PCDpvrOM1fRAlFtjQWyxq/qJxa+lj4zZaBeuuQpccrdDK\n0l4wolKU1OxftOoQLNTzIdL/EcjJafjnQYyVWjvrsDBMKNVOZBD1/jO27fPs\naBG+DoGr8fX9JJktpjftVry9A9unzGo=\n",
+          2, 
+          0
+      ]]]
+
     with_config :agent_run_id => 42 do
-      profile = NewRelic::Agent::ThreadProfile.new(666, 0).tap do |p|
-        p.instance_variable_set(:@start_time, 1234)
-        p.instance_variable_set(:@stop_time, 4321)
-        p.instance_variable_set(:@poll_count, 1)
-        p.instance_variable_set(:@sample_count, 1)
-        p.aggregate(@single_trace)
-      end
-
-      expected = [
-        42,
-        [[666, 1234, 4321, 1, "compressed", 1, 0]]
-      ]
-
-      assert_equal expected, profile.to_compressed_array { |traces| "compressed" }
+      assert_equal expected, profile.to_compressed_array
     end
+  end
+
+  def test_compress
+    original = '{"OTHER": [[["thread_profiler.py", "<module>", 1], 10, 0, []]], "REQUEST": [], "AGENT": [[["/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/threading.py", "__bootstrap", 489], 10, 0, [[["/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/threading.py", "__bootstrap_inner", 512], 10, 0, [[["/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/threading.py", "run", 480], 10, 0, [[["thread_profiler.py", "_profiler_loop", 76], 10, 0, [[["thread_profiler.py", "_run_profiler", 103], 10, 0, [[["thread_profiler.py", "collect_thread_stacks", 165], 10, 0, []]]]]]]]]]]]], "BACKGROUND": []}'
+    assert_equal( 
+      "eJy9UtFOwjAU/ZWlz2QdKKCGmKBOTDSgY/iyLM02ijR0vcttiVmM/047J0LiA080bdJz2nPPbe/9IrP4KYzIjZckCTFr5NmSVQgrITn6VU06HhmVsNxKfmv33dSuoOPZmaSpBSQK3xbhPHYBHBxPwmncRqPzWhte0heRY4Y1fcSs5J+AG01fa7MG5a9+GfrOUQtQmvb8IZUip1Vzw6GfpIT6aNNhLAcw2mBWWXh5dX2Q01lcmVCKoyX73d5ZvHGrmpcGx27/V2uPmQRwPzQcnCSzJnvOVTq4OEVWgJS8MKw91SYrNtrJB/3jVvkbVnU3vn+eRLPF9KHpm+8dYyPRqg==",
+      NewRelic::Agent::ThreadProfile.compress(original).gsub(/\n/, ''))
+  end
+
+  def test_finished
+    profile = NewRelic::Agent::ThreadProfile.new(-1, 0)
+    assert !profile.finished?
+
+    profile.run.join
+
+    assert profile.finished?
   end
 end
