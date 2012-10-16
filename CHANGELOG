@@ -4,7 +4,7 @@
 ### Next Up ###
 ## v3.5.1 ##
 
- * Enabling Memory Profiling on Lion and Moutain Lion
+ * Enabling Memory Profiling on Lion and Mountain Lion
 
    The agent's list of supported platforms for memory profiling wasn't correctly checking
    for more recent versions of OS X.
