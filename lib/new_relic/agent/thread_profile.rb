@@ -6,6 +6,7 @@ module NewRelic
     class ThreadProfiler
 
       def start(profile_id, duration, interval=0.1)
+        log.debug("Starting thread profiler")
         @profile = ThreadProfile.new(profile_id, duration, interval)
         @profile.run
       end

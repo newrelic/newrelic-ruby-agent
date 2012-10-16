@@ -1032,6 +1032,7 @@ module NewRelic
           harvest_and_send_slowest_sample
           harvest_and_send_slowest_sql
           harvest_and_send_timeslice_data
+          harvest_and_send_thread_profile
         rescue => e
           retry_count ||= 0
           retry_count += 1
