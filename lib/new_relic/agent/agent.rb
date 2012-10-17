@@ -1029,7 +1029,8 @@ module NewRelic
           raise e
         ensure
           NewRelic::Agent::Database.close_connections unless forked?
-          @stats_engine.get_stats_no_scope('Supportability/Harvest').record_data_point((Time.now - now).to_f)
+          @stats_engine.get_stats_no_scope('Supportability/Harvest') \
+            .record_data_point((Time.now - now).to_f)
         end
 
         # This method contacts the server to send remaining data and
