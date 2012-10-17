@@ -1013,6 +1013,7 @@ module NewRelic
         end
 
         def transmit_data
+          now = Time.now
           log.debug "Sending data to New Relic Service"
           harvest_and_send_errors
           harvest_and_send_slowest_sample
@@ -1028,6 +1029,7 @@ module NewRelic
           raise e
         ensure
           NewRelic::Agent::Database.close_connections unless forked?
+          @stats_engine.get_stats_no_scope('Supportability/Harvest').record_data_point((Time.now - now).to_f)
         end
 
         # This method contacts the server to send remaining data and
