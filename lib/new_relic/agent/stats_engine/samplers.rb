@@ -28,10 +28,15 @@ module Agent
         return if periodic_samplers.empty?
 
         @sampler_thread = Thread.new do
-          while true do
+          loop do
+            now = Time.now
             begin
               sleep POLL_PERIOD
               poll periodic_samplers
+            ensure
+              NewRelic::Agent.instance.stats_engine \
+                .get_stats_no_scope('Supportability/Samplers') \
+                .record_data_point((Time.now - now).to_f)
             end
           end
         end
