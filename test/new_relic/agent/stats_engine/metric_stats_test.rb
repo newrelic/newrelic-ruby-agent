@@ -44,7 +44,7 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
     assert_equal 4, @engine.get_stats("c").total_call_time
 
     metric_data = @engine.harvest_timeslice_data({}, {}).values
-    
+
     # after harvest, all the metrics should be reset
     assert_equal 0, @engine.get_stats("a").call_count
     assert_equal 0, @engine.get_stats("a").total_call_time
