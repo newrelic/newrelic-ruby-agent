@@ -15,6 +15,7 @@ module NewRelic
           end
 
           def initialize_copy(old)
+            super
             old.each do |key, value|
               self.store(key, value.dup)
             end
