@@ -8,12 +8,18 @@ module NewRelic
         # A simple mutex-synchronized hash to make sure our statistics
         # are internally consistent even in truly-threaded rubies like JRuby
         class SynchronizedHash < ::Hash
-          include NewRelic::LanguageSupport::SynchronizedHash
-          
+          attr_reader :lock
+
           def initialize
             @lock = Mutex.new
           end
-          
+
+          def initialize_copy(old)
+            old.each do |key, value|
+              self.store(key, value.dup)
+            end
+          end
+
           def []=(*args)
             @lock.synchronize { super }
           end
@@ -29,13 +35,17 @@ module NewRelic
           def delete_if(*args)
             @lock.synchronize { super }
           end
+
+          def reset
+            values.each { |s| s.reset }
+          end
         end
-        
+
         # Returns all of the metric names of all the stats in the engine
         def metrics
           stats_hash.keys.map(&:to_s)
         end
-        
+
         # a simple accessor for looking up a stat with no scope -
         # returns a new stats object if no stats object for that
         # metric exists yet
@@ -64,17 +74,16 @@ module NewRelic
           end
           stats
         end
-        
+
         # Returns a stat if one exists, otherwise returns nil. If you
         # want auto-initialization, use one of get_stats or get_stats_no_scope
         def lookup_stats(metric_name, scope_name = '')
           stats_hash[NewRelic::MetricSpec.new(metric_name, scope_name)]
         end
-        
+
         # This module was extracted from the harvest method and should
         # be refactored
         module Harvest
-          
           # merge data from previous harvests into this stats engine -
           # takes into account the case where there are new stats for
           # that metric, and the case where there is no current data
@@ -135,10 +144,12 @@ module NewRelic
 
           def merge_stats(other_engine_or_hash, metric_ids)
             old_data = get_stats_hash_from(other_engine_or_hash)
-
             timeslice_data = {}
-            stats_hash.each do | metric_spec, stats |
-
+            stats_hash.lock.synchronize do
+              Thread.current['newrelic_stats_hash'] = stats_hash.clone
+              stats_hash.reset
+            end
+            Thread.current['newrelic_stats_hash'].each do |metric_spec, stats|
               metric_spec = coerce_to_metric_spec(metric_spec)
               stats_copy = clone_and_reset_stats(metric_spec, stats)
               merge_old_data!(metric_spec, stats_copy, old_data)
@@ -160,7 +171,6 @@ module NewRelic
         # sacrificing efficiency.
         # +++
         def harvest_timeslice_data(previous_timeslice_data, metric_ids)
-
           poll harvest_samplers
           merge_stats(previous_timeslice_data, metric_ids)
         end
@@ -173,9 +183,9 @@ module NewRelic
 
         # Reset each of the stats, such as when a new passenger instance starts up.
         def reset_stats
-          stats_hash.values.each { |s| s.reset }
+          stats_hash.reset
         end
-        
+
         # returns a memoized SynchronizedHash that holds the actual
         # instances of Stats keyed off their MetricName
         def stats_hash

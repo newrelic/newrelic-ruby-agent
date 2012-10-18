@@ -68,7 +68,9 @@ module NewRelic
         end
 
         app = Thread.new do
-          @agent.stats_engine.stats_hash["a"] = NewRelic::StatsBase.new
+          200.times do |i|
+            @agent.stats_engine.stats_hash["a#{i}"] = NewRelic::StatsBase.new
+          end
         end
 
         assert_nothing_raised do
