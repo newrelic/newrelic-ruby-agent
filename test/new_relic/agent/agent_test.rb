@@ -1,5 +1,5 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
-require 'new_relic/agent/thread_profile'
+require 'new_relic/agent/thread_profiler'
 
 module NewRelic
   module Agent

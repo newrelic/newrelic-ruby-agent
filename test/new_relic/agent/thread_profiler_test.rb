@@ -4,7 +4,7 @@ require 'json'
 require 'thread'
 require 'timeout'
 require 'zlib'
-require 'new_relic/agent/thread_profile'
+require 'new_relic/agent/thread_profiler'
 
 class ThreadProfileTest < Test::Unit::TestCase
 

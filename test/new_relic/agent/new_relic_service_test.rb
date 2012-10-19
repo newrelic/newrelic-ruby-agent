@@ -1,5 +1,5 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
-require 'new_relic/agent/thread_profile'
+require 'new_relic/agent/thread_profiler'
 
 class NewRelicServiceTest < Test::Unit::TestCase
   def initialize(*_)
