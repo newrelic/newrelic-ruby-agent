@@ -36,8 +36,8 @@ class ThreadProfileTest < Test::Unit::TestCase
 
     sleep(0.22)
 
-    assert_equal 2, p.poll_count
-    assert_equal 6, p.sample_count
+    assert p.poll_count >= 2
+    assert p.sample_count >= 6
 
     other_thread.join
   end
@@ -51,7 +51,7 @@ class ThreadProfileTest < Test::Unit::TestCase
 
     sleep(0.22)
 
-    assert_equal 2, p.traces[:agent].size
+    assert p.traces[:agent].size >= 2
   end
 
   def test_parse_backtrace

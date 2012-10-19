@@ -1,4 +1,5 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
+require 'new_relic/agent/thread_profile'
 
 class NewRelicServiceTest < Test::Unit::TestCase
   def initialize(*_)
@@ -123,7 +124,7 @@ class NewRelicServiceTest < Test::Unit::TestCase
     @http_handle.register(HTTPSuccess.new('profile', 200)) do |request| 
       request.path.include?('profile_data') 
     end 
-    response = @service.profile_data([]) 
+    response = @service.profile_data(NewRelic::Agent::ThreadProfile.new(0, 0)) 
     assert_equal 'profile', response.body
   end
 
