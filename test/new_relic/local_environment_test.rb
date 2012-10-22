@@ -28,8 +28,7 @@ class NewRelic::LocalEnvironmentTest < Test::Unit::TestCase
 
   def test_passenger
     class << self
-      module ::Passenger
-        const_set "AbstractServer", 0
+      module ::PhusionPassenger
       end
     end
     e = NewRelic::LocalEnvironment.new
@@ -42,9 +41,9 @@ class NewRelic::LocalEnvironmentTest < Test::Unit::TestCase
       assert_nil e.dispatcher_instance_id
     end
 
-    ::Passenger.class_eval { remove_const :AbstractServer }
+    Object.send(:remove_const, :PhusionPassenger)
   end
-  
+
   def test_snapshot
     e = NewRelic::LocalEnvironment.new
     s = e.snapshot
