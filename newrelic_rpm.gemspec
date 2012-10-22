@@ -4,8 +4,8 @@
 # -*- encoding: utf-8 -*-
 
 Gem::Specification.new do |s|
-  s.name = "newrelic_rpm"
-  s.version = "3.5.0"
+  s.name = %q{newrelic_rpm}
+  s.version = "3.5.0.1"
 
   s.authors = ["Bill Kayser", "Jon Guymon", "Justin George", "Darin Swanson", "Rob Saul"]
   s.date = %q{2012-10-22}
