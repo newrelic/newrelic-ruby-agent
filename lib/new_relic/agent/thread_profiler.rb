@@ -6,7 +6,7 @@ module NewRelic
     class ThreadProfiler
 
       def start(profile_id, duration, interval=0.1)
-        log.debug("Starting thread profiler")
+        NewRelic::Agent.logger.debug("Starting thread profiler")
         @profile = ThreadProfile.new(profile_id, duration, interval)
         @profile.run
       end
@@ -24,7 +24,9 @@ module NewRelic
 
     class ThreadProfile
 
-      attr_reader :profile_id, :traces, :poll_count, :sample_count
+      attr_reader :profile_id, \
+        :traces, :poll_count, :sample_count, \
+        :start_time, :stop_time
 
       def initialize(profile_id, duration, interval=0.1)
         @profile_id = profile_id
@@ -46,6 +48,7 @@ module NewRelic
       def run
         Thread.new do
           Thread.current['newrelic_label'] = 'Thread Profiler'
+          @start_time = Time.now
           NewRelic::Agent::WorkerLoop.new(@duration).run(@interval) do
             @poll_count += 1
             Thread.list.each do |t|
@@ -58,6 +61,7 @@ module NewRelic
             end
           end
           @finished = true
+          @stop_time = Time.now
         end
       end
 
@@ -75,8 +79,8 @@ module NewRelic
 
         [NewRelic::Agent.config[:agent_run_id], 
           [[@profile_id,
-            @start_time, 
-            @stop_time, @poll_count, 
+            @start_time.to_f, @stop_time.to_f,
+            @poll_count, 
             ThreadProfile.compress(JSON.dump(traces)),
             @sample_count, 0]]]
       end

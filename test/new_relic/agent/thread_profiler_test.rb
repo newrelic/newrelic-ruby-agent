@@ -42,6 +42,15 @@ class ThreadProfileTest < Test::Unit::TestCase
     other_thread.join
   end
 
+
+  def test_profiler_tracks_time
+    p = NewRelic::Agent::ThreadProfile.new(0, 0.01)
+    p.run.join
+
+    assert_not_nil p.start_time
+    assert_not_nil p.stop_time
+  end
+
   def test_profiler_collects_into_agent_bucket
     other_thread = Thread.new { sleep(0.3) }
     other_thread['newrelic_label'] = "Some Other New Relic Thread" 
