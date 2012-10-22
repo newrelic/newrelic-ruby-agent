@@ -11,6 +11,11 @@
 
 
 ### current version ###
+## v3.5.0.1 ##
+
+ * (Fix) Due to a serious resource leak we have ended support for versions of Phusion Passenger 
+   older than 2.1.1. Users of older versions are encouraged upgrade to a more recent version.
+
 ## v3.5.0 ##
 
  * (Fix) RUM Stops Working After 3.4.2.1 Agent Upgrade

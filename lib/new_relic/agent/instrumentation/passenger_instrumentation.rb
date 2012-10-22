@@ -1,6 +1,6 @@
 DependencyDetection.defer do
   @name = :passenger
-  
+
   depends_on do
     defined?(::PhusionPassenger)
   end
@@ -19,19 +19,5 @@ DependencyDetection.defer do
       # cached.  We do this even in conservative spawning.
       NewRelic::Agent.after_fork(:force_reconnect => true)
     end
-  end
-end
-
-DependencyDetection.defer do
-  depends_on do
-    defined?(::Passenger) && defined?(::Passenger::AbstractServer)
-  end
-
-  executes do
-    ## We're on an older version of passenger
-    ## FIXME: This warning is printing on current version of passenger
-    # NewRelic::Agent.logger.warn "An older version of Phusion Passenger has been detected.  We recommend using at least release 2.1.1."
-
-    NewRelic::Agent::Instrumentation::MetricFrame.check_server_connection = true
   end
 end

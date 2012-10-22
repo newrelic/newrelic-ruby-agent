@@ -35,6 +35,7 @@ module NewRelic
         :send_environment_info  => true,
         :start_channel_listener => false,
         :data_report_period     => 60,
+        :keep_retrying          => true,
 
         :log_file_name => 'newrelic_agent.log',
         :log_file_path => 'log/',
