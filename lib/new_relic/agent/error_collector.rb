@@ -25,15 +25,22 @@ module NewRelic
         @ignore = {}
         @capture_source = Agent.config[:'error_collector.capture_source']
 
-        ignore_errors = Agent.config[:'error_collector.ignore_errors']
-        ignore_errors = ignore_errors.split(",") if ignore_errors.is_a? String
-        ignore_errors.each { |error| error.strip! }
-        ignore(ignore_errors)
+        initialize_ignored_errors(Agent.config[:'error_collector.ignore_errors'])
         @lock = Mutex.new
 
         Agent.config.register_callback(:'error_collector.enabled') do |config_enabled|
           log.debug "Errors will #{config_enabled ? '' : 'not '}be sent to the New Relic service."
         end
+        Agent.config.register_callback(:'error_collector.ignore_errors') do |ignore_errors|
+          initialize_ignored_errors(ignore_errors)
+        end
+      end
+      
+      def initialize_ignored_errors(ignore_errors)
+        @ignore.clear
+        ignore_errors = ignore_errors.split(",") if ignore_errors.is_a? String
+        ignore_errors.each { |error| error.strip! }
+        ignore(ignore_errors)
       end
 
       def enabled?
