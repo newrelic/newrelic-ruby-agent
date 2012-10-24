@@ -108,9 +108,7 @@ class NewRelicServiceTest < Test::Unit::TestCase
   end
 
   def test_transaction_sample_data
-    @http_handle.register(HTTPSuccess.new('MPC1000', 200)) do |request|
-      request.path.include?('transaction_sample_data')
-    end
+    @http_handle.respond_to(:transaction_sample_data, 'MPC1000')
     response = @service.transaction_sample_data([])
     assert_equal 'MPC1000', response
   end
@@ -138,13 +136,13 @@ class NewRelicServiceTest < Test::Unit::TestCase
     @service.expects(:get_redirect_host).once
 
     @service.connect
-    @http_handle.respond_to(:metric_data, '0')
+    @http_handle.respond_to(:metric_data, 0)
     @service.metric_data(Time.now - 60, Time.now, {})
 
-    @http_handle.respond_to(:transaction_sample_data, '1')
+    @http_handle.respond_to(:ransaction_sample_data, '{"return_value": 1}')
     @service.transaction_sample_data([])
 
-    @http_handle.respond_to(:sql_trace_data, '2')
+    @http_handle.respond_to(:sql_trace_data, 2)
     @service.sql_trace_data([])
   end
 
@@ -162,6 +160,34 @@ class NewRelicServiceTest < Test::Unit::TestCase
     assert_raise NewRelic::Agent::UnrecoverableServerException do
       @service.metric_data(Time.now - 60, Time.now, {})
     end
+  end
+
+  def test_json_marshaller_handles_responses_from_collector
+    marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+    assert_equal ['beep', 'boop'], marshaller.load('{"return_value": ["beep","boop"]}')
+  end
+
+  def test_json_marshaller_handles_errors_from_collector
+    marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+    assert_raise(NewRelic::Agent::NewRelicService::CollectorError,
+                 'JavaCrash: error message') do
+      marshaller.load('{"exception": {"message": "error message", "error_type": "JavaCrash"}}')
+    end
+  end
+
+  def test_ruby_marshaller_handles_errors_from_collector
+    marshaller = NewRelic::Agent::NewRelicService::RubyMarshaller.new
+    assert_raise(RuntimeError, 'error message') do
+      marshaller.load(Marshal.dump(RuntimeError.new('error message')))
+    end
+  end
+
+  def test_ruby_marshaller_compresses_large_payloads
+    marshaller = NewRelic::Agent::NewRelicService::RubyMarshaller.new
+    large_payload = 'a' * 64 * 1024
+    result = marshaller.dump(large_payload)
+    assert_equal 'deflate', marshaller.encoding
+    assert_equal large_payload, Marshal.load(Zlib::Inflate.inflate(result))
   end
 
   class HTTPHandle
@@ -182,7 +208,13 @@ class NewRelicServiceTest < Test::Unit::TestCase
       end
 
       register(klass.new(Marshal.dump(payload), code)) do |request|
-        request.path.include?(method.to_s)
+        request.path.include?(method.to_s) &&
+          request.path.include?('marshal_format=ruby')
+      end
+
+      register(klass.new(JSON.dump(payload), code)) do |request|
+        request.path.include?(method.to_s) &&
+          request.path.include?('marshal_format=json')
       end
     end
 
