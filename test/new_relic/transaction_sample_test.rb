@@ -216,8 +216,10 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
                  Zlib::Inflate.inflate(Base64.decode64(@t.compress(victim))))
   end
 
-  def test_to_compressed_json
-    expected_string = JSON.dump(@t.to_compressed_array)
-    assert_equal expected_string, @t.to_compressed_json
+  if NewRelic::LanguageSupport.using_version?('1.9')
+    def test_to_compressed_json
+      expected_string = JSON.dump(@t.to_compressed_array)
+      assert_equal expected_string, @t.to_compressed_json
+    end
   end
 end

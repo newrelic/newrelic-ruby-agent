@@ -162,16 +162,18 @@ class NewRelicServiceTest < Test::Unit::TestCase
     end
   end
 
-  def test_json_marshaller_handles_responses_from_collector
-    marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-    assert_equal ['beep', 'boop'], marshaller.load('{"return_value": ["beep","boop"]}')
-  end
+  if NewRelic::LanguageSupport.using_version?('1.9')
+    def test_json_marshaller_handles_responses_from_collector
+      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+      assert_equal ['beep', 'boop'], marshaller.load('{"return_value": ["beep","boop"]}')
+    end
 
-  def test_json_marshaller_handles_errors_from_collector
-    marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-    assert_raise(NewRelic::Agent::NewRelicService::CollectorError,
-                 'JavaCrash: error message') do
-      marshaller.load('{"exception": {"message": "error message", "error_type": "JavaCrash"}}')
+    def test_json_marshaller_handles_errors_from_collector
+      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+      assert_raise(NewRelic::Agent::NewRelicService::CollectorError,
+                   'JavaCrash: error message') do
+        marshaller.load('{"exception": {"message": "error message", "error_type": "JavaCrash"}}')
+      end
     end
   end
 
