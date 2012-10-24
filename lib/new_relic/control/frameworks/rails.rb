@@ -46,9 +46,9 @@ module NewRelic
           if !Agent.config[:agent_enabled]
             # Might not be running if it does not think mongrel, thin, passenger, etc
             # is running, if it things it's a rake task, or if the agent_enabled is false.
-            log! "New Relic Agent not running."
+            log!("New Relic Agent not running.", :debug)
           else
-            log! "Starting the New Relic Agent."
+            log!("Starting the New Relic Agent.", :debug)
             install_developer_mode rails_config if Agent.config[:developer_mode]
             install_browser_monitoring(rails_config)
           end
@@ -61,7 +61,7 @@ module NewRelic
           begin
             require 'new_relic/rack/browser_monitoring'
             config.middleware.use NewRelic::Rack::BrowserMonitoring
-            log!("Installed New Relic Browser Monitoring middleware", :info)
+            log!("Installed New Relic Browser Monitoring middleware", :debug)
           rescue => e
             log!("Error installing New Relic Browser Monitoring middleware: #{e.inspect}", :error)
           end
