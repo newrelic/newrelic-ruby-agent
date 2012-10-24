@@ -1,5 +1,3 @@
-require 'json'
-
 require 'new_relic/transaction_sample'
 
 module NewRelic
