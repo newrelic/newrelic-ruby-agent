@@ -212,9 +212,11 @@ class NewRelicServiceTest < Test::Unit::TestCase
           request.path.include?('marshal_format=ruby')
       end
 
-      register(klass.new(JSON.dump(payload), code)) do |request|
-        request.path.include?(method.to_s) &&
-          request.path.include?('marshal_format=json')
+      if NewRelic::LanguageSupport.using_version?('1.9')
+        register(klass.new(JSON.dump(payload), code)) do |request|
+          request.path.include?(method.to_s) &&
+            request.path.include?('marshal_format=json')
+        end
       end
     end
 

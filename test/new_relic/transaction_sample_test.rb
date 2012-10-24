@@ -189,23 +189,25 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
     assert_equal expected_array, @t.to_array
   end
 
-  def test_to_json
-    expected_string = JSON.dump([@t.start_time.to_f,
-                                 @t.params[:request_params],
-                                 @t.params[:custom_params],
-                                 @t.root_segment.to_array])
-    assert_equal expected_string, @t.to_json
-  end
+  if NewRelic::LanguageSupport.using_version?('1.9')
+    def test_to_json
+      expected_string = JSON.dump([@t.start_time.to_f,
+                                   @t.params[:request_params],
+                                   @t.params[:custom_params],
+                                   @t.root_segment.to_array])
+      assert_equal expected_string, @t.to_json
+    end
 
-  def test_to_compressed_array
-    expected_compressed_data = @t.compress(@t.to_json)
-    expected_array = [(@t.start_time.to_f * 1000).to_i,
-                      (@t.duration * 1000).to_i,
-                      @t.params[:path], @t.params[:uri],
-                      expected_compressed_data,
-                      @t.guid, nil, !!@t.force_persist]
+    def test_to_compressed_array
+      expected_compressed_data = @t.compress(@t.to_json)
+      expected_array = [(@t.start_time.to_f * 1000).to_i,
+                        (@t.duration * 1000).to_i,
+                        @t.params[:path], @t.params[:uri],
+                        expected_compressed_data,
+                        @t.guid, nil, !!@t.force_persist]
 
-    assert_equal expected_array, @t.to_compressed_array
+      assert_equal expected_array, @t.to_compressed_array
+    end
   end
 
   def test_compress
