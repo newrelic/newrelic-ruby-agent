@@ -71,7 +71,8 @@ module NewRelic
 
       def transaction_sample_data(traces)
         load_marshaller
-        invoke_remote(:transaction_sample_data, traces)
+        data = traces.map{|t| t.to_compressed_array}
+        invoke_remote(:transaction_sample_data, @agent_id, data)
       end
 
       def sql_trace_data(sql_traces)
@@ -264,6 +265,7 @@ module NewRelic
         end
 
         def load(data)
+          return unless data && data != ''
           result = JSON.load(data)
           if result.respond_to?(:has_key?)
             if result.has_key?('exception')
