@@ -198,7 +198,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
       assert_equal expected_string, @t.to_json
     end
 
-    def test_to_compressed_array
+    def test_to_collector_array
       expected_compressed_data = @t.compress(@t.to_json)
       expected_array = [(@t.start_time.to_f * 1000).to_i,
                         (@t.duration * 1000).to_i,
@@ -206,7 +206,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
                         expected_compressed_data,
                         @t.guid, nil, !!@t.force_persist]
 
-      assert_equal expected_array, @t.to_compressed_array
+      assert_equal expected_array, @t.to_collector_array
     end
   end
 
@@ -214,12 +214,5 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
     victim = 'this is a test string'
     assert_equal(victim,
                  Zlib::Inflate.inflate(Base64.decode64(@t.compress(victim))))
-  end
-
-  if NewRelic::LanguageSupport.using_version?('1.9')
-    def test_to_compressed_json
-      expected_string = JSON.dump(@t.to_compressed_array)
-      assert_equal expected_string, @t.to_compressed_json
-    end
   end
 end

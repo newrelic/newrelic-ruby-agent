@@ -71,8 +71,7 @@ module NewRelic
 
       def transaction_sample_data(traces)
         load_marshaller
-        data = traces.map{|t| t.to_compressed_array}
-        invoke_remote(:transaction_sample_data, @agent_id, data)
+        invoke_remote(:transaction_sample_data, @agent_id, traces)
       end
 
       def sql_trace_data(sql_traces)
@@ -112,17 +111,22 @@ module NewRelic
 
         data = @marshaller.dump(args)
         check_post_size(data)
-        response = send_request(:data => data,
-                                :uri => remote_method_uri(method, @marshaller.format),
-                                :encoding => @marshaller.encoding,
+        response = send_request(:data      => data,
+                                :uri       => remote_method_uri(method,
+                                                          @marshaller.format),
+                                :encoding  => @marshaller.encoding,
                                 :collector => @collector)
         @marshaller.load(decompress_response(response))
       rescue NewRelic::Agent::ForceRestartException => e
         log.info e.message
         raise
       ensure
-        NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote').record_data_point((Time.now - now).to_f)
-        NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote/' + method.to_s).record_data_point((Time.now - now).to_f)
+        NewRelic::Agent.instance.stats_engine \
+          .get_stats_no_scope('Supportability/invoke_remote') \
+          .record_data_point((Time.now - now).to_f)
+        NewRelic::Agent.instance.stats_engine \
+          .get_stats_no_scope('Supportability/invoke_remote/' + method.to_s) \
+          .record_data_point((Time.now - now).to_f)
       end
 
       # Raises an UnrecoverableServerException if the post_string is longer
@@ -260,8 +264,12 @@ module NewRelic
       end
 
       class JsonMarshaller < Marshaller
+        def initialize
+          NewRelic::Agent.logger.debug 'Using JSON marshaller'
+        end
+
         def dump(ruby)
-          compress(JSON.dump(ruby))
+          compress(JSON.dump(prepare(ruby)))
         end
 
         def load(data)
@@ -279,6 +287,16 @@ module NewRelic
 
         def format
           'json'
+        end
+
+        def prepare(data)
+          if data.respond_to?(:to_collector_array)
+            data.to_collector_array
+          elsif data.kind_of?(Array)
+            data.map {|element| prepare(element) }
+          else
+            data
+          end
         end
 
         protected

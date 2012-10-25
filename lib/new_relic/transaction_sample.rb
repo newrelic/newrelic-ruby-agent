@@ -67,15 +67,11 @@ module NewRelic
       Base64.encode64(Zlib::Deflate.deflate(string, Zlib::DEFAULT_COMPRESSION))
     end
 
-    def to_compressed_array
+    def to_collector_array
       [(@start_time.to_f * 1000).to_i, (duration * 1000).to_i,
        @params[:path], @params[:uri],
        compress(self.to_json),
        @guid, nil, !!@force_persist]
-    end
-
-    def to_compressed_json
-      JSON.dump(self.to_compressed_array)
     end
 
     def start_time
