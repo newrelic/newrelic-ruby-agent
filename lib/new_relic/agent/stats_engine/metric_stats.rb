@@ -23,22 +23,43 @@ module NewRelic
 
           def []=(*args)
             @lock.synchronize { super }
+          rescue => e
+            log_error(e)
           end
 
           def clear(*args)
             @lock.synchronize { super }
+          rescue => e
+            log_error(e)
           end
 
           def delete(*args)
             @lock.synchronize { super }
+          rescue => e
+            log_error(e)
           end
 
           def delete_if(*args)
             @lock.synchronize { super }
+          rescue => e
+            log_error(e)
           end
 
           def reset
             values.each { |s| s.reset }
+          end
+
+          def log_error(e)
+            backtraces = Thread.list.map { |t| log_thread(t) }.join("\n\n")
+            NewRelic::Control.instance.log.warn(
+              "SynchronizedHash failure: #{e.class.name}: #{e.message}\n#{backtraces}")
+          end
+
+          def log_thread(t)
+            return "#{t}\n\tNo backtrace for thread" if t.nil? || t.backtrace.nil?
+
+            backtrace = t.backtrace.map { |b| "\t#{b}" }.join("\n")
+            "\t#{t}\n#{backtrace}"
           end
         end
 

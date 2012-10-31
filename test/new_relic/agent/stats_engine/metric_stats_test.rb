@@ -78,5 +78,16 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
     assert_equal 2, stats.call_count
     assert_equal 3, stats.total_call_time
   end
+
+  def test_rescues_from_synchronization_failure_on_write
+    hash = NewRelic::Agent::StatsEngine::MetricStats::SynchronizedHash.new
+    2.times { |i| hash[i] = i.to_s }
+
+    assert_nothing_raised do
+      hash.each do |k, v|
+        hash[k * 2] = "modified " + v
+      end
+    end
+  end
 end
 
