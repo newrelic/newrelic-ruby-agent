@@ -56,7 +56,10 @@ module NewRelic
           end
 
           def log_thread(t)
-            return "#{t}\n\tNo backtrace for thread" if t.nil? || t.backtrace.nil?
+            # jruby doesn't expose backtrace properly, so make sure it's there
+            if t.nil? || !defined?(t.backtrace) || t.backtrace.nil?
+              return "#{t}\n\tNo backtrace for thread" 
+            end
 
             backtrace = t.backtrace.map { |b| "\t#{b}" }.join("\n")
             "\t#{t}\n#{backtrace}"
