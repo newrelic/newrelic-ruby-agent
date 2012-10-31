@@ -5,10 +5,10 @@
 
 Gem::Specification.new do |s|
   s.name = %q{newrelic_rpm}
-  s.version = "3.5.0.1"
+  s.version = "3.5.1.beta1"
 
   s.authors = ["Bill Kayser", "Jon Guymon", "Justin George", "Darin Swanson", "Rob Saul"]
-  s.date = %q{2012-10-22}
+  s.date = %q{2012-10-31}
   s.description = %q{New Relic is a performance management system, developed by New Relic,
 Inc (http://www.newrelic.com).  New Relic provides you with deep
 information about the performance of your web application as it runs
@@ -17,7 +17,7 @@ Gem or plugin, hosted on
 http://github.com/newrelic/rpm/
 }
   s.email = %q{support@newrelic.com}
-  s.executables = ["newrelic", "mongrel_rpm", "newrelic_cmd"]
+  s.executables = ["newrelic_cmd", "newrelic", "mongrel_rpm"]
   s.extra_rdoc_files = [
     "CHANGELOG",
     "LICENSE",
