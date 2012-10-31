@@ -432,7 +432,7 @@ module NewRelic
           # requests, we need to wait until the children are forked
           # before connecting, otherwise the parent process sends odd data
           def using_forking_dispatcher?
-            log_if([:passenger, :unicorn].include?(Agent.config[:dispatcher]),
+            log_if([:passenger, :unicorn, :uwsgi].include?(Agent.config[:dispatcher]),
                    :info, "Connecting workers after forking.")
           end
 
@@ -875,6 +875,9 @@ module NewRelic
         # spawning server - if so, we probably don't intend to report
         # statistics from this process
         def is_application_spawner?
+          if defined?(::UWSGI)
+            return true if UWSGI.worker_id == 0
+          end
           $0 =~ /ApplicationSpawner|^unicorn\S* master/
         end
 

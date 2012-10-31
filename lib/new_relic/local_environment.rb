@@ -249,7 +249,7 @@ module NewRelic
     def discover_dispatcher
       @dispatcher ||= ENV['NEWRELIC_DISPATCHER'] && ENV['NEWRELIC_DISPATCHER'].to_sym
       @dispatcher ||= ENV['NEW_RELIC_DISPATCHER'] && ENV['NEW_RELIC_DISPATCHER'].to_sym
-      dispatchers = %w[passenger torquebox glassfish thin mongrel litespeed webrick fastcgi unicorn sinatra]
+      dispatchers = %w[passenger torquebox glassfish thin mongrel litespeed webrick fastcgi unicorn sinatra uwsgi]
       while dispatchers.any? && @dispatcher.nil?
         send 'check_for_'+(dispatchers.shift)
       end
@@ -346,6 +346,12 @@ module NewRelic
       if (defined?(::Unicorn) && defined?(::Unicorn::HttpServer)) && working_jruby?
         v = find_class_in_object_space(::Unicorn::HttpServer)
         @dispatcher = :unicorn if v 
+      end
+    end
+
+    def check_for_uwsgi
+      if defined?(::UWSGI)
+        @dispatcher = :uwsgi
       end
     end
 
