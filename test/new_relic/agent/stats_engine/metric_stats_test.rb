@@ -81,11 +81,11 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
 
   def test_rescues_from_synchronization_failure_on_write
     hash = NewRelic::Agent::StatsEngine::MetricStats::SynchronizedHash.new
-    2.times { |i| hash[i] = i.to_s }
+    10.times { |i| hash[i] = i }
 
     assert_nothing_raised do
       hash.each do |k, v|
-        hash[k * 2] = "modified " + v
+        hash[11] = 1 
       end
     end
   end
