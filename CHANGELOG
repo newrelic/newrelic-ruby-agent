@@ -2,6 +2,9 @@
 # New Relic Ruby Agent Release Notes #
 
 ### Next Up ###
+## v3.5.2 ##
+
+### current version ###
 ## v3.5.1 ##
 
  * Enabling Memory Profiling on Lion and Mountain Lion
@@ -9,8 +12,35 @@
    The agent's list of supported platforms for memory profiling wasn't correctly checking
    for more recent versions of OS X.
 
+ * Fixed an arity issue encountered when calling newrelic_notice_error from Rails applications.
 
-### current version ###
+ * End user queue time was not being properly reported, works properly now.
+
+ * Better handling of a thread safety issue.  
+
+   Some issues may remain, which we are working to address, but they should be gracefully handled 
+   now, rather than crashing the running app.
+
+ * Use "java_import" rather than "include_class" when require Java Jars into a JRuby app.
+   
+   Thanks to Jan Habermann for the pull request
+
+ * Replaced alias_method mechanism with super call in DataMapper instrumentation.
+
+   Thanks to Michael Rykov for the pull request
+
+ * Fixed the Rubinius GC profiler.
+
+   Thanks to Dirkjan Bussink
+
+ * Use ActiveSupport.on_load to load controller instrumentation Rails 3.
+
+   Thanks to Jonathan del Strother
+
+ * Reduce the number of thread local reference in a particular high traffic method
+
+   Thanks to Jeremy Kemper
+
 ## v3.5.0.1 ##
 
  * (Fix) Due to a serious resource leak we have ended support for versions of Phusion Passenger 
