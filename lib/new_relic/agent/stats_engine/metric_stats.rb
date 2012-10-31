@@ -56,8 +56,8 @@ module NewRelic
           end
 
           def log_thread(t)
-            # jruby doesn't expose backtrace properly, so make sure it's there
-            if t.nil? || !defined?(t.backtrace) || t.backtrace.nil?
+            # Ruby 1.8 doesn't expose backtrace properly, so make sure it's there
+            if t.nil? || !t.respond_to?(:backtrace) || t.backtrace.nil?
               return "#{t}\n\tNo backtrace for thread" 
             end
 
