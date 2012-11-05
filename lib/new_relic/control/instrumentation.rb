@@ -13,7 +13,7 @@ module NewRelic
       # Logs at debug level for each file loaded, and logs errors in
       # file loading at error level
       def load_instrumentation_files pattern
-        Dir.glob(pattern) do |file|
+        Dir.glob(pattern.gsub(/^jar:/, '')) do |file|
           begin
             log.debug "Processing instrumentation file '#{file}'"
             require file.to_s
