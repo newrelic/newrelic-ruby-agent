@@ -222,4 +222,16 @@ class ThreadProfileTest < Test::Unit::TestCase
 
     assert profile.finished?
   end
+
+  def test_is_not_running
+    profiler = NewRelic::Agent::ThreadProfiler.new
+    assert_equal false, profiler.running?
+  end
+
+  def test_is_running
+    profiler = NewRelic::Agent::ThreadProfiler.new
+    profiler.start(0, 0)
+    assert profiler.running?
+  end
+
 end

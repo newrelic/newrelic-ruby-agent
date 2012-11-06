@@ -5,6 +5,8 @@ module NewRelic
 
     class ThreadProfiler
 
+      attr_reader :profile
+
       def start(profile_id, duration, interval=0.1)
         NewRelic::Agent.logger.debug("Starting thread profiler")
         @profile = ThreadProfile.new(profile_id, duration, interval)
@@ -15,6 +17,10 @@ module NewRelic
         profile = @profile
         @profile = nil
         profile
+      end
+
+      def running?
+        !@profile.nil?
       end
 
       def finished?
