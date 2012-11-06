@@ -128,6 +128,14 @@ class NewRelicServiceTest < Test::Unit::TestCase
     assert_equal 'profile', response.body
   end
 
+  def test_get_agent_commands
+    @service.agent_id = 666
+    @http_handle.respond_to(:get_agent_commands, {"return_value" => []})
+    response = @service.get_agent_commands
+    assert_equal({"return_value" => []}, response)
+  end
+
+
   def test_request_timeout
     with_config(:timeout => 600) do
       service = NewRelic::Agent::NewRelicService.new('abcdef', @server)

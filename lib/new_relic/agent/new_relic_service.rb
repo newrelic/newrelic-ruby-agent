@@ -93,6 +93,10 @@ module NewRelic
                                 :data      => JSON.dump(profile.to_compressed_array))
       end
 
+      def get_agent_commands
+        invoke_remote(:get_agent_commands, @agent_id, [])
+      end
+
       private
 
       # A shorthand for NewRelic::Control.instance
