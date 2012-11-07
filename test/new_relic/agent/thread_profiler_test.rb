@@ -13,8 +13,8 @@ class ThreadProfilerTest < Test::Unit::TestCase
       "name" => "start_profiler",
       "arguments" => {
         "profile_id" => 42,
-        "sample_period" => 0.1,
-        "duration" => 0.0,
+        "sample_period" => 0.2,
+        "duration" => 120.0,
         "only_runnable_threads" => false,
         "only_request_threads" => false,
         "profile_agent_code" => false,
@@ -74,7 +74,9 @@ class ThreadProfilerTest < Test::Unit::TestCase
 
   def test_command_attributes_passed_along
     @profiler.respond_to_commands(START_COMMAND)
-    assert_equal 42, @profiler.profile.profile_id
+    assert_equal 42,  @profiler.profile.profile_id
+    assert_equal 120, @profiler.profile.duration
+    assert_equal 0.2, @profiler.profile.interval
   end
 
 end
@@ -87,8 +89,7 @@ class ThreadProfileTest < Test::Unit::TestCase
       "irb.rb:69:in `start'",
       "irb:12:in `<main>'"
     ]
-
- end
+  end
 
   def test_profiler_polls_for_given_duration
     p = NewRelic::Agent::ThreadProfile.new(0, 0.21)

@@ -28,14 +28,20 @@ module NewRelic
         # Doesn't deal with multiple commands in the return set (real case?)
         # Not graceful about command format
         command = commands.first[1]
-        wants_start = command["name"] == "start_profiler"
-        profile_id = command["arguments"]["profile_id"].to_i
+        arguments = command["arguments"]
+
+        name = command["name"]
+        profile_id = arguments["profile_id"]
+        duration = arguments["duration"]
+        interval = arguments["sample_period"]
+
+        wants_start = name == "start_profiler"
 
         if wants_start
           if running?
             log.debug "Profile already in progress. Ignoring agent command to start another."
           else
-            start(profile_id, 10)
+            start(profile_id, duration, interval)
           end
         end
       end
@@ -58,8 +64,10 @@ module NewRelic
 
     class ThreadProfile
 
-      attr_reader :profile_id, \
-        :traces, :poll_count, :sample_count, \
+      attr_reader :profile_id, 
+        :traces, 
+        :duration, :interval, 
+        :poll_count, :sample_count, 
         :start_time, :stop_time
 
       def initialize(profile_id, duration, interval=0.1)
