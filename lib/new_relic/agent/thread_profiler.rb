@@ -20,29 +20,18 @@ module NewRelic
       end
 
       def respond_to_commands(commands)
-        return if commands.empty?
+        return if commands.empty? || commands.first.size < 2 
 
         # Broken because:
-        # Doesn't actually extract the parameters!
         # Doesn't support stop
         # Doesn't deal with multiple commands in the return set (real case?)
-        # Not graceful about command format
+        # Still some parameters to support
         command = commands.first[1]
+        name = command["name"]
         arguments = command["arguments"]
 
-        name = command["name"]
-        profile_id = arguments["profile_id"]
-        duration = arguments["duration"]
-        interval = arguments["sample_period"]
-
-        wants_start = name == "start_profiler"
-
-        if wants_start
-          if running?
-            log.debug "Profile already in progress. Ignoring agent command to start another."
-          else
-            start(profile_id, duration, interval)
-          end
+        case name
+          when "start_profiler" then try_to_start(arguments)
         end
       end
 
@@ -56,6 +45,18 @@ module NewRelic
 
 
       private
+
+      def try_to_start(arguments)
+        profile_id = arguments.fetch("profile_id", -1)
+        duration =   arguments.fetch("duration", 120)
+        interval =   arguments.fetch("sample_period", 0.1)
+
+        if running?
+          log.debug "Profile already in progress. Ignoring agent command to start another."
+        else
+          start(profile_id, duration, interval)
+        end
+      end
 
       def log
         NewRelic::Agent.logger

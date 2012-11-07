@@ -14,7 +14,7 @@ class ThreadProfilerTest < Test::Unit::TestCase
       "arguments" => {
         "profile_id" => 42,
         "sample_period" => 0.2,
-        "duration" => 120.0,
+        "duration" => 300,
         "only_runnable_threads" => false,
         "only_request_threads" => false,
         "profile_agent_code" => false,
@@ -75,8 +75,31 @@ class ThreadProfilerTest < Test::Unit::TestCase
   def test_command_attributes_passed_along
     @profiler.respond_to_commands(START_COMMAND)
     assert_equal 42,  @profiler.profile.profile_id
-    assert_equal 120, @profiler.profile.duration
+    assert_equal 300, @profiler.profile.duration
     assert_equal 0.2, @profiler.profile.interval
+  end
+
+  def test_command_attributes_default_if_missing_particular_arguments
+    command = [[666,{ "name" => "start_profiler", "arguments" => {} } ]]
+    @profiler.respond_to_commands(command)
+
+    assert_equal -1, @profiler.profile.profile_id
+    assert_equal 120, @profiler.profile.duration
+    assert_equal 0.1, @profiler.profile.interval
+  end
+
+  def test_missing_name_in_command
+    command = [[666,{ "arguments" => {} } ]]
+    @profiler.respond_to_commands(command)
+
+    assert_equal false, @profiler.running?
+  end
+
+  def test_malformed_agent_command
+    command = [[666]]
+    @profiler.respond_to_commands(command)
+
+    assert_equal false, @profiler.running?
   end
 
 end
