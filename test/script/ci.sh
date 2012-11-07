@@ -25,9 +25,6 @@ echo "Running in $(pwd)"
 # fail if any command fails
 set -e
 
-echo "generating gemspec"
-rake gemspec
-
 # check for require environment variables
 if [ "x$RUBY" == "x" ]; then
   echo '$RUBY is undefined'
@@ -53,6 +50,10 @@ fi
 . "$HOME/.rvm/scripts/rvm"
 rvm use $RUBY || rvm install $RUBY
 echo `which ruby`
+
+echo "generating gemspec"
+rake gemspec
+
 
 # make sure that we're in the project root
 script_dirname=`dirname $0`
