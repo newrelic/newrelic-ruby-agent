@@ -130,14 +130,33 @@ class NewRelicServiceTest < Test::Unit::TestCase
 
   def test_get_agent_commands
     @service.agent_id = 666
-    @http_handle.register(HTTPSuccess.new('[]', 200)) do |request|
-      request.path.include?('get_agent_commands')
-    end
+    stub_agent_command('{ "return_value": [1,2,3] }')
+
+    response = @service.get_agent_commands
+    assert_equal [1,2,3], response
+  end
+
+  def test_get_agent_commands_without_return_value
+    @service.agent_id = 666
+    stub_agent_command('{ "unexpected": [] }')
 
     response = @service.get_agent_commands
     assert_equal [], response
   end
 
+  def test_get_agent_commands_with_no_response
+    @service.agent_id = 666
+    stub_agent_command(nil)
+
+    response = @service.get_agent_commands
+    assert_equal [], response
+  end
+
+  def stub_agent_command(json)
+    @http_handle.register(HTTPSuccess.new(json, 200)) do |request|
+      request.path.include?('get_agent_commands')
+    end
+  end
 
   def test_request_timeout
     with_config(:timeout => 600) do

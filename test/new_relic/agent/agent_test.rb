@@ -68,7 +68,7 @@ module NewRelic
                       .find{|data| data.action == :profile_data}.params)
       end
 
-      START_COMMAND = { "return_value" => [[666,{
+      START_COMMAND = [[666,{
             "name" => "start_profiler",
             "arguments" => {
               "profile_id" => 42,
@@ -79,18 +79,16 @@ module NewRelic
               "profile_agent_code" => false,
             }
           }]]
-      }
 
-      STOP_COMMAND = { "return_value" => [[666,{
+      STOP_COMMAND = [[666,{
             "name" => "stop_profiler",
             "arguments" => {
               "profile_id" => 42,
               "report_data" => true,
             }
           }]]
-      }
 
-      NO_COMMAND = { "return_value" => [] }
+      NO_COMMAND = []
 
       def test_check_for_agent_commands_and_start_running
         @agent.service.stub_service(:get_agent_commands, START_COMMAND)

@@ -1026,17 +1026,13 @@ module NewRelic
         end
 
         def check_for_agent_commands
-          return '' if RUBY_VERSION < '1.9'
-
-          require 'json'
-
-          commands = @service.get_agent_commands["return_value"]
+          commands = @service.get_agent_commands
           log.debug "get_agent_commands = #{commands}"
           return if commands.empty?
 
           # Broken because:
           # Doesn't actually extract the parameters!
-          # Too specific to start--what abouts top?
+          # Too specific to start--what about stop?
           # Doesn't deal with multiple commands in the return set (real case?)
           # Breaks badly on unrecognized format
           is_start_command = commands.first[1]["name"] == "start_profiler"

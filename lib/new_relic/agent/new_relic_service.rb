@@ -106,8 +106,8 @@ module NewRelic
                                 :collector => @collector,
                                 :data      => JSON.dump([@agent_id]))
 
-        return {} if response.nil? || response.body.nil?
-        JSON.parse(response.body)
+        return [] if response.nil? || response.body.nil?
+        JSON.parse(response.body).fetch("return_value", [])
       end
 
       private

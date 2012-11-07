@@ -14,7 +14,7 @@ module NewRelic
       @base_expectations = {
         'get_redirect_host'       => 'localhost',
         'connect'                 => { 'agent_run_id' => agent_run_id },
-        'get_agent_commands'      => { 'return_value' => [] },
+        'get_agent_commands'      => [],
         'metric_data'             => { 'Some/Metric/Spec' => 1 },
         'sql_trace_data'          => nil,
         'transaction_sample_data' => nil,
