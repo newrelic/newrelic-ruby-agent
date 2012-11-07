@@ -8,7 +8,7 @@ module NewRelic
       attr_reader :profile
 
       def start(profile_id, duration, interval=0.1)
-        log.debug("Starting thread profiler")
+        log.debug("Starting thread profile. profile_id=#{profile_id}, duration=#{duration}")
         @profile = ThreadProfile.new(profile_id, duration, interval)
         @profile.run
       end
@@ -105,6 +105,7 @@ module NewRelic
           end
           @finished = true
           @stop_time = now_in_millis
+          log.debug("Finishing thread profile.")
         end
       end
 
@@ -192,6 +193,9 @@ module NewRelic
         end
       end
 
+      def log
+        NewRelic::Agent.logger
+      end
     end
   end
 end
