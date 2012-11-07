@@ -72,6 +72,11 @@ class ThreadProfilerTest < Test::Unit::TestCase
     assert_equal original_profile, @profiler.profile
   end
 
+  def test_command_attributes_passed_along
+    @profiler.respond_to_commands(START_COMMAND)
+    assert_equal 42, @profiler.profile.profile_id
+  end
+
 end
 
 class ThreadProfileTest < Test::Unit::TestCase

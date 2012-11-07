@@ -27,13 +27,15 @@ module NewRelic
         # Doesn't support stop
         # Doesn't deal with multiple commands in the return set (real case?)
         # Not graceful about command format
-        wants_start = commands.first[1]["name"] == "start_profiler"
+        command = commands.first[1]
+        wants_start = command["name"] == "start_profiler"
+        profile_id = command["arguments"]["profile_id"].to_i
 
         if wants_start
           if running?
             log.debug "Profile already in progress. Ignoring agent command to start another."
           else
-            start(-1, 10)
+            start(profile_id, 10)
           end
         end
       end
