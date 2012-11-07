@@ -8,12 +8,13 @@ module NewRelic
       @agent_data = []
       @supported_methods = [ :connect, :metric_data, :transaction_sample_data,
                              :error_data, :sql_trace_data, :profile_data,
-                             :shutdown ]
+                             :get_agent_commands, :shutdown ]
       @collector = NewRelic::Control::Server.new(:name => 'fakehost', :port => 0)
       @id_counter = 0
       @base_expectations = {
         'get_redirect_host'       => 'localhost',
         'connect'                 => { 'agent_run_id' => agent_run_id },
+        'get_agent_commands'      => { 'return_value' => [] },
         'metric_data'             => { 'Some/Metric/Spec' => 1 },
         'sql_trace_data'          => nil,
         'transaction_sample_data' => nil,
@@ -31,6 +32,10 @@ module NewRelic
       @mock = @base_expectations.dup
       @id_counter = 0
       @agent_data = []
+    end
+
+    def stub_service(method, value)
+      @mock[method.to_s] = value
     end
     
     def method_missing(method, *args)

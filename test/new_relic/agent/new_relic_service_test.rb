@@ -130,9 +130,12 @@ class NewRelicServiceTest < Test::Unit::TestCase
 
   def test_get_agent_commands
     @service.agent_id = 666
-    @http_handle.respond_to(:get_agent_commands, {"return_value" => []})
+    @http_handle.register(HTTPSuccess.new('[]', 200)) do |request|
+      request.path.include?('get_agent_commands')
+    end
+
     response = @service.get_agent_commands
-    assert_equal({"return_value" => []}, response)
+    assert_equal [], response
   end
 
 

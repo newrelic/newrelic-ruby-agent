@@ -77,7 +77,9 @@ module NewRelic
         :'rum.enabled'            => true,
         :'rum.jsonp'              => true,
         :'rum.load_episodes_file' => true,
-        :'browser_monitoring.auto_instrument' => Proc.new { self[:'rum.enabled'] }
+        :'browser_monitoring.auto_instrument' => Proc.new { self[:'rum.enabled'] },
+
+        :'thread_profiler.enabled' => true,
       }.freeze
     end
   end

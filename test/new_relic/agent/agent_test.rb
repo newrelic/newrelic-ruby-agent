@@ -59,15 +59,70 @@ module NewRelic
         profile = NewRelic::Agent::ThreadProfile.new(-1, 0)
         profile.aggregate(["chunky.rb:42:in `bacon'"], profile.traces[:other])
         profile.instance_variable_set(:@finished, true)
-
         @agent.thread_profiler.instance_variable_set(:@profile, profile)
-        @agent.service = NewRelic::FakeService.new
 
         @agent.send :harvest_and_send_thread_profile
 
         assert_equal([profile],
                     @agent.service.agent_data \
                       .find{|data| data.action == :profile_data}.params)
+      end
+
+      START_COMMAND = { "return_value" => [[666,{
+            "name" => "start_profiler",
+            "arguments" => {
+              "profile_id" => 42,
+              "sample_period" => 0.1,
+              "duration" => 0.0,
+              "only_runnable_threads" => false,
+              "only_request_threads" => false,
+              "profile_agent_code" => false,
+            }
+          }]]
+      }
+
+      STOP_COMMAND = { "return_value" => [[666,{
+            "name" => "stop_profiler",
+            "arguments" => {
+              "profile_id" => 42,
+              "report_data" => true,
+            }
+          }]]
+      }
+
+      NO_COMMAND = { "return_value" => [] }
+
+      def test_check_for_agent_commands_and_start_running
+        @agent.service.stub_service(:get_agent_commands, START_COMMAND)
+
+        @agent.send :check_for_agent_commands
+        assert_equal true, @agent.thread_profiler.running?
+      end
+
+      def test_check_for_agent_commands_but_nothing_to_run
+        @agent.service.stub_service(:get_agent_commands, NO_COMMAND)
+
+        @agent.send :check_for_agent_commands
+        assert_equal false, @agent.thread_profiler.running?
+      end
+
+      def test_check_for_agent_command_wont_start_second_profile
+        @agent.thread_profiler.start(0, 0)
+        original_profile = @agent.thread_profiler.profile
+
+        @agent.service.stub_service(:get_agent_commands, START_COMMAND)
+        
+        @agent.send :check_for_agent_commands
+
+        assert_equal original_profile, @agent.thread_profiler.profile
+      end
+
+      def test_check_agent_command_only_starts_when_asked
+        @agent.service.stub_service(:get_agent_commands, STOP_COMMAND)
+
+        @agent.send :check_for_agent_commands
+
+        assert_equal false, @agent.thread_profiler.running?
       end
 
       def test_harvest_timeslice_data

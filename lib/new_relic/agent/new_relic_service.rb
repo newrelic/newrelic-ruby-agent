@@ -85,7 +85,6 @@ module NewRelic
         require 'json'
 
         # Broken because: 
-        # Marshal format = JSON
         # Needs exception handling
         send_request(:uri       => remote_method_uri('profile_data') + "&marshal_format=json",
                                 :encoding  => 'identity',
@@ -94,7 +93,21 @@ module NewRelic
       end
 
       def get_agent_commands
-        invoke_remote(:get_agent_commands, @agent_id, [])
+        return {} if RUBY_VERSION < '1.9'
+
+        require 'json'
+
+        # Broken because
+        # Right format for data?
+        # Decompression on response?
+        # Needs exception handling
+        response = send_request(:uri       => remote_method_uri('get_agent_commands') + "&marshal_format=json",
+                                :encoding  => 'identity',
+                                :collector => @collector,
+                                :data      => JSON.dump([@agent_id]))
+
+        return {} if response.nil? || response.body.nil?
+        JSON.parse(response.body)
       end
 
       private

@@ -1025,6 +1025,31 @@ module NewRelic
           end
         end
 
+        def check_for_agent_commands
+          return '' if RUBY_VERSION < '1.9'
+
+          require 'json'
+
+          commands = @service.get_agent_commands["return_value"]
+          log.debug "get_agent_commands = #{commands}"
+          return if commands.empty?
+
+          # Broken because:
+          # Doesn't actually extract the parameters!
+          # Too specific to start--what abouts top?
+          # Doesn't deal with multiple commands in the return set (real case?)
+          # Breaks badly on unrecognized format
+          is_start_command = commands.first[1]["name"] == "start_profiler"
+         
+          if is_start_command
+            if @thread_profiler.running?
+              log.debug "Profile already in progress. Ignoring agent command to start another."
+            else
+              @thread_profiler.start(-1, 10)
+            end
+          end
+        end
+
         def transmit_data
           now = Time.now
           log.debug "Sending data to New Relic Service"
@@ -1033,6 +1058,8 @@ module NewRelic
           harvest_and_send_slowest_sql
           harvest_and_send_timeslice_data
           harvest_and_send_thread_profile
+
+          check_for_agent_commands
         rescue => e
           retry_count ||= 0
           retry_count += 1
