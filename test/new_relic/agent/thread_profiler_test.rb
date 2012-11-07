@@ -6,6 +6,28 @@ require 'timeout'
 require 'zlib'
 require 'new_relic/agent/thread_profiler'
 
+
+class ThreadProfilerTest < Test::Unit::TestCase
+
+  def setup
+    @profiler = NewRelic::Agent::ThreadProfiler.new
+  end
+
+  def test_is_not_running
+    assert !@profiler.running?
+  end
+
+  def test_is_running
+    @profiler.start(0, 0)
+    assert @profiler.running?
+  end
+
+  def test_is_not_finished_if_no_profile_started
+    assert !@profiler.finished?
+  end
+
+end
+
 class ThreadProfileTest < Test::Unit::TestCase
 
   def setup
@@ -221,17 +243,6 @@ class ThreadProfileTest < Test::Unit::TestCase
     profile.run.join
 
     assert profile.finished?
-  end
-
-  def test_is_not_running
-    profiler = NewRelic::Agent::ThreadProfiler.new
-    assert_equal false, profiler.running?
-  end
-
-  def test_is_running
-    profiler = NewRelic::Agent::ThreadProfiler.new
-    profiler.start(0, 0)
-    assert profiler.running?
   end
 
 end
