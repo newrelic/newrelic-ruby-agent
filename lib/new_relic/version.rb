@@ -4,7 +4,7 @@ module NewRelic
     MAJOR = 3
     MINOR = 5
     TINY  = 1
-    BUILD = 'beta1' # Set to nil for a release, 'beta1', 'alpha', etc for prerelease builds
+    BUILD = nil
     STRING = [MAJOR, MINOR, TINY, BUILD].compact.join('.')
   end
 
