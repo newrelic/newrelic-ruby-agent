@@ -1028,22 +1028,7 @@ module NewRelic
         def check_for_agent_commands
           commands = @service.get_agent_commands
           log.debug "get_agent_commands = #{commands}"
-          return if commands.empty?
-
-          # Broken because:
-          # Doesn't actually extract the parameters!
-          # Too specific to start--what about stop?
-          # Doesn't deal with multiple commands in the return set (real case?)
-          # Breaks badly on unrecognized format
-          is_start_command = commands.first[1]["name"] == "start_profiler"
-         
-          if is_start_command
-            if @thread_profiler.running?
-              log.debug "Profile already in progress. Ignoring agent command to start another."
-            else
-              @thread_profiler.start(-1, 10)
-            end
-          end
+          @thread_profiler.respond_to_commands(commands)
         end
 
         def transmit_data

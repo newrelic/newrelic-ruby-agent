@@ -9,6 +9,28 @@ require 'new_relic/agent/thread_profiler'
 
 class ThreadProfilerTest < Test::Unit::TestCase
 
+  START_COMMAND = [[666,{
+      "name" => "start_profiler",
+      "arguments" => {
+        "profile_id" => 42,
+        "sample_period" => 0.1,
+        "duration" => 0.0,
+        "only_runnable_threads" => false,
+        "only_request_threads" => false,
+        "profile_agent_code" => false,
+      }
+    }]]
+
+  STOP_COMMAND = [[666,{
+      "name" => "stop_profiler",
+      "arguments" => {
+        "profile_id" => 42,
+        "report_data" => true,
+      }
+    }]]
+
+  NO_COMMAND = []
+
   def setup
     @profiler = NewRelic::Agent::ThreadProfiler.new
   end
@@ -24,6 +46,30 @@ class ThreadProfilerTest < Test::Unit::TestCase
 
   def test_is_not_finished_if_no_profile_started
     assert !@profiler.finished?
+  end
+
+  def test_respond_to_commands_with_no_commands_doesnt_run
+    @profiler.respond_to_commands(NO_COMMAND)
+    assert_equal false, @profiler.running?
+  end
+
+  def test_respond_to_commands_starts_running
+    @profiler.respond_to_commands(START_COMMAND)
+    assert_equal true, @profiler.running?
+  end
+
+  def test_respond_to_commands_check_agent_command_only_starts_when_asked
+    @profiler.respond_to_commands(STOP_COMMAND)
+    assert_equal false, @profiler.running?
+  end
+
+  def test_respond_to_commands_wont_start_second_profile
+    @profiler.start(0, 0)
+    original_profile = @profiler.profile
+
+    @profiler.respond_to_commands(START_COMMAND)
+
+    assert_equal original_profile, @profiler.profile
   end
 
 end

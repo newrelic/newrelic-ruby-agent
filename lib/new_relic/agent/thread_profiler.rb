@@ -8,7 +8,7 @@ module NewRelic
       attr_reader :profile
 
       def start(profile_id, duration, interval=0.1)
-        NewRelic::Agent.logger.debug("Starting thread profiler")
+        log.debug("Starting thread profiler")
         @profile = ThreadProfile.new(profile_id, duration, interval)
         @profile.run
       end
@@ -19,12 +19,38 @@ module NewRelic
         profile
       end
 
+      def respond_to_commands(commands)
+        return if commands.empty?
+
+        # Broken because:
+        # Doesn't actually extract the parameters!
+        # Doesn't support stop
+        # Doesn't deal with multiple commands in the return set (real case?)
+        # Not graceful about command format
+        wants_start = commands.first[1]["name"] == "start_profiler"
+
+        if wants_start
+          if running?
+            log.debug "Profile already in progress. Ignoring agent command to start another."
+          else
+            start(-1, 10)
+          end
+        end
+      end
+
       def running?
         !@profile.nil?
       end
 
       def finished?
         @profile && @profile.finished?
+      end
+
+
+      private
+
+      def log
+        NewRelic::Agent.logger
       end
     end
 
