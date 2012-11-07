@@ -15,7 +15,7 @@ begin
   end
 rescue LoadError
   task :rcov do
-    abort "RCov is not available. In order to run rcov, you must: sudo gem install spicycode-rcov"
+    abort "RCov is not available."
   end
 end
 
@@ -23,13 +23,19 @@ task :test => :check_dependencies
 
 task :default => :test
 
-require 'rdoc/task'
-RDoc::Task.new do |rdoc|
-  rdoc.rdoc_dir = 'rdoc'
-  rdoc.title = "New Relic Ruby Agent (v#{NewRelic::VERSION::STRING})"
-  rdoc.main = "README.rdoc"
-  rdoc.rdoc_files =  FileList['lib/**/*.rb'] + FileList['README*','LICENSE','newrelic.yml', 'CHANGELOG']
-  rdoc.inline_source = true
+begin
+  require 'rdoc/task'
+  RDoc::Task.new do |rdoc|
+    rdoc.rdoc_dir = 'rdoc'
+    rdoc.title = "New Relic Ruby Agent (v#{NewRelic::VERSION::STRING})"
+    rdoc.main = "README.rdoc"
+    rdoc.rdoc_files =  FileList['lib/**/*.rb'] + FileList['README*','LICENSE','newrelic.yml', 'CHANGELOG']
+    rdoc.inline_source = true
+  end
+rescue LoadError
+  task :rdoc do
+    abort "rdoc is not available."
+  end
 end
 
 begin
