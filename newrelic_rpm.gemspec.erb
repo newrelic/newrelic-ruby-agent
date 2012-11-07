@@ -50,31 +50,4 @@ EOS
   s.require_paths = ["lib"]
   s.rubygems_version = "<%= gem_version %>"
   s.summary = "New Relic Ruby Agent"
-
-  if s.respond_to? :specification_version
-    s.specification_version = 3
-
-    development_dependencies = {
-      'rake'         => '>= 0.9.2.2',
-      'mocha'        => '>= 0',
-      'shoulda'      => '>= 0',
-      'sdoc-helpers' => '>= 0',
-      'rdoc'         => '>= 2.4.2',
-      'rdiscount'    => '>= 0'
-    }
-
-    if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0')
-      development_dependencies.each do |k,v|
-        s.add_development_dependency(k, [v])
-      end
-    else
-      development_dependencies.each do |k,v|
-        s.add_dependency(k, [v])
-      end
-    end
-  else
-    development_dependencies.each do |k,v|
-      s.add_dependency(k, [v])
-    end
-  end
 end
