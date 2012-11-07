@@ -25,6 +25,9 @@ echo "Running in $(pwd)"
 # fail if any command fails
 set -e
 
+echo "generating gemspec"
+rake gemspec
+
 # check for require environment variables
 if [ "x$RUBY" == "x" ]; then
   echo '$RUBY is undefined'
