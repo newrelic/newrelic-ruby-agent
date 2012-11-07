@@ -54,7 +54,7 @@ module NewRelic
       def run
         Thread.new do
           Thread.current['newrelic_label'] = 'Thread Profiler'
-          @start_time = Time.now
+          @start_time = now_in_millis
           NewRelic::Agent::WorkerLoop.new(@duration).run(@interval) do
             @poll_count += 1
             Thread.list.each do |t|
@@ -67,8 +67,12 @@ module NewRelic
             end
           end
           @finished = true
-          @stop_time = Time.now
+          @stop_time = now_in_millis
         end
+      end
+
+      def now_in_millis
+        Time.now.to_f * 1_000
       end
 
       def finished?
