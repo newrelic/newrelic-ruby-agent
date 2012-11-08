@@ -11,8 +11,15 @@ module NewRelic
           @env ||= RAILS_ENV.dup
         end
         def root
-          if defined?(RAILS_ROOT) && RAILS_ROOT.to_s != ''
-            RAILS_ROOT.to_s
+          root =
+            if defined?(::Rails) && ::Rails::VERSION::MAJOR == 3
+              ::Rails.root
+            elsif defined?(RAILS_ROOT)
+              RAILS_ROOT
+            end
+
+          if root.to_s != ''
+            root
           else
             super
           end
