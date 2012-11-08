@@ -1,12 +1,12 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require 'base64'
-require 'json'
 require 'thread'
 require 'timeout'
 require 'zlib'
 require 'new_relic/agent/thread_profiler'
 
 if RUBY_VERSION >= '1.9'
+require 'json'
 class ThreadProfilerTest < Test::Unit::TestCase
 
   START_COMMAND = [[666,{
