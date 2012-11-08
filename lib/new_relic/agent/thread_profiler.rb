@@ -13,6 +13,11 @@ module NewRelic
         @profile.run
       end
 
+      def stop(report_data)
+        @profile.stop
+        @profile = nil if !report_data
+      end
+
       def harvest
         profile = @profile
         @profile = nil
@@ -89,10 +94,13 @@ module NewRelic
       end
 
       def run
+        @worker_loop = NewRelic::Agent::WorkerLoop.new(@duration)
+        
         Thread.new do
           Thread.current['newrelic_label'] = 'Thread Profiler'
           @start_time = now_in_millis
-          NewRelic::Agent::WorkerLoop.new(@duration).run(@interval) do
+          
+          @worker_loop.run(@interval) do
             @poll_count += 1
             Thread.list.each do |t|
               @sample_count += 1
@@ -103,18 +111,32 @@ module NewRelic
               end
             end
           end
+
           @finished = true
           @stop_time = now_in_millis
           log.debug("Finishing thread profile.")
         end
       end
 
-      def now_in_millis
-        Time.now.to_f * 1_000
+      def stop
+        @worker_loop.stop
       end
 
-      def finished?
-        @finished
+      def aggregate(trace, trees=@traces[:request], parent=nil)
+        return nil if trace.empty?
+        node = Node.new(trace.last)
+        existing = trees.find {|n| n == node} || node
+
+        if parent
+          parent.add_child(node)
+        else
+          trees << node unless trees.include? node
+        end
+
+        existing.runnable_count += 1
+        aggregate(trace[0..-2], existing.children, existing)
+        
+        existing
       end
 
       def to_compressed_array
@@ -133,25 +155,16 @@ module NewRelic
             @sample_count, 0]]]
       end
 
-      def self.compress(json)
-        compressed = Base64.encode64(Zlib::Deflate.deflate(json, Zlib::DEFAULT_COMPRESSION))
+      def now_in_millis
+        Time.now.to_f * 1_000
       end
 
-      def aggregate(trace, trees=@traces[:request], parent=nil)
-        return nil if trace.empty?
-        node = Node.new(trace.last)
-        existing = trees.find {|n| n == node} || node
+      def finished?
+        @finished
+      end
 
-        if parent
-          parent.add_child(node)
-        else
-          trees << node unless trees.include? node
-        end
-
-        existing.runnable_count += 1
-        aggregate(trace[0..-2], existing.children, existing)
-        
-        existing
+      def self.compress(json)
+        compressed = Base64.encode64(Zlib::Deflate.deflate(json, Zlib::DEFAULT_COMPRESSION))
       end
 
       def self.parse_backtrace(trace)

@@ -48,6 +48,27 @@ class ThreadProfilerTest < Test::Unit::TestCase
     assert !@profiler.finished?
   end
 
+  def test_can_stop_a_running_profile
+    @profiler.start(0, 0)
+    assert @profiler.running?
+
+    @profiler.stop(true)
+    sleep(0.1)
+
+    assert @profiler.finished?
+    assert_not_nil @profiler.profile
+  end
+
+  def test_can_stop_a_running_profile_and_discard
+    @profiler.start(0, 0)
+    assert @profiler.running?
+
+    @profiler.stop(false)
+    sleep(0.1)
+
+    assert_nil @profiler.profile
+  end
+
   def test_respond_to_commands_with_no_commands_doesnt_run
     @profiler.respond_to_commands(NO_COMMAND)
     assert_equal false, @profiler.running?
@@ -159,6 +180,24 @@ class ThreadProfileTest < Test::Unit::TestCase
 
     assert p.traces[:agent].size >= 2
   end
+
+  def test_profile_can_be_stopped
+    p = NewRelic::Agent::ThreadProfile.new(0, 1)
+
+    # make sure we're actually running
+    p.run
+    sleep(0.01)
+    assert_not_nil p.start_time
+    assert_equal false, p.finished?
+
+    # stopit!
+    p.stop
+    sleep(0.1)
+   
+    assert_not_nil p.stop_time
+    assert_equal true, p.finished?
+  end
+
 
   def test_parse_backtrace
     trace = [
