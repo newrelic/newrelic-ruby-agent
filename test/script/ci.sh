@@ -6,7 +6,7 @@
 #
 # It relies on 2 environment variables:
 #
-# RUBY - The rvm ruby you want to use (e.g. 1.8.7, ree, jruby)
+# RUBY - The rbenv ruby you want to use (e.g. 1.8.7, ree, jruby)
 #
 # BRANCH - The rpm_test_app branch you want to use (e.g. rails20, rails31)
 #
@@ -29,7 +29,7 @@ set -e
 if [ "x$RUBY" == "x" ]; then
   echo '$RUBY is undefined'
   echo 'defaulting to 1.9.3'
-  export RUBY=1.9.3
+  export RUBY=1.9.3-p286
 fi
 if [ "x$BRANCH" == "x" ]; then
   echo '$BRANCH is undefined'
@@ -47,8 +47,8 @@ else
   export PROJECT_NAME="$CLEANSED_NAME"
 fi
 
-. "$HOME/.rvm/scripts/rvm"
-rvm use $RUBY || rvm install $RUBY
+eval "$(rbenv init -)" || true
+rbenv shell $RUBY || rbenv install $RUBY
 echo `which ruby`
 
 echo "generating gemspec"
@@ -74,7 +74,7 @@ rpm_test_app_cache=~/workspace/.rpm_test_app_cache
 )
 
 git clone $rpm_test_app_cache rpm_test_app
-cd rpm_test_app || true # rvm overrides cd and it's f-ing up the build by exiting 2
+cd rpm_test_app
 
 git checkout -t origin/$BRANCH || git checkout $BRANCH
 
@@ -128,8 +128,8 @@ fi
 
 # save time by reusing the gemset if it exists
 
-gemset=ruby_agent_tests_$BRANCH
-rvm gemset use $gemset || ( rvm gemset create $gemset && rvm gemset use $gemset )
+# gemset=ruby_agent_tests_$BRANCH
+# rvm gemset use $gemset || ( rvm gemset create $gemset && rvm gemset use $gemset )
 
 if [ "x$RUBY" == "x1.8.6" ]; then
   # Bundler 0.1 dropped support for ruby 1.8.6
