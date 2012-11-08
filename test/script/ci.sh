@@ -125,6 +125,7 @@ if [ "x$BRANCH" == "xrails20" ]; then
   mkdir -p vendor/plugins
   ls ../../..
   gem unpack ../../../*.gem vendor/plugins
+  mv vendor/plugins/newrelic_rpm* vendor/plugins/newrelic_rpm
 else
   perl -p -i'.bak' -e 's#gem .newrelic_rpm.*$#gem "newrelic_rpm", :path => "\.\.\/\.\.\/"#' Gemfile
 fi
