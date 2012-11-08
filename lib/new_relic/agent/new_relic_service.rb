@@ -84,9 +84,6 @@ module NewRelic
       end
 
       def get_agent_commands
-        # Broken because
-        # Right format for data?
-        # Decompression on response?
         response = invoke_remote_json(:get_agent_commands, [@agent_id])
 
         return [] if response.nil? || response.body.nil?
@@ -142,23 +139,31 @@ module NewRelic
         log.info e.message
         raise
       ensure
-        NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote').record_data_point((Time.now - now).to_f)
-        NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote/' + method.to_s).record_data_point((Time.now - now).to_f)
+        record_supportability_metrics(method, now)
       end
 
+      # Send a message via a post to the server, formatting the data as json.
+      # Currently doesn't perform any compression on the outgoing data.
       def invoke_remote_json(method, data)
+        now = Time.now
+
         return nil if RUBY_VERSION < '1.9'
-        
         require 'json'
 
-        log.debug("JSON remote command #{method} with data #{data}")
-
-        # Broken because: 
-        # Needs exception handling
         send_request(:uri       => remote_method_uri(method.to_s) + "&marshal_format=json",
                      :encoding  => 'identity',
                      :collector => @collector,
                      :data      => JSON.dump(data))
+      rescue SystemCallError, SocketError => e
+        # These include Errno connection errors
+        raise NewRelic::Agent::ServerConnectionException, "Recoverable error connecting to the server: #{e}"
+      ensure
+        record_supportability_metrics(method, now)
+      end
+
+      def record_supportability_metrics(method, start_time)
+        NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote').record_data_point((Time.now - start_time).to_f)
+        NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote/' + method.to_s).record_data_point((Time.now - start_time).to_f)
       end
 
       # This method handles the compression of the request body that
