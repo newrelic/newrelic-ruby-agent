@@ -93,7 +93,12 @@ module NewRelic
         JSON.parse(response.body).fetch("return_value", [])
       end
 
+      def agent_command_results(command_id, error=nil)
+        results = {}
+        results["error"] = error unless error.nil?
 
+        invoke_remote_json(:agent_command_results, [@agent_id, { command_id.to_s => results }])
+      end
 
       private
 
@@ -145,6 +150,8 @@ module NewRelic
         return nil if RUBY_VERSION < '1.9'
         
         require 'json'
+
+        log.debug("JSON remote command #{method} with data #{data}")
 
         # Broken because: 
         # Needs exception handling

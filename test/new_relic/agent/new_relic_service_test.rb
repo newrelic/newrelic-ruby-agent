@@ -121,16 +121,14 @@ class NewRelicServiceTest < Test::Unit::TestCase
   end
 
   def test_profile_data
-    @http_handle.register(HTTPSuccess.new('profile', 200)) do |request| 
-      request.path.include?('profile_data') 
-    end 
+    stub_command(:profile_data, 'profile')
     response = @service.profile_data(NewRelic::Agent::ThreadProfile.new(0, 0)) 
     assert_equal 'profile', response.body
   end
 
   def test_get_agent_commands
     @service.agent_id = 666
-    stub_agent_command('{ "return_value": [1,2,3] }')
+    stub_command(:get_agent_commands, '{ "return_value": [1,2,3] }')
 
     response = @service.get_agent_commands
     assert_equal [1,2,3], response
@@ -138,7 +136,7 @@ class NewRelicServiceTest < Test::Unit::TestCase
 
   def test_get_agent_commands_without_return_value
     @service.agent_id = 666
-    stub_agent_command('{ "unexpected": [] }')
+    stub_command(:get_agent_commands, '{ "unexpected": [] }')
 
     response = @service.get_agent_commands
     assert_equal [], response
@@ -146,15 +144,29 @@ class NewRelicServiceTest < Test::Unit::TestCase
 
   def test_get_agent_commands_with_no_response
     @service.agent_id = 666
-    stub_agent_command(nil)
+    stub_command(:get_agent_commands, nil)
 
     response = @service.get_agent_commands
     assert_equal [], response
   end
 
-  def stub_agent_command(json)
+  def test_agent_command_results
+    stub_command(:agent_command_results, 'result')
+    response = @service.agent_command_results(4200)
+    assert_equal 'result', response.body
+  end
+
+  def test_agent_command_results_with_errors
+    @http_handle.register(HTTPSuccess.new('returned error', 200)) do |request|
+      request.path.include?('agent_command_results') && request.body.include?('Boo!')
+    end
+    response = @service.agent_command_results(4200, 'Boo!')
+    assert_equal 'returned error', response.body
+  end
+
+  def stub_command(command, json)
     @http_handle.register(HTTPSuccess.new(json, 200)) do |request|
-      request.path.include?('get_agent_commands')
+      request.path.include?(command.to_s)
     end
   end
 

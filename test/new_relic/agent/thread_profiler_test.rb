@@ -114,6 +114,30 @@ class ThreadProfilerTest < Test::Unit::TestCase
     assert_equal original_profile, @profiler.profile
   end
 
+  def test_response_to_commands_start_notifies_of_result
+    saw_command_id = nil
+    @profiler.respond_to_commands(START_COMMAND) { |id, err| saw_command_id = id }
+    assert_equal 666, saw_command_id
+  end
+
+  def test_response_to_commands_start_notifies_of_error
+    saw_command_id = nil
+    error = nil
+
+    @profiler.respond_to_commands(START_COMMAND)
+    @profiler.respond_to_commands(START_COMMAND) { |id, err| saw_command_id = id; error = err }
+
+    assert_equal 666, saw_command_id
+    assert_not_nil error
+  end
+
+  def test_response_to_commands_stop_notifies_of_result
+    saw_command_id = nil
+    @profiler.start(0,0)
+    @profiler.respond_to_commands(STOP_COMMAND) { |id, err| saw_command_id = id }
+    assert_equal 666, saw_command_id
+  end
+
   def test_command_attributes_passed_along
     @profiler.respond_to_commands(START_COMMAND)
     assert_equal 42,  @profiler.profile.profile_id

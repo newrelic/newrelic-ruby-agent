@@ -24,20 +24,21 @@ module NewRelic
         profile
       end
 
-      def respond_to_commands(commands)
+      def respond_to_commands(commands, &notify_results)
         return if commands.empty? || commands.first.size < 2 
 
         # Broken because:
-        # Doesn't support stop
         # Doesn't deal with multiple commands in the return set (real case?)
         # Still some parameters to support
+        command_id = commands.first[0]
         command = commands.first[1]
+
         name = command["name"]
         arguments = command["arguments"]
 
         case name
-          when "start_profiler" then try_to_start(arguments)
-          when "stop_profiler"  then try_to_stop(arguments)
+          when "start_profiler" then try_to_start(command_id, arguments, &notify_results)
+          when "stop_profiler"  then try_to_stop(command_id, arguments, &notify_results)
         end
       end
 
@@ -51,21 +52,25 @@ module NewRelic
 
       private
 
-      def try_to_start(arguments)
+      def try_to_start(command_id, arguments)
         profile_id = arguments.fetch("profile_id", -1)
         duration =   arguments.fetch("duration", 120)
         interval =   arguments.fetch("sample_period", 0.1)
 
         if running?
-          log.debug "Profile already in progress. Ignoring agent command to start another."
+          msg = "Profile already in progress. Ignoring agent command to start another."
+          log.debug(msg)
+          yield(command_id, msg) if block_given?
         else
           start(profile_id, duration, interval)
+          yield(command_id) if block_given?
         end
       end
 
-      def try_to_stop(arguments)
+      def try_to_stop(command_id, arguments)
         report_data = arguments.fetch("report_data", true)
         stop(report_data)
+        yield(command_id) if block_given?
       end
 
       def log
