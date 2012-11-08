@@ -37,6 +37,7 @@ module NewRelic
 
         case name
           when "start_profiler" then try_to_start(arguments)
+          when "stop_profiler"  then try_to_stop(arguments)
         end
       end
 
@@ -47,7 +48,6 @@ module NewRelic
       def finished?
         @profile && @profile.finished?
       end
-
 
       private
 
@@ -61,6 +61,11 @@ module NewRelic
         else
           start(profile_id, duration, interval)
         end
+      end
+
+      def try_to_stop(arguments)
+        report_data = arguments.fetch("report_data", true)
+        stop(report_data)
       end
 
       def log
@@ -119,7 +124,9 @@ module NewRelic
       end
 
       def stop
+        log.debug("Stopping thread profile.")
         @worker_loop.stop
+        @finished = true
       end
 
       def aggregate(trace, trees=@traces[:request], parent=nil)

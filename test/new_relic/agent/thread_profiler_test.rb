@@ -29,6 +29,14 @@ class ThreadProfilerTest < Test::Unit::TestCase
       }
     }]]
 
+  STOP_AND_DISCARD_COMMAND = [[666,{
+      "name" => "stop_profiler",
+      "arguments" => {
+        "profile_id" => 42,
+        "report_data" => false,
+      }
+    }]]
+
   NO_COMMAND = []
 
   def setup
@@ -79,9 +87,22 @@ class ThreadProfilerTest < Test::Unit::TestCase
     assert_equal true, @profiler.running?
   end
 
-  def test_respond_to_commands_check_agent_command_only_starts_when_asked
+  def test_respond_to_commands_stops
+    @profiler.start(0, 0)
+    assert @profiler.running?
+    assert_equal false, @profiler.finished?
+
     @profiler.respond_to_commands(STOP_COMMAND)
-    assert_equal false, @profiler.running?
+    assert_equal true, @profiler.profile.finished?
+  end
+
+  def test_respond_to_commands_stops_and_discards
+    @profiler.start(0, 0)
+    assert @profiler.running?
+    assert_equal false, @profiler.finished?
+
+    @profiler.respond_to_commands(STOP_AND_DISCARD_COMMAND)
+    assert_nil @profiler.profile
   end
 
   def test_respond_to_commands_wont_start_second_profile
