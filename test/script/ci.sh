@@ -48,8 +48,11 @@ else
 fi
 
 eval "$(rbenv init -)" || true
-rbenv shell $RUBY || rbenv install $RUBY
+rbenv shell $RUBY || rbenv install $RUBY && rbenv shell $RUBY
 echo `which ruby`
+ruby -v
+
+rake -h || gem install rake
 
 echo "generating gemspec"
 rake gemspec
@@ -101,7 +104,7 @@ sqlite3: &sqlite3
   pool: 5
   timeout: 5000
   host: localhost
-  
+
 # SQLite version 3.x
 #   gem install sqlite3-ruby (not necessary on OS X Leopard)
 development:
@@ -118,18 +121,13 @@ YAML
 mkdir -p log
 mkdir -p tmp
 if [ "x$BRANCH" == "xrails20" ]; then
-  printf "\e[0;31;49mWarning:\e[0m "
-  echo "Testing against the rails20 branch requires your changes to be committed. Uncommitted changes will not be used."
+  echo "Warning: Rails 2.0 support in progress. This probably only works in CI"
   mkdir -p vendor/plugins
-  git clone ../.. vendor/plugins/newrelic_rpm
+  ls ../../..
+  gem unpack ../../../*.gem vendor/plugins
 else
   perl -p -i'.bak' -e 's#gem .newrelic_rpm.*$#gem "newrelic_rpm", :path => "\.\.\/\.\.\/"#' Gemfile
 fi
-
-# save time by reusing the gemset if it exists
-
-# gemset=ruby_agent_tests_$BRANCH
-# rvm gemset use $gemset || ( rvm gemset create $gemset && rvm gemset use $gemset )
 
 if [ "x$RUBY" == "x1.8.6" ]; then
   # Bundler 0.1 dropped support for ruby 1.8.6
@@ -151,4 +149,5 @@ bundle
 # To reduce the noise from these sporardic failures we rerun the test suite if
 # there are failures to see if they are transient (instead of re-running it by
 # hand).  Ultimately we'll move towards a more elegant solution.
+
 bundle exec rake --trace db:create:all test:newrelic || bundle exec rake --trace test:newrelic || bundle exec rake --trace test:newrelic
