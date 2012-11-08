@@ -132,9 +132,9 @@ fi
 
 if [ "x$RUBY" == "x1.8.6" ]; then
   # Bundler 0.1 dropped support for ruby 1.8.6
-  gem install bundler -v'~>1.0.0' --no-rdoc --no-ri
+  bundle -h || gem install bundler -v'~>1.0.0' --no-rdoc --no-ri
 else
-  gem install bundler --no-rdoc --no-ri
+  bundle -h || gem install bundler --no-rdoc --no-ri
 fi
 
 
