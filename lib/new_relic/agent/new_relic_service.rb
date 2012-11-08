@@ -154,9 +154,6 @@ module NewRelic
                      :encoding  => 'identity',
                      :collector => @collector,
                      :data      => JSON.dump(data))
-      rescue SystemCallError, SocketError => e
-        # These include Errno connection errors
-        raise NewRelic::Agent::ServerConnectionException, "Recoverable error connecting to the server: #{e}"
       ensure
         record_supportability_metrics(method, now)
       end
@@ -201,7 +198,6 @@ module NewRelic
       rescue => e
         log.debug("#{e.class.name} : #{e.message} when marshalling #{object}")
         raise
->>>>>>> RUBY-917 Factoring out invoke_remote_json method
       end
 
       # Raises an UnrecoverableServerException if the post_string is longer
