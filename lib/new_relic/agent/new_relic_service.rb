@@ -80,35 +80,20 @@ module NewRelic
       end
 
       def profile_data(profile)
-        return '' if RUBY_VERSION < '1.9'
-
-        require 'json'
-
-        # Broken because: 
-        # Needs exception handling
-        send_request(:uri       => remote_method_uri('profile_data') + "&marshal_format=json",
-                                :encoding  => 'identity',
-                                :collector => @collector,
-                                :data      => JSON.dump(profile.to_compressed_array))
+        invoke_remote_json(:profile_data, profile.to_compressed_array) || ''
       end
 
       def get_agent_commands
-        return {} if RUBY_VERSION < '1.9'
-
-        require 'json'
-
         # Broken because
         # Right format for data?
         # Decompression on response?
-        # Needs exception handling
-        response = send_request(:uri       => remote_method_uri('get_agent_commands') + "&marshal_format=json",
-                                :encoding  => 'identity',
-                                :collector => @collector,
-                                :data      => JSON.dump([@agent_id]))
+        response = invoke_remote_json(:get_agent_commands, [@agent_id])
 
         return [] if response.nil? || response.body.nil?
         JSON.parse(response.body).fetch("return_value", [])
       end
+
+
 
       private
 
@@ -152,12 +137,59 @@ module NewRelic
         log.info e.message
         raise
       ensure
-        NewRelic::Agent.instance.stats_engine \
-          .get_stats_no_scope('Supportability/invoke_remote') \
-          .record_data_point((Time.now - now).to_f)
-        NewRelic::Agent.instance.stats_engine \
-          .get_stats_no_scope('Supportability/invoke_remote/' + method.to_s) \
-          .record_data_point((Time.now - now).to_f)
+        NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote').record_data_point((Time.now - now).to_f)
+        NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote/' + method.to_s).record_data_point((Time.now - now).to_f)
+      end
+
+      def invoke_remote_json(method, data)
+        return nil if RUBY_VERSION < '1.9'
+        
+        require 'json'
+
+        # Broken because: 
+        # Needs exception handling
+        send_request(:uri       => remote_method_uri(method.to_s) + "&marshal_format=json",
+                     :encoding  => 'identity',
+                     :collector => @collector,
+                     :data      => JSON.dump(data))
+      end
+
+      # This method handles the compression of the request body that
+      # we are going to send to the server
+      #
+      # We currently optimize for CPU here since we get roughly a 10x
+      # reduction in message size with this, and CPU overhead is at a
+      # premium. For extra-large posts, we use the higher compression
+      # since otherwise it actually errors out.
+      #
+      # We do not compress if content is smaller than 64kb.  There are
+      # problems with bugs in Ruby in some versions that expose us
+      # to a risk of segfaults if we compress aggressively.
+      #
+      # medium payloads get fast compression, to save CPU
+      # big payloads get all the compression possible, to stay under
+      # the 2,000,000 byte post threshold
+      def compress_data(object)
+        dump = marshal_data(object)
+
+        return [dump, 'identity'] if dump.size < (64*1024)
+
+        compressed_dump = Zlib::Deflate.deflate(dump, Zlib::DEFAULT_COMPRESSION)
+
+        # this checks to make sure mongrel won't choke on big uploads
+        check_post_size(compressed_dump)
+
+        [compressed_dump, 'deflate']
+      end
+
+      def marshal_data(data)
+        NewRelic::LanguageSupport.with_cautious_gc do
+          Marshal.dump(data)
+        end
+      rescue => e
+        log.debug("#{e.class.name} : #{e.message} when marshalling #{object}")
+        raise
+>>>>>>> RUBY-917 Factoring out invoke_remote_json method
       end
 
       # Raises an UnrecoverableServerException if the post_string is longer
