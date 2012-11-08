@@ -6,7 +6,7 @@ require 'timeout'
 require 'zlib'
 require 'new_relic/agent/thread_profiler'
 
-
+if RUBY_VERSION >= '1.9'
 class ThreadProfilerTest < Test::Unit::TestCase
 
   START_COMMAND = [[666,{
@@ -404,4 +404,5 @@ class ThreadProfileTest < Test::Unit::TestCase
     assert profile.finished?
   end
 
+end
 end
