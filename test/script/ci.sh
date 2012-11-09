@@ -136,8 +136,8 @@ mkdir -p tmp
 if [ "x$BRANCH" == "xrails20" ]; then
   echo "Warning: Rails 2.0 support in progress. This probably only works in CI"
   mkdir -p vendor/plugins
-  ls ../../..
-  (cd vendor/plugins && gem unpack ../../../../../*.gem vendor/plugins)
+  GEM=`ls ../../../*.gem | tail -n1`
+  (cd vendor/plugins && gem unpack ../../../../../$GEM)
   mv vendor/plugins/newrelic_rpm* vendor/plugins/newrelic_rpm
 else
   perl -p -i'.bak' -e 's#gem .newrelic_rpm.*$#gem "newrelic_rpm", :path => "\.\.\/\.\.\/"#' Gemfile
