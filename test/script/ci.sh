@@ -48,7 +48,20 @@ else
 fi
 
 eval "$(rbenv init -)" || true
-rbenv shell $RUBY || rbenv install $RUBY && rbenv shell $RUBY
+rbenv shell $RUBY
+if [ "x$(rbenv version-name)" = "x$RUBY" ]; then
+  echo "switched to ruby $RUBY"
+else
+  rbenv install $RUBY
+  rbenv shell $RUBY
+  if [ "x$(rbenv version-name)" = "x$RUBY" ]; then
+    echo "switched to ruby $RUBY"
+  else
+    echo "failed to install ruby $RUBY"
+    exit 1
+  fi
+fi
+
 echo `which ruby`
 ruby -v
 
