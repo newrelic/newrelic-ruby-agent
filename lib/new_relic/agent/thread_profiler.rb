@@ -37,8 +37,11 @@ module NewRelic
         arguments = command["arguments"]
 
         case name
-          when "start_profiler" then try_to_start(command_id, arguments, &notify_results)
-          when "stop_profiler"  then try_to_stop(command_id, arguments, &notify_results)
+          when "start_profiler"
+            start_unless_running_and_notify(command_id, arguments, &notify_results)
+
+          when "stop_profiler"
+            stop_and_notify(command_id, arguments, &notify_results)
         end
       end
 
@@ -52,7 +55,7 @@ module NewRelic
 
       private
 
-      def try_to_start(command_id, arguments)
+      def start_unless_running_and_notify(command_id, arguments)
         profile_id = arguments.fetch("profile_id", -1)
         duration =   arguments.fetch("duration", 120)
         interval =   arguments.fetch("sample_period", 0.1)
@@ -67,7 +70,7 @@ module NewRelic
         end
       end
 
-      def try_to_stop(command_id, arguments)
+      def stop_and_notify(command_id, arguments)
         report_data = arguments.fetch("report_data", true)
         stop(report_data)
         yield(command_id) if block_given?
