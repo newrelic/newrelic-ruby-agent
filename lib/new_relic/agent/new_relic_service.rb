@@ -28,7 +28,7 @@ module NewRelic
       end
 
       def load_marshaller
-        @marshaller = if LanguageSupport.using_version?('1.9')
+        @marshaller = if RUBY_VERSION >= '1.9.2'
           require 'json'
           JsonMarshaller.new
         else

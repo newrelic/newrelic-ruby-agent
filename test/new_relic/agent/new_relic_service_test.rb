@@ -109,7 +109,7 @@ class NewRelicServiceTest < Test::Unit::TestCase
   end
 
   def test_transaction_sample_data
-    if RUBY_VERSION >= '1.9'
+    if RUBY_VERSION >= '1.9.2'
       @http_handle.respond_to(:transaction_sample_data, '[ "MPC1000" ]')
     else
       @http_handle.respond_to(:transaction_sample_data, [ 'MPC1000' ])
@@ -126,7 +126,7 @@ class NewRelicServiceTest < Test::Unit::TestCase
 
 
 # Thread profiling only available in 1.9 and above
-if RUBY_VERSION >= '1.9'
+if RUBY_VERSION >= '1.9.2'
   def test_profile_data
     stub_command(:profile_data, '{ "profile" : 123 }')
     response = @service.profile_data(NewRelic::Agent::ThreadProfile.new(0, 0)) 
@@ -266,7 +266,7 @@ end
       # will be removed when the migration is complete
       json_supported_methods = [:transaction_sample_data]
 
-      if NewRelic::LanguageSupport.using_version?('1.9') &&
+      if RUBY_VERSION >= '1.9.2' &&
           json_supported_methods.include?(method)
         register(klass.new(payload, code)) do |request|
           request.path.include?(method.to_s) &&
