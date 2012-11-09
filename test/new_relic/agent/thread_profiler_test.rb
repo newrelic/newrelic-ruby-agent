@@ -90,7 +90,6 @@ class ThreadProfilerTest < Test::Unit::TestCase
   def test_respond_to_commands_stops
     @profiler.start(0, 0)
     assert @profiler.running?
-    assert_equal false, @profiler.finished?
 
     @profiler.respond_to_commands(STOP_COMMAND)
     assert_equal true, @profiler.profile.finished?
@@ -99,7 +98,6 @@ class ThreadProfilerTest < Test::Unit::TestCase
   def test_respond_to_commands_stops_and_discards
     @profiler.start(0, 0)
     assert @profiler.running?
-    assert_equal false, @profiler.finished?
 
     @profiler.respond_to_commands(STOP_AND_DISCARD_COMMAND)
     assert_nil @profiler.profile
@@ -184,7 +182,7 @@ class ThreadProfileTest < Test::Unit::TestCase
     p = NewRelic::Agent::ThreadProfile.new(0, 0.21)
     assert_nothing_raised do
       thread = nil
-      Timeout.timeout(0.22) do
+      Timeout.timeout(0.25) do
         thread = p.run
       end
       thread.join
@@ -194,10 +192,7 @@ class ThreadProfileTest < Test::Unit::TestCase
   def test_profiler_collects_backtrace_from_every_thread
     other_thread = Thread.new { sleep(0.3) }
 
-    p = NewRelic::Agent::ThreadProfile.new(0, 0.21)
-    p.run
-
-    sleep(0.22)
+    p = run_for(0.21)
 
     assert p.poll_count >= 2
     assert p.sample_count >= 6
@@ -205,23 +200,11 @@ class ThreadProfileTest < Test::Unit::TestCase
     other_thread.join
   end
 
-
-  def test_profiler_tracks_time
-    p = NewRelic::Agent::ThreadProfile.new(0, 0.01)
-    p.run.join
-
-    assert_not_nil p.start_time
-    assert_not_nil p.stop_time
-  end
-
   def test_profiler_collects_into_agent_bucket
     other_thread = Thread.new { sleep(0.3) }
     other_thread['newrelic_label'] = "Some Other New Relic Thread" 
 
-    p = NewRelic::Agent::ThreadProfile.new(0, 0.21)
-    p.run
-
-    sleep(0.22)
+    p = run_for(0.21)
 
     assert p.traces[:agent].size >= 2
   end
@@ -243,6 +226,23 @@ class ThreadProfileTest < Test::Unit::TestCase
     assert_equal true, p.finished?
   end
 
+  def test_profiler_tracks_time
+    p = NewRelic::Agent::ThreadProfile.new(0, 0.01)
+    p.run.join
+
+    assert_not_nil p.start_time
+    assert_not_nil p.stop_time
+  end
+
+  def run_for(time)
+    p = NewRelic::Agent::ThreadProfile.new(0, time)
+    t = p.run
+
+    sleep(time + 0.05)
+    t.join
+
+    p
+  end
 
   def test_parse_backtrace
     trace = [
