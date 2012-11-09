@@ -5,7 +5,7 @@ require 'timeout'
 require 'zlib'
 require 'new_relic/agent/thread_profiler'
 
-if RUBY_VERSION >= '1.9'
+if RUBY_VERSION >= '1.9.2'
 require 'json'
 class ThreadProfilerTest < Test::Unit::TestCase
 
