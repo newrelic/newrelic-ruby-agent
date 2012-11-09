@@ -189,7 +189,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
     assert_equal expected_array, @t.to_array
   end
 
-  if NewRelic::LanguageSupport.using_version?('1.9')
+  if RUBY_VERSION >= '1.9.2'
     def test_to_json
       expected_string = JSON.dump([@t.start_time.to_f,
                                    @t.params[:request_params],

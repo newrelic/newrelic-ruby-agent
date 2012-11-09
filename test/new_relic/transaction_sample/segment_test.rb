@@ -51,7 +51,7 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
     assert_equal(expected_array, parent.to_array)
   end
 
-  if NewRelic::LanguageSupport.using_version?('1.9')
+  if RUBY_VERSION >= '1.9.2'
     def test_to_json
       parent = NewRelic::TransactionSample::Segment.new(1, 'Custom/test/parent', 1)
       parent.params[:test] = 'value'
