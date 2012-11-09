@@ -54,8 +54,8 @@ module NewRelic
         if defined? JRuby
           begin
             require 'java'
-            include_class 'java.lang.management.ManagementFactory'
-            include_class 'com.sun.management.OperatingSystemMXBean'
+            java_import 'java.lang.management.ManagementFactory'
+            java_import 'com.sun.management.OperatingSystemMXBean'
             @@java_classes_loaded = true
           rescue => e
           end
