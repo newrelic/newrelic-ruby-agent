@@ -16,7 +16,7 @@ end
       # Set the test loader to use the Ruby provided test loading script.
       # In ruby 1.9 the default Rake provided runner seems to exit with a 0
       # status code, even when tests fail.
-      t.loader = :testrb
+      t.loader = :testrb if RUBY_VERSION >= '1.9'
     end
     Rake::Task['test:newrelic'].comment = "Run the unit tests for the Agent"
     task 'test:newrelic' => :environment
