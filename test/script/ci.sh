@@ -152,7 +152,7 @@ fi
 
 
 export RAILS_ENV=test
-bundle
+bundle --local || bundle
 
 # FIXME:  Here we actually trigger the tests. Since the agent deals so heavily
 # in units of time we have many tests that assert that durations are measured
