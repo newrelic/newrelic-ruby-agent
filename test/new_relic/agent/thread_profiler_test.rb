@@ -192,7 +192,7 @@ class ThreadProfileTest < Test::Unit::TestCase
   def test_profiler_collects_backtrace_from_every_thread
     other_thread = Thread.new { sleep(0.3) }
 
-    p = run_for(0.21)
+    p = run_for(0.25)
 
     assert p.poll_count >= 2
     assert p.sample_count >= 6
@@ -202,7 +202,7 @@ class ThreadProfileTest < Test::Unit::TestCase
 
   def test_profiler_collects_into_agent_bucket
     other_thread = Thread.new { sleep(0.3) }
-    other_thread['newrelic_label'] = "Some Other New Relic Thread" 
+    other_thread['newrelic_label'] = "Some Other New Relic Thread"
 
     p = run_for(0.21)
 
@@ -214,14 +214,14 @@ class ThreadProfileTest < Test::Unit::TestCase
 
     # make sure we're actually running
     p.run
-    sleep(0.01)
+    sleep(0.05)
     assert_not_nil p.start_time
     assert_equal false, p.finished?
 
     # stopit!
     p.stop
     sleep(0.1)
-   
+
     assert_not_nil p.stop_time
     assert_equal true, p.finished?
   end
@@ -249,17 +249,17 @@ class ThreadProfileTest < Test::Unit::TestCase
       "/Users/jclark/.rbenv/versions/1.9.3-p194/lib/ruby/1.9.1/irb.rb:69:in `catch'",
       "/Users/jclark/.rbenv/versions/1.9.3-p194/lib/ruby/1.9.1/irb.rb:69:in `start'",
       "/Users/jclark/.rbenv/versions/1.9.3/bin/irb:12:in `<main>'"
-    ]    
+    ]
 
     result = NewRelic::Agent::ThreadProfile.parse_backtrace(trace)
-    assert_equal({ :method => 'catch', 
-                   :file => '/Users/jclark/.rbenv/versions/1.9.3-p194/lib/ruby/1.9.1/irb.rb', 
+    assert_equal({ :method => 'catch',
+                   :file => '/Users/jclark/.rbenv/versions/1.9.3-p194/lib/ruby/1.9.1/irb.rb',
                    :line_no => 69 }, result[0])
-    assert_equal({ :method => 'start', 
-                   :file => '/Users/jclark/.rbenv/versions/1.9.3-p194/lib/ruby/1.9.1/irb.rb', 
+    assert_equal({ :method => 'start',
+                   :file => '/Users/jclark/.rbenv/versions/1.9.3-p194/lib/ruby/1.9.1/irb.rb',
                    :line_no => 69 }, result[1])
-    assert_equal({ :method => '<main>', 
-                   :file => '/Users/jclark/.rbenv/versions/1.9.3/bin/irb', 
+    assert_equal({ :method => '<main>',
+                   :file => '/Users/jclark/.rbenv/versions/1.9.3/bin/irb',
                    :line_no => 12 }, result[2])
   end
 
@@ -301,8 +301,8 @@ class ThreadProfileTest < Test::Unit::TestCase
     result = profile.aggregate(@single_trace, [result])
 
     tree = NewRelic::Agent::ThreadProfile::Node.new(@single_trace[-1])
-    tree.runnable_count += 1 
- 
+    tree.runnable_count += 1
+
     child = NewRelic::Agent::ThreadProfile::Node.new(@single_trace[-2], tree)
     grand = NewRelic::Agent::ThreadProfile::Node.new(@single_trace[-3], child)
 
@@ -315,7 +315,7 @@ class ThreadProfileTest < Test::Unit::TestCase
   def test_single_node_converts_to_array
     line = "irb.rb:69:in `catch'"
     node = NewRelic::Agent::ThreadProfile::Node.new(line)
-    
+
     assert_equal([
         ["irb.rb", "catch", 69],
         0, 0,
@@ -328,7 +328,7 @@ class ThreadProfileTest < Test::Unit::TestCase
     child_line = "bacon.rb:42:in `yum'"
     node = NewRelic::Agent::ThreadProfile::Node.new(line)
     child = NewRelic::Agent::ThreadProfile::Node.new(child_line, node)
-    
+
     assert_equal([
         ["irb.rb", "catch", 69],
         0, 0,
