@@ -80,21 +80,21 @@ module NewRelic
       end
 
       def profile_data(profile)
-        invoke_remote_json(:profile_data, profile.to_compressed_array) || ''
+        @marshaller = JsonMarshaller.new
+        invoke_remote(:profile_data, @agent_id, profile.to_compressed_array) || ''
       end
 
       def get_agent_commands
-        response = invoke_remote_json(:get_agent_commands, [@agent_id])
-
-        return [] if response.nil? || response.body.nil?
-        JSON.parse(response.body).fetch("return_value", [])
+        @marshaller = JsonMarshaller.new
+        invoke_remote(:get_agent_commands, @agent_id)
       end
 
       def agent_command_results(command_id, error=nil)
         results = {}
         results["error"] = error unless error.nil?
 
-        invoke_remote_json(:agent_command_results, [@agent_id, { command_id.to_s => results }])
+        @marshaller = JsonMarshaller.new
+        invoke_remote(:agent_command_results, @agent_id, { command_id.to_s => results })
       end
 
       private
@@ -139,28 +139,12 @@ module NewRelic
         log.info e.message
         raise
       ensure
-        record_supportability_metrics(method, now)
-      end
-
-      # Send a message via a post to the server, formatting the data as json.
-      # Currently doesn't perform any compression on the outgoing data.
-      def invoke_remote_json(method, data)
-        now = Time.now
-
-        return nil if RUBY_VERSION < '1.9'
-        require 'json'
-
-        send_request(:uri       => remote_method_uri(method.to_s) + "&marshal_format=json",
-                     :encoding  => 'identity',
-                     :collector => @collector,
-                     :data      => JSON.dump(data))
-      ensure
-        record_supportability_metrics(method, now)
-      end
-
-      def record_supportability_metrics(method, start_time)
-        NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote').record_data_point((Time.now - start_time).to_f)
-        NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote/' + method.to_s).record_data_point((Time.now - start_time).to_f)
+        NewRelic::Agent.instance.stats_engine. \
+          get_stats_no_scope('Supportability/invoke_remote'). \
+          record_data_point((Time.now - now).to_f)
+        NewRelic::Agent.instance.stats_engine. \
+          get_stats_no_scope('Supportability/invoke_remote/' + method.to_s). \
+          record_data_point((Time.now - now).to_f)
       end
 
       # This method handles the compression of the request body that

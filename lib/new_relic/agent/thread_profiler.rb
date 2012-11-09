@@ -159,12 +159,11 @@ module NewRelic
           "BACKGROUND" => @traces[:background].map{|t| t.to_array }
         }
 
-        [NewRelic::Agent.config[:agent_run_id], 
-          [[@profile_id,
-            @start_time.to_f, @stop_time.to_f,
-            @poll_count, 
-            ThreadProfile.compress(JSON.dump(traces)),
-            @sample_count, 0]]]
+        [[@profile_id,
+          @start_time.to_f, @stop_time.to_f,
+          @poll_count, 
+          ThreadProfile.compress(JSON.dump(traces)),
+          @sample_count, 0]]
       end
 
       def now_in_millis

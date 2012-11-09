@@ -372,8 +372,7 @@ class ThreadProfileTest < Test::Unit::TestCase
       "thread_profiler.py:165:in `collect_thread_stacks'"]
     10.times { profile.aggregate(trace, profile.traces[:agent]) }
  
-    expected = [42,
-      [[
+    expected = [[
           -1, 
           1350403938892.524, 
           1350403939904.375, 
@@ -381,11 +380,9 @@ class ThreadProfileTest < Test::Unit::TestCase
           "eJy9klFPwjAUhf/LfW7WDQTUGBPUiYkGdAxelqXZRpGGrm1uS8xi/O924JQX\n9Un7dm77ndN7c19hlt7FCZxnWQZug7xYMYN6LSTHwDRA4KLWq53kl0CinEQh\nCUmW5zmBJH5axPPUk16MJ/E0/cGk0lLyyrGPS+uKamu943DQeX5HMtypz5In\nwv6vRCeZ1NoAGQ2PCDpvrOM1fRAlFtjQWyxq/qJxa+lj4zZaBeuuQpccrdDK\n0l4wolKU1OxftOoQLNTzIdL/EcjJafjnQYyVWjvrsDBMKNVOZBD1/jO27fPs\naBG+DoGr8fX9JJktpjftVry9A9unzGo=\n",
           2, 
           0
-      ]]]
+      ]]
 
-    with_config :agent_run_id => 42 do
-      assert_equal expected, profile.to_compressed_array
-    end
+    assert_equal expected, profile.to_compressed_array
   end
 
   def test_compress

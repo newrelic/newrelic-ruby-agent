@@ -120,10 +120,13 @@ class NewRelicServiceTest < Test::Unit::TestCase
     assert_equal 'explain this', response
   end
 
+
+# Thread profiling only available in 1.9 and above
+if RUBY_VERSION >= '1.9'
   def test_profile_data
-    stub_command(:profile_data, 'profile')
+    stub_command(:profile_data, '{ "profile" : 123 }')
     response = @service.profile_data(NewRelic::Agent::ThreadProfile.new(0, 0)) 
-    assert_equal 'profile', response.body
+    assert_equal({ "profile" => 123 }, response)
   end
 
   def test_get_agent_commands
@@ -134,34 +137,26 @@ class NewRelicServiceTest < Test::Unit::TestCase
     assert_equal [1,2,3], response
   end
 
-  def test_get_agent_commands_without_return_value
-    @service.agent_id = 666
-    stub_command(:get_agent_commands, '{ "unexpected": [] }')
-
-    response = @service.get_agent_commands
-    assert_equal [], response
-  end
-
   def test_get_agent_commands_with_no_response
     @service.agent_id = 666
     stub_command(:get_agent_commands, nil)
 
     response = @service.get_agent_commands
-    assert_equal [], response
+    assert_equal nil, response
   end
 
   def test_agent_command_results
-    stub_command(:agent_command_results, 'result')
+    stub_command(:agent_command_results, '{}')
     response = @service.agent_command_results(4200)
-    assert_equal 'result', response.body
+    assert_equal({}, response)
   end
 
   def test_agent_command_results_with_errors
-    @http_handle.register(HTTPSuccess.new('returned error', 200)) do |request|
+    @http_handle.register(HTTPSuccess.new('[123]', 200)) do |request|
       request.path.include?('agent_command_results') && request.body.include?('Boo!')
     end
     response = @service.agent_command_results(4200, 'Boo!')
-    assert_equal 'returned error', response.body
+    assert_equal [123], response
   end
 
   def stub_command(command, json)
@@ -169,6 +164,8 @@ class NewRelicServiceTest < Test::Unit::TestCase
       request.path.include?(command.to_s)
     end
   end
+end
+
 
   def test_request_timeout
     with_config(:timeout => 600) do
