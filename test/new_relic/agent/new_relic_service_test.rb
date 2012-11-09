@@ -28,6 +28,7 @@ class NewRelicServiceTest < Test::Unit::TestCase
     @http_handle = HTTPHandle.new
     NewRelic::Control.instance.stubs(:http_connection).returns(@http_handle)
     @http_handle.respond_to(:get_redirect_host, 'localhost')
+
     connect_response = {
       'config' => 'some config directives',
       'agent_run_id' => 1
@@ -79,19 +80,18 @@ class NewRelicServiceTest < Test::Unit::TestCase
   end
 
   def test_get_redirect_host
-    host = @service.get_redirect_host
-    assert_equal 'localhost', host
+    assert_equal 'localhost', @service.get_redirect_host
   end
 
   def test_shutdown
     @service.agent_id = 666
-    @http_handle.respond_to(:shutdown, 'shut this bird down')
+    @http_handle.respond_to(:shutdown, '[ "shut this bird down" ]')
     response = @service.shutdown(Time.now)
-    assert_equal 'shut this bird down', response
+    assert_equal '[ "shut this bird down" ]', response
   end
 
   def test_should_not_shutdown_if_never_connected
-    @http_handle.respond_to(:shutdown, 'shut this bird down')
+    @http_handle.respond_to(:shutdown, '[ "shut this bird down" ]')
     response = @service.shutdown(Time.now)
     assert_nil response
   end
@@ -109,9 +109,13 @@ class NewRelicServiceTest < Test::Unit::TestCase
   end
 
   def test_transaction_sample_data
-    @http_handle.respond_to(:transaction_sample_data, 'MPC1000')
+    if RUBY_VERSION >= '1.9'
+      @http_handle.respond_to(:transaction_sample_data, '[ "MPC1000" ]')
+    else
+      @http_handle.respond_to(:transaction_sample_data, [ 'MPC1000' ])
+    end
     response = @service.transaction_sample_data([])
-    assert_equal 'MPC1000', response
+    assert_equal ['MPC1000'], response
   end
 
   def test_sql_trace_data
@@ -184,19 +188,19 @@ end
     @service.expects(:get_redirect_host).once
 
     @service.connect
-    @http_handle.respond_to(:metric_data, 0)
+    @http_handle.respond_to(:metric_data, [ 0 ])
     @service.metric_data(Time.now - 60, Time.now, {})
 
-    @http_handle.respond_to(:ransaction_sample_data, '{"return_value": 1}')
+    @http_handle.respond_to(:transaction_sample_data, '{"return_value": 1}')
     @service.transaction_sample_data([])
 
-    @http_handle.respond_to(:sql_trace_data, 2)
+    @http_handle.respond_to(:sql_trace_data, [ 2 ])
     @service.sql_trace_data([])
   end
 
   # protocol 9
   def test_should_raise_exception_on_413
-    @http_handle.respond_to(:metric_data, 'too big', 413)
+    @http_handle.respond_to(:metric_data, [ 'too big' ], 413)
     assert_raise NewRelic::Agent::UnrecoverableServerException do
       @service.metric_data(Time.now - 60, Time.now, {})
     end
@@ -204,7 +208,7 @@ end
 
   # protocol 9
   def test_should_raise_exception_on_415
-    @http_handle.respond_to(:metric_data, 'too big', 415)
+    @http_handle.respond_to(:metric_data, [ 'too big' ], 415)
     assert_raise NewRelic::Agent::UnrecoverableServerException do
       @service.metric_data(Time.now - 60, Time.now, {})
     end
@@ -257,15 +261,21 @@ end
         klass = HTTPServerError
       end
 
-      register(klass.new(Marshal.dump(payload), code)) do |request|
-        request.path.include?(method.to_s) &&
-          request.path.include?('marshal_format=ruby')
-      end
+      # temporary place to keep track of which methods have been moved
+      # to JSON marshaling
+      # will be removed when the migration is complete
+      json_supported_methods = [:transaction_sample_data]
 
-      if NewRelic::LanguageSupport.using_version?('1.9')
-        register(klass.new(JSON.dump(payload), code)) do |request|
+      if NewRelic::LanguageSupport.using_version?('1.9') &&
+          json_supported_methods.include?(method)
+        register(klass.new(payload, code)) do |request|
           request.path.include?(method.to_s) &&
             request.path.include?('marshal_format=json')
+        end
+      else
+        register(klass.new(Marshal.dump(payload), code)) do |request|
+          request.path.include?(method.to_s) &&
+            request.path.include?('marshal_format=ruby')
         end
       end
     end
