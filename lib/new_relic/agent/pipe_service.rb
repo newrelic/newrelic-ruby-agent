@@ -13,7 +13,11 @@ module NewRelic
       def connect(config)
         nil
       end
-      
+
+      def get_agent_commands
+        []
+      end
+
       def metric_data(last_harvest_time, now, unsent_timeslice_data)
         write_to_pipe(:stats => hash_from_metric_data(unsent_timeslice_data))
         {}
