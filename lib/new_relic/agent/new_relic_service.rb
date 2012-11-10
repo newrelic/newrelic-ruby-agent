@@ -139,6 +139,10 @@ module NewRelic
         log.info e.message
         raise
       ensure
+        record_supportability_metrics(method, now)
+      end
+
+      def record_supportability_metrics(method, now)
         NewRelic::Agent.instance.stats_engine. \
           get_stats_no_scope('Supportability/invoke_remote'). \
           record_data_point((Time.now - now).to_f)
