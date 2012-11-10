@@ -18,7 +18,7 @@ task :gemspec, [ :build_number, :stage ] do |t, args|
   version_string = version.join('.')
   gem_version    = Gem::VERSION
   date           = Time.now.strftime('%Y-%m-%d')
-  files          = `git ls-files`.split
+  files          = `git ls-files`.split + ['newrelic_rpm.gemspec']
 
   template = ERB.new(File.read('newrelic_rpm.gemspec.erb'))
   File.open('newrelic_rpm.gemspec', 'w') do |gemspec|
