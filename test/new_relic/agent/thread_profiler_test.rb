@@ -13,8 +13,8 @@ class ThreadProfilerTest < Test::Unit::TestCase
       "name" => "start_profiler",
       "arguments" => {
         "profile_id" => 42,
-        "sample_period" => 0.2,
-        "duration" => 300,
+        "sample_period" => 0.02,
+        "duration" => 0.025,
         "only_runnable_threads" => false,
         "only_request_threads" => false,
         "profile_agent_code" => false,
@@ -40,7 +40,7 @@ class ThreadProfilerTest < Test::Unit::TestCase
   NO_COMMAND = []
 
   def setup
-    @profiler = NewRelic::Agent::ThreadProfiler.new
+    @profiler = NewRelic::Agent::ThreadProfiler.new(FakeThread)
   end
 
   def test_is_not_running
@@ -61,7 +61,6 @@ class ThreadProfilerTest < Test::Unit::TestCase
     assert @profiler.running?
 
     @profiler.stop(true)
-    sleep(0.1)
 
     assert @profiler.finished?
     assert_not_nil @profiler.profile
@@ -72,7 +71,6 @@ class ThreadProfilerTest < Test::Unit::TestCase
     assert @profiler.running?
 
     @profiler.stop(false)
-    sleep(0.1)
 
     assert_nil @profiler.profile
   end
@@ -139,17 +137,7 @@ class ThreadProfilerTest < Test::Unit::TestCase
   def test_command_attributes_passed_along
     @profiler.respond_to_commands(START_COMMAND)
     assert_equal 42,  @profiler.profile.profile_id
-    assert_equal 300, @profiler.profile.duration
-    assert_equal 0.2, @profiler.profile.interval
-  end
-
-  def test_command_attributes_default_if_missing_particular_arguments
-    command = [[666,{ "name" => "start_profiler", "arguments" => {} } ]]
-    @profiler.respond_to_commands(command)
-
-    assert_equal -1, @profiler.profile.profile_id
-    assert_equal 120, @profiler.profile.duration
-    assert_equal 0.1, @profiler.profile.interval
+    assert_equal 0.02, @profiler.profile.interval
   end
 
   def test_missing_name_in_command
@@ -167,6 +155,36 @@ class ThreadProfilerTest < Test::Unit::TestCase
   end
 
 end
+end
+
+
+class FakeThread
+  @@list = []
+
+  def initialize(locals={}, &block)
+    @locals = locals
+    yield if block_given?
+  end
+
+  def self.current
+    {}
+  end
+
+  def self.list
+    @@list
+  end
+
+  def key?(key)
+    @locals.key?(key)
+  end
+
+  def backtrace
+    @locals[:backtrace] || []
+  end
+
+  def join
+  end
+end
 
 class ThreadProfileTest < Test::Unit::TestCase
 
@@ -176,74 +194,74 @@ class ThreadProfileTest < Test::Unit::TestCase
       "irb.rb:69:in `start'",
       "irb:12:in `<main>'"
     ]
+
+    @profile = NewRelic::Agent::ThreadProfile.new(-1, 0.025, 0.01)
+    @profile.thread_class = FakeThread
+
   end
 
+  def teardown
+    FakeThread.list.clear
+  end
+
+  # Running Tests
   def test_profiler_polls_for_given_duration
-    p = NewRelic::Agent::ThreadProfile.new(0, 0.21)
     assert_nothing_raised do
       thread = nil
-      Timeout.timeout(0.25) do
-        thread = p.run
+      Timeout.timeout(0.04) do
+        thread = @profile.run
       end
-      thread.join
     end
   end
 
   def test_profiler_collects_backtrace_from_every_thread
-    other_thread = Thread.new { sleep(0.3) }
+    FakeThread.list << FakeThread.new
+    FakeThread.list << FakeThread.new
 
-    p = run_for(0.25)
+    @profile.run
 
-    assert p.poll_count >= 2
-    assert p.sample_count >= 6
-
-    other_thread.join
+    assert_equal 2, @profile.poll_count
+    assert_equal 4, @profile.sample_count
   end
 
   def test_profiler_collects_into_agent_bucket
-    other_thread = Thread.new { sleep(0.3) }
-    other_thread['newrelic_label'] = "Some Other New Relic Thread"
 
-    p = run_for(0.21)
+    FakeThread.list << FakeThread.new(
+      'newrelic_label' => 'Other NR Thread',
+      :backtrace => ["irb.rb:69:in `start'"])
 
-    assert p.traces[:agent].size >= 2
+    @profile.run
+
+    assert_equal 1, @profile.traces[:agent].size
   end
 
   def test_profile_can_be_stopped
-    p = NewRelic::Agent::ThreadProfile.new(0, 1)
+    # Can't easily stop since we're with FakeThread run is synchronous
+    # Just mark to bail up front, then see that we get out of dodge
+    @profile.stop
 
-    # make sure we're actually running
-    p.run
-    sleep(0.05)
-    assert_not_nil p.start_time
-    assert_equal false, p.finished?
+    @profile.run
 
-    # stopit!
-    p.stop
-    sleep(0.1)
-
-    assert_not_nil p.stop_time
-    assert_equal true, p.finished?
+    assert_not_nil @profile.stop_time
+    assert_equal true, @profile.finished?
   end
 
   def test_profiler_tracks_time
-    p = NewRelic::Agent::ThreadProfile.new(0, 0.01)
-    p.run.join
+    @profile.run
 
-    assert_not_nil p.start_time
-    assert_not_nil p.stop_time
+    assert_not_nil @profile.start_time
+    assert_not_nil @profile.stop_time
   end
 
-  def run_for(time)
-    p = NewRelic::Agent::ThreadProfile.new(0, time)
-    t = p.run
+  def test_finished
+    assert !@profile.finished?
 
-    sleep(time + 0.05)
-    t.join
+    @profile.run.join
 
-    p
+    assert @profile.finished?
   end
 
+  # Parsing and Aggregation Tests
   def test_parse_backtrace
     trace = [
       "/Users/jclark/.rbenv/versions/1.9.3-p194/lib/ruby/1.9.1/irb.rb:69:in `catch'",
@@ -264,8 +282,7 @@ class ThreadProfileTest < Test::Unit::TestCase
   end
 
   def test_aggregate_builds_tree_from_first_trace
-    profile = NewRelic::Agent::ThreadProfile.new(0, 0)
-    result = profile.aggregate(@single_trace)
+    result = @profile.aggregate(@single_trace)
 
     tree = NewRelic::Agent::ThreadProfile::Node.new(@single_trace[-1])
     child = NewRelic::Agent::ThreadProfile::Node.new(@single_trace[-2], tree)
@@ -275,9 +292,8 @@ class ThreadProfileTest < Test::Unit::TestCase
   end
 
   def test_aggregate_builds_tree_from_overlapping_traces
-    profile = NewRelic::Agent::ThreadProfile.new(0, 0)
-    result = profile.aggregate(@single_trace)
-    result = profile.aggregate(@single_trace, [result])
+    result = @profile.aggregate(@single_trace)
+    result = @profile.aggregate(@single_trace, [result])
 
     tree = NewRelic::Agent::ThreadProfile::Node.new(@single_trace[-1])
     tree.runnable_count += 1
@@ -296,9 +312,8 @@ class ThreadProfileTest < Test::Unit::TestCase
       "irb:12:in `<main>'"
     ]
 
-    profile = NewRelic::Agent::ThreadProfile.new(0, 0)
-    result = profile.aggregate(@single_trace)
-    result = profile.aggregate(@single_trace, [result])
+    result = @profile.aggregate(@single_trace)
+    result = @profile.aggregate(@single_trace, [result])
 
     tree = NewRelic::Agent::ThreadProfile::Node.new(@single_trace[-1])
     tree.runnable_count += 1
@@ -354,14 +369,13 @@ class ThreadProfileTest < Test::Unit::TestCase
   end
 
   def test_to_compressed_array
-    profile = NewRelic::Agent::ThreadProfile.new(-1, 0)
-    profile.instance_variable_set(:@start_time, 1350403938892.524)
-    profile.instance_variable_set(:@stop_time, 1350403939904.375)
-    profile.instance_variable_set(:@poll_count, 10)
-    profile.instance_variable_set(:@sample_count, 2)
+    @profile.instance_variable_set(:@start_time, 1350403938892.524)
+    @profile.instance_variable_set(:@stop_time, 1350403939904.375)
+    @profile.instance_variable_set(:@poll_count, 10)
+    @profile.instance_variable_set(:@sample_count, 2)
 
     trace = ["thread_profiler.py:1:in `<module>'"]
-    10.times { profile.aggregate(trace, profile.traces[:other]) }
+    10.times { @profile.aggregate(trace, @profile.traces[:other]) }
 
     trace = [
       "/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/threading.py:489:in `__bootstrap'", 
@@ -370,7 +384,7 @@ class ThreadProfileTest < Test::Unit::TestCase
       "thread_profiler.py:76:in `_profiler_loop'",
       "thread_profiler.py:103:in `_run_profiler'",
       "thread_profiler.py:165:in `collect_thread_stacks'"]
-    10.times { profile.aggregate(trace, profile.traces[:agent]) }
+    10.times { @profile.aggregate(trace, @profile.traces[:agent]) }
  
     expected = [[
           -1, 
@@ -382,7 +396,7 @@ class ThreadProfileTest < Test::Unit::TestCase
           0
       ]]
 
-    assert_equal expected, profile.to_compressed_array
+    assert_equal expected, @profile.to_compressed_array
   end
 
   def test_compress
@@ -392,14 +406,4 @@ class ThreadProfileTest < Test::Unit::TestCase
       NewRelic::Agent::ThreadProfile.compress(original).gsub(/\n/, ''))
   end
 
-  def test_finished
-    profile = NewRelic::Agent::ThreadProfile.new(-1, 0)
-    assert !profile.finished?
-
-    profile.run.join
-
-    assert profile.finished?
-  end
-
-end
 end

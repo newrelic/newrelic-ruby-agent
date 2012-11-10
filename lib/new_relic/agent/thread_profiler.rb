@@ -7,9 +7,14 @@ module NewRelic
 
       attr_reader :profile
 
+      def initialize(thread_class=Thread)
+        @thread_class = thread_class
+      end
+
       def start(profile_id, duration, interval=0.1)
         log.debug("Starting thread profile. profile_id=#{profile_id}, duration=#{duration}")
         @profile = ThreadProfile.new(profile_id, duration, interval)
+        @profile.thread_class = @thread_class
         @profile.run
       end
 
@@ -85,14 +90,16 @@ module NewRelic
 
       attr_reader :profile_id, 
         :traces, 
-        :duration, :interval, 
+        :interval, 
         :poll_count, :sample_count, 
         :start_time, :stop_time
+
+      attr_accessor :thread_class
 
       def initialize(profile_id, duration, interval=0.1)
         @profile_id = profile_id
 
-        @duration = duration
+        @worker_loop = NewRelic::Agent::WorkerLoop.new(duration)
         @interval = interval
         @finished = false
 
@@ -104,18 +111,18 @@ module NewRelic
         }
         @poll_count = 0
         @sample_count = 0
+
+        @thread_class = Thread
       end
 
       def run
-        @worker_loop = NewRelic::Agent::WorkerLoop.new(@duration)
-        
-        Thread.new do
-          Thread.current['newrelic_label'] = 'Thread Profiler'
+        @thread_class.new do
+          @thread_class.current['newrelic_label'] = 'Thread Profiler'
           @start_time = now_in_millis
           
           @worker_loop.run(@interval) do
             @poll_count += 1
-            Thread.list.each do |t|
+            @thread_class.list.each do |t|
               @sample_count += 1
               if t.key?('newrelic_label')
                 aggregate(t.backtrace, @traces[:agent])
