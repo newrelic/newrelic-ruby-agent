@@ -4,7 +4,7 @@ begin
 rescue LoadError => e
 end
 
-#if defined? Rake::TestTask
+if defined? Rake::TestTask
   namespace :test do
     AGENT_HOME = File.expand_path(File.join(File.dirname(__FILE__), "..",".."))
     Rake::TestTask.new(:newrelic) do |t|
@@ -21,4 +21,4 @@ end
     Rake::Task['test:newrelic'].comment = "Run the unit tests for the Agent"
     task 'test:newrelic' => :environment
   end
-#end
+end
