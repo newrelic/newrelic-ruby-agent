@@ -80,10 +80,18 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     end
   end
 
-  def test_resolve_ip
+  def test_resolve_ip_for_localhost
     assert_equal nil, control.send(:convert_to_ip_address, 'localhost')
+  end
+
+  def test_resolve_ip_for_non_existent_domain
+    Resolv.stubs(:getaddress).raises(Resolv::ResolvError)
+    IPSocket.stubs(:getaddress).raises(SocketError)
     assert_equal nil, control.send(:convert_to_ip_address, 'q1239988737.us')
-    # This will fail if you don't have a valid, accessible, DNS server
+  end
+
+  def test_resolves_valid_ip
+    Resolv.stubs(:getaddress).with('collector.newrelic.com').returns('204.93.223.153')
     assert_equal '204.93.223.153', control.send(:convert_to_ip_address, 'collector.newrelic.com')
   end
 

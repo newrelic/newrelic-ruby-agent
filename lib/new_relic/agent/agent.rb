@@ -368,8 +368,19 @@ module NewRelic
           # doing an at_exit within an at_exit block.
           def install_exit_handler
             if Agent.config[:send_data_on_exit] && !weird_ruby?
-              # Our shutdown handler needs to run after other shutdown handlers
-              at_exit { at_exit { shutdown } }
+              at_exit do
+                # Workaround for MRI 1.9 bug that loses exit codes in at_exit blocks.
+                # This is necessary to get correct exit codes for the agent's
+                # test suites.
+                # http://bugs.ruby-lang.org/issues/5218
+                if defined?(RUBY_ENGINE) && RUBY_ENGINE == "ruby" && RUBY_VERSION.starts_with?("1.9")
+                  exit_status = $!.status if $!.is_a?(SystemExit)
+                  shutdown
+                  exit exit_status if exit_status
+                else
+                  shutdown
+                end
+              end
             end
           end
 

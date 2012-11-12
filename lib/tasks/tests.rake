@@ -10,15 +10,8 @@ if defined? Rake::TestTask
     Rake::TestTask.new(:newrelic) do |t|
       t.libs << "#{AGENT_HOME}/test"
       t.libs << "#{AGENT_HOME}/lib"
-      t.test_files = FileList["#{AGENT_HOME}/test/**/*_test.rb"]
+      t.pattern = "#{AGENT_HOME}/test/**/*_test.rb"
       t.verbose = true
-
-      # Set the test loader to use the Ruby provided test loading script.
-      # In ruby 1.9 the default Rake provided runner seems to exit with a 0
-      # status code, even when tests fail.
-      t.loader = :testrb if RUBY_VERSION >= '1.9'
     end
-    Rake::Task['test:newrelic'].comment = "Run the unit tests for the Agent"
-    task 'test:newrelic' => :environment
   end
 end
