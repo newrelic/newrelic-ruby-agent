@@ -16,6 +16,8 @@
 
  * End user queue time was not being properly reported, works properly now.
 
+ * Server-side configuration for ignoring errors was not being heeded by agent.
+
  * Better handling of a thread safety issue.  
 
    Some issues may remain, which we are working to address, but they should be gracefully handled 
