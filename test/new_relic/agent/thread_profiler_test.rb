@@ -155,8 +155,6 @@ class ThreadProfilerTest < Test::Unit::TestCase
   end
 
 end
-end
-
 
 class FakeThread
   @@list = []
@@ -411,4 +409,5 @@ class ThreadProfileTest < Test::Unit::TestCase
       NewRelic::Agent::ThreadProfile.compress(original).gsub(/\n/, ''))
   end
 
+end
 end
