@@ -85,6 +85,7 @@ module NewRelic
       end
 
       def get_agent_commands
+        return [] if RUBY_VERSION < '1.9.2'
         @marshaller = JsonMarshaller.new
         invoke_remote(:get_agent_commands, @agent_id)
       end
