@@ -7,7 +7,29 @@ require 'new_relic/agent/thread_profiler'
 
 if RUBY_VERSION >= '1.9.2'
 require 'json'
-class ThreadProfilerTest < Test::Unit::TestCase
+
+class ThreadedTest < Test::Unit::TestCase
+  def setup
+    @original_thread_class = Thread
+    swap_thread_class(FakeThread)
+  end
+
+  def teardown
+    swap_thread_class(@original_thread_class)
+    @original_thread_class = nil
+
+    FakeThread.list.clear
+  end
+
+  private
+
+  def swap_thread_class(klass)
+    Object.send(:remove_const, "Thread") if Object.const_defined?("Thread")
+    Object.const_set("Thread", klass)
+  end
+end
+
+class ThreadProfilerTest < ThreadedTest
 
   START_COMMAND = [[666,{
       "name" => "start_profiler",
@@ -40,7 +62,8 @@ class ThreadProfilerTest < Test::Unit::TestCase
   NO_COMMAND = []
 
   def setup
-    @profiler = NewRelic::Agent::ThreadProfiler.new(FakeThread)
+    super
+    @profiler = NewRelic::Agent::ThreadProfiler.new
   end
 
   def test_is_not_running
@@ -184,9 +207,11 @@ class FakeThread
   end
 end
 
-class ThreadProfileTest < Test::Unit::TestCase
+class ThreadProfileTest < ThreadedTest
 
   def setup
+    super
+
     @single_trace = [
       "irb.rb:69:in `catch'",
       "irb.rb:69:in `start'",
@@ -194,24 +219,9 @@ class ThreadProfileTest < Test::Unit::TestCase
     ]
 
     @profile = NewRelic::Agent::ThreadProfile.new(-1, 0.025, 0.01)
-    @profile.thread_class = FakeThread
-
-  end
-
-  def teardown
-    FakeThread.list.clear
   end
 
   # Running Tests
-  def test_profiler_polls_for_given_duration
-    assert_nothing_raised do
-      thread = nil
-      Timeout.timeout(0.04) do
-        thread = @profile.run
-      end
-    end
-  end
-
   def test_profiler_collects_backtrace_from_every_thread
     FakeThread.list << FakeThread.new
     FakeThread.list << FakeThread.new
