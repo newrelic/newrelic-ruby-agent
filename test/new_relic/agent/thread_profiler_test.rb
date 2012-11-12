@@ -236,14 +236,19 @@ class ThreadProfileTest < Test::Unit::TestCase
   end
 
   def test_profile_can_be_stopped
-    # Can't easily stop since we're with FakeThread run is synchronous
-    # Just mark to bail up front, then see that we get out of dodge
+    # Can't easily stop in middle of processing since FakeThread's synchronous
+    # Mark to bail immediately, then see we didn't record anything
     @profile.stop
 
     @profile.run
 
     assert_not_nil @profile.stop_time
     assert_equal true, @profile.finished?
+
+    assert_equal 0, @profile.poll_count
+    @profile.traces.each do |key, trace|
+      assert_equal [], trace, "Trace for :#{key} should have been empty"
+    end
   end
 
   def test_profiler_tracks_time
