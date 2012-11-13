@@ -1,10 +1,16 @@
-class NewRelicThread < Thread
-  def initialize(label)
-    self[:newrelic_label] = label
-    super
-  end
+module NewRelic
+  module Agent
 
-  def self.is_new_relic?(thread)
-    thread.key?(:newrelic_label) 
+    class NewRelicThread < Thread
+      def initialize(label)
+        self[:newrelic_label] = label
+        super
+      end
+
+      def self.is_new_relic?(thread)
+        thread.key?(:newrelic_label) 
+      end
+    end
+
   end
 end

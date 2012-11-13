@@ -1,3 +1,4 @@
+require 'new_relic/agent/new_relic_thread'
 require 'new_relic/agent/worker_loop'
 
 module NewRelic
@@ -7,9 +8,9 @@ module NewRelic
 
       attr_reader :profile
 
-      def start(profile_id, duration, interval=0.1)
+      def start(profile_id, duration, interval, profile_agent_code)
         log.debug("Starting thread profile. profile_id=#{profile_id}, duration=#{duration}")
-        @profile = ThreadProfile.new(profile_id, duration, interval)
+        @profile = ThreadProfile.new(profile_id, duration, interval, profile_agent_code)
         @profile.run
       end
 
@@ -59,13 +60,14 @@ module NewRelic
         profile_id = arguments.fetch("profile_id", -1)
         duration =   arguments.fetch("duration", 120)
         interval =   arguments.fetch("sample_period", 0.1)
+        profile_agent_code = arguments.fetch("profile_agent_code", true)
 
         if running?
           msg = "Profile already in progress. Ignoring agent command to start another."
           log.debug(msg)
           yield(command_id, msg) if block_given?
         else
-          start(profile_id, duration, interval)
+          start(profile_id, duration, interval, profile_agent_code)
           yield(command_id) if block_given?
         end
       end
@@ -85,12 +87,13 @@ module NewRelic
 
       attr_reader :profile_id, 
         :traces, 
-        :interval, 
+        :profile_agent_code, :interval, 
         :poll_count, :sample_count, 
         :start_time, :stop_time
 
-      def initialize(profile_id, duration, interval=0.1)
+      def initialize(profile_id, duration, interval, profile_agent_code)
         @profile_id = profile_id
+        @profile_agent_code = profile_agent_code
 
         @worker_loop = NewRelic::Agent::WorkerLoop.new(duration)
         @interval = interval
@@ -107,16 +110,15 @@ module NewRelic
       end
 
       def run
-        Thread.new do
-          Thread.current['newrelic_label'] = 'Thread Profiler'
+        NewRelicThread.new('Thread Profiler') do
           @start_time = now_in_millis
           
           @worker_loop.run(@interval) do
             @poll_count += 1
-            Thread.list.each do |t|
+            NewRelicThread.list.each do |t|
               @sample_count += 1
-              if t.key?('newrelic_label')
-                aggregate(t.backtrace, @traces[:agent])
+              if NewRelicThread.is_new_relic?(t)
+                aggregate(t.backtrace, @traces[:agent]) if @profile_agent_code
               else
                 aggregate(t.backtrace, @traces[:request])
               end
@@ -136,7 +138,7 @@ module NewRelic
       end
 
       def aggregate(trace, trees=@traces[:request], parent=nil)
-        return nil if trace.empty?
+        return nil if trace.nil? || trace.empty?
         node = Node.new(trace.last)
         existing = trees.find {|n| n == node} || node
 

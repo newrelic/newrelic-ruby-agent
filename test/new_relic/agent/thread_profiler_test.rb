@@ -10,7 +10,7 @@ require 'json'
 
 class ThreadedTest < Test::Unit::TestCase
   def setup
-    @original_thread_class = Thread
+    @original_thread_class = NewRelic::Agent::NewRelicThread
     swap_thread_class(FakeThread)
   end
 
@@ -24,8 +24,8 @@ class ThreadedTest < Test::Unit::TestCase
   private
 
   def swap_thread_class(klass)
-    Object.send(:remove_const, "Thread") if Object.const_defined?("Thread")
-    Object.const_set("Thread", klass)
+    NewRelic::Agent.send(:remove_const, "NewRelicThread") if NewRelic::Agent.const_defined?("NewRelicThread")
+    NewRelic::Agent.const_set("NewRelicThread", klass)
   end
 end
 
@@ -71,7 +71,7 @@ class ThreadProfilerTest < ThreadedTest
   end
 
   def test_is_running
-    @profiler.start(0, 0)
+    @profiler.start(0, 0, 0, true)
     assert @profiler.running?
   end
 
@@ -80,7 +80,7 @@ class ThreadProfilerTest < ThreadedTest
   end
 
   def test_can_stop_a_running_profile
-    @profiler.start(0, 0)
+    @profiler.start(0, 0, 0, true)
     assert @profiler.running?
 
     @profiler.stop(true)
@@ -90,7 +90,7 @@ class ThreadProfilerTest < ThreadedTest
   end
 
   def test_can_stop_a_running_profile_and_discard
-    @profiler.start(0, 0)
+    @profiler.start(0, 0, 0, true)
     assert @profiler.running?
 
     @profiler.stop(false)
@@ -109,7 +109,7 @@ class ThreadProfilerTest < ThreadedTest
   end
 
   def test_respond_to_commands_stops
-    @profiler.start(0, 0)
+    @profiler.start(0, 0, 0, true)
     assert @profiler.running?
 
     @profiler.respond_to_commands(STOP_COMMAND)
@@ -117,7 +117,7 @@ class ThreadProfilerTest < ThreadedTest
   end
 
   def test_respond_to_commands_stops_and_discards
-    @profiler.start(0, 0)
+    @profiler.start(0, 0, 0, true)
     assert @profiler.running?
 
     @profiler.respond_to_commands(STOP_AND_DISCARD_COMMAND)
@@ -125,7 +125,7 @@ class ThreadProfilerTest < ThreadedTest
   end
 
   def test_respond_to_commands_wont_start_second_profile
-    @profiler.start(0, 0)
+    @profiler.start(0, 0, 0, true)
     original_profile = @profiler.profile
 
     @profiler.respond_to_commands(START_COMMAND)
@@ -152,7 +152,7 @@ class ThreadProfilerTest < ThreadedTest
 
   def test_response_to_commands_stop_notifies_of_result
     saw_command_id = nil
-    @profiler.start(0,0)
+    @profiler.start(0,0, 0, true)
     @profiler.respond_to_commands(STOP_COMMAND) { |id, err| saw_command_id = id }
     assert_equal 666, saw_command_id
   end
@@ -161,6 +161,7 @@ class ThreadProfilerTest < ThreadedTest
     @profiler.respond_to_commands(START_COMMAND)
     assert_equal 42,  @profiler.profile.profile_id
     assert_equal 0.02, @profiler.profile.interval
+    assert_equal false, @profiler.profile.profile_agent_code
   end
 
   def test_missing_name_in_command
@@ -195,6 +196,10 @@ class FakeThread
     @@list
   end
 
+  def self.is_new_relic?(thread)
+    thread.key?(:newrelic_label)
+  end
+
   def key?(key)
     @locals.key?(key)
   end
@@ -218,7 +223,7 @@ class ThreadProfileTest < ThreadedTest
       "irb:12:in `<main>'"
     ]
 
-    @profile = NewRelic::Agent::ThreadProfile.new(-1, 0.025, 0.01)
+    @profile = NewRelic::Agent::ThreadProfile.new(-1, 0.025, 0.01, true)
   end
 
   # Running Tests
@@ -233,14 +238,24 @@ class ThreadProfileTest < ThreadedTest
   end
 
   def test_profiler_collects_into_agent_bucket
-
     FakeThread.list << FakeThread.new(
-      'newrelic_label' => 'Other NR Thread',
-      :backtrace => ["irb.rb:69:in `start'"])
+      :newrelic_label => 'Agent Thread',
+      :backtrace => @single_trace)
 
     @profile.run
 
     assert_equal 1, @profile.traces[:agent].size
+  end
+
+  def test_profiler_ignores_agent_threads_when_told_to
+    FakeThread.list << FakeThread.new(
+      :newrelic_label => 'Agent Thread',
+      :backtrace => @single_trace)
+
+    @profile.instance_variable_set(:@profile_agent_code, false)
+    @profile.run
+
+    assert @profile.traces[:agent].empty?
   end
 
   def test_profile_can_be_stopped
@@ -292,6 +307,16 @@ class ThreadProfileTest < ThreadedTest
     assert_equal({ :method => '<main>',
                    :file => '/Users/jclark/.rbenv/versions/1.9.3/bin/irb',
                    :line_no => 12 }, result[2])
+  end
+
+  def test_aggregate_empty_trace
+    result = @profile.aggregate([])
+    assert_nil result
+  end
+
+  def test_aggregate_nil_trace
+    result = @profile.aggregate(nil)
+    assert_nil result
   end
 
   def test_aggregate_builds_tree_from_first_trace

@@ -16,7 +16,7 @@ class NewRelicThreadTest < Test::Unit::TestCase
   def test_runs_block
     called = false
 
-    t = NewRelicThread.new("labelled") { called = true}
+    t = NewRelicThread.new("labelled") { called = true }
     t.join
 
     assert called
