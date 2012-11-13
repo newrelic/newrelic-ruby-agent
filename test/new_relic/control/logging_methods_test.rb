@@ -129,6 +129,7 @@ class NewRelic::Control::LoggingMethodsTest < Test::Unit::TestCase
 
   def test_log_path_path_created
     path = File.expand_path('tmp/log_path_test')
+    FileUtil.mkdir_p(File.dirname(path))
     @base.instance_eval { @log_path = nil }
     with_config(:log_file_path => 'tmp/log_path_test') do
       assert !File.directory?(path) || FileUtils.rmdir(path)
