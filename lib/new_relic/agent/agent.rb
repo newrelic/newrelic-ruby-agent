@@ -585,10 +585,9 @@ module NewRelic
         # See #connect for a description of connection_options.
         def start_worker_thread(connection_options = {})
           log.debug "Creating Ruby Agent worker thread."
-          @worker_thread = Thread.new do
+          @worker_thread = NewRelic::Agent::NewRelicThread.new('Worker Loop') do
             deferred_work!(connection_options)
-          end # thread new
-          @worker_thread['newrelic_label'] = 'Worker Loop'
+          end
         end
 
         # A shorthand for NewRelic::Control.instance
