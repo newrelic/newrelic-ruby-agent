@@ -103,7 +103,7 @@ mysql: &mysql
   socket: <%= (`uname -s` =~ /Linux/ ) ? "" :"/tmp/mysql.sock" %>
   username: root
   host: localhost
-  database: <%= [ 'rails_blog', ENV['BRANCH'], ENV['RUBY'], ENV['PROJECT_NAME'] ].compact.join('_') %>
+  database: <%= ENV['PROJECT_NAME'] %>
 
 # Shared properties for postgres.  This won't work with our schema but
 # Does work with agent tests
