@@ -125,11 +125,11 @@ class NewRelicServiceTest < Test::Unit::TestCase
   end
 
 
-# Thread profiling only available in 1.9 and above
+# Thread profiling only available in 1.9.2 and above
 if RUBY_VERSION >= '1.9.2'
   def test_profile_data
     stub_command(:profile_data, '{ "profile" : 123 }')
-    response = @service.profile_data(NewRelic::Agent::ThreadProfile.new(0, 0)) 
+    response = @service.profile_data(NewRelic::Agent::ThreadProfile.new(0, 0, 0, true)) 
     assert_equal({ "profile" => 123 }, response)
   end
 

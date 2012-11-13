@@ -56,7 +56,7 @@ module NewRelic
       end
 
       def test_harvest_and_send_thread_profile
-        profile = NewRelic::Agent::ThreadProfile.new(-1, 0)
+        profile = NewRelic::Agent::ThreadProfile.new(-1, 0, 0, true)
         profile.aggregate(["chunky.rb:42:in `bacon'"], profile.traces[:other])
         profile.instance_variable_set(:@finished, true)
         @agent.thread_profiler.instance_variable_set(:@profile, profile)
