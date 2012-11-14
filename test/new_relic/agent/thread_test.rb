@@ -20,7 +20,24 @@ class ThreadTest < Test::Unit::TestCase
 
   def test_bucket_thread_as_request
     t = ::Thread.new {}
+    frame = NewRelic::Agent::Instrumentation::MetricFrame.new
+    frame.request = "has a request"
+    t[:newrelic_metric_frame] = frame
+
     assert_equal :request, NewRelic::Agent::Thread.bucket_thread(t, DONT_CARE)
+  end
+
+  def test_bucket_thread_as_background
+    t = ::Thread.new {}
+    frame = NewRelic::Agent::Instrumentation::MetricFrame.new
+    t[:newrelic_metric_frame] = frame
+
+    assert_equal :background, NewRelic::Agent::Thread.bucket_thread(t, DONT_CARE)
+  end
+
+  def test_bucket_thread_as_other
+    t = ::Thread.new {}
+    assert_equal :other, NewRelic::Agent::Thread.bucket_thread(t, DONT_CARE)
   end
 
   def test_runs_block

@@ -182,7 +182,6 @@ end
 
 class FakeThread
   @@list = []
-  @@real_thread_class = NewRelic::Agent::Thread
 
   def initialize(locals={}, &block)
     @locals = locals
@@ -197,12 +196,16 @@ class FakeThread
     @@list
   end
 
-  def self.bucket_thread(thread, profile_agent_code)
-    @@real_thread_class.bucket_thread(thread, profile_agent_code)
+  def self.bucket_thread(thread, _)
+    thread[:bucket] 
   end
 
   def key?(key)
     @locals.key?(key)
+  end
+
+  def [](key)
+    @locals[key]
   end
 
   def backtrace
@@ -238,9 +241,39 @@ class ThreadProfileTest < ThreadedTest
     assert_equal 4, @profile.sample_count
   end
 
+  def test_profiler_collects_into_request_bucket
+    FakeThread.list << FakeThread.new(
+      :bucket => :request,
+      :backtrace => @single_trace)
+
+    @profile.run
+
+    assert_equal 1, @profile.traces[:request].size
+  end
+
+  def test_profiler_collects_into_background_bucket
+    FakeThread.list << FakeThread.new(
+      :bucket => :background,
+      :backtrace => @single_trace)
+
+    @profile.run
+
+    assert_equal 1, @profile.traces[:background].size
+  end
+
+  def test_profiler_collects_into_other_bucket
+    FakeThread.list << FakeThread.new(
+      :bucket => :other,
+      :backtrace => @single_trace)
+
+    @profile.run
+
+    assert_equal 1, @profile.traces[:other].size
+  end
+
   def test_profiler_collects_into_agent_bucket
     FakeThread.list << FakeThread.new(
-      :newrelic_label => 'Agent Thread',
+      :bucket => :agent,
       :backtrace => @single_trace)
 
     @profile.run
@@ -250,13 +283,14 @@ class ThreadProfileTest < ThreadedTest
 
   def test_profiler_ignores_agent_threads_when_told_to
     FakeThread.list << FakeThread.new(
-      :newrelic_label => 'Agent Thread',
+      :bucket => :ignore,
       :backtrace => @single_trace)
 
-    @profile.instance_variable_set(:@profile_agent_code, false)
     @profile.run
 
-    assert @profile.traces[:agent].empty?
+    @profile.traces.each do |key, trace|
+      assert trace.empty?, "Trace :#{key} should have been empty"
+    end
   end
 
   def test_profile_can_be_stopped
