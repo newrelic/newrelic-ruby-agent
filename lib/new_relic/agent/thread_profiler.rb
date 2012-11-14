@@ -117,11 +117,9 @@ module NewRelic
             @poll_count += 1
             Thread.list.each do |t|
               @sample_count += 1
-              if Thread.is_new_relic?(t)
-                aggregate(t.backtrace, @traces[:agent]) if @profile_agent_code
-              else
-                aggregate(t.backtrace, @traces[:request])
-              end
+
+              bucket = Thread.bucket_thread(t, @profile_agent_code)
+              aggregate(t.backtrace, @traces[bucket]) unless bucket == :ignore
             end
           end
 

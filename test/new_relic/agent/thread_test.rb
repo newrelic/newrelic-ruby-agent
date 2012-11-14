@@ -8,9 +8,19 @@ class ThreadTest < Test::Unit::TestCase
     assert_equal "labelled", t[:newrelic_label]
   end
 
-  def test_is_new_relic_thread
+  def test_bucket_thread_as_agent_when_profiling
     t = NewRelic::Agent::Thread.new("labelled") {}
-    assert NewRelic::Agent::Thread.is_new_relic?(t)
+    assert_equal :agent, NewRelic::Agent::Thread.bucket_thread(t, true)
+  end
+
+  def test_bucket_thread_as_agent_when_not_profiling
+    t = NewRelic::Agent::Thread.new("labelled") {}
+    assert_equal :ignore, NewRelic::Agent::Thread.bucket_thread(t, false)
+  end
+
+  def test_bucket_thread_as_request
+    t = ::Thread.new {}
+    assert_equal :request, NewRelic::Agent::Thread.bucket_thread(t, DONT_CARE)
   end
 
   def test_runs_block
@@ -21,4 +31,6 @@ class ThreadTest < Test::Unit::TestCase
 
     assert called
   end
+
+  DONT_CARE = true
 end

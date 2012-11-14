@@ -182,6 +182,7 @@ end
 
 class FakeThread
   @@list = []
+  @@real_thread_class = NewRelic::Agent::Thread
 
   def initialize(locals={}, &block)
     @locals = locals
@@ -196,8 +197,8 @@ class FakeThread
     @@list
   end
 
-  def self.is_new_relic?(thread)
-    thread.key?(:newrelic_label)
+  def self.bucket_thread(thread, profile_agent_code)
+    @@real_thread_class.bucket_thread(thread, profile_agent_code)
   end
 
   def key?(key)

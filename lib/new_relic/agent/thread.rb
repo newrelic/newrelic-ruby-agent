@@ -8,10 +8,13 @@ module NewRelic
         super
       end
 
-      def self.is_new_relic?(thread)
-        thread.key?(:newrelic_label) 
+      def self.bucket_thread(thread, profile_agent_code)
+        if thread.key?(:newrelic_label)
+          return profile_agent_code ? :agent : :ignore
+        end
+
+        :request
       end
     end
-
   end
 end
