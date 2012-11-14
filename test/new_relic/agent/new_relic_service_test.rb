@@ -97,9 +97,9 @@ class NewRelicServiceTest < Test::Unit::TestCase
   end
 
   def test_metric_data
-    @http_handle.respond_to(:metric_data, 'met rick date uhhh')
+    @http_handle.respond_to(:metric_data, ['met rick date uhhh'])
     response = @service.metric_data(Time.now - 60, Time.now, {})
-    assert_equal 'met rick date uhhh', response
+    assert_equal ['met rick date uhhh'], response
   end
 
   def test_error_data
@@ -109,11 +109,7 @@ class NewRelicServiceTest < Test::Unit::TestCase
   end
 
   def test_transaction_sample_data
-    if RUBY_VERSION >= '1.9.2'
-      @http_handle.respond_to(:transaction_sample_data, '[ "MPC1000" ]')
-    else
-      @http_handle.respond_to(:transaction_sample_data, [ 'MPC1000' ])
-    end
+    @http_handle.respond_to(:transaction_sample_data, [ 'MPC1000' ])
     response = @service.transaction_sample_data([])
     assert_equal ['MPC1000'], response
   end
@@ -264,11 +260,12 @@ end
       # temporary place to keep track of which methods have been moved
       # to JSON marshaling
       # will be removed when the migration is complete
-      json_supported_methods = [:transaction_sample_data]
+      json_supported_methods = [:transaction_sample_data, :get_agent_commands,
+                                :agent_command_results, :profile_data, :metric_data]
 
       if RUBY_VERSION >= '1.9.2' &&
           json_supported_methods.include?(method)
-        register(klass.new(payload, code)) do |request|
+        register(klass.new(payload.to_s, code)) do |request|
           request.path.include?(method.to_s) &&
             request.path.include?('marshal_format=json')
         end

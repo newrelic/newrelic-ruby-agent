@@ -28,6 +28,8 @@ module NewRelic
       end
 
       def load_marshaller
+        # we load the JSON marshaller where possible but it is too
+        # slow on ruby 1.8.x
         @marshaller = if RUBY_VERSION >= '1.9.2'
           require 'json'
           JsonMarshaller.new
@@ -59,7 +61,7 @@ module NewRelic
       end
 
       def metric_data(last_harvest_time, now, unsent_timeslice_data)
-        @marshaller = RubyMarshaller.new
+        load_marshaller
         invoke_remote(:metric_data, @agent_id, last_harvest_time, now,
                       unsent_timeslice_data)
       end
