@@ -14,5 +14,12 @@ if defined? Rake::TestTask
       t.pattern = "#{AGENT_HOME}/test/**/*_test.rb"
       t.verbose = true
     end
+
+    Rake::TestTask.new(:intentional_fail) do |t|
+      t.libs << "#{AGENT_HOME}/test"
+      t.libs << "#{AGENT_HOME}/lib"
+      t.pattern = "#{AGENT_HOME}/test/intentional_fail.rb"
+      t.verbose = true
+    end
   end
 end
