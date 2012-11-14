@@ -124,14 +124,14 @@ class NewRelicServiceTest < Test::Unit::TestCase
 # Thread profiling only available in 1.9.2 and above
 if RUBY_VERSION >= '1.9.2'
   def test_profile_data
-    stub_command(:profile_data, '{ "profile" : 123 }')
-    response = @service.profile_data(NewRelic::Agent::ThreadProfile.new(0, 0, 0, true)) 
+    @http_handle.respond_to(:profile_data, '{ "profile" : 123 }')
+    response = @service.profile_data(NewRelic::Agent::ThreadProfile.new(0, 0, 0, true))
     assert_equal({ "profile" => 123 }, response)
   end
 
   def test_get_agent_commands
     @service.agent_id = 666
-    stub_command(:get_agent_commands, '{ "return_value": [1,2,3] }')
+    @http_handle.respond_to(:get_agent_commands, '{ "return_value": [1,2,3] }')
 
     response = @service.get_agent_commands
     assert_equal [1,2,3], response
@@ -139,14 +139,14 @@ if RUBY_VERSION >= '1.9.2'
 
   def test_get_agent_commands_with_no_response
     @service.agent_id = 666
-    stub_command(:get_agent_commands, nil)
+    @http_handle.respond_to(:get_agent_commands, nil)
 
     response = @service.get_agent_commands
     assert_equal nil, response
   end
 
   def test_agent_command_results
-    stub_command(:agent_command_results, '{}')
+    @http_handle.respond_to(:agent_command_results, '{}')
     response = @service.agent_command_results(4200)
     assert_equal({}, response)
   end
@@ -157,12 +157,6 @@ if RUBY_VERSION >= '1.9.2'
     end
     response = @service.agent_command_results(4200, 'Boo!')
     assert_equal [123], response
-  end
-
-  def stub_command(command, json)
-    @http_handle.register(HTTPSuccess.new(json, 200)) do |request|
-      request.path.include?(command.to_s)
-    end
   end
 end
 
