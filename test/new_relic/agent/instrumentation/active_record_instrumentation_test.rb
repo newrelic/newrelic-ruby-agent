@@ -6,7 +6,12 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
 
   # the db adapter library the tests are running under (e.g. sqlite3)
   def adapter
-    ActiveRecord::Base.connection_config[:adapter]
+    if ActiveRecord::Base.respond_to?(:connection_config)
+      ActiveRecord::Base.connection_config[:adapter]
+    else
+      # old versions of rails are usually tested against mysql
+      'mysql'
+    end
   end
 
   def setup
