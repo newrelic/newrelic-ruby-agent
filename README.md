@@ -65,7 +65,7 @@ Once you receive the welcome e-mail with a license key and
 `newrelic.yml` file, copy the `newrelic.yml` file into your app config
 directory.
 
-The intial configuration is done in the `newrelic.yml` file.  This file
+The initial configuration is done in the `newrelic.yml` file.  This file
 is by default read from the `config` directory of the application root
 and is subsequently searched for in the application root directory,
 and then in a `~/.newrelic` directory.  Once you're up and running you can
