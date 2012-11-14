@@ -9,6 +9,7 @@ $LOAD_PATH << File.join(NEWRELIC_PLUGIN_DIR,"ui/helpers")
 $LOAD_PATH.uniq!
 
 require 'rubygems'
+require 'rake'
 # We can speed things up in tests that don't need to load rails.
 # You can also run the tests in a mode without rails.  Many tests
 # will be skipped.
