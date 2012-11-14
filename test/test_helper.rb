@@ -22,6 +22,7 @@ begin
   rescue LoadError
     # ignore load problems on test help - it doesn't exist in rails 3
   end
+  require 'newrelic_rpm'
 rescue LoadError => e
   puts "Running tests in standalone mode."
   require 'bundler'
@@ -45,6 +46,12 @@ require 'test/unit'
 require 'shoulda'
 require 'test_contexts'
 require 'mocha'
+
+begin # 1.8.6
+  require 'mocha/integration/test_unit'
+  require 'mocha/integration/test_unit/assertion_counter'
+rescue LoadError
+end
 
 require 'new_relic/fake_service'
 
