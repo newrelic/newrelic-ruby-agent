@@ -164,4 +164,4 @@ bundle --local || bundle
 # there are failures to see if they are transient (instead of re-running it by
 # hand).  Ultimately we'll move towards a more elegant solution.
 
-bundle exec rake --trace db:create:all test:newrelic || bundle exec rake --trace test:newrelic || bundle exec rake --trace test:newrelic
+bundle exec rake --trace db:create:all test:newrelic || bundle exec rake --trace test:newrelic
