@@ -1,12 +1,7 @@
 require 'rubygems'
 require "#{File.dirname(__FILE__)}/lib/new_relic/version.rb"
-require 'rake/testtask'
-
 require "#{File.dirname(__FILE__)}/lib/tasks/all.rb"
 
-task :test => Rake::Task['test:newrelic']
-
-task :default => :test
 
 desc 'Generate gemspec [ build_number, stage ]'
 task :gemspec, [ :build_number, :stage ] do |t, args|
