@@ -98,7 +98,7 @@ class NewRelicServiceTest < Test::Unit::TestCase
 
   def test_metric_data
     @http_handle.respond_to(:metric_data, ['met rick date uhhh'])
-    response = @service.metric_data(Time.now - 60, Time.now, {})
+    response = @service.metric_data((Time.now - 60).to_f, Time.now.to_f, {})
     assert_equal ['met rick date uhhh'], response
   end
 
@@ -179,7 +179,7 @@ end
 
     @service.connect
     @http_handle.respond_to(:metric_data, [ 0 ])
-    @service.metric_data(Time.now - 60, Time.now, {})
+    @service.metric_data((Time.now - 60).to_f, Time.now.to_f, {})
 
     @http_handle.respond_to(:transaction_sample_data, '{"return_value": 1}')
     @service.transaction_sample_data([])
@@ -192,7 +192,7 @@ end
   def test_should_raise_exception_on_413
     @http_handle.respond_to(:metric_data, [ 'too big' ], 413)
     assert_raise NewRelic::Agent::UnrecoverableServerException do
-      @service.metric_data(Time.now - 60, Time.now, {})
+      @service.metric_data((Time.now - 60).to_f, Time.now.to_f, {})
     end
   end
 
@@ -200,7 +200,7 @@ end
   def test_should_raise_exception_on_415
     @http_handle.respond_to(:metric_data, [ 'too big' ], 415)
     assert_raise NewRelic::Agent::UnrecoverableServerException do
-      @service.metric_data(Time.now - 60, Time.now, {})
+      @service.metric_data((Time.now - 60).to_f, Time.now.to_f, {})
     end
   end
 
