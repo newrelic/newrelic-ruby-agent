@@ -373,7 +373,7 @@ module NewRelic
                 # This is necessary to get correct exit codes for the agent's
                 # test suites.
                 # http://bugs.ruby-lang.org/issues/5218
-                if defined?(RUBY_ENGINE) && RUBY_ENGINE == "ruby" && RUBY_VERSION.starts_with?("1.9")
+                if defined?(RUBY_ENGINE) && RUBY_ENGINE == "ruby" && RUBY_VERSION.match(/^1\.9/)
                   exit_status = $!.status if $!.is_a?(SystemExit)
                   shutdown
                   exit exit_status if exit_status
