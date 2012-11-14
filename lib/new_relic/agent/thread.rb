@@ -1,7 +1,7 @@
 module NewRelic
   module Agent
 
-    class NewRelicThread < Thread
+    class Thread < ::Thread
       def initialize(label)
         NewRelic::Agent.logger.debug("Creating New Relic thread: #{label}")
         self[:newrelic_label] = label

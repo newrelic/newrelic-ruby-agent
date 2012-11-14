@@ -78,11 +78,11 @@ module NewRelic
           @agent.stats_engine.stats_hash[i.to_s] = NewRelic::StatsBase.new
         end
 
-        harvest = Thread.new do
+        harvest = Thread.new("Harvesting Test run timeslices") do
           @agent.send(:harvest_timeslice_data)
         end
 
-        app = Thread.new do
+        app = Thread.new("Harvesting Test Modify stats_hash") do
           200.times do |i|
             @agent.stats_engine.stats_hash["a#{i}"] = NewRelic::StatsBase.new
           end

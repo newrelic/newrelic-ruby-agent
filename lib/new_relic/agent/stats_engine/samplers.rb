@@ -27,7 +27,7 @@ module Agent
         # start up a thread that will periodically poll for metric samples
         return if periodic_samplers.empty?
 
-        @sampler_thread = NewRelic::Agent::NewRelicThread.new('Sampler Tasks') do
+        @sampler_thread = NewRelic::Agent::Thread.new('Sampler Tasks') do
           loop do
             now = Time.now
             begin

@@ -1,4 +1,4 @@
-require 'new_relic/agent/new_relic_thread'
+require 'new_relic/agent/thread'
 require 'new_relic/agent/worker_loop'
 
 module NewRelic
@@ -110,14 +110,14 @@ module NewRelic
       end
 
       def run
-        NewRelicThread.new('Thread Profiler') do
+        Thread.new('Thread Profiler') do
           @start_time = now_in_millis
           
           @worker_loop.run(@interval) do
             @poll_count += 1
-            NewRelicThread.list.each do |t|
+            Thread.list.each do |t|
               @sample_count += 1
-              if NewRelicThread.is_new_relic?(t)
+              if Thread.is_new_relic?(t)
                 aggregate(t.backtrace, @traces[:agent]) if @profile_agent_code
               else
                 aggregate(t.backtrace, @traces[:request])

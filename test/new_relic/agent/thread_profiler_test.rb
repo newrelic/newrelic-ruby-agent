@@ -10,7 +10,7 @@ require 'json'
 
 class ThreadedTest < Test::Unit::TestCase
   def setup
-    @original_thread_class = NewRelic::Agent::NewRelicThread
+    @original_thread_class = NewRelic::Agent::Thread
     swap_thread_class(FakeThread)
   end
 
@@ -24,8 +24,8 @@ class ThreadedTest < Test::Unit::TestCase
   private
 
   def swap_thread_class(klass)
-    NewRelic::Agent.send(:remove_const, "NewRelicThread") if NewRelic::Agent.const_defined?("NewRelicThread")
-    NewRelic::Agent.const_set("NewRelicThread", klass)
+    NewRelic::Agent.send(:remove_const, "Thread") if NewRelic::Agent.const_defined?("Thread")
+    NewRelic::Agent.const_set("Thread", klass)
   end
 end
 
