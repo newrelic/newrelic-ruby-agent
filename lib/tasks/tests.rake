@@ -1,12 +1,13 @@
-# run unit tests for the NewRelic Agent
 begin
-  require 'rake/test_task'
+  require 'rake/testtask'
 rescue LoadError => e
 end
 
 if defined? Rake::TestTask
+  task :test => 'test:newrelic'
+  task :default => :test
   namespace :test do
-    AGENT_HOME = File.expand_path(File.join(File.dirname(__FILE__), "..",".."))
+    AGENT_HOME = File.expand_path(File.join(File.dirname(__FILE__),'..','..'))
     Rake::TestTask.new(:newrelic) do |t|
       t.libs << "#{AGENT_HOME}/test"
       t.libs << "#{AGENT_HOME}/lib"
