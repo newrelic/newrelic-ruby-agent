@@ -16,8 +16,12 @@ specific libraries such as `ActiveSupport`.
 
 ## Testing
 
-The agent includes a suite of unit tests which should be used to verify your
-changes don't break existing functionality.
+The agent includes a suite of unit and functional tests which should be used to
+verify your changes don't break existing functionality.
+
+Unit tests are stored in the `test/new_relic` directory.
+
+Functional tests are stored in the `test/multiverse` directory.
 
 ### Running Tests
 
@@ -50,3 +54,12 @@ functionality (e.g. a performance optimization) and new tests are not required.
 In general, including tests with your pull request dramatically increases the
 chances it will be accepted.
 
+### Functional Testing
+
+For cases where the unit test environment is not sufficient for testing a
+change (e.g. instrumentation for a non-rails framework, not available in the
+unit test environment), we have a functional testing suite called multiverse.
+These tests can be run by invoking:
+
+    bundle
+    bundle exec rake test:multiverse
