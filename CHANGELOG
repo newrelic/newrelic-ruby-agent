@@ -1,13 +1,11 @@
 
 # New Relic Ruby Agent Release Notes #
 
-### Next Up ###
-## 3.5.2 ##
+## v3.5.2 ##
 
  * Simplified process of running agent test suite and documented code
    contribution process in GUIDELINES_FOR_CONTRIBUTING.
 
-### current version ###
 ## v3.5.1 ##
 
  * Enabling Memory Profiling on Lion and Mountain Lion
@@ -21,13 +19,13 @@
 
  * Server-side configuration for ignoring errors was not being heeded by agent.
 
- * Better handling of a thread safety issue.
+ * Better handling of a thread safety issue.  
 
-   Some issues may remain, which we are working to address, but they should be gracefully handled
+   Some issues may remain, which we are working to address, but they should be gracefully handled 
    now, rather than crashing the running app.
 
  * Use "java_import" rather than "include_class" when require Java Jars into a JRuby app.
-
+   
    Thanks to Jan Habermann for the pull request
 
  * Replaced alias_method mechanism with super call in DataMapper instrumentation.
@@ -55,21 +53,21 @@
 
  * (Fix) RUM Stops Working After 3.4.2.1 Agent Upgrade
 
-   v3.4.2.1 introduced a bug that caused the browser monitor auto instrument
+   v3.4.2.1 introduced a bug that caused the browser monitor auto instrumentation
    (for RUM) default to be false. The correct value of true is now used
 
- * When the Ruby Agent detects Unicorn is the dispatcher create an INFO level log message
+ * When the Ruby Agent detects Unicorn as the dispatcher it creates an INFO level log message
+   with additional information
 
    To help customers using Unicorn, if the agent detects it (Unicorn) is being used as the 
    dispatcher an INFO level log message it created that includes a link to New Relic
    online doc that has additional steps that may be required to get performance data reporting.
 
- * (Fix) In version 3.4.2 of the Ruby Agent the server side config value for Apdex T was 
-   disgregarded
+ * (Fix) In version 3.4.2 of the Ruby Agent the server side value for Apdex T was disgregarded
 
-   When server side config was being used with version 3.4.2 of the agent it ignored the Apdex T
-   value that was in the New Relic UI.  The server side value for Apdex T now always takes
-   precedence.
+   With version 3.4.2 of the agent, the value set in the newrelic.yml file took precedence over the 
+   value set in the New Relic UI.  As of version 3.5.0 only the value for Apdex T set in the
+   New Relic UI will be used. Any setting in the yaml file will be ignored.
 
  * Improved Error Detection/Reporting capabilities for Rails 3 apps
 
@@ -80,18 +78,26 @@
 
  * The Ruby Agent now logs certain information it receives from the New Relic servers
 
-   When the agent connects to the New Relic servers it receives various bits of information
-   back. Different amounts of this information will appear in the agent log, depending on
-   the current log level setting.
+   After connecting to the New Relic servers the agent logs the New Relic URL
+   of the app it is reporting to.
 
  * GC profiling overhead for Ruby 1.9 reduced
 
-   For Ruby 1.9 the amount of time spent in GC profiling has been reduce.
+   For Ruby 1.9 the amount of time spent in GC profiling has been reduced.
+
+ * Know issue with Ruby 1.8.7-p334, sqlite3-ruby 1.3.0 or older, and resque 1.23.0
+
+   The Ruby Agent will not work in conjunction with Ruby 1.8.7-p334, sqlite3-ruby 1.3.3 
+   or earlier, and resque 1.23.0. Your app will likely stop functioning. This is a known problem
+   with Ruby versions up to 1.8.7-p334. Upgrading to the last release of Ruby 1.8.7 
+   is recommended.  This issue has been present in every version of the agent we've tested 
+   going back for a year. 
+
 
 ### previous versions ###
 ## v3.4.2.1 ##
 
- * Fix issue when app_name is nil
+* Fix issue when app_name is nil
 
   If the app_name setting ends up being nil an exception got generated and the application
   wouldn't run. This would notably occur when running a Heroku app locally without the
@@ -114,7 +120,6 @@
 
    The code that reads the configuration information and confirgures the agent
    got substantially reorganized, consolidated, simplified, and made more robust.
-
 
 ## v3.4.1 ##
 #### Bug Fixes ####
