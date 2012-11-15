@@ -21,6 +21,7 @@ class MultiverseTest < Test::Unit::TestCase
 
   def run_suite(suite)
     ENV['SUITES_DIRECTORY'] = suite_directory_for(suite)
+    ENV['NEWRELIC_GEM_PATH'] = '../../../../../../..'
     cmd = RUNNER
     suite_run = SuiteRun.new
     IO.popen(cmd) do |io|
