@@ -1,0 +1,3 @@
+#!/bin/sh
+
+lib/multiverse/suite.rb $PWD/suites/$1 "$2" true

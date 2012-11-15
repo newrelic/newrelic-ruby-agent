@@ -1,0 +1,8 @@
+suite_condition("GC instrumentation only works with REE or 1.9.x") do
+  (defined?(RUBY_DESCRIPTION) && RUBY_DESCRIPTION =~ /Enterprise/) ||
+    RUBY_VERSION >= '1.9.2'
+end
+
+gemfile <<-RB
+  gem 'rails', '~>3.2.0'
+RB
