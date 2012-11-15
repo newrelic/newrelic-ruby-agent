@@ -63,11 +63,19 @@ class ResqueTest < Test::Unit::TestCase
     test_metric = 'OtherTransaction/ResqueJob/all'
     metric_data = $collector.agent_data.find{|x| x.action == 'metric_data'}
 
-    metric_names = metric_data.body[3].map(&:metric_spec).map(&:name)
+    if RUBY_VERSION >= '1.9.2' && NewRelic::VERSION::STRING >= '3.5.3'
+      metric_names = metric_data.body[3].map{|m| m[0]['name']}
+    else
+      metric_names = metric_data.body[3].map(&:metric_spec).map(&:name)
+    end
     assert(metric_names.include?(test_metric),
            "#{metric_names.inspect} should include '#{test_metric}'")
 
-    call_count = metric_data.body[3].find{|m| m.metric_spec.name == test_metric}.stats.call_count
+    if RUBY_VERSION >= '1.9.2' && NewRelic::VERSION::STRING >= '3.5.3'
+      call_count = metric_data.body[3].find{|m| m[0]['name'] == test_metric}[1][0]
+    else
+      call_count = metric_data.body[3].find{|m| m.metric_spec.name == test_metric}.stats.call_count
+    end
     assert_equal JOB_COUNT, call_count
   end
 end
