@@ -297,9 +297,9 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
 
     assert_equal 1, stats('Instance/Busy').call_count
     assert_equal 1, stats('HttpDispatcher').call_count
-    # We are probably busy about 99% of the time, but lets make sure it's at least 75%
-    assert(stats('Instance/Busy').total_call_time > 0.75,
-           "#{stats('Instance/Busy').total_call_time} !> 0.75")
+    # We are probably busy about 99% of the time, but lets make sure it's at least 50%
+    assert(stats('Instance/Busy').total_call_time > 0.5,
+           "#{stats('Instance/Busy').total_call_time} !> 0.5")
     assert_equal 0, stats('WebFrontend/Mongrel/Average Queue Time').call_count
   end
 
