@@ -57,7 +57,7 @@ module NewRelic
 
       def shutdown(time)
         load_marshaller
-        invoke_remote(:shutdown, @agent_id, time) if @agent_id
+        invoke_remote(:shutdown, @agent_id, time.to_i) if @agent_id
       end
 
       def metric_data(last_harvest_time, now, unsent_timeslice_data)
