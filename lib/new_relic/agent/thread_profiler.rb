@@ -114,12 +114,16 @@ module NewRelic
           @start_time = now_in_millis
           
           @worker_loop.run(@interval) do
-            @poll_count += 1
-            Thread.list.each do |t|
-              @sample_count += 1
+            NewRelic::Agent.instance.stats_engine.
+              record_supportability_metrics_timed("ThreadProfiler/PollingTime") do
 
-              bucket = Thread.bucket_thread(t, @profile_agent_code)
-              aggregate(t.backtrace, @traces[bucket]) unless bucket == :ignore
+              @poll_count += 1
+              Thread.list.each do |t|
+                @sample_count += 1
+
+                bucket = Thread.bucket_thread(t, @profile_agent_code)
+                aggregate(t.backtrace, @traces[bucket]) unless bucket == :ignore
+              end
             end
           end
 
