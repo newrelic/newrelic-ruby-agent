@@ -97,6 +97,15 @@ module NewRelic
         assert_equal([], @agent.send(:harvest_errors), 'should return errors')
       end
 
+      def test_check_for_agent_commands
+        @agent.send :check_for_agent_commands
+
+        expected = RUBY_VERSION >= "1.9.2" ? 1 : 0
+        assert_equal(expected,
+                     @agent.service.agent_data \
+                       .select {|data| data.action == :get_agent_commands }.size)
+      end
+
       def test_merge_data_from_empty
         unsent_timeslice_data = mock('unsent timeslice data')
         unsent_errors = mock('unsent errors')

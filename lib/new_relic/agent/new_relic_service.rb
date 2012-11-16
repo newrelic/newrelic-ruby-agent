@@ -82,13 +82,12 @@ module NewRelic
       end
 
       def profile_data(profile)
-        @marshaller = JsonMarshaller.new
+        load_marshaller 
         invoke_remote(:profile_data, @agent_id, profile.to_compressed_array) || ''
       end
 
       def get_agent_commands
-        return [] if RUBY_VERSION < '1.9.2'
-        @marshaller = JsonMarshaller.new
+        load_marshaller 
         invoke_remote(:get_agent_commands, @agent_id)
       end
 
@@ -96,7 +95,7 @@ module NewRelic
         results = {}
         results["error"] = error unless error.nil?
 
-        @marshaller = JsonMarshaller.new
+        load_marshaller 
         invoke_remote(:agent_command_results, @agent_id, { command_id.to_s => results })
       end
 
