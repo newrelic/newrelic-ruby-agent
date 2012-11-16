@@ -11,8 +11,13 @@ module NewRelic
 
     def initialize
       @id_counter = 0
+      redirect_host = if RUBY_VERSION >= '1.9.2'
+        '{"return_value": "localhost"}'
+      else
+        'localhost'
+      end
       @base_expectations = {
-        'get_redirect_host'       => [200, 'localhost'],
+        'get_redirect_host'       => [200, redirect_host],
         'connect'                 => [200, { 'agent_run_id' => agent_run_id }],
         'get_agent_commands'      => [200, '[]'],
         'metric_data'             => [200, '{ "Some/Metric/Spec": 1 }'],
