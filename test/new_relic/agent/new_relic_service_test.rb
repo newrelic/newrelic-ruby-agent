@@ -27,7 +27,13 @@ class NewRelicServiceTest < Test::Unit::TestCase
     @service = NewRelic::Agent::NewRelicService.new('license-key', @server)
     @http_handle = HTTPHandle.new
     NewRelic::Control.instance.stubs(:http_connection).returns(@http_handle)
-    @http_handle.respond_to(:get_redirect_host, 'localhost')
+    if RUBY_VERSION >= '1.9.2'
+      @http_handle.respond_to(:get_redirect_host, '{"return_value": "localhost"}',
+                              :format => :json)
+    else
+      @http_handle.respond_to(:get_redirect_host, 'localhost',
+                              :format => :ruby)
+    end
 
     connect_response = {
       'config' => 'some config directives',
@@ -72,7 +78,14 @@ class NewRelicServiceTest < Test::Unit::TestCase
 
   def test_connect_sets_agent_id
     @http_handle.reset
-    @http_handle.respond_to(:get_redirect_host, 'localhost')
+    if RUBY_VERSION >= '1.9.2'
+      @http_handle.respond_to(:get_redirect_host, '{"return_value": "localhost"}',
+                              :format => :json)
+    else
+      @http_handle.respond_to(:get_redirect_host, 'localhost',
+                              :format => :ruby)
+    end
+
     @http_handle.respond_to(:connect, {'agent_run_id' => 666})
 
     @service.connect
@@ -85,13 +98,13 @@ class NewRelicServiceTest < Test::Unit::TestCase
 
   def test_shutdown
     @service.agent_id = 666
-    @http_handle.respond_to(:shutdown, '[ "shut this bird down" ]')
+    @http_handle.respond_to(:shutdown, [ 'shut this bird down' ])
     response = @service.shutdown(Time.now)
-    assert_equal '[ "shut this bird down" ]', response
+    assert_equal [ 'shut this bird down' ], response
   end
 
   def test_should_not_shutdown_if_never_connected
-    @http_handle.respond_to(:shutdown, '[ "shut this bird down" ]')
+    @http_handle.respond_to(:shutdown, [ 'shut this bird down' ])
     response = @service.shutdown(Time.now)
     assert_nil response
   end
@@ -190,7 +203,7 @@ end
 
   # protocol 9
   def test_should_raise_exception_on_413
-    @http_handle.respond_to(:metric_data, [ 'too big' ], 413)
+    @http_handle.respond_to(:metric_data, [ 'too big' ], :code => 413)
     assert_raise NewRelic::Agent::UnrecoverableServerException do
       @service.metric_data((Time.now - 60).to_f, Time.now.to_f, {})
     end
@@ -198,7 +211,7 @@ end
 
   # protocol 9
   def test_should_raise_exception_on_415
-    @http_handle.respond_to(:metric_data, [ 'too big' ], 415)
+    @http_handle.respond_to(:metric_data, [ 'too big' ], :code => 415)
     assert_raise NewRelic::Agent::UnrecoverableServerException do
       @service.metric_data((Time.now - 60).to_f, Time.now.to_f, {})
     end
@@ -241,33 +254,39 @@ end
       reset
     end
 
-    def respond_to(method, payload, code=200)
-      klass = HTTPSuccess
-      if code == 413
-        klass = HTTPRequestEntityTooLarge
-      elsif code == 415
-        klass = HTTPUnsupportedMediaType
-      elsif code >= 400
-        klass = HTTPServerError
-      end
-
+    def respond_to(method, payload, opts={})
       # temporary place to keep track of which methods have been moved
       # to JSON marshaling
       # will be removed when the migration is complete
-      json_supported_methods = [:transaction_sample_data, :get_agent_commands,
-                                :agent_command_results, :profile_data,
-                                :metric_data, :error_data]
+      json_supported_methods = [ :transaction_sample_data, :get_agent_commands,
+                                 :agent_command_results, :profile_data,
+                                 :metric_data, :error_data, :get_redirect_host,
+                                 :shutdown ]
 
-      if RUBY_VERSION >= '1.9.2' &&
-          json_supported_methods.include?(method)
-        register(klass.new(payload.to_s, code)) do |request|
-          request.path.include?(method.to_s) &&
-            request.path.include?('marshal_format=json')
+      should_use_json = RUBY_VERSION >= '1.9.2' &&
+        json_supported_methods.include?(method)
+
+      opts = {
+        :code => 200,
+        :format => should_use_json ? :json : :ruby
+      }.merge(opts)
+
+      klass = HTTPSuccess
+      if opts[:code] == 413
+        klass = HTTPRequestEntityTooLarge
+      elsif opts[:code] == 415
+        klass = HTTPUnsupportedMediaType
+      elsif opts[:code] >= 400
+        klass = HTTPServerError
+      end
+
+      if opts[:format] == :json
+        register(klass.new(payload.to_s, opts[:code])) do |request|
+          request.path.include?(method.to_s)
         end
       else
-        register(klass.new(Marshal.dump(payload), code)) do |request|
-          request.path.include?(method.to_s) &&
-            request.path.include?('marshal_format=ruby')
+        register(klass.new(Marshal.dump(payload), opts[:code])) do |request|
+          request.path.include?(method.to_s)
         end
       end
     end

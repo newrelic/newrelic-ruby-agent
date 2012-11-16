@@ -51,12 +51,12 @@ module NewRelic
       end
 
       def get_redirect_host
-        @marshaller = RubyMarshaller.new
+        load_marshaller
         invoke_remote(:get_redirect_host)
       end
 
       def shutdown(time)
-        @marshaller = RubyMarshaller.new
+        load_marshaller
         invoke_remote(:shutdown, @agent_id, time) if @agent_id
       end
 
