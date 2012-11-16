@@ -125,7 +125,7 @@ module NewRelic
 
           @finished = true
           @stop_time = now_in_millis
-          log.debug("Finishing thread profile.")
+          log.debug("Finished thread profile. Will send with next harvest.")
         end
       end
 

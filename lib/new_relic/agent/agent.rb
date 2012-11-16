@@ -1037,7 +1037,8 @@ module NewRelic
 
         def check_for_agent_commands
           commands = @service.get_agent_commands
-          log.debug "get_agent_commands = #{commands}"
+          log.debug "Received get_agent_commands = #{commands}"
+
           @thread_profiler.respond_to_commands(commands) do |command_id, error|
             @service.agent_command_results(command_id, error)
           end
