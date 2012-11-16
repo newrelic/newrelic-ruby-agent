@@ -67,7 +67,7 @@ module NewRelic
       end
 
       def error_data(unsent_errors)
-        @marshaller = RubyMarshaller.new
+        load_marshaller
         invoke_remote(:error_data, @agent_id, unsent_errors)
       end
 

@@ -36,4 +36,9 @@ class NewRelic::NoticedError
       false
     end
   end
+
+  def to_collector_array
+    [ (@timestamp.to_f * 1000).round, @path, @message, @exception_class,
+      @params ]
+  end
 end

@@ -103,9 +103,9 @@ class NewRelicServiceTest < Test::Unit::TestCase
   end
 
   def test_error_data
-    @http_handle.respond_to(:error_data, 'too human')
+    @http_handle.respond_to(:error_data, ['too human'])
     response = @service.error_data([])
-    assert_equal 'too human', response
+    assert_equal ['too human'], response
   end
 
   def test_transaction_sample_data
@@ -255,7 +255,8 @@ end
       # to JSON marshaling
       # will be removed when the migration is complete
       json_supported_methods = [:transaction_sample_data, :get_agent_commands,
-                                :agent_command_results, :profile_data, :metric_data]
+                                :agent_command_results, :profile_data,
+                                :metric_data, :error_data]
 
       if RUBY_VERSION >= '1.9.2' &&
           json_supported_methods.include?(method)

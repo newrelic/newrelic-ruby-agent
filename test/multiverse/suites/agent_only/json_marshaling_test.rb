@@ -69,5 +69,18 @@ class JsonMarshalingTest < Test::Unit::TestCase
       .select{|m| m[0]['name'] == 'Custom/test/method' }
     assert_equal(expected, custom_metric)
   end
+
+  def test_error_data_marshalling
+    @agent.error_collector.notice_error(Exception.new('test error'))
+    @agent.service.connect
+    @agent.send(:harvest_and_send_errors)
+
+    assert_equal(666,
+       $collector.agent_data.select{|x| x.action == 'error_data'}[0].body[0])
+
+    error_data = $collector.agent_data \
+      .select{|x| x.action == 'error_data'}[0].body[1][0]
+    assert_equal('test error', error_data[2])
+  end
 end
 end
