@@ -1043,7 +1043,10 @@ module NewRelic
         end
 
         def check_for_agent_commands
-          return unless agent_commands_supported?
+          if !agent_commands_supported?
+            log.debug("Skipping agent commands, as they aren't supported on this environment")
+            return
+          end
 
           commands = @service.get_agent_commands
           log.debug "Received get_agent_commands = #{commands}"

@@ -3,31 +3,34 @@ require 'base64'
 require 'thread'
 require 'timeout'
 require 'zlib'
+require 'new_relic/agent/threaded_test'
 require 'new_relic/agent/thread_profiler'
+
+if RUBY_VERSION < '1.9.2'
+class ThreadProfilerUnsupportedTest < Test::Unit::TestCase
+  def setup
+    @profiler = NewRelic::Agent::ThreadProfiler.new
+  end
+
+  def test_thread_profiling_isnt_supported
+    assert_equal false, NewRelic::Agent::ThreadProfiler.is_supported?
+  end
+
+  def test_wont_start_when_not_supported
+    @profiler.start(0, 0, 0, true)
+    assert_equal false, @profiler.running?
+  end
+
+  def test_stop_is_safe_when_not_supported
+    @profiler.start(0, 0, 0, true)
+    @profiler.stop(true)
+  end
+
+end
+end
 
 if RUBY_VERSION >= '1.9.2'
 require 'json'
-
-class ThreadedTest < Test::Unit::TestCase
-  def setup
-    @original_thread_class = NewRelic::Agent::Thread
-    swap_thread_class(FakeThread)
-  end
-
-  def teardown
-    swap_thread_class(@original_thread_class)
-    @original_thread_class = nil
-
-    FakeThread.list.clear
-  end
-
-  private
-
-  def swap_thread_class(klass)
-    NewRelic::Agent.send(:remove_const, "Thread") if NewRelic::Agent.const_defined?("Thread")
-    NewRelic::Agent.const_set("Thread", klass)
-  end
-end
 
 class ThreadProfilerTest < ThreadedTest
 
@@ -66,6 +69,10 @@ class ThreadProfilerTest < ThreadedTest
     @profiler = NewRelic::Agent::ThreadProfiler.new
   end
 
+  def test_is_supported
+    assert NewRelic::Agent::ThreadProfiler.is_supported?
+  end
+
   def test_is_not_running
     assert !@profiler.running?
   end
@@ -96,6 +103,11 @@ class ThreadProfilerTest < ThreadedTest
     @profiler.stop(false)
 
     assert_nil @profiler.profile
+  end
+
+  def test_wont_crash_if_stopping_when_not_started
+    @profiler.stop(true)
+    assert_equal false, @profiler.running?
   end
 
   def test_respond_to_commands_with_no_commands_doesnt_run
@@ -178,42 +190,6 @@ class ThreadProfilerTest < ThreadedTest
     assert_equal false, @profiler.running?
   end
 
-end
-
-class FakeThread
-  @@list = []
-
-  def initialize(locals={}, &block)
-    @locals = locals
-    yield if block_given?
-  end
-
-  def self.current
-    {}
-  end
-
-  def self.list
-    @@list
-  end
-
-  def self.bucket_thread(thread, _)
-    thread[:bucket] 
-  end
-
-  def key?(key)
-    @locals.key?(key)
-  end
-
-  def [](key)
-    @locals[key]
-  end
-
-  def backtrace
-    @locals[:backtrace] || []
-  end
-
-  def join
-  end
 end
 
 class ThreadProfileTest < ThreadedTest

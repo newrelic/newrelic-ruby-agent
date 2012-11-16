@@ -9,13 +9,18 @@ module NewRelic
       attr_reader :profile
 
       def start(profile_id, duration, interval, profile_agent_code)
-        log.debug("Starting thread profile. profile_id=#{profile_id}, duration=#{duration}")
-        @profile = ThreadProfile.new(profile_id, duration, interval, profile_agent_code)
-        @profile.run
+        if !ThreadProfiler.is_supported?
+          log.debug("Not starting thread profile as it isn't supported on this environment")
+          @profile = nil
+        else
+          log.debug("Starting thread profile. profile_id=#{profile_id}, duration=#{duration}")
+          @profile = ThreadProfile.new(profile_id, duration, interval, profile_agent_code)
+          @profile.run
+        end
       end
 
       def stop(report_data)
-        @profile.stop
+        @profile.stop unless @profile.nil?
         @profile = nil if !report_data
       end
 
@@ -44,6 +49,10 @@ module NewRelic
           when "stop_profiler"
             stop_and_notify(command_id, arguments, &notify_results)
         end
+      end
+
+      def self.is_supported?
+        RUBY_VERSION >= "1.9.2"
       end
 
       def running?
