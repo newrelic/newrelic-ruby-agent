@@ -65,6 +65,12 @@ module NewRelic
       res.finish
     end
 
+    def calls_for(method)
+      @agent_data. \
+        select { |d| d.action == method }. \
+        map { |d| d.body }
+    end
+
     def json_format?(uri)
       uri.query && uri.query.include?('marshal_format=json')
     end
