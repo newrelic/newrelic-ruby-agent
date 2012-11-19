@@ -289,20 +289,49 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
   end
 
 
-  def test_busycalculation
+  def test_busy_calculation_correctly_calculates_based_acccumlator
+
+    # woah it's 1970
+    now = Time.at 0
+
+    # We'll record two seconds of transactions
+    later = Time.at(now + 2)
+    NewRelic::Agent::BusyCalculator.stubs(:time_now).
+      returns(now).then.returns(later)
+
+    # reset harvest time to epoch (based on stub)
+    NewRelic::Agent::BusyCalculator.reset
+
+    # We record 1 second of busy time in our two seconds of wall clock
+    NewRelic::Agent::BusyCalculator.instance_variable_set(:@accumulator, 1.0)
+
+
+    NewRelic::Agent::BusyCalculator.harvest_busy
+
+    # smooth out floating point math
+    stat_int = (stats('Instance/Busy').total_call_time * 10).to_i
+
+    # Despite your expectations, #total_call_time is a percentage here.
+    assert_equal(stat_int, 5,
+                 "#{stats('Instance/Busy').total_call_time} != 0.5")
+  end
+
+  def test_busy_calculation_generates_a_positive_value
     engine.clear_stats
-    assert_equal 0, NewRelic::Agent::BusyCalculator.busy_count
     get :index, 'social_security_number' => "001-555-1212", 'wait' => '0.05'
     NewRelic::Agent::BusyCalculator.harvest_busy
 
     assert_equal 1, stats('Instance/Busy').call_count
     assert_equal 1, stats('HttpDispatcher').call_count
-    # We are probably busy about 99% of the time, but lets make sure it's at least 50%
-    assert(stats('Instance/Busy').total_call_time > 0.5,
-           "#{stats('Instance/Busy').total_call_time} !> 0.5")
+
+    # Timing is too non-deterministic, so we just assert a positive, non-zero
+    # value here.  See
+    # #test_busy_calculation_correctly_calculates_based_acccumlator for
+    # assertions that the formula is correct.
+    assert(stats('Instance/Busy').total_call_time > 0,
+           "#{stats('Instance/Busy').total_call_time} !> 0")
     assert_equal 0, stats('WebFrontend/Mongrel/Average Queue Time').call_count
   end
-
   def test_queue_headers_no_header
     engine.clear_stats
     queue_length_stat = stats('Mongrel/Queue Length')
