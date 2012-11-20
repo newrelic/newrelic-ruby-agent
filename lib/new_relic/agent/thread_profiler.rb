@@ -163,6 +163,16 @@ module NewRelic
         existing
       end
 
+      def prune!(count_to_keep)
+        all_nodes = flattened_trace_nodes
+        all_nodes.sort!(&:order_for_pruning)
+
+        mark_for_pruning(all_nodes, count_to_keep)
+
+        traces.each { |_, nodes| Node.prune!(nodes) }
+      end
+
+
       def to_compressed_array
         traces = {
           "OTHER" => @traces[:other].map{|t| t.to_array },
@@ -191,6 +201,19 @@ module NewRelic
         @stop_time = now_in_millis
       end
 
+      def mark_for_pruning(nodes, count_to_keep)
+        to_prune = nodes[count_to_keep..-1] || []
+        to_prune.each { |n| n.to_prune = true }
+      end
+
+      def flattened_trace_nodes
+        @traces.map { |_, ns| ThreadProfile.flattened_nodes(ns) }.flatten
+      end
+      
+      def self.flattened_nodes(nodes)
+        nodes.map { |n| [n, flattened_nodes(n.children)] }.flatten
+      end
+
       def self.compress(json)
         compressed = Base64.encode64(Zlib::Deflate.deflate(json, Zlib::DEFAULT_COMPRESSION))
       end
@@ -204,7 +227,7 @@ module NewRelic
 
       class Node
         attr_reader :file, :method, :line_no, :children
-        attr_accessor :runnable_count, :to_prune
+        attr_accessor :runnable_count, :to_prune, :depth
 
         def initialize(line, parent=nil)
           line =~ /(.*)\:(\d+)\:in `(.*)'/
@@ -214,6 +237,7 @@ module NewRelic
           @children = []
           @runnable_count = 0
           @to_prune = false
+          @depth = 0
 
           parent.add_child(self) if parent
         end
@@ -224,6 +248,15 @@ module NewRelic
             @line_no == other.line_no
         end
 
+        def total_count
+          @runnable_count
+        end
+
+        # Descending order on count, ascending on depth of nodes
+        def order_for_pruning(y)
+          [-runnable_count, depth] <=> [-y.runnable_count, y.depth]
+        end
+
         def to_array
           [[@file, @method, @line_no],
             @runnable_count, 0,
@@ -231,12 +264,17 @@ module NewRelic
         end
 
         def add_child(child)
+          child.depth = @depth + 1
           @children << child unless @children.include? child
         end
 
         def prune!
-          @children.delete_if { |child| child.to_prune }
-          @children.each { |child| child.prune! }
+          Node.prune!(@children)
+        end
+
+        def self.prune!(kids)
+          kids.delete_if { |child| child.to_prune }
+          kids.each { |child| child.prune! }
         end
       end
 

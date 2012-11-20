@@ -203,7 +203,6 @@ class ThreadProfileTest < ThreadedTest
       "irb:12:in `<main>'"
     ]
 
-    @single_line = "irb.rb:69:in `catch'"
 
     @profile = NewRelic::Agent::ThreadProfile.new(-1, 0.025, 0.01, true)
   end
@@ -378,75 +377,45 @@ class ThreadProfileTest < ThreadedTest
     assert_equal tree, result
   end
 
-  def test_single_node_converts_to_array
-    line = "irb.rb:69:in `catch'"
-    node = NewRelic::Agent::ThreadProfile::Node.new(line)
+  def test_flattened_nodes
+    @profile.aggregate(@single_trace, @profile.traces[:request])
+    @profile.aggregate(@single_trace, @profile.traces[:other])
 
-    assert_equal([
-        ["irb.rb", "catch", 69],
-        0, 0,
-        []],
-      node.to_array)
+    flat = @profile.flattened_trace_nodes
+
+    assert_equal 6, flat.size
   end
 
-  def test_multiple_nodes_converts_to_array
-    line = "irb.rb:69:in `catch'"
-    child_line = "bacon.rb:42:in `yum'"
-    node = NewRelic::Agent::ThreadProfile::Node.new(line)
-    child = NewRelic::Agent::ThreadProfile::Node.new(child_line, node)
+  def test_prune_tree
+    @profile.aggregate(@single_trace)
 
-    assert_equal([
-        ["irb.rb", "catch", 69],
-        0, 0,
-        [
-          [
-            ['bacon.rb', 'yum', 42],
-            0,0,
-            []
-          ]
-        ]],
-      node.to_array)
+    t = @profile.prune!(1)
+
+    assert_equal 0, @profile.traces[:request].first.children.size
   end
 
-  def test_add_child_twice
-    parent = NewRelic::Agent::ThreadProfile::Node.new(@single_line)
-    child = NewRelic::Agent::ThreadProfile::Node.new(@single_line)
+  def test_prune_keeps_highest_counts
+    @profile.aggregate(@single_trace, @profile.traces[:request])
+    @profile.aggregate(@single_trace, @profile.traces[:other])
+    @profile.aggregate(@single_trace, @profile.traces[:other])
 
-    parent.add_child(child)
-    parent.add_child(child)
+    @profile.prune!(1)
 
-    assert_equal 1, parent.children.size
+    assert_equal [], @profile.traces[:request]
+    assert_equal 1, @profile.traces[:other].size
+    assert_equal [], @profile.traces[:other][0].children
   end
 
-  def test_prune_keeps_children
-    parent = NewRelic::Agent::ThreadProfile::Node.new(@single_line)
-    child = NewRelic::Agent::ThreadProfile::Node.new(@single_line, parent)
+  def test_prune_keeps_highest_count_then_depths
+    @profile.aggregate(@single_trace, @profile.traces[:request])
+    @profile.aggregate(@single_trace, @profile.traces[:other])
 
-    parent.prune!
+    @profile.prune!(2)
 
-    assert_equal [child], parent.children
-  end
-
-  def test_prune_removes_children
-    parent = NewRelic::Agent::ThreadProfile::Node.new(@single_line)
-    child = NewRelic::Agent::ThreadProfile::Node.new(@single_line, parent)
-
-    child.to_prune = true
-    parent.prune!
-
-    assert_equal [], parent.children
-  end
-
-  def test_prune_removes_children
-    parent = NewRelic::Agent::ThreadProfile::Node.new(@single_line)
-    child = NewRelic::Agent::ThreadProfile::Node.new(@single_line, parent)
-    grandchild = NewRelic::Agent::ThreadProfile::Node.new(@single_line, child)
-
-    grandchild.to_prune = true
-    parent.prune!
-
-    assert_equal [child], parent.children
-    assert_equal [], child.children
+    assert_equal 1, @profile.traces[:request].size
+    assert_equal 1, @profile.traces[:other].size
+    assert_equal [], @profile.traces[:request][0].children
+    assert_equal [], @profile.traces[:other][0].children
   end
 
   def test_to_compressed_array
@@ -485,6 +454,81 @@ class ThreadProfileTest < ThreadedTest
     assert_equal( 
       "eJy9UtFOwjAU/ZWlz2QdKKCGmKBOTDSgY/iyLM02ijR0vcttiVmM/047J0LiA080bdJz2nPPbe/9IrP4KYzIjZckCTFr5NmSVQgrITn6VU06HhmVsNxKfmv33dSuoOPZmaSpBSQK3xbhPHYBHBxPwmncRqPzWhte0heRY4Y1fcSs5J+AG01fa7MG5a9+GfrOUQtQmvb8IZUip1Vzw6GfpIT6aNNhLAcw2mBWWXh5dX2Q01lcmVCKoyX73d5ZvHGrmpcGx27/V2uPmQRwPzQcnCSzJnvOVTq4OEVWgJS8MKw91SYrNtrJB/3jVvkbVnU3vn+eRLPF9KHpm+8dYyPRqg==",
       NewRelic::Agent::ThreadProfile.compress(original).gsub(/\n/, ''))
+  end
+end
+
+class ThreadProfileNodeTest < Test::Unit::TestCase
+  SINGLE_LINE = "irb.rb:69:in `catch'"
+
+  def test_single_node_converts_to_array
+    line = "irb.rb:69:in `catch'"
+    node = NewRelic::Agent::ThreadProfile::Node.new(line)
+
+    assert_equal([
+        ["irb.rb", "catch", 69],
+        0, 0,
+        []],
+      node.to_array)
+  end
+
+  def test_multiple_nodes_converts_to_array
+    line = "irb.rb:69:in `catch'"
+    child_line = "bacon.rb:42:in `yum'"
+    node = NewRelic::Agent::ThreadProfile::Node.new(line)
+    child = NewRelic::Agent::ThreadProfile::Node.new(child_line, node)
+
+    assert_equal([
+        ["irb.rb", "catch", 69],
+        0, 0,
+        [
+          [
+            ['bacon.rb', 'yum', 42],
+            0,0,
+            []
+          ]
+        ]],
+      node.to_array)
+  end
+
+  def test_add_child_twice
+    parent = NewRelic::Agent::ThreadProfile::Node.new(SINGLE_LINE)
+    child = NewRelic::Agent::ThreadProfile::Node.new(SINGLE_LINE)
+
+    parent.add_child(child)
+    parent.add_child(child)
+
+    assert_equal 1, parent.children.size
+  end
+
+  def test_prune_keeps_children
+    parent = NewRelic::Agent::ThreadProfile::Node.new(SINGLE_LINE)
+    child = NewRelic::Agent::ThreadProfile::Node.new(SINGLE_LINE, parent)
+
+    parent.prune!
+
+    assert_equal [child], parent.children
+  end
+
+  def test_prune_removes_children
+    parent = NewRelic::Agent::ThreadProfile::Node.new(SINGLE_LINE)
+    child = NewRelic::Agent::ThreadProfile::Node.new(SINGLE_LINE, parent)
+
+    child.to_prune = true
+    parent.prune!
+
+    assert_equal [], parent.children
+  end
+
+  def test_prune_removes_children
+    parent = NewRelic::Agent::ThreadProfile::Node.new(SINGLE_LINE)
+    child = NewRelic::Agent::ThreadProfile::Node.new(SINGLE_LINE, parent)
+    grandchild = NewRelic::Agent::ThreadProfile::Node.new(SINGLE_LINE, child)
+
+    grandchild.to_prune = true
+    parent.prune!
+
+    assert_equal [child], parent.children
+    assert_equal [], child.children
   end
 
 end
