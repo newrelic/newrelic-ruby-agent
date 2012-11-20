@@ -121,7 +121,7 @@ module NewRelic
       def run
         Thread.new('Thread Profiler') do
           @start_time = now_in_millis
-          
+
           @worker_loop.run(@interval) do
             NewRelic::Agent.instance.stats_engine.
               record_supportability_metrics_timed("ThreadProfiler/PollingTime") do
@@ -136,16 +136,15 @@ module NewRelic
             end
           end
 
-          @finished = true
-          @stop_time = now_in_millis
+          mark_done
           log.debug("Finished thread profile. Will send with next harvest.")
         end
       end
 
       def stop
-        log.debug("Stopping thread profile.")
         @worker_loop.stop
-        @finished = true
+        mark_done
+        log.debug("Stopping thread profile.")
       end
 
       def aggregate(trace, trees=@traces[:request], parent=nil)
@@ -161,7 +160,7 @@ module NewRelic
 
         existing.runnable_count += 1
         aggregate(trace[0..-2], existing.children, existing)
-        
+
         existing
       end
 
@@ -186,6 +185,11 @@ module NewRelic
 
       def finished?
         @finished
+      end
+
+      def mark_done
+        @finished = true
+        @stop_time = now_in_millis
       end
 
       def self.compress(json)

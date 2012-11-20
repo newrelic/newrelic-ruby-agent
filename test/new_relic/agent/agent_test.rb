@@ -55,17 +55,45 @@ module NewRelic
         end
       end
 
-      def test_harvest_and_send_thread_profile
-        profile = NewRelic::Agent::ThreadProfile.new(-1, 0, 0, true)
-        profile.aggregate(["chunky.rb:42:in `bacon'"], profile.traces[:other])
-        profile.instance_variable_set(:@finished, true)
-        @agent.thread_profiler.instance_variable_set(:@profile, profile)
+      def test_graceful_shutdown_ends_thread_profiling
+        @agent.thread_profiler.expects(:stop).once
+        @agent.instance_variable_set(:@connected, true)
 
-        @agent.send :harvest_and_send_thread_profile
+        @agent.send(:graceful_disconnect)
+      end
+
+      def test_harvest_and_send_thread_profile
+        profile = with_profile(:finished => true)
+        @agent.send(:harvest_and_send_thread_profile, false)
 
         assert_equal([profile],
                     @agent.service.agent_data \
                       .find{|data| data.action == :profile_data}.params)
+      end
+
+      def test_harvest_and_send_thread_profile_when_not_finished
+        with_profile(:finished => false)
+        @agent.send(:harvest_and_send_thread_profile, false)
+
+        assert_nil @agent.service.agent_data.find{|data| data.action == :profile_data}
+      end
+
+      def test_harvest_and_send_thread_profile_when_not_finished_but_disconnecting
+        profile = with_profile(:finished => false)
+        @agent.send(:harvest_and_send_thread_profile, true)
+
+        assert_equal([profile],
+                     @agent.service.agent_data \
+                       .find{|data| data.action == :profile_data}.params)
+      end
+
+      def with_profile(opts)
+        profile = NewRelic::Agent::ThreadProfile.new(-1, 0, 0, true)
+        profile.aggregate(["chunky.rb:42:in `bacon'"], profile.traces[:other])
+        profile.instance_variable_set(:@finished, opts[:finished])
+
+        @agent.thread_profiler.instance_variable_set(:@profile, profile)
+        profile
       end
 
       def test_harvest_timeslice_data

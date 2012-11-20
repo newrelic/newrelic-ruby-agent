@@ -997,7 +997,9 @@ module NewRelic
           @traces = nil
         end
 
-        def harvest_and_send_thread_profile
+        def harvest_and_send_thread_profile(disconnecting=false)
+          @thread_profiler.stop(true) if disconnecting
+
           if @thread_profiler.finished?
             profile = @thread_profiler.harvest
 
@@ -1056,14 +1058,14 @@ module NewRelic
           end
         end
 
-        def transmit_data
+        def transmit_data(disconnecting=false)
           now = Time.now
           log.debug "Sending data to New Relic Service"
           harvest_and_send_errors
           harvest_and_send_slowest_sample
           harvest_and_send_slowest_sql
           harvest_and_send_timeslice_data
-          harvest_and_send_thread_profile
+          harvest_and_send_thread_profile(disconnecting)
 
           check_for_agent_commands
         rescue => e
@@ -1091,7 +1093,8 @@ module NewRelic
           if @connected
             begin
               @service.request_timeout = 10
-              transmit_data
+              transmit_data(true)
+
               if @connected_pid == $$ && !@service.kind_of?(NewRelic::Agent::NewRelicService)
                 log.debug "Sending New Relic service agent run shutdown message"
                 @service.shutdown(Time.now.to_f)
