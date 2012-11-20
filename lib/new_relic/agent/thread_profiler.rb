@@ -104,7 +104,7 @@ module NewRelic
         @profile_id = profile_id
         @profile_agent_code = profile_agent_code
 
-        @worker_loop = NewRelic::Agent::WorkerLoop.new(duration)
+        @worker_loop = NewRelic::Agent::WorkerLoop.new(:duration => duration)
         @interval = interval
         @finished = false
 
