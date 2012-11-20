@@ -1,12 +1,8 @@
 require 'resolv'
 
 class NoDnsResolv < Test::Unit::TestCase
-  def test_should_no_resolva_da_host
+  def test_should_no_resolve_hostname_when_agent_is_disabled
     Resolv.class_eval do
-
-      # def self.getaddress(host)
-      #   raise "Resolv.getaddress called when it shouldn't have been!"
-      # end
 
       if RUBY_VERSION == '1.9.2'
         class_variable_set(:@@getaddress_called,false)
@@ -25,9 +21,7 @@ class NoDnsResolv < Test::Unit::TestCase
       end
     end
 
-    # assert_nothing_raised do
-       require 'newrelic_rpm'
-    # end
+    require 'newrelic_rpm'
 
     assert(!Resolv.getaddress_called?,
           'called Resolv.getaddress when we should not have')
