@@ -29,7 +29,7 @@ module Multiverse
         generate_gemfile(gemfile_text)
         bundle
       rescue => e
-        puts e
+        puts "#{e.class}: #{e}"
         puts "Fast local bundle failed.  Attempting to install from rubygems.org"
         clean_gemfiles
         generate_gemfile(gemfile_text, false)
@@ -42,7 +42,7 @@ module Multiverse
       require 'rubygems'
       require 'bundler'
       bundler_out = `bundle`
-      raise unless $? == 0
+      raise "bundle command failed with (#{$?})" unless $? == 0
       puts bundler_out if verbose?
       Bundler.require
     end
@@ -64,7 +64,7 @@ module Multiverse
 
     def newrelic_gemfile_line
       line = ENV['NEWRELIC_GEMFILE_LINE'] if ENV['NEWRELIC_GEMFILE_LINE']
-      path = ENV['NEWRELIC_GEM_PATH'] || '../../../../..'
+      path = ENV['NEWRELIC_GEM_PATH'] || '../../../..'
       line ||= "  gem 'newrelic_rpm', :path => '#{path}'"
       line += ", #{environments.newrelic_gemfile_options}" if environments.newrelic_gemfile_options
       line

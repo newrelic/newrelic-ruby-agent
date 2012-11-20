@@ -14,7 +14,7 @@ namespace :test do
   agent_home = File.expand_path(File.dirname(__FILE__))
 
   desc "Run functional test suite for newrelic"
-  task :multiverse do
+  task :multiverse => :gemspec do
     ruby "#{agent_home}/test/multiverse/script/runner"
   end
 
