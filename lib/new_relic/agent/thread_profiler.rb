@@ -8,6 +8,10 @@ module NewRelic
 
       attr_reader :profile
 
+      def self.is_supported?
+        RUBY_VERSION >= "1.9.2"
+      end
+
       def start(profile_id, duration, interval, profile_agent_code)
         if !ThreadProfiler.is_supported?
           log.debug("Not starting thread profile as it isn't supported on this environment")
@@ -33,9 +37,8 @@ module NewRelic
       def respond_to_commands(commands, &notify_results)
         return if commands.empty? || commands.first.size < 2 
 
-        # Broken because:
-        # Doesn't deal with multiple commands in the return set (real case?)
-        # Still some parameters to support
+        # Doesn't deal with multiple commands in the return set  as 
+        # we currently only have start/stop of thread profiling
         command_id = commands.first[0]
         command = commands.first[1]
 
@@ -49,10 +52,6 @@ module NewRelic
           when "stop_profiler"
             stop_and_notify(command_id, arguments, &notify_results)
         end
-      end
-
-      def self.is_supported?
-        RUBY_VERSION >= "1.9.2"
       end
 
       def running?
