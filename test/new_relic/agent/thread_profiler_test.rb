@@ -203,6 +203,8 @@ class ThreadProfileTest < ThreadedTest
       "irb:12:in `<main>'"
     ]
 
+    @single_line = "irb.rb:69:in `catch'"
+
     @profile = NewRelic::Agent::ThreadProfile.new(-1, 0.025, 0.01, true)
   end
 
@@ -407,14 +409,44 @@ class ThreadProfileTest < ThreadedTest
   end
 
   def test_add_child_twice
-    line = "irb.rb:69:in `catch'"
-    parent = NewRelic::Agent::ThreadProfile::Node.new(line)
-    child = NewRelic::Agent::ThreadProfile::Node.new(line)
+    parent = NewRelic::Agent::ThreadProfile::Node.new(@single_line)
+    child = NewRelic::Agent::ThreadProfile::Node.new(@single_line)
 
     parent.add_child(child)
     parent.add_child(child)
 
     assert_equal 1, parent.children.size
+  end
+
+  def test_prune_keeps_children
+    parent = NewRelic::Agent::ThreadProfile::Node.new(@single_line)
+    child = NewRelic::Agent::ThreadProfile::Node.new(@single_line, parent)
+
+    parent.prune!
+
+    assert_equal [child], parent.children
+  end
+
+  def test_prune_removes_children
+    parent = NewRelic::Agent::ThreadProfile::Node.new(@single_line)
+    child = NewRelic::Agent::ThreadProfile::Node.new(@single_line, parent)
+
+    child.to_prune = true
+    parent.prune!
+
+    assert_equal [], parent.children
+  end
+
+  def test_prune_removes_children
+    parent = NewRelic::Agent::ThreadProfile::Node.new(@single_line)
+    child = NewRelic::Agent::ThreadProfile::Node.new(@single_line, parent)
+    grandchild = NewRelic::Agent::ThreadProfile::Node.new(@single_line, child)
+
+    grandchild.to_prune = true
+    parent.prune!
+
+    assert_equal [child], parent.children
+    assert_equal [], child.children
   end
 
   def test_to_compressed_array

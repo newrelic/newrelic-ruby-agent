@@ -204,7 +204,7 @@ module NewRelic
 
       class Node
         attr_reader :file, :method, :line_no, :children
-        attr_accessor :runnable_count
+        attr_accessor :runnable_count, :to_prune
 
         def initialize(line, parent=nil)
           line =~ /(.*)\:(\d+)\:in `(.*)'/
@@ -213,6 +213,7 @@ module NewRelic
           @line_no = $2.to_i
           @children = []
           @runnable_count = 0
+          @to_prune = false
 
           parent.add_child(self) if parent
         end
@@ -231,6 +232,11 @@ module NewRelic
 
         def add_child(child)
           @children << child unless @children.include? child
+        end
+
+        def prune!
+          @children.delete_if { |child| child.to_prune }
+          @children.each { |child| child.prune! }
         end
       end
 
