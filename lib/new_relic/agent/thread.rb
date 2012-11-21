@@ -17,6 +17,11 @@ module NewRelic
           :other
         end
       end
+
+      def self.scrub_backtrace(thread, profile_agent_code)
+        return thread.backtrace if profile_agent_code
+        thread.backtrace.select {|t| t !~ /\/newrelic_rpm-\d/ }
+      end
     end
   end
 end

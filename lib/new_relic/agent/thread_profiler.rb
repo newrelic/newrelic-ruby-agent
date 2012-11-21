@@ -130,7 +130,8 @@ module NewRelic
                 @sample_count += 1
 
                 bucket = Thread.bucket_thread(t, @profile_agent_code)
-                aggregate(t.backtrace, @traces[bucket]) unless bucket == :ignore
+                backtrace = Thread.scrub_backtrace(t, @profile_agent_code)
+                aggregate(backtrace, @traces[bucket]) unless bucket == :ignore
               end
             end
           end

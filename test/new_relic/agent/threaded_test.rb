@@ -43,6 +43,10 @@ class FakeThread
     thread[:bucket] 
   end
 
+  def self.scrub_backtrace(thread, _)
+    thread[:scrubbed_backtrace] || thread.backtrace
+  end
+
   def key?(key)
     @locals.key?(key)
   end

@@ -203,7 +203,6 @@ class ThreadProfileTest < ThreadedTest
       "irb:12:in `<main>'"
     ]
 
-
     @profile = NewRelic::Agent::ThreadProfile.new(-1, 0.025, 0.01, true)
   end
 
@@ -268,6 +267,17 @@ class ThreadProfileTest < ThreadedTest
     @profile.traces.each do |key, trace|
       assert trace.empty?, "Trace :#{key} should have been empty"
     end
+  end
+
+  def test_profiler_tries_to_scrub_backtraces
+    FakeThread.list << FakeThread.new(
+      :bucket => :agent,
+      :backtrace => @single_trace,
+      :scrubbed_backtrace => @single_trace[0..0])
+
+    @profile.run
+
+    assert_equal [], @profile.traces[:agent].first.children
   end
 
   def test_profile_can_be_stopped
