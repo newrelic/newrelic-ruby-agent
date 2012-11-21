@@ -63,7 +63,7 @@ class ResqueTest < Test::Unit::TestCase
     test_metric = 'OtherTransaction/ResqueJob/all'
     metric_data = $collector.agent_data.find{|x| x.action == 'metric_data'}
 
-    if RUBY_VERSION >= '1.9.2' && NewRelic::VERSION::STRING >= '3.5.3'
+    if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
       metric_names = metric_data.body[3].map{|m| m[0]['name']}
     else
       metric_names = metric_data.body[3].map(&:metric_spec).map(&:name)
@@ -71,7 +71,7 @@ class ResqueTest < Test::Unit::TestCase
     assert(metric_names.include?(test_metric),
            "#{metric_names.inspect} should include '#{test_metric}'")
 
-    if RUBY_VERSION >= '1.9.2' && NewRelic::VERSION::STRING >= '3.5.3'
+    if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
       call_count = metric_data.body[3].find{|m| m[0]['name'] == test_metric}[1][0]
     else
       call_count = metric_data.body[3].find{|m| m.metric_spec.name == test_metric}.stats.call_count

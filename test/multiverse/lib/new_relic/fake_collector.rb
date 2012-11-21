@@ -11,7 +11,7 @@ module NewRelic
 
     def initialize
       @id_counter = 0
-      redirect_host = if RUBY_VERSION >= '1.9.2'
+      redirect_host = if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
         '{"return_value": "localhost"}'
       else
         'localhost'

@@ -30,7 +30,7 @@ module NewRelic
       def load_marshaller
         # we load the JSON marshaller where possible but it is too
         # slow on ruby 1.8.x
-        @marshaller = if RUBY_VERSION >= '1.9.2'
+        @marshaller = if JsonMarshaller.is_supported?
           require 'json'
           JsonMarshaller.new
         else
@@ -82,12 +82,12 @@ module NewRelic
       end
 
       def profile_data(profile)
-        load_marshaller 
+        load_marshaller
         invoke_remote(:profile_data, @agent_id, profile.to_compressed_array) || ''
       end
 
       def get_agent_commands
-        load_marshaller 
+        load_marshaller
         invoke_remote(:get_agent_commands, @agent_id)
       end
 
@@ -95,7 +95,7 @@ module NewRelic
         results = {}
         results["error"] = error unless error.nil?
 
-        load_marshaller 
+        load_marshaller
         invoke_remote(:agent_command_results, @agent_id, { command_id.to_s => results })
       end
 
@@ -322,6 +322,10 @@ module NewRelic
         def format
           'ruby'
         end
+
+        def self.is_supported?
+          true
+        end
       end
 
       class JsonMarshaller < Marshaller
@@ -358,6 +362,10 @@ module NewRelic
           else
             data
           end
+        end
+
+        def self.is_supported?
+          RUBY_VERSION >= '1.9.2'
         end
 
         protected

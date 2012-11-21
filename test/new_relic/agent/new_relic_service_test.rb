@@ -27,7 +27,7 @@ class NewRelicServiceTest < Test::Unit::TestCase
     @service = NewRelic::Agent::NewRelicService.new('license-key', @server)
     @http_handle = HTTPHandle.new
     NewRelic::Control.instance.stubs(:http_connection).returns(@http_handle)
-    if RUBY_VERSION >= '1.9.2'
+    if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
       @http_handle.respond_to(:get_redirect_host, '{"return_value": "localhost"}',
                               :format => :json)
     else
@@ -78,7 +78,7 @@ class NewRelicServiceTest < Test::Unit::TestCase
 
   def test_connect_sets_agent_id
     @http_handle.reset
-    if RUBY_VERSION >= '1.9.2'
+    if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
       @http_handle.respond_to(:get_redirect_host, '{"return_value": "localhost"}',
                               :format => :json)
     else
@@ -263,7 +263,7 @@ end
                                  :metric_data, :error_data, :get_redirect_host,
                                  :shutdown ]
 
-      should_use_json = RUBY_VERSION >= '1.9.2' &&
+      should_use_json = NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported? &&
         json_supported_methods.include?(method)
 
       opts = {
