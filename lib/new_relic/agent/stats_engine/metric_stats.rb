@@ -114,14 +114,22 @@ module NewRelic
           end_time = Time.now
           duration = (end_time - start_time).to_f
         ensure
-          record_supportability_metrics(duration, metrics)
+          record_supportability_metrics(duration, metrics) do |value, metric|
+            metric.record_data_point(value)
+          end
+        end
+
+        # Helper for recording a straight value into the count
+        def record_supportability_metrics_count(value, *metrics)
+          record_supportability_metrics(value, *metrics) do |value, metric|
+            metric.call_count = value
+          end
         end
 
         # Helper method for recording supportability metrics consistently
         def record_supportability_metrics(value, *metrics)
           metrics.each do |metric|
-              get_stats_no_scope("Supportability/#{metric}").
-              record_data_point(value)
+              yield(value, get_stats_no_scope("Supportability/#{metric}"))
           end
         end
 

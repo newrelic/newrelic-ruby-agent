@@ -168,6 +168,9 @@ module NewRelic
         all_nodes = flattened_trace_nodes
         all_nodes.sort!(&:order_for_pruning)
 
+        NewRelic::Agent.instance.stats_engine.
+          record_supportability_metrics_count(all_nodes.size, "ThreadProfiler/NodeCount")
+
         mark_for_pruning(all_nodes, count_to_keep)
 
         traces.each { |_, nodes| Node.prune!(nodes) }
