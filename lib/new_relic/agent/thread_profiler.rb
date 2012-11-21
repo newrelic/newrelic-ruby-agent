@@ -172,8 +172,11 @@ module NewRelic
         traces.each { |_, nodes| Node.prune!(nodes) }
       end
 
+      THREAD_PROFILER_NODES = 20_000
 
       def to_compressed_array
+        prune!(THREAD_PROFILER_NODES)
+
         traces = {
           "OTHER" => @traces[:other].map{|t| t.to_array },
           "REQUEST" => @traces[:request].map{|t| t.to_array },
