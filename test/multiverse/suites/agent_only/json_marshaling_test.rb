@@ -1,12 +1,6 @@
 # https://newrelic.atlassian.net/wiki/display/eng/The+Terror+and+Glory+of+Transaction+Traces
 # https://newrelic.atlassian.net/browse/RUBY-914
 
-# $: << File.dirname(__FILE__) + '/../../lib'
-# require 'debugger'
-# require 'test/unit'
-# require 'newrelic_rpm'
-# require 'new_relic/fake_collector'
-
 if RUBY_VERSION >= '1.9' && NewRelic::VERSION::STRING >= '3.5.3'
 class JsonMarshalingTest < Test::Unit::TestCase
   def setup
@@ -81,6 +75,21 @@ class JsonMarshalingTest < Test::Unit::TestCase
     error_data = $collector.agent_data \
       .select{|x| x.action == 'error_data'}[0].body[1][0]
     assert_equal('test error', error_data[2])
+  end
+
+  def test_sql_trace_data_marshalling
+    @agent.sql_sampler.notice_first_scope_push(nil)
+    @agent.sql_sampler.notice_sql("select * from test",
+                                  "Database/test/select",
+                                  nil, 1.5)
+    @agent.sql_sampler.notice_scope_empty
+
+    @agent.service.connect
+    @agent.send(:harvest_and_send_slowest_sql)
+
+    sql_data = $collector.agent_data \
+      .select{|x| x.action == 'sql_trace_data'}[0].body[0]
+    assert_equal('select * from test', sql_data[0][3])
   end
 end
 end

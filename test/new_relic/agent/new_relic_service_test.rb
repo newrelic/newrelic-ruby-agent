@@ -122,15 +122,15 @@ class NewRelicServiceTest < Test::Unit::TestCase
   end
 
   def test_transaction_sample_data
-    @http_handle.respond_to(:transaction_sample_data, [ 'MPC1000' ])
+    @http_handle.respond_to(:transaction_sample_data, ['MPC1000'])
     response = @service.transaction_sample_data([])
     assert_equal ['MPC1000'], response
   end
 
   def test_sql_trace_data
-    @http_handle.respond_to(:sql_trace_data, 'explain this')
+    @http_handle.respond_to(:sql_trace_data, ['explain this'])
     response = @service.sql_trace_data([])
-    assert_equal 'explain this', response
+    assert_equal ['explain this'], response
   end
 
 
@@ -172,7 +172,6 @@ if RUBY_VERSION >= '1.9.2'
     assert_equal [123], response
   end
 end
-
 
   def test_request_timeout
     with_config(:timeout => 600) do
@@ -261,7 +260,7 @@ end
       json_supported_methods = [ :transaction_sample_data, :get_agent_commands,
                                  :agent_command_results, :profile_data,
                                  :metric_data, :error_data, :get_redirect_host,
-                                 :shutdown ]
+                                 :shutdown, :sql_trace_data ]
 
       should_use_json = NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported? &&
         json_supported_methods.include?(method)

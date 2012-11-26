@@ -77,7 +77,7 @@ module NewRelic
       end
 
       def sql_trace_data(sql_traces)
-        @marshaller = RubyMarshaller.new
+        load_marshaller
         invoke_remote(:sql_trace_data, sql_traces)
       end
 
