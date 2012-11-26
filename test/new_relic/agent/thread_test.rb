@@ -35,6 +35,13 @@ class ThreadTest < Test::Unit::TestCase
     assert_equal :background, NewRelic::Agent::Thread.bucket_thread(t, DONT_CARE)
   end
 
+  def test_bucket_thread_as_other_if_nil_frame
+    t = ::Thread.new {}
+    t[:newrelic_metric_frame] = nil
+
+    assert_equal :other, NewRelic::Agent::Thread.bucket_thread(t, DONT_CARE)
+  end
+
   def test_bucket_thread_as_other
     t = ::Thread.new {}
     assert_equal :other, NewRelic::Agent::Thread.bucket_thread(t, DONT_CARE)
