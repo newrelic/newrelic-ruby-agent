@@ -113,6 +113,8 @@ module NewRelic
           :other => [],
           :request => []
         }
+        @flattened_nodes = []
+
         @poll_count = 0
         @sample_count = 0
       end
@@ -150,7 +152,12 @@ module NewRelic
       def aggregate(trace, trees=@traces[:request], parent=nil)
         return nil if trace.nil? || trace.empty?
         node = Node.new(trace.last)
-        existing = trees.find {|n| n == node} || node
+        existing = trees.find {|n| n == node}
+
+        if existing.nil?
+          existing = node
+          @flattened_nodes << node
+        end
 
         if parent
           parent.add_child(node)
@@ -165,13 +172,12 @@ module NewRelic
       end
 
       def prune!(count_to_keep)
-        all_nodes = flattened_trace_nodes
-        all_nodes.sort!(&:order_for_pruning)
+        @flattened_nodes.sort!(&:order_for_pruning)
 
         NewRelic::Agent.instance.stats_engine.
-          record_supportability_metrics_count(all_nodes.size, "ThreadProfiler/NodeCount")
+          record_supportability_metrics_count(@flattened_nodes.size, "ThreadProfiler/NodeCount")
 
-        mark_for_pruning(all_nodes, count_to_keep)
+        mark_for_pruning(@flattened_nodes, count_to_keep)
 
         traces.each { |_, nodes| Node.prune!(nodes) }
       end
@@ -213,10 +219,6 @@ module NewRelic
         to_prune.each { |n| n.to_prune = true }
       end
 
-      def flattened_trace_nodes
-        @traces.map { |_, ns| ThreadProfile.flattened_nodes(ns) }.flatten
-      end
-      
       def self.flattened_nodes(nodes)
         nodes.map { |n| [n, flattened_nodes(n.children)] }.flatten
       end

@@ -387,15 +387,6 @@ class ThreadProfileTest < ThreadedTest
     assert_equal tree, result
   end
 
-  def test_flattened_nodes
-    @profile.aggregate(@single_trace, @profile.traces[:request])
-    @profile.aggregate(@single_trace, @profile.traces[:other])
-
-    flat = @profile.flattened_trace_nodes
-
-    assert_equal 6, flat.size
-  end
-
   def test_prune_tree
     @profile.aggregate(@single_trace)
 
