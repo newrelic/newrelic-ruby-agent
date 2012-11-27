@@ -42,7 +42,7 @@ class MarshalingTest < Test::Unit::TestCase
     if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
       marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
     else
-      marshaller = NewRelic::Agent::NewRelicService::PRubyMarshaller.new
+      marshaller = NewRelic::Agent::NewRelicService::PronMarshaller.new
     end
 
     assert_equal(666,

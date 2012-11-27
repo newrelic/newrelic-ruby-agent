@@ -204,7 +204,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
       marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
       expected_compressed_data = compress(@t.to_json)
     else
-      marshaller = NewRelic::Agent::NewRelicService::PRubyMarshaller.new
+      marshaller = NewRelic::Agent::NewRelicService::PronMarshaller.new
       expected_compressed_data = compress(Marshal.dump(@t.to_array))
     end
     expected_array = [(@t.start_time.to_f * 1000).to_i,

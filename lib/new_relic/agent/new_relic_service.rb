@@ -310,42 +310,13 @@ module NewRelic
           end
           data
         end
-      end
 
-      class RubyMarshaller < Marshaller
-        def initialize
-          NewRelic::Agent.logger.debug 'Using Ruby marshaller'
-        end
-
-        def dump(ruby, opts={})
-          NewRelic::LanguageSupport.with_cautious_gc do
-            compress(Marshal.dump(ruby), opts)
-          end
-        rescue => e
-          log.debug("#{e.class.name} : #{e.message} when marshalling #{ruby.inspect}")
-          raise
-        end
-
-        def load(data)
-          result = NewRelic::LanguageSupport.with_cautious_gc do
-            Marshal.load(data)
-          end
-          if result.kind_of?(Exception)
-            raise result
-          end
-          result
-        end
-
-        def format
-          'ruby'
-        end
-
-        def self.is_supported?
-          true
+        def parsed_error(error)
+          CollectorError.new("#{error['error_type']}: #{error['message']}")
         end
       end
 
-      # Primitive Ruby Object Notation for JSON format data struture compliance
+      # Primitive Ruby Object Notation which complies JSON format data strutures
       class PronMarshaller < Marshaller
         def initialize
           NewRelic::Agent.logger.debug 'Using Pron marshaller'
@@ -376,6 +347,7 @@ module NewRelic
         end
       end
 
+      # Marshal collector protocol with JSON when available
       class JsonMarshaller < Marshaller
         def initialize
           NewRelic::Agent.logger.debug 'Using JSON marshaller'
@@ -396,12 +368,6 @@ module NewRelic
 
         def self.is_supported?
           RUBY_VERSION >= '1.9.2'
-        end
-
-        protected
-
-        def parsed_error(error)
-          CollectorError.new("#{error['error_type']}: #{error['message']}")
         end
       end
 

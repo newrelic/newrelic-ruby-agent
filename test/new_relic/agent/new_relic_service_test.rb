@@ -237,15 +237,16 @@ end
     end
   end
 
-  def test_ruby_marshaller_handles_errors_from_collector
-    marshaller = NewRelic::Agent::NewRelicService::RubyMarshaller.new
-    assert_raise(RuntimeError, 'error message') do
-      marshaller.load(Marshal.dump(RuntimeError.new('error message')))
+  def test_pron_marshaller_handles_errors_from_collector
+    marshaller = NewRelic::Agent::NewRelicService::PronMarshaller.new
+    assert_raise(NewRelic::Agent::NewRelicService::CollectorError, 'error message') do
+      marshaller.load(Marshal.dump({"exception" => {"message" => "error message",
+                                       "error_type" => "JavaCrash"}}))
     end
   end
 
-  def test_ruby_marshaller_compresses_large_payloads
-    marshaller = NewRelic::Agent::NewRelicService::RubyMarshaller.new
+  def test_pron_marshaller_compresses_large_payloads
+    marshaller = NewRelic::Agent::NewRelicService::PronMarshaller.new
     large_payload = 'a' * 64 * 1024
     result = marshaller.dump(large_payload)
     assert_equal 'deflate', marshaller.encoding
