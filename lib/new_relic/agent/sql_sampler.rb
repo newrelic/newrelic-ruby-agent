@@ -223,8 +223,9 @@ module NewRelic
         Agent.config[:'slow_sql.explain_enabled']
       end
 
-      def to_collector_array
-        [@path, @url, @sql_id, @sql, @database_metric_name, @call_count, @total_call_time, @min_call_time, @max_call_time, compress(@params)]
+      def to_collector_array(marshaller=nil)
+        [@path, @url, @sql_id, @sql, @database_metric_name, @call_count,
+         @total_call_time, @min_call_time, @max_call_time, compress(@params)]
       end
 
       private

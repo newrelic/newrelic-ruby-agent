@@ -1,8 +1,7 @@
 # https://newrelic.atlassian.net/wiki/display/eng/The+Terror+and+Glory+of+Transaction+Traces
 # https://newrelic.atlassian.net/browse/RUBY-914
 
-if RUBY_VERSION >= '1.9' && NewRelic::VERSION::STRING >= '3.5.3'
-class JsonMarshalingTest < Test::Unit::TestCase
+class MarshalingTest < Test::Unit::TestCase
   def setup
     NewRelic::Agent.manual_start(:'transaction_tracer.transaction_threshold' => 0.0)
     @agent = NewRelic::Agent.instance
@@ -10,7 +9,11 @@ class JsonMarshalingTest < Test::Unit::TestCase
 
     $collector ||= NewRelic::FakeCollector.new
     $collector.reset
-    $collector.mock['connect'] = [200, '{"agent_run_id": 666}']
+    if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
+      $collector.mock['connect'] = [200, '{"agent_run_id": 666}']
+    else
+      $collector.mock['connect'] = [200, { 'agent_run_id' => 666 }]
+    end
     $collector.run
   end
 
@@ -36,9 +39,15 @@ class JsonMarshalingTest < Test::Unit::TestCase
     @agent.service.connect
     @agent.send(:harvest_and_send_slowest_sample)
 
+    if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
+      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+    else
+      marshaller = NewRelic::Agent::NewRelicService::PRubyMarshaller.new
+    end
+
     assert_equal(666,
                  $collector.agent_data.select{|x| x.action == 'transaction_sample_data'}[0].body[0])
-    assert_equal(expected_sample.to_collector_array,
+    assert_equal(expected_sample.to_collector_array(marshaller),
                  $collector.agent_data.select{|x| x.action == 'transaction_sample_data'}[0].body[1][0])
   end
 
@@ -101,4 +110,4 @@ class JsonMarshalingTest < Test::Unit::TestCase
     assert_equal '9000', connect_data['agent_version']
   end
 end
-end
+

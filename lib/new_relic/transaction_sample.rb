@@ -1,4 +1,3 @@
-require 'zlib'
 require 'base64'
 
 require 'new_relic/transaction_sample/segment'
@@ -59,19 +58,14 @@ module NewRelic
     end
 
     def to_array
-      [@start_time.to_f, @params[:request_params], @params[:custom_params],
-       @root_segment.to_array]
+      [ @start_time.to_f, @params[:request_params], @params[:custom_params],
+        @root_segment.to_array ]
     end
 
-    def compress(string)
-      Base64.encode64(Zlib::Deflate.deflate(string, Zlib::DEFAULT_COMPRESSION))
-    end
-
-    def to_collector_array
-      [(@start_time.to_f * 1000).to_i, (duration * 1000).to_i,
-       @params[:path], @params[:uri],
-       compress(self.to_json),
-       @guid, nil, !!@force_persist]
+    def to_collector_array(marshaller)
+      trace_tree = Base64.encode64(marshaller.dump(self.to_array, :force_compress => true))
+      [ (@start_time.to_f * 1000).to_i, (duration * 1000).to_i,
+        @params[:path], @params[:uri], trace_tree, @guid, nil, !!@force_persist ]
     end
 
     def start_time

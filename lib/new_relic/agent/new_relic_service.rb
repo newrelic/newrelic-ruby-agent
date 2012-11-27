@@ -34,10 +34,10 @@ module NewRelic
           require 'json'
           JsonMarshaller.new
         else
-          RubyMarshaller.new
+          PRubyMarshaller.new
         end
       rescue LoadError
-        @marshaller = RubyMarshaller.new
+        @marshaller = PRubyMarshaller.new
       end
 
       def connect(settings={})
@@ -278,8 +278,8 @@ module NewRelic
         # medium payloads get fast compression, to save CPU
         # big payloads get all the compression possible, to stay under
         # the 2,000,000 byte post threshold
-        def compress(data)
-          if data.size > 64 * 1024
+        def compress(data, opts={})
+          if opts[:force_compress] || data.size > 64 * 1024
             data = Zlib::Deflate.deflate(data, Zlib::DEFAULT_COMPRESSION)
             @encoding = 'deflate'
           else
@@ -287,12 +287,39 @@ module NewRelic
           end
           data
         end
+
+        protected
+
+        def prepare(data)
+          if data.respond_to?(:to_collector_array)
+            data.to_collector_array(self)
+          elsif data.kind_of?(Array)
+            data.map {|element| prepare(element) }
+          else
+            data
+          end
+        end
+
+        def return_value(data)
+          if data.respond_to?(:has_key?)
+            if data.has_key?('exception')
+              raise parsed_error(data['exception'])
+            elsif data.has_key?('return_value')
+              return data['return_value']
+            end
+          end
+          data
+        end
       end
 
       class RubyMarshaller < Marshaller
-        def dump(ruby)
+        def initialize
+          NewRelic::Agent.logger.debug 'Using Ruby marshaller'
+        end
+
+        def dump(ruby, opts={})
           NewRelic::LanguageSupport.with_cautious_gc do
-            compress(Marshal.dump(ruby))
+            compress(Marshal.dump(ruby), opts)
           end
         rescue => e
           log.debug("#{e.class.name} : #{e.message} when marshalling #{ruby.inspect}")
@@ -318,40 +345,52 @@ module NewRelic
         end
       end
 
+      class PRubyMarshaller < Marshaller
+        def initialize
+          NewRelic::Agent.logger.debug 'Using PRuby marshaller'
+        end
+
+        def dump(ruby, opts={})
+          NewRelic::LanguageSupport.with_cautious_gc do
+            compress(Marshal.dump(prepare(ruby)), opts)
+          end
+        rescue => e
+          NewRelic::Agent.logger.debug("#{e.class.name} : #{e.message} when marshalling #{ruby.inspect}")
+          raise
+        end
+
+        def load(data)
+          return unless data && data != ''
+          NewRelic::LanguageSupport.with_cautious_gc do
+            return_value(Marshal.load(data))
+          end
+        end
+
+        def format
+          'pruby'
+        end
+
+        def self.is_supported?
+          true
+        end
+      end
+
       class JsonMarshaller < Marshaller
         def initialize
           NewRelic::Agent.logger.debug 'Using JSON marshaller'
         end
 
-        def dump(ruby)
-          compress(JSON.dump(prepare(ruby)))
+        def dump(ruby, opts={})
+          compress(JSON.dump(prepare(ruby)), opts)
         end
 
         def load(data)
           return unless data && data != ''
-          result = JSON.load(data)
-          if result.respond_to?(:has_key?)
-            if result.has_key?('exception')
-              raise parsed_error(result['exception'])
-            elsif result.has_key?('return_value')
-              return result['return_value']
-            end
-          end
-          result
+          return_value(JSON.load(data))
         end
 
         def format
           'json'
-        end
-
-        def prepare(data)
-          if data.respond_to?(:to_collector_array)
-            data.to_collector_array
-          elsif data.kind_of?(Array)
-            data.map {|element| prepare(element) }
-          else
-            data
-          end
         end
 
         def self.is_supported?
