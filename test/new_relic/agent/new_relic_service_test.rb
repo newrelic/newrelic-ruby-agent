@@ -27,19 +27,21 @@ class NewRelicServiceTest < Test::Unit::TestCase
     @service = NewRelic::Agent::NewRelicService.new('license-key', @server)
     @http_handle = HTTPHandle.new
     NewRelic::Control.instance.stubs(:http_connection).returns(@http_handle)
+
     if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
       @http_handle.respond_to(:get_redirect_host, '{"return_value": "localhost"}',
                               :format => :json)
+      connect_response = '{"agent_run_id": 1, "config": "some config directives"}'
+      @http_handle.respond_to(:connect, connect_response, :format => :json)
     else
       @http_handle.respond_to(:get_redirect_host, 'localhost',
                               :format => :ruby)
+      connect_response = {
+        'config' => 'some config directives',
+        'agent_run_id' => 1
+      }
+      @http_handle.respond_to(:connect, connect_response, :format => :ruby)
     end
-
-    connect_response = {
-      'config' => 'some config directives',
-      'agent_run_id' => 1
-    }
-    @http_handle.respond_to(:connect, connect_response)
   end
 
   def test_initialize_uses_correct_license_key_settings
@@ -70,7 +72,11 @@ class NewRelicServiceTest < Test::Unit::TestCase
   def test_connect_uses_proxy_collector_if_no_redirect_host
     @http_handle.reset
     @http_handle.respond_to(:get_redirect_host, nil)
-    @http_handle.respond_to(:connect, {'agent_run_id' => 1})
+    if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
+      @http_handle.respond_to(:connect, '{"agent_run_id": 1}', :format => :json)
+    else
+      @http_handle.respond_to(:connect, {'agent_run_id' => 1}, :format => :ruby)
+    end
 
     @service.connect
     assert_equal 'somewhere.example.com', @service.collector.name
@@ -81,12 +87,12 @@ class NewRelicServiceTest < Test::Unit::TestCase
     if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
       @http_handle.respond_to(:get_redirect_host, '{"return_value": "localhost"}',
                               :format => :json)
+      @http_handle.respond_to(:connect, '{"agent_run_id": 666}', :format => :json)
     else
       @http_handle.respond_to(:get_redirect_host, 'localhost',
                               :format => :ruby)
+      @http_handle.respond_to(:connect, {'agent_run_id' => 666}, :format => :ruby)
     end
-
-    @http_handle.respond_to(:connect, {'agent_run_id' => 666})
 
     @service.connect
     assert_equal 666, @service.agent_id
@@ -254,20 +260,15 @@ end
     end
 
     def respond_to(method, payload, opts={})
-      # temporary place to keep track of which methods have been moved
-      # to JSON marshaling
-      # will be removed when the migration is complete
-      json_supported_methods = [ :transaction_sample_data, :get_agent_commands,
-                                 :agent_command_results, :profile_data,
-                                 :metric_data, :error_data, :get_redirect_host,
-                                 :shutdown, :sql_trace_data ]
-
-      should_use_json = NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported? &&
-        json_supported_methods.include?(method)
+      if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
+        format = :json
+      else
+        format = :ruby
+      end
 
       opts = {
         :code => 200,
-        :format => should_use_json ? :json : :ruby
+        :format => format
       }.merge(opts)
 
       klass = HTTPSuccess

@@ -10,7 +10,7 @@ class JsonMarshalingTest < Test::Unit::TestCase
 
     $collector ||= NewRelic::FakeCollector.new
     $collector.reset
-    $collector.mock['connect'] = [200, { 'agent_run_id' => 666 }]
+    $collector.mock['connect'] = [200, '{"agent_run_id": 666}']
     $collector.run
   end
 
@@ -90,6 +90,15 @@ class JsonMarshalingTest < Test::Unit::TestCase
     sql_data = $collector.agent_data \
       .select{|x| x.action == 'sql_trace_data'}[0].body[0]
     assert_equal('select * from test', sql_data[0][3])
+  end
+
+  def test_connect_marshalling
+    @agent.service.connect('pid' => 1, 'agent_version' => '9000',
+                           'app_name' => 'test')
+
+    connect_data = $collector.agent_data \
+      .select{|x| x.action == 'connect'}[0].body[0]
+    assert_equal '9000', connect_data['agent_version']
   end
 end
 end

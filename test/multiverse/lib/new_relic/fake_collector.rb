@@ -18,7 +18,7 @@ module NewRelic
       end
       @base_expectations = {
         'get_redirect_host'       => [200, redirect_host],
-        'connect'                 => [200, { 'agent_run_id' => agent_run_id }],
+        'connect'                 => [200, "{\"agent_run_id\": #{agent_run_id}}"],
         'get_agent_commands'      => [200, '[]'],
         'metric_data'             => [200, '{ "Some/Metric/Spec": 1 }'],
         'sql_trace_data'          => [200, nil],

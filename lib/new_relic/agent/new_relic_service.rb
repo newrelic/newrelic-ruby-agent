@@ -44,50 +44,41 @@ module NewRelic
         if host = get_redirect_host
           @collector = NewRelic::Control.instance.server_from_host(host)
         end
-        @marshaller = RubyMarshaller.new
         response = invoke_remote(:connect, settings)
         @agent_id = response['agent_run_id']
         response
       end
 
       def get_redirect_host
-        load_marshaller
         invoke_remote(:get_redirect_host)
       end
 
       def shutdown(time)
-        load_marshaller
         invoke_remote(:shutdown, @agent_id, time.to_i) if @agent_id
       end
 
       def metric_data(last_harvest_time, now, unsent_timeslice_data)
-        load_marshaller
         invoke_remote(:metric_data, @agent_id, last_harvest_time, now,
                       unsent_timeslice_data)
       end
 
       def error_data(unsent_errors)
-        load_marshaller
         invoke_remote(:error_data, @agent_id, unsent_errors)
       end
 
       def transaction_sample_data(traces)
-        load_marshaller
         invoke_remote(:transaction_sample_data, @agent_id, traces)
       end
 
       def sql_trace_data(sql_traces)
-        load_marshaller
         invoke_remote(:sql_trace_data, sql_traces)
       end
 
       def profile_data(profile)
-        load_marshaller
         invoke_remote(:profile_data, @agent_id, profile.to_compressed_array) || ''
       end
 
       def get_agent_commands
-        load_marshaller
         invoke_remote(:get_agent_commands, @agent_id)
       end
 
@@ -95,7 +86,6 @@ module NewRelic
         results = {}
         results["error"] = error unless error.nil?
 
-        load_marshaller
         invoke_remote(:agent_command_results, @agent_id, { command_id.to_s => results })
       end
 

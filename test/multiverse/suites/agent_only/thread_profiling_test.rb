@@ -1,17 +1,17 @@
 # https://newrelic.atlassian.net/wiki/display/eng/Agent+Thread+Profiling
 # https://newrelic.atlassian.net/browse/RUBY-917
 
-if RUBY_VERSION >= '1.9' 
+if RUBY_VERSION >= '1.9'
 class ThreadProfilingTest < Test::Unit::TestCase
   def setup
     NewRelic::Agent.manual_start(:'thread_profiler.enabled' => true)
-        
+
     @agent = NewRelic::Agent.instance
     @thread_profiler = @agent.thread_profiler
 
     $collector ||= NewRelic::FakeCollector.new
     $collector.reset
-    $collector.mock['connect'] = [200, { 'agent_run_id' => 666 }]
+    $collector.mock['connect'] = [200, '{"agent_run_id": 666 }']
     $collector.mock['get_agent_commands'] = [200, START_COMMAND]
     $collector.mock['agent_command_results'] = [200, '[]']
     $collector.run
