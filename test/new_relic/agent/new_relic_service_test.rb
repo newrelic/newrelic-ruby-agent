@@ -35,12 +35,12 @@ class NewRelicServiceTest < Test::Unit::TestCase
       @http_handle.respond_to(:connect, connect_response, :format => :json)
     else
       @http_handle.respond_to(:get_redirect_host, 'localhost',
-                              :format => :pruby)
+                              :format => :pron)
       connect_response = {
         'config' => 'some config directives',
         'agent_run_id' => 1
       }
-      @http_handle.respond_to(:connect, connect_response, :format => :pruby)
+      @http_handle.respond_to(:connect, connect_response, :format => :pron)
     end
   end
 
@@ -75,7 +75,7 @@ class NewRelicServiceTest < Test::Unit::TestCase
     if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
       @http_handle.respond_to(:connect, '{"agent_run_id": 1}', :format => :json)
     else
-      @http_handle.respond_to(:connect, {'agent_run_id' => 1}, :format => :pruby)
+      @http_handle.respond_to(:connect, {'agent_run_id' => 1}, :format => :pron)
     end
 
     @service.connect
@@ -90,8 +90,8 @@ class NewRelicServiceTest < Test::Unit::TestCase
       @http_handle.respond_to(:connect, '{"agent_run_id": 666}', :format => :json)
     else
       @http_handle.respond_to(:get_redirect_host, 'localhost',
-                              :format => :pruby)
-      @http_handle.respond_to(:connect, {'agent_run_id' => 666}, :format => :pruby)
+                              :format => :pron)
+      @http_handle.respond_to(:connect, {'agent_run_id' => 666}, :format => :pron)
     end
 
     @service.connect
@@ -263,7 +263,7 @@ end
       if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
         format = :json
       else
-        format = :pruby
+        format = :pron
       end
 
       opts = {

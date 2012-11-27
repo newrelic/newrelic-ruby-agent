@@ -34,10 +34,10 @@ module NewRelic
           require 'json'
           JsonMarshaller.new
         else
-          PRubyMarshaller.new
+          PronMarshaller.new
         end
       rescue LoadError
-        @marshaller = PRubyMarshaller.new
+        @marshaller = PronMarshaller.new
       end
 
       def connect(settings={})
@@ -345,9 +345,10 @@ module NewRelic
         end
       end
 
-      class PRubyMarshaller < Marshaller
+      # Primitive Ruby Object Notation for JSON format data struture compliance
+      class PronMarshaller < Marshaller
         def initialize
-          NewRelic::Agent.logger.debug 'Using PRuby marshaller'
+          NewRelic::Agent.logger.debug 'Using Pron marshaller'
         end
 
         def dump(ruby, opts={})
@@ -367,7 +368,7 @@ module NewRelic
         end
 
         def format
-          'pruby'
+          'pron'
         end
 
         def self.is_supported?
