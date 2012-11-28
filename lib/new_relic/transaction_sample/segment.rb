@@ -34,8 +34,10 @@ module NewRelic
       end
 
       def to_array
-        [@entry_timestamp, @exit_timestamp, @metric_name, (@params || {})] +
-          [(@called_segments ? @called_segments.map{|s| s.to_array} : [])]
+        [ (@entry_timestamp.to_f * 1000).round,
+          (@exit_timestamp.to_f * 1000).round,
+          @metric_name, (@params || {}) ] +
+          [ (@called_segments ? @called_segments.map{|s| s.to_array} : []) ]
       end
 
       def to_json
