@@ -49,6 +49,11 @@ module NewRelic
           end
         end
 
+        # Define Request Header accessor for Sinatra
+        def newrelic_request_headers
+          request.env
+        end
+
         module NewRelic
           extend self
           
