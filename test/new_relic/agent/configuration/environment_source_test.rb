@@ -49,6 +49,22 @@ module NewRelic::Agent::Configuration
       assert_equal 'STDOUT', source[:log_file_path]
     end
 
+    def test_thread_profiler_is_supported
+      source = EnvironmentSource.new
+
+      assert_equal(
+        NewRelic::Agent::ThreadProfiler.is_supported?,
+        source[:'thread_profiler.is_supported'])
+    end
+
+    def test_thread_profiler_enabled_depending_on_support
+      source = EnvironmentSource.new
+
+      expected = false unless NewRelic::Agent::ThreadProfiler.is_supported?
+
+      assert_equal expected, source[:'thread_profiler.enabled']
+    end
+
     def assert_applied_string(env_var, config_var)
       ENV[env_var] = 'test value'
       assert_equal 'test value', EnvironmentSource.new[config_var.to_sym]
