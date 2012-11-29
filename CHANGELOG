@@ -3,6 +3,13 @@
 
 ## v3.5.3 ##
 
+  * Update the collector protocol to use JSON and Ruby primitives
+
+    The communication between the agent and the NewRelic will not longer be
+    marshalled Ruby objects, but rather JSON in the case of Ruby 1.9 and marshalled
+    Ruby primitives in the case of 1.8.  This results in greater harvest efficiency
+    as well as feature parity with other New Relic agents.
+
   * Fix incorrect application of conditions in sinatra instrumentation
 
     The agent's sinatra instrumentation was causing sinatra's condidtions to
