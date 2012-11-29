@@ -1,5 +1,5 @@
 # https://newrelic.atlassian.net/browse/RUBY-765
-require 'new_relic/fake_collector'
+require 'fake_collector'
 
 class HttpResponseCodeTest < Test::Unit::TestCase
   def setup

@@ -4,7 +4,7 @@ require 'resque'
 require 'test/unit'
 require 'logger'
 require 'newrelic_rpm'
-require 'new_relic/fake_collector'
+require 'fake_collector'
 
 class JobForTesting
   @queue = :resque_test

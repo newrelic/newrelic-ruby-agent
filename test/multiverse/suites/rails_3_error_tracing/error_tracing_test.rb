@@ -7,7 +7,7 @@ require 'rails/test_unit/railtie'
 require 'rails/test_help'
 require 'test/unit'
 require 'new_relic/rack/error_collector'
-require 'new_relic/fake_service'
+require 'fake_service'
 
 
 # BEGIN RAILS APP
