@@ -63,9 +63,15 @@ module NewRelic
     end
 
     def to_collector_array(marshaller)
-      trace_tree = Base64.encode64(marshaller.dump(self.to_array, :force_compress => true))
+      trace_tree = if marshaller.respond_to?(:encode_compress)
+        marshaller.encode_compress(self.to_array)
+      else
+        self.to_array
+      end
+
       [ (@start_time.to_f * 1000).to_i, (duration * 1000).to_i,
-        @params[:path], @params[:uri], trace_tree, @guid, nil, !!@force_persist ]
+        @params[:path], @params[:uri], trace_tree, @guid, nil,
+        !!@force_persist ]
     end
 
     def start_time

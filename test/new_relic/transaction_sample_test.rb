@@ -202,15 +202,15 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
   def test_to_collector_array
     if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
       marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-      expected_compressed_data = compress(@t.to_json)
+      trace_tree = compress(@t.to_json)
     else
-      marshaller = NewRelic::Agent::NewRelicService::PronMarshaller.new
-      expected_compressed_data = compress(Marshal.dump(@t.to_array))
+      marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
+      trace_tree = @t.to_array
     end
     expected_array = [(@t.start_time.to_f * 1000).to_i,
                       (@t.duration * 1000).to_i,
                       @t.params[:path], @t.params[:uri],
-                      expected_compressed_data,
+                      trace_tree,
                       @t.guid, nil, !!@t.force_persist]
 
     assert_equal expected_array, @t.to_collector_array(marshaller)

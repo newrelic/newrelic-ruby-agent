@@ -34,10 +34,10 @@ module NewRelic
           require 'json'
           JsonMarshaller.new
         else
-          PronMarshaller.new
+          PrubyMarshaller.new
         end
       rescue LoadError
-        @marshaller = PronMarshaller.new
+        @marshaller = PrubyMarshaller.new
       end
 
       def connect(settings={})
@@ -279,7 +279,7 @@ module NewRelic
         # big payloads get all the compression possible, to stay under
         # the 2,000,000 byte post threshold
         def compress(data, opts={})
-          if opts[:force_compress] || data.size > 64 * 1024
+          if opts[:force] || data.size > 64 * 1024
             data = Zlib::Deflate.deflate(data, Zlib::DEFAULT_COMPRESSION)
             @encoding = 'deflate'
           else
@@ -317,14 +317,14 @@ module NewRelic
       end
 
       # Primitive Ruby Object Notation which complies JSON format data strutures
-      class PronMarshaller < Marshaller
+      class PrubyMarshaller < Marshaller
         def initialize
-          NewRelic::Agent.logger.debug 'Using Pron marshaller'
+          NewRelic::Agent.logger.debug 'Using Pruby marshaller'
         end
 
-        def dump(ruby, opts={})
+        def dump(ruby)
           NewRelic::LanguageSupport.with_cautious_gc do
-            compress(Marshal.dump(prepare(ruby)), opts)
+            compress(Marshal.dump(prepare(ruby)))
           end
         rescue => e
           NewRelic::Agent.logger.debug("#{e.class.name} : #{e.message} when marshalling #{ruby.inspect}")
@@ -339,7 +339,7 @@ module NewRelic
         end
 
         def format
-          'pron'
+          'pruby'
         end
 
         def self.is_supported?
@@ -353,13 +353,17 @@ module NewRelic
           NewRelic::Agent.logger.debug 'Using JSON marshaller'
         end
 
-        def dump(ruby, opts={})
-          compress(JSON.dump(prepare(ruby)), opts)
+        def dump(ruby)
+          compress(JSON.dump(prepare(ruby)))
         end
 
         def load(data)
           return unless data && data != ''
           return_value(JSON.load(data))
+        end
+
+        def encode_compress(data)
+          Base64.encode64(compress(JSON.dump(data), :force => true))
         end
 
         def format
