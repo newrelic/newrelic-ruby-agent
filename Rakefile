@@ -14,8 +14,13 @@ namespace :test do
   agent_home = File.expand_path(File.dirname(__FILE__))
 
   desc "Run functional test suite for newrelic"
-  task :multiverse => :gemspec do
-    ruby "#{agent_home}/test/multiverse/script/runner"
+  task :multiverse, [:suite, :mode] => [:gemspec] do |t, args|
+    args.with_defaults(:suite => "", :mode => "")
+    if args.mode == "run_one"
+      puts `#{agent_home}/test/multiverse/script/run_one #{args.suite}`
+    else
+      ruby "#{agent_home}/test/multiverse/script/runner #{args.suite}"
+    end
   end
 
   Rake::TestTask.new(:intentional_fail) do |t|
