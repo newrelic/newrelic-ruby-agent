@@ -59,7 +59,7 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
       child.end_trace(3)
       parent.add_called_segment(child)
       parent.end_trace(4)
-      expected_string = "[1,4,\"Custom/test/parent\",{\"test\":\"value\"},[[2,3,\"Custom/test/child\",{},[]]]]"
+      expected_string = "[1000,4000,\"Custom/test/parent\",{\"test\":\"value\"},[[2000,3000,\"Custom/test/child\",{},[]]]]"
       assert_equal(expected_string, parent.to_json)
     end
   end
