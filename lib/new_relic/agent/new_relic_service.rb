@@ -339,6 +339,9 @@ module NewRelic
           NewRelic::LanguageSupport.with_cautious_gc do
             return_value(Marshal.load(data))
           end
+        rescue
+          NewRelic::Agent.logger.debug "Error encountered loading collector response: #{data}"
+          raise
         end
 
         def format
@@ -363,6 +366,9 @@ module NewRelic
         def load(data)
           return unless data && data != ''
           return_value(JSON.load(data))
+        rescue
+          NewRelic::Agent.logger.debug "Error encountered loading collector response: #{data}"
+          raise
         end
 
         def encode_compress(data)
