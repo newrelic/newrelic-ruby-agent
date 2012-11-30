@@ -1,5 +1,10 @@
+require 'zlib'
+require 'base64'
+require 'digest/md5'
+
 require 'new_relic/agent'
 require 'new_relic/control'
+
 module NewRelic
   module Agent
 
@@ -218,21 +223,26 @@ module NewRelic
         Agent.config[:'slow_sql.explain_enabled']
       end
 
-      def to_json(*a)
-        [@path, @url, @sql_id, @sql, @database_metric_name, @call_count, @total_call_time, @min_call_time, @max_call_time, @params].to_json(*a)
+      def to_collector_array(marshaller=nil)
+        [@path, @url, @sql_id, @sql, @database_metric_name, @call_count,
+         @total_call_time, @min_call_time, @max_call_time, compress(@params)]
       end
 
       private
 
-      def consistent_hash(string)
-        if NewRelic::LanguageSupport.using_version?('1.9.2')
-          # String#hash is salted differently on every VM start in 1.9
-          require 'digest/md5'
-          Digest::MD5.hexdigest(string).hex
+      def compress(data)
+        if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
+          require 'json'
+          Base64.encode64(Zlib::Deflate.deflate(JSON.dump(data), Zlib::DEFAULT_COMPRESSION))
         else
-          string.hash
-        end.modulo(2**31-1)
-        # modulo ensures sql_id fits in an INT(11)
+          data
+        end
+      end
+
+      def consistent_hash(string)
+        # need to hash the same way in every process
+        Digest::MD5.hexdigest(string).hex \
+          .modulo(2**31-1)  # ensure sql_id fits in an INT(11)
       end
     end
   end

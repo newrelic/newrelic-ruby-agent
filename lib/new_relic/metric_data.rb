@@ -20,7 +20,7 @@ module NewRelic
     def original_spec
       @original_spec || @metric_spec
     end
-    
+
     # assigns a new metric spec, and retains the old metric spec as
     # @original_spec if it exists currently
     def metric_spec= new_spec
@@ -36,7 +36,7 @@ module NewRelic
     def to_json(*a)
        %Q[{"metric_spec":#{metric_id ? 'null' : metric_spec.to_json},"stats":{"total_exclusive_time":#{stats.total_exclusive_time},"min_call_time":#{stats.min_call_time},"call_count":#{stats.call_count},"sum_of_squares":#{stats.sum_of_squares},"total_call_time":#{stats.total_call_time},"max_call_time":#{stats.max_call_time}},"metric_id":#{metric_id ? metric_id : 'null'}}]
     end
-    
+
     def to_s
       if metric_spec
         "#{metric_spec.name}(#{metric_spec.scope}): #{stats}"
@@ -44,8 +44,16 @@ module NewRelic
         "#{metric_id}: #{stats}"
       end
     end
+
     def inspect
       "#<MetricData metric_spec:#{metric_spec.inspect}, stats:#{stats.inspect}, metric_id:#{metric_id.inspect}>"
+    end
+
+    def to_collector_array(marshaller=nil)
+      stat_key = metric_id || { 'name' => metric_spec.name, 'scope' => metric_spec.scope }
+      [ stat_key,
+        [ stats.call_count, stats.total_call_time, stats.total_exclusive_time,
+          stats.min_call_time, stats.max_call_time, stats.sum_of_squares ] ]
     end
   end
 end

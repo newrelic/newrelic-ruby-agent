@@ -158,10 +158,10 @@ module NewRelic
         def install_shim
           super
           require 'new_relic/agent/instrumentation/controller_instrumentation'
-          if !ActiveSupport.respond_to?(:on_load) # rails 3+
-            ActionController::Base.class_eval do
-              include NewRelic::Agent::Instrumentation::ControllerInstrumentation::Shim
-            end
+          if ActiveSupport.respond_to?(:on_load) # rails 3+
+            ActiveSupport.on_load(:action_controller) { include NewRelic::Agent::Instrumentation::ControllerInstrumentation::Shim }
+          else
+            ActionController::Base.class_eval { include NewRelic::Agent::Instrumentation::ControllerInstrumentation::Shim }
           end
         end
       end

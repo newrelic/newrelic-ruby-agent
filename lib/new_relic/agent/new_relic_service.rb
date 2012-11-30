@@ -1,10 +1,13 @@
+require 'zlib'
+
 module NewRelic
   module Agent
     class NewRelicService
       # Specifies the version of the agent's communication protocol with
       # the NewRelic hosted site.
 
-      PROTOCOL_VERSION = 9
+      PROTOCOL_VERSION = 10
+      # cf0d1ff1: v9 (tag 3.5.0)
       # 14105: v8 (tag 2.10.3)
       # (no v7)
       # 10379: v6 (not tagged)
@@ -21,6 +24,20 @@ module NewRelic
         @license_key = license_key || Agent.config[:license_key]
         @collector = collector
         @request_timeout = Agent.config[:timeout]
+        load_marshaller
+      end
+
+      def load_marshaller
+        # we load the JSON marshaller where possible but it is too
+        # slow on ruby 1.8.x
+        @marshaller = if JsonMarshaller.is_supported?
+          require 'json'
+          JsonMarshaller.new
+        else
+          PrubyMarshaller.new
+        end
+      rescue LoadError
+        @marshaller = PrubyMarshaller.new
       end
 
       def connect(settings={})
@@ -37,7 +54,7 @@ module NewRelic
       end
 
       def shutdown(time)
-        invoke_remote(:shutdown, @agent_id, time) if @agent_id
+        invoke_remote(:shutdown, @agent_id, time.to_i) if @agent_id
       end
 
       def metric_data(last_harvest_time, now, unsent_timeslice_data)
@@ -57,6 +74,21 @@ module NewRelic
         invoke_remote(:sql_trace_data, sql_traces)
       end
 
+      def profile_data(profile)
+        invoke_remote(:profile_data, @agent_id, profile.to_compressed_array) || ''
+      end
+
+      def get_agent_commands
+        invoke_remote(:get_agent_commands, @agent_id)
+      end
+
+      def agent_command_results(command_id, error=nil)
+        results = {}
+        results["error"] = error unless error.nil?
+
+        invoke_remote(:agent_command_results, @agent_id, { command_id.to_s => results })
+      end
+
       private
 
       # A shorthand for NewRelic::Control.instance
@@ -70,9 +102,13 @@ module NewRelic
       end
 
       # The path on the server that we should post our data to
-      def remote_method_uri(method)
+      def remote_method_uri(method, format='ruby')
+        params = {'run_id' => @agent_id, 'marshal_format' => format}
         uri = "/agent_listener/#{PROTOCOL_VERSION}/#{@license_key}/#{method}"
-        uri << "?run_id=#{@agent_id}" if @agent_id
+        uri << '?' + params.map do |k,v|
+          next unless v
+          "#{k}=#{v}"
+        end.compact.join('&')
         uri
       end
 
@@ -82,25 +118,29 @@ module NewRelic
       # server may return
       def invoke_remote(method, *args)
         now = Time.now
-        #determines whether to zip the data or send plain
-        post_data, encoding = compress_data(args)
 
-        response = send_request(:uri       => remote_method_uri(method),
-                                :encoding  => encoding,
-                                :collector => @collector,
-                                :data      => post_data)
-
-        # raises the right exception if the remote server tells it to die
-        return check_for_exception(response)
+        data = @marshaller.dump(args)
+        check_post_size(data)
+        response = send_request(:data      => data,
+                                :uri       => remote_method_uri(method,
+                                                          @marshaller.format),
+                                :encoding  => @marshaller.encoding,
+                                :collector => @collector)
+        @marshaller.load(decompress_response(response))
       rescue NewRelic::Agent::ForceRestartException => e
         log.info e.message
         raise
-      rescue SystemCallError, SocketError => e
-        # These include Errno connection errors
-        raise NewRelic::Agent::ServerConnectionException, "Recoverable error connecting to the server: #{e}"
       ensure
-        NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote').record_data_point((Time.now - now).to_f)
-        NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote/' + method.to_s).record_data_point((Time.now - now).to_f)
+        record_supportability_metrics(method, now)
+      end
+
+      def record_supportability_metrics(method, now)
+        NewRelic::Agent.instance.stats_engine. \
+          get_stats_no_scope('Supportability/invoke_remote'). \
+          record_data_point((Time.now - now).to_f)
+        NewRelic::Agent.instance.stats_engine. \
+          get_stats_no_scope('Supportability/invoke_remote/' + method.to_s). \
+          record_data_point((Time.now - now).to_f)
       end
 
       # This method handles the compression of the request body that
@@ -143,7 +183,6 @@ module NewRelic
       # Raises an UnrecoverableServerException if the post_string is longer
       # than the limit configured in the control object
       def check_post_size(post_string)
-        # TODO: define this as a config option on the server side
         return if post_string.size < Agent.config[:post_size_limit]
         log.debug "Tried to send too much data: #{post_string.size} bytes"
         raise UnrecoverableServerException.new('413 Request Entity Too Large')
@@ -191,6 +230,9 @@ module NewRelic
           raise ServerConnectionException, "Unexpected response from server (#{response.code}): #{response.message}"
         end
         response
+      rescue SystemCallError, SocketError => e
+        # These include Errno connection errors
+        raise NewRelic::Agent::ServerConnectionException, "Recoverable error connecting to the server: #{e}"
       end
 
       # Decompresses the response from the server, if it is gzip
@@ -205,17 +247,6 @@ module NewRelic
         i.read
       end
 
-      # unmarshals the response and raises it if it is an exception,
-      # so we can handle it in nonlocally
-      def check_for_exception(response)
-        dump = decompress_response(response)
-        value = NewRelic::LanguageSupport.with_cautious_gc do
-          Marshal.load(dump)
-        end
-        raise value if value.is_a? Exception
-        value
-      end
-
       # Sets the user agent for connections to the server, to
       # conform with the HTTP spec and allow for debugging. Includes
       # the ruby version and also zlib version if available since
@@ -228,6 +259,123 @@ module NewRelic
         zlib_version << "zlib/#{Zlib.zlib_version}" if defined?(::Zlib) && Zlib.respond_to?(:zlib_version)
         "NewRelic-RubyAgent/#{NewRelic::VERSION::STRING} #{ruby_description}#{zlib_version}"
       end
+
+      class Marshaller
+        attr_reader :encoding
+
+        # This method handles the compression of the request body that
+        # we are going to send to the server
+        #
+        # We currently optimize for CPU here since we get roughly a 10x
+        # reduction in message size with this, and CPU overhead is at a
+        # premium. For extra-large posts, we use the higher compression
+        # since otherwise it actually errors out.
+        #
+        # We do not compress if content is smaller than 64kb.  There are
+        # problems with bugs in Ruby in some versions that expose us
+        # to a risk of segfaults if we compress aggressively.
+        #
+        # medium payloads get fast compression, to save CPU
+        # big payloads get all the compression possible, to stay under
+        # the 2,000,000 byte post threshold
+        def compress(data, opts={})
+          if opts[:force] || data.size > 64 * 1024
+            data = Zlib::Deflate.deflate(data, Zlib::DEFAULT_COMPRESSION)
+            @encoding = 'deflate'
+          else
+            @encoding = 'identity'
+          end
+          data
+        end
+
+        protected
+
+        def prepare(data)
+          if data.respond_to?(:to_collector_array)
+            data.to_collector_array(self)
+          elsif data.kind_of?(Array)
+            data.map {|element| prepare(element) }
+          else
+            data
+          end
+        end
+
+        def return_value(data)
+          if data.respond_to?(:has_key?)
+            if data.has_key?('exception')
+              raise parsed_error(data['exception'])
+            elsif data.has_key?('return_value')
+              return data['return_value']
+            end
+          end
+          data
+        end
+
+        def parsed_error(error)
+          CollectorError.new("#{error['error_type']}: #{error['message']}")
+        end
+      end
+
+      # Primitive Ruby Object Notation which complies JSON format data strutures
+      class PrubyMarshaller < Marshaller
+        def initialize
+          NewRelic::Agent.logger.debug 'Using Pruby marshaller'
+        end
+
+        def dump(ruby)
+          NewRelic::LanguageSupport.with_cautious_gc do
+            compress(Marshal.dump(prepare(ruby)))
+          end
+        rescue => e
+          NewRelic::Agent.logger.debug("#{e.class.name} : #{e.message} when marshalling #{ruby.inspect}")
+          raise
+        end
+
+        def load(data)
+          return unless data && data != ''
+          NewRelic::LanguageSupport.with_cautious_gc do
+            return_value(Marshal.load(data))
+          end
+        end
+
+        def format
+          'pruby'
+        end
+
+        def self.is_supported?
+          true
+        end
+      end
+
+      # Marshal collector protocol with JSON when available
+      class JsonMarshaller < Marshaller
+        def initialize
+          NewRelic::Agent.logger.debug 'Using JSON marshaller'
+        end
+
+        def dump(ruby)
+          compress(JSON.dump(prepare(ruby)))
+        end
+
+        def load(data)
+          return unless data && data != ''
+          return_value(JSON.load(data))
+        end
+
+        def encode_compress(data)
+          Base64.encode64(compress(JSON.dump(data), :force => true))
+        end
+
+        def format
+          'json'
+        end
+
+        def self.is_supported?
+          RUBY_VERSION >= '1.9.2'
+        end
+      end
+
+      class CollectorError < StandardError; end
     end
   end
 end

@@ -76,7 +76,7 @@ module NewRelic
         def start
           return if @started == true
           @started = true
-          @thread = Thread.new do
+          @thread = NewRelic::Agent::Thread.new('Pipe Channel Manager') do
             now = nil
             loop do
               clean_up_pipes
@@ -97,7 +97,6 @@ module NewRelic
               break if !should_keep_listening?
             end
           end
-          @thread['newrelic_label'] = 'Pipe Channel Manager'
           sleep 0.001 # give time for the thread to spawn
         end
 

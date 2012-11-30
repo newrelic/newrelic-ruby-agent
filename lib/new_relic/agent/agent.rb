@@ -8,6 +8,7 @@ require 'new_relic/agent/new_relic_service'
 require 'new_relic/agent/pipe_service'
 require 'new_relic/agent/configuration/manager'
 require 'new_relic/agent/database'
+require 'new_relic/agent/thread_profiler'
 
 module NewRelic
   module Agent
@@ -26,6 +27,7 @@ module NewRelic
         @stats_engine = NewRelic::Agent::StatsEngine.new
         @transaction_sampler = NewRelic::Agent::TransactionSampler.new
         @sql_sampler = NewRelic::Agent::SqlSampler.new
+        @thread_profiler = NewRelic::Agent::ThreadProfiler.new
         @error_collector = NewRelic::Agent::ErrorCollector.new
         @connect_attempts = 0
 
@@ -70,6 +72,8 @@ module NewRelic
         # the transaction sampler that handles recording transactions
         attr_reader :transaction_sampler
         attr_reader :sql_sampler
+        # begins a thread profile session when instructed by agent commands
+        attr_reader :thread_profiler
         # error collector is a simple collection of recorded errors
         attr_reader :error_collector
         # whether we should record raw, obfuscated, or no sql
@@ -592,10 +596,9 @@ module NewRelic
         # See #connect for a description of connection_options.
         def start_worker_thread(connection_options = {})
           log.debug "Creating Ruby Agent worker thread."
-          @worker_thread = Thread.new do
+          @worker_thread = NewRelic::Agent::Thread.new('Worker Loop') do
             deferred_work!(connection_options)
-          end # thread new
-          @worker_thread['newrelic_label'] = 'Worker Loop'
+          end
         end
 
         # A shorthand for NewRelic::Control.instance
@@ -980,7 +983,7 @@ module NewRelic
               if Agent.config[:'transaction_tracer.explain_enabled']
                 options[:explain_sql] = Agent.config[:'transaction_tracer.explain_threshold']
               end
-              traces = @traces.collect {|trace| trace.prepare_to_send(options)}
+              traces = @traces.map {|trace| trace.prepare_to_send(options) }
               @service.transaction_sample_data(traces)
               log.debug "Sent slowest sample (#{@service.agent_id}) in #{Time.now - now} seconds"
             rescue UnrecoverableServerException => e
@@ -992,6 +995,17 @@ module NewRelic
           # the slowest sample around - it has been sent already and we
           # can clear the collection and move on
           @traces = nil
+        end
+
+        def harvest_and_send_thread_profile(disconnecting=false)
+          @thread_profiler.stop(true) if disconnecting
+
+          if @thread_profiler.finished?
+            profile = @thread_profiler.harvest
+
+            log.debug "Sending thread profile #{profile.profile_id}"
+            @service.profile_data(profile)
+          end
         end
 
         # Gets the collection of unsent errors from the error
@@ -1023,13 +1037,37 @@ module NewRelic
           end
         end
 
-        def transmit_data
+        # Only JSON marshalling appears to work with collector on
+        # get_agent_commands and agent_command_results. We only support
+        # these features on Ruby versions that can hack JSON out of the box
+        def agent_commands_supported?
+          RUBY_VERSION >= "1.9.2"
+        end
+
+        def check_for_agent_commands
+          if !agent_commands_supported?
+            log.debug("Skipping agent commands, as they aren't supported on this environment")
+            return
+          end
+
+          commands = @service.get_agent_commands
+          log.debug "Received get_agent_commands = #{commands}"
+
+          @thread_profiler.respond_to_commands(commands) do |command_id, error|
+            @service.agent_command_results(command_id, error)
+          end
+        end
+
+        def transmit_data(disconnecting=false)
           now = Time.now
           log.debug "Sending data to New Relic Service"
           harvest_and_send_errors
           harvest_and_send_slowest_sample
           harvest_and_send_slowest_sql
           harvest_and_send_timeslice_data
+          harvest_and_send_thread_profile(disconnecting)
+
+          check_for_agent_commands
         rescue => e
           retry_count ||= 0
           retry_count += 1
@@ -1055,7 +1093,8 @@ module NewRelic
           if @connected
             begin
               @service.request_timeout = 10
-              transmit_data
+              transmit_data(true)
+
               if @connected_pid == $$ && !@service.kind_of?(NewRelic::Agent::NewRelicService)
                 log.debug "Sending New Relic service agent run shutdown message"
                 @service.shutdown(Time.now.to_f)

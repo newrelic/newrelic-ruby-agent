@@ -31,14 +31,11 @@ module NewRelic
       # page as is reasonably possible - that is, before any style or
       # javascript inclusions, but after any header-related meta tags
       def browser_timing_header
-        if NewRelic::Agent.instance.beacon_configuration.nil? ||
-           !NewRelic::Agent.is_transaction_traced? ||
-           !NewRelic::Agent.is_execution_traced? ||
-           NewRelic::Agent::TransactionInfo.get.ignore_end_user?
-          return ""
+        if insert_js?
+          NewRelic::Agent.instance.beacon_configuration.browser_timing_header
+        else
+          ""
         end
-
-        NewRelic::Agent.instance.beacon_configuration.browser_timing_header
       end
 
       # This method returns a string suitable for inclusion in a page
@@ -50,19 +47,11 @@ module NewRelic
       # This is the footer string - it should be placed as low in the
       # page as is reasonably possible.
       def browser_timing_footer
-        config = NewRelic::Agent.instance.beacon_configuration
-
-        if config.nil? ||
-            !config.enabled? ||
-            Agent.config[:browser_key].nil? ||
-            Agent.config[:browser_key].empty? ||
-            !NewRelic::Agent.is_transaction_traced? ||
-            !NewRelic::Agent.is_execution_traced? ||
-            NewRelic::Agent::TransactionInfo.get.ignore_end_user?
-          return ""
-         end
-
-        generate_footer_js(config)
+        if insert_js?
+          generate_footer_js(NewRelic::Agent.instance.beacon_configuration)
+        else
+          ""
+        end
       end
 
       module_function
@@ -128,6 +117,33 @@ module NewRelic
       end
 
       private
+
+      # Check whether RUM header and footer should be generated.  Log the
+      # reason if they shouldn't.
+      def insert_js?
+        if NewRelic::Agent.instance.beacon_configuration.nil?
+          NewRelic::Agent.logger.debug "Beacon configuration is nil. Skipping browser instrumentation."
+          false
+        elsif ! NewRelic::Agent.instance.beacon_configuration.enabled?
+          NewRelic::Agent.logger.debug "Beacon configuration is disabled. Skipping browser instrumentation."
+          NewRelic::Agent.logger.debug NewRelic::Agent.instance.beacon_configuration.inspect
+          false
+        elsif Agent.config[:browser_key].nil? || Agent.config[:browser_key].empty?
+          NewRelic::Agent.logger.debug "Browser key is not set. Skipping browser instrumentation."
+          false
+        elsif ! NewRelic::Agent.is_transaction_traced?
+          NewRelic::Agent.logger.debug "Transaction is not traced. Skipping browser instrumentation."
+          false
+        elsif ! NewRelic::Agent.is_execution_traced?
+          NewRelic::Agent.logger.debug "Execution is not traced. Skipping browser instrumentation."
+          false
+        elsif NewRelic::Agent::TransactionInfo.get.ignore_end_user?
+          NewRelic::Agent.logger.debug "Ignore end user for this transaction is set. Skipping browser instrumentation."
+          false
+        else
+          true
+        end
+      end
 
       def generate_footer_js(config)
         if browser_monitoring_start_time

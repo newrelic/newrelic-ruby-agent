@@ -106,6 +106,33 @@ module NewRelic
           stats_hash[NewRelic::MetricSpec.new(metric_name, scope_name)]
         end
 
+
+        # Helper method for timing supportability metrics
+        def record_supportability_metrics_timed(metrics)
+          start_time = Time.now
+          yield
+          end_time = Time.now
+          duration = (end_time - start_time).to_f
+        ensure
+          record_supportability_metrics(duration, metrics) do |value, metric|
+            metric.record_data_point(value)
+          end
+        end
+
+        # Helper for recording a straight value into the count
+        def record_supportability_metrics_count(value, *metrics)
+          record_supportability_metrics(value, *metrics) do |value, metric|
+            metric.call_count = value
+          end
+        end
+
+        # Helper method for recording supportability metrics consistently
+        def record_supportability_metrics(value, *metrics)
+          metrics.each do |metric|
+              yield(value, get_stats_no_scope("Supportability/#{metric}"))
+          end
+        end
+
         # This module was extracted from the harvest method and should
         # be refactored
         module Harvest
