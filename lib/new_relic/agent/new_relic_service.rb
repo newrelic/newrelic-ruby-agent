@@ -16,9 +16,8 @@ module NewRelic
       # 1754:  v3 (tag 2.3.0)
       # 534:   v2 (shows up in 2.1.0, our first tag)
 
-      attr_accessor :request_timeout
-      attr_reader :collector
-      attr_accessor :agent_id
+      attr_accessor :request_timeout, :agent_id
+      attr_reader :collector, :marshaller
 
       def initialize(license_key=nil, collector=control.server)
         @license_key = license_key || Agent.config[:license_key]
@@ -288,6 +287,14 @@ module NewRelic
           data
         end
 
+        def parsed_error(error)
+          error_class = error['error_type'].split('::') \
+            .inject(Module) {|mod,const| mod.const_get(const) }
+          error_class.new(error['message'])
+        rescue NameError
+          CollectorError.new("#{error['error_type']}: #{error['message']}")
+        end
+
         protected
 
         def prepare(data)
@@ -309,10 +316,6 @@ module NewRelic
             end
           end
           data
-        end
-
-        def parsed_error(error)
-          CollectorError.new("#{error['error_type']}: #{error['message']}")
         end
       end
 
