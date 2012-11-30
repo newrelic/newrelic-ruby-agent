@@ -223,7 +223,7 @@ module NewRelic
         Agent.config[:'slow_sql.explain_enabled']
       end
 
-      def to_collector_array(marshaller=nil)
+      def to_collector_array(marshaller)
         params = if marshaller.respond_to?(:encode_compress)
           marshaller.encode_compress(@params)
         else

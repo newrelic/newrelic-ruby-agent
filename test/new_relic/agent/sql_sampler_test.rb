@@ -205,7 +205,13 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
                    'select * from test', 'Database/test/select',
                    1, 1500, 1500, 1500, params ]
 
-      assert_equal expected, sql_traces[0].to_collector_array
+      if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
+        marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+      else
+        marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
+      end
+
+      assert_equal expected, sql_traces[0].to_collector_array(marshaller)
     end
   end
 end
