@@ -4,6 +4,7 @@ require 'new_relic/agent/thread_profiler'
 class NewRelicServiceTest < Test::Unit::TestCase
   def initialize(*_)
     [ :HTTPSuccess,
+      :HTTPUnauthorized,
       :HTTPNotFound,
       :HTTPRequestEntityTooLarge,
       :HTTPUnsupportedMediaType ].each do |class_name|
@@ -35,12 +36,12 @@ class NewRelicServiceTest < Test::Unit::TestCase
       @http_handle.respond_to(:connect, connect_response, :format => :json)
     else
       @http_handle.respond_to(:get_redirect_host, 'localhost',
-                              :format => :pron)
+                              :format => :pruby)
       connect_response = {
         'config' => 'some config directives',
         'agent_run_id' => 1
       }
-      @http_handle.respond_to(:connect, connect_response, :format => :pron)
+      @http_handle.respond_to(:connect, connect_response, :format => :pruby)
     end
   end
 
@@ -75,7 +76,7 @@ class NewRelicServiceTest < Test::Unit::TestCase
     if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
       @http_handle.respond_to(:connect, '{"agent_run_id": 1}', :format => :json)
     else
-      @http_handle.respond_to(:connect, {'agent_run_id' => 1}, :format => :pron)
+      @http_handle.respond_to(:connect, {'agent_run_id' => 1}, :format => :pruby)
     end
 
     @service.connect
@@ -90,8 +91,8 @@ class NewRelicServiceTest < Test::Unit::TestCase
       @http_handle.respond_to(:connect, '{"agent_run_id": 666}', :format => :json)
     else
       @http_handle.respond_to(:get_redirect_host, 'localhost',
-                              :format => :pron)
-      @http_handle.respond_to(:connect, {'agent_run_id' => 666}, :format => :pron)
+                              :format => :pruby)
+      @http_handle.respond_to(:connect, {'agent_run_id' => 666}, :format => :pruby)
     end
 
     @service.connect
@@ -206,6 +207,15 @@ end
     @service.sql_trace_data([])
   end
 
+  # for PRUBY proxy compatibility
+  def test_should_raise_exception_on_401
+    @http_handle.reset
+    @http_handle.respond_to(:get_redirect_host, ['bad license'], :code => 401)
+    assert_raise NewRelic::Agent::LicenseException do
+      @service.get_redirect_host
+    end
+  end
+
   # protocol 9
   def test_should_raise_exception_on_413
     @http_handle.respond_to(:metric_data, [ 'too big' ], :code => 413)
@@ -237,7 +247,7 @@ end
     end
   end
 
-  def test_pron_marshaller_handles_errors_from_collector
+  def test_pruby_marshaller_handles_errors_from_collector
     marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
     assert_raise(NewRelic::Agent::NewRelicService::CollectorError, 'error message') do
       marshaller.load(Marshal.dump({"exception" => {"message" => "error message",
@@ -245,7 +255,7 @@ end
     end
   end
 
-  def test_pron_marshaller_compresses_large_payloads
+  def test_pruby_marshaller_compresses_large_payloads
     marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
     large_payload = 'a' * 64 * 1024
     result = marshaller.dump(large_payload)
@@ -281,7 +291,7 @@ end
       if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
         format = :json
       else
-        format = :pron
+        format = :pruby
       end
 
       opts = {
@@ -289,13 +299,16 @@ end
         :format => format
       }.merge(opts)
 
-      klass = HTTPSuccess
-      if opts[:code] == 413
+      if opts[:code] == 401
+        klass = HTTPUnauthorized
+      elsif opts[:code] == 413
         klass = HTTPRequestEntityTooLarge
       elsif opts[:code] == 415
         klass = HTTPUnsupportedMediaType
       elsif opts[:code] >= 400
         klass = HTTPServerError
+      else
+        klass = HTTPSuccess
       end
 
       if opts[:format] == :json
