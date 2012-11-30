@@ -253,6 +253,23 @@ end
     assert_equal large_payload, Marshal.load(Zlib::Inflate.inflate(result))
   end
 
+  def test_marshaller_handles_known_errors
+    error_data = {
+      'error_type' => 'NewRelic::Agent::ForceRestartException',
+      'message'    => 'test'
+    }
+    error = @service.marshaller.parsed_error(error_data)
+    assert_equal NewRelic::Agent::ForceRestartException, error.class
+    assert_equal 'test', error.message
+  end
+
+  def test_marshaller_handles_unknown_errors
+    error = @service.marshaller.parsed_error('error_type' => 'OogBooga',
+                                             'message' => 'test')
+    assert_equal NewRelic::Agent::NewRelicService::CollectorError, error.class
+    assert_equal 'OogBooga: test', error.message
+  end
+
   class HTTPHandle
     attr_accessor :read_timeout, :route_table
 
