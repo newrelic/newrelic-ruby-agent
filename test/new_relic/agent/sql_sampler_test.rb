@@ -203,7 +203,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
       params = RUBY_VERSION >= '1.9.2' ? "eJyrrgUAAXUA+Q==\n" : {}
       expected = [ 'WebTransaction/Controller/c/a', '/c/a', 526336943,
                    'select * from test', 'Database/test/select',
-                   1, 1.5, 1.5, 1.5, params ]
+                   1, 1500, 1500, 1500, params ]
 
       assert_equal expected, sql_traces[0].to_collector_array
     end

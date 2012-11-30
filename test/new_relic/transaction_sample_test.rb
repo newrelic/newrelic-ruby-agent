@@ -207,8 +207,8 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
       marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
       trace_tree = @t.to_array
     end
-    expected_array = [(@t.start_time.to_f * 1000).to_i,
-                      (@t.duration * 1000).to_i,
+    expected_array = [(@t.start_time.to_f * 1000).round,
+                      (@t.duration * 1000).round,
                       @t.params[:path], @t.params[:uri],
                       trace_tree,
                       @t.guid, nil, !!@t.force_persist]

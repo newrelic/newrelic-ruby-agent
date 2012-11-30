@@ -69,7 +69,7 @@ module NewRelic
         self.to_array
       end
 
-      [ (@start_time.to_f * 1000).to_i, (duration * 1000).to_i,
+      [ Helper.time_to_millis(@start_time), Helper.time_to_millis(duration),
         @params[:path], @params[:uri], trace_tree, @guid, nil,
         !!@force_persist ]
     end

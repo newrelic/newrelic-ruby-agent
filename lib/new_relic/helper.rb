@@ -27,5 +27,8 @@ module NewRelic
       end
     end
 
+    def time_to_millis(time)
+      (time.to_f * 1000).round
+    end
   end
 end
