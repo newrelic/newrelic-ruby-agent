@@ -11,20 +11,15 @@ module NewRelic
 
     def initialize
       @id_counter = 0
-      redirect_host = if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
-        '{"return_value": "localhost"}'
-      else
-        'localhost'
-      end
       @base_expectations = {
-        'get_redirect_host'       => [200, redirect_host],
-        'connect'                 => [200, "{\"agent_run_id\": #{agent_run_id}}"],
-        'get_agent_commands'      => [200, '[]'],
-        'metric_data'             => [200, '{ "Some/Metric/Spec": 1 }'],
-        'sql_trace_data'          => [200, nil],
-        'transaction_sample_data' => [200, nil],
-        'error_data'              => [200, nil],
-        'shutdown'                => [200, nil]
+        'get_redirect_host'       => [200, {'return_value' => 'localhost'}],
+        'connect'                 => [200, {'return_value' => {"agent_run_id" => agent_run_id}}],
+        'get_agent_commands'      => [200, {'return_value' => []}],
+        'metric_data'             => [200, {'return_value' => {'Some/Metric/Spec' => 1}}],
+        'sql_trace_data'          => [200, {'return_value' => nil}],
+        'transaction_sample_data' => [200, {'return_value' => nil}],
+        'error_data'              => [200, {'return_value' => nil}],
+        'shutdown'                => [200, {'return_value' => nil}]
       }
       reset
     end
@@ -42,7 +37,7 @@ module NewRelic
         if @mock.keys.include? method
           res.status = @mock[method][0]
           if json_format?(uri)
-            res.write @mock[method][1]
+            res.write JSON.dump(@mock[method][1])
           else
             res.write Marshal.dump(@mock[method][1])
           end
@@ -269,7 +264,7 @@ if $0 == __FILE__
       uri = URI.parse("http://127.0.0.1:30303/agent_listener/8/12345/#{method}")
       request = Net::HTTP::Post.new("#{uri.path}?#{uri.query}")
       if uri.query && uri.query.include?('marsha_format=json')
-        request.body = post
+        request.body = JSON.dump(post)
       else
         request.body = Marshal.dump(post)
       end
@@ -277,7 +272,7 @@ if $0 == __FILE__
         http.request(request)
       end
       if uri.query && uri.query.include?('marshal_format=json')
-        response.body
+        JSON.load(response.body)
       else
         Marshal.load(response.body)
       end

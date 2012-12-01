@@ -29,20 +29,12 @@ class NewRelicServiceTest < Test::Unit::TestCase
     @http_handle = HTTPHandle.new
     NewRelic::Control.instance.stubs(:http_connection).returns(@http_handle)
 
-    if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
-      @http_handle.respond_to(:get_redirect_host, '{"return_value": "localhost"}',
-                              :format => :json)
-      connect_response = '{"agent_run_id": 1, "config": "some config directives"}'
-      @http_handle.respond_to(:connect, connect_response, :format => :json)
-    else
-      @http_handle.respond_to(:get_redirect_host, 'localhost',
-                              :format => :pruby)
-      connect_response = {
-        'config' => 'some config directives',
-        'agent_run_id' => 1
-      }
-      @http_handle.respond_to(:connect, connect_response, :format => :pruby)
-    end
+    @http_handle.respond_to(:get_redirect_host, 'localhost')
+    connect_response = {
+      'config' => 'some config directives',
+      'agent_run_id' => 1
+    }
+    @http_handle.respond_to(:connect, connect_response)
   end
 
   def test_initialize_uses_correct_license_key_settings
@@ -73,11 +65,7 @@ class NewRelicServiceTest < Test::Unit::TestCase
   def test_connect_uses_proxy_collector_if_no_redirect_host
     @http_handle.reset
     @http_handle.respond_to(:get_redirect_host, nil)
-    if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
-      @http_handle.respond_to(:connect, '{"agent_run_id": 1}', :format => :json)
-    else
-      @http_handle.respond_to(:connect, {'agent_run_id' => 1}, :format => :pruby)
-    end
+    @http_handle.respond_to(:connect, 'agent_run_id' => 1)
 
     @service.connect
     assert_equal 'somewhere.example.com', @service.collector.name
@@ -85,15 +73,8 @@ class NewRelicServiceTest < Test::Unit::TestCase
 
   def test_connect_sets_agent_id
     @http_handle.reset
-    if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
-      @http_handle.respond_to(:get_redirect_host, '{"return_value": "localhost"}',
-                              :format => :json)
-      @http_handle.respond_to(:connect, '{"agent_run_id": 666}', :format => :json)
-    else
-      @http_handle.respond_to(:get_redirect_host, 'localhost',
-                              :format => :pruby)
-      @http_handle.respond_to(:connect, {'agent_run_id' => 666}, :format => :pruby)
-    end
+    @http_handle.respond_to(:get_redirect_host, 'localhost')
+    @http_handle.respond_to(:connect, 'agent_run_id' => 666)
 
     @service.connect
     assert_equal 666, @service.agent_id
@@ -105,53 +86,53 @@ class NewRelicServiceTest < Test::Unit::TestCase
 
   def test_shutdown
     @service.agent_id = 666
-    @http_handle.respond_to(:shutdown, [ 'shut this bird down' ])
+    @http_handle.respond_to(:shutdown, 'shut this bird down')
     response = @service.shutdown(Time.now)
-    assert_equal [ 'shut this bird down' ], response
+    assert_equal 'shut this bird down', response
   end
 
   def test_should_not_shutdown_if_never_connected
-    @http_handle.respond_to(:shutdown, [ 'shut this bird down' ])
+    @http_handle.respond_to(:shutdown, 'shut this bird down')
     response = @service.shutdown(Time.now)
     assert_nil response
   end
 
   def test_metric_data
-    @http_handle.respond_to(:metric_data, ['met rick date uhhh'])
+    @http_handle.respond_to(:metric_data, 'met rick date uhhh')
     response = @service.metric_data((Time.now - 60).to_f, Time.now.to_f, {})
-    assert_equal ['met rick date uhhh'], response
+    assert_equal 'met rick date uhhh', response
   end
 
   def test_error_data
-    @http_handle.respond_to(:error_data, ['too human'])
+    @http_handle.respond_to(:error_data, 'too human')
     response = @service.error_data([])
-    assert_equal ['too human'], response
+    assert_equal 'too human', response
   end
 
   def test_transaction_sample_data
-    @http_handle.respond_to(:transaction_sample_data, ['MPC1000'])
+    @http_handle.respond_to(:transaction_sample_data, 'MPC1000')
     response = @service.transaction_sample_data([])
-    assert_equal ['MPC1000'], response
+    assert_equal 'MPC1000', response
   end
 
   def test_sql_trace_data
-    @http_handle.respond_to(:sql_trace_data, ['explain this'])
+    @http_handle.respond_to(:sql_trace_data, 'explain this')
     response = @service.sql_trace_data([])
-    assert_equal ['explain this'], response
+    assert_equal 'explain this', response
   end
 
 
 # Thread profiling only available in 1.9.2 and above
 if RUBY_VERSION >= '1.9.2'
   def test_profile_data
-    @http_handle.respond_to(:profile_data, '{ "profile" : 123 }')
+    @http_handle.respond_to(:profile_data, 'profile' => 123)
     response = @service.profile_data(NewRelic::Agent::ThreadProfile.new(0, 0, 0, true))
     assert_equal({ "profile" => 123 }, response)
   end
 
   def test_get_agent_commands
     @service.agent_id = 666
-    @http_handle.respond_to(:get_agent_commands, '{ "return_value": [1,2,3] }')
+    @http_handle.respond_to(:get_agent_commands, [1,2,3])
 
     response = @service.get_agent_commands
     assert_equal [1,2,3], response
@@ -166,15 +147,13 @@ if RUBY_VERSION >= '1.9.2'
   end
 
   def test_agent_command_results
-    @http_handle.respond_to(:agent_command_results, '{}')
+    @http_handle.respond_to(:agent_command_results, {})
     response = @service.agent_command_results(4200)
     assert_equal({}, response)
   end
 
   def test_agent_command_results_with_errors
-    @http_handle.register(HTTPSuccess.new('[123]', 200)) do |request|
-      request.path.include?('agent_command_results') && request.body.include?('Boo!')
-    end
+    @http_handle.respond_to(:agent_command_results, [123])
     response = @service.agent_command_results(4200, 'Boo!')
     assert_equal [123], response
   end
@@ -197,20 +176,20 @@ end
     @service.expects(:get_redirect_host).once
 
     @service.connect
-    @http_handle.respond_to(:metric_data, [ 0 ])
+    @http_handle.respond_to(:metric_data, 0)
     @service.metric_data((Time.now - 60).to_f, Time.now.to_f, {})
 
-    @http_handle.respond_to(:transaction_sample_data, '{"return_value": 1}')
+    @http_handle.respond_to(:transaction_sample_data, 1)
     @service.transaction_sample_data([])
 
-    @http_handle.respond_to(:sql_trace_data, [ 2 ])
+    @http_handle.respond_to(:sql_trace_data, 2)
     @service.sql_trace_data([])
   end
 
   # for PRUBY proxy compatibility
   def test_should_raise_exception_on_401
     @http_handle.reset
-    @http_handle.respond_to(:get_redirect_host, ['bad license'], :code => 401)
+    @http_handle.respond_to(:get_redirect_host, 'bad license', :code => 401)
     assert_raise NewRelic::Agent::LicenseException do
       @service.get_redirect_host
     end
@@ -218,7 +197,7 @@ end
 
   # protocol 9
   def test_should_raise_exception_on_413
-    @http_handle.respond_to(:metric_data, [ 'too big' ], :code => 413)
+    @http_handle.respond_to(:metric_data, 'too big', :code => 413)
     assert_raise NewRelic::Agent::UnrecoverableServerException do
       @service.metric_data((Time.now - 60).to_f, Time.now.to_f, {})
     end
@@ -226,7 +205,7 @@ end
 
   # protocol 9
   def test_should_raise_exception_on_415
-    @http_handle.respond_to(:metric_data, [ 'too big' ], :code => 415)
+    @http_handle.respond_to(:metric_data, 'too big', :code => 415)
     assert_raise NewRelic::Agent::UnrecoverableServerException do
       @service.metric_data((Time.now - 60).to_f, Time.now.to_f, {})
     end
@@ -312,11 +291,11 @@ end
       end
 
       if opts[:format] == :json
-        register(klass.new(payload.to_s, opts[:code])) do |request|
+        register(klass.new(JSON.dump('return_value' => payload), opts[:code])) do |request|
           request.path.include?(method.to_s)
         end
       else
-        register(klass.new(Marshal.dump(payload), opts[:code])) do |request|
+        register(klass.new(Marshal.dump('return_value' => payload), opts[:code])) do |request|
           request.path.include?(method.to_s)
         end
       end

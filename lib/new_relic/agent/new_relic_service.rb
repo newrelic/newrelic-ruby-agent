@@ -317,7 +317,8 @@ module NewRelic
               return data['return_value']
             end
           end
-          data
+          NewRelic::Agent.logger.debug('Unexpected response from collector: #{data}')
+          nil
         end
       end
 
