@@ -82,7 +82,7 @@ module NewRelic
         :'thread_profiler.is_supported' => Proc.new { NewRelic::Agent::ThreadProfiler.is_supported? },
         :'thread_profiler.enabled'      => Proc.new { self[:'thread_profiler.is_supported'] },
 
-        :marshaller => Proc.new { NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported? ? :json : :pruby }
+        :marshaller => Proc.new { NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported? ? 'json' : 'pruby' }
       }.freeze
     end
   end
