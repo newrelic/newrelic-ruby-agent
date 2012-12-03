@@ -203,7 +203,7 @@ class ThreadProfileTest < ThreadedTest
       "irb:12:in `<main>'"
     ]
 
-    @profile = NewRelic::Agent::ThreadProfile.new(-1, 0.025, 0.01, true)
+    @profile = NewRelic::Agent::ThreadProfile.new(-1, 0.029, 0.01, true)
   end
 
   # Running Tests
