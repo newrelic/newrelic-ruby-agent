@@ -27,7 +27,7 @@ module NewRelic
       end
 
       def load_marshaller
-        if Agent.config[:marshaller] == :json
+        if Agent.config[:marshaller] == 'json'
           require 'json'
           @marshaller = JsonMarshaller.new
         else
