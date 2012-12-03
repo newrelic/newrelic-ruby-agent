@@ -11,9 +11,9 @@ class ThreadProfilingTest < Test::Unit::TestCase
 
     $collector ||= NewRelic::FakeCollector.new
     $collector.reset
-    $collector.mock['connect'] = [200, '{"agent_run_id": 666 }']
-    $collector.mock['get_agent_commands'] = [200, START_COMMAND]
-    $collector.mock['agent_command_results'] = [200, '[]']
+    $collector.mock['connect'] = [200, {'return_value' => {"agent_run_id" => 666 }}]
+    $collector.mock['get_agent_commands'] = [200, {'return_value' => START_COMMAND}]
+    $collector.mock['agent_command_results'] = [200, {'return_value' => []}]
     $collector.run
   end
 
@@ -21,25 +21,25 @@ class ThreadProfilingTest < Test::Unit::TestCase
     $collector.reset
   end
 
-  START_COMMAND = '[[666,{
-      "name":"start_profiler",
-      "arguments":{
-        "profile_id":-1,
-        "sample_period":0.01,
-        "duration":0.5,
-        "only_runnable_threads":false,
-        "only_request_threads":false,
-        "profile_agent_code":false
+  START_COMMAND = [[666,{
+      "name" => "start_profiler",
+      "arguments" => {
+        "profile_id" => -1,
+        "sample_period" => 0.01,
+        "duration" => 0.5,
+        "only_runnable_threads" => false,
+        "only_request_threads" => false,
+        "profile_agent_code" => false
       }
-    }]]'
+    }]]
 
-  STOP_COMMAND = '[[666,{
-      "name":"stop_profiler",
-      "arguments":{
-        "profile_id":-1,
-        "report_data":true
+  STOP_COMMAND = [[666,{
+      "name" => "stop_profiler",
+      "arguments" => {
+        "profile_id" => -1,
+        "report_data" => true
       }
-    }]]'
+    }]]
 
   # These are potentially fragile for being timing based
   # START_COMMAND with 0.01 sampling and 0.5 duration expects to get
@@ -63,7 +63,7 @@ class ThreadProfilingTest < Test::Unit::TestCase
   def test_thread_profiling_can_stop
     @agent.send(:check_for_agent_commands)
 
-    $collector.mock['get_agent_commands'] = [200, STOP_COMMAND]
+    $collector.mock['get_agent_commands'] = [200, {'return_value' => STOP_COMMAND}]
     @agent.send(:check_for_agent_commands)
 
     sleep(0.1)

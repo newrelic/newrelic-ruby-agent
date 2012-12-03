@@ -9,11 +9,7 @@ class MarshalingTest < Test::Unit::TestCase
 
     $collector ||= NewRelic::FakeCollector.new
     $collector.reset
-    if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
-      $collector.mock['connect'] = [200, '{"agent_run_id": 666}']
-    else
-      $collector.mock['connect'] = [200, { 'agent_run_id' => 666 }]
-    end
+    $collector.mock['connect'] = [200, {'return_value' => { 'agent_run_id' => 666 }}]
     $collector.run
   end
 

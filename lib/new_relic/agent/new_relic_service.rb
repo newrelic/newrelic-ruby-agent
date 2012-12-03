@@ -216,7 +216,9 @@ module NewRelic
           log.warn "Timed out trying to post data to New Relic (timeout = #{@request_timeout} seconds)" unless @request_timeout < 30
           raise
         end
-        if response.is_a? Net::HTTPServiceUnavailable
+        if response.is_a? Net::HTTPUnauthorized
+          raise LicenseException, 'Invalid license key, please contact support@newrelic.com'
+        elsif response.is_a? Net::HTTPServiceUnavailable
           raise ServerConnectionException, "Service unavailable (#{response.code}): #{response.message}"
         elsif response.is_a? Net::HTTPGatewayTimeOut
           log.debug("Timed out getting response: #{response.message}")
@@ -315,7 +317,8 @@ module NewRelic
               return data['return_value']
             end
           end
-          data
+          NewRelic::Agent.logger.debug('Unexpected response from collector: #{data}')
+          nil
         end
       end
 
