@@ -27,13 +27,11 @@ module NewRelic
       end
 
       def load_marshaller
-        # we load the JSON marshaller where possible but it is too
-        # slow on ruby 1.8.x
-        @marshaller = if JsonMarshaller.is_supported?
+        if Agent.config[:marshaller] == :json
           require 'json'
-          JsonMarshaller.new
+          @marshaller = JsonMarshaller.new
         else
-          PrubyMarshaller.new
+          @marshaller = PrubyMarshaller.new
         end
       rescue LoadError
         @marshaller = PrubyMarshaller.new

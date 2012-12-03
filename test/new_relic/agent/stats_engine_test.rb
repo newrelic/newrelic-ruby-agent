@@ -195,6 +195,7 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
       ::GC::Profiler.stubs(:enabled?).returns(true)
       ::GC::Profiler.stubs(:total_time).returns(1.0, 4.0)
       ::GC.stubs(:count).returns(1, 3)
+      ::GC::Profiler.stubs(:clear).returns(nil)
     elsif NewRelic::LanguageSupport.using_version?('1.8.7') &&
         RUBY_DESCRIPTION =~ /Ruby Enterprise Edition/
       ::GC.stubs(:time).returns(1000000, 4000000)

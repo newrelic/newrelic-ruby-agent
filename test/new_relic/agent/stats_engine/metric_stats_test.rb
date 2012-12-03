@@ -85,7 +85,7 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
 
     assert_nothing_raised do
       hash.each do |k, v|
-        hash[11] = 1 
+        hash[11] = 1
       end
     end
   end
