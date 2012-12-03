@@ -63,6 +63,19 @@ module NewRelic
 
             backtrace = t.backtrace.map { |b| "\t#{b}" }.join("\n")
             "\t#{t}\n#{backtrace}"
+
+          rescue Exception => e
+            # JRuby 1.7.0 has a nasty habit of raising a
+            # java.lang.NullPointerException when we iterate through threads
+            # asking for backtraces.  This line allows us to swallow java
+            # exceptions without referencing their classes (since they don't
+            # exist in MRI).  It also prevents us from swallowing signals or
+            # other nasty things that can happen when you rescue Exception.
+            NewRelic::Control.instance.log.warn(
+              "Error collecting thread backtraces: #{e.class.name}: #{e.message}")
+            NewRelic::Control.instance.log.debug( e.backtrace.join("\n") )
+
+            raise e if e.class.ancestors.include? Exception
           end
         end
 
