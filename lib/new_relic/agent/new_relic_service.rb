@@ -23,18 +23,19 @@ module NewRelic
         @license_key = license_key || Agent.config[:license_key]
         @collector = collector
         @request_timeout = Agent.config[:timeout]
-        load_marshaller
-      end
-
-      def load_marshaller
-        if Agent.config[:marshaller] == 'json'
-          require 'json'
-          @marshaller = JsonMarshaller.new
-        else
-          @marshaller = PrubyMarshaller.new
+        
+        Agent.config.register_callback(:marshaller) do |marshaller|
+          begin
+            if marshaller == 'json'
+              require 'json'
+              @marshaller = JsonMarshaller.new
+            else
+              @marshaller = PrubyMarshaller.new
+            end
+          rescue LoadError
+            @marshaller = PrubyMarshaller.new
+          end
         end
-      rescue LoadError
-        @marshaller = PrubyMarshaller.new
       end
 
       def connect(settings={})
