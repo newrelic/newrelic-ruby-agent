@@ -69,7 +69,7 @@ module NewRelic
 
         # Collect the Rails::Info into an associative array as well as the list of plugins
         def append_environment_info
-          local_env.append_environment_value('Rails version'){ version }
+          local_env.append_environment_value('Rails version'){ ::Rails::VERSION::STRING }
           local_env.append_environment_value('Rails threadsafe') do
             true == ::Rails.configuration.action_controller.allow_concurrency
           end
