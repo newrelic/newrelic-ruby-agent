@@ -907,7 +907,9 @@ module NewRelic
         # metric cache so we can save the collector some work by
         # sending integers instead of strings
         def fill_metric_id_cache(pairs_of_specs_and_ids)
-          Array(pairs_of_specs_and_ids).each do |metric_spec, metric_id|
+          Array(pairs_of_specs_and_ids).each do |metric_spec_hash, metric_id|
+            metric_spec = MetricSpec.new(metric_spec_hash['name'],
+                                         metric_spec_hash['scope'])
             @metric_ids[metric_spec] = metric_id
           end
         end

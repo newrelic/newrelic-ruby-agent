@@ -209,6 +209,17 @@ module NewRelic
         @agent.expects(:log).never
         @agent.notify_log_file_location
       end
+
+      def test_fill_metric_id_cache_from_collect_response
+        response = [[{"scope"=>"Controller/blogs/index", "name"=>"Database/SQL/other"}, 1328],
+                    [{"scope"=>"", "name"=>"WebFrontend/QueueTime"}, 10],
+                    [{"scope"=>"", "name"=>"ActiveRecord/Blog/find"}, 1017]]
+
+        @agent.send(:fill_metric_id_cache, response)
+        assert_equal 1328, @agent.metric_ids[MetricSpec.new('Database/SQL/other', 'Controller/blogs/index')]
+        assert_equal 10,   @agent.metric_ids[MetricSpec.new('WebFrontend/QueueTime')]
+        assert_equal 1017, @agent.metric_ids[MetricSpec.new('ActiveRecord/Blog/find')]
+      end
     end
   end
 end
