@@ -15,7 +15,7 @@ module NewRelic
         'get_redirect_host'       => [200, {'return_value' => 'localhost'}],
         'connect'                 => [200, {'return_value' => {"agent_run_id" => agent_run_id}}],
         'get_agent_commands'      => [200, {'return_value' => []}],
-        'metric_data'             => [200, {'return_value' => {'Some/Metric/Spec' => 1}}],
+        'metric_data'             => [200, {'return_value' => [[{'name' => 'Some/Metric/Spec'}, 1]]}],
         'sql_trace_data'          => [200, {'return_value' => nil}],
         'transaction_sample_data' => [200, {'return_value' => nil}],
         'error_data'              => [200, {'return_value' => nil}],

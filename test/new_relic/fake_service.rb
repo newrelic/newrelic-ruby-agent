@@ -15,7 +15,7 @@ module NewRelic
         'get_redirect_host'       => 'localhost',
         'connect'                 => { 'agent_run_id' => agent_run_id },
         'get_agent_commands'      => [],
-        'metric_data'             => { 'Some/Metric/Spec' => 1 },
+        'metric_data'             => [[{ 'name' => 'Some/Metric/Spec' }, 1]],
         'sql_trace_data'          => nil,
         'transaction_sample_data' => nil,
         'error_data'              => nil,

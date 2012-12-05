@@ -10,9 +10,13 @@ class NewRelic::MetricSpec
   # Need a "zero-arg" constructor so it can be instantiated from java (using
   # jruby) for sending responses to ruby agents from the java collector.
   #
-  def initialize(metric_name = '', metric_scope = '')
+  def initialize(metric_name = '', metric_scope = nil)
     self.name = (metric_name || '') && metric_name[LENGTH_RANGE]
-    self.scope = metric_scope && metric_scope[LENGTH_RANGE]
+    if metric_scope
+      self.scope = metric_scope && metric_scope[LENGTH_RANGE]
+    else
+      self.scope = ''
+    end
   end
   
   # truncates the name and scope to the MAX_LENGTH
