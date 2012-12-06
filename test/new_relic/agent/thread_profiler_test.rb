@@ -6,6 +6,36 @@ require 'zlib'
 require 'new_relic/agent/threaded_test'
 require 'new_relic/agent/thread_profiler'
 
+START_COMMAND = [[666,{
+    "name" => "start_profiler",
+    "arguments" => {
+      "profile_id" => 42,
+      "sample_period" => 0.02,
+      "duration" => 0.025,
+      "only_runnable_threads" => false,
+      "only_request_threads" => false,
+      "profile_agent_code" => false,
+    }
+  }]]
+
+STOP_COMMAND = [[666,{
+    "name" => "stop_profiler",
+    "arguments" => {
+      "profile_id" => 42,
+      "report_data" => true,
+    }
+  }]]
+
+STOP_AND_DISCARD_COMMAND = [[666,{
+    "name" => "stop_profiler",
+    "arguments" => {
+      "profile_id" => 42,
+      "report_data" => false,
+    }
+  }]]
+
+NO_COMMAND = []
+
 if RUBY_VERSION < '1.9.2'
 class ThreadProfilerUnsupportedTest < Test::Unit::TestCase
   def setup
@@ -26,6 +56,13 @@ class ThreadProfilerUnsupportedTest < Test::Unit::TestCase
     @profiler.stop(true)
   end
 
+  def test_wont_start_and_reports_error
+    errors = nil
+    @profiler.respond_to_commands(START_COMMAND) { |_, err| errors = err }
+    assert_equal false, errors.nil?
+    assert_equal false, @profiler.running?
+  end
+
 end
 end
 
@@ -33,37 +70,6 @@ if RUBY_VERSION >= '1.9.2'
 require 'json'
 
 class ThreadProfilerTest < ThreadedTest
-
-  START_COMMAND = [[666,{
-      "name" => "start_profiler",
-      "arguments" => {
-        "profile_id" => 42,
-        "sample_period" => 0.02,
-        "duration" => 0.025,
-        "only_runnable_threads" => false,
-        "only_request_threads" => false,
-        "profile_agent_code" => false,
-      }
-    }]]
-
-  STOP_COMMAND = [[666,{
-      "name" => "stop_profiler",
-      "arguments" => {
-        "profile_id" => 42,
-        "report_data" => true,
-      }
-    }]]
-
-  STOP_AND_DISCARD_COMMAND = [[666,{
-      "name" => "stop_profiler",
-      "arguments" => {
-        "profile_id" => 42,
-        "report_data" => false,
-      }
-    }]]
-
-  NO_COMMAND = []
-
   def setup
     super
     @profiler = NewRelic::Agent::ThreadProfiler.new
@@ -116,7 +122,7 @@ class ThreadProfilerTest < ThreadedTest
   end
 
   def test_respond_to_commands_starts_running
-    @profiler.respond_to_commands(START_COMMAND)
+    @profiler.respond_to_commands(START_COMMAND) {|_, err| start_error = err}
     assert_equal true, @profiler.running?
   end
 

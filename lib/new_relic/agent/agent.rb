@@ -1039,19 +1039,7 @@ module NewRelic
           end
         end
 
-        # Only JSON marshalling appears to work with collector on
-        # get_agent_commands and agent_command_results. We only support
-        # these features on Ruby versions that can hack JSON out of the box
-        def agent_commands_supported?
-          RUBY_VERSION >= "1.9.2"
-        end
-
         def check_for_agent_commands
-          if !agent_commands_supported?
-            log.debug("Skipping agent commands, as they aren't supported on this environment")
-            return
-          end
-
           commands = @service.get_agent_commands
           log.debug "Received get_agent_commands = #{commands}"
 

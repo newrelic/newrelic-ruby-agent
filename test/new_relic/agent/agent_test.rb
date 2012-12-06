@@ -127,11 +127,7 @@ module NewRelic
 
       def test_check_for_agent_commands
         @agent.send :check_for_agent_commands
-
-        expected = RUBY_VERSION >= "1.9.2" ? 1 : 0
-        assert_equal(expected,
-                     @agent.service.agent_data \
-                       .select {|data| data.action == :get_agent_commands }.size)
+        assert_equal(1, @agent.service.calls_for(:get_agent_commands).size)
       end
 
       def test_merge_data_from_empty

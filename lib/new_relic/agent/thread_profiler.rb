@@ -45,12 +45,18 @@ module NewRelic
         name = command["name"]
         arguments = command["arguments"]
 
-        case name
-          when "start_profiler"
-            start_unless_running_and_notify(command_id, arguments, &notify_results)
+        if (ThreadProfiler.is_supported?)
+          case name
+            when "start_profiler"
+              start_unless_running_and_notify(command_id, arguments, &notify_results)
 
-          when "stop_profiler"
-            stop_and_notify(command_id, arguments, &notify_results)
+            when "stop_profiler"
+              stop_and_notify(command_id, arguments, &notify_results)
+          end
+        else
+          msg = "Thread profile is unsupported by Ruby version #{RUBY_VERSION}"
+          log.debug(msg)
+          notify_results.call(command_id, msg) if !notify_results.nil?
         end
       end
 

@@ -28,6 +28,12 @@ module NewRelic
       @id_counter += 1
     end
 
+    def calls_for(method)
+      @agent_data. \
+        select { |d| d.action == method }. \
+        map { |d| d.body }
+    end
+
     def reset
       @mock = @base_expectations.dup
       @id_counter = 0
