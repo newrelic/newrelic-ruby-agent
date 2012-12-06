@@ -1,6 +1,13 @@
 
 # New Relic Ruby Agent Release Notes #
 
+## v3.5.4 ##
+
+  * Add queue time support for sinatra apps
+
+    Sinatra applications can now take advantage of front end queue time
+    reporting. Thanks to Winfield Peterson for this contribution.
+
 ## v3.5.3 ##
 
   * Update the collector protocol to use JSON and Ruby primitives
