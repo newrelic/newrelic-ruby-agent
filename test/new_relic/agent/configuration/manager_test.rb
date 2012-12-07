@@ -92,36 +92,37 @@ module NewRelic::Agent::Configuration
       assert_equal 'correct value', @manager[:setting]
     end
 
-    def test_reported_config
+    def test_to_collector_hash
       @manager.instance_variable_set(:@config_stack, [])
       @manager.apply_config(:eins => Proc.new { self[:one] })
       @manager.apply_config(:one => 1)
       @manager.apply_config(:two => 2)
-      @manager.apply_config(:three => 3)
+      @manager.apply_config(:nested => {:madness => 'test'})
+      @manager.apply_config(:'nested.madness' => 'test')
 
-      assert_equal({ :eins => 1, :one => 1, :two => 2, :three => 3 },
-                   @manager.reported_config)
+      assert_equal({ :eins => 1, :one => 1, :two => 2, :'nested.madness' => 'test' },
+                   @manager.to_collector_hash)
     end
 
-    def test_reported_config_masks
+    def test_config_masks
       NewRelic::Agent::Configuration::MASK_DEFAULTS[:boo] = Proc.new { true }
 
       @manager.apply_config(:boo => 1)
 
-      assert_equal false, @manager.reported_config.has_key?(:boo)
+      assert_equal false, @manager.to_collector_hash.has_key?(:boo)
     end
 
-    def test_reported_config_masks_conditionally
+    def test_config_masks_conditionally
       NewRelic::Agent::Configuration::MASK_DEFAULTS[:boo] = Proc.new { false }
 
       @manager.apply_config(:boo => 1)
 
-      assert @manager.reported_config.has_key?(:boo)
+      assert @manager.to_collector_hash.has_key?(:boo)
     end
 
-    def test_reported_config_masks_thread_profiler
+    def test_config_masks_thread_profiler
       supported = NewRelic::Agent::ThreadProfiler.is_supported?
-      reported_config = @manager.reported_config
+      reported_config = @manager.to_collector_hash
 
       if supported
         assert_not_nil reported_config[:'thread_profiler.enabled']

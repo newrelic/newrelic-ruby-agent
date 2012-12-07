@@ -84,8 +84,8 @@ module NewRelic
           end
         end
 
-        def reported_config
-          to_report = @config_stack.reverse.inject({}) do |flat,layer|
+        def flattened
+          @config_stack.reverse.inject({}) do |flat,layer|
             thawed_layer = layer.dup
             thawed_layer.each do |k,v|
               begin
@@ -98,12 +98,17 @@ module NewRelic
             end
             flat.merge(thawed_layer)
           end
+        end
 
-          MASK_DEFAULTS.
-            select {|_, proc| proc.call}.
-            each { |key, _| to_report.delete(key) }
+        def apply_mask(hash)
+          MASK_DEFAULTS. \
+            select {|_, proc| proc.call}. \
+            each {|key, _| hash.delete(key) }
+          hash
+        end
 
-          to_report
+        def to_collector_hash
+          DottedHash.new(apply_mask(flattened))
         end
 
         def app_names

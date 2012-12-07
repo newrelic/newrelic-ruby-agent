@@ -723,7 +723,7 @@ module NewRelic
               :language => 'ruby',
               :agent_version => NewRelic::VERSION::STRING,
               :environment => environment_for_connect,
-              :settings => Agent.config.reported_config,
+              :settings => Agent.config.to_collector_hash,
               :validate => validate_settings
             }
           end
