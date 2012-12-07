@@ -4,10 +4,13 @@ require 'uri'
 require 'socket'
 require 'timeout'
 require 'ostruct'
+require File.join(File.dirname(__FILE__), 'fakes_sending_data')
 
 module NewRelic
   class FakeCollector
     attr_accessor :agent_data, :mock
+
+    include FakesSendingData
 
     def initialize
       @id_counter = 0
@@ -58,12 +61,6 @@ module NewRelic
                                       :run_id => run_id)
       end
       res.finish
-    end
-
-    def calls_for(method)
-      @agent_data. \
-        select { |d| d.action == method }. \
-        map { |d| d.body }
     end
 
     def json_format?(uri)

@@ -1,9 +1,12 @@
 require 'ostruct'
+require File.join(File.dirname(__FILE__), 'fakes_sending_data')
 
 module NewRelic
   class FakeService
     attr_accessor :request_timeout, :agent_id, :agent_data, :collector, :mock
-    
+
+    include FakesSendingData
+
     def initialize
       @agent_data = []
       @supported_methods = [ :connect, :metric_data, :transaction_sample_data,
@@ -26,12 +29,6 @@ module NewRelic
 
     def agent_run_id
       @id_counter += 1
-    end
-
-    def calls_for(method)
-      @agent_data. \
-        select { |d| d.action == method }. \
-        map { |d| d.body }
     end
 
     def reset
