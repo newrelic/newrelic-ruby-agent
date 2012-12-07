@@ -111,7 +111,7 @@ module NewRelic
       end
 
       def settings
-        NewRelic::Agent.config.flattened_config
+        NewRelic::Agent.config.reported_config
       end
 
       def dispatcher

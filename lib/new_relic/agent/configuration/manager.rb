@@ -1,5 +1,6 @@
 require 'forwardable'
 require 'new_relic/agent/configuration/defaults'
+require 'new_relic/agent/configuration/mask_defaults'
 require 'new_relic/agent/configuration/yaml_source'
 require 'new_relic/agent/configuration/server_source'
 require 'new_relic/agent/configuration/environment_source'
@@ -83,8 +84,8 @@ module NewRelic
           end
         end
 
-        def flattened_config
-          @config_stack.reverse.inject({}) do |flat,layer|
+        def reported_config
+          to_report = @config_stack.reverse.inject({}) do |flat,layer|
             thawed_layer = layer.dup
             thawed_layer.each do |k,v|
               begin
@@ -97,6 +98,12 @@ module NewRelic
             end
             flat.merge(thawed_layer)
           end
+
+          MASK_DEFAULTS.
+            select {|_, proc| proc.call}.
+            each { |key, _| to_report.delete(key) }
+
+          to_report
         end
 
         def app_names

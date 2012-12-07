@@ -1,5 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 require 'new_relic/agent/configuration/manager'
+require 'new_relic/agent/configuration/mask_defaults'
 
 module NewRelic::Agent::Configuration
   class ManagerTest < Test::Unit::TestCase
@@ -91,7 +92,7 @@ module NewRelic::Agent::Configuration
       assert_equal 'correct value', @manager[:setting]
     end
 
-    def test_flattened_config
+    def test_reported_config
       @manager.instance_variable_set(:@config_stack, [])
       @manager.apply_config(:eins => Proc.new { self[:one] })
       @manager.apply_config(:one => 1)
@@ -99,7 +100,34 @@ module NewRelic::Agent::Configuration
       @manager.apply_config(:three => 3)
 
       assert_equal({ :eins => 1, :one => 1, :two => 2, :three => 3 },
-                   @manager.flattened_config)
+                   @manager.reported_config)
+    end
+
+    def test_reported_config_masks
+      NewRelic::Agent::Configuration::MASK_DEFAULTS[:boo] = Proc.new { true }
+
+      @manager.apply_config(:boo => 1)
+
+      assert_equal false, @manager.reported_config.has_key?(:boo)
+    end
+
+    def test_reported_config_masks_conditionally
+      NewRelic::Agent::Configuration::MASK_DEFAULTS[:boo] = Proc.new { false }
+
+      @manager.apply_config(:boo => 1)
+
+      assert @manager.reported_config.has_key?(:boo)
+    end
+
+    def test_reported_config_masks_thread_profiler
+      supported = NewRelic::Agent::ThreadProfiler.is_supported?
+      reported_config = @manager.reported_config
+
+      if supported
+        assert_not_nil reported_config[:'thread_profiler.enabled']
+      else
+        assert_equal nil, reported_config[:'thread_profiler.enabled']
+      end
     end
 
     def test_replacing_a_layer_by_class
