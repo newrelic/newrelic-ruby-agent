@@ -35,20 +35,6 @@ module NewRelic
               self[:log_file_name] = File.basename(ENV['NEW_RELIC_LOG'])
             end
           end
-
-          initialize_thread_profiler_settings
-        end
-
-
-        def initialize_thread_profiler_settings
-          thread_profiler_supported = NewRelic::Agent::ThreadProfiler.is_supported?
-          self[:'thread_profiler.is_supported'] = thread_profiler_supported
-
-          # If not supporting thread profiling, ignore all other enabled's.
-          # Otherwise, don't set so defaulting is heeded.
-          if !thread_profiler_supported
-            self[:'thread_profiler.enabled'] = false
-          end
         end
       end
     end

@@ -79,8 +79,7 @@ module NewRelic
         :'rum.load_episodes_file' => true,
         :'browser_monitoring.auto_instrument' => Proc.new { self[:'rum.enabled'] },
 
-        :'thread_profiler.is_supported' => Proc.new { NewRelic::Agent::ThreadProfiler.is_supported? },
-        :'thread_profiler.enabled'      => Proc.new { self[:'thread_profiler.is_supported'] },
+        :'thread_profiler.enabled' => Proc.new { NewRelic::Agent::ThreadProfiler.is_supported? },
 
         :marshaller => Proc.new { NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported? ? 'json' : 'pruby' }
       }.freeze
