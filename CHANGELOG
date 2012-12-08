@@ -8,6 +8,20 @@
     Sinatra applications can now take advantage of front end queue time
     reporting. Thanks to Winfield Peterson for this contribution.
 
+  * Simplify queue time configuration for nginx 1.3.9+
+
+    Beginning in version 1.3.9, recently released as a development version, the
+    $msec variable can be used to set an http header.  This change allows front
+    end queue time to be tracked in New Relic simply by adding this line to the
+    nginx config:
+
+    proxy_set_header X-Queue-Start "t=${msec}000"
+
+    It will no longer be necessary to compile a patched version of nginx or
+    compile in the perl or lua module to enable this functionality.
+
+    Thanks to Lawrence Pit for the contribution.
+
 ## v3.5.3 ##
 
   * Update the collector protocol to use JSON and Ruby primitives
