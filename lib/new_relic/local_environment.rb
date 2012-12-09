@@ -249,9 +249,15 @@ module NewRelic
     def discover_dispatcher
       @dispatcher ||= ENV['NEWRELIC_DISPATCHER'] && ENV['NEWRELIC_DISPATCHER'].to_sym
       @dispatcher ||= ENV['NEW_RELIC_DISPATCHER'] && ENV['NEW_RELIC_DISPATCHER'].to_sym
-      dispatchers = %w[passenger torquebox glassfish thin mongrel litespeed webrick fastcgi unicorn sinatra]
-      while dispatchers.any? && @dispatcher.nil?
-        send 'check_for_'+(dispatchers.shift)
+
+      # If the server declares itself, trust it!
+      if defined?(::NewRelicSupport) && defined?(::NewRelicSupport::DISPATCHER)
+        @dispatcher = ::NewRelicSupport::DISPATCHER.to_sym
+      else
+        dispatchers = %w[passenger torquebox glassfish thin mongrel litespeed webrick fastcgi unicorn sinatra]
+        while dispatchers.any? && @dispatcher.nil?
+          send 'check_for_'+(dispatchers.shift)
+        end
       end
     end
 
