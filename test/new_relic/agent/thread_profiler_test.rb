@@ -36,7 +36,8 @@ STOP_AND_DISCARD_COMMAND = [[666,{
 
 NO_COMMAND = []
 
-if RUBY_VERSION < '1.9.2'
+if !NewRelic::Agent::ThreadProfiler.is_supported?
+
 class ThreadProfilerUnsupportedTest < Test::Unit::TestCase
   def setup
     @profiler = NewRelic::Agent::ThreadProfiler.new
@@ -64,9 +65,9 @@ class ThreadProfilerUnsupportedTest < Test::Unit::TestCase
   end
 
 end
-end
 
-if RUBY_VERSION >= '1.9.2'
+else
+
 require 'json'
 
 class ThreadProfilerTest < ThreadedTest

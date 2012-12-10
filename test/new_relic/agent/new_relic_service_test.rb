@@ -122,8 +122,8 @@ class NewRelicServiceTest < Test::Unit::TestCase
   end
 
 
-# Thread profiling only available in 1.9.2 and above
-if RUBY_VERSION >= '1.9.2'
+# Thread profiling only available in certain versions
+if NewRelic::Agent::ThreadProfiler.is_supported?
   def test_profile_data
     @http_handle.respond_to(:profile_data, 'profile' => 123)
     response = @service.profile_data(NewRelic::Agent::ThreadProfile.new(0, 0, 0, true))

@@ -55,7 +55,7 @@ module NewRelic
           end
         else
           msg = <<-EOF
-Thread profiling is only supported on the 1.9.x and greater versions of Ruby.
+Thread profiling is only supported on 1.9.2 and greater versions of Ruby.
 We detected running agents capable of profiling, but the profile started with
 an agent running Ruby #{RUBY_VERSION}.
 
