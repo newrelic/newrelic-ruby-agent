@@ -54,7 +54,14 @@ module NewRelic
               stop_and_notify(command_id, arguments, &notify_results)
           end
         else
-          msg = "Thread profile is unsupported by Ruby version #{RUBY_VERSION}"
+          msg = <<-EOF
+Thread profiling is only supported on the 1.9.x and greater versions of Ruby.
+We detected running agents capable of profiling, but the profile started with
+an agent running Ruby #{RUBY_VERSION}.
+
+Profiling again might select an appropriate agent, but we recommend running a
+consistent version of Ruby across your application for better results.
+EOF
           log.debug(msg)
           notify_results.call(command_id, msg) if !notify_results.nil?
         end
