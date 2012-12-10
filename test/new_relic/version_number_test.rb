@@ -86,4 +86,11 @@ class NewRelic::VersionNumberTest < Test::Unit::TestCase
     assert_equal '1.2.0', NewRelic::VersionNumber.new('1.2.0').to_s
     assert_equal '1.2', NewRelic::VersionNumber.new('1.2').to_s
   end
+
+  def test_gemspec_version_parsing
+    gemspec_contents = File.read(File.join(File.dirname(__FILE__), '..', '..', 'newrelic_rpm.gemspec'))
+    gemspec_contents =~ /s\.version\s*=\s*"(.*)"/
+    real_version = $1
+    assert_equal real_version, NewRelic::VERSION::STRING
+  end
 end

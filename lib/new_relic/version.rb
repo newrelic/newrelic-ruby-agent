@@ -4,7 +4,11 @@ module NewRelic
     MAJOR = 3
     MINOR = 5
     TINY  = 3
-    BUILD = nil
+
+    gemspec_path = File.join(File.dirname(__FILE__), '..', '..', 'newrelic_rpm.gemspec')
+    spec = Gem::Specification::load(gemspec_path)
+    BUILD = spec ? spec.version.to_s.split('.')[3] : nil
+
     STRING = [MAJOR, MINOR, TINY, BUILD].compact.join('.')
   end
 
