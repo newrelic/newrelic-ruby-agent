@@ -137,8 +137,10 @@ def with_config(config_hash, level=0)
   end
 end
 
-def fixture_path(name)
-  File.join(File.dirname(__FILE__), 'fixtures', name)
+module NewRelic
+  def self.fixture_path(name)
+    File.join(File.dirname(__FILE__), 'fixtures', name)
+  end
 end
 
 module TransactionSampleTestHelper
