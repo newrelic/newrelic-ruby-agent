@@ -526,7 +526,7 @@ class ThreadProfileNodeTest < Test::Unit::TestCase
     assert_equal [], parent.children
   end
 
-  def test_prune_removes_children
+  def test_prune_removes_grandchildren
     parent = NewRelic::Agent::ThreadProfile::Node.new(SINGLE_LINE)
     child = NewRelic::Agent::ThreadProfile::Node.new(SINGLE_LINE, parent)
     grandchild = NewRelic::Agent::ThreadProfile::Node.new(SINGLE_LINE, child)
