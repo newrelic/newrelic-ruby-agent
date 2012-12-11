@@ -5,7 +5,7 @@ require "#{File.dirname(__FILE__)}/lib/tasks/all.rb"
 
 task :default => :test
 
-task :test => 'test:newrelic'
+task :test => [:gemspec, 'test:newrelic']
 
 namespace :test do
   desc "Run all tests"
