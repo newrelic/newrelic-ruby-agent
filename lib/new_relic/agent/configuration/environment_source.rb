@@ -12,7 +12,9 @@ module NewRelic
             'NEW_RELIC_DISPATCHER'  => :dispatcher,
             'NEWRELIC_DISPATCHER'   => :dispatcher,
             'NEW_RELIC_FRAMEWORK'   => :framework,
-            'NEWRELIC_FRAMEWORK'    => :framework
+            'NEWRELIC_FRAMEWORK'    => :framework,
+            'NEW_RELIC_HOST'        => :host,
+            'NEW_RELIC_PORT'        => :port
           }.each do |key, val|
             self[val] = ENV[key] if ENV[key]
           end

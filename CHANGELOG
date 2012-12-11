@@ -24,6 +24,11 @@
 
   * Report back build number and stage along with version info
 
+  * The host and the port that the agent reports to can now be set from environment vars
+
+    The host can be set with NEW_RELIC_HOST and the port with NEW_RELIC_PORT.  These setting
+    will overrride any other settings in your newrelic.yml.
+
 ## v3.5.3 ##
 
   * Update the collector protocol to use JSON and Ruby primitives
