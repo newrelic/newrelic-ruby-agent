@@ -28,6 +28,10 @@ module NewRelic
           "#<#{self.class.name}:#{object_id} #{super}>"
         end
 
+        def to_hash
+          {}.replace(self)
+        end
+
         protected
         # turns {'a' => {'b' => 'c'}} into {'a.b' => 'c'}
         def dot_flattened(nested_hash, names=[], result={})

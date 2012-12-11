@@ -92,6 +92,11 @@ module NewRelic::Agent::Configuration
       assert_equal 'correct value', @manager[:setting]
     end
 
+    def test_dotted_hash_to_hash_is_plain_hash
+      dotted = NewRelic::Agent::Configuration::DottedHash.new({})
+      assert_equal(::Hash, dotted.to_hash.class)
+    end
+
     def test_to_collector_hash
       @manager.instance_variable_set(:@config_stack, [])
       @manager.apply_config(:eins => Proc.new { self[:one] })
@@ -102,6 +107,14 @@ module NewRelic::Agent::Configuration
 
       assert_equal({ :eins => 1, :one => 1, :two => 2, :'nested.madness' => 'test' },
                    @manager.to_collector_hash)
+    end
+
+    # Necessary to keep the pruby marshaller happy
+    def test_to_collector_hash_returns_bare_hash
+      @manager.instance_variable_set(:@config_stack, [])
+      @manager.apply_config(:eins => Proc.new { self[:one] })
+
+      assert_equal(::Hash, @manager.to_collector_hash.class)
     end
 
     def test_config_masks

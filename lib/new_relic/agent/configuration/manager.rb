@@ -108,7 +108,7 @@ module NewRelic
         end
 
         def to_collector_hash
-          DottedHash.new(apply_mask(flattened))
+          DottedHash.new(apply_mask(flattened)).to_hash
         end
 
         def app_names
