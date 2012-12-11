@@ -14,7 +14,7 @@ module NewRelic
       class DelayedJobSampler < NewRelic::Agent::Sampler
         def initialize
           super :delayed_job_queue
-          raise Unsupported, "DJ instrumentation disabled" if NewRelic::Control.instance['disable_dj']
+          raise Unsupported, "DJ instrumentation disabled" if Agent.config[:disable_dj]
           raise Unsupported, "No DJ worker present" unless NewRelic::DelayedJobInjection.worker_name
         end
 
@@ -33,9 +33,6 @@ module NewRelic
           local_env.dispatcher_instance_id
         end
 
-        def queued_jobs
-          Delayed::Job.count(:conditions => ['run_at < ? and failed_at is NULL', Time.now])
-        end
         def failed_jobs
           Delayed::Job.count(:conditions => 'failed_at is not NULL')
         end
@@ -62,7 +59,7 @@ module NewRelic
 
         def record_queue_length_across_dimension(column)
           all_count = 0
-          Delayed::Job.count(:group => column).each do | column_val, count |
+          Delayed::Job.count(:group => column, :conditions => ['run_at < ? and failed_at is NULL', Time.now]).each do | column_val, count |
             all_count += count
             record stats_engine.get_stats("Workers/DelayedJob/queue_length/#{column == 'queue' ? 'name' : column}/#{column_val}", false), count
           end

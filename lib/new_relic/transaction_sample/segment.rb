@@ -1,4 +1,5 @@
 require 'new_relic/transaction_sample'
+
 module NewRelic
   class TransactionSample
     class Segment
@@ -15,13 +16,13 @@ module NewRelic
         @metric_name = metric_name || '<unknown>'
         @segment_id = segment_id || object_id
       end
-      
+
       # sets the final timestamp on a segment to indicate the exit
       # point of the segment
       def end_trace(timestamp)
         @exit_timestamp = timestamp
       end
-      
+
       def add_called_segment(s)
         @called_segments ||= []
         @called_segments << s
@@ -32,18 +33,15 @@ module NewRelic
         to_debug_str(0)
       end
 
-      def to_json(options={})
-        hash = {
-          :entry_timestamp => @entry_timestamp,
-          :exit_timestamp => @exit_timestamp,
-          :metric_name => @metric_name,
-          :segment_id => @segment_id,
-        }
+      def to_array
+        [ (@entry_timestamp.to_f * 1000).round,
+          (@exit_timestamp.to_f * 1000).round,
+          @metric_name, (@params || {}) ] +
+          [ (@called_segments ? @called_segments.map{|s| s.to_array} : []) ]
+      end
 
-        hash[:called_segments] = called_segments if !called_segments.empty?
-        hash[:params] = @params if @params && !@params.empty?
-
-        hash.to_json
+      def to_json
+        JSON.dump(self.to_array)
       end
 
       def path_string
@@ -97,13 +95,13 @@ module NewRelic
         end
         d
       end
-      
+
       def count_segments
         count = 1
         called_segments.each { | seg | count  += seg.count_segments }
         count
       end
-      
+
       # Walk through the tree and truncate the segments in a
       # depth-first manner
       def truncate(max)

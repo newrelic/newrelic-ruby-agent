@@ -7,7 +7,7 @@ module NewRelic
       #
       # New Relic will instrument a #call method as if it were a controller
       # action, collecting transaction traces and errors.  The middleware will
-      # be identified only by it's class, so if you want to instrument multiple
+      # be identified only by its class, so if you want to instrument multiple
       # actions in a middleware, you need to use
       # NewRelic::Agent::Instrumentation::ControllerInstrumentation::ClassMethods#add_transaction_tracer
       #

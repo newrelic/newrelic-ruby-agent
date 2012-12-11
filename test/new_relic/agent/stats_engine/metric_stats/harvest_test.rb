@@ -1,30 +1,13 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','..','test_helper'))
 require 'new_relic/agent/stats_engine/metric_stats'
+
 class NewRelic::Agent::StatsEngine::MetricStats::HarvestTest < Test::Unit::TestCase
   include NewRelic::Agent::StatsEngine::MetricStats::Harvest
 
   attr_accessor :stats_hash
-  def test_merge_stats_trivial
-    self.stats_hash = {}
-    merge_stats({}, {})
-  end
-
   def test_merge_stats_with_nil_stats
-    metric_ids = mock('metric ids')
-    mock_stats_hash = mock('stats_hash')
-    mock_spec = mock('spec')
-    mock_stats = mock('stats')
-    mock_stats_hash.expects(:each).yields(mock_spec, mock_stats)
-    self.stats_hash = mock_stats_hash
-
-    self.expects(:coerce_to_metric_spec).with(mock_spec).returns(mock_spec)
-    self.expects(:clone_and_reset_stats).with(mock_spec, mock_stats).returns(mock_stats)
-    self.expects(:merge_old_data!).with(mock_spec, mock_stats, {})
-    metric_ids.expects(:[]).with(mock_spec).returns('an id')
-    self.expects(:add_data_to_send_unless_empty).with({}, mock_stats, mock_spec, 'an id')
-
-
-    merge_stats({}, metric_ids)
+    self.stats_hash = NewRelic::Agent::StatsEngine::MetricStats::SynchronizedHash.new
+    assert_equal({}, merge_stats({}, {}))
   end
 
 

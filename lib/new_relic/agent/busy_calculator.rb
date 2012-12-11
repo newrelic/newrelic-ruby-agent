@@ -30,7 +30,8 @@ module NewRelic
       # called when a transaction finishes, to add time to the
       # instance variable accumulator. this is harvested when we send
       # data to the server
-      def dispatcher_finish(end_time = Time.now)
+      def dispatcher_finish(end_time = nil)
+        end_time ||= time_now
         callers = Thread.current[:busy_entries] -= 1
         # Ignore nested calls
         return if callers > 0
@@ -56,15 +57,14 @@ module NewRelic
         Thread.current[:busy_entries] = 0
         @lock ||= Mutex.new
         @accumulator = 0
-        @harvest_start = Time.now
+        @harvest_start = time_now
       end
 
-      self.reset
 
       # Called before uploading to to the server to collect current busy stats.
       def harvest_busy
         busy = 0
-        t0 = Time.now
+        t0 = time_now
         @lock.synchronize do
           busy = accumulator
           @accumulator = 0
@@ -88,12 +88,20 @@ module NewRelic
         instance_busy_stats.record_data_point busy
         @harvest_start = t0
       end
+
       private
+
+      # so we can stub Time.now only for the BusyCalculator in tests
+      def time_now
+        Time.now
+      end
+
       def instance_busy_stats
         # Late binding on the Instance/busy stats
         NewRelic::Agent.agent.stats_engine.get_stats_no_scope 'Instance/Busy'
       end
 
+      self.reset
     end
   end
 end

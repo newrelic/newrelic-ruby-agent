@@ -7,8 +7,6 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
     self.expects(:catch_errors).yields
     self.expects(:connect).with('connection_options')
     @connected = true
-    self.expects(:check_transaction_sampler_status)
-    self.expects(:check_sql_sampler_status)    
     self.expects(:log_worker_loop_start)
     self.expects(:create_and_run_worker_loop)
     deferred_work!('connection_options')
@@ -23,49 +21,24 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
     deferred_work!('connection_options')
   end
 
-  def test_check_transaction_sampler_status_enabled
-    control = mocked_control
-    control.expects(:developer_mode?).returns(false)
-    @should_send_samples = true
-    @transaction_sampler = mock('transaction_sampler')
-    @transaction_sampler.expects(:enable)
-    check_transaction_sampler_status
-  end
-
-  def test_check_transaction_sampler_status_devmode
-    control = mocked_control
-    control.expects(:developer_mode?).returns(true)
-    @should_send_samples = false
-    @transaction_sampler = mock('transaction_sampler')
-    @transaction_sampler.expects(:enable)
-    check_transaction_sampler_status
-  end
-
-  def test_check_transaction_sampler_status_disabled
-    control = mocked_control
-    control.expects(:developer_mode?).returns(false)
-    @should_send_samples = false
-    @transaction_sampler = mock('transaction_sampler')
-    @transaction_sampler.expects(:disable)
-    check_transaction_sampler_status
-  end
-
   def test_log_worker_loop_start
-    @report_period = 30
     log = mocked_log
     log.expects(:info).with("Reporting performance data every 30 seconds.")
     log.expects(:debug).with("Running worker loop")
-    log_worker_loop_start
+    with_config(:data_report_period => 30) do
+      log_worker_loop_start
+    end
   end
 
   def test_create_and_run_worker_loop
-    @report_period = 30
     @should_send_samples = true
     wl = mock('worker loop')
     NewRelic::Agent::WorkerLoop.expects(:new).returns(wl)
     wl.expects(:run).with(30).yields
     self.expects(:transmit_data)
-    create_and_run_worker_loop
+    with_config(:data_report_period => 30) do
+      create_and_run_worker_loop
+    end
   end
 
   def test_handle_force_restart

@@ -5,11 +5,17 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
   ::SQL_STATEMENT = "SELECT * from sandwiches"
 
   def setup
+    @test_config = { 'developer_mode' => true }
+    NewRelic::Agent.config.apply_config(@test_config)
     @connection_stub = Mocha::Mockery.instance.named_mock('connection')
     @connection_stub.stubs(:execute).returns([['QUERY RESULT']])
 
     NewRelic::Agent::Database.stubs(:get_connection).returns @connection_stub
     @t = make_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
+  end
+
+  def teardown
+    NewRelic::Agent.config.remove_config(@test_config)
   end
 
   def test_be_recorded
@@ -78,7 +84,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
 
   def test_have_explains
     s = @t.prepare_to_send(:record_sql => :obfuscated, :explain_sql => 0.00000001)
-    
+
     s.each_segment do |segment|
       if segment.params[:explain_plan]
         explanation = segment.params[:explain_plan]
@@ -138,7 +144,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
       s.to_s
     end
   end
-  
+
   def test_to_s_includes_keys
     s = @t.prepare_to_send(:explain_sql => 0.1)
     s.params[:fake_key] = 'a fake param'
@@ -173,5 +179,44 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
       sampler.notice_pop_scope "level0"
     end
     assert_equal 6, transaction.count_segments
+  end
+
+  def test_to_array
+    expected_array = [@t.start_time.to_f,
+                      @t.params[:request_params],
+                      @t.params[:custom_params],
+                      @t.root_segment.to_array]
+    assert_equal expected_array, @t.to_array
+  end
+
+  if RUBY_VERSION >= '1.9.2'
+    def test_to_json
+      expected_string = JSON.dump([@t.start_time.to_f,
+                                   @t.params[:request_params],
+                                   @t.params[:custom_params],
+                                   @t.root_segment.to_array])
+      assert_equal expected_string, @t.to_json
+    end
+  end
+
+  def test_to_collector_array
+    if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
+      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+      trace_tree = compress(@t.to_json)
+    else
+      marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
+      trace_tree = @t.to_array
+    end
+    expected_array = [(@t.start_time.to_f * 1000).round,
+                      (@t.duration * 1000).round,
+                      @t.params[:path], @t.params[:uri],
+                      trace_tree,
+                      @t.guid, nil, !!@t.force_persist]
+
+    assert_equal expected_array, @t.to_collector_array(marshaller)
+  end
+
+  def compress(string)
+    Base64.encode64(Zlib::Deflate.deflate(string, Zlib::DEFAULT_COMPRESSION))
   end
 end

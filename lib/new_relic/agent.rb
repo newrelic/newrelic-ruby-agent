@@ -84,12 +84,14 @@ module NewRelic
     require 'new_relic/agent/stats_engine'
     require 'new_relic/agent/transaction_sampler'
     require 'new_relic/agent/sql_sampler'
+    require 'new_relic/agent/thread_profiler'
     require 'new_relic/agent/error_collector'
     require 'new_relic/agent/busy_calculator'
     require 'new_relic/agent/sampler'
     require 'new_relic/agent/database'
     require 'new_relic/agent/pipe_channel_manager'
     require 'new_relic/agent/transaction_info'
+    require 'new_relic/agent/configuration'
 
     require 'new_relic/agent/instrumentation/controller_instrumentation'
 
@@ -100,6 +102,8 @@ module NewRelic
     require 'set'
     require 'thread'
     require 'resolv'
+
+    extend NewRelic::Agent::Configuration::Instance
 
     # An exception that is thrown by the server if the agent license is invalid.
     class LicenseException < StandardError; end
@@ -114,9 +118,9 @@ module NewRelic
     # failures.
     class ServerConnectionException < StandardError; end
 
-    # Used for when a transaction trace or error report has too much
-    # data, so we reset the queue to clear the extra-large item
-    class PostTooBigException < ServerConnectionException; end
+    # When a post is either too large or poorly formatted we should
+    # drop it and not try to resend
+    class UnrecoverableServerException < ServerConnectionException; end
 
     # Reserved for future use.  Meant to represent a problem on the server side.
     class ServerError < StandardError; end
@@ -302,7 +306,8 @@ module NewRelic
 
     # Check to see if we are capturing metrics currently on this thread.
     def is_execution_traced?
-      Thread.current[:newrelic_untraced].nil? || Thread.current[:newrelic_untraced].last != false
+      untraced = Thread.current[:newrelic_untraced]
+      untraced.nil? || untraced.last != false
     end
     
     # helper method to check the thread local to determine whether the

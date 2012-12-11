@@ -46,11 +46,16 @@ EOL
   def setup
     super
     clear_cookies
+    @config = {
+      :browser_key => 'some browser key',
+      :beacon => 'beacon',
+      :application_id => 5,
+      :'rum.enabled' => true,
+      :episodes_file => 'this_is_my_file'
+    }
+    NewRelic::Agent.config.apply_config(@config)
     NewRelic::Agent.manual_start
-    config = NewRelic::Agent::BeaconConfiguration.new("browser_key" => "browserKey",
-                                                      "application_id" => "apId",
-                                                      "beacon"=>"beacon",
-                                                      "episodes_url"=>"this_is_my_file")
+    config = NewRelic::Agent::BeaconConfiguration.new
     NewRelic::Agent.instance.stubs(:beacon_configuration).returns(config)
     NewRelic::Agent.stubs(:is_transaction_traced?).returns(true)
   end
@@ -60,6 +65,7 @@ EOL
     clear_cookies
     mocha_teardown
     TestApp.doc = nil
+    NewRelic::Agent.config.remove_config(@config)
   end
 
   def test_make_sure_header_is_set
@@ -110,7 +116,7 @@ EOL
   def test_insert_timing_footer_right_before_html_body_close
     get '/'
 
-    assert_match(/.*NREUMQ\.push.*new Date\(\)\.getTime\(\),"","","","",""\]\)<\/script><\/body>/,
+    assert_match(/.*NREUMQ\.push.*new Date\(\)\.getTime\(\),"","","","",""\]\);<\/script><\/body>/,
                  last_response.body)
   end
 
@@ -132,11 +138,11 @@ EOL
   def test_guid_is_set_in_footer_when_token_is_set
     guid = 'abcdefgfedcba'
     NewRelic::TransactionSample.any_instance.stubs(:generate_guid).returns(guid)
-    NewRelic::Control.instance.stubs(:apdex_t).returns(0.0001)
     set_cookie "NRAGENT=tk=token"
-    get '/'
-
-    assert(last_response.body.include?(guid), last_response.body)
+    with_config(:apdex_t => 0.0001) do
+      get '/'
+      assert(last_response.body.include?(guid), last_response.body)
+    end
   end
 end
 else

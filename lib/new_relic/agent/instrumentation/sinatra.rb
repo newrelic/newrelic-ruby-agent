@@ -2,7 +2,7 @@ require 'new_relic/agent/instrumentation/controller_instrumentation'
 
 DependencyDetection.defer do
   @name = :sinatra
-  
+
   depends_on do
     defined?(::Sinatra) && defined?(::Sinatra::Base) &&
       Sinatra::Base.private_method_defined?(:dispatch!)
@@ -34,14 +34,14 @@ module NewRelic
       # will all be tracked as separate actions.
       module Sinatra
         include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
-                
+
         def dispatch_with_newrelic
           txn_name = NewRelic.transaction_name(self.class.routes, @request) do |pattern, keys, conditions|
             process_route(pattern, keys, conditions) do
               pattern.source
             end
           end
-          
+
           perform_action_with_newrelic_trace(:category => :sinatra,
                                              :name => txn_name,
                                              :params => @request.params) do
@@ -51,26 +51,30 @@ module NewRelic
 
         module NewRelic
           extend self
-          
+
           def http_verb(request)
             request.request_method if request.respond_to?(:request_method)
           end
-          
+
           def transaction_name(routes, request)
             name = '(unknown)'
             verb = http_verb(request)
-            
+
             Array(routes[verb]).each do |pattern, keys, conditions, block|
-              if pattern = yield(pattern, keys, conditions)
-                name = pattern
+              if route = yield(pattern, keys, conditions)
+                name = route
+                # it's important we short circuit here.  Otherwise we risk
+                # applying conditions from lower priority routes which can
+                # break the action.
+                break
               end
             end
-            
+
             name.gsub!(%r{^[/^]*(.*?)[/\$\?]*$}, '\1')
             if verb
               name = verb + ' ' + name
             end
-            
+
             name
           end
         end

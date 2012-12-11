@@ -57,47 +57,51 @@ class NewRelic::Agent::ErrorCollector::NoticeErrorTest < Test::Unit::TestCase
   end
 
   def test_request_params_from_opts_positive
-    fake_control = mock('control')
-    self.expects(:control).returns(fake_control)
-    fake_control.expects(:capture_params).returns(true)
-    val = {:request_params => 'foo'}
-    assert_equal('foo', request_params_from_opts(val))
-    assert_equal({}, val, "should delete request_params key from hash")
+    with_config(:capture_params => true) do
+      val = {:request_params => 'foo'}
+      assert_equal('foo', request_params_from_opts(val))
+      assert_equal({}, val, "should delete request_params key from hash")
+    end
   end
 
   def test_request_params_from_opts_negative
-    fake_control = mock('control')
-    self.expects(:control).returns(fake_control)
-    fake_control.expects(:capture_params).returns(false)
-    val = {:request_params => 'foo'}
-    assert_equal(nil, request_params_from_opts(val))
-    assert_equal({}, val, "should delete request_params key from hash")
+    with_config(:capture_params => false) do
+      val = {:request_params => 'foo'}
+      assert_equal(nil, request_params_from_opts(val))
+      assert_equal({}, val, "should delete request_params key from hash")
+    end
   end
 
   def test_normalized_request_and_custom_params_base
     self.expects(:normalize_params).with(nil).returns(nil)
     self.expects(:normalize_params).with({}).returns({})
-    fake_control = mock('control')
-    self.expects(:control).returns(fake_control)
-    fake_control.expects(:capture_params).returns(true)
-    assert_equal({:request_params => nil, :custom_params => {}}, normalized_request_and_custom_params({}))
+    with_config(:capture_params => true) do
+      assert_equal({:request_params => nil, :custom_params => {}},
+                   normalized_request_and_custom_params({}))
+    end
   end
 
   def test_extract_source_base
-    @capture_source = true
-    self.expects(:sense_method).with(nil, 'source_extract')
-    assert_equal(nil, extract_source(nil))
+    with_config(:'error_collector.capture_source' => true) do
+      error_collector = NewRelic::Agent::ErrorCollector.new
+      error_collector.expects(:sense_method).with(nil, 'source_extract')
+      assert_equal(nil, error_collector.extract_source(nil))
+    end
   end
 
   def test_extract_source_disabled
-    @capture_source = false
-    assert_equal(nil, extract_source(mock('exception')))
+    with_config(:'error_collector.capture_source' => false) do
+      error_collector = NewRelic::Agent::ErrorCollector.new
+      assert_equal(nil, error_collector.extract_source(mock('exception')))
+    end
   end
 
   def test_extract_source_with_source
-    self.expects(:sense_method).with('happy', 'source_extract').returns('THE SOURCE')
-    @capture_source = true
-    assert_equal('THE SOURCE', extract_source('happy'))
+    with_config(:'error_collector.capture_source' => true) do
+      error_collector = NewRelic::Agent::ErrorCollector.new
+      error_collector.expects(:sense_method).with('happy', 'source_extract').returns('THE SOURCE')
+      assert_equal('THE SOURCE', error_collector.extract_source('happy'))
+    end
   end
 
   def test_extract_stack_trace
@@ -160,53 +164,56 @@ class NewRelic::Agent::ErrorCollector::NoticeErrorTest < Test::Unit::TestCase
 
   def test_should_exit_notice_error_disabled
     error = mocked_error
-    @enabled = false
-    assert should_exit_notice_error?(error)
+    with_error_collector_config(:'error_collector.enabled' => false) do |error_collector|
+      assert error_collector.should_exit_notice_error?(error)
+    end
   end
 
   def test_should_exit_notice_error_nil
     error = nil
-    @enabled = true
-    self.expects(:error_is_ignored?).with(error).returns(false)
-    # we increment it for the case that someone calls
-    # NewRelic::Agent.notice_error(foo) # foo is nil
-    # (which is probably not a good idea but is the existing api)
-    self.expects(:increment_error_count!)
-    assert should_exit_notice_error?(error)
+    with_error_collector_config(:'error_collector.enabled' => true) do |error_collector|
+      error_collector.expects(:error_is_ignored?).with(error).returns(false)
+      # we increment it for the case that someone calls
+      # NewRelic::Agent.notice_error(foo) # foo is nil
+      # (which is probably not a good idea but is the existing api)
+      error_collector.expects(:increment_error_count!)
+      assert error_collector.should_exit_notice_error?(error)
+    end
   end
 
   def test_should_exit_notice_error_positive
     error = mocked_error
-    @enabled = true
-    self.expects(:error_is_ignored?).with(error).returns(true)
-    assert should_exit_notice_error?(error)
+    with_error_collector_config(:'error_collector.enabled' => true) do |error_collector|
+      error_collector.expects(:error_is_ignored?).with(error).returns(true)
+      assert error_collector.should_exit_notice_error?(error)
+    end
   end
 
   def test_should_exit_notice_error_negative
     error = mocked_error
-    @enabled = true
-    self.expects(:error_is_ignored?).with(error).returns(false)
-    self.expects(:increment_error_count!)
-    assert !should_exit_notice_error?(error)
+    with_error_collector_config(:'error_collector.enabled' => true) do |error_collector|
+      error_collector.expects(:error_is_ignored?).with(error).returns(false)
+      error_collector.expects(:increment_error_count!)
+      assert !error_collector.should_exit_notice_error?(error)
+    end
   end
 
   def test_filtered_error_positive
-    @ignore = {'an_error' => true}
-    error = mocked_error
-    error_class = mock('error class')
-    error.expects(:class).returns(error_class)
-    error_class.expects(:name).returns('an_error')
-    assert filtered_error?(error)
+    with_error_collector_config(:'error_collector.ignore_errors' => 'an_error') do |error_collector|
+      error = mocked_error
+      error_class = mock('error class')
+      error.expects(:class).returns(error_class)
+      error_class.expects(:name).returns('an_error')
+      assert error_collector.filtered_error?(error)
+    end
   end
 
   def test_filtered_error_negative
-    @ignore = {}
     error = mocked_error
     error_class = mock('error class')
     error.expects(:class).returns(error_class)
     error_class.expects(:name).returns('an_error')
-    self.expects(:filtered_by_error_filter?).with(error).returns(false)
-    assert !filtered_error?(error)
+    assert !NewRelic::Agent::ErrorCollector.new.filtered_error?(error)
   end
 
   def test_filtered_by_error_filter_empty
@@ -251,7 +258,13 @@ class NewRelic::Agent::ErrorCollector::NoticeErrorTest < Test::Unit::TestCase
 
   def mocked_control
     fake_control = mock('control')
-    self.stubs(:control).returns(fake_control)
+    NewRelic::Control.stubs(:instance).returns(fake_control)
     fake_control
+  end
+
+  def with_error_collector_config(config)
+    with_config(config) do
+      yield NewRelic::Agent::ErrorCollector.new
+    end
   end
 end

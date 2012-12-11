@@ -1,0 +1,21 @@
+suite_condition("Resque not compatible with 1.8.6") do
+  RUBY_VERSION != '1.8.6'
+end
+
+gemfile <<-RB
+  gem 'resque'
+  gem 'json'
+  if (RUBY_PLATFORM == 'java')
+    gem "jruby-openssl"
+  end
+RB
+
+before_suite do
+  system('echo "daemonize yes" | redis-server -')
+end
+
+after_suite do
+  system('redis-cli shutdown')
+end
+
+execute_mode 'spawn'

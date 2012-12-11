@@ -1,9 +1,14 @@
 #!/bin/bash
 
 # print commands in this script as they're invoked
-set -x
+#set -x
 # fail if any command fails
 set -e
+
+. "$HOME/.rvm/scripts/rvm"
+
+#rvm 1.9.3
+
 
 if [ "x$BUILD_NUMBER" == "x" ]; then
   echo '$BUILD_NUMBER is undefined'
@@ -12,7 +17,7 @@ if [ "x$BUILD_NUMBER" == "x" ]; then
 fi
 
 SHA1=`git log --pretty=format:'%h' -n 1`
-echo "building gem for commit $SHA"
+echo "building gem for commit $SHA1"
 
 if [[ `gem list jeweler | grep [j]eweler | wc -l` -eq 1 ]]; then
   echo "detected jeweler. skipping install"
@@ -28,7 +33,8 @@ mkdir gems
 
 # FIXME: don't include the $SHA1 since some of our builds systems are confused
 # by this.
-BUILD_ID=$BUILD_NUMBER #.$SHA1
+#BUILD_ID="$SHA1.$BUILD_NUMBER" #.$SHA1
+BUILD_ID="$BUILD_NUMBER" #.$SHA1
 
 # rewrite the version file, setting the patch identifier to include the
 # BUILD_ID

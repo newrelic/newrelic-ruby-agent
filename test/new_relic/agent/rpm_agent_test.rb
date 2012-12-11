@@ -34,21 +34,23 @@ class NewRelic::Agent::RpmAgentTest < Test::Unit::TestCase # ActiveSupport::Test
     end
 
     should "startup_shutdown" do
-      @agent = NewRelic::Agent::ShimAgent.instance
-      @agent.shutdown
-      assert (not @agent.started?)
-      @agent.start
-      assert !@agent.started?
-      # this installs the real agent:
-      NewRelic::Agent.manual_start
-      @agent = NewRelic::Agent.instance
-      assert @agent != NewRelic::Agent::ShimAgent.instance
-      assert @agent.started?
-      @agent.shutdown
-      assert !@agent.started?
-      @agent.start
-      assert @agent.started?
-      NewRelic::Agent.shutdown
+      with_config(:agent_enabled => true) do
+        @agent = NewRelic::Agent::ShimAgent.instance
+        @agent.shutdown
+        assert (not @agent.started?)
+        @agent.start
+        assert !@agent.started?
+        # this installs the real agent:
+        NewRelic::Agent.manual_start
+        @agent = NewRelic::Agent.instance
+        assert @agent != NewRelic::Agent::ShimAgent.instance
+        assert @agent.started?
+        @agent.shutdown
+        assert !@agent.started?
+        @agent.start
+        assert @agent.started?
+        NewRelic::Agent.shutdown
+      end
     end
 
     should "manual_start" do
@@ -67,28 +69,30 @@ class NewRelic::Agent::RpmAgentTest < Test::Unit::TestCase # ActiveSupport::Test
     end
     should "manual_overrides" do
       NewRelic::Agent.manual_start :app_name => "testjobs", :dispatcher_instance_id => "mailer"
-      assert_equal "testjobs", NewRelic::Control.instance.app_names[0]
-      assert_equal "mailer", NewRelic::Control.instance.dispatcher_instance_id
+      assert_equal "testjobs", NewRelic::Agent.config.app_names[0]
+      assert_equal "mailer", NewRelic::Control.instance.local_env.dispatcher_instance_id
       NewRelic::Agent.shutdown
     end
 
     should "restart" do
       NewRelic::Agent.manual_start :app_name => "noapp", :dispatcher_instance_id => ""
       NewRelic::Agent.manual_start :app_name => "testjobs", :dispatcher_instance_id => "mailer"
-      assert_equal "testjobs", NewRelic::Control.instance.app_names[0]
-      assert_equal "mailer", NewRelic::Control.instance.dispatcher_instance_id
+      assert_equal "testjobs", NewRelic::Agent.config.app_names[0]
+      assert_equal "mailer", NewRelic::Control.instance.local_env.dispatcher_instance_id
       NewRelic::Agent.shutdown
     end
 
     should "send_timeslice_data" do
       # this test fails due to a rubinius bug
       return if NewRelic::LanguageSupport.using_engine?('rbx')
-      @agent.service.expects(:metric_data).returns({ NewRelic::MetricSpec.new("/A/b/c") => 1,
-                                                     NewRelic::MetricSpec.new("/A/b/c", "/X") => 2,
-                                                     NewRelic::MetricSpec.new("/A/b/d") => 3 }.to_a)
+      @agent.service = NewRelic::FakeService.new
+      @agent.service.expects(:metric_data).returns([ [{'name' => '/A/b/c'}, 1],
+                                                     [{'name' => '/A/b/c', 'scope' => '/X'}, 2],
+                                                     [{'name' => '/A/b/d'}, 3] ])
       @agent.send :harvest_and_send_timeslice_data
       assert_equal 3, @agent.metric_ids.size
-      assert_equal 3, @agent.metric_ids[NewRelic::MetricSpec.new("/A/b/d") ], @agent.metric_ids.inspect
+      assert_equal(3, @agent.metric_ids[NewRelic::MetricSpec.new('/A/b/d')],
+                   @agent.metric_ids.inspect)
     end
     should "set_record_sql" do
       @agent.set_record_sql(false)

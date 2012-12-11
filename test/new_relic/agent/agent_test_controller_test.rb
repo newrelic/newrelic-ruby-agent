@@ -7,7 +7,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
   self.controller_class = NewRelic::Agent::AgentTestController
 
   attr_accessor :agent, :engine
-  
+
   def test_initialization
   # Suggested by cee-dub for merb tests.  I'm actually amazed if our tests work with merb.
     if defined?(Merb::Router)
@@ -23,7 +23,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
       Rails.application.routes.draw do
         match '/:controller/:action.:format'
         match '/:controller/:action'
-      end    
+      end
     end
 
     if defined?(Rails) && Rails.respond_to?(:application) && Rails.application.respond_to?(:routes)
@@ -41,7 +41,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     end
     @engine = @agent.stats_engine
   end
-  
+
   # Normally you can do this with #setup but for some reason in rails 2.0.2
   # setup is not called.
   if NewRelic::Control.instance.rails_version <= '2.1.0'
@@ -281,25 +281,57 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
   def test_controller_params
     agent.transaction_sampler.reset!
     get :index, 'number' => "001-555-1212"
-    s = agent.transaction_sampler.harvest(nil, 0.0)
+    s = with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
+      agent.transaction_sampler.harvest(nil)
+    end
     assert_equal 1, s.size
-    assert_equal 6, s.first.params.size
+    assert_equal 5, s.first.params.size
   end
 
 
-  def test_busycalculation
+  def test_busy_calculation_correctly_calculates_based_acccumlator
+
+    # woah it's 1970
+    now = Time.at 0
+
+    # We'll record two seconds of transactions
+    later = Time.at(now + 2)
+    NewRelic::Agent::BusyCalculator.stubs(:time_now).
+      returns(now).then.returns(later)
+
+    # reset harvest time to epoch (based on stub)
+    NewRelic::Agent::BusyCalculator.reset
+
+    # We record 1 second of busy time in our two seconds of wall clock
+    NewRelic::Agent::BusyCalculator.instance_variable_set(:@accumulator, 1.0)
+
+
+    NewRelic::Agent::BusyCalculator.harvest_busy
+
+    # smooth out floating point math
+    stat_int = (stats('Instance/Busy').total_call_time * 10).to_i
+
+    # Despite your expectations, #total_call_time is a percentage here.
+    assert_equal(stat_int, 5,
+                 "#{stats('Instance/Busy').total_call_time} != 0.5")
+  end
+
+  def test_busy_calculation_generates_a_positive_value
     engine.clear_stats
-    assert_equal 0, NewRelic::Agent::BusyCalculator.busy_count
     get :index, 'social_security_number' => "001-555-1212", 'wait' => '0.05'
     NewRelic::Agent::BusyCalculator.harvest_busy
 
     assert_equal 1, stats('Instance/Busy').call_count
     assert_equal 1, stats('HttpDispatcher').call_count
-    # We are probably busy about 99% of the time, but lets make sure it's at least 50
-    assert stats('Instance/Busy').total_call_time > (0.5 * 0.05), stats('Instance/Busy').inspect
+
+    # Timing is too non-deterministic, so we just assert a positive, non-zero
+    # value here.  See
+    # #test_busy_calculation_correctly_calculates_based_acccumlator for
+    # assertions that the formula is correct.
+    assert(stats('Instance/Busy').total_call_time > 0,
+           "#{stats('Instance/Busy').total_call_time} !> 0")
     assert_equal 0, stats('WebFrontend/Mongrel/Average Queue Time').call_count
   end
-
   def test_queue_headers_no_header
     engine.clear_stats
     queue_length_stat = stats('Mongrel/Queue Length')

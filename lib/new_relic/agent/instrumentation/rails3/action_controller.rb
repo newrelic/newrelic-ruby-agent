@@ -96,7 +96,7 @@ DependencyDetection.defer do
   end
 
   depends_on do
-    !NewRelic::Control.instance['disable_view_instrumentation']
+    !NewRelic::Agent.config[:disable_view_instrumentation]
   end
 
   executes do
@@ -135,7 +135,7 @@ DependencyDetection.defer do
   end
 
   depends_on do
-    !NewRelic::Control.instance['disable_view_instrumentation']
+    !NewRelic::Agent.config[:disable_view_instrumentation]
   end
 
   executes do

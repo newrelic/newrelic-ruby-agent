@@ -27,21 +27,11 @@ module NewRelic
         attr_accessor :request
 
 
-        @@check_server_connection = false
-        def self.check_server_connection=(value)
-          @@check_server_connection = value
-        end
         # Return the currently active metric frame, or nil.  Call with +true+
         # to create a new metric frame if one is not already on the thread.
         def self.current(create_if_empty=nil)
           f = Thread.current[:newrelic_metric_frame]
           return f if f || !create_if_empty
-
-          # Reconnect to the server if necessary.  This is only done
-          # for old versions of passenger that don't implement an explicit after_fork
-          # event.
-          agent.after_fork(:keep_retrying => false) if @@check_server_connection
-
           Thread.current[:newrelic_metric_frame] = new
         end
 
@@ -64,8 +54,8 @@ module NewRelic
         if defined? JRuby
           begin
             require 'java'
-            include_class 'java.lang.management.ManagementFactory'
-            include_class 'com.sun.management.OperatingSystemMXBean'
+            java_import 'java.lang.management.ManagementFactory'
+            java_import 'com.sun.management.OperatingSystemMXBean'
             @@java_classes_loaded = true
           rescue => e
           end
@@ -263,7 +253,7 @@ module NewRelic
         end
         
         def queue_time
-          apdex_start - start
+          start - apdex_start
         end
 
         def add_custom_parameters(p)
@@ -320,7 +310,7 @@ module NewRelic
         # the apdex should be recorded as a failure regardless of duration.
         def self.update_apdex(stat, duration, failed)
           duration = duration.to_f
-          apdex_t = NewRelic::Control.instance.apdex_t
+          apdex_t = Agent.config[:apdex_t]
           case
           when failed
             stat.record_apdex_f

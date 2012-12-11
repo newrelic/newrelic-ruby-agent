@@ -32,7 +32,7 @@ module NewRelic
       # true if the agent has settings, and the agent is enabled,
       # otherwise false
       def should_log?
-        @settings && agent_enabled?
+        @settings && Agent.config[:agent_enabled]
       end
 
       # set the log level as specified in the config file
@@ -41,7 +41,7 @@ module NewRelic
       #error, and fatal
       # Defaults to info
       def set_log_level!(logger)
-        case fetch("log_level","info").downcase
+        case Agent.config[:log_level].downcase
           when "debug" then logger.level = Logger::DEBUG
           when "info" then logger.level = Logger::INFO
           when "warn" then logger.level = Logger::WARN
@@ -68,7 +68,7 @@ module NewRelic
         if log_to_stdout?
           @log = Logger.new(STDOUT) 
         else
-          @log_file = "#{log_path}/#{log_file_name}"
+          @log_file = "#{log_path}/#{Agent.config[:log_file_name]}"
           @log = Logger.new(@log_file) rescue nil
           @log ||= Logger.new(STDOUT) # failsafe to STDOUT
         end
@@ -99,11 +99,7 @@ module NewRelic
         if log_to_stdout?
           @log_path = nil
         else
-          if ENV['NEW_RELIC_LOG']
-            log_path_setting = File.dirname(ENV['NEW_RELIC_LOG'])
-          else
-            log_path_setting = fetch('log_file_path', 'log')
-          end
+          log_path_setting = Agent.config[:log_file_path]
           @log_path = find_or_create_file_path(log_path_setting)
           log!("Error creating log directory #{log_path_setting}, using standard out for logging.", :warn) unless @log_path
         end
@@ -121,21 +117,7 @@ module NewRelic
       end
 
       def log_to_stdout?
-        return true if @stdout
-        destination = ENV['NEW_RELIC_LOG'] || fetch('log_file_path', 'log')
-        if destination.upcase == 'STDOUT'
-          @stdout = true
-        end
-      end
-        
-      # Retrieves the log file's name from the config file option
-      #'log_file_name', defaulting to 'newrelic_agent.log'
-      def log_file_name
-        if ENV['NEW_RELIC_LOG']
-          File.basename(ENV['NEW_RELIC_LOG'])
-        else
-          fetch('log_file_name', 'newrelic_agent.log')
-        end
+        Agent.config['log_file_path'].upcase == 'STDOUT'
       end
     end
     include LoggingMethods

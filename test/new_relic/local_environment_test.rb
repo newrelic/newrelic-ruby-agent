@@ -28,25 +28,22 @@ class NewRelic::LocalEnvironmentTest < Test::Unit::TestCase
 
   def test_passenger
     class << self
-      module ::Passenger
-        const_set "AbstractServer", 0
+      module ::PhusionPassenger
       end
     end
     e = NewRelic::LocalEnvironment.new
     assert_equal :passenger, e.environment
     assert_nil e.dispatcher_instance_id, "dispatcher instance id should be nil: #{e.dispatcher_instance_id}"
 
-    NewRelic::Control.instance.instance_eval do
-      @settings['app_name'] = 'myapp'
+    with_config(:app_name => 'myapp') do
+      e = NewRelic::LocalEnvironment.new
+      assert_equal :passenger, e.environment
+      assert_nil e.dispatcher_instance_id
     end
 
-    e = NewRelic::LocalEnvironment.new
-    assert_equal :passenger, e.environment
-    assert_nil e.dispatcher_instance_id
-
-    ::Passenger.class_eval { remove_const :AbstractServer }
+    Object.send(:remove_const, :PhusionPassenger)
   end
-  
+
   def test_snapshot
     e = NewRelic::LocalEnvironment.new
     s = e.snapshot

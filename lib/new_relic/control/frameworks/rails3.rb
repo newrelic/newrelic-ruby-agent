@@ -1,4 +1,5 @@
 require 'new_relic/control/frameworks/rails'
+require 'new_relic/rack/error_collector'
 module NewRelic
   class Control
     module Frameworks
@@ -30,6 +31,15 @@ module NewRelic
           ::Rails.logger
         end
 
+        def init_config(options={})
+          super
+          if Agent.config[:agent_enabled] && Agent.config[:'error_collector.enabled']
+            if !rails_config.middleware.respond_to?(:include?) ||
+                !rails_config.middleware.include?(NewRelic::Rack::ErrorCollector)
+              rails_config.middleware.use NewRelic::Rack::ErrorCollector
+            end
+          end
+        end
 
         def log!(msg, level=:info)
           if should_log?
@@ -59,7 +69,7 @@ module NewRelic
 
         # Collect the Rails::Info into an associative array as well as the list of plugins
         def append_environment_info
-          local_env.append_environment_value('Rails version'){ version }
+          local_env.append_environment_value('Rails version'){ ::Rails::VERSION::STRING }
           local_env.append_environment_value('Rails threadsafe') do
             true == ::Rails.configuration.action_controller.allow_concurrency
           end
@@ -68,6 +78,13 @@ module NewRelic
             bundler_gem_list
           end
           local_env.append_plugin_list { ::Rails.configuration.plugins.to_a }
+        end
+        
+        def install_shim
+          super
+          ActiveSupport.on_load(:action_controller) do
+            include NewRelic::Agent::Instrumentation::ControllerInstrumentation::Shim
+          end
         end
       end
     end

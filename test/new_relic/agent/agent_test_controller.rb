@@ -12,7 +12,7 @@ class NewRelic::Agent::AgentTestController < NewRelic::Agent::SuperclassControll
   @@headers_to_add = nil
 
   def index
-    sleep params['wait'].to_i if params['wait']
+    sleep params['wait'].to_f if params['wait']
     render :text => params.inspect
   end
   def _filter_parameters(params)

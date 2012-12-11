@@ -19,8 +19,7 @@ module NewRelic
 
       BUILDER_KEY = :transaction_sample_builder
 
-      attr_accessor :stack_trace_threshold, :random_sampling, :sampling_rate
-      attr_accessor :explain_threshold, :explain_enabled, :transaction_threshold
+      attr_accessor :random_sampling, :sampling_rate
       attr_accessor :slow_capture_threshold
       attr_reader :samples, :last_sample, :disabled
 
@@ -36,38 +35,31 @@ module NewRelic
         # sampling - we pull 1 @random_sample in every @sampling_rate harvests
         @harvest_count = 0
         @random_sample = nil
-        @sampling_rate = 10
-        @slow_capture_threshold = 2.0
-        configure!
+        @sampling_rate = Agent.config[:sample_rate]
 
         # This lock is used to synchronize access to the @last_sample
         # and related variables. It can become necessary on JRuby or
         # any 'honest-to-god'-multithreaded system
         @samples_lock = Mutex.new
-      end
 
-      def configure!
-        # @segment_limit and @stack_trace_threshold come from the
-        # configuration file, with built-in defaults that should
-        # suffice for most customers
+        Agent.config.register_callback(:'transaction_tracer.enabled') do |enabled|
+          if enabled
+            threshold = Agent.config[:'transaction_tracer.transaction_threshold']
+            log.debug "Transaction tracing threshold is #{threshold} seconds."
+          else
+            log.debug "Transaction traces will not be sent to the New Relic service."
+          end
+        end
 
-        # enable if config.fetch('enabled', true)
-
-        @segment_limit = config.fetch('limit_segments', 4000)
-        @stack_trace_threshold = config.fetch('stack_trace_threshold', 0.500).to_f
-        @explain_threshold = config.fetch('explain_threshold', 0.5).to_f
-        @explain_enabled = config.fetch('explain_enabled', true)
-        @transaction_threshold = config.fetch('transation_threshold', 2.0)
-
-        # Configure the sample storage policy.  Create a list of methods to be called.
-        @store_sampler_methods = [ :store_random_sample, :store_slowest_sample ]
-        if NewRelic::Control.instance.developer_mode?
-          @store_sampler_methods << :store_sample_for_developer_mode
+        Agent.config.register_callback(:'transaction_tracer.record_sql') do |config|
+          if config == 'raw'
+            log.warn("Agent is configured to send raw SQL to the service")
+          end
         end
       end
 
-      def config
-        NewRelic::Control.instance.fetch('transaction_tracer', {})
+      def log
+        NewRelic::Control.instance.log
       end
 
       # Returns the current sample id, delegated from `builder`
@@ -76,22 +68,8 @@ module NewRelic
         b and b.sample_id
       end
 
-      # Enable the transaction sampler - this also registers it with
-      # the statistics engine.
-      def enable
-        @disabled = false
-        NewRelic::Agent.instance.stats_engine.transaction_sampler = self
-      end
-
-      # Disable the transaction sampler - this also deregisters it
-      # with the statistics engine.
-      def disable
-        @disabled = true
-        NewRelic::Agent.instance.stats_engine.remove_transaction_sampler(self)
-      end
-
       def enabled?
-        !@disabled
+        Agent.config[:'transaction_tracer.enabled'] || Agent.config[:developer_mode]
       end
 
       # Set with an integer value n, this takes one in every n
@@ -107,7 +85,7 @@ module NewRelic
       # transaction sampler is disabled. Takes a time parameter for
       # the start of the transaction sample
       def notice_first_scope_push(time)
-        start_builder(time.to_f) unless disabled
+        start_builder(time.to_f) if enabled?
       end
 
       # This delegates to the builder to create a new open transaction
@@ -121,14 +99,14 @@ module NewRelic
 
         builder.trace_entry(scope, time.to_f)
 
-        capture_segment_trace if NewRelic::Control.instance.developer_mode?
+        capture_segment_trace if Agent.config[:developer_mode]
       end
 
       # in developer mode, capture the stack trace with the segment.
       # this is cpu and memory expensive and therefore should not be
       # turned on in production mode
       def capture_segment_trace
-        return unless NewRelic::Control.instance.developer_mode?
+        return unless Agent.config[:developer_mode]
         segment = builder.current_segment
         if segment
           # Strip stack frames off the top that match /new_relic/agent/
@@ -186,20 +164,26 @@ module NewRelic
       # @samples array, and the @slowest_sample variable if it is
       # slower than the current occupant of that slot
       def store_sample(sample)
-        @store_sampler_methods.each{|sym| send sym, sample}
+        sampler_methods = [ :store_slowest_sample ]
+        if Agent.config[:developer_mode]
+          sampler_methods << :store_sample_for_developer_mode
+        end
+        if Agent.config[:'transaction_tracer.random_sample']
+          sampler_methods << :store_random_sample
+        end
+
+        sampler_methods.each{|sym| send(sym, sample) }
+
         if NewRelic::Agent::TransactionInfo.get.force_persist_sample?(sample)
           store_force_persist(sample)
         end
-
       end
 
       # Only active when random sampling is true - this is very rarely
       # used. Always store the most recent sample so that random
       # sampling can pick a few of the samples to store, upon harvest
       def store_random_sample(sample)
-        if @random_sampling
-          @random_sample = sample
-        end
+        @random_sample = sample if Agent.config[:'transaction_tracer.random_sample']
       end
 
       def store_force_persist(sample)
@@ -215,7 +199,7 @@ module NewRelic
       # Samples take up a ton of memory, so we only store a lot of
       # them in developer mode - we truncate to @max_samples
       def store_sample_for_developer_mode(sample)
-        return unless NewRelic::Control.instance.developer_mode?
+        return unless Agent.config[:developer_mode]
         @samples = [] unless @samples
         @samples << sample
         truncate_samples
@@ -229,7 +213,7 @@ module NewRelic
         end
       end
 
-      # Checks to see if the old sample exists, or if it's duration is
+      # Checks to see if the old sample exists, or if its duration is
       # less than the new sample
       def slowest_sample?(old_sample, new_sample)
         old_sample.nil? || (new_sample.duration > old_sample.duration)
@@ -246,7 +230,7 @@ module NewRelic
       # Delegates to the builder to store the path, uri, and
       # parameters if the sampler is active
       def notice_transaction(path, uri=nil, params={})
-        builder.set_transaction_info(path, uri, params) if !disabled && builder
+        builder.set_transaction_info(path, uri, params) if enabled? && builder
       end
 
       # Tells the builder to ignore a transaction, if we are currently
@@ -315,7 +299,10 @@ module NewRelic
       # Appends a backtrace to a segment if that segment took longer
       # than the specified duration
       def append_backtrace(segment, duration)
-        segment[:backtrace] = caller.join("\n") if (duration >= @stack_trace_threshold || Thread.current[:capture_deep_tt])
+        if (duration >= Agent.config[:'transaction_tracer.stack_trace_threshold'] ||
+            Thread.current[:capture_deep_tt])
+          segment[:backtrace] = caller.join("\n")
+        end
       end
 
       # some statements (particularly INSERTS with large BLOBS
@@ -343,9 +330,10 @@ module NewRelic
       #
       # random sampling is very, very seldom used
       def add_random_sample_to(result)
-        return unless @random_sampling && @sampling_rate && @sampling_rate.to_i > 0
+        return unless @random_sample &&
+          Agent.config[:sample_rate] && Agent.config[:sample_rate].to_i > 0
         @harvest_count += 1
-        if (@harvest_count.to_i % @sampling_rate.to_i) == 0
+        if (@harvest_count.to_i % Agent.config[:sample_rate].to_i) == 0
           result << @random_sample if @random_sample
           @harvest_count = 0
         end
@@ -361,7 +349,7 @@ module NewRelic
       # elements - one element unless random sampling is enabled. The
       # sample returned will be the slowest sample among those
       # available during this harvest
-      def add_samples_to(result, slow_threshold)
+      def add_samples_to(result)
         # pull out force persist
         force_persist = result.select {|sample| sample.force_persist} || []
         result.reject! {|sample| sample.force_persist}
@@ -370,7 +358,9 @@ module NewRelic
 
 
         # Now get the slowest sample
-        if @slowest_sample && @slowest_sample.duration >= slow_threshold
+        if @slowest_sample &&
+            @slowest_sample.duration >=
+            Agent.config[:'transaction_tracer.transaction_threshold']
           result << @slowest_sample
         end
 
@@ -386,14 +376,14 @@ module NewRelic
 
       # get the set of collected samples, merging into previous samples,
       # and clear the collected sample list. Truncates samples to a
-      # specified @segment_limit to save memory and bandwith
+      # specified segment_limit to save memory and bandwith
       # transmitting samples to the server.
-      def harvest(previous = [], slow_threshold = 2.0)
-        return [] if disabled
+      def harvest(previous=[])
+        return [] if !enabled?
         result = Array(previous)
 
         @samples_lock.synchronize do
-          result = add_samples_to(result, slow_threshold)
+          result = add_samples_to(result)
 
           # clear previous transaction samples
           @slowest_sample = nil
@@ -407,7 +397,7 @@ module NewRelic
 
         # Truncate the samples at 2100 segments. The UI will clamp them at 2000 segments anyway.
         # This will save us memory and bandwidth.
-        result.each { |sample| sample.truncate(@segment_limit) }
+        result.each { |sample| sample.truncate(Agent.config[:'transaction_tracer.limit_segments']) }
         result
       end
 
@@ -443,7 +433,7 @@ module NewRelic
       # new transaction sample builder with the stated time as a
       # starting point and saves it in the thread local variable
       def start_builder(time=nil)
-        if disabled || !NewRelic::Agent.is_transaction_traced? || !NewRelic::Agent.is_execution_traced?
+        if !enabled? || !NewRelic::Agent.is_transaction_traced? || !NewRelic::Agent.is_execution_traced?
           clear_builder
         else
           Thread::current[BUILDER_KEY] ||= TransactionSampleBuilder.new(time)

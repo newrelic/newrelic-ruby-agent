@@ -143,6 +143,18 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
     assert_equal 0, errors.length
   end
 
+  def test_exclude_later_config_changes
+    @error_collector.notice_error(IOError.new("message"))
+
+    NewRelic::Agent.config.apply_config(:'error_collector.ignore_errors' => "IOError")
+    @error_collector.notice_error(IOError.new("message"))
+
+    errors = @error_collector.harvest_errors([])
+
+    assert_equal 1, errors.length
+
+  end
+
   def test_exclude_block
     NewRelic::Agent.logger.expects(:error).never
     @error_collector.ignore_error_filter &wrapped_filter_proc
@@ -156,20 +168,18 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
   end
 
   def test_obfuscates_error_messages_when_high_security_is_set
-    NewRelic::Control.instance['high_security'] = true
-    
-    @error_collector.notice_error(StandardError.new("YO SQL BAD: serect * flom test where foo = 'bar'"))
-    @error_collector.notice_error(StandardError.new("YO SQL BAD: serect * flom test where foo in (1,2,3,4,5)"))
+    with_config(:high_security => true) do
+      @error_collector.notice_error(StandardError.new("YO SQL BAD: serect * flom test where foo = 'bar'"))
+      @error_collector.notice_error(StandardError.new("YO SQL BAD: serect * flom test where foo in (1,2,3,4,5)"))
 
-    old_errors = []
-    errors = @error_collector.harvest_errors([])
+      old_errors = []
+      errors = @error_collector.harvest_errors([])
 
-    assert_equal('YO SQL BAD: serect * flom test where foo = ?',
-                 errors[0].message)
-    assert_equal('YO SQL BAD: serect * flom test where foo in (?,?,?,?,?)',
-                 errors[1].message)
-    
-    NewRelic::Control.instance['high_security'] = nil
+      assert_equal('YO SQL BAD: serect * flom test where foo = ?',
+                   errors[0].message)
+      assert_equal('YO SQL BAD: serect * flom test where foo in (?,?,?,?,?)',
+                   errors[1].message)
+    end
   end
 
   private

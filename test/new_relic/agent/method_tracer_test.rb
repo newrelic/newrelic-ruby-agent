@@ -324,14 +324,14 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
   end
 
   def test_add_multiple_tracers
-    self.class.add_method_tracer :method_to_be_traced, 'X', :push_scope => false
+    self.class.add_method_tracer :method_to_be_traced, 'XX', :push_scope => false
     method_to_be_traced 1,2,3,true,nil
-    self.class.add_method_tracer :method_to_be_traced, 'Y'
-    method_to_be_traced 1,2,3,true,'Y'
-    self.class.remove_method_tracer :method_to_be_traced, 'Y'
+    self.class.add_method_tracer :method_to_be_traced, 'YY'
+    method_to_be_traced 1,2,3,true,'YY'
+    self.class.remove_method_tracer :method_to_be_traced, 'YY'
     method_to_be_traced 1,2,3,true,nil
-    self.class.remove_method_tracer :method_to_be_traced, 'X'
-    method_to_be_traced 1,2,3,false,'X'
+    self.class.remove_method_tracer :method_to_be_traced, 'XX'
+    method_to_be_traced 1,2,3,false,'XX'
   end
 
   def trace_no_push_scope

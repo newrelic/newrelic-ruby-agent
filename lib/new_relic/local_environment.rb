@@ -14,7 +14,6 @@ module NewRelic
   #
   # NewRelic::LocalEnvironment should be accessed through NewRelic::Control#env (via the NewRelic::Control singleton).
   class LocalEnvironment
-    
     # mongrel, thin, webrick, or possibly nil
     attr_accessor :dispatcher
     # used to distinguish instances of a dispatcher from each other, may be nil
@@ -23,7 +22,7 @@ module NewRelic
     attr_accessor :framework
     # The number of cpus, if detected, or nil - many platforms do not
     # support this :(
-    attr_reader :processors 
+    attr_reader :processors
     alias environment dispatcher
 
     def initialize
@@ -404,7 +403,7 @@ module NewRelic
     end
 
     def check_for_passenger
-      if (defined?(::Passenger) && defined?(::Passenger::AbstractServer)) || defined?(::IN_PHUSION_PASSENGER)
+      if defined?(::PhusionPassenger)
         @dispatcher = :passenger
       end
     end

@@ -8,34 +8,82 @@ module NewRelic
         # A simple mutex-synchronized hash to make sure our statistics
         # are internally consistent even in truly-threaded rubies like JRuby
         class SynchronizedHash < ::Hash
-          include NewRelic::LanguageSupport::SynchronizedHash
-          
+          attr_reader :lock
+
           def initialize
             @lock = Mutex.new
           end
-          
+
+          def initialize_copy(old)
+            super
+            old.each do |key, value|
+              self.store(key, value.dup)
+            end
+          end
+
           def []=(*args)
             @lock.synchronize { super }
+          rescue => e
+            log_error(e)
           end
 
           def clear(*args)
             @lock.synchronize { super }
+          rescue => e
+            log_error(e)
           end
 
           def delete(*args)
             @lock.synchronize { super }
+          rescue => e
+            log_error(e)
           end
 
           def delete_if(*args)
             @lock.synchronize { super }
+          rescue => e
+            log_error(e)
+          end
+
+          def reset
+            values.each { |s| s.reset }
+          end
+
+          def log_error(e)
+            backtraces = Thread.list.map { |t| log_thread(t) }.join("\n\n")
+            NewRelic::Control.instance.log.warn(
+              "SynchronizedHash failure: #{e.class.name}: #{e.message}\n#{backtraces}")
+          end
+
+          def log_thread(t)
+            # Ruby 1.8 doesn't expose backtrace properly, so make sure it's there
+            if t.nil? || !t.respond_to?(:backtrace) || t.backtrace.nil?
+              return "#{t}\n\tNo backtrace for thread" 
+            end
+
+            backtrace = t.backtrace.map { |b| "\t#{b}" }.join("\n")
+            "\t#{t}\n#{backtrace}"
+
+          rescue Exception => e
+            # JRuby 1.7.0 has a nasty habit of raising a
+            # java.lang.NullPointerException when we iterate through threads
+            # asking for backtraces.  This line allows us to swallow java
+            # exceptions without referencing their classes (since they don't
+            # exist in MRI).  It also prevents us from swallowing signals or
+            # other nasty things that can happen when you rescue Exception.
+            NewRelic::Control.instance.log.warn(
+              "Error collecting thread backtraces: #{e.class.name}: #{e.message}")
+            NewRelic::Control.instance.log.debug( e.backtrace.join("\n") )
+
+            raise e if e.class.ancestors.include? Exception
           end
         end
-        
+
         # Returns all of the metric names of all the stats in the engine
         def metrics
           stats_hash.keys.map(&:to_s)
         end
-        
+
         # a simple accessor for looking up a stat with no scope -
         # returns a new stats object if no stats object for that
         # metric exists yet
@@ -64,17 +112,43 @@ module NewRelic
           end
           stats
         end
-        
+
         # Returns a stat if one exists, otherwise returns nil. If you
         # want auto-initialization, use one of get_stats or get_stats_no_scope
         def lookup_stats(metric_name, scope_name = '')
           stats_hash[NewRelic::MetricSpec.new(metric_name, scope_name)]
         end
-        
+
+
+        # Helper method for timing supportability metrics
+        def record_supportability_metrics_timed(metrics)
+          start_time = Time.now
+          yield
+          end_time = Time.now
+          duration = (end_time - start_time).to_f
+        ensure
+          record_supportability_metrics(duration, metrics) do |value, metric|
+            metric.record_data_point(value)
+          end
+        end
+
+        # Helper for recording a straight value into the count
+        def record_supportability_metrics_count(value, *metrics)
+          record_supportability_metrics(value, *metrics) do |value, metric|
+            metric.call_count = value
+          end
+        end
+
+        # Helper method for recording supportability metrics consistently
+        def record_supportability_metrics(value, *metrics)
+          metrics.each do |metric|
+              yield(value, get_stats_no_scope("Supportability/#{metric}"))
+          end
+        end
+
         # This module was extracted from the harvest method and should
         # be refactored
         module Harvest
-          
           # merge data from previous harvests into this stats engine -
           # takes into account the case where there are new stats for
           # that metric, and the case where there is no current data
@@ -135,10 +209,12 @@ module NewRelic
 
           def merge_stats(other_engine_or_hash, metric_ids)
             old_data = get_stats_hash_from(other_engine_or_hash)
-
             timeslice_data = {}
-            stats_hash.each do | metric_spec, stats |
-
+            stats_hash.lock.synchronize do
+              Thread.current['newrelic_stats_hash'] = stats_hash.clone
+              stats_hash.reset
+            end
+            Thread.current['newrelic_stats_hash'].each do |metric_spec, stats|
               metric_spec = coerce_to_metric_spec(metric_spec)
               stats_copy = clone_and_reset_stats(metric_spec, stats)
               merge_old_data!(metric_spec, stats_copy, old_data)
@@ -160,7 +236,6 @@ module NewRelic
         # sacrificing efficiency.
         # +++
         def harvest_timeslice_data(previous_timeslice_data, metric_ids)
-
           poll harvest_samplers
           merge_stats(previous_timeslice_data, metric_ids)
         end
@@ -173,9 +248,9 @@ module NewRelic
 
         # Reset each of the stats, such as when a new passenger instance starts up.
         def reset_stats
-          stats_hash.values.each { |s| s.reset }
+          stats_hash.reset
         end
-        
+
         # returns a memoized SynchronizedHash that holds the actual
         # instances of Stats keyed off their MetricName
         def stats_hash

@@ -14,27 +14,42 @@ module NewRelic
                            "Rows",
                            "Extra"
                           ].freeze
-  
+
   module Agent
     module Database
       extend self
-      
+
       def obfuscate_sql(sql)
         Obfuscator.instance.obfuscator.call(sql)
       end
-      
+
       def set_sql_obfuscator(type, &block)
         Obfuscator.instance.set_sql_obfuscator(type, &block)
       end
-      
+
+      def record_sql_method
+        case Agent.config[:'transaction_tracer.record_sql'].to_s
+        when 'off'
+          :off
+        when 'none'
+          :off
+        when 'false'
+          :off
+        when 'raw'
+          :raw
+        else
+          :obfuscated
+        end
+      end
+
       def get_connection(config)
         ConnectionManager.instance.get_connection(config)
       end
-      
+
       def close_connections
         ConnectionManager.instance.close_connections
       end
-      
+
       # Perform this in the runtime environment of a managed
       # application, to explain the sql statement executed within a
       # segment of a transaction sample. Returns an array of
@@ -50,7 +65,7 @@ module NewRelic
         explain_sql = explain_statement(statement, connection_config)
         return explain_sql || []
       end
-      
+
       def explain_statement(statement, config)
         if is_select?(statement)
           handle_exception_in_explain do
@@ -63,12 +78,12 @@ module NewRelic
           end
         end
       end
-      
+
       def process_resultset(items)
         # The resultset type varies for different drivers.  Only thing you can count on is
         # that it implements each.  Also: can't use select_rows because the native postgres
         # driver doesn't know that method.
-        
+
         headers = []
         values = []
         if items.respond_to?(:each_hash)
@@ -88,7 +103,7 @@ module NewRelic
         else
           values = [items]
         end
-        
+
         headers = nil if headers.empty?
         [headers, values]
       end
@@ -104,14 +119,14 @@ module NewRelic
           # double exception. throw up your hands
         end
       end
-      
+
       def is_select?(statement)
         # split the string into at most two segments on the
         # system-defined field separator character
         first_word, rest_of_statement = statement.split($;, 2)
         (first_word.upcase == 'SELECT')
       end
-      
+
       class ConnectionManager
         include Singleton
 
@@ -121,11 +136,11 @@ module NewRelic
         # the sql
         def get_connection(config)
           @connections ||= {}
-          
+
           connection = @connections[config]
-          
+
           return connection if connection
-          
+
           begin
             connection = ActiveRecord::Base.send("#{config[:adapter]}_connection", config)
             @connections[config] = connection
@@ -135,7 +150,7 @@ module NewRelic
             nil
           end
         end
-        
+
         # Closes all the connections in the internal connection cache
         def close_connections
           @connections ||= {}
@@ -145,16 +160,16 @@ module NewRelic
             rescue
             end
           end
-          
+
           @connections = {}
         end
       end
 
       class Obfuscator
         include Singleton
-        
+
         attr_reader :obfuscator
-        
+
         def initialize
           reset
         end
@@ -162,7 +177,7 @@ module NewRelic
         def reset
           @obfuscator = method(:default_sql_obfuscator)
         end
-        
+
         # Sets the sql obfuscator used to clean up sql when sending it
         # to the server. Possible types are:
         #
@@ -185,7 +200,7 @@ module NewRelic
             fail "unknown sql_obfuscator type #{type}"
           end
         end
-        
+
         def default_sql_obfuscator(sql)
           stmt = sql.kind_of?(Statement) ? sql : Statement.new(sql)
           adapter = stmt.adapter
@@ -215,7 +230,7 @@ module NewRelic
         end
       end
 
-      class Statement < String        
+      class Statement < String
         attr_accessor :adapter
       end
     end

@@ -33,7 +33,7 @@ module NewRelic
   # Return nil if there is no backtrace
 
   def strip_nr_from_backtrace(backtrace)
-    if backtrace && !NewRelic::Control.instance.disable_backtrace_cleanup?
+    if backtrace && !Agent.config[:disable_backtrace_cleanup]
       # this is for 1.9.1, where strings no longer have Enumerable
       backtrace = backtrace.split("\n") if String === backtrace
       backtrace = backtrace.map &:to_s

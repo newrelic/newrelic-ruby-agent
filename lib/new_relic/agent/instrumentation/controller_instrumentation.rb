@@ -26,6 +26,7 @@ module NewRelic
         module ClassMethodsShim # :nodoc:
           def newrelic_ignore(*args); end
           def newrelic_ignore_apdex(*args); end
+          def newrelic_ignore_enduser(*args); end
         end
 
         module Shim # :nodoc:
@@ -49,6 +50,10 @@ module NewRelic
           # Accepts :except and :only options, as with #newrelic_ignore.
           def newrelic_ignore_apdex(specifiers={})
             newrelic_ignore_aspect('ignore_apdex', specifiers)
+          end
+
+          def newrelic_ignore_enduser(specifiers={})
+            newrelic_ignore_aspect('ignore_enduser', specifiers)
           end
 
           def newrelic_ignore_aspect(property, specifiers={}) # :nodoc:
@@ -249,8 +254,9 @@ module NewRelic
               return perform_action_without_newrelic_trace(*args)
             end
           end
-
-          return perform_action_with_newrelic_profile(args, &block) if NewRelic::Control.instance.profiling?
+          
+          control = NewRelic::Control.instance
+          return perform_action_with_newrelic_profile(args, &block) if control.profiling?
 
           frame_data = _push_metric_frame(block_given? ? args : [])
           begin
@@ -258,11 +264,16 @@ module NewRelic
               frame_data.start_transaction
               begin
                 NewRelic::Agent::BusyCalculator.dispatcher_start frame_data.start
-                if block_given?
+                result = if block_given?
                   yield
                 else
                   perform_action_without_newrelic_trace(*args)
                 end
+                if defined?(request) && request && defined?(response) &&
+                    response && !Agent.config[:disable_mobile_headers]
+                  NewRelic::Agent::BrowserMonitoring.insert_mobile_response_header(request, response)
+                end
+                result
               rescue => e
                 frame_data.notice_error(e)
                 raise
@@ -273,8 +284,9 @@ module NewRelic
             # Look for a metric frame in the thread local and process it.
             # Clear the thread local when finished to ensure it only gets called once.
             frame_data.record_apdex unless ignore_apdex?
-
             frame_data.pop
+            
+            NewRelic::Agent::TransactionInfo.get.ignore_end_user = true if ignore_enduser?
           end
         end
 
@@ -315,6 +327,10 @@ module NewRelic
         # actions
         def ignore_apdex?
           _is_filtered?('ignore_apdex')
+        end
+        
+        def ignore_enduser?
+          _is_filtered?('ignore_enduser')
         end
 
         private

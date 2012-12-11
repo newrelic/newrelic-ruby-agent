@@ -70,7 +70,7 @@ module NewRelic::DeveloperModeHelper
     rescue
       # catch all other exceptions.  We're going to create an invalid link below, but that's okay.
     end
-    if using_textmate?
+    if NewRelic::Agent.config[:textmate]
       "txmt://open?url=file://#{file}&line=#{line}"
     else
       "show_source?file=#{file}&amp;line=#{line}&amp;anchor=selected_line"
@@ -105,7 +105,7 @@ module NewRelic::DeveloperModeHelper
 
   # write a link to the source for a trace
   def link_to_source(trace)
-    image_url = 'file/images/' + (using_textmate? ? "textmate.png" : "file_icon.png")
+    image_url = 'file/images/' + (NewRelic::Agent.config[:textmate] ? "textmate.png" : "file_icon.png")
 
     link_to "<img src=#{image_url} alt=\"View Source\" title=\"View Source\"/>", url_for_source(application_caller(trace))
   end
@@ -239,11 +239,6 @@ module NewRelic::DeveloperModeHelper
     end
   end
 
-  def using_textmate?
-    NewRelic::Control.instance.use_textmate?
-  end
-
-
   def render_segment_details(segment, depth=0)
     @detail_segment_count ||= 0
     @detail_segment_count += 1
@@ -348,10 +343,25 @@ module NewRelic::DeveloperModeHelper
     parts.join '.'
   end
 
-  def profile_table(profile)
+  SORT_REPLACEMENTS = {
+      "Total" => :total_time,
+      "Self" => :self_time,
+      "Child" => :children_time,
+      "Wait" => :wait_time
+  }
+
+  def profile_table(sample, options)
     out = StringIO.new
-    printer = RubyProf::GraphHtmlPrinter.new(profile)
-    printer.print(out, :min_percent=>0.5)
-    out.string[/<body>(.*)<\/body>/im, 0].gsub('<table>', '<table class=profile>')
+    printer = RubyProf::GraphHtmlPrinter.new(sample.profile)
+    printer.print(out, options)
+    out = out.string[/<body>(.*)<\/body>/im, 0].gsub('<table>', '<table class=profile>')
+    SORT_REPLACEMENTS.each do |text, param|
+      replacement = (options[:sort_method] == param) ?
+          "<th> #{text}&nbsp;&darr;</th>" :
+          "<th>#{link_to text, "show_sample_summary?id=#{sample.sample_id}&sort=#{param}"}</th>"
+
+      out.gsub!(/<th> +#{text}<\/th>/, replacement)
+    end
+    out
   end
 end

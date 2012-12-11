@@ -13,11 +13,11 @@ module Agent
         @children_time = 0
       end
     end
-    
+
     # Handles pushing and popping elements onto an internal stack that
     # tracks where time should be allocated in Transaction Traces
     module Transactions
-      
+
       # Defines methods that stub out the stats engine methods
       # when the agent is disabled
       module Shim # :nodoc:
@@ -29,29 +29,29 @@ module Agent
         def scope_name; end
         def pop_scope(*args); end
       end
-      
+
       # add a new transaction sampler, unless we're currently in a
       # transaction (then we fail)
       def transaction_sampler= sampler
         fail "Can't add a scope listener midflight in a transaction" if scope_stack.any?
         @transaction_sampler = sampler
       end
-      
+
       # removes a transaction sampler
       def remove_transaction_sampler(l)
         @transaction_sampler = nil
       end
-      
+
       # Pushes a scope onto the transaction stack - this generates a
       # TransactionSample::Segment at the end of transaction execution
       def push_scope(metric, time = Time.now.to_f, deduct_call_time_from_parent = true)
         stack = scope_stack
-        @transaction_sampler.notice_push_scope metric, time if @transaction_sampler
+        @transaction_sampler.notice_push_scope metric, time if sampler_enabled?
         scope = ScopeStackElement.new(metric, deduct_call_time_from_parent)
         stack.push scope
         scope
       end
-      
+
       # Pops a scope off the transaction stack - this updates the
       # transaction sampler that we've finished execution of a traced method
       def pop_scope(expected_scope, duration, time=Time.now.to_f)
@@ -66,8 +66,12 @@ module Agent
             stack.last.children_time += scope.children_time
           end
         end
-        @transaction_sampler.notice_pop_scope(scope.name, time) if @transaction_sampler
+        @transaction_sampler.notice_pop_scope(scope.name, time) if sampler_enabled?
         scope
+      end
+      
+      def sampler_enabled?
+        @transaction_sampler && Agent.config[:'transaction_tracer.enabled']
       end
       
       # Returns the latest ScopeStackElement
@@ -86,7 +90,7 @@ module Agent
       def scope_name=(transaction)
         Thread::current[:newrelic_scope_name] = transaction
       end
-      
+
       # Returns the current scope name from the thread local
       def scope_name
         Thread::current[:newrelic_scope_name]
@@ -104,7 +108,11 @@ module Agent
       # and is ignored.
       #
       def end_transaction
-        GCProfiler.capture
+        elapsed = GCProfiler.capture
+        if @transaction_sampler && @transaction_sampler.last_sample
+          @transaction_sampler.last_sample.params[:custom_params] ||= {}
+          @transaction_sampler.last_sample.params[:custom_params][:gc_time] = elapsed
+        end
         stack = scope_stack
 
         if stack && stack.empty?
@@ -114,7 +122,7 @@ module Agent
       end
 
       private
-      
+
       # Returns the current scope stack, memoized to a thread local variable
       def scope_stack
         Thread::current[:newrelic_scope_stack] ||= []

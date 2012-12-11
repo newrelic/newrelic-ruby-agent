@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # Script to run test suites in CI or in development mode.  This script handles
-# checking out test dependencies (currently rpm_test_app and it's dependencies)
+# checking out test dependencies (currently rpm_test_app and its dependencies)
 # and executing them.
 #
 # It relies on 2 environment variables:
 #
-# RUBY - The rvm ruby you want to use (e.g. 1.8.7, ree, jruby)
+# RUBY - The rbenv ruby you want to use (e.g. 1.8.7, ree, jruby)
 #
 # BRANCH - The rpm_test_app branch you want to use (e.g. rails20, rails31)
 #
@@ -29,17 +29,47 @@ set -e
 if [ "x$RUBY" == "x" ]; then
   echo '$RUBY is undefined'
   echo 'defaulting to 1.9.3'
-  RUBY=1.9.3
+  export RUBY=1.9.3-p286
 fi
 if [ "x$BRANCH" == "x" ]; then
   echo '$BRANCH is undefined'
   echo 'defaulting to rails31'
-  BRANCH=rails31
+  export BRANCH=rails31
 fi
 
-. "$HOME/.rvm/scripts/rvm"
-rvm use $RUBY || rvm install $RUBY
+if [ "x$JOB_NAME" == "x" ]; then
+  echo '$JOB_NAME is undefined'
+  echo 'defaulting to clrun'
+  export PROJECT_NAME=clrun
+else
+  CLEANSED_NAME=`echo $JOB_NAME  | sed "s/label//" | sed "s/Portland//" | sed "s/BRANCH//" | sed "s/RUBY//" | sed "s/[=\/,\._]//g" | sed "s/ReleaseCandidate/RC/"`
+  echo "setting PROJECT_NAME to $CLEANSED_NAME"
+  export PROJECT_NAME="$CLEANSED_NAME"
+fi
+
+eval "$(rbenv init -)" || true
+rbenv shell $RUBY
+if [ "x$(rbenv version-name)" = "x$RUBY" ]; then
+  echo "switched to ruby $RUBY"
+else
+  rbenv install $RUBY
+  rbenv shell $RUBY
+  if [ "x$(rbenv version-name)" = "x$RUBY" ]; then
+    echo "switched to ruby $RUBY"
+  else
+    echo "failed to install ruby $RUBY"
+    exit 1
+  fi
+fi
+
 echo `which ruby`
+ruby -v
+
+rake -h > /dev/null || gem install rake
+
+echo "generating gemspec"
+rake gemspec
+
 
 # make sure that we're in the project root
 script_dirname=`dirname $0`
@@ -60,7 +90,7 @@ rpm_test_app_cache=~/workspace/.rpm_test_app_cache
 )
 
 git clone $rpm_test_app_cache rpm_test_app
-cd rpm_test_app || true # rvm overrides cd and it's f-ing up the build by exiting 2
+cd rpm_test_app
 
 git checkout -t origin/$BRANCH || git checkout $BRANCH
 
@@ -73,7 +103,7 @@ mysql: &mysql
   socket: <%= (`uname -s` =~ /Linux/ ) ? "" :"/tmp/mysql.sock" %>
   username: root
   host: localhost
-  database: <%= [ 'rails_blog', ENV['BRANCH'], ENV['RUBY'] ].compact.join('_') %>
+  database: <%= ENV['PROJECT_NAME'] %>
 
 # Shared properties for postgres.  This won't work with our schema but
 # Does work with agent tests
@@ -87,7 +117,7 @@ sqlite3: &sqlite3
   pool: 5
   timeout: 5000
   host: localhost
-  
+
 # SQLite version 3.x
 #   gem install sqlite3-ruby (not necessary on OS X Leopard)
 development:
@@ -104,29 +134,25 @@ YAML
 mkdir -p log
 mkdir -p tmp
 if [ "x$BRANCH" == "xrails20" ]; then
-  printf "\e[0;31;49mWarning:\e[0m "
-  echo "Testing against the rails20 branch requires your changes to be committed. Uncommitted changes will not be used."
+  echo "Warning: Rails 2.0 support in progress. This probably only works in CI"
   mkdir -p vendor/plugins
-  git clone ../.. vendor/plugins/newrelic_rpm
+  GEM=`ls ../../../*.gem | tail -n1`
+  (cd vendor/plugins && gem unpack ../../$GEM)
+  mv vendor/plugins/newrelic_rpm* vendor/plugins/newrelic_rpm
 else
   perl -p -i'.bak' -e 's#gem .newrelic_rpm.*$#gem "newrelic_rpm", :path => "\.\.\/\.\.\/"#' Gemfile
 fi
 
-# save time by reusing the gemset if it exists
-
-gemset=ruby_agent_tests_$BRANCH
-rvm gemset use $gemset || ( rvm gemset create $gemset && rvm gemset use $gemset )
-
 if [ "x$RUBY" == "x1.8.6" ]; then
   # Bundler 0.1 dropped support for ruby 1.8.6
-  gem install bundler -v'~>1.0.0' --no-rdoc --no-ri
+  bundle -h > /dev/null || gem install bundler -v'~>1.0.0' --no-rdoc --no-ri
 else
-  gem install bundler --no-rdoc --no-ri
+  bundle -h > /dev/null || gem install bundler --no-rdoc --no-ri
 fi
 
 
 export RAILS_ENV=test
-bundle
+bundle --local || bundle
 
 # FIXME:  Here we actually trigger the tests. Since the agent deals so heavily
 # in units of time we have many tests that assert that durations are measured
@@ -137,4 +163,5 @@ bundle
 # To reduce the noise from these sporardic failures we rerun the test suite if
 # there are failures to see if they are transient (instead of re-running it by
 # hand).  Ultimately we'll move towards a more elegant solution.
-bundle exec rake --trace db:create:all test:newrelic || bundle exec rake --trace test:newrelic || bundle exec rake --trace test:newrelic
+
+bundle exec rake --trace db:create:all test:newrelic || bundle exec rake --trace test:newrelic
