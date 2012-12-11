@@ -4,8 +4,6 @@ rescue LoadError => e
 end
 
 if defined? Rake::TestTask
-  task :test => 'test:newrelic'
-  task :default => :test
   namespace :test do
     agent_home = File.expand_path(File.join(File.dirname(__FILE__),'..','..'))
 
