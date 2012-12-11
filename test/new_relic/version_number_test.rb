@@ -108,4 +108,14 @@ class NewRelic::VersionNumberTest < Test::Unit::TestCase
     version = NewRelic::VERSION.parse_build_from_gemspec(NewRelic.fixture_path('gemspec_with_build_and_stage.rb'))
     assert_equal '123.dev', version
   end
+
+  def test_gemspec_parse_no_rubygems
+    Kernel.stubs(:const_defined?).with(:Gem).returns(false)
+    version = NewRelic::VERSION.parse_build_from_gemspec(NewRelic.fixture_path('gemspec_with_build_and_stage.rb'))
+    assert_equal '123.dev', version
+  end
+
+  def test_gemspec_parse_nonexistent
+    assert_nil NewRelic::VERSION.parse_build_from_gemspec('/really/not/a/real/path')
+  end
 end

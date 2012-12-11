@@ -3,9 +3,15 @@
 module NewRelic
   module VERSION #:nodoc:
     def self.parse_build_from_gemspec(path)
-      spec = Gem::Specification::load(path)
-      if spec
-        spec.version.to_s.split('.', 4)[3]
+      if File.exist?(path)
+        version_string = if Kernel.const_defined?(:Gem)
+          spec = Gem::Specification.load(path)
+          spec.version.to_s if spec
+        else
+          md = File.read(path).match(/s\.version\s*=\s*"(.*)"/)
+          md[1] if md
+        end
+        version_string && version_string.split('.', 4)[3]
       end
     end
 
