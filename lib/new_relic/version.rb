@@ -12,7 +12,7 @@ module NewRelic
     GEMSPEC_PATH = File.join(File.dirname(__FILE__), '..', '..', 'newrelic_rpm.gemspec')
     MAJOR = 3
     MINOR = 5
-    TINY  = 3
+    TINY  = 4
     BUILD = parse_build_from_gemspec(GEMSPEC_PATH)
 
     STRING = [MAJOR, MINOR, TINY, BUILD].compact.join('.')
