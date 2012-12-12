@@ -16,6 +16,7 @@ module NewRelic
       def initialize(config, root = "", options={})
         create_log(config, root, options)
         set_log_level!(config)
+        set_log_format!
       end
 
       def create_log(config, root, options)
@@ -58,6 +59,12 @@ module NewRelic
 
       def self.log_level_for(level)
         LOG_LEVELS.fetch(level.to_s.downcase, Logger::INFO)
+      end
+
+      def set_log_format!
+        def @log.format_message(severity, timestamp, progname, msg)
+          "[#{timestamp.strftime("%m/%d/%y %H:%M:%S %z")} #{Socket.gethostname} (#{$$})] #{severity} : #{msg}\n"
+        end
       end
 
       class NullLogger
