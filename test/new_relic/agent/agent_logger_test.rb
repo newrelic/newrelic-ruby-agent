@@ -3,9 +3,11 @@ require 'new_relic/agent/agent_logger'
 
 class AgentLoggerTest < Test::Unit::TestCase
   def setup
-    @config = {}
-    @config[:log_file_path] = "log/"
-    @config[:log_file_name] = "testlog.log"
+    @config = {
+      :log_file_path => "log/",
+      :log_file_name => "testlog.log",
+      :log_level => :info,
+    }
   end
 
   def test_initalizes_from_config

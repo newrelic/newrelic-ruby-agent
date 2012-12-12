@@ -31,7 +31,7 @@ module NewRelic
             path = find_or_create_file_path(config[:log_file_path], root)
             if path.nil?
               @log = ::Logger.new(STDOUT)
-              @log.warn("Error creating log directory #{config[:log_path_setting]}, using standard out for logging.")
+              @log.warn("Error creating log directory #{config[:log_file_path]}, using standard out for logging.")
             else
               @log = ::Logger.new("#{path}/#{config[:log_file_name]}")
             end
@@ -54,7 +54,7 @@ module NewRelic
       end
 
       def set_log_level!(config)
-        @log.level = AgentLogger.log_level_for(config.fetch(:log_level, ""))
+        @log.level = AgentLogger.log_level_for(config.fetch(:log_level))
       end
 
       LOG_LEVELS = {
