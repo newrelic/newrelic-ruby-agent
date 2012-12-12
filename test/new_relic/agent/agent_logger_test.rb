@@ -9,8 +9,12 @@ class AgentLoggerTest < Test::Unit::TestCase
   def test_initalizes_from_config
     @config[:log_file_path] = "log"
     @config[:log_file_name] = "testlog.log"
+
+    inner_logger = stub()
+    ::Logger.stubs(:new).with(any_parameters).returns(inner_logger)
+
     logger = NewRelic::Agent::AgentLogger.new(@config)
-    assert_match(/log\/testlog.log/, logger.log_file)
+    assert_equal(inner_logger, logger.instance_variable_get(:@log))
   end
 
   def test_initalizes_from_override
@@ -30,7 +34,6 @@ class AgentLoggerTest < Test::Unit::TestCase
     end
   end
 
-
   def test_dont_log_if_agent_not_enabled
     [:fatal, :error, :warn, :info, :debug].each do |level|
       ::Logger.any_instance.expects(level).never
@@ -41,4 +44,16 @@ class AgentLoggerTest < Test::Unit::TestCase
       logger.send(level, "Boo")
     end
   end
+
+  def test_log_to_stdout_and_warns_if_failed_on_create
+    NewRelic::Agent::AgentLogger.any_instance.stubs(:find_or_create_file_path).returns(nil)
+
+    stdout = stub()
+    stdout.expects(:warn)
+    ::Logger.stubs(:new).with(STDOUT).returns(stdout)
+
+    logger = NewRelic::Agent::AgentLogger.new(@config)
+    assert_equal stdout, logger.instance_variable_get(:@log)
+  end
+
 end

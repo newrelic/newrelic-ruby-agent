@@ -8,12 +8,10 @@ module NewRelic
       extend Forwardable
       def_delegators :@log, :fatal, :error, :info, :debug
 
-      # TODO Figure out if we can do better because of Kernel#warn
+      # TODO Figure out if we can do better because of Kernel#warn interfering with Forwardable
       def warn(msg)
         @log.warn(msg)
       end
-
-      attr_reader :log_file
 
       def initialize(config, root = "", options={})
         if options.has_key?(:log)
@@ -21,17 +19,14 @@ module NewRelic
         elsif config[:agent_enabled] == false
           @log = NullLogger.new
         else
-          @log_file = "#{log_path(config, root)}/#{config[:log_file_name]}"
-          @log = ::Logger.new(@log_file)
+          path = find_or_create_file_path(config[:log_file_path], root)
+          if path.nil?
+            @log = ::Logger.new(STDOUT)
+            @log.warn("Error creating log directory #{config[:log_path_setting]}, using standard out for logging.")
+          else
+            @log = ::Logger.new("#{path}/#{config[:log_file_name]}")
+          end
         end
-      end
-
-      def log_path(config, root)
-        log_path_setting = config[:log_file_path]
-
-        path = find_or_create_file_path(log_path_setting, root)
-        #log!("Error creating log directory #{log_path_setting}, using standard out for logging.", :warn) unless path
-        #path
       end
 
       def find_or_create_file_path(path_setting, root)
