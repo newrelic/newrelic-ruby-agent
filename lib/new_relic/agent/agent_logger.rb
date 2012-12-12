@@ -25,14 +25,22 @@ module NewRelic
         elsif config[:agent_enabled] == false
           @log = NullLogger.new
         else
-          path = find_or_create_file_path(config[:log_file_path], root)
-          if path.nil?
+          if wants_stdout(config)
             @log = ::Logger.new(STDOUT)
-            @log.warn("Error creating log directory #{config[:log_path_setting]}, using standard out for logging.")
           else
-            @log = ::Logger.new("#{path}/#{config[:log_file_name]}")
+            path = find_or_create_file_path(config[:log_file_path], root)
+            if path.nil?
+              @log = ::Logger.new(STDOUT)
+              @log.warn("Error creating log directory #{config[:log_path_setting]}, using standard out for logging.")
+            else
+              @log = ::Logger.new("#{path}/#{config[:log_file_name]}")
+            end
           end
         end
+      end
+
+      def wants_stdout(config)
+        config[:log_file_path].upcase == "STDOUT"
       end
 
       def find_or_create_file_path(path_setting, root)

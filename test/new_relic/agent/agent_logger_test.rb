@@ -4,12 +4,11 @@ require 'new_relic/agent/agent_logger'
 class AgentLoggerTest < Test::Unit::TestCase
   def setup
     @config = {}
+    @config[:log_file_path] = "log/"
+    @config[:log_file_name] = "testlog.log"
   end
 
   def test_initalizes_from_config
-    @config[:log_file_path] = "log"
-    @config[:log_file_name] = "testlog.log"
-
     inner_logger = stub(:level=)
     ::Logger.stubs(:new).with(any_parameters).returns(inner_logger)
 
@@ -69,6 +68,17 @@ class AgentLoggerTest < Test::Unit::TestCase
 
     stdout = stub(:level=)
     stdout.expects(:warn)
+    ::Logger.stubs(:new).with(STDOUT).returns(stdout)
+
+    logger = NewRelic::Agent::AgentLogger.new(@config)
+    assert_equal stdout, logger.instance_variable_get(:@log)
+  end
+
+  def test_log_to_stdout_based_on_config
+    @config[:log_file_path] = "STDOUT"
+
+    stdout = stub(:level=)
+    stdout.expects(:warn).never
     ::Logger.stubs(:new).with(STDOUT).returns(stdout)
 
     logger = NewRelic::Agent::AgentLogger.new(@config)
