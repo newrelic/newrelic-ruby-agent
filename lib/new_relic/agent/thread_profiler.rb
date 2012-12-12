@@ -14,10 +14,10 @@ module NewRelic
 
       def start(profile_id, duration, interval, profile_agent_code)
         if !ThreadProfiler.is_supported?
-          log.debug("Not starting thread profile as it isn't supported on this environment")
+          NewRelic::Agent.logger.debug("Not starting thread profile as it isn't supported on this environment")
           @profile = nil
         else
-          log.debug("Starting thread profile. profile_id=#{profile_id}, duration=#{duration}")
+          NewRelic::Agent.logger.debug("Starting thread profile. profile_id=#{profile_id}, duration=#{duration}")
           @profile = ThreadProfile.new(profile_id, duration, interval, profile_agent_code)
           @profile.run
         end
@@ -62,7 +62,7 @@ an agent running Ruby #{RUBY_VERSION}.
 Profiling again might select an appropriate agent, but we recommend running a
 consistent version of Ruby across your application for better results.
 EOF
-          log.debug(msg)
+          NewRelic::Agent.logger.debug(msg)
           notify_results.call(command_id, msg) if !notify_results.nil?
         end
       end
@@ -85,7 +85,7 @@ EOF
 
         if running?
           msg = "Profile already in progress. Ignoring agent command to start another."
-          log.debug(msg)
+          NewRelic::Agent.logger.debug(msg)
           yield(command_id, msg) if block_given?
         else
           start(profile_id, duration, interval, profile_agent_code)
@@ -99,9 +99,6 @@ EOF
         yield(command_id) if block_given?
       end
 
-      def log
-        NewRelic::Agent.logger
-      end
     end
 
     class ThreadProfile
@@ -152,14 +149,14 @@ EOF
           end
 
           mark_done
-          log.debug("Finished thread profile. Will send with next harvest.")
+          NewRelic::Agent.logger.debug("Finished thread profile. Will send with next harvest.")
         end
       end
 
       def stop
         @worker_loop.stop
         mark_done
-        log.debug("Stopping thread profile.")
+        NewRelic::Agent.logger.debug("Stopping thread profile.")
       end
 
       def aggregate(trace, trees=@traces[:request], parent=nil)
@@ -300,9 +297,6 @@ EOF
         end
       end
 
-      def log
-        NewRelic::Agent.logger
-      end
     end
   end
 end

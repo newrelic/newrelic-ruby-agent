@@ -15,7 +15,6 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     @error_collector = NewRelic::Agent::ErrorCollector.new
     server = NewRelic::Control::Server.new('localhost', 30303)
     @service = NewRelic::Agent::NewRelicService.new('abcdef', server)
-    log.stubs(:warn => true, :info => true, :debug => true)
   end
 
   def control
@@ -76,7 +75,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   def test_should_retry_true
     @keep_retrying = true
     @connect_attempts = 1
-    log.expects(:info).once
+    NewRelic::Agent.logger.expects(:info).once
     self.expects(:increment_retry_period!).once
     assert should_retry?, "should retry in this circumstance"
     assert_equal 2, @connect_attempts, "should be on the second attempt"
@@ -107,30 +106,30 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     fake_control = mock()
     fake_control.expects(:server).returns("server")
     self.expects(:control).once.returns(fake_control)
-    log.expects(:error).with("Error establishing connection with New Relic Service at server: message")
-    log.expects(:debug).with("line\nsecondline")
+    NewRelic::Agent.logger.expects(:error).with("Error establishing connection with New Relic Service at server: message")
+    NewRelic::Agent.logger.expects(:debug).with("line\nsecondline")
     log_error(error)
   end
 
   def test_handle_license_error
     error = mock('error')
     self.expects(:disconnect).once
-    log.expects(:error).once.with("error message")
-    log.expects(:info).once.with("Visit NewRelic.com to obtain a valid license key, or to upgrade your account.")
+    NewRelic::Agent.logger.expects(:error).once.with("error message")
+    NewRelic::Agent.logger.expects(:info).once.with("Visit NewRelic.com to obtain a valid license key, or to upgrade your account.")
     error.expects(:message).returns("error message")
     handle_license_error(error)
   end
 
   def test_log_seed_token
     with_config(:validate_seed => 'many seeds', :validate_token => 'a token, man') do
-      log.expects(:debug).with("Connecting with validation seed/token: many seeds/a token, man").once
+      NewRelic::Agent.logger.expects(:debug).with("Connecting with validation seed/token: many seeds/a token, man").once
       log_seed_token
     end
   end
 
   def test_no_seed_token
     with_config(:validate_seed => false) do
-      log.expects(:debug).never
+      NewRelic::Agent.logger.expects(:debug).never
       log_seed_token
     end
   end
@@ -204,7 +203,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   def test_configure_transaction_tracer_with_random_sampling
     with_config(:'transaction_tracer.transaction_threshold' => 5,
                 :'transaction_tracer.random_sample' => true) do
-      log.stubs(:debug)
+      NewRelic::Agent.logger.stubs(:debug)
       sample = TransactionSampleTestHelper.make_sql_transaction
       @transaction_sampler.store_sample(sample)
 
@@ -225,9 +224,8 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   end
 
   def test_configure_transaction_tracer_server_disabled
-    @transaction_sampler.stubs(:log).returns(log)
-    log.stubs(:debug)
-    log.expects(:debug).with('Transaction traces will not be sent to the New Relic service.')
+    NewRelic::Agent.logger.stubs(:debug)
+    NewRelic::Agent.logger.expects(:debug).with('Transaction traces will not be sent to the New Relic service.')
     config = NewRelic::Agent::Configuration::ServerSource.new('collect_traces' => false,
                                                               'developer_mode' => false)
     with_config(config) do
@@ -363,20 +361,10 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     fake_control
   end
 
-  def mocked_log
-    fake_log = mock('log')
-    self.stubs(:log).returns(fake_log)
-    fake_log
-  end
-
   def mocked_error_collector
     fake_collector = mock('error collector')
     self.stubs(:error_collector).returns(fake_collector)
     fake_collector
-  end
-
-  def log
-    @logger ||= Object.new
   end
 
   def assert_accessor(sym)

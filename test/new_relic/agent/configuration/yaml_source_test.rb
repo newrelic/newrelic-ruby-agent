@@ -49,7 +49,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_should_log_if_no_file_is_found
-      NewRelic::Control.instance.log.expects(:error)
+      NewRelic::Agent.logger.expects(:error)
       source = YamlSource.new('no_such_file.yml', 'test')
     end
   end

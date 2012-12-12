@@ -51,7 +51,7 @@ module NewRelic
 
           def log_error(e)
             backtraces = Thread.list.map { |t| log_thread(t) }.join("\n\n")
-            NewRelic::Control.instance.log.warn(
+            NewRelic::Agent.logger.warn(
               "SynchronizedHash failure: #{e.class.name}: #{e.message}\n#{backtraces}")
           end
 
@@ -71,9 +71,9 @@ module NewRelic
             # exceptions without referencing their classes (since they don't
             # exist in MRI).  It also prevents us from swallowing signals or
             # other nasty things that can happen when you rescue Exception.
-            NewRelic::Control.instance.log.warn(
+            NewRelic::Agent.logger.warn(
               "Error collecting thread backtraces: #{e.class.name}: #{e.message}")
-            NewRelic::Control.instance.log.debug( e.backtrace.join("\n") )
+            NewRelic::Agent.logger.debug( e.backtrace.join("\n") )
 
             raise e if e.class.ancestors.include? Exception
           end

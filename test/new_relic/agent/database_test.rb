@@ -75,9 +75,9 @@ class NewRelic::Agent::DatabaseTest < Test::Unit::TestCase
   
   def test_handle_exception_in_explain
     fake_error = StandardError.new('a message')
-    NewRelic::Control.instance.log.expects(:error).with('Error getting query plan: a message')
+    NewRelic::Agent.logger.expects(:error).with('Error getting query plan: a message')
     # backtrace can be basically any string, just should get logged
-    NewRelic::Control.instance.log.expects(:debug).with(instance_of(String))
+    NewRelic::Agent.logger.expects(:debug).with(instance_of(String))
     
     NewRelic::Agent::Database.handle_exception_in_explain do
       raise(fake_error)

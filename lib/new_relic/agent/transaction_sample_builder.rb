@@ -37,7 +37,7 @@ module NewRelic
           @current_segment.add_called_segment(segment)
           @current_segment = segment
           if @sample.count_segments == segment_limit
-            NewRelic::Control.instance.log.debug("Segment limit of #{segment_limit} reached, ceasing collection.")
+            NewRelic::Agent.logger.debug("Segment limit of #{segment_limit} reached, ceasing collection.")
           end
           @current_segment
         end
@@ -56,8 +56,7 @@ module NewRelic
         # This should never get called twice, but in a rare case that we can't reproduce in house it does.
         # log forensics and return gracefully
         if @sample.frozen?
-          log = NewRelic::Control.instance.log
-          log.error "Unexpected double-freeze of Transaction Trace Object: \n#{@sample.to_s}"
+          NewRelic::Agent.logger.error "Unexpected double-freeze of Transaction Trace Object: \n#{@sample.to_s}"
           return
         end
         @sample.root_segment.end_trace(time.to_f - @sample_start)

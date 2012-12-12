@@ -54,7 +54,7 @@ module NewRelic
 
         # FIXME: commented out to squelch STDOUT output for RUBY-839
         # should bring it back when logging / startup is fixed
-        # log.info "Resolved #{host} to #{ip}"
+        # NewRelic::Agent.logger.info "Resolved #{host} to #{ip}"
         ip
       end
 
@@ -65,13 +65,13 @@ module NewRelic
       def resolve_ip_address(host)
         Resolv.getaddress(host)
       rescue => e
-        log.warn("DNS Error caching IP address: #{e}")
-        log.debug(e.backtrace.join("\n   "))
+        NewRelic::Agent.logger.warn("DNS Error caching IP address: #{e}")
+        NewRelic::Agent.logger.debug(e.backtrace.join("\n   "))
         begin
-          log.info("Trying native DNS lookup since Resolv failed")
+          NewRelic::Agent.logger.info("Trying native DNS lookup since Resolv failed")
           IPSocket.getaddress(host)
         rescue => e
-          log.error("Could not look up server address: #{e}")
+          NewRelic::Agent.logger.error("Could not look up server address: #{e}")
           nil
         end
       end
@@ -95,7 +95,7 @@ module NewRelic
         http_class = Net::HTTP::Proxy(proxy_server.name, proxy_server.port,
                                       proxy_server.user, proxy_server.password)
         http = http_class.new(host.ip || host.name, host.port)
-        log.debug("Http Connection opened to #{host.ip||host.name}:#{host.port}")
+        NewRelic::Agent.logger.debug("Http Connection opened to #{host.ip||host.name}:#{host.port}")
         if Agent.config[:ssl]
           http.use_ssl = true
           if Agent.config[:verify_certificate]

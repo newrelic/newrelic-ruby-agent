@@ -101,10 +101,6 @@ module NewRelic
         "Control[#{self.app}]"
       end
 
-      def log
-        NewRelic::Agent.logger
-      end
-
       # for backward compatibility with the old config interface
       def [](key)
         NewRelic::Agent.config[key.to_sym]

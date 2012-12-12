@@ -94,11 +94,6 @@ module NewRelic
         NewRelic::Control.instance
       end
 
-      # Shorthand to the NewRelic::Agent.logger method
-      def log
-        NewRelic::Agent.logger
-      end
-
       # The path on the server that we should post our data to
       def remote_method_uri(method, format='ruby')
         params = {'run_id' => @agent_id, 'marshal_format' => format}
@@ -126,7 +121,7 @@ module NewRelic
                                 :collector => @collector)
         @marshaller.load(decompress_response(response))
       rescue NewRelic::Agent::ForceRestartException => e
-        log.info e.message
+        NewRelic::Agent.logger.info e.message
         raise
       ensure
         record_supportability_metrics(method, now)
@@ -174,7 +169,7 @@ module NewRelic
           Marshal.dump(data)
         end
       rescue => e
-        log.debug("#{e.class.name} : #{e.message} when marshalling #{object}")
+        NewRelic::Agent.logger.debug("#{e.class.name} : #{e.message} when marshalling #{object}")
         raise
       end
 
@@ -182,7 +177,7 @@ module NewRelic
       # than the limit configured in the control object
       def check_post_size(post_string)
         return if post_string.size < Agent.config[:post_size_limit]
-        log.debug "Tried to send too much data: #{post_string.size} bytes"
+        NewRelic::Agent.logger.debug "Tried to send too much data: #{post_string.size} bytes"
         raise UnrecoverableServerException.new('413 Request Entity Too Large')
       end
 
@@ -202,7 +197,7 @@ module NewRelic
         request.content_type = "application/octet-stream"
         request.body = opts[:data]
 
-        log.debug "Connect to #{opts[:collector]}#{opts[:uri]}"
+        NewRelic::Agent.logger.debug "Connect to #{opts[:collector]}#{opts[:uri]}"
 
         response = nil
         http = control.http_connection(@collector)
@@ -212,7 +207,7 @@ module NewRelic
             response = http.request(request)
           end
         rescue Timeout::Error
-          log.warn "Timed out trying to post data to New Relic (timeout = #{@request_timeout} seconds)" unless @request_timeout < 30
+          NewRelic::Agent.logger.warn "Timed out trying to post data to New Relic (timeout = #{@request_timeout} seconds)" unless @request_timeout < 30
           raise
         end
         if response.is_a? Net::HTTPUnauthorized
@@ -220,7 +215,7 @@ module NewRelic
         elsif response.is_a? Net::HTTPServiceUnavailable
           raise ServerConnectionException, "Service unavailable (#{response.code}): #{response.message}"
         elsif response.is_a? Net::HTTPGatewayTimeOut
-          log.debug("Timed out getting response: #{response.message}")
+          NewRelic::Agent.logger.debug("Timed out getting response: #{response.message}")
           raise Timeout::Error, response.message
         elsif response.is_a? Net::HTTPRequestEntityTooLarge
           raise UnrecoverableServerException, '413 Request Entity Too Large'
@@ -239,10 +234,10 @@ module NewRelic
       # encoded, otherwise returns it verbatim
       def decompress_response(response)
         if response['content-encoding'] != 'gzip'
-          log.debug "Uncompressed content returned"
+          NewRelic::Agent.logger.debug "Uncompressed content returned"
           return response.body
         end
-        log.debug "Decompressing return value"
+        NewRelic::Agent.logger.debug "Decompressing return value"
         i = Zlib::GzipReader.new(StringIO.new(response.body))
         i.read
       end

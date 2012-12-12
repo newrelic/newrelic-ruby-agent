@@ -180,13 +180,13 @@ module NewRelic
             @metric_ids = {}
           end
 
-          # log.debug "Agent received after_fork notice in #$$: [#{control.agent_enabled?}; monitor=#{control.monitor_mode?}; connected: #{@connected.inspect}; thread=#{@worker_thread.inspect}]"
+          # NewRelic::Agent.logger.debug "Agent received after_fork notice in #$$: [#{control.agent_enabled?}; monitor=#{control.monitor_mode?}; connected: #{@connected.inspect}; thread=#{@worker_thread.inspect}]"
           return if !Agent.config[:agent_enabled] ||
             !Agent.config[:monitor_mode] ||
             @connected == false ||
             @worker_thread && @worker_thread.alive?
 
-          log.info "Starting the worker thread in #{$$} after forking."
+          NewRelic::Agent.logger.info "Starting the worker thread in #{$$} after forking."
 
           # Clear out stats that are left over from parent process
           reset_stats
@@ -226,7 +226,7 @@ module NewRelic
             @worker_loop.stop
           end
 
-          log.debug "Starting Agent shutdown"
+          NewRelic::Agent.logger.debug "Starting Agent shutdown"
 
           # if litespeed, then ignore all future SIGUSR1 - it's
           # litespeed trying to shut us down
@@ -241,8 +241,8 @@ module NewRelic
               graceful_disconnect
             end
           rescue => e
-            log.error e
-            log.error e.backtrace.join("\n")
+            NewRelic::Agent.logger.error e
+            NewRelic::Agent.logger.error e.backtrace.join("\n")
           end
           NewRelic::Agent.config.remove_config do |config|
             config.class == NewRelic::Agent::Configuration::ManualSource ||
@@ -298,11 +298,6 @@ module NewRelic
           Thread.current[:newrelic_untraced].pop if Thread.current[:newrelic_untraced]
         end
 
-        # Shorthand to the NewRelic::Agent.logger method
-        def log
-          NewRelic::Agent.logger
-        end
-
         # Herein lies the corpse of the former 'start' method. May
         # its unmatched flog score rest in pieces.
         module Start
@@ -327,16 +322,16 @@ module NewRelic
           def log_dispatcher
             dispatcher_name = Agent.config[:dispatcher].to_s
             return if log_if(dispatcher_name.empty?, :info, "No dispatcher detected.")
-            log.info "Dispatcher: #{dispatcher_name}"
+            NewRelic::Agent.logger.info "Dispatcher: #{dispatcher_name}"
           end
 
           # Logs the configured application names
           def log_app_names
             names = Agent.config.app_names
             if names.respond_to?(:any?) && names.any?
-              log.info "Application: #{names.join(", ")}"
+              NewRelic::Agent.logger.info "Application: #{names.join(", ")}"
             else
-              log.error 'Unable to determine application name. Please set the application name in your newrelic.yml or in a NEW_RELIC_APP_NAME environment variable.'
+              NewRelic::Agent.logger.error 'Unable to determine application name. Please set the application name in your newrelic.yml or in a NEW_RELIC_APP_NAME environment variable.'
             end
           end
 
@@ -388,14 +383,14 @@ module NewRelic
           # so we can disambiguate processes in the log file and make
           # sure they're running a reasonable version
           def log_version_and_pid
-            log.info "New Relic Ruby Agent #{NewRelic::VERSION::STRING} Initialized: pid = #{$$}"
+            NewRelic::Agent.logger.info "New Relic Ruby Agent #{NewRelic::VERSION::STRING} Initialized: pid = #{$$}"
           end
 
           # A helper method that logs a condition if that condition is
           # true. Mentally cleaner than having every method set a
           # local and log if it is true
           def log_if(boolean, level, message)
-            self.log.send(level, message) if boolean
+            NewRelic::Agent.logger.send(level, message) if boolean
             boolean
           end
 
@@ -403,7 +398,7 @@ module NewRelic
           # condition is true. Mentally cleaner than having every
           # method set a local and log unless it is true
           def log_unless(boolean, level, message)
-            self.log.send(level, message) unless boolean
+            NewRelic::Agent.logger.send(level, message) unless boolean
             boolean
           end
 
@@ -486,8 +481,8 @@ module NewRelic
           # logs info about the worker loop so users can see when the
           # agent actually begins running in the background
           def log_worker_loop_start
-            log.info "Reporting performance data every #{Agent.config[:data_report_period]} seconds."
-            log.debug "Running worker loop"
+            NewRelic::Agent.logger.info "Reporting performance data every #{Agent.config[:data_report_period]} seconds."
+            NewRelic::Agent.logger.debug "Running worker loop"
           end
 
           # Creates the worker loop and loads it with the instructions
@@ -503,7 +498,7 @@ module NewRelic
           # this clears the data, clears connection attempts, and
           # waits a while to reconnect.
           def handle_force_restart(error)
-            log.info error.message
+            NewRelic::Agent.logger.info error.message
             reset_stats
             @metric_ids = {}
             @connected = nil
@@ -514,15 +509,15 @@ module NewRelic
           # is the worker thread that gathers data and talks to the
           # server.
           def handle_force_disconnect(error)
-            log.error "New Relic forced this agent to disconnect (#{error.message})"
+            NewRelic::Agent.logger.error "New Relic forced this agent to disconnect (#{error.message})"
             disconnect
           end
 
           # there is a problem with connecting to the server, so we
           # stop trying to connect and shut down the agent
           def handle_server_connection_problem(error)
-            log.error "Unable to establish connection with the server.  Run with log level set to debug for more information."
-            log.debug("#{error.class.name}: #{error.message}\n#{error.backtrace.first}")
+            NewRelic::Agent.logger.error "Unable to establish connection with the server.  Run with log level set to debug for more information."
+            NewRelic::Agent.logger.debug("#{error.class.name}: #{error.message}\n#{error.backtrace.first}")
             disconnect
           end
 
@@ -530,7 +525,7 @@ module NewRelic
           # it and disconnecting the agent, since we are now in an
           # unknown state
           def handle_other_error(error)
-            log.error "Terminating worker loop: #{error.class.name}: #{error.message}\n  #{error.backtrace.join("\n  ")}"
+            NewRelic::Agent.logger.error "Terminating worker loop: #{error.class.name}: #{error.message}\n  #{error.backtrace.join("\n  ")}"
             disconnect
           end
 
@@ -572,7 +567,7 @@ module NewRelic
                   # never reaches here unless there is a problem or
                   # the agent is exiting
                 else
-                  log.debug "No connection.  Worker thread ending."
+                  NewRelic::Agent.logger.debug "No connection.  Worker thread ending."
                 end
               end
             end
@@ -584,7 +579,7 @@ module NewRelic
         #
         # See #connect for a description of connection_options.
         def start_worker_thread(connection_options = {})
-          log.debug "Creating Ruby Agent worker thread."
+          NewRelic::Agent.logger.debug "Creating Ruby Agent worker thread."
           @worker_thread = NewRelic::Agent::Thread.new('Worker Loop') do
             deferred_work!(connection_options)
           end
@@ -647,7 +642,7 @@ module NewRelic
             if @keep_retrying
               self.connect_attempts=(connect_attempts + 1)
               increment_retry_period!
-              log.info "Will re-attempt in #{connect_retry_period} seconds"
+              NewRelic::Agent.logger.info "Will re-attempt in #{connect_retry_period} seconds"
               true
             else
               disconnect
@@ -659,8 +654,8 @@ module NewRelic
           # to tell the user what happened, since this is not an error
           # we can handle gracefully.
           def log_error(error)
-            log.error "Error establishing connection with New Relic Service at #{control.server}: #{error.message}"
-            log.debug error.backtrace.join("\n")
+            NewRelic::Agent.logger.error "Error establishing connection with New Relic Service at #{control.server}: #{error.message}"
+            NewRelic::Agent.logger.debug error.backtrace.join("\n")
           end
 
           # When the server sends us an error with the license key, we
@@ -671,8 +666,8 @@ module NewRelic
           # no longer try to connect to the server, saving the
           # application and the server load
           def handle_license_error(error)
-            log.error error.message
-            log.info "Visit NewRelic.com to obtain a valid license key, or to upgrade your account."
+            NewRelic::Agent.logger.error error.message
+            NewRelic::Agent.logger.info "Visit NewRelic.com to obtain a valid license key, or to upgrade your account."
             disconnect
           end
 
@@ -681,7 +676,7 @@ module NewRelic
           # clue that token authentication is what will be used
           def log_seed_token
             if Agent.config[:validate_seed]
-              log.debug "Connecting with validation seed/token: #{Agent.config[:validate_seed]}/#{Agent.config[:validate_token]}"
+              NewRelic::Agent.logger.debug "Connecting with validation seed/token: #{Agent.config[:validate_seed]}/#{Agent.config[:validate_token]}"
             end
           end
 
@@ -749,10 +744,10 @@ module NewRelic
             @service.agent_id = config_data['agent_run_id'] if @service
 
             if config_data['agent_config']
-              log.info "Using config from server"
+              NewRelic::Agent.logger.info "Using config from server"
             end
 
-            log.debug "Server provided config: #{config_data.inspect}"
+            NewRelic::Agent.logger.debug "Server provided config: #{config_data.inspect}"
             server_config = NewRelic::Agent::Configuration::ServerSource.new(config_data)
             Agent.config.apply_config(server_config, 1)
             log_connection!(config_data) if @service
@@ -763,9 +758,9 @@ module NewRelic
           # Logs when we connect to the server, for debugging purposes
           # - makes sure we know if an agent has not connected
           def log_connection!(config_data)
-            log.info "Connected to NewRelic Service at #{@service.collector.name}"
-            log.debug "Agent Run       = #{@service.agent_id}."
-            log.debug "Connection data = #{config_data.inspect}"
+            NewRelic::Agent.logger.info "Connected to NewRelic Service at #{@service.collector.name}"
+            NewRelic::Agent.logger.debug "Agent Run       = #{@service.agent_id}."
+            NewRelic::Agent.logger.debug "Connection data = #{config_data.inspect}"
             if config_data['messages'] && config_data['messages'].any?
               log_collector_messages(config_data['messages'])
             end
@@ -773,7 +768,7 @@ module NewRelic
 
           def log_collector_messages(messages)
             messages.each do |message|
-              log.send(message['level'].downcase.to_sym, message['message'])
+              NewRelic::Agent.logger.send(message['level'].downcase.to_sym, message['message'])
             end
           end
         end
@@ -848,7 +843,7 @@ module NewRelic
           @connect_retry_period = should_keep_retrying?(options) ? 10 : 0
 
           sleep connect_retry_period
-          log.debug "Connecting Process to New Relic: #$0"
+          NewRelic::Agent.logger.debug "Connecting Process to New Relic: #$0"
           query_server_for_configuration
           @connected_pid = $$
           @connected = true
@@ -919,11 +914,11 @@ module NewRelic
                                                 now.to_f,
                                                 @unsent_timeslice_data.values)
           rescue UnrecoverableServerException => e
-            log.debug e.message
+            NewRelic::Agent.logger.debug e.message
           end
           fill_metric_id_cache(metric_specs_and_ids)
 
-          log.debug "#{now}: sent #{@unsent_timeslice_data.length} timeslices (#{@service.agent_id}) in #{Time.now - now} seconds"
+          NewRelic::Agent.logger.debug "#{now}: sent #{@unsent_timeslice_data.length} timeslices (#{@service.agent_id}) in #{Time.now - now} seconds"
 
           # if we successfully invoked this web service, then clear the unsent message cache.
           @unsent_timeslice_data = {}
@@ -942,13 +937,13 @@ module NewRelic
           # FIXME add the code to try to resend if our connection is down
           sql_traces = @sql_sampler.harvest
           unless sql_traces.empty?
-            log.debug "Sending (#{sql_traces.size}) sql traces"
+            NewRelic::Agent.logger.debug "Sending (#{sql_traces.size}) sql traces"
             begin
               @service.sql_trace_data(sql_traces)
             rescue UnrecoverableServerException => e
-              log.debug e.message
+              NewRelic::Agent.logger.debug e.message
             rescue => e
-              log.debug "Remerging SQL traces after #{e.class.name}: #{e.message}"
+              NewRelic::Agent.logger.debug "Remerging SQL traces after #{e.class.name}: #{e.message}"
               @sql_sampler.merge sql_traces
             end
           end
@@ -964,7 +959,7 @@ module NewRelic
           harvest_transaction_traces
           unless @traces.empty?
             now = Time.now
-            log.debug "Sending (#{@traces.length}) transaction traces"
+            NewRelic::Agent.logger.debug "Sending (#{@traces.length}) transaction traces"
 
             begin
               options = { :keep_backtraces => true }
@@ -976,9 +971,9 @@ module NewRelic
               end
               traces = @traces.map {|trace| trace.prepare_to_send(options) }
               @service.transaction_sample_data(traces)
-              log.debug "Sent slowest sample (#{@service.agent_id}) in #{Time.now - now} seconds"
+              NewRelic::Agent.logger.debug "Sent slowest sample (#{@service.agent_id}) in #{Time.now - now} seconds"
             rescue UnrecoverableServerException => e
-              log.debug e.message
+              NewRelic::Agent.logger.debug e.message
             end
           end
 
@@ -994,7 +989,7 @@ module NewRelic
           if @thread_profiler.finished?
             profile = @thread_profiler.harvest
 
-            log.debug "Sending thread profile #{profile.profile_id}"
+            NewRelic::Agent.logger.debug "Sending thread profile #{profile.profile_id}"
             @service.profile_data(profile)
           end
         end
@@ -1014,11 +1009,11 @@ module NewRelic
         def harvest_and_send_errors
           harvest_errors
           if @unsent_errors && @unsent_errors.length > 0
-            log.debug "Sending #{@unsent_errors.length} errors"
+            NewRelic::Agent.logger.debug "Sending #{@unsent_errors.length} errors"
             begin
               @service.error_data(@unsent_errors)
             rescue UnrecoverableServerException => e
-              log.debug e.message
+              NewRelic::Agent.logger.debug e.message
             end
             # if the remote invocation fails, then we never clear
             # @unsent_errors, and therefore we can re-attempt to send on
@@ -1030,7 +1025,7 @@ module NewRelic
 
         def check_for_agent_commands
           commands = @service.get_agent_commands
-          log.debug "Received get_agent_commands = #{commands}"
+          NewRelic::Agent.logger.debug "Received get_agent_commands = #{commands}"
 
           @thread_profiler.respond_to_commands(commands) do |command_id, error|
             @service.agent_command_results(command_id, error)
@@ -1039,7 +1034,7 @@ module NewRelic
 
         def transmit_data(disconnecting=false)
           now = Time.now
-          log.debug "Sending data to New Relic Service"
+          NewRelic::Agent.logger.debug "Sending data to New Relic Service"
           harvest_and_send_errors
           harvest_and_send_slowest_sample
           harvest_and_send_slowest_sql
@@ -1051,7 +1046,7 @@ module NewRelic
           retry_count ||= 0
           retry_count += 1
           if retry_count <= 1
-            log.debug "retrying transmit_data after #{e}"
+            NewRelic::Agent.logger.debug "retrying transmit_data after #{e}"
             retry
           end
           raise e
@@ -1075,17 +1070,17 @@ module NewRelic
               transmit_data(true)
 
               if @connected_pid == $$ && !@service.kind_of?(NewRelic::Agent::NewRelicService)
-                log.debug "Sending New Relic service agent run shutdown message"
+                NewRelic::Agent.logger.debug "Sending New Relic service agent run shutdown message"
                 @service.shutdown(Time.now.to_f)
               else
-                log.debug "This agent connected from parent process #{@connected_pid}--not sending shutdown"
+                NewRelic::Agent.logger.debug "This agent connected from parent process #{@connected_pid}--not sending shutdown"
               end
-              log.debug "Graceful disconnect complete"
+              NewRelic::Agent.logger.debug "Graceful disconnect complete"
             rescue Timeout::Error, StandardError => e
-              log.debug "Error when disconnecting #{e.class.name}: #{e.message}"
+              NewRelic::Agent.logger.debug "Error when disconnecting #{e.class.name}: #{e.message}"
             end
           else
-            log.debug "Bypassing graceful disconnect - agent not connected"
+            NewRelic::Agent.logger.debug "Bypassing graceful disconnect - agent not connected"
           end
         end
       end
