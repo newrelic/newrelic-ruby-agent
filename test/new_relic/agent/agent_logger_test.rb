@@ -29,4 +29,16 @@ class AgentLoggerTest < Test::Unit::TestCase
       logger.send(level, "Boo!")
     end
   end
+
+
+  def test_dont_log_if_agent_not_enabled
+    [:fatal, :error, :warn, :info, :debug].each do |level|
+      ::Logger.any_instance.expects(level).never
+
+      @config[:agent_enabled] = false
+      logger = NewRelic::Agent::AgentLogger.new(@config)
+
+      logger.send(level, "Boo")
+    end
+  end
 end

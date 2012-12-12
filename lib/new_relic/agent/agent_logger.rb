@@ -18,6 +18,8 @@ module NewRelic
       def initialize(config, root = "", options={})
         if options.has_key?(:log)
           @log = options[:log]
+        elsif config[:agent_enabled] == false
+          @log = NullLogger.new
         else
           @log_file = "#{log_path(config, root)}/#{config[:log_file_name]}"
           @log = ::Logger.new(@log_file)
@@ -40,6 +42,14 @@ module NewRelic
           end
         end
         nil
+      end
+
+      class NullLogger
+        def fatal(msg); end
+        def error(msg); end
+        def warn(msg); end
+        def info(msg); end
+        def debug(msg); end
       end
     end
   end
