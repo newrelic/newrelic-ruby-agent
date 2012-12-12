@@ -384,16 +384,6 @@ module NewRelic
             end
           end
 
-          # Tells us in the log file where the log file is
-          # located. This seems redundant, but can come in handy when
-          # we have some log file path set by the user which parses
-          # incorrectly, sending the log file to who-knows-where
-          def notify_log_file_location
-            log_file = NewRelic::Control.instance.log_file
-            log_if(File.exists?(log_file.to_s), :info,
-                   "Agent Log at #{log_file}")
-          end
-
           # Classy logging of the agent version and the current pid,
           # so we can disambiguate processes in the log file and make
           # sure they're running a reasonable version
@@ -474,7 +464,6 @@ module NewRelic
           log_app_names
           check_config_and_start_agent
           log_version_and_pid
-          notify_log_file_location
         end
 
         # Clear out the metric data, errors, and transaction traces,

@@ -165,19 +165,6 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
     end
   end
 
-  def test_notify_log_file_location_positive
-    log = mocked_log
-    NewRelic::Control.instance.expects(:log_file).returns('./')
-    log.expects(:send).with(:info, "Agent Log at ./")
-    notify_log_file_location
-  end
-
-  def test_notify_log_file_location_negative
-    log = mocked_log
-    NewRelic::Control.instance.expects(:log_file).returns(nil)
-    notify_log_file_location
-  end
-
   def test_monitoring_positive
     with_config(:monitor_mode => true) do
       log = mocked_log

@@ -189,21 +189,6 @@ class NewRelic::Control::LoggingMethodsTest < Test::Unit::TestCase
     reset_environment_config
   end
 
-  def test_log_path_uses_default_if_not_set
-    NewRelic::Control.instance.setup_log
-    assert_match(/log\/newrelic_agent.log$/,
-                 NewRelic::Control.instance.log_file)
-  end
-
-  def test_log_file_path_uses_given_value
-    Dir.stubs(:mkdir).returns(true)
-    with_config(:log_file_path => 'lerg') do
-      NewRelic::Control.instance.setup_log
-      assert_match(/\/lerg\/newrelic_agent.log$/,
-                   NewRelic::Control.instance.log_file)
-    end
-  end
-
   def reset_environment_config
     NewRelic::Agent.config.config_stack[0] =
       NewRelic::Agent::Configuration::EnvironmentSource.new
