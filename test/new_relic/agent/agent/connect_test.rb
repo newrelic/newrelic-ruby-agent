@@ -12,6 +12,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     @connect_retry_period = 0
     @transaction_sampler = NewRelic::Agent::TransactionSampler.new
     @sql_sampler = NewRelic::Agent::SqlSampler.new
+    @error_collector = NewRelic::Agent::ErrorCollector.new
     server = NewRelic::Control::Server.new('localhost', 30303)
     @service = NewRelic::Agent::NewRelicService.new('abcdef', server)
     log.stubs(:warn => true, :info => true, :debug => true)
@@ -169,21 +170,21 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   end
 
   def test_configure_error_collector_base
-    error_collector = NewRelic::Agent::ErrorCollector.new
-    NewRelic::Control.instance.log.stubs(:debug)
-    NewRelic::Control.instance.log.expects(:debug) \
+    NewRelic::Agent::AgentLogger.any_instance.stubs(:debug)
+    NewRelic::Agent::AgentLogger.any_instance.expects(:debug) \
       .with("Errors will not be sent to the New Relic service.").at_least_once
+
     with_config(:'error_collector.enabled' => false) do
       # noop
     end
   end
 
   def test_configure_error_collector_enabled
+    NewRelic::Agent::AgentLogger.any_instance.stubs(:debug)
+    NewRelic::Agent::AgentLogger.any_instance.expects(:debug) \
+      .with("Errors will be sent to the New Relic service.").at_least_once
+
     with_config(:'error_collector.enabled' => false) do
-      error_collector = NewRelic::Agent::ErrorCollector.new
-      NewRelic::Control.instance.log.stubs(:debug)
-      NewRelic::Control.instance.log.expects(:debug) \
-        .with("Errors will be sent to the New Relic service.").at_least_once
       with_config(:'error_collector.enabled' => true) do
         # noop
       end
@@ -191,9 +192,8 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   end
 
   def test_configure_error_collector_server_disabled
-    error_collector = NewRelic::Agent::ErrorCollector.new
-    NewRelic::Control.instance.log.stubs(:debug)
-    NewRelic::Control.instance.log.expects(:debug) \
+    NewRelic::Agent::AgentLogger.any_instance.stubs(:debug)
+    NewRelic::Agent::AgentLogger.any_instance.expects(:debug) \
       .with("Errors will not be sent to the New Relic service.").at_least_once
     config = NewRelic::Agent::Configuration::ServerSource.new('collect_errors' => false)
     with_config(config) do
@@ -325,9 +325,9 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
                      { 'message' => 'ha cha cha', 'level' => 'WARN' }]
     }
 
-    NewRelic::Control.instance.log.stubs(:info)
-    NewRelic::Control.instance.log.expects(:info).with('beep boop')
-    NewRelic::Control.instance.log.expects(:warn).with('ha cha cha')
+    NewRelic::Agent::AgentLogger.any_instance.stubs(:info)
+    NewRelic::Agent::AgentLogger.any_instance.expects(:info).with('beep boop')
+    NewRelic::Agent::AgentLogger.any_instance.expects(:warn).with('ha cha cha')
 
     NewRelic::Agent.agent.query_server_for_configuration
     NewRelic::Agent.shutdown
