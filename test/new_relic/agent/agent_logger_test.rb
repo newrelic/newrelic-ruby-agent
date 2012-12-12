@@ -11,25 +11,25 @@ class AgentLoggerTest < Test::Unit::TestCase
   end
 
   def test_initalizes_from_config
-    inner_logger = stub(:level=)
-    ::Logger.stubs(:new).with(any_parameters).returns(inner_logger)
+    override_logger = stub(:level=)
+    ::Logger.stubs(:new).with(any_parameters).returns(override_logger)
 
     logger = NewRelic::Agent::AgentLogger.new(@config)
-    assert_equal(inner_logger, logger.instance_variable_get(:@log))
+    assert_equal(override_logger, logger.instance_variable_get(:@log))
   end
 
   def test_initalizes_from_override
-    inner_log = stub(:level=)
-    logger = NewRelic::Agent::AgentLogger.new(@config, "", {:log => inner_log})
-    assert_equal inner_log, logger.instance_variable_get(:@log)
+    override_logger = stub(:level=)
+    logger = NewRelic::Agent::AgentLogger.new(@config, "", override_logger)
+    assert_equal override_logger, logger.instance_variable_get(:@log)
   end
 
   def test_forwards_calls_to_logger
     [:fatal, :error, :warn, :info, :debug].each do |level|
-      inner_log = stub(:level=)
-      inner_log.expects(level).with(any_parameters)
+      override_logger = stub(:level=)
+      override_logger.expects(level).with(any_parameters)
 
-      logger = NewRelic::Agent::AgentLogger.new(@config, "", {:log => inner_log})
+      logger = NewRelic::Agent::AgentLogger.new(@config, "", override_logger)
 
       logger.send(level, "Boo!")
     end
@@ -58,11 +58,11 @@ class AgentLoggerTest < Test::Unit::TestCase
   end
 
   def test_sets_log_level
-    inner_log = mock()
-    inner_log.expects(:level=).with(Logger::DEBUG)
+    override_logger = mock()
+    override_logger.expects(:level=).with(Logger::DEBUG)
     @config[:log_level] = :debug
 
-    logger = NewRelic::Agent::AgentLogger.new(@config, "", {:log => inner_log})
+    logger = NewRelic::Agent::AgentLogger.new(@config, "", override_logger)
   end
 
   def test_log_to_stdout_and_warns_if_failed_on_create

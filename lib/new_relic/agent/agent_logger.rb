@@ -13,15 +13,15 @@ module NewRelic
         @log.warn(msg)
       end
 
-      def initialize(config, root = "", options={})
-        create_log(config, root, options)
+      def initialize(config, root = "", override_logger=nil)
+        create_log(config, root, override_logger)
         set_log_level!(config)
         set_log_format!
       end
 
-      def create_log(config, root, options)
-        if options.has_key?(:log)
-          @log = options[:log]
+      def create_log(config, root, override_logger)
+        if !override_logger.nil?
+          @log = override_logger
         elsif config[:agent_enabled] == false
           @log = NullLogger.new
         else
