@@ -309,7 +309,7 @@ module NewRelic
           # Check whether we have already started, which is an error condition
           def already_started?
             if started?
-              control.log!("Agent Started Already!", :error)
+              NewRelic::Agent.logger.error("Agent Started Already!")
               true
             end
           end

@@ -27,12 +27,7 @@ begin
   NewRelic::Control.instance.init_plugin :config => current_config
 
 rescue => e
-  NewRelic::Control.instance.log! "Error initializing New Relic plugin (#{e})", :error
-  NewRelic::Control.instance.log!  e.backtrace.join("\n"), :error
-  NewRelic::Control.instance.log! "Agent is disabled."
+  NewRelic::Agent.logger.error "Error initializing New Relic plugin (#{e})"
+  NewRelic::Agent.logger.error  e.backtrace.join("\n")
+  NewRelic::Agent.logger.info  "Agent is disabled."
 end
-
-#ClassLoadingWatcher.flag_const_missing = nil
-#
-# ::RAILS_DEFAULT_LOGGER.warn "New Relic detected environment: #{NewRelic::Control.instance.local_env.to_s}, RAILS_ENV: #{RAILS_ENV}"
-# ::RAILS_DEFAULT_LOGGER.warn "Enabled? #{NewRelic::Control.instance.agent_enabled?}"

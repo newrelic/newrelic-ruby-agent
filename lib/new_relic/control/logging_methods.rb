@@ -19,16 +19,6 @@ module NewRelic
         @log
       end
 
-      # send the given message to STDOUT so that it shows
-      # up in the console.  This should be used for important informational messages at boot.
-      # The to_stdout may be implemented differently by different config subclasses.
-      # This will NOT print anything if tracers are not enabled
-      def log!(msg, level=:info)
-        to_stdout msg
-        return unless should_log?
-        log.send level, msg if @log
-      end
-      
       # true if the agent has settings, and the agent is enabled,
       # otherwise false
       def should_log?

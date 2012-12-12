@@ -41,16 +41,6 @@ module NewRelic
           end
         end
 
-        def log!(msg, level=:info)
-          if should_log?
-            logger.send(level, msg)
-          else
-            super
-          end
-        rescue => e
-          super
-        end
-
         def to_stdout(msg)
           logger.info(msg)
         rescue

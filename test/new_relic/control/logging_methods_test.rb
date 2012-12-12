@@ -31,28 +31,6 @@ class NewRelic::Control::LoggingMethodsTest < Test::Unit::TestCase
     assert_equal STDOUT, log.instance_eval { @logdev }.dev
   end
 
-  def test_logbang_basic
-    @base.expects(:should_log?).returns(true)
-    @base.expects(:to_stdout).with('whee')
-    @base.instance_eval { @log = nil }
-    @base.log!('whee')
-  end
-
-  def test_logbang_should_not_log
-    @base.expects(:should_log?).returns(false)
-    @base.stubs(:to_stdout)
-    assert_equal nil, @base.log!('whee')
-  end
-
-  def test_logbang_with_log
-    @base.expects(:should_log?).returns(true)
-    @base.expects(:to_stdout).with('whee')
-    fake_logger = mock('log')
-    fake_logger.expects(:send).with(:info, 'whee')
-    @base.instance_eval { @log = fake_logger }
-    @base.log!('whee')
-  end
-
   def test_should_log_no_settings
     @base.instance_eval { @settings = nil }
     assert !@base.should_log?
@@ -124,32 +102,6 @@ class NewRelic::Control::LoggingMethodsTest < Test::Unit::TestCase
     with_config(:log_file_path => 'log') do
       assert File.directory?('log')
       assert_equal File.expand_path('log'), @base.log_path
-    end
-  end
-
-  def test_log_path_path_created
-    path = File.expand_path('tmp/log_path_test')
-    FileUtils.mkdir_p(File.dirname(path))
-    @base.instance_eval { @log_path = nil }
-    with_config(:log_file_path => 'tmp/log_path_test') do
-      assert !File.directory?(path) || FileUtils.rmdir(path)
-      @base.expects(:log!).never
-      assert_equal path, @base.log_path
-      assert File.directory?(path)
-    end
-  end
-
-  def test_log_path_path_unable_to_create
-    path = File.expand_path('tmp/log_path_test')
-    @base.instance_eval { @log_path = nil }
-    with_config(:log_file_path => 'tmp/log_path_test') do
-      assert !File.directory?(path) || FileUtils.rmdir(path)
-      @base.expects(:log!).with("Error creating log directory tmp/log_path_test, using standard out for logging.", :warn)
-      # once for the relative directory, once for the directory relative to Rails.root
-      Dir.expects(:mkdir).with(path).raises('cannot make directory bro!').twice
-      assert_nil @base.log_path
-      assert !File.directory?(path)
-      assert_equal STDOUT, @base.log.instance_eval { @logdev }.dev
     end
   end
 
