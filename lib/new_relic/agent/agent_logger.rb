@@ -23,7 +23,7 @@ module NewRelic
         if !override_logger.nil?
           @log = override_logger
         elsif config[:agent_enabled] == false
-          @log = NullLogger.new
+          @log = ::Logger.new("/dev/null")
         else
           if wants_stdout(config)
             @log = ::Logger.new(STDOUT)
@@ -73,16 +73,6 @@ module NewRelic
         def @log.format_message(severity, timestamp, progname, msg)
           "[#{timestamp.strftime("%m/%d/%y %H:%M:%S %z")} #{Socket.gethostname} (#{$$})] #{severity} : #{msg}\n"
         end
-      end
-
-      class NullLogger
-        def level=(level); end
-
-        def fatal(msg); end
-        def error(msg); end
-        def warn(msg); end
-        def info(msg); end
-        def debug(msg); end
       end
     end
   end

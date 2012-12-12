@@ -35,15 +35,11 @@ class AgentLoggerTest < Test::Unit::TestCase
     end
   end
 
-  def test_dont_log_if_agent_not_enabled
-    [:fatal, :error, :warn, :info, :debug].each do |level|
-      ::Logger.any_instance.expects(level).never
+  def test_wont_log_if_agent_not_enabled
+    ::Logger.stubs(:new).with("/dev/null").returns(stub(:level=)).once
 
-      @config[:agent_enabled] = false
-      logger = NewRelic::Agent::AgentLogger.new(@config)
-
-      logger.send(level, "Boo")
-    end
+    @config[:agent_enabled] = false
+    logger = NewRelic::Agent::AgentLogger.new(@config)
   end
 
   def test_maps_log_levels
