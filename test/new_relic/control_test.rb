@@ -147,11 +147,6 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     assert_equal old_ipsocket, IPSocket
   end
 
-  def test_log_file_name
-    NewRelic::Control.instance.setup_log
-    assert_match /newrelic_agent.log$/, control.instance_variable_get('@log_file')
-  end
-
   def test_transaction_threshold__override
     with_config(:transaction_tracer => { :transaction_threshold => 1}) do
       assert_equal 1, NewRelic::Agent.config[:'transaction_tracer.transaction_threshold']

@@ -17,9 +17,6 @@ module NewRelic
             super
           end
         end
-        def logger
-          ::RAILS_DEFAULT_LOGGER
-        end
 
         def rails_config
           if defined?(::Rails) && ::Rails.respond_to?(:configuration)
@@ -88,13 +85,6 @@ module NewRelic
           elsif rails_config
             NewRelic::Agent.logger.warn("Developer mode not available for Rails versions prior to 2.2")
           end
-        end
-
-        def to_stdout(message)
-          logger = ::Rails.respond_to?(:logger) ? ::Rails.logger : ::RAILS_DEFAULT_LOGGER
-          logger.info(message)
-        rescue => e
-          super
         end
 
         def rails_version

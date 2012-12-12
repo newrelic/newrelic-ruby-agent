@@ -20,10 +20,6 @@ class NewRelic::Control::Frameworks::Test < parent_class
     end
   end
 
-  def initialize *args
-    super
-    setup_log
-  end
   # Add the default route in case it's missing.  Need it for testing.
   def install_devmode_route
     super

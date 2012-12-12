@@ -29,9 +29,6 @@ module NewRelic
           end
           return File.expand_path(files.first)
         end
-        def to_stdout(msg)
-          STDOUT.puts msg
-        end
 
         def init_config(options={})
         end
