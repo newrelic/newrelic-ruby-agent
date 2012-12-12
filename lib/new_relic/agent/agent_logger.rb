@@ -14,6 +14,11 @@ module NewRelic
       end
 
       def initialize(config, root = "", options={})
+        create_log(config, root, options)
+        set_log_level!(config)
+      end
+
+      def create_log(config, root, options)
         if options.has_key?(:log)
           @log = options[:log]
         elsif config[:agent_enabled] == false
@@ -39,7 +44,25 @@ module NewRelic
         nil
       end
 
+      def set_log_level!(config)
+        @log.level = AgentLogger.log_level_for(config.fetch(:log_level, ""))
+      end
+
+      LOG_LEVELS = {
+        "debug" => Logger::DEBUG,
+        "info"  => Logger::INFO,
+        "warn"  => Logger::WARN,
+        "error" => Logger::ERROR,
+        "fatal" => Logger::FATAL,
+      }
+
+      def self.log_level_for(level)
+        LOG_LEVELS.fetch(level.to_s.downcase, Logger::INFO)
+      end
+
       class NullLogger
+        def level=(level); end
+
         def fatal(msg); end
         def error(msg); end
         def warn(msg); end
