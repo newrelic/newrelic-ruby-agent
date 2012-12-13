@@ -2,7 +2,19 @@ module NewRelic
   module Agent
     module Configuration
       DEFAULTS = {
-        :config_path => File.join('config', 'newrelic.yml'),
+        :config_path => Proc.new {
+          # Check a sequence of file locations for newrelic.yml
+          files = []
+          files << File.join("config","newrelic.yml")
+          files << File.join("newrelic.yml")
+          if ENV["HOME"]
+            files << File.join(ENV["HOME"], ".newrelic", "newrelic.yml")
+            files << File.join(ENV["HOME"], "newrelic.yml")
+          end
+          files.detect do |file|
+            File.expand_path(file) if File.exists? file
+          end
+        },
 
         :app_name   => Proc.new { NewRelic::Control.instance.env },
         :dispatcher => Proc.new { NewRelic::Control.instance.local_env.dispatcher },
