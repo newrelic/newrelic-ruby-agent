@@ -876,7 +876,7 @@ module NewRelic
 
         # Who am I? Well, this method can tell you your hostname.
         def determine_host
-          Socket.gethostname
+          Agent.config[:hostname] || Socket.gethostname
         end
 
         # Delegates to the control class to determine the root
