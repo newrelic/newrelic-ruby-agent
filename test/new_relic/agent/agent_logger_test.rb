@@ -35,6 +35,18 @@ class AgentLoggerTest < Test::Unit::TestCase
     end
   end
 
+
+  def test_forwards_calls_to_logger_with_multiple_arguments
+    [:fatal, :error, :warn, :info, :debug].each do |level|
+      override_logger = stub(:level=)
+      override_logger.expects(level).with("What\nup?")
+
+      logger = NewRelic::Agent::AgentLogger.new(@config, "", override_logger)
+
+      logger.send(level, "What", "up?")
+    end
+  end
+
   def test_wont_log_if_agent_not_enabled
     ::Logger.stubs(:new).with("/dev/null").returns(stub(:level=)).once
 

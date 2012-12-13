@@ -1,16 +1,31 @@
-require 'forwardable'
 require 'logger'
 
 module NewRelic
   module Agent
     class AgentLogger
 
-      extend Forwardable
-      def_delegators :@log, :fatal, :error, :info, :debug
+      def fatal(*msgs)
+        @log.fatal(format_messages(msgs))
+      end
 
-      # TODO Figure out if we can do better because of Kernel#warn interfering with Forwardable
-      def warn(msg)
-        @log.warn(msg)
+      def error(*msgs)
+        @log.error(format_messages(msgs))
+      end
+
+      def warn(*msgs)
+        @log.warn(format_messages(msgs))
+      end
+
+      def info(*msgs)
+        @log.info(format_messages(msgs))
+      end
+
+      def debug(*msgs)
+        @log.debug(format_messages(msgs))
+      end
+
+      def format_messages(*msgs)
+        msgs.join("\n")
       end
 
       def initialize(config, root = "", override_logger=nil)
