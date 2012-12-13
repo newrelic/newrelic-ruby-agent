@@ -60,7 +60,7 @@ module NewRelic
         options['app_name'] = ENV['NEWRELIC_APP_NAME'] if ENV['NEWRELIC_APP_NAME']
         options['app_name'] ||= ENV['NEW_RELIC_APP_NAME'] if ENV['NEW_RELIC_APP_NAME']
 
-        NewRelic::Agent.logger = NewRelic::Agent::AgentLogger.new(Agent.config, root, options.delete(:log))
+        ::NewRelic::Agent.logger = NewRelic::Agent::AgentLogger.new(Agent.config, root, options.delete(:log))
 
         # Merge the stringified options into the config as overrides:
         environment_name = options.delete(:env) and self.env = environment_name

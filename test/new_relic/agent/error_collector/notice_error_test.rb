@@ -126,7 +126,7 @@ class NewRelic::Agent::ErrorCollector::NoticeErrorTest < Test::Unit::TestCase
 
   def test_over_queue_limit_positive
     @errors = %w(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21)
-    NewRelic::Agent.logger.expects(:warn).with('The error reporting queue has reached 20. The error detail for this and subsequent errors will not be transmitted to New Relic until the queued errors have been sent: hooray')
+    ::NewRelic::Agent.logger.expects(:warn).with('The error reporting queue has reached 20. The error detail for this and subsequent errors will not be transmitted to New Relic until the queued errors have been sent: hooray')
     assert over_queue_limit?('hooray')
   end
 

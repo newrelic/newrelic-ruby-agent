@@ -25,18 +25,18 @@ module NewRelic
       # of configuration values from the server
       def initialize
         @browser_timing_header = build_browser_timing_header
-        NewRelic::Agent.logger.debug("Browser timing header: #{@browser_timing_header.inspect}")
+        ::NewRelic::Agent.logger.debug("Browser timing header: #{@browser_timing_header.inspect}")
         @browser_timing_static_footer = build_load_file_js
-        NewRelic::Agent.logger.debug("Browser timing static footer: #{@browser_timing_static_footer.inspect}")
+        ::NewRelic::Agent.logger.debug("Browser timing static footer: #{@browser_timing_static_footer.inspect}")
         if Agent.config[:'rum.jsonp']
-          NewRelic::Agent.logger.debug("Real User Monitoring is using JSONP protocol")
+          ::NewRelic::Agent.logger.debug("Real User Monitoring is using JSONP protocol")
           @finish_command = 'nrfj'
         else
           @finish_command = 'nrf2'
         end
 
         if !Agent.config[:'rum.enabled']
-          NewRelic::Agent.logger.warn("Real User Monitoring is disabled for this agent. Edit your configuration to change this.")
+          ::NewRelic::Agent.logger.warn("Real User Monitoring is disabled for this agent. Edit your configuration to change this.")
         end
       end
 

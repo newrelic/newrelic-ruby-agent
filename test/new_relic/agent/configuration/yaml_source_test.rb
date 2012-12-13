@@ -49,7 +49,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_should_log_if_no_file_is_found
-      NewRelic::Agent.logger.expects(:error)
+      ::NewRelic::Agent.logger.expects(:error)
       source = YamlSource.new('no_such_file.yml', 'test')
     end
 
@@ -72,11 +72,11 @@ module NewRelic::Agent::Configuration
     end
 
     def without_logger
-      logger = NewRelic::Agent.logger
-      NewRelic::Agent.logger = nil
+      logger = ::NewRelic::Agent.logger
+      ::NewRelic::Agent.logger = nil
       yield
     ensure
-      NewRelic::Agent.logger = logger
+      ::NewRelic::Agent.logger = logger
     end
   end
 end

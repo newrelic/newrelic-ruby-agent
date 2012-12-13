@@ -71,7 +71,7 @@ module NewRelic
 
         if data.sql_data.size > 0
           @samples_lock.synchronize do
-            NewRelic::Agent.logger.debug "Harvesting #{data.sql_data.size} slow transaction sql statement(s)"
+            ::NewRelic::Agent.logger.debug "Harvesting #{data.sql_data.size} slow transaction sql statement(s)"
             #FIXME get tx name and uri
             harvest_slow_sql data
           end

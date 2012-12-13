@@ -141,7 +141,7 @@ module NewRelic
     alias instance agent #:nodoc:
 
     # Primary interface to logging is fronted by this accessor
-    # Access via NewRelic::Agent.logger
+    # Access via ::NewRelic::Agent.logger
     attr_accessor :logger
 
     # Get or create a statistics gatherer that will aggregate numerical data

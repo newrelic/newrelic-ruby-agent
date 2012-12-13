@@ -51,7 +51,7 @@ module Agent
       end
 
       def log_added_sampler(type, sampler)
-        NewRelic::Agent.logger.debug "Adding #{type} sampler: #{sampler.id}"
+        ::NewRelic::Agent.logger.debug "Adding #{type} sampler: #{sampler.id}"
       end
 
       public
@@ -79,9 +79,9 @@ module Agent
             sampled_item.poll
             false # it's okay.  don't delete it.
           rescue => e
-            NewRelic::Agent.logger.error "Removing #{sampled_item} from list"
-            NewRelic::Agent.logger.error e
-            NewRelic::Agent.logger.debug e.backtrace.join("\n")
+            ::NewRelic::Agent.logger.error "Removing #{sampled_item} from list"
+            ::NewRelic::Agent.logger.error e
+            ::NewRelic::Agent.logger.debug e.backtrace.join("\n")
             true # remove the sampler
           end
         end

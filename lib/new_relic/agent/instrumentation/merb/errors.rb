@@ -10,7 +10,7 @@ DependencyDetection.defer do
   end
   
   executes do
-    NewRelic::Agent.logger.debug 'Installing Merb Errors instrumentation'
+    ::NewRelic::Agent.logger.debug 'Installing Merb Errors instrumentation'
   end
   
   executes do

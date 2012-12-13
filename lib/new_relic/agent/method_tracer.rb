@@ -180,8 +180,8 @@ module NewRelic
           def log_errors(code_area, metric)
             yield
           rescue => e
-            NewRelic::Agent.logger.error("Caught exception in #{code_area}. Metric name = #{metric}, exception = #{e}")
-            NewRelic::Agent.logger.error(e.backtrace.join("\n"))
+            ::NewRelic::Agent.logger.error("Caught exception in #{code_area}. Metric name = #{metric}, exception = #{e}")
+            ::NewRelic::Agent.logger.error(e.backtrace.join("\n"))
           end
           
           # provides the header for our traced execution scoped
@@ -327,7 +327,7 @@ module NewRelic
           # anything if the method doesn't exist.
           def newrelic_method_exists?(method_name)
             exists = method_defined?(method_name) || private_method_defined?(method_name)
-            NewRelic::Agent.logger.warn("Did not trace #{self.name}##{method_name} because that method does not exist") unless exists
+            ::NewRelic::Agent.logger.warn("Did not trace #{self.name}##{method_name} because that method does not exist") unless exists
             exists
           end
           
@@ -337,7 +337,7 @@ module NewRelic
           # to help with debugging custom instrumentation.
           def traced_method_exists?(method_name, metric_name_code)
             exists = method_defined?(_traced_method_name(method_name, metric_name_code))
-            NewRelic::Agent.logger.warn("Attempt to trace a method twice with the same metric: Method = #{method_name}, Metric Name = #{metric_name_code}") if exists
+            ::NewRelic::Agent.logger.warn("Attempt to trace a method twice with the same metric: Method = #{method_name}, Metric Name = #{metric_name_code}") if exists
             exists
           end
           
@@ -488,7 +488,7 @@ module NewRelic
           alias_method method_name, _traced_method_name(method_name, metric_name_code)
           send visibility, method_name
           send visibility, _traced_method_name(method_name, metric_name_code)
-          NewRelic::Agent.logger.debug("Traced method: class = #{self.name},"+
+          ::NewRelic::Agent.logger.debug("Traced method: class = #{self.name},"+
                     "method = #{method_name}, "+
                     "metric = '#{metric_name_code}'")
         end
@@ -501,7 +501,7 @@ module NewRelic
           if method_defined? "#{_traced_method_name(method_name, metric_name_code)}"
             alias_method method_name, "#{_untraced_method_name(method_name, metric_name_code)}"
             undef_method "#{_traced_method_name(method_name, metric_name_code)}"
-            NewRelic::Agent.logger.debug("removed method tracer #{method_name} #{metric_name_code}\n")
+            ::NewRelic::Agent.logger.debug("removed method tracer #{method_name} #{metric_name_code}\n")
           else
             raise "No tracer for '#{metric_name_code}' on method '#{method_name}'"
           end

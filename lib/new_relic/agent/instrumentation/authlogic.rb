@@ -8,7 +8,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.debug 'Installing AuthLogic instrumentation'
+    ::NewRelic::Agent.logger.debug 'Installing AuthLogic instrumentation'
   end  
   
   executes do

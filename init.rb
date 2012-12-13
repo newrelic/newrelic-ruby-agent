@@ -27,7 +27,7 @@ begin
   NewRelic::Control.instance.init_plugin :config => current_config
 
 rescue => e
-  NewRelic::Agent.logger.error "Error initializing New Relic plugin (#{e})"
-  NewRelic::Agent.logger.error  e.backtrace.join("\n")
-  NewRelic::Agent.logger.info  "Agent is disabled."
+  ::NewRelic::Agent.logger.error "Error initializing New Relic plugin (#{e})"
+  ::NewRelic::Agent.logger.error  e.backtrace.join("\n")
+  ::NewRelic::Agent.logger.info  "Agent is disabled."
 end

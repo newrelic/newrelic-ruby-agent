@@ -113,8 +113,8 @@ module NewRelic
       rescue => e
         begin
           # guarantees no throw from explain_sql
-          NewRelic::Agent.logger.error("Error getting query plan: #{e.message}")
-          NewRelic::Agent.logger.debug(e.backtrace.join("\n"))
+          ::NewRelic::Agent.logger.error("Error getting query plan: #{e.message}")
+          ::NewRelic::Agent.logger.debug(e.backtrace.join("\n"))
         rescue
           # double exception. throw up your hands
         end
@@ -145,8 +145,8 @@ module NewRelic
             connection = ActiveRecord::Base.send("#{config[:adapter]}_connection", config)
             @connections[config] = connection
           rescue => e
-            NewRelic::Agent.logger.error("Caught exception #{e} trying to get connection to DB for explain. Control: #{config}")
-            NewRelic::Agent.logger.error(e.backtrace.join("\n"))
+            ::NewRelic::Agent.logger.error("Caught exception #{e} trying to get connection to DB for explain. Control: #{config}")
+            ::NewRelic::Agent.logger.error(e.backtrace.join("\n"))
             nil
           end
         end

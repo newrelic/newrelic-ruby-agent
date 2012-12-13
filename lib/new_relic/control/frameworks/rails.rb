@@ -43,9 +43,9 @@ module NewRelic
           if !Agent.config[:agent_enabled]
             # Might not be running if it does not think mongrel, thin, passenger, etc
             # is running, if it thinks it's a rake task, or if the agent_enabled is false.
-            NewRelic::Agent.logger.debug("New Relic Agent not running.")
+            ::NewRelic::Agent.logger.debug("New Relic Agent not running.")
           else
-            NewRelic::Agent.logger.debug("Starting the New Relic Agent.")
+            ::NewRelic::Agent.logger.debug("Starting the New Relic Agent.")
             install_developer_mode rails_config if Agent.config[:developer_mode]
             install_browser_monitoring(rails_config)
           end
@@ -58,9 +58,9 @@ module NewRelic
           begin
             require 'new_relic/rack/browser_monitoring'
             config.middleware.use NewRelic::Rack::BrowserMonitoring
-            NewRelic::Agent.logger.info("Installed New Relic Browser Monitoring middleware")
+            ::NewRelic::Agent.logger.info("Installed New Relic Browser Monitoring middleware")
           rescue => e
-            NewRelic::Agent.logger.error("Error installing New Relic Browser Monitoring middleware: #{e.inspect}")
+            ::NewRelic::Agent.logger.error("Error installing New Relic Browser Monitoring middleware: #{e.inspect}")
           end
         end
 
@@ -76,14 +76,14 @@ module NewRelic
               # a webserver process
               if @local_env.dispatcher_instance_id
                 port = @local_env.dispatcher_instance_id.to_s =~ /^\d+/ ? ":#{local_env.dispatcher_instance_id}" : ":port"
-                NewRelic::Agent.logger.info("NewRelic Agent Developer Mode enabled.")
-                NewRelic::Agent.logger.info("To view performance information, go to http://localhost#{port}/newrelic")
+                ::NewRelic::Agent.logger.info("NewRelic Agent Developer Mode enabled.")
+                ::NewRelic::Agent.logger.info("To view performance information, go to http://localhost#{port}/newrelic")
               end
             rescue => e
-              NewRelic::Agent.logger.error("Error installing New Relic Developer Mode: #{e.inspect}")
+              ::NewRelic::Agent.logger.error("Error installing New Relic Developer Mode: #{e.inspect}")
             end
           elsif rails_config
-            NewRelic::Agent.logger.warn("Developer mode not available for Rails versions prior to 2.2")
+            ::NewRelic::Agent.logger.warn("Developer mode not available for Rails versions prior to 2.2")
           end
         end
 

@@ -45,7 +45,7 @@ module NewRelic
         # before we have set up logging. We don't normally wrap the logger
         # but here it makes sense to so we can get some error out if we fail.
         def startup_safe_log
-          NewRelic::Agent.logger || ::Logger.new(STDOUT)
+          ::NewRelic::Agent.logger || ::Logger.new(STDOUT)
         end
 
         def booleanify_values(config, *keys)

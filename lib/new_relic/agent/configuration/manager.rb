@@ -91,7 +91,7 @@ module NewRelic
               begin
                 thawed_layer[k] = instance_eval(&v) if v.respond_to?(:call)
               rescue => e
-                NewRelic::Agent.logger.debug("#{e.class.name} : #{e.message} - when accessing config key #{k}")
+                ::NewRelic::Agent.logger.debug("#{e.class.name} : #{e.message} - when accessing config key #{k}")
                 thawed_layer[k] = nil
               end
               thawed_layer.delete(:config)
