@@ -202,6 +202,17 @@ var e=document.createElement("script");'
     end
   end
 
+  def test_generate_footer_js_with_multiple_app_ids
+    with_config(:browser_key => 'a' * 40, :application_id => "appID1,appID2,appID3") do
+      self.expects(:browser_monitoring_start_time).at_least_once.returns(Time.at(100))
+      fake_bc = mock('beacon configuration')
+      NewRelic::Agent.instance.stubs(:beacon_configuration).returns(NewRelic::Agent::BeaconConfiguration.new)
+      footer = generate_footer_js(NewRelic::Agent.instance.beacon_configuration)
+      assert_no_match(/appID1,appID2,appID3/, footer, 'should not include all the appIDs')
+      assert_match(/appID1/, footer, 'should include the first appID')
+    end
+  end
+
   def test_browser_monitoring_transaction_name_basic
     mock = mock('transaction sample')
     NewRelic::Agent::TransactionInfo.set(mock)
