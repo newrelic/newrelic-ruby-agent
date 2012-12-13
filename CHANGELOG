@@ -34,7 +34,6 @@
     When the agent is configured to report to multiple "roll up" applications
     RUM did not work correctly.
 
->>>>>>> 3b105ce... RUBY-975 - Fix RUM reporting to multiple applications
 ## v3.5.3 ##
 
   * Update the collector protocol to use JSON and Ruby primitives
