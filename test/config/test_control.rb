@@ -8,11 +8,9 @@ if defined?(::Rails) && ::Rails.respond_to?(:version)
     NewRelic::Control::Frameworks::Rails4
   when 3
     NewRelic::Control::Frameworks::Rails3
-  else
-    NewRelic::Control::Frameworks::Rails
   end
 end
-
+parent_class ||= NewRelic::Control::Frameworks::Rails
 
 class NewRelic::Control::Frameworks::Test < parent_class
   def env
