@@ -29,6 +29,11 @@
     The host can be set with NEW_RELIC_HOST and the port with NEW_RELIC_PORT.  These setting
     will overrride any other settings in your newrelic.yml.
 
+  * Fix RUM reporting to multiple applications
+
+    When the agent is configured to report to multiple "roll up" applications
+    RUM did not work correctly.
+
 ## v3.5.3 ##
 
   * Update the collector protocol to use JSON and Ruby primitives

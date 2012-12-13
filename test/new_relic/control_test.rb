@@ -50,9 +50,11 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   end
 
   def test_test_config
-    if defined?(Rails) && Rails::VERSION::MAJOR.to_i == 3
+    if defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i == 4
+      assert_equal :rails4, control.app
+    elsif defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i == 3
       assert_equal :rails3, control.app
-    elsif defined?(Rails)
+    elsif defined?(::Rails)
       assert_equal :rails, control.app
     else
       assert_equal :test, control.app
@@ -61,7 +63,7 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     assert_match /test/i, control.local_env.dispatcher_instance_id
     assert("" == NewRelic::Agent.config[:dispatcher].to_s,
            "Expected dispatcher to be empty, but was #{NewRelic::Agent.config[:dispatcher].to_s}")
-    assert_equal false, NewRelic::Agent.config[:monitor_mode]
+    assert !NewRelic::Agent.config[:monitor_mode]
     control.local_env
   end
 
@@ -207,7 +209,7 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     NewRelic::Agent.shutdown
     with_config(:disable_samplers => true, :agent_enabled => true) do
       NewRelic::Control.instance.init_plugin
-      assert_equal [], NewRelic::Agent.instance.stats_engine.send(:harvest_samplers)
+      assert NewRelic::Agent.instance.stats_engine.send(:harvest_samplers).empty?
     end
   end
 end

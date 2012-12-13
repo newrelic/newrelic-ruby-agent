@@ -16,7 +16,7 @@ class DeveloperModeTest < Test::Unit::TestCase
   end
 
   def setup
-    @test_config = { 'developer_mode' => true }
+    @test_config = { :developer_mode => true }
     NewRelic::Agent.config.apply_config(@test_config)
     @sampler = NewRelic::Agent::TransactionSampler.new
     run_sample_trace_on(@sampler, '/here')

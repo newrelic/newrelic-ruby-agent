@@ -57,8 +57,6 @@ module NewRelic
         end
 
         Agent.config.replace_or_add_config(Agent::Configuration::ManualSource.new(options), 1)
-        options['app_name'] = ENV['NEWRELIC_APP_NAME'] if ENV['NEWRELIC_APP_NAME']
-        options['app_name'] ||= ENV['NEW_RELIC_APP_NAME'] if ENV['NEW_RELIC_APP_NAME']
 
         ::NewRelic::Agent.logger = NewRelic::Agent::AgentLogger.new(Agent.config, root, options.delete(:log))
 
@@ -78,7 +76,7 @@ module NewRelic
         if Agent.config[:agent_enabled] && !NewRelic::Agent.instance.started?
           start_agent
           install_instrumentation
-          load_samplers unless Agent.config['disable_samplers']
+          load_samplers unless Agent.config[:disable_samplers]
           local_env.gather_environment_info
           append_environment_info
         elsif !Agent.config[:agent_enabled]
@@ -138,7 +136,7 @@ module NewRelic
         File.expand_path(File.join(root,"config","newrelic.yml"))
       end
 
-      def initialize local_env, config_file_override=nil
+      def initialize(local_env, config_file_override=nil)
         @local_env = local_env
         @instrumentation_files = []
         @newrelic_file = config_file_override || config_file

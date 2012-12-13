@@ -33,7 +33,7 @@ module NewRelic
       def duration
         Time.now - start_time
       end
-      
+
       def ignore_end_user?
         @ignore_end_user
       end

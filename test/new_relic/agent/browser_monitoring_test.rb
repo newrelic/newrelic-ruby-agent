@@ -14,10 +14,11 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
       :beacon                 => 'beacon',
       :disable_mobile_headers => false,
       :browser_key            => 'browserKey',
-      :application_id         => 5,
+      :application_id         => '5, 6', # collector can return app multiple ids
       :'rum.enabled'          => true,
       :episodes_file          => 'this_is_my_file',
-      :'rum.jsonp'            => true
+      :'rum.jsonp'            => true,
+      :license_key            => 'a' * 40
     }
     NewRelic::Agent.config.apply_config(@config)
     @episodes_file = "this_is_my_file"
@@ -303,7 +304,7 @@ var e=document.createElement("script");'
     self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'product').returns('product')
 
     value = footer_js_string(NewRelic::Agent.instance.beacon_configuration)
-    assert_equal("<script type=\"text/javascript\">if (!NREUMQ.f) { NREUMQ.f=function() {\nNREUMQ.push([\"load\",new Date().getTime()]);\nvar e=document.createElement(\"script\");\ne.type=\"text/javascript\";\ne.src=((\"http:\"===document.location.protocol)?\"http:\":\"https:\") + \"//\" +\n  \"this_is_my_file\";\ndocument.body.appendChild(e);\nif(NREUMQ.a)NREUMQ.a();\n};\nNREUMQ.a=window.onload;window.onload=NREUMQ.f;\n};\nNREUMQ.push([\"nrfj\",\"beacon\",\"browserKey\",5,\"most recent transaction\",0,0,new Date().getTime(),\"ABC\",\"0123456789ABCDEF\",\"user\",\"account\",\"product\"]);</script>", value, "should return the javascript given some default values")
+    assert_equal(%'<script type="text/javascript">if (!NREUMQ.f) { NREUMQ.f=function() {\nNREUMQ.push(["load",new Date().getTime()]);\nvar e=document.createElement("script");\ne.type="text/javascript";\ne.src=(("http:"===document.location.protocol)?"http:":"https:") + "//" +\n  "this_is_my_file";\ndocument.body.appendChild(e);\nif(NREUMQ.a)NREUMQ.a();\n};\nNREUMQ.a=window.onload;window.onload=NREUMQ.f;\n};\nNREUMQ.push(["nrfj","beacon","browserKey","5, 6","most recent transaction",0,0,new Date().getTime(),"ABC","0123456789ABCDEF","user","account","product"]);</script>', value, "should return the javascript given some default values")
   end
 
   def test_html_safe_if_needed_unsafed
@@ -376,7 +377,7 @@ var e=document.createElement("script");'
     response = mobile_transaction
     txn_name = obfuscate(NewRelic::Agent.instance.beacon_configuration,
                          browser_monitoring_transaction_name)
-    expected_payload = %|["5","#{txn_name}",#{browser_monitoring_queue_time},#{browser_monitoring_app_time}]|
+    expected_payload = %|["5, 6","#{txn_name}",#{browser_monitoring_queue_time},#{browser_monitoring_app_time}]|
 
     assert_equal expected_payload, response['X-NewRelic-App-Server-Metrics'].strip
   end

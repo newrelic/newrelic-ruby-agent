@@ -13,7 +13,7 @@ module NewRelic
         def env
           @env ||= ::Rails.env.to_s
         end
-        
+
         # Rails can return an empty string from this method, causing
         # the agent not to start even when it is properly in a rails 3
         # application, so we test the value to make sure it actually
@@ -32,9 +32,13 @@ module NewRelic
           if Agent.config[:agent_enabled] && Agent.config[:'error_collector.enabled']
             if !rails_config.middleware.respond_to?(:include?) ||
                 !rails_config.middleware.include?(NewRelic::Rack::ErrorCollector)
-              rails_config.middleware.use NewRelic::Rack::ErrorCollector
+              add_error_collector_middleware
             end
           end
+        end
+
+        def add_error_collector_middleware
+          rails_config.middleware.use NewRelic::Rack::ErrorCollector
         end
 
         def vendor_root
@@ -57,6 +61,10 @@ module NewRelic
           local_env.append_gem_list do
             bundler_gem_list
           end
+          append_plugin_list
+        end
+
+        def append_plugin_list
           local_env.append_plugin_list { ::Rails.configuration.plugins.to_a }
         end
       end

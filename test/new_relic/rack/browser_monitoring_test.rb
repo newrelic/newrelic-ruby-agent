@@ -51,7 +51,8 @@ EOL
       :beacon => 'beacon',
       :application_id => 5,
       :'rum.enabled' => true,
-      :episodes_file => 'this_is_my_file'
+      :episodes_file => 'this_is_my_file',
+      :license_key => 'a' * 40
     }
     NewRelic::Agent.config.apply_config(@config)
     NewRelic::Agent.manual_start

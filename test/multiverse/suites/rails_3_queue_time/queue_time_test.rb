@@ -69,7 +69,7 @@ class QueueTimeTest < ActionDispatch::IntegrationTest
   end
 
   def extract_queue_time_from_response
-    @response.body =~ /key\",,\".*\",(\d+.*),\d+,new Date/
+    @response.body =~ /key\","",\".*\",(\d+.*),\d+,new Date/
     $1.to_i
   end
 end
