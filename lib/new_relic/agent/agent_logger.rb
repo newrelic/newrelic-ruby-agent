@@ -28,7 +28,7 @@ module NewRelic
       def format_messages(msgs)
         msgs.map do |msg|
           if msg.respond_to?(:backtrace)
-            "#{msg.class}: #{msg.to_s}\n\t#{msg.backtrace.join("\n\t")}"
+            "#{msg.class}: #{msg}\n\t#{msg.backtrace.join("\n\t")}"
           else
             msg
           end
