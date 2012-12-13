@@ -47,6 +47,21 @@ class AgentLoggerTest < Test::Unit::TestCase
     end
   end
 
+  def test_passing_exceptions_gets_pretty_formatting
+    caught = nil
+    begin
+      raise Exception.new("Boo!")
+    rescue Exception => e
+      caught = e
+    end
+
+    # Checking if it looks like message includes backtrace
+    override_logger = stub(:level=)
+    override_logger.expects(:debug).with {|msg| msg.include?("test_") }
+
+    NewRelic::Agent::AgentLogger.new(@config, "", override_logger).debug(e)
+  end
+
   def test_wont_log_if_agent_not_enabled
     ::Logger.stubs(:new).with("/dev/null").returns(stub(:level=)).once
 

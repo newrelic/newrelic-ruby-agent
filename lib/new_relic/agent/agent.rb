@@ -242,7 +242,6 @@ module NewRelic
             end
           rescue => e
             NewRelic::Agent.logger.error e
-            NewRelic::Agent.logger.error *e.backtrace
           end
           NewRelic::Agent.config.remove_config do |config|
             config.class == NewRelic::Agent::Configuration::ManualSource ||

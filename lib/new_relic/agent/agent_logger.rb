@@ -24,8 +24,15 @@ module NewRelic
         @log.debug(format_messages(msgs))
       end
 
-      def format_messages(*msgs)
-        msgs.join("\n")
+      # Allows for passing exceptions in explicitly, which format with backtrace
+      def format_messages(msgs)
+        msgs.map do |msg|
+          if msg.respond_to?(:backtrace)
+            "#{msg.class}: #{msg.to_s}\n\t#{msg.backtrace.join("\n\t")}"
+          else
+            msg
+          end
+        end.join("\n")
       end
 
       def initialize(config, root = "", override_logger=nil)
