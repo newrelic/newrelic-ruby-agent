@@ -56,8 +56,6 @@ module NewRelic
         end
 
         Agent.config.replace_or_add_config(Agent::Configuration::ManualSource.new(options), 1)
-        options['app_name'] = ENV['NEWRELIC_APP_NAME'] if ENV['NEWRELIC_APP_NAME']
-        options['app_name'] ||= ENV['NEW_RELIC_APP_NAME'] if ENV['NEW_RELIC_APP_NAME']
 
         # Merge the stringified options into the config as overrides:
         logger_override = options.delete(:log)
