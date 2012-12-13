@@ -15,6 +15,12 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     server = NewRelic::Control::Server.new('localhost', 30303)
     @service = NewRelic::Agent::NewRelicService.new('abcdef', server)
     log.stubs(:warn => true, :info => true, :debug => true)
+    @test_config = { :developer_mode => true }
+    NewRelic::Agent.config.apply_config(@test_config)
+  end
+
+  def teardown
+    NewRelic::Agent.config.remove_config(@test_config)
   end
 
   def control

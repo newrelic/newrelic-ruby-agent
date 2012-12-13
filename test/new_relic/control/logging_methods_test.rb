@@ -13,7 +13,7 @@ class NewRelic::Control::LoggingMethodsTest < Test::Unit::TestCase
     @base = BaseLoggingMethods.new
     NewRelic::Control.instance.instance_variable_set '@log_path', nil
     NewRelic::Control.instance.instance_variable_set '@log_file', nil
-    @root = ::Rails::VERSION::MAJOR == 3 ? Rails.root : RAILS_ROOT
+    @root = ::Rails::VERSION::MAJOR >= 3 ? Rails.root : RAILS_ROOT
     super
   end
 

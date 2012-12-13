@@ -274,10 +274,13 @@ module NewRelic
     end
 
     def check_rails_version
-      if Rails::VERSION::MAJOR < 3
+      case Rails::VERSION::MAJOR
+      when 0..2
         :rails
-      else
+      when 3
         :rails3
+      else
+        :rails4
       end
     end
 

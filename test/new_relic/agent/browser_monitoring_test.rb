@@ -17,7 +17,8 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
       :application_id         => '5, 6', # collector can return app multiple ids
       :'rum.enabled'          => true,
       :episodes_file          => 'this_is_my_file',
-      :'rum.jsonp'            => true
+      :'rum.jsonp'            => true,
+      :license_key            => 'a' * 40
     }
     NewRelic::Agent.config.apply_config(@config)
     @episodes_file = "this_is_my_file"

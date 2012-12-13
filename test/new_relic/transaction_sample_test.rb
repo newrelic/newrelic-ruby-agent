@@ -5,7 +5,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
   ::SQL_STATEMENT = "SELECT * from sandwiches"
 
   def setup
-    @test_config = { 'developer_mode' => true }
+    @test_config = { :developer_mode => true }
     NewRelic::Agent.config.apply_config(@test_config)
     @connection_stub = Mocha::Mockery.instance.named_mock('connection')
     @connection_stub.stubs(:execute).returns([['QUERY RESULT']])

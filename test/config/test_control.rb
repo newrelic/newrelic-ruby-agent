@@ -1,10 +1,16 @@
 require 'new_relic/control/frameworks/rails'
 require 'new_relic/control/frameworks/rails3'
+require 'new_relic/control/frameworks/rails4'
 
-if defined?(Rails) && Rails.respond_to?(:version) && Rails.version.to_i == 3
-  parent_class = NewRelic::Control::Frameworks::Rails3
-else
-  parent_class = NewRelic::Control::Frameworks::Rails
+if defined?(::Rails) && ::Rails.respond_to?(:version)
+  parent_class = case ::Rails.version.to_i
+  when 4
+    NewRelic::Control::Frameworks::Rails4
+  when 3
+    NewRelic::Control::Frameworks::Rails3
+  else
+    NewRelic::Control::Frameworks::Rails
+  end
 end
 
 
@@ -13,14 +19,18 @@ class NewRelic::Control::Frameworks::Test < parent_class
     'test'
   end
   def app
-    if defined?(Rails) && Rails.respond_to?(:version) && Rails.version.to_i == 3
-      :rails3
-    else
-      :rails
+    if defined?(::Rails::VERSION)
+      if ::Rails::VERSION::MAJOR.to_i == 4
+        :rails4
+      elsif ::Rails::VERSION::MAJOR.to_i == 3
+        :rails3
+      else
+        :rails
+      end
     end
   end
 
-  def initialize *args
+  def initialize(*args)
     super
     setup_log
   end

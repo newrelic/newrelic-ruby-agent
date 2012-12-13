@@ -82,7 +82,7 @@ module NewRelic
           setup_log unless logger_override
           start_agent
           install_instrumentation
-          load_samplers unless Agent.config['disable_samplers']
+          load_samplers unless Agent.config[:disable_samplers]
           local_env.gather_environment_info
           append_environment_info
         elsif !Agent.config[:agent_enabled]
@@ -142,7 +142,7 @@ module NewRelic
         File.expand_path(File.join(root,"config","newrelic.yml"))
       end
 
-      def initialize local_env, config_file_override=nil
+      def initialize(local_env, config_file_override=nil)
         @local_env = local_env
         @instrumentation_files = []
         @newrelic_file = config_file_override || config_file

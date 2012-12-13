@@ -24,7 +24,7 @@ test:
     - a
     - b
     - c
-  log_file_path: <%= ::Rails::VERSION::MAJOR == 3 ? Rails.root : RAILS_ROOT %>/log
+  log_file_path: <%= ::Rails::VERSION::MAJOR >= 3 ? Rails.root : RAILS_ROOT %>/log
 
   # Some fixtures for newrelic.yml parsing tests
   erb_value: <%= 'hey'*3 %>
