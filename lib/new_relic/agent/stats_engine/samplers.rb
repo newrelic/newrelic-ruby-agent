@@ -81,7 +81,7 @@ module Agent
           rescue => e
             NewRelic::Agent.logger.error "Removing #{sampled_item} from list"
             NewRelic::Agent.logger.error e
-            NewRelic::Agent.logger.debug e.backtrace.to_s
+            NewRelic::Agent.logger.debug e.backtrace.join("\n")
             true # remove the sampler
           end
         end

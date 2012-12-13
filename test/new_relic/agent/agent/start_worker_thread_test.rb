@@ -67,12 +67,12 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
   def test_handle_server_connection_problem
     error_class = mock('class of exception')
     error = mock('exception')
-    NewRelic::Agent.logger.expects(:error).with('Unable to establish connection with the server.  Run with log level set to debug for more information.')
+    NewRelic::Agent.logger.expects(:error).with('Unable to establish connection with the server.')
     error.expects(:class).returns(error_class)
     error_class.expects(:name).returns('an error class')
     error.expects(:message).returns('a message')
     error.expects(:backtrace).returns(['first line', 'second line'])
-    NewRelic::Agent.logger.expects(:debug).with("an error class: a message\nfirst line")
+    NewRelic::Agent.logger.expects(:error).with("an error class: a message\nfirst line")
     self.expects(:disconnect)
     handle_server_connection_problem(error)
   end

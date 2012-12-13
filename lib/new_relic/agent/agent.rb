@@ -516,8 +516,8 @@ module NewRelic
           # there is a problem with connecting to the server, so we
           # stop trying to connect and shut down the agent
           def handle_server_connection_problem(error)
-            NewRelic::Agent.logger.error "Unable to establish connection with the server.  Run with log level set to debug for more information."
-            NewRelic::Agent.logger.debug("#{error.class.name}: #{error.message}\n#{error.backtrace.first}")
+            NewRelic::Agent.logger.error "Unable to establish connection with the server."
+            NewRelic::Agent.logger.error "#{error.class.name}: #{error.message}\n#{error.backtrace.first}"
             disconnect
           end
 
@@ -768,7 +768,7 @@ module NewRelic
 
           def log_collector_messages(messages)
             messages.each do |message|
-              NewRelic::Agent.logger.send(message['level'].downcase.to_sym, message['message'])
+              NewRelic::Agent.logger.send(message['level'].downcase, message['message'])
             end
           end
         end

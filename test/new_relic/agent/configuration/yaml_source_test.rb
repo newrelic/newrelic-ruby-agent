@@ -74,9 +74,8 @@ module NewRelic::Agent::Configuration
     def without_logger
       logger = NewRelic::Agent.logger
       NewRelic::Agent.logger = nil
-
       yield
-
+    ensure
       NewRelic::Agent.logger = logger
     end
   end
