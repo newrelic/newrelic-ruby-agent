@@ -6,7 +6,7 @@ DependencyDetection.defer do
   end
   
   executes do
-    NewRelic::Agent.logger.debug 'Installing Net instrumentation'
+    ::NewRelic::Agent.logger.debug 'Installing Net instrumentation'
   end
   
   executes do

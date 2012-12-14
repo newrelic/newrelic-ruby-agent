@@ -104,7 +104,6 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
   end
 
   def test_log_errors_base
-    NewRelic::Control.instance.expects(:log).never
     ran = false
     log_errors("name", "metric") do
       ran = true
@@ -113,7 +112,6 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
   end
 
   def test_log_errors_with_return
-    NewRelic::Control.instance.expects(:log).never
     ran = false
     return_val = log_errors('name', 'metric') do
       ran = true
@@ -125,13 +123,11 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
   end
 
   def test_log_errors_with_error
-    fakelog = mock('log')
-    NewRelic::Control.instance.expects(:log).returns(fakelog).at_least_once
     # normally I don't do this, but we really don't care what the
     # backtrace looks like, beyond that it actually gets logged. Also,
     # the mocks are reversed because apparently order matters.
-    fakelog.expects(:error).with(any_parameters)
-    fakelog.expects(:error).with("Caught exception in name. Metric name = metric, exception = should not propagate out of block")
+    ::NewRelic::Agent.logger.expects(:error).with(any_parameters)
+    ::NewRelic::Agent.logger.expects(:error).with("Caught exception in name. Metric name = metric, exception = should not propagate out of block")
 
     log_errors("name", "metric") do
       raise "should not propagate out of block"
@@ -220,12 +216,6 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
     self.stubs(name).returns(object)
     object
   end
-
-
-  def mocked_log
-    mocked_object('log')
-  end
-
 
   def mocked_control
     mocked_object('control')

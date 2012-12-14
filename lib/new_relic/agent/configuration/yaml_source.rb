@@ -7,11 +7,13 @@ module NewRelic
         attr_accessor :file_path
 
         def initialize(path, env)
+          ::NewRelic::Agent.logger.debug("Reading configuration from #{path}")
+
           config = {}
           begin
             @file_path = File.expand_path(path)
             if !File.exists?(@file_path)
-              NewRelic::Control.instance.log.error("Unable to load configuration from #{path}")
+              ::NewRelic::Agent.logger.error("Unable to load configuration from #{path}")
               return
             end
 
@@ -25,7 +27,7 @@ module NewRelic
             erb = ERB.new(file).result(binding)
             config = merge!(YAML.load(erb)[env] || {})
           rescue ScriptError, StandardError => e
-            NewRelic::Control.instance.log.warn("Unable to read configuration file: #{e}")
+            ::NewRelic::Agent.logger.warn("Unable to read configuration file #{path}: #{e}")
           end
 
           if config['transaction_tracer'] &&

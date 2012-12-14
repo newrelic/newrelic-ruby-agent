@@ -14,8 +14,7 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   end
 
   def test_already_started_positive
-    control = mocked_control
-    control.expects(:log!).with("Agent Started Already!", :error)
+    ::Logger.any_instance.expects(:error).with("Agent Started Already!")
     self.expects(:started?).returns(true)
     assert already_started?, "should have already started"
   end
@@ -38,33 +37,29 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   end
 
   def test_log_dispatcher_positive
-    log = mocked_log
     with_config(:dispatcher => 'Y U NO SERVE WEBPAGE') do
-      log.expects(:info).with("Dispatcher: Y U NO SERVE WEBPAGE")
+      ::NewRelic::Agent.logger.expects(:info).with("Dispatcher: Y U NO SERVE WEBPAGE")
       log_dispatcher
     end
   end
 
   def test_log_dispatcher_negative
-    log = mocked_log
     with_config(:dispatcher => '') do
-      log.expects(:info).with("No dispatcher detected.")
+      ::NewRelic::Agent.logger.expects(:info).with("No dispatcher detected.")
       log_dispatcher
     end
   end
 
   def test_log_app_names_string
     with_config(:app_name => 'zam;zam;zabam') do
-      log = mocked_log
-      log.expects(:info).with("Application: zam, zam, zabam")
+      ::NewRelic::Agent.logger.expects(:info).with("Application: zam, zam, zabam")
       log_app_names
     end
   end
 
   def test_log_app_names_array
     with_config(:app_name => ['zam', 'zam', 'zabam']) do
-      log = mocked_log
-      log.expects(:info).with("Application: zam, zam, zabam")
+      ::NewRelic::Agent.logger.expects(:info).with("Application: zam, zam, zabam")
       log_app_names
     end
   end
@@ -72,16 +67,14 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   def test_log_app_names_with_env_var
     # bad app name after env - used to cover the yaml config
     with_config({:app_name => false}, 1) do
-      log = mocked_log
-      log.expects(:info).with("Application: start_test") # set in setup
+      ::NewRelic::Agent.logger.expects(:info).with("Application: start_test") # set in setup
       log_app_names
     end
   end
 
   def test_log_app_names_with_unknown
     with_config(:app_name => false) do
-      log = mocked_log
-      log.expects(:error).with('Unable to determine application name. Please set the application name in your newrelic.yml or in a NEW_RELIC_APP_NAME environment variable.')
+      ::NewRelic::Agent.logger.expects(:error).with('Unable to determine application name. Please set the application name in your newrelic.yml or in a NEW_RELIC_APP_NAME environment variable.')
       log_app_names
     end
   end
@@ -165,30 +158,15 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
     end
   end
 
-  def test_notify_log_file_location_positive
-    log = mocked_log
-    NewRelic::Control.instance.expects(:log_file).returns('./')
-    log.expects(:send).with(:info, "Agent Log at ./")
-    notify_log_file_location
-  end
-
-  def test_notify_log_file_location_negative
-    log = mocked_log
-    NewRelic::Control.instance.expects(:log_file).returns(nil)
-    notify_log_file_location
-  end
-
   def test_monitoring_positive
     with_config(:monitor_mode => true) do
-      log = mocked_log
       assert monitoring?
     end
   end
 
   def test_monitoring_negative
-    log = mocked_log
     with_config(:monitor_mode => false) do
-      log.expects(:send).with(:warn, "Agent configured not to send data in this environment.")
+      ::NewRelic::Agent.logger.expects(:send).with(:warn, "Agent configured not to send data in this environment.")
       assert !monitoring?
     end
   end
@@ -201,8 +179,7 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
 
   def test_has_license_key_negative
     with_config(:license_key => false) do
-      log = mocked_log
-      log.expects(:send).with(:warn, 'No license key found in newrelic.yml config.')
+      ::NewRelic::Agent.logger.expects(:send).with(:warn, 'No license key found in newrelic.yml config.')
       assert !has_license_key?
     end
   end
@@ -226,16 +203,14 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
 
   def test_correct_license_length_negative
     with_config(:license_key => 'a' * 30) do
-      log = mocked_log
-      log.expects(:send).with(:error, "Invalid license key: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+      ::NewRelic::Agent.logger.expects(:send).with(:error, "Invalid license key: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
       assert !correct_license_length
     end
   end
 
   def test_using_forking_dispatcher_positive
     with_config(:dispatcher => :passenger) do
-      log = mocked_log
-      log.expects(:send).with(:info, "Connecting workers after forking.")
+      ::NewRelic::Agent.logger.expects(:send).with(:info, "Connecting workers after forking.")
       assert using_forking_dispatcher?
     end
   end
@@ -250,16 +225,15 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
     # should not log
     assert log_unless(true, :warn, "DURRR")
   end
+
   def test_log_unless_negative
     # should log
-    log = mocked_log
-    log.expects(:send).with(:warn, "DURRR")
+    ::NewRelic::Agent.logger.expects(:send).with(:warn, "DURRR")
     assert !log_unless(false, :warn, "DURRR")
   end
 
   def test_log_if_positive
-    log = mocked_log
-    log.expects(:send).with(:warn, "WHEE")
+    ::NewRelic::Agent.logger.expects(:send).with(:warn, "WHEE")
     assert log_if(true, :warn, "WHEE")
   end
 
@@ -268,13 +242,6 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   end
 
   private
-
-  def mocked_log
-    fake_log = mock('log')
-    self.stubs(:log).returns(fake_log)
-    fake_log
-  end
-
 
   def mocked_control
     fake_control = mock('control')

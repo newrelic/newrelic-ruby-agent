@@ -12,10 +12,6 @@ module NewRelic
           @root ||= ENV['APP_ROOT'] || '.'
         end
 
-        def to_stdout(msg)
-          STDOUT.puts msg
-        end
-
         def init_config(options={})
         end
 

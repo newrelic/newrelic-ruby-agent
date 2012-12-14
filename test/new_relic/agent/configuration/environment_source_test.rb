@@ -5,12 +5,12 @@ module NewRelic::Agent::Configuration
   class EnvironmentSourceTest < Test::Unit::TestCase
 
     def setup
-      @old_env = ENV
-      ENV.replace({})
+      @original_env = {}
+      @original_env.replace(ENV)
     end
 
     def teardown
-      ENV.replace(@old_env)
+      ENV.replace(@original_env)
     end
 
     def test_environment_strings_are_applied

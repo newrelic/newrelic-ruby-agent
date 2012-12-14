@@ -16,11 +16,6 @@ module NewRelic
         Thread::current[:newrelic_scope_stack] = nil
         start_sampler_thread
       end
-
-      def log
-        NewRelic::Control.instance.log
-      end
-
     end
   end
 end

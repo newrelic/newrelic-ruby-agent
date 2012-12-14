@@ -200,12 +200,6 @@ module NewRelic
         @agent.merge_data_from([{}, [1,2,3], [4,5,6]])
       end
 
-      def test_should_not_log_log_file_location_if_no_log_file
-        NewRelic::Control.instance.stubs(:log_file).returns('/vasrkjn4b3b4')
-        @agent.expects(:log).never
-        @agent.notify_log_file_location
-      end
-
       def test_fill_metric_id_cache_from_collect_response
         response = [[{"scope"=>"Controller/blogs/index", "name"=>"Database/SQL/other"}, 1328],
                     [{"scope"=>"", "name"=>"WebFrontend/QueueTime"}, 10],

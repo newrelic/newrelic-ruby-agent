@@ -125,7 +125,7 @@ module NewRelic
 
         if processors == 0
           processors = 1 # assume there is at least one processor
-          NewRelic::Agent.logger.warn("Cannot determine the number of processors in #{proc_file}")
+          ::NewRelic::Agent.logger.warn("Cannot determine the number of processors in #{proc_file}")
         end
         processors
       end

@@ -49,8 +49,34 @@ module NewRelic::Agent::Configuration
     end
 
     def test_should_log_if_no_file_is_found
-      NewRelic::Control.instance.log.expects(:error)
+      ::NewRelic::Agent.logger.expects(:error)
       source = YamlSource.new('no_such_file.yml', 'test')
+    end
+
+    def test_should_not_fail_to_log_missing_file_during_startup
+      without_logger do
+        ::NewRelic::Agent::StartupLogger.any_instance.expects(:error)
+        source = YamlSource.new('no_such_file.yml', 'test')
+      end
+    end
+
+    def test_should_not_fail_to_log_invalid_file_during_startup
+      without_logger do
+        ::NewRelic::Agent::StartupLogger.any_instance.expects(:warn)
+
+        File.stubs(:exists?).returns(true)
+        File.stubs(:read).raises(StandardError.new("boo"))
+
+        source = YamlSource.new('fake.yml', 'test')
+      end
+    end
+
+    def without_logger
+      logger = ::NewRelic::Agent.logger
+      ::NewRelic::Agent.logger = nil
+      yield
+    ensure
+      ::NewRelic::Agent.logger = logger
     end
   end
 end
