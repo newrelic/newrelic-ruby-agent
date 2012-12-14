@@ -27,10 +27,6 @@ module NewRelic
           end
         end
 
-        def logger
-          ::Rails.logger
-        end
-
         def init_config(options={})
           super
           if Agent.config[:agent_enabled] && Agent.config[:'error_collector.enabled']
@@ -43,22 +39,6 @@ module NewRelic
 
         def add_error_collector_middleware
           rails_config.middleware.use NewRelic::Rack::ErrorCollector
-        end
-
-        def log!(msg, level=:info)
-          if should_log?
-            logger.send(level, msg)
-          else
-            super
-          end
-        rescue => e
-          super
-        end
-
-        def to_stdout(msg)
-          logger.info(msg)
-        rescue
-          super
         end
 
         def vendor_root

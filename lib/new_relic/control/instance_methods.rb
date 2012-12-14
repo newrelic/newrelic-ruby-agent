@@ -1,4 +1,5 @@
 require 'new_relic/language_support'
+require 'new_relic/agent/agent_logger'
 
 module NewRelic
   class Control
@@ -57,19 +58,15 @@ module NewRelic
 
         Agent.config.replace_or_add_config(Agent::Configuration::ManualSource.new(options), 1)
 
+        ::NewRelic::Agent.logger = NewRelic::Agent::AgentLogger.new(Agent.config, root, options.delete(:log))
+
         # Merge the stringified options into the config as overrides:
-        logger_override = options.delete(:log)
         environment_name = options.delete(:env) and self.env = environment_name
         dispatcher = options.delete(:dispatcher) and @local_env.dispatcher = dispatcher
         dispatcher_instance_id = options.delete(:dispatcher_instance_id) and @local_env.dispatcher_instance_id = dispatcher_instance_id
 
         NewRelic::Agent::PipeChannelManager.listener.start if options.delete(:start_channel_listener)
 
-        if logger_override
-          @log = logger_override
-          # Try to grab the log filename
-          @log_file = @log.instance_eval { @logdev.filename rescue nil }
-        end
         # An artifact of earlier implementation, we put both #add_method_tracer and #trace_execution
         # methods in the module methods.
         Module.send :include, NewRelic::Agent::MethodTracer::ClassMethods
@@ -77,7 +74,6 @@ module NewRelic
         init_config(options)
         NewRelic::Agent.agent = NewRelic::Agent::Agent.instance
         if Agent.config[:agent_enabled] && !NewRelic::Agent.instance.started?
-          setup_log unless logger_override
           start_agent
           install_instrumentation
           load_samplers unless Agent.config[:disable_samplers]

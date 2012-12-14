@@ -60,7 +60,7 @@ module NewRelic
             if specifiers.empty?
               self.newrelic_write_attr property, true
             elsif ! (Hash === specifiers)
-              logger.error "newrelic_#{property} takes an optional hash with :only and :except lists of actions (illegal argument type '#{specifiers.class}')"
+              ::NewRelic::Agent.logger.error "newrelic_#{property} takes an optional hash with :only and :except lists of actions (illegal argument type '#{specifiers.class}')"
             else
               self.newrelic_write_attr property, specifiers
             end
@@ -159,7 +159,7 @@ module NewRelic
             alias_method method.to_s, with_method_name
             send visibility, method
             send visibility, with_method_name
-            NewRelic::Control.instance.log.debug("Traced transaction: class = #{self.name}, method = #{method.to_s}, options = #{options.inspect}")
+            ::NewRelic::Agent.logger.debug("Traced transaction: class = #{self.name}, method = #{method.to_s}, options = #{options.inspect}")
           end
         end
 
@@ -449,8 +449,8 @@ module NewRelic
           end
           queue_start || now
         rescue => e
-          NewRelic::Control.instance.log.error("Error detecting upstream wait time: #{e}")
-          NewRelic::Control.instance.log.debug("#{e.backtrace[0..20]}")
+          ::NewRelic::Agent.logger.error("Error detecting upstream wait time: #{e}")
+          ::NewRelic::Agent.logger.debug("#{e.backtrace[0..20]}")
           now
         end
         

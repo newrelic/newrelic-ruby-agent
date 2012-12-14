@@ -140,6 +140,10 @@ module NewRelic
 
     alias instance agent #:nodoc:
 
+    # Primary interface to logging is fronted by this accessor
+    # Access via ::NewRelic::Agent.logger
+    attr_accessor :logger
+
     # Get or create a statistics gatherer that will aggregate numerical data
     # under a metric name.
     #
@@ -153,19 +157,6 @@ module NewRelic
     end
 
     alias get_stats_no_scope get_stats
-
-    # Get the logger for the agent.  Available after the agent has initialized.
-    # This sends output to the agent log file.  If the agent has not initialized
-    # a standard output logger is returned.
-    def logger
-      control = NewRelic::Control.instance(false)
-      if control && control.log
-        control.log
-      else
-        require 'logger'
-        @stdoutlog ||= Logger.new $stdout
-      end
-    end
 
     # Call this to manually start the Agent in situations where the Agent does
     # not auto-start.

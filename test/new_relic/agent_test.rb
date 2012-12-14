@@ -124,12 +124,6 @@ module NewRelic
       NewRelic::Agent.shutdown
     end
 
-    def test_logger
-      control = mocked_control
-      control.expects(:log)
-      NewRelic::Agent.logger
-    end
-
     def test_browser_timing_header
       agent = mocked_agent
       agent.expects(:browser_timing_header)

@@ -3,10 +3,10 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 
 class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
   def setup
-    @log = ""
-    @logger = Logger.new(StringIO.new(@log))
+    @logger = Logger.new(StringIO.new(""))
+    ::NewRelic::Agent.logger = @logger
+
     @worker_loop = NewRelic::Agent::WorkerLoop.new
-    @worker_loop.stubs(:log).returns(@logger)
     @test_start_time = Time.now
   end
 

@@ -3,6 +3,15 @@ require 'new_relic/agent/configuration/environment_source'
 
 module NewRelic::Agent::Configuration
   class EnvironmentSourceTest < Test::Unit::TestCase
+    def setup
+      @original_env = {}
+      @original_env.replace(ENV)
+    end
+
+    def teardown
+      ENV.replace(@original_env)
+    end
+
     def test_environment_strings_are_applied
       assert_applied_string 'NRCONFIG', 'config_path'
       assert_applied_string 'NEW_RELIC_LICENSE_KEY', 'license_key'
