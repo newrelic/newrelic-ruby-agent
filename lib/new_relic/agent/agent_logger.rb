@@ -4,6 +4,14 @@ module NewRelic
   module Agent
     class AgentLogger
 
+      def initialize(config, root = "", override_logger=nil)
+        create_log(config, root, override_logger)
+        set_log_level!(config)
+        set_log_format!
+
+        gather_startup_logs
+      end
+
       def fatal(*msgs)
         @log.fatal(format_messages(msgs))
       end
@@ -33,12 +41,6 @@ module NewRelic
             msg
           end
         end.join("\n")
-      end
-
-      def initialize(config, root = "", override_logger=nil)
-        create_log(config, root, override_logger)
-        set_log_level!(config)
-        set_log_format!
       end
 
       def create_log(config, root, override_logger)
@@ -95,6 +97,49 @@ module NewRelic
         def @log.format_message(severity, timestamp, progname, msg)
           "[#{timestamp.strftime("%m/%d/%y %H:%M:%S %z")} #{Socket.gethostname} (#{$$})] #{severity} : #{msg}\n"
         end
+      end
+
+      def gather_startup_logs
+        StartupLogger.instance.dump(self)
+      end
+    end
+
+    # In an effort to not lose messages during startup, we trap them in memory
+    # The real logger will then dump its contents out when it arrives.
+    class StartupLogger
+      include Singleton
+
+      def initialize
+        @messages = []
+      end
+
+      attr_accessor :messages
+
+      def fatal(*msgs)
+        messages << [:fatal, msgs]
+      end
+
+      def error(*msgs)
+        messages << [:error, msgs]
+      end
+
+      def warn(*msgs)
+        messages << [:warn, msgs]
+      end
+
+      def info(*msgs)
+        messages << [:info, msgs]
+      end
+
+      def debug(*msgs)
+        messages << [:debug, msgs]
+      end
+
+      def dump(logger)
+        messages.each do |msg|
+          logger.send(msg[0], msg[1])
+        end
+        messages.clear
       end
     end
   end

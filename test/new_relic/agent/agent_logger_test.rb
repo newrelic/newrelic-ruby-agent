@@ -110,4 +110,15 @@ class AgentLoggerTest < Test::Unit::TestCase
     assert_equal stdout, logger.instance_variable_get(:@log)
   end
 
+  def test_startup_purges_memory_logger
+    [:fatal, :error, :warn, :info, :debug].each do |level|
+      ::NewRelic::Agent::StartupLogger.instance.send(level, "boo!")
+
+      override_logger = stub(:level=)
+      override_logger.expects(level).with("boo!")
+
+      NewRelic::Agent::AgentLogger.new(@config, "", override_logger)
+    end
+  end
+
 end

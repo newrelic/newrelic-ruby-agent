@@ -55,14 +55,14 @@ module NewRelic::Agent::Configuration
 
     def test_should_not_fail_to_log_missing_file_during_startup
       without_logger do
-        ::Logger.any_instance.expects(:error)
+        ::NewRelic::Agent::StartupLogger.any_instance.expects(:error)
         source = YamlSource.new('no_such_file.yml', 'test')
       end
     end
 
     def test_should_not_fail_to_log_invalid_file_during_startup
       without_logger do
-        ::Logger.any_instance.expects(:warn)
+        ::NewRelic::Agent::StartupLogger.any_instance.expects(:warn)
 
         File.stubs(:exists?).returns(true)
         File.stubs(:read).raises(StandardError.new("boo"))

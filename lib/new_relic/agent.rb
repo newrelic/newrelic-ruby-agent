@@ -142,7 +142,13 @@ module NewRelic
 
     # Primary interface to logging is fronted by this accessor
     # Access via ::NewRelic::Agent.logger
-    attr_accessor :logger
+    def logger
+      @logger || StartupLogger.instance
+    end
+
+    def logger=(log)
+      @logger = log
+    end
 
     # Get or create a statistics gatherer that will aggregate numerical data
     # under a metric name.
