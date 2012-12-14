@@ -12,23 +12,37 @@
 class ConfigFileLoadingTest < Test::Unit::TestCase
 
   def setup
+    # While FakeFS stubs out all the File system related libraries (i.e. File,
+    # FileUtils, Dir, etc.)  It doesn't handle the Logger library that is used
+    # to create the agent log file.  Therefore we check for the presence of the
+    # log directory in the FakeFS, then error when we try to open the file in
+    # the Real FS.  Set the log file to /dev/null to work around this issue.
+    # It's incidental to the functionality being tested.
+    #
+    # '/dev/null' can be changed to 'stdout' if more debugging output is needed
+    # in these tests.
+    ENV['NEW_RELIC_LOG'] = '/dev/null'
+
+    # Figure out where multiverse is in the real file system.
     @cwd = Dir.pwd
     # Use a fake file system so we don't damage the real one.
     FakeFS.activate!
+    FakeFS::FileSystem.clear
+
     # require the agent after we're in FakeFS
     require 'newrelic_rpm'
-    FakeFS::FileSystem.clear
+
+    FileUtils.mkdir_p(@cwd)
   end
 
   def teardown
+    ENV['NEW_RELIC_LOG'] = nil
     FakeFS.deactivate!
   end
 
   def setup_config(path)
     NewRelic::Agent.shutdown
-
     FileUtils.mkdir_p(File.dirname(path))
-    FileUtils.mkdir_p(@cwd)
     Dir.chdir @cwd
     File.open(path, 'w') do |f|
       f.print <<-YAML
