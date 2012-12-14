@@ -7,11 +7,13 @@ module NewRelic
         attr_accessor :file_path
 
         def initialize(path, env)
+          ::NewRelic::Agent.logger.debug("Reading configuration from #{path}")
+
           config = {}
           begin
             @file_path = File.expand_path(path)
             if !File.exists?(@file_path)
-              startup_safe_log.error("Unable to load configuration from #{path}")
+              ::NewRelic::Agent.logger.error("Unable to load configuration from #{path}")
               return
             end
 
@@ -25,7 +27,7 @@ module NewRelic
             erb = ERB.new(file).result(binding)
             config = merge!(YAML.load(erb)[env] || {})
           rescue ScriptError, StandardError => e
-            startup_safe_log.warn("Unable to read configuration file #{path}: #{e}")
+            ::NewRelic::Agent.logger.warn("Unable to read configuration file #{path}: #{e}")
           end
 
           if config['transaction_tracer'] &&
@@ -40,13 +42,6 @@ module NewRelic
         end
 
         protected
-
-        # This class specifically gets used at the very top of our startup
-        # before we have set up logging. We don't normally wrap the logger
-        # but here it makes sense to so we can get some error out if we fail.
-        def startup_safe_log
-          ::NewRelic::Agent.logger || ::Logger.new(STDOUT)
-        end
 
         def booleanify_values(config, *keys)
           # auto means defer ro default
