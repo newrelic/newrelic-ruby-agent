@@ -249,6 +249,7 @@ module NewRelic
               config.class == NewRelic::Agent::Configuration::ServerSource
           end
           @started = nil
+          Control.reset
         end
 
         # Tells the statistics engine we are starting a new transaction

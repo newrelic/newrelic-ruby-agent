@@ -9,6 +9,12 @@ module NewRelic
         @instance ||= create && new_instance
       end
 
+      # clear out memoized Control and LocalEnv instances
+      def reset
+        @instance = nil
+        @local_env = nil
+      end
+
       # Access the LocalEnvironment singleton, lazy initialized
       def local_env
         @local_env ||= NewRelic::LocalEnvironment.new

@@ -27,11 +27,6 @@ class ConfigFileLoadingTest < Test::Unit::TestCase
   def setup_config(path)
     NewRelic::Agent.shutdown
 
-    # create a fresh Control each test case
-    # FIXME: This feels dirty but's it's necessary since Agent.shutdown doesn't
-    # clear the Control singleton.
-    NewRelic::Control.instance_variable_set(:@instance,nil)
-
     FileUtils.mkdir_p(File.dirname(path))
     FileUtils.mkdir_p(@cwd)
     Dir.chdir @cwd

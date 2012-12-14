@@ -2,11 +2,14 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
 require 'ostruct'
 
 module NewRelic
+  # mostly this class just passes through to the active agent
+  # through the agent method or the control instance through
+  # NewRelic::Control.instance . But it's nice to make sure.
   class MainAgentTest < Test::Unit::TestCase
 
-    # mostly this module just passes through to the active agent
-    # through the agent method or the control instance through
-    # NewRelic::Control.instance . But it's nice to make sure.
+    def setup
+      NewRelic::Agent.reset_config
+    end
 
     def teardown
       super
