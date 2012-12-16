@@ -16,6 +16,7 @@ class NewRelic::Control::Frameworks::Test < parent_class
   def env
     'test'
   end
+
   def app
     if defined?(::Rails::VERSION)
       if ::Rails::VERSION::MAJOR.to_i == 4

@@ -15,10 +15,28 @@ module NewRelic
             File.expand_path(file) if File.exists? file
           end
         },
-
         :app_name   => Proc.new { NewRelic::Control.instance.env },
         :dispatcher => Proc.new { NewRelic::Control.instance.local_env.discovered_dispatcher },
-
+        :framework => Proc.new do
+          case
+          when defined?(::NewRelic::TEST) then :test
+          when defined?(::Merb) && defined?(::Merb::Plugins) then :merb
+          when defined?(::Rails)
+            case Rails::VERSION::MAJOR
+            when 0..2
+              :rails
+            when 3
+              :rails3
+            when 4
+              :rails4
+            else
+              Agent.logger.error "Detected unsupported Rails version #{Rails::VERSION::STRING}"
+            end
+          when defined?(::Sinatra) && defined?(::Sinatra::Base) then :sinatra
+          when defined?(::NewRelic::IA) then :external
+          else :ruby
+          end
+        end,
         :enabled         => true,
         :monitor_mode    => Proc.new { self[:enabled] },
         :agent_enabled   => Proc.new do

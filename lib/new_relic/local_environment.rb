@@ -5,7 +5,6 @@ module NewRelic
   # An instance of LocalEnvironment is responsible for determining
   # three things:
   #
-  # * Framework - :rails, :rails3, :merb, :ruby, :external, :test
   # * Dispatcher - A supported dispatcher, or nil (:mongrel, :thin, :passenger, :webrick, etc)
   # * Dispatcher Instance ID, which distinguishes agents on a single host from each other
   #
@@ -22,8 +21,6 @@ module NewRelic
 
     # used to distinguish instances of a dispatcher from each other, may be nil
     attr_writer :dispatcher_instance_id
-    # rails, rails3, merb, external, ruby, test, etc
-    attr_accessor :framework
     # The number of cpus, if detected, or nil - many platforms do not
     # support this :(
     attr_reader :processors
@@ -36,7 +33,6 @@ module NewRelic
         self.extend mod if mod.instance_of? Module
       end
 
-      discover_framework
       discover_dispatcher
       @discovered_dispatcher = nil if @discovered_dispatcher == :none
       @gems = Set.new
@@ -51,9 +47,8 @@ module NewRelic
     def append_environment_value(name, value = nil)
       value = yield if block_given?
       @config[name] = value if value
-    rescue
-      # puts "#{e}\n  #{e.backtrace.join("\n  ")}"
-      raise if @framework == :test
+    rescue => e
+      Agent.logger.error e
     end
     
     # yields to the block and appends the returned value to the list
@@ -61,17 +56,15 @@ module NewRelic
     def append_gem_list
       @gems += yield
     rescue => e
-      # puts "#{e}\n  #{e.backtrace.join("\n  ")}"
-      raise if @framework == :test
+      Agent.logger.error e
     end
     
     # yields to the block and appends the returned value to the list
     # of plugins - this catches errors that might be raised in the block
     def append_plugin_list
       @plugins += yield
-    rescue
-      # puts "#{e}\n  #{e.backtrace.join("\n  ")}"
-      raise if @framework == :test
+    rescue => e
+      Agent.logger.error e
     end
     
     # An instance id pulled from either @dispatcher_instance_id or by
@@ -200,7 +193,7 @@ module NewRelic
     # Collect base statistics about the environment and record them for
     # comparison and change detection.
     def gather_environment_info
-      append_environment_value 'Framework', @framework.to_s
+      append_environment_value 'Framework', Agent.config[:framework].to_s
       append_environment_value 'Dispatcher', Agent.config[:dispatcher].to_s if Agent.config[:dispatcher]
       append_environment_value 'Dispatcher instance id', @dispatcher_instance_id if @dispatcher_instance_id
       append_environment_value('Environment') { NewRelic::Control.instance.env }
@@ -247,41 +240,12 @@ module NewRelic
     
     private
 
-    # Although you can override the framework with NEWRELIC_DISPATCHER this
+    # Although you can override the dispatcher with NEWRELIC_DISPATCHER this
     # is not advisable since it implies certain api's being available.
     def discover_dispatcher
       dispatchers = %w[passenger torquebox glassfish thin mongrel litespeed webrick fastcgi unicorn sinatra]
       while dispatchers.any? && @discovered_dispatcher.nil?
         send 'check_for_'+(dispatchers.shift)
-      end
-    end
-
-    def discover_framework
-      # Although you can override the framework with NEWRELIC_FRAMEWORK this
-      # is not advisable since it implies certain api's being available.
-      #
-      # Note that the odd defined? sequence is necessary to work around a bug in an older version
-      # of JRuby.
-      @framework ||= case
-                     when ENV['NEWRELIC_FRAMEWORK'] then ENV['NEWRELIC_FRAMEWORK'].to_sym
-                     when ENV['NEW_RELIC_FRAMEWORK'] then ENV['NEW_RELIC_FRAMEWORK'].to_sym
-                     when defined?(::NewRelic::TEST) then :test
-                     when defined?(::Merb) && defined?(::Merb::Plugins) then :merb
-                     when defined?(::Rails) then check_rails_version
-                     when defined?(::Sinatra) && defined?(::Sinatra::Base) then :sinatra
-                     when defined?(::NewRelic::IA) then :external
-                     else :ruby
-                     end
-    end
-
-    def check_rails_version
-      case Rails::VERSION::MAJOR
-      when 0..2
-        :rails
-      when 3
-        :rails3
-      else
-        :rails4
       end
     end
 
@@ -421,7 +385,6 @@ module NewRelic
     # outputs a human-readable description
     def to_s
       s = "LocalEnvironment["
-      s << @framework.to_s
       s << ";dispatcher=#{@discovered_dispatcher}" if @discovered_dispatcher
       s << ";instance=#{@dispatcher_instance_id}" if @dispatcher_instance_id
       s << "]"

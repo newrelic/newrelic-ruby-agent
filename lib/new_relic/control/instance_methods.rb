@@ -20,7 +20,6 @@ module NewRelic
       # machine-dependent information useful in debugging
       attr_reader :local_env
 
-
       # Initialize the plugin/gem and start the agent.  This does the
       # necessary configuration based on the framework environment and
       # determines whether or not to start the agent.  If the agent is
@@ -87,14 +86,12 @@ module NewRelic
         NewRelic::Agent.agent.start
       end
 
-      # Asks the LocalEnvironment instance which framework should be loaded
       def app
-        @local_env.framework
+        Agent.config[:framework]
       end
-      alias framework app
 
-      def to_s #:nodoc:
-        "Control[#{self.app}]"
+      def framework
+        Agent.config[:framework]
       end
 
       # for backward compatibility with the old config interface
