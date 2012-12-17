@@ -52,7 +52,6 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
   end
 
   def test_task_error__standard
-    @logger.expects(:debug)
     @logger.expects(:error)
     # This loop task will run twice
     done = false
@@ -68,7 +67,6 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
 
   def test_task_error__exception
     @logger.expects(:error).once
-    @logger.expects(:debug).once
     @worker_loop.run(0) do
       @worker_loop.stop
       raise BadBoy, "oops"

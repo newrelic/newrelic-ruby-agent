@@ -65,8 +65,7 @@ module NewRelic
       def resolve_ip_address(host)
         Resolv.getaddress(host)
       rescue => e
-        ::NewRelic::Agent.logger.warn("DNS Error caching IP address: #{e}")
-        ::NewRelic::Agent.logger.debug(e.backtrace.join("\n   "))
+        ::NewRelic::Agent.logger.warn("DNS Error caching IP address:", e)
         begin
           ::NewRelic::Agent.logger.info("Trying native DNS lookup since Resolv failed")
           IPSocket.getaddress(host)

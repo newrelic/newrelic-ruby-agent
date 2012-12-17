@@ -79,9 +79,7 @@ module Agent
             sampled_item.poll
             false # it's okay.  don't delete it.
           rescue => e
-            ::NewRelic::Agent.logger.error "Removing #{sampled_item} from list"
-            ::NewRelic::Agent.logger.error e
-            ::NewRelic::Agent.logger.debug e.backtrace.join("\n")
+            ::NewRelic::Agent.logger.error "Removing #{sampled_item} from list", e
             true # remove the sampler
           end
         end

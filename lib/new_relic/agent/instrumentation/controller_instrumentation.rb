@@ -449,8 +449,7 @@ module NewRelic
           end
           queue_start || now
         rescue => e
-          ::NewRelic::Agent.logger.error("Error detecting upstream wait time: #{e}")
-          ::NewRelic::Agent.logger.debug("#{e.backtrace[0..20]}")
+          ::NewRelic::Agent.logger.error("Error detecting upstream wait time:", e)
           now
         end
         

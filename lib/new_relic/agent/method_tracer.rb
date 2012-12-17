@@ -180,8 +180,7 @@ module NewRelic
           def log_errors(code_area, metric)
             yield
           rescue => e
-            ::NewRelic::Agent.logger.error("Caught exception in #{code_area}. Metric name = #{metric}, exception = #{e}")
-            ::NewRelic::Agent.logger.error(e.backtrace.join("\n"))
+            ::NewRelic::Agent.logger.error("Caught exception in #{code_area}. Metric name = #{metric}", e)
           end
           
           # provides the header for our traced execution scoped

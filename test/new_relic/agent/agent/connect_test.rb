@@ -106,23 +106,24 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   end
 
   def test_log_error
-    error = mock('error')
-    error.expects(:backtrace).once.returns(["line", "secondline"])
-    error.expects(:message).once.returns("message")
+    error = StandardError.new("message")
+
     fake_control = mock()
     fake_control.expects(:server).returns("server")
     self.expects(:control).once.returns(fake_control)
-    ::NewRelic::Agent.logger.expects(:error).with("Error establishing connection with New Relic Service at server: message")
-    ::NewRelic::Agent.logger.expects(:debug).with("line\nsecondline")
+
+    ::NewRelic::Agent.logger.expects(:error).with( \
+      includes("Error establishing connection with New Relic Service at server"), \
+      instance_of(StandardError))
+
     log_error(error)
   end
 
   def test_handle_license_error
-    error = mock('error')
+    error = mock(:message => "error message")
     self.expects(:disconnect).once
     ::NewRelic::Agent.logger.expects(:error).once.with("error message")
     ::NewRelic::Agent.logger.expects(:info).once.with("Visit NewRelic.com to obtain a valid license key, or to upgrade your account.")
-    error.expects(:message).returns("error message")
     handle_license_error(error)
   end
 

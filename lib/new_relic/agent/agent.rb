@@ -516,8 +516,7 @@ module NewRelic
           # there is a problem with connecting to the server, so we
           # stop trying to connect and shut down the agent
           def handle_server_connection_problem(error)
-            ::NewRelic::Agent.logger.error "Unable to establish connection with the server."
-            ::NewRelic::Agent.logger.error "#{error.class.name}: #{error.message}\n#{error.backtrace.first}"
+            ::NewRelic::Agent.logger.error "Unable to establish connection with the server.", error
             disconnect
           end
 
@@ -525,7 +524,7 @@ module NewRelic
           # it and disconnecting the agent, since we are now in an
           # unknown state
           def handle_other_error(error)
-            ::NewRelic::Agent.logger.error "Terminating worker loop: #{error.class.name}: #{error.message}\n  #{error.backtrace.join("\n  ")}"
+            ::NewRelic::Agent.logger.error "Terminating worker loop.", error
             disconnect
           end
 
@@ -654,8 +653,7 @@ module NewRelic
           # to tell the user what happened, since this is not an error
           # we can handle gracefully.
           def log_error(error)
-            ::NewRelic::Agent.logger.error "Error establishing connection with New Relic Service at #{control.server}: #{error.message}"
-            ::NewRelic::Agent.logger.debug error.backtrace.join("\n")
+            ::NewRelic::Agent.logger.error "Error establishing connection with New Relic Service at #{control.server}:", error
           end
 
           # When the server sends us an error with the license key, we

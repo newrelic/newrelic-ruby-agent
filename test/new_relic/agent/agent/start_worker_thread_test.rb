@@ -41,9 +41,9 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
 
   def test_handle_force_restart
     # hooray for methods with no branches
-    error = mock('exception')
-    error.expects(:message).returns('a message')
+    error = mock(:message => 'a message')
     ::NewRelic::Agent.logger.expects(:info).with('a message')
+
     self.expects(:reset_stats)
     self.expects(:sleep).with(30)
 
@@ -57,34 +57,31 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
   end
 
   def test_handle_force_disconnect
-    error = mock('exception')
-    error.expects(:message).returns('a message')
+    error = mock(:message => 'a message')
     ::NewRelic::Agent.logger.expects(:error).with("New Relic forced this agent to disconnect (a message)")
+
     self.expects(:disconnect)
     handle_force_disconnect(error)
   end
 
   def test_handle_server_connection_problem
-    error_class = mock('class of exception')
-    error = mock('exception')
-    ::NewRelic::Agent.logger.expects(:error).with('Unable to establish connection with the server.')
-    error.expects(:class).returns(error_class)
-    error_class.expects(:name).returns('an error class')
-    error.expects(:message).returns('a message')
-    error.expects(:backtrace).returns(['first line', 'second line'])
-    ::NewRelic::Agent.logger.expects(:error).with("an error class: a message\nfirst line")
+    error = StandardError.new('a message')
+
+    ::NewRelic::Agent.logger.expects(:error).with( \
+      includes('Unable to establish connection with the server.'),
+      instance_of(StandardError))
+
     self.expects(:disconnect)
     handle_server_connection_problem(error)
   end
 
   def test_handle_other_error
-    error_class = mock('class of exception')
-    error = mock('exception')
-    error.expects(:class).returns(error_class)
-    error_class.expects(:name).returns('an error class')
-    error.expects(:message).returns('a message')
-    error.expects(:backtrace).returns(['first line', 'second line'])
-    ::NewRelic::Agent.logger.expects(:error).with("Terminating worker loop: an error class: a message\n  first line\n  second line")
+    error = StandardError.new('a message')
+
+    ::NewRelic::Agent.logger.expects(:error).with( \
+      includes("Terminating worker loop"), \
+      instance_of(StandardError))
+
     self.expects(:disconnect)
     handle_other_error(error)
   end

@@ -9,17 +9,13 @@ module NewRelic
       # This requires the files within a rescue block, so that any
       # errors within instrumentation files do not affect the overall
       # agent or application in which it runs.
-      #
-      # Logs at debug level for each file loaded, and logs errors in
-      # file loading at error level
       def load_instrumentation_files pattern
         Dir.glob(pattern) do |file|
           begin
             ::NewRelic::Agent.logger.debug "Processing instrumentation file '#{file}'"
             require file.to_s
           rescue => e
-            ::NewRelic::Agent.logger.error "Error loading instrumentation file '#{file}': #{e}"
-            ::NewRelic::Agent.logger.debug e.backtrace.join("\n")
+            ::NewRelic::Agent.logger.error "Error loading instrumentation file '#{file}':", e
           end
         end
       end
@@ -72,7 +68,7 @@ module NewRelic
           rescue NewRelic::Agent::Sampler::Unsupported => e
             ::NewRelic::Agent.logger.info "#{subclass} sampler not available: #{e}"
           rescue => e
-            ::NewRelic::Agent.logger.error "Error registering sampler: #{e}, #{e.backtrace.join("\n")}"
+            ::NewRelic::Agent.logger.error "Error registering sampler:", e
           end
         end
       end

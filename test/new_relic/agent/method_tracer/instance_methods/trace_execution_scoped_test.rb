@@ -123,11 +123,9 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
   end
 
   def test_log_errors_with_error
-    # normally I don't do this, but we really don't care what the
-    # backtrace looks like, beyond that it actually gets logged. Also,
-    # the mocks are reversed because apparently order matters.
-    ::NewRelic::Agent.logger.expects(:error).with(any_parameters)
-    ::NewRelic::Agent.logger.expects(:error).with("Caught exception in name. Metric name = metric, exception = should not propagate out of block")
+    ::NewRelic::Agent.logger.expects(:error).with(
+      includes("Caught exception in name. Metric name = metric"),
+      instance_of(RuntimeError))
 
     log_errors("name", "metric") do
       raise "should not propagate out of block"
