@@ -228,7 +228,7 @@ module NewRelic
         add_to_error_queue(NewRelic::NoticedError.new(action_path, exception_options, exception))
         exception
       rescue => e
-        ::NewRelic::Agent.logger.error("Error capturing an error #{e}")
+        ::NewRelic::Agent.logger.error("Failure when capturing error '#{exception}':", e)
       end
 
       # Get the errors currently queued up.  Unsent errors are left
