@@ -34,7 +34,6 @@ module NewRelic
       end
 
       discover_dispatcher
-      @discovered_dispatcher = nil if @discovered_dispatcher == :none
       @gems = Set.new
       @plugins = Set.new
       @config = Hash.new
