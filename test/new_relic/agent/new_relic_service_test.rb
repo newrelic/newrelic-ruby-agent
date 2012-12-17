@@ -35,6 +35,12 @@ class NewRelicServiceTest < Test::Unit::TestCase
       'agent_run_id' => 1
     }
     @http_handle.respond_to(:connect, connect_response)
+
+    @reverse_encoder = Module.new do
+      def self.encode(data)
+        data.reverse
+      end
+    end
   end
 
   def test_initialize_uses_correct_license_key_settings
@@ -240,6 +246,34 @@ end
     result = marshaller.dump(large_payload)
     assert_equal 'deflate', marshaller.encoding
     assert_equal large_payload, Marshal.load(Zlib::Inflate.inflate(result))
+  end
+
+  def test_marshaller_obeys_requested_encoder
+    dummy = ['hello there']
+    def dummy.to_collector_array(encoder)
+      self.map { |x| encoder.encode(x) }
+    end
+    marshaller = NewRelic::Agent::NewRelicService::Marshaller.new
+
+    identity_encoder = NewRelic::Agent::NewRelicService::Encoders::Identity
+
+    prepared = marshaller.prepare(dummy, :encoder => identity_encoder)
+    assert_equal(dummy, prepared)
+
+    prepared = marshaller.prepare(dummy, :encoder => @reverse_encoder)
+    decoded = prepared.map { |x| x.reverse }
+    assert_equal(dummy, decoded)
+  end
+
+  def test_marshaller_prepare_passes_on_options
+    inner_array = ['abcd']
+    def inner_array.to_collector_array(encoder)
+      self.map { |x| encoder.encode(x) }
+    end
+    dummy = [[inner_array]]
+    marshaller = NewRelic::Agent::NewRelicService::Marshaller.new
+    prepared = marshaller.prepare(dummy, :encoder => @reverse_encoder)
+    assert_equal([[['dcba']]], prepared)
   end
 
   def test_marshaller_handles_known_errors

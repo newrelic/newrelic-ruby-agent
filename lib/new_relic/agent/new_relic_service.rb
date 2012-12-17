@@ -73,7 +73,7 @@ module NewRelic
       end
 
       def profile_data(profile)
-        invoke_remote(:profile_data, @agent_id, profile.to_compressed_array) || ''
+        invoke_remote(:profile_data, @agent_id, profile) || ''
       end
 
       def get_agent_commands
@@ -134,43 +134,6 @@ module NewRelic
         NewRelic::Agent.instance.stats_engine. \
           get_stats_no_scope('Supportability/invoke_remote/' + method.to_s). \
           record_data_point((Time.now - now).to_f)
-      end
-
-      # This method handles the compression of the request body that
-      # we are going to send to the server
-      #
-      # We currently optimize for CPU here since we get roughly a 10x
-      # reduction in message size with this, and CPU overhead is at a
-      # premium. For extra-large posts, we use the higher compression
-      # since otherwise it actually errors out.
-      #
-      # We do not compress if content is smaller than 64kb.  There are
-      # problems with bugs in Ruby in some versions that expose us
-      # to a risk of segfaults if we compress aggressively.
-      #
-      # medium payloads get fast compression, to save CPU
-      # big payloads get all the compression possible, to stay under
-      # the 2,000,000 byte post threshold
-      def compress_data(object)
-        dump = marshal_data(object)
-
-        return [dump, 'identity'] if dump.size < (64*1024)
-
-        compressed_dump = Zlib::Deflate.deflate(dump, Zlib::DEFAULT_COMPRESSION)
-
-        # this checks to make sure mongrel won't choke on big uploads
-        check_post_size(compressed_dump)
-
-        [compressed_dump, 'deflate']
-      end
-
-      def marshal_data(data)
-        NewRelic::LanguageSupport.with_cautious_gc do
-          Marshal.dump(data)
-        end
-      rescue => e
-        ::NewRelic::Agent.logger.debug("#{e.class.name} : #{e.message} when marshalling #{object}")
-        raise
       end
 
       # Raises an UnrecoverableServerException if the post_string is longer
@@ -255,6 +218,26 @@ module NewRelic
         "NewRelic-RubyAgent/#{NewRelic::VERSION::STRING} #{ruby_description}#{zlib_version}"
       end
 
+      module Encoders
+        module Identity
+          def self.encode(data)
+            data
+          end
+        end
+
+        module Compressed
+          def self.encode(data)
+            Zlib::Deflate.deflate(data, Zlib::DEFAULT_COMPRESSION)
+          end
+        end
+
+        module Base64CompressedJSON
+          def self.encode(data)
+            Base64.encode64(Compressed.encode(JSON.dump(data)))
+          end
+        end
+      end
+
       class Marshaller
         attr_reader :encoding
 
@@ -273,9 +256,9 @@ module NewRelic
         # medium payloads get fast compression, to save CPU
         # big payloads get all the compression possible, to stay under
         # the 2,000,000 byte post threshold
-        def compress(data, opts={})
-          if opts[:force] || data.size > 64 * 1024
-            data = Zlib::Deflate.deflate(data, Zlib::DEFAULT_COMPRESSION)
+        def compress(data)
+          if data.size > 64 * 1024
+            data = Encoders::Compressed.encode(data)
             @encoding = 'deflate'
           else
             @encoding = 'identity'
@@ -291,17 +274,22 @@ module NewRelic
           CollectorError.new("#{error['error_type']}: #{error['message']}")
         end
 
-        protected
-
-        def prepare(data)
+        def prepare(data, options={})
+          encoder = options[:encoder] || default_encoder
           if data.respond_to?(:to_collector_array)
-            data.to_collector_array(self)
+            data.to_collector_array(encoder)
           elsif data.kind_of?(Array)
-            data.map {|element| prepare(element) }
+            data.map { |element| prepare(element, options) }
           else
             data
           end
         end
+
+        def default_encoder
+          Encoders::Identity
+        end
+
+        protected
 
         def return_value(data)
           if data.respond_to?(:has_key?)
@@ -368,8 +356,8 @@ module NewRelic
           raise
         end
 
-        def encode_compress(data)
-          Base64.encode64(compress(JSON.dump(data), :force => true))
+        def default_encoder
+          Encoders::Base64CompressedJSON
         end
 
         def format
