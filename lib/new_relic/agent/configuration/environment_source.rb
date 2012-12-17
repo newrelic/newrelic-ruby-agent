@@ -9,14 +9,19 @@ module NewRelic
             'NEWRELIC_LICENSE_KEY'  => :license_key,
             'NEW_RELIC_APP_NAME'    => :app_name,
             'NEWRELIC_APP_NAME'     => :app_name,
-            'NEW_RELIC_DISPATCHER'  => :dispatcher,
-            'NEWRELIC_DISPATCHER'   => :dispatcher,
-            'NEW_RELIC_FRAMEWORK'   => :framework,
-            'NEWRELIC_FRAMEWORK'    => :framework,
             'NEW_RELIC_HOST'        => :host,
             'NEW_RELIC_PORT'        => :port
           }.each do |key, val|
             self[val] = ENV[key] if ENV[key]
+          end
+
+          symbol_map = {
+            'NEW_RELIC_DISPATCHER'  => :dispatcher,
+            'NEWRELIC_DISPATCHER'   => :dispatcher,
+            'NEW_RELIC_FRAMEWORK'   => :framework,
+            'NEWRELIC_FRAMEWORK'    => :framework
+          }.each do |key, val|
+            self[val] = ENV[key].intern if ENV[key]
           end
 
           boolean_map = {

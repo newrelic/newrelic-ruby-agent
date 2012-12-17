@@ -18,24 +18,6 @@ class NewRelic::Control::ClassMethodsTest < Test::Unit::TestCase
     assert_equal('a new instance', @base.instance, "should return the result from the #new_instance call")
   end
 
-  def test_new_instance_non_test
-    local_env = mock('local env')
-    @base.expects(:local_env).returns(local_env).at_least_once
-    local_env.expects(:framework).returns('nontest').twice
-    mock_klass = mock('klass')
-    mock_klass.expects(:new).with(local_env)
-    @base.expects(:load_framework_class).with('nontest').returns(mock_klass)
-    @base.new_instance
-  end
-  
-  def test_new_instance_test_framework
-    local_env = mock('local env')
-    local_env.expects(:framework).returns(:test)
-    @base.expects(:local_env).returns(local_env)
-    @base.expects(:load_test_framework)
-    @base.new_instance
-  end
-
   def test_load_test_framework
     local_env = mock('local env')
     # a loose requirement here because the tests will *all* break if

@@ -20,7 +20,6 @@ module NewRelic
       # machine-dependent information useful in debugging
       attr_reader :local_env
 
-
       # Initialize the plugin/gem and start the agent.  This does the
       # necessary configuration based on the framework environment and
       # determines whether or not to start the agent.  If the agent is
@@ -46,8 +45,7 @@ module NewRelic
       #
       def init_plugin(options={})
         begin
-          path = @newrelic_file || Agent.config[:config_path]
-          yaml = Agent::Configuration::YamlSource.new(path, env)
+          yaml = Agent::Configuration::YamlSource.new(@config_file_path, env)
           Agent.config.replace_or_add_config(yaml, 1)
         rescue ScriptError, StandardError => e
           # Why do we need to do this?
@@ -62,7 +60,6 @@ module NewRelic
 
         # Merge the stringified options into the config as overrides:
         environment_name = options.delete(:env) and self.env = environment_name
-        dispatcher = options.delete(:dispatcher) and @local_env.dispatcher = dispatcher
         dispatcher_instance_id = options.delete(:dispatcher_instance_id) and @local_env.dispatcher_instance_id = dispatcher_instance_id
 
         NewRelic::Agent::PipeChannelManager.listener.start if options.delete(:start_channel_listener)
@@ -89,14 +86,12 @@ module NewRelic
         NewRelic::Agent.agent.start
       end
 
-      # Asks the LocalEnvironment instance which framework should be loaded
       def app
-        @local_env.framework
+        Agent.config[:framework]
       end
-      alias framework app
 
-      def to_s #:nodoc:
-        "Control[#{self.app}]"
+      def framework
+        Agent.config[:framework]
       end
 
       # for backward compatibility with the old config interface
@@ -131,15 +126,11 @@ module NewRelic
         end
       end
 
-      # path to the config file, defaults to the "#{root}/config/newrelic.yml"
-      def config_file
-        File.expand_path(File.join(root,"config","newrelic.yml"))
-      end
 
       def initialize(local_env, config_file_override=nil)
         @local_env = local_env
         @instrumentation_files = []
-        @newrelic_file = config_file_override || config_file
+        @config_file_path = config_file_override || Agent.config[:config_path]
       end
 
       def root

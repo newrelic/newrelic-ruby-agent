@@ -3,6 +3,7 @@ require 'new_relic/agent/configuration/environment_source'
 
 module NewRelic::Agent::Configuration
   class EnvironmentSourceTest < Test::Unit::TestCase
+
     def setup
       @original_env = {}
       @original_env.replace(ENV)
@@ -18,12 +19,15 @@ module NewRelic::Agent::Configuration
       assert_applied_string 'NEWRELIC_LICENSE_KEY', 'license_key'
       assert_applied_string 'NEW_RELIC_APP_NAME', 'app_name'
       assert_applied_string 'NEWRELIC_APP_NAME', 'app_name'
-      assert_applied_string 'NEW_RELIC_DISPATCHER', 'dispatcher'
-      assert_applied_string 'NEWRELIC_DISPATCHER', 'dispatcher'
-      assert_applied_string 'NEW_RELIC_FRAMEWORK', 'framework'
-      assert_applied_string 'NEWRELIC_FRAMEWORK', 'framework'
       assert_applied_string 'NEW_RELIC_HOST', 'host'
       assert_applied_string 'NEW_RELIC_PORT', 'port'
+    end
+
+    def test_environment_symbols_are_applied
+      assert_applied_symbol 'NEW_RELIC_DISPATCHER', 'dispatcher'
+      assert_applied_symbol 'NEWRELIC_DISPATCHER', 'dispatcher'
+      assert_applied_symbol 'NEW_RELIC_FRAMEWORK', 'framework'
+      assert_applied_symbol 'NEWRELIC_FRAMEWORK', 'framework'
     end
 
     def test_environment_booleans_truths_are_applied
@@ -63,6 +67,12 @@ module NewRelic::Agent::Configuration
     def assert_applied_string(env_var, config_var)
       ENV[env_var] = 'test value'
       assert_equal 'test value', EnvironmentSource.new[config_var.to_sym]
+      ENV.delete(env_var)
+    end
+
+    def assert_applied_symbol(env_var, config_var)
+      ENV[env_var] = 'test value'
+      assert_equal :'test value', EnvironmentSource.new[config_var.to_sym]
       ENV.delete(env_var)
     end
   end
