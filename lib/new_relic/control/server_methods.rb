@@ -52,9 +52,7 @@ module NewRelic
         return nil if host.nil? || host.downcase == "localhost"
         ip = resolve_ip_address(host)
 
-        # FIXME: commented out to squelch STDOUT output for RUBY-839
-        # should bring it back when logging / startup is fixed
-        # ::NewRelic::Agent.logger.info "Resolved #{host} to #{ip}"
+        ::NewRelic::Agent.logger.info "Resolved #{host} to #{ip}"
         ip
       end
 
