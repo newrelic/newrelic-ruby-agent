@@ -121,4 +121,12 @@ class AgentLoggerTest < Test::Unit::TestCase
     end
   end
 
+  def test_format_message_allows_nil_backtrace
+    override_logger = stub(:level=)
+    override_logger.expects(:debug)
+
+    logger = ::NewRelic::Agent::AgentLogger.new(@config, "", override_logger)
+
+    logger.debug(Exception.new("Look Ma, no backtrace!"))
+  end
 end
