@@ -52,7 +52,7 @@ module NewRelic
         return nil if host.nil? || host.downcase == "localhost"
         ip = resolve_ip_address(host)
 
-        ::NewRelic::Agent.logger.info "Resolved #{host} to #{ip}"
+        ::NewRelic::Agent.logger.debug "Resolved #{host} to #{ip}"
         ip
       end
 
@@ -65,7 +65,7 @@ module NewRelic
       rescue => e
         ::NewRelic::Agent.logger.warn("DNS Error caching IP address:", e)
         begin
-          ::NewRelic::Agent.logger.info("Trying native DNS lookup since Resolv failed")
+          ::NewRelic::Agent.logger.debug("Trying native DNS lookup since Resolv failed")
           IPSocket.getaddress(host)
         rescue => e
           ::NewRelic::Agent.logger.error("Could not look up server address: #{e}")

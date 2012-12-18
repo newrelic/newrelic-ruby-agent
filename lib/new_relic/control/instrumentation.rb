@@ -15,7 +15,7 @@ module NewRelic
             ::NewRelic::Agent.logger.debug "Processing instrumentation file '#{file}'"
             require file.to_s
           rescue => e
-            ::NewRelic::Agent.logger.error "Error loading instrumentation file '#{file}':", e
+            ::NewRelic::Agent.logger.warn "Error loading instrumentation file '#{file}':", e
           end
         end
       end

@@ -81,7 +81,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   def test_should_retry_true
     @keep_retrying = true
     @connect_attempts = 1
-    ::NewRelic::Agent.logger.expects(:info).once
+    ::NewRelic::Agent.logger.expects(:warn).once
     self.expects(:increment_retry_period!).once
     assert should_retry?, "should retry in this circumstance"
     assert_equal 2, @connect_attempts, "should be on the second attempt"
@@ -122,8 +122,8 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   def test_handle_license_error
     error = mock(:message => "error message")
     self.expects(:disconnect).once
-    ::NewRelic::Agent.logger.expects(:error).once.with("error message")
-    ::NewRelic::Agent.logger.expects(:info).once.with("Visit NewRelic.com to obtain a valid license key, or to upgrade your account.")
+    ::NewRelic::Agent.logger.expects(:error).with( \
+      "error message", includes("Visit NewRelic.com to obtain a valid license key"))
     handle_license_error(error)
   end
 

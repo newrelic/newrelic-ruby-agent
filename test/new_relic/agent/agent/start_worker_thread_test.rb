@@ -21,7 +21,7 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
   end
 
   def test_log_worker_loop_start
-    ::NewRelic::Agent.logger.expects(:info).with("Reporting performance data every 30 seconds.")
+    ::NewRelic::Agent.logger.expects(:debug).with("Reporting performance data every 30 seconds.")
     ::NewRelic::Agent.logger.expects(:debug).with("Running worker loop")
     with_config(:data_report_period => 30) do
       log_worker_loop_start
@@ -42,7 +42,7 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
   def test_handle_force_restart
     # hooray for methods with no branches
     error = mock(:message => 'a message')
-    ::NewRelic::Agent.logger.expects(:info).with('a message')
+    ::NewRelic::Agent.logger.expects(:debug).with('a message')
 
     self.expects(:reset_stats)
     self.expects(:sleep).with(30)
@@ -58,7 +58,7 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
 
   def test_handle_force_disconnect
     error = mock(:message => 'a message')
-    ::NewRelic::Agent.logger.expects(:error).with("New Relic forced this agent to disconnect (a message)")
+    ::NewRelic::Agent.logger.expects(:warn).with("New Relic forced this agent to disconnect (a message)")
 
     self.expects(:disconnect)
     handle_force_disconnect(error)

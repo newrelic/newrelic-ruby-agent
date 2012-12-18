@@ -38,28 +38,28 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
 
   def test_log_dispatcher_positive
     with_config(:dispatcher => 'Y U NO SERVE WEBPAGE') do
-      ::NewRelic::Agent.logger.expects(:info).with("Dispatcher: Y U NO SERVE WEBPAGE")
+      ::NewRelic::Agent.logger.expects(:debug).with("Dispatcher: Y U NO SERVE WEBPAGE")
       log_dispatcher
     end
   end
 
   def test_log_dispatcher_negative
     with_config(:dispatcher => '') do
-      ::NewRelic::Agent.logger.expects(:info).with("No dispatcher detected.")
+      ::NewRelic::Agent.logger.expects(:warn).with("No dispatcher detected.")
       log_dispatcher
     end
   end
 
   def test_log_app_names_string
     with_config(:app_name => 'zam;zam;zabam') do
-      ::NewRelic::Agent.logger.expects(:info).with("Application: zam, zam, zabam")
+      ::NewRelic::Agent.logger.expects(:debug).with("Application: zam, zam, zabam")
       log_app_names
     end
   end
 
   def test_log_app_names_array
     with_config(:app_name => ['zam', 'zam', 'zabam']) do
-      ::NewRelic::Agent.logger.expects(:info).with("Application: zam, zam, zabam")
+      ::NewRelic::Agent.logger.expects(:debug).with("Application: zam, zam, zabam")
       log_app_names
     end
   end
@@ -67,7 +67,7 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   def test_log_app_names_with_env_var
     # bad app name after env - used to cover the yaml config
     with_config({:app_name => false}, 1) do
-      ::NewRelic::Agent.logger.expects(:info).with("Application: start_test") # set in setup
+      ::NewRelic::Agent.logger.expects(:debug).with("Application: start_test") # set in setup
       log_app_names
     end
   end

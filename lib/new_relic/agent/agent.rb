@@ -186,7 +186,7 @@ module NewRelic
             @connected == false ||
             @worker_thread && @worker_thread.alive?
 
-          ::NewRelic::Agent.logger.info "Starting the worker thread in #{$$} after forking."
+          ::NewRelic::Agent.logger.debug "Starting the worker thread in #{$$} after forking."
 
           # Clear out stats that are left over from parent process
           reset_stats
@@ -321,15 +321,15 @@ module NewRelic
           # assist with proper dispatcher detection
           def log_dispatcher
             dispatcher_name = Agent.config[:dispatcher].to_s
-            return if log_if(dispatcher_name.empty?, :info, "No dispatcher detected.")
-            ::NewRelic::Agent.logger.info "Dispatcher: #{dispatcher_name}"
+            return if log_if(dispatcher_name.empty?, :warn, "No dispatcher detected.")
+            ::NewRelic::Agent.logger.debug "Dispatcher: #{dispatcher_name}"
           end
 
           # Logs the configured application names
           def log_app_names
             names = Agent.config.app_names
             if names.respond_to?(:any?) && names.any?
-              ::NewRelic::Agent.logger.info "Application: #{names.join(", ")}"
+              ::NewRelic::Agent.logger.debug "Application: #{names.join(", ")}"
             else
               ::NewRelic::Agent.logger.error 'Unable to determine application name. Please set the application name in your newrelic.yml or in a NEW_RELIC_APP_NAME environment variable.'
             end
@@ -383,7 +383,7 @@ module NewRelic
           # so we can disambiguate processes in the log file and make
           # sure they're running a reasonable version
           def log_version_and_pid
-            ::NewRelic::Agent.logger.info "New Relic Ruby Agent #{NewRelic::VERSION::STRING} Initialized: pid = #{$$}"
+            ::NewRelic::Agent.logger.debug "New Relic Ruby Agent #{NewRelic::VERSION::STRING} Initialized: pid = #{$$}"
           end
 
           # A helper method that logs a condition if that condition is
@@ -481,7 +481,7 @@ module NewRelic
           # logs info about the worker loop so users can see when the
           # agent actually begins running in the background
           def log_worker_loop_start
-            ::NewRelic::Agent.logger.info "Reporting performance data every #{Agent.config[:data_report_period]} seconds."
+            ::NewRelic::Agent.logger.debug "Reporting performance data every #{Agent.config[:data_report_period]} seconds."
             ::NewRelic::Agent.logger.debug "Running worker loop"
           end
 
@@ -498,7 +498,7 @@ module NewRelic
           # this clears the data, clears connection attempts, and
           # waits a while to reconnect.
           def handle_force_restart(error)
-            ::NewRelic::Agent.logger.info error.message
+            ::NewRelic::Agent.logger.debug error.message
             reset_stats
             @metric_ids = {}
             @connected = nil
@@ -509,7 +509,7 @@ module NewRelic
           # is the worker thread that gathers data and talks to the
           # server.
           def handle_force_disconnect(error)
-            ::NewRelic::Agent.logger.error "New Relic forced this agent to disconnect (#{error.message})"
+            ::NewRelic::Agent.logger.warn "New Relic forced this agent to disconnect (#{error.message})"
             disconnect
           end
 
@@ -641,7 +641,7 @@ module NewRelic
             if @keep_retrying
               self.connect_attempts=(connect_attempts + 1)
               increment_retry_period!
-              ::NewRelic::Agent.logger.info "Will re-attempt in #{connect_retry_period} seconds"
+              ::NewRelic::Agent.logger.warn "Will re-attempt in #{connect_retry_period} seconds"
               true
             else
               disconnect
@@ -664,8 +664,9 @@ module NewRelic
           # no longer try to connect to the server, saving the
           # application and the server load
           def handle_license_error(error)
-            ::NewRelic::Agent.logger.error error.message
-            ::NewRelic::Agent.logger.info "Visit NewRelic.com to obtain a valid license key, or to upgrade your account."
+            ::NewRelic::Agent.logger.error( \
+              error.message, \
+              "Visit NewRelic.com to obtain a valid license key, or to upgrade your account.")
             disconnect
           end
 
@@ -742,7 +743,7 @@ module NewRelic
             @service.agent_id = config_data['agent_run_id'] if @service
 
             if config_data['agent_config']
-              ::NewRelic::Agent.logger.info "Using config from server"
+              ::NewRelic::Agent.logger.debug "Using config from server"
             end
 
             ::NewRelic::Agent.logger.debug "Server provided config: #{config_data.inspect}"
@@ -756,7 +757,7 @@ module NewRelic
           # Logs when we connect to the server, for debugging purposes
           # - makes sure we know if an agent has not connected
           def log_connection!(config_data)
-            ::NewRelic::Agent.logger.info "Connected to NewRelic Service at #{@service.collector.name}"
+            ::NewRelic::Agent.logger.debug "Connected to NewRelic Service at #{@service.collector.name}"
             ::NewRelic::Agent.logger.debug "Agent Run       = #{@service.agent_id}."
             ::NewRelic::Agent.logger.debug "Connection data = #{config_data.inspect}"
             if config_data['messages'] && config_data['messages'].any?
@@ -1023,7 +1024,7 @@ module NewRelic
 
         def check_for_agent_commands
           commands = @service.get_agent_commands
-          ::NewRelic::Agent.logger.debug "Received get_agent_commands = #{commands}"
+          ::NewRelic::Agent.logger.debug "Received get_agent_commands = #{commands.inspect}"
 
           @thread_profiler.respond_to_commands(commands) do |command_id, error|
             @service.agent_command_results(command_id, error)

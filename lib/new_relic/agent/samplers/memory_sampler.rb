@@ -68,12 +68,12 @@ module NewRelic
             begin
               m = get_memory
               if m.nil?
-                ::NewRelic::Agent.logger.error "Unable to get the resident memory for process #{$$}.  Disabling memory sampler."
+                ::NewRelic::Agent.logger.warn "Unable to get the resident memory for process #{$$}.  Disabling memory sampler."
                 @broken = true
               end
               return m
             rescue => e
-              ::NewRelic::Agent.logger.error "Unable to get the resident memory for process #{$$}. Disabling memory sampler.", e
+              ::NewRelic::Agent.logger.warn "Unable to get the resident memory for process #{$$}. Disabling memory sampler.", e
               @broken = true
               return nil
             end

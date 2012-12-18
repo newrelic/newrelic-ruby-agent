@@ -121,7 +121,7 @@ module NewRelic
                                 :collector => @collector)
         @marshaller.load(decompress_response(response))
       rescue NewRelic::Agent::ForceRestartException => e
-        ::NewRelic::Agent.logger.info e.message
+        ::NewRelic::Agent.logger.debug e.message
         raise
       ensure
         record_supportability_metrics(method, now)
@@ -215,7 +215,7 @@ module NewRelic
         elsif response.is_a? Net::HTTPServiceUnavailable
           raise ServerConnectionException, "Service unavailable (#{response.code}): #{response.message}"
         elsif response.is_a? Net::HTTPGatewayTimeOut
-          ::NewRelic::Agent.logger.debug("Timed out getting response: #{response.message}")
+          ::NewRelic::Agent.logger.warn("Timed out getting response: #{response.message}")
           raise Timeout::Error, response.message
         elsif response.is_a? Net::HTTPRequestEntityTooLarge
           raise UnrecoverableServerException, '413 Request Entity Too Large'

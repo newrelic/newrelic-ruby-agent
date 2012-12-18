@@ -27,7 +27,7 @@ module NewRelic
             erb = ERB.new(file).result(binding)
             config = merge!(YAML.load(erb)[env] || {})
           rescue ScriptError, StandardError => e
-            ::NewRelic::Agent.logger.warn("Unable to read configuration file #{path}: #{e}")
+            ::NewRelic::Agent.logger.error("Unable to read configuration file #{path}: #{e}")
           end
 
           if config['transaction_tracer'] &&

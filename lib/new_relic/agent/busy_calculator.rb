@@ -37,7 +37,7 @@ module NewRelic
         return if callers > 0
         @lock.synchronize do
           if @entrypoint_stack.empty?
-            ::NewRelic::Agent.logger.error("Stack underflow tracking dispatcher entry and exit!\n  #{caller.join("  \n")}")
+            ::NewRelic::Agent.logger.warn("Stack underflow tracking dispatcher entry and exit!\n  #{caller.join("  \n")}")
           else
             @accumulator += (end_time - @entrypoint_stack.pop).to_f
           end

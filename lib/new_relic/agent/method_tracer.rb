@@ -175,8 +175,7 @@ module NewRelic
           end
           
           # helper for logging errors to the newrelic_agent.log
-          # properly. Logs the error at error level, and includes a
-          # backtrace if we're running at debug level
+          # properly. Logs the error at error level
           def log_errors(code_area, metric)
             yield
           rescue => e
@@ -326,7 +325,7 @@ module NewRelic
           # anything if the method doesn't exist.
           def newrelic_method_exists?(method_name)
             exists = method_defined?(method_name) || private_method_defined?(method_name)
-            ::NewRelic::Agent.logger.warn("Did not trace #{self.name}##{method_name} because that method does not exist") unless exists
+            ::NewRelic::Agent.logger.error("Did not trace #{self.name}##{method_name} because that method does not exist") unless exists
             exists
           end
           
@@ -336,7 +335,7 @@ module NewRelic
           # to help with debugging custom instrumentation.
           def traced_method_exists?(method_name, metric_name_code)
             exists = method_defined?(_traced_method_name(method_name, metric_name_code))
-            ::NewRelic::Agent.logger.warn("Attempt to trace a method twice with the same metric: Method = #{method_name}, Metric Name = #{metric_name_code}") if exists
+            ::NewRelic::Agent.logger.error("Attempt to trace a method twice with the same metric: Method = #{method_name}, Metric Name = #{metric_name_code}") if exists
             exists
           end
           

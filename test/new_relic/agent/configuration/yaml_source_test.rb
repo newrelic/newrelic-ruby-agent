@@ -62,7 +62,7 @@ module NewRelic::Agent::Configuration
 
     def test_should_not_fail_to_log_invalid_file_during_startup
       without_logger do
-        ::NewRelic::Agent::StartupLogger.any_instance.expects(:warn)
+        ::NewRelic::Agent::StartupLogger.any_instance.expects(:error)
 
         File.stubs(:exists?).returns(true)
         File.stubs(:read).raises(StandardError.new("boo"))

@@ -58,9 +58,9 @@ module NewRelic
           begin
             require 'new_relic/rack/browser_monitoring'
             config.middleware.use NewRelic::Rack::BrowserMonitoring
-            ::NewRelic::Agent.logger.info("Installed New Relic Browser Monitoring middleware")
+            ::NewRelic::Agent.logger.debug("Installed New Relic Browser Monitoring middleware")
           rescue => e
-            ::NewRelic::Agent.logger.error("Error installing New Relic Browser Monitoring middleware: #{e.inspect}")
+            ::NewRelic::Agent.logger.warn("Error installing New Relic Browser Monitoring middleware: #{e.inspect}")
           end
         end
 
@@ -76,11 +76,11 @@ module NewRelic
               # a webserver process
               if @local_env.dispatcher_instance_id
                 port = @local_env.dispatcher_instance_id.to_s =~ /^\d+/ ? ":#{local_env.dispatcher_instance_id}" : ":port"
-                ::NewRelic::Agent.logger.info("NewRelic Agent Developer Mode enabled.")
-                ::NewRelic::Agent.logger.info("To view performance information, go to http://localhost#{port}/newrelic")
+                ::NewRelic::Agent.logger.debug("NewRelic Agent Developer Mode enabled.")
+                ::NewRelic::Agent.logger.debug("To view performance information, go to http://localhost#{port}/newrelic")
               end
             rescue => e
-              ::NewRelic::Agent.logger.error("Error installing New Relic Developer Mode: #{e.inspect}")
+              ::NewRelic::Agent.logger.warn("Error installing New Relic Developer Mode: #{e.inspect}")
             end
           elsif rails_config
             ::NewRelic::Agent.logger.warn("Developer mode not available for Rails versions prior to 2.2")

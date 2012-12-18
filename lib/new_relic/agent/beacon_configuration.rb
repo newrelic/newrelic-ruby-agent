@@ -36,7 +36,7 @@ module NewRelic
         end
 
         if !Agent.config[:'rum.enabled']
-          ::NewRelic::Agent.logger.warn("Real User Monitoring is disabled for this agent. Edit your configuration to change this.")
+          ::NewRelic::Agent.logger.debug("Real User Monitoring is disabled for this agent. Edit your configuration to change this.")
         end
       end
 
