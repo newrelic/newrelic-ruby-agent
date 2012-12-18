@@ -44,15 +44,8 @@ module NewRelic
       # init_config({}) which is called one or more times.
       #
       def init_plugin(options={})
-        begin
-          yaml = Agent::Configuration::YamlSource.new(@config_file_path, env)
-          Agent.config.replace_or_add_config(yaml, 1)
-        rescue ScriptError, StandardError => e
-          # Why do we need to do this?
-          new_err = e.class.new("Error reading newrelic.yml file: #{e}")
-          new_err.set_backtrace(e.backtrace)
-          raise new_err
-        end
+        yaml = Agent::Configuration::YamlSource.new(@config_file_path, env)
+        Agent.config.replace_or_add_config(yaml, 1)
 
         Agent.config.replace_or_add_config(Agent::Configuration::ManualSource.new(options), 1)
 
