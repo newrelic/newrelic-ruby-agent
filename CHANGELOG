@@ -1,6 +1,17 @@
 
 # New Relic Ruby Agent Release Notes #
 
+## v3.5.5 ##
+
+  * Use config system for dispatcher, framework, and config file detection
+
+    Several aspects of the agent's configuration were not being handled by the
+    configuration system.  Detection/configuration of the dispatcher (e.g. passenger,
+    unicorn, resque), framework (e.g. rails3, sinatra), and newrelic.yml
+    location are now handled via the Agent environment, manual, and default
+    configuration sources.
+
+
 ## v3.5.4 ##
 
   * Add queue time support for sinatra apps
@@ -38,14 +49,6 @@
 
     When the agent is configured to report to multiple "roll up" applications
     RUM did not work correctly.
-
-  * Use config system for dispatcher, framework, and config file detection
-
-    Several aspects of the agent's configuration were not being handled by the
-    configuration system.  Detection/configuration of the dispatcher (e.g. passenger,
-    unicorn, resque), framework (e.g. rails3, sinatra), and newrelic.yml
-    location are now handled via the Agent environment, manual, and default
-    configuration sources.
 
 ## v3.5.3 ##
 
