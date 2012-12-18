@@ -23,6 +23,7 @@ module NewRelic
           invoke_callbacks(:add, source)
           @config_stack.insert(level, source.freeze)
           reset_cache
+          log_config(:add, source)
         end
 
         def remove_config(source=nil)
@@ -33,6 +34,7 @@ module NewRelic
           end
           reset_cache
           invoke_callbacks(:remove, source)
+          log_config(:remove, source)
         end
 
         def replace_or_add_config(source, level=0)
@@ -121,6 +123,12 @@ module NewRelic
 
         def reset_cache
           @cache = Hash.new {|hash,key| hash[key] = self.fetch(key) }
+        end
+
+        def log_config(direction, source)
+          ::NewRelic::Agent.logger.debug(
+            "Updating config (#{direction}) from #{source.class}. Results:",
+            flattened.inspect)
         end
       end
     end

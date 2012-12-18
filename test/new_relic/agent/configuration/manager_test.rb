@@ -182,6 +182,19 @@ module NewRelic::Agent::Configuration
       assert_equal 'right', state
     end
 
+    def test_should_log_when_applying
+      ::NewRelic::Agent.logger.expects(:debug).with(anything, includes("asdf"))
+      @manager.apply_config(:test => "asdf")
+    end
+
+    def test_should_log_when_removing
+      config = { :test => "asdf" }
+      @manager.apply_config(config)
+
+      ::NewRelic::Agent.logger.expects(:debug).with(anything, Not(includes("asdf")))
+      @manager.remove_config(config)
+    end
+
     class TestSource < ::Hash
       def test_config_accessor
         'some value'
