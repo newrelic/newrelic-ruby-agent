@@ -5,7 +5,8 @@ DependencyDetection.defer do
 
   depends_on do
     defined?(::Sinatra) && defined?(::Sinatra::Base) &&
-      Sinatra::Base.private_method_defined?(:dispatch!)
+      Sinatra::Base.private_method_defined?(:dispatch!) &&
+      Sinatra::Base.private_method_defined?(:process_route)
   end
 
   executes do
