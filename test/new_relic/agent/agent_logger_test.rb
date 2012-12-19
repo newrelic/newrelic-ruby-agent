@@ -129,4 +129,15 @@ class AgentLoggerTest < Test::Unit::TestCase
 
     logger.debug(Exception.new("Look Ma, no backtrace!"))
   end
+
+
+  def test_logs_to_stdout_if_fails_on_file
+    stdout = stub_everything()
+    ::Logger.stubs(:new).with(STDOUT).returns(stdout)
+    ::Logger.stubs(:new).with(instance_of(String)).raises(Errno::EACCES)
+
+    logger = NewRelic::Agent::AgentLogger.new(@config, "")
+
+    assert_equal stdout, logger.instance_variable_get(:@log)
+  end
 end

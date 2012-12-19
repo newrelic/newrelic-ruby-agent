@@ -52,13 +52,23 @@ module NewRelic
           if wants_stdout(config)
             @log = ::Logger.new(STDOUT)
           else
-            path = find_or_create_file_path(config[:log_file_path], root)
-            if path.nil?
-              @log = ::Logger.new(STDOUT)
-              @log.warn("Error creating log directory #{config[:log_file_path]}, using standard out for logging.")
-            else
-              @log = ::Logger.new("#{path}/#{config[:log_file_name]}")
-            end
+            create_log_to_file(config, root)
+          end
+        end
+      end
+
+      def create_log_to_file(config, root)
+        path = find_or_create_file_path(config[:log_file_path], root)
+        if path.nil?
+          @log = ::Logger.new(STDOUT)
+          warn("Error creating log directory #{config[:log_file_path]}, using standard out for logging.")
+        else
+          file_path = "#{path}/#{config[:log_file_name]}"
+          begin
+            @log = ::Logger.new(file_path)
+          rescue => e
+            @log = ::Logger.new(STDOUT)
+            warn("Failed creating logger for file #{file_path}, using standard out for logging.", e)
           end
         end
       end
