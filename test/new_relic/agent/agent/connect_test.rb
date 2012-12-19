@@ -137,7 +137,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   end
 
   def test_environment_for_connect_positive
-    fake_env = stub('local_env', :dispatcher => nil)
+    fake_env = stub('local_env', :discovered_dispatcher => nil)
     fake_env.expects(:snapshot).returns("snapshot")
     NewRelic::Control.instance.expects(:local_env).at_least_once.returns(fake_env)
     with_config(:send_environment_info => true) do
