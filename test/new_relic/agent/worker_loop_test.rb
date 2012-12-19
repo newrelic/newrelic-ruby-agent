@@ -3,9 +3,6 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 
 class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
   def setup
-    @logger = Logger.new(StringIO.new(""))
-    ::NewRelic::Agent.logger = @logger
-
     @worker_loop = NewRelic::Agent::WorkerLoop.new
     @test_start_time = Time.now
   end
@@ -52,7 +49,7 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
   end
 
   def test_task_error__standard
-    @logger.expects(:error)
+    expects_logging(:error, any_parameters)
     # This loop task will run twice
     done = false
     @worker_loop.run(0) do
@@ -66,7 +63,7 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
   class BadBoy < StandardError; end
 
   def test_task_error__exception
-    @logger.expects(:error).once
+    expects_logging(:error, any_parameters)
     @worker_loop.run(0) do
       @worker_loop.stop
       raise BadBoy, "oops"
@@ -74,8 +71,8 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
   end
 
   def test_task_error__server
-    @logger.expects(:error).never
-    @logger.expects(:debug).once
+    expects_no_logging(:error, any_parameters)
+    expects_logging(:debug, any_parameters)
     @worker_loop.run(0) do
       @worker_loop.stop
       raise NewRelic::Agent::ServerError, "Runtime Error Test"

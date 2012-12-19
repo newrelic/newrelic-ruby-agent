@@ -181,12 +181,12 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
 
   def test_log_unless_negative
     # should log
-    ::NewRelic::Agent.logger.expects(:send).with(:warn, "DURRR")
+    expects_logging(:warn, "DURRR")
     assert !log_unless(false, :warn, "DURRR")
   end
 
   def test_log_if_positive
-    ::NewRelic::Agent.logger.expects(:send).with(:warn, "WHEE")
+    expects_logging(:warn, "WHEE")
     assert log_if(true, :warn, "WHEE")
   end
 

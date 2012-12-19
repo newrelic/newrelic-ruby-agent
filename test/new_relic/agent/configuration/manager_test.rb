@@ -183,7 +183,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_should_log_when_applying
-      ::NewRelic::Agent.logger.expects(:debug).with(anything, includes("asdf"))
+      expects_logging(:debug, anything, includes("asdf"))
       @manager.apply_config(:test => "asdf")
     end
 
@@ -191,7 +191,7 @@ module NewRelic::Agent::Configuration
       config = { :test => "asdf" }
       @manager.apply_config(config)
 
-      ::NewRelic::Agent.logger.expects(:debug).with(anything, Not(includes("asdf")))
+      expects_logging(:debug, anything, Not(includes("asdf")))
       @manager.remove_config(config)
     end
 

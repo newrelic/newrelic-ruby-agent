@@ -107,7 +107,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   def test_log_error
     error = StandardError.new("message")
 
-    ::NewRelic::Agent.logger.expects(:error).with( \
+    expects_logging(:error, 
       includes("Error establishing connection with New Relic Service"), \
       instance_of(StandardError))
 
@@ -117,7 +117,6 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   def test_handle_license_error
     error = mock(:message => "error message")
     self.expects(:disconnect).once
-    ::NewRelic::Agent.logger.expects(:error)
     handle_license_error(error)
   end
 
@@ -125,22 +124,22 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     seed = 'many seeds'
     token = 'a token, man'
     with_config(:validate_seed => seed, :validate_token => token) do
-      ::NewRelic::Agent.logger.expects(:debug).with(all_of(includes(seed), includes(token))).once
+      expects_logging(:debug, all_of(includes(seed), includes(token)))
       log_seed_token
     end
   end
 
   def test_no_seed_token
     with_config(:validate_seed => false) do
-      ::NewRelic::Agent.logger.expects(:debug).never
+      expects_no_logging(:debug, "seed/token")
       log_seed_token
     end
   end
 
   def test_environment_for_connect_positive
-    fake_env = mock('local_env')
-    fake_env.expects(:snapshot).once.returns("snapshot")
-    NewRelic::Control.instance.expects(:local_env).once.returns(fake_env)
+    fake_env = stub('local_env', :dispatcher => nil)
+    fake_env.expects(:snapshot).returns("snapshot")
+    NewRelic::Control.instance.expects(:local_env).at_least_once.returns(fake_env)
     with_config(:send_environment_info => true) do
       assert_equal 'snapshot', environment_for_connect
     end
@@ -291,9 +290,8 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
                      { 'message' => 'ha cha cha', 'level' => 'WARN' }]
     }
 
-    NewRelic::Agent::AgentLogger.any_instance.stubs(:info)
-    NewRelic::Agent::AgentLogger.any_instance.expects(:info).with('beep boop')
-    NewRelic::Agent::AgentLogger.any_instance.expects(:warn).with('ha cha cha')
+    expects_logging(:info, 'beep boop')
+    expects_logging(:warn, 'ha cha cha')
 
     NewRelic::Agent.agent.query_server_for_configuration
     NewRelic::Agent.shutdown

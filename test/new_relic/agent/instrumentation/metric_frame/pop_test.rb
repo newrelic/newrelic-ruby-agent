@@ -34,7 +34,7 @@ class NewRelic::Agent::Instrumentation::MetricFrame::PopTest < Test::Unit::TestC
   end
 
   def test_log_underflow
-    ::NewRelic::Agent.logger.expects(:error).with(regexp_matches(/Underflow in metric frames: /))
+    expects_logging(:error, regexp_matches(/Underflow in metric frames: /))
     log_underflow
   end
 

@@ -123,7 +123,7 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
   end
 
   def test_log_errors_with_error
-    ::NewRelic::Agent.logger.expects(:error).with(
+    expects_logging(:error, 
       includes("Caught exception in name. Metric name = metric"),
       instance_of(RuntimeError))
 
