@@ -104,16 +104,13 @@ module NewRelic
       end
     end
 
-    # In an effort to not lose messages during startup, we trap them in memory
-    # The real logger will then dump its contents out when it arrives.
-    class StartupLogger
-      include Singleton
-
+    # BBase class for startup logging and testing in multiverse
+    class MemoryLogger
       def initialize
         @messages = []
       end
 
-      attr_accessor :messages
+      attr_accessor :messages, :level
 
       def fatal(*msgs)
         messages << [:fatal, msgs]
@@ -141,6 +138,12 @@ module NewRelic
         end
         messages.clear
       end
+    end
+
+    # In an effort to not lose messages during startup, we trap them in memory
+    # The real logger will then dump its contents out when it arrives.
+    class StartupLogger < MemoryLogger
+      include Singleton
     end
   end
 end
