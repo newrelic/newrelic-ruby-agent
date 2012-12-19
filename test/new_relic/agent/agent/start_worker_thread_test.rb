@@ -16,16 +16,7 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
     self.expects(:catch_errors).yields
     self.expects(:connect).with('connection_options')
     @connected = false
-    ::NewRelic::Agent.logger.expects(:debug).with("No connection.  Worker thread ending.")
     deferred_work!('connection_options')
-  end
-
-  def test_log_worker_loop_start
-    ::NewRelic::Agent.logger.expects(:debug).with("Reporting performance data every 30 seconds.")
-    ::NewRelic::Agent.logger.expects(:debug).with("Running worker loop")
-    with_config(:data_report_period => 30) do
-      log_worker_loop_start
-    end
   end
 
   def test_create_and_run_worker_loop
@@ -42,7 +33,6 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
   def test_handle_force_restart
     # hooray for methods with no branches
     error = mock(:message => 'a message')
-    ::NewRelic::Agent.logger.expects(:debug).with('a message')
 
     self.expects(:reset_stats)
     self.expects(:sleep).with(30)
@@ -58,7 +48,6 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
 
   def test_handle_force_disconnect
     error = mock(:message => 'a message')
-    ::NewRelic::Agent.logger.expects(:warn).with("New Relic forced this agent to disconnect (a message)")
 
     self.expects(:disconnect)
     handle_force_disconnect(error)
@@ -67,20 +56,12 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
   def test_handle_server_connection_problem
     error = StandardError.new('a message')
 
-    ::NewRelic::Agent.logger.expects(:error).with( \
-      includes('Unable to establish connection with the server.'),
-      instance_of(StandardError))
-
     self.expects(:disconnect)
     handle_server_connection_problem(error)
   end
 
   def test_handle_other_error
     error = StandardError.new('a message')
-
-    ::NewRelic::Agent.logger.expects(:error).with( \
-      includes("Terminating worker loop"), \
-      instance_of(StandardError))
 
     self.expects(:disconnect)
     handle_other_error(error)

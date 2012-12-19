@@ -81,7 +81,6 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   def test_should_retry_true
     @keep_retrying = true
     @connect_attempts = 1
-    ::NewRelic::Agent.logger.expects(:warn).once
     self.expects(:increment_retry_period!).once
     assert should_retry?, "should retry in this circumstance"
     assert_equal 2, @connect_attempts, "should be on the second attempt"
@@ -108,12 +107,8 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   def test_log_error
     error = StandardError.new("message")
 
-    fake_control = mock()
-    fake_control.expects(:server).returns("server")
-    self.expects(:control).once.returns(fake_control)
-
     ::NewRelic::Agent.logger.expects(:error).with( \
-      includes("Error establishing connection with New Relic Service at server"), \
+      includes("Error establishing connection with New Relic Service"), \
       instance_of(StandardError))
 
     log_error(error)
@@ -122,14 +117,15 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   def test_handle_license_error
     error = mock(:message => "error message")
     self.expects(:disconnect).once
-    ::NewRelic::Agent.logger.expects(:error).with( \
-      "error message", includes("Visit NewRelic.com to obtain a valid license key"))
+    ::NewRelic::Agent.logger.expects(:error)
     handle_license_error(error)
   end
 
   def test_log_seed_token
-    with_config(:validate_seed => 'many seeds', :validate_token => 'a token, man') do
-      ::NewRelic::Agent.logger.expects(:debug).with("Connecting with validation seed/token: many seeds/a token, man").once
+    seed = 'many seeds'
+    token = 'a token, man'
+    with_config(:validate_seed => seed, :validate_token => token) do
+      ::NewRelic::Agent.logger.expects(:debug).with(all_of(includes(seed), includes(token))).once
       log_seed_token
     end
   end
@@ -175,42 +171,9 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     end
   end
 
-  def test_configure_error_collector_base
-    NewRelic::Agent::AgentLogger.any_instance.stubs(:debug)
-    NewRelic::Agent::AgentLogger.any_instance.expects(:debug) \
-      .with("Errors will not be sent to the New Relic service.").at_least_once
-
-    with_config(:'error_collector.enabled' => false) do
-      # noop
-    end
-  end
-
-  def test_configure_error_collector_enabled
-    NewRelic::Agent::AgentLogger.any_instance.stubs(:debug)
-    NewRelic::Agent::AgentLogger.any_instance.expects(:debug) \
-      .with("Errors will be sent to the New Relic service.").at_least_once
-
-    with_config(:'error_collector.enabled' => false) do
-      with_config(:'error_collector.enabled' => true) do
-        # noop
-      end
-    end
-  end
-
-  def test_configure_error_collector_server_disabled
-    NewRelic::Agent::AgentLogger.any_instance.stubs(:debug)
-    NewRelic::Agent::AgentLogger.any_instance.expects(:debug) \
-      .with("Errors will not be sent to the New Relic service.").at_least_once
-    config = NewRelic::Agent::Configuration::ServerSource.new('collect_errors' => false)
-    with_config(config) do
-      # noop
-    end
-  end
-
   def test_configure_transaction_tracer_with_random_sampling
     with_config(:'transaction_tracer.transaction_threshold' => 5,
                 :'transaction_tracer.random_sample' => true) do
-      ::NewRelic::Agent.logger.stubs(:debug)
       sample = TransactionSampleTestHelper.make_sql_transaction
       @transaction_sampler.store_sample(sample)
 
@@ -231,8 +194,6 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   end
 
   def test_configure_transaction_tracer_server_disabled
-    ::NewRelic::Agent.logger.stubs(:debug)
-    ::NewRelic::Agent.logger.expects(:debug).with('Transaction traces will not be sent to the New Relic service.')
     config = NewRelic::Agent::Configuration::ServerSource.new('collect_traces' => false,
                                                               'developer_mode' => false)
     with_config(config) do

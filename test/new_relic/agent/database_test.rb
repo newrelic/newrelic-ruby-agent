@@ -73,18 +73,6 @@ class NewRelic::Agent::DatabaseTest < Test::Unit::TestCase
     assert_equal([], NewRelic::Agent::Database.explain_sql('SELECT', config))
   end  
   
-  def test_handle_exception_in_explain
-    fake_error = StandardError.new('a message')
-
-    ::NewRelic::Agent.logger.expects(:error).with( \
-      includes('Error getting query plan'), \
-      instance_of(StandardError))
-    
-    NewRelic::Agent::Database.handle_exception_in_explain do
-      raise(fake_error)
-    end
-  end
-  
   def test_obfuscation_mysql_basic
     insert = %q[INSERT INTO `X` values("test",0, 1 , 2, 'test')]
     assert_equal("INSERT INTO `X` values(?,?, ? , ?, ?)",
