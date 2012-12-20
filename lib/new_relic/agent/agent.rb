@@ -413,7 +413,8 @@ module NewRelic
           # fix it by adding it to the file
           def has_license_key?
             log_unless(Agent.config[:license_key], :warn,
-                       "No license key found in newrelic.yml config.")
+                       "No license key found in newrelic.yml config. " +
+                       "This often means your newrelic.yml is missing a section for the running environment '#{NewRelic::Control.instance.env}'")
           end
 
           # A correct license key exists and is of the proper length
