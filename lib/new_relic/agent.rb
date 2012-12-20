@@ -151,6 +151,14 @@ module NewRelic
       @logger = log
     end
 
+    def audit_logger
+      @audit_logger
+    end
+
+    def audit_logger=(log)
+      @audit_logger = log
+    end
+
     # Get or create a statistics gatherer that will aggregate numerical data
     # under a metric name.
     #

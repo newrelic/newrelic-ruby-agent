@@ -1,5 +1,6 @@
 require 'new_relic/language_support'
 require 'new_relic/agent/agent_logger'
+require 'new_relic/agent/audit_logger'
 
 module NewRelic
   class Control
@@ -50,6 +51,7 @@ module NewRelic
         Agent.config.replace_or_add_config(Agent::Configuration::ManualSource.new(options), 1)
 
         ::NewRelic::Agent.logger = NewRelic::Agent::AgentLogger.new(Agent.config, root, options.delete(:log))
+        ::NewRelic::Agent.audit_logger = NewRelic::Agent::AuditLogger.new(Agent.config)
 
         # Merge the stringified options into the config as overrides:
         environment_name = options.delete(:env) and self.env = environment_name

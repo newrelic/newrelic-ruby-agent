@@ -114,9 +114,13 @@ module NewRelic
 
         data = @marshaller.dump(args)
         check_post_size(data)
+        uri = remote_method_uri(method, @marshaller.format)
+
+        full_uri = "#{@collector}#{uri}"
+        ::NewRelic::Agent.audit_logger.log_request(full_uri, args, @marshaller)
+
         response = send_request(:data      => data,
-                                :uri       => remote_method_uri(method,
-                                                          @marshaller.format),
+                                :uri       => uri,
                                 :encoding  => @marshaller.encoding,
                                 :collector => @collector)
         @marshaller.load(decompress_response(response))
