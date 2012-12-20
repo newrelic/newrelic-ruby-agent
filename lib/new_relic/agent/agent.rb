@@ -89,16 +89,12 @@ module NewRelic
         # handles things like static setup of the header for inclusion
         # into pages
         attr_reader :beacon_configuration
+        # cross process id's and encoding
         attr_reader :cross_process_id
+        attr_reader :cross_process_encoding_bytes
+        # service for communicating with collector
         attr_accessor :service
 
-        def cross_process_encoding_bytes
-          if @cross_process_encoding_key && @cross_process_encoding_bytes.nil?
-            @cross_process_encoding_bytes = []
-            @cross_process_encoding_key.each_byte {|byte| @cross_process_encoding_bytes << byte}
-          end
-          @cross_process_encoding_bytes
-        end
 
         # Returns the length of the unsent errors array, if it exists,
         # otherwise nil
@@ -750,6 +746,7 @@ module NewRelic
 
             @cross_process_id = Agent.config[:cross_process_id]
             @cross_process_encoding_key = Agent.config[:encoding_key]
+            @cross_process_encoding_bytes = @cross_process_encoding_key.bytes.to_a unless @cross_process_encoding_key.nil?
 
             @beacon_configuration = BeaconConfiguration.new
           end

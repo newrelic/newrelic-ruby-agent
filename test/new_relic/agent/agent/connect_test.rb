@@ -242,6 +242,8 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
       'collect_traces' => true,
       'collect_errors' => true,
       'sample_rate' => 10,
+      'cross_process_id' => '1#234',
+      'encoding_key'     => 'a' * 30,
       'agent_config' => { 'transaction_tracer.record_sql' => 'raw' }
     }
     self.expects(:log_connection!).with(config)
@@ -251,9 +253,13 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     with_config(:'transaction_tracer.enabled' => true) do
       finish_setup(config)
       assert_equal 'fishsticks', @service.agent_id
+      assert_equal '1#234', @cross_process_id
+      assert_equal 'a'  * 30, @cross_process_encoding_key
+      assert_equal [97] * 30, @cross_process_encoding_bytes
       assert_equal 'raw', NewRelic::Agent.config[:'transaction_tracer.record_sql']
     end
   end
+
 
   def test_logging_collector_messages
     NewRelic::Agent.manual_start
