@@ -1087,7 +1087,6 @@ module NewRelic
       extend ClassMethods
       include InstanceMethods
       include BrowserMonitoring
-      include CrossProcessMonitoring
     end
   end
 end

@@ -273,7 +273,6 @@ module NewRelic
                   if !Agent.config[:disable_mobile_headers]
                     NewRelic::Agent::BrowserMonitoring.insert_mobile_response_header(request, response)
                   end
-                  NewRelic::Agent::CrossProcessMonitoring.insert_cross_process_response_header(request, response)
                 end
                 result
               rescue => e
