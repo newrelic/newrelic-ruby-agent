@@ -6,7 +6,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.debug 'Installing Rails Sunspot instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing Rails Sunspot instrumentation'
   end
   
   executes do

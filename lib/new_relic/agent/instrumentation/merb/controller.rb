@@ -8,7 +8,7 @@ DependencyDetection.defer do
   end
   
   executes do
-    ::NewRelic::Agent.logger.debug 'Installing Merb Controller instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing Merb Controller instrumentation'
   end
   
   executes do

@@ -226,7 +226,7 @@ module NewRelic
             @worker_loop.stop
           end
 
-          ::NewRelic::Agent.logger.debug "Starting Agent shutdown"
+          ::NewRelic::Agent.logger.info "Starting Agent shutdown"
 
           # if litespeed, then ignore all future SIGUSR1 - it's
           # litespeed trying to shut us down
@@ -316,20 +316,33 @@ module NewRelic
             !Agent.config[:agent_enabled]
           end
 
+          # Log startup information that we almost always want to know
+          def log_startup
+            log_environment
+            log_dispatcher
+            log_app_names
+          end
+
+          # Log the environment the app thinks it's running in.
+          # Useful in debugging, as this is the key for config YAML lookups.
+          def log_environment
+            ::NewRelic::Agent.logger.info "Environment: #{NewRelic::Control.instance.env}"
+          end
+
           # Logs the dispatcher to the log file to assist with
           # debugging. When no debugger is present, logs this fact to
           # assist with proper dispatcher detection
           def log_dispatcher
             dispatcher_name = Agent.config[:dispatcher].to_s
             return if log_if(dispatcher_name.empty?, :warn, "No dispatcher detected.")
-            ::NewRelic::Agent.logger.debug "Dispatcher: #{dispatcher_name}"
+            ::NewRelic::Agent.logger.info "Dispatcher: #{dispatcher_name}"
           end
 
           # Logs the configured application names
           def log_app_names
             names = Agent.config.app_names
             if names.respond_to?(:any?) && names.any?
-              ::NewRelic::Agent.logger.debug "Application: #{names.join(", ")}"
+              ::NewRelic::Agent.logger.info "Application: #{names.join(", ")}"
             else
               ::NewRelic::Agent.logger.error 'Unable to determine application name. Please set the application name in your newrelic.yml or in a NEW_RELIC_APP_NAME environment variable.'
             end
@@ -456,8 +469,7 @@ module NewRelic
           return if already_started? || disabled?
           @started = true
           @local_host = determine_host
-          log_dispatcher
-          log_app_names
+          log_startup
           check_config_and_start_agent
           log_version_and_pid
         end

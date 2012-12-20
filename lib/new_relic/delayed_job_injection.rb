@@ -20,7 +20,7 @@ DependencyDetection.defer do
   
   executes do
     if NewRelic::Agent.respond_to?(:logger)
-      ::NewRelic::Agent.logger.debug 'Installing DelayedJob instrumentation hooks'
+      ::NewRelic::Agent.logger.info 'Installing DelayedJob instrumentation hooks'
     end
   end
   

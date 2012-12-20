@@ -6,7 +6,7 @@ DependencyDetection.defer do
   end
   
   executes do
-    ::NewRelic::Agent.logger.debug 'Installing Rails ActionWebService instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing Rails ActionWebService instrumentation'
   end  
   
   executes do

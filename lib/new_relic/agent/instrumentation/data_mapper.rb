@@ -57,7 +57,7 @@ DependencyDetection.defer do
   end
   
   executes do
-    ::NewRelic::Agent.logger.debug 'Installing DataMapper instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing DataMapper instrumentation'
   end
   
   executes do

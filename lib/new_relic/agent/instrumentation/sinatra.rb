@@ -9,7 +9,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.debug 'Installing Sinatra instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing Sinatra instrumentation'
   end
 
   executes do

@@ -104,7 +104,7 @@ DependencyDetection.defer do
   end
   
   executes do
-    ::NewRelic::Agent.logger.debug 'Installing ActiveRecord instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing ActiveRecord instrumentation'
   end
   
   executes do

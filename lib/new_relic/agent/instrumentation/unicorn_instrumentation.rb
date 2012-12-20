@@ -6,7 +6,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.debug 'Installing Unicorn instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing Unicorn instrumentation'
     ::NewRelic::Agent.logger.info 'Detected Unicorn, please see additional documentation: https://newrelic.com/docs/troubleshooting/im-using-unicorn-and-i-dont-see-any-data'
   end
 

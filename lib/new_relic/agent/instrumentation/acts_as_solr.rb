@@ -37,7 +37,7 @@ DependencyDetection.defer do
   end
   
   executes do
-    ::NewRelic::Agent.logger.debug 'Installing ActsAsSolr instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing ActsAsSolr instrumentation'
   end
   
   executes do

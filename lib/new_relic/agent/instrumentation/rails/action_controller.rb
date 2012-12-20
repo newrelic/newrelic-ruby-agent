@@ -8,7 +8,7 @@ DependencyDetection.defer do
   end
   
   executes do
-    ::NewRelic::Agent.logger.debug 'Installing Rails 2.1 View instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing Rails 2.1 View instrumentation'
   end
 
   executes do
@@ -32,7 +32,7 @@ DependencyDetection.defer do
   end
   
   executes do
-    ::NewRelic::Agent.logger.debug 'Installing Rails 1.* - 2.0 View instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing Rails 1.* - 2.0 View instrumentation'
   end
   
   executes do
@@ -53,7 +53,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.debug 'Installing Rails 2.2 - 2.3 View instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing Rails 2.2 - 2.3 View instrumentation'
   end
   
   executes do    
@@ -78,7 +78,7 @@ DependencyDetection.defer do
   end
   
   executes do
-    ::NewRelic::Agent.logger.debug 'Installing Rails 2 Controller instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing Rails 2 Controller instrumentation'
   end
   
   executes do

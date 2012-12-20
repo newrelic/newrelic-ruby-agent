@@ -78,7 +78,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.debug 'Installing Rails 3 Controller instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing Rails 3 Controller instrumentation'
   end
 
   executes do
@@ -100,7 +100,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.debug 'Installing Rails 3.0 view instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing Rails 3.0 view instrumentation'
   end
 
   executes do
@@ -139,7 +139,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.debug 'Installing Rails 3.1/3.2 view instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing Rails 3.1/3.2 view instrumentation'
   end
 
   executes do

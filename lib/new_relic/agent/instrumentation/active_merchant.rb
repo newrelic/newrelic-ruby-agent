@@ -8,7 +8,7 @@ DependencyDetection.defer do
   end
   
   executes do
-    ::NewRelic::Agent.logger.debug 'Installing ActiveMerchant instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing ActiveMerchant instrumentation'
   end
   
   executes do

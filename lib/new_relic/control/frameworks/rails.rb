@@ -43,9 +43,9 @@ module NewRelic
           if !Agent.config[:agent_enabled]
             # Might not be running if it does not think mongrel, thin, passenger, etc
             # is running, if it thinks it's a rake task, or if the agent_enabled is false.
-            ::NewRelic::Agent.logger.debug("New Relic Agent not running.")
+            ::NewRelic::Agent.logger.info("New Relic Agent not running.")
           else
-            ::NewRelic::Agent.logger.debug("Starting the New Relic Agent.")
+            ::NewRelic::Agent.logger.info("Starting the New Relic Agent.")
             install_developer_mode rails_config if Agent.config[:developer_mode]
             install_browser_monitoring(rails_config)
           end

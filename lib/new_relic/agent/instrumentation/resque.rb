@@ -7,7 +7,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.debug 'Installing Resque instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing Resque instrumentation'
   end
   
   executes do
