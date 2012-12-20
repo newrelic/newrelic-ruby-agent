@@ -269,9 +269,11 @@ module NewRelic
                 else
                   perform_action_without_newrelic_trace(*args)
                 end
-                if defined?(request) && request && defined?(response) &&
-                    response && !Agent.config[:disable_mobile_headers]
-                  NewRelic::Agent::BrowserMonitoring.insert_mobile_response_header(request, response)
+                if defined?(request) && request && defined?(response) && response
+                  if !Agent.config[:disable_mobile_headers]
+                    NewRelic::Agent::BrowserMonitoring.insert_mobile_response_header(request, response)
+                  end
+                  NewRelic::Agent::CrossProcessMonitoring.insert_cross_process_response_header(request, response)
                 end
                 result
               rescue => e
