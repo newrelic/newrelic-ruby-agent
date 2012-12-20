@@ -12,7 +12,6 @@ module NewRelic
       def load_instrumentation_files pattern
         Dir.glob(pattern) do |file|
           begin
-            ::NewRelic::Agent.logger.debug "Processing instrumentation file '#{file}'"
             require file.to_s
           rescue => e
             ::NewRelic::Agent.logger.warn "Error loading instrumentation file '#{file}':", e
