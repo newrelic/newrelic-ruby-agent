@@ -180,7 +180,6 @@ module NewRelic
             @metric_ids = {}
           end
 
-          # ::NewRelic::Agent.logger.debug "Agent received after_fork notice in #$$: [#{control.agent_enabled?}; monitor=#{control.monitor_mode?}; connected: #{@connected.inspect}; thread=#{@worker_thread.inspect}]"
           return if !Agent.config[:agent_enabled] ||
             !Agent.config[:monitor_mode] ||
             @connected == false ||
