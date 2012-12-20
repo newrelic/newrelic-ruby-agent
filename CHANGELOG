@@ -11,6 +11,12 @@
     location are now handled via the Agent environment, manual, and default
     configuration sources.
 
+  * Updates to logging across the agent
+
+    We've carefully reviewed the logging messages that the agent outputs, adding
+    details in some cases, and removing unnecessary clutter. We've also altered
+    the startup sequence to ensure that we don't spam STDOUT with messages
+    during initialization.
 
 ## v3.5.4 ##
 
