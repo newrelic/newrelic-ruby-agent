@@ -670,30 +670,10 @@ module NewRelic
             disconnect
           end
 
-          # If we are using a seed and token to validate the agent, we
-          # should debug log that fact so that debug logs include a
-          # clue that token authentication is what will be used
-          def log_seed_token
-            if Agent.config[:validate_seed]
-              ::NewRelic::Agent.logger.debug "Connecting with validation seed/token: #{Agent.config[:validate_seed]}/#{Agent.config[:validate_token]}"
-            end
-          end
-
           # Checks whether we should send environment info, and if so,
           # returns the snapshot from the local environment
           def environment_for_connect
             Agent.config[:send_environment_info] ? Control.instance.local_env.snapshot : []
-          end
-
-          # These validation settings are used for cases where a
-          # dynamic server is spun up for clients - partners can
-          # include a seed and token to indicate that the host is
-          # allowed to connect, rather than setting a unique hostname
-          def validate_settings
-            {
-              :seed => Agent.config[:validate_seed],
-              :token => Agent.config[:validate_token]
-            }
           end
 
           # Initializes the hash of settings that we send to the
@@ -707,15 +687,11 @@ module NewRelic
               :agent_version => NewRelic::VERSION::STRING,
               :environment => environment_for_connect,
               :settings => Agent.config.to_collector_hash,
-              :validate => validate_settings
             }
           end
 
-          # Does some simple logging to make sure that our seed and
-          # token for verification are correct, then returns the
-          # connect data passed back from the server
+          # Returns connect data passed back from the server
           def connect_to_server
-            log_seed_token
             @service.connect(connect_settings)
           end
 

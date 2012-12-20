@@ -24,8 +24,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   end
 
   def control
-    fake_control = OpenStruct.new('validate_seed' => false,
-                                  'local_env' => OpenStruct.new('snapshot' => []))
+    fake_control = OpenStruct.new('local_env' => OpenStruct.new('snapshot' => []))
     fake_control.instance_eval do
       def [](key)
         return nil
@@ -120,22 +119,6 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     handle_license_error(error)
   end
 
-  def test_log_seed_token
-    seed = 'many seeds'
-    token = 'a token, man'
-    with_config(:validate_seed => seed, :validate_token => token) do
-      expects_logging(:debug, all_of(includes(seed), includes(token)))
-      log_seed_token
-    end
-  end
-
-  def test_no_seed_token
-    with_config(:validate_seed => false) do
-      expects_no_logging(:debug, "seed/token")
-      log_seed_token
-    end
-  end
-
   def test_environment_for_connect_positive
     fake_env = stub('local_env', :discovered_dispatcher => nil)
     fake_env.expects(:snapshot).returns("snapshot")
@@ -151,19 +134,11 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     end
   end
 
-  def test_validate_settings
-    with_config(:validate_seed => 'seed', :validate_token => 'token') do
-      assert_equal 'seed', NewRelic::Agent.instance.validate_settings[:seed]
-      assert_equal 'token', NewRelic::Agent.instance.validate_settings[:token]
-    end
-  end
-
   def test_connect_settings
     control = mocked_control
     NewRelic::Agent.config.expects(:app_names)
-    self.expects(:validate_settings)
     self.expects(:environment_for_connect)
-    keys = %w(pid host app_name language agent_version environment settings validate)
+    keys = %w(pid host app_name language agent_version environment settings)
     value = connect_settings
     keys.each do |k|
       assert(value.has_key?(k.to_sym), "should include the key #{k}")
