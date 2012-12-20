@@ -10,7 +10,7 @@ module NewRelic
           HEROKU_QUEUE_HEADER = 'HTTP_X_HEROKU_QUEUE_WAIT_TIME'
           APP_HEADER = 'HTTP_X_APPLICATION_START'
 
-          HEADER_REGEX = /([^\s\/,(t=)]+)? ?t=([0-9]+)/
+          HEADER_REGEX = /([^\s\/,(t=)]+)? ?t=([0-9\.]+)/
           SERVER_METRIC = 'WebFrontend/WebServer/'
           MIDDLEWARE_METRIC = 'Middleware/'
           # no individual queue metric - more than one queue?!
@@ -93,7 +93,7 @@ module NewRelic
         def get_matches_from_header(header, env)
           return [] if env.nil?
           get_matches(env[header]).map do |name, time|
-            convert_to_name_time_pair(name, time)
+            convert_to_name_time_pair(name, time.sub('.', ''))
           end
         end
 

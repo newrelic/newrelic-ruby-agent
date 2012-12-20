@@ -1,6 +1,44 @@
 
 # New Relic Ruby Agent Release Notes #
 
+## v3.5.4 ##
+
+  * Add queue time support for sinatra apps
+
+    Sinatra applications can now take advantage of front end queue time
+    reporting. Thanks to Winfield Peterson for this contribution.
+
+  * Simplify queue time configuration for nginx 1.2.6+
+
+    Beginning in version 1.2.6, recently released as a development version, the
+    $msec variable can be used to set an http header.  This change allows front
+    end queue time to be tracked in New Relic simply by adding this line to the
+    nginx config:
+
+    proxy_set_header X-Queue-Start "t=${msec}000"
+
+    It will no longer be necessary to compile a patched version of nginx or
+    compile in the perl or lua module to enable this functionality.
+
+    Thanks to Lawrence Pit for the contribution.
+
+  * Report back build number and stage along with version info
+
+    In the 3.5.3 series the agent would fail to report its full version number
+    to NewRelic's environment report.  For example it would report its version
+    as 3.5.3 instead of 3.5.3.25 or 3.5.3.25.beta.  The agent will now report
+    its complete version number as defined in newrelic_rpm.gemspec.
+
+  * The host and the port that the agent reports to can now be set from environment vars
+
+    The host can be set with NEW_RELIC_HOST and the port with NEW_RELIC_PORT.  These setting
+    will overrride any other settings in your newrelic.yml.
+
+  * Fix RUM reporting to multiple applications
+
+    When the agent is configured to report to multiple "roll up" applications
+    RUM did not work correctly.
+
 ## v3.5.3 ##
 
   * Update the collector protocol to use JSON and Ruby primitives

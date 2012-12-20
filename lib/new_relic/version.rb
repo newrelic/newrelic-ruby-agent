@@ -1,10 +1,26 @@
 #!/usr/bin/ruby
+
 module NewRelic
   module VERSION #:nodoc:
+    def self.parse_build_from_gemspec(path)
+      if File.exist?(path)
+        version_string = if Kernel.const_defined?(:Gem)
+          spec = Gem::Specification.load(path)
+          spec.version.to_s if spec
+        else
+          md = File.read(path).match(/s\.version\s*=\s*"(.*)"/)
+          md[1] if md
+        end
+        version_string && version_string.split('.', 4)[3]
+      end
+    end
+
+    GEMSPEC_PATH = File.join(File.dirname(__FILE__), '..', '..', 'newrelic_rpm.gemspec')
     MAJOR = 3
     MINOR = 5
-    TINY  = 3
-    BUILD = nil
+    TINY  = 4
+    BUILD = parse_build_from_gemspec(GEMSPEC_PATH)
+
     STRING = [MAJOR, MINOR, TINY, BUILD].compact.join('.')
   end
 

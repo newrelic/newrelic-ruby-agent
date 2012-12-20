@@ -61,7 +61,8 @@ class SinatraMetricExplosionTest < Test::Unit::TestCase
     get '/hello/isitmeyourelookingfor?'
     get '/another_controller'
 
-    metric_names = ::NewRelic::Agent.agent.stats_engine.stats_hash.keys.map{|k| k.name} - ['CPU/User Time']
+    metric_names = ::NewRelic::Agent.agent.stats_engine.stats_hash.keys.
+      map{|k| k.name} - ['CPU/User Time', "Middleware/all", "WebFrontend/QueueTime", "WebFrontend/WebServer/all"]
     assert_equal 6, metric_names.size, "Explosion detected in: #{metric_names.inspect}"
   end
 
