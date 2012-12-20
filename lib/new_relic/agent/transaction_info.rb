@@ -63,7 +63,7 @@ module NewRelic
       end
 
       def self.get_token(request)
-        return nil unless request
+        return nil if request.blank?
         
         agent_flag = request.cookies['NRAGENT']
         if agent_flag and agent_flag.instance_of? String 
