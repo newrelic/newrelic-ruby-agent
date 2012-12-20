@@ -85,7 +85,7 @@ module NewRelic
 
         busy = busy / time_window
 
-        instance_busy_stats.record_data_point busy
+        instance_busy_stats.record_data_point busy if Agent.config[:report_instance_busy]
         @harvest_start = t0
       end
 

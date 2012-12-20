@@ -62,7 +62,8 @@ DependencyDetection.defer do
       ::Resque.before_first_fork do
         NewRelic::Agent.manual_start(:dispatcher   => :resque,
                                      :sync_startup => true,
-                                     :start_channel_listener => true)
+                                     :start_channel_listener => true,
+                                     :report_instance_busy => false)
       end
       
       ::Resque.before_fork do |job|

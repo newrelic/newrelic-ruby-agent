@@ -66,6 +66,7 @@ module NewRelic
         :start_channel_listener => false,
         :data_report_period     => 60,
         :keep_retrying          => true,
+        :report_instance_busy   => true,
 
         :log_file_name => 'newrelic_agent.log',
         :log_file_path => 'log/',
