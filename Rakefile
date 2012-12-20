@@ -23,6 +23,14 @@ namespace :test do
     end
   end
 
+  desc "Test the multiverse testing framework by executing tests in test/multiverse/test. Get meta with it."
+  task 'multiverse:self', [:suite, :mode] => [:gemspec] do |t, args|
+    args.with_defaults(:suite => "", :mode => "")
+    puts ("Testing the multiverse testing framework...")
+    test_files = FileList['test/multiverse/test/*_test.rb']
+    ruby test_files.join(" ")
+  end
+
   Rake::TestTask.new(:intentional_fail) do |t|
     t.libs << "#{agent_home}/test"
     t.libs << "#{agent_home}/lib"
