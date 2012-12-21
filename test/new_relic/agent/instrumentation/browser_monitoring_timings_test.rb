@@ -6,7 +6,7 @@ class NewRelic::Agent::Instrumentation::BrowserMonitoringTimingsTest < Test::Uni
     Time.stubs(:now).returns(2000)
     @transaction = stub(
       :transaction_name => "Name",
-      :start_time => 0,
+      :start_time => 0
     )
   end
 
