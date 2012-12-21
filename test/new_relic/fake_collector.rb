@@ -6,6 +6,8 @@ require 'timeout'
 require 'ostruct'
 require File.join(File.dirname(__FILE__), 'fakes_sending_data')
 
+require 'json' if RUBY_VERSION >= '1.9'
+
 module NewRelic
   class FakeCollector
     attr_accessor :agent_data, :mock
@@ -37,9 +39,10 @@ module NewRelic
       uri = URI.parse(req.url)
       if uri.path =~ /agent_listener\/\d+\/.+\/(\w+)/
         method = $1
+        format = json_format?(uri) && RUBY_VERSION >= '1.9' ? :json : :pruby
         if @mock.keys.include? method
           res.status = @mock[method][0]
-          if json_format?(uri)
+          if format == :json
             res.write JSON.dump(@mock[method][1])
           else
             res.write Marshal.dump(@mock[method][1])
@@ -50,17 +53,39 @@ module NewRelic
         end
         run_id = uri.query =~ /run_id=(\d+)/ ? $1 : nil
         req.body.rewind
-        body = if json_format?(uri) && RUBY_VERSION >= '1.9'
-          require 'json'
-          JSON.load(req.body.read)
+        
+        body = if format == :json
+          body = JSON.load(req.body.read)
         else
-          Marshal.load(req.body.read)
+          body = Marshal.load(req.body.read)
         end
-        @agent_data << OpenStruct.new(:action => method,
-                                      :body   => body,
-                                      :run_id => run_id)
+        @agent_data << OpenStruct.new(:action       => method,
+                                      :body         => body,
+                                      :run_id       => run_id,
+                                      :format       => format)
       end
       res.finish
+    end
+
+    # Unpeel the inner layers of encoding applied by the JSON marshaller.
+    # I'm sorry.
+    def unpack_inner_blobs(req)
+      body = req.body
+      if req.format == :json
+        case req.action
+        when 'profile_data' then
+          body[0][4] = unpack(body[0][4])
+        when 'sql_trace_data' then
+          body[0][0][9] = unpack(body[0][0][9])
+        when 'transaction_sample_data' then
+          body[4] = unpack(body[4])
+        end
+      end
+      body
+    end
+
+    def unpack(blob)
+      JSON.load(Zlib::Inflate.inflate(Base64.decode64(blob)))
     end
 
     def json_format?(uri)

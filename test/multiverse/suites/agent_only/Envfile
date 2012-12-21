@@ -1,3 +1,4 @@
 gemfile <<-RB
   gem 'rack'
+  gem 'mocha'
 RB
