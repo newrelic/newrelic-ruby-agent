@@ -47,7 +47,7 @@ module NewRelic
         if !override_logger.nil?
           @log = override_logger
         elsif config[:agent_enabled] == false
-          @log = ::Logger.new("/dev/null")
+          create_null_logger
         else
           if wants_stdout(config)
             @log = ::Logger.new(STDOUT)
@@ -71,6 +71,11 @@ module NewRelic
             warn("Failed creating logger for file #{file_path}, using standard out for logging.", e)
           end
         end
+      end
+
+      def create_null_logger
+        null_path = ["/dev/null", "NUL"].detect{|f| File.exists?(f)}
+        @log = ::Logger.new(null_path)
       end
 
       def wants_stdout(config)

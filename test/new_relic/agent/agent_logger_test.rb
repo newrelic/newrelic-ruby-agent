@@ -63,7 +63,17 @@ class AgentLoggerTest < Test::Unit::TestCase
   end
 
   def test_wont_log_if_agent_not_enabled
-    ::Logger.stubs(:new).with("/dev/null").returns(stub(:level=)).once
+    ::Logger.stubs(:new).with("/dev/null").returns(stub(:level=)).at_least_once
+
+    @config[:agent_enabled] = false
+    logger = NewRelic::Agent::AgentLogger.new(@config)
+  end
+
+  def test_logs_to_nul_if_dev_null_not_there
+    File.stubs(:exists?).with("/dev/null").returns(false)
+    File.stubs(:exists?).with("NUL").returns(true)
+
+    ::Logger.stubs(:new).with("NUL").returns(stub(:level=)).once
 
     @config[:agent_enabled] = false
     logger = NewRelic::Agent::AgentLogger.new(@config)
