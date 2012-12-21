@@ -2,19 +2,33 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 
 module NewRelic::Agent
   class CrossProcessMonitoringTest < Test::Unit::TestCase
-    def setup
-      NewRelic::Agent.instance.stubs(:cross_process_id).returns("qwerty")
-      NewRelic::Agent.instance.stubs(:cross_process_encoding_bytes).returns([1,2,3,4])
+    AGENT_CROSS_PROCESS_ID = "qwerty"
+    REQUEST_CROSS_PROCESS_ID = "asdf"
 
-      @request_with_id = stub(:env => {'X-NewRelic-ID' => "asdf"})
+    def setup
+      NewRelic::Agent.instance.stubs(:cross_process_id).returns(AGENT_CROSS_PROCESS_ID)
+      NewRelic::Agent.instance.stubs(:cross_process_encoding_bytes).returns([0])
+
+      @request_with_id = stub(:env => {'X-NewRelic-ID' => REQUEST_CROSS_PROCESS_ID})
       @empty_request = stub(:env => {})
 
       @response = {}
     end
 
     def test_adds_response_header
+      timings = stub(
+        :transaction_name => "transaction",
+        :queue_time_in_millis => 1000,
+        :app_time_in_millis => 2000)
+
+      NewRelic::Agent::BrowserMonitoring.stubs(:timings).returns(timings)
+
       CrossProcessMonitoring.insert_response_header(@request_with_id, @response)
-      assert_equal false, @response['X-NewRelic-App-Data'].nil?
+
+      assert unpacked_response.include?("transaction")
+      assert unpacked_response.include?("1000")
+      assert unpacked_response.include?("2000")
+      assert unpacked_response.include?(AGENT_CROSS_PROCESS_ID)
     end
 
     def test_doesnt_add_header_if_no_id_in_request
@@ -31,10 +45,10 @@ module NewRelic::Agent
 
     def test_finds_id_from_headers
       %w{X-NewRelic-ID HTTP_X_NEWRELIC_ID X_NEWRELIC_ID}.each do |key|
-        request = stub(:env => { key => "asdf" })
+        request = stub(:env => { key => REQUEST_CROSS_PROCESS_ID })
 
         assert_equal(
-          "asdf", \
+          REQUEST_CROSS_PROCESS_ID, \
           CrossProcessMonitoring.id_from_request(request),
           "Failed to find header on key #{key}")
       end
@@ -45,5 +59,8 @@ module NewRelic::Agent
       assert_nil CrossProcessMonitoring.id_from_request(request)
     end
 
+    def unpacked_response
+      @response['X-NewRelic-App-Data'].unpack("m0").first
+    end
   end
 end
