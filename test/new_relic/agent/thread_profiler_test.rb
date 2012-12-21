@@ -426,7 +426,7 @@ class ThreadProfileTest < ThreadedTest
     assert_equal [], @profile.traces[:other][0].children
   end
 
-  def test_to_compressed_array
+  def test_to_collector_array
     @profile.instance_variable_set(:@start_time, 1350403938892.524)
     @profile.instance_variable_set(:@stop_time, 1350403939904.375)
     @profile.instance_variable_set(:@poll_count, 10)
@@ -454,14 +454,8 @@ class ThreadProfileTest < ThreadedTest
           0
       ]]
 
-    assert_equal expected, @profile.to_compressed_array
-  end
-
-  def test_compress
-    original = '{"OTHER": [[["thread_profiler.py", "<module>", 1], 10, 0, []]], "REQUEST": [], "AGENT": [[["/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/threading.py", "__bootstrap", 489], 10, 0, [[["/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/threading.py", "__bootstrap_inner", 512], 10, 0, [[["/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/threading.py", "run", 480], 10, 0, [[["thread_profiler.py", "_profiler_loop", 76], 10, 0, [[["thread_profiler.py", "_run_profiler", 103], 10, 0, [[["thread_profiler.py", "collect_thread_stacks", 165], 10, 0, []]]]]]]]]]]]], "BACKGROUND": []}'
-    assert_equal( 
-      "eJy9UtFOwjAU/ZWlz2QdKKCGmKBOTDSgY/iyLM02ijR0vcttiVmM/047J0LiA080bdJz2nPPbe/9IrP4KYzIjZckCTFr5NmSVQgrITn6VU06HhmVsNxKfmv33dSuoOPZmaSpBSQK3xbhPHYBHBxPwmncRqPzWhte0heRY4Y1fcSs5J+AG01fa7MG5a9+GfrOUQtQmvb8IZUip1Vzw6GfpIT6aNNhLAcw2mBWWXh5dX2Q01lcmVCKoyX73d5ZvHGrmpcGx27/V2uPmQRwPzQcnCSzJnvOVTq4OEVWgJS8MKw91SYrNtrJB/3jVvkbVnU3vn+eRLPF9KHpm+8dYyPRqg==",
-      NewRelic::Agent::ThreadProfile.compress(original).gsub(/\n/, ''))
+    marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+    assert_equal expected, @profile.to_collector_array(marshaller.default_encoder)
   end
 end
 

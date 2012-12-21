@@ -43,7 +43,7 @@ class MarshalingTest < Test::Unit::TestCase
 
     assert_equal(666,
                  $collector.agent_data.select{|x| x.action == 'transaction_sample_data'}[0].body[0])
-    assert_equal(expected_sample.to_collector_array(marshaller),
+    assert_equal(expected_sample.to_collector_array(marshaller.default_encoder),
                  $collector.agent_data.select{|x| x.action == 'transaction_sample_data'}[0].body[1][0])
   end
 

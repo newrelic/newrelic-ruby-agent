@@ -213,7 +213,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
                       trace_tree,
                       @t.guid, nil, !!@t.force_persist]
 
-    assert_equal expected_array, @t.to_collector_array(marshaller)
+    assert_equal expected_array, @t.to_collector_array(marshaller.default_encoder)
   end
 
   def compress(string)

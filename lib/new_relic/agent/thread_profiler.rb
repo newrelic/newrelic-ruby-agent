@@ -194,7 +194,7 @@ EOF
 
       THREAD_PROFILER_NODES = 20_000
 
-      def to_compressed_array
+      def to_collector_array(encoder)
         prune!(THREAD_PROFILER_NODES)
 
         traces = {
@@ -206,8 +206,8 @@ EOF
 
         [[@profile_id,
           @start_time.to_f, @stop_time.to_f,
-          @poll_count, 
-          ThreadProfile.compress(JSON.dump(traces)),
+          @poll_count,
+          encoder.encode(traces),
           @sample_count, 0]]
       end
 
@@ -231,10 +231,6 @@ EOF
 
       def self.flattened_nodes(nodes)
         nodes.map { |n| [n, flattened_nodes(n.children)] }.flatten
-      end
-
-      def self.compress(json)
-        compressed = Base64.encode64(Zlib::Deflate.deflate(json, Zlib::DEFAULT_COMPRESSION))
       end
 
       def self.parse_backtrace(trace)

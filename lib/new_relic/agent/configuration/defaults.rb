@@ -72,6 +72,11 @@ module NewRelic
         :log_file_path => 'log/',
         :log_level     => 'info',
 
+        :'audit_log.enabled'      => false,
+        :'audit_log.path'         => Proc.new {
+          File.join(self[:log_file_path], 'newrelic_audit.log')
+        },
+
         :disable_samplers                     => false,
         :disable_resque                       => false,
         :disable_dj                           => false,
