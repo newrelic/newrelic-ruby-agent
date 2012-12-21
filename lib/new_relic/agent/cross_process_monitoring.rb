@@ -66,9 +66,10 @@ module NewRelic
 
       def insert_cross_process_response_header(request, response)
 
-        if NewRelic::Agent.instance.cross_process_id && (id = cross_process_id_from_request(request))
+        if NewRelic::Agent.instance.cross_process_id && (id = id_from_request(request))
           content_length = -1
           # FIXME the transaction name might not be properly encoded.  use a json generator
+          # FIXME Why do we use both the instance cross_process_id, and the ID on the request?
           payload = %[["#{NewRelic::Agent.instance.cross_process_id}","#{browser_monitoring_transaction_name}",#{browser_monitoring_queue_time_in_seconds},#{browser_monitoring_app_time_in_seconds},#{content_length}] ]
           payload = obfuscate_with_key payload, NewRelic::Agent.instance.cross_process_encoding_bytes
 
@@ -78,16 +79,12 @@ module NewRelic
         end
       end
 
-      def cross_process_id_from_request(request)
-        headers = ['X-NewRelic-ID', 'HTTP_X_NEWRELIC_ID', 'X_NEWRELIC_ID']
-        headers.each do |header|
-          id = request.env[header]
-          return id if id
+      def self.id_from_request(request)
+        %w{X-NewRelic-ID HTTP_X_NEWRELIC_ID X_NEWRELIC_ID}.each do |header|
+          return request.env[header] if request.env.has_key?(header)
         end
         nil
       end
-
-      private
     end
   end
 end
