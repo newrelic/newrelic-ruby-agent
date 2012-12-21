@@ -13,12 +13,16 @@ module NewRelic
         @enabled
       end
 
+      def setup?
+        !@log.nil?
+      end
+
       def log_request(uri, data, marshaller)
         if enabled?
-          setup_logger unless @log
+          setup_logger unless setup?
           prepared_data = marshaller.prepare(data, :encoder => @encoder)
-          @log.add(::Logger::INFO, "REQUEST: #{uri}")
-          @log.add(::Logger::INFO, "REQUEST BODY: #{prepared_data.inspect}")
+          @log.info("REQUEST: #{uri}")
+          @log.info("REQUEST BODY: #{prepared_data.inspect}")
         end
       end
 

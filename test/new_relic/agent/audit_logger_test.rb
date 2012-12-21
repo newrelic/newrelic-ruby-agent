@@ -21,8 +21,8 @@ class AuditLoggerTest < Test::Unit::TestCase
   def test_never_setup_if_disabled
     config = { :'audit_log.enabled' => false }
     logger = NewRelic::Agent::AuditLogger.new(config)
-    logger.expects(:setup_logger).never
     logger.log_request(@uri, "hi there", @marshaller)
+    assert(!logger.setup?, "Expected logger to not have been setup")
   end
 
   def test_never_prepare_if_disabled
