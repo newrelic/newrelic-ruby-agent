@@ -4,7 +4,7 @@ module NewRelic::Agent
   class CrossProcessMonitoringTest < Test::Unit::TestCase
     def setup
       NewRelic::Agent.instance.stubs(:cross_process_id).returns("qwerty")
-      NewRelic::Agent.instance.stubs(:cross_process_encoding_bytes).returns("abcd".bytes.to_a)
+      NewRelic::Agent.instance.stubs(:cross_process_encoding_bytes).returns([1,2,3,4])
 
       @request_with_id = stub(:env => {'X-NewRelic-ID' => "asdf"})
       @empty_request = stub(:env => {})

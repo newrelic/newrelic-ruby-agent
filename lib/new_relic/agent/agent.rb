@@ -746,9 +746,20 @@ module NewRelic
 
             @cross_process_id = Agent.config[:cross_process_id]
             @cross_process_encoding_key = Agent.config[:encoding_key]
-            @cross_process_encoding_bytes = @cross_process_encoding_key.bytes.to_a unless @cross_process_encoding_key.nil?
+            @cross_process_encoding_bytes = get_bytes(@cross_process_encoding_key) unless @cross_process_encoding_key.nil?
 
             @beacon_configuration = BeaconConfiguration.new
+          end
+
+          # Ruby 1.8.6 doesn't support the bytes method on strings.
+          def get_bytes(value)
+            return [] if value.nil?
+
+            bytes = []
+            value.each_byte do |b|
+              bytes << b
+            end
+            bytes
           end
 
           # Logs when we connect to the server, for debugging purposes

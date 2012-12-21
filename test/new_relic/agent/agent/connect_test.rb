@@ -260,6 +260,9 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     end
   end
 
+  def test_get_bytes_with_nil
+    assert_equal [], get_bytes(nil)
+  end
 
   def test_logging_collector_messages
     NewRelic::Agent.manual_start
