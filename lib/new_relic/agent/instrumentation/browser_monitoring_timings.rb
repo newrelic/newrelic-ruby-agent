@@ -3,13 +3,26 @@ module NewRelic
     module Instrumentation
       class BrowserMonitoringTimings
 
-        def initialize(queue_time_in_seconds, transaction=NewRelic::Agent::TransactionInfo.get)
-          @transaction_name = transaction.transaction_name
-          @start_time_in_seconds = transaction.start_time
-          @queue_time_in_millis = convert_to_milliseconds(queue_time_in_seconds)
+        def initialize(queue_time_in_seconds, transaction)
+          if transaction.nil?
+            @start_time_in_seconds = 0.0
+          else
+            @transaction_name = transaction.transaction_name
+            @start_time_in_seconds = transaction.start_time
+          end
+
+          @queue_time_in_seconds = queue_time_in_seconds
         end
 
-        attr_reader :transaction_name, :queue_time_in_millis
+        attr_reader :transaction_name
+
+        def start_time_in_millis
+          convert_to_milliseconds(@start_time_in_seconds)
+        end
+
+        def queue_time_in_millis
+          convert_to_milliseconds(@queue_time_in_seconds)
+        end
 
         def app_time_in_millis
           convert_to_milliseconds(Time.now - @start_time_in_seconds)

@@ -93,6 +93,12 @@ module NewRelic
         NewRelic::Agent::TransactionInfo.get.start_time
       end
 
+      def self.timings
+        NewRelic::Agent::Instrumentation::BrowserMonitoringTimings.new(
+          current_metric_frame.queue_time,
+          NewRelic::Agent::TransactionInfo.get)
+      end
+
       def insert_mobile_response_header(request, response)
         if mobile_header_found_in?(request) &&
             NewRelic::Agent.instance.beacon_configuration

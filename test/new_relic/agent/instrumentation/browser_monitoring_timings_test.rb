@@ -31,9 +31,9 @@ class NewRelic::Agent::Instrumentation::BrowserMonitoringTimingsTest < Test::Uni
   end
 
   def test_defaults_to_transaction_info
-    NewRelic::Agent::TransactionInfo.stubs(:get).returns(@transaction)
-    t = NewRelic::Agent::Instrumentation::BrowserMonitoringTimings.new(1000)
-    assert_equal "Name", t.transaction_name
+    t = NewRelic::Agent::Instrumentation::BrowserMonitoringTimings.new(1000, nil)
+    assert_equal nil, t.transaction_name
+    assert_equal 0.0, t.start_time_in_millis
   end
 
 end
