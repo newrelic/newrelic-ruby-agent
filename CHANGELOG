@@ -3,6 +3,13 @@
 
 ## v3.5.5 ##
 
+  * Add audit logging capability
+
+    The agent can now log all of the data it sends to the New Relic servers to
+    a special log file for human inspection. This feature is off by default, and
+    can be enabled by setting the audit_log.enabled configuration key to true.
+    You may also control the location of the audit log with the audit_log.path key. 
+
   * Use config system for dispatcher, framework, and config file detection
 
     Several aspects of the agent's configuration were not being handled by the
