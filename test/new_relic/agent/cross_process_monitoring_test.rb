@@ -33,14 +33,21 @@ module NewRelic::Agent
 
     def test_doesnt_add_header_if_no_id_in_request
       CrossProcessMonitoring.insert_response_header(@empty_request, @response)
-      assert_nil @response['X-NewRelic-App-Data']
+      assert_nil response_app_data
     end
 
     def test_doesnt_add_header_if_no_id_on_agent
       NewRelic::Agent.instance.stubs(:cross_process_id).returns(nil)
 
       CrossProcessMonitoring.insert_response_header(@request_with_id, @response)
-      assert_nil @response['X-NewRelic-App-Data']
+      assert_nil response_app_data
+    end
+
+    def test_doesnt_add_header_if_config_disabled
+      with_config(:'cross_process.enabled' => false) do
+        CrossProcessMonitoring.insert_response_header(@request_with_id, @response)
+        assert_nil response_app_data
+      end
     end
 
     def test_finds_id_from_headers
@@ -59,8 +66,12 @@ module NewRelic::Agent
       assert_nil CrossProcessMonitoring.id_from_request(request)
     end
 
+    def response_app_data
+      @response['X-NewRelic-App-Data']
+    end
+
     def unpacked_response
-      @response['X-NewRelic-App-Data'].unpack("m0").first
+      response_app_data.unpack("m0").first
     end
   end
 end

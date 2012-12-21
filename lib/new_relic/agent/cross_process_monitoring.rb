@@ -5,7 +5,9 @@ module NewRelic
       module_function
 
       def insert_response_header(request, response)
-        if NewRelic::Agent.instance.cross_process_id && (id = id_from_request(request))
+        if Agent.config[:'cross_process.enabled'] &&
+            NewRelic::Agent.instance.cross_process_id && (id = id_from_request(request))
+
           content_length = -1
           timings = NewRelic::Agent::BrowserMonitoring.timings
 
