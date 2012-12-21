@@ -64,7 +64,7 @@ module NewRelic
         [obfuscated].pack("m0").gsub("\n", '')
       end
 
-      def insert_cross_process_response_header(request, response)
+      def insert_response_header(request, response)
 
         if NewRelic::Agent.instance.cross_process_id && (id = id_from_request(request))
           content_length = -1
@@ -79,7 +79,7 @@ module NewRelic
         end
       end
 
-      def self.id_from_request(request)
+      def id_from_request(request)
         %w{X-NewRelic-ID HTTP_X_NEWRELIC_ID X_NEWRELIC_ID}.each do |header|
           return request.env[header] if request.env.has_key?(header)
         end
