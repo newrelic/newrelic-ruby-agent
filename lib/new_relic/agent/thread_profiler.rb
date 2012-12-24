@@ -130,7 +130,7 @@ EOF
       end
 
       def run
-        Thread.new('Thread Profiler') do
+        AgentThread.new('Thread Profiler') do
           @start_time = now_in_millis
 
           @worker_loop.run(@interval) do
@@ -138,11 +138,11 @@ EOF
               record_supportability_metrics_timed("ThreadProfiler/PollingTime") do
 
               @poll_count += 1
-              Thread.list.each do |t|
+              AgentThread.list.each do |t|
                 @sample_count += 1
 
-                bucket = Thread.bucket_thread(t, @profile_agent_code)
-                backtrace = Thread.scrub_backtrace(t, @profile_agent_code)
+                bucket = AgentThread.bucket_thread(t, @profile_agent_code)
+                backtrace = AgentThread.scrub_backtrace(t, @profile_agent_code)
                 aggregate(backtrace, @traces[bucket]) unless bucket == :ignore
               end
             end
