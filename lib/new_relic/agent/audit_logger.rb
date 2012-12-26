@@ -21,9 +21,13 @@ module NewRelic
       def log_request(uri, data, marshaller)
         if enabled?
           setup_logger unless setup?
-          prepared_data = marshaller.prepare(data, :encoder => @encoder)
+          request_body = if marshaller.class.human_readable?
+            marshaller.dump(data, :encoder => @encoder)
+          else
+            marshaller.prepare(data, :encoder => @encoder).inspect
+          end
           @log.info("REQUEST: #{uri}")
-          @log.info("REQUEST BODY: #{prepared_data.inspect}")
+          @log.info("REQUEST BODY: #{request_body}")
         end
       end
 
