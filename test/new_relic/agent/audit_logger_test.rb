@@ -44,6 +44,7 @@ class AuditLoggerTest < Test::Unit::TestCase
 
   def test_ensure_path_returns_nil_with_bogus_path
     opts = { :'audit_log.path' => '/really/really/not/a/path' }
+    FileUtils.stubs(:mkdir_p).raises(SystemCallError, "i'd rather not")
     logger = NewRelic::Agent::AuditLogger.new(@config.merge(opts))
     assert_nil(logger.ensure_log_path)
   end

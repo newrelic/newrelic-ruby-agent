@@ -1,4 +1,5 @@
 require 'logger'
+require 'fileutils'
 
 module NewRelic
   module Agent
@@ -36,10 +37,16 @@ module NewRelic
       def ensure_log_path
         path = File.expand_path(@config[:'audit_log.path'])
         log_dir = File.dirname(path)
-        error = if !File.directory?(log_dir)
-          "Audit log disabled: '#{log_dir}' does not exist or is not a directory"
-        elsif !File.writable?(path)
-          "Audit log disabled: '#{path}' is not writable"
+
+        error = nil
+        if !File.directory?(log_dir)
+          begin
+            FileUtils.mkdir_p(log_dir)
+          rescue SystemCallError => e
+            error = "Audit log disabled, failed to create log directory '#{log_dir}': #{e}"
+          end
+        elsif !File.writable?(log_dir)
+          error = "Audit log disabled: '#{log_dir}' is not writable"
         end
 
         if error
