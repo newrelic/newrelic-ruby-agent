@@ -38,6 +38,29 @@ class AuditLogTest < Test::Unit::TestCase
     assert(haystack.include?(needle), "Expected log to contain '#{needle}'")
   end
 
+  # Because we don't generate a strictly machine-readable representation of
+  # request bodies for the audit log, the transformation into strings is
+  # effectively one-way. This, combined with the fact that Hash traversal order
+  # is arbitrary in Ruby 1.8.x means that it's difficult to directly assert that
+  # some object graph made it into the audit log (due to different possible 
+  # orderings of the key/value pairs in Hashes that were embedded in the request
+  # body). So, this method traverses an object graph and only makes assertions
+  # about the terminal (non-Array-or-Hash) nodes therein.
+  def assert_audit_log_contains_object(o)
+    case o
+    when Hash
+      o.each do |k,v|
+        assert_audit_log_contains_object(v)
+      end
+    when Array
+      o.each do |el|
+        assert_audit_log_contains_object(el)
+      end
+    else
+      assert_audit_log_contains(o)
+    end
+  end
+
   def run_agent_with_options(options)
     NewRelic::Agent.manual_start(options)
     yield NewRelic::Agent.agent if block_given?
@@ -66,7 +89,7 @@ class AuditLogTest < Test::Unit::TestCase
 
     $collector.agent_data.each do |req|
       body = $collector.unpack_inner_blobs(req)
-      assert_audit_log_contains(body)
+      assert_audit_log_contains_object(body)
     end
   end
 end
