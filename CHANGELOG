@@ -25,6 +25,11 @@
     the startup sequence to ensure that we don't spam STDOUT with messages
     during initialization.
 
+  * Fix passing environment to manual_start()
+
+    Thanks to Justin Hannus.  The :env key, when passed to Agent.manual_start,
+    can again be used to specify which section of newrelic.yml is loaded.
+
 ## v3.5.4 ##
 
   * Add queue time support for sinatra apps

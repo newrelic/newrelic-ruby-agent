@@ -40,7 +40,7 @@ class ConfigFileLoadingTest < Test::Unit::TestCase
     FakeFS.deactivate!
   end
 
-  def setup_config(path)
+  def setup_config(path, manual_config_options = {})
     NewRelic::Agent.shutdown
     FileUtils.mkdir_p(File.dirname(path))
     Dir.chdir @cwd
@@ -50,10 +50,12 @@ development:
   foo: "success!!"
 test:
   foo: "success!!"
+bazbangbarn:
+  i_am: "bazbangbarn"
       YAML
     end
     NewRelic::Agent.reset_config
-    NewRelic::Agent.manual_start
+    NewRelic::Agent.manual_start(manual_config_options)
   end
 
   def assert_config_read_from(path)
@@ -91,5 +93,14 @@ test:
 
   def test_config_isnt_loaded_from_somewhere_crazy
     assert_config_not_read_from(File.dirname(__FILE__) + "/somewhere/crazy/newrelic.yml")
+  end
+
+  def test_config_will_load_settings_for_environment_passed_manual_start
+    path = File.dirname(__FILE__) + "/config/newrelic.yml"
+
+    # pass an env key to NewRelic::Agent.manual_start which should cause it to
+    # load that section of newrelic.yml
+    setup_config(path, {:env => 'bazbangbarn'} )
+    assert_equal 'bazbangbarn', NewRelic::Agent.config[:i_am], "Agent.config did not load bazbangbarn config as requested"
   end
 end

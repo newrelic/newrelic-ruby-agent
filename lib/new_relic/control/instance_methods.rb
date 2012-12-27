@@ -45,7 +45,7 @@ module NewRelic
       # init_config({}) which is called one or more times.
       #
       def init_plugin(options={})
-        yaml = Agent::Configuration::YamlSource.new(@config_file_path, env)
+        yaml = Agent::Configuration::YamlSource.new(@config_file_path, options[:env] || env)
         Agent.config.replace_or_add_config(yaml, 1)
 
         Agent.config.replace_or_add_config(Agent::Configuration::ManualSource.new(options), 1)
