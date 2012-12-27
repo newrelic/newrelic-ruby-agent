@@ -1,4 +1,5 @@
 require 'zlib'
+require 'new_relic/agent/audit_logger'
 
 module NewRelic
   module Agent
@@ -23,6 +24,11 @@ module NewRelic
         @license_key = license_key || Agent.config[:license_key]
         @collector = collector
         @request_timeout = Agent.config[:timeout]
+
+        @audit_logger = ::NewRelic::Agent::AuditLogger.new(Agent.config)
+        Agent.config.register_callback(:'audit_log.enabled') do |enabled|
+          @audit_logger.enabled = enabled
+        end
         
         Agent.config.register_callback(:marshaller) do |marshaller|
           begin
@@ -131,7 +137,7 @@ module NewRelic
         uri = remote_method_uri(method, @marshaller.format)
         full_uri = "#{@collector}#{uri}"
 
-        ::NewRelic::Agent.audit_logger.log_request(full_uri, args, @marshaller)
+        @audit_logger.log_request(full_uri, args, @marshaller)
         response = send_request(:data      => data,
                                 :uri       => uri,
                                 :encoding  => encoding,

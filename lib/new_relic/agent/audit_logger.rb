@@ -6,9 +6,11 @@ module NewRelic
     class AuditLogger
       def initialize(config)
         @config = config
-        @enabled = config[:'audit_log.enabled']
+        @enabled = @config[:'audit_log.enabled']
         @encoder = NewRelic::Agent::NewRelicService::Encoders::Identity
       end
+
+      attr_writer :enabled
 
       def enabled?
         @enabled

@@ -11,7 +11,6 @@ class AuditLogTest < Test::Unit::TestCase
     $collector.reset
     $collector.run
 
-    NewRelic::Agent.reset_config 
     @string_log = StringIO.new
     NewRelic::Agent::AuditLogger.any_instance.stubs(:ensure_log_path).returns(@string_log)
   end
