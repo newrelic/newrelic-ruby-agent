@@ -240,12 +240,18 @@ end
     end
   end
 
-  def test_pruby_marshaller_compresses_large_payloads
-    marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
-    large_payload = 'a' * 64 * 1024
-    result = marshaller.dump(large_payload)
-    assert_equal 'deflate', marshaller.encoding
-    assert_equal large_payload, Marshal.load(Zlib::Inflate.inflate(result))
+  def test_compress_request_if_needed_compresses_large_payloads
+    large_payload = 'a' * 65 * 1024
+    body, encoding = @service.compress_request_if_needed(large_payload)
+    assert_equal(large_payload, Zlib::Inflate.inflate(body))
+    assert_equal('deflate', encoding)
+  end
+
+  def test_compress_request_if_needed_passes_thru_small_payloads
+    payload = 'a' * 100
+    body, encoding = @service.compress_request_if_needed(payload)
+    assert_equal(payload, body)
+    assert_equal('identity', encoding)
   end
 
   def test_marshaller_obeys_requested_encoder

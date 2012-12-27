@@ -87,6 +87,19 @@ module NewRelic
         invoke_remote(:agent_command_results, @agent_id, { command_id.to_s => results })
       end
 
+      # We do not compress if content is smaller than 64kb.  There are
+      # problems with bugs in Ruby in some versions that expose us
+      # to a risk of segfaults if we compress aggressively.
+      def compress_request_if_needed(data)
+        encoding = 'identity'
+        if data.size > 64 * 1024
+          data = Encoders::Compressed.encode(data)
+          encoding = 'deflate'
+        end
+        check_post_size(data)
+        [data, encoding]
+      end
+
       private
 
       # A shorthand for NewRelic::Control.instance
@@ -113,15 +126,15 @@ module NewRelic
         now = Time.now
 
         data = @marshaller.dump(args)
-        check_post_size(data)
+        data, encoding = compress_request_if_needed(data)
+
         uri = remote_method_uri(method, @marshaller.format)
-
         full_uri = "#{@collector}#{uri}"
-        ::NewRelic::Agent.audit_logger.log_request(full_uri, args, @marshaller)
 
+        ::NewRelic::Agent.audit_logger.log_request(full_uri, args, @marshaller)
         response = send_request(:data      => data,
                                 :uri       => uri,
-                                :encoding  => @marshaller.encoding,
+                                :encoding  => encoding,
                                 :collector => @collector)
         @marshaller.load(decompress_response(response))
       rescue NewRelic::Agent::ForceRestartException => e
@@ -243,33 +256,6 @@ module NewRelic
       end
 
       class Marshaller
-        attr_reader :encoding
-
-        # This method handles the compression of the request body that
-        # we are going to send to the server
-        #
-        # We currently optimize for CPU here since we get roughly a 10x
-        # reduction in message size with this, and CPU overhead is at a
-        # premium. For extra-large posts, we use the higher compression
-        # since otherwise it actually errors out.
-        #
-        # We do not compress if content is smaller than 64kb.  There are
-        # problems with bugs in Ruby in some versions that expose us
-        # to a risk of segfaults if we compress aggressively.
-        #
-        # medium payloads get fast compression, to save CPU
-        # big payloads get all the compression possible, to stay under
-        # the 2,000,000 byte post threshold
-        def compress(data)
-          if data.size > 64 * 1024
-            data = Encoders::Compressed.encode(data)
-            @encoding = 'deflate'
-          else
-            @encoding = 'identity'
-          end
-          data
-        end
-
         def parsed_error(error)
           error_class = error['error_type'].split('::') \
             .inject(Module) {|mod,const| mod.const_get(const) }
@@ -293,6 +279,10 @@ module NewRelic
           Encoders::Identity
         end
 
+        def self.human_readable?
+          false
+        end
+
         protected
 
         def return_value(data)
@@ -314,9 +304,9 @@ module NewRelic
           ::NewRelic::Agent.logger.debug 'Using Pruby marshaller'
         end
 
-        def dump(ruby)
+        def dump(ruby, opts={})
           NewRelic::LanguageSupport.with_cautious_gc do
-            compress(Marshal.dump(prepare(ruby)))
+            Marshal.dump(prepare(ruby, opts))
           end
         rescue => e
           ::NewRelic::Agent.logger.debug("#{e.class.name} : #{e.message} when marshalling #{ruby.inspect}")
@@ -348,8 +338,8 @@ module NewRelic
           ::NewRelic::Agent.logger.debug 'Using JSON marshaller'
         end
 
-        def dump(ruby)
-          compress(JSON.dump(prepare(ruby)))
+        def dump(ruby, opts={})
+          JSON.dump(prepare(ruby, opts))
         end
 
         def load(data)
@@ -370,6 +360,10 @@ module NewRelic
 
         def self.is_supported?
           RUBY_VERSION >= '1.9.2'
+        end
+
+        def self.human_readable?
+          true # for some definitions of 'human'
         end
       end
 

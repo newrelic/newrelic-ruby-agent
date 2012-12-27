@@ -9,6 +9,13 @@ class AuditLoggerTest < Test::Unit::TestCase
     @uri = "http://really.notreal"
     @marshaller = NewRelic::Agent::NewRelicService::Marshaller.new
     @hostname = 'dummyhost'
+    @dummy_data = {
+      'foo' => [1, 2, 3],
+      'bar' => {
+        'baz' => 'qux',
+        'jingle' => 'bells'
+      }
+    }
     Socket.stubs(:gethostname).returns(@hostname)
   end
 
@@ -16,6 +23,12 @@ class AuditLoggerTest < Test::Unit::TestCase
     @fakelog = StringIO.new
     @logger = NewRelic::Agent::AuditLogger.new(@config)
     @logger.stubs(:ensure_log_path).returns(@fakelog)
+  end
+
+  def assert_log_contains_string(str)
+    @fakelog.rewind
+    log_body = @fakelog.read
+    assert(log_body.include?(str), "Expected log to contain string '#{str}'")
   end
 
   def test_never_setup_if_disabled
@@ -44,6 +57,7 @@ class AuditLoggerTest < Test::Unit::TestCase
 
   def test_ensure_path_returns_nil_with_bogus_path
     opts = { :'audit_log.path' => '/really/really/not/a/path' }
+    FileUtils.stubs(:mkdir_p).raises(SystemCallError, "i'd rather not")
     logger = NewRelic::Agent::AuditLogger.new(@config.merge(opts))
     assert_nil(logger.ensure_log_path)
   end
@@ -56,17 +70,20 @@ class AuditLoggerTest < Test::Unit::TestCase
     @logger.log_request(@uri, data, @marshaller)
   end
 
-  def test_logs_human_readable_data
+  def test_logs_inspect_with_pruby_marshaller
     setup_fake_logger
-    data = {
-      'foo' => [1, 2, 3],
-      'bar' => {
-        'baz' => 'qux',
-        'jingle' => 'bells'
-      }
-    }
-    @logger.log_request(@uri, data, @marshaller)
-    @fakelog.rewind
-    assert(@fakelog.read.include?(data.inspect), "Expected human-readable version of data in log file")
+    pruby_marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
+    @logger.log_request(@uri, @dummy_data, pruby_marshaller)
+    assert_log_contains_string(@dummy_data.inspect)
+  end
+
+  def test_logs_json_with_json_marshaller
+    marshaller_cls = NewRelic::Agent::NewRelicService::JsonMarshaller
+    if marshaller_cls.is_supported?
+      setup_fake_logger
+      json_marshaller = marshaller_cls.new
+      @logger.log_request(@uri, @dummy_data, json_marshaller)
+      assert_log_contains_string(JSON.dump(@dummy_data))
+    end
   end
 end

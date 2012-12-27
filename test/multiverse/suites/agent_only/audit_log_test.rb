@@ -33,7 +33,7 @@ class AuditLogTest < Test::Unit::TestCase
     # they go through a dump/load, they're strings again, so we strip
     # double-quotes and colons from the log, and the strings we searching for.
     regex = /[:"]/
-    needle = needle.inspect.gsub(regex, '')
+    needle = needle.gsub(regex, '')
     haystack = audit_log_contents.gsub(regex, '')
     assert(haystack.include?(needle), "Expected log to contain '#{needle}'")
   end
@@ -46,18 +46,22 @@ class AuditLogTest < Test::Unit::TestCase
   # orderings of the key/value pairs in Hashes that were embedded in the request
   # body). So, this method traverses an object graph and only makes assertions
   # about the terminal (non-Array-or-Hash) nodes therein.
-  def assert_audit_log_contains_object(o)
-    case o
-    when Hash
-      o.each do |k,v|
-        assert_audit_log_contains_object(v)
-      end
-    when Array
-      o.each do |el|
-        assert_audit_log_contains_object(el)
-      end
+  def assert_audit_log_contains_object(o, format)
+    if format == :json
+      assert_audit_log_contains(JSON.dump(o))
     else
-      assert_audit_log_contains(o)
+      case o
+      when Hash
+        o.each do |k,v|
+          assert_audit_log_contains_object(v, format)
+        end
+      when Array
+        o.each do |el|
+          assert_audit_log_contains_object(el, format)
+        end
+      else
+        assert_audit_log_contains(o.inspect)
+      end
     end
   end
 
@@ -78,6 +82,7 @@ class AuditLogTest < Test::Unit::TestCase
   end
 
   def test_logs_request_bodies_human_readably_ish
+    format = NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported? ? :json : :pruby
     run_agent_with_options({ :'audit_log.enabled' => true }) do |agent|
       agent.sql_sampler.notice_first_scope_push(nil)
       agent.sql_sampler.notice_sql("select * from test",
@@ -89,7 +94,7 @@ class AuditLogTest < Test::Unit::TestCase
 
     $collector.agent_data.each do |req|
       body = $collector.unpack_inner_blobs(req)
-      assert_audit_log_contains_object(body)
+      assert_audit_log_contains_object(body, format)
     end
   end
 end
