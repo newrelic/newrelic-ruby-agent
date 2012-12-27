@@ -67,6 +67,13 @@ module NewRelic
         def append_plugin_list
           local_env.append_plugin_list { ::Rails.configuration.plugins.to_a }
         end
+        
+        def install_shim
+          super
+          ActiveSupport.on_load(:action_controller) do
+            include NewRelic::Agent::Instrumentation::ControllerInstrumentation::Shim
+          end
+        end
       end
     end
   end

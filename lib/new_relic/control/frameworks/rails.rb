@@ -143,7 +143,6 @@ module NewRelic
             ActionController::Base.class_eval { include NewRelic::Agent::Instrumentation::ControllerInstrumentation::Shim }
           end
         end
-
       end
     end
   end
