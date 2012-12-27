@@ -45,6 +45,7 @@ module NewRelic
       #
       def init_plugin(options={})
         begin
+          env = options[:env] || env
           path = @newrelic_file || Agent.config[:config_path]
           yaml = Agent::Configuration::YamlSource.new(path, env)
           Agent.config.replace_or_add_config(yaml, 1)
