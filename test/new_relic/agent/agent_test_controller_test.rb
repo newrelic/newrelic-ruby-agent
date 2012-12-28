@@ -169,12 +169,12 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     assert_equal 1, engine.get_stats_no_scope("Controller/new_relic/agent/agent_test/action_with_error").call_count
     assert_equal 1, engine.get_stats_no_scope("Errors/all").call_count
     apdex = engine.get_stats_no_scope("Apdex")
-    score = apdex.get_apdex
-    assert_equal 1, score[2], 'failing'
-    assert_equal 0, score[1], 'tol'
-    assert_equal 0, score[0], 'satisfied'
 
+    assert_equal 1, apdex.apdex_f, 'failing'
+    assert_equal 0, apdex.apdex_t, 'tol'
+    assert_equal 0, apdex.apdex_s, 'satisfied'
   end
+
   def test_controller_error
     engine.clear_stats
     assert_raise RuntimeError do
@@ -193,12 +193,12 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     assert_equal 1, engine.get_stats_no_scope("Controller/new_relic/agent/agent_test/action_with_error").call_count
     assert_equal 1, engine.get_stats_no_scope("Errors/all").call_count
     apdex = engine.get_stats_no_scope("Apdex")
-    score = apdex.get_apdex
-    assert_equal 1, score[2], 'failing'
-    assert_equal 0, score[1], 'tol'
-    assert_equal 0, score[0], 'satisfied'
 
+    assert_equal 1, apdex.apdex_f, 'failing'
+    assert_equal 0, apdex.apdex_t, 'tol'
+    assert_equal 0, apdex.apdex_s, 'satisfied'
   end
+
   def test_filter_error
     engine.clear_stats
     assert_raise RuntimeError do
@@ -217,16 +217,18 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     assert_equal 1, engine.get_stats_no_scope("Controller/new_relic/agent/agent_test/action_with_before_filter_error").call_count
     assert_equal 1, engine.get_stats_no_scope("Errors/all").call_count
     apdex = engine.get_stats_no_scope("Apdex")
-    score = apdex.get_apdex
-    assert_equal 1, score[2], 'failing'
-    assert_equal 0, score[1], 'tol'
-    assert_equal 0, score[0], 'satisfied'
+
+    assert_equal 1, apdex.apdex_f, 'failing'
+    assert_equal 0, apdex.apdex_t, 'tol'
+    assert_equal 0, apdex.apdex_s, 'satisfied'
   end
+
   def test_metric__ignore_base
     engine.clear_stats
     get :base_action
     compare_metrics [], engine.metrics
   end
+
   def test_metric__no_ignore
     path = 'new_relic/agent/agent_test/index'
     index_stats = stats("Controller/#{path}")

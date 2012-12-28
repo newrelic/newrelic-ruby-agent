@@ -288,7 +288,7 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
     self.class.trace_execution_scoped metrics do
       sleep 0.05
     end
-    elapsed = @stats_engine.get_stats('first').average_call_time
+    elapsed = @stats_engine.get_stats('first').total_call_time
     metrics.map{|name| @stats_engine.get_stats name}.each do | m |
       assert_equal 1, m.call_count
       assert_equal elapsed, m.total_call_time
@@ -299,7 +299,7 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
     self.class.trace_execution_unscoped metrics do
       sleep 0.05
     end
-    elapsed = @stats_engine.get_stats('first').average_call_time
+    elapsed = @stats_engine.get_stats('first').total_call_time
     metrics.map{|name| @stats_engine.get_stats name}.each do | m |
       assert_equal 1, m.call_count
       assert_equal elapsed, m.total_call_time

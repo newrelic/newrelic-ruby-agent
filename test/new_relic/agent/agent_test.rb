@@ -118,7 +118,7 @@ module NewRelic
 
       def test_harvest_timelice_data_should_be_thread_safe
         2000.times do |i|
-          @agent.stats_engine.stats_hash[i.to_s] = NewRelic::StatsBase.new
+          @agent.stats_engine.stats_hash[i.to_s] = NewRelic::BasicStats.new
         end
 
         harvest = Thread.new("Harvesting Test run timeslices") do
@@ -127,7 +127,7 @@ module NewRelic
 
         app = Thread.new("Harvesting Test Modify stats_hash") do
           200.times do |i|
-            @agent.stats_engine.stats_hash["a#{i}"] = NewRelic::StatsBase.new
+            @agent.stats_engine.stats_hash["a#{i}"] = NewRelic::BasicStats.new
           end
         end
 
