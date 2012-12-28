@@ -30,6 +30,12 @@
     Thanks to Justin Hannus.  The :env key, when passed to Agent.manual_start,
     can again be used to specify which section of newrelic.yml is loaded.
 
+  * Rails 4 support
+
+    This release includes preliminary support for Rails 4 as of 4.0.0.beta.
+    Rails 4 is still in development, but the agent should work as expected for
+    people who are experimenting with the beta.
+
 ## v3.5.4 ##
 
   * Add queue time support for sinatra apps
