@@ -62,6 +62,22 @@ class AuditLoggerTest < Test::Unit::TestCase
     assert_nil(logger.ensure_log_path)
   end
 
+  def test_log_request_captures_system_call_errors
+    logger = NewRelic::Agent::AuditLogger.new(@config)
+    dummy_sink = StringIO.new
+    dummy_sink.stubs(:write).raises(SystemCallError, "nope")
+    logger.stubs(:ensure_log_path).returns(dummy_sink)
+
+    # In 1.9.2 and later, Logger::LogDevice#write captures any errors during
+    # writing and spits them out with Kernel#warn.
+    # This just silences that output to keep the test output uncluttered.
+    Logger::LogDevice.any_instance.stubs(:warn)
+
+    assert_nothing_raised do
+      logger.log_request(@uri, 'whatever', @marshaller)
+    end
+  end
+
   def test_prepares_data_with_identity_encoder
     setup_fake_logger
     data = { 'foo' => 'bar' }

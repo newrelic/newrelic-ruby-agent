@@ -31,6 +31,8 @@ module NewRelic
           @log.info("REQUEST: #{uri}")
           @log.info("REQUEST BODY: #{request_body}")
         end
+      rescue SystemCallError => e
+        ::NewRelic::Agent.logger.warn("Failed writing to audit log: #{e}")
       end
 
       def setup_logger
@@ -44,19 +46,12 @@ module NewRelic
         path = File.expand_path(@config[:'audit_log.path'])
         log_dir = File.dirname(path)
 
-        error = nil
-        if !File.directory?(log_dir)
-          begin
-            FileUtils.mkdir_p(log_dir)
-          rescue SystemCallError => e
-            error = "Audit log disabled, failed to create log directory '#{log_dir}': #{e}"
-          end
-        elsif !File.writable?(log_dir)
-          error = "Audit log disabled: '#{log_dir}' is not writable"
-        end
-
-        if error
-          ::NewRelic::Agent.logger.warn(error)
+        begin
+          FileUtils.mkdir_p(log_dir)
+          FileUtils.touch(path)
+        rescue SystemCallError => e
+          msg = "Audit log disabled, failed opening log at '#{path}': #{e}"
+          ::NewRelic::Agent.logger.warn(msg)
           path = nil
         end
 
