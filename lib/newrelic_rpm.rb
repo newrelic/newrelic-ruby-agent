@@ -28,10 +28,9 @@ if defined?(Merb) && defined?(Merb::BootLoader)
     end
   end
 elsif defined? Rails
-  if Rails.respond_to?(:version) && Rails.version =~ /^3/
+  if Rails.respond_to?(:version) && Rails.version >= '3'
     module NewRelic
       class Railtie < Rails::Railtie
-
         initializer "newrelic_rpm.start_plugin" do |app|
 	  NewRelic::Control.instance.init_plugin(:config => app.config)
         end
