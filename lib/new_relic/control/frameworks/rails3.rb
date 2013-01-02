@@ -14,6 +14,10 @@ module NewRelic
           @env ||= ::Rails.env.to_s
         end
 
+        def rails_root
+          ::Rails.root
+        end
+
         def logger
           ::Rails.logger
         end

@@ -10,20 +10,20 @@ module NewRelic
         def env
           @env ||= RAILS_ENV.dup
         end
-        def root
-          root =
-            if defined?(::Rails) && ::Rails::VERSION::MAJOR == 3
-              ::Rails.root
-            elsif defined?(RAILS_ROOT)
-              RAILS_ROOT
-            end
 
-          if root.to_s != ''
+        def root
+          root = rails_root.to_s
+          if !root.empty?
             root
           else
             super
           end
         end
+
+        def rails_root
+          RAILS_ROOT if defined?(RAILS_ROOT)
+        end
+
         def logger
           ::RAILS_DEFAULT_LOGGER
         end
