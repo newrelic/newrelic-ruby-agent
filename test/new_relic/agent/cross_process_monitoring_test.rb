@@ -1,7 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 
 module NewRelic::Agent
-  class CrossProcessMonitoringTest < Test::Unit::TestCase
+  class CrossProcessMonitorTest < Test::Unit::TestCase
     AGENT_CROSS_PROCESS_ID = "qwerty"
     REQUEST_CROSS_PROCESS_ID = "asdf"
 
@@ -13,6 +13,8 @@ module NewRelic::Agent
       @empty_request = stub(:env => {})
 
       @response = {}
+
+      @monitor = NewRelic::Agent::CrossProcessMonitor.new()
     end
 
     def test_adds_response_header
@@ -23,7 +25,7 @@ module NewRelic::Agent
 
       NewRelic::Agent::BrowserMonitoring.stubs(:timings).returns(timings)
 
-      CrossProcessMonitoring.insert_response_header(@request_with_id, @response)
+      @monitor.insert_response_header(@request_with_id, @response)
 
       assert unpacked_response.include?("transaction")
       assert unpacked_response.include?("1000")
@@ -32,20 +34,20 @@ module NewRelic::Agent
     end
 
     def test_doesnt_add_header_if_no_id_in_request
-      CrossProcessMonitoring.insert_response_header(@empty_request, @response)
+      @monitor.insert_response_header(@empty_request, @response)
       assert_nil response_app_data
     end
 
     def test_doesnt_add_header_if_no_id_on_agent
       NewRelic::Agent.instance.stubs(:cross_process_id).returns(nil)
 
-      CrossProcessMonitoring.insert_response_header(@request_with_id, @response)
+      @monitor.insert_response_header(@request_with_id, @response)
       assert_nil response_app_data
     end
 
     def test_doesnt_add_header_if_config_disabled
       with_config(:'cross_process.enabled' => false) do
-        CrossProcessMonitoring.insert_response_header(@request_with_id, @response)
+        @monitor.insert_response_header(@request_with_id, @response)
         assert_nil response_app_data
       end
     end
@@ -56,14 +58,14 @@ module NewRelic::Agent
 
         assert_equal(
           REQUEST_CROSS_PROCESS_ID, \
-          CrossProcessMonitoring.id_from_request(request),
+          @monitor.id_from_request(request),
           "Failed to find header on key #{key}")
       end
     end
 
     def test_doesnt_find_id_in_headers
       request = stub(:env => {})
-      assert_nil CrossProcessMonitoring.id_from_request(request)
+      assert_nil @monitor.id_from_request(request)
     end
 
     def response_app_data

@@ -1,8 +1,7 @@
 module NewRelic
   module Agent
-    module CrossProcessMonitoring
 
-      module_function
+    class CrossProcessMonitor
 
       def insert_response_header(request, response)
         if Agent.config[:'cross_process.enabled'] &&
