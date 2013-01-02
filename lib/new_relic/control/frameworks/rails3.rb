@@ -13,18 +13,9 @@ module NewRelic
         def env
           @env ||= ::Rails.env.to_s
         end
-        
-        # Rails can return an empty string from this method, causing
-        # the agent not to start even when it is properly in a rails 3
-        # application, so we test the value to make sure it actually
-        # has contents, and bail to the parent class if it is empty.
-        def root
-          value = ::Rails.root.to_s
-          if value.empty?
-            super
-          else
-            value
-          end
+
+        def rails_root
+          ::Rails.root
         end
 
         def logger
