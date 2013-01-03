@@ -9,8 +9,8 @@ module NewRelic::Agent
       NewRelic::Agent.instance.stubs(:cross_process_id).returns(AGENT_CROSS_PROCESS_ID)
       NewRelic::Agent.instance.stubs(:cross_process_encoding_bytes).returns([0])
 
-      @request_with_id = stub(:env => {'X-NewRelic-ID' => REQUEST_CROSS_PROCESS_ID})
-      @empty_request = stub(:env => {})
+      @request_with_id = {'X-NewRelic-ID' => REQUEST_CROSS_PROCESS_ID}
+      @empty_request = {}
 
       @response = {}
 
@@ -54,7 +54,7 @@ module NewRelic::Agent
 
     def test_finds_id_from_headers
       %w{X-NewRelic-ID HTTP_X_NEWRELIC_ID X_NEWRELIC_ID}.each do |key|
-        request = stub(:env => { key => REQUEST_CROSS_PROCESS_ID })
+        request = { key => REQUEST_CROSS_PROCESS_ID }
 
         assert_equal(
           REQUEST_CROSS_PROCESS_ID, \
@@ -64,7 +64,7 @@ module NewRelic::Agent
     end
 
     def test_doesnt_find_id_in_headers
-      request = stub(:env => {})
+      request = {}
       assert_nil @monitor.id_from_request(request)
     end
 

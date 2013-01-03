@@ -28,6 +28,7 @@ module NewRelic
         @transaction_sampler = NewRelic::Agent::TransactionSampler.new
         @sql_sampler = NewRelic::Agent::SqlSampler.new
         @thread_profiler = NewRelic::Agent::ThreadProfiler.new
+        @cross_process_monitor = NewRelic::Agent::CrossProcessMonitor.new
         @error_collector = NewRelic::Agent::ErrorCollector.new
         @connect_attempts = 0
 

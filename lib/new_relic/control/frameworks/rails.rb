@@ -46,9 +46,16 @@ module NewRelic
             ::NewRelic::Agent.logger.info("New Relic Agent not running.")
           else
             ::NewRelic::Agent.logger.info("Starting the New Relic Agent.")
-            install_developer_mode rails_config if Agent.config[:developer_mode]
+            install_developer_mode(rails_config) if Agent.config[:developer_mode]
             install_browser_monitoring(rails_config)
+            install_agent_hooks(rails_config)
           end
+        end
+
+        def install_agent_hooks(config)
+          require 'new_relic/rack/agent_hooks'
+          config.middleware.use NewRelic::Rack::AgentHooks
+          ::NewRelic::Agent.logger.debug("Installed New Relic Agent Hooks middleware")
         end
 
         def install_browser_monitoring(config)
