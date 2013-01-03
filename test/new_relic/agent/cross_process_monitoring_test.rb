@@ -18,12 +18,7 @@ module NewRelic::Agent
     end
 
     def test_adds_response_header
-      timings = stub(
-        :transaction_name => "transaction",
-        :queue_time_in_millis => 1000,
-        :app_time_in_millis => 2000)
-
-      NewRelic::Agent::BrowserMonitoring.stubs(:timings).returns(timings)
+      with_default_timings
 
       @monitor.insert_response_header(@request_with_id, @response)
 
@@ -54,14 +49,14 @@ module NewRelic::Agent
     end
 
     def test_includes_content_length
-      NewRelic::Agent::BrowserMonitoring.stubs(:timings).returns(stub_everything)
+      with_default_timings
 
       @monitor.insert_response_header(@request_with_id.merge("Content-Length" => 3000), @response)
       assert unpacked_response.include?("3000")
     end
 
     def test_content_length_isnt_case_sensitive
-      NewRelic::Agent::BrowserMonitoring.stubs(:timings).returns(stub_everything)
+      with_default_timings
 
       @monitor.insert_response_header(@request_with_id.merge("cOnTeNt-LeNgTh" => 3000), @response)
       assert unpacked_response.include?("3000")
@@ -78,9 +73,27 @@ module NewRelic::Agent
       end
     end
 
+    def test_writes_metric
+      timings = stub_everything(:app_time_in_millis => 2000)
+      NewRelic::Agent::BrowserMonitoring.stubs(:timings).returns(timings)
+
+      metric = mock()
+      metric.expects(:record_data_point).with(2000)
+      NewRelic::Agent.instance.stats_engine.stubs(:get_stats_no_scope).returns(metric)
+
+      @monitor.insert_response_header(@request_with_id, @response)
+    end
+
     def test_doesnt_find_id_in_headers
       request = {}
       assert_nil @monitor.id_from_request(request)
+    end
+
+    def with_default_timings
+      NewRelic::Agent::BrowserMonitoring.stubs(:timings).returns(stub(
+          :transaction_name => "transaction",
+          :queue_time_in_millis => 1000,
+          :app_time_in_millis => 2000))
     end
 
     def response_app_data

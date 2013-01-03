@@ -23,8 +23,8 @@ module NewRelic
 
           response_headers['X-NewRelic-App-Data'] = payload
 
-          #FIXME generate ClientApplication metric.  id must be decoded first
-          # String metricName = MessageFormat.format("ClientApplication/{0}/all", id);
+          metric = NewRelic::Agent.instance.stats_engine.get_stats_no_scope("ClientApplication/#{decode_with_key(id)}/all")
+          metric.record_data_point(timings.app_time_in_millis)
         end
       end
 
