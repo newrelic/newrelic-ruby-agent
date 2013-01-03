@@ -3,9 +3,13 @@ require 'rack'
 module NewRelic::Rack
   class AgentHooks
 
+    @@instances = []
+
     def initialize(app, options = {})
       @app = app
       @events = {}
+
+      @@instances << self
     end
 
     # method required by Rack interface
@@ -15,6 +19,10 @@ module NewRelic::Rack
       result = @app.call(env)
       notify :after_call, env, result
       result
+    end
+
+    def self.subscribe(event, &handler)
+      @@instances.each {|i| i.subscribe(event, &handler) }
     end
 
     def subscribe(event, &handler)

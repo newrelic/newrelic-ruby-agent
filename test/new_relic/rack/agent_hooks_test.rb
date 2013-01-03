@@ -1,7 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require 'new_relic/rack/agent_hooks'
 
-
 class AgentHooksTest < Test::Unit::TestCase
 
   def setup
@@ -34,6 +33,26 @@ class AgentHooksTest < Test::Unit::TestCase
 
     assert_was_called
     assert_equal([{:env => "env"}, result], @called_with)
+  end
+
+  def test_subscribes_through_class
+    NewRelic::Rack::AgentHooks.subscribe(:after_call, &@check_method)
+    @hooks.call({})
+
+    assert_was_called
+  end
+
+  # Not sure how legitimate this case is, but covers us for multiple middlewares
+  def test_subscribes_multiple_through_class
+    another_hook = NewRelic::Rack::AgentHooks.new(@app)
+
+    count = 0
+    NewRelic::Rack::AgentHooks.subscribe(:after_call) { count += 1 }
+
+    @hooks.call({})
+    another_hook.call({})
+
+    assert_equal 2, count
   end
 
   def assert_was_called
