@@ -14,7 +14,7 @@ module NewRelic
             NewRelic::Agent.instance.cross_process_id &&
             (id = id_from_request(request_headers))
 
-          content_length = -1
+          content_length = content_length_from_request(request_headers)
           timings = NewRelic::Agent::BrowserMonitoring.timings
 
           # FIXME the transaction name might not be properly encoded.  use a json generator
@@ -37,10 +37,11 @@ module NewRelic
       end
 
       def id_from_request(request)
-        %w{X-NewRelic-ID HTTP_X_NEWRELIC_ID X_NEWRELIC_ID}.each do |header|
-          return request[header] if request.has_key?(header)
-        end
-        nil
+        from_headers(request, *%w{X-NewRelic-ID HTTP_X_NEWRELIC_ID X_NEWRELIC_ID})
+      end
+
+      def content_length_from_request(request)
+        from_headers(request, *%w{Content-Length}) || -1
       end
 
       def wireup_rack_middleware
@@ -63,6 +64,17 @@ module NewRelic
         }
         encoded
       end
+
+      def from_headers(request, *try_keys)
+        # For lookups, upcase all our keys on both sides just to be safe
+        try_keys.map!(&:upcase)
+        try_keys.each do |header|
+          found_key = request.keys.find { |k| k.upcase == header }
+          return request[found_key] unless found_key.nil?
+        end
+        nil
+      end
+
     end
   end
 end

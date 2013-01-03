@@ -30,6 +30,7 @@ module NewRelic::Agent
       assert unpacked_response.include?("transaction")
       assert unpacked_response.include?("1000")
       assert unpacked_response.include?("2000")
+      assert unpacked_response.include?("-1") # Unset content-length
       assert unpacked_response.include?(AGENT_CROSS_PROCESS_ID)
     end
 
@@ -50,6 +51,20 @@ module NewRelic::Agent
         @monitor.insert_response_header(@request_with_id, @response)
         assert_nil response_app_data
       end
+    end
+
+    def test_includes_content_length
+      NewRelic::Agent::BrowserMonitoring.stubs(:timings).returns(stub_everything)
+
+      @monitor.insert_response_header(@request_with_id.merge("Content-Length" => 3000), @response)
+      assert unpacked_response.include?("3000")
+    end
+
+    def test_content_length_isnt_case_sensitive
+      NewRelic::Agent::BrowserMonitoring.stubs(:timings).returns(stub_everything)
+
+      @monitor.insert_response_header(@request_with_id.merge("cOnTeNt-LeNgTh" => 3000), @response)
+      assert unpacked_response.include?("3000")
     end
 
     def test_finds_id_from_headers
@@ -73,7 +88,7 @@ module NewRelic::Agent
     end
 
     def unpacked_response
-      response_app_data.unpack("m0").first
+      Base64.decode64(response_app_data)
     end
   end
 end
