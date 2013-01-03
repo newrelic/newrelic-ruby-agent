@@ -1,5 +1,3 @@
-require 'rack'
-
 module NewRelic::Rack
   class AgentHooks
 

@@ -1,3 +1,5 @@
+require 'new_relic/rack/agent_hooks'
+
 module NewRelic
   module Agent
 
