@@ -14,18 +14,28 @@ module NewRelic
             NewRelic::Agent.instance.cross_process_id &&
             (id = id_from_request(request_headers))
 
-          content_length = content_length_from_request(request_headers)
           timings = NewRelic::Agent::BrowserMonitoring.timings
-
-          # FIXME the transaction name might not be properly encoded.  use a json generator
-          payload = %[["#{NewRelic::Agent.instance.cross_process_id}","#{timings.transaction_name}",#{timings.queue_time_in_millis},#{timings.app_time_in_millis},#{content_length}] ]
-          payload = obfuscate_with_key(payload)
-
-          response_headers['X-NewRelic-App-Data'] = payload
-
-          metric = NewRelic::Agent.instance.stats_engine.get_stats_no_scope("ClientApplication/#{decode_with_key(id)}/all")
-          metric.record_data_point(timings.app_time_in_millis)
+          set_response_headers(request_headers, response_headers, timings)
+          record_metrics(id, timings)
         end
+      end
+
+
+      def set_response_headers(request_headers, response_headers, timings)
+        response_headers['X-NewRelic-App-Data'] = build_payload(request_headers, timings)
+      end
+
+      def build_payload(request_headers, timings)
+        content_length = content_length_from_request(request_headers)
+
+        # FIXME the transaction name might not be properly encoded.  use a json generator
+        payload = %[["#{NewRelic::Agent.instance.cross_process_id}","#{timings.transaction_name}",#{timings.queue_time_in_millis},#{timings.app_time_in_millis},#{content_length}] ]
+        payload = obfuscate_with_key(payload)
+      end
+
+      def record_metrics(id, timings)
+        metric = NewRelic::Agent.instance.stats_engine.get_stats_no_scope("ClientApplication/#{decode_with_key(id)}/all")
+        metric.record_data_point(timings.app_time_in_millis)
       end
 
       def obfuscate_with_key(text)
