@@ -3,6 +3,9 @@ require 'rack'
 module NewRelic::Rack
   class AgentHooks
 
+    # We track instances of our middleware (although we expect only one in
+    # most reasonable cases), since our ctor won't allow us to be  a
+    # singleton, and we need to set even subscriptions to all instances.
     @@instances = []
 
     def initialize(app, options = {})
@@ -10,6 +13,7 @@ module NewRelic::Rack
       @events = {}
 
       @@instances << self
+      NewRelic::Agent.logger.debug("Found #{@@instances.size} instances of AgentHooks middleware") if @@instances.size > 1
     end
 
     # method required by Rack interface
