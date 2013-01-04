@@ -43,7 +43,7 @@ module NewRelic
       end
 
       def obfuscate_with_key(text)
-        Base64.encode64(encode_with_key(text)).gsub("\n", '')
+        Base64.encode64(encode_with_key(text)).chomp
       end
 
       def decode_with_key(text)
