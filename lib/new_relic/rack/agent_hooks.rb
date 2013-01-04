@@ -38,7 +38,7 @@ module NewRelic::Rack
       @events[event].each do |e|
         begin
           e.call(*args)
-        rescue Exception => e
+        rescue => e
           NewRelic::Agent.logger.debug("Failure during AgentHooks.notify", e)
         end
       end
