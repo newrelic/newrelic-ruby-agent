@@ -50,12 +50,15 @@ module NewRelic
         encode_with_key(Base64.decode64(text))
       end
 
+      NEWRELIC_ID_HEADER_KEYS = %w{X-NewRelic-ID HTTP_X_NEWRELIC_ID X_NEWRELIC_ID}
+      CONTENT_LENGTH_HEADER_KEYS = %w{Content-Length HTTP_CONTENT_LENGTH CONTENT_LENGTH}
+
       def id_from_request(request)
-        from_headers(request, *%w{X-NewRelic-ID HTTP_X_NEWRELIC_ID X_NEWRELIC_ID})
+        from_headers(request, NEWRELIC_ID_HEADER_KEYS)
       end
 
       def content_length_from_request(request)
-        from_headers(request, *%w{Content-Length HTTP_CONTENT_LENGTH CONTENT_LENGTH}) || -1
+        from_headers(request, CONTENT_LENGTH_HEADER_KEYS) || -1
       end
 
       def wireup_rack_middleware
@@ -80,10 +83,10 @@ module NewRelic
         encoded
       end
 
-      def from_headers(request, *try_keys)
+      def from_headers(request, try_keys)
         # For lookups, upcase all our keys on both sides just to be safe
-        try_keys.map!(&:upcase)
-        try_keys.each do |header|
+        upcased_keys = try_keys.map(&:upcase)
+        upcased_keys.each do |header|
           found_key = request.keys.find { |k| k.upcase == header }
           return request[found_key] unless found_key.nil?
         end
