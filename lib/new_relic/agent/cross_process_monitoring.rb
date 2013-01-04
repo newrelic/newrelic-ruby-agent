@@ -36,6 +36,8 @@ module NewRelic
       end
 
       def record_metrics(id, timings)
+        return if id == ""
+
         metric = NewRelic::Agent.instance.stats_engine.get_stats_no_scope("ClientApplication/#{decode_with_key(id)}/all")
         metric.record_data_point(timings.app_time_in_seconds)
       end

@@ -10,6 +10,7 @@ module NewRelic::Agent
       NewRelic::Agent.instance.stubs(:cross_process_encoding_bytes).returns([0])
 
       @request_with_id = {'X-NewRelic-ID' => REQUEST_CROSS_PROCESS_ID}
+      @request_with_blank_id = {'X-NewRelic-ID' => ''}
       @empty_request = {}
 
       @response = {}
@@ -27,6 +28,13 @@ module NewRelic::Agent
       assert unpacked_response.include?("2000")
       assert unpacked_response.include?("-1") # Unset content-length
       assert unpacked_response.include?(AGENT_CROSS_PROCESS_ID)
+    end
+
+    def test_adds_response_header_if_id_blank
+      with_default_timings
+
+      @monitor.insert_response_header(@request_with_blank_id, @response)
+      assert response_app_data != nil
     end
 
     def test_doesnt_add_header_if_no_id_in_request
@@ -74,14 +82,20 @@ module NewRelic::Agent
     end
 
     def test_writes_metric
-      timings = stub_everything(:app_time_in_seconds => 2000)
-      NewRelic::Agent::BrowserMonitoring.stubs(:timings).returns(timings)
+      with_default_timings
 
       metric = mock()
       metric.expects(:record_data_point).with(2000)
       NewRelic::Agent.instance.stats_engine.stubs(:get_stats_no_scope).returns(metric)
 
       @monitor.insert_response_header(@request_with_id, @response)
+    end
+
+    def test_doesnt_writer_metric_if_id_blank
+      with_default_timings
+      NewRelic::Agent.instance.stats_engine.expects(:get_stats_no_scope).never
+
+      @monitor.insert_response_header(@request_with_blank_id, @response)
     end
 
     def test_doesnt_find_id_in_headers
