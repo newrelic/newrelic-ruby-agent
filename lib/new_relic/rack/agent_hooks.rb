@@ -36,7 +36,11 @@ module NewRelic::Rack
       return unless @events.has_key?(event)
 
       @events[event].each do |e|
-        e.call(*args)
+        begin
+          e.call(*args)
+        rescue Exception => e
+          NewRelic::Agent.logger.debug("Failure during AgentHooks.notify", e)
+        end
       end
     end
 

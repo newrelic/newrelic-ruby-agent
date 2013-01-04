@@ -42,6 +42,16 @@ class AgentHooksTest < Test::Unit::TestCase
     assert_was_called
   end
 
+  def test_failure_during_notify_doesnt_block_other_hooks
+    @hooks.subscribe(:after_call) { raise "Boo!" }
+    @hooks.subscribe(:after_call, &@check_method)
+
+    @hooks.call({})
+
+    assert_was_called
+  end
+
+
   # Not sure how legitimate this case is, but covers us for multiple middlewares
   def test_subscribes_multiple_through_class
     another_hook = NewRelic::Rack::AgentHooks.new(@app)
