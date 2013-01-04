@@ -63,11 +63,13 @@ module NewRelic::Agent
       assert unpacked_response.include?("3000")
     end
 
-    def test_content_length_isnt_case_sensitive
-      with_default_timings
+    def test_finds_content_length_from_headers
+      %w{Content-Length HTTP_CONTENT_LENGTH CONTENT_LENGTH cOnTeNt-LeNgTh}.each do |key|
+        request = { key => 42 }
 
-      @monitor.insert_response_header(@request_with_id.merge("cOnTeNt-LeNgTh" => 3000), @response)
-      assert unpacked_response.include?("3000")
+        assert_equal(42, @monitor.content_length_from_request(request), \
+          "Failed to find header on key #{key}")
+      end
     end
 
     def test_finds_id_from_headers

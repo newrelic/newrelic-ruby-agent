@@ -55,7 +55,7 @@ module NewRelic
       end
 
       def content_length_from_request(request)
-        from_headers(request, *%w{Content-Length}) || -1
+        from_headers(request, *%w{Content-Length HTTP_CONTENT_LENGTH CONTENT_LENGTH}) || -1
       end
 
       def wireup_rack_middleware
