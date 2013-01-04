@@ -60,8 +60,8 @@ module NewRelic
 
       def wireup_rack_middleware
         NewRelic::Agent.logger.debug("Wiring up Cross Process monitoring to Agent Hooks after finished configuring")
-        NewRelic::Rack::AgentHooks.subscribe(:after_call) do |env, response|
-          self.insert_response_header(env, response[1])
+        NewRelic::Rack::AgentHooks.subscribe(:after_call) do |env, (status_code, headers, body)|
+          self.insert_response_header(env, headers)
         end
       end
 
