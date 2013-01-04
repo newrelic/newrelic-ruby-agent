@@ -30,8 +30,11 @@ module NewRelic
       def build_payload(request_headers, timings)
         content_length = content_length_from_request(request_headers)
 
-        # FIXME the transaction name might not be properly encoded.  use a json generator
-        payload = %[["#{NewRelic::Agent.instance.cross_process_id}","#{timings.transaction_name}",#{timings.queue_time_in_seconds},#{timings.app_time_in_seconds},#{content_length}] ]
+        # FIXME The transaction name might not be properly encoded.  use a json generator
+        # For now we just handle quote characters by dropping them
+        transaction_name = timings.transaction_name.gsub(/["']/, "")
+
+        payload = %[["#{NewRelic::Agent.instance.cross_process_id}","#{transaction_name}",#{timings.queue_time_in_seconds},#{timings.app_time_in_seconds},#{content_length}] ]
         payload = obfuscate_with_key(payload)
       end
 

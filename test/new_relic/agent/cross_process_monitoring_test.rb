@@ -29,7 +29,18 @@ module NewRelic::Agent
 
       @monitor.insert_response_header(@request_with_id, @response)
 
-      assert_equal ['"qwerty"', '"transaction"', "1000", "2000", "-1"], unpacked_response
+      assert_equal ["qwerty", "transaction", 1000, 2000, -1], unpacked_response
+    end
+
+    def test_strips_bad_characters_in_transaction_name
+      NewRelic::Agent::BrowserMonitoring.stubs(:timings).returns(stub(
+          :transaction_name => "\"'goo",
+          :queue_time_in_seconds => 1000,
+          :app_time_in_seconds => 2000))
+
+      @monitor.insert_response_header(@request_with_id, @response)
+
+      assert_equal "goo", unpacked_response[TRANSACTION_NAME_POSITION]
     end
 
     def test_adds_response_header_if_id_blank
@@ -62,7 +73,7 @@ module NewRelic::Agent
       with_default_timings
 
       @monitor.insert_response_header(@request_with_id.merge("Content-Length" => 3000), @response)
-      assert_equal "3000", unpacked_response[CONTENT_LENGTH_POSITION]
+      assert_equal 3000, unpacked_response[CONTENT_LENGTH_POSITION]
     end
 
     def test_finds_content_length_from_headers
@@ -119,10 +130,8 @@ module NewRelic::Agent
     end
 
     def unpacked_response
-      Base64.decode64(response_app_data).
-        gsub(/[\[\]]/, '').
-        split(',').
-        map { |s| s.strip }
+      # Assumes array is valid JSON and Ruby, which is currently is
+      eval(Base64.decode64(response_app_data))
     end
   end
 end
