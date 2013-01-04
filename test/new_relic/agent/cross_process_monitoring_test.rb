@@ -5,6 +5,12 @@ module NewRelic::Agent
     AGENT_CROSS_PROCESS_ID = "qwerty"
     REQUEST_CROSS_PROCESS_ID = "asdf"
 
+    CROSS_PROCESS_ID_POSITION = 0
+    TRANSACTION_NAME_POSITION = 1
+    QUEUE_TIME_POSITION = 2
+    APP_TIME_POSITION = 3
+    CONTENT_LENGTH_POSITION = 4
+
     def setup
       NewRelic::Agent.instance.stubs(:cross_process_id).returns(AGENT_CROSS_PROCESS_ID)
       NewRelic::Agent.instance.stubs(:cross_process_encoding_bytes).returns([0])
@@ -23,11 +29,7 @@ module NewRelic::Agent
 
       @monitor.insert_response_header(@request_with_id, @response)
 
-      assert unpacked_response.include?("transaction")
-      assert unpacked_response.include?("1000")
-      assert unpacked_response.include?("2000")
-      assert unpacked_response.include?("-1") # Unset content-length
-      assert unpacked_response.include?(AGENT_CROSS_PROCESS_ID)
+      assert_equal ['"qwerty"', '"transaction"', "1000", "2000", "-1"], unpacked_response
     end
 
     def test_adds_response_header_if_id_blank
@@ -60,7 +62,7 @@ module NewRelic::Agent
       with_default_timings
 
       @monitor.insert_response_header(@request_with_id.merge("Content-Length" => 3000), @response)
-      assert unpacked_response.include?("3000")
+      assert_equal "3000", unpacked_response[CONTENT_LENGTH_POSITION]
     end
 
     def test_finds_content_length_from_headers
@@ -117,7 +119,10 @@ module NewRelic::Agent
     end
 
     def unpacked_response
-      Base64.decode64(response_app_data)
+      Base64.decode64(response_app_data).
+        gsub(/[\[\]]/, '').
+        split(',').
+        map { |s| s.strip }
     end
   end
 end
