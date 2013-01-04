@@ -53,9 +53,16 @@ module NewRelic
         end
 
         def install_agent_hooks(config)
-          require 'new_relic/rack/agent_hooks'
-          config.middleware.use NewRelic::Rack::AgentHooks
-          ::NewRelic::Agent.logger.debug("Installed New Relic Agent Hooks middleware")
+          return if @agent_hooks_installed
+          @agent_hooks_installed = true
+          return if config.nil? || !config.respond_to?(:middleware)
+          begin
+            require 'new_relic/rack/agent_hooks'
+            config.middleware.use NewRelic::Rack::AgentHooks
+            ::NewRelic::Agent.logger.debug("Installed New Relic Agent Hooks middleware")
+          rescue => e
+            ::NewRelic::Agent.logger.warn("Error installing New Relic Agent Hooks middleware", e)
+          end
         end
 
         def install_browser_monitoring(config)
@@ -67,7 +74,7 @@ module NewRelic
             config.middleware.use NewRelic::Rack::BrowserMonitoring
             ::NewRelic::Agent.logger.debug("Installed New Relic Browser Monitoring middleware")
           rescue => e
-            ::NewRelic::Agent.logger.warn("Error installing New Relic Browser Monitoring middleware: #{e.inspect}")
+            ::NewRelic::Agent.logger.warn("Error installing New Relic Browser Monitoring middleware", e)
           end
         end
 
@@ -87,7 +94,7 @@ module NewRelic
                 ::NewRelic::Agent.logger.debug("To view performance information, go to http://localhost#{port}/newrelic")
               end
             rescue => e
-              ::NewRelic::Agent.logger.warn("Error installing New Relic Developer Mode: #{e.inspect}")
+              ::NewRelic::Agent.logger.warn("Error installing New Relic Developer Mode", e)
             end
           elsif rails_config
             ::NewRelic::Agent.logger.warn("Developer mode not available for Rails versions prior to 2.2")
