@@ -35,8 +35,8 @@ module NewRelic
 
         private
 
-        def convert_to_milliseconds(value)
-          clamp_to_positive((value.to_f * 1000.0).round)
+        def convert_to_milliseconds(value_in_seconds)
+          clamp_to_positive((value_in_seconds.to_f * 1000.0).round)
         end
 
         def clamp_to_positive(value)
