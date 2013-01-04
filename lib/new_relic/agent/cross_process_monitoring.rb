@@ -31,13 +31,13 @@ module NewRelic
         content_length = content_length_from_request(request_headers)
 
         # FIXME the transaction name might not be properly encoded.  use a json generator
-        payload = %[["#{NewRelic::Agent.instance.cross_process_id}","#{timings.transaction_name}",#{timings.queue_time_in_millis},#{timings.app_time_in_millis},#{content_length}] ]
+        payload = %[["#{NewRelic::Agent.instance.cross_process_id}","#{timings.transaction_name}",#{timings.queue_time_in_seconds},#{timings.app_time_in_seconds},#{content_length}] ]
         payload = obfuscate_with_key(payload)
       end
 
       def record_metrics(id, timings)
         metric = NewRelic::Agent.instance.stats_engine.get_stats_no_scope("ClientApplication/#{decode_with_key(id)}/all")
-        metric.record_data_point(timings.app_time_in_millis)
+        metric.record_data_point(timings.app_time_in_seconds)
       end
 
       def obfuscate_with_key(text)

@@ -74,7 +74,7 @@ module NewRelic::Agent
     end
 
     def test_writes_metric
-      timings = stub_everything(:app_time_in_millis => 2000)
+      timings = stub_everything(:app_time_in_seconds => 2000)
       NewRelic::Agent::BrowserMonitoring.stubs(:timings).returns(timings)
 
       metric = mock()
@@ -92,8 +92,8 @@ module NewRelic::Agent
     def with_default_timings
       NewRelic::Agent::BrowserMonitoring.stubs(:timings).returns(stub(
           :transaction_name => "transaction",
-          :queue_time_in_millis => 1000,
-          :app_time_in_millis => 2000))
+          :queue_time_in_seconds => 1000,
+          :app_time_in_seconds => 2000))
     end
 
     def response_app_data

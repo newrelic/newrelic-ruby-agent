@@ -10,9 +10,14 @@ class NewRelic::Agent::Instrumentation::BrowserMonitoringTimingsTest < Test::Uni
     )
   end
 
-  def test_queue_time
+  def test_queue_time_in_millis
     t = NewRelic::Agent::Instrumentation::BrowserMonitoringTimings.new(1000.1234, @transaction)
     assert_equal 1_000_123, t.queue_time_in_millis
+  end
+
+  def test_queue_time_in_seconds
+    t = NewRelic::Agent::Instrumentation::BrowserMonitoringTimings.new(1000.1234, @transaction)
+    assert_equal 1_000.1234, t.queue_time_in_seconds
   end
 
   def test_queue_time_clamps_to_positive
@@ -20,9 +25,14 @@ class NewRelic::Agent::Instrumentation::BrowserMonitoringTimingsTest < Test::Uni
     assert_equal 0, t.queue_time_in_millis
   end
 
-  def test_app_time
+  def test_app_time_in_millis
     t = NewRelic::Agent::Instrumentation::BrowserMonitoringTimings.new(nil, @transaction)
     assert_equal 2_000_000, t.app_time_in_millis
+  end
+
+  def test_app_time_in_millis
+    t = NewRelic::Agent::Instrumentation::BrowserMonitoringTimings.new(nil, @transaction)
+    assert_equal 2_000, t.app_time_in_seconds
   end
 
   def test_transaction_name

@@ -14,18 +14,23 @@ module NewRelic
           @queue_time_in_seconds = queue_time_in_seconds
         end
 
-        attr_reader :transaction_name
+        attr_reader :transaction_name,
+                    :start_time_in_seconds, :queue_time_in_seconds
 
         def start_time_in_millis
           convert_to_milliseconds(@start_time_in_seconds)
         end
 
         def queue_time_in_millis
-          convert_to_milliseconds(@queue_time_in_seconds)
+          convert_to_milliseconds(queue_time_in_seconds)
         end
 
         def app_time_in_millis
-          convert_to_milliseconds(Time.now - @start_time_in_seconds)
+          convert_to_milliseconds(app_time_in_seconds)
+        end
+
+        def app_time_in_seconds
+          Time.now - @start_time_in_seconds
         end
 
         private
