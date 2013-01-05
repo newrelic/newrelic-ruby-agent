@@ -152,11 +152,7 @@ fi
 
 
 export RAILS_ENV=test
-if [ -n "$WORKSPACE" ]; then
-  bundle --local --path=$WORKSPACE/.bundler_cache || bundle --path=$WORKSPACE/.bundler_cache
-else
-  bundle --local --path=.bundler_cache || bundle --path=.bundler_cache
-fi
+bundle --local || bundle
 
 # FIXME:  Here we actually trigger the tests. Since the agent deals so heavily
 # in units of time we have many tests that assert that durations are measured
