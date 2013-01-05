@@ -72,5 +72,18 @@ class ThreadTest < Test::Unit::TestCase
     assert_equal TRACE, result
   end
 
+  def test_scrub_backtrace_handles_errors_during_backtrace
+    dummy_thread = stub
+    dummy_thread.stubs(:backtrace).raises(StandardError.new('nah'))
+    assert_nothing_raised do
+      NewRelic::Agent::AgentThread.scrub_backtrace(dummy_thread, true)
+    end
+  end
+
+  def test_scrub_backtrace_handles_nil_backtrace
+    bt = NewRelic::Agent::AgentThread.scrub_backtrace(stub(:backtrace => nil), false)
+    assert_nil(bt)
+  end
+
   DONT_CARE = true
 end

@@ -19,8 +19,13 @@ module NewRelic
       end
 
       def self.scrub_backtrace(thread, profile_agent_code)
-        return thread.backtrace if profile_agent_code
-        thread.backtrace.select {|t| t !~ /\/newrelic_rpm-\d/ }
+        begin
+          bt = thread.backtrace
+        rescue Exception => e
+          ::NewRelic::Agent.logger.debug("Failed to backtrace #{thread.inspect}: #{e.class.name}: #{e.to_s}")
+        end
+        return nil unless bt
+        profile_agent_code ? bt : bt.select { |t| t !~ /\/newrelic_rpm-\d/ }
       end
     end
   end

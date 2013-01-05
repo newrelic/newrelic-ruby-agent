@@ -127,6 +127,7 @@ EOF
 
         @poll_count = 0
         @sample_count = 0
+        @failure_count = 0
       end
 
       def run
@@ -139,17 +140,24 @@ EOF
 
               @poll_count += 1
               AgentThread.list.each do |t|
-                @sample_count += 1
-
                 bucket = AgentThread.bucket_thread(t, @profile_agent_code)
-                backtrace = AgentThread.scrub_backtrace(t, @profile_agent_code)
-                aggregate(backtrace, @traces[bucket]) unless bucket == :ignore
+                if bucket != :ignore
+                  backtrace = AgentThread.scrub_backtrace(t, @profile_agent_code)
+                  if backtrace.nil?
+                    @failure_count += 1
+                  else
+                    @sample_count += 1
+                    aggregate(backtrace, @traces[bucket])
+                  end
+                end
               end
             end
           end
 
           mark_done
-          ::NewRelic::Agent.logger.debug("Finished thread profile. Will send with next harvest.")
+          ::NewRelic::Agent.logger.debug("Finished thread profile. #{@sample_count} backtraces, #{@failure_count} failures. Will send with next harvest.")
+          NewRelic::Agent.instance.stats_engine.
+            record_supportability_metrics_count(@failure_count, "ThreadProfiler/BacktraceFailures")
         end
       end
 
