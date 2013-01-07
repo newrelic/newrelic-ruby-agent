@@ -93,7 +93,9 @@ git clone $rpm_test_app_cache rpm_test_app
 cd rpm_test_app
 
 git checkout -t origin/$BRANCH || git checkout $BRANCH
-
+if [ -x $HOME/.rbenv/plugins/rbenv-gemsets ]; then
+  echo "$RUBY-$BRANCH" > .rbenv-gemsets
+fi
 
 # Re-write database.yml to this here doc
 ( cat << "YAML" ) > config/database.yml
@@ -165,3 +167,5 @@ bundle --local || bundle
 # hand).  Ultimately we'll move towards a more elegant solution.
 
 bundle exec rake --trace db:create:all test:newrelic || bundle exec rake --trace test:newrelic
+
+[[ -a .rbenv-gemsets ]] && rm .rbenv-gemsets || true

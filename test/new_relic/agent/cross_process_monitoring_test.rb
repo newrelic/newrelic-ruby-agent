@@ -3,7 +3,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 module NewRelic::Agent
   class CrossProcessMonitorTest < Test::Unit::TestCase
     AGENT_CROSS_PROCESS_ID = "qwerty"
-    REQUEST_CROSS_PROCESS_ID = "asdf"
+    REQUEST_CROSS_PROCESS_ID = "42#666"
 
     CROSS_PROCESS_ID_POSITION = 0
     TRANSACTION_NAME_POSITION = 1
@@ -43,11 +43,11 @@ module NewRelic::Agent
       assert_equal "goo", unpacked_response[TRANSACTION_NAME_POSITION]
     end
 
-    def test_adds_response_header_if_id_blank
+    def test_doesnt_write_response_header_if_id_blank
       with_default_timings
 
       @monitor.insert_response_header(@request_with_blank_id, @response)
-      assert response_app_data != nil
+      assert_nil response_app_data
     end
 
     def test_doesnt_add_header_if_no_id_in_request
@@ -106,7 +106,7 @@ module NewRelic::Agent
       @monitor.insert_response_header(@request_with_id, @response)
     end
 
-    def test_doesnt_writer_metric_if_id_blank
+    def test_doesnt_write_metric_if_id_blank
       with_default_timings
       NewRelic::Agent.instance.stats_engine.expects(:get_stats_no_scope).never
 
