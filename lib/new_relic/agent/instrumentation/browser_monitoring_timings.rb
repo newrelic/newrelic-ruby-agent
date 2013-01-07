@@ -11,30 +11,39 @@ module NewRelic
             @start_time_in_seconds = transaction.start_time
           end
 
-          @queue_time_in_seconds = queue_time_in_seconds
+          @queue_time_in_seconds = clamp_to_positive(queue_time_in_seconds)
         end
 
-        attr_reader :transaction_name
+        attr_reader :transaction_name,
+                    :start_time_in_seconds, :queue_time_in_seconds
 
         def start_time_in_millis
           convert_to_milliseconds(@start_time_in_seconds)
         end
 
         def queue_time_in_millis
-          convert_to_milliseconds(@queue_time_in_seconds)
+          convert_to_milliseconds(queue_time_in_seconds)
         end
 
         def app_time_in_millis
-          convert_to_milliseconds(Time.now - @start_time_in_seconds)
+          convert_to_milliseconds(app_time_in_seconds)
+        end
+
+        def app_time_in_seconds
+          Time.now - @start_time_in_seconds
         end
 
         private
 
-        def convert_to_milliseconds(value)
-          value = (value.to_f * 1000.0).round
-          return 0.0 if value < 0
+        def convert_to_milliseconds(value_in_seconds)
+          clamp_to_positive((value_in_seconds.to_f * 1000.0).round)
+        end
+
+        def clamp_to_positive(value)
+          return 0.0 if value.nil? || value < 0
           value
         end
+
       end
     end
   end
