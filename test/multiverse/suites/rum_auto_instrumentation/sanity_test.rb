@@ -76,19 +76,6 @@ class RumAutoTest < Test::Unit::TestCase
     assert(!last_response.body.include?(%'NREUMQ'))
   end
 
-  # regression
-  def test_autoinstrumenation_fails_gracefully_with_js_that_contains_embedded_html_tags
-    # we got this one from a customer
-    # https://support.newrelic.com/tickets/14208
-    MyApp.response = File.read(File.dirname(__FILE__) + '/problem_response.html')
-    get '/'
-
-    # assert that our js is inserted at the end of the head tag, and not in the
-    # middle of his script tag.
-    assert(!last_response.body.include?(%'NREUMQ'))
-  end
-
-
   def test_autoinstrumenation_doesnt_run_for_crazy_shit_like_this
     MyApp.response = '<html><head <body </body>'
     get '/'

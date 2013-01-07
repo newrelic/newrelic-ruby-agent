@@ -211,7 +211,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
         marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
       end
 
-      assert_equal expected, sql_traces[0].to_collector_array(marshaller)
+      assert_equal expected, sql_traces[0].to_collector_array(marshaller.default_encoder)
     end
   end
 end

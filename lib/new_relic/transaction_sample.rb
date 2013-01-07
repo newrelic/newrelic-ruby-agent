@@ -62,13 +62,8 @@ module NewRelic
         @root_segment.to_array ]
     end
 
-    def to_collector_array(marshaller)
-      trace_tree = if marshaller.respond_to?(:encode_compress)
-        marshaller.encode_compress(self.to_array)
-      else
-        self.to_array
-      end
-
+    def to_collector_array(encoder)
+      trace_tree = encoder.encode(self.to_array)
       [ Helper.time_to_millis(@start_time), Helper.time_to_millis(duration),
         @params[:path], @params[:uri], trace_tree, @guid, nil,
         !!@force_persist ]

@@ -4,10 +4,15 @@ require 'uri'
 require 'socket'
 require 'timeout'
 require 'ostruct'
+require File.join(File.dirname(__FILE__), 'fakes_sending_data')
+
+require 'json' if RUBY_VERSION >= '1.9'
 
 module NewRelic
   class FakeCollector
     attr_accessor :agent_data, :mock
+
+    include FakesSendingData
 
     def initialize
       @id_counter = 0
@@ -34,9 +39,10 @@ module NewRelic
       uri = URI.parse(req.url)
       if uri.path =~ /agent_listener\/\d+\/.+\/(\w+)/
         method = $1
+        format = json_format?(uri) && RUBY_VERSION >= '1.9' ? :json : :pruby
         if @mock.keys.include? method
           res.status = @mock[method][0]
-          if json_format?(uri)
+          if format == :json
             res.write JSON.dump(@mock[method][1])
           else
             res.write Marshal.dump(@mock[method][1])
@@ -47,23 +53,18 @@ module NewRelic
         end
         run_id = uri.query =~ /run_id=(\d+)/ ? $1 : nil
         req.body.rewind
-        body = if json_format?(uri) && RUBY_VERSION >= '1.9'
-          require 'json'
-          JSON.load(req.body.read)
+        
+        body = if format == :json
+          body = JSON.load(req.body.read)
         else
-          Marshal.load(req.body.read)
+          body = Marshal.load(req.body.read)
         end
-        @agent_data << OpenStruct.new(:action => method,
-                                      :body   => body,
-                                      :run_id => run_id)
+        @agent_data << OpenStruct.new(:action       => method,
+                                      :body         => body,
+                                      :run_id       => run_id,
+                                      :format       => format)
       end
       res.finish
-    end
-
-    def calls_for(method)
-      @agent_data. \
-        select { |d| d.action == method }. \
-        map { |d| d.body }
     end
 
     def json_format?(uri)

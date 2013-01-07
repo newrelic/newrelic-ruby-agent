@@ -9,17 +9,12 @@ module NewRelic
       # This requires the files within a rescue block, so that any
       # errors within instrumentation files do not affect the overall
       # agent or application in which it runs.
-      #
-      # Logs at debug level for each file loaded, and logs errors in
-      # file loading at error level
       def load_instrumentation_files pattern
         Dir.glob(pattern) do |file|
           begin
-            log.debug "Processing instrumentation file '#{file}'"
             require file.to_s
           rescue => e
-            log.error "Error loading instrumentation file '#{file}': #{e}"
-            log.debug e.backtrace.join("\n")
+            ::NewRelic::Agent.logger.warn "Error loading instrumentation file '#{file}':", e
           end
         end
       end
@@ -60,19 +55,19 @@ module NewRelic
         agent = NewRelic::Agent.instance
         NewRelic::Agent::Sampler.sampler_classes.each do | subclass |
           begin
-            log.debug "#{subclass.name} not supported on this platform." and next if not subclass.supported_on_this_platform?
+            ::NewRelic::Agent.logger.debug "#{subclass.name} not supported on this platform." and next if not subclass.supported_on_this_platform?
             sampler = subclass.new
             if subclass.use_harvest_sampler?
               agent.stats_engine.add_harvest_sampler sampler
-              log.debug "Registered #{subclass.name} for harvest time sampling"
+              ::NewRelic::Agent.logger.debug "Registered #{subclass.name} for harvest time sampling"
             else
               agent.stats_engine.add_sampler sampler
-              log.debug "Registered #{subclass.name} for periodic sampling"
+              ::NewRelic::Agent.logger.debug "Registered #{subclass.name} for periodic sampling"
             end
           rescue NewRelic::Agent::Sampler::Unsupported => e
-            log.info "#{subclass} sampler not available: #{e}"
+            ::NewRelic::Agent.logger.info "#{subclass} sampler not available: #{e}"
           rescue => e
-            log.error "Error registering sampler: #{e}, #{e.backtrace.join("\n")}"
+            ::NewRelic::Agent.logger.error "Error registering sampler:", e
           end
         end
       end
@@ -92,7 +87,7 @@ module NewRelic
         File.join(instrumentation_path, app.to_s, '*.rb')
         @instrumentation_files.each { | pattern |  load_instrumentation_files pattern }
         DependencyDetection.detect!
-        log.debug "Finished instrumentation"
+        ::NewRelic::Agent.logger.info "Finished instrumentation"
       end
     end
     include Instrumentation

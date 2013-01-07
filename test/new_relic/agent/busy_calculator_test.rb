@@ -78,4 +78,11 @@ class NewRelic::Agent::BusyCalculatorTest < Test::Unit::TestCase
     NewRelic::Agent::BusyCalculator.harvest_busy
     assert_equal 3, @instance_busy.call_count
   end
+  def test_can_turn_off_recording
+    with_config(:report_instance_busy => false) do
+      assert_equal 0, @instance_busy.call_count, "Problem with test--instance busy not starting off at zero."
+      NewRelic::Agent::BusyCalculator.harvest_busy
+      assert_equal 0, @instance_busy.call_count
+    end
+  end
 end

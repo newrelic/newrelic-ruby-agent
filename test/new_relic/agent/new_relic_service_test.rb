@@ -35,6 +35,12 @@ class NewRelicServiceTest < Test::Unit::TestCase
       'agent_run_id' => 1
     }
     @http_handle.respond_to(:connect, connect_response)
+
+    @reverse_encoder = Module.new do
+      def self.encode(data)
+        data.reverse
+      end
+    end
   end
 
   def test_initialize_uses_correct_license_key_settings
@@ -122,8 +128,8 @@ class NewRelicServiceTest < Test::Unit::TestCase
   end
 
 
-# Thread profiling only available in 1.9.2 and above
-if RUBY_VERSION >= '1.9.2'
+# Thread profiling only available in certain versions
+if NewRelic::Agent::ThreadProfiler.is_supported?
   def test_profile_data
     @http_handle.respond_to(:profile_data, 'profile' => 123)
     response = @service.profile_data(NewRelic::Agent::ThreadProfile.new(0, 0, 0, true))
@@ -234,12 +240,46 @@ end
     end
   end
 
-  def test_pruby_marshaller_compresses_large_payloads
-    marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
-    large_payload = 'a' * 64 * 1024
-    result = marshaller.dump(large_payload)
-    assert_equal 'deflate', marshaller.encoding
-    assert_equal large_payload, Marshal.load(Zlib::Inflate.inflate(result))
+  def test_compress_request_if_needed_compresses_large_payloads
+    large_payload = 'a' * 65 * 1024
+    body, encoding = @service.compress_request_if_needed(large_payload)
+    assert_equal(large_payload, Zlib::Inflate.inflate(body))
+    assert_equal('deflate', encoding)
+  end
+
+  def test_compress_request_if_needed_passes_thru_small_payloads
+    payload = 'a' * 100
+    body, encoding = @service.compress_request_if_needed(payload)
+    assert_equal(payload, body)
+    assert_equal('identity', encoding)
+  end
+
+  def test_marshaller_obeys_requested_encoder
+    dummy = ['hello there']
+    def dummy.to_collector_array(encoder)
+      self.map { |x| encoder.encode(x) }
+    end
+    marshaller = NewRelic::Agent::NewRelicService::Marshaller.new
+
+    identity_encoder = NewRelic::Agent::NewRelicService::Encoders::Identity
+
+    prepared = marshaller.prepare(dummy, :encoder => identity_encoder)
+    assert_equal(dummy, prepared)
+
+    prepared = marshaller.prepare(dummy, :encoder => @reverse_encoder)
+    decoded = prepared.map { |x| x.reverse }
+    assert_equal(dummy, decoded)
+  end
+
+  def test_marshaller_prepare_passes_on_options
+    inner_array = ['abcd']
+    def inner_array.to_collector_array(encoder)
+      self.map { |x| encoder.encode(x) }
+    end
+    dummy = [[inner_array]]
+    marshaller = NewRelic::Agent::NewRelicService::Marshaller.new
+    prepared = marshaller.prepare(dummy, :encoder => @reverse_encoder)
+    assert_equal([[['dcba']]], prepared)
   end
 
   def test_marshaller_handles_known_errors

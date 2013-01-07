@@ -48,14 +48,14 @@ module NewRelic::Rack
 
         head_pos = if x_ua_compatible_found
           # put at end of header if X-UA-Compatible meta tag found
-          NewRelic::Agent.logger.debug "Detected X-UA-Compatible meta tag. Attempting to insert RUM header at end of head."
+          ::NewRelic::Agent.logger.debug "Detected X-UA-Compatible meta tag. Attempting to insert RUM header at end of head."
           beginning_of_source.index("</head>")
         elsif head_open = beginning_of_source.index("<head")
-          NewRelic::Agent.logger.debug "Attempting to insert RUM header at beginning of head."
+          ::NewRelic::Agent.logger.debug "Attempting to insert RUM header at beginning of head."
           # put at the beginning of the header
           beginning_of_source.index(">", head_open) + 1
         else
-          NewRelic::Agent.logger.debug "Failed to detect head tag. Attempting to insert RUM header at above body tag."
+          ::NewRelic::Agent.logger.debug "Failed to detect head tag. Attempting to insert RUM header at above body tag."
           # otherwise put the header right above body start
           body_start
         end
@@ -71,9 +71,9 @@ module NewRelic::Rack
             source[body_close..-1]
         else
           if head_pos
-            NewRelic::Agent.logger.debug "Skipping RUM instrumentation. Failed to detect head tags."
+            ::NewRelic::Agent.logger.debug "Skipping RUM instrumentation. Failed to detect head tags."
           else
-            NewRelic::Agent.logger.debug "Skipping RUM instrumentation. Detected head is after detected body close."
+            ::NewRelic::Agent.logger.debug "Skipping RUM instrumentation. Detected head is after detected body close."
           end
         end
       end

@@ -93,6 +93,12 @@ module NewRelic
         NewRelic::Agent::TransactionInfo.get.start_time
       end
 
+      def self.timings
+        NewRelic::Agent::Instrumentation::BrowserMonitoringTimings.new(
+          current_metric_frame.queue_time,
+          NewRelic::Agent::TransactionInfo.get)
+      end
+
       def insert_mobile_response_header(request, response)
         if mobile_header_found_in?(request) &&
             NewRelic::Agent.instance.beacon_configuration
@@ -122,23 +128,23 @@ module NewRelic
       # reason if they shouldn't.
       def insert_js?
         if NewRelic::Agent.instance.beacon_configuration.nil?
-          NewRelic::Agent.logger.debug "Beacon configuration is nil. Skipping browser instrumentation."
+          ::NewRelic::Agent.logger.debug "Beacon configuration is nil. Skipping browser instrumentation."
           false
         elsif ! NewRelic::Agent.instance.beacon_configuration.enabled?
-          NewRelic::Agent.logger.debug "Beacon configuration is disabled. Skipping browser instrumentation."
-          NewRelic::Agent.logger.debug NewRelic::Agent.instance.beacon_configuration.inspect
+          ::NewRelic::Agent.logger.debug "Beacon configuration is disabled. Skipping browser instrumentation."
+          ::NewRelic::Agent.logger.debug NewRelic::Agent.instance.beacon_configuration.inspect
           false
         elsif Agent.config[:browser_key].nil? || Agent.config[:browser_key].empty?
-          NewRelic::Agent.logger.debug "Browser key is not set. Skipping browser instrumentation."
+          ::NewRelic::Agent.logger.debug "Browser key is not set. Skipping browser instrumentation."
           false
         elsif ! NewRelic::Agent.is_transaction_traced?
-          NewRelic::Agent.logger.debug "Transaction is not traced. Skipping browser instrumentation."
+          ::NewRelic::Agent.logger.debug "Transaction is not traced. Skipping browser instrumentation."
           false
         elsif ! NewRelic::Agent.is_execution_traced?
-          NewRelic::Agent.logger.debug "Execution is not traced. Skipping browser instrumentation."
+          ::NewRelic::Agent.logger.debug "Execution is not traced. Skipping browser instrumentation."
           false
         elsif NewRelic::Agent::TransactionInfo.get.ignore_end_user?
-          NewRelic::Agent.logger.debug "Ignore end user for this transaction is set. Skipping browser instrumentation."
+          ::NewRelic::Agent.logger.debug "Ignore end user for this transaction is set. Skipping browser instrumentation."
           false
         else
           true

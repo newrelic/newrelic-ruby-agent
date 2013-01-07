@@ -9,6 +9,12 @@ module NewRelic
         @instance ||= create && new_instance
       end
 
+      # clear out memoized Control and LocalEnv instances
+      def reset
+        @instance = nil
+        @local_env = nil
+      end
+
       # Access the LocalEnvironment singleton, lazy initialized
       def local_env
         @local_env ||= NewRelic::LocalEnvironment.new
@@ -16,10 +22,10 @@ module NewRelic
 
       # Create the concrete class for environment specific behavior
       def new_instance
-        if local_env.framework == :test
+        if Agent.config[:framework] == :test
           load_test_framework
         else
-          load_framework_class(local_env.framework).new(local_env)
+          load_framework_class(Agent.config[:framework]).new(local_env)
         end
       end
 

@@ -127,11 +127,7 @@ module NewRelic
 
       def test_check_for_agent_commands
         @agent.send :check_for_agent_commands
-
-        expected = RUBY_VERSION >= "1.9.2" ? 1 : 0
-        assert_equal(expected,
-                     @agent.service.agent_data \
-                       .select {|data| data.action == :get_agent_commands }.size)
+        assert_equal(1, @agent.service.calls_for(:get_agent_commands).size)
       end
 
       def test_merge_data_from_empty
@@ -204,10 +200,15 @@ module NewRelic
         @agent.merge_data_from([{}, [1,2,3], [4,5,6]])
       end
 
-      def test_should_not_log_log_file_location_if_no_log_file
-        NewRelic::Control.instance.stubs(:log_file).returns('/vasrkjn4b3b4')
-        @agent.expects(:log).never
-        @agent.notify_log_file_location
+      def test_fill_metric_id_cache_from_collect_response
+        response = [[{"scope"=>"Controller/blogs/index", "name"=>"Database/SQL/other"}, 1328],
+                    [{"scope"=>"", "name"=>"WebFrontend/QueueTime"}, 10],
+                    [{"scope"=>"", "name"=>"ActiveRecord/Blog/find"}, 1017]]
+
+        @agent.send(:fill_metric_id_cache, response)
+        assert_equal 1328, @agent.metric_ids[MetricSpec.new('Database/SQL/other', 'Controller/blogs/index')]
+        assert_equal 10,   @agent.metric_ids[MetricSpec.new('WebFrontend/QueueTime')]
+        assert_equal 1017, @agent.metric_ids[MetricSpec.new('ActiveRecord/Blog/find')]
       end
 
       def test_fill_metric_id_cache_from_collect_response
