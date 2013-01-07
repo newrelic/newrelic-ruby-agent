@@ -16,12 +16,17 @@ module NewRelic
             NewRelic::Agent.instance.cross_process_id &&
             (id = id_from_request(request_headers))
 
+          return if !trusted(id)
+
           timings = NewRelic::Agent::BrowserMonitoring.timings
           set_response_headers(request_headers, response_headers, timings)
           record_metrics(id, timings)
         end
       end
 
+      def trusted(id)
+        id != ""
+      end
 
       def set_response_headers(request_headers, response_headers, timings)
         response_headers['X-NewRelic-App-Data'] = build_payload(request_headers, timings)
@@ -39,8 +44,6 @@ module NewRelic
       end
 
       def record_metrics(id, timings)
-        return if id == ""
-
         metric = NewRelic::Agent.instance.stats_engine.get_stats_no_scope("ClientApplication/#{decode_with_key(id)}/all")
         metric.record_data_point(timings.app_time_in_seconds)
       end
