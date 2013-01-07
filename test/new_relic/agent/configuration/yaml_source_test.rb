@@ -4,10 +4,10 @@ require 'new_relic/agent/configuration/yaml_source'
 module NewRelic::Agent::Configuration
   class YamlSourceTest < Test::Unit::TestCase
     def setup
-      test_yml_path = File.expand_path(File.join(File.dirname(__FILE__),
+      @test_yml_path = File.expand_path(File.join(File.dirname(__FILE__),
                                                  '..','..','..',
                                                  'config','newrelic.yml'))
-      @source = YamlSource.new(test_yml_path, 'test')
+      @source = YamlSource.new(@test_yml_path, 'test')
     end
 
     def test_should_load_given_yaml_file
@@ -48,9 +48,19 @@ module NewRelic::Agent::Configuration
       assert_equal 1.1, @source[:apdex_t]
     end
 
+    def test_should_not_log_error_by_default
+      expects_no_logging(:error)
+      YamlSource.new(@test_yml_path, 'test')
+    end
+
     def test_should_log_if_no_file_is_found
       expects_logging(:error, any_parameters)
       source = YamlSource.new('no_such_file.yml', 'test')
+    end
+
+    def test_should_log_if_environment_is_not_present
+      expects_logging(:error, any_parameters)
+      source = YamlSource.new(@test_yml_path, 'nonsense')
     end
 
     def test_should_not_fail_to_log_missing_file_during_startup

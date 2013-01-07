@@ -25,7 +25,11 @@ module NewRelic
             license_key = ''
 
             erb = ERB.new(file).result(binding)
-            config = merge!(YAML.load(erb)[env] || {})
+            confighash = YAML.load(erb)
+            ::NewRelic::Agent.logger.error("Config (#{path}) doesn't include a '#{env}' environment!") unless
+              confighash.key?(env)
+
+            config = merge!(confighash[env] || {})
           rescue ScriptError, StandardError => e
             ::NewRelic::Agent.logger.error("Unable to read configuration file #{path}: #{e}")
           end

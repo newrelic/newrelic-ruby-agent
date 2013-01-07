@@ -144,10 +144,8 @@ def expects_logging(level, *with_params)
   ::NewRelic::Agent.logger.expects(level).with(*with_params).once
 end
 
-# Similarly, have to be specific about the message we "never" expect...
-def expects_no_logging(level, *with_params)
-  ::NewRelic::Agent.logger.stubs(level)
-  ::NewRelic::Agent.logger.expects(level).with(*with_params).never
+def expects_no_logging(level)
+  ::NewRelic::Agent.logger.expects(level).never
 end
 
 # Sometimes need to test cases where we muddle with the global logger
