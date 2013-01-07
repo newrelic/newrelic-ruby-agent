@@ -18,3 +18,4 @@ tags
 /lerg/
 gems/newrelic_rpm.gemspec
 gems/newrelic_rpm*.tar.gz
+lib/new_relic/build.rb

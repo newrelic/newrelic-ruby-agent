@@ -82,40 +82,16 @@ class NewRelic::VersionNumberTest < Test::Unit::TestCase
     assert v0 < '1.2.0.1'
     assert v0 > '1.1.0.1'
   end
+
   def test_string
     assert_equal '1.2.0', NewRelic::VersionNumber.new('1.2.0').to_s
     assert_equal '1.2', NewRelic::VersionNumber.new('1.2').to_s
   end
 
-  def test_gemspec_version_parsing
-    gemspec_contents = File.read(File.join(File.dirname(__FILE__), '..', '..', 'newrelic_rpm.gemspec'))
-    gemspec_contents =~ /s\.version\s*=\s*"(.*)"/
-    real_version = $1
-    assert_equal real_version, NewRelic::VERSION::STRING
-  end
-
-  def test_gemspec_parse_no_build
-    version = NewRelic::VERSION.parse_build_from_gemspec(NewRelic.fixture_path('gemspec_no_build.rb'))
-    assert_nil version
-  end
-
-  def test_gemspec_parse_with_build
-    version = NewRelic::VERSION.parse_build_from_gemspec(NewRelic.fixture_path('gemspec_with_build.rb'))
-    assert_equal '123', version
-  end
-
-  def test_gemspec_parse_with_build_and_stage
-    version = NewRelic::VERSION.parse_build_from_gemspec(NewRelic.fixture_path('gemspec_with_build_and_stage.rb'))
-    assert_equal '123.dev', version
-  end
-
-  def test_gemspec_parse_no_rubygems
-    Kernel.stubs(:const_defined?).with(:Gem).returns(false)
-    version = NewRelic::VERSION.parse_build_from_gemspec(NewRelic.fixture_path('gemspec_with_build_and_stage.rb'))
-    assert_equal '123.dev', version
-  end
-
-  def test_gemspec_parse_nonexistent
-    assert_nil NewRelic::VERSION.parse_build_from_gemspec('/really/not/a/real/path')
+  def test_build_version_string
+    version_string = NewRelic::VERSION.build_version_string(1, 2, 3, '4.beta')
+    assert_equal('1.2.3.4.beta', version_string)
+    version_string = NewRelic::VERSION.build_version_string(1, 2, 3, nil)
+    assert_equal('1.2.3', version_string)
   end
 end

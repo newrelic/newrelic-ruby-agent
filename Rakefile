@@ -5,7 +5,7 @@ require "#{File.dirname(__FILE__)}/lib/tasks/all.rb"
 
 task :default => :test
 
-task :test => [:gemspec, 'test:newrelic']
+task :test => ['test:newrelic']
 
 namespace :test do
   desc "Run all tests"
@@ -14,7 +14,7 @@ namespace :test do
   agent_home = File.expand_path(File.dirname(__FILE__))
 
   desc "Run functional test suite for newrelic"
-  task :multiverse, [:suite, :mode] => [:gemspec] do |t, args|
+  task :multiverse, [:suite, :mode] => [] do |t, args|
     args.with_defaults(:suite => "", :mode => "")
     if args.mode == "run_one"
       puts `#{agent_home}/test/multiverse/script/run_one #{args.suite}`
@@ -24,7 +24,7 @@ namespace :test do
   end
 
   desc "Test the multiverse testing framework by executing tests in test/multiverse/test. Get meta with it."
-  task 'multiverse:self', [:suite, :mode] => [:gemspec] do |t, args|
+  task 'multiverse:self', [:suite, :mode] => [] do |t, args|
     args.with_defaults(:suite => "", :mode => "")
     puts ("Testing the multiverse testing framework...")
     test_files = FileList['test/multiverse/test/*_test.rb']
@@ -43,20 +43,11 @@ namespace :test do
 
 end
 
-desc 'Generate gemspec [ build_number, stage ]'
-task :gemspec, [ :build_number, :stage ] do |t, args|
-  require 'erb'
-  version = NewRelic::VERSION::STRING.split('.')[0..2]
-  version << args.build_number.to_s if args.build_number
-  version << args.stage.to_s        if args.stage
-
-  version_string = version.join('.')
-  gem_version    = Gem::VERSION
-  date           = Time.now.strftime('%Y-%m-%d')
-  files          = `git ls-files`.split + ['newrelic_rpm.gemspec']
-
-  template = ERB.new(File.read('newrelic_rpm.gemspec.erb'))
-  File.open('newrelic_rpm.gemspec', 'w') do |gemspec|
-    gemspec.write(template.result(binding))
+desc 'Record build number and stage'
+task :record_build, [ :build_number, :stage ] do |t, args|
+  build_string = args.build_number
+  build_string << ".#{args.stage}" if args.stage
+  File.open("lib/new_relic/build.rb", "w") do |f|
+    f.write("module NewRelic; module VERSION; BUILD='#{build_string}'; end; end\n")
   end
 end
