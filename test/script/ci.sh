@@ -168,4 +168,4 @@ bundle --local || bundle
 
 bundle exec rake --trace db:create:all test:newrelic || bundle exec rake --trace test:newrelic
 
-[[ -a .rbenv-gemsets ]] && rm .rbenv-gemsets
+[[ -a .rbenv-gemsets ]] && rm .rbenv-gemsets || true
