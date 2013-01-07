@@ -3,6 +3,13 @@
 
 ## v3.5.5 ##
 
+  * Add thread profiling support
+
+    Thread profiling performs statistical sampling of backtraces of all threads
+    within your Ruby processes. This feature requires MRI >= 1.9.2, and is
+    controlled via the New Relic web UI. JRuby support (in 1.9.x compat mode) is
+    considered experimental, due to issues with JRuby's Thread#backtrace.
+
   * Add audit logging capability
 
     The agent can now log all of the data it sends to the New Relic servers to
