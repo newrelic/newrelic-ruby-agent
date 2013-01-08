@@ -29,15 +29,19 @@ module NewRelic
         NewRelic::Agent.logger.debug("Wiring up Cross Process monitoring to events after finished configuring")
 
         NewRelic::Rack::AgentHooks.subscribe(:before_call) do |env|
-          self.save_cross_process_request_id(env)
+          save_cross_process_request_id(env)
         end
 
         NewRelic::Agent::StatsEngine.subscribe(:start_transaction) do |name|
-          self.set_custom_parameters
+          set_transaction_custom_parameters
         end
 
         NewRelic::Rack::AgentHooks.subscribe(:after_call) do |env, (status_code, headers, body)|
-          self.insert_response_header(env, headers)
+          insert_response_header(env, headers)
+        end
+
+        NewRelic::Agent::ErrorCollector.subscribe(:notice_error) do |_, options|
+          set_error_custom_parameters(options)
         end
       end
 
@@ -100,10 +104,14 @@ module NewRelic
         payload = obfuscate_with_key(payload)
       end
 
-      def set_custom_parameters
+      def set_transaction_custom_parameters
         # We expect to get the before call to set the id (if we have it) before
         # this, and then write our custom parameter when the transaction starts
         NewRelic::Agent.add_custom_parameters(:client_cross_process_id => cross_process_request_id) unless cross_process_request_id.nil?
+      end
+
+      def set_error_custom_parameters(options)
+        options[:client_cross_process_id] = cross_process_request_id unless cross_process_request_id.nil?
       end
 
       def record_metrics(id, timings)

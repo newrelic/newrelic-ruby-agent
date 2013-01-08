@@ -26,8 +26,17 @@ module NewRelic::Agent
 
     def when_request_runs(request=for_id(REQUEST_CROSS_PROCESS_ID))
       @monitor.save_cross_process_request_id(request)
-      @monitor.set_custom_parameters
+      @monitor.set_transaction_custom_parameters
       @monitor.insert_response_header(request, @response)
+    end
+
+    def when_request_has_error(request=for_id(REQUEST_CROSS_PROCESS_ID))
+      options = {}
+      @monitor.save_cross_process_request_id(request)
+      @monitor.set_error_custom_parameters(options)
+      @monitor.insert_response_header(request, @response)
+
+      options
     end
 
     def test_adds_response_header
@@ -116,6 +125,21 @@ module NewRelic::Agent
       when_request_runs
     end
 
+    def test_error_writes_custom_parameters
+      with_default_timings
+
+      options = when_request_has_error
+
+      assert_equal REQUEST_CROSS_PROCESS_ID, options[:client_cross_process_id]
+    end
+
+    def test_error_doesnt_write_custom_parameters_if_no_id
+      with_default_timings
+
+      options = when_request_has_error(for_id(''))
+
+      assert_equal false, options.key?(:client_cross_process_id)
+    end
 
     def test_writes_metric
       with_default_timings
