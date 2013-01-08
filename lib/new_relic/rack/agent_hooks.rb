@@ -1,17 +1,12 @@
 module NewRelic::Rack
   class AgentHooks
 
-    # We track instances of our middleware (although we expect only one in
-    # most reasonable cases), since our ctor won't allow us to be  a
-    # singleton, and we need to set even subscriptions to all instances.
-    @@instances = []
+    # Track events at the class level, so expected to only be relatively
+    # static (agent-singleton style) objects that subscribe, not per request!
+    @@events = {}
 
     def initialize(app, options = {})
       @app = app
-      @events = {}
-
-      @@instances << self
-      NewRelic::Agent.logger.debug("Found #{@@instances.size} instances of AgentHooks middleware") if @@instances.size > 1
     end
 
     # method required by Rack interface
@@ -24,18 +19,20 @@ module NewRelic::Rack
     end
 
     def self.subscribe(event, &handler)
-      @@instances.each {|i| i.subscribe(event, &handler) }
+      @@events[event] ||= []
+      @@events[event] << handler
+      check_for_runaway_subscriptions(event)
     end
 
-    def subscribe(event, &handler)
-      @events[event] = [] unless @events.has_key?(event)
-      @events[event] << handler
+    def self.check_for_runaway_subscriptions(event)
+      count = @@events[event].size
+      NewRelic::Agent.logger.debug("Run-away event subscription on AgentHooks #{event}? Subscribed #{count}") if count > 100
     end
 
     def notify(event, *args)
-      return unless @events.has_key?(event)
+      return unless @@events.has_key?(event)
 
-      @events[event].each do |e|
+      @@events[event].each do |e|
         begin
           e.call(*args)
         rescue => e

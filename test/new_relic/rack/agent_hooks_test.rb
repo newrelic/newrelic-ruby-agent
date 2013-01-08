@@ -17,7 +17,7 @@ class AgentHooksTest < Test::Unit::TestCase
   end
 
   def test_before_call
-    @hooks.subscribe(:before_call, &@check_method)
+    NewRelic::Rack::AgentHooks.subscribe(:before_call, &@check_method)
     @hooks.call({:env => "env"})
 
     assert_was_called
@@ -28,23 +28,16 @@ class AgentHooksTest < Test::Unit::TestCase
     result = stub
     @app.stubs(:call).returns(result)
 
-    @hooks.subscribe(:after_call, &@check_method)
+    NewRelic::Rack::AgentHooks.subscribe(:after_call, &@check_method)
     @hooks.call({:env => "env"})
 
     assert_was_called
     assert_equal([{:env => "env"}, result], @called_with)
   end
 
-  def test_subscribes_through_class
-    NewRelic::Rack::AgentHooks.subscribe(:after_call, &@check_method)
-    @hooks.call({})
-
-    assert_was_called
-  end
-
   def test_failure_during_notify_doesnt_block_other_hooks
-    @hooks.subscribe(:after_call) { raise "Boo!" }
-    @hooks.subscribe(:after_call, &@check_method)
+    NewRelic::Rack::AgentHooks.subscribe(:after_call) { raise "Boo!" }
+    NewRelic::Rack::AgentHooks.subscribe(:after_call, &@check_method)
 
     @hooks.call({})
 
