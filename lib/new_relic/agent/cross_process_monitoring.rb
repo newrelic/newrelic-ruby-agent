@@ -62,8 +62,9 @@ module NewRelic
       def insert_response_header(request_headers, response_headers)
         unless cross_process_request_id.nil?
           timings = NewRelic::Agent::BrowserMonitoring.timings
+          content_length = content_length_from_request(request_headers)
 
-          set_response_headers(request_headers, response_headers, timings)
+          set_response_headers(response_headers, timings, content_length)
           record_metrics(cross_process_request_id, timings)
 
           clear_cross_process_request_id
@@ -85,12 +86,11 @@ module NewRelic
         @trusted_ids.include?(split_id.captures.first.to_i)
       end
 
-      def set_response_headers(request_headers, response_headers, timings)
-        response_headers['X-NewRelic-App-Data'] = build_payload(request_headers, timings)
+      def set_response_headers(response_headers, timings, content_length)
+        response_headers['X-NewRelic-App-Data'] = build_payload(timings, content_length)
       end
 
-      def build_payload(request_headers, timings)
-        content_length = content_length_from_request(request_headers)
+      def build_payload(timings, content_length)
 
         # FIXME The transaction name might not be properly encoded.  use a json generator
         # For now we just handle quote characters by dropping them
