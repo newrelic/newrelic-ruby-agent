@@ -31,8 +31,7 @@ module NewRelic
 
           timings = NewRelic::Agent::BrowserMonitoring.timings
           set_response_headers(request_headers, response_headers, timings)
-          set_metrics(decoded_id, timings)
-          set_custom_parameter(decoded_id)
+          record_metrics(decoded_id, timings)
         end
       end
 
@@ -59,13 +58,9 @@ module NewRelic
         payload = obfuscate_with_key(payload)
       end
 
-      def set_metrics(id, timings)
+      def record_metrics(id, timings)
         metric = NewRelic::Agent.instance.stats_engine.get_stats_no_scope("ClientApplication/#{id}/all")
         metric.record_data_point(timings.app_time_in_seconds)
-      end
-
-      def set_custom_parameter(id)
-        NewRelic::Agent::Instrumentation::MetricFrame.add_custom_parameters(:client_cross_process_id => id)
       end
 
       def obfuscate_with_key(text)
