@@ -108,6 +108,12 @@ common: &default_settings
   # proxy_user:
   # proxy_pass:
 
+  # The agent can optionally log all data it sends to New Relic servers to a
+  # separate log file for human inspection and auditing purposes. To enable this
+  # feature, change 'enabled' below to true.
+  # See: https://newrelic.com/docs/ruby/audit-log
+  audit_log:
+    enabled: false
   
   # Tells transaction tracer and error collector (when enabled)
   # whether or not to capture HTTP params.  When true, frameworks can
