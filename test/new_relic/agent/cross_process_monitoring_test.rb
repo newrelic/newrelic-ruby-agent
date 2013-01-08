@@ -25,14 +25,14 @@ module NewRelic::Agent
     end
 
     def when_request_runs(request=for_id(REQUEST_CROSS_PROCESS_ID))
-      @monitor.save_cross_process_request_id(request)
+      @monitor.save_client_cross_process_id(request)
       @monitor.set_transaction_custom_parameters
       @monitor.insert_response_header(request, @response)
     end
 
     def when_request_has_error(request=for_id(REQUEST_CROSS_PROCESS_ID))
       options = {}
-      @monitor.save_cross_process_request_id(request)
+      @monitor.save_client_cross_process_id(request)
       @monitor.set_error_custom_parameters(options)
       @monitor.insert_response_header(request, @response)
 

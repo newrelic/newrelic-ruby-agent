@@ -29,7 +29,7 @@ module NewRelic
         NewRelic::Agent.logger.debug("Wiring up Cross Process monitoring to events after finished configuring")
 
         NewRelic::Rack::AgentHooks.subscribe(:before_call) do |env|
-          save_cross_process_request_id(env)
+          save_client_cross_process_id(env)
         end
 
         NewRelic::Agent::StatsEngine.subscribe(:start_transaction) do |name|
@@ -46,32 +46,32 @@ module NewRelic
       end
 
       # Because we aren't in the right spot when our transaction actually
-      # starts, hold cross_process_request_id we get thread local until then.
-      THREAD_ID_KEY = :newrelic_cross_process_request_id
+      # starts, hold client_cross_process_id we get thread local until then.
+      THREAD_ID_KEY = :newrelic_client_cross_process_id
 
-      def save_cross_process_request_id(request_headers)
+      def save_client_cross_process_id(request_headers)
         if should_process_request(request_headers)
           NewRelic::Agent::AgentThread.current[THREAD_ID_KEY] = decoded_id(request_headers)
         end
       end
 
-      def clear_cross_process_request_id
+      def clear_client_cross_process_id
         NewRelic::Agent::AgentThread.current[THREAD_ID_KEY] = nil
       end
 
-      def cross_process_request_id
+      def client_cross_process_id
         NewRelic::Agent::AgentThread.current[THREAD_ID_KEY]
       end
 
       def insert_response_header(request_headers, response_headers)
-        unless cross_process_request_id.nil?
+        unless client_cross_process_id.nil?
           timings = NewRelic::Agent::BrowserMonitoring.timings
           content_length = content_length_from_request(request_headers)
 
           set_response_headers(response_headers, timings, content_length)
-          record_metrics(cross_process_request_id, timings)
+          set_metrics(client_cross_process_id, timings)
 
-          clear_cross_process_request_id
+          clear_client_cross_process_id
         end
       end
 
@@ -107,14 +107,14 @@ module NewRelic
       def set_transaction_custom_parameters
         # We expect to get the before call to set the id (if we have it) before
         # this, and then write our custom parameter when the transaction starts
-        NewRelic::Agent.add_custom_parameters(:client_cross_process_id => cross_process_request_id) unless cross_process_request_id.nil?
+        NewRelic::Agent.add_custom_parameters(:client_cross_process_id => client_cross_process_id) unless client_cross_process_id.nil?
       end
 
       def set_error_custom_parameters(options)
-        options[:client_cross_process_id] = cross_process_request_id unless cross_process_request_id.nil?
+        options[:client_cross_process_id] = client_cross_process_id unless client_cross_process_id.nil?
       end
 
-      def record_metrics(id, timings)
+      def set_metrics(id, timings)
         metric = NewRelic::Agent.instance.stats_engine.get_stats_no_scope("ClientApplication/#{id}/all")
         metric.record_data_point(timings.app_time_in_seconds)
       end
