@@ -113,6 +113,15 @@ module NewRelic::Agent
       end
     end
 
+    def test_writes_custom_parameter
+      with_default_timings
+
+      NewRelic::Agent::Instrumentation::MetricFrame.expects(:add_custom_parameters).
+        with(:client_cross_process_id => REQUEST_CROSS_PROCESS_ID)
+
+      @monitor.insert_response_header(request(REQUEST_CROSS_PROCESS_ID), @response)
+    end
+
     def test_writes_metric
       with_default_timings
 
