@@ -64,6 +64,7 @@ fi
 
 echo `which ruby`
 ruby -v
+gem --version
 
 rake -h > /dev/null || gem install rake
 
