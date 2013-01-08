@@ -18,7 +18,7 @@ module NewRelic
         @cross_process_id = config[:cross_process_id]
         @encoding_key = config[:encoding_key]
         @encoding_bytes = get_bytes(@encoding_key) unless @encoding_key.nil?
-        @trusted_ids = config[:trusted_account_ids]
+        @trusted_ids = config[:trusted_account_ids] || []
       end
 
       def insert_response_header(request_headers, response_headers)
@@ -57,8 +57,6 @@ module NewRelic
 
         payload = %[["#{@cross_process_id}","#{transaction_name}",#{timings.queue_time_in_seconds},#{timings.app_time_in_seconds},#{content_length}] ]
         payload = obfuscate_with_key(payload)
-        NewRelic::Agent.logger.debug("Payload was :'#{payload}'")
-        payload
       end
 
       def set_metrics(id, timings)
