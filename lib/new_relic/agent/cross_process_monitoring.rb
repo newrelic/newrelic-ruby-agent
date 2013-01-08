@@ -6,26 +6,41 @@ module NewRelic
     class CrossProcessMonitor
 
       def initialize
+        @trusted_ids = []
+
         Agent.config.subscribe_finished_configuring do
+          finish_setup(Agent.config)
           wireup_rack_middleware
         end
       end
 
+      def finish_setup(config)
+        @cross_process_id = config[:cross_process_id]
+        @encoding_key = config[:encoding_key]
+        @encoding_bytes = get_bytes(@encoding_key) unless @encoding_key.nil?
+        @trusted_ids = config[:trusted_account_ids]
+      end
+
       def insert_response_header(request_headers, response_headers)
         if Agent.config[:'cross_process.enabled'] &&
-            NewRelic::Agent.instance.cross_process_id &&
-            (id = id_from_request(request_headers))
+            @cross_process_id &&
+            (encoded_id = id_from_request(request_headers))
 
-          return if !trusted(id)
+          decoded_id = decode_with_key(encoded_id)
+          return if !trusts?(decoded_id)
 
           timings = NewRelic::Agent::BrowserMonitoring.timings
           set_response_headers(request_headers, response_headers, timings)
-          record_metrics(id, timings)
+          record_metrics(decoded_id, timings)
         end
       end
 
-      def trusted(id)
-        id != ""
+      # Expects an ID of format "12#345", and will only accept that!
+      def trusts?(id)
+        split_id = id.match(/(\d+)#\d+/)
+        return false if split_id.nil?
+
+        @trusted_ids.include?(split_id.captures.first.to_i)
       end
 
       def set_response_headers(request_headers, response_headers, timings)
@@ -39,12 +54,14 @@ module NewRelic
         # For now we just handle quote characters by dropping them
         transaction_name = timings.transaction_name.gsub(/["']/, "")
 
-        payload = %[["#{NewRelic::Agent.instance.cross_process_id}","#{transaction_name}",#{timings.queue_time_in_seconds},#{timings.app_time_in_seconds},#{content_length}] ]
+        payload = %[["#{@cross_process_id}","#{transaction_name}",#{timings.queue_time_in_seconds},#{timings.app_time_in_seconds},#{content_length}] ]
         payload = obfuscate_with_key(payload)
+        NewRelic::Agent.logger.debug("Payload was :'#{payload}'")
+        payload
       end
 
       def record_metrics(id, timings)
-        metric = NewRelic::Agent.instance.stats_engine.get_stats_no_scope("ClientApplication/#{decode_with_key(id)}/all")
+        metric = NewRelic::Agent.instance.stats_engine.get_stats_no_scope("ClientApplication/#{id}/all")
         metric.record_data_point(timings.app_time_in_seconds)
       end
 
@@ -77,8 +94,19 @@ module NewRelic
 
       private
 
+      # Ruby 1.8.6 doesn't support the bytes method on strings.
+      def get_bytes(value)
+        return [] if value.nil?
+
+        bytes = []
+        value.each_byte do |b|
+          bytes << b
+        end
+        bytes
+      end
+
       def encode_with_key(text)
-        key_bytes =  NewRelic::Agent.instance.cross_process_encoding_bytes
+        key_bytes =  @encoding_bytes
 
         encoded = ""
         index = 0
