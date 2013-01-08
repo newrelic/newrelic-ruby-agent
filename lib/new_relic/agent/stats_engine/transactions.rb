@@ -14,6 +14,17 @@ module Agent
       end
     end
 
+    # Class level support for firing start_transaction event
+    @@events = NewRelic::Agent::EventListener.new(StatsEngine)
+
+    def self.subscribe(event, &handler)
+      @@events.subscribe(event, &handler)
+    end
+
+    def notify(event, *args)
+      @@events.notify(event, *args)
+    end
+
     # Handles pushing and popping elements onto an internal stack that
     # tracks where time should be allocated in Transaction Traces
     module Transactions
@@ -100,6 +111,7 @@ module Agent
       def start_transaction(name = nil)
         Thread::current[:newrelic_scope_stack] ||= []
         self.scope_name = name if name
+        self.notify(:start_transaction, name)
         GCProfiler.init
       end
 
