@@ -47,9 +47,7 @@ module NewRelic
 
       def save_cross_process_request_id(request_headers)
         if should_process_request(request_headers)
-          decoded = decoded_id(request_headers)
-
-          NewRelic::Agent::AgentThread.current[THREAD_ID_KEY] = decoded
+          NewRelic::Agent::AgentThread.current[THREAD_ID_KEY] = decoded_id(request_headers)
         end
       end
 
