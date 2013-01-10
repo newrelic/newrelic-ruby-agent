@@ -17,6 +17,9 @@ DependencyDetection.defer do
       include NewRelic::Agent::Instrumentation::Sinatra
       alias dispatch_without_newrelic dispatch!
       alias dispatch! dispatch_with_newrelic
+
+      alias handle_exception_without_newrelic handle_exception!
+      alias handle_exception! handle_exception_with_newrelic
     end
   end
 end
@@ -47,6 +50,14 @@ module NewRelic
                                              :params => @request.params) do
             dispatch_without_newrelic
           end
+        end
+
+        def handle_exception_with_newrelic(boom)
+          ::NewRelic::Agent.instance.error_collector.notice_error(boom,
+                                                                :uri => request.path,
+                                                                :referer => request.referer,
+                                                                :request_params => request.params)
+          handle_exception_without_newrelic(boom)
         end
 
         # Define Request Header accessor for Sinatra
