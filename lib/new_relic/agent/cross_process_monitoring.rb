@@ -33,7 +33,7 @@ module NewRelic
           save_client_cross_process_id(env)
         end
 
-        NewRelic::Agent::StatsEngine.subscribe(:start_transaction) do |name|
+        events.subscribe(:start_transaction) do |name|
           set_transaction_custom_parameters
         end
 
