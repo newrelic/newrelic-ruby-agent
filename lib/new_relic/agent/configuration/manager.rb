@@ -17,7 +17,6 @@ module NewRelic
           @config_stack = [ EnvironmentSource.new, DEFAULTS ]
           @cache = Hash.new {|hash,key| hash[key] = self.fetch(key) }
           @callbacks = Hash.new {|hash,key| hash[key] = [] }
-          @finished_configuring_callbacks = []
         end
 
         def apply_config(source, level=0)
@@ -91,12 +90,8 @@ module NewRelic
           end
         end
 
-        def subscribe_finished_configuring(&block)
-          @finished_configuring_callbacks << block
-        end
-
         def notify_finished_configuring
-          @finished_configuring_callbacks.each { |c| c.call() }
+          NewRelic::Agent.instance.events.notify(:finished_configuring)
         end
 
         def finished_configuring?

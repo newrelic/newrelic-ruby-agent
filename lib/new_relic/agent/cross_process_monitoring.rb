@@ -5,10 +5,13 @@ module NewRelic
   module Agent
     class CrossProcessMonitor
 
-      def initialize
+      def initialize(events = nil)
+        # When we're starting up for real in the agent, we get passed the events
+        # Other spots can pull from the agent, during startup the agent doesn't exist yet!
+        events ||= Agent.instance.events
         @trusted_ids = []
 
-        Agent.config.subscribe_finished_configuring do
+        events.subscribe(:finished_configuring) do
           finish_setup(Agent.config)
           register_event_listeners
         end
