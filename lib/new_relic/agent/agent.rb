@@ -24,11 +24,12 @@ module NewRelic
         @launch_time = Time.now
 
         @metric_ids = {}
+        @events = NewRelic::Agent::EventListener.new
         @stats_engine = NewRelic::Agent::StatsEngine.new
         @transaction_sampler = NewRelic::Agent::TransactionSampler.new
         @sql_sampler = NewRelic::Agent::SqlSampler.new
         @thread_profiler = NewRelic::Agent::ThreadProfiler.new
-        @cross_process_monitor = NewRelic::Agent::CrossProcessMonitor.new
+        @cross_process_monitor = NewRelic::Agent::CrossProcessMonitor.new(@events)
         @error_collector = NewRelic::Agent::ErrorCollector.new
         @connect_attempts = 0
 
@@ -95,6 +96,10 @@ module NewRelic
         attr_reader :cross_process_encoding_bytes
         # service for communicating with collector
         attr_accessor :service
+        # Global events dispatcher. This will provides our primary mechanism
+        # for agent-wide events, such as finishing configuration, error notification
+        # and request before/after from Rack.
+        attr_reader :events
 
 
         # Returns the length of the unsent errors array, if it exists,
@@ -746,7 +751,7 @@ module NewRelic
             log_connection!(config_data) if @service
 
             # If you're adding something else here to respond to the server-side config,
-            # use Agent.config.subscribe_finished_configuring callback instead!
+            # use Agent.instance.events.subscribe(:finished_configuring) callback instead!
 
             @beacon_configuration = BeaconConfiguration.new
           end

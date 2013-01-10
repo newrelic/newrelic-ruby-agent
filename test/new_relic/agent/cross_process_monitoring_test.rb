@@ -24,10 +24,25 @@ module NewRelic::Agent
         :trusted_account_ids => TRUSTED_ACCOUNT_IDS)
     end
 
+    def when_request_runs(request=for_id(REQUEST_CROSS_PROCESS_ID))
+      @monitor.save_client_cross_process_id(request)
+      @monitor.set_transaction_custom_parameters
+      @monitor.insert_response_header(request, @response)
+    end
+
+    def when_request_has_error(request=for_id(REQUEST_CROSS_PROCESS_ID))
+      options = {}
+      @monitor.save_client_cross_process_id(request)
+      @monitor.set_error_custom_parameters(options)
+      @monitor.insert_response_header(request, @response)
+
+      options
+    end
+
     def test_adds_response_header
       with_default_timings
 
-      @monitor.insert_response_header(request(REQUEST_CROSS_PROCESS_ID), @response)
+      when_request_runs
 
       assert_equal ["qwerty", "transaction", 1000, 2000, -1], unpacked_response
     end
@@ -38,7 +53,7 @@ module NewRelic::Agent
           :queue_time_in_seconds => 1000,
           :app_time_in_seconds => 2000))
 
-      @monitor.insert_response_header(request(REQUEST_CROSS_PROCESS_ID), @response)
+      when_request_runs
 
       assert_equal "goo", unpacked_response[TRANSACTION_NAME_POSITION]
     end
@@ -46,26 +61,26 @@ module NewRelic::Agent
     def test_doesnt_write_response_header_if_id_blank
       with_default_timings
 
-      @monitor.insert_response_header(request(''), @response)
+      when_request_runs(for_id(''))
       assert_nil response_app_data
     end
 
     def test_doesnt_write_response_header_if_untrusted_id
       with_default_timings
 
-      @monitor.insert_response_header(request("4#1234"), @response)
+      when_request_runs(for_id("4#1234"))
       assert_nil response_app_data
     end
 
     def test_doesnt_write_response_header_if_improperly_formatted_id
       with_default_timings
 
-      @monitor.insert_response_header(request("42"), @response)
+      when_request_runs(for_id("42"))
       assert_nil response_app_data
     end
 
     def test_doesnt_add_header_if_no_id_in_request
-      @monitor.insert_response_header({}, @response)
+      when_request_runs({})
       assert_nil response_app_data
     end
 
@@ -75,13 +90,13 @@ module NewRelic::Agent
         :encoding_key => ENCODING_KEY_NOOP,
         :trusted_account_ids => TRUSTED_ACCOUNT_IDS)
 
-      @monitor.insert_response_header(request(REQUEST_CROSS_PROCESS_ID), @response)
+      when_request_runs
       assert_nil response_app_data
     end
 
     def test_doesnt_add_header_if_config_disabled
       with_config(:'cross_process.enabled' => false) do
-        @monitor.insert_response_header(request(REQUEST_CROSS_PROCESS_ID), @response)
+        when_request_runs
         assert_nil response_app_data
       end
     end
@@ -89,7 +104,7 @@ module NewRelic::Agent
     def test_includes_content_length
       with_default_timings
 
-      @monitor.insert_response_header(request(REQUEST_CROSS_PROCESS_ID).merge("Content-Length" => 3000), @response)
+      when_request_runs(for_id(REQUEST_CROSS_PROCESS_ID).merge("Content-Length" => 3000))
       assert_equal 3000, unpacked_response[CONTENT_LENGTH_POSITION]
     end
 
@@ -102,15 +117,28 @@ module NewRelic::Agent
       end
     end
 
-    def test_finds_id_from_headers
-      %w{X-NewRelic-ID HTTP_X_NEWRELIC_ID X_NEWRELIC_ID}.each do |key|
-        request = { key => REQUEST_CROSS_PROCESS_ID }
+    def test_writes_custom_parameters
+      with_default_timings
 
-        assert_equal(
-          REQUEST_CROSS_PROCESS_ID, \
-          @monitor.id_from_request(request),
-          "Failed to find header on key #{key}")
-      end
+      NewRelic::Agent.expects(:add_custom_parameters).once
+
+      when_request_runs
+    end
+
+    def test_error_writes_custom_parameters
+      with_default_timings
+
+      options = when_request_has_error
+
+      assert_equal REQUEST_CROSS_PROCESS_ID, options[:client_cross_process_id]
+    end
+
+    def test_error_doesnt_write_custom_parameters_if_no_id
+      with_default_timings
+
+      options = when_request_has_error(for_id(''))
+
+      assert_equal false, options.key?(:client_cross_process_id)
     end
 
     def test_writes_metric
@@ -120,19 +148,14 @@ module NewRelic::Agent
       metric.expects(:record_data_point).with(2000)
       NewRelic::Agent.instance.stats_engine.stubs(:get_stats_no_scope).returns(metric)
 
-      @monitor.insert_response_header(request(REQUEST_CROSS_PROCESS_ID), @response)
+      when_request_runs
     end
 
     def test_doesnt_write_metric_if_id_blank
       with_default_timings
       NewRelic::Agent.instance.stats_engine.expects(:get_stats_no_scope).never
 
-      @monitor.insert_response_header(request(''), @response)
-    end
-
-    def test_doesnt_find_id_in_headers
-      request = {}
-      assert_nil @monitor.id_from_request(request)
+      when_request_runs(for_id(''))
     end
 
     def test_decoding_blank
@@ -150,7 +173,7 @@ module NewRelic::Agent
           :app_time_in_seconds => 2000))
     end
 
-    def request(id)
+    def for_id(id)
       encoded_id = id == "" ? "" : Base64.encode64(id)
       { 'X-NewRelic-ID' => encoded_id }
     end
