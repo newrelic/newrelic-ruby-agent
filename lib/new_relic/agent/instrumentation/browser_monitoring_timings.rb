@@ -4,6 +4,7 @@ module NewRelic
       class BrowserMonitoringTimings
 
         def initialize(queue_time_in_seconds, transaction)
+          @now = Time.now
           if transaction.nil?
             @start_time_in_seconds = 0.0
           else
@@ -30,7 +31,7 @@ module NewRelic
         end
 
         def app_time_in_seconds
-          Time.now - @start_time_in_seconds
+          @now - @start_time_in_seconds
         end
 
         private
