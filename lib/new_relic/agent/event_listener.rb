@@ -1,4 +1,9 @@
 module NewRelic::Agent
+  # Basic mechanism for the agent instance to provide agent-wide eventing.
+  # It is intended to keep different pieces of the app decoupled from each other.
+  #
+  # While an EventListener could be used elsewhere, it's strongly expected
+  # your eventing needs should be met by the agent's instance.
   class EventListener
 
     attr_accessor :runaway_threshold

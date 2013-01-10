@@ -96,7 +96,9 @@ module NewRelic
         attr_reader :cross_process_encoding_bytes
         # service for communicating with collector
         attr_accessor :service
-        # global events dispatcher
+        # Global events dispatcher. This will provides our primary mechanism
+        # for agent-wide events, such as finishing configuration, error notification
+        # and request before/after from Rack.
         attr_reader :events
 
 
