@@ -211,11 +211,6 @@ module NewRelic
 
       include NoticeError
 
-      @@events = NewRelic::Agent::EventListener.new
-
-      def self.subscribe(event, &handler)
-        @@events.subscribe(event, &handler)
-      end
 
       # Notice the error with the given available options:
       #
@@ -229,7 +224,7 @@ module NewRelic
       # If exception is nil, the error count is bumped and no traced error is recorded
       def notice_error(exception, options={})
         return if should_exit_notice_error?(exception)
-        @@events.notify(:notice_error, exception, options)
+        NewRelic::Agent.instance.events.notify(:notice_error, exception, options)
         action_path     = fetch_from_options(options, :metric, (NewRelic::Agent.instance.stats_engine.scope_name || ''))
         exception_options = error_params_from_options(options).merge(exception_info(exception))
         add_to_error_queue(NewRelic::NoticedError.new(action_path, exception_options, exception))

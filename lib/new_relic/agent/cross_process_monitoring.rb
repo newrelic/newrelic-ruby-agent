@@ -28,7 +28,7 @@ module NewRelic
       def register_event_listeners
         NewRelic::Agent.logger.debug("Wiring up Cross Process monitoring to events after finished configuring")
 
-        events = NewRelic::Agent.instance.events
+        events = Agent.instance.events
         events.subscribe(:before_call) do |env|
           save_client_cross_process_id(env)
         end
@@ -41,7 +41,7 @@ module NewRelic
           insert_response_header(env, headers)
         end
 
-        NewRelic::Agent::ErrorCollector.subscribe(:notice_error) do |_, options|
+        events.subscribe(:notice_error) do |_, options|
           set_error_custom_parameters(options)
         end
       end
