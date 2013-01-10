@@ -15,7 +15,7 @@ module Agent
     end
 
     # Class level support for firing start_transaction event
-    @@events = NewRelic::Agent::EventListener.new(StatsEngine)
+    @@events = NewRelic::Agent::EventListener.new
 
     def self.subscribe(event, &handler)
       @@events.subscribe(event, &handler)

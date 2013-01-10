@@ -10,7 +10,7 @@ module NewRelic
 
         Agent.config.subscribe_finished_configuring do
           finish_setup(Agent.config)
-          wireup_events
+          register_event_listeners
         end
       end
 
@@ -25,10 +25,11 @@ module NewRelic
       #   :before_call will save our cross process request id to the thread
       #   :start_transaction will get called when a transaction starts up
       #   :after_call will write our response headers/metrics and clean up the thread
-      def wireup_events
+      def register_event_listeners
         NewRelic::Agent.logger.debug("Wiring up Cross Process monitoring to events after finished configuring")
 
-        NewRelic::Rack::AgentHooks.subscribe(:before_call) do |env|
+        events = NewRelic::Agent.instance.events
+        events.subscribe(:before_call) do |env|
           save_client_cross_process_id(env)
         end
 
@@ -36,7 +37,7 @@ module NewRelic
           set_transaction_custom_parameters
         end
 
-        NewRelic::Rack::AgentHooks.subscribe(:after_call) do |env, (status_code, headers, body)|
+        events.subscribe(:after_call) do |env, (status_code, headers, body)|
           insert_response_header(env, headers)
         end
 

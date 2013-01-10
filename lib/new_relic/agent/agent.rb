@@ -30,6 +30,7 @@ module NewRelic
         @thread_profiler = NewRelic::Agent::ThreadProfiler.new
         @cross_process_monitor = NewRelic::Agent::CrossProcessMonitor.new
         @error_collector = NewRelic::Agent::ErrorCollector.new
+        @events = NewRelic::Agent::EventListener.new
         @connect_attempts = 0
 
         @last_harvest_time = Time.now
@@ -95,6 +96,8 @@ module NewRelic
         attr_reader :cross_process_encoding_bytes
         # service for communicating with collector
         attr_accessor :service
+        # global events dispatcher
+        attr_reader :events
 
 
         # Returns the length of the unsent errors array, if it exists,
