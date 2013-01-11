@@ -66,6 +66,22 @@ module NewRelic::Rack
       assert(NewRelic::Agent.instance.error_collector.errors.empty?,
              'noticed an error that should have been ignored')
     end
+
+    def test_handles_parameter_parsing_exceptions
+      bad_request = stub(:env => {}, :path => '/', :referer => '', )
+      bad_request.stubs(:params).raises(TypeError, "can't convert nil into Hash")
+      Rack::Request.stubs(:new).returns(bad_request)
+
+      assert_raise RuntimeError do
+        get '/'
+      end
+
+      assert_equal('unhandled error',
+                   NewRelic::Agent.instance.error_collector.errors[0].message)
+      assert_match(/failed to capture request parameters/i,
+                   NewRelic::Agent.instance.error_collector.errors[0].params[:request_params]['error'])
+    end
+
   end
 end
 

@@ -7,12 +7,22 @@ module NewRelic::Rack
     def call(env)
       @app.call(env)
     rescue Exception => exception
+      NewRelic::Agent.logger.debug "collecting %p: %s" % [ exception.class, exception.message ]
       request = Rack::Request.new(env)
+
       if !should_ignore_error?(exception, request)
+        params = begin
+          request.params
+        rescue => err
+          warning = "failed to capture request parameters: %p: %s" % [ err.class, err.message ]
+          NewRelic::Agent.logger.warn(warning)
+          {'error' => warning}
+        end
+
         NewRelic::Agent.instance.error_collector.notice_error(exception,
                                                               :uri => request.path,
                                                           :referer => request.referer,
-                                                   :request_params => request.params)
+                                                   :request_params => params)
       end
       raise exception
     end
