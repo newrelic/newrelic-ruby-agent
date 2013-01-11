@@ -264,7 +264,7 @@ if $0 == __FILE__
     def invoke(method, post={}, code=200)
       uri = URI.parse("http://127.0.0.1:30303/agent_listener/8/12345/#{method}")
       request = Net::HTTP::Post.new("#{uri.path}?#{uri.query}")
-      if uri.query && uri.query.include?('marsha_format=json')
+      if uri.query && uri.query.include?('marshal_format=json')
         request.body = JSON.dump(post)
       else
         request.body = Marshal.dump(post)
