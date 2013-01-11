@@ -68,7 +68,7 @@ module NewRelic::Rack
     end
 
     def test_handles_parameter_parsing_exceptions
-      bad_request = stub(:env => {}, :path => '/', :referer => '', )
+      bad_request = stub(:env => {}, :path => '/', :referer => '')
       bad_request.stubs(:params).raises(TypeError, "can't convert nil into Hash")
       Rack::Request.stubs(:new).returns(bad_request)
 
