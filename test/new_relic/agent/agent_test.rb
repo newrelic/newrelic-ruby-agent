@@ -57,8 +57,7 @@ module NewRelic
 
       def test_graceful_shutdown_ends_thread_profiling
         @agent.thread_profiler.expects(:stop).once
-        @agent.instance_variable_set(:@connected, true)
-
+        @agent.stubs(:connected?).returns(true)
         @agent.send(:graceful_disconnect)
       end
 
