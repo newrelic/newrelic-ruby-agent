@@ -813,7 +813,7 @@ module NewRelic
         # * <tt>force_reconnect => true</tt> if you want to establish a new connection
         #   to the server before running the worker loop.  This means you get a separate
         #   agent run and New Relic sees it as a separate instance (default is false).
-        def connect(options)
+        def connect(options={})
           defaults = {
             :keep_retrying => true,
             :force_reconnect => false

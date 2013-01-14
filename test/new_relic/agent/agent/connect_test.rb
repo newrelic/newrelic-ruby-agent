@@ -267,12 +267,4 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     self.stubs(:error_collector).returns(fake_collector)
     fake_collector
   end
-
-  def assert_accessor(sym)
-    var_name = "@#{sym}"
-    instance_variable_set(var_name, 1)
-    assert (self.send(sym) == 1)
-    self.send(sym.to_s + '=', 10)
-    assert (instance_variable_get(var_name) == 10)
-  end
 end

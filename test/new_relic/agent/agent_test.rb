@@ -234,6 +234,50 @@ module NewRelic
         assert_equal 10,   @agent.metric_ids[MetricSpec.new('WebFrontend/QueueTime')]
         assert_equal 1017, @agent.metric_ids[MetricSpec.new('ActiveRecord/Blog/find')]
       end
+
+      def test_connect_retries_on_timeout
+        service = @agent.service
+        def service.connect(opts={})
+          unless @tried
+            @tried = true
+            raise Timeout::Error
+          end
+          nil
+        end
+        @agent.stubs(:connect_retry_period).returns(0)
+        @agent.send(:connect)
+        assert(@agent.connected?)
+      end
+
+      def test_connect_does_not_retry_if_keep_retrying_false
+        @agent.service.expects(:connect).once.raises(Timeout::Error)
+        @agent.send(:connect, :keep_retrying => false)
+        assert(@agent.disconnected?)
+      end
+
+      def test_connect_does_not_retry_on_license_error
+        @agent.service.stubs(:connect).raises(NewRelic::Agent::LicenseException)
+        @agent.send(:connect)
+        assert(@agent.disconnected?)
+      end
+
+      def test_connect_does_not_reconnect_by_default
+        @agent.stubs(:connected?).returns(true)
+        @agent.service.expects(:connect).never
+        @agent.send(:connect)
+      end
+
+      def test_connect_does_not_reconnect_if_disconnected
+        @agent.stubs(:disconnected?).returns(true)
+        @agent.service.expects(:connect).never
+        @agent.send(:connect)
+      end
+
+      def test_connect_does_reconnect_if_forced
+        @agent.stubs(:connected?).returns(true)
+        @agent.service.expects(:connect)
+        @agent.send(:connect, :force_reconnect => true)
+      end
     end
   end
 end
