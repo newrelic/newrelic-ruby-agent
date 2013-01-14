@@ -68,10 +68,6 @@ gem --version
 
 rake -h > /dev/null || gem install rake
 
-echo "generating gemspec"
-rake gemspec
-
-
 # make sure that we're in the project root
 script_dirname=`dirname $0`
 cd "$script_dirname/../../"
