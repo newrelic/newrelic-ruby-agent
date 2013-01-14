@@ -11,10 +11,24 @@ module NewRelic
       end
 
       def test_after_fork_reporting_to_channel
+        @agent.stubs(:connected?).returns(true)
         @agent.after_fork(:report_to_channel => 123)
         assert(@agent.service.kind_of?(NewRelic::Agent::PipeService),
                'Agent should use PipeService when directed to report to pipe channel')
+        NewRelic::Agent::PipeService.any_instance.expects(:shutdown).never
         assert_equal 123, @agent.service.channel_id
+      end
+
+      def test_after_fork_should_close_pipe_if_parent_not_connected
+        pipe = mock
+        pipe.expects(:write).with('EOF')
+        pipe.expects(:close)
+        dummy_channels = { 123 => pipe }
+        NewRelic::Agent::PipeChannelManager.stubs(:channels).returns(dummy_channels)
+
+        @agent.stubs(:connected?).returns(false)
+        @agent.after_fork(:report_to_channel => 123)
+        assert(@agent.disconnected?)
       end
 
       def test_transmit_data_should_transmit

@@ -185,8 +185,14 @@ module NewRelic
 
           if channel_id = options[:report_to_channel]
             @service = NewRelic::Agent::PipeService.new(channel_id)
-            @connected_pid = $$
-            @metric_ids = {}
+            if connected?
+              @connected_pid = $$
+              @metric_ids = {}
+            else
+              ::NewRelic::Agent.logger.debug("Child process #{$$} not reporting to non-connected parent.")
+              @service.shutdown(Time.now)
+              disconnect
+            end
           end
 
           return if !Agent.config[:agent_enabled] ||
