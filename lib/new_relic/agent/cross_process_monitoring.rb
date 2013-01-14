@@ -174,7 +174,7 @@ module NewRelic
 
       def from_headers(request, try_keys)
         # For lookups, upcase all our keys on both sides just to be safe
-        upcased_keys = try_keys.map(&:upcase)
+        upcased_keys = try_keys.map{|k| k.upcase}
         upcased_keys.each do |header|
           found_key = request.keys.find { |k| k.upcase == header }
           return request[found_key] unless found_key.nil?
