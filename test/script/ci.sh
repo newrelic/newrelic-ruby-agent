@@ -93,6 +93,7 @@ rpm_test_app_cache=~/workspace/.rpm_test_app_cache
 git clone $rpm_test_app_cache rpm_test_app
 cd rpm_test_app
 
+git fetch || true
 git checkout -t origin/$BRANCH || git checkout $BRANCH
 if [ -x $HOME/.rbenv/plugins/rbenv-gemsets ]; then
   echo "$RUBY-$BRANCH" > .rbenv-gemsets
