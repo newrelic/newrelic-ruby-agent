@@ -4,17 +4,18 @@
 if RUBY_VERSION >= '1.9'
 class ThreadProfilingTest < Test::Unit::TestCase
   def setup
-    NewRelic::Agent.manual_start(:'thread_profiler.enabled' => true)
-
-    @agent = NewRelic::Agent.instance
-    @thread_profiler = @agent.thread_profiler
-
     $collector ||= NewRelic::FakeCollector.new
     $collector.reset
     $collector.mock['connect'] = [200, {'return_value' => {"agent_run_id" => 666 }}]
     $collector.mock['get_agent_commands'] = [200, {'return_value' => START_COMMAND}]
     $collector.mock['agent_command_results'] = [200, {'return_value' => []}]
     $collector.run
+
+    NewRelic::Agent::Agent.instance_variable_set(:@instance, nil)
+    NewRelic::Agent.manual_start(:'thread_profiler.enabled' => true)
+
+    @agent = NewRelic::Agent.instance
+    @thread_profiler = @agent.thread_profiler
   end
 
   def teardown
