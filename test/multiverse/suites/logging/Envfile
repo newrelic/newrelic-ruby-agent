@@ -1,4 +1,0 @@
-gemfile <<-RB
-  gem 'rack'
-  gem 'mocha', '< 0.13', :require => false
-RB

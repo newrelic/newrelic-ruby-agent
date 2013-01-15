@@ -103,7 +103,7 @@ class LoggingTest < Test::Unit::TestCase
     $collector.run
 
     NewRelic::Agent.reset_config 
-    NewRelic::Agent.agent = NewRelic::Agent::Agent.new
+    NewRelic::Agent::Agent.instance_variable_set(:@instance, NewRelic::Agent::Agent.new)
     NewRelic::Control.instance(true)
 
     @logger = NewRelic::Agent::MemoryLogger.new
@@ -113,6 +113,9 @@ class LoggingTest < Test::Unit::TestCase
 
   def teardown
     $collector.reset
+
+    # Really clear out our agent instance since we set bad license keys
+    NewRelic::Agent::Agent.instance_variable_set(:@instance, nil)
   end
 
   # Helpers
@@ -127,7 +130,7 @@ class LoggingTest < Test::Unit::TestCase
   end
 
   def run_agent_with(options = {})
-    NewRelic::Agent.manual_start(options)
+    NewRelic::Agent.manual_start(options.merge(:force_reconnect => true))
     NewRelic::Agent.shutdown
     yield
   end
