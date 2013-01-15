@@ -6,7 +6,7 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
   def test_deferred_work_connects
     self.expects(:catch_errors).yields
     self.expects(:connect).with('connection_options')
-    @connected = true
+    self.stubs(:connected?).returns(true)
     self.expects(:log_worker_loop_start)
     self.expects(:create_and_run_worker_loop)
     deferred_work!('connection_options')
@@ -15,7 +15,7 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
   def test_deferred_work_connect_failed
     self.expects(:catch_errors).yields
     self.expects(:connect).with('connection_options')
-    @connected = false
+    self.stubs(:connected?).returns(false)
     deferred_work!('connection_options')
   end
 
@@ -43,7 +43,7 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
     handle_force_restart(error)
 
     assert_equal({}, @metric_ids)
-    assert @connected.nil?
+    assert_equal(:pending, @connect_state)
   end
 
   def test_handle_force_disconnect

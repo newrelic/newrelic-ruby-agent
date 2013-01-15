@@ -31,6 +31,8 @@ module NewRelic
         @thread_profiler = NewRelic::Agent::ThreadProfiler.new
         @cross_process_monitor = NewRelic::Agent::CrossProcessMonitor.new(@events)
         @error_collector = NewRelic::Agent::ErrorCollector.new
+
+        @connect_state = :pending
         @connect_attempts = 0
 
         @last_harvest_time = Time.now
@@ -181,19 +183,21 @@ module NewRelic
           @forked = true
           Agent.config.apply_config(NewRelic::Agent::Configuration::ManualSource.new(options), 1)
 
-          # @connected gets false after we fail to connect or have an error
-          # connecting.  @connected has nil if we haven't finished trying to connect.
-          # or we didn't attempt a connection because this is the master process
-
           if channel_id = options[:report_to_channel]
             @service = NewRelic::Agent::PipeService.new(channel_id)
-            @connected_pid = $$
-            @metric_ids = {}
+            if connected?
+              @connected_pid = $$
+              @metric_ids = {}
+            else
+              ::NewRelic::Agent.logger.debug("Child process #{$$} not reporting to non-connected parent.")
+              @service.shutdown(Time.now)
+              disconnect
+            end
           end
 
           return if !Agent.config[:agent_enabled] ||
             !Agent.config[:monitor_mode] ||
-            @connected == false ||
+            disconnected? ||
             @worker_thread && @worker_thread.alive?
 
           ::NewRelic::Agent.logger.debug "Starting the worker thread in #{$$} after forking."
@@ -214,12 +218,6 @@ module NewRelic
         # True if we have initialized and completed 'start'
         def started?
           @started
-        end
-
-        # Return nil if not yet connected, true if successfully started
-        # and false if we failed to start.
-        def connected?
-          @connected
         end
 
         # Attempt a graceful shutdown of the agent, running the worker
@@ -524,7 +522,7 @@ module NewRelic
             ::NewRelic::Agent.logger.debug error.message
             reset_stats
             @metric_ids = {}
-            @connected = nil
+            @connect_state = :pending
             sleep 30
           end
 
@@ -583,7 +581,7 @@ module NewRelic
                 # just exit the thread.  If it returns nil
                 # that means it didn't try to connect because we're in the master.
                 connect(connection_options)
-                if @connected
+                if connected?
                   log_worker_loop_start
                   create_and_run_worker_loop
                   # never reaches here unless there is a problem or
@@ -616,60 +614,41 @@ module NewRelic
         # method - all of its methods are used in that context, so it
         # can be refactored at will. It should be fully tested
         module Connect
-          # the frequency with which we should try to connect to the
-          # server at the moment.
-          attr_accessor :connect_retry_period
           # number of attempts we've made to contact the server
           attr_accessor :connect_attempts
 
           # Disconnect just sets connected to false, which prevents
           # the agent from trying to connect again
           def disconnect
-            @connected = false
+            @connect_state = :disconnected
             true
           end
 
-          # We've tried to connect if @connected is not nil, or if we
-          # are forcing reconnection (i.e. in the case of an
-          # after_fork with long running processes)
-          def tried_to_connect?(options)
-            !(@connected.nil? || options[:force_reconnect])
+          def connected?
+            @connect_state == :connected
           end
 
-          # We keep trying by default, but you can disable it with the
-          # :keep_retrying option set to false
-          def should_keep_retrying?(options)
-            @keep_retrying = (options[:keep_retrying].nil? || options[:keep_retrying])
+          def disconnected?
+            @connect_state == :disconnected
+          end
+
+          # Don't connect if we're already connected, or if we tried to connect
+          # and were rejected with prejudice because of a license issue, unless
+          # we're forced to by force_reconnect.
+          def should_connect?(force=false)
+            force || (!connected? && !disconnected?)
           end
 
           # Retry period is a minute for each failed attempt that
           # we've made. This should probably do some sort of sane TCP
           # backoff to prevent hammering the server, but a minute for
           # each attempt seems to work reasonably well.
-          def get_retry_period
-            return 600 if self.connect_attempts > 6
-            connect_attempts * 60
+          def connect_retry_period
+            [600, connect_attempts * 60].min
           end
 
-          def increment_retry_period! #:nodoc:
-            self.connect_retry_period=(get_retry_period)
-          end
-
-          # We should only retry when there has not been a more
-          # serious condition that would prevent it. We increment the
-          # connect attempts and the retry period, to prevent constant
-          # connection attempts, and tell the user what we're doing by
-          # logging.
-          def should_retry?
-            if @keep_retrying
-              self.connect_attempts=(connect_attempts + 1)
-              increment_retry_period!
-              ::NewRelic::Agent.logger.warn "Will re-attempt in #{connect_retry_period} seconds"
-              true
-            else
-              disconnect
-              false
-            end
+          def note_connect_failure
+            self.connect_attempts += 1
           end
 
           # When we have a problem connecting to the server, we need
@@ -819,7 +798,7 @@ module NewRelic
         public :merge_data_from
 
         # Connect to the server and validate the license.  If successful,
-        # @connected has true when finished.  If not successful, you can
+        # connected? returns true when finished.  If not successful, you can
         # keep calling this.  Return false if we could not establish a
         # connection with the server and we should not retry, such as if
         # there's a bad license key.
@@ -834,25 +813,27 @@ module NewRelic
         # * <tt>force_reconnect => true</tt> if you want to establish a new connection
         #   to the server before running the worker loop.  This means you get a separate
         #   agent run and New Relic sees it as a separate instance (default is false).
-        def connect(options)
-          # Don't proceed if we already connected (@connected=true) or if we tried
-          # to connect and were rejected with prejudice because of a license issue
-          # (@connected=false), unless we're forced to by force_reconnect.
-          return if tried_to_connect?(options)
+        def connect(options={})
+          defaults = {
+            :keep_retrying => true,
+            :force_reconnect => false
+          }
+          opts = defaults.merge(options)
 
-          # wait a few seconds for the web server to boot, necessary in development
-          @connect_retry_period = should_keep_retrying?(options) ? 10 : 0
+          return unless should_connect?(opts[:force_reconnect])
 
-          sleep connect_retry_period
           ::NewRelic::Agent.logger.debug "Connecting Process to New Relic: #$0"
           query_server_for_configuration
           @connected_pid = $$
-          @connected = true
+          @connect_state = :connected
         rescue NewRelic::Agent::LicenseException => e
           handle_license_error(e)
         rescue Timeout::Error, StandardError => e
           log_error(e)
-          if should_retry?
+          if opts[:keep_retrying]
+            note_connect_failure
+            ::NewRelic::Agent.logger.warn "Will re-attempt in #{connect_retry_period} seconds"
+            sleep connect_retry_period
             retry
           else
             disconnect
@@ -868,13 +849,6 @@ module NewRelic
         # directory of this project
         def determine_home_directory
           control.root
-        end
-
-        # Checks whether this process is a Passenger or Unicorn
-        # spawning server - if so, we probably don't intend to report
-        # statistics from this process
-        def is_application_spawner?
-          $0 =~ /ApplicationSpawner|^unicorn\S* master/
         end
 
         # calls the busy harvester and collects timeslice data to
@@ -1065,7 +1039,7 @@ module NewRelic
         # If this process comes from a parent process, it will not
         # disconnect, so that the parent process can continue to send data
         def graceful_disconnect
-          if @connected
+          if connected?
             begin
               @service.request_timeout = 10
               transmit_data(true)

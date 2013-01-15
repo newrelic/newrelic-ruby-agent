@@ -8,7 +8,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   def setup
     @connected = nil
     @keep_retrying = nil
-    @connect_attempts = 1
+    @connect_attempts = 0
     @connect_retry_period = 0
     @transaction_sampler = NewRelic::Agent::TransactionSampler.new
     @sql_sampler = NewRelic::Agent::SqlSampler.new
@@ -33,74 +33,33 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     fake_control
   end
 
-  def test_tried_to_connect?
-    # base case, should default to false
-    assert !tried_to_connect?({})
+  def test_should_connect_if_pending
+    @connect_state = :pending
+    assert(should_connect?, "should attempt to connect if pending")
   end
 
-  def test_tried_to_connect_connected
-    # is true if connected is true.
-    @connected = true
-    assert tried_to_connect?({})
+  def test_should_not_connect_if_disconnected
+    @connect_state = :disconnected
+    assert(!should_connect?, "should not attempt to connect if force disconnected")
   end
 
-  def test_tried_to_connect_forced
-    # is false if force_reconnect is true
-    assert !tried_to_connect?({:force_reconnect => true})
-  end
-
-  def test_should_keep_retrying_base
-    # default to true
-    should_keep_retrying?({})
-    assert @keep_retrying, "should keep retrying by default"
-  end
-
-  def test_should_keep_retrying_option_true
-    # should be true if keep_retrying is true
-    should_keep_retrying?({:keep_retrying => true})
-  end
-
-  def test_get_retry_period
-    (1..6).each do |x|
-      @connect_attempts = x
-      assert_equal get_retry_period, x * 60, "should be #{x} minutes"
-    end
-    @connect_attempts = 100
-    assert_equal get_retry_period, 600, "should max out at 10 minutes after 6 tries"
+  def test_should_connect_if_forced
+    @connect_state = :disconnected
+    assert(should_connect?(true), "should connect if forced")
+    @connect_state = :connected
+    assert(should_connect?(true), "should connect if forced")
   end
 
   def test_increment_retry_period
-    @connect_retry_period = 0
-    @connect_attempts = 1
-    assert_equal 0, connect_retry_period
-    increment_retry_period!
-    assert_equal 60, connect_retry_period
-  end
-
-  def test_should_retry_true
-    @keep_retrying = true
-    @connect_attempts = 1
-    self.expects(:increment_retry_period!).once
-    assert should_retry?, "should retry in this circumstance"
-    assert_equal 2, @connect_attempts, "should be on the second attempt"
-  end
-
-  def test_should_retry_false
-    @keep_retrying = false
-    self.expects(:disconnect).once
-    assert !should_retry?
+    10.times do |i|
+      assert_equal((i * 60), connect_retry_period)
+      note_connect_failure
+    end
+    assert_equal(600, connect_retry_period)
   end
 
   def test_disconnect
     assert disconnect
-  end
-
-  def test_attr_accessor_connect_retry_period
-    assert_accessor(:connect_retry_period)
-  end
-
-  def test_attr_accessor_connect_attempts
-    assert_accessor(:connect_attempts)
   end
 
   def test_log_error
@@ -307,13 +266,5 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     fake_collector = mock('error collector')
     self.stubs(:error_collector).returns(fake_collector)
     fake_collector
-  end
-
-  def assert_accessor(sym)
-    var_name = "@#{sym}"
-    instance_variable_set(var_name, 1)
-    assert (self.send(sym) == 1)
-    self.send(sym.to_s + '=', 10)
-    assert (instance_variable_get(var_name) == 10)
   end
 end
