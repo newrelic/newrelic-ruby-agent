@@ -1,25 +1,11 @@
-require 'test/unit'
-require "rack/test"
 require 'fake_collector'
-
-class CrossProcessApp
-  attr_accessor :response, :headers
-
-  def call(env)
-    [200, headers, [response]]
-  end
-
-  def reset_headers
-    @headers = {'Content-Type' => 'text/html'}
-  end
-end
-
+require './testing_app'
 
 class CrossProcessTest < Test::Unit::TestCase
 
-  # Important because the hooks are global that we only wire one of these up
-  @@app = CrossProcessApp.new
-  @@wrapped_app = NewRelic::Rack::AgentHooks.new(@@app)
+  # Important because the hooks are global that we only wire one AgentHooks up
+  @@app = TestingApp.new
+  @@wrapper_app = NewRelic::Rack::AgentHooks.new(@@app)
 
   def setup
     $collector ||= NewRelic::FakeCollector.new
@@ -27,7 +13,6 @@ class CrossProcessTest < Test::Unit::TestCase
     $collector.mock['connect'] = [200, {'return_value' => {"agent_run_id" => 666 }}]
     $collector.run
 
-    #require 'debugger'; debugger;
     NewRelic::Agent.manual_start(
       :cross_process_id => "boo",
       :encoding_key => "\0",
@@ -46,7 +31,7 @@ class CrossProcessTest < Test::Unit::TestCase
   include Rack::Test::Methods
 
   def app
-    @@wrapped_app
+    @@wrapper_app
   end
 
   def test_cross_process_doesnt_modify_without_header
