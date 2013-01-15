@@ -1,3 +1,4 @@
+require 'rack/test'
 require 'new_relic/rack/browser_monitoring'
 require './testing_app'
 
