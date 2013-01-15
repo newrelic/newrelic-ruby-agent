@@ -27,10 +27,13 @@ class CrossProcessTest < Test::Unit::TestCase
     $collector.mock['connect'] = [200, {'return_value' => {"agent_run_id" => 666 }}]
     $collector.run
 
+    #require 'debugger'; debugger;
     NewRelic::Agent.manual_start(
       :cross_process_id => "boo",
       :encoding_key => "\0",
       :trusted_account_ids => [1])
+
+    NewRelic::Agent.instance.events.notify(:finished_configuring) 
 
     @@app.reset_headers
     @@app.response = "<html><head><title>W00t!</title></head><body><p>Hello World</p></body></html>"
