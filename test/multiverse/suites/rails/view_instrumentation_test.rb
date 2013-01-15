@@ -1,5 +1,76 @@
 require './app'
 
+ActionController::Base.view_paths = ['app/views']
+
+class ViewsController < ApplicationController
+  include Rails.application.routes.url_helpers
+  def template_render_with_3_partial_renders
+    render 'index'
+  end
+
+  def deep_partial_render
+    render 'deep_partial'
+  end
+
+  def text_render
+    render :text => "Yay"
+  end
+
+  def json_render
+    render :json => {"a" => "b"}
+  end
+
+  def xml_render
+    render :xml => {"a" => "b"}
+  end
+
+  def js_render
+    render :js => 'alert("this is js");'
+  end
+
+  def file_render
+    # We need any old file that's around, preferrably with ERB embedding
+    file = File.expand_path(File.join(File.dirname(__FILE__), "Envfile"))
+    render :file => file, :content_type => 'text/plain', :layout => false
+  end
+
+  def nothing_render
+    render :nothing => true
+  end
+
+  def inline_render
+    render :inline => "<% Time.now %><p><%= Time.now %></p>"
+  end
+
+  def haml_render
+    render 'haml_view'
+  end
+
+  def no_template
+    render []
+  end
+
+  def collection_render
+    render((1..3).map{|x| Foo.new })
+  end
+
+  # proc rendering isn't available in rails 3 but you can do nonsense like this
+  # and assign an enumerable object to the response body.
+  def proc_render
+    streamer = Class.new
+    def each
+      10_000.times do |i|
+        yield "This is line #{i}\n"
+      end
+    end
+    self.response_body = streamer.new
+  end
+
+  def raise_render
+    raise "this is an uncaught RuntimeError"
+  end
+end
+
 class ViewControllerTest < ActionController::TestCase
   tests ViewsController
   def setup

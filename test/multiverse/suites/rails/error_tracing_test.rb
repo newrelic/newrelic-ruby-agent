@@ -3,10 +3,44 @@
 require 'rails/test_help'
 require 'fake_service'
 
+class ErrorController < ApplicationController
+  include Rails.application.routes.url_helpers
+  newrelic_ignore :only => :ignored_action
+
+  def controller_error
+    raise 'this is an uncaught controller error'
+  end
+
+  def view_error
+    render :inline => "<% raise 'this is an uncaught view error' %>"
+  end
+
+  def model_error
+    Foo.new.raise_error
+  end
+
+  def ignored_action
+    raise 'this error should not be noticed'
+  end
+
+  def ignored_error
+    raise IgnoredError.new('this error should not be noticed')
+  end
+
+  def server_ignored_error
+    raise ServerIgnoredError.new('this is a server ignored error')
+  end
+
+  def noticed_error
+    newrelic_notice_error(RuntimeError.new('this error should be noticed'))
+    render :text => "Shoulda noticed an error"
+  end
+end
+
 class IgnoredError < StandardError; end
 class ServerIgnoredError < StandardError; end
 
-class TestControllerTest < ActionDispatch::IntegrationTest
+class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
   def setup
     NewRelic::Agent::Agent.instance_variable_set(:@instance, NewRelic::Agent::Agent.new)
 
@@ -14,17 +48,12 @@ class TestControllerTest < ActionDispatch::IntegrationTest
     NewRelic::Agent::Agent.instance.service = @service
 
     NewRelic::Agent.manual_start
+
+    reset_error_collector
   end
 
   def teardown
     NewRelic::Agent::Agent.instance.shutdown if NewRelic::Agent::Agent.instance
-  end
-end
-
-class ErrorsWithoutSSCTest < TestControllerTest
-  def setup
-    super
-    reset_error_collector
   end
 
   def reset_error_collector

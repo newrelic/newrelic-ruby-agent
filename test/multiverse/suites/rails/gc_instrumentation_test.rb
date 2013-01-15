@@ -1,5 +1,27 @@
 require './app'
 
+class GcController < ApplicationController
+  include Rails.application.routes.url_helpers
+  def gc_action
+    GC.disable
+
+    long_string = "01234567" * 100_000
+    long_string = nil
+    another_long_string = "01234567" * 100_000
+
+    start = Time.now
+    GC.enable
+    GC.start
+    stop = Time.now
+
+    @duration = stop.to_f - start.to_f
+
+    render :text => @duration.to_s
+  ensure
+    GC.enable
+  end
+end
+
 class GCRailsInstrumentationTest < ActionController::TestCase
   tests GcController
   def setup
