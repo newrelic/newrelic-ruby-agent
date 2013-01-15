@@ -1,3 +1,4 @@
+require 'rack/test'
 require 'fake_collector'
 require './testing_app'
 

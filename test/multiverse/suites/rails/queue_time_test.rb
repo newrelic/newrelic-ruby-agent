@@ -1,5 +1,6 @@
 # https://newrelic.atlassian.net/browse/RUBY-927
 
+require 'rails/test_help'
 require './app'
 
 class QueueController < ApplicationController
