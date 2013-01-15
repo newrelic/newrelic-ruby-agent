@@ -130,7 +130,7 @@ class LoggingTest < Test::Unit::TestCase
   end
 
   def run_agent_with(options = {})
-    NewRelic::Agent.manual_start(options.merge(:force_reconnect => true))
+    NewRelic::Agent.manual_start(options)
     NewRelic::Agent.shutdown
     yield
   end
