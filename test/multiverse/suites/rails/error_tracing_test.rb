@@ -1,58 +1,9 @@
 # https://newrelic.atlassian.net/browse/RUBY-747
 
-ENV['NEW_RELIC_DISPATCHER'] = 'test'
-
-require 'action_controller/railtie'
-require 'rails/test_unit/railtie'
 require 'rails/test_help'
-require 'test/unit'
-require 'new_relic/rack/error_collector'
 require 'fake_service'
 
-
-# BEGIN RAILS APP
-
-class MyApp < Rails::Application
-  # We need a secret token for session, cookies, etc.
-  config.active_support.deprecation = :log
-  config.secret_token = "49837489qkuweoiuoqwehisuakshdjksadhaisdy78o34y138974xyqp9rmye8yrpiokeuioqwzyoiuxftoyqiuxrhm3iou1hrzmjk"
-end
-MyApp.initialize!
-
-MyApp.routes.draw do
-  get('/bad_route' => 'Test#controller_error',
-      :constraints => lambda do |_|
-        raise ActionController::RoutingError.new('this is an uncaught routing error')
-      end)
-  match '/:controller(/:action(/:id))'
-end
-
-class ApplicationController < ActionController::Base; end
-
-# a basic active model compliant model we can render
-class Foo
-  extend ActiveModel::Naming
-  def to_model
-    self
-  end
-
-  def valid?()      true end
-  def new_record?() true end
-  def destroyed?()  true end
-
-  def raise_error
-    raise 'this is an uncaught model error'
-  end
-
-  def errors
-    obj = Object.new
-    def obj.[](key)         [] end
-    def obj.full_messages() [] end
-    obj
-  end
-end
-
-class TestController < ApplicationController
+class ErrorController < ApplicationController
   include Rails.application.routes.url_helpers
   newrelic_ignore :only => :ignored_action
 
@@ -85,12 +36,11 @@ class TestController < ApplicationController
     render :text => "Shoulda noticed an error"
   end
 end
-# END RAILS APP
 
 class IgnoredError < StandardError; end
 class ServerIgnoredError < StandardError; end
 
-class TestControllerTest < ActionDispatch::IntegrationTest
+class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
   def setup
     NewRelic::Agent::Agent.instance_variable_set(:@instance, NewRelic::Agent::Agent.new)
 
@@ -98,17 +48,12 @@ class TestControllerTest < ActionDispatch::IntegrationTest
     NewRelic::Agent::Agent.instance.service = @service
 
     NewRelic::Agent.manual_start
+
+    reset_error_collector
   end
 
   def teardown
     NewRelic::Agent::Agent.instance.shutdown if NewRelic::Agent::Agent.instance
-  end
-end
-
-class ErrorsWithoutSSCTest < TestControllerTest
-  def setup
-    super
-    reset_error_collector
   end
 
   def reset_error_collector
@@ -132,22 +77,22 @@ class ErrorsWithoutSSCTest < TestControllerTest
   end
 
   def test_should_capture_error_raised_in_view
-    get '/test/view_error'
+    get '/error/view_error'
     assert_error_reported_once('this is an uncaught view error')
   end
 
   def test_should_capture_error_raised_in_controller
-    get '/test/controller_error'
+    get '/error/controller_error'
     assert_error_reported_once('this is an uncaught controller error')
   end
 
   def test_should_capture_error_raised_in_model
-    get '/test/model_error'
+    get '/error/model_error'
     assert_error_reported_once('this is an uncaught model error')
   end
 
   def test_should_capture_noticed_error_in_controller
-    get '/test/noticed_error'
+    get '/error/noticed_error'
     assert_error_reported_once('this error should be noticed')
   end
 
@@ -170,13 +115,13 @@ class ErrorsWithoutSSCTest < TestControllerTest
   end
 
   def test_should_not_notice_errors_from_ignored_action
-    get '/test/ignored_action'
+    get '/error/ignored_action'
     assert(@error_collector.errors.empty?,
            'Noticed an error that should have been ignored')
   end
 
   def test_should_not_notice_ignored_error_classes
-    get '/test/ignored_error'
+    get '/error/ignored_error'
     assert(@error_collector.errors.empty?,
            'Noticed an error that should have been ignored')
   end
@@ -192,11 +137,11 @@ class ErrorsWithoutSSCTest < TestControllerTest
   end
 
   def test_should_notice_server_ignored_error_if_no_server_side_config
-    get '/test/server_ignored_error'
+    get '/error/server_ignored_error'
     assert_error_reported_once('this is a server ignored error')
   end
 
-  protected
+ protected
 
   def assert_error_reported_once(message)
     assert_equal(message,
@@ -228,7 +173,7 @@ class ErrorsWithSSCTest < ErrorsWithoutSSCTest
   end
 
   def test_should_ignore_server_ignored_errors
-    get '/test/server_ignored_error'
+    get '/error/server_ignored_error'
     assert(@error_collector.errors.empty?,
            'Noticed an error that should have been ignored')
   end

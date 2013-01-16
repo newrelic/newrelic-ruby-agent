@@ -64,12 +64,9 @@ fi
 
 echo `which ruby`
 ruby -v
+gem --version
 
 rake -h > /dev/null || gem install rake
-
-echo "generating gemspec"
-rake gemspec
-
 
 # make sure that we're in the project root
 script_dirname=`dirname $0`
@@ -87,13 +84,17 @@ rpm_test_app_cache=~/workspace/.rpm_test_app_cache
   echo "updating local cache of rpm_test_app in $rpm_test_app_cache"
   git clone --mirror git://github.com/newrelic/rpm_test_app.git $rpm_test_app_cache || true
   cd $rpm_test_app_cache
+  git fetch || true
 )
 
 git clone $rpm_test_app_cache rpm_test_app
 cd rpm_test_app
 
+git fetch || true
 git checkout -t origin/$BRANCH || git checkout $BRANCH
-
+if [ -x $HOME/.rbenv/plugins/rbenv-gemsets ]; then
+  echo "$RUBY-$BRANCH" > .rbenv-gemsets
+fi
 
 # Re-write database.yml to this here doc
 ( cat << "YAML" ) > config/database.yml

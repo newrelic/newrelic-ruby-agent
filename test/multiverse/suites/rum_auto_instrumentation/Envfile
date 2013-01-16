@@ -1,4 +1,0 @@
-gemfile <<-RB
-  gem 'rack'
-  gem 'rack-test'
-RB

@@ -12,7 +12,7 @@ development:
   app_name: test
   host: 127.0.0.1
   api_host: 127.0.0.1
-  port: 30303
+  port: <%= 30_000 + ($$ % 10_000) %>
   transaction_tracer:
     record_sql: obfuscated
     enabled: true
@@ -20,5 +20,4 @@ development:
     transaction_threshold: 1.0
   capture_params: false
   log_level: debug
-  #log_file_path: STDOUT
   disable_serialization: false

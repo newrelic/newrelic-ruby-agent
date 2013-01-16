@@ -71,7 +71,7 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
   end
 
   def test_task_error__server
-    expects_no_logging(:error, any_parameters)
+    expects_no_logging(:error)
     expects_logging(:debug, any_parameters)
     @worker_loop.run(0) do
       @worker_loop.stop

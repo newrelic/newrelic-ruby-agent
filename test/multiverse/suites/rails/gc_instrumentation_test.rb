@@ -1,23 +1,6 @@
-require "action_controller/railtie"
-require "rails/test_unit/railtie"
-require 'rails/test_help'
-require 'test/unit'
+require './app'
 
-# BEGIN RAILS APP
-
-class MyApp < Rails::Application
-  config.active_support.deprecation = :log
-  config.secret_token = '!*#$#' * 31
-end
-MyApp.initialize!
-
-MyApp.routes.draw do
-  match '/:controller(/:action(/:id))'
-end
-
-class ApplicationController < ActionController::Base; end
-
-class TestController < ApplicationController
+class GcController < ApplicationController
   include Rails.application.routes.url_helpers
   def gc_action
     GC.disable
@@ -39,14 +22,12 @@ class TestController < ApplicationController
   end
 end
 
-# END RAILS APP
-
-class TestControllerTest < ActionController::TestCase
-  tests TestController
+class GCRailsInstrumentationTest < ActionController::TestCase
+  tests GcController
   def setup
     enable_gc_stats
 
-    @controller = TestController.new
+    @controller = GcController.new
     NewRelic::Agent.instance.stats_engine.reset_stats
     NewRelic::Agent.instance.transaction_sampler \
       .instance_variable_set(:@samples, [])
@@ -57,16 +38,6 @@ class TestControllerTest < ActionController::TestCase
     NewRelic::Agent.shutdown
   end
 
-  def enable_gc_stats
-    if RUBY_DESCRIPTION =~ /Enterprise/
-      GC.enable_stats
-    elsif RUBY_VERSION >= '1.9.2'
-      GC::Profiler.enable
-    end
-  end
-end
-
-class GCRailsInstrumentationTest < TestControllerTest
   def test_records_accurate_time_for_gc_activity
     get :gc_action
 
@@ -87,6 +58,14 @@ class GCRailsInstrumentationTest < TestControllerTest
     get :gc_action
 
     trace = NewRelic::Agent.instance.transaction_sampler.last_sample
-    assert_in_delta(assigns[:duration], trace.params[:custom_params][:gc_time], 0.1)
+    assert_in_delta(assigns[:duration], trace.params[:custom_params][:gc_time], 0.5)
+  end
+
+  def enable_gc_stats
+    if RUBY_DESCRIPTION =~ /Enterprise/
+      GC.enable_stats
+    elsif RUBY_VERSION >= '1.9.2'
+      GC::Profiler.enable
+    end
   end
 end

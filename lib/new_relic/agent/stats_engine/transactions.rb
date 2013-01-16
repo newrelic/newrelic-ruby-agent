@@ -100,6 +100,7 @@ module Agent
       def start_transaction(name = nil)
         Thread::current[:newrelic_scope_stack] ||= []
         self.scope_name = name if name
+        NewRelic::Agent.instance.events.notify(:start_transaction, name)
         GCProfiler.init
       end
 

@@ -56,6 +56,8 @@ module Multiverse
         if RUBY_VERSION > '1.8.7'
           f.puts "  gem 'test-unit', :require => 'test/unit'"
           f.puts "  gem 'debugger'" if include_debugger
+        else
+          f.puts "  gem 'ruby-debug'" if include_debugger
         end
       end
       puts yellow("Gemfile set to:") if verbose?

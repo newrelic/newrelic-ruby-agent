@@ -20,10 +20,14 @@ module NewRelic
         end
 
         def apply_config(source, level=0)
+          was_finished = finished_configuring?
+
           invoke_callbacks(:add, source)
           @config_stack.insert(level, source.freeze)
           reset_cache
           log_config(:add, source)
+
+          notify_finished_configuring if !was_finished && finished_configuring?
         end
 
         def remove_config(source=nil)
@@ -84,6 +88,14 @@ module NewRelic
               end
             end
           end
+        end
+
+        def notify_finished_configuring
+          NewRelic::Agent.instance.events.notify(:finished_configuring)
+        end
+
+        def finished_configuring?
+          @config_stack.any? {|s| s.is_a?(ServerSource)}
         end
 
         def flattened

@@ -36,27 +36,31 @@ class LoggingTest < Test::Unit::TestCase
   end
 
   def test_logs_raw_sql_warning
-    NewRelic::Agent.config.apply_config(:'transaction_tracer.record_sql' => 'obfuscated')
-
     running_agent_writes_to_log(
-      {:'transaction_tracer.record_sql' => 'raw'},
-      "Agent is configured to send raw SQL to the service")
+      {:'transaction_tracer.record_sql' => 'obfuscated'},
+      "Agent is configured to send raw SQL to the service") do
+
+      NewRelic::Agent.config.apply_config(:'transaction_tracer.record_sql' => 'raw')
+    end
+
   end
 
   def test_logs_if_sending_errors_on_change
-    NewRelic::Agent.config.apply_config(:'error_collector.enabled' => false)
-
     running_agent_writes_to_log(
-      {:'error_collector.enabled' => true},
-      "Errors will be sent")
+      {:'error_collector.enabled' => false},
+      "Errors will be sent") do
+
+      NewRelic::Agent.config.apply_config(:'error_collector.enabled' => true)
+    end
   end
 
   def test_logs_if_not_sending_errors_on_change
-    NewRelic::Agent.config.apply_config(:'error_collector.enabled' => true)
-
     running_agent_writes_to_log(
-      {:'error_collector.enabled' => false},
-      "Errors will not be sent")
+      {:'error_collector.enabled' => true},
+      "Errors will not be sent") do
+
+      NewRelic::Agent.config.apply_config(:'error_collector.enabled' => false)
+    end
   end
 
   def test_logs_transaction_tracing_disabled
@@ -103,8 +107,7 @@ class LoggingTest < Test::Unit::TestCase
     $collector.run
 
     NewRelic::Agent.reset_config 
-    NewRelic::Agent.agent = NewRelic::Agent::Agent.new
-    NewRelic::Control.instance(true)
+    NewRelic::Agent::Agent.instance_variable_set(:@instance, nil)
 
     @logger = NewRelic::Agent::MemoryLogger.new
     NewRelic::Agent.logger = @logger
@@ -113,23 +116,21 @@ class LoggingTest < Test::Unit::TestCase
 
   def teardown
     $collector.reset
+
+    # Really clear out our agent instance since we set bad license keys
+    NewRelic::Agent::Agent.instance_variable_set(:@instance, nil)
   end
 
   # Helpers
   def running_agent_writes_to_log(options, msg)
-    run_agent_with(options) do
-      saw?(msg)
-    end
+    NewRelic::Agent.manual_start(options)
+    yield if block_given?
+    NewRelic::Agent.shutdown
+    saw?(msg)
   end
 
   def with_connect_response(status=200, response={})
     $collector.mock['connect'] = [status, response]
-  end
-
-  def run_agent_with(options = {})
-    NewRelic::Agent.manual_start(options)
-    NewRelic::Agent.shutdown
-    yield
   end
 
   def saw?(*expected_messages)

@@ -182,6 +182,34 @@ module NewRelic::Agent::Configuration
       assert_equal 'right', state
     end
 
+    def test_finished_configuring
+      @manager.apply_config(:layer => "yo")
+      assert_equal false, @manager.finished_configuring?
+
+      @manager.apply_config(ServerSource.new({}))
+      assert_equal true, @manager.finished_configuring?
+    end
+
+    def test_notifies_finished_configuring
+      called = false
+      NewRelic::Agent.instance.events.subscribe(:finished_configuring) { called = true }
+      @manager.apply_config(ServerSource.new({}))
+
+      assert_equal true, called
+    end
+
+    def test_doesnt_notify_unless_finished
+      called = false
+      NewRelic::Agent.instance.events.subscribe(:finished_configuring) { called = true }
+
+      @manager.apply_config(:fake => "config")
+      @manager.apply_config(ManualSource.new(:manual => true))
+      @manager.apply_config(YamlSource.new("", "test"))
+
+      assert_equal false, called
+    end
+
+
     def test_should_log_when_applying
       expects_logging(:debug, anything, includes("asdf"))
       @manager.apply_config(:test => "asdf")
