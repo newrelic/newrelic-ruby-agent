@@ -58,7 +58,7 @@ class GCRailsInstrumentationTest < ActionController::TestCase
     get :gc_action
 
     trace = NewRelic::Agent.instance.transaction_sampler.last_sample
-    assert_in_delta(assigns[:duration], trace.params[:custom_params][:gc_time], 0.1)
+    assert_in_delta(assigns[:duration], trace.params[:custom_params][:gc_time], 0.5)
   end
 
   def enable_gc_stats
