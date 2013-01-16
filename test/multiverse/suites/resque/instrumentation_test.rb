@@ -6,12 +6,14 @@ require 'logger'
 require 'newrelic_rpm'
 require 'fake_collector'
 
+REDIS_PORT = ENV["NEWRELIC_MULTIVERSE_REDIS_PORT"]
+
 class JobForTesting
   @queue = :resque_test
 
   def self.perform(key, val, sleep_duration=0)
     sleep sleep_duration
-    Redis.new.set(key, val)
+    Redis.new(:port => REDIS_PORT).set(key, val)
   end
 end
 
@@ -19,7 +21,8 @@ class ResqueTest < Test::Unit::TestCase
   JOB_COUNT = 5
 
   def setup
-    @redis = Redis.new
+    @redis = Redis.new(:port => REDIS_PORT)
+    Resque.redis = @redis
 
     $collector ||= NewRelic::FakeCollector.new
     $collector.reset

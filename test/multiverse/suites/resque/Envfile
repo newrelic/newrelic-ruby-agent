@@ -11,11 +11,12 @@ gemfile <<-RB
 RB
 
 before_suite do
-  system('echo "daemonize yes" | redis-server -')
+  ENV["NEWRELIC_MULTIVERSE_REDIS_PORT"] = (20_000 + ($$ % 10_000)).to_s
+  system("echo 'daemonize yes\\nport #{ENV["NEWRELIC_MULTIVERSE_REDIS_PORT"]}' | redis-server -")
 end
 
 after_suite do
-  system('redis-cli shutdown')
+  system("redis-cli -p #{ENV["NEWRELIC_MULTIVERSE_REDIS_PORT"]} shutdown")
 end
 
 execute_mode 'spawn'
