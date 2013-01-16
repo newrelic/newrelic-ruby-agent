@@ -8,7 +8,7 @@ module NewRelic
 
     MAJOR = 3
     MINOR = 5
-    TINY  = 5
+    TINY  = 6
 
     begin
       require 'new_relic/build'
