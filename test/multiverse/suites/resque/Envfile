@@ -12,7 +12,7 @@ RB
 
 before_suite do
   ENV["NEWRELIC_MULTIVERSE_REDIS_PORT"] = (20_000 + ($$ % 10_000)).to_s
-  system("echo 'daemonize yes\\nport #{ENV["NEWRELIC_MULTIVERSE_REDIS_PORT"]}' | redis-server -")
+  system("echo 'port #{ENV["NEWRELIC_MULTIVERSE_REDIS_PORT"]}' | redis-server - > /dev/null &")
 end
 
 after_suite do
