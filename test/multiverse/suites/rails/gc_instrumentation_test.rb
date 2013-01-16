@@ -1,5 +1,9 @@
 require './app'
 
+# GC instrumentation only works with REE or 1.9.x
+if (defined?(RUBY_DESCRIPTION) && RUBY_DESCRIPTION =~ /Enterprise/) ||
+    RUBY_VERSION >= '1.9.2'
+
 class GcController < ApplicationController
   include Rails.application.routes.url_helpers
   def gc_action
@@ -68,4 +72,6 @@ class GCRailsInstrumentationTest < ActionController::TestCase
       GC::Profiler.enable
     end
   end
+end
+
 end
