@@ -11,7 +11,7 @@ module NewRelic
     TINY  = 6
 
     begin
-      require 'new_relic/build'
+      require File.join(File.dirname(__FILE__), 'build')
     rescue LoadError => e
       BUILD = nil
     end
