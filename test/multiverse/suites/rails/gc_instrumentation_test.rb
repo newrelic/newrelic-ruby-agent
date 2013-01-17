@@ -48,13 +48,13 @@ class GCRailsInstrumentationTest < ActionController::TestCase
     assert_in_delta(assigns[:duration],
                     NewRelic::Agent.agent.stats_engine \
                       .get_stats('GC/cumulative') \
-                      .total_call_time, 0.1,
+                      .total_call_time, 0.2,
                     'problem with unscoped GC metric')
     assert_in_delta(assigns[:duration],
                     NewRelic::Agent.agent.stats_engine \
                       .get_stats('GC/cumulative', true, false,
                                  'Controller/test/gc_action') \
-                      .total_call_time, 0.1,
+                      .total_call_time, 0.2,
                     'problem with scoped GC metric')
   end
 
@@ -62,7 +62,7 @@ class GCRailsInstrumentationTest < ActionController::TestCase
     get :gc_action
 
     trace = NewRelic::Agent.instance.transaction_sampler.last_sample
-    assert_in_delta(assigns[:duration], trace.params[:custom_params][:gc_time], 0.5)
+    assert_in_delta(assigns[:duration], trace.params[:custom_params][:gc_time], 0.2)
   end
 
   def enable_gc_stats
