@@ -29,6 +29,7 @@ end
 class GCRailsInstrumentationTest < ActionController::TestCase
   tests GcController
   def setup
+    print "GC-"
     enable_gc_stats
 
     @controller = GcController.new
@@ -53,9 +54,13 @@ class GCRailsInstrumentationTest < ActionController::TestCase
     assert_in_delta(assigns[:duration],
                     NewRelic::Agent.agent.stats_engine \
                       .get_stats('GC/cumulative', true, false,
-                                 'Controller/test/gc_action') \
+                                 'Controller/gc/gc_action') \
                       .total_call_time, 0.2,
                     'problem with scoped GC metric')
+                    puts NewRelic::Agent.agent.stats_engine \
+                      .get_stats('GC/cumulative', true, false,
+                                 'Controller/gc/gc_action') \
+                      .total_call_time
   end
 
   def test_records_transaction_param_for_gc_activity
