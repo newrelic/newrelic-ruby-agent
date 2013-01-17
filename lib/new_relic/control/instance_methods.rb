@@ -93,7 +93,7 @@ module NewRelic
       end
 
       def settings
-        NewRelic::Agent.config.reported_config
+        NewRelic::Agent.config.to_collector_hash
       end
 
       def dispatcher

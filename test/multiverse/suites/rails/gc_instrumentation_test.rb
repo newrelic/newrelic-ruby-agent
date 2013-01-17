@@ -1,5 +1,9 @@
 require './app'
 
+# GC instrumentation only works with REE or 1.9.x
+if (defined?(RUBY_DESCRIPTION) && RUBY_DESCRIPTION =~ /Enterprise/) ||
+    RUBY_VERSION >= '1.9.2'
+
 class GcController < ApplicationController
   include Rails.application.routes.url_helpers
   def gc_action
@@ -25,6 +29,7 @@ end
 class GCRailsInstrumentationTest < ActionController::TestCase
   tests GcController
   def setup
+    print "GC-"
     enable_gc_stats
 
     @controller = GcController.new
@@ -44,21 +49,25 @@ class GCRailsInstrumentationTest < ActionController::TestCase
     assert_in_delta(assigns[:duration],
                     NewRelic::Agent.agent.stats_engine \
                       .get_stats('GC/cumulative') \
-                      .total_call_time, 0.1,
+                      .total_call_time, 0.2,
                     'problem with unscoped GC metric')
     assert_in_delta(assigns[:duration],
                     NewRelic::Agent.agent.stats_engine \
                       .get_stats('GC/cumulative', true, false,
-                                 'Controller/test/gc_action') \
-                      .total_call_time, 0.1,
+                                 'Controller/gc/gc_action') \
+                      .total_call_time, 0.2,
                     'problem with scoped GC metric')
+                    puts NewRelic::Agent.agent.stats_engine \
+                      .get_stats('GC/cumulative', true, false,
+                                 'Controller/gc/gc_action') \
+                      .total_call_time
   end
 
   def test_records_transaction_param_for_gc_activity
     get :gc_action
 
     trace = NewRelic::Agent.instance.transaction_sampler.last_sample
-    assert_in_delta(assigns[:duration], trace.params[:custom_params][:gc_time], 0.5)
+    assert_in_delta(assigns[:duration], trace.params[:custom_params][:gc_time], 0.2)
   end
 
   def enable_gc_stats
@@ -68,4 +77,6 @@ class GCRailsInstrumentationTest < ActionController::TestCase
       GC::Profiler.enable
     end
   end
+end
+
 end

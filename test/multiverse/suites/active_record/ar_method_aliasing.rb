@@ -13,7 +13,7 @@ class InstrumentActiveRecordMethods < Test::Unit::TestCase
   if RUBY_VERSION >= '1.8.7'
     if RUBY_PLATFORM == 'java'
       require 'jdbc/sqlite3'
-      @@adapter = 'jdbcsqlite3'
+      @@adapter = 'sqlite3'
     else
       require 'sqlite3'
       @@adapter = 'sqlite3'

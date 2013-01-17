@@ -67,6 +67,10 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     control.local_env
   end
 
+  def test_settings_accessor
+    assert_not_nil control.settings
+  end
+
   def test_root
     assert File.directory?(NewRelic::Control.newrelic_root), NewRelic::Control.newrelic_root
     if defined?(Rails)
