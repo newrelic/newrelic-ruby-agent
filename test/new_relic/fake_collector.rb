@@ -82,15 +82,29 @@ module NewRelic
       FakeCollector.determine_port
     end
 
+    @seen_port_failure = false
+
     def run(port=nil)
       port ||= determine_port
       return if @thread && @thread.alive?
       serve_on_port(port) do
         @thread = Thread.new do
+          begin
           ::Rack::Handler::WEBrick.run(self,
                                        :Port => port,
                                        :Logger => WEBrick::Log.new("/dev/null"),
                                        :AccessLog => [nil, nil])
+          rescue Errno::EADDRINUSE => ex
+            msg = "Port #{port} for FakeCollector was in use"
+            if !@seen_port_failure
+              # This is slow, so only do it the first collision we detect
+              lsof = `lsof | grep #{port}`
+              msg = msg + "\n#{lsof}"
+              @seen_port_failure = true
+            end
+
+            raise Errno::EADDRINUSE.new(msg)
+          end
         end
         @thread.abort_on_exception = true
       end
