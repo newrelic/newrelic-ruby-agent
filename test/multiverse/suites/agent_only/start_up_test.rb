@@ -7,8 +7,15 @@ class StartUpTest < Test::Unit::TestCase
     cmd = "bundle exec ruby -e '#{ruby}'"
 
     sin, sout, serr = Open3.popen3(cmd)
+    output = sout.read + serr.read
 
-    jruby_noise = "JRuby limited openssl loaded. http://jruby.org/openssl\ngem install jruby-openssl for full support.\n"
-    assert_equal '', (sout.read + serr.read).sub(jruby_noise, '')
+    jruby_noise = [
+      "JRuby limited openssl loaded. http://jruby.org/openssl\n",
+      "gem install jruby-openssl for full support.\n",
+      /Exception\: java\.lang.*\n/]
+
+    jruby_noise.each {|noise| output.gsub!(noise, "")}
+
+    assert_equal '', output
   end
 end
