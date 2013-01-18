@@ -18,6 +18,11 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
 
   def test_with_duration
     worker_loop = NewRelic::Agent::WorkerLoop.new(:duration => 0.1)
+
+    # Advance in small increments vs our period so time will pass over the
+    # nasty multiple calls to Time.now that WorkerLoop makes
+    Time.stubs(:now).returns(*ticks(0, 0.12, 0.005))
+
     count = 0
     worker_loop.run(0.04) do
       count += 1
@@ -27,6 +32,7 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
   end
 
   def test_duration_clock_starts_with_run
+    # Purposefully testing time, but shouldn't be particularly fragile
     worker_loop = NewRelic::Agent::WorkerLoop.new(:duration => 0.01)
     sleep 0.02
 
@@ -43,21 +49,6 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
     iterations = 0
     worker_loop.run(0) { iterations += 1 }
     assert_equal 2, iterations
-  end
-
-  def test_density
-    # This shows how the tasks stay aligned with the period and don't drift.
-    count = 0
-    start = Time.now
-    @worker_loop.run(0.03) do
-      count +=1
-      if count == 3
-        @worker_loop.stop
-        next
-      end
-    end
-    elapsed = Time.now - start
-    assert_in_delta 0.09, elapsed, 0.03
   end
 
   def test_task_error__standard
@@ -89,5 +80,9 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
       @worker_loop.stop
       raise NewRelic::Agent::ServerError, "Runtime Error Test"
     end
+  end
+
+  def ticks(start, finish, step)
+    (start..finish).step(step).to_a
   end
 end
