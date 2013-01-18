@@ -1,8 +1,11 @@
 require 'socket'
 
 class ServiceTimeoutTest < Test::Unit::TestCase
+
+  PORT = 10_000 + ($$ % 10_000)
+
   def setup
-    hk = TCPServer.new('127.0.0.1',8081)
+    hk = TCPServer.new('127.0.0.1',PORT)
 
     Thread.new {
       client = hk.accept
@@ -14,8 +17,8 @@ class ServiceTimeoutTest < Test::Unit::TestCase
   end
 
   def test_service_timeout
-    server = NewRelic::Control::Server.new('localhost', 8081,'127.0.0.1')  
-    NewRelic::Agent.config.apply_config(:timeout => 2)
+    server = NewRelic::Control::Server.new('localhost',PORT,'127.0.0.1')
+    NewRelic::Agent.config.apply_config(:timeout => 0.1)
 
     service = NewRelic::Agent::NewRelicService.new('deadbeef', server)	
 
