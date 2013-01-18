@@ -26,6 +26,18 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
     assert_equal 2, count
   end
 
+  def test_duration_clock_starts_with_run
+    worker_loop = NewRelic::Agent::WorkerLoop.new(:duration => 0.01)
+    sleep 0.02
+
+    called = false
+    worker_loop.run(0.001) do
+      called = true
+    end
+
+    assert(called, "Didn't run the loop even once")
+  end
+
   def test_loop_limit
     worker_loop = NewRelic::Agent::WorkerLoop.new(:limit => 2)
     iterations = 0

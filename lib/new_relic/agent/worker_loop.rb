@@ -12,7 +12,7 @@ module NewRelic
         @should_run = true
         @next_invocation_time = Time.now
         @period = 60.0
-        @deadline = Time.now + opts[:duration] if opts[:duration]
+        @duration = opts[:duration] if opts[:duration]
         @limit = opts[:limit] if opts[:limit]
         @iterations = 0
       end
@@ -26,6 +26,7 @@ module NewRelic
       # call periods.  The caller is responsible for creating the thread
       # that runs this worker loop.  This will run the task immediately.
       def run(period=nil, &block)
+        @deadline = Time.now + @duration if @duration
         @period = period if period
         @next_invocation_time = (Time.now + @period)
         @task = block
