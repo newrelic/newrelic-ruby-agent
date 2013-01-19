@@ -36,11 +36,15 @@ class ResqueTest < Test::Unit::TestCase
     Thread.new do
       worker.work
     end.abort_on_exception = true
-    sleep 1 # give the worker some time to process
+
+    # Give a little time to complete, get out early if we're done....
+    Timeout::timeout(2) do
+      until Resque.info[:pending] == 0; end
+    end
+
     worker.shutdown
 
     NewRelic::Agent.shutdown
-    sleep 0.5 # give the agent some time to report after shutdown
   end
 
   def teardown
@@ -62,15 +66,18 @@ class ResqueTest < Test::Unit::TestCase
                  "wrong number of metric_data posts in #{$collector.agent_data.inspect}")
   end
 
+
+  METRIC_VALUES_POSITION = 3
+
   def test_agent_posts_correct_call_count
     test_metric = 'OtherTransaction/ResqueJob/all'
-    metric_data = $collector.agent_data.find{|x| x.action == 'metric_data'}
+    metric_data = $collector.calls_for('metric_data').first
 
-    metric_names = metric_data.body[3].map{|m| m[0]['name']}
+    metric_names = metric_data[METRIC_VALUES_POSITION].map{|m| m[0]['name']}
     assert(metric_names.include?(test_metric),
            "#{metric_names.inspect} should include '#{test_metric}'")
 
-    call_count = metric_data.body[3].find{|m| m[0]['name'] == test_metric}[1][0]
+    call_count = metric_data[METRIC_VALUES_POSITION].find{|m| m[0]['name'] == test_metric}[1][0]
     assert_equal JOB_COUNT, call_count
   end
 end
