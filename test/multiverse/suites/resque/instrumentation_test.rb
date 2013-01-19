@@ -37,14 +37,23 @@ class ResqueTest < Test::Unit::TestCase
       worker.work
     end.abort_on_exception = true
 
-    # Give a little time to complete, get out early if we're done....
-    Timeout::timeout(2) do
-      until Resque.info[:pending] == 0; end
-    end
-
+    wait_for_jobs
     worker.shutdown
 
     NewRelic::Agent.shutdown
+  end
+
+  def wait_for_jobs
+    # JRuby barfs in the timeout on trying to read from Redis.
+    time_for_jobs = 2
+    if defined?(JRuby)
+      sleep time_for_jobs
+    else
+      # Give a little time to complete, get out early if we're done....
+      Timeout::timeout(time_for_jobs) do
+        until Resque.info[:pending] == 0; end
+      end
+    end
   end
 
   def teardown
