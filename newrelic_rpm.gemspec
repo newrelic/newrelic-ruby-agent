@@ -27,7 +27,12 @@ EOS
     "GUIDELINES_FOR_CONTRIBUTING.md",
     "newrelic.yml"
   ]
-  s.files = `git ls-files`.split + ['lib/new_relic/build.rb']
+
+  file_list = `git ls-files`.split
+  build_file_path = 'lib/new_relic/build.rb'
+  file_list << build_file_path if File.exist?(build_file_path)
+  s.files = file_list
+
   s.homepage = "http://www.github.com/newrelic/rpm"
   s.rdoc_options = ["--line-numbers", "--inline-source", "--title", "New Relic Ruby Agent"]
   s.require_paths = ["lib"]
