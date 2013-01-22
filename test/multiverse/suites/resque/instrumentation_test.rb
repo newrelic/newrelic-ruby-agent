@@ -5,69 +5,57 @@ require 'test/unit'
 require 'logger'
 require 'newrelic_rpm'
 require 'fake_collector'
-
-REDIS_PORT = ENV["NEWRELIC_MULTIVERSE_REDIS_PORT"]
-
-class JobForTesting
-  @queue = :resque_test
-
-  def self.perform(key, val, sleep_duration=0)
-    sleep sleep_duration
-    Redis.new(:port => REDIS_PORT).set(key, val)
-  end
-end
+require File.join(File.dirname(__FILE__), 'resque_setup')
 
 class ResqueTest < Test::Unit::TestCase
   JOB_COUNT = 5
+  COLLECTOR_PORT = ENV['NEWRELIC_MULTIVERSE_FAKE_COLLECTOR_PORT']
 
   def setup
-    @redis = Redis.new(:port => REDIS_PORT)
-    Resque.redis = @redis
-
     $collector ||= NewRelic::FakeCollector.new
     $collector.reset
-    $collector.run
-
-    NewRelic::Agent.manual_start
-    DependencyDetection.detect!
+    $collector.run(COLLECTOR_PORT)
 
     JOB_COUNT.times {|i| Resque.enqueue(JobForTesting, 'index_key', i + 1) }
-    worker = Resque::Worker.new(:resque_test)
-    Thread.new do
-      worker.work
-    end.abort_on_exception = true
 
+    start_worker
     wait_for_jobs
-    worker.shutdown
+    stop_worker
+  end
 
-    NewRelic::Agent.shutdown
+  def start_worker
+    worker_cmd = "NEWRELIC_DISPATCHER=resque QUEUE=* bundle exec rake resque:work"
+    @worker_pid = Process.fork
+    Process.exec(worker_cmd) if @worker_pid.nil?
+  end
+
+  def stop_worker
+    Process.kill("QUIT", @worker_pid)
+    Process.waitpid(@worker_pid)
   end
 
   def wait_for_jobs
     # JRuby barfs in the timeout on trying to read from Redis.
-    time_for_jobs = 2
-    if defined?(JRuby)
-      sleep time_for_jobs
-    else
-      # Give a little time to complete, get out early if we're done....
-      Timeout::timeout(time_for_jobs) do
-        until Resque.info[:pending] == 0; end
+    time_for_jobs = 5
+
+    t0 = Time.now.to_f
+    while Resque.info[:pending] != 0
+      sleep(0.1)
+      if (Time.now.to_f - t0) > time_for_jobs
+        stop_worker
+        raise "Timed out waiting #{time_for_jobs}s for completion of #{JOB_COUNT} jobs"
       end
     end
   end
 
   def teardown
-    @redis.set('index_key', 0)
-    Resque.redis.del('queue:resque_test')
+    $redis.set('index_key', 0)
+    $redis.del('queue:resque_test')
     $collector.reset
   end
 
-  def test_resque_instrumentation_is_installed
-    assert DependencyDetection.installed?(:resque)
-  end
-
   def test_all_jobs_ran
-    assert_equal JOB_COUNT, @redis.get('index_key').to_i
+    assert_equal JOB_COUNT, $redis.get('index_key').to_i
   end
 
   def test_agent_makes_only_one_metric_post

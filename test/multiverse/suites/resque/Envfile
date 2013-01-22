@@ -5,6 +5,7 @@ end
 gemfile <<-RB
   gem 'resque'
   gem 'json'
+  gem 'rake'
   if (RUBY_PLATFORM == 'java')
     gem "jruby-openssl"
   end
@@ -12,6 +13,7 @@ RB
 
 before_suite do
   ENV["NEWRELIC_MULTIVERSE_REDIS_PORT"] = (20_000 + ($$ % 10_000)).to_s
+  ENV["NEWRELIC_MULTIVERSE_FAKE_COLLECTOR_PORT"] = (30_000 + ($$ % 10_000)).to_s
   system("echo 'port #{ENV["NEWRELIC_MULTIVERSE_REDIS_PORT"]}' | redis-server - > /dev/null &")
 end
 
