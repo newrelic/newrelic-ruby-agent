@@ -3,12 +3,13 @@
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'new_relic/version'
+require 'new_relic/latest_changes'
 
 Gem::Specification.new do |s|
   s.name = "newrelic_rpm"
   s.version = NewRelic::VERSION::STRING
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
-  s.authors = [ "Jason Clark", "Sam Goldstein", "Jon Guymon", "Ben Weintraub" ]
+  s.authors = [ "Jason Clark", "Sam Goldstein", "Michael Granger", "Jon Guymon", "Ben Weintraub" ]
   s.date = Time.now.strftime('%Y-%m-%d')
   s.description = <<-EOS
 New Relic is a performance management system, developed by New Relic,
@@ -38,22 +39,5 @@ EOS
   s.require_paths = ["lib"]
   s.rubygems_version = Gem::VERSION
   s.summary = "New Relic Ruby Agent"
-
-  version_count = 0
-  changes = []
-  File.read(File.join(File.dirname(__FILE__), 'CHANGELOG')).each_line do |line|
-    if line.match(/##\s+v[\d.]+\s+##/)
-      version_count += 1
-    end
-    break if version_count >= 2
-    changes << line.chomp
-  end
-
-  post_install_message = changes.join("\n")
-  post_install_message += <<'EOS'
-
-See https://github.com/newrelic/rpm/blob/master/CHANGELOG for a full list of
-changes.
-EOS
-  s.post_install_message = post_install_message
+  s.post_install_message = NewRelic::LatestChanges.read
 end
