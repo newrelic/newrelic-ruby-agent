@@ -47,7 +47,12 @@ desc 'Record build number and stage'
 task :record_build, [ :build_number, :stage ] do |t, args|
   build_string = args.build_number
   build_string << ".#{args.stage}" if args.stage
+
+  gitsha = File.exists?(".git") ? `git rev-parse HEAD` : "Unknown"
+  gitsha.chomp!
+
   File.open("lib/new_relic/build.rb", "w") do |f|
+    f.write("# GITSHA: #{gitsha}\n")
     f.write("module NewRelic; module VERSION; BUILD='#{build_string}'; end; end\n")
   end
 end
