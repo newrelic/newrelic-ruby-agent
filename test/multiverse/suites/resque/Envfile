@@ -1,9 +1,5 @@
-suite_condition("Resque not compatible with 1.8.6") do
-  RUBY_VERSION != '1.8.6'
-end
-
-suite_condition("Skipping Resque tests on JRuby for want of fork") do
-  RUBY_PLATFORM != 'java'
+suite_condition("Resque tests not compatible with 1.8.6, JRuby") do
+  RUBY_VERSION != '1.8.6' && RUBY_PLATFORM != 'java'
 end
 
 gemfile <<-RB
