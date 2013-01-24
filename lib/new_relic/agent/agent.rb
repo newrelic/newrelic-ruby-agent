@@ -458,6 +458,14 @@ module NewRelic
                    :info, "Connecting workers after forking.")
           end
 
+          # Return true if we're using resque and it hasn't had a chance to (potentially)
+          # daemonize itself. This avoids hanging when there's a Thread started
+          # before Resque calls Process.daemon (Jira RUBY-857)
+          def defer_for_resque?
+            NewRelic::Agent.config[:dispatcher] == :resque &&
+              !NewRelic::Agent::PipeChannelManager.listener.started?
+          end
+
           # Sanity-check the agent configuration and start the agent,
           # setting up the worker thread and the exit handler to shut
           # down the agent
@@ -475,6 +483,12 @@ module NewRelic
         # Logs a bunch of data and starts the agent, if needed
         def start
           return if already_started? || disabled?
+
+          if defer_for_resque?
+            ::NewRelic::Agent.logger.debug "Deferring startup for Resque in case it daemonizes"
+            return
+          end
+
           @started = true
           @local_host = determine_host
           log_startup

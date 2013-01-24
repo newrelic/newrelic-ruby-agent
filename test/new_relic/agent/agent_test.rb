@@ -4,11 +4,39 @@ require 'new_relic/agent/thread_profiler'
 module NewRelic
   module Agent
     class AgentTest < Test::Unit::TestCase
+
       def setup
         super
         @agent = NewRelic::Agent::Agent.new
         @agent.service = NewRelic::FakeService.new
       end
+
+      #
+      # Helpers
+      #
+
+      def with_config( options )
+        config_source = NewRelic::Agent::Configuration::ManualSource.new( options )
+        NewRelic::Agent.config.apply_config( config_source )
+
+        yield
+
+      ensure
+        NewRelic::Agent.config.remove_config( config_source ) if config_source
+      end
+
+      def with_profile(opts)
+        profile = NewRelic::Agent::ThreadProfile.new(-1, 0, 0, true)
+        profile.aggregate(["chunky.rb:42:in `bacon'"], profile.traces[:other])
+        profile.instance_variable_set(:@finished, opts[:finished])
+
+        @agent.thread_profiler.instance_variable_set(:@profile, profile)
+        profile
+      end
+
+      #
+      # Tests
+      #
 
       def test_after_fork_reporting_to_channel
         @agent.stubs(:connected?).returns(true)
@@ -98,15 +126,6 @@ module NewRelic
         assert_equal([profile],
                      @agent.service.agent_data \
                        .find{|data| data.action == :profile_data}.params)
-      end
-
-      def with_profile(opts)
-        profile = NewRelic::Agent::ThreadProfile.new(-1, 0, 0, true)
-        profile.aggregate(["chunky.rb:42:in `bacon'"], profile.traces[:other])
-        profile.instance_variable_set(:@finished, opts[:finished])
-
-        @agent.thread_profiler.instance_variable_set(:@profile, profile)
-        profile
       end
 
       def test_harvest_timeslice_data
@@ -278,6 +297,29 @@ module NewRelic
         @agent.service.expects(:connect)
         @agent.send(:connect, :force_reconnect => true)
       end
+
+      def test_defer_start_if_resque_dispatcher_and_channel_manager_isnt_started
+        NewRelic::Agent::PipeChannelManager.listener.expects(:started?).returns(false)
+
+        # :send_data_on_exit setting to avoid setting an at_exit
+        with_config( :send_data_on_exit => false, :dispatcher => :resque ) do
+          @agent.start
+        end
+
+        assert !@agent.started?
+      end
+
+      def test_doesnt_defer_start_if_resque_dispatcher_and_channel_manager_started
+        NewRelic::Agent::PipeChannelManager.listener.expects(:started?).returns(true)
+
+        # :send_data_on_exit setting to avoid setting an at_exit
+        with_config( :send_data_on_exit => false, :dispatcher => :resque ) do
+          @agent.start
+        end
+
+        assert @agent.started?
+      end
+
     end
   end
 end

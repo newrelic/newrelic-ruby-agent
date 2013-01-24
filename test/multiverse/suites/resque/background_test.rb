@@ -1,4 +1,4 @@
-# https://newrelic.atlassian.net/browse/RUBY-669
+# https://newrelic.atlassian.net/browse/RUBY-857
 
 require 'resque'
 require 'test/unit'
@@ -7,8 +7,9 @@ require 'newrelic_rpm'
 require 'fake_collector'
 require File.join(File.dirname(__FILE__), 'resque_setup')
 
-class ResqueTest < Test::Unit::TestCase
-  JOB_COUNT = 5
+class BackgroundResqueTest < Test::Unit::TestCase
+  JOB_COUNT      = 5
+  PIDFILE        = "backgroundtest.pid"
   COLLECTOR_PORT = ENV['NEWRELIC_MULTIVERSE_FAKE_COLLECTOR_PORT']
 
   def setup
@@ -19,26 +20,54 @@ class ResqueTest < Test::Unit::TestCase
     JOB_COUNT.times {|i| Resque.enqueue(JobForTesting, 'index_key', i + 1) }
 
     begin
-    start_worker
-    wait_for_jobs
+      start_worker
+      wait_for_jobs
     ensure
-    stop_worker
-  end
+      stop_worker
+    end
   end
 
   def start_worker
-    worker_cmd = "NEWRELIC_DISPATCHER=resque QUEUE=* bundle exec rake resque:work"
-    @worker_pid = Process.fork
-    Process.exec(worker_cmd) if @worker_pid.nil?
+    worker_cmd = "PIDFILE=#{PIDFILE} TERM_CHILD=1 RESQUE_TERM_TIMEOUT=1 BACKGROUND=1 " +
+      "NEWRELIC_DISPATCHER=resque QUEUE=* bundle exec rake resque:work"
+    system(worker_cmd)
   end
 
+  def process_alive?(pid)
+    Process.kill(0, pid)
+    return true
+  rescue Errno::ESRCH
+    return false
+  end
+
+
   def stop_worker
-    Process.kill("QUIT", @worker_pid)
-    Process.waitpid(@worker_pid)
+    daemon_pid = File.read( PIDFILE ) or raise "No pidfile (#{PIDFILE}) found!"
+    daemon_pid = daemon_pid.to_i
+
+    tries = 0
+    while process_alive?(daemon_pid) && tries < 3
+      Process.kill('TERM', daemon_pid)
+      sleep 4 # default resque TERM timeout
+      tries += 1
+    end
+
+    if process_alive?(daemon_pid)
+      $stderr.puts "Oops. Daemon (pid #daemon_pid) is still running. Trying to halt it with SIGQUIT"
+      Process.kill('QUIT', daemon_pid)
+      sleep 1
+
+      # If it's still alive, someone will likely have to go kill the process manually. 
+      # Alternatively, we could kill -9 it, but I decided to err on the side of caution
+      if process_alive?(daemon_pid)
+        raise "Resque is zombified. You might have to clean up process #{daemon_pid} manually."
+      end
+    end
+
   end
 
   def wait_for_jobs
-    time_for_jobs = 5
+    time_for_jobs = 5.0
 
     begin
       Timeout.timeout(time_for_jobs) { sleep(0.1) until Resque.info[:pending].zero? }
@@ -51,6 +80,7 @@ class ResqueTest < Test::Unit::TestCase
     $redis.set('index_key', 0)
     $redis.del('queue:resque_test')
     $collector.reset
+    File.unlink(PIDFILE) if File.file?(PIDFILE)
   end
 
   def test_all_jobs_ran
