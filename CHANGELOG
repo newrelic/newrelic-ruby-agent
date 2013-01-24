@@ -1,6 +1,14 @@
 
 # New Relic Ruby Agent Release Notes #
 
+## v3.5.6 ##
+
+  * Fix two Resque-related issues
+
+    Fixes a possible hang on exit of an instrumented Resque master process
+    (https://github.com/defunkt/resque/issues/578), as well as a file descriptor
+    leak that could occur during startup of the Resque master process.
+
 ## v3.5.5 ##
 
   * Add thread profiling support
