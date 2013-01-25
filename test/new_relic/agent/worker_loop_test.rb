@@ -32,16 +32,12 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
   end
 
   def test_duration_clock_starts_with_run
-    # Purposefully testing time, but shouldn't be particularly fragile
+    # This test is a little on the nose, but any timing based test WILL fail in CI
     worker_loop = NewRelic::Agent::WorkerLoop.new(:duration => 0.01)
-    sleep 0.02
+    assert_nil worker_loop.instance_variable_get(:@deadline)
 
-    called = false
-    worker_loop.run(0.001) do
-      called = true
-    end
-
-    assert(called, "Didn't run the loop even once")
+    worker_loop.run(0.001) {}
+    assert !worker_loop.instance_variable_get(:@deadline).nil?
   end
 
   def test_loop_limit
