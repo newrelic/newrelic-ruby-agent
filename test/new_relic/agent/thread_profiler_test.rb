@@ -210,7 +210,11 @@ class ThreadProfileTest < ThreadedTest
       "irb:12:in `<main>'"
     ]
 
-    @profile = NewRelic::Agent::ThreadProfile.new(-1, 0.029, 0.01, true)
+    # Run the worker_loop for the thread profile based on two iterations
+    # This takes time fussiness out of the equation and keeps the tests stable
+    ignored_duration = 666
+    @profile = NewRelic::Agent::ThreadProfile.new(-1, ignored_duration, 0.01, true)
+    @profile.instance_variable_set(:@worker_loop, NewRelic::Agent::WorkerLoop.new(:limit => 2))
   end
 
   # Running Tests
