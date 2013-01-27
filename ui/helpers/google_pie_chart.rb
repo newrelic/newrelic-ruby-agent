@@ -1,3 +1,4 @@
+require 'cgi'
 
 # A wrapper around the google charts service.
 class GooglePieChart
