@@ -1,0 +1,15 @@
+suite_condition("Rails 3 does not support 1.8.6") do
+  RUBY_VERSION != '1.8.6'
+end
+
+gemfile <<-RB
+  gem 'rails', '~>3.2.0'
+RB
+
+gemfile <<-RB
+  gem 'rails', '~>3.1.0'
+RB
+
+gemfile <<-RB
+  gem 'rails', '~>3.0.0'
+RB

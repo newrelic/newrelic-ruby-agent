@@ -172,21 +172,6 @@ class NewRelic::StatsTest < Test::Unit::TestCase
     assert_equal(s1.time_str(20000), "20.0 s")
   end
 
-  def test_fraction_of
-    s1 = NewRelic::MethodTraceStats.new
-    s2 = NewRelic::MethodTraceStats.new
-    s1.trace_call 10
-    s2.trace_call 20
-    assert_equal(s1.fraction_of(s2).to_s, 'NaN')
-  end
-
-  def test_fraction_of2
-    s1 = NewRelic::MethodTraceStats.new
-    s1.trace_call 10
-    s2 = NewRelic::MethodTraceStats.new
-    assert_equal(s1.fraction_of(s2).to_s, 'NaN')
-  end
-
   def test_multiply_by
     s1 = NewRelic::MethodTraceStats.new
     s1.trace_call 10
@@ -412,6 +397,16 @@ class NewRelic::StatsTest < Test::Unit::TestCase
     assert_in_delta(s2.standard_deviation, 1.5, 0.01)
     assert_equal(s3.sum_of_squares, 4*4 + 7*7 + 13*13 + 16*16, "check sum of squares")
     assert_in_delta(s3.standard_deviation, 4.743, 0.01)
+  end
+
+  if RUBY_VERSION >= '1.9'
+    def test_to_json_enforces_float_values
+      s1 = NewRelic::MethodTraceStats.new
+      s1.trace_call 3.to_r
+      s1.trace_call 7.to_r
+
+      assert_equal 3.0, JSON.load(s1.to_json)['min_call_time']
+    end
   end
 
   private

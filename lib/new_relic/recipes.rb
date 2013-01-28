@@ -33,10 +33,14 @@ make_notify_task = Proc.new do
           end
           changelog = `#{log_command}`
         end
-        new_revision = rev || source.query_revision(source.head()) do |cmd|
-          logger.debug "executing locally: '#{cmd}'"
-          `#{cmd}`
+        if rev.nil?
+          rev = source.query_revision(source.head()) do |cmd|
+            logger.debug "executing locally: '#{cmd}'"
+            `#{cmd}`
+          end
+          rev = rev[0..6] if scm == :git
         end
+        new_revision = rev
         deploy_options = { :environment => rails_env,
           :revision => new_revision,
           :changelog => changelog,
@@ -50,7 +54,7 @@ make_notify_task = Proc.new do
         logger.info e.message
       rescue Capistrano::CommandError
         logger.info "Unable to notify New Relic of the deployment... skipping"
-      rescue Exception => e
+      rescue => e
         logger.info "Error creating New Relic deployment (#{e})\n#{e.backtrace.join("\n")}"
       end
       # WIP: For rollbacks, let's update the deployment we created with an indication of the failure:

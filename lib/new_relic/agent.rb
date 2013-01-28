@@ -1,5 +1,6 @@
+require 'forwardable'
 require 'new_relic/control'
-require 'new_relic/data_serialization'
+
 # = New Relic Ruby Agent
 #
 # New Relic is a performance monitoring application for applications
@@ -58,7 +59,8 @@ module NewRelic
   # support at New Relic for help.
   module Agent
     extend self
-
+    extend Forwardable
+    
     require 'new_relic/version'
     require 'new_relic/local_environment'
     require 'new_relic/stats'
@@ -75,6 +77,7 @@ module NewRelic
     require 'new_relic/agent'
     require 'new_relic/agent/chained_call'
     require 'new_relic/agent/browser_monitoring'
+    require 'new_relic/agent/cross_process_monitoring'
     require 'new_relic/agent/agent'
     require 'new_relic/agent/shim_agent'
     require 'new_relic/agent/method_tracer'
@@ -82,21 +85,26 @@ module NewRelic
     require 'new_relic/agent/stats_engine'
     require 'new_relic/agent/transaction_sampler'
     require 'new_relic/agent/sql_sampler'
+    require 'new_relic/agent/thread_profiler'
     require 'new_relic/agent/error_collector'
     require 'new_relic/agent/busy_calculator'
     require 'new_relic/agent/sampler'
     require 'new_relic/agent/database'
+    require 'new_relic/agent/pipe_channel_manager'
     require 'new_relic/agent/transaction_info'
+    require 'new_relic/agent/configuration'
 
     require 'new_relic/agent/instrumentation/controller_instrumentation'
 
     require 'new_relic/agent/samplers/cpu_sampler'
     require 'new_relic/agent/samplers/memory_sampler'
     require 'new_relic/agent/samplers/object_sampler'
-    require 'new_relic/agent/samplers/delayed_job_lock_sampler'
+    require 'new_relic/agent/samplers/delayed_job_sampler'
     require 'set'
     require 'thread'
     require 'resolv'
+
+    extend NewRelic::Agent::Configuration::Instance
 
     # An exception that is thrown by the server if the agent license is invalid.
     class LicenseException < StandardError; end
@@ -111,9 +119,9 @@ module NewRelic
     # failures.
     class ServerConnectionException < StandardError; end
 
-    # Used for when a transaction trace or error report has too much
-    # data, so we reset the queue to clear the extra-large item
-    class PostTooBigException < ServerConnectionException; end
+    # When a post is either too large or poorly formatted we should
+    # drop it and not try to resend
+    class UnrecoverableServerException < ServerConnectionException; end
 
     # Reserved for future use.  Meant to represent a problem on the server side.
     class ServerError < StandardError; end
@@ -124,8 +132,7 @@ module NewRelic
 
     # The singleton Agent instance.  Used internally.
     def agent #:nodoc:
-      raise "Plugin not initialized!" if @agent.nil?
-      @agent
+      @agent || raise("Plugin not initialized!")
     end
 
     def agent=(new_instance)#:nodoc:
@@ -133,6 +140,16 @@ module NewRelic
     end
 
     alias instance agent #:nodoc:
+
+    # Primary interface to logging is fronted by this accessor
+    # Access via ::NewRelic::Agent.logger
+    def logger
+      @logger || StartupLogger.instance
+    end
+
+    def logger=(log)
+      @logger = log
+    end
 
     # Get or create a statistics gatherer that will aggregate numerical data
     # under a metric name.
@@ -147,19 +164,6 @@ module NewRelic
     end
 
     alias get_stats_no_scope get_stats
-
-    # Get the logger for the agent.  Available after the agent has initialized.
-    # This sends output to the agent log file.  If the agent has not initialized
-    # a standard output logger is returned.
-    def logger
-      control = NewRelic::Control.instance(false)
-      if control
-        control.log
-      else
-        require 'logger'
-        @stdoutlog ||= Logger.new $stdout
-      end
-    end
 
     # Call this to manually start the Agent in situations where the Agent does
     # not auto-start.
@@ -178,6 +182,9 @@ module NewRelic
     #
     def manual_start(options={})
       raise "Options must be a hash" unless Hash === options
+      if options[:start_channel_listener]
+        NewRelic::Agent::PipeChannelManager.listener.start
+      end
       NewRelic::Control.instance.init_plugin({ :agent_enabled => true, :sync_startup => true }.merge(options))
     end
 
@@ -216,45 +223,6 @@ module NewRelic
     # and kills the background thread.
     def shutdown(options={})
       agent.shutdown(options)
-    end
-    
-    # a method used to serialize short-running processes to disk, so
-    # we don't incur the overhead of reporting to the server for every
-    # fork/invocation of a small job.
-    #
-    # Functionally, this loads the data from the file into the agent
-    # (to avoid losing data by overwriting) and then serializes the
-    # agent data to the file again. See also #load_data
-    def save_data
-      NewRelic::DataSerialization.read_and_write_to_file do |old_data|
-        agent.merge_data_from(old_data)
-        agent.serialize
-      end
-    end
-    
-    # used to load data from the disk during the harvest cycle to send
-    # it. This method also clears the file so data should never be
-    # sent more than once.
-
-    # Note that only one transaction trace will be sent even if many
-    # are serialized, since the slowest is sent.
-    #
-    # See also the complement to this method, #save_data - used when a
-    # process is shutting down
-    def load_data
-      if !NewRelic::Control.instance['disable_serialization']
-        NewRelic::DataSerialization.read_and_write_to_file do |old_data|
-          agent.merge_data_from(old_data)
-          nil # return nil so nothing is written to the file
-        end
-        NewRelic::DataSerialization.update_last_sent!
-      end
-      
-      {
-        :metrics => agent.stats_engine.metrics.length,
-        :traces => agent.unsent_traces_size,
-        :errors => agent.unsent_errors_size
-      }
     end
 
     # Add instrumentation files to the agent.  The argument should be
@@ -336,7 +304,8 @@ module NewRelic
 
     # Check to see if we are capturing metrics currently on this thread.
     def is_execution_traced?
-      Thread.current[:newrelic_untraced].nil? || Thread.current[:newrelic_untraced].last != false
+      untraced = Thread.current[:newrelic_untraced]
+      untraced.nil? || untraced.last != false
     end
     
     # helper method to check the thread local to determine whether the
@@ -463,6 +432,7 @@ module NewRelic
     def browser_timing_footer
       agent.browser_timing_footer
     end
-
+    
+    def_delegator :'NewRelic::Agent::PipeChannelManager', :register_report_channel
   end
 end

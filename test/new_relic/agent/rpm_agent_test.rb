@@ -34,21 +34,23 @@ class NewRelic::Agent::RpmAgentTest < Test::Unit::TestCase # ActiveSupport::Test
     end
 
     should "startup_shutdown" do
-      @agent = NewRelic::Agent::ShimAgent.instance
-      @agent.shutdown
-      assert (not @agent.started?)
-      @agent.start
-      assert !@agent.started?
-      # this installs the real agent:
-      NewRelic::Agent.manual_start
-      @agent = NewRelic::Agent.instance
-      assert @agent != NewRelic::Agent::ShimAgent.instance
-      assert @agent.started?
-      @agent.shutdown
-      assert !@agent.started?
-      @agent.start
-      assert @agent.started?
-      NewRelic::Agent.shutdown
+      with_config(:agent_enabled => true) do
+        @agent = NewRelic::Agent::ShimAgent.instance
+        @agent.shutdown
+        assert (not @agent.started?)
+        @agent.start
+        assert !@agent.started?
+        # this installs the real agent:
+        NewRelic::Agent.manual_start
+        @agent = NewRelic::Agent.instance
+        assert @agent != NewRelic::Agent::ShimAgent.instance
+        assert @agent.started?
+        @agent.shutdown
+        assert !@agent.started?
+        @agent.start
+        assert @agent.started?
+        NewRelic::Agent.shutdown
+      end
     end
 
     should "manual_start" do
@@ -67,26 +69,30 @@ class NewRelic::Agent::RpmAgentTest < Test::Unit::TestCase # ActiveSupport::Test
     end
     should "manual_overrides" do
       NewRelic::Agent.manual_start :app_name => "testjobs", :dispatcher_instance_id => "mailer"
-      assert_equal "testjobs", NewRelic::Control.instance.app_names[0]
-      assert_equal "mailer", NewRelic::Control.instance.dispatcher_instance_id
+      assert_equal "testjobs", NewRelic::Agent.config.app_names[0]
+      assert_equal "mailer", NewRelic::Control.instance.local_env.dispatcher_instance_id
       NewRelic::Agent.shutdown
     end
 
     should "restart" do
       NewRelic::Agent.manual_start :app_name => "noapp", :dispatcher_instance_id => ""
       NewRelic::Agent.manual_start :app_name => "testjobs", :dispatcher_instance_id => "mailer"
-      assert_equal "testjobs", NewRelic::Control.instance.app_names[0]
-      assert_equal "mailer", NewRelic::Control.instance.dispatcher_instance_id
+      assert_equal "testjobs", NewRelic::Agent.config.app_names[0]
+      assert_equal "mailer", NewRelic::Control.instance.local_env.dispatcher_instance_id
       NewRelic::Agent.shutdown
     end
 
     should "send_timeslice_data" do
       # this test fails due to a rubinius bug
-      return if (RUBY_DESCRIPTION =~ /rubinius/i)
-      @agent.expects(:invoke_remote).returns({NewRelic::MetricSpec.new("/A/b/c") => 1, NewRelic::MetricSpec.new("/A/b/c", "/X") => 2, NewRelic::MetricSpec.new("/A/b/d") => 3 }.to_a)
+      return if NewRelic::LanguageSupport.using_engine?('rbx')
+      @agent.service = NewRelic::FakeService.new
+      @agent.service.expects(:metric_data).returns([ [{'name' => '/A/b/c'}, 1],
+                                                     [{'name' => '/A/b/c', 'scope' => '/X'}, 2],
+                                                     [{'name' => '/A/b/d'}, 3] ])
       @agent.send :harvest_and_send_timeslice_data
       assert_equal 3, @agent.metric_ids.size
-      assert_equal 3, @agent.metric_ids[NewRelic::MetricSpec.new("/A/b/d") ], @agent.metric_ids.inspect
+      assert_equal(3, @agent.metric_ids[NewRelic::MetricSpec.new('/A/b/d')],
+                   @agent.metric_ids.inspect)
     end
     should "set_record_sql" do
       @agent.set_record_sql(false)
@@ -106,34 +112,6 @@ class NewRelic::Agent::RpmAgentTest < Test::Unit::TestCase # ActiveSupport::Test
       assert_match /\d\.\d+\.\d+/, NewRelic::VERSION::STRING
     end
 
-    should "invoke_remote__ignore_non_200_results" do
-      NewRelic::Agent::Agent.class_eval do
-        public :invoke_remote
-      end
-      response_mock = mock()
-      Net::HTTP.any_instance.stubs(:request).returns(response_mock)
-      response_mock.stubs(:message).returns("bogus error")
-
-      for code in %w[500 504 400 302 503] do
-        assert_raise NewRelic::Agent::ServerConnectionException, "Ignore #{code}" do
-          response_mock.stubs(:code).returns(code)
-          NewRelic::Agent.agent.invoke_remote  :get_data_report_period, 0
-        end
-      end
-    end
-    should "invoke_remote__throw_other_errors" do
-      NewRelic::Agent::Agent.class_eval do
-        public :invoke_remote
-      end
-      response_mock = Net::HTTPSuccess.new  nil, nil, nil
-      response_mock.stubs(:body).returns("")
-      Marshal.stubs(:load).raises(RuntimeError, "marshal issue")
-      Net::HTTP.any_instance.stubs(:request).returns(response_mock)
-      assert_raise RuntimeError do
-        NewRelic::Agent.agent.invoke_remote  :get_data_report_period, 0xFEFE
-      end
-    end
-
     context "with transaction api" do
       should "reject empty arguments" do
         assert_raises RuntimeError do
@@ -143,7 +121,6 @@ class NewRelic::Agent::RpmAgentTest < Test::Unit::TestCase # ActiveSupport::Test
       should "record a transaction" do
         NewRelic::Agent.record_transaction 0.5, 'uri' => "/users/create?foo=bar"
       end
-
     end
   end
 end

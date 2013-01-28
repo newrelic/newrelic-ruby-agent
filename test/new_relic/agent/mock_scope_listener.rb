@@ -18,6 +18,9 @@ class NewRelic::Agent::MockScopeListener
   end
 
   def notice_scope_empty(time)
+  end
 
+  def enabled?
+    true
   end
 end

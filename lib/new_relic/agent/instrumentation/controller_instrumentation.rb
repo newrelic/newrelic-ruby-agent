@@ -26,6 +26,7 @@ module NewRelic
         module ClassMethodsShim # :nodoc:
           def newrelic_ignore(*args); end
           def newrelic_ignore_apdex(*args); end
+          def newrelic_ignore_enduser(*args); end
         end
 
         module Shim # :nodoc:
@@ -51,11 +52,15 @@ module NewRelic
             newrelic_ignore_aspect('ignore_apdex', specifiers)
           end
 
+          def newrelic_ignore_enduser(specifiers={})
+            newrelic_ignore_aspect('ignore_enduser', specifiers)
+          end
+
           def newrelic_ignore_aspect(property, specifiers={}) # :nodoc:
             if specifiers.empty?
               self.newrelic_write_attr property, true
             elsif ! (Hash === specifiers)
-              logger.error "newrelic_#{property} takes an optional hash with :only and :except lists of actions (illegal argument type '#{specifiers.class}')"
+              ::NewRelic::Agent.logger.error "newrelic_#{property} takes an optional hash with :only and :except lists of actions (illegal argument type '#{specifiers.class}')"
             else
               self.newrelic_write_attr property, specifiers
             end
@@ -138,16 +143,23 @@ module NewRelic
                          end
               options_arg << %Q[:#{key} => #{valuestr}]
             end
+            traced_method, punctuation = method.to_s.sub(/([?!=])$/, ''), $1
+            visibility = NewRelic::Helper.instance_method_visibility self, method
+
             class_eval <<-EOC
-              def #{method.to_s}_with_newrelic_transaction_trace(*args, &block)
+              def #{traced_method.to_s}_with_newrelic_transaction_trace#{punctuation}(*args, &block)
                 perform_action_with_newrelic_trace(#{options_arg.join(',')}) do
-                  #{method.to_s}_without_newrelic_transaction_trace(*args, &block)
+                  #{traced_method.to_s}_without_newrelic_transaction_trace#{punctuation}(*args, &block)
                  end
               end
             EOC
-            alias_method "#{method.to_s}_without_newrelic_transaction_trace", method.to_s
-            alias_method method.to_s, "#{method.to_s}_with_newrelic_transaction_trace"
-            NewRelic::Control.instance.log.debug("Traced transaction: class = #{self.name}, method = #{method.to_s}, options = #{options.inspect}")
+            without_method_name = "#{traced_method.to_s}_without_newrelic_transaction_trace#{punctuation}"
+            with_method_name = "#{traced_method.to_s}_with_newrelic_transaction_trace#{punctuation}"
+            alias_method without_method_name, method.to_s
+            alias_method method.to_s, with_method_name
+            send visibility, method
+            send visibility, with_method_name
+            ::NewRelic::Agent.logger.debug("Traced transaction: class = #{self.name}, method = #{method.to_s}, options = #{options.inspect}")
           end
         end
 
@@ -231,6 +243,8 @@ module NewRelic
         # If a single argument is passed in, it is treated as a metric
         # path.  This form is deprecated.
         def perform_action_with_newrelic_trace(*args, &block)
+          request = newrelic_request(args)
+          NewRelic::Agent::TransactionInfo.reset(request)
 
           # Skip instrumentation based on the value of 'do_not_trace' and if
           # we aren't calling directly with a block.
@@ -240,8 +254,9 @@ module NewRelic
               return perform_action_without_newrelic_trace(*args)
             end
           end
-
-          return perform_action_with_newrelic_profile(args, &block) if NewRelic::Control.instance.profiling?
+          
+          control = NewRelic::Control.instance
+          return perform_action_with_newrelic_profile(args, &block) if control.profiling?
 
           frame_data = _push_metric_frame(block_given? ? args : [])
           begin
@@ -249,12 +264,18 @@ module NewRelic
               frame_data.start_transaction
               begin
                 NewRelic::Agent::BusyCalculator.dispatcher_start frame_data.start
-                if block_given?
+                result = if block_given?
                   yield
                 else
                   perform_action_without_newrelic_trace(*args)
                 end
-              rescue Exception => e
+                if defined?(request) && request && defined?(response) && response
+                  if !Agent.config[:disable_mobile_headers]
+                    NewRelic::Agent::BrowserMonitoring.insert_mobile_response_header(request, response)
+                  end
+                end
+                result
+              rescue => e
                 frame_data.notice_error(e)
                 raise
               end
@@ -264,12 +285,29 @@ module NewRelic
             # Look for a metric frame in the thread local and process it.
             # Clear the thread local when finished to ensure it only gets called once.
             frame_data.record_apdex unless ignore_apdex?
-
             frame_data.pop
+            
+            NewRelic::Agent::TransactionInfo.get.ignore_end_user = true if ignore_enduser?
           end
         end
 
         protected
+
+        def newrelic_request(args)
+          opts = args.first
+          # passed as a parameter to add_transaction_tracer
+          if opts.respond_to?(:keys) && opts.respond_to?(:[]) && opts[:request]
+            opts[:request]
+          # in a Rack app
+          elsif opts.respond_to?(:keys) && opts.respond_to?(:[]) &&
+              opts['rack.version']
+            Rack::Request.new(args)
+          # in a Rails app
+          elsif self.respond_to?(:request)
+            self.request
+          end
+        end
+
         # Should be implemented in the dispatcher class
         def newrelic_response_code; end
 
@@ -290,6 +328,10 @@ module NewRelic
         # actions
         def ignore_apdex?
           _is_filtered?('ignore_apdex')
+        end
+        
+        def ignore_enduser?
+          _is_filtered?('ignore_enduser')
         end
 
         private
@@ -361,7 +403,7 @@ module NewRelic
                      end
           unless path = options[:path]
             action = options[:name] || args.first
-            metric_class = options[:class_name] || (self.is_a?(Class) ? self.name : self.class.name)
+            metric_class = options[:class_name] || ((self.is_a?(Class)||self.is_a?(Module)) ? self.name : self.class.name)
             path = metric_class
             path += ('/' + action) if action
           end
@@ -407,9 +449,8 @@ module NewRelic
             queue_start = parse_frontend_headers(newrelic_request_headers)
           end
           queue_start || now
-        rescue Exception => e
-          NewRelic::Control.instance.log.error("Error detecting upstream wait time: #{e}")
-          NewRelic::Control.instance.log.debug("#{e.backtrace[0..20]}")
+        rescue => e
+          ::NewRelic::Agent.logger.error("Error detecting upstream wait time:", e)
           now
         end
         

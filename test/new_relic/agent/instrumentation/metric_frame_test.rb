@@ -47,4 +47,10 @@ class NewRelic::Agent::Instrumentation::MetricFrameTest < Test::Unit::TestCase
     assert_equal "/", f.uri
     assert_nil f.referer
   end
+
+  def test_queue_time
+    f.apdex_start = 1000
+    f.start = 1500
+    assert_equal 500, f.queue_time
+  end
 end

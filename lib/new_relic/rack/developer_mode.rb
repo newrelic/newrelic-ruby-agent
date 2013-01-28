@@ -83,9 +83,9 @@ module NewRelic
           @obfuscated_sql = @segment.obfuscated_sql
         end
 
-        explanations = @segment.explain_sql
+        headers, explanations = @segment.explain_sql
         if explanations
-          @explanation = explanations.first
+          @explanation = explanations
           if !@explanation.blank?
             first_row = @explanation.first
             # Show the standard headers if it looks like a mysql explain plan
@@ -229,6 +229,9 @@ module NewRelic
         if params['d']
           @sql_segments.sort!{|a,b| b.duration <=> a.duration }
         end
+
+        sort_method = params['sort'] || :total_time
+        @profile_options = {:min_percent => 0.5, :sort_method => sort_method.to_sym}
         
         render(:show_sample)
       end

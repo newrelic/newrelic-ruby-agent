@@ -77,8 +77,8 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Test::Unit::Te
       assert_equal 0, @agent.transaction_sampler.scope_depth, "existing unfinished sample"
       sample = @agent.transaction_sampler.last_sample
       assert_not_nil sample
-      assert_not_nil sample.params[:cpu_time], "cpu time nil: \n#{sample}"
-      assert sample.params[:cpu_time] >= 0, "cpu time: #{sample.params[:cpu_time]},\n#{sample}"
+      assert_not_nil sample.params[:custom_params][:cpu_time], "cpu time nil: \n#{sample}"
+      assert sample.params[:custom_params][:cpu_time] >= 0, "cpu time: #{sample.params[:cpu_time]},\n#{sample}"
       assert_equal '10', sample.params[:request_params][:level]
     end
 

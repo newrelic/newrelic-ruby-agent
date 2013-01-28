@@ -73,69 +73,45 @@ class NewRelic::Agent::DatabaseTest < Test::Unit::TestCase
     assert_equal([], NewRelic::Agent::Database.explain_sql('SELECT', config))
   end  
   
-  def test_handle_exception_in_explain
-    fake_error = Exception.new('a message')
-    NewRelic::Control.instance.log.expects(:error).with('Error getting query plan: a message')
-    # backtrace can be basically any string, just should get logged
-    NewRelic::Control.instance.log.expects(:debug).with(instance_of(String))
-    
-    NewRelic::Agent::Database.handle_exception_in_explain do
-      raise(fake_error)
-    end
+  def test_obfuscation_mysql_basic
+    insert = %q[INSERT INTO `X` values("test",0, 1 , 2, 'test')]
+    assert_equal("INSERT INTO `X` values(?,?, ? , ?, ?)",
+                 NewRelic::Agent::Database.obfuscate_sql(insert))
+    select = %q[SELECT `table`.`column` FROM `table` WHERE `table`.`column` = 'value' AND `table`.`other_column` = "other value" LIMIT 1]
+    assert_equal(%q[SELECT `table`.`column` FROM `table` WHERE `table`.`column` = ? AND `table`.`other_column` = ? LIMIT ?],
+                 NewRelic::Agent::Database.obfuscate_sql(select))
   end
 
-  def test_sql_normalization
-    # basic statement
-    assert_equal "INSERT INTO X values(?,?, ? , ?)",
-    NewRelic::Agent::Database.obfuscate_sql("INSERT INTO X values('test',0, 1 , 2)")
-
-    # escaped literals
-    assert_equal "INSERT INTO X values(?, ?,?, ? , ?)",
-    NewRelic::Agent::Database.obfuscate_sql("INSERT INTO X values('', 'jim''s ssn',0, 1 , 'jim''s son''s son')")
-    
-    # multiple string literals
-    assert_equal "INSERT INTO X values(?,?,?, ? , ?)",
-    NewRelic::Agent::Database.obfuscate_sql("INSERT INTO X values('jim''s ssn','x',0, 1 , 2)")
-    
-    # empty string literal
-    # NOTE: the empty string literal resolves to empty string, which for our purposes is acceptable
-    assert_equal "INSERT INTO X values(?,?,?, ? , ?)",
-    NewRelic::Agent::Database.obfuscate_sql("INSERT INTO X values('','x',0, 1 , 2)")
-    
-    # try a select statement
-    assert_equal "select * from table where name=? and ssn=?",
-    NewRelic::Agent::Database.obfuscate_sql("select * from table where name='jim gochee' and ssn=0012211223")
-    
-    # number literals embedded in sql - oh well
-    assert_equal "select * from table_? where name=? and ssn=?",
-    NewRelic::Agent::Database.obfuscate_sql("select * from table_007 where name='jim gochee' and ssn=0012211223")
+  def test_obfuscation_postgresql_basic
+    insert = NewRelic::Agent::Database::Statement.new(%q[INSERT INTO "X" values('test',0, 1 , 2, 'test')])
+    insert.adapter = :postgresql
+    assert_equal('INSERT INTO "X" values(?,?, ? , ?, ?)',
+                 NewRelic::Agent::Database.obfuscate_sql(insert))
+    select = NewRelic::Agent::Database::Statement.new(%q[SELECT "table"."column" FROM "table" WHERE "table"."column" = 'value' AND "table"."other_column" = 'other value' LIMIT 1])
+    select.adapter = :postgresql
+    assert_equal(%q[SELECT "table"."column" FROM "table" WHERE "table"."column" = ? AND "table"."other_column" = ? LIMIT ?],
+                 NewRelic::Agent::Database.obfuscate_sql(select))  
   end
   
-  def test_sql_normalization__single_quotes
-    assert_equal "INSERT ? into table",
-    NewRelic::Agent::Database.obfuscate_sql("INSERT 'this isn''t a real value' into table")
-    assert_equal "INSERT ? into table",
-    NewRelic::Agent::Database.obfuscate_sql(%q[INSERT '"' into table])
-    assert_equal "INSERT ? into table",
-    NewRelic::Agent::Database.obfuscate_sql(%q[INSERT ' "some text" \" ' into table])
-    #    could not get this one licked.  no biggie
-    #    assert_equal "INSERT ? into table",
-    #    @agent.send(:default_sql_obfuscator, %q[INSERT '\'' into table])
-    assert_equal "INSERT ? into table",
-    NewRelic::Agent::Database.obfuscate_sql(%q[INSERT ''' ' into table])
+  def test_obfuscation_escaped_literals
+    insert = %q[INSERT INTO X values('', 'jim''s ssn',0, 1 , 'jim''s son''s son', """jim''s"" hat", "\"jim''s secret\"")]
+    assert_equal("INSERT INTO X values(?, ?,?, ? , ?, ?, ?)",
+                 NewRelic::Agent::Database.obfuscate_sql(insert))
   end
 
-  def test_sql_normalization__double_quotes
-    assert_equal "INSERT ? into table",
-    NewRelic::Agent::Database.obfuscate_sql(%q[INSERT "this isn't a real value" into table])
-    assert_equal "INSERT ? into table",
-    NewRelic::Agent::Database.obfuscate_sql(%q[INSERT "'" into table])
-    assert_equal "INSERT ? into table",
-    NewRelic::Agent::Database.obfuscate_sql(%q[INSERT " \" " into table])
-    assert_equal "INSERT ? into table",
-    NewRelic::Agent::Database.obfuscate_sql(%q[INSERT " 'some text' " into table])
+  def test_obfuscation_mysql_integers_in_identifiers
+    select = %q[SELECT * FROM `table_007` LIMIT 1]
+    assert_equal(%q[SELECT * FROM `table_007` LIMIT ?],
+                 NewRelic::Agent::Database.obfuscate_sql(select))
   end
   
+  def test_obfuscation_postgresql_integers_in_identifiers
+    select = NewRelic::Agent::Database::Statement.new(%q[SELECT * FROM "table_007" LIMIT 1])
+    select.adapter = :postgresql
+    assert_equal(%q[SELECT * FROM "table_007" LIMIT ?],
+                 NewRelic::Agent::Database.obfuscate_sql(select))
+  end
+
   def test_sql_obfuscation_filters
     NewRelic::Agent::Database.set_sql_obfuscator(:replace) do |string|
       "1" + string
@@ -158,5 +134,17 @@ class NewRelic::Agent::DatabaseTest < Test::Unit::TestCase
     assert_equal "12" + sql + "3", NewRelic::Agent::Database.obfuscate_sql(sql)
 
     NewRelic::Agent::Database::Obfuscator.instance.reset
+  end
+
+  def test_close_connections_closes_all_held_db_connections
+    foo_connection = mock('foo connection')
+    bar_connection = mock('bar connection')
+    NewRelic::Agent::Database::ConnectionManager.instance.instance_eval do
+      @connections = { :foo => foo_connection, :bar => bar_connection }      
+    end
+    foo_connection.expects(:disconnect!)
+    bar_connection.expects(:disconnect!)
+    
+    NewRelic::Agent::Database.close_connections
   end
 end

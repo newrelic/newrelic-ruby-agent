@@ -8,17 +8,21 @@ module NewRelic
       # Load in the parsers classes in the plugin:
       Dir[File.join(File.dirname(__FILE__), "metric_parser", "*.rb")].each { | file | require file }
 
+      def self.category_is_constant(category)
+        @string_constants ||= (
+          NewRelic::MetricParser.constants.inject({}){|memo, const| memo[const.to_s] = true; memo}
+        )
+        @string_constants[category]
+      end
       # return a string that is parsable via the Metric parser APIs
       def self.for_metric_named(s)
         category = (s =~ /^([^\/]*)/) && $1
         parser_class = self
-        if category
-          if NewRelic::MetricParser.constants.map(&:to_s).include?(category)
-            begin
-              parser_class = NewRelic::MetricParser.const_get(category)
-            rescue
-              nil
-            end
+        if category_is_constant(category)
+          begin
+            parser_class = NewRelic::MetricParser.const_get(category)
+          rescue
+            nil
           end
         end
         parser_class.new s
@@ -77,9 +81,12 @@ module NewRelic
         segments[0]
       end
 
+
+      EMPTY_SEGMENTS_HASH = [].freeze
+      SEGMENTS_CACHE = {}
       def segments
-        return [] if !name
-        @segments ||= name.split(SEPARATOR).freeze
+        name || (return EMPTY_SEGMENTS_HASH)
+        SEGMENTS_CACHE[name] ||= name.split(SEPARATOR).freeze
       end
 
       # --

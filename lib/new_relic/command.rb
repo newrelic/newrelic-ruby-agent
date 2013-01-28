@@ -38,7 +38,7 @@ module NewRelic
         @leftover = @options.parse(command_line_args)
       end
     rescue OptionParser::ParseError => e
-      raise CommandFailure.new e.message, @options
+      raise CommandFailure.new(e.message, @options)
     end
 
     @commands = []

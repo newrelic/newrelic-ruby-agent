@@ -1,0 +1,2 @@
+self.newrelic_gemfile_options=(':require => false')
+

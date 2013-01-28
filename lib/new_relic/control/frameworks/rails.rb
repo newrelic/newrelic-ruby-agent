@@ -17,34 +17,36 @@ module NewRelic
             super
           end
         end
-        def logger
-          ::RAILS_DEFAULT_LOGGER
+
+        def rails_config
+          if defined?(::Rails) && ::Rails.respond_to?(:configuration)
+            ::Rails.configuration
+          else
+            @config
+          end
         end
 
         # In versions of Rails prior to 2.0, the rails config was only available to
-        # the init.rb, so it had to be passed on from there.  This is a best effort to 
+        # the init.rb, so it had to be passed on from there.  This is a best effort to
         # find a config and use that.
         def init_config(options={})
-          rails_config = options[:config]
-          if !rails_config && defined?(::Rails) && ::Rails.respond_to?(:configuration)
-            rails_config = ::Rails.configuration
-          end
-          # Install the dependency detection, 
+          @config = options[:config]
+          # Install the dependency detection,
           if rails_config && ::Rails.configuration.respond_to?(:after_initialize)
             rails_config.after_initialize do
               # This will insure we load all the instrumentation as late as possible.  If the agent
-              # is not enabled, it will load a limited amount of instrumentation.  See 
+              # is not enabled, it will load a limited amount of instrumentation.  See
               # delayed_job_injection.rb
               DependencyDetection.detect!
             end
-          end          
-          if !agent_enabled?
+          end
+          if !Agent.config[:agent_enabled]
             # Might not be running if it does not think mongrel, thin, passenger, etc
-            # is running, if it things it's a rake task, or if the agent_enabled is false.
-            log! "New Relic Agent not running."
+            # is running, if it thinks it's a rake task, or if the agent_enabled is false.
+            ::NewRelic::Agent.logger.info("New Relic Agent not running.")
           else
-            log! "Starting the New Relic Agent."
-            install_developer_mode rails_config if developer_mode?
+            ::NewRelic::Agent.logger.info("Starting the New Relic Agent.")
+            install_developer_mode rails_config if Agent.config[:developer_mode]
             install_browser_monitoring(rails_config)
           end
         end
@@ -52,13 +54,13 @@ module NewRelic
         def install_browser_monitoring(config)
           return if @browser_monitoring_installed
           @browser_monitoring_installed = true
-          return if config.nil? || !config.respond_to?(:middleware) || !browser_monitoring_auto_instrument?
+          return if config.nil? || !config.respond_to?(:middleware) || !Agent.config[:'browser_monitoring.auto_instrument']
           begin
             require 'new_relic/rack/browser_monitoring'
             config.middleware.use NewRelic::Rack::BrowserMonitoring
-            log!("Installed New Relic Browser Monitoring middleware", :info)
-          rescue Exception => e
-            log!("Error installing New Relic Browser Monitoring middleware: #{e.inspect}", :error)
+            ::NewRelic::Agent.logger.debug("Installed New Relic Browser Monitoring middleware")
+          rescue => e
+            ::NewRelic::Agent.logger.warn("Error installing New Relic Browser Monitoring middleware: #{e.inspect}")
           end
         end
 
@@ -74,33 +76,15 @@ module NewRelic
               # a webserver process
               if @local_env.dispatcher_instance_id
                 port = @local_env.dispatcher_instance_id.to_s =~ /^\d+/ ? ":#{local_env.dispatcher_instance_id}" : ":port"
-                log!("NewRelic Agent Developer Mode enabled.")
-                log!("To view performance information, go to http://localhost#{port}/newrelic")
+                ::NewRelic::Agent.logger.debug("NewRelic Agent Developer Mode enabled.")
+                ::NewRelic::Agent.logger.debug("To view performance information, go to http://localhost#{port}/newrelic")
               end
-            rescue Exception => e
-              log!("Error installing New Relic Developer Mode: #{e.inspect}", :error)
+            rescue => e
+              ::NewRelic::Agent.logger.warn("Error installing New Relic Developer Mode: #{e.inspect}")
             end
           elsif rails_config
-            log!("Developer mode not available for Rails versions prior to 2.2", :warn)
+            ::NewRelic::Agent.logger.warn("Developer mode not available for Rails versions prior to 2.2")
           end
-        end
-
-        def log!(msg, level=:info)
-          if should_log?
-            logger = ::Rails.respond_to?(:logger) ? ::Rails.logger : ::RAILS_DEFAULT_LOGGER
-            logger.send(level, msg)
-          else
-            super
-          end
-        rescue Exception => e
-          super
-        end
-
-        def to_stdout(message)
-          logger = ::Rails.respond_to?(:logger) ? ::Rails.logger : ::RAILS_DEFAULT_LOGGER
-          logger.info(message)
-        rescue Exception => e
-          super
         end
 
         def rails_version
@@ -114,7 +98,7 @@ module NewRelic
         end
 
         def rails_gem_list
-          ::Rails.configuration.gems.map do | gem |
+          ::Rails.configuration.gems.map do |gem|
             version = (gem.respond_to?(:version) && gem.version) ||
               (gem.specification.respond_to?(:version) && gem.specification.version)
             gem.name + (version ? "(#{version})" : "")
@@ -153,11 +137,12 @@ module NewRelic
         def install_shim
           super
           require 'new_relic/agent/instrumentation/controller_instrumentation'
-          ::ActionController::Base.class_eval {
-            include NewRelic::Agent::Instrumentation::ControllerInstrumentation::Shim
-          }
+          if ActiveSupport.respond_to?(:on_load) # rails 3+
+            ActiveSupport.on_load(:action_controller) { include NewRelic::Agent::Instrumentation::ControllerInstrumentation::Shim }
+          else
+            ActionController::Base.class_eval { include NewRelic::Agent::Instrumentation::ControllerInstrumentation::Shim }
+          end
         end
-
       end
     end
   end

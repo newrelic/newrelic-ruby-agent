@@ -44,7 +44,7 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
     assert_equal 4, @engine.get_stats("c").total_call_time
 
     metric_data = @engine.harvest_timeslice_data({}, {}).values
-    
+
     # after harvest, all the metrics should be reset
     assert_equal 0, @engine.get_stats("a").call_count
     assert_equal 0, @engine.get_stats("a").total_call_time
@@ -77,6 +77,17 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
     stats = harvest.fetch(NewRelic::MetricSpec.new("a")).stats
     assert_equal 2, stats.call_count
     assert_equal 3, stats.total_call_time
+  end
+
+  def test_rescues_from_synchronization_failure_on_write
+    hash = NewRelic::Agent::StatsEngine::MetricStats::SynchronizedHash.new
+    10.times { |i| hash[i] = i }
+
+    assert_nothing_raised do
+      hash.each do |k, v|
+        hash[11] = 1
+      end
+    end
   end
 end
 

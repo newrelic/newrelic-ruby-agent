@@ -2,13 +2,13 @@ DependencyDetection.defer do
   @name = :rails21_view
   
   depends_on do
-    !NewRelic::Control.instance['disable_view_instrumentation'] &&
+    !NewRelic::Agent.config[:disable_view_instrumentation] &&
     defined?(ActionController) && defined?(ActionController::Base) && defined?(ActionView::PartialTemplate) && defined?(ActionView::Template) &&
     defined?(Rails::VERSION::STRING) && Rails::VERSION::STRING =~ /^2\.1\./   # Rails 2.1 &&
   end
   
   executes do
-    NewRelic::Agent.logger.debug 'Installing Rails 2.1 View instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing Rails 2.1 View instrumentation'
   end
 
   executes do
@@ -26,13 +26,13 @@ DependencyDetection.defer do
   @name = :old_rails_view
   
   depends_on do
-    !NewRelic::Control.instance['disable_view_instrumentation'] &&
+    !NewRelic::Agent.config[:disable_view_instrumentation] &&
     defined?(ActionController) && defined?(ActionController::Base) &&
     defined?(Rails::VERSION::STRING) && Rails::VERSION::STRING =~ /^(1\.|2\.0)/  # Rails 1.* - 2.0 
   end
   
   executes do
-    NewRelic::Agent.logger.debug 'Installing Rails 1.* - 2.0 View instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing Rails 1.* - 2.0 View instrumentation'
   end
   
   executes do
@@ -47,13 +47,13 @@ DependencyDetection.defer do
   @name = :rails23_view
   
   depends_on do
-    !NewRelic::Control.instance['disable_view_instrumentation'] &&
+    !NewRelic::Agent.config[:disable_view_instrumentation] &&
     defined?(ActionView) && defined?(ActionView::Template) && defined?(ActionView::RenderablePartial) &&
     defined?(Rails::VERSION::STRING) && Rails::VERSION::STRING =~ /^2\.[23]/ 
   end
 
   executes do
-    NewRelic::Agent.logger.debug 'Installing Rails 2.2 - 2.3 View instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing Rails 2.2 - 2.3 View instrumentation'
   end
   
   executes do    
@@ -78,7 +78,7 @@ DependencyDetection.defer do
   end
   
   executes do
-    NewRelic::Agent.logger.debug 'Installing Rails 2 Controller instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing Rails 2 Controller instrumentation'
   end
   
   executes do

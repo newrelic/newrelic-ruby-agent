@@ -3,45 +3,57 @@ ENV['RAILS_ENV'] = 'test'
 NEWRELIC_PLUGIN_DIR = File.expand_path(File.join(File.dirname(__FILE__),".."))
 $LOAD_PATH << '.'
 $LOAD_PATH << '../../..'
+$LOAD_PATH << File.join(NEWRELIC_PLUGIN_DIR,"lib")
 $LOAD_PATH << File.join(NEWRELIC_PLUGIN_DIR,"test")
 $LOAD_PATH << File.join(NEWRELIC_PLUGIN_DIR,"ui/helpers")
 $LOAD_PATH.uniq!
 
 require 'rubygems'
+require 'rake'
 # We can speed things up in tests that don't need to load rails.
 # You can also run the tests in a mode without rails.  Many tests
 # will be skipped.
 
 begin
   require 'config/environment'
+#   require File.join(File.dirname(__FILE__),'..','..','rpm_test_app','config','environment')
   begin
     require 'test_help'
   rescue LoadError
     # ignore load problems on test help - it doesn't exist in rails 3
   end
+  require 'newrelic_rpm'
+rescue LoadError => e
+  puts "Running tests in standalone mode."
+  require 'bundler'
+  Bundler.require
+  require 'rails/all'
+  require 'newrelic_rpm'
 
-rescue LoadError
-  # To run the tests against a standalone agent build, you need to
-  # add a rails app to the load path.  It can be 2.* to 3.*.  It should
-  # referenc newrelic_rpm in the Gemfile with a :path option pointing 
-  # to this work directory.
-  guess = File.expand_path("../../../rpm", __FILE__)
-  if $LOAD_PATH.include? guess
-    puts "Unable to load Rails for New Relic tests.  See note in test_helper.rb"
-    raise
-  else
-    $LOAD_PATH << guess
-    retry
+  # Bootstrap a basic rails environment for the agent to run in.
+  class MyApp < Rails::Application
+    config.active_support.deprecation = :log
+    config.secret_token = "49837489qkuweoiuoqwehisuakshdjksadhaisdy78o34y138974xyqp9rmye8yrpiokeuioqwzyoiuxftoyqiuxrhm3iou1hrzmjk"
+    config.after_initialize do
+      NewRelic::Agent.manual_start
+    end
   end
+  MyApp.initialize!
+
 end
-require 'newrelic_rpm'
 
 require 'test/unit'
 require 'shoulda'
 require 'test_contexts'
 require 'mocha'
-require 'mocha/integration/test_unit'
-require 'mocha/integration/test_unit/assertion_counter'
+
+begin # 1.8.6
+  require 'mocha/integration/test_unit'
+  require 'mocha/integration/test_unit/assertion_counter'
+rescue LoadError
+end
+
+require 'new_relic/fake_service'
 
 class Test::Unit::TestCase
   include Mocha::API
@@ -115,7 +127,47 @@ def compare_metrics(expected, actual)
   assert_equal(expected.to_a.sort, actual.to_a.sort, "extra: #{(actual - expected).to_a.inspect}; missing: #{(expected - actual).to_a.inspect}")
 end
 
+def with_config(config_hash, level=0)
+  config = NewRelic::Agent::Configuration::DottedHash.new(config_hash)
+  NewRelic::Agent.config.apply_config(config, level)
+  begin
+    yield
+  ensure
+    NewRelic::Agent.config.remove_config(config)
+  end
+end
+
+# Need to be a bit sloppy when testing against the logging--let everything
+# through, but check we (at least) get our particular message we care about
+def expects_logging(level, *with_params)
+  ::NewRelic::Agent.logger.stubs(level)
+  ::NewRelic::Agent.logger.expects(level).with(*with_params).once
+end
+
+# Similarly, have to be specific about the message we "never" expect...
+def expects_no_logging(level, *with_params)
+  ::NewRelic::Agent.logger.stubs(level)
+  ::NewRelic::Agent.logger.expects(level).with(*with_params).never
+end
+
+# Sometimes need to test cases where we muddle with the global logger
+# If so, use this method to ensure it gets restored after we're done
+def without_logger
+  logger = ::NewRelic::Agent.logger
+  ::NewRelic::Agent.logger = nil
+  yield
+ensure
+  ::NewRelic::Agent.logger = logger
+end
+
+module NewRelic
+  def self.fixture_path(name)
+    File.join(File.dirname(__FILE__), 'fixtures', name)
+  end
+end
+
 module TransactionSampleTestHelper
+  module_function
   def make_sql_transaction(*sql)
     sampler = NewRelic::Agent::TransactionSampler.new
     sampler.notice_first_scope_push Time.now.to_f
@@ -150,5 +202,4 @@ module TransactionSampleTestHelper
     sampler.notice_scope_empty
     sampler.samples[0]
   end
-
 end

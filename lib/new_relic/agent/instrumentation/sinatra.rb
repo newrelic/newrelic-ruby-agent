@@ -1,19 +1,22 @@
 require 'new_relic/agent/instrumentation/controller_instrumentation'
 
 DependencyDetection.defer do
+  @name = :sinatra
+
   depends_on do
-    defined?(::Sinatra) && defined?(::Sinatra::Base)
+    defined?(::Sinatra) && defined?(::Sinatra::Base) &&
+      Sinatra::Base.private_method_defined?(:dispatch!)
   end
 
   executes do
-    NewRelic::Agent.logger.debug 'Installing Sinatra instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing Sinatra instrumentation'
   end
 
   executes do
     ::Sinatra::Base.class_eval do
       include NewRelic::Agent::Instrumentation::Sinatra
-      alias route_eval_without_newrelic route_eval
-      alias route_eval route_eval_with_newrelic
+      alias dispatch_without_newrelic dispatch!
+      alias dispatch! dispatch_with_newrelic
     end
   end
 end
@@ -30,26 +33,54 @@ module NewRelic
       # to match them.  HTTP operations are not distinguished.  Multiple matches
       # will all be tracked as separate actions.
       module Sinatra
+        include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
-        include NewRelic::Agent::Instrumentation::ControllerInstrumentation
-
-        def route_eval_with_newrelic(&block_arg)
-          path = unescape(@request.path_info)
-          name = path
-          # Go through each route and look for a match
-          if routes = self.class.routes[@request.request_method]
-            routes.detect do |pattern, keys, conditions, block|
-              if block_arg.equal? block
-                name = pattern.source
-              end
+        def dispatch_with_newrelic
+          txn_name = NewRelic.transaction_name(self.class.routes, @request) do |pattern, keys, conditions|
+            process_route(pattern, keys, conditions) do
+              pattern.source
             end
           end
-          # strip off leading ^ and / chars and trailing $ and /
-          name.gsub!(%r{^[/^]*(.*?)[/\$\?]*$}, '\1')
-          name = 'root' if name.empty?
-          name = @request.request_method + ' ' + name if @request && @request.respond_to?(:request_method)
-          perform_action_with_newrelic_trace(:category => :sinatra, :name => name, :params => @request.params) do
-            route_eval_without_newrelic(&block_arg)
+
+          perform_action_with_newrelic_trace(:category => :sinatra,
+                                             :name => txn_name,
+                                             :params => @request.params) do
+            dispatch_without_newrelic
+          end
+        end
+
+        # Define Request Header accessor for Sinatra
+        def newrelic_request_headers
+          request.env
+        end
+
+        module NewRelic
+          extend self
+
+          def http_verb(request)
+            request.request_method if request.respond_to?(:request_method)
+          end
+
+          def transaction_name(routes, request)
+            name = '(unknown)'
+            verb = http_verb(request)
+
+            Array(routes[verb]).each do |pattern, keys, conditions, block|
+              if route = yield(pattern, keys, conditions)
+                name = route
+                # it's important we short circuit here.  Otherwise we risk
+                # applying conditions from lower priority routes which can
+                # break the action.
+                break
+              end
+            end
+
+            name.gsub!(%r{^[/^]*(.*?)[/\$\?]*$}, '\1')
+            if verb
+              name = verb + ' ' + name
+            end
+
+            name
           end
         end
       end

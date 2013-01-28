@@ -32,7 +32,7 @@ module NewRelic
          end      
         end
         def memcache_key_snippet(method_name)
-          return "" unless NewRelic::Control.instance['capture_memcache_keys']
+          return "" unless NewRelic::Agent.config[:capture_memcache_keys]
           "NewRelic::Agent.instance.transaction_sampler.notice_nosql(args.first.inspect, (Time.now - t0).to_f) rescue nil"
         end
       end
@@ -44,7 +44,7 @@ DependencyDetection.defer do
   @name = :memcache
   
   depends_on do
-    !NewRelic::Control.instance['disable_memcache_instrumentation']
+    !NewRelic::Agent.config[:disable_memcache_instrumentation]
   end
 
   depends_on do
@@ -57,24 +57,24 @@ DependencyDetection.defer do
     if defined? ::MemCache
       NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::MemCache,
                                                                     commands)
-      NewRelic::Agent.logger.debug 'Installing MemCache instrumentation'
+      ::NewRelic::Agent.logger.info 'Installing MemCache instrumentation'
     end
     if defined? ::Memcached
       commands << 'cas'
       NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::Memcached,
                                                                     commands)
-      NewRelic::Agent.logger.debug 'Installing Memcached instrumentation'
+      ::NewRelic::Agent.logger.info 'Installing Memcached instrumentation'
     end
     if defined? ::Dalli::Client
       NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::Dalli::Client,
                                                                     commands)
-      NewRelic::Agent.logger.debug 'Installing Dalli Memcache instrumentation'
+      ::NewRelic::Agent.logger.info 'Installing Dalli Memcache instrumentation'
     end
     if defined? ::Spymemcached
       commands << 'multiget'
       NewRelic::Agent::Instrumentation::Memcache.instrument_methods(::Spymemcached,
                                                                     commands)
-      NewRelic::Agent.logger.debug 'Installing Spymemcached instrumentation'
+      ::NewRelic::Agent.logger.info 'Installing Spymemcached instrumentation'
     end
   end
 end

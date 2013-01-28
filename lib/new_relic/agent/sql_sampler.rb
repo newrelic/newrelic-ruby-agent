@@ -1,5 +1,10 @@
+require 'zlib'
+require 'base64'
+require 'digest/md5'
+
 require 'new_relic/agent'
 require 'new_relic/control'
+
 module NewRelic
   module Agent
 
@@ -18,7 +23,6 @@ module NewRelic
       attr_reader :sql_traces
 
       def initialize
-        configure!
         @sql_traces = {}
         clear_transaction_data
 
@@ -27,51 +31,21 @@ module NewRelic
         # any 'honest-to-god'-multithreaded system
         @samples_lock = Mutex.new
       end
-      
-      def configure!
-        @explain_threshold = config.fetch('explain_threshold', 0.5).to_f
-        @explain_enabled = config.fetch('explain_enabled', true)
-        @stack_trace_threshold = config.fetch('stack_trace_threshold',
-                                              0.5).to_f
-        if config.fetch('enabled', true) &&
-            NewRelic::Control.instance['transaction_tracer'] &&
-            NewRelic::Control.instance['transaction_tracer'].fetch('enabled',
-                                                                   true) &&
-            NewRelic::Control.instance.fetch('collect_traces', true)
-          enable
-        else
-          disable
-        end
-      end
-
-      def config
-        control = NewRelic::Control.instance
-        # Default slow_sql config values to transaction tracer config
-        control.fetch('transaction_tracer', {}).
-          merge( control.fetch('slow_sql', {}) )
-      end
-      
-      # Enable the sql sampler - this also registers it with
-      # the statistics engine.
-      def enable
-        @disabled = false
-      end
-
-      # Disable the sql sampler - this also deregisters it
-      # with the statistics engine.
-      def disable
-        @disabled = true
-      end
 
       def enabled?
-        !@disabled
+        Agent.config[:'slow_sql.enabled'] &&
+          (Agent.config[:'slow_sql.record_sql'] == 'raw' ||
+           Agent.config[:'slow_sql.record_sql'] == 'obfuscated') &&
+          Agent.config[:'transaction_tracer.enabled']
       end
 
       def notice_transaction(path, uri=nil, params={})
         if NewRelic::Agent.instance.transaction_sampler.builder
           guid = NewRelic::Agent.instance.transaction_sampler.builder.sample.guid
         end
-        transaction_data.set_transaction_info(path, uri, params, guid) if !disabled && transaction_data
+        if Agent.config[:'slow_sql.enabled'] && transaction_data
+          transaction_data.set_transaction_info(path, uri, params, guid)
+        end
       end
 
       def notice_first_scope_push(time)
@@ -95,9 +69,9 @@ module NewRelic
         data = transaction_data
         clear_transaction_data
 
-        if data.sql_data.count > 0
+        if data.sql_data.size > 0
           @samples_lock.synchronize do
-            NewRelic::Agent.instance.log.debug "Harvesting #{data.sql_data.count} slow transaction sql statement(s)"
+            ::NewRelic::Agent.logger.debug "Harvesting #{data.sql_data.size} slow transaction sql statement(s)"
             #FIXME get tx name and uri
             harvest_slow_sql data
           end
@@ -123,7 +97,7 @@ module NewRelic
       def notice_sql(sql, metric_name, config, duration)
         return unless transaction_data
         if NewRelic::Agent.is_sql_recorded?
-          if duration > @explain_threshold
+          if duration > Agent.config[:'slow_sql.explain_threshold']
             backtrace = caller.join("\n")
             transaction_data.sql_data << SlowSql.new(sql, metric_name, config,
                                                      duration, backtrace)
@@ -139,12 +113,12 @@ module NewRelic
       end
 
       def harvest
-        return [] if disabled
+        return [] if !Agent.config[:'slow_sql.enabled']
         result = []
         @samples_lock.synchronize do
           result = @sql_traces.values
           @sql_traces = {}
-        end        
+        end
         slowest = result.sort{|a,b| b.max_call_time <=> a.max_call_time}[0,10]
         slowest.each {|trace| trace.prepare_to_send }
         slowest
@@ -235,45 +209,34 @@ module NewRelic
 
         record_data_point slow_sql.duration
       end
-      
+
       def prepare_to_send
-        begin
-          params[:explain_plan] = @slow_sql.explain if need_to_explain?
-        ensure
-          NewRelic::Agent::Database.close_connections
-        end
+        params[:explain_plan] = @slow_sql.explain if need_to_explain?
         @sql = @slow_sql.obfuscate if need_to_obfuscate?
       end
-      
-      def agent_config
-        control = NewRelic::Control.instance
-        control.fetch('slow_sql',
-                      control.fetch('transaction_tracer', {}))
-      end
-      
+
       def need_to_obfuscate?
-        agent_config['record_sql'] == 'obfuscated'
+        Agent.config[:'slow_sql.record_sql'].to_s == 'obfuscated'
       end
 
       def need_to_explain?
-        agent_config['explain_enabled']
+        Agent.config[:'slow_sql.explain_enabled']
       end
-      
-      def to_json(*a)
-        [@path, @url, @sql_id, @sql, @database_metric_name, @call_count, @total_call_time, @min_call_time, @max_call_time, @params].to_json(*a)
+
+      def to_collector_array(encoder)
+        [ @path, @url, @sql_id, @sql, @database_metric_name, @call_count,
+          Helper.time_to_millis(@total_call_time),
+          Helper.time_to_millis(@min_call_time),
+          Helper.time_to_millis(@max_call_time),
+          encoder.encode(@params) ]
       end
 
       private
 
       def consistent_hash(string)
-        if NewRelic::LanguageSupport.using_version?('1.9.2')
-          # String#hash is salted differently on every VM start in 1.9
-          require 'digest/md5'
-          Digest::MD5.hexdigest(string).hex
-        else
-          string.hash
-        end.modulo(2**31-1)
-        # modulo ensures sql_id fits in an INT(11)
+        # need to hash the same way in every process
+        Digest::MD5.hexdigest(string).hex \
+          .modulo(2**31-1)  # ensure sql_id fits in an INT(11)
       end
     end
   end

@@ -6,23 +6,22 @@ module NewRelic
     # A task is a proc or block with a specified call period in seconds.
     class WorkerLoop
 
-      def initialize
-        @log = log
+      # Optional argument :duration (in seconds) for how long the worker loop runs
+      # or :limit (integer) for max number of iterations
+      def initialize(opts={})
         @should_run = true
         @next_invocation_time = Time.now
         @period = 60.0
+        @deadline = Time.now + opts[:duration] if opts[:duration]
+        @limit = opts[:limit] if opts[:limit]
+        @iterations = 0
       end
-      
+
       # returns a class-level memoized mutex to make sure we don't run overlapping
       def lock
         @@lock ||= Mutex.new
       end
-      
-      # a helper to access the NewRelic::Control.instance.log
-      def log
-        NewRelic::Control.instance.log
-      end
-      
+
       # Run infinitely, calling the registered tasks at their specified
       # call periods.  The caller is responsible for creating the thread
       # that runs this worker loop.  This will run the task immediately.
@@ -30,28 +29,37 @@ module NewRelic
         @period = period if period
         @next_invocation_time = (Time.now + @period)
         @task = block
-        while keep_running do
-          now = Time.now
-          while now < @next_invocation_time
+        while keep_running? do
+          while @now < @next_invocation_time
             # sleep until this next task's scheduled invocation time
-            sleep_time = @next_invocation_time - now
+            sleep_time = @next_invocation_time - @now
             sleep sleep_time if sleep_time > 0
-            now = Time.now
+            @now = Time.now
           end
-          run_task if keep_running
+          run_task if keep_running?
+          @iterations += 1 if !@limit.nil?
         end
       end
-      
+
       # a simple accessor for @should_run
-      def keep_running
-        @should_run
+      def keep_running?
+        @now = Time.now
+        @should_run && under_duration? && under_limit?
       end
-      
+
+      def under_duration?
+        !@deadline || @now < @deadline
+      end
+
+      def under_limit?
+        !@limit || @iterations < @limit
+      end
+
       # Sets @should_run to false. Returns false
       def stop
         @should_run = false
       end
-      
+
       # Executes the block given to the worker loop, and handles many
       # possible errors. Also updates the execution time so that the
       # next run occurs on schedule, even if we execute at some odd time
@@ -61,23 +69,21 @@ module NewRelic
             @task.call
           end
         rescue ServerError => e
-          log.debug "Server Error: #{e}"
+          ::NewRelic::Agent.logger.debug "Server Error:", e
         rescue NewRelic::Agent::ForceRestartException, NewRelic::Agent::ForceDisconnectException
           # blow out the loop
           raise
         rescue RuntimeError => e
           # This is probably a server error which has been logged in the server along
           # with your account name.
-          log.error "Error running task in worker loop, likely a server error (#{e})"
-          log.debug e.backtrace.join("\n")
+          ::NewRelic::Agent.logger.error "Error running task in worker loop, likely a server error:", e
         rescue Timeout::Error, NewRelic::Agent::ServerConnectionException
           # Want to ignore these because they are handled already
         rescue SystemExit, NoMemoryError, SignalException
           raise
-        rescue Exception => e
+        rescue => e
           # Don't blow out the stack for anything that hasn't already propagated
-          log.error "Error running task in Agent Worker Loop '#{e}': #{e.backtrace.first}"
-          log.debug e.backtrace.join("\n")
+          ::NewRelic::Agent.logger.error "Error running task in Agent Worker Loop:", e
         end
         now = Time.now
         while @next_invocation_time <= now && @period > 0

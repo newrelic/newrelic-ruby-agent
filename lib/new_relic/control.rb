@@ -2,6 +2,7 @@ require 'yaml'
 require 'conditional_vendored_metric_parser'
 require 'conditional_vendored_dependency_detection'
 require 'new_relic/local_environment'
+require 'new_relic/helper'
 
 require 'singleton'
 require 'erb'
@@ -10,8 +11,6 @@ require 'net/https'
 require 'logger'
 require 'new_relic/control/frameworks'
 require 'new_relic/control/profiling'
-require 'new_relic/control/logging_methods'
-require 'new_relic/control/configuration'
 require 'new_relic/control/server_methods'
 require 'new_relic/control/instrumentation'
 require 'new_relic/control/class_methods'
@@ -35,7 +34,6 @@ module NewRelic
     # extend ClassMethods
     # include InstanceMethods
     # include Profiling
-    # include LoggingMethods
     # include Configuration
     # include ServerMethods
     # include Instrumentation
