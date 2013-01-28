@@ -242,7 +242,7 @@ module NewRelic
     # Although you can override the dispatcher with NEWRELIC_DISPATCHER this
     # is not advisable since it implies certain api's being available.
     def discover_dispatcher
-      dispatchers = %w[passenger torquebox glassfish thin mongrel litespeed webrick fastcgi unicorn sinatra]
+      dispatchers = %w[passenger torquebox trinidad glassfish thin mongrel litespeed webrick fastcgi unicorn sinatra]
       while dispatchers.any? && @discovered_dispatcher.nil?
         send 'check_for_'+(dispatchers.shift)
       end
