@@ -21,6 +21,8 @@ module NewRelic
       # Returns a new error collector
       def initialize
         @errors = []
+        @seen_errors = {}
+
         # lookup of exception class names to ignore.  Hash for fast access
         @ignore = {}
         @capture_source = Agent.config[:'error_collector.capture_source']
@@ -92,7 +94,11 @@ module NewRelic
         end
 
         # Increments a statistic that tracks total error rate
-        def increment_error_count!
+        # Be sure not to double-count same exception. This clears per harvest.
+        def increment_error_count!(exception)
+          return if @seen_errors.has_key?(exception.object_id)
+          @seen_errors[exception.object_id] = true
+
           NewRelic::Agent.get_stats("Errors/all").increment_count
         end
 
@@ -102,7 +108,7 @@ module NewRelic
         def should_exit_notice_error?(exception)
           if enabled?
             if !error_is_ignored?(exception)
-              increment_error_count!
+              increment_error_count!(exception)
               return exception.nil? # exit early if the exception is nil
             end
           end
@@ -239,6 +245,9 @@ module NewRelic
         @lock.synchronize do
           errors = @errors
           @errors = []
+
+          # Only expect to re-see errors on same request, so clear on harvest
+          @seen_errors = {}
 
           if unsent_errors && !unsent_errors.empty?
             errors = unsent_errors + errors
