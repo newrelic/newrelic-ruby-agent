@@ -1,7 +1,7 @@
 # https://newrelic.atlassian.net/browse/RUBY-747
 
 require 'rails/test_help'
-require 'fake_service'
+require 'fake_collector'
 
 class ErrorController < ApplicationController
   include Rails.application.routes.url_helpers
@@ -42,24 +42,31 @@ class ServerIgnoredError < StandardError; end
 
 class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
   def setup
-    NewRelic::Agent::Agent.instance_variable_set(:@instance, NewRelic::Agent::Agent.new)
+    $collector ||= NewRelic::FakeCollector.new
+    $collector.reset
+    setup_collector
+    $collector.run
 
-    @service = NewRelic::FakeService.new
-    NewRelic::Agent::Agent.instance.service = @service
-
+    NewRelic::Agent.reset_config
+    NewRelic::Agent.instance_variable_set(:@agent, nil)
+    NewRelic::Agent::Agent.instance_variable_set(:@instance, nil)
     NewRelic::Agent.manual_start
 
     reset_error_collector
   end
 
+  # Let base class override this without moving where we start the agent
+  def setup_collector
+    $collector.mock['connect'] = [200, {'return_value' => {"agent_run_id" => 666 }}]
+  end
+
   def teardown
     NewRelic::Agent::Agent.instance.shutdown if NewRelic::Agent::Agent.instance
+    NewRelic::Agent::Agent.instance_variable_set(:@instance, nil)
   end
 
   def reset_error_collector
-    @error_collector = NewRelic::Agent.instance.error_collector
-    NewRelic::Agent.instance.error_collector \
-      .instance_variable_set(:@ignore_filter, nil)
+    @error_collector = NewRelic::Agent::Agent.instance.error_collector
 
     # sanity checks
     assert(@error_collector.enabled?,
@@ -153,19 +160,15 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
 end
 
 class ErrorsWithSSCTest < ErrorsWithoutSSCTest
-  def setup
-    super
-    @service.mock['connect'] = {
+  def setup_collector
+    $collector.mock['connect'] = [200, {'return_value' => {
       "listen_to_server_config" => true,
       "agent_run_id" => 1,
       "error_collector.ignore_errors" => 'IgnoredError,ServerIgnoredError',
       "error_collector.enabled" => true,
       "error_collector.capture_source" => true,
       "collect_errors" => true
-    }
-
-    # Force us to apply the mocked connect values to our configuration
-    NewRelic::Agent.instance.query_server_for_configuration
+    }}]
   end
 
   def test_should_notice_server_ignored_error_if_no_server_side_config
