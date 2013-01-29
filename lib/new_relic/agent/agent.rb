@@ -450,7 +450,7 @@ module NewRelic
           # requests, we need to wait until the children are forked
           # before connecting, otherwise the parent process sends odd data
           def using_forking_dispatcher?
-            log_if([:passenger, :unicorn].include?(Agent.config[:dispatcher]),
+            log_if([:passenger, :unicorn, :rainbows].include?(Agent.config[:dispatcher]),
                    :info, "Connecting workers after forking.")
           end
 
@@ -876,11 +876,11 @@ module NewRelic
           control.root
         end
 
-        # Checks whether this process is a Passenger or Unicorn
+        # Checks whether this process is a Passenger or Unicorn or Rainbows
         # spawning server - if so, we probably don't intend to report
         # statistics from this process
         def is_application_spawner?
-          $0 =~ /ApplicationSpawner|^unicorn\S* master/
+          $0 =~ /ApplicationSpawner|^unicorn\S* master|^rainbows master/
         end
 
         # calls the busy harvester and collects timeslice data to

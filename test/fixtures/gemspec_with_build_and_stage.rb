@@ -88,6 +88,7 @@ EOS
     "lib/new_relic/agent/instrumentation/sinatra.rb",
     "lib/new_relic/agent/instrumentation/sunspot.rb",
     "lib/new_relic/agent/instrumentation/unicorn_instrumentation.rb",
+    "lib/new_relic/agent/instrumentation/rainbows_instrumentation.rb",
     "lib/new_relic/agent/method_tracer.rb",
     "lib/new_relic/agent/new_relic_service.rb",
     "lib/new_relic/agent/pipe_channel_manager.rb",
