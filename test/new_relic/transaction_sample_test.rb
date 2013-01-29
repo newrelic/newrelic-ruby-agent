@@ -5,7 +5,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
   ::SQL_STATEMENT = "SELECT * from sandwiches"
 
   def setup
-    @test_config = { 'developer_mode' => true }
+    @test_config = { :developer_mode => true }
     NewRelic::Agent.config.apply_config(@test_config)
     @connection_stub = Mocha::Mockery.instance.named_mock('connection')
     @connection_stub.stubs(:execute).returns([['QUERY RESULT']])
@@ -213,7 +213,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
                       trace_tree,
                       @t.guid, nil, !!@t.force_persist]
 
-    assert_equal expected_array, @t.to_collector_array(marshaller)
+    assert_equal expected_array, @t.to_collector_array(marshaller.default_encoder)
   end
 
   def compress(string)

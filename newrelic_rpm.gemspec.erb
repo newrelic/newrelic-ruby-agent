@@ -27,26 +27,24 @@ EOS
     "<%= file %>",<% end %>
   ]
   s.homepage = "http://www.github.com/newrelic/rpm"
-  s.post_install_message = <<-EOS
-PLEASE NOTE:
 
-Developer Mode is now a Rack middleware.
+  <% # Print this version's CHANGELOG as a post_install_message.
+    version_count = 0
+    changes = []
+    File.read(File.join(File.dirname(__FILE__), 'CHANGELOG')).each_line do |line|
+      if line.match(/##\s+v[\d.]+\s+##/)
+        version_count += 1
+      end
+      break if version_count >= 2
+      changes << line.chomp
+    end
+  %>
 
-Developer Mode is no longer available in Rails 2.1 and earlier.
-However, starting in version 2.12 you can use Developer Mode in any
-Rack based framework, in addition to Rails.  To install developer mode
-in a non-Rails application, just add NewRelic::Rack::DeveloperMode to
-your middleware stack.
+  s.post_install_message = <<'EOS'
+<%= changes.join("\n") %>
 
-If you are using JRuby, we recommend using at least version 1.4 or
-later because of issues with the implementation of the timeout library.
-
-Refer to the README.md file for more information.
-
-Please see http://github.com/newrelic/rpm/blob/master/CHANGELOG
-for a complete description of the features and enhancements available
-in this version of the Ruby Agent.
-
+See https://github.com/newrelic/rpm/blob/master/CHANGELOG for a full list of
+changes.
 EOS
   s.rdoc_options = ["--line-numbers", "--inline-source", "--title", "New Relic Ruby Agent"]
   s.require_paths = ["lib"]

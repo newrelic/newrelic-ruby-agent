@@ -144,7 +144,7 @@ else
 fi
 
 if [ "x$RUBY" == "x1.8.6" ]; then
-  # Bundler 0.1 dropped support for ruby 1.8.6
+  # Bundler 1.1 dropped support for ruby 1.8.6
   bundle -h > /dev/null || gem install bundler -v'~>1.0.0' --no-rdoc --no-ri
 else
   bundle -h > /dev/null || gem install bundler --no-rdoc --no-ri

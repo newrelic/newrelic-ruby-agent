@@ -64,6 +64,9 @@ These tests can be run by invoking:
     bundle
     bundle exec rake test:multiverse
 
+More details are available in
+[test/multiverse/README.md](https://github.com/newrelic/rpm/blob/master/test/multiverse/README.md).
+
 ### And Finally...
 
 You are welcome to send pull requests to us - however, by doing so you agree

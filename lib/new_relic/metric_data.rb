@@ -49,7 +49,7 @@ module NewRelic
       "#<MetricData metric_spec:#{metric_spec.inspect}, stats:#{stats.inspect}, metric_id:#{metric_id.inspect}>"
     end
 
-    def to_collector_array(marshaller=nil)
+    def to_collector_array(encoder=nil)
       stat_key = metric_id || { 'name' => metric_spec.name, 'scope' => metric_spec.scope }
       [ stat_key,
         [ stats.call_count, stats.total_call_time, stats.total_exclusive_time,

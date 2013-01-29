@@ -45,9 +45,13 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     find_metric = "ActiveRecord/ActiveRecordFixtures::Order/find"
 
     assert_calls_metrics(find_metric) do
-      ActiveRecordFixtures::Order.find(:all)
+      all_finder(ActiveRecordFixtures::Order)
       check_metric_count(find_metric, 1)
-      ActiveRecordFixtures::Order.find_all_by_name "jeff"
+      if NewRelic::Control.instance.rails_version >= "4"
+        ActiveRecordFixtures::Order.where(:name =>  "jeff").load
+      else
+        ActiveRecordFixtures::Order.find_all_by_name "jeff"
+      end
       check_metric_count(find_metric, 2)
     end
   end
@@ -74,9 +78,9 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
 
     find_metric = "ActiveRecord/ActiveRecordFixtures::Order/find"
     ActiveRecordFixtures::Order.cache do
-      m = ActiveRecordFixtures::Order.create :id => 0, :name => 'jeff'
+      m = ActiveRecordFixtures::Order.create :id => 1, :name => 'jeff'
       assert_calls_metrics(find_metric) do
-        ActiveRecordFixtures::Order.find(:all)
+        all_finder(ActiveRecordFixtures::Order)
       end
 
       check_metric_count(find_metric, 1)
@@ -151,7 +155,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     # fails due to a bug in rails 3 - log does not provide the correct
     # transaction type - it returns 'SQL' instead of 'Foo Create', for example.
     return if defined?(JRuby) || isSqlite?
-    
+
     expected = %W[
       ActiveRecord/all
       ActiveRecord/find
@@ -169,14 +173,14 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     end
 
     assert_calls_metrics(*expected) do
-      m = ActiveRecordFixtures::Order.create :id => 0, :name => 'donkey'
+      m = ActiveRecordFixtures::Order.create :id => 1, :name => 'donkey'
       m = ActiveRecordFixtures::Order.find(m.id)
       m.id = 999
       m.save!
     end
 
     metrics = NewRelic::Agent.instance.stats_engine.metrics
-        
+
     compare_metrics expected, metrics
     check_metric_count("ActiveRecord/ActiveRecordFixtures::Order/find", 1)
     if NewRelic::Control.instance.rails_version < '3.0.0'
@@ -261,7 +265,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
   end
 
   def test_join_metrics_standard
-    return if (defined?(Rails) && Rails.respond_to?(:version) && Rails.version.to_i == 3)
+    return if (defined?(Rails) && Rails.respond_to?(:version) && Rails.version.to_i >= 3)
     return if defined?(JRuby) || isSqlite?
 
     expected_metrics = %W[
@@ -357,7 +361,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     ActiveRecordFixtures::Order.add_delay
     NewRelic::Agent.disable_all_tracing do
       perform_action_with_newrelic_trace :name => 'bogosity' do
-        ActiveRecordFixtures::Order.find(:all)
+        all_finder(ActiveRecordFixtures::Order)
       end
     end
     assert_nil NewRelic::Agent.instance.transaction_sampler.last_sample
@@ -368,7 +372,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
   def test_run_explains
     perform_action_with_newrelic_trace :name => 'bogosity' do
       ActiveRecordFixtures::Order.add_delay
-      ActiveRecordFixtures::Order.find(:all)
+      all_finder(ActiveRecordFixtures::Order)
     end
 
     # that's a mouthful. perhaps we should ponder our API.
@@ -381,7 +385,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
   def test_prepare_to_send
     perform_action_with_newrelic_trace :name => 'bogosity' do
       ActiveRecordFixtures::Order.add_delay
-      ActiveRecordFixtures::Order.find(:all)
+      all_finder(ActiveRecordFixtures::Order)
     end
     sample = NewRelic::Agent.instance.transaction_sampler.last_sample
     assert_not_nil sample
@@ -412,7 +416,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     sample = NewRelic::Agent.instance.transaction_sampler.reset!
     perform_action_with_newrelic_trace :name => 'bogosity' do
       ActiveRecordFixtures::Order.add_delay
-      ActiveRecordFixtures::Order.find(:all)
+      all_finder(ActiveRecordFixtures::Order)
     end
 
     sample = NewRelic::Agent.instance.transaction_sampler.last_sample
@@ -442,7 +446,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     sample = NewRelic::Agent.instance.transaction_sampler.reset!
     perform_action_with_newrelic_trace :name => 'bogosity' do
       ActiveRecordFixtures::Order.add_delay
-      ActiveRecordFixtures::Order.find(:all)
+      all_finder(ActiveRecordFixtures::Order)
     end
 
     sample = NewRelic::Agent.instance.transaction_sampler.last_sample
@@ -467,7 +471,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     sample = NewRelic::Agent.instance.transaction_sampler.reset!
     perform_action_with_newrelic_trace :name => 'bogosity' do
       ActiveRecordFixtures::Order.add_delay
-      ActiveRecordFixtures::Order.find(:all)
+      all_finder(ActiveRecordFixtures::Order)
     end
 
     sample = NewRelic::Agent.instance.transaction_sampler.last_sample
@@ -482,10 +486,12 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
   # These are only valid for rails 2.1 and later
   if NewRelic::Control.instance.rails_version >= NewRelic::VersionNumber.new("2.1.0")
     ActiveRecordFixtures::Order.class_eval do
-      if NewRelic::Control.instance.rails_version < NewRelic::VersionNumber.new("3.1")
-        named_scope :jeffs, :conditions => { :name => 'Jeff' }
-      else
+      if NewRelic::Control.instance.rails_version >= NewRelic::VersionNumber.new("4")
+        scope :jeffs, lambda { where(:name => 'Jeff') }
+      elsif NewRelic::Control.instance.rails_version >= NewRelic::VersionNumber.new("3.1")
         scope :jeffs, :conditions => { :name => 'Jeff' }
+      else
+        named_scope :jeffs, :conditions => { :name => 'Jeff' }
       end      
     end
     def test_named_scope
@@ -495,7 +501,11 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
 
       check_metric_count(find_metric, 0)
       assert_calls_metrics(find_metric) do
-        x = ActiveRecordFixtures::Order.jeffs.find(:all)
+        if NewRelic::Control.instance.rails_version >= "4"
+          x = ActiveRecordFixtures::Order.jeffs.load
+        else
+          x = ActiveRecordFixtures::Order.jeffs.find(:all)
+        end
       end
       check_metric_count(find_metric, 1)
     end
@@ -566,7 +576,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
   private
 
   def rails3?
-    (defined?(Rails) && Rails.respond_to?(:version) && Rails.version.to_i == 3)
+    (defined?(Rails) && Rails.respond_to?(:version) && Rails.version.to_i >= 3)
   end
 
   def rails_env
@@ -582,5 +592,15 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
 
   def isSqlite?
     ActiveRecord::Base.configurations[rails_env]['adapter'] =~ /sqlite/i
+  end
+
+  def all_finder(relation)
+    if NewRelic::Control.instance.rails_version >= NewRelic::VersionNumber.new("4.0")
+      relation.all.load
+    elsif NewRelic::Control.instance.rails_version >= NewRelic::VersionNumber.new("3.0")
+      relation.all
+    else
+      relation.find(:all)
+    end
   end
 end

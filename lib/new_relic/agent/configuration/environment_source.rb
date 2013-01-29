@@ -9,12 +9,19 @@ module NewRelic
             'NEWRELIC_LICENSE_KEY'  => :license_key,
             'NEW_RELIC_APP_NAME'    => :app_name,
             'NEWRELIC_APP_NAME'     => :app_name,
+            'NEW_RELIC_HOST'        => :host,
+            'NEW_RELIC_PORT'        => :port
+          }.each do |key, val|
+            self[val] = ENV[key] if ENV[key]
+          end
+
+          symbol_map = {
             'NEW_RELIC_DISPATCHER'  => :dispatcher,
             'NEWRELIC_DISPATCHER'   => :dispatcher,
             'NEW_RELIC_FRAMEWORK'   => :framework,
             'NEWRELIC_FRAMEWORK'    => :framework
           }.each do |key, val|
-            self[val] = ENV[key] if ENV[key]
+            self[val] = ENV[key].intern if ENV[key]
           end
 
           boolean_map = {
@@ -34,20 +41,6 @@ module NewRelic
               self[:log_file_path] = File.dirname(ENV['NEW_RELIC_LOG'])
               self[:log_file_name] = File.basename(ENV['NEW_RELIC_LOG'])
             end
-          end
-
-          initialize_thread_profiler_settings
-        end
-
-
-        def initialize_thread_profiler_settings
-          thread_profiler_supported = NewRelic::Agent::ThreadProfiler.is_supported?
-          self[:'thread_profiler.is_supported'] = thread_profiler_supported
-
-          # If not supporting thread profiling, ignore all other enabled's.
-          # Otherwise, don't set so defaulting is heeded.
-          if !thread_profiler_supported
-            self[:'thread_profiler.enabled'] = false
           end
         end
       end

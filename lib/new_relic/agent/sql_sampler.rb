@@ -71,7 +71,7 @@ module NewRelic
 
         if data.sql_data.size > 0
           @samples_lock.synchronize do
-            NewRelic::Agent.instance.log.debug "Harvesting #{data.sql_data.size} slow transaction sql statement(s)"
+            ::NewRelic::Agent.logger.debug "Harvesting #{data.sql_data.size} slow transaction sql statement(s)"
             #FIXME get tx name and uri
             harvest_slow_sql data
           end
@@ -223,30 +223,15 @@ module NewRelic
         Agent.config[:'slow_sql.explain_enabled']
       end
 
-      def to_collector_array(marshaller)
-        params = if marshaller.respond_to?(:encode_compress)
-          marshaller.encode_compress(@params)
-        else
-          @params
-        end
-
+      def to_collector_array(encoder)
         [ @path, @url, @sql_id, @sql, @database_metric_name, @call_count,
           Helper.time_to_millis(@total_call_time),
           Helper.time_to_millis(@min_call_time),
           Helper.time_to_millis(@max_call_time),
-          params ]
+          encoder.encode(@params) ]
       end
 
       private
-
-      def compress(data)
-        if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
-          require 'json'
-          Base64.encode64(Zlib::Deflate.deflate(JSON.dump(data), Zlib::DEFAULT_COMPRESSION))
-        else
-          data
-        end
-      end
 
       def consistent_hash(string)
         # need to hash the same way in every process

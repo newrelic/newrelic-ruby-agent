@@ -27,7 +27,7 @@ module Agent
         # start up a thread that will periodically poll for metric samples
         return if periodic_samplers.empty?
 
-        @sampler_thread = NewRelic::Agent::Thread.new('Sampler Tasks') do
+        @sampler_thread = NewRelic::Agent::AgentThread.new('Sampler Tasks') do
           loop do
             now = Time.now
             begin
@@ -51,7 +51,7 @@ module Agent
       end
 
       def log_added_sampler(type, sampler)
-        log.debug "Adding #{type} sampler: #{sampler.id}"
+        ::NewRelic::Agent.logger.debug "Adding #{type} sampler: #{sampler.id}"
       end
 
       public
@@ -79,9 +79,7 @@ module Agent
             sampled_item.poll
             false # it's okay.  don't delete it.
           rescue => e
-            log.error "Removing #{sampled_item} from list"
-            log.error e
-            log.debug e.backtrace.to_s
+            ::NewRelic::Agent.logger.warn "Removing #{sampled_item} from list", e
             true # remove the sampler
           end
         end

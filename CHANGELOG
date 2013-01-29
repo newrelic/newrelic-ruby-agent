@@ -1,6 +1,48 @@
 
 # New Relic Ruby Agent Release Notes #
 
+## v3.5.5 ##
+
+  * Add thread profiling support
+
+    Thread profiling performs statistical sampling of backtraces of all threads
+    within your Ruby processes. This feature requires MRI >= 1.9.2, and is
+    controlled via the New Relic web UI. JRuby support (in 1.9.x compat mode) is
+    considered experimental, due to issues with JRuby's Thread#backtrace.
+
+  * Add audit logging capability
+
+    The agent can now log all of the data it sends to the New Relic servers to
+    a special log file for human inspection. This feature is off by default, and
+    can be enabled by setting the audit_log.enabled configuration key to true.
+    You may also control the location of the audit log with the audit_log.path key. 
+
+  * Use config system for dispatcher, framework, and config file detection
+
+    Several aspects of the agent's configuration were not being handled by the
+    configuration system.  Detection/configuration of the dispatcher (e.g. passenger,
+    unicorn, resque), framework (e.g. rails3, sinatra), and newrelic.yml
+    location are now handled via the Agent environment, manual, and default
+    configuration sources.
+
+  * Updates to logging across the agent
+
+    We've carefully reviewed the logging messages that the agent outputs, adding
+    details in some cases, and removing unnecessary clutter. We've also altered
+    the startup sequence to ensure that we don't spam STDOUT with messages
+    during initialization.
+
+  * Fix passing environment to manual_start()
+
+    Thanks to Justin Hannus.  The :env key, when passed to Agent.manual_start,
+    can again be used to specify which section of newrelic.yml is loaded.
+
+  * Rails 4 support
+
+    This release includes preliminary support for Rails 4 as of 4.0.0.beta.
+    Rails 4 is still in development, but the agent should work as expected for
+    people who are experimenting with the beta.
+
 ## v3.5.4 ##
 
   * Add queue time support for sinatra apps

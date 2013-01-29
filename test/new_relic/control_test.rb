@@ -50,9 +50,11 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   end
 
   def test_test_config
-    if defined?(Rails) && Rails::VERSION::MAJOR.to_i == 3
+    if defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i == 4
+      assert_equal :rails4, control.app
+    elsif defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i == 3
       assert_equal :rails3, control.app
-    elsif defined?(Rails)
+    elsif defined?(::Rails)
       assert_equal :rails, control.app
     else
       assert_equal :test, control.app
@@ -61,7 +63,7 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     assert_match /test/i, control.local_env.dispatcher_instance_id
     assert("" == NewRelic::Agent.config[:dispatcher].to_s,
            "Expected dispatcher to be empty, but was #{NewRelic::Agent.config[:dispatcher].to_s}")
-    assert_equal false, NewRelic::Agent.config[:monitor_mode]
+    assert !NewRelic::Agent.config[:monitor_mode]
     control.local_env
   end
 
@@ -147,11 +149,6 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     assert_equal old_ipsocket, IPSocket
   end
 
-  def test_log_file_name
-    NewRelic::Control.instance.setup_log
-    assert_match /newrelic_agent.log$/, control.instance_variable_get('@log_file')
-  end
-
   def test_transaction_threshold__override
     with_config(:transaction_tracer => { :transaction_threshold => 1}) do
       assert_equal 1, NewRelic::Agent.config[:'transaction_tracer.transaction_threshold']
@@ -212,7 +209,7 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     NewRelic::Agent.shutdown
     with_config(:disable_samplers => true, :agent_enabled => true) do
       NewRelic::Control.instance.init_plugin
-      assert_equal [], NewRelic::Agent.instance.stats_engine.send(:harvest_samplers)
+      assert NewRelic::Agent.instance.stats_engine.send(:harvest_samplers).empty?
     end
   end
 end

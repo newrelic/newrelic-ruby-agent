@@ -1,0 +1,7 @@
+# don't start the agent
+self.newrelic_gemfile_options=(':require => false')
+gemfile <<-RB
+  # stub file system so we can test that newrelic.yml can be loaded from
+  # various places.
+  gem 'fakefs', :require => 'fakefs/safe'
+RB

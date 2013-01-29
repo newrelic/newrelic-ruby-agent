@@ -13,22 +13,17 @@ painless.
 
 ## Getting started
 
-To run tests against the agent invoke the runner script.
-
-    script/runner
-
-
 You can invoke this via rake
 
-    rake test
+    rake test:multiverse
 
 If you only want to run some test suites you can filter by their names
 
-    script/runner sinatra
+    rake test:multiverse[sinatra]
 
 You can run tests of multiverse itself with
 
-    rake test:self
+    rake test:multiverse:self
 
 ### Adding a test suite
 

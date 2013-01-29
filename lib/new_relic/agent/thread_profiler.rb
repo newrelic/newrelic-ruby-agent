@@ -14,10 +14,10 @@ module NewRelic
 
       def start(profile_id, duration, interval, profile_agent_code)
         if !ThreadProfiler.is_supported?
-          log.debug("Not starting thread profile as it isn't supported on this environment")
+          ::NewRelic::Agent.logger.debug("Not starting thread profile as it isn't supported on this environment")
           @profile = nil
         else
-          log.debug("Starting thread profile. profile_id=#{profile_id}, duration=#{duration}")
+          ::NewRelic::Agent.logger.debug("Starting thread profile. profile_id=#{profile_id}, duration=#{duration}")
           @profile = ThreadProfile.new(profile_id, duration, interval, profile_agent_code)
           @profile.run
         end
@@ -45,12 +45,25 @@ module NewRelic
         name = command["name"]
         arguments = command["arguments"]
 
-        case name
-          when "start_profiler"
-            start_unless_running_and_notify(command_id, arguments, &notify_results)
+        if (ThreadProfiler.is_supported?)
+          case name
+            when "start_profiler"
+              start_unless_running_and_notify(command_id, arguments, &notify_results)
 
-          when "stop_profiler"
-            stop_and_notify(command_id, arguments, &notify_results)
+            when "stop_profiler"
+              stop_and_notify(command_id, arguments, &notify_results)
+          end
+        else
+          msg = <<-EOF
+Thread profiling is only supported on 1.9.2 and greater versions of Ruby.
+We detected running agents capable of profiling, but the profile started with
+an agent running Ruby #{RUBY_VERSION}.
+
+Profiling again might select an appropriate agent, but we recommend running a
+consistent version of Ruby across your application for better results.
+EOF
+          ::NewRelic::Agent.logger.debug(msg)
+          notify_results.call(command_id, msg) if !notify_results.nil?
         end
       end
 
@@ -72,7 +85,7 @@ module NewRelic
 
         if running?
           msg = "Profile already in progress. Ignoring agent command to start another."
-          log.debug(msg)
+          ::NewRelic::Agent.logger.debug(msg)
           yield(command_id, msg) if block_given?
         else
           start(profile_id, duration, interval, profile_agent_code)
@@ -86,9 +99,6 @@ module NewRelic
         yield(command_id) if block_given?
       end
 
-      def log
-        NewRelic::Agent.logger
-      end
     end
 
     class ThreadProfile
@@ -117,10 +127,11 @@ module NewRelic
 
         @poll_count = 0
         @sample_count = 0
+        @failure_count = 0
       end
 
       def run
-        Thread.new('Thread Profiler') do
+        AgentThread.new('Thread Profiler') do
           @start_time = now_in_millis
 
           @worker_loop.run(@interval) do
@@ -128,25 +139,32 @@ module NewRelic
               record_supportability_metrics_timed("ThreadProfiler/PollingTime") do
 
               @poll_count += 1
-              Thread.list.each do |t|
-                @sample_count += 1
-
-                bucket = Thread.bucket_thread(t, @profile_agent_code)
-                backtrace = Thread.scrub_backtrace(t, @profile_agent_code)
-                aggregate(backtrace, @traces[bucket]) unless bucket == :ignore
+              AgentThread.list.each do |t|
+                bucket = AgentThread.bucket_thread(t, @profile_agent_code)
+                if bucket != :ignore
+                  backtrace = AgentThread.scrub_backtrace(t, @profile_agent_code)
+                  if backtrace.nil?
+                    @failure_count += 1
+                  else
+                    @sample_count += 1
+                    aggregate(backtrace, @traces[bucket])
+                  end
+                end
               end
             end
           end
 
           mark_done
-          log.debug("Finished thread profile. Will send with next harvest.")
+          ::NewRelic::Agent.logger.debug("Finished thread profile. #{@sample_count} backtraces, #{@failure_count} failures. Will send with next harvest.")
+          NewRelic::Agent.instance.stats_engine.
+            record_supportability_metrics_count(@failure_count, "ThreadProfiler/BacktraceFailures")
         end
       end
 
       def stop
         @worker_loop.stop
         mark_done
-        log.debug("Stopping thread profile.")
+        ::NewRelic::Agent.logger.debug("Stopping thread profile.")
       end
 
       def aggregate(trace, trees=@traces[:request], parent=nil)
@@ -184,7 +202,7 @@ module NewRelic
 
       THREAD_PROFILER_NODES = 20_000
 
-      def to_compressed_array
+      def to_collector_array(encoder)
         prune!(THREAD_PROFILER_NODES)
 
         traces = {
@@ -196,8 +214,8 @@ module NewRelic
 
         [[@profile_id,
           @start_time.to_f, @stop_time.to_f,
-          @poll_count, 
-          ThreadProfile.compress(JSON.dump(traces)),
+          @poll_count,
+          encoder.encode(traces),
           @sample_count, 0]]
       end
 
@@ -221,10 +239,6 @@ module NewRelic
 
       def self.flattened_nodes(nodes)
         nodes.map { |n| [n, flattened_nodes(n.children)] }.flatten
-      end
-
-      def self.compress(json)
-        compressed = Base64.encode64(Zlib::Deflate.deflate(json, Zlib::DEFAULT_COMPRESSION))
       end
 
       def self.parse_backtrace(trace)
@@ -287,9 +301,6 @@ module NewRelic
         end
       end
 
-      def log
-        NewRelic::Agent.logger
-      end
     end
   end
 end

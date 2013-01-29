@@ -16,18 +16,7 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
     self.expects(:catch_errors).yields
     self.expects(:connect).with('connection_options')
     @connected = false
-    fake_log = mocked_log
-    fake_log.expects(:debug).with("No connection.  Worker thread ending.")
     deferred_work!('connection_options')
-  end
-
-  def test_log_worker_loop_start
-    log = mocked_log
-    log.expects(:info).with("Reporting performance data every 30 seconds.")
-    log.expects(:debug).with("Running worker loop")
-    with_config(:data_report_period => 30) do
-      log_worker_loop_start
-    end
   end
 
   def test_create_and_run_worker_loop
@@ -43,10 +32,8 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
 
   def test_handle_force_restart
     # hooray for methods with no branches
-    error = mock('exception')
-    log = mocked_log
-    error.expects(:message).returns('a message')
-    log.expects(:info).with('a message')
+    error = mock(:message => 'a message')
+
     self.expects(:reset_stats)
     self.expects(:sleep).with(30)
 
@@ -60,37 +47,22 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
   end
 
   def test_handle_force_disconnect
-    error = mock('exception')
-    error.expects(:message).returns('a message')
-    log = mocked_log
-    log.expects(:error).with("New Relic forced this agent to disconnect (a message)")
+    error = mock(:message => 'a message')
+
     self.expects(:disconnect)
     handle_force_disconnect(error)
   end
 
   def test_handle_server_connection_problem
-    error_class = mock('class of exception')
-    error = mock('exception')
-    log = mocked_log
-    log.expects(:error).with('Unable to establish connection with the server.  Run with log level set to debug for more information.')
-    error.expects(:class).returns(error_class)
-    error_class.expects(:name).returns('an error class')
-    error.expects(:message).returns('a message')
-    error.expects(:backtrace).returns(['first line', 'second line'])
-    log.expects(:debug).with("an error class: a message\nfirst line")
+    error = StandardError.new('a message')
+
     self.expects(:disconnect)
     handle_server_connection_problem(error)
   end
 
   def test_handle_other_error
-    error_class = mock('class of exception')
-    error = mock('exception')
-    log = mocked_log
-    error.expects(:class).returns(error_class)
-    error_class.expects(:name).returns('an error class')
-    error.expects(:message).returns('a message')
-    error.expects(:backtrace).returns(['first line', 'second line'])
-    log.expects(:error).with("Terminating worker loop: an error class: a message\n  first line\n  second line")
+    error = StandardError.new('a message')
+
     self.expects(:disconnect)
     handle_other_error(error)
   end
@@ -109,13 +81,6 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
   end
 
   private
-
-  def mocked_log
-    fake_log = mock('log')
-    self.stubs(:log).returns(fake_log)
-    fake_log
-  end
-
 
   def mocked_control
     fake_control = mock('control')

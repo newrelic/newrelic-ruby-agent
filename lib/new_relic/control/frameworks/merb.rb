@@ -11,12 +11,6 @@ module NewRelic
           ::Merb.root
         end
 
-        def to_stdout(msg)
-          Merb.logger.info("NewRelic ~ " + msg)
-        rescue => e
-          STDOUT.puts "NewRelic ~ " + msg
-        end
-
         def init_config options={}
           ::Merb::Plugins.add_rakefiles File.join(newrelic_root,"lib/tasks/all.rb")
 

@@ -6,7 +6,38 @@ require 'zlib'
 require 'new_relic/agent/threaded_test'
 require 'new_relic/agent/thread_profiler'
 
-if RUBY_VERSION < '1.9.2'
+START_COMMAND = [[666,{
+    "name" => "start_profiler",
+    "arguments" => {
+      "profile_id" => 42,
+      "sample_period" => 0.02,
+      "duration" => 0.025,
+      "only_runnable_threads" => false,
+      "only_request_threads" => false,
+      "profile_agent_code" => false,
+    }
+  }]]
+
+STOP_COMMAND = [[666,{
+    "name" => "stop_profiler",
+    "arguments" => {
+      "profile_id" => 42,
+      "report_data" => true,
+    }
+  }]]
+
+STOP_AND_DISCARD_COMMAND = [[666,{
+    "name" => "stop_profiler",
+    "arguments" => {
+      "profile_id" => 42,
+      "report_data" => false,
+    }
+  }]]
+
+NO_COMMAND = []
+
+if !NewRelic::Agent::ThreadProfiler.is_supported?
+
 class ThreadProfilerUnsupportedTest < Test::Unit::TestCase
   def setup
     @profiler = NewRelic::Agent::ThreadProfiler.new
@@ -26,44 +57,20 @@ class ThreadProfilerUnsupportedTest < Test::Unit::TestCase
     @profiler.stop(true)
   end
 
-end
+  def test_wont_start_and_reports_error
+    errors = nil
+    @profiler.respond_to_commands(START_COMMAND) { |_, err| errors = err }
+    assert_equal false, errors.nil?
+    assert_equal false, @profiler.running?
+  end
+
 end
 
-if RUBY_VERSION >= '1.9.2'
+else
+
 require 'json'
 
 class ThreadProfilerTest < ThreadedTest
-
-  START_COMMAND = [[666,{
-      "name" => "start_profiler",
-      "arguments" => {
-        "profile_id" => 42,
-        "sample_period" => 0.02,
-        "duration" => 0.025,
-        "only_runnable_threads" => false,
-        "only_request_threads" => false,
-        "profile_agent_code" => false,
-      }
-    }]]
-
-  STOP_COMMAND = [[666,{
-      "name" => "stop_profiler",
-      "arguments" => {
-        "profile_id" => 42,
-        "report_data" => true,
-      }
-    }]]
-
-  STOP_AND_DISCARD_COMMAND = [[666,{
-      "name" => "stop_profiler",
-      "arguments" => {
-        "profile_id" => 42,
-        "report_data" => false,
-      }
-    }]]
-
-  NO_COMMAND = []
-
   def setup
     super
     @profiler = NewRelic::Agent::ThreadProfiler.new
@@ -116,7 +123,7 @@ class ThreadProfilerTest < ThreadedTest
   end
 
   def test_respond_to_commands_starts_running
-    @profiler.respond_to_commands(START_COMMAND)
+    @profiler.respond_to_commands(START_COMMAND) {|_, err| start_error = err}
     assert_equal true, @profiler.running?
   end
 
@@ -419,7 +426,7 @@ class ThreadProfileTest < ThreadedTest
     assert_equal [], @profile.traces[:other][0].children
   end
 
-  def test_to_compressed_array
+  def test_to_collector_array
     @profile.instance_variable_set(:@start_time, 1350403938892.524)
     @profile.instance_variable_set(:@stop_time, 1350403939904.375)
     @profile.instance_variable_set(:@poll_count, 10)
@@ -447,14 +454,8 @@ class ThreadProfileTest < ThreadedTest
           0
       ]]
 
-    assert_equal expected, @profile.to_compressed_array
-  end
-
-  def test_compress
-    original = '{"OTHER": [[["thread_profiler.py", "<module>", 1], 10, 0, []]], "REQUEST": [], "AGENT": [[["/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/threading.py", "__bootstrap", 489], 10, 0, [[["/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/threading.py", "__bootstrap_inner", 512], 10, 0, [[["/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/threading.py", "run", 480], 10, 0, [[["thread_profiler.py", "_profiler_loop", 76], 10, 0, [[["thread_profiler.py", "_run_profiler", 103], 10, 0, [[["thread_profiler.py", "collect_thread_stacks", 165], 10, 0, []]]]]]]]]]]]], "BACKGROUND": []}'
-    assert_equal( 
-      "eJy9UtFOwjAU/ZWlz2QdKKCGmKBOTDSgY/iyLM02ijR0vcttiVmM/047J0LiA080bdJz2nPPbe/9IrP4KYzIjZckCTFr5NmSVQgrITn6VU06HhmVsNxKfmv33dSuoOPZmaSpBSQK3xbhPHYBHBxPwmncRqPzWhte0heRY4Y1fcSs5J+AG01fa7MG5a9+GfrOUQtQmvb8IZUip1Vzw6GfpIT6aNNhLAcw2mBWWXh5dX2Q01lcmVCKoyX73d5ZvHGrmpcGx27/V2uPmQRwPzQcnCSzJnvOVTq4OEVWgJS8MKw91SYrNtrJB/3jVvkbVnU3vn+eRLPF9KHpm+8dYyPRqg==",
-      NewRelic::Agent::ThreadProfile.compress(original).gsub(/\n/, ''))
+    marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+    assert_equal expected, @profile.to_collector_array(marshaller.default_encoder)
   end
 end
 
@@ -520,7 +521,7 @@ class ThreadProfileNodeTest < Test::Unit::TestCase
     assert_equal [], parent.children
   end
 
-  def test_prune_removes_children
+  def test_prune_removes_grandchildren
     parent = NewRelic::Agent::ThreadProfile::Node.new(SINGLE_LINE)
     child = NewRelic::Agent::ThreadProfile::Node.new(SINGLE_LINE, parent)
     grandchild = NewRelic::Agent::ThreadProfile::Node.new(SINGLE_LINE, child)

@@ -6,8 +6,8 @@ DependencyDetection.defer do
   end
   
   executes do
-    NewRelic::Agent.logger.debug 'Installing Rainbows instrumentation'
-    NewRelic::Agent.logger.info 'Detected Rainbows, please see additional documentation: https://newrelic.com/docs/troubleshooting/im-using-unicorn-and-i-dont-see-any-data'
+    ::NewRelic::Agent.logger.info 'Installing Rainbows instrumentation'
+    ::NewRelic::Agent.logger.info 'Detected Rainbows, please see additional documentation: https://newrelic.com/docs/troubleshooting/im-using-unicorn-and-i-dont-see-any-data'
   end
   
   executes do

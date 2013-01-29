@@ -76,7 +76,7 @@ module NewRelic
         def start
           return if @started == true
           @started = true
-          @thread = NewRelic::Agent::Thread.new('Pipe Channel Manager') do
+          @thread = NewRelic::Agent::AgentThread.new('Pipe Channel Manager') do
             now = nil
             loop do
               clean_up_pipes
@@ -149,7 +149,7 @@ module NewRelic
           end
         rescue StandardError => e
           msg = "#{e.class.name} '#{e.message}' trying to load #{Base64.encode64(data)}"
-          NewRelic::Control.instance.log.debug(msg)
+          ::NewRelic::Agent.logger.debug(msg)
           nil
         end
 
