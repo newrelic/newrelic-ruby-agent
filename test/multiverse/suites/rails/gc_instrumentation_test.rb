@@ -7,22 +7,13 @@ if (defined?(RUBY_DESCRIPTION) && RUBY_DESCRIPTION =~ /Enterprise/) ||
 class GcController < ApplicationController
   include Rails.application.routes.url_helpers
   def gc_action
-    GC.disable
-
     long_string = "01234567" * 100_000
     long_string = nil
     another_long_string = "01234567" * 100_000
 
-    start = Time.now
-    GC.enable
     GC.start
-    stop = Time.now
 
-    @duration = stop.to_f - start.to_f
-
-    render :text => @duration.to_s
-  ensure
-    GC.enable
+    render :text => 'ha'
   end
 end
 
@@ -42,17 +33,21 @@ class GCRailsInstrumentationTest < ActionController::TestCase
   end
 
   def test_records_accurate_time_for_gc_activity
+    start = Time.now
     get :gc_action
+    elapsed = Time.now.to_f - start.to_f
 
-    assert_in_range(assigns[:duration], get_call_time('GC/cumulative'))
-    assert_in_range(assigns[:duration], get_call_time('GC/cumulative', 'Controller/gc/gc_action'))
+    assert_in_range(elapsed, get_call_time('GC/cumulative'))
+    assert_in_range(elapsed, get_call_time('GC/cumulative', 'Controller/gc/gc_action'))
   end
 
   def test_records_transaction_param_for_gc_activity
+    start = Time.now.to_f
     get :gc_action
+    elapsed = Time.now.to_f - start
 
     trace = NewRelic::Agent.instance.transaction_sampler.last_sample
-    assert_in_range(assigns[:duration], trace.params[:custom_params][:gc_time])
+    assert_in_range(elapsed, trace.params[:custom_params][:gc_time])
   end
 
   def assert_in_range(duration, gc_time)
