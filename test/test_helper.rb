@@ -44,7 +44,6 @@ end
 
 require 'test/unit'
 require 'shoulda'
-require 'test_contexts'
 require 'mocha'
 
 begin # 1.8.6
@@ -52,8 +51,6 @@ begin # 1.8.6
   require 'mocha/integration/test_unit/assertion_counter'
 rescue LoadError
 end
-
-require 'new_relic/fake_service'
 
 class Test::Unit::TestCase
   include Mocha::API

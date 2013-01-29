@@ -8,7 +8,10 @@ module NewRelic
       def setup
         super
         @agent = NewRelic::Agent::Agent.new
-        @agent.service = NewRelic::FakeService.new
+
+        @agent.service = stub
+        @agent.service.stubs(:request_timeout=)
+        @agent.service.stubs(:agent_id)
       end
 
       #
@@ -60,16 +63,24 @@ module NewRelic
       end
 
       def test_transmit_data_should_transmit
+        @agent.service.expects(:metric_data)
+        @agent.service.stubs(:get_agent_commands).returns([])
+
         @agent.instance_eval { transmit_data }
-        assert @agent.service.agent_data.any?
       end
 
       def test_transmit_data_should_close_explain_db_connections
+        @agent.service.stubs(:metric_data)
+        @agent.service.stubs(:get_agent_commands).returns([])
+
         NewRelic::Agent::Database.expects(:close_connections)
         @agent.instance_eval { transmit_data }
       end
 
       def test_transmit_data_should_not_close_db_connections_if_forked
+        @agent.service.stubs(:metric_data)
+        @agent.service.stubs(:get_agent_commands).returns([])
+
         NewRelic::Agent::Database.expects(:close_connections).never
         @agent.after_fork
         @agent.instance_eval { transmit_data }
@@ -93,6 +104,7 @@ module NewRelic
                                                :explain_sql => 2,
                                                :keep_backtraces => true)
           @agent.instance_variable_set(:@traces, [ trace ])
+          @agent.service.stubs(:transaction_sample_data)
           @agent.send :harvest_and_send_slowest_sample
         end
       end
@@ -100,32 +112,27 @@ module NewRelic
       def test_graceful_shutdown_ends_thread_profiling
         @agent.thread_profiler.expects(:stop).once
         @agent.stubs(:connected?).returns(true)
+        @agent.service.stubs(:metric_data)
+        @agent.service.stubs(:get_agent_commands).returns([])
         @agent.send(:graceful_disconnect)
       end
 
       def test_harvest_and_send_thread_profile
         profile = with_profile(:finished => true)
+        @agent.service.expects(:profile_data).with(any_parameters)
         @agent.send(:harvest_and_send_thread_profile, false)
-
-        assert_equal([profile],
-                    @agent.service.agent_data \
-                      .find{|data| data.action == :profile_data}.params)
       end
 
       def test_harvest_and_send_thread_profile_when_not_finished
         with_profile(:finished => false)
+        @agent.service.expects(:profile_data).never
         @agent.send(:harvest_and_send_thread_profile, false)
-
-        assert_nil @agent.service.agent_data.find{|data| data.action == :profile_data}
       end
 
       def test_harvest_and_send_thread_profile_when_not_finished_but_disconnecting
         profile = with_profile(:finished => false)
+        @agent.service.expects(:profile_data).with(any_parameters)
         @agent.send(:harvest_and_send_thread_profile, true)
-
-        assert_equal([profile],
-                     @agent.service.agent_data \
-                       .find{|data| data.action == :profile_data}.params)
       end
 
       def test_harvest_timeslice_data
@@ -158,8 +165,8 @@ module NewRelic
       end
 
       def test_check_for_agent_commands
+        @agent.service.expects(:get_agent_commands).returns([]).once
         @agent.send :check_for_agent_commands
-        assert_equal(1, @agent.service.calls_for(:get_agent_commands).size)
       end
 
       def test_merge_data_from_empty

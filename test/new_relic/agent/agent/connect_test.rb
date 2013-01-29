@@ -183,9 +183,8 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
 
   def test_connect_to_server_gets_config_from_collector
     NewRelic::Agent.manual_start
-    service = NewRelic::FakeService.new
-    NewRelic::Agent::Agent.instance.service = service
-    service.mock['connect'] = {'agent_run_id' => 23, 'config' => 'a lot'}
+    NewRelic::Agent::Agent.instance.service = stub(
+      :connect => {'agent_run_id' => 23, 'config' => 'a lot'})
 
     response = NewRelic::Agent.agent.connect_to_server
 
@@ -217,13 +216,16 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
 
   def test_logging_collector_messages
     NewRelic::Agent.manual_start
-    service = NewRelic::FakeService.new
+    service = stub_everything(
+      :connect => {
+        'agent_run_id' => 23, 'config' => 'a lot',
+        'messages' => [{ 'message' => 'beep boop', 'level' => 'INFO' },
+                       { 'message' => 'ha cha cha', 'level' => 'WARN' }]
+      },
+      :collector => stub_everything
+    )
+
     NewRelic::Agent::Agent.instance.service = service
-    service.mock['connect'] = {
-      'agent_run_id' => 23, 'config' => 'a lot',
-      'messages' => [{ 'message' => 'beep boop', 'level' => 'INFO' },
-                     { 'message' => 'ha cha cha', 'level' => 'WARN' }]
-    }
 
     expects_logging(:info, 'beep boop')
     expects_logging(:warn, 'ha cha cha')
@@ -236,22 +238,6 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     @service.agent_id = 'blah'
     finish_setup(nil)
     assert_equal 'blah', @service.agent_id
-  end
-
-  # no idea why this test leaks in Rails 2.0
-  # will be moved to a multiverse test eventually anyway
-  if !Rails::VERSION::STRING =~ /2\.0.*/
-    def test_set_apdex_t_from_server
-      service = NewRelic::FakeService.new
-      NewRelic::Agent::Agent.instance.service = service
-      service.mock['connect'] = { 'apdex_t' => 0.5 }
-      with_config(:sync_startup => true, :monitor_mode => true,
-                  :license_key => 'a' * 40) do
-        NewRelic::Agent.manual_start
-        assert_equal 0.5, NewRelic::Agent.config[:apdex_t]
-        NewRelic::Agent.shutdown
-      end
-    end
   end
 
   private
