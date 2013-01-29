@@ -186,16 +186,6 @@ module NewRelic
             end
           end
 
-          def clone_and_reset_stats(metric_spec, stats)
-            if stats.nil?
-              raise "Nil stats for #{metric_spec.name} (#{metric_spec.scope})"
-            end
-
-            stats_copy = stats.clone
-            stats.reset
-            stats_copy
-          end
-
           # if the previous timeslice data has not been reported (due to an error of some sort)
           # then we need to merge this timeslice with the previously accumulated - but not sent
           # data
@@ -215,15 +205,16 @@ module NewRelic
           def merge_stats(other_engine_or_hash, metric_ids)
             old_data = get_stats_hash_from(other_engine_or_hash)
             timeslice_data = {}
+            stats_hash_copy = nil
             stats_hash.lock.synchronize do
-              Thread.current['newrelic_stats_hash'] = stats_hash.clone
+              stats_hash_copy = stats_hash.clone
               stats_hash.reset
             end
-            Thread.current['newrelic_stats_hash'].each do |metric_spec, stats|
+            stats_hash_copy.each do |metric_spec, stats|
               metric_spec = coerce_to_metric_spec(metric_spec)
-              stats_copy = clone_and_reset_stats(metric_spec, stats)
-              merge_old_data!(metric_spec, stats_copy, old_data)
-              add_data_to_send_unless_empty(timeslice_data, stats_copy, metric_spec, metric_ids[metric_spec])
+              raise "nil stats for #{metric_spec.name} (#{metric_spec.scope})" unless stats
+              merge_old_data!(metric_spec, stats, old_data)
+              add_data_to_send_unless_empty(timeslice_data, stats, metric_spec, metric_ids[metric_spec])
             end
             timeslice_data
           end
