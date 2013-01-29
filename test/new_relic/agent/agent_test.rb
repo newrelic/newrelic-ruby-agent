@@ -18,16 +18,6 @@ module NewRelic
       # Helpers
       #
 
-      def with_config( options )
-        config_source = NewRelic::Agent::Configuration::ManualSource.new( options )
-        NewRelic::Agent.config.apply_config( config_source )
-
-        yield
-
-      ensure
-        NewRelic::Agent.config.remove_config( config_source ) if config_source
-      end
-
       def with_profile(opts)
         profile = NewRelic::Agent::ThreadProfile.new(-1, 0, 0, true)
         profile.aggregate(["chunky.rb:42:in `bacon'"], profile.traces[:other])
