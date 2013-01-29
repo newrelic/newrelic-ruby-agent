@@ -68,6 +68,8 @@ unless ENV['FAST_TESTS']
       assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
       assert_includes @engine.metrics, 'External/allOther'
       assert_includes @engine.metrics, 'External/www.google.com/all'
+
+      assert_not_includes @engine.metrics, 'External/allWeb'
     end
 
     def test_background
@@ -89,6 +91,8 @@ unless ENV['FAST_TESTS']
       assert_includes @engine.metrics,
         'External/www.google.com/Net::HTTP/GET:OtherTransaction/Background/' +
         'NewRelic::Agent::Instrumentation::NetInstrumentationTest/task'
+
+      assert_not_includes @engine.metrics, 'External/allWeb'
     end
 
     def test_transactional
@@ -110,6 +114,8 @@ unless ENV['FAST_TESTS']
       assert_includes @engine.metrics,
         'External/www.google.com/Net::HTTP/GET:Controller/' +
         'NewRelic::Agent::Instrumentation::NetInstrumentationTest/task'
+
+      assert_not_includes @engine.metrics, 'External/allOther'
     end
     
     def test_get__simple
@@ -119,6 +125,8 @@ unless ENV['FAST_TESTS']
       assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
       assert_includes @engine.metrics, 'External/allOther'
       assert_includes @engine.metrics, 'External/www.google.com/all'
+
+      assert_not_includes @engine.metrics, 'External/allWeb'
     end
     
     def test_ignore
@@ -133,6 +141,8 @@ unless ENV['FAST_TESTS']
       assert_not_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
       assert_not_includes @engine.metrics, 'External/allOther'
       assert_not_includes @engine.metrics, 'External/www.google.com/all'
+
+      assert_not_includes @engine.metrics, 'External/allWeb'
     end
     
     def test_head
@@ -145,6 +155,8 @@ unless ENV['FAST_TESTS']
       assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/HEAD'
       assert_includes @engine.metrics, 'External/allOther'
       assert_includes @engine.metrics, 'External/www.google.com/all'
+
+      assert_not_includes @engine.metrics, 'External/allWeb'
     end
 
     def test_post
@@ -157,6 +169,28 @@ unless ENV['FAST_TESTS']
       assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/POST'
       assert_includes @engine.metrics, 'External/allOther'
       assert_includes @engine.metrics, 'External/www.google.com/all'
+
+      assert_not_includes @engine.metrics, 'External/allWeb'
+    end
+
+    def test_instrumentation_fires_outgoing_service_call_hooks
+      request = response = nil
+      NewRelic::Agent.instance.events.subscribe(:before_http_request) do |arg|
+        request = arg
+      end
+      NewRelic::Agent.instance.events.subscribe(:after_http_response) do |arg|
+        response = arg
+      end
+
+      res = Net::HTTP.get( URI.parse('http://www.google.com/index.html') )
+
+      assert_instance_of Net::HTTP::Get, request
+      assert_equal 'GET', request.method
+      assert_equal '/index.html', request.path
+
+      assert_instance_of Net::HTTPOK, response
+      assert_equal '200', response.code
+      assert_match %r/<head>/i, response.body
     end
 
   end
