@@ -1,5 +1,6 @@
 ENV['SKIP_RAILS'] = 'true'
 require File.expand_path('../../../test_helper', __FILE__)
+require File.expand_path('../../../test_contexts', __FILE__)
 
 class NewRelic::Agent::RpmAgentTest < Test::Unit::TestCase # ActiveSupport::TestCase
   extend TestContexts
