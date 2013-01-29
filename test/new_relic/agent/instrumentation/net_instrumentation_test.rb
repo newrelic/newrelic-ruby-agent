@@ -1,6 +1,7 @@
 #-*- ruby -*-
 
 require 'net/http'
+require 'pp'
 
 unless ENV['FAST_TESTS']
   require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
@@ -42,50 +43,84 @@ unless ENV['FAST_TESTS']
       TCPSocket.stubs(:open).returns(@socket)
     end
 
+    
+    #
+    # Helpers
+    #
+
     def metrics_without_gc
       @engine.metrics - ['GC/cumulative']
     end
 
-    private :metrics_without_gc
+
+    #
+    # Tests
+    #
 
     def test_get
       url = URI.parse('http://www.google.com/index.html')
       res = Net::HTTP.start(url.host, url.port) {|http|
         http.get('/index.html')
       }
-      assert_match /<head>/i, res.body
-      assert_equal %w[External/all External/www.google.com/Net::HTTP/GET External/allOther External/www.google.com/all].sort,
-        metrics_without_gc.sort
+      
+      assert_match %r/<head>/i, res.body
+      assert_includes @engine.metrics, 'External/all'
+      assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
+      assert_includes @engine.metrics, 'External/allOther'
+      assert_includes @engine.metrics, 'External/www.google.com/all'
     end
 
     def test_background
+      res = nil
+
       perform_action_with_newrelic_trace("task", :category => :task) do
         url = URI.parse('http://www.google.com/index.html')
         res = Net::HTTP.start(url.host, url.port) {|http|
           http.get('/index.html')
         }
-        assert_match /<head>/i, res.body
       end
-      assert_equal %w[External/all External/www.google.com/Net::HTTP/GET External/allOther External/www.google.com/all
-       External/www.google.com/Net::HTTP/GET:OtherTransaction/Background/NewRelic::Agent::Instrumentation::NetInstrumentationTest/task].sort, metrics_without_gc.select{|m| m =~ /^External/}.sort
+
+      assert_match %r/<head>/i, res.body
+
+      assert_includes @engine.metrics, 'External/all'
+      assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
+      assert_includes @engine.metrics, 'External/allOther'
+      assert_includes @engine.metrics, 'External/www.google.com/all'
+      assert_includes @engine.metrics,
+        'External/www.google.com/Net::HTTP/GET:OtherTransaction/Background/' +
+        'NewRelic::Agent::Instrumentation::NetInstrumentationTest/task'
     end
 
     def test_transactional
+      res = nil
+
       perform_action_with_newrelic_trace("task") do
         url = URI.parse('http://www.google.com/index.html')
         res = Net::HTTP.start(url.host, url.port) {|http|
           http.get('/index.html')
         }
-        assert_match /<head>/i, res.body
       end
-      assert_equal %w[External/all External/www.google.com/Net::HTTP/GET External/allWeb External/www.google.com/all
-       External/www.google.com/Net::HTTP/GET:Controller/NewRelic::Agent::Instrumentation::NetInstrumentationTest/task].sort, metrics_without_gc.select{|m| m =~ /^External/}.sort
+
+      assert_match %r/<head>/i, res.body
+
+      assert_includes @engine.metrics, 'External/all'
+      assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
+      assert_includes @engine.metrics, 'External/allWeb'
+      assert_includes @engine.metrics, 'External/www.google.com/all'
+      assert_includes @engine.metrics,
+        'External/www.google.com/Net::HTTP/GET:Controller/' +
+        'NewRelic::Agent::Instrumentation::NetInstrumentationTest/task'
     end
+    
     def test_get__simple
       Net::HTTP.get URI.parse('http://www.google.com/index.html')
-      assert_equal metrics_without_gc.sort,
-      %w[External/all External/www.google.com/Net::HTTP/GET External/allOther External/www.google.com/all].sort
+
+      assert_includes @engine.metrics, 'External/all'
+      assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
+      assert_includes @engine.metrics, 'External/allOther'
+      assert_includes @engine.metrics, 'External/www.google.com/all'
     end
+    
     def test_ignore
       NewRelic::Agent.disable_all_tracing do
         url = URI.parse('http://www.google.com/index.html')
@@ -93,15 +128,23 @@ unless ENV['FAST_TESTS']
           http.post('/index.html','data')
         }
       end
-      assert_equal 0, metrics_without_gc.size
+
+      assert_not_includes @engine.metrics, 'External/all'
+      assert_not_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
+      assert_not_includes @engine.metrics, 'External/allOther'
+      assert_not_includes @engine.metrics, 'External/www.google.com/all'
     end
+    
     def test_head
       url = URI.parse('http://www.google.com/index.html')
       res = Net::HTTP.start(url.host, url.port) {|http|
         http.head('/index.html')
       }
-      assert_equal %w[External/all External/www.google.com/Net::HTTP/HEAD External/allOther External/www.google.com/all].sort,
-      metrics_without_gc.sort
+
+      assert_includes @engine.metrics, 'External/all'
+      assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/HEAD'
+      assert_includes @engine.metrics, 'External/allOther'
+      assert_includes @engine.metrics, 'External/www.google.com/all'
     end
 
     def test_post
@@ -109,8 +152,11 @@ unless ENV['FAST_TESTS']
       res = Net::HTTP.start(url.host, url.port) {|http|
         http.post('/index.html','data')
       }
-      assert_equal %w[External/all External/www.google.com/Net::HTTP/POST External/allOther External/www.google.com/all].sort,
-      metrics_without_gc.sort
+
+      assert_includes @engine.metrics, 'External/all'
+      assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/POST'
+      assert_includes @engine.metrics, 'External/allOther'
+      assert_includes @engine.metrics, 'External/www.google.com/all'
     end
 
   end
