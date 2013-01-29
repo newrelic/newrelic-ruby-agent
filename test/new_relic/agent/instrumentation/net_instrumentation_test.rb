@@ -1,3 +1,7 @@
+#-*- ruby -*-
+
+require 'net/http'
+
 unless ENV['FAST_TESTS']
   require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 
@@ -7,6 +11,10 @@ unless ENV['FAST_TESTS']
       NewRelic::Agent.manual_start
       @engine = NewRelic::Agent.instance.stats_engine
       @engine.clear_stats
+
+      # Don't actually talk to Google.
+      @response = mock("response")
+      Net::HTTP.stubs(:transport_request).returns( @response )
     end
 
     def metrics_without_gc
@@ -22,7 +30,7 @@ unless ENV['FAST_TESTS']
       }
       assert_match /<head>/i, res.body
       assert_equal %w[External/all External/www.google.com/Net::HTTP/GET External/allOther External/www.google.com/all].sort,
-      metrics_without_gc.sort
+        metrics_without_gc.sort
     end
 
     def test_background
