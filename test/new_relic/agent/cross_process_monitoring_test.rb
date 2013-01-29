@@ -2,17 +2,17 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 
 module NewRelic::Agent
   class CrossProcessMonitorTest < Test::Unit::TestCase
-    AGENT_CROSS_PROCESS_ID = "qwerty"
-    REQUEST_CROSS_PROCESS_ID = "42#1234"
+    AGENT_CROSS_PROCESS_ID    = "qwerty"
+    REQUEST_CROSS_PROCESS_ID  = "42#1234"
 
-    ENCODING_KEY_NOOP = "\0"
-    TRUSTED_ACCOUNT_IDS = [42,13]
+    ENCODING_KEY_NOOP         = "\0"
+    TRUSTED_ACCOUNT_IDS       = [42,13]
 
     CROSS_PROCESS_ID_POSITION = 0
     TRANSACTION_NAME_POSITION = 1
-    QUEUE_TIME_POSITION = 2
-    APP_TIME_POSITION = 3
-    CONTENT_LENGTH_POSITION = 4
+    QUEUE_TIME_POSITION       = 2
+    APP_TIME_POSITION         = 3
+    CONTENT_LENGTH_POSITION   = 4
 
     def setup
       @response = {}
@@ -23,6 +23,10 @@ module NewRelic::Agent
         :encoding_key => ENCODING_KEY_NOOP,
         :trusted_account_ids => TRUSTED_ACCOUNT_IDS)
     end
+
+    #
+    # Helpers
+    #
 
     def when_request_runs(request=for_id(REQUEST_CROSS_PROCESS_ID))
       @monitor.save_client_cross_process_id(request)
@@ -38,6 +42,32 @@ module NewRelic::Agent
 
       options
     end
+
+    def with_default_timings
+      NewRelic::Agent::BrowserMonitoring.stubs(:timings).returns(stub(
+          :transaction_name => "transaction",
+          :queue_time_in_seconds => 1000,
+          :app_time_in_seconds => 2000))
+    end
+
+    def for_id(id)
+      encoded_id = id == "" ? "" : Base64.encode64(id)
+      { 'X-NewRelic-ID' => encoded_id }
+    end
+
+    def response_app_data
+      @response['X-NewRelic-App-Data']
+    end
+
+    def unpacked_response
+      # Assumes array is valid JSON and Ruby, which is currently is
+      eval(Base64.decode64(response_app_data))
+    end
+
+
+    #
+    # Tests
+    #
 
     def test_adds_response_header
       with_default_timings
@@ -166,25 +196,5 @@ module NewRelic::Agent
       assert_equal [], @monitor.send(:get_bytes, nil)
     end
 
-    def with_default_timings
-      NewRelic::Agent::BrowserMonitoring.stubs(:timings).returns(stub(
-          :transaction_name => "transaction",
-          :queue_time_in_seconds => 1000,
-          :app_time_in_seconds => 2000))
-    end
-
-    def for_id(id)
-      encoded_id = id == "" ? "" : Base64.encode64(id)
-      { 'X-NewRelic-ID' => encoded_id }
-    end
-
-    def response_app_data
-      @response['X-NewRelic-App-Data']
-    end
-
-    def unpacked_response
-      # Assumes array is valid JSON and Ruby, which is currently is
-      eval(Base64.decode64(response_app_data))
-    end
   end
 end
