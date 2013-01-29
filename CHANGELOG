@@ -9,6 +9,13 @@
     (https://github.com/defunkt/resque/issues/578), as well as a file descriptor
     leak that could occur during startup of the Resque master process.
 
+  * Fix for error graph over 100%
+
+    Some errors were double counted toward the overall error total. This
+    resulted in graphs with error percentages over 100%. This duplication did
+    not impact the specific error traces captured, only the total metric.
+
+
 ## v3.5.5 ##
 
   * Add thread profiling support

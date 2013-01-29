@@ -21,7 +21,7 @@ module NewRelic
       # Returns a new error collector
       def initialize
         @errors = []
-        @seen_errors = {}
+        @seen_error_ids = []
 
         # lookup of exception class names to ignore.  Hash for fast access
         @ignore = {}
@@ -96,8 +96,8 @@ module NewRelic
         # Increments a statistic that tracks total error rate
         # Be sure not to double-count same exception. This clears per harvest.
         def increment_error_count!(exception)
-          return if @seen_errors.has_key?(exception.object_id)
-          @seen_errors[exception.object_id] = true
+          return if @seen_error_ids.include?(exception.object_id)
+          @seen_error_ids << exception.object_id
 
           NewRelic::Agent.get_stats("Errors/all").increment_count
         end
@@ -247,7 +247,7 @@ module NewRelic
           @errors = []
 
           # Only expect to re-see errors on same request, so clear on harvest
-          @seen_errors = {}
+          @seen_error_ids = []
 
           if unsent_errors && !unsent_errors.empty?
             errors = unsent_errors + errors
