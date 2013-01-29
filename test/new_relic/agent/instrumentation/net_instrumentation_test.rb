@@ -7,14 +7,39 @@ unless ENV['FAST_TESTS']
 
   class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::TestCase
     include NewRelic::Agent::Instrumentation::ControllerInstrumentation
+
+    CANNED_RESPONSE = (<<-"END_RESPONSE").gsub(/^    /m, '')
+    HTTP/1.1 200 OK
+    status: 200 OK
+    version: HTTP/1.1
+    cache-control: private, max-age=0
+    content-type: text/html; charset=UTF-8
+    date: Tue, 29 Jan 2013 21:52:04 GMT
+    expires: -1
+    server: gws
+    x-frame-options: SAMEORIGIN
+    x-xss-protection: 1; mode=block
+    
+    <html><head><title>Canned Response</title></head><body>Canned response.</body></html>
+    END_RESPONSE
+
+
     def setup
       NewRelic::Agent.manual_start
       @engine = NewRelic::Agent.instance.stats_engine
       @engine.clear_stats
 
       # Don't actually talk to Google.
-      @response = mock("response")
-      Net::HTTP.stubs(:transport_request).returns( @response )
+      @socket = stub("socket") do
+        stubs(:closed?).returns(false)
+        stubs(:close)
+        stubs(:read_nonblock).returns(CANNED_RESPONSE).then.raises(EOFError)
+
+        def self.write( buf )
+          buf.length
+        end
+      end
+      TCPSocket.stubs(:open).returns(@socket)
     end
 
     def metrics_without_gc
