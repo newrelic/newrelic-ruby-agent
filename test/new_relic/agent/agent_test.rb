@@ -70,10 +70,6 @@ module NewRelic
         @agent.instance_eval { transmit_data }
       end
 
-      def test_serialize
-        assert_equal([{}, [], []], @agent.send(:serialize), "should return nil when shut down")
-      end
-
       def test_harvest_transaction_traces
         assert_equal([], @agent.send(:harvest_transaction_traces), 'should return transaction traces')
       end

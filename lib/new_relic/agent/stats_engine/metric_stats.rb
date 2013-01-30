@@ -119,7 +119,6 @@ module NewRelic
           stats_hash.has_key?(spec) ? stats_hash[spec] : nil
         end
 
-
         # Helper method for timing supportability metrics
         def record_supportability_metrics_timed(metrics)
           start_time = Time.now
