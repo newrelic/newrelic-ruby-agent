@@ -8,6 +8,9 @@ class SinatraRouteTestApp < Sinatra::Base
         halt 404 unless boolean
       end
     end
+
+    # treat errors like production for testing purposes
+    set :show_exceptions, false
   end
 
   get '/user/login' do
@@ -18,6 +21,11 @@ class SinatraRouteTestApp < Sinatra::Base
   get '/user/:id', :my_condition => false do |id|
     "Welcome #{id}"
   end
+
+  get '/error' do
+    raise "Uh-oh"
+  end
+
 end
 
 class SinatraTest < Test::Unit::TestCase
@@ -30,6 +38,10 @@ class SinatraTest < Test::Unit::TestCase
 
   def setup
     ::NewRelic::Agent.manual_start
+  end
+
+  def teardown
+    ::NewRelic::Agent.agent.error_collector.harvest_errors([])
   end
 
   # https://support.newrelic.com/tickets/24779
@@ -51,5 +63,10 @@ class SinatraTest < Test::Unit::TestCase
     assert metric_names.include?("WebFrontend/QueueTime")
     assert metric_names.include?("WebFrontend/WebServer/all")
     assert ::NewRelic::Agent.agent.stats_engine.get_stats("WebFrontend/WebServer/all")
+  end
+
+  def test_shown_errors_get_caught
+    get '/error'
+    assert_equal 1, ::NewRelic::Agent.agent.error_collector.errors.size
   end
 end

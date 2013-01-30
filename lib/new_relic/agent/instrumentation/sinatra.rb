@@ -45,7 +45,14 @@ module NewRelic
           perform_action_with_newrelic_trace(:category => :sinatra,
                                              :name => txn_name,
                                              :params => @request.params) do
-            dispatch_without_newrelic
+            result = dispatch_without_newrelic
+
+            # Will only see an error raised if :show_exceptions is true, but
+            # will always see them in the env hash if they occur
+            had_error = env.has_key?('sinatra.error')
+            ::NewRelic::Agent.notice_error(env['sinatra.error']) if had_error
+
+            result
           end
         end
 
