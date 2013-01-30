@@ -1,4 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require 'new_relic/agent/thread_profiler'
+
 module NewRelic
   module Agent
     class AgentTest < Test::Unit::TestCase
@@ -53,6 +55,47 @@ module NewRelic
         end
       end
 
+      def test_graceful_shutdown_ends_thread_profiling
+        @agent.thread_profiler.expects(:stop).once
+        @agent.instance_variable_set(:@connected, true)
+
+        @agent.send(:graceful_disconnect)
+      end
+
+      def test_harvest_and_send_thread_profile
+        profile = with_profile(:finished => true)
+        @agent.send(:harvest_and_send_thread_profile, false)
+
+        assert_equal([profile],
+                    @agent.service.agent_data \
+                      .find{|data| data.action == :profile_data}.params)
+      end
+
+      def test_harvest_and_send_thread_profile_when_not_finished
+        with_profile(:finished => false)
+        @agent.send(:harvest_and_send_thread_profile, false)
+
+        assert_nil @agent.service.agent_data.find{|data| data.action == :profile_data}
+      end
+
+      def test_harvest_and_send_thread_profile_when_not_finished_but_disconnecting
+        profile = with_profile(:finished => false)
+        @agent.send(:harvest_and_send_thread_profile, true)
+
+        assert_equal([profile],
+                     @agent.service.agent_data \
+                       .find{|data| data.action == :profile_data}.params)
+      end
+
+      def with_profile(opts)
+        profile = NewRelic::Agent::ThreadProfile.new(-1, 0, 0, true)
+        profile.aggregate(["chunky.rb:42:in `bacon'"], profile.traces[:other])
+        profile.instance_variable_set(:@finished, opts[:finished])
+
+        @agent.thread_profiler.instance_variable_set(:@profile, profile)
+        profile
+      end
+
       def test_harvest_timeslice_data
         assert_equal({}, @agent.send(:harvest_timeslice_data),
                      'should return timeslice data')
@@ -63,12 +106,14 @@ module NewRelic
           @agent.stats_engine.stats_hash[i.to_s] = NewRelic::StatsBase.new
         end
 
-        harvest = Thread.new do
+        harvest = Thread.new("Harvesting Test run timeslices") do
           @agent.send(:harvest_timeslice_data)
         end
 
-        app = Thread.new do
-          @agent.stats_engine.stats_hash["a"] = NewRelic::StatsBase.new
+        app = Thread.new("Harvesting Test Modify stats_hash") do
+          200.times do |i|
+            @agent.stats_engine.stats_hash["a#{i}"] = NewRelic::StatsBase.new
+          end
         end
 
         assert_nothing_raised do
@@ -78,6 +123,11 @@ module NewRelic
 
       def test_harvest_errors
         assert_equal([], @agent.send(:harvest_errors), 'should return errors')
+      end
+
+      def test_check_for_agent_commands
+        @agent.send :check_for_agent_commands
+        assert_equal(1, @agent.service.calls_for(:get_agent_commands).size)
       end
 
       def test_merge_data_from_empty
@@ -150,10 +200,26 @@ module NewRelic
         @agent.merge_data_from([{}, [1,2,3], [4,5,6]])
       end
 
-      def test_should_not_log_log_file_location_if_no_log_file
-        NewRelic::Control.instance.stubs(:log_file).returns('/vasrkjn4b3b4')
-        @agent.expects(:log).never
-        @agent.notify_log_file_location
+      def test_fill_metric_id_cache_from_collect_response
+        response = [[{"scope"=>"Controller/blogs/index", "name"=>"Database/SQL/other"}, 1328],
+                    [{"scope"=>"", "name"=>"WebFrontend/QueueTime"}, 10],
+                    [{"scope"=>"", "name"=>"ActiveRecord/Blog/find"}, 1017]]
+
+        @agent.send(:fill_metric_id_cache, response)
+        assert_equal 1328, @agent.metric_ids[MetricSpec.new('Database/SQL/other', 'Controller/blogs/index')]
+        assert_equal 10,   @agent.metric_ids[MetricSpec.new('WebFrontend/QueueTime')]
+        assert_equal 1017, @agent.metric_ids[MetricSpec.new('ActiveRecord/Blog/find')]
+      end
+
+      def test_fill_metric_id_cache_from_collect_response
+        response = [[{"scope"=>"Controller/blogs/index", "name"=>"Database/SQL/other"}, 1328],
+                    [{"scope"=>"", "name"=>"WebFrontend/QueueTime"}, 10],
+                    [{"scope"=>"", "name"=>"ActiveRecord/Blog/find"}, 1017]]
+
+        @agent.send(:fill_metric_id_cache, response)
+        assert_equal 1328, @agent.metric_ids[MetricSpec.new('Database/SQL/other', 'Controller/blogs/index')]
+        assert_equal 10,   @agent.metric_ids[MetricSpec.new('WebFrontend/QueueTime')]
+        assert_equal 1017, @agent.metric_ids[MetricSpec.new('ActiveRecord/Blog/find')]
       end
     end
   end

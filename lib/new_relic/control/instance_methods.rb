@@ -1,4 +1,5 @@
 require 'new_relic/language_support'
+require 'new_relic/agent/agent_logger'
 
 module NewRelic
   class Control
@@ -18,7 +19,6 @@ module NewRelic
       # gems and plugins it uses, and many other kinds of
       # machine-dependent information useful in debugging
       attr_reader :local_env
-
 
       # Initialize the plugin/gem and start the agent.  This does the
       # necessary configuration based on the framework environment and
@@ -44,34 +44,19 @@ module NewRelic
       # init_config({}) which is called one or more times.
       #
       def init_plugin(options={})
-        begin
-          path = @newrelic_file || Agent.config[:config_path]
-          yaml = Agent::Configuration::YamlSource.new(path, env)
-          Agent.config.replace_or_add_config(yaml, 1)
-        rescue ScriptError, StandardError => e
-          # Why do we need to do this?
-          new_err = e.class.new("Error reading newrelic.yml file: #{e}")
-          new_err.set_backtrace(e.backtrace)
-          raise new_err
-        end
+        yaml = Agent::Configuration::YamlSource.new(@config_file_path, options[:env] || env)
+        Agent.config.replace_or_add_config(yaml, 1)
 
         Agent.config.replace_or_add_config(Agent::Configuration::ManualSource.new(options), 1)
-        options['app_name'] = ENV['NEWRELIC_APP_NAME'] if ENV['NEWRELIC_APP_NAME']
-        options['app_name'] ||= ENV['NEW_RELIC_APP_NAME'] if ENV['NEW_RELIC_APP_NAME']
+
+        ::NewRelic::Agent.logger = NewRelic::Agent::AgentLogger.new(Agent.config, root, options.delete(:log))
 
         # Merge the stringified options into the config as overrides:
-        logger_override = options.delete(:log)
         environment_name = options.delete(:env) and self.env = environment_name
-        dispatcher = options.delete(:dispatcher) and @local_env.dispatcher = dispatcher
         dispatcher_instance_id = options.delete(:dispatcher_instance_id) and @local_env.dispatcher_instance_id = dispatcher_instance_id
 
         NewRelic::Agent::PipeChannelManager.listener.start if options.delete(:start_channel_listener)
 
-        if logger_override
-          @log = logger_override
-          # Try to grab the log filename
-          @log_file = @log.instance_eval { @logdev.filename rescue nil }
-        end
         # An artifact of earlier implementation, we put both #add_method_tracer and #trace_execution
         # methods in the module methods.
         Module.send :include, NewRelic::Agent::MethodTracer::ClassMethods
@@ -79,10 +64,9 @@ module NewRelic
         init_config(options)
         NewRelic::Agent.agent = NewRelic::Agent::Agent.instance
         if Agent.config[:agent_enabled] && !NewRelic::Agent.instance.started?
-          setup_log unless logger_override
           start_agent
           install_instrumentation
-          load_samplers unless Agent.config['disable_samplers']
+          load_samplers unless Agent.config[:disable_samplers]
           local_env.gather_environment_info
           append_environment_info
         elsif !Agent.config[:agent_enabled]
@@ -95,14 +79,12 @@ module NewRelic
         NewRelic::Agent.agent.start
       end
 
-      # Asks the LocalEnvironment instance which framework should be loaded
       def app
-        @local_env.framework
+        Agent.config[:framework]
       end
-      alias framework app
 
-      def to_s #:nodoc:
-        "Control[#{self.app}]"
+      def framework
+        Agent.config[:framework]
       end
 
       # for backward compatibility with the old config interface
@@ -111,7 +93,7 @@ module NewRelic
       end
 
       def settings
-        NewRelic::Agent.config.flattened_config
+        NewRelic::Agent.config.reported_config
       end
 
       def dispatcher
@@ -137,15 +119,11 @@ module NewRelic
         end
       end
 
-      # path to the config file, defaults to the "#{root}/config/newrelic.yml"
-      def config_file
-        File.expand_path(File.join(root,"config","newrelic.yml"))
-      end
 
-      def initialize local_env, config_file_override=nil
+      def initialize(local_env, config_file_override=nil)
         @local_env = local_env
         @instrumentation_files = []
-        @newrelic_file = config_file_override || config_file
+        @config_file_path = config_file_override || Agent.config[:config_path]
       end
 
       def root

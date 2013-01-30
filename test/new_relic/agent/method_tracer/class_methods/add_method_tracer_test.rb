@@ -35,7 +35,7 @@ module NewRelic
             end
 
             def test_default_metric_name_code
-              assert_equal "Custom/#{name}/test_method", default_metric_name_code('test_method')
+              assert_equal "Custom/#{self.class.name}/test_method", self.class.default_metric_name_code('test_method')
             end
 
             def test_newrelic_method_exists_positive
@@ -44,13 +44,10 @@ module NewRelic
             end
 
             def test_newrelic_method_exists_negative
-              self.expects(:method_defined?).returns(false)
-              self.expects(:private_method_defined?).returns(false)
+              self.class.expects(:method_defined?).returns(false)
+              self.class.expects(:private_method_defined?).returns(false)
 
-              fake_log = mock('log')
-              NewRelic::Control.instance.expects(:log).returns(fake_log)
-              fake_log.expects(:warn).with("Did not trace #{name}#test_method because that method does not exist")
-              assert !newrelic_method_exists?('test_method')
+              assert !self.class.newrelic_method_exists?('test_method')
             end
 
             def test_set_deduct_call_time_based_on_metric_positive
@@ -111,9 +108,6 @@ module NewRelic
             def test_traced_method_exists_positive
               self.expects(:_traced_method_name)
               self.expects(:method_defined?).returns(true)
-              fake_log = mock('log')
-              NewRelic::Control.instance.expects(:log).returns(fake_log)
-              fake_log.expects(:warn).with('Attempt to trace a method twice with the same metric: Method = test_method, Metric Name = Custom/Test/test_method')
               assert traced_method_exists?('test_method', 'Custom/Test/test_method')
             end
 

@@ -45,21 +45,17 @@ module NewRelic
         Agent.config.register_callback(:'transaction_tracer.enabled') do |enabled|
           if enabled
             threshold = Agent.config[:'transaction_tracer.transaction_threshold']
-            log.debug "Transaction tracing threshold is #{threshold} seconds."
+            ::NewRelic::Agent.logger.debug "Transaction tracing threshold is #{threshold} seconds."
           else
-            log.debug "Transaction traces will not be sent to the New Relic service."
+            ::NewRelic::Agent.logger.debug "Transaction traces will not be sent to the New Relic service."
           end
         end
 
         Agent.config.register_callback(:'transaction_tracer.record_sql') do |config|
           if config == 'raw'
-            log.warn("Agent is configured to send raw SQL to the service")
+            ::NewRelic::Agent.logger.warn("Agent is configured to send raw SQL to the service")
           end
         end
-      end
-
-      def log
-        NewRelic::Control.instance.log
       end
 
       # Returns the current sample id, delegated from `builder`
@@ -213,7 +209,7 @@ module NewRelic
         end
       end
 
-      # Checks to see if the old sample exists, or if it's duration is
+      # Checks to see if the old sample exists, or if its duration is
       # less than the new sample
       def slowest_sample?(old_sample, new_sample)
         old_sample.nil? || (new_sample.duration > old_sample.duration)

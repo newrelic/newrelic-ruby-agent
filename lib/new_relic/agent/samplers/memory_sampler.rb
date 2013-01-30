@@ -15,14 +15,14 @@ module NewRelic
           elsif platform =~ /linux/
             @sampler = ProcStatus.new
             if !@sampler.can_run?
-              NewRelic::Agent.instance.warn.debug "Error attempting to use /proc/#{$$}/status file for reading memory. Using ps command instead."
+              ::NewRelic::Agent.logger.debug "Error attempting to use /proc/#{$$}/status file for reading memory. Using ps command instead."
               @sampler = ShellPS.new("ps -o rsz")
             else
-              NewRelic::Agent.instance.log.debug "Using /proc/#{$$}/status for reading process memory."
+              ::NewRelic::Agent.logger.debug "Using /proc/#{$$}/status for reading process memory."
             end
           elsif platform =~ /darwin9/ # 10.5
             @sampler = ShellPS.new("ps -o rsz")
-          elsif platform =~ /darwin1[01]/ # 10.6 & 10.7
+          elsif platform =~ /darwin1\d+/ # >= 10.6
             @sampler = ShellPS.new("ps -o rss")
           elsif platform =~ /freebsd/
             @sampler = ShellPS.new("ps -o rss")
@@ -35,7 +35,7 @@ module NewRelic
         end
 
         def self.supported_on_this_platform?
-          defined?(JRuby) or platform =~ /linux|darwin9|darwin10|freebsd|solaris/
+          defined?(JRuby) or platform =~ /linux|darwin|freebsd|solaris/
         end
 
         def self.platform
@@ -68,14 +68,12 @@ module NewRelic
             begin
               m = get_memory
               if m.nil?
-                NewRelic::Agent.instance.log.error "Unable to get the resident memory for process #{$$}.  Disabling memory sampler."
+                ::NewRelic::Agent.logger.warn "Unable to get the resident memory for process #{$$}.  Disabling memory sampler."
                 @broken = true
               end
               return m
             rescue => e
-              NewRelic::Agent.instance.log.error "Unable to get the resident memory for process #{$$}. (#{e})"
-              NewRelic::Agent.instance.log.debug e.backtrace.join("\n  ")
-              NewRelic::Agent.instance.log.error "Disabling memory sampler."
+              ::NewRelic::Agent.logger.warn "Unable to get the resident memory for process #{$$}. Disabling memory sampler.", e
               @broken = true
               return nil
             end

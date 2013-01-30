@@ -253,7 +253,7 @@ module NewRelic
         end
         
         def queue_time
-          apdex_start - start
+          start - apdex_start
         end
 
         def add_custom_parameters(p)

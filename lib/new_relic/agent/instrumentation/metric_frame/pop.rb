@@ -14,7 +14,7 @@ module NewRelic
           end
 
           def log_underflow
-            NewRelic::Agent.logger.error "Underflow in metric frames: #{caller.join("\n   ")}"
+            ::NewRelic::Agent.logger.error "Underflow in metric frames: #{caller.join("\n   ")}"
           end
 
           def notice_scope_empty

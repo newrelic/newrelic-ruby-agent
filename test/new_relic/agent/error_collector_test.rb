@@ -5,10 +5,17 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
   def setup
     super
+    @test_config = { :capture_params => true }
+    NewRelic::Agent.config.apply_config(@test_config)
     @error_collector = NewRelic::Agent::ErrorCollector.new
     @error_collector.stubs(:enabled).returns(true)
   end
-  
+
+  def teardown
+    super
+    NewRelic::Agent.config.remove_config(@test_config)
+  end
+
   def test_empty
     @error_collector.harvest_errors([])
     @error_collector.notice_error(nil, :metric=> 'path', :request_params => {:x => 'y'})
@@ -27,7 +34,7 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
     assert_equal 'path', err.path
     assert_equal 'Error', err.exception_class
   end
-  
+
   def test_simple
     @error_collector.notice_error(StandardError.new("message"), :uri => '/myurl/', :metric => 'path', :referer => 'test_referer', :request_params => {:x => 'y'})
 
@@ -115,7 +122,6 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
 
 
   def test_supported_param_types
-
     types = [[1, '1'],
     [1.1, '1.1'],
     ['hi', 'hi'],
@@ -124,10 +130,9 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
     [TestClass.new, "#<NewRelic::Agent::ErrorCollectorTest::TestClass>"]
     ]
 
-
     types.each do |test|
-      @error_collector.notice_error(StandardError.new("message"), :metric => 'path', :request_params => {:x => test[0]})
-
+      @error_collector.notice_error(StandardError.new("message"), :metric => 'path',
+                                    :request_params => {:x => test[0]})
       assert_equal test[1], @error_collector.harvest_errors([])[0].params[:request_params][:x]
     end
   end
@@ -143,8 +148,19 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
     assert_equal 0, errors.length
   end
 
+  def test_exclude_later_config_changes
+    @error_collector.notice_error(IOError.new("message"))
+
+    NewRelic::Agent.config.apply_config(:'error_collector.ignore_errors' => "IOError")
+    @error_collector.notice_error(IOError.new("message"))
+
+    errors = @error_collector.harvest_errors([])
+
+    assert_equal 1, errors.length
+
+  end
+
   def test_exclude_block
-    NewRelic::Agent.logger.expects(:error).never
     @error_collector.ignore_error_filter &wrapped_filter_proc
         
     @error_collector.notice_error(IOError.new("message"), :metric => 'path', :request_params => {:x => 'y'})

@@ -188,4 +188,30 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
       assert_equal('select * from test where foo in (?,?,?,?,?)', sql_traces[1].sql)
     end
   end
+
+  def test_to_collector_array
+    with_config(:'transaction_tracer.explain_enabled' => false) do
+      data = NewRelic::Agent::TransactionSqlData.new
+      data.set_transaction_info("WebTransaction/Controller/c/a", "/c/a", {},
+                                'guid')
+      data.sql_data.concat([NewRelic::Agent::SlowSql.new("select * from test",
+                                                         "Database/test/select",
+                                                         {}, 1.5)])
+      @sampler.harvest_slow_sql(data)
+      sql_traces = @sampler.harvest
+
+      params = RUBY_VERSION >= '1.9.2' ? "eJyrrgUAAXUA+Q==\n" : {}
+      expected = [ 'WebTransaction/Controller/c/a', '/c/a', 526336943,
+                   'select * from test', 'Database/test/select',
+                   1, 1500, 1500, 1500, params ]
+
+      if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
+        marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+      else
+        marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
+      end
+
+      assert_equal expected, sql_traces[0].to_collector_array(marshaller.default_encoder)
+    end
+  end
 end

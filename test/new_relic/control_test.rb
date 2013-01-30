@@ -50,9 +50,11 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   end
 
   def test_test_config
-    if defined?(Rails) && Rails::VERSION::MAJOR.to_i == 3
+    if defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i == 4
+      assert_equal :rails4, control.app
+    elsif defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i == 3
       assert_equal :rails3, control.app
-    elsif defined?(Rails)
+    elsif defined?(::Rails)
       assert_equal :rails, control.app
     else
       assert_equal :test, control.app
@@ -61,7 +63,7 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     assert_match /test/i, control.local_env.dispatcher_instance_id
     assert("" == NewRelic::Agent.config[:dispatcher].to_s,
            "Expected dispatcher to be empty, but was #{NewRelic::Agent.config[:dispatcher].to_s}")
-    assert_equal false, NewRelic::Agent.config[:monitor_mode]
+    assert !NewRelic::Agent.config[:monitor_mode]
     control.local_env
   end
 
@@ -80,10 +82,18 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     end
   end
 
-  def test_resolve_ip
+  def test_resolve_ip_for_localhost
     assert_equal nil, control.send(:convert_to_ip_address, 'localhost')
+  end
+
+  def test_resolve_ip_for_non_existent_domain
+    Resolv.stubs(:getaddress).raises(Resolv::ResolvError)
+    IPSocket.stubs(:getaddress).raises(SocketError)
     assert_equal nil, control.send(:convert_to_ip_address, 'q1239988737.us')
-    # This will fail if you don't have a valid, accessible, DNS server
+  end
+
+  def test_resolves_valid_ip
+    Resolv.stubs(:getaddress).with('collector.newrelic.com').returns('204.93.223.153')
     assert_equal '204.93.223.153', control.send(:convert_to_ip_address, 'collector.newrelic.com')
   end
 
@@ -137,11 +147,6 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     # has not broket the system unduly
     assert_equal old_resolv, Resolv
     assert_equal old_ipsocket, IPSocket
-  end
-
-  def test_log_file_name
-    NewRelic::Control.instance.setup_log
-    assert_match /newrelic_agent.log$/, control.instance_variable_get('@log_file')
   end
 
   def test_transaction_threshold__override
@@ -204,7 +209,7 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     NewRelic::Agent.shutdown
     with_config(:disable_samplers => true, :agent_enabled => true) do
       NewRelic::Control.instance.init_plugin
-      assert_equal [], NewRelic::Agent.instance.stats_engine.send(:harvest_samplers)
+      assert NewRelic::Agent.instance.stats_engine.send(:harvest_samplers).empty?
     end
   end
 end

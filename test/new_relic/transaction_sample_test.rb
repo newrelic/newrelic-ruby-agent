@@ -5,7 +5,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
   ::SQL_STATEMENT = "SELECT * from sandwiches"
 
   def setup
-    @test_config = { 'developer_mode' => true }
+    @test_config = { :developer_mode => true }
     NewRelic::Agent.config.apply_config(@test_config)
     @connection_stub = Mocha::Mockery.instance.named_mock('connection')
     @connection_stub.stubs(:execute).returns([['QUERY RESULT']])
@@ -179,5 +179,44 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
       sampler.notice_pop_scope "level0"
     end
     assert_equal 6, transaction.count_segments
+  end
+
+  def test_to_array
+    expected_array = [@t.start_time.to_f,
+                      @t.params[:request_params],
+                      @t.params[:custom_params],
+                      @t.root_segment.to_array]
+    assert_equal expected_array, @t.to_array
+  end
+
+  if RUBY_VERSION >= '1.9.2'
+    def test_to_json
+      expected_string = JSON.dump([@t.start_time.to_f,
+                                   @t.params[:request_params],
+                                   @t.params[:custom_params],
+                                   @t.root_segment.to_array])
+      assert_equal expected_string, @t.to_json
+    end
+  end
+
+  def test_to_collector_array
+    if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
+      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+      trace_tree = compress(@t.to_json)
+    else
+      marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
+      trace_tree = @t.to_array
+    end
+    expected_array = [(@t.start_time.to_f * 1000).round,
+                      (@t.duration * 1000).round,
+                      @t.params[:path], @t.params[:uri],
+                      trace_tree,
+                      @t.guid, nil, !!@t.force_persist]
+
+    assert_equal expected_array, @t.to_collector_array(marshaller.default_encoder)
+  end
+
+  def compress(string)
+    Base64.encode64(Zlib::Deflate.deflate(string, Zlib::DEFAULT_COMPRESSION))
   end
 end

@@ -1,5 +1,10 @@
+require 'zlib'
+require 'base64'
+require 'digest/md5'
+
 require 'new_relic/agent'
 require 'new_relic/control'
+
 module NewRelic
   module Agent
 
@@ -66,7 +71,7 @@ module NewRelic
 
         if data.sql_data.size > 0
           @samples_lock.synchronize do
-            NewRelic::Agent.instance.log.debug "Harvesting #{data.sql_data.size} slow transaction sql statement(s)"
+            ::NewRelic::Agent.logger.debug "Harvesting #{data.sql_data.size} slow transaction sql statement(s)"
             #FIXME get tx name and uri
             harvest_slow_sql data
           end
@@ -218,21 +223,20 @@ module NewRelic
         Agent.config[:'slow_sql.explain_enabled']
       end
 
-      def to_json(*a)
-        [@path, @url, @sql_id, @sql, @database_metric_name, @call_count, @total_call_time, @min_call_time, @max_call_time, @params].to_json(*a)
+      def to_collector_array(encoder)
+        [ @path, @url, @sql_id, @sql, @database_metric_name, @call_count,
+          Helper.time_to_millis(@total_call_time),
+          Helper.time_to_millis(@min_call_time),
+          Helper.time_to_millis(@max_call_time),
+          encoder.encode(@params) ]
       end
 
       private
 
       def consistent_hash(string)
-        if NewRelic::LanguageSupport.using_version?('1.9.2')
-          # String#hash is salted differently on every VM start in 1.9
-          require 'digest/md5'
-          Digest::MD5.hexdigest(string).hex
-        else
-          string.hash
-        end.modulo(2**31-1)
-        # modulo ensures sql_id fits in an INT(11)
+        # need to hash the same way in every process
+        Digest::MD5.hexdigest(string).hex \
+          .modulo(2**31-1)  # ensure sql_id fits in an INT(11)
       end
     end
   end

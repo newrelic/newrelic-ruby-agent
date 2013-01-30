@@ -76,11 +76,16 @@ module NewRelic
         def start
           return if @started == true
           @started = true
-          @thread = Thread.new do
+          @thread = NewRelic::Agent::AgentThread.new('Pipe Channel Manager') do
+            now = nil
             loop do
               clean_up_pipes
               pipes_to_listen_to = @pipes.values.map{|pipe| pipe.out} + [wake.out]
+              NewRelic::Agent.instance.stats_engine \
+                .get_stats_no_scope('Supportability/Listeners') \
+                .record_data_point((Time.now - now).to_f) if now
               if ready = IO.select(pipes_to_listen_to, [], [], @select_timeout)
+                now = Time.now
                 pipe = ready[0][0]
                 if pipe == wake.out
                   pipe.read(1)
@@ -92,7 +97,6 @@ module NewRelic
               break if !should_keep_listening?
             end
           end
-          @thread #.abort_on_exception = true
           sleep 0.001 # give time for the thread to spawn
         end
 
@@ -145,7 +149,7 @@ module NewRelic
           end
         rescue StandardError => e
           msg = "#{e.class.name} '#{e.message}' trying to load #{Base64.encode64(data)}"
-          NewRelic::Control.instance.log.debug(msg)
+          ::NewRelic::Agent.logger.debug(msg)
           nil
         end
 

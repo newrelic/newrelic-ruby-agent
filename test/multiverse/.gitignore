@@ -1,0 +1,10 @@
+tmp
+*.swp
+.bundler_work_area
+Gemfile
+Gemfile.lock
+*.log
+*.db
+.idea
+tags
+*.sqlite3

@@ -1,6 +1,6 @@
 module NewRelic::LanguageSupport
   extend self
-  
+
   module Control
     def self.included(base)
       # need to use syck rather than psych when possible
@@ -21,23 +21,8 @@ module NewRelic::LanguageSupport
       end
     end
   end
-  
-  module SynchronizedHash
-    def self.included(base)
-      # need to lock iteration of stats hash in 1.9.x
-      if NewRelic::LanguageSupport.using_version?('1.9') ||
-          NewRelic::LanguageSupport.using_engine?('jruby')
-        base.class_eval do
-          def each(*args, &block)
-            @lock.synchronize { super }
-          end
-        end
-      end
-    end
-  end
-  
+
   @@forkable = nil
-  
   def can_fork?
     # this is expensive to check, so we should only check once
     return @@forkable if @@forkable != nil
@@ -51,7 +36,7 @@ module NewRelic::LanguageSupport
 
     @@forkable
   end
-  
+
   def using_engine?(engine)
     if defined?(::RUBY_ENGINE)
       ::RUBY_ENGINE == engine
@@ -81,7 +66,7 @@ module NewRelic::LanguageSupport
       yield
     end
   end
-  
+
   def with_cautious_gc
     if broken_gc?
       with_disabled_gc { yield }

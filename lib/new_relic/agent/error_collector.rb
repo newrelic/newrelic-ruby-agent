@@ -25,15 +25,22 @@ module NewRelic
         @ignore = {}
         @capture_source = Agent.config[:'error_collector.capture_source']
 
-        ignore_errors = Agent.config[:'error_collector.ignore_errors']
-        ignore_errors = ignore_errors.split(",") if ignore_errors.is_a? String
-        ignore_errors.each { |error| error.strip! }
-        ignore(ignore_errors)
+        initialize_ignored_errors(Agent.config[:'error_collector.ignore_errors'])
         @lock = Mutex.new
 
         Agent.config.register_callback(:'error_collector.enabled') do |config_enabled|
-          log.debug "Errors will #{config_enabled ? '' : 'not '}be sent to the New Relic service."
+          ::NewRelic::Agent.logger.debug "Errors will #{config_enabled ? '' : 'not '}be sent to the New Relic service."
         end
+        Agent.config.register_callback(:'error_collector.ignore_errors') do |ignore_errors|
+          initialize_ignored_errors(ignore_errors)
+        end
+      end
+      
+      def initialize_ignored_errors(ignore_errors)
+        @ignore.clear
+        ignore_errors = ignore_errors.split(",") if ignore_errors.is_a? String
+        ignore_errors.each { |error| error.strip! }
+        ignore(ignore_errors)
       end
 
       def enabled?
@@ -59,7 +66,7 @@ module NewRelic
       def ignore(errors)
         errors.each do |error|
           @ignore[error] = true
-          log.debug("Ignoring errors of type '#{error}'")
+          ::NewRelic::Agent.logger.debug("Ignoring errors of type '#{error}'")
         end
       end
 
@@ -186,7 +193,7 @@ module NewRelic
         # the maximum limit, and logs a warning if we are over the limit.
         def over_queue_limit?(message)
           over_limit = (@errors.length >= MAX_ERROR_QUEUE_LENGTH)
-          log.warn("The error reporting queue has reached #{MAX_ERROR_QUEUE_LENGTH}. The error detail for this and subsequent errors will not be transmitted to New Relic until the queued errors have been sent: #{message}") if over_limit
+          ::NewRelic::Agent.logger.warn("The error reporting queue has reached #{MAX_ERROR_QUEUE_LENGTH}. The error detail for this and subsequent errors will not be transmitted to New Relic until the queued errors have been sent: #{message}") if over_limit
           over_limit
         end
 
@@ -221,7 +228,7 @@ module NewRelic
         add_to_error_queue(NewRelic::NoticedError.new(action_path, exception_options, exception))
         exception
       rescue => e
-        log.error("Error capturing an error #{e}")
+        ::NewRelic::Agent.logger.warn("Failure when capturing error '#{exception}':", e)
       end
 
       # Get the errors currently queued up.  Unsent errors are left
@@ -237,11 +244,6 @@ module NewRelic
 
           errors
         end
-      end
-
-      private
-      def log
-        NewRelic::Agent.logger
       end
     end
   end

@@ -730,27 +730,30 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   # sample traces, for example. It's unfortunate, but we can't
   # reliably turn off GC on all versions of ruby under test
   def test_harvest_slowest
-    run_sample_trace
-    run_sample_trace
-    run_sample_trace { sleep 0.1 }
-    run_sample_trace
-    run_sample_trace
+    run_sample_trace(0,0.1)
+    run_sample_trace(0,0.1)
+    # two second duration
+    run_sample_trace(0,2)
+    run_sample_trace(0,0.1)
+    run_sample_trace(0,0.1)
 
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
+
       slowest = @sampler.harvest(nil)[0]
       first_duration = slowest.duration
-      assert((first_duration >= 0.1),
-             "expected sample duration >= 0.1, but was: #{slowest.duration.inspect}")
+      assert((first_duration.round >= 2),
+             "expected sample duration = 2, but was: #{slowest.duration.inspect}")
 
-      run_sample_trace { sleep 0.0001 }
+      # 1 second duration
+      run_sample_trace(0,1)
       not_as_slow = @sampler.harvest(slowest)[0]
       assert((not_as_slow == slowest), "Should re-harvest the same transaction since it should be slower than the new transaction - expected #{slowest.inspect} but got #{not_as_slow.inspect}")
 
-      run_sample_trace { sleep(first_duration + 0.1) }
+      run_sample_trace(0,10)
 
       new_slowest = @sampler.harvest(slowest)[0]
       assert((new_slowest != slowest), "Should not harvest the same trace since the new one should be slower")
-      assert((new_slowest.duration >= first_duration + 0.1), "Slowest duration must be >= #{first_duration + 0.1}, but was: #{new_slowest.duration.inspect}")
+      assert_equal(new_slowest.duration.round, 10, "Slowest duration must be = 10, but was: #{new_slowest.duration.inspect}")
     end
   end
 
@@ -935,8 +938,8 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
   private
 
-  def run_sample_trace
-    @sampler.notice_first_scope_push Time.now.to_f
+  def run_sample_trace(start = Time.now.to_f, stop = nil)
+    @sampler.notice_first_scope_push start
     @sampler.notice_transaction '/path', nil, {}
     @sampler.notice_push_scope "a"
     @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'", nil, 0)
@@ -948,6 +951,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'french'", nil, 0)
     @sampler.notice_pop_scope "ac"
     @sampler.notice_pop_scope "a"
-    @sampler.notice_scope_empty
+    @sampler.notice_scope_empty stop || Time.now.to_f
   end
 end

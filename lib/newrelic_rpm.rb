@@ -28,7 +28,7 @@ if defined?(Merb) && defined?(Merb::BootLoader)
     end
   end
 elsif defined? Rails
-  if Rails.respond_to?(:version) && Rails.version =~ /^3/
+  if Rails.respond_to?(:version) && Rails.version > '3'
     module NewRelic
       class Railtie < Rails::Railtie
 

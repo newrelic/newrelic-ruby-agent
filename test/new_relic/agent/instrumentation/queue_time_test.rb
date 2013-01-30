@@ -118,6 +118,20 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
     check_metric_time('WebFrontend/WebServer/serverb', 1.0, 0.1)
   end
 
+  def test_parse_server_time_accepting_milliseconds_resolution_separator_char
+    env = {'HTTP_X_REQUEST_START' => "t=1000.000000"}
+    create_test_start_time(env)
+    env['HTTP_X_QUEUE_START'] = "t=1001.000000"
+    assert_calls_metrics('WebFrontend/WebServer/all') do
+      assert_equal(Time.at(1000), parse_server_time_from(env))
+    end
+    assert_calls_metrics('WebFrontend/QueueTime') do
+      assert_equal(Time.at(1001), parse_queue_time_from(env))
+    end
+    check_metric_time('WebFrontend/WebServer/all', 2.0, 0.1)
+    check_metric_time('WebFrontend/QueueTime', 1.0, 0.1)
+  end
+
   # test for backwards compatibility with old header
   def test_parse_server_time_from_with_no_server_name
     env = {'HTTP_X_REQUEST_START' => "t=#{convert_to_microseconds(Time.at(1001))}"}

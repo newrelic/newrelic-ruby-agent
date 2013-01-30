@@ -1,13 +1,148 @@
 
 # New Relic Ruby Agent Release Notes #
 
-### Next Up ###
+## v3.5.5 ##
+
+  * Add thread profiling support
+
+    Thread profiling performs statistical sampling of backtraces of all threads
+    within your Ruby processes. This feature requires MRI >= 1.9.2, and is
+    controlled via the New Relic web UI. JRuby support (in 1.9.x compat mode) is
+    considered experimental, due to issues with JRuby's Thread#backtrace.
+
+  * Add audit logging capability
+
+    The agent can now log all of the data it sends to the New Relic servers to
+    a special log file for human inspection. This feature is off by default, and
+    can be enabled by setting the audit_log.enabled configuration key to true.
+    You may also control the location of the audit log with the audit_log.path key. 
+
+  * Use config system for dispatcher, framework, and config file detection
+
+    Several aspects of the agent's configuration were not being handled by the
+    configuration system.  Detection/configuration of the dispatcher (e.g. passenger,
+    unicorn, resque), framework (e.g. rails3, sinatra), and newrelic.yml
+    location are now handled via the Agent environment, manual, and default
+    configuration sources.
+
+  * Updates to logging across the agent
+
+    We've carefully reviewed the logging messages that the agent outputs, adding
+    details in some cases, and removing unnecessary clutter. We've also altered
+    the startup sequence to ensure that we don't spam STDOUT with messages
+    during initialization.
+
+  * Fix passing environment to manual_start()
+
+    Thanks to Justin Hannus.  The :env key, when passed to Agent.manual_start,
+    can again be used to specify which section of newrelic.yml is loaded.
+
+  * Rails 4 support
+
+    This release includes preliminary support for Rails 4 as of 4.0.0.beta.
+    Rails 4 is still in development, but the agent should work as expected for
+    people who are experimenting with the beta.
+
+## v3.5.4 ##
+
+  * Add queue time support for sinatra apps
+
+    Sinatra applications can now take advantage of front end queue time
+    reporting. Thanks to Winfield Peterson for this contribution.
+
+  * Simplify queue time configuration for nginx 1.2.6+
+
+    Beginning in version 1.2.6, recently released as a development version, the
+    $msec variable can be used to set an http header.  This change allows front
+    end queue time to be tracked in New Relic simply by adding this line to the
+    nginx config:
+
+    proxy_set_header X-Queue-Start "t=${msec}000"
+
+    It will no longer be necessary to compile a patched version of nginx or
+    compile in the perl or lua module to enable this functionality.
+
+    Thanks to Lawrence Pit for the contribution.
+
+  * Report back build number and stage along with version info
+
+    In the 3.5.3 series the agent would fail to report its full version number
+    to NewRelic's environment report.  For example it would report its version
+    as 3.5.3 instead of 3.5.3.25 or 3.5.3.25.beta.  The agent will now report
+    its complete version number as defined in newrelic_rpm.gemspec.
+
+  * The host and the port that the agent reports to can now be set from environment vars
+
+    The host can be set with NEW_RELIC_HOST and the port with NEW_RELIC_PORT.  These setting
+    will overrride any other settings in your newrelic.yml.
+
+  * Fix RUM reporting to multiple applications
+
+    When the agent is configured to report to multiple "roll up" applications
+    RUM did not work correctly.
+
+## v3.5.3 ##
+
+  * Update the collector protocol to use JSON and Ruby primitives
+
+    The communication between the agent and the NewRelic will not longer be
+    marshalled Ruby objects, but rather JSON in the case of Ruby 1.9 and marshalled
+    Ruby primitives in the case of 1.8.  This results in greater harvest efficiency
+    as well as feature parity with other New Relic agents.
+
+  * Fix incorrect application of conditions in sinatra instrumentation
+
+    The agent's sinatra instrumentation was causing sinatra's condidtions to
+    be incorrectly applied in some obscure cases.  The bug was triggered
+    when a condition was present on a lower priority route that would match
+    the current request, except for the precense of a higher priority route.
+
+## v3.5.2 ##
+
+ * Simplified process of running agent test suite and documented code
+   contribution process in GUIDELINES_FOR_CONTRIBUTING.
+
 ## v3.5.1 ##
 
-### current version ###
+ * Enabling Memory Profiling on Lion and Mountain Lion
+
+   The agent's list of supported platforms for memory profiling wasn't correctly checking
+   for more recent versions of OS X.
+
+ * Fixed an arity issue encountered when calling newrelic_notice_error from Rails applications.
+
+ * End user queue time was not being properly reported, works properly now.
+
+ * Server-side configuration for ignoring errors was not being heeded by agent.
+
+ * Better handling of a thread safety issue.
+
+   Some issues may remain, which we are working to address, but they should be gracefully handled
+   now, rather than crashing the running app.
+
+ * Use "java_import" rather than "include_class" when require Java Jars into a JRuby app.
+
+   Thanks to Jan Habermann for the pull request
+
+ * Replaced alias_method mechanism with super call in DataMapper instrumentation.
+
+   Thanks to Michael Rykov for the pull request
+
+ * Fixed the Rubinius GC profiler.
+
+   Thanks to Dirkjan Bussink
+
+ * Use ActiveSupport.on_load to load controller instrumentation Rails 3.
+
+   Thanks to Jonathan del Strother
+
+ * Reduce the number of thread local reference in a particular high traffic method
+
+   Thanks to Jeremy Kemper
+
 ## v3.5.0.1 ##
 
- * (Fix) Due to a serious resource leak we have ended support for versions of Phusion Passenger 
+ * (Fix) Due to a serious resource leak we have ended support for versions of Phusion Passenger
    older than 2.1.1. Users of older versions are encouraged upgrade to a more recent version.
 
 ## v3.5.0 ##
@@ -20,19 +155,19 @@
  * When the Ruby Agent detects Unicorn as the dispatcher it creates an INFO level log message
    with additional information
 
-   To help customers using Unicorn, if the agent detects it (Unicorn) is being used as the 
+   To help customers using Unicorn, if the agent detects it (Unicorn) is being used as the
    dispatcher an INFO level log message it created that includes a link to New Relic
    online doc that has additional steps that may be required to get performance data reporting.
 
  * (Fix) In version 3.4.2 of the Ruby Agent the server side value for Apdex T was disgregarded
 
-   With version 3.4.2 of the agent, the value set in the newrelic.yml file took precedence over the 
+   With version 3.4.2 of the agent, the value set in the newrelic.yml file took precedence over the
    value set in the New Relic UI.  As of version 3.5.0 only the value for Apdex T set in the
    New Relic UI will be used. Any setting in the yaml file will be ignored.
 
  * Improved Error Detection/Reporting capabilities for Rails 3 apps
 
-   Some errors are missed by the agent's exception reporting handlers because they are 
+   Some errors are missed by the agent's exception reporting handlers because they are
    generated in the rails stack, outside of the instrumented controller action. A Rack
    middleware is now included that can detect these errors as they bubble out of the middleware stack.
    Note that this does not include Routing Errors.
@@ -48,11 +183,11 @@
 
  * Know issue with Ruby 1.8.7-p334, sqlite3-ruby 1.3.0 or older, and resque 1.23.0
 
-   The Ruby Agent will not work in conjunction with Ruby 1.8.7-p334, sqlite3-ruby 1.3.3 
+   The Ruby Agent will not work in conjunction with Ruby 1.8.7-p334, sqlite3-ruby 1.3.3
    or earlier, and resque 1.23.0. Your app will likely stop functioning. This is a known problem
-   with Ruby versions up to 1.8.7-p334. Upgrading to the last release of Ruby 1.8.7 
-   is recommended.  This issue has been present in every version of the agent we've tested 
-   going back for a year. 
+   with Ruby versions up to 1.8.7-p334. Upgrading to the last release of Ruby 1.8.7
+   is recommended.  This issue has been present in every version of the agent we've tested
+   going back for a year.
 
 
 ### previous versions ###
@@ -70,7 +205,7 @@
  * The RUM NRAGENT tk value gets more robustly sanitized to prevent potential XSS vulnerabilities
 
    The code that scrubes the token used in Real User Monitoring has been enhanced to be
-   more robust. 
+   more robust.
 
  * Support for Apdex T in server side configuration
 
@@ -84,26 +219,26 @@
 
 ## v3.4.1 ##
 #### Bug Fixes ####
- * Fix edge case in RUM auto instrumentation where X-UA-Compatible meta tag is 
+ * Fix edge case in RUM auto instrumentation where X-UA-Compatible meta tag is
    present but </head> tag is missing.
 
-   There is a somewhat obscure edge case where RUM auto instrumentation will 
-   crash a request. The issue seems to be triggered when the X-UA-Compatible 
+   There is a somewhat obscure edge case where RUM auto instrumentation will
+   crash a request. The issue seems to be triggered when the X-UA-Compatible
    meta tag is present and the </head> tag is missing.
 
- * Fixed reference to @service.request_timeout to @request_timeout in 
+ * Fixed reference to @service.request_timeout to @request_timeout in
    new_relic_service.rb. (Thanks to Matthew Savage)
 
-   When a timeout occurred during connection to the collector an "undefined 
+   When a timeout occurred during connection to the collector an "undefined
    method `request_timeout' for nil:NilClass'" would get raised.
 
- * preserve visibility on traced methods. 
+ * preserve visibility on traced methods.
 
-   Aliased methods now have the same visibility as the original traced method. 
-   A couple of the esoteric methods created in the process weren't getting the 
-   visibility  set properly. 
+   Aliased methods now have the same visibility as the original traced method.
+   A couple of the esoteric methods created in the process weren't getting the
+   visibility  set properly.
 
- * Agent service does not connect to directed shard collector after connecting 
+ * Agent service does not connect to directed shard collector after connecting
    to proxy
 
    After connecting to collector proxy name of real collector was updated, but
@@ -118,7 +253,7 @@
  * should reset RubyBench GC counter between polls
 
    On Ruby REE, the GC profiler does not reset the counter between polls. This
-   is only a problem if GC could happen *between* transactions, as in, for 
+   is only a problem if GC could happen *between* transactions, as in, for
    example, out-of-band GC in Unicorn. fixed.
 
 v3.4.0.1
@@ -406,7 +541,7 @@ v2.10.1.
   * add 'multi_threaded' config option to indicate when the app is running
     multi-threaded, so we can disable some instrumentation
   * fix test failures in JRuby, REE
-  * improve Net::HTTP instrumentation so its more efficient and distinguishes calls
+  * improve Net::HTTP instrumentation so it's more efficient and distinguishes calls
     between web and non-web transactions.
   * database instrumentation notices all database commands in addition to the core commands
   * add support for textmate to dev mode

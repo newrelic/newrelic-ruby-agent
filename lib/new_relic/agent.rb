@@ -77,6 +77,7 @@ module NewRelic
     require 'new_relic/agent'
     require 'new_relic/agent/chained_call'
     require 'new_relic/agent/browser_monitoring'
+    require 'new_relic/agent/cross_process_monitoring'
     require 'new_relic/agent/agent'
     require 'new_relic/agent/shim_agent'
     require 'new_relic/agent/method_tracer'
@@ -84,6 +85,7 @@ module NewRelic
     require 'new_relic/agent/stats_engine'
     require 'new_relic/agent/transaction_sampler'
     require 'new_relic/agent/sql_sampler'
+    require 'new_relic/agent/thread_profiler'
     require 'new_relic/agent/error_collector'
     require 'new_relic/agent/busy_calculator'
     require 'new_relic/agent/sampler'
@@ -139,6 +141,16 @@ module NewRelic
 
     alias instance agent #:nodoc:
 
+    # Primary interface to logging is fronted by this accessor
+    # Access via ::NewRelic::Agent.logger
+    def logger
+      @logger || StartupLogger.instance
+    end
+
+    def logger=(log)
+      @logger = log
+    end
+
     # Get or create a statistics gatherer that will aggregate numerical data
     # under a metric name.
     #
@@ -152,19 +164,6 @@ module NewRelic
     end
 
     alias get_stats_no_scope get_stats
-
-    # Get the logger for the agent.  Available after the agent has initialized.
-    # This sends output to the agent log file.  If the agent has not initialized
-    # a standard output logger is returned.
-    def logger
-      control = NewRelic::Control.instance(false)
-      if control && control.log
-        control.log
-      else
-        require 'logger'
-        @stdoutlog ||= Logger.new $stdout
-      end
-    end
 
     # Call this to manually start the Agent in situations where the Agent does
     # not auto-start.
@@ -305,7 +304,8 @@ module NewRelic
 
     # Check to see if we are capturing metrics currently on this thread.
     def is_execution_traced?
-      Thread.current[:newrelic_untraced].nil? || Thread.current[:newrelic_untraced].last != false
+      untraced = Thread.current[:newrelic_untraced]
+      untraced.nil? || untraced.last != false
     end
     
     # helper method to check the thread local to determine whether the
