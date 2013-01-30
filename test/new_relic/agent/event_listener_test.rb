@@ -14,6 +14,24 @@ class EventListenerTest < Test::Unit::TestCase
     end
   end
 
+
+  #
+  # Helpers
+  #
+
+  def assert_was_called
+    assert @called, "Event wasn't called"
+  end
+
+  def assert_was_not_called
+    assert !@called, "Event was called"
+  end
+
+
+  #
+  # Tests
+  #
+
   def test_notifies
     @events.subscribe(:before_call, &@check_method)
     @events.notify(:before_call, :env => "env")
@@ -37,9 +55,12 @@ class EventListenerTest < Test::Unit::TestCase
     @events.subscribe(:my_event) {}
   end
 
+  def test_clear
+    @events.subscribe(:after_call, &@check_method)
+    @events.clear
+    @events.notify(:after_call)
 
-  def assert_was_called
-    assert @called, "Event wasn't called"
+    assert_was_not_called
   end
 
 end
