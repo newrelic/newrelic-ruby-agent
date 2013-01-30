@@ -27,6 +27,8 @@ module NewRelic
       # Expected sequence of events:
       #   :before_call will save our cross process request id to the thread
       #   :start_transaction will get called when a transaction starts up
+      #   :before_http_request will get called whenever an outgoing http request is sent
+      #   :before_http_response will get called with the response to an outgoing http request
       #   :after_call will write our response headers/metrics and clean up the thread
       def register_event_listeners
         NewRelic::Agent.logger.debug("Wiring up Cross Process monitoring to events after finished configuring")
@@ -38,6 +40,13 @@ module NewRelic
 
         events.subscribe(:start_transaction) do |name|
           set_transaction_custom_parameters
+        end
+
+        events.subscribe(:before_http_request) do |request|
+          insert_request_header(request)
+        end
+
+        events.subscribe(:after_http_response) do |response|
         end
 
         events.subscribe(:after_call) do |env, (status_code, headers, body)|
@@ -80,9 +89,13 @@ module NewRelic
       end
 
       def should_process_request(request_headers)
-        return Agent.config[:'cross_process.enabled'] &&
+        return cross_process_enabled? &&
             @cross_process_id &&
             trusts?(request_headers)
+      end
+
+      def cross_process_enabled?
+        Agent.config[:'cross_process.enabled']
       end
 
       # Expects an ID of format "12#345", and will only accept that!
@@ -131,7 +144,8 @@ module NewRelic
         encode_with_key(Base64.decode64(text))
       end
 
-      NEWRELIC_ID_HEADER_KEYS = %w{X-NewRelic-ID HTTP_X_NEWRELIC_ID X_NEWRELIC_ID}
+      NEWRELIC_ID_HEADER = 'X-NewRelic-ID'
+      NEWRELIC_ID_HEADER_KEYS = %W{#{NEWRELIC_ID_HEADER} HTTP_X_NEWRELIC_ID X_NEWRELIC_ID}
       CONTENT_LENGTH_HEADER_KEYS = %w{Content-Length HTTP_CONTENT_LENGTH CONTENT_LENGTH}
 
       def decoded_id(request)
@@ -145,6 +159,12 @@ module NewRelic
         from_headers(request, CONTENT_LENGTH_HEADER_KEYS) || -1
       end
 
+
+      def insert_request_header( request )
+        if cross_process_enabled?
+          request[ NEWRELIC_ID_HEADER ] = encode_with_key(@cross_process_id)
+        end
+      end
 
 
       private

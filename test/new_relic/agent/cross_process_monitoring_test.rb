@@ -5,6 +5,10 @@ module NewRelic::Agent
     AGENT_CROSS_PROCESS_ID    = "qwerty"
     REQUEST_CROSS_PROCESS_ID  = "42#1234"
 
+    TRANSACTION_NAME          = 'transaction'
+    QUEUE_TIME                = 1000
+    APP_TIME                  = 2000
+
     ENCODING_KEY_NOOP         = "\0"
     TRUSTED_ACCOUNT_IDS       = [42,13]
 
@@ -22,6 +26,11 @@ module NewRelic::Agent
         :cross_process_id => AGENT_CROSS_PROCESS_ID,
         :encoding_key => ENCODING_KEY_NOOP,
         :trusted_account_ids => TRUSTED_ACCOUNT_IDS)
+      @monitor.register_event_listeners
+    end
+
+    def teardown
+      NewRelic::Agent.instance.events.clear
     end
 
     #
@@ -45,9 +54,9 @@ module NewRelic::Agent
 
     def with_default_timings
       NewRelic::Agent::BrowserMonitoring.stubs(:timings).returns(stub(
-          :transaction_name => "transaction",
-          :queue_time_in_seconds => 1000,
-          :app_time_in_seconds => 2000))
+          :transaction_name => TRANSACTION_NAME,
+          :queue_time_in_seconds => QUEUE_TIME,
+          :app_time_in_seconds => APP_TIME))
     end
 
     def for_id(id)
@@ -74,14 +83,14 @@ module NewRelic::Agent
 
       when_request_runs
 
-      assert_equal ["qwerty", "transaction", 1000, 2000, -1], unpacked_response
+      assert_equal [AGENT_CROSS_PROCESS_ID, TRANSACTION_NAME, QUEUE_TIME, APP_TIME, -1], unpacked_response
     end
 
     def test_strips_bad_characters_in_transaction_name
       NewRelic::Agent::BrowserMonitoring.stubs(:timings).returns(stub(
           :transaction_name => "\"'goo",
-          :queue_time_in_seconds => 1000,
-          :app_time_in_seconds => 2000))
+          :queue_time_in_seconds => QUEUE_TIME,
+          :app_time_in_seconds => APP_TIME))
 
       when_request_runs
 
@@ -175,7 +184,7 @@ module NewRelic::Agent
       with_default_timings
 
       metric = mock()
-      metric.expects(:record_data_point).with(2000)
+      metric.expects(:record_data_point).with(APP_TIME)
       NewRelic::Agent.instance.stats_engine.stubs(:get_stats_no_scope).returns(metric)
 
       when_request_runs
@@ -194,6 +203,27 @@ module NewRelic::Agent
 
     def test_get_bytes_with_nil
       assert_equal [], @monitor.send(:get_bytes, nil)
+    end
+
+
+    # When an http call is made, the agent should add a request header named
+    # X-NewRelic-ID with a value equal to the encoded cross_process_id.
+
+    def test_agent_adds_a_request_header_to_outgoing_requests_if_xp_enabled
+      request = mock("http request") do
+        expects( :[]= ).with( 'X-NewRelic-ID', AGENT_CROSS_PROCESS_ID )
+      end
+      NewRelic::Agent.instance.events.notify(:before_http_request, request)
+    end
+
+    def test_agent_doesnt_add_a_request_header_to_outgoing_requests_if_xp_disabled
+      request = mock("http request") do
+        expects( :[]= ).with( 'X-NewRelic-ID', AGENT_CROSS_PROCESS_ID ).never
+      end
+      
+      with_config(:'cross_process.enabled' => false) do
+        NewRelic::Agent.instance.events.notify(:before_http_request, request)
+      end
     end
 
   end
