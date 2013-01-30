@@ -232,7 +232,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
   def test_metric__no_ignore
     path = 'new_relic/agent/agent_test/index'
     index_stats = stats("Controller/#{path}")
-    index_apdex_stats = engine.get_custom_stats("Apdex/#{path}", NewRelic::ApdexStats)
+    index_apdex_stats = engine.get_stats_no_scope("Apdex/#{path}")
     assert_difference 'index_stats.call_count' do
       assert_difference 'index_apdex_stats.call_count' do
         get :index
@@ -245,7 +245,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     path = 'new_relic/agent/agent_test/action_to_ignore_apdex'
     cpu_stats = stats("ControllerCPU/#{path}")
     index_stats = stats("Controller/#{path}")
-    index_apdex_stats = engine.get_custom_stats("Apdex/#{path}", NewRelic::ApdexStats)
+    index_apdex_stats = engine.get_stats_no_scope("Apdex/#{path}")
     assert_difference 'index_stats.call_count' do
       assert_no_difference 'index_apdex_stats.call_count' do
         get :action_to_ignore_apdex

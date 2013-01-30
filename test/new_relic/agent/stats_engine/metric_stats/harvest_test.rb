@@ -80,9 +80,9 @@ class NewRelic::Agent::StatsEngine::MetricStats::HarvestTest < Test::Unit::TestC
   end
 
   def test_merge_data_new_and_old_data
-    stats = NewRelic::MethodTraceStats.new
+    stats = NewRelic::Stats.new
     stats.record_data_point(1.0)
-    new_stats = NewRelic::MethodTraceStats.new
+    new_stats = NewRelic::Stats.new
     new_stats.record_data_point(2.0)
     self.expects(:lookup_stats).with('Custom/test/method', '').returns(new_stats)
     assert_equal(2.0, new_stats.total_call_time)
@@ -95,7 +95,7 @@ class NewRelic::Agent::StatsEngine::MetricStats::HarvestTest < Test::Unit::TestC
   end
 
   def test_merge_data_old_data
-    stats = NewRelic::MethodTraceStats.new
+    stats = NewRelic::Stats.new
     stats.record_data_point(1.0)
     self.expects(:lookup_stats).returns(nil)
 

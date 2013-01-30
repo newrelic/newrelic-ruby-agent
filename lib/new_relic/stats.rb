@@ -1,5 +1,5 @@
 module NewRelic
-  class BasicStats
+  class Stats
     attr_accessor :call_count
     attr_accessor :min_call_time
     attr_accessor :max_call_time
@@ -56,34 +56,6 @@ module NewRelic
       }.to_json(*_)
     end
 
-    protected
-
-    def min_time_less?(other)
-      (other.min_call_time < min_call_time && other.call_count > 0) || call_count == 0
-    end
-  end
-
-  class ApdexStats < BasicStats
-    alias_method :apdex_s, :call_count
-    alias_method :apdex_t, :total_call_time
-    alias_method :apdex_f, :total_exclusive_time
-
-    def record_apdex_s
-      @call_count += 1
-    end
-
-    def record_apdex_t
-      @total_call_time += 1
-    end
-
-    def record_apdex_f
-      @total_exclusive_time += 1
-    end
-  end
-
-  # Statistics used to track the performance of traced methods
-  class MethodTraceStats < BasicStats
-
     # record a single data point into the statistical gatherer.  The gatherer
     # will aggregate all data points collected over a specified period and upload
     # its data to the NewRelic server
@@ -120,32 +92,45 @@ module NewRelic
       @call_count += value
     end
     
-    # outputs a human-readable version of the MethodTraceStats object
     def inspect
-      "#<NewRelic::MethodTraceStats #{to_s} >"
+      "#<NewRelic::Stats #{to_s} >"
     end
 
+    # Apedex-related accessors
+    alias_method :apdex_s, :call_count
+    alias_method :apdex_t, :total_call_time
+    alias_method :apdex_f, :total_exclusive_time
+
+    def record_apdex_s
+      @call_count += 1
+    end
+
+    def record_apdex_t
+      @total_call_time += 1
+    end
+
+    def record_apdex_f
+      @total_exclusive_time += 1
+    end
+
+    protected
+
+    def min_time_less?(other)
+      (other.min_call_time < min_call_time && other.call_count > 0) || call_count == 0
+    end
   end
 
-  class ScopedMethodTraceStats < MethodTraceStats
-    attr_accessor :unscoped_stats
+  class ChainedStats
+    attr_accessor :scoped_stats, :unscoped_stats
 
-    def initialize(unscoped_stats)
-      super()
-      self.unscoped_stats = unscoped_stats
+    def initialize(scoped_stats, unscoped_stats)
+      @scoped_stats = scoped_stats
+      @unscoped_stats = unscoped_stats
     end
 
-    def trace_call(call_time, exclusive_time = call_time)
-      unscoped_stats.trace_call call_time, exclusive_time
-      super call_time, exclusive_time
-    end
-
-    # Records multiple data points as one method call - this handles
-    # all the aggregation that would be done with multiple
-    # trace_call calls    
-    def record_multiple_data_points(total_value, count=1)
-      unscoped_stats.record_multiple_data_points(total_value, count)
-      super total_value, count
+    def method_missing(method, *args)
+      unscoped_stats.send(method, *args)
+      scoped_stats.send(method, *args)
     end
   end
 end

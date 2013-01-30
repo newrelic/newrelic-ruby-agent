@@ -12,6 +12,7 @@ module NewRelic
 
           def initialize
             @lock = Mutex.new
+            super
           end
 
           def initialize_copy(old)
@@ -88,12 +89,7 @@ module NewRelic
         # returns a new stats object if no stats object for that
         # metric exists yet
         def get_stats_no_scope(metric_name)
-          stats_hash[NewRelic::MetricSpec.new(metric_name, '')] ||= NewRelic::MethodTraceStats.new
-        end
-
-        # This version allows a caller to pass a stat class to use
-        def get_custom_stats(metric_name, stat_class)
-          stats_hash[NewRelic::MetricSpec.new(metric_name)] ||= stat_class.new
+          stats_hash[NewRelic::MetricSpec.new(metric_name, '')]
         end
 
         # If use_scope is true, two chained metrics are created, one with scope and one without
@@ -101,13 +97,16 @@ module NewRelic
         def get_stats(metric_name, use_scope = true, scoped_metric_only = false, scope = nil)
           scope ||= scope_name if use_scope
           if scoped_metric_only
-            spec = NewRelic::MetricSpec.new metric_name, scope
-            stats = stats_hash[spec] ||= NewRelic::MethodTraceStats.new
+            stats = stats_hash[NewRelic::MetricSpec.new(metric_name, scope)]
           else
-            stats = stats_hash[NewRelic::MetricSpec.new(metric_name)] ||= NewRelic::MethodTraceStats.new
+            unscoped_spec = NewRelic::MetricSpec.new(metric_name)
+            unscoped_stats = stats_hash[unscoped_spec]
             if scope && scope != metric_name
-              spec = NewRelic::MetricSpec.new metric_name, scope
-              stats = stats_hash[spec] ||= NewRelic::ScopedMethodTraceStats.new(stats)
+              scoped_spec = NewRelic::MetricSpec.new(metric_name, scope)
+              scoped_stats = stats_hash[scoped_spec]
+              stats = NewRelic::ChainedStats.new(scoped_stats, unscoped_stats)
+            else
+              stats = unscoped_stats
             end
           end
           stats
@@ -116,7 +115,8 @@ module NewRelic
         # Returns a stat if one exists, otherwise returns nil. If you
         # want auto-initialization, use one of get_stats or get_stats_no_scope
         def lookup_stats(metric_name, scope_name = '')
-          stats_hash[NewRelic::MetricSpec.new(metric_name, scope_name)]
+          spec = NewRelic::MetricSpec.new(metric_name, scope_name)
+          stats_hash.has_key?(spec) ? stats_hash[spec] : nil
         end
 
 
@@ -259,7 +259,7 @@ module NewRelic
 
         # Remove all stats.  For test code only.
         def clear_stats
-          @stats_hash = SynchronizedHash.new
+          @stats_hash = create_stats_hash
           NewRelic::Agent::BusyCalculator.reset
         end
 
@@ -271,7 +271,13 @@ module NewRelic
         # returns a memoized SynchronizedHash that holds the actual
         # instances of Stats keyed off their MetricName
         def stats_hash
-          @stats_hash ||= SynchronizedHash.new
+          @stats_hash ||= create_stats_hash
+        end
+
+        private
+
+        def create_stats_hash
+          SynchronizedHash.new { |hash, key| hash[key] = NewRelic::Stats.new }
         end
       end
     end

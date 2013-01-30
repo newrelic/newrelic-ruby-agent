@@ -23,8 +23,8 @@ class NewRelic::StatsTest < Test::Unit::TestCase
   end
 
   def setup_merge
-    a = NewRelic::BasicStats.new
-    b = NewRelic::BasicStats.new
+    a = NewRelic::Stats.new
+    b = NewRelic::Stats.new
     a.reset
     b.reset
     yield a, b
@@ -45,7 +45,7 @@ class NewRelic::StatsTest < Test::Unit::TestCase
   end
 
   def test_simple
-    stats = NewRelic::MethodTraceStats.new
+    stats = NewRelic::Stats.new
     validate stats, 0, 0, 0, 0
 
     assert_equal stats.call_count,0
@@ -57,13 +57,13 @@ class NewRelic::StatsTest < Test::Unit::TestCase
   end
 
   def test_to_s
-    s1 = NewRelic::MethodTraceStats.new
+    s1 = NewRelic::Stats.new
     s1.trace_call 10
     assert_equal("[ 1 calls 10.0000s]", s1.to_s)
   end
 
   def test_apdex_recording
-    s = NewRelic::ApdexStats.new
+    s = NewRelic::Stats.new
 
     s.record_apdex_s
     s.record_apdex_t
@@ -77,8 +77,8 @@ class NewRelic::StatsTest < Test::Unit::TestCase
   end
 
   def test_merge
-    s1 = NewRelic::MethodTraceStats.new
-    s2 = NewRelic::MethodTraceStats.new
+    s1 = NewRelic::Stats.new
+    s2 = NewRelic::Stats.new
 
     s1.trace_call 10
     s2.trace_call 20
@@ -96,9 +96,9 @@ class NewRelic::StatsTest < Test::Unit::TestCase
   end
 
   def test_merge_with_exclusive
-    s1 = NewRelic::MethodTraceStats.new
+    s1 = NewRelic::Stats.new
 
-    s2 = NewRelic::MethodTraceStats.new
+    s2 = NewRelic::Stats.new
 
     s1.trace_call 10, 5
     s2.trace_call 20, 10
@@ -116,18 +116,18 @@ class NewRelic::StatsTest < Test::Unit::TestCase
   end
 
   def test_merge_array
-    s1 = NewRelic::MethodTraceStats.new
+    s1 = NewRelic::Stats.new
     merges = []
-    merges << (NewRelic::MethodTraceStats.new.trace_call 1)
-    merges << (NewRelic::MethodTraceStats.new.trace_call 1)
-    merges << (NewRelic::MethodTraceStats.new.trace_call 1)
+    merges << (NewRelic::Stats.new.trace_call 1)
+    merges << (NewRelic::Stats.new.trace_call 1)
+    merges << (NewRelic::Stats.new.trace_call 1)
 
     s1.merge! merges
     validate s1, 3, 3, 1, 1
   end
 
   def test_freeze
-    s1 = NewRelic::MethodTraceStats.new
+    s1 = NewRelic::Stats.new
 
     s1.trace_call 10
     s1.freeze
@@ -143,11 +143,11 @@ class NewRelic::StatsTest < Test::Unit::TestCase
   end
 
   def test_sum_of_squares_merge
-    s1 = NewRelic::MethodTraceStats.new
+    s1 = NewRelic::Stats.new
     s1.trace_call 4
     s1.trace_call 7
 
-    s2 = NewRelic::MethodTraceStats.new
+    s2 = NewRelic::Stats.new
     s2.trace_call 13
     s2.trace_call 16
 
@@ -157,9 +157,29 @@ class NewRelic::StatsTest < Test::Unit::TestCase
     assert_equal(s3.sum_of_squares, 4*4 + 7*7 + 13*13 + 16*16, "check sum of squares")
   end
 
+  def test_chained_stats_proxies_calls_to_scoped_and_unscoped
+    scoped_stats = NewRelic::Stats.new
+    unscoped_stats = NewRelic::Stats.new
+    chained_stats = NewRelic::ChainedStats.new(scoped_stats, unscoped_stats)
+    chained_stats.record_data_point(42)
+    assert_equal(1, scoped_stats.call_count)
+    assert_equal(1, unscoped_stats.call_count)
+    assert_equal(42, scoped_stats.total_call_time)
+    assert_equal(42, unscoped_stats.total_call_time)
+  end
+
+  def test_chained_stats_returns_values_from_scoped
+    scoped_stats = NewRelic::Stats.new
+    unscoped_stats = NewRelic::Stats.new
+    chained_stats = NewRelic::ChainedStats.new(scoped_stats, unscoped_stats)
+    scoped_stats.record_data_point(42)
+    assert_equal(1, chained_stats.call_count)
+    assert_equal(42, chained_stats.total_call_time)
+  end
+
   if RUBY_VERSION >= '1.9'
     def test_to_json_enforces_float_values
-      s1 = NewRelic::MethodTraceStats.new
+      s1 = NewRelic::Stats.new
       s1.trace_call 3.to_r
       s1.trace_call 7.to_r
 
