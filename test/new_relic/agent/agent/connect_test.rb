@@ -183,7 +183,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
 
   def test_connect_to_server_gets_config_from_collector
     NewRelic::Agent.manual_start
-    NewRelic::Agent::Agent.instance.service = stub(
+    NewRelic::Agent::Agent.instance.service = default_service(
       :connect => {'agent_run_id' => 23, 'config' => 'a lot'})
 
     response = NewRelic::Agent.agent.connect_to_server
@@ -216,16 +216,11 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
 
   def test_logging_collector_messages
     NewRelic::Agent.manual_start
-    service = stub_everything(
+    NewRelic::Agent::Agent.instance.service = default_service(
       :connect => {
-        'agent_run_id' => 23, 'config' => 'a lot',
         'messages' => [{ 'message' => 'beep boop', 'level' => 'INFO' },
                        { 'message' => 'ha cha cha', 'level' => 'WARN' }]
-      },
-      :collector => stub_everything
-    )
-
-    NewRelic::Agent::Agent.instance.service = service
+      })
 
     expects_logging(:info, 'beep boop')
     expects_logging(:warn, 'ha cha cha')

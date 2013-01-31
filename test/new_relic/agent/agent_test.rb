@@ -272,7 +272,7 @@ module NewRelic
       end
 
       def test_connect_does_not_retry_on_license_error
-        @agent.service.stubs(:connect).raises(NewRelic::Agent::LicenseException)
+        @agent.service.expects(:connect).raises(NewRelic::Agent::LicenseException)
         @agent.send(:connect)
         assert(@agent.disconnected?)
       end
