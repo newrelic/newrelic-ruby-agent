@@ -21,6 +21,7 @@ module NewRelic
     end
 
     def string(value, context=nil)
+      return value if value.nil?
       String(value)
     rescue => error
       log_failure(value.class, Integer, context, error)
