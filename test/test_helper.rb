@@ -52,21 +52,22 @@ begin # 1.8.6
 rescue LoadError
 end
 
-def default_service
+def default_service(stubbed_method_overrides = {})
   service = stub
-  service.stubs(:connect).returns({})
-  service.stubs(:shutdown)
+  stubbed_method_defaults = {
+    :connect => {},
+    :shutdown => nil,
+    :agent_id= => nil,
+    :agent_id => nil,
+    :collector => stub_everything,
+    :request_timeout= =>  nil,
+    :metric_data => nil,
+    :error_data => nil,
+    :transaction_sample_data => nil,
+    :get_agent_commands => []
+  }
 
-  service.stubs(:agent_id=)
-  service.stubs(:agent_id)
-  service.stubs(:collector).returns(stub_everything)
-  service.stubs(:request_timeout=)
-
-  service.stubs(:metric_data)
-  service.stubs(:error_data)
-  service.stubs(:transaction_sample_data)
-  service.stubs(:get_agent_commands).returns([])
-
+  service.stubs(stubbed_method_defaults.merge(stubbed_method_overrides))
   service
 end
 

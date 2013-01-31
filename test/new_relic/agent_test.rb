@@ -71,7 +71,6 @@ module NewRelic
       def test_timeslice_harvest_with_after_fork_report_to_channel
         with_config(:agent_enabled => true, :monitor_mode => true) do
           NewRelic::Agent.shutdown # make sure the agent is not already started
-          NewRelic::Agent::Agent.instance.service = default_service
           NewRelic::Agent.manual_start(:license_key => ('1234567890' * 4),
                                        :start_channel_listener => true)
 
@@ -121,7 +120,6 @@ module NewRelic
 
     def test_manual_start_starts_channel_listener
       NewRelic::Agent::PipeChannelManager.listener.stop
-      NewRelic::Agent.agent.service = stub_everything
       NewRelic::Agent.manual_start(:start_channel_listener => true)
       assert NewRelic::Agent::PipeChannelManager.listener.started?
       NewRelic::Agent::PipeChannelManager.listener.stop
