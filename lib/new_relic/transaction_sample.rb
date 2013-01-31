@@ -57,15 +57,24 @@ module NewRelic
       JSON.dump(self.to_array)
     end
 
+    include NewRelic::Coerce
+
     def to_array
-      [ @start_time.to_f, @params[:request_params], @params[:custom_params],
+      [ float(@start_time),
+        @params[:request_params],
+        @params[:custom_params],
         @root_segment.to_array ]
     end
 
     def to_collector_array(encoder)
       trace_tree = encoder.encode(self.to_array)
-      [ Helper.time_to_millis(@start_time), Helper.time_to_millis(duration),
-        @params[:path], @params[:uri], trace_tree, @guid, nil,
+      [ Helper.time_to_millis(@start_time),
+        Helper.time_to_millis(duration),
+        string(@params[:path]),
+        string(@params[:uri]),
+        trace_tree,
+        string(@guid),
+        nil,
         !!@force_persist ]
     end
 
