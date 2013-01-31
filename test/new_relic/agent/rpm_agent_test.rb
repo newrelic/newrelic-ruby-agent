@@ -86,7 +86,7 @@ class NewRelic::Agent::RpmAgentTest < Test::Unit::TestCase # ActiveSupport::Test
     should "send_timeslice_data" do
       # this test fails due to a rubinius bug
       return if NewRelic::LanguageSupport.using_engine?('rbx')
-      @agent.service = stub(:agent_id => 23)
+      @agent.service = default_service
       @agent.service.expects(:metric_data).returns([ [{'name' => '/A/b/c'}, 1],
                                                      [{'name' => '/A/b/c', 'scope' => '/X'}, 2],
                                                      [{'name' => '/A/b/d'}, 3] ])

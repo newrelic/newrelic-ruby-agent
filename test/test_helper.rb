@@ -52,6 +52,24 @@ begin # 1.8.6
 rescue LoadError
 end
 
+def default_service
+  service = stub
+  service.stubs(:connect).returns({})
+  service.stubs(:shutdown)
+
+  service.stubs(:agent_id=)
+  service.stubs(:agent_id)
+  service.stubs(:collector).returns(stub_everything)
+  service.stubs(:request_timeout=)
+
+  service.stubs(:metric_data)
+  service.stubs(:error_data)
+  service.stubs(:transaction_sample_data)
+  service.stubs(:get_agent_commands).returns([])
+
+  service
+end
+
 class Test::Unit::TestCase
   include Mocha::API
 
