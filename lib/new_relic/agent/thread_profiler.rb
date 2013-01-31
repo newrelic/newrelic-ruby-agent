@@ -202,6 +202,8 @@ EOF
 
       THREAD_PROFILER_NODES = 20_000
 
+      include NewRelic::Coerce
+
       def to_collector_array(encoder)
         prune!(THREAD_PROFILER_NODES)
 
@@ -213,12 +215,12 @@ EOF
         }
 
         [[
-          NewRelic::Coerce.int(@profile_id),
-          NewRelic::Coerce.float(@start_time),
-          NewRelic::Coerce.float(@stop_time),
-          NewRelic::Coerce.int(@poll_count),
-          encoder.encode(traces),
-          NewRelic::Coerce.int(@sample_count),
+          int(@profile_id),
+          float(@start_time),
+          float(@stop_time),
+          int(@poll_count),
+          string(encoder.encode(traces)),
+          int(@sample_count),
           0
         ]]
       end
@@ -284,13 +286,15 @@ EOF
           [-runnable_count, depth] <=> [-y.runnable_count, y.depth]
         end
 
+        include NewRelic::Coerce
+
         def to_array
           [[
-              NewRelic::Coerce.string(@file),
-              NewRelic::Coerce.string(@method),
-              NewRelic::Coerce.int(@line_no)
+              string(@file),
+              string(@method),
+              int(@line_no)
             ],
-            NewRelic::Coerce.int(@runnable_count),
+            int(@runnable_count),
             0,
             @children.map {|c| c.to_array}]
         end
