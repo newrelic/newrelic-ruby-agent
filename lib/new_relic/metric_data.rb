@@ -1,3 +1,5 @@
+require 'new_relic/coerce'
+
 module NewRelic
   class MetricData
     # nil, or a NewRelic::MetricSpec object if we have no cached ID
@@ -52,8 +54,15 @@ module NewRelic
     def to_collector_array(encoder=nil)
       stat_key = metric_id || { 'name' => metric_spec.name, 'scope' => metric_spec.scope }
       [ stat_key,
-        [ stats.call_count, stats.total_call_time, stats.total_exclusive_time,
-          stats.min_call_time, stats.max_call_time, stats.sum_of_squares ] ]
+        [
+          NewRelic::Coerce.int(stats.call_count, stat_key),
+          NewRelic::Coerce.float(stats.total_call_time, stat_key),
+          NewRelic::Coerce.float(stats.total_exclusive_time, stat_key),
+          NewRelic::Coerce.float(stats.min_call_time, stat_key),
+          NewRelic::Coerce.float(stats.max_call_time, stat_key),
+          NewRelic::Coerce.float(stats.sum_of_squares, stat_key)
+        ]
+      ]
     end
   end
 end
