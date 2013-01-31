@@ -16,7 +16,7 @@ module NewRelic
     def float(value, context=nil)
       Float(value)
     rescue => error
-      log_failure(value, Integer, context, error)
+      log_failure(value, Float, context, error)
       0.0
     end
 
@@ -24,7 +24,7 @@ module NewRelic
       return value if value.nil?
       String(value)
     rescue => error
-      log_failure(value.class, Integer, context, error)
+      log_failure(value.class, String, context, error)
       ""
     end
 

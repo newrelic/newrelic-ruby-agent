@@ -23,7 +23,7 @@ class CoerceTest < Test::Unit::TestCase
   end
 
   def test_int_coerce_logs_with_context
-    expects_logging(:warn, includes("HERE"), anything)
+    expects_logging(:warn, all_of(includes("HERE"), includes("Integer")), anything)
     int("not valid", "HERE")
   end
 
@@ -39,7 +39,7 @@ class CoerceTest < Test::Unit::TestCase
   end
 
   def test_float_coerce_logs_with_context
-    expects_logging(:warn, includes("HERE"), anything)
+    expects_logging(:warn, all_of(includes("HERE"), includes("Float")), anything)
     float("not valid", "HERE")
   end
 
@@ -55,7 +55,7 @@ class CoerceTest < Test::Unit::TestCase
   end
 
   def test_string_coerce_logs_with_context
-    expects_logging(:warn, includes("HERE"), anything)
+    expects_logging(:warn, all_of(includes("HERE"), includes("String")), anything)
     string(Unstringable.new, "HERE")
   end
 
