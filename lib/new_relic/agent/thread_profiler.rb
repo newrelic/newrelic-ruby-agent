@@ -212,11 +212,15 @@ EOF
           "BACKGROUND" => @traces[:background].map{|t| t.to_array }
         }
 
-        [[@profile_id,
-          @start_time.to_f, @stop_time.to_f,
-          @poll_count,
+        [[
+          NewRelic::Coerce.int(@profile_id),
+          NewRelic::Coerce.float(@start_time),
+          NewRelic::Coerce.float(@stop_time),
+          NewRelic::Coerce.int(@poll_count),
           encoder.encode(traces),
-          @sample_count, 0]]
+          NewRelic::Coerce.int(@sample_count),
+          0
+        ]]
       end
 
       def now_in_millis
@@ -281,8 +285,13 @@ EOF
         end
 
         def to_array
-          [[@file, @method, @line_no],
-            @runnable_count, 0,
+          [[
+              NewRelic::Coerce.string(@file),
+              NewRelic::Coerce.string(@method),
+              NewRelic::Coerce.int(@line_no)
+            ],
+            NewRelic::Coerce.int(@runnable_count),
+            0,
             @children.map {|c| c.to_array}]
         end
 

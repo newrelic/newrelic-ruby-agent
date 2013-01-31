@@ -430,12 +430,7 @@ class ThreadProfileTest < ThreadedTest
     assert_equal [], @profile.traces[:other][0].children
   end
 
-  def test_to_collector_array
-    @profile.instance_variable_set(:@start_time, 1350403938892.524)
-    @profile.instance_variable_set(:@stop_time, 1350403939904.375)
-    @profile.instance_variable_set(:@poll_count, 10)
-    @profile.instance_variable_set(:@sample_count, 2)
-
+  def build_well_known_trace
     trace = ["thread_profiler.py:1:in `<module>'"]
     10.times { @profile.aggregate(trace, @profile.traces[:other]) }
 
@@ -447,14 +442,48 @@ class ThreadProfileTest < ThreadedTest
       "thread_profiler.py:103:in `_run_profiler'",
       "thread_profiler.py:165:in `collect_thread_stacks'"]
     10.times { @profile.aggregate(trace, @profile.traces[:agent]) }
+  end
+
+  WELL_KNOWN_TRACE_ENCODED = "eJy9klFPwjAUhf/LfW7WDQTUGBPUiYkGdAxelqXZRpGGrm1uS8xi/O924JQX\n9Un7dm77ndN7c19hlt7FCZxnWQZug7xYMYN6LSTHwDRA4KLWq53kl0CinEQh\nCUmW5zmBJH5axPPUk16MJ/E0/cGk0lLyyrGPS+uKamu943DQeX5HMtypz5In\nwv6vRCeZ1NoAGQ2PCDpvrOM1fRAlFtjQWyxq/qJxa+lj4zZaBeuuQpccrdDK\n0l4wolKU1OxftOoQLNTzIdL/EcjJafjnQYyVWjvrsDBMKNVOZBD1/jO27fPs\naBG+DoGr8fX9JJktpjftVry9A9unzGo=\n"
+
+  def test_to_collector_array
+    @profile.instance_variable_set(:@start_time, 1350403938892.524)
+    @profile.instance_variable_set(:@stop_time, 1350403939904.375)
+    @profile.instance_variable_set(:@poll_count, 10)
+    @profile.instance_variable_set(:@sample_count, 2)
+
+    build_well_known_trace
  
     expected = [[
           -1, 
           1350403938892.524, 
           1350403939904.375, 
           10, 
-          "eJy9klFPwjAUhf/LfW7WDQTUGBPUiYkGdAxelqXZRpGGrm1uS8xi/O924JQX\n9Un7dm77ndN7c19hlt7FCZxnWQZug7xYMYN6LSTHwDRA4KLWq53kl0CinEQh\nCUmW5zmBJH5axPPUk16MJ/E0/cGk0lLyyrGPS+uKamu943DQeX5HMtypz5In\nwv6vRCeZ1NoAGQ2PCDpvrOM1fRAlFtjQWyxq/qJxa+lj4zZaBeuuQpccrdDK\n0l4wolKU1OxftOoQLNTzIdL/EcjJafjnQYyVWjvrsDBMKNVOZBD1/jO27fPs\naBG+DoGr8fX9JJktpjftVry9A9unzGo=\n",
+          WELL_KNOWN_TRACE_ENCODED,
           2, 
+          0
+      ]]
+
+    marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+    assert_equal expected, @profile.to_collector_array(marshaller.default_encoder)
+  end
+
+  def test_to_collector_array_with_bad_values
+    @profile.instance_variable_set(:@profile_id, "-1")
+    @profile.instance_variable_set(:@start_time, "")
+    @profile.instance_variable_set(:@stop_time, nil)
+    @profile.instance_variable_set(:@poll_count, Rational(10, 1))
+    @profile.instance_variable_set(:@sample_count, nil)
+
+    build_well_known_trace
+
+    expected = [[
+          -1,
+          0.0,
+          0.0,
+          10,
+          WELL_KNOWN_TRACE_ENCODED,
+          0,
           0
       ]]
 
@@ -494,6 +523,18 @@ class ThreadProfileNodeTest < Test::Unit::TestCase
           ]
         ]],
       node.to_array)
+  end
+
+  def test_gracefully_handle_bad_values_in_to_array
+    node = NewRelic::Agent::ThreadProfile::Node.new(SINGLE_LINE)
+    node.instance_variable_set(:@line_no, "blarg")
+    node.runnable_count = Rational(10, 1)
+
+    assert_equal([
+         ["irb.rb", "catch", 0],
+         10, 0,
+         []],
+       node.to_array)
   end
 
   def test_add_child_twice
