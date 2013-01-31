@@ -6,25 +6,31 @@ module NewRelic
   # to provide documentation of expected types on to_collector_array methods,
   # and to log failures if totally invalid data gets into outgoing data
   module Coerce
-    def int(value, context="")
+    def int(value, context=nil)
       Integer(value)
-    rescue => e
-      NewRelic::Agent.logger.warn("Unable to convert value '#{value}' to int in context '#{context}'", e)
+    rescue => error
+      log_failure(value, Integer, context, error)
       0
     end
 
-    def float(value, context="")
+    def float(value, context=nil)
       Float(value)
-    rescue => e
-      NewRelic::Agent.logger.warn("Unable to convert value '#{value}' to float in context '#{context}'", e)
+    rescue => error
+      log_failure(value, Integer, context, error)
       0.0
     end
 
-    def string(value, context="")
+    def string(value, context=nil)
       String(value)
-    rescue => e
-      NewRelic::Agent.logger.warn("Unable to convert value of type '#{value.class}' to string in context '#{context}'", e)
+    rescue => error
+      log_failure(value.class, Integer, context, error)
       ""
+    end
+
+    def log_failure(value, type, context, error)
+      msg = "Unable to convert '#{value}' to #{type}"
+      msg += " in context '#{context}'" if context
+      NewRelic::Agent.logger.warn(msg, error)
     end
   end
 end

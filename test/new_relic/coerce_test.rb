@@ -17,6 +17,11 @@ class CoerceTest < Test::Unit::TestCase
     assert_equal 0, int(:wat) unless RUBY_VERSION < '1.9'
   end
 
+  def test_int_coerce_logs
+    expects_logging(:warn, Not(includes("context")), any_parameters)
+    int("not valid")
+  end
+
   def test_int_coerce_logs_with_context
     expects_logging(:warn, includes("HERE"), anything)
     int("not valid", "HERE")
