@@ -1,6 +1,11 @@
 module NewRelic
   module Agent
     class RulesEngine
+      include Enumerable
+      extend Forwardable
+
+      def_delegators :@rules, :size, :<<, :inspect, :each
+
       attr_accessor :rules
 
       def initialize
@@ -19,10 +24,6 @@ module NewRelic
           break result if matched && rule.terminate_chain
           result
         end
-      end
-
-      def <<(rule)
-        @rules << rule
       end
 
       class Rule

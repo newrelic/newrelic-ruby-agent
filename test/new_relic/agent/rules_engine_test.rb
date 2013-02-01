@@ -43,8 +43,8 @@ class RulesEngineTest < Test::Unit::TestCase
                                                     'replacement'      => 'x',
                                                     'replace_all'      => true,
                                                     'eval_order'       => 1)
-    @engine.rules << rerule
-    @engine.rules << rule
+    @engine << rerule
+    @engine << rule
 
     assert_equal('foo/x/bar/x', @engine.rename('foo/1/bar/22'))
   end
@@ -53,7 +53,7 @@ class RulesEngineTest < Test::Unit::TestCase
     rule = NewRelic::Agent::RulesEngine::Rule.new('match_expression' => '[0-9]+.*',
                                                   'replacement'      => '*',
                                                   'each_segment'     => true)
-    @engine.rules << rule
+    @engine << rule
 
     assert_equal('foo/*/bar/*', @engine.rename('foo/1a/bar/22b'))
   end
@@ -68,8 +68,8 @@ class RulesEngineTest < Test::Unit::TestCase
                                                    'replacement'      => 'X',
                                                    'replace_all'      => true,
                                                    'eval_order'       => 1)
-    @engine.rules << rule0
-    @engine.rules << rule1
+    @engine << rule0
+    @engine << rule1
 
     assert_equal('foo/*/bar/*', @engine.rename('foo/1/bar/22'))
   end
