@@ -48,11 +48,13 @@ unless ENV['FAST_TESTS']
       assert_equal %w[External/all External/www.google.com/Net::HTTP/GET External/allWeb External/www.google.com/all
        External/www.google.com/Net::HTTP/GET:Controller/NewRelic::Agent::Instrumentation::NetInstrumentationTest/task].sort, metrics_without_gc.select{|m| m =~ /^External/}.sort
     end
+
     def test_get__simple
       Net::HTTP.get URI.parse('http://www.google.com/index.html')
       assert_equal metrics_without_gc.sort,
       %w[External/all External/www.google.com/Net::HTTP/GET External/allOther External/www.google.com/all].sort
     end
+
     def test_ignore
       NewRelic::Agent.disable_all_tracing do
         url = URI.parse('http://www.google.com/index.html')

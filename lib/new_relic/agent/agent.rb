@@ -24,13 +24,14 @@ module NewRelic
         @launch_time = Time.now
 
         @metric_ids = {}
-        @events = NewRelic::Agent::EventListener.new
-        @stats_engine = NewRelic::Agent::StatsEngine.new
-        @transaction_sampler = NewRelic::Agent::TransactionSampler.new
-        @sql_sampler = NewRelic::Agent::SqlSampler.new
-        @thread_profiler = NewRelic::Agent::ThreadProfiler.new
+        @events                = NewRelic::Agent::EventListener.new
+        @stats_engine          = NewRelic::Agent::StatsEngine.new
+        @transaction_sampler   = NewRelic::Agent::TransactionSampler.new
+        @sql_sampler           = NewRelic::Agent::SqlSampler.new
+        @thread_profiler       = NewRelic::Agent::ThreadProfiler.new
         @cross_process_monitor = NewRelic::Agent::CrossProcessMonitor.new(@events)
-        @error_collector = NewRelic::Agent::ErrorCollector.new
+        @error_collector       = NewRelic::Agent::ErrorCollector.new
+        @rules                 = NewRelic::Agent::RulesEngine.new
 
         @connect_state = :pending
         @connect_attempts = 0
@@ -102,7 +103,10 @@ module NewRelic
         # for agent-wide events, such as finishing configuration, error notification
         # and request before/after from Rack.
         attr_reader :events
-
+        # Transaction and metric renaming rules as provided by the
+        # collector on connect.  The former are applied during txns,
+        # the latter during harvest.
+        attr_reader :rules
 
         # Returns the length of the unsent errors array, if it exists,
         # otherwise nil

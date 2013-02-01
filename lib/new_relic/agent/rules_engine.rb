@@ -21,6 +21,10 @@ module NewRelic
         end
       end
 
+      def <<(rule)
+        @rules << rule
+      end
+
       class Rule
         attr_reader(:terminate_chain, :each_segment, :ignore, :replace_all, :eval_order,
                     :match_expression, :replacement)

@@ -37,7 +37,7 @@ module NewRelic
       def ignore_end_user?
         @ignore_end_user
       end
-      
+
       def ignore_end_user=(value)
         @ignore_end_user = value
       end
@@ -64,9 +64,9 @@ module NewRelic
 
       def self.get_token(request)
         return nil unless request
-        
+
         agent_flag = request.cookies['NRAGENT']
-        if agent_flag and agent_flag.instance_of? String 
+        if agent_flag and agent_flag.instance_of? String
           s = agent_flag.split("=")
           if s.length == 2
             if s[0] == "tk" && s[1]
@@ -78,7 +78,7 @@ module NewRelic
         end
       end
 
-      # Run through a collection of unsafe characters ( in the context of the token ) 
+      # Run through a collection of unsafe characters ( in the context of the token )
       # and set the token to an empty string if any of them are found in the token so that
       # potential XSS attacks via the token are avoided
       def self.sanitize_token(token)
