@@ -83,5 +83,8 @@ class NewRelic::Agent::Instrumentation::ControllerInstrumentationTest < Test::Un
     assert_equal('foo/*/bar/*',
                  @object.send(:transaction_name, :category => 'foo',
                               :path => '1/bar/22'))
+  ensure
+    NewRelic::Agent.instance.instance_variable_set(:@rules,
+                                              NewRelic::Agent::RulesEngine.new)
   end
 end
