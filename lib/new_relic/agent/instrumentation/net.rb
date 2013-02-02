@@ -169,11 +169,7 @@ DependencyDetection.defer do
         decoded_appdata.set_encoding( ::Encoding::UTF_8 ) if
           decoded_appdata.respond_to?( :set_encoding )
 
-        match = NR_APPDATA_PATTERN.match( decoded_appdata.strip ) or
-          raise "Malformed #{NR_APPDATA_HEADER} header: %p." % [ decoded_appdata ]
-        xp_id, txn_name, q_time, r_time, req_len = match.captures
-
-        txn_name = expand_json_escapes( txn_name )
+        xp_id, txn_name, q_time, r_time, req_len = NewRelic.json_load( decoded_appdata )
 
         metrics = []
         metrics << get_metric( "ExternalApp/#@address/#{xp_id}/all" )
@@ -182,25 +178,6 @@ DependencyDetection.defer do
         metrics << get_scoped_metric( "ExternalTransaction/#@address/#{xp_id}/#{txn_name}" )
 
         return metrics
-      end
-
-
-      # Expand JSON-escaped characters in the given +string+.
-      def expand_json_escapes( string )
-        string.gsub( /(?: \\( u [[:xdigit:]]{4} | ["\\bfnrt\/] ) )/x ) do |escape|
-          # String character escape
-          if char = JSON_ESCAPES[ escape ]
-            char
-          else
-            expand_unicode_escape( escape[1,4] )
-          end
-        end
-      end
-
-
-      # Expand a UTF-8 string from the hex +bytes+.
-      def expand_unicode_escape( bytes )
-        return '…'
       end
 
 

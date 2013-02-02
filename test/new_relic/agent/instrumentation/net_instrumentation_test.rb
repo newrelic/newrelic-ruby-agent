@@ -62,9 +62,7 @@ unless ENV['FAST_TESTS']
 
 
     def make_app_data_payload( *args )
-      return [ args.to_json ].pack( 'm' ).
-        gsub( /\n/, '' ).
-        gsub( /(.{59})(?=.)/, "\\1\r\n  " ) + "\n"
+      return [ args.to_json ].pack( 'm' ).gsub( /\n/, '' ) + "\n"
     end
 
     def make_app_data_header( *args )
