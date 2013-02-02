@@ -31,7 +31,7 @@ module NewRelic
 
     def test_shutdown_removes_server_config
       NewRelic::Agent.manual_start
-      NewRelic::Agent.instance.service = stub_everything(:collector => stub_everything)
+      NewRelic::Agent.instance.service = default_service
       NewRelic::Agent.instance.finish_setup('agent_config' =>
                                             { :some_absurd_setting => true })
       assert NewRelic::Agent.config[:some_absurd_setting]
