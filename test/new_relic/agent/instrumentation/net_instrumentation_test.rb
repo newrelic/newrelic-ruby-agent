@@ -1,4 +1,5 @@
-#-*- ruby -*-
+#!/usr/bin/env ruby
+# encoding: utf-8
 
 require 'net/http'
 require 'pp'
@@ -26,7 +27,7 @@ unless ENV['FAST_TESTS']
 
 
     def setup
-      NewRelic::Agent.manual_start
+      NewRelic::Agent.manual_start( :'cross_process.enabled' => false )
       @engine = NewRelic::Agent.instance.stats_engine
       @engine.clear_stats
 
@@ -34,16 +35,23 @@ unless ENV['FAST_TESTS']
       @socket = stub("socket") do
         stubs(:closed?).returns(false)
         stubs(:close)
-        stubs(:read_nonblock).returns(CANNED_RESPONSE).then.raises(EOFError)
 
         def self.write( buf )
           buf.length
         end
       end
+
+      # Have to do this one outside of the block so the ivar is in the right context
+      @response_data = CANNED_RESPONSE.dup
+      if IO.const_defined?( :WaitReadable ) # Non-blocking IO in Net::Protocol?
+        @socket.stubs(:read_nonblock).returns(@response_data).then.raises(EOFError)
+      else
+        @socket.stubs(:sysread).returns(@response_data).then.raises(EOFError)
+      end
+
       TCPSocket.stubs(:open).returns(@socket)
     end
 
-    
     #
     # Helpers
     #
@@ -53,11 +61,23 @@ unless ENV['FAST_TESTS']
     end
 
 
+    def make_app_data_payload( *args )
+      return [ args.to_json ].pack( 'm' ).
+        gsub( /\n/, '' ).
+        gsub( /(.{59})(?=.)/, "\\1\r\n  " ) + "\n"
+    end
+
+    def make_app_data_header( *args )
+      return "%s: %s" % [ Net::HTTP::NR_APPDATA_HEADER, make_app_data_payload(*args) ]
+    end
+
+
     #
     # Tests
     #
 
     def test_get
+      assert @response_data
       url = URI.parse('http://www.google.com/index.html')
       res = Net::HTTP.start(url.host, url.port) {|http|
         http.get('/index.html')
@@ -89,8 +109,7 @@ unless ENV['FAST_TESTS']
       assert_includes @engine.metrics, 'External/allOther'
       assert_includes @engine.metrics, 'External/www.google.com/all'
       assert_includes @engine.metrics,
-        'External/www.google.com/Net::HTTP/GET:OtherTransaction/Background/' +
-        'NewRelic::Agent::Instrumentation::NetInstrumentationTest/task'
+        'OtherTransaction/Background/NewRelic::Agent::Instrumentation::NetInstrumentationTest/task'
 
       assert_not_includes @engine.metrics, 'External/allWeb'
     end
@@ -112,8 +131,7 @@ unless ENV['FAST_TESTS']
       assert_includes @engine.metrics, 'External/allWeb'
       assert_includes @engine.metrics, 'External/www.google.com/all'
       assert_includes @engine.metrics,
-        'External/www.google.com/Net::HTTP/GET:Controller/' +
-        'NewRelic::Agent::Instrumentation::NetInstrumentationTest/task'
+        'Controller/NewRelic::Agent::Instrumentation::NetInstrumentationTest/task'
 
       assert_not_includes @engine.metrics, 'External/allOther'
     end
@@ -191,6 +209,61 @@ unless ENV['FAST_TESTS']
       assert_instance_of Net::HTTPOK, response
       assert_equal '200', response.code
       assert_match %r/<head>/i, response.body
+    end
+
+
+    def test_instrumentation_with_xprocess_enabled_records_normal_metrics_if_no_header_present
+      with_config(:'cross_process.enabled' => true) do
+        Net::HTTP.get URI.parse('http://www.google.com/index.html')
+      end
+
+      assert_includes @engine.metrics, 'External/all'
+      assert_includes @engine.metrics, 'External/allOther'
+      assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
+      assert_includes @engine.metrics, 'External/www.google.com/all'
+
+      assert_not_includes @engine.metrics, 'ExternalApp/www.google.com/18#1884/all'
+      assert_not_includes @engine.metrics, 'ExternalTransaction/www.google.com/18#1884/txn-name'
+      assert_not_includes @engine.metrics, 'External/allWeb'
+    end
+
+
+    def test_instrumentation_with_xprocess_enabled_records_xprocess_metrics_if_header_present
+      app_data_header = make_app_data_header( '18#1884', 'txn-name', 2, 8, 0 )
+      @response_data.sub!( /\n\n/, "\n" + app_data_header + "\n" )
+
+      with_config(:'cross_process.enabled' => true) do
+        Net::HTTP.get URI.parse('http://www.google.com/index.html')
+      end
+
+      assert_includes @engine.metrics, 'External/all'
+      assert_includes @engine.metrics, 'External/allOther'
+      assert_includes @engine.metrics, 'ExternalApp/www.google.com/18#1884/all'
+      assert_includes @engine.metrics, 'ExternalTransaction/www.google.com/18#1884/txn-name'
+
+      assert_not_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
+      assert_not_includes @engine.metrics, 'External/www.google.com/all'
+      assert_not_includes @engine.metrics, 'External/allWeb'
+      
+    end
+
+    def test_xprocess_metrics_allow_valid_utf8_characters
+      app_data_header = make_app_data_header( '12#1114', '世界線航跡蔵', 18.0, 88.1, 4096 )
+      @response_data.sub!( /\n\n/, "\n" + app_data_header + "\n" )
+
+      with_config(:'cross_process.enabled' => true) do
+        Net::HTTP.get URI.parse('http://www.google.com/index.html')
+      end
+
+      assert_includes @engine.metrics, 'External/all'
+      assert_includes @engine.metrics, 'External/allOther'
+      assert_includes @engine.metrics, 'ExternalApp/www.google.com/12#1114/all'
+      assert_includes @engine.metrics, 'ExternalTransaction/www.google.com/12#1114/世界線航跡蔵'
+
+      assert_not_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
+      assert_not_includes @engine.metrics, 'External/www.google.com/all'
+      assert_not_includes @engine.metrics, 'External/allWeb'
+      
     end
 
   end
