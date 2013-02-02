@@ -1,3 +1,5 @@
+#encoding: utf-8
+
 module NewRelic
   # A singleton for shared generic helper methods
   module Helper
@@ -31,4 +33,22 @@ module NewRelic
       (time.to_f * 1000).round
     end
   end
+
+  # Use the stdlib JSON library if it's available, or fall back to the pure-ruby
+  # 'okjson' library if not
+  begin
+    require 'json'
+    define_method( :json_dump, &JSON.method(:dump) )
+    define_method( :json_load, &JSON.method(:parse) )
+  rescue LoadError => err
+    NewRelic::Agent.logger.debug "Falling back to OkJson: %s" % [ err.message ] if
+      defined?( NewRelic::Agent ) && NewRelic::Agent.respond_to?( :logger )
+
+    require 'new_relic/okjson'
+    define_method( :json_dump, &NewRelic::OkJson.method(:encode) )
+    define_method( :json_load, &NewRelic::OkJson.method(:decode) )
+  end
+  module_function :json_dump, :json_load
+
 end
+

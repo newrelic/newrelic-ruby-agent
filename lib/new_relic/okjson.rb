@@ -27,6 +27,7 @@ require 'stringio'
 # Some parts adapted from
 # http://golang.org/src/pkg/json/decode.go and
 # http://golang.org/src/pkg/utf8/utf8.go
+module NewRelic
 module OkJson
   Upstream = 'LTD7LBKLZWFF7OZK'
   extend self
@@ -594,4 +595,5 @@ module OkJson
 
   Spc = ' '[0]
   Unesc = {?b=>?\b, ?f=>?\f, ?n=>?\n, ?r=>?\r, ?t=>?\t}
+end
 end
