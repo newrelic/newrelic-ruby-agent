@@ -8,10 +8,7 @@ module NewRelic
       def setup
         super
         @agent = NewRelic::Agent::Agent.new
-
-        @agent.service = stub
-        @agent.service.stubs(:request_timeout=)
-        @agent.service.stubs(:agent_id)
+        @agent.service = default_service
       end
 
       #
@@ -53,24 +50,16 @@ module NewRelic
       end
 
       def test_transmit_data_should_transmit
-        @agent.service.expects(:metric_data)
-        @agent.service.stubs(:get_agent_commands).returns([])
-
+        @agent.service.expects(:metric_data).at_least_once
         @agent.instance_eval { transmit_data }
       end
 
       def test_transmit_data_should_close_explain_db_connections
-        @agent.service.stubs(:metric_data)
-        @agent.service.stubs(:get_agent_commands).returns([])
-
         NewRelic::Agent::Database.expects(:close_connections)
         @agent.instance_eval { transmit_data }
       end
 
       def test_transmit_data_should_not_close_db_connections_if_forked
-        @agent.service.stubs(:metric_data)
-        @agent.service.stubs(:get_agent_commands).returns([])
-
         NewRelic::Agent::Database.expects(:close_connections).never
         @agent.after_fork
         @agent.instance_eval { transmit_data }
@@ -94,7 +83,6 @@ module NewRelic
                                                :explain_sql => 2,
                                                :keep_backtraces => true)
           @agent.instance_variable_set(:@traces, [ trace ])
-          @agent.service.stubs(:transaction_sample_data)
           @agent.send :harvest_and_send_slowest_sample
         end
       end
@@ -102,8 +90,6 @@ module NewRelic
       def test_graceful_shutdown_ends_thread_profiling
         @agent.thread_profiler.expects(:stop).once
         @agent.stubs(:connected?).returns(true)
-        @agent.service.stubs(:metric_data)
-        @agent.service.stubs(:get_agent_commands).returns([])
         @agent.send(:graceful_disconnect)
       end
 
@@ -272,7 +258,7 @@ module NewRelic
       end
 
       def test_connect_does_not_retry_on_license_error
-        @agent.service.stubs(:connect).raises(NewRelic::Agent::LicenseException)
+        @agent.service.expects(:connect).raises(NewRelic::Agent::LicenseException)
         @agent.send(:connect)
         assert(@agent.disconnected?)
       end

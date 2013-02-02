@@ -7,10 +7,7 @@ module TestContexts
       setup do
         @log_data = StringIO.new
         @log = Logger.new(@log_data)
-        NewRelic::Agent::Agent.instance.service = stub(
-          :agent_id= => nil,
-          :agent_id  => nil,
-          :collector => stub(:name => "collector"))
+        NewRelic::Agent::Agent.instance.service = default_service
         NewRelic::Agent.manual_start :log => @log
         @agent = NewRelic::Agent.instance
         @agent.metric_ids.clear

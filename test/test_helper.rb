@@ -52,6 +52,25 @@ begin # 1.8.6
 rescue LoadError
 end
 
+def default_service(stubbed_method_overrides = {})
+  service = stub
+  stubbed_method_defaults = {
+    :connect => {},
+    :shutdown => nil,
+    :agent_id= => nil,
+    :agent_id => nil,
+    :collector => stub_everything,
+    :request_timeout= =>  nil,
+    :metric_data => nil,
+    :error_data => nil,
+    :transaction_sample_data => nil,
+    :get_agent_commands => []
+  }
+
+  service.stubs(stubbed_method_defaults.merge(stubbed_method_overrides))
+  service
+end
+
 class Test::Unit::TestCase
   include Mocha::API
 
