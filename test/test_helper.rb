@@ -121,6 +121,19 @@ def assert_calls_unscoped_metrics(*metrics)
   assert_not_equal first_metrics, last_metrics, "should have changed these metrics"
 end
 
+unless defined?( assert_includes )
+  def assert_includes( collection, member, msg=nil )
+    msg = build_message( msg, "Expected ? to include ?", collection, member )
+    assert_block( msg ) { collection.include?(member) }
+  end
+end
+
+unless defined?( assert_not_includes )
+  def assert_not_includes( collection, member, msg=nil )
+    msg = build_message( msg, "Expected ? not to include ?", collection, member )
+    assert_block( msg ) { !collection.include?(member) }
+  end
+end
 
 def compare_metrics(expected, actual)
   actual.delete_if {|a| a.include?('GC/cumulative') } # in case we are in REE
