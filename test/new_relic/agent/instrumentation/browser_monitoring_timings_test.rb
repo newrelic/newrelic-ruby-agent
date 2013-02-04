@@ -3,7 +3,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_h
 class NewRelic::Agent::Instrumentation::BrowserMonitoringTimingsTest < Test::Unit::TestCase
 
   def setup
-    Time.stubs(:now).returns(2000)
+    Time.stubs(:now).returns(Time.at(2000))
     @transaction = stub(
       :transaction_name => "Name",
       :start_time => 0
