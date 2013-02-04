@@ -843,8 +843,8 @@ module NewRelic
         #   agent run and New Relic sees it as a separate instance (default is false).
         def connect(options={})
           defaults = {
-            :keep_retrying => true,
-            :force_reconnect => false
+            :keep_retrying => Agent.config[:keep_retrying],
+            :force_reconnect => Agent.config[:force_reconnect]
           }
           opts = defaults.merge(options)
 
