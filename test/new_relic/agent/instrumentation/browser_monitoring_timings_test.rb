@@ -4,7 +4,7 @@ module NewRelic::Agent::Instrumentation
   class BrowserMonitoringTimingsTest < Test::Unit::TestCase
 
     def setup
-      Time.stubs(:now).returns(2000)
+      Time.stubs(:now).returns(Time.at(2000))
       @transaction = stub(
         :transaction_name => "Name",
         :start_time => 0
