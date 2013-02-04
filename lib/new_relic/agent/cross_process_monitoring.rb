@@ -46,9 +46,6 @@ module NewRelic
           insert_request_header(request)
         end
 
-        events.subscribe(:after_http_response) do |response|
-        end
-
         events.subscribe(:after_call) do |env, (status_code, headers, body)|
           insert_response_header(env, headers)
         end

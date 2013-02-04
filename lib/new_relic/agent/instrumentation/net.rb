@@ -21,53 +21,6 @@ DependencyDetection.defer do
       # The cross-process header for "outgoing" calls
       NR_APPDATA_HEADER = 'X-NewRelic-App-Data'
 
-      # Pattern for parsing the appdata JSON payload
-      NR_APPDATA_PATTERN = begin
-        json_string_contents = %r{
-          (?:
-            [^"\\[:cntrl:]]*   # Any char except double-quote, backslash, or control
-            |
-            \\["\\bfnrt\/]     # or backslashed dblquote, backslash, or control
-            |
-            \\u[[:xdigit:]]{4} # or escaped 4-digit unicode escape
-          )*
-        }x
-
-        # Note: doesn't handle NaN or -/+Infinity
-        float = %r{
-          (?:0|[1-9]\d*)    # Left of the radix point
-          (?:\.\d+)?        # optional radix point and at least once decimal place
-          (?i:e[\-\+]?\d+)? # optional exponent
-        }ix
-
-        pattern = %r{
-          \[                # Leading bracket
-            \s*
-            "(\d+\#\d+)"                  # $1 - Cross-process ID
-            \s*,\s*
-            "(#{json_string_contents})"   # $2 - Metric name (as a JSON string)
-            \s*,\s*
-            (#{float})                    # $3 - Queue time
-            \s*,\s*
-            (#{float})                    # $4 - Response time
-            \s*,\s*
-            (\d+)                         # $5 - Request length
-            \s*
-          \]                # Trailing bracket
-        }x
-      end
-
-      # Table to unescape JSON strings
-      JSON_ESCAPES = {
-        '\\' => '\\',
-        'b'  => "\b",
-        'f'  => "\f",
-        'n'  => "\n",
-        'r'  => "\r",
-        't'  => "\t",
-        '/'  => '/',
-        '"'  => '"',
-      }
 
       # Instrument outgoing HTTP requests and fire associated events back
       # into the Agent.
@@ -84,23 +37,6 @@ DependencyDetection.defer do
       alias request_without_newrelic_trace request
       alias request request_with_newrelic_trace
 
-
-      # def trace_execution_unscoped(metric_names, options={})
-      #   return yield unless NewRelic::Agent.is_execution_traced?
-      #   t0 = Time.now
-      #   stats = Array(metric_names).map do | metric_name |
-      #     NewRelic::Agent.instance.stats_engine.get_stats_no_scope metric_name
-      #   end
-      #   begin
-      #     NewRelic::Agent.instance.push_trace_execution_flag(true) if options[:force]
-      #     yield
-      #   ensure
-      #     NewRelic::Agent.instance.pop_trace_execution_flag if options[:force]
-      #     duration = (Time.now - t0).to_f              # for some reason this is 3 usec faster than Time - Time
-      #     stats.each { |stat| stat.trace_call(duration) }
-      #   end
-      # end
-      # 
 
       # Send the given +request+, adding metrics appropriate to the
       # response when it comes back.
