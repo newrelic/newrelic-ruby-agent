@@ -373,7 +373,7 @@ var e=document.createElement("script");'
   end
 
   def test_place_beacon_payload_head_when_given_mobile_request_header
-    Time.stubs(:now).returns(6)
+    Time.stubs(:now).returns(Time.at(6))
     response = mobile_transaction
     txn_name = obfuscate(NewRelic::Agent.instance.beacon_configuration,
                          browser_monitoring_transaction_name)
