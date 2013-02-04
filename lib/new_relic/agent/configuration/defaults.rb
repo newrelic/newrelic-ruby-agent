@@ -5,6 +5,14 @@ module NewRelic
         :config_path => Proc.new {
           # Check a sequence of file locations for newrelic.yml
           files = []
+          # add in the possible jar locations first
+          if (parts = __FILE__.split(/!\//)).size > 1
+            jar_base = parts[0].split(/\//).last.gsub(/\.jar$/,'')
+            base = (parts[0] + '!/' + jar_base)
+            files << File.join(base,"config","newrelic.yml")
+            files << File.join(base,"newrelic.yml")
+          end
+          # ...now back to the stock NewRelic code...
           files << File.join("config","newrelic.yml")
           files << File.join("newrelic.yml")
           if ENV["HOME"]
