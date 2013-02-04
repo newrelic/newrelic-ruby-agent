@@ -10,7 +10,7 @@ module NewRelic
       # errors within instrumentation files do not affect the overall
       # agent or application in which it runs.
       def load_instrumentation_files pattern
-        Dir.glob(pattern) do |file|
+        Dir.glob(pattern.gsub(/^jar:/, '')) do |file|
           begin
             require file.to_s
           rescue => e

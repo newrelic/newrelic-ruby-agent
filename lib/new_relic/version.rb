@@ -20,7 +20,6 @@ module NewRelic
     MINOR = 5
     TINY  = 5
     BUILD = parse_build_from_gemspec(GEMSPEC_PATH)
-
     STRING = [MAJOR, MINOR, TINY, BUILD].compact.join('.')
   end
 
