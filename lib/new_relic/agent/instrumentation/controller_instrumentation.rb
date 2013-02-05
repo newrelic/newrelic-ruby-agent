@@ -362,7 +362,7 @@ module NewRelic
 
         def transaction_name(options={})
           name = "#{category_name(options)}/#{path_name(options)}"
-          NewRelic::Agent.instance.rules.rename(name)
+          NewRelic::Agent.instance.transaction_rules.rename(name)
         end
 
         def category_name(options)

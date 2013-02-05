@@ -79,12 +79,12 @@ class NewRelic::Agent::Instrumentation::ControllerInstrumentationTest < Test::Un
     rule = NewRelic::Agent::RulesEngine::Rule.new('match_expression' => '[0-9]+',
                                                   'replacement'      => '*',
                                                   'replace_all'      => true)
-    NewRelic::Agent.instance.rules << rule
+    NewRelic::Agent.instance.transaction_rules << rule
     assert_equal('foo/*/bar/*',
                  @object.send(:transaction_name, :category => 'foo',
                               :path => '1/bar/22'))
   ensure
-    NewRelic::Agent.instance.instance_variable_set(:@rules,
+    NewRelic::Agent.instance.instance_variable_set(:@transaction_rules,
                                               NewRelic::Agent::RulesEngine.new)
   end
 end
