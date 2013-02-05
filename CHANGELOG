@@ -15,6 +15,35 @@
     resulted in graphs with error percentages over 100%. This duplication did
     not impact the specific error traces captured, only the total metric.
 
+  * Notice gracefully handled errors in Sinatra
+
+    When show_exceptions was set to false in Sinatra, errors weren't caught
+    by New Relic's error collector. Now handled errors also have the chance
+    to get reported back.
+
+  * Ruby 2.0 compatibility fixes
+
+    Ruby 2.0 no longer finds protected methods by default, but will with a flag.
+    http://tenderlovemaking.com/2012/09/07/protected-methods-and-ruby-2-0.html
+
+    Thanks Ravil Bayramgalin and Charlie Somerville for the fixes.
+
+  * Auto-detect Trinidad as dispatcher
+
+    Code already existing for detecting Trinidad as a dispatcher, but was only
+    accessible via an ENV variable. This now auto-detects on startup. Thanks
+    Robert Rasmussen for catching that.
+
+  * Developer mode fix for chart error
+
+    Added require to fix a NameError in developer mode for summary page. Thanks
+    to Ryan B. Harvey.
+
+  * Don't touch deprecated RAILS_ROOT if on Rails 3
+
+    Under some odd startup conditions, we would look for the RAILS_ROOT constant
+    after failing to find the ::Rails.root in a Rails 3 app, causing deprecation
+    warnings. Thanks for Adrian Irving-Beer for the fix.
 
 ## v3.5.5 ##
 
