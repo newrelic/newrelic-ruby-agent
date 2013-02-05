@@ -16,6 +16,14 @@ class NewRelic::Agent::NoticedErrorTest < Test::Unit::TestCase
     assert_equal expected, error.to_collector_array
   end
 
+  def test_to_collector_array_with_bad_values
+    error = NewRelic::NoticedError.new(@path, @params, nil, Rational(10, 1))
+    expected = [
+      10_000.0, @path, "<no message>", "Error", @params
+    ]
+    assert_equal expected, error.to_collector_array
+  end
+
   def test_handles_non_string_exception_messages
     e = Exception.new({ :non => :string })
     error = NewRelic::NoticedError.new(@path, @params, e, @time)
