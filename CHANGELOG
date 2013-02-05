@@ -34,6 +34,12 @@
     accessible via an ENV variable. This now auto-detects on startup. Thanks
     Robert Rasmussen for catching that.
 
+  * Coercion of types in collector communication
+
+    Certain metrics can be recorded with a Ruby Rational type, which JSON
+    serializes as a string rather than a floating point value. We now treat
+    coerce each outgoing value, and log issues before sending the data.
+
   * Developer mode fix for chart error
 
     Added require to fix a NameError in developer mode for summary page. Thanks
