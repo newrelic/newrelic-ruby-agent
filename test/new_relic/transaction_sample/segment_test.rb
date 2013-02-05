@@ -51,6 +51,13 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
     assert_equal(expected_array, parent.to_array)
   end
 
+  def test_to_array_with_bad_values
+    segment = NewRelic::TransactionSample::Segment.new(nil, nil, nil)
+    segment.end_trace(Rational(10, 1))
+    expected = [0, 10_000.0, "<unknown>", {}, []]
+    assert_equal(expected, segment.to_array)
+  end
+
   if RUBY_VERSION >= '1.9.2'
     def test_to_json
       parent = NewRelic::TransactionSample::Segment.new(1, 'Custom/test/parent', 1)

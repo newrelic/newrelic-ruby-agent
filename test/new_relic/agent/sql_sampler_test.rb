@@ -214,4 +214,24 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
       assert_equal expected, sql_traces[0].to_collector_array(marshaller.default_encoder)
     end
   end
+
+  def test_to_collector_array_with_bad_values
+    slow = NewRelic::Agent::SlowSql.new("query", "transaction", {}, Rational(12, 1))
+    trace = NewRelic::Agent::SqlTrace.new("query", slow, "path", "uri")
+    trace.call_count = Rational(10, 1)
+    trace.instance_variable_set(:@sql_id, "1234")
+
+    if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
+      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+    else
+      marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
+    end
+
+    params = RUBY_VERSION >= '1.9.2' ? "eJyrrgUAAXUA+Q==\n" : {}
+    expected = [ "path", "uri", 1234, "query", "transaction",
+                 10, 12000, 12000, 12000, params]
+
+    assert_equal expected, trace.to_collector_array(marshaller.default_encoder)
+  end
+
 end

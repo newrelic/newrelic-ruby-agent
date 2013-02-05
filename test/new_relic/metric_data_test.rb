@@ -151,4 +151,33 @@ class NewRelic::MetricDataTest < Test::Unit::TestCase
     expected = [ 1234, [2, 3.0, 2.0, 1.0, 2.0, 5.0] ]
     assert_equal expected, md.to_collector_array
   end
+
+  # Rationals in metric data? -- https://support.newrelic.com/tickets/28053
+  def test_to_collector_array_with_rationals
+    stats = NewRelic::MethodTraceStats.new
+    stats.call_count = Rational(1, 1)
+    stats.total_call_time = Rational(2, 1)
+    stats.total_exclusive_time = Rational(3, 1)
+    stats.min_call_time = Rational(4, 1)
+    stats.max_call_time = Rational(5, 1)
+    stats.sum_of_squares = Rational(6, 1)
+
+    md = NewRelic::MetricData.new(nil, stats, 1234)
+    expected = [1234, [1, 2.0, 3.0, 4.0, 5.0, 6.0]]
+    assert_equal expected, md.to_collector_array
+  end
+
+  def test_to_collector_array_with_bad_values
+    stats = NewRelic::MethodTraceStats.new
+    stats.call_count = nil
+    stats.total_call_time = "junk"
+    stats.total_exclusive_time = Object.new
+    stats.min_call_time = []
+    stats.max_call_time = {}
+    stats.sum_of_squares = Exception.new("Boo")
+
+    md = NewRelic::MetricData.new(nil, stats, 1234)
+    expected = [1234, [0, 0, 0, 0, 0, 0]]
+    assert_equal expected, md.to_collector_array
+  end
 end

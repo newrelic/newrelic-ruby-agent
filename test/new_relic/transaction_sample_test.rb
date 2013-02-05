@@ -12,6 +12,12 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
 
     NewRelic::Agent::Database.stubs(:get_connection).returns @connection_stub
     @t = make_sql_transaction(::SQL_STATEMENT, ::SQL_STATEMENT)
+
+    if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
+      @marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+    else
+      @marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
+    end
   end
 
   def teardown
@@ -189,6 +195,13 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
     assert_equal expected_array, @t.to_array
   end
 
+
+  def test_to_array_with_bad_values
+    transaction = NewRelic::TransactionSample.new(nil)
+    expected = [0.0, {}, nil, [0, 0, "ROOT", {}, []]]
+    assert_equal expected, transaction.to_array
+  end
+
   if RUBY_VERSION >= '1.9.2'
     def test_to_json
       expected_string = JSON.dump([@t.start_time.to_f,
@@ -200,20 +213,35 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
   end
 
   def test_to_collector_array
-    if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
-      marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-      trace_tree = compress(@t.to_json)
-    else
-      marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
-      trace_tree = @t.to_array
-    end
     expected_array = [(@t.start_time.to_f * 1000).round,
                       (@t.duration * 1000).round,
                       @t.params[:path], @t.params[:uri],
                       trace_tree,
                       @t.guid, nil, !!@t.force_persist]
 
-    assert_equal expected_array, @t.to_collector_array(marshaller.default_encoder)
+    assert_equal expected_array, @t.to_collector_array(@marshaller.default_encoder)
+  end
+
+  def test_to_collector_array_with_bad_values
+    transaction = NewRelic::TransactionSample.new(nil)
+    transaction.root_segment.end_trace(Rational(10, 1))
+
+    expected = [
+      0, 10_000,
+      nil, nil,
+      trace_tree(transaction),
+      transaction.guid,
+      nil, false]
+
+    assert_equal expected, transaction.to_collector_array(@marshaller.default_encoder)
+  end
+
+  def trace_tree(transaction=@t)
+    if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
+      trace_tree = compress(transaction.to_json)
+    else
+      trace_tree = transaction.to_array
+    end
   end
 
   def compress(string)

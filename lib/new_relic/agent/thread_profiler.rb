@@ -202,6 +202,8 @@ EOF
 
       THREAD_PROFILER_NODES = 20_000
 
+      include NewRelic::Coerce
+
       def to_collector_array(encoder)
         prune!(THREAD_PROFILER_NODES)
 
@@ -212,11 +214,15 @@ EOF
           "BACKGROUND" => @traces[:background].map{|t| t.to_array }
         }
 
-        [[@profile_id,
-          @start_time.to_f, @stop_time.to_f,
-          @poll_count,
-          encoder.encode(traces),
-          @sample_count, 0]]
+        [[
+          int(@profile_id),
+          float(@start_time),
+          float(@stop_time),
+          int(@poll_count),
+          string(encoder.encode(traces)),
+          int(@sample_count),
+          0
+        ]]
       end
 
       def now_in_millis
@@ -280,9 +286,16 @@ EOF
           [-runnable_count, depth] <=> [-y.runnable_count, y.depth]
         end
 
+        include NewRelic::Coerce
+
         def to_array
-          [[@file, @method, @line_no],
-            @runnable_count, 0,
+          [[
+              string(@file),
+              string(@method),
+              int(@line_no)
+            ],
+            int(@runnable_count),
+            0,
             @children.map {|c| c.to_array}]
         end
 

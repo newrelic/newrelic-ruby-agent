@@ -1,3 +1,5 @@
+require 'new_relic/helper'
+
 # This class encapsulates an error that was noticed by New Relic in a managed app.
 class NewRelic::NoticedError
   extend NewRelic::CollectionHelper
@@ -45,8 +47,13 @@ class NewRelic::NoticedError
     end
   end
 
+  include NewRelic::Coerce
+
   def to_collector_array(encoder=nil)
-    [ (@timestamp.to_f * 1000).round, @path, @message, @exception_class,
+    [ NewRelic::Helper.time_to_millis(@timestamp),
+      string(@path),
+      string(@message),
+      string(@exception_class),
       @params ]
   end
 end

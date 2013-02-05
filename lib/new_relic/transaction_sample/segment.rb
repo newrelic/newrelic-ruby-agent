@@ -33,10 +33,13 @@ module NewRelic
         to_debug_str(0)
       end
 
+      include NewRelic::Coerce
+
       def to_array
-        [ (@entry_timestamp.to_f * 1000).round,
-          (@exit_timestamp.to_f * 1000).round,
-          @metric_name, (@params || {}) ] +
+        [ NewRelic::Helper.time_to_millis(@entry_timestamp),
+          NewRelic::Helper.time_to_millis(@exit_timestamp),
+          string(@metric_name),
+          (@params || {}) ] +
           [ (@called_segments ? @called_segments.map{|s| s.to_array} : []) ]
       end
 

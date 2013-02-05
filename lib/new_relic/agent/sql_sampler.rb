@@ -189,7 +189,7 @@ module NewRelic
         @params = {} #FIXME
         @sql_id = consistent_hash(normalized_query)
         set_primary slow_sql, path, uri
-        record_data_point slow_sql.duration
+        record_data_point(float(slow_sql.duration))
       end
 
       def set_primary(slow_sql, path, uri)
@@ -207,7 +207,7 @@ module NewRelic
           set_primary slow_sql, path, uri
         end
 
-        record_data_point slow_sql.duration
+        record_data_point(float(slow_sql.duration))
       end
 
       def prepare_to_send
@@ -223,8 +223,15 @@ module NewRelic
         Agent.config[:'slow_sql.explain_enabled']
       end
 
+      include NewRelic::Coerce
+
       def to_collector_array(encoder)
-        [ @path, @url, @sql_id, @sql, @database_metric_name, @call_count,
+        [ string(@path),
+          string(@url),
+          int(@sql_id),
+          string(@sql),
+          string(@database_metric_name),
+          int(@call_count),
           Helper.time_to_millis(@total_call_time),
           Helper.time_to_millis(@min_call_time),
           Helper.time_to_millis(@max_call_time),
