@@ -106,6 +106,38 @@ module NewRelic
         [data, encoding]
       end
 
+      # Return the Net::HTTP with proxy configuration given the NewRelic::Control::Server object.
+      # Default is the collector but for api calls you need to pass api_server
+      #
+      # Experimental support for SSL verification:
+      # swap 'VERIFY_NONE' for 'VERIFY_PEER' line to try it out
+      # If verification fails, uncomment the 'http.ca_file' line
+      # and it will use the included certificate.
+      def http_connection
+        proxy_server = control.proxy_server
+        # Proxy returns regular HTTP if @proxy_host is nil (the default)
+        http_class = Net::HTTP::Proxy(proxy_server.name, proxy_server.port,
+                                      proxy_server.user, proxy_server.password)
+        http = http_class.new(@collector.ip || @collector.name, @collector.port)
+        ::NewRelic::Agent.logger.debug("Http Connection opened to #{@collector.ip||@collector.name}:#{@collector.port}")
+        if Agent.config[:ssl]
+          http.use_ssl = true
+          if Agent.config[:verify_certificate]
+            http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+            http.ca_file = cert_file_path
+          else
+            http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+          end
+        end
+        http
+      end
+
+      # The path to the certificate file used to verify the SSL
+      # connection if verify_peer is enabled
+      def cert_file_path
+        File.expand_path(File.join(control.newrelic_root, 'cert', 'cacert.pem'))
+      end
+
       private
 
       # A shorthand for NewRelic::Control.instance
@@ -186,7 +218,7 @@ module NewRelic
         ::NewRelic::Agent.logger.debug "Connect to #{opts[:collector]}#{opts[:uri]}"
 
         response = nil
-        http = control.http_connection(@collector)
+        http = http_connection
         http.read_timeout = nil
         begin
           NewRelic::TimerLib.timeout(@request_timeout) do
@@ -218,6 +250,8 @@ module NewRelic
         # These include Errno connection errors
         raise NewRelic::Agent::ServerConnectionException, "Recoverable error connecting to the server: #{e}"
       end
+
+
 
       # Decompresses the response from the server, if it is gzip
       # encoded, otherwise returns it verbatim

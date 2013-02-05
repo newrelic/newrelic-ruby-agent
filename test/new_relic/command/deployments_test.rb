@@ -79,6 +79,6 @@ class NewRelic::Command::DeploymentsTest < Test::Unit::TestCase
     @mock_response = mock()
     @mock_response.expects(:is_a?).with(Net::HTTPSuccess).returns(true)
     mock_connection.expects(:request).returns(@mock_response)
-    NewRelic::Control.instance.stubs(:http_connection).returns(mock_connection)
+    NewRelic::Agent::NewRelicService.any_instance.stubs(:http_connection).returns(mock_connection)
   end
 end

@@ -100,6 +100,12 @@ module NewRelic
         NewRelic::Agent.config[:dispatcher]
       end
 
+      # Delegates to the class method newrelic_root, implemented by
+      # each subclass
+      def newrelic_root
+        self.class.newrelic_root
+      end
+
       protected
 
       # Append framework specific environment information for uploading to
@@ -130,11 +136,6 @@ module NewRelic
         '.'
       end
 
-      # Delegates to the class method newrelic_root, implemented by
-      # each subclass
-      def newrelic_root
-        self.class.newrelic_root
-      end
     end
     include InstanceMethods
   end
