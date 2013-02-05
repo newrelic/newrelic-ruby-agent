@@ -7,20 +7,20 @@ module NewRelic
     end
 
     ProxyServer = Struct.new :name, :port, :user, :password #:nodoc:
-    
+
     # Contains methods that deal with connecting to the server
     module ServerMethods
-      
+
       def server
         @remote_server ||= server_from_host(nil)
       end
-      
+
       # the server we should contact for api requests, like uploading
       # deployments and the like
       def api_server
         @api_server ||= NewRelic::Control::Server.new(Agent.config[:api_host], Agent.config[:api_port], nil)
       end
-      
+
       # a new instances of the proxy server - this passes through if
       # there is no proxy, otherwise it has proxy configuration
       # information pulled from the config file
@@ -30,7 +30,7 @@ module NewRelic
                                                              Agent.config[:proxy_user],
                                                              Agent.config[:proxy_pass])
       end
-      
+
       # turns a hostname into an ip address and returns a
       # NewRelic::Control::Server that contains the configuration info
       def server_from_host(hostname=nil)
@@ -71,38 +71,6 @@ module NewRelic
           ::NewRelic::Agent.logger.error("Could not look up server address: #{e}")
           nil
         end
-      end
-      
-      # The path to the certificate file used to verify the SSL
-      # connection if verify_peer is enabled
-      def cert_file_path
-        File.expand_path(File.join(newrelic_root, 'cert', 'cacert.pem'))
-      end
-
-      # Return the Net::HTTP with proxy configuration given the NewRelic::Control::Server object.
-      # Default is the collector but for api calls you need to pass api_server
-      #
-      # Experimental support for SSL verification:
-      # swap 'VERIFY_NONE' for 'VERIFY_PEER' line to try it out
-      # If verification fails, uncomment the 'http.ca_file' line
-      # and it will use the included certificate.
-      def http_connection(host = nil)
-        host ||= server
-        # Proxy returns regular HTTP if @proxy_host is nil (the default)
-        http_class = Net::HTTP::Proxy(proxy_server.name, proxy_server.port,
-                                      proxy_server.user, proxy_server.password)
-        http = http_class.new(host.ip || host.name, host.port)
-        ::NewRelic::Agent.logger.debug("Http Connection opened to #{host.ip||host.name}:#{host.port}")
-        if Agent.config[:ssl]
-          http.use_ssl = true
-          if Agent.config[:verify_certificate]
-            http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-            http.ca_file = cert_file_path
-          else
-            http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-          end
-        end
-        http
       end
     end
 
