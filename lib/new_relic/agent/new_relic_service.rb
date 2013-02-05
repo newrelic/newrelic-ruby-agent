@@ -196,18 +196,21 @@ module NewRelic
           ::NewRelic::Agent.logger.warn "Timed out trying to post data to New Relic (timeout = #{@request_timeout} seconds)" unless @request_timeout < 30
           raise
         end
-        if response.is_a? Net::HTTPUnauthorized
+        case response
+        when Net::HTTPSuccess
+          true # fall through
+        when Net::HTTPUnauthorized
           raise LicenseException, 'Invalid license key, please contact support@newrelic.com'
-        elsif response.is_a? Net::HTTPServiceUnavailable
+        when Net::HTTPServiceUnavailable
           raise ServerConnectionException, "Service unavailable (#{response.code}): #{response.message}"
-        elsif response.is_a? Net::HTTPGatewayTimeOut
+        when Net::HTTPGatewayTimeOut
           ::NewRelic::Agent.logger.warn("Timed out getting response: #{response.message}")
           raise Timeout::Error, response.message
-        elsif response.is_a? Net::HTTPRequestEntityTooLarge
+        when Net::HTTPRequestEntityTooLarge
           raise UnrecoverableServerException, '413 Request Entity Too Large'
-        elsif response.is_a? Net::HTTPUnsupportedMediaType
+        when Net::HTTPUnsupportedMediaType
           raise UnrecoverableServerException, '415 Unsupported Media Type'
-        elsif !(response.is_a? Net::HTTPSuccess)
+        else
           raise ServerConnectionException, "Unexpected response from server (#{response.code}): #{response.message}"
         end
         response
