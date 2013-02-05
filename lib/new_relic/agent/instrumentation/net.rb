@@ -18,6 +18,10 @@ DependencyDetection.defer do
   executes do
     class Net::HTTP
 
+      # Exception raised if there is a problem with cross-process transactions.
+      class CrossProcessError < RuntimeError; end
+
+
       # The cross-process header for "outgoing" calls
       NR_APPDATA_HEADER = 'X-NewRelic-App-Data'
 
@@ -65,7 +69,14 @@ DependencyDetection.defer do
         metrics = common_metrics()
 
         if response_is_xprocess?( response )
-          metrics += metrics_for_xprocess_response( response )
+          begin
+            metrics += metrics_for_xprocess_response( response )
+          rescue => err
+            # Fall back to regular metrics if there's a problem with x-process metrics
+            NewRelic::Agent.logger.debug "%p while fetching x-process metrics: %s" %
+              [ err.class, err.message ]
+            metrics += metrics_for_regular_response( request, response )
+          end
         else
           metrics += metrics_for_regular_response( request, response )
         end
@@ -77,6 +88,7 @@ DependencyDetection.defer do
       # Return an Array of metrics used for every response.
       def common_metrics
         metrics = [ get_metric("External/all") ]
+        metrics << get_metric( "External/#@address/all" )
 
         if NewRelic::Agent::Instrumentation::MetricFrame.recording_web_transaction?
           metrics << get_metric( "External/allWeb" )
@@ -99,13 +111,17 @@ DependencyDetection.defer do
       # +response+.
       def metrics_for_xprocess_response( response )
         appdata = response[NR_APPDATA_HEADER] or
-          raise "Can't derive metrics for response: no #{NR_APPDATA_HEADER} header!"
+          raise Net::HTTP::CrossProcessError,
+            "Can't derive metrics for response: no #{NR_APPDATA_HEADER} header!"
 
         decoded_appdata = Base64.decode64( appdata )
         decoded_appdata.set_encoding( ::Encoding::UTF_8 ) if
           decoded_appdata.respond_to?( :set_encoding )
 
         xp_id, txn_name, q_time, r_time, req_len = NewRelic.json_load( decoded_appdata )
+
+        check_crossprocess_id( xp_id )
+        check_transaction_name( txn_name )
 
         metrics = []
         metrics << get_metric( "ExternalApp/#@address/#{xp_id}/all" )
@@ -122,7 +138,6 @@ DependencyDetection.defer do
       def metrics_for_regular_response( request, response )
         metrics = []
         metrics << get_metric( "External/#@address/Net::HTTP/#{request.method}" )
-        metrics << get_metric( "External/#@address/all" )
         
         return metrics
       end
@@ -137,6 +152,19 @@ DependencyDetection.defer do
       def get_scoped_metric( metric_name )
         # Default is to use the metric_name itself as the scope, which is what we want
         NewRelic::Agent.instance.stats_engine.get_stats( metric_name )
+      end
+
+      # Check the given +id+ to ensure it conforms to the format of a cross-process ID. Raises
+      # an Net::HTTP::CrossProcessError if it doesn't.
+      def check_crossprocess_id( id )
+        id =~ /^\d+#\d+$/ or
+          raise Net::HTTP::CrossProcessError, "malformed cross-process ID %p" % [ id ]
+      end
+
+      # Check the given +name+ to ensure it conforms to the format of a valid transaction
+      # name.
+      def check_transaction_name( name )
+        # No-op until I can get a definitive definition of what is and isn't valid.
       end
 
     end

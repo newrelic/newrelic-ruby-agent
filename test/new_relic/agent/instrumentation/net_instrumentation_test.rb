@@ -226,6 +226,23 @@ unless ENV['FAST_TESTS']
     end
 
 
+    def test_instrumentation_with_xprocess_disabled_records_normal_metrics_even_if_header_is_present
+      app_data_header = make_app_data_header( '18#1884', 'txn-name', 2, 8, 0 )
+      @response_data.sub!( /\n\n/, "\n" + app_data_header + "\n" )
+
+      Net::HTTP.get URI.parse('http://www.google.com/index.html')
+
+      assert_includes @engine.metrics, 'External/all'
+      assert_includes @engine.metrics, 'External/allOther'
+      assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
+      assert_includes @engine.metrics, 'External/www.google.com/all'
+
+      assert_not_includes @engine.metrics, 'ExternalApp/www.google.com/18#1884/all'
+      assert_not_includes @engine.metrics, 'ExternalTransaction/www.google.com/18#1884/txn-name'
+      assert_not_includes @engine.metrics, 'External/allWeb'
+    end
+
+
     def test_instrumentation_with_xprocess_enabled_records_xprocess_metrics_if_header_present
       app_data_header = make_app_data_header( '18#1884', 'txn-name', 2, 8, 0 )
       @response_data.sub!( /\n\n/, "\n" + app_data_header + "\n" )
@@ -238,11 +255,10 @@ unless ENV['FAST_TESTS']
       assert_includes @engine.metrics, 'External/allOther'
       assert_includes @engine.metrics, 'ExternalApp/www.google.com/18#1884/all'
       assert_includes @engine.metrics, 'ExternalTransaction/www.google.com/18#1884/txn-name'
+      assert_includes @engine.metrics, 'External/www.google.com/all'
 
       assert_not_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
-      assert_not_includes @engine.metrics, 'External/www.google.com/all'
       assert_not_includes @engine.metrics, 'External/allWeb'
-      
     end
 
     def test_xprocess_metrics_allow_valid_utf8_characters
@@ -257,11 +273,28 @@ unless ENV['FAST_TESTS']
       assert_includes @engine.metrics, 'External/allOther'
       assert_includes @engine.metrics, 'ExternalApp/www.google.com/12#1114/all'
       assert_includes @engine.metrics, 'ExternalTransaction/www.google.com/12#1114/世界線航跡蔵'
+      assert_includes @engine.metrics, 'External/www.google.com/all'
 
       assert_not_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
-      assert_not_includes @engine.metrics, 'External/www.google.com/all'
       assert_not_includes @engine.metrics, 'External/allWeb'
-      
+    end
+
+    def test_xprocess_metrics_ignores_xprocess_header_with_malformed_crossprocess_id
+      app_data_header = make_app_data_header( '88#88#88', 'invalid', 1, 2, 4096 )
+      @response_data.sub!( /\n\n/, "\n" + app_data_header + "\n" )
+
+      with_config(:'cross_process.enabled' => true) do
+        Net::HTTP.get URI.parse('http://www.google.com/index.html')
+      end
+
+      assert_includes @engine.metrics, 'External/all'
+      assert_includes @engine.metrics, 'External/allOther'
+      assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
+      assert_includes @engine.metrics, 'External/www.google.com/all'
+
+      assert_not_includes @engine.metrics, 'ExternalApp/www.google.com/88#88#88/all'
+      assert_not_includes @engine.metrics, 'ExternalTransaction/www.google.com/88#88#88/invalid'
+      assert_not_includes @engine.metrics, 'External/allWeb'
     end
 
   end
