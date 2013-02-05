@@ -54,7 +54,7 @@ class NewRelic::Command::Deployments < NewRelic::Command
       }.each do |k, v|
         create_params["deployment[#{k}]"] = v unless v.nil? || v == ''
       end
-      http = control.http_connection(control.api_server)
+      http = ::NewRelic::Agent::NewRelicService.new(nil, control.api_server).http_connection
 
       uri = "/deployments.xml"
 

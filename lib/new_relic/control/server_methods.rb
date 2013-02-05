@@ -72,38 +72,6 @@ module NewRelic
           nil
         end
       end
-
-      # The path to the certificate file used to verify the SSL
-      # connection if verify_peer is enabled
-      def cert_file_path
-        File.expand_path(File.join(newrelic_root, 'cert', 'cacert.pem'))
-      end
-
-      # Return the Net::HTTP with proxy configuration given the NewRelic::Control::Server object.
-      # Default is the collector but for api calls you need to pass api_server
-      #
-      # Experimental support for SSL verification:
-      # swap 'VERIFY_NONE' for 'VERIFY_PEER' line to try it out
-      # If verification fails, uncomment the 'http.ca_file' line
-      # and it will use the included certificate.
-      def http_connection(host = nil)
-        host ||= server
-        # Proxy returns regular HTTP if @proxy_host is nil (the default)
-        http_class = Net::HTTP::Proxy(proxy_server.name, proxy_server.port,
-                                      proxy_server.user, proxy_server.password)
-        http = http_class.new(host.ip || host.name, host.port)
-        ::NewRelic::Agent.logger.debug("Http Connection opened to #{host.ip||host.name}:#{host.port}")
-        if Agent.config[:ssl]
-          http.use_ssl = true
-          if Agent.config[:verify_certificate]
-            http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-            http.ca_file = cert_file_path
-          else
-            http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-          end
-        end
-        http
-      end
     end
 
     include ServerMethods
