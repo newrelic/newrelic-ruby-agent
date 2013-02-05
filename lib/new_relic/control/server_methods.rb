@@ -7,20 +7,20 @@ module NewRelic
     end
 
     ProxyServer = Struct.new :name, :port, :user, :password #:nodoc:
-    
+
     # Contains methods that deal with connecting to the server
     module ServerMethods
-      
+
       def server
         @remote_server ||= server_from_host(nil)
       end
-      
+
       # the server we should contact for api requests, like uploading
       # deployments and the like
       def api_server
         @api_server ||= NewRelic::Control::Server.new(Agent.config[:api_host], Agent.config[:api_port], nil)
       end
-      
+
       # a new instances of the proxy server - this passes through if
       # there is no proxy, otherwise it has proxy configuration
       # information pulled from the config file
@@ -30,7 +30,7 @@ module NewRelic
                                                              Agent.config[:proxy_user],
                                                              Agent.config[:proxy_pass])
       end
-      
+
       # turns a hostname into an ip address and returns a
       # NewRelic::Control::Server that contains the configuration info
       def server_from_host(hostname=nil)
@@ -72,7 +72,7 @@ module NewRelic
           nil
         end
       end
-      
+
       # The path to the certificate file used to verify the SSL
       # connection if verify_peer is enabled
       def cert_file_path
