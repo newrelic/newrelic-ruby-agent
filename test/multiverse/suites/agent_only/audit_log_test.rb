@@ -67,7 +67,7 @@ class AuditLogTest < Test::Unit::TestCase
   def run_agent_with_options(options)
     NewRelic::Agent.manual_start(options)
     yield NewRelic::Agent.agent if block_given?
-    NewRelic::Agent.shutdown    
+    NewRelic::Agent.shutdown
   end
 
   def test_logs_nothing_by_default
@@ -90,10 +90,8 @@ class AuditLogTest < Test::Unit::TestCase
       agent.sql_sampler.notice_scope_empty
       agent.send(:harvest_and_send_slowest_sql)
     end
-
     $collector.agent_data.each do |req|
-      body = $collector.unpack_inner_blobs(req)
-      assert_audit_log_contains_object(body, format)
+      assert_audit_log_contains_object(req.body, format)
     end
   end
 end
