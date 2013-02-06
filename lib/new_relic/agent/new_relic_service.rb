@@ -116,6 +116,7 @@ module NewRelic
 
         # Immediately open a TCP connection to the server and leave it open for
         # multiple requests.
+        ::NewRelic::Agent.logger.debug("Opening TCP connection to #{http.address}:#{http.port}")
         http.start
         begin
           @shared_tcp_connection = http
@@ -123,6 +124,7 @@ module NewRelic
         ensure
           @shared_tcp_connection = nil
           # Close the TCP socket
+          ::NewRelic::Agent.logger.debug("Closing TCP connection to #{http.address}:#{http.port}")
           http.finish
         end
       end
@@ -151,7 +153,7 @@ module NewRelic
             http.verify_mode = OpenSSL::SSL::VERIFY_NONE
           end
         end
-        ::NewRelic::Agent.logger.debug("Http Connection opened to #{@collector.ip||@collector.name}:#{@collector.port}")
+        ::NewRelic::Agent.logger.debug("Created net/http handle to #{http.address}:#{http.port}")
         http
       end
 
@@ -239,13 +241,14 @@ module NewRelic
         request.content_type = "application/octet-stream"
         request.body = opts[:data]
 
-        ::NewRelic::Agent.logger.debug "Connect to #{opts[:collector]}#{opts[:uri]}"
+        ::NewRelic::Agent.logger.debug "Setting up request to #{opts[:collector]}#{opts[:uri]}"
 
         response = nil
         http = http_connection
         http.read_timeout = nil
         begin
           NewRelic::TimerLib.timeout(@request_timeout) do
+            ::NewRelic::Agent.logger.debug "Sending request to #{opts[:collector]}#{opts[:uri]}"
             response = http.request(request)
           end
         rescue Timeout::Error
