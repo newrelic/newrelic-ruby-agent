@@ -111,10 +111,7 @@ module NewRelic
       # via keep-alive.
       def session(&block)
         raise ArgumentError, "#{self.class}#shared_connection must be passed a block" unless block_given?
-        proxy_server = control.proxy_server
-        # Proxy returns regular HTTP if @proxy_host is nil (the default)
-        http_class = Net::HTTP::Proxy(proxy_server.name, proxy_server.port,
-                                      proxy_server.user, proxy_server.password)
+
         http = create_http_connection
 
         # Immediately open a TCP connection to the server and leave it open for
