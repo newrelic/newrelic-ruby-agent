@@ -241,8 +241,6 @@ module NewRelic
         request.content_type = "application/octet-stream"
         request.body = opts[:data]
 
-        ::NewRelic::Agent.logger.debug "Setting up request to #{opts[:collector]}#{opts[:uri]}"
-
         response = nil
         http = http_connection
         http.read_timeout = nil

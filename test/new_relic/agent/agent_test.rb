@@ -54,6 +54,11 @@ module NewRelic
         @agent.instance_eval { transmit_data }
       end
 
+      def test_transmit_data_should_use_one_http_handle_per_harvest
+        @agent.service.expects(:session).once
+        @agent.instance_eval { transmit_data }
+      end
+
       def test_transmit_data_should_close_explain_db_connections
         NewRelic::Agent::Database.expects(:close_connections)
         @agent.instance_eval { transmit_data }
