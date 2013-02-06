@@ -1,12 +1,12 @@
 
 module NewRelic
   module Stats
-    
+
     # a stat is absent if its call count equals zero
     def absent?
       call_count == 0
     end
-    
+
     # outputs a useful human-readable time given a value in milliseconds
     def time_str(value_ms)
       case
@@ -27,7 +27,7 @@ module NewRelic
         numerator.to_f / denominator
       end
     end
-    
+
     def average_call_time
       checked_calculation(total_call_time, call_count)
     end

@@ -887,7 +887,9 @@ module NewRelic
           NewRelic::Agent::BusyCalculator.harvest_busy
 
           @unsent_timeslice_data ||= {}
-          @unsent_timeslice_data = @stats_engine.harvest_timeslice_data(@unsent_timeslice_data, @metric_ids)
+          @unsent_timeslice_data = @stats_engine.harvest_timeslice_data(@unsent_timeslice_data,
+                                                                        @metric_ids,
+                                                                        @metric_rules)
           @unsent_timeslice_data
         end
 

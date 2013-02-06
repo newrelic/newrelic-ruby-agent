@@ -56,7 +56,7 @@ class ThreadProfilingTest < Test::Unit::TestCase
     let_it_finish
 
     profile_data = $collector.calls_for('profile_data')[0]
-    assert_equal(666, profile_data[0])
+    assert_equal('666', profile_data.run_id)
 
     poll_count = profile_data[1][0][3]
     assert poll_count > 25, "Expected poll_count > 25, but was #{poll_count}"
@@ -71,7 +71,7 @@ class ThreadProfilingTest < Test::Unit::TestCase
     let_it_finish
 
     profile_data = $collector.calls_for('profile_data')[0]
-    assert_equal(666, profile_data[0])
+    assert_equal('666', profile_data.run_id)
 
     poll_count = profile_data[1][0][3]
     assert poll_count < 10, "Expected poll_count < 10, but was #{poll_count}"

@@ -29,7 +29,7 @@ module NewRelic
         Agent.config.register_callback(:'audit_log.enabled') do |enabled|
           @audit_logger.enabled = enabled
         end
-        
+
         Agent.config.register_callback(:marshaller) do |marshaller|
           begin
             if marshaller == 'json'
