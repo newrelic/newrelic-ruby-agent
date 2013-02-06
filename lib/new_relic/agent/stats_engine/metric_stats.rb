@@ -156,10 +156,15 @@ module NewRelic
           def merge_data(metric_data_hash)
             metric_data_hash.each do |metric_spec, metric_data|
               new_data = lookup_stats(metric_spec.name, metric_spec.scope)
-              if new_data
-                new_data.merge!(metric_data.stats)
+              stats = if metric_data.respond_to?(:stats)
+                metric_data.stats
               else
-                stats_hash[metric_spec] = metric_data.stats
+                metric_data
+              end
+              if new_data
+                new_data.merge!(stats)
+              else
+                stats_hash[metric_spec] = stats
               end
             end
           end
@@ -235,9 +240,30 @@ module NewRelic
         # we will revisit later to see if we can make this more robust without
         # sacrificing efficiency.
         # +++
-        def harvest_timeslice_data(previous_timeslice_data, metric_ids)
+        def harvest_timeslice_data(previous_timeslice_data, metric_ids,
+                                   rules=[])
           poll harvest_samplers
-          merge_stats(previous_timeslice_data, metric_ids)
+          apply_rules_to_metric_data(rules,
+                              merge_stats(previous_timeslice_data, metric_ids))
+        end
+
+        def apply_rules_to_metric_data(rules, stats_hash)
+          renamed_stats = {}
+          rules.each do |rule|
+            stats_hash.each do |spec, data|
+              new_name, matched = rule.apply(spec.name)
+              next unless matched
+
+              data.metric_spec = NewRelic::MetricSpec.new(new_name, spec.scope)
+              stats_hash.delete(spec)
+              if renamed_stats.has_key?(data.metric_spec)
+                renamed_stats[data.metric_spec].stats.merge!(data.stats)
+              else
+                renamed_stats[data.metric_spec] = data
+              end
+            end
+          end
+          stats_hash.merge(renamed_stats)
         end
 
         # Remove all stats.  For test code only.

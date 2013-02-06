@@ -60,6 +60,25 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
     assert_equal 10, metric_data[0].stats.total_call_time
   end
 
+  def test_harvest_timeslice_data_applies_metric_rename_rules
+    rule = NewRelic::Agent::RulesEngine::Rule.new(
+      'match_expression' => '[0-9]+',
+      'replacement'      => '*',
+      'replace_all'      => true
+    )
+    @engine.get_stats_no_scope('Custom/foo/1/bar/22').record_data_point(1)
+    @engine.get_stats_no_scope('Custom/foo/3/bar/44').record_data_point(1)
+    @engine.get_stats_no_scope('Custom/foo/5/bar/66').record_data_point(1)
+
+    stats_hash = @engine.harvest_timeslice_data({}, {}, [rule])
+
+    assert_nil stats_hash[NewRelic::MetricSpec.new('Custom/foo/1/bar/22')]
+    assert_nil stats_hash[NewRelic::MetricSpec.new('Custom/foo/3/bar/44')]
+    assert_nil stats_hash[NewRelic::MetricSpec.new('Custom/foo/5/bar/66')]
+    merged = stats_hash[NewRelic::MetricSpec.new('Custom/foo/*/bar/*')]
+    assert_equal(3, merged.stats.call_count)
+  end
+
   def test_harvest_with_merge
     s = @engine.get_stats "a"
     s.trace_call 1
