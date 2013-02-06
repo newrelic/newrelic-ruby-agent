@@ -8,7 +8,8 @@ unless ENV['FAST_TESTS']
   require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 
   class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::TestCase
-    include NewRelic::Agent::Instrumentation::ControllerInstrumentation
+    include NewRelic::Agent::Instrumentation::ControllerInstrumentation,
+            NewRelic::Agent::CrossProcessMonitor::EncodingFunctions
 
     CANNED_RESPONSE = (<<-"END_RESPONSE").gsub(/^    /m, '')
     HTTP/1.1 200 OK
@@ -27,7 +28,12 @@ unless ENV['FAST_TESTS']
 
 
     def setup
-      NewRelic::Agent.manual_start( :'cross_process.enabled' => false )
+      NewRelic::Agent.manual_start(
+        :'cross_process.enabled' => false,
+        :cross_process_id        => '269975#22824',
+        :encoding_key            => 'gringletoes'
+        #, :log_level               => 'debug'
+      )
       @engine = NewRelic::Agent.instance.stats_engine
       @engine.clear_stats
 
@@ -62,7 +68,7 @@ unless ENV['FAST_TESTS']
 
 
     def make_app_data_payload( *args )
-      return [ args.to_json ].pack( 'm' ).gsub( /\n/, '' ) + "\n"
+      return obfuscate_with_key( 'gringletoes', args.to_json ).gsub( /\n/, '' ) + "\n"
     end
 
     def make_app_data_header( *args )
@@ -189,24 +195,20 @@ unless ENV['FAST_TESTS']
       assert_not_includes @engine.metrics, 'External/allWeb'
     end
 
-    def test_instrumentation_fires_outgoing_service_call_hooks
-      request = response = nil
-      NewRelic::Agent.instance.events.subscribe(:before_http_request) do |arg|
-        request = arg
+    # When an http call is made, the agent should add a request header named
+    # X-NewRelic-ID with a value equal to the encoded cross_process_id.
+
+    def test_adds_a_request_header_to_outgoing_requests_if_xp_enabled
+      @socket.expects( :write ).with do |data|
+        data =~ /(?i:x-newrelic-id): VURQV1BZRkZdXUFT/
+      end.returns( @response_data.length )
+
+      with_config(:'cross_process.enabled' => true) do
+        Net::HTTP.get URI.parse('http://www.google.com/index.html')
       end
-      NewRelic::Agent.instance.events.subscribe(:after_http_response) do |arg|
-        response = arg
-      end
+    end
 
-      res = Net::HTTP.get( URI.parse('http://www.google.com/index.html') )
-
-      assert_instance_of Net::HTTP::Get, request
-      assert_equal 'GET', request.method
-      assert_equal '/index.html', request.path
-
-      assert_instance_of Net::HTTPOK, response
-      assert_equal '200', response.code
-      assert_match %r/<head>/i, response.body
+    def test_agent_doesnt_add_a_request_header_to_outgoing_requests_if_xp_disabled
     end
 
 

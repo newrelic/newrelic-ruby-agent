@@ -17,13 +17,18 @@ DependencyDetection.defer do
   
   executes do
     class Net::HTTP
+      include NewRelic::Agent::CrossProcessMonitor::EncodingFunctions
+
 
       # Exception raised if there is a problem with cross-process transactions.
       class CrossProcessError < RuntimeError; end
 
 
-      # The cross-process header for "outgoing" calls
+      # The cross-process response header for "outgoing" calls
       NR_APPDATA_HEADER = 'X-NewRelic-App-Data'
+
+      # The cross-process request header for "outgoing" calls
+      NR_ID_HEADER = 'X-NewRelic-ID'
 
 
       # Instrument outgoing HTTP requests and fire associated events back
@@ -31,15 +36,41 @@ DependencyDetection.defer do
       def request_with_newrelic_trace(request, *args, &block)
         events = NewRelic::Agent.instance.events
 
-        events.notify( :before_http_request, request )
+        inject_request_header( request )
         response = trace_http_request( request, *args, &block )
-        events.notify( :after_http_response, response )
 
         return response
       end
 
       alias request_without_newrelic_trace request
       alias request request_with_newrelic_trace
+
+
+      # Return +true+ if cross-process tracing is enabled in the config.
+      def cross_process_enabled?
+        Agent.config[:'cross_process.enabled']
+      end
+
+
+      # Memoized fetcher for the cross-process encoding key. Raises a 
+      # Net::HTTP::CrossProcessError if the key isn't configured.
+      def cross_process_encoding_key
+        @key ||= NewRelic::Agent.config[:encoding_key] or
+          raise Net::HTTP::CrossProcessError, "No encoding_key set."
+      end
+
+
+      # Inject the X-Process header into the outgoing +request+.
+      def inject_request_header( request )
+        cross_process_id = NewRelic::Agent.config[:cross_process_id] or
+          raise Net::HTTP::CrossProcessError, "no cross-process ID configured"
+        key = cross_process_encoding_key()
+
+        request[ NR_ID_HEADER ] = obfuscate_with_key( key, cross_process_id )
+
+      rescue Net::HTTP::CrossProcessError => err
+        NewRelic::Agent.logger.debug "Not injecting x-process header: %s" % [ err.message ]
+      end
 
 
       # Send the given +request+, adding metrics appropriate to the
@@ -87,6 +118,7 @@ DependencyDetection.defer do
 
       # Return an Array of metrics used for every response.
       def common_metrics
+        NewRelic::Agent.logger.debug "Fetching common metrics"
         metrics = [ get_metric("External/all") ]
         metrics << get_metric( "External/#@address/all" )
 
@@ -110,15 +142,7 @@ DependencyDetection.defer do
       # Return the set of metric objects appropriate for the given cross-process
       # +response+.
       def metrics_for_xprocess_response( response )
-        appdata = response[NR_APPDATA_HEADER] or
-          raise Net::HTTP::CrossProcessError,
-            "Can't derive metrics for response: no #{NR_APPDATA_HEADER} header!"
-
-        decoded_appdata = Base64.decode64( appdata )
-        decoded_appdata.set_encoding( ::Encoding::UTF_8 ) if
-          decoded_appdata.respond_to?( :set_encoding )
-
-        xp_id, txn_name, q_time, r_time, req_len = NewRelic.json_load( decoded_appdata )
+        xp_id, txn_name, q_time, r_time, req_len, _ = extract_appdata( response )
 
         check_crossprocess_id( xp_id )
         check_transaction_name( txn_name )
@@ -130,6 +154,30 @@ DependencyDetection.defer do
         metrics << get_scoped_metric( "ExternalTransaction/#@address/#{xp_id}/#{txn_name}" )
 
         return metrics
+      end
+
+
+      # Extract x-process application data from the specified +response+ and return
+      # it as an array of the form:
+      #
+      #  [
+      #    <cross-process ID>,
+      #    <transaction name>,
+      #    <queue time in seconds>,
+      #    <response time in seconds>,
+      #    <request content length in bytes>
+      #  ]
+      def extract_appdata( response )
+        appdata = response[NR_APPDATA_HEADER] or
+          raise Net::HTTP::CrossProcessError,
+            "Can't derive metrics for response: no #{NR_APPDATA_HEADER} header!"
+
+        key = cross_process_encoding_key()
+        decoded_appdata = decode_with_key( key, appdata )
+        decoded_appdata.set_encoding( ::Encoding::UTF_8 ) if
+          decoded_appdata.respond_to?( :set_encoding )
+
+        return NewRelic.json_load( decoded_appdata )
       end
 
 
@@ -148,11 +196,13 @@ DependencyDetection.defer do
         NewRelic::Agent.instance.stats_engine.get_stats_no_scope( metric_name )
       end
 
+
       # Convenience function for fetching the scoped metric associated with +metric_name+.
       def get_scoped_metric( metric_name )
         # Default is to use the metric_name itself as the scope, which is what we want
         NewRelic::Agent.instance.stats_engine.get_stats( metric_name )
       end
+
 
       # Check the given +id+ to ensure it conforms to the format of a cross-process ID. Raises
       # an Net::HTTP::CrossProcessError if it doesn't.
@@ -161,10 +211,12 @@ DependencyDetection.defer do
           raise Net::HTTP::CrossProcessError, "malformed cross-process ID %p" % [ id ]
       end
 
+
       # Check the given +name+ to ensure it conforms to the format of a valid transaction
       # name.
       def check_transaction_name( name )
-        # No-op until I can get a definitive definition of what is and isn't valid.
+        # No-op -- is there a definitive definition of what is and isn't a
+        # valid transaction name?
       end
 
     end

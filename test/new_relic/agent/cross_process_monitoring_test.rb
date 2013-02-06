@@ -198,32 +198,13 @@ module NewRelic::Agent
     end
 
     def test_decoding_blank
-      assert_equal "", @monitor.decode_with_key("")
+      assert_equal "",
+        NewRelic::Agent::CrossProcessMonitor::EncodingFunctions.decode_with_key( 'querty', "" )
     end
 
-    def test_get_bytes_with_nil
-      assert_equal [], @monitor.send(:get_bytes, nil)
-    end
-
-
-    # When an http call is made, the agent should add a request header named
-    # X-NewRelic-ID with a value equal to the encoded cross_process_id.
-
-    def test_agent_adds_a_request_header_to_outgoing_requests_if_xp_enabled
-      request = mock("http request") do
-        expects( :[]= ).with( 'X-NewRelic-ID', AGENT_CROSS_PROCESS_ID )
-      end
-      NewRelic::Agent.instance.events.notify(:before_http_request, request)
-    end
-
-    def test_agent_doesnt_add_a_request_header_to_outgoing_requests_if_xp_disabled
-      request = mock("http request") do
-        expects( :[]= ).with( 'X-NewRelic-ID', AGENT_CROSS_PROCESS_ID ).never
-      end
-      
-      with_config(:'cross_process.enabled' => false) do
-        NewRelic::Agent.instance.events.notify(:before_http_request, request)
-      end
+    def test_encode_with_nil_uses_empty_key
+      assert_equal "querty",
+        NewRelic::Agent::CrossProcessMonitor::EncodingFunctions.encode_with_key( nil, 'querty' )
     end
 
   end

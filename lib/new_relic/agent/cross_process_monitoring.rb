@@ -5,6 +5,35 @@ module NewRelic
   module Agent
     class CrossProcessMonitor
 
+      module EncodingFunctions
+
+        module_function
+
+        def obfuscate_with_key(key, text)
+          Base64.encode64(encode_with_key(key, text)).chomp
+        end
+
+        def decode_with_key(key, text)
+          encode_with_key(key, Base64.decode64(text))
+        end
+
+        def encode_with_key(key, text)
+          return text unless key
+          key = key.bytes.to_a if key.respond_to?( :bytes )
+
+          encoded = ""
+          index = 0
+          text.each_byte do |byte|
+            encoded.concat((byte ^ key[index % key.length].to_i))
+            index+=1
+          end
+          encoded
+        end
+
+      end
+      include EncodingFunctions
+
+
       def initialize(events = nil)
         # When we're starting up for real in the agent, we get passed the events
         # Other spots can pull from the agent, during startup the agent doesn't exist yet!
@@ -20,7 +49,6 @@ module NewRelic
       def finish_setup(config)
         @cross_process_id = config[:cross_process_id]
         @encoding_key = config[:encoding_key]
-        @encoding_bytes = get_bytes(@encoding_key) unless @encoding_key.nil?
         @trusted_ids = config[:trusted_account_ids] || []
       end
 
@@ -40,10 +68,6 @@ module NewRelic
 
         events.subscribe(:start_transaction) do |name|
           set_transaction_custom_parameters
-        end
-
-        events.subscribe(:before_http_request) do |request|
-          insert_request_header(request)
         end
 
         events.subscribe(:after_call) do |env, (status_code, headers, body)|
@@ -115,7 +139,7 @@ module NewRelic
         transaction_name = timings.transaction_name.gsub(/["']/, "")
 
         payload = %[["#{@cross_process_id}","#{transaction_name}",#{timings.queue_time_in_seconds},#{timings.app_time_in_seconds},#{content_length}] ]
-        payload = obfuscate_with_key(payload)
+        payload = obfuscate_with_key(@encoding_key, payload)
       end
 
       def set_transaction_custom_parameters
@@ -133,14 +157,6 @@ module NewRelic
         metric.record_data_point(timings.app_time_in_seconds)
       end
 
-      def obfuscate_with_key(text)
-        Base64.encode64(encode_with_key(text)).chomp
-      end
-
-      def decode_with_key(text)
-        encode_with_key(Base64.decode64(text))
-      end
-
       NEWRELIC_ID_HEADER = 'X-NewRelic-ID'
       NEWRELIC_ID_HEADER_KEYS = %W{#{NEWRELIC_ID_HEADER} HTTP_X_NEWRELIC_ID X_NEWRELIC_ID}
       CONTENT_LENGTH_HEADER_KEYS = %w{Content-Length HTTP_CONTENT_LENGTH CONTENT_LENGTH}
@@ -149,7 +165,7 @@ module NewRelic
         encoded_id = from_headers(request, NEWRELIC_ID_HEADER_KEYS)
         return "" if encoded_id.nil?
 
-        decode_with_key(encoded_id)
+        decode_with_key(@encoding_key, encoded_id)
       end
 
       def content_length_from_request(request)
@@ -157,37 +173,7 @@ module NewRelic
       end
 
 
-      def insert_request_header( request )
-        if cross_process_enabled?
-          request[ NEWRELIC_ID_HEADER ] = encode_with_key(@cross_process_id)
-        end
-      end
-
-
       private
-
-      # Ruby 1.8.6 doesn't support the bytes method on strings.
-      def get_bytes(value)
-        return [] if value.nil?
-
-        bytes = []
-        value.each_byte do |b|
-          bytes << b
-        end
-        bytes
-      end
-
-      def encode_with_key(text)
-        key_bytes =  @encoding_bytes
-
-        encoded = ""
-        index = 0
-        text.each_byte{|byte|
-          encoded.concat((byte ^ key_bytes[index % key_bytes.length].to_i))
-          index+=1
-        }
-        encoded
-      end
 
       def from_headers(request, try_keys)
         # For lookups, upcase all our keys on both sides just to be safe
