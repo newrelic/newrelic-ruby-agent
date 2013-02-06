@@ -12,10 +12,6 @@ DependencyDetection.defer do
   end
 
   executes do
-    require 'base64'
-  end
-  
-  executes do
     class Net::HTTP
       include NewRelic::Agent::CrossProcessMonitor::EncodingFunctions
 
@@ -36,7 +32,7 @@ DependencyDetection.defer do
       def request_with_newrelic_trace(request, *args, &block)
         events = NewRelic::Agent.instance.events
 
-        inject_request_header( request )
+        inject_request_header( request ) if cross_process_enabled?
         response = trace_http_request( request, *args, &block )
 
         return response
@@ -48,7 +44,7 @@ DependencyDetection.defer do
 
       # Return +true+ if cross-process tracing is enabled in the config.
       def cross_process_enabled?
-        Agent.config[:'cross_process.enabled']
+        NewRelic::Agent.config[:'cross_process.enabled']
       end
 
 
@@ -82,15 +78,14 @@ DependencyDetection.defer do
         t0 = Time.now
         response = request_without_newrelic_trace( request, *args, &block )
 
-        return response
-      ensure
         # If the block is exiting normally
-        if t0 && response
-          duration = (Time.now - t0).to_f
+        duration = (Time.now - t0).to_f
+        stats = metrics_for( request, response )
+        stats.each { |stat| stat.trace_call(duration) }
 
-          stats = metrics_for( request, response )
-          stats.each { |stat| stat.trace_call(duration) }
-        end
+        return response
+      rescue Net::HTTP::CrossProcessError => err
+        NewRelic::Agent.logger.debug "%p in cross-process tracing: %s" % [ err.class, err.message ]
       end
 
 
@@ -135,7 +130,7 @@ DependencyDetection.defer do
       # Returns +true+ if Cross-Process tracing is enabled, and the given +response+
       # has the appropriate headers.
       def response_is_xprocess?( response )
-        return NewRelic::Agent.config[:'cross_process.enabled'] && response[NR_APPDATA_HEADER]
+        return cross_process_enabled? && response[NR_APPDATA_HEADER]
       end
 
 
@@ -207,7 +202,7 @@ DependencyDetection.defer do
       # Check the given +id+ to ensure it conforms to the format of a cross-process ID. Raises
       # an Net::HTTP::CrossProcessError if it doesn't.
       def check_crossprocess_id( id )
-        id =~ /^\d+#\d+$/ or
+        id =~ /\A\d+#\d+\z/ or
           raise Net::HTTP::CrossProcessError, "malformed cross-process ID %p" % [ id ]
       end
 

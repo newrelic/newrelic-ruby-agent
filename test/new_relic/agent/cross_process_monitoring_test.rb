@@ -69,8 +69,7 @@ module NewRelic::Agent
     end
 
     def unpacked_response
-      # Assumes array is valid JSON and Ruby, which is currently is
-      eval(Base64.decode64(response_app_data))
+      NewRelic.json_load(Base64.decode64(response_app_data))
     end
 
 

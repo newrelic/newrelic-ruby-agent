@@ -32,7 +32,6 @@ unless ENV['FAST_TESTS']
         :'cross_process.enabled' => false,
         :cross_process_id        => '269975#22824',
         :encoding_key            => 'gringletoes'
-        #, :log_level               => 'debug'
       )
       @engine = NewRelic::Agent.instance.stats_engine
       @engine.clear_stats
@@ -209,6 +208,11 @@ unless ENV['FAST_TESTS']
     end
 
     def test_agent_doesnt_add_a_request_header_to_outgoing_requests_if_xp_disabled
+      @socket.expects( :write ).with do |data|
+        data !~ /(?i:x-newrelic-id): VURQV1BZRkZdXUFT/
+      end.returns( @response_data.length )
+
+      Net::HTTP.get URI.parse('http://www.google.com/index.html')
     end
 
 

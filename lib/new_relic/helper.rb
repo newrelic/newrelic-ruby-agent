@@ -42,7 +42,7 @@ module NewRelic
     define_method( :json_load, &::JSON.method(:parse) )
   rescue LoadError => err
     NewRelic::Agent.logger.debug "Falling back to OkJson: %s" % [ err.message ] if
-      defined?( NewRelic::Agent ) && NewRelic::Agent.respond_to?( :logger )
+		defined?( NewRelic::Agent ) && NewRelic::Agent.respond_to?( :logger )
 
     require 'new_relic/okjson'
     define_method( :json_dump, &::NewRelic::OkJson.method(:encode) )

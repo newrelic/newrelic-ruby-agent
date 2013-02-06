@@ -10,11 +10,11 @@ module NewRelic
         module_function
 
         def obfuscate_with_key(key, text)
-          Base64.encode64(encode_with_key(key, text)).chomp
+          [ encode_with_key(key, text) ].pack('m').chomp
         end
 
         def decode_with_key(key, text)
-          encode_with_key(key, Base64.decode64(text))
+          encode_with_key( key, text.unpack('m').first )
         end
 
         def encode_with_key(key, text)
@@ -55,8 +55,6 @@ module NewRelic
       # Expected sequence of events:
       #   :before_call will save our cross process request id to the thread
       #   :start_transaction will get called when a transaction starts up
-      #   :before_http_request will get called whenever an outgoing http request is sent
-      #   :before_http_response will get called with the response to an outgoing http request
       #   :after_call will write our response headers/metrics and clean up the thread
       def register_event_listeners
         NewRelic::Agent.logger.debug("Wiring up Cross Process monitoring to events after finished configuring")
