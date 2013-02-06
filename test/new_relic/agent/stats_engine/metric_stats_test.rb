@@ -9,7 +9,7 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
     puts e
     puts e.backtrace.join("\n")
   end
-  
+
   def teardown
     @engine.harvest_timeslice_data({},{})
     super
