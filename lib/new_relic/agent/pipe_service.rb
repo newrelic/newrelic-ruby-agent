@@ -39,6 +39,13 @@ module NewRelic
         write_to_pipe('EOF')
         NewRelic::Agent::PipeChannelManager.channels[@channel_id].close
       end
+
+      # Invokes the block it is passed.  This is used to implement HTTP
+      # keep-alive in the NewRelicService, and is a required interface for any
+      # Service class.
+      def session
+        yield
+      end
       
       private
 

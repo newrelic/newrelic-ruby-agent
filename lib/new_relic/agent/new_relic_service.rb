@@ -106,20 +106,42 @@ module NewRelic
         [data, encoding]
       end
 
-      # Return the Net::HTTP with proxy configuration given the NewRelic::Control::Server object.
-      # Default is the collector but for api calls you need to pass api_server
-      #
-      # Experimental support for SSL verification:
-      # swap 'VERIFY_NONE' for 'VERIFY_PEER' line to try it out
-      # If verification fails, uncomment the 'http.ca_file' line
-      # and it will use the included certificate.
+      # One session with the service's endpoint.  In this case the session
+      # represents 1 tcp connection which may transmit multiple HTTP requests
+      # via keep-alive.
+      def session(&block)
+        raise ArgumentError, "#{self.class}#shared_connection must be passed a block" unless block_given?
+
+        http = create_http_connection
+
+        # Immediately open a TCP connection to the server and leave it open for
+        # multiple requests.
+        http.start
+        begin
+          @shared_tcp_connection = http
+          block.call
+        ensure
+          @shared_tcp_connection = nil
+          # Close the TCP socket
+          http.finish
+        end
+      end
+
+      # Return a Net::HTTP connection object to make a call to the collector.
+      # We'll reuse the same handle for cases where we're using keep-alive, or
+      # otherwise create a new one.
       def http_connection
+        @shared_tcp_connection || create_http_connection
+      end
+
+      # Return the Net::HTTP with proxy configuration given the NewRelic::Control::Server object.
+      def create_http_connection
         proxy_server = control.proxy_server
         # Proxy returns regular HTTP if @proxy_host is nil (the default)
         http_class = Net::HTTP::Proxy(proxy_server.name, proxy_server.port,
                                       proxy_server.user, proxy_server.password)
-        http = http_class.new(@collector.ip || @collector.name, @collector.port)
-        ::NewRelic::Agent.logger.debug("Http Connection opened to #{@collector.ip||@collector.name}:#{@collector.port}")
+
+        http = http_class.new((@collector.ip || @collector.name), @collector.port)
         if Agent.config[:ssl]
           http.use_ssl = true
           if Agent.config[:verify_certificate]
@@ -129,8 +151,10 @@ module NewRelic
             http.verify_mode = OpenSSL::SSL::VERIFY_NONE
           end
         end
+        ::NewRelic::Agent.logger.debug("Http Connection opened to #{@collector.ip||@collector.name}:#{@collector.port}")
         http
       end
+
 
       # The path to the certificate file used to verify the SSL
       # connection if verify_peer is enabled
