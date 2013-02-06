@@ -27,7 +27,7 @@ class NewRelicServiceTest < Test::Unit::TestCase
                                             30303, '10.10.10.10')
     @service = NewRelic::Agent::NewRelicService.new('license-key', @server)
     @http_handle = HTTPHandle.new
-    @service.stubs(:http_connection).returns(@http_handle)
+    @service.stubs(:create_http_connection).returns(@http_handle)
 
     @http_handle.respond_to(:get_redirect_host, 'localhost')
     connect_response = {
