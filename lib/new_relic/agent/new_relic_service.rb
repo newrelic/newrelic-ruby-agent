@@ -115,12 +115,17 @@ module NewRelic
         # Proxy returns regular HTTP if @proxy_host is nil (the default)
         http_class = Net::HTTP::Proxy(proxy_server.name, proxy_server.port,
                                       proxy_server.user, proxy_server.password)
-        http = create_http_connection(true)
+        http = create_http_connection
+
+        # Immediately open a TCP connection to the server and leave it open for
+        # multiple requests.
+        http.start
         begin
           @shared_tcp_connection = http
           block.call
         ensure
           @shared_tcp_connection = nil
+          # Close the TCP socket
           http.finish
         end
       end
@@ -133,11 +138,7 @@ module NewRelic
       end
 
       # Return the Net::HTTP with proxy configuration given the NewRelic::Control::Server object.
-      # It will immediately open a TCP connection to the server and leave it
-      # open for multiple requests.  If keep_alive is set to true, it is
-      # necessary to call #finish on the returned object to avoid resource
-      # leaks.
-      def create_http_connection(keep_alive = false)
+      def create_http_connection
         proxy_server = control.proxy_server
         # Proxy returns regular HTTP if @proxy_host is nil (the default)
         http_class = Net::HTTP::Proxy(proxy_server.name, proxy_server.port,
@@ -153,7 +154,6 @@ module NewRelic
             http.verify_mode = OpenSSL::SSL::VERIFY_NONE
           end
         end
-        http.start if keep_alive
         ::NewRelic::Agent.logger.debug("Http Connection opened to #{@collector.ip||@collector.name}:#{@collector.port}")
         http
       end
