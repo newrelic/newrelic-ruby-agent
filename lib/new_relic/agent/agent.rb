@@ -1041,13 +1041,16 @@ module NewRelic
         def transmit_data(disconnecting=false)
           now = Time.now
           ::NewRelic::Agent.logger.debug "Sending data to New Relic Service"
-          harvest_and_send_errors
-          harvest_and_send_slowest_sample
-          harvest_and_send_slowest_sql
-          harvest_and_send_timeslice_data
-          harvest_and_send_thread_profile(disconnecting)
 
-          check_for_agent_commands
+          @service.session do # use http keep-alive
+            harvest_and_send_errors
+            harvest_and_send_slowest_sample
+            harvest_and_send_slowest_sql
+            harvest_and_send_timeslice_data
+            harvest_and_send_thread_profile(disconnecting)
+
+            check_for_agent_commands
+          end
         rescue => e
           retry_count ||= 0
           retry_count += 1

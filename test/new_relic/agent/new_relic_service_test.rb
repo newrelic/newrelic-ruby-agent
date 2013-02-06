@@ -9,9 +9,14 @@ class NewRelicServiceKeepAliveTest < Test::Unit::TestCase
                                             30303, '10.10.10.10')
     @service = NewRelic::Agent::NewRelicService.new('license-key', @server)
   end
+
+  def stub_net_http_handle(overrides = {})
+    stub('http_handle', :start => true, :finish => true, :address => '10.10.10.10', :port => 30303)
+  end
+
   def test_session_block_reuses_http_handle
-    handle1 = stub('http_handle', :start => true, :finish => true)
-    handle2 = stub('http_handle', :start => true, :finish => true)
+    handle1 = stub_net_http_handle
+    handle2 = stub_net_http_handle
     @service.stubs(:create_http_connection).returns(handle1, handle2)
 
     block_ran = false
@@ -27,8 +32,8 @@ class NewRelicServiceKeepAliveTest < Test::Unit::TestCase
   end
 
   def test_multiple_http_handles_are_used_outside_session_block
-    handle1 = stub('http_handle', :start => true, :finish => true)
-    handle2 = stub('http_handle', :start => true, :finish => true)
+    handle1 = stub_net_http_handle
+    handle2 = stub_net_http_handle
     @service.stubs(:create_http_connection).returns(handle1, handle2)
     assert_equal(@service.http_connection.object_id, handle1.object_id)
     assert_equal(@service.http_connection.object_id, handle2.object_id)
@@ -36,7 +41,9 @@ class NewRelicServiceKeepAliveTest < Test::Unit::TestCase
 
 
   def test_session_starts_and_finishes_http_session
-    handle1 = mock('http_handle', :start => true, :finish => true)
+    handle1 = stub_net_http_handle
+    handle1.expects(:start).once
+    handle1.expects(:finish).once
     @service.stubs(:create_http_connection).returns(handle1)
 
     block_ran = false
