@@ -16,7 +16,7 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Test::Unit::Te
       expected_but_missing = stat_names - @agent.stats_engine.metrics
       assert_equal 0, expected_but_missing.size, @agent.stats_engine.metrics.map  { |n|
         stat = @agent.stats_engine.get_stats_no_scope(n)
-      "#{'%-26s' % n}: #{stat.call_count} calls @ #{stat.average_call_time} sec/call"
+      "#{'%-26s' % n}: #{stat.call_count} calls"
       }.join("\n  ") + "\nmissing: #{expected_but_missing.inspect}"
       assert_equal 0, @agent.stats_engine.get_stats_no_scope('Controller').call_count
       assert_equal 1, @agent.stats_engine.get_stats_no_scope('Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0').call_count
@@ -44,7 +44,6 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Test::Unit::Te
       run_task_outer(3)
       @agent.stats_engine.metrics.sort.each do |n|
         stat = @agent.stats_engine.get_stats_no_scope(n)
-        #      puts "#{'%-26s' % n}: #{stat.call_count} calls @ #{stat.average_call_time} sec/call"
       end
       assert_equal 1, @agent.stats_engine.get_stats_no_scope('Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/outer_task').call_count
       assert_equal 2, @agent.stats_engine.get_stats_no_scope('Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0').call_count
@@ -70,7 +69,6 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Test::Unit::Te
       assert_equal 0, @agent.transaction_sampler.scope_depth, "existing unfinished sample"
       @agent.stats_engine.metrics.sort.each do |n|
         stat = @agent.stats_engine.get_stats_no_scope(n)
-        #      puts "#{'%-26s' % n}: #{stat.call_count} calls @ #{stat.average_call_time} sec/call"
       end
       assert_equal 1, @agent.stats_engine.get_stats_no_scope('Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/outer_task').call_count
       assert_equal 0, @agent.stats_engine.get_stats_no_scope('Controller').call_count
@@ -101,7 +99,6 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Test::Unit::Te
       end
       @agent.stats_engine.metrics.sort.each do |n|
         stat = @agent.stats_engine.get_stats_no_scope(n)
-        #puts "#{'%-26s' % n}: #{stat.call_count} calls @ #{stat.average_call_time} sec/call"
       end
       assert_equal @agent, NewRelic::Agent.instance
       assert_equal 1, @agent.stats_engine.get_stats_no_scope('Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/hello').call_count
@@ -146,7 +143,7 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Test::Unit::Te
       expected_but_missing = stat_names - @agent.stats_engine.metrics
       assert_equal 0, expected_but_missing.size, @agent.stats_engine.metrics.map  { |n|
         stat = @agent.stats_engine.get_stats_no_scope(n)
-      "#{'%-26s' % n}: #{stat.call_count} calls @ #{stat.average_call_time} sec/call"
+      "#{'%-26s' % n}: #{stat.call_count} calls"
       }.join("\n  ") + "\nmissing: #{expected_but_missing.inspect}"
       assert_equal 1, @agent.stats_engine.get_stats_no_scope('OtherTransaction/all').call_count
       assert_equal 1, @agent.stats_engine.get_stats_no_scope('OtherTransaction/Background/all').call_count

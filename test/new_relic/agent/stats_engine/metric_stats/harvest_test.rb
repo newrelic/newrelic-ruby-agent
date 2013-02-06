@@ -27,27 +27,6 @@ class NewRelic::Agent::StatsEngine::MetricStats::HarvestTest < Test::Unit::TestC
     assert_equal NewRelic::MetricSpec.new('foo'), coerce_to_metric_spec('foo')
   end
 
-  def test_clone_and_reset_stats_nil
-    spec = NewRelic::MetricSpec.new('foo', 'bar')
-    stats = nil
-    begin
-      clone_and_reset_stats(spec, stats)
-    rescue RuntimeError => e
-      assert_equal("Nil stats for foo (bar)", e.message)
-    end
-  end
-
-  def test_clone_and_reset_stats_present
-    # spec is only used for debug output
-    spec = nil
-    stats = mock('stats')
-    stats_clone = mock('stats_clone')
-    stats.expects(:clone).returns(stats_clone)
-    stats.expects(:reset)
-    # should return a clone
-    assert_equal stats_clone, clone_and_reset_stats(spec, stats)
-  end
-
   def test_merge_old_data_present
     metric_spec = mock('metric_spec')
     stats = mock('stats obj')
@@ -101,9 +80,9 @@ class NewRelic::Agent::StatsEngine::MetricStats::HarvestTest < Test::Unit::TestC
   end
 
   def test_merge_data_new_and_old_data
-    stats = NewRelic::MethodTraceStats.new
+    stats = NewRelic::Stats.new
     stats.record_data_point(1.0)
-    new_stats = NewRelic::MethodTraceStats.new
+    new_stats = NewRelic::Stats.new
     new_stats.record_data_point(2.0)
     self.expects(:lookup_stats).with('Custom/test/method', '').returns(new_stats)
     assert_equal(2.0, new_stats.total_call_time)
@@ -116,7 +95,7 @@ class NewRelic::Agent::StatsEngine::MetricStats::HarvestTest < Test::Unit::TestC
   end
 
   def test_merge_data_old_data
-    stats = NewRelic::MethodTraceStats.new
+    stats = NewRelic::Stats.new
     stats.record_data_point(1.0)
     self.expects(:lookup_stats).returns(nil)
 

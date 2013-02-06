@@ -1,208 +1,5 @@
-
 module NewRelic
-  module Stats
-
-    # a stat is absent if its call count equals zero
-    def absent?
-      call_count == 0
-    end
-
-    # outputs a useful human-readable time given a value in milliseconds
-    def time_str(value_ms)
-      case
-      when value_ms >= 10000
-        "%.1f s" % (value_ms / 1000.0)
-      when value_ms >= 5000
-        "%.2f s" % (value_ms / 1000.0)
-      else
-        "%.0f ms" % value_ms
-      end
-    end
-
-    # makes sure we aren't dividing by zero
-    def checked_calculation(numerator, denominator)
-      if denominator.nil? || denominator == 0
-        0.0
-      else
-        numerator.to_f / denominator
-      end
-    end
-
-    def average_call_time
-      checked_calculation(total_call_time, call_count)
-    end
-    def average_exclusive_time
-      checked_calculation(total_exclusive_time, call_count)
-    end
-
-    # merge by adding to average response time
-    # - used to compose multiple metrics e.g. dispatcher time + mongrel queue time
-    def sum_merge! (other_stats)
-      Array(other_stats).each do |other|
-        self.sum_attributes(other)
-      end
-      self
-    end
-
-    def sum_attributes(other)
-      update_totals(other)
-      stack_min_max_from(other)
-      self.call_count = [self.call_count, other.call_count].max
-      update_boundaries(other)
-    end
-
-    def stack_min_max_from(other)
-      self.min_call_time += other.min_call_time
-      self.max_call_time += other.max_call_time
-    end
-
-    def update_boundaries(other)
-      self.begin_time = other.begin_time if should_replace_begin_time?(other)
-      self.end_time = other.end_time if should_replace_end_time?(other)
-    end
-
-    def should_replace_end_time?(other)
-      end_time.to_f < other.end_time.to_f
-    end
-
-    def should_replace_begin_time?(other)
-      other.begin_time.to_f < begin_time.to_f || begin_time.to_f == 0.0
-    end
-
-    def update_totals(other)
-      self.total_call_time      += other.total_call_time
-      self.total_exclusive_time += other.total_exclusive_time
-      self.sum_of_squares       += other.sum_of_squares
-    end
-
-    def min_time_less?(other)
-      (other.min_call_time < min_call_time && other.call_count > 0) || call_count == 0
-    end
-
-    def expand_min_max_to(other)
-        self.min_call_time = other.min_call_time if min_time_less?(other)
-        self.max_call_time = other.max_call_time if other.max_call_time > max_call_time
-    end
-
-    def merge_attributes(other)
-      update_totals(other)
-      expand_min_max_to(other)
-      self.call_count += other.call_count
-      update_boundaries(other)
-    end
-
-    def merge!(other_stats)
-      Array(other_stats).each do |other|
-        merge_attributes(other)
-      end
-
-      self
-    end
-
-    def merge(other_stats)
-      stats = self.clone
-      stats.merge!(other_stats)
-    end
-
-
-    def is_reset?
-      call_count == 0 && total_call_time == 0.0 && total_exclusive_time == 0.0
-    end
-
-    def reset
-      self.call_count = 0
-      self.total_call_time = 0.0
-      self.total_exclusive_time = 0.0
-      self.min_call_time = 0.0
-      self.max_call_time = 0.0
-      self.sum_of_squares = 0.0
-      self.begin_time = Time.at(0)
-      self.end_time = Time.at(0)
-    end
-
-    def as_percentage_of(other_stats)
-      checked_calculation(total_call_time, other_stats.total_call_time) * 100.0
-    end
-
-    # the stat total_call_time is a percent
-    def as_percentage
-      average_call_time * 100.0
-    end
-
-    def duration
-      end_time ? (end_time - begin_time) : 0.0
-    end
-
-    def midpoint
-      begin_time + (duration/2)
-    end
-    def calls_per_minute
-      checked_calculation(call_count, duration) * 60
-    end
-
-    def total_call_time_per_minute
-      60.0 * time_percentage
-    end
-
-    def standard_deviation
-      return 0 if call_count < 2 || self.sum_of_squares.nil?
-
-      # Convert sum of squares into standard deviation based on
-      # formula for the standard deviation for the entire population
-      x = self.sum_of_squares - (self.call_count * (self.average_value**2))
-      return 0 if x <= 0
-
-      Math.sqrt(x / self.call_count)
-    end
-
-    # returns the time spent in this component as a percentage of the total
-    # time window.
-    def time_percentage
-      checked_calculation(total_call_time, duration)
-    end
-
-    def exclusive_time_percentage
-      checked_calculation(total_exclusive_time, duration)
-    end
-
-    alias average_value average_call_time
-    alias average_response_time average_call_time
-    alias requests_per_minute calls_per_minute
-
-    def to_s
-      summary
-    end
-
-    # Summary string to facilitate testing
-    def summary
-      format = "%m/%d/%y %I:%M%p"
-      "[#{Time.at(begin_time.to_f).utc.strftime(format)} UTC, #{'%2.3fs' % duration.to_f}; #{'%2i' % call_count.to_i} calls #{'%4i' % average_call_time.to_f}s]"
-    end
-
-    # multiply the total time and rate by the given percentage
-    def multiply_by(percentage)
-      self.total_call_time = total_call_time * percentage
-      self.call_count = call_count * percentage
-      self.sum_of_squares = sum_of_squares * percentage
-
-      self
-    end
-
-    # returns s,t,f
-    def get_apdex
-      [@call_count, @total_call_time.to_i, @total_exclusive_time.to_i]
-    end
-
-    def apdex_score
-      s, t, f = get_apdex
-      (s.to_f + (t.to_f / 2)) / (s+t+f).to_f
-    end
-  end
-
-
-  class StatsBase
-    include Stats
-
+  class Stats
     attr_accessor :call_count
     attr_accessor :min_call_time
     attr_accessor :max_call_time
@@ -214,9 +11,38 @@ module NewRelic
       reset
     end
 
-    def freeze
-      @end_time = Time.now
-      super
+    def reset
+      @call_count = 0
+      @total_call_time = 0.0
+      @total_exclusive_time = 0.0
+      @min_call_time = 0.0
+      @max_call_time = 0.0
+      @sum_of_squares = 0.0
+    end
+
+    def is_reset?
+      call_count == 0 && total_call_time == 0.0 && total_exclusive_time == 0.0
+    end
+
+    def merge(other_stats)
+      stats = self.clone
+      stats.merge!(other_stats)
+    end
+
+    def merge!(other_stats)
+      Array(other_stats).each do |other|
+        @min_call_time = other.min_call_time if min_time_less?(other)
+        @max_call_time = other.max_call_time if other.max_call_time > max_call_time
+        @total_call_time      += other.total_call_time
+        @total_exclusive_time += other.total_exclusive_time
+        @sum_of_squares       += other.sum_of_squares
+        @call_count += other.call_count
+      end
+      self
+    end
+
+    def to_s
+      "[#{'%2i' % call_count.to_i} calls #{'%.4f' % total_call_time.to_f}s]"
     end
 
     def to_json(*_)
@@ -229,48 +55,6 @@ module NewRelic
         'sum_of_squares'       => sum_of_squares.to_f
       }.to_json(*_)
     end
-
-
-    # In this class, we explicitly don't track begin and end time here, to save space during
-    # cross process serialization via xml.  Still the accessor methods must be provided for merge to work.
-    def begin_time=(t)
-    end
-
-    def end_time=(t)
-    end
-
-    def begin_time
-      0.0
-    end
-
-    def end_time
-      0.0
-    end
-  end
-
-
-  class BasicStats < StatsBase
-  end
-
-  class ApdexStats < StatsBase
-
-    def record_apdex_s
-      @call_count += 1
-    end
-
-    def record_apdex_t
-      @total_call_time += 1
-    end
-
-    def record_apdex_f
-      @total_exclusive_time += 1
-    end
-  end
-
-  # Statistics used to track the performance of traced methods
-  class MethodTraceStats < StatsBase
-
-    alias data_point_count call_count
 
     # record a single data point into the statistical gatherer.  The gatherer
     # will aggregate all data points collected over a specified period and upload
@@ -308,29 +92,45 @@ module NewRelic
       @call_count += value
     end
     
-    # outputs a human-readable version of the MethodTraceStats object
     def inspect
-      "#<NewRelic::MethodTraceStats #{summary} >"
+      "#<NewRelic::Stats #{to_s} >"
     end
 
+    # Apedex-related accessors
+    alias_method :apdex_s, :call_count
+    alias_method :apdex_t, :total_call_time
+    alias_method :apdex_f, :total_exclusive_time
+
+    def record_apdex_s
+      @call_count += 1
+    end
+
+    def record_apdex_t
+      @total_call_time += 1
+    end
+
+    def record_apdex_f
+      @total_exclusive_time += 1
+    end
+
+    protected
+
+    def min_time_less?(other)
+      (other.min_call_time < min_call_time && other.call_count > 0) || call_count == 0
+    end
   end
 
-  class ScopedMethodTraceStats < MethodTraceStats
-    attr_accessor :unscoped_stats
-    def initialize(unscoped_stats)
-      super()
-      self.unscoped_stats = unscoped_stats
+  class ChainedStats
+    attr_accessor :scoped_stats, :unscoped_stats
+
+    def initialize(scoped_stats, unscoped_stats)
+      @scoped_stats = scoped_stats
+      @unscoped_stats = unscoped_stats
     end
-    def trace_call(call_time, exclusive_time = call_time)
-      unscoped_stats.trace_call call_time, exclusive_time
-      super call_time, exclusive_time
-    end
-    # Records multiple data points as one method call - this handles
-    # all the aggregation that would be done with multiple
-    # trace_call calls    
-    def record_multiple_data_points(total_value, count=1)
-      unscoped_stats.record_multiple_data_points(total_value, count)
-      super total_value, count
+
+    def method_missing(method, *args)
+      unscoped_stats.send(method, *args)
+      scoped_stats.send(method, *args)
     end
   end
 end
