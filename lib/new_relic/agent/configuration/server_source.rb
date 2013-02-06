@@ -19,6 +19,10 @@ module NewRelic
             hash[pair[1]] = hash[pair[0]] if hash[pair[0]] != nil
           end
 
+          if hash['web_transactions_apdex']
+            self[:web_transactions_apdex] = hash.delete('web_transactions_apdex')
+          end
+
           super
         end
       end

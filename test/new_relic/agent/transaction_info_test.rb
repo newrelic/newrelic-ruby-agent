@@ -51,4 +51,18 @@ class NewRelic::Agent::TransactionInfoTest < Test::Unit::TestCase
   	assert_equal(nil,NewRelic::Agent::TransactionInfo.get_token(@request_with_ni_token))
   end
 
+  def test_has_correct_apdex_t_for_tansaction
+    NewRelic::Agent
+    txn_info = NewRelic::Agent::TransactionInfo.get
+    config = { :web_transactions_apdex => {'Controller/foo/bar' => 1.5},
+      :apdex_t => 2.0 }
+
+    # the false means don't cast the config to a DottedHash
+    with_config(config, 0, false) do
+      txn_info.transaction_name = 'Controller/foo/bar'
+      assert_equal 1.5, txn_info.apdex_t
+      txn_info.transaction_name = 'Controller/some/other/txn'
+      assert_equal 2.0, txn_info.apdex_t
+    end
+  end
 end

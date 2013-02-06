@@ -42,6 +42,12 @@ module NewRelic
         @ignore_end_user = value
       end
 
+      def apdex_t
+        (Agent.config[:web_transactions_apdex] &&
+         Agent.config[:web_transactions_apdex][@transaction_name]) ||
+          Agent.config[:apdex_t]
+      end
+
       def self.get()
         Thread.current[:newrelic_transaction_info] ||= TransactionInfo.new
       end
