@@ -43,6 +43,48 @@ class NewRelicServiceTest < Test::Unit::TestCase
     end
   end
 
+  def test_session_block_reuses_http_handle
+    @service.unstub(:create_http_connection)
+    handle1 = stub('http_handle', :start => true, :finish => true)
+    handle2 = stub('http_handle', :start => true, :finish => true)
+    @service.stubs(:create_http_connection).returns(handle1, handle2)
+
+    block_ran = false
+    @service.session do
+      block_ran = true
+      assert(@service.http_connection)
+
+      # check we get the same object back each time we call http_connection in the block
+      assert_equal(@service.http_connection.object_id, handle1.object_id)
+      assert_equal(@service.http_connection.object_id, handle1.object_id)
+    end
+    assert(block_ran)
+  end
+
+  def test_multiple_http_handles_are_used_outside_session_block
+    @service.unstub(:create_http_connection)
+    handle1 = stub('http_handle', :start => true, :finish => true)
+    handle2 = stub('http_handle', :start => true, :finish => true)
+    @service.stubs(:create_http_connection).returns(handle1, handle2)
+    assert_equal(@service.http_connection.object_id, handle1.object_id)
+    assert_equal(@service.http_connection.object_id, handle2.object_id)
+  end
+
+
+  def test_session_starts_and_finishes_http_session
+    @service.unstub(:create_http_connection)
+    handle1 = mock('http_handle', :start => true, :finish => true)
+    @service.stubs(:create_http_connection).returns(handle1)
+
+    block_ran = false
+    @service.session do
+      block_ran = true
+      # mocks expect #start and #finish to be called.  This is how Net::HTTP
+      # implements keep alive
+    end
+    assert(block_ran)
+  end
+
   def test_cert_file_path
     assert @service.cert_file_path
     assert_equal File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'cert', 'cacert.pem')), @service.cert_file_path
