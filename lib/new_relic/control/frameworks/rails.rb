@@ -10,12 +10,22 @@ module NewRelic
         def env
           @env ||= RAILS_ENV.dup
         end
+
+        # Rails can return an empty string from this method, causing
+        # the agent not to start even when it is properly in a rails 3
+        # application, so we test the value to make sure it actually
+        # has contents, and bail to the parent class if it is empty.
         def root
-          if defined?(RAILS_ROOT) && RAILS_ROOT.to_s != ''
-            RAILS_ROOT.to_s
+          root = rails_root.to_s
+          if !root.empty?
+            root
           else
             super
           end
+        end
+
+        def rails_root
+          RAILS_ROOT if defined?(RAILS_ROOT)
         end
 
         def rails_config

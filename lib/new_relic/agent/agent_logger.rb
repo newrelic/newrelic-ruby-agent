@@ -32,6 +32,10 @@ module NewRelic
         @log.debug(format_messages(msgs))
       end
 
+      def is_startup_logger?
+        false
+      end
+
       # Allows for passing exceptions in explicitly, which format with backtrace
       def format_messages(msgs)
         msgs.map do |msg|
@@ -120,10 +124,14 @@ module NewRelic
       end
     end
 
-    # BBase class for startup logging and testing in multiverse
+    # Base class for startup logging and testing in multiverse
     class MemoryLogger
       def initialize
         @messages = []
+      end
+
+      def is_startup_logger?
+        true
       end
 
       attr_accessor :messages, :level

@@ -53,7 +53,7 @@ class NewRelic::LocalEnvironmentTest < Test::Unit::TestCase
     assert_equal 0, s.size
     e.gather_environment_info
     s = e.snapshot
-    assert_match /1\.(8\.[67]|9\.\d)/, s.assoc('Ruby version').last, s.inspect
+    assert_match /1\.8\.[67]|1\.9\.|2\.0/, s.assoc('Ruby version').last, s.inspect
     assert_equal 'test', s.assoc('Framework').last, s.inspect
     # Make sure the processor count is determined on linux systems
     if File.exists? '/proc/cpuinfo'

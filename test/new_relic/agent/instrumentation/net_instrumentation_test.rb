@@ -139,7 +139,7 @@ unless ENV['FAST_TESTS']
 
       assert_not_includes @engine.metrics, 'External/allOther'
     end
-    
+
     def test_get__simple
       Net::HTTP.get URI.parse('http://www.google.com/index.html')
 
@@ -150,7 +150,7 @@ unless ENV['FAST_TESTS']
 
       assert_not_includes @engine.metrics, 'External/allWeb'
     end
-    
+
     def test_ignore
       NewRelic::Agent.disable_all_tracing do
         url = URI.parse('http://www.google.com/index.html')

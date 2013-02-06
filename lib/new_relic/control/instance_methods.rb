@@ -49,7 +49,10 @@ module NewRelic
 
         Agent.config.replace_or_add_config(Agent::Configuration::ManualSource.new(options), 1)
 
-        ::NewRelic::Agent.logger = NewRelic::Agent::AgentLogger.new(Agent.config, root, options.delete(:log))
+        # Be sure to only create once! RUBY-1020
+        if ::NewRelic::Agent.logger.is_startup_logger?
+          ::NewRelic::Agent.logger = NewRelic::Agent::AgentLogger.new(Agent.config, root, options.delete(:log))
+        end
 
         # Merge the stringified options into the config as overrides:
         environment_name = options.delete(:env) and self.env = environment_name
@@ -100,6 +103,12 @@ module NewRelic
         NewRelic::Agent.config[:dispatcher]
       end
 
+      # Delegates to the class method newrelic_root, implemented by
+      # each subclass
+      def newrelic_root
+        self.class.newrelic_root
+      end
+
       protected
 
       # Append framework specific environment information for uploading to
@@ -130,11 +139,6 @@ module NewRelic
         '.'
       end
 
-      # Delegates to the class method newrelic_root, implemented by
-      # each subclass
-      def newrelic_root
-        self.class.newrelic_root
-      end
     end
     include InstanceMethods
   end

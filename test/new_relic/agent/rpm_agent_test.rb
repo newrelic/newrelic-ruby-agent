@@ -1,5 +1,6 @@
 ENV['SKIP_RAILS'] = 'true'
 require File.expand_path('../../../test_helper', __FILE__)
+require File.expand_path('../../../test_contexts', __FILE__)
 
 class NewRelic::Agent::RpmAgentTest < Test::Unit::TestCase # ActiveSupport::TestCase
   extend TestContexts
@@ -85,7 +86,6 @@ class NewRelic::Agent::RpmAgentTest < Test::Unit::TestCase # ActiveSupport::Test
     should "send_timeslice_data" do
       # this test fails due to a rubinius bug
       return if NewRelic::LanguageSupport.using_engine?('rbx')
-      @agent.service = NewRelic::FakeService.new
       @agent.service.expects(:metric_data).returns([ [{'name' => '/A/b/c'}, 1],
                                                      [{'name' => '/A/b/c', 'scope' => '/X'}, 2],
                                                      [{'name' => '/A/b/d'}, 3] ])

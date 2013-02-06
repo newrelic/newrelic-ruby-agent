@@ -8,22 +8,12 @@ module NewRelic
       def setup
         super
         @agent = NewRelic::Agent::Agent.new
-        @agent.service = NewRelic::FakeService.new
+        @agent.service = default_service
       end
 
       #
       # Helpers
       #
-
-      def with_config( options )
-        config_source = NewRelic::Agent::Configuration::ManualSource.new( options )
-        NewRelic::Agent.config.apply_config( config_source )
-
-        yield
-
-      ensure
-        NewRelic::Agent.config.remove_config( config_source ) if config_source
-      end
 
       def with_profile(opts)
         profile = NewRelic::Agent::ThreadProfile.new(-1, 0, 0, true)
@@ -60,8 +50,8 @@ module NewRelic
       end
 
       def test_transmit_data_should_transmit
+        @agent.service.expects(:metric_data).at_least_once
         @agent.instance_eval { transmit_data }
-        assert @agent.service.agent_data.any?
       end
 
       def test_transmit_data_should_close_explain_db_connections
@@ -105,27 +95,20 @@ module NewRelic
 
       def test_harvest_and_send_thread_profile
         profile = with_profile(:finished => true)
+        @agent.service.expects(:profile_data).with(any_parameters)
         @agent.send(:harvest_and_send_thread_profile, false)
-
-        assert_equal([profile],
-                    @agent.service.agent_data \
-                      .find{|data| data.action == :profile_data}.params)
       end
 
       def test_harvest_and_send_thread_profile_when_not_finished
         with_profile(:finished => false)
+        @agent.service.expects(:profile_data).never
         @agent.send(:harvest_and_send_thread_profile, false)
-
-        assert_nil @agent.service.agent_data.find{|data| data.action == :profile_data}
       end
 
       def test_harvest_and_send_thread_profile_when_not_finished_but_disconnecting
         profile = with_profile(:finished => false)
+        @agent.service.expects(:profile_data).with(any_parameters)
         @agent.send(:harvest_and_send_thread_profile, true)
-
-        assert_equal([profile],
-                     @agent.service.agent_data \
-                       .find{|data| data.action == :profile_data}.params)
       end
 
       def test_harvest_timeslice_data
@@ -158,8 +141,8 @@ module NewRelic
       end
 
       def test_check_for_agent_commands
+        @agent.service.expects(:get_agent_commands).returns([]).once
         @agent.send :check_for_agent_commands
-        assert_equal(1, @agent.service.calls_for(:get_agent_commands).size)
       end
 
       def test_merge_data_from_empty
@@ -275,7 +258,7 @@ module NewRelic
       end
 
       def test_connect_does_not_retry_on_license_error
-        @agent.service.stubs(:connect).raises(NewRelic::Agent::LicenseException)
+        @agent.service.expects(:connect).raises(NewRelic::Agent::LicenseException)
         @agent.send(:connect)
         assert(@agent.disconnected?)
       end
