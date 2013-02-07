@@ -89,8 +89,9 @@ module NewRelic
           begin
           ::Rack::Handler::WEBrick.run(self,
                                        :Port => port,
-                                       :Logger => WEBrick::Log.new("/dev/null"),
-                                       :AccessLog => [nil, nil])
+                                       :Logger => ::WEBrick::Log.new("/dev/null"),
+                                       :AccessLog => [ ['/dev/null', ::WEBrick::AccessLog::COMMON_LOG_FORMAT] ]
+                                      )
           rescue Errno::EADDRINUSE => ex
             msg = "Port #{port} for FakeCollector was in use"
             if !@seen_port_failure
