@@ -300,8 +300,8 @@ module NewRelic
         end
 
         def self.record_apdex(current_metric, action_duration, total_duration, is_error)
-          summary_stat = agent.stats_engine.get_custom_stats("Apdex", NewRelic::ApdexStats)
-          controller_stat = agent.stats_engine.get_custom_stats(current_metric.apdex_metric_path, NewRelic::ApdexStats)
+          summary_stat = agent.stats_engine.get_stats_no_scope("Apdex")
+          controller_stat = agent.stats_engine.get_stats_no_scope(current_metric.apdex_metric_path)
           update_apdex(summary_stat, total_duration, is_error)
           update_apdex(controller_stat, action_duration, is_error)
         end

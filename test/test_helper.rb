@@ -68,6 +68,9 @@ def default_service(stubbed_method_overrides = {})
   }
 
   service.stubs(stubbed_method_defaults.merge(stubbed_method_overrides))
+
+  # When session gets called yield to the given block.
+  service.stubs(:session).yields
   service
 end
 

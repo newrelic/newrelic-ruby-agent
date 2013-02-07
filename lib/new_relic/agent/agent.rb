@@ -815,11 +815,9 @@ module NewRelic
               @traces = transaction_traces
             end
           end
-          if errors && errors.respond_to?(:any?) && errors.any?
-            if @unsent_errors
-              @unsent_errors = @unsent_errors + errors
-            else
-              @unsent_errors = errors
+          if errors && errors.respond_to?(:each)
+            errors.each do |err|
+              @error_collector.add_to_error_queue(err)
             end
           end
         end
@@ -887,7 +885,9 @@ module NewRelic
           NewRelic::Agent::BusyCalculator.harvest_busy
 
           @unsent_timeslice_data ||= {}
-          @unsent_timeslice_data = @stats_engine.harvest_timeslice_data(@unsent_timeslice_data, @metric_ids)
+          @unsent_timeslice_data = @stats_engine.harvest_timeslice_data(@unsent_timeslice_data,
+                                                                        @metric_ids,
+                                                                        @metric_rules)
           @unsent_timeslice_data
         end
 
@@ -1039,13 +1039,16 @@ module NewRelic
         def transmit_data(disconnecting=false)
           now = Time.now
           ::NewRelic::Agent.logger.debug "Sending data to New Relic Service"
-          harvest_and_send_errors
-          harvest_and_send_slowest_sample
-          harvest_and_send_slowest_sql
-          harvest_and_send_timeslice_data
-          harvest_and_send_thread_profile(disconnecting)
 
-          check_for_agent_commands
+          @service.session do # use http keep-alive
+            harvest_and_send_errors
+            harvest_and_send_slowest_sample
+            harvest_and_send_slowest_sql
+            harvest_and_send_timeslice_data
+            harvest_and_send_thread_profile(disconnecting)
+
+            check_for_agent_commands
+          end
         rescue => e
           retry_count ||= 0
           retry_count += 1

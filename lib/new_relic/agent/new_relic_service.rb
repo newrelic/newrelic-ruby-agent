@@ -7,7 +7,8 @@ module NewRelic
       # Specifies the version of the agent's communication protocol with
       # the NewRelic hosted site.
 
-      PROTOCOL_VERSION = 10
+      PROTOCOL_VERSION = 11
+      # 1f147a42: v10 (tag 3.5.3.17)
       # cf0d1ff1: v9 (tag 3.5.0)
       # 14105: v8 (tag 2.10.3)
       # (no v7)
@@ -29,7 +30,16 @@ module NewRelic
         Agent.config.register_callback(:'audit_log.enabled') do |enabled|
           @audit_logger.enabled = enabled
         end
-        
+        Agent.config.register_callback(:ssl) do |ssl|
+          if !ssl
+            ::NewRelic::Agent.logger.warn("Agent is configured not to use SSL when communicating with New Relic's servers")
+          elsif !Agent.config[:verify_certificate]
+            ::NewRelic::Agent.logger.warn("Agent is configured to use SSL but to skip certificate validation when communicating with New Relic's servers")
+          else
+            ::NewRelic::Agent.logger.debug("Agent is configured to use SSL")
+          end
+        end
+
         Agent.config.register_callback(:marshaller) do |marshaller|
           begin
             if marshaller == 'json'
@@ -106,20 +116,44 @@ module NewRelic
         [data, encoding]
       end
 
-      # Return the Net::HTTP with proxy configuration given the NewRelic::Control::Server object.
-      # Default is the collector but for api calls you need to pass api_server
-      #
-      # Experimental support for SSL verification:
-      # swap 'VERIFY_NONE' for 'VERIFY_PEER' line to try it out
-      # If verification fails, uncomment the 'http.ca_file' line
-      # and it will use the included certificate.
+      # One session with the service's endpoint.  In this case the session
+      # represents 1 tcp connection which may transmit multiple HTTP requests
+      # via keep-alive.
+      def session(&block)
+        raise ArgumentError, "#{self.class}#shared_connection must be passed a block" unless block_given?
+
+        http = create_http_connection
+
+        # Immediately open a TCP connection to the server and leave it open for
+        # multiple requests.
+        ::NewRelic::Agent.logger.debug("Opening TCP connection to #{http.address}:#{http.port}")
+        http.start
+        begin
+          @shared_tcp_connection = http
+          block.call
+        ensure
+          @shared_tcp_connection = nil
+          # Close the TCP socket
+          ::NewRelic::Agent.logger.debug("Closing TCP connection to #{http.address}:#{http.port}")
+          http.finish
+        end
+      end
+
+      # Return a Net::HTTP connection object to make a call to the collector.
+      # We'll reuse the same handle for cases where we're using keep-alive, or
+      # otherwise create a new one.
       def http_connection
+        @shared_tcp_connection || create_http_connection
+      end
+
+      # Return the Net::HTTP with proxy configuration given the NewRelic::Control::Server object.
+      def create_http_connection
         proxy_server = control.proxy_server
         # Proxy returns regular HTTP if @proxy_host is nil (the default)
         http_class = Net::HTTP::Proxy(proxy_server.name, proxy_server.port,
                                       proxy_server.user, proxy_server.password)
-        http = http_class.new(@collector.ip || @collector.name, @collector.port)
-        ::NewRelic::Agent.logger.debug("Http Connection opened to #{@collector.ip||@collector.name}:#{@collector.port}")
+
+        http = http_class.new((@collector.ip || @collector.name), @collector.port)
         if Agent.config[:ssl]
           http.use_ssl = true
           if Agent.config[:verify_certificate]
@@ -129,8 +163,10 @@ module NewRelic
             http.verify_mode = OpenSSL::SSL::VERIFY_NONE
           end
         end
+        ::NewRelic::Agent.logger.debug("Created net/http handle to #{http.address}:#{http.port}")
         http
       end
+
 
       # The path to the certificate file used to verify the SSL
       # connection if verify_peer is enabled
@@ -215,13 +251,12 @@ module NewRelic
         request.content_type = "application/octet-stream"
         request.body = opts[:data]
 
-        ::NewRelic::Agent.logger.debug "Connect to #{opts[:collector]}#{opts[:uri]}"
-
         response = nil
         http = http_connection
         http.read_timeout = nil
         begin
           NewRelic::TimerLib.timeout(@request_timeout) do
+            ::NewRelic::Agent.logger.debug "Sending request to #{opts[:collector]}#{opts[:uri]}"
             response = http.request(request)
           end
         rescue Timeout::Error

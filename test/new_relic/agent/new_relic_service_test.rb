@@ -1,6 +1,62 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 require 'new_relic/agent/thread_profiler'
 
+# Tests of HTTP Keep Alive implementation that require a different setup and
+# set of mocks.
+class NewRelicServiceKeepAliveTest < Test::Unit::TestCase
+  def setup
+    @server = NewRelic::Control::Server.new('somewhere.example.com',
+                                            30303, '10.10.10.10')
+    @service = NewRelic::Agent::NewRelicService.new('license-key', @server)
+  end
+
+  def stub_net_http_handle(overrides = {})
+    stub('http_handle', :start => true, :finish => true, :address => '10.10.10.10', :port => 30303)
+  end
+
+  def test_session_block_reuses_http_handle
+    handle1 = stub_net_http_handle
+    handle2 = stub_net_http_handle
+    @service.stubs(:create_http_connection).returns(handle1, handle2)
+
+    block_ran = false
+    @service.session do
+      block_ran = true
+      assert(@service.http_connection)
+
+      # check we get the same object back each time we call http_connection in the block
+      assert_equal(@service.http_connection.object_id, handle1.object_id)
+      assert_equal(@service.http_connection.object_id, handle1.object_id)
+    end
+    assert(block_ran)
+  end
+
+  def test_multiple_http_handles_are_used_outside_session_block
+    handle1 = stub_net_http_handle
+    handle2 = stub_net_http_handle
+    @service.stubs(:create_http_connection).returns(handle1, handle2)
+    assert_equal(@service.http_connection.object_id, handle1.object_id)
+    assert_equal(@service.http_connection.object_id, handle2.object_id)
+  end
+
+
+  def test_session_starts_and_finishes_http_session
+    handle1 = stub_net_http_handle
+    handle1.expects(:start).once
+    handle1.expects(:finish).once
+    @service.stubs(:create_http_connection).returns(handle1)
+
+    block_ran = false
+    @service.session do
+      block_ran = true
+      # mocks expect #start and #finish to be called.  This is how Net::HTTP
+      # implements keep alive
+    end
+    assert(block_ran)
+  end
+
+end
+
 class NewRelicServiceTest < Test::Unit::TestCase
   def initialize(*_)
     [ :HTTPSuccess,
@@ -27,7 +83,7 @@ class NewRelicServiceTest < Test::Unit::TestCase
                                             30303, '10.10.10.10')
     @service = NewRelic::Agent::NewRelicService.new('license-key', @server)
     @http_handle = HTTPHandle.new
-    @service.stubs(:http_connection).returns(@http_handle)
+    @service.stubs(:create_http_connection).returns(@http_handle)
 
     @http_handle.respond_to(:get_redirect_host, 'localhost')
     connect_response = {
@@ -102,7 +158,7 @@ class NewRelicServiceTest < Test::Unit::TestCase
   def test_connect_resets_cached_ip_address
     assert_equal '10.10.10.10', @service.collector.ip
     @service.connect
-    assert_nil @service.collector.ip # 'localhost' resolves to nil
+    assert_equal 'localhost', @service.collector.ip # 'localhost' resolves to nil
   end
 
   def test_connect_uses_proxy_collector_if_no_redirect_host

@@ -176,7 +176,7 @@ module NewRelic
       end
     end
 
-    class SqlTrace < MethodTraceStats
+    class SqlTrace < Stats
       attr_reader :path
       attr_reader :url
       attr_reader :sql_id

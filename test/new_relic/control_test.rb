@@ -51,22 +51,30 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   end
 
   def test_resolve_ip_for_localhost
-    assert_equal nil, control.send(:convert_to_ip_address, 'localhost')
+    with_config(:ssl => false, :verify_certificate => false) do
+      assert_equal nil, control.send(:convert_to_ip_address, 'localhost')
+    end
   end
 
   def test_resolve_ip_for_non_existent_domain
-    Resolv.stubs(:getaddress).raises(Resolv::ResolvError)
-    IPSocket.stubs(:getaddress).raises(SocketError)
-    assert_equal nil, control.send(:convert_to_ip_address, 'q1239988737.us')
+    with_config(:ssl => false, :verify_certificate => false) do
+      Resolv.stubs(:getaddress).raises(Resolv::ResolvError)
+      IPSocket.stubs(:getaddress).raises(SocketError)
+      assert_equal nil, control.send(:convert_to_ip_address, 'q1239988737.us')
+    end
   end
 
   def test_resolves_valid_ip
-    Resolv.stubs(:getaddress).with('collector.newrelic.com').returns('204.93.223.153')
-    assert_equal '204.93.223.153', control.send(:convert_to_ip_address, 'collector.newrelic.com')
+    with_config(:ssl => false, :verify_certificate => false) do
+      Resolv.stubs(:getaddress).with('collector.newrelic.com').returns('204.93.223.153')
+      assert_equal '204.93.223.153', control.send(:convert_to_ip_address, 'collector.newrelic.com')
+    end
   end
 
   def test_do_not_resolve_if_we_need_to_verify_a_cert
-    assert_equal nil, control.send(:convert_to_ip_address, 'localhost')
+    with_config(:ssl => false, :verify_certificate => false) do
+      assert_equal nil, control.send(:convert_to_ip_address, 'localhost')
+    end
     with_config(:ssl => true, :verify_certificate => true) do
       assert_equal 'localhost', control.send(:convert_to_ip_address, 'localhost')
     end
@@ -108,7 +116,10 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     old_ipsocket = IPSocket
     Object.instance_eval { remove_const :Resolv}
     Object.instance_eval {remove_const:'IPSocket' }
-    assert_equal(nil, control.send(:convert_to_ip_address, 'collector.newrelic.com'), "DNS is down, should be no IP for server")
+
+    with_config(:ssl => false, :verify_certificate => false) do
+      assert_equal(nil, control.send(:convert_to_ip_address, 'collector.newrelic.com'), "DNS is down, should be no IP for server")
+    end
 
     Object.instance_eval {const_set('Resolv', old_resolv); const_set('IPSocket', old_ipsocket)}
     # these are here to make sure that the constant tomfoolery above
