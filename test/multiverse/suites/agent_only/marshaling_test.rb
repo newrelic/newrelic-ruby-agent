@@ -50,18 +50,14 @@ class MarshalingTest < Test::Unit::TestCase
     stats = NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Custom/test/method')
     stats.record_data_point(1.0)
     stats.record_data_point(2.0, 1.0)
-    expected = [ {'name' => 'Custom/test/method', 'scope' => ''},
-                           [2, 3.0, 2.0, 1.0, 2.0, 5.0] ]
+    expected = [ 2, 3.0, 2.0, 1.0, 2.0, 5.0 ]
 
     @agent.service.connect
     @agent.send(:harvest_and_send_timeslice_data)
 
     assert_equal('666', $collector.calls_for('metric_data')[0].run_id)
 
-    metric_data = $collector.calls_for('metric_data')[0]
-    assert metric_data
-
-    custom_metric = metric_data.stats_for_metric('Custom/test/method')
+    custom_metric = $collector.reported_stats_for_metric('Custom/test/method')[0]
     assert_equal(expected, custom_metric)
   end
 

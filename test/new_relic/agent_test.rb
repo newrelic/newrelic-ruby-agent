@@ -42,7 +42,7 @@ module NewRelic
     def test_finish_setup_applied_server_side_config
       with_config({ :'transction_tracer.enabled' => true,
                     'error_collector.enabled' => true,
-                    :log_level => 'info' }, 2) do
+                    :log_level => 'info' }, :level => 2) do
         NewRelic::Agent.instance.finish_setup('log_level' => 'debug',
          'agent_config' => { 'transaction_tracer.enabled' => false },
                                          'collect_errors' => false)

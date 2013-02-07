@@ -58,7 +58,7 @@ class NewRelic::Agent::TransactionInfoTest < Test::Unit::TestCase
       :apdex_t => 2.0 }
 
     # the false means don't cast the config to a DottedHash
-    with_config(config, 0, false) do
+    with_config(config, :do_not_cast => true) do
       txn_info.transaction_name = 'Controller/foo/bar'
       assert_equal 1.5, txn_info.apdex_t
       txn_info.transaction_name = 'Controller/some/other/txn'

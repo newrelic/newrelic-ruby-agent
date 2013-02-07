@@ -159,13 +159,14 @@ def compare_metrics(expected, actual)
   assert_equal(expected.to_a.sort, actual.to_a.sort, "extra: #{(actual - expected).to_a.inspect}; missing: #{(expected - actual).to_a.inspect}")
 end
 
-def with_config(config_hash, level=0, cast_to_dotted=true)
-  if cast_to_dotted
-    config = NewRelic::Agent::Configuration::DottedHash.new(config_hash)
-  else
+def with_config(config_hash, opts={})
+  opts = { :level => 0, :do_not_cast => false }.merge(opts)
+  if opts[:do_not_cast]
     config = config_hash
+  else
+    config = NewRelic::Agent::Configuration::DottedHash.new(config_hash)
   end
-  NewRelic::Agent.config.apply_config(config, level)
+  NewRelic::Agent.config.apply_config(config, opts[:level])
   begin
     yield
   ensure
