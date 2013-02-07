@@ -37,7 +37,7 @@ class TransactionNameRuleTest < Test::Unit::TestCase
   end
 
   def test_transaction_name_rules
-    metric_names = ::NewRelic::Agent.instance.stats_engine.stats_hash.keys.map{|k| k.name}
+    metric_names = ::NewRelic::Agent.instance.stats_engine.metrics #.map{|k| k.name}
     assert(metric_names.include?('Controller/Class::TestWidget/txn'),
            "'Controller/Class::TestWidget/txn' not found in #{metric_names}")
     assert(metric_names.include?('Apdex/Class::TestWidget/txn'),

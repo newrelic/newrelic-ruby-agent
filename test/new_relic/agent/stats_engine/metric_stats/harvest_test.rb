@@ -4,19 +4,14 @@ require 'new_relic/agent/stats_engine/metric_stats'
 class NewRelic::Agent::StatsEngine::MetricStats::HarvestTest < Test::Unit::TestCase
   include NewRelic::Agent::StatsEngine::MetricStats::Harvest
 
+  def with_stats_lock
+    yield
+  end
+
   attr_accessor :stats_hash
   def test_merge_stats_with_nil_stats
-    self.stats_hash = NewRelic::Agent::StatsEngine::MetricStats::SynchronizedHash.new
+    self.stats_hash = NewRelic::Agent::StatsHash.new
     assert_equal({}, merge_stats({}, {}))
-  end
-
-
-  def test_get_stats_hash_from_hash
-    assert_equal({}, get_stats_hash_from({}))
-  end
-
-  def test_get_stats_hash_from_engine
-    assert_equal({}, get_stats_hash_from(NewRelic::Agent::StatsEngine.new))
   end
 
   def test_coerce_to_metric_spec_metric_spec
@@ -73,39 +68,26 @@ class NewRelic::Agent::StatsEngine::MetricStats::HarvestTest < Test::Unit::TestC
     assert_equal 'metric data', add_data_to_send_unless_empty(data, stats, metric_spec, id)
   end
 
-  def test_merge_data_basic
-    mock_stats_hash = mock('stats hash')
-    self.stats_hash = mock_stats_hash
-    merge_data({})
-  end
-
   def test_merge_data_new_and_old_data
     stats = NewRelic::Stats.new
     stats.record_data_point(1.0)
     new_stats = NewRelic::Stats.new
     new_stats.record_data_point(2.0)
-    self.expects(:lookup_stats).with('Custom/test/method', '').returns(new_stats)
-    assert_equal(2.0, new_stats.total_call_time)
 
     metric_spec = NewRelic::MetricSpec.new('Custom/test/method')
+    data_to_merge = {
+      metric_spec => NewRelic::MetricData.new(metric_spec, stats, nil)
+    }
+
     mock_stats_hash = mock('stats_hash')
     self.stats_hash = mock_stats_hash
-    merge_data({metric_spec => NewRelic::MetricData.new(metric_spec, stats, nil)})
-    assert_equal(3.0, new_stats.total_call_time)
+
+    expected_stats_hash_to_merge = NewRelic::Agent::StatsHash.new
+    expected_stats_hash_to_merge[metric_spec] = stats
+    mock_stats_hash.expects(:merge!).with(expected_stats_hash_to_merge)
+
+    merge_data(data_to_merge)
   end
-
-  def test_merge_data_old_data
-    stats = NewRelic::Stats.new
-    stats.record_data_point(1.0)
-    self.expects(:lookup_stats).returns(nil)
-
-    metric_spec = NewRelic::MetricSpec.new('Custom/test/method')
-    mock_stats_hash = mock('stats_hash')
-    mock_stats_hash.expects(:[]=).with(metric_spec, stats)
-    self.stats_hash = mock_stats_hash
-    merge_data({metric_spec => NewRelic::MetricData.new(metric_spec, stats, nil)})
-  end
-
 end
 
 

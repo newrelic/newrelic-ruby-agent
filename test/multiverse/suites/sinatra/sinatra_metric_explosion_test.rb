@@ -42,14 +42,14 @@ class SinatraMetricExplosionTest < Test::Unit::TestCase
 
   def test_transaction_name_from_route
     get '/hello/world'
-    metric_names = ::NewRelic::Agent.agent.stats_engine.stats_hash.keys.map{|k| k.name}
+    metric_names = ::NewRelic::Agent.agent.stats_engine.metrics
     assert metric_names.include?('Controller/Sinatra/SinatraTestApp/GET hello/([^/?#]+)')
     assert metric_names.include?('Apdex/Sinatra/SinatraTestApp/GET hello/([^/?#]+)')
   end
 
   def test_transaction_name_from_path
     get '/wrong'
-    metric_names = ::NewRelic::Agent.agent.stats_engine.stats_hash.keys.map{|k| k.name}
+    metric_names = ::NewRelic::Agent.agent.stats_engine.metrics
     assert metric_names.include?('Controller/Sinatra/SinatraTestApp/GET (unknown)')
     assert metric_names.include?('Apdex/Sinatra/SinatraTestApp/GET (unknown)')
   end
@@ -61,8 +61,8 @@ class SinatraMetricExplosionTest < Test::Unit::TestCase
     get '/hello/isitmeyourelookingfor?'
     get '/another_controller'
 
-    metric_names = ::NewRelic::Agent.agent.stats_engine.stats_hash.keys.
-      map{|k| k.name} - ['CPU/User Time', "Middleware/all", "WebFrontend/QueueTime", "WebFrontend/WebServer/all"]
+    metric_names = ::NewRelic::Agent.agent.stats_engine.metrics
+    metric_names -= ['CPU/User Time', "Middleware/all", "WebFrontend/QueueTime", "WebFrontend/WebServer/all"]
     assert_equal 6, metric_names.size, "Explosion detected in: #{metric_names.inspect}"
   end
 
@@ -70,7 +70,7 @@ class SinatraMetricExplosionTest < Test::Unit::TestCase
     assert_nothing_raised do
       post '/some/garbage'
     end
-    metric_names = ::NewRelic::Agent.agent.stats_engine.stats_hash.keys.map{|k| k.name}
+    metric_names = ::NewRelic::Agent.agent.stats_engine.metrics
     assert metric_names.include?('Controller/Sinatra/SinatraTestApp/POST (unknown)')
     assert metric_names.include?('Apdex/Sinatra/SinatraTestApp/POST (unknown)')
   end
