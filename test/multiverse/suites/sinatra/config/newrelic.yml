@@ -10,6 +10,7 @@ development:
   license_key: bootstrap_newrelic_admin_license_key_000
   developer_mode: false
   app_name: test
+  sync_startup: true
   host: 127.0.0.1
   api_host: 127.0.0.1
   port: <%= 30_000 + ($$ % 10_000) %>
