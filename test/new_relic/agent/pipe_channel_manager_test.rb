@@ -77,9 +77,9 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
       sampler.notice_error(Exception.new("message"), :uri => '/myurl/',
                            :metric => 'path', :referer => 'test_referer',
                            :request_params => {:x => 'y'})
-      NewRelic::Agent.agent.merge_data_from([nil, nil, [sampler.errors]])
+      NewRelic::Agent.agent.merge_data_from([nil, nil, sampler.errors])
 
-      assert_equal(1, NewRelic::Agent.agent.unsent_errors_size)
+      assert_equal(1, NewRelic::Agent.agent.error_collector.errors.size)
 
       listener = start_listener_with_pipe(668)
 
@@ -94,7 +94,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
       Process.wait(pid)
       listener.stop
 
-      assert_equal(2, NewRelic::Agent.agent.unsent_errors_size)
+      assert_equal(2, NewRelic::Agent.agent.error_collector.errors.size)
     end
 
     def test_close_pipe_on_EOF_string
