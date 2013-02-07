@@ -33,7 +33,7 @@ module NewRelic
         Agent.config.register_callback(:ssl) do |ssl|
           if !ssl
             ::NewRelic::Agent.logger.warn("Agent is configured not to use SSL when communicating with New Relic's servers")
-          elsif Agent.config[:verify_certificate]
+          elsif !Agent.config[:verify_certificate]
             ::NewRelic::Agent.logger.warn("Agent is configured to use SSL but to skip certificate validation when communicating with New Relic's servers")
           else
             ::NewRelic::Agent.logger.debug("Agent is configured to use SSL")
