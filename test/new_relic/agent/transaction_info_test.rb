@@ -52,17 +52,44 @@ class NewRelic::Agent::TransactionInfoTest < Test::Unit::TestCase
   end
 
   def test_has_correct_apdex_t_for_tansaction
-    NewRelic::Agent
     txn_info = NewRelic::Agent::TransactionInfo.get
     config = { :web_transactions_apdex => {'Controller/foo/bar' => 1.5},
       :apdex_t => 2.0 }
 
-    # the false means don't cast the config to a DottedHash
     with_config(config, :do_not_cast => true) do
       txn_info.transaction_name = 'Controller/foo/bar'
       assert_equal 1.5, txn_info.apdex_t
       txn_info.transaction_name = 'Controller/some/other/txn'
       assert_equal 2.0, txn_info.apdex_t
+    end
+  end
+
+  def test_has_correct_transaction_trace_threshold_when_default
+    txn_info = NewRelic::Agent::TransactionInfo.get
+    config = { :web_transactions_apdex => {'Controller/foo/bar' => 1.5},
+      :apdex_t => 2.0 }
+
+    with_config(config, :do_not_cast => true) do
+      txn_info.transaction_name = 'Controller/foo/bar'
+      assert_equal 6.0, txn_info.transaction_trace_threshold
+      txn_info.transaction_name = 'Controller/some/other/txn'
+      assert_equal 8.0, txn_info.transaction_trace_threshold
+    end
+  end
+
+  def test_has_correct_transaction_trace_threshold_when_specified
+    txn_info = NewRelic::Agent::TransactionInfo.get
+    config = {
+      :web_transactions_apdex => {'Controller/foo/bar' => 1.5},
+      :apdex_t => 2.0,
+      :'transaction_tracer.transaction_threshold' => 4.0
+    }
+
+    with_config(config, :do_not_cast => true) do
+      txn_info.transaction_name = 'Controller/foo/bar'
+      assert_equal 4.0, txn_info.transaction_trace_threshold
+      txn_info.transaction_name = 'Controller/some/other/txn'
+      assert_equal 4.0, txn_info.transaction_trace_threshold
     end
   end
 end

@@ -48,6 +48,15 @@ module NewRelic
           Agent.config[:apdex_t]
       end
 
+      def transaction_trace_threshold
+        key = :'transaction_tracer.transaction_threshold'
+        if Agent.config.source(key).class == Configuration::DefaultSource
+          apdex_t * 4
+        else
+          Agent.config[key]
+        end
+      end
+
       def self.get()
         Thread.current[:newrelic_transaction_info] ||= TransactionInfo.new
       end

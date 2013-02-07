@@ -1,7 +1,9 @@
 module NewRelic
   module Agent
     module Configuration
-      DEFAULTS = {
+      class DefaultSource < Hash; end
+
+      DEFAULTS = DefaultSource[
         :config_path => Proc.new {
           # Check a sequence of file locations for newrelic.yml
           files = []
@@ -130,7 +132,7 @@ module NewRelic
         :'thread_profiler.enabled' => Proc.new { NewRelic::Agent::ThreadProfiler.is_supported? },
 
         :marshaller => Proc.new { NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported? ? 'json' : 'pruby' }
-      }.freeze
+      ].freeze
     end
   end
 end
