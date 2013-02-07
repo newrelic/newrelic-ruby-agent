@@ -16,6 +16,6 @@ class StartUpTest < Test::Unit::TestCase
 
     jruby_noise.each {|noise| output.gsub!(noise, "")}
 
-    assert_equal '', output
+    assert_equal '', output.chomp
   end
 end

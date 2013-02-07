@@ -7,7 +7,8 @@ module NewRelic
       # Specifies the version of the agent's communication protocol with
       # the NewRelic hosted site.
 
-      PROTOCOL_VERSION = 10
+      PROTOCOL_VERSION = 11
+      # 1f147a42: v10 (tag 3.5.3.17)
       # cf0d1ff1: v9 (tag 3.5.0)
       # 14105: v8 (tag 2.10.3)
       # (no v7)
