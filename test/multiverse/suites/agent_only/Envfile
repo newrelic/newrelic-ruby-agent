@@ -2,4 +2,5 @@ gemfile <<-RB
   gem 'rack'
   gem 'rack-test'
   gem 'mocha', '< 0.13'
+  gem "jruby-openssl",   :platforms => :jruby
 RB
