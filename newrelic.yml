@@ -68,25 +68,12 @@ common: &default_settings
   # Optionally set the name of the log file, defaults to 'newrelic_agent.log'
   # log_file_name: 'newrelic_agent.log'
 
-  # The newrelic agent communicates with the service via http by
-  # default.  If you want to communicate via https to increase
-  # security, then turn on SSL by setting this value to true.  Note,
-  # this will result in increased CPU overhead to perform the
-  # encryption involved in SSL communication, but this work is done
-  # asynchronously to the threads that process your application code,
-  # so it should not impact response times.
-  ssl: false
-
-  # EXPERIMENTAL: enable verification of the SSL certificate sent by
-  # the server. This setting has no effect unless SSL is enabled
-  # above. This may block your application. Only enable it if the data
-  # you send us needs end-to-end verified certificates.
-  #
-  # This means we cannot cache the DNS lookup, so each request to the
-  # service will perform a lookup. It also means that we cannot
-  # use a non-blocking lookup, so in a worst case, if you have DNS
-  # problems, your app may block indefinitely.
-  # verify_certificate: true
+  # The newrelic agent communicates with the service via https by default.  This
+  # prevents eavesdropping on the performance metrics transmitted by the agent.
+  # The encryption required by SSL introduces a nominal amount of CPU overhead,
+  # which is performed asynchronously in a background thread.  If you'd prefer
+  # to send your metrics over http uncomment the following line.
+  # ssl: true
 
   #============================== Browser Monitoring ===============================
   # New Relic Real User Monitoring gives you insight into the performance real users are
