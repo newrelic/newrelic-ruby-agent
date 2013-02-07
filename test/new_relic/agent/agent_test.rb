@@ -201,18 +201,26 @@ module NewRelic
         assert_equal(1, @agent.unsent_timeslice_data, "should have the key from above")
       end
 
-      def test_merge_data_from_all_three_empty
-        unsent_timeslice_data = mock('unsent timeslice data')
-        unsent_errors = mock('unsent errors')
+      def test_merge_data_traces
         unsent_traces = mock('unsent traces')
         @agent.instance_eval {
-          @unsent_errors = unsent_errors
-          @unsent_timeslice_data = unsent_timeslice_data
           @traces = unsent_traces
         }
         unsent_traces.expects(:+).with([1,2,3])
-        unsent_errors.expects(:+).with([4,5,6])
-        @agent.merge_data_from([{}, [1,2,3], [4,5,6]])
+        @agent.merge_data_from([{}, [1,2,3], []])
+      end
+
+      def test_merge_data_from_abides_by_error_queue_limit
+        errors = []
+        40.times { |i| errors << Exception.new("boo #{i}") }
+
+        @agent.merge_data_from([{}, [], errors])
+
+        assert_equal 20, @agent.error_collector.errors.count
+
+        # This method should NOT increment error counts, since that has already
+        # been counted in the child
+        assert_equal 0, NewRelic::Agent.get_stats("Errors/all").call_count
       end
 
       def test_fill_metric_id_cache_from_collect_response

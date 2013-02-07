@@ -800,11 +800,9 @@ module NewRelic
               @traces = transaction_traces
             end
           end
-          if errors && errors.respond_to?(:any?) && errors.any?
-            if @unsent_errors
-              @unsent_errors = @unsent_errors + errors
-            else
-              @unsent_errors = errors
+          if errors && errors.respond_to?(:each)
+            errors.each do |err|
+              @error_collector.add_to_error_queue(err)
             end
           end
         end

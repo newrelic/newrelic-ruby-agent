@@ -186,7 +186,23 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
     end
   end
 
+  def test_increments_count_on_errors
+    expects_error_count_increase(1) do
+      @error_collector.notice_error(StandardError.new("Boo"))
+    end
+  end
+
   private
+
+  def expects_error_count_increase(increase)
+    count = get_error_stats
+    yield
+    assert_equal increase, get_error_stats - count
+  end
+
+  def get_error_stats
+    NewRelic::Agent.get_stats("Errors/all").call_count
+  end
   
   def wrapped_filter_proc
     Proc.new do |e|
