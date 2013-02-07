@@ -216,7 +216,7 @@ module NewRelic
 
         @agent.merge_data_from([{}, [], errors])
 
-        assert_equal 20, @agent.error_collector.errors.count
+        assert_equal 20, @agent.error_collector.errors.length
 
         # This method should NOT increment error counts, since that has already
         # been counted in the child
