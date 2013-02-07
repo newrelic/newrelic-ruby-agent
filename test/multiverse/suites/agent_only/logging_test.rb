@@ -45,6 +45,25 @@ class LoggingTest < Test::Unit::TestCase
 
   end
 
+  def test_logs_ssl_warning
+    running_agent_writes_to_log(
+      {:ssl => false},
+      "Agent is configured not to use SSL when communicating with New Relic's servers") do
+
+      NewRelic::Agent.config.apply_config(:ssl => false)
+    end
+  end
+
+  def test_logs_ssl_verify_cert_warning
+    running_agent_writes_to_log(
+      {:ssl => false},
+      "Agent is configured to use SSL but to skip certificate validation when communicating with New Relic's servers") do
+
+      NewRelic::Agent.config.apply_config(:ssl => true, :verify_certificate => false)
+    end
+  end
+
+
   def test_logs_if_sending_errors_on_change
     running_agent_writes_to_log(
       {:'error_collector.enabled' => false},
