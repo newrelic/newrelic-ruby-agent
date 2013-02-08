@@ -136,7 +136,7 @@ class NewRelic::Agent::Instrumentation::MetricFrameTest < Test::Unit::TestCase
 
   def test_record_apdex_stores_apdex_t_in_min_and_max
     stats_engine = NewRelic::Agent.instance.stats_engine
-    stats_engine.stats_hash.reset
+    stats_engine.reset_stats
     metric = stub(:apdex_metric_path => 'Apdex/Controller/some/txn')
     NewRelic::Agent.instance.instance_variable_set(:@stats_engine, stats_engine)
 
