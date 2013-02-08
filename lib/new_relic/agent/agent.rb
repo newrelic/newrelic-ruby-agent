@@ -9,6 +9,7 @@ require 'new_relic/agent/pipe_service'
 require 'new_relic/agent/configuration/manager'
 require 'new_relic/agent/database'
 require 'new_relic/agent/thread_profiler'
+require 'new_relic/agent/event_listener'
 
 module NewRelic
   module Agent
