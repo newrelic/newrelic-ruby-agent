@@ -61,8 +61,6 @@ module NewRelic
             OpenSSL::SSL # This will fail on jRuby unless jruby-openssl is installed
             true
           rescue StandardError, LoadError => e
-            Agent.logger.warn "Failed to detect OpenSSL support: #{e.to_s.inspect}.  Falling back to http communication to New Relic."
-            Agent.logger.debug e
             false
           end
         end,
