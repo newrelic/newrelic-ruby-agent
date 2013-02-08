@@ -55,7 +55,17 @@ module NewRelic
         :api_host               => 'rpm.newrelic.com',
         :port                   => Proc.new { self[:ssl] ? 443 : 80 },
         :api_port               => Proc.new { self[:port] },
-        :ssl                    => true,
+        :ssl                    => Proc.new do
+          begin
+            require 'openssl'
+            OpenSSL::SSL # This will fail on jRuby unless jruby-openssl is installed
+            true
+          rescue StandardError, LoadError => e
+            Agent.logger.warn "Failed to detect OpenSSL support: #{e.to_s.inspect}.  Falling back to http communication to New Relic."
+            Agent.logger.debug e
+            false
+          end
+        end,
         :verify_certificate     => true,
         :sync_startup           => false,
         :send_data_on_exit      => true,
