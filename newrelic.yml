@@ -73,7 +73,7 @@ common: &default_settings
   # The encryption required by SSL introduces a nominal amount of CPU overhead,
   # which is performed asynchronously in a background thread.  If you'd prefer
   # to send your metrics over http uncomment the following line.
-  # ssl: true
+  # ssl: false
 
   #============================== Browser Monitoring ===============================
   # New Relic Real User Monitoring gives you insight into the performance real users are

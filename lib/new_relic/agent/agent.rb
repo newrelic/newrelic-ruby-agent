@@ -783,24 +783,7 @@ module NewRelic
         end
         include Connect
 
-
-        # Serialize all the important data that the agent might want
-        # to send to the server. We could be sending this to file (
-        # common in short-running background transactions ) or
-        # alternately we could serialize via a pipe or socket to a
-        # local aggregation device
-        def serialize
-          accumulator = []
-          accumulator[1] = harvest_transaction_traces if @transaction_sampler
-          accumulator[2] = harvest_errors if @error_collector
-          accumulator[0] = harvest_timeslice_data
-          reset_stats
-          @metric_ids = {}
-          accumulator
-        end
-        public :serialize
-
-        # Accepts data as provided by the serialize method and merges
+        # Accepts an array of (metrics, transaction_traces, errors) and merges
         # it into our current collection of data to send. Can be
         # dangerous if we re-merge the same data more than once - it
         # will be sent multiple times.
