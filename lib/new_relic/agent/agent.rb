@@ -29,7 +29,7 @@ module NewRelic
         @transaction_sampler   = NewRelic::Agent::TransactionSampler.new
         @sql_sampler           = NewRelic::Agent::SqlSampler.new
         @thread_profiler       = NewRelic::Agent::ThreadProfiler.new
-        @cross_process_monitor = NewRelic::Agent::CrossProcessMonitor.new(@events)
+        @cross_app_monitor     = NewRelic::Agent::CrossAppMonitor.new(@events)
         @error_collector       = NewRelic::Agent::ErrorCollector.new
         @transaction_rules     = NewRelic::Agent::RulesEngine.new
         @metric_rules          = NewRelic::Agent::RulesEngine.new
@@ -92,9 +92,9 @@ module NewRelic
         # handles things like static setup of the header for inclusion
         # into pages
         attr_reader :beacon_configuration
-        # cross process id's and encoding
-        attr_reader :cross_process_id
-        attr_reader :cross_process_encoding_bytes
+        # cross application tracing ids and encoding
+        attr_reader :cross_app_id
+        attr_reader :cross_app_encoding_bytes
         # service for communicating with collector
         attr_accessor :service
         # Global events dispatcher. This will provides our primary mechanism

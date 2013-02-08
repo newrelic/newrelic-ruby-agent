@@ -1,9 +1,9 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 
 module NewRelic::Agent
-  class CrossProcessMonitorTest < Test::Unit::TestCase
-    AGENT_CROSS_PROCESS_ID    = "qwerty"
-    REQUEST_CROSS_PROCESS_ID  = "42#1234"
+  class CrossAppMonitorTest < Test::Unit::TestCase
+    AGENT_CROSS_APP_ID    = "qwerty"
+    REQUEST_CROSS_APP_ID  = "42#1234"
 
     TRANSACTION_NAME          = 'transaction'
     QUEUE_TIME                = 1000
@@ -12,7 +12,7 @@ module NewRelic::Agent
     ENCODING_KEY_NOOP         = "\0"
     TRUSTED_ACCOUNT_IDS       = [42,13]
 
-    CROSS_PROCESS_ID_POSITION = 0
+    CROSS_APP_ID_POSITION = 0
     TRANSACTION_NAME_POSITION = 1
     QUEUE_TIME_POSITION       = 2
     APP_TIME_POSITION         = 3
@@ -21,9 +21,9 @@ module NewRelic::Agent
     def setup
       @response = {}
 
-      @monitor = NewRelic::Agent::CrossProcessMonitor.new()
+      @monitor = NewRelic::Agent::CrossAppMonitor.new()
       @monitor.finish_setup(
-        :cross_process_id => AGENT_CROSS_PROCESS_ID,
+        :cross_app_id => AGENT_CROSS_APP_ID,
         :encoding_key => ENCODING_KEY_NOOP,
         :trusted_account_ids => TRUSTED_ACCOUNT_IDS)
       @monitor.register_event_listeners
@@ -37,15 +37,15 @@ module NewRelic::Agent
     # Helpers
     #
 
-    def when_request_runs(request=for_id(REQUEST_CROSS_PROCESS_ID))
-      @monitor.save_client_cross_process_id(request)
+    def when_request_runs(request=for_id(REQUEST_CROSS_APP_ID))
+      @monitor.save_client_cross_app_id(request)
       @monitor.set_transaction_custom_parameters
       @monitor.insert_response_header(request, @response)
     end
 
-    def when_request_has_error(request=for_id(REQUEST_CROSS_PROCESS_ID))
+    def when_request_has_error(request=for_id(REQUEST_CROSS_APP_ID))
       options = {}
-      @monitor.save_client_cross_process_id(request)
+      @monitor.save_client_cross_app_id(request)
       @monitor.set_error_custom_parameters(options)
       @monitor.insert_response_header(request, @response)
 
@@ -82,7 +82,7 @@ module NewRelic::Agent
 
       when_request_runs
 
-      assert_equal [AGENT_CROSS_PROCESS_ID, TRANSACTION_NAME, QUEUE_TIME, APP_TIME, -1], unpacked_response
+      assert_equal [AGENT_CROSS_APP_ID, TRANSACTION_NAME, QUEUE_TIME, APP_TIME, -1], unpacked_response
     end
 
     def test_strips_bad_characters_in_transaction_name
@@ -124,7 +124,7 @@ module NewRelic::Agent
 
     def test_doesnt_add_header_if_no_id_on_agent
       @monitor.finish_setup(
-        :cross_process_id => nil,
+        :cross_app_id => nil,
         :encoding_key => ENCODING_KEY_NOOP,
         :trusted_account_ids => TRUSTED_ACCOUNT_IDS)
 
@@ -133,7 +133,7 @@ module NewRelic::Agent
     end
 
     def test_doesnt_add_header_if_config_disabled
-      with_config(:'cross_process.enabled' => false) do
+      with_config(:cross_application_tracing => false) do
         when_request_runs
         assert_nil response_app_data
       end
@@ -142,7 +142,7 @@ module NewRelic::Agent
     def test_includes_content_length
       with_default_timings
 
-      when_request_runs(for_id(REQUEST_CROSS_PROCESS_ID).merge("Content-Length" => 3000))
+      when_request_runs(for_id(REQUEST_CROSS_APP_ID).merge("Content-Length" => 3000))
       assert_equal 3000, unpacked_response[CONTENT_LENGTH_POSITION]
     end
 
@@ -168,7 +168,7 @@ module NewRelic::Agent
 
       options = when_request_has_error
 
-      assert_equal REQUEST_CROSS_PROCESS_ID, options[:client_cross_process_id]
+      assert_equal REQUEST_CROSS_APP_ID, options[:client_cross_app_id]
     end
 
     def test_error_doesnt_write_custom_parameters_if_no_id
@@ -176,7 +176,7 @@ module NewRelic::Agent
 
       options = when_request_has_error(for_id(''))
 
-      assert_equal false, options.key?(:client_cross_process_id)
+      assert_equal false, options.key?(:client_cross_app_id)
     end
 
     def test_writes_metric
@@ -198,12 +198,12 @@ module NewRelic::Agent
 
     def test_decoding_blank
       assert_equal "",
-        NewRelic::Agent::CrossProcessMonitor::EncodingFunctions.decode_with_key( 'querty', "" )
+        NewRelic::Agent::CrossAppMonitor::EncodingFunctions.decode_with_key( 'querty', "" )
     end
 
     def test_encode_with_nil_uses_empty_key
       assert_equal "querty",
-        NewRelic::Agent::CrossProcessMonitor::EncodingFunctions.encode_with_key( nil, 'querty' )
+        NewRelic::Agent::CrossAppMonitor::EncodingFunctions.encode_with_key( nil, 'querty' )
     end
 
   end

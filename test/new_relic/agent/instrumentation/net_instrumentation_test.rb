@@ -9,7 +9,7 @@ unless ENV['FAST_TESTS']
 
   class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::TestCase
     include NewRelic::Agent::Instrumentation::ControllerInstrumentation,
-            NewRelic::Agent::CrossProcessMonitor::EncodingFunctions
+            NewRelic::Agent::CrossAppMonitor::EncodingFunctions
 
     CANNED_RESPONSE = (<<-"END_RESPONSE").gsub(/^    /m, '')
     HTTP/1.1 200 OK
@@ -29,8 +29,8 @@ unless ENV['FAST_TESTS']
 
     def setup
       NewRelic::Agent.manual_start(
-        :'cross_process.enabled' => false,
-        :cross_process_id        => '269975#22824',
+        :cross_application_tracing => false,
+        :cross_app_id        => '269975#22824',
         :encoding_key            => 'gringletoes'
       )
       @engine = NewRelic::Agent.instance.stats_engine
@@ -195,14 +195,14 @@ unless ENV['FAST_TESTS']
     end
 
     # When an http call is made, the agent should add a request header named
-    # X-NewRelic-ID with a value equal to the encoded cross_process_id.
+    # X-NewRelic-ID with a value equal to the encoded cross_app_id.
 
     def test_adds_a_request_header_to_outgoing_requests_if_xp_enabled
       @socket.expects( :write ).with do |data|
         data =~ /(?i:x-newrelic-id): VURQV1BZRkZdXUFT/
       end.returns( @response_data.length )
 
-      with_config(:'cross_process.enabled' => true) do
+      with_config(:cross_application_tracing => true) do
         Net::HTTP.get URI.parse('http://www.google.com/index.html')
       end
     end
@@ -216,8 +216,8 @@ unless ENV['FAST_TESTS']
     end
 
 
-    def test_instrumentation_with_xprocess_enabled_records_normal_metrics_if_no_header_present
-      with_config(:'cross_process.enabled' => true) do
+    def test_instrumentation_with_crossapp_enabled_records_normal_metrics_if_no_header_present
+      with_config(:cross_application_tracing => true) do
         Net::HTTP.get URI.parse('http://www.google.com/index.html')
       end
 
@@ -232,7 +232,7 @@ unless ENV['FAST_TESTS']
     end
 
 
-    def test_instrumentation_with_xprocess_disabled_records_normal_metrics_even_if_header_is_present
+    def test_instrumentation_with_crossapp_disabled_records_normal_metrics_even_if_header_is_present
       app_data_header = make_app_data_header( '18#1884', 'txn-name', 2, 8, 0 )
       @response_data.sub!( /\n\n/, "\n" + app_data_header + "\n" )
 
@@ -249,11 +249,11 @@ unless ENV['FAST_TESTS']
     end
 
 
-    def test_instrumentation_with_xprocess_enabled_records_xprocess_metrics_if_header_present
+    def test_instrumentation_with_crossapp_enabled_records_crossapp_metrics_if_header_present
       app_data_header = make_app_data_header( '18#1884', 'txn-name', 2, 8, 0 )
       @response_data.sub!( /\n\n/, "\n" + app_data_header + "\n" )
 
-      with_config(:'cross_process.enabled' => true) do
+      with_config(:cross_application_tracing => true) do
         Net::HTTP.get URI.parse('http://www.google.com/index.html')
       end
 
@@ -267,11 +267,11 @@ unless ENV['FAST_TESTS']
       assert_not_includes @engine.metrics, 'External/allWeb'
     end
 
-    def test_xprocess_metrics_allow_valid_utf8_characters
+    def test_crossapp_metrics_allow_valid_utf8_characters
       app_data_header = make_app_data_header( '12#1114', '世界線航跡蔵', 18.0, 88.1, 4096 )
       @response_data.sub!( /\n\n/, "\n" + app_data_header + "\n" )
 
-      with_config(:'cross_process.enabled' => true) do
+      with_config(:cross_application_tracing => true) do
         Net::HTTP.get URI.parse('http://www.google.com/index.html')
       end
 
@@ -285,11 +285,11 @@ unless ENV['FAST_TESTS']
       assert_not_includes @engine.metrics, 'External/allWeb'
     end
 
-    def test_xprocess_metrics_ignores_xprocess_header_with_malformed_crossprocess_id
+    def test_crossapp_metrics_ignores_crossapp_header_with_malformed_crossprocess_id
       app_data_header = make_app_data_header( '88#88#88', 'invalid', 1, 2, 4096 )
       @response_data.sub!( /\n\n/, "\n" + app_data_header + "\n" )
 
-      with_config(:'cross_process.enabled' => true) do
+      with_config(:cross_application_tracing => true) do
         Net::HTTP.get URI.parse('http://www.google.com/index.html')
       end
 

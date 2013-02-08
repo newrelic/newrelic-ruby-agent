@@ -13,17 +13,17 @@ DependencyDetection.defer do
 
   executes do
     class Net::HTTP
-      include NewRelic::Agent::CrossProcessMonitor::EncodingFunctions
+      include NewRelic::Agent::CrossAppMonitor::EncodingFunctions
 
 
-      # Exception raised if there is a problem with cross-process transactions.
-      class CrossProcessError < RuntimeError; end
+      # Exception raised if there is a problem with cross app transactions.
+      class CrossAppError < RuntimeError; end
 
 
-      # The cross-process response header for "outgoing" calls
+      # The cross app response header for "outgoing" calls
       NR_APPDATA_HEADER = 'X-NewRelic-App-Data'
 
-      # The cross-process request header for "outgoing" calls
+      # The cross app request header for "outgoing" calls
       NR_ID_HEADER = 'X-NewRelic-ID'
 
 
@@ -32,7 +32,7 @@ DependencyDetection.defer do
       def request_with_newrelic_trace(request, *args, &block)
         events = NewRelic::Agent.instance.events
 
-        inject_request_header( request ) if cross_process_enabled?
+        inject_request_header( request ) if cross_app_enabled?
         response = trace_http_request( request, *args, &block )
 
         return response
@@ -42,29 +42,29 @@ DependencyDetection.defer do
       alias request request_with_newrelic_trace
 
 
-      # Return +true+ if cross-process tracing is enabled in the config.
-      def cross_process_enabled?
-        NewRelic::Agent.config[:'cross_process.enabled']
+      # Return +true+ if cross app tracing is enabled in the config.
+      def cross_app_enabled?
+        NewRelic::Agent.config[:cross_application_tracing]
       end
 
 
-      # Memoized fetcher for the cross-process encoding key. Raises a 
-      # Net::HTTP::CrossProcessError if the key isn't configured.
-      def cross_process_encoding_key
+      # Memoized fetcher for the cross app encoding key. Raises a 
+      # Net::HTTP::CrossAppError if the key isn't configured.
+      def cross_app_encoding_key
         @key ||= NewRelic::Agent.config[:encoding_key] or
-          raise Net::HTTP::CrossProcessError, "No encoding_key set."
+          raise Net::HTTP::CrossAppError, "No encoding_key set."
       end
 
 
       # Inject the X-Process header into the outgoing +request+.
       def inject_request_header( request )
-        cross_process_id = NewRelic::Agent.config[:cross_process_id] or
-          raise Net::HTTP::CrossProcessError, "no cross-process ID configured"
-        key = cross_process_encoding_key()
+        cross_app_id = NewRelic::Agent.config[:cross_app_id] or
+          raise Net::HTTP::CrossAppError, "no cross app ID configured"
+        key = cross_app_encoding_key()
 
-        request[ NR_ID_HEADER ] = obfuscate_with_key( key, cross_process_id )
+        request[ NR_ID_HEADER ] = obfuscate_with_key( key, cross_app_id )
 
-      rescue Net::HTTP::CrossProcessError => err
+      rescue Net::HTTP::CrossAppError => err
         NewRelic::Agent.logger.debug "Not injecting x-process header: %s" % [ err.message ]
       end
 
@@ -84,8 +84,8 @@ DependencyDetection.defer do
         stats.each { |stat| stat.trace_call(duration) }
 
         return response
-      rescue Net::HTTP::CrossProcessError => err
-        NewRelic::Agent.logger.debug "%p in cross-process tracing: %s" % [ err.class, err.message ]
+      rescue Net::HTTP::CrossAppError => err
+        NewRelic::Agent.logger.debug "%p in cross app tracing: %s" % [ err.class, err.message ]
       end
 
 
@@ -94,9 +94,9 @@ DependencyDetection.defer do
       def metrics_for( request, response )
         metrics = common_metrics()
 
-        if response_is_xprocess?( response )
+        if response_is_crossapp?( response )
           begin
-            metrics += metrics_for_xprocess_response( response )
+            metrics += metrics_for_crossapp_response( response )
           rescue => err
             # Fall back to regular metrics if there's a problem with x-process metrics
             NewRelic::Agent.logger.debug "%p while fetching x-process metrics: %s" %
@@ -127,19 +127,19 @@ DependencyDetection.defer do
       end
 
 
-      # Returns +true+ if Cross-Process tracing is enabled, and the given +response+
+      # Returns +true+ if Cross Application Tracing is enabled, and the given +response+
       # has the appropriate headers.
-      def response_is_xprocess?( response )
-        return cross_process_enabled? && response[NR_APPDATA_HEADER]
+      def response_is_crossapp?( response )
+        return cross_app_enabled? && response[NR_APPDATA_HEADER]
       end
 
 
-      # Return the set of metric objects appropriate for the given cross-process
+      # Return the set of metric objects appropriate for the given cross app
       # +response+.
-      def metrics_for_xprocess_response( response )
+      def metrics_for_crossapp_response( response )
         xp_id, txn_name, q_time, r_time, req_len, _ = extract_appdata( response )
 
-        check_crossprocess_id( xp_id )
+        check_crossapp_id( xp_id )
         check_transaction_name( txn_name )
 
         metrics = []
@@ -156,7 +156,7 @@ DependencyDetection.defer do
       # it as an array of the form:
       #
       #  [
-      #    <cross-process ID>,
+      #    <cross app ID>,
       #    <transaction name>,
       #    <queue time in seconds>,
       #    <response time in seconds>,
@@ -164,10 +164,10 @@ DependencyDetection.defer do
       #  ]
       def extract_appdata( response )
         appdata = response[NR_APPDATA_HEADER] or
-          raise Net::HTTP::CrossProcessError,
+          raise Net::HTTP::CrossAppError,
             "Can't derive metrics for response: no #{NR_APPDATA_HEADER} header!"
 
-        key = cross_process_encoding_key()
+        key = cross_app_encoding_key()
         decoded_appdata = decode_with_key( key, appdata )
         decoded_appdata.set_encoding( ::Encoding::UTF_8 ) if
           decoded_appdata.respond_to?( :set_encoding )
@@ -176,7 +176,7 @@ DependencyDetection.defer do
       end
 
 
-      # Return the set of metric objects appropriate for the given (non-cross-process)
+      # Return the set of metric objects appropriate for the given (non-cross app)
       # +response+.
       def metrics_for_regular_response( request, response )
         metrics = []
@@ -199,19 +199,19 @@ DependencyDetection.defer do
       end
 
 
-      # Check the given +id+ to ensure it conforms to the format of a cross-process ID. Raises
-      # an Net::HTTP::CrossProcessError if it doesn't.
-      def check_crossprocess_id( id )
+      # Check the given +id+ to ensure it conforms to the format of a cross-application
+      # ID. Raises an Net::HTTP::CrossAppError if it doesn't.
+      def check_crossapp_id( id )
         id =~ /\A\d+#\d+\z/ or
-          raise Net::HTTP::CrossProcessError, "malformed cross-process ID %p" % [ id ]
+          raise Net::HTTP::CrossAppError, "malformed cross application ID %p" % [ id ]
       end
 
 
       # Check the given +name+ to ensure it conforms to the format of a valid transaction
       # name.
       def check_transaction_name( name )
-        # No-op -- is there a definitive definition of what is and isn't a
-        # valid transaction name?
+        # No-op -- apparently absolutely anything is a valid transaction name?
+        # This is here for when that inevitably comes back to haunt us.
       end
 
     end
