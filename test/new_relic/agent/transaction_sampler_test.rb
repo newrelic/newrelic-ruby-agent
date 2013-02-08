@@ -277,7 +277,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     new_sample.expects(:duration).returns(1.0)
     assert_equal(true, @sampler.slowest_sample?(old_sample, new_sample))
   end
-    
+
   def test_truncate_samples_no_samples
     @sampler.instance_eval { @max_samples = 10 }
     @sampler.instance_eval { @samples = [] }

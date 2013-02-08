@@ -102,7 +102,7 @@ class NewRelic::Agent::TransationSampleBuilderTest < Test::Unit::TestCase
 
     should_be_a_copy = sample.omit_segments_with('OMIT NOTHING')
     validate_segment should_be_a_copy.root_segment, false
-    
+
     assert_equal sample.params, should_be_a_copy.params
     assert_equal(sample.root_segment.to_debug_str(0),
                  should_be_a_copy.root_segment.to_debug_str(0))
@@ -169,7 +169,7 @@ class NewRelic::Agent::TransationSampleBuilderTest < Test::Unit::TestCase
     @builder.finish_trace(Time.now.to_f)
     validate_builder
   end
-  
+
   def test_trace_should_not_record_more_than_segment_limit
     with_config(:'transaction_tracer.limit_segments' => 3) do
       8.times {|i| build_segment i.to_s }
@@ -191,7 +191,7 @@ class NewRelic::Agent::TransationSampleBuilderTest < Test::Unit::TestCase
       8.times {|i| build_segment i.to_s }
     end
   end
-  
+
   def validate_builder(check_names = true)
     validate_segment @builder.sample.root_segment, check_names
   end

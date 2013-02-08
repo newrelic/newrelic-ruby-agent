@@ -21,15 +21,15 @@ module NewRelic
       def sample_id
         @sample.sample_id
       end
-      
+
       def ignored?
         @ignore || @sample.params[:path].nil?
       end
-      
+
       def ignore_transaction
         @ignore = true
       end
-      
+
       def trace_entry(metric_name, time)
         segment_limit = Agent.config[:'transaction_tracer.limit_segments']
         if @sample.count_segments < segment_limit
