@@ -161,6 +161,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
                 'HttpDispatcher',
                 'Controller/new_relic/agent/agent_test/action_with_error',
                 'Errors/all',
+                'Errors/Controller/new_relic/agent/agent_test/action_with_error',
                 'Middleware/all',
                 'WebFrontend/WebServer/all',
                 'WebFrontend/QueueTime']
@@ -185,6 +186,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
                 'HttpDispatcher',
                 'Controller/new_relic/agent/agent_test/action_with_error',
                 'Errors/all',
+                'Errors/Controller/new_relic/agent/agent_test/action_with_error',
                 'WebFrontend/QueueTime',
                 'Middleware/all',
                 'WebFrontend/WebServer/all']
@@ -209,6 +211,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
                 'HttpDispatcher',
                 'Controller/new_relic/agent/agent_test/action_with_before_filter_error',
                 'Errors/all',
+                'Errors/Controller/new_relic/agent/agent_test/action_with_before_filter_error',
                 'WebFrontend/QueueTime',
                 'Middleware/all',
                 'WebFrontend/WebServer/all']

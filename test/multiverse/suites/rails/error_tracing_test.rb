@@ -85,22 +85,26 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
 
   def test_should_capture_error_raised_in_view
     get '/error/view_error'
-    assert_error_reported_once('this is an uncaught view error')
+    assert_error_reported_once('this is an uncaught view error',
+                               'Controller/error/view_error')
   end
 
   def test_should_capture_error_raised_in_controller
     get '/error/controller_error'
-    assert_error_reported_once('this is an uncaught controller error')
+    assert_error_reported_once('this is an uncaught controller error',
+                               'Controller/error/controller_error')
   end
 
   def test_should_capture_error_raised_in_model
     get '/error/model_error'
-    assert_error_reported_once('this is an uncaught model error')
+    assert_error_reported_once('this is an uncaught model error',
+                               'Controller/error/model_error')
   end
 
   def test_should_capture_noticed_error_in_controller
     get '/error/noticed_error'
-    assert_error_reported_once('this error should be noticed')
+    assert_error_reported_once('this error should be noticed',
+                               'Controller/error/noticed_error')
   end
 
   # Important choice of controllor_error, since this goes through both the
@@ -160,17 +164,25 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
 
  protected
 
-  def assert_errors_reported(message, queued_count, total_count=queued_count)
+  def assert_errors_reported(message, queued_count, total_count=queued_count, txn_name=nil)
     error_count = NewRelic::Agent::Agent.instance.stats_engine.get_stats("Errors/all")
-    assert_equal total_count, error_count.call_count
+    assert_equal(total_count, error_count.call_count,
+                 'Incorrect call count on Errors/all')
+
+    if txn_name
+      error_count = NewRelic::Agent::Agent.instance.stats_engine \
+        .get_stats("Errors/#{txn_name}")
+      assert_equal(total_count, error_count.call_count,
+                   "Incorrect call count on Errors/#{txn_name}")
+    end
 
     assert_equal(queued_count,
       @error_collector.errors.select{|error| error.message == message}.size,
       "Wrong number of errors with message '#{message} found'")
   end
 
-  def assert_error_reported_once(message)
-    assert_errors_reported(message, 1)
+  def assert_error_reported_once(message, txn_name=nil)
+    assert_errors_reported(message, 1, 1, txn_name)
   end
 end
 
