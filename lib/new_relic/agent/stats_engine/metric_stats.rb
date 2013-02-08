@@ -191,7 +191,7 @@ module NewRelic
         # For use by test code only.
         def metrics
           with_stats_lock do
-            @stats_hash.keys.map(&:to_s)
+            @stats_hash.keys.map { |spec| spec.to_s }
           end
         end
       end
