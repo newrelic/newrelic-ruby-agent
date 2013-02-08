@@ -224,6 +224,10 @@ module NewRelic
         super
         @body[4] = unblob(@body[4]) if @format == :json
       end
+
+      def metric_name
+        @body[1][0][2]
+      end
     end
   end
 

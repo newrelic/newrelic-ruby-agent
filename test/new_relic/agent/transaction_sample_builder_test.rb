@@ -177,6 +177,13 @@ class NewRelic::Agent::TransationSampleBuilderTest < Test::Unit::TestCase
     end
   end
 
+  def test_finish_trace_records_threshold
+    NewRelic::Agent::TransactionInfo.get.stubs(:transaction_trace_threshold) \
+      .returns(2.0)
+    @builder.finish_trace
+    assert_equal 2.0, @builder.sample.threshold
+  end
+
   # regression
   def test_trace_should_log_segment_reached_once
     with_config(:'transaction_tracer.limit_segments' => 3) do

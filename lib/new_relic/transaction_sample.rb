@@ -11,7 +11,8 @@ module NewRelic
 
   class TransactionSample
 
-    attr_accessor :params, :root_segment, :profile, :force_persist, :guid
+    attr_accessor(:params, :root_segment, :profile, :force_persist, :guid,
+                  :threshold)
     attr_reader :root_segment, :params, :sample_id
 
     @@start_time = Time.now

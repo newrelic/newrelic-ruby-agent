@@ -51,4 +51,16 @@ class KeyTransactionsTest < Test::Unit::TestCase
     stats = $collector.reported_stats_for_metric('Apdex')[0]
     assert_equal 1.0, stats[SATISFYING]
   end
+
+  def test_applied_correct_tt_theshold
+    TestWidget.new.key_txn
+    TestWidget.new.other_txn
+
+    NewRelic::Agent.instance.send(:harvest_and_send_slowest_sample)
+
+    traces = $collector.calls_for('transaction_sample_data')
+    assert_equal 1, traces.size
+    assert_equal('Controller/KeyTransactionsTest::TestWidget/key_txn',
+                 traces[0].metric_name)
+  end
 end

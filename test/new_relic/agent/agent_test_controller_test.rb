@@ -281,9 +281,9 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
   end
 
   def test_controller_params
-    agent.transaction_sampler.reset!
-    get :index, 'number' => "001-555-1212"
     s = with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
+      agent.transaction_sampler.reset!
+      get :index, 'number' => "001-555-1212"
       agent.transaction_sampler.harvest(nil)
     end
     assert_equal 1, s.size
