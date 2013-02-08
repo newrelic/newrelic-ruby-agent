@@ -30,7 +30,7 @@ module NewRelic
             when 4
               :rails4
             else
-              Agent.logger.error "Detected unsupported Rails version #{Rails::VERSION::STRING}"
+              ::NewRelic::Agent::Agent.logger.error "Detected unsupported Rails version #{Rails::VERSION::STRING}"
             end
           when defined?(::Sinatra) && defined?(::Sinatra::Base) then :sinatra
           when defined?(::NewRelic::IA) then :external
@@ -61,6 +61,8 @@ module NewRelic
             OpenSSL::SSL # This will fail on jRuby unless jruby-openssl is installed
             true
           rescue StandardError, LoadError => e
+            ::NewRelic::Agent.logger.warn "Failed to detect OpenSSL support: #{e.to_s.inspect}.  Falling back to http communication to New Relic."
+            ::NewRelic::Agent.logger.debug e
             false
           end
         end,
