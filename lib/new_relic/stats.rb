@@ -96,7 +96,7 @@ module NewRelic
       "#<NewRelic::Stats #{to_s} >"
     end
 
-    # Apedex-related accessors
+    # Apdex-related accessors
     alias_method :apdex_s, :call_count
     alias_method :apdex_t, :total_call_time
     alias_method :apdex_f, :total_exclusive_time

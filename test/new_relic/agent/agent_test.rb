@@ -70,10 +70,6 @@ module NewRelic
         @agent.instance_eval { transmit_data }
       end
 
-      def test_serialize
-        assert_equal([{}, [], []], @agent.send(:serialize), "should return nil when shut down")
-      end
-
       def test_harvest_transaction_traces
         assert_equal([], @agent.send(:harvest_transaction_traces), 'should return transaction traces')
       end
@@ -121,23 +117,29 @@ module NewRelic
                      'should return timeslice data')
       end
 
-      def test_harvest_timelice_data_should_be_thread_safe
-        2000.times do |i|
-          @agent.stats_engine.stats_hash[i.to_s] = NewRelic::Stats.new
-        end
-
-        harvest = Thread.new("Harvesting Test run timeslices") do
-          @agent.send(:harvest_timeslice_data)
-        end
-
-        app = Thread.new("Harvesting Test Modify stats_hash") do
-          200.times do |i|
-            @agent.stats_engine.stats_hash["a#{i}"] = NewRelic::Stats.new
-          end
-        end
+      # This test asserts nothing about correctness of logging data from multiple
+      # threads, since the get_stats + record_data_point combo is not designed
+      # to be thread-safe, but it does ensure that writes to the stats hash
+      # via this path that happen concurrently with harvests will not cause
+      # 'hash modified during iteration' errors.
+      def test_harvest_timeslice_data_should_be_thread_safe
+        threads = []
+        nthreads = 10
+        nmetrics = 100
 
         assert_nothing_raised do
-          [app, harvest].each{|t| t.join}
+          nthreads.times do |tid|
+            t = Thread.new do
+              nmetrics.times do |mid|
+                @agent.stats_engine.get_stats("m#{mid}").record_data_point(1)
+              end
+            end
+            t.abort_on_exception = true
+            threads << t
+          end
+
+          100.times { @agent.send(:harvest_timeslice_data) }
+          threads.each { |t| t.join }
         end
       end
 

@@ -58,7 +58,7 @@ class SinatraTest < Test::Unit::TestCase
 
   def test_queue_time_headers_are_passed_to_agent
     get '/user/login', {}, {"X-Request-Start" => 't=1234567890'}
-    metric_names = ::NewRelic::Agent.agent.stats_engine.stats_hash.keys.map{|k| k.name}
+    metric_names = ::NewRelic::Agent.agent.stats_engine.metrics
     assert metric_names.include?("Middleware/all")
     assert metric_names.include?("WebFrontend/QueueTime")
     assert metric_names.include?("WebFrontend/WebServer/all")
