@@ -224,7 +224,8 @@ module NewRelic
         # loop if it exists and is running.
         #
         # Options:
-        # :force_send => (true/false) # force the agent to send data
+        # :force_send  => (true/false) # force the agent to send data
+        # :immediately => (true/false) # shutdown immediately. don't send any data.
         # before shutting down
         def shutdown(options={})
           run_loop_before_exit = Agent.config[:force_send]
@@ -245,8 +246,10 @@ module NewRelic
           end
 
           begin
-            NewRelic::Agent.disable_all_tracing do
-              graceful_disconnect
+            unless options[:immediately]
+              NewRelic::Agent.disable_all_tracing do
+                graceful_disconnect
+              end
             end
           rescue => e
             ::NewRelic::Agent.logger.error e
