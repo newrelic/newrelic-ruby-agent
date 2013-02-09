@@ -156,29 +156,24 @@ module NewRelic
         # sacrificing efficiency.
         # +++
         def harvest_timeslice_data(previous_timeslice_data, metric_ids,
-                                   rules=[])
+                                   rules_engine=RulesEngine.new)
           poll harvest_samplers
-          apply_rules_to_metric_data(rules,
+          apply_rules_to_metric_data(rules_engine,
                               merge_stats(previous_timeslice_data, metric_ids))
         end
 
-        def apply_rules_to_metric_data(rules, stats_hash)
+        def apply_rules_to_metric_data(rules_engine, stats_hash)
           renamed_stats = {}
-          rules.each do |rule|
-            stats_hash.each do |spec, data|
-              new_name, matched = rule.apply(spec.name)
-              next unless matched
-
-              data.metric_spec = NewRelic::MetricSpec.new(new_name, spec.scope)
-              stats_hash.delete(spec)
-              if renamed_stats.has_key?(data.metric_spec)
-                renamed_stats[data.metric_spec].stats.merge!(data.stats)
-              else
-                renamed_stats[data.metric_spec] = data
-              end
+          stats_hash.each do |spec, data|
+            new_name = rules_engine.rename(spec.name)
+            data.metric_spec = NewRelic::MetricSpec.new(new_name, spec.scope)
+            if renamed_stats.has_key?(data.metric_spec)
+              renamed_stats[data.metric_spec].stats.merge!(data.stats)
+            else
+              renamed_stats[data.metric_spec] = data
             end
           end
-          stats_hash.merge(renamed_stats)
+          renamed_stats
         end
 
         # For use by test code only.

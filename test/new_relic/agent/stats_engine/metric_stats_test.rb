@@ -65,11 +65,13 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
       'replacement'      => '*',
       'replace_all'      => true
     )
+    rules_engine = NewRelic::Agent::RulesEngine.new([rule])
+
     @engine.get_stats_no_scope('Custom/foo/1/bar/22').record_data_point(1)
     @engine.get_stats_no_scope('Custom/foo/3/bar/44').record_data_point(1)
     @engine.get_stats_no_scope('Custom/foo/5/bar/66').record_data_point(1)
 
-    stats_hash = @engine.harvest_timeslice_data({}, {}, [rule])
+    stats_hash = @engine.harvest_timeslice_data({}, {}, rules_engine)
 
     assert_nil stats_hash[NewRelic::MetricSpec.new('Custom/foo/1/bar/22')]
     assert_nil stats_hash[NewRelic::MetricSpec.new('Custom/foo/3/bar/44')]

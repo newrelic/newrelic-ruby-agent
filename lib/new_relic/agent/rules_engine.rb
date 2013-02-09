@@ -8,8 +8,8 @@ module NewRelic
 
       attr_accessor :rules
 
-      def initialize
-        @rules = []
+      def initialize(rules=[])
+        @rules = rules
       end
 
       def rename(original_string)
