@@ -111,4 +111,40 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
     assert_equal(2, foo_stats.call_count)
     assert_equal(1, bar_stats.call_count)
   end
+
+  def test_record_metric_passes_thru_options
+    @engine.record_metric('foo', 2, :exclusive => 1)
+    stats = @engine.get_stats_no_scope('foo')
+    assert_equal(1, stats.call_count)
+    assert_equal(2, stats.total_call_time)
+    assert_equal(1, stats.total_exclusive_time)
+  end
+
+  def test_record_metric_accepts_block
+    @engine.record_metric('foo', nil) do |stats|
+      stats.call_count = 999
+    end
+    stats = @engine.get_stats_no_scope('foo')
+    assert_equal(999, stats.call_count)
+  end
+
+  def test_record_metric_is_thread_safe
+    threads = []
+    nthreads = 25
+    iterations = 100
+    nthreads.times do |tid|
+      threads << Thread.new do
+        iterations.times do
+          @engine.record_metric('m1', 1)
+          @engine.record_metric('m2', 1)
+        end
+      end
+    end
+    threads.each { |t| t.join }
+
+    stats_m1 = @engine.get_stats_no_scope('m1')
+    stats_m2 = @engine.get_stats_no_scope('m2')
+    assert_equal(nthreads * iterations, stats_m1.call_count)
+    assert_equal(nthreads * iterations, stats_m2.call_count)
+  end
 end

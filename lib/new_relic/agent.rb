@@ -155,6 +155,18 @@ module NewRelic
       @logger = log
     end
 
+    # Record a value for the given metric name
+    #
+    # +metric_name+ should follow a slash separated path convention. Application
+    # specific metrics should begin with "Custom/".
+    #
+    # This method should be safe to use from any thread.
+    #
+    # @api public
+    def record_metric(name, value, options={}, &blk)
+      agent.stats_engine.record_metric(name, value, options, &blk)
+    end
+
     # Get or create a statistics gatherer that will aggregate numerical data
     # under a metric name.
     #
@@ -163,6 +175,8 @@ module NewRelic
     #
     # Return a NewRelic::Stats that accepts data
     # via calls to add_data_point(value).
+    #
+    # @deprecated
     def get_stats(metric_name, use_scope=false)
       agent.stats_engine.get_stats(metric_name, use_scope)
     end

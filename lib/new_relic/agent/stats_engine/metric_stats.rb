@@ -5,6 +5,16 @@ module NewRelic
     class StatsEngine
       # Handles methods related to actual Metric collection
       module MetricStats
+        # Lookup and write to the named metric in a single call.
+        #
+        # This method is thead-safe, and is preferred to the lookup / modify
+        # method pairs (e.g. get_stats + record_data_point)
+        def record_metric(metric_name, value, options={}, &blk)
+          with_stats_lock do
+            @stats_hash.record(metric_name, value, options, &blk)
+          end
+        end
+
         # a simple accessor for looking up a stat with no scope -
         # returns a new stats object if no stats object for that
         # metric exists yet

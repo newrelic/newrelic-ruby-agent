@@ -233,6 +233,23 @@ module NewRelic
       NewRelic::Agent::PipeChannelManager.listener.close_all_pipes
     end
 
+    def test_record_metric
+      dummy_engine = NewRelic::Agent.agent.stats_engine
+      dummy_engine.expects(:record_metric).with('foo', 12, { :dummy => :options })
+      NewRelic::Agent.record_metric('foo', 12, { :dummy => :options })
+    end
+
+    def test_record_metric_with_block
+      dummy_engine = NewRelic::Agent.agent.stats_engine
+      dummy_stats = 'some stats'
+      dummy_engine.expects(:record_metric).with('foo', nil, {}).yields(dummy_stats)
+      s = nil
+      NewRelic::Agent.record_metric('foo', nil) do |stats|
+        s = stats
+      end
+      assert_same(dummy_stats, s)
+    end
+
     private
 
     def mocked_agent
