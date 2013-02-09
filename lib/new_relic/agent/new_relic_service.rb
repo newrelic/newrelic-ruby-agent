@@ -155,12 +155,24 @@ module NewRelic
 
         http = http_class.new((@collector.ip || @collector.name), @collector.port)
         if Agent.config[:ssl]
-          http.use_ssl = true
-          if Agent.config[:verify_certificate]
-            http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-            http.ca_file = cert_file_path
-          else
-            http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+          begin
+            # Jruby 1.6.8 requires a gem for full ssl support and will throw
+            # an error when use_ssl=(true) is called and jruby-openssl isn't
+            # installed
+            http.use_ssl = true
+            if Agent.config[:verify_certificate]
+              http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+              http.ca_file = cert_file_path
+            else
+              http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+            end
+          rescue StandardError, LoadError => e
+            ::NewRelic::Agent.logger.error(
+              "Agent is configured to use ssl but ssl is not available in the environment",
+              "Either disable ssl in the agent's config or install ssl support",
+              e
+            )
+            ::NewRelic::Agent.shutdown(:immediately => true)
           end
         end
         ::NewRelic::Agent.logger.debug("Created net/http handle to #{http.address}:#{http.port}")
