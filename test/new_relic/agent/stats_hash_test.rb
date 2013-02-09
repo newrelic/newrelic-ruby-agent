@@ -71,4 +71,12 @@ class NewRelic::Agent::StatsHashTest < Test::Unit::TestCase
     assert_equal(1, hash1[NewRelic::MetricSpec.new('baz')].call_count)
     assert_equal(1, hash1[NewRelic::MetricSpec.new('baz', 's')].call_count)
   end
+
+  def test_marshal_dump
+    hash = NewRelic::Agent::StatsHash.new()
+    hash.record('foo', 1)
+    hash.record('bar', 2)
+    copy = Marshal.load(Marshal.dump(hash))
+    assert_equal(hash, copy)
+  end
 end

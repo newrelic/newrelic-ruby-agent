@@ -83,17 +83,6 @@ class NewRelic::Agent::RpmAgentTest < Test::Unit::TestCase # ActiveSupport::Test
       NewRelic::Agent.shutdown
     end
 
-    should "send_timeslice_data" do
-      # this test fails due to a rubinius bug
-      return if NewRelic::LanguageSupport.using_engine?('rbx')
-      @agent.service.expects(:metric_data).returns([ [{'name' => '/A/b/c'}, 1],
-                                                     [{'name' => '/A/b/c', 'scope' => '/X'}, 2],
-                                                     [{'name' => '/A/b/d'}, 3] ])
-      @agent.send :harvest_and_send_timeslice_data
-      assert_equal 3, @agent.metric_ids.size
-      assert_equal(3, @agent.metric_ids[NewRelic::MetricSpec.new('/A/b/d')],
-                   @agent.metric_ids.inspect)
-    end
     should "set_record_sql" do
       @agent.set_record_sql(false)
       assert !NewRelic::Agent.is_sql_recorded?
