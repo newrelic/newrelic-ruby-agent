@@ -40,6 +40,13 @@ EOS
   s.rubygems_version = Gem::VERSION
   s.summary = "New Relic Ruby Agent"
   s.post_install_message = NewRelic::LatestChanges.read
-  s.signing_key   = File.expand_path('~/.ssh/gem-private_key.pem')
-  s.cert_chain    = ['gem-public_cert.pem']
+
+  # Only sign with our private key if you can find it
+  signing_key_path = File.expand_path('~/.ssh/gem-private_key.pem')
+  if File.exists?(signing_key_path)
+    s.signing_key   = signing_key_path
+    s.cert_chain    = ['gem-public_cert.pem']
+  else
+    puts "No signing key found at #{signing_key_path}. Generating unsigned gem."
+  end
 end
