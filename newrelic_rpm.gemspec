@@ -40,4 +40,6 @@ EOS
   s.rubygems_version = Gem::VERSION
   s.summary = "New Relic Ruby Agent"
   s.post_install_message = NewRelic::LatestChanges.read
+  s.signing_key   = File.expand_path('~/.ssh/gem-private_key.pem')
+  s.cert_chain    = ['gem-public_cert.pem']
 end
