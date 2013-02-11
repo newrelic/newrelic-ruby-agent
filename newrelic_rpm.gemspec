@@ -46,7 +46,5 @@ EOS
   if File.exists?(signing_key_path)
     s.signing_key   = signing_key_path
     s.cert_chain    = ['gem-public_cert.pem']
-  else
-    puts "No signing key found at #{signing_key_path}. Generating unsigned gem."
   end
 end
