@@ -162,10 +162,10 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
 
   def test_exclude_block
     @error_collector.ignore_error_filter &wrapped_filter_proc
-        
+
     @error_collector.notice_error(IOError.new("message"), :metric => 'path', :request_params => {:x => 'y'})
     @error_collector.notice_error(StandardError.new("message"), :metric => 'path', :request_params => {:x => 'y'})
-    
+
     errors = @error_collector.harvest_errors([])
 
     assert_equal 1, errors.length
@@ -192,6 +192,18 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
     end
   end
 
+  def test_increment_error_count_record_summary_and_txn_metric
+    NewRelic::Agent::TransactionInfo.get.stubs(:transaction_name) \
+      .returns('Controller/class/method')
+    stats_engine = NewRelic::Agent.instance.stats_engine
+    stats_engine.reset_stats
+    @error_collector.increment_error_count!(StandardError.new('Boo'))
+    assert_equal(1, stats_engine.get_stats('Errors/all').call_count,
+                 'Missing Errors/all metric')
+    assert_equal(1, stats_engine.get_stats('Errors/Controller/class/method').call_count,
+                 'Missing Errors/Controller/class/method metric')
+  end
+
   private
 
   def expects_error_count_increase(increase)
@@ -203,7 +215,7 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
   def get_error_stats
     NewRelic::Agent.get_stats("Errors/all").call_count
   end
-  
+
   def wrapped_filter_proc
     Proc.new do |e|
       if e.is_a? IOError
@@ -213,7 +225,7 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
       end
     end
   end
-  
+
   def silence_stream(*args)
     super
   rescue NoMethodError

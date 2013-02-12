@@ -11,9 +11,10 @@ module NewRelic::Agent::Configuration
           'transaction_tracer.record_sql'            => 'raw',
           'error_collector.enabled'                  => true
         },
-        'apdex_t'                                  => 1.0,
-        'collect_errors'                           => false,
-        'collect_traces'                           => true
+        'apdex_t'                => 1.0,
+        'collect_errors'         => false,
+        'collect_traces'         => true,
+        'web_transactions_apdex' => { 'Controller/some/txn' => 1.5 }
       }
       @source = ServerSource.new(config)
     end
@@ -40,6 +41,10 @@ module NewRelic::Agent::Configuration
 
     def test_should_ignore_apdex_f_setting_for_transaction_threshold
       assert_equal nil, @source[:'transaction_tracer.transaction_threshold']
+    end
+
+    def test_should_not_dot_the_web_transactions_apdex_hash
+      assert_equal 1.5, @source[:web_transactions_apdex]['Controller/some/txn']
     end
   end
 end

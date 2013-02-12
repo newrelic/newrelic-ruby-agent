@@ -42,6 +42,21 @@ module NewRelic
         @ignore_end_user = value
       end
 
+      def apdex_t
+        (Agent.config[:web_transactions_apdex] &&
+         Agent.config[:web_transactions_apdex][@transaction_name]) ||
+          Agent.config[:apdex_t]
+      end
+
+      def transaction_trace_threshold
+        key = :'transaction_tracer.transaction_threshold'
+        if Agent.config.source(key).class == Configuration::DefaultSource
+          apdex_t * 4
+        else
+          Agent.config[key]
+        end
+      end
+
       def self.get()
         Thread.current[:newrelic_transaction_info] ||= TransactionInfo.new
       end

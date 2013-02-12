@@ -204,7 +204,8 @@ module NewRelic
       # Sets @slowest_sample to the passed in sample if it is slower
       # than the current sample in @slowest_sample
       def store_slowest_sample(sample)
-        if slowest_sample?(@slowest_sample, sample)
+        if slowest_sample?(@slowest_sample, sample) && sample.threshold &&
+            sample.duration >= sample.threshold
           @slowest_sample = sample
         end
       end
@@ -352,13 +353,7 @@ module NewRelic
 
         force_persist.each {|sample| store_force_persist(sample)}
 
-
-        # Now get the slowest sample
-        if @slowest_sample &&
-            @slowest_sample.duration >=
-            Agent.config[:'transaction_tracer.transaction_threshold']
-          result << @slowest_sample
-        end
+        result << @slowest_sample if @slowest_sample
 
         result.compact!
         result = result.sort_by { |x| x.duration }

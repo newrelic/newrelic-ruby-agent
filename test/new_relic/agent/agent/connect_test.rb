@@ -215,6 +215,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     NewRelic::Agent.instance.instance_variable_set(:@transaction_rules,
                                             NewRelic::Agent::RulesEngine.new)
   end
+
   def test_finish_setup_saves_metric_name_rules
     NewRelic::Agent.instance.instance_variable_set(:@metric_rules,
                                             NewRelic::Agent::RulesEngine.new)

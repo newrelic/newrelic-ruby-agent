@@ -161,6 +161,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
                 'HttpDispatcher',
                 'Controller/new_relic/agent/agent_test/action_with_error',
                 'Errors/all',
+                'Errors/Controller/new_relic/agent/agent_test/action_with_error',
                 'Middleware/all',
                 'WebFrontend/WebServer/all',
                 'WebFrontend/QueueTime']
@@ -185,6 +186,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
                 'HttpDispatcher',
                 'Controller/new_relic/agent/agent_test/action_with_error',
                 'Errors/all',
+                'Errors/Controller/new_relic/agent/agent_test/action_with_error',
                 'WebFrontend/QueueTime',
                 'Middleware/all',
                 'WebFrontend/WebServer/all']
@@ -209,6 +211,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
                 'HttpDispatcher',
                 'Controller/new_relic/agent/agent_test/action_with_before_filter_error',
                 'Errors/all',
+                'Errors/Controller/new_relic/agent/agent_test/action_with_before_filter_error',
                 'WebFrontend/QueueTime',
                 'Middleware/all',
                 'WebFrontend/WebServer/all']
@@ -281,9 +284,9 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
   end
 
   def test_controller_params
-    agent.transaction_sampler.reset!
-    get :index, 'number' => "001-555-1212"
     s = with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
+      agent.transaction_sampler.reset!
+      get :index, 'number' => "001-555-1212"
       agent.transaction_sampler.harvest(nil)
     end
     assert_equal 1, s.size

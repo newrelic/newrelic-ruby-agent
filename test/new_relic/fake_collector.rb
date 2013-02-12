@@ -153,6 +153,15 @@ module NewRelic
       @agent_data.select {|d| d.action == method }
     end
 
+    def reported_stats_for_metric(name, scope=nil)
+      calls_for('metric_data').map do |post|
+        post.body[3].find do |metric_record|
+          metric_record[0]['name'] == name &&
+            (!scope || metric_record[0]['scope'] == scope)
+        end
+      end.compact.map{|m| m[1]}
+    end
+
     class AgentPost
       attr_accessor :action, :body, :run_id, :format
       def initialize(opts={})
@@ -167,7 +176,7 @@ module NewRelic
         when 'connect'
           ConnectPost.new(opts)
         when 'metric_data'
-          MetricDataPost.new(opts)
+          AgentPost.new(opts)
         when 'profile_data'
           ProfileDataPost.new(opts)
         when 'sql_trace_data'
@@ -196,15 +205,6 @@ module NewRelic
       end
     end
 
-    class MetricDataPost < AgentPost
-      def stats_for_metric(name, scope=nil)
-        @body[3].find do |metric_record|
-          metric_record[0]['name'] == name &&
-            (!scope || metric_record[0]['scope'] == scope)
-        end
-      end
-    end
-
     class ProfileDataPost < AgentPost
       def initialize(opts={})
         super
@@ -223,6 +223,10 @@ module NewRelic
       def initialize(opts={})
         super
         @body[4] = unblob(@body[4]) if @format == :json
+      end
+
+      def metric_name
+        @body[1][0][2]
       end
     end
   end
