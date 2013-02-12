@@ -34,20 +34,32 @@ module NewRelic
     end
   end
 
-  # Use the stdlib JSON library if it's available, or fall back to the pure-ruby
-  # 'okjson' library if not
-  begin
+  # Load the JSON library from the standard library.
+  def self::load_stdlib_json
+    # Don't even try to use 1.9.1's json.
+    return false if RUBY_VERSION == '1.9.1'
+
     require 'json'
     define_method( :json_dump, &::JSON.method(:dump) )
     define_method( :json_load, &::JSON.method(:parse) )
-  rescue LoadError => err
-    NewRelic::Agent.logger.debug "Falling back to OkJson: %s" % [ err.message ] if
-		defined?( NewRelic::Agent ) && NewRelic::Agent.respond_to?( :logger )
 
+    return true
+  rescue LoadError
+    NewRelic::Agent.logger.debug "%p while loading JSON library: %s" % [ err, err.message ] if
+      defined?( NewRelic::Agent ) && NewRelic::Agent.respond_to?( :logger )
+    return false
+  end
+
+
+  # Load the fallback JSON library
+  def self::load_okjson
     require 'new_relic/okjson'
     define_method( :json_dump, &::NewRelic::OkJson.method(:encode) )
     define_method( :json_load, &::NewRelic::OkJson.method(:decode) )
   end
+
+
+  load_stdlib_json or load_okjson
   module_function :json_dump, :json_load
 
 end
