@@ -42,7 +42,7 @@ EOS
   s.post_install_message = NewRelic::LatestChanges.read
 
   # Only sign with our private key if you can find it
-  signing_key_path = File.expand_path('~/.ssh/gem-private_key.pem')
+  signing_key_path = File.expand_path('~/.ssh/newrelic_rpm-private_key.pem')
   if File.exists?(signing_key_path)
     s.signing_key   = signing_key_path
     s.cert_chain    = ['gem-public_cert.pem']
