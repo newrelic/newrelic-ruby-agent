@@ -166,13 +166,10 @@ module NewRelic
             else
               http.verify_mode = OpenSSL::SSL::VERIFY_NONE
             end
-          rescue StandardError, LoadError => e
-            ::NewRelic::Agent.logger.error(
-              "Agent is configured to use ssl but ssl is not available in the environment",
-              "Either disable ssl in the agent's config or install ssl support",
-              e
-            )
-            ::NewRelic::Agent.shutdown(:immediately => true)
+          rescue StandardError, LoadError
+            msg = "Agent is configured to use SSL, but SSL is not available in the environment. "
+            msg << "Either disable SSL in the agent configuration, or install SSL support."
+            raise UnrecoverableAgentException.new(msg)
           end
         end
         ::NewRelic::Agent.logger.debug("Created net/http handle to #{http.address}:#{http.port}")

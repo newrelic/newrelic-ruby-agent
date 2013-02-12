@@ -5,6 +5,7 @@ class SSLTest < Test::Unit::TestCase
     # installed
     @original_ssl_config = NewRelic::Agent.config[:ssl]
     NewRelic::Agent.config.apply_config(:ssl => true)
+    NewRelic::Agent.agent = NewRelic::Agent::Agent.new
     Net::HTTPSession.any_instance.stubs('use_ssl=').raises(LoadError)
   end
 
@@ -14,8 +15,8 @@ class SSLTest < Test::Unit::TestCase
 
   def test_agent_shuts_down_when_ssl_is_on_but_unavailable
     ::NewRelic::Agent.agent.expects(:shutdown)
-    ::NewRelic::Agent.agent.service.expects(:send_request).never
-    ::NewRelic::Agent.agent.service.http_connection
+    ::NewRelic::Agent.expects(:finish_setup).never
+    ::NewRelic::Agent.agent.connect_in_foreground
   ensure
   end
 end
