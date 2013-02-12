@@ -48,19 +48,9 @@ module NewRelic
         end
 
         def apply(string)
-          matched = false
-          result = if @replace_all
-            string.gsub(@match_expression) do
-              matched = true
-              @replacement
-            end
-          else
-            string.sub(@match_expression) do
-              matched = true
-              @replacement
-            end
-          end
-          [result, matched]
+          method = @replace_all ? :gsub : :sub
+          result = string.send(method, @match_expression, @replacement)
+          [result, result != string]
         end
 
         def map_to_list(list)

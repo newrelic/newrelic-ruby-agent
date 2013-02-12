@@ -21,6 +21,12 @@ class RulesEngineTest < Test::Unit::TestCase
     assert_equal(['foo/*/bar/22', true], rule.apply('foo/1/bar/22'))
   end
 
+  def test_rule_applies_grouping_with_replacements
+    rule = NewRelic::Agent::RulesEngine::Rule.new('match_expression' => '([0-9]+)',
+                                                  'replacement'      => '\\1\\1')
+    assert_equal(['foo/11/bar/22', true], rule.apply('foo/1/bar/22'))
+  end
+
   def test_rule_renames_all_matches_when_replace_all_is_true
     rule = NewRelic::Agent::RulesEngine::Rule.new('match_expression' => '[0-9]+',
                                                   'replacement'      => '*',
