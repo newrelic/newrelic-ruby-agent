@@ -149,7 +149,7 @@ DependencyDetection.defer do
 
       def render_with_newrelic(context, options)
         # This is needed for rails 3.2 compatibility
-        @details = extract_details(options) if respond_to? :extract_details
+        @details = extract_details(options) if respond_to?(:extract_details, true)
         identifier = determine_template(options) ? determine_template(options).identifier : nil
         str = "View/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.template_metric(identifier, options)}/Rendering"
         trace_execution_scoped str do
