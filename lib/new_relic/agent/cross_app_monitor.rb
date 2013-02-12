@@ -3,6 +3,7 @@ require 'new_relic/agent/thread'
 
 module NewRelic
   module Agent
+
     class CrossAppMonitor
 
       module EncodingFunctions
@@ -185,5 +186,7 @@ module NewRelic
       end
 
     end
+
   end
 end
+

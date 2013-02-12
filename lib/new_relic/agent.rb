@@ -77,7 +77,7 @@ module NewRelic
     require 'new_relic/agent'
     require 'new_relic/agent/chained_call'
     require 'new_relic/agent/browser_monitoring'
-    require 'new_relic/agent/cross_application_tracing'
+    require 'new_relic/agent/cross_app_monitor'
     require 'new_relic/agent/agent'
     require 'new_relic/agent/shim_agent'
     require 'new_relic/agent/method_tracer'

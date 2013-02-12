@@ -10,7 +10,7 @@ require 'new_relic/agent/configuration/manager'
 require 'new_relic/agent/database'
 require 'new_relic/agent/thread_profiler'
 require 'new_relic/agent/event_listener'
-require 'new_relic/agent/cross_application_tracing'
+require 'new_relic/agent/cross_app_monitor'
 
 module NewRelic
   module Agent
