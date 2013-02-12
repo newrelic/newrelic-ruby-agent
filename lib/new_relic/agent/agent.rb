@@ -230,8 +230,6 @@ module NewRelic
         #
         # Options:
         # :force_send  => (true/false) # force the agent to send data
-        # :immediately => (true/false) # shutdown immediately. don't send any data.
-        # before shutting down
         def shutdown(options={})
           run_loop_before_exit = Agent.config[:force_send]
           return if not started?
@@ -244,17 +242,14 @@ module NewRelic
 
           # if litespeed, then ignore all future SIGUSR1 - it's
           # litespeed trying to shut us down
-
           if Agent.config[:dispatcher] == :litespeed
             Signal.trap("SIGUSR1", "IGNORE")
             Signal.trap("SIGTERM", "IGNORE")
           end
 
           begin
-            unless options[:immediately]
-              NewRelic::Agent.disable_all_tracing do
-                graceful_disconnect
-              end
+            NewRelic::Agent.disable_all_tracing do
+              graceful_disconnect
             end
           rescue => e
             ::NewRelic::Agent.logger.error e
@@ -694,6 +689,12 @@ module NewRelic
             disconnect
           end
 
+          def handle_unrecoverable_agent_error(error)
+            ::NewRelic::Agent.logger.error(error.message)
+            disconnect
+            shutdown
+          end
+
           # Checks whether we should send environment info, and if so,
           # returns the snapshot from the local environment
           def environment_for_connect
@@ -843,6 +844,8 @@ module NewRelic
           @connect_state = :connected
         rescue NewRelic::Agent::LicenseException => e
           handle_license_error(e)
+        rescue NewRelic::Agent::UnrecoverableAgentException => e
+          handle_unrecoverable_agent_error(e)
         rescue Timeout::Error, StandardError => e
           log_error(e)
           if opts[:keep_retrying]
