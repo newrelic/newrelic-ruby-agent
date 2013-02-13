@@ -24,7 +24,17 @@ class PipeServiceTest < Test::Unit::TestCase
     end
     assert(block_ran)
   end
-  
+
+  def test_write_to_missing_pipe_logs_error
+    service = NewRelic::Agent::PipeService.new(:non_existant)
+    ::NewRelic::Agent.logger.expects(:error) \
+      .with(regexp_matches(/Unable to send data to parent process/)).once
+
+    assert_nothing_raised do
+      service.metric_data(Time.now, Time.now, {})
+    end
+  end
+
   if NewRelic::LanguageSupport.can_fork? &&
       !NewRelic::LanguageSupport.using_version?('1.9.1')
 
