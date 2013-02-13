@@ -59,6 +59,8 @@ module NewRelic
 
       def write_to_pipe(data)
         NewRelic::Agent::PipeChannelManager.channels[@channel_id].write(data)
+      rescue => e
+        NewRelic::Agent.logger.error("#{e.message}: Unable to send data to parent process, please see https://newrelic.com/docs/ruby/resque-instrumentation for more information.")
       end
     end
   end
