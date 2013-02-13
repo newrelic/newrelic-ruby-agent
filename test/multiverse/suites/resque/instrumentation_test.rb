@@ -28,15 +28,19 @@ class ResqueTest < Test::Unit::TestCase
   end
 
   def start_worker(opts={})
-    opts[:background] ? start_worker_background : start_worker_child
+    if opts[:background]
+      start_worker_background(opts[:env_vars])
+    else
+      start_worker_child(opts[:env_vars])
+    end
   end
 
   def stop_worker(opts={})
     opts[:background] ? stop_worker_background : stop_worker_child
   end
 
-  def start_worker_child
-    worker_cmd = "NEWRELIC_DISPATCHER=resque QUEUE=* bundle exec rake resque:work"
+  def start_worker_child(env_vars=nil)
+    worker_cmd = "NEWRELIC_DISPATCHER=resque #{env_vars} QUEUE=* bundle exec rake resque:work"
     @worker_pid = Process.fork
     Process.exec(worker_cmd) if @worker_pid.nil?
   end
@@ -46,9 +50,9 @@ class ResqueTest < Test::Unit::TestCase
     Process.waitpid(@worker_pid)
   end
 
-  def start_worker_background
+  def start_worker_background(env_vars=nil)
     worker_cmd = "PIDFILE=#{@pidfile} TERM_CHILD=1 RESQUE_TERM_TIMEOUT=1 BACKGROUND=1 " +
-      "NEWRELIC_DISPATCHER=resque QUEUE=* bundle exec rake resque:work"
+      "NEWRELIC_DISPATCHER=resque #{env_vars} QUEUE=* bundle exec rake resque:work"
     system(worker_cmd)
   end
 
@@ -121,6 +125,15 @@ class ResqueTest < Test::Unit::TestCase
   def test_agent_posts_correct_metric_data
     run_worker
     assert_metric_and_call_count('OtherTransaction/ResqueJob/all', JOB_COUNT)
+  end
+
+  def test_log_properly_when_fork_callbacks_are_broken
+    log_path = File.join(File.dirname(__FILE__), 'agent.log', 'newrelic_agent.log')
+    File.delete(log_path)
+
+    run_worker(:env_vars => 'BROKEN_AFTER_FORK=true')
+
+    assert File.read(log_path).include?('Unable to send data to parent process')
   end
 
   if RUBY_VERSION >= '1.9'
