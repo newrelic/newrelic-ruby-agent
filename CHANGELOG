@@ -1,18 +1,17 @@
 
 # New Relic Ruby Agent Release Notes #
 
+## v3.5.6 ##
 
   * Use HTTPS by default
 
     The agent now defaults to using SSL when it communicates with New Relic's
-    servers.  By default is already configured New Relic does not transmit any
-    sensitive information (e.g. SQL parameters are masked), but SSL adds an
-    additional layer of security.  Upgrading customers may need to remove the
+    servers.  By defaults already configured, New Relic does not transmit any
+    sensitive information (e.g. SQL parameters are masked), but SSL adds 
+    another layer of security.  Upgrading customers may need to remove the
     "ssl: false" directive from their newrelic.yml to enable ssl.  Customers on
     Jruby may need to install the jruby-openssl gem to take advantage of this
     feature.
-
-## v3.5.6 ##
 
   * Fix two Resque-related issues
 
