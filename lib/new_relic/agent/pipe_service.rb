@@ -3,13 +3,13 @@ module NewRelic
     class PipeService
       attr_reader :channel_id, :buffer
       attr_accessor :request_timeout, :agent_id, :collector
-      
+
       def initialize(channel_id)
         @channel_id = channel_id
         @collector = NewRelic::Control::Server.new(:name => 'parent',
                                                    :port => 0)
       end
-      
+
       def connect(config)
         nil
       end
@@ -34,7 +34,7 @@ module NewRelic
       def sql_trace_data(sql)
         write_to_pipe(:sql_traces => sql) if sql
       end
-      
+
       def shutdown(time)
         write_to_pipe('EOF')
         NewRelic::Agent::PipeChannelManager.channels[@channel_id].close
@@ -46,7 +46,7 @@ module NewRelic
       def session
         yield
       end
-      
+
       private
 
       def hash_from_metric_data(metric_data)
