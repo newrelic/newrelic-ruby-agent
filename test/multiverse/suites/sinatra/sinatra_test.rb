@@ -30,6 +30,11 @@ class SinatraRouteTestApp < Sinatra::Base
   get '/pass' do
     "I'm not a teapot."
   end
+
+  class Error < Exception; end
+  error(Error) { halt 200, 'nothing happened' }
+  condition { raise Error }
+  get('/error') { }
 end
 
 class SinatraTest < Test::Unit::TestCase
@@ -69,5 +74,11 @@ class SinatraTest < Test::Unit::TestCase
     get '/pass'
     assert_equal 200, last_response.status
     assert_equal "I'm not a teapot.", last_response.body
+  end
+
+  def test_does_not_break_error_handling
+    get '/error'
+    assert_equal 200, last_response.status
+    assert_equal "nothing happened", last_response.body
   end
 end
