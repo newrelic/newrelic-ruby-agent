@@ -27,22 +27,18 @@ module NewRelic
         Hash[self] == Hash[other]
       end
 
-      def record(metric_name_or_spec, value=nil, options={})
-        if metric_name_or_spec.is_a?(NewRelic::MetricSpec)
-          spec = metric_name_or_spec
-        else
-          scope = options[:scope]
-          spec = NewRelic::MetricSpec.new(metric_name_or_spec, scope)
-        end
-
-        stats = self[spec]
-        if block_given?
-          yield stats
-        else
-          if options[:exclusive]
-            stats.record_data_point(value, options[:exclusive])
+      def record(metric_specs, value=nil)
+        Array(metric_specs).each do |metric_spec|
+          stats = self[metric_spec]
+          if block_given?
+            yield stats
           else
-            stats.record_data_point(value)
+            case value
+            when Numeric
+              stats.record_data_point(value)
+            when NewRelic::Stats
+              stats.merge!(value)
+            end
           end
         end
       end

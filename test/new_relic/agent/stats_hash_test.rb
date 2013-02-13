@@ -10,66 +10,77 @@ class NewRelic::Agent::StatsHashTest < Test::Unit::TestCase
     assert_kind_of(NewRelic::Stats, stats)
   end
 
-  def test_record_accpets_metric_name_and_records_unscoped_metric
+  def test_record_accpets_single_metric_spec
     spec = NewRelic::MetricSpec.new('foo/bar')
     stats = @hash[spec]
     stats.expects(:record_data_point).with(42)
-    @hash.record('foo/bar', 42)
+    @hash.record(spec, 42)
   end
 
-  def test_record_accepts_scope_option
-    spec = NewRelic::MetricSpec.new('foo/bar', 'scope')
+  def test_record_accepts_multiple_metric_specs
+    spec1 = NewRelic::MetricSpec.new('foo/bar', 'scope1')
+    spec2 = NewRelic::MetricSpec.new('foo/bar', 'scope2')
+    stats1 = @hash[spec1]
+    stats2 = @hash[spec2]
+    stats1.expects(:record_data_point).with(42)
+    stats2.expects(:record_data_point).with(42)
+    @hash.record([spec1, spec2], 42)
+  end
+
+  def test_record_accepts_single_metric_spec_with_block
+    spec = NewRelic::MetricSpec.new('foo')
     stats = @hash[spec]
-    stats.expects(:record_data_point).with(42)
-    @hash.record('foo/bar', 42, :scope => 'scope')
-  end
-
-  def test_record_accepts_metric_spec_instead_of_name
-    scoped_spec = NewRelic::MetricSpec.new('baz', 'scope')
-    unscoped_spec = NewRelic::MetricSpec.new('baz')
-    scoped_stats = @hash[scoped_spec]
-    unscoped_stats = @hash[unscoped_spec]
-
-    scoped_stats.expects(:record_data_point).with(42)
-    unscoped_stats.expects(:record_data_point).with(43)
-
-    @hash.record(scoped_spec, 42)
-    @hash.record(unscoped_spec, 43)
-  end
-
-  def test_accepts_block_and_yields_stats
-    spec = NewRelic::MetricSpec.new('foo/bar')
-    @hash.record('foo/bar') do |stats|
-      stats.record_data_point(42)
+    stats.expects(:do_stuff)
+    @hash.record(spec) do |s|
+      s.do_stuff
     end
-    assert_equal(1, @hash[spec].call_count)
   end
 
-  def test_accepts_exclusive_option_for_record_data_point
-    spec = NewRelic::MetricSpec.new('foo/bar')
+  def test_record_accepts_multiple_metric_specs_with_block
+    specs = [
+      NewRelic::MetricSpec.new('foo'),
+      NewRelic::MetricSpec.new('bar')
+    ]
+    stats = specs.map { |spec| @hash[spec] }
+    stats.each { |stat| stat.expects(:do_stuff) }
+    @hash.record(specs) do |s|
+      s.do_stuff
+    end
+  end
+
+  def test_record_accepts_stats_value
+    spec = NewRelic::MetricSpec.new('foo')
+    other_stats = NewRelic::Stats.new
     stats = @hash[spec]
-    stats.expects(:record_data_point).with(42, 32)
-    @hash.record('foo/bar', 42, :exclusive => 32)
+    stats.expects(:merge!).with(other_stats)
+    @hash.record(spec, other_stats)
   end
 
   def test_merge_merges
+    specs = [
+      NewRelic::MetricSpec.new('foo'),
+      NewRelic::MetricSpec.new('bar'),
+      NewRelic::MetricSpec.new('baz'),
+      NewRelic::MetricSpec.new('baz', 'a_scope')
+    ]
+
     hash1 = NewRelic::Agent::StatsHash.new
-    hash1.record('foo', 1)
-    hash1.record('bar', 2)
-    hash1.record('baz', 3, :scope => 's')
+    hash1.record(specs[0], 1)
+    hash1.record(specs[1], 2)
+    hash1.record(specs[2], 3)
 
     hash2 = NewRelic::Agent::StatsHash.new
-    hash2.record('foo', 1)
-    hash2.record('bar', 2)
-    hash2.record('baz', 3) # no scope
+    hash2.record(specs[0], 1)
+    hash2.record(specs[1], 2)
+    hash2.record(specs[3], 3) # no scope
 
     hash1.merge!(hash2)
 
     assert_equal(4, hash1.keys.size)
-    assert_equal(2, hash1[NewRelic::MetricSpec.new('foo')].call_count)
-    assert_equal(2, hash1[NewRelic::MetricSpec.new('bar')].call_count)
-    assert_equal(1, hash1[NewRelic::MetricSpec.new('baz')].call_count)
-    assert_equal(1, hash1[NewRelic::MetricSpec.new('baz', 's')].call_count)
+    assert_equal(2, hash1[specs[0]].call_count)
+    assert_equal(2, hash1[specs[1]].call_count)
+    assert_equal(1, hash1[specs[2]].call_count)
+    assert_equal(1, hash1[specs[3]].call_count)
   end
 
   def test_marshal_dump

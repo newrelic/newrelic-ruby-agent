@@ -223,12 +223,12 @@ class NewRelicServiceTest < Test::Unit::TestCase
     @http_handle.respond_to(:metric_data, dummy_rsp)
 
     hash = NewRelic::Agent::StatsHash.new
-    hash.record('a', 1)
+    hash.record(NewRelic::MetricSpec.new('a'), 1)
 
     @service.metric_data((Time.now - 60).to_f, Time.now.to_f, hash)
 
     hash = NewRelic::Agent::StatsHash.new
-    hash.record('a', 1)
+    hash.record(NewRelic::MetricSpec.new('a'), 1)
     stats = hash[NewRelic::MetricSpec.new('a')]
 
     results = @service.build_metric_data_array(hash)

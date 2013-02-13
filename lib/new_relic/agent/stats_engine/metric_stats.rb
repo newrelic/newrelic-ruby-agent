@@ -9,9 +9,16 @@ module NewRelic
         #
         # This method is thead-safe, and is preferred to the lookup / modify
         # method pairs (e.g. get_stats + record_data_point)
-        def record_metric(metric_name, value, options={}, &blk)
+        def record_metric(metric_names_or_specs, value=nil, options={}, &blk)
+          defaults = {
+            :scoped => true,
+            :scope => default_scope
+          }
+          options = defaults.merge(options)
+          effective_scope = options[:scoped] && options[:scope]
+          specs = coerce_to_metric_spec_array(metric_names_or_specs, effective_scope)
           with_stats_lock do
-            @stats_hash.record(metric_name, value, options, &blk)
+            @stats_hash.record(specs, value, &blk)
           end
         end
 
@@ -114,6 +121,25 @@ module NewRelic
             renamed_stats[new_spec].merge!(stats)
           end
           renamed_stats
+        end
+
+        def default_scope
+          txn = NewRelic::Agent::TransactionInfo.get
+          txn.transaction_name_set? && txn.transaction_name
+        end
+
+        def coerce_to_metric_spec_array(metric_names_or_specs, scope)
+          specs = []
+          Array(metric_names_or_specs).map do |name_or_spec|
+            case name_or_spec
+            when String
+              specs << NewRelic::MetricSpec.new(name_or_spec)
+              specs << NewRelic::MetricSpec.new(name_or_spec, scope) if scope
+            when NewRelic::MetricSpec
+              specs << name_or_spec
+            end
+          end
+          specs
         end
 
         # For use by test code only.
