@@ -1,6 +1,10 @@
 
 class SinatraRouteTestApp < Sinatra::Base
   configure do
+    # display exceptions so we see what's going on
+    enable :raise_errors
+    disable :show_exceptions
+
     # create a condition (sintra's version of a before_filter) that returns the
     # value that was passed into it.
     set :my_condition do |boolean|
@@ -17,6 +21,14 @@ class SinatraRouteTestApp < Sinatra::Base
   # this action will always return 404 because of the condition.
   get '/user/:id', :my_condition => false do |id|
     "Welcome #{id}"
+  end
+
+  # check that pass works properly
+  condition { pass { halt 418, "I'm a teapot." } }
+  get('/pass') { }
+
+  get '/pass' do
+    "I'm not a teapot."
   end
 end
 
@@ -51,5 +63,11 @@ class SinatraTest < Test::Unit::TestCase
     assert metric_names.include?("WebFrontend/QueueTime")
     assert metric_names.include?("WebFrontend/WebServer/all")
     assert ::NewRelic::Agent.agent.stats_engine.get_stats("WebFrontend/WebServer/all")
+  end
+
+  def test_does_not_break_pass
+    get '/pass'
+    assert_equal 200, last_response.status
+    assert_equal "I'm not a teapot.", last_response.body
   end
 end
