@@ -35,6 +35,21 @@ class SinatraRouteTestApp < Sinatra::Base
   error(Error) { halt 200, 'nothing happened' }
   condition { raise Error }
   get('/error') { }
+
+  def perform_action_with_newrelic_trace(options)
+    $last_sinatra_route = options[:name]
+    super
+  end
+
+  get '/route/:name' do |name|
+    # usually this would be a db test or something
+    pass if name != 'match'
+    'first route'
+  end
+
+  get '/route/no_match' do
+    'second route'
+  end
 end
 
 class SinatraTest < Test::Unit::TestCase
@@ -80,5 +95,15 @@ class SinatraTest < Test::Unit::TestCase
     get '/error'
     assert_equal 200, last_response.status
     assert_equal "nothing happened", last_response.body
+  end
+
+  def test_correct_pattern
+    get '/route/match'
+    assert_equal 'first route', last_response.body
+    assert_equal 'GET route/([^/?#]+)', $last_sinatra_route #assert_equal 'GET route/:name', $last_sinatra_route
+
+    get '/route/no_match'
+    assert_equal 'second route', last_response.body
+    assert_equal 'GET route/no_match', $last_sinatra_route
   end
 end
