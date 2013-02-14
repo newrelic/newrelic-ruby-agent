@@ -112,28 +112,28 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
     assert_equal(1, bar_stats.call_count)
   end
 
-  def test_record_metric_records_to_scoped_and_unscoped_metrics_by_default
+  def test_record_metric_unscoped_metrics_only_by_default
     @engine.stubs(:default_scope).returns('scopey')
     @engine.record_metric('foo', 42)
-    unscoped_stats = @engine.get_stats('foo', false)
-    scoped_stats = @engine.get_stats('foo', true, true, 'scopey')
-    assert_equal(1, unscoped_stats.call_count)
-    assert_equal(1, scoped_stats.call_count)
-  end
-
-  def test_record_metric_skips_scoped_metric_if_asked
-    @engine.stubs(:default_scope).returns('scopey')
-    @engine.record_metric('foo', 42, :scoped => false)
     unscoped_stats = @engine.get_stats('foo', false)
     scoped_stats = @engine.get_stats('foo', true, true, 'scopey')
     assert_equal(1, unscoped_stats.call_count)
     assert_equal(0, scoped_stats.call_count)
   end
 
-  def test_record_metric_skips_scoped_metric_if_not_in_transaction
+  def test_record_metric_records_to_scoped_metric_if_requested
+    @engine.stubs(:default_scope).returns('scopey')
+    @engine.record_metric('foo', 42, :scoped => true)
+    unscoped_stats = @engine.get_stats('foo', false)
+    scoped_stats = @engine.get_stats('foo', true, true, 'scopey')
+    assert_equal(1, unscoped_stats.call_count)
+    assert_equal(1, scoped_stats.call_count)
+  end
+
+  def test_record_metric_elides_scoped_metric_if_not_in_transaction
     @engine.clear_stats
     @engine.stubs(:default_scope).returns(nil)
-    @engine.record_metric('foo', 42)
+    @engine.record_metric('foo', 42, :scoped => true)
     unscoped_stats = @engine.get_stats('foo', false)
     assert_equal(1, unscoped_stats.call_count)
     assert_equal(1, @engine.metrics.size)
@@ -141,7 +141,7 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
 
   def test_record_metric_accepts_explicit_scope
     @engine.stubs(:default_scope).returns('scopey')
-    @engine.record_metric('foo', 42, :scope => 'not scopey')
+    @engine.record_metric('foo', 42, :scoped => true, :scope => 'not scopey')
     unscoped_stats = @engine.get_stats('foo', false)
     scoped_stats_scopey = @engine.get_stats('foo', true, true, 'scopey')
     scoped_stats_not_scopey = @engine.get_stats('foo', true, true, 'not scopey')

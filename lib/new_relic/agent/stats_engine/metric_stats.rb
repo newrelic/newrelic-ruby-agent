@@ -11,7 +11,7 @@ module NewRelic
         # method pairs (e.g. get_stats + record_data_point)
         def record_metric(metric_names_or_specs, value=nil, options={}, &blk)
           defaults = {
-            :scoped => true,
+            :scoped => false,
             :scope => default_scope
           }
           options = defaults.merge(options)
