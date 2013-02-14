@@ -38,9 +38,10 @@ module NewRelic
 
         def dispatch_with_newrelic
           txn_name = NewRelic.transaction_name(self.class.routes, @request) do |pattern, keys, conditions|
-            process_route(pattern, keys, conditions) do
+            result = process_route(pattern, keys, conditions) do
               pattern.source
             end
+            result if result.class == String
           end
 
           perform_action_with_newrelic_trace(:category => :sinatra,
