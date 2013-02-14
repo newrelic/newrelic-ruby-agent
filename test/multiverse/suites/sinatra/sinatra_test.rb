@@ -3,7 +3,6 @@ require 'mocha'
 class SinatraRouteTestApp < Sinatra::Base
   configure do
     # display exceptions so we see what's going on
-    # enable :raise_errors
     disable :show_exceptions
 
     # create a condition (sintra's version of a before_filter) that returns the
