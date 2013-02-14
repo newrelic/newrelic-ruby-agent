@@ -30,8 +30,8 @@ unless ENV['FAST_TESTS']
     def setup
       NewRelic::Agent.manual_start(
         :cross_application_tracing => false,
-        :cross_app_id        => '269975#22824',
-        :encoding_key            => 'gringletoes'
+        :cross_app_id              => '269975#22824',
+        :encoding_key              => 'gringletoes'
       )
       @engine = NewRelic::Agent.instance.stats_engine
       @engine.clear_stats
@@ -48,10 +48,15 @@ unless ENV['FAST_TESTS']
 
       # Have to do this one outside of the block so the ivar is in the right context
       @response_data = CANNED_RESPONSE.dup
-      if IO.const_defined?( :WaitReadable ) # Non-blocking IO in Net::Protocol?
-        @socket.stubs(:read_nonblock).returns(@response_data).then.raises(EOFError)
-      else
+
+      # JRuby (as of 1.7.2) doesn't include the net/protocol from the RUBY_PATCHLEVEL
+      # it sets, so we have to do a bit of detective work to figure out whether
+      # #read_nonblock or #sysread will be used
+      if RUBY_VERSION < '1.9.2' ||
+         ( defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby' && JRUBY_VERSION <= '1.7.2' )
         @socket.stubs(:sysread).returns(@response_data).then.raises(EOFError)
+      else
+        @socket.stubs(:read_nonblock).returns(@response_data).then.raises(EOFError)
       end
 
       TCPSocket.stubs(:open).returns(@socket)
