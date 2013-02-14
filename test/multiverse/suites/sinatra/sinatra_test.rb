@@ -2,6 +2,10 @@ require 'mocha'
 
 class SinatraRouteTestApp < Sinatra::Base
   configure do
+    # display exceptions so we see what's going on
+    enable :raise_errors
+    disable :show_exceptions
+
     # create a condition (sintra's version of a before_filter) that returns the
     # value that was passed into it.
     set :my_condition do |boolean|
@@ -23,8 +27,36 @@ class SinatraRouteTestApp < Sinatra::Base
     "Welcome #{id}"
   end
 
-  get '/error' do
+  get '/raise' do
     raise "Uh-oh"
+  end
+
+  # check that pass works properly
+  condition { pass { halt 418, "I'm a teapot." } }
+  get('/pass') { }
+
+  get '/pass' do
+    "I'm not a teapot."
+  end
+
+  class Error < Exception; end
+  error(Error) { halt 200, 'nothing happened' }
+  condition { raise Error }
+  get('/error') { }
+
+  def perform_action_with_newrelic_trace(options)
+    $last_sinatra_route = options[:name]
+    super
+  end
+
+  get '/route/:name' do |name|
+    # usually this would be a db test or something
+    pass if name != 'match'
+    'first route'
+  end
+
+  get '/route/no_match' do
+    'second route'
   end
 end
 
@@ -62,8 +94,30 @@ class SinatraTest < Test::Unit::TestCase
   end
 
   def test_shown_errors_get_caught
+     get '/raise'
+     assert_equal 1, ::NewRelic::Agent.agent.error_collector.errors.size
+  end
+
+  def test_does_not_break_pass
+    get '/pass'
+    assert_equal 200, last_response.status
+    assert_equal "I'm not a teapot.", last_response.body
+  end
+
+  def test_does_not_break_error_handling
     get '/error'
-    assert_equal 1, ::NewRelic::Agent.agent.error_collector.errors.size
+    assert_equal 200, last_response.status
+    assert_equal "nothing happened", last_response.body
+  end
+
+  def test_correct_pattern
+    get '/route/match'
+    assert_equal 'first route', last_response.body
+    assert_equal 'GET route/([^/?#]+)', $last_sinatra_route #assert_equal 'GET route/:name', $last_sinatra_route
+
+    get '/route/no_match'
+    assert_equal 'second route', last_response.body
+    assert_equal 'GET route/no_match', $last_sinatra_route
   end
 
   def test_set_unknown_transaction_name_if_error_in_routing
