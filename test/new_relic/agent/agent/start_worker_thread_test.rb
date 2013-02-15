@@ -36,13 +36,10 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
 
     self.expects(:reset_stats)
     self.expects(:sleep).with(30)
-
-    @metric_ids = 'this is not an empty hash'
     @connected = true
 
     handle_force_restart(error)
 
-    assert_equal({}, @metric_ids)
     assert_equal(:pending, @connect_state)
   end
 

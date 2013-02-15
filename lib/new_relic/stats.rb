@@ -96,6 +96,17 @@ module NewRelic
       "#<NewRelic::Stats #{to_s} >"
     end
 
+    def ==(other)
+      (
+        @min_call_time        == other.min_call_time &&
+        @max_call_time        == other.max_call_time &&
+        @total_call_time      == other.total_call_time &&
+        @total_exclusive_time == other.total_exclusive_time &&
+        @sum_of_squares       == other.sum_of_squares &&
+        @call_count           == other.call_count
+      )
+    end
+
     # Apdex-related accessors
     alias_method :apdex_s, :call_count
     alias_method :apdex_t, :total_call_time

@@ -3,15 +3,25 @@ require 'erb'
 module NewRelic
   module Agent
     class TransactionInfo
+      DEFAULT_TRANSACTION_NAME = '(unknown)'
 
-      attr_accessor :token, :capture_deep_tt, :transaction_name
+      attr_accessor :token, :capture_deep_tt
+      attr_writer :transaction_name
       attr_reader :start_time
 
       def initialize
         @guid = ""
-        @transaction_name = "(unknown)"
+        @transaction_name = nil
         @start_time = Time.now
         @ignore_end_user = false
+      end
+
+      def transaction_name_set?
+        !@transaction_name.nil?
+      end
+
+      def transaction_name
+        @transaction_name || DEFAULT_TRANSACTION_NAME
       end
 
       def force_persist_sample?(sample)

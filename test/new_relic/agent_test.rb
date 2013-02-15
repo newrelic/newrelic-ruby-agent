@@ -78,10 +78,6 @@ module NewRelic
           NewRelic::Agent.instance.stats_engine.get_stats_no_scope(metric) \
             .record_data_point(1.0)
 
-          # ensure that cached metric ids don't interfere with metric merging
-          NewRelic::Agent.agent.instance_variable_set(:@metric_ids,
-                            { NewRelic::MetricSpec.new('Instance/Busy') => 1 })
-
           NewRelic::Agent::PipeChannelManager.listener.close_all_pipes
           NewRelic::Agent.register_report_channel(:agent_test) # before fork
           pid = Process.fork do
@@ -235,6 +231,40 @@ module NewRelic
       assert NewRelic::Agent::PipeChannelManager.channels[:channel_id] \
         .kind_of?(NewRelic::Agent::PipeChannelManager::Pipe)
       NewRelic::Agent::PipeChannelManager.listener.close_all_pipes
+    end
+
+    def test_record_metric
+      dummy_engine = NewRelic::Agent.agent.stats_engine
+      dummy_engine.expects(:record_metric).with('foo', 12)
+      NewRelic::Agent.record_metric('foo', 12)
+    end
+
+    def test_record_metric_accepts_hash
+      dummy_engine = NewRelic::Agent.agent.stats_engine
+      stats_hash = {
+        :count => 12,
+        :total => 42,
+        :min   => 1,
+        :max   => 5,
+        :sum_of_squares => 999
+      }
+      expected_stats = NewRelic::Stats.new()
+      expected_stats.call_count = 12
+      expected_stats.total_call_time = 42
+      expected_stats.total_exclusive_time = 42
+      expected_stats.min_call_time = 1
+      expected_stats.max_call_time = 5
+      expected_stats.sum_of_squares = 999
+      dummy_engine.expects(:record_metric).with('foo', expected_stats)
+      NewRelic::Agent.record_metric('foo', stats_hash)
+    end
+
+    def test_increment_metric
+      dummy_engine = NewRelic::Agent.agent.stats_engine
+      dummy_stats = mock
+      dummy_stats.expects(:increment_count).with(12)
+      dummy_engine.expects(:record_metric).with('foo').yields(dummy_stats)
+      NewRelic::Agent.increment_metric('foo', 12)
     end
 
     private

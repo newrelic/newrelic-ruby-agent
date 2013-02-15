@@ -5,6 +5,23 @@ module NewRelic
     class StatsEngine
       # Handles methods related to actual Metric collection
       module MetricStats
+        # Lookup and write to the named metric in a single call.
+        #
+        # This method is thead-safe, and is preferred to the lookup / modify
+        # method pairs (e.g. get_stats + record_data_point)
+        def record_metric(metric_names_or_specs, value=nil, options={}, &blk)
+          defaults = {
+            :scoped => false,
+            :scope => default_scope
+          }
+          options = defaults.merge(options)
+          effective_scope = options[:scoped] && options[:scope]
+          specs = coerce_to_metric_spec_array(metric_names_or_specs, effective_scope)
+          with_stats_lock do
+            @stats_hash.record(specs, value, &blk)
+          end
+        end
+
         # a simple accessor for looking up a stat with no scope -
         # returns a new stats object if no stats object for that
         # metric exists yet
@@ -70,110 +87,59 @@ module NewRelic
           end
         end
 
-        # This module was extracted from the harvest method and should
-        # be refactored
-        module Harvest
-          # merge data from previous harvests into this stats engine -
-          # takes into account the case where there are new stats for
-          # that metric, and the case where there is no current data
-          # for that metric
-          def merge_data(metric_data_hash)
-            # Normalize our input data, which is in a weird hash format where
-            # keys are MetricSpec instances and values are either Stats
-            # instances or MetricData instances. This should really be cleaned
-            # up upstream of this call, but one step at a time.
-            new_stats_hash = StatsHash.new
-            metric_data_hash.each do |metric_spec, metric_data|
-              new_stats = if metric_data.respond_to?(:stats)
-                metric_data.stats
-              else
-                metric_data
-              end
-              new_stats_hash[metric_spec] = new_stats
-            end
-
-            with_stats_lock do
-              @stats_hash.merge!(new_stats_hash)
-            end
+        def reset_stats
+          with_stats_lock do
+            old = @stats_hash
+            @stats_hash = StatsHash.new
+            old
           end
-
-          def reset_stats
-            with_stats_lock do
-              old = @stats_hash
-              @stats_hash = StatsHash.new
-              old
-            end
-          end
-
-          private
-
-          def coerce_to_metric_spec(metric_spec)
-            if metric_spec.is_a?(NewRelic::MetricSpec)
-              metric_spec
-            else
-              NewRelic::MetricSpec.new(metric_spec)
-            end
-          end
-
-          # if the previous timeslice data has not been reported (due to an error of some sort)
-          # then we need to merge this timeslice with the previously accumulated - but not sent
-          # data
-          def merge_old_data!(metric_spec, stats, old_data)
-            metric_data = old_data[metric_spec]
-            stats.merge!(metric_data.stats) unless metric_data.nil?
-          end
-
-          def add_data_to_send_unless_empty(data, stats, metric_spec, id)
-            # don't bother collecting and reporting stats that have
-            # zero-values for this timeslice. significant
-            # performance boost and storage savings.
-            return if stats.is_reset?
-            data[metric_spec] = NewRelic::MetricData.new((id ? nil : metric_spec), stats, id)
-          end
-
-          def merge_stats(other_metric_data, metric_ids)
-            timeslice_data = {}
-            stats_hash_copy = reset_stats
-            stats_hash_copy.each do |metric_spec, stats|
-              metric_spec = coerce_to_metric_spec(metric_spec)
-              raise "nil stats for #{metric_spec.name} (#{metric_spec.scope})" unless stats
-              merge_old_data!(metric_spec, stats, other_metric_data)
-              add_data_to_send_unless_empty(timeslice_data, stats, metric_spec, metric_ids[metric_spec])
-            end
-            timeslice_data
-          end
-
         end
-        include Harvest
+
+        # merge data from previous harvests into this stats engine
+        def merge!(other_stats_hash)
+          with_stats_lock do
+            @stats_hash.merge!(other_stats_hash)
+          end
+        end
 
         # Harvest the timeslice data.  First recombine current statss
         # with any previously
         # unsent metrics, clear out stats cache, and return the current
         # stats.
-        # ---
-        # Note: this is not synchronized.  There is still some risk in this and
-        # we will revisit later to see if we can make this more robust without
-        # sacrificing efficiency.
-        # +++
-        def harvest_timeslice_data(previous_timeslice_data, metric_ids,
-                                   rules_engine=RulesEngine.new)
+        def harvest_timeslice_data(old_stats_hash, rules_engine=RulesEngine.new)
           poll harvest_samplers
-          apply_rules_to_metric_data(rules_engine,
-                              merge_stats(previous_timeslice_data, metric_ids))
+          snapshot = reset_stats
+          snapshot = apply_rules_to_metric_data(rules_engine, snapshot)
+          snapshot.merge!(old_stats_hash)
         end
 
         def apply_rules_to_metric_data(rules_engine, stats_hash)
-          renamed_stats = {}
-          stats_hash.each do |spec, data|
+          renamed_stats = NewRelic::Agent::StatsHash.new
+          stats_hash.each do |spec, stats|
             new_name = rules_engine.rename(spec.name)
-            data.metric_spec = NewRelic::MetricSpec.new(new_name, spec.scope)
-            if renamed_stats.has_key?(data.metric_spec)
-              renamed_stats[data.metric_spec].stats.merge!(data.stats)
-            else
-              renamed_stats[data.metric_spec] = data
-            end
+            new_spec = NewRelic::MetricSpec.new(new_name, spec.scope)
+            renamed_stats[new_spec].merge!(stats)
           end
           renamed_stats
+        end
+
+        def default_scope
+          txn = NewRelic::Agent::TransactionInfo.get
+          txn.transaction_name_set? && txn.transaction_name
+        end
+
+        def coerce_to_metric_spec_array(metric_names_or_specs, scope)
+          specs = []
+          Array(metric_names_or_specs).map do |name_or_spec|
+            case name_or_spec
+            when String
+              specs << NewRelic::MetricSpec.new(name_or_spec)
+              specs << NewRelic::MetricSpec.new(name_or_spec, scope) if scope
+            when NewRelic::MetricSpec
+              specs << name_or_spec
+            end
+          end
+          specs
         end
 
         # For use by test code only.
