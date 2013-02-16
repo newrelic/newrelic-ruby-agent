@@ -43,8 +43,8 @@ class QueueTimeTest < ActionDispatch::IntegrationTest
     assert extract_queue_time_from_response > 0, "Queue time was missing or zero"
   end
 
-  def get_queued(header="HTTP_X_QUEUE_START")
-    get('/queue/queued', nil, \
+  def get_queued(header="HTTP_X_REQUEST_START")
+    get('/queue/queued', nil,
         header => "t=#{(Time.now.to_i * 1_000_000) - 1_000}")
   end
 

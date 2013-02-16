@@ -457,22 +457,20 @@ module NewRelic
           end
         end
 
-        include NewRelic::Agent::Instrumentation::QueueTime
-
         # Return a Time instance representing the upstream start time.
         # now is a Time instance to fall back on if no other candidate
         # for the start time is found.
         def _detect_upstream_wait(now)
-          queue_start = nil
           if newrelic_request_headers
-            queue_start = parse_frontend_headers(newrelic_request_headers)
+            queue_start = QueueTime.parse_frontend_timestamp(newrelic_request_headers)
+            QueueTime.record_frontend_metrics(queue_start, now) if queue_start
           end
           queue_start || now
         rescue => e
           ::NewRelic::Agent.logger.error("Error detecting upstream wait time:", e)
           now
         end
-        
+
         # returns the NewRelic::Stats object associated
         # with the dispatcher time measurement
         def _dispatch_stat
