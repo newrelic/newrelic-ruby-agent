@@ -75,13 +75,25 @@ DependencyDetection.defer do
         return request_without_newrelic_trace(request, *args, &block) unless
           NewRelic::Agent.is_execution_traced?
 
+        # Create a segment and time the call
         t0 = Time.now
+        segment = stats_engine.push_scope( "External/#@address/all", t0 )
         response = request_without_newrelic_trace( request, *args, &block )
+        t1 = Time.now
 
-        # If the block is exiting normally
-        duration = (Time.now - t0).to_f
-        stats = metrics_for( request, response )
-        stats.each { |stat| stat.trace_call(duration) }
+        # Figure out which metrics we need to report based on the request and response
+        # The last (most-specific) one is scoped.
+        metrics = metrics_for( request, response )
+        scoped_metric = metrics.pop
+
+        # Report the metrics
+        duration = t1.to_f - t0.to_f
+        metrics.each { |metric| get_metric(metric).trace_call(duration) }
+        get_scoped_metric( scoped_metric ).trace_call( duration )
+
+        # Change the name of the segment to the scoped metric and then pop it.
+        stats_engine.rename_scope_segment( scoped_metric )
+        stats_engine.pop_scope( segment, duration, t1 )
 
         return response
       rescue Net::HTTP::CrossAppError => err
@@ -96,15 +108,15 @@ DependencyDetection.defer do
 
         if response_is_crossapp?( response )
           begin
-            metrics += metrics_for_crossapp_response( response )
+            metrics.concat metrics_for_crossapp_response( response )
           rescue => err
             # Fall back to regular metrics if there's a problem with x-process metrics
             NewRelic::Agent.logger.debug "%p while fetching x-process metrics: %s" %
               [ err.class, err.message ]
-            metrics += metrics_for_regular_response( request, response )
+            metrics.concat metrics_for_regular_response( request, response )
           end
         else
-          metrics += metrics_for_regular_response( request, response )
+          metrics.concat metrics_for_regular_response( request, response )
         end
 
         return metrics
@@ -114,13 +126,13 @@ DependencyDetection.defer do
       # Return an Array of metrics used for every response.
       def common_metrics
         NewRelic::Agent.logger.debug "Fetching common metrics"
-        metrics = [ get_metric("External/all") ]
-        metrics << get_metric( "External/#@address/all" )
+        metrics = [ "External/all" ]
+        metrics << "External/#@address/all"
 
         if NewRelic::Agent::Instrumentation::MetricFrame.recording_web_transaction?
-          metrics << get_metric( "External/allWeb" )
+          metrics << "External/allWeb"
         else
-          metrics << get_metric( "External/allOther" )
+          metrics << "External/allOther"
         end
 
         return metrics
@@ -143,10 +155,9 @@ DependencyDetection.defer do
         check_transaction_name( txn_name )
 
         metrics = []
-        metrics << get_metric( "ExternalApp/#@address/#{xp_id}/all" )
-        metrics << get_metric( "ExternalTransaction/#@address/#{xp_id}/#{txn_name}" )
-        metrics << get_metric( "ExternalTransaction/#@address/#{xp_id}/#{txn_name}" )
-        metrics << get_scoped_metric( "ExternalTransaction/#@address/#{xp_id}/#{txn_name}" )
+        metrics << "ExternalApp/#@address/#{xp_id}/all"
+        metrics << "ExternalTransaction/#@address/#{xp_id}/#{txn_name}"
+        metrics << "ExternalTransaction/#@address/#{xp_id}/#{txn_name}"
 
         return metrics
       end
@@ -180,7 +191,7 @@ DependencyDetection.defer do
       # +response+.
       def metrics_for_regular_response( request, response )
         metrics = []
-        metrics << get_metric( "External/#@address/Net::HTTP/#{request.method}" )
+        metrics << "External/#@address/Net::HTTP/#{request.method}"
         
         return metrics
       end
@@ -188,14 +199,20 @@ DependencyDetection.defer do
 
       # Convenience function for fetching the metric associated with +metric_name+.
       def get_metric( metric_name )
-        NewRelic::Agent.instance.stats_engine.get_stats_no_scope( metric_name )
+        stats_engine.get_stats_no_scope( metric_name )
       end
 
 
       # Convenience function for fetching the scoped metric associated with +metric_name+.
       def get_scoped_metric( metric_name )
         # Default is to use the metric_name itself as the scope, which is what we want
-        NewRelic::Agent.instance.stats_engine.get_stats( metric_name )
+        stats_engine.get_stats( metric_name )
+      end
+
+
+      # Fetch a reference to the stats engine.
+      def stats_engine
+        NewRelic::Agent.instance.stats_engine
       end
 
 

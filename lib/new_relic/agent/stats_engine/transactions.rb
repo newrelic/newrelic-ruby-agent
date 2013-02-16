@@ -5,8 +5,8 @@ module Agent
     # A simple stack element that tracks the current name and length
     # of the executing stack
     class ScopeStackElement
-      attr_reader :name, :deduct_call_time_from_parent
-      attr_accessor :children_time
+      attr_reader :deduct_call_time_from_parent
+      attr_accessor :name, :children_time
       def initialize(name, deduct_call_time)
         @name = name
         @deduct_call_time_from_parent = deduct_call_time
@@ -29,6 +29,8 @@ module Agent
         def scope_name; end
         def pop_scope(*args); end
       end
+
+      attr_reader :transaction_sampler
 
       # add a new transaction sampler, unless we're currently in a
       # transaction (then we fail)
@@ -72,6 +74,12 @@ module Agent
       
       def sampler_enabled?
         @transaction_sampler && Agent.config[:'transaction_tracer.enabled']
+      end
+      
+      # Rename the segment associated with the last pushed scope to +new_name+.
+      def rename_scope_segment( new_name )
+        self.peek_scope.name = new_name
+        @transaction_sampler.rename_scope_segment( new_name )
       end
       
       # Returns the latest ScopeStackElement

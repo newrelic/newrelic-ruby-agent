@@ -59,6 +59,8 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
   attr_reader :stats_engine
 
   def setup
+    Thread::current[:newrelic_scope_stack] = nil
+
     NewRelic::Agent.manual_start
     @stats_engine = NewRelic::Agent.instance.stats_engine
     @stats_engine.clear_stats

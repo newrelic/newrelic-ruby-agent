@@ -33,11 +33,28 @@ unless ENV['FAST_TESTS']
         :cross_app_id              => '269975#22824',
         :encoding_key              => 'gringletoes'
       )
+
       @engine = NewRelic::Agent.instance.stats_engine
       @engine.clear_stats
+      @engine.start_transaction( 'test' )
+
+      # Have to do this one outside of the block so the ivar is in the right context
+      @response_data = CANNED_RESPONSE.dup
+      @socket = fixture_tcp_socket( @response_data )
+    end
+
+    def cleanup
+      @engine.end_transaction
+    end
+
+    #
+    # Helpers
+    #
+
+    def fixture_tcp_socket( response_data )
 
       # Don't actually talk to Google.
-      @socket = stub("socket") do
+      socket = stub("socket") do
         stubs(:closed?).returns(false)
         stubs(:close)
 
@@ -46,25 +63,21 @@ unless ENV['FAST_TESTS']
         end
       end
 
-      # Have to do this one outside of the block so the ivar is in the right context
-      @response_data = CANNED_RESPONSE.dup
-
       # JRuby (as of 1.7.2) doesn't include the net/protocol from the RUBY_PATCHLEVEL
       # it sets, so we have to do a bit of detective work to figure out whether
       # #read_nonblock or #sysread will be used
       if RUBY_VERSION < '1.9.2' ||
          ( defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby' && JRUBY_VERSION <= '1.7.2' )
-        @socket.stubs(:sysread).returns(@response_data).then.raises(EOFError)
+        socket.stubs( :sysread ).returns( response_data ).then.raises( EOFError )
       else
-        @socket.stubs(:read_nonblock).returns(@response_data).then.raises(EOFError)
+        socket.stubs( :read_nonblock ).returns( response_data ).then.raises( EOFError )
       end
 
-      TCPSocket.stubs(:open).returns(@socket)
+      TCPSocket.stubs( :open ).returns( socket )
+
+      return socket
     end
 
-    #
-    # Helpers
-    #
 
     def metrics_without_gc
       @engine.metrics - ['GC/cumulative']
@@ -98,6 +111,9 @@ unless ENV['FAST_TESTS']
       assert_includes @engine.metrics, 'External/www.google.com/all'
 
       assert_not_includes @engine.metrics, 'External/allWeb'
+
+      sample = NewRelic::Agent.agent.transaction_sampler.last_sample
+      assert_equal 
     end
 
     def test_background

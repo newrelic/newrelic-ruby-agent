@@ -116,6 +116,12 @@ module NewRelic
         end
       end
 
+      # Rename the latest scope's segment in the builder to +new_name+.
+      def rename_scope_segment( new_name )
+        return unless builder
+        builder.rename_current_segment( new_name )
+      end
+
       # Defaults to zero, otherwise delegated to the transaction
       # sample builder
       def scope_depth
