@@ -11,11 +11,10 @@ module NewRelic
           QUEUE_DURATION_HEADER   = 'HTTP_X_QUEUE_TIME'
           MIDDLEWARE_START_HEADER = 'HTTP_X_MIDDLEWARE_START'
           ALL_QUEUE_METRIC        = 'WebFrontend/QueueTime'
+          # any timestamps before this are thrown out and the parser
+          # will try again with a larger unit (2000/1/1 UTC)
+          EARLIEST_ACCEPTABLE_TIMESTAMP = 946684800
         end
-
-        # any timestamps before this are thrown out and the parser
-        # will try again with a larger unit (2000/1/1 UTC)
-        EARLIEST_ACCEPTABLE_TIMESTAMP = 946684800
 
         module_function
 
