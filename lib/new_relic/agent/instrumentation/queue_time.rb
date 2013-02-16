@@ -5,11 +5,13 @@ module NewRelic
       # Record queue time metrics based on any of three headers
       # which can be set on the request.
       module QueueTime
-        REQUEST_START_HEADER    = 'HTTP_X_REQUEST_START'
-        QUEUE_START_HEADER      = 'HTTP_X_QUEUE_START'
-        QUEUE_DURATION_HEADER   = 'HTTP_X_QUEUE_TIME'
-        MIDDLEWARE_START_HEADER = 'HTTP_X_MIDDLEWARE_START'
-        ALL_QUEUE_METRIC        = 'WebFrontend/QueueTime'
+        unless defined?(REQUEST_START_HEADER)
+          REQUEST_START_HEADER    = 'HTTP_X_REQUEST_START'
+          QUEUE_START_HEADER      = 'HTTP_X_QUEUE_START'
+          QUEUE_DURATION_HEADER   = 'HTTP_X_QUEUE_TIME'
+          MIDDLEWARE_START_HEADER = 'HTTP_X_MIDDLEWARE_START'
+          ALL_QUEUE_METRIC        = 'WebFrontend/QueueTime'
+        end
 
         # any timestamps before this are thrown out and the parser
         # will try again with a larger unit (2000/1/1 UTC)
