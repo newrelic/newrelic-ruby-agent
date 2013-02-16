@@ -30,7 +30,7 @@ unless ENV['FAST_TESTS']
     def setup
       NewRelic::Agent.manual_start(
         :cross_application_tracing => false,
-        :cross_app_id              => '269975#22824',
+        :cross_process_id              => '269975#22824',
         :encoding_key              => 'gringletoes'
       )
 

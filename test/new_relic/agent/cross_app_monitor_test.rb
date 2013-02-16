@@ -23,7 +23,7 @@ module NewRelic::Agent
 
       @monitor = NewRelic::Agent::CrossAppMonitor.new()
       @monitor.finish_setup(
-        :cross_app_id => AGENT_CROSS_APP_ID,
+        :cross_process_id => AGENT_CROSS_APP_ID,
         :encoding_key => ENCODING_KEY_NOOP,
         :trusted_account_ids => TRUSTED_ACCOUNT_IDS)
       @monitor.register_event_listeners
@@ -124,7 +124,7 @@ module NewRelic::Agent
 
     def test_doesnt_add_header_if_no_id_on_agent
       @monitor.finish_setup(
-        :cross_app_id => nil,
+        :cross_process_id => nil,
         :encoding_key => ENCODING_KEY_NOOP,
         :trusted_account_ids => TRUSTED_ACCOUNT_IDS)
 

@@ -48,7 +48,7 @@ module NewRelic
       end
 
       def finish_setup(config)
-        @cross_app_id = config[:cross_app_id]
+        @cross_app_id = config[:cross_process_id]
         @encoding_key = config[:encoding_key]
         @trusted_ids = config[:trusted_account_ids] || []
       end

@@ -58,7 +58,7 @@ DependencyDetection.defer do
 
       # Inject the X-Process header into the outgoing +request+.
       def inject_request_header( request )
-        cross_app_id = NewRelic::Agent.config[:cross_app_id] or
+        cross_app_id = NewRelic::Agent.config[:cross_process_id] or
           raise Net::HTTP::CrossAppError, "no cross app ID configured"
         key = cross_app_encoding_key()
 
