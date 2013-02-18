@@ -1,6 +1,16 @@
 
 # New Relic Ruby Agent Release Notes #
 
+## v3.5.7 ##
+
+  * Resolved some issues with tracking of frontend queue time, particularly
+    when the agent is running on an app hosted on Heroku.  The agent will now
+    more reliably parse the headers described in
+    https://newrelic.com/docs/features/tracking-front-end-time and will
+    automatically detect whether the times provided are in seconds,
+    milliseconds or microseconds.
+
+## v3.5.6 ##
 
   * Use HTTPS by default
 
@@ -11,8 +21,6 @@
     "ssl: false" directive from their newrelic.yml to enable ssl.  Customers on
     Jruby may need to install the jruby-openssl gem to take advantage of this
     feature.
-
-## v3.5.6 ##
 
   * Fix two Resque-related issues
 
