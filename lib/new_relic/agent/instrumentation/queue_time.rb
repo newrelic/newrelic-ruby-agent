@@ -52,8 +52,15 @@ module NewRelic
         def parse_timestamp(string)
           cut_off = Time.at(EARLIEST_ACCEPTABLE_TIMESTAMP)
           [1_000_000, 1_000, 1].map do |divisor|
-            Time.at(string.to_f / divisor)
-          end.find {|candidate| candidate > cut_off }
+            begin
+              Time.at(string.to_f / divisor)
+            rescue RangeError
+              # On Ruby versions built with a 32-bit time_t, attempting to
+              # instantiate a Time object in the far future raises a RangeError,
+              # in which case we know we've chosen the wrong divisor.
+              nil
+            end
+          end.compact.find { |candidate| candidate > cut_off }
         end
       end
     end
