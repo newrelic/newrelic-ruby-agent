@@ -18,14 +18,21 @@ module NewRelic
 
         module_function
 
-        def parse_frontend_timestamp(headers)
+        def parse_frontend_timestamp(headers, now=Time.now)
           candidate_headers = [ REQUEST_START_HEADER, QUEUE_START_HEADER,
                                 MIDDLEWARE_START_HEADER ]
-          candidate_headers.map do |header|
+          earliest = candidate_headers.map do |header|
             if headers[header]
               parse_timestamp(timestamp_string_from_header_value(headers[header]))
             end
           end.compact.min
+
+          if earliest && earliest > now
+            NewRelic::Agent.logger.debug("Negative queue time detected, treating as zero: start=#{earliest.to_f} > now=#{now.to_f}")
+            earliest = now
+          end
+
+          earliest
         end
 
         def record_frontend_metrics(start_time, now=Time.now)

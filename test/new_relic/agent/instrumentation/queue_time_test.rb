@@ -54,6 +54,13 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
     assert_in_delta(seconds_ago(60), QueueTime.parse_frontend_timestamp(header), 0.1)
   end
 
+  def test_parse_frontend_timestamp_from_header_negative
+    now = Time.now
+    the_future = Time.at(now.to_f + 60)
+    header = { 'HTTP_X_REQUEST_START' => the_future.to_f.to_s }
+    assert_in_delta(now, QueueTime.parse_frontend_timestamp(header, now), 0.1)
+  end
+
   def test_recording_queue_time_metric
     assert_metric_value_in_delta(60, 'WebFrontend/QueueTime', 0.1) do
       QueueTime.record_frontend_metrics(Time.at(Time.now.to_f - 60))

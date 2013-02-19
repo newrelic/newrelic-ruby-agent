@@ -462,7 +462,7 @@ module NewRelic
         # for the start time is found.
         def _detect_upstream_wait(now)
           if newrelic_request_headers
-            queue_start = QueueTime.parse_frontend_timestamp(newrelic_request_headers)
+            queue_start = QueueTime.parse_frontend_timestamp(newrelic_request_headers, now)
             QueueTime.record_frontend_metrics(queue_start, now) if queue_start
           end
           queue_start || now
