@@ -38,9 +38,8 @@ module Agent
               sleep POLL_PERIOD
               poll periodic_samplers
             ensure
-              NewRelic::Agent.instance.stats_engine \
-                .get_stats_no_scope('Supportability/Samplers') \
-                .record_data_point((Time.now - now).to_f)
+              duration = (Time.now - now).to_f
+              NewRelic::Agent.record_metric('Supportability/Samplers', duration)
             end
           end
         end

@@ -304,30 +304,19 @@ module NewRelic
         end
 
         def self.record_apdex(current_metric, action_duration, total_duration, is_error)
-          summary_stat = agent.stats_engine.lookup_stats("Apdex") ||
-            initialize_apdex("Apdex")
-          update_apdex(summary_stat, total_duration, is_error)
-
-          controller_stat = agent.stats_engine.lookup_stats(current_metric.apdex_metric_path) ||
-            initialize_apdex(current_metric.apdex_metric_path)
-          update_apdex(controller_stat, action_duration, is_error)
-        end
-
-        # Apdex min and max values should be initialized to the
-        # current apdex_t
-        def self.initialize_apdex(metric_name)
-          stats = agent.stats_engine.get_stats_no_scope(metric_name)
-          apdex_t = TransactionInfo.get.apdex_t
-          stats.min_call_time = apdex_t
-          stats.max_call_time = apdex_t
-          return stats
+          agent.stats_engine.record_metric('Apdex') do |stat|
+            update_apdex(stat, total_duration, is_error)
+          end
+          agent.stats_engine.record_metric(current_metric.apdex_metric_path) do |stat|
+            update_apdex(stat, action_duration, is_error)
+          end
         end
 
         # Record an apdex value for the given stat.  when `failed`
         # the apdex should be recorded as a failure regardless of duration.
         def self.update_apdex(stat, duration, failed)
-          duration = duration.to_f
           apdex_t = TransactionInfo.get.apdex_t
+          duration = duration.to_f
           case
           when failed
             stat.record_apdex_f
@@ -338,6 +327,10 @@ module NewRelic
           else
             stat.record_apdex_f
           end
+          # Apdex min and max values should be initialized to the
+          # current apdex_t
+          stat.min_call_time = apdex_t
+          stat.max_call_time = apdex_t
         end
 
         private

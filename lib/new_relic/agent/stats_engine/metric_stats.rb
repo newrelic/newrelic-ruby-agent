@@ -16,7 +16,7 @@ module NewRelic
         def record_metric(metric_names_or_specs, value=nil, options={}, &blk)
           defaults = {
             :scoped => false,
-            :scope => default_scope
+            :scope => scope_name
           }
           options = defaults.merge(options)
           effective_scope = options[:scoped] && options[:scope]
@@ -72,22 +72,23 @@ module NewRelic
           end_time = Time.now
           duration = (end_time - start_time).to_f
         ensure
-          record_supportability_metrics(duration, metrics) do |value, metric|
-            metric.record_data_point(value)
+          NewRelic::Agent.agent.stats_engine.record_metric(metrics) do |stat|
+            stat.record_data_point(duration)
           end
         end
 
         # Helper for recording a straight value into the count
         def record_supportability_metrics_count(value, *metrics)
-          record_supportability_metrics(value, *metrics) do |value, metric|
-            metric.call_count = value
+          NewRelic::Agent.agent.stats_engine.record_metric(metrics) do |stat|
+            stat.call_count = value
           end
         end
 
         # Helper method for recording supportability metrics consistently
         def record_supportability_metrics(value, *metrics)
-          metrics.each do |metric|
-              yield(value, get_stats_no_scope("Supportability/#{metric}"))
+          real_names = metrics.map { |name| "Supportability/#{name}" }
+          NewRelic::Agent.agent.record_metric(real_names) do |stat|
+            yield stat
           end
         end
 
@@ -125,11 +126,6 @@ module NewRelic
             renamed_stats[new_spec].merge!(stats)
           end
           renamed_stats
-        end
-
-        def default_scope
-          txn = NewRelic::Agent::TransactionInfo.get
-          txn.transaction_name_set? && txn.transaction_name
         end
 
         def coerce_to_metric_spec_array(metric_names_or_specs, scope)

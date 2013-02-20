@@ -195,8 +195,8 @@ module NewRelic
       end
 
       def set_metrics(id, timings)
-        metric = NewRelic::Agent.instance.stats_engine.get_stats_no_scope("ClientApplication/#{id}/all")
-        metric.record_data_point(timings.app_time_in_seconds)
+        metric_name = "ClientApplication/#{id}/all"
+        NewRelic::Agent.record_metric(metric_name, timings.app_time_in_seconds)
       end
 
       def decoded_id(request)

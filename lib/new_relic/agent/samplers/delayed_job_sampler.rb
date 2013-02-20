@@ -22,11 +22,12 @@ module NewRelic
           raise Unsupported, "No DJ worker present" unless NewRelic::DelayedJobInjection.worker_name
         end
 
-        def error_stats
-          stats_engine.get_stats("Workers/DelayedJob/failed_jobs", false)
+        def record_failed_jobs(value)
+          NewRelic::Agent.record_metric("Workers/DelayedJob/failed_jobs", value)
         end
-        def locked_job_stats
-          stats_engine.get_stats("Workers/DelayedJob/locked_jobs", false)
+
+        def record_locked_jobs(value)
+          NewRelic::Agent.record_metric("Workers/DelayedJob/locked_jobs", value)
         end
 
         def local_env
@@ -49,8 +50,8 @@ module NewRelic
         end
 
         def poll
-          record error_stats, failed_jobs
-          record locked_job_stats, locked_jobs
+          record_failed_jobs(failed_jobs)
+          record_locked_jobs(locked_jobs)
 
           if @queue
             record_queue_length_across_dimension('queue')
@@ -65,9 +66,11 @@ module NewRelic
           all_count = 0
           Delayed::Job.count(:group => column, :conditions => ['run_at < ? and failed_at is NULL', Time.now]).each do | column_val, count |
             all_count += count
-            record stats_engine.get_stats("Workers/DelayedJob/queue_length/#{column == 'queue' ? 'name' : column}/#{column_val}", false), count
+            metric = "Workers/DelayedJob/queue_length/#{column == 'queue' ? 'name' : column}/#{column_val}"
+            NewRelic::Agent.record_metric(metric, count)
           end
-          record(stats_engine.get_stats("Workers/DelayedJob/queue_length/all", false), all_count)
+          all_metric = "Workers/DelayedJob/queue_length/all"
+          NewRelic::Agent.record_metric(all_metric, all_count)
         end
 
         # Figure out if we get the queues.
@@ -79,10 +82,6 @@ module NewRelic
             @queue = true if c.name.to_s == 'priority'
           end
           @queue ||= false
-        end
-
-        def record(stat, size)
-          stat.record_data_point size
         end
       end
     end

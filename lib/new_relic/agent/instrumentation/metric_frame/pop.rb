@@ -47,7 +47,7 @@ module NewRelic
           # process doesn't work on JRuby. See the cpu_sampler.rb file
           # to understand where cpu is recorded for non-jruby processes
           def record_jruby_cpu_burn(burn)
-            NewRelic::Agent.get_stats_no_scope(NewRelic::Metrics::USER_TIME).record_data_point(burn)
+            NewRelic::Agent.record_metric(NewRelic::Metrics::USER_TIME, burn)
           end
 
           def cpu_burn

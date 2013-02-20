@@ -165,16 +165,17 @@ module NewRelic::Agent
     def test_writes_metric
       with_default_timings
 
-      metric = mock()
-      metric.expects(:record_data_point).with(APP_TIME)
-      NewRelic::Agent.instance.stats_engine.stubs(:get_stats_no_scope).returns(metric)
+      expected_metric_name = "ClientApplication/#{REQUEST_CROSS_APP_ID}/all"
+      NewRelic::Agent.instance.stats_engine.expects(:record_metric). \
+        with(expected_metric_name, APP_TIME)
 
       when_request_runs
     end
 
     def test_doesnt_write_metric_if_id_blank
       with_default_timings
-      NewRelic::Agent.instance.stats_engine.expects(:get_stats_no_scope).never
+
+      NewRelic::Agent.instance.stats_engine.expects(:record_metric).never
 
       when_request_runs(for_id(''))
     end

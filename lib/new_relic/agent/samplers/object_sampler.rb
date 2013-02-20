@@ -8,13 +8,8 @@ module NewRelic
   module Agent
     module Samplers
       class ObjectSampler < NewRelic::Agent::Sampler
-
         def initialize
           super :objects
-        end
-
-        def stats
-          stats_engine.get_stats_no_scope("GC/objects")
         end
 
         def self.supported_on_this_platform?
@@ -22,7 +17,8 @@ module NewRelic
         end
 
         def poll
-          stats.record_data_point(ObjectSpace.live_objects)
+          live_objects = ObjectSpace.live_objects
+          NewRelic::Agent.record_metric("GC/objects", live_objects)
         end
       end
     end

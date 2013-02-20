@@ -117,7 +117,7 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
   end
 
   def test_record_metric_unscoped_metrics_only_by_default
-    @engine.stubs(:default_scope).returns('scopey')
+    @engine.stubs(:scope_name).returns('scopey')
     @engine.record_metric('foo', 42)
     unscoped_stats = @engine.get_stats('foo', false)
     scoped_stats = @engine.get_stats('foo', true, true, 'scopey')
@@ -126,7 +126,7 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
   end
 
   def test_record_metric_records_to_scoped_metric_if_requested
-    @engine.stubs(:default_scope).returns('scopey')
+    @engine.stubs(:scope_name).returns('scopey')
     @engine.record_metric('foo', 42, :scoped => true)
     unscoped_stats = @engine.get_stats('foo', false)
     scoped_stats = @engine.get_stats('foo', true, true, 'scopey')
@@ -136,7 +136,7 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
 
   def test_record_metric_elides_scoped_metric_if_not_in_transaction
     @engine.clear_stats
-    @engine.stubs(:default_scope).returns(nil)
+    @engine.stubs(:scope_name).returns(nil)
     @engine.record_metric('foo', 42, :scoped => true)
     unscoped_stats = @engine.get_stats('foo', false)
     assert_equal(1, unscoped_stats.call_count)
@@ -144,7 +144,7 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
   end
 
   def test_record_metric_accepts_explicit_scope
-    @engine.stubs(:default_scope).returns('scopey')
+    @engine.stubs(:scope_name).returns('scopey')
     @engine.record_metric('foo', 42, :scoped => true, :scope => 'not scopey')
     unscoped_stats = @engine.get_stats('foo', false)
     scoped_stats_scopey = @engine.get_stats('foo', true, true, 'scopey')

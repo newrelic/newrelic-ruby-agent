@@ -85,9 +85,10 @@ module NewRelic
             loop do
               clean_up_pipes
               pipes_to_listen_to = @pipes.values.map{|pipe| pipe.out} + [wake.out]
-              NewRelic::Agent.instance.stats_engine \
-                .get_stats_no_scope('Supportability/Listeners') \
-                .record_data_point((Time.now - now).to_f) if now
+
+              NewRelic::Agent.record_metric('Supportability/Listeners',
+                (Time.now - now).to_f) if now
+
               if ready = IO.select(pipes_to_listen_to, [], [], @select_timeout)
                 now = Time.now
                 pipe = ready[0][0]

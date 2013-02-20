@@ -53,20 +53,20 @@ module NewRelic
           NewRelic::Agent::Samplers::MemorySampler.platform
         end
 
-        def stats
-          stats_engine.get_stats("Memory/Physical", false)
-        end
         def poll
           sample = @sampler.get_sample
-          stats.record_data_point sample if sample
-          stats
+          if sample
+            NewRelic::Agent.record_metric("Memory/Physical", sample)
+          end
         end
+
         class Base
           def can_run?
             return false if @broken
             m = get_memory rescue nil
             m && m > 0
           end
+
           def get_sample
             return nil if @broken
             begin

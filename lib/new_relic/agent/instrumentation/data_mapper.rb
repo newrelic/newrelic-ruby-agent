@@ -209,7 +209,7 @@ module NewRelic
           # Record query duration associated with each of the desired metrics.
           metrics = [ "ActiveRecord/#{operation}", 'ActiveRecord/all' ]
           metrics.each do |metric|
-            NewRelic::Agent.instance.stats_engine.get_stats_no_scope(metric).trace_call(duration)
+            NewRelic::Agent.record_metric(metric, duration)
           end
         ensure
           super

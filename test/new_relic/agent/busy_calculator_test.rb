@@ -10,8 +10,8 @@ class NewRelic::Agent::BusyCalculatorTest < Test::Unit::TestCase
   def setup
     @now = Time.now.to_f
     NewRelic::Agent::BusyCalculator.reset
-    @instance_busy = NewRelic::Agent::Stats.new
-    NewRelic::Agent::BusyCalculator.stubs(:instance_busy_stats).returns(@instance_busy)
+    NewRelic::Agent.agent.stats_engine.clear_stats
+    @instance_busy = NewRelic::Agent.agent.stats_engine.get_stats_no_scope('Instance/Busy')
   end
 
   def test_normal

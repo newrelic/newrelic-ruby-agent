@@ -51,29 +51,36 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
     assert_equal NewRelic::Agent.instance, agent_instance
   end
 
-  def test_main_stat
-    self.expects(:get_stats_scoped).with('hello', true)
-    opts = {:scoped_metric_only => true}
-    main_stat('hello', opts)
-  end
-
-  def test_get_metric_stats_metric
-    metrics = ['foo', 'bar', 'baz']
+  def test_get_metric_specs_with_metric_option
+    first_name = 'foo'
+    other_names = ['bar', 'baz']
     opts = {:metric => true}
-    self.expects(:get_stats_unscoped).twice
-    self.expects(:main_stat).with('foo', opts)
-    first_name, stats = get_metric_stats(metrics, opts)
-    assert_equal 'foo', first_name
-    assert_equal 3, stats.length
+
+    specs = get_metric_specs(first_name, other_names, 'scope', opts)
+
+    expected_specs = [
+      NewRelic::MetricSpec.new('foo', 'scope'),
+      NewRelic::MetricSpec.new('foo'),
+      NewRelic::MetricSpec.new('bar'),
+      NewRelic::MetricSpec.new('baz')
+    ]
+
+    assert_equal(expected_specs.sort, specs.sort)
   end
 
-  def test_get_metric_stats_no_metric
-    metrics = ['foo', 'bar', 'baz']
+  def test_get_metric_stats_without_metric_option
+    first_name = 'foo'
+    other_names = ['bar', 'baz']
     opts = {:metric => false}
-    self.expects(:get_stats_unscoped).twice
-    first_name, stats = get_metric_stats(metrics, opts)
-    assert_equal 'foo', first_name
-    assert_equal 2, stats.length
+
+    specs = get_metric_specs(first_name, other_names, 'scope', opts)
+
+    expected_specs = [
+      NewRelic::MetricSpec.new('bar'),
+      NewRelic::MetricSpec.new('baz')
+    ]
+
+    assert_equal(expected_specs.sort, specs.sort)
   end
 
   def test_set_if_nil
@@ -149,17 +156,20 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
     t0 = 1.0
     t1 = 2.0
     metric = 'foo'
-    metric_stats = [mock('fakestat')]
-    metric_stats.first.expects(:trace_call).with(1.0, 0.5)
+    metric_specs = [NewRelic::MetricSpec.new('foo'), NewRelic::MetricSpec.new('bar')]
+    stats = [NewRelic::Agent::Stats.new, NewRelic::Agent::Stats.new]
     expected_scope = 'an expected scope'
     engine = mocked_object('stat_engine')
     scope = mock('scope')
     engine.expects(:pop_scope).with('an expected scope', 1.0, 2.0).returns(scope)
+    engine.expects(:record_metric).with(metric_specs).multiple_yields(*stats)
+    stats[0].expects(:record_data_point).with(1.0, 0.5)
+    stats[1].expects(:record_data_point).with(1.0, 0.5)
     scope.expects(:children_time).returns(0.5)
     self.expects(:pop_flag!).with(false)
     self.expects(:log_errors).with('trace_method_execution footer', 'foo').yields
 
-    trace_execution_scoped_footer(t0, metric, metric_stats, expected_scope, false, t1)
+    trace_execution_scoped_footer(t0, metric, metric_specs, expected_scope, false, t1)
   end
 
   def test_trace_execution_scoped_disabled
@@ -179,10 +189,14 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
   def test_trace_execution_scoped_default
     passed_in_opts = {}
     opts_after_correction = {:metric => true, :deduct_call_time_from_parent => true}
+    specs = [
+      NewRelic::MetricSpec.new('metric'),
+      NewRelic::MetricSpec.new('array')
+    ]
     self.expects(:trace_disabled?).returns(false)
-    self.expects(:get_metric_stats).with(['metric', 'array'], opts_after_correction).returns(['metric', ['stats']])
+    self.expects(:get_metric_specs).with('metric', ['array'], nil, opts_after_correction).returns(specs)
     self.expects(:trace_execution_scoped_header).with('metric', opts_after_correction).returns(['start_time', 'expected_scope'])
-    self.expects(:trace_execution_scoped_footer).with('start_time', 'metric', ['stats'], 'expected_scope', nil)
+    self.expects(:trace_execution_scoped_footer).with('start_time', 'metric', specs, 'expected_scope', nil)
     ran = false
     value = trace_execution_scoped(['metric', 'array'], passed_in_opts) do
       ran = true
@@ -196,10 +210,14 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
   def test_trace_execution_scoped_with_error
     passed_in_opts = {}
     opts_after_correction = {:metric => true, :deduct_call_time_from_parent => true}
+    specs = [
+      NewRelic::MetricSpec.new('metric'),
+      NewRelic::MetricSpec.new('array')
+    ]
     self.expects(:trace_disabled?).returns(false)
-    self.expects(:get_metric_stats).with(['metric', 'array'], opts_after_correction).returns(['metric', ['stats']])
+    self.expects(:get_metric_specs).with('metric', ['array'], nil, opts_after_correction).returns(specs)
     self.expects(:trace_execution_scoped_header).with('metric', opts_after_correction).returns(['start_time', 'expected_scope'])
-    self.expects(:trace_execution_scoped_footer).with('start_time', 'metric', ['stats'], 'expected_scope', nil)
+    self.expects(:trace_execution_scoped_footer).with('start_time', 'metric', specs, 'expected_scope', nil)
     ran = false
     assert_raises(RuntimeError) do
       trace_execution_scoped(['metric', 'array'], passed_in_opts) do

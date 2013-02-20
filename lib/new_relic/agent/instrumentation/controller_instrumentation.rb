@@ -457,7 +457,7 @@ module NewRelic
               # Always subtrace 1 for the active mongrel
               queue_depth = [mongrel.workers.list.length.to_i - 1, 0].max rescue nil
             end
-            NewRelic::Agent.agent.stats_engine.get_stats_no_scope('Mongrel/Queue Length').trace_call(queue_depth) if queue_depth
+            NewRelic::Agent.record_metric('Mongrel/Queue Length', queue_depth) if queue_depth
           end
         end
 
@@ -474,13 +474,6 @@ module NewRelic
           ::NewRelic::Agent.logger.error("Error detecting upstream wait time:", e)
           now
         end
-
-        # returns the NewRelic::Agent::Stats object associated
-        # with the dispatcher time measurement
-        def _dispatch_stat
-          NewRelic::Agent.agent.stats_engine.get_stats_no_scope 'HttpDispatcher'
-        end
-
       end
     end
   end

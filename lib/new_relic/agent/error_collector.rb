@@ -103,11 +103,12 @@ module NewRelic
           return if @seen_error_ids.include?(exception.object_id)
           @seen_error_ids << exception.object_id
 
-          NewRelic::Agent.get_stats("Errors/all").increment_count
-
           txn_info = NewRelic::Agent::TransactionInfo.get
-          if (txn_info.transaction_name_set?)
-            NewRelic::Agent.get_stats("Errors/#{txn_info.transaction_name}").increment_count
+          metric_names = ["Errors/all"]
+          metric_names << "Errors/#{txn_info.transaction_name}" if txn_info.transaction_name_set?
+          stats_engine = NewRelic::Agent.agent.stats_engine
+          stats_engine.record_metric(metric_names) do |stats|
+            stats.increment_count
           end
         end
 

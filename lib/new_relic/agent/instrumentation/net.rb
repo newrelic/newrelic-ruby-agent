@@ -9,7 +9,7 @@ DependencyDetection.defer do
   depends_on do
     defined?(Net) && defined?(Net::HTTP)
   end
-  
+
   executes do
     ::NewRelic::Agent.logger.info 'Installing Net instrumentation'
     require 'new_relic/agent/cross_app_tracing'
@@ -28,7 +28,6 @@ DependencyDetection.defer do
 
       alias request_without_newrelic_trace request
       alias request request_with_newrelic_trace
-
     end
   end
 end

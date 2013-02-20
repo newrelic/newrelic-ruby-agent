@@ -70,8 +70,8 @@ module NewRelic
 
         # Report the metrics
         duration = t1.to_f - t0.to_f
-        metrics.each { |metric| get_metric(metric).trace_call(duration) }
-        get_scoped_metric( scoped_metric ).trace_call( duration )
+        stats_engine.record_metric(metrics, duration)
+        stats_engine.record_metric(scoped_metric, duration, :scoped => true)
 
         # Add TT custom parameters
         stats_engine.rename_scope_segment( scoped_metric )
@@ -130,7 +130,7 @@ module NewRelic
       end
 
 
-      # Return the set of metrics (NewRelic::MethodTraceStats objects) that correspond to
+      # Return the set of metric names that correspond to
       # the given +request+ and +response+.
       def metrics_for( http, request, response )
         metrics = common_metrics( http )
@@ -232,19 +232,6 @@ module NewRelic
         metrics << "External/#{http.address}/Net::HTTP/#{request.method}"
 
         return metrics
-      end
-
-
-      # Convenience function for fetching the metric associated with +metric_name+.
-      def get_metric( metric_name )
-        stats_engine.get_stats_no_scope( metric_name )
-      end
-
-
-      # Convenience function for fetching the scoped metric associated with +metric_name+.
-      def get_scoped_metric( metric_name )
-        # Default is to use the metric_name itself as the scope, which is what we want
-        stats_engine.get_stats( metric_name )
       end
 
 
