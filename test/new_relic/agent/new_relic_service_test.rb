@@ -372,6 +372,18 @@ end
     end
   end
 
+  def test_use_pruby_marshaller_if_error_using_json
+    json_marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+    @service.instance_variable_set(:@marshaller, json_marshaller)
+    JSON.stubs(:dump).raises(RuntimeError.new('blah'))
+    @http_handle.respond_to(:transaction_sample_data, 'ok', :format => :pruby)
+
+    @service.transaction_sample_data([])
+
+    assert_equal('NewRelic::Agent::NewRelicService::PrubyMarshaller',
+                 @service.marshaller.class.name)
+  end
+
   def test_compress_request_if_needed_compresses_large_payloads
     large_payload = 'a' * 65 * 1024
     body, encoding = @service.compress_request_if_needed(large_payload)

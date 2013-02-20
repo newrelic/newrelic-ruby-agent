@@ -247,7 +247,14 @@ module NewRelic
       def invoke_remote(method, *args)
         now = Time.now
 
-        data = @marshaller.dump(args)
+        data = nil
+        begin
+          data = @marshaller.dump(args)
+        rescue JsonError
+          @marshaller = PrubyMarshaller.new
+          retry
+        end
+
         data, encoding = compress_request_if_needed(data)
 
         uri = remote_method_uri(method, @marshaller.format)
@@ -381,6 +388,12 @@ module NewRelic
         end
       end
 
+      # Used to wrap errors reported to agent by the collector
+      class CollectorError < StandardError; end
+
+      # Used to wrap any problem with the JSON marshaller
+      class JsonError < StandardError; end
+
       class Marshaller
         def parsed_error(error)
           error_class = error['error_type'].split('::') \
@@ -466,13 +479,16 @@ module NewRelic
 
         def dump(ruby, opts={})
           JSON.dump(prepare(ruby, opts))
+        rescue => e
+          ::NewRelic::Agent.logger.debug "#{e.class.name} : #{e.message} encountered dumping agent data: #{ruby}"
+          raise JsonError.new(e)
         end
 
         def load(data)
           return unless data && data != ''
           return_value(JSON.load(data))
-        rescue
-          ::NewRelic::Agent.logger.debug "Error encountered loading collector response: #{data}"
+        rescue => e
+          ::NewRelic::Agent.logger.debug "#{e.class.name} : #{e.message} encountered loading collector response: #{data}"
           raise
         end
 
@@ -492,8 +508,6 @@ module NewRelic
           true # for some definitions of 'human'
         end
       end
-
-      class CollectorError < StandardError; end
     end
   end
 end
