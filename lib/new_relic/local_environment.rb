@@ -242,7 +242,7 @@ module NewRelic
     # Although you can override the dispatcher with NEWRELIC_DISPATCHER this
     # is not advisable since it implies certain api's being available.
     def discover_dispatcher
-      dispatchers = %w[passenger torquebox trinidad glassfish thin mongrel litespeed webrick fastcgi unicorn sinatra]
+      dispatchers = %w[passenger torquebox trinidad glassfish resque thin mongrel litespeed webrick fastcgi unicorn sinatra]
       while dispatchers.any? && @discovered_dispatcher.nil?
         send 'check_for_'+(dispatchers.shift)
       end
@@ -314,6 +314,15 @@ module NewRelic
         v = find_class_in_object_space(::Unicorn::HttpServer)
         @discovered_dispatcher = :unicorn if v 
       end
+    end
+
+    def check_for_resque
+      using_resque = (
+        defined?(::Resque) &&
+        (ENV['QUEUE'] || ENV['QUEUES']) &&
+        (File.basename($0) == 'rake' && ARGV.include?('resque:work'))
+      )
+      @discovered_dispatcher = :resque if using_resque
     end
 
     def check_for_sinatra
