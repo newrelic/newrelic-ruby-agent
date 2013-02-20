@@ -1,6 +1,9 @@
 module NewRelic
   module Agent
     module Configuration
+      # This is so we can easily differentiate between the actual
+      # default source and a Hash that was simply pushed onto the
+      # config stack.
       class DefaultSource < Hash; end
 
       DEFAULTS = DefaultSource[

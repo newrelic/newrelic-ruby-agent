@@ -3,12 +3,12 @@ class KeyTransactionsTest < Test::Unit::TestCase
     include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
     def key_txn
-      sleep 0.5
+      sleep 0.05
     end
     add_transaction_tracer :key_txn
 
     def other_txn
-      sleep 0.5
+      sleep 0.05
     end
     add_transaction_tracer :other_txn
   end
@@ -16,11 +16,11 @@ class KeyTransactionsTest < Test::Unit::TestCase
   def setup
     $collector ||= NewRelic::FakeCollector.new
     $collector.reset
-    key_apdex_config = { 'Controller/KeyTransactionsTest::TestWidget/key_txn' => 0.1 }
+    key_apdex_config = { 'Controller/KeyTransactionsTest::TestWidget/key_txn' => 0.01 }
     $collector.mock['connect'] = [200, {'return_value' => {
                                       "agent_run_id" => 666,
                             'web_transactions_apdex' => key_apdex_config,
-                                           'apdex_t' => 1.0
+                                           'apdex_t' => 0.1
                                     }}]
     $collector.run
 
