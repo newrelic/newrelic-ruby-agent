@@ -242,7 +242,7 @@ module NewRelic
     # Although you can override the dispatcher with NEWRELIC_DISPATCHER this
     # is not advisable since it implies certain api's being available.
     def discover_dispatcher
-      dispatchers = %w[passenger torquebox trinidad glassfish resque thin mongrel litespeed webrick fastcgi unicorn sinatra]
+      dispatchers = %w[passenger torquebox trinidad glassfish resque thin mongrel litespeed webrick fastcgi unicorn]
       while dispatchers.any? && @discovered_dispatcher.nil?
         send 'check_for_'+(dispatchers.shift)
       end
@@ -323,22 +323,6 @@ module NewRelic
         (File.basename($0) == 'rake' && ARGV.include?('resque:work'))
       )
       @discovered_dispatcher = :resque if using_resque
-    end
-
-    def check_for_sinatra
-      return unless defined?(::Sinatra) && defined?(::Sinatra::Base)
-
-      begin
-        version = ::Sinatra::VERSION
-      rescue
-        $stderr.puts("Error determining Sinatra version")
-      end
-
-      if ::NewRelic::VersionNumber.new('0.9.2') > version
-        $stderr.puts("Your Sinatra version is #{version}, we highly recommend upgrading to >=0.9.2")
-      end
-
-      @discovered_dispatcher = :sinatra
     end
 
     def check_for_thin
