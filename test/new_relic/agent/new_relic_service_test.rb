@@ -362,6 +362,18 @@ end
         marshaller.load('{"exception": {"message": "error message", "error_type": "JavaCrash"}}')
       end
     end
+
+    def test_use_pruby_marshaller_if_error_using_json
+      json_marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+      @service.instance_variable_set(:@marshaller, json_marshaller)
+      JSON.stubs(:dump).raises(RuntimeError.new('blah'))
+      @http_handle.respond_to(:transaction_sample_data, 'ok', :format => :pruby)
+
+      @service.transaction_sample_data([])
+
+      assert_equal('NewRelic::Agent::NewRelicService::PrubyMarshaller',
+                   @service.marshaller.class.name)
+    end
   end
 
   def test_pruby_marshaller_handles_errors_from_collector
@@ -370,18 +382,6 @@ end
       marshaller.load(Marshal.dump({"exception" => {"message" => "error message",
                                        "error_type" => "JavaCrash"}}))
     end
-  end
-
-  def test_use_pruby_marshaller_if_error_using_json
-    json_marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-    @service.instance_variable_set(:@marshaller, json_marshaller)
-    JSON.stubs(:dump).raises(RuntimeError.new('blah'))
-    @http_handle.respond_to(:transaction_sample_data, 'ok', :format => :pruby)
-
-    @service.transaction_sample_data([])
-
-    assert_equal('NewRelic::Agent::NewRelicService::PrubyMarshaller',
-                 @service.marshaller.class.name)
   end
 
   def test_compress_request_if_needed_compresses_large_payloads
