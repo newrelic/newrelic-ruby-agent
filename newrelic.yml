@@ -148,7 +148,7 @@ common: &default_settings
     # set to false when using other adapters.
     # explain_enabled: true
 
-    # Threshold for query execution time below which query plans will not 
+    # Threshold for query execution time below which query plans will
     # not be captured.  Relevant only when `explain_enabled` is true.
     # explain_threshold: 0.5
   
