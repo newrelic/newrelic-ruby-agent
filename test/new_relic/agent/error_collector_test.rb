@@ -193,8 +193,10 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
   end
 
   def test_increment_error_count_record_summary_and_txn_metric
-    NewRelic::Agent::TransactionInfo.get.stubs(:transaction_name) \
-      .returns('Controller/class/method')
+    txn_info = NewRelic::Agent::TransactionInfo.new
+    txn_info.transaction_name = 'Controller/class/method'
+    NewRelic::Agent::TransactionInfo.stubs(:get).returns(txn_info)
+
     stats_engine = NewRelic::Agent.instance.stats_engine
     stats_engine.reset_stats
     @error_collector.increment_error_count!(StandardError.new('Boo'))
@@ -202,6 +204,16 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
                  'Missing Errors/all metric')
     assert_equal(1, stats_engine.get_stats('Errors/Controller/class/method').call_count,
                  'Missing Errors/Controller/class/method metric')
+  end
+
+  def test_doesnt_increment_error_count_on_transaction_if_nameless
+    txn_info = NewRelic::Agent::TransactionInfo.new
+    NewRelic::Agent::TransactionInfo.stubs(:get).returns(txn_info)
+
+    stats_engine = NewRelic::Agent.instance.stats_engine
+    stats_engine.reset_stats
+    @error_collector.increment_error_count!(StandardError.new('Boo'))
+    assert_equal(0, stats_engine.get_stats('Errors/(unknown)').call_count)
   end
 
   private
