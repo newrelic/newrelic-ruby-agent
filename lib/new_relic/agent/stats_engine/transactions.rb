@@ -134,11 +134,29 @@ module Agent
         end
       end
 
+      def transaction_stats_hash
+        transaction_stats_stack.last
+      end
+
+      def push_transaction_stats
+        transaction_stats_stack << StatsHash.new
+      end
+
+      def pop_transaction_stats
+        stats = transaction_stats_stack.pop
+        merge!(stats) if stats
+        stats
+      end
+
       private
 
       # Returns the current scope stack, memoized to a thread local variable
       def scope_stack
         Thread::current[:newrelic_scope_stack] ||= []
+      end
+
+      def transaction_stats_stack
+        Thread.current[:newrelic_transaction_stack] ||= []
       end
     end
   end

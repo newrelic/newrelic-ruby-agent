@@ -21,8 +21,12 @@ module NewRelic
           options = defaults.merge(options)
           effective_scope = options[:scoped] && options[:scope]
           specs = coerce_to_metric_spec_array(metric_names_or_specs, effective_scope)
-          with_stats_lock do
-            @stats_hash.record(specs, value, &blk)
+          if transaction_stats_hash
+            transaction_stats_hash.record(specs, value, &blk)
+          else
+            with_stats_lock do
+              @stats_hash.record(specs, value, &blk)
+            end
           end
         end
 

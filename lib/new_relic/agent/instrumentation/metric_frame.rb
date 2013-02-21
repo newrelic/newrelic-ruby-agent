@@ -124,6 +124,7 @@ module NewRelic
         # itself.  It gets reset in the normal #pop call.
         def start_transaction
           agent.stats_engine.start_transaction metric_name
+          agent.stats_engine.push_transaction_stats
           # Only push the transaction context info once, on entry:
           if @path_stack.size == 1
             transaction_sampler.notice_transaction(metric_name, uri, filtered_params)
@@ -149,6 +150,7 @@ module NewRelic
         def pop
           metric = @path_stack.pop
           log_underflow if metric.nil?
+          agent.stats_engine.pop_transaction_stats
           if @path_stack.empty?
             handle_empty_path_stack(metric)
           else
