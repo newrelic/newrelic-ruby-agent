@@ -1032,7 +1032,7 @@ module NewRelic
         ensure
           NewRelic::Agent::Database.close_connections unless forked?
           duration = (Time.now - now).to_f
-          @stats_engine.record_metric('Supportability/Harvest', duration)
+          @stats_engine.record_metrics('Supportability/Harvest', duration)
         end
 
         # This method contacts the server to send remaining data and

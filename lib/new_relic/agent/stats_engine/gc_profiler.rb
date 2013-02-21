@@ -50,7 +50,7 @@ module NewRelic
               # GC stats are collected into a blamed metric which allows
               # us to show the stats controller by controller
               NewRelic::Agent.instance.stats_engine \
-                .record_metric('GC/cumulative', nil, :scoped => true) do |stat|
+                .record_metrics('GC/cumulative', nil, :scoped => true) do |stat|
                 stat.record_multiple_data_points(elapsed, num_calls)
               end
             end

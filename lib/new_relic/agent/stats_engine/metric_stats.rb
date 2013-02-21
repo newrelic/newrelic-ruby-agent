@@ -13,7 +13,7 @@ module NewRelic
         #
         # This method is thead-safe, and is preferred to the lookup / modify
         # method pairs (e.g. get_stats + record_data_point)
-        def record_metric(metric_names_or_specs, value=nil, options={}, &blk)
+        def record_metrics(metric_names_or_specs, value=nil, options={}, &blk)
           defaults = {
             :scoped => false,
             :scope => scope_name
@@ -72,14 +72,14 @@ module NewRelic
           end_time = Time.now
           duration = (end_time - start_time).to_f
         ensure
-          NewRelic::Agent.agent.stats_engine.record_metric(metrics) do |stat|
+          record_metrics(metrics) do |stat|
             stat.record_data_point(duration)
           end
         end
 
         # Helper for recording a straight value into the count
         def record_supportability_metrics_count(value, *metrics)
-          NewRelic::Agent.agent.stats_engine.record_metric(metrics) do |stat|
+          record_metrics(metrics) do |stat|
             stat.call_count = value
           end
         end

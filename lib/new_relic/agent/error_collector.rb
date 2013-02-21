@@ -107,7 +107,7 @@ module NewRelic
           metric_names = ["Errors/all"]
           metric_names << "Errors/#{txn_info.transaction_name}" if txn_info.transaction_name_set?
           stats_engine = NewRelic::Agent.agent.stats_engine
-          stats_engine.record_metric(metric_names) do |stats|
+          stats_engine.record_metrics(metric_names) do |stats|
             stats.increment_count
           end
         end

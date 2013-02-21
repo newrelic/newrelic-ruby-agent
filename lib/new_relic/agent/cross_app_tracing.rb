@@ -70,8 +70,8 @@ module NewRelic
 
         # Report the metrics
         duration = t1.to_f - t0.to_f
-        stats_engine.record_metric(metrics, duration)
-        stats_engine.record_metric(scoped_metric, duration, :scoped => true)
+        stats_engine.record_metrics(metrics, duration)
+        stats_engine.record_metrics(scoped_metric, duration, :scoped => true)
 
         # Add TT custom parameters
         stats_engine.rename_scope_segment( scoped_metric )

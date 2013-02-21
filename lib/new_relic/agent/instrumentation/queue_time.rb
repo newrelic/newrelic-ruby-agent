@@ -40,7 +40,7 @@ module NewRelic
         end
 
         def record_frontend_metrics(start_time, now=Time.now)
-          NewRelic::Agent.instance.stats_engine.record_metric(
+          NewRelic::Agent.instance.stats_engine.record_metrics(
             ALL_QUEUE_METRIC, (now - start_time).to_f, :scoped => true)
         end
 

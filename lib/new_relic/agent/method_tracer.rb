@@ -80,9 +80,7 @@ module NewRelic
           ensure
             NewRelic::Agent.instance.pop_trace_execution_flag if options[:force]
             duration = (Time.now - t0).to_f              # for some reason this is 3 usec faster than Time - Time
-            metric_names.each do |metric_name|
-              NewRelic::Agent.record_metric(metric_name, duration)
-            end
+            stat_engine.record_metrics(metric_names, duration)
           end
         end
 
@@ -209,7 +207,7 @@ module NewRelic
               if expected_scope
                 scope = stat_engine.pop_scope(expected_scope, duration, t1)
                 exclusive = duration - scope.children_time
-                stat_engine.record_metric(metric_specs) do |stat|
+                stat_engine.record_metrics(metric_specs) do |stat|
                   stat.record_data_point(duration, exclusive)
                 end
               end

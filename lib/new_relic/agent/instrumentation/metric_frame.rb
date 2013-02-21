@@ -304,10 +304,10 @@ module NewRelic
         end
 
         def self.record_apdex(current_metric, action_duration, total_duration, is_error)
-          agent.stats_engine.record_metric('Apdex') do |stat|
+          agent.stats_engine.record_metrics('Apdex') do |stat|
             update_apdex(stat, total_duration, is_error)
           end
-          agent.stats_engine.record_metric(current_metric.apdex_metric_path) do |stat|
+          agent.stats_engine.record_metrics(current_metric.apdex_metric_path) do |stat|
             update_apdex(stat, action_duration, is_error)
           end
         end

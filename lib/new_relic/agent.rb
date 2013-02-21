@@ -186,7 +186,7 @@ module NewRelic
         stats.sum_of_squares = value[:sum_of_squares]
         value = stats
       end
-      agent.stats_engine.record_metric(metric_name, value)
+      agent.stats_engine.record_metrics(metric_name, value)
     end
 
     # Increment a simple counter metric.
@@ -198,7 +198,7 @@ module NewRelic
     #
     # @api public
     def increment_metric(metric_name, amount=1)
-      agent.stats_engine.record_metric(metric_name) do |stats|
+      agent.stats_engine.record_metrics(metric_name) do |stats|
         stats.increment_count(amount)
       end
     end
