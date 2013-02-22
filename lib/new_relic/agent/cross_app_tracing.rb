@@ -54,7 +54,7 @@ module NewRelic
         request[ NR_TXN_HEADER ] = obfuscate_with_key( key, txn_data )
 
       rescue NewRelic::Agent::CrossAppTracing::Error => err
-        NewRelic::Agent.logger.debug "Not injecting x-process header: %s" % [ err.message ]
+        NewRelic::Agent.logger.debug "Not injecting x-process header", err
       end
 
 
@@ -90,7 +90,7 @@ module NewRelic
 
         return response
       rescue NewRelic::Agent::CrossAppTracing::Error => err
-        NewRelic::Agent.logger.debug "%p in cross app tracing: %s" % [ err.class, err.message ]
+        NewRelic::Agent.logger.debug "while cross app tracing", err
         return response
       end
 
@@ -186,7 +186,8 @@ module NewRelic
       #    <transaction name>,
       #    <queue time in seconds>,
       #    <response time in seconds>,
-      #    <request content length in bytes>
+      #    <request content length in bytes>,
+      #    <transaction GUID>
       #  ]
       def extract_appdata( response )
         appdata = response[NR_APPDATA_HEADER] or
