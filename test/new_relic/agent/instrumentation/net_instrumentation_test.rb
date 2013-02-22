@@ -35,7 +35,8 @@ end
 
 class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::TestCase
   include NewRelic::Agent::Instrumentation::ControllerInstrumentation,
-          NewRelic::Agent::CrossAppMonitor::EncodingFunctions
+          NewRelic::Agent::CrossAppMonitor::EncodingFunctions,
+          NewRelic::Agent::CrossAppTracing
 
   CANNED_RESPONSE = Net::HTTPOK.new( '1.1', '200', 'OK' )
   CANNED_RESPONSE.body = 
@@ -314,7 +315,8 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
 
 
   def test_instrumentation_with_crossapp_disabled_records_normal_metrics_even_if_header_is_present
-    @response[ Net::HTTP::NR_APPDATA_HEADER ] = make_app_data_payload( '18#1884', 'txn-name', 2, 8, 0, TRANSACTION_GUID )
+    @response[ NR_APPDATA_HEADER ] = 
+      make_app_data_payload( '18#1884', 'txn-name', 2, 8, 0, TRANSACTION_GUID )
 
     Net::HTTP.get URI.parse('http://www.google.com/index.html')
 
@@ -333,7 +335,8 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
 
 
   def test_instrumentation_with_crossapp_enabled_records_crossapp_metrics_if_header_present
-    @response[ Net::HTTP::NR_APPDATA_HEADER ] = make_app_data_payload( '18#1884', 'txn-name', 2, 8, 0, TRANSACTION_GUID )
+    @response[ NR_APPDATA_HEADER ] = 
+      make_app_data_payload( '18#1884', 'txn-name', 2, 8, 0, TRANSACTION_GUID )
 
     with_config(:"cross_application_tracer.enabled" => true) do
       Net::HTTP.get URI.parse('http://www.google.com/index.html')
@@ -358,7 +361,8 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
   end
 
   def test_crossapp_metrics_allow_valid_utf8_characters
-    @response[ Net::HTTP::NR_APPDATA_HEADER ] = make_app_data_payload( '12#1114', '世界線航跡蔵', 18.0, 88.1, 4096, TRANSACTION_GUID )
+    @response[ NR_APPDATA_HEADER ] = 
+      make_app_data_payload( '12#1114', '世界線航跡蔵', 18.0, 88.1, 4096, TRANSACTION_GUID )
 
     with_config(:"cross_application_tracer.enabled" => true) do
       Net::HTTP.get URI.parse('http://www.google.com/index.html')
@@ -383,7 +387,8 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
   end
 
   def test_crossapp_metrics_ignores_crossapp_header_with_malformed_crossprocess_id
-    @response[ Net::HTTP::NR_APPDATA_HEADER ] = make_app_data_payload( '88#88#88', 'invalid', 1, 2, 4096, TRANSACTION_GUID )
+    @response[ NR_APPDATA_HEADER ] = 
+      make_app_data_payload( '88#88#88', 'invalid', 1, 2, 4096, TRANSACTION_GUID )
 
     with_config(:"cross_application_tracer.enabled" => true) do
       Net::HTTP.get URI.parse('http://www.google.com/index.html')
