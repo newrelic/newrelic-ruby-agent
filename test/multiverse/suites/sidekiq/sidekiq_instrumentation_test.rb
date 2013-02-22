@@ -26,8 +26,9 @@ class ResqueTest < Test::Unit::TestCase
     File.unlink(@sidekiq_log) if File.exist?(@sidekiq_log)
   end
 
-  def start_worker
-    worker_cmd = "bundle exec sidekiq -P #{@pidfile} -L #{@sidekiq_log} -r ./app.rb &"
+  def start_worker(opts={})
+    daemon_arg = opts[:daemonize] ? '-d' : ''
+    worker_cmd = "bundle exec sidekiq #{daemon_arg} -P #{@pidfile} -L #{@sidekiq_log} -r ./app.rb &"
     system(worker_cmd)
   end
 
@@ -58,9 +59,9 @@ class ResqueTest < Test::Unit::TestCase
     end
   end
 
-  def run_worker
+  def run_worker(opts={})
     begin
-      start_worker
+      start_worker(opts)
       wait_for_jobs
     ensure
       stop_worker
@@ -110,6 +111,22 @@ class ResqueTest < Test::Unit::TestCase
   def test_agent_posts_correct_metric_data
     capture_sidekiq_log do
       run_worker
+      assert_metric_and_call_count('OtherTransaction/SidekiqJob/all', JOB_COUNT)
+    end
+  end
+
+  def test_all_jobs_ran_background
+    capture_sidekiq_log do
+      run_worker(:daemonize => true)
+      completed_jobs = Set.new($redis.smembers('jobs_completed').map(&:to_i))
+      expected_completed_jobs = Set.new((1..JOB_COUNT).to_a)
+      assert_equal(expected_completed_jobs, completed_jobs)
+    end
+  end
+
+  def test_agent_posts_correct_metric_data_background
+    capture_sidekiq_log do
+      run_worker(:daemonize => true)
       assert_metric_and_call_count('OtherTransaction/SidekiqJob/all', JOB_COUNT)
     end
   end
