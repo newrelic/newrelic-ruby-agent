@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 # Some test models
 # These will get created and dropped during the active record tests
 # Be sure and call setup and teardown

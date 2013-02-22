@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 ENV['SKIP_RAILS'] = 'true'
 require File.expand_path('../../../test_helper', __FILE__)
 require File.expand_path('../../../test_contexts', __FILE__)

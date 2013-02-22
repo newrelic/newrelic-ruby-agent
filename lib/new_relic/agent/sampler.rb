@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 # A Sampler is used to capture meaningful metrics in a background thread
 # periodically.  They will either be invoked once a minute just before the
 # data is sent to the agent (default) or every 10 seconds, when #use_harvest_sampler?

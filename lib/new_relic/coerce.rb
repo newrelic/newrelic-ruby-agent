@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 module NewRelic
   # We really don't want to send bad values to the collector, and it doesn't
   # accept types like Rational that have occasionally slipped into our data.

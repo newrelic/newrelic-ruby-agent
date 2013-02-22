@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 module NewRelic::Agent
   # Basic mechanism for the agent instance to provide agent-wide eventing.
   # It is intended to keep different pieces of the app decoupled from each other.

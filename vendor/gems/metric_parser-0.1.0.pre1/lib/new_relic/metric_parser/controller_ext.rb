@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 # Extend the controller with extra behavior from web transactions
 # This is just temporary until we switchover to WebTransaction from Controller.
 

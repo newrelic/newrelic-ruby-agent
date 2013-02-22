@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 module NewRelic
   # Metric parsing logic mixin.  Given a metric name (attribute called "name"), provide a set of accessors
   # that enable inspection of the metric.  A metric has 2 or more segments, each separated

@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 # This module is responsible for intercepting output made through various stdlib
 # calls (i.e. puts, print, etc.) and printing summary information (e.g. a list
 # of failing tests) at the end of the process.
