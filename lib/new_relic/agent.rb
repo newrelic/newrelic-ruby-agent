@@ -155,6 +155,50 @@ module NewRelic
       @logger = log
     end
 
+    # Record a value for the given metric name.
+    #
+    # This method should be used to record event-based metrics such as method
+    # calls that are associated with a specific duration or magnitude.
+    #
+    # +metric_name+ should follow a slash separated path convention. Application
+    # specific metrics should begin with "Custom/".
+    #
+    # +value+ should be either a single Numeric value representing the duration/
+    # magnitude of the event being recorded, or a Hash containing :count,
+    # :total, :min, :max, and :sum_of_squares keys. The latter form is useful
+    # for recording pre-aggregated metrics collected externally.
+    #
+    # This method is safe to use from any thread.
+    #
+    # @api public
+    def record_metric(metric_name, value)
+      if value.is_a?(Hash)
+        stats = NewRelic::Stats.new
+        stats.call_count = value[:count]
+        stats.total_call_time = value[:total]
+        stats.total_exclusive_time = value[:total]
+        stats.min_call_time = value[:min]
+        stats.max_call_time = value[:max]
+        stats.sum_of_squares = value[:sum_of_squares]
+        value = stats
+      end
+      agent.stats_engine.record_metric(metric_name, value)
+    end
+
+    # Increment a simple counter metric.
+    #
+    # +metric_name+ should follow a slash separated path convention. Application
+    # specific metrics should begin with "Custom/".
+    #
+    # This method is safe to use from any thread.
+    #
+    # @api public
+    def increment_metric(metric_name, amount=1)
+      agent.stats_engine.record_metric(metric_name) do |stats|
+        stats.increment_count(amount)
+      end
+    end
+
     # Get or create a statistics gatherer that will aggregate numerical data
     # under a metric name.
     #
@@ -163,6 +207,8 @@ module NewRelic
     #
     # Return a NewRelic::Stats that accepts data
     # via calls to add_data_point(value).
+    #
+    # @deprecated
     def get_stats(metric_name, use_scope=false)
       agent.stats_engine.get_stats(metric_name, use_scope)
     end

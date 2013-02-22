@@ -57,12 +57,8 @@ class SinatraTest < Test::Unit::TestCase
   end
 
   def test_queue_time_headers_are_passed_to_agent
-    get '/user/login', {}, {"X-Request-Start" => 't=1234567890'}
-    metric_names = ::NewRelic::Agent.agent.stats_engine.metrics
-    assert metric_names.include?("Middleware/all")
-    assert metric_names.include?("WebFrontend/QueueTime")
-    assert metric_names.include?("WebFrontend/WebServer/all")
-    assert ::NewRelic::Agent.agent.stats_engine.get_stats("WebFrontend/WebServer/all")
+    get '/user/login', {}, { 'HTTP_X_REQUEST_START' => 't=1360973845' }
+    assert ::NewRelic::Agent.agent.stats_engine.lookup_stats('WebFrontend/QueueTime')
   end
 
   def test_shown_errors_get_caught

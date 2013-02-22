@@ -19,12 +19,13 @@ module NewRelic
       # 534:   v2 (shows up in 2.1.0, our first tag)
 
       attr_accessor :request_timeout, :agent_id
-      attr_reader :collector, :marshaller
+      attr_reader :collector, :marshaller, :metric_id_cache
 
       def initialize(license_key=nil, collector=control.server)
         @license_key = license_key || Agent.config[:license_key]
         @collector = collector
         @request_timeout = Agent.config[:timeout]
+        @metric_id_cache = {}
 
         @audit_logger = ::NewRelic::Agent::AuditLogger.new(Agent.config)
         Agent.config.register_callback(:'audit_log.enabled') do |enabled|
@@ -71,9 +72,47 @@ module NewRelic
         invoke_remote(:shutdown, @agent_id, time.to_i) if @agent_id
       end
 
+      def reset_metric_id_cache
+        @metric_id_cache = {}
+      end
+
+      # takes an array of arrays of spec and id, adds it into the
+      # metric cache so we can save the collector some work by
+      # sending integers instead of strings the next time around
+      def fill_metric_id_cache(pairs_of_specs_and_ids)
+        Array(pairs_of_specs_and_ids).each do |metric_spec_hash, metric_id|
+          metric_spec = MetricSpec.new(metric_spec_hash['name'],
+                                       metric_spec_hash['scope'])
+          metric_id_cache[metric_spec] = metric_id
+        end
+      end
+
+      # The collector wants to recieve metric data in a format that's different
+      # from how we store it internally, so this method handles the translation.
+      # It also handles translating metric names to IDs using our metric ID cache.
+      def build_metric_data_array(stats_hash)
+        metric_data_array = []
+        stats_hash.each do |metric_spec, stats|
+          # Omit empty stats as an optimization
+          unless stats.is_reset?
+            metric_id = metric_id_cache[metric_spec]
+            metric_data = if metric_id
+              NewRelic::MetricData.new(nil, stats, metric_id)
+            else
+              NewRelic::MetricData.new(metric_spec, stats, nil)
+            end
+            metric_data_array << metric_data
+          end
+        end
+        metric_data_array
+      end
+
       def metric_data(last_harvest_time, now, unsent_timeslice_data)
-        invoke_remote(:metric_data, @agent_id, last_harvest_time, now,
-                      unsent_timeslice_data)
+        metric_data_array = build_metric_data_array(unsent_timeslice_data)
+        result = invoke_remote(:metric_data, @agent_id, last_harvest_time, now,
+                                metric_data_array)
+        fill_metric_id_cache(result)
+        result
       end
 
       def error_data(unsent_errors)
@@ -208,7 +247,14 @@ module NewRelic
       def invoke_remote(method, *args)
         now = Time.now
 
-        data = @marshaller.dump(args)
+        data = nil
+        begin
+          data = @marshaller.dump(args)
+        rescue JsonError
+          @marshaller = PrubyMarshaller.new
+          retry
+        end
+
         data, encoding = compress_request_if_needed(data)
 
         uri = remote_method_uri(method, @marshaller.format)
@@ -342,6 +388,12 @@ module NewRelic
         end
       end
 
+      # Used to wrap errors reported to agent by the collector
+      class CollectorError < StandardError; end
+
+      # Used to wrap any problem with the JSON marshaller
+      class JsonError < StandardError; end
+
       class Marshaller
         def parsed_error(error)
           error_class = error['error_type'].split('::') \
@@ -427,13 +479,16 @@ module NewRelic
 
         def dump(ruby, opts={})
           JSON.dump(prepare(ruby, opts))
+        rescue => e
+          ::NewRelic::Agent.logger.debug "#{e.class.name} : #{e.message} encountered dumping agent data: #{ruby}"
+          raise JsonError.new(e)
         end
 
         def load(data)
           return unless data && data != ''
           return_value(JSON.load(data))
-        rescue
-          ::NewRelic::Agent.logger.debug "Error encountered loading collector response: #{data}"
+        rescue => e
+          ::NewRelic::Agent.logger.debug "#{e.class.name} : #{e.message} encountered loading collector response: #{data}"
           raise
         end
 
@@ -453,8 +508,6 @@ module NewRelic
           true # for some definitions of 'human'
         end
       end
-
-      class CollectorError < StandardError; end
     end
   end
 end

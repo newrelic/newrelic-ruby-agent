@@ -15,22 +15,30 @@ module NewRelic
         super { |hash, key| hash[key] = NewRelic::Stats.new }
       end
 
-      def record(metric_name_or_spec, value=nil, options={})
-        if metric_name_or_spec.is_a?(NewRelic::MetricSpec)
-          spec = metric_name_or_spec
-        else
-          scope = options[:scope]
-          spec = NewRelic::MetricSpec.new(metric_name_or_spec, scope)
-        end
+      def marshal_dump
+        Hash[self]
+      end
 
-        stats = self[spec]
-        if block_given?
-          yield stats
-        else
-          if options[:exclusive]
-            stats.record_data_point(value, options[:exclusive])
+      def marshal_load(hash)
+        self.merge!(hash)
+      end
+
+      def ==(other)
+        Hash[self] == Hash[other]
+      end
+
+      def record(metric_specs, value=nil)
+        Array(metric_specs).each do |metric_spec|
+          stats = self[metric_spec]
+          if block_given?
+            yield stats
           else
-            stats.record_data_point(value)
+            case value
+            when Numeric
+              stats.record_data_point(value)
+            when NewRelic::Stats
+              stats.merge!(value)
+            end
           end
         end
       end
@@ -43,6 +51,7 @@ module NewRelic
             self[key] = val
           end
         end
+        self
       end
     end
   end

@@ -92,4 +92,15 @@ class NewRelic::Agent::TransactionInfoTest < Test::Unit::TestCase
       assert_equal 4.0, txn_info.transaction_trace_threshold
     end
   end
+
+  def test_transaction_name
+    NewRelic::Agent::TransactionInfo.reset
+    txn = NewRelic::Agent::TransactionInfo.get
+    assert_equal(NewRelic::Agent::TransactionInfo::DEFAULT_TRANSACTION_NAME,
+      txn.transaction_name)
+    assert_equal(false, txn.transaction_name_set?)
+    txn.transaction_name = "foobar"
+    assert_equal("foobar", txn.transaction_name)
+    assert_equal(true, txn.transaction_name_set?)
+  end
 end

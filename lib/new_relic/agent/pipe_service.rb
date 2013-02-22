@@ -19,7 +19,7 @@ module NewRelic
       end
 
       def metric_data(last_harvest_time, now, unsent_timeslice_data)
-        write_to_pipe(:stats => hash_from_metric_data(unsent_timeslice_data))
+        write_to_pipe(:stats => unsent_timeslice_data)
         {}
       end
 
@@ -47,15 +47,11 @@ module NewRelic
         yield
       end
 
-      private
-
-      def hash_from_metric_data(metric_data)
-        metric_hash = {}
-        metric_data.each do |metric_entry|
-          metric_hash[metric_entry.metric_spec] = metric_entry
-        end
-        metric_hash
+      def reset_metric_id_cache
+        # we don't cache metric IDs, so nothing to do
       end
+
+      private
 
       def write_to_pipe(data)
         NewRelic::Agent::PipeChannelManager.channels[@channel_id].write(data)

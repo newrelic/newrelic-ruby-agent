@@ -84,7 +84,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
 
   def test_new_queue_integration
     # make this test deterministic
-    Time.stubs(:now => Time.at(2))
+    Time.stubs(:now => Time.at(1360973845))
 
     NewRelic::Agent::AgentTestController.clear_headers
     engine.clear_stats
@@ -95,35 +95,9 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     check_metric_time('WebFrontend/QueueTime', 1, 0.1)
   end
 
-
-  def test_new_middleware_integration
-    # make this test deterministic
-    Time.stubs(:now => Time.at(2))
-
-    engine.clear_stats
-    start = ((Time.now - 1).to_f * 1_000_000).to_i
-    NewRelic::Agent::AgentTestController.set_some_headers 'HTTP_X_MIDDLEWARE_START'=> "t=#{start}"
-    get :index
-
-    check_metric_time('Middleware/all', 1, 0.1)
-  end
-
-  def test_new_server_time_integration
-    # make this test deterministic
-    Time.stubs(:now => Time.at(2))
-
-    NewRelic::Agent::AgentTestController.clear_headers
-    engine.clear_stats
-    start = ((Time.now - 1).to_f * 1_000_000).to_i
-    NewRelic::Agent::AgentTestController.set_some_headers 'HTTP_X_REQUEST_START'=> "t=#{start}"
-    get :index
-
-    check_metric_time('WebFrontend/WebServer/all', 1, 0.1)
-  end
-
   def test_new_frontend_work_integration
     # make this test deterministic
-    Time.stubs(:now => Time.at(10))
+    Time.stubs(:now => Time.at(1360973845))
 
     engine.clear_stats
     times = [Time.now - 3, Time.now - 2, Time.now - 1]
@@ -132,10 +106,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
                                                             'HTTP_X_REQUEST_START'=> "t=#{times[0]}", 'HTTP_X_QUEUE_START' => "t=#{times[1]}", 'HTTP_X_MIDDLEWARE_START' => "t=#{times[2]}"})
     get :index
 
-
-    check_metric_time('WebFrontend/WebServer/all', 1, 0.1)
-    check_metric_time('Middleware/all', 1, 0.1)
-    check_metric_time('WebFrontend/QueueTime', 1, 0.1)
+    check_metric_time('WebFrontend/QueueTime', 3, 0.1)
   end
 
   def test_render_inline
@@ -161,10 +132,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
                 'HttpDispatcher',
                 'Controller/new_relic/agent/agent_test/action_with_error',
                 'Errors/all',
-                'Errors/Controller/new_relic/agent/agent_test/action_with_error',
-                'Middleware/all',
-                'WebFrontend/WebServer/all',
-                'WebFrontend/QueueTime']
+                'Errors/Controller/new_relic/agent/agent_test/action_with_error']
 
     compare_metrics metrics, engine.metrics.reject{|m| m.index('Response')==0 || m.index('CPU')==0}
     assert_equal 1, engine.get_stats_no_scope("Controller/new_relic/agent/agent_test/action_with_error").call_count
@@ -186,10 +154,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
                 'HttpDispatcher',
                 'Controller/new_relic/agent/agent_test/action_with_error',
                 'Errors/all',
-                'Errors/Controller/new_relic/agent/agent_test/action_with_error',
-                'WebFrontend/QueueTime',
-                'Middleware/all',
-                'WebFrontend/WebServer/all']
+                'Errors/Controller/new_relic/agent/agent_test/action_with_error']
 
     compare_metrics metrics, engine.metrics.reject{|m| m.index('Response')==0 || m.index('CPU')==0}
     assert_equal 1, engine.get_stats_no_scope("Controller/new_relic/agent/agent_test/action_with_error").call_count
@@ -211,10 +176,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
                 'HttpDispatcher',
                 'Controller/new_relic/agent/agent_test/action_with_before_filter_error',
                 'Errors/all',
-                'Errors/Controller/new_relic/agent/agent_test/action_with_before_filter_error',
-                'WebFrontend/QueueTime',
-                'Middleware/all',
-                'WebFrontend/WebServer/all']
+                'Errors/Controller/new_relic/agent/agent_test/action_with_before_filter_error']
 
     compare_metrics metrics, engine.metrics.reject{|m| m.index('Response')==0 || m.index('CPU')==0 || m.index('GC')==0}
     assert_equal 1, engine.get_stats_no_scope("Controller/new_relic/agent/agent_test/action_with_before_filter_error").call_count
@@ -349,7 +311,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
 
   def test_queue_headers_apache
     # make this test deterministic
-    Time.stubs(:now => Time.at(10))
+    Time.stubs(:now => Time.at(1360973845))
 
     NewRelic::Agent::AgentTestController.clear_headers
     engine.clear_stats
@@ -368,7 +330,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
   end
   def test_queue_headers_heroku
     # make this test deterministic
-    Time.stubs(:now => Time.at(10))
+    Time.stubs(:now => Time.at(1360973845))
 
     engine.clear_stats
     NewRelic::Agent::AgentTestController.clear_headers
@@ -388,7 +350,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
 
   def test_queue_headers_heroku_queue_length
     # make this test deterministic
-    Time.stubs(:now => Time.at(10))
+    Time.stubs(:now => Time.at(1360973845))
 
     engine.clear_stats
     NewRelic::Agent::AgentTestController.clear_headers
