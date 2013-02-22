@@ -37,7 +37,7 @@ module NewRelic
       # Memoized fetcher for the cross app encoding key. Raises a 
       # NewRelic::Agent::CrossAppTracing::Error if the key isn't configured.
       def cross_app_encoding_key
-        @key ||= NewRelic::Agent.config[:encoding_key] or
+        NewRelic::Agent.config[:encoding_key] or
           raise NewRelic::Agent::CrossAppTracing::Error, "No encoding_key set."
       end
 
