@@ -50,6 +50,31 @@ class NewRelic::Agent::DatabaseTest < Test::Unit::TestCase
                  NewRelic::Agent::Database.explain_sql(sql, config))
   end
 
+  def test_dont_collect_explain_for_parameterized_query
+    config = {:adapter => 'postgresql'}
+    config.default('val')
+    connection = mock('connection')
+    connection.expects(:execute).never
+    NewRelic::Agent::Database.stubs(:get_connection).with(config).returns(connection)
+    expects_logging(:debug, 'Unable to collect explain plan for parameterized query.')
+
+    sql = 'SELECT * FROM table WHERE id = $1'
+    assert_equal [], NewRelic::Agent::Database.explain_sql(sql, config)
+  end
+
+  def test_do_collect_explain_for_parameter_looking_literal
+    config = {:adapter => 'postgresql'}
+    config.default('val')
+    connection = mock('connection')
+    plan = [{"QUERY PLAN"=>"Some Jazz"}]
+    connection.stubs(:execute).returns(plan)
+    NewRelic::Agent::Database.stubs(:get_connection).with(config).returns(connection)
+
+    sql = "SELECT * FROM table WHERE id = 'noise $11'"
+    assert_equal([['QUERY PLAN'], [["Some Jazz"]]],
+                 NewRelic::Agent::Database.explain_sql(sql, config))
+  end
+
   def test_explain_sql_no_sql
     assert_equal(nil, NewRelic::Agent::Database.explain_sql(nil, nil))
   end

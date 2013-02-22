@@ -67,15 +67,20 @@ module NewRelic
       end
 
       def explain_statement(statement, config)
-        if is_select?(statement)
-          handle_exception_in_explain do
-            connection = get_connection(config)
-            plan = nil
-            if connection
-              plan = process_resultset(connection.execute("EXPLAIN #{statement}"))
-            end
-            return plan
+        return unless is_select?(statement)
+
+        if parameterized?(statement)
+          NewRelic::Agent.logger.debug('Unable to collect explain plan for parameterized query.')
+          return
+        end
+
+        handle_exception_in_explain do
+          connection = get_connection(config)
+          plan = nil
+          if connection
+            plan = process_resultset(connection.execute("EXPLAIN #{statement}"))
           end
+          return plan
         end
       end
 
@@ -124,6 +129,10 @@ module NewRelic
         # system-defined field separator character
         first_word, rest_of_statement = statement.split($;, 2)
         (first_word.upcase == 'SELECT')
+      end
+
+      def parameterized?(statement)
+        Obfuscator.instance.obfuscate_single_quote_literals(statement) =~ /\$\d+/
       end
 
       class ConnectionManager
