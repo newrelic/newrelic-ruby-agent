@@ -29,10 +29,13 @@ module NewRelic::Agent
       @response = {}
 
       @monitor = NewRelic::Agent::CrossAppMonitor.new()
-      @monitor.finish_setup(
+      @config = {
         :cross_process_id => AGENT_CROSS_APP_ID,
         :encoding_key => ENCODING_KEY_NOOP,
-        :trusted_account_ids => TRUSTED_ACCOUNT_IDS)
+        :trusted_account_ids => TRUSTED_ACCOUNT_IDS
+      }
+        
+      NewRelic::Agent.config.apply_config( @config )
       @monitor.register_event_listeners
       NewRelic::Agent::TransactionInfo.get.guid = TRANSACTION_GUID
 
@@ -40,6 +43,7 @@ module NewRelic::Agent
     end
 
     def teardown
+      NewRelic::Agent.config.remove_config( @config )
       NewRelic::Agent.instance.events.clear
     end
 
@@ -94,13 +98,15 @@ module NewRelic::Agent
     end
 
     def test_doesnt_add_header_if_no_id_on_agent
-      @monitor.finish_setup(
-        :cross_process_id => nil,
-        :encoding_key => ENCODING_KEY_NOOP,
-        :trusted_account_ids => TRUSTED_ACCOUNT_IDS)
+      # Since a +nil+ will make it fall back to the config installed in setup,
+      # we need to remove that first in order to test the no-id case
+      newconfig = @config.merge( :cross_process_id => nil )
+      NewRelic::Agent.config.remove_config( @config )
 
-      when_request_runs
-      assert_nil response_app_data
+      with_config( newconfig ) do
+        when_request_runs
+        assert_nil response_app_data
+      end
     end
 
     def test_doesnt_add_header_if_config_disabled

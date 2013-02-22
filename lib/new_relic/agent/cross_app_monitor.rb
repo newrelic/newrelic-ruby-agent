@@ -54,19 +54,12 @@ module NewRelic
         # When we're starting up for real in the agent, we get passed the events
         # Other spots can pull from the agent, during startup the agent doesn't exist yet!
         events ||= Agent.instance.events
-        @trusted_ids = []
 
         events.subscribe(:finished_configuring) do
-          finish_setup(Agent.config)
           register_event_listeners
         end
       end
 
-      def finish_setup(config)
-        @cross_app_id = config[:cross_process_id]
-        @encoding_key = config[:encoding_key]
-        @trusted_ids = config[:trusted_account_ids] || []
-      end
 
       # Expected sequence of events:
       #   :before_call will save our cross application request id to the thread
@@ -110,9 +103,9 @@ module NewRelic
       end
 
       def save_referring_transaction_info(request_headers)
-        NewRelic::Agent.logger.debug "Request headers: %p" % [ request_headers ]
+        key = NewRelic::Agent.config[:encoding_key]
         txn_header = request_headers[NEWRELIC_TXN_HEADER] or return
-        txn_header = decode_with_key(@encoding_key, txn_header)
+        txn_header = decode_with_key( key, txn_header )
         NewRelic::Agent::AgentThread.current[THREAD_TXN_KEY] = NewRelic.json_load( txn_header )
       end
 
@@ -143,14 +136,13 @@ module NewRelic
       end
 
       def should_process_request(request_headers)
-        return cross_app_enabled? &&
-            @cross_app_id &&
-            trusts?(request_headers)
+        return cross_app_enabled? && trusts?(request_headers)
       end
 
       def cross_app_enabled?
-        NewRelic::Agent.config[:"cross_application_tracer.enabled"] ||
-           NewRelic::Agent.config[:cross_application_tracing]
+        NewRelic::Agent.config[:cross_process_id] &&
+          (NewRelic::Agent.config[:"cross_application_tracer.enabled"] || 
+           NewRelic::Agent.config[:cross_application_tracing])
       end
 
       # Expects an ID of format "12#345", and will only accept that!
@@ -159,7 +151,7 @@ module NewRelic
         split_id = id.match(/(\d+)#\d+/)
         return false if split_id.nil?
 
-        @trusted_ids.include?(split_id.captures.first.to_i)
+        NewRelic::Agent.config[:trusted_account_ids].include?(split_id.captures.first.to_i)
       end
 
       def set_response_headers(response_headers, timings, content_length)
@@ -173,27 +165,28 @@ module NewRelic
         transaction_name = timings.transaction_name.gsub(/["']/, "")
 
         payload = [
-          @cross_app_id,
+          NewRelic::Agent.config[:cross_process_id],
           transaction_name,
           timings.queue_time_in_seconds,
           timings.app_time_in_seconds,
           content_length,
           transaction_guid()
         ]
-        payload = obfuscate_with_key(@encoding_key, NewRelic.json_dump(payload))
+        key = NewRelic::Agent.config[:encoding_key]
+        payload = obfuscate_with_key( key, NewRelic.json_dump(payload) )
       end
 
       def set_transaction_custom_parameters
         # We expect to get the before call to set the id (if we have it) before
         # this, and then write our custom parameter when the transaction starts
-        NewRelic::Agent.add_custom_parameters(:client_cross_process_id => client_cross_app_id) unless client_cross_app_id.nil?
+        NewRelic::Agent.add_custom_parameters(:client_cross_process_id => client_cross_app_id) if client_cross_app_id()
         NewRelic::Agent.add_custom_parameters(:transaction_guid => transaction_guid()) if transaction_guid()
         NewRelic::Agent.add_custom_parameters(:transaction_referring_guid => client_referring_transaction_guid()) if
           client_referring_transaction_guid()
       end
 
       def set_error_custom_parameters(options)
-        options[:client_cross_process_id] = client_cross_app_id unless client_cross_app_id.nil?
+        options[:client_cross_process_id] = client_cross_app_id() if client_cross_app_id()
         # [MG] TODO: Should the CAT metrics be set here too?
       end
 
@@ -206,7 +199,8 @@ module NewRelic
         encoded_id = from_headers(request, NEWRELIC_ID_HEADER_KEYS)
         return "" if encoded_id.nil?
 
-        decode_with_key(@encoding_key, encoded_id)
+        key = NewRelic::Agent.config[:encoding_key]
+        decode_with_key( key, encoded_id )
       end
 
       def content_length_from_request(request)
