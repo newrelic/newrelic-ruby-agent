@@ -935,7 +935,16 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     @sampler.start_builder
     @sampler.notice_push_scope( 'External/www.google.com/all' )
     @sampler.rename_scope_segment( 'External/www.google.com/Net::HTTP/GET' )
-    @sampler.notice_pop_scope( 'External/www.google.com/Net::HTTP/GET' )
+    assert_nothing_raised do
+      @sampler.notice_pop_scope( 'External/www.google.com/Net::HTTP/GET' )
+    end
+  end
+
+  def test_adding_segment_parameters
+    @sampler.start_builder
+    @sampler.notice_push_scope( 'External/www.google.com/all' )
+    @sampler.add_segment_parameters( :transaction_guid => '97612F92E6194080' )
+    assert_equal '97612F92E6194080', @sampler.builder.current_segment[:transaction_guid]
   end
 
   private

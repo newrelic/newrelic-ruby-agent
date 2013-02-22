@@ -326,6 +326,12 @@ module NewRelic
         notice_extra_data(key, duration, :key)
       end
 
+      # Set parameters on the current segment.
+      def add_segment_parameters( params )
+        return unless builder
+        builder.current_segment.params.merge!( params )
+      end
+
       # Every 1/n harvests, adds the most recent sample to the harvest
       # array if it exists. Makes sure that the random sample is not
       # also the slowest sample for this harvest by `uniq!`ing the

@@ -23,8 +23,14 @@ DependencyDetection.defer do
       # The cross app response header for "outgoing" calls
       NR_APPDATA_HEADER = 'X-NewRelic-App-Data'
 
-      # The cross app request header for "outgoing" calls
+      # The cross app id header for "outgoing" calls
       NR_ID_HEADER = 'X-NewRelic-ID'
+
+      # The cross app transaction header for "outgoing" calls
+      NR_TXN_HEADER = 'X-NewRelic-Transaction'
+
+      # The index of the transaction GUID in the appdata header of responses
+      APPDATA_TXN_GUID_INDEX = 5
 
 
       # Instrument outgoing HTTP requests and fire associated events back
@@ -32,7 +38,7 @@ DependencyDetection.defer do
       def request_with_newrelic_trace(request, *args, &block)
         events = NewRelic::Agent.instance.events
 
-        inject_request_header( request ) if cross_app_enabled?
+        inject_request_headers( request ) if cross_app_enabled?
         response = trace_http_request( request, *args, &block )
 
         return response
@@ -44,7 +50,8 @@ DependencyDetection.defer do
 
       # Return +true+ if cross app tracing is enabled in the config.
       def cross_app_enabled?
-        NewRelic::Agent.config[:cross_application_tracing]
+        NewRelic::Agent.config[:"cross_application_tracer.enabled"] ||
+           NewRelic::Agent.config[:cross_application_tracing]
       end
 
 
@@ -57,12 +64,15 @@ DependencyDetection.defer do
 
 
       # Inject the X-Process header into the outgoing +request+.
-      def inject_request_header( request )
+      def inject_request_headers( request )
+        key = cross_app_encoding_key()
         cross_app_id = NewRelic::Agent.config[:cross_process_id] or
           raise Net::HTTP::CrossAppError, "no cross app ID configured"
-        key = cross_app_encoding_key()
+        txn_guid = NewRelic::Agent::TransactionInfo.get.guid
+        txn_data = NewRelic.json_dump([ txn_guid, false ])
 
         request[ NR_ID_HEADER ] = obfuscate_with_key( key, cross_app_id )
+        request[ NR_TXN_HEADER ] = obfuscate_with_key( key, txn_data )
 
       rescue Net::HTTP::CrossAppError => err
         NewRelic::Agent.logger.debug "Not injecting x-process header: %s" % [ err.message ]
@@ -91,13 +101,28 @@ DependencyDetection.defer do
         metrics.each { |metric| get_metric(metric).trace_call(duration) }
         get_scoped_metric( scoped_metric ).trace_call( duration )
 
-        # Change the name of the segment to the scoped metric and then pop it.
+        # Add TT custom parameters
         stats_engine.rename_scope_segment( scoped_metric )
+        extract_custom_parameters( response ) if response_is_crossapp?( response )
+
+        # Change the name of the segment to the scoped metric and then pop it.
         stats_engine.pop_scope( segment, duration, t1 )
 
         return response
       rescue Net::HTTP::CrossAppError => err
         NewRelic::Agent.logger.debug "%p in cross app tracing: %s" % [ err.class, err.message ]
+        return response
+      end
+
+
+      # Extract any custom parameters from +response+ if it's cross-application and
+      # add them to the current TT node.
+      def extract_custom_parameters( response )
+
+        appdata = extract_appdata( response )
+        sampler = NewRelic::Agent.instance.transaction_sampler
+        sampler.add_segment_parameters( :transaction_guid => appdata[APPDATA_TXN_GUID_INDEX] )
+
       end
 
 
@@ -107,6 +132,7 @@ DependencyDetection.defer do
         metrics = common_metrics()
 
         if response_is_crossapp?( response )
+          NewRelic::Agent.logger.debug "Response has CAT data."
           begin
             metrics.concat metrics_for_crossapp_response( response )
           rescue => err
@@ -116,6 +142,7 @@ DependencyDetection.defer do
             metrics.concat metrics_for_regular_response( request, response )
           end
         else
+          NewRelic::Agent.logger.debug "Response doesn't have CAT headers."
           metrics.concat metrics_for_regular_response( request, response )
         end
 
@@ -142,7 +169,14 @@ DependencyDetection.defer do
       # Returns +true+ if Cross Application Tracing is enabled, and the given +response+
       # has the appropriate headers.
       def response_is_crossapp?( response )
-        return cross_app_enabled? && response[NR_APPDATA_HEADER]
+        return false unless cross_app_enabled?
+        unless response[NR_APPDATA_HEADER]
+          NewRelic::Agent.logger.debug "Response doesn't have the %p header: %p" %
+            [ NR_APPDATA_HEADER, response.to_hash ]
+          return false
+        end
+
+        return true
       end
 
 
@@ -154,9 +188,10 @@ DependencyDetection.defer do
         check_crossapp_id( xp_id )
         check_transaction_name( txn_name )
 
+        NewRelic::Agent.logger.debug "CAT xp_id: %p, txn_name: %p." % [ xp_id, txn_name ]
+
         metrics = []
         metrics << "ExternalApp/#@address/#{xp_id}/all"
-        metrics << "ExternalTransaction/#@address/#{xp_id}/#{txn_name}"
         metrics << "ExternalTransaction/#@address/#{xp_id}/#{txn_name}"
 
         return metrics
