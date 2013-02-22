@@ -5,13 +5,13 @@ class NewRelic::Agent::DatabaseTest < Test::Unit::TestCase
   def teardown
     NewRelic::Agent::Database::Obfuscator.instance.reset
   end
-  
+
   def test_process_resultset
     resultset = [["column"]]
     assert_equal([nil, [["column"]]],
                  NewRelic::Agent::Database.process_resultset(resultset))
   end
-  
+
   def test_explain_sql_select_with_mysql_connection
     config = {:adapter => 'mysql'}
     config.default('val')
@@ -30,7 +30,7 @@ class NewRelic::Agent::DatabaseTest < Test::Unit::TestCase
 
     result = NewRelic::Agent::Database.explain_sql(sql, config)
     assert_equal(plan.keys.sort, result[0].sort)
-    assert_equal(plan.values.compact.sort, result[1][0].compact.sort)    
+    assert_equal(plan.values.compact.sort, result[1][0].compact.sort)
   end
 
   def test_explain_sql_one_select_with_pg_connection
@@ -96,8 +96,8 @@ class NewRelic::Agent::DatabaseTest < Test::Unit::TestCase
     config = mock('config')
     config.stubs(:[]).returns(nil)
     assert_equal([], NewRelic::Agent::Database.explain_sql('SELECT', config))
-  end  
-  
+  end
+
   def test_obfuscation_mysql_basic
     insert = %q[INSERT INTO `X` values("test",0, 1 , 2, 'test')]
     assert_equal("INSERT INTO `X` values(?,?, ? , ?, ?)",
@@ -115,9 +115,9 @@ class NewRelic::Agent::DatabaseTest < Test::Unit::TestCase
     select = NewRelic::Agent::Database::Statement.new(%q[SELECT "table"."column" FROM "table" WHERE "table"."column" = 'value' AND "table"."other_column" = 'other value' LIMIT 1])
     select.adapter = :postgresql
     assert_equal(%q[SELECT "table"."column" FROM "table" WHERE "table"."column" = ? AND "table"."other_column" = ? LIMIT ?],
-                 NewRelic::Agent::Database.obfuscate_sql(select))  
+                 NewRelic::Agent::Database.obfuscate_sql(select))
   end
-  
+
   def test_obfuscation_escaped_literals
     insert = %q[INSERT INTO X values('', 'jim''s ssn',0, 1 , 'jim''s son''s son', """jim''s"" hat", "\"jim''s secret\"")]
     assert_equal("INSERT INTO X values(?, ?,?, ? , ?, ?, ?)",
@@ -129,7 +129,7 @@ class NewRelic::Agent::DatabaseTest < Test::Unit::TestCase
     assert_equal(%q[SELECT * FROM `table_007` LIMIT ?],
                  NewRelic::Agent::Database.obfuscate_sql(select))
   end
-  
+
   def test_obfuscation_postgresql_integers_in_identifiers
     select = NewRelic::Agent::Database::Statement.new(%q[SELECT * FROM "table_007" LIMIT 1])
     select.adapter = :postgresql
@@ -141,21 +141,21 @@ class NewRelic::Agent::DatabaseTest < Test::Unit::TestCase
     NewRelic::Agent::Database.set_sql_obfuscator(:replace) do |string|
       "1" + string
     end
-    
+
     sql = "SELECT * FROM TABLE 123 'jim'"
-    
+
     assert_equal "1" + sql, NewRelic::Agent::Database.obfuscate_sql(sql)
-    
+
     NewRelic::Agent::Database.set_sql_obfuscator(:before) do |string|
       "2" + string
     end
-    
+
     assert_equal "12" + sql, NewRelic::Agent::Database.obfuscate_sql(sql)
-    
+
     NewRelic::Agent::Database.set_sql_obfuscator(:after) do |string|
       string + "3"
     end
-    
+
     assert_equal "12" + sql + "3", NewRelic::Agent::Database.obfuscate_sql(sql)
 
     NewRelic::Agent::Database::Obfuscator.instance.reset
@@ -165,11 +165,11 @@ class NewRelic::Agent::DatabaseTest < Test::Unit::TestCase
     foo_connection = mock('foo connection')
     bar_connection = mock('bar connection')
     NewRelic::Agent::Database::ConnectionManager.instance.instance_eval do
-      @connections = { :foo => foo_connection, :bar => bar_connection }      
+      @connections = { :foo => foo_connection, :bar => bar_connection }
     end
     foo_connection.expects(:disconnect!)
     bar_connection.expects(:disconnect!)
-    
+
     NewRelic::Agent::Database.close_connections
   end
 end
