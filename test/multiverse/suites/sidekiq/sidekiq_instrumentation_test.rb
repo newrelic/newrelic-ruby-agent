@@ -27,7 +27,7 @@ class ResqueTest < Test::Unit::TestCase
   end
 
   def start_worker
-    worker_cmd = "NEWRELIC_DISPATCHER=sidekiq bundle exec sidekiq -P #{@pidfile} -L #{@sidekiq_log} -r ./app.rb &"
+    worker_cmd = "bundle exec sidekiq -P #{@pidfile} -L #{@sidekiq_log} -r ./app.rb &"
     system(worker_cmd)
   end
 
