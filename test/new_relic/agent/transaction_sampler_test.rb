@@ -381,7 +381,8 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     builder.expects(:current_segment).returns(segment)
     segment.expects(:[]).with(key).returns(nil)
     @sampler.expects(:append_new_message).with(nil, 'a message').returns('a message')
-    @sampler.expects(:truncate_message).with('a message').returns('truncated_message')
+    NewRelic::Agent::TransactionSampler.expects(:truncate_message) \
+      .with('a message').returns('truncated_message')
     segment.expects(:[]=).with(key, 'truncated_message')
     @sampler.expects(:append_backtrace).with(segment, 1.0)
     @sampler.send(:notice_extra_data, 'a message', 1.0, key)
@@ -389,12 +390,12 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
   def test_truncate_message_short_message
     message = 'a message'
-    assert_equal(message, @sampler.truncate_message(message))
+    assert_equal(message, NewRelic::Agent::TransactionSampler.truncate_message(message))
   end
 
   def test_truncate_message_long_message
     message = 'a' * 16384
-    truncated_message = @sampler.truncate_message(message)
+    truncated_message = NewRelic::Agent::TransactionSampler.truncate_message(message)
     assert_equal(16384, truncated_message.length)
     assert_equal('a' * 16381 + '...', truncated_message)
   end

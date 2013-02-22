@@ -33,6 +33,13 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
     assert_equal 2, @sampler.transaction_data.sql_data.size
   end
 
+  def test_notice_sql_truncates_query
+    @sampler.notice_first_scope_push nil
+    message = 'a' * 17_000
+    @sampler.notice_sql message, "Database/test/select", nil, 1.5
+    assert_equal('a' * 16_381 + '...', @sampler.transaction_data.sql_data[0].sql)
+  end
+
   def test_harvest_slow_sql
     data = NewRelic::Agent::TransactionSqlData.new
     data.set_transaction_info("WebTransaction/Controller/c/a", "/c/a", {},

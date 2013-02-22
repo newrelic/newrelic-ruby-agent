@@ -62,12 +62,17 @@ module NewRelic
       def explain_sql(sql, connection_config)
         return nil unless sql && connection_config
         statement = sql.split(";\n")[0] # only explain the first
-        explain_sql = explain_statement(statement, connection_config)
-        return explain_sql || []
+        explain_plan = explain_statement(statement, connection_config)
+        return explain_plan || []
       end
 
       def explain_statement(statement, config)
         return unless is_select?(statement)
+
+        if statement[-3,3] == '...'
+          NewRelic::Agent.logger.debug('Unable to collect explain plan for truncated query.')
+          return
+        end
 
         if parameterized?(statement)
           NewRelic::Agent.logger.debug('Unable to collect explain plan for parameterized query.')
@@ -209,6 +214,10 @@ module NewRelic
         end
 
         def default_sql_obfuscator(sql)
+          if sql[-3,3] == '...'
+            return "Query too large (over 16k characters) to safely obfuscate"
+          end
+
           stmt = sql.kind_of?(Statement) ? sql : Statement.new(sql)
           adapter = stmt.adapter
           obfuscated = remove_escaped_quotes(stmt)
