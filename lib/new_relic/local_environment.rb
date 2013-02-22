@@ -245,7 +245,7 @@ module NewRelic
     # Although you can override the dispatcher with NEWRELIC_DISPATCHER this
     # is not advisable since it implies certain api's being available.
     def discover_dispatcher
-      dispatchers = %w[passenger torquebox trinidad glassfish resque thin mongrel litespeed webrick fastcgi rainbows unicorn]
+      dispatchers = %w[passenger torquebox trinidad glassfish resque sidekiq thin mongrel litespeed webrick fastcgi rainbows unicorn]
       while dispatchers.any? && @discovered_dispatcher.nil?
         send 'check_for_'+(dispatchers.shift)
       end
@@ -333,6 +333,12 @@ module NewRelic
         (File.basename($0) == 'rake' && ARGV.include?('resque:work'))
       )
       @discovered_dispatcher = :resque if using_resque
+    end
+
+    def check_for_sidekiq
+      if defined?(::Sidekiq) && File.basename($0) == 'sidekiq'
+        @discovered_dispatcher = :sidekiq
+      end
     end
 
     def check_for_thin
