@@ -89,6 +89,9 @@ module NewRelic
             end
 
             name
+          rescue => e
+            ::NewRelic::Agent.logger.debug("#{e.class} : #{e.message} - Error encountered trying to identify Sinatra transaction name")
+            '(unknown)'
           end
         end
       end

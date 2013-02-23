@@ -1,3 +1,4 @@
+require 'mocha'
 
 class SinatraRouteTestApp < Sinatra::Base
   configure do
@@ -25,7 +26,6 @@ class SinatraRouteTestApp < Sinatra::Base
   get '/error' do
     raise "Uh-oh"
   end
-
 end
 
 class SinatraTest < Test::Unit::TestCase
@@ -64,5 +64,16 @@ class SinatraTest < Test::Unit::TestCase
   def test_shown_errors_get_caught
     get '/error'
     assert_equal 1, ::NewRelic::Agent.agent.error_collector.errors.size
+  end
+
+  def test_set_unknown_transaction_name_if_error_in_routing
+    ::NewRelic::Agent::Instrumentation::Sinatra::NewRelic \
+      .stubs(:http_verb).raises(StandardError.new('madness'))
+
+    get '/user/login'
+
+    metric_names = ::NewRelic::Agent.agent.stats_engine.metrics
+    assert(metric_names.include?('Controller/Sinatra/SinatraRouteTestApp/(unknown)'),
+           "#{metric_names} should include 'Controller/Sinatra/SinatraRouteTestApp/(unknown)'")
   end
 end
