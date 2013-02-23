@@ -81,9 +81,11 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
   end
 
   def teardown
-    NewRelic::Agent.instance.transaction_sampler.clear_builder
-    @engine.end_transaction
+    NewRelic::Agent.instance.transaction_sampler.reset!
+    Thread::current[:newrelic_scope_stack] = nil
+    NewRelic::Agent.instance.stats_engine.end_transaction
   end
+
 
   #
   # Helpers
@@ -405,6 +407,34 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
     assert_not_includes @engine.metrics, 'ExternalApp/www.google.com/88#88#88/all'
     assert_not_includes @engine.metrics, 'ExternalTransaction/www.google.com/88#88#88/invalid'
     assert_not_includes @engine.metrics, 'External/allWeb'
+  end
+
+  def test_doesnt_affect_the_request_if_an_exception_is_raised_while_setting_up_tracing
+    res = nil
+    NewRelic::Agent.instance.stats_engine.stubs( :push_scope ).
+      raises( NoMethodError, "undefined method `push_scope'" )
+
+    with_config(:"cross_application_tracer.enabled" => true) do
+      assert_nothing_raised do
+        res = Net::HTTP.get URI.parse('http://www.google.com/index.html')
+      end
+    end
+
+    assert_equal res, CANNED_RESPONSE.instance_variable_get( :@body )
+  end
+
+  def test_doesnt_affect_the_request_if_an_exception_is_raised_while_finishing_tracing
+    res = nil
+    NewRelic::Agent.instance.stats_engine.stubs( :pop_scope ).
+      raises( NoMethodError, "undefined method `pop_scope'" )
+
+    with_config(:"cross_application_tracer.enabled" => true) do
+      assert_nothing_raised do
+        res = Net::HTTP.get URI.parse('http://www.google.com/index.html')
+      end
+    end
+
+    assert_equal res, CANNED_RESPONSE.instance_variable_get( :@body )
   end
 
 end

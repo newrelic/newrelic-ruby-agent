@@ -9,7 +9,7 @@ module NewRelic
       # Exception raised if there is a problem with cross app transactions.
       class Error < RuntimeError; end
 
-        
+
       # The cross app response header for "outgoing" calls
       NR_APPDATA_HEADER = 'X-NewRelic-App-Data'
 
@@ -27,6 +27,64 @@ module NewRelic
       module_function
       ###############
 
+      # Send the given +request+, adding metrics appropriate to the
+      # response when it comes back.
+      def trace_http_request( http, request )
+        return yield unless NewRelic::Agent.is_execution_traced?
+
+        t0, segment = start_trace( http, request )
+        response = yield
+        finish_trace( t0, segment, request, response, http ) if t0
+
+        return response
+      end
+
+
+      # Set up the necessary state for cross-application tracing before the
+      # given +request+ goes out on the specified +http+ connection.
+      def start_trace( http, request )
+        inject_request_headers( request ) if cross_app_enabled?
+
+        # Create a segment and time the call
+        t0 = Time.now
+        segment = stats_engine.push_scope( "External/#{http.address}/all", t0 )
+
+        return t0, segment
+      rescue => err
+        NewRelic::Agent.logger.error "Uncaught exception while tracing HTTP request", err
+        return nil
+      end
+
+
+      # Finish tracing the HTTP +request+ that started at +t0+ with the information in
+      # +response+ and the given +http+ connection.
+      def finish_trace( t0, segment, request, response, http )
+        t1 = Time.now
+
+        # Figure out which metrics we need to report based on the request and response
+        # The last (most-specific) one is scoped.
+        metrics = metrics_for( http, request, response )
+        scoped_metric = metrics.pop
+
+        # Report the metrics
+        duration = t1.to_f - t0.to_f
+        metrics.each { |metric| get_metric(metric).trace_call(duration) }
+        get_scoped_metric( scoped_metric ).trace_call( duration )
+
+        # Add TT custom parameters
+        stats_engine.rename_scope_segment( scoped_metric )
+        extract_custom_parameters( response ) if response_is_crossapp?( response )
+
+        # Change the name of the segment to the scoped metric and then pop it.
+        stats_engine.pop_scope( segment, duration, t1 )
+
+      rescue NewRelic::Agent::CrossAppTracing::Error => err
+        NewRelic::Agent.logger.debug "while cross app tracing", err
+      rescue => err
+        NewRelic::Agent.logger.error "Uncaught exception while finishing an HTTP request trace", err
+      end
+
+
       # Return +true+ if cross app tracing is enabled in the config.
       def cross_app_enabled?
         NewRelic::Agent.config[:cross_process_id] &&
@@ -35,7 +93,7 @@ module NewRelic
       end
 
 
-      # Memoized fetcher for the cross app encoding key. Raises a 
+      # Memoized fetcher for the cross app encoding key. Raises a
       # NewRelic::Agent::CrossAppTracing::Error if the key isn't configured.
       def cross_app_encoding_key
         NewRelic::Agent.config[:encoding_key] or
@@ -56,43 +114,6 @@ module NewRelic
 
       rescue NewRelic::Agent::CrossAppTracing::Error => err
         NewRelic::Agent.logger.debug "Not injecting x-process header", err
-      end
-
-
-      # Send the given +request+, adding metrics appropriate to the
-      # response when it comes back.
-      def trace_http_request( http, request )
-        inject_request_headers( request ) if cross_app_enabled?
-
-        return yield unless NewRelic::Agent.is_execution_traced?
-
-        # Create a segment and time the call
-        t0 = Time.now
-        segment = stats_engine.push_scope( "External/#{http.address}/all", t0 )
-        response = yield
-        t1 = Time.now
-
-        # Figure out which metrics we need to report based on the request and response
-        # The last (most-specific) one is scoped.
-        metrics = metrics_for( http, request, response )
-        scoped_metric = metrics.pop
-
-        # Report the metrics
-        duration = t1.to_f - t0.to_f
-        metrics.each { |metric| get_metric(metric).trace_call(duration) }
-        get_scoped_metric( scoped_metric ).trace_call( duration )
-
-        # Add TT custom parameters
-        stats_engine.rename_scope_segment( scoped_metric )
-        extract_custom_parameters( response ) if response_is_crossapp?( response )
-
-        # Change the name of the segment to the scoped metric and then pop it.
-        stats_engine.pop_scope( segment, duration, t1 )
-
-        return response
-      rescue NewRelic::Agent::CrossAppTracing::Error => err
-        NewRelic::Agent.logger.debug "while cross app tracing", err
-        return response
       end
 
 
@@ -209,7 +230,7 @@ module NewRelic
       def metrics_for_regular_response( http, request, response )
         metrics = []
         metrics << "External/#{http.address}/Net::HTTP/#{request.method}"
-        
+
         return metrics
       end
 
@@ -248,7 +269,7 @@ module NewRelic
         # No-op -- apparently absolutely anything is a valid transaction name?
         # This is here for when that inevitably comes back to haunt us.
       end
-      
+
     end
   end
 end
