@@ -3,15 +3,25 @@ require 'erb'
 module NewRelic
   module Agent
     class TransactionInfo
+      DEFAULT_TRANSACTION_NAME = '(unknown)'
 
-      attr_accessor :token, :capture_deep_tt, :transaction_name
+      attr_accessor :token, :capture_deep_tt
+      attr_writer :transaction_name
       attr_reader :start_time
 
       def initialize
         @guid = ""
-        @transaction_name = "(unknown)"
+        @transaction_name = nil
         @start_time = Time.now
         @ignore_end_user = false
+      end
+
+      def transaction_name_set?
+        !@transaction_name.nil?
+      end
+
+      def transaction_name
+        @transaction_name || DEFAULT_TRANSACTION_NAME
       end
 
       def force_persist_sample?(sample)
@@ -37,9 +47,24 @@ module NewRelic
       def ignore_end_user?
         @ignore_end_user
       end
-      
+
       def ignore_end_user=(value)
         @ignore_end_user = value
+      end
+
+      def apdex_t
+        (Agent.config[:web_transactions_apdex] &&
+         Agent.config[:web_transactions_apdex][@transaction_name]) ||
+          Agent.config[:apdex_t]
+      end
+
+      def transaction_trace_threshold
+        key = :'transaction_tracer.transaction_threshold'
+        if Agent.config.source(key).class == Configuration::DefaultSource
+          apdex_t * 4
+        else
+          Agent.config[key]
+        end
       end
 
       def self.get()
@@ -64,9 +89,9 @@ module NewRelic
 
       def self.get_token(request)
         return nil unless request
-        
+
         agent_flag = request.cookies['NRAGENT']
-        if agent_flag and agent_flag.instance_of? String 
+        if agent_flag and agent_flag.instance_of? String
           s = agent_flag.split("=")
           if s.length == 2
             if s[0] == "tk" && s[1]
@@ -78,7 +103,7 @@ module NewRelic
         end
       end
 
-      # Run through a collection of unsafe characters ( in the context of the token ) 
+      # Run through a collection of unsafe characters ( in the context of the token )
       # and set the token to an empty string if any of them are found in the token so that
       # potential XSS attacks via the token are avoided
       def self.sanitize_token(token)

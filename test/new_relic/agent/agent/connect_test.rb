@@ -181,7 +181,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     query_server_for_configuration
   end
 
-  def test_connect_to_server_gets_config_from_collector
+  def test_connect_gets_config
     NewRelic::Agent.manual_start
     NewRelic::Agent::Agent.instance.service = default_service(
       :connect => {'agent_run_id' => 23, 'config' => 'a lot'})
@@ -192,6 +192,50 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     assert_equal 'a lot', response['config']
 
     NewRelic::Agent.shutdown
+  end
+
+  def test_finish_setup_saves_transaction_name_rules
+    NewRelic::Agent.instance.instance_variable_set(:@transaction_rules,
+                                            NewRelic::Agent::RulesEngine.new)
+    config = {
+      'transaction_name_rules' => [ { 'match_expression' => '88',
+                                      'replacement'      => '**' },
+                                    { 'match_expression' => 'xx',
+                                      'replacement'      => 'XX' } ]
+    }
+    finish_setup(config)
+
+    rules = NewRelic::Agent.instance.transaction_rules
+    assert_equal 2, rules.size
+    assert(rules.find{|r| r.match_expression == /88/ && r.replacement == '**' },
+           "rule not found among #{rules}")
+    assert(rules.find{|r| r.match_expression == /xx/ && r.replacement == 'XX' },
+           "rule not found among #{rules}")
+  ensure
+    NewRelic::Agent.instance.instance_variable_set(:@transaction_rules,
+                                            NewRelic::Agent::RulesEngine.new)
+  end
+
+  def test_finish_setup_saves_metric_name_rules
+    NewRelic::Agent.instance.instance_variable_set(:@metric_rules,
+                                            NewRelic::Agent::RulesEngine.new)
+    config = {
+      'metric_name_rules' => [ { 'match_expression' => '77',
+                                 'replacement'      => '&&' },
+                               { 'match_expression' => 'yy',
+                                 'replacement'      => 'YY' }]
+    }
+    finish_setup(config)
+
+    rules = NewRelic::Agent.instance.metric_rules
+    assert_equal 2, rules.size
+    assert(rules.find{|r| r.match_expression == /77/ && r.replacement == '&&' },
+           "rule not found among #{rules}")
+    assert(rules.find{|r| r.match_expression == /yy/ && r.replacement == 'YY' },
+           "rule not found among #{rules}")
+  ensure
+    NewRelic::Agent.instance.instance_variable_set(:@metric_rules,
+                                            NewRelic::Agent::RulesEngine.new)
   end
 
   def test_finish_setup

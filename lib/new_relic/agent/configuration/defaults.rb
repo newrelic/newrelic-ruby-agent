@@ -1,7 +1,12 @@
 module NewRelic
   module Agent
     module Configuration
-      DEFAULTS = {
+      # This is so we can easily differentiate between the actual
+      # default source and a Hash that was simply pushed onto the
+      # config stack.
+      class DefaultSource < Hash; end
+
+      DEFAULTS = DefaultSource[
         :config_path => Proc.new {
           # Check a sequence of file locations for newrelic.yml
           files = []
@@ -115,12 +120,13 @@ module NewRelic
         :'rum.load_episodes_file' => true,
         :'browser_monitoring.auto_instrument' => Proc.new { self[:'rum.enabled'] },
 
-        :'cross_process.enabled'  => true,
+        :trusted_account_ids                => [],
+        :"cross_application_tracer.enabled" => true,
 
         :'thread_profiler.enabled' => Proc.new { NewRelic::Agent::ThreadProfiler.is_supported? },
 
         :marshaller => Proc.new { NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported? ? 'json' : 'pruby' }
-      }.freeze
+      ].freeze
     end
   end
 end

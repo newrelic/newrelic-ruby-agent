@@ -140,15 +140,33 @@ def assert_calls_unscoped_metrics(*metrics)
   assert_not_equal first_metrics, last_metrics, "should have changed these metrics"
 end
 
+unless defined?( assert_includes )
+  def assert_includes( collection, member, msg=nil )
+    msg = build_message( msg, "Expected ? to include ?", collection, member )
+    assert_block( msg ) { collection.include?(member) }
+  end
+end
+
+unless defined?( assert_not_includes )
+  def assert_not_includes( collection, member, msg=nil )
+    msg = build_message( msg, "Expected ? not to include ?", collection, member )
+    assert_block( msg ) { !collection.include?(member) }
+  end
+end
 
 def compare_metrics(expected, actual)
   actual.delete_if {|a| a.include?('GC/cumulative') } # in case we are in REE
   assert_equal(expected.to_a.sort, actual.to_a.sort, "extra: #{(actual - expected).to_a.inspect}; missing: #{(expected - actual).to_a.inspect}")
 end
 
-def with_config(config_hash, level=0)
-  config = NewRelic::Agent::Configuration::DottedHash.new(config_hash)
-  NewRelic::Agent.config.apply_config(config, level)
+def with_config(config_hash, opts={})
+  opts = { :level => 0, :do_not_cast => false }.merge(opts)
+  if opts[:do_not_cast]
+    config = config_hash
+  else
+    config = NewRelic::Agent::Configuration::DottedHash.new(config_hash)
+  end
+  NewRelic::Agent.config.apply_config(config, opts[:level])
   begin
     yield
   ensure

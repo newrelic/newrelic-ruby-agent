@@ -2,15 +2,15 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_hel
 
 class PipeServiceTest < Test::Unit::TestCase
   def setup
-    NewRelic::Agent::PipeChannelManager.listener.stop    
+    NewRelic::Agent::PipeChannelManager.listener.stop
     NewRelic::Agent::PipeChannelManager.register_report_channel(:pipe_service_test)
     @service = NewRelic::Agent::PipeService.new(:pipe_service_test)
   end
-  
+
   def test_constructor
     assert_equal :pipe_service_test, @service.channel_id
   end
-  
+
   def test_connect_returns_nil
     assert_nil @service.connect({}) 
   end
@@ -75,13 +75,13 @@ class PipeServiceTest < Test::Unit::TestCase
         @service.metric_data(0.0, 0.1, metric_data0)
         @service.transaction_sample_data(['txn0'])
         @service.error_data(['err0'])
-        @service.sql_trace_data(['sql0'])      
+        @service.sql_trace_data(['sql0'])
         @service.shutdown(Time.now)
       end
       Process.wait(pid)
-      
+
       received_data = read_from_pipe
-      
+
       assert_equal 'Custom/something', received_data[:stats].keys.sort[0].name
       assert_equal ['txn0'], received_data[:transaction_traces]
       assert_equal ['err0'], received_data[:error_traces].sort
@@ -93,7 +93,7 @@ class PipeServiceTest < Test::Unit::TestCase
       end
       assert_equal 'EOF', received_data[:EOF]
     end
-    
+
     def test_shutdown_closes_pipe
       data_from_forked_process do
         @service.shutdown(Time.now)
@@ -102,11 +102,11 @@ class PipeServiceTest < Test::Unit::TestCase
       end
     end
   end
-  
+
   def generate_metric_data(metric_name, data=1.0)
     engine = NewRelic::Agent::StatsEngine.new
     engine.get_stats_no_scope(metric_name).record_data_point(data)
-    engine.harvest_timeslice_data({}, {}).values
+    engine.harvest_timeslice_data({})
   end
 
   def read_from_pipe

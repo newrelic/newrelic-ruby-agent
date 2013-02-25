@@ -1,6 +1,33 @@
 
 # New Relic Ruby Agent Release Notes #
 
+## v3.5.8 ##
+
+  * Key Transactions
+
+    The Ruby agent now supports Key Transactions! Check out more details on the
+    feature at https://newrelic.com/docs/site/key-transactions
+
+  * Improved Sinatra instrumentation
+
+    Several cases around the use of conditions and pass in Sinatra are now
+    better supported by the Ruby agent. Thanks Konstantin for the help!
+
+  * Outbound HTTP headers
+
+    Adds a 'X-NewRelic-ID' header to outbound Net::HTTP requests. This change
+    helps improve the correlation of performance between services in a service-
+    oriented architecture for a forthcoming feature. In the meantime, to disable
+    the header, set this in your newrelic.yml:
+
+      cross_application_tracer:
+        enabled: false
+
+  * Automatically detect Resque dispatcher
+
+    The agent does better auto-detection for the Resque worker process.
+    This should reduce the need for to set NEW_RELIC_DISPATCHER=resque directly.
+
 ## v3.5.7 ##
 
   * Resolved some issues with tracking of frontend queue time, particularly
@@ -15,9 +42,9 @@
   * Use HTTPS by default
 
     The agent now defaults to using SSL when it communicates with New Relic's
-    servers.  By defaults already configured, New Relic does not transmit any
-    sensitive information (e.g. SQL parameters are masked), but SSL adds 
-    another layer of security.  Upgrading customers may need to remove the
+    servers.  By default is already configured New Relic does not transmit any
+    sensitive information (e.g. SQL parameters are masked), but SSL adds an
+    additional layer of security.  Upgrading customers may need to remove the
     "ssl: false" directive from their newrelic.yml to enable ssl.  Customers on
     Jruby may need to install the jruby-openssl gem to take advantage of this
     feature.

@@ -101,29 +101,29 @@ class NewRelic::MetricDataTest < Test::Unit::TestCase
   end
 
   def test_to_json_no_metric_id
-    md = NewRelic::MetricData.new(NewRelic::MetricSpec.new('Custom/test/method', ''), NewRelic::MethodTraceStats.new, nil)
+    md = NewRelic::MetricData.new(NewRelic::MetricSpec.new('Custom/test/method', ''), NewRelic::Stats.new, nil)
     json = md.to_json
     assert(json.include?('"Custom/test/method"'), "should include the metric spec in the json")
     assert(json.include?('"metric_id":null}'), "should have a null metric_id")
   end
 
   def test_to_json_with_metric_id
-    md = NewRelic::MetricData.new(NewRelic::MetricSpec.new('Custom/test/method', ''), NewRelic::MethodTraceStats.new, 12345)
+    md = NewRelic::MetricData.new(NewRelic::MetricSpec.new('Custom/test/method', ''), NewRelic::Stats.new, 12345)
     assert_equal('{"metric_spec":null,"stats":{"total_exclusive_time":0.0,"min_call_time":0.0,"call_count":0,"sum_of_squares":0.0,"total_call_time":0.0,"max_call_time":0.0},"metric_id":12345}', md.to_json, "should not include the metric spec and should have a metric_id")
   end
 
   def test_to_s_with_metric_spec
-    md = NewRelic::MetricData.new(NewRelic::MetricSpec.new('Custom/test/method', ''), NewRelic::MethodTraceStats.new, 12345)
-    assert_equal('Custom/test/method(): [01/01/70 12:00AM UTC, 0.000s;  0 calls    0s]', md.to_s, "should not include the metric id and should include the metric spec")
+    md = NewRelic::MetricData.new(NewRelic::MetricSpec.new('Custom/test/method', ''), NewRelic::Stats.new, 12345)
+    assert_equal('Custom/test/method(): [ 0 calls 0.0000s]', md.to_s, "should not include the metric id and should include the metric spec")
   end
 
   def test_to_s_without_metric_spec
-    md = NewRelic::MetricData.new(nil, NewRelic::MethodTraceStats.new, 12345)
-    assert_equal('12345: [01/01/70 12:00AM UTC, 0.000s;  0 calls    0s]', md.to_s, "should include the metric id and not have a metric spec")
+    md = NewRelic::MetricData.new(nil, NewRelic::Stats.new, 12345)
+    assert_equal('12345: [ 0 calls 0.0000s]', md.to_s, "should include the metric id and not have a metric spec")
   end
 
   def test_to_collector_array_with_spec
-    stats = NewRelic::MethodTraceStats.new
+    stats = NewRelic::Stats.new
     stats.record_data_point(1.0)
     stats.record_data_point(2.0, 1.0)
     md = NewRelic::MetricData.new(NewRelic::MetricSpec.new('Custom/test/method', 'scope'),
@@ -134,7 +134,7 @@ class NewRelic::MetricDataTest < Test::Unit::TestCase
   end
 
   def test_to_collector_array_with_spec_and_id
-    stats = NewRelic::MethodTraceStats.new
+    stats = NewRelic::Stats.new
     stats.record_data_point(1.0)
     stats.record_data_point(2.0, 1.0)
     md = NewRelic::MetricData.new(NewRelic::MetricSpec.new('Custom/test/method', 'scope'),
@@ -144,7 +144,7 @@ class NewRelic::MetricDataTest < Test::Unit::TestCase
   end
 
   def test_to_collector_array_with_id
-    stats = NewRelic::MethodTraceStats.new
+    stats = NewRelic::Stats.new
     stats.record_data_point(1.0)
     stats.record_data_point(2.0, 1.0)
     md = NewRelic::MetricData.new(nil, stats, 1234)
@@ -154,7 +154,7 @@ class NewRelic::MetricDataTest < Test::Unit::TestCase
 
   # Rationals in metric data? -- https://support.newrelic.com/tickets/28053
   def test_to_collector_array_with_rationals
-    stats = NewRelic::MethodTraceStats.new
+    stats = NewRelic::Stats.new
     stats.call_count = Rational(1, 1)
     stats.total_call_time = Rational(2, 1)
     stats.total_exclusive_time = Rational(3, 1)
@@ -168,7 +168,7 @@ class NewRelic::MetricDataTest < Test::Unit::TestCase
   end
 
   def test_to_collector_array_with_bad_values
-    stats = NewRelic::MethodTraceStats.new
+    stats = NewRelic::Stats.new
     stats.call_count = nil
     stats.total_call_time = "junk"
     stats.total_exclusive_time = Object.new

@@ -29,7 +29,7 @@ set -e
 if [ "x$RUBY" == "x" ]; then
   echo '$RUBY is undefined'
   echo 'defaulting to 1.9.3'
-  export RUBY=1.9.3-p286
+  export RUBY=1.9.3-p374
 fi
 if [ "x$BRANCH" == "x" ]; then
   echo '$BRANCH is undefined'

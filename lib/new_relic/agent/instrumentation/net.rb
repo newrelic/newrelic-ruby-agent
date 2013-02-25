@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 DependencyDetection.defer do
   @name = :net
 
@@ -7,23 +9,23 @@ DependencyDetection.defer do
   
   executes do
     ::NewRelic::Agent.logger.info 'Installing Net instrumentation'
+    require 'new_relic/agent/cross_app_tracing'
   end
-  
+
   executes do
-    Net::HTTP.class_eval do
-      def request_with_newrelic_trace(*args, &block)
-        metrics = ["External/#{@address}/Net::HTTP/#{args[0].method}", "External/#{@address}/all", "External/all"]
-        if NewRelic::Agent::Instrumentation::MetricFrame.recording_web_transaction?
-          metrics << "External/allWeb"
-        else
-          metrics << "External/allOther"
-        end
-        self.class.trace_execution_scoped metrics do
-          request_without_newrelic_trace(*args, &block)
+    class Net::HTTP
+
+      # Instrument outgoing HTTP requests and fire associated events back
+      # into the Agent.
+      def request_with_newrelic_trace(request, *args, &block)
+        NewRelic::Agent::CrossAppTracing.trace_http_request( self, request ) do
+          request_without_newrelic_trace( request, *args, &block )
         end
       end
+
       alias request_without_newrelic_trace request
       alias request request_with_newrelic_trace
+
     end
   end
 end

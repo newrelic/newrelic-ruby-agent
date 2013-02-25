@@ -4,15 +4,12 @@ require 'uri'
 require 'socket'
 require 'timeout'
 require 'ostruct'
-require File.join(File.dirname(__FILE__), 'fakes_sending_data')
 
 require 'json' if RUBY_VERSION >= '1.9'
 
 module NewRelic
   class FakeCollector
     attr_accessor :agent_data, :mock
-
-    include FakesSendingData
 
     def initialize
       @id_counter = 0
@@ -53,16 +50,16 @@ module NewRelic
         end
         run_id = uri.query =~ /run_id=(\d+)/ ? $1 : nil
         req.body.rewind
-        
+
         body = if format == :json
           body = JSON.load(req.body.read)
         else
           body = Marshal.load(req.body.read)
         end
-        @agent_data << OpenStruct.new(:action       => method,
-                                      :body         => body,
-                                      :run_id       => run_id,
-                                      :format       => format)
+        @agent_data << AgentPost.create(:action       => method,
+                                        :body         => body,
+                                        :run_id       => run_id,
+                                        :format       => format)
       end
       res.finish
     end
@@ -150,6 +147,87 @@ module NewRelic
       end
 
       return true
+    end
+
+    def calls_for(method)
+      @agent_data.select {|d| d.action == method }
+    end
+
+    def reported_stats_for_metric(name, scope=nil)
+      calls_for('metric_data').map do |post|
+        post.body[3].find do |metric_record|
+          metric_record[0]['name'] == name &&
+            (!scope || metric_record[0]['scope'] == scope)
+        end
+      end.compact.map{|m| m[1]}
+    end
+
+    class AgentPost
+      attr_accessor :action, :body, :run_id, :format
+      def initialize(opts={})
+        @action = opts[:action]
+        @body   = opts[:body]
+        @run_id = opts[:run_id]
+        @format = opts[:format]
+      end
+
+      def self.create(opts={})
+        case opts[:action]
+        when 'connect'
+          ConnectPost.new(opts)
+        when 'metric_data'
+          AgentPost.new(opts)
+        when 'profile_data'
+          ProfileDataPost.new(opts)
+        when 'sql_trace_data'
+          SqlTraceDataPost.new(opts)
+        when 'transaction_sample_data'
+          TransactionSampleDataPost.new(opts)
+        else
+          new(opts)
+        end
+      end
+
+      def [](key)
+        @body[key]
+      end
+
+      def unblob(blob)
+        return unless blob
+        JSON.load(Zlib::Inflate.inflate(Base64.decode64(blob)))
+      end
+    end
+
+    class ConnectPost < AgentPost
+      def initialize(opts={})
+        super
+        @body = @body[0]
+      end
+    end
+
+    class ProfileDataPost < AgentPost
+      def initialize(opts={})
+        super
+        @body[1][0][4] = unblob(@body[1][0][4]) if @format == :json
+      end
+    end
+
+    class SqlTraceDataPost < AgentPost
+      def initialize(opts={})
+        super
+        @body[0][0][9] = unblob(@body[0][0][9]) if @format == :json
+      end
+    end
+
+    class TransactionSampleDataPost < AgentPost
+      def initialize(opts={})
+        super
+        @body[4] = unblob(@body[4]) if @format == :json
+      end
+
+      def metric_name
+        @body[1][0][2]
+      end
     end
   end
 
@@ -290,7 +368,7 @@ if $0 == __FILE__
     end
 
     def invoke(method, post={}, code=200)
-      uri = URI.parse("http://127.0.0.1:#{determine_port}/agent_listener/8/12345/#{method}")
+      uri = URI.parse("http://127.0.0.1:#{@collector.determine_port}/agent_listener/8/12345/#{method}")
       request = Net::HTTP::Post.new("#{uri.path}?#{uri.query}")
       if uri.query && uri.query.include?('marshal_format=json')
         request.body = JSON.dump(post)

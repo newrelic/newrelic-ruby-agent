@@ -41,31 +41,23 @@ class MarshalingTest < Test::Unit::TestCase
       marshaller = NewRelic::Agent::NewRelicService::PrubyMarshaller.new
     end
 
-    assert_equal(666,
-                 $collector.agent_data.select{|x| x.action == 'transaction_sample_data'}[0].body[0])
+    assert_equal('666', $collector.calls_for('transaction_sample_data')[0].run_id)
     assert_equal(expected_sample.to_collector_array(marshaller.default_encoder),
-                 $collector.agent_data.select{|x| x.action == 'transaction_sample_data'}[0].body[1][0])
+                 $collector.calls_for('transaction_sample_data')[0][1][0])
   end
 
   def test_metric_data_marshalling
     stats = NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Custom/test/method')
     stats.record_data_point(1.0)
     stats.record_data_point(2.0, 1.0)
-    expected = [ [ {'name' => 'Custom/test/method', 'scope' => ''},
-                           [2, 3.0, 2.0, 1.0, 2.0, 5.0] ] ]
+    expected = [ 2, 3.0, 2.0, 1.0, 2.0, 5.0 ]
 
     @agent.service.connect
     @agent.send(:harvest_and_send_timeslice_data)
 
-    assert_equal(666,
-       $collector.agent_data.select{|x| x.action == 'metric_data'}[0].body[0])
+    assert_equal('666', $collector.calls_for('metric_data')[0].run_id)
 
-    metric_data = $collector.agent_data \
-      .select{|x| x.action == 'metric_data'}[0].body[3]
-    assert metric_data
-
-    custom_metric = metric_data \
-      .select{|m| m[0]['name'] == 'Custom/test/method' }
+    custom_metric = $collector.reported_stats_for_metric('Custom/test/method')[0]
     assert_equal(expected, custom_metric)
   end
 
@@ -74,11 +66,9 @@ class MarshalingTest < Test::Unit::TestCase
     @agent.service.connect
     @agent.send(:harvest_and_send_errors)
 
-    assert_equal(666,
-       $collector.agent_data.select{|x| x.action == 'error_data'}[0].body[0])
+    assert_equal('666', $collector.calls_for('error_data')[0].run_id)
 
-    error_data = $collector.agent_data \
-      .select{|x| x.action == 'error_data'}[0].body[1][0]
+    error_data = $collector.calls_for('error_data')[0][1][0]
     assert_equal('test error', error_data[2])
   end
 
@@ -92,8 +82,7 @@ class MarshalingTest < Test::Unit::TestCase
     @agent.service.connect
     @agent.send(:harvest_and_send_slowest_sql)
 
-    sql_data = $collector.agent_data \
-      .select{|x| x.action == 'sql_trace_data'}[0].body[0]
+    sql_data = $collector.calls_for('sql_trace_data')[0][0]
     assert_equal('select * from test', sql_data[0][3])
   end
 
@@ -101,9 +90,7 @@ class MarshalingTest < Test::Unit::TestCase
     @agent.service.connect('pid' => 1, 'agent_version' => '9000',
                            'app_name' => 'test')
 
-    connect_data = $collector.agent_data \
-      .select{|x| x.action == 'connect'}[0].body[0]
+    connect_data = $collector.calls_for('connect')[0]
     assert_equal '9000', connect_data['agent_version']
   end
 end
-

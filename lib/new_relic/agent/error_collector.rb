@@ -100,6 +100,11 @@ module NewRelic
           @seen_error_ids << exception.object_id
 
           NewRelic::Agent.get_stats("Errors/all").increment_count
+
+          txn_info = NewRelic::Agent::TransactionInfo.get
+          if (txn_info.transaction_name_set?)
+            NewRelic::Agent.get_stats("Errors/#{txn_info.transaction_name}").increment_count
+          end
         end
 
         # whether we should return early from the notice_error process

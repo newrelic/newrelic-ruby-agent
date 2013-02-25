@@ -254,7 +254,7 @@ module NewRelic
               return perform_action_without_newrelic_trace(*args)
             end
           end
-          
+
           control = NewRelic::Control.instance
           return perform_action_with_newrelic_profile(args, &block) if control.profiling?
 
@@ -286,7 +286,7 @@ module NewRelic
             # Clear the thread local when finished to ensure it only gets called once.
             frame_data.record_apdex unless ignore_apdex?
             frame_data.pop
-            
+
             NewRelic::Agent::TransactionInfo.get.ignore_end_user = true if ignore_enduser?
           end
         end
@@ -314,14 +314,14 @@ module NewRelic
         def newrelic_request_headers
           self.respond_to?(:request) && self.request.respond_to?(:headers) && self.request.headers
         end
-        
+
         # overrideable method to determine whether to trace an action
         # or not - you may override this in your controller and supply
         # your own logic for ignoring transactions.
         def do_not_trace?
           _is_filtered?('do_not_trace')
         end
-        
+
         # overrideable method to determine whether to trace an action
         # for purposes of apdex measurement - you can use this to
         # ignore things like api calls or other fast non-user-facing
@@ -329,7 +329,7 @@ module NewRelic
         def ignore_apdex?
           _is_filtered?('ignore_apdex')
         end
-        
+
         def ignore_enduser?
           _is_filtered?('ignore_enduser')
         end
@@ -360,6 +360,43 @@ module NewRelic
           frame_data.pop
         end
 
+        def transaction_name(options={})
+          name = "#{category_name(options)}/#{path_name(options)}"
+          NewRelic::Agent.instance.transaction_rules.rename(name)
+        end
+
+        def category_name(options)
+          case options[:category]
+            when :controller, nil then 'Controller'
+            when :task then 'OtherTransaction/Background' # 'Task'
+            when :rack then 'Controller/Rack' #'WebTransaction/Rack'
+            when :uri then 'Controller' #'WebTransaction/Uri'
+            when :sinatra then 'Controller/Sinatra' #'WebTransaction/Uri'
+              # for internal use only
+            else options[:category].to_s
+          end
+        end
+
+        def path_name(options)
+          if options.any?
+            options[:path] || path_class_and_action(options)
+          else
+            newrelic_metric_path
+          end
+        end
+
+        def path_class_and_action(options)
+          metric_class = options[:class_name]
+
+          if !metric_class && (self.is_a?(Class) || self.is_a?(Module))
+            metric_class = self.name
+          else
+            metric_class = self.class.name
+          end
+
+          [ metric_class, options[:name] ].compact.join('/')
+        end
+
         # Write a metric frame onto a thread local if there isn't already one there.
         # If there is one, just update it.
         def _push_metric_frame(args) # :nodoc:
@@ -367,47 +404,29 @@ module NewRelic
 
           frame_data.apdex_start ||= _detect_upstream_wait(frame_data.start)
           _record_queue_length
+
           # If a block was passed in, then the arguments represent options for the instrumentation,
           # not app method arguments.
+          options = {}
           if args.any?
             if args.last.is_a?(Hash)
-              options = args.last
+              options = args.pop
               frame_data.force_flag = options[:force]
               frame_data.request = options[:request] if options[:request]
             end
-            category, path, available_params = _convert_args_to_path(args)
+            available_params = options[:params] || {}
+            options[:name] ||= args.first
           else
-            category = 'Controller'
-            path = newrelic_metric_path
             available_params = self.respond_to?(:params) ? self.params : {}
           end
           frame_data.request ||= self.request if self.respond_to? :request
-          transaction_name = category + '/' + path
-          frame_data.push(transaction_name)
-          NewRelic::Agent::TransactionInfo.get.transaction_name = transaction_name
+
+          txn_name = transaction_name(options || {})
+
+          frame_data.push(txn_name)
+          NewRelic::Agent::TransactionInfo.get.transaction_name = txn_name
           frame_data.filtered_params = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
           frame_data
-        end
-
-        def _convert_args_to_path(args)
-          options =  args.last.is_a?(Hash) ? args.pop : {}
-          params = options[:params] || {}
-          category = case options[:category]
-                     when :controller, nil then 'Controller'
-                     when :task then 'OtherTransaction/Background' # 'Task'
-                     when :rack then 'Controller/Rack' #'WebTransaction/Rack'
-                     when :uri then 'Controller' #'WebTransaction/Uri'
-                     when :sinatra then 'Controller/Sinatra' #'WebTransaction/Uri'
-                       # for internal use only
-                     else options[:category].to_s
-                     end
-          unless path = options[:path]
-            action = options[:name] || args.first
-            metric_class = options[:class_name] || ((self.is_a?(Class)||self.is_a?(Module)) ? self.name : self.class.name)
-            path = metric_class
-            path += ('/' + action) if action
-          end
-          [category, path, params]
         end
 
         # Filter out a request if it matches one of our parameters for
@@ -452,7 +471,7 @@ module NewRelic
           now
         end
 
-        # returns the NewRelic::MethodTraceStats object associated
+        # returns the NewRelic::Stats object associated
         # with the dispatcher time measurement
         def _dispatch_stat
           NewRelic::Agent.agent.stats_engine.get_stats_no_scope 'HttpDispatcher'

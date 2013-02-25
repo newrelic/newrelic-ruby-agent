@@ -49,7 +49,7 @@ module NewRelic
     rescue => e
       Agent.logger.error e
     end
-    
+
     # yields to the block and appends the returned value to the list
     # of gems - this catches errors that might be raised in the block
     def append_gem_list
@@ -57,7 +57,7 @@ module NewRelic
     rescue => e
       Agent.logger.error e
     end
-    
+
     # yields to the block and appends the returned value to the list
     # of plugins - this catches errors that might be raised in the block
     def append_plugin_list
@@ -65,7 +65,7 @@ module NewRelic
     rescue => e
       Agent.logger.error e
     end
-    
+
     # An instance id pulled from either @dispatcher_instance_id or by
     # splitting out the first part of the running file
     def dispatcher_instance_id
@@ -76,7 +76,7 @@ module NewRelic
       end
       @dispatcher_instance_id
     end
-    
+
     # Interrogates some common ruby constants for useful information
     # about what kind of ruby environment the agent is running in
     def gather_ruby_info
@@ -89,7 +89,7 @@ module NewRelic
         gather_jruby_info
       end
     end
-    
+
     # like gather_ruby_info but for the special case of JRuby
     def gather_jruby_info
       append_environment_value('JRuby version') { JRUBY_VERSION }
@@ -122,14 +122,14 @@ module NewRelic
         processors
       end
     end
-    
+
     # Grabs the architecture string from either `uname -p` or the env
     # variable PROCESSOR_ARCHITECTURE
     def gather_architecture_info
       append_environment_value('Arch') { `uname -p` } ||
         append_environment_value('Arch') { ENV['PROCESSOR_ARCHITECTURE'] }
     end
-    
+
     # gathers OS info from either `uname -v`, `uname -s`, or the OS
     # env variable
     def gather_os_info
@@ -137,13 +137,13 @@ module NewRelic
       append_environment_value('OS') { `uname -s` } ||
         append_environment_value('OS') { ENV['OS'] }
     end
-    
+
     # Gathers the architecture and cpu info
     def gather_system_info
       gather_architecture_info
       gather_cpu_info
     end
-    
+
     # Looks for a capistrano file indicating the current revision
     def gather_revision_info
       rev_file = File.join(NewRelic::Control.instance.root, "REVISION")
@@ -153,11 +153,10 @@ module NewRelic
         end
       end
     end
-    
+
     # The name of the AR database adapter for the current environment and
     # the current schema version
     def gather_ar_adapter_info
-      
       append_environment_value 'Database adapter' do
         if defined?(ActiveRecord) && defined?(ActiveRecord::Base) &&
             ActiveRecord::Base.respond_to?(:configurations)
@@ -168,7 +167,7 @@ module NewRelic
         end
       end
     end
-    
+
     # Datamapper version
     def gather_dm_adapter_info
       append_environment_value 'DataMapper version' do
@@ -176,7 +175,7 @@ module NewRelic
         DataMapper::VERSION
       end
     end
-    
+
     # sensing for which adapter is defined, then appends the relevant
     # config information
     def gather_db_info
@@ -212,13 +211,13 @@ module NewRelic
       i << [ 'Gems', @gems.to_a] if not @gems.empty?
       i
     end
-    
+
     # it's a working jruby if it has the runtime method, and object
     # space is enabled
     def working_jruby?
       !(defined?(::JRuby) && JRuby.respond_to?(:runtime) && !JRuby.runtime.is_object_space_enabled)
     end
-    
+
     # Runs through all the objects in ObjectSpace to find the first one that
     # match the provided class
     def find_class_in_object_space(klass)
@@ -227,7 +226,7 @@ module NewRelic
       end
       return nil
     end
-    
+
     # Sets the @mongrel instance variable if we can find a Mongrel::HttpServer
     def mongrel
       return @mongrel if @mongrel
@@ -236,13 +235,13 @@ module NewRelic
       end
       @mongrel
     end
-    
+
     private
 
     # Although you can override the dispatcher with NEWRELIC_DISPATCHER this
     # is not advisable since it implies certain api's being available.
     def discover_dispatcher
-      dispatchers = %w[passenger torquebox trinidad glassfish thin mongrel litespeed webrick fastcgi unicorn sinatra]
+      dispatchers = %w[passenger torquebox trinidad glassfish resque thin mongrel litespeed webrick fastcgi unicorn]
       while dispatchers.any? && @discovered_dispatcher.nil?
         send 'check_for_'+(dispatchers.shift)
       end
@@ -316,20 +315,13 @@ module NewRelic
       end
     end
 
-    def check_for_sinatra
-      return unless defined?(::Sinatra) && defined?(::Sinatra::Base)
-
-      begin
-        version = ::Sinatra::VERSION
-      rescue
-        $stderr.puts("Error determining Sinatra version")
-      end
-
-      if ::NewRelic::VersionNumber.new('0.9.2') > version
-        $stderr.puts("Your Sinatra version is #{version}, we highly recommend upgrading to >=0.9.2")
-      end
-
-      @discovered_dispatcher = :sinatra
+    def check_for_resque
+      using_resque = (
+        defined?(::Resque) &&
+        (ENV['QUEUE'] || ENV['QUEUES']) &&
+        (File.basename($0) == 'rake' && ARGV.include?('resque:work'))
+      )
+      @discovered_dispatcher = :resque if using_resque
     end
 
     def check_for_thin

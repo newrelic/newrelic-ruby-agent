@@ -24,6 +24,10 @@ module NewRelic::Agent
       NewRelic::Agent.logger.debug("Run-away event subscription on #{event}? Subscribed #{count}") if count > @runaway_threshold
     end
 
+    def clear
+      @events.clear
+    end
+
     def notify(event, *args)
       return unless @events.has_key?(event)
 

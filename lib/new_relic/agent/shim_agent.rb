@@ -18,7 +18,6 @@ module NewRelic
       def after_fork *args; end
       def start *args; end
       def shutdown *args; end
-      def serialize; end
       def merge_data_from *args; end
       def push_trace_execution_flag *args; end
       def pop_trace_execution_flag *args; end

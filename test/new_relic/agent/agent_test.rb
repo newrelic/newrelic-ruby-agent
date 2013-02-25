@@ -70,10 +70,6 @@ module NewRelic
         @agent.instance_eval { transmit_data }
       end
 
-      def test_serialize
-        assert_equal([{}, [], []], @agent.send(:serialize), "should return nil when shut down")
-      end
-
       def test_harvest_transaction_traces
         assert_equal([], @agent.send(:harvest_transaction_traces), 'should return transaction traces')
       end
@@ -121,23 +117,29 @@ module NewRelic
                      'should return timeslice data')
       end
 
-      def test_harvest_timelice_data_should_be_thread_safe
-        2000.times do |i|
-          @agent.stats_engine.stats_hash[i.to_s] = NewRelic::StatsBase.new
-        end
-
-        harvest = Thread.new("Harvesting Test run timeslices") do
-          @agent.send(:harvest_timeslice_data)
-        end
-
-        app = Thread.new("Harvesting Test Modify stats_hash") do
-          200.times do |i|
-            @agent.stats_engine.stats_hash["a#{i}"] = NewRelic::StatsBase.new
-          end
-        end
+      # This test asserts nothing about correctness of logging data from multiple
+      # threads, since the get_stats + record_data_point combo is not designed
+      # to be thread-safe, but it does ensure that writes to the stats hash
+      # via this path that happen concurrently with harvests will not cause
+      # 'hash modified during iteration' errors.
+      def test_harvest_timeslice_data_should_be_thread_safe
+        threads = []
+        nthreads = 10
+        nmetrics = 100
 
         assert_nothing_raised do
-          [app, harvest].each{|t| t.join}
+          nthreads.times do |tid|
+            t = Thread.new do
+              nmetrics.times do |mid|
+                @agent.stats_engine.get_stats("m#{mid}").record_data_point(1)
+              end
+            end
+            t.abort_on_exception = true
+            threads << t
+          end
+
+          100.times { @agent.send(:harvest_timeslice_data) }
+          threads.each { |t| t.join }
         end
       end
 
@@ -226,28 +228,6 @@ module NewRelic
         # This method should NOT increment error counts, since that has already
         # been counted in the child
         assert_equal 0, NewRelic::Agent.get_stats("Errors/all").call_count
-      end
-
-      def test_fill_metric_id_cache_from_collect_response
-        response = [[{"scope"=>"Controller/blogs/index", "name"=>"Database/SQL/other"}, 1328],
-                    [{"scope"=>"", "name"=>"WebFrontend/QueueTime"}, 10],
-                    [{"scope"=>"", "name"=>"ActiveRecord/Blog/find"}, 1017]]
-
-        @agent.send(:fill_metric_id_cache, response)
-        assert_equal 1328, @agent.metric_ids[MetricSpec.new('Database/SQL/other', 'Controller/blogs/index')]
-        assert_equal 10,   @agent.metric_ids[MetricSpec.new('WebFrontend/QueueTime')]
-        assert_equal 1017, @agent.metric_ids[MetricSpec.new('ActiveRecord/Blog/find')]
-      end
-
-      def test_fill_metric_id_cache_from_collect_response
-        response = [[{"scope"=>"Controller/blogs/index", "name"=>"Database/SQL/other"}, 1328],
-                    [{"scope"=>"", "name"=>"WebFrontend/QueueTime"}, 10],
-                    [{"scope"=>"", "name"=>"ActiveRecord/Blog/find"}, 1017]]
-
-        @agent.send(:fill_metric_id_cache, response)
-        assert_equal 1328, @agent.metric_ids[MetricSpec.new('Database/SQL/other', 'Controller/blogs/index')]
-        assert_equal 10,   @agent.metric_ids[MetricSpec.new('WebFrontend/QueueTime')]
-        assert_equal 1017, @agent.metric_ids[MetricSpec.new('ActiveRecord/Blog/find')]
       end
 
       def test_connect_retries_on_timeout

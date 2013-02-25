@@ -197,9 +197,44 @@ class NewRelicServiceTest < Test::Unit::TestCase
   end
 
   def test_metric_data
-    @http_handle.respond_to(:metric_data, 'met rick date uhhh')
-    response = @service.metric_data((Time.now - 60).to_f, Time.now.to_f, {})
-    assert_equal 'met rick date uhhh', response
+    dummy_rsp = 'met rick date uhh'
+    @http_handle.respond_to(:metric_data, dummy_rsp)
+    stats_hash = NewRelic::Agent::StatsHash.new
+    @service.expects(:fill_metric_id_cache).with(dummy_rsp)
+    response = @service.metric_data((Time.now - 60).to_f, Time.now.to_f, stats_hash)
+    assert_equal dummy_rsp, response
+  end
+
+  def test_fill_metric_id_cache_from_collect_response
+    response = [[{"scope"=>"Controller/blogs/index", "name"=>"Database/SQL/other"}, 1328],
+                [{"scope"=>"", "name"=>"WebFrontend/QueueTime"}, 10],
+                [{"scope"=>"", "name"=>"ActiveRecord/Blog/find"}, 1017]]
+
+    @service.send(:fill_metric_id_cache, response)
+
+    cache = @service.metric_id_cache
+    assert_equal 1328, cache[NewRelic::MetricSpec.new('Database/SQL/other', 'Controller/blogs/index')]
+    assert_equal 10,   cache[NewRelic::MetricSpec.new('WebFrontend/QueueTime')]
+    assert_equal 1017, cache[NewRelic::MetricSpec.new('ActiveRecord/Blog/find')]
+  end
+
+  def test_caches_metric_ids_for_future_use
+    dummy_rsp = [[{ 'name' => 'a', 'scope' => '' }, 42]]
+    @http_handle.respond_to(:metric_data, dummy_rsp)
+
+    hash = NewRelic::Agent::StatsHash.new
+    hash.record(NewRelic::MetricSpec.new('a'), 1)
+
+    @service.metric_data((Time.now - 60).to_f, Time.now.to_f, hash)
+
+    hash = NewRelic::Agent::StatsHash.new
+    hash.record(NewRelic::MetricSpec.new('a'), 1)
+    stats = hash[NewRelic::MetricSpec.new('a')]
+
+    results = @service.build_metric_data_array(hash)
+    assert_nil(results.first.metric_spec)
+    assert_equal(stats, results.first.stats)
+    assert_equal(42, results.first.metric_id)
   end
 
   def test_error_data
@@ -276,7 +311,9 @@ end
 
     @service.connect
     @http_handle.respond_to(:metric_data, 0)
-    @service.metric_data((Time.now - 60).to_f, Time.now.to_f, {})
+    @service.stubs(:fill_metric_id_cache)
+    stats_hash = NewRelic::Agent::StatsHash.new
+    @service.metric_data((Time.now - 60).to_f, Time.now.to_f, stats_hash)
 
     @http_handle.respond_to(:transaction_sample_data, 1)
     @service.transaction_sample_data([])
@@ -298,7 +335,8 @@ end
   def test_should_raise_exception_on_413
     @http_handle.respond_to(:metric_data, 'too big', :code => 413)
     assert_raise NewRelic::Agent::UnrecoverableServerException do
-      @service.metric_data((Time.now - 60).to_f, Time.now.to_f, {})
+      stats_hash = NewRelic::Agent::StatsHash.new
+      @service.metric_data((Time.now - 60).to_f, Time.now.to_f, stats_hash)
     end
   end
 
@@ -306,7 +344,8 @@ end
   def test_should_raise_exception_on_415
     @http_handle.respond_to(:metric_data, 'too big', :code => 415)
     assert_raise NewRelic::Agent::UnrecoverableServerException do
-      @service.metric_data((Time.now - 60).to_f, Time.now.to_f, {})
+      stats_hash = NewRelic::Agent::StatsHash.new
+      @service.metric_data((Time.now - 60).to_f, Time.now.to_f, stats_hash)
     end
   end
 
@@ -322,6 +361,18 @@ end
                    'JavaCrash: error message') do
         marshaller.load('{"exception": {"message": "error message", "error_type": "JavaCrash"}}')
       end
+    end
+
+    def test_use_pruby_marshaller_if_error_using_json
+      json_marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+      @service.instance_variable_set(:@marshaller, json_marshaller)
+      JSON.stubs(:dump).raises(RuntimeError.new('blah'))
+      @http_handle.respond_to(:transaction_sample_data, 'ok', :format => :pruby)
+
+      @service.transaction_sample_data([])
+
+      assert_equal('NewRelic::Agent::NewRelicService::PrubyMarshaller',
+                   @service.marshaller.class.name)
     end
   end
 
@@ -390,6 +441,57 @@ end
                                              'message' => 'test')
     assert_equal NewRelic::Agent::NewRelicService::CollectorError, error.class
     assert_equal 'OogBooga: test', error.message
+  end
+
+  def test_build_metric_data_array
+    hash = NewRelic::Agent::StatsHash.new
+
+    spec1 = NewRelic::MetricSpec.new('foo')
+    spec2 = NewRelic::MetricSpec.new('bar')
+    hash.record(spec1, 1)
+    hash.record(spec2, 2)
+
+    metric_data_array = @service.build_metric_data_array(hash)
+
+    assert_equal(2, metric_data_array.size)
+    metric_data_1 = metric_data_array.find { |md| md.metric_spec == spec1 }
+    metric_data_2 = metric_data_array.find { |md| md.metric_spec == spec2 }
+    assert_equal(hash[spec1], metric_data_1.stats)
+    assert_equal(hash[spec2], metric_data_2.stats)
+  end
+
+  def test_build_metric_data_array_uses_metric_id_cache_if_possible
+    hash = NewRelic::Agent::StatsHash.new
+
+    spec1 = NewRelic::MetricSpec.new('foo')
+    spec2 = NewRelic::MetricSpec.new('bar')
+    hash.record(spec1, 1)
+    hash.record(spec2, 1)
+
+    @service.stubs(:metric_id_cache).returns({ spec1 => 42 })
+    metric_data_array = @service.build_metric_data_array(hash)
+
+    assert_equal(2, metric_data_array.size)
+
+    metric_data1 = metric_data_array.find { |md| md.metric_id == 42 }
+    metric_data2 = metric_data_array.find { |md| md.metric_spec == spec2 }
+    assert_nil(metric_data1.metric_spec)
+    assert_nil(metric_data2.metric_id)
+  end
+
+  def test_build_metric_data_array_omits_empty_stats
+    hash = NewRelic::Agent::StatsHash.new
+
+    spec1 = NewRelic::MetricSpec.new('foo')
+    spec2 = NewRelic::MetricSpec.new('bar')
+    hash.record(spec1, 1)
+    hash[spec2] = NewRelic::Stats.new()
+
+    metric_data_array = @service.build_metric_data_array(hash)
+    assert_equal(1, metric_data_array.size)
+
+    metric_data = metric_data_array.first
+    assert_equal(spec1, metric_data.metric_spec)
   end
 
   class HTTPHandle

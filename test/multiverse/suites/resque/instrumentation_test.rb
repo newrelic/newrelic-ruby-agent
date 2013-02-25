@@ -40,7 +40,7 @@ class ResqueTest < Test::Unit::TestCase
   end
 
   def start_worker_child(env_vars=nil)
-    worker_cmd = "NEWRELIC_DISPATCHER=resque #{env_vars} QUEUE=* bundle exec rake resque:work"
+    worker_cmd = "#{env_vars} QUEUE=* bundle exec rake resque:work"
     @worker_pid = Process.fork
     Process.exec(worker_cmd) if @worker_pid.nil?
   end
@@ -52,7 +52,7 @@ class ResqueTest < Test::Unit::TestCase
 
   def start_worker_background(env_vars=nil)
     worker_cmd = "PIDFILE=#{@pidfile} TERM_CHILD=1 RESQUE_TERM_TIMEOUT=1 BACKGROUND=1 " +
-      "NEWRELIC_DISPATCHER=resque #{env_vars} QUEUE=* bundle exec rake resque:work"
+      "#{env_vars} QUEUE=* bundle exec rake resque:work"
     system(worker_cmd)
   end
 

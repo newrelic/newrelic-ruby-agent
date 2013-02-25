@@ -9,6 +9,8 @@ require 'new_relic/agent/pipe_service'
 require 'new_relic/agent/configuration/manager'
 require 'new_relic/agent/database'
 require 'new_relic/agent/thread_profiler'
+require 'new_relic/agent/event_listener'
+require 'new_relic/agent/cross_app_monitor'
 
 module NewRelic
   module Agent
@@ -23,14 +25,15 @@ module NewRelic
       def initialize
         @launch_time = Time.now
 
-        @metric_ids = {}
-        @events = NewRelic::Agent::EventListener.new
-        @stats_engine = NewRelic::Agent::StatsEngine.new
-        @transaction_sampler = NewRelic::Agent::TransactionSampler.new
-        @sql_sampler = NewRelic::Agent::SqlSampler.new
-        @thread_profiler = NewRelic::Agent::ThreadProfiler.new
-        @cross_process_monitor = NewRelic::Agent::CrossProcessMonitor.new(@events)
-        @error_collector = NewRelic::Agent::ErrorCollector.new
+        @events                = NewRelic::Agent::EventListener.new
+        @stats_engine          = NewRelic::Agent::StatsEngine.new
+        @transaction_sampler   = NewRelic::Agent::TransactionSampler.new
+        @sql_sampler           = NewRelic::Agent::SqlSampler.new
+        @thread_profiler       = NewRelic::Agent::ThreadProfiler.new
+        @cross_app_monitor     = NewRelic::Agent::CrossAppMonitor.new(@events)
+        @error_collector       = NewRelic::Agent::ErrorCollector.new
+        @transaction_rules     = NewRelic::Agent::RulesEngine.new
+        @metric_rules          = NewRelic::Agent::RulesEngine.new
 
         @connect_state = :pending
         @connect_attempts = 0
@@ -82,27 +85,24 @@ module NewRelic
         attr_reader :error_collector
         # whether we should record raw, obfuscated, or no sql
         attr_reader :record_sql
-        # a cached set of metric_ids to save the collector some time -
-        # it returns a metric id for every metric name we send it, and
-        # in the future we transmit using the metric id only
-        attr_reader :metric_ids
-        # in theory a set of rules applied by the agent to the output
-        # of its metrics. Currently unimplemented
-        attr_reader :url_rules
         # a configuration for the Real User Monitoring system -
         # handles things like static setup of the header for inclusion
         # into pages
         attr_reader :beacon_configuration
-        # cross process id's and encoding
+        # cross application tracing ids and encoding
         attr_reader :cross_process_id
-        attr_reader :cross_process_encoding_bytes
+        attr_reader :cross_app_encoding_bytes
         # service for communicating with collector
         attr_accessor :service
         # Global events dispatcher. This will provides our primary mechanism
         # for agent-wide events, such as finishing configuration, error notification
         # and request before/after from Rack.
         attr_reader :events
-
+        # Transaction and metric renaming rules as provided by the
+        # collector on connect.  The former are applied during txns,
+        # the latter during harvest.
+        attr_reader :transaction_rules
+        attr_reader :metric_rules
 
         # Returns the length of the unsent errors array, if it exists,
         # otherwise nil
@@ -187,7 +187,6 @@ module NewRelic
             @service = NewRelic::Agent::PipeService.new(channel_id)
             if connected?
               @connected_pid = $$
-              @metric_ids = {}
             else
               ::NewRelic::Agent.logger.debug("Child process #{$$} not reporting to non-connected parent.")
               @service.shutdown(Time.now)
@@ -533,7 +532,7 @@ module NewRelic
           def handle_force_restart(error)
             ::NewRelic::Agent.logger.debug error.message
             reset_stats
-            @metric_ids = {}
+            @service.reset_metric_id_cache if @service
             @connect_state = :pending
             sleep 30
           end
@@ -747,10 +746,22 @@ module NewRelic
             Agent.config.apply_config(server_config, 1)
             log_connection!(config_data) if @service
 
+            add_rules_to_engine(config_data['transaction_name_rules'],
+                                NewRelic::Agent.instance.transaction_rules)
+            add_rules_to_engine(config_data['metric_name_rules'],
+                                NewRelic::Agent.instance.metric_rules)
+
             # If you're adding something else here to respond to the server-side config,
             # use Agent.instance.events.subscribe(:finished_configuring) callback instead!
 
             @beacon_configuration = BeaconConfiguration.new
+          end
+
+          def add_rules_to_engine(rule_specifications, rules_engine)
+            return unless rule_specifications && rule_specifications.any?
+            rule_specifications.each do |rule_spec|
+              rules_engine << NewRelic::Agent::RulesEngine::Rule.new(rule_spec)
+            end
           end
 
           # Logs when we connect to the server, for debugging purposes
@@ -772,30 +783,13 @@ module NewRelic
         end
         include Connect
 
-
-        # Serialize all the important data that the agent might want
-        # to send to the server. We could be sending this to file (
-        # common in short-running background transactions ) or
-        # alternately we could serialize via a pipe or socket to a
-        # local aggregation device
-        def serialize
-          accumulator = []
-          accumulator[1] = harvest_transaction_traces if @transaction_sampler
-          accumulator[2] = harvest_errors if @error_collector
-          accumulator[0] = harvest_timeslice_data
-          reset_stats
-          @metric_ids = {}
-          accumulator
-        end
-        public :serialize
-
-        # Accepts data as provided by the serialize method and merges
+        # Accepts an array of (metrics, transaction_traces, errors) and merges
         # it into our current collection of data to send. Can be
         # dangerous if we re-merge the same data more than once - it
         # will be sent multiple times.
         def merge_data_from(data)
           metrics, transaction_traces, errors = data
-          @stats_engine.merge_data(metrics) if metrics
+          @stats_engine.merge!(metrics) if metrics
           if transaction_traces && transaction_traces.respond_to?(:any?) &&
               transaction_traces.any?
             if @traces
@@ -831,8 +825,8 @@ module NewRelic
         #   agent run and New Relic sees it as a separate instance (default is false).
         def connect(options={})
           defaults = {
-            :keep_retrying => true,
-            :force_reconnect => false
+            :keep_retrying => Agent.config[:keep_retrying],
+            :force_reconnect => Agent.config[:force_reconnect]
           }
           opts = defaults.merge(options)
 
@@ -876,19 +870,9 @@ module NewRelic
           NewRelic::Agent::BusyCalculator.harvest_busy
 
           @unsent_timeslice_data ||= {}
-          @unsent_timeslice_data = @stats_engine.harvest_timeslice_data(@unsent_timeslice_data, @metric_ids)
+          @unsent_timeslice_data = @stats_engine.harvest_timeslice_data(@unsent_timeslice_data,
+                                                                        @metric_rules)
           @unsent_timeslice_data
-        end
-
-        # takes an array of arrays of spec and id, adds it into the
-        # metric cache so we can save the collector some work by
-        # sending integers instead of strings
-        def fill_metric_id_cache(pairs_of_specs_and_ids)
-          Array(pairs_of_specs_and_ids).each do |metric_spec_hash, metric_id|
-            metric_spec = MetricSpec.new(metric_spec_hash['name'],
-                                         metric_spec_hash['scope'])
-            @metric_ids[metric_spec] = metric_id
-          end
         end
 
         # note - exceptions are logged in invoke_remote.  If an exception is encountered here,
@@ -899,17 +883,13 @@ module NewRelic
           NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote').record_data_point(0.0)
           NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote/metric_data').record_data_point(0.0)
           harvest_timeslice_data(now)
-          # In this version of the protocol
-          # we get back an assoc array of spec to id.
-          metric_specs_and_ids = []
           begin
-            metric_specs_and_ids = @service.metric_data(@last_harvest_time.to_f,
-                                                now.to_f,
-                                                @unsent_timeslice_data.values)
+            @service.metric_data(@last_harvest_time.to_f,
+                                  now.to_f,
+                                  @unsent_timeslice_data)
           rescue UnrecoverableServerException => e
             ::NewRelic::Agent.logger.debug e.message
           end
-          fill_metric_id_cache(metric_specs_and_ids)
 
           ::NewRelic::Agent.logger.debug "#{now}: sent #{@unsent_timeslice_data.length} timeslices (#{@service.agent_id}) in #{Time.now - now} seconds"
 

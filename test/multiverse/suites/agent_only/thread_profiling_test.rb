@@ -13,6 +13,7 @@ class ThreadProfilingTest < Test::Unit::TestCase
 
     NewRelic::Agent::Agent.instance_variable_set(:@instance, nil)
     NewRelic::Agent.manual_start(:'thread_profiler.enabled' => true)
+    NewRelic::Agent.instance.service.request_timeout = 0.5
 
     @agent = NewRelic::Agent.instance
     @thread_profiler = @agent.thread_profiler
@@ -51,11 +52,11 @@ class ThreadProfilingTest < Test::Unit::TestCase
 
   def test_thread_profiling
     @agent.send(:check_for_agent_commands)
-    sleep(1)
-    NewRelic::Agent.shutdown
+
+    let_it_finish
 
     profile_data = $collector.calls_for('profile_data')[0]
-    assert_equal(666, profile_data[0])
+    assert_equal('666', profile_data.run_id)
 
     poll_count = profile_data[1][0][3]
     assert poll_count > 25, "Expected poll_count > 25, but was #{poll_count}"
@@ -67,14 +68,24 @@ class ThreadProfilingTest < Test::Unit::TestCase
     $collector.mock['get_agent_commands'] = [200, {'return_value' => STOP_COMMAND}]
     @agent.send(:check_for_agent_commands)
 
-    sleep(0.1)
-    NewRelic::Agent.shutdown
+    let_it_finish
 
     profile_data = $collector.calls_for('profile_data')[0]
-    assert_equal(666, profile_data[0])
+    assert_equal('666', profile_data.run_id)
 
     poll_count = profile_data[1][0][3]
     assert poll_count < 10, "Expected poll_count < 10, but was #{poll_count}"
+  end
+
+
+  def let_it_finish
+    Timeout.timeout(2) do
+      until @thread_profiler.finished?
+        sleep(0.1)
+      end
+    end
+
+    NewRelic::Agent.shutdown
   end
 end
 end

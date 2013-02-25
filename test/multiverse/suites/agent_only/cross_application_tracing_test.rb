@@ -35,17 +35,17 @@ class CrossProcessTest < Test::Unit::TestCase
     @@wrapper_app
   end
 
-  def test_cross_process_doesnt_modify_without_header
+  def test_cross_app_doesnt_modify_without_header
     get '/'
     assert_nil last_response.headers["X-NewRelic-App-Data"]
   end
 
-  def test_cross_process_doesnt_modify_with_invalid_header
+  def test_cross_app_doesnt_modify_with_invalid_header
     get '/', nil, {'X-NewRelic-ID' => Base64.encode64('otherjunk')}
     assert_nil last_response.headers["X-NewRelic-App-Data"]
   end
 
-  def test_cross_process_writes_out_information
+  def test_cross_app_writes_out_information
     get '/', nil, {'X-NewRelic-ID' => Base64.encode64('1#234')}
     assert_not_nil last_response.headers["X-NewRelic-App-Data"]
 
