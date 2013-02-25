@@ -170,19 +170,6 @@ common: &default_settings
     # which are how 404's get triggered.
     ignore_errors: ActionController::RoutingError
 
-  # (Advanced) Uncomment this to ensure the cpu and memory samplers
-  # won't run. Useful when you are using the agent to monitor an
-  # external resource.
-  # disable_samplers: true
-
-  # If you aren't interested in visibility in these areas, you can
-  # disable the instrumentation to reduce overhead.
-  #
-  # disable_view_instrumentation: true
-  # disable_activerecord_instrumentation: true
-  # disable_memcache_instrumentation: true
-  # disable_dj: true
-
   # If you're interested in capturing memcache keys as though they
   # were SQL uncomment this flag. Note that this does increase
   # overhead slightly on every memcached call, and can have security

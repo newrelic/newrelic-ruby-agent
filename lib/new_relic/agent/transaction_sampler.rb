@@ -263,7 +263,7 @@ module NewRelic
         return unless builder
         segment = builder.current_segment
         if segment
-          new_message = truncate_message(append_new_message(segment[key],
+          new_message = self.class.truncate_message(append_new_message(segment[key],
                                                             message))
           if key == :sql && config.respond_to?(:has_key?) && config.has_key?(:adapter)
             segment[key] = Database::Statement.new(new_message)
@@ -281,7 +281,7 @@ module NewRelic
       # Truncates the message to `MAX_DATA_LENGTH` if needed, and
       # appends an ellipsis because it makes the trucation clearer in
       # the UI
-      def truncate_message(message)
+      def self.truncate_message(message)
         if message.length > (MAX_DATA_LENGTH - 4)
           message[0..MAX_DATA_LENGTH - 4] + '...'
         else

@@ -37,24 +37,36 @@ module NewRelic
         include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
         def dispatch_with_newrelic
+          # We're trying to determine the transaction name via Sinatra's
+          # process_route, but calling it here misses Sinatra's normal error handling.
+          #
+          # rescue nil to let normal processing continue (without a traced transaction)
+          # in the case where process_route raises for any reason
           txn_name = NewRelic.transaction_name(self.class.routes, @request) do |pattern, keys, conditions|
-            process_route(pattern, keys, conditions) do
+            result = process_route(pattern, keys, conditions) do
               pattern.source
             end
+            result if result.class == String
+          end rescue nil
+
+          if txn_name
+            perform_action_with_newrelic_trace(:category => :sinatra,
+                                               :name => txn_name,
+                                               :params => @request.params) do
+              dispatch_and_notice_errors_with_newrelic
+            end
+          else
+            dispatch_and_notice_errors_with_newrelic
           end
+        end
 
-          perform_action_with_newrelic_trace(:category => :sinatra,
-                                             :name => txn_name,
-                                             :params => @request.params) do
-            result = dispatch_without_newrelic
-
-            # Will only see an error raised if :show_exceptions is true, but
-            # will always see them in the env hash if they occur
-            had_error = env.has_key?('sinatra.error')
-            ::NewRelic::Agent.notice_error(env['sinatra.error']) if had_error
-
-            result
-          end
+        def dispatch_and_notice_errors_with_newrelic
+          dispatch_without_newrelic
+        ensure
+          # Will only see an error raised if :show_exceptions is true, but
+          # will always see them in the env hash if they occur
+          had_error = env.has_key?('sinatra.error')
+          ::NewRelic::Agent.notice_error(env['sinatra.error']) if had_error
         end
 
         # Define Request Header accessor for Sinatra
@@ -89,6 +101,9 @@ module NewRelic
             end
 
             name
+          rescue => e
+            ::NewRelic::Agent.logger.debug("#{e.class} : #{e.message} - Error encountered trying to identify Sinatra transaction name")
+            '(unknown)'
           end
         end
       end
