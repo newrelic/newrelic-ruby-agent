@@ -134,7 +134,6 @@ module NewRelic
         metrics = common_metrics( http )
 
         if response_is_crossapp?( response )
-          NewRelic::Agent.logger.debug "Response has CAT data."
           begin
             metrics.concat metrics_for_crossapp_response( http, response )
           rescue => err
@@ -154,7 +153,6 @@ module NewRelic
 
       # Return an Array of metrics used for every response.
       def common_metrics( http )
-        NewRelic::Agent.logger.debug "Fetching common metrics"
         metrics = [ "External/all" ]
         metrics << "External/#{http.address}/all"
 
