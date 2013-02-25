@@ -40,22 +40,17 @@ module NewRelic
           # We're trying to determine the transaction name via Sinatra's
           # process_route, but calling it here misses Sinatra's normal error handling.
           #
-          # rescue nil to let normal processing continue (without a traced transaction)
-          # in the case where process_route raises for any reason
+          # Relies on transaction_name to always safely return a value for us
           txn_name = NewRelic.transaction_name(self.class.routes, @request) do |pattern, keys, conditions|
             result = process_route(pattern, keys, conditions) do
               pattern.source
             end
             result if result.class == String
-          end rescue nil
+          end
 
-          if txn_name
-            perform_action_with_newrelic_trace(:category => :sinatra,
-                                               :name => txn_name,
-                                               :params => @request.params) do
-              dispatch_and_notice_errors_with_newrelic
-            end
-          else
+          perform_action_with_newrelic_trace(:category => :sinatra,
+                                             :name => txn_name,
+                                             :params => @request.params) do
             dispatch_and_notice_errors_with_newrelic
           end
         end
