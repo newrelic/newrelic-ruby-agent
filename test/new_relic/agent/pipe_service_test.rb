@@ -26,10 +26,9 @@ class PipeServiceTest < Test::Unit::TestCase
   end
 
   def test_write_to_missing_pipe_logs_error
-    service = NewRelic::Agent::PipeService.new(:non_existant)
     ::NewRelic::Agent.logger.expects(:error) \
-      .with(regexp_matches(/Unable to send data to parent process/)).once
-
+      .with(regexp_matches(/No communication channel to parent process/)).once
+    service = NewRelic::Agent::PipeService.new(:non_existant)
     assert_nothing_raised do
       service.metric_data(Time.now, Time.now, {})
     end
@@ -85,13 +84,6 @@ class PipeServiceTest < Test::Unit::TestCase
       assert_equal 'Custom/something', received_data[:stats].keys.sort[0].name
       assert_equal ['txn0'], received_data[:transaction_traces]
       assert_equal ['err0'], received_data[:error_traces].sort
-    end
-
-    def test_shutdown_sends_EOF
-      received_data = data_from_forked_process do
-        @service.shutdown(Time.now)
-      end
-      assert_equal 'EOF', received_data[:EOF]
     end
 
     def test_shutdown_closes_pipe

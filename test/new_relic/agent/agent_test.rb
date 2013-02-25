@@ -39,8 +39,9 @@ module NewRelic
 
       def test_after_fork_should_close_pipe_if_parent_not_connected
         pipe = mock
-        pipe.expects(:write).with('EOF')
+        pipe.expects(:after_fork_in_child)
         pipe.expects(:close)
+        pipe.stubs(:parent_pid).returns(:digglewumpus)
         dummy_channels = { 123 => pipe }
         NewRelic::Agent::PipeChannelManager.stubs(:channels).returns(dummy_channels)
 

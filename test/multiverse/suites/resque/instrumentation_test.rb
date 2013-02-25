@@ -133,7 +133,7 @@ class ResqueTest < Test::Unit::TestCase
 
     run_worker(:env_vars => 'BROKEN_AFTER_FORK=true')
 
-    assert File.read(log_path).include?('Unable to send data to parent process')
+    assert File.read(log_path).include?('No communication channel to parent process')
   end
 
   if RUBY_VERSION >= '1.9'
