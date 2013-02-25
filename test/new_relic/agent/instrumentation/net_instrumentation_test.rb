@@ -2,9 +2,8 @@
 # encoding: utf-8
 
 require 'net/http'
-require 'pp'
-
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require 'new_relic/agent/cross_app_tracing'
 
 # Add some stuff to Net::HTTP::HTTPResponse to facilitate building response data
 class Net::HTTPResponse
