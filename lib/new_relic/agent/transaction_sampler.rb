@@ -116,6 +116,12 @@ module NewRelic
         end
       end
 
+      # Rename the latest scope's segment in the builder to +new_name+.
+      def rename_scope_segment( new_name )
+        return unless builder
+        builder.rename_current_segment( new_name )
+      end
+
       # Defaults to zero, otherwise delegated to the transaction
       # sample builder
       def scope_depth
@@ -318,6 +324,12 @@ module NewRelic
       # duration is seconds, float value.
       def notice_nosql(key, duration)
         notice_extra_data(key, duration, :key)
+      end
+
+      # Set parameters on the current segment.
+      def add_segment_parameters( params )
+        return unless builder
+        builder.current_segment.params.merge!( params )
       end
 
       # Every 1/n harvests, adds the most recent sample to the harvest
