@@ -51,11 +51,19 @@ module NewRelic
         run_id = uri.query =~ /run_id=(\d+)/ ? $1 : nil
         req.body.rewind
 
-        body = if format == :json
-          body = JSON.load(req.body.read)
-        else
-          body = Marshal.load(req.body.read)
+        begin
+          raw_body = req.body.read
+          raw_body = Zlib::Inflate.inflate(raw_body) if req.env["HTTP_CONTENT_ENCODING"] == "deflate"
+
+          body = if format == :json
+            body = JSON.load(raw_body)
+          else
+            body = Marshal.load(raw_body)
+          end
+        rescue => err
+          body = "UNABLE TO DECODE BODY: #{raw_body}"
         end
+
         @agent_data << AgentPost.create(:action       => method,
                                         :body         => body,
                                         :run_id       => run_id,
