@@ -83,6 +83,6 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
   end
 
   def ticks(start, finish, step)
-    (start..finish).step(step).to_a
+    (start..finish).step(step).map{|i| Time.at(i)}
   end
 end

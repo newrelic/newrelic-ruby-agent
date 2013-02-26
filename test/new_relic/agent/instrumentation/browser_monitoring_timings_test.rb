@@ -49,7 +49,7 @@ module NewRelic::Agent::Instrumentation
       t = BrowserMonitoringTimings.new(1000, @transaction)
       original = t.app_time_in_seconds
 
-      Time.stubs(:now).returns(3000)
+      Time.stubs(:now).returns(Time.at(3000))
       later = t.app_time_in_seconds
 
       assert_equal original, later

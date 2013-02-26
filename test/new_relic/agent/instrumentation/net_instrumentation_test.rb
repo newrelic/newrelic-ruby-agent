@@ -272,7 +272,12 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
 
   def test_adds_a_request_header_to_outgoing_requests_if_xp_enabled
     @socket.check_write do |data|
-      assert_match /(?i:x-newrelic-id): VURQV1BZRkZdXUFT/, data
+
+      # assert_match /(?i:x-newrelic-id): VURQV1BZRkZdXUFT/, data
+      # The above assertion won't work in Ruby 2.0.0-p0 because of a bug in the
+      # regexp engine.  Until that's fixed we'll check the header name case
+      # sensitively.
+      assert_match /X-Newrelic-Id: VURQV1BZRkZdXUFT/, data
     end
 
     with_config(:"cross_application_tracer.enabled" => true) do
@@ -282,7 +287,11 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
 
   def test_adds_a_request_header_to_outgoing_requests_if_old_xp_config_is_present
     @socket.check_write do |data|
-      assert_match /(?i:x-newrelic-id): VURQV1BZRkZdXUFT/, data
+      # assert_match /(?i:x-newrelic-id): VURQV1BZRkZdXUFT/, data
+      # The above assertion won't work in Ruby 2.0.0-p0 because of a bug in the
+      # regexp engine.  Until that's fixed we'll check the header name case
+      # sensitively.
+      assert_match /X-Newrelic-Id: VURQV1BZRkZdXUFT/, data
     end
 
     with_config(:cross_application_tracing => true) do
@@ -292,7 +301,11 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
 
   def test_agent_doesnt_add_a_request_header_to_outgoing_requests_if_xp_disabled
     @socket.check_write do |data|
-      assert_no_match /(?i:x-newrelic-id): VURQV1BZRkZdXUFT/, data
+      # assert_no_match /(?i:x-newrelic-id): VURQV1BZRkZdXUFT/, data
+      # The above assertion won't work in Ruby 2.0.0-p0 because of a bug in the
+      # regexp engine.  Until that's fixed we'll check the header name case
+      # sensitively.
+      assert_no_match /X-Newrelic-Id: VURQV1BZRkZdXUFT/, data
     end
 
     Net::HTTP.get URI.parse('http://www.google.com/index.html')
