@@ -64,8 +64,25 @@ class LicenseTest < Test::Unit::TestCase
     /^# -\*- ruby -\*-/
   end
 
+  def should_skip?(path)
+    (
+      # skip directories
+      !File.file?(path) ||
+      # skip binary files
+       %w| .sqlite3 .log .png .ico .gif |.include?(File.extname(path)) ||
+       # skip this file
+       File.expand_path(__FILE__) == path ||
+       # skip rpm_test_app and other stuff that ends up in tmp
+       path.include?('/tmp/') ||
+       # skip the auto-generated build.rb file
+       path =~ %r{lib/new_relic/build\.rb}
+    )
+  end
+
   def test_all_rb_and_js_files_have_license_header
     all_rb_and_js_files.each do |filename|
+      next if should_skip?(filename)
+
       first_four_lines = File.read(filename, 1000).split("\n")[0...4]
       if first_four_lines.first =~ shebang
         first_four_lines.shift # discard it
@@ -83,29 +100,17 @@ class LicenseTest < Test::Unit::TestCase
   end
 
   def test_for_scary_license_terms
-    checked_files = 0
-    all_files.each do |filename|
-      skipped = true
+    files_to_check = all_files.reject { |f| should_skip?(f) }
+    files_to_check.each do |filename|
       LICENSE_TERMS.each do |key, pattern|
-        # skip directories
-        next if ! File.file?(filename) # skip directories
-        # skip binary files
-        next if %w| .sqlite3 .log .png .ico .gif |.include?(File.extname(filename))
-        # skip this file
-        next if File.expand_path(__FILE__) == filename
-        # skip rpm_test_app and other stuff that ends up in tmp
-        next if filename.include?('/tmp/')
-
         # we're checking this one.  We'll update the count of checked files below.
-        skipped = false
-
         occurrences = File.readlines(filename).grep(pattern).size
         expected = (EXPECTED_LICENSE_OCCURRENCES[[filename.sub(gem_root, ''), key]] || 0)
         assert_equal expected, occurrences, "#{filename} contains #{key} #{occurrences} times. Should be #{expected}"
       end
-      checked_files += 1 unless skipped
     end
     # sanity check that we are not skipping all the files.
+    checked_files = files_to_check.size
     assert checked_files >= 390, "Somethings off. We only scanned #{checked_files} files for license info.  There should be more."
   end
 end
