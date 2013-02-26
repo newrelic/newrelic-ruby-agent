@@ -120,6 +120,12 @@ module NewRelic
         end
       end
 
+      # Rename the latest scope's segment in the builder to +new_name+.
+      def rename_scope_segment( new_name )
+        return unless builder
+        builder.rename_current_segment( new_name )
+      end
+
       # Defaults to zero, otherwise delegated to the transaction
       # sample builder
       def scope_depth
@@ -261,7 +267,7 @@ module NewRelic
         return unless builder
         segment = builder.current_segment
         if segment
-          new_message = truncate_message(append_new_message(segment[key],
+          new_message = self.class.truncate_message(append_new_message(segment[key],
                                                             message))
           if key == :sql && config.respond_to?(:has_key?) && config.has_key?(:adapter)
             segment[key] = Database::Statement.new(new_message)
@@ -279,7 +285,7 @@ module NewRelic
       # Truncates the message to `MAX_DATA_LENGTH` if needed, and
       # appends an ellipsis because it makes the trucation clearer in
       # the UI
-      def truncate_message(message)
+      def self.truncate_message(message)
         if message.length > (MAX_DATA_LENGTH - 4)
           message[0..MAX_DATA_LENGTH - 4] + '...'
         else
@@ -322,6 +328,12 @@ module NewRelic
       # duration is seconds, float value.
       def notice_nosql(key, duration)
         notice_extra_data(key, duration, :key)
+      end
+
+      # Set parameters on the current segment.
+      def add_segment_parameters( params )
+        return unless builder
+        builder.current_segment.params.merge!( params )
       end
 
       # Every 1/n harvests, adds the most recent sample to the harvest

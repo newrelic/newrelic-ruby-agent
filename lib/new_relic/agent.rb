@@ -67,7 +67,6 @@ module NewRelic
     
     require 'new_relic/version'
     require 'new_relic/local_environment'
-    require 'new_relic/stats'
     require 'new_relic/metrics'
     require 'new_relic/metric_spec'
     require 'new_relic/metric_data'
@@ -79,6 +78,7 @@ module NewRelic
     require 'new_relic/timer_lib'
 
     require 'new_relic/agent'
+    require 'new_relic/agent/stats'
     require 'new_relic/agent/chained_call'
     require 'new_relic/agent/browser_monitoring'
     require 'new_relic/agent/cross_app_monitor'
@@ -177,7 +177,7 @@ module NewRelic
     # @api public
     def record_metric(metric_name, value)
       if value.is_a?(Hash)
-        stats = NewRelic::Stats.new
+        stats = NewRelic::Agent::Stats.new
         stats.call_count = value[:count]
         stats.total_call_time = value[:total]
         stats.total_exclusive_time = value[:total]
@@ -209,7 +209,7 @@ module NewRelic
     # +metric_name+ should follow a slash separated path convention. Application
     # specific metrics should begin with "Custom/".
     #
-    # Return a NewRelic::Stats that accepts data
+    # Return a NewRelic::Agent::Stats that accepts data
     # via calls to add_data_point(value).
     #
     # @deprecated

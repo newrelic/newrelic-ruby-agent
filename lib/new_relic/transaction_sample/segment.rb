@@ -12,8 +12,9 @@ module NewRelic
       # have a timestamp.
       attr_reader :exit_timestamp
       attr_reader :parent_segment
-      attr_reader :metric_name
       attr_reader :segment_id
+
+      attr_accessor :metric_name
 
       def initialize(timestamp, metric_name, segment_id)
         @entry_timestamp = timestamp

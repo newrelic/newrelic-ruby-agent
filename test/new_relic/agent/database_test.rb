@@ -79,6 +79,19 @@ class NewRelic::Agent::DatabaseTest < Test::Unit::TestCase
                  NewRelic::Agent::Database.explain_sql(sql, config))
   end
 
+  def test_dont_collect_explain_for_truncated_query
+    config = {:adapter => 'postgresql'}
+    config.default('val')
+    connection = mock('connection')
+    connection.expects(:execute).never
+    NewRelic::Agent::Database.stubs(:get_connection).with(config).returns(connection)
+    expects_logging(:debug, 'Unable to collect explain plan for truncated query.')
+
+    sql = 'SELECT * FROM table WHERE id IN (1,2,3,4,5...'
+    assert_equal [], NewRelic::Agent::Database.explain_sql(sql, config)
+
+  end
+
   def test_explain_sql_no_sql
     assert_equal(nil, NewRelic::Agent::Database.explain_sql(nil, nil))
   end
@@ -139,6 +152,12 @@ class NewRelic::Agent::DatabaseTest < Test::Unit::TestCase
     select.adapter = :postgresql
     assert_equal(%q[SELECT * FROM "table_007" LIMIT ?],
                  NewRelic::Agent::Database.obfuscate_sql(select))
+  end
+
+  def test_obfuscation_of_truncated_query
+    insert = "INSERT INTO data (blah) VALUES ('abcdefg..."
+    assert_equal("Query too large (over 16k characters) to safely obfuscate",
+                 NewRelic::Agent::Database.obfuscate_sql(insert))
   end
 
   def test_sql_obfuscation_filters

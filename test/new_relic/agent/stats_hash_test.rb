@@ -11,7 +11,7 @@ class NewRelic::Agent::StatsHashTest < Test::Unit::TestCase
 
   def test_creates_default_entries
     stats = @hash['a/b/c/d']
-    assert_kind_of(NewRelic::Stats, stats)
+    assert_kind_of(NewRelic::Agent::Stats, stats)
   end
 
   def test_record_accpets_single_metric_spec
@@ -54,7 +54,7 @@ class NewRelic::Agent::StatsHashTest < Test::Unit::TestCase
 
   def test_record_accepts_stats_value
     spec = NewRelic::MetricSpec.new('foo')
-    other_stats = NewRelic::Stats.new
+    other_stats = NewRelic::Agent::Stats.new
     stats = @hash[spec]
     stats.expects(:merge!).with(other_stats)
     @hash.record(spec, other_stats)

@@ -5,9 +5,11 @@ end
 gemfile <<-RB
   gem 'sinatra', '1.3.3'
   gem 'rack-test', :require => 'rack/test'
+  gem 'mocha'
 RB
 
 gemfile <<-RB
   gem 'sinatra', '1.2.8'
   gem 'rack-test', :require => 'rack/test'
+  gem 'mocha'
 RB

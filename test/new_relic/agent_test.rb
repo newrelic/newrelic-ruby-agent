@@ -252,7 +252,7 @@ module NewRelic
         :max   => 5,
         :sum_of_squares => 999
       }
-      expected_stats = NewRelic::Stats.new()
+      expected_stats = NewRelic::Agent::Stats.new()
       expected_stats.call_count = 12
       expected_stats.total_call_time = 42
       expected_stats.total_exclusive_time = 42

@@ -124,7 +124,8 @@ module NewRelic
         :'rum.load_episodes_file' => true,
         :'browser_monitoring.auto_instrument' => Proc.new { self[:'rum.enabled'] },
 
-        :cross_application_tracing  => true,
+        :trusted_account_ids                => [],
+        :"cross_application_tracer.enabled" => true,
 
         :'thread_profiler.enabled' => Proc.new { NewRelic::Agent::ThreadProfiler.is_supported? },
 

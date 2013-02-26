@@ -5,10 +5,10 @@
 # A Hash-descended class for storing metric data in the NewRelic Agent.
 #
 # Keys are NewRelic::MetricSpec objects.
-# Values are NewRelic::Stats objects.
+# Values are NewRelic::Agent::Stats objects.
 #
-# Missing keys will be automatically created as empty NewRelic::Stats instances,
-# so use has_key? explicitly to check for key existence.
+# Missing keys will be automatically created as empty NewRelic::Agent::Stats
+# instances, so use has_key? explicitly to check for key existence.
 #
 # This class makes no provisions for safe usage from multiple threads, such
 # measures should be externally provided.
@@ -16,7 +16,7 @@ module NewRelic
   module Agent
     class StatsHash < ::Hash
       def initialize
-        super { |hash, key| hash[key] = NewRelic::Stats.new }
+        super { |hash, key| hash[key] = NewRelic::Agent::Stats.new }
       end
 
       def marshal_dump
@@ -40,7 +40,7 @@ module NewRelic
             case value
             when Numeric
               stats.record_data_point(value)
-            when NewRelic::Stats
+            when NewRelic::Agent::Stats
               stats.merge!(value)
             end
           end

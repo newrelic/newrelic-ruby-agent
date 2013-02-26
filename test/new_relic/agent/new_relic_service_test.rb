@@ -489,7 +489,7 @@ end
     spec1 = NewRelic::MetricSpec.new('foo')
     spec2 = NewRelic::MetricSpec.new('bar')
     hash.record(spec1, 1)
-    hash[spec2] = NewRelic::Stats.new()
+    hash[spec2] = NewRelic::Agent::Stats.new()
 
     metric_data_array = @service.build_metric_data_array(hash)
     assert_equal(1, metric_data_array.size)

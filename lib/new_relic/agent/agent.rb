@@ -94,7 +94,7 @@ module NewRelic
         # into pages
         attr_reader :beacon_configuration
         # cross application tracing ids and encoding
-        attr_reader :cross_app_id
+        attr_reader :cross_process_id
         attr_reader :cross_app_encoding_bytes
         # service for communicating with collector
         attr_accessor :service

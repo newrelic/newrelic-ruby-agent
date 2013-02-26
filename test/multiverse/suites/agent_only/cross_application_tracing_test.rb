@@ -19,7 +19,7 @@ class CrossProcessTest < Test::Unit::TestCase
     $collector.run
 
     NewRelic::Agent.manual_start(
-      :cross_app_id => "boo",
+      :cross_process_id => "boo",
       :encoding_key => "\0",
       :trusted_account_ids => [1])
 

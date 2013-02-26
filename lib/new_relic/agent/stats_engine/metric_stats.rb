@@ -47,7 +47,7 @@ module NewRelic
               if scope && scope != metric_name
                 scoped_spec = NewRelic::MetricSpec.new(metric_name, scope)
                 scoped_stats = @stats_hash[scoped_spec]
-                stats = NewRelic::ChainedStats.new(scoped_stats, unscoped_stats)
+                stats = NewRelic::Agent::ChainedStats.new(scoped_stats, unscoped_stats)
               else
                 stats = unscoped_stats
               end

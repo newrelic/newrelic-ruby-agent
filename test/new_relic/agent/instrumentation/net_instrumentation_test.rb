@@ -5,311 +5,438 @@
 
 
 require 'net/http'
-require 'pp'
+require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require 'new_relic/agent/cross_app_tracing'
 
-unless ENV['FAST_TESTS']
-  require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+# Add some stuff to Net::HTTP::HTTPResponse to facilitate building response data
+class Net::HTTPResponse
+  def to_s
+    buf = ''
+    buf << "HTTP/%s %d %s\r\n" % [ self.http_version, self.code, self.message ]
+    self.each_capitalized {|k,v| buf << k << ': ' << v << "\r\n" }
+    buf << "\r\n"
+    buf << @body if @body
+    return buf
+  end
+  def initialize_copy( original )
+    @http_version = @http_version.dup
+    @code         = @code.dup
+    @message      = @message.dup
+    @body         = @body.dup
+    @read         = false
+    @header       = @header.dup
+  end
 
-  class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::TestCase
-    include NewRelic::Agent::Instrumentation::ControllerInstrumentation,
-            NewRelic::Agent::CrossAppMonitor::EncodingFunctions
-
-    CANNED_RESPONSE = (<<-"END_RESPONSE").gsub(/^    /m, '')
-    HTTP/1.1 200 OK
-    status: 200 OK
-    version: HTTP/1.1
-    cache-control: private, max-age=0
-    content-type: text/html; charset=UTF-8
-    date: Tue, 29 Jan 2013 21:52:04 GMT
-    expires: -1
-    server: gws
-    x-frame-options: SAMEORIGIN
-    x-xss-protection: 1; mode=block
+  unless instance_methods.map {|name| name.to_sym }.include?( :body= )
+    def body=( newbody )
+      @body = newbody
+    end
+  end
+end
     
-    <html><head><title>Canned Response</title></head><body>Canned response.</body></html>
-    END_RESPONSE
+
+class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::TestCase
+  include NewRelic::Agent::Instrumentation::ControllerInstrumentation,
+          NewRelic::Agent::CrossAppMonitor::EncodingFunctions,
+          NewRelic::Agent::CrossAppTracing
+
+  CANNED_RESPONSE = Net::HTTPOK.new( '1.1', '200', 'OK' )
+  CANNED_RESPONSE.body = 
+    '<html><head><title>Canned Response</title></head><body>Canned response.</body></html>'
+  CANNED_RESPONSE['content-type'] = 'text/html; charset=UTF-8'
+  CANNED_RESPONSE['date'] = 'Tue, 29 Jan 2013 21:52:04 GMT'
+  CANNED_RESPONSE['expires'] = '-1'
+  CANNED_RESPONSE['server'] = 'gws'
+  CANNED_RESPONSE.freeze
+
+  TRANSACTION_GUID = 'BEC1BC64675138B9'
 
 
-    def setup
-      NewRelic::Agent.manual_start(
-        :cross_application_tracing => false,
-        :cross_app_id              => '269975#22824',
-        :encoding_key              => 'gringletoes'
-      )
-      @engine = NewRelic::Agent.instance.stats_engine
-      @engine.clear_stats
+  def setup
+    NewRelic::Agent.manual_start(
+      :"cross_application_tracer.enabled" => false,
+      :"transaction_tracer.enabled"       => true,
+      :cross_process_id                   => '269975#22824',
+      :encoding_key                       => 'gringletoes'
+    )
 
-      # Don't actually talk to Google.
-      @socket = stub("socket") do
-        stubs(:closed?).returns(false)
-        stubs(:close)
+    # $stderr.puts '', '---', ''
+    # NewRelic::Agent.logger = NewRelic::Agent::AgentLogger.new( {:log_level => 'debug'}, '', Logger.new($stderr) )
 
-        def self.write( buf )
-          buf.length
-        end
+    @engine = NewRelic::Agent.instance.stats_engine
+    @engine.clear_stats
+
+    @engine.start_transaction( 'test' )
+    NewRelic::Agent::TransactionInfo.get.guid = TRANSACTION_GUID
+
+    @sampler = NewRelic::Agent.instance.transaction_sampler
+    @sampler.notice_first_scope_push( Time.now.to_f )
+    @sampler.notice_transaction( '/path', '/path', {} )
+    @sampler.notice_push_scope "Controller/sandwiches/index"
+    @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'", nil, 0)
+    @sampler.notice_push_scope "ab"
+    @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'white'", nil, 0)
+    @sampler.notice_push_scope "fetch_external_service"
+
+    @response = CANNED_RESPONSE.clone
+    @socket = fixture_tcp_socket( @response )
+  end
+
+  def teardown
+    NewRelic::Agent.instance.transaction_sampler.reset!
+    Thread::current[:newrelic_scope_stack] = nil
+    NewRelic::Agent.instance.stats_engine.end_transaction
+  end
+
+
+  #
+  # Helpers
+  #
+
+  def fixture_tcp_socket( response )
+
+    # Don't actually talk to Google.
+    socket = stub("socket") do
+      stubs(:closed?).returns(false)
+      stubs(:close)
+
+      # Simulate a bunch of socket-ey stuff since Mocha doesn't really
+      # provide any other way to do it
+      class << self
+        attr_accessor :response, :write_checker
       end
 
-      # Have to do this one outside of the block so the ivar is in the right context
-      @response_data = CANNED_RESPONSE.dup
-
-      # JRuby (as of 1.7.2) doesn't include the net/protocol from the RUBY_PATCHLEVEL
-      # it sets, so we have to do a bit of detective work to figure out whether
-      # #read_nonblock or #sysread will be used
-      if RUBY_VERSION < '1.9.2' ||
-         ( defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby' && JRUBY_VERSION <= '1.7.2' )
-        @socket.stubs(:sysread).returns(@response_data).then.raises(EOFError)
-      else
-        @socket.stubs(:read_nonblock).returns(@response_data).then.raises(EOFError)
+      def self.check_write
+        self.write_checker = Proc.new
       end
 
-      TCPSocket.stubs(:open).returns(@socket)
+      def self.write( buf )
+        self.write_checker.call( buf ) if self.write_checker
+        buf.length
+      end
+      
+      def self.sysread( size, buf='' )
+        @data ||= response.to_s
+        raise EOFError if @data.empty?
+        buf.replace @data.slice!( 0, size )
+        buf
+      end
+      class << self
+        alias_method :read_nonblock, :sysread
+      end
+
     end
 
-    #
-    # Helpers
-    #
+    socket.response = response
+    TCPSocket.stubs( :open ).returns( socket )
 
-    def metrics_without_gc
-      @engine.metrics - ['GC/cumulative']
-    end
+    return socket
+  end
 
 
-    def make_app_data_payload( *args )
-      return obfuscate_with_key( 'gringletoes', args.to_json ).gsub( /\n/, '' ) + "\n"
-    end
-
-    def make_app_data_header( *args )
-      return "%s: %s" % [ Net::HTTP::NR_APPDATA_HEADER, make_app_data_payload(*args) ]
-    end
+  def make_app_data_payload( *args )
+    return obfuscate_with_key( 'gringletoes', args.to_json ).gsub( /\n/, '' ) + "\n"
+  end
 
 
-    #
-    # Tests
-    #
+  def find_last_segment
+    builder = NewRelic::Agent.agent.transaction_sampler.builder
+    last_segment = nil
+    builder.current_segment.each_segment {|s| last_segment = s }
 
-    def test_get
-      assert @response_data
+    return last_segment
+  end
+
+
+
+  #
+  # Tests
+  #
+
+  def test_get
+    url = URI.parse('http://www.google.com/index.html')
+    res = Net::HTTP.start(url.host, url.port) {|http|
+      http.get('/index.html')
+    }
+      
+    assert_match %r/<head>/i, res.body
+    assert_includes @engine.metrics, 'External/all'
+    assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
+    assert_includes @engine.metrics, 'External/allOther'
+    assert_includes @engine.metrics, 'External/www.google.com/all'
+
+    assert_not_includes @engine.metrics, 'External/allWeb'
+  end
+
+  def test_background
+    res = nil
+
+    perform_action_with_newrelic_trace("task", :category => :task) do
       url = URI.parse('http://www.google.com/index.html')
       res = Net::HTTP.start(url.host, url.port) {|http|
         http.get('/index.html')
       }
-      
-      assert_match %r/<head>/i, res.body
-      assert_includes @engine.metrics, 'External/all'
-      assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
-      assert_includes @engine.metrics, 'External/allOther'
-      assert_includes @engine.metrics, 'External/www.google.com/all'
-
-      assert_not_includes @engine.metrics, 'External/allWeb'
     end
 
-    def test_background
-      res = nil
+    assert_match %r/<head>/i, res.body
 
-      perform_action_with_newrelic_trace("task", :category => :task) do
-        url = URI.parse('http://www.google.com/index.html')
-        res = Net::HTTP.start(url.host, url.port) {|http|
-          http.get('/index.html')
-        }
-      end
+    assert_includes @engine.metrics, 'External/all'
+    assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
+    assert_includes @engine.metrics, 'External/allOther'
+    assert_includes @engine.metrics, 'External/www.google.com/all'
+    assert_includes @engine.metrics,
+      'OtherTransaction/Background/NewRelic::Agent::Instrumentation::NetInstrumentationTest/task'
 
-      assert_match %r/<head>/i, res.body
+    assert_not_includes @engine.metrics, 'External/allWeb'
+  end
 
-      assert_includes @engine.metrics, 'External/all'
-      assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
-      assert_includes @engine.metrics, 'External/allOther'
-      assert_includes @engine.metrics, 'External/www.google.com/all'
-      assert_includes @engine.metrics,
-        'OtherTransaction/Background/NewRelic::Agent::Instrumentation::NetInstrumentationTest/task'
+  def test_transactional
+    res = nil
 
-      assert_not_includes @engine.metrics, 'External/allWeb'
-    end
-
-    def test_transactional
-      res = nil
-
-      perform_action_with_newrelic_trace("task") do
-        url = URI.parse('http://www.google.com/index.html')
-        res = Net::HTTP.start(url.host, url.port) {|http|
-          http.get('/index.html')
-        }
-      end
-
-      assert_match %r/<head>/i, res.body
-
-      assert_includes @engine.metrics, 'External/all'
-      assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
-      assert_includes @engine.metrics, 'External/allWeb'
-      assert_includes @engine.metrics, 'External/www.google.com/all'
-      assert_includes @engine.metrics,
-        'Controller/NewRelic::Agent::Instrumentation::NetInstrumentationTest/task'
-
-      assert_not_includes @engine.metrics, 'External/allOther'
-    end
-
-    def test_get__simple
-      Net::HTTP.get URI.parse('http://www.google.com/index.html')
-
-      assert_includes @engine.metrics, 'External/all'
-      assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
-      assert_includes @engine.metrics, 'External/allOther'
-      assert_includes @engine.metrics, 'External/www.google.com/all'
-
-      assert_not_includes @engine.metrics, 'External/allWeb'
-    end
-
-    def test_ignore
-      NewRelic::Agent.disable_all_tracing do
-        url = URI.parse('http://www.google.com/index.html')
-        res = Net::HTTP.start(url.host, url.port) {|http|
-          http.post('/index.html','data')
-        }
-      end
-
-      assert_not_includes @engine.metrics, 'External/all'
-      assert_not_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
-      assert_not_includes @engine.metrics, 'External/allOther'
-      assert_not_includes @engine.metrics, 'External/www.google.com/all'
-
-      assert_not_includes @engine.metrics, 'External/allWeb'
-    end
-    
-    def test_head
+    perform_action_with_newrelic_trace("task") do
       url = URI.parse('http://www.google.com/index.html')
       res = Net::HTTP.start(url.host, url.port) {|http|
-        http.head('/index.html')
+        http.get('/index.html')
       }
-
-      assert_includes @engine.metrics, 'External/all'
-      assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/HEAD'
-      assert_includes @engine.metrics, 'External/allOther'
-      assert_includes @engine.metrics, 'External/www.google.com/all'
-
-      assert_not_includes @engine.metrics, 'External/allWeb'
     end
 
-    def test_post
+    assert_match %r/<head>/i, res.body
+
+    assert_includes @engine.metrics, 'External/all'
+    assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
+    assert_includes @engine.metrics, 'External/allWeb'
+    assert_includes @engine.metrics, 'External/www.google.com/all'
+    assert_includes @engine.metrics,
+      'Controller/NewRelic::Agent::Instrumentation::NetInstrumentationTest/task'
+
+    assert_not_includes @engine.metrics, 'External/allOther'
+  end
+
+  def test_get__simple
+    Net::HTTP.get URI.parse('http://www.google.com/index.html')
+
+    assert_includes @engine.metrics, 'External/all'
+    assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
+    assert_includes @engine.metrics, 'External/allOther'
+    assert_includes @engine.metrics, 'External/www.google.com/all'
+
+    assert_not_includes @engine.metrics, 'External/allWeb'
+  end
+
+  def test_ignore
+    NewRelic::Agent.disable_all_tracing do
       url = URI.parse('http://www.google.com/index.html')
       res = Net::HTTP.start(url.host, url.port) {|http|
         http.post('/index.html','data')
       }
-
-      assert_includes @engine.metrics, 'External/all'
-      assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/POST'
-      assert_includes @engine.metrics, 'External/allOther'
-      assert_includes @engine.metrics, 'External/www.google.com/all'
-
-      assert_not_includes @engine.metrics, 'External/allWeb'
     end
 
-    # When an http call is made, the agent should add a request header named
-    # X-NewRelic-ID with a value equal to the encoded cross_app_id.
+    assert_not_includes @engine.metrics, 'External/all'
+    assert_not_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
+    assert_not_includes @engine.metrics, 'External/allOther'
+    assert_not_includes @engine.metrics, 'External/www.google.com/all'
 
-    def test_adds_a_request_header_to_outgoing_requests_if_xp_enabled
-      @socket.expects( :write ).with do |data|
-        data =~ /(?i:x-newrelic-id): VURQV1BZRkZdXUFT/
-      end.returns( @response_data.length )
-
-      with_config(:cross_application_tracing => true) do
-        Net::HTTP.get URI.parse('http://www.google.com/index.html')
-      end
-    end
-
-    def test_agent_doesnt_add_a_request_header_to_outgoing_requests_if_xp_disabled
-      @socket.expects( :write ).with do |data|
-        data !~ /(?i:x-newrelic-id): VURQV1BZRkZdXUFT/
-      end.returns( @response_data.length )
-
-      Net::HTTP.get URI.parse('http://www.google.com/index.html')
-    end
-
-
-    def test_instrumentation_with_crossapp_enabled_records_normal_metrics_if_no_header_present
-      with_config(:cross_application_tracing => true) do
-        Net::HTTP.get URI.parse('http://www.google.com/index.html')
-      end
-
-      assert_includes @engine.metrics, 'External/all'
-      assert_includes @engine.metrics, 'External/allOther'
-      assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
-      assert_includes @engine.metrics, 'External/www.google.com/all'
-
-      assert_not_includes @engine.metrics, 'ExternalApp/www.google.com/18#1884/all'
-      assert_not_includes @engine.metrics, 'ExternalTransaction/www.google.com/18#1884/txn-name'
-      assert_not_includes @engine.metrics, 'External/allWeb'
-    end
-
-
-    def test_instrumentation_with_crossapp_disabled_records_normal_metrics_even_if_header_is_present
-      app_data_header = make_app_data_header( '18#1884', 'txn-name', 2, 8, 0 )
-      @response_data.sub!( /\n\n/, "\n" + app_data_header + "\n" )
-
-      Net::HTTP.get URI.parse('http://www.google.com/index.html')
-
-      assert_includes @engine.metrics, 'External/all'
-      assert_includes @engine.metrics, 'External/allOther'
-      assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
-      assert_includes @engine.metrics, 'External/www.google.com/all'
-
-      assert_not_includes @engine.metrics, 'ExternalApp/www.google.com/18#1884/all'
-      assert_not_includes @engine.metrics, 'ExternalTransaction/www.google.com/18#1884/txn-name'
-      assert_not_includes @engine.metrics, 'External/allWeb'
-    end
-
-
-    def test_instrumentation_with_crossapp_enabled_records_crossapp_metrics_if_header_present
-      app_data_header = make_app_data_header( '18#1884', 'txn-name', 2, 8, 0 )
-      @response_data.sub!( /\n\n/, "\n" + app_data_header + "\n" )
-
-      with_config(:cross_application_tracing => true) do
-        Net::HTTP.get URI.parse('http://www.google.com/index.html')
-      end
-
-      assert_includes @engine.metrics, 'External/all'
-      assert_includes @engine.metrics, 'External/allOther'
-      assert_includes @engine.metrics, 'ExternalApp/www.google.com/18#1884/all'
-      assert_includes @engine.metrics, 'ExternalTransaction/www.google.com/18#1884/txn-name'
-      assert_includes @engine.metrics, 'External/www.google.com/all'
-
-      assert_not_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
-      assert_not_includes @engine.metrics, 'External/allWeb'
-    end
-
-    def test_crossapp_metrics_allow_valid_utf8_characters
-      app_data_header = make_app_data_header( '12#1114', '世界線航跡蔵', 18.0, 88.1, 4096 )
-      @response_data.sub!( /\n\n/, "\n" + app_data_header + "\n" )
-
-      with_config(:cross_application_tracing => true) do
-        Net::HTTP.get URI.parse('http://www.google.com/index.html')
-      end
-
-      assert_includes @engine.metrics, 'External/all'
-      assert_includes @engine.metrics, 'External/allOther'
-      assert_includes @engine.metrics, 'ExternalApp/www.google.com/12#1114/all'
-      assert_includes @engine.metrics, 'ExternalTransaction/www.google.com/12#1114/世界線航跡蔵'
-      assert_includes @engine.metrics, 'External/www.google.com/all'
-
-      assert_not_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
-      assert_not_includes @engine.metrics, 'External/allWeb'
-    end
-
-    def test_crossapp_metrics_ignores_crossapp_header_with_malformed_crossprocess_id
-      app_data_header = make_app_data_header( '88#88#88', 'invalid', 1, 2, 4096 )
-      @response_data.sub!( /\n\n/, "\n" + app_data_header + "\n" )
-
-      with_config(:cross_application_tracing => true) do
-        Net::HTTP.get URI.parse('http://www.google.com/index.html')
-      end
-
-      assert_includes @engine.metrics, 'External/all'
-      assert_includes @engine.metrics, 'External/allOther'
-      assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
-      assert_includes @engine.metrics, 'External/www.google.com/all'
-
-      assert_not_includes @engine.metrics, 'ExternalApp/www.google.com/88#88#88/all'
-      assert_not_includes @engine.metrics, 'ExternalTransaction/www.google.com/88#88#88/invalid'
-      assert_not_includes @engine.metrics, 'External/allWeb'
-    end
-
+    assert_not_includes @engine.metrics, 'External/allWeb'
   end
+    
+  def test_head
+    url = URI.parse('http://www.google.com/index.html')
+    res = Net::HTTP.start(url.host, url.port) {|http|
+      http.head('/index.html')
+    }
+
+    assert_includes @engine.metrics, 'External/all'
+    assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/HEAD'
+    assert_includes @engine.metrics, 'External/allOther'
+    assert_includes @engine.metrics, 'External/www.google.com/all'
+
+    assert_not_includes @engine.metrics, 'External/allWeb'
+  end
+
+  def test_post
+    url = URI.parse('http://www.google.com/index.html')
+    res = Net::HTTP.start(url.host, url.port) {|http|
+      http.post('/index.html','data')
+    }
+
+    assert_includes @engine.metrics, 'External/all'
+    assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/POST'
+    assert_includes @engine.metrics, 'External/allOther'
+    assert_includes @engine.metrics, 'External/www.google.com/all'
+
+    assert_not_includes @engine.metrics, 'External/allWeb'
+  end
+
+  # When an http call is made, the agent should add a request header named
+  # X-NewRelic-ID with a value equal to the encoded cross_app_id.
+
+  def test_adds_a_request_header_to_outgoing_requests_if_xp_enabled
+    @socket.check_write do |data|
+      assert_match /(?i:x-newrelic-id): VURQV1BZRkZdXUFT/, data
+    end
+
+    with_config(:"cross_application_tracer.enabled" => true) do
+      Net::HTTP.get URI.parse('http://www.google.com/index.html')
+    end
+  end
+
+  def test_adds_a_request_header_to_outgoing_requests_if_old_xp_config_is_present
+    @socket.check_write do |data|
+      assert_match /(?i:x-newrelic-id): VURQV1BZRkZdXUFT/, data
+    end
+
+    with_config(:cross_application_tracing => true) do
+      Net::HTTP.get URI.parse('http://www.google.com/index.html')
+    end
+  end
+
+  def test_agent_doesnt_add_a_request_header_to_outgoing_requests_if_xp_disabled
+    @socket.check_write do |data|
+      assert_no_match /(?i:x-newrelic-id): VURQV1BZRkZdXUFT/, data
+    end
+
+    Net::HTTP.get URI.parse('http://www.google.com/index.html')
+  end
+
+
+  def test_instrumentation_with_crossapp_enabled_records_normal_metrics_if_no_header_present
+    with_config(:"cross_application_tracer.enabled" => true) do
+      Net::HTTP.get URI.parse('http://www.google.com/index.html')
+    end
+
+    assert_equal 5, @engine.metrics.length
+
+    assert_includes @engine.metrics, 'External/all'
+    assert_includes @engine.metrics, 'External/allOther'
+    assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
+    assert_includes @engine.metrics, 'External/www.google.com/all'
+    assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET:test'
+
+    assert_not_includes @engine.metrics, 'ExternalApp/www.google.com/18#1884/all'
+    assert_not_includes @engine.metrics, 'ExternalTransaction/www.google.com/18#1884/txn-name'
+    assert_not_includes @engine.metrics, 'External/allWeb'
+  end
+
+
+  def test_instrumentation_with_crossapp_disabled_records_normal_metrics_even_if_header_is_present
+    @response[ NR_APPDATA_HEADER ] = 
+      make_app_data_payload( '18#1884', 'txn-name', 2, 8, 0, TRANSACTION_GUID )
+
+    Net::HTTP.get URI.parse('http://www.google.com/index.html')
+
+    assert_equal 5, @engine.metrics.length
+
+    assert_includes @engine.metrics, 'External/all'
+    assert_includes @engine.metrics, 'External/allOther'
+    assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
+    assert_includes @engine.metrics, 'External/www.google.com/all'
+    assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET:test'
+
+    assert_not_includes @engine.metrics, 'ExternalApp/www.google.com/18#1884/all'
+    assert_not_includes @engine.metrics, 'ExternalTransaction/www.google.com/18#1884/txn-name'
+    assert_not_includes @engine.metrics, 'External/allWeb'
+  end
+
+
+  def test_instrumentation_with_crossapp_enabled_records_crossapp_metrics_if_header_present
+    @response[ NR_APPDATA_HEADER ] = 
+      make_app_data_payload( '18#1884', 'txn-name', 2, 8, 0, TRANSACTION_GUID )
+
+    with_config(:"cross_application_tracer.enabled" => true) do
+      Net::HTTP.get URI.parse('http://www.google.com/index.html')
+    end
+
+    assert_equal 6, @engine.metrics.length
+
+    assert_includes @engine.metrics, 'External/all'
+    assert_includes @engine.metrics, 'External/allOther'
+    assert_includes @engine.metrics, 'ExternalApp/www.google.com/18#1884/all'
+    assert_includes @engine.metrics, 'ExternalTransaction/www.google.com/18#1884/txn-name'
+    assert_includes @engine.metrics, 'External/www.google.com/all'
+    assert_includes @engine.metrics, 'ExternalTransaction/www.google.com/18#1884/txn-name:test'
+
+    assert_not_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
+    assert_not_includes @engine.metrics, 'External/allWeb'
+
+    last_segment = find_last_segment()
+
+    assert_includes last_segment.params.keys, :transaction_guid
+    assert_equal TRANSACTION_GUID, last_segment.params[:transaction_guid]
+  end
+
+  def test_crossapp_metrics_allow_valid_utf8_characters
+    @response[ NR_APPDATA_HEADER ] = 
+      make_app_data_payload( '12#1114', '世界線航跡蔵', 18.0, 88.1, 4096, TRANSACTION_GUID )
+
+    with_config(:"cross_application_tracer.enabled" => true) do
+      Net::HTTP.get URI.parse('http://www.google.com/index.html')
+    end
+
+    assert_equal 6, @engine.metrics.length
+
+    assert_includes @engine.metrics, 'External/all'
+    assert_includes @engine.metrics, 'External/allOther'
+    assert_includes @engine.metrics, 'ExternalApp/www.google.com/12#1114/all'
+    assert_includes @engine.metrics, 'ExternalTransaction/www.google.com/12#1114/世界線航跡蔵'
+    assert_includes @engine.metrics, 'External/www.google.com/all'
+    assert_includes @engine.metrics, 'ExternalTransaction/www.google.com/12#1114/世界線航跡蔵:test'
+
+    assert_not_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
+    assert_not_includes @engine.metrics, 'External/allWeb'
+
+    last_segment = find_last_segment()
+
+    assert_includes last_segment.params.keys, :transaction_guid
+    assert_equal TRANSACTION_GUID, last_segment.params[:transaction_guid]
+  end
+
+  def test_crossapp_metrics_ignores_crossapp_header_with_malformed_crossprocess_id
+    @response[ NR_APPDATA_HEADER ] = 
+      make_app_data_payload( '88#88#88', 'invalid', 1, 2, 4096, TRANSACTION_GUID )
+
+    with_config(:"cross_application_tracer.enabled" => true) do
+      Net::HTTP.get URI.parse('http://www.google.com/index.html')
+    end
+
+    assert_equal 5, @engine.metrics.length
+
+    assert_includes @engine.metrics, 'External/all'
+    assert_includes @engine.metrics, 'External/allOther'
+    assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
+    assert_includes @engine.metrics, 'External/www.google.com/all'
+    assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET:test'
+
+    assert_not_includes @engine.metrics, 'ExternalApp/www.google.com/88#88#88/all'
+    assert_not_includes @engine.metrics, 'ExternalTransaction/www.google.com/88#88#88/invalid'
+    assert_not_includes @engine.metrics, 'External/allWeb'
+  end
+
+  def test_doesnt_affect_the_request_if_an_exception_is_raised_while_setting_up_tracing
+    res = nil
+    NewRelic::Agent.instance.stats_engine.stubs( :push_scope ).
+      raises( NoMethodError, "undefined method `push_scope'" )
+
+    with_config(:"cross_application_tracer.enabled" => true) do
+      assert_nothing_raised do
+        res = Net::HTTP.get URI.parse('http://www.google.com/index.html')
+      end
+    end
+
+    assert_equal res, CANNED_RESPONSE.instance_variable_get( :@body )
+  end
+
+  def test_doesnt_affect_the_request_if_an_exception_is_raised_while_finishing_tracing
+    res = nil
+    NewRelic::Agent.instance.stats_engine.stubs( :pop_scope ).
+      raises( NoMethodError, "undefined method `pop_scope'" )
+
+    with_config(:"cross_application_tracer.enabled" => true) do
+      assert_nothing_raised do
+        res = Net::HTTP.get URI.parse('http://www.google.com/index.html')
+      end
+    end
+
+    assert_equal res, CANNED_RESPONSE.instance_variable_get( :@body )
+  end
+
 end
