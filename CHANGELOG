@@ -8,6 +8,10 @@
     The Ruby agent now supports Key Transactions! Check out more details on the
     feature at https://newrelic.com/docs/site/key-transactions
 
+  * Ruby 2.0
+
+    The Ruby agent is compatible with Ruby 2.0.0 which was just released.
+
   * Improved Sinatra instrumentation
 
     Several cases around the use of conditions and pass in Sinatra are now
