@@ -245,7 +245,7 @@ module NewRelic
     # Although you can override the dispatcher with NEWRELIC_DISPATCHER this
     # is not advisable since it implies certain api's being available.
     def discover_dispatcher
-      dispatchers = %w[passenger torquebox trinidad glassfish resque thin mongrel litespeed webrick fastcgi unicorn]
+      dispatchers = %w[passenger torquebox trinidad glassfish resque thin mongrel litespeed webrick fastcgi rainbows unicorn]
       while dispatchers.any? && @discovered_dispatcher.nil?
         send 'check_for_'+(dispatchers.shift)
       end
@@ -316,6 +316,13 @@ module NewRelic
       if (defined?(::Unicorn) && defined?(::Unicorn::HttpServer)) && working_jruby?
         v = find_class_in_object_space(::Unicorn::HttpServer)
         @discovered_dispatcher = :unicorn if v 
+      end
+    end
+
+    def check_for_rainbows
+      if (defined?(::Rainbows) && defined?(::Rainbows::HttpServer)) && working_jruby?
+        v = find_class_in_object_space(::Rainbows::HttpServer)
+        @discovered_dispatcher = :rainbows if v
       end
     end
 
