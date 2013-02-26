@@ -57,13 +57,20 @@ class LicenseTest < Test::Unit::TestCase
   end
 
   def encoding
-    /^# encoding: utf-8/
+    /^# ?(en)?coding: utf-8/
+  end
+
+  def syntax_mark
+    /^# -\*- ruby -\*-/
   end
 
   def test_all_rb_and_js_files_have_license_header
     all_rb_and_js_files.each do |filename|
       first_four_lines = File.read(filename, 1000).split("\n")[0...4]
       if first_four_lines.first =~ shebang
+        first_four_lines.shift # discard it
+      end
+      if first_four_lines.first =~ syntax_mark
         first_four_lines.shift # discard it
       end
       if first_four_lines.first =~ encoding
