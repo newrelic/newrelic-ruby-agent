@@ -30,7 +30,7 @@
   * Automatically detect Resque dispatcher
 
     The agent does better auto-detection for the Resque worker process.
-    This should reduce the need for to set NEW_RELIC_DISPATCHER=resque directly.
+    This should reduce the need to set NEW_RELIC_DISPATCHER=resque directly.
 
 ## v3.5.7 ##
 
