@@ -46,7 +46,7 @@ class NewRelic::MetricSpecTest < Test::Unit::TestCase
 
     compare_spec(spec, import)
 
-    stats = NewRelic::Stats.new
+    stats = NewRelic::Agent::Stats.new
 
     import = ::ActiveSupport::JSON.decode(stats.to_json)
 

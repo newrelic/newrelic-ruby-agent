@@ -55,7 +55,7 @@ class NewRelic::Agent::Instrumentation::MetricFrameTest < Test::Unit::TestCase
   end
 
   def test_update_apdex_records_failed_when_specified
-    stats = NewRelic::Stats.new
+    stats = NewRelic::Agent::Stats.new
     NewRelic::Agent::Instrumentation::MetricFrame.update_apdex(stats, 0.1, true)
     assert_equal 0, stats.apdex_s
     assert_equal 0, stats.apdex_t
@@ -63,7 +63,7 @@ class NewRelic::Agent::Instrumentation::MetricFrameTest < Test::Unit::TestCase
   end
 
   def test_update_apdex_records_satisfying
-    stats = NewRelic::Stats.new
+    stats = NewRelic::Agent::Stats.new
     with_config(:apdex_t => 1) do
       NewRelic::Agent::Instrumentation::MetricFrame.update_apdex(stats, 0.5, false)
     end
@@ -73,7 +73,7 @@ class NewRelic::Agent::Instrumentation::MetricFrameTest < Test::Unit::TestCase
   end
 
   def test_update_apdex_records_tolerating
-    stats = NewRelic::Stats.new
+    stats = NewRelic::Agent::Stats.new
     with_config(:apdex_t => 1) do
       NewRelic::Agent::Instrumentation::MetricFrame.update_apdex(stats, 1.5, false)
     end
@@ -83,7 +83,7 @@ class NewRelic::Agent::Instrumentation::MetricFrameTest < Test::Unit::TestCase
   end
 
   def test_update_apdex_records_failing
-    stats = NewRelic::Stats.new
+    stats = NewRelic::Agent::Stats.new
     with_config(:apdex_t => 1) do
       NewRelic::Agent::Instrumentation::MetricFrame.update_apdex(stats, 4.5, false)
     end
@@ -94,7 +94,7 @@ class NewRelic::Agent::Instrumentation::MetricFrameTest < Test::Unit::TestCase
 
   def test_update_apdex_records_correct_apdex_for_key_transaction
     txn_info = NewRelic::Agent::TransactionInfo.get
-    stats = NewRelic::Stats.new
+    stats = NewRelic::Agent::Stats.new
     config = {
       :web_transactions_apdex => {
         'Controller/slow/txn' => 4,

@@ -6,7 +6,7 @@ class NewRelic::Agent::BusyCalculatorTest < Test::Unit::TestCase
   def setup
     @now = Time.now.to_f
     NewRelic::Agent::BusyCalculator.reset
-    @instance_busy = NewRelic::Stats.new
+    @instance_busy = NewRelic::Agent::Stats.new
     NewRelic::Agent::BusyCalculator.stubs(:instance_busy_stats).returns(@instance_busy)
   end
 

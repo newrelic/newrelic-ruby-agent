@@ -471,7 +471,7 @@ module NewRelic
           now
         end
 
-        # returns the NewRelic::Stats object associated
+        # returns the NewRelic::Agent::Stats object associated
         # with the dispatcher time measurement
         def _dispatch_stat
           NewRelic::Agent.agent.stats_engine.get_stats_no_scope 'HttpDispatcher'
