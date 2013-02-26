@@ -366,7 +366,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     @sampler.send(:notice_extra_data, nil, nil, nil)
   end
 
-  def test_notice_extra_data_no_builder
+  def test_notice_extra_data_no_segment
     builder = mock('builder')
     @sampler.expects(:builder).returns(builder).twice
     builder.expects(:current_segment).returns(nil)
