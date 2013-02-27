@@ -4,6 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require 'new_relic/agent/agent_logger'
+require 'new_relic/agent/null_logger'
 
 class AgentLoggerTest < Test::Unit::TestCase
   def setup
@@ -67,18 +68,17 @@ class AgentLoggerTest < Test::Unit::TestCase
   end
 
   def test_wont_log_if_agent_not_enabled
-    ::Logger.stubs(:new).with("/dev/null").returns(stub(:level=)).at_least_once
-
+    null_logger = NewRelic::Agent::NullLogger.new
+    NewRelic::Agent::NullLogger.expects(:new).returns(null_logger)
     @config[:agent_enabled] = false
     logger = NewRelic::Agent::AgentLogger.new(@config)
+    assert_nothing_raised do
+      logger.warn('hi there')
+    end
   end
 
-  def test_logs_to_nul_if_dev_null_not_there
-    File.stubs(:exists?).with("/dev/null").returns(false)
-    File.stubs(:exists?).with("NUL").returns(true)
-
-    ::Logger.stubs(:new).with("NUL").returns(stub(:level=)).once
-
+  def test_does_not_touch_dev_null
+    Logger.expects(:new).with('/dev/null').never
     @config[:agent_enabled] = false
     logger = NewRelic::Agent::AgentLogger.new(@config)
   end
