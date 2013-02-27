@@ -72,8 +72,9 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
     s.poll
     s.poll
     s.poll
-    assert_equal 3, s.stats.call_count
-    assert s.stats.total_call_time > 0.5, "cpu greater than 0.5 ms: #{s.stats.total_call_time}"
+    stats = @stats_engine.get_stats_no_scope("Memory/Physical")
+    assert_equal 3, stats.call_count
+    assert stats.total_call_time > 0.5, "cpu greater than 0.5 ms: #{stats.total_call_time}"
   end
   def test_memory__solaris
     return if defined? JRuby
