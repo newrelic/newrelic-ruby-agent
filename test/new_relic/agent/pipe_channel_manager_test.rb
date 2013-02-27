@@ -101,17 +101,31 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
       assert_equal(2, NewRelic::Agent.agent.error_collector.errors.size)
     end
 
-    def test_close_pipe_on_EOF_string
-      listener = start_listener_with_pipe(669)
+    def assert_pipe_finished(id)
+      assert(!NewRelic::Agent::PipeChannelManager.channels[id] ||
+        NewRelic::Agent::PipeChannelManager.channels[id].closed?,
+        "Expected pipe with ID #{id} to be nil or closed")
+    end
 
+    def test_close_pipe_on_child_explicit_close
+      listener = start_listener_with_pipe(669)
       pid = Process.fork do
-        listener.pipes[669].write('EOF')
+        NewRelic::Agent::PipeService.new(669)
       end
       Process.wait(pid)
-      listener.stop
+      listener.stop_listener_thread
+      assert_pipe_finished(669)
+    end
 
-      assert(!NewRelic::Agent::PipeChannelManager.channels[669] ||
-             NewRelic::Agent::PipeChannelManager.channels[669].closed?)
+    def test_close_pipe_on_child_exit
+      listener = start_listener_with_pipe(669)
+      pid = Process.fork do
+        NewRelic::Agent::PipeService.new(669)
+        exit!
+      end
+      Process.wait(pid)
+      listener.stop_listener_thread
+      assert_pipe_finished(669)
     end
 
     def test_manager_does_not_crash_when_given_bad_data

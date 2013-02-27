@@ -26,9 +26,27 @@ module NewRelic
         @listener ||= Listener.new
       end
 
+      # Expected initial sequence of events for Pipe usage:
+      #
+      # 1. Pipe is created in parent process (read and write ends open)
+      # 2. Parent process forks
+      # 3. An after_fork hook is invoked in the child
+      # 4. From after_fork hook, child closes read end of pipe, and
+      #    writes a ready marker on the pipe (after_fork_in_child).
+      # 5. The parent receives the ready marker, and closes the write end of the
+      #    pipe in response (after_fork_in_parent).
+      #
+      # After this sequence of steps, an exit (whether clean or not) of the
+      # child will result in the pipe being marked readable again, and giving an
+      # EOF marker (nil) when read. Note that closing of the unused ends of the
+      # pipe in the parent and child processes is essential in order for the EOF
+      # to be correctly triggered. The ready marker mechanism is used because
+      # there's no easy hook for after_fork in the parent process.
       class Pipe
+        READY_MARKER = "READY"
+
         attr_accessor :in, :out
-        attr_reader :last_read
+        attr_reader :last_read, :parent_pid
 
         def initialize
           @out, @in = IO.pipe
@@ -36,6 +54,7 @@ module NewRelic
             @in.set_encoding(::Encoding::ASCII_8BIT)
           end
           @last_read = Time.now
+          @parent_pid = $$
         end
 
         def close
@@ -57,6 +76,15 @@ module NewRelic
           @out.gets("\n\n")
         end
 
+        def after_fork_in_child
+          @out.close unless @out.closed?
+          write(READY_MARKER)
+        end
+
+        def after_fork_in_parent
+          @in.close unless @in.closed?
+        end
+
         def closed?
           @out.closed? && @in.closed?
         end
@@ -72,9 +100,13 @@ module NewRelic
           @select_timeout = 60
         end
 
+        def wakeup
+          wake.in << '.'
+        end
+
         def register_pipe(id)
           @pipes[id] = Pipe.new
-          wake.in << '.'
+          wakeup
         end
 
         def start
@@ -99,17 +131,21 @@ module NewRelic
                 end
               end
 
-              break if !should_keep_listening?
+              break unless should_keep_listening?
             end
           end
           sleep 0.001 # give time for the thread to spawn
         end
 
+        def stop_listener_thread
+          @started = false
+          wakeup
+          @thread.join
+        end
+
         def stop
           return unless @started == true
-          @started = false
-          wake.in << '.' unless wake.in.closed?
-          @thread.join # make sure we wait for the thread to exit
+          stop_listener_thread
           close_all_pipes
           @wake.close
           @wake = nil
@@ -134,12 +170,14 @@ module NewRelic
 
         def merge_data_from_pipe(pipe_handle)
           pipe = find_pipe_for_handle(pipe_handle)
-          got = pipe.read
+          raw_payload = pipe.read
 
-          if got && !got.empty?
-            payload = unmarshal(got)
-            if payload == 'EOF'
-              pipe.close
+          if raw_payload.nil?
+            pipe.close
+          elsif raw_payload && !raw_payload.empty?
+            payload = unmarshal(raw_payload)
+            if payload == Pipe::READY_MARKER
+              pipe.after_fork_in_parent
             elsif payload
               NewRelic::Agent.agent.merge_data_from([payload[:stats],
                                                      payload[:transaction_traces],

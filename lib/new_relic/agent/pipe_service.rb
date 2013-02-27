@@ -5,13 +5,19 @@
 module NewRelic
   module Agent
     class PipeService
-      attr_reader :channel_id, :buffer
+      attr_reader :channel_id, :buffer, :pipe
       attr_accessor :request_timeout, :agent_id, :collector
 
       def initialize(channel_id)
         @channel_id = channel_id
         @collector = NewRelic::Control::Server.new(:name => 'parent',
                                                    :port => 0)
+        @pipe = NewRelic::Agent::PipeChannelManager.channels[@channel_id]
+        if @pipe && @pipe.parent_pid != $$
+          @pipe.after_fork_in_child
+        else
+          NewRelic::Agent.logger.error("No communication channel to parent process, please see https://newrelic.com/docs/ruby/resque-instrumentation for more information.")
+        end
       end
 
       def connect(config)
@@ -40,8 +46,7 @@ module NewRelic
       end
 
       def shutdown(time)
-        write_to_pipe('EOF')
-        NewRelic::Agent::PipeChannelManager.channels[@channel_id].close
+        @pipe.close if @pipe
       end
 
       # Invokes the block it is passed.  This is used to implement HTTP
@@ -58,9 +63,7 @@ module NewRelic
       private
 
       def write_to_pipe(data)
-        NewRelic::Agent::PipeChannelManager.channels[@channel_id].write(data)
-      rescue => e
-        NewRelic::Agent.logger.error("#{e.message}: Unable to send data to parent process, please see https://newrelic.com/docs/ruby/resque-instrumentation for more information.")
+        @pipe.write(data) if @pipe
       end
     end
   end
