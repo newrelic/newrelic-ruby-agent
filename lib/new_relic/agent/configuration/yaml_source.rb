@@ -11,7 +11,7 @@ module NewRelic
         attr_accessor :file_path
 
         def initialize(path, env)
-          ::NewRelic::Agent.logger.debug("Reading configuration from #{path}")
+          ::NewRelic::Agent.logger.info("Reading configuration from #{path}")
 
           config = {}
           begin
