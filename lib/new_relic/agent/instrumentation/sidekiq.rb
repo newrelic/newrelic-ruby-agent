@@ -1,6 +1,6 @@
 DependencyDetection.defer do
   @name = :sidekiq
-  
+
   depends_on do
     defined?(::Sidekiq) && !NewRelic::Agent.config[:disable_sidekiq]
   end
@@ -8,7 +8,7 @@ DependencyDetection.defer do
   executes do
     ::NewRelic::Agent.logger.info 'Installing Sidekiq instrumentation'
   end
-  
+
   executes do
     class NewRelic::SidekiqInstrumentation
       include NewRelic::Agent::Instrumentation::ControllerInstrumentation
@@ -29,5 +29,4 @@ DependencyDetection.defer do
       end
     end
   end
-end 
-
+end
