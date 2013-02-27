@@ -82,8 +82,7 @@ module NewRelic
       end
 
       def create_null_logger
-        null_path = ["/dev/null", "NUL"].detect{|f| File.exists?(f)}
-        @log = ::Logger.new(null_path)
+        @log = NewRelic::Agent::NullLogger.new
       end
 
       def wants_stdout(config)

@@ -18,7 +18,7 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   end
 
   def test_already_started_positive
-    ::Logger.any_instance.expects(:error).with("Agent Started Already!")
+    NewRelic::Agent::AgentLogger.any_instance.expects(:error).with("Agent Started Already!")
     self.expects(:started?).returns(true)
     assert already_started?, "should have already started"
   end
