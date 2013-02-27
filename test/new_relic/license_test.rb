@@ -69,7 +69,7 @@ class LicenseTest < Test::Unit::TestCase
       # skip directories
       !File.file?(path) ||
       # skip binary files
-      %w| .sqlite3 .log .png .ico .gif |.include?(File.extname(path)) ||
+      %w| .sqlite3 .log .png .ico .gif .gem |.include?(File.extname(path)) ||
       # skip this file
       File.expand_path(__FILE__) == path ||
       # skip rpm_test_app and other stuff that ends up in tmp
@@ -77,7 +77,9 @@ class LicenseTest < Test::Unit::TestCase
       # skip tags file
       path.include?(gem_root + '/tags')||
       # skip the auto-generated build.rb file
-      path =~ %r{lib/new_relic/build\.rb}
+      path =~ %r{lib/new_relic/build\.rb} ||
+      # skip tags file
+      path =~ %r{/tags$}
     )
   end
 
