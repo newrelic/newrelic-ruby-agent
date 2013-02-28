@@ -61,6 +61,7 @@ module NewRelic::Agent
 
       when_request_runs
 
+      assert_equal 'WyJxd2VydHkiLCJ0cmFuc2FjdGlvbiIsMTAwMCwyMDAwLC0xLCI5NDFCMEU4MDAxRTQ0NEU4Il0=', response_app_data
       assert_equal [AGENT_CROSS_APP_ID, TRANSACTION_NAME, QUEUE_TIME, APP_TIME, -1, TRANSACTION_GUID], unpacked_response
     end
 
@@ -140,8 +141,7 @@ module NewRelic::Agent
       with_default_timings
 
       NewRelic::Agent.expects(:add_custom_parameters).with(:client_cross_process_id => REQUEST_CROSS_APP_ID)
-      NewRelic::Agent.expects(:add_custom_parameters).with(:transaction_guid => TRANSACTION_GUID)
-      NewRelic::Agent.expects(:add_custom_parameters).with(:transaction_referring_guid => REF_TRANSACTION_GUID)
+      NewRelic::Agent.expects(:add_custom_parameters).with(:referring_transaction_guid => REF_TRANSACTION_GUID)
 
       when_request_runs
     end

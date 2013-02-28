@@ -30,7 +30,7 @@ module NewRelic
         module_function
 
         def obfuscate_with_key(key, text)
-          [ encode_with_key(key, text) ].pack('m').chomp
+          [ encode_with_key(key, text) ].pack('m').chomp.gsub(/\n/, '')
         end
 
         def decode_with_key(key, text)
@@ -184,8 +184,7 @@ module NewRelic
         # We expect to get the before call to set the id (if we have it) before
         # this, and then write our custom parameter when the transaction starts
         NewRelic::Agent.add_custom_parameters(:client_cross_process_id => client_cross_app_id) if client_cross_app_id()
-        NewRelic::Agent.add_custom_parameters(:transaction_guid => transaction_guid()) if transaction_guid()
-        NewRelic::Agent.add_custom_parameters(:transaction_referring_guid => client_referring_transaction_guid()) if
+        NewRelic::Agent.add_custom_parameters(:referring_transaction_guid => client_referring_transaction_guid()) if
           client_referring_transaction_guid()
       end
 
