@@ -171,16 +171,11 @@ module NewRelic
       end
 
       def build_payload(timings, content_length)
-
-        # FIXME The transaction name might not be properly encoded.  use a json generator
-        # For now we just handle quote characters by dropping them
-        transaction_name = timings.transaction_name.gsub(/["']/, "")
-
         payload = [
           NewRelic::Agent.config[:cross_process_id],
-          transaction_name,
-          timings.queue_time_in_seconds.to_f,
-          timings.app_time_in_seconds.to_f,
+          timings.transaction_name,
+          timings.queue_time_in_seconds,
+          timings.app_time_in_seconds,
           content_length,
           transaction_guid()
         ]

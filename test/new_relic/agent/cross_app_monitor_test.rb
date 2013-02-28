@@ -65,7 +65,7 @@ module NewRelic::Agent
       assert_equal [AGENT_CROSS_APP_ID, TRANSACTION_NAME, QUEUE_TIME, APP_TIME, -1, TRANSACTION_GUID], unpacked_response
     end
 
-    def test_strips_bad_characters_in_transaction_name
+    def test_encodes_transaction_name
       NewRelic::Agent::BrowserMonitoring.stubs(:timings).returns(stub(
           :transaction_name => "\"'goo",
           :queue_time_in_seconds => QUEUE_TIME,
@@ -73,7 +73,7 @@ module NewRelic::Agent
 
       when_request_runs
 
-      assert_equal "goo", unpacked_response[TRANSACTION_NAME_POSITION]
+      assert_equal "\"'goo", unpacked_response[TRANSACTION_NAME_POSITION]
     end
 
     def test_doesnt_write_response_header_if_id_blank
@@ -189,7 +189,6 @@ module NewRelic::Agent
       assert_equal "querty",
         NewRelic::Agent::CrossAppMonitor::EncodingFunctions.encode_with_key( nil, 'querty' )
     end
-
 
     #
     # Helpers
