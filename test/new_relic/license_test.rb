@@ -19,6 +19,10 @@ class LicenseTest < Test::Unit::TestCase
   }
 
   # Known occurrences of the above license terms
+  # format is:
+  # [ file, term ] => expected_number_of_occurances
+  # unless listed here the expectation is that these terms will not occur in
+  # the source code.
   EXPECTED_LICENSE_OCCURRENCES = {
     ['/lib/new_relic/okjson.rb', '(c)'] => 3, # methods arguments like (c)
     ['/test/new_relic/agent/instrumentation/active_record_instrumentation_test.rb', '(c)'] => 2, # methods arguments like (c)
