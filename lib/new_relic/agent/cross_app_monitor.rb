@@ -28,7 +28,7 @@ module NewRelic
       # Same for the referring transaction guid
       THREAD_TXN_KEY = :newrelic_cross_app_referring_txn_info
 
-      
+
       # Functions for obfuscating and unobfuscating header values
       module EncodingFunctions
 
@@ -153,7 +153,7 @@ module NewRelic
 
       def cross_app_enabled?
         NewRelic::Agent.config[:cross_process_id] &&
-          (NewRelic::Agent.config[:"cross_application_tracer.enabled"] || 
+          (NewRelic::Agent.config[:"cross_application_tracer.enabled"] ||
            NewRelic::Agent.config[:cross_application_tracing])
       end
 

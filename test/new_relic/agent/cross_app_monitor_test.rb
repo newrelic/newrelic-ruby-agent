@@ -38,7 +38,7 @@ module NewRelic::Agent
         :encoding_key => ENCODING_KEY_NOOP,
         :trusted_account_ids => TRUSTED_ACCOUNT_IDS
       }
-        
+
       NewRelic::Agent.config.apply_config( @config )
       @monitor.register_event_listeners
       NewRelic::Agent::TransactionInfo.get.guid = TRANSACTION_GUID
