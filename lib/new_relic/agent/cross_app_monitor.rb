@@ -11,9 +11,14 @@ module NewRelic
     class CrossAppMonitor
 
       NEWRELIC_ID_HEADER = 'X-NewRelic-ID'
-      NEWRELIC_TXN_HEADER = 'X-NewRelic-Transaction'
       NEWRELIC_APPDATA_HEADER = 'X-NewRelic-App-Data'
-      NEWRELIC_ID_HEADER_KEYS = %W{#{NEWRELIC_ID_HEADER} HTTP_X_NEWRELIC_ID X_NEWRELIC_ID}
+      NEWRELIC_TXN_HEADER = 'X-NewRelic-Transaction'
+      NEWRELIC_TXN_HEADER_KEYS = %W{
+        #{NEWRELIC_TXN_HEADER} HTTP_X_NEWRELIC_TRANSACTION X_NEWRELIC_TRANSACTION
+      }
+      NEWRELIC_ID_HEADER_KEYS = %W{
+        #{NEWRELIC_ID_HEADER} HTTP_X_NEWRELIC_ID X_NEWRELIC_ID
+      }
       CONTENT_LENGTH_HEADER_KEYS = %w{Content-Length HTTP_CONTENT_LENGTH CONTENT_LENGTH}
 
       # Because we aren't in the right spot when our transaction actually
@@ -108,9 +113,12 @@ module NewRelic
 
       def save_referring_transaction_info(request_headers)
         key = NewRelic::Agent.config[:encoding_key]
-        txn_header = request_headers[NEWRELIC_TXN_HEADER] or return
+        txn_header = from_headers( request_headers, NEWRELIC_TXN_HEADER_KEYS ) or return
         txn_header = decode_with_key( key, txn_header )
-        NewRelic::Agent::AgentThread.current[THREAD_TXN_KEY] = NewRelic.json_load( txn_header )
+        txn_info = NewRelic.json_load( txn_header )
+        NewRelic::Agent.logger.debug "Referring txn_info: %p" % [ txn_info ]
+
+        NewRelic::Agent::AgentThread.current[THREAD_TXN_KEY] = txn_info
       end
 
       def clear_referring_transaction_info
@@ -183,9 +191,11 @@ module NewRelic
       def set_transaction_custom_parameters
         # We expect to get the before call to set the id (if we have it) before
         # this, and then write our custom parameter when the transaction starts
-        NewRelic::Agent.add_custom_parameters(:client_cross_process_id => client_cross_app_id) if client_cross_app_id()
+        NewRelic::Agent.add_custom_parameters(:client_cross_process_id => client_cross_app_id()) if client_cross_app_id()
         NewRelic::Agent.add_custom_parameters(:referring_transaction_guid => client_referring_transaction_guid()) if
           client_referring_transaction_guid()
+
+        NewRelic::Agent.logger.debug "Referring transaction guid: %p" % [client_referring_transaction_guid()]
       end
 
       def set_error_custom_parameters(options)
