@@ -17,6 +17,7 @@ class ResqueTest < Test::Unit::TestCase
     $collector.run(COLLECTOR_PORT)
     $redis.del('queue:resque_test')
     $redis.set('index_key', 0)
+    Resque::Stat.clear('processed')
     @pidfile = "resque_test.#{$$}.pid"
     JOB_COUNT.times do |i|
       Resque.enqueue(JobForTesting, 'index_key', i + 1)
@@ -89,7 +90,7 @@ class ResqueTest < Test::Unit::TestCase
   def wait_for_jobs
     time_for_jobs = 5
     begin
-      Timeout.timeout(time_for_jobs) { sleep(0.1) until Resque.info[:pending].zero? }
+      Timeout.timeout(time_for_jobs) { sleep(0.1) until Resque.info[:processed] == JOB_COUNT }
     rescue Timeout::Error => err
       raise err.exception("waiting #{time_for_jobs}s for completion of #{JOB_COUNT} jobs")
     end
