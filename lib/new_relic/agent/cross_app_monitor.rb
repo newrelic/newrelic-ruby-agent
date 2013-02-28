@@ -175,8 +175,8 @@ module NewRelic
         payload = [
           NewRelic::Agent.config[:cross_process_id],
           transaction_name,
-          timings.queue_time_in_seconds,
-          timings.app_time_in_seconds,
+          timings.queue_time_in_seconds.to_f,
+          timings.app_time_in_seconds.to_f,
           content_length,
           transaction_guid()
         ]
