@@ -93,4 +93,19 @@ class NewRelic::Agent::Instrumentation::ControllerInstrumentationTest < Test::Un
     NewRelic::Agent.instance.instance_variable_set(:@transaction_rules,
                                               NewRelic::Agent::RulesEngine.new)
   end
+
+  def test_path_class_and_action
+    result = @object.send(:path_class_and_action, {})
+    assert_equal("NewRelic::Agent::Instrumentation::ControllerInstrumentationTest::TestObject", result)
+  end
+
+  def test_path_class_and_action_with_name
+    result = @object.send(:path_class_and_action, :name => "test")
+    assert_equal("NewRelic::Agent::Instrumentation::ControllerInstrumentationTest::TestObject/test", result)
+  end
+
+  def test_path_class_and_action_with_overridden_class_name
+    result = @object.send(:path_class_and_action, :name => "perform", :class_name => 'Resque')
+    assert_equal("Resque/perform", result)
+  end
 end
