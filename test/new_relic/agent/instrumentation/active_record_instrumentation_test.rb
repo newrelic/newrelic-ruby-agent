@@ -31,6 +31,8 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
 
   def teardown
     super
+    NewRelic::Agent::TransactionInfo.reset
+    Thread::current[:newrelic_scope_name] = nil
     NewRelic::Agent.shutdown
   end
 
@@ -352,7 +354,6 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     return if isPostgres?
 
     expected_metrics = %W[ActiveRecord/all Database/SQL/show RemoteService/sql/#{adapter}/localhost]
-
     assert_calls_metrics(*expected_metrics) do
       ActiveRecordFixtures::Order.connection.execute "show tables"
     end
@@ -372,7 +373,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     metrics = NewRelic::Agent.instance.stats_engine.metrics
     compare_metrics [], metrics
   end
-  
+
   def test_run_explains
     perform_action_with_newrelic_trace :name => 'bogosity' do
       ActiveRecordFixtures::Order.add_delay
@@ -380,12 +381,11 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     end
 
     # that's a mouthful. perhaps we should ponder our API.
-    segment = NewRelic::Agent.instance.transaction_sampler.last_sample \
-      .root_segment.called_segments[0].called_segments[0].called_segments[0]
+    segment = last_segment(NewRelic::Agent.instance.transaction_sampler.last_sample)
     regex = /^SELECT (["`]?#{ActiveRecordFixtures::Order.table_name}["`]?.)?\* FROM ["`]?#{ActiveRecordFixtures::Order.table_name}["`]?$/
     assert_match regex, segment.params[:sql].strip
   end
-  
+
   def test_prepare_to_send
     perform_action_with_newrelic_trace :name => 'bogosity' do
       ActiveRecordFixtures::Order.add_delay
@@ -397,14 +397,12 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     includes_gc = false
     sample.each_segment {|s| includes_gc ||= s.metric_name =~ /GC/ }
 
-    assert_equal (includes_gc ? 4 : 3), sample.count_segments, sample.to_s
-
-    sql_segment = sample.root_segment.called_segments.first.called_segments.first.called_segments.first
+    sql_segment = last_segment(sample)
     assert_not_nil sql_segment, sample.to_s
     assert_match /^SELECT /, sql_segment.params[:sql]
     assert sql_segment.duration > 0.0, "Segment duration must be greater than zero."
     sample = sample.prepare_to_send(:record_sql => :raw, :explain_sql => 0.0)
-    sql_segment = sample.root_segment.called_segments.first.called_segments.first.called_segments.first
+    sql_segment = last_segment(sample)
     assert_match /^SELECT /, sql_segment.params[:sql]
     explanations = sql_segment.params[:explain_plan]
     if isMysql? || isPostgres?
@@ -416,6 +414,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
 
   def test_transaction_mysql
     return unless isMysql? && !defined?(JRuby)
+$debug = true
     ActiveRecordFixtures.setup
     sample = NewRelic::Agent.instance.transaction_sampler.reset!
     perform_action_with_newrelic_trace :name => 'bogosity' do
@@ -424,9 +423,8 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     end
 
     sample = NewRelic::Agent.instance.transaction_sampler.last_sample
-
     sample = sample.prepare_to_send(:record_sql => :obfuscated, :explain_sql => 0.0)
-    segment = sample.root_segment.called_segments.first.called_segments.first.called_segments.first
+    segment = last_segment(sample)
     explanation = segment.params[:explain_plan]
     assert_not_nil explanation, "No explains in segment: #{segment}"
     assert_equal 2, explanation.size,"No explains in segment: #{segment}"
@@ -441,6 +439,8 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
 
     s = NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Order/find")
     assert_equal 1, s.call_count
+  ensure
+    $debug = false
   end
 
   def test_transaction_postgres
@@ -456,7 +456,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     sample = NewRelic::Agent.instance.transaction_sampler.last_sample
 
     sample = sample.prepare_to_send(:record_sql => :obfuscated, :explain_sql => 0.0)
-    segment = sample.root_segment.called_segments.first.called_segments.first.called_segments.first
+    segment = last_segment(sample)
     explanations = segment.params[:explain_plan]
 
     assert_not_nil explanations, "No explains in segment: #{segment}"
@@ -481,7 +481,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     sample = NewRelic::Agent.instance.transaction_sampler.last_sample
 
     sample = sample.prepare_to_send(:record_sql => :obfuscated, :explain_sql => 0.0)
-    segment = sample.root_segment.called_segments.first.called_segments.first.called_segments.first
+    segment = last_segment(sample)
 
     s = NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Order/find")
     assert_equal 1, s.call_count
@@ -496,7 +496,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
         scope :jeffs, :conditions => { :name => 'Jeff' }
       else
         named_scope :jeffs, :conditions => { :name => 'Jeff' }
-      end      
+      end
     end
     def test_named_scope
       ActiveRecordFixtures::Order.create :name => 'Jeff'
@@ -552,31 +552,24 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
       assert_equal 'preserve-me!', e.message
     end
   end
-  
+
   def test_remote_service_metric_respects_dynamic_connection_config
     return unless isMysql?
 
-#     puts NewRelic::Agent::Database.config.inspect
-    
     ActiveRecordFixtures::Shipment.connection.execute('SHOW TABLES');
     assert(NewRelic::Agent.get_stats("RemoteService/sql/#{adapter}/localhost").call_count != 0)
 
-    config = ActiveRecordFixtures::Shipment.connection.instance_eval { @config }    
+    config = ActiveRecordFixtures::Shipment.connection.instance_eval { @config }
     config[:host] = '127.0.0.1'
     connection = ActiveRecordFixtures::Shipment.establish_connection(config)
-    
-#     puts ActiveRecord::Base.connection.instance_eval { @config }.inspect
-#     puts NewRelic::Agent::Database.config.inspect
-    
+
     ActiveRecordFixtures::Shipment.connection.execute('SHOW TABLES');
     assert(NewRelic::Agent.get_stats("RemoteService/sql/#{adapter}/127.0.0.1").call_count != 0)
 
     config[:host] = 'localhost'
     ActiveRecordFixtures::Shipment.establish_connection(config)
-
-#     raise NewRelic::Agent.instance.stats_engine.inspect
   end
-  
+
   private
 
   def rails3?
@@ -599,12 +592,20 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
   end
 
   def all_finder(relation)
-    if NewRelic::Control.instance.rails_version >= NewRelic::VersionNumber.new("4.0")
+    if ::ActiveRecord::VERSION::MAJOR.to_i >= 4
       relation.all.load
-    elsif NewRelic::Control.instance.rails_version >= NewRelic::VersionNumber.new("3.0")
+    elsif ::ActiveRecord::VERSION::MAJOR.to_i >= 3
       relation.all
     else
       relation.find(:all)
     end
+  end
+
+  def last_segment(txn_sample)
+    last = nil
+    txn_sample.root_segment.each_segment do |segment|
+      last = segment
+    end
+    last
   end
 end
