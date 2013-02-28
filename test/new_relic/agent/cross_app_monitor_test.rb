@@ -61,7 +61,7 @@ module NewRelic::Agent
 
       when_request_runs
 
-      assert_equal 'WyJxd2VydHkiLCJ0cmFuc2FjdGlvbiIsMTAwMCwyMDAwLC0xLCI5NDFCMEU4MDAxRTQ0NEU4Il0=', response_app_data
+      assert_equal 'WyJxd2VydHkiLCJ0cmFuc2FjdGlvbiIsMTAwMC4wLDIwMDAuMCwtMSwiOTQxQjBFODAwMUU0NDRFOCJd', response_app_data
       assert_equal [AGENT_CROSS_APP_ID, TRANSACTION_NAME, QUEUE_TIME, APP_TIME, -1, TRANSACTION_GUID], unpacked_response
     end
 
