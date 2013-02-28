@@ -388,10 +388,12 @@ module NewRelic
         def path_class_and_action(options)
           metric_class = options[:class_name]
 
-          if !metric_class && (self.is_a?(Class) || self.is_a?(Module))
-            metric_class = self.name
-          else
-            metric_class = self.class.name
+          if !metric_class
+            if (self.is_a?(Class) || self.is_a?(Module))
+              metric_class = self.name
+            else
+              metric_class = self.class.name
+            end
           end
 
           [ metric_class, options[:name] ].compact.join('/')
