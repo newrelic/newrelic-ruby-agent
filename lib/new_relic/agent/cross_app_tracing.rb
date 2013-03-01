@@ -68,17 +68,20 @@ module NewRelic
         duration = t1.to_f - t0.to_f
 
         begin
-          # Figure out which metrics we need to report based on the request and response
-          # The last (most-specific) one is scoped.
-          metrics = metrics_for( http, request, response )
-          scoped_metric = metrics.pop
+          if request && response && http
+            # Figure out which metrics we need to report based on the request and response
+            # The last (most-specific) one is scoped.
+            metrics = metrics_for( http, request, response )
+            scoped_metric = metrics.pop
 
-          stats_engine.record_metrics(metrics, duration)
-          stats_engine.record_metrics(scoped_metric, duration, :scoped => true)
+            # Report the metrics
+            stats_engine.record_metrics(metrics, duration)
+            stats_engine.record_metrics(scoped_metric, duration, :scoped => true)
 
-          # Add TT custom parameters
-          stats_engine.rename_scope_segment( scoped_metric )
-          extract_custom_parameters( response ) if response_is_crossapp?( response )
+            # Add TT custom parameters
+            stats_engine.rename_scope_segment( scoped_metric )
+            extract_custom_parameters( response ) if response_is_crossapp?( response )
+          end
         ensure
           # We always need to pop the scope stack to avoid an inconsistent
           # state, which will prevent tracing of the whole transaction.
