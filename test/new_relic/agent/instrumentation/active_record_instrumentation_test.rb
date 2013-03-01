@@ -414,7 +414,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
 
   def test_transaction_mysql
     return unless isMysql? && !defined?(JRuby)
-$debug = true
+
     ActiveRecordFixtures.setup
     sample = NewRelic::Agent.instance.transaction_sampler.reset!
     perform_action_with_newrelic_trace :name => 'bogosity' do
@@ -439,8 +439,6 @@ $debug = true
 
     s = NewRelic::Agent.get_stats("ActiveRecord/ActiveRecordFixtures::Order/find")
     assert_equal 1, s.call_count
-  ensure
-    $debug = false
   end
 
   def test_transaction_postgres
