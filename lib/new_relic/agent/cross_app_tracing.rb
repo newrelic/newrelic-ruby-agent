@@ -73,9 +73,8 @@ module NewRelic
           metrics = metrics_for( http, request, response )
           scoped_metric = metrics.pop
 
-          # Report the metrics
-          metrics.each { |metric| get_metric(metric).trace_call(duration) }
-          get_scoped_metric( scoped_metric ).trace_call( duration )
+          stats_engine.record_metrics(metrics, duration)
+          stats_engine.record_metrics(scoped_metric, duration, :scoped => true)
 
           # Add TT custom parameters
           stats_engine.rename_scope_segment( scoped_metric )
