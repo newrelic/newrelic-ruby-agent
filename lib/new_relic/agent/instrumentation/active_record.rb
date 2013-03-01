@@ -3,6 +3,9 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 require 'new_relic/agent/instrumentation/active_record_helper'
 
+# Listen for ActiveSupport::Notifications events for ActiveRecord query
+# events.  Write metric data, transaction trace segments and slow sql
+# nodes for each event.
 module NewRelic
   module Agent
     module Instrumentation
@@ -10,6 +13,8 @@ module NewRelic
         include NewRelic::Agent::Instrumentation
 
         def self.subscribed?
+          # TODO: need to talk to Rails core about an API for this,
+          # rather than digging through Listener ivars
           ActiveSupport::Notifications.notifier.listeners_for('sql.active_record') \
             .find{|l| l.instance_variable_get(:@delegate).class == self }
         end
@@ -31,11 +36,11 @@ module NewRelic
 
           NewRelic::Agent.instance.transaction_sampler \
             .notice_sql(event.payload[:sql], config,
-                        milliseconds_to_seconds(event.duration))
+                        Helper.milliseconds_to_seconds(event.duration))
 
           NewRelic::Agent.instance.sql_sampler \
             .notice_sql(event.payload[:sql], metric, config,
-                        milliseconds_to_seconds(event.duration))
+                        Helper.milliseconds_to_seconds(event.duration))
 
           # exit transaction trace segment
           NewRelic::Agent.instance.stats_engine.pop_scope(scope, event.duration, event.end)
@@ -43,10 +48,10 @@ module NewRelic
 
         def record_metrics(event)
           base = base_metric(event)
-          NewRelic::Agent.record_metric(base, milliseconds_to_seconds(event.duration))
+          NewRelic::Agent.record_metric(base, Helper.milliseconds_to_seconds(event.duration))
           other_metrics_to_report(event).compact.each do |metric_name|
             NewRelic::Agent.instance.stats_engine.record_metrics(metric_name,
-                                            milliseconds_to_seconds(event.duration),
+                                            Helper.milliseconds_to_seconds(event.duration),
                                             :scoped => false)
           end
         end
@@ -70,12 +75,11 @@ module NewRelic
         def active_record_config_for_event(event)
           return unless event.payload[:connection_id]
 
+          # TODO: This will not work for JRuby and in any case we want
+          # this to be part of the event meta data so it doesn't have
+          # to be dug out of an ivar.
           connection = ObjectSpace._id2ref(event.payload[:connection_id])
           connection.instance_variable_get(:@config) if connection
-        end
-
-        def milliseconds_to_seconds(millis)
-          millis / 1_000.0
         end
       end
     end

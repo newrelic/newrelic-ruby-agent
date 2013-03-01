@@ -2,6 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+# Listen for ActiveSupport::Notifications events for ActionView render
+# events.  Write metric data and transaction trace segments for each event.
 module NewRelic
   module Agent
     module Instrumentation
@@ -11,6 +13,8 @@ module NewRelic
         end
 
         def self.subscribed?
+          # TODO: need to talk to Rails core about an API for this,
+          # rather than digging through Listener ivars
           ActiveSupport::Notifications.notifier.listeners_for(/^render_.+\.action_view$/) \
             .find{|l| l.instance_variable_get(:@delegate).class == self }
         end
@@ -40,7 +44,8 @@ module NewRelic
         end
 
         def record_metrics(event)
-          NewRelic::Agent.record_metric(event.payload[:metric_name], event.duration / 1000.0)
+          NewRelic::Agent.record_metric(event.payload[:metric_name],
+                               Helper.milliseconds_to_seconds(event.duration))
         end
 
         def metric_name(event)
