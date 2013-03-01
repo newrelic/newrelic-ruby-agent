@@ -30,7 +30,6 @@ class Net::HTTPResponse
     end
   end
 end
-    
 
 class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::TestCase
   include NewRelic::Agent::Instrumentation::ControllerInstrumentation,
@@ -449,4 +448,14 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
     assert_equal res, CANNED_RESPONSE.instance_variable_get( :@body )
   end
 
+  def test_scope_stack_integrity_maintained_on_request_failure
+    @socket.stubs(:write).raises('fake network error')
+    with_config(:"cross_application_tracer.enabled" => true) do
+      assert_nothing_raised do
+        expected = @engine.push_scope('dummy')
+        Net::HTTP.get(URI.parse('http://www.google.com/index.html')) rescue nil
+        @engine.pop_scope(expected, 42)
+      end
+    end
+  end
 end
