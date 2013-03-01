@@ -74,7 +74,6 @@ module NewRelic
             metrics = metrics_for( http, request, response )
             scoped_metric = metrics.pop
 
-            # Report the metrics
             stats_engine.record_metrics(metrics, duration)
             stats_engine.record_metrics(scoped_metric, duration, :scoped => true)
 
