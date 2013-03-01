@@ -16,6 +16,7 @@ class LicenseTest < Test::Unit::TestCase
     'BSD' => /\bBSD\b/i,
     'MIT' => /\bMIT\b/i,
     'Apache' => /\bapache\b/i,
+    'rights reserved' => /rights reserved/i,
   }
 
   # Known occurrences of the above license terms
@@ -33,6 +34,8 @@ class LicenseTest < Test::Unit::TestCase
     ['/LICENSE', 'MIT'] => 3,
     ['/LICENSE', '(c)'] => 3,
     ['/LICENSE', 'Copyright'] => 11,
+    ['/LICENSE', 'rights reserved'] => 1,
+    ['/ui/views/layouts/newrelic_default.rhtml', 'rights reserved'] => 1,
     ['/ui/views/newrelic/file/javascript/jquery-1.4.2.js', 'GPL'] => 3,
     ['/ui/views/newrelic/file/javascript/jquery-1.4.2.js', 'BSD'] => 2,
     ['/ui/views/newrelic/file/javascript/jquery-1.4.2.js', 'Copyright'] => 3,
