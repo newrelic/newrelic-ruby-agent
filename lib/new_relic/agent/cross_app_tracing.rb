@@ -35,8 +35,11 @@ module NewRelic
         return yield unless NewRelic::Agent.is_execution_traced?
 
         t0, segment = start_trace( http, request )
-        response = yield
-        finish_trace( t0, segment, request, response, http ) if t0
+        begin
+          response = yield
+        ensure
+          finish_trace( t0, segment, request, response, http ) if t0
+        end
 
         return response
       end
@@ -62,24 +65,25 @@ module NewRelic
       # +response+ and the given +http+ connection.
       def finish_trace( t0, segment, request, response, http )
         t1 = Time.now
-
-        # Figure out which metrics we need to report based on the request and response
-        # The last (most-specific) one is scoped.
-        metrics = metrics_for( http, request, response )
-        scoped_metric = metrics.pop
-
-        # Report the metrics
         duration = t1.to_f - t0.to_f
-        stats_engine.record_metrics(metrics, duration)
-        stats_engine.record_metrics(scoped_metric, duration, :scoped => true)
 
-        # Add TT custom parameters
-        stats_engine.rename_scope_segment( scoped_metric )
-        extract_custom_parameters( response ) if response_is_crossapp?( response )
+        begin
+          # Figure out which metrics we need to report based on the request and response
+          # The last (most-specific) one is scoped.
+          metrics = metrics_for( http, request, response )
+          scoped_metric = metrics.pop
 
-        # Change the name of the segment to the scoped metric and then pop it.
-        stats_engine.pop_scope( segment, duration, t1 )
+          stats_engine.record_metrics(metrics, duration)
+          stats_engine.record_metrics(scoped_metric, duration, :scoped => true)
 
+          # Add TT custom parameters
+          stats_engine.rename_scope_segment( scoped_metric )
+          extract_custom_parameters( response ) if response_is_crossapp?( response )
+        ensure
+          # We always need to pop the scope stack to avoid an inconsistent
+          # state, which will prevent tracing of the whole transaction.
+          stats_engine.pop_scope( segment, duration, t1 )
+        end
       rescue NewRelic::Agent::CrossAppTracing::Error => err
         NewRelic::Agent.logger.debug "while cross app tracing", err
       rescue => err
