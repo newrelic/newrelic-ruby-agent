@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 require 'new_relic/rack/agent_hooks'
 require 'new_relic/agent/thread'
 
@@ -24,7 +28,7 @@ module NewRelic
       # Same for the referring transaction guid
       THREAD_TXN_KEY = :newrelic_cross_app_referring_txn_info
 
-      
+
       # Functions for obfuscating and unobfuscating header values
       module EncodingFunctions
 
@@ -149,7 +153,7 @@ module NewRelic
 
       def cross_app_enabled?
         NewRelic::Agent.config[:cross_process_id] &&
-          (NewRelic::Agent.config[:"cross_application_tracer.enabled"] || 
+          (NewRelic::Agent.config[:"cross_application_tracer.enabled"] ||
            NewRelic::Agent.config[:cross_application_tracing])
       end
 
@@ -167,14 +171,9 @@ module NewRelic
       end
 
       def build_payload(timings, content_length)
-
-        # FIXME The transaction name might not be properly encoded.  use a json generator
-        # For now we just handle quote characters by dropping them
-        transaction_name = timings.transaction_name.gsub(/["']/, "")
-
         payload = [
           NewRelic::Agent.config[:cross_process_id],
-          transaction_name,
+          timings.transaction_name,
           timings.queue_time_in_seconds.to_f,
           timings.app_time_in_seconds.to_f,
           content_length,
@@ -200,8 +199,8 @@ module NewRelic
       end
 
       def set_metrics(id, timings)
-        metric = NewRelic::Agent.instance.stats_engine.get_stats_no_scope("ClientApplication/#{id}/all")
-        metric.record_data_point(timings.app_time_in_seconds)
+        metric_name = "ClientApplication/#{id}/all"
+        NewRelic::Agent.record_metric(metric_name, timings.app_time_in_seconds)
       end
 
       def decoded_id(request)

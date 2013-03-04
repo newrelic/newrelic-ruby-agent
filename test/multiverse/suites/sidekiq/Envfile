@@ -1,0 +1,21 @@
+suite_condition("SideKiq requires MRI 1.9.3 or JRuby 1.6 in 1.9 mode") do
+  RUBY_VERSION >= '1.9.3' || (RUBY_PLATFORM == 'java' && RUBY_VERSION >= '1.9')
+end
+
+gemfile <<-RB
+  gem 'json'
+  gem 'sidekiq'
+  gem 'rack'
+RB
+
+before_suite do
+  ENV["NEWRELIC_MULTIVERSE_REDIS_PORT"] = (20_000 + ($$ % 10_000)).to_s
+  ENV["NEWRELIC_MULTIVERSE_FAKE_COLLECTOR_PORT"] = (30_000 + ($$ % 10_000)).to_s
+  system("echo 'port #{ENV["NEWRELIC_MULTIVERSE_REDIS_PORT"]}' | redis-server - > /dev/null &")
+end
+
+after_suite do
+  system("redis-cli -p #{ENV["NEWRELIC_MULTIVERSE_REDIS_PORT"]} shutdown")
+end
+
+execute_mode 'spawn'

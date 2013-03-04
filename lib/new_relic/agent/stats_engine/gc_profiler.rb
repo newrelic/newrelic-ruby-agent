@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 # -*- coding: utf-8 -*-
 module NewRelic
   module Agent
@@ -45,10 +49,10 @@ module NewRelic
             if num_calls > 0
               # GC stats are collected into a blamed metric which allows
               # us to show the stats controller by controller
-              gc_stats = NewRelic::Agent.instance.stats_engine \
-                .get_stats('GC/cumulative', true, false,
-                           NewRelic::Agent::TransactionInfo.get.transaction_name)
-              gc_stats.record_multiple_data_points(elapsed, num_calls)
+              NewRelic::Agent.instance.stats_engine \
+                .record_metrics('GC/cumulative', nil, :scoped => true) do |stat|
+                stat.record_multiple_data_points(elapsed, num_calls)
+              end
             end
           end
 

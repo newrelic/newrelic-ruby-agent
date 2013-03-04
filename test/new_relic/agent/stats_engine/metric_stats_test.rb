@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 
 class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
@@ -112,36 +116,36 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
     assert_equal(1, bar_stats.call_count)
   end
 
-  def test_record_metric_unscoped_metrics_only_by_default
-    @engine.stubs(:default_scope).returns('scopey')
-    @engine.record_metric('foo', 42)
+  def test_record_metrics_unscoped_metrics_only_by_default
+    @engine.stubs(:scope_name).returns('scopey')
+    @engine.record_metrics('foo', 42)
     unscoped_stats = @engine.get_stats('foo', false)
     scoped_stats = @engine.get_stats('foo', true, true, 'scopey')
     assert_equal(1, unscoped_stats.call_count)
     assert_equal(0, scoped_stats.call_count)
   end
 
-  def test_record_metric_records_to_scoped_metric_if_requested
-    @engine.stubs(:default_scope).returns('scopey')
-    @engine.record_metric('foo', 42, :scoped => true)
+  def test_record_metrics_records_to_scoped_metric_if_requested
+    @engine.stubs(:scope_name).returns('scopey')
+    @engine.record_metrics('foo', 42, :scoped => true)
     unscoped_stats = @engine.get_stats('foo', false)
     scoped_stats = @engine.get_stats('foo', true, true, 'scopey')
     assert_equal(1, unscoped_stats.call_count)
     assert_equal(1, scoped_stats.call_count)
   end
 
-  def test_record_metric_elides_scoped_metric_if_not_in_transaction
+  def test_record_metrics_elides_scoped_metric_if_not_in_transaction
     @engine.clear_stats
-    @engine.stubs(:default_scope).returns(nil)
-    @engine.record_metric('foo', 42, :scoped => true)
+    @engine.stubs(:scope_name).returns(nil)
+    @engine.record_metrics('foo', 42, :scoped => true)
     unscoped_stats = @engine.get_stats('foo', false)
     assert_equal(1, unscoped_stats.call_count)
     assert_equal(1, @engine.metrics.size)
   end
 
-  def test_record_metric_accepts_explicit_scope
-    @engine.stubs(:default_scope).returns('scopey')
-    @engine.record_metric('foo', 42, :scoped => true, :scope => 'not scopey')
+  def test_record_metrics_accepts_explicit_scope
+    @engine.stubs(:scope_name).returns('scopey')
+    @engine.record_metrics('foo', 42, :scoped => true, :scope => 'not scopey')
     unscoped_stats = @engine.get_stats('foo', false)
     scoped_stats_scopey = @engine.get_stats('foo', true, true, 'scopey')
     scoped_stats_not_scopey = @engine.get_stats('foo', true, true, 'not scopey')
@@ -150,23 +154,23 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
     assert_equal(1, scoped_stats_not_scopey.call_count)
   end
 
-  def test_record_metric_accepts_block
-    @engine.record_metric('foo') do |stats|
+  def test_record_metrics_accepts_block
+    @engine.record_metrics('foo') do |stats|
       stats.call_count = 999
     end
     stats = @engine.get_stats_no_scope('foo')
     assert_equal(999, stats.call_count)
   end
 
-  def test_record_metric_is_thread_safe
+  def test_record_metrics_is_thread_safe
     threads = []
     nthreads = 25
     iterations = 100
     nthreads.times do |tid|
       threads << Thread.new do
         iterations.times do
-          @engine.record_metric('m1', 1)
-          @engine.record_metric('m2', 1)
+          @engine.record_metrics('m1', 1)
+          @engine.record_metrics('m2', 1)
         end
       end
     end

@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 require 'new_relic/agent/sampler'
 
 module NewRelic
@@ -10,17 +14,20 @@ module NewRelic
           poll
         end
 
-        def user_util_stats
-          stats_engine.get_stats_no_scope("CPU/User/Utilization")
+        def record_user_util(value)
+          NewRelic::Agent.record_metric("CPU/User/Utilization", value)
         end
-        def system_util_stats
-          stats_engine.get_stats_no_scope("CPU/System/Utilization")
+
+        def record_system_util(value)
+          NewRelic::Agent.record_metric("CPU/System/Utilization", value)
         end
-        def usertime_stats
-          stats_engine.get_stats_no_scope("CPU/User Time")
+
+        def record_usertime(value)
+          NewRelic::Agent.record_metric("CPU/User Time", value)
         end
-        def systemtime_stats
-          stats_engine.get_stats_no_scope("CPU/System Time")
+
+        def record_systemtime(value)
+          NewRelic::Agent.record_metric("CPU/System Time", value)
         end
 
         def self.supported_on_this_platform?
@@ -39,13 +46,14 @@ module NewRelic
             usertime = t.utime - @last_utime
             systemtime = t.stime - @last_stime
 
-            systemtime_stats.record_data_point(systemtime) if systemtime >= 0
-            usertime_stats.record_data_point(usertime) if usertime >= 0
+            record_systemtime(systemtime) if systemtime >= 0
+            record_usertime(usertime) if usertime >= 0
 
             # Calculate the true utilization by taking cpu times and dividing by
             # elapsed time X num_processors.
-            user_util_stats.record_data_point usertime / (elapsed * num_processors)
-            system_util_stats.record_data_point systemtime / (elapsed * num_processors)
+
+            record_user_util(usertime / (elapsed * num_processors))
+            record_system_util(systemtime / (elapsed * num_processors))
           end
           @last_utime = t.utime
           @last_stime = t.stime

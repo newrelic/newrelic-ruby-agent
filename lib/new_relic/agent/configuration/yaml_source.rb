@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 require 'new_relic/agent/configuration'
 
 module NewRelic
@@ -7,7 +11,7 @@ module NewRelic
         attr_accessor :file_path
 
         def initialize(path, env)
-          ::NewRelic::Agent.logger.debug("Reading configuration from #{path}")
+          ::NewRelic::Agent.logger.info("Reading configuration from #{path}")
 
           config = {}
           begin

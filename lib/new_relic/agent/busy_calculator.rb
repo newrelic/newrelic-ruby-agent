@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 module NewRelic
   module Agent
     # This module supports calculation of actual time spent processing requests over the course of
@@ -90,7 +94,9 @@ module NewRelic
 
         busy = busy / time_window
 
-        instance_busy_stats.record_data_point busy if Agent.config[:report_instance_busy]
+        if Agent.config[:report_instance_busy]
+          NewRelic::Agent.record_metric('Instance/Busy', busy)
+        end
         @harvest_start = t0
       end
 
@@ -99,11 +105,6 @@ module NewRelic
       # so we can stub Time.now only for the BusyCalculator in tests
       def time_now
         Time.now
-      end
-
-      def instance_busy_stats
-        # Late binding on the Instance/busy stats
-        NewRelic::Agent.agent.stats_engine.get_stats_no_scope 'Instance/Busy'
       end
 
       self.reset

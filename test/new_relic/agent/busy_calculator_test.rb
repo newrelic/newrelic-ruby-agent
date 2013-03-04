@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 # Run faster standalone
 ENV['SKIP_RAILS'] = 'true'
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
@@ -6,8 +10,8 @@ class NewRelic::Agent::BusyCalculatorTest < Test::Unit::TestCase
   def setup
     @now = Time.now.to_f
     NewRelic::Agent::BusyCalculator.reset
-    @instance_busy = NewRelic::Agent::Stats.new
-    NewRelic::Agent::BusyCalculator.stubs(:instance_busy_stats).returns(@instance_busy)
+    NewRelic::Agent.agent.stats_engine.clear_stats
+    @instance_busy = NewRelic::Agent.agent.stats_engine.get_stats_no_scope('Instance/Busy')
   end
 
   def test_normal

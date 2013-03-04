@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 require 'socket'
 require 'net/https'
 require 'net/http'
@@ -143,8 +147,7 @@ module NewRelic
 
           metrics << metric
           metrics.each do |name|
-            stats = stats_engine.get_stats_no_scope(name)
-            stats.record_data_point(duration_seconds)
+            NewRelic::Agent.record_metric(name, duration_seconds)
           end
 
           if is_error
@@ -451,7 +454,7 @@ module NewRelic
           # requests, we need to wait until the children are forked
           # before connecting, otherwise the parent process sends odd data
           def using_forking_dispatcher?
-            log_if([:passenger, :unicorn].include?(Agent.config[:dispatcher]),
+            log_if([:passenger, :rainbows, :unicorn].include?(Agent.config[:dispatcher]),
                    :info, "Connecting workers after forking.")
           end
 
@@ -880,8 +883,8 @@ module NewRelic
         # transmission later
         def harvest_and_send_timeslice_data
           now = Time.now
-          NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote').record_data_point(0.0)
-          NewRelic::Agent.instance.stats_engine.get_stats_no_scope('Supportability/invoke_remote/metric_data').record_data_point(0.0)
+          NewRelic::Agent.record_metric('Supportability/invoke_remote', 0.0)
+          NewRelic::Agent.record_metric('Supportability/invoke_remote/metric_data', 0.0)
           harvest_timeslice_data(now)
           begin
             @service.metric_data(@last_harvest_time.to_f,
@@ -1028,8 +1031,8 @@ module NewRelic
           raise e
         ensure
           NewRelic::Agent::Database.close_connections unless forked?
-          @stats_engine.get_stats_no_scope('Supportability/Harvest') \
-            .record_data_point((Time.now - now).to_f)
+          duration = (Time.now - now).to_f
+          @stats_engine.record_metrics('Supportability/Harvest', duration)
         end
 
         # This method contacts the server to send remaining data and

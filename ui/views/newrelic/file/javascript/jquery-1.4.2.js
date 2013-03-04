@@ -1,3 +1,6 @@
+// This file is distributed under jquery's license terms.
+// See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 /*!
  * jQuery JavaScript Library v1.4.2
  * http://jquery.com/

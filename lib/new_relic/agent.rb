@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 require 'forwardable'
 require 'new_relic/control'
 
@@ -182,7 +186,7 @@ module NewRelic
         stats.sum_of_squares = value[:sum_of_squares]
         value = stats
       end
-      agent.stats_engine.record_metric(metric_name, value)
+      agent.stats_engine.record_metrics(metric_name, value)
     end
 
     # Increment a simple counter metric.
@@ -194,7 +198,7 @@ module NewRelic
     #
     # @api public
     def increment_metric(metric_name, amount=1)
-      agent.stats_engine.record_metric(metric_name) do |stats|
+      agent.stats_engine.record_metrics(metric_name) do |stats|
         stats.increment_count(amount)
       end
     end
@@ -250,7 +254,7 @@ module NewRelic
     # jobs or other work.  If you are doing this with a web dispatcher
     # that forks worker processes then you will need to force the
     # agent to reconnect, which it won't do by default.  Passenger and
-    # Unicorn are already handled, nothing special needed for them.
+    # Rainbows and Unicorn are already handled, nothing special needed for them.
     #
     # Options:
     # * <tt>:force_reconnect => true</tt> to force the spawned process to

@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 module NewRelic
   module Agent
     # This class collects errors from the parent application, storing
@@ -16,12 +20,15 @@ module NewRelic
       # memory and data retention
       MAX_ERROR_QUEUE_LENGTH = 20 unless defined? MAX_ERROR_QUEUE_LENGTH
 
+      # This ivar is used to tag exceptions that we've alreday seen, so that we
+      # don't double-count them.
+      EXCEPTION_TAG_IVAR = :@__new_relic_exception_tag
+
       attr_accessor :errors
 
       # Returns a new error collector
       def initialize
         @errors = []
-        @seen_error_ids = []
 
         # lookup of exception class names to ignore.  Hash for fast access
         @ignore = {}
@@ -93,17 +100,26 @@ module NewRelic
           error && filtered_error?(error)
         end
 
+        def seen?(exception)
+          exception.instance_variable_get(EXCEPTION_TAG_IVAR)
+        end
+
+        def tag_as_seen(exception)
+          exception.instance_variable_set(EXCEPTION_TAG_IVAR, true)
+        end
+
         # Increments a statistic that tracks total error rate
         # Be sure not to double-count same exception. This clears per harvest.
         def increment_error_count!(exception)
-          return if @seen_error_ids.include?(exception.object_id)
-          @seen_error_ids << exception.object_id
-
-          NewRelic::Agent.get_stats("Errors/all").increment_count
+          return if seen?(exception)
+          tag_as_seen(exception)
 
           txn_info = NewRelic::Agent::TransactionInfo.get
-          if (txn_info.transaction_name_set?)
-            NewRelic::Agent.get_stats("Errors/#{txn_info.transaction_name}").increment_count
+          metric_names = ["Errors/all"]
+          metric_names << "Errors/#{txn_info.transaction_name}" if txn_info.transaction_name_set?
+          stats_engine = NewRelic::Agent.agent.stats_engine
+          stats_engine.record_metrics(metric_names) do |stats|
+            stats.increment_count
           end
         end
 
@@ -250,9 +266,6 @@ module NewRelic
         @lock.synchronize do
           errors = @errors
           @errors = []
-
-          # Only expect to re-see errors on same request, so clear on harvest
-          @seen_error_ids = []
 
           if unsent_errors && !unsent_errors.empty?
             errors = unsent_errors + errors

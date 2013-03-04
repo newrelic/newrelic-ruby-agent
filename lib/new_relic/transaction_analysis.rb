@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 require 'new_relic/transaction_analysis/segment_summary'
 # Add these methods to TransactionSample that enable performance analysis in the user interface.
 module NewRelic

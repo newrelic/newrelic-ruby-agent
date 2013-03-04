@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 module NewRelic
   module Agent
     module Instrumentation
@@ -36,8 +40,8 @@ module NewRelic
         end
 
         def record_frontend_metrics(start_time, now=Time.now)
-          NewRelic::Agent.instance.stats_engine.get_stats(ALL_QUEUE_METRIC) \
-            .record_data_point((now - start_time).to_f)
+          NewRelic::Agent.instance.stats_engine.record_metrics(
+            ALL_QUEUE_METRIC, (now - start_time).to_f, :scoped => true)
         end
 
         def timestamp_string_from_header_value(value)

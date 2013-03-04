@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 # https://support.newrelic.com/tickets/2101
 # https://github.com/newrelic/rpm/pull/42
 # https://github.com/newrelic/rpm/pull/45

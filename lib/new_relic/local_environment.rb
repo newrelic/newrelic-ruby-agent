@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 require 'set'
 require 'new_relic/version'
 
@@ -241,7 +245,7 @@ module NewRelic
     # Although you can override the dispatcher with NEWRELIC_DISPATCHER this
     # is not advisable since it implies certain api's being available.
     def discover_dispatcher
-      dispatchers = %w[passenger torquebox trinidad glassfish resque thin mongrel litespeed webrick fastcgi unicorn]
+      dispatchers = %w[passenger torquebox trinidad glassfish resque sidekiq thin mongrel litespeed webrick fastcgi rainbows unicorn]
       while dispatchers.any? && @discovered_dispatcher.nil?
         send 'check_for_'+(dispatchers.shift)
       end
@@ -315,6 +319,13 @@ module NewRelic
       end
     end
 
+    def check_for_rainbows
+      if (defined?(::Rainbows) && defined?(::Rainbows::HttpServer)) && working_jruby?
+        v = find_class_in_object_space(::Rainbows::HttpServer)
+        @discovered_dispatcher = :rainbows if v
+      end
+    end
+
     def check_for_resque
       using_resque = (
         defined?(::Resque) &&
@@ -322,6 +333,12 @@ module NewRelic
         (File.basename($0) == 'rake' && ARGV.include?('resque:work'))
       )
       @discovered_dispatcher = :resque if using_resque
+    end
+
+    def check_for_sidekiq
+      if defined?(::Sidekiq) && File.basename($0) == 'sidekiq'
+        @discovered_dispatcher = :sidekiq
+      end
     end
 
     def check_for_thin

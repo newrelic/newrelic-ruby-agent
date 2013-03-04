@@ -1,6 +1,16 @@
 
 # New Relic Ruby Agent Release Notes #
 
+## v3.6.0 ##
+
+  * Experimental Rainbows! support
+
+  The Ruby agent now automatically detects and instruments the Rainbows! web
+  server. This support is considered experimental at present, and has not been
+  tested with all dispatch modes.
+
+  Thanks to Joseph Chen for the contribution.
+
 ## v3.5.8 ##
 
   * Key Transactions

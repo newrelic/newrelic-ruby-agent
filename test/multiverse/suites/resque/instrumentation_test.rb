@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 # https://newrelic.atlassian.net/browse/RUBY-669
 
 require 'resque'
@@ -134,7 +138,7 @@ class ResqueTest < Test::Unit::TestCase
 
     run_worker(:env_vars => 'BROKEN_AFTER_FORK=true')
 
-    assert File.read(log_path).include?('Unable to send data to parent process')
+    assert File.read(log_path).include?('No communication channel to parent process')
   end
 
   if RUBY_VERSION >= '1.9'

@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 require 'new_relic/control'
 module NewRelic
   module Agent
@@ -70,16 +74,13 @@ module NewRelic
         def trace_execution_unscoped(metric_names, options={})
           return yield unless NewRelic::Agent.is_execution_traced?
           t0 = Time.now
-          stats = Array(metric_names).map do | metric_name |
-            NewRelic::Agent.instance.stats_engine.get_stats_no_scope metric_name
-          end
           begin
             NewRelic::Agent.instance.push_trace_execution_flag(true) if options[:force]
             yield
           ensure
             NewRelic::Agent.instance.pop_trace_execution_flag if options[:force]
             duration = (Time.now - t0).to_f              # for some reason this is 3 usec faster than Time - Time
-            stats.each { |stat| stat.trace_call(duration) }
+            stat_engine.record_metrics(metric_names, duration)
           end
         end
 
@@ -117,7 +118,7 @@ module NewRelic
           def stat_engine
             agent_instance.stats_engine
           end
-          
+
           # returns a scoped metric stat for the specified name
           def get_stats_scoped(first_name, scoped_metric_only)
             stat_engine.get_stats(first_name, true, scoped_metric_only)
@@ -126,25 +127,16 @@ module NewRelic
           def get_stats_unscoped(name)
             stat_engine.get_stats_no_scope(name)
           end
-          
-          # the main statistic we should record in
-          # #trace_execution_scoped - a scoped metric provided by the
-          # first item in the metric array
-          def main_stat(metric, options)
-            get_stats_scoped(metric, options[:scoped_metric_only])
-          end
-          
-          # returns an array containing the first metric, and an array
-          # of other unscoped statistics we should also record along
-          # side it
-          def get_metric_stats(metrics, options)
-            metrics = Array(metrics)
-            first_name = metrics.shift
-            stats = metrics.map do | name |
-              get_stats_unscoped(name)
+
+          def get_metric_specs(first_name, other_names, scope, options)
+            specs = other_names.map { |name| NewRelic::MetricSpec.new(name) }
+            if options[:metric]
+              if scope && scope != first_name
+                specs << NewRelic::MetricSpec.new(first_name, scope)
+              end
+              specs << NewRelic::MetricSpec.new(first_name) unless options[:scoped_metric_only]
             end
-            stats.unshift(main_stat(first_name, options)) if options[:metric]
-            [first_name, stats]
+            specs
           end
           
           # Helper for setting a hash key if the hash key is nil,
@@ -207,7 +199,7 @@ module NewRelic
           # this method fails safely if the header does not manage to
           # push the scope onto the stack - it simply does not trace
           # any metrics.
-          def trace_execution_scoped_footer(t0, first_name, metric_stats, expected_scope, forced, t1=Time.now.to_f)
+          def trace_execution_scoped_footer(t0, first_name, metric_specs, expected_scope, forced, t1=Time.now.to_f)
             log_errors("trace_method_execution footer", first_name) do
               duration = t1 - t0
 
@@ -215,7 +207,9 @@ module NewRelic
               if expected_scope
                 scope = stat_engine.pop_scope(expected_scope, duration, t1)
                 exclusive = duration - scope.children_time
-                metric_stats.each { |stats| stats.trace_call(duration, exclusive) }
+                stat_engine.record_metrics(metric_specs) do |stat|
+                  stat.record_data_point(duration, exclusive)
+                end
               end
             end
           end
@@ -229,17 +223,19 @@ module NewRelic
           # Generally you pass an array of metric names if you want to record the metric under additional
           # categories, but generally this *should never ever be done*.  Most of the time you can aggregate
           # on the server.
-
           def trace_execution_scoped(metric_names, options={})
             return yield if trace_disabled?(options)
             set_if_nil(options, :metric)
             set_if_nil(options, :deduct_call_time_from_parent)
-            first_name, metric_stats = get_metric_stats(metric_names, options)
+            metric_names = Array(metric_names)
+            first_name = metric_names.shift
+            scope = stat_engine.scope_name
             start_time, expected_scope = trace_execution_scoped_header(first_name, options)
-            begin
+            begin 
               yield
             ensure
-              trace_execution_scoped_footer(start_time, first_name, metric_stats, expected_scope, options[:force])
+              metric_specs = get_metric_specs(first_name, metric_names, scope, options)
+              trace_execution_scoped_footer(start_time, first_name, metric_specs, expected_scope, options[:force])
             end
           end
 
@@ -356,14 +352,13 @@ module NewRelic
             "def #{_traced_method_name(method_name, metric_name_code)}(*args, &block)
               #{assemble_code_header(method_name, metric_name_code, options)}
               t0 = Time.now
-              stats = NewRelic::Agent.instance.stats_engine.get_stats_no_scope \"#{metric_name_code}\"
               begin
                 #{"NewRelic::Agent.instance.push_trace_execution_flag(true)\n" if options[:force]}
                 #{_untraced_method_name(method_name, metric_name_code)}(*args, &block)\n
               ensure
                 #{"NewRelic::Agent.instance.pop_trace_execution_flag\n" if options[:force] }
                 duration = (Time.now - t0).to_f
-                stats.trace_call(duration)
+                NewRelic::Agent.record_metric(\"#{metric_name_code}\", duration)
                 #{options[:code_footer]}
               end
             end"

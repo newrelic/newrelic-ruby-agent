@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require 'new_relic/agent/thread_profiler'
 
@@ -39,8 +43,9 @@ module NewRelic
 
       def test_after_fork_should_close_pipe_if_parent_not_connected
         pipe = mock
-        pipe.expects(:write).with('EOF')
+        pipe.expects(:after_fork_in_child)
         pipe.expects(:close)
+        pipe.stubs(:parent_pid).returns(:digglewumpus)
         dummy_channels = { 123 => pipe }
         NewRelic::Agent::PipeChannelManager.stubs(:channels).returns(dummy_channels)
 

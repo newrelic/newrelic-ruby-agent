@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 
 module NewRelic::Agent
@@ -34,7 +38,7 @@ module NewRelic::Agent
         :encoding_key => ENCODING_KEY_NOOP,
         :trusted_account_ids => TRUSTED_ACCOUNT_IDS
       }
-        
+
       NewRelic::Agent.config.apply_config( @config )
       @monitor.register_event_listeners
       NewRelic::Agent::TransactionInfo.get.guid = TRANSACTION_GUID
@@ -61,7 +65,7 @@ module NewRelic::Agent
       assert_equal [AGENT_CROSS_APP_ID, TRANSACTION_NAME, QUEUE_TIME, APP_TIME, -1, TRANSACTION_GUID], unpacked_response
     end
 
-    def test_strips_bad_characters_in_transaction_name
+    def test_encodes_transaction_name
       NewRelic::Agent::BrowserMonitoring.stubs(:timings).returns(stub(
           :transaction_name => "\"'goo",
           :queue_time_in_seconds => QUEUE_TIME,
@@ -69,7 +73,7 @@ module NewRelic::Agent
 
       when_request_runs
 
-      assert_equal "goo", unpacked_response[TRANSACTION_NAME_POSITION]
+      assert_equal "\"'goo", unpacked_response[TRANSACTION_NAME_POSITION]
     end
 
     def test_doesnt_write_response_header_if_id_blank
@@ -161,16 +165,17 @@ module NewRelic::Agent
     def test_writes_metric
       with_default_timings
 
-      metric = mock()
-      metric.expects(:record_data_point).with(APP_TIME)
-      NewRelic::Agent.instance.stats_engine.stubs(:get_stats_no_scope).returns(metric)
+      expected_metric_name = "ClientApplication/#{REQUEST_CROSS_APP_ID}/all"
+      NewRelic::Agent.instance.stats_engine.expects(:record_metrics). \
+        with(expected_metric_name, APP_TIME)
 
       when_request_runs
     end
 
     def test_doesnt_write_metric_if_id_blank
       with_default_timings
-      NewRelic::Agent.instance.stats_engine.expects(:get_stats_no_scope).never
+
+      NewRelic::Agent.instance.stats_engine.expects(:record_metrics).never
 
       when_request_runs(for_id(''))
     end
@@ -184,7 +189,6 @@ module NewRelic::Agent
       assert_equal "querty",
         NewRelic::Agent::CrossAppMonitor::EncodingFunctions.encode_with_key( nil, 'querty' )
     end
-
 
     #
     # Helpers

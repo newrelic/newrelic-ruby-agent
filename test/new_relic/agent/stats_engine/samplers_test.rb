@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 require File.expand_path(File.join(File.dirname(__FILE__),'..', '..','..','test_helper'))
 require 'new_relic/agent/samplers/cpu_sampler'
 
@@ -42,10 +46,13 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
     s.poll
     s.instance_eval { @last_time = Time.now - 1.1 }
     s.poll
-    assert_equal 2, s.systemtime_stats.call_count
-    assert_equal 2, s.usertime_stats.call_count
-    assert s.usertime_stats.total_call_time >= 0, "user cpu greater/equal to 0: #{s.usertime_stats.total_call_time}"
-    assert s.systemtime_stats.total_call_time >= 0, "system cpu greater/equal to 0: #{s.systemtime_stats.total_call_time}"
+
+    systemtime_stats = s.stats_engine.get_stats_no_scope("CPU/System Time")
+    usertime_stats = s.stats_engine.get_stats_no_scope("CPU/User Time")
+    assert_equal 2, systemtime_stats.call_count
+    assert_equal 2, usertime_stats.call_count
+    assert usertime_stats.total_call_time >= 0, "user cpu greater/equal to 0: #{usertime_stats.total_call_time}"
+    assert systemtime_stats.total_call_time >= 0, "system cpu greater/equal to 0: #{systemtime_stats.total_call_time}"
   end
   def test_memory__default
     s = NewRelic::Agent::Samplers::MemorySampler.new
@@ -53,8 +60,9 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
     s.poll
     s.poll
     s.poll
-    assert_equal 3, s.stats.call_count
-    assert s.stats.total_call_time > 0.5, "cpu greater than 0.5 ms: #{s.stats.total_call_time}"
+    stats = @stats_engine.get_stats_no_scope("Memory/Physical")
+    assert_equal(3, stats.call_count)
+    assert stats.total_call_time > 0.5, "cpu greater than 0.5 ms: #{stats.total_call_time}"
   end
   def test_memory__linux
     return if RUBY_PLATFORM =~ /darwin/
@@ -64,8 +72,9 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
     s.poll
     s.poll
     s.poll
-    assert_equal 3, s.stats.call_count
-    assert s.stats.total_call_time > 0.5, "cpu greater than 0.5 ms: #{s.stats.total_call_time}"
+    stats = @stats_engine.get_stats_no_scope("Memory/Physical")
+    assert_equal 3, stats.call_count
+    assert stats.total_call_time > 0.5, "cpu greater than 0.5 ms: #{stats.total_call_time}"
   end
   def test_memory__solaris
     return if defined? JRuby
@@ -74,8 +83,9 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
     s = NewRelic::Agent::Samplers::MemorySampler.new
     s.stats_engine = @stats_engine
     s.poll
-    assert_equal 1, s.stats.call_count
-    assert_equal 999, s.stats.total_call_time
+    stats = s.stats_engine.get_stats_no_scope("Memory/Physical")
+    assert_equal 1, stats.call_count
+    assert_equal 999, stats.total_call_time
   end
   def test_memory__windows
     return if defined? JRuby

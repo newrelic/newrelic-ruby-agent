@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 
 class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
@@ -366,7 +370,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     @sampler.send(:notice_extra_data, nil, nil, nil)
   end
 
-  def test_notice_extra_data_no_builder
+  def test_notice_extra_data_no_segment
     builder = mock('builder')
     @sampler.expects(:builder).returns(builder).twice
     builder.expects(:current_segment).returns(nil)

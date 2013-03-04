@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 module NewRelic
 module Agent
   class StatsEngine
@@ -34,9 +38,8 @@ module Agent
               sleep POLL_PERIOD
               poll periodic_samplers
             ensure
-              NewRelic::Agent.instance.stats_engine \
-                .get_stats_no_scope('Supportability/Samplers') \
-                .record_data_point((Time.now - now).to_f)
+              duration = (Time.now - now).to_f
+              NewRelic::Agent.record_metric('Supportability/Samplers', duration)
             end
           end
         end

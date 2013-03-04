@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 require 'new_relic/control/frameworks/rails'
 require 'new_relic/control/frameworks/rails3'
 require 'new_relic/control/frameworks/rails4'

@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 require 'zlib'
 require 'new_relic/agent/audit_logger'
 
@@ -274,12 +278,9 @@ module NewRelic
       end
 
       def record_supportability_metrics(method, now)
-        NewRelic::Agent.instance.stats_engine. \
-          get_stats_no_scope('Supportability/invoke_remote'). \
-          record_data_point((Time.now - now).to_f)
-        NewRelic::Agent.instance.stats_engine. \
-          get_stats_no_scope('Supportability/invoke_remote/' + method.to_s). \
-          record_data_point((Time.now - now).to_f)
+        duration = (Time.now - now).to_f
+        NewRelic::Agent.record_metric('Supportability/invoke_remote', duration)
+        NewRelic::Agent.record_metric('Supportability/invoke_remote/' + method.to_s, duration)
       end
 
       # Raises an UnrecoverableServerException if the post_string is longer
