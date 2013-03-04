@@ -3,6 +3,12 @@
 
 ## v3.6.0 ##
 
+  * Sidekiq supprt
+
+  The Ruby agent now supports the Sidekiq background job framework. Traces from
+  Sidekiq jobs will automatically show up in the Background tasks on New Relic
+  similar to Resque and Delayed::Job tasks.
+
   * Experimental Rainbows! support
 
   The Ruby agent now automatically detects and instruments the Rainbows! web
