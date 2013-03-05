@@ -3,7 +3,6 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 # https://newrelic.atlassian.net/browse/RUBY-747
-
 require 'rails/test_help'
 require 'fake_collector'
 
