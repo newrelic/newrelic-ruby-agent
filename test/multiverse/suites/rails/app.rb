@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'action_controller/railtie'
+require 'active_model'
 
 # We define our single Rails application here, one time, upon the first inclusion
 # Tests should feel free to define their own Controllers locally, but if they
@@ -19,11 +20,24 @@ if !defined?(MyApp)
   MyApp.initialize!
 
   MyApp.routes.draw do
-    get('/bad_route' => 'Test#controller_error',
+    get('/bad_route' => 'test#controller_error',
         :constraints => lambda do |_|
           raise ActionController::RoutingError.new('this is an uncaught routing error')
         end)
-    match '/:controller(/:action(/:id))'
+    get '/:controller(/:action(/:id))'
+  end
+
+  MyApp.config.after_initialize do
+    class DebugListener
+      def start(name, id, payload)
+        p "----------> #{name}(#{id}) : #{payload}" if $debug
+      end
+
+      def finish(name, id, payload)
+        p "<---------- #{name}(#{id}) : #{payload}" if $debug
+      end
+    end
+    ActiveSupport::Notifications.subscribe(nil, DebugListener.new)
   end
 
   class ApplicationController < ActionController::Base; end
@@ -33,6 +47,10 @@ if !defined?(MyApp)
     extend ActiveModel::Naming
     def to_model
       self
+    end
+
+    def to_partial_path
+      'foos/foo'
     end
 
     def valid?()      true end

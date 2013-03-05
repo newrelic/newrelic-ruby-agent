@@ -17,9 +17,13 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::T
   def test_records_metrics_for_simple_template
     params = { :identifier => '/root/app/views/model/index.html.erb' }
     t0 = Time.now
-    Time.stubs(:now).returns(t0, t0 + 2)
+    Time.stubs(:now).returns(t0, t0, t0 + 2, t0 + 2)
 
     @subscriber.start('render_template.action_view', :id, params)
+    @subscriber.start('!render_template.action_view', :id,
+                      :virtual_path => 'model/index')
+    @subscriber.finish('!render_template.action_view', :id,
+                       :virtual_path => 'model/index')
     @subscriber.finish('render_template.action_view', :id, params)
 
     metric = NewRelic::Agent.instance.stats_engine \
@@ -28,12 +32,66 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::T
     assert_equal(2.0, metric.total_call_time)
   end
 
-  def test_records_metrics_for_simple_partial
-    params = { :identifier => '/root/app/views/model/_form.html.erb' }
+  def test_records_metrics_for_simple_file
+    params = { :identifier => '/root/something.txt' }
+    t0 = Time.now
+    Time.stubs(:now).returns(t0, t0, t0 + 2, t0 + 2)
+
+    @subscriber.start('render_template.action_view', :id, params)
+    @subscriber.start('!render_template.action_view', :id,
+                      :virtual_path => nil)
+    @subscriber.finish('!render_template.action_view', :id,
+                       :virtual_path => nil)
+    @subscriber.finish('render_template.action_view', :id, params)
+
+    metric = NewRelic::Agent.instance.stats_engine \
+      .lookup_stats('View/file/Rendering')
+    assert_equal(1, metric.call_count)
+    assert_equal(2.0, metric.total_call_time)
+  end
+
+  def test_records_metrics_for_simple_inline
+    params = { :identifier => 'inline template' }
+    t0 = Time.now
+    Time.stubs(:now).returns(t0, t0, t0 + 2, t0 + 2)
+
+    @subscriber.start('render_template.action_view', :id, params)
+    @subscriber.start('!render_template.action_view', :id,
+                      :virtual_path => nil)
+    @subscriber.finish('!render_template.action_view', :id,
+                       :virtual_path => nil)
+    @subscriber.finish('render_template.action_view', :id, params)
+
+    metric = NewRelic::Agent.instance.stats_engine \
+      .lookup_stats('View/inline template/Rendering')
+    assert_equal(1, metric.call_count)
+    assert_equal(2.0, metric.total_call_time)
+  end
+
+  def test_records_metrics_for_simple_text
+    params = { :identifier => 'text template' }
     t0 = Time.now
     Time.stubs(:now).returns(t0, t0 + 2)
 
+    @subscriber.start('render_template.action_view', :id, params)
+    @subscriber.finish('render_template.action_view', :id, params)
+
+    metric = NewRelic::Agent.instance.stats_engine \
+      .lookup_stats('View/text template/Rendering')
+    assert_equal(1, metric.call_count)
+    assert_equal(2.0, metric.total_call_time)
+  end
+
+  def test_records_metrics_for_simple_partial
+    params = { :identifier => '/root/app/views/model/_form.html.erb' }
+    t0 = Time.now
+    Time.stubs(:now).returns(t0, t0, t0 + 2, t0 + 2)
+
     @subscriber.start('render_partial.action_view', :id, params)
+    @subscriber.start('!render_template.action_view', :id,
+                      :virtual_path => 'model/_form')
+    @subscriber.finish('!render_template.action_view', :id,
+                       :virtual_path => 'model/_form')
     @subscriber.finish('render_partial.action_view', :id, params)
 
     metric = NewRelic::Agent.instance.stats_engine \
@@ -45,9 +103,13 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::T
   def test_records_metrics_for_simple_collection
     params = { :identifier => '/root/app/views/model/_user.html.erb' }
     t0 = Time.now
-    Time.stubs(:now).returns(t0, t0 + 2)
+    Time.stubs(:now).returns(t0, t0, t0 + 2, t0 + 2)
 
     @subscriber.start('render_collection.action_view', :id, params)
+    @subscriber.start('!render_template.action_view', :id,
+                      :virtual_path => 'model/_user')
+    @subscriber.finish('!render_template.action_view', :id,
+                       :virtual_path => 'model/_user')
     @subscriber.finish('render_collection.action_view', :id, params)
 
     metric = NewRelic::Agent.instance.stats_engine \
@@ -58,8 +120,6 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::T
 
   def test_records_nothing_if_tracing_disabled
     params = { :identifier => '/root/app/views/model/_user.html.erb' }
-    t0 = Time.now
-    Time.stubs(:now).returns(t0, t0 + 2)
 
     NewRelic::Agent.disable_all_tracing do
       @subscriber.start('render_collection.action_view', :id, params)
@@ -76,6 +136,10 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::T
 
     sampler = in_transaction do
       @subscriber.start('render_template.action_view', :id, params)
+      @subscriber.start('!render_template.action_view', :id,
+                        :virtual_path => 'model/index')
+      @subscriber.finish('!render_template.action_view', :id,
+                         :virtual_path => 'model/index')
       @subscriber.finish('render_template.action_view', :id, params)
     end
 
@@ -90,13 +154,21 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::T
   def test_creates_nested_partial_segment_within_render_segment
     sampler = in_transaction do
       @subscriber.start('render_template.action_view', :id,
-                        :identifier => '/root/app/views/model/index.html.erb')
+                        :identifier => 'model/index.html.erb')
+      @subscriber.start('!render_template.action_view', :id,
+                        :virtual_path => 'model/index')
       @subscriber.start('render_partial.action_view', :id,
                         :identifier => '/root/app/views/model/_list.html.erb')
+      @subscriber.start('!render_template.action_view', :id,
+                        :virtual_path => 'model/_list')
+      @subscriber.finish('!render_template.action_view', :id,
+                         :virtual_path => 'model/_list')
       @subscriber.finish('render_partial.action_view', :id,
                          :identifier => '/root/app/views/model/_list.html.erb')
+      @subscriber.finish('!render_template.action_view', :id,
+                         :virtual_path => 'model/index')
       @subscriber.finish('render_template.action_view', :id,
-                         :identifier => '/root/app/views/model/index.html.erb')
+                         :identifier => 'model/index.html.erb')
     end
 
     template_segment = sampler.last_sample.root_segment.called_segments[0].called_segments[0]
@@ -106,6 +178,36 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::T
                  template_segment.metric_name)
     assert_equal('View/model/_list.html.erb/Partial',
                  partial_segment.metric_name)
+  end
+
+  def test_creates_nodes_for_each_in_a_collection_event
+    sampler = in_transaction do
+      @subscriber.start('render_collection.action_view', :id,
+                        :identifier => '/root/app/views/model/_list.html.erb',
+                        :count => 3)
+      @subscriber.start('!render_template.action_view', :id,
+                        :virtual_path => 'model/_list')
+      @subscriber.finish('!render_template.action_view', :id,
+                        :virtual_path => 'model/_list')
+      @subscriber.start('!render_template.action_view', :id,
+                        :virtual_path => 'model/_list')
+      @subscriber.finish('!render_template.action_view', :id,
+                        :virtual_path => 'model/_list')
+      @subscriber.start('!render_template.action_view', :id,
+                        :virtual_path => 'model/_list')
+      @subscriber.finish('!render_template.action_view', :id,
+                        :virtual_path => 'model/_list')
+      @subscriber.finish('render_collection.action_view', :id,
+                         :identifier => '/root/app/views/model/_list.html.erb',
+                         :count => 3)
+    end
+
+    template_segment = sampler.last_sample.root_segment.called_segments[0]
+    partial_segments = template_segment.called_segments
+
+    assert_equal 3, partial_segments.size
+    assert_equal('View/model/_list.html.erb/Partial',
+                 partial_segments[0].metric_name)
   end
 
   def in_transaction

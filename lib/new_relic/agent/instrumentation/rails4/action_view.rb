@@ -12,23 +12,30 @@ module NewRelic
           @event_stack = Hash.new {|h,id| h[id] = [] }
         end
 
+        def self.subscribe
+          if !subscribed?
+            ActiveSupport::Notifications.subscribe(/render_.+\.action_view$/,
+                                                   new)
+          end
+        end
+
         def self.subscribed?
           # TODO: need to talk to Rails core about an API for this,
           # rather than digging through Listener ivars
-          ActiveSupport::Notifications.notifier.listeners_for(/^render_.+\.action_view$/) \
-            .find{|l| l.instance_variable_get(:@delegate).class == self }
+          ActiveSupport::Notifications.notifier.instance_variable_get(:@subscribers)
+            .find{|s| s.instance_variable_get(:@delegate).class == self }
         end
 
         def start(name, id, payload)
-          event = ActiveSupport::Notifications::Event.new(name, Time.now, nil, id, payload)
-          event.payload[:metric_name] = metric_name(event)
+          event = RenderEvent.new(name, Time.now, nil, id, payload)
           parent = @event_stack[id].last
+          event.parent = parent
           parent << event if parent
           @event_stack[id].push event
 
-          if NewRelic::Agent.is_execution_traced?
-            event.payload[:scope] = NewRelic::Agent.instance.stats_engine \
-              .push_scope(event.payload[:metric_name], event.time)
+          if NewRelic::Agent.is_execution_traced? && event.recordable?
+            event.scope = NewRelic::Agent.instance.stats_engine \
+              .push_scope(event.metric_name, event.time)
           end
         end
 
@@ -36,26 +43,61 @@ module NewRelic
           event = @event_stack[id].pop
           event.end = Time.now
 
-          if NewRelic::Agent.is_execution_traced?
+          if NewRelic::Agent.is_execution_traced? && event.recordable?
             record_metrics(event)
             NewRelic::Agent.instance.stats_engine \
-              .pop_scope(event.payload[:scope], event.duration, event.end)
+              .pop_scope(event.scope, event.duration, event.end)
           end
         end
 
         def record_metrics(event)
-          NewRelic::Agent.record_metric(event.payload[:metric_name],
+          NewRelic::Agent.record_metric(event.metric_name,
                                Helper.milliseconds_to_seconds(event.duration))
         end
 
-        def metric_name(event)
-          metric_path = event.payload[:identifier].split('/')[-2..-1].join('/')
-          metric_action = case event.name
-            when 'render_template.action_view'   then 'Rendering'
+        class RenderEvent < ActiveSupport::Notifications::Event
+          attr_accessor :parent, :scope
+
+          # Nearly every "render_blah.action_view" event has a child
+          # in the form of "!render_blah.action_view".  The children
+          # are the ones we want to record.  There are a couple
+          # special cases of events without children.
+          def recordable?
+            name[0] == '!' ||
+              metric_name == 'View/text template/Rendering' ||
+              metric_name == 'View/(unknown)/Partial'
+          end
+
+          def metric_name
+            if payload[:virtual_path] ||
+                (parent && parent.payload[:identifier] =~ /template$/)
+              return parent.metric_name
+            end
+
+            # memoize
+            @metric_name ||= "View/#{metric_path(payload[:identifier])}/#{metric_action(name)}"
+            @metric_name
+          end
+
+          def metric_path(identifier)
+            if identifier == nil
+              'file'
+            elsif identifier =~ /template$/
+              identifier
+            elsif (parts = identifier.split('/')).size > 1
+              parts[-2..-1].join('/')
+            else
+              '(unknown)'
+            end
+          end
+
+          def metric_action(name)
+            case name
+            when /render_template.action_view$/  then 'Rendering'
             when 'render_partial.action_view'    then 'Partial'
             when 'render_collection.action_view' then 'Partial'
+            end
           end
-          "View/#{metric_path}/#{metric_action}"
         end
       end
     end
@@ -70,7 +112,8 @@ DependencyDetection.defer do
   end
 
   depends_on do
-    !NewRelic::Agent.config[:disable_view_instrumentation]
+    !NewRelic::Agent.config[:disable_view_instrumentation] &&
+      !NewRelic::Agent::Instrumentation::ActionViewSubscriber.subscribed?
   end
 
   executes do
@@ -78,9 +121,6 @@ DependencyDetection.defer do
   end
 
   executes do
-    if !NewRelic::Agent::Instrumentation::ActionViewSubscriber.subscribed?
-      ActiveSupport::Notifications.subscribe(/^render_.+\.action_view$/,
-        NewRelic::Agent::Instrumentation::ActionViewSubscriber.new)
-    end
+    NewRelic::Agent::Instrumentation::ActionViewSubscriber.subscribe
   end
 end
