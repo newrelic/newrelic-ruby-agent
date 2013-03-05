@@ -27,7 +27,7 @@ module NewRelic
         # avoid the overhead of collecting and transmitting additional data if
         # the user's subscription level precludes its use. The server is the
         # ultimate authority regarding subscription levels, so we expect it to
-        # do the real enforcement here.
+        # do the real enforcement there.
         def apply_feature_gates(hash, existing_config)
           gated_features = {
             :'transaction_tracer.enabled' => 'collect_traces',
