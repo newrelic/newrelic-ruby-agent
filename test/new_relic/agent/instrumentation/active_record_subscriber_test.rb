@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
-require 'new_relic/agent/instrumentation/active_record'
+require 'new_relic/agent/instrumentation/rails4/active_record'
 
 class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit::TestCase
   class Order; end
