@@ -49,22 +49,17 @@ module NewRelic
         def record_metrics(event)
           base = base_metric(event)
           NewRelic::Agent.record_metric(base, Helper.milliseconds_to_seconds(event.duration))
-          other_metrics_to_report(event).compact.each do |metric_name|
+
+          other_metrics = ActiveRecordHelper.rollup_metrics_for(base)
+          if config = active_record_config_for_event(event)
+            other_metrics << ActiveRecordHelper.remote_service_metric(config[:adapter], config[:host])
+          end
+
+          other_metrics.compact.each do |metric_name|
             NewRelic::Agent.instance.stats_engine.record_metrics(metric_name,
                                             Helper.milliseconds_to_seconds(event.duration),
                                             :scoped => false)
           end
-        end
-
-        def other_metrics_to_report(event)
-          base = base_metric(event)
-          metrics = ActiveRecordHelper.rollup_metrics_for(base)
-
-          if config = active_record_config_for_event(event)
-            metrics << ActiveRecordHelper.remote_service_metric(config[:adapter], config[:host])
-          end
-
-          metrics
         end
 
         def base_metric(event)

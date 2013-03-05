@@ -46,12 +46,21 @@ module NewRelic
           metric
         end
 
+        # Given a metric name such as "ActiveRecord/model/action" this
+        # returns an array of rollup metrics:
+        # [ "ActiveRecord/all", "ActiveRecord/action" ]
+        # If the metric name is in the form of "ActiveRecord/action"
+        # this returns merely: [ "ActiveRecord/all" ]
         def rollup_metrics_for(metric)
           metrics = ["ActiveRecord/all"]
           metrics << "ActiveRecord/#{$1}" if metric =~ /ActiveRecord\/[\w|\:]+\/(\w+)/
           metrics
         end
 
+        # Given a database adapter name and a database server host
+        # this returns a metric name in the form:
+        # "RemoteService/sql/adapter/host"
+        # Host defaults to "localhost".
         def remote_service_metric(adapter, host)
           host ||= 'localhost'
           type = adapter.sub(/\d*/, '')

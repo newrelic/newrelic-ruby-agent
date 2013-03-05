@@ -9,7 +9,7 @@ module NewRelic
     module Instrumentation
       class ActionViewSubscriber
         def initialize
-          @event_stack = Hash.new {|h,id| h[id] = [] }
+          @queue_key = ['NewRelic', self.class.name, object_id].join('-')
         end
 
         def self.subscribe
@@ -28,10 +28,10 @@ module NewRelic
 
         def start(name, id, payload)
           event = RenderEvent.new(name, Time.now, nil, id, payload)
-          parent = @event_stack[id].last
+          parent = event_stack[id].last
           event.parent = parent
           parent << event if parent
-          @event_stack[id].push event
+          event_stack[id].push event
 
           if NewRelic::Agent.is_execution_traced? && event.recordable?
             event.scope = NewRelic::Agent.instance.stats_engine \
@@ -40,7 +40,7 @@ module NewRelic
         end
 
         def finish(name, id, payload)
-          event = @event_stack[id].pop
+          event = event_stack[id].pop
           event.end = Time.now
 
           if NewRelic::Agent.is_execution_traced? && event.recordable?
@@ -53,6 +53,10 @@ module NewRelic
         def record_metrics(event)
           NewRelic::Agent.record_metric(event.metric_name,
                                Helper.milliseconds_to_seconds(event.duration))
+        end
+
+        def event_stack
+          Thread.current[@queue_key] ||= Hash.new {|h,id| h[id] = [] }
         end
 
         class RenderEvent < ActiveSupport::Notifications::Event
