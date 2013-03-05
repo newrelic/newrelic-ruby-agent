@@ -95,7 +95,8 @@ DependencyDetection.defer do
   end
 
   depends_on do
-    !NewRelic::Agent.config[:disable_activerecord_instrumentation]
+    !NewRelic::Agent.config[:disable_activerecord_instrumentation] &&
+      !NewRelic::Agent::Instrumentation::ActiveRecordSubscriber.subscribed?
   end
 
   executes do
@@ -103,9 +104,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    if !NewRelic::Agent::Instrumentation::ActiveRecordSubscriber.subscribed?
-      ActiveSupport::Notifications.subscribe('sql.active_record',
-        NewRelic::Agent::Instrumentation::ActiveRecordSubscriber.new)
-    end
+    ActiveSupport::Notifications.subscribe('sql.active_record',
+      NewRelic::Agent::Instrumentation::ActiveRecordSubscriber.new)
   end
 end
