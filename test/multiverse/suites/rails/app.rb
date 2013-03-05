@@ -27,19 +27,6 @@ if !defined?(MyApp)
     get '/:controller(/:action(/:id))'
   end
 
-  MyApp.config.after_initialize do
-    class DebugListener
-      def start(name, id, payload)
-        p "----------> #{name}(#{id}) : #{payload}" if $debug
-      end
-
-      def finish(name, id, payload)
-        p "<---------- #{name}(#{id}) : #{payload}" if $debug
-      end
-    end
-    ActiveSupport::Notifications.subscribe(nil, DebugListener.new)
-  end
-
   class ApplicationController < ActionController::Base; end
 
   # a basic active model compliant model we can render
