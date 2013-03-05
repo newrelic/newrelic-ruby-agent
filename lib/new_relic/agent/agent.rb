@@ -745,7 +745,7 @@ module NewRelic
             end
 
             ::NewRelic::Agent.logger.debug "Server provided config: #{config_data.inspect}"
-            server_config = NewRelic::Agent::Configuration::ServerSource.new(config_data)
+            server_config = NewRelic::Agent::Configuration::ServerSource.new(config_data, Agent.config)
             Agent.config.apply_config(server_config, 1)
             log_connection!(config_data) if @service
 

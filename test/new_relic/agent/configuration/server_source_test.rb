@@ -50,5 +50,53 @@ module NewRelic::Agent::Configuration
     def test_should_not_dot_the_web_transactions_apdex_hash
       assert_equal 1.5, @source[:web_transactions_apdex]['Controller/some/txn']
     end
+
+    def test_should_disable_gated_features_when_server_says_to
+      rsp = {
+        'collect_errors' => false,
+        'collect_traces' => false
+      }
+      existing_config = {
+        :'error_collector.enabled'    => true,
+        :'slow_sql.enabled'           => true,
+        :'transaction_tracer.enabled' => true
+      }
+      @source = ServerSource.new(rsp, existing_config)
+      assert !@source[:'error_collector.enabled']
+      assert !@source[:'slow_sql.enabled']
+      assert !@source[:'transaction_tracer.enabled']
+    end
+
+    def test_should_enable_gated_features_when_server_says_to
+      rsp = {
+        'collect_errors' => true,
+        'collect_traces' => true
+      }
+      existing_config = {
+        :'error_collector.enabled'    => true,
+        :'slow_sql.enabled'           => true,
+        :'transaction_tracer.enabled' => true
+      }
+      @source = ServerSource.new(rsp, existing_config)
+      assert @source[:'error_collector.enabled']
+      assert @source[:'slow_sql.enabled']
+      assert @source[:'transaction_tracer.enabled']
+    end
+
+    def test_should_allow_manual_disable_of_gated_features
+      rsp = {
+        'collect_errors' => true,
+        'collect_traces' => true
+      }
+      existing_config = {
+        :'error_collector.enabled'    => false,
+        :'slow_sql.enabled'           => false,
+        :'transaction_tracer.enabled' => false
+      }
+      @source = ServerSource.new(rsp, existing_config)
+      assert !@source[:'error_collector.enabled']
+      assert !@source[:'slow_sql.enabled']
+      assert !@source[:'transaction_tracer.enabled']
+    end
   end
 end
