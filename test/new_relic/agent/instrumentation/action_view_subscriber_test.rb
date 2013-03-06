@@ -4,8 +4,8 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 require 'new_relic/agent/instrumentation/rails4/action_view'
 
+if ::Rails::VERSION::MAJOR.to_i >= 4
 class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::TestCase
-  if ::Rails::VERSION::MAJOR.to_i >= 4
   def setup
     @subscriber = NewRelic::Agent::Instrumentation::ActionViewSubscriber.new
   end
@@ -224,5 +224,5 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::T
   ensure
     NewRelic::Agent.shutdown
   end
-  end
+end
 end

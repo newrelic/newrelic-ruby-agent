@@ -22,7 +22,7 @@ module NewRelic
         def self.subscribed?
           # TODO: need to talk to Rails core about an API for this,
           # rather than digging through Listener ivars
-          ActiveSupport::Notifications.notifier.instance_variable_get(:@subscribers)
+          ActiveSupport::Notifications.notifier.instance_variable_get(:@subscribers) \
             .find{|s| s.instance_variable_get(:@delegate).class == self }
         end
 
@@ -59,47 +59,49 @@ module NewRelic
           Thread.current[@queue_key] ||= Hash.new {|h,id| h[id] = [] }
         end
 
-        class RenderEvent < ActiveSupport::Notifications::Event
-          attr_accessor :parent, :scope
+        if defined?(ActiveSupport::Notifications::Event)
+          class RenderEvent < ActiveSupport::Notifications::Event
+            attr_accessor :parent, :scope
 
-          # Nearly every "render_blah.action_view" event has a child
-          # in the form of "!render_blah.action_view".  The children
-          # are the ones we want to record.  There are a couple
-          # special cases of events without children.
-          def recordable?
-            name[0] == '!' ||
-              metric_name == 'View/text template/Rendering' ||
-              metric_name == 'View/(unknown)/Partial'
-          end
-
-          def metric_name
-            if payload[:virtual_path] ||
-                (parent && parent.payload[:identifier] =~ /template$/)
-              return parent.metric_name
+            # Nearly every "render_blah.action_view" event has a child
+            # in the form of "!render_blah.action_view".  The children
+            # are the ones we want to record.  There are a couple
+            # special cases of events without children.
+            def recordable?
+              name[0] == '!' ||
+                metric_name == 'View/text template/Rendering' ||
+                metric_name == 'View/(unknown)/Partial'
             end
 
-            # memoize
-            @metric_name ||= "View/#{metric_path(payload[:identifier])}/#{metric_action(name)}"
-            @metric_name
-          end
+            def metric_name
+              if payload[:virtual_path] ||
+                  (parent && parent.payload[:identifier] =~ /template$/)
+                return parent.metric_name
+              end
 
-          def metric_path(identifier)
-            if identifier == nil
-              'file'
-            elsif identifier =~ /template$/
-              identifier
-            elsif (parts = identifier.split('/')).size > 1
-              parts[-2..-1].join('/')
-            else
-              '(unknown)'
+              # memoize
+              @metric_name ||= "View/#{metric_path(payload[:identifier])}/#{metric_action(name)}"
+              @metric_name
             end
-          end
 
-          def metric_action(name)
-            case name
-            when /render_template.action_view$/  then 'Rendering'
-            when 'render_partial.action_view'    then 'Partial'
-            when 'render_collection.action_view' then 'Partial'
+            def metric_path(identifier)
+              if identifier == nil
+                'file'
+              elsif identifier =~ /template$/
+                identifier
+              elsif (parts = identifier.split('/')).size > 1
+                parts[-2..-1].join('/')
+              else
+                '(unknown)'
+              end
+            end
+
+            def metric_action(name)
+              case name
+              when /render_template.action_view$/  then 'Rendering'
+              when 'render_partial.action_view'    then 'Partial'
+              when 'render_collection.action_view' then 'Partial'
+              end
             end
           end
         end

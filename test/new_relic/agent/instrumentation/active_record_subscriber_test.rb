@@ -4,10 +4,10 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 require 'new_relic/agent/instrumentation/rails4/active_record'
 
+if ::Rails::VERSION::MAJOR.to_i >= 4 && !LanguageSupport.using_engine?('jruby')
 class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit::TestCase
   class Order; end
 
-  if ::Rails::VERSION::MAJOR.to_i >= 3
   def setup
     @config = { :adapter => 'mysql', :host => 'server' }
     @connection = Object.new
@@ -111,5 +111,5 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit:
   ensure
     NewRelic::Agent.shutdown
   end
-  end
+end
 end

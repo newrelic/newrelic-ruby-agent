@@ -81,12 +81,10 @@ class LicenseTest < Test::Unit::TestCase
       File.expand_path(__FILE__) == path ||
       # skip rpm_test_app and other stuff that ends up in tmp
       path.include?(gem_root + '/tmp/') ||
-      # skip tags file
-      path.include?(gem_root + '/tags')||
       # skip the auto-generated build.rb file
       path =~ %r{lib/new_relic/build\.rb} ||
       # skip tags file
-      path =~ %r{/tags$}
+      path =~ %r{/tags$}i
     )
   end
 
