@@ -4,9 +4,8 @@ end
 
 if RUBY_VERSION >= '1.9.2'
   gemfile <<-RB
-    gem 'rails', '~>4.0.0.beta', :github => 'rails/rails'
+    gem 'rails', '~>4.0.0.beta1'
     gem 'haml'
-    gem 'minitest', '~> 4.6.2'
   RB
 end
 

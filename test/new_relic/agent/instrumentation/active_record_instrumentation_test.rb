@@ -590,10 +590,12 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
   end
 
   def all_finder(relation)
-    if ::ActiveRecord::VERSION::MAJOR.to_i >= 4
-      relation.all.load
-    elsif ::ActiveRecord::VERSION::MAJOR.to_i >= 3
-      relation.all
+    if defined?(::ActiveRecord::VERSION)
+      if ::ActiveRecord::VERSION::MAJOR.to_i >= 4
+        relation.all.load
+      else
+        relation.all
+      end
     else
       relation.find(:all)
     end

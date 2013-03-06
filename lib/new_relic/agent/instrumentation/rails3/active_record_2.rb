@@ -60,7 +60,8 @@ DependencyDetection.defer do
 
   depends_on do
     defined?(ActiveRecord) && defined?(ActiveRecord::Base) &&
-      ::ActiveRecord::VERSION::MAJOR.to_i <= 3
+      (!defined?(::ActiveRecord::VERSION) ||
+       ::ActiveRecord::VERSION::MAJOR.to_i <= 3)
   end
 
   depends_on do
