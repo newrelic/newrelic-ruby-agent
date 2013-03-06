@@ -17,6 +17,12 @@
 
   Thanks to Joseph Chen for the contribution.
 
+  * Fix a potential file descriptor leak in Resque instrumentation
+
+  A file descriptor leak that occurred when DontPerform exceptions were used to
+  abort processing of a job has been fixed. This should allow the Resque
+  instrumentation work correctly with the resque-lonely_job gem.
+
 ## v3.5.8 ##
 
   * Key Transactions
