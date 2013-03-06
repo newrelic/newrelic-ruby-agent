@@ -593,8 +593,10 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     if defined?(::ActiveRecord::VERSION)
       if ::ActiveRecord::VERSION::MAJOR.to_i >= 4
         relation.all.load
-      else
+      elsif ::ActiveRecord::VERSION::MAJOR.to_i >= 3
         relation.all
+      else
+        relation.find(:all)
       end
     else
       relation.find(:all)
