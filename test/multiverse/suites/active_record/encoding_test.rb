@@ -5,13 +5,13 @@
 # https://support.newrelic.com/tickets/2101
 # https://github.com/newrelic/rpm/pull/42
 # https://github.com/newrelic/rpm/pull/45
-require 'new_relic/agent/instrumentation/active_record'
+require 'new_relic/agent/instrumentation/rails3/active_record_2'
 
 class DatabaseAdapter
   # we patch in here
   def log(*args)
   end
-  include ::NewRelic::Agent::Instrumentation::ActiveRecord
+  include ::NewRelic::Agent::Instrumentation::ActiveRecord2
 end
 
 class EncodingTest < Test::Unit::TestCase

@@ -1,5 +1,13 @@
-suite_condition("Rails 3 does not support 1.8.6") do
+suite_condition("Rails 3+ do not support 1.8.6") do
   RUBY_VERSION != '1.8.6'
+end
+
+if RUBY_VERSION >= '1.9.2'
+  gemfile <<-RB
+    gem 'rails', '~>4.0.0.beta', :github => 'rails/rails'
+    gem 'haml'
+    gem 'minitest', '~> 4.6.2'
+  RB
 end
 
 gemfile <<-RB
