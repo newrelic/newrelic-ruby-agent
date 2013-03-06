@@ -4,7 +4,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 require 'new_relic/agent/instrumentation/rails4/active_record'
 
-if ::Rails::VERSION::MAJOR.to_i >= 4 && !LanguageSupport.using_engine?('jruby')
+if ::Rails::VERSION::MAJOR.to_i >= 4 && !NewRelic::LanguageSupport.using_engine?('jruby')
 class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit::TestCase
   class Order; end
 
