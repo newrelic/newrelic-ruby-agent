@@ -62,14 +62,6 @@ module NewRelic
       NewRelic::Agent.after_fork
     end
 
-    def test_after_fork_sets_forked_flag
-      agent = NewRelic::Agent::Agent.new
-      assert !agent.forked?
-      agent.after_fork
-
-      assert agent.forked?
-    end
-
     if NewRelic::LanguageSupport.can_fork? &&
         !NewRelic::LanguageSupport.using_version?('1.9.1')
       def test_timeslice_harvest_with_after_fork_report_to_channel
