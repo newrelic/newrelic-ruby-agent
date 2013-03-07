@@ -38,6 +38,14 @@ namespace :test do
     t.verbose = true
   end
 
+  begin
+    require 'test_bisect'
+    TestBisect::BisectTask.new do |t|
+      t.test_task_name = 'test:newrelic'
+    end
+  rescue LoadError
+  end
+
   # Note unit testing task is defined in lib/tasks/tests.rake to facilitate
   # running them in a rails application environment.
 
