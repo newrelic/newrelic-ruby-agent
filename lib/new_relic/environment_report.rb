@@ -44,7 +44,11 @@ module NewRelic
     # register reporting logic
     ####################################
     report_on 'Gems' do
-      Bundler.rubygems.all_specs.map { |gem| "#{gem.name}(#{gem.version})" }
+      begin
+        Bundler.rubygems.all_specs.map { |gem| "#{gem.name}(#{gem.version})" }
+      rescue
+        Gem.source_index.map { |(name, spec)| name,version=name.split('-'); "#{name}(#{version})" }
+      end
     end
     report_on('Plugin List'){ ::Rails.configuration.plugins.to_a }
     report_on('Ruby version'){ RUBY_VERSION }

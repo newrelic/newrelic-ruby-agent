@@ -52,7 +52,7 @@ class EnvironmentReportTest < Test::Unit::TestCase
   end
 
   def test_it_knows_what_gems_are_in_the_environment
-    assert(@report['Gems'].size > 5)
+    assert(@report['Gems'].size > 5, "Expected at least 5 gems in #{@report['Gems'].inspect}")
     rake = @report['Gems'].detect{|s| s.include? 'rake'}
     assert_match(/^rake\([\d\.]+\)$/, rake)
   end
