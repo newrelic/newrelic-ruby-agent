@@ -45,7 +45,6 @@ module NewRelic
 
         @last_harvest_time = Time.now
         @obfuscator = lambda {|sql| NewRelic::Agent::Database.default_sql_obfuscator(sql) }
-        @forked = false
 
         # FIXME: temporary work around for RUBY-839
         if Agent.config[:monitor_mode]
@@ -184,7 +183,6 @@ module NewRelic
         #   connection, this tells me to only try it once so this method returns
         #   quickly if there is some kind of latency with the server.
         def after_fork(options={})
-          @forked = true
           Agent.config.apply_config(NewRelic::Agent::Configuration::ManualSource.new(options), 1)
 
           if channel_id = options[:report_to_channel]
@@ -212,10 +210,6 @@ module NewRelic
           # I'm pretty sure we're not also forking new instances.
           start_worker_thread(options)
           @stats_engine.start_sampler_thread
-        end
-
-        def forked?
-          @forked
         end
 
         # True if we have initialized and completed 'start'
@@ -1031,7 +1025,7 @@ module NewRelic
           end
           raise e
         ensure
-          NewRelic::Agent::Database.close_connections unless forked?
+          NewRelic::Agent::Database.close_connections
           duration = (Time.now - now).to_f
           @stats_engine.record_metrics('Supportability/Harvest', duration)
         end
