@@ -8,12 +8,12 @@ require 'new_relic/environment_report'
 
 class EnvironmentReportTest < Test::Unit::TestCase
   def setup
-    @old_logic = ::NewRelic::EnvironmentReport.report_logic.dup
+    @old_logic = ::NewRelic::EnvironmentReport.registered_reporters.dup
     @report = ::NewRelic::EnvironmentReport.new
   end
 
   def teardown
-    ::NewRelic::EnvironmentReport.report_logic = @old_logic
+    ::NewRelic::EnvironmentReport.registered_reporters = @old_logic
   end
 
   def test_converts_to_array
@@ -35,8 +35,8 @@ class EnvironmentReportTest < Test::Unit::TestCase
       ::NewRelic::EnvironmentReport.report_on("What time is it?") do
         raise ArgumentError, "woah! something blew up"
       end
+      assert_nil ::NewRelic::EnvironmentReport.new["What time is it?"]
     end
-    assert_nil ::NewRelic::EnvironmentReport.new["What time is it?"]
   end
 
   def test_it_does_not_set_keys_for_nil_values
@@ -83,7 +83,7 @@ class EnvironmentReportTest < Test::Unit::TestCase
       'Rails version',
       'Rails threadsafe',
     ].each do |key|
-      assert NewRelic::EnvironmentReport.report_logic.has_key?(key), "Expected logic for #{key.inspect} in EnvironmentReport."
+      assert NewRelic::EnvironmentReport.registered_reporters.has_key?(key), "Expected logic for #{key.inspect} in EnvironmentReport."
     end
   end
 end

@@ -25,17 +25,20 @@ module NewRelic
     #
     # Errors raised in passed blocks will be handled and logged at debug, so it
     # is safe to report on things that may not work in certain environments.
+    #
+    # The blocks should only return strings or arrays full of strings.  Falsey
+    # values will be ignored.
     def self.report_on(key, &block)
-      report_logic[key] = block
+      registered_reporters[key] = block
     end
 
-    def self.report_logic
-      @report_logic ||= Hash.new
+    def self.registered_reporters
+      @registered_reporters ||= Hash.new
     end
 
     # allow the logic to be swapped out in tests
-    def self.report_logic=(logic)
-      @report_logic = logic
+    def self.registered_reporters=(logic)
+      @registered_reporters = logic
     end
 
     # register reporting logic
@@ -84,8 +87,6 @@ module NewRelic
       os = ENV['OS'] if os == ''
       os
     end
-    report_on('Hostname'){ `hostname` }
-    report_on('User'){ `whoami` }
     report_on 'Database adapter' do
       ActiveRecord::Base.configurations[NewRelic::Control.instance.env]['adapter']
     end
@@ -110,16 +111,16 @@ module NewRelic
     attr_reader :data
     # Generate the report based on the class level logic.
     def initialize
-      @data = self.class.report_logic.inject(Hash.new) do |data, (key, logic)|
+      @data = self.class.registered_reporters.inject(Hash.new) do |data, (key, logic)|
         begin
           value = logic.call
           if value
             data[key] = value
           else
-            Agent.logger.debug("Retrieved value for #{key.inspect} but got #{value.inspect}")
+            Agent.logger.debug("EnvironmentReport ignoring value for #{key.inspect} which came back falsey: #{value.inspect}")
           end
         rescue => e
-          Agent.logger.debug("Couldn't retrieve value for #{key.inspect}: #{e}")
+          Agent.logger.debug("EnvironmentReport failed to retrieve value for #{key.inspect}: #{e}")
         end
         data
       end
