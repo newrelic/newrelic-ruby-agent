@@ -37,7 +37,7 @@ elsif defined? Rails
       class Railtie < Rails::Railtie
 
         initializer "newrelic_rpm.start_plugin" do |app|
-	  NewRelic::Control.instance.init_plugin(:config => app.config)
+          NewRelic::Control.instance.init_plugin(:config => app.config)
         end
       end
     end
