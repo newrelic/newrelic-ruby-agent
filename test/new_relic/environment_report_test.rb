@@ -1,0 +1,56 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
+require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
+
+require 'new_relic/environment_report'
+
+class EnvironmentReportTest < Test::Unit::TestCase
+  def setup
+    @old_logic = ::NewRelic::EnvironmentReport.report_logic
+    @report = ::NewRelic::EnvironmentReport.new
+  end
+  def teardown
+    ::NewRelic::EnvironmentReport.report_logic = @old_logic
+  end
+
+  def test_register_a_value_to_report_on
+    ::NewRelic::EnvironmentReport.report_on("What time is it?") do
+      "beer-o-clock"
+    end
+    assert_equal 'beer-o-clock', ::NewRelic::EnvironmentReport.new["What time is it?"]
+  end
+
+  def test_report_on_handles_errors_gracefully
+    assert_nothing_raised do
+      ::NewRelic::EnvironmentReport.report_on("What time is it?") do
+        raise ArgumentError, "woah! something blew up"
+      end
+    end
+    assert_nil ::NewRelic::EnvironmentReport.new["What time is it?"]
+  end
+
+  def test_it_does_not_set_keys_for_nil_values
+    ::NewRelic::EnvironmentReport.report_on("What time is it?") do
+      nil
+    end
+    assert ! NewRelic::EnvironmentReport.new.data.has_key?("What time is it?")
+  end
+
+  def test_can_set_an_environment_value
+    @report['My Value'] = "so awesome!!"
+    assert_equal "so awesome!!", @report['My Value']
+  end
+
+  def test_it_knows_what_gems_are_in_the_environment
+    assert(@report['Gems'].size > 5)
+    rake = @report['Gems'].detect{|s| s.include? 'rake'}
+    assert_match(/^rake \([\d\.]+\)$/, rake)
+  end
+
+  def test_it_knows_there_are_no_plugins
+    assert_equal [], @report['Plugin List']
+  end
+
+end
