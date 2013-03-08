@@ -46,23 +46,6 @@ module NewRelic
 
         protected
 
-        # Collect the Rails::Info into an associative array as well as the list of plugins
-        def append_environment_info
-          local_env.append_environment_value('Rails version'){ ::Rails::VERSION::STRING }
-          local_env.append_environment_value('Rails threadsafe') do
-            true == ::Rails.configuration.action_controller.allow_concurrency
-          end
-          local_env.append_environment_value('Rails Env') { env }
-          local_env.append_gem_list do
-            bundler_gem_list
-          end
-          append_plugin_list
-        end
-
-        def append_plugin_list
-          local_env.append_plugin_list { ::Rails.configuration.plugins.to_a }
-        end
-        
         def install_shim
           super
           ActiveSupport.on_load(:action_controller) do

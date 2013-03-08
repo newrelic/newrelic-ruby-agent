@@ -125,43 +125,6 @@ module NewRelic
           File.join(root,'vendor','rails')
         end
 
-        def rails_gem_list
-          ::Rails.configuration.gems.map do |gem|
-            version = (gem.respond_to?(:version) && gem.version) ||
-              (gem.specification.respond_to?(:version) && gem.specification.version)
-            gem.name + (version ? "(#{version})" : "")
-          end
-        end
-
-        # Collect the Rails::Info into an associative array as well as the list of plugins
-        def append_environment_info
-          local_env.append_environment_value('Rails version'){ ::Rails::VERSION::STRING }
-          if rails_version >= NewRelic::VersionNumber.new('2.2.0')
-            local_env.append_environment_value('Rails threadsafe') do
-              ::Rails.configuration.action_controller.allow_concurrency == true
-            end
-          end
-          local_env.append_environment_value('Rails Env') { ENV['RAILS_ENV'] }
-          if rails_version >= NewRelic::VersionNumber.new('2.1.0')
-            local_env.append_gem_list do
-              (bundler_gem_list + rails_gem_list).uniq
-            end
-            # The plugins is configured manually.  If it's nil, it loads everything non-deterministically
-            if ::Rails.configuration.plugins
-              local_env.append_plugin_list { ::Rails.configuration.plugins }
-            else
-              ::Rails.configuration.plugin_paths.each do |path|
-                local_env.append_plugin_list { Dir[File.join(path, '*')].collect{ |p| File.basename p if File.directory? p }.compact }
-              end
-            end
-          else
-            # Rails prior to 2.1, can't get the gems.  Find plugins in the default location
-            local_env.append_plugin_list do
-              Dir[File.join(root, 'vendor', 'plugins', '*')].collect{ |p| File.basename p if File.directory? p }.compact
-            end
-          end
-        end
-
         def install_shim
           super
           require 'new_relic/agent/instrumentation/controller_instrumentation'

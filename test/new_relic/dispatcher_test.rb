@@ -13,11 +13,7 @@ class DispatcherTest < Test::Unit::TestCase
   end
 
   def assert_dispatcher_reported_to_environment_report(dispatcher)
-    NewRelic::Control.instance.local_env.gather_environment_info
-    key, value = NewRelic::Control.instance.local_env.snapshot.detect do |(k, v)|
-      k == "Dispatcher"
-    end
-    assert_equal dispatcher.to_s, value
+    assert_equal dispatcher.to_s, NewRelic::EnvironmentReport.new["Dispatcher"]
   end
 
   def test_detects_dispatcher_via_loaded_libraries

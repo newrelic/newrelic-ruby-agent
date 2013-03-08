@@ -15,6 +15,7 @@ require 'new_relic/agent/database'
 require 'new_relic/agent/thread_profiler'
 require 'new_relic/agent/event_listener'
 require 'new_relic/agent/cross_app_monitor'
+require 'new_relic/environment_report'
 
 module NewRelic
   module Agent
@@ -695,7 +696,7 @@ module NewRelic
           # Checks whether we should send environment info, and if so,
           # returns the snapshot from the local environment
           def environment_for_connect
-            Agent.config[:send_environment_info] ? Control.instance.local_env.snapshot : []
+            Agent.config[:send_environment_info] ? EnvironmentReport.new.data.to_a : []
           end
 
           # Initializes the hash of settings that we send to the

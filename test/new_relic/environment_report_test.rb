@@ -11,8 +11,16 @@ class EnvironmentReportTest < Test::Unit::TestCase
     @old_logic = ::NewRelic::EnvironmentReport.report_logic.dup
     @report = ::NewRelic::EnvironmentReport.new
   end
+
   def teardown
     ::NewRelic::EnvironmentReport.report_logic = @old_logic
+  end
+
+  def test_converts_to_array
+    ::NewRelic::EnvironmentReport.report_on("something"){"awesome"}
+    data = Array(::NewRelic::EnvironmentReport.new)
+    expected = ["something", "awesome"]
+    assert data.include?(expected), "expected to find #{expected} in #{data.inspect}"
   end
 
   def test_register_a_value_to_report_on

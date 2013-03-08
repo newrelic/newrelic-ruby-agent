@@ -84,6 +84,8 @@ module NewRelic
       os = ENV['OS'] if os == ''
       os
     end
+    report_on('Hostname'){ `hostname` }
+    report_on('User'){ `whoami` }
     report_on 'Database adapter' do
       ActiveRecord::Base.configurations[NewRelic::Control.instance.env]['adapter']
     end
@@ -129,6 +131,10 @@ module NewRelic
 
     def []=(key, value)
       @data[key] = value
+    end
+
+    def to_a
+      @data.to_a
     end
   end
 end
