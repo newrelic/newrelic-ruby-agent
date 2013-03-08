@@ -696,7 +696,7 @@ module NewRelic
           # Checks whether we should send environment info, and if so,
           # returns the snapshot from the local environment
           def environment_for_connect
-            Agent.config[:send_environment_info] ? EnvironmentReport.new.data.to_a : []
+            Agent.config[:send_environment_info] ? Array(EnvironmentReport.new) : []
           end
 
           # Initializes the hash of settings that we send to the
