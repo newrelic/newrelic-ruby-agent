@@ -8,7 +8,7 @@ require 'new_relic/environment_report'
 
 class EnvironmentReportTest < Test::Unit::TestCase
   def setup
-    @old_logic = ::NewRelic::EnvironmentReport.report_logic
+    @old_logic = ::NewRelic::EnvironmentReport.report_logic.dup
     @report = ::NewRelic::EnvironmentReport.new
   end
   def teardown
@@ -38,7 +38,7 @@ class EnvironmentReportTest < Test::Unit::TestCase
     assert ! NewRelic::EnvironmentReport.new.data.has_key?("What time is it?")
   end
 
-  def test_can_set_an_environment_value
+  def test_can_set_an_environment_value_directly
     @report['My Value'] = "so awesome!!"
     assert_equal "so awesome!!", @report['My Value']
   end
@@ -49,8 +49,33 @@ class EnvironmentReportTest < Test::Unit::TestCase
     assert_match(/^rake \([\d\.]+\)$/, rake)
   end
 
-  def test_it_knows_there_are_no_plugins
-    assert_equal [], @report['Plugin List']
+  def test_gathers_ruby_version
+    assert_equal RUBY_VERSION, @report['Ruby version']
   end
 
+  def test_has_logic_for_keys
+    [
+      "Gems",
+      "Plugin List",
+      "Ruby version",
+      "Ruby description",
+      "Ruby platform",
+      "Ruby patchlevel",
+      'JRuby version',
+      'Java VM version',
+      'Processors',
+      'Database adapter',
+      'Framework',
+      'Dispatcher',
+      'Environment',
+      'Arch',
+      'OS version',
+      'OS',
+      'Rails Env',
+      'Rails version',
+      'Rails threadsafe',
+    ].each do |key|
+      assert NewRelic::EnvironmentReport.report_logic.has_key?(key), "Expected logic for #{key.inspect} in EnvironmentReport."
+    end
+  end
 end
