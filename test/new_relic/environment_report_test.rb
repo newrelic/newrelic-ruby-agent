@@ -54,7 +54,7 @@ class EnvironmentReportTest < Test::Unit::TestCase
   def test_it_knows_what_gems_are_in_the_environment
     assert(@report['Gems'].size > 5)
     rake = @report['Gems'].detect{|s| s.include? 'rake'}
-    assert_match(/^rake \([\d\.]+\)$/, rake)
+    assert_match(/^rake\([\d\.]+\)$/, rake)
   end
 
   def test_gathers_ruby_version
