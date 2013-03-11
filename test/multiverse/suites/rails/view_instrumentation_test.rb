@@ -78,7 +78,13 @@ end
 class ViewControllerTest < ActionController::TestCase
   tests ViewsController
   def setup
+    super
     @controller = ViewsController.new
+    # ActiveSupport testing keeps blowing away my subscriber on
+    # teardown for some reason.  Have to keep putting it back.
+    if Rails::VERSION::MAJOR.to_i == 4
+      NewRelic::Agent::Instrumentation::ActionViewSubscriber.subscribe
+    end
   end
 end
 
@@ -126,7 +132,7 @@ end
 
 class TextRenderTest < ViewControllerTest
   # it doesn't seem worth it to get consistent behavior here.
-  if Rails::VERSION::MINOR.to_i == 0
+  if Rails::VERSION::MAJOR.to_i == 3 && Rails::VERSION::MINOR.to_i == 0
     test "should not instrument rendering of text" do
       get :text_render
       sample = NewRelic::Agent.agent.transaction_sampler.samples.last
@@ -162,7 +168,7 @@ end
 
 class MissingTemplateTest < ViewControllerTest
   # Rails 3.0 has different behavior for rendering an empty array.  We're okay with this.
-  if Rails::VERSION::MINOR.to_i == 0
+  if Rails::VERSION::MAJOR.to_i == 3 && Rails::VERSION::MINOR.to_i == 0
     test "should create an proper metric when the template is unknown" do
       get :no_template
       sample = NewRelic::Agent.agent.transaction_sampler.samples.last
