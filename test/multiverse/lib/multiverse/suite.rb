@@ -3,7 +3,12 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-gem 'minitest'
+# this is to make sure that the Multiverse environment loads with the
+# the gem version of Minitest (necessary for Rails 4) and not the one
+# in standard library.
+if defined?(gem)
+  gem 'minitest'
+end
 
 require File.expand_path(File.join(File.dirname(__FILE__), 'environment'))
 module Multiverse
