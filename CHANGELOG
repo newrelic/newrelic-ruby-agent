@@ -1,6 +1,13 @@
 
 # New Relic Ruby Agent Release Notes #
 
+  * More robust environment report
+
+  The agent's analysis of the local environment (e.g. OS, Processors, loaded
+  gems) will now work in a wider variety of app environments, including
+  Sinatra.
+
+
 ## v3.6.0 ##
 
   * Sidekiq supprt
@@ -22,12 +29,6 @@
   A file descriptor leak that occurred when DontPerform exceptions were used to
   abort processing of a job has been fixed. This should allow the Resque
   instrumentation work correctly with the resque-lonely_job gem.
-
-  * More robust environment report
-
-  The agent's analysis of the local environment (e.g. OS, Processors, loaded
-  gems) will now work in a wider variety of app environments, including
-  Sinatra.
 
 ## v3.5.8 ##
 
