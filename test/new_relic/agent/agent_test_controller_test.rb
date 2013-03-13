@@ -12,7 +12,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
 
   attr_accessor :agent, :engine
 
-  def test_initialization
+  def suite_initialization
   # Suggested by cee-dub for merb tests.  I'm actually amazed if our tests work with merb.
     if defined?(Merb::Router)
       Merb::Router.prepare do |r|
@@ -25,19 +25,19 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
       end
     else
       Rails.application.routes.draw do
-        match '/:controller/:action.:format'
-        match '/:controller/:action'
+        get '/:controller/:action.:format'
+        get '/:controller/:action'
       end
     end
 
-    if defined?(Rails) && Rails.respond_to?(:application) && Rails.application.respond_to?(:routes)
+    if defined?(Rails) && Rails.respond_to?(:application) &&
+        Rails.application.respond_to?(:routes)
       @routes = Rails.application.routes
     end
 
     Thread.current[:newrelic_ignore_controller] = nil
     NewRelic::Agent.manual_start
     @agent = NewRelic::Agent.instance
-    #    @agent.instrument_app
     agent.transaction_sampler.harvest
     NewRelic::Agent::AgentTestController.class_eval do
       newrelic_ignore :only => [:action_to_ignore, :entry_action, :base_action]
@@ -51,10 +51,10 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
   if NewRelic::Control.instance.rails_version <= '2.1.0'
     def initialize name
       super name
-      test_initialization
+      suite_initialization
     end
   else
-    alias_method :setup, :test_initialization
+    alias_method :setup, :suite_initialization
   end
 
   def teardown
