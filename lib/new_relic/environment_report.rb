@@ -120,11 +120,18 @@ module NewRelic
           value = logic.call
           if value
             data[key] = value
+
+            Agent.record_metric("Supportability/environment_report/success", 0.0)
+            Agent.record_metric("Supportability/environment_report/success/#{key}", 0.0)
           else
             Agent.logger.debug("EnvironmentReport ignoring value for #{key.inspect} which came back falsey: #{value.inspect}")
+            Agent.record_metric("Supportability/environment_report/empty", 0.0)
+            Agent.record_metric("Supportability/environment_report/empty/#{key}", 0.0)
           end
         rescue => e
           Agent.logger.debug("EnvironmentReport failed to retrieve value for #{key.inspect}: #{e}")
+          Agent.record_metric("Supportability/environment_report/error", 0.0)
+          Agent.record_metric("Supportability/environment_report/error/#{key}", 0.0)
         end
         data
       end
