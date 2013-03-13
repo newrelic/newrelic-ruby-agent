@@ -11,6 +11,14 @@ namespace :test do
   desc "Run all tests"
   task :all => %w{newrelic multiverse}
 
+  begin
+    require 'test_bisect'
+    TestBisect::BisectTask.new do |t|
+      t.test_task_name = 'test:newrelic'
+    end
+  rescue LoadError
+  end
+
   agent_home = File.expand_path(File.dirname(__FILE__))
 
   desc "Run functional test suite for newrelic"
@@ -36,14 +44,6 @@ namespace :test do
     t.libs << "#{agent_home}/lib"
     t.pattern = "#{agent_home}/test/intentional_fail.rb"
     t.verbose = true
-  end
-
-  begin
-    require 'test_bisect'
-    TestBisect::BisectTask.new do |t|
-      t.test_task_name = 'test:newrelic'
-    end
-  rescue LoadError
   end
 
   # Note unit testing task is defined in lib/tasks/tests.rake to facilitate
