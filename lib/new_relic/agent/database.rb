@@ -87,7 +87,9 @@ module NewRelic
           connection = get_connection(config)
           plan = nil
           if connection
+            start = Time.now
             plan = process_resultset(connection.execute("EXPLAIN #{statement}"))
+            Agent.record_metric("Supportability/execute_explain_plan", start - Time.now)
           end
           return plan
         end
