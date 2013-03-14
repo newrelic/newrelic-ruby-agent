@@ -79,7 +79,7 @@ module Agent
       # Rename the segment associated with the last pushed scope to +new_name+.
       def rename_scope_segment( new_name )
         self.peek_scope.name = new_name
-        @transaction_sampler.rename_scope_segment( new_name )
+        @transaction_sampler.rename_scope_segment( new_name ) if sampler_enabled?
       end
       
       # Returns the latest ScopeStackElement
