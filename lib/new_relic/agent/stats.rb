@@ -101,6 +101,7 @@ module NewRelic
       end
 
       def ==(other)
+        other.class == self.class &&
         (
           @min_call_time        == other.min_call_time &&
           @max_call_time        == other.max_call_time &&
