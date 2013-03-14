@@ -34,6 +34,7 @@ class KeyTransactionsTest < Test::Unit::TestCase
 
   def teardown
     NewRelic::Agent.shutdown
+    $collector.reset
   end
 
   SATISFYING = 0
@@ -45,7 +46,8 @@ class KeyTransactionsTest < Test::Unit::TestCase
     NewRelic::Agent.instance.send(:harvest_and_send_timeslice_data)
 
     stats = $collector.reported_stats_for_metric('Apdex')[0]
-    assert_equal 1.0, stats[FAILING]
+    assert_equal(1.0, stats[FAILING],
+                 "Expected stats (#{stats}) to be apdex failing")
   end
 
   def test_applied_correct_apdex_t_to_regular_txn
@@ -53,7 +55,8 @@ class KeyTransactionsTest < Test::Unit::TestCase
     NewRelic::Agent.instance.send(:harvest_and_send_timeslice_data)
 
     stats = $collector.reported_stats_for_metric('Apdex')[0]
-    assert_equal 1.0, stats[SATISFYING]
+    assert_equal(1.0, stats[SATISFYING],
+                 "Expected stats (#{stats}) to be apdex failing")
   end
 
   def test_applied_correct_tt_theshold
