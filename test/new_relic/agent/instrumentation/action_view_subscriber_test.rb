@@ -4,7 +4,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 require 'new_relic/agent/instrumentation/rails4/action_view'
 
-if ::Rails::VERSION::MAJOR.to_i >= 4
 class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::TestCase
   def setup
     @subscriber = NewRelic::Agent::Instrumentation::ActionViewSubscriber.new
@@ -118,6 +117,21 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::T
     assert_equal(2.0, metric.total_call_time)
   end
 
+  def test_records_metrics_for_layout
+    t0 = Time.now
+    Time.stubs(:now).returns(t0, t0 + 2)
+
+    @subscriber.start('!render_template.action_view', :id,
+                      :virtual_path => 'layouts/application')
+    @subscriber.finish('!render_template.action_view', :id,
+                       :virtual_path => 'layouts/application')
+
+    metric = NewRelic::Agent.instance.stats_engine \
+      .lookup_stats('View/layouts/application/Rendering')
+    assert_equal(1, metric.call_count)
+    assert_equal(2.0, metric.total_call_time)
+  end
+
   def test_records_nothing_if_tracing_disabled
     params = { :identifier => '/root/app/views/model/_user.html.erb' }
 
@@ -224,5 +238,4 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::T
   ensure
     NewRelic::Agent.shutdown
   end
-end
-end
+end if ::Rails::VERSION::MAJOR.to_i >= 4

@@ -74,13 +74,17 @@ module NewRelic
             end
 
             def metric_name
-              if payload[:virtual_path] ||
-                  (parent && parent.payload[:identifier] =~ /template$/)
+              if parent && (payload[:virtual_path] ||
+                  (parent.payload[:identifier] =~ /template$/))
                 return parent.metric_name
+              elsif payload[:virtual_path]
+                identifier = payload[:virtual_path]
+              else
+                identifier = payload[:identifier]
               end
 
               # memoize
-              @metric_name ||= "View/#{metric_path(payload[:identifier])}/#{metric_action(name)}"
+              @metric_name ||= "View/#{metric_path(identifier)}/#{metric_action(name)}"
               @metric_name
             end
 
