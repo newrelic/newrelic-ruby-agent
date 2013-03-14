@@ -461,4 +461,24 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
       end
     end
   end
+
+  def test_doesnt_misbehave_when_transaction_tracing_is_disabled
+    @engine.transaction_sampler = nil
+
+    # The error should have any other consequence other than logging the error, so
+    # this will capture logs
+    logger = NewRelic::Agent::MemoryLogger.new
+    NewRelic::Agent.logger = logger
+
+    with_config(:"cross_application_tracer.enabled" => true) do
+      Net::HTTP.get(URI.parse('http://www.google.com/index.html'))
+    end
+
+    assert_no_match( /undefined method `rename_scope_segment' for nil:NilClass/i,
+                     logger.messages.flatten.map {|log| log.to_s }.join(' ') )
+
+  ensure
+    @engine.transaction_sampler = NewRelic::Agent.agent.transaction_sampler
+  end
+
 end
