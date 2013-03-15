@@ -7,6 +7,7 @@ require 'new_relic/agent/instrumentation/rails4/action_view'
 class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::TestCase
   def setup
     @subscriber = NewRelic::Agent::Instrumentation::ActionViewSubscriber.new
+    @stats_engine = NewRelic::Agent.instance.stats_engine
   end
 
   def teardown
@@ -25,8 +26,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::T
                        :virtual_path => 'model/index')
     @subscriber.finish('render_template.action_view', :id, params)
 
-    metric = NewRelic::Agent.instance.stats_engine \
-      .lookup_stats('View/model/index.html.erb/Rendering')
+    metric = @stats_engine.lookup_stats('View/model/index.html.erb/Rendering')
     assert_equal(1, metric.call_count)
     assert_equal(2.0, metric.total_call_time)
   end
@@ -43,8 +43,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::T
                        :virtual_path => nil)
     @subscriber.finish('render_template.action_view', :id, params)
 
-    metric = NewRelic::Agent.instance.stats_engine \
-      .lookup_stats('View/file/Rendering')
+    metric = @stats_engine.lookup_stats('View/file/Rendering')
     assert_equal(1, metric.call_count)
     assert_equal(2.0, metric.total_call_time)
   end
@@ -61,8 +60,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::T
                        :virtual_path => nil)
     @subscriber.finish('render_template.action_view', :id, params)
 
-    metric = NewRelic::Agent.instance.stats_engine \
-      .lookup_stats('View/inline template/Rendering')
+    metric = @stats_engine.lookup_stats('View/inline template/Rendering')
     assert_equal(1, metric.call_count)
     assert_equal(2.0, metric.total_call_time)
   end
@@ -75,8 +73,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::T
     @subscriber.start('render_template.action_view', :id, params)
     @subscriber.finish('render_template.action_view', :id, params)
 
-    metric = NewRelic::Agent.instance.stats_engine \
-      .lookup_stats('View/text template/Rendering')
+    metric = @stats_engine.lookup_stats('View/text template/Rendering')
     assert_equal(1, metric.call_count)
     assert_equal(2.0, metric.total_call_time)
   end
@@ -93,8 +90,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::T
                        :virtual_path => 'model/_form')
     @subscriber.finish('render_partial.action_view', :id, params)
 
-    metric = NewRelic::Agent.instance.stats_engine \
-      .lookup_stats('View/model/_form.html.erb/Partial')
+    metric = @stats_engine.lookup_stats('View/model/_form.html.erb/Partial')
     assert_equal(1, metric.call_count)
     assert_equal(2.0, metric.total_call_time)
   end
@@ -111,8 +107,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::T
                        :virtual_path => 'model/_user')
     @subscriber.finish('render_collection.action_view', :id, params)
 
-    metric = NewRelic::Agent.instance.stats_engine \
-      .lookup_stats('View/model/_user.html.erb/Partial')
+    metric = @stats_engine.lookup_stats('View/model/_user.html.erb/Partial')
     assert_equal(1, metric.call_count)
     assert_equal(2.0, metric.total_call_time)
   end
@@ -126,10 +121,29 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::T
     @subscriber.finish('!render_template.action_view', :id,
                        :virtual_path => 'layouts/application')
 
-    metric = NewRelic::Agent.instance.stats_engine \
-      .lookup_stats('View/layouts/application/Rendering')
+    metric = @stats_engine.lookup_stats('View/layouts/application/Rendering')
     assert_equal(1, metric.call_count)
     assert_equal(2.0, metric.total_call_time)
+  end
+
+  def test_records_scoped_metric
+    params = { :identifier => '/root/app/views/model/index.html.erb' }
+    t0 = Time.now
+    Time.stubs(:now).returns(t0, t0, t0 + 2, t0 + 2)
+    @stats_engine.start_transaction('test_txn')
+
+    @subscriber.start('render_template.action_view', :id, params)
+    @subscriber.start('!render_template.action_view', :id,
+                      :virtual_path => 'model/index')
+    @subscriber.finish('!render_template.action_view', :id,
+                       :virtual_path => 'model/index')
+    @subscriber.finish('render_template.action_view', :id, params)
+
+    metric = @stats_engine.lookup_stats('View/model/index.html.erb/Rendering',
+                                        'test_txn')
+    assert_equal(1, metric.call_count)
+    assert_equal(2.0, metric.total_call_time)
+
   end
 
   def test_records_nothing_if_tracing_disabled
@@ -140,8 +154,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::T
       @subscriber.finish('render_collection.action_view', :id, params)
     end
 
-    metric = NewRelic::Agent.instance.stats_engine \
-      .lookup_stats('View/model/_user.html.erb/Partial')
+    metric = @stats_engine.lookup_stats('View/model/_user.html.erb/Partial')
     assert_nil metric
   end
 

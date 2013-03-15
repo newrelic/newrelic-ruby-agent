@@ -51,8 +51,10 @@ module NewRelic
         end
 
         def record_metrics(event)
-          NewRelic::Agent.record_metric(event.metric_name,
-                               Helper.milliseconds_to_seconds(event.duration))
+          NewRelic::Agent.instance.stats_engine \
+            .record_metrics(event.metric_name,
+                            Helper.milliseconds_to_seconds(event.duration),
+                            :scoped => true)
         end
 
         def event_stack
