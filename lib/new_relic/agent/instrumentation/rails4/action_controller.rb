@@ -1,10 +1,130 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+require 'new_relic/agent/instrumentation/rails4/evented_subscriber'
 
 module NewRelic
   module Agent
     module Instrumentation
+      class ActionControllerSubscriber < EventedSubscriber
+        def start(name, id, payload)
+          event = ControllerEvent.new(name, Time.now, nil, id, payload)
+          push_event(event)
+          start_transaction(event)
+        end
+
+        def finish(name, id, payload)
+          event = super
+          event.payload.merge!(payload)
+
+          stop_transaction
+
+          if NewRelic::Agent.is_execution_traced? && !event.ignored?
+            record_metrics(event)
+            record_apdex(event)
+            record_instance_busy(event)
+          end
+        end
+
+        def record_metrics(event)
+          metrics = [ 'HttpDispatcher',
+                      event.metric_name ]
+          if event.exception_encountered?
+            metrics << "Errors/#{event.metric_name}"
+            metrics << "Errors/all"
+          end
+
+          NewRelic::Agent.instance.stats_engine.record_metrics(metrics,
+                              event.duration_in_seconds)
+        end
+
+        def record_apdex(event)
+          return if event.apdex_ignored?
+          metric_parser = NewRelic::MetricParser::MetricParser \
+            .for_metric_named(event.metric_name)
+          MetricFrame.record_apdex(metric_parser,
+                                   event.duration_in_seconds,
+                                   event.duration_in_seconds,
+                                   event.exception_encountered?)
+        end
+
+        def record_instance_busy(event)
+          NewRelic::Agent::BusyCalculator.dispatcher_start(event.time)
+          NewRelic::Agent::BusyCalculator.dispatcher_finish(event.end)
+        end
+
+        def start_transaction(event)
+          frame_data = NewRelic::Agent::Instrumentation::MetricFrame.current(true)
+          frame_data.filtered_params = {}
+          frame_data.push(event.metric_name)
+          NewRelic::Agent::TransactionInfo.get.transaction_name = event.metric_name
+          frame_data.start_transaction
+        end
+
+        def stop_transaction
+          frame_data = NewRelic::Agent::Instrumentation::MetricFrame.current
+          frame_data.pop
+        end
+      end
+
+      class ControllerEvent < ActiveSupport::Notifications::Event
+        attr_accessor :parent, :scope
+
+        def metric_name
+          "Controller/#{metric_path}/#{metric_action}"
+        end
+
+        def metric_path
+          controller_class.controller_path
+        end
+
+        def metric_action
+          payload[:action]
+        end
+
+        def controller_class
+          @controller_class ||= payload[:controller].split('::') \
+            .inject(Object){|m,o| m.const_get(o)}
+          return @controller_class
+        end
+
+        def ignored?
+          _is_filtered?('do_not_trace')
+        end
+
+        def apdex_ignored?
+          _is_filtered?('ignore_apdex')
+        end
+
+        def enduser_ignored?
+        end
+
+        def exception_encountered?
+          payload[:exception]
+        end
+
+        def duration_in_seconds
+          Helper.milliseconds_to_seconds(duration)
+        end
+
+        # FIXME: shamelessly ripped from ControllerInstrumentation
+        def _is_filtered?(key)
+          if controller_class.respond_to? :newrelic_read_attr
+            ignore_actions = controller_class.newrelic_read_attr(key)
+          end
+
+          case ignore_actions
+          when nil; false
+          when Hash
+            only_actions = Array(ignore_actions[:only])
+            except_actions = Array(ignore_actions[:except])
+            only_actions.include?(metric_action.to_sym) || (except_actions.any? && !except_actions.include?(metric_action.to_sym))
+          else
+            true
+          end
+        end
+      end
+
       module Rails4
         module ActionController
           def self.newrelic_write_attr(attr_name, value) # :nodoc:
@@ -14,31 +134,6 @@ module NewRelic
           def self.newrelic_read_attr(attr_name) # :nodoc:
             read_inheritable_attribute(attr_name)
           end
-
-          # determine the path that is used in the metric name for
-          # the called controller action
-          def newrelic_metric_path(action_name_override = nil)
-            action_part = action_name_override || action_name
-            if action_name_override || self.class.action_methods.include?(action_part)
-              "#{self.class.controller_path}/#{action_part}"
-            else
-              "#{self.class.controller_path}/(other)"
-            end
-          end
-
-          def process_action(*args)
-            # skip instrumentation if we are in an ignored action
-            if _is_filtered?('do_not_trace')
-              NewRelic::Agent.disable_all_tracing do
-                return super
-              end
-            end
-
-            perform_action_with_newrelic_trace(:category => :controller, :name => self.action_name, :path => newrelic_metric_path, :params => request.filtered_parameters, :class_name => self.class.name)  do
-              super
-            end
-          end
-
         end
       end
     end
@@ -65,5 +160,7 @@ DependencyDetection.defer do
       include NewRelic::Agent::Instrumentation::ControllerInstrumentation
       include NewRelic::Agent::Instrumentation::Rails4::ActionController
     end
+    NewRelic::Agent::Instrumentation::ActionControllerSubscriber \
+      .subscribe(/^process_action.action_controller$/)
   end
 end
