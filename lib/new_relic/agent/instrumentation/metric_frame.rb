@@ -82,14 +82,14 @@ module NewRelic
         def transaction_sampler
           agent.transaction_sampler
         end
-        
+
         def sql_sampler
           agent.sql_sampler
         end
 
         private :agent
         private :transaction_sampler
-        private :sql_sampler        
+        private :sql_sampler
 
         # Indicate that we are entering a measured controller action or task.
         # Make sure you unwind every push with a pop call.
@@ -194,19 +194,19 @@ module NewRelic
         def self.add_custom_parameters(p)
           current.add_custom_parameters(p) if current
         end
-        
+
         def self.custom_parameters
           (current && current.custom_parameters) ? current.custom_parameters : {}
         end
 
         def self.set_user_attributes(attributes)
-          current.set_user_attributes(attributes) if current 
+          current.set_user_attributes(attributes) if current
         end
 
         def self.user_attributes
           (current) ? current.user_attributes : {}
         end
-          
+
         def record_apdex()
           return unless recording_web_transaction? && NewRelic::Agent.is_execution_traced?
           t = Time.now
@@ -251,11 +251,11 @@ module NewRelic
         def custom_parameters
           @custom_parameters ||= {}
         end
-        
+
         def user_attributes
           @user_atrributes ||= {}
         end
-        
+
         def queue_time
           start - apdex_start
         end
@@ -263,7 +263,7 @@ module NewRelic
         def add_custom_parameters(p)
           custom_parameters.merge!(p)
         end
-        
+
         def set_user_attributes(attributes)
           user_attributes.merge!(attributes)
         end
