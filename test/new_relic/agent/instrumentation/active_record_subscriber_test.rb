@@ -21,7 +21,9 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit:
     }
 
     @subscriber = NewRelic::Agent::Instrumentation::ActiveRecordSubscriber.new
-    NewRelic::Agent.instance.stats_engine.clear_stats
+
+    @stats_engine = NewRelic::Agent.instance.stats_engine
+    @stats_engine.clear_stats
   end
 
   def test_records_metrics_for_simple_find
@@ -29,10 +31,25 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit:
     t0 = t1 - 2
     @subscriber.call('sql.active_record', t0, t1, :id, @params)
 
-    metric = NewRelic::Agent.instance.stats_engine \
-      .lookup_stats('ActiveRecord/NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order/find')
+    metric_name = 'ActiveRecord/NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order/find'
+
+    metric = @stats_engine.lookup_stats(metric_name)
     assert_equal(1, metric.call_count)
     assert_equal(2.0, metric.total_call_time)
+  end
+
+  def test_records_scoped_metrics
+    t1 = Time.now
+    t0 = t1 - 2
+
+    @stats_engine.start_transaction('test_txn')
+    @subscriber.call('sql.active_record', t0, t1, :id, @params)
+
+    metric_name = 'ActiveRecord/NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order/find'
+
+    scoped_metric = @stats_engine.lookup_stats(metric_name, 'test_txn')
+    assert_equal(1, scoped_metric.call_count)
+    assert_equal(2.0, scoped_metric.total_call_time)
   end
 
   def test_records_nothing_if_tracing_disabled
@@ -43,7 +60,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit:
       @subscriber.call('sql.active_record', t0, t1, :id, @params)
     end
 
-    metric = NewRelic::Agent.instance.stats_engine \
+    metric = @stats_engine \
       .lookup_stats('ActiveRecord/NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order/find')
     assert_nil metric
   end
@@ -55,7 +72,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit:
     @subscriber.call('sql.active_record', t0, t1, :id, @params)
 
     ['ActiveRecord/find', 'ActiveRecord/all'].each do |metric_name|
-      metric = NewRelic::Agent.instance.stats_engine.lookup_stats(metric_name)
+      metric = @stats_engine.lookup_stats(metric_name)
       assert_equal(1, metric.call_count,
                    "Incorrect call count for #{metric_name}")
       assert_equal(2.0, metric.total_call_time,
@@ -69,7 +86,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit:
 
     @subscriber.call('sql.active_record', t0, t1, :id, @params)
 
-    metric = NewRelic::Agent.instance.stats_engine.lookup_stats('RemoteService/sql/mysql/server')
+    metric = @stats_engine.lookup_stats('RemoteService/sql/mysql/server')
     assert_equal(1, metric.call_count)
     assert_equal(2.0, metric.total_call_time)
   end
@@ -79,7 +96,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit:
     t0 = t1 - 2
 
     NewRelic::Agent.manual_start
-    NewRelic::Agent.instance.stats_engine.start_transaction('test')
+    @stats_engine.start_transaction('test')
     sampler = NewRelic::Agent.instance.transaction_sampler
     sampler.notice_first_scope_push(Time.now.to_f)
     sampler.notice_transaction('/path', '/path', {})

@@ -48,7 +48,9 @@ module NewRelic
 
         def record_metrics(event)
           base = base_metric(event)
-          NewRelic::Agent.record_metric(base, Helper.milliseconds_to_seconds(event.duration))
+          NewRelic::Agent.instance.stats_engine.record_metrics(base,
+                              Helper.milliseconds_to_seconds(event.duration),
+                              :scoped => true)
 
           other_metrics = ActiveRecordHelper.rollup_metrics_for(base)
           if config = active_record_config_for_event(event)
