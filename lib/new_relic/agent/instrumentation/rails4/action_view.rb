@@ -4,34 +4,15 @@
 
 # Listen for ActiveSupport::Notifications events for ActionView render
 # events.  Write metric data and transaction trace segments for each event.
+require 'new_relic/agent/instrumentation/rails4/evented_subscriber'
+
 module NewRelic
   module Agent
     module Instrumentation
-      class ActionViewSubscriber
-        def initialize
-          @queue_key = ['NewRelic', self.class.name, object_id].join('-')
-        end
-
-        def self.subscribe
-          if !subscribed?
-            ActiveSupport::Notifications.subscribe(/render_.+\.action_view$/,
-                                                   new)
-          end
-        end
-
-        def self.subscribed?
-          # TODO: need to talk to Rails core about an API for this,
-          # rather than digging through Listener ivars
-          ActiveSupport::Notifications.notifier.instance_variable_get(:@subscribers) \
-            .find{|s| s.instance_variable_get(:@delegate).class == self }
-        end
-
+      class ActionViewSubscriber < EventedSubscriber
         def start(name, id, payload)
           event = RenderEvent.new(name, Time.now, nil, id, payload)
-          parent = event_stack[id].last
-          event.parent = parent
-          parent << event if parent
-          event_stack[id].push event
+          push_event(event)
 
           if NewRelic::Agent.is_execution_traced? && event.recordable?
             event.scope = NewRelic::Agent.instance.stats_engine \
@@ -40,8 +21,7 @@ module NewRelic
         end
 
         def finish(name, id, payload)
-          event = event_stack[id].pop
-          event.end = Time.now
+          event = pop_event(id)
 
           if NewRelic::Agent.is_execution_traced? && event.recordable?
             record_metrics(event)
@@ -55,10 +35,6 @@ module NewRelic
             .record_metrics(event.metric_name,
                             Helper.milliseconds_to_seconds(event.duration),
                             :scoped => true)
-        end
-
-        def event_stack
-          Thread.current[@queue_key] ||= Hash.new {|h,id| h[id] = [] }
         end
 
         if defined?(ActiveSupport::Notifications::Event)
@@ -133,6 +109,6 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent::Instrumentation::ActionViewSubscriber.subscribe
+    NewRelic::Agent::Instrumentation::ActionViewSubscriber.subscribe(/render_.+\.action_view$/)
   end
 end
