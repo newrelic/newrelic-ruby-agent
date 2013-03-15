@@ -6,13 +6,13 @@ class KeyTransactionsTest < Test::Unit::TestCase
   class TestWidget
     include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
-    def key_txn
-      sleep 0.05
+    def key_txn(t0)
+      Time.stubs(:now).returns(t0 + 0.05)
     end
     add_transaction_tracer :key_txn
 
-    def other_txn
-      sleep 0.05
+    def other_txn(t0)
+      Time.stubs(:now).returns(t0 + 0.05)
     end
     add_transaction_tracer :other_txn
   end
@@ -42,7 +42,8 @@ class KeyTransactionsTest < Test::Unit::TestCase
   FAILING    = 2
 
   def test_applied_correct_apdex_t_to_key_txn
-    TestWidget.new.key_txn
+    now = Time.now
+    TestWidget.new.key_txn(now)
     NewRelic::Agent.instance.send(:harvest_and_send_timeslice_data)
 
     stats = $collector.reported_stats_for_metric('Apdex')[0]
@@ -51,17 +52,19 @@ class KeyTransactionsTest < Test::Unit::TestCase
   end
 
   def test_applied_correct_apdex_t_to_regular_txn
-    TestWidget.new.other_txn
+    now = Time.now
+    TestWidget.new.other_txn(now)
     NewRelic::Agent.instance.send(:harvest_and_send_timeslice_data)
 
     stats = $collector.reported_stats_for_metric('Apdex')[0]
     assert_equal(1.0, stats[SATISFYING],
-                 "Expected stats (#{stats}) to be apdex failing")
+                 "Expected stats (#{stats}) to be apdex satisfying")
   end
 
   def test_applied_correct_tt_theshold
-    TestWidget.new.key_txn
-    TestWidget.new.other_txn
+    now = Time.now
+    TestWidget.new.key_txn(now)
+    TestWidget.new.other_txn(now)
 
     NewRelic::Agent.instance.send(:harvest_and_send_slowest_sample)
 
