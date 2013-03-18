@@ -7,6 +7,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_h
 class NewRelic::Agent::Instrumentation::MetricFrameTest < Test::Unit::TestCase
 
   attr_reader :f
+
   def setup
     @f = NewRelic::Agent::Instrumentation::MetricFrame.new
   end
@@ -15,16 +16,19 @@ class NewRelic::Agent::Instrumentation::MetricFrameTest < Test::Unit::TestCase
     assert_nil f.uri
     assert_nil f.referer
   end
+
   def test_request_parsing__path
     request = stub(:path => '/path?hello=bob#none')
     f.request = request
     assert_equal "/path", f.uri
   end
+
   def test_request_parsing__fullpath
     request = stub(:fullpath => '/path?hello=bob#none')
     f.request = request
     assert_equal "/path", f.uri
   end
+
   def test_request_parsing__referer
     request = stub(:referer => 'https://www.yahoo.com:8080/path/hello?bob=none&foo=bar')
     f.request = request
@@ -45,6 +49,7 @@ class NewRelic::Agent::Instrumentation::MetricFrameTest < Test::Unit::TestCase
     assert_equal "/", f.uri
     assert_nil f.referer
   end
+
   def test_request_parsing__slash
     request = stub(:uri => 'http://creature.com/')
     f.request = request
@@ -151,5 +156,26 @@ class NewRelic::Agent::Instrumentation::MetricFrameTest < Test::Unit::TestCase
     assert_equal 2.5, stats_engine.lookup_stats('Apdex').max_call_time
     assert_equal 2.5, stats_engine.lookup_stats('Apdex/Controller/some/txn').min_call_time
     assert_equal 2.5, stats_engine.lookup_stats('Apdex/Controller/some/txn').max_call_time
+  end
+
+  def test_push_adds_controller_context_to_frame_stack
+    NewRelic::Agent.instance.transaction_sampler \
+      .expects(:notice_first_scope_push).with(@f.start)
+    NewRelic::Agent.instance.sql_sampler \
+      .expects(:notice_first_scope_push).with(@f.start)
+    stack = @f.push('parent')
+
+    assert_equal 1, stack.size
+    assert_equal 'parent', @f.current_metric.name
+
+    NewRelic::Agent.instance.transaction_sampler \
+      .expects(:notice_first_scope_push).with(@f.start)
+    NewRelic::Agent.instance.sql_sampler \
+      .expects(:notice_first_scope_push).with(@f.start)
+    stack = @f.push('child')
+
+    assert_equal 2, stack.size
+    assert_equal 'parent', @f.parent_metric.name
+    assert_equal 'child', @f.current_metric.name
   end
 end

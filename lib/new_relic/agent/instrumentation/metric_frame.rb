@@ -69,7 +69,7 @@ module NewRelic
 
         def initialize
           @start = Time.now
-          @path_stack = [] # stack of [controller, path] elements
+          @path_stack = [] # stack of MetricParser elements
           @jruby_cpu_start = jruby_cpu_time
           @process_cpu_start = process_cpu
           Thread.current[:last_metric_frame] = self
@@ -133,6 +133,10 @@ module NewRelic
 
         def current_metric
           @path_stack.last
+        end
+
+        def parent_metric
+          @path_stack[-2] if @path_stack.size > 1
         end
 
         # Return the path, the part of the metric after the category

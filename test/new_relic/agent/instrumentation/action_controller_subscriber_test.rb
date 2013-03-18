@@ -13,6 +13,10 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::T
       'test'
     end
 
+    def action_name
+      'test'
+    end
+
     newrelic_ignore :only => :ignored_action
     newrelic_ignore_apdex :only => :ignored_apdex
   end
@@ -84,6 +88,33 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::T
     assert_equal 2.0, @stats_engine.lookup_stats('Errors/all').total_call_time
     assert_equal 1, @stats_engine.lookup_stats('Apdex').apdex_f
     assert_equal 1, @stats_engine.lookup_stats('Apdex/test/index').apdex_f
+  end
+
+  def test_records_scoped_metrics_for_evented_child_txn
+    @subscriber.start('process_action.action_controller', :id, @entry_payload)
+    @subscriber.start('process_action.action_controller', :id, @entry_payload \
+                        .merge(:action => 'child', :path => '/child'))
+    @subscriber.finish('process_action.action_controller', :id, @exit_payload \
+                         .merge(:action => 'child', :path => '/child'))
+    @subscriber.finish('process_action.action_controller', :id, @exit_payload)
+
+    assert_equal 1, @stats_engine.lookup_stats('Controller/test/child',
+                                               'Controller/test/index').call_count
+  end
+
+  def test_records_scoped_metrics_for_traced_child_txn
+    controller = TestController.new
+    controller.perform_action_with_newrelic_trace(:category => :controller,
+                                                  :name => 'index',
+                                                  :class_name => 'test') do
+      @subscriber.start('process_action.action_controller', :id, @entry_payload \
+                          .merge(:action => 'child', :path => '/child'))
+      @subscriber.finish('process_action.action_controller', :id, @exit_payload \
+                           .merge(:action => 'child', :path => '/child'))
+    end
+
+    assert_equal 1, @stats_engine.lookup_stats('Controller/test/child',
+                                               'Controller/test/index').call_count
   end
 
   def test_record_nothing_for_ignored_action

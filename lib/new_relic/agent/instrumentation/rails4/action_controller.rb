@@ -17,18 +17,21 @@ module NewRelic
           event = super
           event.payload.merge!(payload)
 
-          stop_transaction
-
           if NewRelic::Agent.is_execution_traced? && !event.ignored?
             record_metrics(event)
             record_apdex(event)
             record_instance_busy(event)
           end
+
+          stop_transaction
         end
 
         def record_metrics(event)
-          metrics = [ 'HttpDispatcher',
-                      event.metric_name ]
+          controller_metric = NewRelic::MetricSpec.new(event.metric_name)
+          if parent = NewRelic::Agent::Instrumentation::MetricFrame.current.parent_metric
+            controller_metric.scope = parent.name
+          end
+          metrics = [ controller_metric, 'HttpDispatcher' ]
           if event.exception_encountered?
             metrics << "Errors/#{event.metric_name}"
             metrics << "Errors/all"
