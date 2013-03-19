@@ -47,7 +47,14 @@ module NewRelic
       begin
         Bundler.rubygems.all_specs.map { |gem| "#{gem.name}(#{gem.version})" }
       rescue
-        Gem.source_index.map { |(name, spec)| name,version=name.split('-'); "#{name}(#{version})" }
+        # There are certain rubygem, bundler, rails combinations (e.g. gem
+        # 1.6.2, rails 2.3, bundler 1.2.3) where the code above throws an error
+        # in bundler because of rails monkey patching gem.  The below does work
+        # though so try it if the above fails.
+        Bundler.load.specs.map do | spec |
+          version = (spec.respond_to?(:version) && spec.version)
+          spec.name + (version ? "(#{version})" : "")
+        end
       end
     end
     report_on('Plugin List'){ ::Rails.configuration.plugins.to_a }
