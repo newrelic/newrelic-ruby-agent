@@ -76,28 +76,6 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     end
   end
 
-  # multiple duplicate find calls should only cause metric trigger on the first
-  # call.  the others are ignored.
-  def test_query_cache
-    # Not sure why we get a transaction error with sqlite
-    return if isSqlite?
-
-    find_metric = "ActiveRecord/ActiveRecordFixtures::Order/find"
-    ActiveRecordFixtures::Order.cache do
-      m = ActiveRecordFixtures::Order.create :id => 1, :name => 'jeff'
-      assert_calls_metrics(find_metric) do
-        all_finder(ActiveRecordFixtures::Order)
-      end
-
-      check_metric_count(find_metric, 1)
-
-      assert_calls_metrics(find_metric) do
-        10.times { ActiveRecordFixtures::Order.find m.id }
-      end
-      check_metric_count(find_metric, 2)
-    end
-  end
-
   def test_metric_names_jruby
     # fails due to a bug in rails 3 - log does not provide the correct
     # transaction type - it returns 'SQL' instead of 'Foo Create', for example.
