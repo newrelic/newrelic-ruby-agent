@@ -21,10 +21,18 @@ require 'rake'
 begin
   require 'config/environment'
 #   require File.join(File.dirname(__FILE__),'..','..','rpm_test_app','config','environment')
+
+  # we need 'rails/test_help' for Rails 4
+  # we need 'test_help' for Rails 2
+  # we need neither for Rails 3
   begin
-    require 'test_help'
+    require 'rails/test_help'
   rescue LoadError
-    # ignore load problems on test help - it doesn't exist in rails 3
+    begin
+      require 'test_help'
+    rescue LoadError
+      # ignore load problems on test help - it doesn't exist in rails 3
+    end
   end
   require 'newrelic_rpm'
 rescue LoadError => e
@@ -48,7 +56,11 @@ end
 
 require 'test/unit'
 require 'shoulda'
-require 'mocha'
+begin
+  require 'mocha/setup'
+rescue LoadError
+  require 'mocha'
+end
 
 begin # 1.8.6
   require 'mocha/integration/test_unit'

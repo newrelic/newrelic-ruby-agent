@@ -9,6 +9,18 @@
   Sidekiq jobs will automatically show up in the Background tasks on New Relic
   similar to Resque and Delayed::Job tasks.
 
+  * Improved thread safety
+
+  The primary metrics data structures in the Ruby agent are now thread safe.
+  This should provide better reliability for the agent under JRuby and threaded
+  scenarios such as Sidekiq or Puma.
+
+  * More robust environment report
+
+  The agent's analysis of the local environment (e.g. OS, Processors, loaded
+  gems) will now work in a wider variety of app environments, including
+  Sinatra.
+
   * Experimental Rainbows! support
 
   The Ruby agent now automatically detects and instruments the Rainbows! web

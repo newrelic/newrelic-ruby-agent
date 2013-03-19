@@ -5,6 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..', '..',
                                    'test_helper'))
 require 'rack/test'
+require 'new_relic/agent/instrumentation/rack'
 require 'new_relic/rack/browser_monitoring'
 
 ENV['RACK_ENV'] = 'test'

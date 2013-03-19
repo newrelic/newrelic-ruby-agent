@@ -41,9 +41,13 @@ module NewRelic
 
       def setup_logger
         path = ensure_log_path
-        @log = ::Logger.new(path || "/dev/null")
-        @log.formatter = log_formatter
-        ::NewRelic::Agent.logger.info("Audit log enabled at '#{path}'") if path
+        if path
+          @log = ::Logger.new(path)
+          @log.formatter = log_formatter
+          ::NewRelic::Agent.logger.info("Audit log enabled at '#{path}'")
+        else
+          @log = NewRelic::Agent::NullLogger.new
+        end
       end
 
       def ensure_log_path

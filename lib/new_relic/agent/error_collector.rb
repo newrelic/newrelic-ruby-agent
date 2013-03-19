@@ -44,7 +44,7 @@ module NewRelic
           initialize_ignored_errors(ignore_errors)
         end
       end
-      
+
       def initialize_ignored_errors(ignore_errors)
         @ignore.clear
         ignore_errors = ignore_errors.split(",") if ignore_errors.is_a? String

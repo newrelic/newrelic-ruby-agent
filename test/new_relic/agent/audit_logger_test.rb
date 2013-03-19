@@ -4,6 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require 'new_relic/agent/audit_logger'
+require 'new_relic/agent/null_logger'
 
 class AuditLoggerTest < Test::Unit::TestCase
   def setup
@@ -64,6 +65,17 @@ class AuditLoggerTest < Test::Unit::TestCase
     FileUtils.stubs(:mkdir_p).raises(SystemCallError, "i'd rather not")
     logger = NewRelic::Agent::AuditLogger.new(@config.merge(opts))
     assert_nil(logger.ensure_log_path)
+  end
+
+  def test_setup_logger_creates_null_logger_when_ensure_path_fails
+    null_logger = NewRelic::Agent::NullLogger.new
+    NewRelic::Agent::NullLogger.expects(:new).returns(null_logger)
+    logger = NewRelic::Agent::AuditLogger.new(@config)
+    logger.stubs(:ensure_log_path).returns(nil)
+    assert_nothing_raised do
+      logger.setup_logger
+      logger.log_request(@uri, 'whatever', @marshaller)
+    end
   end
 
   def test_log_request_captures_system_call_errors

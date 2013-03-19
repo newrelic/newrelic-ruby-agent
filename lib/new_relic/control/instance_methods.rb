@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/language_support'
+require 'new_relic/agent/null_logger'
 require 'new_relic/agent/agent_logger'
 
 module NewRelic
@@ -74,8 +75,6 @@ module NewRelic
           start_agent
           install_instrumentation
           load_samplers unless Agent.config[:disable_samplers]
-          local_env.gather_environment_info
-          append_environment_info
         elsif !Agent.config[:agent_enabled]
           install_shim
         end

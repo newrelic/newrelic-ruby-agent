@@ -48,9 +48,8 @@ class NewRelic::ControlTest < Test::Unit::TestCase
 
   def test_info
     NewRelic::Agent.manual_start(:dispatcher_instance_id => 'test')
-    props = NewRelic::Control.instance.local_env.snapshot
     if defined?(Rails)
-      assert_match /jdbc|postgres|mysql|sqlite/, props.assoc('Database adapter').last, props.inspect
+      assert_match /jdbc|postgres|mysql|sqlite/, NewRelic::EnvironmentReport.new["Database adapter"]
     end
   end
 

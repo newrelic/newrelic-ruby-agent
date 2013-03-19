@@ -15,6 +15,7 @@ require 'new_relic/agent/database'
 require 'new_relic/agent/thread_profiler'
 require 'new_relic/agent/event_listener'
 require 'new_relic/agent/cross_app_monitor'
+require 'new_relic/environment_report'
 
 module NewRelic
   module Agent
@@ -44,7 +45,6 @@ module NewRelic
 
         @last_harvest_time = Time.now
         @obfuscator = lambda {|sql| NewRelic::Agent::Database.default_sql_obfuscator(sql) }
-        @forked = false
 
         # FIXME: temporary work around for RUBY-839
         if Agent.config[:monitor_mode]
@@ -183,7 +183,6 @@ module NewRelic
         #   connection, this tells me to only try it once so this method returns
         #   quickly if there is some kind of latency with the server.
         def after_fork(options={})
-          @forked = true
           Agent.config.apply_config(NewRelic::Agent::Configuration::ManualSource.new(options), 1)
 
           if channel_id = options[:report_to_channel]
@@ -211,10 +210,6 @@ module NewRelic
           # I'm pretty sure we're not also forking new instances.
           start_worker_thread(options)
           @stats_engine.start_sampler_thread
-        end
-
-        def forked?
-          @forked
         end
 
         # True if we have initialized and completed 'start'
@@ -695,7 +690,7 @@ module NewRelic
           # Checks whether we should send environment info, and if so,
           # returns the snapshot from the local environment
           def environment_for_connect
-            Agent.config[:send_environment_info] ? Control.instance.local_env.snapshot : []
+            Agent.config[:send_environment_info] ? Array(EnvironmentReport.new) : []
           end
 
           # Initializes the hash of settings that we send to the
@@ -745,7 +740,7 @@ module NewRelic
             end
 
             ::NewRelic::Agent.logger.debug "Server provided config: #{config_data.inspect}"
-            server_config = NewRelic::Agent::Configuration::ServerSource.new(config_data)
+            server_config = NewRelic::Agent::Configuration::ServerSource.new(config_data, Agent.config)
             Agent.config.apply_config(server_config, 1)
             log_connection!(config_data) if @service
 
@@ -1030,7 +1025,7 @@ module NewRelic
           end
           raise e
         ensure
-          NewRelic::Agent::Database.close_connections unless forked?
+          NewRelic::Agent::Database.close_connections
           duration = (Time.now - now).to_f
           @stats_engine.record_metrics('Supportability/Harvest', duration)
         end

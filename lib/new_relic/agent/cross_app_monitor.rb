@@ -47,6 +47,7 @@ module NewRelic
           key = key.bytes.to_a if key.respond_to?( :bytes )
 
           encoded = ""
+          encoded.force_encoding('binary') if encoded.respond_to?( :force_encoding )
           index = 0
           text.each_byte do |byte|
             encoded.concat((byte ^ key[index % key.length].to_i))

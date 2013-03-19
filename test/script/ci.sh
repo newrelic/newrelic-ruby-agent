@@ -151,6 +151,7 @@ else
   bundle -h > /dev/null || gem install bundler --no-rdoc --no-ri
 fi
 
+bundle -v
 
 export RAILS_ENV=test
 bundle --local || bundle

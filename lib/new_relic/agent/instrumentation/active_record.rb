@@ -15,16 +15,16 @@ module NewRelic
             end
           end
         end
-                
+
         def log_with_newrelic_instrumentation(*args, &block)
           if !NewRelic::Agent.is_execution_traced?
             return log_without_newrelic_instrumentation(*args, &block)
           end
-          
+
           sql, name, binds = args
           metric = metric_for_name(NewRelic::Helper.correctly_encoded(name)) ||
             metric_for_sql(NewRelic::Helper.correctly_encoded(sql))
-          
+
           if !metric
             log_without_newrelic_instrumentation(*args, &block)
           else
@@ -44,15 +44,15 @@ module NewRelic
             end
           end
         end
-        
+
         def remote_service_metric
           if @config && @config[:adapter]
             type = @config[:adapter].sub(/\d*/, '')
             host = @config[:host] || 'localhost'
             "RemoteService/sql/#{type}/#{host}"
-          end                      
+          end
         end
-        
+
         def metric_for_name(name)
           if name && (parts = name.split " ") && parts.size == 2
             model = parts.first
@@ -85,7 +85,7 @@ module NewRelic
           end
           metric
         end
-        
+
         def rollup_metrics_for(metric)
           metrics = ["ActiveRecord/all"]
           metrics << "ActiveRecord/#{$1}" if metric =~ /ActiveRecord\/\w+\/(\w+)/
@@ -98,19 +98,20 @@ end
 
 DependencyDetection.defer do
   @name = :active_record
-  
+
   depends_on do
-    defined?(ActiveRecord) && defined?(ActiveRecord::Base)
+    defined?(::ActiveRecord) && (!defined?(::ActiveRecord::VERSION) ||
+      ::ActiveRecord::VERSION::MAJOR.to_i <= 3)
   end
 
   depends_on do
     !NewRelic::Agent.config[:disable_activerecord_instrumentation]
   end
-  
+
   executes do
     ::NewRelic::Agent.logger.info 'Installing ActiveRecord instrumentation'
   end
-  
+
   executes do
     if defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i == 3
       Rails.configuration.after_initialize do
@@ -125,7 +126,7 @@ DependencyDetection.defer do
     ActiveRecord::ConnectionAdapters::AbstractAdapter.module_eval do
       include ::NewRelic::Agent::Instrumentation::ActiveRecord
     end
-    
+
     ActiveRecord::Base.class_eval do
       class << self
         add_method_tracer(:find_by_sql, 'ActiveRecord/#{self.name}/find_by_sql',
@@ -133,6 +134,6 @@ DependencyDetection.defer do
         add_method_tracer(:transaction, 'ActiveRecord/#{self.name}/transaction',
                           :metric => false)
       end
-    end          
+    end
   end
 end

@@ -75,17 +75,17 @@ module Agent
         @transaction_sampler.notice_pop_scope(scope.name, time) if sampler_enabled?
         scope
       end
-      
+
       def sampler_enabled?
         @transaction_sampler && Agent.config[:'transaction_tracer.enabled']
       end
-      
+
       # Rename the segment associated with the last pushed scope to +new_name+.
       def rename_scope_segment( new_name )
         self.peek_scope.name = new_name
-        @transaction_sampler.rename_scope_segment( new_name )
+        @transaction_sampler.rename_scope_segment( new_name ) if sampler_enabled?
       end
-      
+
       # Returns the latest ScopeStackElement
       def peek_scope
         scope_stack.last

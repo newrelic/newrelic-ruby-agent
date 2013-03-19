@@ -1,9 +1,9 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
-
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require 'action_controller/test_case'
+
 class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
   require 'action_controller/base'
   require 'new_relic/agent/agent_test_controller'
@@ -12,7 +12,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
 
   attr_accessor :agent, :engine
 
-  def test_initialization
+  def suite_initialization
   # Suggested by cee-dub for merb tests.  I'm actually amazed if our tests work with merb.
     if defined?(Merb::Router)
       Merb::Router.prepare do |r|
@@ -25,19 +25,19 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
       end
     else
       Rails.application.routes.draw do
-        match '/:controller/:action.:format'
-        match '/:controller/:action'
+        get '/:controller/:action.:format'
+        get '/:controller/:action'
       end
     end
 
-    if defined?(Rails) && Rails.respond_to?(:application) && Rails.application.respond_to?(:routes)
+    if defined?(Rails) && Rails.respond_to?(:application) &&
+        Rails.application.respond_to?(:routes)
       @routes = Rails.application.routes
     end
 
     Thread.current[:newrelic_ignore_controller] = nil
     NewRelic::Agent.manual_start
     @agent = NewRelic::Agent.instance
-    #    @agent.instrument_app
     agent.transaction_sampler.harvest
     NewRelic::Agent::AgentTestController.class_eval do
       newrelic_ignore :only => [:action_to_ignore, :entry_action, :base_action]
@@ -51,10 +51,10 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
   if NewRelic::Control.instance.rails_version <= '2.1.0'
     def initialize name
       super name
-      test_initialization
+      suite_initialization
     end
   else
-    alias_method :setup, :test_initialization
+    alias_method :setup, :suite_initialization
   end
 
   def teardown
@@ -67,8 +67,11 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
   def test_mongrel_queue
     NewRelic::Agent::AgentTestController.clear_headers
     engine.clear_stats
-    NewRelic::Control.instance.local_env.stubs(:mongrel).returns( stub('mongrel', :workers => stub('workers', :list => stub('list', :length => '10'))))
-
+    NewRelic::Control.instance.local_env.stubs(:mongrel) \
+      .returns(stub('mongrel',
+                    :workers => stub('workers',
+                                     :list => stub('list',
+                                                   :length => '10'))))
     get :index
     assert_equal 1, stats('HttpDispatcher').call_count
     assert_equal 1, engine.get_stats_no_scope('Mongrel/Queue Length').call_count
@@ -119,6 +122,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     assert_equal 'foofah', @response.body
     compare_metrics %w[Controller/new_relic/agent/agent_test/action_inline], engine.metrics.grep(/^Controller/)
   end
+
   def test_metric__ignore
     engine.clear_stats
     compare_metrics [], engine.metrics
@@ -209,6 +213,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     end
     assert_nil Thread.current[:newrelic_ignore_controller]
   end
+
   def test_metric__ignore_apdex
     engine = @agent.stats_engine
     path = 'new_relic/agent/agent_test/action_to_ignore_apdex'
@@ -221,8 +226,8 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
       end
     end
     assert_nil Thread.current[:newrelic_ignore_controller]
-
   end
+
   def test_metric__dispatched
     engine = @agent.stats_engine
     get :entry_action
@@ -234,6 +239,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     assert_nil engine.lookup_stats('Controller/NewRelic::Agent::AgentTestController_controller/internal_action')
     assert_not_nil engine.lookup_stats('Controller/NewRelic::Agent::AgentTestController/internal_traced_action')
   end
+
   def test_action_instrumentation
     get :index, :foo => 'bar'
     assert_match /bar/, @response.body
@@ -259,9 +265,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     assert_equal 5, s.first.params.size
   end
 
-
   def test_busy_calculation_correctly_calculates_based_acccumlator
-
     # woah it's 1970
     now = Time.at 0
 
@@ -332,6 +336,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     assert(queue_time_stat.total_call_time < 10, "Queue time should be under 10 seconds (sanity check)")
 
   end
+
   def test_queue_headers_heroku
     # make this test deterministic
     Time.stubs(:now => Time.at(1360973845))
@@ -382,4 +387,3 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
   end
 
 end if defined? Rails
-

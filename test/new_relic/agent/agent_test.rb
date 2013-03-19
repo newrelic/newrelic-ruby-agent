@@ -69,12 +69,6 @@ module NewRelic
         @agent.instance_eval { transmit_data }
       end
 
-      def test_transmit_data_should_not_close_db_connections_if_forked
-        NewRelic::Agent::Database.expects(:close_connections).never
-        @agent.after_fork
-        @agent.instance_eval { transmit_data }
-      end
-
       def test_harvest_transaction_traces
         assert_equal([], @agent.send(:harvest_transaction_traces), 'should return transaction traces')
       end

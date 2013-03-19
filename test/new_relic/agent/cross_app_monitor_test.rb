@@ -190,6 +190,14 @@ module NewRelic::Agent
         NewRelic::Agent::CrossAppMonitor::EncodingFunctions.encode_with_key( nil, 'querty' )
     end
 
+    def test_encoding_functions_can_roundtrip_utf8_text
+      str = 'Анастасі́я Олексі́ївна Каме́нських'
+      encoded = NewRelic::Agent::CrossAppMonitor::EncodingFunctions.obfuscate_with_key( 'potap', str )
+      decoded = NewRelic::Agent::CrossAppMonitor::EncodingFunctions.decode_with_key( 'potap', encoded )
+      decoded.force_encoding( 'utf-8' ) if decoded.respond_to?( :force_encoding )
+      assert_equal str, decoded
+    end
+
     #
     # Helpers
     #

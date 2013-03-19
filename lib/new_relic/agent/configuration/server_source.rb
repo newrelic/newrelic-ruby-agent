@@ -6,7 +6,7 @@ module NewRelic
   module Agent
     module Configuration
       class ServerSource < DottedHash
-        def initialize(hash)
+        def initialize(hash, existing_config={})
           if hash['agent_config']
             if hash['agent_config']['transaction_tracer.transaction_threshold'] =~ /apdex_f/i
               # when value is "apdex_f" remove the config and defer to default
@@ -15,19 +15,32 @@ module NewRelic
             super(hash.delete('agent_config'))
           end
 
-          string_map = [
-             ['collect_traces', 'transaction_tracer.enabled'],
-             ['collect_traces', 'slow_sql.enabled'],
-             ['collect_errors', 'error_collector.enabled']
-          ].each do |pair|
-            hash[pair[1]] = hash[pair[0]] if hash[pair[0]] != nil
-          end
-
           if hash['web_transactions_apdex']
             self[:web_transactions_apdex] = hash.delete('web_transactions_apdex')
           end
+          apply_feature_gates(hash, existing_config)
 
-          super
+          super(hash)
+        end
+
+        # These feature gates are not intended to be bullet-proof, but only to
+        # avoid the overhead of collecting and transmitting additional data if
+        # the user's subscription level precludes its use. The server is the
+        # ultimate authority regarding subscription levels, so we expect it to
+        # do the real enforcement there.
+        def apply_feature_gates(hash, existing_config)
+          gated_features = {
+            :'transaction_tracer.enabled' => 'collect_traces',
+            :'slow_sql.enabled'           => 'collect_traces',
+            :'error_collector.enabled'    => 'collect_errors'
+          }
+          gated_features.each do |feature, gate_key|
+            unless hash[gate_key].nil?
+              existing_value = existing_config[feature]
+              allowed_by_server = hash[gate_key]
+              hash[feature] = (allowed_by_server && existing_value)
+            end
+          end
         end
       end
     end

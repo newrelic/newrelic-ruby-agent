@@ -11,6 +11,14 @@ namespace :test do
   desc "Run all tests"
   task :all => %w{newrelic multiverse}
 
+  begin
+    require 'test_bisect'
+    TestBisect::BisectTask.new do |t|
+      t.test_task_name = 'test:newrelic'
+    end
+  rescue LoadError
+  end
+
   agent_home = File.expand_path(File.dirname(__FILE__))
 
   desc "Run functional test suite for newrelic"

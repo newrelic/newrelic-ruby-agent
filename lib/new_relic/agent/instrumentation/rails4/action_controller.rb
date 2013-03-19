@@ -40,31 +40,6 @@ module NewRelic
           end
 
         end
-
-        module ActionView
-          module NewRelic
-            extend self
-            def template_metric(identifier, options = {})
-              if options[:file]
-                "file"
-              elsif identifier.nil?
-                "(unknown)"
-              elsif identifier.include? '/' # this is a filepath
-                identifier.split('/')[-2..-1].join('/')
-              else
-                identifier
-              end
-            end
-            def render_type(file_path)
-              file = File.basename(file_path)
-              if file.starts_with?('_')
-                return 'Partial'
-              else
-                return 'Rendering'
-              end
-            end
-          end
-        end
       end
     end
   end
@@ -89,57 +64,6 @@ DependencyDetection.defer do
     class ActionController::Base
       include NewRelic::Agent::Instrumentation::ControllerInstrumentation
       include NewRelic::Agent::Instrumentation::Rails4::ActionController
-    end
-  end
-end
-
-DependencyDetection.defer do
-  @name = :rails40_view
-
-  depends_on do
-    defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i == 4
-  end
-
-  depends_on do
-    !NewRelic::Agent.config[:disable_view_instrumentation]
-  end
-
-  executes do
-    ::NewRelic::Agent.logger.info 'Installing Rails 4 view instrumentation'
-  end
-
-  executes do
-    ActionView::TemplateRenderer.class_eval do
-      include NewRelic::Agent::MethodTracer
-      # namespaced helper methods
-
-      def render_with_newrelic(context, options)
-        @details = extract_details(options) if respond_to? :extract_details, true
-        identifier = determine_template(options) ? determine_template(options).identifier : nil
-        str = "View/#{NewRelic::Agent::Instrumentation::Rails4::ActionView::NewRelic.template_metric(identifier, options)}/Rendering"
-        trace_execution_scoped str do
-          render_without_newrelic(context, options)
-        end
-      end
-
-      alias_method :render_without_newrelic, :render
-      alias_method :render, :render_with_newrelic
-    end
-
-    ActionView::PartialRenderer.class_eval do
-      include NewRelic::Agent::MethodTracer
-
-      def render_with_newrelic(*args, &block)
-        setup(*args, &block)
-        identifier = find_partial ? find_partial.identifier : nil
-        str = "View/#{NewRelic::Agent::Instrumentation::Rails4::ActionView::NewRelic.template_metric(identifier)}/Partial"
-        trace_execution_scoped str do
-          render_without_newrelic(*args, &block)
-        end
-      end
-
-      alias_method :render_without_newrelic, :render
-      alias_method :render, :render_with_newrelic
     end
   end
 end

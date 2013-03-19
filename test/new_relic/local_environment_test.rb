@@ -51,33 +51,6 @@ class NewRelic::LocalEnvironmentTest < Test::Unit::TestCase
     Object.send(:remove_const, :PhusionPassenger)
   end
 
-  def test_snapshot
-    e = NewRelic::LocalEnvironment.new
-    s = e.snapshot
-    assert_equal 0, s.size
-    e.gather_environment_info
-    s = e.snapshot
-    assert_match /1\.8\.[67]|1\.9\.|2\.0/, s.assoc('Ruby version').last, s.inspect
-    assert_equal 'test', s.assoc('Framework').last, s.inspect
-    # Make sure the processor count is determined on linux systems
-    if File.exists? '/proc/cpuinfo'
-      assert s.assoc('Processors').last.to_i > 0
-    end
-  end
-
-  def test_gather_cpu_info_successful
-    e = NewRelic::LocalEnvironment.new
-    e.gather_cpu_info(File.expand_path(File.join(File.dirname(__FILE__),'..', 'fixtures', 'proc_cpuinfo.txt')))
-    s = e.snapshot
-    assert_equal 24, s.assoc('Processors').last.to_i
-  end
-
-  def test_gather_cpu_info_failure
-    e = NewRelic::LocalEnvironment.new
-    e.gather_cpu_info(File.expand_path(File.join(File.dirname(__FILE__),'..', 'test_helper.rb')))
-    s = e.snapshot
-    assert_equal 1, s.assoc('Processors').last.to_i    
-  end
 
   def test_default_port
     e = NewRelic::LocalEnvironment.new

@@ -82,18 +82,15 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     handle_license_error(error)
   end
 
-  def test_environment_for_connect_positive
-    fake_env = stub('local_env', :discovered_dispatcher => nil)
-    fake_env.expects(:snapshot).returns("snapshot")
-    NewRelic::Control.instance.expects(:local_env).at_least_once.returns(fake_env)
-    with_config(:send_environment_info => true) do
-      assert_equal 'snapshot', environment_for_connect
-    end
+  def test_connect_settings_have_environment_report
+    assert NewRelic::Agent.agent.connect_settings[:environment].detect{ |(k, v)|
+      k == 'Gems'
+    }, "expected connect_settings to include gems from environment"
   end
 
   def test_environment_for_connect_negative
     with_config(:send_environment_info => false) do
-      assert_equal [], environment_for_connect
+      assert_equal [], NewRelic::Agent.agent.connect_settings[:environment]
     end
   end
 
