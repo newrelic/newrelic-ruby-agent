@@ -80,10 +80,13 @@ class ViewControllerTest < ActionController::TestCase
   def setup
     super
     @controller = ViewsController.new
-    # ActiveSupport testing keeps blowing away my subscriber on
+    # ActiveSupport testing keeps blowing away my subscribers on
     # teardown for some reason.  Have to keep putting it back.
     if Rails::VERSION::MAJOR.to_i == 4
-      NewRelic::Agent::Instrumentation::ActionViewSubscriber.subscribe
+      NewRelic::Agent::Instrumentation::ActionViewSubscriber \
+        .subscribe(/render_.+\.action_view$/)
+      NewRelic::Agent::Instrumentation::ActionControllerSubscriber \
+        .subscribe(/^process_action.action_controller$/)
     end
   end
 end

@@ -160,9 +160,25 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::T
     assert_equal('Controller/test/index',
                  NewRelic::Agent.instance.transaction_sampler \
                    .last_sample.params[:path])
+    assert_equal('Controller/test/index',
+                 NewRelic::Agent.instance.transaction_sampler \
+                   .last_sample.root_segment.called_segments[0].metric_name)
   end
 
-  def _test_applies_txn_name_rules
+  def test_applies_txn_name_rules
+    rule = NewRelic::Agent::RulesEngine::Rule.new('match_expression' => 'test',
+                                                  'replacement'      => 'taste')
+    NewRelic::Agent.instance.transaction_rules << rule
+    @subscriber.start('process_action.action_controller', :id, @entry_payload)
+    @subscriber.finish('process_action.action_controller', :id, @exit_payload)
+
+    assert NewRelic::Agent.instance.stats_engine \
+      .lookup_stats('Controller/taste/index')
+    assert_nil NewRelic::Agent.instance.stats_engine \
+      .lookup_stats('Controller/test/index')
+  ensure
+    NewRelic::Agent.instance.instance_variable_set(:@transaction_rules,
+                                             NewRelic::Agent::RulesEngine.new)
   end
 
   def _test_records_filtered_request_params_in_txn

@@ -23,7 +23,7 @@ module NewRelic
             record_instance_busy(event)
           end
 
-          stop_transaction
+          stop_transaction(event)
         end
 
         def record_metrics(event)
@@ -60,13 +60,18 @@ module NewRelic
           frame_data = NewRelic::Agent::Instrumentation::MetricFrame.current(true)
           frame_data.filtered_params = {}
           frame_data.push(event.metric_name)
+          frame_data.apdex_start = event.time
           NewRelic::Agent::TransactionInfo.get.transaction_name = event.metric_name
           frame_data.start_transaction
+          event.scope = NewRelic::Agent.instance.stats_engine \
+            .push_scope(event.metric_name, event.time)
         end
 
-        def stop_transaction
+        def stop_transaction(event)
           frame_data = NewRelic::Agent::Instrumentation::MetricFrame.current
           frame_data.pop
+          NewRelic::Agent.instance.stats_engine \
+            .pop_scope(event.scope, event.duration, event.end)
         end
       end
 
@@ -74,7 +79,9 @@ module NewRelic
         attr_accessor :parent, :scope
 
         def metric_name
-          "Controller/#{metric_path}/#{metric_action}"
+          name = "Controller/#{metric_path}/#{metric_action}"
+          @final_name ||= NewRelic::Agent.instance.transaction_rules.rename(name)
+          return @final_name
         end
 
         def metric_path
