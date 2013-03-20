@@ -2,12 +2,21 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 require 'new_relic/agent/instrumentation/rails4/evented_subscriber'
+require 'rack'
 
 module NewRelic
   module Agent
     module Instrumentation
       class ActionControllerSubscriber < EventedSubscriber
+        def initialize
+          super
+          NewRelic::Agent.instance.events.subscribe(:before_call) do |env|
+            TransactionInfo.reset(::Rack::Request.new(env))
+          end
+        end
+
         def start(name, id, payload)
+          payload[:request] = TransactionInfo.get.request
           event = ControllerEvent.new(name, Time.now, nil, id, payload)
           push_event(event)
           start_transaction(event)
@@ -18,6 +27,7 @@ module NewRelic
           event.payload.merge!(payload)
 
           if NewRelic::Agent.is_execution_traced? && !event.ignored?
+            record_queue_time(event)
             record_metrics(event)
             record_apdex(event)
             record_instance_busy(event)
@@ -28,8 +38,9 @@ module NewRelic
 
         def record_metrics(event)
           controller_metric = NewRelic::MetricSpec.new(event.metric_name)
-          if parent = NewRelic::Agent::Instrumentation::MetricFrame.current.parent_metric
-            controller_metric.scope = parent.name
+          metric_frame = NewRelic::Agent::Instrumentation::MetricFrame.current
+          if metric_frame.parent_metric
+            controller_metric.scope = metric_frame.parent_metric.name
           end
           metrics = [ controller_metric, 'HttpDispatcher' ]
           if event.exception_encountered?
@@ -54,6 +65,13 @@ module NewRelic
         def record_instance_busy(event)
           NewRelic::Agent::BusyCalculator.dispatcher_start(event.time)
           NewRelic::Agent::BusyCalculator.dispatcher_finish(event.end)
+        end
+
+        def record_queue_time(event)
+          return unless event.payload[:request]
+          queue_start = QueueTime.parse_frontend_timestamp(event.payload[:request].env,
+                                                           event.time)
+          QueueTime.record_frontend_metrics(queue_start, event.time) if queue_start
         end
 
         def start_transaction(event)
@@ -133,7 +151,11 @@ module NewRelic
             true
           end
         end
-      end
+
+        def to_s
+          "#<NewRelic::Agent::Instrumentation::ControllerEvent:#{object_id} name: \"#{name}\" id: #{transaction_id} payload: #{payload}}>"
+        end
+      end if defined?(ActiveSupport::Notifications::Event)
 
       module Rails4
         module ActionController

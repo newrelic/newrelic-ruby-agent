@@ -3,9 +3,8 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 require 'new_relic/agent/instrumentation/rails4/action_controller'
-require 'debugger'
 
-class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::TestCase
+class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Test::Unit::TestCase
   class TestController
     include NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
@@ -84,8 +83,6 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::T
 
     assert_equal 1, @stats_engine.lookup_stats('Errors/Controller/test/index').call_count
     assert_equal 1, @stats_engine.lookup_stats('Errors/all').call_count
-    assert_equal 2.0, @stats_engine.lookup_stats('Errors/Controller/test/index').total_call_time
-    assert_equal 2.0, @stats_engine.lookup_stats('Errors/all').total_call_time
     assert_equal 1, @stats_engine.lookup_stats('Apdex').apdex_f
     assert_equal 1, @stats_engine.lookup_stats('Apdex/test/index').apdex_f
   end
@@ -181,6 +178,21 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::T
                                              NewRelic::Agent::RulesEngine.new)
   end
 
+  def test_record_queue_time_metrics
+    t0 = Time.now
+    Time.stubs(:now).returns(t0)
+    env = { 'HTTP_X_REQUEST_START' => (t0 - 5).to_f.to_s }
+    NewRelic::Agent.instance.events.notify(:before_call, env)
+
+    Time.stubs(:now).returns(t0, t0 + 2)
+    @subscriber.start('process_action.action_controller', :id, @entry_payload)
+    @subscriber.finish('process_action.action_controller', :id, @exit_payload)
+
+    metric = @stats_engine.lookup_stats('WebFrontend/QueueTime')
+    assert_equal 1, metric.call_count
+    assert_in_delta(5.0, metric.total_call_time, 0.1)
+  end
+
   def _test_records_filtered_request_params_in_txn
   end
 
@@ -194,8 +206,5 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::T
   end
 
   def _test_records_cpu_burn_in_txn
-  end
-
-  def _test_record_queue_time_metrics
   end
 end if ::Rails::VERSION::MAJOR.to_i >= 4

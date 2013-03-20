@@ -27,6 +27,12 @@ class QueueTimeTest < ActionDispatch::IntegrationTest
     NewRelic::Agent::Agent.instance_variable_set(:@instance, @agent)
     NewRelic::Agent.manual_start
 
+    # ActiveSupport testing keeps blowing away my subscribers on
+    # teardown for some reason.  Have to keep putting it back.
+    NewRelic::Agent.instance.events.subscribe(:before_call) do |env|
+      NewRelic::Agent::TransactionInfo.reset(::Rack::Request.new(env))
+    end
+
     @agent.finish_setup({})
   end
 
@@ -48,8 +54,9 @@ class QueueTimeTest < ActionDispatch::IntegrationTest
   end
 
   def get_queued(header="HTTP_X_REQUEST_START")
-    get('/queue/queued', nil,
-        header => "t=#{(Time.now.to_i * 1_000_000) - 1_000}")
+    value = "t=#{(Time.now.to_i * 1_000_000) - 1_000}"
+    NewRelic::Agent.instance.events.notify(:before_call, header => value)
+    get('/queue/queued', nil, header => value)
   end
 
   def extract_queue_time_from_response
