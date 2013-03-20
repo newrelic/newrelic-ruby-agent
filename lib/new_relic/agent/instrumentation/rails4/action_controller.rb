@@ -19,7 +19,12 @@ module NewRelic
           payload[:request] = TransactionInfo.get.request
           event = ControllerEvent.new(name, Time.now, nil, id, payload)
           push_event(event)
-          start_transaction(event)
+
+          if NewRelic::Agent.is_execution_traced? && !event.ignored?
+            start_transaction(event)
+          else
+            NewRelic::Agent.instance.push_trace_execution_flag(false)
+          end
         end
 
         def finish(name, id, payload)
@@ -31,9 +36,10 @@ module NewRelic
             record_metrics(event)
             record_apdex(event)
             record_instance_busy(event)
+            stop_transaction(event)
+          else
+            NewRelic::Agent.instance.pop_trace_execution_flag
           end
-
-          stop_transaction(event)
         end
 
         def record_metrics(event)
