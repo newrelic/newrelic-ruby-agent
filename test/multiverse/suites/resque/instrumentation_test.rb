@@ -92,7 +92,7 @@ class ResqueTest < Test::Unit::TestCase
   end
 
   def wait_for_jobs
-    time_for_jobs = 5
+    time_for_jobs = 10
     begin
       Timeout.timeout(time_for_jobs) { sleep(0.1) until Resque.info[:processed] == JOB_COUNT }
     rescue Timeout::Error => err
