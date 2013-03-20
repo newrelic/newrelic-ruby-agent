@@ -193,18 +193,36 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Test::U
     assert_in_delta(5.0, metric.total_call_time, 0.1)
   end
 
-  def _test_records_filtered_request_params_in_txn
+  def test_records_request_params_in_txn
+    NewRelic::Agent.instance.transaction_sampler.reset!
+    @entry_payload[:params]['number'] = '666'
+    @subscriber.start('process_action.action_controller', :id, @entry_payload)
+    @subscriber.finish('process_action.action_controller', :id, @exit_payload)
+
+    assert_equal('666',
+                 NewRelic::Agent.instance.transaction_sampler \
+                   .last_sample.params[:request_params]['number'])
   end
 
-  def _test_records_custom_parameters_in_txn
+  def test_records_filtered_request_params_in_txn
+    NewRelic::Agent.instance.transaction_sampler.reset!
+    @entry_payload[:params]['password'] = 'secret'
+    @subscriber.start('process_action.action_controller', :id, @entry_payload)
+    @subscriber.finish('process_action.action_controller', :id, @exit_payload)
+
+    assert_equal('[FILTERED]',
+                 NewRelic::Agent.instance.transaction_sampler \
+                   .last_sample.params[:request_params]['password'])
   end
 
-  def _test_records_user_attributes_in_txn
-  end
+  def test_records_custom_parameters_in_txn
+    NewRelic::Agent.instance.transaction_sampler.reset!
+    @subscriber.start('process_action.action_controller', :id, @entry_payload)
+    NewRelic::Agent.add_custom_parameters('number' => '666')
+    @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
-  def _test_records_referrer_in_txn
-  end
-
-  def _test_records_cpu_burn_in_txn
+    assert_equal('666',
+                 NewRelic::Agent.instance.transaction_sampler \
+                   .last_sample.params[:custom_params]['number'])
   end
 end if ::Rails::VERSION::MAJOR.to_i >= 4

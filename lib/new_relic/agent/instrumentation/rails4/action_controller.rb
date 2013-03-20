@@ -82,7 +82,8 @@ module NewRelic
 
         def start_transaction(event)
           frame_data = NewRelic::Agent::Instrumentation::MetricFrame.current(true)
-          frame_data.filtered_params = {}
+          frame_data.request = event.payload[:request]
+          frame_data.filtered_params = filter(event.payload[:params])
           frame_data.push(event.metric_name)
           frame_data.apdex_start = event.time
           NewRelic::Agent::TransactionInfo.get.transaction_name = event.metric_name
@@ -96,6 +97,11 @@ module NewRelic
           frame_data.pop
           NewRelic::Agent.instance.stats_engine \
             .pop_scope(event.scope, event.duration, event.end)
+        end
+
+        def filter(params)
+          filters = Rails.application.config.filter_parameters
+          ActionDispatch::Http::ParameterFilter.new(filters).filter(params)
         end
       end
 

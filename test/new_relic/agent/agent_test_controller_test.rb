@@ -224,7 +224,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     assert_nil Thread.current[:newrelic_ignore_controller]
   end
 
-  def test_records_metric_dispite_ignore_stat_when_forced
+  def test_records_metric_dispite_ignore_state_when_forced
     engine = @agent.stats_engine
     get :entry_action
     assert_nil Thread.current[:newrelic_ignore_controller]
@@ -244,24 +244,15 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     assert_match /bar/, @response.body
   end
 
-  def test_controller_params
-    assert agent.transaction_sampler
-    num_samples = NewRelic::Agent.instance.transaction_sampler.samples.length
-    assert_equal "[FILTERED]", @controller._filter_parameters({'social_security_number' => 'test'})['social_security_number']
-    get :index, 'social_security_number' => "001-555-1212"
-    samples = agent.transaction_sampler.samples
-    assert_equal num_samples + 1, samples.length
-    assert_equal "[FILTERED]", samples.last.params[:request_params]["social_security_number"]
-  end
-
-  def test_controller_params
+  def test_request_params
     s = with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
       agent.transaction_sampler.reset!
       get :index, 'number' => "001-555-1212"
       agent.transaction_sampler.harvest(nil)
     end
     assert_equal 1, s.size
-    assert_equal 5, s.first.params.size
+    assert_equal('001-555-1212',
+                 s.first.params[:request_params]['number'])
   end
 
   def test_busy_calculation_correctly_calculates_based_acccumlator
