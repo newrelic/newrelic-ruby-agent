@@ -217,6 +217,45 @@ module NewRelic
   end
 end
 
+def fixture_tcp_socket( response )
+  # Don't actually talk to Google.
+  socket = stub("socket") do
+    stubs(:closed?).returns(false)
+    stubs(:close)
+
+    # Simulate a bunch of socket-ey stuff since Mocha doesn't really
+    # provide any other way to do it
+    class << self
+      attr_accessor :response, :write_checker
+    end
+
+    def self.check_write
+      self.write_checker = Proc.new
+    end
+
+    def self.write( buf )
+      self.write_checker.call( buf ) if self.write_checker
+      buf.length
+    end
+
+    def self.sysread( size, buf='' )
+      @data ||= response.to_s
+      raise EOFError if @data.empty?
+      buf.replace @data.slice!( 0, size )
+      buf
+    end
+    class << self
+      alias_method :read_nonblock, :sysread
+    end
+
+  end
+
+  socket.response = response
+  TCPSocket.stubs( :open ).returns( socket )
+
+  return socket
+end
+
 module TransactionSampleTestHelper
   module_function
   def make_sql_transaction(*sql)
