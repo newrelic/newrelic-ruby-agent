@@ -33,6 +33,8 @@ module NewRelic
           event = super
           event.payload.merge!(payload)
 
+          set_enduser_ignore if event.enduser_ignored?
+
           if NewRelic::Agent.is_execution_traced? && !event.ignored?
             record_queue_time(event)
             record_metrics(event)
@@ -42,6 +44,10 @@ module NewRelic
           else
             NewRelic::Agent.instance.pop_trace_execution_flag
           end
+        end
+
+        def set_enduser_ignore
+          NewRelic::Agent::TransactionInfo.get.ignore_end_user = true
         end
 
         def record_metrics(event)
@@ -140,6 +146,7 @@ module NewRelic
         end
 
         def enduser_ignored?
+          _is_filtered?('ignore_enduser')
         end
 
         def exception_encountered?

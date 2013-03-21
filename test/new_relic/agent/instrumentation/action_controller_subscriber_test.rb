@@ -18,6 +18,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Test::U
 
     newrelic_ignore :only => :ignored_action
     newrelic_ignore_apdex :only => :ignored_apdex
+    newrelic_ignore_enduser :only => :ignored_enduser
   end
 
   def setup
@@ -124,7 +125,13 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Test::U
     assert @stats_engine.lookup_stats('HttpDispatcher')
   end
 
-  def _test_ignore_end_user
+  def test_ignore_end_user
+    @entry_payload[:action] = 'ignored_enduser'
+    @exit_payload[:action] = 'ignored_enduser'
+    @subscriber.start('process_action.action_controller', :id, @entry_payload)
+    @subscriber.finish('process_action.action_controller', :id, @exit_payload)
+
+    assert NewRelic::Agent::TransactionInfo.get.ignore_end_user?
   end
 
   def test_record_busy_time
