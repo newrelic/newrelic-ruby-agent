@@ -179,6 +179,13 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Test::U
     assert_in_delta(5.0, metric.total_call_time, 0.1)
   end
 
+  def test_dont_record_queue_time_if_no_header
+    @subscriber.start('process_action.action_controller', :id, @entry_payload)
+    @subscriber.finish('process_action.action_controller', :id, @exit_payload)
+
+    assert_nil @stats_engine.lookup_stats('WebFrontend/QueueTime')
+  end
+
   def test_records_request_params_in_txn
     NewRelic::Agent.instance.transaction_sampler.reset!
     @entry_payload[:params]['number'] = '666'

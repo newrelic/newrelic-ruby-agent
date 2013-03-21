@@ -60,7 +60,7 @@ module NewRelic
           return if event.apdex_ignored?
           metric_parser = NewRelic::MetricParser::MetricParser \
             .for_metric_named(event.metric_name)
-          duration_plus_queue_time = event.end - event.queue_start
+          duration_plus_queue_time = event.end - (event.queue_start || event.time)
           MetricFrame.record_apdex(metric_parser,
                                    event.duration_in_seconds,
                                    duration_plus_queue_time,
@@ -73,6 +73,7 @@ module NewRelic
         end
 
         def record_queue_time(event)
+          return unless event.queue_start
           QueueTime.record_frontend_metrics(event.queue_start, event.time)
         end
 
@@ -81,7 +82,7 @@ module NewRelic
           frame_data.request = event.payload[:request]
           frame_data.filtered_params = filter(event.payload[:params])
           frame_data.push(event.metric_name)
-          frame_data.apdex_start = event.queue_start
+          frame_data.apdex_start = (event.queue_start || event.time)
           NewRelic::Agent::TransactionInfo.get.transaction_name = event.metric_name
           frame_data.start_transaction
           event.scope = NewRelic::Agent.instance.stats_engine \
@@ -103,6 +104,18 @@ module NewRelic
 
       class ControllerEvent < ActiveSupport::Notifications::Event
         attr_accessor :parent, :scope
+        attr_reader :queue_start
+
+        def initialize(name, start, ending, transaction_id, payload)
+          super
+
+          @controller_class = payload[:controller].split('::') \
+            .inject(Object){|m,o| m.const_get(o)}
+
+          if payload[:request] && payload[:request].respond_to?(:env)
+            @queue_start = QueueTime.parse_frontend_timestamp(payload[:request].env, self.time)
+          end
+        end
 
         def metric_name
           name = "Controller/#{metric_path}/#{metric_action}"
@@ -111,17 +124,11 @@ module NewRelic
         end
 
         def metric_path
-          controller_class.controller_path
+          @controller_class.controller_path
         end
 
         def metric_action
           payload[:action]
-        end
-
-        def controller_class
-          @controller_class ||= payload[:controller].split('::') \
-            .inject(Object){|m,o| m.const_get(o)}
-          return @controller_class
         end
 
         def ignored?
@@ -143,18 +150,10 @@ module NewRelic
           Helper.milliseconds_to_seconds(duration)
         end
 
-        def queue_start
-          if payload[:request] && payload[:request].respond_to?(:env)
-            @queue_start ||= QueueTime.parse_frontend_timestamp(payload[:request].env, self.time)
-          end
-          @queue_start ||= self.time
-          return @queue_start
-        end
-
         # FIXME: shamelessly ripped from ControllerInstrumentation
         def _is_filtered?(key)
-          if controller_class.respond_to? :newrelic_read_attr
-            ignore_actions = controller_class.newrelic_read_attr(key)
+          if @controller_class.respond_to? :newrelic_read_attr
+            ignore_actions = @controller_class.newrelic_read_attr(key)
           end
 
           case ignore_actions
