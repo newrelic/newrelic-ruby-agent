@@ -23,6 +23,8 @@ module NewRelic
           if NewRelic::Agent.is_execution_traced? && !event.ignored?
             start_transaction(event)
           else
+            # if this transaction is ignored, make sure child
+            # transaction are also ignored
             NewRelic::Agent.instance.push_trace_execution_flag(false)
           end
         end
@@ -58,9 +60,10 @@ module NewRelic
           return if event.apdex_ignored?
           metric_parser = NewRelic::MetricParser::MetricParser \
             .for_metric_named(event.metric_name)
+          duration_plus_queue_time = event.end - event.queue_start
           MetricFrame.record_apdex(metric_parser,
                                    event.duration_in_seconds,
-                                   event.duration_in_seconds,
+                                   duration_plus_queue_time,
                                    event.exception_encountered?)
         end
 
@@ -70,10 +73,7 @@ module NewRelic
         end
 
         def record_queue_time(event)
-          return unless event.payload[:request]
-          queue_start = QueueTime.parse_frontend_timestamp(event.payload[:request].env,
-                                                           event.time)
-          QueueTime.record_frontend_metrics(queue_start, event.time) if queue_start
+          QueueTime.record_frontend_metrics(event.queue_start, event.time)
         end
 
         def start_transaction(event)
@@ -81,7 +81,7 @@ module NewRelic
           frame_data.request = event.payload[:request]
           frame_data.filtered_params = filter(event.payload[:params])
           frame_data.push(event.metric_name)
-          frame_data.apdex_start = event.time
+          frame_data.apdex_start = event.queue_start
           NewRelic::Agent::TransactionInfo.get.transaction_name = event.metric_name
           frame_data.start_transaction
           event.scope = NewRelic::Agent.instance.stats_engine \
@@ -141,6 +141,14 @@ module NewRelic
 
         def duration_in_seconds
           Helper.milliseconds_to_seconds(duration)
+        end
+
+        def queue_start
+          if payload[:request] && payload[:request].respond_to?(:env)
+            @queue_start ||= QueueTime.parse_frontend_timestamp(payload[:request].env, self.time)
+          end
+          @queue_start ||= self.time
+          return @queue_start
         end
 
         # FIXME: shamelessly ripped from ControllerInstrumentation

@@ -55,7 +55,6 @@ class QueueTimeTest < ActionDispatch::IntegrationTest
 
   def get_queued(header="HTTP_X_REQUEST_START")
     value = "t=#{(Time.now.to_i * 1_000_000) - 1_000}"
-    NewRelic::Agent.instance.events.notify(:before_call, header => value)
     get('/queue/queued', nil, header => value)
   end
 
