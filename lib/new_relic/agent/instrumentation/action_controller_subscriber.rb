@@ -30,7 +30,7 @@ module NewRelic
         end
 
         def finish(name, id, payload)
-          event = super
+          event = pop_event(id)
           event.payload.merge!(payload)
 
           set_enduser_ignore if event.enduser_ignored?
@@ -59,7 +59,7 @@ module NewRelic
           metrics = [ controller_metric, 'HttpDispatcher' ]
 
           stats_engine = NewRelic::Agent.instance.stats_engine
-          stats_engine.record_metrics(metrics, event.duration_in_seconds)
+          stats_engine.record_metrics(metrics, event.duration)
         end
 
         def record_apdex(event)
@@ -68,7 +68,7 @@ module NewRelic
             .for_metric_named(event.metric_name)
           duration_plus_queue_time = event.end - (event.queue_start || event.time)
           MetricFrame.record_apdex(metric_parser,
-                                   event.duration_in_seconds,
+                                   event.duration,
                                    duration_plus_queue_time,
                                    event.exception_encountered?)
         end
@@ -108,7 +108,7 @@ module NewRelic
         end
       end
 
-      class ControllerEvent < ActiveSupport::Notifications::Event
+      class ControllerEvent < Event
         attr_accessor :parent, :scope
         attr_reader :queue_start
 
@@ -153,10 +153,6 @@ module NewRelic
           payload[:exception]
         end
 
-        def duration_in_seconds
-          Helper.milliseconds_to_seconds(duration)
-        end
-
         # FIXME: shamelessly ripped from ControllerInstrumentation
         def _is_filtered?(key)
           if @controller_class.respond_to? :newrelic_read_attr
@@ -177,7 +173,7 @@ module NewRelic
         def to_s
           "#<NewRelic::Agent::Instrumentation::ControllerEvent:#{object_id} name: \"#{name}\" id: #{transaction_id} payload: #{payload}}>"
         end
-      end if defined?(ActiveSupport::Notifications::Event)
+      end
     end
   end
 end

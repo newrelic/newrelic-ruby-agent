@@ -50,6 +50,42 @@ module NewRelic
           Thread.current[@queue_key] ||= Hash.new {|h,id| h[id] = [] }
         end
       end
+
+      # Taken from ActiveSupport::Notifications::Event, pasted here
+      # with a couple minor additions so we don't have a hard
+      # dependency on ActiveSupport::Notifications.
+      #
+      # Represents an intrumentation event, provides timing and metric
+      # name information useful when recording metrics.
+      class Event
+        attr_reader :name, :time, :transaction_id, :payload, :children
+        attr_accessor :end, :parent, :scope
+
+        def initialize(name, start, ending, transaction_id, payload)
+          @name           = name
+          @payload        = payload.dup
+          @time           = start
+          @transaction_id = transaction_id
+          @end            = ending
+          @children       = []
+        end
+
+        def metric_name
+          raise NotImplementedError
+        end
+
+        def duration
+          self.end - time
+        end
+
+        def <<(event)
+          @children << event
+        end
+
+        def parent_of?(event)
+          @children.include? event
+        end
+      end
     end
   end
 end
