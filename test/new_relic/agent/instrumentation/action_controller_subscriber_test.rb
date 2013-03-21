@@ -73,20 +73,6 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Test::U
     assert_equal 0, apdex_rollup_metric.apdex_s
   end
 
-  def test_record_error_metrics
-    t0 = Time.now
-    Time.stubs(:now).returns(t0, t0 + 2)
-
-    @exit_payload.merge!(:exception => ['RuntimeError', 'some problem'])
-    @subscriber.start('process_action.action_controller', :id, @entry_payload)
-    @subscriber.finish('process_action.action_controller', :id, @exit_payload)
-
-    assert_equal 1, @stats_engine.lookup_stats('Errors/Controller/test/index').call_count
-    assert_equal 1, @stats_engine.lookup_stats('Errors/all').call_count
-    assert_equal 1, @stats_engine.lookup_stats('Apdex').apdex_f
-    assert_equal 1, @stats_engine.lookup_stats('Apdex/test/index').apdex_f
-  end
-
   def test_records_scoped_metrics_for_evented_child_txn
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
     @subscriber.start('process_action.action_controller', :id, @entry_payload \

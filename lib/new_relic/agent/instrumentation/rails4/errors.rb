@@ -13,7 +13,7 @@ module NewRelic
             NewRelic::Agent::Instrumentation::MetricFrame.notice_error( \
                 exception, \
                 :request => request, \
-                :metric => newrelic_metric_path, \
+                :metric => TransactionInfo.get.transaction_name, \
                 :custom_params => filtered_params)
           end
         end

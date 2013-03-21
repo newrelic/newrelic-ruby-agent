@@ -49,13 +49,9 @@ module NewRelic
             controller_metric.scope = metric_frame.parent_metric.name
           end
           metrics = [ controller_metric, 'HttpDispatcher' ]
-          if event.exception_encountered?
-            metrics << "Errors/#{event.metric_name}"
-            metrics << "Errors/all"
-          end
 
-          NewRelic::Agent.instance.stats_engine.record_metrics(metrics,
-                              event.duration_in_seconds)
+          stats_engine = NewRelic::Agent.instance.stats_engine
+          stats_engine.record_metrics(metrics, event.duration_in_seconds)
         end
 
         def record_apdex(event)

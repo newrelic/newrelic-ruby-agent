@@ -126,6 +126,9 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     compare_metrics [], engine.metrics
   end
 
+  # Rails 4 does all error tracking in Rack, not testable here
+  # see the rails Multiverse suit for Rails 4 error tests
+  if ::Rails::VERSION::MAJOR.to_i <= 3
   def test_controller_rescued_error
     engine.clear_stats
     assert_raise RuntimeError do
@@ -190,6 +193,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     assert_equal 1, apdex.apdex_f, 'failing'
     assert_equal 0, apdex.apdex_t, 'tol'
     assert_equal 0, apdex.apdex_s, 'satisfied'
+  end
   end
 
   def test_metric__ignore_base
