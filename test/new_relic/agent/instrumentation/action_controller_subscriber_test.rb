@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
-require 'new_relic/agent/instrumentation/rails4/action_controller'
+require 'new_relic/agent/instrumentation/action_controller_subscriber'
 
 class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Test::Unit::TestCase
   class TestController
