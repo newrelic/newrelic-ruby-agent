@@ -7,8 +7,14 @@ module NewRelic
   module Agent
     module URIUtil
       def self.filtered_uri_for(http, request)
-        scheme = http.use_ssl? ? 'https' : 'http'
-        parsed = URI("#{scheme}://#{http.address}:#{http.port}#{request.path}")
+        parsed = case request.path
+        when /^https?:\/\//
+          URI(request.path)
+        else
+          scheme = http.use_ssl? ? 'https' : 'http'
+          URI("#{scheme}://#{http.address}:#{http.port}#{request.path}")
+        end
+
         parsed.query = nil
         parsed.fragment = nil
         parsed.to_s

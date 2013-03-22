@@ -62,4 +62,16 @@ class URIUtilTest < Test::Unit::TestCase
     filtered = NewRelic::Agent::URIUtil.filtered_uri_for(conn, req)
     assert_equal("https://foo.com:9999/bar/baz", filtered)
   end
+
+  def test_filtered_uri_for_with_full_uri_request_path
+    uri = "http://foo.com/bar/baz?a=1&b=2#fragment"
+    filtered = NewRelic::Agent::URIUtil.filtered_uri_for(*dummy_request(uri, :path => uri))
+    assert_equal("http://foo.com/bar/baz", filtered)
+  end
+
+  def test_filtered_uri_for_with_full_uri_request_path_https
+    uri = "https://foo.com/bar/baz?a=1&b=2#fragment"
+    filtered = NewRelic::Agent::URIUtil.filtered_uri_for(*dummy_request(uri, :path => uri, :use_ssl => true))
+    assert_equal("https://foo.com/bar/baz", filtered)
+  end
 end
