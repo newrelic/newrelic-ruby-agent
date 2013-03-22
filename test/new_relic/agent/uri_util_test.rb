@@ -19,65 +19,57 @@ class URIUtilTest < Test::Unit::TestCase
     [http, req]
   end
 
+  def filter(uri_string, opts={})
+    NewRelic::Agent::URIUtil.filtered_uri_for(*dummy_request(uri_string, opts))
+  end
+
   def test_filtered_uri_for
     uri = "http://foo.com/bar/baz"
-    filtered = NewRelic::Agent::URIUtil.filtered_uri_for(*dummy_request(uri))
-    assert_equal("http://foo.com/bar/baz", filtered)
+    assert_equal("http://foo.com/bar/baz", filter(uri))
   end
 
   def test_filtered_uri_for_custom_port
     uri = "http://foo.com:1234/bar/baz"
-    filtered = NewRelic::Agent::URIUtil.filtered_uri_for(*dummy_request(uri))
-    assert_equal("http://foo.com:1234/bar/baz", filtered)
+    assert_equal("http://foo.com:1234/bar/baz", filter(uri))
   end
 
   def test_filtered_uri_omits_query_params
     uri = "http://foo.com/bar/baz?a=1&b=2"
-    filtered = NewRelic::Agent::URIUtil.filtered_uri_for(*dummy_request(uri))
-    assert_equal("http://foo.com/bar/baz", filtered)
+    assert_equal("http://foo.com/bar/baz", filter(uri))
   end
 
   def test_filtered_uri_omits_fragment
     uri = "http://foo.com/bar/baz#fragment"
-    filtered = NewRelic::Agent::URIUtil.filtered_uri_for(*dummy_request(uri, :path => '/bar/baz#fragment'))
-    assert_equal("http://foo.com/bar/baz", filtered)
+    assert_equal("http://foo.com/bar/baz", filter(uri, :path => '/bar/baz#fragment'))
   end
 
   def test_filtered_uri_omits_query_params_and_fragment
     uri = "http://foo.com/bar/baz?a=1&b=2#fragment"
-    filtered = NewRelic::Agent::URIUtil.filtered_uri_for(*dummy_request(uri, :path => '/bar/baz?a=1&b=2#fragment'))
-    assert_equal("http://foo.com/bar/baz", filtered)
+    assert_equal("http://foo.com/bar/baz", filter(uri, :path => '/bar/baz?a=1&b=2#fragment'))
   end
 
   def test_filtered_uri_reflects_use_of_ssl
     uri = 'https://foo.com/bar/baz'
-    conn, req = dummy_request(uri, :use_ssl => true)
-    filtered = NewRelic::Agent::URIUtil.filtered_uri_for(conn, req)
-    assert_equal("https://foo.com/bar/baz", filtered)
+    assert_equal("https://foo.com/bar/baz", filter(uri, :use_ssl => true))
   end
 
   def test_filtered_uri_reflects_use_of_ssl_with_custom_port
     uri = 'https://foo.com:9999/bar/baz'
-    conn, req = dummy_request(uri, :use_ssl => true)
-    filtered = NewRelic::Agent::URIUtil.filtered_uri_for(conn, req)
-    assert_equal("https://foo.com:9999/bar/baz", filtered)
+    assert_equal("https://foo.com:9999/bar/baz", filter(uri, :use_ssl => true))
   end
 
   def test_filtered_uri_for_with_full_uri_request_path
     uri = "http://foo.com/bar/baz?a=1&b=2#fragment"
-    filtered = NewRelic::Agent::URIUtil.filtered_uri_for(*dummy_request(uri, :path => uri))
-    assert_equal("http://foo.com/bar/baz", filtered)
+    assert_equal("http://foo.com/bar/baz", filter(uri, :path => uri))
   end
 
   def test_filtered_uri_for_with_full_uri_request_path_https
     uri = "https://foo.com/bar/baz?a=1&b=2#fragment"
-    filtered = NewRelic::Agent::URIUtil.filtered_uri_for(*dummy_request(uri, :path => uri, :use_ssl => true))
-    assert_equal("https://foo.com/bar/baz", filtered)
+    assert_equal("https://foo.com/bar/baz", filter(uri, :path => uri, :use_ssl => true))
   end
 
   def test_strips_credentials_embedded_in_uri
     uri = "http://user:pass@foo.com/bar/baz"
-    filtered = NewRelic::Agent::URIUtil.filtered_uri_for(*dummy_request(uri, :path => uri))
-    assert_equal("http://foo.com/bar/baz", filtered)
+    assert_equal("http://foo.com/bar/baz", filter(uri, :path => uri))
   end
 end
