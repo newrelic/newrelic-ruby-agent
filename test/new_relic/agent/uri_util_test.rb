@@ -74,4 +74,10 @@ class URIUtilTest < Test::Unit::TestCase
     filtered = NewRelic::Agent::URIUtil.filtered_uri_for(*dummy_request(uri, :path => uri, :use_ssl => true))
     assert_equal("https://foo.com/bar/baz", filtered)
   end
+
+  def test_strips_credentials_embedded_in_uri
+    uri = "http://user:pass@foo.com/bar/baz"
+    filtered = NewRelic::Agent::URIUtil.filtered_uri_for(*dummy_request(uri, :path => uri))
+    assert_equal("http://foo.com/bar/baz", filtered)
+  end
 end

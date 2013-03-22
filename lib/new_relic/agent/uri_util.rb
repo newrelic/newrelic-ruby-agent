@@ -15,6 +15,8 @@ module NewRelic
           URI("#{scheme}://#{http.address}:#{http.port}#{request.path}")
         end
 
+        parsed.user = nil
+        parsed.password = nil
         parsed.query = nil
         parsed.fragment = nil
         parsed.to_s
