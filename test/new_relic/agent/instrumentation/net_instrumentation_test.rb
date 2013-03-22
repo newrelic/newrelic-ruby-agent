@@ -440,4 +440,12 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
     @engine.transaction_sampler = NewRelic::Agent.agent.transaction_sampler
   end
 
+  def test_includes_full_url_in_transaction_trace
+    uri = 'http://www.google.com/index.html?foo=bar#fragment'
+    Net::HTTP.get URI.parse(uri)
+
+    last_segment = find_last_segment()
+    filtered_uri = 'http://www.google.com/index.html'
+    assert_equal filtered_uri, last_segment.params[:uri]
+  end
 end
