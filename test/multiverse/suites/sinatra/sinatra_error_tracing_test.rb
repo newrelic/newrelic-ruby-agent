@@ -28,6 +28,7 @@ class SinatraErrorTracingTest < Test::Unit::TestCase
     ::NewRelic::Agent.manual_start
     @error_collector = ::NewRelic::Agent.instance.error_collector
 
+    @error_collector.errors.clear
     assert(@error_collector.enabled?,
            'error collector should be enabled')
   end
@@ -38,5 +39,12 @@ class SinatraErrorTracingTest < Test::Unit::TestCase
     assert_equal 'We are sorry', last_response.body
 
     assert_equal(1, @error_collector.errors.size)
+  end
+
+  def test_ignores_notfound_errors_by_default
+    get '/ignored_boom'
+    assert_equal 404, last_response.status
+    assert_match %r{Sinatra doesn&rsquo;t know this ditty\.}, last_response.body
+    assert_equal(0, @error_collector.errors.size)
   end
 end
