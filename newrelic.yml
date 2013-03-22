@@ -168,7 +168,7 @@ common: &default_settings
     # To stop specific errors from reporting to New Relic, set this property
     # to comma separated values.  Default is to ignore routing errors
     # which are how 404's get triggered.
-    ignore_errors: "ActionController::RoutingError,Sinatra::NotFound"
+    ignore_errors: ActionController::RoutingError
 
   # If you're interested in capturing memcache keys as though they
   # were SQL uncomment this flag. Note that this does increase
