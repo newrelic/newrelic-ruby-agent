@@ -94,7 +94,7 @@ module NewRelic
       #
       # Note that in developer mode, this captures a stacktrace for
       # the beginning of each segment, which can be fairly slow
-      def notice_push_scope(scope, time=Time.now)
+      def notice_push_scope(time=Time.now)
         return unless builder
 
         builder.trace_entry(time.to_f)

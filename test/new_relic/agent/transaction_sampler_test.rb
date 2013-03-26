@@ -97,7 +97,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
   def test_notice_push_scope_no_builder
     @sampler.expects(:builder)
-    assert_equal(nil, @sampler.notice_push_scope('a scope'))
+    assert_equal(nil, @sampler.notice_push_scope())
   end
 
   def test_notice_push_scope_with_builder
@@ -105,7 +105,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
       builder = mock('builder')
       builder.expects(:trace_entry).with(100.0)
       @sampler.expects(:builder).returns(builder).twice
-      @sampler.notice_push_scope('a scope', Time.at(100))
+      @sampler.notice_push_scope(Time.at(100))
     end
   end
 
@@ -115,7 +115,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     @sampler.expects(:builder).returns(builder).twice
     @sampler.expects(:capture_segment_trace)
 
-    @sampler.notice_push_scope('a scope', Time.at(100))
+    @sampler.notice_push_scope(Time.at(100))
   end
 
   def test_scope_depth_no_builder
@@ -674,13 +674,13 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
       @sampler.notice_first_scope_push Time.now.to_f
       @sampler.notice_transaction "/path", nil, {}
-      @sampler.notice_push_scope "a"
+      @sampler.notice_push_scope
 
-      @sampler.notice_push_scope "b"
+      @sampler.notice_push_scope
       @sampler.notice_pop_scope "b"
 
-      @sampler.notice_push_scope "c"
-      @sampler.notice_push_scope "d"
+      @sampler.notice_push_scope
+      @sampler.notice_push_scope
       @sampler.notice_pop_scope "d"
       @sampler.notice_pop_scope "c"
 
@@ -701,13 +701,13 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
       @sampler.notice_first_scope_push Time.now.to_f
       @sampler.notice_transaction "/path", nil, {}
-      @sampler.notice_push_scope "a"
+      @sampler.notice_push_scope
 
-      @sampler.notice_push_scope "b"
+      @sampler.notice_push_scope
       @sampler.notice_pop_scope "b"
 
-      @sampler.notice_push_scope "c"
-      @sampler.notice_push_scope "d"
+      @sampler.notice_push_scope
+      @sampler.notice_push_scope
       @sampler.notice_pop_scope "d"
       @sampler.notice_pop_scope "c"
 
@@ -792,7 +792,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
       @sampler.notice_first_scope_push Time.now.to_f
       @sampler.notice_transaction "/path", nil, {}
-      @sampler.notice_push_scope "a"
+      @sampler.notice_push_scope
 
       assert_equal 1, @sampler.scope_depth
 
@@ -803,7 +803,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
       @sampler.notice_first_scope_push Time.now.to_f
       @sampler.notice_transaction "/path", nil, {}
-      @sampler.notice_push_scope "a"
+      @sampler.notice_push_scope
       @sampler.notice_pop_scope "a"
       @sampler.notice_scope_empty
 
@@ -817,7 +817,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
       @sampler.notice_first_scope_push Time.now.to_f
       @sampler.notice_transaction "/path", nil, {}
-      @sampler.notice_push_scope "a"
+      @sampler.notice_push_scope
       @sampler.notice_pop_scope "a"
       @sampler.notice_scope_empty
       @sampler.notice_scope_empty
@@ -856,7 +856,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     with_config(:'transaction_tracer.stack_trace_threshold' => 0) do
       t = Time.now
       @sampler.notice_first_scope_push t.to_f
-      @sampler.notice_push_scope 'Bill', (t+1).to_f
+      @sampler.notice_push_scope (t+1).to_f
 
       segment = @sampler.send(:builder).current_segment
       assert segment[:backtrace]
@@ -894,7 +894,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
   def test_segment_obfuscated
     @sampler.notice_first_scope_push Time.now.to_f
-    @sampler.notice_push_scope "foo"
+    @sampler.notice_push_scope
 
     orig_sql = "SELECT * from Jim where id=66"
 
@@ -925,9 +925,9 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   def test_should_not_collect_segments_beyond_limit
     with_config(:'transaction_tracer.limit_segments' => 3) do
       run_sample_trace do
-        @sampler.notice_push_scope 'a1'
+        @sampler.notice_push_scope
         @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'hallah'", nil, 0)
-        @sampler.notice_push_scope 'a11'
+        @sampler.notice_push_scope
         @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'semolina'", nil, 0)
         @sampler.notice_pop_scope "a11"
         @sampler.notice_pop_scope "a1"
@@ -938,7 +938,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
   def test_renaming_current_segment_midflight
     @sampler.start_builder
-    @sampler.notice_push_scope( 'External/www.google.com/all' )
+    @sampler.notice_push_scope
     @sampler.rename_scope_segment( 'External/www.google.com/Net::HTTP/GET' )
     assert_nothing_raised do
       @sampler.notice_pop_scope( 'External/www.google.com/Net::HTTP/GET' )
@@ -947,7 +947,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
   def test_adding_segment_parameters
     @sampler.start_builder
-    @sampler.notice_push_scope( 'External/www.google.com/all' )
+    @sampler.notice_push_scope
     @sampler.add_segment_parameters( :transaction_guid => '97612F92E6194080' )
     assert_equal '97612F92E6194080', @sampler.builder.current_segment[:transaction_guid]
   end
@@ -957,13 +957,13 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   def run_sample_trace(start = Time.now.to_f, stop = nil)
     @sampler.notice_first_scope_push start
     @sampler.notice_transaction '/path', nil, {}
-    @sampler.notice_push_scope "a"
+    @sampler.notice_push_scope
     @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'", nil, 0)
-    @sampler.notice_push_scope "ab"
+    @sampler.notice_push_scope
     @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'white'", nil, 0)
     yield if block_given?
     @sampler.notice_pop_scope "ab"
-    @sampler.notice_push_scope "ac"
+    @sampler.notice_push_scope
     @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'french'", nil, 0)
     @sampler.notice_pop_scope "ac"
     @sampler.notice_pop_scope "a"

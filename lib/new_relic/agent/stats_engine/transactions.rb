@@ -51,7 +51,7 @@ module Agent
       # TransactionSample::Segment at the end of transaction execution
       def push_scope(metric, time = Time.now.to_f, deduct_call_time_from_parent = true)
         stack = scope_stack
-        @transaction_sampler.notice_push_scope metric, time if sampler_enabled?
+        @transaction_sampler.notice_push_scope(time) if sampler_enabled?
         scope = ScopeStackElement.new(metric, deduct_call_time_from_parent)
         stack.push scope
         scope

@@ -94,7 +94,7 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
   def test_basic
     metric = "hello"
     t1 = Time.now
-    self.class.trace_execution_scoped metric do
+    self.class.trace_execution_scoped(metric) do
       sleep 0.05
       assert metric == @stats_engine.peek_scope.name
     end
@@ -108,7 +108,7 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
   def test_basic__original_api
     metric = "hello"
     t1 = Time.now
-    self.class.trace_method_execution metric, true, true, true do
+    self.class.trace_method_execution(metric, true, true, true) do
       sleep 0.05
       assert metric == @stats_engine.peek_scope.name
     end
