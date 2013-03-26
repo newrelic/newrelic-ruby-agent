@@ -856,7 +856,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     with_config(:'transaction_tracer.stack_trace_threshold' => 0) do
       t = Time.now
       @sampler.notice_first_scope_push t.to_f
-      @sampler.notice_push_scope (t+1).to_f
+      @sampler.notice_push_scope((t+1).to_f)
 
       segment = @sampler.send(:builder).current_segment
       assert segment[:backtrace]
