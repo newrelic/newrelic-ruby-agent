@@ -79,17 +79,6 @@ module Agent
         @transaction_sampler && Agent.config[:'transaction_tracer.enabled']
       end
 
-      # Rename the segment associated with the last pushed scope to +new_name+.
-      def rename_scope_segment( new_name )
-        self.peek_scope.name = new_name
-        @transaction_sampler.rename_scope_segment( new_name ) if sampler_enabled?
-      end
-
-      # Returns the latest ScopeStackElement
-      def peek_scope
-        scope_stack.last
-      end
-
       # set the name of the transaction for the current thread, which will be used
       # to define the scope of all traced methods called on this thread until the
       # scope stack is empty.
@@ -146,8 +135,6 @@ module Agent
         merge!(stats) if stats
         stats
       end
-
-      private
 
       # Returns the current scope stack, memoized to a thread local variable
       def scope_stack

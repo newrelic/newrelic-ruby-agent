@@ -938,8 +938,8 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
   def test_renaming_current_segment_midflight
     @sampler.start_builder
-    @sampler.notice_push_scope
-    @sampler.rename_scope_segment( 'External/www.google.com/Net::HTTP/GET' )
+    segment = @sampler.notice_push_scope
+    segment.metric_name = 'External/www.google.com/Net::HTTP/GET'
     assert_nothing_raised do
       @sampler.notice_pop_scope( 'External/www.google.com/Net::HTTP/GET' )
     end

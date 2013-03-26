@@ -97,9 +97,11 @@ module NewRelic
       def notice_push_scope(time=Time.now)
         return unless builder
 
-        builder.trace_entry(time.to_f)
+        segment = builder.trace_entry(time.to_f)
 
         capture_segment_trace if Agent.config[:developer_mode]
+
+        return segment
       end
 
       # in developer mode, capture the stack trace with the segment.
@@ -118,12 +120,6 @@ module NewRelic
           trace = trace[0..39] if trace.length > 40
           segment[:backtrace] = trace
         end
-      end
-
-      # Rename the latest scope's segment in the builder to +new_name+.
-      def rename_scope_segment( new_name )
-        return unless builder
-        builder.rename_current_segment( new_name )
       end
 
       # Defaults to zero, otherwise delegated to the transaction

@@ -22,7 +22,7 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
 
   def test_scope
     @engine.push_scope "scope1"
-    assert @engine.peek_scope.name == "scope1"
+    assert_equal 1, @engine.scope_stack.size
 
     expected = @engine.push_scope "scope2"
     @engine.pop_scope expected, 0
@@ -62,7 +62,6 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
   end
 
   def test_simplethrowcase(depth=0)
-
     fail "doh" if depth == 10
 
     scope = @engine.push_scope "scope#{depth}"
@@ -78,7 +77,7 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
     end
 
     if depth == 0
-      assert @engine.peek_scope.nil?
+      assert @engine.scope_stack.empty?
     end
   end
 
@@ -113,7 +112,6 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
     t4 = Time.now
 
     check_time_approximate 0, scope.children_time
-    check_time_approximate 0.003, @engine.peek_scope.children_time
 
     sleep 0.001
     t5 = Time.now
@@ -138,14 +136,14 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
   end
 
   def test_simple_start_transaction
-    assert @engine.peek_scope.nil?
+    assert @engine.scope_stack.empty?
     scope = @engine.push_scope "scope"
     @engine.start_transaction
-    assert !@engine.peek_scope.nil?
+    assert !@engine.scope_stack.empty?
     @engine.pop_scope scope, 0.01
-    assert @engine.peek_scope.nil?
+    assert @engine.scope_stack.empty?
     @engine.end_transaction
-    assert @engine.peek_scope.nil?
+    assert @engine.scope_stack.empty?
   end
 
 

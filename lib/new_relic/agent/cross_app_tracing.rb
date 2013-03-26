@@ -78,7 +78,7 @@ module NewRelic
             stats_engine.record_metrics(scoped_metric, duration, :scoped => true)
 
             # Add TT custom parameters
-            stats_engine.rename_scope_segment( scoped_metric )
+            segment.name = scoped_metric
             add_transaction_trace_parameters(http, request, response)
           end
         ensure

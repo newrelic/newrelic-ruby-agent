@@ -5,10 +5,10 @@
 
 class NewRelic::Agent::MockScopeListener
 
-  attr_reader :scope
+  attr_reader :scopes
 
   def initialize
-    @scope = {}
+    @scopes = []
   end
 
   def notice_first_scope_push(time)
@@ -18,7 +18,7 @@ class NewRelic::Agent::MockScopeListener
   end
 
   def notice_pop_scope(scope, time)
-    @scope[scope] = true
+    @scopes << scope
   end
 
   def notice_scope_empty(time)
