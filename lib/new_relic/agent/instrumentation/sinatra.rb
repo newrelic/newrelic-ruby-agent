@@ -94,7 +94,7 @@ module NewRelic
               end
             end
 
-            name.gsub!(%r{^[/^]*(.*?)[/\$\?]*$}, '\1')
+            name.gsub!(%r{^[/^\\A]*(.*?)[/\$\?\\z]*$}, '\1')
             if verb
               name = verb + ' ' + name
             end
