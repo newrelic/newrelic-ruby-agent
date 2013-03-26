@@ -103,7 +103,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   def test_notice_push_scope_with_builder
     with_config(:developer_mode => false) do
       builder = mock('builder')
-      builder.expects(:trace_entry).with('a scope', 100.0)
+      builder.expects(:trace_entry).with(100.0)
       @sampler.expects(:builder).returns(builder).twice
       @sampler.notice_push_scope('a scope', Time.at(100))
     end
@@ -111,7 +111,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
   def test_notice_push_scope_in_dev_mode
     builder = mock('builder')
-    builder.expects(:trace_entry).with('a scope', 100.0)
+    builder.expects(:trace_entry).with(100.0)
     @sampler.expects(:builder).returns(builder).twice
     @sampler.expects(:capture_segment_trace)
 

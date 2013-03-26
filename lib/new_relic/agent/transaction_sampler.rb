@@ -97,7 +97,7 @@ module NewRelic
       def notice_push_scope(scope, time=Time.now)
         return unless builder
 
-        builder.trace_entry(scope, time.to_f)
+        builder.trace_entry(time.to_f)
 
         capture_segment_trace if Agent.config[:developer_mode]
       end

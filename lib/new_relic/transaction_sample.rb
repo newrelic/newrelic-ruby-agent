@@ -91,7 +91,8 @@ module NewRelic
       @root_segment.path_string
     end
 
-    def create_segment(relative_timestamp, metric_name, segment_id = nil)
+    # relative_timestamp is seconds since the start of the transaction
+    def create_segment(relative_timestamp, metric_name=nil, segment_id = nil)
       raise TypeError.new("Frozen Transaction Sample") if frozen?
       @params[:segment_count] += 1
       @segment_count += 1

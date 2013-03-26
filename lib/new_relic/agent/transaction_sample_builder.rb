@@ -38,9 +38,9 @@ module NewRelic
         Agent.config[:'transaction_tracer.limit_segments']
       end
 
-      def trace_entry(metric_name, time)
+      def trace_entry(time)
         if @sample.count_segments < segment_limit()
-          segment = @sample.create_segment(time.to_f - @sample_start, metric_name)
+          segment = @sample.create_segment(time.to_f - @sample_start)
           @current_segment.add_called_segment(segment)
           @current_segment = segment
           if @sample.count_segments == segment_limit()
@@ -52,9 +52,7 @@ module NewRelic
 
       def trace_exit(metric_name, time)
         return unless @sample.count_segments < segment_limit()
-        if metric_name != @current_segment.metric_name
-          fail "unbalanced entry/exit: #{metric_name} != #{@current_segment.metric_name}"
-        end
+        @current_segment.metric_name = metric_name
         @current_segment.end_trace(time.to_f - @sample_start)
         @current_segment = @current_segment.parent_segment
       end
