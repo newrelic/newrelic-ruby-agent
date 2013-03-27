@@ -116,7 +116,7 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
 
   def test_log_errors_base
     ran = false
-    log_errors("name", "metric") do
+    log_errors("name") do
       ran = true
     end
     assert ran, "should run the contents of the block"
@@ -124,7 +124,7 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
 
   def test_log_errors_with_return
     ran = false
-    return_val = log_errors('name', 'metric') do
+    return_val = log_errors('name') do
       ran = true
       'happy trees'
     end
@@ -135,20 +135,20 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
 
   def test_log_errors_with_error
     expects_logging(:error, 
-      includes("Caught exception in name. Metric name = metric"),
+      includes("Caught exception in name."),
       instance_of(RuntimeError))
 
-    log_errors("name", "metric") do
+    log_errors("name") do
       raise "should not propagate out of block"
     end
   end
 
   def test_trace_execution_scoped_header
     options = {:force => false, :deduct_call_time_from_parent => false}
-    self.expects(:log_errors).with('trace_execution_scoped header', 'foo').yields
+    self.expects(:log_errors).with('trace_execution_scoped header').yields
     self.expects(:push_flag!).with(false)
     fakestats = mocked_object('stat_engine')
-    fakestats.expects(:push_scope).with('foo', 1.0, false)
+    fakestats.expects(:push_scope).with(:method_tracer, 1.0, false)
     trace_execution_scoped_header('foo', options, 1.0)
   end
 
@@ -161,13 +161,13 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
     expected_scope = 'an expected scope'
     engine = mocked_object('stat_engine')
     scope = mock('scope')
-    engine.expects(:pop_scope).with('an expected scope', 2.0).returns(scope)
+    engine.expects(:pop_scope).with('an expected scope', 'foo', 2.0).returns(scope)
     engine.expects(:record_metrics).with(metric_specs).multiple_yields(*stats)
     stats[0].expects(:record_data_point).with(1.0, 0.5)
     stats[1].expects(:record_data_point).with(1.0, 0.5)
     scope.expects(:children_time).returns(0.5)
     self.expects(:pop_flag!).with(false)
-    self.expects(:log_errors).with('trace_method_execution footer', 'foo').yields
+    self.expects(:log_errors).with('trace_method_execution footer').yields
 
     trace_execution_scoped_footer(t0, metric, metric_specs, expected_scope, false, t1)
   end

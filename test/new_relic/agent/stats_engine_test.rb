@@ -21,11 +21,11 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
   end
 
   def test_scope
-    @engine.push_scope "scope1"
+    @engine.push_scope(:scope1)
     assert_equal 1, @engine.scope_stack.size
 
-    expected = @engine.push_scope "scope2"
-    @engine.pop_scope expected
+    expected = @engine.push_scope(:scope2)
+    @engine.pop_scope(expected, "name 2")
 
     scoped = @engine.get_stats "a"
     scoped.trace_call 3
@@ -64,7 +64,7 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
   def test_simplethrowcase(depth=0)
     fail "doh" if depth == 10
 
-    scope = @engine.push_scope "scope#{depth}"
+    scope = @engine.push_scope(:"scope#{depth}")
 
     begin
       test_simplethrowcase(depth+1)
@@ -73,7 +73,7 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
         raise e
       end
     ensure
-      @engine.pop_scope scope
+      @engine.pop_scope(scope, "name #{depth}")
     end
 
     if depth == 0
@@ -83,31 +83,27 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
 
 
   def test_scope_failure
-    scope1 = @engine.push_scope "scope1"
-    @engine.push_scope "scope2"
-
-    begin
-      @engine.pop_scope scope1
-      fail "Didn't throw when scope push/pop mismatched"
-    rescue
-      # success
+    scope1 = @engine.push_scope(:scope1)
+    scope2 = @engine.push_scope(:scope2)
+    assert_raises(RuntimeError) do
+      @engine.pop_scope(scope1, "name 1")
     end
   end
 
   def test_children_time
     t1 = Time.now
 
-    expected1 = @engine.push_scope "a"
+    expected1 = @engine.push_scope(:a)
     sleep 0.001
     t2 = Time.now
 
-    expected2 = @engine.push_scope "b"
+    expected2 = @engine.push_scope(:b)
     sleep 0.002
     t3 = Time.now
 
-    expected = @engine.push_scope "c"
+    expected = @engine.push_scope(:c)
     sleep 0.003
-    scope = @engine.pop_scope expected
+    scope = @engine.pop_scope(expected, "metric c")
 
     t4 = Time.now
 
@@ -116,31 +112,31 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
     sleep 0.001
     t5 = Time.now
 
-    expected = @engine.push_scope "d"
+    expected = @engine.push_scope(:d)
     sleep 0.002
-    scope = @engine.pop_scope expected
+    scope = @engine.pop_scope(expected, "metric d")
 
     t6 = Time.now
 
     check_time_approximate 0, scope.children_time
 
-    scope = @engine.pop_scope expected2
-    assert_equal scope.name, 'b'
+    scope = @engine.pop_scope(expected2, "metric b")
+    assert_equal 'metric b', scope.name
 
-    check_time_approximate (t4 - t3) + (t6 - t5), scope.children_time
+    check_time_approximate((t4 - t3) + (t6 - t5), scope.children_time)
 
-    scope = @engine.pop_scope expected1
-    assert_equal scope.name, 'a'
+    scope = @engine.pop_scope(expected1, "metric a")
+    assert_equal scope.name, 'metric a'
 
-    check_time_approximate (t6 - t2), scope.children_time
+    check_time_approximate((t6 - t2), scope.children_time)
   end
 
   def test_simple_start_transaction
     assert @engine.scope_stack.empty?
-    scope = @engine.push_scope "scope"
+    scope = @engine.push_scope :tag
     @engine.start_transaction
     assert !@engine.scope_stack.empty?
-    @engine.pop_scope scope
+    @engine.pop_scope(scope, "name")
     assert @engine.scope_stack.empty?
     @engine.end_transaction
     assert @engine.scope_stack.empty?
@@ -149,13 +145,13 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
 
   # test for when the scope stack contains an element only used for tts and not metrics
   def test_simple_tt_only_scope
-    scope1 = @engine.push_scope "a", 0, true
-    scope2 = @engine.push_scope "b", 10, false
-    scope3 = @engine.push_scope "c", 20, true
+    scope1 = @engine.push_scope(:a, 0, true)
+    scope2 = @engine.push_scope(:b, 10, false)
+    scope3 = @engine.push_scope(:c, 20, true)
 
-    @engine.pop_scope scope3, 30
-    @engine.pop_scope scope2, 20
-    @engine.pop_scope scope1, 10
+    @engine.pop_scope(scope3, "name a", 30)
+    @engine.pop_scope(scope2, "name b", 20)
+    @engine.pop_scope(scope1, "name c", 10)
 
     assert_equal 0, scope3.children_time
     assert_equal 10, scope2.children_time
@@ -163,15 +159,15 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
   end
 
   def test_double_tt_only_scope
-    scope1 = @engine.push_scope "a", 0, true
-    scope2 = @engine.push_scope "b", 10, false
-    scope3 = @engine.push_scope "c", 20, false
-    scope4 = @engine.push_scope "d", 30, true
+    scope1 = @engine.push_scope(:a, 0, true)
+    scope2 = @engine.push_scope(:b, 10, false)
+    scope3 = @engine.push_scope(:c, 20, false)
+    scope4 = @engine.push_scope(:d, 30, true)
 
-    @engine.pop_scope scope4, 40
-    @engine.pop_scope scope3, 30
-    @engine.pop_scope scope2, 20
-    @engine.pop_scope scope1, 10
+    @engine.pop_scope(scope4, "name d", 40)
+    @engine.pop_scope(scope3, "name c", 30)
+    @engine.pop_scope(scope2, "name b", 20)
+    @engine.pop_scope(scope1, "name a", 10)
 
     assert_equal 0, scope4.children_time.round
     assert_equal 10, scope3.children_time.round

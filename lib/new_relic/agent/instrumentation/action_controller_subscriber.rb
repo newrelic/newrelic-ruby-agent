@@ -92,12 +92,12 @@ module NewRelic
           NewRelic::Agent::TransactionInfo.get.transaction_name = event.metric_name
           frame_data.start_transaction
           event.scope = NewRelic::Agent.instance.stats_engine \
-            .push_scope(event.metric_name, event.time)
+            .push_scope(:action_controller, event.time)
         end
 
         def stop_transaction(event)
           NewRelic::Agent.instance.stats_engine \
-            .pop_scope(event.scope, event.end)
+            .pop_scope(event.scope, event.metric_name, event.end)
           frame_data = NewRelic::Agent::Instrumentation::MetricFrame.current
           frame_data.pop
         end

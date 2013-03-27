@@ -168,10 +168,10 @@ module NewRelic
           
           # helper for logging errors to the newrelic_agent.log
           # properly. Logs the error at error level
-          def log_errors(code_area, metric)
+          def log_errors(code_area)
             yield
           rescue => e
-            ::NewRelic::Agent.logger.error("Caught exception in #{code_area}. Metric name = #{metric}", e)
+            ::NewRelic::Agent.logger.error("Caught exception in #{code_area}.", e)
           end
           
           # provides the header for our traced execution scoped
@@ -182,9 +182,9 @@ module NewRelic
           # sanity. If the scope stack becomes unbalanced, this
           # transaction loses meaning.
           def trace_execution_scoped_header(metric, options, t0=Time.now.to_f)
-            scope = log_errors("trace_execution_scoped header", metric) do
+            scope = log_errors("trace_execution_scoped header") do
               push_flag!(options[:force])
-              scope = stat_engine.push_scope(metric, t0, options[:deduct_call_time_from_parent])
+              scope = stat_engine.push_scope(:method_tracer, t0, options[:deduct_call_time_from_parent])
             end
             # needed in case we have an error, above, to always return
             # the start time.
@@ -200,10 +200,10 @@ module NewRelic
           # push the scope onto the stack - it simply does not trace
           # any metrics.
           def trace_execution_scoped_footer(t0, first_name, metric_specs, expected_scope, forced, t1=Time.now.to_f)
-            log_errors("trace_method_execution footer", first_name) do
+            log_errors("trace_method_execution footer") do
               pop_flag!(forced)
               if expected_scope
-                scope = stat_engine.pop_scope(expected_scope, t1)
+                scope = stat_engine.pop_scope(expected_scope, first_name, t1)
                 duration = t1 - t0
                 exclusive = duration - scope.children_time
                 stat_engine.record_metrics(metric_specs) do |stat|

@@ -52,7 +52,7 @@ module NewRelic
 
         # Create a segment and time the call
         t0 = Time.now
-        segment = stats_engine.push_scope( "External/#{http.address}/all", t0 )
+        segment = stats_engine.push_scope( :net_http, t0 )
 
         return t0, segment
       rescue => err
@@ -84,7 +84,7 @@ module NewRelic
         ensure
           # We always need to pop the scope stack to avoid an inconsistent
           # state, which will prevent tracing of the whole transaction.
-          stats_engine.pop_scope( segment, t1 )
+          stats_engine.pop_scope( segment, scoped_metric, t1 )
         end
       rescue NewRelic::Agent::CrossAppTracing::Error => err
         NewRelic::Agent.logger.debug "while cross app tracing", err
