@@ -161,7 +161,7 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
     expected_scope = 'an expected scope'
     engine = mocked_object('stat_engine')
     scope = mock('scope')
-    engine.expects(:pop_scope).with('an expected scope', 1.0, 2.0).returns(scope)
+    engine.expects(:pop_scope).with('an expected scope', 2.0).returns(scope)
     engine.expects(:record_metrics).with(metric_specs).multiple_yields(*stats)
     stats[0].expects(:record_data_point).with(1.0, 0.5)
     stats[1].expects(:record_data_point).with(1.0, 0.5)

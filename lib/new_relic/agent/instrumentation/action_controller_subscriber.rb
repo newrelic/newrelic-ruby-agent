@@ -97,7 +97,7 @@ module NewRelic
 
         def stop_transaction(event)
           NewRelic::Agent.instance.stats_engine \
-            .pop_scope(event.scope, event.duration, event.end)
+            .pop_scope(event.scope, event.end)
           frame_data = NewRelic::Agent::Instrumentation::MetricFrame.current
           frame_data.pop
         end

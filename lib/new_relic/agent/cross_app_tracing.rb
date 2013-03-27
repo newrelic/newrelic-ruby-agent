@@ -84,7 +84,7 @@ module NewRelic
         ensure
           # We always need to pop the scope stack to avoid an inconsistent
           # state, which will prevent tracing of the whole transaction.
-          stats_engine.pop_scope( segment, duration, t1 )
+          stats_engine.pop_scope( segment, t1 )
         end
       rescue NewRelic::Agent::CrossAppTracing::Error => err
         NewRelic::Agent.logger.debug "while cross app tracing", err

@@ -25,7 +25,7 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
     assert_equal 1, @engine.scope_stack.size
 
     expected = @engine.push_scope "scope2"
-    @engine.pop_scope expected, 0
+    @engine.pop_scope expected
 
     scoped = @engine.get_stats "a"
     scoped.trace_call 3
@@ -73,7 +73,7 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
         raise e
       end
     ensure
-      @engine.pop_scope scope, 0
+      @engine.pop_scope scope
     end
 
     if depth == 0
@@ -107,7 +107,7 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
 
     expected = @engine.push_scope "c"
     sleep 0.003
-    scope = @engine.pop_scope expected, Time.now - t3
+    scope = @engine.pop_scope expected
 
     t4 = Time.now
 
@@ -118,18 +118,18 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
 
     expected = @engine.push_scope "d"
     sleep 0.002
-    scope = @engine.pop_scope expected, Time.now - t5
+    scope = @engine.pop_scope expected
 
     t6 = Time.now
 
     check_time_approximate 0, scope.children_time
 
-    scope = @engine.pop_scope expected2, Time.now - t2
+    scope = @engine.pop_scope expected2
     assert_equal scope.name, 'b'
 
     check_time_approximate (t4 - t3) + (t6 - t5), scope.children_time
 
-    scope = @engine.pop_scope expected1, Time.now - t1
+    scope = @engine.pop_scope expected1
     assert_equal scope.name, 'a'
 
     check_time_approximate (t6 - t2), scope.children_time
@@ -140,7 +140,7 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
     scope = @engine.push_scope "scope"
     @engine.start_transaction
     assert !@engine.scope_stack.empty?
-    @engine.pop_scope scope, 0.01
+    @engine.pop_scope scope
     assert @engine.scope_stack.empty?
     @engine.end_transaction
     assert @engine.scope_stack.empty?
@@ -153,8 +153,8 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
     scope2 = @engine.push_scope "b", 10, false
     scope3 = @engine.push_scope "c", 20, true
 
-    @engine.pop_scope scope3, 10
-    @engine.pop_scope scope2, 10
+    @engine.pop_scope scope3, 30
+    @engine.pop_scope scope2, 20
     @engine.pop_scope scope1, 10
 
     assert_equal 0, scope3.children_time
@@ -168,9 +168,9 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
     scope3 = @engine.push_scope "c", 20, false
     scope4 = @engine.push_scope "d", 30, true
 
-    @engine.pop_scope scope4, 10
-    @engine.pop_scope scope3, 10
-    @engine.pop_scope scope2, 10
+    @engine.pop_scope scope4, 40
+    @engine.pop_scope scope3, 30
+    @engine.pop_scope scope2, 20
     @engine.pop_scope scope1, 10
 
     assert_equal 0, scope4.children_time.round

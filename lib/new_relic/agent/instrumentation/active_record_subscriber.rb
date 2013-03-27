@@ -43,7 +43,7 @@ module NewRelic
                         Helper.milliseconds_to_seconds(event.duration))
 
           # exit transaction trace segment
-          NewRelic::Agent.instance.stats_engine.pop_scope(scope, event.duration, event.end)
+          NewRelic::Agent.instance.stats_engine.pop_scope(scope, event.end)
         end
 
         def record_metrics(event)

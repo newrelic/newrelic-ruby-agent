@@ -25,7 +25,7 @@ module NewRelic
           if NewRelic::Agent.is_execution_traced? && event.recordable?
             record_metrics(event)
             NewRelic::Agent.instance.stats_engine \
-              .pop_scope(event.scope, event.duration, event.end)
+              .pop_scope(event.scope, event.end)
           end
         end
 

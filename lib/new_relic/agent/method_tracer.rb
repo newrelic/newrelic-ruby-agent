@@ -201,11 +201,10 @@ module NewRelic
           # any metrics.
           def trace_execution_scoped_footer(t0, first_name, metric_specs, expected_scope, forced, t1=Time.now.to_f)
             log_errors("trace_method_execution footer", first_name) do
-              duration = t1 - t0
-
               pop_flag!(forced)
               if expected_scope
-                scope = stat_engine.pop_scope(expected_scope, duration, t1)
+                scope = stat_engine.pop_scope(expected_scope, t1)
+                duration = t1 - t0
                 exclusive = duration - scope.children_time
                 stat_engine.record_metrics(metric_specs) do |stat|
                   stat.record_data_point(duration, exclusive)
