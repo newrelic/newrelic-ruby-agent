@@ -26,7 +26,7 @@ DependencyDetection.defer do
   @name = :rails4_error
   
   depends_on do
-    defined?(::Rails) && ::Rails.respond_to?(:version) && ::Rails.version.to_i == 4
+    defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i == 4
   end
 
   depends_on do
