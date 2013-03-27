@@ -149,7 +149,7 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
     self.expects(:push_flag!).with(false)
     fakestats = mocked_object('stat_engine')
     fakestats.expects(:push_scope).with(:method_tracer, 1.0, false)
-    trace_execution_scoped_header('foo', options, 1.0)
+    trace_execution_scoped_header(options, 1.0)
   end
 
   def test_trace_execution_scoped_footer
@@ -195,7 +195,7 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
     ]
     self.expects(:trace_disabled?).returns(false)
     self.expects(:get_metric_specs).with('metric', ['array'], nil, opts_after_correction).returns(specs)
-    self.expects(:trace_execution_scoped_header).with('metric', opts_after_correction).returns(['start_time', 'expected_scope'])
+    self.expects(:trace_execution_scoped_header).with(opts_after_correction).returns(['start_time', 'expected_scope'])
     self.expects(:trace_execution_scoped_footer).with('start_time', 'metric', specs, 'expected_scope', nil)
     ran = false
     value = trace_execution_scoped(['metric', 'array'], passed_in_opts) do
@@ -216,7 +216,7 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
     ]
     self.expects(:trace_disabled?).returns(false)
     self.expects(:get_metric_specs).with('metric', ['array'], nil, opts_after_correction).returns(specs)
-    self.expects(:trace_execution_scoped_header).with('metric', opts_after_correction).returns(['start_time', 'expected_scope'])
+    self.expects(:trace_execution_scoped_header).with(opts_after_correction).returns(['start_time', 'expected_scope'])
     self.expects(:trace_execution_scoped_footer).with('start_time', 'metric', specs, 'expected_scope', nil)
     ran = false
     assert_raises(RuntimeError) do

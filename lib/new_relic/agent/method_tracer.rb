@@ -181,7 +181,7 @@ module NewRelic
           # the scope so that we can check for it later, to maintain
           # sanity. If the scope stack becomes unbalanced, this
           # transaction loses meaning.
-          def trace_execution_scoped_header(metric, options, t0=Time.now.to_f)
+          def trace_execution_scoped_header(options, t0=Time.now.to_f)
             scope = log_errors("trace_execution_scoped header") do
               push_flag!(options[:force])
               scope = stat_engine.push_scope(:method_tracer, t0, options[:deduct_call_time_from_parent])
@@ -229,7 +229,7 @@ module NewRelic
             metric_names = Array(metric_names)
             first_name = metric_names.shift
             scope = stat_engine.scope_name
-            start_time, expected_scope = trace_execution_scoped_header(first_name, options)
+            start_time, expected_scope = trace_execution_scoped_header(options)
             begin 
               yield
             ensure
