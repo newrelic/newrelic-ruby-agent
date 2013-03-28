@@ -50,8 +50,7 @@ module NewRelic
         :monitor_mode    => Proc.new { self[:enabled] },
         :agent_enabled   => Proc.new do
           self[:enabled] &&
-          (self[:developer_mode] || self[:monitor_mode] || self[:monitor_daemons]) &&
-          !!NewRelic::Agent.config[:dispatcher]
+          (self[:developer_mode] || self[:monitor_mode] || self[:monitor_daemons])
         end,
         :developer_mode  => Proc.new { self[:developer] },
         :developer       => false,
