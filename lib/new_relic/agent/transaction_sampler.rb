@@ -147,6 +147,7 @@ module NewRelic
       # depending on which settings are active. See `store_sample`
       def notice_scope_empty(time=Time.now)
         last_builder = builder
+
         return unless last_builder
 
         last_builder.finish_trace(time.to_f)

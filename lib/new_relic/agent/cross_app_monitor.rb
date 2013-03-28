@@ -87,7 +87,7 @@ module NewRelic
           end
         end
 
-        events.subscribe(:start_transaction) do |name|
+        events.subscribe(:start_transaction) do
           set_transaction_custom_parameters
         end
 

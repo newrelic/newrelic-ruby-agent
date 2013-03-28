@@ -69,10 +69,14 @@ module NewRelic
 
         def initialize
           @start = Time.now
-          @path_stack = [] # stack of MetricParser elements
+          @transaction_type_stack = [] # stack of transaction types
           @jruby_cpu_start = jruby_cpu_time
           @process_cpu_start = process_cpu
           Thread.current[:last_metric_frame] = self
+        end
+
+        def has_parent?
+          @transaction_type_stack.size > 1
         end
 
         def agent
@@ -93,10 +97,10 @@ module NewRelic
 
         # Indicate that we are entering a measured controller action or task.
         # Make sure you unwind every push with a pop call.
-        def push(m)
+        def push(transaction_type)
           transaction_sampler.notice_first_scope_push(start)
           sql_sampler.notice_first_scope_push(start)
-          @path_stack.push NewRelic::MetricParser::MetricParser.for_metric_named(m)
+          @transaction_type_stack.push(transaction_type)
         end
 
         # Indicate that you don't want to keep the currently saved transaction
@@ -123,38 +127,31 @@ module NewRelic
         # controller action, otherwise the controller action blames
         # itself.  It gets reset in the normal #pop call.
         def start_transaction
-          agent.stats_engine.start_transaction metric_name
+          agent.stats_engine.start_transaction
           agent.stats_engine.push_transaction_stats
           # Only push the transaction context info once, on entry:
-          if @path_stack.size == 1
-            transaction_sampler.notice_transaction(metric_name, uri, filtered_params)
-            sql_sampler.notice_transaction(metric_name, uri, filtered_params)
+          if @transaction_type_stack.size == 1
+            txn_name = TransactionInfo.get.transaction_name
+            transaction_sampler.notice_transaction(txn_name, uri, filtered_params)
+            sql_sampler.notice_transaction(txn_name, uri, filtered_params)
           end
-        end
-
-        def current_metric
-          @path_stack.last
-        end
-
-        def parent_metric
-          @path_stack[-2] if @path_stack.size > 1
         end
 
         # Return the path, the part of the metric after the category
         def path
-          @path_stack.last.last
+          @transaction_type_stack.last.last
         end
 
         # Unwind one stack level.  It knows if it's back at the outermost caller and
         # does the appropriate wrapup of the context.
-        def pop
-          metric = @path_stack.pop
-          log_underflow if metric.nil?
+        def pop(metric)
+          transaction_type = @transaction_type_stack.pop
+          log_underflow if transaction_type.nil?
           agent.stats_engine.pop_transaction_stats
-          if @path_stack.empty?
-            handle_empty_path_stack(metric)
+          if @transaction_type_stack.empty?
+            handle_empty_transaction_type_stack
           else
-            set_new_scope!(current_stack_metric)
+            set_new_scope!(metric)
           end
         end
 
@@ -187,7 +184,7 @@ module NewRelic
           options[:referer] = referer if referer
           options[:request_params] = filtered_params if filtered_params
           options[:uri] = uri if uri
-          options[:metric] = metric_name
+          options[:metric] = TransactionInfo.get.transaction_name
           options.merge!(custom_parameters)
           if exception != e
             result = agent.error_collector.notice_error(e, options)
@@ -213,22 +210,13 @@ module NewRelic
           (current) ? current.user_attributes : {}
         end
 
-        def record_apdex()
+        def record_apdex(metric_name)
           return unless recording_web_transaction? && NewRelic::Agent.is_execution_traced?
+          metric_parser = NewRelic::MetricParser::MetricParser \
+            .for_metric_named(metric_name)
+
           t = Time.now
-          self.class.record_apdex(current_metric, t - start, t - apdex_start, !exception.nil?)
-        end
-
-        def metric_name
-          return nil if @path_stack.empty?
-          current_metric.name
-        end
-
-        # Return the array of metrics to record for the current metric frame.
-        def recorded_metrics
-          metrics = [ metric_name ]
-          metrics += current_metric.summary_metrics if @path_stack.size == 1
-          metrics
+          self.class.record_apdex(metric_parser, t - start, t - apdex_start, !exception.nil?)
         end
 
         # Yield to a block that is run with a database metric name context.  This means
@@ -282,11 +270,11 @@ module NewRelic
         end
 
         def recording_web_transaction?
-          current_metric && current_metric.is_web_transaction?
+          current_transaction_type == :web
         end
 
-        def is_web_transaction?(metric)
-          0 == metric.index("Controller")
+        def current_transaction_type
+          @transaction_type_stack.last
         end
 
         # Make a safe attempt to get the referer from a request object, generally successful when

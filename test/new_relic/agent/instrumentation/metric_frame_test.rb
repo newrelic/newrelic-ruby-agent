@@ -163,19 +163,16 @@ class NewRelic::Agent::Instrumentation::MetricFrameTest < Test::Unit::TestCase
       .expects(:notice_first_scope_push).with(@f.start)
     NewRelic::Agent.instance.sql_sampler \
       .expects(:notice_first_scope_push).with(@f.start)
-    stack = @f.push('parent')
+    stack = @f.push(:web)
 
     assert_equal 1, stack.size
-    assert_equal 'parent', @f.current_metric.name
 
     NewRelic::Agent.instance.transaction_sampler \
       .expects(:notice_first_scope_push).with(@f.start)
     NewRelic::Agent.instance.sql_sampler \
       .expects(:notice_first_scope_push).with(@f.start)
-    stack = @f.push('child')
+    stack = @f.push(:web)
 
     assert_equal 2, stack.size
-    assert_equal 'parent', @f.parent_metric.name
-    assert_equal 'child', @f.current_metric.name
   end
 end

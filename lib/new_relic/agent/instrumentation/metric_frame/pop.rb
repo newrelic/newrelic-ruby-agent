@@ -58,7 +58,7 @@ module NewRelic
             agent.stats_engine.end_transaction
           end
 
-          def notify_transaction_sampler(web_transaction)
+          def notify_transaction_sampler
             record_transaction_cpu
             notice_scope_empty
           end
@@ -67,9 +67,9 @@ module NewRelic
             NewRelic::Agent.is_execution_traced?
           end
 
-          def handle_empty_path_stack(metric)
-            raise 'path stack not empty' unless @path_stack.empty?
-            notify_transaction_sampler(metric.is_web_transaction?) if traced?
+          def handle_empty_transaction_type_stack
+            raise 'transaction type stack not empty' unless @transaction_type_stack.empty?
+            notify_transaction_sampler if traced?
             end_transaction!
             clear_thread_metric_frame!
           end

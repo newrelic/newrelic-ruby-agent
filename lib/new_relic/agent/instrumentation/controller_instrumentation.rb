@@ -264,7 +264,7 @@ module NewRelic
 
           frame_data = _push_metric_frame(block_given? ? args : [])
           begin
-            NewRelic::Agent.trace_execution_scoped frame_data.recorded_metrics, :force => frame_data.force_flag do
+            NewRelic::Agent.trace_execution_scoped recorded_metrics(frame_data), :force => frame_data.force_flag do
               frame_data.start_transaction
               begin
                 NewRelic::Agent::BusyCalculator.dispatcher_start frame_data.start
@@ -288,10 +288,27 @@ module NewRelic
             NewRelic::Agent::BusyCalculator.dispatcher_finish
             # Look for a metric frame in the thread local and process it.
             # Clear the thread local when finished to ensure it only gets called once.
-            frame_data.record_apdex unless ignore_apdex?
-            frame_data.pop
+            txn_name = NewRelic::Agent::TransactionInfo.get.transaction_name
+            frame_data.record_apdex(txn_name) unless ignore_apdex?
+            frame_data.pop(txn_name)
 
             NewRelic::Agent::TransactionInfo.get.ignore_end_user = true if ignore_enduser?
+          end
+        end
+
+        def recorded_metrics(metric_frame)
+          txn = TransactionInfo.get.transaction_name
+          metric_parser = NewRelic::MetricParser::MetricParser.for_metric_named(txn)
+          metrics = [txn]
+          metrics += metric_parser.summary_metrics unless metric_frame.has_parent?
+          metrics
+        end
+
+        def transaction_type(options={})
+          case category_name(options)
+          when /^Controller(\/|$)/ then :web
+          else
+            :other
           end
         end
 
@@ -429,8 +446,8 @@ module NewRelic
 
           txn_name = transaction_name(options || {})
 
-          frame_data.push(txn_name)
           NewRelic::Agent::TransactionInfo.get.transaction_name = txn_name
+          frame_data.push(transaction_type(options))
           frame_data.filtered_params = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
           frame_data
         end

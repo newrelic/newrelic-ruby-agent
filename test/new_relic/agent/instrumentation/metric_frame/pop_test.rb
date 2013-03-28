@@ -12,6 +12,7 @@ class NewRelic::Agent::Instrumentation::MetricFrame::PopTest < Test::Unit::TestC
   attr_reader :sql_sampler
 
   def setup
+    @transaction_type_stack = []
     @agent = mock('agent')
     @transaction_sampler = mock('transaction sampler')
     @sql_sampler = mock('sql sampler')
@@ -114,13 +115,13 @@ class NewRelic::Agent::Instrumentation::MetricFrame::PopTest < Test::Unit::TestC
   def test_notify_transaction_sampler_true
     self.expects(:record_transaction_cpu)
     self.expects(:notice_scope_empty)
-    notify_transaction_sampler(true)
+    notify_transaction_sampler
   end
 
   def test_notify_transaction_sampler_false
     self.expects(:record_transaction_cpu)
     self.expects(:notice_scope_empty)
-    notify_transaction_sampler(false)
+    notify_transaction_sampler
   end
 
   def test_traced
@@ -128,43 +129,34 @@ class NewRelic::Agent::Instrumentation::MetricFrame::PopTest < Test::Unit::TestC
     traced?
   end
 
-  def test_handle_empty_path_stack_default
-    @path_stack = [] # it is empty
+  def test_handle_empty_transaction_type_stack_default
     self.expects(:traced?).returns(true)
-    fakemetric = mock('metric')
-    fakemetric.expects(:is_web_transaction?).returns(true)
-    self.expects(:notify_transaction_sampler).with(true)
+    self.expects(:notify_transaction_sampler)
     self.expects(:end_transaction!)
     self.expects(:clear_thread_metric_frame!)
-    handle_empty_path_stack(fakemetric)
+    handle_empty_transaction_type_stack
   end
 
-  def test_handle_empty_path_stack_non_web
-    @path_stack = [] # it is empty
+  def test_handle_empty_transaction_type_stack_non_web
     self.expects(:traced?).returns(true)
-    fakemetric = mock('metric')
-    fakemetric.expects(:is_web_transaction?).returns(false)
-    self.expects(:notify_transaction_sampler).with(false)
+    self.expects(:notify_transaction_sampler)
     self.expects(:end_transaction!)
     self.expects(:clear_thread_metric_frame!)
-    handle_empty_path_stack(fakemetric)
+    handle_empty_transaction_type_stack
   end
 
-  def test_handle_empty_path_stack_error
-    @path_stack = ['not empty']
+  def test_handle_empty_transaction_type_stack_error
+    @transaction_type_stack = ['not empty']
     assert_raise(RuntimeError) do
-      handle_empty_path_stack(mock('metric'))
+      handle_empty_transaction_type_stack
     end
   end
 
-  def test_handle_empty_path_stack_untraced
-    @path_stack = [] # it is empty
+  def test_handle_empty_transaction_type_stack_untraced
     self.expects(:traced?).returns(false)
-    fakemetric = mock('metric')
-    fakemetric.expects(:is_web_transaction?).never
     self.expects(:end_transaction!)
     self.expects(:clear_thread_metric_frame!)
-    handle_empty_path_stack(fakemetric)
+    handle_empty_transaction_type_stack
   end
 
   def test_current_stack_metric
