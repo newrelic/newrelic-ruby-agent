@@ -337,7 +337,7 @@ module NewRelic
           # assist with proper dispatcher detection
           def log_dispatcher
             dispatcher_name = Agent.config[:dispatcher].to_s
-            return if log_if(dispatcher_name.empty?, :warn, "No dispatcher detected.")
+            return if log_if(dispatcher_name.empty?, :info, "No known dispatcher detected.")
             ::NewRelic::Agent.logger.info "Dispatcher: #{dispatcher_name}"
           end
 
