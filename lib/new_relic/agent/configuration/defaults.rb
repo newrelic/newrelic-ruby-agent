@@ -54,11 +54,15 @@ module NewRelic
         :agent_enabled   => Proc.new do
           self[:enabled] &&
           (self[:developer_mode] || self[:monitor_mode] || self[:monitor_daemons]) &&
-          # Don't start the agent if we're in IRB or Rails console.  This
+          # Don't autostart the agent if we're in IRB or Rails console.  This
           # behavior could be overriden by adding an agent_enabled setting to
           # newrelic.yml or through the use of the NEWRELIC_ENABLE environment
           # variable.
-          ( ! defined?(IRB) )
+          ( ! defined?(IRB) ) &&
+          # Also don't autostart the agent if the command used to invoke the
+          # process is "rake" as this tends to spam the console when people
+          # deploy to heroku (where logs typically go to STDOUT).
+          ( File.basename($0) != 'rake' )
         end,
         :developer_mode  => Proc.new { self[:developer] },
         :developer       => false,
