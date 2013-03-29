@@ -34,24 +34,26 @@ module NewRelic::Agent::Configuration
       assert_applied_symbol 'NEWRELIC_FRAMEWORK', 'framework'
     end
 
-    def test_environment_booleans_truths_are_applied
-      ENV['NEWRELIC_ENABLE'] = 'true'
-      assert EnvironmentSource.new[:agent_enabled]
-      ENV['NEWRELIC_ENABLE'] = 'on'
-      assert EnvironmentSource.new[:agent_enabled]
-      ENV['NEWRELIC_ENABLE'] = 'yes'
-      assert EnvironmentSource.new[:agent_enabled]
-      ENV.delete('NEWRELIC_ENABLE')
-    end
+    %w| NEWRELIC_ENABLE NEWRELIC_ENABLED NEW_RELIC_ENABLE NEW_RELIC_ENABLED |.each do |var|
+      define_method("test_environment_booleans_truths_are_applied_to_#{var}") do
+        ENV[var] = 'true'
+        assert EnvironmentSource.new[:agent_enabled]
+        ENV[var] = 'on'
+        assert EnvironmentSource.new[:agent_enabled]
+        ENV[var] = 'yes'
+        assert EnvironmentSource.new[:agent_enabled]
+        ENV.delete(var)
+      end
 
-    def test_environment_booleans_falsehoods_are_applied
-      ENV['NEWRELIC_ENABLE'] = 'false'
-      assert !EnvironmentSource.new[:agent_enabled]
-      ENV['NEWRELIC_ENABLE'] = 'off'
-      assert !EnvironmentSource.new[:agent_enabled]
-      ENV['NEWRELIC_ENABLE'] = 'no'
-      assert !EnvironmentSource.new[:agent_enabled]
-      ENV.delete('NEWRELIC_ENABLE')
+      define_method("test_environment_booleans_falsehoods_are_applied_to_#{var}") do
+        ENV[var] = 'false'
+        assert !EnvironmentSource.new[:agent_enabled]
+        ENV[var] = 'off'
+        assert !EnvironmentSource.new[:agent_enabled]
+        ENV[var] = 'no'
+        assert !EnvironmentSource.new[:agent_enabled]
+        ENV.delete(var)
+      end
     end
 
     def test_set_log_config_from_environment
