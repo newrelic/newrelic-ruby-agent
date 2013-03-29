@@ -132,15 +132,6 @@ class ResqueTest < Test::Unit::TestCase
     assert_metric_and_call_count('OtherTransaction/ResqueJob/all', JOB_COUNT)
   end
 
-  def test_log_properly_when_fork_callbacks_are_broken
-    log_path = File.join(File.dirname(__FILE__), 'agent.log', 'newrelic_agent.log')
-    File.delete(log_path)
-
-    run_worker(:env_vars => 'BROKEN_AFTER_FORK=true')
-
-    assert File.read(log_path).include?('No communication channel to parent process')
-  end
-
   if RUBY_VERSION >= '1.9'
     def test_all_jobs_ran_background
       run_worker(:background => true)

@@ -3,12 +3,9 @@ suite_condition("Resque tests not compatible with 1.8.6, JRuby") do
 end
 
 gemfile <<-RB
-  gem 'resque', '1.23.0'
+  gem 'resque', '~> 1.23.1'
   gem 'json'
   gem 'rake'
-  if (RUBY_PLATFORM == 'java')
-    gem "jruby-openssl"
-  end
 RB
 
 before_suite do
@@ -20,5 +17,3 @@ end
 after_suite do
   system("redis-cli -p #{ENV["NEWRELIC_MULTIVERSE_REDIS_PORT"]} shutdown")
 end
-
-execute_mode 'spawn'
