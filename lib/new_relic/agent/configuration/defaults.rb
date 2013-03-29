@@ -48,9 +48,17 @@ module NewRelic
         end,
         :enabled         => true,
         :monitor_mode    => Proc.new { self[:enabled] },
+
+        # agent_enabled determines whether the agent should try to start and
+        # report data.
         :agent_enabled   => Proc.new do
           self[:enabled] &&
-          (self[:developer_mode] || self[:monitor_mode] || self[:monitor_daemons])
+          (self[:developer_mode] || self[:monitor_mode] || self[:monitor_daemons]) &&
+          # Don't start the agent if we're in IRB or Rails console.  This
+          # behavior could be overriden by adding an agent_enabled setting to
+          # newrelic.yml or through the use of the NEWRELIC_ENABLE environment
+          # variable.
+          ( ! defined?(IRB) )
         end,
         :developer_mode  => Proc.new { self[:developer] },
         :developer       => false,
