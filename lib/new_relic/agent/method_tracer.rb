@@ -48,7 +48,7 @@ module NewRelic
         clazz.extend ClassMethods
         clazz.extend InstanceMethods
       end
-      
+
       # Defines modules used at instrumentation runtime, to do the
       # actual tracing of time spent
       module InstanceMethods
@@ -93,7 +93,7 @@ module NewRelic
         end
 
         alias trace_method_execution_no_scope trace_execution_unscoped #:nodoc:
-        
+
         # Refactored out of the previous trace_execution_scoped
         # method, most methods in this module relate to code used in
         # the #trace_execution_scoped method in this module
@@ -102,18 +102,18 @@ module NewRelic
           def agent_instance
             NewRelic::Agent.instance
           end
-          
+
           # Shorthand to return the status of tracing
           def traced?
             NewRelic::Agent.is_execution_traced?
           end
-          
+
           # Tracing is disabled if we are not in a traced context and
           # no force option is supplied
           def trace_disabled?(options)
             !(traced? || options[:force])
           end
-          
+
           # Shorthand to return the current statistics engine
           def stat_engine
             agent_instance.stats_engine
@@ -138,14 +138,14 @@ module NewRelic
             end
             specs
           end
-          
+
           # Helper for setting a hash key if the hash key is nil,
           # instead of the default ||= behavior which sets if it is
           # false as well
           def set_if_nil(hash, key)
             hash[key] = true if hash[key].nil?
           end
-          
+
           # delegates to #agent_instance to push a trace execution
           # flag, only if execution of this metric is forced.
           #
@@ -154,7 +154,7 @@ module NewRelic
           def push_flag!(forced)
             agent_instance.push_trace_execution_flag(true) if forced
           end
-          
+
           # delegates to #agent_instance to pop the trace execution
           # flag, only if execution of this metric is
           # forced. otherwise this is taken care of for us
@@ -165,7 +165,7 @@ module NewRelic
           def pop_flag!(forced)
             agent_instance.pop_trace_execution_flag if forced
           end
-          
+
           # helper for logging errors to the newrelic_agent.log
           # properly. Logs the error at error level
           def log_errors(code_area)
@@ -173,7 +173,7 @@ module NewRelic
           rescue => e
             ::NewRelic::Agent.logger.error("Caught exception in #{code_area}.", e)
           end
-          
+
           # provides the header for our traced execution scoped
           # method - gets the initial time, sets the tracing flag if
           # needed, and pushes the scope onto the metric stack
@@ -190,7 +190,7 @@ module NewRelic
             # the start time.
             [t0, scope]
           end
-          
+
           # Handles the end of the #trace_execution_scoped method -
           # calculating the time taken, popping the tracing flag if
           # needed, deducting time taken by children, and tracing the
@@ -230,7 +230,7 @@ module NewRelic
             first_name = metric_names.shift
             scope = stat_engine.scope_name
             start_time, expected_scope = trace_execution_scoped_header(options)
-            begin 
+            begin
               yield
             ensure
               metric_specs = get_metric_specs(first_name, metric_names, scope, options)
@@ -242,20 +242,20 @@ module NewRelic
         include TraceExecutionScoped
 
       end
-      
+
       # Defines methods used at the class level, for adding instrumentation
       module ClassMethods
         # contains methods refactored out of the #add_method_tracer method
         module AddMethodTracer
           ALLOWED_KEYS = [:force, :metric, :push_scope, :deduct_call_time_from_parent, :code_header, :code_footer, :scoped_metric_only].freeze
-          
+
           # used to verify that the keys passed to
           # NewRelic::Agent::MethodTracer::ClassMethods#add_method_tracer
           # are valid. Returns a list of keys that were unexpected
           def unrecognized_keys(expected, given)
             given.keys - expected
           end
-          
+
           # used to verify that the keys passed to
           # NewRelic::Agent::MethodTracer::ClassMethods#add_method_tracer
           # are valid. checks the expected list against the list
@@ -263,7 +263,7 @@ module NewRelic
           def any_unrecognized_keys?(expected, given)
             unrecognized_keys(expected, given).any?
           end
-          
+
           # raises an error when the
           # NewRelic::Agent::MethodTracer::ClassMethods#add_method_tracer
           # method is called with improper keys. This aids in
@@ -273,7 +273,7 @@ module NewRelic
               raise "Unrecognized options in add_method_tracer_call: #{unrecognized_keys(ALLOWED_KEYS, options).join(', ')}"
             end
           end
-          
+
           # Sets the options for deducting call time from
           # parents. This defaults to true if we are recording a metric, but
           # can be overridden by the user if desired.
@@ -283,7 +283,7 @@ module NewRelic
           def set_deduct_call_time_based_on_metric(options)
             {:deduct_call_time_from_parent => !!options[:metric]}.merge(options)
           end
-          
+
           # validity checking - add_method_tracer must receive either
           # push scope or metric, or else it would record no
           # data. Raises an error if this is the case
@@ -294,7 +294,7 @@ module NewRelic
           end
 
           DEFAULT_SETTINGS = {:push_scope => true, :metric => true, :force => false, :code_header => "", :code_footer => "", :scoped_metric_only => false}.freeze
-          
+
           # Checks the provided options to make sure that they make
           # sense. Raises an error if the options are incorrect to
           # assist with debugging, so that errors occur at class
@@ -314,7 +314,7 @@ module NewRelic
           def default_metric_name_code(method_name)
             "Custom/#{self.name}/#{method_name.to_s}"
           end
-          
+
           # Checks to see if the method we are attempting to trace
           # actually exists or not. #add_method_tracer can't do
           # anything if the method doesn't exist.
@@ -323,7 +323,7 @@ module NewRelic
             ::NewRelic::Agent.logger.error("Did not trace #{self.name}##{method_name} because that method does not exist") unless exists
             exists
           end
-          
+
           # Checks to see if we have already traced a method with a
           # given metric by checking to see if the traced method
           # exists. Warns the user if methods are being double-traced
@@ -333,7 +333,7 @@ module NewRelic
             ::NewRelic::Agent.logger.error("Attempt to trace a method twice with the same metric: Method = #{method_name}, Metric Name = #{metric_name_code}") if exists
             exists
           end
-          
+
           # Returns a code snippet to be eval'd that skips tracing
           # when the agent is not tracing execution. turns
           # instrumentation into effectively one method call overhead
@@ -343,7 +343,7 @@ module NewRelic
               "return #{_untraced_method_name(method_name, metric_name_code)}(*args, &block) unless NewRelic::Agent.is_execution_traced?\n"
             end.to_s + options[:code_header].to_s
           end
-          
+
           # returns an eval-able string that contains the traced
           # method code used if the agent is not creating a scope for
           # use in scoped metrics.
