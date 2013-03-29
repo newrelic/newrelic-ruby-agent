@@ -42,12 +42,12 @@ module NewRelic
             record_instance_busy(event)
             stop_transaction(event)
           else
-            NewRelic::Agent.instance.pop_trace_execution_flag
+            Agent.instance.pop_trace_execution_flag
           end
         end
 
         def set_enduser_ignore
-          NewRelic::Agent::TransactionInfo.get.ignore_end_user = true
+          TransactionInfo.get.ignore_end_user = true
         end
 
         def record_metrics(event)
@@ -71,7 +71,7 @@ module NewRelic
 
         def record_apdex(event)
           return if event.apdex_ignored?
-          metric_parser = NewRelic::MetricParser::MetricParser \
+          metric_parser = MetricParser::MetricParser \
             .for_metric_named(event.metric_name)
           duration_plus_queue_time = event.end - (event.queue_start || event.time)
           MetricFrame.record_apdex(metric_parser,
@@ -81,8 +81,8 @@ module NewRelic
         end
 
         def record_instance_busy(event)
-          NewRelic::Agent::BusyCalculator.dispatcher_start(event.time)
-          NewRelic::Agent::BusyCalculator.dispatcher_finish(event.end)
+          BusyCalculator.dispatcher_start(event.time)
+          BusyCalculator.dispatcher_finish(event.end)
         end
 
         def record_queue_time(event)
@@ -134,7 +134,7 @@ module NewRelic
 
         def metric_name
           name = "Controller/#{metric_path}/#{metric_action}"
-          @final_name ||= NewRelic::Agent.instance.transaction_rules.rename(name)
+          @final_name ||= Agent.instance.transaction_rules.rename(name)
           return @final_name
         end
 
