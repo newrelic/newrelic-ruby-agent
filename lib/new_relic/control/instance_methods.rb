@@ -114,24 +114,6 @@ module NewRelic
 
       protected
 
-      # Append framework specific environment information for uploading to
-      # the server for change detection.  Override in subclasses
-      def append_environment_info; end
-
-      # Asks bundler to tell us which gemspecs are loaded in the
-      # current process
-      def bundler_gem_list
-        if defined?(Bundler) && Bundler.instance_eval do @load end
-          Bundler.load.specs.map do |spec|
-            version = (spec.respond_to?(:version) && spec.version)
-            spec.name + (version ? "(#{version})" : "")
-          end
-        else
-          []
-        end
-      end
-
-
       def initialize(local_env, config_file_override=nil)
         @local_env = local_env
         @instrumentation_files = []
