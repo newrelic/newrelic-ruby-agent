@@ -107,14 +107,8 @@ module Agent
       end
 
       # Start a new transaction, unless one is already in progress
-      def start_transaction(name = nil)
-        Thread::current[:newrelic_scope_stack] ||= []
-        if name
-          self.scope_name = name
-        else
-          # RUBY-1059: This should not use TransactionInfo
-          self.scope_name = TransactionInfo.get.transaction_name
-        end
+      # RUBY-1059: this doesn't take an arg anymore
+      def start_transaction(name=nil)
         NewRelic::Agent.instance.events.notify(:start_transaction)
         GCProfiler.init
       end
@@ -123,7 +117,7 @@ module Agent
       # If it looks like a transaction is still in progress, then maybe this is an inner transaction
       # and is ignored.
       #
-      def end_transaction
+      def end_transaction(name=nil)
         elapsed = GCProfiler.capture
         if @transaction_sampler && @transaction_sampler.last_sample
           @transaction_sampler.last_sample.params[:custom_params] ||= {}
@@ -146,9 +140,23 @@ module Agent
       end
 
       def pop_transaction_stats
+        # RUBY-1059: This should not use TransactionInfo
+        Thread::current[:newrelic_scope_stack] ||= []
+        self.scope_name = TransactionInfo.get.transaction_name
         stats = transaction_stats_stack.pop
-        merge!(stats) if stats
+        merge!(apply_scopes(stats)) if stats
         stats
+      end
+
+      def apply_scopes(stats_hash)
+        new_stats = StatsHash.new
+        stats_hash.each do |spec, stats|
+          if spec.scope.to_sym == StatsEngine::SCOPE_PLACEHOLDER
+            spec.scope = scope_name
+          end
+          new_stats[spec] = stats
+        end
+        return new_stats
       end
 
       # Returns the current scope stack, memoized to a thread local variable

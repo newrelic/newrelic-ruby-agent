@@ -130,7 +130,8 @@ module NewRelic
           agent.stats_engine.start_transaction
           agent.stats_engine.push_transaction_stats
           # Only push the transaction context info once, on entry:
-          if @transaction_type_stack.size == 1
+          if !has_parent?
+            # RUBY-1059
             txn_name = TransactionInfo.get.transaction_name
             transaction_sampler.notice_transaction(txn_name, uri, filtered_params)
             sql_sampler.notice_transaction(txn_name, uri, filtered_params)
@@ -138,6 +139,7 @@ module NewRelic
         end
 
         # Return the path, the part of the metric after the category
+        # RUBY-1059: this needs to go away
         def path
           @transaction_type_stack.last.last
         end
