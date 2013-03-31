@@ -56,6 +56,14 @@ module NewRelic
           (self[:developer_mode] || self[:monitor_mode] || self[:monitor_daemons]) &&
           ::NewRelic::Agent::Autostart.agent_should_start?
         end,
+        # Don't autostart the agent if we're in IRB or Rails console.
+        # This config option accepts a comma seperated list of constants.
+        :'autostart.blacklisted_constants' => 'IRB',
+        # Don't autostart the agent if the command used to invoke the process
+        # is "rake". This tends to spam the console when people deploy to
+        # heroku (where logs typically go to STDOUT).
+        # This config option accepts a comma seperated list of executables.
+        :'autostart.blacklisted_executables' => 'rake',
         :developer_mode  => Proc.new { self[:developer] },
         :developer       => false,
         :apdex_t         => 0.5,

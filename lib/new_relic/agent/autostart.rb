@@ -12,21 +12,34 @@ module NewRelic
     # session.  On Heroku, logs typically go to STDOUT so agent logs can spam
     # the console during interactive sessions.
     #
-    # It should be possible to override Autostart logic can with an explicit
+    # It should be possible to override Autostart logic with an explicit
     # configuration, for example the NEWRELIC_ENABLE environment variable or
     # agent_enabled key in newrelic.yml
     module Autostart
       extend self
 
+
+      # The constants and execuatables (i.e. $0) used can be configured with
+      # via the config keys 'autostart.blacklisted_constants' and
+      # 'autostart.blacklisted_executables'
       def agent_should_start?
-          # Don't autostart the agent if we're in IRB or Rails console.
-          ( ! defined?(IRB) ) &&
-          # Don't autostart the agent if the command used to invoke the process
-          # is "rake". This tends to spam the console when people deploy to
-          # heroku (where logs typically go to STDOUT).
-          ( File.basename($0) != 'rake' )
+          !::NewRelic::Agent.config['autostart.blacklisted_constants'] \
+            .split(/\s*,\s*/).any?{ |name| constant_is_defined?(name) } &&
+          !::NewRelic::Agent.config['autostart.blacklisted_executables'] \
+            .split(/\s*,\s*/).any?{ |bin| File.basename($0) == bin }
       end
 
+      # Lookup whether namespaced constants (e.g. ::Foo::Bar::Baz) are in the
+      # environment.
+      def constant_is_defined?(const_name)
+        const_name.to_s.sub(/\A::/,'').split('::').inject(Object) do |namespace, name|
+          begin
+            namespace.const_get(name)
+          rescue NameError
+            false
+          end
+        end
+      end
 
     end
   end
