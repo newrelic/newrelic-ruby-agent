@@ -80,6 +80,7 @@ def default_service(stubbed_method_overrides = {})
     :metric_data => nil,
     :error_data => nil,
     :transaction_sample_data => nil,
+    :sql_trace_data => nil,
     :get_agent_commands => []
   }
 
@@ -261,6 +262,10 @@ ensure
 end
 
 def in_transaction(name='dummy')
+  NewRelic::Agent.instance.instance_variable_set(:@transaction_sampler,
+                        NewRelic::Agent::TransactionSampler.new)
+  NewRelic::Agent.instance.stats_engine.transaction_sampler = \
+    NewRelic::Agent.instance.transaction_sampler
   metric_frame = NewRelic::Agent::Instrumentation::MetricFrame.current(true)
   metric_frame.filtered_params = {}
   metric_frame.push(:other)

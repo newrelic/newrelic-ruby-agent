@@ -58,7 +58,7 @@ module NewRelic
             controller_metric.scope = StatsEngine::MetricStats::SCOPE_PLACEHOLDER
             record_metric_on_parent_transaction(controller_metric, event.duration)
           end
-          metrics << controller_metric
+          metrics << controller_metric.dup
 
           Agent.instance.stats_engine.record_metrics(metrics, event.duration)
         end

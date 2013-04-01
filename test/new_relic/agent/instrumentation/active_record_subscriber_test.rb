@@ -4,7 +4,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 require 'new_relic/agent/instrumentation/active_record_subscriber'
 
-if ::Rails::VERSION::MAJOR.to_i >= 4 && !NewRelic::LanguageSupport.using_engine?('jruby')
 class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit::TestCase
   class Order; end
 
@@ -42,8 +41,9 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit:
     t1 = Time.now
     t0 = t1 - 2
 
-    @stats_engine.start_transaction('test_txn')
-    @subscriber.call('sql.active_record', t0, t1, :id, @params)
+    in_transaction('test_txn') do
+      @subscriber.call('sql.active_record', t0, t1, :id, @params)
+    end
 
     metric_name = 'ActiveRecord/NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order/find'
 
@@ -128,5 +128,4 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit:
   ensure
     NewRelic::Agent.shutdown
   end
-end
-end
+end ::Rails::VERSION::MAJOR.to_i >= 4 && !NewRelic::LanguageSupport.using_engine?('jruby')
