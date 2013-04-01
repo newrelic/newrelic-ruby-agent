@@ -40,25 +40,26 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
   def test_scope__overlap
     NewRelic::Agent.instance.stubs(:stats_engine).returns(@engine)
 
-    @engine.scope_name = 'orlando'
-    self.class.trace_execution_scoped('disney', :deduct_call_time_from_parent => false) { sleep 0.1 }
-    orlando_disney = @engine.get_stats 'disney'
+    in_transaction('orlando') do
+      self.class.trace_execution_scoped('disney', :deduct_call_time_from_parent => false) { sleep 0.1 }
+    end
+    orlando_disney = @engine.lookup_stats('disney', 'orlando')
 
-    @engine.scope_name = 'anaheim'
-    self.class.trace_execution_scoped('disney', :deduct_call_time_from_parent => false) { sleep 0.1 }
-    anaheim_disney = @engine.get_stats 'disney'
+    #orlando_disney = 
 
-    disney = @engine.get_stats_no_scope "disney"
+    in_transaction('anaheim') do
+      self.class.trace_execution_scoped('disney', :deduct_call_time_from_parent => false) { sleep 0.1 }
+    end
+    anaheim_disney = @engine.lookup_stats('disney', 'anaheim')
+
+    disney = @engine.lookup_stats("disney")
 
     assert_not_same orlando_disney, anaheim_disney
     assert_not_equal orlando_disney, anaheim_disney
     assert_equal 1, orlando_disney.call_count
     assert_equal 1, anaheim_disney.call_count
-    assert_same disney, orlando_disney.unscoped_stats
-    assert_same disney, anaheim_disney.unscoped_stats
     assert_equal 2, disney.call_count
     assert_equal disney.total_call_time, orlando_disney.total_call_time + anaheim_disney.total_call_time
-
   end
 
   def test_simplethrowcase(depth=0)

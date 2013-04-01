@@ -75,6 +75,10 @@ module NewRelic
           Thread.current[:last_metric_frame] = self
         end
 
+        def in_transaction?
+          !@transaction_type_stack.empty?
+        end
+
         def has_parent?
           @transaction_type_stack.size > 1
         end
@@ -149,11 +153,9 @@ module NewRelic
         def pop(metric)
           transaction_type = @transaction_type_stack.pop
           log_underflow if transaction_type.nil?
-          agent.stats_engine.pop_transaction_stats
+          agent.stats_engine.pop_transaction_stats(metric)
           if @transaction_type_stack.empty?
             handle_empty_transaction_type_stack
-          else
-            set_new_scope!(metric)
           end
         end
 

@@ -175,6 +175,55 @@ def compare_metrics(expected, actual)
   assert_equal(expected.to_a.sort, actual.to_a.sort, "extra: #{(actual - expected).to_a.inspect}; missing: #{(expected - actual).to_a.inspect}")
 end
 
+def metric_spec_from_specish(specish)
+  spec = case specish
+  when String then NewRelic::MetricSpec.new(specish)
+  when Array  then NewRelic::MetricSpec.new(*specish)
+  end
+  spec
+end
+
+def _normalize_metric_expectations(expectations)
+  case expectations
+  when Array
+    hash = {}
+    expectations.each { |k| hash[k] = { :call_count => 1 } }
+    hash
+  else
+    expectations
+  end
+end
+
+def assert_metrics_recorded(expected)
+  expected = _normalize_metric_expectations(expected)
+  expected.each do |specish, expected_attrs|
+    expected_spec = metric_spec_from_specish(specish)
+    actual_stats = NewRelic::Agent.instance.stats_engine.lookup_stats(*Array(specish))
+    if !actual_stats
+      all_specs = NewRelic::Agent.instance.stats_engine.metric_specs
+      matches = all_specs.select { |spec| spec.name == expected_spec.name }
+      matches.map! { |m| "  #{m.inspect}" }
+      msg = "Did not find stats for spec #{expected_spec.inspect}."
+      msg += "\nDid find specs: [\n#{matches.join(",\n")}\n]" unless matches.empty?
+      assert(actual_stats, msg)
+    end
+    expected_attrs.each do |attr, expected_value|
+      actual_value = actual_stats.send(attr)
+      assert_equal(expected_value, actual_value,
+        "Expected #{attr} for #{expected_spec} to be #{expected_value}, got #{actual_value}")
+    end
+  end
+end
+
+def assert_metrics_recorded_exclusive(expected)
+  expected = _normalize_metric_expectations(expected)
+  assert_metrics_recorded(expected)
+  recorded_metrics = NewRelic::Agent.instance.stats_engine.metrics
+  expected_metrics = expected.keys.map { |s| metric_spec_from_specish(s).to_s }
+  unexpected_metrics = recorded_metrics - expected_metrics
+  assert_equal(0, unexpected_metrics.size, "Found unexpected metrics: [#{unexpected_metrics.join(', ')}]")
+end
+
 def with_config(config_hash, opts={})
   opts = { :level => 0, :do_not_cast => false }.merge(opts)
   if opts[:do_not_cast]
@@ -209,6 +258,24 @@ def without_logger
   yield
 ensure
   ::NewRelic::Agent.logger = logger
+end
+
+def in_transaction(name='dummy')
+  metric_frame = NewRelic::Agent::Instrumentation::MetricFrame.current(true)
+  metric_frame.filtered_params = {}
+  metric_frame.push(:other)
+  metric_frame.start_transaction
+  val = yield
+  metric_frame.pop(name)
+  val
+end
+
+def freeze_time(now=Time.now)
+  Time.stubs(:now).returns(now)
+end
+
+def advance_time(seconds)
+  freeze_time(Time.now + seconds)
 end
 
 module NewRelic

@@ -117,8 +117,7 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
   end
 
   def test_record_metrics_unscoped_metrics_only_by_default
-    in_transaction do
-      @engine.stubs(:scope_name).returns('scopey')
+    in_transaction('scopey') do
       @engine.record_metrics('foo', 42)
     end
     unscoped_stats = @engine.get_stats('foo', false)
@@ -128,11 +127,8 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
   end
 
   def test_record_metrics_records_to_scoped_metric_if_requested
-    in_transaction do
+    in_transaction('scopey') do
       @engine.record_metrics('foo', 42, :scoped => true)
-      @engine.stubs(:scope_name).returns('scopey')
-      # NOTE: the scope is set after the metric is recorded, this
-      # is because scope is filled in at the end of the transaction
     end
     unscoped_stats = @engine.get_stats('foo', false)
     scoped_stats = @engine.get_stats('foo', true, true, 'scopey')
@@ -150,8 +146,7 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
   end
 
   def test_record_metrics_accepts_explicit_scope
-    in_transaction do
-      @engine.stubs(:scope_name).returns('scopey')
+    in_transaction('scopey') do
       @engine.record_metrics('foo', 42, :scoped => true, :scope => 'not scopey')
     end
     unscoped_stats = @engine.get_stats('foo', false)
@@ -197,11 +192,5 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
     end
 
     assert_equal 1, @engine.lookup_stats('foo').call_count
-  end
-
-  def in_transaction
-    @engine.push_transaction_stats
-    yield
-    @engine.pop_transaction_stats
   end
 end

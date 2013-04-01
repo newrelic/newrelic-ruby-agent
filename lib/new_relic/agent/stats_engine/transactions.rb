@@ -139,20 +139,20 @@ module Agent
         transaction_stats_stack << StatsHash.new
       end
 
-      def pop_transaction_stats
+      def pop_transaction_stats(transaction_name)
         # RUBY-1059: This should not use TransactionInfo
         Thread::current[:newrelic_scope_stack] ||= []
-        self.scope_name = TransactionInfo.get.transaction_name
+        self.scope_name = transaction_name # RUBY-1059 - maybe not necessary
         stats = transaction_stats_stack.pop
-        merge!(apply_scopes(stats)) if stats
+        merge!(apply_scopes(stats, transaction_name)) if stats
         stats
       end
 
-      def apply_scopes(stats_hash)
+      def apply_scopes(stats_hash, resolved_name)
         new_stats = StatsHash.new
         stats_hash.each do |spec, stats|
           if spec.scope.to_sym == StatsEngine::SCOPE_PLACEHOLDER
-            spec.scope = scope_name
+            spec.scope = resolved_name
           end
           new_stats[spec] = stats
         end

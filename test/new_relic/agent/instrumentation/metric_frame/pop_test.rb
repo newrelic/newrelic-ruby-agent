@@ -28,16 +28,6 @@ class NewRelic::Agent::Instrumentation::MetricFrame::PopTest < Test::Unit::TestC
     assert_equal nil, Thread.current[:newrelic_metric_frame], 'should nil out the thread var'
   end
 
-  def test_set_new_scope
-    fakeagent = mock('agent')
-    self.expects(:agent).returns(fakeagent)
-    fakeengine = mock('stats_engine')
-    fakeagent.expects(:stats_engine).returns(fakeengine)
-    fakeengine.expects(:scope_name=).with('A METRIC')
-
-    set_new_scope!('A METRIC')
-  end
-
   def test_log_underflow
     expects_logging(:error, regexp_matches(/Underflow in metric frames: /))
     log_underflow

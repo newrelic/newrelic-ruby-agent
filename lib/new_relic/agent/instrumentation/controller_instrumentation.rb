@@ -263,8 +263,11 @@ module NewRelic
           return perform_action_with_newrelic_profile(args, &block) if control.profiling?
 
           frame_data = _push_metric_frame(block_given? ? args : [])
+          metrics = recorded_metrics(frame_data)
+          txn_name = metrics.first
           begin
-            NewRelic::Agent.trace_execution_scoped recorded_metrics(frame_data), :force => frame_data.force_flag do
+            options = { :force => frame_data.force_flag, :transaction => true }
+            NewRelic::Agent.trace_execution_scoped(metrics, options) do
               frame_data.start_transaction
               begin
                 NewRelic::Agent::BusyCalculator.dispatcher_start frame_data.start
@@ -288,7 +291,6 @@ module NewRelic
             NewRelic::Agent::BusyCalculator.dispatcher_finish
             # Look for a metric frame in the thread local and process it.
             # Clear the thread local when finished to ensure it only gets called once.
-            txn_name = NewRelic::Agent::TransactionInfo.get.transaction_name
             frame_data.record_apdex(txn_name) unless ignore_apdex?
             frame_data.pop(txn_name)
 

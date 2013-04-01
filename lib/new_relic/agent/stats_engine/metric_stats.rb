@@ -164,6 +164,10 @@ module NewRelic
           end
         end
 
+        def metric_specs
+          with_stats_lock { @stats_hash.keys }
+        end
+
         def in_transaction?
           !!transaction_stats_hash
         end

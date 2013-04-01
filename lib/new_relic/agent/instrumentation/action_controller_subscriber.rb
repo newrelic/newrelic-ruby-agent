@@ -57,9 +57,8 @@ module NewRelic
           if metric_frame.has_parent?
             controller_metric.scope = StatsEngine::MetricStats::SCOPE_PLACEHOLDER
             record_metric_on_parent_transaction(controller_metric, event.duration)
-          else
-            metrics << controller_metric
           end
+          metrics << controller_metric
 
           Agent.instance.stats_engine.record_metrics(metrics, event.duration)
         end

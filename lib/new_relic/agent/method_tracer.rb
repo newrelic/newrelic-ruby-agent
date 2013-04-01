@@ -128,17 +128,6 @@ module NewRelic
             stat_engine.get_stats_no_scope(name)
           end
 
-          def get_metric_specs(first_name, other_names, scope, options)
-            specs = other_names.map { |name| NewRelic::MetricSpec.new(name) }
-            if options[:metric]
-              if scope && scope != first_name
-                specs << NewRelic::MetricSpec.new(first_name, scope)
-              end
-              specs << NewRelic::MetricSpec.new(first_name) unless options[:scoped_metric_only]
-            end
-            specs
-          end
-
           # Helper for setting a hash key if the hash key is nil,
           # instead of the default ||= behavior which sets if it is
           # false as well
@@ -191,6 +180,57 @@ module NewRelic
             [t0, scope]
           end
 
+          def metrics_for_current_transaction(first_name, other_names, options)
+            metrics = []
+
+            if !options[:scoped_metric_only]
+              metrics += other_names.map { |n| NewRelic::MetricSpec.new(n) }
+            end
+
+            if options[:metric]
+              if !options[:scoped_metric_only]
+                metrics << NewRelic::MetricSpec.new(first_name)
+              end
+              if in_transaction? && !options[:transaction]
+                metrics << NewRelic::MetricSpec.new(first_name, StatsEngine::MetricStats::SCOPE_PLACEHOLDER)
+              end
+            end
+
+            metrics
+          end
+
+          def in_transaction?
+            NewRelic::Agent::Instrumentation::MetricFrame.current &&
+              NewRelic::Agent::Instrumentation::MetricFrame.current.in_transaction?
+          end
+
+          def has_parent?
+            NewRelic::Agent::Instrumentation::MetricFrame.current &&
+              NewRelic::Agent::Instrumentation::MetricFrame.current.has_parent?
+          end
+
+          def metrics_for_parent_transaction(first_name, options)
+            if has_parent? && options[:metric] && options[:transaction]
+              [NewRelic::MetricSpec.new(first_name, StatsEngine::MetricStats::SCOPE_PLACEHOLDER)]
+            else
+              []
+            end
+          end
+
+          def record_metrics(first_name, other_names, duration, exclusive, options)
+            metrics = metrics_for_current_transaction(first_name, other_names, options)
+            stat_engine.record_metrics(metrics) do |stat|
+              stat.record_data_point(duration, exclusive)
+            end
+
+            parent_metrics = metrics_for_parent_transaction(first_name, options)
+            parent_metrics.each do |metric|
+              stat_engine.transaction_stats_stack[-2].record(metric) do |stats|
+                stats.record_data_point(duration, exclusive)
+              end
+            end
+          end
+
           # Handles the end of the #trace_execution_scoped method -
           # calculating the time taken, popping the tracing flag if
           # needed, deducting time taken by children, and tracing the
@@ -199,16 +239,14 @@ module NewRelic
           # this method fails safely if the header does not manage to
           # push the scope onto the stack - it simply does not trace
           # any metrics.
-          def trace_execution_scoped_footer(t0, first_name, metric_specs, expected_scope, forced, t1=Time.now.to_f)
+          def trace_execution_scoped_footer(t0, first_name, metric_names, expected_scope, scope, options, t1=Time.now.to_f)
             log_errors("trace_method_execution footer") do
-              pop_flag!(forced)
+              pop_flag!(options[:force])
               if expected_scope
                 scope = stat_engine.pop_scope(expected_scope, first_name, t1)
                 duration = t1 - t0
                 exclusive = duration - scope.children_time
-                stat_engine.record_metrics(metric_specs) do |stat|
-                  stat.record_data_point(duration, exclusive)
-                end
+                record_metrics(first_name, metric_names, duration, exclusive, options)
               end
             end
           end
@@ -233,8 +271,7 @@ module NewRelic
             begin
               yield
             ensure
-              metric_specs = get_metric_specs(first_name, metric_names, scope, options)
-              trace_execution_scoped_footer(start_time, first_name, metric_specs, expected_scope, options[:force])
+              trace_execution_scoped_footer(start_time, first_name, metric_names, expected_scope, scope, options)
             end
           end
 

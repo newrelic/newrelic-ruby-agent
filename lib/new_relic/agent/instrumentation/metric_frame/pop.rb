@@ -13,10 +13,6 @@ module NewRelic
             Thread.current[:newrelic_metric_frame] = nil
           end
 
-          def set_new_scope!(metric)
-            agent.stats_engine.scope_name = metric
-          end
-
           def log_underflow
             ::NewRelic::Agent.logger.error "Underflow in metric frames: #{caller.join("\n   ")}"
           end
