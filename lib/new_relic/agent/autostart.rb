@@ -19,9 +19,10 @@ module NewRelic
       extend self
 
 
-      # The constants and execuatables (i.e. $0) used can be configured with
-      # via the config keys 'autostart.blacklisted_constants' and
-      # 'autostart.blacklisted_executables'
+      # The constants, execuatables (i.e. $0) and rake tasks used can be
+      # configured with the config keys 'autostart.blacklisted_constants',
+      # 'autostart.blacklisted_executables' and
+      # 'autostart.blacklisted_rake_tasks'
       def agent_should_start?
           !::NewRelic::Agent.config['autostart.blacklisted_constants'] \
             .split(/\s*,\s*/).any?{ |name| constant_is_defined?(name) } &&
