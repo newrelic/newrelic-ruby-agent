@@ -31,6 +31,8 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     agent.stubs(:stats_engine).returns(stats_engine)
     @sampler = NewRelic::Agent::TransactionSampler.new
     stats_engine.transaction_sampler = @sampler
+    @old_sampler = NewRelic::Agent.instance.transaction_sampler
+    NewRelic::Agent.instance.instance_variable_set(:@transaction_sampler, @sampler)
     @test_config = { :'transaction_tracer.enabled' => true }
     NewRelic::Agent.config.apply_config(@test_config)
     @txn = stub('txn', :name => '/path', :custom_parameters => {})
@@ -40,6 +42,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     super
     Thread.current[:transaction_sample_builder] = nil
     NewRelic::Agent.config.remove_config(@test_config)
+    NewRelic::Agent.instance.instance_variable_set(:@transaction_sampler, @old_sampler)
   end
 
   def test_initialize
@@ -930,6 +933,27 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     @sampler.notice_push_scope
     @sampler.add_segment_parameters( :transaction_guid => '97612F92E6194080' )
     assert_equal '97612F92E6194080', @sampler.builder.current_segment[:transaction_guid]
+  end
+
+  class Dummy
+    include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
+    def run(n)
+      n.times do
+        perform_action_with_newrelic_trace("smile") do
+        end
+      end
+    end
+  end
+
+  def test_harvest_during_transaction_safety
+    n = 3000
+    harvester = Thread.new do
+      n.times { @sampler.harvest }
+    end
+
+    assert_nothing_raised { Dummy.new.run(n) }
+
+    harvester.join
   end
 
   private
