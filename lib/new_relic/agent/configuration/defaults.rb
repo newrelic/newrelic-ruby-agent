@@ -59,11 +59,10 @@ module NewRelic
         # Don't autostart the agent if we're in IRB or Rails console.
         # This config option accepts a comma seperated list of constants.
         :'autostart.blacklisted_constants' => 'IRB',
-        # Don't autostart the agent if the command used to invoke the process
-        # is "rake". This tends to spam the console when people deploy to
-        # heroku (where logs typically go to STDOUT).
-        # This config option accepts a comma seperated list of executables.
-        :'autostart.blacklisted_executables' => 'rake',
+        # Comma seperated list of executables that you don't want to trigger
+        # agents start. e.g. 'rake,my_ruby_script.rb'
+        :'autostart.blacklisted_executables' => '',
+        :'autostart.blacklisted_rake_tasks' => 'assets:precompile',
         :developer_mode  => Proc.new { self[:developer] },
         :developer       => false,
         :apdex_t         => 0.5,

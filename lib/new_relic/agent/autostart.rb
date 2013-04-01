@@ -26,7 +26,8 @@ module NewRelic
           !::NewRelic::Agent.config['autostart.blacklisted_constants'] \
             .split(/\s*,\s*/).any?{ |name| constant_is_defined?(name) } &&
           !::NewRelic::Agent.config['autostart.blacklisted_executables'] \
-            .split(/\s*,\s*/).any?{ |bin| File.basename($0) == bin }
+            .split(/\s*,\s*/).any?{ |bin| File.basename($0) == bin } &&
+          !in_blacklisted_rake_task?
       end
 
       # Lookup whether namespaced constants (e.g. ::Foo::Bar::Baz) are in the
@@ -41,6 +42,15 @@ module NewRelic
         end
       end
 
+      def in_blacklisted_rake_task?
+        tasks = begin
+            Rake.application.top_level_tasks
+          rescue => e
+            ::NewRelic::Agent.logger.debug("Not in Rake environment so skipping blacklisted_rake_tasks check: #{e}")
+            []
+          end
+        !(tasks & ::NewRelic::Agent.config['autostart.blacklisted_rake_tasks'].split(/\s*,\s*/)).empty?
+      end
     end
   end
 end

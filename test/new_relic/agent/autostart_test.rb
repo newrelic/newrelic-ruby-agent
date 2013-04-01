@@ -19,13 +19,11 @@ class AutostartTest < Test::Unit::TestCase
     Object.send(:remove_const, :IRB)
   end
 
-
-  def test_agent_wont_autostart_if_dollar_0_is_rake
-    @orig_dollar_0, $0 = $0, '/foo/bar/rake'
-    assert ! ::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't autostart in rake task"
-  ensure
-    $0 = @orig_dollar_0
+  def test_agent_wont_autostart_if_top_level_rake_task_is_assets_precompile
+    Rake.stubs(:application => stub(:top_level_tasks => ['assets:precompile']))
+    assert ! ::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't during assets compilation"
   end
+
 
   MyConst = true
   def test_blacklisted_constants_can_be_configured
@@ -43,4 +41,10 @@ class AutostartTest < Test::Unit::TestCase
     $0 = @orig_dollar_0
   end
 
+  def test_blacklisted_rake_tasks_can_be_configured
+    with_config('autostart.blacklisted_rake_tasks' => 'foo,bar,baz:bang') do
+      Rake.stubs(:application => stub(:top_level_tasks => ['biz', 'baz:bang']))
+      assert ! ::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't during blacklisted rake task"
+    end
+  end
 end
