@@ -200,13 +200,13 @@ module NewRelic
           end
 
           def in_transaction?
-            NewRelic::Agent::Instrumentation::MetricFrame.current &&
-              NewRelic::Agent::Instrumentation::MetricFrame.current.in_transaction?
+            NewRelic::Agent::Instrumentation::Transaction.current &&
+              NewRelic::Agent::Instrumentation::Transaction.current.in_transaction?
           end
 
           def has_parent?
-            NewRelic::Agent::Instrumentation::MetricFrame.current &&
-              NewRelic::Agent::Instrumentation::MetricFrame.current.has_parent?
+            NewRelic::Agent::Instrumentation::Transaction.current &&
+              NewRelic::Agent::Instrumentation::Transaction.current.has_parent?
           end
 
           def metrics_for_parent_transaction(first_name, options)

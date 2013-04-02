@@ -3,9 +3,9 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'test_helper'))
-require 'new_relic/agent/instrumentation/metric_frame/pop'
-class NewRelic::Agent::Instrumentation::MetricFrame::PopTest < Test::Unit::TestCase
-  include NewRelic::Agent::Instrumentation::MetricFrame::Pop
+require 'new_relic/agent/instrumentation/transaction/pop'
+class NewRelic::Agent::Instrumentation::Transaction::PopTest < Test::Unit::TestCase
+  include NewRelic::Agent::Instrumentation::Transaction::Pop
 
   attr_reader :agent
   attr_reader :transaction_sampler
@@ -19,17 +19,17 @@ class NewRelic::Agent::Instrumentation::MetricFrame::PopTest < Test::Unit::TestC
   end
 
   def teardown
-    Thread.current[:newrelic_metric_frame] = nil
+    Thread.current[:newrelic_transaction] = nil
   end
 
-  def test_clear_thread_metric_frame
-    Thread.current[:newrelic_metric_frame] = 'whee'
-    clear_thread_metric_frame!
-    assert_equal nil, Thread.current[:newrelic_metric_frame], 'should nil out the thread var'
+  def test_clear_thread_transaction
+    Thread.current[:newrelic_transaction] = 'whee'
+    clear_thread_transaction!
+    assert_equal nil, Thread.current[:newrelic_transaction], 'should nil out the thread var'
   end
 
   def test_log_underflow
-    expects_logging(:error, regexp_matches(/Underflow in metric frames: /))
+    expects_logging(:error, regexp_matches(/Underflow in transaction: /))
     log_underflow
   end
 
@@ -123,7 +123,7 @@ class NewRelic::Agent::Instrumentation::MetricFrame::PopTest < Test::Unit::TestC
     self.expects(:traced?).returns(true)
     self.expects(:notify_transaction_sampler)
     self.expects(:end_transaction!)
-    self.expects(:clear_thread_metric_frame!)
+    self.expects(:clear_thread_transaction!)
     handle_empty_transaction_type_stack
   end
 
@@ -131,7 +131,7 @@ class NewRelic::Agent::Instrumentation::MetricFrame::PopTest < Test::Unit::TestC
     self.expects(:traced?).returns(true)
     self.expects(:notify_transaction_sampler)
     self.expects(:end_transaction!)
-    self.expects(:clear_thread_metric_frame!)
+    self.expects(:clear_thread_transaction!)
     handle_empty_transaction_type_stack
   end
 
@@ -145,7 +145,7 @@ class NewRelic::Agent::Instrumentation::MetricFrame::PopTest < Test::Unit::TestC
   def test_handle_empty_transaction_type_stack_untraced
     self.expects(:traced?).returns(false)
     self.expects(:end_transaction!)
-    self.expects(:clear_thread_metric_frame!)
+    self.expects(:clear_thread_transaction!)
     handle_empty_transaction_type_stack
   end
 

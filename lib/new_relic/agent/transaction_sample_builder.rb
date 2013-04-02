@@ -5,7 +5,7 @@
 require 'new_relic/collection_helper'
 require 'new_relic/transaction_sample'
 require 'new_relic/control'
-require 'new_relic/agent/instrumentation/metric_frame'
+require 'new_relic/agent/instrumentation/transaction'
 module NewRelic
   module Agent
     # a builder is created with every sampled transaction, to dynamically
@@ -66,7 +66,7 @@ module NewRelic
         end
         @sample.root_segment.end_trace(time.to_f - @sample_start)
         @sample.params[:custom_params] ||= {}
-        @sample.params[:custom_params].merge!(normalize_params(NewRelic::Agent::Instrumentation::MetricFrame.custom_parameters))
+        @sample.params[:custom_params].merge!(normalize_params(NewRelic::Agent::Instrumentation::Transaction.custom_parameters))
 
         txn_info = NewRelic::Agent::TransactionInfo.get
         @sample.force_persist = txn_info.force_persist_sample?(sample)

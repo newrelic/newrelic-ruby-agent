@@ -9,7 +9,7 @@ module NewRelic
     # This module contains support for Real User Monitoring - the
     # javascript generation and configuration
     module BrowserMonitoring
-      class DummyMetricFrame
+      class DummyTransaction
         def initialize
           @attributes = {}
         end
@@ -23,7 +23,7 @@ module NewRelic
         end
       end
 
-      @@dummy_metric_frame = DummyMetricFrame.new
+      @@dummy_txn = DummyTransaction.new
 
       # This method returns a string suitable for inclusion in a page
       # - known as 'manual instrumentation' for Real User
@@ -77,15 +77,15 @@ module NewRelic
       end
 
       def browser_monitoring_queue_time
-        clamp_to_positive((current_metric_frame.queue_time.to_f * 1000.0).round)
+        clamp_to_positive((current_transaction.queue_time.to_f * 1000.0).round)
       end
 
       def browser_monitoring_app_time
         clamp_to_positive(((Time.now - browser_monitoring_start_time).to_f * 1000.0).round)
       end
 
-      def current_metric_frame
-        Thread.current[:last_metric_frame] || @@dummy_metric_frame
+      def current_transaction
+        Thread.current[:last_transaction] || @@dummy_txn
       end
 
       def clamp_to_positive(value)
@@ -99,7 +99,7 @@ module NewRelic
 
       def self.timings
         NewRelic::Agent::Instrumentation::BrowserMonitoringTimings.new(
-          current_metric_frame.queue_time,
+          current_transaction.queue_time,
           NewRelic::Agent::TransactionInfo.get)
       end
 
@@ -163,13 +163,13 @@ module NewRelic
         end
       end
 
-      def metric_frame_attribute(key)
-        current_metric_frame.user_attributes[key] || ""
+      def transaction_attribute(key)
+        current_transaction.user_attributes[key] || ""
       end
 
       def tt_guid
-        txn = NewRelic::Agent::TransactionInfo.get
-        return txn.guid if txn.include_guid?
+        transaction = NewRelic::Agent::TransactionInfo.get
+        return transaction.guid if transaction.include_guid?
         ""
       end
 
@@ -180,9 +180,9 @@ module NewRelic
       def footer_js_string(config)
         obfuscated_transaction_name = obfuscate(config, browser_monitoring_transaction_name)
 
-        user = obfuscate(config, metric_frame_attribute(:user))
-        account = obfuscate(config, metric_frame_attribute(:account))
-        product = obfuscate(config, metric_frame_attribute(:product))
+        user = obfuscate(config, transaction_attribute(:user))
+        account = obfuscate(config, transaction_attribute(:account))
+        product = obfuscate(config, transaction_attribute(:product))
 
         html_safe_if_needed(%'<script type="text/javascript">#{config.browser_timing_static_footer}NREUMQ.push(["#{config.finish_command}","#{Agent.config[:beacon]}","#{Agent.config[:browser_key]}","#{Agent.config[:application_id]}","#{obfuscated_transaction_name}",#{browser_monitoring_queue_time},#{browser_monitoring_app_time},new Date().getTime(),"#{tt_guid}","#{tt_token}","#{user}","#{account}","#{product}"]);</script>')
       end

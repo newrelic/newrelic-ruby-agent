@@ -164,7 +164,7 @@ module NewRelic
     end
 
     def test_abort_transaction_bang
-      NewRelic::Agent::Instrumentation::MetricFrame.expects(:abort_transaction!)
+      NewRelic::Agent::Instrumentation::Transaction.expects(:abort_transaction!)
       NewRelic::Agent.abort_transaction!
     end
 

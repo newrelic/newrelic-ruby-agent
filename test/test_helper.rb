@@ -266,12 +266,12 @@ def in_transaction(name='dummy')
                         NewRelic::Agent::TransactionSampler.new)
   NewRelic::Agent.instance.stats_engine.transaction_sampler = \
     NewRelic::Agent.instance.transaction_sampler
-  metric_frame = NewRelic::Agent::Instrumentation::MetricFrame.current(true)
-  metric_frame.filtered_params = {}
-  metric_frame.push(:other)
-  metric_frame.start_transaction
+  txn = NewRelic::Agent::Instrumentation::Transaction.current(true)
+  txn.filtered_params = {}
+  txn.push(:other)
+  txn.start_transaction
   val = yield
-  metric_frame.pop(name)
+  txn.pop(name)
   val
 end
 

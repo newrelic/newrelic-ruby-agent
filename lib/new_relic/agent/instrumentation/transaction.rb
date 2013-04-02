@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/instrumentation/metric_frame/pop'
+require 'new_relic/agent/instrumentation/transaction/pop'
 
 # A struct holding the information required to measure a controller
 # action.  This is put on the thread local.  Handles the issue of
@@ -13,7 +13,7 @@ require 'new_relic/agent/instrumentation/metric_frame/pop'
 module NewRelic
   module Agent
     module Instrumentation
-      class MetricFrame
+      class Transaction
         # helper module refactored out of the `pop` method
         include Pop
 
@@ -25,18 +25,18 @@ module NewRelic
         :filtered_params, :force_flag,
         :jruby_cpu_start, :process_cpu_start, :database_metric_name
 
-        # Give the current metric frame a request context.  Use this to
+        # Give the current transaction a request context.  Use this to
         # get the URI and referer.  The request is interpreted loosely
         # as a Rack::Request or an ActionController::AbstractRequest.
         attr_accessor :request
 
 
-        # Return the currently active metric frame, or nil.  Call with +true+
-        # to create a new metric frame if one is not already on the thread.
+        # Return the currently active transaction, or nil.  Call with +true+
+        # to create a new transaction if one is not already on the thread.
         def self.current(create_if_empty=nil)
-          f = Thread.current[:newrelic_metric_frame]
+          f = Thread.current[:newrelic_transaction]
           return f if f || !create_if_empty
-          Thread.current[:newrelic_metric_frame] = new
+          Thread.current[:newrelic_transaction] = new
         end
 
         # This is the name of the model currently assigned to database
@@ -72,7 +72,7 @@ module NewRelic
           @transaction_type_stack = [] # stack of transaction types
           @jruby_cpu_start = jruby_cpu_time
           @process_cpu_start = process_cpu
-          Thread.current[:last_metric_frame] = self
+          Thread.current[:last_transaction] = self
         end
 
         def in_transaction?
@@ -159,7 +159,7 @@ module NewRelic
           end
         end
 
-        # If we have an active metric frame, notice the error and increment the error metric.
+        # If we have an active transaction, notice the error and increment the error metric.
         # Options:
         # * <tt>:request</tt> => Request object to get the uri and referer
         # * <tt>:uri</tt> => The request path, minus any request params or query string.
@@ -188,6 +188,7 @@ module NewRelic
           options[:referer] = referer if referer
           options[:request_params] = filtered_params if filtered_params
           options[:uri] = uri if uri
+          # RUBY-1059
           options[:metric] = TransactionInfo.get.transaction_name
           options.merge!(custom_parameters)
           if exception != e
@@ -196,7 +197,7 @@ module NewRelic
           end
         end
 
-        # Add context parameters to the metric frame.  This information will be passed in to errors
+        # Add context parameters to the transaction.  This information will be passed in to errors
         # and transaction traces.  Keys and Values should be strings, numbers or date/times.
         def self.add_custom_parameters(p)
           current.add_custom_parameters(p) if current
@@ -267,7 +268,7 @@ module NewRelic
         end
 
         def self.recording_web_transaction?
-          c = Thread.current[:newrelic_metric_frame]
+          c = Thread.current[:newrelic_transaction]
           if c
             c.recording_web_transaction?
           end

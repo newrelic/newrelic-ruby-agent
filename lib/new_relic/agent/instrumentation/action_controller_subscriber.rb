@@ -52,9 +52,9 @@ module NewRelic
 
         def record_metrics(event)
           controller_metric = MetricSpec.new(event.metric_name)
-          metric_frame = Instrumentation::MetricFrame.current
+          txn = Instrumentation::Transaction.current
           metrics = [ 'HttpDispatcher']
-          if metric_frame.has_parent?
+          if txn.has_parent?
             controller_metric.scope = StatsEngine::MetricStats::SCOPE_PLACEHOLDER
             record_metric_on_parent_transaction(controller_metric, event.duration)
           end
@@ -73,7 +73,7 @@ module NewRelic
           metric_parser = MetricParser::MetricParser \
             .for_metric_named(event.metric_name)
           duration_plus_queue_time = event.end - (event.queue_start || event.time)
-          MetricFrame.record_apdex(metric_parser,
+          Transaction.record_apdex(metric_parser,
                                    event.duration,
                                    duration_plus_queue_time,
                                    event.exception_encountered?)
@@ -92,12 +92,12 @@ module NewRelic
         def start_transaction(event)
           # RUBY-1059 we want to get rid of this
           TransactionInfo.get.transaction_name = event.metric_name
-          frame_data = Instrumentation::MetricFrame.current(true)
-          frame_data.request = event.payload[:request]
-          frame_data.filtered_params = filter(event.payload[:params])
-          frame_data.push(event.metric_name)
-          frame_data.apdex_start = (event.queue_start || event.time)
-          frame_data.start_transaction
+          txn = Instrumentation::Transaction.current(true)
+          txn.request = event.payload[:request]
+          txn.filtered_params = filter(event.payload[:params])
+          txn.push(event.metric_name)
+          txn.apdex_start = (event.queue_start || event.time)
+          txn.start_transaction
           event.scope = Agent.instance.stats_engine \
             .push_scope(:action_controller, event.time)
         end
@@ -106,8 +106,8 @@ module NewRelic
           TransactionInfo.get.transaction_name = event.metric_name
           Agent.instance.stats_engine \
             .pop_scope(event.scope, event.metric_name, event.end)
-          frame_data = Instrumentation::MetricFrame.current
-          frame_data.pop(event.metric_name)
+          txn = Instrumentation::Transaction.current
+          txn.pop(event.metric_name)
         end
 
         def filter(params)

@@ -6,15 +6,15 @@ require 'new_relic/agent/instrumentation'
 module NewRelic
   module Agent
     module Instrumentation
-      class MetricFrame
+      class Transaction
         module Pop
 
-          def clear_thread_metric_frame!
-            Thread.current[:newrelic_metric_frame] = nil
+          def clear_thread_transaction!
+            Thread.current[:newrelic_transaction] = nil
           end
 
           def log_underflow
-            ::NewRelic::Agent.logger.error "Underflow in metric frames: #{caller.join("\n   ")}"
+            ::NewRelic::Agent.logger.error "Underflow in transaction: #{caller.join("\n   ")}"
           end
 
           def notice_scope_empty
@@ -67,7 +67,7 @@ module NewRelic
             raise 'transaction type stack not empty' unless @transaction_type_stack.empty?
             notify_transaction_sampler if traced?
             end_transaction!
-            clear_thread_metric_frame!
+            clear_thread_transaction!
           end
 
           def current_stack_metric

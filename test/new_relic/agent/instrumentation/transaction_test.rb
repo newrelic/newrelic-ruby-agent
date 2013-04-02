@@ -4,68 +4,68 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 
-class NewRelic::Agent::Instrumentation::MetricFrameTest < Test::Unit::TestCase
+class NewRelic::Agent::Instrumentation::TransactionTest < Test::Unit::TestCase
 
-  attr_reader :f
+  attr_reader :txn
 
   def setup
-    @f = NewRelic::Agent::Instrumentation::MetricFrame.new
+    @txn = NewRelic::Agent::Instrumentation::Transaction.new
   end
 
   def test_request_parsing__none
-    assert_nil f.uri
-    assert_nil f.referer
+    assert_nil txn.uri
+    assert_nil txn.referer
   end
 
   def test_request_parsing__path
     request = stub(:path => '/path?hello=bob#none')
-    f.request = request
-    assert_equal "/path", f.uri
+    txn.request = request
+    assert_equal "/path", txn.uri
   end
 
   def test_request_parsing__fullpath
     request = stub(:fullpath => '/path?hello=bob#none')
-    f.request = request
-    assert_equal "/path", f.uri
+    txn.request = request
+    assert_equal "/path", txn.uri
   end
 
   def test_request_parsing__referer
     request = stub(:referer => 'https://www.yahoo.com:8080/path/hello?bob=none&foo=bar')
-    f.request = request
-    assert_nil f.uri
-    assert_equal "https://www.yahoo.com:8080/path/hello", f.referer
+    txn.request = request
+    assert_nil txn.uri
+    assert_equal "https://www.yahoo.com:8080/path/hello", txn.referer
   end
 
   def test_request_parsing__uri
     request = stub(:uri => 'http://creature.com/path?hello=bob#none', :referer => '/path/hello?bob=none&foo=bar')
-    f.request = request
-    assert_equal "/path", f.uri
-    assert_equal "/path/hello", f.referer
+    txn.request = request
+    assert_equal "/path", txn.uri
+    assert_equal "/path/hello", txn.referer
   end
 
   def test_request_parsing__hostname_only
     request = stub(:uri => 'http://creature.com')
-    f.request = request
-    assert_equal "/", f.uri
-    assert_nil f.referer
+    txn.request = request
+    assert_equal "/", txn.uri
+    assert_nil txn.referer
   end
 
   def test_request_parsing__slash
     request = stub(:uri => 'http://creature.com/')
-    f.request = request
-    assert_equal "/", f.uri
-    assert_nil f.referer
+    txn.request = request
+    assert_equal "/", txn.uri
+    assert_nil txn.referer
   end
 
   def test_queue_time
-    f.apdex_start = 1000
-    f.start = 1500
-    assert_equal 500, f.queue_time
+    txn.apdex_start = 1000
+    txn.start = 1500
+    assert_equal 500, txn.queue_time
   end
 
   def test_update_apdex_records_failed_when_specified
     stats = NewRelic::Agent::Stats.new
-    NewRelic::Agent::Instrumentation::MetricFrame.update_apdex(stats, 0.1, true)
+    NewRelic::Agent::Instrumentation::Transaction.update_apdex(stats, 0.1, true)
     assert_equal 0, stats.apdex_s
     assert_equal 0, stats.apdex_t
     assert_equal 1, stats.apdex_f
@@ -74,7 +74,7 @@ class NewRelic::Agent::Instrumentation::MetricFrameTest < Test::Unit::TestCase
   def test_update_apdex_records_satisfying
     stats = NewRelic::Agent::Stats.new
     with_config(:apdex_t => 1) do
-      NewRelic::Agent::Instrumentation::MetricFrame.update_apdex(stats, 0.5, false)
+      NewRelic::Agent::Instrumentation::Transaction.update_apdex(stats, 0.5, false)
     end
     assert_equal 1, stats.apdex_s
     assert_equal 0, stats.apdex_t
@@ -84,7 +84,7 @@ class NewRelic::Agent::Instrumentation::MetricFrameTest < Test::Unit::TestCase
   def test_update_apdex_records_tolerating
     stats = NewRelic::Agent::Stats.new
     with_config(:apdex_t => 1) do
-      NewRelic::Agent::Instrumentation::MetricFrame.update_apdex(stats, 1.5, false)
+      NewRelic::Agent::Instrumentation::Transaction.update_apdex(stats, 1.5, false)
     end
     assert_equal 0, stats.apdex_s
     assert_equal 1, stats.apdex_t
@@ -94,7 +94,7 @@ class NewRelic::Agent::Instrumentation::MetricFrameTest < Test::Unit::TestCase
   def test_update_apdex_records_failing
     stats = NewRelic::Agent::Stats.new
     with_config(:apdex_t => 1) do
-      NewRelic::Agent::Instrumentation::MetricFrame.update_apdex(stats, 4.5, false)
+      NewRelic::Agent::Instrumentation::Transaction.update_apdex(stats, 4.5, false)
     end
     assert_equal 0, stats.apdex_s
     assert_equal 0, stats.apdex_t
@@ -114,9 +114,9 @@ class NewRelic::Agent::Instrumentation::MetricFrameTest < Test::Unit::TestCase
 
     txn_info.transaction_name = 'Controller/slow/txn'
     with_config(config, :do_not_cast => true) do
-      NewRelic::Agent::Instrumentation::MetricFrame.update_apdex(stats, 3.5, false)
-      NewRelic::Agent::Instrumentation::MetricFrame.update_apdex(stats, 5.5, false)
-      NewRelic::Agent::Instrumentation::MetricFrame.update_apdex(stats, 16.5, false)
+      NewRelic::Agent::Instrumentation::Transaction.update_apdex(stats, 3.5, false)
+      NewRelic::Agent::Instrumentation::Transaction.update_apdex(stats, 5.5, false)
+      NewRelic::Agent::Instrumentation::Transaction.update_apdex(stats, 16.5, false)
     end
     assert_equal 1, stats.apdex_s
     assert_equal 1, stats.apdex_t
@@ -124,9 +124,9 @@ class NewRelic::Agent::Instrumentation::MetricFrameTest < Test::Unit::TestCase
 
     txn_info.transaction_name = 'Controller/fast/txn'
     with_config(config, :do_not_cast => true) do
-      NewRelic::Agent::Instrumentation::MetricFrame.update_apdex(stats, 0.05, false)
-      NewRelic::Agent::Instrumentation::MetricFrame.update_apdex(stats, 0.2, false)
-      NewRelic::Agent::Instrumentation::MetricFrame.update_apdex(stats, 0.5, false)
+      NewRelic::Agent::Instrumentation::Transaction.update_apdex(stats, 0.05, false)
+      NewRelic::Agent::Instrumentation::Transaction.update_apdex(stats, 0.2, false)
+      NewRelic::Agent::Instrumentation::Transaction.update_apdex(stats, 0.5, false)
     end
     assert_equal 2, stats.apdex_s
     assert_equal 2, stats.apdex_t
@@ -134,9 +134,9 @@ class NewRelic::Agent::Instrumentation::MetricFrameTest < Test::Unit::TestCase
 
     txn_info.transaction_name = 'Controller/other/txn'
     with_config(config, :do_not_cast => true) do
-      NewRelic::Agent::Instrumentation::MetricFrame.update_apdex(stats, 0.5, false)
-      NewRelic::Agent::Instrumentation::MetricFrame.update_apdex(stats, 2, false)
-      NewRelic::Agent::Instrumentation::MetricFrame.update_apdex(stats, 5, false)
+      NewRelic::Agent::Instrumentation::Transaction.update_apdex(stats, 0.5, false)
+      NewRelic::Agent::Instrumentation::Transaction.update_apdex(stats, 2, false)
+      NewRelic::Agent::Instrumentation::Transaction.update_apdex(stats, 5, false)
     end
     assert_equal 3, stats.apdex_s
     assert_equal 3, stats.apdex_t
@@ -150,7 +150,7 @@ class NewRelic::Agent::Instrumentation::MetricFrameTest < Test::Unit::TestCase
     NewRelic::Agent.instance.instance_variable_set(:@stats_engine, stats_engine)
 
     with_config(:apdex_t => 2.5) do
-      NewRelic::Agent::Instrumentation::MetricFrame.record_apdex(metric, 1, 1, false)
+      NewRelic::Agent::Instrumentation::Transaction.record_apdex(metric, 1, 1, false)
     end
     assert_equal 2.5, stats_engine.lookup_stats('Apdex').min_call_time
     assert_equal 2.5, stats_engine.lookup_stats('Apdex').max_call_time
@@ -158,20 +158,20 @@ class NewRelic::Agent::Instrumentation::MetricFrameTest < Test::Unit::TestCase
     assert_equal 2.5, stats_engine.lookup_stats('Apdex/Controller/some/txn').max_call_time
   end
 
-  def test_push_adds_controller_context_to_frame_stack
+  def test_push_adds_controller_context_to_txn_stack
     NewRelic::Agent.instance.transaction_sampler \
-      .expects(:notice_first_scope_push).with(@f.start)
+      .expects(:notice_first_scope_push).with(@txn.start)
     NewRelic::Agent.instance.sql_sampler \
-      .expects(:notice_first_scope_push).with(@f.start)
-    stack = @f.push(:web)
+      .expects(:notice_first_scope_push).with(@txn.start)
+    stack = @txn.push(:web)
 
     assert_equal 1, stack.size
 
     NewRelic::Agent.instance.transaction_sampler \
-      .expects(:notice_first_scope_push).with(@f.start)
+      .expects(:notice_first_scope_push).with(@txn.start)
     NewRelic::Agent.instance.sql_sampler \
-      .expects(:notice_first_scope_push).with(@f.start)
-    stack = @f.push(:web)
+      .expects(:notice_first_scope_push).with(@txn.start)
+    stack = @txn.push(:web)
 
     assert_equal 2, stack.size
   end

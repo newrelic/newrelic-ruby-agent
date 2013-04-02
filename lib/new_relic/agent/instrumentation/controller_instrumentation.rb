@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/instrumentation/metric_frame'
+require 'new_relic/agent/instrumentation/transaction'
 require 'new_relic/agent/instrumentation/queue_time'
 module NewRelic
   module Agent
@@ -262,15 +262,15 @@ module NewRelic
           control = NewRelic::Control.instance
           return perform_action_with_newrelic_profile(args, &block) if control.profiling?
 
-          frame_data = _push_metric_frame(block_given? ? args : [])
-          metrics = recorded_metrics(frame_data)
+          txn = _push_transaction(block_given? ? args : [])
+          metrics = recorded_metrics(txn)
           txn_name = metrics.first
           begin
-            options = { :force => frame_data.force_flag, :transaction => true }
+            options = { :force => txn.force_flag, :transaction => true }
             NewRelic::Agent.trace_execution_scoped(metrics, options) do
-              frame_data.start_transaction
+              txn.start_transaction
               begin
-                NewRelic::Agent::BusyCalculator.dispatcher_start frame_data.start
+                NewRelic::Agent::BusyCalculator.dispatcher_start txn.start
                 result = if block_given?
                   yield
                 else
@@ -283,26 +283,27 @@ module NewRelic
                 end
                 result
               rescue => e
-                frame_data.notice_error(e)
+                txn.notice_error(e)
                 raise
               end
             end
           ensure
             NewRelic::Agent::BusyCalculator.dispatcher_finish
-            # Look for a metric frame in the thread local and process it.
+            # Look for a transaction in the thread local and process it.
             # Clear the thread local when finished to ensure it only gets called once.
-            frame_data.record_apdex(txn_name) unless ignore_apdex?
-            frame_data.pop(txn_name)
+            txn.record_apdex(txn_name) unless ignore_apdex?
+            txn.pop(txn_name)
 
             NewRelic::Agent::TransactionInfo.get.ignore_end_user = true if ignore_enduser?
           end
         end
 
-        def recorded_metrics(metric_frame)
-          txn = TransactionInfo.get.transaction_name
-          metric_parser = NewRelic::MetricParser::MetricParser.for_metric_named(txn)
-          metrics = [txn]
-          metrics += metric_parser.summary_metrics unless metric_frame.has_parent?
+        def recorded_metrics(txn)
+          # RUBY-1059
+          txn_name = TransactionInfo.get.transaction_name
+          metric_parser = NewRelic::MetricParser::MetricParser.for_metric_named(txn_name)
+          metrics = [txn_name]
+          metrics += metric_parser.summary_metrics unless txn.has_parent?
           metrics
         end
 
@@ -362,10 +363,10 @@ module NewRelic
         # Profile the instrumented call.  Dev mode only.  Experimental
         # - should definitely not be used on production applications
         def perform_action_with_newrelic_profile(args)
-          frame_data = _push_metric_frame(block_given? ? args : [])
+          txn = _push_transaction(block_given? ? args : [])
           val = nil
-          NewRelic::Agent.trace_execution_scoped frame_data.metric_name do
-            MetricFrame.current(true).start_transaction
+          NewRelic::Agent.trace_execution_scoped txn.metric_name do
+            Transaction.current(true).start_transaction
             NewRelic::Agent.disable_all_tracing do
               # turn on profiling
               profile = RubyProf.profile do
@@ -380,7 +381,7 @@ module NewRelic
           end
           return val
         ensure
-          frame_data.pop
+          txn.pop
         end
 
         def transaction_name(options={})
@@ -422,12 +423,12 @@ module NewRelic
           [ metric_class, options[:name] ].compact.join('/')
         end
 
-        # Write a metric frame onto a thread local if there isn't already one there.
+        # Write a transaction onto a thread local if there isn't already one there.
         # If there is one, just update it.
-        def _push_metric_frame(args) # :nodoc:
-          frame_data = NewRelic::Agent::Instrumentation::MetricFrame.current(true)
+        def _push_transaction(args) # :nodoc:
+          txn = Transaction.current(true)
 
-          frame_data.apdex_start ||= _detect_upstream_wait(frame_data.start)
+          txn.apdex_start ||= _detect_upstream_wait(txn.start)
           _record_queue_length
 
           # If a block was passed in, then the arguments represent options for the instrumentation,
@@ -436,22 +437,22 @@ module NewRelic
           if args.any?
             if args.last.is_a?(Hash)
               options = args.pop
-              frame_data.force_flag = options[:force]
-              frame_data.request = options[:request] if options[:request]
+              txn.force_flag = options[:force]
+              txn.request = options[:request] if options[:request]
             end
             available_params = options[:params] || {}
             options[:name] ||= args.first
           else
             available_params = self.respond_to?(:params) ? self.params : {}
           end
-          frame_data.request ||= self.request if self.respond_to? :request
+          txn.request ||= self.request if self.respond_to? :request
 
           txn_name = transaction_name(options || {})
 
           NewRelic::Agent::TransactionInfo.get.transaction_name = txn_name
-          frame_data.push(transaction_type(options))
-          frame_data.filtered_params = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
-          frame_data
+          txn.push(transaction_type(options))
+          txn.filtered_params = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
+          txn
         end
 
         # Filter out a request if it matches one of our parameters for

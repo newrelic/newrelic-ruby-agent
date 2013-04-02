@@ -31,7 +31,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     end
 
   def teardown
-    Thread.current[:last_metric_frame] = nil
+    Thread.current[:last_transaction] = nil
     NewRelic::Agent::TransactionInfo.clear
     NewRelic::Agent.config.remove_config(@config)
   end
@@ -266,20 +266,20 @@ var e=document.createElement("script");'
   end
 
   def test_browser_monitoring_queue_time_zero
-    frame = Thread.current[:last_metric_frame] = mock('metric frame')
-    frame.expects(:queue_time).returns(0.0)
+    txn = Thread.current[:last_transaction] = mock('txn')
+    txn.expects(:queue_time).returns(0.0)
     assert_equal(0.0, browser_monitoring_queue_time, 'should return zero when there is zero queue time')
   end
 
   def test_browser_monitoring_queue_time_ducks
-    frame = Thread.current[:last_metric_frame] = mock('metric frame')
-    frame.expects(:queue_time).returns('a duck')
+    txn = Thread.current[:last_transaction] = mock('txn')
+    txn.expects(:queue_time).returns('a duck')
     assert_equal(0.0, browser_monitoring_queue_time, 'should return zero when there is an incorrect queue time')
   end
 
   def test_browser_monitoring_queue_time_nonzero
-    frame = Thread.current[:last_metric_frame] = mock('metric frame')
-    frame.expects(:queue_time).returns(3.00002)
+    txn = Thread.current[:last_transaction] = mock('txn')
+    txn.expects(:queue_time).returns(3.00002)
     assert_equal(3000, browser_monitoring_queue_time, 'should return a rounded time')
   end
 
@@ -287,10 +287,10 @@ var e=document.createElement("script");'
     # mocking this because JRuby thinks that Time.now - Time.now
     # always takes at least 1ms
     self.expects(:browser_monitoring_app_time).returns(0)
-    frame = Thread.current[:last_metric_frame] = mock('metric frame')
+    txn = Thread.current[:last_transaction] = mock('txn')
     user_attributes = {:user => "user", :account => "account", :product => "product"}
-    frame.expects(:user_attributes).returns(user_attributes).at_least_once
-    frame.expects(:queue_time).returns(0)
+    txn.expects(:user_attributes).returns(user_attributes).at_least_once
+    txn.expects(:queue_time).returns(0)
 
     sample = mock('transaction info')
     NewRelic::Agent::TransactionInfo.set(sample)

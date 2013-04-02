@@ -112,7 +112,7 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
   end
 
   # Important choice of controllor_error, since this goes through both the
-  # metric_frame and the rack error collector, so risks multiple counting!
+  # transaction and the rack error collector, so risks multiple counting!
   def test_should_capture_multiple_errors
     40.times do
       get '/error/controller_error'
