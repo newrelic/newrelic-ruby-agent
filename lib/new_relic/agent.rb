@@ -64,7 +64,7 @@ module NewRelic
   module Agent
     extend self
     extend Forwardable
-    
+
     require 'new_relic/version'
     require 'new_relic/local_environment'
     require 'new_relic/metrics'
@@ -362,13 +362,13 @@ module NewRelic
       untraced = Thread.current[:newrelic_untraced]
       untraced.nil? || untraced.last != false
     end
-    
+
     # helper method to check the thread local to determine whether the
     # transaction in progress is traced or not
     def is_transaction_traced?
       Thread::current[:record_tt] != false
     end
-    
+
     # helper method to check the thread local to determine whether sql
     # is being recorded or not
     def is_sql_recorded?
@@ -412,7 +412,7 @@ module NewRelic
     def add_custom_parameters(params)
       NewRelic::Agent::Instrumentation::Transaction.add_custom_parameters(params)
     end
-    
+
     # Set attributes about the user making this request. These attributes will be automatically
     # appended to any Transaction Trace or Error that is collected. These attributes
     # will also be collected for RUM requests.
