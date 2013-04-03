@@ -91,7 +91,7 @@ class AuditLogTest < Test::Unit::TestCase
       agent.sql_sampler.notice_sql("select * from test",
                                     "Database/test/select",
                                     nil, 1.5)
-      agent.sql_sampler.notice_scope_empty
+      agent.sql_sampler.notice_scope_empty('txn')
       agent.send(:harvest_and_send_slowest_sql)
     end
     $collector.agent_data.each do |req|

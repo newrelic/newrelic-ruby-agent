@@ -81,7 +81,7 @@ class MarshalingTest < Test::Unit::TestCase
     @agent.sql_sampler.notice_sql("select * from test",
                                   "Database/test/select",
                                   nil, 1.5)
-    @agent.sql_sampler.notice_scope_empty
+    @agent.sql_sampler.notice_scope_empty('txn')
 
     @agent.service.connect
     @agent.send(:harvest_and_send_slowest_sql)
