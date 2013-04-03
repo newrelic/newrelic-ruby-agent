@@ -22,21 +22,9 @@ class NewRelic::Agent::Instrumentation::Transaction::PopTest < Test::Unit::TestC
     Thread.current[:newrelic_transaction] = nil
   end
 
-  def test_clear_thread_transaction
-    Thread.current[:newrelic_transaction] = 'whee'
-    clear_thread_transaction!
-    assert_equal nil, Thread.current[:newrelic_transaction], 'should nil out the thread var'
-  end
-
   def test_log_underflow
     expects_logging(:error, regexp_matches(/Underflow in transaction: /))
     log_underflow
-  end
-
-  def test_notice_scope_empty
-    transaction_sampler.expects(:notice_scope_empty)
-    sql_sampler.expects(:notice_scope_empty)
-    notice_scope_empty
   end
 
   def test_record_transaction_cpu_positive
@@ -95,58 +83,9 @@ class NewRelic::Agent::Instrumentation::Transaction::PopTest < Test::Unit::TestC
     assert_equal 2, cpu_burn
   end
 
-  def test_end_transaction
-    fake_stats_engine = mock('stats engine')
-    agent.expects(:stats_engine).returns(fake_stats_engine)
-    fake_stats_engine.expects(:end_transaction)
-    end_transaction!
-  end
-
-  def test_notify_transaction_sampler_true
-    self.expects(:record_transaction_cpu)
-    self.expects(:notice_scope_empty)
-    notify_transaction_sampler
-  end
-
-  def test_notify_transaction_sampler_false
-    self.expects(:record_transaction_cpu)
-    self.expects(:notice_scope_empty)
-    notify_transaction_sampler
-  end
-
   def test_traced
     NewRelic::Agent.expects(:is_execution_traced?)
     traced?
-  end
-
-  def test_handle_empty_transaction_type_stack_default
-    self.expects(:traced?).returns(true)
-    self.expects(:notify_transaction_sampler)
-    self.expects(:end_transaction!)
-    self.expects(:clear_thread_transaction!)
-    handle_empty_transaction_type_stack
-  end
-
-  def test_handle_empty_transaction_type_stack_non_web
-    self.expects(:traced?).returns(true)
-    self.expects(:notify_transaction_sampler)
-    self.expects(:end_transaction!)
-    self.expects(:clear_thread_transaction!)
-    handle_empty_transaction_type_stack
-  end
-
-  def test_handle_empty_transaction_type_stack_error
-    @transaction_type_stack = ['not empty']
-    assert_raise(RuntimeError) do
-      handle_empty_transaction_type_stack
-    end
-  end
-
-  def test_handle_empty_transaction_type_stack_untraced
-    self.expects(:traced?).returns(false)
-    self.expects(:end_transaction!)
-    self.expects(:clear_thread_transaction!)
-    handle_empty_transaction_type_stack
   end
 
   def test_current_stack_metric

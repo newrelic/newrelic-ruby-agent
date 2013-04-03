@@ -118,16 +118,19 @@ module Agent
       # and is ignored.
       #
       def end_transaction(name=nil)
-        elapsed = GCProfiler.capture
-        if @transaction_sampler && @transaction_sampler.last_sample
-          @transaction_sampler.last_sample.params[:custom_params] ||= {}
-          @transaction_sampler.last_sample.params[:custom_params][:gc_time] = elapsed
-        end
         stack = scope_stack
 
         if stack && stack.empty?
           Thread::current[:newrelic_scope_stack] = nil
           Thread::current[:newrelic_scope_name] = nil
+        end
+      end
+
+      def record_gc_time
+        elapsed = GCProfiler.capture
+        if @transaction_sampler && @transaction_sampler.last_sample
+          @transaction_sampler.last_sample.params[:custom_params] ||= {}
+          @transaction_sampler.last_sample.params[:custom_params][:gc_time] = elapsed
         end
       end
 

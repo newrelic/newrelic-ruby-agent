@@ -77,6 +77,7 @@ class NewRelic::Agent::StatsEngine::GCProfilerTest < Test::Unit::TestCase
     engine.start_transaction
     scope = engine.push_scope "scope"
     engine.pop_scope scope, 0.01
+    engine.record_gc_time
     engine.end_transaction
 
     gc_stats = engine.get_stats('GC/cumulative')

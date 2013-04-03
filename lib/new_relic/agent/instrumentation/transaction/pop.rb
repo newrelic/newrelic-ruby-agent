@@ -8,18 +8,8 @@ module NewRelic
     module Instrumentation
       class Transaction
         module Pop
-
-          def clear_thread_transaction!
-            Thread.current[:newrelic_transaction] = nil
-          end
-
           def log_underflow
             ::NewRelic::Agent.logger.error "Underflow in transaction: #{caller.join("\n   ")}"
-          end
-
-          def notice_scope_empty
-            transaction_sampler.notice_scope_empty
-            sql_sampler.notice_scope_empty
           end
 
           def record_transaction_cpu
@@ -50,24 +40,8 @@ module NewRelic
             normal_cpu_burn || jruby_cpu_burn
           end
 
-          def end_transaction!
-            agent.stats_engine.end_transaction
-          end
-
-          def notify_transaction_sampler
-            record_transaction_cpu
-            notice_scope_empty
-          end
-
           def traced?
             NewRelic::Agent.is_execution_traced?
-          end
-
-          def handle_empty_transaction_type_stack
-            raise 'transaction type stack not empty' unless @transaction_type_stack.empty?
-            notify_transaction_sampler if traced?
-            end_transaction!
-            clear_thread_transaction!
           end
 
           def current_stack_metric

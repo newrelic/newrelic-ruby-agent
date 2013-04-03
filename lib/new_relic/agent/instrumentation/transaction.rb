@@ -153,9 +153,29 @@ module NewRelic
         def pop(metric)
           transaction_type = @transaction_type_stack.pop
           log_underflow if transaction_type.nil?
-          agent.stats_engine.pop_transaction_stats(metric)
+
+          # RUBY-1059 these record metrics so need to be done before
+          # the pop
           if @transaction_type_stack.empty?
-            handle_empty_transaction_type_stack
+            # RUBY-1059 this one records metrics and wants to happen
+            # before the transaction sampler is finished
+            record_transaction_cpu if traced?
+
+            transaction_sampler.notice_scope_empty
+            sql_sampler.notice_scope_empty
+
+            # RUBY-1059 this one records metrics and wants to happen
+            # after the transaction sampler is finished
+            agent.stats_engine.record_gc_time if traced?
+          end
+
+          agent.stats_engine.pop_transaction_stats(metric)
+
+          # RUBY-1059 these tear everything down so need to be done
+          # after the pop
+          if @transaction_type_stack.empty?
+            agent.stats_engine.end_transaction
+            Thread.current[:newrelic_transaction] = nil
           end
         end
 
