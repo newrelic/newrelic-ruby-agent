@@ -27,7 +27,7 @@ module NewRelic
       end
 
       def ignored?
-        @ignore || @sample.params[:path].nil?
+        @ignore
       end
 
       def ignore_transaction
@@ -95,9 +95,7 @@ module NewRelic
         @sample.profile = profile
       end
 
-      def set_transaction_info(path, uri, params)
-        @sample.params[:path] = path
-
+      def set_transaction_info(uri, params)
         if Agent.config[:capture_params]
           params = normalize_params params
 
@@ -106,6 +104,10 @@ module NewRelic
           @sample.params[:request_params].delete :action
         end
         @sample.params[:uri] ||= uri || params[:uri]
+      end
+
+      def set_transaction_name(name)
+        @sample.params[:path] = name
       end
 
       def set_transaction_cpu_time(cpu_time)

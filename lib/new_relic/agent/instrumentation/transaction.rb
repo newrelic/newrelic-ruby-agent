@@ -137,7 +137,7 @@ module NewRelic
           if !has_parent?
             # RUBY-1059
             txn_name = TransactionInfo.get.transaction_name
-            transaction_sampler.notice_transaction(txn_name, uri, filtered_params)
+            transaction_sampler.notice_transaction(uri, filtered_params)
             sql_sampler.notice_transaction(txn_name, uri, filtered_params)
           end
         end
@@ -153,15 +153,15 @@ module NewRelic
         def pop(metric)
           transaction_type = @transaction_type_stack.pop
           log_underflow if transaction_type.nil?
-
           # RUBY-1059 these record metrics so need to be done before
           # the pop
           if @transaction_type_stack.empty?
             # RUBY-1059 this one records metrics and wants to happen
             # before the transaction sampler is finished
-            record_transaction_cpu if traced?
 
-            transaction_sampler.notice_scope_empty
+            record_transaction_cpu if traced?
+            transaction_sampler.notice_scope_empty(metric)
+
             sql_sampler.notice_scope_empty
 
             # RUBY-1059 this one records metrics and wants to happen

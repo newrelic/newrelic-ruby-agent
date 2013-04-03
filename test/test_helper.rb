@@ -333,24 +333,21 @@ module TransactionSampleTestHelper
   def make_sql_transaction(*sql)
     sampler = NewRelic::Agent::TransactionSampler.new
     sampler.notice_first_scope_push Time.now.to_f
-    sampler.notice_transaction '/path', nil, :jim => "cool"
+    sampler.notice_transaction(nil, :jim => "cool")
     sampler.notice_push_scope "a"
-
-    sampler.notice_transaction '/path/2', nil, :jim => "cool"
-
     sql.each {|sql_statement| sampler.notice_sql(sql_statement, {:adapter => "test"}, 0 ) }
 
     sleep 0.02
     yield if block_given?
     sampler.notice_pop_scope "a"
-    sampler.notice_scope_empty
+    sampler.notice_scope_empty('/path/2')
 
     sampler.samples[0]
   end
 
   def run_sample_trace_on(sampler, path='/path')
     sampler.notice_first_scope_push Time.now.to_f
-    sampler.notice_transaction path, path, {}
+    sampler.notice_transaction(path, {})
     sampler.notice_push_scope "Controller/sandwiches/index"
     sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'", nil, 0)
     sampler.notice_push_scope "ab"
@@ -361,7 +358,7 @@ module TransactionSampleTestHelper
     sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'french'", nil, 0)
     sampler.notice_pop_scope "lew"
     sampler.notice_pop_scope "Controller/sandwiches/index"
-    sampler.notice_scope_empty
+    sampler.notice_scope_empty(path)
     sampler.samples[0]
   end
 end

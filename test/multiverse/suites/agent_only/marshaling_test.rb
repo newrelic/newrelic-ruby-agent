@@ -26,13 +26,13 @@ class MarshalingTest < Test::Unit::TestCase
     # create fake transaction trace
     time = Time.now.to_f
     @sampler.notice_first_scope_push time
-    @sampler.notice_transaction '/path', nil, {}
+    @sampler.notice_transaction nil, {}
     @sampler.notice_push_scope "a"
     @sampler.notice_push_scope "ab"
     sleep 1
     @sampler.notice_pop_scope "ab"
     @sampler.notice_pop_scope "a"
-    @sampler.notice_scope_empty
+    @sampler.notice_scope_empty 'path'
 
     expected_sample = @sampler.instance_variable_get(:@slowest_sample)
 

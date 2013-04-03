@@ -99,11 +99,11 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit:
     @stats_engine.start_transaction('test')
     sampler = NewRelic::Agent.instance.transaction_sampler
     sampler.notice_first_scope_push(Time.now.to_f)
-    sampler.notice_transaction('/path', '/path', {})
+    sampler.notice_transaction('/path', {})
     sampler.notice_push_scope('Controller/sandwiches/index')
     @subscriber.call('sql.active_record', t0, t1, :id, @params)
     sampler.notice_pop_scope('Controller/sandwiches/index')
-    sampler.notice_scope_empty
+    sampler.notice_scope_empty('/path')
 
     last_segment = nil
     sampler.last_sample.root_segment.each_segment{|s| last_segment = s }

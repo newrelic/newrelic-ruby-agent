@@ -148,7 +148,6 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
     txn_sampler = NewRelic::Agent::TransactionSampler.new
     NewRelic::Agent.instance.stats_engine.transaction_sampler = txn_sampler
     txn_sampler.start_builder(Time.now)
-    txn_sampler.notice_transaction('a path', 'a uri', {:some => :params})
     @sampler.create_transaction_data
     @sampler.notice_transaction('a path', 'a uri', {:some => :params})
 

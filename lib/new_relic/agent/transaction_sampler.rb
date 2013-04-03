@@ -15,6 +15,7 @@ module NewRelic
 
       # Module defining methods stubbed out when the agent is disabled
       module Shim #:nodoc:
+        def notice_transaction(*args); end
         def notice_first_scope_push(*args); end
         def notice_push_scope(*args); end
         def notice_pop_scope(*args); end
@@ -145,8 +146,9 @@ module NewRelic
       #
       # It sets various instance variables to the finished sample,
       # depending on which settings are active. See `store_sample`
-      def notice_scope_empty(time=Time.now)
+      def notice_scope_empty(txn_name, time=Time.now)
         last_builder = builder
+        last_builder.set_transaction_name(txn_name) if enabled? && last_builder
 
         return unless last_builder
 
@@ -231,10 +233,10 @@ module NewRelic
         end
       end
 
-      # Delegates to the builder to store the path, uri, and
+      # Delegates to the builder to store the uri, and
       # parameters if the sampler is active
-      def notice_transaction(path, uri=nil, params={})
-        builder.set_transaction_info(path, uri, params) if enabled? && builder
+      def notice_transaction(uri=nil, params={})
+        builder.set_transaction_info(uri, params) if enabled? && builder
       end
 
       # Tells the builder to ignore a transaction, if we are currently
