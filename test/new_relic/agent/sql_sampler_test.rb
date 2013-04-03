@@ -18,7 +18,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
     assert_nil @sampler.transaction_data
     @sampler.notice_first_scope_push nil
     assert_not_nil @sampler.transaction_data
-    @sampler.notice_scope_empty
+    @sampler.notice_scope_empty('txn')
     assert_nil @sampler.transaction_data
   end
 
@@ -46,8 +46,8 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
 
   def test_harvest_slow_sql
     data = NewRelic::Agent::TransactionSqlData.new
-    data.set_transaction_info("WebTransaction/Controller/c/a", "/c/a", {},
-                              'guid')
+    data.set_transaction_info("/c/a", {}, 'guid')
+    data.set_transaction_name("WebTransaction/Controller/c/a")
     data.sql_data.concat [
       NewRelic::Agent::SlowSql.new("select * from test", "Database/test/select", {}, 1.5),
       NewRelic::Agent::SlowSql.new("select * from test", "Database/test/select", {}, 1.2),
@@ -75,8 +75,8 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
 
   def test_harvest
     data = NewRelic::Agent::TransactionSqlData.new
-    data.set_transaction_info("WebTransaction/Controller/c/a", "/c/a", {},
-                              'guid')
+    data.set_transaction_info("/c/a", {}, 'guid')
+    data.set_transaction_name("WebTransaction/Controller/c/a")
     data.sql_data.concat [NewRelic::Agent::SlowSql.new("select * from test", "Database/test/select", {}, 1.5),
                           NewRelic::Agent::SlowSql.new("select * from test", "Database/test/select", {}, 1.2),
                           NewRelic::Agent::SlowSql.new("select * from test2", "Database/test2/select", {}, 1.1)]
@@ -88,7 +88,8 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
 
   def test_harvest_should_not_take_more_than_10
     data = NewRelic::Agent::TransactionSqlData.new
-    data.set_transaction_info("WebTransaction/Controller/c/a", "/c/a", {}, 'guid')
+    data.set_transaction_info("/c/a", {}, 'guid')
+    data.set_transaction_name("WebTransaction/Controller/c/a")
     15.times do |i|
       data.sql_data << NewRelic::Agent::SlowSql.new("select * from test#{(i+97).chr}",
                                                     "Database/test#{(i+97).chr}/select", {}, i)
@@ -103,8 +104,8 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
 
   def test_harvest_should_aggregate_similar_queries
     data = NewRelic::Agent::TransactionSqlData.new
-    data.set_transaction_info("WebTransaction/Controller/c/a", "/c/a", {},
-                              'guid')
+    data.set_transaction_info("/c/a", {}, 'guid')
+    data.set_transaction_name("WebTransaction/Controller/c/a")
     queries = [
                NewRelic::Agent::SlowSql.new("select  * from test where foo in (1, 2)  ", "Database/test/select", {}, 1.5),
                NewRelic::Agent::SlowSql.new("select * from test where foo in (1,2, 3 ,4,  5,6, 'snausage')", "Database/test/select", {}, 1.2),
@@ -124,8 +125,8 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
      .returns([{"header0" => 'bar0', "header1" => 'bar1', "header2" => 'bar2'}])
 
     data = NewRelic::Agent::TransactionSqlData.new
-    data.set_transaction_info("WebTransaction/Controller/c/a", "/c/a", {},
-                              'guid')
+    data.set_transaction_info("/c/a", {}, 'guid')
+    data.set_transaction_name("WebTransaction/Controller/c/a")
     queries = [
                NewRelic::Agent::SlowSql.new("select * from test", "Database/test/select", {}, 1.5),
                NewRelic::Agent::SlowSql.new("select * from test", "Database/test/select", {}, 1.2),
@@ -149,7 +150,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
     NewRelic::Agent.instance.stats_engine.transaction_sampler = txn_sampler
     txn_sampler.start_builder(Time.now)
     @sampler.create_transaction_data
-    @sampler.notice_transaction('a path', 'a uri', {:some => :params})
+    @sampler.notice_transaction('a uri', {:some => :params})
 
     assert_equal(NewRelic::Agent.instance.transaction_sampler.builder.sample.guid,
                  NewRelic::Agent.instance.sql_sampler.transaction_data.guid)
@@ -158,9 +159,8 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
   def test_should_not_collect_explain_plans_when_disabled
     with_config(:'transaction_tracer.explain_enabled' => false) do
       data = NewRelic::Agent::TransactionSqlData.new
-      data.set_transaction_info("WebTransaction/Controller/c/a", "/c/a", {},
-                                'guid')
-
+      data.set_transaction_info("/c/a", {}, 'guid')
+      data.set_transaction_name("WebTransaction/Controller/c/a")
       queries = [
                  NewRelic::Agent::SlowSql.new("select * from test",
                                               "Database/test/select", {}, 1.5)
@@ -185,8 +185,8 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
   def test_sends_obfuscated_queries_when_configured
     with_config(:'transaction_tracer.record_sql' => 'obfuscated') do
       data = NewRelic::Agent::TransactionSqlData.new
-      data.set_transaction_info("WebTransaction/Controller/c/a", "/c/a", {},
-                                'guid')
+      data.set_transaction_info("/c/a", {}, 'guid')
+      data.set_transaction_name("WebTransaction/Controller/c/a")
       data.sql_data.concat([NewRelic::Agent::SlowSql.new("select * from test where foo = 'bar'",
                                                          "Database/test/select", {}, 1.5),
                             NewRelic::Agent::SlowSql.new("select * from test where foo in (1,2,3,4,5)",
@@ -202,8 +202,8 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
   def test_to_collector_array
     with_config(:'transaction_tracer.explain_enabled' => false) do
       data = NewRelic::Agent::TransactionSqlData.new
-      data.set_transaction_info("WebTransaction/Controller/c/a", "/c/a", {},
-                                'guid')
+      data.set_transaction_info("/c/a", {}, 'guid')
+      data.set_transaction_name("WebTransaction/Controller/c/a")
       data.sql_data.concat([NewRelic::Agent::SlowSql.new("select * from test",
                                                          "Database/test/select",
                                                          {}, 1.5)])

@@ -138,7 +138,7 @@ module NewRelic
             # RUBY-1059
             txn_name = TransactionInfo.get.transaction_name
             transaction_sampler.notice_transaction(uri, filtered_params)
-            sql_sampler.notice_transaction(txn_name, uri, filtered_params)
+            sql_sampler.notice_transaction(uri, filtered_params)
           end
         end
 
@@ -161,8 +161,7 @@ module NewRelic
 
             record_transaction_cpu if traced?
             transaction_sampler.notice_scope_empty(metric)
-
-            sql_sampler.notice_scope_empty
+            sql_sampler.notice_scope_empty(metric)
 
             # RUBY-1059 this one records metrics and wants to happen
             # after the transaction sampler is finished
