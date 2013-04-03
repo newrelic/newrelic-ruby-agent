@@ -32,7 +32,7 @@ if defined?(Merb) && defined?(Merb::BootLoader)
     end
   end
 elsif defined? Rails
-  if Rails.respond_to?(:version) && Rails.version > '3'
+  if Rails::VERSION::MAJOR.to_i >= 3
     module NewRelic
       class Railtie < Rails::Railtie
 
@@ -42,7 +42,7 @@ elsif defined? Rails
       end
     end
   else
-    # After verison 2.0 of Rails we can access the configuration directly.
+    # After version 2.0 of Rails we can access the configuration directly.
     # We need it to add dev mode routes after initialization finished.
     config = nil
     config = Rails.configuration if Rails.respond_to?(:configuration)

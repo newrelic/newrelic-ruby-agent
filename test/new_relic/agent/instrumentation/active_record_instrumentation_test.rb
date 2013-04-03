@@ -211,7 +211,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
   end
 
   def test_join_metrics_sqlite
-    return if (defined?(Rails) && Rails.respond_to?(:version) && Rails.version.to_i == 3)
+    return if (defined?(Rails) && Rails::VERSION::MAJOR.to_i == 3)
     return if defined?(JRuby)
     return unless isSqlite?
 
@@ -249,7 +249,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
   end
 
   def test_join_metrics_standard
-    return if (defined?(Rails) && Rails.respond_to?(:version) && Rails.version.to_i >= 3)
+    return if (defined?(Rails) && Rails::VERSION::MAJOR.to_i >= 3)
     return if defined?(JRuby) || isSqlite?
 
     expected_metrics = %W[
@@ -549,7 +549,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
   private
 
   def rails3?
-    (defined?(Rails) && Rails.respond_to?(:version) && Rails.version.to_i >= 3)
+    (defined?(Rails) && Rails::VERSION::MAJOR.to_i >= 3)
   end
 
   def rails_env

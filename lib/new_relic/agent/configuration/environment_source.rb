@@ -29,7 +29,10 @@ module NewRelic
           end
 
           boolean_map = {
-            'NEWRELIC_ENABLE' => :agent_enabled
+            'NEWRELIC_ENABLE' => :agent_enabled,
+            'NEWRELIC_ENABLED' => :agent_enabled,
+            'NEW_RELIC_ENABLE' => :agent_enabled,
+            'NEW_RELIC_ENABLED' => :agent_enabled
           }.each do |key, val|
             if ENV[key].to_s =~ /false|off|no/i
               self[val] = false

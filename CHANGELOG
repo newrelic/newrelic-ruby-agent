@@ -10,6 +10,18 @@
   for the request. Embedded credentials, the query string, and the fragment will
   be stripped from the URI before it is saved.
 
+  * Simplify Agent Autostart Logic
+
+  Previously the agent would only start when it detected a supported
+  "Dispatcher", meaning a known web server or background task framework.  This
+  was problematic for customers using webservers that the agent was not
+  configured to detect (e.g. Puma).  Now the agent will attempt to report any
+  time it detects it is running in a monitored environment (e.g. production).
+  There are two exceptions to this.  The agent will not autostart in a rails
+  console or irb session or when the process was invoked by a rake task (e.g.
+  rake assets:precompile).  The NEWRELIC_ENABLE environment variable can be set
+  to true or false to force the agent to start or not start.
+
 ## v3.6.0 ##
 
   * Sidekiq supprt

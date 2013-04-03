@@ -8,6 +8,7 @@ require 'net/http'
 require 'logger'
 require 'zlib'
 require 'stringio'
+require 'new_relic/agent/autostart'
 require 'new_relic/agent/new_relic_service'
 require 'new_relic/agent/pipe_service'
 require 'new_relic/agent/configuration/manager'
@@ -337,7 +338,7 @@ module NewRelic
           # assist with proper dispatcher detection
           def log_dispatcher
             dispatcher_name = Agent.config[:dispatcher].to_s
-            return if log_if(dispatcher_name.empty?, :warn, "No dispatcher detected.")
+            return if log_if(dispatcher_name.empty?, :info, "No known dispatcher detected.")
             ::NewRelic::Agent.logger.info "Dispatcher: #{dispatcher_name}"
           end
 

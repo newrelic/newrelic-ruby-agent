@@ -48,11 +48,21 @@ module NewRelic
         end,
         :enabled         => true,
         :monitor_mode    => Proc.new { self[:enabled] },
+
+        # agent_enabled determines whether the agent should try to start and
+        # report data.
         :agent_enabled   => Proc.new do
           self[:enabled] &&
           (self[:developer_mode] || self[:monitor_mode] || self[:monitor_daemons]) &&
-          !!NewRelic::Agent.config[:dispatcher]
+          ::NewRelic::Agent::Autostart.agent_should_start?
         end,
+        # Don't autostart the agent if we're in IRB or Rails console.
+        # This config option accepts a comma seperated list of constants.
+        :'autostart.blacklisted_constants' => 'IRB',
+        # Comma seperated list of executables that you don't want to trigger
+        # agents start. e.g. 'rake,my_ruby_script.rb'
+        :'autostart.blacklisted_executables' => '',
+        :'autostart.blacklisted_rake_tasks' => 'about,assets:clean,assets:clobber,assets:environment,assets:precompile,db:create,db:drop,db:fixtures:load,db:migrate,db:migrate:status,db:rollback,db:schema:cache:clear,db:schema:cache:dump,db:schema:dump,db:schema:load,db:seed,db:setup,db:structure:dump,db:version,doc:app,log:clear,middleware,notes,notes:custom,rails:template,rails:update,routes,secret,spec,spec:controllers,spec:helpers,spec:models,spec:rcov,stats,test,test:all,test:all:db,test:recent,test:single,test:uncommitted,time:zones:all,tmp:clear,tmp:create',
         :developer_mode  => Proc.new { self[:developer] },
         :developer       => false,
         :apdex_t         => 0.5,
