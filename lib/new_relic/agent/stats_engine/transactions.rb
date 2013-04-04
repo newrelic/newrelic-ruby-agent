@@ -154,7 +154,8 @@ module Agent
       def apply_scopes(stats_hash, resolved_name)
         new_stats = StatsHash.new
         stats_hash.each do |spec, stats|
-          if spec.scope.to_sym == StatsEngine::SCOPE_PLACEHOLDER
+          if spec.scope != '' &&
+              spec.scope.to_sym == StatsEngine::SCOPE_PLACEHOLDER
             spec.scope = resolved_name
           end
           new_stats[spec] = stats

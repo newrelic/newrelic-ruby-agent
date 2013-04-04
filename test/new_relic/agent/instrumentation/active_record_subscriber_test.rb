@@ -128,4 +128,4 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit:
   ensure
     NewRelic::Agent.shutdown
   end
-end ::Rails::VERSION::MAJOR.to_i >= 4 && !NewRelic::LanguageSupport.using_engine?('jruby')
+end if ::Rails::VERSION::MAJOR.to_i >= 4 && !NewRelic::LanguageSupport.using_engine?('jruby')
