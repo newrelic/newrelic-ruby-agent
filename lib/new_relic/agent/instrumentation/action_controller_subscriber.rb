@@ -106,7 +106,7 @@ module NewRelic
           txn = Instrumentation::Transaction.current(true)
           txn.request = event.payload[:request]
           txn.filtered_params = filter(event.payload[:params])
-          txn.push(event.metric_name)
+          txn.start(event.metric_name)
           txn.apdex_start = (event.queue_start || event.time)
           txn.start_transaction
           event.scope = Agent.instance.stats_engine \
@@ -118,7 +118,7 @@ module NewRelic
           Agent.instance.stats_engine \
             .pop_scope(event.scope, event.metric_name, event.end)
           txn = Instrumentation::Transaction.current
-          txn.pop(event.metric_name)
+          txn.stop(event.metric_name)
         end
 
         def filter(params)

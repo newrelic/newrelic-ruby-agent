@@ -17,7 +17,7 @@ module NewRelic
         # helper module refactored out of the `pop` method
         include Pop
 
-        attr_accessor :start       # A Time instance for the start time, never nil
+        attr_accessor :start_time  # A Time instance for the start time, never nil
         attr_accessor :apdex_start # A Time instance used for calculating the apdex score, which
         # might end up being @start, or it might be further upstream if
         # we can find a request header for the queue entry time
@@ -68,7 +68,7 @@ module NewRelic
         attr_reader :depth
 
         def initialize
-          @start = Time.now
+          @start_time = Time.now
           @transaction_type_stack = [] # stack of transaction types
           @jruby_cpu_start = jruby_cpu_time
           @process_cpu_start = process_cpu
@@ -101,9 +101,9 @@ module NewRelic
 
         # Indicate that we are entering a measured controller action or task.
         # Make sure you unwind every push with a pop call.
-        def push(transaction_type)
-          transaction_sampler.notice_first_scope_push(start)
-          sql_sampler.notice_first_scope_push(start)
+        def start(transaction_type)
+          transaction_sampler.notice_first_scope_push(start_time)
+          sql_sampler.notice_first_scope_push(start_time)
           @transaction_type_stack.push(transaction_type)
         end
 
@@ -150,7 +150,7 @@ module NewRelic
 
         # Unwind one stack level.  It knows if it's back at the outermost caller and
         # does the appropriate wrapup of the context.
-        def pop(metric)
+        def stop(metric)
           transaction_type = @transaction_type_stack.pop
           log_underflow if transaction_type.nil?
           # RUBY-1059 these record metrics so need to be done before
@@ -240,7 +240,7 @@ module NewRelic
             .for_metric_named(metric_name)
 
           t = Time.now
-          self.class.record_apdex(metric_parser, t - start, t - apdex_start, !exception.nil?)
+          self.class.record_apdex(metric_parser, t - start_time, t - apdex_start, !exception.nil?)
         end
 
         # Yield to a block that is run with a database metric name context.  This means
@@ -275,7 +275,7 @@ module NewRelic
         end
 
         def queue_time
-          start - apdex_start
+          start_time - apdex_start
         end
 
         def add_custom_parameters(p)

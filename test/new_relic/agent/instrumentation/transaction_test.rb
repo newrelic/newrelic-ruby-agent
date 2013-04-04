@@ -59,7 +59,7 @@ class NewRelic::Agent::Instrumentation::TransactionTest < Test::Unit::TestCase
 
   def test_queue_time
     txn.apdex_start = 1000
-    txn.start = 1500
+    txn.start_time = 1500
     assert_equal 500, txn.queue_time
   end
 
@@ -160,18 +160,18 @@ class NewRelic::Agent::Instrumentation::TransactionTest < Test::Unit::TestCase
 
   def test_push_adds_controller_context_to_txn_stack
     NewRelic::Agent.instance.transaction_sampler \
-      .expects(:notice_first_scope_push).with(@txn.start)
+      .expects(:notice_first_scope_push).with(@txn.start_time)
     NewRelic::Agent.instance.sql_sampler \
-      .expects(:notice_first_scope_push).with(@txn.start)
-    stack = @txn.push(:web)
+      .expects(:notice_first_scope_push).with(@txn.start_time)
+    stack = @txn.start(:web)
 
     assert_equal 1, stack.size
 
     NewRelic::Agent.instance.transaction_sampler \
-      .expects(:notice_first_scope_push).with(@txn.start)
+      .expects(:notice_first_scope_push).with(@txn.start_time)
     NewRelic::Agent.instance.sql_sampler \
-      .expects(:notice_first_scope_push).with(@txn.start)
-    stack = @txn.push(:web)
+      .expects(:notice_first_scope_push).with(@txn.start_time)
+    stack = @txn.start(:web)
 
     assert_equal 2, stack.size
   end

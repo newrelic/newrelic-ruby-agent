@@ -269,10 +269,10 @@ def in_transaction(name='dummy')
     NewRelic::Agent.instance.transaction_sampler
   txn = NewRelic::Agent::Instrumentation::Transaction.current(true)
   txn.filtered_params = {}
-  txn.push(:other)
+  txn.start(:other)
   txn.start_transaction
   val = yield
-  txn.pop(name)
+  txn.stop(name)
   val
 end
 

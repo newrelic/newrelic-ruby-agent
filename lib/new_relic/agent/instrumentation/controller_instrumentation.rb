@@ -262,7 +262,7 @@ module NewRelic
           control = NewRelic::Control.instance
           return perform_action_with_newrelic_profile(args, &block) if control.profiling?
 
-          txn = _push_transaction(block_given? ? args : [])
+          txn = _start_transaction(block_given? ? args : [])
           metrics = recorded_metrics(txn)
           txn_name = metrics.first
           begin
@@ -270,7 +270,7 @@ module NewRelic
             NewRelic::Agent.trace_execution_scoped(metrics, options) do
               txn.start_transaction
               begin
-                NewRelic::Agent::BusyCalculator.dispatcher_start txn.start
+                NewRelic::Agent::BusyCalculator.dispatcher_start txn.start_time
                 result = if block_given?
                   yield
                 else
@@ -292,7 +292,7 @@ module NewRelic
             # Look for a transaction in the thread local and process it.
             # Clear the thread local when finished to ensure it only gets called once.
             txn.record_apdex(txn_name) unless ignore_apdex?
-            txn.pop(txn_name)
+            txn.stop(txn_name)
 
             NewRelic::Agent::TransactionInfo.get.ignore_end_user = true if ignore_enduser?
           end
@@ -363,7 +363,7 @@ module NewRelic
         # Profile the instrumented call.  Dev mode only.  Experimental
         # - should definitely not be used on production applications
         def perform_action_with_newrelic_profile(args)
-          txn = _push_transaction(block_given? ? args : [])
+          txn = _start_transaction(block_given? ? args : [])
           val = nil
           NewRelic::Agent.trace_execution_scoped txn.metric_name do
             Transaction.current(true).start_transaction
@@ -425,10 +425,10 @@ module NewRelic
 
         # Write a transaction onto a thread local if there isn't already one there.
         # If there is one, just update it.
-        def _push_transaction(args) # :nodoc:
+        def _start_transaction(args) # :nodoc:
           txn = Transaction.current(true)
 
-          txn.apdex_start ||= _detect_upstream_wait(txn.start)
+          txn.apdex_start ||= _detect_upstream_wait(txn.start_time)
           _record_queue_length
 
           # If a block was passed in, then the arguments represent options for the instrumentation,
@@ -450,7 +450,7 @@ module NewRelic
           txn_name = transaction_name(options || {})
 
           NewRelic::Agent::TransactionInfo.get.transaction_name = txn_name
-          txn.push(transaction_type(options))
+          txn.start(transaction_type(options))
           txn.filtered_params = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
           txn
         end
