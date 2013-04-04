@@ -52,12 +52,12 @@ class NewRelic::Agent::Instrumentation::Transaction::PopTest < Test::Unit::TestC
     assert_equal nil, normal_cpu_burn
   end
 
-  def test_jruby_cpu_burn_positive
-    @jruby_cpu_start = 3
-    self.expects(:jruby_cpu_time).returns(4)
-    self.expects(:record_jruby_cpu_burn).with(1)
-    assert_equal 1, jruby_cpu_burn
-  end
+  # def test_jruby_cpu_burn_positive
+  #   @jruby_cpu_start = 3
+  #   self.expects(:jruby_cpu_time).returns(4)
+  #   self.expects(:record_jruby_cpu_burn).with(1)
+  #   assert_equal 1, jruby_cpu_burn
+  # end
 
   def test_jruby_cpu_burn_negative
     @jruby_cpu_start = nil

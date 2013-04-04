@@ -221,7 +221,8 @@ def assert_metrics_recorded_exclusive(expected)
   assert_metrics_recorded(expected)
   recorded_metrics = NewRelic::Agent.instance.stats_engine.metrics
   expected_metrics = expected.keys.map { |s| metric_spec_from_specish(s).to_s }
-  unexpected_metrics = recorded_metrics - expected_metrics
+  unexpected_metrics = recorded_metrics.select{|m| m !~ /GC\/cumulative/}
+  unexpected_metrics -= expected_metrics
   assert_equal(0, unexpected_metrics.size, "Found unexpected metrics: [#{unexpected_metrics.join(', ')}]")
 end
 

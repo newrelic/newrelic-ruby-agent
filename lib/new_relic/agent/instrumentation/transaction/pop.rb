@@ -25,7 +25,7 @@ module NewRelic
           def jruby_cpu_burn
             return unless @jruby_cpu_start
             burn = (jruby_cpu_time - @jruby_cpu_start)
-            record_jruby_cpu_burn(burn)
+            # record_jruby_cpu_burn(burn)
             burn
           end
 
