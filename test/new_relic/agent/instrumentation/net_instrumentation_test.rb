@@ -106,7 +106,6 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
 
   def test_get
     url = URI.parse('http://www.google.com/index.html')
-
     res = Net::HTTP.start(url.host, url.port) {|http|
       http.get('/index.html')
     }

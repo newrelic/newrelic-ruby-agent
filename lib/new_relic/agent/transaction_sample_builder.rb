@@ -57,7 +57,7 @@ module NewRelic
         @current_segment = @current_segment.parent_segment
       end
 
-      def finish_trace(time=Time.now.to_f)
+      def finish_trace(time=Time.now.to_f, custom_params={})
         # This should never get called twice, but in a rare case that we can't reproduce in house it does.
         # log forensics and return gracefully
         if @sample.frozen?
@@ -66,7 +66,7 @@ module NewRelic
         end
         @sample.root_segment.end_trace(time.to_f - @sample_start)
         @sample.params[:custom_params] ||= {}
-        @sample.params[:custom_params].merge!(normalize_params(NewRelic::Agent::Instrumentation::Transaction.custom_parameters))
+        @sample.params[:custom_params].merge!(normalize_params(custom_params))
 
         txn_info = NewRelic::Agent::TransactionInfo.get
         @sample.force_persist = txn_info.force_persist_sample?(sample)

@@ -159,20 +159,16 @@ class NewRelic::Agent::Instrumentation::TransactionTest < Test::Unit::TestCase
   end
 
   def test_push_adds_controller_context_to_txn_stack
-    NewRelic::Agent.instance.transaction_sampler \
-      .expects(:notice_first_scope_push).with(@txn.start_time)
-    NewRelic::Agent.instance.sql_sampler \
-      .expects(:notice_first_scope_push).with(@txn.start_time)
-    stack = @txn.start(:web)
+    NewRelic::Agent::Instrumentation::Transaction.start(:web)
+    assert_equal 1, NewRelic::Agent::Instrumentation::Transaction.stack.size
 
-    assert_equal 1, stack.size
+    NewRelic::Agent::Instrumentation::Transaction.start(:web)
+    assert_equal 2, NewRelic::Agent::Instrumentation::Transaction.stack.size
 
-    NewRelic::Agent.instance.transaction_sampler \
-      .expects(:notice_first_scope_push).with(@txn.start_time)
-    NewRelic::Agent.instance.sql_sampler \
-      .expects(:notice_first_scope_push).with(@txn.start_time)
-    stack = @txn.start(:web)
+    NewRelic::Agent::Instrumentation::Transaction.stop('txn')
+    assert_equal 1, NewRelic::Agent::Instrumentation::Transaction.stack.size
 
-    assert_equal 2, stack.size
+    NewRelic::Agent::Instrumentation::Transaction.stop('txn')
+    assert_equal 0, NewRelic::Agent::Instrumentation::Transaction.stack.size
   end
 end

@@ -146,13 +146,13 @@ module NewRelic
       #
       # It sets various instance variables to the finished sample,
       # depending on which settings are active. See `store_sample`
-      def notice_scope_empty(txn_name, time=Time.now)
+      def notice_scope_empty(txn, time=Time.now)
         last_builder = builder
-        last_builder.set_transaction_name(txn_name) if enabled? && last_builder
+        last_builder.set_transaction_name(txn.name) if enabled? && last_builder
 
         return unless last_builder
 
-        last_builder.finish_trace(time.to_f)
+        last_builder.finish_trace(time.to_f, txn.custom_parameters)
         clear_builder
         return if last_builder.ignored?
 

@@ -267,12 +267,11 @@ def in_transaction(name='dummy')
                         NewRelic::Agent::TransactionSampler.new)
   NewRelic::Agent.instance.stats_engine.transaction_sampler = \
     NewRelic::Agent.instance.transaction_sampler
-  txn = NewRelic::Agent::Instrumentation::Transaction.current(true)
+  txn = NewRelic::Agent::Instrumentation::Transaction.start(:other)
   txn.filtered_params = {}
-  txn.start(:other)
   txn.start_transaction
   val = yield
-  txn.stop(name)
+  NewRelic::Agent::Instrumentation::Transaction.stop(name)
   val
 end
 
@@ -341,7 +340,7 @@ module TransactionSampleTestHelper
     sleep 0.02
     yield if block_given?
     sampler.notice_pop_scope "a"
-    sampler.notice_scope_empty('/path/2')
+    sampler.notice_scope_empty(stub('txn', :name => '/path', :custom_parameters => {}))
 
     sampler.samples[0]
   end
@@ -359,7 +358,7 @@ module TransactionSampleTestHelper
     sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'french'", nil, 0)
     sampler.notice_pop_scope "lew"
     sampler.notice_pop_scope "Controller/sandwiches/index"
-    sampler.notice_scope_empty(path)
+    sampler.notice_scope_empty(stub('txn', :name => path, :custom_parameters => {}))
     sampler.samples[0]
   end
 end

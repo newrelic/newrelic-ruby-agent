@@ -291,8 +291,8 @@ module NewRelic
             NewRelic::Agent::BusyCalculator.dispatcher_finish
             # Look for a transaction in the thread local and process it.
             # Clear the thread local when finished to ensure it only gets called once.
+            txn = Transaction.stop(txn_name)
             txn.record_apdex(txn_name) unless ignore_apdex?
-            txn.stop(txn_name)
 
             NewRelic::Agent::TransactionInfo.get.ignore_end_user = true if ignore_enduser?
           end
@@ -426,33 +426,31 @@ module NewRelic
         # Write a transaction onto a thread local if there isn't already one there.
         # If there is one, just update it.
         def _start_transaction(args) # :nodoc:
-          txn = Transaction.current(true)
-
-          txn.apdex_start ||= _detect_upstream_wait(txn.start_time)
-          _record_queue_length
-
           # If a block was passed in, then the arguments represent options for the instrumentation,
           # not app method arguments.
           options = {}
           if args.any?
             if args.last.is_a?(Hash)
               options = args.pop
-              txn.force_flag = options[:force]
-              txn.request = options[:request] if options[:request]
             end
             available_params = options[:params] || {}
             options[:name] ||= args.first
           else
             available_params = self.respond_to?(:params) ? self.params : {}
           end
-          txn.request ||= self.request if self.respond_to? :request
 
           txn_name = transaction_name(options || {})
-
           NewRelic::Agent::TransactionInfo.get.transaction_name = txn_name
-          txn.start(transaction_type(options))
+
+          txn = Transaction.start(transaction_type(options))
+          txn.force_flag = options[:force]
+          txn.request = options[:request]
+          txn.request ||= self.request if self.respond_to? :request
+          txn.apdex_start ||= _detect_upstream_wait(txn.start_time)
+          _record_queue_length
           txn.filtered_params = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
-          txn
+
+          return txn
         end
 
         # Filter out a request if it matches one of our parameters for

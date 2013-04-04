@@ -200,8 +200,7 @@ module NewRelic
           end
 
           def in_transaction?
-            NewRelic::Agent::Instrumentation::Transaction.current &&
-              NewRelic::Agent::Instrumentation::Transaction.current.in_transaction?
+            NewRelic::Agent::Instrumentation::Transaction.in_transaction?
           end
 
           def has_parent?

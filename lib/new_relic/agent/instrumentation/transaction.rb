@@ -21,9 +21,9 @@ module NewRelic
         attr_accessor :apdex_start # A Time instance used for calculating the apdex score, which
         # might end up being @start, or it might be further upstream if
         # we can find a request header for the queue entry time
-        attr_accessor :exception,
-        :filtered_params, :force_flag,
-        :jruby_cpu_start, :process_cpu_start, :database_metric_name
+        attr_accessor(:exception, :name,
+                      :filtered_params, :force_flag,
+                      :jruby_cpu_start, :process_cpu_start, :database_metric_name)
 
         # Give the current transaction a request context.  Use this to
         # get the URI and referer.  The request is interpreted loosely
@@ -34,9 +34,28 @@ module NewRelic
         # Return the currently active transaction, or nil.  Call with +true+
         # to create a new transaction if one is not already on the thread.
         def self.current(create_if_empty=nil)
-          f = Thread.current[:newrelic_transaction]
-          return f if f || !create_if_empty
-          Thread.current[:newrelic_transaction] = new
+          self.stack.last
+        end
+
+        def self.start(transaction_type)
+          txn = Transaction.new(transaction_type)
+          txn.start(transaction_type)
+          self.stack.push(txn)
+          return txn
+        end
+
+        def self.stop(metric_name)
+          txn = self.stack.pop
+          txn.stop(metric_name) if txn
+          return txn
+        end
+
+        def self.stack
+          Thread.current[:newrelic_transaction] ||= []
+        end
+
+        def self.in_transaction?
+          !self.stack.empty?
         end
 
         # This is the name of the model currently assigned to database
@@ -67,20 +86,16 @@ module NewRelic
 
         attr_reader :depth
 
-        def initialize
+        def initialize(type=:other)
+          @type = type
           @start_time = Time.now
-          @transaction_type_stack = [] # stack of transaction types
           @jruby_cpu_start = jruby_cpu_time
           @process_cpu_start = process_cpu
           Thread.current[:last_transaction] = self
         end
 
-        def in_transaction?
-          !@transaction_type_stack.empty?
-        end
-
         def has_parent?
-          @transaction_type_stack.size > 1
+          self.class.stack.size > 1
         end
 
         def agent
@@ -104,7 +119,6 @@ module NewRelic
         def start(transaction_type)
           transaction_sampler.notice_first_scope_push(start_time)
           sql_sampler.notice_first_scope_push(start_time)
-          @transaction_type_stack.push(transaction_type)
         end
 
         # Indicate that you don't want to keep the currently saved transaction
@@ -142,26 +156,20 @@ module NewRelic
           end
         end
 
-        # Return the path, the part of the metric after the category
-        # RUBY-1059: this needs to go away
-        def path
-          @transaction_type_stack.last.last
-        end
-
         # Unwind one stack level.  It knows if it's back at the outermost caller and
         # does the appropriate wrapup of the context.
         def stop(metric)
-          transaction_type = @transaction_type_stack.pop
-          log_underflow if transaction_type.nil?
+          @name = metric
+          log_underflow if @type.nil?
           # RUBY-1059 these record metrics so need to be done before
           # the pop
-          if @transaction_type_stack.empty?
+          if self.class.stack.empty?
             # RUBY-1059 this one records metrics and wants to happen
             # before the transaction sampler is finished
 
             record_transaction_cpu if traced?
-            transaction_sampler.notice_scope_empty(metric)
-            sql_sampler.notice_scope_empty(metric)
+            transaction_sampler.notice_scope_empty(self)
+            sql_sampler.notice_scope_empty(self)
 
             # RUBY-1059 this one records metrics and wants to happen
             # after the transaction sampler is finished
@@ -172,9 +180,8 @@ module NewRelic
 
           # RUBY-1059 these tear everything down so need to be done
           # after the pop
-          if @transaction_type_stack.empty?
+          if self.class.stack.empty?
             agent.stats_engine.end_transaction
-            Thread.current[:newrelic_transaction] = nil
           end
         end
 
@@ -287,18 +294,11 @@ module NewRelic
         end
 
         def self.recording_web_transaction?
-          c = Thread.current[:newrelic_transaction]
-          if c
-            c.recording_web_transaction?
-          end
+          self.current && self.current.recording_web_transaction?
         end
 
         def recording_web_transaction?
-          current_transaction_type == :web
-        end
-
-        def current_transaction_type
-          @transaction_type_stack.last
+          @type == :web
         end
 
         # Make a safe attempt to get the referer from a request object, generally successful when

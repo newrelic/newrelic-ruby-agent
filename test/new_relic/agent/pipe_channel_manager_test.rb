@@ -7,6 +7,8 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_hel
 require 'new_relic/agent/pipe_channel_manager'
 
 class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
+  include TransactionSampleTestHelper
+
   def setup
     @test_config = { :developer_mode => true }
     NewRelic::Agent.config.apply_config(@test_config)
@@ -54,7 +56,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
 
     def test_listener_merges_transaction_traces
       sampler = NewRelic::Agent.agent.transaction_sampler
-      TransactionSampleTestHelper.run_sample_trace_on(sampler)
+      run_sample_trace_on(sampler)
       NewRelic::Agent.agent.merge_data_from([nil, [sampler.samples], nil])
 
       assert_equal(1, NewRelic::Agent.agent.unsent_traces_size)
@@ -64,7 +66,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
       pid = Process.fork do
         NewRelic::Agent.after_fork
         new_sampler = NewRelic::Agent::TransactionSampler.new
-        sample = TransactionSampleTestHelper.run_sample_trace_on(new_sampler)
+        sample = run_sample_trace_on(new_sampler)
         new_sampler.store_force_persist(sample)
         with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
           listener.pipes[667].write(:transaction_traces => new_sampler.harvest([]))
