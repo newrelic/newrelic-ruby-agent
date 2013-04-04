@@ -268,7 +268,6 @@ module NewRelic
           begin
             options = { :force => txn.force_flag, :transaction => true }
             NewRelic::Agent.trace_execution_scoped(metrics, options) do
-              txn.start_transaction
               begin
                 NewRelic::Agent::BusyCalculator.dispatcher_start txn.start_time
                 result = if block_given?
@@ -366,7 +365,6 @@ module NewRelic
           txn = _start_transaction(block_given? ? args : [])
           val = nil
           NewRelic::Agent.trace_execution_scoped txn.metric_name do
-            Transaction.current(true).start_transaction
             NewRelic::Agent.disable_all_tracing do
               # turn on profiling
               profile = RubyProf.profile do
@@ -442,13 +440,12 @@ module NewRelic
           txn_name = transaction_name(options || {})
           NewRelic::Agent::TransactionInfo.get.transaction_name = txn_name
 
-          txn = Transaction.start(transaction_type(options))
-          txn.force_flag = options[:force]
-          txn.request = options[:request]
-          txn.request ||= self.request if self.respond_to? :request
+          options[:request] ||= self.request if self.respond_to? :request
+          options[:filtered_params] = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
+          txn = Transaction.start(transaction_type(options), options)
+
           txn.apdex_start ||= _detect_upstream_wait(txn.start_time)
           _record_queue_length
-          txn.filtered_params = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
 
           return txn
         end

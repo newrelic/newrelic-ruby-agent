@@ -4,6 +4,7 @@
 
 # https://newrelic.atlassian.net/wiki/display/eng/The+Terror+and+Glory+of+Transaction+Traces
 # https://newrelic.atlassian.net/browse/RUBY-914
+require 'ostruct'
 
 class MarshalingTest < Test::Unit::TestCase
   def setup
@@ -32,7 +33,8 @@ class MarshalingTest < Test::Unit::TestCase
     sleep 1
     @sampler.notice_pop_scope "ab"
     @sampler.notice_pop_scope "a"
-    @sampler.notice_scope_empty 'path'
+    @sampler.notice_scope_empty(OpenStruct.new(:name => 'path',
+                                               :custom_parameters => {}))
 
     expected_sample = @sampler.instance_variable_get(:@slowest_sample)
 

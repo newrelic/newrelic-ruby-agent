@@ -95,10 +95,12 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Test::Unit::Te
       assert_equal 1, @agent.stats_engine.get_stats_no_scope('Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/hello').call_count
       assert_nil @agent.transaction_sampler.last_sample
     end
+
     should "block" do
       assert_equal @agent, NewRelic::Agent.instance
       @acct = 'Redrocks'
-      perform_action_with_newrelic_trace(:name => 'hello', :force => true, :params => { :account => @acct}) do
+      perform_action_with_newrelic_trace(:name => 'hello', :force => true,
+                                         :params => { :account => @acct }) do
         self.class.inspect
       end
       @agent.stats_engine.metrics.sort.each do |n|
@@ -109,7 +111,6 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Test::Unit::Te
       sample = @agent.transaction_sampler.last_sample
       assert_not_nil sample
       assert_equal 'Redrocks', sample.params[:request_params][:account]
-
     end
 
     should "error_handling" do

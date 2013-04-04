@@ -33,12 +33,12 @@ module NewRelic
 
         # Return the currently active transaction, or nil.  Call with +true+
         # to create a new transaction if one is not already on the thread.
-        def self.current(create_if_empty=nil)
+        def self.current
           self.stack.last
         end
 
-        def self.start(transaction_type)
-          txn = Transaction.new(transaction_type)
+        def self.start(transaction_type, options={})
+          txn = Transaction.new(transaction_type, options)
           txn.start(transaction_type)
           self.stack.push(txn)
           return txn
@@ -86,11 +86,16 @@ module NewRelic
 
         attr_reader :depth
 
-        def initialize(type=:other)
+        def initialize(type=:other, options={})
           @type = type
           @start_time = Time.now
           @jruby_cpu_start = jruby_cpu_time
           @process_cpu_start = process_cpu
+          @filtered_params = options[:filtered_params] || {}
+          @force_flag = options[:force]
+          @request = options[:request]
+
+          # RUBY-1059 dont think we need this
           Thread.current[:last_transaction] = self
         end
 
@@ -119,6 +124,11 @@ module NewRelic
         def start(transaction_type)
           transaction_sampler.notice_first_scope_push(start_time)
           sql_sampler.notice_first_scope_push(start_time)
+
+          agent.stats_engine.start_transaction
+          agent.stats_engine.push_transaction_stats
+          transaction_sampler.notice_transaction(uri, filtered_params)
+          sql_sampler.notice_transaction(uri, filtered_params)
         end
 
         # Indicate that you don't want to keep the currently saved transaction
@@ -140,20 +150,6 @@ module NewRelic
         # Call this to ensure that the current transaction is not saved
         def abort_transaction!
           transaction_sampler.ignore_transaction
-        end
-        # This needs to be called after entering the call to trace the
-        # controller action, otherwise the controller action blames
-        # itself.  It gets reset in the normal #pop call.
-        def start_transaction
-          agent.stats_engine.start_transaction
-          agent.stats_engine.push_transaction_stats
-          # Only push the transaction context info once, on entry:
-          if !has_parent?
-            # RUBY-1059
-            txn_name = TransactionInfo.get.transaction_name
-            transaction_sampler.notice_transaction(uri, filtered_params)
-            sql_sampler.notice_transaction(uri, filtered_params)
-          end
         end
 
         # Unwind one stack level.  It knows if it's back at the outermost caller and

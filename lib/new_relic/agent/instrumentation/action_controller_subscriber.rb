@@ -103,11 +103,10 @@ module NewRelic
         def start_transaction(event)
           # RUBY-1059 we want to get rid of this
           TransactionInfo.get.transaction_name = event.metric_name
-          txn = Instrumentation::Transaction.start(:web)
-          txn.request = event.payload[:request]
-          txn.filtered_params = filter(event.payload[:params])
+          txn = Instrumentation::Transaction.start(:web,
+                                                   :request => event.payload[:request],
+                                                   :filtered_params => filter(event.payload[:params]))
           txn.apdex_start = (event.queue_start || event.time)
-          txn.start_transaction
           event.scope = Agent.instance.stats_engine \
             .push_scope(:action_controller, event.time)
         end
