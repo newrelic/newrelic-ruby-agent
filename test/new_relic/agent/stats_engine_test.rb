@@ -45,10 +45,8 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
     end
     orlando_disney = @engine.lookup_stats('disney', 'orlando')
 
-    #orlando_disney = 
-
     in_transaction('anaheim') do
-      self.class.trace_execution_scoped('disney', :deduct_call_time_from_parent => false) { sleep 0.1 }
+      self.class.trace_execution_scoped('disney', :deduct_call_time_from_parent => false) { sleep 0.11 }
     end
     anaheim_disney = @engine.lookup_stats('disney', 'anaheim')
 
