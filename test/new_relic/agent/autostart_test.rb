@@ -11,12 +11,19 @@ class AutostartTest < Test::Unit::TestCase
     assert ::NewRelic::Agent::Autostart.agent_should_start?
   end
 
-  def test_agent_wont_autostart_if_IRB_constant_is_defined
-    assert !defined?(::IRB), "precondition: IRB shouldn't b defined"
-    Object.const_set(:IRB, true)
-    assert ! ::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't autostart in IRB session"
+  def test_agent_wont_autostart_if_RAILS_CONSOLE_constant_is_defined
+    assert !defined?(::Rails::Console), "precondition: Rails::Console shouldn't be defined"
+    Rails.const_set(:Console, true)
+    assert ! ::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't autostart in Rails Console session"
   ensure
-    Object.send(:remove_const, :IRB)
+    Rails.send(:remove_const, :Console)
+  end
+
+  def test_agent_wont_start_if_dollar_0_is_irb
+    @orig_dollar_0, $0 = $0, '/foo/bar/irb'
+    assert ! ::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't autostart when process is invoked by irb"
+  ensure
+    $0 = @orig_dollar_0
   end
 
   RAILS_DEFAULT_RAKE_TASKS = %w| about assets:clean assets:clobber
