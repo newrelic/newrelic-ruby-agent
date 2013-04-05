@@ -419,7 +419,7 @@ module NewRelic
               result
             end"
           end
-          
+
           # Decides which code snippet we should be eval'ing in this
           # context, based on the options.
           def code_to_eval(method_name, metric_name_code, options)
@@ -434,7 +434,7 @@ module NewRelic
         include AddMethodTracer
 
 
-        
+
         # Add a method tracer to the specified method.
         #
         # === Common Options
@@ -537,22 +537,22 @@ module NewRelic
           end
         end
         private
-        
+
         # given a method and a metric, this method returns the
         # untraced alias of the method name
         def _untraced_method_name(method_name, metric_name)
           "#{_sanitize_name(method_name)}_without_trace_#{_sanitize_name(metric_name)}"
         end
-        
+
         # given a method and a metric, this method returns the traced
         # alias of the method name
         def _traced_method_name(method_name, metric_name)
           "#{_sanitize_name(method_name)}_with_trace_#{_sanitize_name(metric_name)}"
         end
-        
+
         # makes sure that method names do not contain characters that
         # might break the interpreter, for example ! or ? characters
-        # that are not allowed in the middle of method names 
+        # that are not allowed in the middle of method names
         def _sanitize_name(name)
           name.to_s.tr_s('^a-zA-Z0-9', '_')
         end
