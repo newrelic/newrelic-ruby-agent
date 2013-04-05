@@ -52,6 +52,7 @@ module NewRelic
       # page as is reasonably possible.
       def browser_timing_footer
         if insert_js?
+          NewRelic::Agent::Instrumentation::Transaction.freeze_name
           generate_footer_js(NewRelic::Agent.instance.beacon_configuration)
         else
           ""
@@ -85,7 +86,7 @@ module NewRelic
       end
 
       def current_transaction
-        Thread.current[:last_transaction] || @@dummy_txn
+        Instrumentation::Transaction.current || @@dummy_txn
       end
 
       def clamp_to_positive(value)

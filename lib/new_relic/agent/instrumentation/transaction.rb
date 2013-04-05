@@ -72,6 +72,10 @@ module NewRelic
           NewRelic::Agent.instance
         end
 
+        def self.freeze_name
+          self.current && self.current.freeze_name
+        end
+
         @@java_classes_loaded = false
 
         if defined? JRuby
@@ -94,9 +98,6 @@ module NewRelic
           @filtered_params = options[:filtered_params] || {}
           @force_flag = options[:force]
           @request = options[:request]
-
-          # RUBY-1059 dont think we need this
-          Thread.current[:last_transaction] = self
         end
 
         def name=(name)
@@ -109,6 +110,10 @@ module NewRelic
 
         def freeze_name
           @name_frozen = true
+        end
+
+        def name_frozen?
+          @name_frozen
         end
 
         def has_parent?
@@ -290,7 +295,7 @@ module NewRelic
         end
 
         def queue_time
-          start_time - apdex_start
+          @apdex_start ? @start_time - @apdex_start : 0
         end
 
         def add_custom_parameters(p)

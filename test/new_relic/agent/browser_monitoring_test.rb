@@ -31,7 +31,6 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     end
 
   def teardown
-    Thread.current[:last_transaction] = nil
     NewRelic::Agent::TransactionInfo.clear
     NewRelic::Agent.config.remove_config(@config)
   end
@@ -266,49 +265,59 @@ var e=document.createElement("script");'
   end
 
   def test_browser_monitoring_queue_time_zero
-    txn = Thread.current[:last_transaction] = mock('txn')
-    txn.expects(:queue_time).returns(0.0)
-    assert_equal(0.0, browser_monitoring_queue_time, 'should return zero when there is zero queue time')
+    in_transaction do
+      NewRelic::Agent::Instrumentation::Transaction.current \
+        .expects(:queue_time).returns(0.0)
+      assert_equal(0.0, browser_monitoring_queue_time,
+                   'should return zero when there is zero queue time')
+    end
   end
 
   def test_browser_monitoring_queue_time_ducks
-    txn = Thread.current[:last_transaction] = mock('txn')
-    txn.expects(:queue_time).returns('a duck')
-    assert_equal(0.0, browser_monitoring_queue_time, 'should return zero when there is an incorrect queue time')
+    in_transaction do
+      NewRelic::Agent::Instrumentation::Transaction.current \
+        .expects(:queue_time).returns('a duck')
+      assert_equal(0.0, browser_monitoring_queue_time,
+                   'should return zero when there is an incorrect queue time')
+    end
   end
 
   def test_browser_monitoring_queue_time_nonzero
-    txn = Thread.current[:last_transaction] = mock('txn')
-    txn.expects(:queue_time).returns(3.00002)
-    assert_equal(3000, browser_monitoring_queue_time, 'should return a rounded time')
+    in_transaction do
+      NewRelic::Agent::Instrumentation::Transaction.current \
+        .expects(:queue_time).returns(3.00002)
+      assert_equal(3000, browser_monitoring_queue_time,
+                   'should return a rounded time')
+    end
   end
 
   def test_footer_js_string_basic
     # mocking this because JRuby thinks that Time.now - Time.now
     # always takes at least 1ms
     self.expects(:browser_monitoring_app_time).returns(0)
-    txn = Thread.current[:last_transaction] = mock('txn')
-    user_attributes = {:user => "user", :account => "account", :product => "product"}
-    txn.expects(:user_attributes).returns(user_attributes).at_least_once
-    txn.expects(:queue_time).returns(0)
+    in_transaction do
+      txn = NewRelic::Agent::Instrumentation::Transaction.current
+      user_attributes = {:user => "user", :account => "account", :product => "product"}
+      txn.expects(:user_attributes).returns(user_attributes).at_least_once
+      txn.expects(:queue_time).returns(0)
 
-    sample = mock('transaction info')
-    NewRelic::Agent::TransactionInfo.set(sample)
+      sample = stub_everything('transaction info',
+                               :start_time => Time.at(100),
+                               :guid => 'ABC',
+                               :transaction_name => 'most recent transaction',
+                               :include_guid? => true,
+                               :duration => 12.0,
+                               :token => '0123456789ABCDEF')
+      NewRelic::Agent::TransactionInfo.set(sample)
 
-    sample.stubs(:start_time).returns(Time.at(100))
-    sample.stubs(:guid).returns('ABC')
-    sample.stubs(:transaction_name).returns('most recent transaction')
-    sample.stubs(:include_guid?).returns(true)
-    sample.stubs(:duration).returns(12.0)
-    sample.stubs(:token).returns('0123456789ABCDEF')
+      self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'most recent transaction').returns('most recent transaction')
+      self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'user').returns('user')
+      self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'account').returns('account')
+      self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'product').returns('product')
 
-    self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'most recent transaction').returns('most recent transaction')
-    self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'user').returns('user')
-    self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'account').returns('account')
-    self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'product').returns('product')
-
-    value = footer_js_string(NewRelic::Agent.instance.beacon_configuration)
-    assert_equal(%'<script type="text/javascript">if (!NREUMQ.f) { NREUMQ.f=function() {\nNREUMQ.push(["load",new Date().getTime()]);\nvar e=document.createElement("script");\ne.type="text/javascript";\ne.src=(("http:"===document.location.protocol)?"http:":"https:") + "//" +\n  "this_is_my_file";\ndocument.body.appendChild(e);\nif(NREUMQ.a)NREUMQ.a();\n};\nNREUMQ.a=window.onload;window.onload=NREUMQ.f;\n};\nNREUMQ.push(["nrfj","beacon","browserKey","5, 6","most recent transaction",0,0,new Date().getTime(),"ABC","0123456789ABCDEF","user","account","product"]);</script>', value, "should return the javascript given some default values")
+      value = footer_js_string(NewRelic::Agent.instance.beacon_configuration)
+      assert_equal(%'<script type="text/javascript">if (!NREUMQ.f) { NREUMQ.f=function() {\nNREUMQ.push(["load",new Date().getTime()]);\nvar e=document.createElement("script");\ne.type="text/javascript";\ne.src=(("http:"===document.location.protocol)?"http:":"https:") + "//" +\n  "this_is_my_file";\ndocument.body.appendChild(e);\nif(NREUMQ.a)NREUMQ.a();\n};\nNREUMQ.a=window.onload;window.onload=NREUMQ.f;\n};\nNREUMQ.push(["nrfj","beacon","browserKey","5, 6","most recent transaction",0,0,new Date().getTime(),"ABC","0123456789ABCDEF","user","account","product"]);</script>', value, "should return the javascript given some default values")
+    end
   end
 
   def test_html_safe_if_needed_unsafed
@@ -384,6 +393,16 @@ var e=document.createElement("script");'
     expected_payload = %|["5, 6","#{txn_name}",#{browser_monitoring_queue_time},#{browser_monitoring_app_time}]|
 
     assert_equal expected_payload, response['X-NewRelic-App-Server-Metrics'].strip
+  end
+
+  def test_freezes_transaction_name_when_footer_is_written
+    with_config(:license_key => 'a' * 13) do
+      in_transaction do
+        assert !NewRelic::Agent::Instrumentation::Transaction.current.name_frozen?
+        browser_timing_footer
+        assert NewRelic::Agent::Instrumentation::Transaction.current.name_frozen?
+      end
+    end
   end
 
   def mobile_transaction(request=nil)
