@@ -172,7 +172,7 @@ module NewRelic
         # Unwind one stack level.  It knows if it's back at the outermost caller and
         # does the appropriate wrapup of the context.
         def stop(metric)
-          @name = metric
+          @name ||= metric unless name_frozen?
           log_underflow if @type.nil?
           # RUBY-1059 these record metrics so need to be done before
           # the pop
@@ -182,14 +182,14 @@ module NewRelic
 
             record_transaction_cpu if traced?
             transaction_sampler.notice_scope_empty(self)
-            sql_sampler.notice_scope_empty(self)
+            sql_sampler.notice_scope_empty(@name)
 
             # RUBY-1059 this one records metrics and wants to happen
             # after the transaction sampler is finished
             agent.stats_engine.record_gc_time if traced?
           end
 
-          agent.stats_engine.pop_transaction_stats(metric)
+          agent.stats_engine.pop_transaction_stats(@name)
 
           # RUBY-1059 these tear everything down so need to be done
           # after the pop
