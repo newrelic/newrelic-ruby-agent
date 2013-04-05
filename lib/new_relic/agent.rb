@@ -426,6 +426,10 @@ module NewRelic
       NewRelic::Agent::Instrumentation::Transaction.set_user_attributes(attributes)
     end
 
+    # Set the name of the current running transaction.  The agent will
+    # apply a reasonable default based on framework routing, but in
+    # cases where this is insufficient, this can be used to manually
+    # control the name of the transaction.
     def set_transaction_name(name)
       Instrumentation::Transaction.current.name = name
     end

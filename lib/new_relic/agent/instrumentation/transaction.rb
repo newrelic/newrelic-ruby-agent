@@ -21,9 +21,9 @@ module NewRelic
         attr_accessor :apdex_start # A Time instance used for calculating the apdex score, which
         # might end up being @start, or it might be further upstream if
         # we can find a request header for the queue entry time
-        attr_accessor(:exception, :name,
-                      :filtered_params, :force_flag,
+        attr_accessor(:exception, :filtered_params, :force_flag,
                       :jruby_cpu_start, :process_cpu_start, :database_metric_name)
+        attr_reader :name
 
         # Give the current transaction a request context.  Use this to
         # get the URI and referer.  The request is interpreted loosely
@@ -97,6 +97,18 @@ module NewRelic
 
           # RUBY-1059 dont think we need this
           Thread.current[:last_transaction] = self
+        end
+
+        def name=(name)
+          if !@name_frozen
+            @name = name
+          else
+            NewRelic::Agent.logger.warn("Attempted to rename transaction to #{name} after transaction name was already frozen.")
+          end
+        end
+
+        def freeze_name
+          @name_frozen = true
         end
 
         def has_parent?

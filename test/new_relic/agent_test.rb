@@ -10,6 +10,7 @@ module NewRelic
   # through the agent method or the control instance through
   # NewRelic::Control.instance . But it's nice to make sure.
   class MainAgentTest < Test::Unit::TestCase
+    include NewRelic::Agent::MethodTracer
 
     def setup
       NewRelic::Agent.reset_config
@@ -261,6 +262,51 @@ module NewRelic
       dummy_stats.expects(:increment_count).with(12)
       dummy_engine.expects(:record_metrics).with('foo').yields(dummy_stats)
       NewRelic::Agent.increment_metric('foo', 12)
+    end
+
+    class Transactor
+      include NewRelic::Agent::Instrumentation::ControllerInstrumentation
+      def txn
+        yield
+      end
+      add_transaction_tracer :txn
+    end
+
+    def test_set_transaction_name
+      engine = NewRelic::Agent.instance.stats_engine
+      engine.reset_stats
+      Transactor.new.txn do
+        NewRelic::Agent.set_transaction_name('new name')
+      end
+      assert engine.lookup_stats('new name')
+    end
+
+    def test_set_transaction_name_applies_proper_scopes
+      engine = NewRelic::Agent.instance.stats_engine
+      engine.reset_stats
+      Transactor.new.txn do
+        trace_execution_scoped('Custom/something') {}
+        NewRelic::Agent.set_transaction_name('new name')
+      end
+      assert engine.lookup_stats('Custom/something', 'new name')
+    end
+
+    def test_set_transaction_name_sets_tt_name
+      sampler = NewRelic::Agent.instance.transaction_sampler
+      Transactor.new.txn do
+        NewRelic::Agent.set_transaction_name('new name')
+      end
+      assert_equal 'new name', sampler.last_sample.params[:path]
+    end
+
+    def test_set_transaction_name_gracefully_fails_when_frozen
+      engine = NewRelic::Agent.instance.stats_engine
+      engine.reset_stats
+      Transactor.new.txn do
+        NewRelic::Agent::Instrumentation::Transaction.current.freeze_name
+        NewRelic::Agent.set_transaction_name('new name')
+      end
+      assert_nil engine.lookup_stats('new name')
     end
 
     private
