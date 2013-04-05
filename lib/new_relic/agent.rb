@@ -426,6 +426,10 @@ module NewRelic
       NewRelic::Agent::Instrumentation::Transaction.set_user_attributes(attributes)
     end
 
+    def set_transaction_name(name)
+      Instrumentation::Transaction.current.name = name
+    end
+
     # The #add_request_parameters method is aliased to #add_custom_parameters
     # and is now deprecated.
     alias add_request_parameters add_custom_parameters #:nodoc:

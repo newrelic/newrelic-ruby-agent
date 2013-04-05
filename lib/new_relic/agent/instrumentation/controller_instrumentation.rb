@@ -263,30 +263,39 @@ module NewRelic
           return perform_action_with_newrelic_profile(args, &block) if control.profiling?
 
           txn = _start_transaction(block_given? ? args : [])
-          metrics = recorded_metrics(txn)
-          txn_name = metrics.first
           begin
             options = { :force => txn.force_flag, :transaction => true }
-            NewRelic::Agent.trace_execution_scoped(metrics, options) do
-              begin
-                NewRelic::Agent::BusyCalculator.dispatcher_start txn.start_time
-                result = if block_given?
-                  yield
-                else
-                  perform_action_without_newrelic_trace(*args)
+            return yield if !(NewRelic::Agent.is_execution_traced? || options[:force])
+            options[:metric] = true if options[:metric].nil?
+            options[:deduct_call_time_from_parent] = true if options[:deduct_call_time_from_parent].nil?
+            start_time, expected_scope = NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScoped.trace_execution_scoped_header(options)
+
+            begin
+              NewRelic::Agent::BusyCalculator.dispatcher_start txn.start_time
+              result = if block_given?
+                         yield
+                       else
+                         perform_action_without_newrelic_trace(*args)
+                       end
+              if defined?(request) && request && defined?(response) && response
+                if !Agent.config[:disable_mobile_headers]
+                  NewRelic::Agent::BrowserMonitoring.insert_mobile_response_header(request, response)
                 end
-                if defined?(request) && request && defined?(response) && response
-                  if !Agent.config[:disable_mobile_headers]
-                    NewRelic::Agent::BrowserMonitoring.insert_mobile_response_header(request, response)
-                  end
-                end
-                result
-              rescue => e
-                txn.notice_error(e)
-                raise
               end
+              result
+            rescue => e
+              txn.notice_error(e)
+              raise
             end
+
           ensure
+            metrics = recorded_metrics(txn)
+            txn_name = metrics.first
+
+            metric_names = Array(metrics)
+            first_name = metric_names.shift
+            scope = NewRelic::Agent.instance.stats_engine.scope_name
+            NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScoped.trace_execution_scoped_footer(start_time, first_name, metric_names, expected_scope, scope, options)
             NewRelic::Agent::BusyCalculator.dispatcher_finish
             # Look for a transaction in the thread local and process it.
             # Clear the thread local when finished to ensure it only gets called once.
@@ -298,10 +307,8 @@ module NewRelic
         end
 
         def recorded_metrics(txn)
-          # RUBY-1059
-          txn_name = TransactionInfo.get.transaction_name
-          metric_parser = NewRelic::MetricParser::MetricParser.for_metric_named(txn_name)
-          metrics = [txn_name]
+          metric_parser = NewRelic::MetricParser::MetricParser.for_metric_named(txn.name)
+          metrics = [txn.name]
           metrics += metric_parser.summary_metrics unless txn.has_parent?
           metrics
         end
@@ -437,12 +444,12 @@ module NewRelic
             available_params = self.respond_to?(:params) ? self.params : {}
           end
 
-          txn_name = transaction_name(options || {})
-          NewRelic::Agent::TransactionInfo.get.transaction_name = txn_name
-
           options[:request] ||= self.request if self.respond_to? :request
           options[:filtered_params] = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
           txn = Transaction.start(transaction_type(options), options)
+
+          txn.name = transaction_name(options || {})
+          NewRelic::Agent::TransactionInfo.get.transaction_name = txn.name
 
           txn.apdex_start ||= _detect_upstream_wait(txn.start_time)
           _record_queue_length

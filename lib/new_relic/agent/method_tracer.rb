@@ -98,6 +98,8 @@ module NewRelic
         # method, most methods in this module relate to code used in
         # the #trace_execution_scoped method in this module
         module TraceExecutionScoped
+          extend self
+
           # Shorthand to return the NewRelic::Agent.instance
           def agent_instance
             NewRelic::Agent.instance
