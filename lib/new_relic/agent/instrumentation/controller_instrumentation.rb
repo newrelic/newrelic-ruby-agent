@@ -39,7 +39,6 @@ module NewRelic
           end
           def newrelic_notice_error(*args); end
           def new_relic_trace_controller_action(*args); yield; end
-          def newrelic_metric_path; end
           def perform_action_with_newrelic_trace(*args); yield; end
         end
 
@@ -165,14 +164,6 @@ module NewRelic
             send visibility, with_method_name
             ::NewRelic::Agent.logger.debug("Traced transaction: class = #{self.name}, method = #{method.to_s}, options = #{options.inspect}")
           end
-        end
-
-        # Must be implemented in the controller class:
-        # Determine the path that is used in the metric name for
-        # the called controller action.  Of the form controller_path/action_name
-        #
-        def newrelic_metric_path(action_name_override = nil) # :nodoc:
-          raise "Not implemented!"
         end
 
         # Yield to the given block with NewRelic tracing.  Used by
@@ -407,11 +398,22 @@ module NewRelic
         end
 
         def path_name(options)
-          if options.any?
-            options[:path] || path_class_and_action(options)
-          else
-            newrelic_metric_path
+          # if we have the path, use the path
+          path = options[:path]
+
+          # if we have explicit class and action options, use those
+          if (options[:class_name] || options[:name])
+            path ||= path_class_and_action(options)
           end
+
+          # if newrelic_metric_path() is defined, use that
+          if self.respond_to?(:newrelic_metric_path)
+            path ||= newrelic_metric_path
+          end
+
+          # fall back on the defaults
+          path ||= path_class_and_action({})
+          return path
         end
 
         def path_class_and_action(options)
