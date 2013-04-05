@@ -449,7 +449,6 @@ module NewRelic
           options[:request] ||= self.request if self.respond_to? :request
           options[:filtered_params] = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
           txn = Transaction.start(transaction_type(options), options)
-
           txn.name = transaction_name(options || {})
           NewRelic::Agent::TransactionInfo.get.transaction_name = txn.name
 
