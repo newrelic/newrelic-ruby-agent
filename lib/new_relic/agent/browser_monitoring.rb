@@ -86,7 +86,7 @@ module NewRelic
       end
 
       def current_transaction
-        Instrumentation::Transaction.current || @@dummy_txn
+        Thread.current[:last_transaction] || @@dummy_txn
       end
 
       def clamp_to_positive(value)

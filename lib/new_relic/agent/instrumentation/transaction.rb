@@ -98,6 +98,8 @@ module NewRelic
           @filtered_params = options[:filtered_params] || {}
           @force_flag = options[:force]
           @request = options[:request]
+          # RUBY-1059 dont think we need this
+          Thread.current[:last_transaction] = self
         end
 
         def name=(name)
