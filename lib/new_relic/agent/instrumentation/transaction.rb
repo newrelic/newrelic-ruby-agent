@@ -229,8 +229,7 @@ module NewRelic
           options[:referer] = referer if referer
           options[:request_params] = filtered_params if filtered_params
           options[:uri] = uri if uri
-          # RUBY-1059
-          options[:metric] = TransactionInfo.get.transaction_name
+          options[:metric] = @name
           options.merge!(custom_parameters)
           if exception != e
             result = agent.error_collector.notice_error(e, options)

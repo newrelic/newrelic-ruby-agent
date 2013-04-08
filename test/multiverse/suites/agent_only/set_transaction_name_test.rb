@@ -57,7 +57,7 @@ class SetTransactionNameTest < Test::Unit::TestCase
                    .params[:path])
   end
 
-  def _test_apply_to_traced_errors
+  def test_apply_to_traced_errors
     @transactor.parent_txn do
       NewRelic::Agent.notice_error(RuntimeError.new('toot'))
     end
