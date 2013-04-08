@@ -65,12 +65,12 @@ class SetTransactionNameTest < Test::Unit::TestCase
                  NewRelic::Agent.instance.error_collector.errors.last.path)
   end
 
-  def _test_set_name_is_subject_to_txn_name_rules
+  def test_set_name_is_subject_to_txn_name_rules
     rule = NewRelic::Agent::RulesEngine::Rule.new('match_expression' => 'parent',
                                                   'replacement'      => 'dad')
     NewRelic::Agent.instance.transaction_rules << rule
     @transactor.parent_txn
-    assert @stats_engine.lookup_stats('Custom/TestTransactor/dad')
+    assert @stats_engine.lookup_stats('Controller/TestTransactor/dad')
   end
 
   def _test_does_not_overwrite_name_when_set_by_CAT

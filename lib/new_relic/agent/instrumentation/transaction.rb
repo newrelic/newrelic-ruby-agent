@@ -44,7 +44,7 @@ module NewRelic
           return txn
         end
 
-        def self.stop(metric_name)
+        def self.stop(metric_name=nil)
           txn = self.stack.pop
           txn.stop(metric_name) if txn
           return txn
@@ -111,6 +111,8 @@ module NewRelic
         end
 
         def freeze_name
+          return if name_frozen?
+          @name = NewRelic::Agent.instance.transaction_rules.rename(@name)
           @name_frozen = true
         end
 
@@ -173,8 +175,9 @@ module NewRelic
 
         # Unwind one stack level.  It knows if it's back at the outermost caller and
         # does the appropriate wrapup of the context.
-        def stop(metric)
+        def stop(metric='(unknown)')
           @name ||= metric unless name_frozen?
+          freeze_name
           log_underflow if @type.nil?
 
           # these record metrics so need to be done before

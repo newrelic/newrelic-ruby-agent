@@ -101,19 +101,6 @@ class NewRelic::Agent::Instrumentation::ControllerInstrumentationTest < Test::Un
                               :name => 'action'))
   end
 
-  def test_transaction_name_applies_name_rules
-    rule = NewRelic::Agent::RulesEngine::Rule.new('match_expression' => '[0-9]+',
-                                                  'replacement'      => '*',
-                                                  'replace_all'      => true)
-    NewRelic::Agent.instance.transaction_rules << rule
-    assert_equal('foo/*/bar/*',
-                 @object.send(:transaction_name, :category => 'foo',
-                              :path => '1/bar/22'))
-  ensure
-    NewRelic::Agent.instance.instance_variable_set(:@transaction_rules,
-                                              NewRelic::Agent::RulesEngine.new)
-  end
-
   def test_path_class_and_action
     result = @object.send(:path_class_and_action, {})
     assert_equal("NewRelic::Agent::Instrumentation::ControllerInstrumentationTest::TestObject", result)

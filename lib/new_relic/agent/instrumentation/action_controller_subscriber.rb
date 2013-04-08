@@ -47,6 +47,7 @@ module NewRelic
           set_enduser_ignore if event.enduser_ignored?
 
           if NewRelic::Agent.is_execution_traced? && !event.ignored?
+            event.finalize_metric_name!
             record_queue_time(event)
             record_metrics(event)
             record_apdex(event)
@@ -115,7 +116,7 @@ module NewRelic
           TransactionInfo.get.transaction_name = event.metric_name
           Agent.instance.stats_engine \
             .pop_scope(event.scope, event.metric_name, event.end)
-          Instrumentation::Transaction.stop(event.metric_name)
+          Instrumentation::Transaction.stop
         end
 
         def filter(params)
@@ -140,9 +141,19 @@ module NewRelic
         end
 
         def metric_name
-          name = "Controller/#{metric_path}/#{metric_action}"
-          @final_name ||= Agent.instance.transaction_rules.rename(name)
-          return @final_name
+          @metric_name || "Controller/#{metric_path}/#{metric_action}"
+        end
+
+        def finalize_metric_name!
+          txn = NewRelic::Agent::Instrumentation::Transaction.current
+
+          # the event provides the default name but the transaction has the final say
+          txn.name ||= metric_name
+
+          # this applies the transaction name rules if not already applied
+          txn.freeze_name
+          @metric_name = txn.name
+          return @metric_name
         end
 
         def metric_path

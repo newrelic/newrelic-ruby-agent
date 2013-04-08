@@ -280,6 +280,7 @@ module NewRelic
             end
 
           ensure
+            txn.freeze_name
             metrics = recorded_metrics(txn)
             txn_name = metrics.first
 
@@ -382,7 +383,6 @@ module NewRelic
 
         def transaction_name(options={})
           name = "#{category_name(options)}/#{path_name(options)}"
-          NewRelic::Agent.instance.transaction_rules.rename(name)
         end
 
         def category_name(options)
@@ -450,6 +450,7 @@ module NewRelic
           options[:filtered_params] = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
           txn = Transaction.start(transaction_type(options), options)
           txn.name = transaction_name(options || {})
+          # RUBY-1059 shouldnt be necessary
           NewRelic::Agent::TransactionInfo.get.transaction_name = txn.name
 
           txn.apdex_start ||= _detect_upstream_wait(txn.start_time)

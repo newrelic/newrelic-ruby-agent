@@ -158,7 +158,7 @@ class NewRelic::Agent::Instrumentation::TransactionTest < Test::Unit::TestCase
     assert_equal 2.5, stats_engine.lookup_stats('Apdex/Controller/some/txn').max_call_time
   end
 
-  def test_push_adds_controller_context_to_txn_stack
+  def test_start_adds_controller_context_to_txn_stack
     NewRelic::Agent::Instrumentation::Transaction.start(:web)
     assert_equal 1, NewRelic::Agent::Instrumentation::Transaction.stack.size
 
@@ -170,5 +170,20 @@ class NewRelic::Agent::Instrumentation::TransactionTest < Test::Unit::TestCase
 
     NewRelic::Agent::Instrumentation::Transaction.stop('txn')
     assert_equal 0, NewRelic::Agent::Instrumentation::Transaction.stack.size
+  end
+
+  def test_end_applies_transaction_name_rules
+    rule = NewRelic::Agent::RulesEngine::Rule.new('match_expression' => '[0-9]+',
+                                                  'replacement'      => '*',
+                                                  'replace_all'      => true)
+    NewRelic::Agent.instance.transaction_rules << rule
+    NewRelic::Agent::Instrumentation::Transaction.start(:web)
+    NewRelic::Agent.set_transaction_name('foo/1/bar/22')
+    NewRelic::Agent::Instrumentation::Transaction.freeze_name
+    txn = NewRelic::Agent::Instrumentation::Transaction.stop('txn')
+    assert_equal 'foo/*/bar/*', txn.name
+  ensure
+    NewRelic::Agent.instance.instance_variable_set(:@transaction_rules,
+                                              NewRelic::Agent::RulesEngine.new)
   end
 end
