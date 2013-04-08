@@ -1017,6 +1017,9 @@ module NewRelic
 
             check_for_agent_commands
           end
+        rescue EOFError => e
+          ::NewRelic::Agent.logger.warn("EOFError after #{Time.now - now}s when transmitting data to New Relic Service.")
+          ::NewRelic::Agent.logger.debug(e)
         rescue => e
           retry_count ||= 0
           retry_count += 1
