@@ -107,8 +107,7 @@ module Agent
       end
 
       # Start a new transaction, unless one is already in progress
-      # RUBY-1059: this doesn't take an arg anymore
-      def start_transaction(name=nil)
+      def start_transaction
         NewRelic::Agent.instance.events.notify(:start_transaction)
         GCProfiler.init
       end
@@ -117,7 +116,7 @@ module Agent
       # If it looks like a transaction is still in progress, then maybe this is an inner transaction
       # and is ignored.
       #
-      def end_transaction(name=nil)
+      def end_transaction
         stack = scope_stack
 
         if stack && stack.empty?

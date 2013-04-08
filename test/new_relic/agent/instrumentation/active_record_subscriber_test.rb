@@ -96,7 +96,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit:
     t0 = t1 - 2
 
     NewRelic::Agent.manual_start
-    @stats_engine.start_transaction('test')
+    @stats_engine.start_transaction
     sampler = NewRelic::Agent.instance.transaction_sampler
     sampler.notice_first_scope_push(Time.now.to_f)
     sampler.notice_transaction('/path', {})
