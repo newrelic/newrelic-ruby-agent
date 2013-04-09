@@ -316,7 +316,7 @@ module NewRelic
             response = http.request(request)
           end
         rescue Timeout::Error
-          ::NewRelic::Agent.logger.warn "Timed out trying to post data to New Relic (timeout = #{@request_timeout} seconds)" unless @request_timeout < 30
+          ::NewRelic::Agent.logger.warn "Timed out trying to post data to New Relic (timeout = #{@request_timeout} seconds)"
           raise
         end
         case response
