@@ -74,6 +74,7 @@ module NewRelic
           def newrelic_write_attr(attr_name, value) # :nodoc:
             instance_variable_set "@#{attr_name}", value
           end
+
           def newrelic_read_attr(attr_name) # :nodoc:
             instance_variable_get "@#{attr_name}"
           end
@@ -163,6 +164,55 @@ module NewRelic
             send visibility, method
             send visibility, with_method_name
             ::NewRelic::Agent.logger.debug("Traced transaction: class = #{self.name}, method = #{method.to_s}, options = #{options.inspect}")
+          end
+        end
+
+        class TransactionNamer
+          def initialize(traced_obj=self)
+            @traced_obj = traced_obj
+            if (@traced_obj.is_a?(Class) || @traced_obj.is_a?(Module))
+              @traced_class_name = @traced_obj.name
+            else
+              @traced_class_name = @traced_obj.class.name
+            end
+          end
+
+          def name(options={})
+            name = "#{category_name(options)}/#{path_name(options)}"
+          end
+
+          def category_name(options={})
+            case options[:category]
+            when :controller, nil then 'Controller'
+            when :task then 'OtherTransaction/Background'
+            when :rack then 'Controller/Rack'
+            when :uri then 'Controller'
+            when :sinatra then 'Controller/Sinatra'
+              # for internal use only
+            else options[:category].to_s
+            end
+          end
+
+          def path_name(options={})
+            # if we have the path, use the path
+            path = options[:path]
+
+            class_name = options[:class_name] || @traced_class_name
+
+            # if we have an explicit action name option, use that
+            if options[:name]
+              path ||= [ class_name, options[:name] ].compact.join('/')
+            end
+
+            # if newrelic_metric_path() is defined, use that
+            if @traced_obj.respond_to?(:newrelic_metric_path)
+              path ||= @traced_obj.newrelic_metric_path
+            end
+
+            # fall back on just the traced class name
+            path ||= class_name
+
+            return path
           end
         end
 
@@ -306,7 +356,7 @@ module NewRelic
         end
 
         def transaction_type(options={})
-          case category_name(options)
+          case TransactionNamer.new(self).category_name(options)
           when /^Controller(\/|$)/ then :web
           else
             :other
@@ -381,55 +431,6 @@ module NewRelic
           txn.pop
         end
 
-        def transaction_name(options={})
-          name = "#{category_name(options)}/#{path_name(options)}"
-        end
-
-        def category_name(options)
-          case options[:category]
-            when :controller, nil then 'Controller'
-            when :task then 'OtherTransaction/Background' # 'Task'
-            when :rack then 'Controller/Rack' #'WebTransaction/Rack'
-            when :uri then 'Controller' #'WebTransaction/Uri'
-            when :sinatra then 'Controller/Sinatra' #'WebTransaction/Uri'
-              # for internal use only
-            else options[:category].to_s
-          end
-        end
-
-        def path_name(options)
-          # if we have the path, use the path
-          path = options[:path]
-
-          # if we have explicit class and action options, use those
-          if (options[:class_name] || options[:name])
-            path ||= path_class_and_action(options)
-          end
-
-          # if newrelic_metric_path() is defined, use that
-          if self.respond_to?(:newrelic_metric_path)
-            path ||= newrelic_metric_path
-          end
-
-          # fall back on the defaults
-          path ||= path_class_and_action({})
-          return path
-        end
-
-        def path_class_and_action(options)
-          metric_class = options[:class_name]
-
-          if !metric_class
-            if (self.is_a?(Class) || self.is_a?(Module))
-              metric_class = self.name
-            else
-              metric_class = self.class.name
-            end
-          end
-
-          [ metric_class, options[:name] ].compact.join('/')
-        end
-
         # Write a transaction onto a thread local if there isn't already one there.
         # If there is one, just update it.
         def _start_transaction(args) # :nodoc:
@@ -449,7 +450,7 @@ module NewRelic
           options[:request] ||= self.request if self.respond_to? :request
           options[:filtered_params] = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
           txn = Transaction.start(transaction_type(options), options)
-          txn.name = transaction_name(options || {})
+          txn.name = TransactionNamer.new(self).name(options)
           # RUBY-1059 shouldnt be necessary
           NewRelic::Agent::TransactionInfo.get.transaction_name = txn.name
 

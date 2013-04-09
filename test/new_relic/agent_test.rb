@@ -276,9 +276,9 @@ module NewRelic
       engine = NewRelic::Agent.instance.stats_engine
       engine.reset_stats
       Transactor.new.txn do
-        NewRelic::Agent.set_transaction_name('new name')
+        NewRelic::Agent.set_transaction_name('new_name')
       end
-      assert engine.lookup_stats('new name')
+      assert engine.lookup_stats('Controller/new_name')
     end
 
     def test_set_transaction_name_applies_proper_scopes
@@ -286,17 +286,17 @@ module NewRelic
       engine.reset_stats
       Transactor.new.txn do
         trace_execution_scoped('Custom/something') {}
-        NewRelic::Agent.set_transaction_name('new name')
+        NewRelic::Agent.set_transaction_name('new_name')
       end
-      assert engine.lookup_stats('Custom/something', 'new name')
+      assert engine.lookup_stats('Custom/something', 'Controller/new_name')
     end
 
     def test_set_transaction_name_sets_tt_name
       sampler = NewRelic::Agent.instance.transaction_sampler
       Transactor.new.txn do
-        NewRelic::Agent.set_transaction_name('new name')
+        NewRelic::Agent.set_transaction_name('new_name')
       end
-      assert_equal 'new name', sampler.last_sample.params[:path]
+      assert_equal 'Controller/new_name', sampler.last_sample.params[:path]
     end
 
     def test_set_transaction_name_gracefully_fails_when_frozen
@@ -304,9 +304,26 @@ module NewRelic
       engine.reset_stats
       Transactor.new.txn do
         NewRelic::Agent::Instrumentation::Transaction.current.freeze_name
-        NewRelic::Agent.set_transaction_name('new name')
+        NewRelic::Agent.set_transaction_name('new_name')
       end
-      assert_nil engine.lookup_stats('new name')
+      assert_nil engine.lookup_stats('Controller/new_name')
+    end
+
+    def test_set_transaction_name_applies_category
+      engine = NewRelic::Agent.instance.stats_engine
+      engine.reset_stats
+      Transactor.new.txn do
+        NewRelic::Agent.set_transaction_name('new_name', :category => :task)
+      end
+      assert engine.lookup_stats('OtherTransaction/Background/new_name')
+      Transactor.new.txn do
+        NewRelic::Agent.set_transaction_name('new_name', :category => :rack)
+      end
+      assert engine.lookup_stats('Controller/Rack/new_name')
+      Transactor.new.txn do
+        NewRelic::Agent.set_transaction_name('new_name', :category => :sinatra)
+      end
+      assert engine.lookup_stats('Controller/Sinatra/new_name')
     end
 
     private

@@ -181,7 +181,7 @@ class NewRelic::Agent::Instrumentation::TransactionTest < Test::Unit::TestCase
     NewRelic::Agent.set_transaction_name('foo/1/bar/22')
     NewRelic::Agent::Instrumentation::Transaction.freeze_name
     txn = NewRelic::Agent::Instrumentation::Transaction.stop('txn')
-    assert_equal 'foo/*/bar/*', txn.name
+    assert_equal 'Controller/foo/*/bar/*', txn.name
   ensure
     NewRelic::Agent.instance.instance_variable_set(:@transaction_rules,
                                               NewRelic::Agent::RulesEngine.new)

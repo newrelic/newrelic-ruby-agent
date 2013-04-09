@@ -8,14 +8,14 @@ class SetTransactionNameTest < Test::Unit::TestCase
   class TestTransactor
     include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
     def parent_txn
-      NewRelic::Agent.set_transaction_name('Controller/TestTransactor/parent')
+      NewRelic::Agent.set_transaction_name('TestTransactor/parent')
       yield if block_given?
       child_txn
     end
     add_transaction_tracer :parent_txn
 
     def child_txn
-      NewRelic::Agent.set_transaction_name('OtherTransaction/Background/TestTransactor/child')
+      NewRelic::Agent.set_transaction_name('TestTransactor/child', :category => :task)
     end
     add_transaction_tracer :child_txn
   end
@@ -78,7 +78,7 @@ class SetTransactionNameTest < Test::Unit::TestCase
     @transactor.parent_txn do
       NewRelic::Agent.browser_timing_header
       NewRelic::Agent.browser_timing_footer
-      NewRelic::Agent.set_transaction_name('Controller/this/should/not/work')
+      NewRelic::Agent.set_transaction_name('this/should/not/work')
     end
     assert_nil @stats_engine.lookup_stats('Controller/this/should/not/work')
     assert @stats_engine.lookup_stats('Controller/TestTransactor/parent')

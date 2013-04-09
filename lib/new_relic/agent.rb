@@ -430,8 +430,24 @@ module NewRelic
     # apply a reasonable default based on framework routing, but in
     # cases where this is insufficient, this can be used to manually
     # control the name of the transaction.
-    def set_transaction_name(name)
-      Instrumentation::Transaction.current.name = name
+    # The category of transaction can be specified via the +:category+ option:
+    #
+    # * <tt>:category => :controller</tt> indicates that this is a
+    #   controller action and will appear with all the other actions.  This
+    #   is the default.
+    # * <tt>:category => :task</tt> indicates that this is a
+    #   background task and will show up in New Relic with other background
+    #   tasks instead of in the controllers list
+    # * <tt>:category => :rack</tt> if you are instrumenting a rack
+    #   middleware call.  The <tt>:name</tt> is optional, useful if you
+    #   have more than one potential transaction in the #call.
+    # * <tt>:category => :uri</tt> indicates that this is a
+    #   web transaction whose name is a normalized URI, where  'normalized'
+    #   means the URI does not have any elements with data in them such
+    #   as in many REST URIs.
+    def set_transaction_name(name, options={})
+      namer = Instrumentation::ControllerInstrumentation::TransactionNamer.new
+      Instrumentation::Transaction.current.name = "#{namer.category_name(options)}/#{name}"
     end
 
     # The #add_request_parameters method is aliased to #add_custom_parameters
