@@ -45,7 +45,7 @@ class ResqueTest < Test::Unit::TestCase
   end
 
   def start_worker_child(env_vars=nil)
-    worker_cmd = "#{env_vars} QUEUE=* bundle exec rake resque:work"
+    worker_cmd = "#{env_vars} QUEUE=* TERM_CHILD=1 bundle exec rake resque:work"
     @worker_pid = Process.fork
     Process.exec(worker_cmd) if @worker_pid.nil?
   end
@@ -94,7 +94,12 @@ class ResqueTest < Test::Unit::TestCase
   def wait_for_jobs
     time_for_jobs = 10
     begin
-      Timeout.timeout(time_for_jobs) { sleep(0.1) until Resque.info[:processed] == JOB_COUNT }
+      Timeout.timeout(time_for_jobs) do
+        loop do
+          break if Resque.info[:processed] == JOB_COUNT
+          sleep(0.1) 
+        end
+      end
     rescue Timeout::Error => err
       raise err.exception("waiting #{time_for_jobs}s for completion of #{JOB_COUNT} jobs")
     end
