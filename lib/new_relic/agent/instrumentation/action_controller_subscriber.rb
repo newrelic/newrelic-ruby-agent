@@ -64,7 +64,7 @@ module NewRelic
 
         def record_metrics(event)
           controller_metric = MetricSpec.new(event.metric_name)
-          txn = Instrumentation::Transaction.current
+          txn = Transaction.current
           metrics = [ 'HttpDispatcher']
           if txn.has_parent?
             controller_metric.scope = StatsEngine::MetricStats::SCOPE_PLACEHOLDER
@@ -104,7 +104,7 @@ module NewRelic
         def start_transaction(event)
           # RUBY-1059 we want to get rid of this
           TransactionInfo.get.transaction_name = event.metric_name
-          txn = Instrumentation::Transaction.start(:web,
+          txn = Transaction.start(:web,
                                                    :request => event.payload[:request],
                                                    :filtered_params => filter(event.payload[:params]))
           txn.apdex_start = (event.queue_start || event.time)
@@ -116,7 +116,7 @@ module NewRelic
           TransactionInfo.get.transaction_name = event.metric_name
           Agent.instance.stats_engine \
             .pop_scope(event.scope, event.metric_name, event.end)
-          Instrumentation::Transaction.stop
+          Transaction.stop
         end
 
         def filter(params)
@@ -145,7 +145,7 @@ module NewRelic
         end
 
         def finalize_metric_name!
-          txn = NewRelic::Agent::Instrumentation::Transaction.current
+          txn = NewRelic::Agent::Transaction.current
 
           # the event provides the default name but the transaction has the final say
           txn.name ||= metric_name

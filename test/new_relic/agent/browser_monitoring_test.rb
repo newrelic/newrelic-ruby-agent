@@ -266,8 +266,7 @@ var e=document.createElement("script");'
 
   def test_browser_monitoring_queue_time_zero
     in_transaction do
-      NewRelic::Agent::Instrumentation::Transaction.current \
-        .expects(:queue_time).returns(0.0)
+      NewRelic::Agent::Transaction.current.expects(:queue_time).returns(0.0)
       assert_equal(0.0, browser_monitoring_queue_time,
                    'should return zero when there is zero queue time')
     end
@@ -275,8 +274,8 @@ var e=document.createElement("script");'
 
   def test_browser_monitoring_queue_time_ducks
     in_transaction do
-      NewRelic::Agent::Instrumentation::Transaction.current \
-        .expects(:queue_time).returns('a duck')
+      NewRelic::Agent::Transaction.current.expects(:queue_time) \
+        .returns('a duck')
       assert_equal(0.0, browser_monitoring_queue_time,
                    'should return zero when there is an incorrect queue time')
     end
@@ -284,8 +283,8 @@ var e=document.createElement("script");'
 
   def test_browser_monitoring_queue_time_nonzero
     in_transaction do
-      NewRelic::Agent::Instrumentation::Transaction.current \
-        .expects(:queue_time).returns(3.00002)
+      NewRelic::Agent::Transaction.current.expects(:queue_time) \
+        .returns(3.00002)
       assert_equal(3000, browser_monitoring_queue_time,
                    'should return a rounded time')
     end
@@ -296,7 +295,7 @@ var e=document.createElement("script");'
     # always takes at least 1ms
     self.expects(:browser_monitoring_app_time).returns(0)
     in_transaction do
-      txn = NewRelic::Agent::Instrumentation::Transaction.current
+      txn = NewRelic::Agent::Transaction.current
       user_attributes = {:user => "user", :account => "account", :product => "product"}
       txn.expects(:user_attributes).returns(user_attributes).at_least_once
       txn.expects(:queue_time).returns(0)
@@ -398,9 +397,9 @@ var e=document.createElement("script");'
   def test_freezes_transaction_name_when_footer_is_written
     with_config(:license_key => 'a' * 13) do
       in_transaction do
-        assert !NewRelic::Agent::Instrumentation::Transaction.current.name_frozen?
+        assert !NewRelic::Agent::Transaction.current.name_frozen?
         browser_timing_footer
-        assert NewRelic::Agent::Instrumentation::Transaction.current.name_frozen?
+        assert NewRelic::Agent::Transaction.current.name_frozen?
       end
     end
   end

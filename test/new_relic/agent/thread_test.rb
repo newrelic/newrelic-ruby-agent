@@ -24,7 +24,7 @@ class ThreadTest < Test::Unit::TestCase
 
   def test_bucket_thread_as_request
     t = ::Thread.new {}
-    txn = NewRelic::Agent::Instrumentation::Transaction.new
+    txn = NewRelic::Agent::Transaction.new
     txn.request = "has a request"
     t[:newrelic_transaction] = txn
 
@@ -33,7 +33,7 @@ class ThreadTest < Test::Unit::TestCase
 
   def test_bucket_thread_as_background
     t = ::Thread.new {}
-    txn = NewRelic::Agent::Instrumentation::Transaction.new
+    txn = NewRelic::Agent::Transaction.new
     t[:newrelic_transaction] = txn
 
     assert_equal :background, NewRelic::Agent::AgentThread.bucket_thread(t, DONT_CARE)

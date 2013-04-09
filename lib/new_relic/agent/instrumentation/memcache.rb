@@ -20,7 +20,7 @@ module NewRelic
             the_class.class_eval <<-EOD
               def #{method_name}_with_newrelic_trace(*args, &block)
                 metrics = ["Memcache/#{method_name}",
-                           (NewRelic::Agent::Instrumentation::Transaction.recording_web_transaction? ? 'Memcache/allWeb' : 'Memcache/allOther')]
+                           (NewRelic::Agent::Transaction.recording_web_transaction? ? 'Memcache/allWeb' : 'Memcache/allOther')]
                 self.class.trace_execution_scoped(metrics) do
                   t0 = Time.now
                   begin

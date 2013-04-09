@@ -342,7 +342,7 @@ module NewRelic
     # any.  Only affects the transaction started on this thread once
     # it has started and before it has completed.
     def abort_transaction!
-      NewRelic::Agent::Instrumentation::Transaction.abort_transaction!
+      Transaction.abort_transaction!
     end
 
     # Yield to the block without collecting any metrics or traces in
@@ -403,14 +403,14 @@ module NewRelic
     # Anything left over is treated as custom params.
     #
     def notice_error(exception, options={})
-      NewRelic::Agent::Instrumentation::Transaction.notice_error(exception, options)
+      Transaction.notice_error(exception, options)
     end
 
     # Add parameters to the current transaction trace (and traced error if any)
     # on the call stack.
     #
     def add_custom_parameters(params)
-      NewRelic::Agent::Instrumentation::Transaction.add_custom_parameters(params)
+      Transaction.add_custom_parameters(params)
     end
 
     # Set attributes about the user making this request. These attributes will be automatically
@@ -423,7 +423,7 @@ module NewRelic
     # * <tt>:product</tt> => product name or level
     #
     def set_user_attributes(attributes)
-      NewRelic::Agent::Instrumentation::Transaction.set_user_attributes(attributes)
+      Transaction.set_user_attributes(attributes)
     end
 
     # Set the name of the current running transaction.  The agent will
@@ -447,7 +447,7 @@ module NewRelic
     #   as in many REST URIs.
     def set_transaction_name(name, options={})
       namer = Instrumentation::ControllerInstrumentation::TransactionNamer.new
-      Instrumentation::Transaction.current.name = "#{namer.category_name(options)}/#{name}"
+      Transaction.current.name = "#{namer.category_name(options)}/#{name}"
     end
 
     # The #add_request_parameters method is aliased to #add_custom_parameters
@@ -463,7 +463,7 @@ module NewRelic
     # * <tt>method</tt> is the name of the finder method or other
     #   method to identify the operation with.
     def with_database_metric_name(model, method, &block)
-      if txn = NewRelic::Agent::Instrumentation::Transaction.current
+      if txn = Transaction.current
         txn.with_database_metric_name(model, method, &block)
       else
         yield

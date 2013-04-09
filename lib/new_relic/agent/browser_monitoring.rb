@@ -52,7 +52,7 @@ module NewRelic
       # page as is reasonably possible.
       def browser_timing_footer
         if insert_js?
-          NewRelic::Agent::Instrumentation::Transaction.freeze_name
+          NewRelic::Agent::Transaction.freeze_name
           generate_footer_js(NewRelic::Agent.instance.beacon_configuration)
         else
           ""

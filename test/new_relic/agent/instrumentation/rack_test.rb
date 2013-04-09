@@ -31,7 +31,7 @@ class NewRelic::Agent::Instrumentation::RackTest < Test::Unit::TestCase
   end
 
   def test_basic_rack_app_ignores_404
-    NewRelic::Agent::Instrumentation::Transaction.expects(:abort_transaction!)
+    NewRelic::Agent::Transaction.expects(:abort_transaction!)
     x = MinimalRackApp.new([404, {}, ["whee"]])
     assert_equal [404, {}, ["whee"]], x.call({})
   end

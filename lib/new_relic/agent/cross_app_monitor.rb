@@ -138,7 +138,7 @@ module NewRelic
 
       def insert_response_header(request_headers, response_headers)
         unless client_cross_app_id.nil?
-          NewRelic::Agent::Instrumentation::Transaction.freeze_name
+          NewRelic::Agent::Transaction.freeze_name
           timings = NewRelic::Agent::BrowserMonitoring.timings
           content_length = content_length_from_request(request_headers)
 

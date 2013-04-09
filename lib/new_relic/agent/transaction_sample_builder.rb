@@ -5,7 +5,7 @@
 require 'new_relic/collection_helper'
 require 'new_relic/transaction_sample'
 require 'new_relic/control'
-require 'new_relic/agent/instrumentation/transaction'
+require 'new_relic/agent/transaction'
 module NewRelic
   module Agent
     # a builder is created with every sampled transaction, to dynamically

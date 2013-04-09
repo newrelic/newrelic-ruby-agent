@@ -165,7 +165,7 @@ module NewRelic
     end
 
     def test_abort_transaction_bang
-      NewRelic::Agent::Instrumentation::Transaction.expects(:abort_transaction!)
+      NewRelic::Agent::Transaction.expects(:abort_transaction!)
       NewRelic::Agent.abort_transaction!
     end
 
@@ -303,7 +303,7 @@ module NewRelic
       engine = NewRelic::Agent.instance.stats_engine
       engine.reset_stats
       Transactor.new.txn do
-        NewRelic::Agent::Instrumentation::Transaction.current.freeze_name
+        NewRelic::Agent::Transaction.current.freeze_name
         NewRelic::Agent.set_transaction_name('new_name')
       end
       assert_nil engine.lookup_stats('Controller/new_name')

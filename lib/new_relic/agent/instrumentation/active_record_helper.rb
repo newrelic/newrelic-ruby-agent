@@ -32,7 +32,7 @@ module NewRelic
         end
 
         def metric_for_sql(sql)
-          metric = NewRelic::Agent::Instrumentation::Transaction.database_metric_name
+          metric = NewRelic::Agent::Transaction.database_metric_name
           if metric.nil?
             if sql =~ /^(select|update|insert|delete|show)/i
               # Could not determine the model/operation so let's find a better

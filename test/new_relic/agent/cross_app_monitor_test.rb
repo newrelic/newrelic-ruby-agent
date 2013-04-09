@@ -200,9 +200,9 @@ module NewRelic::Agent
 
     def test_setting_response_headers_freezes_transaction_name
       in_transaction do
-        assert !NewRelic::Agent::Instrumentation::Transaction.current.name_frozen?
+        assert !NewRelic::Agent::Transaction.current.name_frozen?
         when_request_runs
-        assert NewRelic::Agent::Instrumentation::Transaction.current.name_frozen?
+        assert NewRelic::Agent::Transaction.current.name_frozen?
       end
     end
 

@@ -290,7 +290,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
   end
 
   def test_direct_sql
-    assert_nil NewRelic::Agent::Instrumentation::Transaction.current
+    assert_nil NewRelic::Agent::Transaction.current
     assert_nil NewRelic::Agent.instance.stats_engine.scope_name
     assert_equal 0, NewRelic::Agent.instance.stats_engine.metrics.size, NewRelic::Agent.instance.stats_engine.metrics.inspect
 

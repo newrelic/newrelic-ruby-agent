@@ -170,7 +170,7 @@ module NewRelic
         metrics = [ "External/all" ]
         metrics << "External/#{http.address}/all"
 
-        if NewRelic::Agent::Instrumentation::Transaction.recording_web_transaction?
+        if NewRelic::Agent::Transaction.recording_web_transaction?
           metrics << "External/allWeb"
         else
           metrics << "External/allOther"

@@ -2,10 +2,10 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'test_helper'))
-require 'new_relic/agent/instrumentation/transaction/pop'
-class NewRelic::Agent::Instrumentation::Transaction::PopTest < Test::Unit::TestCase
-  include NewRelic::Agent::Instrumentation::Transaction::Pop
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
+require 'new_relic/agent/transaction/pop'
+class NewRelic::Agent::Transaction::PopTest < Test::Unit::TestCase
+  include NewRelic::Agent::Transaction::Pop
 
   attr_reader :agent
   attr_reader :transaction_sampler
