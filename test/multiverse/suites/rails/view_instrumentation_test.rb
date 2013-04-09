@@ -79,6 +79,7 @@ class ViewControllerTest < ActionController::TestCase
   tests ViewsController
   def setup
     super
+    NewRelic::Agent.manual_start
     @controller = ViewsController.new
     # ActiveSupport testing keeps blowing away my subscribers on
     # teardown for some reason.  Have to keep putting it back.
@@ -215,4 +216,3 @@ class FileRenderTest < ViewControllerTest
     assert_equal 'View/file/Rendering', text_segment.metric_name
   end
 end
-

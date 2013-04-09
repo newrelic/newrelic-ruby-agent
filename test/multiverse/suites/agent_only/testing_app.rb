@@ -18,4 +18,5 @@ class TestingApp
     [200, headers, [response]]
   end
 
+  include NewRelic::Agent::Instrumentation::Rack
 end

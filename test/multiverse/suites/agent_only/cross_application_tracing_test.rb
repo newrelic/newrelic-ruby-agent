@@ -52,9 +52,7 @@ class CrossProcessTest < Test::Unit::TestCase
   def test_cross_app_writes_out_information
     get '/', nil, {'X-NewRelic-ID' => Base64.encode64('1#234')}
     assert_not_nil last_response.headers["X-NewRelic-App-Data"]
-
     metric = NewRelic::Agent.instance.stats_engine.lookup_stats('ClientApplication/1#234/all')
     assert_equal 1, metric.call_count
   end
 end
-

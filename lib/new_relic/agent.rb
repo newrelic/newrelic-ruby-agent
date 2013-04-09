@@ -495,7 +495,7 @@ module NewRelic
     def browser_timing_footer
       agent.browser_timing_footer
     end
-    
+
     def_delegator :'NewRelic::Agent::PipeChannelManager', :register_report_channel
   end
 end

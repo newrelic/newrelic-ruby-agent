@@ -21,7 +21,8 @@ class SetTransactionNameTest < Test::Unit::TestCase
   end
 
   def setup
-    NewRelic::Agent.manual_start
+    NewRelic::Agent.manual_start(:browser_key => 'browserKey', :application_id => 'appId',
+                                 :beacon => 'beacon', :episodes_file => 'this_is_my_file')
     @transactor = TestTransactor.new
     @stats_engine = NewRelic::Agent.instance.stats_engine
   end
@@ -73,9 +74,13 @@ class SetTransactionNameTest < Test::Unit::TestCase
     assert @stats_engine.lookup_stats('Controller/TestTransactor/dad')
   end
 
-  def _test_does_not_overwrite_name_when_set_by_CAT
-  end
-
-  def _test_does_not_overwrite_name_when_set_by_RUM
+  def test_does_not_overwrite_name_when_set_by_RUM
+    @transactor.parent_txn do
+      NewRelic::Agent.browser_timing_header
+      NewRelic::Agent.browser_timing_footer
+      NewRelic::Agent.set_transaction_name('Controller/this/should/not/work')
+    end
+    assert_nil @stats_engine.lookup_stats('Controller/this/should/not/work')
+    assert @stats_engine.lookup_stats('Controller/TestTransactor/parent')
   end
 end
