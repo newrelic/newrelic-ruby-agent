@@ -3,7 +3,7 @@ suite_condition("Resque tests not compatible with 1.8.6, JRuby") do
 end
 
 gemfile <<-RB
-  gem 'resque'
+  gem 'resque', '1.23.0'
   gem 'json'
   gem 'rake'
   if (RUBY_PLATFORM == 'java')
