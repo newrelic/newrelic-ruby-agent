@@ -22,6 +22,12 @@
   rake assets:precompile).  The NEWRELIC_ENABLE environment variable can be set
   to true or false to force the agent to start or not start.
 
+  * Don't attempt to resolve collector hostname when proxy is in use
+
+  When a proxy is configured, the agent will not attempt to lookup and cache the
+  IP address of New Relic server to which it is sending data, since DNS may not
+  be available in some environments. Thanks to Bill Kirtley for the contribution
+
 ## v3.6.0 ##
 
   * Sidekiq supprt
