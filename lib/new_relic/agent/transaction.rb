@@ -145,6 +145,7 @@ module NewRelic
         transaction_sampler.notice_first_scope_push(start_time)
         sql_sampler.notice_first_scope_push(start_time)
 
+        NewRelic::Agent::StatsEngine::GCProfiler.init
         agent.stats_engine.start_transaction
         agent.stats_engine.push_transaction_stats
         transaction_sampler.notice_transaction(uri, filtered_params)
@@ -184,13 +185,12 @@ module NewRelic
         if self.class.stack.empty?
           # this one records metrics and wants to happen
           # before the transaction sampler is finished
-          record_transaction_cpu if traced?
-          transaction_sampler.notice_scope_empty(self)
+          if traced?
+            record_transaction_cpu
+            gc_time = NewRelic::Agent::StatsEngine::GCProfiler.capture
+          end
+          @transaction_trace = transaction_sampler.notice_scope_empty(self, Time.now, gc_time)
           sql_sampler.notice_scope_empty(@name)
-
-          # this one records metrics and wants to happen
-          # after the transaction sampler is finished
-          agent.stats_engine.record_gc_time if traced?
         end
 
         record_exceptions

@@ -109,7 +109,6 @@ module Agent
       # Start a new transaction, unless one is already in progress
       def start_transaction
         NewRelic::Agent.instance.events.notify(:start_transaction)
-        GCProfiler.init
       end
 
       # Try to clean up gracefully, otherwise we leave things hanging around on thread locals.
@@ -122,14 +121,6 @@ module Agent
         if stack && stack.empty?
           Thread::current[:newrelic_scope_stack] = nil
           Thread::current[:newrelic_scope_name] = nil
-        end
-      end
-
-      def record_gc_time
-        elapsed = GCProfiler.capture
-        if @transaction_sampler && @transaction_sampler.last_sample
-          @transaction_sampler.last_sample.params[:custom_params] ||= {}
-          @transaction_sampler.last_sample.params[:custom_params][:gc_time] = elapsed
         end
       end
 
