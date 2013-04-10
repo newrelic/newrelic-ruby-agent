@@ -112,7 +112,7 @@ class NewRelic::Agent::TransactionTest < Test::Unit::TestCase
       :apdex => 1
     }
 
-    txn_info.transaction_name = 'Controller/slow/txn'
+    txn_info.transaction.name = 'Controller/slow/txn'
     with_config(config, :do_not_cast => true) do
       NewRelic::Agent::Transaction.update_apdex(stats, 3.5, false)
       NewRelic::Agent::Transaction.update_apdex(stats, 5.5, false)
@@ -122,7 +122,7 @@ class NewRelic::Agent::TransactionTest < Test::Unit::TestCase
     assert_equal 1, stats.apdex_t
     assert_equal 1, stats.apdex_f
 
-    txn_info.transaction_name = 'Controller/fast/txn'
+    txn_info.transaction.name = 'Controller/fast/txn'
     with_config(config, :do_not_cast => true) do
       NewRelic::Agent::Transaction.update_apdex(stats, 0.05, false)
       NewRelic::Agent::Transaction.update_apdex(stats, 0.2, false)
@@ -132,7 +132,7 @@ class NewRelic::Agent::TransactionTest < Test::Unit::TestCase
     assert_equal 2, stats.apdex_t
     assert_equal 2, stats.apdex_f
 
-    txn_info.transaction_name = 'Controller/other/txn'
+    txn_info.transaction.name = 'Controller/other/txn'
     with_config(config, :do_not_cast => true) do
       NewRelic::Agent::Transaction.update_apdex(stats, 0.5, false)
       NewRelic::Agent::Transaction.update_apdex(stats, 2, false)

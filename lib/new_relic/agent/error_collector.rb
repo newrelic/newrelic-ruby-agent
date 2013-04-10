@@ -110,13 +110,14 @@ module NewRelic
 
         # Increments a statistic that tracks total error rate
         # Be sure not to double-count same exception. This clears per harvest.
-        def increment_error_count!(exception)
+        def increment_error_count!(exception, options={})
           return if seen?(exception)
           tag_as_seen(exception)
 
-          txn_info = NewRelic::Agent::TransactionInfo.get
           metric_names = ["Errors/all"]
-          metric_names << "Errors/#{txn_info.transaction_name}" if txn_info.transaction_name_set?
+          if options[:metric] && options[:metric] != '(unknown)'
+            metric_names << "Errors/#{options[:metric]}"
+          end
           stats_engine = NewRelic::Agent.agent.stats_engine
           stats_engine.record_metrics(metric_names) do |stats|
             stats.increment_count
@@ -129,7 +130,6 @@ module NewRelic
         def should_exit_notice_error?(exception)
           if enabled?
             if !error_is_ignored?(exception)
-              increment_error_count!(exception)
               return exception.nil? # exit early if the exception is nil
             end
           end
@@ -251,6 +251,7 @@ module NewRelic
       # If exception is nil, the error count is bumped and no traced error is recorded
       def notice_error(exception, options={})
         return if should_exit_notice_error?(exception)
+        increment_error_count!(exception, options)
         NewRelic::Agent.instance.events.notify(:notice_error, exception, options)
         action_path     = fetch_from_options(options, :metric, (NewRelic::Agent.instance.stats_engine.scope_name || ''))
         exception_options = error_params_from_options(options).merge(exception_info(exception))

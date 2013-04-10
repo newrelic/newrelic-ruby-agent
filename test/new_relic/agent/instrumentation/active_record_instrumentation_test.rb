@@ -68,7 +68,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
 
     ActiveRecordFixtures::Order.create :id => 0, :name => 'jeff'
 
-    find_metric = "ActiveRecord/ActiveRecordFixtures::Order/find"    
+    find_metric = "ActiveRecord/ActiveRecordFixtures::Order/find"
 
     assert_calls_metrics(find_metric) do
       ActiveRecordFixtures::Order.exists?(["name=?", 'jeff'])

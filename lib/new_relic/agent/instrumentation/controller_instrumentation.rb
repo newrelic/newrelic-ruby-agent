@@ -451,8 +451,6 @@ module NewRelic
           options[:filtered_params] = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
           txn = Transaction.start(transaction_type(options), options)
           txn.name = TransactionNamer.new(self).name(options)
-          # RUBY-1059 shouldnt be necessary
-          NewRelic::Agent::TransactionInfo.get.transaction_name = txn.name
 
           txn.apdex_start ||= _detect_upstream_wait(txn.start_time)
           _record_queue_length

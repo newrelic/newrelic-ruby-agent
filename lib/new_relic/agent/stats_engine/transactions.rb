@@ -142,9 +142,7 @@ module Agent
       end
 
       def pop_transaction_stats(transaction_name)
-        # RUBY-1059: This should not use TransactionInfo
         Thread::current[:newrelic_scope_stack] ||= []
-        self.scope_name = transaction_name # RUBY-1059 - maybe not necessary
         stats = transaction_stats_stack.pop
         merge!(apply_scopes(stats, transaction_name)) if stats
         stats

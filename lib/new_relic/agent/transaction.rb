@@ -20,7 +20,7 @@ module NewRelic
       attr_accessor :apdex_start # A Time instance used for calculating the apdex score, which
       # might end up being @start, or it might be further upstream if
       # we can find a request header for the queue entry time
-      attr_accessor(:exception, :filtered_params, :force_flag,
+      attr_accessor(:exceptions, :filtered_params, :force_flag,
                     :jruby_cpu_start, :process_cpu_start, :database_metric_name)
       attr_reader :name
 
@@ -97,8 +97,8 @@ module NewRelic
         @filtered_params = options[:filtered_params] || {}
         @force_flag = options[:force]
         @request = options[:request]
-        # RUBY-1059 dont think we need this
-        Thread.current[:last_transaction] = self
+        @exceptions = {}
+        TransactionInfo.get.transaction = self
       end
 
       def name=(name)
@@ -193,12 +193,20 @@ module NewRelic
           agent.stats_engine.record_gc_time if traced?
         end
 
+        record_exceptions
         agent.stats_engine.pop_transaction_stats(@name)
 
         # these tear everything down so need to be done
         # after the pop
         if self.class.stack.empty?
           agent.stats_engine.end_transaction
+        end
+      end
+
+      def record_exceptions
+        @exceptions.each do |exception, options|
+          options[:metric] = @name
+          agent.error_collector.notice_error(exception, options)
         end
       end
 
@@ -231,11 +239,9 @@ module NewRelic
         options[:referer] = referer if referer
         options[:request_params] = filtered_params if filtered_params
         options[:uri] = uri if uri
-        options[:metric] = @name
         options.merge!(custom_parameters)
-        if exception != e
-          result = agent.error_collector.notice_error(e, options)
-          self.exception = result if result
+        if !@exceptions.keys.include?(e)
+          @exceptions[e] = options
         end
       end
 
@@ -263,7 +269,7 @@ module NewRelic
           .for_metric_named(metric_name)
 
         t = Time.now
-        self.class.record_apdex(metric_parser, t - start_time, t - apdex_start, !exception.nil?)
+        self.class.record_apdex(metric_parser, t - start_time, t - apdex_start, exceptions.any?)
       end
 
       # Yield to a block that is run with a database metric name context.  This means

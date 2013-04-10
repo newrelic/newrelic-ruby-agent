@@ -29,12 +29,11 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     NewRelic::Agent.instance.instance_eval do
       @beacon_configuration = NewRelic::Agent::BeaconConfiguration.new
     end
+  end
 
   def teardown
     NewRelic::Agent::TransactionInfo.clear
     NewRelic::Agent.config.remove_config(@config)
-  end
-
     mocha_teardown
   end
 
@@ -207,9 +206,11 @@ var e=document.createElement("script");'
   end
 
   def test_browser_monitoring_transaction_name_basic
-    mock = mock('transaction sample')
+    mock = stub_everything('transaction info')
     NewRelic::Agent::TransactionInfo.set(mock)
-    mock.stubs(:transaction_name).returns('a transaction name')
+    txn = NewRelic::Agent::Transaction.new
+    txn.name = 'a transaction name'
+    mock.stubs(:transaction).returns(txn)
 
     assert_equal('a transaction name', browser_monitoring_transaction_name, "should take the value from the thread local")
   end
@@ -218,7 +219,7 @@ var e=document.createElement("script");'
     mock = mock('transaction sample')
     NewRelic::Agent::TransactionInfo.set(mock)
 
-    mock.stubs(:transaction_name).returns('')
+    mock.stubs(:transaction).returns(stub(:name => ''))
     assert_equal('', browser_monitoring_transaction_name, "should take the value even when it is empty")
   end
 
@@ -299,11 +300,12 @@ var e=document.createElement("script");'
       user_attributes = {:user => "user", :account => "account", :product => "product"}
       txn.expects(:user_attributes).returns(user_attributes).at_least_once
       txn.expects(:queue_time).returns(0)
+      txn.name = 'most recent transaction'
 
       sample = stub_everything('transaction info',
                                :start_time => Time.at(100),
                                :guid => 'ABC',
-                               :transaction_name => 'most recent transaction',
+                               :transaction => txn,
                                :include_guid? => true,
                                :duration => 12.0,
                                :token => '0123456789ABCDEF')
@@ -407,7 +409,9 @@ var e=document.createElement("script");'
   def mobile_transaction(request=nil)
     request ||= Rack::Request.new('X-NewRelic-Mobile-Trace' => 'true')
     response = Rack::Response.new
-    txn_data = OpenStruct.new(:transaction_name => 'a transaction name',
+    txn = NewRelic::Agent::Transaction.new
+    txn.name = 'a transaction name'
+    txn_data = OpenStruct.new(:transaction => txn,
                               :start_time => 5,
                               :force_persist_sample? => false)
     NewRelic::Agent::TransactionInfo.set(txn_data)

@@ -10,7 +10,7 @@ module NewRelic::Agent::Instrumentation
     def setup
       Time.stubs(:now).returns(Time.at(2000))
       @transaction = stub(
-        :transaction_name => "Name",
+        :transaction => stub(:name => "Name"),
         :start_time => 0
       )
     end

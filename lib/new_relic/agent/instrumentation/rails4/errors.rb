@@ -13,7 +13,6 @@ module NewRelic
             NewRelic::Agent::Transaction.notice_error( \
                 exception, \
                 :request => request, \
-                :metric => TransactionInfo.get.transaction_name, \
                 :custom_params => filtered_params)
           end
         end

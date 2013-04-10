@@ -21,6 +21,10 @@ module NewRelic
         def queue_time
           0.0
         end
+
+        def name
+          '(unknown)'
+        end
       end
 
       @@dummy_txn = DummyTransaction.new
@@ -74,7 +78,7 @@ module NewRelic
       end
 
       def browser_monitoring_transaction_name
-        NewRelic::Agent::TransactionInfo.get.transaction_name
+        current_transaction.name || '(unknown)'
       end
 
       def browser_monitoring_queue_time
@@ -86,7 +90,7 @@ module NewRelic
       end
 
       def current_transaction
-        Thread.current[:last_transaction] || @@dummy_txn
+        NewRelic::Agent::TransactionInfo.get.transaction || @@dummy_txn
       end
 
       def clamp_to_positive(value)
