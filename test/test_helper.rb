@@ -55,7 +55,6 @@ rescue LoadError => e
 end
 
 require 'test/unit'
-require 'shoulda'
 begin
   require 'mocha/setup'
 rescue LoadError
@@ -216,14 +215,29 @@ def assert_metrics_recorded(expected)
   end
 end
 
-def assert_metrics_recorded_exclusive(expected)
+def assert_metrics_recorded_exclusive(expected, options={})
   expected = _normalize_metric_expectations(expected)
   assert_metrics_recorded(expected)
   recorded_metrics = NewRelic::Agent.instance.stats_engine.metrics
+  if options[:filter]
+    recorded_metrics = recorded_metrics.select { |m| m.match(options[:filter]) }
+  end
   expected_metrics = expected.keys.map { |s| metric_spec_from_specish(s).to_s }
   unexpected_metrics = recorded_metrics.select{|m| m !~ /GC\/cumulative/}
   unexpected_metrics -= expected_metrics
   assert_equal(0, unexpected_metrics.size, "Found unexpected metrics: [#{unexpected_metrics.join(', ')}]")
+end
+
+def assert_metrics_not_recorded(not_expected)
+  not_expected = _normalize_metric_expectations(not_expected)
+  found_but_not_expected = []
+  not_expected.each do |specish, _|
+    spec = metric_spec_from_specish(specish)
+    if NewRelic::Agent.instance.stats_engine.lookup_stats(*Array(specish))
+      found_but_not_expected << spec
+    end
+  end
+  assert_equal([], found_but_not_expected, "Found unexpected metrics: [#{found_but_not_expected.join(', ')}]")
 end
 
 def with_config(config_hash, opts={})
