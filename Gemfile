@@ -6,7 +6,6 @@ group :development do
   # https://github.com/jimweirich/rake/issues/144
   gem 'rake', '0.9.6'
   gem 'mocha', '~>0.13.0', :require => false
-  gem 'shoulda', '~>3.0.1'
   gem 'sdoc-helpers'
   gem 'rdoc', '>= 2.4.2'
   gem 'rails', '~>3.2.13'
