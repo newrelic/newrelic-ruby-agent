@@ -106,9 +106,13 @@ def assert_between(floor, ceiling, value, message="expected #{floor} <= #{value}
   assert((floor <= value && value <= ceiling), message)
 end
 
+def assert_in_delta(expected, actual, delta)
+  assert_between((expected - delta), (expected + delta), actual)
+end
+
 def check_metric_time(metric, value, delta)
   time = NewRelic::Agent.get_stats(metric).total_call_time
-  assert_between((value - delta), (value + delta), time)
+  assert_in_delta(value, time, delta)
 end
 
 def check_metric_count(metric, value)
@@ -209,8 +213,13 @@ def assert_metrics_recorded(expected)
     end
     expected_attrs.each do |attr, expected_value|
       actual_value = actual_stats.send(attr)
-      assert_equal(expected_value, actual_value,
-        "Expected #{attr} for #{expected_spec} to be #{expected_value}, got #{actual_value}")
+      if attr == :call_count
+        assert_equal(expected_value, actual_value,
+          "Expected #{attr} for #{expected_spec} to be #{expected_value}, got #{actual_value}")
+      else
+        assert_in_delta(expected_value, actual_value, 0.0001,
+          "Expected #{attr} for #{expected_spec} to be ~#{expected_value}, got #{actual_value}")
+      end
     end
   end
 end

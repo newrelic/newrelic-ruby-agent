@@ -64,40 +64,10 @@ module NewRelic
     report_on('Ruby patchlevel'){ RUBY_PATCHLEVEL.to_s }
     report_on('JRuby version') { JRUBY_VERSION }
     report_on('Java VM version') { ENV_JAVA['java.vm.version']}
-    report_on 'Processors' do
-      cpuinfo = ''
-      proc_file = '/proc/cpuinfo'
-      File.open(proc_file) do |f|
-        loop do
-          begin
-            cpuinfo << f.read_nonblock(4096).strip
-          rescue EOFError
-            break
-          rescue Errno::EWOULDBLOCK, Errno::EAGAIN
-            cpuinfo = ''
-            break # don't select file handle, just give up
-          end
-        end
-      end
-      processors = cpuinfo.split("\n").select {|line| line =~ /^processor\s*:/ }.size
-
-      if processors == 0
-        processors = nil # assume there is at least one processor
-        ::NewRelic::Agent.logger.warn("Cannot determine the number of processors in #{proc_file}")
-      end
-      processors
-    end
-    report_on 'Arch' do
-      arch = `uname -p`
-      arch = ENV['PROCESSOR_ARCHITECTURE'] if arch == ''
-      arch
-    end
-    report_on('OS version'){ `uname -v` }
-    report_on('OS') do
-      os = `uname -s`
-      os = ENV['OS'] if os == ''
-      os
-    end
+    report_on('Processors') { SystemInfo.processor_count }
+    report_on('Arch') { SystemInfo.processor_arch }
+    report_on('OS version') { SystemInfo.os_version }
+    report_on('OS') { SystemInfo.ruby_os_identifier }
     report_on 'Database adapter' do
       ActiveRecord::Base.configurations[NewRelic::Control.instance.env]['adapter']
     end
