@@ -62,6 +62,11 @@ module NewRelic
       JSON.dump(self.to_array)
     end
 
+    def set_custom_param(name, value)
+      @params[:custom_params] ||= {}
+      @params[:custom_params][name] = value
+    end
+
     include NewRelic::Coerce
 
     def to_array

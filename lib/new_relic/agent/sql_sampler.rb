@@ -30,7 +30,7 @@ module NewRelic
         @sql_traces = {}
         clear_transaction_data
 
-        # This lock is used to synchronize access to the @last_sample
+        # This lock is used to synchronize access to @sql_traces
         # and related variables. It can become necessary on JRuby or
         # any 'honest-to-god'-multithreaded system
         @samples_lock = Mutex.new

@@ -146,7 +146,7 @@ module NewRelic
       #
       # It sets various instance variables to the finished sample,
       # depending on which settings are active. See `store_sample`
-      def notice_scope_empty(txn, time=Time.now)
+      def notice_scope_empty(txn, time=Time.now, gc_time=nil)
         last_builder = builder
         last_builder.set_transaction_name(txn.name) if enabled? && last_builder
 
@@ -157,9 +157,8 @@ module NewRelic
         return if last_builder.ignored?
 
         @samples_lock.synchronize do
-          # NB this instance variable may be used elsewhere, it's not
-          # just a side effect
           @last_sample = last_builder.sample
+          @last_sample.set_custom_param(:gc_time, gc_time) if gc_time
           store_sample(@last_sample)
         end
       end

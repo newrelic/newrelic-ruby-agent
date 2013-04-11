@@ -111,8 +111,7 @@ module NewRelic
       end
 
       def set_transaction_cpu_time(cpu_time)
-        @sample.params[:custom_params] ||= {}
-        @sample.params[:custom_params][:cpu_time] = cpu_time
+        @sample.set_custom_param(:cpu_time, cpu_time)
       end
 
       def sample
