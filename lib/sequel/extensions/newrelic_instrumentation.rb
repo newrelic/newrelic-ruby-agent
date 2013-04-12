@@ -1,5 +1,7 @@
 # -*- ruby -*-
-#encoding: utf-8
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'sequel' unless defined?( Sequel )
 require 'newrelic_rpm' unless defined?( NewRelic )
@@ -43,6 +45,8 @@ module Sequel
       return rval
     end
 
+    # Record metrics for the specified +sql+ and +args+ using the specified
+    # +duration+.
     def record_metrics( sql, args, duration)
       NewRelic::Agent.logger.debug "Recording metrics for %p." % [ sql ]
       primary_metric = primary_metric_for( sql, args )
@@ -59,7 +63,8 @@ module Sequel
     end
 
 
-    # Record the SQL for the current transaction
+    # Record the given +sql+ within a new scope, using the given +start+ and
+    # +finish+ times.
     def notice_sql( sql, args, start, finish )
       metric   = primary_metric_for( sql, args )
       agent    = NewRelic::Agent.instance
