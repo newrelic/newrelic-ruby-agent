@@ -21,7 +21,8 @@ DependencyDetection.defer do
         perform_action_with_newrelic_trace(
           :name => 'perform',
           :class_name => msg['class'],
-          :category => 'OtherTransaction/SidekiqJob') do
+          :category => 'OtherTransaction/SidekiqJob',
+          :params => {:args => msg['args']}) do
           yield
         end
       end
