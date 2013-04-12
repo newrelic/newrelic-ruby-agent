@@ -11,6 +11,11 @@ module NewRelic
         attr_reader :last_time
         def initialize
           super :cpu
+          @processor_count = NewRelic::Agent::SystemInfo.processor_count
+          if @processor_count.nil?
+            NewRelic::Agent.logger.warn("Failed to determine processor count, assuming 1")
+            @processor_count = 1
+          end
           poll
         end
 
@@ -42,7 +47,7 @@ module NewRelic
           if @last_time
             elapsed = now - @last_time
             return if elapsed < 1 # Causing some kind of math underflow
-            num_processors = NewRelic::Control.instance.local_env.processors || 1
+
             usertime = t.utime - @last_utime
             systemtime = t.stime - @last_stime
 
@@ -50,10 +55,10 @@ module NewRelic
             record_usertime(usertime) if usertime >= 0
 
             # Calculate the true utilization by taking cpu times and dividing by
-            # elapsed time X num_processors.
+            # elapsed time X processor_count.
 
-            record_user_util(usertime / (elapsed * num_processors))
-            record_system_util(systemtime / (elapsed * num_processors))
+            record_user_util(usertime / (elapsed * @processor_count))
+            record_system_util(systemtime / (elapsed * @processor_count))
           end
           @last_utime = t.utime
           @last_stime = t.stime

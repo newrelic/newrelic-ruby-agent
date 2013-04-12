@@ -37,23 +37,35 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
     end
   end
 
-  def test_cpu
-    s = NewRelic::Agent::Samplers::CpuSampler.new
-    # need to set this instance value to prevent it skipping a 'too
-    # fast' poll time
-    s.stats_engine = @stats_engine
-    s.instance_eval { @last_time = Time.now - 1.1 }
-    s.poll
-    s.instance_eval { @last_time = Time.now - 1.1 }
+  def test_cpu_sampler_records_user_and_system_time
+    timeinfo0 = mock
+    timeinfo0.stubs(:utime).returns(10.0)
+    timeinfo0.stubs(:stime).returns(5.0)
+
+    timeinfo1 = mock
+    timeinfo1.stubs(:utime).returns(14.0) # +5s
+    timeinfo1.stubs(:stime).returns(7.0)  # +2s
+
+    elapsed = 10
+
+    freeze_time
+    Process.stubs(:times).returns(timeinfo0, timeinfo1)
+    NewRelic::Agent::SystemInfo.stubs(:processor_count).returns(4)
+
+    s = NewRelic::Agent::Samplers::CpuSampler.new # this calls poll
+    advance_time(elapsed)
     s.poll
 
-    systemtime_stats = s.stats_engine.get_stats_no_scope("CPU/System Time")
-    usertime_stats = s.stats_engine.get_stats_no_scope("CPU/User Time")
-    assert_equal 2, systemtime_stats.call_count
-    assert_equal 2, usertime_stats.call_count
-    assert usertime_stats.total_call_time >= 0, "user cpu greater/equal to 0: #{usertime_stats.total_call_time}"
-    assert systemtime_stats.total_call_time >= 0, "system cpu greater/equal to 0: #{systemtime_stats.total_call_time}"
+    assert_metrics_recorded({
+      'CPU/User Time'   => { :call_count => 1, :total_call_time => 4.0 },
+      'CPU/System Time' => { :call_count => 1, :total_call_time => 2.0 },
+      # (4s user time)   / ((10s elapsed time) * 4 cpus) = 0.1
+      'CPU/User/Utilization'   => { :call_count => 1, :total_call_time => 0.1 },
+      # (2s system time) / ((10s elapsed time) * 4 cpus) = 0.05
+      'CPU/System/Utilization' => { :call_count => 1, :total_call_time => 0.05 }
+    })
   end
+
   def test_memory__default
     s = NewRelic::Agent::Samplers::MemorySampler.new
     s.stats_engine = @stats_engine
@@ -64,6 +76,7 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
     assert_equal(3, stats.call_count)
     assert stats.total_call_time > 0.5, "cpu greater than 0.5 ms: #{stats.total_call_time}"
   end
+
   def test_memory__linux
     return if RUBY_PLATFORM =~ /darwin/
     NewRelic::Agent::Samplers::MemorySampler.any_instance.stubs(:platform).returns 'linux'
@@ -76,6 +89,7 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
     assert_equal 3, stats.call_count
     assert stats.total_call_time > 0.5, "cpu greater than 0.5 ms: #{stats.total_call_time}"
   end
+
   def test_memory__solaris
     return if defined? JRuby
     NewRelic::Agent::Samplers::MemorySampler.any_instance.stubs(:platform).returns 'solaris'
@@ -87,6 +101,7 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
     assert_equal 1, stats.call_count
     assert_equal 999, stats.total_call_time
   end
+
   def test_memory__windows
     return if defined? JRuby
     NewRelic::Agent::Samplers::MemorySampler.any_instance.stubs(:platform).returns 'win32'
@@ -94,6 +109,7 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
       NewRelic::Agent::Samplers::MemorySampler.new
     end
   end
+
   def test_load_samplers
     @stats_engine.expects(:add_harvest_sampler).at_least_once unless defined? JRuby
     @stats_engine.expects(:add_sampler).never
@@ -101,6 +117,7 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
     sampler_count = 4
     assert_equal sampler_count, NewRelic::Agent::Sampler.sampler_classes.size, NewRelic::Agent::Sampler.sampler_classes.inspect
   end
+
   def test_memory__is_supported
     NewRelic::Agent::Samplers::MemorySampler.stubs(:platform).returns 'windows'
     assert !NewRelic::Agent::Samplers::MemorySampler.supported_on_this_platform? || defined? JRuby
