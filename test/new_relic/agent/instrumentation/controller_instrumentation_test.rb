@@ -43,26 +43,6 @@ class NewRelic::Agent::Instrumentation::ControllerInstrumentationTest < Test::Un
     assert_equal(start_time, @object.send(:_detect_upstream_wait, start_time))
   end
 
-  def test_transaction_type_web
-    categories = [
-      :rack, :uri, :sinatra, :controller, 'Controller/foo'
-    ]
-    categories.each do |category|
-      assert_equal(:web, @object.transaction_type(:category => category),
-        "Expected '#{category}' to be of type :web")
-    end
-  end
-
-  def test_transaction_type_other
-    categories = [
-      :task, 'OtherTransaction/foo'
-    ]
-    categories.each do |category|
-      assert_equal(:other, @object.transaction_type(:category => category),
-        "Expected '#{category}' to be of type :other")
-    end
-  end
-
   def test_transaction_name_calls_newrelic_metric_path
     @object.stubs(:newrelic_metric_path).returns('some/wacky/path')
     assert_equal('Controller/some/wacky/path', @txn_namer.name)

@@ -267,6 +267,11 @@ module NewRelic
         yield
       end
       add_transaction_tracer :txn
+
+      def task_txn
+        yield
+      end
+      add_transaction_tracer :task_txn, :category => :task
     end
 
     def test_set_transaction_name
@@ -321,6 +326,15 @@ module NewRelic
         NewRelic::Agent.set_transaction_name('new_name', :category => :sinatra)
       end
       assert engine.lookup_stats('Controller/Sinatra/new_name')
+    end
+
+    def test_set_transaction_name_uses_current_txn_category_default
+      engine = NewRelic::Agent.instance.stats_engine
+      engine.reset_stats
+      Transactor.new.task_txn do
+        NewRelic::Agent.set_transaction_name('new_name')
+      end
+      assert engine.lookup_stats('OtherTransaction/Background/new_name')
     end
 
     private

@@ -434,8 +434,7 @@ module NewRelic
     # The category of transaction can be specified via the +:category+ option:
     #
     # * <tt>:category => :controller</tt> indicates that this is a
-    #   controller action and will appear with all the other actions.  This
-    #   is the default.
+    #   controller action and will appear with all the other actions.
     # * <tt>:category => :task</tt> indicates that this is a
     #   background task and will show up in New Relic with other background
     #   tasks instead of in the controllers list
@@ -446,10 +445,12 @@ module NewRelic
     #   web transaction whose name is a normalized URI, where  'normalized'
     #   means the URI does not have any elements with data in them such
     #   as in many REST URIs.
+    #
+    # The default category is the same as the running transaction.
     def set_transaction_name(name, options={})
       if Transaction.current
-        namer = Instrumentation::ControllerInstrumentation::TransactionNamer.new
-        Transaction.current.name = "#{namer.category_name(options)}/#{name}"
+        namer = Instrumentation::ControllerInstrumentation::TransactionNamer.new(self)
+        Transaction.current.name = "#{namer.category_name(options[:category])}/#{name}"
       end
     end
 
