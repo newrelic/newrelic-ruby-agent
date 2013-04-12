@@ -182,16 +182,17 @@ module NewRelic
         end
         nil
       end
-      
+
       def explain_sql
         NewRelic::Agent::Database.explain_sql(params[:sql],
-                                              params[:connection_config])
+                                              params[:sql].config,
+                                              &params[:sql].explainer)
       end
-      
+
       def obfuscated_sql
         NewRelic::Agent::Database.obfuscate_sql(params[:sql])
       end
-      
+
       def params=(p)
         @params = p
       end

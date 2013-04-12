@@ -40,7 +40,7 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
   def test_notice_sql_truncates_query
     @sampler.notice_first_scope_push nil
     message = 'a' * 17_000
-    @sampler.notice_sql message, "Database/test/select", nil, 1.5
+    @sampler.notice_sql(message, "Database/test/select", nil, 1.5)
     assert_equal('a' * 16_381 + '...', @sampler.transaction_data.sql_data[0].sql)
   end
 
@@ -127,10 +127,17 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
     data = NewRelic::Agent::TransactionSqlData.new
     data.set_transaction_info("/c/a", {}, 'guid')
     data.set_transaction_name("WebTransaction/Controller/c/a")
+    explainer = NewRelic::Agent::Instrumentation::ActiveRecord::EXPLAINER
     queries = [
-               NewRelic::Agent::SlowSql.new("select * from test", "Database/test/select", {}, 1.5),
-               NewRelic::Agent::SlowSql.new("select * from test", "Database/test/select", {}, 1.2),
-               NewRelic::Agent::SlowSql.new("select * from test2", "Database/test2/select", {}, 1.1)
+               NewRelic::Agent::SlowSql.new("select * from test",
+                                            "Database/test/select", {},
+                                            1.5, nil, &explainer),
+               NewRelic::Agent::SlowSql.new("select * from test",
+                                            "Database/test/select", {},
+                                            1.2, nil, &explainer),
+               NewRelic::Agent::SlowSql.new("select * from test2",
+                                            "Database/test2/select", {},
+                                            1.1, nil, &explainer)
               ]
     data.sql_data.concat(queries)
     @sampler.harvest_slow_sql data

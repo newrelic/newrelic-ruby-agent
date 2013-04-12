@@ -261,19 +261,16 @@ module NewRelic
       # active segment like a sql query, memcache key, or Net::HTTP uri
       #
       # duration is seconds, float value.
-      def notice_extra_data(message, duration, key, config=nil, config_key=nil)
+      def notice_extra_data(message, duration, key)
         return unless builder
         segment = builder.current_segment
         if segment
-          new_message = self.class.truncate_message(append_new_message(segment[key],
-                                                            message))
-          if key == :sql && config.respond_to?(:has_key?) && config.has_key?(:adapter)
-            segment[key] = Database::Statement.new(new_message)
-            segment[key].adapter = config[:adapter]
+          if key != :sql
+            segment[key] = self.class.truncate_message(append_new_message(segment[key],
+                                                                          message))
           else
-            segment[key] = new_message
+            segment[key] = message
           end
-          segment[config_key] = config if config_key
           append_backtrace(segment, duration)
         end
       end
@@ -314,9 +311,15 @@ module NewRelic
       # may be very large; we should trim them to a maximum usable length
       # config is the driver configuration for the connection
       # duration is seconds, float value.
-      def notice_sql(sql, config, duration)
+      def notice_sql(sql, config, duration, &explainer)
         if NewRelic::Agent.is_sql_recorded?
-          notice_extra_data(sql, duration, :sql, config, :connection_config)
+          statement = Database::Statement.new(self.class.truncate_message(sql))
+          if config
+            statement.adapter = config[:adapter]
+            statement.config = config
+          end
+          statement.explainer = explainer
+          notice_extra_data(statement, duration, :sql)
         end
       end
 

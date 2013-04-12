@@ -6,6 +6,10 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..',
                                    'test_helper'))
 require 'new_relic/agent/database'
 class NewRelic::Agent::DatabaseTest < Test::Unit::TestCase
+  def setup
+    @explainer = NewRelic::Agent::Instrumentation::ActiveRecord::EXPLAINER
+  end
+
   def teardown
     NewRelic::Agent::Database::Obfuscator.instance.reset
   end
@@ -20,7 +24,7 @@ class NewRelic::Agent::DatabaseTest < Test::Unit::TestCase
     config = {:adapter => 'mysql'}
     config.default('val')
     sql = 'SELECT foo'
-    connection = mock('connection')
+    connection = mock('mysql connection')
     plan = {
       "select_type"=>"SIMPLE", "key_len"=>nil, "table"=>"blogs", "id"=>"1",
       "possible_keys"=>nil, "type"=>"ALL", "Extra"=>"", "rows"=>"2",
@@ -30,9 +34,8 @@ class NewRelic::Agent::DatabaseTest < Test::Unit::TestCase
     result.expects(:each_hash).yields(plan)
     # two rows, two columns
     connection.expects(:execute).with('EXPLAIN SELECT foo').returns(result)
-    NewRelic::Agent::Database.expects(:get_connection).with(config).returns(connection)
-
-    result = NewRelic::Agent::Database.explain_sql(sql, config)
+    NewRelic::Agent::Database.stubs(:get_connection).returns(connection)
+    result = NewRelic::Agent::Database.explain_sql(sql, config, &@explainer)
     assert_equal(plan.keys.sort, result[0].sort)
     assert_equal(plan.values.compact.sort, result[1][0].compact.sort)
   end
@@ -41,23 +44,23 @@ class NewRelic::Agent::DatabaseTest < Test::Unit::TestCase
     config = {:adapter => 'postgresql'}
     config.default('val')
     sql = 'select count(id) from blogs limit 1'
-    connection = mock('connection')
+    connection = stub('pg connection', :disconnect! => true)
     plan = [{"QUERY PLAN"=>"Limit  (cost=11.75..11.76 rows=1 width=4)"},
             {"QUERY PLAN"=>"  ->  Aggregate  (cost=11.75..11.76 rows=1 width=4)"},
             {"QUERY PLAN"=>"        ->  Seq Scan on blogs  (cost=0.00..11.40 rows=140 width=4)"}]
     connection.expects(:execute).returns(plan)
-    NewRelic::Agent::Database.expects(:get_connection).with(config).returns(connection)
+    NewRelic::Agent::Database.stubs(:get_connection).returns(connection)
     assert_equal([['QUERY PLAN'],
                   [["Limit  (cost=11.75..11.76 rows=1 width=4)"],
                    ["  ->  Aggregate  (cost=11.75..11.76 rows=1 width=4)"],
                    ["        ->  Seq Scan on blogs  (cost=0.00..11.40 rows=140 width=4)"]]],
-                 NewRelic::Agent::Database.explain_sql(sql, config))
+                 NewRelic::Agent::Database.explain_sql(sql, config, &@explainer))
   end
 
   def test_dont_collect_explain_for_parameterized_query
     config = {:adapter => 'postgresql'}
     config.default('val')
-    connection = mock('connection')
+    connection = mock('param connection')
     connection.expects(:execute).never
     NewRelic::Agent::Database.stubs(:get_connection).with(config).returns(connection)
     expects_logging(:debug, 'Unable to collect explain plan for parameterized query.')
@@ -69,20 +72,20 @@ class NewRelic::Agent::DatabaseTest < Test::Unit::TestCase
   def test_do_collect_explain_for_parameter_looking_literal
     config = {:adapter => 'postgresql'}
     config.default('val')
-    connection = mock('connection')
+    connection = mock('literal connection')
     plan = [{"QUERY PLAN"=>"Some Jazz"}]
     connection.stubs(:execute).returns(plan)
     NewRelic::Agent::Database.stubs(:get_connection).with(config).returns(connection)
 
     sql = "SELECT * FROM table WHERE id = 'noise $11'"
     assert_equal([['QUERY PLAN'], [["Some Jazz"]]],
-                 NewRelic::Agent::Database.explain_sql(sql, config))
+                 NewRelic::Agent::Database.explain_sql(sql, config, &@explainer))
   end
 
   def test_dont_collect_explain_for_truncated_query
     config = {:adapter => 'postgresql'}
     config.default('val')
-    connection = mock('connection')
+    connection = mock('truncated connection')
     connection.expects(:execute).never
     NewRelic::Agent::Database.stubs(:get_connection).with(config).returns(connection)
     expects_logging(:debug, 'Unable to collect explain plan for truncated query.')
@@ -112,7 +115,7 @@ class NewRelic::Agent::DatabaseTest < Test::Unit::TestCase
     # errors to percolate up.
     config = mock('config')
     config.stubs(:[]).returns(nil)
-    assert_equal([], NewRelic::Agent::Database.explain_sql('SELECT', config))
+    assert_equal([], NewRelic::Agent::Database.explain_sql('SELECT', config, &@explainer))
   end
 
   def test_obfuscation_mysql_basic
