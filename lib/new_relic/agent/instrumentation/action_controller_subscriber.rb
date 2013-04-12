@@ -1,0 +1,179 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+require 'new_relic/agent/instrumentation/evented_subscriber'
+require 'rack'
+
+module NewRelic
+  module Agent
+    module Instrumentation
+      class ActionControllerSubscriber < EventedSubscriber
+        def initialize
+          super
+          NewRelic::Agent.instance.events.subscribe(:before_call) do |env|
+            TransactionInfo.reset(::Rack::Request.new(env))
+          end
+        end
+
+        def start(name, id, payload)
+          payload[:request] = TransactionInfo.get.request
+          event = ControllerEvent.new(name, Time.now, nil, id, payload)
+          push_event(event)
+
+          if NewRelic::Agent.is_execution_traced? && !event.ignored?
+            start_transaction(event)
+          else
+            # if this transaction is ignored, make sure child
+            # transaction are also ignored
+            NewRelic::Agent.instance.push_trace_execution_flag(false)
+          end
+        end
+
+        def finish(name, id, payload)
+          event = pop_event(id)
+          event.payload.merge!(payload)
+
+          set_enduser_ignore if event.enduser_ignored?
+
+          if NewRelic::Agent.is_execution_traced? && !event.ignored?
+            record_queue_time(event)
+            record_metrics(event)
+            record_apdex(event)
+            record_instance_busy(event)
+            stop_transaction(event)
+          else
+            NewRelic::Agent.instance.pop_trace_execution_flag
+          end
+        end
+
+        def set_enduser_ignore
+          NewRelic::Agent::TransactionInfo.get.ignore_end_user = true
+        end
+
+        def record_metrics(event)
+          controller_metric = NewRelic::MetricSpec.new(event.metric_name)
+          metric_frame = NewRelic::Agent::Instrumentation::MetricFrame.current
+          if metric_frame.parent_metric
+            controller_metric.scope = metric_frame.parent_metric.name
+          end
+          metrics = [ controller_metric, 'HttpDispatcher' ]
+
+          stats_engine = NewRelic::Agent.instance.stats_engine
+          stats_engine.record_metrics(metrics, event.duration)
+        end
+
+        def record_apdex(event)
+          return if event.apdex_ignored?
+          metric_parser = NewRelic::MetricParser::MetricParser \
+            .for_metric_named(event.metric_name)
+          duration_plus_queue_time = event.end - (event.queue_start || event.time)
+          MetricFrame.record_apdex(metric_parser,
+                                   event.duration,
+                                   duration_plus_queue_time,
+                                   event.exception_encountered?)
+        end
+
+        def record_instance_busy(event)
+          NewRelic::Agent::BusyCalculator.dispatcher_start(event.time)
+          NewRelic::Agent::BusyCalculator.dispatcher_finish(event.end)
+        end
+
+        def record_queue_time(event)
+          return unless event.queue_start
+          QueueTime.record_frontend_metrics(event.queue_start, event.time)
+        end
+
+        def start_transaction(event)
+          frame_data = NewRelic::Agent::Instrumentation::MetricFrame.current(true)
+          frame_data.request = event.payload[:request]
+          frame_data.filtered_params = filter(event.payload[:params])
+          frame_data.push(event.metric_name)
+          frame_data.apdex_start = (event.queue_start || event.time)
+          NewRelic::Agent::TransactionInfo.get.transaction_name = event.metric_name
+          frame_data.start_transaction
+          event.scope = NewRelic::Agent.instance.stats_engine \
+            .push_scope(event.metric_name, event.time)
+        end
+
+        def stop_transaction(event)
+          frame_data = NewRelic::Agent::Instrumentation::MetricFrame.current
+          frame_data.pop
+          NewRelic::Agent.instance.stats_engine \
+            .pop_scope(event.scope, event.duration, event.end)
+        end
+
+        def filter(params)
+          filters = Rails.application.config.filter_parameters
+          ActionDispatch::Http::ParameterFilter.new(filters).filter(params)
+        end
+      end
+
+      class ControllerEvent < Event
+        attr_accessor :parent, :scope
+        attr_reader :queue_start
+
+        def initialize(name, start, ending, transaction_id, payload)
+          super
+
+          @controller_class = payload[:controller].split('::') \
+            .inject(Object){|m,o| m.const_get(o)}
+
+          if payload[:request] && payload[:request].respond_to?(:env)
+            @queue_start = QueueTime.parse_frontend_timestamp(payload[:request].env, self.time)
+          end
+        end
+
+        def metric_name
+          name = "Controller/#{metric_path}/#{metric_action}"
+          @final_name ||= NewRelic::Agent.instance.transaction_rules.rename(name)
+          return @final_name
+        end
+
+        def metric_path
+          @controller_class.controller_path
+        end
+
+        def metric_action
+          payload[:action]
+        end
+
+        def ignored?
+          _is_filtered?('do_not_trace')
+        end
+
+        def apdex_ignored?
+          _is_filtered?('ignore_apdex')
+        end
+
+        def enduser_ignored?
+          _is_filtered?('ignore_enduser')
+        end
+
+        def exception_encountered?
+          payload[:exception]
+        end
+
+        # FIXME: shamelessly ripped from ControllerInstrumentation
+        def _is_filtered?(key)
+          if @controller_class.respond_to? :newrelic_read_attr
+            ignore_actions = @controller_class.newrelic_read_attr(key)
+          end
+
+          case ignore_actions
+          when nil; false
+          when Hash
+            only_actions = Array(ignore_actions[:only])
+            except_actions = Array(ignore_actions[:except])
+            only_actions.include?(metric_action.to_sym) || (except_actions.any? && !except_actions.include?(metric_action.to_sym))
+          else
+            true
+          end
+        end
+
+        def to_s
+          "#<NewRelic::Agent::Instrumentation::ControllerEvent:#{object_id} name: \"#{name}\" id: #{transaction_id} payload: #{payload}}>"
+        end
+      end
+    end
+  end
+end

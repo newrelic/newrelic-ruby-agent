@@ -9,7 +9,7 @@ module NewRelic
     class TransactionInfo
       DEFAULT_TRANSACTION_NAME = '(unknown)'
 
-      attr_accessor :token, :capture_deep_tt
+      attr_accessor :token, :capture_deep_tt, :request
       attr_writer :transaction_name
       attr_reader :start_time
 
@@ -89,6 +89,7 @@ module NewRelic
         clear
         instance = get
         instance.token = get_token(request)
+        instance.request = request
       end
 
       def self.get_token(request)

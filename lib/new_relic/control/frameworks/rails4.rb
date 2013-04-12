@@ -14,10 +14,6 @@ module NewRelic
           end
         end
 
-        def add_error_collector_middleware
-          # rails_config.middleware.use NewRelic::Rack::ErrorCollector
-        end
-
         def append_plugin_list
           # Rails 4 does not allow plugins
         end

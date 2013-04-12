@@ -60,8 +60,12 @@ class NewRelic::Agent::AgentTestController < NewRelic::Agent::SuperclassControll
   end
 
   def self.set_some_headers(hash_of_headers)
-    @@headers_to_add ||= {}
-    @@headers_to_add.merge!(hash_of_headers)
+    if ::Rails::VERSION::MAJOR.to_i == 4
+      NewRelic::Agent.instance.events.notify(:before_call, hash_of_headers)
+    else
+      @@headers_to_add ||= {}
+      @@headers_to_add.merge!(hash_of_headers)
+    end
   end
 
   def self.clear_headers

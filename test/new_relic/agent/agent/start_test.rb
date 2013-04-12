@@ -7,16 +7,6 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   require 'new_relic/agent/agent'
   include NewRelic::Agent::Agent::Start
 
-  def setup
-    ENV['NEW_RELIC_APP_NAME'] = 'start_test'
-    NewRelic::Agent.reset_config
-  end
-
-  def teardown
-    ENV['NEW_RELIC_APP_NAME'] = nil
-    NewRelic::Agent.reset_config
-  end
-
   def test_already_started_positive
     dummy_logger = mock
     dummy_logger.expects(:error).with("Agent Started Already!")

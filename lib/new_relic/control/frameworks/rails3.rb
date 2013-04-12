@@ -34,6 +34,8 @@ module NewRelic
 
         def add_error_collector_middleware
           rails_config.middleware.use NewRelic::Rack::ErrorCollector
+        rescue => e
+          NewRelic::Agent.logger.debug("Error encountered installing ErrorCollector: #{e}")
         end
 
         def vendor_root

@@ -1,6 +1,15 @@
 
 # New Relic Ruby Agent Release Notes #
 
+## v3.6.1 ##
+
+  * Full URIs for HTTP requests are recorded in transaction traces
+
+  When recording a transaction trace node for an outgoing HTTP call via
+  Net::HTTP, the agent will now save the full URI (instead of just the hostname)
+  for the request. Embedded credentials, the query string, and the fragment will
+  be stripped from the URI before it is saved.
+
 ## v3.6.0 ##
 
   * Sidekiq supprt

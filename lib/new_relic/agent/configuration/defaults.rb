@@ -117,7 +117,7 @@ module NewRelic
 
         :'error_collector.enabled'        => true,
         :'error_collector.capture_source' => true,
-        :'error_collector.ignore_errors'  => 'ActionController::RoutingError',
+        :'error_collector.ignore_errors'  => 'ActionController::RoutingError,Sinatra::NotFound',
 
         :'rum.enabled'            => true,
         :'rum.jsonp'              => true,
