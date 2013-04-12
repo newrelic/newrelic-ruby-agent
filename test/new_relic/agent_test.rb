@@ -72,23 +72,20 @@ module NewRelic
                                        :start_channel_listener => true)
 
           metric = 'Custom/test/method'
-          NewRelic::Agent.instance.stats_engine.get_stats_no_scope(metric) \
-            .record_data_point(1.0)
+          NewRelic::Agent.record_metric(metric, 1.0)
 
           NewRelic::Agent::PipeChannelManager.listener.close_all_pipes
           NewRelic::Agent.register_report_channel(:agent_test) # before fork
           pid = Process.fork do
             NewRelic::Agent.after_fork(:report_to_channel => :agent_test)
-            NewRelic::Agent.agent.stats_engine.get_stats_no_scope(metric) \
-              .record_data_point(2.0)
+            NewRelic::Agent.record_metric(metric, 2.0)
           end
           Process.wait(pid)
           NewRelic::Agent::PipeChannelManager.listener.stop
 
-          engine = NewRelic::Agent.agent.stats_engine
-          assert_equal(3.0, engine.lookup_stats(metric).total_call_time)
-          assert_equal(2, engine.lookup_stats(metric).call_count)
-          engine.reset_stats
+          assert_metrics_recorded({
+            metric => { :call_count => 2, :total_call_time => 3.0 }
+          })
         end
       end
     end
