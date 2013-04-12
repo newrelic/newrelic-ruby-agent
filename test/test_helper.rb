@@ -55,7 +55,6 @@ rescue LoadError => e
 end
 
 require 'test/unit'
-require 'shoulda'
 begin
   require 'mocha/setup'
 rescue LoadError
@@ -80,6 +79,7 @@ def default_service(stubbed_method_overrides = {})
     :metric_data => nil,
     :error_data => nil,
     :transaction_sample_data => nil,
+    :sql_trace_data => nil,
     :get_agent_commands => []
   }
 
@@ -106,9 +106,13 @@ def assert_between(floor, ceiling, value, message="expected #{floor} <= #{value}
   assert((floor <= value && value <= ceiling), message)
 end
 
+def assert_in_delta(expected, actual, delta)
+  assert_between((expected - delta), (expected + delta), actual)
+end
+
 def check_metric_time(metric, value, delta)
   time = NewRelic::Agent.get_stats(metric).total_call_time
-  assert_between((value - delta), (value + delta), time)
+  assert_in_delta(value, time, delta)
 end
 
 def check_metric_count(metric, value)
@@ -175,6 +179,76 @@ def compare_metrics(expected, actual)
   assert_equal(expected.to_a.sort, actual.to_a.sort, "extra: #{(actual - expected).to_a.inspect}; missing: #{(expected - actual).to_a.inspect}")
 end
 
+def metric_spec_from_specish(specish)
+  spec = case specish
+  when String then NewRelic::MetricSpec.new(specish)
+  when Array  then NewRelic::MetricSpec.new(*specish)
+  end
+  spec
+end
+
+def _normalize_metric_expectations(expectations)
+  case expectations
+  when Array
+    hash = {}
+    expectations.each { |k| hash[k] = { :call_count => 1 } }
+    hash
+  else
+    expectations
+  end
+end
+
+def assert_metrics_recorded(expected)
+  expected = _normalize_metric_expectations(expected)
+  expected.each do |specish, expected_attrs|
+    expected_spec = metric_spec_from_specish(specish)
+    actual_stats = NewRelic::Agent.instance.stats_engine.lookup_stats(*Array(specish))
+    if !actual_stats
+      all_specs = NewRelic::Agent.instance.stats_engine.metric_specs
+      matches = all_specs.select { |spec| spec.name == expected_spec.name }
+      matches.map! { |m| "  #{m.inspect}" }
+      msg = "Did not find stats for spec #{expected_spec.inspect}."
+      msg += "\nDid find specs: [\n#{matches.join(",\n")}\n]" unless matches.empty?
+      assert(actual_stats, msg)
+    end
+    expected_attrs.each do |attr, expected_value|
+      actual_value = actual_stats.send(attr)
+      if attr == :call_count
+        assert_equal(expected_value, actual_value,
+          "Expected #{attr} for #{expected_spec} to be #{expected_value}, got #{actual_value}")
+      else
+        assert_in_delta(expected_value, actual_value, 0.0001,
+          "Expected #{attr} for #{expected_spec} to be ~#{expected_value}, got #{actual_value}")
+      end
+    end
+  end
+end
+
+def assert_metrics_recorded_exclusive(expected, options={})
+  expected = _normalize_metric_expectations(expected)
+  assert_metrics_recorded(expected)
+  recorded_metrics = NewRelic::Agent.instance.stats_engine.metrics
+  if options[:filter]
+    recorded_metrics = recorded_metrics.select { |m| m.match(options[:filter]) }
+  end
+  expected_metrics = expected.keys.map { |s| metric_spec_from_specish(s).to_s }
+  unexpected_metrics = recorded_metrics.select{|m| m !~ /GC\/cumulative/}
+  unexpected_metrics -= expected_metrics
+  assert_equal(0, unexpected_metrics.size, "Found unexpected metrics: [#{unexpected_metrics.join(', ')}]")
+end
+
+def assert_metrics_not_recorded(not_expected)
+  not_expected = _normalize_metric_expectations(not_expected)
+  found_but_not_expected = []
+  not_expected.each do |specish, _|
+    spec = metric_spec_from_specish(specish)
+    if NewRelic::Agent.instance.stats_engine.lookup_stats(*Array(specish))
+      found_but_not_expected << spec
+    end
+  end
+  assert_equal([], found_but_not_expected, "Found unexpected metrics: [#{found_but_not_expected.join(', ')}]")
+end
+
 def with_config(config_hash, opts={})
   opts = { :level => 0, :do_not_cast => false }.merge(opts)
   if opts[:do_not_cast]
@@ -209,6 +283,25 @@ def without_logger
   yield
 ensure
   ::NewRelic::Agent.logger = logger
+end
+
+def in_transaction(name='dummy')
+  NewRelic::Agent.instance.instance_variable_set(:@transaction_sampler,
+                        NewRelic::Agent::TransactionSampler.new)
+  NewRelic::Agent.instance.stats_engine.transaction_sampler = \
+    NewRelic::Agent.instance.transaction_sampler
+  NewRelic::Agent::Transaction.start(:other)
+  val = yield
+  NewRelic::Agent::Transaction.stop(name)
+  val
+end
+
+def freeze_time(now=Time.now)
+  Time.stubs(:now).returns(now)
+end
+
+def advance_time(seconds)
+  freeze_time(Time.now + seconds)
 end
 
 module NewRelic
@@ -261,24 +354,21 @@ module TransactionSampleTestHelper
   def make_sql_transaction(*sql)
     sampler = NewRelic::Agent::TransactionSampler.new
     sampler.notice_first_scope_push Time.now.to_f
-    sampler.notice_transaction '/path', nil, :jim => "cool"
+    sampler.notice_transaction(nil, :jim => "cool")
     sampler.notice_push_scope "a"
-
-    sampler.notice_transaction '/path/2', nil, :jim => "cool"
-
     sql.each {|sql_statement| sampler.notice_sql(sql_statement, {:adapter => "test"}, 0 ) }
 
     sleep 0.02
     yield if block_given?
     sampler.notice_pop_scope "a"
-    sampler.notice_scope_empty
+    sampler.notice_scope_empty(stub('txn', :name => '/path', :custom_parameters => {}))
 
     sampler.samples[0]
   end
 
   def run_sample_trace_on(sampler, path='/path')
     sampler.notice_first_scope_push Time.now.to_f
-    sampler.notice_transaction path, path, {}
+    sampler.notice_transaction(path, {})
     sampler.notice_push_scope "Controller/sandwiches/index"
     sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'", nil, 0)
     sampler.notice_push_scope "ab"
@@ -289,7 +379,7 @@ module TransactionSampleTestHelper
     sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'french'", nil, 0)
     sampler.notice_pop_scope "lew"
     sampler.notice_pop_scope "Controller/sandwiches/index"
-    sampler.notice_scope_empty
+    sampler.notice_scope_empty(stub('txn', :name => path, :custom_parameters => {}))
     sampler.samples[0]
   end
 end

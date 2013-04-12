@@ -20,7 +20,7 @@ module NewRelic
             the_class.class_eval <<-EOD
               def #{method_name}_with_newrelic_trace(*args, &block)
                 metrics = ["Memcache/#{method_name}",
-                           (NewRelic::Agent::Instrumentation::MetricFrame.recording_web_transaction? ? 'Memcache/allWeb' : 'Memcache/allOther')]
+                           (NewRelic::Agent::Transaction.recording_web_transaction? ? 'Memcache/allWeb' : 'Memcache/allOther')]
                 self.class.trace_execution_scoped(metrics) do
                   t0 = Time.now
                   begin
@@ -33,7 +33,7 @@ module NewRelic
               alias #{method_name}_without_newrelic_trace #{method_name}
               alias #{method_name} #{method_name}_with_newrelic_trace
             EOD
-         end      
+         end
         end
         def memcache_key_snippet(method_name)
           return "" unless NewRelic::Agent.config[:capture_memcache_keys]
@@ -46,7 +46,7 @@ end
 
 DependencyDetection.defer do
   @name = :memcache
-  
+
   depends_on do
     !NewRelic::Agent.config[:disable_memcache_instrumentation]
   end
@@ -55,7 +55,7 @@ DependencyDetection.defer do
     defined?(::MemCache) || defined?(::Memcached) ||
       defined?(::Dalli::Client) || defined?(::Spymemcached)
   end
-    
+
   executes do
     commands = %w[get get_multi set add incr decr delete replace append prepend]
     if defined? ::MemCache

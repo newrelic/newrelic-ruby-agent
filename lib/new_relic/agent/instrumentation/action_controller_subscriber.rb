@@ -2,7 +2,11 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 require 'new_relic/agent/instrumentation/evented_subscriber'
-require 'rack'
+begin
+  require 'rack'
+rescue LoadError => e
+  Agent.logger.debug(e)
+end
 
 module NewRelic
   module Agent
@@ -11,7 +15,14 @@ module NewRelic
         def initialize
           super
           NewRelic::Agent.instance.events.subscribe(:before_call) do |env|
-            TransactionInfo.reset(::Rack::Request.new(env))
+
+            request = begin
+                        ::Rack::Request.new(env)
+                      rescue => e
+                        Agent.logger.debug("Error creating Rack::Request object: #{e}")
+                        nil
+                      end
+            TransactionInfo.reset(request)
           end
         end
 
@@ -36,46 +47,53 @@ module NewRelic
           set_enduser_ignore if event.enduser_ignored?
 
           if NewRelic::Agent.is_execution_traced? && !event.ignored?
+            event.finalize_metric_name!
             record_queue_time(event)
             record_metrics(event)
             record_apdex(event)
             record_instance_busy(event)
             stop_transaction(event)
           else
-            NewRelic::Agent.instance.pop_trace_execution_flag
+            Agent.instance.pop_trace_execution_flag
           end
         end
 
         def set_enduser_ignore
-          NewRelic::Agent::TransactionInfo.get.ignore_end_user = true
+          TransactionInfo.get.ignore_end_user = true
         end
 
         def record_metrics(event)
-          controller_metric = NewRelic::MetricSpec.new(event.metric_name)
-          metric_frame = NewRelic::Agent::Instrumentation::MetricFrame.current
-          if metric_frame.parent_metric
-            controller_metric.scope = metric_frame.parent_metric.name
+          controller_metric = MetricSpec.new(event.metric_name)
+          txn = Transaction.current
+          metrics = [ 'HttpDispatcher']
+          if txn.has_parent?
+            controller_metric.scope = StatsEngine::MetricStats::SCOPE_PLACEHOLDER
+            record_metric_on_parent_transaction(controller_metric, event.duration)
           end
-          metrics = [ controller_metric, 'HttpDispatcher' ]
+          metrics << controller_metric.dup
 
-          stats_engine = NewRelic::Agent.instance.stats_engine
-          stats_engine.record_metrics(metrics, event.duration)
+          Agent.instance.stats_engine.record_metrics(metrics, event.duration)
+        end
+
+        def record_metric_on_parent_transaction(metric, time)
+          Agent.instance.stats_engine.transaction_stats_stack[-2] \
+            .record(metric, time)
         end
 
         def record_apdex(event)
           return if event.apdex_ignored?
-          metric_parser = NewRelic::MetricParser::MetricParser \
+          metric_parser = MetricParser::MetricParser \
             .for_metric_named(event.metric_name)
           duration_plus_queue_time = event.end - (event.queue_start || event.time)
-          MetricFrame.record_apdex(metric_parser,
+          Transaction.record_apdex(metric_parser,
                                    event.duration,
                                    duration_plus_queue_time,
                                    event.exception_encountered?)
         end
 
         def record_instance_busy(event)
-          NewRelic::Agent::BusyCalculator.dispatcher_start(event.time)
-          NewRelic::Agent::BusyCalculator.dispatcher_finish(event.end)
+          BusyCalculator.dispatcher_start(event.time)
+          BusyCalculator.dispatcher_finish(event.end)
         end
 
         def record_queue_time(event)
@@ -84,22 +102,19 @@ module NewRelic
         end
 
         def start_transaction(event)
-          frame_data = NewRelic::Agent::Instrumentation::MetricFrame.current(true)
-          frame_data.request = event.payload[:request]
-          frame_data.filtered_params = filter(event.payload[:params])
-          frame_data.push(event.metric_name)
-          frame_data.apdex_start = (event.queue_start || event.time)
-          NewRelic::Agent::TransactionInfo.get.transaction_name = event.metric_name
-          frame_data.start_transaction
-          event.scope = NewRelic::Agent.instance.stats_engine \
-            .push_scope(event.metric_name, event.time)
+          txn = Transaction.start(:web,
+                                  :request => event.payload[:request],
+                                  :filtered_params => filter(event.payload[:params]))
+          txn.apdex_start = (event.queue_start || event.time)
+          event.scope = Agent.instance.stats_engine \
+            .push_scope(:action_controller, event.time)
         end
 
         def stop_transaction(event)
-          frame_data = NewRelic::Agent::Instrumentation::MetricFrame.current
-          frame_data.pop
-          NewRelic::Agent.instance.stats_engine \
-            .pop_scope(event.scope, event.duration, event.end)
+          TransactionInfo.get.transaction.name = event.metric_name
+          Agent.instance.stats_engine \
+            .pop_scope(event.scope, event.metric_name, event.end)
+          Transaction.stop
         end
 
         def filter(params)
@@ -124,9 +139,19 @@ module NewRelic
         end
 
         def metric_name
-          name = "Controller/#{metric_path}/#{metric_action}"
-          @final_name ||= NewRelic::Agent.instance.transaction_rules.rename(name)
-          return @final_name
+          @metric_name || "Controller/#{metric_path}/#{metric_action}"
+        end
+
+        def finalize_metric_name!
+          txn = NewRelic::Agent::Transaction.current
+
+          # the event provides the default name but the transaction has the final say
+          txn.name ||= metric_name
+
+          # this applies the transaction name rules if not already applied
+          txn.freeze_name
+          @metric_name = txn.name
+          return @metric_name
         end
 
         def metric_path

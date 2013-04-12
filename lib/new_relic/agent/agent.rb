@@ -8,6 +8,7 @@ require 'net/http'
 require 'logger'
 require 'zlib'
 require 'stringio'
+require 'new_relic/agent/autostart'
 require 'new_relic/agent/new_relic_service'
 require 'new_relic/agent/pipe_service'
 require 'new_relic/agent/configuration/manager'
@@ -141,7 +142,7 @@ module NewRelic
           metric_info = NewRelic::MetricParser::MetricParser.for_metric_named(metric)
 
           if metric_info.is_web_transaction?
-            NewRelic::Agent::Instrumentation::MetricFrame.record_apdex(metric_info, duration_seconds, duration_seconds, is_error)
+            NewRelic::Agent::Transaction.record_apdex(metric_info, duration_seconds, duration_seconds, is_error)
           end
           metrics = metric_info.summary_metrics
 
@@ -337,7 +338,7 @@ module NewRelic
           # assist with proper dispatcher detection
           def log_dispatcher
             dispatcher_name = Agent.config[:dispatcher].to_s
-            return if log_if(dispatcher_name.empty?, :warn, "No dispatcher detected.")
+            return if log_if(dispatcher_name.empty?, :info, "No known dispatcher detected.")
             ::NewRelic::Agent.logger.info "Dispatcher: #{dispatcher_name}"
           end
 
@@ -1016,6 +1017,9 @@ module NewRelic
 
             check_for_agent_commands
           end
+        rescue EOFError => e
+          ::NewRelic::Agent.logger.warn("EOFError after #{Time.now - now}s when transmitting data to New Relic Service.")
+          ::NewRelic::Agent.logger.debug(e)
         rescue => e
           retry_count ||= 0
           retry_count += 1

@@ -4,6 +4,7 @@
 
 # https://newrelic.atlassian.net/wiki/display/eng/The+Terror+and+Glory+of+Transaction+Traces
 # https://newrelic.atlassian.net/browse/RUBY-914
+require 'ostruct'
 
 class MarshalingTest < Test::Unit::TestCase
   def setup
@@ -26,13 +27,14 @@ class MarshalingTest < Test::Unit::TestCase
     # create fake transaction trace
     time = Time.now.to_f
     @sampler.notice_first_scope_push time
-    @sampler.notice_transaction '/path', nil, {}
+    @sampler.notice_transaction nil, {}
     @sampler.notice_push_scope "a"
     @sampler.notice_push_scope "ab"
     sleep 1
     @sampler.notice_pop_scope "ab"
     @sampler.notice_pop_scope "a"
-    @sampler.notice_scope_empty
+    @sampler.notice_scope_empty(OpenStruct.new(:name => 'path',
+                                               :custom_parameters => {}))
 
     expected_sample = @sampler.instance_variable_get(:@slowest_sample)
 
@@ -81,7 +83,7 @@ class MarshalingTest < Test::Unit::TestCase
     @agent.sql_sampler.notice_sql("select * from test",
                                   "Database/test/select",
                                   nil, 1.5)
-    @agent.sql_sampler.notice_scope_empty
+    @agent.sql_sampler.notice_scope_empty('txn')
 
     @agent.service.connect
     @agent.send(:harvest_and_send_slowest_sql)

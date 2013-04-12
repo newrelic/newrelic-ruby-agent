@@ -7,6 +7,10 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
   require 'new_relic/agent/method_tracer'
   include NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScoped
 
+  def setup
+    NewRelic::Agent.agent.stats_engine.clear_stats
+  end
+
   def test_trace_disabled_negative
     self.expects(:traced?).returns(false)
     options = {:force => false}
@@ -51,36 +55,117 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
     assert_equal NewRelic::Agent.instance, agent_instance
   end
 
-  def test_get_metric_specs_with_metric_option
-    first_name = 'foo'
-    other_names = ['bar', 'baz']
-    opts = {:metric => true}
-
-    specs = get_metric_specs(first_name, other_names, 'scope', opts)
-
-    expected_specs = [
-      NewRelic::MetricSpec.new('foo', 'scope'),
-      NewRelic::MetricSpec.new('foo'),
-      NewRelic::MetricSpec.new('bar'),
-      NewRelic::MetricSpec.new('baz')
-    ]
-
-    assert_equal(expected_specs.sort, specs.sort)
+  def test_metric_recording_outside_transaction
+    trace_execution_scoped(['foo']) do
+      # meh
+    end
+    assert_metrics_recorded_exclusive(
+      'foo' => { :call_count => 1 }
+    )
   end
 
-  def test_get_metric_stats_without_metric_option
-    first_name = 'foo'
-    other_names = ['bar', 'baz']
-    opts = {:metric => false}
+  def test_metric_recording_in_root_transaction
+    options = { :transaction => true }
+    self.stubs(:has_parent?).returns(false)
 
-    specs = get_metric_specs(first_name, other_names, 'scope', opts)
+    in_transaction('outer') do
+      trace_execution_scoped(['foo', 'bar'], options) do
+        # erm
+      end
+    end
 
-    expected_specs = [
-      NewRelic::MetricSpec.new('bar'),
-      NewRelic::MetricSpec.new('baz')
-    ]
+    expected_values = { :call_count => 1 }
+    assert_metrics_recorded_exclusive(
+      'foo' => expected_values,
+      'bar' => expected_values
+    )
+  end
 
-    assert_equal(expected_specs.sort, specs.sort)
+  def test_metric_recording_in_non_root_transaction
+    options = { :transaction => true }
+    self.stubs(:has_parent?).returns(true)
+    in_transaction('outer') do
+      in_transaction('inner') do
+        trace_execution_scoped(['inner', 'bar'], options) do
+          # erm
+        end
+      end
+    end
+
+    expected_values = { :call_count => 1 }
+    assert_metrics_recorded_exclusive(
+      'inner'            => expected_values,
+      ['inner', 'outer'] => expected_values,
+      'bar'              => expected_values
+    )
+  end
+
+  def test_metric_recording_in_root_non_transaction
+    options = { :transaction => false }
+    self.stubs(:has_parent?).returns(false)
+
+    in_transaction('outer') do
+      trace_execution_scoped(['foo', 'bar'], options) do
+        # erm
+      end
+    end
+
+    expected_values = { :call_count => 1 }
+    assert_metrics_recorded_exclusive(
+      'foo'            => expected_values,
+      ['foo', 'outer'] => expected_values,
+      'bar'            => expected_values
+    )
+  end
+
+  def test_metric_recording_in_non_root_non_transaction
+    options = { :transaction => false }
+    self.stubs(:has_parent?).returns(false)
+
+    in_transaction('outer') do
+      trace_execution_scoped(['foo', 'bar'], options) do
+        # erm
+      end
+    end
+
+    expected_values = { :call_count => 1 }
+    assert_metrics_recorded_exclusive(
+      'foo'            => expected_values,
+      ['foo', 'outer'] => expected_values,
+      'bar'            => expected_values
+    )
+  end
+
+  def test_metric_recording_without_metric_option
+    options = { :metric => false, :transaction => true }
+    self.stubs(:has_parent?).returns(false)
+
+    in_transaction('outer') do
+      trace_execution_scoped(['foo', 'bar'], options) do
+        # erm
+      end
+    end
+
+    expected_values = { :call_count => 1 }
+    assert_metrics_recorded_exclusive(
+      'bar' => expected_values
+    )
+  end
+
+  def test_metric_recording_with_scoped_metric_only_option
+    options = { :transaction => false, :scoped_metric_only => true }
+    self.stubs(:has_parent?).returns(false)
+
+    in_transaction('outer') do
+      trace_execution_scoped(['foo', 'bar'], options) do
+        # erm
+      end
+    end
+
+    expected_values = { :call_count => 1 }
+    assert_metrics_recorded_exclusive(
+      ['foo', 'outer'] => expected_values
+    )
   end
 
   def test_set_if_nil
@@ -116,7 +201,7 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
 
   def test_log_errors_base
     ran = false
-    log_errors("name", "metric") do
+    log_errors("name") do
       ran = true
     end
     assert ran, "should run the contents of the block"
@@ -124,7 +209,7 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
 
   def test_log_errors_with_return
     ran = false
-    return_val = log_errors('name', 'metric') do
+    return_val = log_errors('name') do
       ran = true
       'happy trees'
     end
@@ -135,41 +220,56 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
 
   def test_log_errors_with_error
     expects_logging(:error, 
-      includes("Caught exception in name. Metric name = metric"),
+      includes("Caught exception in name."),
       instance_of(RuntimeError))
 
-    log_errors("name", "metric") do
+    log_errors("name") do
       raise "should not propagate out of block"
     end
   end
 
   def test_trace_execution_scoped_header
     options = {:force => false, :deduct_call_time_from_parent => false}
-    self.expects(:log_errors).with('trace_execution_scoped header', 'foo').yields
+    self.expects(:log_errors).with('trace_execution_scoped header').yields
     self.expects(:push_flag!).with(false)
     fakestats = mocked_object('stat_engine')
-    fakestats.expects(:push_scope).with('foo', 1.0, false)
-    trace_execution_scoped_header('foo', options, 1.0)
+    fakestats.expects(:push_scope).with(:method_tracer, 1.0, false)
+    trace_execution_scoped_header(options, 1.0)
   end
 
-  def test_trace_execution_scoped_footer
-    t0 = 1.0
-    t1 = 2.0
-    metric = 'foo'
-    metric_specs = [NewRelic::MetricSpec.new('foo'), NewRelic::MetricSpec.new('bar')]
-    stats = [NewRelic::Agent::Stats.new, NewRelic::Agent::Stats.new]
-    expected_scope = 'an expected scope'
-    engine = mocked_object('stat_engine')
-    scope = mock('scope')
-    engine.expects(:pop_scope).with('an expected scope', 1.0, 2.0).returns(scope)
-    engine.expects(:record_metrics).with(metric_specs).multiple_yields(*stats)
-    stats[0].expects(:record_data_point).with(1.0, 0.5)
-    stats[1].expects(:record_data_point).with(1.0, 0.5)
-    scope.expects(:children_time).returns(0.5)
-    self.expects(:pop_flag!).with(false)
-    self.expects(:log_errors).with('trace_method_execution footer', 'foo').yields
+  def test_trace_execution_scoped_calculates_exclusive_time
+    freeze_time
+    in_transaction('txn') do
+      trace_execution_scoped(['parent']) do
+        advance_time(10)
+        trace_execution_scoped(['child']) do
+          advance_time(10)
+        end
+      end
+    end
 
-    trace_execution_scoped_footer(t0, metric, metric_specs, expected_scope, false, t1)
+    assert_metrics_recorded_exclusive(
+      'parent' => { :call_count => 1, :total_call_time => 20, :total_exclusive_time => 10 },
+      ['parent', 'txn'] => { :call_count => 1, :total_call_time => 20, :total_exclusive_time => 10 },
+      'child'  => { :call_count => 1, :total_call_time => 10, :total_exclusive_time => 10 },
+      ['child', 'txn']  => { :call_count => 1, :total_call_time => 10, :total_exclusive_time => 10 }
+    )
+  end
+
+  def test_force_flag_enables_metric_recording_in_ignored_transaction
+    NewRelic::Agent.instance.push_trace_execution_flag(false)
+    in_transaction('txn') do
+      trace_execution_scoped(['foo'], :force => true) do
+        # whatever, man
+      end
+    end
+
+    assert_metrics_recorded_exclusive(
+      'foo'          => { :call_count => 1 },
+      ['foo', 'txn'] => { :call_count => 1 }
+    )
+  ensure
+    NewRelic::Agent.instance.pop_trace_execution_flag()
   end
 
   def test_trace_execution_scoped_disabled
@@ -186,47 +286,19 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
     assert_equal 1172, value, 'should return contents of block'
   end
 
-  def test_trace_execution_scoped_default
-    passed_in_opts = {}
-    opts_after_correction = {:metric => true, :deduct_call_time_from_parent => true}
-    specs = [
-      NewRelic::MetricSpec.new('metric'),
-      NewRelic::MetricSpec.new('array')
-    ]
-    self.expects(:trace_disabled?).returns(false)
-    self.expects(:get_metric_specs).with('metric', ['array'], nil, opts_after_correction).returns(specs)
-    self.expects(:trace_execution_scoped_header).with('metric', opts_after_correction).returns(['start_time', 'expected_scope'])
-    self.expects(:trace_execution_scoped_footer).with('start_time', 'metric', specs, 'expected_scope', nil)
-    ran = false
-    value = trace_execution_scoped(['metric', 'array'], passed_in_opts) do
-      ran = true
+  def test_trace_execution_scope_runs_passed_block_and_returns_its_value
+    value = trace_execution_scoped(['metric', 'array'], {}) do
       1172
     end
-
-    assert ran, 'should run contents of the block'
     assert_equal 1172, value, 'should return the contents of the block'
   end
 
-  def test_trace_execution_scoped_with_error
-    passed_in_opts = {}
-    opts_after_correction = {:metric => true, :deduct_call_time_from_parent => true}
-    specs = [
-      NewRelic::MetricSpec.new('metric'),
-      NewRelic::MetricSpec.new('array')
-    ]
-    self.expects(:trace_disabled?).returns(false)
-    self.expects(:get_metric_specs).with('metric', ['array'], nil, opts_after_correction).returns(specs)
-    self.expects(:trace_execution_scoped_header).with('metric', opts_after_correction).returns(['start_time', 'expected_scope'])
-    self.expects(:trace_execution_scoped_footer).with('start_time', 'metric', specs, 'expected_scope', nil)
-    ran = false
+  def test_trace_execution_scoped_does_not_swallow_errors
     assert_raises(RuntimeError) do
-      trace_execution_scoped(['metric', 'array'], passed_in_opts) do
-        ran = true
+      trace_execution_scoped(['metric', 'array'], {}) do
         raise 'raising a test error'
       end
     end
-
-    assert ran, 'should run contents of the block'
   end
 
   private

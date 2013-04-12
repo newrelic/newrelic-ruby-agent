@@ -87,7 +87,7 @@ module NewRelic
           end
         end
 
-        events.subscribe(:start_transaction) do |name|
+        events.subscribe(:start_transaction) do
           set_transaction_custom_parameters
         end
 
@@ -138,6 +138,7 @@ module NewRelic
 
       def insert_response_header(request_headers, response_headers)
         unless client_cross_app_id.nil?
+          NewRelic::Agent::Transaction.freeze_name
           timings = NewRelic::Agent::BrowserMonitoring.timings
           content_length = content_length_from_request(request_headers)
 

@@ -23,7 +23,7 @@ automatically in Rails applications.
 
 ## Supported Environments
 
-* Ruby 1.8.6, 1.8.7, REE, 1.9.x
+* Ruby 1.8.6, 1.8.7, REE, 1.9.x, 2.0.x
 * JRuby 1.6 and 1.7
 * Rails 2.0 or later for Production Mode
 * Rails 2.3 or later for Developer Mode

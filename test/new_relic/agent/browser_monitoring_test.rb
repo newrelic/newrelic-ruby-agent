@@ -29,13 +29,11 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     NewRelic::Agent.instance.instance_eval do
       @beacon_configuration = NewRelic::Agent::BeaconConfiguration.new
     end
-
-  def teardown
-    Thread.current[:last_metric_frame] = nil
-    NewRelic::Agent::TransactionInfo.clear
-    NewRelic::Agent.config.remove_config(@config)
   end
 
+  def teardown
+    NewRelic::Agent::TransactionInfo.clear
+    NewRelic::Agent.config.remove_config(@config)
     mocha_teardown
   end
 
@@ -208,9 +206,11 @@ var e=document.createElement("script");'
   end
 
   def test_browser_monitoring_transaction_name_basic
-    mock = mock('transaction sample')
+    mock = stub_everything('transaction info')
     NewRelic::Agent::TransactionInfo.set(mock)
-    mock.stubs(:transaction_name).returns('a transaction name')
+    txn = NewRelic::Agent::Transaction.new
+    txn.name = 'a transaction name'
+    mock.stubs(:transaction).returns(txn)
 
     assert_equal('a transaction name', browser_monitoring_transaction_name, "should take the value from the thread local")
   end
@@ -219,7 +219,7 @@ var e=document.createElement("script");'
     mock = mock('transaction sample')
     NewRelic::Agent::TransactionInfo.set(mock)
 
-    mock.stubs(:transaction_name).returns('')
+    mock.stubs(:transaction).returns(stub(:name => ''))
     assert_equal('', browser_monitoring_transaction_name, "should take the value even when it is empty")
   end
 
@@ -266,49 +266,59 @@ var e=document.createElement("script");'
   end
 
   def test_browser_monitoring_queue_time_zero
-    frame = Thread.current[:last_metric_frame] = mock('metric frame')
-    frame.expects(:queue_time).returns(0.0)
-    assert_equal(0.0, browser_monitoring_queue_time, 'should return zero when there is zero queue time')
+    in_transaction do
+      NewRelic::Agent::Transaction.current.expects(:queue_time).returns(0.0)
+      assert_equal(0.0, browser_monitoring_queue_time,
+                   'should return zero when there is zero queue time')
+    end
   end
 
   def test_browser_monitoring_queue_time_ducks
-    frame = Thread.current[:last_metric_frame] = mock('metric frame')
-    frame.expects(:queue_time).returns('a duck')
-    assert_equal(0.0, browser_monitoring_queue_time, 'should return zero when there is an incorrect queue time')
+    in_transaction do
+      NewRelic::Agent::Transaction.current.expects(:queue_time) \
+        .returns('a duck')
+      assert_equal(0.0, browser_monitoring_queue_time,
+                   'should return zero when there is an incorrect queue time')
+    end
   end
 
   def test_browser_monitoring_queue_time_nonzero
-    frame = Thread.current[:last_metric_frame] = mock('metric frame')
-    frame.expects(:queue_time).returns(3.00002)
-    assert_equal(3000, browser_monitoring_queue_time, 'should return a rounded time')
+    in_transaction do
+      NewRelic::Agent::Transaction.current.expects(:queue_time) \
+        .returns(3.00002)
+      assert_equal(3000, browser_monitoring_queue_time,
+                   'should return a rounded time')
+    end
   end
 
   def test_footer_js_string_basic
     # mocking this because JRuby thinks that Time.now - Time.now
     # always takes at least 1ms
     self.expects(:browser_monitoring_app_time).returns(0)
-    frame = Thread.current[:last_metric_frame] = mock('metric frame')
-    user_attributes = {:user => "user", :account => "account", :product => "product"}
-    frame.expects(:user_attributes).returns(user_attributes).at_least_once
-    frame.expects(:queue_time).returns(0)
+    in_transaction do
+      txn = NewRelic::Agent::Transaction.current
+      user_attributes = {:user => "user", :account => "account", :product => "product"}
+      txn.expects(:user_attributes).returns(user_attributes).at_least_once
+      txn.expects(:queue_time).returns(0)
+      txn.name = 'most recent transaction'
 
-    sample = mock('transaction info')
-    NewRelic::Agent::TransactionInfo.set(sample)
+      sample = stub_everything('transaction info',
+                               :start_time => Time.at(100),
+                               :guid => 'ABC',
+                               :transaction => txn,
+                               :include_guid? => true,
+                               :duration => 12.0,
+                               :token => '0123456789ABCDEF')
+      NewRelic::Agent::TransactionInfo.set(sample)
 
-    sample.stubs(:start_time).returns(Time.at(100))
-    sample.stubs(:guid).returns('ABC')
-    sample.stubs(:transaction_name).returns('most recent transaction')
-    sample.stubs(:include_guid?).returns(true)
-    sample.stubs(:duration).returns(12.0)
-    sample.stubs(:token).returns('0123456789ABCDEF')
+      self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'most recent transaction').returns('most recent transaction')
+      self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'user').returns('user')
+      self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'account').returns('account')
+      self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'product').returns('product')
 
-    self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'most recent transaction').returns('most recent transaction')
-    self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'user').returns('user')
-    self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'account').returns('account')
-    self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'product').returns('product')
-
-    value = footer_js_string(NewRelic::Agent.instance.beacon_configuration)
-    assert_equal(%'<script type="text/javascript">if (!NREUMQ.f) { NREUMQ.f=function() {\nNREUMQ.push(["load",new Date().getTime()]);\nvar e=document.createElement("script");\ne.type="text/javascript";\ne.src=(("http:"===document.location.protocol)?"http:":"https:") + "//" +\n  "this_is_my_file";\ndocument.body.appendChild(e);\nif(NREUMQ.a)NREUMQ.a();\n};\nNREUMQ.a=window.onload;window.onload=NREUMQ.f;\n};\nNREUMQ.push(["nrfj","beacon","browserKey","5, 6","most recent transaction",0,0,new Date().getTime(),"ABC","0123456789ABCDEF","user","account","product"]);</script>', value, "should return the javascript given some default values")
+      value = footer_js_string(NewRelic::Agent.instance.beacon_configuration)
+      assert_equal(%'<script type="text/javascript">if (!NREUMQ.f) { NREUMQ.f=function() {\nNREUMQ.push(["load",new Date().getTime()]);\nvar e=document.createElement("script");\ne.type="text/javascript";\ne.src=(("http:"===document.location.protocol)?"http:":"https:") + "//" +\n  "this_is_my_file";\ndocument.body.appendChild(e);\nif(NREUMQ.a)NREUMQ.a();\n};\nNREUMQ.a=window.onload;window.onload=NREUMQ.f;\n};\nNREUMQ.push(["nrfj","beacon","browserKey","5, 6","most recent transaction",0,0,new Date().getTime(),"ABC","0123456789ABCDEF","user","account","product"]);</script>', value, "should return the javascript given some default values")
+    end
   end
 
   def test_html_safe_if_needed_unsafed
@@ -386,10 +396,22 @@ var e=document.createElement("script");'
     assert_equal expected_payload, response['X-NewRelic-App-Server-Metrics'].strip
   end
 
+  def test_freezes_transaction_name_when_footer_is_written
+    with_config(:license_key => 'a' * 13) do
+      in_transaction do
+        assert !NewRelic::Agent::Transaction.current.name_frozen?
+        browser_timing_footer
+        assert NewRelic::Agent::Transaction.current.name_frozen?
+      end
+    end
+  end
+
   def mobile_transaction(request=nil)
     request ||= Rack::Request.new('X-NewRelic-Mobile-Trace' => 'true')
     response = Rack::Response.new
-    txn_data = OpenStruct.new(:transaction_name => 'a transaction name',
+    txn = NewRelic::Agent::Transaction.new
+    txn.name = 'a transaction name'
+    txn_data = OpenStruct.new(:transaction => txn,
                               :start_time => 5,
                               :force_persist_sample? => false)
     NewRelic::Agent::TransactionInfo.set(txn_data)

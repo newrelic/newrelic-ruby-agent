@@ -15,6 +15,7 @@ module NewRelic
 
       # Module defining methods stubbed out when the agent is disabled
       module Shim #:nodoc:
+        def notice_transaction(*args); end
         def notice_first_scope_push(*args); end
         def notice_push_scope(*args); end
         def notice_pop_scope(*args); end
@@ -94,12 +95,14 @@ module NewRelic
       #
       # Note that in developer mode, this captures a stacktrace for
       # the beginning of each segment, which can be fairly slow
-      def notice_push_scope(scope, time=Time.now)
+      def notice_push_scope(time=Time.now)
         return unless builder
 
-        builder.trace_entry(scope, time.to_f)
+        segment = builder.trace_entry(time.to_f)
 
         capture_segment_trace if Agent.config[:developer_mode]
+
+        return segment
       end
 
       # in developer mode, capture the stack trace with the segment.
@@ -118,12 +121,6 @@ module NewRelic
           trace = trace[0..39] if trace.length > 40
           segment[:backtrace] = trace
         end
-      end
-
-      # Rename the latest scope's segment in the builder to +new_name+.
-      def rename_scope_segment( new_name )
-        return unless builder
-        builder.rename_current_segment( new_name )
       end
 
       # Defaults to zero, otherwise delegated to the transaction
@@ -149,18 +146,19 @@ module NewRelic
       #
       # It sets various instance variables to the finished sample,
       # depending on which settings are active. See `store_sample`
-      def notice_scope_empty(time=Time.now)
+      def notice_scope_empty(txn, time=Time.now, gc_time=nil)
         last_builder = builder
+        last_builder.set_transaction_name(txn.name) if enabled? && last_builder
+
         return unless last_builder
 
-        last_builder.finish_trace(time.to_f)
+        last_builder.finish_trace(time.to_f, txn.custom_parameters)
         clear_builder
         return if last_builder.ignored?
 
         @samples_lock.synchronize do
-          # NB this instance variable may be used elsewhere, it's not
-          # just a side effect
           @last_sample = last_builder.sample
+          @last_sample.set_custom_param(:gc_time, gc_time) if gc_time
           store_sample(@last_sample)
         end
       end
@@ -234,10 +232,10 @@ module NewRelic
         end
       end
 
-      # Delegates to the builder to store the path, uri, and
+      # Delegates to the builder to store the uri, and
       # parameters if the sampler is active
-      def notice_transaction(path, uri=nil, params={})
-        builder.set_transaction_info(path, uri, params) if enabled? && builder
+      def notice_transaction(uri=nil, params={})
+        builder.set_transaction_info(uri, params) if enabled? && builder
       end
 
       # Tells the builder to ignore a transaction, if we are currently

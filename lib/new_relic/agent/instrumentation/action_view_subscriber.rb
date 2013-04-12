@@ -15,7 +15,7 @@ module NewRelic
 
           if NewRelic::Agent.is_execution_traced? && event.recordable?
             event.scope = NewRelic::Agent.instance.stats_engine \
-              .push_scope(event.metric_name, event.time)
+              .push_scope(:action_view, event.time)
           end
         end
 
@@ -25,7 +25,7 @@ module NewRelic
           if NewRelic::Agent.is_execution_traced? && event.recordable?
             record_metrics(event)
             NewRelic::Agent.instance.stats_engine \
-              .pop_scope(event.scope, event.duration, event.end)
+              .pop_scope(event.scope, event.metric_name, event.end)
           end
         end
 

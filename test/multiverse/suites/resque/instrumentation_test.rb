@@ -45,7 +45,7 @@ class ResqueTest < Test::Unit::TestCase
   end
 
   def start_worker_child(env_vars=nil)
-    worker_cmd = "#{env_vars} QUEUE=* bundle exec rake resque:work"
+    worker_cmd = "#{env_vars} QUEUE=* TERM_CHILD=1 bundle exec rake resque:work"
     @worker_pid = Process.fork
     Process.exec(worker_cmd) if @worker_pid.nil?
   end
@@ -94,7 +94,12 @@ class ResqueTest < Test::Unit::TestCase
   def wait_for_jobs
     time_for_jobs = 10
     begin
-      Timeout.timeout(time_for_jobs) { sleep(0.1) until Resque.info[:processed] == JOB_COUNT }
+      Timeout.timeout(time_for_jobs) do
+        loop do
+          break if Resque.info[:processed] == JOB_COUNT
+          sleep(0.1) 
+        end
+      end
     rescue Timeout::Error => err
       raise err.exception("waiting #{time_for_jobs}s for completion of #{JOB_COUNT} jobs")
     end
@@ -130,15 +135,6 @@ class ResqueTest < Test::Unit::TestCase
   def test_agent_posts_correct_metric_data
     run_worker
     assert_metric_and_call_count('OtherTransaction/ResqueJob/all', JOB_COUNT)
-  end
-
-  def test_log_properly_when_fork_callbacks_are_broken
-    log_path = File.join(File.dirname(__FILE__), 'agent.log', 'newrelic_agent.log')
-    File.delete(log_path)
-
-    run_worker(:env_vars => 'BROKEN_AFTER_FORK=true')
-
-    assert File.read(log_path).include?('No communication channel to parent process')
   end
 
   if RUBY_VERSION >= '1.9'

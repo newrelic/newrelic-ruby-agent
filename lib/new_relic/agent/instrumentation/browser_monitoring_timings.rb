@@ -8,11 +8,12 @@ module NewRelic
       class BrowserMonitoringTimings
 
         def initialize(queue_time_in_seconds, transaction)
+          @transaction = transaction
           @now = Time.now.to_i
-          if transaction.nil?
+          if @transaction.nil?
             @start_time_in_seconds = 0.0
           else
-            @transaction_name = transaction.transaction_name
+            @transaction_name = transaction.transaction.name
             @start_time_in_seconds = transaction.start_time.to_i
           end
 

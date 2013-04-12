@@ -52,7 +52,7 @@ module NewRelic
 
         # Create a segment and time the call
         t0 = Time.now
-        segment = stats_engine.push_scope( "External/#{http.address}/all", t0 )
+        segment = stats_engine.push_scope( :net_http, t0 )
 
         return t0, segment
       rescue => err
@@ -78,13 +78,13 @@ module NewRelic
             stats_engine.record_metrics(scoped_metric, duration, :scoped => true)
 
             # Add TT custom parameters
-            stats_engine.rename_scope_segment( scoped_metric )
+            segment.name = scoped_metric
             add_transaction_trace_parameters(http, request, response)
           end
         ensure
           # We always need to pop the scope stack to avoid an inconsistent
           # state, which will prevent tracing of the whole transaction.
-          stats_engine.pop_scope( segment, duration, t1 )
+          stats_engine.pop_scope( segment, scoped_metric, t1 )
         end
       rescue NewRelic::Agent::CrossAppTracing::Error => err
         NewRelic::Agent.logger.debug "while cross app tracing", err
@@ -170,7 +170,7 @@ module NewRelic
         metrics = [ "External/all" ]
         metrics << "External/#{http.address}/all"
 
-        if NewRelic::Agent::Instrumentation::MetricFrame.recording_web_transaction?
+        if NewRelic::Agent::Transaction.recording_web_transaction?
           metrics << "External/allWeb"
         else
           metrics << "External/allOther"

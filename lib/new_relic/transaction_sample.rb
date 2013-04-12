@@ -62,6 +62,11 @@ module NewRelic
       JSON.dump(self.to_array)
     end
 
+    def set_custom_param(name, value)
+      @params[:custom_params] ||= {}
+      @params[:custom_params][name] = value
+    end
+
     include NewRelic::Coerce
 
     def to_array
@@ -91,7 +96,8 @@ module NewRelic
       @root_segment.path_string
     end
 
-    def create_segment(relative_timestamp, metric_name, segment_id = nil)
+    # relative_timestamp is seconds since the start of the transaction
+    def create_segment(relative_timestamp, metric_name=nil, segment_id = nil)
       raise TypeError.new("Frozen Transaction Sample") if frozen?
       @params[:segment_count] += 1
       @segment_count += 1

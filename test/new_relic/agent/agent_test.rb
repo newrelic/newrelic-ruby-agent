@@ -69,6 +69,14 @@ module NewRelic
         @agent.instance_eval { transmit_data }
       end
 
+      def test_transmit_data_should_handle_eoferror
+        @agent.service.stubs(:metric_data).raises(EOFError)
+        expects_no_logging(:error)
+        expects_logging(:warn, regexp_matches(/EOFError/))
+        expects_logging(:debug, is_a(EOFError))
+        @agent.instance_eval { transmit_data }
+      end
+
       def test_harvest_transaction_traces
         assert_equal([], @agent.send(:harvest_transaction_traces), 'should return transaction traces')
       end

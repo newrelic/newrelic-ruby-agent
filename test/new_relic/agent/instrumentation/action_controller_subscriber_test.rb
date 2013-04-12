@@ -82,8 +82,8 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Test::U
                          .merge(:action => 'child', :path => '/child'))
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
-    assert_equal 1, @stats_engine.lookup_stats('Controller/test/child',
-                                               'Controller/test/index').call_count
+    assert_equal(1, @stats_engine.lookup_stats('Controller/test/child',
+                                               'Controller/test/index').call_count)
   end
 
   def test_records_scoped_metrics_for_traced_child_txn

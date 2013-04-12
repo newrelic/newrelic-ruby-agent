@@ -10,6 +10,7 @@ module NewRelic
   # through the agent method or the control instance through
   # NewRelic::Control.instance . But it's nice to make sure.
   class MainAgentTest < Test::Unit::TestCase
+    include NewRelic::Agent::MethodTracer
 
     def setup
       NewRelic::Agent.reset_config
@@ -71,23 +72,20 @@ module NewRelic
                                        :start_channel_listener => true)
 
           metric = 'Custom/test/method'
-          NewRelic::Agent.instance.stats_engine.get_stats_no_scope(metric) \
-            .record_data_point(1.0)
+          NewRelic::Agent.record_metric(metric, 1.0)
 
           NewRelic::Agent::PipeChannelManager.listener.close_all_pipes
           NewRelic::Agent.register_report_channel(:agent_test) # before fork
           pid = Process.fork do
             NewRelic::Agent.after_fork(:report_to_channel => :agent_test)
-            NewRelic::Agent.agent.stats_engine.get_stats_no_scope(metric) \
-              .record_data_point(2.0)
+            NewRelic::Agent.record_metric(metric, 2.0)
           end
           Process.wait(pid)
           NewRelic::Agent::PipeChannelManager.listener.stop
 
-          engine = NewRelic::Agent.agent.stats_engine
-          assert_equal(3.0, engine.lookup_stats(metric).total_call_time)
-          assert_equal(2, engine.lookup_stats(metric).call_count)
-          engine.reset_stats
+          assert_metrics_recorded({
+            metric => { :call_count => 2, :total_call_time => 3.0 }
+          })
         end
       end
     end
@@ -164,7 +162,7 @@ module NewRelic
     end
 
     def test_abort_transaction_bang
-      NewRelic::Agent::Instrumentation::MetricFrame.expects(:abort_transaction!)
+      NewRelic::Agent::Transaction.expects(:abort_transaction!)
       NewRelic::Agent.abort_transaction!
     end
 
@@ -261,6 +259,68 @@ module NewRelic
       dummy_stats.expects(:increment_count).with(12)
       dummy_engine.expects(:record_metrics).with('foo').yields(dummy_stats)
       NewRelic::Agent.increment_metric('foo', 12)
+    end
+
+    class Transactor
+      include NewRelic::Agent::Instrumentation::ControllerInstrumentation
+      def txn
+        yield
+      end
+      add_transaction_tracer :txn
+    end
+
+    def test_set_transaction_name
+      engine = NewRelic::Agent.instance.stats_engine
+      engine.reset_stats
+      Transactor.new.txn do
+        NewRelic::Agent.set_transaction_name('new_name')
+      end
+      assert engine.lookup_stats('Controller/new_name')
+    end
+
+    def test_set_transaction_name_applies_proper_scopes
+      engine = NewRelic::Agent.instance.stats_engine
+      engine.reset_stats
+      Transactor.new.txn do
+        trace_execution_scoped('Custom/something') {}
+        NewRelic::Agent.set_transaction_name('new_name')
+      end
+      assert engine.lookup_stats('Custom/something', 'Controller/new_name')
+    end
+
+    def test_set_transaction_name_sets_tt_name
+      sampler = NewRelic::Agent.instance.transaction_sampler
+      Transactor.new.txn do
+        NewRelic::Agent.set_transaction_name('new_name')
+      end
+      assert_equal 'Controller/new_name', sampler.last_sample.params[:path]
+    end
+
+    def test_set_transaction_name_gracefully_fails_when_frozen
+      engine = NewRelic::Agent.instance.stats_engine
+      engine.reset_stats
+      Transactor.new.txn do
+        NewRelic::Agent::Transaction.current.freeze_name
+        NewRelic::Agent.set_transaction_name('new_name')
+      end
+      assert_nil engine.lookup_stats('Controller/new_name')
+    end
+
+    def test_set_transaction_name_applies_category
+      engine = NewRelic::Agent.instance.stats_engine
+      engine.reset_stats
+      Transactor.new.txn do
+        NewRelic::Agent.set_transaction_name('new_name', :category => :task)
+      end
+      assert engine.lookup_stats('OtherTransaction/Background/new_name')
+      Transactor.new.txn do
+        NewRelic::Agent.set_transaction_name('new_name', :category => :rack)
+      end
+      assert engine.lookup_stats('Controller/Rack/new_name')
+      Transactor.new.txn do
+        NewRelic::Agent.set_transaction_name('new_name', :category => :sinatra)
+      end
+      assert engine.lookup_stats('Controller/Sinatra/new_name')
     end
 
     private

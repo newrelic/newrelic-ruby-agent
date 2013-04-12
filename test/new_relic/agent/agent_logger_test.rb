@@ -154,4 +154,19 @@ class AgentLoggerTest < Test::Unit::TestCase
 
     assert_equal stdout, logger.instance_variable_get(:@log)
   end
+
+  def test_null_logger_works_with_impolite_gems_that_add_stuff_to_kernel
+    Kernel.module_eval do
+      def debug; end
+    end
+
+    logger = NewRelic::Agent::AgentLogger.new(@config.merge(:agent_enabled => false))
+    assert_nothing_raised do
+      logger.debug('hi!')
+    end
+  ensure
+    Kernel.module_eval do
+      remove_method :debug
+    end
+  end
 end

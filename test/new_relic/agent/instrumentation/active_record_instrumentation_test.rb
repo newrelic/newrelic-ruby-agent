@@ -68,7 +68,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
 
     ActiveRecordFixtures::Order.create :id => 0, :name => 'jeff'
 
-    find_metric = "ActiveRecord/ActiveRecordFixtures::Order/find"    
+    find_metric = "ActiveRecord/ActiveRecordFixtures::Order/find"
 
     assert_calls_metrics(find_metric) do
       ActiveRecordFixtures::Order.exists?(["name=?", 'jeff'])
@@ -211,7 +211,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
   end
 
   def test_join_metrics_sqlite
-    return if (defined?(Rails) && Rails.respond_to?(:version) && Rails.version.to_i == 3)
+    return if (defined?(Rails) && Rails::VERSION::MAJOR.to_i == 3)
     return if defined?(JRuby)
     return unless isSqlite?
 
@@ -249,7 +249,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
   end
 
   def test_join_metrics_standard
-    return if (defined?(Rails) && Rails.respond_to?(:version) && Rails.version.to_i >= 3)
+    return if (defined?(Rails) && Rails::VERSION::MAJOR.to_i >= 3)
     return if defined?(JRuby) || isSqlite?
 
     expected_metrics = %W[
@@ -290,7 +290,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
   end
 
   def test_direct_sql
-    assert_nil NewRelic::Agent::Instrumentation::MetricFrame.current
+    assert_nil NewRelic::Agent::Transaction.current
     assert_nil NewRelic::Agent.instance.stats_engine.scope_name
     assert_equal 0, NewRelic::Agent.instance.stats_engine.metrics.size, NewRelic::Agent.instance.stats_engine.metrics.inspect
 
@@ -549,7 +549,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
   private
 
   def rails3?
-    (defined?(Rails) && Rails.respond_to?(:version) && Rails.version.to_i >= 3)
+    (defined?(Rails) && Rails::VERSION::MAJOR.to_i >= 3)
   end
 
   def rails_env

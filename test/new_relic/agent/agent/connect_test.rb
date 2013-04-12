@@ -8,6 +8,7 @@ require 'ostruct'
 
 class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   include NewRelic::Agent::Agent::Connect
+  include TransactionSampleTestHelper
 
   def setup
     @connected = nil
@@ -108,7 +109,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   def test_configure_transaction_tracer_with_random_sampling
     with_config(:'transaction_tracer.transaction_threshold' => 5,
                 :'transaction_tracer.random_sample' => true) do
-      sample = TransactionSampleTestHelper.make_sql_transaction
+      sample = make_sql_transaction
       @transaction_sampler.store_sample(sample)
 
       assert_equal sample, @transaction_sampler.instance_variable_get(:@random_sample)

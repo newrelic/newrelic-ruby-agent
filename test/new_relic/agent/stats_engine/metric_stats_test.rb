@@ -117,8 +117,9 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
   end
 
   def test_record_metrics_unscoped_metrics_only_by_default
-    @engine.stubs(:scope_name).returns('scopey')
-    @engine.record_metrics('foo', 42)
+    in_transaction('scopey') do
+      @engine.record_metrics('foo', 42)
+    end
     unscoped_stats = @engine.get_stats('foo', false)
     scoped_stats = @engine.get_stats('foo', true, true, 'scopey')
     assert_equal(1, unscoped_stats.call_count)
@@ -126,12 +127,13 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
   end
 
   def test_record_metrics_records_to_scoped_metric_if_requested
-    @engine.stubs(:scope_name).returns('scopey')
-    @engine.record_metrics('foo', 42, :scoped => true)
+    in_transaction('scopey') do
+      @engine.record_metrics('foo', 42, :scoped => true)
+    end
     unscoped_stats = @engine.get_stats('foo', false)
     scoped_stats = @engine.get_stats('foo', true, true, 'scopey')
-    assert_equal(1, unscoped_stats.call_count)
-    assert_equal(1, scoped_stats.call_count)
+    assert_equal(1, unscoped_stats.call_count, 'missing unscoped metric')
+    assert_equal(1, scoped_stats.call_count, 'missing scoped metric')
   end
 
   def test_record_metrics_elides_scoped_metric_if_not_in_transaction
@@ -144,8 +146,9 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
   end
 
   def test_record_metrics_accepts_explicit_scope
-    @engine.stubs(:scope_name).returns('scopey')
-    @engine.record_metrics('foo', 42, :scoped => true, :scope => 'not scopey')
+    in_transaction('scopey') do
+      @engine.record_metrics('foo', 42, :scoped => true, :scope => 'not scopey')
+    end
     unscoped_stats = @engine.get_stats('foo', false)
     scoped_stats_scopey = @engine.get_stats('foo', true, true, 'scopey')
     scoped_stats_not_scopey = @engine.get_stats('foo', true, true, 'not scopey')
@@ -180,5 +183,14 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
     stats_m2 = @engine.get_stats_no_scope('m2')
     assert_equal(nthreads * iterations, stats_m1.call_count)
     assert_equal(nthreads * iterations, stats_m2.call_count)
+  end
+
+  def test_transaction_stats_are_tracked_separately
+    in_transaction do
+      @engine.record_metrics('foo', 1)
+      assert_nil @engine.lookup_stats('foo')
+    end
+
+    assert_equal 1, @engine.lookup_stats('foo').call_count
   end
 end

@@ -64,7 +64,7 @@ module NewRelic
   module Agent
     extend self
     extend Forwardable
-    
+
     require 'new_relic/version'
     require 'new_relic/local_environment'
     require 'new_relic/metrics'
@@ -99,6 +99,7 @@ module NewRelic
     require 'new_relic/agent/configuration'
     require 'new_relic/agent/rules_engine'
     require 'new_relic/agent/uri_util'
+    require 'new_relic/agent/system_info'
 
     require 'new_relic/agent/instrumentation/controller_instrumentation'
 
@@ -342,7 +343,7 @@ module NewRelic
     # any.  Only affects the transaction started on this thread once
     # it has started and before it has completed.
     def abort_transaction!
-      NewRelic::Agent::Instrumentation::MetricFrame.abort_transaction!
+      Transaction.abort_transaction!
     end
 
     # Yield to the block without collecting any metrics or traces in
@@ -362,13 +363,13 @@ module NewRelic
       untraced = Thread.current[:newrelic_untraced]
       untraced.nil? || untraced.last != false
     end
-    
+
     # helper method to check the thread local to determine whether the
     # transaction in progress is traced or not
     def is_transaction_traced?
       Thread::current[:record_tt] != false
     end
-    
+
     # helper method to check the thread local to determine whether sql
     # is being recorded or not
     def is_sql_recorded?
@@ -403,16 +404,16 @@ module NewRelic
     # Anything left over is treated as custom params.
     #
     def notice_error(exception, options={})
-      NewRelic::Agent::Instrumentation::MetricFrame.notice_error(exception, options)
+      Transaction.notice_error(exception, options)
     end
 
     # Add parameters to the current transaction trace (and traced error if any)
     # on the call stack.
     #
     def add_custom_parameters(params)
-      NewRelic::Agent::Instrumentation::MetricFrame.add_custom_parameters(params)
+      Transaction.add_custom_parameters(params)
     end
-    
+
     # Set attributes about the user making this request. These attributes will be automatically
     # appended to any Transaction Trace or Error that is collected. These attributes
     # will also be collected for RUM requests.
@@ -423,7 +424,31 @@ module NewRelic
     # * <tt>:product</tt> => product name or level
     #
     def set_user_attributes(attributes)
-      NewRelic::Agent::Instrumentation::MetricFrame.set_user_attributes(attributes)
+      Transaction.set_user_attributes(attributes)
+    end
+
+    # Set the name of the current running transaction.  The agent will
+    # apply a reasonable default based on framework routing, but in
+    # cases where this is insufficient, this can be used to manually
+    # control the name of the transaction.
+    # The category of transaction can be specified via the +:category+ option:
+    #
+    # * <tt>:category => :controller</tt> indicates that this is a
+    #   controller action and will appear with all the other actions.  This
+    #   is the default.
+    # * <tt>:category => :task</tt> indicates that this is a
+    #   background task and will show up in New Relic with other background
+    #   tasks instead of in the controllers list
+    # * <tt>:category => :rack</tt> if you are instrumenting a rack
+    #   middleware call.  The <tt>:name</tt> is optional, useful if you
+    #   have more than one potential transaction in the #call.
+    # * <tt>:category => :uri</tt> indicates that this is a
+    #   web transaction whose name is a normalized URI, where  'normalized'
+    #   means the URI does not have any elements with data in them such
+    #   as in many REST URIs.
+    def set_transaction_name(name, options={})
+      namer = Instrumentation::ControllerInstrumentation::TransactionNamer.new
+      Transaction.current.name = "#{namer.category_name(options)}/#{name}"
     end
 
     # The #add_request_parameters method is aliased to #add_custom_parameters
@@ -439,8 +464,8 @@ module NewRelic
     # * <tt>method</tt> is the name of the finder method or other
     #   method to identify the operation with.
     def with_database_metric_name(model, method, &block)
-      if frame = NewRelic::Agent::Instrumentation::MetricFrame.current
-        frame.with_database_metric_name(model, method, &block)
+      if txn = Transaction.current
+        txn.with_database_metric_name(model, method, &block)
       else
         yield
       end
@@ -487,7 +512,7 @@ module NewRelic
     def browser_timing_footer
       agent.browser_timing_footer
     end
-    
+
     def_delegator :'NewRelic::Agent::PipeChannelManager', :register_report_channel
   end
 end

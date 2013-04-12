@@ -30,7 +30,7 @@ module NewRelic
         @sql_traces = {}
         clear_transaction_data
 
-        # This lock is used to synchronize access to the @last_sample
+        # This lock is used to synchronize access to @sql_traces
         # and related variables. It can become necessary on JRuby or
         # any 'honest-to-god'-multithreaded system
         @samples_lock = Mutex.new
@@ -43,12 +43,12 @@ module NewRelic
           Agent.config[:'transaction_tracer.enabled']
       end
 
-      def notice_transaction(path, uri=nil, params={})
+      def notice_transaction(uri=nil, params={})
         if NewRelic::Agent.instance.transaction_sampler.builder
           guid = NewRelic::Agent.instance.transaction_sampler.builder.sample.guid
         end
         if Agent.config[:'slow_sql.enabled'] && transaction_data
-          transaction_data.set_transaction_info(path, uri, params, guid)
+          transaction_data.set_transaction_info(uri, params, guid)
         end
       end
 
@@ -69,8 +69,9 @@ module NewRelic
       end
 
       # This is called when we are done with the transaction.
-      def notice_scope_empty(time=Time.now)
+      def notice_scope_empty(name, time=Time.now)
         data = transaction_data
+        data.set_transaction_name(name)
         clear_transaction_data
 
         if data.sql_data.size > 0
@@ -145,11 +146,14 @@ module NewRelic
         @sql_data = []
       end
 
-      def set_transaction_info(path, uri, params, guid)
-        @path = path
+      def set_transaction_info(uri, params, guid)
         @uri = uri
         @params = params
         @guid = guid
+      end
+
+      def set_transaction_name(name)
+        @path = name
       end
     end
 

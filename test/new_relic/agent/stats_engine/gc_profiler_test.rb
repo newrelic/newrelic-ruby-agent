@@ -69,15 +69,12 @@ class NewRelic::Agent::StatsEngine::GCProfilerTest < Test::Unit::TestCase
       return true # no need to test if we're not collecting GC metrics
     end
 
+    with_config(:'transaction_tracer.enabled' => true) do
+      in_transaction { }
+    end
+
     engine = NewRelic::Agent.instance.stats_engine
-    tracer = NewRelic::Agent::TransactionSampler.new
-    tracer.instance_variable_set(:@last_sample,
-                                 NewRelic::TransactionSample.new)
-    engine.transaction_sampler = tracer
-    engine.start_transaction
-    scope = engine.push_scope "scope"
-    engine.pop_scope scope, 0.01
-    engine.end_transaction
+    tracer = NewRelic::Agent.instance.transaction_sampler
 
     gc_stats = engine.get_stats('GC/cumulative')
     assert_equal 2, gc_stats.call_count
