@@ -447,8 +447,10 @@ module NewRelic
     #   means the URI does not have any elements with data in them such
     #   as in many REST URIs.
     def set_transaction_name(name, options={})
-      namer = Instrumentation::ControllerInstrumentation::TransactionNamer.new
-      Transaction.current.name = "#{namer.category_name(options)}/#{name}"
+      if Transaction.current
+        namer = Instrumentation::ControllerInstrumentation::TransactionNamer.new
+        Transaction.current.name = "#{namer.category_name(options)}/#{name}"
+      end
     end
 
     # The #add_request_parameters method is aliased to #add_custom_parameters
