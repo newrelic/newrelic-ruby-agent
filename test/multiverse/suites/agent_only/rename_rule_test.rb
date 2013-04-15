@@ -37,6 +37,8 @@ class RenameRuleTest < Test::Unit::TestCase
   end
 
   def teardown
+    NewRelic::Agent.instance.instance_variable_set(:@transaction_rules,
+                                       NewRelic::Agent::RulesEngine.new)
     NewRelic::Agent.shutdown
   end
 

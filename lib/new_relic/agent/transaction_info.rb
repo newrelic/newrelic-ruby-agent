@@ -7,25 +7,15 @@ require 'erb'
 module NewRelic
   module Agent
     class TransactionInfo
-      DEFAULT_TRANSACTION_NAME = '(unknown)'
 
-      attr_accessor :token, :capture_deep_tt
-      attr_writer :transaction_name
+      attr_accessor :token, :capture_deep_tt, :request, :transaction
       attr_reader :start_time
 
       def initialize
         @guid = ""
-        @transaction_name = nil
         @start_time = Time.now
         @ignore_end_user = false
-      end
-
-      def transaction_name_set?
-        !@transaction_name.nil?
-      end
-
-      def transaction_name
-        @transaction_name || DEFAULT_TRANSACTION_NAME
+        @transaction = Transaction.current
       end
 
       def force_persist_sample?(sample)
@@ -58,7 +48,7 @@ module NewRelic
 
       def apdex_t
         (Agent.config[:web_transactions_apdex] &&
-         Agent.config[:web_transactions_apdex][@transaction_name]) ||
+         Agent.config[:web_transactions_apdex][@transaction.name]) ||
           Agent.config[:apdex_t]
       end
 
@@ -89,6 +79,8 @@ module NewRelic
         clear
         instance = get
         instance.token = get_token(request)
+        instance.request = request
+        instance.transaction = Transaction.current
       end
 
       def self.get_token(request)

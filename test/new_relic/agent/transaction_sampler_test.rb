@@ -31,14 +31,18 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     agent.stubs(:stats_engine).returns(stats_engine)
     @sampler = NewRelic::Agent::TransactionSampler.new
     stats_engine.transaction_sampler = @sampler
+    @old_sampler = NewRelic::Agent.instance.transaction_sampler
+    NewRelic::Agent.instance.instance_variable_set(:@transaction_sampler, @sampler)
     @test_config = { :'transaction_tracer.enabled' => true }
     NewRelic::Agent.config.apply_config(@test_config)
+    @txn = stub('txn', :name => '/path', :custom_parameters => {})
   end
 
   def teardown
     super
     Thread.current[:transaction_sample_builder] = nil
     NewRelic::Agent.config.remove_config(@test_config)
+    NewRelic::Agent.instance.instance_variable_set(:@transaction_sampler, @old_sampler)
   end
 
   def test_initialize
@@ -97,25 +101,25 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
   def test_notice_push_scope_no_builder
     @sampler.expects(:builder)
-    assert_equal(nil, @sampler.notice_push_scope('a scope'))
+    assert_equal(nil, @sampler.notice_push_scope())
   end
 
   def test_notice_push_scope_with_builder
     with_config(:developer_mode => false) do
       builder = mock('builder')
-      builder.expects(:trace_entry).with('a scope', 100.0)
+      builder.expects(:trace_entry).with(100.0)
       @sampler.expects(:builder).returns(builder).twice
-      @sampler.notice_push_scope('a scope', Time.at(100))
+      @sampler.notice_push_scope(Time.at(100))
     end
   end
 
   def test_notice_push_scope_in_dev_mode
     builder = mock('builder')
-    builder.expects(:trace_entry).with('a scope', 100.0)
+    builder.expects(:trace_entry).with(100.0)
     @sampler.expects(:builder).returns(builder).twice
     @sampler.expects(:capture_segment_trace)
 
-    @sampler.notice_push_scope('a scope', Time.at(100))
+    @sampler.notice_push_scope(Time.at(100))
   end
 
   def test_scope_depth_no_builder
@@ -161,7 +165,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
   def test_notice_scope_empty_no_builder
     @sampler.expects(:builder).returns(nil)
-    assert_equal(nil, @sampler.notice_scope_empty)
+    assert_equal(nil, @sampler.notice_scope_empty(@txn))
   end
 
   def test_notice_scope_empty_ignored_transaction
@@ -169,31 +173,34 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     # the builder should be cached, so only called once
     @sampler.expects(:builder).returns(builder).once
 
-    builder.expects(:finish_trace).with(100.0)
+    builder.expects(:finish_trace).with(100.0, {})
 
     @sampler.expects(:clear_builder)
 
     builder.expects(:ignored?).returns(true)
+    builder.expects(:set_transaction_name).returns(true)
 
-    assert_equal(nil, @sampler.notice_scope_empty(Time.at(100)))
+    assert_equal(nil, @sampler.notice_scope_empty(@txn, Time.at(100)))
   end
 
   def test_notice_scope_empty_with_builder
     builder = mock('builder')
-    # the builder should be cached, so only called once
-    @sampler.expects(:builder).returns(builder).once
+    @sampler.stubs(:builder).returns(builder)
 
 
-    builder.expects(:finish_trace).with(100.0)
+    builder.expects(:finish_trace).with(100.0, {})
     @sampler.expects(:clear_builder)
 
     builder.expects(:ignored?).returns(false)
+    builder.expects(:set_transaction_info).returns(true)
+    builder.expects(:set_transaction_name).returns(true)
 
     sample = mock('sample')
     builder.expects(:sample).returns(sample)
     @sampler.expects(:store_sample).with(sample)
 
-    @sampler.notice_scope_empty(Time.at(100))
+    @sampler.notice_transaction(nil, {})
+    @sampler.notice_scope_empty(@txn, Time.at(100))
 
     assert_equal(sample, @sampler.instance_variable_get('@last_sample'))
   end
@@ -301,28 +308,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     @sampler.instance_eval { @samples = [1, 2, 3] }
     @sampler.truncate_samples
     assert_equal([2, 3], @sampler.instance_variable_get('@samples'))
-  end
-
-  def test_notice_transaction_disabled
-    builder = mock('builder')
-    builder.expects(:set_transaction_info).never # since we're disabled
-    @sampler.stubs(:builder).returns(builder)
-    with_config(:'transaction_tracer.enabled' => false,
-                :developer_mode => false) do
-      @sampler.notice_transaction('foo')
-    end
-  end
-
-  def test_notice_transaction_no_builder
-    @sampler.expects(:builder).returns(nil).once
-    @sampler.notice_transaction('foo')
-  end
-
-  def test_notice_transaction_with_builder
-    builder = mock('builder')
-    builder.expects(:set_transaction_info).with('a path', 'a uri', {:some => :params})
-    @sampler.expects(:builder).returns(builder).twice
-    @sampler.notice_transaction('a path', 'a uri', {:some => :params})
   end
 
   def test_ignore_transaction_no_builder
@@ -671,21 +656,20 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   def test_sample_tree
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
       assert_equal 0, @sampler.scope_depth
-
       @sampler.notice_first_scope_push Time.now.to_f
-      @sampler.notice_transaction "/path", nil, {}
-      @sampler.notice_push_scope "a"
+      @sampler.notice_transaction(nil, {})
+      @sampler.notice_push_scope
 
-      @sampler.notice_push_scope "b"
+      @sampler.notice_push_scope
       @sampler.notice_pop_scope "b"
 
-      @sampler.notice_push_scope "c"
-      @sampler.notice_push_scope "d"
+      @sampler.notice_push_scope
+      @sampler.notice_push_scope
       @sampler.notice_pop_scope "d"
       @sampler.notice_pop_scope "c"
 
       @sampler.notice_pop_scope "a"
-      @sampler.notice_scope_empty
+      @sampler.notice_scope_empty(@txn)
       sample = @sampler.harvest([]).first
       assert_equal "ROOT{a{b,c{d}}}", sample.to_s_compact
     end
@@ -700,19 +684,19 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
       @sampler.notice_first_scope_push Time.now.to_f
-      @sampler.notice_transaction "/path", nil, {}
-      @sampler.notice_push_scope "a"
+      @sampler.notice_transaction(nil, {})
+      @sampler.notice_push_scope
 
-      @sampler.notice_push_scope "b"
+      @sampler.notice_push_scope
       @sampler.notice_pop_scope "b"
 
-      @sampler.notice_push_scope "c"
-      @sampler.notice_push_scope "d"
+      @sampler.notice_push_scope
+      @sampler.notice_push_scope
       @sampler.notice_pop_scope "d"
       @sampler.notice_pop_scope "c"
 
       @sampler.notice_pop_scope "a"
-      @sampler.notice_scope_empty
+      @sampler.notice_scope_empty(@txn)
 
       sample = @sampler.harvest([]).first
       assert_equal "ROOT{a{b,c{d}}}", sample.to_s_compact
@@ -789,23 +773,22 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   def test_sample_with_parallel_paths
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
       assert_equal 0, @sampler.scope_depth
-
       @sampler.notice_first_scope_push Time.now.to_f
-      @sampler.notice_transaction "/path", nil, {}
-      @sampler.notice_push_scope "a"
+      @sampler.notice_transaction(nil, {})
+      @sampler.notice_push_scope
 
       assert_equal 1, @sampler.scope_depth
 
       @sampler.notice_pop_scope "a"
-      @sampler.notice_scope_empty
+      @sampler.notice_scope_empty(@txn)
 
       assert_equal 0, @sampler.scope_depth
 
       @sampler.notice_first_scope_push Time.now.to_f
-      @sampler.notice_transaction "/path", nil, {}
-      @sampler.notice_push_scope "a"
+      @sampler.notice_transaction(nil, {})
+      @sampler.notice_push_scope
       @sampler.notice_pop_scope "a"
-      @sampler.notice_scope_empty
+      @sampler.notice_scope_empty(@txn)
 
       assert_equal 0, @sampler.scope_depth
       sample = @sampler.harvest(nil).first
@@ -816,13 +799,13 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   def test_double_scope_stack_empty
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
       @sampler.notice_first_scope_push Time.now.to_f
-      @sampler.notice_transaction "/path", nil, {}
-      @sampler.notice_push_scope "a"
+      @sampler.notice_transaction(nil, {})
+      @sampler.notice_push_scope
       @sampler.notice_pop_scope "a"
-      @sampler.notice_scope_empty
-      @sampler.notice_scope_empty
-      @sampler.notice_scope_empty
-      @sampler.notice_scope_empty
+      @sampler.notice_scope_empty(@txn)
+      @sampler.notice_scope_empty(@txn)
+      @sampler.notice_scope_empty(@txn)
+      @sampler.notice_scope_empty(@txn)
 
       assert_not_nil @sampler.harvest(nil)[0]
     end
@@ -856,7 +839,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     with_config(:'transaction_tracer.stack_trace_threshold' => 0) do
       t = Time.now
       @sampler.notice_first_scope_push t.to_f
-      @sampler.notice_push_scope 'Bill', (t+1).to_f
+      @sampler.notice_push_scope((t+1).to_f)
 
       segment = @sampler.send(:builder).current_segment
       assert segment[:backtrace]
@@ -894,7 +877,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
   def test_segment_obfuscated
     @sampler.notice_first_scope_push Time.now.to_f
-    @sampler.notice_push_scope "foo"
+    @sampler.notice_push_scope
 
     orig_sql = "SELECT * from Jim where id=66"
 
@@ -912,12 +895,12 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
       with_config(:capture_params => capture) do
         tt = with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
           @sampler.notice_first_scope_push Time.now.to_f
-          @sampler.notice_transaction('/path', nil, {:param => 'hi'})
-          @sampler.notice_scope_empty
+          @sampler.notice_transaction(nil, :param => 'hi')
+          @sampler.notice_scope_empty(@txn)
           @sampler.harvest(nil)[0]
         end
 
-        assert_equal (capture) ? 1 : 0, tt.params[:request_params].length
+        assert_equal (capture ? 1 : 0), tt.params[:request_params].length
       end
     end
   end
@@ -925,9 +908,9 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   def test_should_not_collect_segments_beyond_limit
     with_config(:'transaction_tracer.limit_segments' => 3) do
       run_sample_trace do
-        @sampler.notice_push_scope 'a1'
+        @sampler.notice_push_scope
         @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'hallah'", nil, 0)
-        @sampler.notice_push_scope 'a11'
+        @sampler.notice_push_scope
         @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'semolina'", nil, 0)
         @sampler.notice_pop_scope "a11"
         @sampler.notice_pop_scope "a1"
@@ -938,8 +921,8 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
   def test_renaming_current_segment_midflight
     @sampler.start_builder
-    @sampler.notice_push_scope( 'External/www.google.com/all' )
-    @sampler.rename_scope_segment( 'External/www.google.com/Net::HTTP/GET' )
+    segment = @sampler.notice_push_scope
+    segment.metric_name = 'External/www.google.com/Net::HTTP/GET'
     assert_nothing_raised do
       @sampler.notice_pop_scope( 'External/www.google.com/Net::HTTP/GET' )
     end
@@ -947,26 +930,48 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
   def test_adding_segment_parameters
     @sampler.start_builder
-    @sampler.notice_push_scope( 'External/www.google.com/all' )
+    @sampler.notice_push_scope
     @sampler.add_segment_parameters( :transaction_guid => '97612F92E6194080' )
     assert_equal '97612F92E6194080', @sampler.builder.current_segment[:transaction_guid]
+  end
+
+  class Dummy
+    include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
+    def run(n)
+      n.times do
+        perform_action_with_newrelic_trace("smile") do
+        end
+      end
+    end
+  end
+
+  # TODO: this test seems to be destabilizing CI in a way that I don't grok.
+  def sadly_do_not_test_harvest_during_transaction_safety
+    n = 3000
+    harvester = Thread.new do
+      n.times { @sampler.harvest }
+    end
+
+    assert_nothing_raised { Dummy.new.run(n) }
+
+    harvester.join
   end
 
   private
 
   def run_sample_trace(start = Time.now.to_f, stop = nil)
+    @sampler.notice_transaction(nil, {})
     @sampler.notice_first_scope_push start
-    @sampler.notice_transaction '/path', nil, {}
-    @sampler.notice_push_scope "a"
+    @sampler.notice_push_scope
     @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'", nil, 0)
-    @sampler.notice_push_scope "ab"
+    @sampler.notice_push_scope
     @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'white'", nil, 0)
     yield if block_given?
     @sampler.notice_pop_scope "ab"
-    @sampler.notice_push_scope "ac"
+    @sampler.notice_push_scope
     @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'french'", nil, 0)
     @sampler.notice_pop_scope "ac"
     @sampler.notice_pop_scope "a"
-    @sampler.notice_scope_empty stop || Time.now.to_f
+    @sampler.notice_scope_empty(@txn, (stop || Time.now.to_f))
   end
 end

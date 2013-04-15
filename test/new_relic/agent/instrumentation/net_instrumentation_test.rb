@@ -59,26 +59,19 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
       :encoding_key                       => 'gringletoes'
     )
 
+    @response = CANNED_RESPONSE.clone
+    @socket = fixture_tcp_socket( @response )
+
     # $stderr.puts '', '---', ''
     # NewRelic::Agent.logger = NewRelic::Agent::AgentLogger.new( {:log_level => 'debug'}, '', Logger.new($stderr) )
 
     @engine = NewRelic::Agent.instance.stats_engine
     @engine.clear_stats
 
-    @engine.start_transaction( 'test' )
-    NewRelic::Agent::TransactionInfo.get.guid = TRANSACTION_GUID
 
     @sampler = NewRelic::Agent.instance.transaction_sampler
-    @sampler.notice_first_scope_push( Time.now.to_f )
-    @sampler.notice_transaction( '/path', '/path', {} )
-    @sampler.notice_push_scope "Controller/sandwiches/index"
-    @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'", nil, 0)
-    @sampler.notice_push_scope "ab"
-    @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'white'", nil, 0)
-    @sampler.notice_push_scope "fetch_external_service"
+    NewRelic::Agent::TransactionInfo.get.guid = TRANSACTION_GUID
 
-    @response = CANNED_RESPONSE.clone
-    @socket = fixture_tcp_socket( @response )
   end
 
   def teardown
@@ -91,47 +84,6 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
   #
   # Helpers
   #
-
-  def fixture_tcp_socket( response )
-
-    # Don't actually talk to Google.
-    socket = stub("socket") do
-      stubs(:closed?).returns(false)
-      stubs(:close)
-
-      # Simulate a bunch of socket-ey stuff since Mocha doesn't really
-      # provide any other way to do it
-      class << self
-        attr_accessor :response, :write_checker
-      end
-
-      def self.check_write
-        self.write_checker = Proc.new
-      end
-
-      def self.write( buf )
-        self.write_checker.call( buf ) if self.write_checker
-        buf.length
-      end
-      
-      def self.sysread( size, buf='' )
-        @data ||= response.to_s
-        raise EOFError if @data.empty?
-        buf.replace @data.slice!( 0, size )
-        buf
-      end
-      class << self
-        alias_method :read_nonblock, :sysread
-      end
-
-    end
-
-    socket.response = response
-    TCPSocket.stubs( :open ).returns( socket )
-
-    return socket
-  end
-
 
   def make_app_data_payload( *args )
     return obfuscate_with_key( 'gringletoes', args.to_json ).gsub( /\n/, '' ) + "\n"
@@ -157,14 +109,14 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
     res = Net::HTTP.start(url.host, url.port) {|http|
       http.get('/index.html')
     }
-      
-    assert_match %r/<head>/i, res.body
-    assert_includes @engine.metrics, 'External/all'
-    assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
-    assert_includes @engine.metrics, 'External/allOther'
-    assert_includes @engine.metrics, 'External/www.google.com/all'
 
-    assert_not_includes @engine.metrics, 'External/allWeb'
+    assert_match %r/<head>/i, res.body
+    assert_metrics_recorded_exclusive([
+      'External/all',
+      'External/www.google.com/Net::HTTP/GET',
+      'External/allOther',
+      'External/www.google.com/all'
+    ])
   end
 
   def test_background
@@ -178,15 +130,16 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
     end
 
     assert_match %r/<head>/i, res.body
-
-    assert_includes @engine.metrics, 'External/all'
-    assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
-    assert_includes @engine.metrics, 'External/allOther'
-    assert_includes @engine.metrics, 'External/www.google.com/all'
-    assert_includes @engine.metrics,
-      'OtherTransaction/Background/NewRelic::Agent::Instrumentation::NetInstrumentationTest/task'
-
-    assert_not_includes @engine.metrics, 'External/allWeb'
+    assert_metrics_recorded_exclusive([
+      'External/all',
+      'External/allOther',
+      'External/www.google.com/all',
+      'External/www.google.com/Net::HTTP/GET',
+      ['External/www.google.com/Net::HTTP/GET', 'OtherTransaction/Background/NewRelic::Agent::Instrumentation::NetInstrumentationTest/task'],
+      'OtherTransaction/Background/NewRelic::Agent::Instrumentation::NetInstrumentationTest/task',
+      'OtherTransaction/Background/all',
+      'OtherTransaction/all'
+    ])
   end
 
   def test_transactional
@@ -200,13 +153,13 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
     end
 
     assert_match %r/<head>/i, res.body
-
-    assert_includes @engine.metrics, 'External/all'
-    assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
-    assert_includes @engine.metrics, 'External/allWeb'
-    assert_includes @engine.metrics, 'External/www.google.com/all'
-    assert_includes @engine.metrics,
+    assert_metrics_recorded([
+      'External/all',
+      'External/www.google.com/Net::HTTP/GET',
+      'External/allWeb',
+      'External/www.google.com/all',
       'Controller/NewRelic::Agent::Instrumentation::NetInstrumentationTest/task'
+    ])
 
     assert_not_includes @engine.metrics, 'External/allOther'
   end
@@ -214,42 +167,39 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
   def test_get__simple
     Net::HTTP.get URI.parse('http://www.google.com/index.html')
 
-    assert_includes @engine.metrics, 'External/all'
-    assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
-    assert_includes @engine.metrics, 'External/allOther'
-    assert_includes @engine.metrics, 'External/www.google.com/all'
-
-    assert_not_includes @engine.metrics, 'External/allWeb'
+    assert_metrics_recorded_exclusive([
+      'External/all',
+      'External/www.google.com/Net::HTTP/GET',
+      'External/allOther',
+      'External/www.google.com/all'
+    ])
   end
 
   def test_ignore
-    NewRelic::Agent.disable_all_tracing do
-      url = URI.parse('http://www.google.com/index.html')
-      res = Net::HTTP.start(url.host, url.port) {|http|
-        http.post('/index.html','data')
-      }
+    in_transaction do
+      NewRelic::Agent.disable_all_tracing do
+        url = URI.parse('http://www.google.com/index.html')
+        res = Net::HTTP.start(url.host, url.port) {|http|
+          http.post('/index.html','data')
+        }
+      end
     end
 
-    assert_not_includes @engine.metrics, 'External/all'
-    assert_not_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
-    assert_not_includes @engine.metrics, 'External/allOther'
-    assert_not_includes @engine.metrics, 'External/www.google.com/all'
-
-    assert_not_includes @engine.metrics, 'External/allWeb'
+    assert_metrics_recorded_exclusive([])
   end
-    
+
   def test_head
     url = URI.parse('http://www.google.com/index.html')
     res = Net::HTTP.start(url.host, url.port) {|http|
       http.head('/index.html')
     }
 
-    assert_includes @engine.metrics, 'External/all'
-    assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/HEAD'
-    assert_includes @engine.metrics, 'External/allOther'
-    assert_includes @engine.metrics, 'External/www.google.com/all'
-
-    assert_not_includes @engine.metrics, 'External/allWeb'
+    assert_metrics_recorded_exclusive([
+      'External/all',
+      'External/www.google.com/Net::HTTP/HEAD',
+      'External/allOther',
+      'External/www.google.com/all'
+    ])
   end
 
   def test_post
@@ -258,12 +208,12 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
       http.post('/index.html','data')
     }
 
-    assert_includes @engine.metrics, 'External/all'
-    assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/POST'
-    assert_includes @engine.metrics, 'External/allOther'
-    assert_includes @engine.metrics, 'External/www.google.com/all'
-
-    assert_not_includes @engine.metrics, 'External/allWeb'
+    assert_metrics_recorded_exclusive([
+      'External/all',
+      'External/www.google.com/Net::HTTP/POST',
+      'External/allOther',
+      'External/www.google.com/all'
+    ])
   end
 
   # When an http call is made, the agent should add a request header named
@@ -276,7 +226,7 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
       # The above assertion won't work in Ruby 2.0.0-p0 because of a bug in the
       # regexp engine.  Until that's fixed we'll check the header name case
       # sensitively.
-      assert_match /X-Newrelic-Id: VURQV1BZRkZdXUFT/, data
+      assert_match(/X-Newrelic-Id: VURQV1BZRkZdXUFT/, data)
     end
 
     with_config(:"cross_application_tracer.enabled" => true) do
@@ -290,7 +240,7 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
       # The above assertion won't work in Ruby 2.0.0-p0 because of a bug in the
       # regexp engine.  Until that's fixed we'll check the header name case
       # sensitively.
-      assert_match /X-Newrelic-Id: VURQV1BZRkZdXUFT/, data
+      assert_match(/X-Newrelic-Id: VURQV1BZRkZdXUFT/, data)
     end
 
     with_config(:cross_application_tracing => true) do
@@ -304,7 +254,7 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
       # The above assertion won't work in Ruby 2.0.0-p0 because of a bug in the
       # regexp engine.  Until that's fixed we'll check the header name case
       # sensitively.
-      assert_no_match /X-Newrelic-Id: VURQV1BZRkZdXUFT/, data
+      assert_no_match(/X-Newrelic-Id: VURQV1BZRkZdXUFT/, data)
     end
 
     Net::HTTP.get URI.parse('http://www.google.com/index.html')
@@ -313,40 +263,35 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
 
   def test_instrumentation_with_crossapp_enabled_records_normal_metrics_if_no_header_present
     with_config(:"cross_application_tracer.enabled" => true) do
-      Net::HTTP.get URI.parse('http://www.google.com/index.html')
+      in_transaction('test') do
+        Net::HTTP.get URI.parse('http://www.google.com/index.html')
+      end
     end
 
-    assert_equal 5, @engine.metrics.length
-
-    assert_includes @engine.metrics, 'External/all'
-    assert_includes @engine.metrics, 'External/allOther'
-    assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
-    assert_includes @engine.metrics, 'External/www.google.com/all'
-    assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET:test'
-
-    assert_not_includes @engine.metrics, 'ExternalApp/www.google.com/18#1884/all'
-    assert_not_includes @engine.metrics, 'ExternalTransaction/www.google.com/18#1884/txn-name'
-    assert_not_includes @engine.metrics, 'External/allWeb'
+    assert_metrics_recorded_exclusive([
+      'External/all',
+      'External/allOther',
+      'External/www.google.com/all',
+      'External/www.google.com/Net::HTTP/GET',
+      ['External/www.google.com/Net::HTTP/GET', 'test']
+    ])
   end
-
 
   def test_instrumentation_with_crossapp_disabled_records_normal_metrics_even_if_header_is_present
     @response[ NR_APPDATA_HEADER ] = 
       make_app_data_payload( '18#1884', 'txn-name', 2, 8, 0, TRANSACTION_GUID )
 
-    Net::HTTP.get URI.parse('http://www.google.com/index.html')
+    in_transaction('test') do
+      Net::HTTP.get URI.parse('http://www.google.com/index.html')
+    end
 
-    assert_equal 5, @engine.metrics.length
-
-    assert_includes @engine.metrics, 'External/all'
-    assert_includes @engine.metrics, 'External/allOther'
-    assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
-    assert_includes @engine.metrics, 'External/www.google.com/all'
-    assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET:test'
-
-    assert_not_includes @engine.metrics, 'ExternalApp/www.google.com/18#1884/all'
-    assert_not_includes @engine.metrics, 'ExternalTransaction/www.google.com/18#1884/txn-name'
-    assert_not_includes @engine.metrics, 'External/allWeb'
+    assert_metrics_recorded_exclusive([
+      'External/all',
+      'External/allOther',
+      'External/www.google.com/all',
+      'External/www.google.com/Net::HTTP/GET',
+       ['External/www.google.com/Net::HTTP/GET', 'test']
+    ])
   end
 
 
@@ -355,25 +300,23 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
       make_app_data_payload( '18#1884', 'txn-name', 2, 8, 0, TRANSACTION_GUID )
 
     with_config(:"cross_application_tracer.enabled" => true) do
-      Net::HTTP.get URI.parse('http://www.google.com/index.html')
+      in_transaction('test') do
+        Net::HTTP.get URI.parse('http://www.google.com/index.html')
+
+        last_segment = find_last_segment()
+        assert_includes last_segment.params.keys, :transaction_guid
+        assert_equal TRANSACTION_GUID, last_segment.params[:transaction_guid]
+      end
     end
 
-    assert_equal 6, @engine.metrics.length
-
-    assert_includes @engine.metrics, 'External/all'
-    assert_includes @engine.metrics, 'External/allOther'
-    assert_includes @engine.metrics, 'ExternalApp/www.google.com/18#1884/all'
-    assert_includes @engine.metrics, 'ExternalTransaction/www.google.com/18#1884/txn-name'
-    assert_includes @engine.metrics, 'External/www.google.com/all'
-    assert_includes @engine.metrics, 'ExternalTransaction/www.google.com/18#1884/txn-name:test'
-
-    assert_not_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
-    assert_not_includes @engine.metrics, 'External/allWeb'
-
-    last_segment = find_last_segment()
-
-    assert_includes last_segment.params.keys, :transaction_guid
-    assert_equal TRANSACTION_GUID, last_segment.params[:transaction_guid]
+    assert_metrics_recorded_exclusive([
+      'External/all',
+      'External/allOther',
+      'ExternalApp/www.google.com/18#1884/all',
+      'ExternalTransaction/www.google.com/18#1884/txn-name',
+      'External/www.google.com/all',
+      ['ExternalTransaction/www.google.com/18#1884/txn-name', 'test']
+    ])
   end
 
   def test_crossapp_metrics_allow_valid_utf8_characters
@@ -381,25 +324,23 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
       make_app_data_payload( '12#1114', '世界線航跡蔵', 18.0, 88.1, 4096, TRANSACTION_GUID )
 
     with_config(:"cross_application_tracer.enabled" => true) do
-      Net::HTTP.get URI.parse('http://www.google.com/index.html')
+      in_transaction('test') do
+        Net::HTTP.get URI.parse('http://www.google.com/index.html')
+
+        last_segment = find_last_segment()
+        assert_includes last_segment.params.keys, :transaction_guid
+        assert_equal TRANSACTION_GUID, last_segment.params[:transaction_guid]
+      end
     end
 
-    assert_equal 6, @engine.metrics.length
-
-    assert_includes @engine.metrics, 'External/all'
-    assert_includes @engine.metrics, 'External/allOther'
-    assert_includes @engine.metrics, 'ExternalApp/www.google.com/12#1114/all'
-    assert_includes @engine.metrics, 'ExternalTransaction/www.google.com/12#1114/世界線航跡蔵'
-    assert_includes @engine.metrics, 'External/www.google.com/all'
-    assert_includes @engine.metrics, 'ExternalTransaction/www.google.com/12#1114/世界線航跡蔵:test'
-
-    assert_not_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
-    assert_not_includes @engine.metrics, 'External/allWeb'
-
-    last_segment = find_last_segment()
-
-    assert_includes last_segment.params.keys, :transaction_guid
-    assert_equal TRANSACTION_GUID, last_segment.params[:transaction_guid]
+    assert_metrics_recorded_exclusive([
+      'External/all',
+      'External/allOther',
+      'ExternalApp/www.google.com/12#1114/all',
+      'External/www.google.com/all',
+      'ExternalTransaction/www.google.com/12#1114/世界線航跡蔵',
+      ['ExternalTransaction/www.google.com/12#1114/世界線航跡蔵', 'test']
+    ])
   end
 
   def test_crossapp_metrics_ignores_crossapp_header_with_malformed_crossprocess_id
@@ -407,20 +348,18 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
       make_app_data_payload( '88#88#88', 'invalid', 1, 2, 4096, TRANSACTION_GUID )
 
     with_config(:"cross_application_tracer.enabled" => true) do
-      Net::HTTP.get URI.parse('http://www.google.com/index.html')
+      in_transaction('test') do
+        Net::HTTP.get URI.parse('http://www.google.com/index.html')
+      end
     end
 
-    assert_equal 5, @engine.metrics.length
-
-    assert_includes @engine.metrics, 'External/all'
-    assert_includes @engine.metrics, 'External/allOther'
-    assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET'
-    assert_includes @engine.metrics, 'External/www.google.com/all'
-    assert_includes @engine.metrics, 'External/www.google.com/Net::HTTP/GET:test'
-
-    assert_not_includes @engine.metrics, 'ExternalApp/www.google.com/88#88#88/all'
-    assert_not_includes @engine.metrics, 'ExternalTransaction/www.google.com/88#88#88/invalid'
-    assert_not_includes @engine.metrics, 'External/allWeb'
+    assert_metrics_recorded_exclusive([
+      'External/all',
+      'External/allOther',
+      'External/www.google.com/Net::HTTP/GET',
+      'External/www.google.com/all',
+      ['External/www.google.com/Net::HTTP/GET', 'test']
+    ])
   end
 
   def test_doesnt_affect_the_request_if_an_exception_is_raised_while_setting_up_tracing
@@ -481,4 +420,13 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
     @engine.transaction_sampler = NewRelic::Agent.agent.transaction_sampler
   end
 
+  def test_includes_full_url_in_transaction_trace
+    uri = 'http://www.google.com/index.html?foo=bar#fragment'
+    in_transaction do 
+      Net::HTTP.get URI.parse(uri)
+      last_segment = find_last_segment()
+      filtered_uri = 'http://www.google.com/index.html'
+      assert_equal filtered_uri, last_segment.params[:uri]
+    end
+  end
 end

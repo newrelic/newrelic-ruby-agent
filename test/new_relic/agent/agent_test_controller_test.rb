@@ -44,6 +44,12 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
       newrelic_ignore_apdex :only => :action_to_ignore_apdex
     end
     @engine = @agent.stats_engine
+
+    # ActiveSupport testing keeps blowing away my subscribers on
+    # teardown for some reason.  Have to keep putting it back.
+    NewRelic::Agent.instance.events.subscribe(:before_call) do |env|
+      NewRelic::Agent::TransactionInfo.reset(::Rack::Request.new(env))
+    end
   end
 
   # Normally you can do this with #setup but for some reason in rails 2.0.2
@@ -77,17 +83,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     assert_equal 1, engine.get_stats_no_scope('Mongrel/Queue Length').call_count
     assert_equal 9, engine.get_stats_no_scope('Mongrel/Queue Length').total_call_time
     assert_equal 0, engine.get_stats_no_scope('WebFrontend/Mongrel/Average Queue Time').call_count
-  end
-
-  def test_heroku_queue
-    engine.clear_stats
-    NewRelic::Agent::AgentTestController.set_some_headers 'HTTP_X_HEROKU_QUEUE_DEPTH'=>'15'
-    get :index
-    assert_equal 1, stats('HttpDispatcher').call_count
-    assert_equal 1, engine.get_stats_no_scope('Mongrel/Queue Length').call_count
-    assert_equal 15, engine.get_stats_no_scope('Mongrel/Queue Length').total_call_time
-    assert_equal 0, engine.get_stats_no_scope('WebFrontend/Mongrel/Average Queue Time').call_count
-  end
+  end if ::Rails::VERSION::MAJOR.to_i <= 3
 
   def test_new_queue_integration
     # make this test deterministic
@@ -120,7 +116,8 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     engine.clear_stats
     get :action_inline
     assert_equal 'foofah', @response.body
-    compare_metrics %w[Controller/new_relic/agent/agent_test/action_inline], engine.metrics.grep(/^Controller/)
+    compare_metrics(%w[Controller/new_relic/agent/agent_test/action_inline],
+                    engine.metrics.grep(/^Controller/))
   end
 
   def test_metric__ignore
@@ -130,6 +127,9 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     compare_metrics [], engine.metrics
   end
 
+  # Rails 4 does all error tracking in Rack, not testable here
+  # see the rails Multiverse suit for Rails 4 error tests
+  if ::Rails::VERSION::MAJOR.to_i <= 3
   def test_controller_rescued_error
     engine.clear_stats
     assert_raise RuntimeError do
@@ -195,6 +195,7 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     assert_equal 0, apdex.apdex_t, 'tol'
     assert_equal 0, apdex.apdex_s, 'satisfied'
   end
+  end
 
   def test_metric__ignore_base
     engine.clear_stats
@@ -228,15 +229,18 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     assert_nil Thread.current[:newrelic_ignore_controller]
   end
 
-  def test_metric__dispatched
+  def test_records_metric_dispite_ignore_state_when_forced
     engine = @agent.stats_engine
     get :entry_action
     assert_nil Thread.current[:newrelic_ignore_controller]
+    # explicitly ignored
     assert_nil engine.lookup_stats('Controller/agent_test/entry_action')
     assert_nil engine.lookup_stats('Controller/agent_test_controller/entry_action')
     assert_nil engine.lookup_stats('Controller/AgentTestController/entry_action')
+    # implicitly ignored because parent action ignored
     assert_nil engine.lookup_stats('Controller/NewRelic::Agent::AgentTestController/internal_action')
     assert_nil engine.lookup_stats('Controller/NewRelic::Agent::AgentTestController_controller/internal_action')
+    # forced to be recorded, overrides parent ignore state
     assert_not_nil engine.lookup_stats('Controller/NewRelic::Agent::AgentTestController/internal_traced_action')
   end
 
@@ -245,24 +249,15 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     assert_match /bar/, @response.body
   end
 
-  def test_controller_params
-    assert agent.transaction_sampler
-    num_samples = NewRelic::Agent.instance.transaction_sampler.samples.length
-    assert_equal "[FILTERED]", @controller._filter_parameters({'social_security_number' => 'test'})['social_security_number']
-    get :index, 'social_security_number' => "001-555-1212"
-    samples = agent.transaction_sampler.samples
-    assert_equal num_samples + 1, samples.length
-    assert_equal "[FILTERED]", samples.last.params[:request_params]["social_security_number"]
-  end
-
-  def test_controller_params
+  def test_request_params
     s = with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
       agent.transaction_sampler.reset!
       get :index, 'number' => "001-555-1212"
       agent.transaction_sampler.harvest(nil)
     end
     assert_equal 1, s.size
-    assert_equal 5, s.first.params.size
+    assert_equal('001-555-1212',
+                 s.first.params[:request_params]['number'])
   end
 
   def test_busy_calculation_correctly_calculates_based_acccumlator
@@ -335,50 +330,6 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     assert(queue_time_stat.total_call_time > 0.1, "Queue time should be longer than 100ms")
     assert(queue_time_stat.total_call_time < 10, "Queue time should be under 10 seconds (sanity check)")
 
-  end
-
-  def test_queue_headers_heroku
-    # make this test deterministic
-    Time.stubs(:now => Time.at(1360973845))
-
-    engine.clear_stats
-    NewRelic::Agent::AgentTestController.clear_headers
-
-    queue_length_stat = stats('Mongrel/Queue Length')
-    queue_time_stat = stats('WebFrontend/QueueTime')
-
-    # heroku version
-    request_start = ((Time.now.to_f - 0.5) * 1e6).to_i.to_s
-    NewRelic::Agent::AgentTestController.set_some_headers({'HTTP_X_QUEUE_START' => "t=#{request_start}", 'HTTP_X_HEROKU_QUEUE_DEPTH' => '0'})
-    get :index
-    assert_equal(0, queue_length_stat.total_call_time, 'queue should be empty')
-    assert_equal(1, queue_time_stat.call_count, 'should have seen the queue header once')
-    assert(queue_time_stat.total_call_time > 0.1, "Queue time should be longer than 100ms")
-    assert(queue_time_stat.total_call_time < 10, "Queue time should be under 10 seconds (sanity check)")
-  end
-
-  def test_queue_headers_heroku_queue_length
-    # make this test deterministic
-    Time.stubs(:now => Time.at(1360973845))
-
-    engine.clear_stats
-    NewRelic::Agent::AgentTestController.clear_headers
-
-    queue_length_stat = stats('Mongrel/Queue Length')
-    queue_time_stat = stats('WebFrontend/QueueTime')
-
-    # heroku version with queue length > 0
-    request_start = ((Time.now.to_f - 0.5) * 1e6).to_i.to_s
-    NewRelic::Agent::AgentTestController.set_some_headers({'HTTP_X_QUEUE_START' => "t=#{request_start}", 'HTTP_X_HEROKU_QUEUE_DEPTH' => '3'})
-    get :index
-
-    assert_equal(1, queue_length_stat.call_count, 'queue should have been seen once')
-    assert_equal(1, queue_time_stat.call_count, 'should have seen the queue header once')
-    assert(queue_time_stat.total_call_time > 0.1, "Queue time should be longer than 100ms")
-    assert(queue_time_stat.total_call_time < 10, "Queue time should be under 10 seconds (sanity check)")
-    assert_equal(3, queue_length_stat.total_call_time, 'queue should be 3 long')
-
-    NewRelic::Agent::AgentTestController.clear_headers
   end
 
   private

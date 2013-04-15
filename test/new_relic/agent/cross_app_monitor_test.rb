@@ -198,6 +198,14 @@ module NewRelic::Agent
       assert_equal str, decoded
     end
 
+    def test_setting_response_headers_freezes_transaction_name
+      in_transaction do
+        assert !NewRelic::Agent::Transaction.current.name_frozen?
+        when_request_runs
+        assert NewRelic::Agent::Transaction.current.name_frozen?
+      end
+    end
+
     #
     # Helpers
     #

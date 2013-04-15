@@ -36,7 +36,7 @@ class LoggingTest < Test::Unit::TestCase
   def test_logs_missing_dispatcher
     running_agent_writes_to_log(
       {:dispatcher => ''},
-      "No dispatcher detected")
+      "No known dispatcher detected")
   end
 
   def test_logs_raw_sql_warning

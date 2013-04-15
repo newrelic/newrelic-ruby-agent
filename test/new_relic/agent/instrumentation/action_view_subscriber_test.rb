@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
-require 'new_relic/agent/instrumentation/rails4/action_view'
+require 'new_relic/agent/instrumentation/action_view_subscriber'
 
 class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::TestCase
   def setup
@@ -128,22 +128,19 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::T
 
   def test_records_scoped_metric
     params = { :identifier => '/root/app/views/model/index.html.erb' }
-    t0 = Time.now
-    Time.stubs(:now).returns(t0, t0, t0 + 2, t0 + 2)
-    @stats_engine.start_transaction('test_txn')
 
-    @subscriber.start('render_template.action_view', :id, params)
-    @subscriber.start('!render_template.action_view', :id,
-                      :virtual_path => 'model/index')
-    @subscriber.finish('!render_template.action_view', :id,
-                       :virtual_path => 'model/index')
-    @subscriber.finish('render_template.action_view', :id, params)
+    in_transaction('test_txn') do
+      @subscriber.start('render_template.action_view', :id, params)
+      @subscriber.start('!render_template.action_view', :id,
+                        :virtual_path => 'model/index')
+      @subscriber.finish('!render_template.action_view', :id,
+                         :virtual_path => 'model/index')
+      @subscriber.finish('render_template.action_view', :id, params)
+    end
 
     metric = @stats_engine.lookup_stats('View/model/index.html.erb/Rendering',
                                         'test_txn')
     assert_equal(1, metric.call_count)
-    assert_equal(2.0, metric.total_call_time)
-
   end
 
   def test_records_nothing_if_tracing_disabled
@@ -161,7 +158,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::T
   def test_creates_txn_segment_for_simple_render
     params = { :identifier => '/root/app/views/model/index.html.erb' }
 
-    sampler = in_transaction do
+    in_transaction do
       @subscriber.start('render_template.action_view', :id, params)
       @subscriber.start('!render_template.action_view', :id,
                         :virtual_path => 'model/index')
@@ -171,6 +168,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::T
     end
 
     last_segment = nil
+    sampler = NewRelic::Agent.instance.transaction_sampler
     sampler.last_sample.root_segment.each_segment{|s| last_segment = s }
     NewRelic::Agent.shutdown
 
@@ -179,7 +177,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::T
   end
 
   def test_creates_nested_partial_segment_within_render_segment
-    sampler = in_transaction do
+    in_transaction do
       @subscriber.start('render_template.action_view', :id,
                         :identifier => 'model/index.html.erb')
       @subscriber.start('!render_template.action_view', :id,
@@ -193,12 +191,13 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::T
       @subscriber.finish('render_partial.action_view', :id,
                          :identifier => '/root/app/views/model/_list.html.erb')
       @subscriber.finish('!render_template.action_view', :id,
-                         :virtual_path => 'model/index')
+                           :virtual_path => 'model/index')
       @subscriber.finish('render_template.action_view', :id,
                          :identifier => 'model/index.html.erb')
     end
 
-    template_segment = sampler.last_sample.root_segment.called_segments[0].called_segments[0]
+    sampler = NewRelic::Agent.instance.transaction_sampler
+    template_segment = sampler.last_sample.root_segment.called_segments[0]
     partial_segment = template_segment.called_segments[0]
 
     assert_equal('View/model/index.html.erb/Rendering',
@@ -208,7 +207,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::T
   end
 
   def test_creates_nodes_for_each_in_a_collection_event
-    sampler = in_transaction do
+    in_transaction do
       @subscriber.start('render_collection.action_view', :id,
                         :identifier => '/root/app/views/model/_list.html.erb',
                         :count => 3)
@@ -229,26 +228,11 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Test::Unit::T
                          :count => 3)
     end
 
-    template_segment = sampler.last_sample.root_segment.called_segments[0]
-    partial_segments = template_segment.called_segments
+    sampler = NewRelic::Agent.instance.transaction_sampler
+    partial_segments = sampler.last_sample.root_segment.called_segments
 
     assert_equal 3, partial_segments.size
     assert_equal('View/model/_list.html.erb/Partial',
                  partial_segments[0].metric_name)
-  end
-
-  def in_transaction
-    NewRelic::Agent.manual_start
-    NewRelic::Agent.instance.stats_engine.start_transaction('test')
-    sampler = NewRelic::Agent.instance.transaction_sampler
-    sampler.notice_first_scope_push(Time.now.to_f)
-    sampler.notice_transaction('/path', '/path', {})
-    sampler.notice_push_scope('Controller/sandwiches/index')
-    yield
-    sampler.notice_pop_scope('Controller/sandwiches/index')
-    sampler.notice_scope_empty
-    sampler
-  ensure
-    NewRelic::Agent.shutdown
   end
 end if ::Rails::VERSION::MAJOR.to_i >= 4

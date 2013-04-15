@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/instrumentation/metric_frame'
+require 'new_relic/agent/transaction'
 require 'new_relic/agent/instrumentation/queue_time'
 module NewRelic
   module Agent
@@ -39,7 +39,6 @@ module NewRelic
           end
           def newrelic_notice_error(*args); end
           def new_relic_trace_controller_action(*args); yield; end
-          def newrelic_metric_path; end
           def perform_action_with_newrelic_trace(*args); yield; end
         end
 
@@ -75,6 +74,7 @@ module NewRelic
           def newrelic_write_attr(attr_name, value) # :nodoc:
             instance_variable_set "@#{attr_name}", value
           end
+
           def newrelic_read_attr(attr_name) # :nodoc:
             instance_variable_get "@#{attr_name}"
           end
@@ -167,12 +167,54 @@ module NewRelic
           end
         end
 
-        # Must be implemented in the controller class:
-        # Determine the path that is used in the metric name for
-        # the called controller action.  Of the form controller_path/action_name
-        #
-        def newrelic_metric_path(action_name_override = nil) # :nodoc:
-          raise "Not implemented!"
+        class TransactionNamer
+          def initialize(traced_obj)
+            @traced_obj = traced_obj
+            if (@traced_obj.is_a?(Class) || @traced_obj.is_a?(Module))
+              @traced_class_name = @traced_obj.name
+            else
+              @traced_class_name = @traced_obj.class.name
+            end
+          end
+
+          def name(options={})
+            name = "#{category_name(options[:category])}/#{path_name(options)}"
+          end
+
+          def category_name(type)
+            type ||= Transaction.current && Transaction.current.type
+            case type
+            when :controller, nil then 'Controller'
+            when :task then 'OtherTransaction/Background'
+            when :rack then 'Controller/Rack'
+            when :uri then 'Controller'
+            when :sinatra then 'Controller/Sinatra'
+              # for internal use only
+            else type.to_s
+            end
+          end
+
+          def path_name(options={})
+            # if we have the path, use the path
+            path = options[:path]
+
+            class_name = options[:class_name] || @traced_class_name
+
+            # if we have an explicit action name option, use that
+            if options[:name]
+              path ||= [ class_name, options[:name] ].compact.join('/')
+            end
+
+            # if newrelic_metric_path() is defined, use that
+            if @traced_obj.respond_to?(:newrelic_metric_path)
+              path ||= @traced_obj.newrelic_metric_path
+            end
+
+            # fall back on just the traced class name
+            path ||= class_name
+
+            return path
+          end
         end
 
         # Yield to the given block with NewRelic tracing.  Used by
@@ -262,37 +304,56 @@ module NewRelic
           control = NewRelic::Control.instance
           return perform_action_with_newrelic_profile(args, &block) if control.profiling?
 
-          frame_data = _push_metric_frame(block_given? ? args : [])
+          txn = _start_transaction(block_given? ? args : [])
           begin
-            NewRelic::Agent.trace_execution_scoped frame_data.recorded_metrics, :force => frame_data.force_flag do
-              frame_data.start_transaction
-              begin
-                NewRelic::Agent::BusyCalculator.dispatcher_start frame_data.start
-                result = if block_given?
-                  yield
-                else
-                  perform_action_without_newrelic_trace(*args)
+            options = { :force => txn.force_flag, :transaction => true }
+            return yield if !(NewRelic::Agent.is_execution_traced? || options[:force])
+            options[:metric] = true if options[:metric].nil?
+            options[:deduct_call_time_from_parent] = true if options[:deduct_call_time_from_parent].nil?
+            start_time, expected_scope = NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScoped.trace_execution_scoped_header(options)
+
+            begin
+              NewRelic::Agent::BusyCalculator.dispatcher_start txn.start_time
+              result = if block_given?
+                         yield
+                       else
+                         perform_action_without_newrelic_trace(*args)
+                       end
+              if defined?(request) && request && defined?(response) && response
+                if !Agent.config[:disable_mobile_headers]
+                  NewRelic::Agent::BrowserMonitoring.insert_mobile_response_header(request, response)
                 end
-                if defined?(request) && request && defined?(response) && response
-                  if !Agent.config[:disable_mobile_headers]
-                    NewRelic::Agent::BrowserMonitoring.insert_mobile_response_header(request, response)
-                  end
-                end
-                result
-              rescue => e
-                frame_data.notice_error(e)
-                raise
               end
+              result
+            rescue => e
+              txn.notice_error(e)
+              raise
             end
+
           ensure
+            txn.freeze_name
+            metrics = recorded_metrics(txn)
+            txn_name = metrics.first
+
+            metric_names = Array(metrics)
+            first_name = metric_names.shift
+            scope = NewRelic::Agent.instance.stats_engine.scope_name
+            NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScoped.trace_execution_scoped_footer(start_time, first_name, metric_names, expected_scope, scope, options)
             NewRelic::Agent::BusyCalculator.dispatcher_finish
-            # Look for a metric frame in the thread local and process it.
+            # Look for a transaction in the thread local and process it.
             # Clear the thread local when finished to ensure it only gets called once.
-            frame_data.record_apdex unless ignore_apdex?
-            frame_data.pop
+            txn = Transaction.stop(txn_name)
+            txn.record_apdex(txn_name) unless ignore_apdex?
 
             NewRelic::Agent::TransactionInfo.get.ignore_end_user = true if ignore_enduser?
           end
+        end
+
+        def recorded_metrics(txn)
+          metric_parser = NewRelic::MetricParser::MetricParser.for_metric_named(txn.name)
+          metrics = [txn.name]
+          metrics += metric_parser.summary_metrics unless txn.has_parent?
+          metrics
         end
 
         protected
@@ -343,10 +404,9 @@ module NewRelic
         # Profile the instrumented call.  Dev mode only.  Experimental
         # - should definitely not be used on production applications
         def perform_action_with_newrelic_profile(args)
-          frame_data = _push_metric_frame(block_given? ? args : [])
+          txn = _start_transaction(block_given? ? args : [])
           val = nil
-          NewRelic::Agent.trace_execution_scoped frame_data.metric_name do
-            MetricFrame.current(true).start_transaction
+          NewRelic::Agent.trace_execution_scoped txn.metric_name do
             NewRelic::Agent.disable_all_tracing do
               # turn on profiling
               profile = RubyProf.profile do
@@ -361,78 +421,35 @@ module NewRelic
           end
           return val
         ensure
-          frame_data.pop
+          txn.pop
         end
 
-        def transaction_name(options={})
-          name = "#{category_name(options)}/#{path_name(options)}"
-          NewRelic::Agent.instance.transaction_rules.rename(name)
-        end
-
-        def category_name(options)
-          case options[:category]
-            when :controller, nil then 'Controller'
-            when :task then 'OtherTransaction/Background' # 'Task'
-            when :rack then 'Controller/Rack' #'WebTransaction/Rack'
-            when :uri then 'Controller' #'WebTransaction/Uri'
-            when :sinatra then 'Controller/Sinatra' #'WebTransaction/Uri'
-              # for internal use only
-            else options[:category].to_s
-          end
-        end
-
-        def path_name(options)
-          if options.any?
-            options[:path] || path_class_and_action(options)
-          else
-            newrelic_metric_path
-          end
-        end
-
-        def path_class_and_action(options)
-          metric_class = options[:class_name]
-
-          if !metric_class
-            if (self.is_a?(Class) || self.is_a?(Module))
-              metric_class = self.name
-            else
-              metric_class = self.class.name
-            end
-          end
-
-          [ metric_class, options[:name] ].compact.join('/')
-        end
-
-        # Write a metric frame onto a thread local if there isn't already one there.
+        # Write a transaction onto a thread local if there isn't already one there.
         # If there is one, just update it.
-        def _push_metric_frame(args) # :nodoc:
-          frame_data = NewRelic::Agent::Instrumentation::MetricFrame.current(true)
-
-          frame_data.apdex_start ||= _detect_upstream_wait(frame_data.start)
-          _record_queue_length
-
+        def _start_transaction(args) # :nodoc:
           # If a block was passed in, then the arguments represent options for the instrumentation,
           # not app method arguments.
           options = {}
           if args.any?
             if args.last.is_a?(Hash)
               options = args.pop
-              frame_data.force_flag = options[:force]
-              frame_data.request = options[:request] if options[:request]
             end
             available_params = options[:params] || {}
             options[:name] ||= args.first
           else
             available_params = self.respond_to?(:params) ? self.params : {}
           end
-          frame_data.request ||= self.request if self.respond_to? :request
 
-          txn_name = transaction_name(options || {})
+          options[:request] ||= self.request if self.respond_to? :request
+          options[:filtered_params] = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
+          category = options[:category] || :controller
+          txn = Transaction.start(category, options)
+          txn.name = TransactionNamer.new(self).name(options)
 
-          frame_data.push(txn_name)
-          NewRelic::Agent::TransactionInfo.get.transaction_name = txn_name
-          frame_data.filtered_params = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
-          frame_data
+          txn.apdex_start ||= _detect_upstream_wait(txn.start_time)
+          _record_queue_length
+
+          return txn
         end
 
         # Filter out a request if it matches one of our parameters for

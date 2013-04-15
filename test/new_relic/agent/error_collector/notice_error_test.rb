@@ -175,10 +175,6 @@ class NewRelic::Agent::ErrorCollector::NoticeErrorTest < Test::Unit::TestCase
     error = nil
     with_error_collector_config(:'error_collector.enabled' => true) do |error_collector|
       error_collector.expects(:error_is_ignored?).with(error).returns(false)
-      # we increment it for the case that someone calls
-      # NewRelic::Agent.notice_error(foo) # foo is nil
-      # (which is probably not a good idea but is the existing api)
-      error_collector.expects(:increment_error_count!)
       assert error_collector.should_exit_notice_error?(error)
     end
   end
@@ -195,7 +191,6 @@ class NewRelic::Agent::ErrorCollector::NoticeErrorTest < Test::Unit::TestCase
     error = mocked_error
     with_error_collector_config(:'error_collector.enabled' => true) do |error_collector|
       error_collector.expects(:error_is_ignored?).with(error).returns(false)
-      error_collector.expects(:increment_error_count!)
       assert !error_collector.should_exit_notice_error?(error)
     end
   end

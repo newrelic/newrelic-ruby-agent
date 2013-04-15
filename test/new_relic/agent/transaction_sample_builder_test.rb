@@ -13,7 +13,7 @@ class NewRelic::Agent::TransationSampleBuilderTest < Test::Unit::TestCase
   # if it doesn't the core app tests will break.  Not strictly necessary but
   # we'll enforce it with this test for now.
   def test_trace_entry_returns_segment
-    segment = @builder.trace_entry("/Foo/Bar", Time.now)
+    segment = @builder.trace_entry(Time.now)
     assert segment, "Segment should not be nil"
     assert segment.is_a?(NewRelic::TransactionSample::Segment), "Segment should not be a #{segment.class.name}"
   end
@@ -129,19 +129,7 @@ class NewRelic::Agent::TransationSampleBuilderTest < Test::Unit::TestCase
       assert_nil segment.metric_name =~ /Rails\/Application Code Loading/
     end
   end
-  def test_unbalanced_handling
-    assert_raise RuntimeError do
-      build_segment("a") do
-        begin
-          build_segment("aa") do
-            build_segment("aaa") do
-              raise "a problem"
-            end
-          end
-          rescue; end
-      end
-    end
-  end
+
   def test_marshal
     build_segment "a" do
       build_segment "ab"
@@ -213,10 +201,14 @@ class NewRelic::Agent::TransationSampleBuilderTest < Test::Unit::TestCase
     assert s.exit_timestamp >= s.entry_timestamp
 
     children = s.called_segments
-    last_segment = s
+    parent = s
     children.each do |child|
-      assert child.metric_name > last_segment.metric_name if check_names
-      assert child.entry_timestamp >= last_segment.entry_timestamp
+      if check_names
+        assert(child.metric_name > parent.metric_name,
+               "#{child.metric_name} !> #{parent.metric_name}")
+      end
+      assert(child.entry_timestamp >= parent.entry_timestamp,
+             "#{child.entry_timestamp} !>= #{parent.entry_timestamp}")
       last_metric = child
 
       validate_segment(child, check_names)
@@ -224,7 +216,7 @@ class NewRelic::Agent::TransationSampleBuilderTest < Test::Unit::TestCase
   end
 
   def build_segment(metric, time = 0, &proc)
-    @builder.trace_entry(metric, Time.now.to_f)
+    @builder.trace_entry(Time.now.to_f)
     proc.call if proc
     @builder.trace_exit(metric, Time.now.to_f)
   end

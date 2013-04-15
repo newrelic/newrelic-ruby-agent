@@ -77,7 +77,7 @@ module NewRelic
           perform_action_with_newrelic_trace(:category => :rack, :request => @newrelic_request) do
             result = call_without_newrelic(*args)
             # Ignore cascaded calls
-            MetricFrame.abort_transaction! if result.first == 404
+            Transaction.abort_transaction! if result.first == 404
             result
           end
         end

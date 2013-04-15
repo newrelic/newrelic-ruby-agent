@@ -5,7 +5,7 @@
 require 'new_relic/collection_helper'
 require 'new_relic/transaction_sample'
 require 'new_relic/control'
-require 'new_relic/agent/instrumentation/metric_frame'
+require 'new_relic/agent/transaction'
 module NewRelic
   module Agent
     # a builder is created with every sampled transaction, to dynamically
@@ -27,20 +27,20 @@ module NewRelic
       end
 
       def ignored?
-        @ignore || @sample.params[:path].nil?
+        @ignore
       end
 
       def ignore_transaction
         @ignore = true
       end
-      
+
       def segment_limit
         Agent.config[:'transaction_tracer.limit_segments']
       end
 
-      def trace_entry(metric_name, time)
+      def trace_entry(time)
         if @sample.count_segments < segment_limit()
-          segment = @sample.create_segment(time.to_f - @sample_start, metric_name)
+          segment = @sample.create_segment(time.to_f - @sample_start)
           @current_segment.add_called_segment(segment)
           @current_segment = segment
           if @sample.count_segments == segment_limit()
@@ -52,14 +52,12 @@ module NewRelic
 
       def trace_exit(metric_name, time)
         return unless @sample.count_segments < segment_limit()
-        if metric_name != @current_segment.metric_name
-          fail "unbalanced entry/exit: #{metric_name} != #{@current_segment.metric_name}"
-        end
+        @current_segment.metric_name = metric_name
         @current_segment.end_trace(time.to_f - @sample_start)
         @current_segment = @current_segment.parent_segment
       end
 
-      def finish_trace(time=Time.now.to_f)
+      def finish_trace(time=Time.now.to_f, custom_params={})
         # This should never get called twice, but in a rare case that we can't reproduce in house it does.
         # log forensics and return gracefully
         if @sample.frozen?
@@ -68,7 +66,7 @@ module NewRelic
         end
         @sample.root_segment.end_trace(time.to_f - @sample_start)
         @sample.params[:custom_params] ||= {}
-        @sample.params[:custom_params].merge!(normalize_params(NewRelic::Agent::Instrumentation::MetricFrame.custom_parameters))
+        @sample.params[:custom_params].merge!(normalize_params(custom_params))
 
         txn_info = NewRelic::Agent::TransactionInfo.get
         @sample.force_persist = txn_info.force_persist_sample?(sample)
@@ -97,9 +95,7 @@ module NewRelic
         @sample.profile = profile
       end
 
-      def set_transaction_info(path, uri, params)
-        @sample.params[:path] = path
-
+      def set_transaction_info(uri, params)
         if Agent.config[:capture_params]
           params = normalize_params params
 
@@ -110,15 +106,12 @@ module NewRelic
         @sample.params[:uri] ||= uri || params[:uri]
       end
 
-      def set_transaction_cpu_time(cpu_time)
-        @sample.params[:custom_params] ||= {}
-        @sample.params[:custom_params][:cpu_time] = cpu_time
+      def set_transaction_name(name)
+        @sample.params[:path] = name
       end
 
-      # Set the metric name of the current segment to +new_name+ if 
-      def rename_current_segment( new_name )
-        return unless @sample.count_segments < segment_limit()
-        @current_segment.metric_name = new_name
+      def set_transaction_cpu_time(cpu_time)
+        @sample.set_custom_param(:cpu_time, cpu_time)
       end
 
       def sample

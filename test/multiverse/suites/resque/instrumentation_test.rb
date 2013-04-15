@@ -92,7 +92,7 @@ class ResqueTest < Test::Unit::TestCase
   end
 
   def wait_for_jobs
-    time_for_jobs = 5
+    time_for_jobs = 10
     begin
       Timeout.timeout(time_for_jobs) do
         loop do

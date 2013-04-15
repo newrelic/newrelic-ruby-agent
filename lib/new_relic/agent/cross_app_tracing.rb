@@ -52,7 +52,7 @@ module NewRelic
 
         # Create a segment and time the call
         t0 = Time.now
-        segment = stats_engine.push_scope( "External/#{http.address}/all", t0 )
+        segment = stats_engine.push_scope( :net_http, t0 )
 
         return t0, segment
       rescue => err
@@ -78,13 +78,13 @@ module NewRelic
             stats_engine.record_metrics(scoped_metric, duration, :scoped => true)
 
             # Add TT custom parameters
-            stats_engine.rename_scope_segment( scoped_metric )
-            extract_custom_parameters( response ) if response_is_crossapp?( response )
+            segment.name = scoped_metric
+            add_transaction_trace_parameters(http, request, response)
           end
         ensure
           # We always need to pop the scope stack to avoid an inconsistent
           # state, which will prevent tracing of the whole transaction.
-          stats_engine.pop_scope( segment, duration, t1 )
+          stats_engine.pop_scope( segment, scoped_metric, t1 )
         end
       rescue NewRelic::Agent::CrossAppTracing::Error => err
         NewRelic::Agent.logger.debug "while cross app tracing", err
@@ -124,15 +124,21 @@ module NewRelic
         NewRelic::Agent.logger.debug "Not injecting x-process header", err
       end
 
+      def add_transaction_trace_parameters(http, request, response)
+        filtered_uri = NewRelic::Agent::URIUtil.filtered_uri_for(http, request)
+        transaction_sampler.add_segment_parameters(:uri => filtered_uri)
+        if response_is_crossapp?( response )
+          add_cat_transaction_trace_parameters( response )
+        end
+      end
+
 
       # Extract any custom parameters from +response+ if it's cross-application and
       # add them to the current TT node.
-      def extract_custom_parameters( response )
-
+      def add_cat_transaction_trace_parameters( response )
         appdata = extract_appdata( response )
-        sampler = NewRelic::Agent.instance.transaction_sampler
-        sampler.add_segment_parameters( :transaction_guid => appdata[APPDATA_TXN_GUID_INDEX] )
-
+        transaction_sampler.add_segment_parameters( \
+          :transaction_guid => appdata[APPDATA_TXN_GUID_INDEX] )
       end
 
 
@@ -164,7 +170,7 @@ module NewRelic
         metrics = [ "External/all" ]
         metrics << "External/#{http.address}/all"
 
-        if NewRelic::Agent::Instrumentation::MetricFrame.recording_web_transaction?
+        if NewRelic::Agent::Transaction.recording_web_transaction?
           metrics << "External/allWeb"
         else
           metrics << "External/allOther"
@@ -246,6 +252,9 @@ module NewRelic
         NewRelic::Agent.instance.stats_engine
       end
 
+      def transaction_sampler
+        NewRelic::Agent.instance.transaction_sampler
+      end
 
       # Check the given +id+ to ensure it conforms to the format of a cross-application
       # ID. Raises an NewRelic::Agent::CrossAppTracing::Error if it doesn't.

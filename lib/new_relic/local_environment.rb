@@ -25,9 +25,6 @@ module NewRelic
 
     # used to distinguish instances of a dispatcher from each other, may be nil
     attr_writer :dispatcher_instance_id
-    # The number of cpus, if detected, or nil - many platforms do not
-    # support this :(
-    attr_reader :processors
 
     def initialize
       # Extend self with any any submodules of LocalEnvironment.  These can override
@@ -38,9 +35,6 @@ module NewRelic
       end
 
       discover_dispatcher
-      @gems = Set.new
-      @plugins = Set.new
-      @config = Hash.new
     end
 
 

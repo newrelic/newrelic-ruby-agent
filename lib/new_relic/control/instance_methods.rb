@@ -49,7 +49,11 @@ module NewRelic
       # init_config({}) which is called one or more times.
       #
       def init_plugin(options={})
-        yaml = Agent::Configuration::YamlSource.new(@config_file_path, options[:env] || env)
+        env = options[:env] || self.env
+        Agent.logger.info("Starting the New Relic agent in #{env.inspect} environment.")
+        Agent.logger.info("To prevent agent startup add a NEWRELIC_ENABLE=false environment variable or modify the #{env.inspect} section of your newrelic.yml.")
+
+        yaml = Agent::Configuration::YamlSource.new(@config_file_path, env)
         Agent.config.replace_or_add_config(yaml, 1)
 
         Agent.config.replace_or_add_config(Agent::Configuration::ManualSource.new(options), 1)
@@ -113,24 +117,6 @@ module NewRelic
       end
 
       protected
-
-      # Append framework specific environment information for uploading to
-      # the server for change detection.  Override in subclasses
-      def append_environment_info; end
-
-      # Asks bundler to tell us which gemspecs are loaded in the
-      # current process
-      def bundler_gem_list
-        if defined?(Bundler) && Bundler.instance_eval do @load end
-          Bundler.load.specs.map do |spec|
-            version = (spec.respond_to?(:version) && spec.version)
-            spec.name + (version ? "(#{version})" : "")
-          end
-        else
-          []
-        end
-      end
-
 
       def initialize(local_env, config_file_override=nil)
         @local_env = local_env

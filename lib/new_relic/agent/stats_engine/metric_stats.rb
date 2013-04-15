@@ -9,6 +9,8 @@ module NewRelic
     class StatsEngine
       # Handles methods related to actual Metric collection
       module MetricStats
+        SCOPE_PLACEHOLDER = :__SCOPE__
+
         # Lookup and write to the named metric in a single call.
         #
         # This method is thead-safe, and is preferred to the lookup / modify
@@ -16,13 +18,19 @@ module NewRelic
         def record_metrics(metric_names_or_specs, value=nil, options={}, &blk)
           defaults = {
             :scoped => false,
-            :scope => scope_name
+            :scope => in_transaction? ? SCOPE_PLACEHOLDER : nil
           }
           options = defaults.merge(options)
+
           effective_scope = options[:scoped] && options[:scope]
           specs = coerce_to_metric_spec_array(metric_names_or_specs, effective_scope)
-          with_stats_lock do
-            @stats_hash.record(specs, value, &blk)
+
+          if in_transaction?
+            transaction_stats_hash.record(specs, value, &blk)
+          else
+            with_stats_lock do
+              @stats_hash.record(specs, value, &blk)
+            end
           end
         end
 
@@ -154,6 +162,14 @@ module NewRelic
           with_stats_lock do
             @stats_hash.keys.map { |spec| spec.to_s }
           end
+        end
+
+        def metric_specs
+          with_stats_lock { @stats_hash.keys }
+        end
+
+        def in_transaction?
+          !!transaction_stats_hash
         end
       end
     end

@@ -2,9 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
-require 'new_relic/agent/instrumentation/rails4/active_record'
+require 'new_relic/agent/instrumentation/active_record_subscriber'
 
-if ::Rails::VERSION::MAJOR.to_i >= 4 && !NewRelic::LanguageSupport.using_engine?('jruby')
 class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit::TestCase
   class Order; end
 
@@ -42,8 +41,9 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit:
     t1 = Time.now
     t0 = t1 - 2
 
-    @stats_engine.start_transaction('test_txn')
-    @subscriber.call('sql.active_record', t0, t1, :id, @params)
+    in_transaction('test_txn') do
+      @subscriber.call('sql.active_record', t0, t1, :id, @params)
+    end
 
     metric_name = 'ActiveRecord/NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order/find'
 
@@ -96,14 +96,14 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit:
     t0 = t1 - 2
 
     NewRelic::Agent.manual_start
-    @stats_engine.start_transaction('test')
+    @stats_engine.start_transaction
     sampler = NewRelic::Agent.instance.transaction_sampler
     sampler.notice_first_scope_push(Time.now.to_f)
-    sampler.notice_transaction('/path', '/path', {})
+    sampler.notice_transaction('/path', {})
     sampler.notice_push_scope('Controller/sandwiches/index')
     @subscriber.call('sql.active_record', t0, t1, :id, @params)
     sampler.notice_pop_scope('Controller/sandwiches/index')
-    sampler.notice_scope_empty
+    sampler.notice_scope_empty(stub('txn', :name => '/path', :custom_parameters => {}))
 
     last_segment = nil
     sampler.last_sample.root_segment.each_segment{|s| last_segment = s }
@@ -128,5 +128,4 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit:
   ensure
     NewRelic::Agent.shutdown
   end
-end
-end
+end if ::Rails::VERSION::MAJOR.to_i >= 4 && !NewRelic::LanguageSupport.using_engine?('jruby')

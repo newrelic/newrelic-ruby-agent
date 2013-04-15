@@ -1,6 +1,33 @@
 
 # New Relic Ruby Agent Release Notes #
 
+## v3.6.1 ##
+
+  * Full URIs for HTTP requests are recorded in transaction traces
+
+  When recording a transaction trace node for an outgoing HTTP call via
+  Net::HTTP, the agent will now save the full URI (instead of just the hostname)
+  for the request. Embedded credentials, the query string, and the fragment will
+  be stripped from the URI before it is saved.
+
+  * Simplify Agent Autostart Logic
+
+  Previously the agent would only start when it detected a supported
+  "Dispatcher", meaning a known web server or background task framework.  This
+  was problematic for customers using webservers that the agent was not
+  configured to detect (e.g. Puma).  Now the agent will attempt to report any
+  time it detects it is running in a monitored environment (e.g. production).
+  There are two exceptions to this.  The agent will not autostart in a rails
+  console or irb session or when the process was invoked by a rake task (e.g.
+  rake assets:precompile).  The NEWRELIC_ENABLE environment variable can be set
+  to true or false to force the agent to start or not start.
+
+  * Don't attempt to resolve collector hostname when proxy is in use
+
+  When a proxy is configured, the agent will not attempt to lookup and cache the
+  IP address of New Relic server to which it is sending data, since DNS may not
+  be available in some environments. Thanks to Bill Kirtley for the contribution
+
 ## v3.6.0 ##
 
   * Sidekiq supprt
