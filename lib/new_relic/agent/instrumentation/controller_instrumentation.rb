@@ -181,7 +181,7 @@ module NewRelic
             name = "#{category_name(options[:category])}/#{path_name(options)}"
           end
 
-          def category_name(type)
+          def category_name(type = nil)
             type ||= Transaction.current && Transaction.current.type
             case type
             when :controller, nil then 'Controller'

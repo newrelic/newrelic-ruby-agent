@@ -283,6 +283,38 @@ module NewRelic
       assert engine.lookup_stats('Controller/new_name')
     end
 
+    def test_get_transaction_name_returns_nil_outside_transaction
+      assert_equal nil, NewRelic::Agent.get_transaction_name
+    end
+
+    def test_get_transaction_name_returns_the_default_txn_name
+      engine = NewRelic::Agent.instance.stats_engine
+      engine.reset_stats
+      Transactor.new.txn do
+        assert_equal 'NewRelic::MainAgentTest::Transactor/txn', NewRelic::Agent.get_transaction_name
+      end
+    end
+
+    def test_get_transaction_name_returns_what_I_set
+      engine = NewRelic::Agent.instance.stats_engine
+      engine.reset_stats
+      Transactor.new.txn do
+        NewRelic::Agent.set_transaction_name('a_new_name')
+        assert_equal 'a_new_name', NewRelic::Agent.get_transaction_name
+      end
+    end
+
+    def test_get_txn_name_and_set_txn_name_preserves_category
+      engine = NewRelic::Agent.instance.stats_engine
+      engine.reset_stats
+      Transactor.new.txn do
+        NewRelic::Agent.set_transaction_name('a_new_name', :category => :task)
+        new_name = NewRelic::Agent.get_transaction_name + "2"
+        NewRelic::Agent.set_transaction_name(new_name)
+      end
+      assert engine.lookup_stats('OtherTransaction/Background/a_new_name2')
+    end
+
     def test_set_transaction_name_applies_proper_scopes
       engine = NewRelic::Agent.instance.stats_engine
       engine.reset_stats

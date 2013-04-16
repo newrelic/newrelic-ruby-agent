@@ -447,10 +447,24 @@ module NewRelic
     #   as in many REST URIs.
     #
     # The default category is the same as the running transaction.
+    #
+    # @api public
     def set_transaction_name(name, options={})
       if Transaction.current
         namer = Instrumentation::ControllerInstrumentation::TransactionNamer.new(self)
+        Transaction.current.type = options[:category] if options[:category]
         Transaction.current.name = "#{namer.category_name(options[:category])}/#{name}"
+      end
+    end
+
+    # Get the name of the current running transaction.  This is useful if you
+    # want to modify the default name.
+    #
+    # @api public
+    def get_transaction_name
+      if Transaction.current
+        namer = Instrumentation::ControllerInstrumentation::TransactionNamer.new(self)
+        Transaction.current.name.sub(Regexp.new("\\A#{Regexp.escape(namer.category_name)}/"), '')
       end
     end
 
