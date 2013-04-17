@@ -38,6 +38,10 @@ class ErrorController < ApplicationController
     newrelic_notice_error(RuntimeError.new('this error should be noticed'))
     render :text => "Shoulda noticed an error"
   end
+
+  def middleware_error
+    render :text => 'everything went great'
+  end
 end
 
 class IgnoredError < StandardError; end
@@ -56,6 +60,7 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
     NewRelic::Agent.instance_variable_set(:@agent, nil)
     NewRelic::Agent::Agent.instance_variable_set(:@instance, nil)
     NewRelic::Agent.manual_start
+    NewRelic::Agent::TransactionInfo.reset
 
     reset_error_collector
   end
@@ -166,6 +171,16 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
     assert_error_reported_once('this is a server ignored error')
   end
 
+  def test_should_capture_errors_raised_in_middleware_before_call
+    get '/error/middleware_error/before'
+    assert_error_reported_once('middleware error')
+  end
+
+  def test_should_capture_errors_raised_in_middleware_after_call
+    get '/error/middleware_error/after'
+    assert_error_reported_once('middleware error')
+  end
+
  protected
 
   def assert_errors_reported(message, queued_count, total_count=queued_count, txn_name=nil)
@@ -182,7 +197,7 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
 
     assert_equal(queued_count,
       @error_collector.errors.select{|error| error.message == message}.size,
-      "Wrong number of errors with message '#{message} found'")
+      "Wrong number of errors with message '#{message}' found")
   end
 
   def assert_error_reported_once(message, txn_name=nil)
