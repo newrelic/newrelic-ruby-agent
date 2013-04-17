@@ -168,7 +168,7 @@ module NewRelic
         end
 
         class TransactionNamer
-          def initialize(traced_obj=self)
+          def initialize(traced_obj)
             @traced_obj = traced_obj
             if (@traced_obj.is_a?(Class) || @traced_obj.is_a?(Module))
               @traced_class_name = @traced_obj.name
@@ -178,18 +178,19 @@ module NewRelic
           end
 
           def name(options={})
-            name = "#{category_name(options)}/#{path_name(options)}"
+            name = "#{category_name(options[:category])}/#{path_name(options)}"
           end
 
-          def category_name(options={})
-            case options[:category]
+          def category_name(type = nil)
+            type ||= Transaction.current && Transaction.current.type
+            case type
             when :controller, nil then 'Controller'
             when :task then 'OtherTransaction/Background'
             when :rack then 'Controller/Rack'
             when :uri then 'Controller'
             when :sinatra then 'Controller/Sinatra'
               # for internal use only
-            else options[:category].to_s
+            else type.to_s
             end
           end
 
@@ -355,14 +356,6 @@ module NewRelic
           metrics
         end
 
-        def transaction_type(options={})
-          case TransactionNamer.new(self).category_name(options)
-          when /^Controller(\/|$)/ then :web
-          else
-            :other
-          end
-        end
-
         protected
 
         def newrelic_request(args)
@@ -449,7 +442,8 @@ module NewRelic
 
           options[:request] ||= self.request if self.respond_to? :request
           options[:filtered_params] = (respond_to? :filter_parameters) ? filter_parameters(available_params) : available_params
-          txn = Transaction.start(transaction_type(options), options)
+          category = options[:category] || :controller
+          txn = Transaction.start(category, options)
           txn.name = TransactionNamer.new(self).name(options)
 
           txn.apdex_start ||= _detect_upstream_wait(txn.start_time)

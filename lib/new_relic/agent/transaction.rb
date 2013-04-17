@@ -20,7 +20,7 @@ module NewRelic
       attr_accessor :apdex_start # A Time instance used for calculating the apdex score, which
       # might end up being @start, or it might be further upstream if
       # we can find a request header for the queue entry time
-      attr_accessor(:exceptions, :filtered_params, :force_flag,
+      attr_accessor(:type, :exceptions, :filtered_params, :force_flag,
                     :jruby_cpu_start, :process_cpu_start, :database_metric_name)
       attr_reader :name
 
@@ -89,7 +89,7 @@ module NewRelic
 
       attr_reader :depth
 
-      def initialize(type=:other, options={})
+      def initialize(type=:controller, options={})
         @type = type
         @start_time = Time.now
         @jruby_cpu_start = jruby_cpu_time
@@ -122,22 +122,6 @@ module NewRelic
       def has_parent?
         self.class.stack.size > 1
       end
-
-      def agent
-        NewRelic::Agent.instance
-      end
-
-      def transaction_sampler
-        agent.transaction_sampler
-      end
-
-      def sql_sampler
-        agent.sql_sampler
-      end
-
-      private :agent
-      private :transaction_sampler
-      private :sql_sampler
 
       # Indicate that we are entering a measured controller action or task.
       # Make sure you unwind every push with a pop call.
@@ -320,7 +304,7 @@ module NewRelic
       end
 
       def recording_web_transaction?
-        @type == :web
+        [:controller, :uri, :rack, :sinatra].include?(@type)
       end
 
       # Make a safe attempt to get the referer from a request object, generally successful when
@@ -386,6 +370,18 @@ module NewRelic
         threadMBean = ManagementFactory.getThreadMXBean()
         java_utime = threadMBean.getCurrentThreadUserTime()  # ns
         -1 == java_utime ? 0.0 : java_utime/1e9
+      end
+
+      def agent
+        NewRelic::Agent.instance
+      end
+
+      def transaction_sampler
+        agent.transaction_sampler
+      end
+
+      def sql_sampler
+        agent.sql_sampler
       end
     end
   end

@@ -18,6 +18,11 @@ class SetTransactionNameTest < Test::Unit::TestCase
       NewRelic::Agent.set_transaction_name('TestTransactor/child', :category => :task)
     end
     add_transaction_tracer :child_txn
+
+    newrelic_ignore :only => :ignored_txn
+    def ignored_txn
+      NewRelic::Agent.set_transaction_name('Ignore/me')
+    end
   end
 
   def setup
@@ -82,5 +87,10 @@ class SetTransactionNameTest < Test::Unit::TestCase
     end
     assert_nil @stats_engine.lookup_stats('Controller/this/should/not/work')
     assert @stats_engine.lookup_stats('Controller/TestTransactor/parent')
+  end
+
+  def test_ignoring_action
+    @transactor.ignored_txn
+    assert_nil @stats_engine.lookup_stats('Controller/Ignore/me')
   end
 end

@@ -159,10 +159,10 @@ class NewRelic::Agent::TransactionTest < Test::Unit::TestCase
   end
 
   def test_start_adds_controller_context_to_txn_stack
-    NewRelic::Agent::Transaction.start(:web)
+    NewRelic::Agent::Transaction.start(:controller)
     assert_equal 1, NewRelic::Agent::Transaction.stack.size
 
-    NewRelic::Agent::Transaction.start(:web)
+    NewRelic::Agent::Transaction.start(:controller)
     assert_equal 2, NewRelic::Agent::Transaction.stack.size
 
     NewRelic::Agent::Transaction.stop('txn')
@@ -177,7 +177,7 @@ class NewRelic::Agent::TransactionTest < Test::Unit::TestCase
                                                   'replacement'      => '*',
                                                   'replace_all'      => true)
     NewRelic::Agent.instance.transaction_rules << rule
-    NewRelic::Agent::Transaction.start(:web)
+    NewRelic::Agent::Transaction.start(:controller)
     NewRelic::Agent.set_transaction_name('foo/1/bar/22')
     NewRelic::Agent::Transaction.freeze_name
     txn = NewRelic::Agent::Transaction.stop('txn')

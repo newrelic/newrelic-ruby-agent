@@ -102,7 +102,7 @@ module NewRelic
         end
 
         def start_transaction(event)
-          txn = Transaction.start(:web,
+          txn = Transaction.start(:controller,
                                   :request => event.payload[:request],
                                   :filtered_params => filter(event.payload[:params]))
           txn.apdex_start = (event.queue_start || event.time)
