@@ -12,19 +12,6 @@ module Sequel
     include NewRelic::Agent::MethodTracer,
             NewRelic::Agent::Instrumentation::ActiveRecordHelper
 
-    # Extension callback
-    def self::extended( mod )
-      NewRelic::Agent.logger.debug "Extending %p with %p" % [ mod, self ]
-      super
-    end
-
-
-    # Inclusion callback
-    def self::included( mod )
-      NewRelic::Agent.logger.debug "Including %p in %p" % [ self, mod ]
-      super
-    end
-
 
     # Instrument all queries that go through #execute_query.
     def log_yield( sql, args=nil )
@@ -70,10 +57,14 @@ module Sequel
       agent    = NewRelic::Agent.instance
       duration = finish - start
 
-      scope = agent.stats_engine.push_scope( metric, start )
-      agent.transaction_sampler.notice_sql( sql, self.opts, duration )
-      agent.sql_sampler.notice_sql( sql, metric, self.opts, duration )
-      agent.stats_engine.pop_scope( scope, duration, finish )
+      scope = agent.stats_engine.push_scope( :sequel, start )
+      agent.transaction_sampler.notice_sql( sql, self.opts, duration ) do |*|
+        self[ sql ].explain
+      end
+      agent.sql_sampler.notice_sql( sql, metric, self.opts, duration ) do |*|
+        self[ sql ].explain
+      end
+      agent.stats_engine.pop_scope( scope, metric, finish )
     end
 
 
