@@ -8,8 +8,7 @@ module NewRelic::LanguageSupport
   # need to use syck rather than psych when possible
   def needs_syck?
     !NewRelic::LanguageSupport.using_engine?('jruby') &&
-        (NewRelic::LanguageSupport.using_version?('1.9.1') ||
-         NewRelic::LanguageSupport.using_version?('1.9.2'))
+         NewRelic::LanguageSupport.using_version?('1.9.2')
   end
 
   @@forkable = nil
