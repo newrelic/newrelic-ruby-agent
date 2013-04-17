@@ -29,7 +29,7 @@ module NewRelic
             license_key = ''
 
             erb = ERB.new(file).result(binding)
-            confighash = YAML.load(erb)
+            confighash = with_yaml_engine { YAML.load(erb) }
             ::NewRelic::Agent.logger.error("Config (#{path}) doesn't include a '#{env}' environment!") unless
               confighash.key?(env)
 
@@ -50,6 +50,16 @@ module NewRelic
         end
 
         protected
+
+        def with_yaml_engine
+          return yield unless NewRelic::LanguageSupport.needs_syck?
+
+          yamler = ::YAML::ENGINE.yamler
+          ::YAML::ENGINE.yamler = 'syck'
+          result = yield
+          ::YAML::ENGINE.yamler = yamler
+          result
+        end
 
         def booleanify_values(config, *keys)
           # auto means defer ro default
