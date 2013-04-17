@@ -8,7 +8,6 @@ require 'new_relic/agent/agent_logger'
 
 module NewRelic
   class Control
-    include NewRelic::LanguageSupport::Control
 
     # Contains methods that relate to the runtime usage of the control
     # object. Note that these are subject to override in the
