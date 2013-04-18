@@ -108,6 +108,17 @@ module NewRelic
           exception.instance_variable_set(EXCEPTION_TAG_IVAR, true)
         end
 
+        def blamed_metric_name(options)
+          if options[:metric] && options[:metric] != '(unknown)'
+            "Errors/#{options[:metric]}"
+          else
+            txn_info = TransactionInfo.get
+            if txn_info && txn_info.transaction
+              "Errors/#{txn_info.transaction.name}"
+            end
+          end
+        end
+
         # Increments a statistic that tracks total error rate
         # Be sure not to double-count same exception. This clears per harvest.
         def increment_error_count!(exception, options={})
@@ -115,9 +126,9 @@ module NewRelic
           tag_as_seen(exception)
 
           metric_names = ["Errors/all"]
-          if options[:metric] && options[:metric] != '(unknown)'
-            metric_names << "Errors/#{options[:metric]}"
-          end
+          blamed_metric = blamed_metric_name(options)
+          metric_names << blamed_metric if blamed_metric
+
           stats_engine = NewRelic::Agent.agent.stats_engine
           stats_engine.record_metrics(metric_names) do |stats|
             stats.increment_count
