@@ -23,10 +23,10 @@ module NewRelic::Rack
           {'error' => warning}
         end
 
-        NewRelic::Agent::Transaction.notice_error(exception,
-                                                  :uri => request.path,
-                                                  :referer => request.referer,
-                                                  :request_params => params)
+        NewRelic::Agent.notice_error(exception,
+                                      :uri => request.path,
+                                      :referer => request.referer,
+                                      :request_params => params)
       end
       raise exception
     end
