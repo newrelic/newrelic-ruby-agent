@@ -138,6 +138,9 @@ module NewRelic
 
     class BackgroundLoadingError < StandardError; end
 
+    # placeholder name used when we cannot determine a transaction's name
+    UNKNOWN_METRIC = '(unknown)'.freeze
+
     @agent = nil
 
     # The singleton Agent instance.  Used internally.

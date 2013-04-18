@@ -109,7 +109,7 @@ module NewRelic
         end
 
         def blamed_metric_name(options)
-          if options[:metric] && options[:metric] != '(unknown)'
+          if options[:metric] && options[:metric] != ::NewRelic::Agent::UNKNOWN_METRIC
             "Errors/#{options[:metric]}"
           else
             txn_info = TransactionInfo.get
