@@ -23,7 +23,7 @@ module NewRelic
         end
 
         def name
-          '(unknown)'
+          ::NewRelic::Agent::UNKNOWN_METRIC
         end
       end
 
@@ -78,7 +78,7 @@ module NewRelic
       end
 
       def browser_monitoring_transaction_name
-        current_transaction.name || '(unknown)'
+        current_transaction.name || ::NewRelic::Agent::UNKNOWN_METRIC
       end
 
       def browser_monitoring_queue_time

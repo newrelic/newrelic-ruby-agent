@@ -81,7 +81,7 @@ module NewRelic
           end
 
           def transaction_name(routes, request)
-            name = '(unknown)'
+            name = ::NewRelic::Agent::UNKNOWN_METRIC
             verb = http_verb(request)
 
             Array(routes[verb]).each do |pattern, keys, conditions, block|
@@ -94,7 +94,7 @@ module NewRelic
               end
             end
 
-            name.gsub!(%r{^[/^]*(.*?)[/\$\?]*$}, '\1')
+            name = name.gsub(%r{^[/^]*(.*?)[/\$\?]*$}, '\1')
             if verb
               name = verb + ' ' + name
             end
@@ -102,7 +102,7 @@ module NewRelic
             name
           rescue => e
             ::NewRelic::Agent.logger.debug("#{e.class} : #{e.message} - Error encountered trying to identify Sinatra transaction name")
-            '(unknown)'
+            ::NewRelic::Agent::UNKNOWN_METRIC
           end
         end
       end
