@@ -197,7 +197,7 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
 
     assert_equal(queued_count,
       @error_collector.errors.select{|error| error.message == message}.size,
-      "Wrong number of errors with message '#{message}' found")
+      "Wrong number of errors with message #{message.inspect} found")
   end
 
   def assert_error_reported_once(message, txn_name=nil)
