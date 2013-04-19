@@ -5,7 +5,6 @@
 
 require 'sequel' unless defined?( Sequel )
 require 'newrelic_rpm' unless defined?( NewRelic )
-require 'new_relic/agent/instrumentation/active_record_helper'
 
 module Sequel
   module Plugins
@@ -14,10 +13,10 @@ module Sequel
       module MethodTracer
 
         # Make a lambda for the method body of the traced method
-        def make_tracer_method( metric, options )
+        def make_tracer_method( opname, options )
           body = Proc.new do |*args, &block|
             classname = self.respond_to?( :name ) ? self.name : self.class.name
-            metric = metric.gsub( /%CLASS%/, classname )
+            metric = "ActiveRecord/%s/%s" % [ classname, opname ]
             trace_execution_scoped( metric, options ) do
               super( *args, &block )
             end
@@ -28,7 +27,15 @@ module Sequel
 
         # Override since the methods that need tracing don't exist yet
         # in the module, so we can't alias anything.
-        def add_method_tracer( method_name, metric, options={} )
+        def add_method_tracer( method_name, metric=nil, options={} )
+          # Shift options hash if metric is omitted
+          if metric.is_a?( Hash )
+            options = metric
+            metric = nil
+          end
+
+          metric ||= method_name.to_s
+
           body = make_tracer_method( metric, options )
           define_method( method_name, &body )
         end
@@ -40,14 +47,14 @@ module Sequel
         include NewRelic::Agent::MethodTracer
         extend Sequel::Plugins::NewrelicInstrumentation::MethodTracer
 
-        add_method_tracer :delete, 'ActiveRecord/%CLASS%/delete'
-        add_method_tracer :destroy, 'ActiveRecord/%CLASS%/destroy'
-        add_method_tracer :update, 'ActiveRecord/%CLASS%/update'
-        add_method_tracer :update_all, 'ActiveRecord/%CLASS%/update_all'
-        add_method_tracer :update_except, 'ActiveRecord/%CLASS%/update_except'
-        add_method_tracer :update_fields, 'ActiveRecord/%CLASS%/update_fields'
-        add_method_tracer :update_only, 'ActiveRecord/%CLASS%/update_only'
-        add_method_tracer :save, 'ActiveRecord/%CLASS%/save'
+        add_method_tracer :delete
+        add_method_tracer :destroy
+        add_method_tracer :update
+        add_method_tracer :update_all
+        add_method_tracer :update_except
+        add_method_tracer :update_fields
+        add_method_tracer :update_only
+        add_method_tracer :save
 
       end # module InstanceMethods
 
@@ -56,11 +63,11 @@ module Sequel
         include NewRelic::Agent::MethodTracer
         extend Sequel::Plugins::NewrelicInstrumentation::MethodTracer
 
-        add_method_tracer :[], 'ActiveRecord/%CLASS%/get'
-        add_method_tracer :all, 'ActiveRecord/%CLASS%/all'
-        add_method_tracer :first, 'ActiveRecord/%CLASS%/first'
-        add_method_tracer :create, 'ActiveRecord/%CLASS%/create'
-      end
+        add_method_tracer :[], :get
+        add_method_tracer :all
+        add_method_tracer :first
+        add_method_tracer :create
+      end # module ClassMethods
 
     end # module NewRelicInstrumentation
   end # module Plugins
