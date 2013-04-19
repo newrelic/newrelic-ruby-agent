@@ -44,7 +44,7 @@ module NewRelic
 
       def in_blacklisted_rake_task?
         tasks = begin
-            Rake.application.top_level_tasks
+            ::Rake.application.top_level_tasks
           rescue => e
             ::NewRelic::Agent.logger.debug("Not in Rake environment so skipping blacklisted_rake_tasks check: #{e}")
             []
