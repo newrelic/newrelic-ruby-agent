@@ -8,8 +8,11 @@ require 'newrelic_rpm' unless defined?( NewRelic )
 
 module Sequel
   module Plugins
+
+    # Sequel::Model instrumentation for the New Relic agent.
     module NewrelicInstrumentation
 
+      # Meta-programming for creating method tracers for the Sequel::Model plugin.
       module MethodTracer
 
         # Make a lambda for the method body of the traced method
@@ -25,8 +28,11 @@ module Sequel
           return body
         end
 
-        # Override since the methods that need tracing don't exist yet
-        # in the module, so we can't alias anything.
+        # Install a method named +method_name+ that will trace execution
+        # with a metric name derived from +metric+ (or +method_name+ if +metric+
+        # isn't specified). The +options+ hash is passed as-is though to
+        # NewRelic::Agent::MethodTracer#trace_execution_scoped; see the
+        # docs for that method for valid settings.
         def add_method_tracer( method_name, metric=nil, options={} )
           # Shift options hash if metric is omitted
           if metric.is_a?( Hash )
@@ -43,6 +49,7 @@ module Sequel
       end # module MethodTracer
 
 
+      # Methods to be added to Sequel::Model instances.
       module InstanceMethods
         include NewRelic::Agent::MethodTracer
         extend Sequel::Plugins::NewrelicInstrumentation::MethodTracer
@@ -59,6 +66,7 @@ module Sequel
       end # module InstanceMethods
 
 
+      # Methods to be added to Sequel::Model classes.
       module ClassMethods
         include NewRelic::Agent::MethodTracer
         extend Sequel::Plugins::NewrelicInstrumentation::MethodTracer

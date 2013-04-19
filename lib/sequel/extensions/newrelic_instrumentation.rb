@@ -8,6 +8,27 @@ require 'newrelic_rpm' unless defined?( NewRelic )
 require 'new_relic/agent/instrumentation/active_record_helper'
 
 module Sequel
+
+  # New Relic's Sequel instrumentation is implemented via a plugin for
+  # Sequel::Models, and an extension for Sequel::Databases. Every database
+  # handle that Sequel knows about when New Relic is loaded will automatically
+  # be instrumented, but if you're using a version of Sequel after 3.46.0,
+  # you'll need to add the extension yourself if you create any after the
+  # instrumentation is loaded:
+  # 
+  #     db = Sequel.connect( ... )
+  #     db.extension :newrelic_instrumentation
+  # 
+  # Versions after 3.46.0 use the `:after_initialization` hook to
+  # automatically install the extension for new connections.
+  # 
+  # == Disabling
+  # 
+  # If you don't want your models or database connections to be instrumented,
+  # you can disable them by setting `disable_database_instrumentation` in
+  # your `newrelic.yml` to `true`. It will also honor the 
+  # `disable_activerecord_instrumentation` setting.
+  # 
   module NewRelicInstrumentation
     include NewRelic::Agent::MethodTracer,
             NewRelic::Agent::Instrumentation::ActiveRecordHelper
