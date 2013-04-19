@@ -44,7 +44,7 @@ module NewRelic
           def recordable?
             name[0] == '!' ||
               metric_name == 'View/text template/Rendering' ||
-              metric_name == 'View/(unknown)/Partial'
+              metric_name == "View/#{::NewRelic::Agent::UNKNOWN_METRIC}/Partial"
           end
 
           def metric_name
@@ -70,7 +70,7 @@ module NewRelic
             elsif (parts = identifier.split('/')).size > 1
               parts[-2..-1].join('/')
             else
-              '(unknown)'
+              ::NewRelic::Agent::UNKNOWN_METRIC
             end
           end
 

@@ -5,25 +5,10 @@
 module NewRelic::LanguageSupport
   extend self
 
-  module Control
-    def self.included(base)
-      # need to use syck rather than psych when possible
-      if defined?(::YAML::ENGINE)
-        if !NewRelic::LanguageSupport.using_engine?('jruby') &&
-            (NewRelic::LanguageSupport.using_version?('1.9.1') ||
-             NewRelic::LanguageSupport.using_version?('1.9.2'))
-          base.class_eval do
-            def load_newrelic_yml(*args)
-              yamler = ::YAML::ENGINE.yamler
-              ::YAML::ENGINE.yamler = 'syck'
-              val = super
-              ::YAML::ENGINE.yamler = yamler
-              val
-            end
-          end
-        end
-      end
-    end
+  # need to use syck rather than psych when possible
+  def needs_syck?
+    !NewRelic::LanguageSupport.using_engine?('jruby') &&
+         NewRelic::LanguageSupport.using_version?('1.9.2')
   end
 
   @@forkable = nil

@@ -369,6 +369,17 @@ module NewRelic
       assert engine.lookup_stats('OtherTransaction/Background/new_name')
     end
 
+    # It's not uncommon for customers to conclude a rescue block with a call to
+    # notice_error.  We should always return nil, which mean less folks
+    # unexpectedly get a noticed error Hash returned from their methods.
+    def test_notice_error_returns_nil
+      begin
+        raise "WTF"
+      rescue => e
+        assert_equal nil, ::NewRelic::Agent.notice_error(e)
+      end
+    end
+
     private
 
     def mocked_agent
