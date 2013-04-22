@@ -56,23 +56,8 @@ module NewRelic
       # minute. This is dynamically recognized by any class that
       # subclasses NewRelic::Agent::Sampler
       def load_samplers
-        agent = NewRelic::Agent.instance
         NewRelic::Agent::Sampler.sampler_classes.each do | subclass |
-          begin
-            ::NewRelic::Agent.logger.debug "#{subclass.name} not supported on this platform." and next if not subclass.supported_on_this_platform?
-            sampler = subclass.new
-            if subclass.use_harvest_sampler?
-              agent.stats_engine.add_harvest_sampler sampler
-              ::NewRelic::Agent.logger.debug "Registered #{subclass.name} for harvest time sampling"
-            else
-              agent.stats_engine.add_sampler sampler
-              ::NewRelic::Agent.logger.debug "Registered #{subclass.name} for periodic sampling"
-            end
-          rescue NewRelic::Agent::Sampler::Unsupported => e
-            ::NewRelic::Agent.logger.info "#{subclass} sampler not available: #{e}"
-          rescue => e
-            ::NewRelic::Agent.logger.error "Error registering sampler:", e
-          end
+          NewRelic::Agent.instance.add_harvest_sampler(subclass)
         end
       end
 
