@@ -37,10 +37,6 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Test::Unit::
   #
 
   def setup
-    # $stderr.puts '', '---', ''
-    # NewRelic::Agent.logger =
-    #   NewRelic::Agent::AgentLogger.new( {:log_level => 'debug'}, '', Logger.new($stderr) )
-
     super
 
     NewRelic::Agent.manual_start
@@ -193,12 +189,11 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Test::Unit::
       sample = transaction_samples.first.prepare_to_send(:explain_sql=>0.0, :record_sql=>:raw)
       segment = last_segment( sample )
       assert_match %r{select \* from `posts` where `id` = 11}i, segment.params[:sql]
-      assert_match %r{\|addr\s*\|opcode\s*\|p1\s*\|p2\s*\|p3\s*\|p4\s*\|p5\s*\|comment\s*\|},
-        segment.params[:explain_plan].join
+      assert_segment_has_explain_plan( segment )
     end
   end
 
-  def test_queries_can_get_an_obfuscated_sql
+  def test_queries_can_get_obfuscated_sql
     transaction_samples = with_controller_scope do
       Post[11]
     end
@@ -207,11 +202,25 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Test::Unit::
       sample = transaction_samples.first.prepare_to_send(:explain_sql=>0.0, :record_sql=>:obfuscated)
       segment = last_segment( sample )
       assert_match %r{select \* from `posts` where `id` = \?}i, segment.params[:sql]
-      assert_match %r{\|addr\s*\|opcode\s*\|p1\s*\|p2\s*\|p3\s*\|p4\s*\|p5\s*\|comment\s*\|},
-        segment.params[:explain_plan].join
+      assert_segment_has_explain_plan( segment )
     end
   end
 
+
+  #
+  # Helpers
+  #
+
+  # Pattern to match the column headers of a Sqlite explain plan
+  SQLITE_EXPLAIN_PLAN_COLUMNS_RE =
+    %r{\|addr\s*\|opcode\s*\|p1\s*\|p2\s*\|p3\s*\|p4\s*\|p5\s*\|comment\s*\|}
+
+  # This is particular to sqlite plans currently. To abstract it up, we'd need to
+  # be able to specify a flavor (e.g., :sqlite, :postgres, :mysql, etc.)
+  def assert_segment_has_explain_plan( segment, msg=nil )
+    msg = build_message( msg, "Expected ? to have an explain plan", segment )
+    assert_block( msg ) { segment.params[:explain_plan].join =~ SQLITE_EXPLAIN_PLAN_COLUMNS_RE }
+  end
 
   def with_controller_scope
     @sampler.notice_first_scope_push Time.now.to_f

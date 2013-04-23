@@ -65,9 +65,7 @@ module Sequel
       metrics = rollup_metrics_for( primary_metric )
       metrics << remote_service_metric( *self.opts.values_at(:adapter, :host) )
 
-      metrics.each do |metric_name|
-        engine.record_metrics( metric_name, duration, :scoped => false )
-      end
+      engine.record_metrics( metrics, duration, :scoped => false )
     end
 
 
@@ -78,14 +76,17 @@ module Sequel
       agent    = NewRelic::Agent.instance
       duration = finish - start
 
-      scope = agent.stats_engine.push_scope( :sequel, start )
-      agent.transaction_sampler.notice_sql( sql, self.opts, duration ) do |*|
-        self[ sql ].explain
+      begin
+        scope = agent.stats_engine.push_scope( :sequel, start )
+        agent.transaction_sampler.notice_sql( sql, self.opts, duration ) do |*|
+          self[ sql ].explain
+        end
+        agent.sql_sampler.notice_sql( sql, metric, self.opts, duration ) do |*|
+          self[ sql ].explain
+        end
+      ensure
+        agent.stats_engine.pop_scope( scope, metric, finish )
       end
-      agent.sql_sampler.notice_sql( sql, metric, self.opts, duration ) do |*|
-        self[ sql ].explain
-      end
-      agent.stats_engine.pop_scope( scope, metric, finish )
     end
 
 
