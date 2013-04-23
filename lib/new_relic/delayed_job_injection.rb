@@ -40,16 +40,11 @@ DependencyDetection.defer do
         say "New Relic Ruby Agent Monitoring DJ worker #{dispatcher_instance_id}"
         NewRelic::DelayedJobInjection.worker_name = worker_name
         NewRelic::Control.instance.init_plugin :dispatcher => :delayed_job, :dispatcher_instance_id => dispatcher_instance_id
+        NewRelic::Agent.instance.add_harvest_sampler(NewRelic::Agent::Samplers::DelayedJobSampler)
       end
 
       alias initialize_without_new_relic initialize
       alias initialize initialize_with_new_relic
     end
   end
-end
-
-# If Rails is defined, this gets called in an after_initialize hook
-# see NewRelic::Control::Frameworks::Rails#init_config
-unless defined?(Rails)
-  DependencyDetection.detect!
 end

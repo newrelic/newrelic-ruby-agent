@@ -48,7 +48,7 @@ module NewRelic
               if options[:file]
                 "file"
               elsif identifier.nil?
-                "(unknown)"
+                ::NewRelic::Agent::UNKNOWN_METRIC
               elsif identifier.include? '/' # this is a filepath
                 identifier.split('/')[-2..-1].join('/')
               else

@@ -138,6 +138,9 @@ module NewRelic
 
     class BackgroundLoadingError < StandardError; end
 
+    # placeholder name used when we cannot determine a transaction's name
+    UNKNOWN_METRIC = '(unknown)'.freeze
+
     @agent = nil
 
     # The singleton Agent instance.  Used internally.
@@ -405,6 +408,7 @@ module NewRelic
     #
     def notice_error(exception, options={})
       Transaction.notice_error(exception, options)
+      nil # don't return a noticed error datastructure. it can only hurt.
     end
 
     # Add parameters to the current transaction trace (and traced error if any)

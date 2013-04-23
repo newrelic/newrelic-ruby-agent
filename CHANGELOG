@@ -28,6 +28,13 @@
   IP address of New Relic server to which it is sending data, since DNS may not
   be available in some environments. Thanks to Bill Kirtley for the contribution
 
+  * Added NewRelic::Agent.set_transaction_name and NewRelic::Agent.get_transaction_name
+
+  Ordinarily the name of your transaction is defined up-front, but if you'd like to 
+  change the name of a transaction while it is still running you can use 
+  **NewRelic::Agent.set_transaction_name()**.  Similarly, if you need to know the name
+  of the currently running transaction, you can use **NewRelic::Agent.get_transaction_name()**.
+
 ## v3.6.0 ##
 
   * Sidekiq supprt
