@@ -7,8 +7,12 @@ require 'new_relic/agent/samplers/cpu_sampler'
 
 class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
 
-  class TestObject
+  class OurSamplers
     include NewRelic::Agent::StatsEngine::Samplers
+  end
+
+  class OurSampler
+    attr_accessor :id, :stats_engine
   end
 
   def setup
@@ -16,25 +20,23 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
     NewRelic::Agent.instance.stubs(:stats_engine).returns(@stats_engine)
   end
 
-  def test_add_sampler_to_positive
-    object = TestObject.new
-    sampler = mock('sampler')
-    sampler_array = mock('sampler_array')
-    sampler_array.expects(:include?).with(sampler).returns(false)
-    sampler_array.expects(:<<).with(sampler)
-    sampler.expects(:stats_engine=).with(object)
+  def test_can_add_harvest_sampler
+    samplers = OurSamplers.new
+    sampler = OurSampler.new
 
-    object.send(:add_sampler_to, sampler_array, sampler)
+    samplers.add_harvest_sampler(sampler)
+
+    assert_equal [sampler], samplers.harvest_samplers
+    assert_equal samplers, sampler.stats_engine
   end
 
-  def test_add_sampler_to_negative
-    object = TestObject.new
-    sampler = mock('sampler')
-    sampler_array = mock('sampler_array')
-    sampler_array.expects(:include?).with(sampler).returns(true)
-    assert_raise(RuntimeError) do
-      object.send(:add_sampler_to, sampler_array, sampler)
-    end
+  def test_cannot_add_harvest_sampler_twice
+    samplers = OurSamplers.new
+    samplers.add_harvest_sampler(OurSampler.new)
+    first_list = samplers.harvest_samplers.dup
+
+    samplers.add_harvest_sampler(OurSampler.new)
+    assert_equal first_list, samplers.harvest_samplers
   end
 
   def test_cpu_sampler_records_user_and_system_time

@@ -34,21 +34,14 @@ DependencyDetection.defer do
 
   executes do
     Delayed::Job.instance_eval do
-      if self.respond_to?('after_fork')
-        if method_defined?(:after_fork)
-          def after_fork_with_newrelic
-            NewRelic::Agent.after_fork(:force_reconnect => true)
-            after_fork_without_newrelic
-          end
+      # alias_method is for instance, not class methods. But we still want to
+      # call any existing class method we're redefining, so do it the hard way.
+      @original_after_fork = method(:after_fork) if respond_to?(:after_fork)
 
-          alias_method :after_fork_without_newrelic, :after_fork
-          alias_method :after_fork, :after_fork_with_newrelic
-        else
-          def after_fork
-            NewRelic::Agent.after_fork(:force_reconnect => true)
-            super
-          end
-        end
+      def after_fork
+        NewRelic::Agent.after_fork(:force_reconnect => true)
+        @original_after_fork.call() if @original_after_fork
+        super
       end
     end
   end

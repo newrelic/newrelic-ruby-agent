@@ -503,6 +503,24 @@ module NewRelic
           @launch_time = Time.now
         end
 
+        def add_harvest_sampler(subclass)
+          begin
+            ::NewRelic::Agent.logger.debug "#{subclass.name} not supported on this platform." and return unless subclass.supported_on_this_platform?
+            sampler = subclass.new
+            if subclass.use_harvest_sampler?
+              stats_engine.add_harvest_sampler sampler
+              ::NewRelic::Agent.logger.debug "Registered #{subclass.name} for harvest time sampling"
+            else
+              stats_engine.add_sampler sampler
+              ::NewRelic::Agent.logger.debug "Registered #{subclass.name} for periodic sampling"
+            end
+          rescue NewRelic::Agent::Sampler::Unsupported => e
+            ::NewRelic::Agent.logger.info "#{subclass} sampler not available: #{e}"
+          rescue => e
+            ::NewRelic::Agent.logger.error "Error registering sampler:", e
+          end
+        end
+
         private
 
         # All of this module used to be contained in the

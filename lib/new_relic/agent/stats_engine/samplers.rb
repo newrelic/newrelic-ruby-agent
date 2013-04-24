@@ -45,17 +45,6 @@ module Agent
         end
       end
 
-      private
-
-      def add_sampler_to(sampler_array, sampler)
-        raise "Sampler #{sampler.inspect} is already registered.  Don't call add_sampler directly anymore." if sampler_array.include?(sampler)
-        sampler_array << sampler
-        sampler.stats_engine = self
-      end
-
-      def log_added_sampler(type, sampler)
-        ::NewRelic::Agent.logger.debug "Adding #{type} sampler: #{sampler.id}"
-      end
 
       public
 
@@ -72,7 +61,29 @@ module Agent
         log_added_sampler('harvest-time', sampler)
       end
 
+      def harvest_samplers
+        @harvest_samplers ||= []
+      end
+
+      def periodic_samplers
+        @periodic_samplers ||= []
+      end
+
+
       private
+
+      def add_sampler_to(sampler_array, sampler)
+        if sampler_array.any? { |s| s.class == sampler.class }
+          NewRelic::Agent.logger.warn "Ignoring addition of #{sampler.inspect} because it is already registered."
+        else
+          sampler_array << sampler
+          sampler.stats_engine = self
+        end
+      end
+
+      def log_added_sampler(type, sampler)
+        ::NewRelic::Agent.logger.debug "Adding #{type} sampler: #{sampler.id}"
+      end
 
       # Call poll on each of the samplers.  Remove
       # the sampler if it raises.
@@ -88,12 +99,6 @@ module Agent
         end
       end
 
-      def harvest_samplers
-        @harvest_samplers ||= []
-      end
-      def periodic_samplers
-        @periodic_samplers ||= []
-      end
     end
   end
 end
