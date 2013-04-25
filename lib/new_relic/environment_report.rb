@@ -64,10 +64,10 @@ module NewRelic
     report_on('Ruby patchlevel'){ RUBY_PATCHLEVEL.to_s }
     report_on('JRuby version') { JRUBY_VERSION }
     report_on('Java VM version') { ENV_JAVA['java.vm.version']}
-    report_on('Processors') { SystemInfo.processor_count }
-    report_on('Arch') { SystemInfo.processor_arch }
-    report_on('OS version') { SystemInfo.os_version }
-    report_on('OS') { SystemInfo.ruby_os_identifier }
+    report_on('Processors') { NewRelic::Agent::SystemInfo.processor_count }
+    report_on('Arch') { NewRelic::Agent::SystemInfo.processor_arch }
+    report_on('OS version') { NewRelic::Agent::SystemInfo.os_version }
+    report_on('OS') { NewRelic::Agent::SystemInfo.ruby_os_identifier }
     report_on 'Database adapter' do
       ActiveRecord::Base.configurations[NewRelic::Control.instance.env]['adapter']
     end

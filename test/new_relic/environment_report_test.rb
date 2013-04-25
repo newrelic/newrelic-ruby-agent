@@ -61,6 +61,20 @@ class EnvironmentReportTest < Test::Unit::TestCase
     assert_equal RUBY_VERSION, @report['Ruby version']
   end
 
+  def test_gathers_system_info
+    NewRelic::Agent::SystemInfo.stubs({
+      :processor_count    => 8,
+      :processor_arch     => 'x86_64',
+      :os_version         => 'WiggleOS 1.1.1',
+      :ruby_os_identifier => 'wiggleos'
+    })
+    report = ::NewRelic::EnvironmentReport.new
+    assert_equal(8, report['Processors'])
+    assert_equal('x86_64', report['Arch'])
+    assert_equal('WiggleOS 1.1.1', report['OS version'])
+    assert_equal('wiggleos', report['OS'])
+  end
+
   def test_has_logic_for_keys
     [
       "Gems",
