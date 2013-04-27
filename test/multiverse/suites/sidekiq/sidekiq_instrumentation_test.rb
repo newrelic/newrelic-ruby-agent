@@ -9,7 +9,7 @@ require 'test/unit'
 require 'newrelic_rpm'
 require 'fake_collector'
 
-class ResqueTest < Test::Unit::TestCase
+class SidekiqTest < Test::Unit::TestCase
   JOB_COUNT = 5
   COLLECTOR_PORT = ENV['NEWRELIC_MULTIVERSE_FAKE_COLLECTOR_PORT']
 
@@ -59,7 +59,8 @@ class ResqueTest < Test::Unit::TestCase
       stats = Sidekiq::Stats.new
       Timeout.timeout(time_for_jobs) { sleep(0.1) until stats.processed == JOB_COUNT }
     rescue Timeout::Error => err
-      raise err.exception("waiting #{time_for_jobs}s for completion of #{JOB_COUNT} jobs")
+      completed = stats.processed
+      raise err.exception("waiting #{time_for_jobs}s for completion of #{JOB_COUNT} jobs - only #{completed} completed")
     end
   end
 
