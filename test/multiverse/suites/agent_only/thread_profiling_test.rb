@@ -83,7 +83,7 @@ class ThreadProfilingTest < Test::Unit::TestCase
 
 
   def let_it_finish
-    Timeout.timeout(2) do
+    Timeout.timeout(5) do
       until @thread_profiler.finished?
         sleep(0.1)
       end
