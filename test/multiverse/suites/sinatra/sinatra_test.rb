@@ -44,6 +44,12 @@ class SinatraRouteTestApp < Sinatra::Base
   condition { raise Error }
   get('/error') { }
 
+  condition do
+    raise "Boo" if $precondition_already_checked
+    $precondition_already_checked = true
+  end
+  get('/precondition') { 'precondition only happened once' }
+
   def perform_action_with_newrelic_trace(options)
     $last_sinatra_route = options[:name]
     super
@@ -69,6 +75,7 @@ class SinatraTest < Test::Unit::TestCase
   end
 
   def setup
+    $precondition_already_checked = false
     ::NewRelic::Agent.manual_start
   end
 
@@ -139,5 +146,15 @@ class SinatraTest < Test::Unit::TestCase
     metric_names = ::NewRelic::Agent.agent.stats_engine.metrics
     assert(metric_names.include?('Controller/Sinatra/SinatraRouteTestApp/(unknown)'),
            "#{metric_names} should include 'Controller/Sinatra/SinatraRouteTestApp/(unknown)'")
+  end
+
+  def test_precondition_not_over_called
+    get '/precondition'
+
+    assert_equal 200, last_response.status
+    assert_equal 'precondition only happened once', last_response.body
+
+    metric_names = ::NewRelic::Agent.agent.stats_engine.metrics
+    assert metric_names.include?('Controller/Sinatra/SinatraRouteTestApp/GET precondition')
   end
 end
