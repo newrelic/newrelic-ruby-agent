@@ -101,7 +101,8 @@ class ResqueTest < Test::Unit::TestCase
         end
       end
     rescue Timeout::Error => err
-      raise err.exception("waiting #{time_for_jobs}s for completion of #{JOB_COUNT} jobs")
+      completed = Resque.info[:processed]
+      raise err.exception("waiting #{time_for_jobs}s for completion of #{JOB_COUNT} jobs - got only #{completed}")
     end
   end
 
