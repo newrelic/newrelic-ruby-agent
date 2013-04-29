@@ -295,7 +295,11 @@ module NewRelic
       # segment - i.e. traced method calls multiple sql queries
       def append_new_message(old_message, message)
         if old_message
-          old_message + ";\n" + message
+          begin
+            old_message + ";\n" + message
+          rescue EncodingError
+            old_message + ";\n" + message.encode(old_message.encoding, invalid: :replace, undef: :replace)
+          end
         else
           message
         end
