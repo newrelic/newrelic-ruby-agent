@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'mocha'
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper'))
 
 class SinatraRouteTestApp < Sinatra::Base
   configure do
@@ -80,6 +81,11 @@ class SinatraTest < Test::Unit::TestCase
   end
 
   def teardown
+    reset
+  end
+
+  def reset
+    ::NewRelic::Agent.agent.stats_engine.reset_stats
     ::NewRelic::Agent.agent.error_collector.harvest_errors([])
   end
 
@@ -97,7 +103,7 @@ class SinatraTest < Test::Unit::TestCase
 
   def test_queue_time_headers_are_passed_to_agent
     get '/user/login', {}, { 'HTTP_X_REQUEST_START' => 't=1360973845' }
-    assert ::NewRelic::Agent.agent.stats_engine.lookup_stats('WebFrontend/QueueTime')
+    assert_metrics_recorded(["WebFrontend/QueueTime"])
   end
 
   def test_shown_errors_get_caught
@@ -125,16 +131,13 @@ class SinatraTest < Test::Unit::TestCase
   def test_correct_pattern
     get '/route/match'
     assert_equal 'first route', last_response.body
-    assert_equal 'GET route/([^/?#]+)', $last_sinatra_route
+    assert_metrics_recorded(["Controller/Sinatra/SinatraRouteTestApp/GET route/([^/?#]+)"])
+
+    reset
 
     get '/route/no_match'
     assert_equal 'second route', last_response.body
-
-    # Ideally we could handle this assert, but we can't rename transactions
-    # in flight at this point. Once we get that ability, consider patching
-    # process_route to notify of route name changes.
-
-    # assert_equal 'GET route/no_match', $last_sinatra_route
+    assert_metrics_recorded(["Controller/Sinatra/SinatraRouteTestApp/GET route/no_match"])
   end
 
   def test_set_unknown_transaction_name_if_error_in_routing
@@ -142,19 +145,15 @@ class SinatraTest < Test::Unit::TestCase
       .stubs(:http_verb).raises(StandardError.new('madness'))
 
     get '/user/login'
-
-    metric_names = ::NewRelic::Agent.agent.stats_engine.metrics
-    assert(metric_names.include?('Controller/Sinatra/SinatraRouteTestApp/(unknown)'),
-           "#{metric_names} should include 'Controller/Sinatra/SinatraRouteTestApp/(unknown)'")
+    assert_metrics_recorded(['Controller/Sinatra/SinatraRouteTestApp/(unknown)'])
   end
 
+  # https://support.newrelic.com/tickets/31061
   def test_precondition_not_over_called
     get '/precondition'
 
     assert_equal 200, last_response.status
     assert_equal 'precondition only happened once', last_response.body
-
-    metric_names = ::NewRelic::Agent.agent.stats_engine.metrics
-    assert metric_names.include?('Controller/Sinatra/SinatraRouteTestApp/GET precondition')
+    assert_metrics_recorded(['Controller/Sinatra/SinatraRouteTestApp/GET precondition'])
   end
 end
