@@ -54,13 +54,16 @@ class SidekiqTest < Test::Unit::TestCase
   end
 
   def wait_for_jobs
-    time_for_jobs = 5
+    time_for_jobs = 10
     begin
+      t0 = Time.now
       stats = Sidekiq::Stats.new
       Timeout.timeout(time_for_jobs) { sleep(0.1) until stats.processed == JOB_COUNT }
     rescue Timeout::Error => err
       completed = stats.processed
-      raise err.exception("waiting #{time_for_jobs}s for completion of #{JOB_COUNT} jobs - only #{completed} completed")
+      msg = "waiting #{time_for_jobs}s for completion of #{JOB_COUNT} jobs - only #{completed} completed"
+      msg << "\nstarted waiting at #{t0}, now = #{Time.now}"
+      raise err.exception(msg)
     end
   end
 
