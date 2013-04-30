@@ -33,9 +33,6 @@ class SinatraMetricExplosionTest < Test::Unit::TestCase
   end
 
   def setup
-
-    # puts ::NewRelic::Agent.manual_start
-    # puts ::NewRelic::Agent.agent.started?.inspect
     ::NewRelic::Agent.agent.stats_engine.clear_stats
   end
 

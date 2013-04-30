@@ -111,8 +111,7 @@ module NewRelic
             name = ::NewRelic::Agent::UNKNOWN_METRIC
             verb = http_verb(request)
 
-            # TODO: Update to better striping based on pull request we received
-            name = route_text.gsub(%r{^[/^]*(.*?)[/\$\?]*$}, '\1')
+            name = route_text.gsub(%r{^[/^\\A]*(.*?)[/\$\?\\z]*$}, '\1')
             name = "#{verb} #{name}" unless verb.nil?
             name
           rescue => e
