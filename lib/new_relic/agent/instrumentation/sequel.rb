@@ -25,8 +25,9 @@ DependencyDetection.defer do
         db.extension :newrelic_instrumentation
       end
     else
-      NewRelic::Agent.logger.info "Sequel version %s requires manual activation" %
-        [ Sequel::VERSION ]
+      NewRelic::Agent.logger.info "Detected Sequel version %s." % [ Sequel::VERSION ]
+      NewRelic::Agent.logger.info "Please see additional documentation: " +
+        "https://newrelic.com/docs/ruby/sequel-instrumentation"
     end
 
     Sequel.synchronize do
