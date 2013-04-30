@@ -51,11 +51,6 @@ class SinatraRouteTestApp < Sinatra::Base
   end
   get('/precondition') { 'precondition only happened once' }
 
-  def perform_action_with_newrelic_trace(options)
-    $last_sinatra_route = options[:name]
-    super
-  end
-
   get '/route/:name' do |name|
     # usually this would be a db test or something
     pass if name != 'match'
