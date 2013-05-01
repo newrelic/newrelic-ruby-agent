@@ -180,6 +180,16 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Test::Unit::
     assert_includes @engine.metrics, "ActiveRecord/#{Post.name}/destroy"
   end
 
+  def test_model_destroy_uses_the_class_name_for_the_metric
+    author = Author.create( :name => 'Marlon Forswytthe', :login => 'mfors' )
+    author.destroy
+
+    assert_includes @engine.metrics, "RemoteService/sql/sqlite/localhost"
+    assert_includes @engine.metrics, "Database/SQL/delete"
+    assert_includes @engine.metrics, "ActiveRecord/all"
+    assert_includes @engine.metrics, "ActiveRecord/#{Author.name}/destroy"
+  end
+
   def test_slow_queries_get_an_explain_plan
     transaction_samples = with_controller_scope do
       Post[11]

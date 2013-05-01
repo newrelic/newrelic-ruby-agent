@@ -18,7 +18,7 @@ module Sequel
         # Make a lambda for the method body of the traced method
         def make_tracer_method( opname, options )
           body = Proc.new do |*args, &block|
-            classname = self.respond_to?( :name ) ? self.name : self.class.name
+            classname = self.is_a?( Class ) ? self.name : self.class.name
             metric = "ActiveRecord/%s/%s" % [ classname, opname ]
             trace_execution_scoped( metric, options ) do
               super( *args, &block )
