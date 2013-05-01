@@ -56,7 +56,6 @@ module Sequel
     # Record metrics for the specified +sql+ and +args+ using the specified
     # +duration+.
     def record_metrics( sql, args, duration)
-      NewRelic::Agent.logger.debug "Recording metrics for %p." % [ sql ]
       primary_metric = primary_metric_for( sql, args )
       engine         = NewRelic::Agent.instance.stats_engine
 
