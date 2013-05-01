@@ -12,15 +12,15 @@ module Sequel
   # New Relic's Sequel instrumentation is implemented via a plugin for
   # Sequel::Models, and an extension for Sequel::Databases. Every database
   # handle that Sequel knows about when New Relic is loaded will automatically
-  # be instrumented, but if you're using a version of Sequel after 3.46.0,
+  # be instrumented, but if you're using a version of Sequel before 3.47.0,
   # you'll need to add the extension yourself if you create any after the
   # instrumentation is loaded:
   # 
   #     db = Sequel.connect( ... )
   #     db.extension :newrelic_instrumentation
   # 
-  # Versions after 3.46.0 use the `:after_initialization` hook to
-  # automatically install the extension for new connections.
+  # Versions 3.47.0 and later use `Database.extension` to automatically
+  # install the extension for new connections.
   # 
   # == Disabling
   # 

@@ -20,10 +20,8 @@ DependencyDetection.defer do
   executes do
     ::NewRelic::Agent.logger.info 'Installing Sequel instrumentation'
 
-    if Sequel::Database.respond_to?( :after_initialize )
-      Sequel::Database.after_initialize do |db|
-        db.extension :newrelic_instrumentation
-      end
+    if Sequel::Database.respond_to?( :extension )
+      Sequel::Database.extension :newrelic_instrumentation
     else
       NewRelic::Agent.logger.info "Detected Sequel version %s." % [ Sequel::VERSION ]
       NewRelic::Agent.logger.info "Please see additional documentation: " +
