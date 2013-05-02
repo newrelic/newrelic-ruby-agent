@@ -74,6 +74,8 @@ DependencyDetection.defer do
       end
 
       ::Resque.after_fork do |job|
+        # Only suppress reporting Instance/Busy for forked children
+        # Traced errors UI relies on having the parent process report that metric
         NewRelic::Agent.after_fork(:report_to_channel => job.object_id,
                                    :report_instance_busy => false)
       end
