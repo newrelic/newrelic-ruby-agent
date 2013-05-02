@@ -135,6 +135,7 @@ class ResqueTest < Test::Unit::TestCase
 
   def test_agent_posts_correct_metric_data
     run_worker
+    assert_metric_and_call_count('Instance/Busy', 1)
     assert_metric_and_call_count('OtherTransaction/ResqueJob/all', JOB_COUNT)
   end
 
@@ -146,6 +147,7 @@ class ResqueTest < Test::Unit::TestCase
 
     def test_agent_posts_correct_metric_data_background
       run_worker(:background => true)
+      assert_metric_and_call_count('Instance/Busy', 1)
       assert_metric_and_call_count('OtherTransaction/ResqueJob/all', JOB_COUNT)
     end
   end
