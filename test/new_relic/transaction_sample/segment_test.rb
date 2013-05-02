@@ -387,6 +387,25 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
     end
   end
 
+  def test_explain_sql_can_handle_missing_config
+    # If TT segment came over from Resque child, might not be a Statement
+    s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
+    s.params = { :sql => "SELECT * FROM galaxy" }
+    assert_nothing_raised do
+      s.explain_sql
+    end
+  end
+
+  def test_explain_sql_can_use_already_existing_plan
+    s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
+    s.params = {
+      :sql => "SELECT * FROM galaxy",
+      :explain_plan => "EXPLAIN IT!"
+    }
+
+    assert_equal("EXPLAIN IT!", s.explain_sql)
+  end
+
   def test_params_equal
     s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
     assert_equal(nil, s.instance_eval { @params })
