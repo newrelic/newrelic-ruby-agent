@@ -126,8 +126,10 @@ module NewRelic
         begin
           # guarantees no throw from explain_sql
           ::NewRelic::Agent.logger.error("Error getting query plan:", e)
+          nil
         rescue
           # double exception. throw up your hands
+          nil
         end
       end
 
