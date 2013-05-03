@@ -182,16 +182,23 @@ module NewRelic
         end
         nil
       end
-      
+
       def explain_sql
-        NewRelic::Agent::Database.explain_sql(params[:sql],
-                                              params[:connection_config])
+        return params[:explain_plan] if params.key?(:explain_plan)
+
+        statement = params[:sql]
+        return nil unless statement.respond_to?(:config) &&
+                          statement.respond_to?(:explainer)
+
+        NewRelic::Agent::Database.explain_sql(statement,
+                                              statement.config,
+                                              &statement.explainer)
       end
-      
+
       def obfuscated_sql
         NewRelic::Agent::Database.obfuscate_sql(params[:sql])
       end
-      
+
       def params=(p)
         @params = p
       end

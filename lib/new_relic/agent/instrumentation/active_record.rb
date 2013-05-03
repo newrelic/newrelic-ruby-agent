@@ -6,6 +6,16 @@ module NewRelic
   module Agent
     module Instrumentation
       module ActiveRecord
+        EXPLAINER = lambda do |config, query|
+          connection = NewRelic::Agent::Database.get_connection(config) do
+            ::ActiveRecord::Base.send("#{config[:adapter]}_connection",
+                                      config)
+          end
+          if connection && connection.respond_to?(:execute)
+            return connection.execute("EXPLAIN #{query}")
+          end
+        end
+
         def self.included(instrumented_class)
           instrumented_class.class_eval do
             unless instrumented_class.method_defined?(:log_without_newrelic_instrumentation)
@@ -36,10 +46,13 @@ module NewRelic
                 log_without_newrelic_instrumentation(*args, &block)
               ensure
                 elapsed_time = (Time.now - t0).to_f
+
                 NewRelic::Agent.instance.transaction_sampler.notice_sql(sql,
-                                                         @config, elapsed_time)
+                                                      @config, elapsed_time,
+                                                                  &EXPLAINER)
                 NewRelic::Agent.instance.sql_sampler.notice_sql(sql, metric,
-                                                         @config, elapsed_time)
+                                                      @config, elapsed_time,
+                                                                  &EXPLAINER)
               end
             end
           end

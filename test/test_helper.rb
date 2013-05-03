@@ -356,8 +356,8 @@ module TransactionSampleTestHelper
     sampler.notice_first_scope_push Time.now.to_f
     sampler.notice_transaction(nil, :jim => "cool")
     sampler.notice_push_scope "a"
-    sql.each {|sql_statement| sampler.notice_sql(sql_statement, {:adapter => "test"}, 0 ) }
-
+    explainer = NewRelic::Agent::Instrumentation::ActiveRecord::EXPLAINER
+    sql.each {|sql_statement| sampler.notice_sql(sql_statement, {:adapter => "test"}, 0, &explainer) }
     sleep 0.02
     yield if block_given?
     sampler.notice_pop_scope "a"
@@ -370,13 +370,13 @@ module TransactionSampleTestHelper
     sampler.notice_first_scope_push Time.now.to_f
     sampler.notice_transaction(path, {})
     sampler.notice_push_scope "Controller/sandwiches/index"
-    sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'", nil, 0)
+    sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'", {}, 0)
     sampler.notice_push_scope "ab"
-    sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'white'", nil, 0)
+    sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'white'", {}, 0)
     yield sampler if block_given?
     sampler.notice_pop_scope "ab"
     sampler.notice_push_scope "lew"
-    sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'french'", nil, 0)
+    sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'french'", {}, 0)
     sampler.notice_pop_scope "lew"
     sampler.notice_pop_scope "Controller/sandwiches/index"
     sampler.notice_scope_empty(stub('txn', :name => path, :custom_parameters => {}))

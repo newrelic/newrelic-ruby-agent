@@ -12,4 +12,5 @@ group :development do
   gem 'sqlite3', :platform => 'mri'
   gem 'activerecord-jdbcsqlite3-adapter', :platform => 'jruby'
   gem 'jruby-openssl', :platform => 'jruby'
+  gem 'sequel', '~> 3.46.0'
 end
