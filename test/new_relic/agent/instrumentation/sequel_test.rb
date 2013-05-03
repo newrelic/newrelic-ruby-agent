@@ -2,6 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+if RUBY_VERSION >= "1.8.7"
+
 require 'sequel'
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
@@ -254,4 +256,4 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Test::Unit::
 
 end
 
-
+end
