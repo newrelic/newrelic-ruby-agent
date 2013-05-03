@@ -264,6 +264,20 @@ def with_config(config_hash, opts={})
   end
 end
 
+
+def with_verbose_logging
+  orig_logger = NewRelic::Agent.logger
+  $stderr.puts '', '---', ''
+  new_logger = NewRelic::Agent::AgentLogger.new( {:log_level => 'debug'}, '', Logger.new($stderr) )
+  NewRelic::Agent.logger = new_logger
+
+  yield
+
+ensure
+  NewRelic::Agent.logger = orig_logger
+end
+
+
 # Need to be a bit sloppy when testing against the logging--let everything
 # through, but check we (at least) get our particular message we care about
 def expects_logging(level, *with_params)
