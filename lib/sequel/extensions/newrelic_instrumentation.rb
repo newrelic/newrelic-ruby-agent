@@ -62,7 +62,7 @@ module Sequel
       engine.record_metrics( primary_metric, duration, :scoped => true )
 
       metrics = rollup_metrics_for( primary_metric )
-      metrics << remote_service_metric( *self.opts.values_at(:adapter, :host) )
+      metrics << remote_service_metric( *self.opts.values_at(:adapter, :host) ) if self.opts.key?(:adapter)
 
       engine.record_metrics( metrics, duration, :scoped => false )
     end

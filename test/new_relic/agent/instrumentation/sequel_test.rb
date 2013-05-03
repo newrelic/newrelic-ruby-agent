@@ -13,8 +13,20 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Test::Unit::
   include NewRelic::Agent::Instrumentation::ControllerInstrumentation,
           TransactionSampleTestHelper
 
+  def self.jruby?
+    NewRelic::LanguageSupport.using_engine?('jruby')
+  end
+
+  def jruby?
+    self.class.jruby?
+  end
+
   # Use an in-memory SQLite database
-  DB = Sequel.sqlite
+  if (jruby?)
+    DB = Sequel.connect('jdbc:sqlite::memory:')
+  else
+    DB = Sequel.sqlite
+  end
   DB.extension :newrelic_instrumentation
 
   # Create tables and model classes for testing
@@ -32,6 +44,7 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Test::Unit::
     time :created_at
   end
   class Post < Sequel::Model; end
+
 
 
   #
@@ -77,7 +90,7 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Test::Unit::
   def test_model_enumerator_generates_metrics
     Post.all
 
-    assert_includes @engine.metrics, "RemoteService/sql/sqlite/localhost"
+    assert_remote_service_metrics
     assert_includes @engine.metrics, "Database/SQL/select"
     assert_includes @engine.metrics, "ActiveRecord/all"
     assert_includes @engine.metrics, "ActiveRecord/#{Post.name}/all"
@@ -86,16 +99,16 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Test::Unit::
   def test_model_index_operator_generates_metrics
     Post[11]
 
+    assert_remote_service_metrics
+    assert_includes @engine.metrics, "Database/SQL/select"
     assert_includes @engine.metrics, "ActiveRecord/all"
     assert_includes @engine.metrics, "ActiveRecord/#{Post.name}/get"
-    assert_includes @engine.metrics, "RemoteService/sql/sqlite/localhost"
-    assert_includes @engine.metrics, "Database/SQL/select"
   end
 
   def test_model_create_method_generates_metrics
     post = Post.create( :title => 'The Thing', :content => 'A wicked short story.' )
 
-    assert_includes @engine.metrics, "RemoteService/sql/sqlite/localhost"
+    assert_remote_service_metrics
     assert_includes @engine.metrics, "Database/SQL/insert"
     assert_includes @engine.metrics, "ActiveRecord/all"
     assert_includes @engine.metrics, "ActiveRecord/#{Post.name}/create"
@@ -105,7 +118,7 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Test::Unit::
     post = Post.create( :title => 'All The Things', :content => 'A story about beans.' )
     post.update( :title => 'A Lot of the Things' )
 
-    assert_includes @engine.metrics, "RemoteService/sql/sqlite/localhost"
+    assert_remote_service_metrics
     assert_includes @engine.metrics, "Database/SQL/update"
     assert_includes @engine.metrics, "ActiveRecord/all"
     assert_includes @engine.metrics, "ActiveRecord/#{Post.name}/update"
@@ -115,7 +128,7 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Test::Unit::
     post = Post.create( :title => 'All The Things', :content => 'A nicer story than yours.' )
     post.update_all( :title => 'A Whole Hell of a Lot of the Things' )
 
-    assert_includes @engine.metrics, "RemoteService/sql/sqlite/localhost"
+    assert_remote_service_metrics
     assert_includes @engine.metrics, "Database/SQL/update"
     assert_includes @engine.metrics, "ActiveRecord/all"
     assert_includes @engine.metrics, "ActiveRecord/#{Post.name}/update_all"
@@ -125,7 +138,7 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Test::Unit::
     post = Post.create( :title => 'All The Things', :content => 'A story.' )
     post.update_except( {:title => 'A Bit More of the Things'}, :created_at )
 
-    assert_includes @engine.metrics, "RemoteService/sql/sqlite/localhost"
+    assert_remote_service_metrics
     assert_includes @engine.metrics, "Database/SQL/update"
     assert_includes @engine.metrics, "ActiveRecord/all"
     assert_includes @engine.metrics, "ActiveRecord/#{Post.name}/update_except"
@@ -135,7 +148,7 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Test::Unit::
     post = Post.create( :title => 'All The Things', :content => 'A venal short story.' )
     post.update_fields( {:title => 'A Plethora of Things'}, [:title] )
 
-    assert_includes @engine.metrics, "RemoteService/sql/sqlite/localhost"
+    assert_remote_service_metrics
     assert_includes @engine.metrics, "Database/SQL/update"
     assert_includes @engine.metrics, "ActiveRecord/all"
     assert_includes @engine.metrics, "ActiveRecord/#{Post.name}/update_fields"
@@ -145,7 +158,7 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Test::Unit::
     post = Post.create( :title => 'All The Things', :content => 'A meandering short story.' )
     post.update_only( {:title => 'A Lot of the Things'}, :title )
 
-    assert_includes @engine.metrics, "RemoteService/sql/sqlite/localhost"
+    assert_remote_service_metrics
     assert_includes @engine.metrics, "Database/SQL/update"
     assert_includes @engine.metrics, "ActiveRecord/all"
     assert_includes @engine.metrics, "ActiveRecord/#{Post.name}/update_only"
@@ -156,7 +169,7 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Test::Unit::
                      :content => 'A lingering long story.' )
     post.save
 
-    assert_includes @engine.metrics, "RemoteService/sql/sqlite/localhost"
+    assert_remote_service_metrics
     assert_includes @engine.metrics, "Database/SQL/insert"
     assert_includes @engine.metrics, "ActiveRecord/all"
     assert_includes @engine.metrics, "ActiveRecord/#{Post.name}/save"
@@ -166,7 +179,7 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Test::Unit::
     post = Post.create( :title => 'All The Things', :content => 'A nice short story.' )
     post.delete
 
-    assert_includes @engine.metrics, "RemoteService/sql/sqlite/localhost"
+    assert_remote_service_metrics
     assert_includes @engine.metrics, "Database/SQL/delete"
     assert_includes @engine.metrics, "ActiveRecord/all"
     assert_includes @engine.metrics, "ActiveRecord/#{Post.name}/delete"
@@ -176,7 +189,7 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Test::Unit::
     post = Post.create( :title => 'Most of the Things', :content => 'Another short story.' )
     post.destroy
 
-    assert_includes @engine.metrics, "RemoteService/sql/sqlite/localhost"
+    assert_remote_service_metrics
     assert_includes @engine.metrics, "Database/SQL/delete"
     assert_includes @engine.metrics, "ActiveRecord/all"
     assert_includes @engine.metrics, "ActiveRecord/#{Post.name}/destroy"
@@ -186,33 +199,27 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Test::Unit::
     author = Author.create( :name => 'Marlon Forswytthe', :login => 'mfors' )
     author.destroy
 
-    assert_includes @engine.metrics, "RemoteService/sql/sqlite/localhost"
+    assert_remote_service_metrics
     assert_includes @engine.metrics, "Database/SQL/delete"
     assert_includes @engine.metrics, "ActiveRecord/all"
     assert_includes @engine.metrics, "ActiveRecord/#{Author.name}/destroy"
   end
 
   def test_slow_queries_get_an_explain_plan
-    transaction_samples = with_controller_scope do
-      Post[11]
-    end
-
     with_config( :'transaction_tracer.explain_threshold' => 0.0 ) do
-      sample = transaction_samples.first.prepare_to_send(:explain_sql=>0.0, :record_sql=>:raw)
-      segment = last_segment( sample )
+      segment = last_segment_for(:record_sql => :raw) do
+        Post[11]
+      end
       assert_match %r{select \* from `posts` where `id` = 11}i, segment.params[:sql]
       assert_segment_has_explain_plan( segment )
     end
   end
 
-  def test_queries_can_get_obfuscated_sql
-    transaction_samples = with_controller_scope do
-      Post[11]
-    end
-
+  def test_queries_can_get_explain_plan_with_obfuscated_sql
     with_config( :'transaction_tracer.explain_threshold' => 0.0 ) do
-      sample = transaction_samples.first.prepare_to_send(:explain_sql=>0.0, :record_sql=>:obfuscated)
-      segment = last_segment( sample )
+      segment = last_segment_for(:record_sql => :obfuscated) do
+        Post[11]
+      end
       assert_match %r{select \* from `posts` where `id` = \?}i, segment.params[:sql]
       assert_segment_has_explain_plan( segment )
     end
@@ -234,6 +241,14 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Test::Unit::
     assert_block( msg ) { segment.params[:explain_plan].join =~ SQLITE_EXPLAIN_PLAN_COLUMNS_RE }
   end
 
+  def assert_remote_service_metrics
+    if (jruby?)
+      assert @engine.metrics.none? {|s| s.start_with?("RemoteService/")}, "Sqlite on JRuby doesn't report adapter right for this metric. Why's it here?"
+    else
+      assert_includes @engine.metrics, "RemoteService/sql/sqlite/localhost"
+    end
+  end
+
   def with_controller_scope
     @sampler.notice_first_scope_push Time.now.to_f
     @sampler.notice_transaction('/', {})
@@ -244,6 +259,17 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Test::Unit::
     @sampler.notice_pop_scope "Controller/sandwiches/index"
     @sampler.notice_scope_empty(stub('txn', :name => '/', :custom_parameters => {}))
     @sampler.samples
+  end
+
+  def last_segment_for(options={})
+      transaction_samples = with_controller_scope do
+        yield
+      end
+
+      sample = transaction_samples.first.prepare_to_send(
+        :explain_sql=>options[:explain_sql] || -0.01,    # Force to take explain, even if duration's reported as 0.0
+        :record_sql=>options[:record_sql])
+      segment = last_segment( sample )
   end
 
   def last_segment(txn_sample)
