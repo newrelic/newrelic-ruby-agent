@@ -99,14 +99,14 @@ module NewRelic
 
       end
 
-      def notice_sql(sql, metric_name, config, duration)
+      def notice_sql(sql, metric_name, config, duration, &explainer)
         return unless transaction_data
         if NewRelic::Agent.is_sql_recorded?
           if duration > Agent.config[:'slow_sql.explain_threshold']
             backtrace = caller.join("\n")
             transaction_data.sql_data << SlowSql.new(TransactionSampler.truncate_message(sql),
                                                      metric_name, config,
-                                                     duration, backtrace)
+                                                     duration, backtrace, &explainer)
           end
         end
       end
@@ -163,12 +163,14 @@ module NewRelic
       attr_reader :duration
       attr_reader :backtrace
 
-      def initialize(sql, metric_name, config, duration, backtrace = nil)
+      def initialize(sql, metric_name, config, duration, backtrace=nil,
+                     &explainer)
         @sql = sql
         @metric_name = metric_name
         @config = config
         @duration = duration
         @backtrace = backtrace
+        @explainer = explainer
       end
 
       def obfuscate
@@ -181,7 +183,14 @@ module NewRelic
       end
 
       def explain
-        NewRelic::Agent::Database.explain_sql(@sql, @config)
+        if @config && @explainer
+          NewRelic::Agent::Database.explain_sql(@sql, @config, &@explainer)
+        end
+      end
+
+      # We can't serialize the explainer, so clear it before we transmit
+      def prepare_to_send
+        @explainer = nil
       end
     end
 
@@ -222,6 +231,7 @@ module NewRelic
       def prepare_to_send
         params[:explain_plan] = @slow_sql.explain if need_to_explain?
         @sql = @slow_sql.obfuscate if need_to_obfuscate?
+        @slow_sql.prepare_to_send
       end
 
       def need_to_obfuscate?

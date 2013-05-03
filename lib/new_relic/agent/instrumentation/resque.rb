@@ -66,8 +66,7 @@ DependencyDetection.defer do
       ::Resque.before_first_fork do
         NewRelic::Agent.manual_start(:dispatcher   => :resque,
                                      :sync_startup => true,
-                                     :start_channel_listener => true,
-                                     :report_instance_busy => false)
+                                     :start_channel_listener => true)
       end
 
       ::Resque.before_fork do |job|
@@ -75,7 +74,10 @@ DependencyDetection.defer do
       end
 
       ::Resque.after_fork do |job|
-        NewRelic::Agent.after_fork(:report_to_channel => job.object_id)
+        # Only suppress reporting Instance/Busy for forked children
+        # Traced errors UI relies on having the parent process report that metric
+        NewRelic::Agent.after_fork(:report_to_channel => job.object_id,
+                                   :report_instance_busy => false)
       end
     end
   end

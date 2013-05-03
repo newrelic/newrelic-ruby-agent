@@ -46,8 +46,8 @@ module NewRelic
         end
       end
 
-      def get_connection(config)
-        ConnectionManager.instance.get_connection(config)
+      def get_connection(config, &connector)
+        ConnectionManager.instance.get_connection(config, &connector)
       end
 
       def close_connections
@@ -63,14 +63,14 @@ module NewRelic
       # exceeds a threshold (e.g. 500ms) and only within the slowest
       # transaction in a report period, selected for shipment to New
       # Relic
-      def explain_sql(sql, connection_config)
+      def explain_sql(sql, connection_config, &explainer)
         return nil unless sql && connection_config
         statement = sql.split(";\n")[0] # only explain the first
-        explain_plan = explain_statement(statement, connection_config)
+        explain_plan = explain_statement(statement, connection_config, &explainer)
         return explain_plan || []
       end
 
-      def explain_statement(statement, config)
+      def explain_statement(statement, config, &explainer)
         return unless is_select?(statement)
 
         if statement[-3,3] == '...'
@@ -84,14 +84,10 @@ module NewRelic
         end
 
         handle_exception_in_explain do
-          connection = get_connection(config)
-          plan = nil
-          if connection
-            start = Time.now
-            plan = process_resultset(connection.execute("EXPLAIN #{statement}"))
-            ::NewRelic::Agent.record_metric("Supportability/Database/execute_explain_plan", Time.now - start)
-          end
-          return plan
+          start = Time.now
+          plan = explainer.call(config, statement)
+          ::NewRelic::Agent.record_metric("Supportability/Database/execute_explain_plan", Time.now - start)
+          return process_resultset(plan) if plan
         end
       end
 
@@ -130,8 +126,10 @@ module NewRelic
         begin
           # guarantees no throw from explain_sql
           ::NewRelic::Agent.logger.error("Error getting query plan:", e)
+          nil
         rescue
           # double exception. throw up your hands
+          nil
         end
       end
 
@@ -153,7 +151,7 @@ module NewRelic
         # configuration - these are stored or reopened as needed, and if
         # we cannot get one, we ignore it and move on without explaining
         # the sql
-        def get_connection(config)
+        def get_connection(config, &connector)
           @connections ||= {}
 
           connection = @connections[config]
@@ -161,8 +159,7 @@ module NewRelic
           return connection if connection
 
           begin
-            connection = ActiveRecord::Base.send("#{config[:adapter]}_connection", config)
-            @connections[config] = connection
+            @connections[config] = connector.call(config)
           rescue => e
             ::NewRelic::Agent.logger.error("Caught exception trying to get connection to DB for explain. Control: #{config}", e)
             nil
@@ -253,7 +250,7 @@ module NewRelic
       end
 
       class Statement < String
-        attr_accessor :adapter
+        attr_accessor :adapter, :config, :explainer
       end
     end
   end

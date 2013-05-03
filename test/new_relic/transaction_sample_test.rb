@@ -183,7 +183,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
       sampler.notice_push_scope "level0"
       sampler.notice_push_scope "level-1"
       sampler.notice_push_scope "level-2"
-      sampler.notice_sql(::SQL_STATEMENT, nil, 0)
+      sampler.notice_sql(::SQL_STATEMENT, {}, 0)
       sampler.notice_pop_scope "level-2"
       sampler.notice_pop_scope "level-1"
       sampler.notice_pop_scope "level0"

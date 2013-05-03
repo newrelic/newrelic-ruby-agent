@@ -62,9 +62,6 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
     @response = CANNED_RESPONSE.clone
     @socket = fixture_tcp_socket( @response )
 
-    # $stderr.puts '', '---', ''
-    # NewRelic::Agent.logger = NewRelic::Agent::AgentLogger.new( {:log_level => 'debug'}, '', Logger.new($stderr) )
-
     @engine = NewRelic::Agent.instance.stats_engine
     @engine.clear_stats
 
@@ -172,6 +169,18 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
       'External/www.google.com/Net::HTTP/GET',
       'External/allOther',
       'External/www.google.com/all'
+    ])
+  end
+
+
+  # https://newrelic.atlassian.net/browse/RUBY-835
+  def test_direct_get_request_doesnt_double_count
+    uri = URI.parse("http://www.google.com/index.html")
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.request(Net::HTTP::Get.new(uri.request_uri))
+
+    assert_metrics_recorded([
+      'External/www.google.com/Net::HTTP/GET'
     ])
   end
 
@@ -429,4 +438,5 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
       assert_equal filtered_uri, last_segment.params[:uri]
     end
   end
+
 end

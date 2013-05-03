@@ -264,6 +264,20 @@ def with_config(config_hash, opts={})
   end
 end
 
+
+def with_verbose_logging
+  orig_logger = NewRelic::Agent.logger
+  $stderr.puts '', '---', ''
+  new_logger = NewRelic::Agent::AgentLogger.new( {:log_level => 'debug'}, '', Logger.new($stderr) )
+  NewRelic::Agent.logger = new_logger
+
+  yield
+
+ensure
+  NewRelic::Agent.logger = orig_logger
+end
+
+
 # Need to be a bit sloppy when testing against the logging--let everything
 # through, but check we (at least) get our particular message we care about
 def expects_logging(level, *with_params)
@@ -356,8 +370,8 @@ module TransactionSampleTestHelper
     sampler.notice_first_scope_push Time.now.to_f
     sampler.notice_transaction(nil, :jim => "cool")
     sampler.notice_push_scope "a"
-    sql.each {|sql_statement| sampler.notice_sql(sql_statement, {:adapter => "test"}, 0 ) }
-
+    explainer = NewRelic::Agent::Instrumentation::ActiveRecord::EXPLAINER
+    sql.each {|sql_statement| sampler.notice_sql(sql_statement, {:adapter => "test"}, 0, &explainer) }
     sleep 0.02
     yield if block_given?
     sampler.notice_pop_scope "a"
@@ -370,13 +384,13 @@ module TransactionSampleTestHelper
     sampler.notice_first_scope_push Time.now.to_f
     sampler.notice_transaction(path, {})
     sampler.notice_push_scope "Controller/sandwiches/index"
-    sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'", nil, 0)
+    sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'", {}, 0)
     sampler.notice_push_scope "ab"
-    sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'white'", nil, 0)
+    sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'white'", {}, 0)
     yield sampler if block_given?
     sampler.notice_pop_scope "ab"
     sampler.notice_push_scope "lew"
-    sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'french'", nil, 0)
+    sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'french'", {}, 0)
     sampler.notice_pop_scope "lew"
     sampler.notice_pop_scope "Controller/sandwiches/index"
     sampler.notice_scope_empty(stub('txn', :name => path, :custom_parameters => {}))

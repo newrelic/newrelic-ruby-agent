@@ -421,14 +421,14 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
   def test_notice_sql_recording_sql
     Thread.current[:record_sql] = true
-    @sampler.expects(:notice_extra_data).with('some sql', 1.0, :sql, 'a config', :connection_config)
-    @sampler.notice_sql('some sql', 'a config', 1.0)
+    @sampler.expects(:notice_extra_data).with('some sql', 1.0, :sql)
+    @sampler.notice_sql('some sql', {:config => 'a config'}, 1.0)
   end
 
   def test_notice_sql_not_recording
     Thread.current[:record_sql] = false
-    @sampler.expects(:notice_extra_data).with('some sql', 1.0, :sql, 'a config', :connection_config).never # <--- important
-    @sampler.notice_sql('some sql', 'a config', 1.0)
+    @sampler.expects(:notice_extra_data).with('some sql', 1.0, :sql).never # <--- important
+    @sampler.notice_sql('some sql', {:config => 'a config'}, 1.0)
   end
 
   def test_notice_nosql
@@ -817,7 +817,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
     Thread::current[:record_sql] = false
 
-    @sampler.notice_sql("test", nil, 0)
+    @sampler.notice_sql("test", {}, 0)
 
     segment = @sampler.send(:builder).current_segment
 
@@ -827,7 +827,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   def test_stack_trace__sql
     with_config(:'transaction_tracer.stack_trace_threshold' => 0) do
       @sampler.notice_first_scope_push Time.now.to_f
-      @sampler.notice_sql("test", nil, 1)
+      @sampler.notice_sql("test", {}, 1)
       segment = @sampler.send(:builder).current_segment
 
       assert segment[:sql]
@@ -849,7 +849,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   def test_nil_stacktrace
     with_config(:'transaction_tracer.stack_trace_threshold' => 2) do
       @sampler.notice_first_scope_push Time.now.to_f
-      @sampler.notice_sql("test", nil, 1)
+      @sampler.notice_sql("test", {}, 1)
       segment = @sampler.send(:builder).current_segment
 
       assert segment[:sql]
@@ -864,7 +864,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
     len = 0
     while len <= 16384
-      @sampler.notice_sql(sql, nil, 0)
+      @sampler.notice_sql(sql, {}, 0)
       len += sql.length
     end
 
@@ -881,7 +881,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
     orig_sql = "SELECT * from Jim where id=66"
 
-    @sampler.notice_sql(orig_sql, nil, 0)
+    @sampler.notice_sql(orig_sql, {}, 0)
 
     segment = @sampler.send(:builder).current_segment
 
@@ -909,9 +909,9 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     with_config(:'transaction_tracer.limit_segments' => 3) do
       run_sample_trace do
         @sampler.notice_push_scope
-        @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'hallah'", nil, 0)
+        @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'hallah'", {}, 0)
         @sampler.notice_push_scope
-        @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'semolina'", nil, 0)
+        @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'semolina'", {}, 0)
         @sampler.notice_pop_scope "a11"
         @sampler.notice_pop_scope "a1"
       end
@@ -963,13 +963,13 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     @sampler.notice_transaction(nil, {})
     @sampler.notice_first_scope_push start
     @sampler.notice_push_scope
-    @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'", nil, 0)
+    @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'", {}, 0)
     @sampler.notice_push_scope
-    @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'white'", nil, 0)
+    @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'white'", {}, 0)
     yield if block_given?
     @sampler.notice_pop_scope "ab"
     @sampler.notice_push_scope
-    @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'french'", nil, 0)
+    @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'french'", {}, 0)
     @sampler.notice_pop_scope "ac"
     @sampler.notice_pop_scope "a"
     @sampler.notice_scope_empty(@txn, (stop || Time.now.to_f))

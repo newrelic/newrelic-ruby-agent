@@ -2,7 +2,6 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-
 DependencyDetection.defer do
   @name = :net
 
@@ -17,11 +16,18 @@ DependencyDetection.defer do
 
   executes do
     class Net::HTTP
-
-      # Instrument outgoing HTTP requests and fire associated events back
-      # into the Agent.
+      # Instrument outgoing HTTP requests
+      #
+      # If request is called when not the connection isn't started, request
+      # will call back into itself (via a start block).
+      #
+      # Don't tracing until the inner call then to avoid double-counting.
       def request_with_newrelic_trace(request, *args, &block)
-        NewRelic::Agent::CrossAppTracing.trace_http_request( self, request ) do
+        if started?
+          NewRelic::Agent::CrossAppTracing.trace_http_request( self, request ) do
+            request_without_newrelic_trace( request, *args, &block )
+          end
+        else
           request_without_newrelic_trace( request, *args, &block )
         end
       end

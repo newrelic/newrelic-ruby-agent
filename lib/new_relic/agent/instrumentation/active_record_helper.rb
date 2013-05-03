@@ -63,7 +63,7 @@ module NewRelic
         # Host defaults to "localhost".
         def remote_service_metric(adapter, host)
           host ||= 'localhost'
-          type = adapter.sub(/\d*/, '')
+          type = adapter.to_s.sub(/\d*/, '')
           "RemoteService/sql/#{type}/#{host}"
         end
       end

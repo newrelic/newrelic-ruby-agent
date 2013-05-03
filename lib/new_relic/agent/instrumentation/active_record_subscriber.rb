@@ -27,6 +27,16 @@ module NewRelic
           notice_sql(event)
         end
 
+        def get_explain_plan( config, query )
+          connection = NewRelic::Agent::Database.get_connection(config) do
+            ::ActiveRecord::Base.send("#{config[:adapter]}_connection",
+                                      config)
+          end
+          if connection && connection.respond_to?(:execute)
+            return connection.execute("EXPLAIN #{query}")
+          end
+        end
+
         def notice_sql(event)
           config = active_record_config_for_event(event)
           metric = base_metric(event)
@@ -36,11 +46,13 @@ module NewRelic
 
           NewRelic::Agent.instance.transaction_sampler \
             .notice_sql(event.payload[:sql], config,
-                        Helper.milliseconds_to_seconds(event.duration))
+                        Helper.milliseconds_to_seconds(event.duration),
+                        &method(:get_explain_plan))
 
           NewRelic::Agent.instance.sql_sampler \
             .notice_sql(event.payload[:sql], metric, config,
-                        Helper.milliseconds_to_seconds(event.duration))
+                        Helper.milliseconds_to_seconds(event.duration),
+                        &method(:get_explain_plan))
 
           # exit transaction trace segment
           NewRelic::Agent.instance.stats_engine.pop_scope(scope, metric, event.end)

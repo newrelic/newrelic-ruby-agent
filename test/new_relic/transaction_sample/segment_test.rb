@@ -376,12 +376,34 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
   def test_explain_sql_raising_an_error
     s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
     config = mock('config')
-    s.params = {:sql => 'SELECT', :connection_config => config}
+    statement = NewRelic::Agent::Database::Statement.new('SELECT')
+    statement.config = config
+    statement.explainer = NewRelic::Agent::Instrumentation::ActiveRecord::EXPLAINER
+    s.params = {:sql => statement}
     connection = mock('connection')
     NewRelic::Agent::Database.expects(:get_connection).with(config).raises(RuntimeError.new("whee"))
     assert_nothing_raised do
       s.explain_sql
     end
+  end
+
+  def test_explain_sql_can_handle_missing_config
+    # If TT segment came over from Resque child, might not be a Statement
+    s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
+    s.params = { :sql => "SELECT * FROM galaxy" }
+    assert_nothing_raised do
+      s.explain_sql
+    end
+  end
+
+  def test_explain_sql_can_use_already_existing_plan
+    s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
+    s.params = {
+      :sql => "SELECT * FROM galaxy",
+      :explain_plan => "EXPLAIN IT!"
+    }
+
+    assert_equal("EXPLAIN IT!", s.explain_sql)
   end
 
   def test_params_equal
@@ -393,7 +415,7 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
     s.params = params
     assert_equal(params, s.instance_eval { @params })
   end
-  
+
   def test_obfuscated_sql
     sql = 'select * from table where id = 1'
     s = NewRelic::TransactionSample::Segment.new(Time.now, 'Custom/test/metric', nil)
