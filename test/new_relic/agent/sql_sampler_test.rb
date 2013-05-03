@@ -206,6 +206,22 @@ class NewRelic::Agent::SqlSamplerTest < Test::Unit::TestCase
     end
   end
 
+  def test_can_directly_marshal_traces_for_pipe_transmittal
+    with_config(:'transaction_tracer.explain_enabled' => false) do
+      data = NewRelic::Agent::TransactionSqlData.new
+      explainer = NewRelic::Agent::Instrumentation::ActiveRecord::EXPLAINER
+      data.sql_data.concat([NewRelic::Agent::SlowSql.new("select * from test",
+                                                         "Database/test/select",
+                                                         {}, 1.5, &explainer)])
+      @sampler.harvest_slow_sql(data)
+      sql_traces = @sampler.harvest
+
+      assert_nothing_raised do
+        Marshal.dump(sql_traces)
+      end
+    end
+  end
+
   def test_to_collector_array
     with_config(:'transaction_tracer.explain_enabled' => false) do
       data = NewRelic::Agent::TransactionSqlData.new

@@ -187,6 +187,11 @@ module NewRelic
           NewRelic::Agent::Database.explain_sql(@sql, @config, &@explainer)
         end
       end
+
+      # We can't serialize the explainer, so clear it before we transmit
+      def prepare_to_send
+        @explainer = nil
+      end
     end
 
     class SqlTrace < Stats
@@ -226,6 +231,7 @@ module NewRelic
       def prepare_to_send
         params[:explain_plan] = @slow_sql.explain if need_to_explain?
         @sql = @slow_sql.obfuscate if need_to_obfuscate?
+        @slow_sql.prepare_to_send
       end
 
       def need_to_obfuscate?
