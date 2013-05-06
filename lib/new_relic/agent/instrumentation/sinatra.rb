@@ -22,7 +22,6 @@ DependencyDetection.defer do
     ::Sinatra::Base.class_eval do
       include NewRelic::Agent::Instrumentation::Sinatra
 
-      # TODO: tidy up method chaining?
       alias dispatch_without_newrelic dispatch!
       alias dispatch! dispatch_with_newrelic
 
@@ -63,6 +62,9 @@ module NewRelic
           process_route_without_newrelic(*args, &block)
         end
 
+        # If a transaction name is already set, this call will tromple over it.
+        # This is intentional, as typically passing to a separate route is like
+        # an entirely separate transaction, so we pick up the new name.
         def route_eval_with_newrelic(*args, &block)
           begin
             txn_name = TransactionNamer.transaction_name_for_route(env["newrelic.last_route"], request)
@@ -94,7 +96,6 @@ module NewRelic
           extend self
 
           def transaction_name_for_route(route, request)
-            # TODO: Can this route be something other than a Regexp that will respond to source?
             transaction_name(route.source, request)
           end
 
