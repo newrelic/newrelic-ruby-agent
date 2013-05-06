@@ -97,4 +97,11 @@ module SinatraTestCases
     assert_equal 'precondition only happened once', last_response.body
     assert_metrics_recorded(["Controller/Sinatra/#{app_name}/GET precondition"])
   end
+
+  def test_filter
+    get '/filtered'
+
+    assert_equal 200, last_response.status
+    assert_equal 'got filtered', last_response.body
+  end
 end

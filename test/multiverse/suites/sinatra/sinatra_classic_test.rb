@@ -66,6 +66,13 @@ get '/route/no_match' do
   'second route'
 end
 
+before '/filtered' do
+  @filtered = true
+end
+
+get '/filtered' do
+  @filtered ? 'got filtered' : 'nope'
+end
 
 class SinatraClassicTest < Test::Unit::TestCase
   include SinatraTestCases

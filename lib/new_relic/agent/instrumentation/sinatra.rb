@@ -55,8 +55,6 @@ module NewRelic
 
         # Capture last route we've seen. Will set for transaction on route_eval
         def process_route_with_newrelic(*args, &block)
-          # TODO: Is this guaranteed to be safe?
-          # TODO: How do we behave if we don't get a block? Does that even make sense?
           env["newrelic.last_route"] = args[0]
 
           # TODO: Safer wrapping around making sure that we call, even if we bork?
