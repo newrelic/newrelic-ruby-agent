@@ -28,19 +28,24 @@ module NewRelic
         # the user's subscription level precludes its use. The server is the
         # ultimate authority regarding subscription levels, so we expect it to
         # do the real enforcement there.
-        def apply_feature_gates(hash, existing_config)
+        def apply_feature_gates(server_config, existing_config)
           gated_features = {
             :'transaction_tracer.enabled' => 'collect_traces',
             :'slow_sql.enabled'           => 'collect_traces',
             :'error_collector.enabled'    => 'collect_errors'
           }
           gated_features.each do |feature, gate_key|
-            unless hash[gate_key].nil?
-              existing_value = existing_config[feature]
-              allowed_by_server = hash[gate_key]
-              hash[feature] = (allowed_by_server && existing_value)
+            if server_config.has_key?(gate_key)
+              allowed_by_server = server_config[gate_key]
+              requested_value = ungated_value(feature, existing_config)
+              effective_value = (allowed_by_server && requested_value)
+              server_config[feature] = effective_value
             end
           end
+        end
+
+        def ungated_value(key, existing_config)
+          self.has_key?(key) ? self[key] : existing_config[key]
         end
       end
     end
