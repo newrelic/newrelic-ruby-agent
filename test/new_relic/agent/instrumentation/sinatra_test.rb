@@ -56,6 +56,6 @@ class NewRelic::Agent::Instrumentation::SinatraTest < Test::Unit::TestCase
   end
 
   def assert_transaction_name(expected, original)
-    assert_equal expected, NewRelic::Agent::Instrumentation::Sinatra::NewRelic.transaction_name(original, nil)
+    assert_equal expected, NewRelic::Agent::Instrumentation::Sinatra::TransactionNamer.transaction_name(original, nil)
   end
 end

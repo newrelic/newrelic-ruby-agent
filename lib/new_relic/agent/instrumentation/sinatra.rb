@@ -65,11 +65,7 @@ module NewRelic
 
         def route_eval_with_newrelic(*args, &block)
           begin
-            # TODO: Check if we've got a name yet? Better error handling?
-            txn_name = NewRelic.transaction_name_for_route(env["newrelic.last_route"], request)
-
-            # TODO: Should we be generating the full name (with class) like this, or modifying existing name?
-            # TODO: How does this naming interact with the user applying raw set_transaction_name in route?
+            txn_name = TransactionNamer.transaction_name_for_route(env["newrelic.last_route"], request)
             ::NewRelic::Agent.set_transaction_name("#{self.class.name}/#{txn_name}")
           rescue => e
             ::NewRelic::Agent.logger.debug("Failed during route_eval to set transaction name", e)
@@ -79,11 +75,9 @@ module NewRelic
         end
 
         def dispatch_with_newrelic
-          # TODO: Should the name construction here be pulled to the module below now that we do it twice?
-          # TODO: Does it make sense to set the initial transaction name to UNKNOWN_METRIC, or would something more specialized be better?
-          # TODO: Does this work out of the box now with abort_transaction? If not, why not? Worth testing.
+          name = TransactionNamer.initial_transaction_name(request)
           perform_action_with_newrelic_trace(:category => :sinatra,
-                                             :name => NewRelic::transaction_name(::NewRelic::Agent::UNKNOWN_METRIC, request),
+                                             :name => name,
                                              :params => @request.params) do
             begin
               dispatch_without_newrelic
@@ -96,22 +90,19 @@ module NewRelic
           end
         end
 
-        # TODO: Rename/move/extract this thing. Stupid name messes with our own
-        # scope lookups so we can't just say NewRelic::Agent....
-        module NewRelic
+        module TransactionNamer
           extend self
-
-          def http_verb(request)
-            request.request_method if request.respond_to?(:request_method)
-          end
 
           def transaction_name_for_route(route, request)
             # TODO: Can this route be something other than a Regexp that will respond to source?
             transaction_name(route.source, request)
           end
 
+          def initial_transaction_name(request)
+            transaction_name(::NewRelic::Agent::UNKNOWN_METRIC, request)
+          end
+
           def transaction_name(route_text, request)
-            name = ::NewRelic::Agent::UNKNOWN_METRIC
             verb = http_verb(request)
 
             name = route_text.gsub(%r{^[/^\\A]*(.*?)[/\$\?\\z]*$}, '\1')
@@ -120,6 +111,10 @@ module NewRelic
           rescue => e
             ::NewRelic::Agent.logger.debug("#{e.class} : #{e.message} - Error encountered trying to identify Sinatra transaction name")
             ::NewRelic::Agent::UNKNOWN_METRIC
+          end
+
+          def http_verb(request)
+            request.request_method if request.respond_to?(:request_method)
           end
         end
       end

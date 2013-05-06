@@ -82,7 +82,7 @@ module SinatraTestCases
   end
 
   def test_set_unknown_transaction_name_if_error_in_routing
-    ::NewRelic::Agent::Instrumentation::Sinatra::NewRelic \
+    ::NewRelic::Agent::Instrumentation::Sinatra::TransactionNamer \
       .stubs(:http_verb).raises(StandardError.new('madness'))
 
     get '/user/login'
