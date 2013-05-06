@@ -55,9 +55,11 @@ module NewRelic
 
         # Capture last route we've seen. Will set for transaction on route_eval
         def process_route_with_newrelic(*args, &block)
-          env["newrelic.last_route"] = args[0]
-
-          # TODO: Safer wrapping around making sure that we call, even if we bork?
+          begin
+            env["newrelic.last_route"] = args[0]
+          rescue Exception => e
+            ::NewRelic::Agent.logger.debug("Failed determining last route in Sinatra", e)
+          end
           process_route_without_newrelic(*args, &block)
         end
 
