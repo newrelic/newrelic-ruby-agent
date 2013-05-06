@@ -1,6 +1,26 @@
 
 # New Relic Ruby Agent Release Notes #
 
+## v3.6.2 ##
+
+  * Sequel support
+
+  The Ruby agent now supports Sequel, a database toolkit for Ruby. This
+  includes capturing SQL calls and model operations in transaction traces, and
+  recording slow SQL calls. See https://newrelic.com/docs/ruby/sequel-instrumentation
+  for full details.
+
+  * Fix for over-counted Net::HTTP calls
+
+  Under some circumstances, calls into Net::HTTP were being counted twice in
+  metrics and transaction traces. This has been fixed.
+
+  * Missing traced errors for Resque applications
+
+  Traced errors weren't displaying for some Resque workers, although the errors
+  were factored into the overall count graphs. This has been fixed, and traced
+  errors should be available again after upgrading the agent.
+
 ## v3.6.1 ##
 
   * Full URIs for HTTP requests are recorded in transaction traces
