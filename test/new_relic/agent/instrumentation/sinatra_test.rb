@@ -20,11 +20,9 @@ class NewRelic::Agent::Instrumentation::SinatraTest < Test::Unit::TestCase
     end
   end
 
-
   def setup
     @app = SinatraTestApp.new
   end
-
 
   def test_newrelic_request_headers
     expected_headers = {:fake => :header}
@@ -49,6 +47,12 @@ class NewRelic::Agent::Instrumentation::SinatraTest < Test::Unit::TestCase
     @app.stubs(:env).throws("Boo")
     @app.expects(:process_route_without_newrelic).once
     @app.process_route_with_newrelic
+  end
+
+  def test_route_eval_with_bad_params
+    @app.stubs(:env).throws("Boo")
+    @app.expects(:route_eval_without_newrelic).once
+    @app.route_eval_with_newrelic
   end
 
   def assert_transaction_name(expected, original)

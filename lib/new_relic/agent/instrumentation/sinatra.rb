@@ -57,21 +57,24 @@ module NewRelic
         def process_route_with_newrelic(*args, &block)
           begin
             env["newrelic.last_route"] = args[0]
-          rescue Exception => e
+          rescue => e
             ::NewRelic::Agent.logger.debug("Failed determining last route in Sinatra", e)
           end
           process_route_without_newrelic(*args, &block)
         end
 
         def route_eval_with_newrelic(*args, &block)
-          # TODO: Check if we've got a name yet? Better error handling?
-          txn_name = NewRelic.transaction_name_for_route(env["newrelic.last_route"], request)
+          begin
+            # TODO: Check if we've got a name yet? Better error handling?
+            txn_name = NewRelic.transaction_name_for_route(env["newrelic.last_route"], request)
 
-          # TODO: Should we be generating the full name (with class) like this, or modifying existing name?
-          # TODO: How does this naming interact with the user applying raw set_transaction_name in route?
-          ::NewRelic::Agent.set_transaction_name("#{self.class.name}/#{txn_name}")
+            # TODO: Should we be generating the full name (with class) like this, or modifying existing name?
+            # TODO: How does this naming interact with the user applying raw set_transaction_name in route?
+            ::NewRelic::Agent.set_transaction_name("#{self.class.name}/#{txn_name}")
+          rescue => e
+            ::NewRelic::Agent.logger.debug("Failed during route_eval to set transaction name", e)
+          end
 
-          # TODO: Safer wrapping around making sure that we call, even if we bork?
           route_eval_without_newrelic(*args, &block)
         end
 
