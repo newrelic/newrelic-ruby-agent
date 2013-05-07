@@ -104,4 +104,11 @@ module SinatraTestCases
     assert_equal 200, last_response.status
     assert_equal 'got filtered', last_response.body
   end
+
+  def test_ignores_route_metrics
+    get '/ignored'
+
+    assert_equal 200, last_response.status
+    assert_metrics_not_recorded(["Controller/Sinatra/#{app_name}/GET ignored"])
+  end
 end

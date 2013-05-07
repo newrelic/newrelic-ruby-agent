@@ -74,6 +74,11 @@ get '/filtered' do
   @filtered ? 'got filtered' : 'nope'
 end
 
+newrelic_ignore '/ignored'
+get '/ignored' do
+  "don't trace me bro"
+end
+
 class SinatraClassicTest < Test::Unit::TestCase
   include SinatraTestCases
 

@@ -69,6 +69,11 @@ class SinatraModularTestApp < Sinatra::Base
   get '/filtered' do
     @filtered ? 'got filtered' : 'nope'
   end
+
+  newrelic_ignore '/ignored'
+  get '/ignored' do
+    "don't trace me bro"
+  end
 end
 
 class SinatraModularTest < Test::Unit::TestCase
