@@ -16,24 +16,25 @@ module NewRelic
         gather_startup_logs
       end
 
+
       def fatal(*msgs)
-        @log.fatal(format_messages(msgs))
+        format_and_send(:fatal, msgs)
       end
 
       def error(*msgs)
-        @log.error(format_messages(msgs))
+        format_and_send(:error, msgs)
       end
 
       def warn(*msgs)
-        @log.warn(format_messages(msgs))
+        format_and_send(:warn, msgs)
       end
 
       def info(*msgs)
-        @log.info(format_messages(msgs))
+        format_and_send(:info, msgs)
       end
 
       def debug(*msgs)
-        @log.debug(format_messages(msgs))
+        format_and_send(:debug, msgs)
       end
 
       def is_startup_logger?
@@ -41,14 +42,22 @@ module NewRelic
       end
 
       # Allows for passing exceptions in explicitly, which format with backtrace
-      def format_messages(msgs)
-        msgs.map do |msg|
-          if msg.respond_to?(:backtrace)
-            "#{msg.class}: #{msg}\n\t#{(msg.backtrace || []).join("\n\t")}"
+      def format_and_send(level, *msgs)
+        msgs.flatten!
+        exceptions = msgs.find_all {|m| m.is_a?(Exception) }
+        formatted = msgs.collect do |msg|
+          if msg.respond_to?(:message)
+            "%p: %s" % [ msg.class, msg.message ]
           else
-            msg
+            msg.to_s
           end
-        end.join("\n")
+        end.join(": ")
+
+        @log.send level, formatted
+
+        exceptions.each do |ex|
+          @log.debug { "Debugging backtrace:\n  " + ex.backtrace.join("\n  ") }
+        end
       end
 
       def create_log(config, root, override_logger)
