@@ -23,6 +23,8 @@ class SinatraIgnoreTestApp < Sinatra::Base
   get '/skip_regex' do request.path_info end
   get '/regex_seen' do request.path_info end
 
+  newrelic_ignore_apdex '/no_apdex'
+  get '/no_apdex' do request.path_info end
 end
 
 class SinatraIgnoreTest < Test::Unit::TestCase
@@ -50,17 +52,23 @@ class SinatraIgnoreTest < Test::Unit::TestCase
 
   def test_seen_route
     get '/record'
-    assert_metrics_recorded(["Controller/Sinatra/#{app_name}/GET record"])
+    assert_metrics_recorded([
+      "Controller/Sinatra/#{app_name}/GET record",
+      "Apdex/Sinatra/#{app_name}/GET record"])
   end
 
   def test_ignores_exact_match
     get '/ignore'
-    assert_metrics_not_recorded(["Controller/Sinatra/#{app_name}/GET ignore"])
+    assert_metrics_not_recorded([
+      "Controller/Sinatra/#{app_name}/GET ignore",
+      "Apdex/Sinatra/#{app_name}/GET ignore"])
   end
 
   def test_ignores_by_splats
     get '/splattered'
-    assert_metrics_not_recorded(["Controller/Sinatra/#{app_name}/GET by_pattern"])
+    assert_metrics_not_recorded([
+      "Controller/Sinatra/#{app_name}/GET by_pattern",
+      "Apdex/Sinatra/#{app_name}/GET by_pattern"])
   end
 
   def test_ignores_can_be_declared_in_batches
@@ -70,19 +78,33 @@ class SinatraIgnoreTest < Test::Unit::TestCase
 
     assert_metrics_not_recorded([
       "Controller/Sinatra/#{app_name}/GET v1",
-      "Controller/Sinatra/#{app_name}/GET v2"])
+      "Controller/Sinatra/#{app_name}/GET v2",
+      "Apdex/Sinatra/#{app_name}/GET v1",
+      "Apdex/Sinatra/#{app_name}/GET v2"])
 
-    assert_metrics_recorded(["Controller/Sinatra/#{app_name}/GET v3"])
+    assert_metrics_recorded([
+      "Controller/Sinatra/#{app_name}/GET v3",
+      "Apdex/Sinatra/#{app_name}/GET v3"])
   end
 
   def test_seen_with_regex
     get '/regex_seen'
-    assert_metrics_recorded(["Controller/Sinatra/#{app_name}/GET regex_seen"])
+    assert_metrics_recorded([
+      "Controller/Sinatra/#{app_name}/GET regex_seen",
+      "Apdex/Sinatra/#{app_name}/GET regex_seen"])
   end
 
   def test_ignores_by_regex
     get '/skip_regex'
-    assert_metrics_not_recorded(["Controller/Sinatra/#{app_name}/GET skip_regex"])
+    assert_metrics_not_recorded([
+      "Controller/Sinatra/#{app_name}/GET skip_regex",
+      "Apdex/Sinatra/#{app_name}/GET skip_regex"])
+  end
+
+  def test_ignore_apdex
+    get '/no_apdex'
+    assert_metrics_recorded(["Controller/Sinatra/#{app_name}/GET no_apdex"])
+    assert_metrics_not_recorded(["Apdex/Sinatra/#{app_name}/GET no_apdex"])
   end
 
 end

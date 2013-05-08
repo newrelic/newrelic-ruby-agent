@@ -9,11 +9,27 @@ module NewRelic
         module Ignorer
 
           def self.registered(app)
-            app.set :newrelic_ignore_routes, [] unless app.respond_to?(:newrelic_ignore_routes)
+            app.set :newrelic_ignores, Hash.new([]) unless app.respond_to?(:newrelic_ignores)
+          end
+
+          def self.should_ignore?(app, type)
+            app.settings.newrelic_ignores[type].any? do |pattern|
+              pattern.match(app.request.path_info)
+            end
           end
 
           def newrelic_ignore(*routes)
-            settings.newrelic_ignore_routes += routes.map do |r|
+            set_newrelic_ignore(:routes, *routes)
+          end
+
+          def newrelic_ignore_apdex(*routes)
+            set_newrelic_ignore(:apdex, *routes)
+          end
+
+          private
+
+          def set_newrelic_ignore(type, *routes)
+            settings.newrelic_ignores[type] += routes.map do |r|
               # Ugly sending to private Base#compile, but we want to mimic
               # exactly Sinatra's mapping of route text to regex
               send(:compile, r).first

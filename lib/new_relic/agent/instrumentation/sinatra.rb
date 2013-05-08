@@ -109,10 +109,14 @@ module NewRelic
         end
 
         def ignore_request?
-          settings.newrelic_ignore_routes.any? do |pattern|
-            pattern.match(request.path_info)
-          end
+          Ignorer.should_ignore?(self, :routes)
         end
+
+        # Overrides ControllerInstrumentation implementation
+        def ignore_apdex?
+          Ignorer.should_ignore?(self, :apdex)
+        end
+
       end
     end
   end
