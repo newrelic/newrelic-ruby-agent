@@ -64,6 +64,8 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Test::Unit::
     @engine.start_transaction
 
     @sampler = NewRelic::Agent.instance.transaction_sampler
+
+    NewRelic::Agent::Transaction.stubs(:recording_web_transaction?).returns(true)
   end
 
   def teardown

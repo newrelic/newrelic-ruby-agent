@@ -495,6 +495,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
 
   # This is to make sure the all metric is recorded for exceptional cases
   def test_error_handling
+    NewRelic::Agent::Transaction.stubs(:recording_web_transaction?).returns(true)
     # have the AR select throw an error
     ActiveRecordFixtures::Order.connection.stubs(:log_info).with do | sql, x, y |
       raise "Error" if sql =~ /select/
