@@ -89,6 +89,7 @@ if [ "x$BRANCH" == "xnorails" ]; then
   bundle -v
   bundle --local || bundle
   NO_RAILS=true bundle exec rake --trace test || bundle exec rake --trace test
+  exit
 fi
 
 #rpm_test_app_cache=~/.rpm_test_app_cache
