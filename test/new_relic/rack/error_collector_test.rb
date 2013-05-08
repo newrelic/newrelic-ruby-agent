@@ -62,13 +62,17 @@ module NewRelic::Rack
              'noticed an error that should have been ignored')
     end
 
-    def test_ignore_errors_from_ignored_actions
-      assert_raise RuntimeError do
-        get '/ignored'
-      end
+    if defined?(::Rails)
+      def test_ignore_errors_from_ignored_actions
+        assert_raise RuntimeError do
+          get '/ignored'
+        end
 
-      assert(NewRelic::Agent.instance.error_collector.errors.empty?,
-             'noticed an error that should have been ignored')
+        assert(NewRelic::Agent.instance.error_collector.errors.empty?,
+               'noticed an error that should have been ignored')
+      end
+    else
+      puts "Skipping tests in #{__FILE__} because Rails is unavailable"
     end
 
     def test_handles_parameter_parsing_exceptions

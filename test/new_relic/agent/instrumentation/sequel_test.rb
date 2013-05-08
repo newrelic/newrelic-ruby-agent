@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-if RUBY_VERSION >= "1.8.7"
+if defined?(::Rails) && RUBY_VERSION >= "1.8.7"
 
 require 'sequel'
 
@@ -282,4 +282,6 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Test::Unit::
 
 end
 
+else
+  puts "Skipping tests in #{__FILE__} because Rails is unavailable"
 end

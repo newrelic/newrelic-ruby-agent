@@ -22,7 +22,7 @@ class NewRelic::Control::Frameworks::Test < parent_class
   end
 
   def app
-    if defined?(::Rails::VERSION)
+    if defined?(::Rails) && defined?(::Rails::VERSION)
       if ::Rails::VERSION::MAJOR.to_i == 4
         :rails4
       elsif ::Rails::VERSION::MAJOR.to_i == 3
@@ -30,6 +30,8 @@ class NewRelic::Control::Frameworks::Test < parent_class
       else
         :rails
       end
+    else
+      :test
     end
   end
 

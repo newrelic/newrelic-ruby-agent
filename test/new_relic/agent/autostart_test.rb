@@ -11,12 +11,16 @@ class AutostartTest < Test::Unit::TestCase
     assert ::NewRelic::Agent::Autostart.agent_should_start?
   end
 
-  def test_agent_wont_autostart_if_RAILS_CONSOLE_constant_is_defined
-    assert !defined?(::Rails::Console), "precondition: Rails::Console shouldn't be defined"
-    Rails.const_set(:Console, true)
-    assert ! ::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't autostart in Rails Console session"
-  ensure
-    Rails.send(:remove_const, :Console)
+  if defined?(::Rails)
+    def test_agent_wont_autostart_if_RAILS_CONSOLE_constant_is_defined
+      assert !defined?(::Rails::Console), "precondition: Rails::Console shouldn't be defined"
+      Rails.const_set(:Console, true)
+      assert ! ::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't autostart in Rails Console session"
+    ensure
+      Rails.send(:remove_const, :Console)
+    end
+  else
+    puts "Skipping tests in #{__FILE__} because Rails is unavailable"
   end
 
   def test_agent_wont_start_if_dollar_0_is_irb

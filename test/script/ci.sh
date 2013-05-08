@@ -78,6 +78,19 @@ mkdir -p tmp
 cd tmp
 
 
+if [ "x$BRANCH" == "xnorails" ]; then
+  if [ "x$RUBY_VERSION" == "x1.8.6" ]; then
+    # Bundler 1.1 dropped support for ruby 1.8.6
+    bundle -h > /dev/null || gem install bundler -v'~>1.0.0' --no-rdoc --no-ri
+  else
+    bundle -h > /dev/null || gem install bundler --no-rdoc --no-ri
+  fi
+
+  bundle -v
+  bundle --local || bundle
+  NO_RAILS=true bundle exec rake --trace test || bundle exec rake --trace test
+fi
+
 #rpm_test_app_cache=~/.rpm_test_app_cache
 rpm_test_app_cache=~/workspace/.rpm_test_app_cache
 (

@@ -14,7 +14,7 @@ ENV['RACK_ENV'] = 'test'
 # benefit from auto-rum, but the truth of the matter is that atm
 # we only support Rails >= 2.3
 def middleware_supported?
-  ::Rails::VERSION::STRING >= '2.3'
+  defined?(::Rails) && ::Rails::VERSION::STRING >= '2.3'
 end
 
 if middleware_supported?
@@ -152,6 +152,5 @@ EOL
   end
 end
 else
-  warn "Skipping rum auto instrumentation tests"
+  puts "Skipping tests in #{__FILE__} because Rails is unavailable (or too old)"
 end
-

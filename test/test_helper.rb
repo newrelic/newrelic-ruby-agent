@@ -18,40 +18,44 @@ require 'rake'
 # You can also run the tests in a mode without rails.  Many tests
 # will be skipped.
 
-begin
-  require 'config/environment'
-#   require File.join(File.dirname(__FILE__),'..','..','rpm_test_app','config','environment')
-
-  # we need 'rails/test_help' for Rails 4
-  # we need 'test_help' for Rails 2
-  # we need neither for Rails 3
+if ENV["NO_RAILS"]
+  puts "Running tests in standalone mode without Rails."
+  require 'newrelic_rpm'
+else
   begin
-    require 'rails/test_help'
-  rescue LoadError
+    require 'config/environment'
+  #   require File.join(File.dirname(__FILE__),'..','..','rpm_test_app','config','environment')
+
+    # we need 'rails/test_help' for Rails 4
+    # we need 'test_help' for Rails 2
+    # we need neither for Rails 3
     begin
-      require 'test_help'
+      require 'rails/test_help'
     rescue LoadError
-      # ignore load problems on test help - it doesn't exist in rails 3
+      begin
+        require 'test_help'
+      rescue LoadError
+        # ignore load problems on test help - it doesn't exist in rails 3
+      end
     end
-  end
-  require 'newrelic_rpm'
-rescue LoadError => e
-  puts "Running tests in standalone mode."
-  require 'bundler'
-  Bundler.require
-  require 'rails/all'
-  require 'newrelic_rpm'
+    require 'newrelic_rpm'
+  rescue LoadError => e
+    puts "Running tests in standalone mode."
+    require 'bundler'
+    Bundler.require
+    require 'rails/all'
+    require 'newrelic_rpm'
 
-  # Bootstrap a basic rails environment for the agent to run in.
-  class MyApp < Rails::Application
-    config.active_support.deprecation = :log
-    config.secret_token = "49837489qkuweoiuoqwehisuakshdjksadhaisdy78o34y138974xyqp9rmye8yrpiokeuioqwzyoiuxftoyqiuxrhm3iou1hrzmjk"
-    config.after_initialize do
-      NewRelic::Agent.manual_start
+    # Bootstrap a basic rails environment for the agent to run in.
+    class MyApp < Rails::Application
+      config.active_support.deprecation = :log
+      config.secret_token = "49837489qkuweoiuoqwehisuakshdjksadhaisdy78o34y138974xyqp9rmye8yrpiokeuioqwzyoiuxftoyqiuxrhm3iou1hrzmjk"
+      config.after_initialize do
+        NewRelic::Agent.manual_start
+      end
     end
+    MyApp.initialize!
   end
-  MyApp.initialize!
-
 end
 
 require 'test/unit'
