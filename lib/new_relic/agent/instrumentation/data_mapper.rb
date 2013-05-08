@@ -207,10 +207,10 @@ module NewRelic
           NewRelic::Agent.instance.transaction_sampler.notice_sql(msg.query, nil, duration)
 
           # Record query duration associated with each of the desired metrics.
-          metrics = [ "ActiveRecord/#{operation}", 'ActiveRecord/all' ]
-          metrics.each do |metric|
-            NewRelic::Agent.record_metric(metric, duration)
-          end
+          metric = "ActiveRecord/#{operation}"
+          rollup_metrics = ActiveRecordHelper.rollup_metrics_for(metric)
+          metrics = [metric] + rollup_metrics
+          NewRelic::Agent.instance.stats_engine.record_metrics(metrics, duration)
         ensure
           super
         end
