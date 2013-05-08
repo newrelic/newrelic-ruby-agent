@@ -3,6 +3,8 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/agent/instrumentation/controller_instrumentation'
+require 'new_relic/agent/instrumentation/sinatra/transaction_namer'
+require 'new_relic/agent/instrumentation/sinatra/ignorer'
 
 DependencyDetection.defer do
   @name = :sinatra
@@ -106,50 +108,9 @@ module NewRelic
           ::NewRelic::Agent.notice_error(env['sinatra.error']) if had_error
         end
 
-        module TransactionNamer
-          extend self
-
-          def transaction_name_for_route(route, request)
-            transaction_name(route.source, request)
-          end
-
-          def initial_transaction_name(request)
-            transaction_name(::NewRelic::Agent::UNKNOWN_METRIC, request)
-          end
-
-          def transaction_name(route_text, request)
-            verb = http_verb(request)
-
-            name = route_text.gsub(%r{^[/^\\A]*(.*?)[/\$\?\\z]*$}, '\1')
-            name = "#{verb} #{name}" unless verb.nil?
-            name
-          rescue => e
-            ::NewRelic::Agent.logger.debug("#{e.class} : #{e.message} - Error encountered trying to identify Sinatra transaction name")
-            ::NewRelic::Agent::UNKNOWN_METRIC
-          end
-
-          def http_verb(request)
-            request.request_method if request.respond_to?(:request_method)
-          end
-        end
-
         def ignore_request?
           settings.newrelic_ignore_routes.any? do |pattern|
             pattern.match(request.path_info)
-          end
-        end
-
-        module Ignorer
-          def self.registered(app)
-            app.set :newrelic_ignore_routes, [] unless app.respond_to?(:newrelic_ignore_routes)
-          end
-
-          def newrelic_ignore(*routes)
-            settings.newrelic_ignore_routes += routes.map do |r|
-              # Ugly sending to private Base#compile, but we want to mimic
-              # exactly Sinatra's mapping of route text to regex
-              send(:compile, r).first
-            end
           end
         end
       end
