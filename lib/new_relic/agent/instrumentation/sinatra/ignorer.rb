@@ -26,6 +26,10 @@ module NewRelic
             set_newrelic_ignore(:apdex, *routes)
           end
 
+          def newrelic_ignore_enduser(*routes)
+            set_newrelic_ignore(:enduser, *routes)
+          end
+
           private
 
           def set_newrelic_ignore(type, *routes)

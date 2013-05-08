@@ -117,6 +117,11 @@ module NewRelic
           Ignorer.should_ignore?(self, :apdex)
         end
 
+        # Overrides ControllerInstrumentation implementation
+        def ignore_enduser?
+          Ignorer.should_ignore?(self, :enduser)
+        end
+
       end
     end
   end
