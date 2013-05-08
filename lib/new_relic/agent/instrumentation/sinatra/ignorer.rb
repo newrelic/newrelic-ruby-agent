@@ -35,6 +35,9 @@ module NewRelic
             # If it's done at register time, ignores end up shared between apps.
             set :newrelic_ignores, Hash.new([]) if !respond_to?(:newrelic_ignores)
 
+            # If we call an ignore without a route, it applies to the whole app
+            routes = ["*"] if routes.empty?
+
             settings.newrelic_ignores[type] += routes.map do |r|
               # Ugly sending to private Base#compile, but we want to mimic
               # exactly Sinatra's mapping of route text to regex

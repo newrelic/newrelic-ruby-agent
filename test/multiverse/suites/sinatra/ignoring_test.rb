@@ -120,3 +120,62 @@ class SinatraIgnoreTest < Test::Unit::TestCase
       "Apdex/Sinatra/#{app_name}/GET no_enduser"])
   end
 end
+
+# Blanket ignore for whole app if newrelic_ignore called without parameters
+class SinatraIgnoreItAllApp < Sinatra::Base
+  newrelic_ignore
+
+  get '/' do request.path_info end
+end
+
+class SinatraIgnoreItAllTest < Test::Unit::TestCase
+  include Rack::Test::Methods
+  include ::NewRelic::Agent::Instrumentation::Sinatra
+
+  def app
+    SinatraIgnoreItAllApp
+  end
+
+  def setup
+    NewRelic::Agent.manual_start
+    NewRelic::Agent.instance.stats_engine.reset_stats
+  end
+
+  def test_ignores_everything
+    get '/'
+    assert_metrics_recorded_exclusive([])
+  end
+end
+
+
+# Blanket ignore for whole app if calls made without parameters
+class SinatraIgnoreApdexAndEndUserApp < Sinatra::Base
+  newrelic_ignore_apdex
+  newrelic_ignore_enduser
+
+  get '/' do request.path_info end
+end
+
+class SinatraIgnoreApdexAndEndUserTest < Test::Unit::TestCase
+  include Rack::Test::Methods
+  include ::NewRelic::Agent::Instrumentation::Sinatra
+
+  def app
+    SinatraIgnoreApdexAndEndUserApp
+  end
+
+  def setup
+    NewRelic::Agent.manual_start
+    NewRelic::Agent.instance.stats_engine.reset_stats
+  end
+
+  def test_ignores_apdex
+    get '/'
+    assert_metrics_not_recorded(["Apdex/Sinatra/#{app.to_s}/GET "])
+  end
+
+  def test_ignores_enduser
+    get '/'
+    assert NewRelic::Agent::TransactionInfo.get.ignore_end_user?
+  end
+end
