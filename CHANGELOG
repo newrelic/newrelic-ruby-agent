@@ -10,6 +10,11 @@
   recording slow SQL calls. See https://newrelic.com/docs/ruby/sequel-instrumentation
   for full details.
 
+  * Thread profiling fix
+
+  The prior release of the agent (version 3.6.1) broke thread profiling. A
+  profile would appear to run, but return no data. This has been fixed.
+
   * Fix for over-counted Net::HTTP calls
 
   Under some circumstances, calls into Net::HTTP were being counted twice in
