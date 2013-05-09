@@ -21,10 +21,14 @@ class ThreadProfilingTest < Test::Unit::TestCase
 
     @agent = NewRelic::Agent.instance
     @thread_profiler = @agent.thread_profiler
+    @threads = []
   end
 
   def teardown
     $collector.reset
+
+    @threads.each { |t| t.kill }
+    @threads = nil
   end
 
   START_COMMAND = [[666,{
@@ -35,7 +39,7 @@ class ThreadProfilingTest < Test::Unit::TestCase
         "duration" => 0.5,
         "only_runnable_threads" => false,
         "only_request_threads" => false,
-        "profile_agent_code" => false
+        "profile_agent_code" => true
       }
     }]]
 
@@ -57,13 +61,20 @@ class ThreadProfilingTest < Test::Unit::TestCase
   def test_thread_profiling
     @agent.send(:check_for_agent_commands)
 
+    run_thread { NewRelic::Agent::Transaction.start(:controller, :request => stub) }
+    run_thread { NewRelic::Agent::Transaction.start(:task) }
+
     let_it_finish
 
     profile_data = $collector.calls_for('profile_data')[0]
     assert_equal('666', profile_data.run_id)
 
-    poll_count = profile_data[1][0][3]
-    assert poll_count > 25, "Expected poll_count > 25, but was #{poll_count}"
+    assert profile_data.poll_count > 25, "Expected poll_count > 25, but was #{profile_data.poll_count}"
+
+    assert_saw_traces(profile_data, "OTHER")
+    assert_saw_traces(profile_data, "AGENT")
+    assert_saw_traces(profile_data, "REQUEST")
+    assert_saw_traces(profile_data, "BACKGROUND")
   end
 
   def test_thread_profiling_can_stop
@@ -77,10 +88,16 @@ class ThreadProfilingTest < Test::Unit::TestCase
     profile_data = $collector.calls_for('profile_data')[0]
     assert_equal('666', profile_data.run_id)
 
-    poll_count = profile_data[1][0][3]
-    assert poll_count < 10, "Expected poll_count < 10, but was #{poll_count}"
+    assert profile_data.poll_count < 10, "Expected poll_count < 10, but was #{profile_data.poll_count}"
   end
 
+  # Runs a thread we expect to span entire test and be killed at the end
+  def run_thread
+    Thread.new do
+      yield
+      sleep(10)
+    end
+  end
 
   def let_it_finish
     Timeout.timeout(5) do
@@ -91,6 +108,11 @@ class ThreadProfilingTest < Test::Unit::TestCase
 
     NewRelic::Agent.shutdown
   end
+
+  def assert_saw_traces(profile_data, type)
+    assert !profile_data.traces[type].empty?, "Missing #{type} traces"
+  end
+
 end
 end
 
