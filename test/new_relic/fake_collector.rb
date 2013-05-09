@@ -218,9 +218,12 @@ module NewRelic
     end
 
     class ProfileDataPost < AgentPost
+      attr_accessor :poll_count, :traces
       def initialize(opts={})
         super
+        @poll_count = @body[1][0][3]
         @body[1][0][4] = unblob(@body[1][0][4]) if @format == :json
+        @traces = @body[1][0][4]
       end
     end
 
