@@ -1,0 +1,9 @@
+suite_condition("Sinatra not compatible with 1.8.6") do
+  RUBY_VERSION != '1.8.6'
+end
+
+gemfile <<-RB
+  gem 'padrino', '~> 0.11.0'
+  gem 'rack-test', :require => 'rack/test'
+  gem 'mocha'
+RB
