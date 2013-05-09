@@ -10,6 +10,12 @@
   Routes in 1.4 are properly formatting in transaction names. Thanks Zachary
   Anker for the contribution!
 
+  * Padrino Support
+
+  Along with improving our support of Sinatra, we've also extended that to
+  supporting Padrino, a framework that builds on Sinatra. Version 0.11.x and
+  later will now show up in New Relic with full web transaction support.
+
 ## v3.6.2 ##
 
   * Sequel support
