@@ -9,7 +9,7 @@ class NewRelic::Command::DeploymentsTest < Test::Unit::TestCase
 
   def setup
     NewRelic::Command::Deployments.class_eval do
-      attr_accessor :messages, :exit_status, :errors, :revision
+      attr_accessor :messages, :exit_status, :errors, :revision, :license_key
       def err(message); @errors = @errors ? @errors + message : message; end
       def info(message); @messages = @messages ? @messages + message : message; end
       def just_exit(status=0); @exit_status ||= status; end
@@ -74,6 +74,33 @@ class NewRelic::Command::DeploymentsTest < Test::Unit::TestCase
         deployment.run
       end
     end
+  end
+
+  def test_with_specified_license_key
+    mock_the_connection
+    @deployment = NewRelic::Command::Deployments.new(:appname => 'APP',
+                                                     :revision => 3838,
+                                                     :user => 'Bill',
+                                                     :description => "Some lengthy description",
+                                                     :license_key => 'b' * 40)
+    assert_nil @deployment.exit_status
+    assert_nil @deployment.errors
+    assert_equal 'b' * 40, @deployment.license_key
+    @deployment.run
+    @deployment = nil
+  end
+
+  def test_with_unspecified_license_key
+    mock_the_connection
+    @deployment = NewRelic::Command::Deployments.new(:appname => 'APP',
+                                                     :revision => 3838,
+                                                     :user => 'Bill',
+                                                     :description => "Some lengthy description")
+    assert_nil @deployment.exit_status
+    assert_nil @deployment.errors
+    assert_equal 'a' * 40, @deployment.license_key
+    @deployment.run
+    @deployment = nil
   end
 
   private
