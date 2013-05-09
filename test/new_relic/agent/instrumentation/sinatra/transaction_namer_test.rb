@@ -14,11 +14,21 @@ module NewRelic
 
           def test_transaction_name_for_route
             env = { "newrelic.last_route" => /^\/the_route$/}
-            result = TransactionNamer.transaction_name_for_route(env, nil)
-            assert_equal "the_route", result
+            request = stub(:request_method => "GET")
+            result = TransactionNamer.transaction_name_for_route(env, request)
+            assert_equal "GET the_route", result
           end
 
-          def test_transaction_name_for_route_without_last_route
+          def test_transaction_name_for_route_padrino
+            env = {}
+            route = stub(:path_for_generation => "/path/:id")
+            request = stub(:route_obj => route, :request_method => "GET")
+            result = TransactionNamer.transaction_name_for_route(env, request)
+
+            assert_equal "GET path/:id", result
+          end
+
+          def test_transaction_name_for_route_without_routes
             assert_nil TransactionNamer.transaction_name_for_route({}, nil)
           end
 
