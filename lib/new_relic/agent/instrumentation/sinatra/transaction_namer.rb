@@ -9,8 +9,9 @@ module NewRelic
         module TransactionNamer
           extend self
 
-          def transaction_name_for_route(route, request)
-            transaction_name(route.source, request)
+          def transaction_name_for_route(env, request)
+            route = env["newrelic.last_route"]
+            transaction_name(route.source, request) unless route.nil?
           end
 
           def initial_transaction_name(request)

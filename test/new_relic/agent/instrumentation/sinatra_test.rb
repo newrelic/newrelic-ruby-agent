@@ -31,18 +31,6 @@ class NewRelic::Agent::Instrumentation::SinatraTest < Test::Unit::TestCase
     assert_equal @app.newrelic_request_headers, expected_headers
   end
 
-  def test_transaction_naming
-    assert_transaction_name "(unknown)", "(unknown)"
-
-    # Sinatra < 1.4 style regexes
-    assert_transaction_name "will_boom", "^/will_boom$"
-    assert_transaction_name "hello/([^/?#]+)", "^/hello/([^/?#]+)$"
-
-    # Sinatra 1.4 style regexs
-    assert_transaction_name "will_boom", "\A/will_boom\z"
-    assert_transaction_name "hello/([^/?#]+)", "\A/hello/([^/?#]+)\z"
-  end
-
   def test_process_route_with_bad_arguments
     @app.stubs(:env).throws("Boo")
     @app.expects(:process_route_without_newrelic).once
@@ -52,6 +40,13 @@ class NewRelic::Agent::Instrumentation::SinatraTest < Test::Unit::TestCase
   def test_route_eval_with_bad_params
     @app.stubs(:env).throws("Boo")
     @app.expects(:route_eval_without_newrelic).once
+    @app.route_eval_with_newrelic
+  end
+
+  def test_route_eval_without_last_route_doesnt_set_transaction_name
+    @app.stubs(:env).returns({})
+    @app.expects(:route_eval_without_newrelic).once
+    NewRelic::Agent.expects(:set_transaction_name).never
     @app.route_eval_with_newrelic
   end
 

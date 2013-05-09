@@ -79,8 +79,8 @@ module NewRelic
         # care for the gating on the transaction's existence for us.
         def route_eval_with_newrelic(*args, &block)
           begin
-            txn_name = TransactionNamer.transaction_name_for_route(env["newrelic.last_route"], request)
-            ::NewRelic::Agent.set_transaction_name("#{self.class.name}/#{txn_name}")
+            txn_name = TransactionNamer.transaction_name_for_route(env, request)
+            ::NewRelic::Agent.set_transaction_name("#{self.class.name}/#{txn_name}") unless txn_name.nil?
           rescue => e
             ::NewRelic::Agent.logger.debug("Failed during route_eval to set transaction name", e)
           end
