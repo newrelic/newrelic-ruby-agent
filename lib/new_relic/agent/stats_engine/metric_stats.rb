@@ -74,15 +74,13 @@ module NewRelic
         end
 
         # Helper method for timing supportability metrics
-        def record_supportability_metrics_timed(metrics)
+        def record_supportability_metrics_timed(metric)
           start_time = Time.now
           yield
           end_time = Time.now
           duration = (end_time - start_time).to_f
         ensure
-          record_metrics(metrics) do |stat|
-            stat.record_data_point(duration)
-          end
+          ::NewRelic::Agent.record_metric(metric, duration)
         end
 
         # Helper for recording a straight value into the count
