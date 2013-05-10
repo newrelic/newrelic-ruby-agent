@@ -16,6 +16,7 @@ require 'new_relic/agent/database'
 require 'new_relic/agent/thread_profiler'
 require 'new_relic/agent/event_listener'
 require 'new_relic/agent/cross_app_monitor'
+require 'new_relic/agent/request_sampler'
 require 'new_relic/environment_report'
 
 module NewRelic
@@ -40,7 +41,7 @@ module NewRelic
         @error_collector       = NewRelic::Agent::ErrorCollector.new
         @transaction_rules     = NewRelic::Agent::RulesEngine.new
         @metric_rules          = NewRelic::Agent::RulesEngine.new
-        @request_sampler       = NewRelic::Agent::RequestSampler.new
+        @request_sampler       = NewRelic::Agent::RequestSampler.new(@events)
 
         @connect_state = :pending
         @connect_attempts = 0

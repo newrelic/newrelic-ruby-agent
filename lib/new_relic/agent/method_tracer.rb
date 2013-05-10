@@ -224,6 +224,8 @@ module NewRelic
               stat.record_data_point(duration, exclusive)
             end
 
+            NewRelic::Agent.notify( :metrics_recorded, metrics, duration, exclusive, options )
+
             parent_metrics = metrics_for_parent_transaction(first_name, options)
             parent_metrics.each do |metric|
               stat_engine.transaction_stats_stack[-2].record(metric) do |stats|
