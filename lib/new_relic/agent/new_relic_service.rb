@@ -146,6 +146,11 @@ module NewRelic
         invoke_remote(:agent_command_results, @agent_id, { command_id.to_s => results })
       end
 
+      # Send fine-grained analytic data to the collector.
+      def analytic_event_data(data)
+        invoke_remote(:analytic_event_data, data)
+      end
+
       # We do not compress if content is smaller than 64kb.  There are
       # problems with bugs in Ruby in some versions that expose us
       # to a risk of segfaults if we compress aggressively.
