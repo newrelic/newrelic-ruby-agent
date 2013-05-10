@@ -23,6 +23,7 @@ module NewRelic
           def transaction_name(route_text, request)
             verb = http_verb(request)
 
+            route_text = route_text.source if route_text.is_a?(Regexp)
             name = route_text.gsub(%r{^[/^\\A]*(.*?)[/\$\?\\z]*$}, '\1')
             name = "#{verb} #{name}" unless verb.nil?
             name
@@ -38,14 +39,13 @@ module NewRelic
           # For bare Sinatra, our override on process_route captures the last
           # route into the environment for us to use later on
           def route_for_sinatra(env)
-            route = env["newrelic.last_route"]
-            route.source unless route.nil?
-          end
+            env["newrelic.last_route"]
+         end
 
           # For Padrino, the request object has a copy of the matched route
           # on it when we go to evaluating, so we can just retrieve that
           def route_name_for_padrino(request)
-            request.route_obj.path_for_generation
+            request.route_obj.original_path
           rescue => e
             nil
           end

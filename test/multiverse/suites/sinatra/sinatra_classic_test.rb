@@ -79,6 +79,10 @@ get '/ignored' do
   "don't trace me bro"
 end
 
+get /\/regex.*/ do
+  "Yeah, regex's!"
+end
+
 class SinatraClassicTest < Test::Unit::TestCase
   include SinatraTestCases
 

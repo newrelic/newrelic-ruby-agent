@@ -81,6 +81,12 @@ module SinatraTestCases
     assert_metrics_recorded(["Controller/Sinatra/#{app_name}/GET route/no_match"])
   end
 
+  def test_with_regex_pattern
+    get '/regexes'
+    assert_equal "Yeah, regex's!", last_response.body
+    assert_metrics_recorded(["Controller/Sinatra/#{app_name}/GET regex.*"])
+  end
+
   def test_set_unknown_transaction_name_if_error_in_routing
     ::NewRelic::Agent::Instrumentation::Sinatra::TransactionNamer \
       .stubs(:http_verb).raises(StandardError.new('madness'))

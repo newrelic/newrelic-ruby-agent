@@ -13,8 +13,9 @@
   * Padrino Support
 
   Along with improving our support of Sinatra, we've also extended that to
-  supporting Padrino, a framework that builds on Sinatra. Version 0.11.x and
-  later will now show up in New Relic with full web transaction support.
+  supporting Padrino, a framework that builds on Sinatra. Web transaction
+  should show up in New Relic now for Padrino apps automatically. The agent has
+  been tested against the latest Padrino in versions 0.11.x and 0.10.x.
 
 ## v3.6.2 ##
 

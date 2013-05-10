@@ -74,6 +74,10 @@ class SinatraModularTestApp < Sinatra::Base
   get '/ignored' do
     "don't trace me bro"
   end
+
+  get /\/regex.*/ do
+    "Yeah, regex's!"
+  end
 end
 
 class SinatraModularTest < Test::Unit::TestCase
