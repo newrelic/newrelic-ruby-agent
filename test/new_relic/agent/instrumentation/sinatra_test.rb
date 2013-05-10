@@ -50,6 +50,24 @@ class NewRelic::Agent::Instrumentation::SinatraTest < Test::Unit::TestCase
     @app.route_eval_with_newrelic
   end
 
+  def test_injects_middleware
+    SinatraTestApp.stubs(:middleware).returns([])
+
+    SinatraTestApp.expects(:build_without_newrelic).once
+    SinatraTestApp.expects(:use).at_least(3)
+
+    SinatraTestApp.build_with_newrelic(@app)
+  end
+
+  def test_doesnt_inject_already_existing_middleware
+    SinatraTestApp.stubs(:middleware).returns(NewRelic::Agent::Instrumentation::Sinatra::NEW_RELIC_MIDDLEWARES)
+
+    SinatraTestApp.expects(:build_without_newrelic).once
+    SinatraTestApp.stubs(:use).throws("Shouldn't be using any other middlewares--all there already!")
+
+    SinatraTestApp.build_with_newrelic(@app)
+  end
+
   def assert_transaction_name(expected, original)
     assert_equal expected, NewRelic::Agent::Instrumentation::Sinatra::TransactionNamer.transaction_name(original, nil)
   end

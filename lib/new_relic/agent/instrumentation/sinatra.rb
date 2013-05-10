@@ -5,6 +5,9 @@
 require 'new_relic/agent/instrumentation/controller_instrumentation'
 require 'new_relic/agent/instrumentation/sinatra/transaction_namer'
 require 'new_relic/agent/instrumentation/sinatra/ignorer'
+require 'new_relic/rack/agent_hooks'
+require 'new_relic/rack/browser_monitoring'
+require 'new_relic/rack/error_collector'
 
 DependencyDetection.defer do
   @name = :sinatra
@@ -33,6 +36,11 @@ DependencyDetection.defer do
       alias route_eval_without_newrelic route_eval
       alias route_eval route_eval_with_newrelic
 
+      class << self
+        alias build_without_newrelic build
+        alias build build_with_newrelic
+      end
+
       register NewRelic::Agent::Instrumentation::Sinatra::Ignorer
     end
 
@@ -58,6 +66,27 @@ module NewRelic
         # Expected method for supporting ControllerInstrumentation
         def newrelic_request_headers
           request.env
+        end
+
+        NEW_RELIC_MIDDLEWARES = [ NewRelic::Rack::AgentHooks,
+                                  NewRelic::Rack::BrowserMonitoring,
+                                  NewRelic::Rack::ErrorCollector ]
+
+        def self.included(clazz)
+          clazz.extend(ClassMethods)
+        end
+
+        module ClassMethods
+          def build_with_newrelic(*args)
+            NEW_RELIC_MIDDLEWARES.each { |m| try_to_use(self, m) }
+            build_without_newrelic(*args)
+          end
+
+          def try_to_use(app, clazz)
+            if !app.middleware.any? { |(m)| m == clazz }
+              app.use clazz
+            end
+          end
         end
 
         # Capture last route we've seen. Will set for transaction on route_eval
