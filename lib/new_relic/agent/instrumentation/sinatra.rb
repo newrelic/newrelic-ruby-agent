@@ -13,7 +13,8 @@ DependencyDetection.defer do
   @name = :sinatra
 
   depends_on do
-    defined?(::Sinatra) && defined?(::Sinatra::Base) &&
+    !NewRelic::Agent.config[:disable_sinatra] &&
+      defined?(::Sinatra) && defined?(::Sinatra::Base) &&
       Sinatra::Base.private_method_defined?(:dispatch!) &&
       Sinatra::Base.private_method_defined?(:process_route) &&
       Sinatra::Base.private_method_defined?(:route_eval)
@@ -77,9 +78,9 @@ module NewRelic
         end
 
         module ClassMethods
-          def build_with_newrelic(*args)
-            NEW_RELIC_MIDDLEWARES.each { |m| try_to_use(self, m) }
-            build_without_newrelic(*args)
+          def build_with_newrelic(*args, &block)
+            NEW_RELIC_MIDDLEWARES.each { |m| try_to_use(self, m) } unless NewRelic::Agent.config[:disable_sinatra_auto_middleware]
+            build_without_newrelic(*args, &block)
           end
 
           def try_to_use(app, clazz)

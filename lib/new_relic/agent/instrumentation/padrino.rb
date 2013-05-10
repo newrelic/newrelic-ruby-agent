@@ -8,7 +8,8 @@ DependencyDetection.defer do
   @name = :padrino
 
   depends_on do
-    defined?(::Padrino) && defined?(::Padrino::Routing::InstanceMethods)
+    !NewRelic::Agent.config[:disable_sinatra] &&
+      defined?(::Padrino) && defined?(::Padrino::Routing::InstanceMethods)
   end
 
   executes do
