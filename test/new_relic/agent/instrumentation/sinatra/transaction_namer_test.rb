@@ -21,7 +21,7 @@ module NewRelic
 
           def test_transaction_name_for_route_padrino
             env = {}
-            route = stub(:path_for_generation => "/path/:id")
+            route = stub(:original_path => "/path/:id")
             request = stub(:route_obj => route, :request_method => "GET")
             result = TransactionNamer.transaction_name_for_route(env, request)
 
