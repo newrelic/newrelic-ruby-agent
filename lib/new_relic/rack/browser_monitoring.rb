@@ -15,9 +15,10 @@ module NewRelic::Rack
     def call(env)
       result = @app.call(env)   # [status, headers, response]
 
-      if (NewRelic::Agent.browser_timing_header != "") && should_instrument?(result[0], result[1])
+      if (NewRelic::Agent.browser_timing_header != "") && should_instrument?(env, result[0], result[1])
         response_string = autoinstrument_source(result[2], result[1])
 
+        env[ALREADY_INSTRUMENTED_KEY] = true
         if response_string
           response = Rack::Response.new(response_string, result[0], result[1])
           response.finish
@@ -29,8 +30,12 @@ module NewRelic::Rack
       end
     end
 
-    def should_instrument?(status, headers)
-      status == 200 && headers["Content-Type"] && headers["Content-Type"].include?("text/html") &&
+    ALREADY_INSTRUMENTED_KEY = "newrelic.browser_monitoring_already_instrumented"
+
+    def should_instrument?(env, status, headers)
+      status == 200 &&
+        !env[ALREADY_INSTRUMENTED_KEY] &&
+        headers["Content-Type"] && headers["Content-Type"].include?("text/html") &&
         !headers['Content-Disposition'].to_s.include?('attachment')
     end
 
