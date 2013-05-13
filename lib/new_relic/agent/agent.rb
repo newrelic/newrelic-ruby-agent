@@ -1018,7 +1018,7 @@ module NewRelic
         # Fetch samples from the RequestSampler and send them.
         def harvest_and_send_analytic_data
           samples = @request_sampler.samples
-          @service.analytic_event_data(samples)
+          @service.analytic_event_data(samples) unless samples.empty?
           @request_sampler.reset
         rescue => e
           NewRelic::Agent.logger.debug "Failed to sent analytics; downsampling to conserve memory"

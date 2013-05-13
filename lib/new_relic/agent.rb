@@ -346,6 +346,8 @@ module NewRelic
     # to any registered handlers.
     def notify(event_type, *args)
       agent.events.notify( event, &handler )
+    rescue => err
+      NewRelic::Agent.logger.debug "Ignoring exception during %p event notification" % [event_type]
     end
 
 

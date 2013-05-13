@@ -17,10 +17,13 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
   end
 
   def test_samples_on_metrics_recorded_events
-    with_debug_logging do
-      @event_listener.notify( :config_finished )
-      @event_listener.notify( :metrics_recorded, ['Controller/foo/bar'], 0.095 )
-      assert_equal 1, @sampler.samples.length
+    with_config( :'request_sampler.sample_rate_ms' => 0 ) do
+      with_debug_logging do
+        @event_listener.notify( :finished_configuring )
+        @event_listener.notify( :metrics_recorded, ['Controller/foo/bar'], 0.095 )
+
+        assert_equal 1, @sampler.samples.length
+      end
     end
   end
 
