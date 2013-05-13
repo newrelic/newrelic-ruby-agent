@@ -334,6 +334,21 @@ module NewRelic
       end
     end
 
+
+    # Subscribe to events of +event_type+, calling the given +handler+
+    # when one is sent.
+    def subscribe(event_type, &handler)
+      agent.events.subscribe( event_type, &handler )
+    end
+
+
+    # Fire an event of the specified +event_type+, passing it an the given +args+
+    # to any registered handlers.
+    def notify(event_type, *args)
+      agent.events.notify( event, &handler )
+    end
+
+
     # This method disables the recording of transaction traces in the given
     # block.  See also #disable_all_tracing
     def disable_transaction_tracing
