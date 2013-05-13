@@ -367,6 +367,18 @@ def fixture_tcp_socket( response )
   return socket
 end
 
+
+def with_debug_logging
+  orig_logger = NewRelic::Agent.logger
+  $stderr.puts '', '---', ''
+  NewRelic::Agent.logger =
+    NewRelic::Agent::AgentLogger.new( {:log_level => 'debug'}, '', Logger.new($stderr) )
+  yield
+ensure
+  NewRelic::Agent.logger = orig_logger
+end
+
+
 module TransactionSampleTestHelper
   module_function
   def make_sql_transaction(*sql)
