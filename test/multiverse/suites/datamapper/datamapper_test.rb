@@ -68,13 +68,21 @@ class DataMapperTest < Test::Unit::TestCase
   end
 
   def test_rollup_metrics_should_include_all_if_in_web_transaction
-    NewRelic::Agent::Transaction.stubs(:recording_web_transaction?).returns(true)
-    post = Post.create(:title => 'foo', :body => 'bar')
-    post.save
+    in_transaction('dummy', :type => :controller) do
+      Post.create(:title => 'foo', :body => 'bar').save
+    end
     assert_metrics_recorded([
       'ActiveRecord/save',
       'ActiveRecord/all'
     ])
+  end
+
+  def test_rollup_metrics_should_omit_all_if_not_in_web_transaction
+    in_transaction('dummy', :type => :other) do
+      Post.create(:title => 'foo', :body => 'bar').save
+    end
+    assert_metrics_recorded(['ActiveRecord/save'])
+    assert_metrics_not_recorded(['ActiveRecord/all'])
   end
 
   # https://support.newrelic.com/tickets/2101

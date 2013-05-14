@@ -302,12 +302,14 @@ ensure
   ::NewRelic::Agent.logger = logger
 end
 
-def in_transaction(name='dummy')
+def in_transaction(name='dummy', opts={})
+  defaults = { :type => :other }
+  options = defaults.merge(opts)
   NewRelic::Agent.instance.instance_variable_set(:@transaction_sampler,
                         NewRelic::Agent::TransactionSampler.new)
   NewRelic::Agent.instance.stats_engine.transaction_sampler = \
     NewRelic::Agent.instance.transaction_sampler
-  NewRelic::Agent::Transaction.start(:other)
+  NewRelic::Agent::Transaction.start(options[:type])
   val = yield
   NewRelic::Agent::Transaction.stop(name)
   val
