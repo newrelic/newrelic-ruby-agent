@@ -310,7 +310,7 @@ module NewRelic
             return yield if !(NewRelic::Agent.is_execution_traced? || options[:force])
             options[:metric] = true if options[:metric].nil?
             options[:deduct_call_time_from_parent] = true if options[:deduct_call_time_from_parent].nil?
-            start_time, expected_scope = NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScoped.trace_execution_scoped_header(options)
+            _, expected_scope = NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScoped.trace_execution_scoped_header(options, txn.start_time.to_f)
 
             begin
               NewRelic::Agent::BusyCalculator.dispatcher_start txn.start_time
@@ -338,11 +338,12 @@ module NewRelic
             metric_names = Array(metrics)
             first_name = metric_names.shift
             scope = NewRelic::Agent.instance.stats_engine.scope_name
-            NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScoped.trace_execution_scoped_footer(start_time, first_name, metric_names, expected_scope, scope, options)
+            end_time = Time.now
+            NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScoped.trace_execution_scoped_footer(txn.start_time.to_f, first_name, metric_names, expected_scope, scope, options, end_time.to_f)
             NewRelic::Agent::BusyCalculator.dispatcher_finish
             # Look for a transaction in the thread local and process it.
             # Clear the thread local when finished to ensure it only gets called once.
-            txn = Transaction.stop(txn_name)
+            txn = Transaction.stop(txn_name, end_time)
             txn.record_apdex(txn_name) unless ignore_apdex?
 
             NewRelic::Agent::TransactionInfo.get.ignore_end_user = true if ignore_enduser?
