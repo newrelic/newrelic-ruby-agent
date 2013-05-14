@@ -171,7 +171,7 @@ class NewRelic::Agent::RequestSampler
     sample[TYPE_KEY]      = SAMPLE_TYPE
     sample[TIMESTAMP_KEY] = Time.now.to_f
 
-    @samples << sample
+    @samples << [sample]
     @last_sample_taken = Time.now
   end
 
