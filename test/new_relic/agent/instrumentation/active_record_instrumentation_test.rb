@@ -495,16 +495,13 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
 
   # This is to make sure the all metric is recorded for exceptional cases
   def test_error_handling
-    NewRelic::Agent::Transaction.stubs(:recording_web_transaction?).returns(true)
     # have the AR select throw an error
     ActiveRecordFixtures::Order.connection.stubs(:log_info).with do | sql, x, y |
       raise "Error" if sql =~ /select/
       true
     end
 
-    expected_metrics = %W[ActiveRecord/all Database/SQL/select RemoteService/sql/#{adapter}/localhost]
-
-    assert_calls_metrics(*expected_metrics) do
+    in_web_transaction do
       begin
         ActiveRecordFixtures::Order.connection.select_rows "select * from #{ActiveRecordFixtures::Order.table_name}"
       rescue RuntimeError => e
@@ -512,11 +509,12 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
         raise unless e.message == 'Error'
       end
     end
-    metrics = NewRelic::Agent.instance.stats_engine.metrics
-    compare_metrics expected_metrics, metrics
-    check_metric_count('Database/SQL/select', 1)
-    check_metric_count('ActiveRecord/all', 1)
-    check_metric_count("RemoteService/sql/#{adapter}/localhost", 1)
+
+    assert_metrics_recorded(
+      'ActiveRecord/all' => { :call_count => 1 },
+      'Database/SQL/select' => { :call_count => 1 },
+      "RemoteService/sql/#{adapter}/localhost" => { :call_count => 1 }
+    )
   end
 
   def test_rescue_handling

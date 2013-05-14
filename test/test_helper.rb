@@ -194,7 +194,8 @@ def _normalize_metric_expectations(expectations)
   case expectations
   when Array
     hash = {}
-    expectations.each { |k| hash[k] = { :call_count => 1 } }
+    # Just assert that the metric is present, nothing about the attributes
+    expectations.each { |k| hash[k] = { } }
     hash
   else
     expectations
@@ -302,7 +303,27 @@ ensure
   ::NewRelic::Agent.logger = logger
 end
 
-def in_transaction(name='dummy', opts={})
+# Mock up a transaction for testing purposes, optionally specifying a name and
+# transaction type. The given block will be executed within the context of the
+# dummy transaction.
+#
+# Examples:
+#
+# With default name ('dummy') and type (:other):
+#   in_transaction { ... }
+#
+# With an explicit transaction name and default type:
+#   in_transaction('foobar') { ... }
+#
+# With default name and explicit type:
+#   in_transaction(:type => :controller) { ... }
+#
+# With a transaction name plus type:
+#   in_transaction('foobar', :type => :controller) { ... }
+#
+def in_transaction(*args)
+  opts = (args.last && args.last.is_a?(Hash)) ? args.pop : {}
+  name = args.first || 'dummy'
   defaults = { :type => :other }
   options = defaults.merge(opts)
   NewRelic::Agent.instance.instance_variable_set(:@transaction_sampler,
@@ -313,6 +334,14 @@ def in_transaction(name='dummy', opts={})
   val = yield
   NewRelic::Agent::Transaction.stop(name)
   val
+end
+
+# Convenience wrapper around in_transaction that sets the type so that it
+# looks like we are in a web transaction
+def in_web_transaction(name='dummy')
+  in_transaction(name, :type => :controller) do
+    yield
+  end
 end
 
 def freeze_time(now=Time.now)
