@@ -1021,8 +1021,8 @@ module NewRelic
           @service.analytic_event_data(samples) unless samples.empty?
           @request_sampler.reset
         rescue => e
-          NewRelic::Agent.logger.debug "Failed to sent analytics; downsampling to conserve memory"
-          @request_sampler.downsample_data
+          NewRelic::Agent.logger.debug "Failed to sent analytics; throttling to conserve memory"
+          @request_sampler.throttle
           raise
         end
 
