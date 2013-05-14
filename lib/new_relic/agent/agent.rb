@@ -1016,7 +1016,7 @@ module NewRelic
         end
 
         # Fetch samples from the RequestSampler and send them.
-        def harvest_and_send_analytic_data
+        def harvest_and_send_analytic_event_data
           samples = @request_sampler.samples.dup
           @service.analytic_event_data(samples) unless samples.empty?
           @request_sampler.reset
@@ -1044,7 +1044,7 @@ module NewRelic
             harvest_and_send_slowest_sample
             harvest_and_send_slowest_sql
             harvest_and_send_timeslice_data
-            harvest_and_send_analytic_data
+            harvest_and_send_analytic_event_data
             harvest_and_send_thread_profile(disconnecting)
 
             check_for_agent_commands

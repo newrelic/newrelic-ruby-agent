@@ -34,19 +34,18 @@ class NewRelic::Agent::RequestSampler
 
 
   # Create a new RequestSampler that will keep samples added to it every
-  # +sample_rate+ milliseconds.
+  # +sample_rate_ms+ milliseconds.
   def initialize( event_listener )
     super()
 
-    @listener           = event_listener
+    @sample_rate_ms_ms     = DEFAULT_SAMPLE_RATE_MS
+    @normal_sample_rate_ms = @sample_rate_ms
+    @last_sample_taken     = nil
+    @last_harvest          = nil
+    @samples               = []
 
-    @sample_rate        = DEFAULT_SAMPLE_RATE_MS
-    @normal_sample_rate = @sample_rate
-    @last_sample_taken  = nil
-    @last_harvest       = nil
-    @samples            = []
-
-    @listener.subscribe( :finished_configuring, &method(:on_finished_configuring) )
+    event_listener.subscribe( :finished_configuring, &method(:on_finished_configuring) )
+    event_listener.subscribe( :transaction_finished, &method(:on_transaction_finished) )
   end
 
 
@@ -56,11 +55,11 @@ class NewRelic::Agent::RequestSampler
 
   # The sample rate, in milliseconds between samples, that the sampler uses
   # under normal circumstances
-  attr_accessor :normal_sample_rate
+  attr_accessor :normal_sample_rate_ms
 
-  # The current sample rate, which may be different from the #normal_sample_rate
+  # The current sample rate, which may be different from the #normal_sample_rate_ms
   # if the sampler is throttled.
-  attr_accessor :sample_rate
+  attr_accessor :sample_rate_ms
 
   # The samples kept by the sampler
   attr_reader :samples
@@ -75,8 +74,7 @@ class NewRelic::Agent::RequestSampler
 
     self.synchronize do
       @samples.clear
-      @sample_rate = @normal_sample_rate
-      @last_sample_taken = Time.at( 0 )
+      @sample_rate_ms = @normal_sample_rate_ms
       @last_sample_taken = Time.now
     end
   end
@@ -89,25 +87,17 @@ class NewRelic::Agent::RequestSampler
   # Event handler for the :finished_configuring event.
   def on_finished_configuring
     NewRelic::Agent.logger.debug "Finished configuring RequestSampler"
-    self.subscribe_to_config
-
-    NewRelic::Agent.logger.debug "  config installed; subscribing to :metric_recorded events"
-    @listener.subscribe( :metric_recorded, &method(:on_metric_recorded) )
-  end
-
-
-  # Subscribe to the config values that affect the sampler
-  def subscribe_to_config
     NewRelic::Agent.config.register_callback(SAMPLE_RATE_KEY) do |rate_ms|
       NewRelic::Agent.logger.debug "  setting RequestSampler sample rate to %dms" % [ rate_ms ]
-      @normal_sample_rate = rate_ms
+      @normal_sample_rate_ms = rate_ms
       self.reset
     end
   end
 
 
-  # Event handler for the :before_call event.
-  def on_metric_recorded( metric, duration, options={} )
+  # Event handler for the :transaction_finished event.
+  def on_transaction_finished( metric, duration, options={} )
+    # :TODO: Remove before merging to release branch
     NewRelic::Agent.logger.debug "On metric recorded: %p (%f)" % [ metric, duration ]
 
     self << {
@@ -144,13 +134,15 @@ class NewRelic::Agent::RequestSampler
     self.synchronize do
       if @last_sample_taken && !@samples.empty?
         resolution ||= (Time.now - @last_sample_taken) / DEFAULT_REPORT_FREQUENCY
-        @sample_rate = @normal_sample_rate * resolution
+        @sample_rate_ms = @normal_sample_rate_ms * resolution
         self.downsample_data( resolution )
       end
     end
 
-    NewRelic::Agent.logger.debug "  resolution is now: %d -> 1 sample every %dms" %
-      [ resolution, @sample_rate ]
+    if resolution
+      NewRelic::Agent.logger.debug "  resolution is now: %d -> 1 sample every %dms" %
+        [ resolution, @sample_rate_ms ]
+    end
   end
 
 
@@ -162,25 +154,26 @@ class NewRelic::Agent::RequestSampler
   # frequency.
   def should_sample?
     return false unless @last_sample_taken
-    return ( Time.now - @last_sample_taken ) * 1000 >= @sample_rate
+    return ( Time.now - @last_sample_taken ) * 1000 >= @sample_rate_ms
   end
 
 
   # Add the given +sample+ to the sampler (unconditionally).
   def add_sample( sample )
-    sample[TYPE_KEY]      = SAMPLE_TYPE
-    sample[TIMESTAMP_KEY] = Time.now.to_f
-
-    @samples << [sample]
+# $stderr.puts "Sample! %0.3f" % [ Time.now - @last_sample_taken ]
     @last_sample_taken = Time.now
+
+    sample[TYPE_KEY]      = SAMPLE_TYPE
+    sample[TIMESTAMP_KEY] = @last_sample_taken
+
+    @samples << sample
   end
 
 
   # Downsample the current data to match the specified +resolution+.
   def downsample_data( resolution )
-      # I would kill to be able to use >1.9's .select!.with_index, but since it has to
-      # work under 1.8.x, too, step up by ones and delete slices of (resolution - 1)
-      0.upto( @samples.length / resolution ) {|i| @samples.slice!(i+1, resolution - 1) }
+    goalsize = @samples.length * ( (resolution - 1) / resolution.to_f )
+    0.step( goalsize, resolution - 1 ) {|i| @samples.slice!(i+1) }
   end
 
 end # class NewRelic::Agent::RequestSampler
