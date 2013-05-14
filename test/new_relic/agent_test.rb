@@ -380,6 +380,13 @@ module NewRelic
       end
     end
 
+    def test_eventing_helpers
+      called = false
+      NewRelic::Agent.subscribe(:boo) { called = true }
+      NewRelic::Agent.notify(:boo)
+      assert called
+    end
+
     private
 
     def mocked_agent
