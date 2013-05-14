@@ -148,6 +148,7 @@ module NewRelic
 
       # Send fine-grained analytic data to the collector.
       def analytic_event_data(data)
+        data.collect! {|hash| [hash] }
         invoke_remote(:analytic_event_data, @agent_id, data)
       end
 
