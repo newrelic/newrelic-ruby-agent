@@ -148,11 +148,6 @@ module NewRelic
 
       # Send fine-grained analytic data to the collector.
       def analytic_event_data(data)
-        # Translate metric names to IDs via the cache
-        data.each do |sample|
-          sample['name'] = metric_id_cache.fetch( sample['name'] ) { sample['name'] }
-        end
-
         invoke_remote(:analytic_event_data, @agent_id, data)
       end
 
