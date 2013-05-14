@@ -13,11 +13,10 @@ $LOAD_PATH << File.join(NEWRELIC_PLUGIN_DIR,"ui/helpers")
 $LOAD_PATH.uniq!
 
 require 'rubygems'
-require 'rake'
+
 # We can speed things up in tests that don't need to load rails.
 # You can also run the tests in a mode without rails.  Many tests
 # will be skipped.
-
 if ENV["NO_RAILS"]
   puts "Running tests in standalone mode without Rails."
   require 'newrelic_rpm'
@@ -195,7 +194,8 @@ def _normalize_metric_expectations(expectations)
   case expectations
   when Array
     hash = {}
-    expectations.each { |k| hash[k] = { :call_count => 1 } }
+    # Just assert that the metric is present, nothing about the attributes
+    expectations.each { |k| hash[k] = { } }
     hash
   else
     expectations
@@ -303,15 +303,45 @@ ensure
   ::NewRelic::Agent.logger = logger
 end
 
-def in_transaction(name='dummy')
+# Mock up a transaction for testing purposes, optionally specifying a name and
+# transaction type. The given block will be executed within the context of the
+# dummy transaction.
+#
+# Examples:
+#
+# With default name ('dummy') and type (:other):
+#   in_transaction { ... }
+#
+# With an explicit transaction name and default type:
+#   in_transaction('foobar') { ... }
+#
+# With default name and explicit type:
+#   in_transaction(:type => :controller) { ... }
+#
+# With a transaction name plus type:
+#   in_transaction('foobar', :type => :controller) { ... }
+#
+def in_transaction(*args)
+  opts = (args.last && args.last.is_a?(Hash)) ? args.pop : {}
+  name = args.first || 'dummy'
+  defaults = { :type => :other }
+  options = defaults.merge(opts)
   NewRelic::Agent.instance.instance_variable_set(:@transaction_sampler,
                         NewRelic::Agent::TransactionSampler.new)
   NewRelic::Agent.instance.stats_engine.transaction_sampler = \
     NewRelic::Agent.instance.transaction_sampler
-  NewRelic::Agent::Transaction.start(:other)
+  NewRelic::Agent::Transaction.start(options[:type])
   val = yield
   NewRelic::Agent::Transaction.stop(name)
   val
+end
+
+# Convenience wrapper around in_transaction that sets the type so that it
+# looks like we are in a web transaction
+def in_web_transaction(name='dummy')
+  in_transaction(name, :type => :controller) do
+    yield
+  end
 end
 
 def freeze_time(now=Time.now)
