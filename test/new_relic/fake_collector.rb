@@ -249,12 +249,11 @@ module NewRelic
     end
     class AnalyticEventDataPost < AgentPost
 
-      # def initialize(opts={})
-      #   super
-      # end
+      def initialize(opts={})
+        opts[:run_id] = opts[:body].shift
+        opts[:body] = opts[:body].shift
 
-      def metric_name
-        @body['name']
+        super
       end
     end
   end
@@ -361,15 +360,20 @@ if $0 == __FILE__
 
     def test_analytic_event_data
       events = [
-        { 'type' => 'Transaction', 'name' => 'Controller/foo/bar', 'response_time' => '718' }
+        {
+          'type' => 'Transaction',
+          'name' => 'Controller/foo/bar',
+          'duration' => '718',
+          'timestamp' => 1368489547.888435
+        }
       ]
-      response = invoke('analytic_event_data?run_id=13', events)
+      response = invoke('analytic_event_data', [33, events])
 
-      assert_nil response
+      assert_nil response['return_value']
       post = @collector.agent_data[0]
       assert_equal 'analytic_event_data', post.action
       assert_equal events, post.body
-      assert_equal 13, post.run_id.to_i
+      assert_equal 33, post.run_id.to_i
     end
 
     def test_shutdown

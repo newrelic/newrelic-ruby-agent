@@ -148,7 +148,10 @@ module NewRelic
 
       # Send fine-grained analytic data to the collector.
       def analytic_event_data(data)
-        invoke_remote(:analytic_event_data, data)
+        data = data.collect do |sample|
+          sample[name] = metric_id_cache.fetch( sample[name] ) { sample[name] }
+        end
+        invoke_remote(:analytic_event_data, @agent_id, data)
       end
 
       # We do not compress if content is smaller than 64kb.  There are
