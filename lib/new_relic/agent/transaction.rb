@@ -43,9 +43,9 @@ module NewRelic
         return txn
       end
 
-      def self.stop(metric_name=nil)
+      def self.stop(metric_name=nil, end_time=Time.now)
         txn = self.stack.pop
-        txn.stop(metric_name) if txn
+        txn.stop(metric_name, end_time) if txn
         return txn
       end
 
@@ -159,7 +159,7 @@ module NewRelic
 
       # Unwind one stack level.  It knows if it's back at the outermost caller and
       # does the appropriate wrapup of the context.
-      def stop(metric=::NewRelic::Agent::UNKNOWN_METRIC)
+      def stop(metric=::NewRelic::Agent::UNKNOWN_METRIC, end_time=Time.now)
         @name ||= metric unless name_frozen?
         freeze_name
         log_underflow if @type.nil?
@@ -183,6 +183,7 @@ module NewRelic
         # these tear everything down so need to be done
         # after the pop
         if self.class.stack.empty?
+          agent.events.notify(:transaction_finished, @name, end_time.to_f - start_time.to_f)
           agent.stats_engine.end_transaction
         end
       end
