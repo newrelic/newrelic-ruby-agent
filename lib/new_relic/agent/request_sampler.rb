@@ -160,7 +160,6 @@ class NewRelic::Agent::RequestSampler
 
   # Add the given +sample+ to the sampler (unconditionally).
   def add_sample( sample )
-# $stderr.puts "Sample! %0.3f" % [ Time.now - @last_sample_taken ]
     @last_sample_taken = Time.now
 
     sample[TYPE_KEY]      = SAMPLE_TYPE
