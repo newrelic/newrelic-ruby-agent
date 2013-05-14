@@ -6,8 +6,7 @@ require 'data_mapper'
 require 'newrelic_rpm'
 require 'test/unit'
 
-ENV['NO_RAILS'] = 'true'
-require File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper')
+require File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper')
 
 DataMapper::Logger.new("/dev/null", :debug)
 DataMapper.setup(:default, 'sqlite::memory:')
