@@ -72,8 +72,9 @@ DependencyDetection.defer do
   @name = :active_record
 
   depends_on do
-    defined?(::ActiveRecord) && (!defined?(::ActiveRecord::VERSION) ||
-      ::ActiveRecord::VERSION::MAJOR.to_i <= 3)
+    defined?(::ActiveRecord) && defined?(::ActiveRecord::Base) &&
+      (!defined?(::ActiveRecord::VERSION) ||
+        ::ActiveRecord::VERSION::MAJOR.to_i <= 3)
   end
 
   depends_on do
