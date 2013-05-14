@@ -40,7 +40,7 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
       end
       @sampler.samples.each_with_index do |sample, i|
         next if i.zero?
-        delta = sample.first['timestamp'] - @sampler.samples[i-1][0]['timestamp']
+        delta = sample['timestamp'] - @sampler.samples[i-1]['timestamp']
         assert( "delta between samples should be >= 0.010" ) { delta >= 0.010 }
       end
     end
@@ -66,7 +66,7 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
       end
       @sampler.samples.each_with_index do |sample, i|
         next if i.zero?
-        delta = sample.first['timestamp'] - @sampler.samples[i-1][0]['timestamp']
+        delta = sample['timestamp'] - @sampler.samples[i-1]['timestamp']
         assert( "delta between samples should be >= 0.020" ) { delta >= 0.020 }
       end
     end
@@ -99,19 +99,15 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
       end
       @sampler.samples.each_with_index do |sample, i|
         next if i.zero?
-        delta = sample.first['timestamp'] - @sampler.samples[i-1][0]['timestamp']
+        delta = sample['timestamp'] - @sampler.samples[i-1]['timestamp']
         assert( "delta between samples should be >= 0.030" ) { delta >= 0.030 }
       end
     end
   end
 
   def assert_is_valid_transaction_sample( sample )
-    assert_kind_of Array, sample
-    assert_equal 1, sample.length
-
-    inner_sample = sample[0]
-    assert_kind_of Hash, inner_sample
-    assert_equal 'Transaction', inner_sample['type']
+    assert_kind_of Hash, sample
+    assert_equal 'Transaction', sample['type']
   end
 
 
