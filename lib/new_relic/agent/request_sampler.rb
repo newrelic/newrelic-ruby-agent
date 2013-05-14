@@ -139,14 +139,18 @@ class NewRelic::Agent::RequestSampler
   # the sampler downsamples its data to include one out of even three samples, and only samples
   # a third of the time it normally would.
   def throttle( resolution=nil )
+
     # Only throttle if the sampler was running
     self.synchronize do
       if @last_sample_taken && !@samples.empty?
         resolution ||= (Time.now - @last_sample_taken) / DEFAULT_REPORT_FREQUENCY
         @sample_rate = @normal_sample_rate * resolution
-        self.downsample_data( resolution, data )
+        self.downsample_data( resolution )
       end
     end
+
+    NewRelic::Agent.logger.debug "  resolution is now: %d -> 1 sample every %dms" %
+      [ resolution, @sample_rate ]
   end
 
 
@@ -176,8 +180,6 @@ class NewRelic::Agent::RequestSampler
   def downsample_data( resolution )
       # I would kill to be able to use >1.9's .select!.with_index, but since it has to
       # work under 1.8.x, too, step up by ones and delete slices of (resolution - 1)
-      NewRelic::Agent.logger.debug "  resolution is now: %d -> 1 sample every %dms" %
-        [ resolution, @sample_rate ]
       0.upto( @samples.length / resolution ) {|i| @samples.slice!(i+1, resolution - 1) }
   end
 

@@ -26,23 +26,80 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
   end
 
   def test_samples_at_the_correct_rate
-    with_config( :'request_sampler.sample_rate_ms' => 10 ) do
+    with_config( :'request_sampler.sample_rate_ms' => 50 ) do
       @event_listener.notify( :finished_configuring )
-      start_time = Time.now
 
-      0.upto( 51 ) do |i|
-        Time.stubs( :now ).returns( start_time + (i * 0.001) + 0.001 )
-        @event_listener.notify( :metric_recorded, 'Controller/foo/bar', 0.025 * i )
+      step_time( 2, 0.02 ) do |f|
+        @event_listener.notify( :metric_recorded, 'Controller/foo/bar', 0.200 )
       end
 
-      assert_equal 5, @sampler.samples.length
+      assert_equal 33, @sampler.samples.length
       @sampler.samples.each do |sample|
         assert_is_valid_transaction_sample( sample )
       end
       @sampler.samples.each_with_index do |sample, i|
         next if i.zero?
         delta = sample['timestamp'] - @sampler.samples[i-1]['timestamp']
-        assert( "delta between samples shoud be >= 0.010" ) { delta >= 0.010 }
+        assert( "delta between samples should be >= 0.010" ) { delta >= 0.010 }
+      end
+    end
+  end
+
+  def test_downsamples_and_reduces_sample_rate_when_throttled
+    with_config( :'request_sampler.sample_rate_ms' => 50 ) do
+      @event_listener.notify( :finished_configuring )
+
+      end_time = step_time( 2, 0.02 ) do |f|
+        @event_listener.notify( :metric_recorded, 'Controller/foo/bar', 0.200 )
+      end
+
+      @sampler.throttle( 2 )
+
+      step_time( 2, 0.02, end_time ) do |f|
+        @event_listener.notify( :metric_recorded, 'Controller/foo/bar', 0.200 )
+      end
+
+      assert_equal 35, @sampler.samples.length
+      @sampler.samples.each do |sample|
+        assert_is_valid_transaction_sample( sample )
+      end
+      @sampler.samples.each_with_index do |sample, i|
+        next if i.zero?
+        delta = sample['timestamp'] - @sampler.samples[i-1]['timestamp']
+        assert( "delta between samples should be >= 0.020" ) { delta >= 0.020 }
+      end
+    end
+  end
+
+  def test_downsamples_and_reduces_sample_rate_when_throttled_multiple_times
+    with_config( :'request_sampler.sample_rate_ms' => 50 ) do
+      @event_listener.notify( :finished_configuring )
+      start_time = current_time = Time.now
+
+      end_time = step_time( 2, 0.02 ) do |f|
+        @event_listener.notify( :metric_recorded, 'Controller/foo/bar', 0.200 )
+      end
+
+      @sampler.throttle( 2 )
+
+      end_time = step_time( 2, 0.02, end_time ) do |f|
+        @event_listener.notify( :metric_recorded, 'Controller/foo/bar', 0.200 )
+      end
+
+      @sampler.throttle( 3 )
+
+      step_time( 2, 0.02, end_time ) do |f|
+        @event_listener.notify( :metric_recorded, 'Controller/foo/bar', 0.200 )
+      end
+
+      assert_equal 24, @sampler.samples.length
+      @sampler.samples.each do |sample|
+        assert_is_valid_transaction_sample( sample )
+      end
+      @sampler.samples.each_with_index do |sample, i|
+        next if i.zero?
+        delta = sample['timestamp'] - @sampler.samples[i-1]['timestamp']
+        assert( "delta between samples should be >= 0.030" ) { delta >= 0.030 }
       end
     end
   end
@@ -50,6 +107,22 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
   def assert_is_valid_transaction_sample( sample )
     assert_kind_of Hash, sample
     assert_equal 'Transaction', sample['type']
+  end
+
+
+  #
+  # Helpers
+  #
+
+  def step_time( time_period, interval=0.05, start_time=Time.now )
+    end_time   = start_time + time_period
+
+    start_time.to_f.step( end_time.to_f, interval ) do |f|
+      Time.stubs( :now ).returns( Time.at(f) )
+      yield( f )
+    end
+
+    return end_time
   end
 
 end
