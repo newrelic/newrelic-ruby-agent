@@ -76,8 +76,8 @@ module NewRelic
         end
 
         def record_metric_on_parent_transaction(metric, time)
-          Agent.instance.stats_engine.transaction_stats_stack[-2] \
-            .record(metric, time)
+          txn = NewRelic::Agent::Transaction.current
+          txn.parent.stats_hash.record(metric, time)
         end
 
         def record_apdex(event)

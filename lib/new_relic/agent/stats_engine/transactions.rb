@@ -125,39 +125,12 @@ module Agent
       end
 
       def transaction_stats_hash
-        transaction_stats_stack.last
-      end
-
-      def push_transaction_stats
-        transaction_stats_stack << StatsHash.new
-      end
-
-      def pop_transaction_stats(transaction_name)
-        Thread::current[:newrelic_scope_stack] ||= []
-        stats = transaction_stats_stack.pop
-        merge!(apply_scopes(stats, transaction_name)) if stats
-        stats
-      end
-
-      def apply_scopes(stats_hash, resolved_name)
-        new_stats = StatsHash.new
-        stats_hash.each do |spec, stats|
-          if spec.scope != '' &&
-              spec.scope.to_sym == StatsEngine::SCOPE_PLACEHOLDER
-            spec.scope = resolved_name
-          end
-          new_stats[spec] = stats
-        end
-        return new_stats
+        Transaction.current && Transaction.current.stats_hash
       end
 
       # Returns the current scope stack, memoized to a thread local variable
       def scope_stack
         Thread::current[:newrelic_scope_stack] ||= []
-      end
-
-      def transaction_stats_stack
-        Thread.current[:newrelic_transaction_stack] ||= []
       end
     end
   end
