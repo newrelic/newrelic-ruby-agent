@@ -186,4 +186,20 @@ class NewRelic::Agent::TransactionTest < Test::Unit::TestCase
     NewRelic::Agent.instance.instance_variable_set(:@transaction_rules,
                                               NewRelic::Agent::RulesEngine.new)
   end
+
+  def test_end_fires_a_transaction_finished_event
+    name, duration = nil
+    NewRelic::Agent.subscribe(:transaction_finished) do |*args|
+      name     = args.shift
+      duration = args.shift
+    end
+
+    NewRelic::Agent::Transaction.start(:controller)
+    NewRelic::Agent.set_transaction_name('foo/1/bar/22')
+    NewRelic::Agent::Transaction.freeze_name
+    NewRelic::Agent::Transaction.stop('txn')
+
+    assert_equal 'Controller/foo/1/bar/22', name
+    assert_kind_of Float, duration
+  end
 end

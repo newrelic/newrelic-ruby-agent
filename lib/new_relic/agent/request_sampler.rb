@@ -38,7 +38,7 @@ class NewRelic::Agent::RequestSampler
   def initialize( event_listener )
     super()
 
-    @sample_rate_ms_ms     = DEFAULT_SAMPLE_RATE_MS
+    @sample_rate_ms        = DEFAULT_SAMPLE_RATE_MS
     @normal_sample_rate_ms = @sample_rate_ms
     @last_sample_taken     = nil
     @last_harvest          = nil
@@ -61,11 +61,14 @@ class NewRelic::Agent::RequestSampler
   # if the sampler is throttled.
   attr_accessor :sample_rate_ms
 
-  # The samples kept by the sampler
-  attr_reader :samples
-
   # The Time when the last sample was kept
   attr_accessor :last_sample_taken
+
+
+  ### Fetch a copy of the sampler's gathered samples.
+  def samples
+    return self.synchronize { @samples.dup }
+  end
 
 
   # Clear any existing samples and reset the last sample time. (Synchronized)
