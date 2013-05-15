@@ -22,6 +22,7 @@ class NewRelic::Agent::RequestSampler
   # The namespace and keys of config values
   CONFIG_NAMESPACE = 'request_sampler'
   SAMPLE_RATE_KEY  = "#{CONFIG_NAMESPACE}.sample_rate_ms".to_sym
+  ENABLED_KEY      = "#{CONFIG_NAMESPACE}.enabled".to_sym
 
   # The type field of the sample
   SAMPLE_TYPE = 'Transaction'
@@ -44,8 +45,18 @@ class NewRelic::Agent::RequestSampler
     @last_harvest          = nil
     @samples               = []
 
-    event_listener.subscribe( :finished_configuring, &method(:on_finished_configuring) )
     event_listener.subscribe( :transaction_finished, &method(:on_transaction_finished) )
+
+    NewRelic::Agent.config.register_callback(SAMPLE_RATE_KEY) do |rate_ms|
+      NewRelic::Agent.logger.debug "RequestSampler sample rate to %dms" % [ rate_ms ]
+      @normal_sample_rate_ms = rate_ms
+      self.reset
+    end
+
+    NewRelic::Agent.config.register_callback(ENABLED_KEY) do |enabled|
+      NewRelic::Agent.logger.debug "RequestSampler enabled to #{enabled}"
+      @enabled = enabled
+    end
   end
 
 
@@ -87,21 +98,9 @@ class NewRelic::Agent::RequestSampler
   # :group: Event handlers
   #
 
-  # Event handler for the :finished_configuring event.
-  def on_finished_configuring
-    NewRelic::Agent.logger.debug "Finished configuring RequestSampler"
-    NewRelic::Agent.config.register_callback(SAMPLE_RATE_KEY) do |rate_ms|
-      NewRelic::Agent.logger.debug "  setting RequestSampler sample rate to %dms" % [ rate_ms ]
-      @normal_sample_rate_ms = rate_ms
-      self.reset
-    end
-  end
-
-
   # Event handler for the :transaction_finished event.
   def on_transaction_finished( metric, duration, options={} )
-    # :TODO: Remove before merging to release branch
-    NewRelic::Agent.logger.debug "On metric recorded: %p (%f)" % [ metric, duration ]
+    return unless @enabled
 
     self << {
       NAME_KEY     => string(metric),

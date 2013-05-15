@@ -16,8 +16,8 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
   def teardown
   end
 
-  def test_samples_on_metrics_recorded_events
-    with_config( :'request_sampler.sample_rate_ms' => 0 ) do
+  def test_samples_on_transaction_finished_event
+    with_sampler_config( :'request_sampler.sample_rate_ms' => 0 ) do
       @event_listener.notify( :finished_configuring )
       @event_listener.notify( :transaction_finished, ['Controller/foo/bar'], 0.095 )
 
@@ -26,7 +26,7 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
   end
 
   def test_samples_at_the_correct_rate
-    with_config( :'request_sampler.sample_rate_ms' => 50 ) do
+    with_sampler_config( :'request_sampler.sample_rate_ms' => 50 ) do
       @event_listener.notify( :finished_configuring )
 
       # (twice the sample rate over 6 seconds ~= 120 samples
@@ -47,7 +47,7 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
   end
 
   def test_downsamples_and_reduces_sample_rate_when_throttled
-    with_config( :'request_sampler.sample_rate_ms' => 50 ) do
+    with_sampler_config( :'request_sampler.sample_rate_ms' => 50 ) do
       @event_listener.notify( :finished_configuring )
 
       end_time = step_time( 6, 0.025 ) do |f|
@@ -73,7 +73,7 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
   end
 
   def test_downsamples_and_reduces_sample_rate_when_throttled_multiple_times
-    with_config( :'request_sampler.sample_rate_ms' => 50 ) do
+    with_sampler_config( :'request_sampler.sample_rate_ms' => 50 ) do
       @event_listener.notify( :finished_configuring )
       start_time = current_time = Time.now
 
@@ -104,6 +104,28 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
       end
     end
   end
+
+  def test_can_disable_sampling
+    with_sampler_config( :'request_sampler.enabled' => false ) do
+      @event_listener.notify( :finished_configuring )
+      @event_listener.notify( :transaction_finished, 'Controller/foo/bar', 0.200 )
+      assert @sampler.samples.empty?
+    end
+  end
+
+  def with_sampler_config(options = {})
+    defaults =
+    {
+      :'request_sampler.enabled' => true,
+      :'request_sampler.sample_rate_ms' => 50
+    }
+
+    defaults.merge!(options)
+    with_config(defaults) do
+      yield
+    end
+  end
+
 
   def assert_is_valid_transaction_sample( sample )
     assert_kind_of Hash, sample
