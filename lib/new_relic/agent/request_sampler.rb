@@ -13,7 +13,10 @@ class NewRelic::Agent::RequestSampler
           MonitorMixin
 
   # The amount of time between samples, in milliseconds
-  DEFAULT_SAMPLE_RATE_MS = 50
+  DEFAULT_SAMPLE_RATE_MS   = 50
+
+  # The minimum amount of time between samples, in milliseconds
+  MIN_SAMPLE_RATE_MS       = 25
 
   # The number of seconds between harvests
   # :TODO: Get this from the agent instead?
@@ -25,13 +28,13 @@ class NewRelic::Agent::RequestSampler
   ENABLED_KEY      = "#{CONFIG_NAMESPACE}.enabled".to_sym
 
   # The type field of the sample
-  SAMPLE_TYPE = 'Transaction'
+  SAMPLE_TYPE              = 'Transaction'
 
   # Strings for static keys of the sample structure
-  TYPE_KEY      = 'type'
-  TIMESTAMP_KEY = 'timestamp'
-  NAME_KEY      = 'name'
-  DURATION_KEY  = 'duration'
+  TYPE_KEY                 = 'type'
+  TIMESTAMP_KEY            = 'timestamp'
+  NAME_KEY                 = 'name'
+  DURATION_KEY             = 'duration'
 
 
   # Create a new RequestSampler that will keep samples added to it every
@@ -39,6 +42,7 @@ class NewRelic::Agent::RequestSampler
   def initialize( event_listener )
     super()
 
+    @enabled               = false
     @sample_rate_ms        = DEFAULT_SAMPLE_RATE_MS
     @normal_sample_rate_ms = @sample_rate_ms
     @last_sample_taken     = nil
@@ -46,17 +50,7 @@ class NewRelic::Agent::RequestSampler
     @samples               = []
 
     event_listener.subscribe( :transaction_finished, &method(:on_transaction_finished) )
-
-    NewRelic::Agent.config.register_callback(SAMPLE_RATE_KEY) do |rate_ms|
-      NewRelic::Agent.logger.debug "RequestSampler sample rate to %dms" % [ rate_ms ]
-      @normal_sample_rate_ms = rate_ms
-      self.reset
-    end
-
-    NewRelic::Agent.config.register_callback(ENABLED_KEY) do |enabled|
-      NewRelic::Agent.logger.debug "RequestSampler enabled to #{enabled}"
-      @enabled = enabled
-    end
+    self.register_config_callbacks
   end
 
 
@@ -66,14 +60,14 @@ class NewRelic::Agent::RequestSampler
 
   # The sample rate, in milliseconds between samples, that the sampler uses
   # under normal circumstances
-  attr_accessor :normal_sample_rate_ms
+  attr_reader :normal_sample_rate_ms
 
   # The current sample rate, which may be different from the #normal_sample_rate_ms
   # if the sampler is throttled.
-  attr_accessor :sample_rate_ms
+  attr_reader :sample_rate_ms
 
   # The Time when the last sample was kept
-  attr_accessor :last_sample_taken
+  attr_reader :last_sample_taken
 
 
   ### Fetch a copy of the sampler's gathered samples.
@@ -98,10 +92,30 @@ class NewRelic::Agent::RequestSampler
   # :group: Event handlers
   #
 
+  def register_config_callbacks
+    NewRelic::Agent.config.register_callback(SAMPLE_RATE_KEY) do |rate_ms|
+      NewRelic::Agent.logger.debug "RequestSampler sample rate to %dms" % [ rate_ms ]
+
+      if rate_ms < MIN_SAMPLE_RATE_MS
+        NewRelic::Agent.logger.warn "  limiting RequestSampler frequency to %dms (was %dms)" %
+          [ MIN_SAMPLE_RATE_MS, rate_ms ]
+        rate_ms = MIN_SAMPLE_RATE_MS
+      end
+
+      @normal_sample_rate_ms = rate_ms
+      self.reset
+    end
+
+    NewRelic::Agent.config.register_callback(ENABLED_KEY) do |enabled|
+      NewRelic::Agent.logger.info "%sabling the Request Sampler." % [ enabled ? 'En' : 'Dis' ]
+      @enabled = enabled
+    end
+  end
+
+
   # Event handler for the :transaction_finished event.
   def on_transaction_finished( metric, duration, options={} )
     return unless @enabled
-
     self << {
       NAME_KEY     => string(metric),
       DURATION_KEY => float(duration)
@@ -156,7 +170,7 @@ class NewRelic::Agent::RequestSampler
   # frequency.
   def should_sample?
     return false unless @last_sample_taken
-    return ( Time.now - @last_sample_taken ) * 1000 >= @sample_rate_ms
+    return ((Time.now - @last_sample_taken) * 1000).ceil >= @sample_rate_ms
   end
 
 
@@ -174,7 +188,7 @@ class NewRelic::Agent::RequestSampler
   # Downsample the current data to match the specified +resolution+.
   def downsample_data( resolution )
     goalsize = @samples.length * ( (resolution - 1) / resolution.to_f )
-    0.step( goalsize, resolution - 1 ) {|i| @samples.slice!(i+1) }
+    0.step( goalsize.ceil, resolution - 1 ) {|i| @samples.slice!(i+1) }
   end
 
 end # class NewRelic::Agent::RequestSampler
