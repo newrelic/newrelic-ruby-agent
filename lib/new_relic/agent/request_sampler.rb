@@ -13,24 +13,28 @@ class NewRelic::Agent::RequestSampler
           MonitorMixin
 
   # The amount of time between samples, in milliseconds
-  DEFAULT_SAMPLE_RATE_MS = 50
+  DEFAULT_SAMPLE_RATE_MS   = 50
+
+  # The minimum amount of time between samples, in milliseconds
+  MIN_SAMPLE_RATE_MS       = 25
 
   # The number of seconds between harvests
   # :TODO: Get this from the agent instead?
   DEFAULT_REPORT_FREQUENCY = 60
 
   # The namespace and keys of config values
-  CONFIG_NAMESPACE = 'request_sampler'
-  SAMPLE_RATE_KEY  = "#{CONFIG_NAMESPACE}.sample_rate_ms".to_sym
+  CONFIG_NAMESPACE         = 'request_sampler'
+  ENABLED_KEY              = "#{CONFIG_NAMESPACE}.enabled".to_sym
+  SAMPLE_RATE_KEY          = "#{CONFIG_NAMESPACE}.sample_rate_ms".to_sym
 
   # The type field of the sample
-  SAMPLE_TYPE = 'Transaction'
+  SAMPLE_TYPE              = 'Transaction'
 
   # Strings for static keys of the sample structure
-  TYPE_KEY      = 'type'
-  TIMESTAMP_KEY = 'timestamp'
-  NAME_KEY      = 'name'
-  DURATION_KEY  = 'duration'
+  TYPE_KEY                 = 'type'
+  TIMESTAMP_KEY            = 'timestamp'
+  NAME_KEY                 = 'name'
+  DURATION_KEY             = 'duration'
 
 
   # Create a new RequestSampler that will keep samples added to it every
@@ -38,6 +42,7 @@ class NewRelic::Agent::RequestSampler
   def initialize( event_listener )
     super()
 
+    @enabled               = false
     @sample_rate_ms        = DEFAULT_SAMPLE_RATE_MS
     @normal_sample_rate_ms = @sample_rate_ms
     @last_sample_taken     = nil
@@ -91,9 +96,19 @@ class NewRelic::Agent::RequestSampler
   def on_finished_configuring
     NewRelic::Agent.logger.debug "Finished configuring RequestSampler"
     NewRelic::Agent.config.register_callback(SAMPLE_RATE_KEY) do |rate_ms|
+      if rate_ms < MIN_SAMPLE_RATE_MS
+        NewRelic::Agent.logger.warn "  limiting RequestSampler frequency to %dms (was %dms)" %
+          [ MIN_SAMPLE_RATE_MS, rate_ms ]
+        rate_ms = MIN_SAMPLE_RATE_MS
+      end
+
       NewRelic::Agent.logger.debug "  setting RequestSampler sample rate to %dms" % [ rate_ms ]
       @normal_sample_rate_ms = rate_ms
       self.reset
+    end
+    NewRelic::Agent.config.register_callback(ENABLED_KEY) do |truefalse|
+      NewRelic::Agent.logger.info "%sabling the Request Sampler." % [ truefalse ? 'En' : 'Dis' ]
+      @enabled = truefalse
     end
   end
 
@@ -101,7 +116,7 @@ class NewRelic::Agent::RequestSampler
   # Event handler for the :transaction_finished event.
   def on_transaction_finished( metric, duration, options={} )
     # :TODO: Remove before merging to release branch
-    NewRelic::Agent.logger.debug "On metric recorded: %p (%f)" % [ metric, duration ]
+    NewRelic::Agent.logger.debug "On transaction finished: %p (%f)" % [ metric, duration ]
 
     self << {
       NAME_KEY     => string(metric),
@@ -156,8 +171,9 @@ class NewRelic::Agent::RequestSampler
   # Returns +true+ if a sample added now should be kept based on the sample
   # frequency.
   def should_sample?
-    return false unless @last_sample_taken
-    return ( Time.now - @last_sample_taken ) * 1000 >= @sample_rate_ms
+    return false unless @enabled && @last_sample_taken
+    NewRelic::Agent.logger.debug "  enabled and last sample was %0.9fs ago" % [ Time.now - @last_sample_taken ]
+    return ((Time.now - @last_sample_taken) * 1000).ceil >= @sample_rate_ms
   end
 
 
@@ -168,6 +184,7 @@ class NewRelic::Agent::RequestSampler
     sample[TYPE_KEY]      = SAMPLE_TYPE
     sample[TIMESTAMP_KEY] = @last_sample_taken
 
+NewRelic::Agent.logger.debug "Adding sample: %p" % [ sample ]
     @samples << sample
   end
 
@@ -175,7 +192,7 @@ class NewRelic::Agent::RequestSampler
   # Downsample the current data to match the specified +resolution+.
   def downsample_data( resolution )
     goalsize = @samples.length * ( (resolution - 1) / resolution.to_f )
-    0.step( goalsize, resolution - 1 ) {|i| @samples.slice!(i+1) }
+    0.step( goalsize.ceil, resolution - 1 ) {|i| @samples.slice!(i+1) }
   end
 
 end # class NewRelic::Agent::RequestSampler
