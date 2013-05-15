@@ -70,7 +70,7 @@ class NewRelic::Agent::RequestSampler
   attr_reader :last_sample_taken
 
 
-  ### Fetch a copy of the sampler's gathered samples.
+  ### Fetch a copy of the sampler's gathered samples. (Synchronized)
   def samples
     return self.synchronize { @samples.dup }
   end
@@ -129,7 +129,15 @@ class NewRelic::Agent::RequestSampler
   # These methods are synchronized.
   #
 
-  # Add a datapoint consisting of a +duration_in_ms+ to the sampler.
+  # Add a datapoint to the sampler if a sample is due. The +sample+ should be
+  # of the form:
+  #
+  #   {
+  #     'name' => '<transaction/metric name>',
+  #     'duration' => <duration in seconds as a Float>,
+  #   }
+  #
+  # This method is synchronized.
   def <<( sample )
     self.synchronize do
       self.add_sample( sample ) if should_sample?
@@ -144,6 +152,8 @@ class NewRelic::Agent::RequestSampler
   # normal report periods which have elapsed. E.g., if three sessions with the agent have failed,
   # the sampler downsamples its data to include one out of even three samples, and only samples
   # a third of the time it normally would.
+  #
+  # This method is synchronized.
   def throttle( resolution=nil )
 
     # Only throttle if the sampler was running

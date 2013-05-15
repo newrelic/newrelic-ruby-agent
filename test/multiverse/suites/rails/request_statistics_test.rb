@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-# https://newrelic.atlassian.net/browse/RUBY-927
+# https://newrelic.atlassian.net/browse/RUBY-1096
 
 require 'rails/test_help'
 require './app'
