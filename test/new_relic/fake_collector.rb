@@ -25,7 +25,8 @@ module NewRelic
         'sql_trace_data'          => [200, {'return_value' => nil}],
         'transaction_sample_data' => [200, {'return_value' => nil}],
         'error_data'              => [200, {'return_value' => nil}],
-        'shutdown'                => [200, {'return_value' => nil}]
+        'shutdown'                => [200, {'return_value' => nil}],
+        'analytic_event_data'     => [200, {'return_value' => nil}]
       }
       reset
     end
@@ -195,6 +196,8 @@ module NewRelic
           SqlTraceDataPost.new(opts)
         when 'transaction_sample_data'
           TransactionSampleDataPost.new(opts)
+        when 'analytic_event_data'
+          AnalyticEventDataPost.new(opts)
         else
           new(opts)
         end
@@ -242,6 +245,15 @@ module NewRelic
 
       def metric_name
         @body[1][0][2]
+      end
+    end
+    class AnalyticEventDataPost < AgentPost
+
+      def initialize(opts={})
+        opts[:run_id] = opts[:body].shift
+        opts[:body] = opts[:body].shift
+
+        super
       end
     end
   end
@@ -344,6 +356,24 @@ if $0 == __FILE__
       post = @collector.agent_data[0]
       assert_equal 'error_data', post.action
       assert_equal ['error'], post.body
+    end
+
+    def test_analytic_event_data
+      events = [
+        {
+          'type' => 'Transaction',
+          'name' => 'Controller/foo/bar',
+          'duration' => '718',
+          'timestamp' => 1368489547.888435
+        }
+      ]
+      response = invoke('analytic_event_data', [33, events])
+
+      assert_nil response['return_value']
+      post = @collector.agent_data[0]
+      assert_equal 'analytic_event_data', post.action
+      assert_equal events, post.body
+      assert_equal 33, post.run_id.to_i
     end
 
     def test_shutdown

@@ -139,7 +139,10 @@ module NewRelic
 
         :'thread_profiler.enabled' => Proc.new { NewRelic::Agent::ThreadProfiler.is_supported? },
 
-        :marshaller => Proc.new { NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported? ? 'json' : 'pruby' }
+        :marshaller => Proc.new { NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported? ? 'json' : 'pruby' },
+
+        :'request_sampler.enabled'        => false,
+        :'request_sampler.sample_rate_ms' => 50
       ].freeze
     end
   end
