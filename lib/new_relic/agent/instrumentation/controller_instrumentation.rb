@@ -337,9 +337,8 @@ module NewRelic
 
             metric_names = Array(metrics)
             first_name = metric_names.shift
-            scope = NewRelic::Agent.instance.stats_engine.scope_name
             end_time = Time.now
-            NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScoped.trace_execution_scoped_footer(txn.start_time.to_f, first_name, metric_names, expected_scope, scope, options, end_time.to_f)
+            NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScoped.trace_execution_scoped_footer(txn.start_time.to_f, first_name, metric_names, expected_scope, options, end_time.to_f)
             NewRelic::Agent::BusyCalculator.dispatcher_finish
             # Look for a transaction in the thread local and process it.
             # Clear the thread local when finished to ensure it only gets called once.
