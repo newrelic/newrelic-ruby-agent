@@ -85,7 +85,7 @@ class RequestStatsTest < ActionController::TestCase
   end
 
   def assert_encoding( encname, string )
-    skip("no encoding support") unless string.respond_to?( :encoding )
+    return unless string.respond_to?( :encoding )
     expected_encoding = Encoding.find( encname ) or raise "no such encoding #{encname.dump}"
     msg = "Expected encoding of %p to be %p, but it was %p" %
       [ string, expected_encoding, string.encoding ]
@@ -93,7 +93,7 @@ class RequestStatsTest < ActionController::TestCase
   end
 
   def assert_valid_time( object )
-    return pass if object.is_a?( Time )
+    return if object.is_a?( Time )
     assert_kind_of Time, Time.parse(object.to_s) rescue object
   end
 
