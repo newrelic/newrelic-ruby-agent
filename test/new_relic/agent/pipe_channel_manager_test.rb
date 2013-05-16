@@ -130,9 +130,6 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
         exit!
       end
       Process.wait(pid)
-      until pipe_finished?(669) do
-        listener.wakeup
-      end
       listener.stop_listener_thread
       assert_pipe_finished(669)
     end

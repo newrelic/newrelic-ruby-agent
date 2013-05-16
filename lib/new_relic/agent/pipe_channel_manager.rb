@@ -76,6 +76,10 @@ module NewRelic
           @out.gets("\n\n")
         end
 
+        def eof?
+          !@out.closed? && @out.eof?
+        end
+
         def after_fork_in_child
           @out.close unless @out.closed?
           write(READY_MARKER)
@@ -123,12 +127,13 @@ module NewRelic
 
               if ready = IO.select(pipes_to_listen_to, [], [], @select_timeout)
                 now = Time.now
-                pipe = ready[0][0]
-                if pipe == wake.out
-                  pipe.read(1)
-                else
-                  merge_data_from_pipe(pipe)
+
+                ready_pipes = ready[0]
+                ready_pipes.each do |pipe|
+                  merge_data_from_pipe(pipe) unless pipe == wake.out
                 end
+
+                wake.out.read(1) if ready_pipes.include?(wake.out)
               end
 
               break unless should_keep_listening?
@@ -172,9 +177,7 @@ module NewRelic
           pipe = find_pipe_for_handle(pipe_handle)
           raw_payload = pipe.read
 
-          if raw_payload.nil?
-            pipe.close
-          elsif raw_payload && !raw_payload.empty?
+          if raw_payload && !raw_payload.empty?
             payload = unmarshal(raw_payload)
             if payload == Pipe::READY_MARKER
               pipe.after_fork_in_parent
@@ -184,6 +187,8 @@ module NewRelic
                                                      payload[:error_traces]])
             end
           end
+
+          pipe.close if pipe.eof?
         end
 
         def unmarshal(data)
