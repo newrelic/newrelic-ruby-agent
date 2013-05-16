@@ -1,6 +1,9 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
+if defined?(::Rails)
+
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 require 'new_relic/agent/instrumentation/action_controller_subscriber'
 
@@ -226,3 +229,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Test::U
                    .last_sample.params[:custom_params]['number'])
   end
 end if ::Rails::VERSION::MAJOR.to_i >= 4
+
+else
+  puts "Skipping tests in #{__FILE__} because Rails is unavailable"
+end

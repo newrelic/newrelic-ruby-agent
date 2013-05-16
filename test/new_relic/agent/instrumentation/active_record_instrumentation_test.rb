@@ -2,6 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+if defined?(::Rails)
+
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 
 class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::Unit::TestCase
@@ -499,9 +501,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
       true
     end
 
-    expected_metrics = %W[ActiveRecord/all Database/SQL/select RemoteService/sql/#{adapter}/localhost]
-
-    assert_calls_metrics(*expected_metrics) do
+    in_web_transaction do
       begin
         ActiveRecordFixtures::Order.connection.select_rows "select * from #{ActiveRecordFixtures::Order.table_name}"
       rescue RuntimeError => e
@@ -509,11 +509,12 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
         raise unless e.message == 'Error'
       end
     end
-    metrics = NewRelic::Agent.instance.stats_engine.metrics
-    compare_metrics expected_metrics, metrics
-    check_metric_count('Database/SQL/select', 1)
-    check_metric_count('ActiveRecord/all', 1)
-    check_metric_count("RemoteService/sql/#{adapter}/localhost", 1)
+
+    assert_metrics_recorded(
+      'ActiveRecord/all' => { :call_count => 1 },
+      'Database/SQL/select' => { :call_count => 1 },
+      "RemoteService/sql/#{adapter}/localhost" => { :call_count => 1 }
+    )
   end
 
   def test_rescue_handling
@@ -588,4 +589,8 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     end
     last
   end
+end
+
+else
+  puts "Skipping tests in #{__FILE__} because Rails is unavailable"
 end

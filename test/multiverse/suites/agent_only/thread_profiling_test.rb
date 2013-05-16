@@ -67,9 +67,8 @@ class ThreadProfilingTest < Test::Unit::TestCase
     let_it_finish
 
     profile_data = $collector.calls_for('profile_data')[0]
-    assert_equal('666', profile_data.run_id)
-
-    assert profile_data.poll_count > 25, "Expected poll_count > 25, but was #{profile_data.poll_count}"
+    assert_equal('666', profile_data.run_id, "Missing run_id, profile_data was #{profile_data.inspect}")
+    assert(profile_data.poll_count > 25, "Expected poll_count > 25, but was #{profile_data.poll_count}")
 
     assert_saw_traces(profile_data, "OTHER")
     assert_saw_traces(profile_data, "AGENT")
@@ -86,9 +85,8 @@ class ThreadProfilingTest < Test::Unit::TestCase
     let_it_finish
 
     profile_data = $collector.calls_for('profile_data')[0]
-    assert_equal('666', profile_data.run_id)
-
-    assert profile_data.poll_count < 10, "Expected poll_count < 10, but was #{profile_data.poll_count}"
+    assert_equal('666', profile_data.run_id, "Missing run_id, profile_data was #{profile_data.inspect}")
+    assert(profile_data.poll_count < 10, "Expected poll_count < 10, but was #{profile_data.poll_count}")
   end
 
   # Runs a thread we expect to span entire test and be killed at the end

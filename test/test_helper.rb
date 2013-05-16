@@ -14,44 +14,48 @@ $LOAD_PATH.uniq!
 
 require 'rubygems'
 require 'rake'
+
 # We can speed things up in tests that don't need to load rails.
 # You can also run the tests in a mode without rails.  Many tests
 # will be skipped.
-
-begin
-  require 'config/environment'
-#   require File.join(File.dirname(__FILE__),'..','..','rpm_test_app','config','environment')
-
-  # we need 'rails/test_help' for Rails 4
-  # we need 'test_help' for Rails 2
-  # we need neither for Rails 3
+if ENV["NO_RAILS"]
+  puts "Running tests in standalone mode without Rails."
+  require 'newrelic_rpm'
+else
   begin
-    require 'rails/test_help'
-  rescue LoadError
+    require 'config/environment'
+  #   require File.join(File.dirname(__FILE__),'..','..','rpm_test_app','config','environment')
+
+    # we need 'rails/test_help' for Rails 4
+    # we need 'test_help' for Rails 2
+    # we need neither for Rails 3
     begin
-      require 'test_help'
+      require 'rails/test_help'
     rescue LoadError
-      # ignore load problems on test help - it doesn't exist in rails 3
+      begin
+        require 'test_help'
+      rescue LoadError
+        # ignore load problems on test help - it doesn't exist in rails 3
+      end
     end
-  end
-  require 'newrelic_rpm'
-rescue LoadError => e
-  puts "Running tests in standalone mode."
-  require 'bundler'
-  Bundler.require
-  require 'rails/all'
-  require 'newrelic_rpm'
+    require 'newrelic_rpm'
+  rescue LoadError => e
+    puts "Running tests in standalone mode."
+    require 'bundler'
+    Bundler.require
+    require 'rails/all'
+    require 'newrelic_rpm'
 
-  # Bootstrap a basic rails environment for the agent to run in.
-  class MyApp < Rails::Application
-    config.active_support.deprecation = :log
-    config.secret_token = "49837489qkuweoiuoqwehisuakshdjksadhaisdy78o34y138974xyqp9rmye8yrpiokeuioqwzyoiuxftoyqiuxrhm3iou1hrzmjk"
-    config.after_initialize do
-      NewRelic::Agent.manual_start
+    # Bootstrap a basic rails environment for the agent to run in.
+    class MyApp < Rails::Application
+      config.active_support.deprecation = :log
+      config.secret_token = "49837489qkuweoiuoqwehisuakshdjksadhaisdy78o34y138974xyqp9rmye8yrpiokeuioqwzyoiuxftoyqiuxrhm3iou1hrzmjk"
+      config.after_initialize do
+        NewRelic::Agent.manual_start
+      end
     end
+    MyApp.initialize!
   end
-  MyApp.initialize!
-
 end
 
 require 'test/unit'
@@ -66,6 +70,8 @@ begin # 1.8.6
   require 'mocha/integration/test_unit/assertion_counter'
 rescue LoadError
 end
+
+require 'agent_helper'
 
 def default_service(stubbed_method_overrides = {})
   service = stub
@@ -102,153 +108,6 @@ class Test::Unit::TestCase
   end
 end
 
-def assert_between(floor, ceiling, value, message="expected #{floor} <= #{value} <= #{ceiling}")
-  assert((floor <= value && value <= ceiling), message)
-end
-
-def assert_in_delta(expected, actual, delta)
-  assert_between((expected - delta), (expected + delta), actual)
-end
-
-def check_metric_time(metric, value, delta)
-  time = NewRelic::Agent.get_stats(metric).total_call_time
-  assert_in_delta(value, time, delta)
-end
-
-def check_metric_count(metric, value)
-  count = NewRelic::Agent.get_stats(metric).call_count
-  assert_equal(value, count, "should have the correct number of calls")
-end
-
-def check_unscoped_metric_count(metric, value)
-  count = NewRelic::Agent.get_stats_unscoped(metric).call_count
-  assert_equal(value, count, "should have the correct number of calls")
-end
-
-def generate_unscoped_metric_counts(*metrics)
-  metrics.inject({}) do |sum, metric|
-    sum[metric] = NewRelic::Agent.get_stats_no_scope(metric).call_count
-    sum
-  end
-end
-
-def generate_metric_counts(*metrics)
-  metrics.inject({}) do |sum, metric|
-    sum[metric] = NewRelic::Agent.get_stats(metric).call_count
-    sum
-  end
-end
-
-def assert_does_not_call_metrics(*metrics)
-  first_metrics = generate_metric_counts(*metrics)
-  yield
-  last_metrics = generate_metric_counts(*metrics)
-  assert_equal first_metrics, last_metrics, "should not have changed these metrics"
-end
-
-def assert_calls_metrics(*metrics)
-  first_metrics = generate_metric_counts(*metrics)
-  yield
-  last_metrics = generate_metric_counts(*metrics)
-  assert_not_equal first_metrics, last_metrics, "should have changed these metrics"
-end
-
-def assert_calls_unscoped_metrics(*metrics)
-  first_metrics = generate_unscoped_metric_counts(*metrics)
-  yield
-  last_metrics = generate_unscoped_metric_counts(*metrics)
-  assert_not_equal first_metrics, last_metrics, "should have changed these metrics"
-end
-
-unless defined?( assert_includes )
-  def assert_includes( collection, member, msg=nil )
-    msg = build_message( msg, "Expected ? to include ?", collection, member )
-    assert_block( msg ) { collection.include?(member) }
-  end
-end
-
-unless defined?( assert_not_includes )
-  def assert_not_includes( collection, member, msg=nil )
-    msg = build_message( msg, "Expected ? not to include ?", collection, member )
-    assert_block( msg ) { !collection.include?(member) }
-  end
-end
-
-def compare_metrics(expected, actual)
-  actual.delete_if {|a| a.include?('GC/cumulative') } # in case we are in REE
-  assert_equal(expected.to_a.sort, actual.to_a.sort, "extra: #{(actual - expected).to_a.inspect}; missing: #{(expected - actual).to_a.inspect}")
-end
-
-def metric_spec_from_specish(specish)
-  spec = case specish
-  when String then NewRelic::MetricSpec.new(specish)
-  when Array  then NewRelic::MetricSpec.new(*specish)
-  end
-  spec
-end
-
-def _normalize_metric_expectations(expectations)
-  case expectations
-  when Array
-    hash = {}
-    expectations.each { |k| hash[k] = { :call_count => 1 } }
-    hash
-  else
-    expectations
-  end
-end
-
-def assert_metrics_recorded(expected)
-  expected = _normalize_metric_expectations(expected)
-  expected.each do |specish, expected_attrs|
-    expected_spec = metric_spec_from_specish(specish)
-    actual_stats = NewRelic::Agent.instance.stats_engine.lookup_stats(*Array(specish))
-    if !actual_stats
-      all_specs = NewRelic::Agent.instance.stats_engine.metric_specs
-      matches = all_specs.select { |spec| spec.name == expected_spec.name }
-      matches.map! { |m| "  #{m.inspect}" }
-      msg = "Did not find stats for spec #{expected_spec.inspect}."
-      msg += "\nDid find specs: [\n#{matches.join(",\n")}\n]" unless matches.empty?
-      assert(actual_stats, msg)
-    end
-    expected_attrs.each do |attr, expected_value|
-      actual_value = actual_stats.send(attr)
-      if attr == :call_count
-        assert_equal(expected_value, actual_value,
-          "Expected #{attr} for #{expected_spec} to be #{expected_value}, got #{actual_value}")
-      else
-        assert_in_delta(expected_value, actual_value, 0.0001,
-          "Expected #{attr} for #{expected_spec} to be ~#{expected_value}, got #{actual_value}")
-      end
-    end
-  end
-end
-
-def assert_metrics_recorded_exclusive(expected, options={})
-  expected = _normalize_metric_expectations(expected)
-  assert_metrics_recorded(expected)
-  recorded_metrics = NewRelic::Agent.instance.stats_engine.metrics
-  if options[:filter]
-    recorded_metrics = recorded_metrics.select { |m| m.match(options[:filter]) }
-  end
-  expected_metrics = expected.keys.map { |s| metric_spec_from_specish(s).to_s }
-  unexpected_metrics = recorded_metrics.select{|m| m !~ /GC\/cumulative/}
-  unexpected_metrics -= expected_metrics
-  assert_equal(0, unexpected_metrics.size, "Found unexpected metrics: [#{unexpected_metrics.join(', ')}]")
-end
-
-def assert_metrics_not_recorded(not_expected)
-  not_expected = _normalize_metric_expectations(not_expected)
-  found_but_not_expected = []
-  not_expected.each do |specish, _|
-    spec = metric_spec_from_specish(specish)
-    if NewRelic::Agent.instance.stats_engine.lookup_stats(*Array(specish))
-      found_but_not_expected << spec
-    end
-  end
-  assert_equal([], found_but_not_expected, "Found unexpected metrics: [#{found_but_not_expected.join(', ')}]")
-end
-
 def with_config(config_hash, opts={})
   opts = { :level => 0, :do_not_cast => false }.merge(opts)
   if opts[:do_not_cast]
@@ -264,7 +123,6 @@ def with_config(config_hash, opts={})
   end
 end
 
-
 def with_verbose_logging
   orig_logger = NewRelic::Agent.logger
   $stderr.puts '', '---', ''
@@ -276,7 +134,6 @@ def with_verbose_logging
 ensure
   NewRelic::Agent.logger = orig_logger
 end
-
 
 # Need to be a bit sloppy when testing against the logging--let everything
 # through, but check we (at least) get our particular message we care about
@@ -297,31 +154,6 @@ def without_logger
   yield
 ensure
   ::NewRelic::Agent.logger = logger
-end
-
-def in_transaction(name='dummy')
-  NewRelic::Agent.instance.instance_variable_set(:@transaction_sampler,
-                        NewRelic::Agent::TransactionSampler.new)
-  NewRelic::Agent.instance.stats_engine.transaction_sampler = \
-    NewRelic::Agent.instance.transaction_sampler
-  NewRelic::Agent::Transaction.start(:other)
-  val = yield
-  NewRelic::Agent::Transaction.stop(name)
-  val
-end
-
-def freeze_time(now=Time.now)
-  Time.stubs(:now).returns(now)
-end
-
-def advance_time(seconds)
-  freeze_time(Time.now + seconds)
-end
-
-module NewRelic
-  def self.fixture_path(name)
-    File.join(File.dirname(__FILE__), 'fixtures', name)
-  end
 end
 
 def fixture_tcp_socket( response )
@@ -362,6 +194,18 @@ def fixture_tcp_socket( response )
 
   return socket
 end
+
+
+def with_debug_logging
+  orig_logger = NewRelic::Agent.logger
+  $stderr.puts '', '---', ''
+  NewRelic::Agent.logger =
+    NewRelic::Agent::AgentLogger.new( {:log_level => 'debug'}, '', Logger.new($stderr) )
+  yield
+ensure
+  NewRelic::Agent.logger = orig_logger
+end
+
 
 module TransactionSampleTestHelper
   module_function

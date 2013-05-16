@@ -3,6 +3,9 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 # ENV['SKIP_RAILS'] = 'true'
+
+if defined?(::Rails)
+
 require File.expand_path(File.join(File.dirname(__FILE__),'..', '..',
                                    'test_helper'))
 require 'rack/test'
@@ -81,4 +84,8 @@ class DeveloperModeTest < Test::Unit::TestCase
       'Extra' => 'Using index'
     }]
   end
+end
+
+else
+  puts "Skipping tests in #{__FILE__} because Rails is unavailable"
 end

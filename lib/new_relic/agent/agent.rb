@@ -16,6 +16,7 @@ require 'new_relic/agent/database'
 require 'new_relic/agent/thread_profiler'
 require 'new_relic/agent/event_listener'
 require 'new_relic/agent/cross_app_monitor'
+require 'new_relic/agent/request_sampler'
 require 'new_relic/environment_report'
 
 module NewRelic
@@ -40,6 +41,7 @@ module NewRelic
         @error_collector       = NewRelic::Agent::ErrorCollector.new
         @transaction_rules     = NewRelic::Agent::RulesEngine.new
         @metric_rules          = NewRelic::Agent::RulesEngine.new
+        @request_sampler       = NewRelic::Agent::RequestSampler.new(@events)
 
         @connect_state = :pending
         @connect_attempts = 0
@@ -1013,6 +1015,17 @@ module NewRelic
           end
         end
 
+        # Fetch samples from the RequestSampler and send them.
+        def harvest_and_send_analytic_event_data
+          samples = @request_sampler.samples
+          @service.analytic_event_data(samples) unless samples.empty?
+          @request_sampler.reset
+        rescue => e
+          NewRelic::Agent.logger.debug "Failed to sent analytics; throttling to conserve memory"
+          @request_sampler.throttle
+          raise
+        end
+
         def check_for_agent_commands
           commands = @service.get_agent_commands
           ::NewRelic::Agent.logger.debug "Received get_agent_commands = #{commands.inspect}"
@@ -1031,6 +1044,7 @@ module NewRelic
             harvest_and_send_slowest_sample
             harvest_and_send_slowest_sql
             harvest_and_send_timeslice_data
+            harvest_and_send_analytic_event_data
             harvest_and_send_thread_profile(disconnecting)
 
             check_for_agent_commands

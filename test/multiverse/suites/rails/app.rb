@@ -30,6 +30,7 @@ if !defined?(MyApp)
     # We need a secret token for session, cookies, etc.
     config.active_support.deprecation = :log
     config.secret_token = "49837489qkuweoiuoqwehisuakshdjksadhaisdy78o34y138974xyqp9rmye8yrpiokeuioqwzyoiuxftoyqiuxrhm3iou1hrzmjk"
+    config.eager_load = false
     initializer "install_error_middleware" do
       config.middleware.use ErrorMiddleware
     end

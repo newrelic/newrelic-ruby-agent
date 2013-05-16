@@ -1,6 +1,9 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
+if defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i >= 4 && !NewRelic::LanguageSupport.using_engine?('jruby')
+
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 require 'new_relic/agent/instrumentation/active_record_subscriber'
 
@@ -46,10 +49,9 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit:
     end
 
     metric_name = 'ActiveRecord/NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order/find'
-
-    scoped_metric = @stats_engine.lookup_stats(metric_name, 'test_txn')
-    assert_equal(1, scoped_metric.call_count)
-    assert_equal(2.0, scoped_metric.total_call_time)
+    assert_metrics_recorded(
+      [metric_name, 'test_txn'] => { :call_count => 1, :total_call_time => 2 }
+    )
   end
 
   def test_records_nothing_if_tracing_disabled
@@ -60,24 +62,22 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit:
       @subscriber.call('sql.active_record', t0, t1, :id, @params)
     end
 
-    metric = @stats_engine \
-      .lookup_stats('ActiveRecord/NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order/find')
-    assert_nil metric
+    metric_name = 'ActiveRecord/NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order/find'
+    assert_metrics_not_recorded([metric_name])
   end
 
   def test_records_rollup_metrics
     t1 = Time.now
     t0 = t1 - 2
 
-    @subscriber.call('sql.active_record', t0, t1, :id, @params)
-
-    ['ActiveRecord/find', 'ActiveRecord/all'].each do |metric_name|
-      metric = @stats_engine.lookup_stats(metric_name)
-      assert_equal(1, metric.call_count,
-                   "Incorrect call count for #{metric_name}")
-      assert_equal(2.0, metric.total_call_time,
-                   "Incorrect call time for #{metric_name}")
+    in_web_transaction do
+      @subscriber.call('sql.active_record', t0, t1, :id, @params)
     end
+
+    assert_metrics_recorded(
+      'ActiveRecord/find' => { :call_count => 1, :total_call_time => 2 },
+      'ActiveRecord/all' => { :call_count => 1, :total_call_time => 2 }
+    )
   end
 
   def test_records_remote_service_metric
@@ -86,9 +86,9 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit:
 
     @subscriber.call('sql.active_record', t0, t1, :id, @params)
 
-    metric = @stats_engine.lookup_stats('RemoteService/sql/mysql/server')
-    assert_equal(1, metric.call_count)
-    assert_equal(2.0, metric.total_call_time)
+    assert_metrics_recorded(
+      'RemoteService/sql/mysql/server' => { :call_count => 1, :total_call_time => 2.0 }
+    )
   end
 
   def test_creates_txn_segment
@@ -128,4 +128,8 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit:
   ensure
     NewRelic::Agent.shutdown
   end
-end if ::Rails::VERSION::MAJOR.to_i >= 4 && !NewRelic::LanguageSupport.using_engine?('jruby')
+end
+
+else
+  puts "Skipping tests in #{__FILE__} because Rails is unavailable"
+end

@@ -31,15 +31,15 @@ module NewRelic
             return log_without_newrelic_instrumentation(*args, &block)
           end
 
-          sql, name, binds = args
-          metric = metric_for_name(NewRelic::Helper.correctly_encoded(name)) ||
-            metric_for_sql(NewRelic::Helper.correctly_encoded(sql))
+          sql, name, _ = args
+          metric = ActiveRecordHelper.metric_for_name(NewRelic::Helper.correctly_encoded(name)) ||
+            ActiveRecordHelper.metric_for_sql(NewRelic::Helper.correctly_encoded(sql))
 
           if !metric
             log_without_newrelic_instrumentation(*args, &block)
           else
             metrics = [metric, remote_service_metric].compact
-            metrics += rollup_metrics_for(metric)
+            metrics += ActiveRecordHelper.rollup_metrics_for(metric)
             self.class.trace_execution_scoped(metrics) do
               t0 = Time.now
               begin
@@ -60,49 +60,8 @@ module NewRelic
 
         def remote_service_metric
           if @config && @config[:adapter]
-            type = @config[:adapter].sub(/\d*/, '')
-            host = @config[:host] || 'localhost'
-            "RemoteService/sql/#{type}/#{host}"
+            ActiveRecordHelper.remote_service_metric(@config[:adapter], @config[:host])
           end
-        end
-
-        def metric_for_name(name)
-          if name && (parts = name.split " ") && parts.size == 2
-            model = parts.first
-            operation = parts.last.downcase
-            op_name = case operation
-                          when 'load', 'count', 'exists' then 'find'
-                          when 'indexes', 'columns' then nil # fall back to DirectSQL
-                          when 'destroy', 'find', 'save', 'create' then operation
-                          when 'update' then 'save'
-                          else
-                            if model == 'Join'
-                              operation
-                            end
-                          end
-            "ActiveRecord/#{model}/#{op_name}" if op_name
-          end
-        end
-
-        def metric_for_sql(sql)
-          metric = NewRelic::Agent::Transaction.database_metric_name
-          if metric.nil?
-            if sql =~ /^(select|update|insert|delete|show)/i
-              # Could not determine the model/operation so let's find a better
-              # metric.  If it doesn't match the regex, it's probably a show
-              # command or some DDL which we'll ignore.
-              metric = "Database/SQL/#{$1.downcase}"
-            else
-              metric = "Database/SQL/other"
-            end
-          end
-          metric
-        end
-
-        def rollup_metrics_for(metric)
-          metrics = ["ActiveRecord/all"]
-          metrics << "ActiveRecord/#{$1}" if metric =~ /ActiveRecord\/\w+\/(\w+)/
-          metrics
         end
       end
     end
@@ -113,8 +72,9 @@ DependencyDetection.defer do
   @name = :active_record
 
   depends_on do
-    defined?(::ActiveRecord) && (!defined?(::ActiveRecord::VERSION) ||
-      ::ActiveRecord::VERSION::MAJOR.to_i <= 3)
+    defined?(::ActiveRecord) && defined?(::ActiveRecord::Base) &&
+      (!defined?(::ActiveRecord::VERSION) ||
+        ::ActiveRecord::VERSION::MAJOR.to_i <= 3)
   end
 
   depends_on do

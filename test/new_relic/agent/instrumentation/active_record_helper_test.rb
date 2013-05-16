@@ -39,10 +39,26 @@ class NewRelic::Agent::Instrumentation::ActiveRecordHelperTest < Test::Unit::Tes
     assert_nil ActiveRecordHelper.metric_for_name('Model Columns')
   end
 
-  def test_rollup_metric_for_lists_rollups
-    rollup_metrics = ActiveRecordHelper.rollup_metrics_for('ActiveRecord/Model/find')
-    assert rollup_metrics.include?('ActiveRecord/find')
-    assert rollup_metrics.include?('ActiveRecord/all')
+  def test_rollup_metrics_for_lists_rollups
+    NewRelic::Agent::Transaction.stubs(:recording_web_transaction?).returns(true)
+    base_metric = 'ActiveRecord/Namespace::Model/find'
+    rollup_metrics = ActiveRecordHelper.rollup_metrics_for(base_metric)
+    expected_metrics = ['ActiveRecord/all', 'ActiveRecord/find']
+    assert_equal(expected_metrics.sort, rollup_metrics.sort)
+  end
+
+  def test_rollup_metrics_for_skips_operation_rollup_given_metric_without_model
+    NewRelic::Agent::Transaction.stubs(:recording_web_transaction?).returns(true)
+    rollup_metrics = ActiveRecordHelper.rollup_metrics_for('ActiveRecord/find')
+    expected_metrics = ['ActiveRecord/all']
+    assert_equal(expected_metrics, rollup_metrics)
+  end
+
+  def test_rollup_metrics_for_omits_database_all_outside_web_transaction
+    NewRelic::Agent::Transaction.stubs(:recording_web_transaction?).returns(false)
+    base_metric = 'ActiveRecord/Namespace::Model/find'
+    rollup_metrics = ActiveRecordHelper.rollup_metrics_for(base_metric)
+    assert_equal(['ActiveRecord/find'], rollup_metrics)
   end
 
   def test_remote_service_metric

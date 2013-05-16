@@ -259,6 +259,12 @@ class NewRelicServiceTest < Test::Unit::TestCase
     assert_equal 'explain this', response
   end
 
+  def test_analytic_event_data
+    @http_handle.respond_to(:analytic_event_data, 'some analytic events')
+    response = @service.analytic_event_data([])
+    assert_equal 'some analytic events', response
+  end
+
 
 # Thread profiling only available in certain versions
 if NewRelic::Agent::ThreadProfiler.is_supported?
