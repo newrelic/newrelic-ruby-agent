@@ -9,16 +9,13 @@ require 'new_relic/agent/request_sampler'
 class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
 
   def setup
+    freeze_time
     @event_listener = NewRelic::Agent::EventListener.new
     @sampler = NewRelic::Agent::RequestSampler.new( @event_listener )
   end
 
-  def teardown
-  end
-
   def test_samples_on_transaction_finished_event
     with_sampler_config do
-      freeze_time
       @event_listener.notify( :finished_configuring )
       advance_time( 0.60 )
       @event_listener.notify( :transaction_finished, ['Controller/foo/bar'], 0.095 )
@@ -29,7 +26,6 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
 
   def test_samples_at_the_correct_rate
     with_sampler_config( :'request_sampler.sample_rate_ms' => 50 ) do
-      freeze_time
       @event_listener.notify( :finished_configuring )
 
       # 240 requests over 6 seconds => 120 samples
@@ -54,7 +50,6 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
 
   def test_downsamples_and_reduces_sample_rate_when_throttled
     with_sampler_config( :'request_sampler.sample_rate_ms' => 50 ) do
-      freeze_time
       @event_listener.notify( :finished_configuring )
 
       240.times do
@@ -83,7 +78,6 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
 
   def test_downsamples_and_reduces_sample_rate_when_throttled_multiple_times
     with_sampler_config( :'request_sampler.sample_rate_ms' => 50 ) do
-      freeze_time
       @event_listener.notify( :finished_configuring )
 
       240.times do
