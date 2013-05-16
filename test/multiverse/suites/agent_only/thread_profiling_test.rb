@@ -16,7 +16,7 @@ class ThreadProfilingTest < Test::Unit::TestCase
     $collector.run
 
     NewRelic::Agent::Agent.instance_variable_set(:@instance, nil)
-    NewRelic::Agent.manual_start(:'thread_profiler.enabled' => true)
+    NewRelic::Agent.manual_start(:'thread_profiler.enabled' => true, :force_send => true)
     NewRelic::Agent.instance.service.request_timeout = 0.5
 
     @agent = NewRelic::Agent.instance

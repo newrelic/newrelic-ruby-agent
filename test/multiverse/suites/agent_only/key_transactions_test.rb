@@ -30,6 +30,10 @@ class KeyTransactionsTest < Test::Unit::TestCase
 
     NewRelic::Agent.manual_start(:sync_startup => true,
                                  :force_reconnect => true)
+
+    # Important that this be stubbed before any of our add_transaction_tracer's
+    # end up getting run in the test methods
+    @now = stub_time_now
   end
 
   def teardown
@@ -42,7 +46,7 @@ class KeyTransactionsTest < Test::Unit::TestCase
   FAILING    = 2
 
   def test_applied_correct_apdex_t_to_key_txn
-    TestWidget.new.key_txn(stub_time_now)
+    TestWidget.new.key_txn(@now)
     NewRelic::Agent.instance.send(:harvest_and_send_timeslice_data)
 
     stats = $collector.reported_stats_for_metric('Apdex')[0]
@@ -51,7 +55,7 @@ class KeyTransactionsTest < Test::Unit::TestCase
   end
 
   def test_applied_correct_apdex_t_to_regular_txn
-    TestWidget.new.other_txn(stub_time_now)
+    TestWidget.new.other_txn(@now)
     NewRelic::Agent.instance.send(:harvest_and_send_timeslice_data)
 
     stats = $collector.reported_stats_for_metric('Apdex')[0]
@@ -60,9 +64,8 @@ class KeyTransactionsTest < Test::Unit::TestCase
   end
 
   def test_applied_correct_tt_theshold
-    now = stub_time_now
-    TestWidget.new.key_txn(now)
-    TestWidget.new.other_txn(now)
+    TestWidget.new.key_txn(@now)
+    TestWidget.new.other_txn(@now)
 
     NewRelic::Agent.instance.send(:harvest_and_send_slowest_sample)
 
