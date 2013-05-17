@@ -105,7 +105,7 @@ module NewRelic
         if !@name_frozen
           @name = name
         else
-          NewRelic::Agent.logger.warn("Attempted to rename transaction to '#{name}' after transaction name was already frozen as '#{@name_frozen}'.")
+          NewRelic::Agent.logger.warn("Attempted to rename transaction to '#{name}' after transaction name was already frozen as '#{@name}'.")
         end
       end
 

@@ -111,7 +111,6 @@ module NewRelic
         end
 
         def stop_transaction(event)
-          TransactionInfo.get.transaction.name = event.metric_name
           Agent.instance.stats_engine \
             .pop_scope(event.scope, event.metric_name, event.end)
           Transaction.stop
