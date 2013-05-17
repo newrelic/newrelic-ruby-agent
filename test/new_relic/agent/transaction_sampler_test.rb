@@ -465,7 +465,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     with_config(:'transaction_tracer.limit_segments' => 2000) do
       sample = mock('sample')
       @sampler.expects(:add_samples_to).with([sample]).returns([sample])
-      sample.expects(:truncate).with(2000)
       assert_equal([sample], @sampler.harvest([sample]))
     end
   end
