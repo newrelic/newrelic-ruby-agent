@@ -48,33 +48,29 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Test::U
   end
 
   def test_record_controller_metrics
-    t0 = Time.now
-    Time.stubs(:now).returns(t0, t0 + 2)
-
+    freeze_time
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
+    advance_time(2)
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
-    assert_equal 1, @stats_engine.lookup_stats('Controller/test/index').call_count
-    assert_equal 1, @stats_engine.lookup_stats('HttpDispatcher').call_count
-    assert_equal 2.0, @stats_engine.lookup_stats('Controller/test/index').total_call_time
-    assert_equal 2.0, @stats_engine.lookup_stats('HttpDispatcher').total_call_time
+    expected_values = { :call_count => 1, :total_call_time => 2.0 }
+    assert_metrics_recorded(
+      'Controller/test/index' => expected_values,
+      'HttpDispatcher' => expected_values
+    )
   end
 
   def test_record_apdex_metrics
-    t0 = Time.now
-    Time.stubs(:now).returns(t0, t0 + 1.5)
-
+    freeze_time
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
+    advance_time(1.5)
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
-    apdex_metric = @stats_engine.lookup_stats('Apdex/test/index')
-    apdex_rollup_metric = @stats_engine.lookup_stats('Apdex')
-    assert_equal 0, apdex_metric.apdex_f
-    assert_equal 0, apdex_rollup_metric.apdex_f
-    assert_equal 1, apdex_metric.apdex_t
-    assert_equal 1, apdex_rollup_metric.apdex_t
-    assert_equal 0, apdex_metric.apdex_s
-    assert_equal 0, apdex_rollup_metric.apdex_s
+    expected_values = { :apdex_f => 0, :apdex_t => 1, :apdex_s => 0 }
+    assert_metrics_recorded(
+      'Apdex/test/index' => expected_values,
+      'Apdex' => expected_values
+    )
   end
 
   def test_records_scoped_metrics_for_evented_child_txn
@@ -85,8 +81,9 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Test::U
                          .merge(:action => 'child', :path => '/child'))
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
-    assert_equal(1, @stats_engine.lookup_stats('Controller/test/child',
-                                               'Controller/test/index').call_count)
+    assert_metrics_recorded(
+      ['Controller/test/child', 'Controller/test/index'] => { :call_count => 1 }
+    )
   end
 
   def test_records_scoped_metrics_for_traced_child_txn
@@ -100,8 +97,9 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Test::U
                            .merge(:action => 'child', :path => '/child'))
     end
 
-    assert_equal 1, @stats_engine.lookup_stats('Controller/test/child',
-                                               'Controller/test/index').call_count
+    assert_metrics_recorded(
+      ['Controller/test/child', 'Controller/test/index'] => { :call_count => 1 }
+    )
   end
 
   def test_record_nothing_for_ignored_action
@@ -110,10 +108,12 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Test::U
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
-    assert_nil @stats_engine.lookup_stats('Controller/test/ignored_action')
-    assert_nil @stats_engine.lookup_stats('Apdex/test/ignored_action')
-    assert_nil @stats_engine.lookup_stats('Apdex')
-    assert_nil @stats_engine.lookup_stats('HttpDispatcher')
+    assert_metrics_not_recorded([
+      'Controller/test/ignored_action',
+      'Apdex/test/ignored_action',
+      'Apdex',
+      'HttpDispatcher'
+    ])
   end
 
   def test_record_no_apdex_metric_for_ignored_apdex_action
@@ -122,10 +122,8 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Test::U
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
-    assert @stats_engine.lookup_stats('Controller/test/ignored_apdex')
-    assert_nil @stats_engine.lookup_stats('Apdex/test/ignored_apdex')
-    assert_nil @stats_engine.lookup_stats('Apdex')
-    assert @stats_engine.lookup_stats('HttpDispatcher')
+    assert_metrics_recorded(['Controller/test/ignored_apdex', 'HttpDispatcher'])
+    assert_metrics_not_recorded(['Apdex', 'Apdex/test/ignored_apdex'])
   end
 
   def test_ignore_end_user
@@ -142,7 +140,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Test::U
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
     NewRelic::Agent::BusyCalculator.harvest_busy
 
-    assert_equal 1, @stats_engine.lookup_stats('Instance/Busy').call_count
+    assert_metrics_recorded('Instance/Busy' => { :call_count => 1 })
   end
 
   def test_creates_transaction
