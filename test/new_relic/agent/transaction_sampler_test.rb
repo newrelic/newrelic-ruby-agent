@@ -935,6 +935,26 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     assert_equal '97612F92E6194080', @sampler.builder.current_segment[:transaction_guid]
   end
 
+  def test_large_transaction_trace_harvest
+    config = {
+      :'transaction_tracer.enabled' => true,
+      :'transaction_tracer.transaction_threshold' => 0,
+      :'transaction_tracer.limit_segments' => 100
+    }
+    with_config(config) do
+      run_long_sample_trace(110)
+
+      samples = nil
+      assert_nothing_raised do
+        samples = @sampler.harvest
+      end
+      assert_equal(1, samples.size)
+
+      # Verify that the TT stopped recording after 100 nodes
+      assert_equal(100, samples.first.count_segments)
+    end
+  end
+
   class Dummy
     include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
     def run(n)
@@ -958,6 +978,17 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   end
 
   private
+
+  def run_long_sample_trace(n)
+    @sampler.notice_transaction(nil, {})
+    @sampler.notice_first_scope_push(Time.now.to_f)
+    n.times do |i|
+      @sampler.notice_push_scope
+      yield if block_given?
+      @sampler.notice_pop_scope "node#{i}"
+    end
+    @sampler.notice_scope_empty(@txn, Time.now.to_f)
+  end
 
   def run_sample_trace(start = Time.now.to_f, stop = nil)
     @sampler.notice_transaction(nil, {})
