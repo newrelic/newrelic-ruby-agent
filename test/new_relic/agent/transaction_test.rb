@@ -202,4 +202,17 @@ class NewRelic::Agent::TransactionTest < Test::Unit::TestCase
     assert_equal 'Controller/foo/1/bar/22', name
     assert_kind_of Float, duration
   end
+
+  def test_end_fires_a_transaction_finished_event_with_overview_metrics
+    options = nil
+    NewRelic::Agent.subscribe(:transaction_finished) do |_, _, opts|
+      options = opts
+    end
+
+    NewRelic::Agent::Transaction.start(:controller)
+    NewRelic::Agent.record_metric("HttpDispatcher", 2.1)
+    NewRelic::Agent::Transaction.stop('txn')
+
+    assert_equal 2.1, options[:web_duration]
+  end
 end

@@ -16,18 +16,24 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
 
   def test_samples_on_transaction_finished_event
     with_sampler_config do
-      @event_listener.notify( :finished_configuring )
       advance_time( 0.60 )
-      @event_listener.notify( :transaction_finished, ['Controller/foo/bar'], 0.095 )
+      @event_listener.notify( :transaction_finished, 'Controller/foo/bar', 0.095 )
 
       assert_equal 1, @sampler.samples.length
     end
   end
 
+  def test_samples_on_transaction_finished_event_include_options
+    with_sampler_config do
+      advance_time( 0.60 )
+      @event_listener.notify( :transaction_finished, 'Controller/foo/bar', 0.095, :foo => :bar )
+
+      assert_equal :bar, @sampler.samples.first[:foo]
+    end
+  end
+
   def test_samples_at_the_correct_rate
     with_sampler_config( :'request_sampler.sample_rate_ms' => 50 ) do
-      @event_listener.notify( :finished_configuring )
-
       # 240 requests over 6 seconds => 120 samples
       # with_debug_logging do
       241.times do
@@ -50,8 +56,6 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
 
   def test_downsamples_and_reduces_sample_rate_when_throttled
     with_sampler_config( :'request_sampler.sample_rate_ms' => 50 ) do
-      @event_listener.notify( :finished_configuring )
-
       240.times do
         @event_listener.notify( :transaction_finished, 'Controller/foo/bar', 0.200 )
         advance_time( 0.025 )
@@ -78,8 +82,6 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
 
   def test_downsamples_and_reduces_sample_rate_when_throttled_multiple_times
     with_sampler_config( :'request_sampler.sample_rate_ms' => 50 ) do
-      @event_listener.notify( :finished_configuring )
-
       240.times do
         @event_listener.notify( :transaction_finished, 'Controller/foo/bar', 0.200 )
         advance_time( 0.025 )
@@ -113,7 +115,6 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
 
   def test_can_disable_sampling
     with_sampler_config( :'request_sampler.enabled' => false ) do
-      @event_listener.notify( :finished_configuring )
       @event_listener.notify( :transaction_finished, 'Controller/foo/bar', 0.200 )
       assert @sampler.samples.empty?
     end
@@ -121,14 +122,12 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
 
   def test_allows_sample_rates_as_frequent_as_25ms
     with_config( :'request_sampler.sample_rate_ms' => 25 ) do
-      @event_listener.notify( :finished_configuring )
       assert_equal 25, @sampler.normal_sample_rate_ms
     end
   end
 
   def test_resets_sample_rates_more_frequent_than_25ms_to_25ms
     with_config( :'request_sampler.sample_rate_ms' => 1 ) do
-      @event_listener.notify( :finished_configuring )
       assert_equal 25, @sampler.normal_sample_rate_ms
     end
   end
@@ -147,6 +146,7 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
 
     defaults.merge!(options)
     with_config(defaults) do
+      @event_listener.notify( :finished_configuring )
       yield
     end
   end

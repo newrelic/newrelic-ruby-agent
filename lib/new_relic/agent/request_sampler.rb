@@ -119,7 +119,7 @@ class NewRelic::Agent::RequestSampler
     self << {
       NAME_KEY     => string(metric),
       DURATION_KEY => float(duration)
-    }
+    }.merge(options)
   end
 
 
