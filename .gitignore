@@ -21,3 +21,5 @@ gems/newrelic_rpm*.tar.gz
 lib/new_relic/build.rb
 .pryrc
 .tm_properties
+.bundle
+/bin/
