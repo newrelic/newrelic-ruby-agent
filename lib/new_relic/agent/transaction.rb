@@ -280,13 +280,12 @@ module NewRelic
         (current) ? current.user_attributes : {}
       end
 
-      def record_apdex(metric_name)
+      def record_apdex(metric_name, end_time=Time.now)
         return unless recording_web_transaction? && NewRelic::Agent.is_execution_traced?
         metric_parser = NewRelic::MetricParser::MetricParser \
           .for_metric_named(metric_name)
 
-        t = Time.now
-        self.class.record_apdex(metric_parser, t - start_time, t - apdex_start, exceptions.any?)
+        self.class.record_apdex(metric_parser, end_time - start_time, end_time - apdex_start, exceptions.any?)
       end
 
       # Yield to a block that is run with a database metric name context.  This means
