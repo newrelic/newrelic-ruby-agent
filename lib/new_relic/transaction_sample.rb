@@ -38,15 +38,6 @@ module NewRelic
       @segment_count
     end
 
-    # Truncates the transaction sample to a maximum length determined
-    # by the passed-in parameter. Operates recursively on the entire
-    # tree of transaction segments in a depth-first manner
-    def truncate(max)
-      return if @segment_count < max
-      @root_segment.truncate(max + 1)
-      @segment_count = max
-    end
-
     # makes sure that the parameter cache for segment count is set to
     # the correct value
     def ensure_segment_count_set(count)
