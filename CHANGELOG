@@ -1,6 +1,22 @@
 
 # New Relic Ruby Agent Release Notes #
 
+## Upcoming ##
+  * Better Sinatra Support
+
+  Sinatra instrumentation has been updated to more accurately reflect the final
+  route that was actually executed, taking pass and conditions into account.
+
+  Routes in 1.4 are properly formatting in transaction names. Thanks Zachary
+  Anker for the contribution!
+
+  * Padrino Support
+
+  Along with improving our support of Sinatra, we've also extended that to
+  supporting Padrino, a framework that builds on Sinatra. Web transaction
+  should show up in New Relic now for Padrino apps automatically. The agent has
+  been tested against the latest Padrino in versions 0.11.x and 0.10.x.
+
 ## v3.6.2 ##
 
   * Sequel support

@@ -11,12 +11,11 @@ class AgentHooksTest < Test::Unit::TestCase
     @app = stub_everything
     @hooks = NewRelic::Rack::AgentHooks.new(@app)
     @env = {:env => "env"}
-
-    NewRelic::Agent.instance.events.stubs(:notify)
   end
 
   def test_before_call
     NewRelic::Agent.instance.events.expects(:notify).with(:before_call, @env)
+    NewRelic::Agent.instance.events.stubs(:notify).with(:after_call, anything, anything)
 
     @hooks.call(@env)
   end
@@ -25,9 +24,17 @@ class AgentHooksTest < Test::Unit::TestCase
     result = stub
     @app.stubs(:call).returns(result)
 
+    NewRelic::Agent.instance.events.stubs(:notify).with(:before_call, anything)
     NewRelic::Agent.instance.events.expects(:notify).with(:after_call, @env, result)
 
     @hooks.call(@env)
+  end
+
+  def test_nested_agent_hooks_still_fire_only_once
+    nested = NewRelic::Rack::AgentHooks.new(@hooks)
+
+    NewRelic::Agent.instance.events.expects(:notify).times(2)
+    nested.call(@env)
   end
 
 end

@@ -3,19 +3,11 @@ suite_condition("Sinatra not compatible with 1.8.6") do
 end
 
 gemfile <<-RB
-  gem 'sinatra', '~> 1.4.0'
+  gem 'padrino', '~> 0.11.0'
   gem 'rack-test', :require => 'rack/test'
-  gem 'mocha'
 RB
 
 gemfile <<-RB
-  gem 'sinatra', '~> 1.3.0'
+  gem 'padrino', '~> 0.10.0'
   gem 'rack-test', :require => 'rack/test'
-  gem 'mocha'
-RB
-
-gemfile <<-RB
-  gem 'sinatra', '~> 1.2.0'
-  gem 'rack-test', :require => 'rack/test'
-  gem 'mocha'
 RB

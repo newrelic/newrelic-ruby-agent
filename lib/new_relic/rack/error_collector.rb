@@ -37,6 +37,8 @@ module NewRelic::Rack
     end
 
     def ignored_in_controller?(exception, request)
+      return true if request.env['newrelic.ignored']
+
       if request.env['action_dispatch.request.parameters']
         ignore_actions = newrelic_ignore_for_controller(request.env['action_dispatch.request.parameters']['controller'])
         action_name = request.env['action_dispatch.request.parameters']['action']

@@ -3,29 +3,56 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/agent/instrumentation/controller_instrumentation'
+require 'new_relic/agent/instrumentation/sinatra/transaction_namer'
+require 'new_relic/agent/instrumentation/sinatra/ignorer'
 
 DependencyDetection.defer do
   @name = :sinatra
 
   depends_on do
-    defined?(::Sinatra) && defined?(::Sinatra::Base) &&
+    !NewRelic::Agent.config[:disable_sinatra] &&
+      defined?(::Sinatra) && defined?(::Sinatra::Base) &&
       Sinatra::Base.private_method_defined?(:dispatch!) &&
-      Sinatra::Base.private_method_defined?(:process_route)
+      Sinatra::Base.private_method_defined?(:process_route) &&
+      Sinatra::Base.private_method_defined?(:route_eval)
   end
 
   executes do
     ::NewRelic::Agent.logger.info 'Installing Sinatra instrumentation'
+
+    # These requires are inside an executes block because they require rack, and
+    # we can't be sure that rack is available when this file is first required.
+    require 'new_relic/rack/agent_hooks'
+    require 'new_relic/rack/browser_monitoring'
+    require 'new_relic/rack/error_collector'
   end
 
   executes do
     ::Sinatra::Base.class_eval do
       include NewRelic::Agent::Instrumentation::Sinatra
+
       alias dispatch_without_newrelic dispatch!
       alias dispatch! dispatch_with_newrelic
+
+      alias process_route_without_newrelic process_route
+      alias process_route process_route_with_newrelic
+
+      alias route_eval_without_newrelic route_eval
+      alias route_eval route_eval_with_newrelic
+
+      class << self
+        alias build_without_newrelic build
+        alias build build_with_newrelic
+      end
+
+      register NewRelic::Agent::Instrumentation::Sinatra::Ignorer
+    end
+
+    module ::Sinatra
+      register NewRelic::Agent::Instrumentation::Sinatra::Ignorer
     end
   end
 end
-
 
 module NewRelic
   module Agent
@@ -35,25 +62,79 @@ module NewRelic
       # and transaction traces.
       #
       # The actions in the UI will correspond to the pattern expression used
-      # to match them.  HTTP operations are not distinguished.  Multiple matches
-      # will all be tracked as separate actions.
+      # to match them, not directly to full URL's.
       module Sinatra
         include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
-        def dispatch_with_newrelic
-          # We're trying to determine the transaction name via Sinatra's
-          # process_route, but calling it here misses Sinatra's normal error handling.
-          #
-          # Relies on transaction_name to always safely return a value for us
-          txn_name = NewRelic.transaction_name(self.class.routes, @request) do |pattern, keys, conditions|
-            result = process_route(pattern, keys, conditions) do
-              pattern.source
-            end
-            result if result.class == String
+        # Expected method for supporting ControllerInstrumentation
+        def newrelic_request_headers
+          request.env
+        end
+
+        def self.included(clazz)
+          clazz.extend(ClassMethods)
+        end
+
+        module ClassMethods
+          def newrelic_middlewares
+            [ NewRelic::Rack::AgentHooks,
+              NewRelic::Rack::BrowserMonitoring,
+              NewRelic::Rack::ErrorCollector ]
           end
 
+          def build_with_newrelic(*args, &block)
+            unless NewRelic::Agent.config[:disable_sinatra_auto_middleware]
+              newrelic_middlewares.each do |middleware_class|
+                try_to_use(self, middleware_class)
+              end
+            end
+            build_without_newrelic(*args, &block)
+          end
+
+          def try_to_use(app, clazz)
+            if !app.middleware.any? { |(m)| m == clazz }
+              app.use clazz
+            end
+          end
+        end
+
+        # Capture last route we've seen. Will set for transaction on route_eval
+        def process_route_with_newrelic(*args, &block)
+          begin
+            env["newrelic.last_route"] = args[0]
+          rescue => e
+            ::NewRelic::Agent.logger.debug("Failed determining last route in Sinatra", e)
+          end
+
+          process_route_without_newrelic(*args, &block)
+        end
+
+        # If a transaction name is already set, this call will tromple over it.
+        # This is intentional, as typically passing to a separate route is like
+        # an entirely separate transaction, so we pick up the new name.
+        #
+        # If we're ignored, this remains safe, since set_transaction_name
+        # care for the gating on the transaction's existence for us.
+        def route_eval_with_newrelic(*args, &block)
+          begin
+            txn_name = TransactionNamer.transaction_name_for_route(env, request)
+            ::NewRelic::Agent.set_transaction_name("#{self.class.name}/#{txn_name}") unless txn_name.nil?
+          rescue => e
+            ::NewRelic::Agent.logger.debug("Failed during route_eval to set transaction name", e)
+          end
+
+          route_eval_without_newrelic(*args, &block)
+        end
+
+        def dispatch_with_newrelic
+          if ignore_request?
+            env['newrelic.ignored'] = true
+            return dispatch_without_newrelic
+          end
+
+          name = TransactionNamer.initial_transaction_name(request)
           perform_action_with_newrelic_trace(:category => :sinatra,
-                                             :name => txn_name,
+                                             :name => name,
                                              :params => @request.params) do
             dispatch_and_notice_errors_with_newrelic
           end
@@ -68,43 +149,20 @@ module NewRelic
           ::NewRelic::Agent.notice_error(env['sinatra.error']) if had_error
         end
 
-        # Define Request Header accessor for Sinatra
-        def newrelic_request_headers
-          request.env
+        def ignore_request?
+          Ignorer.should_ignore?(self, :routes)
         end
 
-        module NewRelic
-          extend self
-
-          def http_verb(request)
-            request.request_method if request.respond_to?(:request_method)
-          end
-
-          def transaction_name(routes, request)
-            name = ::NewRelic::Agent::UNKNOWN_METRIC
-            verb = http_verb(request)
-
-            Array(routes[verb]).each do |pattern, keys, conditions, block|
-              if route = yield(pattern, keys, conditions)
-                name = route
-                # it's important we short circuit here.  Otherwise we risk
-                # applying conditions from lower priority routes which can
-                # break the action.
-                break
-              end
-            end
-
-            name = name.gsub(%r{^[/^]*(.*?)[/\$\?]*$}, '\1')
-            if verb
-              name = verb + ' ' + name
-            end
-
-            name
-          rescue => e
-            ::NewRelic::Agent.logger.debug("#{e.class} : #{e.message} - Error encountered trying to identify Sinatra transaction name")
-            ::NewRelic::Agent::UNKNOWN_METRIC
-          end
+        # Overrides ControllerInstrumentation implementation
+        def ignore_apdex?
+          Ignorer.should_ignore?(self, :apdex)
         end
+
+        # Overrides ControllerInstrumentation implementation
+        def ignore_enduser?
+          Ignorer.should_ignore?(self, :enduser)
+        end
+
       end
     end
   end
