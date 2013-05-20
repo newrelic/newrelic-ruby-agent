@@ -5,9 +5,6 @@
 require 'new_relic/agent/instrumentation/controller_instrumentation'
 require 'new_relic/agent/instrumentation/sinatra/transaction_namer'
 require 'new_relic/agent/instrumentation/sinatra/ignorer'
-require 'new_relic/rack/agent_hooks'
-require 'new_relic/rack/browser_monitoring'
-require 'new_relic/rack/error_collector'
 
 DependencyDetection.defer do
   @name = :sinatra
@@ -22,6 +19,12 @@ DependencyDetection.defer do
 
   executes do
     ::NewRelic::Agent.logger.info 'Installing Sinatra instrumentation'
+
+    # These requires are inside an executes block because they require rack, and
+    # we can't be sure that rack is available when this file is first required.
+    require 'new_relic/rack/agent_hooks'
+    require 'new_relic/rack/browser_monitoring'
+    require 'new_relic/rack/error_collector'
   end
 
   executes do
@@ -51,7 +54,6 @@ DependencyDetection.defer do
   end
 end
 
-
 module NewRelic
   module Agent
     module Instrumentation
@@ -69,17 +71,23 @@ module NewRelic
           request.env
         end
 
-        NEW_RELIC_MIDDLEWARES = [ NewRelic::Rack::AgentHooks,
-                                  NewRelic::Rack::BrowserMonitoring,
-                                  NewRelic::Rack::ErrorCollector ]
-
         def self.included(clazz)
           clazz.extend(ClassMethods)
         end
 
         module ClassMethods
+          def newrelic_middlewares
+            [ NewRelic::Rack::AgentHooks,
+              NewRelic::Rack::BrowserMonitoring,
+              NewRelic::Rack::ErrorCollector ]
+          end
+
           def build_with_newrelic(*args, &block)
-            NEW_RELIC_MIDDLEWARES.each { |m| try_to_use(self, m) } unless NewRelic::Agent.config[:disable_sinatra_auto_middleware]
+            unless NewRelic::Agent.config[:disable_sinatra_auto_middleware]
+              newrelic_middlewares.each do |middleware_class|
+                try_to_use(self, middleware_class)
+              end
+            end
             build_without_newrelic(*args, &block)
           end
 
