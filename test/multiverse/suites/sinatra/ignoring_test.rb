@@ -19,9 +19,12 @@ class SinatraIgnoreTestApp < Sinatra::Base
   get '/v2' do request.path_info end
   get '/v3' do request.path_info end
 
-  newrelic_ignore /\/.+regex.*/
+  newrelic_ignore(/\/.+regex.*/)
   get '/skip_regex' do request.path_info end
   get '/regex_seen' do request.path_info end
+
+  newrelic_ignore '/ignored_erroring'
+  get '/ignored_erroring' do raise 'boom'; end
 
   newrelic_ignore_apdex '/no_apdex'
   get '/no_apdex' do request.path_info end
@@ -31,10 +34,23 @@ class SinatraIgnoreTestApp < Sinatra::Base
 
 end
 
-class SinatraIgnoreTest < Test::Unit::TestCase
+class SinatraTestCase < Test::Unit::TestCase
   include Rack::Test::Methods
   include ::NewRelic::Agent::Instrumentation::Sinatra
 
+  def setup
+    NewRelic::Agent.manual_start
+    NewRelic::Agent.instance.stats_engine.reset_stats
+  end
+
+  def get_and_assert_ok(path)
+    get(path)
+    assert_equal 200, last_response.status
+    assert_equal path, last_response.body
+  end
+end
+
+class SinatraIgnoreTest < SinatraTestCase
   def app
     SinatraIgnoreTestApp
   end
@@ -43,42 +59,37 @@ class SinatraIgnoreTest < Test::Unit::TestCase
     app.to_s
   end
 
-  def setup
-    ::NewRelic::Agent.manual_start
-    ::NewRelic::Agent.instance.stats_engine.reset_stats
-  end
-
-  def get(path, *_)
-    super
+  def get_and_assert_ok(path)
+    get(path)
     assert_equal 200, last_response.status
     assert_equal path, last_response.body
   end
 
   def test_seen_route
-    get '/record'
+    get_and_assert_ok '/record'
     assert_metrics_recorded([
       "Controller/Sinatra/#{app_name}/GET record",
       "Apdex/Sinatra/#{app_name}/GET record"])
   end
 
   def test_ignores_exact_match
-    get '/ignore'
+    get_and_assert_ok '/ignore'
     assert_metrics_not_recorded([
       "Controller/Sinatra/#{app_name}/GET ignore",
       "Apdex/Sinatra/#{app_name}/GET ignore"])
   end
 
   def test_ignores_by_splats
-    get '/splattered'
+    get_and_assert_ok '/splattered'
     assert_metrics_not_recorded([
       "Controller/Sinatra/#{app_name}/GET by_pattern",
       "Apdex/Sinatra/#{app_name}/GET by_pattern"])
   end
 
   def test_ignores_can_be_declared_in_batches
-    get '/v1'
-    get '/v2'
-    get '/v3'
+    get_and_assert_ok '/v1'
+    get_and_assert_ok '/v2'
+    get_and_assert_ok '/v3'
 
     assert_metrics_not_recorded([
       "Controller/Sinatra/#{app_name}/GET v1",
@@ -92,32 +103,37 @@ class SinatraIgnoreTest < Test::Unit::TestCase
   end
 
   def test_seen_with_regex
-    get '/regex_seen'
+    get_and_assert_ok '/regex_seen'
     assert_metrics_recorded([
       "Controller/Sinatra/#{app_name}/GET regex_seen",
       "Apdex/Sinatra/#{app_name}/GET regex_seen"])
   end
 
   def test_ignores_by_regex
-    get '/skip_regex'
+    get_and_assert_ok '/skip_regex'
     assert_metrics_not_recorded([
       "Controller/Sinatra/#{app_name}/GET skip_regex",
       "Apdex/Sinatra/#{app_name}/GET skip_regex"])
   end
 
   def test_ignore_apdex
-    get '/no_apdex'
+    get_and_assert_ok '/no_apdex'
     assert_metrics_recorded(["Controller/Sinatra/#{app_name}/GET no_apdex"])
     assert_metrics_not_recorded(["Apdex/Sinatra/#{app_name}/GET no_apdex"])
   end
 
   def test_ignore_enduser
-    get '/no_enduser'
+    get_and_assert_ok '/no_enduser'
 
     assert NewRelic::Agent::TransactionInfo.get.ignore_end_user?
     assert_metrics_recorded([
       "Controller/Sinatra/#{app_name}/GET no_enduser",
       "Apdex/Sinatra/#{app_name}/GET no_enduser"])
+  end
+
+  def test_ignore_errors_in_ignored_transactions
+    get '/ignored_erroring'
+    assert_metrics_not_recorded(["Errors/all"])
   end
 end
 
@@ -128,21 +144,13 @@ class SinatraIgnoreItAllApp < Sinatra::Base
   get '/' do request.path_info end
 end
 
-class SinatraIgnoreItAllTest < Test::Unit::TestCase
-  include Rack::Test::Methods
-  include ::NewRelic::Agent::Instrumentation::Sinatra
-
+class SinatraIgnoreItAllTest < SinatraTestCase
   def app
     SinatraIgnoreItAllApp
   end
 
-  def setup
-    NewRelic::Agent.manual_start
-    NewRelic::Agent.instance.stats_engine.reset_stats
-  end
-
   def test_ignores_everything
-    get '/'
+    get_and_assert_ok '/'
     assert_metrics_recorded_exclusive([])
   end
 end
@@ -156,26 +164,18 @@ class SinatraIgnoreApdexAndEndUserApp < Sinatra::Base
   get '/' do request.path_info end
 end
 
-class SinatraIgnoreApdexAndEndUserTest < Test::Unit::TestCase
-  include Rack::Test::Methods
-  include ::NewRelic::Agent::Instrumentation::Sinatra
-
+class SinatraIgnoreApdexAndEndUserTest < SinatraTestCase
   def app
     SinatraIgnoreApdexAndEndUserApp
   end
 
-  def setup
-    NewRelic::Agent.manual_start
-    NewRelic::Agent.instance.stats_engine.reset_stats
-  end
-
   def test_ignores_apdex
-    get '/'
+    get_and_assert_ok '/'
     assert_metrics_not_recorded(["Apdex/Sinatra/#{app.to_s}/GET "])
   end
 
   def test_ignores_enduser
-    get '/'
+    get_and_assert_ok '/'
     assert NewRelic::Agent::TransactionInfo.get.ignore_end_user?
   end
 end

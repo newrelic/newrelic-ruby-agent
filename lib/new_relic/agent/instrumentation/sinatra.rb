@@ -127,7 +127,10 @@ module NewRelic
         end
 
         def dispatch_with_newrelic
-          return dispatch_and_notice_errors_with_newrelic if ignore_request?
+          if ignore_request?
+            env['newrelic.ignored'] = true
+            return dispatch_without_newrelic
+          end
 
           name = TransactionNamer.initial_transaction_name(request)
           perform_action_with_newrelic_trace(:category => :sinatra,
