@@ -82,8 +82,8 @@ class SinatraIgnoreTest < SinatraTestCase
   def test_ignores_by_splats
     get_and_assert_ok '/splattered'
     assert_metrics_not_recorded([
-      "Controller/Sinatra/#{app_name}/GET by_pattern",
-      "Apdex/Sinatra/#{app_name}/GET by_pattern"])
+      "Controller/Sinatra/#{app_name}/GET splattered",
+      "Apdex/Sinatra/#{app_name}/GET splattered"])
   end
 
   def test_ignores_can_be_declared_in_batches
