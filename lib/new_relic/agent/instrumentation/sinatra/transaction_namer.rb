@@ -40,7 +40,7 @@ module NewRelic
           # route into the environment for us to use later on
           def route_for_sinatra(env)
             env["newrelic.last_route"]
-         end
+          end
 
           # For Padrino, the request object has a copy of the matched route
           # on it when we go to evaluating, so we can just retrieve that
