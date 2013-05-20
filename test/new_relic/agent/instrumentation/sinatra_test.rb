@@ -32,13 +32,13 @@ class NewRelic::Agent::Instrumentation::SinatraTest < Test::Unit::TestCase
   end
 
   def test_process_route_with_bad_arguments
-    @app.stubs(:env).throws("Boo")
+    @app.stubs(:env).raises("Boo")
     @app.expects(:process_route_without_newrelic).once
     @app.process_route_with_newrelic
   end
 
   def test_route_eval_with_bad_params
-    @app.stubs(:env).throws("Boo")
+    @app.stubs(:env).raises("Boo")
     @app.expects(:route_eval_without_newrelic).once
     @app.route_eval_with_newrelic
   end
@@ -67,7 +67,7 @@ class NewRelic::Agent::Instrumentation::SinatraTest < Test::Unit::TestCase
     SinatraTestApp.stubs(:middleware).returns(middleware_info)
 
     SinatraTestApp.expects(:build_without_newrelic).once
-    SinatraTestApp.stubs(:use).throws("Shouldn't be using any other middlewares--all there already!")
+    SinatraTestApp.expects(:use).never
 
     SinatraTestApp.build_with_newrelic(@app)
   end
