@@ -61,7 +61,10 @@ class NewRelic::Agent::Instrumentation::SinatraTest < Test::Unit::TestCase
 
   def test_doesnt_inject_already_existing_middleware
     default_middlewares = SinatraTestApp.newrelic_middlewares
-    SinatraTestApp.stubs(:middleware).returns(default_middlewares)
+    # mock up the return value of Sinatra's #middleware method, which returns an
+    # Array of Arrays.
+    middleware_info = default_middlewares.map { |m| [m] }
+    SinatraTestApp.stubs(:middleware).returns(middleware_info)
 
     SinatraTestApp.expects(:build_without_newrelic).once
     SinatraTestApp.stubs(:use).throws("Shouldn't be using any other middlewares--all there already!")

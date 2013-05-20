@@ -92,9 +92,8 @@ module NewRelic
           end
 
           def try_to_use(app, clazz)
-            if !app.middleware.any? { |(m)| m == clazz }
-              app.use clazz
-            end
+            has_middleware = app.middleware.any? { |info| info[0] == clazz }
+            app.use(clazz) unless has_middleware
           end
         end
 
