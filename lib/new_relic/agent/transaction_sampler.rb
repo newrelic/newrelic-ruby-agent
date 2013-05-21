@@ -400,12 +400,7 @@ module NewRelic
         end
 
         # Clamp the number of TTs we'll keep in memory and send
-        #
         result = clamp_number_tts(result, 20) if result.length > 20
-
-        # Truncate the samples at 2100 segments. The UI will clamp them at 2000 segments anyway.
-        # This will save us memory and bandwidth.
-        result.each { |sample| sample.truncate(Agent.config[:'transaction_tracer.limit_segments']) }
         result
       end
 
