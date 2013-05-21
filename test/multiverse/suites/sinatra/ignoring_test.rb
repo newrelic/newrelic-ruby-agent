@@ -48,6 +48,10 @@ class SinatraTestCase < Test::Unit::TestCase
     assert_equal 200, last_response.status
     assert_equal path, last_response.body
   end
+
+  # Keep Test::Unit happy by specifying at least one test method here
+  # Real tests are defined in subclasses.
+  def test_nothing; end
 end
 
 class SinatraIgnoreTest < SinatraTestCase
