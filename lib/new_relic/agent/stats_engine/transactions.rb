@@ -34,19 +34,6 @@ module Agent
         def pop_scope(*args); end
       end
 
-      attr_reader :transaction_sampler
-
-      # add a new transaction sampler, unless we're currently in a
-      # transaction (then we fail)
-      def transaction_sampler= sampler
-        fail "Can't add a scope listener midflight in a transaction" if scope_stack.any?
-        @transaction_sampler = sampler
-      end
-
-      # removes a transaction sampler
-      def remove_transaction_sampler(l)
-        @transaction_sampler = nil
-      end
 
       # Pushes a scope onto the transaction stack - this generates a
       # TransactionSample::Segment at the end of transaction execution
@@ -56,7 +43,7 @@ module Agent
       # identify this scope if the stack gets corrupted.
       def push_scope(tag, time = Time.now.to_f, deduct_call_time_from_parent = true)
         stack = scope_stack
-        @transaction_sampler.notice_push_scope(time) if sampler_enabled?
+        transaction_sampler.notice_push_scope(time) if sampler_enabled?
         scope = ScopeStackElement.new(tag, time, deduct_call_time_from_parent)
         stack.push scope
         scope
@@ -80,13 +67,22 @@ module Agent
             stack.last.children_time += scope.children_time
           end
         end
-        @transaction_sampler.notice_pop_scope(name, time) if sampler_enabled?
+        transaction_sampler.notice_pop_scope(name, time) if sampler_enabled?
         scope.name = name
         scope
       end
 
       def sampler_enabled?
-        @transaction_sampler && Agent.config[:'transaction_tracer.enabled']
+        Agent.config[:'transaction_tracer.enabled'] || Agent.config[:developer_mode]
+      end
+
+      def transaction_sampler
+        Agent.instance.transaction_sampler
+      end
+
+      # deprecated--used to add transaction sampler, now we always look to the agent
+      def transaction_sampler= sampler
+        fail "Can't add a scope listener midflight in a transaction" if scope_stack.any?
       end
 
       # set the name of the transaction for the current thread, which will be used

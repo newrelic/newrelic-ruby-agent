@@ -69,12 +69,11 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
     @stats_engine.clear_stats
     @scope_listener = NewRelic::Agent::MockScopeListener.new
     @old_sampler = NewRelic::Agent.instance.transaction_sampler
-    @stats_engine.transaction_sampler = @scope_listener
+    NewRelic::Agent.instance.stubs(:transaction_sampler).returns(@scope_listener)
     super
   end
 
   def teardown
-    @stats_engine.transaction_sampler = @old_sampler
     @stats_engine.clear_stats
     begin
       self.class.remove_method_tracer :method_to_be_traced, @metric_name if @metric_name
@@ -196,15 +195,19 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
   def test_nested_scope_tracer
     Insider.add_method_tracer :catcher, "catcher", :push_scope => true
     Insider.add_method_tracer :thrower, "thrower", :push_scope => true
-    sampler = NewRelic::Agent.instance.transaction_sampler
+
+    # This expects to use the real transaction sampler, so stub it back
+    NewRelic::Agent.instance.stubs(:transaction_sampler).returns(@old_sampler)
+
     mock = Insider.new(@stats_engine)
     mock.catcher(0)
     mock.catcher(5)
+
     stats = @stats_engine.get_stats("catcher")
     assert_equal 2, stats.call_count
     stats = @stats_engine.get_stats("thrower")
     assert_equal 6, stats.call_count
-    sample = sampler.harvest
+    sample = @old_sampler.harvest
     assert_not_nil sample
   end
 
