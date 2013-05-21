@@ -195,6 +195,9 @@ module NewRelic
 
           ::NewRelic::Agent.logger.debug "Starting the worker thread in #{$$} after forking."
 
+          # Clear out state for any objects that we know lock from our parents
+          reset_locks
+
           # Clear out stats that are left over from parent process
           reset_stats
 
@@ -492,6 +495,10 @@ module NewRelic
           @unsent_timeslice_data = {}
           @last_harvest_time = Time.now
           @launch_time = Time.now
+        end
+
+        def reset_locks
+          @stats_engine = NewRelic::Agent::StatsEngine.new
         end
 
         def add_harvest_sampler(subclass)
