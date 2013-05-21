@@ -5,7 +5,7 @@ end
 if RUBY_VERSION >= '1.9.3'
   gemfile <<-RB
     gem 'rails', '~>4.0.0.rc1'
-    gem 'haml'
+    gem 'haml', '4.0.2'   # Getting load issues with haml 4.0.3
   RB
 end
 
