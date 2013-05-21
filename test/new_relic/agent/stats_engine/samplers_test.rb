@@ -27,7 +27,6 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
     samplers.add_harvest_sampler(sampler)
 
     assert_equal [sampler], samplers.harvest_samplers
-    assert_equal samplers, sampler.stats_engine
   end
 
   def test_cannot_add_harvest_sampler_twice
@@ -70,7 +69,6 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
 
   def test_memory__default
     s = NewRelic::Agent::Samplers::MemorySampler.new
-    s.stats_engine = @stats_engine
     s.poll
     s.poll
     s.poll
@@ -83,7 +81,6 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
     return if RUBY_PLATFORM =~ /darwin/
     NewRelic::Agent::Samplers::MemorySampler.any_instance.stubs(:platform).returns 'linux'
     s = NewRelic::Agent::Samplers::MemorySampler.new
-    s.stats_engine = @stats_engine
     s.poll
     s.poll
     s.poll
@@ -97,9 +94,8 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
     NewRelic::Agent::Samplers::MemorySampler.any_instance.stubs(:platform).returns 'solaris'
     NewRelic::Agent::Samplers::MemorySampler::ShellPS.any_instance.stubs(:get_memory).returns 999
     s = NewRelic::Agent::Samplers::MemorySampler.new
-    s.stats_engine = @stats_engine
     s.poll
-    stats = s.stats_engine.get_stats_no_scope("Memory/Physical")
+    stats = @stats_engine.get_stats_no_scope("Memory/Physical")
     assert_equal 1, stats.call_count
     assert_equal 999, stats.total_call_time
   end

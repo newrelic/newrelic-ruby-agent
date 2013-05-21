@@ -82,7 +82,7 @@ module Agent
 
       # deprecated--used to add transaction sampler, now we always look to the agent
       def transaction_sampler= sampler
-        fail "Can't add a scope listener midflight in a transaction" if scope_stack.any?
+        NewRelic::Agent.logger.warn("NewRelic::Agent::StatsEngine#transaction_sampler is deprecated")
       end
 
       # set the name of the transaction for the current thread, which will be used
