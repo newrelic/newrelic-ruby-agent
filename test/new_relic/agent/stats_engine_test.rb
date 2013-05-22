@@ -174,6 +174,20 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
     assert_equal 10, scope1.children_time.round
   end
 
+  def test_sampler_enabling
+    assert_sampler_enabled_with(true,  :'transaction_tracer.enabled' => true,  :developer_mode => false)
+    assert_sampler_enabled_with(true,  :'transaction_tracer.enabled' => false, :developer_mode => true)
+    assert_sampler_enabled_with(true,  :'transaction_tracer.enabled' => true,  :developer_mode => true)
+
+    assert_sampler_enabled_with(false, :'transaction_tracer.enabled' => false, :developer_mode => false)
+  end
+
+  def assert_sampler_enabled_with(expected, opts={})
+    with_config(opts) do
+      assert_equal expected, @engine.sampler_enabled?
+    end
+  end
+
   private
   def check_time_approximate(expected, actual)
     assert((expected - actual).abs < 0.1, "Expected between #{expected - 0.1} and #{expected + 0.1}, got #{actual}")

@@ -77,7 +77,6 @@ module Agent
           NewRelic::Agent.logger.warn "Ignoring addition of #{sampler.inspect} because it is already registered."
         else
           sampler_array << sampler
-          sampler.stats_engine = self
         end
       end
 

@@ -54,6 +54,17 @@ module NewRelic
         assert(@agent.disconnected?)
       end
 
+      def test_after_fork_should_replace_stats_engine
+        with_config(:monitor_mode => true) do
+          @agent.stubs(:connected?).returns(true)
+          old_engine = @agent.stats_engine
+
+          @agent.after_fork(:report_to_channel => 123)
+
+          assert old_engine != @agent.stats_engine, "Still got our old engine around!"
+        end
+      end
+
       def test_transmit_data_should_transmit
         @agent.service.expects(:metric_data).at_least_once
         @agent.instance_eval { transmit_data }
