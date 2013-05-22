@@ -320,6 +320,8 @@ module NewRelic
         user_attributes.merge!(attributes)
       end
 
+      # Returns truthy if the current in-progress transaction is considered a
+      # a web transaction (as opposed to, e.g., a background transaction).
       def self.recording_web_transaction?
         self.current && self.current.recording_web_transaction?
       end
