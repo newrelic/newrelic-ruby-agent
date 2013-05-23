@@ -24,7 +24,8 @@ DependencyDetection.defer do
       # Don't tracing until the inner call then to avoid double-counting.
       def request_with_newrelic_trace(request, *args, &block)
         if started?
-          NewRelic::Agent::CrossAppTracing.trace_http_request( self, request ) do
+          wrapped_request = NewRelic::Agent::NetHTTPRequest.new(self, request)
+          NewRelic::Agent::CrossAppTracing.trace_http_request( wrapped_request ) do
             request_without_newrelic_trace( request, *args, &block )
           end
         else
@@ -34,6 +35,37 @@ DependencyDetection.defer do
 
       alias request_without_newrelic_trace request
       alias request request_with_newrelic_trace
+    end
+  end
+end
+
+module NewRelic
+  module Agent
+    class NetHTTPRequest
+      def initialize(connection, request)
+        @connection = connection
+        @request = request
+      end
+
+      def address
+        @connection.address
+      end
+
+      def method
+        @request.method
+      end
+
+      def get_header(key)
+        @request[key]
+      end
+
+      def set_header(key, value)
+        @request[key] = value
+      end
+
+      def filtered_uri
+        ::NewRelic::Agent::URIUtil.filtered_uri_for(@connection, @request)
+      end
     end
   end
 end
