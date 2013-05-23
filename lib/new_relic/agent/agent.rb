@@ -318,7 +318,7 @@ module NewRelic
           def log_startup
             log_environment
             log_dispatcher
-            log_app_names
+            log_app_name
           end
 
           # Log the environment the app thinks it's running in.
@@ -336,14 +336,14 @@ module NewRelic
             ::NewRelic::Agent.logger.info "Dispatcher: #{dispatcher_name}"
           end
 
+          def log_app_name
+            ::NewRelic::Agent.logger.info "Application: #{Agent.config.app_names.join(", ")}"
+          end
+
           # Logs the configured application names
-          def log_app_names
+          def app_name_configured?
             names = Agent.config.app_names
-            if names.respond_to?(:any?) && names.any?
-              ::NewRelic::Agent.logger.info "Application: #{names.join(", ")}"
-            else
-              ::NewRelic::Agent.logger.error 'Unable to determine application name. Please set the application name in your newrelic.yml or in a NEW_RELIC_APP_NAME environment variable.'
-            end
+            return names.respond_to?(:any?) && names.any?
           end
 
           # Connecting in the foreground blocks further startup of the
@@ -470,14 +470,31 @@ module NewRelic
 
         include Start
 
-        # Logs a bunch of data and starts the agent, if needed
-        def start
-          return if already_started? || disabled?
+
+        # Check to see if the agent should start, returning +true+ if it should.
+        def agent_should_start?
+          return false if already_started? || disabled?
 
           if defer_for_resque?
             ::NewRelic::Agent.logger.debug "Deferring startup for Resque in case it daemonizes"
-            return
+            return false
           end
+
+          unless app_name_configured?
+            NewRelic::Agent.logger.error "No application name configured. ",
+              "The Agent cannot start without at least one. Please check your ",
+              "newrelic.yml and ensure that it is valid and has at least one ",
+              "value set for app_name in the #{NewRelic::Control.instance.env} ",
+              "environment."
+            return false
+          end
+
+          return true
+        end
+
+        # Logs a bunch of data and starts the agent, if needed
+        def start
+          return unless agent_should_start?
 
           @started = true
           @local_host = determine_host

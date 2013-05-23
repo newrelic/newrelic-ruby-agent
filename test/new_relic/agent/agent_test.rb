@@ -314,6 +314,18 @@ module NewRelic
         assert @agent.started?
       end
 
+      def test_defer_start_if_no_application_name_configured
+        logdev = with_array_logger( :error ) do
+          with_config( :app_name => false ) do
+            @agent.start
+          end
+        end
+        logmsg = logdev.array.first.gsub(/\n/, '')
+
+        assert !@agent.started?, "agent was started"
+        assert_match( /Please check your newrelic\.yml/i, logmsg )
+      end
+
     end
   end
 end
