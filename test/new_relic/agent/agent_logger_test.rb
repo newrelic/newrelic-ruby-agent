@@ -22,6 +22,8 @@ end
 
 class AgentLoggerTest < Test::Unit::TestCase
 
+  LEVELS = [:fatal, :error, :warn, :info, :debug]
+
   def setup
     @config = {
       :log_file_path => "log/",
@@ -29,6 +31,11 @@ class AgentLoggerTest < Test::Unit::TestCase
       :log_level => :info,
     }
   end
+
+
+  #
+  # Tests
+  #
 
   def test_initalizes_from_config
     logger = NewRelic::Agent::AgentLogger.new(@config)
@@ -48,7 +55,6 @@ class AgentLoggerTest < Test::Unit::TestCase
     assert_equal override_logger, logger.instance_variable_get(:@log)
   end
 
-  LEVELS = [:fatal, :error, :warn, :info, :debug]
 
   def test_forwards_calls_to_logger
     logdev = ArrayLogDevice.new
@@ -59,10 +65,12 @@ class AgentLoggerTest < Test::Unit::TestCase
       logger.send(level, "Boo!")
     end
 
-    assert_equal LEVELS.length - 1, logdev.array.length # No DEBUG
-    LEVELS[ 0..-2 ].each_with_index do |level, i|
-      assert_match( /#{level.upcase}/, logdev.array[i] )
-    end
+    assert_equal 4, logdev.array.length # No DEBUG
+
+    assert_match( /FATAL/, logdev.array[0] )
+    assert_match( /ERROR/, logdev.array[1] )
+    assert_match( /WARN/,  logdev.array[2] )
+    assert_match( /INFO/,  logdev.array[3] )
   end
 
 
@@ -75,10 +83,16 @@ class AgentLoggerTest < Test::Unit::TestCase
       logger.send(level, "What", "up?")
     end
 
-    assert_equal LEVELS.length - 1, logdev.array.length # No DEBUG
-    LEVELS[ 0..-2 ].each_with_index do |level, i|
-      assert_match( /#{level.upcase}/, logdev.array[i] )
-    end
+    assert_equal 8, logdev.array.length # No DEBUG, two per level
+
+    assert_match( /FATAL/, logdev.array[0] )
+    assert_match( /FATAL/, logdev.array[1] )
+    assert_match( /ERROR/, logdev.array[2] )
+    assert_match( /ERROR/, logdev.array[3] )
+    assert_match( /WARN/,  logdev.array[4] )
+    assert_match( /WARN/,  logdev.array[5] )
+    assert_match( /INFO/,  logdev.array[6] )
+    assert_match( /INFO/,  logdev.array[7] )
   end
 
   def test_wont_log_if_agent_not_enabled
@@ -152,10 +166,12 @@ class AgentLoggerTest < Test::Unit::TestCase
     override_logger = Logger.new( logdev )
     logger = NewRelic::Agent::AgentLogger.new(@config, "", override_logger)
 
-    assert_equal LEVELS.length - 1, logdev.array.length # No DEBUG
-    LEVELS[ 0..-2 ].each_with_index do |level, i|
-      assert_match( /#{level.upcase}/, logdev.array[i] )
-    end
+    assert_equal 4, logdev.array.length # No DEBUG
+
+    assert_match( /FATAL/, logdev.array[0] )
+    assert_match( /ERROR/, logdev.array[1] )
+    assert_match( /WARN/,  logdev.array[2] )
+    assert_match( /INFO/,  logdev.array[3] )
   end
 
   def test_passing_exceptions_only_logs_the_message_at_levels_higher_than_debug

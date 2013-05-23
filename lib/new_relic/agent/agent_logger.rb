@@ -45,15 +45,17 @@ module NewRelic
       def format_and_send(level, *msgs)
         msgs.flatten!
         exceptions = msgs.find_all {|m| m.is_a?(Exception) }
-        formatted = msgs.collect do |msg|
+        msgs.collect! do |msg|
           if msg.respond_to?(:message)
             "%p: %s" % [ msg.class, msg.message ]
           else
             msg.to_s
           end
-        end.join(": ")
+        end
 
-        @log.send level, formatted
+        msgs.each do |msg|
+          @log.send level, msg
+        end
 
         exceptions.each do |ex|
           @log.debug { "Debugging backtrace:\n  " + ex.backtrace.join("\n  ") }
