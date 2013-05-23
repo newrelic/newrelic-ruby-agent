@@ -481,7 +481,7 @@ module NewRelic
           end
 
           unless app_name_configured?
-            NewRelic::Agent.logger.error "No application name configured. ",
+            NewRelic::Agent.logger.error "No application name configured.",
               "The Agent cannot start without at least one. Please check your ",
               "newrelic.yml and ensure that it is valid and has at least one ",
               "value set for app_name in the #{NewRelic::Control.instance.env} ",
