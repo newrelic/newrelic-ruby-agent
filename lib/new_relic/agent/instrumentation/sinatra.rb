@@ -19,12 +19,6 @@ DependencyDetection.defer do
 
   executes do
     ::NewRelic::Agent.logger.info 'Installing Sinatra instrumentation'
-
-    # These requires are inside an executes block because they require rack, and
-    # we can't be sure that rack is available when this file is first required.
-    require 'new_relic/rack/agent_hooks'
-    require 'new_relic/rack/browser_monitoring'
-    require 'new_relic/rack/error_collector'
   end
 
   executes do
@@ -40,16 +34,30 @@ DependencyDetection.defer do
       alias route_eval_without_newrelic route_eval
       alias route_eval route_eval_with_newrelic
 
-      class << self
-        alias build_without_newrelic build
-        alias build build_with_newrelic
-      end
-
       register NewRelic::Agent::Instrumentation::Sinatra::Ignorer
     end
 
     module ::Sinatra
       register NewRelic::Agent::Instrumentation::Sinatra::Ignorer
+    end
+  end
+
+  executes do
+    if Sinatra::Base.respond_to?(:build)
+      # These requires are inside an executes block because they require rack, and
+      # we can't be sure that rack is available when this file is first required.
+      require 'new_relic/rack/agent_hooks'
+      require 'new_relic/rack/browser_monitoring'
+      require 'new_relic/rack/error_collector'
+
+      ::Sinatra::Base.class_eval do
+        class << self
+          alias build_without_newrelic build
+          alias build build_with_newrelic
+        end
+      end
+    else
+      ::NewRelic::Agent.logger.info("Skipping auto-injection of middleware for Sinatra - requires Sinatra 1.2.1+")
     end
   end
 end
