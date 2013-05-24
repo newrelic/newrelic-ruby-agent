@@ -47,7 +47,11 @@ module NewRelic
         @request = request
       end
 
-      def address
+      def type
+        'Net::HTTP'
+      end
+
+      def host
         @connection.address
       end
 
@@ -55,11 +59,11 @@ module NewRelic
         @request.method
       end
 
-      def get_header(key)
+      def [](key)
         @request[key]
       end
 
-      def set_header(key, value)
+      def []=(key, value)
         @request[key] = value
       end
 
