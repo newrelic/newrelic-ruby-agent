@@ -18,6 +18,7 @@ class ThreadProfilingTest < Test::Unit::TestCase
     NewRelic::Agent::Agent.instance_variable_set(:@instance, nil)
     NewRelic::Agent.manual_start(:'thread_profiler.enabled' => true, :force_send => true)
     NewRelic::Agent.instance.service.request_timeout = 0.5
+    NewRelic::Agent.instance.service.agent_id = 666
 
     @agent = NewRelic::Agent.instance
     @thread_profiler = @agent.thread_profiler
@@ -68,7 +69,7 @@ class ThreadProfilingTest < Test::Unit::TestCase
 
     profile_data = $collector.calls_for('profile_data')[0]
     assert_equal('666', profile_data.run_id, "Missing run_id, profile_data was #{profile_data.inspect}")
-    assert(profile_data.poll_count > 25, "Expected poll_count > 25, but was #{profile_data.poll_count}")
+    assert(profile_data.poll_count > 10, "Expected poll_count > 10, but was #{profile_data.poll_count}")
 
     assert_saw_traces(profile_data, "OTHER")
     assert_saw_traces(profile_data, "AGENT")
@@ -86,7 +87,7 @@ class ThreadProfilingTest < Test::Unit::TestCase
 
     profile_data = $collector.calls_for('profile_data')[0]
     assert_equal('666', profile_data.run_id, "Missing run_id, profile_data was #{profile_data.inspect}")
-    assert(profile_data.poll_count < 10, "Expected poll_count < 10, but was #{profile_data.poll_count}")
+    assert(profile_data.poll_count < 50, "Expected poll_count < 50, but was #{profile_data.poll_count}")
   end
 
   # Runs a thread we expect to span entire test and be killed at the end
@@ -104,7 +105,7 @@ class ThreadProfilingTest < Test::Unit::TestCase
       end
     end
 
-    NewRelic::Agent.shutdown
+    @agent.send(:transmit_data, true)
   end
 
   def assert_saw_traces(profile_data, type)
