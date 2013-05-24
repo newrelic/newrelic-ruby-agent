@@ -172,7 +172,10 @@ class NewRelic::Agent::TransationSampleBuilderTest < Test::Unit::TestCase
   def test_trace_has_valid_durations_when_segments_limited
     with_config(:'transaction_tracer.limit_segments' => 3) do
       8.times {|i| build_segment i.to_s }
-      assert_equal 3, @builder.sample.root_segment.called_segments.map {|s| s.duration}.count
+      assert_nothing_raised do
+        # Touch each segment duration, since if not ended properly it'll throw
+        @builder.sample.root_segment.called_segments.each {|s| i = s.duration}
+      end
     end
   end
 
