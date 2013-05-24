@@ -51,7 +51,9 @@ module NewRelic
       end
 
       def trace_exit(metric_name, time)
-        return unless @sample.count_segments < segment_limit()
+        # Allow to exit when we're on the last segment, so slightly different
+        # condition than on trace_entry
+        return unless @sample.count_segments <= segment_limit() && @current_segment
         @current_segment.metric_name = metric_name
         @current_segment.end_trace(time.to_f - @sample_start)
         @current_segment = @current_segment.parent_segment

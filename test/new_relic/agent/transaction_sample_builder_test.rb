@@ -169,6 +169,13 @@ class NewRelic::Agent::TransationSampleBuilderTest < Test::Unit::TestCase
     end
   end
 
+  def test_trace_has_valid_durations_when_segments_limited
+    with_config(:'transaction_tracer.limit_segments' => 3) do
+      8.times {|i| build_segment i.to_s }
+      assert_equal 3, @builder.sample.root_segment.called_segments.map {|s| s.duration}.count
+    end
+  end
+
   def test_finish_trace_records_threshold
     NewRelic::Agent::TransactionInfo.get.stubs(:transaction_trace_threshold) \
       .returns(2.0)
