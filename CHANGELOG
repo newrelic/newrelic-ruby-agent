@@ -1,6 +1,7 @@
 # New Relic Ruby Agent Release Notes #
 
 ## 3.6.3 ##
+
   * Better Sinatra Support
 
   A number of improvements have been made to our Sinatra instrumentation.
