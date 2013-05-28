@@ -7,6 +7,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 class NewRelic::Agent::TransationSampleBuilderTest < Test::Unit::TestCase
 
   def setup
+    freeze_time
     @builder = NewRelic::Agent::TransactionSampleBuilder.new
   end
 
@@ -73,27 +74,27 @@ class NewRelic::Agent::TransationSampleBuilderTest < Test::Unit::TestCase
   # this is really a test for transaction sample
   def test_omit_segments_with
     build_segment "Controller/my_controller/index" do
-      sleep 0.010
+      advance_time 0.010
 
       build_segment "Rails/Application Code Loading" do
-        sleep 0.020
+        advance_time 0.020
 
         build_segment "foo/bar" do
-          sleep 0.010
+          advance_time 0.010
         end
       end
 
       build_segment "a" do
         build_segment "ab"
-        sleep 0.010
+        advance_time 0.010
       end
       build_segment "b" do
         build_segment "ba"
-        sleep 0.05
+        advance_time 0.05
         build_segment "bb"
         build_segment "bc" do
           build_segment "bca"
-          sleep 0.05
+          advance_time 0.05
         end
       end
       build_segment "c"
@@ -171,11 +172,37 @@ class NewRelic::Agent::TransationSampleBuilderTest < Test::Unit::TestCase
 
   def test_trace_has_valid_durations_when_segments_limited
     with_config(:'transaction_tracer.limit_segments' => 3) do
-      8.times {|i| build_segment i.to_s }
-      assert_nothing_raised do
-        # Touch each segment duration, since if not ended properly it'll throw
-        @builder.sample.root_segment.called_segments.each {|s| i = s.duration}
+      build_segment "parent" do
+        advance_time 1
+        build_segment "child-0.0" do
+          advance_time 1
+          build_segment "child-0.1" do
+            advance_time 1
+          end
+        end
+        advance_time 1
+        build_segment "child-1.0" do
+          advance_time 1
+          build_segment "child-1.1" do
+            advance_time 1
+          end
+        end
       end
+
+      sample = @builder.sample
+      assert_equal(3, sample.count_segments)
+
+      segment_names = []
+      segment_durations = []
+      sample.each_segment do |s|
+        if s != sample.root_segment
+          segment_names << s.metric_name
+          segment_durations << s.duration
+        end
+      end
+
+      assert_equal(["parent", "child-0.0", "child-0.1"], segment_names)
+      assert_equal([6.0, 2.0, 1.0], segment_durations)
     end
   end
 

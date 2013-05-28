@@ -11,7 +11,36 @@ module NewRelic
     # a builder is created with every sampled transaction, to dynamically
     # generate the sampled data.  It is a thread-local object, and is not
     # accessed by any other thread so no need for synchronization.
+    #
+    # @api private
     class TransactionSampleBuilder
+
+      # Once we hit the TT segment limit, we use this class to hold our place in
+      # the tree so that we can still get accurate names and times on the
+      # segments we've already created. The placeholder segment keeps a
+      # depth counter that's incremented on each segment entry, and decremented
+      # on exit, until it reaches zero, when we throw the placeholder away.
+      # There should only ever be zero or one placeholder segment at a time.
+      #
+      # @api private
+      class PlaceholderSegment
+        attr_reader :parent_segment
+        attr_accessor :depth
+
+        def initialize(parent_segment)
+          @parent_segment = parent_segment
+          @depth = 1
+        end
+
+        # No-op - some clients expect to be able to use this to attach params to
+        # TT segments.
+        def []=(key, value); end
+
+        # No-op - some clients expect to be able to use this to read params from
+        # TT segments.
+        def [](key); end
+      end
+
       attr_reader :current_segment, :sample
 
       include NewRelic::CollectionHelper
@@ -39,24 +68,34 @@ module NewRelic
       end
 
       def trace_entry(time)
-        if @sample.count_segments < segment_limit()
+        if @sample.count_segments < segment_limit
           segment = @sample.create_segment(time.to_f - @sample_start)
           @current_segment.add_called_segment(segment)
           @current_segment = segment
           if @sample.count_segments == segment_limit()
             ::NewRelic::Agent.logger.debug("Segment limit of #{segment_limit} reached, ceasing collection.")
           end
-          @current_segment
+        else
+          if @current_segment.is_a?(PlaceholderSegment)
+            @current_segment.depth += 1
+          else
+            @current_segment = PlaceholderSegment.new(@current_segment)
+          end
         end
+        @current_segment
       end
 
       def trace_exit(metric_name, time)
-        # Allow to exit when we're on the last segment, so slightly different
-        # condition than on trace_entry
-        return unless @sample.count_segments <= segment_limit() && @current_segment
-        @current_segment.metric_name = metric_name
-        @current_segment.end_trace(time.to_f - @sample_start)
-        @current_segment = @current_segment.parent_segment
+        if @current_segment.is_a?(PlaceholderSegment)
+          @current_segment.depth -= 1
+          if @current_segment.depth == 0
+            @current_segment = @current_segment.parent_segment
+          end
+        else
+          @current_segment.metric_name = metric_name
+          @current_segment.end_trace(time.to_f - @sample_start)
+          @current_segment = @current_segment.parent_segment
+        end
       end
 
       def finish_trace(time=Time.now.to_f, custom_params={})
