@@ -13,6 +13,7 @@ module NewRelic
         super
         @agent = NewRelic::Agent::Agent.new
         @agent.service = default_service
+        @agent.stubs(:start_worker_thread)
       end
 
       #

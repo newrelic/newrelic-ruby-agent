@@ -9,6 +9,7 @@ class NewRelic::Agent::RpmAgentTest < Test::Unit::TestCase # ActiveSupport::Test
   def setup
     NewRelic::Agent.manual_start
     @agent = NewRelic::Agent.instance
+    @agent.stubs(:start_worker_thread)
   end
 
   def teardown
