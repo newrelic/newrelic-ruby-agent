@@ -47,6 +47,19 @@ class CoerceTest < Test::Unit::TestCase
     float("not valid", "HERE")
   end
 
+  def test_float_coerce_with_infinite_value_logs_and_returns_0_0
+    expects_logging(:warn, all_of(includes("TestingInfinity"), includes("Float"), includes("'Infinity'")), anything)
+    infinity = 1337807.0/0.0
+    result = float(infinity, "TestingInfinity")
+    assert_equal 0.0, result
+  end
+
+  def test_float_coerce_with_nan_value_logs_and_returns_0_0
+    expects_logging(:warn, all_of(includes("TestingNaN"), includes("Float"), includes("'NaN'")), anything)
+    nan = 0.0/0.0
+    result = float(nan, "TestingNaN")
+    assert_equal 0.0, result
+  end
 
   def test_string_coerce
     assert_equal "1",      string(1)
