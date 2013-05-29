@@ -195,8 +195,7 @@ module NewRelic
 
           ::NewRelic::Agent.logger.debug "Starting the worker thread in #{$$} after forking."
 
-          # Clear out state for any objects that we know lock from our parents
-          reset_locks
+          reset_objects_with_locks
 
           # Clear out stats that are left over from parent process
           reset_stats
@@ -514,7 +513,10 @@ module NewRelic
           @launch_time = Time.now
         end
 
-        def reset_locks
+        # Clear out state for any objects that we know lock from our parents
+        # This is necessary for cases where we're in a forked child and Ruby
+        # might be holding locks for background thread that aren't there anymore.
+        def reset_objects_with_locks
           @stats_engine = NewRelic::Agent::StatsEngine.new
         end
 
