@@ -22,13 +22,13 @@
   * Padrino Support
 
   Along with improving our support of Sinatra, we've also extended that to
-  supporting Padrino, a framework that builds on Sinatra. Web transaction
+  supporting Padrino, a framework that builds on Sinatra. Web transactions
   should show up in New Relic now for Padrino apps automatically. The agent has
   been tested against the latest Padrino in versions 0.11.x and 0.10.x.
   
   * Main overview graph only shows web transactions
   
-  In the past database times from background jobs mixe dwithother web transaction
+  In the past database times from background jobs mixed with other web transaction
   metrics in the main overview graph. This often skewed graphs. A common workaround
   was to send background jobs to a separate application, but that should no longer
   be necessary as the overview graphs now only represent web transactions.
