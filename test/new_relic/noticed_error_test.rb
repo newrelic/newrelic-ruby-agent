@@ -4,6 +4,8 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
 
+class NoticedErrorTestException < StandardError; end
+
 class NewRelic::Agent::NoticedErrorTest < Test::Unit::TestCase
   def setup
     @path = 'foo/bar/baz'
@@ -12,10 +14,10 @@ class NewRelic::Agent::NoticedErrorTest < Test::Unit::TestCase
   end
 
   def test_to_collector_array
-    e = Exception.new('test exception')
+    e = NoticedErrorTestException.new('test exception')
     error = NewRelic::NoticedError.new(@path, @params, e, @time)
     expected = [
-      (@time.to_f * 1000).round, @path, 'test exception', 'Exception', @params
+      (@time.to_f * 1000).round, @path, 'test exception', 'NoticedErrorTestException', @params
     ]
     assert_equal expected, error.to_collector_array
   end
@@ -32,5 +34,14 @@ class NewRelic::Agent::NoticedErrorTest < Test::Unit::TestCase
     e = Exception.new({ :non => :string })
     error = NewRelic::NoticedError.new(@path, @params, e, @time)
     assert_equal(String, error.message.class)
+  end
+
+  def test_strips_message_from_exceptions_in_high_security_mode
+    with_config(:high_security => true) do
+      e = NoticedErrorTestException.new('test exception')
+      error = NewRelic::NoticedError.new(@path, @params, e, @time)
+
+      assert_equal '', error.message
+    end
   end
 end

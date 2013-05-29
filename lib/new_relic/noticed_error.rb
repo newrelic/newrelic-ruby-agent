@@ -37,7 +37,7 @@ class NewRelic::NoticedError
     
     # obfuscate error message if necessary
     if NewRelic::Agent.config[:high_security]
-      @message = NewRelic::Agent::Database.obfuscate_sql(@message)
+      @message = ''
     end
     
     @timestamp = timestamp

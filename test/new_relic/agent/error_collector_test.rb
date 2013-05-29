@@ -183,10 +183,8 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
       old_errors = []
       errors = @error_collector.harvest_errors([])
 
-      assert_equal('YO SQL BAD: serect * flom test where foo = ?',
-                   errors[0].message)
-      assert_equal('YO SQL BAD: serect * flom test where foo in (?,?,?,?,?)',
-                   errors[1].message)
+      assert_equal('', errors[0].message)
+      assert_equal('', errors[1].message)
     end
   end
 
