@@ -176,17 +176,17 @@ online.  Refer to instructions in *Getting Started*.
 
 ## Support
 
-Reach out to us--and to fellow users--at
-[support.newrelic.com](http://support.newrelic.com/).
-There you'll find documentation, FAQs, and forums where you can submit
-suggestions and discuss New Relic with staff and other users.
+You can find more detailed documentation [on our website](http://newrelic.com/docs),
+and specifically in the [Ruby category](http://newrelic.com/docs/ruby).
+
+If you can't find what you're looking for there, reach out to us on our [support
+site](http://support.newrelic.com/) and we'll be happy to help you.
 
 Also available is community support on IRC: we generally use #newrelic
 on irc.freenode.net
 
-Find a bug?  E-mail support@newrelic.com, or post it to
-
-[support.newrelic.com](http://support.newrelic.com/).
+Find a bug? Contact us via [support.newrelic.com](http://support.newrelic.com/),
+or e-mail support @ newrelic.com.
 
 Thank you, and may your application scale to infinity plus one.
 

@@ -54,6 +54,17 @@ module NewRelic
         assert(@agent.disconnected?)
       end
 
+      def test_after_fork_should_replace_stats_engine
+        with_config(:monitor_mode => true) do
+          @agent.stubs(:connected?).returns(true)
+          old_engine = @agent.stats_engine
+
+          @agent.after_fork(:report_to_channel => 123)
+
+          assert old_engine != @agent.stats_engine, "Still got our old engine around!"
+        end
+      end
+
       def test_transmit_data_should_transmit
         @agent.service.expects(:metric_data).at_least_once
         @agent.instance_eval { transmit_data }
@@ -301,6 +312,18 @@ module NewRelic
         end
 
         assert @agent.started?
+      end
+
+      def test_defer_start_if_no_application_name_configured
+        logdev = with_array_logger( :error ) do
+          with_config( :app_name => false ) do
+            @agent.start
+          end
+        end
+        logmsg = logdev.array.first.gsub(/\n/, '')
+
+        assert !@agent.started?, "agent was started"
+        assert_match( /No application name configured/i, logmsg )
       end
 
     end

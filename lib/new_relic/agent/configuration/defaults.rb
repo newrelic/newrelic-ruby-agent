@@ -99,6 +99,8 @@ module NewRelic
         :disable_samplers                     => false,
         :disable_resque                       => false,
         :disable_dj                           => false,
+        :disable_sinatra                      => false,
+        :disable_sinatra_auto_middleware      => false,
         :disable_view_instrumentation         => false,
         :disable_backtrace_cleanup            => false,
         :skip_ar_instrumentation              => false,

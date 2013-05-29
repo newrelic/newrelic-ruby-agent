@@ -105,7 +105,7 @@ module NewRelic
         if !@name_frozen
           @name = name
         else
-          NewRelic::Agent.logger.warn("Attempted to rename transaction to '#{name}' after transaction name was already frozen as '#{@name_frozen}'.")
+          NewRelic::Agent.logger.warn("Attempted to rename transaction to '#{name}' after transaction name was already frozen as '#{@name}'.")
         end
       end
 
@@ -157,6 +157,7 @@ module NewRelic
         transaction_sampler.ignore_transaction
       end
 
+
       # Unwind one stack level.  It knows if it's back at the outermost caller and
       # does the appropriate wrapup of the context.
       def stop(metric=::NewRelic::Agent::UNKNOWN_METRIC, end_time=Time.now)
@@ -175,6 +176,7 @@ module NewRelic
           end
           @transaction_trace = transaction_sampler.notice_scope_empty(self, Time.now, gc_time)
           sql_sampler.notice_scope_empty(@name)
+          overview_metrics = transaction_overview_metrics
         end
 
         record_exceptions
@@ -183,7 +185,7 @@ module NewRelic
         # these tear everything down so need to be done
         # after the pop
         if self.class.stack.empty?
-          agent.events.notify(:transaction_finished, @name, end_time.to_f - start_time.to_f)
+          agent.events.notify(:transaction_finished, @name, end_time.to_f - start_time.to_f, overview_metrics)
           agent.stats_engine.end_transaction
         end
       end
@@ -193,6 +195,24 @@ module NewRelic
           options[:metric] = @name
           agent.error_collector.notice_error(exception, options)
         end
+      end
+
+      OVERVIEW_SPECS = [
+        [:web_duration,      MetricSpec.new('HttpDispatcher')],
+        [:queue_duration,    MetricSpec.new('WebFrontend/QueueTime')],
+        [:external_duration, MetricSpec.new('External/allWeb')],
+        [:database_duration, MetricSpec.new('ActiveRecord/all')],
+        [:gc_cumulative,     MetricSpec.new("GC/cumulative")],
+        [:memcache_duration, MetricSpec.new('Memcache/allWeb')]
+      ]
+
+      def transaction_overview_metrics
+        metrics = {}
+        stats = agent.stats_engine.transaction_stats_hash
+        OVERVIEW_SPECS.each do |(dest_key, spec)|
+          metrics[dest_key] = stats[spec].total_call_time if stats.key?(spec)
+        end
+        metrics
       end
 
       # If we have an active transaction, notice the error and increment the error metric.
@@ -300,6 +320,8 @@ module NewRelic
         user_attributes.merge!(attributes)
       end
 
+      # Returns truthy if the current in-progress transaction is considered a
+      # a web transaction (as opposed to, e.g., a background transaction).
       def self.recording_web_transaction?
         self.current && self.current.recording_web_transaction?
       end

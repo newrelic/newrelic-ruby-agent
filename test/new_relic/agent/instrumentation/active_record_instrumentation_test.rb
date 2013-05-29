@@ -154,8 +154,14 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     if NewRelic::Control.instance.rails_version < '2.1.0'
       expected += ['ActiveRecord/save',
                    'ActiveRecord/ActiveRecordFixtures::Order/save']
-    elsif NewRelic::Control.instance.rails_version >= '3.0.0'
+    end
+
+    if NewRelic::Control.instance.rails_version >= '3.0.0'
       expected << 'Database/SQL/insert'
+    end
+
+    if NewRelic::Control.instance.rails_version >= '4.0'
+      expected << 'Database/SQL/update'
     end
 
     assert_calls_metrics(*expected) do

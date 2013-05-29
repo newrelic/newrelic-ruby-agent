@@ -18,7 +18,9 @@ module NewRelic
     end
 
     def float(value, context=nil)
-      Float(value)
+      result = Float(value)
+      raise "Value #{result.inspect} is not finite." unless result.finite?
+      result
     rescue => error
       log_failure(value, Float, context, error)
       0.0

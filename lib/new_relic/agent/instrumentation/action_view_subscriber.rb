@@ -51,7 +51,7 @@ module NewRelic
             if parent && (payload[:virtual_path] ||
                           (parent.payload[:identifier] =~ /template$/))
               return parent.metric_name
-            elsif payload[:virtual_path]
+            elsif payload.key?(:virtual_path)
               identifier = payload[:virtual_path]
             else
               identifier = payload[:identifier]

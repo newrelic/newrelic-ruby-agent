@@ -2,11 +2,6 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 require 'new_relic/agent/instrumentation/evented_subscriber'
-begin
-  require 'rack'
-rescue LoadError => e
-  Agent.logger.debug(e)
-end
 
 module NewRelic
   module Agent
@@ -17,6 +12,7 @@ module NewRelic
           NewRelic::Agent.instance.events.subscribe(:before_call) do |env|
 
             request = begin
+                        require 'rack'
                         ::Rack::Request.new(env)
                       rescue => e
                         Agent.logger.debug("Error creating Rack::Request object: #{e}")
@@ -111,7 +107,6 @@ module NewRelic
         end
 
         def stop_transaction(event)
-          TransactionInfo.get.transaction.name = event.metric_name
           Agent.instance.stats_engine \
             .pop_scope(event.scope, event.metric_name, event.end)
           Transaction.stop

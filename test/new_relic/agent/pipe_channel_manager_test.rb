@@ -103,9 +103,13 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
       assert_equal(2, NewRelic::Agent.agent.error_collector.errors.size)
     end
 
+    def pipe_finished?(id)
+      (!NewRelic::Agent::PipeChannelManager.channels[id] ||
+        NewRelic::Agent::PipeChannelManager.channels[id].closed?)
+    end
+
     def assert_pipe_finished(id)
-      assert(!NewRelic::Agent::PipeChannelManager.channels[id] ||
-        NewRelic::Agent::PipeChannelManager.channels[id].closed?,
+      assert(pipe_finished?(id),
         "Expected pipe with ID #{id} to be nil or closed")
     end
 

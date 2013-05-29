@@ -17,7 +17,6 @@ module NewRelic
       # Exception denotes a sampler is not available and it will not be registered.
       class Unsupported < StandardError;  end
 
-      attr_accessor :stats_engine
       attr_reader :id
       @sampler_classes = []
 
