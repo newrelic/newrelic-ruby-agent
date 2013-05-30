@@ -5,6 +5,8 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
 
 class NoticedErrorTestException < StandardError; end
+class ParentException < Exception; end
+class ChildException < ParentException; end
 
 class NewRelic::Agent::NoticedErrorTest < Test::Unit::TestCase
   def setup
@@ -43,5 +45,64 @@ class NewRelic::Agent::NoticedErrorTest < Test::Unit::TestCase
 
       assert_equal '', error.message
     end
+  end
+
+  def test_permits_messages_from_whitelisted_exceptions_in_high_security_mode
+    with_config(:strip_exception_messages_whitelist => 'NoticedErrorTestException') do
+      e = NoticedErrorTestException.new('whitelisted test exception')
+      error = NewRelic::NoticedError.new(@path, @params, e, @time)
+
+      assert_equal 'whitelisted test exception', error.message
+    end
+  end
+
+  def test_whitelisted_returns_nil_with_an_empty_whitelist
+    with_config(:strip_exception_messages_whitelist => '') do
+      e = NoticedErrorTestException.new('whitelisted test exception')
+      error = NewRelic::NoticedError.new(@path, @params, e, @time)
+
+      assert_equal nil, error.whitelisted?
+    end
+  end
+
+  def test_whitelisted_returns_nil_when_error_is_not_in_whitelist
+    with_config(:strip_exception_messages_whitelist => 'YourErrorIsInAnotherCastle') do
+      e = NoticedErrorTestException.new('whitelisted test exception')
+      error = NewRelic::NoticedError.new(@path, @params, e, @time)
+
+      assert_equal nil, error.whitelisted?
+    end
+  end
+
+  def test_whitelisted_is_true_when_error_is_in_whitelist
+    with_config(:strip_exception_messages_whitelist => 'OtherException,NoticedErrorTestException') do
+      test_exception_class = NoticedErrorTestException
+      e = test_exception_class.new('whitelisted test exception')
+
+      error = NewRelic::NoticedError.new(@path, @params, e, @time)
+      assert_equal test_exception_class, error.whitelisted?
+    end
+  end
+
+  def test_whitelisted_is_true_when_an_exceptions_ancestor_is_whitelisted
+    with_config(:strip_exception_messages_whitelist => 'ParentException') do
+      e = ChildException.new('whitelisted test exception')
+      error = NewRelic::NoticedError.new(@path, @params, e, @time)
+
+      assert_equal ParentException, error.whitelisted?
+    end
+  end
+
+  def test_exception_name_for_collector_returns_error_for_non_exceptions
+    error = NewRelic::NoticedError.new(@path, @params, nil, @time)
+
+    assert_equal 'Error', error.exception_name_for_collector
+  end
+
+  def test_exception_name_for_collector_returns_class_name_for_exceptions
+    e = NoticedErrorTestException.new('test exception')
+    error = NewRelic::NoticedError.new(@path, @params, e, @time)
+
+    assert_equal 'NoticedErrorTestException', error.exception_name_for_collector
   end
 end

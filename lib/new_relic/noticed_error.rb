@@ -15,7 +15,7 @@ class NewRelic::NoticedError
     @path = path
     @params = NewRelic::NoticedError.normalize_params(data)
 
-    @exception_class = exception.is_a?(Exception) ? exception.class.name : 'Error'
+    @exception_class = exception.class
 
     if exception.respond_to?('original_exception')
       @message = exception.original_exception.message.to_s
@@ -34,18 +34,29 @@ class NewRelic::NoticedError
     # clamp long messages to 4k so that we don't send a lot of
     # overhead across the wire
     @message = @message[0..4095] if @message.length > 4096
-    
+
     # obfuscate error message if necessary
     if NewRelic::Agent.config[:high_security]
-      @message = ''
+      @message = '' unless whitelisted?
     end
-    
+
     @timestamp = timestamp
+  end
+
+  def whitelisted?
+    whitelist = NewRelic::Agent.config[:strip_exception_messages_whitelist] or return false
+    whitelist = whitelist.split(/\s*,\s*/).map do |class_name|
+      class_name.split('::').inject(Object) do |mod, name|
+        mod.const_get(name) if mod && mod.const_defined?(name)
+      end
+    end
+
+    whitelist.compact.find { |klass| exception_class <= klass }
   end
 
   def ==(other)
     if other.respond_to?(:exception_id)
-      @exception_id == other.exception_id
+      exception_id == other.exception_id
     else
       false
     end
@@ -53,11 +64,19 @@ class NewRelic::NoticedError
 
   include NewRelic::Coerce
 
+  def exception_name_for_collector
+    if exception_class < Exception
+      exception_class.name
+    else
+      'Error'
+    end
+  end
+
   def to_collector_array(encoder=nil)
-    [ NewRelic::Helper.time_to_millis(@timestamp),
-      string(@path),
-      string(@message),
-      string(@exception_class),
-      @params ]
+    [ NewRelic::Helper.time_to_millis(timestamp),
+      string(path),
+      string(message),
+      string(exception_name_for_collector),
+      params ]
   end
 end

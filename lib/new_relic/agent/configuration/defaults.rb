@@ -69,6 +69,8 @@ module NewRelic
         :monitor_daemons => false,
         :multi_homed     => false,
         :high_security   => false,
+        :strip_exception_messages => Proc.new { self[:high_security] },
+        :strip_exception_messages_whitelist => '',
 
         :host                   => 'collector.newrelic.com',
         :api_host               => 'rpm.newrelic.com',

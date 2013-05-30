@@ -36,7 +36,8 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
     assert_equal '', err.params[:request_uri]
     assert_equal '', err.params[:request_referer]
     assert_equal 'path', err.path
-    assert_equal 'Error', err.exception_class
+    assert_equal 'Error', err.exception_name_for_collector
+    assert_equal String, err.exception_class
   end
 
   def test_simple
@@ -50,10 +51,11 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
     err = errors.first
     assert_equal 'message', err.message
     assert_equal 'y', err.params[:request_params][:x]
-    assert err.params[:request_uri] == '/myurl/'
-    assert err.params[:request_referer] == "test_referer"
-    assert err.path == 'path'
-    assert err.exception_class == 'StandardError'
+    assert_equal '/myurl/', err.params[:request_uri]
+    assert_equal 'test_referer', err.params[:request_referer]
+    assert_equal 'path', err.path
+    assert_equal StandardError, err.exception_class
+    assert_equal 'StandardError', err.exception_name_for_collector
 
     # the collector should now return an empty array since nothing
     # has been added since its last harvest
