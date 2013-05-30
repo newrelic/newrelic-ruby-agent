@@ -85,12 +85,11 @@ class NewRelic::NoticedError
   private
 
   def constantize(class_name)
-    class_name.split('::').inject(Object) do |namespace, name|
-      if namespace && namespace.const_defined?(name)
-        namespace.const_get(name)
-      else
-        return nil
-      end
+    namespaces = class_name.split('::')
+
+    namespaces.inject(Object) do |namespace, name|
+      return unless namespace
+      namespace.const_get(name) if namespace.const_defined?(name)
     end
   end
 end
