@@ -61,7 +61,7 @@ class NewRelic::Agent::NoticedErrorTest < Test::Unit::TestCase
       e = NoticedErrorTestException.new('whitelisted test exception')
       error = NewRelic::NoticedError.new(@path, @params, e, @time)
 
-      assert_equal nil, error.whitelisted?
+      assert_falsy error.whitelisted?
     end
   end
 
@@ -70,7 +70,7 @@ class NewRelic::Agent::NoticedErrorTest < Test::Unit::TestCase
       e = NoticedErrorTestException.new('whitelisted test exception')
       error = NewRelic::NoticedError.new(@path, @params, e, @time)
 
-      assert_equal nil, error.whitelisted?
+      assert_falsy error.whitelisted?
     end
   end
 
@@ -78,9 +78,19 @@ class NewRelic::Agent::NoticedErrorTest < Test::Unit::TestCase
     with_config(:strip_exception_messages_whitelist => 'OtherException,NoticedErrorTestException') do
       test_exception_class = NoticedErrorTestException
       e = test_exception_class.new('whitelisted test exception')
-
       error = NewRelic::NoticedError.new(@path, @params, e, @time)
-      assert_equal test_exception_class, error.whitelisted?
+
+      assert_truthy error.whitelisted?
+    end
+  end
+
+  def test_whitelisted_ignores_nonexistent_exception_types_in_whitelist
+    with_config(:strip_exception_messages_whitelist => 'NonExistent::Exception,NoticedErrorTestException') do
+      test_exception_class = NoticedErrorTestException
+      e = test_exception_class.new('whitelisted test exception')
+      error = NewRelic::NoticedError.new(@path, @params, e, @time)
+
+      assert_truthy error.whitelisted?
     end
   end
 
@@ -89,7 +99,7 @@ class NewRelic::Agent::NoticedErrorTest < Test::Unit::TestCase
       e = ChildException.new('whitelisted test exception')
       error = NewRelic::NoticedError.new(@path, @params, e, @time)
 
-      assert_equal ParentException, error.whitelisted?
+      assert_truthy error.whitelisted?
     end
   end
 
