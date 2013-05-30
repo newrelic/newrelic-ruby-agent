@@ -44,14 +44,16 @@ class NewRelic::NoticedError
   end
 
   def whitelisted?
-    whitelist = NewRelic::Agent.config[:strip_exception_messages_whitelist] or return false
-    whitelist = whitelist.split(/\s*,\s*/).map do |class_name|
-      class_name.split('::').inject(Object) do |mod, name|
-        mod.const_get(name) if mod && mod.const_defined?(name)
-      end
-    end
-
+    whitelist = whitelisted_exception_classes
     whitelist.compact.find { |klass| exception_class <= klass }
+  end
+
+  def whitelisted_exception_classes
+    whitelist = NewRelic::Agent.config[:strip_exception_messages_whitelist] or return false
+
+    whitelist = whitelist.split(/\s*,\s*/).map do |class_name|
+      constantize(class_name)
+    end
   end
 
   def ==(other)
@@ -78,5 +80,17 @@ class NewRelic::NoticedError
       string(message),
       string(exception_name_for_collector),
       params ]
+  end
+
+  private
+
+  def constantize(class_name)
+    class_name.split('::').inject(Object) do |namespace, name|
+      if namespace && namespace.const_defined?(name)
+        namespace.const_get(name)
+      else
+        return nil
+      end
+    end
   end
 end
