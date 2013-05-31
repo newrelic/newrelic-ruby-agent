@@ -35,21 +35,22 @@ class NewRelic::NoticedError
     # overhead across the wire
     @message = @message[0..4095] if @message.length > 4096
 
-    # obfuscate error message if necessary
-    if NewRelic::Agent.config[:high_security]
-      @message = '' unless whitelisted?
+    # replace error message if enabled
+    if NewRelic::Agent.config[:strip_exception_messages]
+      @message = "Message removed by New Relic 'strip_exception_messages' setting" unless whitelisted?
     end
 
     @timestamp = timestamp
   end
 
   def whitelisted?
-    whitelist = whitelisted_exception_classes
-    whitelist.compact.find { |klass| exception_class <= klass }
+    @whitelist ||= whitelisted_exception_classes
+    @whitelist.compact.find { |klass| exception_class <= klass }
   end
 
   def whitelisted_exception_classes
-    whitelist = NewRelic::Agent.config[:strip_exception_messages_whitelist] or return false
+    whitelist = NewRelic::Agent.config[:strip_exception_messages_whitelist]
+    return unless whitelist
 
     whitelist = whitelist.split(/\s*,\s*/).map do |class_name|
       constantize(class_name)

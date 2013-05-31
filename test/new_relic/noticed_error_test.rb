@@ -43,7 +43,7 @@ class NewRelic::Agent::NoticedErrorTest < Test::Unit::TestCase
       e = NoticedErrorTestException.new('test exception')
       error = NewRelic::NoticedError.new(@path, @params, e, @time)
 
-      assert_equal '', error.message
+      assert_equal "Message removed by New Relic 'strip_exception_messages' setting", error.message
     end
   end
 

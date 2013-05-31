@@ -57,9 +57,9 @@ module NewRelic
           ::NewRelic::Agent::Autostart.agent_should_start?
         end,
         # Don't autostart the agent if we're in IRB or Rails console.
-        # This config option accepts a comma seperated list of constants.
+        # This config option accepts a comma separated list of constants.
         :'autostart.blacklisted_constants' => 'Rails::Console',
-        # Comma seperated list of executables that you don't want to trigger
+        # Comma separated list of executables that you don't want to trigger
         # agents start. e.g. 'rake,my_ruby_script.rb'
         :'autostart.blacklisted_executables' => 'irb',
         :'autostart.blacklisted_rake_tasks' => 'about,assets:clean,assets:clobber,assets:environment,assets:precompile,db:create,db:drop,db:fixtures:load,db:migrate,db:migrate:status,db:rollback,db:schema:cache:clear,db:schema:cache:dump,db:schema:dump,db:schema:load,db:seed,db:setup,db:structure:dump,db:version,doc:app,log:clear,middleware,notes,notes:custom,rails:template,rails:update,routes,secret,spec,spec:controllers,spec:helpers,spec:models,spec:rcov,stats,test,test:all,test:all:db,test:recent,test:single,test:uncommitted,time:zones:all,tmp:clear,tmp:create',
@@ -69,7 +69,10 @@ module NewRelic
         :monitor_daemons => false,
         :multi_homed     => false,
         :high_security   => false,
+        # Strip messages from all exceptions that are not specified in the whitelist.
         :strip_exception_messages => Proc.new { self[:high_security] },
+        # Comma separated list of exceptions that should show messages when
+        # strip_exception_messages is enabled (e.g. 'NewException, RelicException').
         :strip_exception_messages_whitelist => '',
 
         :host                   => 'collector.newrelic.com',
