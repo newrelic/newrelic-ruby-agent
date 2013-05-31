@@ -10,6 +10,8 @@ class NewRelic::NoticedError
   attr_accessor :path, :timestamp, :params, :exception_class, :message
   attr_reader :exception_id
 
+  STRIPPED_EXCEPTION_REPLACEMENT_MESSAGE = "Message removed by New Relic 'strip_exception_messages' setting"
+
   def initialize(path, data, exception, timestamp = Time.now)
     @exception_id = exception.object_id
     @path = path
@@ -36,24 +38,16 @@ class NewRelic::NoticedError
     @message = @message[0..4095] if @message.length > 4096
 
     # replace error message if enabled
-    if NewRelic::Agent.config[:strip_exception_messages]
-      @message = "Message removed by New Relic 'strip_exception_messages' setting" unless whitelisted?
+    if NewRelic::Agent.config[:'strip_exception_messages.enabled'] && !whitelisted?
+      @message = STRIPPED_EXCEPTION_REPLACEMENT_MESSAGE
     end
 
     @timestamp = timestamp
   end
 
   def whitelisted?
-    @whitelist ||= whitelisted_exception_classes
-    @whitelist.compact.find { |klass| exception_class <= klass }
-  end
-
-  def whitelisted_exception_classes
-    whitelist = NewRelic::Agent.config[:strip_exception_messages_whitelist]
-    return unless whitelist
-
-    whitelist = whitelist.split(/\s*,\s*/).map do |class_name|
-      constantize(class_name)
+    NewRelic::Agent.config.stripped_exceptions_whitelist.find do |klass|
+      exception_class <= klass
     end
   end
 
@@ -81,16 +75,5 @@ class NewRelic::NoticedError
       string(message),
       string(exception_name_for_collector),
       params ]
-  end
-
-  private
-
-  def constantize(class_name)
-    namespaces = class_name.split('::')
-
-    namespaces.inject(Object) do |namespace, name|
-      return unless namespace
-      namespace.const_get(name) if namespace.const_defined?(name)
-    end
   end
 end

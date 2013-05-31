@@ -185,8 +185,8 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
       old_errors = []
       errors = @error_collector.harvest_errors([])
 
-      assert_equal("Message removed by New Relic 'strip_exception_messages' setting", errors[0].message)
-      assert_equal("Message removed by New Relic 'strip_exception_messages' setting", errors[1].message)
+      assert_equal(NewRelic::NoticedError::STRIPPED_EXCEPTION_REPLACEMENT_MESSAGE, errors[0].message)
+      assert_equal(NewRelic::NoticedError::STRIPPED_EXCEPTION_REPLACEMENT_MESSAGE, errors[1].message)
     end
   end
 

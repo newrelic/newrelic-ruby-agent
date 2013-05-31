@@ -70,10 +70,10 @@ module NewRelic
         :multi_homed     => false,
         :high_security   => false,
         # Strip messages from all exceptions that are not specified in the whitelist.
-        :strip_exception_messages => Proc.new { self[:high_security] },
+        :'strip_exception_messages.enabled' => Proc.new { self[:high_security] },
         # Comma separated list of exceptions that should show messages when
         # strip_exception_messages is enabled (e.g. 'NewException, RelicException').
-        :strip_exception_messages_whitelist => '',
+        :'strip_exception_messages.whitelist' => '',
 
         :host                   => 'collector.newrelic.com',
         :api_host               => 'rpm.newrelic.com',
