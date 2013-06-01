@@ -55,7 +55,7 @@ class NewRelic::LocalEnvironmentTest < Test::Unit::TestCase
   def test_mongrel_only_checks_once
     define_mongrel
 
-    # One call from ctor, second from first #mongrel call.
+    # One call from LocalEnvironment's initialize, second from first #mongrel call.
     # All the rest shouldn't call into ObjectSpace
     ObjectSpace.expects(:each_object).with(::Mongrel::HttpServer).twice
 
