@@ -183,7 +183,7 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     NewRelic::Agent.shutdown
     with_config(:disable_samplers => false, :agent_enabled => true) do
       NewRelic::Control.instance.init_plugin
-      assert NewRelic::Agent.instance.stats_engine.send(:harvest_samplers).any?
+      assert NewRelic::Agent.instance.sampler_manager.send(:samplers).any?
     end
   end
 
@@ -191,7 +191,7 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     NewRelic::Agent.shutdown
     with_config(:disable_samplers => true, :agent_enabled => true) do
       NewRelic::Control.instance.init_plugin
-      assert NewRelic::Agent.instance.stats_engine.send(:harvest_samplers).empty?
+      assert NewRelic::Agent.instance.sampler_manager.send(:samplers).empty?
     end
   end
 end

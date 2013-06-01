@@ -20,24 +20,6 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
     NewRelic::Agent.instance.stubs(:stats_engine).returns(@stats_engine)
   end
 
-  def test_can_add_harvest_sampler
-    samplers = OurSamplers.new
-    sampler = OurSampler.new
-
-    samplers.add_harvest_sampler(sampler)
-
-    assert_equal [sampler], samplers.harvest_samplers
-  end
-
-  def test_cannot_add_harvest_sampler_twice
-    samplers = OurSamplers.new
-    samplers.add_harvest_sampler(OurSampler.new)
-    first_list = samplers.harvest_samplers.dup
-
-    samplers.add_harvest_sampler(OurSampler.new)
-    assert_equal first_list, samplers.harvest_samplers
-  end
-
   def test_cpu_sampler_records_user_and_system_time
     timeinfo0 = mock
     timeinfo0.stubs(:utime).returns(10.0)
@@ -106,14 +88,6 @@ class NewRelic::Agent::StatsEngine::SamplersTest < Test::Unit::TestCase
     assert_raise NewRelic::Agent::Sampler::Unsupported do
       NewRelic::Agent::Samplers::MemorySampler.new
     end
-  end
-
-  def test_load_samplers
-    @stats_engine.expects(:add_harvest_sampler).at_least_once unless defined? JRuby
-    @stats_engine.expects(:add_sampler).never
-    NewRelic::Control.instance.load_samplers
-    sampler_count = 4
-    assert_equal sampler_count, NewRelic::Agent::Sampler.sampler_classes.size, NewRelic::Agent::Sampler.sampler_classes.inspect
   end
 
   def test_memory__is_supported
