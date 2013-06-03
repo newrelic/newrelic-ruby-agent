@@ -70,6 +70,9 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
     @scope_listener = NewRelic::Agent::MockScopeListener.new
     @old_sampler = NewRelic::Agent.instance.transaction_sampler
     NewRelic::Agent.instance.stubs(:transaction_sampler).returns(@scope_listener)
+
+    freeze_time
+
     super
   end
 
@@ -91,14 +94,13 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
 
   def test_trace_execution_scoped_records_metric_data
     metric = "hello"
-    t1 = Time.now
+    freeze_time
     self.class.trace_execution_scoped(metric) do
-      sleep 0.05
+      advance_time 0.05
     end
-    elapsed = Time.now - t1
 
     stats = @stats_engine.get_stats(metric)
-    check_time stats.total_call_time, elapsed
+    check_time 0.05, stats.total_call_time
     assert_equal 1, stats.call_count
   end
 
@@ -111,14 +113,12 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
 
   def test_basic__original_api
     metric = "hello"
-    t1 = Time.now
     self.class.trace_method_execution(metric, true, true, true) do
-      sleep 0.05
+      advance_time(0.05)
     end
-    elapsed = Time.now - t1
 
     stats = @stats_engine.get_stats(metric)
-    check_time stats.total_call_time, elapsed
+    check_time 0.05, stats.total_call_time
     assert_equal 1, stats.call_count
     assert_equal metric,  @scope_listener.scopes.last
   end
@@ -128,9 +128,7 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
     @metric_name = METRIC
     self.class.add_method_tracer :method_to_be_traced, METRIC
 
-    t1 = Time.now
     method_to_be_traced 1,2,3,true,METRIC
-    elapsed = Time.now - t1
 
     begin
       self.class.remove_method_tracer :method_to_be_traced, METRIC
@@ -140,7 +138,7 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
 
 
     stats = @stats_engine.get_stats(METRIC)
-    check_time stats.total_call_time, elapsed
+    check_time 0.05, stats.total_call_time
     assert_equal 1, stats.call_count
     assert_equal METRIC, @scope_listener.scopes.last
   end
@@ -216,9 +214,7 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
     self.class.add_method_tracer :method_to_be_traced, METRIC
     self.class.add_method_tracer :method_to_be_traced, METRIC
 
-    t1 = Time.now
     method_to_be_traced 1,2,3,true,METRIC
-    elapsed = Time.now - t1
 
     begin
       self.class.remove_method_tracer :method_to_be_traced, METRIC
@@ -227,7 +223,7 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
     end
 
     stats = @stats_engine.get_stats(METRIC)
-    check_time stats.total_call_time, elapsed
+    check_time 0.05, stats.total_call_time
     assert_equal 1, stats.call_count
     assert_equal METRIC, @scope_listener.scopes.last
     assert(METRIC != @scope_listener.scopes[-2],
@@ -240,9 +236,7 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
     expected_metric = "1.2"
     self.class.add_method_tracer :method_to_be_traced, metric_code
 
-    t1 = Time.now
     method_to_be_traced 1,2,3,true,expected_metric
-    elapsed = Time.now - t1
 
     begin
       self.class.remove_method_tracer :method_to_be_traced, metric_code
@@ -251,7 +245,7 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
     end
 
     stats = @stats_engine.get_stats(expected_metric)
-    check_time stats.total_call_time, elapsed
+    check_time 0.05, stats.total_call_time
     assert_equal 1, stats.call_count
     assert_equal expected_metric, @scope_listener.scopes.last
   end
@@ -259,15 +253,12 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
   def test_trace_method_with_block
     self.class.add_method_tracer :method_with_block, METRIC
 
-    t1 = Time.now
-    method_with_block(1,2,3,true,METRIC) do |scope|
-      assert_equal METRIC, scope
-      sleep 0.1 # pad the test a bit to increase the margin of error
+    method_with_block(1,2,3,true,METRIC) do
+      advance_time 0.1
     end
-    elapsed = Time.now - t1
 
     stats = @stats_engine.get_stats(METRIC)
-    check_time stats.total_call_time, elapsed
+    check_time 0.15, stats.total_call_time
     assert_equal 1, stats.call_count
     assert_equal METRIC, @scope_listener.scopes.last
   end
@@ -282,9 +273,7 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
     self.class.add_method_tracer :method_to_be_traced, METRIC
     self.class.remove_method_tracer :method_to_be_traced, METRIC
 
-    t1 = Time.now
     method_to_be_traced 1,2,3,false,METRIC
-    elapsed = Time.now - t1
 
     stats = @stats_engine.get_stats(METRIC)
     assert stats.call_count == 0
@@ -307,7 +296,7 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
   def test_multiple_metrics__scoped
     metrics = %w[first second third]
     self.class.trace_execution_scoped metrics do
-      sleep 0.05
+      advance_time 0.05
     end
     elapsed = @stats_engine.get_stats('first').total_call_time
     metrics.map{|name| @stats_engine.get_stats name}.each do | m |
@@ -320,7 +309,7 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
   def test_multiple_metrics__unscoped
     metrics = %w[first second third]
     self.class.trace_execution_unscoped metrics do
-      sleep 0.05
+      advance_time 0.05
     end
     elapsed = @stats_engine.get_stats('first').total_call_time
     metrics.map{|name| @stats_engine.get_stats name}.each do | m |
@@ -370,23 +359,24 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
   end
 
   def check_time(t1, t2)
-    assert_in_delta t2, t1, 0.05
+    assert_in_delta t2, t1, 0.001
   end
 
   # =======================================================
   # test methods to be traced
   def method_to_be_traced(x, y, z, is_traced, expected_metric)
-    sleep 0.01
+    advance_time 0.05
     assert x == 1
     assert y == 2
     assert z == 3
   end
 
   def method_with_block(x, y, z, is_traced, expected_metric, &block)
-    sleep 0.01
+    advance_time 0.05
     assert x == 1
     assert y == 2
     assert z == 3
+    yield
   end
 
   def method_c1

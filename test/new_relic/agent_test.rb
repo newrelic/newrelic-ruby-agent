@@ -14,6 +14,7 @@ module NewRelic
 
     def setup
       NewRelic::Agent.reset_config
+      NewRelic::Agent.instance.stubs(:start_worker_thread)
     end
 
     def teardown
