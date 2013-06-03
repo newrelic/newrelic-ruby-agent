@@ -17,7 +17,7 @@ require 'new_relic/agent/thread_profiler'
 require 'new_relic/agent/event_listener'
 require 'new_relic/agent/cross_app_monitor'
 require 'new_relic/agent/request_sampler'
-require 'new_relic/agent/sampler_manager'
+require 'new_relic/agent/sampler_collection'
 require 'new_relic/environment_report'
 
 module NewRelic
@@ -43,7 +43,7 @@ module NewRelic
         @transaction_rules     = NewRelic::Agent::RulesEngine.new
         @metric_rules          = NewRelic::Agent::RulesEngine.new
         @request_sampler       = NewRelic::Agent::RequestSampler.new(@events)
-        @sampler_manager       = NewRelic::Agent::SamplerManager.new(@events)
+        @harvest_samplers      = NewRelic::Agent::SamplerCollection.new(@events)
 
         @connect_state = :pending
         @connect_attempts = 0
@@ -81,7 +81,7 @@ module NewRelic
         attr_reader :thread_profiler
         # error collector is a simple collection of recorded errors
         attr_reader :error_collector
-        attr_reader :sampler_manager
+        attr_reader :harvest_samplers
         # whether we should record raw, obfuscated, or no sql
         attr_reader :record_sql
         # a configuration for the Real User Monitoring system -
@@ -523,7 +523,7 @@ module NewRelic
         end
 
         def add_harvest_sampler(subclass)
-          @sampler_manager.add_sampler(subclass)
+          @harvest_samplers.add_sampler(subclass)
         end
 
         private

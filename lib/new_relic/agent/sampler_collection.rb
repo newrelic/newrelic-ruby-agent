@@ -4,20 +4,24 @@
 
 module NewRelic
   module Agent
-    class SamplerManager
-      attr_reader :samplers
+    class SamplerCollection
+      include Enumerable
 
       def initialize(event_listener)
         @samplers = []
         event_listener.subscribe(:before_harvest) { poll_samplers }
       end
 
+      def each(&blk)
+        @samplers.each(&blk)
+      end
+
       def sampler_class_registered?(sampler_class)
-        samplers.any? { |s| s.class == sampler_class }
+        self.any? { |s| s.class == sampler_class }
       end
 
       def poll_samplers
-        samplers.delete_if do |sampler|
+        @samplers.delete_if do |sampler|
           begin
             sampler.poll
             false # it's okay.  don't delete it.
@@ -31,7 +35,7 @@ module NewRelic
       def add_sampler(sampler_class)
         if sampler_class.supported_on_this_platform?
           if !sampler_class_registered?(sampler_class)
-            samplers << sampler_class.new
+            @samplers << sampler_class.new
             ::NewRelic::Agent.logger.debug("Registered #{sampler_class.name} for harvest time sampling.")
           else
             ::NewRelic::Agent.logger.warn("Ignoring addition of #{sampler_class.name} because it is already registered.")
