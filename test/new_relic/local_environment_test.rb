@@ -51,30 +51,33 @@ class NewRelic::LocalEnvironmentTest < Test::Unit::TestCase
     Object.send(:remove_const, :PhusionPassenger)
   end
 
+  # LocalEnvironment won't talk to ObjectSpace on JRuby, and these tests are
+  # around that interaction, so we don't run them on JRuby.
+  unless defined?(JRuby)
+    def test_mongrel_only_checks_once
+      define_mongrel
 
-  def test_mongrel_only_checks_once
-    define_mongrel
+      # One call from LocalEnvironment's initialize, second from first #mongrel call.
+      # All the rest shouldn't call into ObjectSpace
+      ObjectSpace.expects(:each_object).with(::Mongrel::HttpServer).twice
 
-    # One call from LocalEnvironment's initialize, second from first #mongrel call.
-    # All the rest shouldn't call into ObjectSpace
-    ObjectSpace.expects(:each_object).with(::Mongrel::HttpServer).twice
+      e = NewRelic::LocalEnvironment.new
+      5.times { e.mongrel }
+      assert_nil e.mongrel
+    ensure
+      Object.send(:remove_const, :Mongrel)
+    end
 
-    e = NewRelic::LocalEnvironment.new
-    5.times { e.mongrel }
-    assert_nil e.mongrel
-  ensure
-    Object.send(:remove_const, :Mongrel)
-  end
+    def test_check_for_mongrel_allows_one_more_check
+      define_mongrel
 
-  def test_check_for_mongrel_allows_one_more_check
-    define_mongrel
+      ObjectSpace.expects(:each_object).with(::Mongrel::HttpServer).at_least(2)
 
-    ObjectSpace.expects(:each_object).with(::Mongrel::HttpServer).at_least(2)
-
-    e = NewRelic::LocalEnvironment.new
-    e.send(:check_for_mongrel)
-  ensure
-    Object.send(:remove_const, :Mongrel)
+      e = NewRelic::LocalEnvironment.new
+      e.send(:check_for_mongrel)
+    ensure
+      Object.send(:remove_const, :Mongrel)
+    end
   end
 
   def define_mongrel
