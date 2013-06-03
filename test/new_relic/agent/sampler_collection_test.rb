@@ -20,33 +20,33 @@ class SamplerCollectionTest < Test::Unit::TestCase
 
   def test_add_sampler_adds_a_sampler_of_requested_class
     @collection.add_sampler(DummySampler)
-    assert_equal(1, @collection.count)
+    assert_equal(1, @collection.to_a.size)
     assert_equal(DummySampler, @collection.first.class)
   end
 
   def test_add_sampler_does_add_non_dups
     @collection.add_sampler(DummySampler)
     @collection.add_sampler(DummySampler2)
-    assert_equal(2, @collection.count)
+    assert_equal(2, @collection.to_a.size)
     assert_equal([DummySampler, DummySampler2], @collection.map { |s| s.class })
   end
 
   def test_add_sampler_does_not_add_dups
     @collection.add_sampler(DummySampler)
     @collection.add_sampler(DummySampler)
-    assert_equal(1, @collection.count)
+    assert_equal(1, @collection.to_a.size)
   end
 
   def test_add_sampler_omits_unsupported_samplers
     DummySampler.stubs(:supported_on_this_platform?).returns(false)
     @collection.add_sampler(DummySampler)
-    assert_equal(0, @collection.count)
+    assert_equal(0, @collection.to_a.size)
   end
 
   def test_add_sampler_swallows_exceptions_during_sampler_creation
     DummySampler.stubs(:new).raises(StandardError)
     assert_nothing_raised { @collection.add_sampler(DummySampler) }
-    assert_equal(0, @collection.count)
+    assert_equal(0, @collection.to_a.size)
   end
 
   def test_poll_samplers_polls_samplers
@@ -62,7 +62,7 @@ class SamplerCollectionTest < Test::Unit::TestCase
     good_sampler, bad_sampler = @collection.to_a
     bad_sampler.stubs(:poll).raises('boo')
     assert_nothing_raised { @collection.poll_samplers }
-    assert_equal(1, @collection.count)
+    assert_equal(1, @collection.to_a.size)
     assert_equal([good_sampler], @collection.to_a)
   end
 
