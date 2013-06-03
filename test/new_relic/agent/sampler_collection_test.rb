@@ -21,7 +21,7 @@ class SamplerCollectionTest < Test::Unit::TestCase
   def test_add_sampler_adds_a_sampler_of_requested_class
     @collection.add_sampler(DummySampler)
     assert_equal(1, @collection.to_a.size)
-    assert_equal(DummySampler, @collection.first.class)
+    assert_equal(DummySampler, @collection.to_a.first.class)
   end
 
   def test_add_sampler_does_add_non_dups
