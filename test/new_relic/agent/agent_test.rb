@@ -66,6 +66,13 @@ module NewRelic
         end
       end
 
+      def test_transmit_data_should_emit_before_harvest_event
+        got_it = false
+        @agent.events.subscribe(:before_harvest) { got_it = true }
+        @agent.instance_eval { transmit_data }
+        assert(got_it)
+      end
+
       def test_transmit_data_should_transmit
         @agent.service.expects(:metric_data).at_least_once
         @agent.instance_eval { transmit_data }
