@@ -52,6 +52,40 @@ class NewRelic::LocalEnvironmentTest < Test::Unit::TestCase
   end
 
 
+  def test_mongrel_only_checks_once
+    define_mongrel
+
+    # One call from LocalEnvironment's initialize, second from first #mongrel call.
+    # All the rest shouldn't call into ObjectSpace
+    ObjectSpace.expects(:each_object).with(::Mongrel::HttpServer).twice
+
+    e = NewRelic::LocalEnvironment.new
+    5.times { e.mongrel }
+    assert_nil e.mongrel
+  ensure
+    Object.send(:remove_const, :Mongrel)
+  end
+
+  def test_check_for_mongrel_allows_one_more_check
+    define_mongrel
+
+    ObjectSpace.expects(:each_object).with(::Mongrel::HttpServer).at_least(2)
+
+    e = NewRelic::LocalEnvironment.new
+    e.send(:check_for_mongrel)
+  ensure
+    Object.send(:remove_const, :Mongrel)
+  end
+
+  def define_mongrel
+    class << self
+      module ::Mongrel
+        class HttpServer
+        end
+      end
+    end
+  end
+
   def test_default_port
     e = NewRelic::LocalEnvironment.new
     assert_equal 3000, e.send(:default_port)

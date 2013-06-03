@@ -66,7 +66,8 @@ module NewRelic
 
     # Sets the @mongrel instance variable if we can find a Mongrel::HttpServer
     def mongrel
-      return @mongrel if @mongrel
+      return @mongrel if @looked_for_mongrel
+      @looked_for_mongrel = true
       if defined?(::Mongrel) && defined?(::Mongrel::HttpServer) && working_jruby?
         @mongrel = find_class_in_object_space(::Mongrel::HttpServer)
       end
@@ -129,7 +130,6 @@ module NewRelic
       @discovered_dispatcher = :mongrel
 
       # Get the port from the server if it's started
-
       if mongrel && mongrel.respond_to?(:port)
         @dispatcher_instance_id = mongrel.port.to_s
       end
@@ -143,6 +143,9 @@ module NewRelic
 
       # Still can't find the port.  Let's look at ARGV to fall back
       @dispatcher_instance_id = default_port if @dispatcher_instance_id.nil?
+
+      # Might not have server yet, so allow one more check later on first request
+      @looked_for_mongrel = false
     end
 
     def check_for_unicorn
