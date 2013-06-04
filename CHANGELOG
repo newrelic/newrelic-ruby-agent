@@ -1,5 +1,16 @@
 # New Relic Ruby Agent Release Notes #
 
+  * Exception Whitelist
+
+  We've improved exception message handling for applications running in
+  high security mode. Enabling 'high_security' now removes exception messages
+  entirely rather than simply obfuscating any SQL.
+
+  By default this feature affects all exceptions, though you can configure a
+  whitelist of exceptions whose messages should be left intact.
+
+  More details: https://newrelic.com/docs/ruby/ruby-agent-configuration
+
 ## 3.6.3 ##
 
   * Better Sinatra Support
