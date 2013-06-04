@@ -161,7 +161,7 @@ module NewRelic
           begin
             @connections[config] = connector.call(config)
           rescue => e
-            ::NewRelic::Agent.logger.error("Caught exception trying to get connection to DB for explain. Control: #{config}", e)
+            ::NewRelic::Agent.logger.error("Caught exception trying to get connection to DB for explain.", e)
             nil
           end
         end
