@@ -15,12 +15,20 @@ module NewRelic
       class Manager
         extend Forwardable
         def_delegators :@cache, :[], :has_key?
-        attr_reader :config_stack # mainly for testing
+        attr_reader :config_stack, :stripped_exceptions_whitelist
 
         def initialize
           @config_stack = [ EnvironmentSource.new, DEFAULTS ]
           @cache = Hash.new {|hash,key| hash[key] = self.fetch(key) }
           @callbacks = Hash.new {|hash,key| hash[key] = [] }
+
+          register_callback(:'strip_exception_messages.whitelist') do |whitelist|
+            if whitelist
+              @stripped_exceptions_whitelist = parse_constant_list(whitelist).compact
+            else
+              @stripped_exceptions_whitelist = []
+            end
+          end
         end
 
         def apply_config(source, level=0)
@@ -145,6 +153,29 @@ module NewRelic
           ::NewRelic::Agent.logger.debug(
             "Updating config (#{direction}) from #{source.class}. Results:",
             flattened.inspect)
+        end
+
+        private
+
+        def parse_constant_list(list)
+          list.split(/\s*,\s*/).map do |class_name|
+            const = constantize(class_name)
+
+            unless const
+              NewRelic::Agent.logger.warn "Configuration referenced undefined constant: #{class_name}"
+            end
+
+            const
+          end
+        end
+
+        def constantize(class_name)
+          namespaces = class_name.split('::')
+
+          namespaces.inject(Object) do |namespace, name|
+            return unless namespace
+            namespace.const_get(name) if namespace.const_defined?(name)
+          end
         end
       end
     end
