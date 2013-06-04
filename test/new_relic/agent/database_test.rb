@@ -206,6 +206,6 @@ class NewRelic::Agent::DatabaseTest < Test::Unit::TestCase
       NewRelic::Agent::Database::ConnectionManager.instance.get_connection(config, &connector)
     end
 
-    assert_falsy error_log.array.first.include? 'VOLDEMORT'
+    refute error_log.array.first.include? 'VOLDEMORT'
   end
 end
