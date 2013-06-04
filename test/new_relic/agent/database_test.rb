@@ -198,4 +198,14 @@ class NewRelic::Agent::DatabaseTest < Test::Unit::TestCase
 
     NewRelic::Agent::Database.close_connections
   end
+
+  def test_manager_get_connection_does_not_log_configuration_details_on_error
+    config = "VOLDEMORT"
+    connector = Proc.new { raise }
+    error_log = with_array_logger(:error) do
+      NewRelic::Agent::Database::ConnectionManager.instance.get_connection(config, &connector)
+    end
+
+    assert_falsy error_log.array.first.include? 'VOLDEMORT'
+  end
 end
