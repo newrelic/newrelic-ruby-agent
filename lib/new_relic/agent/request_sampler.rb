@@ -102,6 +102,8 @@ class NewRelic::Agent::RequestSampler
     if @enabled
       NewRelic::Agent.logger.debug("Sampled #{sample_count} / #{request_count} (%.1f %%) requests this cycle" % (sample_count.to_f / request_count * 100.0))
       NewRelic::Agent.logger.debug("Sampled #{@sample_count_total} / #{@request_count_total} (%.1f %%) requests since startup" % (@sample_count_total.to_f / @request_count_total * 100.0))
+      NewRelic::Agent.record_metric('Supportability/RequestSampler/requests', request_count)
+      NewRelic::Agent.record_metric('Supportability/RequestSampler/samples', sample_count)
     end
   end
 
