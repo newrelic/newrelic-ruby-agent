@@ -15,6 +15,8 @@ module NewRelic
   class FakeCollector
     attr_accessor :agent_data, :mock
 
+    STATUS_MESSAGE = "The FakeCollector is rockin'"
+
     def initialize
       @id_counter = 0
       @base_expectations = {
@@ -73,6 +75,8 @@ module NewRelic
                                         :body         => body,
                                         :run_id       => run_id,
                                         :format       => format)
+      elsif uri.path =~ /status/
+        res.write STATUS_MESSAGE
       end
       res.finish
     end

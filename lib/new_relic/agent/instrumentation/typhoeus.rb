@@ -40,6 +40,14 @@ module NewRelic
       def [](key)
         @response.headers[key]
       end
+
+      def to_hash
+        hash = {}
+        @response.headers.each do |(k,v)|
+          hash[k] = v
+        end
+        hash
+      end
     end
 
     class TyphoeusHTTPRequest
