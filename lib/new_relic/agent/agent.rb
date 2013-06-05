@@ -45,8 +45,9 @@ module NewRelic
         @request_sampler       = NewRelic::Agent::RequestSampler.new(@events)
         @harvest_samplers      = NewRelic::Agent::SamplerCollection.new(@events)
 
-        @connect_state = :pending
-        @connect_attempts = 0
+        @connect_state      = :pending
+        @connect_attempts   = 0
+        @environment_report = nil
 
         @last_harvest_time = Time.now
         @obfuscator = lambda {|sql| NewRelic::Agent::Database.default_sql_obfuscator(sql) }
@@ -203,8 +204,7 @@ module NewRelic
           # Clear out stats that are left over from parent process
           reset_stats
 
-          # Don't ever check to see if this is a spawner.  If we're in a forked process
-          # I'm pretty sure we're not also forking new instances.
+          generate_environment_report
           start_worker_thread(options)
         end
 
@@ -463,6 +463,7 @@ module NewRelic
           def check_config_and_start_agent
             return unless monitoring? && has_correct_license_key?
             return if using_forking_dispatcher?
+            generate_environment_report
             connect_in_foreground if Agent.config[:sync_startup]
             start_worker_thread
             install_exit_handler
@@ -711,8 +712,15 @@ module NewRelic
             shutdown
           end
 
+          def generate_environment_report
+            @environment_report = environment_for_connect
+          end
+
           # Checks whether we should send environment info, and if so,
-          # returns the snapshot from the local environment
+          # returns the snapshot from the local environment.
+          # Generating the EnvironmentReport has the potential to trigger
+          # require calls in Rails environments, so this method should only
+          # be called synchronously from on the main thread.
           def environment_for_connect
             Agent.config[:send_environment_info] ? Array(EnvironmentReport.new) : []
           end
@@ -726,7 +734,7 @@ module NewRelic
               :app_name => Agent.config.app_names,
               :language => 'ruby',
               :agent_version => NewRelic::VERSION::STRING,
-              :environment => environment_for_connect,
+              :environment => @environment_report,
               :settings => Agent.config.to_collector_hash,
             }
           end
