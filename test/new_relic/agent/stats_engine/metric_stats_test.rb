@@ -120,10 +120,8 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
     in_transaction('scopey') do
       @engine.record_metrics('foo', 42)
     end
-    unscoped_stats = @engine.get_stats('foo', false)
-    scoped_stats = @engine.get_stats('foo', true, true, 'scopey')
-    assert_equal(1, unscoped_stats.call_count)
-    assert_equal(0, scoped_stats.call_count)
+    assert_metrics_recorded('foo' => { :call_count => 1, :total_call_time => 42 })
+    assert_metrics_not_recorded([['foo', 'scopey']])
   end
 
   def test_record_metrics_records_to_scoped_metric_if_requested
