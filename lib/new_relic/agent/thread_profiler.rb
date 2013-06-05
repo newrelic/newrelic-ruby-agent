@@ -140,7 +140,7 @@ EOF
 
           @worker_loop.run(@interval) do
             NewRelic::Agent.instance.stats_engine.
-              record_supportability_metrics_timed("ThreadProfiler/PollingTime") do
+              record_supportability_metric_timed("ThreadProfiler/PollingTime") do
 
               @poll_count += 1
               AgentThread.list.each do |t|
@@ -161,7 +161,7 @@ EOF
           mark_done
           ::NewRelic::Agent.logger.debug("Finished thread profile. #{@sample_count} backtraces, #{@failure_count} failures. Will send with next harvest.")
           NewRelic::Agent.instance.stats_engine.
-            record_supportability_metrics_count(@failure_count, "ThreadProfiler/BacktraceFailures")
+            record_supportability_metric_count("ThreadProfiler/BacktraceFailures", @failure_count)
         end
       end
 
@@ -197,7 +197,7 @@ EOF
         @flattened_nodes.sort!(&:order_for_pruning)
 
         NewRelic::Agent.instance.stats_engine.
-          record_supportability_metrics_count(@flattened_nodes.size, "ThreadProfiler/NodeCount")
+          record_supportability_metric_count("ThreadProfiler/NodeCount", @flattened_nodes.size)
 
         mark_for_pruning(@flattened_nodes, count_to_keep)
 

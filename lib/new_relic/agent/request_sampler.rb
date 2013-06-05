@@ -46,7 +46,6 @@ class NewRelic::Agent::RequestSampler
     @sample_rate_ms        = DEFAULT_SAMPLE_RATE_MS
     @normal_sample_rate_ms = @sample_rate_ms
     @last_sample_taken     = nil
-    @last_harvest          = nil
     @samples               = []
 
     @sample_count          = 0
@@ -97,16 +96,20 @@ class NewRelic::Agent::RequestSampler
       @last_sample_taken = Time.now
     end
 
-    @request_count_total += request_count
-    @sample_count_total  += sample_count
-    if @enabled
-      NewRelic::Agent.logger.debug("Sampled #{sample_count} / #{request_count} (%.1f %%) requests this cycle" % (sample_count.to_f / request_count * 100.0))
-      NewRelic::Agent.logger.debug("Sampled #{@sample_count_total} / #{@request_count_total} (%.1f %%) requests since startup" % (@sample_count_total.to_f / @request_count_total * 100.0))
-      NewRelic::Agent.record_metric('Supportability/RequestSampler/requests', request_count)
-      NewRelic::Agent.record_metric('Supportability/RequestSampler/samples', sample_count)
-    end
+    record_sampling_rate(request_count, sample_count) if @enabled
   end
 
+  def record_sampling_rate(request_count, sample_count)
+    @request_count_total += request_count
+    @sample_count_total  += sample_count
+
+    NewRelic::Agent.logger.debug("Sampled #{sample_count} / #{request_count} (%.1f %%) requests this cycle" % (sample_count.to_f / request_count * 100.0))
+    NewRelic::Agent.logger.debug("Sampled #{@sample_count_total} / #{@request_count_total} (%.1f %%) requests since startup" % (@sample_count_total.to_f / @request_count_total * 100.0))
+
+    engine = NewRelic::Agent.instance.stats_engine
+    engine.record_supportability_metric_count("RequestSampler/requests", request_count)
+    engine.record_supportability_metric_count("RequestSampler/samples", sample_count)
+  end
 
   #
   # :group: Event handlers
