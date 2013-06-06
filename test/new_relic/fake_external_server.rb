@@ -12,6 +12,7 @@ module NewRelic
 
     STATUS_MESSAGE = "<html><head><title>FakeExternalServer status</title></head><body>The FakeExternalServer is rockin'</body></html>"
 
+    @@port = nil
     @@requests = []
 
     def call(env)
@@ -34,11 +35,16 @@ module NewRelic
       @@requests
     end
 
-    # We generate a "unique" port for ourselves based off our pid
-    # If this logic changes, look for multiverse newrelic.yml files to update
-    # with it duplicated (since we can't easily pull this ruby into a yml)
+    # Use an ephemeral port to let the system pick. Close and reopen in our fake
+    # server machinery, so there is a brief race possible, but hoping it's better
+    # than our current "just-pick-a-port" strategy
     def self.determine_port
-      30_001 + ($$ % 10_000)
+      return @port unless @port.nil?
+
+      server = TCPServer.new('127.0.0.1', 0)
+      @port = server.addr[1]
+    ensure
+      server.close unless server.nil?
     end
 
     def determine_port
