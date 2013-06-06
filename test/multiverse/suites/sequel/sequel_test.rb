@@ -8,7 +8,12 @@
 require 'sequel'
 require 'test/unit'
 
-DB = Sequel.sqlite
+if defined?(JRuby)
+  DB = Sequel.connect('jdbc:sqlite::memory:')
+else
+  DB = Sequel.sqlite
+end
+
 DB.create_table( :users ) do
   primary_key :uid
   string :login
