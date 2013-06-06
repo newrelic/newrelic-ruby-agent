@@ -22,7 +22,7 @@ class SequelTest < Test::Unit::TestCase
   def test_it_doesnt_blow_up
     require 'newrelic_rpm'
 
-    u = User.create( login: 'jrandom', firstname: 'J. Random', lastname: 'Hacquer' )
+    u = User.create( :login => 'jrandom', :firstname => 'J. Random', :lastname => 'Hacquer' )
     assert u.is_a?( User ), "#{u} isn't a User"
   end
 
