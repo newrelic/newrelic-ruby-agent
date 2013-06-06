@@ -15,8 +15,6 @@ module NewRelic
   class FakeCollector
     attr_accessor :agent_data, :mock
 
-    STATUS_MESSAGE = "The FakeCollector is rockin'"
-
     def initialize
       @id_counter = 0
       @base_expectations = {
@@ -75,10 +73,6 @@ module NewRelic
                                         :body         => body,
                                         :run_id       => run_id,
                                         :format       => format)
-      elsif uri.path =~ /status/
-        in_transaction('test') do
-          res.write STATUS_MESSAGE
-        end
       end
       res.finish
     end
@@ -106,7 +100,7 @@ module NewRelic
       serve_on_port(port) do
         @thread = Thread.new do
           begin
-          ::Rack::Handler::WEBrick.run(NewRelic::Rack::AgentHooks.new(self),
+          ::Rack::Handler::WEBrick.run(self,
                                        :Port => port,
                                        :Logger => ::WEBrick::Log.new("/dev/null"),
                                        :AccessLog => [ ['/dev/null', ::WEBrick::AccessLog::COMMON_LOG_FORMAT] ]
