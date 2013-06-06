@@ -76,7 +76,9 @@ module NewRelic
                                         :run_id       => run_id,
                                         :format       => format)
       elsif uri.path =~ /status/
-        res.write STATUS_MESSAGE
+        in_transaction('test') do
+          res.write STATUS_MESSAGE
+        end
       end
       res.finish
     end
@@ -104,7 +106,7 @@ module NewRelic
       serve_on_port(port) do
         @thread = Thread.new do
           begin
-          ::Rack::Handler::WEBrick.run(self,
+          ::Rack::Handler::WEBrick.run(NewRelic::Rack::AgentHooks.new(self),
                                        :Port => port,
                                        :Logger => ::WEBrick::Log.new("/dev/null"),
                                        :AccessLog => [ ['/dev/null', ::WEBrick::AccessLog::COMMON_LOG_FORMAT] ]

@@ -87,16 +87,6 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
   end
 
 
-  def find_last_segment
-    builder = NewRelic::Agent.agent.transaction_sampler.builder
-    last_segment = nil
-    builder.current_segment.each_segment {|s| last_segment = s }
-
-    return last_segment
-  end
-
-
-
   #
   # Tests
   #
@@ -312,7 +302,7 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
       in_transaction('test') do
         Net::HTTP.get URI.parse('http://www.google.com/index.html')
 
-        last_segment = find_last_segment()
+        last_segment = find_last_transaction_segment()
         assert_includes last_segment.params.keys, :transaction_guid
         assert_equal TRANSACTION_GUID, last_segment.params[:transaction_guid]
       end
@@ -336,7 +326,7 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
       in_transaction('test') do
         Net::HTTP.get URI.parse('http://www.google.com/index.html')
 
-        last_segment = find_last_segment()
+        last_segment = find_last_transaction_segment()
         assert_includes last_segment.params.keys, :transaction_guid
         assert_equal TRANSACTION_GUID, last_segment.params[:transaction_guid]
       end
@@ -433,7 +423,7 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Test::Unit::Tes
     uri = 'http://www.google.com/index.html?foo=bar#fragment'
     in_transaction do 
       Net::HTTP.get URI.parse(uri)
-      last_segment = find_last_segment()
+      last_segment = find_last_transaction_segment()
       filtered_uri = 'http://www.google.com/index.html'
       assert_equal filtered_uri, last_segment.params[:uri]
     end

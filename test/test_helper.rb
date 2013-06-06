@@ -108,21 +108,6 @@ class Test::Unit::TestCase
   end
 end
 
-def with_config(config_hash, opts={})
-  opts = { :level => 0, :do_not_cast => false }.merge(opts)
-  if opts[:do_not_cast]
-    config = config_hash
-  else
-    config = NewRelic::Agent::Configuration::DottedHash.new(config_hash)
-  end
-  NewRelic::Agent.config.apply_config(config, opts[:level])
-  begin
-    yield
-  ensure
-    NewRelic::Agent.config.remove_config(config)
-  end
-end
-
 def with_verbose_logging
   orig_logger = NewRelic::Agent.logger
   $stderr.puts '', '---', ''
