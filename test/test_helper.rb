@@ -86,7 +86,8 @@ def default_service(stubbed_method_overrides = {})
     :error_data => nil,
     :transaction_sample_data => nil,
     :sql_trace_data => nil,
-    :get_agent_commands => []
+    :get_agent_commands => [],
+    :analytic_event_data => nil
   }
 
   service.stubs(stubbed_method_defaults.merge(stubbed_method_overrides))
