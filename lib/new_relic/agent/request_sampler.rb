@@ -22,6 +22,11 @@ class NewRelic::Agent::RequestSampler
   # :TODO: Get this from the agent instead?
   DEFAULT_REPORT_FREQUENCY = 60
 
+  # Regardless of whether #throttle is successfully called, we will store
+  # at most this many harvest-cycles worth of samples total, to avoid unbounded
+  # memory growth when there's a low-level failure talking to the collector.
+  MAX_FAILED_REPORT_RETENTION = 10
+
   # The namespace and keys of config values
   CONFIG_NAMESPACE = 'request_sampler'
   SAMPLE_RATE_KEY  = "#{CONFIG_NAMESPACE}.sample_rate_ms".to_sym
@@ -48,6 +53,7 @@ class NewRelic::Agent::RequestSampler
     @last_sample_taken     = nil
     @last_harvest          = nil
     @samples               = []
+    @notified_max_samples  = false
 
     event_listener.subscribe( :transaction_finished, &method(:on_transaction_finished) )
     self.register_config_callbacks
@@ -84,6 +90,7 @@ class NewRelic::Agent::RequestSampler
       @samples.clear
       @sample_rate_ms = @normal_sample_rate_ms
       @last_sample_taken = Time.now
+      @notified_max_samples = false
     end
   end
 
@@ -103,6 +110,8 @@ class NewRelic::Agent::RequestSampler
       end
 
       @normal_sample_rate_ms = rate_ms
+      @max_samples = calculate_max_samples
+      NewRelic::Agent.logger.debug "RequestSampler max_samples set to #{@max_samples}"
       self.reset
     end
 
@@ -176,10 +185,22 @@ class NewRelic::Agent::RequestSampler
   protected
   #########
 
+  def calculate_max_samples
+    max_samples_per_harvest = (DEFAULT_REPORT_FREQUENCY * 1000.0) / @normal_sample_rate_ms
+    max_samples_per_harvest * MAX_FAILED_REPORT_RETENTION
+  end
+
   # Returns +true+ if a sample added now should be kept based on the sample
   # frequency.
   def should_sample?
     return false unless @last_sample_taken
+    if @samples.size >= @max_samples
+      unless @notified_max_samples
+        NewRelic::Agent.logger.warn("Reached maximum of #{@max_samples} samples, ceasing collection")
+        @notified_max_samples = true
+      end
+      return false
+    end
     return ((Time.now - @last_sample_taken) * 1000).ceil >= @sample_rate_ms
   end
 
