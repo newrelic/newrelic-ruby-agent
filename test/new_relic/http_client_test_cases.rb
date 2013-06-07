@@ -62,6 +62,22 @@ module HttpClientTestCases
 
   # Tests
 
+  def test_validate_request_wrapper
+    req = request_instance
+    req.respond_to?(:type)
+    req.respond_to?(:host)
+    req.respond_to?(:method)
+    req.respond_to?(:[])
+    req.respond_to?(:[]=)
+    req.respond_to?(:filtered_uri)
+  end
+
+  def test_validate_response_wrapper
+    res = response_instance
+    res.respond_to?(:[])
+    res.respond_to?(:to_hash)
+  end
+
   def test_get
     res = get_response
 

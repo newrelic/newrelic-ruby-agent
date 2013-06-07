@@ -36,5 +36,13 @@ class NetHttpTest < Test::Unit::TestCase
     # to_s for Net::HTTP::Response will return the body string
     res.to_s
   end
+
+  def request_instance
+    NewRelic::Agent::NetHTTPRequest.new(nil, nil)
+  end
+
+  def response_instance
+    Net::HTTPResponse.new(nil, nil, nil)
+  end
 end
 

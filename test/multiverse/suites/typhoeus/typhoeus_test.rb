@@ -27,5 +27,14 @@ class TyphoeusTest < Test::Unit::TestCase
   def post_response
     Typhoeus.post(url, :body => "")
   end
+
+  def request_instance
+    NewRelic::Agent::TyphoeusHTTPRequest.new(Typhoeus::Request.new("http://newrelic.com"))
+  end
+
+  def response_instance
+    NewRelic::Agent::TyphoeusHTTPResponse.new(Typhoeus::Response.new)
+  end
+
 end
 
