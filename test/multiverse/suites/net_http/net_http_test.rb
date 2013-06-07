@@ -12,6 +12,10 @@ require File.join(File.dirname(__FILE__), "..", "..", "..", "agent_helper")
 class NetHttpTest < Test::Unit::TestCase
   include HttpClientTestCases
 
+  #
+  # Support for shared test cases
+  #
+
   def client_name
     "Net::HTTP"
   end
@@ -46,6 +50,30 @@ class NetHttpTest < Test::Unit::TestCase
 
   def response_instance
     Net::HTTPResponse.new(nil, nil, nil)
+  end
+
+  #
+  # Net::HTTP specific tests
+  #
+  def test_get__simple
+    Net::HTTP.get default_uri
+
+    assert_metrics_recorded([
+      'External/all',
+      'External/localhost/Net::HTTP/GET',
+      'External/allOther',
+      'External/localhost/all'
+    ])
+  end
+
+  # https://newrelic.atlassian.net/browse/RUBY-835
+  def test_direct_get_request_doesnt_double_count
+    http = Net::HTTP.new(default_uri.host, default_uri.port)
+    http.request(Net::HTTP::Get.new(default_uri.request_uri))
+
+    assert_metrics_recorded([
+      'External/localhost/Net::HTTP/GET'
+    ])
   end
 end
 
