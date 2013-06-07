@@ -6,6 +6,7 @@
 
 require 'rails/test_help'
 require './app'
+require File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper')
 
 class RequestStatsController < ApplicationController
   include Rails.application.routes.url_helpers
@@ -106,23 +107,6 @@ class RequestStatsTest < ActionController::TestCase
     return if object.is_a?( Time )
     assert_kind_of Time, Time.parse(object.to_s) rescue object
   end
-
-  # :TODO: Remove this if/when test_helper is available from multiverse tests
-  def with_config(config_hash, opts={})
-    opts = { :level => 0, :do_not_cast => false }.merge(opts)
-    if opts[:do_not_cast]
-      config = config_hash
-    else
-      config = NewRelic::Agent::Configuration::DottedHash.new(config_hash)
-    end
-    NewRelic::Agent.config.apply_config(config, opts[:level])
-    begin
-      yield
-    ensure
-      NewRelic::Agent.config.remove_config(config)
-    end
-  end
-
 
 end
 

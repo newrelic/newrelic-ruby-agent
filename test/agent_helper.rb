@@ -205,6 +205,21 @@ def in_web_transaction(name='dummy')
   end
 end
 
+def with_config(config_hash, opts={})
+  opts = { :level => 0, :do_not_cast => false }.merge(opts)
+  if opts[:do_not_cast]
+    config = config_hash
+  else
+    config = NewRelic::Agent::Configuration::DottedHash.new(config_hash)
+  end
+  NewRelic::Agent.config.apply_config(config, opts[:level])
+  begin
+    yield
+  ensure
+    NewRelic::Agent.config.remove_config(config)
+  end
+end
+
 def freeze_time(now=Time.now)
   Time.stubs(:now).returns(now)
 end
