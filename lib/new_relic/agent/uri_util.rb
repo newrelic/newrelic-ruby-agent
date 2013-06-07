@@ -12,28 +12,13 @@
 module NewRelic
   module Agent
     module URIUtil
-      def self.uri_from_connection_and_request(http, request)
-        parsed = case request.path
-        when /^https?:\/\//
-          URI(request.path)
-        else
-          scheme = http.use_ssl? ? 'https' : 'http'
-          URI("#{scheme}://#{http.address}:#{http.port}#{request.path}")
-        end
-      end
-
-      def self.filtered_uri_for(http, request)
-        parsed = uri_from_connection_and_request(http, request)
-        filter_uri(parsed)
-      end
-
-      def self.filter_uri(uri)
-        parsed = uri.dup
-        parsed.user = nil
-        parsed.password = nil
-        parsed.query = nil
-        parsed.fragment = nil
-        parsed.to_s
+      def self.filter_uri(original)
+        filtered = original.dup
+        filtered.user = nil
+        filtered.password = nil
+        filtered.query = nil
+        filtered.fragment = nil
+        filtered.to_s
       end
     end
   end

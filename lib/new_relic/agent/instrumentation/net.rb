@@ -68,7 +68,13 @@ module NewRelic
       end
 
       def uri
-        ::NewRelic::Agent::URIUtil.uri_from_connection_and_request(@connection, @request)
+        case @request.path
+        when /^https?:\/\//
+          URI(@request.path)
+        else
+          scheme = @connection.use_ssl? ? 'https' : 'http'
+          URI("#{scheme}://#{@connection.address}:#{@connection.port}#{@request.path}")
+        end
       end
     end
   end
