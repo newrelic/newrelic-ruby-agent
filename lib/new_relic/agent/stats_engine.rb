@@ -21,11 +21,10 @@ module NewRelic
         Thread::current[:newrelic_scope_stack] = nil
         @stats_lock = Mutex.new
         @stats_hash = StatsHash.new
-        start_sampler_thread
       end
 
       # All access to the @stats_hash ivar should be funnelled through this
-      # method to ensure thread-safety. 
+      # method to ensure thread-safety.
       def with_stats_lock
         @stats_lock.synchronize { yield }
       end

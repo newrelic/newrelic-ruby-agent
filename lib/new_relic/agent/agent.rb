@@ -17,6 +17,7 @@ require 'new_relic/agent/thread_profiler'
 require 'new_relic/agent/event_listener'
 require 'new_relic/agent/cross_app_monitor'
 require 'new_relic/agent/request_sampler'
+require 'new_relic/agent/sampler_collection'
 require 'new_relic/environment_report'
 
 module NewRelic
@@ -42,6 +43,7 @@ module NewRelic
         @transaction_rules     = NewRelic::Agent::RulesEngine.new
         @metric_rules          = NewRelic::Agent::RulesEngine.new
         @request_sampler       = NewRelic::Agent::RequestSampler.new(@events)
+        @harvest_samplers      = NewRelic::Agent::SamplerCollection.new(@events)
 
         @connect_state = :pending
         @connect_attempts = 0
@@ -79,6 +81,7 @@ module NewRelic
         attr_reader :thread_profiler
         # error collector is a simple collection of recorded errors
         attr_reader :error_collector
+        attr_reader :harvest_samplers
         # whether we should record raw, obfuscated, or no sql
         attr_reader :record_sql
         # a configuration for the Real User Monitoring system -
@@ -196,8 +199,7 @@ module NewRelic
 
           ::NewRelic::Agent.logger.debug "Starting the worker thread in #{$$} after forking."
 
-          # Clear out state for any objects that we know lock from our parents
-          reset_locks
+          reset_objects_with_locks
 
           # Clear out stats that are left over from parent process
           reset_stats
@@ -205,7 +207,6 @@ module NewRelic
           # Don't ever check to see if this is a spawner.  If we're in a forked process
           # I'm pretty sure we're not also forking new instances.
           start_worker_thread(options)
-          @stats_engine.start_sampler_thread
         end
 
         # True if we have initialized and completed 'start'
@@ -482,7 +483,7 @@ module NewRelic
           end
 
           unless app_name_configured?
-            NewRelic::Agent.logger.error "No application name configured. ",
+            NewRelic::Agent.logger.error "No application name configured.",
               "The Agent cannot start without at least one. Please check your ",
               "newrelic.yml and ensure that it is valid and has at least one ",
               "value set for app_name in the #{NewRelic::Control.instance.env} ",
@@ -515,26 +516,15 @@ module NewRelic
           @launch_time = Time.now
         end
 
-        def reset_locks
+        # Clear out state for any objects that we know lock from our parents
+        # This is necessary for cases where we're in a forked child and Ruby
+        # might be holding locks for background thread that aren't there anymore.
+        def reset_objects_with_locks
           @stats_engine = NewRelic::Agent::StatsEngine.new
         end
 
         def add_harvest_sampler(subclass)
-          begin
-            ::NewRelic::Agent.logger.debug "#{subclass.name} not supported on this platform." and return unless subclass.supported_on_this_platform?
-            sampler = subclass.new
-            if subclass.use_harvest_sampler?
-              stats_engine.add_harvest_sampler sampler
-              ::NewRelic::Agent.logger.debug "Registered #{subclass.name} for harvest time sampling"
-            else
-              stats_engine.add_sampler sampler
-              ::NewRelic::Agent.logger.debug "Registered #{subclass.name} for periodic sampling"
-            end
-          rescue NewRelic::Agent::Sampler::Unsupported => e
-            ::NewRelic::Agent.logger.info "#{subclass} sampler not available: #{e}"
-          rescue => e
-            ::NewRelic::Agent.logger.error "Error registering sampler:", e
-          end
+          @harvest_samplers.add_sampler(subclass)
         end
 
         private
@@ -1053,6 +1043,7 @@ module NewRelic
           now = Time.now
           ::NewRelic::Agent.logger.debug "Sending data to New Relic Service"
 
+          @events.notify(:before_harvest)
           @service.session do # use http keep-alive
             harvest_and_send_errors
             harvest_and_send_slowest_sample

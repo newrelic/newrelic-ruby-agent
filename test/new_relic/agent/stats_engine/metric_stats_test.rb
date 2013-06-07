@@ -120,10 +120,8 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
     in_transaction('scopey') do
       @engine.record_metrics('foo', 42)
     end
-    unscoped_stats = @engine.get_stats('foo', false)
-    scoped_stats = @engine.get_stats('foo', true, true, 'scopey')
-    assert_equal(1, unscoped_stats.call_count)
-    assert_equal(0, scoped_stats.call_count)
+    assert_metrics_recorded('foo' => { :call_count => 1, :total_call_time => 42 })
+    assert_metrics_not_recorded([['foo', 'scopey']])
   end
 
   def test_record_metrics_records_to_scoped_metric_if_requested
@@ -192,5 +190,43 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
     end
 
     assert_equal 1, @engine.lookup_stats('foo').call_count
+  end
+
+  def test_record_supportability_metric_timed_records_duration_of_block
+    freeze_time
+    2.times do
+      @engine.record_supportability_metric_timed('foo/bar') { advance_time(2.0) }
+    end
+
+    assert_metrics_recorded(['Supportability/foo/bar'] => {
+      :call_count => 2,
+      :total_call_time => 4.0
+    })
+  end
+
+  def test_record_supportability_metric_timed_does_not_break_when_block_raises
+    begin
+      freeze_time
+      @engine.record_supportability_metric_timed('foo/bar') do
+        advance_time(2.0)
+        1 / 0
+      end
+    rescue ZeroDivisionError
+      nil
+    end
+
+    assert_metrics_recorded(['Supportability/foo/bar'] => {
+      :call_count => 1,
+      :total_call_time => 2.0
+    })
+  end
+
+  def test_record_supportability_metric_count_records_counts_only
+    @engine.record_supportability_metric_count('foo/bar', 1)
+    @engine.record_supportability_metric_count('foo/bar', 42)
+    assert_metrics_recorded(['Supportability/foo/bar'] => {
+      :call_count => 42,
+      :total_call_time => 0
+    })
   end
 end

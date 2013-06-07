@@ -207,7 +207,7 @@ module NewRelic
 
           def has_parent?
             NewRelic::Agent::Transaction.current &&
-              NewRelic::Agent::Transaction.current.has_parent?
+              NewRelic::Agent::Transaction.current.parent
           end
 
           def metrics_for_parent_transaction(first_name, options)
@@ -225,8 +225,9 @@ module NewRelic
             end
 
             parent_metrics = metrics_for_parent_transaction(first_name, options)
+            parent_txn = NewRelic::Agent::Transaction.current.parent
             parent_metrics.each do |metric|
-              stat_engine.transaction_stats_stack[-2].record(metric) do |stats|
+              parent_txn.stats_hash.record(metric) do |stats|
                 stats.record_data_point(duration, exclusive)
               end
             end
@@ -240,7 +241,7 @@ module NewRelic
           # this method fails safely if the header does not manage to
           # push the scope onto the stack - it simply does not trace
           # any metrics.
-          def trace_execution_scoped_footer(t0, first_name, metric_names, expected_scope, scope, options, t1=Time.now.to_f)
+          def trace_execution_scoped_footer(t0, first_name, metric_names, expected_scope, options, t1=Time.now.to_f)
             log_errors("trace_method_execution footer") do
               pop_flag!(options[:force])
               if expected_scope
@@ -267,12 +268,11 @@ module NewRelic
             set_if_nil(options, :deduct_call_time_from_parent)
             metric_names = Array(metric_names)
             first_name = metric_names.shift
-            scope = stat_engine.scope_name
             start_time, expected_scope = trace_execution_scoped_header(options)
             begin
               yield
             ensure
-              trace_execution_scoped_footer(start_time, first_name, metric_names, expected_scope, scope, options)
+              trace_execution_scoped_footer(start_time, first_name, metric_names, expected_scope, options)
             end
           end
 

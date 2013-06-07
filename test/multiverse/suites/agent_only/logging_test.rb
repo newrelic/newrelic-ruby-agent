@@ -22,7 +22,7 @@ class LoggingTest < Test::Unit::TestCase
   def test_logs_error_with_bad_app_name
     running_agent_writes_to_log( 
        {:app_name => false},
-        "Unable to determine application name.")
+        "No application name configured.")
   end
 
   def test_logs_dispatcher

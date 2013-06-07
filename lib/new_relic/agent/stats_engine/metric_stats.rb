@@ -74,27 +74,28 @@ module NewRelic
         end
 
         # Helper method for timing supportability metrics
-        def record_supportability_metrics_timed(metric)
+        def record_supportability_metric_timed(metric)
           start_time = Time.now
           yield
-          end_time = Time.now
-          duration = (end_time - start_time).to_f
         ensure
-          ::NewRelic::Agent.record_metric(metric, duration)
+          duration = (Time.now - start_time).to_f
+          record_supportability_metric(metric, duration)
         end
 
         # Helper for recording a straight value into the count
-        def record_supportability_metrics_count(value, *metrics)
-          record_metrics(metrics) do |stat|
+        def record_supportability_metric_count(metric, value)
+          record_supportability_metric(metric) do |stat|
             stat.call_count = value
           end
         end
 
         # Helper method for recording supportability metrics consistently
-        def record_supportability_metrics(value, *metrics)
-          real_names = metrics.map { |name| "Supportability/#{name}" }
-          NewRelic::Agent.agent.record_metric(real_names) do |stat|
-            yield stat
+        def record_supportability_metric(metric, value=nil)
+          real_name = "Supportability/#{metric}"
+          if block_given?
+            record_metrics(real_name) { |stat| yield stat }
+          else
+            record_metrics(real_name, value)
           end
         end
 
@@ -118,7 +119,6 @@ module NewRelic
         # unsent metrics, clear out stats cache, and return the current
         # stats.
         def harvest_timeslice_data(old_stats_hash, rules_engine=RulesEngine.new)
-          poll harvest_samplers
           snapshot = reset_stats
           snapshot = apply_rules_to_metric_data(rules_engine, snapshot)
           snapshot.merge!(old_stats_hash)

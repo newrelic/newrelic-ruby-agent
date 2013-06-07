@@ -13,6 +13,7 @@ module NewRelic
         super
         @agent = NewRelic::Agent::Agent.new
         @agent.service = default_service
+        @agent.stubs(:start_worker_thread)
       end
 
       #
@@ -63,6 +64,13 @@ module NewRelic
 
           assert old_engine != @agent.stats_engine, "Still got our old engine around!"
         end
+      end
+
+      def test_transmit_data_should_emit_before_harvest_event
+        got_it = false
+        @agent.events.subscribe(:before_harvest) { got_it = true }
+        @agent.instance_eval { transmit_data }
+        assert(got_it)
       end
 
       def test_transmit_data_should_transmit
@@ -323,7 +331,7 @@ module NewRelic
         logmsg = logdev.array.first.gsub(/\n/, '')
 
         assert !@agent.started?, "agent was started"
-        assert_match( /Please check your newrelic\.yml/i, logmsg )
+        assert_match( /No application name configured/i, logmsg )
       end
 
     end

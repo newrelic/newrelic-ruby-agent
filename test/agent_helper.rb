@@ -154,6 +154,16 @@ def assert_metrics_not_recorded(not_expected)
   assert_equal([], found_but_not_expected, "Found unexpected metrics: [#{found_but_not_expected.join(', ')}]")
 end
 
+def assert_truthy(expected, msg = nil)
+  msg = build_message( msg, "Expected ? to be truthy", expected )
+  assert_block( msg ) { expected }
+end
+
+def assert_falsy(expected, msg = nil)
+  msg = build_message( msg, "Expected ? to be falsy", expected )
+  assert_block( msg ) { !expected }
+end
+
 # Mock up a transaction for testing purposes, optionally specifying a name and
 # transaction type. The given block will be executed within the context of the
 # dummy transaction.

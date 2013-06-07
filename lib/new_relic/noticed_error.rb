@@ -10,12 +10,14 @@ class NewRelic::NoticedError
   attr_accessor :path, :timestamp, :params, :exception_class, :message
   attr_reader :exception_id
 
+  STRIPPED_EXCEPTION_REPLACEMENT_MESSAGE = "Message removed by New Relic 'strip_exception_messages' setting"
+
   def initialize(path, data, exception, timestamp = Time.now)
     @exception_id = exception.object_id
     @path = path
     @params = NewRelic::NoticedError.normalize_params(data)
 
-    @exception_class = exception.is_a?(Exception) ? exception.class.name : 'Error'
+    @exception_class = exception.class
 
     if exception.respond_to?('original_exception')
       @message = exception.original_exception.message.to_s
@@ -34,18 +36,24 @@ class NewRelic::NoticedError
     # clamp long messages to 4k so that we don't send a lot of
     # overhead across the wire
     @message = @message[0..4095] if @message.length > 4096
-    
-    # obfuscate error message if necessary
-    if NewRelic::Agent.config[:high_security]
-      @message = NewRelic::Agent::Database.obfuscate_sql(@message)
+
+    # replace error message if enabled
+    if NewRelic::Agent.config[:'strip_exception_messages.enabled'] && !whitelisted?
+      @message = STRIPPED_EXCEPTION_REPLACEMENT_MESSAGE
     end
-    
+
     @timestamp = timestamp
+  end
+
+  def whitelisted?
+    NewRelic::Agent.config.stripped_exceptions_whitelist.find do |klass|
+      exception_class <= klass
+    end
   end
 
   def ==(other)
     if other.respond_to?(:exception_id)
-      @exception_id == other.exception_id
+      exception_id == other.exception_id
     else
       false
     end
@@ -53,11 +61,19 @@ class NewRelic::NoticedError
 
   include NewRelic::Coerce
 
+  def exception_name_for_collector
+    if exception_class < Exception
+      exception_class.name
+    else
+      'Error'
+    end
+  end
+
   def to_collector_array(encoder=nil)
-    [ NewRelic::Helper.time_to_millis(@timestamp),
-      string(@path),
-      string(@message),
-      string(@exception_class),
-      @params ]
+    [ NewRelic::Helper.time_to_millis(timestamp),
+      string(path),
+      string(message),
+      string(exception_name_for_collector),
+      params ]
   end
 end
