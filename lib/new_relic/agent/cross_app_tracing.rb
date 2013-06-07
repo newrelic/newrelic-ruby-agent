@@ -146,7 +146,7 @@ module NewRelic
       end
 
       def add_transaction_trace_parameters(request, response)
-        filtered_uri = ::NewRelic::Agent::URIUtil.filter_uri(request.uri)
+        filtered_uri = ::NewRelic::Agent::HTTPClients::URIUtil.filter_uri(request.uri)
         transaction_sampler.add_segment_parameters(:uri => filtered_uri)
         if response_is_crossapp?( response )
           add_cat_transaction_trace_parameters( response )

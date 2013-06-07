@@ -11,14 +11,18 @@
 
 module NewRelic
   module Agent
-    module URIUtil
-      def self.filter_uri(original)
-        filtered = original.dup
-        filtered.user = nil
-        filtered.password = nil
-        filtered.query = nil
-        filtered.fragment = nil
-        filtered.to_s
+    module HTTPClients
+      module URIUtil
+
+        def self.filter_uri(original)
+          filtered = original.dup
+          filtered.user = nil
+          filtered.password = nil
+          filtered.query = nil
+          filtered.fragment = nil
+          filtered.to_s
+        end
+
       end
     end
   end

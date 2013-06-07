@@ -12,6 +12,7 @@ DependencyDetection.defer do
   executes do
     ::NewRelic::Agent.logger.info 'Installing Net instrumentation'
     require 'new_relic/agent/cross_app_tracing'
+    require 'new_relic/agent/http_clients/net_http_wrappers'
   end
 
   executes do
@@ -24,7 +25,7 @@ DependencyDetection.defer do
       # Don't tracing until the inner call then to avoid double-counting.
       def request_with_newrelic_trace(request, *args, &block)
         if started?
-          wrapped_request = NewRelic::Agent::NetHTTPRequest.new(self, request)
+          wrapped_request = NewRelic::Agent::HTTPClients::NetHTTPRequest.new(self, request)
           NewRelic::Agent::CrossAppTracing.trace_http_request( wrapped_request ) do
             request_without_newrelic_trace( request, *args, &block )
           end
@@ -35,47 +36,6 @@ DependencyDetection.defer do
 
       alias request_without_newrelic_trace request
       alias request request_with_newrelic_trace
-    end
-  end
-end
-
-module NewRelic
-  module Agent
-    class NetHTTPRequest
-      def initialize(connection, request)
-        @connection = connection
-        @request = request
-      end
-
-      def type
-        'Net::HTTP'
-      end
-
-      def host
-        @connection.address
-      end
-
-      def method
-        @request.method
-      end
-
-      def [](key)
-        @request[key]
-      end
-
-      def []=(key, value)
-        @request[key] = value
-      end
-
-      def uri
-        case @request.path
-        when /^https?:\/\//
-          URI(@request.path)
-        else
-          scheme = @connection.use_ssl? ? 'https' : 'http'
-          URI("#{scheme}://#{@connection.address}:#{@connection.port}#{@request.path}")
-        end
-      end
     end
   end
 end

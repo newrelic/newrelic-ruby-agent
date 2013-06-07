@@ -29,11 +29,11 @@ class TyphoeusTest < Test::Unit::TestCase
   end
 
   def request_instance
-    NewRelic::Agent::TyphoeusHTTPRequest.new(Typhoeus::Request.new("http://newrelic.com"))
+    NewRelic::Agent::HTTPClients::TyphoeusHTTPRequest.new(Typhoeus::Request.new("http://newrelic.com"))
   end
 
   def response_instance
-    NewRelic::Agent::TyphoeusHTTPResponse.new(Typhoeus::Response.new)
+    NewRelic::Agent::HTTPClients::TyphoeusHTTPResponse.new(Typhoeus::Response.new)
   end
 
 end

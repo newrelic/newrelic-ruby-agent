@@ -98,7 +98,7 @@ module NewRelic
     require 'new_relic/agent/transaction_info'
     require 'new_relic/agent/configuration'
     require 'new_relic/agent/rules_engine'
-    require 'new_relic/agent/uri_util'
+    require 'new_relic/agent/http_clients/uri_util'
     require 'new_relic/agent/system_info'
 
     require 'new_relic/agent/instrumentation/controller_instrumentation'

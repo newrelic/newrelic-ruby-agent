@@ -11,74 +11,19 @@ DependencyDetection.defer do
 
   executes do
     ::NewRelic::Agent.logger.info 'Installing Typhoeus instrumentation'
-    require 'uri'
     require 'new_relic/agent/cross_app_tracing'
+    require 'new_relic/agent/http_clients/typhoeus_wrappers'
   end
 
   executes do
     Typhoeus.before do |request|
       if NewRelic::Agent.is_execution_traced?
-        wrapped_request = ::NewRelic::Agent::TyphoeusHTTPRequest.new(request)
+        wrapped_request = ::NewRelic::Agent::HTTPClients::TyphoeusHTTPRequest.new(request)
         t0, segment = ::NewRelic::Agent::CrossAppTracing.start_trace(wrapped_request)
         request.on_complete do
-          wrapped_response = ::NewRelic::Agent::TyphoeusHTTPResponse.new(request.response)
+          wrapped_response = ::NewRelic::Agent::HTTPClients::TyphoeusHTTPResponse.new(request.response)
           ::NewRelic::Agent::CrossAppTracing.finish_trace(t0, segment, wrapped_request, wrapped_response)
         end
-      end
-    end
-  end
-end
-
-
-module NewRelic
-  module Agent
-    class TyphoeusHTTPResponse
-      def initialize(response)
-        @response = response
-      end
-
-      def [](key)
-        @response.headers[key]
-      end
-
-      def to_hash
-        hash = {}
-        @response.headers.each do |(k,v)|
-          hash[k] = v
-        end
-        hash
-      end
-    end
-
-    class TyphoeusHTTPRequest
-      def initialize(request)
-        @request = request
-        @uri = URI.parse(request.url)
-      end
-
-      def type
-        "Typhoeus"
-      end
-
-      def host
-        @uri.host
-      end
-
-      def method
-        (@request.options[:method] || 'GET').upcase
-      end
-
-      def [](key)
-        @request[key]
-      end
-
-      def []=(key, value)
-        @request.options[:headers] ||= {}
-        @request.options[:headers][key] = value
-      end
-
-      def uri
-        @uri
       end
     end
   end

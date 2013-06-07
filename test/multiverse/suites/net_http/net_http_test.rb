@@ -41,7 +41,7 @@ class NetHttpTest < Test::Unit::TestCase
   end
 
   def request_instance
-    NewRelic::Agent::NetHTTPRequest.new(nil, nil)
+    NewRelic::Agent::HTTPClients::NetHTTPRequest.new(nil, nil)
   end
 
   def response_instance

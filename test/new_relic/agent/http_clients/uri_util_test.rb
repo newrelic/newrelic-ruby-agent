@@ -2,9 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
-require 'new_relic/agent/agent_logger'
-require 'new_relic/agent/null_logger'
+require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require 'new_relic/agent/http_clients/uri_util'
 
 class URIUtilTest < Test::Unit::TestCase
 
@@ -59,7 +58,7 @@ class URIUtilTest < Test::Unit::TestCase
   end
 
   def assert_filtered(original, expected)
-    assert_equal(expected, NewRelic::Agent::URIUtil.filter_uri(URI(original)))
+    assert_equal(expected, NewRelic::Agent::HTTPClients::URIUtil.filter_uri(URI(original)))
   end
 
 end
