@@ -16,16 +16,16 @@ class TyphoeusTest < Test::Unit::TestCase
     "Typhoeus"
   end
 
-  def get_response
-    Typhoeus.get(url)
+  def get_response(url=nil)
+    Typhoeus.get(url || default_url)
   end
 
   def head_response
-    Typhoeus.head(url)
+    Typhoeus.head(default_url)
   end
 
   def post_response
-    Typhoeus.post(url, :body => "")
+    Typhoeus.post(default_url, :body => "")
   end
 
   def request_instance

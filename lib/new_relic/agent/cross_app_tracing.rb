@@ -61,8 +61,7 @@ module NewRelic
       # * method  - Return a String with the HTTP method name used for this request
       # * [](key) - Lookup an HTTP request header by name
       # * []=(key, val) - Set an HTTP request header by name
-      # * filtered_uri  - A filtered version of the full URI, as per
-      #                   NewRelic::Agent::URIUtil.filtered_uri_for
+      # * uri  - Full URI of the request
       def start_trace( request )
         inject_request_headers( request ) if cross_app_enabled?
 
@@ -147,7 +146,7 @@ module NewRelic
       end
 
       def add_transaction_trace_parameters(request, response)
-        filtered_uri = request.filtered_uri
+        filtered_uri = ::NewRelic::Agent::URIUtil.filter_uri(request.uri)
         transaction_sampler.add_segment_parameters(:uri => filtered_uri)
         if response_is_crossapp?( response )
           add_cat_transaction_trace_parameters( response )

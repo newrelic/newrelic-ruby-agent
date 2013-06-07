@@ -48,12 +48,12 @@ module HttpClientTestCases
 
   # Helpers to support shared tests
 
-  def url
+  def default_url
     "http://localhost:#{@server.determine_port}/status"
   end
 
-  def uri
-    URI.parse(url)
+  def default_uri
+    URI.parse(default_url)
   end
 
   def body(res)
@@ -69,7 +69,7 @@ module HttpClientTestCases
     req.respond_to?(:method)
     req.respond_to?(:[])
     req.respond_to?(:[]=)
-    req.respond_to?(:filtered_uri)
+    req.respond_to?(:uri)
   end
 
   def test_validate_response_wrapper
@@ -337,11 +337,11 @@ module HttpClientTestCases
   end
 
   def test_includes_full_url_in_transaction_trace
-    uri = "url?foo=bar#fragment"
+    full_url = "#{default_url}?foo=bar#fragment"
     in_transaction do
-      get_response
+      get_response(full_url)
       last_segment = find_last_transaction_segment()
-      filtered_uri = url
+      filtered_uri = default_url
       assert_equal filtered_uri, last_segment.params[:uri]
     end
   end

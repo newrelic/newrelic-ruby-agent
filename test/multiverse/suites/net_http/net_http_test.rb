@@ -16,19 +16,22 @@ class NetHttpTest < Test::Unit::TestCase
     "Net::HTTP"
   end
 
-  def get_response
+  def get_response(url=nil)
+    uri = default_uri
+    uri = URI.parse(url) unless url.nil?
+
     Net::HTTP.get uri
   end
 
   def head_response
-    Net::HTTP.start(uri.host, uri.port) {|http|
-      http.head(uri.path)
+    Net::HTTP.start(default_uri.host, default_uri.port) {|http|
+      http.head(default_uri.path)
     }
   end
 
   def post_response
-    Net::HTTP.start(uri.host, uri.port) {|http|
-      http.post(uri.path, "")
+    Net::HTTP.start(default_uri.host, default_uri.port) {|http|
+      http.post(default_uri.path, "")
     }
   end
 

@@ -24,6 +24,11 @@ module NewRelic
 
       def self.filtered_uri_for(http, request)
         parsed = uri_from_connection_and_request(http, request)
+        filter_uri(parsed)
+      end
+
+      def self.filter_uri(uri)
+        parsed = uri.dup
         parsed.user = nil
         parsed.password = nil
         parsed.query = nil

@@ -77,10 +77,8 @@ module NewRelic
         @request.options[:headers][key] = value
       end
 
-      def filtered_uri
-        # FIXME: not really filtered, need to refactor filtered_uri_for to work
-        # more generically.
-        @uri.to_s
+      def uri
+        @uri
       end
     end
   end

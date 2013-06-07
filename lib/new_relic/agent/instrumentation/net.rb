@@ -67,8 +67,8 @@ module NewRelic
         @request[key] = value
       end
 
-      def filtered_uri
-        ::NewRelic::Agent::URIUtil.filtered_uri_for(@connection, @request)
+      def uri
+        ::NewRelic::Agent::URIUtil.uri_from_connection_and_request(@connection, @request)
       end
     end
   end
