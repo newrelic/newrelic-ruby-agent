@@ -84,21 +84,21 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   end
 
   def test_connect_settings_have_environment_report
-    assert NewRelic::Agent.agent.connect_settings[:environment].detect{ |(k, v)|
+    NewRelic::Agent.agent.generate_environment_report
+    assert NewRelic::Agent.agent.connect_settings[:environment].detect{ |(k, _)|
       k == 'Gems'
     }, "expected connect_settings to include gems from environment"
   end
 
   def test_environment_for_connect_negative
     with_config(:send_environment_info => false) do
+      NewRelic::Agent.agent.generate_environment_report
       assert_equal [], NewRelic::Agent.agent.connect_settings[:environment]
     end
   end
 
   def test_connect_settings
-    control = mocked_control
     NewRelic::Agent.config.expects(:app_names)
-    self.expects(:environment_for_connect)
     keys = %w(pid host app_name language agent_version environment settings)
     value = connect_settings
     keys.each do |k|
