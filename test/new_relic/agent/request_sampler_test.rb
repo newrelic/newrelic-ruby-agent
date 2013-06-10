@@ -132,6 +132,16 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
     end
   end
 
+  def test_limits_total_sample_count_even_without_throttle
+    freeze_time
+    with_sampler_config( :'request_sampler.sample_rate_ms' => 60_000 ) do
+      15.times do
+        @event_listener.notify( :transaction_finished, 'Controller/foo/bar', 0.1)
+        advance_time(60.001)
+      end
+      assert_equal(10, @sampler.samples.size)
+    end
+  end
 
   #
   # Helpers
