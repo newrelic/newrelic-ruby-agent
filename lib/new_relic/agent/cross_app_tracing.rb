@@ -82,7 +82,10 @@ module NewRelic
       # The +request+ must conform to the same interface described in the documentation
       # for +start_trace+.
       #
-      # The +response+ must respond to +[](key)+ in order to read response headers.
+      # The +response+ must respond to the following methods:
+      #
+      # * [](key) - Reads response headers.
+      # * to_hash - Converts response headers to a Hash
       #
       def finish_trace( t0, segment, request, response )
         t1 = Time.now
