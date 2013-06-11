@@ -111,6 +111,7 @@ module HttpClientTestCases
   end
 
   def test_get
+    with_debug_logging do
     res = get_response
 
     assert_match %r/<head>/i, body(res)
@@ -120,6 +121,7 @@ module HttpClientTestCases
       "External/allOther",
       "External/localhost/all"
     ])
+    end
   end
 
   # Only some HTTP clients support explicit connection reuse, so this test
