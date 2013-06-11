@@ -23,13 +23,11 @@ class ResqueTest < Test::Unit::TestCase
     $redis.set('index_key', 0)
     Resque::Stat.clear('processed')
 
+    # From multiverse, we only run the Resque jobs inline to check that we
+    # are properly instrumenting the methods. Testing of the forking/backgrounding
+    # will be done in our upcoming end-to-end testing suites
     Resque.inline = true
-  end
 
-  # From multiverse, we only run the Resque jobs inline to check that we
-  # are properly instrumenting the methods. Testing of the forking/backgrounding
-  # will be done in our upcoming end-to-end testing suites
-  def run_worker(opts={})
     JOB_COUNT.times do |i|
       Resque.enqueue(JobForTesting, 'index_key', i + 1)
     end
@@ -37,14 +35,11 @@ class ResqueTest < Test::Unit::TestCase
     NewRelic::Agent.instance.send(:transmit_data)
   end
 
-
   def test_all_jobs_ran
-    run_worker
     assert_equal(JOB_COUNT, $redis.get('index_key').to_i)
   end
 
   def test_agent_posts_correct_metric_data
-    run_worker
     assert_metric_and_call_count('Instance/Busy', 1)
     assert_metric_and_call_count('OtherTransaction/ResqueJob/all', JOB_COUNT)
   end
