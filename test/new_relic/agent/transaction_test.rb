@@ -215,4 +215,27 @@ class NewRelic::Agent::TransactionTest < Test::Unit::TestCase
 
     assert_equal 2.1, options[:web_duration]
   end
+
+  def test_parent_returns_parent_transaction_if_there_is_one
+    txn, outer_txn = nil
+    in_transaction('outer') do
+      outer_txn = NewRelic::Agent::Transaction.current
+      in_transaction('inner') do
+        txn = NewRelic::Agent::Transaction.parent
+      end
+    end
+    assert_same(outer_txn, txn)
+  end
+
+  def test_parent_returns_nil_if_there_is_no_parent
+    txn = 'this is a non-nil placeholder'
+    in_transaction('outer') do
+      txn = NewRelic::Agent::Transaction.parent
+    end
+    assert_nil(txn)
+  end
+
+  def test_parent_returns_nil_if_outside_transaction_entirely
+    assert_nil(NewRelic::Agent::Transaction.parent)
+  end
 end

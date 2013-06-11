@@ -86,7 +86,8 @@ def default_service(stubbed_method_overrides = {})
     :error_data => nil,
     :transaction_sample_data => nil,
     :sql_trace_data => nil,
-    :get_agent_commands => []
+    :get_agent_commands => [],
+    :analytic_event_data => nil
   }
 
   service.stubs(stubbed_method_defaults.merge(stubbed_method_overrides))
@@ -105,21 +106,6 @@ class Test::Unit::TestCase
     def teardown
       mocha_teardown
     end
-  end
-end
-
-def with_config(config_hash, opts={})
-  opts = { :level => 0, :do_not_cast => false }.merge(opts)
-  if opts[:do_not_cast]
-    config = config_hash
-  else
-    config = NewRelic::Agent::Configuration::DottedHash.new(config_hash)
-  end
-  NewRelic::Agent.config.apply_config(config, opts[:level])
-  begin
-    yield
-  ensure
-    NewRelic::Agent.config.remove_config(config)
   end
 end
 

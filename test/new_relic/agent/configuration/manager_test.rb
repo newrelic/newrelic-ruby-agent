@@ -213,6 +213,16 @@ module NewRelic::Agent::Configuration
       assert_equal false, called
     end
 
+    def test_high_security_enables_strip_exception_messages
+      @manager.apply_config(:high_security => true)
+
+      assert_truthy @manager[:'strip_exception_messages.enabled']
+    end
+
+    def test_stripped_exceptions_whitelist_contains_only_valid_exception_classes
+      @manager.apply_config(:'strip_exception_messages.whitelist' => 'LocalJumpError, NonExistentException')
+      assert_equal [LocalJumpError], @manager.stripped_exceptions_whitelist
+    end
 
     def test_should_log_when_applying
       expects_logging(:debug, anything, includes("asdf"))

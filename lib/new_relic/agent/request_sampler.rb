@@ -22,6 +22,11 @@ class NewRelic::Agent::RequestSampler
   # :TODO: Get this from the agent instead?
   DEFAULT_REPORT_FREQUENCY = 60
 
+  # Regardless of whether #throttle is successfully called, we will store
+  # at most this many harvest-cycles worth of samples total, to avoid unbounded
+  # memory growth when there's a low-level failure talking to the collector.
+  MAX_FAILED_REPORT_RETENTION = 10
+
   # The namespace and keys of config values
   CONFIG_NAMESPACE = 'request_sampler'
   SAMPLE_RATE_KEY  = "#{CONFIG_NAMESPACE}.sample_rate_ms".to_sym
@@ -46,8 +51,13 @@ class NewRelic::Agent::RequestSampler
     @sample_rate_ms        = DEFAULT_SAMPLE_RATE_MS
     @normal_sample_rate_ms = @sample_rate_ms
     @last_sample_taken     = nil
-    @last_harvest          = nil
     @samples               = []
+    @notified_max_samples  = false
+
+    @sample_count          = 0
+    @request_count         = 0
+    @sample_count_total    = 0
+    @request_count_total   = 0
 
     event_listener.subscribe( :transaction_finished, &method(:on_transaction_finished) )
     self.register_config_callbacks
@@ -80,13 +90,33 @@ class NewRelic::Agent::RequestSampler
   def reset
     NewRelic::Agent.logger.debug "Resetting RequestSampler"
 
+    request_count = nil
+    sample_count = nil
+
     self.synchronize do
+      sample_count = @samples.size
+      request_count = @request_count
+      @request_count = 0
       @samples.clear
       @sample_rate_ms = @normal_sample_rate_ms
       @last_sample_taken = Time.now
+      @notified_max_samples = false
     end
+
+    record_sampling_rate(request_count, sample_count) if @enabled
   end
 
+  def record_sampling_rate(request_count, sample_count)
+    @request_count_total += request_count
+    @sample_count_total  += sample_count
+
+    NewRelic::Agent.logger.debug("Sampled #{sample_count} / #{request_count} (%.1f %%) requests this cycle" % (sample_count.to_f / request_count * 100.0))
+    NewRelic::Agent.logger.debug("Sampled #{@sample_count_total} / #{@request_count_total} (%.1f %%) requests since startup" % (@sample_count_total.to_f / @request_count_total * 100.0))
+
+    engine = NewRelic::Agent.instance.stats_engine
+    engine.record_supportability_metric_count("RequestSampler/requests", request_count)
+    engine.record_supportability_metric_count("RequestSampler/samples", sample_count)
+  end
 
   #
   # :group: Event handlers
@@ -103,6 +133,8 @@ class NewRelic::Agent::RequestSampler
       end
 
       @normal_sample_rate_ms = rate_ms
+      @max_samples = calculate_max_samples
+      NewRelic::Agent.logger.debug "RequestSampler max_samples set to #{@max_samples}"
       self.reset
     end
 
@@ -140,6 +172,7 @@ class NewRelic::Agent::RequestSampler
   # This method is synchronized.
   def <<( sample )
     self.synchronize do
+      @request_count += 1
       self.add_sample( sample ) if should_sample?
     end
 
@@ -176,10 +209,22 @@ class NewRelic::Agent::RequestSampler
   protected
   #########
 
+  def calculate_max_samples
+    max_samples_per_harvest = (DEFAULT_REPORT_FREQUENCY * 1000.0) / @normal_sample_rate_ms
+    max_samples_per_harvest * MAX_FAILED_REPORT_RETENTION
+  end
+
   # Returns +true+ if a sample added now should be kept based on the sample
   # frequency.
   def should_sample?
     return false unless @last_sample_taken
+    if @samples.size >= @max_samples
+      unless @notified_max_samples
+        NewRelic::Agent.logger.warn("Reached maximum of #{@max_samples} samples, ceasing collection")
+        @notified_max_samples = true
+      end
+      return false
+    end
     return ((Time.now - @last_sample_taken) * 1000).ceil >= @sample_rate_ms
   end
 

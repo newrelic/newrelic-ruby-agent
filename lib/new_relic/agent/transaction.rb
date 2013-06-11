@@ -23,6 +23,7 @@ module NewRelic
       attr_accessor(:type, :exceptions, :filtered_params, :force_flag,
                     :jruby_cpu_start, :process_cpu_start, :database_metric_name)
       attr_reader :name
+      attr_reader :stats_hash
 
       # Give the current transaction a request context.  Use this to
       # get the URI and referer.  The request is interpreted loosely
@@ -30,10 +31,13 @@ module NewRelic
       attr_accessor :request
 
 
-      # Return the currently active transaction, or nil.  Call with +true+
-      # to create a new transaction if one is not already on the thread.
+      # Return the currently active transaction, or nil.
       def self.current
         self.stack.last
+      end
+
+      def self.parent
+        self.stack[-2]
       end
 
       def self.start(transaction_type, options={})
@@ -44,9 +48,9 @@ module NewRelic
       end
 
       def self.stop(metric_name=nil, end_time=Time.now)
-        txn = self.stack.pop
+        txn = self.stack.last
         txn.stop(metric_name, end_time) if txn
-        return txn
+        return self.stack.pop
       end
 
       def self.stack
@@ -98,6 +102,7 @@ module NewRelic
         @force_flag = options[:force]
         @request = options[:request]
         @exceptions = {}
+        @stats_hash = StatsHash.new
         TransactionInfo.get.transaction = self
       end
 
@@ -119,6 +124,14 @@ module NewRelic
         @name_frozen
       end
 
+      def parent
+        has_parent? && self.class.stack[-2]
+      end
+
+      def root?
+        self.class.stack.size == 1
+      end
+
       def has_parent?
         self.class.stack.size > 1
       end
@@ -131,7 +144,6 @@ module NewRelic
 
         NewRelic::Agent::StatsEngine::GCProfiler.init
         agent.stats_engine.start_transaction
-        agent.stats_engine.push_transaction_stats
         transaction_sampler.notice_transaction(uri, filtered_params)
         sql_sampler.notice_transaction(uri, filtered_params)
       end
@@ -165,9 +177,8 @@ module NewRelic
         freeze_name
         log_underflow if @type.nil?
 
-        # these record metrics so need to be done before
-        # the pop
-        if self.class.stack.empty?
+        # these record metrics so need to be done before merging stats
+        if self.root?
           # this one records metrics and wants to happen
           # before the transaction sampler is finished
           if traced?
@@ -180,14 +191,18 @@ module NewRelic
         end
 
         record_exceptions
-        agent.stats_engine.pop_transaction_stats(@name)
+        merge_stats_hash
 
-        # these tear everything down so need to be done
-        # after the pop
-        if self.class.stack.empty?
+        # these tear everything down so need to be done after merging stats
+        if self.root?
           agent.events.notify(:transaction_finished, @name, end_time.to_f - start_time.to_f, overview_metrics)
           agent.stats_engine.end_transaction
         end
+      end
+
+      def merge_stats_hash
+        stats = stats_hash.resolve_scopes(@name)
+        NewRelic::Agent.instance.stats_engine.merge!(stats)
       end
 
       def record_exceptions
@@ -268,13 +283,12 @@ module NewRelic
         (current) ? current.user_attributes : {}
       end
 
-      def record_apdex(metric_name)
+      def record_apdex(metric_name, end_time=Time.now)
         return unless recording_web_transaction? && NewRelic::Agent.is_execution_traced?
         metric_parser = NewRelic::MetricParser::MetricParser \
           .for_metric_named(metric_name)
 
-        t = Time.now
-        self.class.record_apdex(metric_parser, t - start_time, t - apdex_start, exceptions.any?)
+        self.class.record_apdex(metric_parser, end_time - start_time, end_time - apdex_start, exceptions.any?)
       end
 
       # Yield to a block that is run with a database metric name context.  This means

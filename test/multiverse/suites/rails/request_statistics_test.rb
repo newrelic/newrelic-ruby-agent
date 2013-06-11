@@ -6,6 +6,7 @@
 
 require 'rails/test_help'
 require './app'
+require File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper')
 
 class RequestStatsController < ApplicationController
   include Rails.application.routes.url_helpers
@@ -43,12 +44,22 @@ class RequestStatsTest < ActionController::TestCase
   # Tests
   #
 
-  def test_is_disabled_by_default
+  def test_is_enabled_by_default
     200.times { get :stats_action }
 
     NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
 
-    assert_nil $collector.agent_data.find {|post| post.action == 'analytic_event_data' }
+    assert_equal 1, $collector.calls_for('analytic_event_data').length
+  end
+
+  def test_doesnt_send_when_disabled
+    with_config( :'request_sampler.enabled' => false ) do
+      200.times { get :stats_action }
+
+      NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
+
+      assert_equal 0, $collector.calls_for('analytic_event_data').length
+    end
   end
 
   def test_request_times_should_be_reported_if_enabled
@@ -57,7 +68,7 @@ class RequestStatsTest < ActionController::TestCase
 
       NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
 
-      post = $collector.agent_data.find {|post| post.action == 'analytic_event_data' }
+      post = $collector.calls_for('analytic_event_data').first
 
       assert_not_nil( post )
       assert_kind_of Array, post.body
@@ -96,23 +107,6 @@ class RequestStatsTest < ActionController::TestCase
     return if object.is_a?( Time )
     assert_kind_of Time, Time.parse(object.to_s) rescue object
   end
-
-  # :TODO: Remove this if/when test_helper is available from multiverse tests
-  def with_config(config_hash, opts={})
-    opts = { :level => 0, :do_not_cast => false }.merge(opts)
-    if opts[:do_not_cast]
-      config = config_hash
-    else
-      config = NewRelic::Agent::Configuration::DottedHash.new(config_hash)
-    end
-    NewRelic::Agent.config.apply_config(config, opts[:level])
-    begin
-      yield
-    ensure
-      NewRelic::Agent.config.remove_config(config)
-    end
-  end
-
 
 end
 
