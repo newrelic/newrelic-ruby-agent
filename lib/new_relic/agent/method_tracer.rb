@@ -206,8 +206,7 @@ module NewRelic
           end
 
           def has_parent?
-            NewRelic::Agent::Transaction.current &&
-              NewRelic::Agent::Transaction.current.parent
+            !NewRelic::Agent::Transaction.parent.nil?
           end
 
           def metrics_for_parent_transaction(first_name, options)
@@ -225,9 +224,8 @@ module NewRelic
             end
 
             parent_metrics = metrics_for_parent_transaction(first_name, options)
-            parent_txn = NewRelic::Agent::Transaction.current.parent
             parent_metrics.each do |metric|
-              parent_txn.stats_hash.record(metric) do |stats|
+              NewRelic::Agent::Transaction.parent.stats_hash.record(metric) do |stats|
                 stats.record_data_point(duration, exclusive)
               end
             end

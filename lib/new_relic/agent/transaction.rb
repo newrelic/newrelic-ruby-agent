@@ -31,10 +31,13 @@ module NewRelic
       attr_accessor :request
 
 
-      # Return the currently active transaction, or nil.  Call with +true+
-      # to create a new transaction if one is not already on the thread.
+      # Return the currently active transaction, or nil.
       def self.current
         self.stack.last
+      end
+
+      def self.parent
+        self.stack[-2]
       end
 
       def self.start(transaction_type, options={})
