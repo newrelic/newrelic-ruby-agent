@@ -2,17 +2,19 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper')
+
 class KeyTransactionsTest < Test::Unit::TestCase
   class TestWidget
     include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
-    def key_txn(t0)
-      Time.stubs(:now).returns(t0 + 5)
+    def key_txn
+      advance_time(5)
     end
     add_transaction_tracer :key_txn
 
-    def other_txn(t0)
-      Time.stubs(:now).returns(t0 + 5)
+    def other_txn
+      advance_time(5)
     end
     add_transaction_tracer :other_txn
   end
@@ -31,9 +33,7 @@ class KeyTransactionsTest < Test::Unit::TestCase
     NewRelic::Agent.manual_start(:sync_startup => true,
                                  :force_reconnect => true)
 
-    # Important that this be stubbed before any of our add_transaction_tracer's
-    # end up getting run in the test methods
-    @now = stub_time_now
+    freeze_time
   end
 
   def teardown
@@ -46,7 +46,7 @@ class KeyTransactionsTest < Test::Unit::TestCase
   FAILING    = 2
 
   def test_applied_correct_apdex_t_to_key_txn
-    TestWidget.new.key_txn(@now)
+    TestWidget.new.key_txn
     NewRelic::Agent.instance.send(:harvest_and_send_timeslice_data)
 
     stats = $collector.reported_stats_for_metric('Apdex')[0]
@@ -55,7 +55,7 @@ class KeyTransactionsTest < Test::Unit::TestCase
   end
 
   def test_applied_correct_apdex_t_to_regular_txn
-    TestWidget.new.other_txn(@now)
+    TestWidget.new.other_txn
     NewRelic::Agent.instance.send(:harvest_and_send_timeslice_data)
 
     stats = $collector.reported_stats_for_metric('Apdex')[0]
@@ -64,8 +64,8 @@ class KeyTransactionsTest < Test::Unit::TestCase
   end
 
   def test_applied_correct_tt_theshold
-    TestWidget.new.key_txn(@now)
-    TestWidget.new.other_txn(@now)
+    TestWidget.new.key_txn
+    TestWidget.new.other_txn
 
     NewRelic::Agent.instance.send(:harvest_and_send_slowest_sample)
 

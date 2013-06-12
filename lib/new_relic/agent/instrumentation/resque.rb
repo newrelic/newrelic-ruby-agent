@@ -34,7 +34,8 @@ DependencyDetection.defer do
                 yield(*args)
               end
             ensure
-              NewRelic::Agent.shutdown if NewRelic::LanguageSupport.can_fork?
+              NewRelic::Agent.shutdown if NewRelic::LanguageSupport.can_fork? &&
+                                          (!Resque.respond_to?(:inline) || !Resque.inline)
             end
           end
         end
