@@ -9,7 +9,6 @@
 require 'logger'
 require 'newrelic_rpm'
 require 'fake_collector'
-require 'mocha'
 
 class LoggingTest < Test::Unit::TestCase
 

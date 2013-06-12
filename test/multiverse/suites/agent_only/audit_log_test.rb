@@ -6,7 +6,6 @@
 
 require 'newrelic_rpm'
 require 'fake_collector'
-require 'mocha'
 
 class AuditLogTest < Test::Unit::TestCase
   # Initialization
