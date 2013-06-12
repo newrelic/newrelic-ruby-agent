@@ -3,6 +3,14 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 module NewRelic
   module Agent
+    DEFAULT_STATS = {
+      :call_count => 0,
+      :total_call_time => 0.0,
+      :total_exclusive_time => 0.0,
+      :min_call_time => 0.0,
+      :max_call_time => 0.0,
+      :sum_of_squares => 0.0
+    }
     class Stats
       attr_accessor :call_count
       attr_accessor :min_call_time
@@ -16,12 +24,12 @@ module NewRelic
       end
 
       def reset
-        @call_count = 0
-        @total_call_time = 0.0
-        @total_exclusive_time = 0.0
-        @min_call_time = 0.0
-        @max_call_time = 0.0
-        @sum_of_squares = 0.0
+        @call_count = DEFAULT_STATS[:call_count]
+        @total_call_time = DEFAULT_STATS[:total_call_time]
+        @total_exclusive_time = DEFAULT_STATS[:total_exclusive_time]
+        @min_call_time = DEFAULT_STATS[:min_call_time]
+        @max_call_time = DEFAULT_STATS[:max_call_time]
+        @sum_of_squares = DEFAULT_STATS[:sum_of_squares]
       end
 
       def is_reset?

@@ -186,12 +186,14 @@ module NewRelic
     def record_metric(metric_name, value)
       if value.is_a?(Hash)
         stats = NewRelic::Agent::Stats.new
-        stats.call_count = value[:count]
-        stats.total_call_time = value[:total]
-        stats.total_exclusive_time = value[:total]
-        stats.min_call_time = value[:min]
-        stats.max_call_time = value[:max]
-        stats.sum_of_squares = value[:sum_of_squares]
+        default_stats = NewRelic::Agent::DEFAULT_STATS
+
+        stats.call_count = value[:count] || default_stats[:call_count]
+        stats.total_call_time = value[:total] || default_stats[:total_call_time]
+        stats.total_exclusive_time = value[:total] || default_stats[:total_exclusive_time]
+        stats.min_call_time = value[:min] || default_stats[:min_call_time]
+        stats.max_call_time = value[:max] || default_stats[:max_call_time]
+        stats.sum_of_squares = value[:sum_of_squares] || default_stats[:sum_of_squares]
         value = stats
       end
       agent.stats_engine.record_metrics(metric_name, value)
