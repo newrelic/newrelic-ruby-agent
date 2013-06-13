@@ -8,7 +8,6 @@ module NewRelic
 
       class CurbRequest
         def initialize( curlobj )
-          @verb = verb
           @curlobj = curlobj
         end
 
@@ -21,14 +20,16 @@ module NewRelic
         end
 
         def method
-          raise "Need the HTTP verb"
+          @curlobj._nr_http_verb
         end
 
         def []( key )
+          NewRelic::Agent.logger.debug "Fetching request header %p" % [ key ]
           @curlobj.headers[ key ]
         end
 
         def []=( key, value )
+          NewRelic::Agent.logger.debug "Setting request header %p to %p" % [ key, value ]
           @curlobj.headers[ key ] = value
         end
 
