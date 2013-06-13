@@ -345,7 +345,7 @@ module NewRelic
         response
       rescue SystemCallError, SocketError => e
         # These include Errno connection errors
-        raise NewRelic::Agent::ServerConnectionException, "Recoverable error connecting to the server: #{e}"
+        raise NewRelic::Agent::ServerConnectionException, "Recoverable error connecting to #{@collector}: #{e}"
       end
 
 

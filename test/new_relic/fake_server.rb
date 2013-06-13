@@ -2,7 +2,9 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'webrick'
 require 'rack'
+require 'rack/handler'
 require 'timeout'
 
 require 'json' if RUBY_VERSION >= '1.9'
@@ -10,68 +12,75 @@ require 'json' if RUBY_VERSION >= '1.9'
 module NewRelic
   class FakeServer
 
-    def run(port=nil)
-      port ||= determine_port
+    # Use ephemeral ports by default
+    DEFAULT_PORT = 0
+
+    # Default server options
+    DEFAULT_OPTIONS = {
+      :Logger    => ::WEBrick::Log.new('/dev/null'),
+      :AccessLog => [ ['/dev/null', ''] ]
+    }
+
+
+
+    def initialize( port=DEFAULT_PORT )
+      @thread = nil
+
+      defaults = $DEBUG ? {} : DEFAULT_OPTIONS
+      @options = defaults.merge( :Port => port )
+
+      @server = WEBrick::HTTPServer.new( @options )
+      @server.mount "/", ::Rack::Handler.get( :webrick ), app
+    end
+
+
+    attr_reader :server
+
+    # Run the server, returning the Thread it is running in.
+    def run( port=nil )
       return if @thread && @thread.alive?
-      serve_on_port(port) do
-        @thread = Thread.new do
-          begin
-          ::Rack::Handler::WEBrick.run(app,
-                                       :Port => port,
-                                       :Logger => ::WEBrick::Log.new("/dev/null"),
-                                       :AccessLog => [ ['/dev/null', ::WEBrick::AccessLog::COMMON_LOG_FORMAT] ]
-                                      )
-          rescue Errno::EADDRINUSE => ex
-            msg = "Port #{port} for FakeExternalServer was in use"
-            if !@seen_port_failure
-              # This is slow, so only do it the first collision we detect
-              lsof = `lsof | grep #{port}`
-              msg = msg + "\n#{lsof}"
-              @seen_port_failure = true
-            end
-
-            raise Errno::EADDRINUSE.new(msg)
-          end
-        end
-        @thread.abort_on_exception = true
-      end
+      @server.listen( @options[:BindAddress], port ) if port
+      @server.listen( @options[:BindAddress], fallback_port )
+      @thread = Thread.new( &self.method(:run_server) )
+      return @thread
     end
 
-    @seen_port_failure = false
 
-    def serve_on_port(port)
-      port ||= determine_port
-      if is_port_available?('127.0.0.1', port)
-        yield
-        loop do
-          break if !is_port_available?('127.0.0.1', port)
-          sleep 0.01
-        end
-      end
+    # Thread routine for running the server.
+    def run_server
+      Thread.current.abort_on_exception = true
+      @server.start
     end
+
 
     def stop
       return unless @thread.alive?
-      ::Rack::Handler::WEBrick.shutdown
+      @server.shutdown
+      @server = nil
       @thread.join
       reset
     end
 
-    def is_port_available?(ip, port)
-      begin
-        Timeout::timeout(1) do
-          begin
-            s = TCPSocket.new(ip, port)
-            s.close
-            return false
-          rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH
-            return true
-          end
-        end
-      rescue Timeout::Error
-      end
 
-      return true
+    def ports
+      @server.listeners.map {|sock| sock.addr[1] }
     end
+
+    def port
+      self.ports.first
+    end
+    alias_method :determine_port, :port
+
+
+    #######
+    private
+    #######
+
+    # Return the port that will be the default if the collector hasn't been
+    # created.
+    def fallback_port
+      30_000 + ($$ % 10_000)
+    end
+
   end
 end

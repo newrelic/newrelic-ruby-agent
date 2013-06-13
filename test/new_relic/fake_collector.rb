@@ -17,6 +17,7 @@ module NewRelic
     attr_accessor :agent_data, :mock
 
     def initialize
+      super
       @id_counter = 0
       @base_expectations = {
         'get_redirect_host'       => [200, {'return_value' => 'localhost'}],
@@ -46,6 +47,7 @@ module NewRelic
       req = ::Rack::Request.new(env)
       res = ::Rack::Response.new
       uri = URI.parse(req.url)
+
       if uri.path =~ /agent_listener\/\d+\/.+\/(\w+)/
         method = $1
         format = json_format?(uri) && RUBY_VERSION >= '1.9' ? :json : :pruby
@@ -86,17 +88,6 @@ module NewRelic
 
     def json_format?(uri)
       uri.query && uri.query.include?('marshal_format=json')
-    end
-
-    # We generate a "unique" port for ourselves based off our pid
-    # If this logic changes, look for multiverse newrelic.yml files to update
-    # with it duplicated (since we can't easily pull this ruby into a yml)
-    def self.determine_port
-      30_000 + ($$ % 10_000)
-    end
-
-    def determine_port
-      FakeCollector.determine_port
     end
 
     def app
@@ -199,22 +190,6 @@ module NewRelic
     end
   end
 
-  # might we need this?  I'll just leave it here for now
-  class FakeCollectorProcess < FakeCollector
-    def run(port)
-      serve_on_port(port) do
-        @pid = Process.fork do
-          ::Rack::Handler::WEBrick.run(self, :Port => port)
-        end
-      end
-    end
-
-    def stop
-      return unless @pid
-      Process.kill('QUIT', @pid)
-      Process.wait(@pid)
-    end
-  end
 end
 
 if $0 == __FILE__

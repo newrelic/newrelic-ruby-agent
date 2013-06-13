@@ -13,10 +13,11 @@ module HttpClientTestCases
 
   TRANSACTION_GUID = 'BEC1BC64675138B9'
 
+  $fake_server = NewRelic::FakeExternalServer.new
+
   def setup
-    @server ||= NewRelic::FakeExternalServer.new
-    @server.reset
-    @server.run
+    $fake_server.reset
+    $fake_server.run
 
     NewRelic::Agent.manual_start(
       :"cross_application_tracer.enabled" => false,
@@ -49,7 +50,7 @@ module HttpClientTestCases
   # Helpers to support shared tests
 
   def default_url
-    "http://localhost:#{@server.determine_port}/status"
+    "http://localhost:#{$fake_server.port}/status"
   end
 
   def default_uri
@@ -170,20 +171,20 @@ module HttpClientTestCases
   def test_adds_a_request_header_to_outgoing_requests_if_xp_enabled
     with_config(:"cross_application_tracer.enabled" => true) do
       get_response
-      assert_equal "VURQV1BZRkZdXUFT", @server.requests.last["HTTP_X_NEWRELIC_ID"]
+      assert_equal "VURQV1BZRkZdXUFT", $fake_server.requests.last["HTTP_X_NEWRELIC_ID"]
     end
   end
 
   def test_adds_a_request_header_to_outgoing_requests_if_old_xp_config_is_present
     with_config(:cross_application_tracing => true) do
       get_response
-      assert_equal "VURQV1BZRkZdXUFT", @server.requests.last["HTTP_X_NEWRELIC_ID"]
+      assert_equal "VURQV1BZRkZdXUFT", $fake_server.requests.last["HTTP_X_NEWRELIC_ID"]
     end
   end
 
   def test_agent_doesnt_add_a_request_header_to_outgoing_requests_if_xp_disabled
     get_response
-    assert_equal false, @server.requests.last.keys.any? {|k| k =~ /NEWRELIC_ID/}
+    assert_equal false, $fake_server.requests.last.keys.any? {|k| k =~ /NEWRELIC_ID/}
   end
 
 

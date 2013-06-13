@@ -10,13 +10,18 @@ require 'json' if RUBY_VERSION >= '1.9'
 module NewRelic
   class FakeExternalServer < FakeServer
 
-    STATUS_MESSAGE = "<html><head><title>FakeExternalServer status</title></head><body>The FakeExternalServer is rockin'</body></html>"
+    STATUS_MESSAGE = "<html><head><title>FakeExternalServer status</title></head>" +
+      "<body>The FakeExternalServer is rockin'</body></html>"
 
-    @@port = nil
-    @@requests = []
+    def initialize( * )
+      super
+      @requests = []
+    end
+
+    attr_reader :requests
 
     def call(env)
-      @@requests << env.dup
+      @requests << env.dup
 
       req = ::Rack::Request.new(env)
       res = ::Rack::Response.new
@@ -29,27 +34,7 @@ module NewRelic
     end
 
     def reset
-      @@requests = []
-    end
-
-    def requests
-      @@requests
-    end
-
-    # Use an ephemeral port to let the system pick. Close and reopen in our fake
-    # server machinery, so there is a brief race possible, but hoping it's better
-    # than our current "just-pick-a-port" strategy
-    def self.determine_port
-      return @port unless @port.nil?
-
-      server = TCPServer.new('127.0.0.1', 0)
-      @port = server.addr[1]
-    ensure
-      server.close unless server.nil?
-    end
-
-    def determine_port
-      FakeExternalServer.determine_port
+      @requests.clear
     end
 
     def app

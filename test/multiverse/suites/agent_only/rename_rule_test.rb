@@ -32,7 +32,8 @@ class RenameRuleTest < Test::Unit::TestCase
     $collector.run
 
     NewRelic::Agent.manual_start(:sync_startup => true,
-                                 :force_reconnect => true)
+                                 :force_reconnect => true,
+                                 :port => $collector.port)
     TestWidget.new.txn
   end
 
