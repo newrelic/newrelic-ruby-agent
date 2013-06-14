@@ -219,15 +219,12 @@ module NewRelic
 
           def record_metrics(first_name, other_names, duration, exclusive, options)
             metrics = metrics_for_current_transaction(first_name, other_names, options)
-            stat_engine.record_metrics(metrics) do |stat|
-              stat.record_data_point(duration, exclusive)
-            end
+            stat_engine.record_metrics_internal(metrics, duration, exclusive)
 
             parent_metrics = metrics_for_parent_transaction(first_name, options)
             parent_metrics.each do |metric|
-              NewRelic::Agent::Transaction.parent.stats_hash.record(metric) do |stats|
-                stats.record_data_point(duration, exclusive)
-              end
+              parent_txn = NewRelic::Agent::Transaction.parent
+              parent_txn.stats_hash.record(metric, duration, exclusive)
             end
           end
 
