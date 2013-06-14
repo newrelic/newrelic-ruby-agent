@@ -143,18 +143,6 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
     assert_equal(1, @engine.metrics.size)
   end
 
-  def test_record_metrics_accepts_explicit_scope
-    in_transaction('scopey') do
-      @engine.record_metrics('foo', 42, :scoped => true, :scope => 'not scopey')
-    end
-    unscoped_stats = @engine.get_stats('foo', false)
-    scoped_stats_scopey = @engine.get_stats('foo', true, true, 'scopey')
-    scoped_stats_not_scopey = @engine.get_stats('foo', true, true, 'not scopey')
-    assert_equal(1, unscoped_stats.call_count)
-    assert_equal(0, scoped_stats_scopey.call_count)
-    assert_equal(1, scoped_stats_not_scopey.call_count)
-  end
-
   def test_record_metrics_accepts_block
     @engine.record_metrics('foo') do |stats|
       stats.call_count = 999

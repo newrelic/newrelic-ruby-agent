@@ -15,14 +15,13 @@ module NewRelic
         #
         # This method is thead-safe, and is preferred to the lookup / modify
         # method pairs (e.g. get_stats + record_data_point)
+        #
+        # @api private
         def record_metrics(metric_names_or_specs, value=nil, options={}, &blk)
-          defaults = {
-            :scoped => false,
-            :scope => in_transaction? ? SCOPE_PLACEHOLDER : nil
-          }
-          options = defaults.merge(options)
+          options = { :scoped => false }.merge(options)
 
-          effective_scope = options[:scoped] && options[:scope]
+          scope = in_transaction? ? SCOPE_PLACEHOLDER : nil
+          effective_scope = options[:scoped] && scope
           specs = coerce_to_metric_spec_array(metric_names_or_specs, effective_scope)
 
           if in_transaction?
