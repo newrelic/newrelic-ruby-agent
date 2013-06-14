@@ -13,6 +13,14 @@
 
   More details: https://newrelic.com/docs/ruby/ruby-agent-configuration
 
+  * Fix a race condition affecting some Rails applications at startup
+
+  Some Rails applications using newrelic_rpm were affected by a race condition
+  at startup that manifested as an error when model classes with associations
+  were first loaded. The cause of these errors has been addressed by moving the
+  generation of the agent's EnvironmentReport on startup from a background
+  thread to the main thread.
+
 ## 3.6.3 ##
 
   * Better Sinatra Support
