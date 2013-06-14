@@ -183,6 +183,35 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
     assert_equal(nthreads * iterations, stats_m2.call_count)
   end
 
+  def test_record_metrics_internal_writes_to_global_stats_hash_if_no_txn
+    specs = [
+      NewRelic::MetricSpec.new('foo'),
+      NewRelic::MetricSpec.new('foo', 'scope')
+    ]
+
+    2.times { @engine.record_metrics_internal(specs, 10, 5) }
+
+    expected = { :call_count => 2, :total_call_time => 20, :total_exclusive_time => 10 }
+    assert_metrics_recorded('foo' => expected, ['foo', 'scope'] => expected)
+  end
+
+  def test_record_metrics_internal_writes_to_transaction_stats_hash_if_txn
+    specs = [
+      NewRelic::MetricSpec.new('foo'),
+      NewRelic::MetricSpec.new('foo', 'scope')
+    ]
+
+    in_transaction do
+      2.times { @engine.record_metrics_internal(specs, 10, 5) }
+      # still in the txn, so metrics should not be visible in the global stats
+      # hash yet
+      assert_metrics_not_recorded(['foo', ['foo, scope']])
+    end
+
+    expected = { :call_count => 2, :total_call_time => 20, :total_exclusive_time => 10 }
+    assert_metrics_recorded('foo' => expected, ['foo', 'scope'] => expected)
+  end
+
   def test_transaction_stats_are_tracked_separately
     in_transaction do
       @engine.record_metrics('foo', 1)

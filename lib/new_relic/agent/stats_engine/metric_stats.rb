@@ -34,6 +34,25 @@ module NewRelic
           end
         end
 
+        # Fast-path version of the #record_metrics version above, used in
+        # performance-sensitive code paths
+        #
+        # metric_specs must be an Array of MetricSpec objects
+        # value and aux are passed directly to the corresponding parameters of
+        # StatsHash#record
+        #
+        # @api private
+        def record_metrics_internal(metric_specs, value, aux)
+          tsh = transaction_stats_hash
+          if tsh
+            tsh.record(metric_specs, value, aux)
+          else
+            with_stats_lock do
+              @stats_hash.record(metric_specs, value, aux)
+            end
+          end
+        end
+
         # a simple accessor for looking up a stat with no scope -
         # returns a new stats object if no stats object for that
         # metric exists yet
