@@ -31,7 +31,7 @@ module NewRelic
         Hash[self] == Hash[other]
       end
 
-      def record(metric_specs, value=nil)
+      def record(metric_specs, value=nil, aux=nil)
         Array(metric_specs).each do |metric_spec|
           stats = self[metric_spec]
           if block_given?
@@ -39,7 +39,10 @@ module NewRelic
           else
             case value
             when Numeric
-              stats.record_data_point(value)
+              aux ||= value
+              stats.record_data_point(value, aux)
+            when :apdex_s, :apdex_t, :apdex_f
+              stats.record_apdex(value, aux)
             when NewRelic::Agent::Stats
               stats.merge!(value)
             end

@@ -117,6 +117,16 @@ module NewRelic
       alias_method :apdex_t, :total_call_time
       alias_method :apdex_f, :total_exclusive_time
 
+      def record_apdex(bucket, apdex_t)
+        case bucket
+        when :apdex_s then @call_count += 1
+        when :apdex_t then @total_call_time += 1
+        when :apdex_f then @total_exclusive_time += 1
+        end
+        @min_call_time = apdex_t
+        @max_call_time = apdex_t
+      end
+
       def record_apdex_s
         @call_count += 1
       end
