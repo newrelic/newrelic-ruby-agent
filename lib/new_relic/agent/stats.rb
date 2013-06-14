@@ -127,18 +127,6 @@ module NewRelic
         @max_call_time = apdex_t
       end
 
-      def record_apdex_s
-        @call_count += 1
-      end
-
-      def record_apdex_t
-        @total_call_time += 1
-      end
-
-      def record_apdex_f
-        @total_exclusive_time += 1
-      end
-
       protected
 
       def min_time_less?(other)
