@@ -202,8 +202,8 @@ module NewRelic
       end
 
       def merge_stats_hash
-        stats = stats_hash.resolve_scopes(@name)
-        NewRelic::Agent.instance.stats_engine.merge!(stats)
+        stats_hash.resolve_scopes!(@name)
+        NewRelic::Agent.instance.stats_engine.merge!(stats_hash)
       end
 
       def record_exceptions

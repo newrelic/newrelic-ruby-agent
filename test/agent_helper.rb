@@ -187,6 +187,7 @@ def in_transaction(*args)
   name = args.first || 'dummy'
   defaults = { :type => :other }
   options = defaults.merge(opts)
+
   NewRelic::Agent.instance.instance_variable_set(:@transaction_sampler,
                         NewRelic::Agent::TransactionSampler.new)
   NewRelic::Agent.instance.stats_engine.transaction_sampler = \

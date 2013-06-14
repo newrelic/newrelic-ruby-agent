@@ -61,16 +61,11 @@ module NewRelic
         self
       end
 
-      def resolve_scopes(resolved_scope)
-        new_stats = self.class.new
-        self.each do |spec, stats|
-          if spec.scope != '' &&
-              spec.scope.to_sym == StatsEngine::SCOPE_PLACEHOLDER
-            spec.scope = resolved_scope
-          end
-          new_stats[spec] = stats
+      def resolve_scopes!(resolved_scope)
+        placeholder = StatsEngine::SCOPE_PLACEHOLDER.to_s
+        each_pair do |spec, stats|
+          spec.scope = resolved_scope if spec.scope == placeholder
         end
-        return new_stats
       end
     end
   end
