@@ -89,30 +89,31 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
   end if ::Rails::VERSION::MAJOR.to_i <= 3
 
   def test_new_queue_integration
-    # make this test deterministic
-    Time.stubs(:now => Time.at(1360973845))
+    now = freeze_time
 
     NewRelic::Agent::AgentTestController.clear_headers
     engine.clear_stats
-    start = ((Time.now - 1).to_f * 1_000_000).to_i
+    start = ((now - 1).to_f * 1_000_000).to_i
     NewRelic::Agent::AgentTestController.set_some_headers 'HTTP_X_QUEUE_START'=> "t=#{start}"
     get :index
 
-    check_metric_time('WebFrontend/QueueTime', 1, 0.1)
+    assert_metrics_recorded('WebFrontend/QueueTime' => { :total_call_time => 1 })
   end
 
   def test_new_frontend_work_integration
-    # make this test deterministic
-    Time.stubs(:now => Time.at(1360973845))
+    now = freeze_time
 
     engine.clear_stats
-    times = [Time.now - 3, Time.now - 2, Time.now - 1]
+    times = [now - 3, now - 2, now - 1]
     times.map! {|t| (t.to_f * 1_000_000).to_i }
-    NewRelic::Agent::AgentTestController.set_some_headers({
-                                                            'HTTP_X_REQUEST_START'=> "t=#{times[0]}", 'HTTP_X_QUEUE_START' => "t=#{times[1]}", 'HTTP_X_MIDDLEWARE_START' => "t=#{times[2]}"})
+    NewRelic::Agent::AgentTestController.set_some_headers(
+      'HTTP_X_REQUEST_START'    => "t=#{times[0]}",
+      'HTTP_X_QUEUE_START'      => "t=#{times[1]}",
+      'HTTP_X_MIDDLEWARE_START' => "t=#{times[2]}"
+    )
     get :index
 
-    check_metric_time('WebFrontend/QueueTime', 3, 0.1)
+    assert_metrics_recorded('WebFrontend/QueueTime' => { :total_call_time => 3 })
   end
 
   def test_render_inline

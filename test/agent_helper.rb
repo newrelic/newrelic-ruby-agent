@@ -230,6 +230,7 @@ end
 
 def freeze_time(now=Time.now)
   Time.stubs(:now).returns(now)
+  now
 end
 
 def advance_time(seconds)
