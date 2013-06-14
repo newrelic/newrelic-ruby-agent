@@ -48,6 +48,7 @@ class NewRelic::NoticedError
 
   # @exception_class has been deprecated in favor of the more descriptive
   # @exception_class_name.
+  # @deprecated
   def exception_class
     exception_class_name
   end
