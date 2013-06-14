@@ -38,7 +38,7 @@ module NewRelic
         end
 
         def method
-          (@request.options[:method] || 'GET').upcase
+          (@request.options[:method] || 'GET').to_s.upcase
         end
 
         def [](key)
