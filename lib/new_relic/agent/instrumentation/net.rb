@@ -12,6 +12,7 @@ DependencyDetection.defer do
   executes do
     ::NewRelic::Agent.logger.info 'Installing Net instrumentation'
     require 'new_relic/agent/cross_app_tracing'
+    require 'new_relic/agent/http_clients/net_http_wrappers'
   end
 
   executes do
@@ -24,7 +25,8 @@ DependencyDetection.defer do
       # Don't tracing until the inner call then to avoid double-counting.
       def request_with_newrelic_trace(request, *args, &block)
         if started?
-          NewRelic::Agent::CrossAppTracing.trace_http_request( self, request ) do
+          wrapped_request = NewRelic::Agent::HTTPClients::NetHTTPRequest.new(self, request)
+          NewRelic::Agent::CrossAppTracing.trace_http_request( wrapped_request ) do
             request_without_newrelic_trace( request, *args, &block )
           end
         else

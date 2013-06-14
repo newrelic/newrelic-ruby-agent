@@ -92,6 +92,7 @@ module NewRelic
         # cross application tracing ids and encoding
         attr_reader :cross_process_id
         attr_reader :cross_app_encoding_bytes
+        attr_reader :cross_app_monitor
         # service for communicating with collector
         attr_accessor :service
         # Global events dispatcher. This will provides our primary mechanism

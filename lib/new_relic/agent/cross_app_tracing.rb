@@ -31,14 +31,18 @@ module NewRelic
 
       # Send the given +request+, adding metrics appropriate to the
       # response when it comes back.
-      def trace_http_request( http, request )
+      #
+      # See the documentation for +start_trace+ for an explanation of what
+      # +request+ should look like.
+      #
+      def trace_http_request( request )
         return yield unless NewRelic::Agent.is_execution_traced?
 
-        t0, segment = start_trace( http, request )
+        t0, segment = start_trace( request )
         begin
           response = yield
         ensure
-          finish_trace( t0, segment, request, response, http ) if t0
+          finish_trace( t0, segment, request, response ) if t0
         end
 
         return response
@@ -46,8 +50,19 @@ module NewRelic
 
 
       # Set up the necessary state for cross-application tracing before the
-      # given +request+ goes out on the specified +http+ connection.
-      def start_trace( http, request )
+      # given +request+ goes out.
+      #
+      # The +request+ object passed in must respond to the following methods:
+      #
+      # * type - Return a String describing the underlying library being used
+      #          to make the request (e.g. 'Net::HTTP' or 'Typhoeus')
+      # * host - Return a String with the hostname or IP of the host being
+      #          communicated with.
+      # * method  - Return a String with the HTTP method name used for this request
+      # * [](key) - Lookup an HTTP request header by name
+      # * []=(key, val) - Set an HTTP request header by name
+      # * uri  - Full URI of the request
+      def start_trace( request )
         inject_request_headers( request ) if cross_app_enabled?
 
         # Create a segment and time the call
@@ -63,15 +78,24 @@ module NewRelic
 
       # Finish tracing the HTTP +request+ that started at +t0+ with the information in
       # +response+ and the given +http+ connection.
-      def finish_trace( t0, segment, request, response, http )
+      #
+      # The +request+ must conform to the same interface described in the documentation
+      # for +start_trace+.
+      #
+      # The +response+ must respond to the following methods:
+      #
+      # * [](key) - Reads response headers.
+      # * to_hash - Converts response headers to a Hash
+      #
+      def finish_trace( t0, segment, request, response )
         t1 = Time.now
         duration = t1.to_f - t0.to_f
 
         begin
-          if request && response && http
+          if request && response
             # Figure out which metrics we need to report based on the request and response
             # The last (most-specific) one is scoped.
-            metrics = metrics_for( http, request, response )
+            metrics = metrics_for( request, response )
             scoped_metric = metrics.pop
 
             stats_engine.record_metrics(metrics, duration)
@@ -79,7 +103,7 @@ module NewRelic
 
             # Add TT custom parameters
             segment.name = scoped_metric
-            add_transaction_trace_parameters(http, request, response)
+            add_transaction_trace_parameters(request, response)
           end
         ensure
           # We always need to pop the scope stack to avoid an inconsistent
@@ -117,15 +141,15 @@ module NewRelic
         txn_guid = NewRelic::Agent::TransactionInfo.get.guid
         txn_data = NewRelic.json_dump([ txn_guid, false ])
 
-        request[ NR_ID_HEADER ] = obfuscate_with_key( key, cross_app_id )
+        request[ NR_ID_HEADER ]  = obfuscate_with_key( key, cross_app_id )
         request[ NR_TXN_HEADER ] = obfuscate_with_key( key, txn_data )
 
       rescue NewRelic::Agent::CrossAppTracing::Error => err
         NewRelic::Agent.logger.debug "Not injecting x-process header", err
       end
 
-      def add_transaction_trace_parameters(http, request, response)
-        filtered_uri = NewRelic::Agent::URIUtil.filtered_uri_for(http, request)
+      def add_transaction_trace_parameters(request, response)
+        filtered_uri = ::NewRelic::Agent::HTTPClients::URIUtil.filter_uri(request.uri)
         transaction_sampler.add_segment_parameters(:uri => filtered_uri)
         if response_is_crossapp?( response )
           add_cat_transaction_trace_parameters( response )
@@ -144,21 +168,21 @@ module NewRelic
 
       # Return the set of metric names that correspond to
       # the given +request+ and +response+.
-      def metrics_for( http, request, response )
-        metrics = common_metrics( http )
+      def metrics_for( request, response )
+        metrics = common_metrics( request )
 
         if response_is_crossapp?( response )
           begin
-            metrics.concat metrics_for_crossapp_response( http, response )
+            metrics.concat metrics_for_crossapp_response( request, response )
           rescue => err
             # Fall back to regular metrics if there's a problem with x-process metrics
             NewRelic::Agent.logger.debug "%p while fetching x-process metrics: %s" %
               [ err.class, err.message ]
-            metrics.concat metrics_for_regular_response( http, request, response )
+            metrics.concat metrics_for_regular_response( request, response )
           end
         else
           NewRelic::Agent.logger.debug "Response doesn't have CAT headers."
-          metrics.concat metrics_for_regular_response( http, request, response )
+          metrics.concat metrics_for_regular_response( request, response )
         end
 
         return metrics
@@ -166,9 +190,9 @@ module NewRelic
 
 
       # Return an Array of metrics used for every response.
-      def common_metrics( http )
+      def common_metrics( request )
         metrics = [ "External/all" ]
-        metrics << "External/#{http.address}/all"
+        metrics << "External/#{request.host}/all"
 
         if NewRelic::Agent::Transaction.recording_web_transaction?
           metrics << "External/allWeb"
@@ -196,7 +220,7 @@ module NewRelic
 
       # Return the set of metric objects appropriate for the given cross app
       # +response+.
-      def metrics_for_crossapp_response( http, response )
+      def metrics_for_crossapp_response( request, response )
         xp_id, txn_name, q_time, r_time, req_len, _ = extract_appdata( response )
 
         check_crossapp_id( xp_id )
@@ -205,8 +229,8 @@ module NewRelic
         NewRelic::Agent.logger.debug "CAT xp_id: %p, txn_name: %p." % [ xp_id, txn_name ]
 
         metrics = []
-        metrics << "ExternalApp/#{http.address}/#{xp_id}/all"
-        metrics << "ExternalTransaction/#{http.address}/#{xp_id}/#{txn_name}"
+        metrics << "ExternalApp/#{request.host}/#{xp_id}/all"
+        metrics << "ExternalTransaction/#{request.host}/#{xp_id}/#{txn_name}"
 
         return metrics
       end
@@ -239,9 +263,9 @@ module NewRelic
 
       # Return the set of metric objects appropriate for the given (non-cross app)
       # +response+.
-      def metrics_for_regular_response( http, request, response )
+      def metrics_for_regular_response( request, response )
         metrics = []
-        metrics << "External/#{http.address}/Net::HTTP/#{request.method}"
+        metrics << "External/#{request.host}/#{request.type}/#{request.method}"
 
         return metrics
       end

@@ -205,6 +205,14 @@ def in_web_transaction(name='dummy')
   end
 end
 
+def find_last_transaction_segment
+  builder = NewRelic::Agent.agent.transaction_sampler.builder
+  last_segment = nil
+  builder.current_segment.each_segment {|s| last_segment = s }
+
+  return last_segment
+end
+
 def with_config(config_hash, opts={})
   opts = { :level => 0, :do_not_cast => false }.merge(opts)
   if opts[:do_not_cast]
