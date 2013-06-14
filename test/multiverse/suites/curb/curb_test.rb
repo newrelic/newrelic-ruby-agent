@@ -20,8 +20,77 @@ class CurbTest < Test::Unit::TestCase
   include HttpClientTestCases
 
 
+  def test_shouldnt_clobber_existing_header_callback
+    headers = []
+    Curl::Easy.http_get( default_url ) do |handle|
+      handle.on_header do |header|
+        headers << header
+        header.length
+      end
+    end
+
+    assert_not_empty headers
+  end
+
+  def test_shouldnt_clobber_existing_completion_callback
+    completed = false
+    Curl::Easy.http_get( default_url ) do |handle|
+      handle.on_complete do
+        completed = true
+      end
+    end
+
+    assert completed, "completion block was never run"
+  end
+
+
+  def test_get_works_with_the_shortcut_api
+    # Override the mechanism for getting a response and run the test_get test
+    # again
+    def self.get_response
+      Curl.get( default_url )
+    end
+
+    test_get
+  end
+
+
+  def test_background_works_with_the_shortcut_api
+    # Override the mechanism for getting a response and run the test_get test
+    # again
+    def self.get_response
+      Curl.get( default_url )
+    end
+
+    test_background
+  end
+
+
+  # Curl.head is broken in 0.8.4 (https://github.com/taf2/curb/pull/148), but if
+  # it ever gets fixed, then this test should be uncommented.
+
+  # def test_head_works_with_the_shortcut_api
+  #   # Override the mechanism for getting a response and run the test_get test
+  #   # again
+  #   def self.head_response
+  #     Curl.head( default_url )
+  #   end
+  # 
+  #   test_head
+  # end
+
+  def test_doesnt_propagate_errors_in_instrumentation
+    NewRelic::Agent::CrossAppTracing.stubs( :start_trace ).
+      raises( StandardError, "something bad happened" )
+
+    res = Curl::Easy.http_get( default_url )
+
+    assert_kind_of Curl::Easy, res
+  end
+
+
   #
-  # Helpers functions
+  # Helper functions
   #
 
   def client_name

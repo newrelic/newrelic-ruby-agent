@@ -73,39 +73,56 @@ DependencyDetection.defer do
       alias_method :add, :add_with_newrelic
 
 
+      # Instrument the specified +request+ (a Curl::Easy object) and set up cross-application
+      # tracing if it's enabled.
       def hook_pending_request( request )
         NewRelic::Agent.logger.debug "Curb: adding cross-app tracing to pending request %p:%#016x" %
            [ request, request.object_id * 2 ]
 
-        wrapped_request =  NewRelic::Agent::HTTPClients::CurbRequest.new( request )
-        wrapped_response = NewRelic::Agent::HTTPClients::CurbResponse.new( request )
+        wrapped_request, wrapped_response = wrap_request( request )
 
         NewRelic::Agent.logger.debug "  starting trace"
         t0, segment = NewRelic::Agent::CrossAppTracing.start_trace( wrapped_request )
 
-        existing_completion_proc = request.on_complete
-        existing_header_proc = request.on_header
-        NewRelic::Agent.logger.debug "  existing callbacks: completion: %p, header: %p" %
-          [ existing_completion_proc, existing_header_proc ]
+        install_header_callback( request, wrapped_response )
+        install_completion_callback( request, t0, segment, wrapped_request, wrapped_response )
+      rescue => err
+        NewRelic::Agent.logger.error( "Untrapped exception", err )
+      end
 
+
+      # Create request and response adapter objects for the specified +request+
+      def wrap_request( request )
+        return NewRelic::Agent::HTTPClients::CurbRequest.new( request ),
+               NewRelic::Agent::HTTPClients::CurbResponse.new( request )
+      end
+
+
+      # Install a callback that will record the response headers to enable
+      # CAT linking
+      def install_header_callback( request, wrapped_response )
+        existing_header_proc = request.on_header
         request.on_header do |header_data|
           NewRelic::Agent.logger.debug "    header callback: %p" % [ header_data ]
           wrapped_response.append_header_data( header_data )
+
           if existing_header_proc
             existing_header_proc.call( header_data )
           else
             header_data.length
           end
         end
+      end
 
+
+      # Install a callback that will finish the trace.
+      def install_completion_callback( request, t0, segment, wrapped_request, wrapped_response )
+        existing_completion_proc = request.on_complete
         request.on_complete do |finished_request|
           NewRelic::Agent.logger.debug "    completion callback: %p" % [ finished_request.headers ]
           NewRelic::Agent::CrossAppTracing.finish_trace( t0, segment, wrapped_request, wrapped_response )
           existing_completion_proc.call( finished_request ) if existing_completion_proc
         end
-
-      # rescue => err
-      #   NewRelic::Agent.logger.error( "Untrapped exception", err )
       end
 
     end
