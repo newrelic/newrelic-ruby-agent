@@ -102,17 +102,4 @@ class NewRelic::Agent::NoticedErrorTest < Test::Unit::TestCase
       assert_truthy error.whitelisted?
     end
   end
-
-  def test_exception_name_for_collector_returns_error_for_non_exceptions
-    error = NewRelic::NoticedError.new(@path, @params, nil, @time)
-
-    assert_equal 'Error', error.exception_name_for_collector
-  end
-
-  def test_exception_name_for_collector_returns_class_name_for_exceptions
-    e = NoticedErrorTestException.new('test exception')
-    error = NewRelic::NoticedError.new(@path, @params, e, @time)
-
-    assert_equal 'NoticedErrorTestException', error.exception_name_for_collector
-  end
 end
