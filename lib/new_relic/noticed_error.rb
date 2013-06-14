@@ -7,7 +7,7 @@ require 'new_relic/helper'
 # This class encapsulates an error that was noticed by New Relic in a managed app.
 class NewRelic::NoticedError
   extend NewRelic::CollectionHelper
-  attr_accessor :path, :timestamp, :params, :exception_class, :message
+  attr_accessor :path, :timestamp, :params, :exception_class_name, :exception_class_constant, :message
   attr_reader :exception_id
 
   STRIPPED_EXCEPTION_REPLACEMENT_MESSAGE = "Message removed by New Relic 'strip_exception_messages' setting"
@@ -17,7 +17,8 @@ class NewRelic::NoticedError
     @path = path
     @params = NewRelic::NoticedError.normalize_params(data)
 
-    @exception_class = exception.class
+    @exception_class_name = exception.is_a?(Exception) ? exception.class.name : 'Error'
+    @exception_class_constant = exception.class
 
     if exception.respond_to?('original_exception')
       @message = exception.original_exception.message.to_s
@@ -45,9 +46,16 @@ class NewRelic::NoticedError
     @timestamp = timestamp
   end
 
+  # @exception_class has been deprecated in favor of the more descriptive
+  # @exception_class_name.
+  # @deprecated
+  def exception_class
+    exception_class_name
+  end
+
   def whitelisted?
     NewRelic::Agent.config.stripped_exceptions_whitelist.find do |klass|
-      exception_class <= klass
+      exception_class_constant <= klass
     end
   end
 
@@ -61,19 +69,11 @@ class NewRelic::NoticedError
 
   include NewRelic::Coerce
 
-  def exception_name_for_collector
-    if exception_class < Exception
-      exception_class.name
-    else
-      'Error'
-    end
-  end
-
   def to_collector_array(encoder=nil)
     [ NewRelic::Helper.time_to_millis(timestamp),
       string(path),
       string(message),
-      string(exception_name_for_collector),
+      string(exception_class_name),
       params ]
   end
 end

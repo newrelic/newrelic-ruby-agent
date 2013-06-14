@@ -56,6 +56,16 @@ module Multiverse
       raise "bundle command failed with (#{$?})" unless $? == 0
       puts bundler_out if verbose?
       Bundler.require
+
+      # Ensure mocha is loaded after the test framework by deferring until here
+      # see: http://gofreerange.com/mocha/docs/
+      unless environments.omit_mocha
+        if RUBY_VERSION > '1.8.7'
+          require 'mocha/setup'
+        else
+          require 'mocha'
+        end
+      end
     end
 
     def generate_gemfile(gemfile_text, local = true)
@@ -67,8 +77,10 @@ module Multiverse
         if RUBY_VERSION > '1.8.7'
           f.puts "  gem 'test-unit', :require => 'test/unit'"
           f.puts "  gem 'debugger'" if include_debugger
+          f.puts "  gem 'mocha', '~> 0.13.0', :require => false" unless environments.omit_mocha
         else
           f.puts "  gem 'ruby-debug'" if include_debugger
+          f.puts "  gem 'mocha', '~> 0.9.8', :require => false" unless environments.omit_mocha
         end
       end
       puts yellow("Gemfile set to:") if verbose?
