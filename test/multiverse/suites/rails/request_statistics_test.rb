@@ -44,14 +44,6 @@ class RequestStatsTest < ActionController::TestCase
   # Tests
   #
 
-  def test_is_enabled_by_default
-    200.times { get :stats_action }
-
-    NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
-
-    assert_equal 1, $collector.calls_for('analytic_event_data').length
-  end
-
   def test_doesnt_send_when_disabled
     with_config( :'request_sampler.enabled' => false ) do
       200.times { get :stats_action }
