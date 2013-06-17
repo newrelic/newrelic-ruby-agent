@@ -18,10 +18,10 @@ module NewRelic
         #
         # @api private
         def record_metrics(metric_names_or_specs, value=nil, options={}, &blk)
-          options = { :scoped => false }.merge(options)
-
+          scoped = options[:scoped]
           scope = in_transaction? ? SCOPE_PLACEHOLDER : nil
-          effective_scope = options[:scoped] && scope
+          effective_scope = scoped && scope
+
           specs = coerce_to_metric_spec_array(metric_names_or_specs, effective_scope)
 
           if in_transaction?
