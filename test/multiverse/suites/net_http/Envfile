@@ -1,9 +1,6 @@
 gemfile <<-RB
   gem 'rack'
-  if RUBY_VERSION >= '1.9.0'
-    gem 'mocha', '~> 0.13.0'
-  else
+  if RUBY_VERSION < '1.9.0'
     gem 'json'
-    gem 'mocha', '< 0.13'
   end
 RB

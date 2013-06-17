@@ -53,8 +53,8 @@ module Multiverse
       require 'rubygems'
       require 'bundler'
       bundler_out = `bundle`
+      puts bundler_out if verbose? || $? != 0
       raise "bundle command failed with (#{$?})" unless $? == 0
-      puts bundler_out if verbose?
       Bundler.require
 
       # Ensure mocha is loaded after the test framework by deferring until here
