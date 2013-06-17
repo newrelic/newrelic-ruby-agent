@@ -168,7 +168,11 @@ module NewRelic
         defined?(::Resque) &&
         (ENV['QUEUE'] || ENV['QUEUES']) &&
         (File.basename($0) == 'rake' && ARGV.include?('resque:work'))
+      ) || (
+        defined?(::Resque::Pool) &&
+        (File.basename($0) == 'resque-pool')
       )
+
       @discovered_dispatcher = :resque if using_resque
     end
 
