@@ -6,7 +6,11 @@ DependencyDetection.defer do
   named :typhoeus
 
   depends_on do
-    defined?(Typhoeus)
+    defined?(Typhoeus) && defined?(Typhoeus::VERSION)
+  end
+
+  depends_on do
+    Typhoeus::VERSION >= "0.5.0"
   end
 
   executes do
