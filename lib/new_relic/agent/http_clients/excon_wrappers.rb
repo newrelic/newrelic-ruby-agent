@@ -8,6 +8,8 @@ module NewRelic
       class ExconHTTPResponse
         def initialize(response)
           @response = response
+          # Since HTTP headers are case-insensitive, we normalize all of them to
+          # upper case here, and then also in our [](key) implementation.
           @normalized_headers = {}
           (response[:headers] || {}).each do |key, val|
             @normalized_headers[key.upcase] = val
