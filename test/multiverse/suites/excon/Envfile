@@ -5,4 +5,7 @@ end
 gemfile <<-RB
   gem 'excon', '~> 0.24.0'
   gem 'rack'
+  if RUBY_VERSION < '1.9.0'
+    gem 'json'
+  end
 RB
