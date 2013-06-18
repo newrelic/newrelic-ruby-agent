@@ -78,13 +78,7 @@ module NewRelic
 
         def record_apdex(event)
           return if event.apdex_ignored?
-          metric_parser = MetricParser::MetricParser \
-            .for_metric_named(event.metric_name)
-          duration_plus_queue_time = event.end - (event.queue_start || event.time)
-          Transaction.record_apdex(metric_parser,
-                                   event.duration,
-                                   duration_plus_queue_time,
-                                   event.exception_encountered?)
+          Transaction.record_apdex(event.end, event.exception_encountered?)
         end
 
         def record_instance_busy(event)
