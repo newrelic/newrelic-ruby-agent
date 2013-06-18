@@ -56,8 +56,6 @@ DependencyDetection.defer do
       end
     end
 
-    defaults = Excon.defaults
-    defaults[:middlewares] << ::Excon::Middleware::NewRelicCrossAppTracing
-    Excon.defaults = defaults
+    Excon.defaults[:middlewares] << ::Excon::Middleware::NewRelicCrossAppTracing
   end
 end
