@@ -8,4 +8,5 @@ gemfile <<-RB
   if RUBY_VERSION < '1.9.0'
     gem 'json'
   end
+  gem 'jruby-openssl', :platforms => [:jruby]
 RB
