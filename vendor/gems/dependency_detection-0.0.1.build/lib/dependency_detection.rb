@@ -30,6 +30,14 @@ module DependencyDetection
     item && item.executed
   end
 
+  def items
+    @@items
+  end
+
+  def items=(new_items)
+    @@items = new_items
+  end
+
   class Dependent
     attr_reader :executed
     attr_reader :name
@@ -62,6 +70,19 @@ module DependencyDetection
 
     def depends_on
       @dependencies << Proc.new
+    end
+
+    def named(new_name)
+      name = new_name
+      depends_on do
+        key = "disable_#{new_name}".to_sym
+        if (::NewRelic::Agent.config[key] == true)
+          ::NewRelic::Agent.logger.debug("Not installing #{new_name} instrumentation because of configuration #{key}")
+          false
+        else
+          true
+        end
+      end
     end
 
     def executes

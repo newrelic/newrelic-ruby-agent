@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 DependencyDetection.defer do
-  @name = :typhoeus
+  named :typhoeus
 
   depends_on do
     defined?(Typhoeus)
