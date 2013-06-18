@@ -53,6 +53,7 @@ module NewRelic
         @obfuscator = lambda {|sql| NewRelic::Agent::Database.default_sql_obfuscator(sql) }
 
         # FIXME: temporary work around for RUBY-839
+        # This should be handled with a configuration callback
         if Agent.config[:monitor_mode]
           @service = NewRelic::Agent::NewRelicService.new
         end
