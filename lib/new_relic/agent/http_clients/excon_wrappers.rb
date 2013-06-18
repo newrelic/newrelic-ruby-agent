@@ -19,11 +19,7 @@ module NewRelic
         end
 
         def to_hash
-          hash = {}
-          @normalized_headers.each do |(k,v)|
-            hash[k] = v
-          end
-          hash
+          @normalized_headers.dup
         end
       end
 
