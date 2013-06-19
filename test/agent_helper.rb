@@ -261,3 +261,11 @@ def undefine_constant(constant_symbol)
 ensure
   Object.const_set(constant_symbol, removed_constant) if removed_constant
 end
+
+def internet_connection?
+  begin
+    true if open('http://www.google.com')
+  rescue
+    false
+  end
+end

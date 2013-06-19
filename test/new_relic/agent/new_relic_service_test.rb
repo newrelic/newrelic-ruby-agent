@@ -112,32 +112,36 @@ class NewRelicServiceTest < Test::Unit::TestCase
   # testing that the CA file we ship actually validates our server's
   # certificate. It's used for customers who enable verify_certificate
   def test_cert_file
-    require 'socket'
-    require 'openssl'
+    if internet_connection?
+      require 'socket'
+      require 'openssl'
 
-    s   = TCPSocket.new 'collector.newrelic.com', 443
-    ctx = OpenSSL::SSL::SSLContext.new
-    ctx.ca_file = @service.cert_file_path
-    ctx.verify_mode = OpenSSL::SSL::VERIFY_PEER
-    s   = OpenSSL::SSL::SSLSocket.new s, ctx
-    s.connect
+      s   = TCPSocket.new 'collector.newrelic.com', 443
+      ctx = OpenSSL::SSL::SSLContext.new
+      ctx.ca_file = @service.cert_file_path
+      ctx.verify_mode = OpenSSL::SSL::VERIFY_PEER
+      s   = OpenSSL::SSL::SSLSocket.new s, ctx
+      s.connect
     # should not raise an error
+    end
   end
 
   # see above, but for staging, as well. This allows us to test new
   # certificates in a non-customer-facing place before setting them
   # live.
   def test_staging_cert_file
-    require 'socket'
-    require 'openssl'
+    if internet_connection?
+      require 'socket'
+      require 'openssl'
 
-    s   = TCPSocket.new 'staging-collector.newrelic.com', 443
-    ctx = OpenSSL::SSL::SSLContext.new
-    ctx.ca_file = @service.cert_file_path
-    ctx.verify_mode = OpenSSL::SSL::VERIFY_PEER
-    s   = OpenSSL::SSL::SSLSocket.new s, ctx
-    s.connect
-    # should not raise an error
+      s   = TCPSocket.new 'staging-collector.newrelic.com', 443
+      ctx = OpenSSL::SSL::SSLContext.new
+      ctx.ca_file = @service.cert_file_path
+      ctx.verify_mode = OpenSSL::SSL::VERIFY_PEER
+      s   = OpenSSL::SSL::SSLSocket.new s, ctx
+      s.connect
+      # should not raise an error
+    end
   end
 
   def test_initialize_uses_correct_license_key_settings
