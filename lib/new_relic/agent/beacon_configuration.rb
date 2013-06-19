@@ -73,6 +73,7 @@ EOS
           js << <<-EOS
 var e=document.createElement("script");
 e.type="text/javascript";
+e.async=true;
 e.src=(("http:"===document.location.protocol)?"http:":"https:") + "//" +
   "#{Agent.config[:episodes_file]}";
 document.body.appendChild(e);
