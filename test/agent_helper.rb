@@ -263,9 +263,10 @@ ensure
 end
 
 def internet_connection?
-  begin
-    true if open('http://www.google.com')
-  rescue
+  if ENV['NO_INTERNET']
+    puts " - No internet connection, skipping"
     false
+  else
+    true
   end
 end

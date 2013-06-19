@@ -14,7 +14,6 @@ $LOAD_PATH.uniq!
 
 require 'rubygems'
 require 'rake'
-require 'open-uri'
 
 # We can speed things up in tests that don't need to load rails.
 # You can also run the tests in a mode without rails.  Many tests
