@@ -10,7 +10,7 @@ DependencyDetection.defer do
   end
 
   depends_on do
-    Typhoeus::VERSION >= "0.5.0"
+    Typhoeus::VERSION >= NewRelic::Agent::Instrumentation::TyphoeusTracing::EARLIEST_VERSION
   end
 
   executes do
@@ -19,20 +19,48 @@ DependencyDetection.defer do
     require 'new_relic/agent/http_clients/typhoeus_wrappers'
   end
 
-  executes do
-    Typhoeus.before do |request|
-      if NewRelic::Agent.is_execution_traced? && request.hydra.nil?
+  module NewRelic::Agent::Instrumentation::TyphoeusTracing
+
+    EARLIEST_VERSION = "0.2.0"
+
+    def self.trace(request)
+      if NewRelic::Agent.is_execution_traced? && (!request.respond_to?(:hydra) || (request.respond_to?(:hydra) && request.hydra.nil?))
         wrapped_request = ::NewRelic::Agent::HTTPClients::TyphoeusHTTPRequest.new(request)
         t0, segment = ::NewRelic::Agent::CrossAppTracing.start_trace(wrapped_request)
         request.on_complete do
           wrapped_response = ::NewRelic::Agent::HTTPClients::TyphoeusHTTPResponse.new(request.response)
           ::NewRelic::Agent::CrossAppTracing.finish_trace(t0, segment, wrapped_request, wrapped_response)
+        end if t0
+      end
+    end
+
+  end
+
+  executes do
+
+    if Typhoeus::VERSION <= "0.5.0"
+      class Typhoeus::Request
+        class << self
+          # TODO: Figure out if there's a better way than dup'ing this!
+          # Can we set a flag and hook into Hydra to see the request queued up?
+          def run(url, params)
+             r = new(url, params)
+             NewRelic::Agent::Instrumentation::TyphoeusTracing.trace(r)
+
+             Typhoeus::Hydra.hydra.queue r
+             Typhoeus::Hydra.hydra.run
+             r.response
+          end
         end
       end
+    else
+      Typhoeus.before do |request|
+        NewRelic::Agent::Instrumentation::TyphoeusTracing.trace(request)
 
-      # Ensure that we always return a truthy value from the before block,
-      # otherwise Typhoeus will bail out of the instrumentation.
-      true
+        # Ensure that we always return a truthy value from the before block,
+        # otherwise Typhoeus will bail out of the instrumentation.
+        true
+      end
     end
   end
 end

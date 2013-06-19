@@ -9,7 +9,7 @@ require "http_client_test_cases"
 
 require File.join(File.dirname(__FILE__), "..", "..", "..", "agent_helper")
 
-if Typhoeus::VERSION >= "0.5"
+if Typhoeus::VERSION >= NewRelic::Agent::Instrumentation::TyphoeusTracing::EARLIEST_VERSION
 
   class TyphoeusTest < Test::Unit::TestCase
     include HttpClientTestCases
@@ -18,16 +18,18 @@ if Typhoeus::VERSION >= "0.5"
       "Typhoeus"
     end
 
+    # We use the Typhoeus::Request rather than right on Typhoeus to support
+    # prior to convenience methods being added on the top-level module (0.5.x)
     def get_response(url=nil)
       Typhoeus::Request.get(url || default_url)
     end
 
     def head_response
-      Typhoeus.head(default_url)
+      Typhoeus::Request.head(default_url)
     end
 
     def post_response
-      Typhoeus.post(default_url, :body => "")
+      Typhoeus::Request.post(default_url, :body => "")
     end
 
     def request_instance
