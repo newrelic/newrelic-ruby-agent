@@ -41,18 +41,28 @@ DependencyDetection.defer do
     if Typhoeus::VERSION <= "0.5.0"
       class Typhoeus::Request
         class << self
-          # TODO: Figure out if there's a better way than dup'ing this!
-          # Can we set a flag and hook into Hydra to see the request queued up?
-          def run(url, params)
-             r = new(url, params)
-             NewRelic::Agent::Instrumentation::TyphoeusTracing.trace(r)
-
-             Typhoeus::Hydra.hydra.queue r
-             Typhoeus::Hydra.hydra.run
-             r.response
+          def run_with_newrelic(url, params)
+            params[:headers] ||= {}
+            params[:headers][:newrelic_trace_request] = true
+            run_without_newrelic(url, params)
           end
+
+          alias run_without_newrelic run
+          alias run run_with_newrelic
         end
       end
+
+      class Typhoeus::Hydra
+        def queue_with_newrelic(request, *args)
+          trace = request.headers && request.headers.delete(:newrelic_trace_request)
+          NewRelic::Agent::Instrumentation::TyphoeusTracing.trace(request) if trace
+          queue_without_newrelic(request, *args)
+        end
+
+        alias queue_without_newrelic queue
+        alias queue queue_with_newrelic
+      end
+
     else
       Typhoeus.before do |request|
         NewRelic::Agent::Instrumentation::TyphoeusTracing.trace(request)
