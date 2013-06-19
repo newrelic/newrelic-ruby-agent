@@ -39,6 +39,18 @@ if Typhoeus::VERSION >= NewRelic::Agent::Instrumentation::TyphoeusTracing::EARLI
     def response_instance
       NewRelic::Agent::HTTPClients::TyphoeusHTTPResponse.new(Typhoeus::Response.new)
     end
+
+
+    def test_hydra
+      in_transaction("test") do
+        hydra = Typhoeus::Hydra.new
+        5.times { hydra.queue(Typhoeus::Request.new(default_url)) }
+        hydra.run
+
+        last_segment = find_last_transaction_segment()
+        assert_equal "External/Multiple/Typhoeus::Hydra/run", last_segment.metric_name
+      end
+    end
   end
 
 else

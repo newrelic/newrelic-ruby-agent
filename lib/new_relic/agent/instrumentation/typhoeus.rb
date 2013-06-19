@@ -14,31 +14,25 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing Typhoeus instrumentation (without Hydra mode support)'
+    ::NewRelic::Agent.logger.info 'Installing Typhoeus instrumentation'
     require 'new_relic/agent/cross_app_tracing'
     require 'new_relic/agent/http_clients/typhoeus_wrappers'
   end
 
-  module NewRelic::Agent::Instrumentation::TyphoeusTracing
-
-    EARLIEST_VERSION = "0.2.0"
-
-    def self.trace(request)
-      if NewRelic::Agent.is_execution_traced? && (!request.respond_to?(:hydra) || (request.respond_to?(:hydra) && request.hydra.nil?))
-        wrapped_request = ::NewRelic::Agent::HTTPClients::TyphoeusHTTPRequest.new(request)
-        t0, segment = ::NewRelic::Agent::CrossAppTracing.start_trace(wrapped_request)
-        request.on_complete do
-          wrapped_response = ::NewRelic::Agent::HTTPClients::TyphoeusHTTPResponse.new(request.response)
-          ::NewRelic::Agent::CrossAppTracing.finish_trace(t0, segment, wrapped_request, wrapped_response)
-        end if t0
-      end
-    end
-
-  end
-
+  # Basic request tracing
   executes do
+    if Typhoeus::VERSION >= "0.5.0"
+      Typhoeus.before do |request|
+        NewRelic::Agent::Instrumentation::TyphoeusTracing.trace(request)
 
-    if Typhoeus::VERSION <= "0.5.0"
+        # Ensure that we always return a truthy value from the before block,
+        # otherwise Typhoeus will bail out of the instrumentation.
+        true
+      end
+    else
+      # The Typhoeus.before hook that we want to use was only introduced in
+      # the 0.5.x version. On older versions, we rely on the use of
+      # Typhoeus::Hydra internally to get hold of the request to trace.
       class Typhoeus::Request
         class << self
           def run_with_newrelic(url, params)
@@ -62,15 +56,39 @@ DependencyDetection.defer do
         alias queue_without_newrelic queue
         alias queue queue_with_newrelic
       end
+    end
+  end
 
-    else
-      Typhoeus.before do |request|
-        NewRelic::Agent::Instrumentation::TyphoeusTracing.trace(request)
+  # Apply single TT node for Hydra requests until async support
+  executes do
+    class Typhoeus::Hydra
+      include NewRelic::Agent::MethodTracer
 
-        # Ensure that we always return a truthy value from the before block,
-        # otherwise Typhoeus will bail out of the instrumentation.
-        true
+      def run_with_newrelic(*args)
+        trace_execution_scoped("External/Multiple/Typhoeus::Hydra/run") do
+          run_without_newrelic(*args)
+        end
       end
+
+      alias run_without_newrelic run
+      alias run run_with_newrelic
+    end
+  end
+end
+
+
+module NewRelic::Agent::Instrumentation::TyphoeusTracing
+
+  EARLIEST_VERSION = "0.2.0"
+
+  def self.trace(request)
+    if NewRelic::Agent.is_execution_traced? && (!request.respond_to?(:hydra) || (request.respond_to?(:hydra) && request.hydra.nil?))
+      wrapped_request = ::NewRelic::Agent::HTTPClients::TyphoeusHTTPRequest.new(request)
+      t0, segment = ::NewRelic::Agent::CrossAppTracing.start_trace(wrapped_request)
+      request.on_complete do
+        wrapped_response = ::NewRelic::Agent::HTTPClients::TyphoeusHTTPResponse.new(request.response)
+        ::NewRelic::Agent::CrossAppTracing.finish_trace(t0, segment, wrapped_request, wrapped_response)
+      end if t0
     end
   end
 end
