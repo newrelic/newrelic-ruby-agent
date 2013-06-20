@@ -52,8 +52,10 @@ module NewRelic
     # Runs through all the objects in ObjectSpace to find the first one that
     # match the provided class
     def find_class_in_object_space(klass)
-      ObjectSpace.each_object(klass) do |x|
-        return x
+      if NewRelic::LanguageSupport.object_space_enabled?
+        ObjectSpace.each_object(klass) do |x|
+          return x
+        end
       end
       return nil
     end
@@ -172,7 +174,7 @@ module NewRelic
     end
 
     def check_for_thin
-      if defined?(::Thin) && defined?(::Thin::Server)
+      if defined?(::Thin) && defined?(::Thin::Server) && NewRelic::LanguageSupport.object_space_enabled?
         # This case covers the thin web dispatcher
         # Same issue as above- we assume only one instance per process
         ObjectSpace.each_object(Thin::Server) do |thin_dispatcher|
