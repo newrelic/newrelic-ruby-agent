@@ -313,14 +313,23 @@ module NewRelic
       # duration is seconds, float value.
       def notice_sql(sql, config, duration, &explainer)
         if NewRelic::Agent.is_sql_recorded?
-          statement = Database::Statement.new(self.class.truncate_message(sql))
-          if config
-            statement.adapter = config[:adapter]
-            statement.config = config
-          end
-          statement.explainer = explainer
+          statement = build_database_statement(sql, config, explainer)
           notice_extra_data(statement, duration, :sql)
         end
+      end
+
+      def build_database_statement(sql, config, explainer)
+        statement = Database::Statement.new(self.class.truncate_message(sql))
+        if config
+          statement.adapter = config[:adapter]
+          statement.config = config
+        end
+        if Agent.config[:override_sql_obfuscation_adapter]
+          statement.adapter = Agent.config[:override_sql_obfuscation_adapter]
+        end
+        statement.explainer = explainer
+
+        statement
       end
 
       # Adds non-sql metadata to a segment - generally the memcached
