@@ -9,3 +9,46 @@ gemfile <<-RB
     gem 'json'
   end
 RB
+
+gemfile <<-RB
+  # Compatibility issues with ethon 0.5.12 https://github.com/typhoeus/ethon/issues/51
+  gem 'ethon', '0.5.11'
+
+  gem 'typhoeus', '~> 0.5.4'
+  gem 'rack'
+  if RUBY_VERSION < '1.9.0'
+    gem 'json'
+  end
+RB
+
+gemfile <<-RB
+  gem 'typhoeus', '~> 0.4.2'
+  gem 'rack'
+  if RUBY_VERSION < '1.9.0'
+    gem 'json'
+  end
+RB
+
+gemfile <<-RB
+  gem 'typhoeus', '~> 0.3.3'
+  gem 'rack'
+  if RUBY_VERSION < '1.9.0'
+    gem 'json'
+  end
+RB
+
+gemfile <<-RB
+  gem 'typhoeus', '~> 0.2.4'
+  gem 'rack'
+  if RUBY_VERSION < '1.9.0'
+    gem 'json'
+  end
+RB
+
+gemfile <<-RB
+  gem 'typhoeus', '~> 0.1.28'
+  gem 'rack'
+  if RUBY_VERSION < '1.9.0'
+    gem 'json'
+  end
+RB

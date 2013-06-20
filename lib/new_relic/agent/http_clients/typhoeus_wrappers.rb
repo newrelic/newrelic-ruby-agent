@@ -11,15 +11,23 @@ module NewRelic
         end
 
         def [](key)
-          @response.headers[key]
+          headers[key]
         end
 
         def to_hash
           hash = {}
-          @response.headers.each do |(k,v)|
+          headers.each do |(k,v)|
             hash[k] = v
           end
           hash
+        end
+
+        private
+
+        def headers
+          headers = @response.headers_hash if @response.respond_to?(:headers_hash)
+          headers = @response.headers if headers.nil?
+          headers
         end
       end
 
@@ -38,16 +46,29 @@ module NewRelic
         end
 
         def method
-          (@request.options[:method] || 'GET').to_s.upcase
+          if @request.respond_to?(:options)
+            meth = @request.options[:method]
+          else
+            meth = @request.method
+          end
+          (meth || 'GET').to_s.upcase
         end
 
         def [](key)
-          @request[key]
+          if @request.respond_to?(:headers)
+            @request.headers[key]
+          else
+            @request[key]
+          end
         end
 
         def []=(key, value)
-          @request.options[:headers] ||= {}
-          @request.options[:headers][key] = value
+          if @request.respond_to?(:headers)
+            @request.headers[key] = value
+          else
+            @request.options[:headers] ||= {}
+            @request.options[:headers][key] = value
+          end
         end
 
         def uri
