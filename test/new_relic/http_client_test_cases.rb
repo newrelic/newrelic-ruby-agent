@@ -92,6 +92,23 @@ module HttpClientTestCases
     ])
   end
 
+  def test_get_with_reused_connection
+    n = 2
+    responses = get_response_multi(default_url, n)
+
+    responses.each do |res|
+      assert_match %r/<head>/i, body(res)
+    end
+
+    expected = { :call_count => n }
+    assert_metrics_recorded(
+      "External/all" => expected,
+      "External/localhost/#{client_name}/GET" => expected,
+      "External/allOther" => expected,
+      "External/localhost/all" => expected
+    )
+  end
+
   def test_background
     res = nil
 

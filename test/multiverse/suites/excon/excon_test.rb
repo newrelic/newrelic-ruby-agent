@@ -20,6 +20,14 @@ class ExconTest < Test::Unit::TestCase
     Excon.get(url || default_url)
   end
 
+  def get_response_multi(url, n)
+    responses = []
+    conn = Excon.new(url)
+    n.times { responses << conn.get }
+    conn.reset
+    responses
+  end
+
   def head_response
     Excon.head(default_url)
   end
