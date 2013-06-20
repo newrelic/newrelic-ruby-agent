@@ -4,6 +4,7 @@
 
 require "newrelic_rpm"
 require "fake_external_server"
+require "evil_server"
 require 'mocha'
 
 module HttpClientTestCases
@@ -345,6 +346,26 @@ module HttpClientTestCases
       filtered_uri = default_url
       assert_equal filtered_uri, last_segment.params[:uri]
     end
+  end
+
+  def test_still_records_tt_node_when_request_fails
+    evil_server = NewRelic::EvilServer.new
+    evil_server.start
+
+    in_transaction do
+      begin
+        get_response("http://localhost:#{evil_server.port}")
+      rescue => e
+        # it's expected that this will raise for some HTTP libraries (e.g.
+        # Net::HTTP). we unfortunately don't know the exact exception class
+        # across all libraries
+      end
+
+      last_segment = find_last_transaction_segment()
+      assert_equal("External/localhost/#{client_name}/GET", last_segment.metric_name)
+    end
+
+    evil_server.stop
   end
 
   def make_app_data_payload( *args )

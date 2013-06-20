@@ -41,7 +41,7 @@ class ExconTest < Test::Unit::TestCase
     NewRelic::Agent::HTTPClients::ExconHTTPResponse.new(Excon::Response.new)
   end
 
-  def test_still_records_tt_node_when_request_fails
+  def test_still_records_tt_node_when_request_expects_different_response_code
     in_transaction do
       conn = Excon.new("#{default_url}?status=500")
       begin
