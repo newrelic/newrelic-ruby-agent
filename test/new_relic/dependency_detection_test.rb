@@ -96,4 +96,32 @@ class DependencyDetectionTest < Test::Unit::TestCase
     assert !executed
   end
 
+
+  def test_exception_during_depends_on_check_doesnt_propagate
+    DependencyDetection.defer do
+      named :something_exceptional
+      depends_on { raise "Oops" }
+    end
+
+    DependencyDetection.detect!
+
+    assert_falsy( DependencyDetection.items.first.executed )
+  end
+
+
+  def test_exception_during_execution_doesnt_propagate
+    ran_second_block = false
+
+    DependencyDetection.defer do
+      named :something_exceptional
+      executes { raise "Ack!" }
+      executes { ran_second_block = true }
+    end
+
+    DependencyDetection.detect!
+
+    assert_truthy( DependencyDetection.items.first.executed )
+    assert_falsy( ran_second_block )
+  end
+
 end

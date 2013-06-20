@@ -40,7 +40,7 @@ module DependencyDetection
 
   class Dependent
     attr_reader :executed
-    attr_reader :name
+    attr_accessor :name
     def executed!
       @executed = true
     end
@@ -50,6 +50,7 @@ module DependencyDetection
     def initialize
       @dependencies = []
       @executes = []
+      @name = nil
     end
 
     def dependencies_satisfied?
@@ -58,14 +59,27 @@ module DependencyDetection
 
     def execute
       @executes.each do |x|
-        x.call
+        begin
+          x.call
+        rescue => err
+          NewRelic::Agent.logger.error( "Error while installing #{self.name} instrumentation:", err )
+          break
+        end
       end
     ensure
       executed!
     end
 
     def check_dependencies
-      dependencies && dependencies.all? { |d| d.call }
+      return false unless dependencies
+      dependencies.all? do |dep|
+        begin
+          dep.call
+        rescue => err
+          NewRelic::Agent.logger.error( "Error while detecting #{self.name}:", err )
+          false
+        end
+      end
     end
 
     def depends_on
@@ -73,7 +87,7 @@ module DependencyDetection
     end
 
     def named(new_name)
-      name = new_name
+      self.name = new_name
       depends_on do
         key = "disable_#{new_name}".to_sym
         if (::NewRelic::Agent.config[key] == true)
