@@ -6,7 +6,7 @@ DependencyDetection.defer do
   @name = :excon
 
   depends_on do
-    defined?(::Excon) && !NewRelic::Agent.config[:disable_excon]
+    defined?(::Excon) && defined?(::Excon::VERSION) && !NewRelic::Agent.config[:disable_excon]
   end
 
   executes do

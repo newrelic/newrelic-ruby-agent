@@ -92,7 +92,7 @@ module NewRelic
         duration = t1.to_f - t0.to_f
 
         begin
-          if request && response
+          if request
             # Figure out which metrics we need to report based on the request and response
             # The last (most-specific) one is scoped.
             metrics = metrics_for( request, response )
@@ -103,7 +103,7 @@ module NewRelic
 
             # Add TT custom parameters
             segment.name = scoped_metric
-            add_transaction_trace_parameters(request, response)
+            add_transaction_trace_parameters(request, response) if response
           end
         ensure
           # We always need to pop the scope stack to avoid an inconsistent
@@ -168,21 +168,23 @@ module NewRelic
 
       # Return the set of metric names that correspond to
       # the given +request+ and +response+.
+      # +response+ may be nil in the case that the request produced an error
+      # without ever receiving an HTTP response.
       def metrics_for( request, response )
         metrics = common_metrics( request )
 
-        if response_is_crossapp?( response )
+        if response && response_is_crossapp?( response )
           begin
             metrics.concat metrics_for_crossapp_response( request, response )
           rescue => err
             # Fall back to regular metrics if there's a problem with x-process metrics
             NewRelic::Agent.logger.debug "%p while fetching x-process metrics: %s" %
               [ err.class, err.message ]
-            metrics.concat metrics_for_regular_response( request, response )
+            metrics.concat metrics_for_regular_request( request )
           end
         else
           NewRelic::Agent.logger.debug "Response doesn't have CAT headers."
-          metrics.concat metrics_for_regular_response( request, response )
+          metrics.concat metrics_for_regular_request( request )
         end
 
         return metrics
@@ -262,8 +264,8 @@ module NewRelic
 
 
       # Return the set of metric objects appropriate for the given (non-cross app)
-      # +response+.
-      def metrics_for_regular_response( request, response )
+      # +request+.
+      def metrics_for_regular_request( request )
         metrics = []
         metrics << "External/#{request.host}/#{request.type}/#{request.method}"
 
