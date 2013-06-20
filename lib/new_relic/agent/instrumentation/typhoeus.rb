@@ -81,8 +81,12 @@ module NewRelic::Agent::Instrumentation::TyphoeusTracing
 
   EARLIEST_VERSION = "0.2.0"
 
+  def self.request_is_hydra_enabled?(request)
+    request.respond_to?(:hydra) && request.hydra
+  end
+
   def self.trace(request)
-    if NewRelic::Agent.is_execution_traced? && (!request.respond_to?(:hydra) || (request.respond_to?(:hydra) && request.hydra.nil?))
+    if NewRelic::Agent.is_execution_traced? && !request_is_hydra_enabled?(request)
       wrapped_request = ::NewRelic::Agent::HTTPClients::TyphoeusHTTPRequest.new(request)
       t0, segment = ::NewRelic::Agent::CrossAppTracing.start_trace(wrapped_request)
       request.on_complete do
