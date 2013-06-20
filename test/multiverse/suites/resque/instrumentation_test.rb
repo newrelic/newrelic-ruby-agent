@@ -9,9 +9,27 @@ require 'test/unit'
 require 'logger'
 require 'newrelic_rpm'
 require 'fake_collector'
-require File.join(File.dirname(__FILE__), 'resque_setup')
 
 class ResqueTest < Test::Unit::TestCase
+  class JobForTesting
+    @queue = :resque_test
+
+    @@count = 0
+
+    def self.reset_counter
+      @@count = 0
+    end
+
+    def self.count
+      @@count
+    end
+
+    def self.perform(sleep_duration=0)
+      sleep sleep_duration
+      @@count += 1
+    end
+  end
+
   JOB_COUNT = 5
 
   def setup
@@ -19,9 +37,7 @@ class ResqueTest < Test::Unit::TestCase
     $collector.reset
     $collector.run
 
-    $redis.del('queue:resque_test')
-    $redis.set('index_key', 0)
-    Resque::Stat.clear('processed')
+    JobForTesting.reset_counter
 
     # From multiverse, we only run the Resque jobs inline to check that we
     # are properly instrumenting the methods. Testing of the forking/backgrounding
@@ -29,14 +45,14 @@ class ResqueTest < Test::Unit::TestCase
     Resque.inline = true
 
     JOB_COUNT.times do |i|
-      Resque.enqueue(JobForTesting, 'index_key', i + 1)
+      Resque.enqueue(JobForTesting)
     end
 
     NewRelic::Agent.instance.send(:transmit_data)
   end
 
   def test_all_jobs_ran
-    assert_equal(JOB_COUNT, $redis.get('index_key').to_i)
+    assert_equal(JOB_COUNT, JobForTesting.count)
   end
 
   def test_agent_posts_correct_metric_data
