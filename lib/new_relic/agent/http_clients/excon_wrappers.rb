@@ -11,7 +11,8 @@ module NewRelic
           # Since HTTP headers are case-insensitive, we normalize all of them to
           # upper case here, and then also in our [](key) implementation.
           @normalized_headers = {}
-          (response[:headers] || {}).each do |key, val|
+          headers = response.respond_to?(:headers) ? response.headers : response[:headers]
+          (headers || {}).each do |key, val|
             @normalized_headers[key.upcase] = val
           end
         end
@@ -47,6 +48,7 @@ module NewRelic
         end
 
         def []=(key, value)
+          @datum[:headers] ||= {}
           @datum[:headers][key] = value
         end
 

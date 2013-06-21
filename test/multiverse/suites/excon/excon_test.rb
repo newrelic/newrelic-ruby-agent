@@ -20,6 +20,14 @@ class ExconTest < Test::Unit::TestCase
     Excon.get(url || default_url)
   end
 
+  def get_response_multi(url, n)
+    responses = []
+    conn = Excon.new(url)
+    n.times { responses << conn.get }
+    conn.reset
+    responses
+  end
+
   def head_response
     Excon.head(default_url)
   end
@@ -29,7 +37,11 @@ class ExconTest < Test::Unit::TestCase
   end
 
   def request_instance
-    excon_req = Excon::Connection.new(:scheme => 'http', :host => 'newrelic.com', :port => '80', :path => '/')
+    if Excon::VERSION >= "0.19.0"
+      excon_req = Excon::Connection.new(:scheme => 'http', :host => 'newrelic.com', :port => '80', :path => '/')
+    else
+      excon_req = Excon::Connection.new('http://newrelic.com/')
+    end
     NewRelic::Agent::HTTPClients::ExconHTTPRequest.new(excon_req)
   end
 
@@ -37,7 +49,7 @@ class ExconTest < Test::Unit::TestCase
     NewRelic::Agent::HTTPClients::ExconHTTPResponse.new(Excon::Response.new)
   end
 
-  def test_still_records_tt_node_when_request_fails
+  def test_still_records_tt_node_when_request_expects_different_response_code
     in_transaction do
       conn = Excon.new("#{default_url}?status=500")
       begin

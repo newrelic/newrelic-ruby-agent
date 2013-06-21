@@ -27,6 +27,20 @@ class NetHttpTest < Test::Unit::TestCase
     Net::HTTP.get uri
   end
 
+  def get_response_multi(url, n)
+    uri = URI(url)
+    responses = []
+
+    Net::HTTP.start(uri.host, uri.port) do |conn|
+      n.times do
+        req = Net::HTTP::Get.new(uri)
+        responses << conn.request(req).body
+      end
+    end
+
+    responses
+  end
+
   def head_response
     Net::HTTP.start(default_uri.host, default_uri.port) {|http|
       http.head(default_uri.path)

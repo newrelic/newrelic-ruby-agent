@@ -4,6 +4,7 @@
 
 require "newrelic_rpm"
 require "fake_external_server"
+require "evil_server"
 require 'mocha'
 
 module HttpClientTestCases
@@ -89,6 +90,27 @@ module HttpClientTestCases
       "External/allOther",
       "External/localhost/all"
     ])
+  end
+
+  # Only some HTTP clients support explicit connection reuse, so this test
+  # checks whether the host responds to get_response_multi before executing.
+  def test_get_with_reused_connection
+    if self.respond_to?(:get_response_multi)
+      n = 2
+      responses = get_response_multi(default_url, n)
+
+      responses.each do |res|
+        assert_match %r/<head>/i, body(res)
+      end
+
+      expected = { :call_count => n }
+      assert_metrics_recorded(
+        "External/all" => expected,
+        "External/localhost/#{client_name}/GET" => expected,
+        "External/allOther" => expected,
+        "External/localhost/all" => expected
+      )
+    end
   end
 
   def test_background
@@ -344,6 +366,34 @@ module HttpClientTestCases
       last_segment = find_last_transaction_segment()
       filtered_uri = default_url
       assert_equal filtered_uri, last_segment.params[:uri]
+    end
+  end
+
+  def test_still_records_tt_node_when_request_fails
+    # This test does not work on older versions of Typhoeus, because the
+    # on_complete callback is not reliably invoked. That said, it's a corner
+    # case, and the failure mode is just that you lose tracing for the one
+    # transaction in which the error occurs. That, coupled with the fact that
+    # fixing it for old versions of Typhoeus would require large changes to
+    # the instrumentation, makes us say 'meh'.
+    if client_name == 'Typhoeus' && Typhoeus::VERSION >= "0.5.4"
+      evil_server = NewRelic::EvilServer.new
+      evil_server.start
+
+      in_transaction do
+        begin
+          get_response("http://localhost:#{evil_server.port}")
+        rescue => e
+          # it's expected that this will raise for some HTTP libraries (e.g.
+          # Net::HTTP). we unfortunately don't know the exact exception class
+          # across all libraries
+        end
+
+        last_segment = find_last_transaction_segment()
+        assert_equal("External/localhost/#{client_name}/GET", last_segment.metric_name)
+      end
+
+      evil_server.stop
     end
   end
 
