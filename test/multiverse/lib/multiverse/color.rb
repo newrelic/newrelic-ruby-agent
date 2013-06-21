@@ -4,14 +4,20 @@
 
 module Multiverse
   module Color
+    def colorize(color_code, content)
+      STDOUT.tty? ? "\e[#{color_code}m#{content}\e[0m" : content
+    end
+
     def red(string)
-      "\e[0;31;49m#{string}\e[0m "
+      colorize("0;31;49", string)
     end
+
     def green(string)
-      "\e[0;32;49m#{string}\e[0m "
+      colorize("0;32;49", string)
     end
+
     def yellow(string)
-      "\e[0;33;49m#{string}\e[0m "
+      colorize("0;33;49", string)
     end
   end
 end
