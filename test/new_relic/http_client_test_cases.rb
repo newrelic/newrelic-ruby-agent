@@ -92,6 +92,8 @@ module HttpClientTestCases
     ])
   end
 
+  # Only some HTTP clients support explicit connection reuse, so this test
+  # checks whether the host responds to get_response_multi before executing.
   def test_get_with_reused_connection
     if self.respond_to?(:get_response_multi)
       n = 2
