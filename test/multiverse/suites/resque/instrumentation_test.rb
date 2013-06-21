@@ -13,20 +13,19 @@ require 'fake_collector'
 class ResqueTest < Test::Unit::TestCase
   class JobForTesting
     @queue = :resque_test
-
-    @@count = 0
+    @count = 0
 
     def self.reset_counter
-      @@count = 0
+      @count = 0
     end
 
     def self.count
-      @@count
+      @count
     end
 
     def self.perform(sleep_duration=0)
       sleep sleep_duration
-      @@count += 1
+      @count += 1
     end
   end
 
