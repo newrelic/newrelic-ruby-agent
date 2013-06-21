@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
 
-class NewRelic::Agent::LanguageSupportTest < Test::Unit::TestCase
+class NewRelic::LanguageSupportTest < Test::Unit::TestCase
   def test_object_space_enabled_true_without_jruby_with_object_space
     undefine_constant(:JRuby) do
       define_constant(:ObjectSpace, mock()) do

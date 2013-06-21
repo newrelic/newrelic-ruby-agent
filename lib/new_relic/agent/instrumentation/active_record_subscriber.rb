@@ -82,7 +82,7 @@ module NewRelic
         end
 
         def active_record_config_for_event(event)
-          return unless event.payload[:connection_id] && NewRelic::Agent::LanguageSupport.object_space_enabled?
+          return unless event.payload[:connection_id] && NewRelic::LanguageSupport.object_space_enabled?
 
           # TODO: This will not work for JRuby and in any case we want
           # this to be part of the event meta data so it doesn't have

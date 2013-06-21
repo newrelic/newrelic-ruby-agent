@@ -13,7 +13,7 @@ module NewRelic
         end
 
         def self.supported_on_this_platform?
-          NewRelic::Agent::LanguageSupport.object_space_enabled? && ObjectSpace.respond_to?(:live_objects)
+          NewRelic::LanguageSupport.object_space_enabled? && ObjectSpace.respond_to?(:live_objects)
         end
 
         def poll
