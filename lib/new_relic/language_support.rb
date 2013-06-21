@@ -64,6 +64,14 @@ module NewRelic::LanguageSupport
     end
   end
 
+  def object_space_enabled?
+    if defined?(::JRuby) && JRuby.respond_to?(:runtime)
+      JRuby.runtime.is_object_space_enabled
+    else
+      defined?(::ObjectSpace) ? true : false
+    end
+  end
+
   def using_version?(version)
     numbers = version.split('.')
     numbers == ::RUBY_VERSION.split('.')[0, numbers.size]

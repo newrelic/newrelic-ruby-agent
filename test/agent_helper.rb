@@ -237,3 +237,27 @@ end
 def advance_time(seconds)
   freeze_time(Time.now + seconds)
 end
+
+def define_constant(constant_symbol, implementation)
+  if Object.const_defined?(constant_symbol)
+    existing_implementation = Object.send(:remove_const, constant_symbol)
+  end
+
+  Object.const_set(constant_symbol, implementation)
+
+  yield
+ensure
+  Object.send(:remove_const, constant_symbol)
+
+  if existing_implementation
+    Object.const_set(constant_symbol, existing_implementation)
+  end
+end
+
+def undefine_constant(constant_symbol)
+  return yield unless Object.const_defined?(constant_symbol)
+  removed_constant = Object.send(:remove_const, constant_symbol)
+  yield
+ensure
+  Object.const_set(constant_symbol, removed_constant) if removed_constant
+end

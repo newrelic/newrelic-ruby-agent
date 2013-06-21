@@ -49,17 +49,13 @@ module NewRelic
       @dispatcher_instance_id
     end
 
-    # it's a working jruby if it has the runtime method, and object
-    # space is enabled
-    def working_jruby?
-      !(defined?(::JRuby) && JRuby.respond_to?(:runtime) && !JRuby.runtime.is_object_space_enabled)
-    end
-
     # Runs through all the objects in ObjectSpace to find the first one that
     # match the provided class
     def find_class_in_object_space(klass)
-      ObjectSpace.each_object(klass) do |x|
-        return x
+      if NewRelic::LanguageSupport.object_space_enabled?
+        ObjectSpace.each_object(klass) do |x|
+          return x
+        end
       end
       return nil
     end
@@ -68,7 +64,7 @@ module NewRelic
     def mongrel
       return @mongrel if @looked_for_mongrel
       @looked_for_mongrel = true
-      if defined?(::Mongrel) && defined?(::Mongrel::HttpServer) && working_jruby?
+      if defined?(::Mongrel) && defined?(::Mongrel::HttpServer)
         @mongrel = find_class_in_object_space(::Mongrel::HttpServer)
       end
       @mongrel
@@ -135,10 +131,10 @@ module NewRelic
       end
 
       # Get the port from the configurator if one was created
-      if @dispatcher_instance_id.nil? && defined?(::Mongrel::Configurator)
+      if NewRelic::LanguageSupport.object_space_enabled? && @dispatcher_instance_id.nil? && defined?(::Mongrel::Configurator)
         ObjectSpace.each_object(Mongrel::Configurator) do |mongrel|
           @dispatcher_instance_id = mongrel.defaults[:port] && mongrel.defaults[:port].to_s
-        end unless defined?(::JRuby) && !JRuby.runtime.is_object_space_enabled
+        end
       end
 
       # Still can't find the port.  Let's look at ARGV to fall back
@@ -149,14 +145,14 @@ module NewRelic
     end
 
     def check_for_unicorn
-      if (defined?(::Unicorn) && defined?(::Unicorn::HttpServer)) && working_jruby?
+      if (defined?(::Unicorn) && defined?(::Unicorn::HttpServer)) && NewRelic::LanguageSupport.object_space_enabled?
         v = find_class_in_object_space(::Unicorn::HttpServer)
         @discovered_dispatcher = :unicorn if v 
       end
     end
 
     def check_for_rainbows
-      if (defined?(::Rainbows) && defined?(::Rainbows::HttpServer)) && working_jruby?
+      if (defined?(::Rainbows) && defined?(::Rainbows::HttpServer)) && NewRelic::LanguageSupport.object_space_enabled?
         v = find_class_in_object_space(::Rainbows::HttpServer)
         @discovered_dispatcher = :rainbows if v
       end
@@ -178,7 +174,7 @@ module NewRelic
     end
 
     def check_for_thin
-      if defined?(::Thin) && defined?(::Thin::Server)
+      if defined?(::Thin) && defined?(::Thin::Server) && NewRelic::LanguageSupport.object_space_enabled?
         # This case covers the thin web dispatcher
         # Same issue as above- we assume only one instance per process
         ObjectSpace.each_object(Thin::Server) do |thin_dispatcher|
