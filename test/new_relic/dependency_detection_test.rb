@@ -8,7 +8,7 @@ class DependencyDetectionTest < Test::Unit::TestCase
 
   def setup
     @original_items = DependencyDetection.items
-    DependencyDetection.items.clear
+    DependencyDetection.items = []
   end
 
   def teardown
