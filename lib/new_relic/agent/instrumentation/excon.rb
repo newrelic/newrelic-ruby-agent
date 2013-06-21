@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 DependencyDetection.defer do
-  @name = :excon
+  named :excon
 
   # We have two ways of instrumenting Excon:
   # - For newer versions, use the middleware mechanism Excon exposes
@@ -29,7 +29,7 @@ DependencyDetection.defer do
   EXCON_MIDDLEWARE_MIN_VERSION = ::NewRelic::VersionNumber.new("0.19.0")
 
   depends_on do
-    defined?(::Excon) && defined?(::Excon::VERSION) && !NewRelic::Agent.config[:disable_excon]
+    defined?(::Excon) && defined?(::Excon::VERSION)
   end
 
   executes do
