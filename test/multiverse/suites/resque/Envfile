@@ -13,12 +13,3 @@ gemfile <<-RB
   gem 'json'
   gem 'rake'
 RB
-
-before_suite do
-  ENV["NEWRELIC_MULTIVERSE_REDIS_PORT"] = (20_000 + ($$ % 10_000)).to_s
-  system("echo 'port #{ENV["NEWRELIC_MULTIVERSE_REDIS_PORT"]}' | redis-server - > /dev/null &")
-end
-
-after_suite do
-  system("redis-cli -p #{ENV["NEWRELIC_MULTIVERSE_REDIS_PORT"]} shutdown")
-end
