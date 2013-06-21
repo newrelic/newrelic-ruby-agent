@@ -261,3 +261,12 @@ def undefine_constant(constant_symbol)
 ensure
   Object.const_set(constant_symbol, removed_constant) if removed_constant
 end
+
+def internet_connection?
+  if ENV['NO_INTERNET']
+    puts " - No internet connection, skipping"
+    false
+  else
+    true
+  end
+end
