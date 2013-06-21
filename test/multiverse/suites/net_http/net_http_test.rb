@@ -31,10 +31,10 @@ class NetHttpTest < Test::Unit::TestCase
     uri = URI(url)
     responses = []
 
-    Net::HTTP.start(uri.host, uri.port) do |conn|
+    start(uri) do |conn|
       n.times do
         req = Net::HTTP::Get.new(url)
-        responses << conn.request(req).body
+        responses << conn.request(req)
       end
     end
 
