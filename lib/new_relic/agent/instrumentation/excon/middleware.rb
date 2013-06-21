@@ -36,8 +36,6 @@ module ::Excon
           t0, segment, wrapped_request = trace_data
           if datum[:response]
             wrapped_response = ::NewRelic::Agent::HTTPClients::ExconHTTPResponse.new(datum[:response])
-          else
-            wrapped_response = nil
           end
           ::NewRelic::Agent::CrossAppTracing.finish_trace(t0, segment, wrapped_request, wrapped_response)
         end
