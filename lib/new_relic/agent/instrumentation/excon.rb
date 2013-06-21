@@ -25,7 +25,7 @@ DependencyDetection.defer do
   # so we could safely subscribe and not be clobbered by future subscribers,
   # but alas, it does not yet.
 
-  EXCON_MIN_VERSION = ::NewRelic::VersionNumber.new("0.10.0")
+  EXCON_MIN_VERSION = ::NewRelic::VersionNumber.new("0.10.1")
   EXCON_MIDDLEWARE_MIN_VERSION = ::NewRelic::VersionNumber.new("0.19.0")
 
   depends_on do
