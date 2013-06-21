@@ -58,6 +58,10 @@ module HttpClientTestCases
     @ssl = true
   end
 
+  def use_ssl?
+    @ssl
+  end
+
   def server
     @ssl ? $fake_secure_server : $fake_server
   end
