@@ -14,6 +14,16 @@ if Typhoeus::VERSION >= NewRelic::Agent::Instrumentation::TyphoeusTracing::EARLI
   class TyphoeusTest < Test::Unit::TestCase
     include HttpClientTestCases
 
+    USE_SSL_VERIFYPEER_VERSION = NewRelic::VersionNumber.new("0.5.0")
+
+    def ssl_option
+      if NewRelic::VersionNumber.new(Typhoeus::VERSION) >= USE_SSL_VERIFYPEER_VERSION
+        { :ssl_verifypeer => false }
+      else
+        { :disable_ssl_peer_verification => true }
+      end
+    end
+
     def client_name
       "Typhoeus"
     end
@@ -21,15 +31,15 @@ if Typhoeus::VERSION >= NewRelic::Agent::Instrumentation::TyphoeusTracing::EARLI
     # We use the Typhoeus::Request rather than right on Typhoeus to support
     # prior to convenience methods being added on the top-level module (0.5.x)
     def get_response(url=nil)
-      Typhoeus::Request.get(url || default_url)
+      Typhoeus::Request.get(url || default_url, ssl_option)
     end
 
     def head_response
-      Typhoeus::Request.head(default_url)
+      Typhoeus::Request.head(default_url, ssl_option)
     end
 
     def post_response
-      Typhoeus::Request.post(default_url, :body => "")
+      Typhoeus::Request.post(default_url, ssl_option.merge(:body => ""))
     end
 
     def request_instance
@@ -44,12 +54,19 @@ if Typhoeus::VERSION >= NewRelic::Agent::Instrumentation::TyphoeusTracing::EARLI
     def test_hydra
       in_transaction("test") do
         hydra = Typhoeus::Hydra.new
-        5.times { hydra.queue(Typhoeus::Request.new(default_url)) }
+        5.times { hydra.queue(Typhoeus::Request.new(default_url, ssl_option)) }
         hydra.run
 
         last_segment = find_last_transaction_segment()
         assert_equal "External/Multiple/Typhoeus::Hydra/run", last_segment.metric_name
       end
+    end
+  end
+
+  class TyphoeusSecureTest < TyphoeusTest
+    def setup
+      super
+      use_ssl
     end
   end
 

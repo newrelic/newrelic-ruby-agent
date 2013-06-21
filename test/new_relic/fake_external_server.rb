@@ -40,5 +40,16 @@ module NewRelic
     def app
       NewRelic::Rack::AgentHooks.new(self)
     end
+
+    def fallback_port
+      # Only use fallback port on the FakeCollector....
+      nil
+    end
+  end
+
+  class FakeSecureExternalServer < FakeExternalServer
+    def initialize
+      super(0, true)
+    end
   end
 end
