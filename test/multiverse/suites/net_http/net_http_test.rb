@@ -24,17 +24,17 @@ class NetHttpTest < Test::Unit::TestCase
     uri = default_uri
     uri = URI.parse(url) unless url.nil?
 
-    Net::HTTP.get uri
+    start(uri) { |http| http.get(uri.path) }
   end
 
   def get_response_multi(url, n)
     uri = URI(url)
     responses = []
 
-    Net::HTTP.start(uri.host, uri.port) do |conn|
+    start(uri) do |conn|
       n.times do
         req = Net::HTTP::Get.new(url)
-        responses << conn.request(req).body
+        responses << conn.request(req)
       end
     end
 
@@ -42,20 +42,25 @@ class NetHttpTest < Test::Unit::TestCase
   end
 
   def head_response
-    Net::HTTP.start(default_uri.host, default_uri.port) {|http|
-      http.head(default_uri.path)
-    }
+    start(default_uri) { |http| http.head(default_uri.path) }
   end
 
   def post_response
-    Net::HTTP.start(default_uri.host, default_uri.port) {|http|
-      http.post(default_uri.path, "")
-    }
+    start(default_uri) { |http| http.post(default_uri.path, "") }
   end
 
-  def body(res)
-    # to_s for Net::HTTP::Response will return the body string
-    res.to_s
+  def create_http(uri)
+    http = Net::HTTP.new(uri.host, uri.port)
+    if use_ssl?
+      http.use_ssl = true
+      http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    end
+    http
+  end
+
+  def start(uri, &block)
+    http = create_http(uri)
+    http.start(&block)
   end
 
   def request_instance
@@ -70,6 +75,9 @@ class NetHttpTest < Test::Unit::TestCase
   # Net::HTTP specific tests
   #
   def test_get__simple
+    # Don't check this specific condition against SSL, since API doesn't support it
+    return if use_ssl?
+
     Net::HTTP.get default_uri
 
     assert_metrics_recorded([
@@ -82,7 +90,7 @@ class NetHttpTest < Test::Unit::TestCase
 
   # https://newrelic.atlassian.net/browse/RUBY-835
   def test_direct_get_request_doesnt_double_count
-    http = Net::HTTP.new(default_uri.host, default_uri.port)
+    http = create_http(default_uri)
     http.request(Net::HTTP::Get.new(default_uri.request_uri))
 
     assert_metrics_recorded([
@@ -91,3 +99,9 @@ class NetHttpTest < Test::Unit::TestCase
   end
 end
 
+class NetHttpSslTest < NetHttpTest
+  def setup
+    super
+    use_ssl
+  end
+end

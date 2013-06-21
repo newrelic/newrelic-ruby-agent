@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'webrick'
+require 'webrick/https'
 require 'rack'
 require 'rack/handler'
 require 'timeout'
@@ -21,13 +22,23 @@ module NewRelic
       :AccessLog => [ ['/dev/null', ''] ]
     }
 
+    CONFIG_PATH = File.join(File.dirname(__FILE__), "..", "config")
 
+    SSL_OPTIONS = {
+      :SSLEnable => true,
+      :SSLVerifyClient => OpenSSL::SSL::VERIFY_NONE,
+      :SSLPrivateKey => OpenSSL::PKey::RSA.new(File.open(File.join(CONFIG_PATH, "test.cert.key")).read),
+      :SSLCertificate => OpenSSL::X509::Certificate.new(File.open(File.join(CONFIG_PATH, "test.cert.crt")).read),
+      :SSLCertName => [["CN", "newrelic.com"]]
+    }
 
-    def initialize( port=DEFAULT_PORT )
+    def initialize( port=DEFAULT_PORT, ssl=false )
       @thread = nil
 
       defaults = $DEBUG ? {} : DEFAULT_OPTIONS
       @options = defaults.merge( :Port => port )
+
+      @options.merge!(SSL_OPTIONS) if ssl
 
       @server = WEBrick::HTTPServer.new( @options )
       @server.mount "/", ::Rack::Handler.get( :webrick ), app
@@ -40,7 +51,7 @@ module NewRelic
     def run( port=nil )
       return if @thread && @thread.alive?
       @server.listen( @options[:BindAddress], port ) if port
-      @server.listen( @options[:BindAddress], fallback_port )
+      @server.listen( @options[:BindAddress], fallback_port ) if fallback_port
       @thread = Thread.new( &self.method(:run_server) )
       return @thread
     end
