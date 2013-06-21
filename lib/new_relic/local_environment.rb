@@ -64,7 +64,7 @@ module NewRelic
     def mongrel
       return @mongrel if @looked_for_mongrel
       @looked_for_mongrel = true
-      if defined?(::Mongrel) && defined?(::Mongrel::HttpServer) && NewRelic::LanguageSupport.object_space_enabled?
+      if defined?(::Mongrel) && defined?(::Mongrel::HttpServer)
         @mongrel = find_class_in_object_space(::Mongrel::HttpServer)
       end
       @mongrel
