@@ -63,13 +63,6 @@ if Typhoeus::VERSION >= NewRelic::Agent::Instrumentation::TyphoeusTracing::EARLI
     end
   end
 
-  class TyphoeusSecureTest < TyphoeusTest
-    def setup
-      super
-      use_ssl
-    end
-  end
-
 else
 
   class TyphoeusNotInstrumented < Test::Unit::TestCase

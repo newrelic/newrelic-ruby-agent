@@ -100,10 +100,3 @@ class NetHttpTest < Test::Unit::TestCase
     ])
   end
 end
-
-class NetHttpSslTest < NetHttpTest
-  def setup
-    super
-    use_ssl
-  end
-end
