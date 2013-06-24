@@ -1,5 +1,12 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.6.5 ##
+
+  * Excon and Typhoeus support
+
+  The Ruby agent now supports the Excon and Typhoeus HTTP libraries! For more
+  details see https://newrelic.com/docs/ruby/ruby-http-clients.
+
 ## v3.6.4 ##
 
   * Exception Whitelist
@@ -21,7 +28,7 @@
   generation of the agent's EnvironmentReport on startup from a background
   thread to the main thread.
 
-## 3.6.3 ##
+## v3.6.3 ##
 
   * Better Sinatra Support
 
