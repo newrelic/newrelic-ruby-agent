@@ -100,6 +100,17 @@ module HttpClientTestCases
     res.respond_to?(:to_hash)
   end
 
+  # Some libraries (older Typhoeus), have had odd behavior around [] for
+  # missing keys. This generates log messages, although it behaves right in
+  # terms of metrics, so double-check we get what we expect
+  def test_request_headers_for_missing_key
+    assert_nil request_instance["boo"]
+  end
+
+  def test_response_headers_for_missing_key
+    assert_nil response_instance["boo"]
+  end
+
   def test_get
     res = get_response
 

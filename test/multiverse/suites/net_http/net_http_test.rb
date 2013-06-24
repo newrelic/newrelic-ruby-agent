@@ -64,7 +64,9 @@ class NetHttpTest < Test::Unit::TestCase
   end
 
   def request_instance
-    NewRelic::Agent::HTTPClients::NetHTTPRequest.new(nil, nil)
+    http = Net::HTTP.new(default_uri.host, default_uri.port)
+    request = Net::HTTP::Get.new(default_uri.request_uri)
+    NewRelic::Agent::HTTPClients::NetHTTPRequest.new(http, request)
   end
 
   def response_instance

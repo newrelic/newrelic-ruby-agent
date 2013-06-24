@@ -47,7 +47,7 @@ if Typhoeus::VERSION >= NewRelic::Agent::Instrumentation::TyphoeusTracing::EARLI
     end
 
     def response_instance
-      NewRelic::Agent::HTTPClients::TyphoeusHTTPResponse.new(Typhoeus::Response.new)
+      NewRelic::Agent::HTTPClients::TyphoeusHTTPResponse.new(Typhoeus::Response.new(:headers => ""))
     end
 
 

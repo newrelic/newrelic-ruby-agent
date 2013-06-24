@@ -37,12 +37,7 @@ class ExconTest < Test::Unit::TestCase
   end
 
   def request_instance
-    if Excon::VERSION >= "0.19.0"
-      excon_req = Excon::Connection.new(:scheme => 'http', :host => 'newrelic.com', :port => '80', :path => '/')
-    else
-      excon_req = Excon::Connection.new('http://newrelic.com/')
-    end
-    NewRelic::Agent::HTTPClients::ExconHTTPRequest.new(excon_req)
+    NewRelic::Agent::HTTPClients::ExconHTTPRequest.new({:headers => ""})
   end
 
   def response_instance
