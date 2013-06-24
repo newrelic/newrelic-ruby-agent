@@ -37,12 +37,7 @@ class ExconTest < Test::Unit::TestCase
   end
 
   def request_instance
-    if Excon::VERSION >= "0.19.0"
-      excon_req = Excon::Connection.new(:scheme => 'http', :host => 'newrelic.com', :port => '80', :path => '/')
-    else
-      excon_req = Excon::Connection.new('http://newrelic.com/')
-    end
-    NewRelic::Agent::HTTPClients::ExconHTTPRequest.new(excon_req)
+    NewRelic::Agent::HTTPClients::ExconHTTPRequest.new({:headers => ""})
   end
 
   def response_instance
@@ -61,13 +56,5 @@ class ExconTest < Test::Unit::TestCase
       last_segment = find_last_transaction_segment()
       assert_equal("External/localhost/Excon/GET", last_segment.metric_name)
     end
-  end
-end
-
-class ExconSslTest < ExconTest
-  def setup
-    super
-    use_ssl
-    Excon.defaults[:ssl_verify_peer] = false
   end
 end

@@ -100,6 +100,17 @@ module HttpClientTestCases
     res.respond_to?(:to_hash)
   end
 
+  # Some libraries (older Typhoeus), have had odd behavior around [] for
+  # missing keys. This generates log messages, although it behaves right in
+  # terms of metrics, so double-check we get what we expect
+  def test_request_headers_for_missing_key
+    assert_nil request_instance["boo"]
+  end
+
+  def test_response_headers_for_missing_key
+    assert_nil response_instance["boo"]
+  end
+
   def test_get
     res = get_response
 
@@ -153,7 +164,7 @@ module HttpClientTestCases
     ])
   end
 
-  def test_transactional
+  def test_transactional_metrics
     res = nil
 
     perform_action_with_newrelic_trace("task") do
@@ -174,6 +185,15 @@ module HttpClientTestCases
     ])
   end
 
+
+  def test_transactional_traces_nodes
+    perform_action_with_newrelic_trace("task") do
+      res = get_response
+
+      last_segment = find_last_transaction_segment()
+      assert_equal "External/localhost/#{client_name}/GET", last_segment.metric_name
+    end
+  end
 
   def test_ignore
     in_transaction do
@@ -420,5 +440,5 @@ module HttpClientTestCases
   def make_app_data_payload( *args )
     return obfuscate_with_key( 'gringletoes', args.to_json ).gsub( /\n/, '' ) + "\n"
   end
-end
 
+end

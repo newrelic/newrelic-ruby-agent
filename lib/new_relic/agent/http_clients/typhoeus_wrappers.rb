@@ -11,7 +11,11 @@ module NewRelic
         end
 
         def [](key)
-          headers[key]
+          result = headers[key] unless headers.nil?
+
+          # Weirdness in old Typhoeus versions where missing keys return {}
+          result = nil if result == {}
+          result
         end
 
         def to_hash
@@ -58,7 +62,8 @@ module NewRelic
           if @request.respond_to?(:headers)
             @request.headers[key]
           else
-            @request[key]
+            return nil unless @request.options && @request.options[:headers]
+            @request.options[:headers][key]
           end
         end
 
