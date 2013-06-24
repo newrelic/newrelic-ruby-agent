@@ -153,7 +153,7 @@ module HttpClientTestCases
     ])
   end
 
-  def test_transactional
+  def test_transactional_metrics
     res = nil
 
     perform_action_with_newrelic_trace("task") do
@@ -174,6 +174,15 @@ module HttpClientTestCases
     ])
   end
 
+
+  def test_transactional_traces_nodes
+    perform_action_with_newrelic_trace("task") do
+      res = get_response
+
+      last_segment = find_last_transaction_segment()
+      assert_equal "External/localhost/#{client_name}/GET", last_segment.metric_name
+    end
+  end
 
   def test_ignore
     in_transaction do
@@ -420,5 +429,5 @@ module HttpClientTestCases
   def make_app_data_payload( *args )
     return obfuscate_with_key( 'gringletoes', args.to_json ).gsub( /\n/, '' ) + "\n"
   end
-end
 
+end

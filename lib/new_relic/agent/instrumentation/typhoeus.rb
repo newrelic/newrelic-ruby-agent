@@ -36,9 +36,12 @@ DependencyDetection.defer do
       class Typhoeus::Request
         class << self
           def run_with_newrelic(url, params)
-            params[:headers] ||= {}
-            params[:headers][:newrelic_trace_request] = true
+            original_single_request = Typhoeus::Hydra.hydra.newrelic_single_request
+            Typhoeus::Hydra.hydra.newrelic_single_request = true
+
             run_without_newrelic(url, params)
+          ensure
+            Typhoeus::Hydra.hydra.newrelic_single_request = original_single_request
           end
 
           alias run_without_newrelic run
@@ -48,8 +51,7 @@ DependencyDetection.defer do
 
       class Typhoeus::Hydra
         def queue_with_newrelic(request, *args)
-          trace = request.headers && request.headers.delete(:newrelic_trace_request)
-          NewRelic::Agent::Instrumentation::TyphoeusTracing.trace(request) if trace
+          NewRelic::Agent::Instrumentation::TyphoeusTracing.trace(request) if newrelic_single_request
           queue_without_newrelic(request, *args)
         end
 
@@ -64,9 +66,15 @@ DependencyDetection.defer do
     class Typhoeus::Hydra
       include NewRelic::Agent::MethodTracer
 
+      attr_accessor :newrelic_single_request
+
       def run_with_newrelic(*args)
-        trace_execution_scoped("External/Multiple/Typhoeus::Hydra/run") do
+        if newrelic_single_request
           run_without_newrelic(*args)
+        else
+          trace_execution_scoped("External/Multiple/Typhoeus::Hydra/run") do
+            run_without_newrelic(*args)
+          end
         end
       end
 
