@@ -68,6 +68,42 @@ DependencyDetection.defer do
 
       attr_accessor :newrelic_single_request
 
+      # There are two supported paths by which we may arrive here in Typhoeus::Hyrda#run:
+      #
+      # Via a single request made via Typhoeus::Request, like this:
+      #
+      #   1. A class method on Typhoues::Request (e.g. #get, #post, etc) is invoked
+      #   2. The class method calls through to the aliased Typhoeus::Request.run
+      #   3. The aliased Typhoeus::Request.run sets the newrelic_single_request
+      #      flag on the global shared Hydra instance
+      #   4. Inside the original Typhoeus::Request.run, a Typhoeus::Request
+      #      instance is created
+      #   5. The instance is enqueued on the global shared Hydra instance,
+      #      hitting our aliased Typhoeus::Hydra#queue
+      #   6. In the aliased Typhoeus::Hydra#queue, we call
+      #      NewRelic::Agent::Instrumentation::TyphoeusTracing.trace to setup
+      #      the tracing
+      #   7. The original Typhoeus::Request.run calls the aliased
+      #      Typhoeus::Hydra#run on the global shared Hydra instance
+      #   8. In the aliased Typhoeus::Hydra#run, we see that
+      #      newrelic_single_request is set, and call through to the original
+      #      implementation.
+      #
+      # Via a batch of parallel requests made through an explicit call to
+      # Typhoeus::Hydra#run, like this:
+      #
+      #   1. One or more Typhoeus::Request objects are explicitly created
+      #   2. As the Request objects are enqueued with the Hydra instance, they
+      #      pass through our aliased Typhoeus::Hydra#queue, but this is
+      #      effectively a no-op because the newrelic_single_request flag is not
+      #      set.
+      #   3. Typhoeus::Hydra.run is explicitly called, and we hit the
+      #      trace_execution_scoped path in our aliased version, again because
+      #      newrelic_single_request is not set.
+      #
+      # ... and of course, all of this noise is made irrelevant in later versions
+      # of Typhoeus by the addition of the Typhoeus.before hook.
+      #
       def run_with_newrelic(*args)
         if newrelic_single_request
           run_without_newrelic(*args)
