@@ -214,17 +214,17 @@ module NewRelic
       end
 
       OVERVIEW_SPECS = [
-        [:web_duration,      MetricSpec.new('HttpDispatcher')],
-        [:queue_duration,    MetricSpec.new('WebFrontend/QueueTime')],
-        [:external_duration, MetricSpec.new('External/allWeb')],
-        [:database_duration, MetricSpec.new('ActiveRecord/all')],
-        [:gc_cumulative,     MetricSpec.new("GC/cumulative")],
-        [:memcache_duration, MetricSpec.new('Memcache/allWeb')]
+        [:webDuration,      MetricSpec.new('HttpDispatcher')],
+        [:queueDuration,    MetricSpec.new('WebFrontend/QueueTime')],
+        [:externalDuration, MetricSpec.new('External/allWeb')],
+        [:databaseDuration, MetricSpec.new('ActiveRecord/all')],
+        [:gcCumulative,     MetricSpec.new("GC/cumulative")],
+        [:memcacheDuration, MetricSpec.new('Memcache/allWeb')]
       ]
 
       def transaction_overview_metrics
         metrics = {}
-        stats = agent.stats_engine.transaction_stats_hash
+        stats = @stats_hash
         OVERVIEW_SPECS.each do |(dest_key, spec)|
           metrics[dest_key] = stats[spec].total_call_time if stats.key?(spec)
         end

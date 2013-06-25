@@ -208,7 +208,7 @@ class NewRelic::Agent::TransactionTest < Test::Unit::TestCase
     NewRelic::Agent.record_metric("HttpDispatcher", 2.1)
     NewRelic::Agent::Transaction.stop('txn')
 
-    assert_equal 2.1, options[:web_duration]
+    assert_equal 2.1, options[:webDuration]
   end
 
   def test_parent_returns_parent_transaction_if_there_is_one

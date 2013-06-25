@@ -32,7 +32,8 @@ module NewRelic
           gated_features = {
             :'transaction_tracer.enabled' => 'collect_traces',
             :'slow_sql.enabled'           => 'collect_traces',
-            :'error_collector.enabled'    => 'collect_errors'
+            :'error_collector.enabled'    => 'collect_errors',
+            :'request_sampler.enabled'    => 'collect_analytics_events'
           }
           gated_features.each do |feature, gate_key|
             if server_config.has_key?(gate_key)
