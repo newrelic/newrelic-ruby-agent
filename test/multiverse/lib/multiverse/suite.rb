@@ -140,6 +140,7 @@ module Multiverse
       OutputCollector.buffers.push('')
       puts yellow("Running #{directory.inspect} for Envfile entry #{env}")
       IO.popen("#{__FILE__} #{directory} #{env}") do |io|
+        puts yellow("Starting tests in child PID #{io.pid}")
         while chars = io.read(8) do
           OutputCollector.buffers.last << chars
           print chars
@@ -189,5 +190,8 @@ end
 # Exectute the suite.  We need this if we want to execute a suite by spawning a
 # new process instead of forking.
 if $0 == __FILE__
+  # Redirect stderr to stdout so that we can capture both in the popen that
+  # feeds into the OutputCollector above.
+  $stderr.reopen($stdout)
   Multiverse::Suite.new(ARGV[0], ARGV[2]).execute_child_environment(ARGV[1].to_i)
 end
