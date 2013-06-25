@@ -140,6 +140,7 @@ module Multiverse
       OutputCollector.buffers.push('')
       puts yellow("Running #{directory.inspect} for Envfile entry #{env}")
       IO.popen("#{__FILE__} #{directory} #{env}") do |io|
+        puts yellow("Starting tests in child PID #{io.pid}")
         while chars = io.read(8) do
           OutputCollector.buffers.last << chars
           print chars
