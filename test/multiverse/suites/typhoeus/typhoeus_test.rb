@@ -9,7 +9,7 @@ require "http_client_test_cases"
 
 require File.join(File.dirname(__FILE__), "..", "..", "..", "agent_helper")
 
-if Typhoeus::VERSION >= NewRelic::Agent::Instrumentation::TyphoeusTracing::EARLIEST_VERSION
+if NewRelic::Agent::Instrumentation::TyphoeusTracing.is_supported_version?
 
   class TyphoeusTest < Test::Unit::TestCase
     include HttpClientTestCases
