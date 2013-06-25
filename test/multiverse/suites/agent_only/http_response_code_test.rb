@@ -4,18 +4,19 @@
 
 # https://newrelic.atlassian.net/browse/RUBY-765
 require 'fake_collector'
+require 'multiverse_helpers'
 
 class HttpResponseCodeTest < Test::Unit::TestCase
+  include MultiverseHelpers
+
   def setup
-    $collector ||= NewRelic::FakeCollector.new
-    $collector.reset
-    $collector.run
-    NewRelic::Agent.manual_start(:send_data_on_exit => false, :port => $collector.port)
+    setup_collector
+    NewRelic::Agent.manual_start(:send_data_on_exit => false)
     @agent = NewRelic::Agent.instance
   end
 
   def teardown
-    $collector.reset
+    reset_collector
     NewRelic::Agent.shutdown
   end
 
