@@ -123,8 +123,12 @@ module NewRelic
         when :apdex_t then @total_call_time += 1
         when :apdex_f then @total_exclusive_time += 1
         end
-        @min_call_time = apdex_t
-        @max_call_time = apdex_t
+        if apdex_t
+          @min_call_time = apdex_t
+          @max_call_time = apdex_t
+        else
+          ::NewRelic::Agent.logger.warn("Attempted to set apdex_t to #{apdex_t.inspect}, backtrace = #{caller.join("\n")}")
+        end
       end
 
       protected
