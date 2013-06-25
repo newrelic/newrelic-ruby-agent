@@ -133,6 +133,7 @@ module Multiverse
 
     def execute_with_pipe(env)
       OutputCollector.buffers.push('')
+      puts yellow("Running #{directory.inspect} for Envfile entry #{env}")
       IO.popen("#{__FILE__} #{directory} #{env}") do |io|
         while chars = io.read(8) do
           OutputCollector.buffers.last << chars
