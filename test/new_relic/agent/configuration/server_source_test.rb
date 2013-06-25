@@ -55,7 +55,7 @@ module NewRelic::Agent::Configuration
       rsp = {
         'collect_errors' => false,
         'collect_traces' => false,
-        'collect_transaction_events' => false
+        'collect_analytics_events' => false
       }
       existing_config = {
         :'error_collector.enabled'    => true,
@@ -73,7 +73,7 @@ module NewRelic::Agent::Configuration
       rsp = {
         'collect_errors' => true,
         'collect_traces' => true,
-        'collect_transaction_events' => true
+        'collect_analytics_events' => true
       }
       existing_config = {
         :'error_collector.enabled'    => true,
@@ -92,7 +92,7 @@ module NewRelic::Agent::Configuration
       rsp = {
         'collect_errors' => true,
         'collect_traces' => true,
-        'collect_transaction_events' => true
+        'collect_analytics_events' => true
       }
       existing_config = {
         :'error_collector.enabled'    => false,
@@ -111,7 +111,7 @@ module NewRelic::Agent::Configuration
       rsp = {
         'collect_errors' => true,
         'collect_traces' => true,
-        'collect_transaction_events' => true,
+        'collect_analytics_events' => true,
         'agent_config' => {
           'transaction_tracer.enabled' => true,
           'slow_sql.enabled'           => true,
