@@ -11,7 +11,13 @@ module NewRelic
         end
 
         def [](key)
-          headers[key] unless headers.nil?
+          unless headers.nil?
+            result = headers[key]
+
+            # Typhoeus 0.5.3 has a bug where asking the headers hash for a
+            # non-existent header will return the hash itself, not what we want.
+            result == headers ? nil : result
+          end
         end
 
         def to_hash
