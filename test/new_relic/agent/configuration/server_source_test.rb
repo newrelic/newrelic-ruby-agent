@@ -54,12 +54,14 @@ module NewRelic::Agent::Configuration
     def test_should_disable_gated_features_when_server_says_to
       rsp = {
         'collect_errors' => false,
-        'collect_traces' => false
+        'collect_traces' => false,
+        'collect_transaction_events' => false
       }
       existing_config = {
         :'error_collector.enabled'    => true,
         :'slow_sql.enabled'           => true,
-        :'transaction_tracer.enabled' => true
+        :'transaction_tracer.enabled' => true,
+        :'request_sampler.enabled'    => true
       }
       @source = ServerSource.new(rsp, existing_config)
       assert !@source[:'error_collector.enabled']
@@ -70,54 +72,64 @@ module NewRelic::Agent::Configuration
     def test_should_enable_gated_features_when_server_says_to
       rsp = {
         'collect_errors' => true,
-        'collect_traces' => true
+        'collect_traces' => true,
+        'collect_transaction_events' => true
       }
       existing_config = {
         :'error_collector.enabled'    => true,
         :'slow_sql.enabled'           => true,
-        :'transaction_tracer.enabled' => true
+        :'transaction_tracer.enabled' => true,
+        :'request_sampler.enabled'    => true
       }
       @source = ServerSource.new(rsp, existing_config)
       assert @source[:'error_collector.enabled']
       assert @source[:'slow_sql.enabled']
       assert @source[:'transaction_tracer.enabled']
+      assert @source[:'request_sampler.enabled']
     end
 
     def test_should_allow_manual_disable_of_gated_features
       rsp = {
         'collect_errors' => true,
-        'collect_traces' => true
+        'collect_traces' => true,
+        'collect_transaction_events' => true
       }
       existing_config = {
         :'error_collector.enabled'    => false,
         :'slow_sql.enabled'           => false,
-        :'transaction_tracer.enabled' => false
+        :'transaction_tracer.enabled' => false,
+        :'request_sampler.enabled'    => false
       }
       @source = ServerSource.new(rsp, existing_config)
       assert !@source[:'error_collector.enabled']
       assert !@source[:'slow_sql.enabled']
       assert !@source[:'transaction_tracer.enabled']
+      assert !@source[:'request_sampler.enabled']
     end
 
     def test_should_enable_gated_features_when_server_says_yes_and_existing_says_no
       rsp = {
         'collect_errors' => true,
         'collect_traces' => true,
+        'collect_transaction_events' => true,
         'agent_config' => {
           'transaction_tracer.enabled' => true,
           'slow_sql.enabled'           => true,
-          'error_collector.enabled'    => true
+          'error_collector.enabled'    => true,
+          'request_sampler.enabled'    => true
         }
       }
       existing_config = {
         :'error_collector.enabled'    => false,
         :'slow_sql.enabled'           => false,
-        :'transaction_tracer.enabled' => false
+        :'transaction_tracer.enabled' => false,
+        :'reqeust_sampler.enabled'    => false
       }
       @source = ServerSource.new(rsp, existing_config)
       assert @source[:'error_collector.enabled']
       assert @source[:'slow_sql.enabled']
       assert @source[:'transaction_tracer.enabled']
+      assert @source[:'request_sampler.enabled']
     end
 
     def test_should_not_gate_when_gating_keys_absent
@@ -125,13 +137,15 @@ module NewRelic::Agent::Configuration
         'agent_config' => {
           'transaction_tracer.enabled' => true,
           'slow_sql.enabled'           => true,
-          'error_collector.enabled'    => true
+          'error_collector.enabled'    => true,
+          'request_sampler.enabled'    => true
         }
       }
       @source = ServerSource.new(rsp, {})
       assert @source[:'error_collector.enabled']
       assert @source[:'slow_sql.enabled']
       assert @source[:'transaction_tracer.enabled']
+      assert @source[:'request_sampler.enabled']
     end
   end
 end
