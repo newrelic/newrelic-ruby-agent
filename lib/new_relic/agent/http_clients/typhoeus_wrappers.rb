@@ -11,11 +11,7 @@ module NewRelic
         end
 
         def [](key)
-          result = headers[key] unless headers.nil?
-
-          # Weirdness in old Typhoeus versions where missing keys return {}
-          result = nil if result == {}
-          result
+          headers[key] unless headers.nil?
         end
 
         def to_hash
@@ -29,9 +25,7 @@ module NewRelic
         private
 
         def headers
-          headers = @response.headers_hash if @response.respond_to?(:headers_hash)
-          headers = @response.headers if headers.nil?
-          headers
+          @response.headers
         end
       end
 
@@ -50,30 +44,17 @@ module NewRelic
         end
 
         def method
-          if @request.respond_to?(:options)
-            meth = @request.options[:method]
-          else
-            meth = @request.method
-          end
-          (meth || 'GET').to_s.upcase
+          (@request.options[:method] || 'GET').to_s.upcase
         end
 
         def [](key)
-          if @request.respond_to?(:headers)
-            @request.headers[key]
-          else
-            return nil unless @request.options && @request.options[:headers]
-            @request.options[:headers][key]
-          end
+          return nil unless @request.options && @request.options[:headers]
+          @request.options[:headers][key]
         end
 
         def []=(key, value)
-          if @request.respond_to?(:headers)
-            @request.headers[key] = value
-          else
-            @request.options[:headers] ||= {}
-            @request.options[:headers][key] = value
-          end
+          @request.options[:headers] ||= {}
+          @request.options[:headers][key] = value
         end
 
         def uri
