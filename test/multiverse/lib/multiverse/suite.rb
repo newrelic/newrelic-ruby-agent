@@ -74,6 +74,7 @@ module Multiverse
         f.puts '  source :rubygems' unless local
         f.print gemfile_text
         f.puts newrelic_gemfile_line unless gemfile_text =~ /^\s*gem .newrelic_rpm./
+        f.puts jruby_openssl_line unless gemfile_text =~ /^\s*gem .jruby-openssl./
         if RUBY_VERSION > '1.8.7'
           f.puts "  gem 'test-unit', :require => 'test/unit'"
           f.puts "  gem 'debugger'" if include_debugger
@@ -93,6 +94,10 @@ module Multiverse
       line ||= "  gem 'newrelic_rpm', :path => '#{path}'"
       line += ", #{environments.newrelic_gemfile_options}" if environments.newrelic_gemfile_options
       line
+    end
+
+    def jruby_openssl_line
+      "gem 'jruby-openssl', :require => false, :platforms => [:jruby]"
     end
 
     def print_environment
