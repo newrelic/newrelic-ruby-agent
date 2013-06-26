@@ -175,10 +175,25 @@ module Multiverse
 
     def execute_ruby_files
       Dir.chdir directory
-      Dir[File.join(directory, '*.rb')].each do |file|
+      ordered_ruby_files(directory).each do |file|
         puts yellow("Executing #{file.inspect}") if verbose?
         load file
       end
+    end
+
+    def ordered_ruby_files(directory)
+      files = Dir[File.join(directory, '*.rb')]
+
+      before = files.find { |file| file.include?("before_suite.rb") }
+      after  = files.find { |file| file.include?("after_suite.rb") }
+
+      files.delete(before)
+      files.delete(after)
+
+      files.insert(0, before) if before
+      files.insert(-1, after) if after
+
+      files
     end
 
     def verbose?
