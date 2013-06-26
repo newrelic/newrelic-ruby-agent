@@ -51,7 +51,6 @@ module NewRelic
     def run( port=nil )
       return if @thread && @thread.alive?
       @server.listen( @options[:BindAddress], port ) if port
-      @server.listen( @options[:BindAddress], fallback_port ) if fallback_port
       @thread = Thread.new( &self.method(:run_server) )
       return @thread
     end
@@ -81,17 +80,6 @@ module NewRelic
       self.ports.first
     end
     alias_method :determine_port, :port
-
-
-    #######
-    private
-    #######
-
-    # Return the port that will be the default if the collector hasn't been
-    # created.
-    def fallback_port
-      30_000 + ($$ % 10_000)
-    end
 
   end
 end
