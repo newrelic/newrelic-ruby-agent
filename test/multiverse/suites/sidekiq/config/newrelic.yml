@@ -12,7 +12,9 @@ development:
   host: 127.0.0.1
   api_host: 127.0.0.1
   sync_startup: true
-  port: <%= ENV['NEWRELIC_MULTIVERSE_FAKE_COLLECTOR_PORT'] %>
+<% if $collector && $collector.port %>
+  port: <%= $collector.port %>
+<% end %>
   transaction_tracer:
     record_sql: obfuscated
     enabled: true
