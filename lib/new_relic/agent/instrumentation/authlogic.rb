@@ -17,7 +17,9 @@ DependencyDetection.defer do
   
   executes do
     Authlogic::Session::Base.class_eval do
-      add_method_tracer :find, 'Custom/Authlogic/find'
+      class << self
+        add_method_tracer :find, 'Custom/Authlogic/find'
+      end
     end
   end
 end
