@@ -46,8 +46,11 @@ if NewRelic::Agent::Instrumentation::TyphoeusTracing.is_supported_version?
       NewRelic::Agent::HTTPClients::TyphoeusHTTPRequest.new(Typhoeus::Request.new("http://newrelic.com"))
     end
 
-    def response_instance
-      headers = "HTTP/1.1 200 OK \r\nX-Whatever-Man: 42"
+    def response_instance(headers = {})
+      headers = headers.map do |k,v|
+        "#{k}: #{v}"
+      end.join("\r\n")
+
       NewRelic::Agent::HTTPClients::TyphoeusHTTPResponse.new(Typhoeus::Response.new(:response_headers => headers))
     end
 
