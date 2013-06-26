@@ -2,6 +2,12 @@
 
 ## v3.6.5 ##
 
+  * Rails 4.0 Support
+
+  The Ruby agent is all set for the recent general release of Rails 4.0! We've
+  been tracking the RC's, and that work paid off. Versions 3.6.5 and 3.6.4 of
+  the Ruby agent should work fine with Rails 4.0.0.
+
   * Excon and Typhoeus support
 
   The Ruby agent now supports the Excon and Typhoeus HTTP libraries! For more
