@@ -98,7 +98,7 @@ module NewRelic
     require 'new_relic/agent/transaction_info'
     require 'new_relic/agent/configuration'
     require 'new_relic/agent/rules_engine'
-    require 'new_relic/agent/uri_util'
+    require 'new_relic/agent/http_clients/uri_util'
     require 'new_relic/agent/system_info'
 
     require 'new_relic/agent/instrumentation/controller_instrumentation'
@@ -186,12 +186,13 @@ module NewRelic
     def record_metric(metric_name, value)
       if value.is_a?(Hash)
         stats = NewRelic::Agent::Stats.new
-        stats.call_count = value[:count]
-        stats.total_call_time = value[:total]
-        stats.total_exclusive_time = value[:total]
-        stats.min_call_time = value[:min]
-        stats.max_call_time = value[:max]
-        stats.sum_of_squares = value[:sum_of_squares]
+
+        stats.call_count = value[:count] if value[:count]
+        stats.total_call_time = value[:total] if value[:total]
+        stats.total_exclusive_time = value[:total] if value[:total]
+        stats.min_call_time = value[:min] if value[:min]
+        stats.max_call_time = value[:max] if value[:max]
+        stats.sum_of_squares = value[:sum_of_squares] if value[:sum_of_squares]
         value = stats
       end
       agent.stats_engine.record_metrics(metric_name, value)

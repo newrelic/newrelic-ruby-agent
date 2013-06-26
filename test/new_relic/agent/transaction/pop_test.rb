@@ -67,7 +67,7 @@ class NewRelic::Agent::Transaction::PopTest < Test::Unit::TestCase
   end
 
   def test_record_jruby_cpu_burn
-    NewRelic::Agent.get_stats_no_scope(NewRelic::Metrics::USER_TIME).expects(:record_data_point).with(1.0)
+    NewRelic::Agent.get_stats_no_scope(NewRelic::Metrics::USER_TIME).expects(:record_data_point).with(1.0, 1.0)
     record_jruby_cpu_burn(1.0)
   end
 

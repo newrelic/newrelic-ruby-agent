@@ -96,6 +96,7 @@ module NewRelic
       def initialize(type=:controller, options={})
         @type = type
         @start_time = Time.now
+        @apdex_start = @start_time
         @jruby_cpu_start = jruby_cpu_time
         @process_cpu_start = process_cpu
         @filtered_params = options[:filtered_params] || {}
@@ -201,8 +202,8 @@ module NewRelic
       end
 
       def merge_stats_hash
-        stats = stats_hash.resolve_scopes(@name)
-        NewRelic::Agent.instance.stats_engine.merge!(stats)
+        stats_hash.resolve_scopes!(@name)
+        NewRelic::Agent.instance.stats_engine.merge!(stats_hash)
       end
 
       def record_exceptions
@@ -213,17 +214,17 @@ module NewRelic
       end
 
       OVERVIEW_SPECS = [
-        [:web_duration,      MetricSpec.new('HttpDispatcher')],
-        [:queue_duration,    MetricSpec.new('WebFrontend/QueueTime')],
-        [:external_duration, MetricSpec.new('External/allWeb')],
-        [:database_duration, MetricSpec.new('ActiveRecord/all')],
-        [:gc_cumulative,     MetricSpec.new("GC/cumulative")],
-        [:memcache_duration, MetricSpec.new('Memcache/allWeb')]
+        [:webDuration,      MetricSpec.new('HttpDispatcher')],
+        [:queueDuration,    MetricSpec.new('WebFrontend/QueueTime')],
+        [:externalDuration, MetricSpec.new('External/allWeb')],
+        [:databaseDuration, MetricSpec.new('ActiveRecord/all')],
+        [:gcCumulative,     MetricSpec.new("GC/cumulative")],
+        [:memcacheDuration, MetricSpec.new('Memcache/allWeb')]
       ]
 
       def transaction_overview_metrics
         metrics = {}
-        stats = agent.stats_engine.transaction_stats_hash
+        stats = @stats_hash
         OVERVIEW_SPECS.each do |(dest_key, spec)|
           metrics[dest_key] = stats[spec].total_call_time if stats.key?(spec)
         end
@@ -283,12 +284,23 @@ module NewRelic
         (current) ? current.user_attributes : {}
       end
 
-      def record_apdex(metric_name, end_time=Time.now)
-        return unless recording_web_transaction? && NewRelic::Agent.is_execution_traced?
-        metric_parser = NewRelic::MetricParser::MetricParser \
-          .for_metric_named(metric_name)
+      APDEX_METRIC_SPEC = NewRelic::MetricSpec.new('Apdex').freeze
 
-        self.class.record_apdex(metric_parser, end_time - start_time, end_time - apdex_start, exceptions.any?)
+      def record_apdex(end_time=Time.now, is_error=nil)
+        return unless recording_web_transaction? && NewRelic::Agent.is_execution_traced?
+
+        freeze_name
+        apdex_t = TransactionInfo.get.apdex_t
+        action_duration = end_time - start_time
+        total_duration  = end_time - apdex_start
+        is_error = is_error.nil? ? !exceptions.empty? : is_error
+
+        apdex_bucket_global = self.class.apdex_bucket(total_duration,  is_error, apdex_t)
+        apdex_bucket_txn    = self.class.apdex_bucket(action_duration, is_error, apdex_t)
+
+        @stats_hash.record(APDEX_METRIC_SPEC, apdex_bucket_global, apdex_t)
+        txn_apdex_metric = NewRelic::MetricSpec.new(@name.gsub(/^[^\/]+\//, 'Apdex/'))
+        @stats_hash.record(txn_apdex_metric, apdex_bucket_txn, apdex_t)
       end
 
       # Yield to a block that is run with a database metric name context.  This means
@@ -364,34 +376,23 @@ module NewRelic
         return approximate_uri[%r{^(https?://.*?)?(/[^?]*)}, 2] || '/' if approximate_uri # '
       end
 
-      def self.record_apdex(current_metric, action_duration, total_duration, is_error)
-        agent.stats_engine.record_metrics('Apdex') do |stat|
-          update_apdex(stat, total_duration, is_error)
-        end
-        agent.stats_engine.record_metrics(current_metric.apdex_metric_path) do |stat|
-          update_apdex(stat, action_duration, is_error)
-        end
+
+
+      def self.record_apdex(end_time, is_error)
+        current && current.record_apdex(end_time, is_error)
       end
 
-      # Record an apdex value for the given stat.  when `failed`
-      # the apdex should be recorded as a failure regardless of duration.
-      def self.update_apdex(stat, duration, failed)
-        apdex_t = TransactionInfo.get.apdex_t
-        duration = duration.to_f
+      def self.apdex_bucket(duration, failed, apdex_t)
         case
         when failed
-          stat.record_apdex_f
+          :apdex_f
         when duration <= apdex_t
-          stat.record_apdex_s
+          :apdex_s
         when duration <= 4 * apdex_t
-          stat.record_apdex_t
+          :apdex_t
         else
-          stat.record_apdex_f
+          :apdex_f
         end
-        # Apdex min and max values should be initialized to the
-        # current apdex_t
-        stat.min_call_time = apdex_t
-        stat.max_call_time = apdex_t
       end
 
       private

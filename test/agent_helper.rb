@@ -187,6 +187,7 @@ def in_transaction(*args)
   name = args.first || 'dummy'
   defaults = { :type => :other }
   options = defaults.merge(opts)
+
   NewRelic::Agent.instance.instance_variable_set(:@transaction_sampler,
                         NewRelic::Agent::TransactionSampler.new)
   NewRelic::Agent.instance.stats_engine.transaction_sampler = \
@@ -203,6 +204,14 @@ def in_web_transaction(name='dummy')
   in_transaction(name, :type => :controller) do
     yield
   end
+end
+
+def find_last_transaction_segment
+  builder = NewRelic::Agent.agent.transaction_sampler.builder
+  last_segment = nil
+  builder.current_segment.each_segment {|s| last_segment = s }
+
+  return last_segment
 end
 
 def with_config(config_hash, opts={})
@@ -222,8 +231,42 @@ end
 
 def freeze_time(now=Time.now)
   Time.stubs(:now).returns(now)
+  now
 end
 
 def advance_time(seconds)
   freeze_time(Time.now + seconds)
+end
+
+def define_constant(constant_symbol, implementation)
+  if Object.const_defined?(constant_symbol)
+    existing_implementation = Object.send(:remove_const, constant_symbol)
+  end
+
+  Object.const_set(constant_symbol, implementation)
+
+  yield
+ensure
+  Object.send(:remove_const, constant_symbol)
+
+  if existing_implementation
+    Object.const_set(constant_symbol, existing_implementation)
+  end
+end
+
+def undefine_constant(constant_symbol)
+  return yield unless Object.const_defined?(constant_symbol)
+  removed_constant = Object.send(:remove_const, constant_symbol)
+  yield
+ensure
+  Object.const_set(constant_symbol, removed_constant) if removed_constant
+end
+
+def internet_connection?
+  if ENV['NO_INTERNET']
+    puts " - No internet connection, skipping"
+    false
+  else
+    true
+  end
 end

@@ -1,0 +1,43 @@
+suite_condition("Typhoeus not supported in 1.8.6") do
+  RUBY_VERSION != '1.8.6'
+end
+
+gemfile <<-RB
+  gem 'typhoeus', '~> 0.6.3'
+  gem 'rack'
+  if RUBY_VERSION < '1.9.0'
+    gem 'json'
+  end
+RB
+
+gemfile <<-RB
+  # Compatibility issues with ethon 0.5.12 https://github.com/typhoeus/ethon/issues/51
+  gem 'ethon', '0.5.11'
+
+  gem 'typhoeus', '~> 0.5.4'
+  gem 'rack'
+  if RUBY_VERSION < '1.9.0'
+    gem 'json'
+  end
+RB
+
+# Earliest supported version
+gemfile <<-RB
+  # Compatibility issues with ethon 0.5.12 https://github.com/typhoeus/ethon/issues/51
+  gem 'ethon', '0.5.11'
+
+  gem 'typhoeus', '0.5.3'
+  gem 'rack'
+  if RUBY_VERSION < '1.9.0'
+    gem 'json'
+  end
+RB
+
+# Prior to supported versions
+gemfile <<-RB
+  gem 'typhoeus', '0.5.2'
+  gem 'rack'
+  if RUBY_VERSION < '1.9.0'
+    gem 'json'
+  end
+RB

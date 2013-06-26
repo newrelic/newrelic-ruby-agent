@@ -954,6 +954,24 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     end
   end
 
+  def test_build_database_statement_uses_override_obfuscation_adapter_if_connection_config_is_nil
+    with_config(:override_sql_obfuscation_adapter => 'GumbyDB') do
+      config = nil
+      sql = "SELECT * FROM \"horses\" WHERE \"name\" = 'pokey'"
+      statement = @sampler.build_database_statement(sql, config, Proc.new {})
+      assert_equal 'GumbyDB', statement.adapter
+    end
+  end
+
+  def test_build_database_statement_uses_override_obfuscation_adapter_if_connection_config_adapter_is_mysql
+    with_config(:override_sql_obfuscation_adapter => 'GumbyDB') do
+      config = {:adapter => 'mysql'}
+      sql = "SELECT * FROM \"horses\" WHERE \"name\" = 'pokey'"
+      statement = @sampler.build_database_statement(sql, config, nil)
+      assert_equal 'GumbyDB', statement.adapter
+    end
+  end
+
   class Dummy
     include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
     def run(n)

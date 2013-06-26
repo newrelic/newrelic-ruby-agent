@@ -143,18 +143,6 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
     assert_equal(1, @engine.metrics.size)
   end
 
-  def test_record_metrics_accepts_explicit_scope
-    in_transaction('scopey') do
-      @engine.record_metrics('foo', 42, :scoped => true, :scope => 'not scopey')
-    end
-    unscoped_stats = @engine.get_stats('foo', false)
-    scoped_stats_scopey = @engine.get_stats('foo', true, true, 'scopey')
-    scoped_stats_not_scopey = @engine.get_stats('foo', true, true, 'not scopey')
-    assert_equal(1, unscoped_stats.call_count)
-    assert_equal(0, scoped_stats_scopey.call_count)
-    assert_equal(1, scoped_stats_not_scopey.call_count)
-  end
-
   def test_record_metrics_accepts_block
     @engine.record_metrics('foo') do |stats|
       stats.call_count = 999
@@ -181,6 +169,35 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
     stats_m2 = @engine.get_stats_no_scope('m2')
     assert_equal(nthreads * iterations, stats_m1.call_count)
     assert_equal(nthreads * iterations, stats_m2.call_count)
+  end
+
+  def test_record_metrics_internal_writes_to_global_stats_hash_if_no_txn
+    specs = [
+      NewRelic::MetricSpec.new('foo'),
+      NewRelic::MetricSpec.new('foo', 'scope')
+    ]
+
+    2.times { @engine.record_metrics_internal(specs, 10, 5) }
+
+    expected = { :call_count => 2, :total_call_time => 20, :total_exclusive_time => 10 }
+    assert_metrics_recorded('foo' => expected, ['foo', 'scope'] => expected)
+  end
+
+  def test_record_metrics_internal_writes_to_transaction_stats_hash_if_txn
+    specs = [
+      NewRelic::MetricSpec.new('foo'),
+      NewRelic::MetricSpec.new('foo', 'scope')
+    ]
+
+    in_transaction do
+      2.times { @engine.record_metrics_internal(specs, 10, 5) }
+      # still in the txn, so metrics should not be visible in the global stats
+      # hash yet
+      assert_metrics_not_recorded(['foo', ['foo, scope']])
+    end
+
+    expected = { :call_count => 2, :total_call_time => 20, :total_exclusive_time => 10 }
+    assert_metrics_recorded('foo' => expected, ['foo', 'scope'] => expected)
   end
 
   def test_transaction_stats_are_tracked_separately

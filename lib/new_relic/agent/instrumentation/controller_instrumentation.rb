@@ -339,7 +339,7 @@ module NewRelic
 
             NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScoped.trace_execution_scoped_footer(txn.start_time.to_f, txn_name, metric_names, expected_scope, options, end_time.to_f)
             NewRelic::Agent::BusyCalculator.dispatcher_finish(end_time)
-            txn.record_apdex(txn_name, end_time) unless ignore_apdex?
+            txn.record_apdex(end_time) unless ignore_apdex?
             txn = Transaction.stop(txn_name, end_time)
 
             NewRelic::Agent::TransactionInfo.get.ignore_end_user = true if ignore_enduser?
@@ -443,7 +443,7 @@ module NewRelic
           txn = Transaction.start(category, options)
           txn.name = TransactionNamer.new(self).name(options)
 
-          txn.apdex_start ||= _detect_upstream_wait(txn.start_time)
+          txn.apdex_start = _detect_upstream_wait(txn.start_time)
           _record_queue_length
 
           return txn

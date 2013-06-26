@@ -15,14 +15,13 @@ module NewRelic
         #
         # This method is thead-safe, and is preferred to the lookup / modify
         # method pairs (e.g. get_stats + record_data_point)
+        #
+        # @api private
         def record_metrics(metric_names_or_specs, value=nil, options={}, &blk)
-          defaults = {
-            :scoped => false,
-            :scope => in_transaction? ? SCOPE_PLACEHOLDER : nil
-          }
-          options = defaults.merge(options)
+          scoped = options[:scoped]
+          scope = in_transaction? ? SCOPE_PLACEHOLDER : nil
+          effective_scope = scoped && scope
 
-          effective_scope = options[:scoped] && options[:scope]
           specs = coerce_to_metric_spec_array(metric_names_or_specs, effective_scope)
 
           if in_transaction?
@@ -30,6 +29,25 @@ module NewRelic
           else
             with_stats_lock do
               @stats_hash.record(specs, value, &blk)
+            end
+          end
+        end
+
+        # Fast-path version of the #record_metrics version above, used in
+        # performance-sensitive code paths
+        #
+        # metric_specs must be an Array of MetricSpec objects
+        # value and aux are passed directly to the corresponding parameters of
+        # StatsHash#record
+        #
+        # @api private
+        def record_metrics_internal(metric_specs, value, aux)
+          tsh = transaction_stats_hash
+          if tsh
+            tsh.record(metric_specs, value, aux)
+          else
+            with_stats_lock do
+              @stats_hash.record(metric_specs, value, aux)
             end
           end
         end

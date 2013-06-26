@@ -63,8 +63,8 @@ module NewRelic
           txn = Transaction.current
           metrics = [ 'HttpDispatcher']
           if txn.has_parent?
-            controller_metric.scope = StatsEngine::MetricStats::SCOPE_PLACEHOLDER
-            record_metric_on_parent_transaction(controller_metric, event.duration)
+            parent_metric = MetricSpec.new(event.metric_name, StatsEngine::MetricStats::SCOPE_PLACEHOLDER)
+            record_metric_on_parent_transaction(parent_metric, event.duration)
           end
           metrics << controller_metric.dup
 
@@ -72,19 +72,12 @@ module NewRelic
         end
 
         def record_metric_on_parent_transaction(metric, time)
-          txn = NewRelic::Agent::Transaction.current
-          txn.parent.stats_hash.record(metric, time)
+          NewRelic::Agent::Transaction.parent.stats_hash.record(metric, time)
         end
 
         def record_apdex(event)
           return if event.apdex_ignored?
-          metric_parser = MetricParser::MetricParser \
-            .for_metric_named(event.metric_name)
-          duration_plus_queue_time = event.end - (event.queue_start || event.time)
-          Transaction.record_apdex(metric_parser,
-                                   event.duration,
-                                   duration_plus_queue_time,
-                                   event.exception_encountered?)
+          Transaction.record_apdex(event.end, event.exception_encountered?)
         end
 
         def record_instance_busy(event)

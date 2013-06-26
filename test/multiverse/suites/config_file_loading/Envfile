@@ -4,4 +4,6 @@ gemfile <<-RB
   # stub file system so we can test that newrelic.yml can be loaded from
   # various places.
   gem 'fakefs', :require => 'fakefs/safe'
+
+  gem 'jruby-openssl', :platforms => [:jruby]
 RB

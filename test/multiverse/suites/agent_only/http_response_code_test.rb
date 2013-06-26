@@ -10,7 +10,7 @@ class HttpResponseCodeTest < Test::Unit::TestCase
     $collector ||= NewRelic::FakeCollector.new
     $collector.reset
     $collector.run
-    NewRelic::Agent.manual_start(:send_data_on_exit => false)
+    NewRelic::Agent.manual_start(:send_data_on_exit => false, :port => $collector.port)
     @agent = NewRelic::Agent.instance
   end
 

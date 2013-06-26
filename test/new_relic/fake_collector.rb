@@ -8,14 +8,16 @@ require 'uri'
 require 'socket'
 require 'timeout'
 require 'ostruct'
+require 'fake_server'
 
 require 'json' if RUBY_VERSION >= '1.9'
 
 module NewRelic
-  class FakeCollector
+  class FakeCollector < FakeServer
     attr_accessor :agent_data, :mock
 
     def initialize
+      super
       @id_counter = 0
       @base_expectations = {
         'get_redirect_host'       => [200, {'return_value' => 'localhost'}],
@@ -35,10 +37,17 @@ module NewRelic
       @id_counter += 1
     end
 
+    def reset
+      @mock = @base_expectations.dup
+      @id_counter = 0
+      @agent_data = []
+    end
+
     def call(env)
       req = ::Rack::Request.new(env)
       res = ::Rack::Response.new
       uri = URI.parse(req.url)
+
       if uri.path =~ /agent_listener\/\d+\/.+\/(\w+)/
         method = $1
         format = json_format?(uri) && RUBY_VERSION >= '1.9' ? :json : :pruby
@@ -81,85 +90,8 @@ module NewRelic
       uri.query && uri.query.include?('marshal_format=json')
     end
 
-    # We generate a "unique" port for ourselves based off our pid
-    # If this logic changes, look for multiverse newrelic.yml files to update
-    # with it duplicated (since we can't easily pull this ruby into a yml)
-    def self.determine_port
-      30_000 + ($$ % 10_000)
-    end
-
-    def determine_port
-      FakeCollector.determine_port
-    end
-
-    @seen_port_failure = false
-
-    def run(port=nil)
-      port ||= determine_port
-      return if @thread && @thread.alive?
-      serve_on_port(port) do
-        @thread = Thread.new do
-          begin
-          ::Rack::Handler::WEBrick.run(self,
-                                       :Port => port,
-                                       :Logger => ::WEBrick::Log.new("/dev/null"),
-                                       :AccessLog => [ ['/dev/null', ::WEBrick::AccessLog::COMMON_LOG_FORMAT] ]
-                                      )
-          rescue Errno::EADDRINUSE => ex
-            msg = "Port #{port} for FakeCollector was in use"
-            if !@seen_port_failure
-              # This is slow, so only do it the first collision we detect
-              lsof = `lsof | grep #{port}`
-              msg = msg + "\n#{lsof}"
-              @seen_port_failure = true
-            end
-
-            raise Errno::EADDRINUSE.new(msg)
-          end
-        end
-        @thread.abort_on_exception = true
-      end
-    end
-
-    def serve_on_port(port)
-      port ||= determine_port
-      if is_port_available?('127.0.0.1', port)
-        yield
-        loop do
-          break if !is_port_available?('127.0.0.1', port)
-          sleep 0.01
-        end
-      end
-    end
-
-    def stop
-      return unless @thread.alive?
-      ::Rack::Handler::WEBrick.shutdown
-      @thread.join
-      reset
-    end
-
-    def reset
-      @mock = @base_expectations.dup
-      @id_counter = 0
-      @agent_data = []
-    end
-
-    def is_port_available?(ip, port)
-      begin
-        Timeout::timeout(1) do
-          begin
-            s = TCPSocket.new(ip, port)
-            s.close
-            return false
-          rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH
-            return true
-          end
-        end
-      rescue Timeout::Error
-      end
-
-      return true
+    def app
+      self
     end
 
     def calls_for(method)
@@ -258,22 +190,6 @@ module NewRelic
     end
   end
 
-  # might we need this?  I'll just leave it here for now
-  class FakeCollectorProcess < FakeCollector
-    def run(port)
-      serve_on_port(port) do
-        @pid = Process.fork do
-          ::Rack::Handler::WEBrick.run(self, :Port => port)
-        end
-      end
-    end
-
-    def stop
-      return unless @pid
-      Process.kill('QUIT', @pid)
-      Process.wait(@pid)
-    end
-  end
 end
 
 if $0 == __FILE__

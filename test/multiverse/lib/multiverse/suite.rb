@@ -53,8 +53,8 @@ module Multiverse
       require 'rubygems'
       require 'bundler'
       bundler_out = `bundle`
+      puts bundler_out if verbose? || $? != 0
       raise "bundle command failed with (#{$?})" unless $? == 0
-      puts bundler_out if verbose?
       Bundler.require
 
       # Ensure mocha is loaded after the test framework by deferring until here
@@ -74,6 +74,7 @@ module Multiverse
         f.puts '  source :rubygems' unless local
         f.print gemfile_text
         f.puts newrelic_gemfile_line unless gemfile_text =~ /^\s*gem .newrelic_rpm./
+        f.puts jruby_openssl_line unless gemfile_text =~ /^\s*gem .jruby-openssl./
         if RUBY_VERSION > '1.8.7'
           f.puts "  gem 'test-unit', :require => 'test/unit'"
           f.puts "  gem 'debugger'" if include_debugger
@@ -93,6 +94,10 @@ module Multiverse
       line ||= "  gem 'newrelic_rpm', :path => '#{path}'"
       line += ", #{environments.newrelic_gemfile_options}" if environments.newrelic_gemfile_options
       line
+    end
+
+    def jruby_openssl_line
+      "gem 'jruby-openssl', :require => false, :platforms => [:jruby]"
     end
 
     def print_environment
@@ -133,7 +138,9 @@ module Multiverse
 
     def execute_with_pipe(env)
       OutputCollector.buffers.push('')
+      puts yellow("Running #{directory.inspect} for Envfile entry #{env}")
       IO.popen("#{__FILE__} #{directory} #{env}") do |io|
+        puts yellow("Starting tests in child PID #{io.pid}")
         while chars = io.read(8) do
           OutputCollector.buffers.last << chars
           print chars
@@ -183,5 +190,8 @@ end
 # Exectute the suite.  We need this if we want to execute a suite by spawning a
 # new process instead of forking.
 if $0 == __FILE__
+  # Redirect stderr to stdout so that we can capture both in the popen that
+  # feeds into the OutputCollector above.
+  $stderr.reopen($stdout)
   Multiverse::Suite.new(ARGV[0], ARGV[2]).execute_child_environment(ARGV[1].to_i)
 end

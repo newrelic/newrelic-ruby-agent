@@ -4,6 +4,7 @@
 
 # RUBY-981 Audit Log
 
+require 'test/unit'
 require 'newrelic_rpm'
 require 'fake_collector'
 

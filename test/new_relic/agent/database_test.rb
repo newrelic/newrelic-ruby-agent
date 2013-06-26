@@ -208,4 +208,10 @@ class NewRelic::Agent::DatabaseTest < Test::Unit::TestCase
 
     assert_equal false, error_log.array.join.include?('VOLDEMORT')
   end
+
+  def test_default_sql_obfuscator_obfuscates_double_quoted_literals_with_unknown_adapter
+    expected = "SELECT * FROM ? WHERE ? = ?"
+    result = NewRelic::Agent::Database.obfuscate_sql("SELECT * FROM \"table\" WHERE \"col\" = 'value'")
+    assert_equal expected, result
+  end
 end

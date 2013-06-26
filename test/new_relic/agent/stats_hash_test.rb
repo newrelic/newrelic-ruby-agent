@@ -17,7 +17,7 @@ class NewRelic::Agent::StatsHashTest < Test::Unit::TestCase
   def test_record_accpets_single_metric_spec
     spec = NewRelic::MetricSpec.new('foo/bar')
     stats = @hash[spec]
-    stats.expects(:record_data_point).with(42)
+    stats.expects(:record_data_point).with(42, 42)
     @hash.record(spec, 42)
   end
 
@@ -26,8 +26,8 @@ class NewRelic::Agent::StatsHashTest < Test::Unit::TestCase
     spec2 = NewRelic::MetricSpec.new('foo/bar', 'scope2')
     stats1 = @hash[spec1]
     stats2 = @hash[spec2]
-    stats1.expects(:record_data_point).with(42)
-    stats2.expects(:record_data_point).with(42)
+    stats1.expects(:record_data_point).with(42, 42)
+    stats2.expects(:record_data_point).with(42, 42)
     @hash.record([spec1, spec2], 42)
   end
 
@@ -58,6 +58,27 @@ class NewRelic::Agent::StatsHashTest < Test::Unit::TestCase
     stats = @hash[spec]
     stats.expects(:merge!).with(other_stats)
     @hash.record(spec, other_stats)
+  end
+
+  def test_record_accepts_exclusive_time_with_numeric
+    spec = NewRelic::MetricSpec.new('foo')
+    stats = @hash[spec]
+    stats.expects(:record_data_point).with(42, 10)
+    @hash.record(spec, 42, 10)
+  end
+
+  def test_record_accepts_apdex_t_with_symbol
+    spec = NewRelic::MetricSpec.new('foo')
+    apdex_t = 99
+    1.times { @hash.record(spec, :apdex_s, apdex_t) }
+    2.times { @hash.record(spec, :apdex_t, apdex_t) }
+    3.times { @hash.record(spec, :apdex_f, apdex_t) }
+    stats = @hash[spec]
+    assert_equal(1, stats.apdex_s)
+    assert_equal(2, stats.apdex_t)
+    assert_equal(3, stats.apdex_f)
+    assert_equal(99, stats.min_call_time)
+    assert_equal(99, stats.max_call_time)
   end
 
   def test_merge_merges

@@ -254,6 +254,26 @@ module NewRelic
       NewRelic::Agent.record_metric('foo', stats_hash)
     end
 
+    def test_record_metric_sets_default_hash_values_for_missing_keys
+      dummy_engine = NewRelic::Agent.agent.stats_engine
+      incomplete_stats_hash = {
+        :count => 12,
+        :max   => 5,
+        :sum_of_squares => 999
+      }
+
+      expected_stats = NewRelic::Agent::Stats.new()
+      expected_stats.call_count = 12
+      expected_stats.total_call_time = 0.0
+      expected_stats.total_exclusive_time = 0.0
+      expected_stats.min_call_time = 0.0
+      expected_stats.max_call_time = 5
+      expected_stats.sum_of_squares = 999
+
+      dummy_engine.expects(:record_metrics).with('foo', expected_stats)
+      NewRelic::Agent.record_metric('foo', incomplete_stats_hash)
+    end
+
     def test_increment_metric
       dummy_engine = NewRelic::Agent.agent.stats_engine
       dummy_stats = mock

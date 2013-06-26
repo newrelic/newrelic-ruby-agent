@@ -53,6 +53,7 @@ module NewRelic
         @obfuscator = lambda {|sql| NewRelic::Agent::Database.default_sql_obfuscator(sql) }
 
         # FIXME: temporary work around for RUBY-839
+        # This should be handled with a configuration callback
         if Agent.config[:monitor_mode]
           @service = NewRelic::Agent::NewRelicService.new
         end
@@ -92,6 +93,7 @@ module NewRelic
         # cross application tracing ids and encoding
         attr_reader :cross_process_id
         attr_reader :cross_app_encoding_bytes
+        attr_reader :cross_app_monitor
         # service for communicating with collector
         attr_accessor :service
         # Global events dispatcher. This will provides our primary mechanism

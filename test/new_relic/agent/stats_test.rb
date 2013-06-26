@@ -68,11 +68,11 @@ class NewRelic::Agent::StatsTest < Test::Unit::TestCase
   def test_apdex_recording
     s = NewRelic::Agent::Stats.new
 
-    s.record_apdex_s
-    s.record_apdex_t
+    s.record_apdex(:apdex_s, 1)
+    s.record_apdex(:apdex_t, 1)
 
-    s.record_apdex_f
-    s.record_apdex_t
+    s.record_apdex(:apdex_f, 1)
+    s.record_apdex(:apdex_t, 1)
 
     assert_equal(1, s.apdex_s)
     assert_equal(1, s.apdex_f)

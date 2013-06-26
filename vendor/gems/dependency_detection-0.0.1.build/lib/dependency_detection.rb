@@ -6,15 +6,15 @@ require 'dependency_detection/version'
 module DependencyDetection
 
   module_function
-  @@items = []
+  @items = []
   def defer(&block)
     item = Dependent.new
     item.instance_eval(&block)
-    @@items << item
+    @items << item
   end
 
   def detect!
-    @@items.each do |item|
+    @items.each do |item|
       if item.dependencies_satisfied?
         item.execute
       end
@@ -22,12 +22,20 @@ module DependencyDetection
   end
 
   def dependency_by_name(name)
-    @@items.find {|i| i.name == name }
+    @items.find {|i| i.name == name }
   end
 
   def installed?(name)
     item = dependency_by_name(name)
     item && item.executed
+  end
+
+  def items
+    @items
+  end
+
+  def items=(new_items)
+    @items = new_items
   end
 
   class Dependent
@@ -62,6 +70,19 @@ module DependencyDetection
 
     def depends_on
       @dependencies << Proc.new
+    end
+
+    def named(new_name)
+      name = new_name
+      depends_on do
+        key = "disable_#{new_name}".to_sym
+        if (::NewRelic::Agent.config[key] == true)
+          ::NewRelic::Agent.logger.debug("Not installing #{new_name} instrumentation because of configuration #{key}")
+          false
+        else
+          true
+        end
+      end
     end
 
     def executes
