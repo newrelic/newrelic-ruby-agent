@@ -184,8 +184,8 @@ module Multiverse
     def ordered_ruby_files(directory)
       files = Dir[File.join(directory, '*.rb')]
 
-      before = files.find { |file| file.include?("before_suite.rb") }
-      after  = files.find { |file| file.include?("after_suite.rb") }
+      before = files.find { |file| File.basename(file) == "before_suite.rb" }
+      after  = files.find { |file| File.basename(file) == "after_suite.rb" }
 
       files.delete(before)
       files.delete(after)
