@@ -13,11 +13,16 @@ module NewRelic
         end
 
         def [](key)
-          response.headers[key]
+          response.headers.each do |k,v|
+            if key.downcase == k.downcase
+              return v
+            end
+          end
+          nil
         end
 
         def to_hash
-          headers
+          response.headers
         end
       end
 
@@ -26,7 +31,6 @@ module NewRelic
 
         def initialize(request)
           @request = request
-          ::NewRelic::Agent.logger.info "JMS: URI #{request.header.request_uri}"
           @uri = request.header.request_uri
         end
 
@@ -39,7 +43,7 @@ module NewRelic
         end
 
         def host
-          uri.host.to_s.upcase
+          uri.host.to_s
         end
 
         def [](key)
@@ -47,7 +51,7 @@ module NewRelic
         end
 
         def []=(key, value)
-          request.headers[key] = value
+          request.http_header[key] = value
         end
       end
     end

@@ -30,8 +30,8 @@ DependencyDetection.defer do
         ::NewRelic::Agent::CrossAppTracing.trace_http_request(wrapped_request) do
           do_get_block_without_newrelic(req, proxy, conn, &block)
           response = conn.pop
-          ::NewRelic::Agent::HTTPClients::HTTPClientHTTPResponse.new(response)
           conn.push response
+          ::NewRelic::Agent::HTTPClients::HTTPClientHTTPResponse.new(response)
         end
         response
       end

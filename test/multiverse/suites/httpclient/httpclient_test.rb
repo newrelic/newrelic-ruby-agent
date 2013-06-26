@@ -20,14 +20,6 @@ class HTTPClientTest < Test::Unit::TestCase
     HTTPClient.get(url || default_url)
   end
 
-  def get_response_multi(url, n)
-    responses = []
-    conn = HTTPClient.new(url)
-    n.times { responses << conn.get }
-    conn.reset
-    responses
-  end
-
   def head_response
     HTTPClient.head(default_url)
   end
@@ -41,8 +33,11 @@ class HTTPClientTest < Test::Unit::TestCase
     NewRelic::Agent::HTTPClients::HTTPClientHTTPRequest.new(httpclient_req)
   end
 
-  def response_instance
+  def response_instance(headers = {})
     httpclient_resp = HTTP::Message.new_response('')
+    headers.each do |k, v|
+      httpclient_resp.http_header[k] = v
+    end
     NewRelic::Agent::HTTPClients::HTTPClientHTTPResponse.new(httpclient_resp)
   end
 end
