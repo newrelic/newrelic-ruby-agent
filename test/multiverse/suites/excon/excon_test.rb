@@ -40,8 +40,8 @@ class ExconTest < Test::Unit::TestCase
     NewRelic::Agent::HTTPClients::ExconHTTPRequest.new({:headers => ""})
   end
 
-  def response_instance
-    NewRelic::Agent::HTTPClients::ExconHTTPResponse.new(Excon::Response.new)
+  def response_instance(headers = {})
+    NewRelic::Agent::HTTPClients::ExconHTTPResponse.new(Excon::Response.new(:headers => headers))
   end
 
   def test_still_records_tt_node_when_request_expects_different_response_code
