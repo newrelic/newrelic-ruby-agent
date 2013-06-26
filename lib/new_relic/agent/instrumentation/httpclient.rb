@@ -5,7 +5,7 @@
 DependencyDetection.defer do
   named :httpclient
 
-  HTTPCLIENT_MIN_VERSION = '2.3.3'
+  HTTPCLIENT_MIN_VERSION = '2.2.0'
 
   depends_on do
     defined?(HTTPClient) && defined?(HTTPClient::VERSION)
