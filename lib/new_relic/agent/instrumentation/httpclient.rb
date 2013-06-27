@@ -27,14 +27,14 @@ DependencyDetection.defer do
   executes do
     class HTTPClient
       def do_get_block_with_newrelic(req, proxy, conn, &block)
-        wrapped_request = NewRelic::Agent::HTTPClients::HTTPClientHTTPRequest.new(req)
+        wrapped_request = NewRelic::Agent::HTTPClients::HTTPClientRequest.new(req)
 
         response = nil
         ::NewRelic::Agent::CrossAppTracing.trace_http_request(wrapped_request) do
           do_get_block_without_newrelic(req, proxy, conn, &block)
           response = conn.pop
           conn.push response
-          ::NewRelic::Agent::HTTPClients::HTTPClientHTTPResponse.new(response)
+          ::NewRelic::Agent::HTTPClients::HTTPClientResponse.new(response)
         end
         response
       end

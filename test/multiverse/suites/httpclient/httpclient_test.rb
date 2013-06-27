@@ -30,7 +30,7 @@ class HTTPClientTest < Test::Unit::TestCase
 
   def request_instance
     httpclient_req = HTTP::Message.new_request(:get, 'http://newrelic.com')
-    NewRelic::Agent::HTTPClients::HTTPClientHTTPRequest.new(httpclient_req)
+    NewRelic::Agent::HTTPClients::HTTPClientRequest.new(httpclient_req)
   end
 
   def response_instance(headers = {})
@@ -38,6 +38,6 @@ class HTTPClientTest < Test::Unit::TestCase
     headers.each do |k, v|
       httpclient_resp.http_header[k] = v
     end
-    NewRelic::Agent::HTTPClients::HTTPClientHTTPResponse.new(httpclient_resp)
+    NewRelic::Agent::HTTPClients::HTTPClientResponse.new(httpclient_resp)
   end
 end

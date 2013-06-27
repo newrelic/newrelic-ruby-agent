@@ -5,7 +5,7 @@
 module NewRelic
   module Agent
     module HTTPClients
-      class HTTPClientHTTPResponse
+      class HTTPClientResponse
         attr_reader :response
 
         def initialize(response)
@@ -26,7 +26,7 @@ module NewRelic
         end
       end
 
-      class HTTPClientHTTPRequest
+      class HTTPClientRequest
         attr_reader :request, :uri
 
         def initialize(request)
