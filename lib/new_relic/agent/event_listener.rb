@@ -39,7 +39,7 @@ module NewRelic::Agent
         begin
           handler.call(*args)
         rescue => err
-          NewRelic::Agent.logger.debug("Failure during notify for #{@event}", err)
+          NewRelic::Agent.logger.debug("Failure during notify for #{event}", err)
         end
       end
     end
