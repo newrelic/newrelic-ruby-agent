@@ -5,6 +5,7 @@
 # https://newrelic.atlassian.net/browse/RUBY-747
 require 'rails/test_help'
 require 'fake_collector'
+require 'multiverse_helpers'
 
 class ErrorController < ApplicationController
   include Rails.application.routes.url_helpers
@@ -48,13 +49,12 @@ class IgnoredError < StandardError; end
 class ServerIgnoredError < StandardError; end
 
 class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
+  include MultiverseHelpers
   extend Multiverse::Color
 
   def setup
-    $collector ||= NewRelic::FakeCollector.new
-    $collector.reset
     setup_collector
-    $collector.run
+    setup_collector_mocks
 
     NewRelic::Agent.reset_config
     NewRelic::Agent.instance_variable_set(:@agent, nil)
@@ -66,7 +66,7 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
   end
 
   # Let base class override this without moving where we start the agent
-  def setup_collector
+  def setup_collector_mocks
     $collector.mock['connect'] = [200, {'return_value' => {"agent_run_id" => 666 }}]
   end
 
@@ -206,7 +206,7 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
 end
 
 class ErrorsWithSSCTest < ErrorsWithoutSSCTest
-  def setup_collector
+  def setup_collector_mocks
     $collector.mock['connect'] = [200, {'return_value' => {
       "listen_to_server_config" => true,
       "agent_run_id" => 1,

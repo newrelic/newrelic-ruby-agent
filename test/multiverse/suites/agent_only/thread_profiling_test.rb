@@ -6,14 +6,17 @@
 # https://newrelic.atlassian.net/browse/RUBY-917
 
 if RUBY_VERSION >= '1.9'
+
+require 'multiverse_helpers'
+
 class ThreadProfilingTest < Test::Unit::TestCase
+  include MultiverseHelpers
+
   def setup
-    $collector ||= NewRelic::FakeCollector.new
-    $collector.reset
+    setup_collector
     $collector.mock['connect'] = [200, {'return_value' => {"agent_run_id" => 666 }}]
     $collector.mock['get_agent_commands'] = [200, {'return_value' => START_COMMAND}]
     $collector.mock['agent_command_results'] = [200, {'return_value' => []}]
-    $collector.run
 
     NewRelic::Agent::Agent.instance_variable_set(:@instance, nil)
     NewRelic::Agent.manual_start(:'thread_profiler.enabled' => true, :force_send => true)
@@ -26,7 +29,7 @@ class ThreadProfilingTest < Test::Unit::TestCase
   end
 
   def teardown
-    $collector.reset
+    reset_collector
 
     @threads.each { |t| t.kill }
     @threads = nil

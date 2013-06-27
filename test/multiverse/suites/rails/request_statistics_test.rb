@@ -19,13 +19,12 @@ end
 
 class RequestStatsTest < ActionController::TestCase
   tests RequestStatsController
+  include MultiverseHelpers
   extend Multiverse::Color
 
   def setup
-    $collector ||= NewRelic::FakeCollector.new
-    $collector.reset
     setup_collector
-    $collector.run
+    $collector.mock['connect'] = [200, {'return_value' => {"agent_run_id" => 666 }}]
 
     NewRelic::Agent.reset_config
     NewRelic::Agent.instance_variable_set(:@agent, nil)
@@ -35,6 +34,7 @@ class RequestStatsTest < ActionController::TestCase
   end
 
   def teardown
+    reset_collector
     NewRelic::Agent::Agent.instance.shutdown if NewRelic::Agent::Agent.instance
     NewRelic::Agent::Agent.instance_variable_set(:@instance, nil)
   end
@@ -82,10 +82,6 @@ class RequestStatsTest < ActionController::TestCase
   #
   # Helpers
   #
-
-  def setup_collector
-    $collector.mock['connect'] = [200, {'return_value' => {"agent_run_id" => 666 }}]
-  end
 
   def assert_encoding( encname, string )
     return unless string.respond_to?( :encoding )

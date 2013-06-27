@@ -2,14 +2,17 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-
 module MultiverseHelpers
   def setup_collector
     $collector ||= NewRelic::FakeCollector.new
     $collector.reset
     $collector.run
 
-    NewRelic::Agent.instance.service.collector.port = $collector.port
+    if (NewRelic::Agent.instance &&
+        NewRelic::Agent.instance.service &&
+        NewRelic::Agent.instance.service.collector)
+      NewRelic::Agent.instance.service.collector.port = $collector.port
+    end
   end
 
   def reset_collector
