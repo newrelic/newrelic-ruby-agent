@@ -1,5 +1,12 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.6.6 ##
+
+  * HTTPClient support
+
+  The Ruby agent now supports the HTTPClient library! For more
+  details see https://newrelic.com/docs/ruby/ruby-http-clients.
+
 ## v3.6.5 ##
 
   * Rails 4.0 Support
