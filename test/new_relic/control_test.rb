@@ -54,13 +54,13 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   end
 
   def test_resolve_ip_for_localhost
-    with_config(:ssl => false, :verify_certificate => false) do
+    with_config(:ssl => false) do
       assert_equal nil, control.send(:convert_to_ip_address, 'localhost')
     end
   end
 
   def test_resolve_ip_for_non_existent_domain
-    with_config(:ssl => false, :verify_certificate => false) do
+    with_config(:ssl => false) do
       Resolv.stubs(:getaddress).raises(Resolv::ResolvError)
       IPSocket.stubs(:getaddress).raises(SocketError)
       assert_equal nil, control.send(:convert_to_ip_address, 'q1239988737.us')
@@ -68,17 +68,17 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   end
 
   def test_resolves_valid_ip
-    with_config(:ssl => false, :verify_certificate => false) do
+    with_config(:ssl => false) do
       Resolv.stubs(:getaddress).with('collector.newrelic.com').returns('204.93.223.153')
       assert_equal '204.93.223.153', control.send(:convert_to_ip_address, 'collector.newrelic.com')
     end
   end
 
   def test_do_not_resolve_if_we_need_to_verify_a_cert
-    with_config(:ssl => false, :verify_certificate => false) do
+    with_config(:ssl => false) do
       assert_equal nil, control.send(:convert_to_ip_address, 'localhost')
     end
-    with_config(:ssl => true, :verify_certificate => true) do
+    with_config(:ssl => true) do
       assert_equal 'localhost', control.send(:convert_to_ip_address, 'localhost')
     end
   end
@@ -120,7 +120,7 @@ class NewRelic::ControlTest < Test::Unit::TestCase
     Object.instance_eval { remove_const :Resolv}
     Object.instance_eval {remove_const:'IPSocket' }
 
-    with_config(:ssl => false, :verify_certificate => false) do
+    with_config(:ssl => false) do
       assert_equal(nil, control.send(:convert_to_ip_address, 'collector.newrelic.com'), "DNS is down, should be no IP for server")
     end
 
