@@ -148,7 +148,7 @@ module NewRelic
 
         :marshaller => Proc.new { NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported? ? 'json' : 'pruby' },
 
-        :'request_sampler.enabled'        => false,
+        :'request_sampler.enabled'        => true,
         :'request_sampler.sample_rate_ms' => 50
       ].freeze
     end

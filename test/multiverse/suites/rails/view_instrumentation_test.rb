@@ -90,6 +90,12 @@ class ViewControllerTest < ActionController::TestCase
         .subscribe(/^process_action.action_controller$/)
     end
   end
+
+  def teardown
+    super
+    request_sampler = NewRelic::Agent.instance.instance_variable_get(:@request_sampler)
+    request_sampler.reset unless request_sampler.nil?
+  end
 end
 
 # SANITY TESTS - Make sure nothing raises errors,
