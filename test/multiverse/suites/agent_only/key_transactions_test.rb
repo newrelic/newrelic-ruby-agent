@@ -3,8 +3,11 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper')
+require 'multiverse_helpers'
 
 class KeyTransactionsTest < Test::Unit::TestCase
+  include MultiverseHelpers
+
   class TestWidget
     include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
@@ -20,15 +23,15 @@ class KeyTransactionsTest < Test::Unit::TestCase
   end
 
   def setup
-    $collector ||= NewRelic::FakeCollector.new
-    $collector.reset
+    super
+
+    setup_collector
     key_apdex_config = { 'Controller/KeyTransactionsTest::TestWidget/key_txn' => 1 }
     $collector.mock['connect'] = [200, {'return_value' => {
                                       "agent_run_id" => 666,
                             'web_transactions_apdex' => key_apdex_config,
                                            'apdex_t' => 10
                                     }}]
-    $collector.run
 
     NewRelic::Agent.manual_start(:sync_startup => true,
                                  :force_reconnect => true)
@@ -37,8 +40,8 @@ class KeyTransactionsTest < Test::Unit::TestCase
   end
 
   def teardown
+    reset_collector
     NewRelic::Agent.shutdown
-    $collector.reset
   end
 
   SATISFYING = 0

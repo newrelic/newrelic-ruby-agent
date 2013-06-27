@@ -1,7 +1,7 @@
 common: &default_settings
   license_key: 'bd0e1d52adade840f7ca727d29a86249e89a6f1c'
   host: 127.0.0.1
-  port: <%= 30_000 + ($$ % 10_000) %>
+  port: <%= $collector && $collector.port %>
   app_name: Rails 3 view test ap
   enabled: true
   log_level: debug
@@ -15,7 +15,7 @@ common: &default_settings
     stack_trace_threshold: 0.500
   error_collector:
     enabled: true
-    capture_source: true    
+    capture_source: true
     ignore_errors: IgnoredError
 
 development:

@@ -9,8 +9,11 @@ require 'test/unit'
 require 'logger'
 require 'newrelic_rpm'
 require 'fake_collector'
+require 'multiverse_helpers'
 
 class ResqueTest < Test::Unit::TestCase
+  include MultiverseHelpers
+
   class JobForTesting
     @queue = :resque_test
     @count = 0
@@ -32,9 +35,7 @@ class ResqueTest < Test::Unit::TestCase
   JOB_COUNT = 5
 
   def setup
-    $collector ||= NewRelic::FakeCollector.new
-    $collector.reset
-    $collector.run
+    setup_collector
 
     JobForTesting.reset_counter
 
