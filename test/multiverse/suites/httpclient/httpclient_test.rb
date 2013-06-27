@@ -40,4 +40,31 @@ class HTTPClientTest < Test::Unit::TestCase
     end
     NewRelic::Agent::HTTPClients::HTTPClientResponse.new(httpclient_resp)
   end
+
+  def test_still_records_tt_node_when_pop_raises_an_exception
+    in_transaction do
+      test_exception = StandardError.new
+      evil_connection = HTTPClient::Connection.new
+      evil_connection.instance_variable_set(:@test_exception, test_exception)
+      evil_connection.instance_eval do
+        def new_push(request)
+          @queue.push(@test_exception)
+        end
+
+        alias old_push push
+        alias push new_push
+      end
+
+      HTTPClient::Connection.stubs(:new).returns(evil_connection)
+
+      begin
+        get_response('http://newrelic.com')
+      rescue => e
+        raise e unless e == test_exception
+      end
+
+      last_segment = find_last_transaction_segment()
+      assert_equal("External/newrelic.com/HTTPClient/GET", last_segment.metric_name)
+    end
+  end
 end
