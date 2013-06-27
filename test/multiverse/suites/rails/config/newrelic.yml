@@ -1,9 +1,7 @@
 common: &default_settings
   license_key: 'bd0e1d52adade840f7ca727d29a86249e89a6f1c'
   host: 127.0.0.1
-<% if $collector && $collector.port %>
-  port: <%= $collector.port %>
-<% end %>
+  port: <%= $collector && $collector.port %>
   app_name: Rails 3 view test ap
   enabled: true
   log_level: debug

@@ -11,9 +11,7 @@ development:
   app_name: test
   host: 127.0.0.1
   api_host: 127.0.0.1
-<% if $collector && $collector.port %>
   port: <%= $collector.port %>
-<% end %>
   transaction_tracer:
     record_sql: obfuscated
     enabled: true
