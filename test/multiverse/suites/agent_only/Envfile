@@ -1,5 +1,3 @@
-self.newrelic_gemfile_options=(':require => false')
-
 gemfile <<-RB
   gem 'rack'
   gem 'rack-test'

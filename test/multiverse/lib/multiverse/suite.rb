@@ -113,6 +113,7 @@ module Multiverse
     def execute_child_environment(env_index)
       gemfile_text = environments[env_index]
       load_dependencies(gemfile_text)
+      configure_child_environment
       execute_ruby_files
       trigger_test_unit
     end
@@ -171,6 +172,16 @@ module Multiverse
       else
         raise "Can't figure out how to trigger Test::Unit"
       end
+    end
+
+    def configure_child_environment
+      # We don't want to have additional harvest threads running in our multiverse
+      # tests. The tests explicitly manage their lifecycle--resetting and harvesting
+      # to check results against the FakeCollector--so the harvest thread is actually
+      # destabilizing if it's running. Also, multiple restarts result in lots of
+      # threads running in some test suites.
+
+      ENV["NEWRELIC_DISABLE_HARVEST_THREAD"] = "true"
     end
 
     def execute_ruby_files
