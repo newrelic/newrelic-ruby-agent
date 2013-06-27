@@ -29,10 +29,12 @@ module NewRelic
           end
 
           boolean_map = {
-            'NEWRELIC_ENABLE' => :agent_enabled,
-            'NEWRELIC_ENABLED' => :agent_enabled,
-            'NEW_RELIC_ENABLE' => :agent_enabled,
-            'NEW_RELIC_ENABLED' => :agent_enabled
+            'NEWRELIC_ENABLE'   => :agent_enabled,
+            'NEWRELIC_ENABLED'  => :agent_enabled,
+            'NEW_RELIC_ENABLE'  => :agent_enabled,
+            'NEW_RELIC_ENABLED' => :agent_enabled,
+            'NEWRELIC_DISABLE_HARVEST_THREAD'  => :disable_harvest_thread,
+            'NEW_RELIC_DISABLE_HARVEST_THREAD' => :disable_harvest_thread
           }.each do |key, val|
             if ENV[key].to_s =~ /false|off|no/i
               self[val] = false
