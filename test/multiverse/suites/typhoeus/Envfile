@@ -35,6 +35,9 @@ RB
 
 # Prior to supported versions
 gemfile <<-RB
+  # Compatibility issues with ethon 0.5.12 https://github.com/typhoeus/ethon/issues/51
+  gem 'ethon', '0.5.11'
+
   gem 'typhoeus', '0.5.2'
   gem 'rack'
   if RUBY_VERSION < '1.9.0'
