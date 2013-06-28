@@ -23,7 +23,7 @@ module Performance
       results.each do |result|
         puts "#{result.identifier}: #{result.elapsed} s"
         unless @options[:brief]
-          result.details.each do |key, value|
+          result.measurements.each do |key, value|
             puts "  #{key}: #{value}"
           end
         end

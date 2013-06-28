@@ -4,51 +4,54 @@
 
 module Performance
   class Result
-    attr_reader :test_name, :details, :timer, :artifacts
+    attr_reader :test_name, :measurements, :metadata, :timer, :artifacts
+    attr_accessor :exception
 
-    def initialize(test_case, test_name, details={})
+    def initialize(test_case, test_name)
       @test_case = test_case
       @test_name = test_name
-      @details = details
+      @measurements   = {}
+      @metadata       = {}
       @timer = Timer.new
       @artifacts = []
     end
 
+    def exception_to_hash(e)
+      return nil if e.nil?
+      {
+        :class     => e.class,
+        :message   => e.message,
+        :backtrace => e.backtrace
+      }
+    end
+
+    def exception_from_hash(h)
+      return nil if h.nil?
+      e = h[:class].new(h[:message])
+      e.set_backtrace(h[:backtrace])
+      e
+    end
+
     def marshal_dump
-      filtered_details = @details.dup
-      if filtered_details[:exception]
-        exc = filtered_details[:exception]
-        filtered_details[:exception] = {
-          :class     => exc.class,
-          :message   => exc.message,
-          :backtrace => exc.backtrace
-        }
-      end
       [
         @test_case,
         @test_name,
-        filtered_details,
+        @measurements,
+        @metadata,
+        exception_to_hash(@exception),
         @timer,
         @artifacts
       ]
     end
 
     def marshal_load(array)
-      @test_case = array.shift
-      @test_name = array.shift
-      @details   = array.shift
-      @timer     = array.shift
-      @artifacts = array.shift
-
-      if @details[:exception]
-        exc = @details[:exception][:class].new(@details[:exception][:message])
-        exc.set_backtrace(@details[:exception][:backtrace])
-        @details[:exception] = exc
-      end
-    end
-
-    def exception
-      @details[:exception]
+      @test_case    = array.shift
+      @test_name    = array.shift
+      @measurements = array.shift
+      @metadata     = array.shift
+      @exception    = exception_from_hash(array.shift)
+      @timer        = array.shift
+      @artifacts    = array.shift
     end
 
     def elapsed
@@ -56,29 +59,29 @@ module Performance
     end
 
     def failure?
-      elapsed.nil? || @details[:exception]
-    end
-
-    def merge!(hash)
-      @details.merge!(hash)
+      elapsed.nil? || !@exception.nil?
     end
 
     def identifier
       "#{@test_case.name}##{@test_name}"
     end
 
+    def measurements_hash
+      @measurements.merge(:elapsed => elapsed)
+    end
+
     def to_h
       {
         "suite"     => @test_case.name,
         "name"      => @test_name,
-        "elapsed"   => elapsed,
-        "details"   => @details,
-        "artifacts" => @artifacts
+        "measurements" => measurements_hash,
+        "metadata"     => @metadata,
+        "artifacts"    => @artifacts
       }
     end
 
     def inspect
-      "<Performance::Result #{identifier}: #{elapsed} s, details=#{@details.inspect}>"
+      "<Performance::Result #{identifier}: #{elapsed} s, results=#{@results.inspect}>"
     end
   end
 end

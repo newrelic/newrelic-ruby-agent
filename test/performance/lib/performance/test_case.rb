@@ -57,7 +57,7 @@ module Performance
           result
         end
       rescue => e
-        result.merge! :exception => e
+        result.exception = e
       end
       result
     end

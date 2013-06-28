@@ -78,7 +78,7 @@ module Performance
       test_case.on(:after_each) do |test, test_name, result|
         instrumentors.reverse.each { |i| i.after(test, test_name) }
         instrumentors.each do |i|
-          result.merge!(i.results)
+          result.measurements.merge!(i.results)
           result.artifacts.concat(i.artifacts)
         end
       end
@@ -86,8 +86,9 @@ module Performance
 
     def add_metadata_callbacks(test_case)
       test_case.on(:after_each) do |test, test_name, result|
-        result.merge!(
+        result.metadata.merge!(
           :newrelic_rpm_version => @newrelic_rpm_version,
+          :newrelic_rpm_git_sha => @newrelic_rpm_git_sha,
           :ruby_version         => RUBY_DESCRIPTION,
           :host                 => @hostname
         )
@@ -114,14 +115,20 @@ module Performance
     end
 
     def newrelic_rpm_path
-      File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'lib'))
+      if ENV['NEWRELIC_RPM_PATH']
+        File.expand_path(ENV['NEWRELIC_RPM_PATH'])
+      else
+        File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'lib'))
+      end
     end
 
     def load_newrelic_rpm
       unless @loaded_newrelic_rpm
-        $: << newrelic_rpm_path
+        path = newrelic_rpm_path
+        $: << path
         require "newrelic_rpm"
         @newrelic_rpm_version = NewRelic::VERSION::STRING
+        @newrelic_rpm_git_sha = %x((cd '#{path}' && git log --pretty='%h' -n 1)).strip
         @loaded_newrelic_rpm = true
       end
     end
