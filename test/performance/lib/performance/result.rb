@@ -16,42 +16,16 @@ module Performance
       @artifacts = []
     end
 
-    def exception_to_hash(e)
-      return nil if e.nil?
-      {
-        :class     => e.class,
-        :message   => e.message,
-        :backtrace => e.backtrace
-      }
-    end
-
-    def exception_from_hash(h)
-      return nil if h.nil?
-      e = h[:class].new(h[:message])
-      e.set_backtrace(h[:backtrace])
-      e
-    end
-
-    def marshal_dump
-      [
-        @test_case,
-        @test_name,
-        @measurements,
-        @tags,
-        exception_to_hash(@exception),
-        @timer,
-        @artifacts
-      ]
-    end
-
-    def marshal_load(array)
-      @test_case    = array.shift
-      @test_name    = array.shift
-      @measurements = array.shift
-      @tags         = array.shift
-      @exception    = exception_from_hash(array.shift)
-      @timer        = array.shift
-      @artifacts    = array.shift
+    def exception=(e)
+      if e.is_a?(Exception)
+        @exception = {
+          'class'     => e.class.name,
+          'message'   => e.message,
+          'backtrace' => e.backtrace
+        }
+      else
+        @exception = e
+      end
     end
 
     def elapsed=(elapsed)
@@ -84,7 +58,7 @@ module Performance
         "name"      => @test_name,
         "measurements" => measurements_hash,
         "tags"         => @tags,
-        "exception"    => exception_to_hash(@exception),
+        "exception"    => @exception,
         "artifacts"    => @artifacts
       }
     end
@@ -94,7 +68,7 @@ module Performance
       result = self.new(hash['suite'], hash['name'])
       result.measurements.merge! hash['measurements']
       result.tags.merge! hash['tags']
-      result.exception = result.exception_from_hash(hash['exception']) if hash['exception']
+      result.exception = hash['exception']
       result.elapsed = elapsed
       result
     end

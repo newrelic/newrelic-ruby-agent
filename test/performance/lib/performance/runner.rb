@@ -178,7 +178,7 @@ module Performance
             load_newrelic_rpm
             test_case.run(method)
           rescue => e
-            result = Result.new(test_case.name, method)
+            result = Result.new(test_case.class.name, method)
             result.exception = e
             result
           end
