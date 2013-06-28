@@ -9,17 +9,20 @@
 require 'logger'
 require 'newrelic_rpm'
 require 'fake_collector'
+require 'multiverse_helpers'
 
 class LoggingTest < Test::Unit::TestCase
 
+  include MultiverseHelpers
+
   def test_logs_app_name
-    running_agent_writes_to_log( 
+    running_agent_writes_to_log(
        {:app_name => "My App"},
        "Application: My App")
   end
 
   def test_logs_error_with_bad_app_name
-    running_agent_writes_to_log( 
+    running_agent_writes_to_log(
        {:app_name => false},
         "No application name configured.")
   end
@@ -123,12 +126,10 @@ class LoggingTest < Test::Unit::TestCase
 
   # Initialization
   def setup
-    $collector ||= NewRelic::FakeCollector.new
-    $collector.reset
+    setup_collector
     $collector.mock['connect'] = [200, {'return_value' => {"agent_run_id" => 666 }}]
-    $collector.run
 
-    NewRelic::Agent.reset_config 
+    NewRelic::Agent.reset_config
     NewRelic::Agent::Agent.instance_variable_set(:@instance, nil)
 
     @logger = NewRelic::Agent::MemoryLogger.new
@@ -137,7 +138,7 @@ class LoggingTest < Test::Unit::TestCase
   end
 
   def teardown
-    $collector.reset
+    reset_collector
 
     # Really clear out our agent instance since we set bad license keys
     NewRelic::Agent::Agent.instance_variable_set(:@instance, nil)

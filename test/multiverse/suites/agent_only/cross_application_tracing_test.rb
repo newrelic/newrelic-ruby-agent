@@ -5,31 +5,33 @@
 require 'rack/test'
 require 'fake_collector'
 require './testing_app'
+require 'multiverse_helpers'
 
 class CrossProcessTest < Test::Unit::TestCase
+
+  include MultiverseHelpers
 
   # Important because the hooks are global that we only wire one AgentHooks up
   @@app = TestingApp.new
   @@wrapper_app = NewRelic::Rack::AgentHooks.new(@@app)
 
   def setup
-    $collector ||= NewRelic::FakeCollector.new
-    $collector.reset
+    setup_collector
     $collector.mock['connect'] = [200, {'return_value' => {"agent_run_id" => 666 }}]
-    $collector.run
 
     NewRelic::Agent.manual_start(
       :cross_process_id => "boo",
       :encoding_key => "\0",
       :trusted_account_ids => [1])
 
-    NewRelic::Agent.instance.events.notify(:finished_configuring) 
+    NewRelic::Agent.instance.events.notify(:finished_configuring)
 
     @@app.reset_headers
     @@app.response = "<html><head><title>W00t!</title></head><body><p>Hello World</p></body></html>"
   end
 
   def teardown
+    reset_collector
     NewRelic::Agent.shutdown
   end
 

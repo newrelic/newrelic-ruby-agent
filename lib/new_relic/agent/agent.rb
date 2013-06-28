@@ -635,6 +635,12 @@ module NewRelic
         #
         # See #connect for a description of connection_options.
         def start_worker_thread(connection_options = {})
+          disable = NewRelic::Agent.config[:disable_harvest_thread]
+          if disable
+            NewRelic::Agent.logger.info "Not starting Ruby Agent worker thread because :disable_harvest_thread is #{disable}"
+            return
+          end
+
           ::NewRelic::Agent.logger.debug "Creating Ruby Agent worker thread."
           @worker_thread = NewRelic::Agent::AgentThread.new('Worker Loop') do
             deferred_work!(connection_options)

@@ -108,6 +108,7 @@ module NewRelic
         :disable_sinatra_auto_middleware      => false,
         :disable_view_instrumentation         => false,
         :disable_backtrace_cleanup            => false,
+        :disable_harvest_thread               => false,
         :skip_ar_instrumentation              => false,
         :disable_activerecord_instrumentation => Proc.new { self[:skip_ar_instrumentation] },
         :disable_memcache_instrumentation     => false,

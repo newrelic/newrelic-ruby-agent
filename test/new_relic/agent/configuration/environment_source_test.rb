@@ -56,6 +56,28 @@ module NewRelic::Agent::Configuration
       end
     end
 
+    %w| NEWRELIC_DISABLE_HARVEST_THREAD NEW_RELIC_DISABLE_HARVEST_THREAD |.each do |var|
+      define_method("test_environment_booleans_truths_are_applied_to_#{var}") do
+        ENV[var] = 'true'
+        assert EnvironmentSource.new[:disable_harvest_thread]
+        ENV[var] = 'on'
+        assert EnvironmentSource.new[:disable_harvest_thread]
+        ENV[var] = 'yes'
+        assert EnvironmentSource.new[:disable_harvest_thread]
+        ENV.delete(var)
+      end
+
+      define_method("test_environment_booleans_falsehoods_are_applied_to_#{var}") do
+        ENV[var] = 'false'
+        assert !EnvironmentSource.new[:disable_harvest_thread]
+        ENV[var] = 'off'
+        assert !EnvironmentSource.new[:disable_harvest_thread]
+        ENV[var] = 'no'
+        assert !EnvironmentSource.new[:disable_harvest_thread]
+        ENV.delete(var)
+      end
+    end
+
     def test_set_log_config_from_environment
       ENV['NEW_RELIC_LOG'] = 'off/in/space.log'
       source = EnvironmentSource.new

@@ -2,7 +2,12 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'multiverse_helpers'
+
 class RenameRuleTest < Test::Unit::TestCase
+
+  include MultiverseHelpers
+
   class TestWidget
     include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
@@ -17,9 +22,9 @@ class RenameRuleTest < Test::Unit::TestCase
     add_method_tracer :mthd
   end
 
+
   def setup
-    $collector ||= NewRelic::FakeCollector.new
-    $collector.reset
+    setup_collector
     txn_rule_specs = [ { 'match_expression' => 'RenameRuleTest',
                          'replacement' => 'Class' } ]
     metric_rule_specs = [ { 'match_expression' => 'RenameRuleTest',
@@ -29,15 +34,13 @@ class RenameRuleTest < Test::Unit::TestCase
                             'transaction_name_rules' => txn_rule_specs,
                                  'metric_name_rules' => metric_rule_specs
                                     }}]
-    $collector.run
-
     NewRelic::Agent.manual_start(:sync_startup => true,
-                                 :force_reconnect => true,
-                                 :port => $collector.port)
+                                 :force_reconnect => true)
     TestWidget.new.txn
   end
 
   def teardown
+    reset_collector
     NewRelic::Agent.instance.instance_variable_set(:@transaction_rules,
                                        NewRelic::Agent::RulesEngine.new)
     NewRelic::Agent.shutdown

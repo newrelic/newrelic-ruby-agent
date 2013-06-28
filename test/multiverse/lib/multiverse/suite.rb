@@ -113,6 +113,7 @@ module Multiverse
     def execute_child_environment(env_index)
       gemfile_text = environments[env_index]
       load_dependencies(gemfile_text)
+      configure_child_environment
       execute_ruby_files
       trigger_test_unit
     end
@@ -173,12 +174,37 @@ module Multiverse
       end
     end
 
+    def configure_child_environment
+      # We don't want to have additional harvest threads running in our multiverse
+      # tests. The tests explicitly manage their lifecycle--resetting and harvesting
+      # to check results against the FakeCollector--so the harvest thread is actually
+      # destabilizing if it's running. Also, multiple restarts result in lots of
+      # threads running in some test suites.
+
+      ENV["NEWRELIC_DISABLE_HARVEST_THREAD"] = "true"
+    end
+
     def execute_ruby_files
       Dir.chdir directory
-      Dir[File.join(directory, '*.rb')].each do |file|
+      ordered_ruby_files(directory).each do |file|
         puts yellow("Executing #{file.inspect}") if verbose?
         load file
       end
+    end
+
+    def ordered_ruby_files(directory)
+      files = Dir[File.join(directory, '*.rb')]
+
+      before = files.find { |file| File.basename(file) == "before_suite.rb" }
+      after  = files.find { |file| File.basename(file) == "after_suite.rb" }
+
+      files.delete(before)
+      files.delete(after)
+
+      files.insert(0, before) if before
+      files.insert(-1, after) if after
+
+      files
     end
 
     def verbose?

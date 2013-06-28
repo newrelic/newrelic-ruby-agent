@@ -5,22 +5,24 @@
 # https://newrelic.atlassian.net/wiki/display/eng/The+Terror+and+Glory+of+Transaction+Traces
 # https://newrelic.atlassian.net/browse/RUBY-914
 require 'ostruct'
+require 'multiverse_helpers'
 
 class MarshalingTest < Test::Unit::TestCase
+  include MultiverseHelpers
+
   def setup
     NewRelic::Agent.manual_start(:'transaction_tracer.transaction_threshold' => 0.0)
     @agent = NewRelic::Agent.instance
     @sampler = @agent.transaction_sampler
 
-    $collector ||= NewRelic::FakeCollector.new
-    $collector.reset
+    setup_collector
     $collector.mock['connect'] = [200, {'return_value' => { 'agent_run_id' => 666 }}]
-    $collector.run
   end
 
   def teardown
+    reset_collector
+    @agent.shutdown
     Thread.current[:transaction_sample_builder] = nil
-    $collector.reset
   end
 
   def test_transaction_trace_marshaling

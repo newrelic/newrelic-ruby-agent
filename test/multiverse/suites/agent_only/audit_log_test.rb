@@ -7,20 +7,21 @@
 require 'test/unit'
 require 'newrelic_rpm'
 require 'fake_collector'
+require 'multiverse_helpers'
 
 class AuditLogTest < Test::Unit::TestCase
+  include MultiverseHelpers
+
   # Initialization
   def setup
-    $collector ||= NewRelic::FakeCollector.new
-    $collector.reset
-    $collector.run
+    setup_collector
 
     @string_log = StringIO.new
     NewRelic::Agent::AuditLogger.any_instance.stubs(:ensure_log_path).returns(@string_log)
   end
 
   def teardown
-    $collector.reset
+    reset_collector
   end
 
   def audit_log_contents
