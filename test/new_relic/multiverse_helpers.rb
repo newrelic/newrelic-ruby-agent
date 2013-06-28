@@ -2,6 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'fake_collector'
+
 module MultiverseHelpers
   def setup_collector
     $collector ||= NewRelic::FakeCollector.new
@@ -18,4 +20,6 @@ module MultiverseHelpers
   def reset_collector
     $collector.reset
   end
+
+  extend self
 end
