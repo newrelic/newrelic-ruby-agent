@@ -22,7 +22,7 @@ class HakoClient
       "Authorization" => 'Token token="8467debfd4a51857a1ca3a5877d84907"',
       "Content-Type"  => "application/json"
     }
-    self.class.post('/api/stats', :body => body, :headers => headers)
+    self.class.post('/api/results', :body => body, :headers => headers)
   end
 end
 
