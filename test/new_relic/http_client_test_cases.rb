@@ -111,6 +111,11 @@ module HttpClientTestCases
     assert_nil response_instance["boo"]
   end
 
+  def test_response_wrapper_ignores_case_in_header_keys
+    res = response_instance('NAMCO' => 'digdug')
+    assert_equal 'digdug', res['namco']
+  end
+
   def test_get
     res = get_response
 

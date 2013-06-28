@@ -110,7 +110,7 @@ class NewRelicServiceTest < Test::Unit::TestCase
 
   # This test does not actually use the ruby agent in any way - it's
   # testing that the CA file we ship actually validates our server's
-  # certificate. It's used for customers who enable verify_certificate
+  # certificate.
   def test_cert_file
     if internet_connection?
       require 'socket'

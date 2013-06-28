@@ -80,7 +80,6 @@ module NewRelic
         :port                   => Proc.new { self[:ssl] ? 443 : 80 },
         :api_port               => Proc.new { self[:port] },
         :ssl                    => true,
-        :verify_certificate     => true,
         :sync_startup           => false,
         :send_data_on_exit      => true,
         :post_size_limit        => 2 * 1024 * 1024, # 2 megs

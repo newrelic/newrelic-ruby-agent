@@ -69,8 +69,12 @@ class NetHttpTest < Test::Unit::TestCase
     NewRelic::Agent::HTTPClients::NetHTTPRequest.new(http, request)
   end
 
-  def response_instance
-    Net::HTTPResponse.new(nil, nil, nil)
+  def response_instance(headers = {})
+    response = Net::HTTPResponse.new(nil, nil, nil)
+    headers.each do |k,v|
+      response[k] = v
+    end
+    response
   end
 
   #

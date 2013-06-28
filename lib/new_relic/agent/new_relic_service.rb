@@ -38,8 +38,6 @@ module NewRelic
         Agent.config.register_callback(:ssl) do |ssl|
           if !ssl
             ::NewRelic::Agent.logger.warn("Agent is configured not to use SSL when communicating with New Relic's servers")
-          elsif !Agent.config[:verify_certificate]
-            ::NewRelic::Agent.logger.warn("Agent is configured to use SSL but to skip certificate validation when communicating with New Relic's servers")
           else
             ::NewRelic::Agent.logger.debug("Agent is configured to use SSL")
           end
@@ -209,12 +207,8 @@ module NewRelic
             # an error when use_ssl=(true) is called and jruby-openssl isn't
             # installed
             http.use_ssl = true
-            if Agent.config[:verify_certificate]
-              http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-              http.ca_file = cert_file_path
-            else
-              http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-            end
+            http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+            http.ca_file = cert_file_path
           rescue StandardError, LoadError
             msg = "Agent is configured to use SSL, but SSL is not available in the environment. "
             msg << "Either disable SSL in the agent configuration, or install SSL support."
