@@ -23,7 +23,7 @@ class NewRelic::Command::Deployments < NewRelic::Command
   # When command_line_args is a hash, we are invoking directly and
   # it's treated as an options with optional string values for
   # :user, :description, :appname, :revision, :environment,
-  # and :changes.
+  # :license_key, and :changes.
   #
   # Will throw CommandFailed exception if there's any error.
   #
@@ -35,6 +35,7 @@ class NewRelic::Command::Deployments < NewRelic::Command
     control.env = @environment if @environment
     load_yaml_from_env(control.env)
     @appname ||= NewRelic::Agent.config.app_names[0] || control.env || 'development'
+    @license_key ||= NewRelic::Agent.config[:license_key]
   end
 
   def load_yaml_from_env(env)
@@ -62,11 +63,10 @@ class NewRelic::Command::Deployments < NewRelic::Command
 
       uri = "/deployments.xml"
 
-      if NewRelic::Agent.config[:license_key].nil? ||
-          NewRelic::Agent.config[:license_key].empty?
+      if @license_key.nil? || @license_key.empty?
         raise "license_key was not set in newrelic.yml for #{control.env}"
       end
-      request = Net::HTTP::Post.new(uri, {'x-license-key' => NewRelic::Agent.config[:license_key]})
+      request = Net::HTTP::Post.new(uri, {'x-license-key' => @license_key})
       request.content_type = "application/octet-stream"
 
       request.set_form_data(create_params)
@@ -108,6 +108,8 @@ class NewRelic::Command::Deployments < NewRelic::Command
              "Default: #{@user || '<none>'}") { | u | @user = u }
       o.on("-r", "--revision=REV", String,
              "Specify the revision being deployed") { | r | @revision = r }
+      o.on("-l", "--license-key=KEY", String,
+             "Specify the license key of the account for the app being deployed") { | l | @license_key = l }
       o.on("-c", "--changes",
              "Read in a change log from the standard input") { @changelog = STDIN.read }
       yield o if block_given?
