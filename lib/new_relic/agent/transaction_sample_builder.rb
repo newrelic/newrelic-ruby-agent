@@ -32,13 +32,14 @@ module NewRelic
           @depth = 1
         end
 
-        # No-op - some clients expect to be able to use this to attach params to
-        # TT segments.
+        # No-op - some clients expect to be able to use these to read/write
+        # params on TT segments.
+        def [](key); end
         def []=(key, value); end
 
-        # No-op - some clients expect to be able to use this to read params from
-        # TT segments.
-        def [](key); end
+        # Stubbed out in case clients try to touch params directly.
+        def params; {}; end
+        def params=; end
       end
 
       attr_reader :current_segment, :sample

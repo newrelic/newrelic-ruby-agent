@@ -124,6 +124,10 @@ module NewRelic
         @params ||= {}
       end
 
+      def params=(p)
+        @params = p
+      end
+
       # call the provided block for this segment and each
       # of the called segments
       def each_segment(&block)
@@ -174,10 +178,6 @@ module NewRelic
 
       def obfuscated_sql
         NewRelic::Agent::Database.obfuscate_sql(params[:sql])
-      end
-
-      def params=(p)
-        @params = p
       end
 
       def called_segments=(segments)

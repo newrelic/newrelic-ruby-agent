@@ -206,6 +206,19 @@ class NewRelic::Agent::TransationSampleBuilderTest < Test::Unit::TestCase
     end
   end
 
+  def test_attaching_params_doesnt_raise_when_segments_are_limited
+    with_config(:'transaction_tracer.limit_segments' => 5) do
+      6.times { |i| build_segment "s#{i}" }
+      # now we should have a placeholder segment
+      build_segment "this-should-be-truncated" do
+        assert_nothing_raised do
+          @builder.current_segment['eggs'] = 'ham'
+          @builder.current_segment.params.merge!('foo' => 'bar')
+        end
+      end
+    end
+  end
+
   def test_finish_trace_records_threshold
     NewRelic::Agent::TransactionInfo.get.stubs(:transaction_trace_threshold) \
       .returns(2.0)

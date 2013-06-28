@@ -343,7 +343,7 @@ module NewRelic
       # Set parameters on the current segment.
       def add_segment_parameters( params )
         return unless builder
-        builder.current_segment.params.merge!( params )
+        params.each { |k,v| builder.current_segment[k] = v }
       end
 
       # Every 1/n harvests, adds the most recent sample to the harvest
