@@ -18,6 +18,5 @@ development:
     stack_trace_threshold: 0.5
   capture_params: false
   log_level: debug
-  log_file_path: agent.log
   browser_monitoring:
     auto_instrument: true
