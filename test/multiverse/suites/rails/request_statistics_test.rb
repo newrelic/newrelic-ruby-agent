@@ -6,6 +6,7 @@
 
 require 'rails/test_help'
 require './app'
+require 'multiverse_helpers'
 require File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper')
 
 class RequestStatsController < ApplicationController
