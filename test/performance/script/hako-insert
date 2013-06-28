@@ -1,0 +1,38 @@
+#!/usr/bin/env ruby
+
+require 'yajl'
+require 'httparty'
+
+path = ARGV[0]
+file = File.open(path)
+parser = Yajl::Parser.new(:symbolize_keys => true)
+
+
+class HakoClient
+  include HTTParty
+  base_uri 'http://hako.herokuapp.com'
+
+  def initialize
+    @encoder = Yajl::Encoder.new
+  end
+
+  def submit(result)
+    body = @encoder.encode('result' => result)
+    headers = {
+      "Authorization" => 'Token token="8467debfd4a51857a1ca3a5877d84907"',
+      "Content-Type"  => "application/json"
+    }
+    self.class.post('/api/stats', :body => body, :headers => headers)
+  end
+end
+
+client = HakoClient.new
+
+parser.parse(file) do |results|
+  results.each do |r|
+    rsp = client.submit(r)
+    puts "Got #{rsp.inspect}"
+    puts "BODY = #{rsp.body}"
+    exit 0
+  end
+end

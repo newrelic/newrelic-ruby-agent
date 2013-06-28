@@ -1,0 +1,59 @@
+#!/usr/bin/env ruby
+
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
+require 'optparse'
+require 'rubygems'
+require 'json'
+
+$: << File.join(File.dirname(__FILE__), '..', 'lib')
+require 'performance/result'
+require 'performance/runner'
+require 'performance/test_case'
+require 'performance/timer'
+require 'performance/instrumentor'
+require 'performance/console_reporter'
+require 'performance/json_reporter'
+
+options = {}
+parser = OptionParser.new do |opts|
+  opts.banner = "Usage: #{$0} [options]"
+
+  opts.on("-f", "--fork", "Fork before each test") do |f|
+    options[:fork] = true
+  end
+  opts.on("-p", "--progress", "Print out test names as they run") do |p|
+    options[:progress] = true
+  end
+  opts.on("-i", "--instrumentor=NAME", "Use the named instrumentor") do |name|
+    options[:instrumentors] = [name]
+  end
+  opts.on("-n", "--name=NAME", "Filter tests to those matching NAME") do |name|
+    options[:name] = name
+  end
+  opts.on("-N", "--iterations=NUM", "Change the number of iterations for each test") do |iterations|
+    options[:iterations] = iterations.to_i
+  end
+  opts.on("-j", "--json", "Produce JSON output") do |q|
+    options[:reporter_class] = 'JSONReporter'
+  end
+  opts.on("-R", "--reporter=NAME", "Use the specified reporter") do |reporter|
+    options[:reporter_class] = reporter
+  end
+  opts.on("-r", "--randomize", "Randomize test order") do |r|
+    options[:randomize] = r
+  end
+  opts.on("-b", "--brief", "Don't print out details for each test, just the elapsed time") do |b|
+    options[:brief] = b
+  end
+end
+parser.parse!
+
+options[:dir] = File.expand_path(File.join(File.dirname(__FILE__), '..', 'suites'))
+
+runner = Performance::Runner.new(options)
+t0 = Time.now
+results = runner.run_all_test_cases
+runner.report_results(results, Time.now - t0)
