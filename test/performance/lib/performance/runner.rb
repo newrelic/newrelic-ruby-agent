@@ -10,10 +10,11 @@ module Performance
 
     DEFAULTS = {
       :instrumentors  => [],
-      :fork           => Process.respond_to?(:fork),
+      :fork           => false,
       :iterations     => 10000,
       :reporter_class => 'ConsoleReporter',
-      :brief          => false
+      :brief          => false,
+      :tags           => {}
     }
 
     def initialize(options={})
@@ -86,12 +87,13 @@ module Performance
 
     def add_metadata_callbacks(test_case)
       test_case.on(:after_each) do |test, test_name, result|
-        result.metadata.merge!(
+        result.tags.merge!(
           :newrelic_rpm_version => @newrelic_rpm_version,
           :newrelic_rpm_git_sha => @newrelic_rpm_git_sha,
           :ruby_version         => RUBY_DESCRIPTION,
           :host                 => @hostname
         )
+        result.tags.merge!(@options[:tags])
       end
     end
 
@@ -116,7 +118,7 @@ module Performance
 
     def newrelic_rpm_path
       if ENV['NEWRELIC_RPM_PATH']
-        File.expand_path(ENV['NEWRELIC_RPM_PATH'])
+        File.expand_path(File.join(ENV['NEWRELIC_RPM_PATH'], 'lib'))
       else
         File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'lib'))
       end
@@ -125,7 +127,7 @@ module Performance
     def load_newrelic_rpm
       unless @loaded_newrelic_rpm
         path = newrelic_rpm_path
-        $: << path
+        $:.unshift(path)
         require "newrelic_rpm"
         @newrelic_rpm_version = NewRelic::VERSION::STRING
         @newrelic_rpm_git_sha = %x((cd '#{path}' && git log --pretty='%h' -n 1)).strip
@@ -146,23 +148,50 @@ module Performance
         result = Marshal.load(rd.read)
         rd.close
         result
-      else
-        load_newrelic_rpm
-        blk.call
       end
+    end
+
+    def run_subprocess(test_case_name, method)
+      test_identifier = "#{test_case_name}##{method}"
+      runner_script = File.join(File.dirname($0), 'runner')
+      cmd = "#{runner_script} -T #{test_identifier} -j"
+      output = nil
+      IO.popen(cmd) do |io|
+        output = io.read
+      end
+      results = JSON.parse(output)
+      result = Result.from_hash(results.first)
+      result.tags.merge!(@options[:tags])
+      result
     end
 
     def run_test_case(test_case)
       methods_for_test_case(test_case).map do |method|
-        with_fork do
+        if @options[:isolate]
+          run_subprocess(test_case.class.name, method)
+        elsif @options[:fork]
+          with_fork do
+            test_case.run(method)
+          end
+        else
+          load_newrelic_rpm
           test_case.run(method)
         end
       end
     end
 
+    def suites_to_run
+      if @options[:identifier]
+        suite, method = @options[:identifier].split('#')
+        TestCase.subclasses.select { |cls| cls.name == suite }
+      else
+        TestCase.subclasses
+      end
+    end
+
     def run_all_test_cases
       results = []
-      TestCase.subclasses.each do |cls|
+      suites_to_run.each do |cls|
         test_case = create_test_case(cls)
         results += run_test_case(test_case)
       end

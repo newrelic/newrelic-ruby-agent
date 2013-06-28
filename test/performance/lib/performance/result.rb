@@ -4,14 +4,14 @@
 
 module Performance
   class Result
-    attr_reader :test_name, :measurements, :metadata, :timer, :artifacts
+    attr_reader :test_name, :measurements, :tags, :timer, :artifacts
     attr_accessor :exception
 
     def initialize(test_case, test_name)
       @test_case = test_case
       @test_name = test_name
       @measurements   = {}
-      @metadata       = {}
+      @tags           = {}
       @timer = Timer.new
       @artifacts = []
     end
@@ -37,7 +37,7 @@ module Performance
         @test_case,
         @test_name,
         @measurements,
-        @metadata,
+        @tags,
         exception_to_hash(@exception),
         @timer,
         @artifacts
@@ -48,22 +48,30 @@ module Performance
       @test_case    = array.shift
       @test_name    = array.shift
       @measurements = array.shift
-      @metadata     = array.shift
+      @tags         = array.shift
       @exception    = exception_from_hash(array.shift)
       @timer        = array.shift
       @artifacts    = array.shift
     end
 
+    def elapsed=(elapsed)
+      @elapsed = elapsed
+    end
+
     def elapsed
-      @timer.elapsed
+      @elapsed || @timer.elapsed
     end
 
     def failure?
       elapsed.nil? || !@exception.nil?
     end
 
+    def suite_name
+      @test_case.is_a?(String) ? @test_case : @test_case.name
+    end
+
     def identifier
-      "#{@test_case.name}##{@test_name}"
+      "#{suite_name}##{@test_name}"
     end
 
     def measurements_hash
@@ -72,12 +80,23 @@ module Performance
 
     def to_h
       {
-        "suite"     => @test_case.name,
+        "suite"     => suite_name,
         "name"      => @test_name,
         "measurements" => measurements_hash,
-        "metadata"     => @metadata,
+        "tags"         => @tags,
+        "exception"    => exception_to_hash(@exception),
         "artifacts"    => @artifacts
       }
+    end
+
+    def self.from_hash(hash)
+      elapsed = hash['measurements'].delete('elapsed')
+      result = self.new(hash['suite'], hash['name'])
+      result.measurements.merge! hash['measurements']
+      result.tags.merge! hash['tags']
+      result.exception = result.exception_from_hash(hash['exception']) if hash['exception']
+      result.elapsed = elapsed
+      result
     end
 
     def inspect

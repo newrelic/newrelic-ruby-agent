@@ -8,14 +8,7 @@ require 'optparse'
 require 'rubygems'
 require 'json'
 
-$: << File.join(File.dirname(__FILE__), '..', 'lib')
-require 'performance/result'
-require 'performance/runner'
-require 'performance/test_case'
-require 'performance/timer'
-require 'performance/instrumentor'
-require 'performance/console_reporter'
-require 'performance/json_reporter'
+require File.join(File.dirname(__FILE__), '..', 'lib', 'performance')
 
 options = {}
 parser = OptionParser.new do |opts|
@@ -36,6 +29,9 @@ parser = OptionParser.new do |opts|
   opts.on("-N", "--iterations=NUM", "Change the number of iterations for each test") do |iterations|
     options[:iterations] = iterations.to_i
   end
+  opts.on("-I", "--isolate", "Isolate each test into a sub-invocation") do |i|
+    options[:isolate] = true
+  end
   opts.on("-j", "--json", "Produce JSON output") do |q|
     options[:reporter_class] = 'JSONReporter'
   end
@@ -47,6 +43,18 @@ parser = OptionParser.new do |opts|
   end
   opts.on("-b", "--brief", "Don't print out details for each test, just the elapsed time") do |b|
     options[:brief] = b
+  end
+  opts.on("-T", "--test=NAME", "Run one specific test") do |identifier|
+    options[:identifier] = identifier
+  end
+  opts.on("-m", "--metadata=METADATA", "Attach metadata to the run") do |tags_string|
+    tags = {}
+    pairs = tags_string.split(",")
+    pairs.each do |pair|
+      key, val = pair.split(":")
+      tags[key] = val
+    end
+    options[:tags] = tags
   end
 end
 parser.parse!
