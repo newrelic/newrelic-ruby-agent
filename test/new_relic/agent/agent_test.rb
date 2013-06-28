@@ -340,12 +340,12 @@ module NewRelic
     class AgentWorkerThreadTest < Test::Unit::TestCase
       def test_abides_by_disabling_harvest_thread
         with_config(:disable_harvest_thread => true) do
-          threads_before = Thread.list.count
+          threads_before = Thread.list.length
 
           agent = NewRelic::Agent::Agent.new
           agent.send(:start_worker_thread)
 
-          assert_equal threads_before, Thread.list.count
+          assert_equal threads_before, Thread.list.length
         end
       end
 
