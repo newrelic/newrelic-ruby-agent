@@ -62,9 +62,6 @@ class LoggingTest < Test::Unit::TestCase
 
       NewRelic::Agent.config.apply_config(:ssl => false)
     end
-
-    # Clean up after ourselves. Should the MultiverseHelpers do this?
-    NewRelic::Agent.config.remove_config(:ssl => false)
   end
 
   def test_logs_if_sending_errors_on_change

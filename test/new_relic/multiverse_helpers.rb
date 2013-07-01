@@ -27,6 +27,10 @@ module MultiverseHelpers
 
   def teardown_agent
     reset_collector
+
+    # Put the configs back where they belong....
+    NewRelic::Agent.config.reset_to_defaults
+
     NewRelic::Agent.shutdown
   end
 
