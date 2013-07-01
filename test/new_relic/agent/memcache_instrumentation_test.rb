@@ -29,11 +29,11 @@ end
 
 class NewRelic::Agent::MemcacheInstrumentationTest < Test::Unit::TestCase
   include NewRelic::Agent::Instrumentation::ControllerInstrumentation
-  
+
   def setup
     NewRelic::Agent.manual_start
     @engine = NewRelic::Agent.instance.stats_engine
-    
+
     case MEMCACHED_CLASS.name
     when 'Memcached'
       @cache = MEMCACHED_CLASS.new('localhost', :support_cas => true)
@@ -45,7 +45,7 @@ class NewRelic::Agent::MemcacheInstrumentationTest < Test::Unit::TestCase
     @key = 'schluessel'
     @cache.set('schluessel', 1)
   end
-  
+
   def teardown
     if MEMCACHED_CLASS.name == 'Memcached'
       @cache.flush
@@ -56,7 +56,7 @@ class NewRelic::Agent::MemcacheInstrumentationTest < Test::Unit::TestCase
       @cache.flush_all
     end
   end
-  
+
   def _call_test_method_in_web_transaction(method, *args)
     @engine.clear_stats
     perform_action_with_newrelic_trace(:name=>'action', :category => :controller) do
@@ -105,7 +105,7 @@ class NewRelic::Agent::MemcacheInstrumentationTest < Test::Unit::TestCase
   def test_reads__background
     commands = ['get']
     commands << 'get_multi' unless MEMCACHED_CLASS.name == 'Spymemcached'
-    commands.each do |method|    
+    commands.each do |method|
       if @cache.class.method_defined?(method)
         _call_test_method_in_background_task(method)
         compare_metrics ["Memcache/#{method}", "Memcache/allOther", "Memcache/#{method}:OtherTransaction/Background/NewRelic::Agent::MemcacheInstrumentationTest/bg_task"],
@@ -142,6 +142,6 @@ class NewRelic::Agent::MemcacheInstrumentationTest < Test::Unit::TestCase
       end
       compare_metrics expected_metrics, @engine.metrics.select{|m| m =~ /^memcache.*/i}
       assert_equal 3, @cache.get(@key)
-    end    
-  end  
+    end
+  end
 end if memcached_ready

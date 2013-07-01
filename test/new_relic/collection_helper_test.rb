@@ -101,12 +101,12 @@ class NewRelic::CollectionHelperTest < Test::Unit::TestCase
   end
   class MyEnumerable
     include Enumerable
-    
+
     def each
       yield "1"
     end
   end
-  
+
   def test_object
     assert_equal ["foo", '#<OpenStruct>'], normalize_params(['foo', OpenStruct.new('z'=>'q')])
   end
@@ -115,7 +115,7 @@ class NewRelic::CollectionHelperTest < Test::Unit::TestCase
     clean_trace = strip_nr_from_backtrace(mock_backtrace)
     assert_equal(0, clean_trace.grep(/newrelic_rpm/).size,
                  "should remove all instances of new relic from backtrace but got: #{clean_trace.join("\n")}")
-    assert_equal(0, clean_trace.grep(/trace/).size, 
+    assert_equal(0, clean_trace.grep(/trace/).size,
                      "should remove trace method tags from method names but got: #{clean_trace.join("\n")}")
     assert((clean_trace.grep(/find/).size >= 3),
                "should see at least three frames with 'find' in them: \n#{clean_trace.join("\n")}")
@@ -130,22 +130,22 @@ class NewRelic::CollectionHelperTest < Test::Unit::TestCase
                    "should not remove trace method tags from method names but got: #{clean_trace.join("\n")}")
     end
   end
-  
-  private 
+
+  private
   def mock_backtrace
     [
-   %q{/home/app/gems/activerecord-2.3.12/lib/active_record/base.rb:1620:in `find_one_without_trace'}, 
-   %q{/home/app/gems/activerecord-2.3.12/lib/active_record/base.rb:1620:in `find_one'}, 
-   %q{/home/app/gems/activerecord-2.3.12/lib/active_record/base.rb:1603:in `find_from_ids'}, 
-   %q{./test/new_relic/collection_helper_test.rb:112:in `test_strip_stackdump'}, 
-   %q{/home/app/gems/mocha-0.9.8/lib/mocha/integration/test_unit/ruby_version_186_and_above.rb:19:in `__send__'}, 
-   %q{/home/app/gems/mocha-0.9.8/lib/mocha/integration/test_unit/ruby_version_186_and_above.rb:19:in `run'}, 
-   %q{/home/app/test/unit/testsuite.rb:34:in `run'}, 
-   %q{/home/app/test/unit/testsuite.rb:33:in `each'}, 
-   %q{/home/app/test/unit/testsuite.rb:33:in `run'}, 
-   %q{/home/app/test/unit/testsuite.rb:34:in `run'}, 
-   %q{/home/app/test/unit/testsuite.rb:33:in `each'}, 
-   %q{/home/app/test/unit/testsuite.rb:33:in `run'}, 
+   %q{/home/app/gems/activerecord-2.3.12/lib/active_record/base.rb:1620:in `find_one_without_trace'},
+   %q{/home/app/gems/activerecord-2.3.12/lib/active_record/base.rb:1620:in `find_one'},
+   %q{/home/app/gems/activerecord-2.3.12/lib/active_record/base.rb:1603:in `find_from_ids'},
+   %q{./test/new_relic/collection_helper_test.rb:112:in `test_strip_stackdump'},
+   %q{/home/app/gems/mocha-0.9.8/lib/mocha/integration/test_unit/ruby_version_186_and_above.rb:19:in `__send__'},
+   %q{/home/app/gems/mocha-0.9.8/lib/mocha/integration/test_unit/ruby_version_186_and_above.rb:19:in `run'},
+   %q{/home/app/test/unit/testsuite.rb:34:in `run'},
+   %q{/home/app/test/unit/testsuite.rb:33:in `each'},
+   %q{/home/app/test/unit/testsuite.rb:33:in `run'},
+   %q{/home/app/test/unit/testsuite.rb:34:in `run'},
+   %q{/home/app/test/unit/testsuite.rb:33:in `each'},
+   %q{/home/app/test/unit/testsuite.rb:33:in `run'},
    %q{/home/app/test/unit/ui/testrunnermediator.rb:46:in `run_suite'}
    ]
   end

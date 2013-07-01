@@ -6,21 +6,21 @@ require 'new_relic/agent/instrumentation/controller_instrumentation'
 
 DependencyDetection.defer do
   @name = :delayed_job
-  
+
   depends_on do
     !NewRelic::Agent.config[:disable_dj]
   end
 
   depends_on do
-    # double check because of old JRuby bug 
+    # double check because of old JRuby bug
     defined?(::Delayed) && defined?(::Delayed::Job) &&
       Delayed::Job.method_defined?(:invoke_job)
   end
-  
+
   executes do
     ::NewRelic::Agent.logger.info 'Installing DelayedJob instrumentation'
   end
-  
+
   executes do
     Delayed::Job.class_eval do
       include NewRelic::Agent::Instrumentation::ControllerInstrumentation
@@ -46,4 +46,3 @@ DependencyDetection.defer do
     end
   end
 end
-

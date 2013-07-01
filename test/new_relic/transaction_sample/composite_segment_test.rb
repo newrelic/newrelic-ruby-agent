@@ -36,4 +36,3 @@ class NewRelic::TransactionSample::CompositeSegmentTest < Test::Unit::TestCase
     segment
   end
 end
-

@@ -219,7 +219,7 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
   end
 
   def test_log_errors_with_error
-    expects_logging(:error, 
+    expects_logging(:error,
       includes("Caught exception in name."),
       instance_of(RuntimeError))
 
@@ -313,4 +313,3 @@ class NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScopedTest <
     mocked_object('control')
   end
 end
-

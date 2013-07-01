@@ -56,10 +56,10 @@ at www.newrelic.com, and replace the newrelic.yml file with the one
 you receive upon registration.
     EOF
     puts <<-EOF unless quiet
-    
+
 E-mail support@newrelic.com with any problems or questions.
     EOF
-    
+
   end
 
   def content

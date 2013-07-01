@@ -439,7 +439,7 @@ class ThreadProfileTest < ThreadedTest
     10.times { @profile.aggregate(trace, @profile.traces[:other]) }
 
     trace = [
-      "/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/threading.py:489:in `__bootstrap'", 
+      "/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/threading.py:489:in `__bootstrap'",
       "/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/threading.py:512:in `__bootstrap_inner'",
       "/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/threading.py:480:in `run'",
       "thread_profiler.py:76:in `_profiler_loop'",
@@ -457,14 +457,14 @@ class ThreadProfileTest < ThreadedTest
     @profile.instance_variable_set(:@sample_count, 2)
 
     build_well_known_trace
- 
+
     expected = [[
-          -1, 
-          1350403938892.524, 
-          1350403939904.375, 
-          10, 
+          -1,
+          1350403938892.524,
+          1350403939904.375,
+          10,
           WELL_KNOWN_TRACE_ENCODED,
-          2, 
+          2,
           0
       ]]
 

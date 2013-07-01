@@ -98,4 +98,3 @@ class RequestStatsTest < ActionController::TestCase
   end
 
 end
-

@@ -12,4 +12,3 @@ class NewRelic::Rack::AllTest < Test::Unit::TestCase
     assert true
   end
 end
-

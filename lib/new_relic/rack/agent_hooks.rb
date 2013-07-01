@@ -35,4 +35,3 @@ module NewRelic::Rack
     end
   end
 end
-

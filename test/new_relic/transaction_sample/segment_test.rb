@@ -377,4 +377,3 @@ class NewRelic::TransactionSample::SegmentTest < Test::Unit::TestCase
     assert_equal(fake_segment, s.parent_segment)
   end
 end
-

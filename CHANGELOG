@@ -128,8 +128,8 @@
 
   * Added NewRelic::Agent.set_transaction_name and NewRelic::Agent.get_transaction_name
 
-  Ordinarily the name of your transaction is defined up-front, but if you'd like to 
-  change the name of a transaction while it is still running you can use 
+  Ordinarily the name of your transaction is defined up-front, but if you'd like to
+  change the name of a transaction while it is still running you can use
   **NewRelic::Agent.set_transaction_name()**.  Similarly, if you need to know the name
   of the currently running transaction, you can use **NewRelic::Agent.get_transaction_name()**.
 
@@ -281,7 +281,7 @@
     The agent can now log all of the data it sends to the New Relic servers to
     a special log file for human inspection. This feature is off by default, and
     can be enabled by setting the audit_log.enabled configuration key to true.
-    You may also control the location of the audit log with the audit_log.path key. 
+    You may also control the location of the audit log with the audit_log.path key.
 
   * Use config system for dispatcher, framework, and config file detection
 

@@ -12,4 +12,3 @@ class NewRelic::Agent::Instrumentation::InstrumentationTest < Test::Unit::TestCa
     require 'new_relic/delayed_job_injection'
   end
 end
-

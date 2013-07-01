@@ -12,7 +12,7 @@ DependencyDetection.defer do
   executes do
     ::NewRelic::Agent.logger.info 'Installing Rails Sunspot instrumentation'
   end
-  
+
   executes do
     ::Sunspot.module_eval do
       class << self

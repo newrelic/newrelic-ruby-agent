@@ -32,4 +32,3 @@ class SequelTest < Test::Unit::TestCase
   end
 
 end
-

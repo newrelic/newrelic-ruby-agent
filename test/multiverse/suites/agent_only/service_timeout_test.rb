@@ -24,7 +24,7 @@ class ServiceTimeoutTest < Test::Unit::TestCase
     server = NewRelic::Control::Server.new('localhost',PORT,'127.0.0.1')
     NewRelic::Agent.config.apply_config(:timeout => 0.1)
 
-    service = NewRelic::Agent::NewRelicService.new('deadbeef', server)	
+    service = NewRelic::Agent::NewRelicService.new('deadbeef', server)
 
     assert_raise Timeout::Error do
       service.send('send_request',

@@ -12,4 +12,3 @@ class ATest < Test::Unit::TestCase
     assert !defined?(Haml)
   end
 end
-

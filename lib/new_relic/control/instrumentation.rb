@@ -45,13 +45,13 @@ module NewRelic
           @instrumentation_files << pattern
         end
       end
-      
+
       # Signals the agent that it's time to actually load the
       # instrumentation files. May be overridden by subclasses
       def install_instrumentation
         _install_instrumentation
       end
-      
+
       # adds samplers to the stats engine so that they run every
       # minute. This is dynamically recognized by any class that
       # subclasses NewRelic::Agent::Sampler

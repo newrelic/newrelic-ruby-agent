@@ -117,4 +117,3 @@ class ThreadProfilingTest < Test::Unit::TestCase
 
 end
 end
-

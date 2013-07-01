@@ -36,4 +36,3 @@ class NewRelic::Agent::Instrumentation::RackTest < Test::Unit::TestCase
     assert_equal [404, {}, ["whee"]], x.call({})
   end
 end
-

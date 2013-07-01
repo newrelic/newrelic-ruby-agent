@@ -68,4 +68,3 @@ class EventListenerTest < Test::Unit::TestCase
   end
 
 end
-

@@ -4,15 +4,15 @@
 
 DependencyDetection.defer do
   @name = :rails_action_web_service
-  
+
   depends_on do
     defined?(ActionWebService)
   end
-  
+
   executes do
     ::NewRelic::Agent.logger.info 'Installing Rails ActionWebService instrumentation'
-  end  
-  
+  end
+
   executes do
     # NewRelic Agent instrumentation for WebServices
 

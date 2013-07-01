@@ -70,4 +70,3 @@ module NewRelic
   module_function :json_dump, :json_load
 
 end
-

@@ -32,14 +32,14 @@ test:
   fval: false
   yval: yes
   sval: sure
-    
+
   transaction_tracer:
     record_sql: raw
     transaction_threshold: Apdex_f # case insensitive
     explain_threshold: 0.1
     explain_enabled: true
     stack_trace_threshold: 0.1
-    
+
   error_collector:
     enabled: true
     capture_source: true

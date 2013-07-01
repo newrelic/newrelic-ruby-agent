@@ -18,4 +18,3 @@ class NewRelic::TransactionSample::FakeSegmentTest < Test::Unit::TestCase
     assert_equal('foo', s.instance_eval { @parent_segment } )
   end
 end
-

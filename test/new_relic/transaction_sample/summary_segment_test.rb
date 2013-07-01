@@ -32,4 +32,3 @@ class NewRelic::TransactionSample::SummarySegmentTest < Test::Unit::TestCase
     segment
   end
 end
-

@@ -43,7 +43,7 @@
 
 DependencyDetection.defer do
   @name = :data_mapper
-  
+
   depends_on do
     defined?(::DataMapper)
   end
@@ -59,11 +59,11 @@ DependencyDetection.defer do
   depends_on do
     defined?(DataMapper::Collection)
   end
-  
+
   executes do
     ::NewRelic::Agent.logger.info 'Installing DataMapper instrumentation'
   end
-  
+
   executes do
     DataMapper::Model.class_eval do
       add_method_tracer :get,      'ActiveRecord/#{self.name}/get'

@@ -3,7 +3,7 @@
 SCRATH_DIR=./agent-tests_tmp
 #git pull git@github.com:newrelic/ruby_agent-tests.git
 
-#echo $PWD 
+#echo $PWD
 script_dirname=`dirname $0`
 #echo $script_dirname
 #echo $0
@@ -17,7 +17,7 @@ cd "$script_dirname/../../"
 if [ -x $SCRATH_DIR ] ; then
 	echo "found tmp, deleting"
 	rm -fr $SCRATH_DIR
-fi 
+fi
 
 mkdir $SCRATH_DIR
 cd $SCRATH_DIR
@@ -27,7 +27,7 @@ git clone --depth=1 git@github.com:newrelic/rpm_contrib.git rpm_contrib
 
 if [ -x ../../Ruby_Agent ] ; then
 	ln -s ../../Ruby_Agent ./ruby_agent
-else 
+else
 	echo "*********** Ruby_Agent can't be found ***********"
 	exit 1
 fi
@@ -35,7 +35,7 @@ fi
 #exit 0
 
 cd ruby_agent-tests
-./ci_run.sh 
+./ci_run.sh
 
 #echo "creating tmp dir"
 #mkdir tmp

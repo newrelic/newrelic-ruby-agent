@@ -82,4 +82,3 @@ class RumAutoTest < Test::Unit::TestCase
     assert_equal(last_response.body, body)
   end
 end
-

@@ -46,7 +46,7 @@ class AuditLogTest < Test::Unit::TestCase
   # request bodies for the audit log, the transformation into strings is
   # effectively one-way. This, combined with the fact that Hash traversal order
   # is arbitrary in Ruby 1.8.x means that it's difficult to directly assert that
-  # some object graph made it into the audit log (due to different possible 
+  # some object graph made it into the audit log (due to different possible
   # orderings of the key/value pairs in Hashes that were embedded in the request
   # body). So, this method traverses an object graph and only makes assertions
   # about the terminal (non-Array-or-Hash) nodes therein.

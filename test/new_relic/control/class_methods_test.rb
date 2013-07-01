@@ -36,7 +36,7 @@ class NewRelic::Control::ClassMethodsTest < Test::Unit::TestCase
       @base.load_framework_class(type)
     end
   end
-  
+
   def test_load_framework_class_missing
     # this is used to allow other people to insert frameworks without
     # having the file in our agent, i.e. define your own

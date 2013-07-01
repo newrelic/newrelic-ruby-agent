@@ -21,7 +21,7 @@ script_dirname=`dirname $0`
 # make sure that we're in the project root
 cd "$script_dirname/../../"
 
-#pwd 
+#pwd
 
 if [ -x $SCRATH_DIR ] ; then
   echo "found tmp, deleting"
@@ -31,8 +31,8 @@ fi
 mkdir $SCRATH_DIR
 cd $SCRATH_DIR
 
-#pwd 
-if [[ $JOB_NAME =~ "Pangalactic" ]] ; then 
+#pwd
+if [[ $JOB_NAME =~ "Pangalactic" ]] ; then
   AGENT_LOCATION="../../../../../../Ruby_Agent"
 else
   AGENT_LOCATION="../../Ruby_Agent"

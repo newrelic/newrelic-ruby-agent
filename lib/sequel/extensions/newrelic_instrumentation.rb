@@ -15,20 +15,20 @@ module Sequel
   # be instrumented, but if you're using a version of Sequel before 3.47.0,
   # you'll need to add the extension yourself if you create any after the
   # instrumentation is loaded:
-  # 
+  #
   #     db = Sequel.connect( ... )
   #     db.extension :newrelic_instrumentation
-  # 
+  #
   # Versions 3.47.0 and later use `Database.extension` to automatically
   # install the extension for new connections.
-  # 
+  #
   # == Disabling
-  # 
+  #
   # If you don't want your models or database connections to be instrumented,
   # you can disable them by setting `disable_database_instrumentation` in
-  # your `newrelic.yml` to `true`. It will also honor the 
+  # your `newrelic.yml` to `true`. It will also honor the
   # `disable_activerecord_instrumentation` setting.
-  # 
+  #
   module NewRelicInstrumentation
     include NewRelic::Agent::MethodTracer,
             NewRelic::Agent::Instrumentation::ActiveRecordHelper
@@ -100,4 +100,3 @@ module Sequel
   Database.register_extension( :newrelic_instrumentation, NewRelicInstrumentation )
 
 end # module Sequel
-
