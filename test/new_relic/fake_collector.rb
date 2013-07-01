@@ -43,6 +43,10 @@ module NewRelic
       @agent_data = []
     end
 
+    def stub(method, return_value, status=200)
+      self.mock[method] = [status, {'return_value' => return_value}]
+    end
+
     def call(env)
       req = ::Rack::Request.new(env)
       res = ::Rack::Response.new
@@ -121,7 +125,7 @@ module NewRelic
         when 'connect'
           ConnectPost.new(opts)
         when 'metric_data'
-          AgentPost.new(opts)
+          MetricDataPost.new(opts)
         when 'profile_data'
           ProfileDataPost.new(opts)
         when 'sql_trace_data'
@@ -142,6 +146,21 @@ module NewRelic
       def unblob(blob)
         return unless blob
         JSON.load(Zlib::Inflate.inflate(Base64.decode64(blob)))
+      end
+    end
+
+
+    class MetricDataPost < AgentPost
+      def initialize(opts={})
+        super
+      end
+
+      def metrics
+        @body[3]
+      end
+
+      def metric_names
+        metrics.map {|m| m[0]["name"] }
       end
     end
 
