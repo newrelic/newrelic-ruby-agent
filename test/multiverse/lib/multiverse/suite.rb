@@ -3,6 +3,16 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+# this is the make sure that the Multiverse environment loads with the gem
+# version of Minitest (necessary for Rails 4) and not the one in standard
+# library.
+#
+# Without this Rails 4 tests will break on 1.9.3 for rbenv users, though not for
+# rvm users.
+if defined?(gem)
+  gem 'minitest'
+end
+
 require File.expand_path(File.join(File.dirname(__FILE__), 'environment'))
 module Multiverse
   class Suite
