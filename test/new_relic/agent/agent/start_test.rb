@@ -200,4 +200,3 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
     fake_control
   end
 end
-

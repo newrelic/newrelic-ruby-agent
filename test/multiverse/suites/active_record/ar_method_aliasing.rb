@@ -23,8 +23,8 @@ class InstrumentActiveRecordMethods < Test::Unit::TestCase
       @@adapter = 'sqlite3'
     end
 
-    class User < ActiveRecord::Base 
-      include NewRelic::Agent::MethodTracer 
+    class User < ActiveRecord::Base
+      include NewRelic::Agent::MethodTracer
       has_many :aliases
 
       add_method_tracer :save!
@@ -38,7 +38,7 @@ class InstrumentActiveRecordMethods < Test::Unit::TestCase
       add_method_tracer :persisted?
       add_method_tracer :destroyed?
     end
-    
+
     def setup
       puts "adapter : #{@@adapter}"
       @db_connection = ActiveRecord::Base.establish_connection( :adapter => @@adapter, :database => "testdb.sqlite3")
@@ -70,7 +70,7 @@ class InstrumentActiveRecordMethods < Test::Unit::TestCase
       a_user.save!
       assert User.connected?
       assert a_user.persisted?
-      assert a_user.id == 1 
+      assert a_user.id == 1
     end
 
     def test_alias_collection_query_method
@@ -78,7 +78,7 @@ class InstrumentActiveRecordMethods < Test::Unit::TestCase
       a_user.save!
       a_user = User.find(1)
       assert User.connected?
-      assert a_user.id = 1  
+      assert a_user.id = 1
 
       an_alias = Alias.new :user_id => a_user.id, :aka => "the Blob"
       assert an_alias.new_record?
@@ -95,4 +95,3 @@ class InstrumentActiveRecordMethods < Test::Unit::TestCase
     puts yellow('SKIPPED! skipped until ruby 1.8.6 compatibilites ironed out')
   end
 end
-

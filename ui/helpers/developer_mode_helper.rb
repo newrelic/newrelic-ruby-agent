@@ -233,7 +233,7 @@ module NewRelic::DeveloperModeHelper
   end
 
   private
-  # return three objects, the file path, the line in the file, and the gem the file belongs to 
+  # return three objects, the file path, the line in the file, and the gem the file belongs to
   # if found
   def file_and_line(stack_trace_line)
     if stack_trace_line =~ /^(?:(\w+) \([\d.]*\) )?(.*):(\d+)/

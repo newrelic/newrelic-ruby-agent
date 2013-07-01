@@ -4,7 +4,7 @@
 
 DependencyDetection.defer do
   @name = :authlogic
-  
+
   depends_on do
     defined?(AuthLogic) &&
       defined?(AuthLogic::Session) &&
@@ -13,8 +13,8 @@ DependencyDetection.defer do
 
   executes do
     ::NewRelic::Agent.logger.info 'Installing AuthLogic instrumentation'
-  end  
-  
+  end
+
   executes do
     AuthLogic::Session::Base.class_eval do
       add_method_tracer :find, 'Custom/Authlogic/find'

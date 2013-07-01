@@ -16,7 +16,7 @@ See https://github.com/newrelic/rpm/blob/master/CHANGELOG for a full list of
 changes.
 EOS
 
-      return footer unless File.exists?(changelog) 
+      return footer unless File.exists?(changelog)
 
       version_count = 0
       changes = []

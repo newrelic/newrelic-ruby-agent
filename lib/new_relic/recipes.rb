@@ -100,4 +100,3 @@ else
     make_notify_task.call
   end
 end
-

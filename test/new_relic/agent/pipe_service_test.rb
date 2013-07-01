@@ -16,7 +16,7 @@ class PipeServiceTest < Test::Unit::TestCase
   end
 
   def test_connect_returns_nil
-    assert_nil @service.connect({}) 
+    assert_nil @service.connect({})
   end
 
   # a #session method is required of services, though in the case of the

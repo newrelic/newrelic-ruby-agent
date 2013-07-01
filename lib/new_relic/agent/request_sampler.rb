@@ -247,4 +247,3 @@ class NewRelic::Agent::RequestSampler
   end
 
 end # class NewRelic::Agent::RequestSampler
-

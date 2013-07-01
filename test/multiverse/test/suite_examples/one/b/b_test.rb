@@ -12,4 +12,3 @@ class BTest < Test::Unit::TestCase
     assert Haml
   end
 end
-

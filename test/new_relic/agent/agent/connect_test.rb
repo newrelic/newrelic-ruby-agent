@@ -70,7 +70,7 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
   def test_log_error
     error = StandardError.new("message")
 
-    expects_logging(:error, 
+    expects_logging(:error,
       includes("Error establishing connection with New Relic Service"), \
       instance_of(StandardError))
 

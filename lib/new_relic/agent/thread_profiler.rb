@@ -39,9 +39,9 @@ module NewRelic
       end
 
       def respond_to_commands(commands, &notify_results)
-        return if commands.empty? || commands.first.size < 2 
+        return if commands.empty? || commands.first.size < 2
 
-        # Doesn't deal with multiple commands in the return set  as 
+        # Doesn't deal with multiple commands in the return set  as
         # we currently only have start/stop of thread profiling
         command_id = commands.first[0]
         command = commands.first[1]
@@ -107,10 +107,10 @@ EOF
 
     class ThreadProfile
 
-      attr_reader :profile_id, 
-        :traces, 
-        :profile_agent_code, :interval, 
-        :poll_count, :sample_count, 
+      attr_reader :profile_id,
+        :traces,
+        :profile_agent_code, :interval,
+        :poll_count, :sample_count,
         :start_time, :stop_time
 
       def initialize(profile_id, duration, interval, profile_agent_code)

@@ -236,7 +236,7 @@ module NewRelic
 
         sort_method = params['sort'] || :total_time
         @profile_options = {:min_percent => 0.5, :sort_method => sort_method.to_sym}
-        
+
         render(:show_sample)
       end
 

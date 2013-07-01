@@ -17,17 +17,17 @@ end
 
 DependencyDetection.defer do
   @name = :delayed_job_injection
-  
+
   depends_on do
     defined?(::Delayed) && defined?(::Delayed::Worker) && !NewRelic::Agent.config[:disable_dj]
   end
-  
+
   executes do
     if NewRelic::Agent.respond_to?(:logger)
       ::NewRelic::Agent.logger.info 'Installing DelayedJob instrumentation hooks'
     end
   end
-  
+
   executes do
     Delayed::Worker.class_eval do
       def initialize_with_new_relic(*args)

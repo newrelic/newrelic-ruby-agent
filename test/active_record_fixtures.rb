@@ -37,7 +37,7 @@ module ActiveRecordFixtures
     rescue => e
       false
     end
-    
+
     def self.add_delay
       # Introduce a 5 ms delay into db operations on Orders
       def connection.log_info *args
@@ -74,7 +74,7 @@ module ActiveRecordFixtures
       false
     end
 
-    
+
     def self.teardown
     end
   end

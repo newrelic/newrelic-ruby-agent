@@ -44,7 +44,7 @@ class FakeThread
   end
 
   def self.bucket_thread(thread, _)
-    thread[:bucket] 
+    thread[:bucket]
   end
 
   def self.scrub_backtrace(thread, _)
@@ -66,4 +66,3 @@ class FakeThread
   def join
   end
 end
-

@@ -237,4 +237,3 @@ module NewRelic
 
   end
 end
-

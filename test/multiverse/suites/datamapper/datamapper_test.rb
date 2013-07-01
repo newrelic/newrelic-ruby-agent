@@ -102,4 +102,3 @@ class DataMapperTest < Test::Unit::TestCase
     end
   end
 end
-

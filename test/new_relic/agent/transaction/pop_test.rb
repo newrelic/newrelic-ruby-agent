@@ -93,4 +93,3 @@ class NewRelic::Agent::Transaction::PopTest < Test::Unit::TestCase
     current_stack_metric
   end
 end
-

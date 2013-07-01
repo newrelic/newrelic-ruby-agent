@@ -147,7 +147,7 @@ module NewRelic
     def check_for_unicorn
       if (defined?(::Unicorn) && defined?(::Unicorn::HttpServer)) && NewRelic::LanguageSupport.object_space_enabled?
         v = find_class_in_object_space(::Unicorn::HttpServer)
-        @discovered_dispatcher = :unicorn if v 
+        @discovered_dispatcher = :unicorn if v
       end
     end
 

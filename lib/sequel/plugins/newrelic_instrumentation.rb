@@ -80,4 +80,3 @@ module Sequel
     end # module NewRelicInstrumentation
   end # module Plugins
 end # module Sequel
-

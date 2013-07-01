@@ -89,4 +89,3 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Test::Unit::TestCase
     fake_control
   end
 end
-

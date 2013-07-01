@@ -38,4 +38,3 @@ class AgentHooksTest < Test::Unit::TestCase
   end
 
 end
-

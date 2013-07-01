@@ -6,7 +6,7 @@ require 'multiverse/color'
 
 class MethodVisibilityTest < Test::Unit::TestCase
   extend Multiverse::Color
-  
+
   class InstrumentedClass
     include NewRelic::Agent::MethodTracer
     include NewRelic::Agent::Instrumentation::ControllerInstrumentation
@@ -68,13 +68,13 @@ class MethodVisibilityTest < Test::Unit::TestCase
   def setup
     @instance = InstrumentedClass.new
   end
-  
+
   if NewRelic::VERSION::STRING >= '3.4.0.2'
     %w| public private protected |.each do |visibility|
       define_method "test_should_preserve_visibility_of_#{visibility}_traced_method" do
         assert @instance.send("#{visibility}_methods").map{|s|s.to_sym}.include?(:"#{visibility}_method!"), "Method #{visibility}_method should be #{visibility}"
       end
-      
+
       define_method "test_should_preserve_visibility_of_#{visibility}_traced_transaction" do
         assert @instance.send("#{visibility}_methods").map{|s|s.to_sym}.include?(:"#{visibility}_transaction!"), "Transcation #{visibility}_transaction should be #{visibility}"
       end

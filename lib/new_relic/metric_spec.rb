@@ -7,7 +7,7 @@
 class NewRelic::MetricSpec
   attr_accessor   :name
   attr_accessor   :scope
-  
+
   # the maximum length of a metric name or metric scope
   MAX_LENGTH = 255
   LENGTH_RANGE = (0...MAX_LENGTH)
@@ -22,13 +22,13 @@ class NewRelic::MetricSpec
       self.scope = ''
     end
   end
-  
+
   # truncates the name and scope to the MAX_LENGTH
   def truncate!
     self.name = name[LENGTH_RANGE] if name && name.size > MAX_LENGTH
     self.scope = scope[LENGTH_RANGE] if scope && scope.size > MAX_LENGTH
   end
-  
+
   def ==(o)
     self.eql?(o)
   end

@@ -155,7 +155,7 @@ digraph AgentEnabled {
   "Control#init_plugin" -> "[agent_enabled]"
   "Control#init_plugin" -> "Control#setup_log"
   "Control#init_plugin" -> "[disable_samplers]"
-  "Control#should_log?" -> "[agent_enabled]" 
+  "Control#should_log?" -> "[agent_enabled]"
   "Control#api_server" -> "[api_host]"
   "Control#api_server" -> "[api_port]"
   "Control#proxy_server" -> "[proxy_host]"

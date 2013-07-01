@@ -23,7 +23,7 @@ end
 
 DependencyDetection.defer do
   @name = :acts_as_solr
-  
+
   depends_on do
     defined?(ActsAsSolr)
   end
@@ -39,11 +39,11 @@ DependencyDetection.defer do
   depends_on do
     defined?(ActsAsSolr::CommonMethods)
   end
-  
+
   executes do
     ::NewRelic::Agent.logger.info 'Installing ActsAsSolr instrumentation'
   end
-  
+
   executes do
     ActsAsSolr::ParserMethods.module_eval do
       include NewRelic::Instrumentation::ActsAsSolrInstrumentation::ParserMethodsInstrumentation

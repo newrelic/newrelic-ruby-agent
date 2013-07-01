@@ -83,4 +83,3 @@ module NewRelic
     include ServerMethods
   end
 end
-

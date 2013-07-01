@@ -6,15 +6,15 @@ require 'set'
 
 DependencyDetection.defer do
   @name = :merb_controller
-  
+
   depends_on do
     defined?(Merb) && defined?(Merb::Controller)
   end
-  
+
   executes do
     ::NewRelic::Agent.logger.info 'Installing Merb Controller instrumentation'
   end
-  
+
   executes do
     require 'merb-core/controller/merb_controller'
 
