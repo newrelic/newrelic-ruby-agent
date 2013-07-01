@@ -5,24 +5,24 @@
 require 'rack/test'
 require 'new_relic/rack/browser_monitoring'
 require './testing_app'
+require 'multiverse_helpers'
 
-class RumAutoTest < Test::Unit::TestCase
+class RumInstrumentationTest < Test::Unit::TestCase
 
   attr_reader :app
   include Rack::Test::Methods
+  include MultiverseHelpers
 
   def setup
     @inner_app = TestingApp.new
     @app = NewRelic::Rack::BrowserMonitoring.new(@inner_app)
 
-    NewRelic::Agent.manual_start(:browser_key => 'browserKey', :application_id => 'appId',
-                                 :beacon => 'beacon', :episodes_file => 'this_is_my_file')
-    NewRelic::Agent.instance.instance_variable_set(
-      :@beacon_configuration, NewRelic::Agent::BeaconConfiguration.new)
+    setup_agent(:browser_key => 'browserKey', :application_id => 'appId',
+                :beacon => 'beacon', :episodes_file => 'this_is_my_file')
   end
 
   def teardown
-    NewRelic::Agent.shutdown
+    teardown_agent
   end
 
   def test_autoinstrumenation_is_active

@@ -4,15 +4,21 @@
 
 # https://newrelic.atlassian.net/browse/RUBY-669
 
+require 'multiverse_helpers'
+
 class PipeManagerTest < Test::Unit::TestCase
+  include MultiverseHelpers
+
   def setup
+    setup_agent
     @listener = NewRelic::Agent::PipeChannelManager.listener
   end
 
   def teardown
+    teardown_agent
     @listener.stop
   end
-  
+
   def test_old_pipes_are_cleaned_up_after_timeout
     @listener.timeout = 1
     NewRelic::Agent::PipeChannelManager.register_report_channel(:timeout_test)
@@ -26,11 +32,11 @@ class PipeManagerTest < Test::Unit::TestCase
     @listener.select_timeout = 1
     @listener.timeout = 2
     NewRelic::Agent::PipeChannelManager.register_report_channel(:select_test)
-    
+
     sleep 1.5
     @listener.start
     assert NewRelic::Agent::PipeChannelManager.channels[:select_test]
-    
+
     sleep 1.5
     assert_nil NewRelic::Agent::PipeChannelManager.channels[:select_test]
   end

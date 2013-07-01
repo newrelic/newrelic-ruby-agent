@@ -7,7 +7,7 @@ require 'fake_collector'
 require './testing_app'
 require 'multiverse_helpers'
 
-class CrossProcessTest < Test::Unit::TestCase
+class CrossApplicationTracingTest < Test::Unit::TestCase
 
   include MultiverseHelpers
 
@@ -16,23 +16,20 @@ class CrossProcessTest < Test::Unit::TestCase
   @@wrapper_app = NewRelic::Rack::AgentHooks.new(@@app)
 
   def setup
-    setup_collector
-    $collector.mock['connect'] = [200, {'return_value' => {"agent_run_id" => 666 }}]
-
-    NewRelic::Agent.manual_start(
-      :cross_process_id => "boo",
-      :encoding_key => "\0",
-      :trusted_account_ids => [1])
-
-    NewRelic::Agent.instance.events.notify(:finished_configuring)
+    setup_agent(
+        :cross_process_id => "boo",
+        :encoding_key => "\0",
+        :trusted_account_ids => [1]) \
+    do |collector|
+      collector.stub('connect', {"agent_run_id" => 666 })
+    end
 
     @@app.reset_headers
     @@app.response = "<html><head><title>W00t!</title></head><body><p>Hello World</p></body></html>"
   end
 
   def teardown
-    reset_collector
-    NewRelic::Agent.shutdown
+    teardown_agent
   end
 
   include Rack::Test::Methods
@@ -53,8 +50,8 @@ class CrossProcessTest < Test::Unit::TestCase
 
   def test_cross_app_writes_out_information
     get '/', nil, {'X-NewRelic-ID' => Base64.encode64('1#234')}
+
     assert_not_nil last_response.headers["X-NewRelic-App-Data"]
-    metric = NewRelic::Agent.instance.stats_engine.lookup_stats('ClientApplication/1#234/all')
-    assert_equal 1, metric.call_count
+    assert_metrics_recorded(['ClientApplication/1#234/all'])
   end
 end

@@ -10,14 +10,12 @@ class HttpResponseCodeTest < Test::Unit::TestCase
   include MultiverseHelpers
 
   def setup
-    setup_collector
-    NewRelic::Agent.manual_start(:send_data_on_exit => false)
+    setup_agent
     @agent = NewRelic::Agent.instance
   end
 
   def teardown
-    reset_collector
-    NewRelic::Agent.shutdown
+    teardown_agent
   end
 
   def test_request_entity_too_large

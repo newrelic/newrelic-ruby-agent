@@ -15,6 +15,10 @@ class LoggingTest < Test::Unit::TestCase
 
   include MultiverseHelpers
 
+  def setup
+    NewRelic::Agent.stubs(:logger).returns(NewRelic::Agent::MemoryLogger.new)
+  end
+
   def test_logs_app_name
     running_agent_writes_to_log(
        {:app_name => "My App"},
@@ -53,11 +57,14 @@ class LoggingTest < Test::Unit::TestCase
 
   def test_logs_ssl_warning
     running_agent_writes_to_log(
-      {:ssl => false},
+      {:ssl => true},
       "Agent is configured not to use SSL when communicating with New Relic's servers") do
 
       NewRelic::Agent.config.apply_config(:ssl => false)
     end
+
+    # Clean up after ourselves. Should the MultiverseHelpers do this?
+    NewRelic::Agent.config.remove_config(:ssl => false)
   end
 
   def test_logs_if_sending_errors_on_change
@@ -85,9 +92,13 @@ class LoggingTest < Test::Unit::TestCase
   end
 
   def test_invalid_license_key
-    with_connect_response(401)
-    running_agent_writes_to_log({},
-      "Visit NewRelic.com to obtain a valid license key")
+    setup_agent({}) do |collector|
+      collector.stub('connect', {}, 401)
+    end
+
+    saw?("Visit NewRelic.com to obtain a valid license key")
+
+    teardown_agent
   end
 
   def test_logs_monitor_mode_disabled
@@ -114,43 +125,20 @@ class LoggingTest < Test::Unit::TestCase
       "Connecting workers after forking.")
   end
 
-  # Initialization
-  def setup
-    setup_collector
-    $collector.mock['connect'] = [200, {'return_value' => {"agent_run_id" => 666 }}]
-
-    NewRelic::Agent.reset_config
-    NewRelic::Agent::Agent.instance_variable_set(:@instance, nil)
-
-    @logger = NewRelic::Agent::MemoryLogger.new
-    NewRelic::Agent.logger = @logger
-    NewRelic::Agent::AgentLogger.stubs(:new).with(any_parameters).returns(@logger)
-  end
-
-  def teardown
-    reset_collector
-
-    # Really clear out our agent instance since we set bad license keys
-    NewRelic::Agent::Agent.instance_variable_set(:@instance, nil)
-  end
-
   # Helpers
-  def running_agent_writes_to_log(options, msg)
-    NewRelic::Agent.manual_start(options)
-    yield if block_given?
-    NewRelic::Agent.shutdown
+  def running_agent_writes_to_log(options, msg, &block)
+    run_agent(options, &block)
     saw?(msg)
   end
 
-  def with_connect_response(status=200, response={})
-    $collector.mock['connect'] = [status, response]
-  end
-
   def saw?(*expected_messages)
-    flattened = @logger.messages.flatten
+    # This is actually our MemoryLogger, so it has messages to check. Woot!
+    logger = NewRelic::Agent.logger
+
+    flattened = logger.messages.flatten
     expected_messages.each do |expected|
       found = flattened.any? {|msg| msg.to_s.include?(expected)}
-      @logger.messages.each {|msg| puts msg.inspect} if !found
+      logger.messages.each {|msg| puts msg.inspect} if !found
       assert(found, "Didn't see message '#{expected}'")
     end
   end
