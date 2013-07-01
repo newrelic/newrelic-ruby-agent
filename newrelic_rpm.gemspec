@@ -40,6 +40,15 @@ EOS
   s.rubygems_version = Gem::VERSION
   s.summary = "New Relic Ruby Agent"
   s.post_install_message = NewRelic::LatestChanges.read
+  s.add_development_dependency 'rake', '10.1.0'
+  s.add_development_dependency 'mocha', '~> 0.13.0'
+  s.add_development_dependency 'sdoc-helpers'
+  s.add_development_dependency 'rdoc', '>= 2.4.2'
+  s.add_development_dependency 'rails', '~> 3.2.13'
+  s.add_development_dependency 'sqlite3' unless RUBY_PLATFORM == 'java'
+  s.add_development_dependency 'activerecord-jdbcsqlite3-adapter' if RUBY_PLATFORM == 'java'
+  s.add_development_dependency 'jruby-openssl' if RUBY_PLATFORM == 'java'
+  s.add_development_dependency 'sequel', '~> 3.46.0'
 
   # Only sign with our private key if you can find it
   signing_key_path = File.expand_path('~/.ssh/newrelic_rpm-private_key.pem')
