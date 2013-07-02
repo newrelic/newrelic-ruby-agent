@@ -18,7 +18,8 @@ DependencyDetection.defer do
   executes do
     class Curl::Easy
 
-      attr_accessor :_nr_http_verb
+      attr_accessor :_nr_http_verb,
+                    :_nr_serial
 
       # Set up an alias for the method +methname+ that will store the associated
       # HTTP +verb+ for later instrumentation. This is necessary because there's no
@@ -35,11 +36,16 @@ DependencyDetection.defer do
         alias_method methname, nr_method_name
       end
 
+
+      # Make a lambda for the body of the method with the given +aliased_method_name+
+      # that will set the verb on the object to +verb+. This is so the NewRelic
+      # request and response adapters know what verb the request used, as there's no
+      # way to recover it from a Curl::Easy after it's created.
       def self::make_hooked_verb_method( verb, aliased_method_name )
         return lambda do |*args, &block|
           NewRelic::Agent.logger.debug "Setting HTTP verb to %p" % [ verb ]
           self._nr_http_verb = verb
-          send( aliased_method_name )
+          __send__( aliased_method_name )
         end
       end
 
@@ -48,6 +54,7 @@ DependencyDetection.defer do
       hook_verb_method :http_head, :HEAD
 
 
+      # Hook the #http method to set the verb.
       def http_with_newrelic( verb )
         NewRelic::Agent.logger.debug "Setting HTTP verb to %p" % [ verb ]
         self._nr_http_verb = verb.to_s.upcase
@@ -57,20 +64,51 @@ DependencyDetection.defer do
       alias_method :http_without_newrelic, :http
       alias_method :http, :http_with_newrelic
 
-    end
+
+      # Hook the #perform method to mark the request as non-parallel.
+      def perform_with_newrelic
+        NewRelic::Agent.logger.debug "Setting serial request marker"
+        self._nr_serial = true
+        perform_without_newrelic
+      end
+
+      alias_method :perform_without_newrelic, :perform
+      alias_method :perform, :perform_with_newrelic
+
+    end # class Curl::Easy
 
 
     class Curl::Multi
+      include NewRelic::Agent::MethodTracer
 
+      # Add CAT with callbacks if the request is serial
       def add_with_newrelic( curl )
-        NewRelic::Agent.logger.debug "Curb: add with newrelic"
-        hook_pending_request( curl ) if NewRelic::Agent.is_execution_traced?
+        if curl.respond_to?( :_nr_serial ) && curl._nr_serial
+          NewRelic::Agent.logger.debug "Curb: add with newrelic"
+          hook_pending_request( curl ) if NewRelic::Agent.is_execution_traced?
+        end
+
         return add_without_newrelic( curl )
       end
 
-
       alias_method :add_without_newrelic, :add
       alias_method :add, :add_with_newrelic
+
+
+      # Trace as an External/Multiple call if the first request isn't serial.
+      def perform_with_newrelic
+        return perform_without_newrelic if
+          self.requests.first &&
+          self.requests.first.respond_to?( :_nr_serial ) &&
+          self.requests.first._nr_serial
+
+        trace_execution_scoped("External/Multiple/Curb::Multi/perform") do
+          perform_without_newrelic
+        end
+      end
+
+      alias_method :perform_without_newrelic, :perform
+      alias_method :perform, :perform_with_newrelic
 
 
       # Instrument the specified +request+ (a Curl::Easy object) and set up cross-application
@@ -125,7 +163,7 @@ DependencyDetection.defer do
         end
       end
 
-    end
+    end # class Curl::Multi
 
   end
 end

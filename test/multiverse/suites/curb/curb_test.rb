@@ -92,27 +92,23 @@ class CurbTest < Test::Unit::TestCase
   # This doesn't work at the moment, as the Agent doesn't support code that
   # runs in parallel.
 
-  # def test_works_with_parallel_fetches
-  #   results = []
-  #   other_url = "http://localhost:#{$fake_server.port}/"
-  # 
-  #   with_debug_logging do
-  #   Curl::Multi.get( [default_url,other_url] ) do |easy|
-  #     results << easy.body_str
-  #   end
-  #   end
-  # 
-  #   results.each do |res|
-  #     assert_match %r/<head>/i, res
-  #   end
-  # 
-  #   assert_metrics_recorded([
-  #     "External/all",
-  #     "External/localhost/#{client_name}/GET",
-  #     "External/allOther",
-  #     "External/localhost/all"
-  #   ])
-  # end
+  def test_works_with_parallel_fetches
+    results = []
+    other_url = "http://localhost:#{$fake_server.port}/"
+
+    in_transaction("test") do
+      Curl::Multi.get( [default_url,other_url] ) do |easy|
+        results << easy.body_str
+      end
+
+      results.each do |res|
+        assert_match %r/<head>/i, res
+      end
+
+      last_segment = find_last_transaction_segment()
+      assert_equal "External/Multiple/Curb::Multi/perform", last_segment.metric_name
+    end
+  end
 
   #
   # Helper functions
@@ -139,11 +135,16 @@ class CurbTest < Test::Unit::TestCase
   end
 
   def request_instance
-    NewRelic::Agent::HTTPClients::CurbRequest.new(nil)
+    NewRelic::Agent::HTTPClients::CurbRequest.new(Curl::Easy.new)
   end
 
-  def response_instance
-    NewRelic::Agent::HTTPClients::CurbResponse.new(nil)
+  def response_instance( headers={} )
+    res = NewRelic::Agent::HTTPClients::CurbResponse.new(Curl::Easy.new)
+    headers.each do |hdr, val|
+      res.append_header_data( "#{hdr}: #{val}")
+    end
+
+    return res
   end
 
 end
