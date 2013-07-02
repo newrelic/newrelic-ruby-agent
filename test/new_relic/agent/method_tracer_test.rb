@@ -94,7 +94,7 @@ class NewRelic::Agent::MethodTracerTest < Test::Unit::TestCase
 
   def test_record_metrics_does_not_raise_outside_transaction
     assert_nothing_raised do
-      NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScoped.record_metrics('a', ['b'], 12, 10, :metric => true)
+      NewRelic::Agent::MethodTracer::TraceExecutionScoped.record_metrics('a', ['b'], 12, 10, :metric => true)
     end
     expected = { :call_count => 1, :total_call_time => 12, :total_exclusive_time => 10 }
     assert_metrics_recorded('a' => expected, 'b' => expected)
