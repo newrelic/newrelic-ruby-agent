@@ -4,7 +4,6 @@
 
 require 'data_mapper'
 require 'newrelic_rpm'
-require 'test/unit'
 
 require File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper')
 
@@ -28,7 +27,7 @@ class DummyConnection
   include NewRelic::Agent::Instrumentation::DataMapperInstrumentation
 end
 
-class DataMapperTest < Test::Unit::TestCase
+class DataMapperTest < MiniTest::Unit::TestCase
   def setup
     NewRelic::Agent.instance.reset_stats
   end
@@ -97,8 +96,6 @@ class DataMapperTest < Test::Unit::TestCase
     msg.stubs(:query).returns(q)
 
     assert_equal false, msg.query.valid_encoding? if RUBY_VERSION >= '1.9'
-    assert_nothing_raised do
-      db.send(:log, msg)
-    end
+    db.send(:log, msg)
   end
 end

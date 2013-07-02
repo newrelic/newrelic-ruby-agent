@@ -7,7 +7,7 @@ require 'fake_collector'
 require './testing_app'
 require 'multiverse_helpers'
 
-class CrossProcessTest < Test::Unit::TestCase
+class CrossProcessTest < MiniTest::Unit::TestCase
 
   include MultiverseHelpers
 
@@ -53,7 +53,7 @@ class CrossProcessTest < Test::Unit::TestCase
 
   def test_cross_app_writes_out_information
     get '/', nil, {'X-NewRelic-ID' => Base64.encode64('1#234')}
-    assert_not_nil last_response.headers["X-NewRelic-App-Data"]
+    refute_nil last_response.headers["X-NewRelic-App-Data"]
     metric = NewRelic::Agent.instance.stats_engine.lookup_stats('ClientApplication/1#234/all')
     assert_equal 1, metric.call_count
   end

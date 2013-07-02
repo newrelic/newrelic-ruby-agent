@@ -3,17 +3,14 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-# this is the make sure that the Multiverse environment loads with the gem
-# version of Minitest (necessary for Rails 4) and not the one in standard
-# library.
-#
-# Without this Rails 4 tests will break on 1.9.3 for rbenv users, though not for
-# rvm users.
-if defined?(gem)
-  gem 'minitest'
-end
+# This makes sure that the Multiverse environment loads with the gem
+# version of Minitest, which we use throughout, not the one in stdlib on
+# Rubies starting with 1.9.x
+require 'rubygems'
+gem 'minitest', '~> 4.7.5'
 
 require File.expand_path(File.join(File.dirname(__FILE__), 'environment'))
+
 module Multiverse
   class Suite
     include Color
@@ -60,15 +57,6 @@ module Multiverse
       raise "bundle command failed with (#{$?})" unless $? == 0
       Bundler.require
 
-      # Ensure mocha is loaded after the test framework by deferring until here
-      # see: http://gofreerange.com/mocha/docs/
-      unless environments.omit_mocha
-        if RUBY_VERSION > '1.8.7'
-          require 'mocha/setup'
-        else
-          require 'mocha'
-        end
-      end
     end
 
     def generate_gemfile(gemfile_text, local = true)
@@ -78,13 +66,13 @@ module Multiverse
         f.print gemfile_text
         f.puts newrelic_gemfile_line unless gemfile_text =~ /^\s*gem .newrelic_rpm./
         f.puts jruby_openssl_line unless gemfile_text =~ /^\s*gem .jruby-openssl./
+        f.puts minitest_line unless gemfile_text =~ /^\s*gem .minitest[^_]./
+        f.puts "  gem 'mocha', '~> 0.9.8', :require => false" unless environments.omit_mocha
+
         if RUBY_VERSION > '1.8.7'
-          f.puts "  gem 'test-unit', :require => 'test/unit'"
           f.puts "  gem 'debugger'" if include_debugger
-          f.puts "  gem 'mocha', '~> 0.13.0', :require => false" unless environments.omit_mocha
         else
           f.puts "  gem 'ruby-debug'" if include_debugger
-          f.puts "  gem 'mocha', '~> 0.9.8', :require => false" unless environments.omit_mocha
         end
       end
       puts yellow("Gemfile set to:") if verbose?
@@ -103,6 +91,10 @@ module Multiverse
       "gem 'jruby-openssl', :require => false, :platforms => [:jruby]"
     end
 
+    def minitest_line
+      "gem 'minitest', '~> 4.7.5'"
+    end
+
     def print_environment
       puts yellow("Environment loaded with:") if verbose?
       gems = Bundler.definition.specs.inject([]) do |m, s|
@@ -118,7 +110,7 @@ module Multiverse
       load_dependencies(gemfile_text)
       configure_child_environment
       execute_ruby_files
-      trigger_test_unit
+      trigger_test_run
     end
 
     # Load the test suite's environment and execute it.
@@ -156,28 +148,48 @@ module Multiverse
       Multiverse::Runner.notice_exit_status $?
     end
 
-    # something makes Test::Unit not want to run automatically.  Seems like the
-    # at_exit hook may be failing to run due to forking.
-    def trigger_test_unit
-      case
-      when defined? Test::Unit::RunCount # 1.9.3
-        # JRuby 1.7 doesn't seem to have a problem triggering test unit.  In
-        # contrast to MRI triggering it like this causes an error.
-        return if defined?(JRuby)
-
-        Test::Unit::RunCount.run_once do
-          exit(Test::Unit::Runner.new.run || true)
-        end
-      when defined? MiniTest::Unit # 1.9.2
-        exit(MiniTest::Unit.new.run)
-      when defined? Test::Unit::AutoRunner # 1.8.7
-        exit(Test::Unit::AutoRunner.run)
-      else
-        raise "Can't figure out how to trigger Test::Unit"
-      end
+    def trigger_test_run
+      # We drive everything manually ourselves through MiniTest.
+      #
+      # Autorun behaves differently across the different Ruby version we have
+      # to support, so this is simplest for making our test running consistent
+      exit(::MiniTest::Unit.new.run)
     end
 
     def configure_child_environment
+      require 'minitest/unit'
+      patch_minitest_for_old_mocha
+      prevent_minitest_auto_run
+      require_mocha
+      disable_harvest_thread
+    end
+
+    def patch_minitest_for_old_mocha
+      # We use mocha 0.9 for compatibility with old Rubies
+      # Its MiniTest integration isn't quite ok for 4.7.5, though, so patch it
+      unless defined?(::MiniTest::Unit::TestCase::SUPPORTS_INFO_SIGNAL)
+        ::MiniTest::Unit::TestCase.const_set("SUPPORTS_INFO_SIGNAL", false)
+      end
+    end
+
+    # Rails and minitest_tu_shim both want to do MiniTest::Unit.autorun for us
+    # We can't sidestep, so just gut the method to avoid doubled test runs
+    def prevent_minitest_auto_run
+      ::MiniTest::Unit.class_eval do
+        def self.autorun
+          # NO-OP
+        end
+      end
+    end
+
+    def require_mocha
+      # We use an older version of mocha, so we just require mocha instead of mocha/setup
+      unless environments.omit_mocha
+        require 'mocha'
+      end
+    end
+
+    def disable_harvest_thread
       # We don't want to have additional harvest threads running in our multiverse
       # tests. The tests explicitly manage their lifecycle--resetting and harvesting
       # to check results against the FakeCollector--so the harvest thread is actually
@@ -216,9 +228,12 @@ module Multiverse
   end
 end
 
-# Exectute the suite.  We need this if we want to execute a suite by spawning a
+# Execute the suite.  We need this if we want to execute a suite by spawning a
 # new process instead of forking.
-if $0 == __FILE__
+if $0 == __FILE__ && $already_running.nil?
+  # Suite might get re-required, but don't execute again
+  $already_running = true
+
   # Redirect stderr to stdout so that we can capture both in the popen that
   # feeds into the OutputCollector above.
   $stderr.reopen($stdout)

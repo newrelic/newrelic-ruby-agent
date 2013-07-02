@@ -41,6 +41,7 @@ EOS
   s.summary = "New Relic Ruby Agent"
   s.post_install_message = NewRelic::LatestChanges.read
   s.add_development_dependency 'rake', '10.1.0'
+  s.add_development_dependency 'minitest', '~> 4.7.5'
   s.add_development_dependency 'mocha', '~> 0.13.0'
   s.add_development_dependency 'sdoc-helpers'
   s.add_development_dependency 'rdoc', '>= 2.4.2'

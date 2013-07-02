@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 
-class NoDnsResolv < Test::Unit::TestCase
+class NoDnsResolv < MiniTest::Unit::TestCase
   def test_should_no_resolve_hostname_when_agent_is_disabled
     Resolv.expects(:getaddress).never
     NewRelic::Agent.manual_start(:monitor_mode => false)

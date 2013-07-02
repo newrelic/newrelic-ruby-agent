@@ -2,16 +2,14 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-
 require 'rubygems'
 
 require 'active_record'
-require 'test/unit'
 require 'newrelic_rpm'
 require 'multiverse/color'
+require 'minitest/unit'
 
-
-class InstrumentActiveRecordMethods < Test::Unit::TestCase
+class InstrumentActiveRecordMethods < MiniTest::Unit::TestCase
   extend Multiverse::Color
 
   if RUBY_VERSION >= '1.8.7'

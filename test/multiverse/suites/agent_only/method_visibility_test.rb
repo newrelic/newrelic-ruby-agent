@@ -4,7 +4,7 @@
 
 require 'multiverse/color'
 
-class MethodVisibilityTest < Test::Unit::TestCase
+class MethodVisibilityTest < MiniTest::Unit::TestCase
   extend Multiverse::Color
 
   class InstrumentedClass

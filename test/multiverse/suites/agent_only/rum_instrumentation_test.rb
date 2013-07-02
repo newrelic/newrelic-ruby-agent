@@ -6,7 +6,7 @@ require 'rack/test'
 require 'new_relic/rack/browser_monitoring'
 require './testing_app'
 
-class RumAutoTest < Test::Unit::TestCase
+class RumAutoTest < MiniTest::Unit::TestCase
 
   attr_reader :app
   include Rack::Test::Methods

@@ -4,7 +4,7 @@
 
 # https://newrelic.atlassian.net/browse/RUBY-669
 
-class PipeManagerTest < Test::Unit::TestCase
+class PipeManagerTest < MiniTest::Unit::TestCase
   def setup
     @listener = NewRelic::Agent::PipeChannelManager.listener
   end

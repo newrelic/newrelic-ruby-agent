@@ -5,7 +5,7 @@
 # RUBY-839 make sure there is no STDOUT chatter
 require 'open3'
 
-class StartUpTest < Test::Unit::TestCase
+class StartUpTest < MiniTest::Unit::TestCase
   def test_should_not_print_to_stdout_when_logging_available
     ruby = 'require "newrelic_rpm"; NewRelic::Agent.manual_start; NewRelic::Agent.shutdown'
     cmd = "bundle exec ruby -e '#{ruby}'"

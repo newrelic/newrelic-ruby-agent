@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require './app'
+require 'rails/test_help'
 
 ActionController::Base.view_paths = ['app/views']
 
@@ -115,7 +116,7 @@ class SanityTest < ViewControllerTest
   end
 
   test "should allow an uncaught exception to propogate" do
-    assert_raise RuntimeError do
+    assert_raises RuntimeError do
       get :raise_render
     end
   end

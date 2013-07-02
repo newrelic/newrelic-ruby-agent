@@ -5,7 +5,7 @@
 require File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper')
 require 'multiverse_helpers'
 
-class KeyTransactionsTest < Test::Unit::TestCase
+class KeyTransactionsTest < MiniTest::Unit::TestCase
   include MultiverseHelpers
 
   class TestWidget

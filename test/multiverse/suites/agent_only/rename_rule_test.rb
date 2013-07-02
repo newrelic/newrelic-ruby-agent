@@ -4,7 +4,7 @@
 
 require 'multiverse_helpers'
 
-class RenameRuleTest < Test::Unit::TestCase
+class RenameRuleTest < MiniTest::Unit::TestCase
 
   include MultiverseHelpers
 

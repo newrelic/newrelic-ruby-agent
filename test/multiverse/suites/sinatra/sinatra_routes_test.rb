@@ -24,7 +24,7 @@ class SinatraRouteTestApp < Sinatra::Base
   end
 end
 
-class SinatraRoutesTest < Test::Unit::TestCase
+class SinatraRoutesTest < MiniTest::Unit::TestCase
   include Rack::Test::Methods
   include ::NewRelic::Agent::Instrumentation::Sinatra
 

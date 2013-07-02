@@ -4,12 +4,11 @@
 
 # RUBY-981 Audit Log
 
-require 'test/unit'
 require 'newrelic_rpm'
 require 'fake_collector'
 require 'multiverse_helpers'
 
-class AuditLogTest < Test::Unit::TestCase
+class AuditLogTest < MiniTest::Unit::TestCase
   include MultiverseHelpers
 
   # Initialization

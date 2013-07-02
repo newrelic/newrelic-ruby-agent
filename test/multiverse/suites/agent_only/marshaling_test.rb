@@ -7,7 +7,7 @@
 require 'ostruct'
 require 'multiverse_helpers'
 
-class MarshalingTest < Test::Unit::TestCase
+class MarshalingTest < MiniTest::Unit::TestCase
   include MultiverseHelpers
 
   def setup

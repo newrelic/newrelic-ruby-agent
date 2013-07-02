@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-class SSLTest < Test::Unit::TestCase
+class SSLTest < MiniTest::Unit::TestCase
 
   def setup
     # This is similar to how jruby 1.6.8 behaves when jruby-openssl isn't

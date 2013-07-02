@@ -9,7 +9,7 @@ require "http_client_test_cases"
 
 require File.join(File.dirname(__FILE__), "..", "..", "..", "agent_helper")
 
-class ExconTest < Test::Unit::TestCase
+class ExconTest < MiniTest::Unit::TestCase
   include HttpClientTestCases
 
   def client_name

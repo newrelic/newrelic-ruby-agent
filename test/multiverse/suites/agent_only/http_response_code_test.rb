@@ -6,7 +6,7 @@
 require 'fake_collector'
 require 'multiverse_helpers'
 
-class HttpResponseCodeTest < Test::Unit::TestCase
+class HttpResponseCodeTest < MiniTest::Unit::TestCase
   include MultiverseHelpers
 
   def setup
