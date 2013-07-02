@@ -1,0 +1,19 @@
+suite_condition("Sinatra not compatible with 1.8.6") do
+  RUBY_VERSION != '1.8.6'
+end
+
+gemfile <<-RB
+  gem 'sinatra', '~> 1.4.0', :require => false
+  gem 'rack-test', :require => 'rack/test'
+RB
+
+gemfile <<-RB
+  gem 'sinatra', '~> 1.3.0', :require => false
+  gem 'rack-test', :require => 'rack/test'
+RB
+
+gemfile <<-RB
+  gem 'sinatra', '~> 1.2.0', :require => false
+  gem 'rack-test', :require => 'rack/test'
+RB
+
