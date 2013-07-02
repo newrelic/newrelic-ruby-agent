@@ -67,6 +67,13 @@ module Multiverse
         f.puts newrelic_gemfile_line unless gemfile_text =~ /^\s*gem .newrelic_rpm./
         f.puts jruby_openssl_line unless gemfile_text =~ /^\s*gem .jruby-openssl./
         f.puts minitest_line unless gemfile_text =~ /^\s*gem .minitest[^_]./
+
+        # We currently pin usage of mocha at the 0.9.x line for compatibility
+        # 0.10.x had issues with the integration handlers and MiniTest on old Rubies
+        # 0.11.x introduced syntax that breaks 1.8.6 entirely :(
+        #
+        # If we want to move forward to MiniTest 5.0.x, this will need to be
+        # resolved in some fashion at that point
         f.puts "  gem 'mocha', '~> 0.9.8', :require => false" unless environments.omit_mocha
 
         if RUBY_VERSION > '1.8.7'
