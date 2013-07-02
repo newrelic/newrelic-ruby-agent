@@ -1,3 +1,5 @@
-#!/bin/sh
+#!/usr/bin/env ruby
+require 'fileutils'
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib', 'multiverse', 'environment'))
 
-test/multiverse/lib/multiverse/suite.rb $PWD/test/multiverse/suites/$1 "$2" true
+Multiverse::Runner.run_one ARGV[0]

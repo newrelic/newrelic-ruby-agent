@@ -44,5 +44,15 @@ module Multiverse
       OutputCollector.report
       exit exit_status
     end
+
+    # run_one is used to run a suite directly in process
+    # Pipe shenanigans in the typical Suite runner interferes with the debugger
+    def run_one(filter="")
+      dir = Dir.new(SUITES_DIRECTORY).entries.find { |d| d.include?(filter) }
+
+      full_path = File.join(SUITES_DIRECTORY, dir)
+      $stderr.reopen($stdout)
+      Suite.new(full_path, true).execute_child_environment(0)
+    end
   end
 end
