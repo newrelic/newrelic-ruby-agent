@@ -101,8 +101,7 @@ module NewRelic
     end
 
     def jruby_rack?
-      ((org.jruby.rack.DefaultRackApplicationFactory rescue nil) &&
-       defined?(org::jruby::rack::DefaultRackApplicationFactory))
+      defined?(JRuby::Rack::VERSION)
     end
 
     def check_for_webrick
