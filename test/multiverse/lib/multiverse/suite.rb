@@ -14,10 +14,14 @@ require File.expand_path(File.join(File.dirname(__FILE__), 'environment'))
 module Multiverse
   class Suite
     include Color
-    attr_accessor :directory, :include_debugger
-    def initialize(directory, include_debugger=nil)
+    attr_accessor :directory, :include_debugger, :seed, :name
+
+    def initialize(directory, opts={})
       self.directory = directory
-      self.include_debugger = !!include_debugger
+      self.include_debugger = opts.fetch(:run_one, false)
+      self.seed = opts.fetch(:seed, "")
+      self.name = opts.fetch(:name, "")
+      ENV["VERBOSE"] = '1' if opts[:verbose]
     end
 
     def clean_gemfiles
@@ -142,7 +146,7 @@ module Multiverse
     def execute_with_pipe(env)
       OutputCollector.buffers.push('')
       puts yellow("Running #{directory.inspect} for Envfile entry #{env}")
-      IO.popen("#{__FILE__} #{directory} #{env}") do |io|
+      IO.popen("#{__FILE__} #{directory} #{env} '#{seed}' '#{name}'") do |io|
         puts yellow("Starting tests in child PID #{io.pid}")
         while chars = io.read(8) do
           OutputCollector.buffers.last << chars
@@ -160,7 +164,11 @@ module Multiverse
       #
       # Autorun behaves differently across the different Ruby version we have
       # to support, so this is simplest for making our test running consistent
-      exit(::MiniTest::Unit.new.run)
+      options = []
+      options << "-v" if verbose?
+      options << "--seed=#{seed}" unless seed == ""
+      options << "--name=/#{name}/" unless name == ""
+      exit(::MiniTest::Unit.new.run(options))
     end
 
     def configure_child_environment
@@ -244,5 +252,7 @@ if $0 == __FILE__ && $already_running.nil?
   # Redirect stderr to stdout so that we can capture both in the popen that
   # feeds into the OutputCollector above.
   $stderr.reopen($stdout)
-  Multiverse::Suite.new(ARGV[0], ARGV[2]).execute_child_environment(ARGV[1].to_i)
+
+  # Ugly, but seralized args passed along when popen is called to kick the child off
+  Multiverse::Suite.new(ARGV[0], {:seed => ARGV[2], :name => ARGV[3]}).execute_child_environment(ARGV[1].to_i)
 end

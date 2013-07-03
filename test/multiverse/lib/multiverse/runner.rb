@@ -24,13 +24,29 @@ module Multiverse
       @exit_status
     end
 
-    def run(filter="")
+    # Args without a = are turned into just opts[key] = true
+    # Args with = get split, then assigned as key + value
+    # :suite gets ignored
+    def parse_args(args)
+      opts = {}
+      args.each do |(k, v)|
+        if v.include?("=")
+          parts = v.split("=")
+          opts[parts.first.to_sym] = parts.last
+        elsif k != :suite
+          opts[v.to_sym] = true
+        end
+      end
+      opts
+    end
+
+    def run(filter="", opts={})
       Dir.new(SUITES_DIRECTORY).entries.each do |dir|
         next if dir =~ /\A\./
         next unless dir.include? filter
         full_path = File.join(SUITES_DIRECTORY, dir)
         begin
-          suite = Suite.new full_path
+          suite = Suite.new(full_path, opts)
           suite.execute
         rescue => e
           puts red("Error when trying to run suite in #{full_path.inspect}")
@@ -47,12 +63,11 @@ module Multiverse
 
     # run_one is used to run a suite directly in process
     # Pipe shenanigans in the typical Suite runner interferes with the debugger
-    def run_one(filter="")
+    def run_one(filter="", opts={})
       dir = Dir.new(SUITES_DIRECTORY).entries.find { |d| d.include?(filter) }
-
       full_path = File.join(SUITES_DIRECTORY, dir)
       $stderr.reopen($stdout)
-      Suite.new(full_path, true).execute_child_environment(0)
+      Suite.new(full_path, opts).execute_child_environment(0)
     end
   end
 end
