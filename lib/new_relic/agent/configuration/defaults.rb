@@ -39,7 +39,7 @@ module NewRelic
             when 4
               :rails4
             else
-              ::NewRelic::Agent::Agent.logger.error "Detected unsupported Rails version #{Rails::VERSION::STRING}"
+              ::NewRelic::Agent.logger.error "Detected unsupported Rails version #{Rails::VERSION::STRING}"
             end
           when defined?(::Sinatra) && defined?(::Sinatra::Base) then :sinatra
           when defined?(::NewRelic::IA) then :external
