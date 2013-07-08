@@ -7,7 +7,7 @@ module Multiverse
   # bundler
   class Envfile
     attr_accessor :file_path, :condition, :newrelic_gemfile_options
-    attr_reader :before, :after, :mode, :skip_message, :omit_mocha
+    attr_reader :before, :after, :mode, :skip_message, :omit_mocha, :omit_collector
 
     def initialize(file_path)
       self.file_path = file_path
@@ -38,6 +38,10 @@ module Multiverse
 
     def omit_mocha!
       @omit_mocha = true
+    end
+
+    def omit_collector!
+      @omit_collector = true
     end
 
     def before_suite(&block)

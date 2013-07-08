@@ -177,6 +177,7 @@ module Multiverse
       prevent_minitest_auto_run
       require_mocha
       disable_harvest_thread
+      configure_fake_collector
     end
 
     def patch_minitest_for_old_mocha
@@ -212,6 +213,10 @@ module Multiverse
       # threads running in some test suites.
 
       ENV["NEWRELIC_DISABLE_HARVEST_THREAD"] = "true"
+    end
+
+    def configure_fake_collector
+      ENV["NEWRELIC_OMIT_FAKE_COLLECTOR"] = "true" if environments.omit_collector
     end
 
     def execute_ruby_files

@@ -2,8 +2,6 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'fake_collector'
-
 module MultiverseHelpers
 
   #
@@ -70,9 +68,18 @@ module MultiverseHelpers
     end
   end
 
+  #
   # Collector interactions
+  #
+  # These are here to ease interactions with the fake collector, and allow
+  # classes that don't need them to avoid it by an environment variable.
+  # This helps so the runner process can decide before spawning the child
+  # whether we want the collector running or not.
 
   def setup_collector
+    return if omit_collector?
+
+    require 'fake_collector'
     $collector ||= NewRelic::FakeCollector.new
     $collector.reset
     $collector.run
@@ -85,7 +92,12 @@ module MultiverseHelpers
   end
 
   def reset_collector
+    return if omit_collector?
     $collector.reset
+  end
+
+  def omit_collector?
+    ENV["NEWRELIC_OMIT_FAKE_COLLECTOR"] == "true"
   end
 
   extend self
