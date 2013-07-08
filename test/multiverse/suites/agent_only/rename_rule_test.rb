@@ -36,7 +36,7 @@ class RenameRuleTest < MiniTest::Unit::TestCase
   end
 
   def teardown
-    reset_collector
+    teardown_agent
   end
 
   def test_transaction_names_rules
