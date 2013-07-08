@@ -13,7 +13,6 @@ development:
   sync_startup: true
   host: 127.0.0.1
   api_host: 127.0.0.1
-  port: <%= 30_000 + ($$ % 10_000) %>
   transaction_tracer:
     record_sql: obfuscated
     enabled: true
