@@ -33,6 +33,9 @@ module MultiverseHelpers
     NewRelic::Agent.instance.transaction_rules.rules.clear
     NewRelic::Agent.instance.metric_rules.rules.clear
 
+    # Clear out lingering stats we didn't transmit
+    NewRelic::Agent.instance.reset_stats
+
     NewRelic::Agent.shutdown
   end
 
