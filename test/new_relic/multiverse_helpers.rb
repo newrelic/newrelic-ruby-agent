@@ -11,6 +11,20 @@ module MultiverseHelpers
   # If your tests do something different, it's important that they clean up
   # after themselves!
 
+  def self.included(base)
+    base.extend(self)
+  end
+
+  def setup_and_teardown_agent(opts = {}, &block)
+    define_method(:setup) do
+      setup_agent(opts, &block)
+    end
+
+    define_method(:teardown) do
+      teardown_agent
+    end
+  end
+
   def setup_agent(opts = {})
     setup_collector
     make_sure_agent_reconnects(opts)
