@@ -30,7 +30,11 @@ module Multiverse
     def parse_args(args)
       opts = {}
       args.each do |(k, v)|
-        if v.include?("=")
+        if v.index("name=") == 0
+          parts = v.split("=")
+          opts[:names] ||= []
+          opts[:names] << parts.last
+        elsif v.include?("=")
           parts = v.split("=")
           opts[parts.first.to_sym] = parts.last
         elsif k != :suite

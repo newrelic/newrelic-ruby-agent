@@ -14,13 +14,13 @@ require File.expand_path(File.join(File.dirname(__FILE__), 'environment'))
 module Multiverse
   class Suite
     include Color
-    attr_accessor :directory, :include_debugger, :seed, :name
+    attr_accessor :directory, :include_debugger, :seed, :names
 
     def initialize(directory, opts={})
       self.directory = directory
       self.include_debugger = opts.fetch(:run_one, false)
       self.seed = opts.fetch(:seed, "")
-      self.name = opts.fetch(:name, "")
+      self.names = opts.fetch(:names, [])
       ENV["VERBOSE"] = '1' if opts[:verbose]
     end
 
@@ -146,7 +146,7 @@ module Multiverse
     def execute_with_pipe(env)
       OutputCollector.buffers.push('')
       puts yellow("Running #{directory.inspect} for Envfile entry #{env}")
-      IO.popen("#{__FILE__} #{directory} #{env} '#{seed}' '#{name}'") do |io|
+      IO.popen("#{__FILE__} #{directory} #{env} '#{seed}' '#{names.join(",")}'") do |io|
         puts yellow("Starting tests in child PID #{io.pid}")
         while chars = io.read(8) do
           OutputCollector.buffers.last << chars
@@ -167,7 +167,7 @@ module Multiverse
       options = []
       options << "-v" if verbose?
       options << "--seed=#{seed}" unless seed == ""
-      options << "--name=/#{name}/" unless name == ""
+      options << "--name=/#{names.map {|n| n + ".*"}.join("|")}/" unless names == []
       exit(::MiniTest::Unit.new.run(options))
     end
 
@@ -254,7 +254,7 @@ if $0 == __FILE__ && $already_running.nil?
   $stderr.reopen($stdout)
 
   # Ugly, but seralized args passed along to #popen when kicking child off
-  dir, env_index, seed, name, _ = *ARGV
-  suite = Multiverse::Suite.new(dir, {:seed => seed, :name => name})
+  dir, env_index, seed, names, _ = *ARGV
+  suite = Multiverse::Suite.new(dir, {:seed => seed, :names => names.split(",")})
   suite.execute_child_environment(env_index.to_i)
 end
