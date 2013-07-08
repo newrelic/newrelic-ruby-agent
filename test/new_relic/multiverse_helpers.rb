@@ -31,6 +31,10 @@ module MultiverseHelpers
     # Put the configs back where they belong....
     NewRelic::Agent.config.reset_to_defaults
 
+    # Renaming rules don't get cleared on connect--only appended to
+    NewRelic::Agent.instance.transaction_rules.rules.clear
+    NewRelic::Agent.instance.metric_rules.rules.clear
+
     NewRelic::Agent.shutdown
   end
 
