@@ -184,16 +184,9 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
  protected
 
   def assert_errors_reported(message, queued_count, total_count=queued_count, txn_name=nil)
-    error_count = NewRelic::Agent::Agent.instance.stats_engine.lookup_stats("Errors/all")
-    assert_equal(total_count, error_count.call_count,
-                 'Incorrect call count on Errors/all')
-
-    if txn_name
-      error_count = NewRelic::Agent::Agent.instance.stats_engine \
-        .lookup_stats("Errors/#{txn_name}")
-      assert_equal(total_count, error_count.call_count,
-                   "Incorrect call count on Errors/#{txn_name}")
-    end
+    expected = { :call_count => total_count }
+    assert_metrics_recorded("Errors/all" => expected)
+    assert_metrics_recorded("Errors/#{txn_name}" => expected) if txn_name
 
     assert_equal(queued_count,
       @error_collector.errors.select{|error| error.message == message}.size,
