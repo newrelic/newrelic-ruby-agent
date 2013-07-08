@@ -23,25 +23,20 @@ class KeyTransactionsTest < MiniTest::Unit::TestCase
   end
 
   def setup
-    super
-
-    setup_collector
-    key_apdex_config = { 'Controller/KeyTransactionsTest::TestWidget/key_txn' => 1 }
-    $collector.mock['connect'] = [200, {'return_value' => {
-                                      "agent_run_id" => 666,
-                            'web_transactions_apdex' => key_apdex_config,
-                                           'apdex_t' => 10
-                                    }}]
-
-    NewRelic::Agent.manual_start(:sync_startup => true,
-                                 :force_reconnect => true)
+    setup_agent(:sync_startup => true, :force_reconnect => true) do |collector|
+      key_txn_name = 'Controller/KeyTransactionsTest::TestWidget/key_txn'
+      collector.stub('connect',
+        {
+          'web_transactions_apdex' => { key_txn_name => 1 },
+          'apdex_t' => 10
+        })
+    end
 
     freeze_time
   end
 
   def teardown
-    reset_collector
-    NewRelic::Agent.shutdown
+    teardown_agent
   end
 
   SATISFYING = 0
@@ -78,9 +73,4 @@ class KeyTransactionsTest < MiniTest::Unit::TestCase
                  traces[0].metric_name)
   end
 
-  def stub_time_now
-    now = Time.now
-    Time.stubs(:now).returns(now)
-    return now
-  end
 end

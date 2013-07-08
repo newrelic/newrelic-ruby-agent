@@ -18,8 +18,7 @@ module NewRelic
         attr_reader :config_stack, :stripped_exceptions_whitelist
 
         def initialize
-          @config_stack = [ EnvironmentSource.new, DEFAULTS ]
-          @cache = Hash.new {|hash,key| hash[key] = self.fetch(key) }
+          reset_to_defaults
           @callbacks = Hash.new {|hash,key| hash[key] = [] }
 
           register_callback(:'strip_exception_messages.whitelist') do |whitelist|
@@ -143,6 +142,12 @@ module NewRelic
           when String then self[:app_name].split(';')
           else []
           end
+        end
+
+        # Generally only useful during initial construction and tests
+        def reset_to_defaults
+          @config_stack = [ EnvironmentSource.new, DEFAULTS ]
+          reset_cache
         end
 
         def reset_cache

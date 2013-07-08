@@ -63,6 +63,20 @@ def assert_calls_unscoped_metrics(*metrics)
   assert_not_equal first_metrics, last_metrics, "should have changed these metrics"
 end
 
+
+unless defined?( build_message )
+  def build_message(head, template=nil, *arguments)
+    template &&= template.chomp
+    template.gsub(/\?/) { mu_pp(arguments.shift) }
+  end
+end
+
+unless defined?( assert_block )
+  def assert_block(*msgs)
+    assert yield, *msgs
+  end
+end
+
 unless defined?( assert_includes )
   def assert_includes( collection, member, msg=nil )
     msg = build_message( msg, "Expected ? to include ?", collection, member )

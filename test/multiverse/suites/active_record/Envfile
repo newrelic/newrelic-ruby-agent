@@ -1,4 +1,5 @@
 gemfile <<-RB
+  gem 'rack'
   if RUBY_VERSION == '1.8.6'
     gem 'activerecord', '2.3.14'
   elsif RUBY_PLATFORM == 'java'

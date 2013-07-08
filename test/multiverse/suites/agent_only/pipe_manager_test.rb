@@ -4,12 +4,18 @@
 
 # https://newrelic.atlassian.net/browse/RUBY-669
 
+require 'multiverse_helpers'
+
 class PipeManagerTest < MiniTest::Unit::TestCase
+  include MultiverseHelpers
+
   def setup
+    setup_agent
     @listener = NewRelic::Agent::PipeChannelManager.listener
   end
 
   def teardown
+    teardown_agent
     @listener.stop
   end
 

@@ -13,23 +13,22 @@ class ThreadProfilingTest < MiniTest::Unit::TestCase
   include MultiverseHelpers
 
   def setup
-    setup_collector
-    $collector.mock['connect'] = [200, {'return_value' => {"agent_run_id" => 666 }}]
-    $collector.mock['get_agent_commands'] = [200, {'return_value' => START_COMMAND}]
-    $collector.mock['agent_command_results'] = [200, {'return_value' => []}]
-
-    NewRelic::Agent::Agent.instance_variable_set(:@instance, nil)
-    NewRelic::Agent.manual_start(:'thread_profiler.enabled' => true, :force_send => true)
-    NewRelic::Agent.instance.service.request_timeout = 0.5
-    NewRelic::Agent.instance.service.agent_id = 666
+    setup_agent(:'thread_profiler.enabled' => true, :force_send => true) do |collector|
+      collector.stub('connect', {"agent_run_id" => 666 })
+      collector.stub('get_agent_commands', START_COMMAND)
+      collector.stub('agent_command_results', [])
+    end
 
     @agent = NewRelic::Agent.instance
+    @agent.service.request_timeout = 0.5
+    @agent.service.agent_id = 666
+
     @thread_profiler = @agent.thread_profiler
     @threads = []
   end
 
   def teardown
-    reset_collector
+    teardown_agent
 
     @threads.each { |t| t.kill }
     @threads = nil

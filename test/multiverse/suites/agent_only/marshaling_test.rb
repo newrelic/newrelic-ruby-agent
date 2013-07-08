@@ -11,34 +11,31 @@ class MarshalingTest < MiniTest::Unit::TestCase
   include MultiverseHelpers
 
   def setup
-    NewRelic::Agent.manual_start(:'transaction_tracer.transaction_threshold' => 0.0)
+    setup_agent(:'transaction_tracer.transaction_threshold' => 0.0) do |collector|
+      collector.stub('connect', { 'agent_run_id' => 666 })
+    end
     @agent = NewRelic::Agent.instance
-    @sampler = @agent.transaction_sampler
-
-    setup_collector
-    $collector.mock['connect'] = [200, {'return_value' => { 'agent_run_id' => 666 }}]
   end
 
   def teardown
-    reset_collector
-    @agent.shutdown
-    Thread.current[:transaction_sample_builder] = nil
+    teardown_agent
   end
 
   def test_transaction_trace_marshaling
     # create fake transaction trace
-    time = Time.now.to_f
-    @sampler.notice_first_scope_push time
-    @sampler.notice_transaction nil, {}
-    @sampler.notice_push_scope "a"
-    @sampler.notice_push_scope "ab"
-    sleep 1
-    @sampler.notice_pop_scope "ab"
-    @sampler.notice_pop_scope "a"
-    @sampler.notice_scope_empty(OpenStruct.new(:name => 'path',
+    time = freeze_time
+    sampler = @agent.transaction_sampler
+    sampler.notice_first_scope_push time
+    sampler.notice_transaction nil, {}
+    sampler.notice_push_scope "a"
+    sampler.notice_push_scope "ab"
+    advance_time 1
+    sampler.notice_pop_scope "ab"
+    sampler.notice_pop_scope "a"
+    sampler.notice_scope_empty(OpenStruct.new(:name => 'path',
                                                :custom_parameters => {}))
 
-    expected_sample = @sampler.instance_variable_get(:@slowest_sample)
+    expected_sample = sampler.instance_variable_get(:@slowest_sample)
 
     @agent.service.connect
     @agent.send(:harvest_and_send_slowest_sample)
@@ -98,7 +95,7 @@ class MarshalingTest < MiniTest::Unit::TestCase
     @agent.service.connect('pid' => 1, 'agent_version' => '9000',
                            'app_name' => 'test')
 
-    connect_data = $collector.calls_for('connect')[0]
+    connect_data = $collector.calls_for('connect').last
     assert_equal '9000', connect_data['agent_version']
   end
 end

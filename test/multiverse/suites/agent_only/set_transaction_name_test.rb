@@ -2,8 +2,11 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'multiverse_helpers'
+
 class SetTransactionNameTest < MiniTest::Unit::TestCase
   include NewRelic::Agent::MethodTracer
+  include MultiverseHelpers
 
   class TestTransactor
     include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
@@ -26,34 +29,31 @@ class SetTransactionNameTest < MiniTest::Unit::TestCase
   end
 
   def setup
-    NewRelic::Agent.manual_start(:browser_key => 'browserKey', :application_id => 'appId',
-                                 :beacon => 'beacon', :episodes_file => 'this_is_my_file')
+    setup_agent(:browser_key => 'browserKey', :application_id => 'appId',
+                :beacon => 'beacon', :episodes_file => 'this_is_my_file')
     @transactor = TestTransactor.new
-    @stats_engine = NewRelic::Agent.instance.stats_engine
   end
 
   def teardown
-    NewRelic::Agent.shutdown
+    teardown_agent
   end
 
   def test_apply_to_metric_names
     @transactor.parent_txn
-    [ 'Controller/TestTransactor/parent',
+
+    assert_metrics_recorded([
+      'Controller/TestTransactor/parent',
       'OtherTransaction/Background/TestTransactor/child',
-      [ 'OtherTransaction/Background/TestTransactor/child',
-        'Controller/TestTransactor/parent'],
-      'Apdex/TestTransactor/parent' ].each do |metric|
-      assert(@stats_engine.lookup_stats(*metric),
-             "Expected to find #{metric} in stats hash #{NewRelic::Agent.instance.stats_engine.instance_variable_get(:@stats_hash)}")
-    end
+      [ 'OtherTransaction/Background/TestTransactor/child', 'Controller/TestTransactor/parent'],
+      'Apdex/TestTransactor/parent'])
   end
 
   def test_apply_to_metric_scopes
     @transactor.parent_txn do
       trace_execution_scoped('Custom/something') {}
     end
-    assert @stats_engine.lookup_stats('Custom/something',
-                                      'Controller/TestTransactor/parent')
+    assert_metrics_recorded(['Custom/something',
+                             'Controller/TestTransactor/parent'])
   end
 
   def test_apply_to_traced_transactions
@@ -76,7 +76,7 @@ class SetTransactionNameTest < MiniTest::Unit::TestCase
                                                   'replacement'      => 'dad')
     NewRelic::Agent.instance.transaction_rules << rule
     @transactor.parent_txn
-    assert @stats_engine.lookup_stats('Controller/TestTransactor/dad')
+    assert_metrics_recorded(['Controller/TestTransactor/dad'])
   end
 
   def test_does_not_overwrite_name_when_set_by_RUM
@@ -85,12 +85,12 @@ class SetTransactionNameTest < MiniTest::Unit::TestCase
       NewRelic::Agent.browser_timing_footer
       NewRelic::Agent.set_transaction_name('this/should/not/work')
     end
-    assert_nil @stats_engine.lookup_stats('Controller/this/should/not/work')
-    assert @stats_engine.lookup_stats('Controller/TestTransactor/parent')
+    assert_metrics_not_recorded(['Controller/this/should/not/work'])
+    assert_metrics_recorded(['Controller/TestTransactor/parent'])
   end
 
   def test_ignoring_action
     @transactor.ignored_txn
-    assert_nil @stats_engine.lookup_stats('Controller/Ignore/me')
+    assert_metrics_not_recorded(['Controller/Ignore/me'])
   end
 end
