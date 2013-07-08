@@ -253,6 +253,8 @@ if $0 == __FILE__ && $already_running.nil?
   # feeds into the OutputCollector above.
   $stderr.reopen($stdout)
 
-  # Ugly, but seralized args passed along when popen is called to kick the child off
-  Multiverse::Suite.new(ARGV[0], {:seed => ARGV[2], :name => ARGV[3]}).execute_child_environment(ARGV[1].to_i)
+  # Ugly, but seralized args passed along to #popen when kicking child off
+  dir, env_index, seed, name, _ = *ARGV
+  suite = Multiverse::Suite.new(dir, {:seed => seed, :name => name})
+  suite.execute_child_environment(env_index.to_i)
 end
