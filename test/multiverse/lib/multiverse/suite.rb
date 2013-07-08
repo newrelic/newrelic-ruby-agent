@@ -94,7 +94,6 @@ module Multiverse
       line = ENV['NEWRELIC_GEMFILE_LINE'] if ENV['NEWRELIC_GEMFILE_LINE']
       path = ENV['NEWRELIC_GEM_PATH'] || '../../../..'
       line ||= "  gem 'newrelic_rpm', :path => '#{path}'"
-      line += ", #{environments.newrelic_gemfile_options}" if environments.newrelic_gemfile_options
       line
     end
 
