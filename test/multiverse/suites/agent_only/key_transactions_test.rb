@@ -23,7 +23,7 @@ class KeyTransactionsTest < MiniTest::Unit::TestCase
   end
 
   def setup
-    setup_agent(:sync_startup => true, :force_reconnect => true) do |collector|
+    setup_agent do |collector|
       key_txn_name = 'Controller/KeyTransactionsTest::TestWidget/key_txn'
       collector.stub('connect',
         {

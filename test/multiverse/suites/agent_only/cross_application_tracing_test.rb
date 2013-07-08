@@ -7,7 +7,7 @@ require 'fake_collector'
 require './testing_app'
 require 'multiverse_helpers'
 
-class CrossProcessTest < MiniTest::Unit::TestCase
+class CrossApplicationTracingTest < MiniTest::Unit::TestCase
 
   include MultiverseHelpers
 

@@ -21,6 +21,6 @@ class SSLTest < MiniTest::Unit::TestCase
     NewRelic::Agent.agent.expects(:shutdown).at_least_once
     NewRelic::Agent.expects(:finish_setup).never
 
-    setup_agent(:ssl => true, :sync_startup => true)
+    run_agent(:ssl => true)
   end
 end

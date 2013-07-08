@@ -15,9 +15,7 @@ module MultiverseHelpers
 
   def setup_agent(opts = {})
     setup_collector
-
-    # This will force a reconnect when we start again
-    NewRelic::Agent.instance.instance_variable_set(:@connect_state, :pending)
+    make_sure_agent_reconnects(opts)
 
     # Give caller a shot to setup before we start
     yield($collector) if block_given?
@@ -42,6 +40,28 @@ module MultiverseHelpers
     setup_agent(options)
     yield if block_given?
     teardown_agent
+  end
+
+  def make_sure_agent_reconnects(opts)
+    # Clean-up if others don't (or we're first test after auto-loading of agent)
+    if NewRelic::Agent.instance.started?
+      NewRelic::Agent.shutdown
+      NewRelic::Agent.logger.warn("TESTING: Agent wasn't shut down before test")
+    end
+
+    # This will force a reconnect when we start again
+    NewRelic::Agent.instance.instance_variable_set(:@connect_state, :pending)
+
+    # Almost always want a test to force a new connect when setting up
+    default_options(opts,
+                    :sync_startup => true,
+                    :force_reconnect => true)
+  end
+
+  def default_options(options, defaults={})
+    defaults.each do |(k, v)|
+      options.merge!({k => v}) unless options.key?(k)
+    end
   end
 
   # Collector interactions
