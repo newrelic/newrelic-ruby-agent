@@ -47,7 +47,7 @@ module Multiverse
     def run(filter="", opts={})
       Dir.new(SUITES_DIRECTORY).entries.each do |dir|
         next if dir =~ /\A\./
-        next unless dir.include? filter
+        next unless filter.nil? || dir.include?(filter)
         full_path = File.join(SUITES_DIRECTORY, dir)
         begin
           suite = Suite.new(full_path, opts)
