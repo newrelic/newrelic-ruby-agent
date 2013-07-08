@@ -25,26 +25,28 @@ class RumAutoTest < MiniTest::Unit::TestCase
     teardown_agent
   end
 
-  def test_autoinstrumenation_is_active
+  def test_autoinstrumentation_is_active
     @inner_app.response = "<html><head><title>W00t!</title></head><body><p>Hello World</p></body></html>"
     get '/'
     assert(last_response.body =~ %r|<script|, "response body should include RUM auto instrumentation js:\n #{last_response.body}")
     assert(last_response.body =~ %r|NREUMQ|, "response body should include RUM auto instrumentation js:\n #{last_response.body}")
   end
 
-  def test_autoinstrumenation_with_basic_page_puts_header_at_beggining_of_head
+  def test_autoinstrumentation_with_basic_page_puts_header_at_beginning_of_head
     @inner_app.response = "<html><head><title>foo</title></head><body><p>Hello World</p></body></html>"
+    NewRelic::Agent.logger.debug("================================")
     get '/'
+    NewRelic::Agent.logger.debug("================================")
     assert(last_response.body.include?('<html><head><script type="text/javascript">var NREUMQ=NREUMQ||[];NREUMQ.push(["mark","firstbyte",new Date().getTime()]);</script><title>foo</title></head><body>'))
   end
 
-  def test_autoinstrumenation_with_body_only_puts_header_before_body
+  def test_autoinstrumentation_with_body_only_puts_header_before_body
     @inner_app.response = "<html><body><p>Hello World</p></body></html>"
     get '/'
     assert(last_response.body.include?('<html><script type="text/javascript">var NREUMQ=NREUMQ||[];NREUMQ.push(["mark","firstbyte",new Date().getTime()]);</script><body>'))
   end
 
-  def test_autoinstrumenation_with_X_UA_Compatible_puts_header_at_end_of_head
+  def test_autoinstrumentation_with_X_UA_Compatible_puts_header_at_end_of_head
     @inner_app.response = '<html><head><meta http-equiv="X-UA-Compatible" content="IE=8;FF=3;OtherUA=4" /></head><body><p>Hello World</p></body></html>'
     get '/'
     assert(last_response.body.include?(
@@ -53,13 +55,13 @@ class RumAutoTest < MiniTest::Unit::TestCase
   end
 
   # regression
-  def test_autoinstrumenation_fails_gracefully_with_X_UA_Compatible_and_no_close_head_tag_puts_header_before_body_tag
+  def test_autoinstrumentation_fails_gracefully_with_X_UA_Compatible_and_no_close_head_tag_puts_header_before_body_tag
     @inner_app.response = '<html><head><meta http-equiv="X-UA-Compatible" content="IE=8;FF=3;OtherUA=4" /><body><p>Hello World</p></body></html>'
     get '/'
     assert(!last_response.body.include?(%'NREUMQ'))
   end
 
-  def test_autoinstrumenation_doesnt_run_for_crazy_shit_like_this
+  def test_autoinstrumentation_doesnt_run_for_crazy_shit_like_this
     @inner_app.response = '<html><head <body </body>'
     get '/'
     assert_equal('<html><head <body </body>', last_response.body)
