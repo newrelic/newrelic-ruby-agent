@@ -64,33 +64,6 @@ module NewRelic
       NewRelic::Agent.after_fork
     end
 
-    if NewRelic::LanguageSupport.can_fork? &&
-        !NewRelic::LanguageSupport.using_version?('1.9.1')
-      def test_timeslice_harvest_with_after_fork_report_to_channel
-        with_config(:agent_enabled => true, :monitor_mode => true) do
-          NewRelic::Agent.shutdown # make sure the agent is not already started
-          NewRelic::Agent.manual_start(:license_key => ('1234567890' * 4),
-                                       :start_channel_listener => true)
-
-          metric = 'Custom/test/method'
-          NewRelic::Agent.record_metric(metric, 1.0)
-
-          NewRelic::Agent::PipeChannelManager.listener.close_all_pipes
-          NewRelic::Agent.register_report_channel(:agent_test) # before fork
-          pid = Process.fork do
-            NewRelic::Agent.after_fork(:report_to_channel => :agent_test)
-            NewRelic::Agent.record_metric(metric, 2.0)
-          end
-          Process.wait(pid)
-          NewRelic::Agent::PipeChannelManager.listener.stop
-
-          assert_metrics_recorded({
-            metric => { :call_count => 2, :total_call_time => 3.0 }
-          })
-        end
-      end
-    end
-
     def test_reset_stats
       mock_agent = mocked_agent
       mock_agent.expects(:reset_stats)
