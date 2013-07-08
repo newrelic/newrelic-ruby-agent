@@ -2,16 +2,16 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-
 require 'rubygems'
 
 require 'active_record'
-require 'test/unit'
 require 'newrelic_rpm'
 require 'multiverse/color'
+require 'multiverse_helpers'
+require 'minitest/unit'
 
-
-class InstrumentActiveRecordMethods < Test::Unit::TestCase
+class InstrumentActiveRecordMethods < MiniTest::Unit::TestCase
+  include MultiverseHelpers
   extend Multiverse::Color
 
   if RUBY_VERSION >= '1.8.7'
@@ -40,6 +40,7 @@ class InstrumentActiveRecordMethods < Test::Unit::TestCase
     end
 
     def setup
+      setup_agent
       puts "adapter : #{@@adapter}"
       @db_connection = ActiveRecord::Base.establish_connection( :adapter => @@adapter, :database => "testdb.sqlite3")
       ActiveRecord::Migration.class_eval do
@@ -56,6 +57,7 @@ class InstrumentActiveRecordMethods < Test::Unit::TestCase
     end
 
     def teardown
+      teardown_agent
       @db_connection = ActiveRecord::Base.establish_connection( :adapter => "sqlite3", :database => "testdb.sqlite3")
       ActiveRecord::Migration.class_eval do
         @connection = @db_connection

@@ -5,13 +5,12 @@
 # https://newrelic.atlassian.net/browse/RUBY-669
 
 require 'resque'
-require 'test/unit'
 require 'logger'
 require 'newrelic_rpm'
 require 'fake_collector'
 require 'multiverse_helpers'
 
-class ResqueTest < Test::Unit::TestCase
+class ResqueTest < MiniTest::Unit::TestCase
   include MultiverseHelpers
 
   class JobForTesting

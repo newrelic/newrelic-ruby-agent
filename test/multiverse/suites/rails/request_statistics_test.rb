@@ -63,7 +63,7 @@ class RequestStatsTest < ActionController::TestCase
 
       post = $collector.calls_for('analytic_event_data').first
 
-      assert_not_nil( post )
+      refute_nil( post )
       assert_kind_of Array, post.body
       assert_kind_of Array, post.body.first
 

@@ -24,7 +24,7 @@ class SinatraTestApp < Sinatra::Base
   end
 end
 
-class SinatraMetricExplosionTest < Test::Unit::TestCase
+class SinatraMetricExplosionTest < MiniTest::Unit::TestCase
   include Rack::Test::Methods
   include ::NewRelic::Agent::Instrumentation::Sinatra
 
@@ -68,9 +68,8 @@ class SinatraMetricExplosionTest < Test::Unit::TestCase
   end
 
   def test_does_not_break_when_no_verb_matches
-    assert_nothing_raised do
-      post '/some/garbage'
-    end
+    post '/some/garbage'
+
     metric_names = ::NewRelic::Agent.agent.stats_engine.metrics
     assert metric_names.include?('Controller/Sinatra/SinatraTestApp/POST (unknown)')
     assert metric_names.include?('Apdex/Sinatra/SinatraTestApp/POST (unknown)')

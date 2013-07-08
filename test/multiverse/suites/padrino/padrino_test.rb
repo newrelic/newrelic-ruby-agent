@@ -21,7 +21,7 @@ class PadrinoTestApp < Padrino::Application
   end
 end
 
-class PadrinoRoutesTest < Test::Unit::TestCase
+class PadrinoRoutesTest < MiniTest::Unit::TestCase
   include Rack::Test::Methods
 
   def app

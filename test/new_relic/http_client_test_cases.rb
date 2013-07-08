@@ -363,9 +363,7 @@ module HttpClientTestCases
       raises( NoMethodError, "undefined method `push_scope'" )
 
     with_config(:"cross_application_tracer.enabled" => true) do
-      assert_nothing_raised do
-        res = get_response
-      end
+      res = get_response
     end
 
     assert_equal NewRelic::FakeExternalServer::STATUS_MESSAGE, body(res)
@@ -377,9 +375,7 @@ module HttpClientTestCases
       raises( NoMethodError, "undefined method `pop_scope'" )
 
     with_config(:"cross_application_tracer.enabled" => true) do
-      assert_nothing_raised do
-        res = get_response
-      end
+      res = get_response
     end
 
     assert_equal NewRelic::FakeExternalServer::STATUS_MESSAGE, body(res)
@@ -397,7 +393,7 @@ module HttpClientTestCases
       get_response
     end
 
-    assert_no_match( /undefined method `rename_scope_segment" for nil:NilClass/i,
+    refute_match( /undefined method `rename_scope_segment" for nil:NilClass/i,
                      logger.messages.flatten.map {|log| log.to_s }.join(" ") )
 
   ensure

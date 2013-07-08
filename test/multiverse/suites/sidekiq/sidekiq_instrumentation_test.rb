@@ -11,7 +11,7 @@ require 'newrelic_rpm'
 require 'fake_collector'
 require 'multiverse_helpers'
 
-class SidekiqTest < Test::Unit::TestCase
+class SidekiqTest < MiniTest::Unit::TestCase
   JOB_COUNT = 5
 
   include MultiverseHelpers

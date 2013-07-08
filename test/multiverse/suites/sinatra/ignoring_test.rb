@@ -34,7 +34,7 @@ class SinatraIgnoreTestApp < Sinatra::Base
 
 end
 
-class SinatraTestCase < Test::Unit::TestCase
+class SinatraTestCase < MiniTest::Unit::TestCase
   include Rack::Test::Methods
   include ::NewRelic::Agent::Instrumentation::Sinatra
 

@@ -22,7 +22,7 @@ DB.create_table( :users ) do
 end
 class User < Sequel::Model; end
 
-class SequelTest < Test::Unit::TestCase
+class SequelTest < MiniTest::Unit::TestCase
 
   def test_it_doesnt_blow_up
     require 'newrelic_rpm'

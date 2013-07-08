@@ -3,7 +3,6 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'fileutils'
-require 'test/unit'
 module Multiverse
   ROOT = File.expand_path(File.join(File.dirname(__FILE__), '..', '..'))
   $: << File.expand_path(File.join(ROOT, 'lib'))

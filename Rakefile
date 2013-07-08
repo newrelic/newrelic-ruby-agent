@@ -22,12 +22,13 @@ namespace :test do
   agent_home = File.expand_path(File.dirname(__FILE__))
 
   desc "Run functional test suite for newrelic"
-  task :multiverse, [:suite, :mode] => [] do |t, args|
-    args.with_defaults(:suite => "", :mode => "")
-    if args.mode == "run_one"
-      puts `#{agent_home}/test/multiverse/script/run_one #{args.suite}`
+  task :multiverse, [:suite, :param1, :param2, :param3, :param4] => [] do |t, args|
+    require File.expand_path(File.join(File.dirname(__FILE__), 'test', 'multiverse', 'lib', 'multiverse', 'environment'))
+    opts = Multiverse::Runner.parse_args(args)
+    if opts.key?(:run_one)
+      Multiverse::Runner.run_one(args.suite, opts)
     else
-      ruby "#{agent_home}/test/multiverse/script/runner #{args.suite}"
+      Multiverse::Runner.run(args.suite, opts)
     end
   end
 

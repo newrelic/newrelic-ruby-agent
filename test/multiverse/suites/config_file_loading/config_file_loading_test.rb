@@ -13,7 +13,8 @@
 #
 # If this fails the agent will attempt to dial Lew Cirne's cell phone and ask
 # that he verbally describe how it should be configured.
-class ConfigFileLoadingTest < Test::Unit::TestCase
+
+class ConfigFileLoadingTest < MiniTest::Unit::TestCase
 
   def setup
     # While FakeFS stubs out all the File system related libraries (i.e. File,

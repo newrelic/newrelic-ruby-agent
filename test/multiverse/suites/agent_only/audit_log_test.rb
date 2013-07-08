@@ -4,24 +4,17 @@
 
 # RUBY-981 Audit Log
 
-require 'test/unit'
 require 'newrelic_rpm'
-require 'fake_collector'
 require 'multiverse_helpers'
 
-class AuditLogTest < Test::Unit::TestCase
+class AuditLogTest < MiniTest::Unit::TestCase
   include MultiverseHelpers
 
   # Initialization
   def setup
-    setup_collector
-
     @string_log = StringIO.new
     NewRelic::Agent::AuditLogger.any_instance.stubs(:ensure_log_path).returns(@string_log)
-  end
 
-  def teardown
-    reset_collector
   end
 
   def audit_log_contents
@@ -69,34 +62,38 @@ class AuditLogTest < Test::Unit::TestCase
     end
   end
 
-  def run_agent_with_options(options)
-    NewRelic::Agent.manual_start(options)
-    yield NewRelic::Agent.agent if block_given?
-    NewRelic::Agent.shutdown
-  end
-
   def test_logs_nothing_by_default
-    run_agent_with_options({})
-    assert_equal('', audit_log_contents)
+    run_agent do
+      perform_actions
+      assert_equal('', audit_log_contents)
+    end
   end
 
   def test_logs_nothing_when_disabled
-    run_agent_with_options({ :'audit_log.enabled' => false })
-    assert_equal('', audit_log_contents)
+    run_agent(:'audit_log.enabled' => false) do
+      perform_actions
+      assert_equal('', audit_log_contents)
+    end
   end
 
   def test_logs_request_bodies_human_readably_ish
-    format = NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported? ? :json : :pruby
-    run_agent_with_options({ :'audit_log.enabled' => true }) do |agent|
-      agent.sql_sampler.notice_first_scope_push(nil)
-      agent.sql_sampler.notice_sql("select * from test",
-                                    "Database/test/select",
-                                    nil, 1.5)
-      agent.sql_sampler.notice_scope_empty('txn')
-      agent.send(:harvest_and_send_slowest_sql)
+    run_agent(:'audit_log.enabled' => true) do
+      perform_actions
+      format = NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported? ? :json : :pruby
+      $collector.agent_data.each do |req|
+        assert_audit_log_contains_object(req.body, format)
+      end
     end
-    $collector.agent_data.each do |req|
-      assert_audit_log_contains_object(req.body, format)
-    end
+  end
+
+  def perform_actions
+    reset_collector
+
+    NewRelic::Agent.instance.sql_sampler.notice_first_scope_push(nil)
+    NewRelic::Agent.instance.sql_sampler.notice_sql("select * from test",
+                                 "Database/test/select",
+                                 nil, 1.5)
+    NewRelic::Agent.instance.sql_sampler.notice_scope_empty('txn')
+    NewRelic::Agent.instance.send(:harvest_and_send_slowest_sql)
   end
 end

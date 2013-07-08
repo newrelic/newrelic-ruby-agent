@@ -82,7 +82,14 @@ get /\/regex.*/ do
   "Yeah, regex's!"
 end
 
-class SinatraClassicTest < Test::Unit::TestCase
+module Sinatra
+  class Application < Base
+    # Override to not accidentally start the app in at_exit handler
+    set :run, Proc.new { false }
+  end
+end
+
+class SinatraClassicTest < MiniTest::Unit::TestCase
   include SinatraTestCases
 
   def app
