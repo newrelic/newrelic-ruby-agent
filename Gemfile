@@ -5,6 +5,7 @@ group :development do
   # There's problems with the test task in rake 10
   # https://github.com/jimweirich/rake/issues/144
   gem 'rake', '0.9.6'
+  gem 'minitest', '~>4.7.0'
   gem 'mocha', '~>0.13.0', :require => false
   gem 'sdoc-helpers'
   gem 'rdoc', '>= 2.4.2'

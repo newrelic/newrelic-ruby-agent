@@ -16,7 +16,12 @@ module NewRelic
         end
 
         def host
-          @connection.address
+          if hostname = self['host']
+            idx = hostname.index(':')
+            idx ? hostname[0,idx] : hostname
+          else
+            @connection.address
+          end
         end
 
         def method
