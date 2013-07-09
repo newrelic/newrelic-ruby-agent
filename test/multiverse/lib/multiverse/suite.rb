@@ -131,9 +131,21 @@ module Multiverse
       puts yellow("\nRunning #{directory.inspect} in #{environments.size} environments")
       environments.before.call if environments.before
       environments.each_with_index do |gemfile_text, i|
-        execute_with_pipe(i)
+        with_clean_env do
+          execute_with_pipe(i)
+        end
       end
       environments.after.call if environments.after
+    end
+
+    def with_clean_env
+      if defined?(Bundler)
+        # clear $BUNDLE_GEMFILE and $RUBYOPT so that the ruby subprocess can run
+        # in the context of another bundle.
+        Bundler.with_clean_env { yield }
+      else
+        yield
+      end
     end
 
     def execute_with_pipe(env)
