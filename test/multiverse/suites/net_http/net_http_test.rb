@@ -20,11 +20,11 @@ class NetHttpTest < Test::Unit::TestCase
     "Net::HTTP"
   end
 
-  def get_response(url=nil)
+  def get_response(url=nil, headers=nil)
     uri = default_uri
     uri = URI.parse(url) unless url.nil?
 
-    start(uri) { |http| http.get(uri.path) }
+    start(uri) { |http| http.get(uri.path, headers) }
   end
 
   def get_response_multi(url, n)
