@@ -2,6 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'multiverse_helpers'
 
 class SinatraTestApp < Sinatra::Base
   get '/hello/:name' do |name|
@@ -27,13 +28,18 @@ end
 class SinatraMetricExplosionTest < MiniTest::Unit::TestCase
   include Rack::Test::Methods
   include ::NewRelic::Agent::Instrumentation::Sinatra
+  include MultiverseHelpers
 
   def app
     SinatraTestApp
   end
 
   def setup
-    ::NewRelic::Agent.agent.stats_engine.clear_stats
+    setup_agent
+  end
+
+  def teardown
+    teardown_agent
   end
 
   def test_sinatra_returns_properly
@@ -64,6 +70,7 @@ class SinatraMetricExplosionTest < MiniTest::Unit::TestCase
 
     metric_names = ::NewRelic::Agent.agent.stats_engine.metrics
     metric_names -= ['CPU/User Time', "Middleware/all", "WebFrontend/QueueTime", "WebFrontend/WebServer/all"]
+    metric_names.delete_if {|metric| metric.start_with?("Supportability")}
     assert_equal 6, metric_names.size, "Explosion detected in: #{metric_names.inspect}"
   end
 

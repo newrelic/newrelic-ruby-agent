@@ -2,6 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'multiverse_helpers'
+
 class SinatraIgnoreTestApp < Sinatra::Base
   get '/record' do request.path_info end
 
@@ -37,10 +39,14 @@ end
 class SinatraTestCase < MiniTest::Unit::TestCase
   include Rack::Test::Methods
   include ::NewRelic::Agent::Instrumentation::Sinatra
+  include MultiverseHelpers
 
   def setup
-    NewRelic::Agent.manual_start
-    NewRelic::Agent.instance.stats_engine.reset_stats
+    setup_agent
+  end
+
+  def teardown
+    teardown_agent
   end
 
   def get_and_assert_ok(path)
@@ -154,6 +160,9 @@ class SinatraIgnoreItAllTest < SinatraTestCase
   end
 
   def test_ignores_everything
+    # Avoid Supportability metrics from startup of agent for this check
+    NewRelic::Agent.instance.reset_stats
+
     get_and_assert_ok '/'
     assert_metrics_recorded_exclusive([])
   end

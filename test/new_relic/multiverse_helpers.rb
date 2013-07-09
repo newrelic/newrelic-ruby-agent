@@ -36,6 +36,9 @@ module MultiverseHelpers
     # Clear out lingering stats we didn't transmit
     NewRelic::Agent.instance.reset_stats
 
+    # Clear out lingering errors in the collector
+    NewRelic::Agent.instance.error_collector.harvest_errors(nil)
+
     NewRelic::Agent.shutdown
   end
 

@@ -5,8 +5,12 @@
 # This module brings the base test cases that should run against both classic and
 # module Sinatra apps. The sinatra_class_test and sinatra_modular_test files
 # both maintain the same app structure in both forms, and this exercises them.
+
+require 'multiverse_helpers'
+
 module SinatraTestCases
   include Rack::Test::Methods
+  include MultiverseHelpers
 
   def app
     raise "Must implement app on your test case"
@@ -18,16 +22,11 @@ module SinatraTestCases
 
   def setup
     $precondition_already_checked = false
-    ::NewRelic::Agent.manual_start
+    setup_agent
   end
 
   def teardown
-    reset
-  end
-
-  def reset
-    ::NewRelic::Agent.agent.stats_engine.reset_stats
-    ::NewRelic::Agent.agent.error_collector.harvest_errors([])
+    teardown_agent
   end
 
   # https://support.newrelic.com/tickets/24779
@@ -73,9 +72,9 @@ module SinatraTestCases
     get '/route/match'
     assert_equal 'first route', last_response.body
     assert_metrics_recorded(["Controller/Sinatra/#{app_name}/GET route/([^/?#]+)"])
+  end
 
-    reset
-
+  def test_finds_second_route
     get '/route/no_match'
     assert_equal 'second route', last_response.body
     assert_metrics_recorded(["Controller/Sinatra/#{app_name}/GET route/no_match"])

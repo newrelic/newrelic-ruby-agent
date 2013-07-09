@@ -2,6 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'multiverse_helpers'
 
 class SinatraRouteTestApp < Sinatra::Base
   configure do
@@ -27,13 +28,18 @@ end
 class SinatraRoutesTest < MiniTest::Unit::TestCase
   include Rack::Test::Methods
   include ::NewRelic::Agent::Instrumentation::Sinatra
+  include MultiverseHelpers
 
   def app
     SinatraRouteTestApp
   end
 
   def setup
-    ::NewRelic::Agent.manual_start
+    setup_agent
+  end
+
+  def teardown
+    teardown_agent
   end
 
   # https://support.newrelic.com/tickets/24779

@@ -2,6 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'multiverse_helpers'
+
 class SinatraErrorTracingTestApp < Sinatra::Base
   configure do
     set :show_exceptions, false
@@ -19,18 +21,19 @@ end
 class SinatraErrorTracingTest < MiniTest::Unit::TestCase
   include Rack::Test::Methods
   include ::NewRelic::Agent::Instrumentation::Sinatra
+  include MultiverseHelpers
 
   def app
     SinatraErrorTracingTestApp
   end
 
   def setup
-    ::NewRelic::Agent.manual_start
-    @error_collector = ::NewRelic::Agent.instance.error_collector
+    setup_agent
+    @error_collector = NewRelic::Agent.instance.error_collector
+  end
 
-    @error_collector.errors.clear
-    assert(@error_collector.enabled?,
-           'error collector should be enabled')
+  def teardown
+    teardown_agent
   end
 
   def test_traps_errors
