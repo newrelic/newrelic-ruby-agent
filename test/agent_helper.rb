@@ -268,12 +268,25 @@ ensure
   end
 end
 
+def constant_path(name)
+  path = [Object]
+  parts = name.gsub(/^::/, '').split('::')
+  parts.each do |part|
+    return nil unless path.last.const_defined?(part)
+    path << path.last.const_get(part)
+  end
+  path
+end
+
 def undefine_constant(constant_symbol)
-  return yield unless Object.const_defined?(constant_symbol)
-  removed_constant = Object.send(:remove_const, constant_symbol)
+  const_path = constant_path(constant_symbol.to_s)
+  return yield unless const_path
+  parent = const_path[-2]
+  const_name = constant_symbol.to_s.gsub(/.*::/, '')
+  removed_constant = parent.send(:remove_const, const_name)
   yield
 ensure
-  Object.const_set(constant_symbol, removed_constant) if removed_constant
+  parent.const_set(const_name, removed_constant) if removed_constant
 end
 
 def internet_connection?
