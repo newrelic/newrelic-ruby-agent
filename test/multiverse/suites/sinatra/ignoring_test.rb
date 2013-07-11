@@ -41,13 +41,7 @@ class SinatraTestCase < MiniTest::Unit::TestCase
   include ::NewRelic::Agent::Instrumentation::Sinatra
   include MultiverseHelpers
 
-  def setup
-    setup_agent
-  end
-
-  def teardown
-    teardown_agent
-  end
+  setup_and_teardown_agent
 
   def get_and_assert_ok(path)
     get(path)

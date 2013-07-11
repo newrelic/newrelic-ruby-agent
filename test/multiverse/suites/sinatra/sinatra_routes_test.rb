@@ -28,18 +28,13 @@ end
 class SinatraRoutesTest < MiniTest::Unit::TestCase
   include Rack::Test::Methods
   include ::NewRelic::Agent::Instrumentation::Sinatra
+
   include MultiverseHelpers
+
+  setup_and_teardown_agent
 
   def app
     SinatraRouteTestApp
-  end
-
-  def setup
-    setup_agent
-  end
-
-  def teardown
-    teardown_agent
   end
 
   # https://support.newrelic.com/tickets/24779

@@ -12,6 +12,7 @@ module SinatraTestCases
   include Rack::Test::Methods
   include MultiverseHelpers
 
+
   def app
     raise "Must implement app on your test case"
   end
@@ -20,13 +21,10 @@ module SinatraTestCases
     app.to_s
   end
 
-  def setup
-    $precondition_already_checked = false
-    setup_agent
-  end
+  setup_and_teardown_agent
 
-  def teardown
-    teardown_agent
+  def after_setup
+    $precondition_already_checked = false
   end
 
   # https://support.newrelic.com/tickets/24779
