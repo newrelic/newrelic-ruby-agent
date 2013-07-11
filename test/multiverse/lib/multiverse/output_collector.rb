@@ -10,15 +10,35 @@ module Multiverse
   module OutputCollector
     include Color
     extend Color
+
     def self.buffers
-      @buffer ||= []
+      @buffers ||= {}
     end
 
     def self.failing_output
       @failing ||= []
     end
 
-    def self.report
+    def self.buffer(suite, env)
+      key = [suite, env]
+      buffers[key] ||= ""
+      buffers[key]
+    end
+
+    def self.failed(suite, env)
+      @failing ||= []
+      @failing << buffer(suite, env) + "\n"
+    end
+
+    def self.write(suite, env, msg)
+      buffer(suite, env) << msg
+    end
+
+    def self.suite_report(suite, env)
+      puts buffer(suite, env)
+    end
+
+    def self.overall_report
       puts
       puts
       if failing_output.empty?

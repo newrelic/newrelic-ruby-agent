@@ -3,6 +3,8 @@ tmp
 .bundler_work_area
 Gemfile
 Gemfile.lock
+Gemfile.*
+Gemfile.*.lock
 *.log
 *.db
 .idea

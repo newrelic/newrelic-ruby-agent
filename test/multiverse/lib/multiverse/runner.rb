@@ -61,7 +61,7 @@ module Multiverse
         end
       end
 
-      OutputCollector.report
+      OutputCollector.overall_report
       exit exit_status
     end
 
