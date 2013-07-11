@@ -6,32 +6,32 @@ require "newrelic_rpm"
 require "fake_external_server"
 require "evil_server"
 require 'mocha'
+require 'multiverse_helpers'
 
 module HttpClientTestCases
   include NewRelic::Agent::Instrumentation::ControllerInstrumentation,
           NewRelic::Agent::CrossAppMonitor::EncodingFunctions,
-          NewRelic::Agent::CrossAppTracing
+          NewRelic::Agent::CrossAppTracing,
+          MultiverseHelpers
 
   TRANSACTION_GUID = 'BEC1BC64675138B9'
 
   $fake_server = NewRelic::FakeExternalServer.new
   $fake_secure_server = NewRelic::FakeSecureExternalServer.new
 
-  def setup
-    $fake_server.reset
-    $fake_server.run
-
-    $fake_secure_server.reset
-    $fake_secure_server.run
-
-    NewRelic::Agent.manual_start(
+  setup_and_teardown_agent(
       :"cross_application_tracer.enabled" => false,
       :cross_process_id                   => "269975#22824",
       :encoding_key                       => "gringletoes",
       :trusted_account_ids                => [269975]
     )
 
-    NewRelic::Agent.instance.reset_stats
+  def after_setup
+    $fake_server.reset
+    $fake_server.run
+
+    $fake_secure_server.reset
+    $fake_secure_server.run
 
     NewRelic::Agent.instance.events.clear
     NewRelic::Agent.instance.cross_app_monitor.register_event_listeners
@@ -44,12 +44,6 @@ module HttpClientTestCases
 
     @engine = NewRelic::Agent.instance.stats_engine
     NewRelic::Agent::TransactionInfo.get.guid = TRANSACTION_GUID
-  end
-
-  def teardown
-    NewRelic::Agent.instance.transaction_sampler.reset!
-    Thread::current[:newrelic_scope_stack] = nil
-    NewRelic::Agent.instance.stats_engine.end_transaction
   end
 
   # Helpers to support shared tests
