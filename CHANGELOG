@@ -128,7 +128,7 @@
 
 ## v3.6.0 ##
 
-  * Sidekiq supprt
+  * Sidekiq support
 
   The Ruby agent now supports the Sidekiq background job framework. Traces from
   Sidekiq jobs will automatically show up in the Background tasks on New Relic
@@ -333,7 +333,7 @@
   * The host and the port that the agent reports to can now be set from environment vars
 
     The host can be set with NEW_RELIC_HOST and the port with NEW_RELIC_PORT.  These setting
-    will overrride any other settings in your newrelic.yml.
+    will override any other settings in your newrelic.yml.
 
   * Fix RUM reporting to multiple applications
 
@@ -345,16 +345,16 @@
   * Update the collector protocol to use JSON and Ruby primitives
 
     The communication between the agent and the NewRelic will not longer be
-    marshalled Ruby objects, but rather JSON in the case of Ruby 1.9 and marshalled
+    marshaled Ruby objects, but rather JSON in the case of Ruby 1.9 and marshaled
     Ruby primitives in the case of 1.8.  This results in greater harvest efficiency
     as well as feature parity with other New Relic agents.
 
   * Fix incorrect application of conditions in sinatra instrumentation
 
-    The agent's sinatra instrumentation was causing sinatra's condidtions to
+    The agent's sinatra instrumentation was causing sinatra's conditions to
     be incorrectly applied in some obscure cases.  The bug was triggered
     when a condition was present on a lower priority route that would match
-    the current request, except for the precense of a higher priority route.
+    the current request, except for the presence of a higher priority route.
 
 ## v3.5.2 ##
 
@@ -418,7 +418,7 @@
    dispatcher an INFO level log message it created that includes a link to New Relic
    online doc that has additional steps that may be required to get performance data reporting.
 
- * (Fix) In version 3.4.2 of the Ruby Agent the server side value for Apdex T was disgregarded
+ * (Fix) In version 3.4.2 of the Ruby Agent the server side value for Apdex T was disregarded
 
    With version 3.4.2 of the agent, the value set in the newrelic.yml file took precedence over the
    value set in the New Relic UI.  As of version 3.5.0 only the value for Apdex T set in the
@@ -463,7 +463,7 @@
 
  * The RUM NRAGENT tk value gets more robustly sanitized to prevent potential XSS vulnerabilities
 
-   The code that scrubes the token used in Real User Monitoring has been enhanced to be
+   The code that scrubs the token used in Real User Monitoring has been enhanced to be
    more robust.
 
  * Support for Apdex T in server side configuration
@@ -473,7 +473,7 @@
 
  * Refactoring of agent config code
 
-   The code that reads the configuration information and confirgures the agent
+   The code that reads the configuration information and configures the agent
    got substantially reorganized, consolidated, simplified, and made more robust.
 
 ## v3.4.1 ##
@@ -506,7 +506,7 @@
 
  * corrupt marshal data from pipe children crashing agent
 
-   If the agent receieved corrupted data from the Reqsue worker child agent
+   If the agent received corrupted data from the Reqsue worker child agent
    it could crash the agent itself. fixed.
 
  * should reset RubyBench GC counter between polls
@@ -559,7 +559,7 @@ v3.3.1
   * improved Ruby 1.8.6 support
   * fix for issues with RAILS_ROOT deprecation warnings
   * fixed incorrect 1.9 GC time reporting
-  * obfusction for Slow SQL queries respects transaction trace config
+  * obfuscation for Slow SQL queries respects transaction trace config
   * fix for RUM instrumentation repoting bad timing info in some cases
   * refactored ActiveRecord instrumentation, no longer requires Rails
 
@@ -657,7 +657,7 @@ v2.13.3
   * Delete obsolete links to metric docs in developer mode
   * Detect gems when using Bundler
   * Fix newrelic_ignore in Rails 3
-  * Break metric parser into a seperate vendored gem
+  * Break metric parser into a separate vendored gem
   * When using Unicorn, preload_app: true is recommended to get proper
     after_fork behavior.
 
@@ -688,7 +688,7 @@ v2.13.0
   * added record_transaction method to the api to allow recording
     details from web and background transactions occurring outside RPM
   * fixed a bug related to enabling a gold trial / upgrade not sending
-    trasaction traces correctly
+    transaction traces correctly
 
 v2.12.3
   * fix regression in startup sequence
@@ -749,7 +749,7 @@ v2.10.8
   * preliminary support for rails3
 
 v2.10.6
-  * fix missing URL and referer on some traced errors and transactions
+  * fix missing URL and referrer on some traced errors and transactions
   * gather traced errors *after* executing the rescue chain in ActionController
   * always load controller instrumentation
   * pick up token validation from newrelic.yml
@@ -809,7 +809,7 @@ v2.10.1.
     tasks and eventually things like rack, metal and Sinatra
   * adjusted apdex scores to reflect time spent in the mongrel queue
   * fixed incompatibility with JRuby on startup
-  * implmented CPU measure for JRuby which reflects the cpu burn for
+  * implemented CPU measure for JRuby which reflects the cpu burn for
     all controller actions (does not include background tasks)
   * fixed scope issue with GC instrumentation, subtracting time from caller
   * added # of GC calls to GC instrumentation
@@ -822,7 +822,7 @@ v2.10.0.
   * support unicorn
   * instrumentation of GC for REE and MRE with GC patch
   * support agent restarting when changes are made to the account
-  * removed #newrelic_notice_error from Object class, replaced by NewRelic::Agent#notic_error
+  * removed #newrelic_notice_error from Object class, replaced by NewRelic::Agent#notice_error
   * collect histogram statistics
   * add custom parameters to newrelic_notice_error call to display
     extra info for errors
@@ -933,7 +933,7 @@ v2.9.0.
   Agent improvements to support future RPM enhancements
   * add instrumentation to capture metrics on response codes; not yet
     working in rails 2.3.*
-  * added http referer to traced errors
+  * added http referrer to traced errors
   * capture gem requirements from rails
   * capture cpu utilization adjusted for processor count
   * transaction sampling
@@ -1075,7 +1075,7 @@ v2.3.6.
   * bugfixes
 
 v2.3.5.
-  * bugfixes: pie chart data, rails 1.1 compability
+  * bugfixes: pie chart data, rails 1.1 compatibility
 
 v2.3.4.
   * bugfix
