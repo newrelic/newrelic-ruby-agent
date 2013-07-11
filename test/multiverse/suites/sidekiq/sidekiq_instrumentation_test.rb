@@ -16,6 +16,8 @@ class SidekiqTest < MiniTest::Unit::TestCase
 
   include MultiverseHelpers
 
+  setup_and_teardown_agent
+
   class TestWorker
     include Sidekiq::Worker
 
@@ -47,9 +49,7 @@ class SidekiqTest < MiniTest::Unit::TestCase
     end
   end
 
-  def setup
-    setup_collector
-
+  def run_jobs
     TestWorker.reset
     JOB_COUNT.times do |i|
       TestWorker.perform_async('jobs_completed', i + 1)
@@ -58,17 +58,15 @@ class SidekiqTest < MiniTest::Unit::TestCase
     NewRelic::Agent.instance.send(:transmit_data)
   end
 
-  def teardown
-    reset_collector
-  end
-
   def test_all_jobs_ran
+    run_jobs
     completed_jobs = Set.new(TestWorker.records_for('jobs_completed').map(&:to_i))
     expected_completed_jobs = Set.new((1..JOB_COUNT).to_a)
     assert_equal(expected_completed_jobs, completed_jobs)
   end
 
   def test_agent_posts_correct_metric_data
+    run_jobs
     assert_metric_and_call_count('OtherTransaction/SidekiqJob/all', JOB_COUNT)
   end
 
