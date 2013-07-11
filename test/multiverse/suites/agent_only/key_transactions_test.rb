@@ -6,7 +6,21 @@ require File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper')
 require 'multiverse_helpers'
 
 class KeyTransactionsTest < MiniTest::Unit::TestCase
+
   include MultiverseHelpers
+
+  setup_and_teardown_agent do |collector|
+    key_txn_name = 'Controller/KeyTransactionsTest::TestWidget/key_txn'
+    collector.stub('connect',
+                   {
+      'web_transactions_apdex' => { key_txn_name => 1 },
+      'apdex_t' => 10
+    })
+  end
+
+  def after_setup
+    freeze_time
+  end
 
   class TestWidget
     include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
@@ -20,23 +34,6 @@ class KeyTransactionsTest < MiniTest::Unit::TestCase
       advance_time(5)
     end
     add_transaction_tracer :other_txn
-  end
-
-  def setup
-    setup_agent do |collector|
-      key_txn_name = 'Controller/KeyTransactionsTest::TestWidget/key_txn'
-      collector.stub('connect',
-        {
-          'web_transactions_apdex' => { key_txn_name => 1 },
-          'apdex_t' => 10
-        })
-    end
-
-    freeze_time
-  end
-
-  def teardown
-    teardown_agent
   end
 
   SATISFYING = 0

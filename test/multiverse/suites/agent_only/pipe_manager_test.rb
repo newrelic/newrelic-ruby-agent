@@ -9,13 +9,13 @@ require 'multiverse_helpers'
 class PipeManagerTest < MiniTest::Unit::TestCase
   include MultiverseHelpers
 
-  def setup
-    setup_agent
+  setup_and_teardown_agent
+
+  def after_setup
     @listener = NewRelic::Agent::PipeChannelManager.listener
   end
 
-  def teardown
-    teardown_agent
+  def after_teardown
     @listener.stop
   end
 

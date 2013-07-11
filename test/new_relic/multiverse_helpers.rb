@@ -15,6 +15,10 @@ module MultiverseHelpers
     base.extend(self)
   end
 
+  def agent
+    NewRelic::Agent.instance
+  end
+
   def setup_and_teardown_agent(opts = {}, &block)
     define_method(:setup) do
       before_setup if respond_to?(:before_setup)

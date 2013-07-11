@@ -11,8 +11,10 @@ require 'multiverse_helpers'
 require 'minitest/unit'
 
 class InstrumentActiveRecordMethods < MiniTest::Unit::TestCase
-  include MultiverseHelpers
   extend Multiverse::Color
+
+  include MultiverseHelpers
+  setup_and_teardown_agent
 
   if RUBY_VERSION >= '1.8.7'
     if RUBY_PLATFORM == 'java'
@@ -39,8 +41,7 @@ class InstrumentActiveRecordMethods < MiniTest::Unit::TestCase
       add_method_tracer :destroyed?
     end
 
-    def setup
-      setup_agent
+    def after_setup
       puts "adapter : #{@@adapter}"
       @db_connection = ActiveRecord::Base.establish_connection( :adapter => @@adapter, :database => "testdb.sqlite3")
       ActiveRecord::Migration.class_eval do
@@ -56,8 +57,7 @@ class InstrumentActiveRecordMethods < MiniTest::Unit::TestCase
       end
     end
 
-    def teardown
-      teardown_agent
+    def after_teardown
       @db_connection = ActiveRecord::Base.establish_connection( :adapter => "sqlite3", :database => "testdb.sqlite3")
       ActiveRecord::Migration.class_eval do
         @connection = @db_connection

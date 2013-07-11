@@ -10,19 +10,16 @@ require 'multiverse_helpers'
 class RumAutoTest < MiniTest::Unit::TestCase
 
   attr_reader :app
+
   include Rack::Test::Methods
   include MultiverseHelpers
 
-  def setup
+  setup_and_teardown_agent(:browser_key => 'browserKey', :application_id => 'appId',
+                            :beacon => 'beacon', :episodes_file => 'this_is_my_file')
+
+  def after_setup
     @inner_app = TestingApp.new
     @app = NewRelic::Rack::BrowserMonitoring.new(@inner_app)
-
-    setup_agent(:browser_key => 'browserKey', :application_id => 'appId',
-                :beacon => 'beacon', :episodes_file => 'this_is_my_file')
-  end
-
-  def teardown
-    teardown_agent
   end
 
   def test_autoinstrumentation_is_active

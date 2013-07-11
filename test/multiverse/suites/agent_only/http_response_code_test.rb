@@ -9,48 +9,31 @@ require 'multiverse_helpers'
 class HttpResponseCodeTest < MiniTest::Unit::TestCase
   include MultiverseHelpers
 
-  def setup
-    setup_agent
-    @agent = NewRelic::Agent.instance
-  end
-
-  def teardown
-    teardown_agent
-  end
+  setup_and_teardown_agent
 
   def test_request_entity_too_large
     $collector.mock['metric_data'] = [413, {'exception' => {'error_type' => 'RuntimeError', 'message' => 'too much'}}]
 
-    @agent.stats_engine.get_stats_no_scope('Custom/too_big') \
-      .record_data_point(1)
-    assert_equal 1, @agent.stats_engine \
-      .get_stats_no_scope('Custom/too_big').call_count
+    NewRelic::Agent.increment_metric('Custom/too_big')
+    assert_metrics_recorded(['Custom/too_big'])
 
-    @agent.send(:harvest_and_send_timeslice_data)
+    agent.send(:harvest_and_send_timeslice_data)
 
-    # make sure the data gets thrown away without crashing
-    assert_equal 0, @agent.stats_engine \
-      .get_stats_no_scope('Custom/too_big').call_count
-
-    # make sure we actually talked to the collector
-    assert_equal(1, $collector.agent_data.select{|x| x.action == 'metric_data'}.size)
+    # make sure the data gets thrown away after we called collector without crashing
+    assert_metrics_not_recorded(['Custom/too_big'])
+    assert_equal(1, $collector.calls_for('metric_data').size)
   end
 
   def test_unsupported_media_type
     $collector.mock['metric_data'] = [415, {'exception' => {'error_type' => 'RuntimeError', 'message' => 'looks bad'}}]
 
-    @agent.stats_engine.get_stats_no_scope('Custom/too_big') \
-      .record_data_point(1)
-    assert_equal 1, @agent.stats_engine \
-      .get_stats_no_scope('Custom/too_big').call_count
+    NewRelic::Agent.increment_metric('Custom/too_big')
+    assert_metrics_recorded(['Custom/too_big'])
 
-    @agent.send(:harvest_and_send_timeslice_data)
+    agent.send(:harvest_and_send_timeslice_data)
 
-    # make sure the data gets thrown away without crashing
-    assert_equal 0, @agent.stats_engine \
-      .get_stats_no_scope('Custom/too_big').call_count
-
-    # make sure we actually talked to the collector
-    assert_equal(1, $collector.agent_data.select{|x| x.action == 'metric_data'}.size)
+    # make sure the data gets thrown away after we called collector without crashing
+    assert_metrics_not_recorded(['Custom/too_big'])
+    assert_equal(1, $collector.calls_for('metric_data').size)
   end
 end

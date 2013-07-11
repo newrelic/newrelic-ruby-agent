@@ -10,26 +10,24 @@ if RUBY_VERSION >= '1.9'
 require 'multiverse_helpers'
 
 class ThreadProfilingTest < MiniTest::Unit::TestCase
+
   include MultiverseHelpers
 
-  def setup
-    setup_agent(:'thread_profiler.enabled' => true, :force_send => true) do |collector|
-      collector.stub('connect', {"agent_run_id" => 666 })
-      collector.stub('get_agent_commands', START_COMMAND)
-      collector.stub('agent_command_results', [])
-    end
+  setup_and_teardown_agent(:'thread_profiler.enabled' => true, :force_send => true) do |collector|
+    collector.stub('connect', {"agent_run_id" => 666 })
+    collector.stub('get_agent_commands', START_COMMAND)
+    collector.stub('agent_command_results', [])
+  end
 
-    @agent = NewRelic::Agent.instance
-    @agent.service.request_timeout = 0.5
-    @agent.service.agent_id = 666
+  def after_setup
+    agent.service.request_timeout = 0.5
+    agent.service.agent_id = 666
 
-    @thread_profiler = @agent.thread_profiler
+    @thread_profiler = agent.thread_profiler
     @threads = []
   end
 
-  def teardown
-    teardown_agent
-
+  def after_teardown
     @threads.each { |t| t.kill }
     @threads = nil
   end
@@ -62,7 +60,7 @@ class ThreadProfilingTest < MiniTest::Unit::TestCase
   # go only let a few cycles through, so we check less than 10
 
   def test_thread_profiling
-    @agent.send(:check_for_agent_commands)
+    agent.send(:check_for_agent_commands)
 
     run_thread { NewRelic::Agent::Transaction.start(:controller, :request => stub) }
     run_thread { NewRelic::Agent::Transaction.start(:task) }
@@ -80,10 +78,10 @@ class ThreadProfilingTest < MiniTest::Unit::TestCase
   end
 
   def test_thread_profiling_can_stop
-    @agent.send(:check_for_agent_commands)
+    agent.send(:check_for_agent_commands)
 
     $collector.mock['get_agent_commands'] = [200, {'return_value' => STOP_COMMAND}]
-    @agent.send(:check_for_agent_commands)
+    agent.send(:check_for_agent_commands)
 
     let_it_finish
 
@@ -107,7 +105,7 @@ class ThreadProfilingTest < MiniTest::Unit::TestCase
       end
     end
 
-    @agent.send(:transmit_data, true)
+    agent.send(:transmit_data, true)
   end
 
   def assert_saw_traces(profile_data, type)
