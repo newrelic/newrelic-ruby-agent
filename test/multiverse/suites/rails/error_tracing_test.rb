@@ -15,6 +15,10 @@ class ErrorController < ApplicationController
     raise 'this is an uncaught controller error'
   end
 
+  def stack_error
+    stack_error
+  end
+
   def view_error
     render :inline => "<% raise 'this is an uncaught view error' %>"
   end
@@ -85,6 +89,10 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
            'no ignore error filter should be set')
   end
 
+  def last_error
+    @error_collector.errors.last
+  end
+
   def test_error_collector_should_be_enabled
     assert NewRelic::Agent.config[:agent_enabled]
     assert NewRelic::Agent.config[:'error_collector.enabled']
@@ -136,12 +144,24 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
     assert_error_reported_once('this is an uncaught routing error')
   end
 
+  def test_should_apply_parameter_filtering
+    get '/error/controller_error?secret=shouldnotbecaptured&other=whatever'
+    params = last_error.params[:request_params]
+    assert_equal('[FILTERED]', params['secret'])
+    assert_equal('whatever', params['other'])
+  end
+
+  def test_should_apply_parameter_filtering_for_system_stack_errors
+    get '/error/stack_error?secret=shouldnotbecaptured&other=whatever'
+    params = last_error.params[:request_params]
+    assert_equal('[FILTERED]', params['secret'])
+    assert_equal('whatever', params['other'])
+  end
+
   def test_should_capture_request_uri_and_params
     get '/bad_route?eat=static'
-    assert_equal('/bad_route',
-                 @error_collector.errors[0].params[:request_uri])
-    assert_equal({'eat' => 'static'},
-                 @error_collector.errors[0].params[:request_params])
+    assert_equal('/bad_route', last_error.params[:request_uri])
+    assert_equal({'eat' => 'static'}, last_error.params[:request_params])
   end
 
   def test_should_not_notice_errors_from_ignored_action

@@ -45,8 +45,7 @@ module NewRelic::Rack
         get '/'
       end
 
-      assert_equal('unhandled error',
-                   NewRelic::Agent.instance.error_collector.errors[0].message)
+      assert_equal('unhandled error', last_error.message)
     end
 
     def test_ignore_filtered_errors
@@ -76,20 +75,54 @@ module NewRelic::Rack
     end
 
     def test_handles_parameter_parsing_exceptions
-      bad_request = stub(:env => {}, :path => '/', :referer => '')
-      bad_request.stubs(:params).raises(TypeError, "can't convert nil into Hash")
-      Rack::Request.stubs(:new).returns(bad_request)
+      bad_request = stub.stubs(:filtered_params).raises(TypeError, "can't convert nil into Hash")
+      ActionDispatch::Request.stubs(:new).returns(bad_request)
 
       assert_raise RuntimeError do
         get '/'
       end
 
-      assert_equal('unhandled error',
-                   NewRelic::Agent.instance.error_collector.errors[0].message)
+      assert_equal('unhandled error', last_error.message)
       assert_match(/failed to capture request parameters/i,
-                   NewRelic::Agent.instance.error_collector.errors[0].params[:request_params]['error'])
+                   last_error.params[:request_params]['error'])
     end
 
+    def test_handles_failure_to_create_request_object
+      ActionDispatch::Request.stubs(:new).raises('bad news')
+
+      assert_raise RuntimeError do
+        get '/foo/bar?q=12'
+      end
+
+      assert_equal('unhandled error', last_error.message)
+      assert_equal('/foo/bar', last_error.params[:request_uri])
+    end
+
+    def test_captures_parameters_with_rails
+      assert_raise RuntimeError do
+        get '/?foo=bar&baz=qux'
+      end
+
+      expected_params = { 'foo' => 'bar', 'baz' => 'qux' }
+      assert_equal('unhandled error', last_error.message)
+      assert_equal(expected_params, last_error.params[:request_params])
+    end
+
+    def test_captures_parameters_without_rails
+      undefine_constant(:'ActionDispatch::Request') do
+        assert_raise RuntimeError do
+          get '/?foo=bar&baz=qux'
+        end
+      end
+
+      expected_params = { 'foo' => 'bar', 'baz' => 'qux' }
+      assert_equal('unhandled error', last_error.message)
+      assert_equal(expected_params, last_error.params[:request_params])
+    end
+
+    def last_error
+      NewRelic::Agent.instance.error_collector.errors[0]
+    end
   end
 end
 
