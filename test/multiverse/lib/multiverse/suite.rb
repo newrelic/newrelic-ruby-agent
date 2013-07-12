@@ -87,7 +87,7 @@ module Multiverse
           f.puts "  gem 'ruby-debug'" if include_debugger
         end
       end
-      puts yellow("Gemfile.#{env_file} set to:") if verbose?
+      puts yellow("Gemfile.#{env_index} set to:") if verbose?
       puts File.open(gemfile).read if verbose?
     end
 
