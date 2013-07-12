@@ -134,7 +134,8 @@ module Performance
       end
     end
 
-    def run_subprocess(test_case_name, method)
+    def run_test_subprocess(test_case, method)
+      test_case_name = test_case.class.name
       test_identifier = "#{test_case_name}##{method}"
       runner_script = File.join(File.dirname($0), 'runner')
       cmd = "#{runner_script} -T #{test_identifier} -j"
@@ -148,19 +149,23 @@ module Performance
       result
     end
 
+    def run_test_inline(test_case, method)
+      begin
+        load_newrelic_rpm
+        test_case.run(method)
+      rescue => e
+        result = Result.new(test_case.class.name, method)
+        result.exception = e
+        result
+      end
+    end
+
     def run_test_case(test_case)
       methods_for_test_case(test_case).map do |method|
         if @options[:isolate]
-          run_subprocess(test_case.class.name, method)
+          run_test_subprocess(test_case, method)
         else
-          begin
-            load_newrelic_rpm
-            test_case.run(method)
-          rescue => e
-            result = Result.new(test_case.class.name, method)
-            result.exception = e
-            result
-          end
+          run_test_inline(test_case, method)
         end
       end
     end
