@@ -117,8 +117,11 @@ module Multiverse
     end
 
     def execute_child_environment(env_index)
+      configure_before_bundling
+
       gemfile_text = environments[env_index]
       load_dependencies(gemfile_text, env_index)
+
       configure_child_environment
       execute_ruby_files
       trigger_test_run
@@ -179,13 +182,16 @@ module Multiverse
       exit(::MiniTest::Unit.new.run(options))
     end
 
+    def configure_before_bundling
+      disable_harvest_thread
+      configure_fake_collector
+    end
+
     def configure_child_environment
       require 'minitest/unit'
       patch_minitest_for_old_mocha
       prevent_minitest_auto_run
       require_mocha
-      disable_harvest_thread
-      configure_fake_collector
     end
 
     def patch_minitest_for_old_mocha
