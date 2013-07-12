@@ -41,10 +41,10 @@ parser = OptionParser.new do |opts|
   opts.on("-b", "--brief", "Don't print out details for each test, just the elapsed time") do |b|
     options[:brief] = b
   end
-  opts.on("-T", "--test=NAME", "Run one specific test") do |identifier|
+  opts.on("-T", "--test=NAME", "Run one specific test, identified by <suite name>#<test_name>") do |identifier|
     options[:identifier] = identifier
   end
-  opts.on("-m", "--metadata=METADATA", "Attach metadata to the run") do |tags_string|
+  opts.on("-m", "--metadata=METADATA", "Attach metadata to the run. Format: 'key1:value1,key2:value2'") do |tags_string|
     tags = {}
     pairs = tags_string.split(",")
     pairs.each do |pair|
