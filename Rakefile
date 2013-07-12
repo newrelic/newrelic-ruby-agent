@@ -40,6 +40,11 @@ namespace :test do
     ruby test_files.join(" ")
   end
 
+  desc "Run agent performance tests"
+  task 'performance' do
+    ruby "#{agent_home}/test/performance/script/runner"
+  end
+
   Rake::TestTask.new(:intentional_fail) do |t|
     t.libs << "#{agent_home}/test"
     t.libs << "#{agent_home}/lib"
