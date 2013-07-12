@@ -100,3 +100,32 @@ module NewRelic
     end
   end
 end
+
+
+DependencyDetection.defer do
+  named :rack
+
+  depends_on do
+    defined?(::Rack) && defined?(::Rack::Builder)
+  end
+
+  executes do
+    ::NewRelic::Agent.logger.info 'Installing deferred Rack instrumentation'
+  end
+
+  executes do
+    class ::Rack::Builder
+
+      def to_app_with_newrelic_deferred_dependency_detection
+        NewRelic::Agent.logger.info "Doing deferred dependency-detection before Rack startup"
+        DependencyDetection.detect!
+        to_app_without_newrelic
+      end
+
+      alias_method :to_app_without_newrelic, :to_app
+      alias_method :to_app, :to_app_with_newrelic_deferred_dependency_detection
+
+    end
+  end
+end
+
