@@ -148,8 +148,12 @@ DependencyDetection.defer do
       def install_completion_callback( request, t0, segment, wrapped_request, wrapped_response )
         existing_completion_proc = request.on_complete
         request.on_complete do |finished_request|
-          NewRelic::Agent::CrossAppTracing.finish_trace( t0, segment, wrapped_request, wrapped_response )
-          existing_completion_proc.call( finished_request ) if existing_completion_proc
+          begin
+            NewRelic::Agent::CrossAppTracing.finish_trace( t0, segment, wrapped_request, wrapped_response )
+          ensure
+            # Make sure the existing completion callback is run
+            existing_completion_proc.call( finished_request ) if existing_completion_proc
+          end
         end
       end
 
