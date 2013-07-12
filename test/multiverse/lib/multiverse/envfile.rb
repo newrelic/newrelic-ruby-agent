@@ -6,8 +6,8 @@ module Multiverse
   # Reads an envfile.rb and converts it into gemfiles that can be used by
   # bundler
   class Envfile
-    attr_accessor :file_path, :condition, :newrelic_gemfile_options
-    attr_reader :before, :after, :mode, :skip_message, :omit_mocha
+    attr_accessor :file_path, :condition
+    attr_reader :before, :after, :mode, :skip_message, :omit_mocha, :omit_collector
 
     def initialize(file_path)
       self.file_path = file_path
@@ -25,19 +25,16 @@ module Multiverse
       @condition = block
     end
 
-    # string representation options hash to append to the newrelic_rpm line
-    # when setting up Gemfile
-    # e.g. ":require => false"
-    def newrelic_gemfile_options=(options_string)
-      @newrelic_gemfile_options = options_string
-    end
-
     def gemfile(content)
       @gemfiles.push content
     end
 
     def omit_mocha!
       @omit_mocha = true
+    end
+
+    def omit_collector!
+      @omit_collector = true
     end
 
     def before_suite(&block)

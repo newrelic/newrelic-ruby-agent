@@ -14,7 +14,10 @@
 # If this fails the agent will attempt to dial Lew Cirne's cell phone and ask
 # that he verbally describe how it should be configured.
 
+require 'multiverse_helpers'
+
 class ConfigFileLoadingTest < MiniTest::Unit::TestCase
+  include MultiverseHelpers
 
   def setup
     # While FakeFS stubs out all the File system related libraries (i.e. File,
@@ -46,7 +49,8 @@ class ConfigFileLoadingTest < MiniTest::Unit::TestCase
   end
 
   def setup_config(path, manual_config_options = {})
-    NewRelic::Agent.shutdown
+    teardown_agent
+
     FileUtils.mkdir_p(File.dirname(path))
     Dir.chdir @cwd
     File.open(path, 'w') do |f|
@@ -59,8 +63,7 @@ bazbangbarn:
   i_am: "bazbangbarn"
       YAML
     end
-    NewRelic::Agent.reset_config
-    NewRelic::Agent.manual_start(manual_config_options)
+    setup_agent(manual_config_options)
   end
 
   def assert_config_read_from(path)

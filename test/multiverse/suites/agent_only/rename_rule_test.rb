@@ -8,6 +8,15 @@ class RenameRuleTest < MiniTest::Unit::TestCase
 
   include MultiverseHelpers
 
+  setup_and_teardown_agent do |collector|
+    rules = [ { 'match_expression' => 'RenameRuleTest', 'replacement' => 'Class' } ]
+    collector.stub('connect', {
+      'agent_run_id'           => 666,
+      'transaction_name_rules' => rules,
+      'metric_name_rules'      => rules
+    })
+  end
+
   class TestWidget
     include NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
@@ -22,24 +31,9 @@ class RenameRuleTest < MiniTest::Unit::TestCase
     add_method_tracer :mthd
   end
 
-  def setup
-    setup_agent do |collector|
-      rules = [ { 'match_expression' => 'RenameRuleTest', 'replacement' => 'Class' } ]
-      collector.stub('connect', {
-        'agent_run_id'           => 666,
-        'transaction_name_rules' => rules,
-        'metric_name_rules'      => rules
-      })
-    end
-
-    TestWidget.new.txn
-  end
-
-  def teardown
-    teardown_agent
-  end
-
   def test_transaction_names_rules
+    TestWidget.new.txn
+
     metric_names = NewRelic::Agent.instance.stats_engine.metrics
 
     assert_includes(metric_names, 'Controller/Class::TestWidget/txn')
@@ -49,6 +43,8 @@ class RenameRuleTest < MiniTest::Unit::TestCase
   end
 
   def test_metric_name_rules
+    TestWidget.new.txn
+
     NewRelic::Agent.instance.send(:harvest_and_send_timeslice_data)
     metric_names = $collector.calls_for('metric_data').first.metric_names
 

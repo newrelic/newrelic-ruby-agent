@@ -209,16 +209,50 @@ class AgentLoggerTest < Test::Unit::TestCase
   end
 
   def test_format_message_allows_nil_backtrace
+    config = @config.merge(:log_level => :debug)
+
     logdev = ArrayLogDevice.new
     override_logger = Logger.new( logdev )
-    logger = NewRelic::Agent::AgentLogger.new(@config, "", override_logger)
+    logger = NewRelic::Agent::AgentLogger.new(config, "", override_logger)
 
-    logger.error(Exception.new("Look Ma, no backtrace!"))
+    e = Exception.new("Look Ma, no backtrace!")
+    assert_nil(e.backtrace)
+    logger.error(e)
 
-    assert_equal 1, logdev.array.length
+    assert_equal 2, logdev.array.length
     assert_match( /ERROR : Exception: Look Ma, no backtrace!/i, logdev.array[0] )
+    assert_match( /DEBUG : No backtrace available./, logdev.array[1])
   end
 
+  def test_log_exception_logs_backtrace_at_same_level_as_message_by_default
+    logdev = ArrayLogDevice.new
+    override_logger = Logger.new(logdev)
+    logger = NewRelic::Agent::AgentLogger.new(@config, "", override_logger)
+
+    e = Exception.new("howdy")
+    e.set_backtrace(["wiggle", "wobble", "topple"])
+
+    logger.log_exception(:info, e)
+
+    assert_match(/INFO : Exception: howdy/i, logdev.array[0])
+    assert_match(/INFO : Debugging backtrace:\n.*wiggle\s+wobble\s+topple/,
+                  logdev.array[1])
+  end
+
+  def test_log_exception_logs_backtrace_at_explicitly_specified_level
+    logdev = ArrayLogDevice.new
+    override_logger = Logger.new(logdev)
+    logger = NewRelic::Agent::AgentLogger.new(@config, "", override_logger)
+
+    e = Exception.new("howdy")
+    e.set_backtrace(["wiggle", "wobble", "topple"])
+
+    logger.log_exception(:warn, e, :info)
+
+    assert_match(/WARN : Exception: howdy/i, logdev.array[0])
+    assert_match(/INFO : Debugging backtrace:\n.*wiggle\s+wobble\s+topple/,
+                  logdev.array[1])
+  end
 
   def test_logs_to_stdout_if_fails_on_file
     Logger::LogDevice.any_instance.stubs(:open).raises(Errno::EACCES)

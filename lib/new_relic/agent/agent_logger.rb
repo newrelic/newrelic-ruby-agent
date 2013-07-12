@@ -41,24 +41,29 @@ module NewRelic
         false
       end
 
-      # Allows for passing exceptions in explicitly, which format with backtrace
-      def format_and_send(level, *msgs)
-        msgs.flatten!
-        exceptions = msgs.find_all {|m| m.is_a?(Exception) }
-        msgs.collect! do |msg|
-          if msg.respond_to?(:message)
-            "%p: %s" % [ msg.class, msg.message ]
+      # Use this when you want to log an exception with explicit control over
+      # the log level that the backtrace is logged at. If you just want the
+      # default behavior of backtraces logged at debug, use one of the methods
+      # above and pass an Exception as one of the args.
+      def log_exception(level, e, backtrace_level=level)
+        @log.send(level, "%p: %s" % [ e.class, e.message ])
+        @log.send(backtrace_level) do
+          backtrace = e.backtrace
+          if backtrace
+            "Debugging backtrace:\n" + backtrace.join("\n  ")
           else
-            msg.to_s
+            "No backtrace available."
           end
         end
+      end
 
-        msgs.each do |msg|
-          @log.send level, msg
-        end
-
-        exceptions.each do |ex|
-          @log.debug { "Debugging backtrace:\n  " + ex.backtrace.join("\n  ") }
+      # Allows for passing exceptions in explicitly, which format with backtrace
+      def format_and_send(level, *msgs)
+        msgs.flatten.each do |item|
+          case item
+          when Exception then log_exception(level, item, :debug)
+          else @log.send(level, item)
+          end
         end
       end
 

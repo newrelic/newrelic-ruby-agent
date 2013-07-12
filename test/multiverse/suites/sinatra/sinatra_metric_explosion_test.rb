@@ -28,18 +28,13 @@ end
 class SinatraMetricExplosionTest < MiniTest::Unit::TestCase
   include Rack::Test::Methods
   include ::NewRelic::Agent::Instrumentation::Sinatra
+
   include MultiverseHelpers
+
+  setup_and_teardown_agent
 
   def app
     SinatraTestApp
-  end
-
-  def setup
-    setup_agent
-  end
-
-  def teardown
-    teardown_agent
   end
 
   def test_sinatra_returns_properly

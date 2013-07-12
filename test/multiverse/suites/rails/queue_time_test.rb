@@ -6,6 +6,7 @@
 
 require 'rails/test_help'
 require './app'
+require 'multiverse_helpers'
 
 class QueueController < ApplicationController
   include Rails.application.routes.url_helpers
@@ -18,32 +19,15 @@ class QueueController < ApplicationController
 end
 
 class QueueTimeTest < ActionDispatch::IntegrationTest
-  def setup
-    NewRelic::Agent.config.apply_config({
-      :beacon => "beacon",
-      :browser_key => "key"})
 
-    @agent = NewRelic::Agent::Agent.new
-    NewRelic::Agent::Agent.instance_variable_set(:@instance, @agent)
-    NewRelic::Agent.manual_start
+  include MultiverseHelpers
 
-    # ActiveSupport testing keeps blowing away my subscribers on
-    # teardown for some reason.  Have to keep putting it back.
-    NewRelic::Agent.instance.events.subscribe(:before_call) do |env|
-      NewRelic::Agent::TransactionInfo.reset(::Rack::Request.new(env))
-    end
-
-    @agent.finish_setup({})
-  end
-
-  def teardown
-    NewRelic::Agent::Agent.instance.shutdown if NewRelic::Agent::Agent.instance
-  end
+  setup_and_teardown_agent(:beacon => "beacon", :browser_key => "key")
 
   def test_should_track_queue_time_metric
     get_queued
 
-    stat = @agent.stats_engine.lookup_stats('WebFrontend/QueueTime')
+    stat = agent.stats_engine.lookup_stats('WebFrontend/QueueTime')
     assert_equal 1, stat.call_count
     assert stat.total_call_time > 0, "Should track some queue time"
   end

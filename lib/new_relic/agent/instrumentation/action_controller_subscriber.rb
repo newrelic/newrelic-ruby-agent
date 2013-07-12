@@ -34,6 +34,8 @@ module NewRelic
             # transaction are also ignored
             NewRelic::Agent.instance.push_trace_execution_flag(false)
           end
+        rescue => e
+          handle_tracing_error('ActionControllerSubscriber#start', e)
         end
 
         def finish(name, id, payload)
@@ -52,6 +54,15 @@ module NewRelic
           else
             Agent.instance.pop_trace_execution_flag
           end
+        rescue => e
+          handle_tracing_error('ActionControllerSubscriber#finish', e)
+        end
+
+        def handle_tracing_error(identifier, e)
+          # This is an important enough failure that we want the backtrace logged
+          # at error level, hence the explicit log_exception call.
+          NewRelic::Agent.logger.error("Tracing error during #{identifier}:")
+          NewRelic::Agent.logger.log_exception(:error, e)
         end
 
         def set_enduser_ignore
@@ -102,6 +113,7 @@ module NewRelic
         def stop_transaction(event)
           Agent.instance.stats_engine \
             .pop_scope(event.scope, event.metric_name, event.end)
+        ensure
           Transaction.stop
         end
 

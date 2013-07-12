@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require './app'
+require 'multiverse_helpers'
 
 # GC instrumentation only works with REE or 1.9.x
 if (defined?(RUBY_DESCRIPTION) && RUBY_DESCRIPTION =~ /Enterprise/) ||
@@ -23,17 +24,12 @@ end
 
 class GCRailsInstrumentationTest < ActionController::TestCase
   tests GcController
-  def setup
+
+  include MultiverseHelpers
+
+  setup_and_teardown_agent do
     enable_gc_stats
-
     @controller = GcController.new
-    NewRelic::Agent.instance.stats_engine.reset_stats
-    NewRelic::Agent.instance.transaction_sampler.instance_variable_set(:@samples, [])
-    NewRelic::Agent.manual_start
-  end
-
-  def teardown
-    NewRelic::Agent.shutdown
   end
 
   def test_records_accurate_time_for_gc_activity

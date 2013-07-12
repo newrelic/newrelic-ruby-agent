@@ -15,6 +15,10 @@ class ErrorController < ApplicationController
     raise 'this is an uncaught controller error'
   end
 
+  def stack_error
+    stack_error
+  end
+
   def view_error
     render :inline => "<% raise 'this is an uncaught view error' %>"
   end
@@ -49,20 +53,13 @@ class IgnoredError < StandardError; end
 class ServerIgnoredError < StandardError; end
 
 class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
-  include MultiverseHelpers
   extend Multiverse::Color
 
-  def setup
-    setup_collector
+  include MultiverseHelpers
+
+  setup_and_teardown_agent do |collector|
     setup_collector_mocks
-
-    NewRelic::Agent.reset_config
-    NewRelic::Agent.instance_variable_set(:@agent, nil)
-    NewRelic::Agent::Agent.instance_variable_set(:@instance, nil)
-    NewRelic::Agent.manual_start
-    NewRelic::Agent::TransactionInfo.reset
-
-    reset_error_collector
+    @error_collector = agent.error_collector
   end
 
   # Let base class override this without moving where we start the agent
@@ -70,19 +67,8 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
     $collector.mock['connect'] = [200, {'return_value' => {"agent_run_id" => 666 }}]
   end
 
-  def teardown
-    NewRelic::Agent::Agent.instance.shutdown if NewRelic::Agent::Agent.instance
-    NewRelic::Agent::Agent.instance_variable_set(:@instance, nil)
-  end
-
-  def reset_error_collector
-    @error_collector = NewRelic::Agent::Agent.instance.error_collector
-
-    # sanity checks
-    assert(@error_collector.enabled?,
-           'error collector should be enabled')
-    assert(!NewRelic::Agent.instance.error_collector.ignore_error_filter,
-           'no ignore error filter should be set')
+  def last_error
+    @error_collector.errors.last
   end
 
   def test_error_collector_should_be_enabled
@@ -136,12 +122,24 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
     assert_error_reported_once('this is an uncaught routing error')
   end
 
+  def test_should_apply_parameter_filtering
+    get '/error/controller_error?secret=shouldnotbecaptured&other=whatever'
+    params = last_error.params[:request_params]
+    assert_equal('[FILTERED]', params['secret'])
+    assert_equal('whatever', params['other'])
+  end
+
+  def test_should_apply_parameter_filtering_for_system_stack_errors
+    get '/error/stack_error?secret=shouldnotbecaptured&other=whatever'
+    params = last_error.params[:request_params]
+    assert_equal('[FILTERED]', params['secret'])
+    assert_equal('whatever', params['other'])
+  end
+
   def test_should_capture_request_uri_and_params
     get '/bad_route?eat=static'
-    assert_equal('/bad_route',
-                 @error_collector.errors[0].params[:request_uri])
-    assert_equal({'eat' => 'static'},
-                 @error_collector.errors[0].params[:request_params])
+    assert_equal('/bad_route', last_error.params[:request_uri])
+    assert_equal({'eat' => 'static'}, last_error.params[:request_params])
   end
 
   def test_should_not_notice_errors_from_ignored_action
@@ -184,16 +182,9 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
  protected
 
   def assert_errors_reported(message, queued_count, total_count=queued_count, txn_name=nil)
-    error_count = NewRelic::Agent::Agent.instance.stats_engine.lookup_stats("Errors/all")
-    assert_equal(total_count, error_count.call_count,
-                 'Incorrect call count on Errors/all')
-
-    if txn_name
-      error_count = NewRelic::Agent::Agent.instance.stats_engine \
-        .lookup_stats("Errors/#{txn_name}")
-      assert_equal(total_count, error_count.call_count,
-                   "Incorrect call count on Errors/#{txn_name}")
-    end
+    expected = { :call_count => total_count }
+    assert_metrics_recorded("Errors/all" => expected)
+    assert_metrics_recorded("Errors/#{txn_name}" => expected) if txn_name
 
     assert_equal(queued_count,
       @error_collector.errors.select{|error| error.message == message}.size,
