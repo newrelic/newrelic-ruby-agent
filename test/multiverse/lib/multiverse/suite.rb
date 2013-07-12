@@ -154,7 +154,7 @@ module Multiverse
           OutputCollector.write(suite, env, yellow("Running #{suite.inspect} for Envfile entry #{env}\n"))
           OutputCollector.write(suite, env, yellow("Starting tests in child PID #{io.pid}\n"))
           until io.eof do
-            chars = io.read(1)
+            chars = io.read
             OutputCollector.write(suite, env, chars)
           end
           OutputCollector.suite_report(suite, env)

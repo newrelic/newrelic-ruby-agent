@@ -35,18 +35,27 @@ module Multiverse
     end
 
     def self.suite_report(suite, env)
-      puts buffer(suite, env)
+      output(buffer(suite, env))
     end
 
     def self.overall_report
-      puts
-      puts
+      output("", "")
       if failing_output.empty?
-        puts green("There were no test failures")
+        output(green("There were no test failures"))
       else
-        puts red("There were failures in #{failing_output.size} test suites")
-        puts "Here is their output"
-        puts *failing_output
+        output(
+          red("There were failures in #{failing_output.size} test suites"),
+          "Here is their output",
+          *failing_output)
+      end
+    end
+
+    # Because the various environments potentially run in separate threads to
+    # start their processes, make sure we don't blatantly interleave output.
+    def self.output(*args)
+      @lock = Mutex.new if @lock.nil?
+      @lock.synchronize do
+        puts *args
       end
     end
   end
