@@ -14,9 +14,6 @@ options = {}
 parser = OptionParser.new do |opts|
   opts.banner = "Usage: #{$0} [options]"
 
-  opts.on("-f", "--fork", "Fork before each test") do |f|
-    options[:fork] = true
-  end
   opts.on("-p", "--progress", "Print out test names as they run") do |p|
     options[:progress] = true
   end

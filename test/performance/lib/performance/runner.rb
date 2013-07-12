@@ -10,7 +10,6 @@ module Performance
 
     DEFAULTS = {
       :instrumentors  => [],
-      :fork           => false,
       :iterations     => 10000,
       :reporter_class => 'ConsoleReporter',
       :brief          => false,
@@ -135,22 +134,6 @@ module Performance
       end
     end
 
-    def with_fork(&blk)
-      if @options[:fork]
-        rd, wr = IO.pipe
-        Process.fork do
-          load_newrelic_rpm
-          rd.close
-          result = blk.call
-          wr.write(Marshal.dump(result))
-        end
-        wr.close
-        result = Marshal.load(rd.read)
-        rd.close
-        result
-      end
-    end
-
     def run_subprocess(test_case_name, method)
       test_identifier = "#{test_case_name}##{method}"
       runner_script = File.join(File.dirname($0), 'runner')
@@ -169,10 +152,6 @@ module Performance
       methods_for_test_case(test_case).map do |method|
         if @options[:isolate]
           run_subprocess(test_case.class.name, method)
-        elsif @options[:fork]
-          with_fork do
-            test_case.run(method)
-          end
         else
           begin
             load_newrelic_rpm
