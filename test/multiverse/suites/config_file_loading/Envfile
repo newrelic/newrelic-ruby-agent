@@ -5,6 +5,9 @@ gemfile <<-RB
   # various places.
   gem 'fakefs', :require => 'fakefs/safe'
 
+  # Because we delay the agent, order of jruby-openssl matters
+  gem 'jruby-openssl', :platforms => [:jruby]
+
   # don't start the agent
   gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
 RB
