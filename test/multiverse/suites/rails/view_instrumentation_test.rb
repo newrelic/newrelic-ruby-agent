@@ -4,6 +4,7 @@
 
 require './app'
 require 'rails/test_help'
+require 'multiverse_helpers'
 
 ActionController::Base.view_paths = ['app/views']
 
@@ -78,9 +79,9 @@ end
 
 class ViewControllerTest < ActionController::TestCase
   tests ViewsController
-  def setup
-    super
-    NewRelic::Agent.manual_start
+
+  include MultiverseHelpers
+  setup_and_teardown_agent do
     @controller = ViewsController.new
     # ActiveSupport testing keeps blowing away my subscribers on
     # teardown for some reason.  Have to keep putting it back.
@@ -90,12 +91,6 @@ class ViewControllerTest < ActionController::TestCase
       NewRelic::Agent::Instrumentation::ActionControllerSubscriber \
         .subscribe(/^process_action.action_controller$/)
     end
-  end
-
-  def teardown
-    super
-    request_sampler = NewRelic::Agent.instance.instance_variable_get(:@request_sampler)
-    request_sampler.reset unless request_sampler.nil?
   end
 end
 

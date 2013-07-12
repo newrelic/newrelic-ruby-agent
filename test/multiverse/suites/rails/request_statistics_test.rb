@@ -20,26 +20,10 @@ end
 
 class RequestStatsTest < ActionController::TestCase
   tests RequestStatsController
-  include MultiverseHelpers
   extend Multiverse::Color
 
-  def setup
-    setup_collector
-    $collector.mock['connect'] = [200, {'return_value' => {"agent_run_id" => 666 }}]
-
-    NewRelic::Agent.reset_config
-    NewRelic::Agent.instance_variable_set(:@agent, nil)
-    NewRelic::Agent::Agent.instance_variable_set(:@instance, nil)
-    NewRelic::Agent.manual_start
-    NewRelic::Agent::TransactionInfo.reset
-  end
-
-  def teardown
-    reset_collector
-    NewRelic::Agent::Agent.instance.shutdown if NewRelic::Agent::Agent.instance
-    NewRelic::Agent::Agent.instance_variable_set(:@instance, nil)
-  end
-
+  include MultiverseHelpers
+  setup_and_teardown_agent
 
   #
   # Tests
@@ -47,7 +31,7 @@ class RequestStatsTest < ActionController::TestCase
 
   def test_doesnt_send_when_disabled
     with_config( :'request_sampler.enabled' => false ) do
-      200.times { get :stats_action }
+      20.times { get :stats_action }
 
       NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
 
@@ -57,7 +41,7 @@ class RequestStatsTest < ActionController::TestCase
 
   def test_request_times_should_be_reported_if_enabled
     with_config( :'request_sampler.enabled' => true ) do
-      200.times { get :stats_action }
+      20.times { get :stats_action }
 
       NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
 

@@ -33,12 +33,14 @@ module MultiverseHelpers
     end
   end
 
-  def setup_agent(opts = {})
+  def setup_agent(opts = {}, &block)
     setup_collector
     make_sure_agent_reconnects(opts)
 
     # Give caller a shot to setup before we start
-    yield($collector) if block_given?
+    # Don't just yield, as that won't necessary have the intended receiver
+    # (the test case instance itself)
+    self.instance_exec($collector, &block) if block_given?
 
     NewRelic::Agent.manual_start(opts)
   end
@@ -58,6 +60,10 @@ module MultiverseHelpers
 
     # Clear out lingering errors in the collector
     NewRelic::Agent.instance.error_collector.harvest_errors(nil)
+    NewRelic::Agent.instance.error_collector.instance_variable_set(:@ignore_filter, nil)
+
+    # Clear out the request sampler!
+    NewRelic::Agent.instance.instance_variable_get(:@request_sampler).reset
 
     NewRelic::Agent.shutdown
   end
