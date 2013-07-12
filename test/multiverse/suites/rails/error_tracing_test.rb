@@ -15,8 +15,8 @@ class ErrorController < ApplicationController
     raise 'this is an uncaught controller error'
   end
 
-  def stack_error
-    stack_error
+  def exception_error
+    raise Exception.new('wobble')
   end
 
   def view_error
@@ -129,8 +129,8 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
     assert_equal('whatever', params['other'])
   end
 
-  def test_should_apply_parameter_filtering_for_system_stack_errors
-    get '/error/stack_error?secret=shouldnotbecaptured&other=whatever'
+  def test_should_apply_parameter_filtering_for_errors_captured_by_rack_error_collector
+    get '/error/exception_error?secret=shouldnotbecaptured&other=whatever'
     params = last_error.params[:request_params]
     assert_equal('[FILTERED]', params['secret'])
     assert_equal('whatever', params['other'])
