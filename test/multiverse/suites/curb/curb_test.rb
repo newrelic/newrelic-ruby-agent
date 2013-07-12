@@ -89,9 +89,6 @@ class CurbTest < Test::Unit::TestCase
   end
 
 
-  # This doesn't work at the moment, as the Agent doesn't support code that
-  # runs in parallel.
-
   def test_works_with_parallel_fetches
     results = []
     other_url = "http://localhost:#{$fake_server.port}/"
