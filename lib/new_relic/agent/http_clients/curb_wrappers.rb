@@ -24,12 +24,10 @@ module NewRelic
         end
 
         def []( key )
-          NewRelic::Agent.logger.debug "Fetching request header %p" % [ key ]
           @curlobj.headers[ key ]
         end
 
         def []=( key, value )
-          NewRelic::Agent.logger.debug "Setting request header %p to %p" % [ key, value ]
           @curlobj.headers[ key ] = value
         end
 

@@ -43,12 +43,12 @@ DependencyDetection.defer do
       # way to recover it from a Curl::Easy after it's created.
       def self::make_hooked_verb_method( verb, aliased_method_name )
         return lambda do |*args, &block|
-          NewRelic::Agent.logger.debug "Setting HTTP verb to %p" % [ verb ]
-          self._nr_http_verb = verb
+          self._nr_http_verb = verb.to_s.upcase
           __send__( aliased_method_name )
         end
       end
 
+      # We have to hook these methods separately, as they don't use Curl::Easy#http
       hook_verb_method :http_post, :POST
       hook_verb_method :http_put,  :PUT
       hook_verb_method :http_head, :HEAD
@@ -56,7 +56,6 @@ DependencyDetection.defer do
 
       # Hook the #http method to set the verb.
       def http_with_newrelic( verb )
-        NewRelic::Agent.logger.debug "Setting HTTP verb to %p" % [ verb ]
         self._nr_http_verb = verb.to_s.upcase
         http_without_newrelic( verb )
       end
@@ -67,7 +66,6 @@ DependencyDetection.defer do
 
       # Hook the #perform method to mark the request as non-parallel.
       def perform_with_newrelic
-        NewRelic::Agent.logger.debug "Setting serial request marker"
         self._nr_serial = true
         perform_without_newrelic
       end
@@ -84,7 +82,6 @@ DependencyDetection.defer do
       # Add CAT with callbacks if the request is serial
       def add_with_newrelic( curl )
         if curl.respond_to?( :_nr_serial ) && curl._nr_serial
-          NewRelic::Agent.logger.debug "Curb: add with newrelic"
           hook_pending_request( curl ) if NewRelic::Agent.is_execution_traced?
         end
 
@@ -114,12 +111,7 @@ DependencyDetection.defer do
       # Instrument the specified +request+ (a Curl::Easy object) and set up cross-application
       # tracing if it's enabled.
       def hook_pending_request( request )
-        NewRelic::Agent.logger.debug "Curb: adding cross-app tracing to pending request %p:%#016x" %
-           [ request, request.object_id * 2 ]
-
         wrapped_request, wrapped_response = wrap_request( request )
-
-        NewRelic::Agent.logger.debug "  starting trace"
         t0, segment = NewRelic::Agent::CrossAppTracing.start_trace( wrapped_request )
 
         install_header_callback( request, wrapped_response )
@@ -141,7 +133,6 @@ DependencyDetection.defer do
       def install_header_callback( request, wrapped_response )
         existing_header_proc = request.on_header
         request.on_header do |header_data|
-          NewRelic::Agent.logger.debug "    header callback: %p" % [ header_data ]
           wrapped_response.append_header_data( header_data )
 
           if existing_header_proc
@@ -157,7 +148,6 @@ DependencyDetection.defer do
       def install_completion_callback( request, t0, segment, wrapped_request, wrapped_response )
         existing_completion_proc = request.on_complete
         request.on_complete do |finished_request|
-          NewRelic::Agent.logger.debug "    completion callback: %p" % [ finished_request.headers ]
           NewRelic::Agent::CrossAppTracing.finish_trace( t0, segment, wrapped_request, wrapped_response )
           existing_completion_proc.call( finished_request ) if existing_completion_proc
         end
