@@ -10,23 +10,52 @@ module Multiverse
   module OutputCollector
     include Color
     extend Color
+
     def self.buffers
-      @buffer ||= []
+      @buffers ||= {}
     end
 
     def self.failing_output
       @failing ||= []
     end
 
-    def self.report
-      puts
-      puts
+    def self.buffer(suite, env)
+      key = [suite, env]
+      buffers[key] ||= ""
+      buffers[key]
+    end
+
+    def self.failed(suite, env)
+      @failing ||= []
+      @failing << buffer(suite, env) + "\n"
+    end
+
+    def self.write(suite, env, msg)
+      buffer(suite, env) << msg
+    end
+
+    def self.suite_report(suite, env)
+      output(buffer(suite, env))
+    end
+
+    def self.overall_report
+      output("", "")
       if failing_output.empty?
-        puts green("There were no test failures")
+        output(green("There were no test failures"))
       else
-        puts red("There were failures in #{failing_output.size} test suites")
-        puts "Here is their output"
-        puts *failing_output
+        output(
+          red("There were failures in #{failing_output.size} test suites"),
+          "Here is their output",
+          *failing_output)
+      end
+    end
+
+    # Because the various environments potentially run in separate threads to
+    # start their processes, make sure we don't blatantly interleave output.
+    def self.output(*args)
+      @lock = Mutex.new if @lock.nil?
+      @lock.synchronize do
+        puts *args
       end
     end
   end

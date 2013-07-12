@@ -24,9 +24,9 @@ module Multiverse
       ENV["VERBOSE"] = '1' if opts[:verbose]
     end
 
-    def clean_gemfiles
-      FileUtils.rm_rf File.join(directory, 'Gemfile')
-      FileUtils.rm_rf File.join(directory, 'Gemfile.lock')
+    def clean_gemfiles(env_index)
+      FileUtils.rm_rf File.join(directory, "Gemfile.#{env_index}")
+      FileUtils.rm_rf File.join(directory, "Gemfile.#{env_index}.lock")
     end
 
 
@@ -38,16 +38,17 @@ module Multiverse
     end
 
     # load the environment for this suite after we've forked
-    def load_dependencies(gemfile_text)
-      clean_gemfiles
+    def load_dependencies(gemfile_text, env_index)
+      ENV["BUNDLE_GEMFILE"] = "Gemfile.#{env_index}"
+      clean_gemfiles(env_index)
       begin
-        generate_gemfile(gemfile_text)
+        generate_gemfile(gemfile_text, env_index)
         bundle
       rescue => e
         puts "#{e.class}: #{e}"
         puts "Fast local bundle failed.  Attempting to install from rubygems.org"
-        clean_gemfiles
-        generate_gemfile(gemfile_text, false)
+        clean_gemfiles(env_index)
+        generate_gemfile(gemfile_text, env_index, false)
         bundle
       end
       print_environment
@@ -63,8 +64,8 @@ module Multiverse
 
     end
 
-    def generate_gemfile(gemfile_text, local = true)
-      gemfile = File.join(Dir.pwd, 'Gemfile')
+    def generate_gemfile(gemfile_text, env_index, local = true)
+      gemfile = File.join(Dir.pwd, "Gemfile.#{env_index}")
       File.open(gemfile,'w') do |f|
         f.puts '  source :rubygems' unless local
         f.print gemfile_text
@@ -86,7 +87,7 @@ module Multiverse
           f.puts "  gem 'ruby-debug'" if include_debugger
         end
       end
-      puts yellow("Gemfile set to:") if verbose?
+      puts yellow("Gemfile.#{env_index} set to:") if verbose?
       puts File.open(gemfile).read if verbose?
     end
 
@@ -116,8 +117,11 @@ module Multiverse
     end
 
     def execute_child_environment(env_index)
+      configure_before_bundling
+
       gemfile_text = environments[env_index]
-      load_dependencies(gemfile_text)
+      load_dependencies(gemfile_text, env_index)
+
       configure_child_environment
       execute_ruby_files
       trigger_test_run
@@ -136,26 +140,34 @@ module Multiverse
       end
       puts yellow("\nRunning #{directory.inspect} in #{environments.size} environments")
       environments.before.call if environments.before
+
+      threads = []
       environments.each_with_index do |gemfile_text, i|
-        execute_with_pipe(i)
+        threads << execute_with_pipe(i)
       end
+      threads.each {|t| t.join}
+
       environments.after.call if environments.after
     end
 
     def execute_with_pipe(env)
-      OutputCollector.buffers.push('')
-      puts yellow("Running #{directory.inspect} for Envfile entry #{env}")
-      IO.popen("#{__FILE__} #{directory} #{env} '#{seed}' '#{names.join(",")}'") do |io|
-        puts yellow("Starting tests in child PID #{io.pid}")
-        while chars = io.read(8) do
-          OutputCollector.buffers.last << chars
-          print chars
+      Thread.new do
+        suite = File.basename(directory)
+        IO.popen("#{__FILE__} #{directory} #{env} '#{seed}' '#{names.join(",")}'") do |io|
+          OutputCollector.write(suite, env, yellow("Running #{suite.inspect} for Envfile entry #{env}\n"))
+          OutputCollector.write(suite, env, yellow("Starting tests in child PID #{io.pid}\n"))
+          until io.eof do
+            chars = io.read
+            OutputCollector.write(suite, env, chars)
+          end
+          OutputCollector.suite_report(suite, env)
         end
+
+        if $? != 0
+          OutputCollector.failed(suite, env)
+        end
+        Multiverse::Runner.notice_exit_status $?
       end
-      if $? != 0
-        OutputCollector.failing_output.push(OutputCollector.buffers.last)
-      end
-      Multiverse::Runner.notice_exit_status $?
     end
 
     def trigger_test_run
@@ -170,13 +182,16 @@ module Multiverse
       exit(::MiniTest::Unit.new.run(options))
     end
 
+    def configure_before_bundling
+      disable_harvest_thread
+      configure_fake_collector
+    end
+
     def configure_child_environment
       require 'minitest/unit'
       patch_minitest_for_old_mocha
       prevent_minitest_auto_run
       require_mocha
-      disable_harvest_thread
-      configure_fake_collector
     end
 
     def patch_minitest_for_old_mocha

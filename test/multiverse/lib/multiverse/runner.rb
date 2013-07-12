@@ -61,7 +61,7 @@ module Multiverse
         end
       end
 
-      OutputCollector.report
+      OutputCollector.overall_report
       exit exit_status
     end
 
@@ -71,7 +71,7 @@ module Multiverse
       dir = Dir.new(SUITES_DIRECTORY).entries.find { |d| d.include?(filter) }
       full_path = File.join(SUITES_DIRECTORY, dir)
       $stderr.reopen($stdout)
-      Suite.new(full_path, opts).execute_child_environment(0)
+      Suite.new(full_path, opts).execute_child_environment(opts.fetch(:env, "0").to_i)
     end
   end
 end
