@@ -79,7 +79,7 @@ class DeferredSinatraTestApp < Sinatra::Base
   end
 end
 
-class DeferredSinatraTest < Test::Unit::TestCase
+class DeferredSinatraTest < MiniTest::Unit::TestCase
   include SinatraTestCases
 
   def app
