@@ -139,7 +139,7 @@ class CurbTest < Test::Unit::TestCase
   end
 
   def response_instance( headers={} )
-    res = NewRelic::Agent::HTTPClients::CurbResponse.new(Curl::Easy.new)
+    res = NewRelic::Agent::HTTPClients::CurbResponse.new
     headers.each do |hdr, val|
       res.append_header_data( "#{hdr}: #{val}")
     end

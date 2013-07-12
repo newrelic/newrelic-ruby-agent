@@ -40,10 +40,8 @@ module NewRelic
 
 
       class CurbResponse
-        extend Forwardable
 
-        def initialize( curlobj )
-          @curlobj = curlobj
+        def initialize
           @headers = {}
         end
 

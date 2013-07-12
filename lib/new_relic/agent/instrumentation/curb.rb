@@ -132,7 +132,7 @@ DependencyDetection.defer do
       # Create request and response adapter objects for the specified +request+
       def wrap_request( request )
         return NewRelic::Agent::HTTPClients::CurbRequest.new( request ),
-               NewRelic::Agent::HTTPClients::CurbResponse.new( request )
+               NewRelic::Agent::HTTPClients::CurbResponse.new
       end
 
 
