@@ -59,8 +59,10 @@ module NewRelic
         end
 
         def handle_tracing_error(identifier, e)
-          NewRelic::Agent.logger.error("Tracing error during #{identifier}: #{e}")
-          NewRelic::Agent.logger.error("Backtrace: #{e.backtrace.join("\n")}")
+          # This is an important enough failure that we want the backtrace logged
+          # at error level, hence the explicit log_exception call.
+          NewRelic::Agent.logger.error("Tracing error during #{identifier}:")
+          NewRelic::Agent.logger.log_exception(:error, e)
         end
 
         def set_enduser_ignore
