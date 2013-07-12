@@ -21,19 +21,13 @@ end
 class SinatraErrorTracingTest < MiniTest::Unit::TestCase
   include Rack::Test::Methods
   include ::NewRelic::Agent::Instrumentation::Sinatra
+
   include MultiverseHelpers
+
+  setup_and_teardown_agent
 
   def app
     SinatraErrorTracingTestApp
-  end
-
-  def setup
-    setup_agent
-    @error_collector = NewRelic::Agent.instance.error_collector
-  end
-
-  def teardown
-    teardown_agent
   end
 
   def test_traps_errors
@@ -41,13 +35,13 @@ class SinatraErrorTracingTest < MiniTest::Unit::TestCase
     assert_equal 500, last_response.status
     assert_equal 'We are sorry', last_response.body
 
-    assert_equal(1, @error_collector.errors.size)
+    assert_equal(1, agent.error_collector.errors.size)
   end
 
   def test_ignores_notfound_errors_by_default
     get '/ignored_boom'
     assert_equal 404, last_response.status
     assert_match %r{Sinatra doesn&rsquo;t know this ditty\.}, last_response.body
-    assert_equal(0, @error_collector.errors.size)
+    assert_equal(0, agent.error_collector.errors.size)
   end
 end

@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper.rb')
+require 'multiverse_helpers'
 
 # Shhhh
 Padrino::Logger::Config[:development][:stream] = :null
@@ -28,9 +29,9 @@ class PadrinoRoutesTest < MiniTest::Unit::TestCase
     PadrinoTestApp
   end
 
-  def setup
-    ::NewRelic::Agent.manual_start
-  end
+  include MultiverseHelpers
+
+  setup_and_teardown_agent
 
   def test_basic_route
     get '/user/login'

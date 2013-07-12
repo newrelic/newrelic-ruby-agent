@@ -10,11 +10,9 @@ require 'multiverse_helpers'
 class AuditLogTest < MiniTest::Unit::TestCase
   include MultiverseHelpers
 
-  # Initialization
   def setup
     @string_log = StringIO.new
     NewRelic::Agent::AuditLogger.any_instance.stubs(:ensure_log_path).returns(@string_log)
-
   end
 
   def audit_log_contents

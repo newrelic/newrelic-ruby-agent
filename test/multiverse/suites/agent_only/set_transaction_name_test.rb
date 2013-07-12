@@ -6,7 +6,11 @@ require 'multiverse_helpers'
 
 class SetTransactionNameTest < MiniTest::Unit::TestCase
   include NewRelic::Agent::MethodTracer
+
   include MultiverseHelpers
+
+  setup_and_teardown_agent(:browser_key => 'browserKey', :application_id => 'appId',
+                           :beacon => 'beacon', :episodes_file => 'this_is_my_file')
 
   class TestTransactor
     include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
@@ -28,18 +32,8 @@ class SetTransactionNameTest < MiniTest::Unit::TestCase
     end
   end
 
-  def setup
-    setup_agent(:browser_key => 'browserKey', :application_id => 'appId',
-                :beacon => 'beacon', :episodes_file => 'this_is_my_file')
-    @transactor = TestTransactor.new
-  end
-
-  def teardown
-    teardown_agent
-  end
-
   def test_apply_to_metric_names
-    @transactor.parent_txn
+    TestTransactor.new.parent_txn
 
     assert_metrics_recorded([
       'Controller/TestTransactor/parent',
@@ -49,7 +43,7 @@ class SetTransactionNameTest < MiniTest::Unit::TestCase
   end
 
   def test_apply_to_metric_scopes
-    @transactor.parent_txn do
+    TestTransactor.new.parent_txn do
       trace_execution_scoped('Custom/something') {}
     end
     assert_metrics_recorded(['Custom/something',
@@ -57,14 +51,14 @@ class SetTransactionNameTest < MiniTest::Unit::TestCase
   end
 
   def test_apply_to_traced_transactions
-    @transactor.parent_txn
+    TestTransactor.new.parent_txn
     assert_equal('Controller/TestTransactor/parent',
                  NewRelic::Agent.instance.transaction_sampler.last_sample \
                    .params[:path])
   end
 
   def test_apply_to_traced_errors
-    @transactor.parent_txn do
+    TestTransactor.new.parent_txn do
       NewRelic::Agent.notice_error(RuntimeError.new('toot'))
     end
     assert_equal('Controller/TestTransactor/parent',
@@ -75,12 +69,12 @@ class SetTransactionNameTest < MiniTest::Unit::TestCase
     rule = NewRelic::Agent::RulesEngine::Rule.new('match_expression' => 'parent',
                                                   'replacement'      => 'dad')
     NewRelic::Agent.instance.transaction_rules << rule
-    @transactor.parent_txn
+    TestTransactor.new.parent_txn
     assert_metrics_recorded(['Controller/TestTransactor/dad'])
   end
 
   def test_does_not_overwrite_name_when_set_by_RUM
-    @transactor.parent_txn do
+    TestTransactor.new.parent_txn do
       NewRelic::Agent.browser_timing_header
       NewRelic::Agent.browser_timing_footer
       NewRelic::Agent.set_transaction_name('this/should/not/work')
@@ -90,7 +84,7 @@ class SetTransactionNameTest < MiniTest::Unit::TestCase
   end
 
   def test_ignoring_action
-    @transactor.ignored_txn
+    TestTransactor.new.ignored_txn
     assert_metrics_not_recorded(['Controller/Ignore/me'])
   end
 end

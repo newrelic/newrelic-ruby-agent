@@ -10,21 +10,14 @@ require 'multiverse_helpers'
 class MarshalingTest < MiniTest::Unit::TestCase
   include MultiverseHelpers
 
-  def setup
-    setup_agent(:'transaction_tracer.transaction_threshold' => 0.0) do |collector|
-      collector.stub('connect', { 'agent_run_id' => 666 })
-    end
-    @agent = NewRelic::Agent.instance
-  end
-
-  def teardown
-    teardown_agent
+  setup_and_teardown_agent(:'transaction_tracer.transaction_threshold' => 0.0) do |collector|
+    collector.stub('connect', { 'agent_run_id' => 666 })
   end
 
   def test_transaction_trace_marshaling
     # create fake transaction trace
     time = freeze_time
-    sampler = @agent.transaction_sampler
+    sampler = agent.transaction_sampler
     sampler.notice_first_scope_push time
     sampler.notice_transaction nil, {}
     sampler.notice_push_scope "a"
@@ -37,8 +30,8 @@ class MarshalingTest < MiniTest::Unit::TestCase
 
     expected_sample = sampler.instance_variable_get(:@slowest_sample)
 
-    @agent.service.connect
-    @agent.send(:harvest_and_send_slowest_sample)
+    agent.service.connect
+    agent.send(:harvest_and_send_slowest_sample)
 
     if NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported?
       marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
@@ -57,8 +50,8 @@ class MarshalingTest < MiniTest::Unit::TestCase
     stats.record_data_point(2.0, 1.0)
     expected = [ 2, 3.0, 2.0, 1.0, 2.0, 5.0 ]
 
-    @agent.service.connect
-    @agent.send(:harvest_and_send_timeslice_data)
+    agent.service.connect
+    agent.send(:harvest_and_send_timeslice_data)
 
     assert_equal('666', $collector.calls_for('metric_data')[0].run_id)
 
@@ -67,9 +60,9 @@ class MarshalingTest < MiniTest::Unit::TestCase
   end
 
   def test_error_data_marshalling
-    @agent.error_collector.notice_error(Exception.new('test error'))
-    @agent.service.connect
-    @agent.send(:harvest_and_send_errors)
+    agent.error_collector.notice_error(Exception.new('test error'))
+    agent.service.connect
+    agent.send(:harvest_and_send_errors)
 
     assert_equal('666', $collector.calls_for('error_data')[0].run_id)
 
@@ -78,21 +71,21 @@ class MarshalingTest < MiniTest::Unit::TestCase
   end
 
   def test_sql_trace_data_marshalling
-    @agent.sql_sampler.notice_first_scope_push(nil)
-    @agent.sql_sampler.notice_sql("select * from test",
+    agent.sql_sampler.notice_first_scope_push(nil)
+    agent.sql_sampler.notice_sql("select * from test",
                                   "Database/test/select",
                                   nil, 1.5)
-    @agent.sql_sampler.notice_scope_empty('txn')
+    agent.sql_sampler.notice_scope_empty('txn')
 
-    @agent.service.connect
-    @agent.send(:harvest_and_send_slowest_sql)
+    agent.service.connect
+    agent.send(:harvest_and_send_slowest_sql)
 
     sql_data = $collector.calls_for('sql_trace_data')[0][0]
     assert_equal('select * from test', sql_data[0][3])
   end
 
   def test_connect_marshalling
-    @agent.service.connect('pid' => 1, 'agent_version' => '9000',
+    agent.service.connect('pid' => 1, 'agent_version' => '9000',
                            'app_name' => 'test')
 
     connect_data = $collector.calls_for('connect').last

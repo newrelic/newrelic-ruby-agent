@@ -3,9 +3,9 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'data_mapper'
-require 'newrelic_rpm'
 
 require File.join(File.dirname(__FILE__), '..', '..', '..', 'agent_helper')
+require 'multiverse_helpers'
 
 DataMapper::Logger.new("/dev/null", :debug)
 DataMapper.setup(:default, 'sqlite::memory:')
@@ -28,9 +28,9 @@ class DummyConnection
 end
 
 class DataMapperTest < MiniTest::Unit::TestCase
-  def setup
-    NewRelic::Agent.instance.reset_stats
-  end
+  include MultiverseHelpers
+
+  setup_and_teardown_agent
 
   def test_basic_metrics
     post = Post.create(:title => "Dummy post", :body => "whatever, man")

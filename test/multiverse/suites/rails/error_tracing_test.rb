@@ -53,40 +53,18 @@ class IgnoredError < StandardError; end
 class ServerIgnoredError < StandardError; end
 
 class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
-  include MultiverseHelpers
   extend Multiverse::Color
 
-  def setup
-    setup_collector
+  include MultiverseHelpers
+
+  setup_and_teardown_agent do |collector|
     setup_collector_mocks
-
-    NewRelic::Agent.reset_config
-    NewRelic::Agent.instance_variable_set(:@agent, nil)
-    NewRelic::Agent::Agent.instance_variable_set(:@instance, nil)
-    NewRelic::Agent.manual_start
-    NewRelic::Agent::TransactionInfo.reset
-
-    reset_error_collector
+    @error_collector = agent.error_collector
   end
 
   # Let base class override this without moving where we start the agent
   def setup_collector_mocks
     $collector.mock['connect'] = [200, {'return_value' => {"agent_run_id" => 666 }}]
-  end
-
-  def teardown
-    NewRelic::Agent::Agent.instance.shutdown if NewRelic::Agent::Agent.instance
-    NewRelic::Agent::Agent.instance_variable_set(:@instance, nil)
-  end
-
-  def reset_error_collector
-    @error_collector = NewRelic::Agent::Agent.instance.error_collector
-
-    # sanity checks
-    assert(@error_collector.enabled?,
-           'error collector should be enabled')
-    assert(!NewRelic::Agent.instance.error_collector.ignore_error_filter,
-           'no ignore error filter should be set')
   end
 
   def last_error

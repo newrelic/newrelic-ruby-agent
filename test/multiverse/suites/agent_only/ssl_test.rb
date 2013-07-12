@@ -13,10 +13,6 @@ class SSLTest < MiniTest::Unit::TestCase
     Net::HTTPSession.any_instance.stubs('use_ssl=').raises(LoadError)
   end
 
-  def teardown
-    teardown_agent
-  end
-
   def test_agent_shuts_down_when_ssl_is_on_but_unavailable
     NewRelic::Agent.agent.expects(:shutdown).at_least_once
     NewRelic::Agent.expects(:finish_setup).never

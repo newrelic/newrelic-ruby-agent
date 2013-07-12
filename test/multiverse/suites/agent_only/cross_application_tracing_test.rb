@@ -9,27 +9,21 @@ require 'multiverse_helpers'
 
 class CrossApplicationTracingTest < MiniTest::Unit::TestCase
 
-  include MultiverseHelpers
-
   # Important because the hooks are global that we only wire one AgentHooks up
   @@app = TestingApp.new
   @@wrapper_app = NewRelic::Rack::AgentHooks.new(@@app)
 
-  def setup
-    setup_agent(
-        :cross_process_id => "boo",
-        :encoding_key => "\0",
-        :trusted_account_ids => [1]) \
-    do |collector|
-      collector.stub('connect', {"agent_run_id" => 666 })
-    end
-
-    @@app.reset_headers
-    @@app.response = "<html><head><title>W00t!</title></head><body><p>Hello World</p></body></html>"
+  include MultiverseHelpers
+  setup_and_teardown_agent(:cross_process_id => "boo",
+                           :encoding_key => "\0",
+                           :trusted_account_ids => [1]) \
+  do |collector|
+    collector.stub('connect', {"agent_run_id" => 666 })
   end
 
-  def teardown
-    teardown_agent
+  def after_setup
+    @@app.reset_headers
+    @@app.response = "<html><head><title>W00t!</title></head><body><p>Hello World</p></body></html>"
   end
 
   include Rack::Test::Methods
