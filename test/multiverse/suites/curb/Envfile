@@ -1,0 +1,4 @@
+gemfile <<-RB
+  gem 'curb', '~> 0.8.4'
+  gem 'rack'
+RB
