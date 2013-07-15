@@ -65,6 +65,11 @@ module MultiverseHelpers
     # Clear out the request sampler!
     NewRelic::Agent.instance.instance_variable_get(:@request_sampler).reset
 
+    # Clean up any thread-local variables starting with 'newrelic'
+    Thread.current.keys.select { |k| k.to_s =~ /^newrelic/i }.each do |key|
+      Thread.current[key] = nil
+    end
+
     NewRelic::Agent.shutdown
   end
 
