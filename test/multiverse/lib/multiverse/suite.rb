@@ -179,7 +179,7 @@ module Multiverse
       options << "-v" if verbose?
       options << "--seed=#{seed}" unless seed == ""
       options << "--name=/#{names.map {|n| n + ".*"}.join("|")}/" unless names == []
-      exit(::MiniTest::Unit.new.run(options))
+      exit!(::MiniTest::Unit.new.run(options))
     end
 
     def configure_before_bundling
