@@ -43,7 +43,6 @@ class CurbTest < Test::Unit::TestCase
     assert completed, "completion block was never run"
   end
 
-
   def test_get_works_with_the_shortcut_api
     # Override the mechanism for getting a response and run the test_get test
     # again

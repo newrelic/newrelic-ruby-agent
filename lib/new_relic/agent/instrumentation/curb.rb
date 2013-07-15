@@ -21,37 +21,28 @@ DependencyDetection.defer do
       attr_accessor :_nr_http_verb,
                     :_nr_serial
 
-      # Set up an alias for the method +methname+ that will store the associated
-      # HTTP +verb+ for later instrumentation. This is necessary because there's no
-      # way from the Curb API to determine what verb the request used from the
-      # handle.
-      def self::hook_verb_method( methname, verb )
-        nr_method_name = "#{methname}_with_newrelic"
-        aliased_method_name = "#{methname}_without_newrelic"
-        method_body = self.make_hooked_verb_method( verb.to_s.upcase, aliased_method_name )
-
-        define_method( nr_method_name, &method_body )
-
-        alias_method aliased_method_name, methname
-        alias_method methname, nr_method_name
+      # We have to hook these three methods separately, as they don't use
+      # Curl::Easy#http
+      def http_head_with_newrelic(*args, &blk)
+        self._nr_http_verb = :HEAD
+        http_head_without_newrelic(*args, &blk)
       end
+      alias_method :http_head_without_newrelic, :http_head
+      alias_method :http_head, :http_head_with_newrelic
 
-
-      # Make a lambda for the body of the method with the given +aliased_method_name+
-      # that will set the verb on the object to +verb+. This is so the NewRelic
-      # request and response adapters know what verb the request used, as there's no
-      # way to recover it from a Curl::Easy after it's created.
-      def self::make_hooked_verb_method( verb, aliased_method_name )
-        return lambda do |*args, &block|
-          self._nr_http_verb = verb.to_s.upcase
-          __send__( aliased_method_name )
-        end
+      def http_post_with_newrelic(*args, &blk)
+        self._nr_http_verb = :POST
+        http_post_without_newrelic(*args, &blk)
       end
+      alias_method :http_post_without_newrelic, :http_post
+      alias_method :http_post, :http_post_with_newrelic
 
-      # We have to hook these methods separately, as they don't use Curl::Easy#http
-      hook_verb_method :http_post, :POST
-      hook_verb_method :http_put,  :PUT
-      hook_verb_method :http_head, :HEAD
+      def http_put_with_newrelic(url, data, &blk)
+        self._nr_http_verb = :PUT
+        http_put_with_newrelic(url, data, &blk)
+      end
+      alias_method :http_put_without_newrelic, :http_put
+      alias_method :http_put, :http_put_with_newrelic
 
 
       # Hook the #http method to set the verb.
