@@ -9,18 +9,18 @@ module Performance
     attr_reader :instrumentors
 
     DEFAULTS = {
-      :instrumentors  => [],
-      :iterations     => 10000,
-      :reporter_class => 'ConsoleReporter',
-      :brief          => false,
-      :tags           => {}
+      :instrumentors    => [],
+      :iterations       => 10000,
+      :reporter_classes => ['ConsoleReporter'],
+      :brief            => false,
+      :tags             => {}
     }
 
     def initialize(options={})
       @options = DEFAULTS.merge(options)
       create_instrumentors(options[:instrumentors] || [])
       load_test_files(@options[:dir])
-      @reporter_class = Performance.const_get(@options[:reporter_class])
+      @reporter_classes = @options[:reporter_classes].map { |cls| Performance.const_get(cls) }
       @hostname = Socket.gethostname
     end
 
@@ -138,7 +138,7 @@ module Performance
       test_case_name = test_case.class.name
       test_identifier = "#{test_case_name}##{method}"
       runner_script = File.join(File.dirname($0), 'runner')
-      cmd = "#{runner_script} -T #{test_identifier} -j"
+      cmd = "#{runner_script} -T #{test_identifier} -j -q"
       output = nil
       IO.popen(cmd) do |io|
         output = io.read
@@ -189,7 +189,9 @@ module Performance
     end
 
     def report_results(results, elapsed)
-      @reporter_class.new(results, elapsed, @options).report
+      @reporter_classes.each do |cls|
+        cls.new(results, elapsed, @options).report
+      end
     end
   end
 end

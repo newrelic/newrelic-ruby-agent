@@ -15,6 +15,10 @@ require 'performance/hako_reporter'
 module Performance
   def self.logger
     log_path = ENV['LOG'] || $stderr
-    @logger || Logger.new(log_path)
+    @logger ||= Logger.new(log_path)
+  end
+
+  def self.log_path=(path)
+    @logger = Logger.new(path)
   end
 end

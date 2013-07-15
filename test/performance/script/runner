@@ -30,10 +30,11 @@ parser = OptionParser.new do |opts|
     options[:isolate] = true
   end
   opts.on("-j", "--json", "Produce JSON output") do |q|
-    options[:reporter_class] = 'JSONReporter'
+    options[:reporter_classes] = ['JSONReporter']
   end
-  opts.on("-R", "--reporter=NAME", "Use the specified reporter") do |reporter|
-    options[:reporter_class] = reporter
+  opts.on("-R", "--reporters=NAMES", "Use the specified reporters (comma-separated list of class names)") do |reporter_names|
+    reporter_names = reporter_names.split(',')
+    options[:reporter_classes] = reporter_names
   end
   opts.on("-r", "--randomize", "Randomize test order") do |r|
     options[:randomize] = r
@@ -43,6 +44,12 @@ parser = OptionParser.new do |opts|
   end
   opts.on("-T", "--test=NAME", "Run one specific test, identified by <suite name>#<test_name>") do |identifier|
     options[:identifier] = identifier
+  end
+  opts.on("-q", "--quiet", "Disable diagnostic logging") do
+    Performance.log_path = "/dev/null"
+  end
+  opts.on("-L", "--log=PATH", "Log diagnostic information to PATH") do |log_path|
+    Performance.log_path = log_path
   end
   opts.on("-m", "--metadata=METADATA", "Attach metadata to the run. Format: 'key1:value1,key2:value2'") do |tags_string|
     tags = {}
