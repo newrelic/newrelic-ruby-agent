@@ -411,7 +411,8 @@ module HttpClientTestCases
     # transaction in which the error occurs. That, coupled with the fact that
     # fixing it for old versions of Typhoeus would require large changes to
     # the instrumentation, makes us say 'meh'.
-    if client_name == 'Typhoeus' && Typhoeus::VERSION >= "0.5.4"
+    is_typhoeus = (client_name == 'Typhoeus')
+    if !is_typhoeus || (is_typhoeus && Typhoeus::VERSION >= "0.5.4")
       evil_server = NewRelic::EvilServer.new
       evil_server.start
 
