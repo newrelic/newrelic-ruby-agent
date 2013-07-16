@@ -34,6 +34,7 @@ class NewRelic::Command::Deployments < NewRelic::Command
     @user ||= ENV['USER']
     control.env = @environment if @environment
     load_yaml_from_env(control.env)
+    NewRelic::Agent.logger = NewRelic::Agent::AgentLogger.new(NewRelic::Agent.config)
     @appname ||= NewRelic::Agent.config.app_names[0] || control.env || 'development'
   end
 
