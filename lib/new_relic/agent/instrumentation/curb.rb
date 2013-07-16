@@ -20,6 +20,9 @@ DependencyDetection.defer do
 
       attr_accessor :_nr_instrumented,
                     :_nr_http_verb,
+                    :_nr_header_str,
+                    :_nr_original_on_header,
+                    :_nr_original_on_complete,
                     :_nr_serial
 
       # We have to hook these three methods separately, as they don't use
@@ -65,6 +68,11 @@ DependencyDetection.defer do
       alias_method :perform_without_newrelic, :perform
       alias_method :perform, :perform_with_newrelic
 
+      # We override this method in order to ensure access to header_str even
+      # though we use an on_header callback
+      def header_str
+        self._nr_header_str
+      end
     end # class Curl::Easy
 
 
@@ -106,8 +114,11 @@ DependencyDetection.defer do
         wrapped_request, wrapped_response = wrap_request( request )
         t0, segment = NewRelic::Agent::CrossAppTracing.start_trace( wrapped_request )
 
-        install_header_callback( request, wrapped_response )
-        install_completion_callback( request, t0, segment, wrapped_request, wrapped_response )
+        unless request._nr_instrumented
+          install_header_callback( request, wrapped_response )
+          install_completion_callback( request, t0, segment, wrapped_request, wrapped_response )
+          request._nr_instrumented = true
+        end
       rescue => err
         NewRelic::Agent.logger.error( "Untrapped exception", err )
       end
@@ -116,30 +127,31 @@ DependencyDetection.defer do
       # Create request and response adapter objects for the specified +request+
       def wrap_request( request )
         return NewRelic::Agent::HTTPClients::CurbRequest.new( request ),
-               NewRelic::Agent::HTTPClients::CurbResponse.new
+               NewRelic::Agent::HTTPClients::CurbResponse.new( request )
       end
 
 
       # Install a callback that will record the response headers to enable
       # CAT linking
       def install_header_callback( request, wrapped_response )
-        existing_header_proc = request.on_header
+        original_callback = request.on_header
+        request._nr_original_on_header = original_callback
+        request._nr_header_str = ''
         request.on_header do |header_data|
           wrapped_response.append_header_data( header_data )
 
-          if existing_header_proc
-            existing_header_proc.call( header_data )
+          if original_callback
+            original_callback.call( header_data )
           else
             header_data.length
           end
         end
       end
 
-
       # Install a callback that will finish the trace.
       def install_completion_callback( request, t0, segment, wrapped_request, wrapped_response )
-        return if request._nr_instrumented # bail if we're somehow already instrumented
         original_callback = request.on_complete
+        request._nr_original_on_complete = original_callback
         request.on_complete do |finished_request|
           begin
             NewRelic::Agent::CrossAppTracing.finish_trace( t0, segment, wrapped_request, wrapped_response )
@@ -147,11 +159,15 @@ DependencyDetection.defer do
             # Make sure the existing completion callback is run, and restore the
             # on_complete callback to how it was before.
             original_callback.call( finished_request ) if original_callback
-            finished_request.on_complete(&original_callback)
-            finished_request._nr_instrumented = false
+            remove_instrumentation_callbacks( request )
           end
         end
-        request._nr_instrumented = true
+      end
+
+      def remove_instrumentation_callbacks( request )
+        request.on_complete(&request._nr_original_on_complete)
+        request.on_header(&request._nr_original_on_header)
+        request._nr_instrumented = false
       end
 
     end # class Curl::Multi
