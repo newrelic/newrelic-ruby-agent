@@ -142,6 +142,18 @@ class NewRelic::Agent::StatsTest < Test::Unit::TestCase
     end
   end
 
+  STAT_SETTERS.each do |setter|
+    define_method("test_merge_allows_nil_source_for_#{setter.to_s.gsub('=', '')}") do
+      dest = NewRelic::Agent::Stats.new
+      source = NewRelic::Agent::Stats.new
+      source.send(setter, nil)
+
+      dest.merge!(source)
+
+      validate dest, 0, 0, 0, 0, 0
+    end
+  end
+
   def test_freeze
     s1 = NewRelic::Agent::Stats.new
 
