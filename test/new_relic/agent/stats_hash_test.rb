@@ -109,10 +109,9 @@ class NewRelic::Agent::StatsHashTest < Test::Unit::TestCase
   end
 
   def test_marshal_dump
-    hash = NewRelic::Agent::StatsHash.new()
-    hash.record('foo', 1)
-    hash.record('bar', 2)
-    copy = Marshal.load(Marshal.dump(hash))
-    assert_equal(hash, copy)
+    @hash.record('foo', 1)
+    @hash.record('bar', 2)
+    copy = Marshal.load(Marshal.dump(@hash))
+    assert_equal(@hash, copy)
   end
 end
