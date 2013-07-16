@@ -129,6 +129,19 @@ class NewRelic::Agent::StatsTest < Test::Unit::TestCase
     validate s1, 3, 3, 1, 1
   end
 
+  STAT_SETTERS = [:call_count=, :min_call_time=, :max_call_time=, :total_call_time=, :total_exclusive_time=, :sum_of_squares=]
+
+  STAT_SETTERS.each do |setter|
+    define_method("test_merge_allows_nil_destination_for_#{setter.to_s.gsub('=', '')}") do
+      dest = NewRelic::Agent::Stats.new
+      dest.send(setter, nil)
+
+      dest.merge!(NewRelic::Agent::Stats.new)
+
+      validate dest, 0, 0, 0, 0, 0
+    end
+  end
+
   def test_freeze
     s1 = NewRelic::Agent::Stats.new
 
