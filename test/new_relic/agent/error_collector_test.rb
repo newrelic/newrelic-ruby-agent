@@ -272,6 +272,25 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
     assert trace.any? {|line| line.include?(__FILE__)}
   end
 
+  def test_notice_agent_error_allows_an_error_past_queue_limit
+    100.times { @error_collector.notice_error(StandardError.new("Ouch")) }
+
+    exception = DifficultToDebugAgentError.new
+    @error_collector.notice_agent_error(exception)
+
+    assert_equal 21, @error_collector.errors.size
+    assert_equal DifficultToDebugAgentError, @error_collector.errors.last.exception_class_constant
+  end
+
+  def test_notice_agent_error_doesnt_clog_up_the_queue_limit
+    exception = DifficultToDebugAgentError.new
+    @error_collector.notice_agent_error(exception)
+
+    100.times { @error_collector.notice_error(StandardError.new("Ouch")) }
+
+    assert_equal 21, @error_collector.errors.size
+  end
+
   private
 
   def expects_error_count_increase(increase)

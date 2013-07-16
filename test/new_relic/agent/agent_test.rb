@@ -245,7 +245,7 @@ module NewRelic
 
       def test_merge_data_from_abides_by_error_queue_limit
         errors = []
-        40.times { |i| errors << Exception.new("boo #{i}") }
+        40.times { |i| errors << NewRelic::NoticedError.new("", {}, Exception.new("boo #{i}")) }
 
         @agent.merge_data_from([{}, [], errors])
 

@@ -230,7 +230,7 @@ module NewRelic
         # checks the size of the error queue to make sure we are under
         # the maximum limit, and logs a warning if we are over the limit.
         def over_queue_limit?(message)
-          over_limit = (@errors.length >= MAX_ERROR_QUEUE_LENGTH)
+          over_limit = (@errors.select{|err| !err.agent_error}.length >= MAX_ERROR_QUEUE_LENGTH)
           ::NewRelic::Agent.logger.warn("The error reporting queue has reached #{MAX_ERROR_QUEUE_LENGTH}. The error detail for this and subsequent errors will not be transmitted to New Relic until the queued errors have been sent: #{message}") if over_limit
           over_limit
         end
@@ -278,11 +278,16 @@ module NewRelic
       # type, and is intended for diagnostics in difficult to debug support cases.
       def notice_agent_error(exception)
         return if @errors.any? { |err| err.exception_class_constant == exception.class }
+
         trace = exception.backtrace || caller.dup
         noticed_error = NewRelic::NoticedError.new("NewRelic/AgentError",
                                                    {:stack_trace => trace},
                                                    exception)
-        add_to_error_queue(noticed_error)
+        noticed_error.agent_error = true
+
+        @lock.synchronize do
+          @errors << noticed_error
+        end
       end
 
       # Get the errors currently queued up.  Unsent errors are left
