@@ -33,7 +33,16 @@ module NewRelic
 
       def record(metric_specs, value=nil, aux=nil)
         Array(metric_specs).each do |metric_spec|
-          stats = self[metric_spec]
+          stats = nil
+          begin
+            stats = self[metric_spec]
+          rescue => e
+            # This only happen in the case of a corrupted default_proc
+            # Side-step it manually and carry on....
+            stats = NewRelic::Agent::Stats.new
+            self[metric_spec] = stats
+          end
+
           if block_given?
             yield stats
           else
