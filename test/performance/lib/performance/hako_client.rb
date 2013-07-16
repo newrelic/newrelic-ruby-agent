@@ -8,14 +8,14 @@ require 'httparty'
 module Performance
   class HakoClient
     include HTTParty
-    base_uri 'http://hako.herokuapp.com'
+    base_uri 'http://hako.pdx.vm.datanerd.us'
 
     def initialize(token)
       @token = token
     end
 
     def submit(result)
-      body = JSON.dump('result' => result)
+      body = JSON.dump('result' => result.to_h)
       headers = {
         "Authorization" => "Token token=\"#{@token}\"",
         "Content-Type"  => "application/json"
