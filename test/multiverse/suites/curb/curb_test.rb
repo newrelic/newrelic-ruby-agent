@@ -64,6 +64,26 @@ class CurbTest < MiniTest::Unit::TestCase
     @get_response_proc = nil
   end
 
+  def test_get_via_shortcut_api_preserves_header_str
+    rsp = Curl.get( default_url )
+    header_str = rsp.header_str
+
+    # Make sure that we got something that looks like a header string
+    assert_match(/^HTTP\/1\.1 200 OK\s+$/, header_str)
+    assert_match(/^Content-Length: \d+\s+$/, header_str)
+
+    # Make sure there are no lines that appear multiple times, which would
+    # happen if we installed callbacks repeatedly on one request.
+    header_lines = header_str.split
+    assert_equal(header_lines.uniq.size, header_lines.size,
+      "Found some header lines appearing multiple times in header_str:\n#{header_str}")
+  end
+
+  def test_get_doesnt_destroy_ability_to_call_status
+    status_code = Curl.get( default_url ).status.to_i
+    assert_equal(200, status_code)
+  end
+
 
   # Curl.head is broken in 0.8.4 (https://github.com/taf2/curb/pull/148), but if
   # it ever gets fixed, then this test should be uncommented.
@@ -139,7 +159,7 @@ class CurbTest < MiniTest::Unit::TestCase
   end
 
   def response_instance( headers={} )
-    res = NewRelic::Agent::HTTPClients::CurbResponse.new
+    res = NewRelic::Agent::HTTPClients::CurbResponse.new(Curl::Easy.new)
     headers.each do |hdr, val|
       res.append_header_data( "#{hdr}: #{val}")
     end

@@ -39,8 +39,9 @@ module NewRelic
 
       class CurbResponse
 
-        def initialize
+        def initialize(curlobj)
           @headers = {}
+          @curlobj = curlobj
         end
 
         def [](key)
@@ -54,6 +55,8 @@ module NewRelic
         def append_header_data( data )
           key, value = data.split( /:\s*/, 2 )
           @headers[ key.downcase ] = value
+          @curlobj._nr_header_str ||= ''
+          @curlobj._nr_header_str << data
         end
 
       end
