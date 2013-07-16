@@ -11,6 +11,8 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
     NewRelic::Agent.config.apply_config(@test_config)
     @error_collector = NewRelic::Agent::ErrorCollector.new
     @error_collector.stubs(:enabled).returns(true)
+
+    NewRelic::Agent.instance.stats_engine.reset_stats
   end
 
   def teardown
@@ -195,26 +197,79 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
   end
 
   def test_increment_error_count_record_summary_and_txn_metric
-    stats_engine = NewRelic::Agent.instance.stats_engine
-    stats_engine.reset_stats
-
     @error_collector.increment_error_count!(StandardError.new('Boo'),
                                             :metric => 'Controller/class/method')
 
-    assert_equal(1, stats_engine.get_stats('Errors/all').call_count,
-                 'Missing Errors/all metric')
-    assert_equal(1, stats_engine.get_stats('Errors/Controller/class/method').call_count,
-                 'Missing Errors/Controller/class/method metric')
+    assert_metrics_recorded(['Errors/all', 'Errors/Controller/class/method'])
   end
 
   def test_doesnt_increment_error_count_on_transaction_if_nameless
-    stats_engine = NewRelic::Agent.instance.stats_engine
-    stats_engine.reset_stats
-
     @error_collector.increment_error_count!(StandardError.new('Boo'),
                                             :metric => '(unknown)')
 
-    assert_equal(0, stats_engine.get_stats('Errors/(unknown)').call_count)
+    assert_metrics_not_recorded(['Errors/(unknown)'])
+  end
+
+
+  class DifficultToDebugAgentError < StandardError
+  end
+
+  class AnotherToughAgentError < StandardError
+  end
+
+  def test_notices_agent_error
+    @error_collector.notice_agent_error(DifficultToDebugAgentError.new)
+    assert_equal 1, @error_collector.errors.size
+  end
+
+  def test_only_notices_agent_error_per_type
+    @error_collector.notice_agent_error(DifficultToDebugAgentError.new)
+    @error_collector.notice_agent_error(DifficultToDebugAgentError.new)
+
+    assert_equal 1, @error_collector.errors.size
+  end
+
+  def test_only_notices_agent_error_per_type
+    @error_collector.notice_agent_error(DifficultToDebugAgentError.new)
+    @error_collector.notice_agent_error(DifficultToDebugAgentError.new)
+    @error_collector.notice_agent_error(AnotherToughAgentError.new)
+
+    assert_equal 2, @error_collector.errors.size
+  end
+
+  def test_does_not_touch_error_metrics
+    @error_collector.notice_agent_error(DifficultToDebugAgentError.new)
+    @error_collector.notice_agent_error(DifficultToDebugAgentError.new)
+    @error_collector.notice_agent_error(AnotherToughAgentError.new)
+
+    assert_metrics_recorded_exclusive([])
+  end
+
+  def test_notice_agent_error_set_noticed_error_attributes
+    @error_collector.notice_agent_error(DifficultToDebugAgentError.new)
+
+    err = @error_collector.errors.first
+    assert_equal "NewRelic/AgentError", err.path
+    assert_kind_of Hash, err.params
+    assert_not_nil err.params[:stack_trace]
+  end
+
+  def test_notice_agent_error_uses_exception_backtrace_if_present
+    trace = ["boo", "yeah", "error"]
+    exception = DifficultToDebugAgentError.new
+    exception.set_backtrace(trace)
+    @error_collector.notice_agent_error(exception)
+
+    assert_equal trace, @error_collector.errors.first.params[:stack_trace]
+  end
+
+  def test_notice_agent_error_uses_caller_if_no_exception_backtrace
+    exception = DifficultToDebugAgentError.new
+    exception.set_backtrace(nil)
+    @error_collector.notice_agent_error(exception)
+
+    trace = @error_collector.errors.first.params[:stack_trace]
+    assert trace.any? {|line| line.include?(__FILE__)}
   end
 
   private
