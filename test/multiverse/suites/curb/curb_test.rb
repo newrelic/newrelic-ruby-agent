@@ -46,22 +46,22 @@ class CurbTest < MiniTest::Unit::TestCase
   def test_get_works_with_the_shortcut_api
     # Override the mechanism for getting a response and run the test_get test
     # again
-    def self.get_response
-      Curl.get( default_url )
+    @get_response_proc = Proc.new do |url|
+      Curl.get( url || default_url )
     end
-
     test_get
+  ensure
+    @get_response_proc = nil
   end
 
-  # FIXME: disabled for now - seems to be victim to a test ordering issue
-  def _test_background_works_with_the_shortcut_api
-    # Override the mechanism for getting a response and run the test_get test
-    # again
-    def self.get_response
-      Curl.get( default_url )
+  def test_background_works_with_the_shortcut_api
+    # Override the mechanism for getting a response and run test_background again
+    @get_response_proc = Proc.new do |url|
+      Curl.get( url || default_url )
     end
-
     test_background
+  ensure
+    @get_response_proc = nil
   end
 
 
@@ -115,7 +115,11 @@ class CurbTest < MiniTest::Unit::TestCase
   end
 
   def get_response(url=nil)
-    Curl::Easy.http_get( url || default_url )
+    if @get_response_proc
+      @get_response_proc.call(url)
+    else
+      Curl::Easy.http_get( url || default_url )
+    end
   end
 
   def head_response

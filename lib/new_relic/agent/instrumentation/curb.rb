@@ -18,8 +18,10 @@ DependencyDetection.defer do
   executes do
     class Curl::Easy
 
-      attr_accessor :_nr_http_verb,
-                    :_nr_serial
+      attr_accessor :_nr_instrumented,
+                    :_nr_http_verb,
+                    :_nr_serial,
+                    :_nr_original_on_complete
 
       # We have to hook these three methods separately, as they don't use
       # Curl::Easy#http
@@ -137,15 +139,21 @@ DependencyDetection.defer do
 
       # Install a callback that will finish the trace.
       def install_completion_callback( request, t0, segment, wrapped_request, wrapped_response )
-        existing_completion_proc = request.on_complete
+        return if request._nr_instrumented # bail if we're somehow already instrumented
+        request._nr_original_on_complete = request.on_complete
         request.on_complete do |finished_request|
           begin
             NewRelic::Agent::CrossAppTracing.finish_trace( t0, segment, wrapped_request, wrapped_response )
           ensure
-            # Make sure the existing completion callback is run
-            existing_completion_proc.call( finished_request ) if existing_completion_proc
+            # Make sure the existing completion callback is run, and restore the
+            # on_complete callback to how it was before.
+            original_callback = finished_request._nr_original_on_complete
+            original_callback.call( finished_request ) if original_callback
+            finished_request.on_complete(&original_callback)
+            finished_request._nr_instrumented = false
           end
         end
+        request._nr_instrumented = true
       end
 
     end # class Curl::Multi
