@@ -5,15 +5,16 @@
 # This module is responsible for intercepting output made through various stdlib
 # calls (i.e. puts, print, etc.) and printing summary information (e.g. a list
 # of failing tests) at the end of the process.
-#
+
+require 'thread'
+
 module Multiverse
   module OutputCollector
     include Color
     extend Color
 
-    def self.buffers
-      @buffers ||= {}
-    end
+    @output_lock = Mutex.new
+    @buffer_lock = Mutex.new
 
     def self.failing_output
       @failing ||= []
@@ -21,8 +22,11 @@ module Multiverse
 
     def self.buffer(suite, env)
       key = [suite, env]
-      buffers[key] ||= ""
-      buffers[key]
+      @buffer_lock.synchronize do
+        @buffers ||= {}
+        @buffers[key] ||= ""
+        @buffers[key]
+      end
     end
 
     def self.failed(suite, env)
@@ -53,8 +57,7 @@ module Multiverse
     # Because the various environments potentially run in separate threads to
     # start their processes, make sure we don't blatantly interleave output.
     def self.output(*args)
-      @lock = Mutex.new if @lock.nil?
-      @lock.synchronize do
+      @output_lock.synchronize do
         puts *args
       end
     end
