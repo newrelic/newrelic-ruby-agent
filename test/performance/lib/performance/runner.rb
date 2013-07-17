@@ -177,6 +177,12 @@ module Performance
       results
     end
 
+    def run_and_report
+      t0 = Time.now
+      results = run_all_test_cases
+      report_results(results, Time.now - t0)
+    end
+
     def report_results(results, elapsed)
       @reporter_classes.each do |cls|
         cls.new(results, elapsed, @options).report

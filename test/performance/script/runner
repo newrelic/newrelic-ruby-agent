@@ -10,6 +10,8 @@ require 'json'
 
 require File.join(File.dirname(__FILE__), '..', 'lib', 'performance')
 
+target_versions = nil
+
 options = {}
 parser = OptionParser.new do |opts|
   opts.banner = "Usage: #{$0} [options]"
@@ -54,6 +56,9 @@ parser = OptionParser.new do |opts|
   opts.on("-A", "--agent=PATH", "Run tests against the copy of the agent at PATH") do |path|
     options[:agent_path] = path
   end
+  opts.on("-c", "--compare=VERSIONS", "Run tests against the specified VERSIONS of the agent. Use with -A") do |versions|
+    target_versions = versions.split(',')
+  end
   opts.on("-m", "--metadata=METADATA", "Attach metadata to the run. Format: 'key1:value1,key2:value2'") do |tags_string|
     tags = {}
     pairs = tags_string.split(",")
@@ -69,6 +74,14 @@ parser.parse!
 options[:dir] = File.expand_path(File.join(File.dirname(__FILE__), '..', 'suites'))
 
 runner = Performance::Runner.new(options)
-t0 = Time.now
-results = runner.run_all_test_cases
-runner.report_results(results, Time.now - t0)
+
+if target_versions
+  target_versions.each do |version|
+    Performance.logger.info("Running tests against version #{version}")
+    cmd = "cd #{options[:agent_path]} && git checkout #{version}"
+    system(cmd)
+    runner.run_and_report
+  end
+else
+  runner.run_and_report
+end
