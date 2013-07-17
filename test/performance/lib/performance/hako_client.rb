@@ -3,6 +3,8 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'json'
+require 'net/http'
+require 'uri'
 
 module Performance
   class HakoClient
