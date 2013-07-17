@@ -93,14 +93,14 @@ DependencyDetection.defer do
 
 
       # Trace as an External/Multiple call if the first request isn't serial.
-      def perform_with_newrelic
+      def perform_with_newrelic(&blk)
         return perform_without_newrelic if
           self.requests.first &&
           self.requests.first.respond_to?( :_nr_serial ) &&
           self.requests.first._nr_serial
 
         trace_execution_scoped("External/Multiple/Curb::Multi/perform") do
-          perform_without_newrelic
+          perform_without_newrelic(&blk)
         end
       end
 
@@ -174,5 +174,3 @@ DependencyDetection.defer do
 
   end
 end
-
-
