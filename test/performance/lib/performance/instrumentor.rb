@@ -31,6 +31,21 @@ module Performance
       end
     end
 
+    def self.instrumentor_class_by_name(name)
+      begin
+        cls = self.const_get(name)
+        if cls.supported?
+          cls
+        else
+          Performance.logger.warn("Instrumentor '#{name}' is unsupported on this platform")
+          nil
+        end
+      rescue NameError => e
+        Performance.logger.error("Failed to load instrumentor '#{name}': #{e.inspect}")
+        nil
+      end
+    end
+
     class Instrumentor
       def self.inherited(cls)
         @subclasses ||= []

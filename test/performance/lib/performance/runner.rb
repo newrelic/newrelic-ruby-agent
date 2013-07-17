@@ -30,18 +30,7 @@ module Performance
 
     def create_instrumentors(names)
       instrumentor_classes = names.map do |name|
-        begin
-          cls = Performance::Instrumentation.const_get(name)
-          if cls.supported?
-            cls
-          else
-            $stderr.puts "Skipping requested instrumentor '#{name}' because it is unsupported on this platform"
-            nil
-          end
-        rescue NameError => e
-          $stderr.puts "Failed to load instrumentor '#{name}': #{e.inspect}"
-          nil
-        end
+        Performance::Instrumentation.instrumentor_class_by_name(name)
       end.compact
 
       instrumentor_classes |= Instrumentation.default_instrumentors
