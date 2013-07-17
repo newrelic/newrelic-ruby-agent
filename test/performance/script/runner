@@ -51,6 +51,9 @@ parser = OptionParser.new do |opts|
   opts.on("-L", "--log=PATH", "Log diagnostic information to PATH") do |log_path|
     Performance.log_path = log_path
   end
+  opts.on("-A", "--agent=PATH", "Run tests against the copy of the agent at PATH") do |path|
+    options[:agent_path] = path
+  end
   opts.on("-m", "--metadata=METADATA", "Attach metadata to the run. Format: 'key1:value1,key2:value2'") do |tags_string|
     tags = {}
     pairs = tags_string.split(",")

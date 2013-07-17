@@ -13,7 +13,8 @@ module Performance
       :iterations       => 10000,
       :reporter_classes => ['ConsoleReporter'],
       :brief            => false,
-      :tags             => {}
+      :tags             => {},
+      :agent_path       => File.join(File.dirname(__FILE__), '..', '..', '..', '..')
     }
 
     def initialize(options={})
@@ -105,11 +106,7 @@ module Performance
     end
 
     def newrelic_rpm_path
-      if ENV['NEWRELIC_RPM_PATH']
-        File.expand_path(File.join(ENV['NEWRELIC_RPM_PATH'], 'lib'))
-      else
-        File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'lib'))
-      end
+      File.expand_path(File.join(@options[:agent_path], 'lib'))
     end
 
     def load_newrelic_rpm
