@@ -284,6 +284,7 @@ module NewRelic
                                                    {:stack_trace => trace},
                                                    exception)
         noticed_error.agent_error = true
+        noticed_error.message = "Ruby agent internal error. Please contact support referencing this error.\n" + noticed_error.message
 
         @lock.synchronize do
           @errors << noticed_error

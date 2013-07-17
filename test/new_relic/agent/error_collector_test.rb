@@ -291,6 +291,15 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
     assert_equal 21, @error_collector.errors.size
   end
 
+  def test_notice_agent_error_adds_support_message
+    exception = DifficultToDebugAgentError.new("BOO")
+    @error_collector.notice_agent_error(exception)
+
+    err = @error_collector.errors.first
+    assert err.message.include?(exception.message)
+    assert err.message.include?("Ruby agent internal error")
+  end
+
   private
 
   def expects_error_count_increase(increase)
