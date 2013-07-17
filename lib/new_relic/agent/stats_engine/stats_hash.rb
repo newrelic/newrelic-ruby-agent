@@ -68,12 +68,24 @@ module NewRelic
         end
       end
 
+      class StatsMergerError < StandardError
+        def initialize(key, destination, source, original_exception)
+          super("Failure when merging stats '#{key}'. In Hash: #{destination.inspect}. Merging: #{source.inspect}. Original exception: #{original_exception.class} #{original_exception.message}")
+          set_backtrace(original_exception.backtrace)
+        end
+      end
+
       def merge!(other)
         other.each do |key,val|
-          if self.has_key?(key)
-            self[key].merge!(val)
-          else
-            self[key] = val
+          begin
+            if self.has_key?(key)
+              self[key].merge!(val)
+            else
+              self[key] = val
+            end
+          rescue => err
+            NewRelic::Agent.instance.error_collector. \
+              notice_agent_error(StatsMergerError.new(key, self.fetch(key, nil), val, err))
           end
         end
         self
