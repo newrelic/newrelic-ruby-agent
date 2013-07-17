@@ -8,12 +8,13 @@ module Performance
       is_jruby = defined?(JRUBY_VERSION)
       is_ree   = defined?(RUBY_DESCRIPTION) && RUBY_DESCRIPTION =~ /MBARI/
       case p
-      when :jruby  then is_jruby
-      when :mri    then !is_jruby
-      when :ree    then !is_jruby && is_ree
-      when :mri_18 then !is_jruby && RUBY_VERSION =~ /^1\.8\./
-      when :mri_19 then !is_jruby && RUBY_VERSION =~ /^1\.9\./
-      when :mri_20 then !is_jruby && RUBY_VERSION =~ /^2\.0\./
+      when :jruby   then is_jruby
+      when :mri     then !is_jruby
+      when :ree     then !is_jruby && is_ree
+      when :mri_18  then !is_jruby && RUBY_VERSION =~ /^1\.8\./
+      when :mri_19  then !is_jruby && RUBY_VERSION =~ /^1\.9\./
+      when :mri_193 then !is_jruby && RUBY_VERSION =~ /^1\.9\.3/
+      when :mri_20  then !is_jruby && RUBY_VERSION =~ /^2\.0\./
       end
     end
 

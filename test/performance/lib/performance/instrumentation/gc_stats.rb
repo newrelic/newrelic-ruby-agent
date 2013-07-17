@@ -5,7 +5,7 @@
 module Performance
   module Instrumentation
     class MRIGCStats < Instrumentor
-      platforms :mri_19, :mri_20
+      platforms :mri_193, :mri_20
       on_by_default
 
       def before(*)
