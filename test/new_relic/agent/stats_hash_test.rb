@@ -115,14 +115,26 @@ class NewRelic::Agent::StatsHashTest < Test::Unit::TestCase
     assert_equal(@hash, copy)
   end
 
-  def test_can_record_metric_with_borked_default_proc
+  def test_borked_default_proc_can_record_metric
     spec = NewRelic::MetricSpec.new('foo')
-    hash = NewRelic::Agent::StatsHash.new()
-    hash.stubs(:[]).with(spec).raises(NoMethodError.new("borked default proc gives a NoMethodError on `yield'"))
+    fake_borked_default_proc(@hash)
 
-    hash.record(spec, 1)
+    @hash.record(spec, 1)
 
     # Fetch avoids out stub on [], so use that instead
-    assert_equal(1, hash.fetch(spec).call_count)
+    assert_equal(1, @hash.fetch(spec).call_count)
+  end
+
+  def test_borked_default_proc_notices_agent_error
+    spec = NewRelic::MetricSpec.new('foo')
+    fake_borked_default_proc(@hash)
+
+    @hash.record(spec, 1)
+
+    assert_not_nil NewRelic::Agent.instance.error_collector.errors.find {|e| e.exception_class_constant == NewRelic::Agent::StatsHash::CorruptedDefaultProcError}
+  end
+
+  def fake_borked_default_proc(hash)
+    hash.stubs(:[]).raises(NoMethodError.new("borked default proc gives a NoMethodError on `yield'"))
   end
 end

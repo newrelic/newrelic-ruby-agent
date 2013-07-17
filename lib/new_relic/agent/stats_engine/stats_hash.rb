@@ -31,6 +31,12 @@ module NewRelic
         Hash[self] == Hash[other]
       end
 
+      class CorruptedDefaultProcError < StandardError
+        def initialize(hash, metric_spec)
+          super("Corrupted default proc for StatsHash. Falling back adding #{metric_spec.inspect}")
+        end
+      end
+
       def record(metric_specs, value=nil, aux=nil)
         Array(metric_specs).each do |metric_spec|
           stats = nil
@@ -38,7 +44,10 @@ module NewRelic
             stats = self[metric_spec]
           rescue => e
             # This only happen in the case of a corrupted default_proc
-            # Side-step it manually and carry on....
+            # Side-step it manually, notice the issue, and carry on....
+            NewRelic::Agent.instance.error_collector. \
+              notice_agent_error(CorruptedDefaultProcError.new(self, metric_spec))
+
             stats = NewRelic::Agent::Stats.new
             self[metric_spec] = stats
           end
