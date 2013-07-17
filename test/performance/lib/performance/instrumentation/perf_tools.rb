@@ -20,8 +20,8 @@ module Performance
 
       def after(test, test_name)
         PerfTools::CpuProfiler.stop
-        output_profile_path = artifact_path(test, test_name, "pdf")
-        system("pprof.rb --pdf #{@profile_path} >#{output_profile_path}")
+        output_profile_path = artifact_path(test, test_name, "dot")
+        system("pprof.rb --dot #{@profile_path} >#{output_profile_path}")
         @artifacts << output_profile_path
         FileUtils.remove_entry_secure(@profile_dir)
       end
