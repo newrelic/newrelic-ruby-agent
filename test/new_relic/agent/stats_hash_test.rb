@@ -117,22 +117,32 @@ class NewRelic::Agent::StatsHashTest < Test::Unit::TestCase
   end
 
   def test_borked_default_proc_can_record_metric
-    spec = NewRelic::MetricSpec.new('foo')
     fake_borked_default_proc(@hash)
 
-    @hash.record(spec, 1)
+    @hash.record(DEFAULT_SPEC, 1)
 
-    # Fetch avoids out stub on [], so use that instead
-    assert_equal(1, @hash.fetch(spec).call_count)
+    assert_equal(1, @hash.fetch(DEFAULT_SPEC, nil).call_count)
   end
 
   def test_borked_default_proc_notices_agent_error
-    spec = NewRelic::MetricSpec.new('foo')
     fake_borked_default_proc(@hash)
 
-    @hash.record(spec, 1)
+    @hash.record(DEFAULT_SPEC, 1)
 
-    assert_not_nil NewRelic::Agent.instance.error_collector.errors.find {|e| e.exception_class_constant == NewRelic::Agent::StatsHash::CorruptedDefaultProcError}
+    assert_has_error NewRelic::Agent::StatsHash::CorruptedDefaultProcError
+  end
+
+  # We can only fix up the default proc on Rubies that let us set it
+  if {}.respond_to?(:default_proc=)
+    def test_borked_default_proc_heals_thyself
+      fake_borked_default_proc(@hash)
+
+      @hash.record(DEFAULT_SPEC, 1)
+      NewRelic::Agent.instance.error_collector.errors.clear
+
+      @hash.record(NewRelic::MetricSpec.new('something/else/entirely'), 1)
+      assert_equal 0, NewRelic::Agent.instance.error_collector.errors.size
+    end
   end
 
   STAT_SETTERS = [:call_count=, :min_call_time=, :max_call_time=, :total_call_time=, :total_exclusive_time=, :sum_of_squares=]
@@ -152,7 +162,7 @@ class NewRelic::Agent::StatsHashTest < Test::Unit::TestCase
       @hash.merge!(incoming)
 
       assert_equal expected, @hash[DEFAULT_SPEC]
-      assert_not_nil NewRelic::Agent.instance.error_collector.errors.find{|e| e.exception_class_constant == NewRelic::Agent::StatsHash::StatsMergerError}
+      assert_has_error NewRelic::Agent::StatsHash::StatsMergerError
     end
   end
 
@@ -175,6 +185,15 @@ class NewRelic::Agent::StatsHashTest < Test::Unit::TestCase
   end
 
   def fake_borked_default_proc(hash)
-    hash.stubs(:[]).raises(NoMethodError.new("borked default proc gives a NoMethodError on `yield'"))
+    exception = NoMethodError.new("borked default proc gives a NoMethodError on `yield'")
+    if hash.respond_to?(:default_proc=)
+      hash.default_proc = Proc.new { raise exception }
+    else
+      hash.stubs(:[]).raises(exception)
+    end
+  end
+
+  def assert_has_error(error_class)
+    assert_not_nil NewRelic::Agent.instance.error_collector.errors.find {|e| e.exception_class_constant == error_class}
   end
 end

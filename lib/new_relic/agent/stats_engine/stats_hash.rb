@@ -50,6 +50,11 @@ module NewRelic
 
             stats = NewRelic::Agent::Stats.new
             self[metric_spec] = stats
+
+            # Try to restore the default_proc so we won't continually trip the error
+            if respond_to?(:default_proc=)
+              self.default_proc = Proc.new { |hash, key| hash[key] = NewRelic::Agent::Stats.new }
+            end
           end
 
           if block_given?
