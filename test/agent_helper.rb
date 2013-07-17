@@ -63,6 +63,12 @@ def assert_calls_unscoped_metrics(*metrics)
   assert_not_equal first_metrics, last_metrics, "should have changed these metrics"
 end
 
+def assert_has_error(error_class)
+  assert \
+    NewRelic::Agent.instance.error_collector.errors.find {|e| e.exception_class_constant == error_class} != nil, \
+    "Didn't find error of class #{error_class}"
+end
+
 
 unless defined?( build_message )
   def build_message(head, template=nil, *arguments)

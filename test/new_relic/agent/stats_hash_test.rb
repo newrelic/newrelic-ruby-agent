@@ -193,7 +193,4 @@ class NewRelic::Agent::StatsHashTest < Test::Unit::TestCase
     end
   end
 
-  def assert_has_error(error_class)
-    assert_not_nil NewRelic::Agent.instance.error_collector.errors.find {|e| e.exception_class_constant == error_class}
-  end
 end

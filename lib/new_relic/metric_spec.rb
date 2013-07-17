@@ -23,6 +23,20 @@ class NewRelic::MetricSpec
     end
   end
 
+  class InvalidScopeSettingError < StandardError
+    def initialize(name, scope)
+      super("Attempted to set scope for #{name} to #{scope.inspect}, ignoring.")
+    end
+  end
+
+  def scope=(s)
+    if s.nil? || s == false
+      NewRelic::Agent.instance.error_collector.notice_agent_error(InvalidScopeSettingError.new(@name, s))
+    else
+      @scope = s
+    end
+  end
+
   # truncates the name and scope to the MAX_LENGTH
   def truncate!
     self.name = name[LENGTH_RANGE] if name && name.size > MAX_LENGTH
