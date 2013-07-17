@@ -75,7 +75,7 @@ module NewRelic
 
       class StatsMergerError < StandardError
         def initialize(key, destination, source, original_exception)
-          super("Failure when merging stats '#{key}'. In Hash: #{destination.inspect}. Merging: #{source.inspect}. Original exception: #{original_exception.class} #{original_exception.message}")
+          super("Failure when merging stats '#{key}'. In Hash: #{destination.inspect_full}. Merging: #{source.inspect_full}. Original exception: #{original_exception.class} #{original_exception.message}")
           set_backtrace(original_exception.backtrace)
         end
       end
