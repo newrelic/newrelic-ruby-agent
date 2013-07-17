@@ -34,13 +34,18 @@ class NewRelic::Command::Deployments < NewRelic::Command
     @user ||= ENV['USER']
     control.env = @environment if @environment
     load_yaml_from_env(control.env)
-    NewRelic::Agent.logger = NewRelic::Agent::AgentLogger.new(NewRelic::Agent.config)
     @appname ||= NewRelic::Agent.config.app_names[0] || control.env || 'development'
+    setup_logging(control.env)
   end
 
   def load_yaml_from_env(env)
     yaml = NewRelic::Agent::Configuration::YamlSource.new(NewRelic::Agent.config[:config_path], env)
     NewRelic::Agent.config.replace_or_add_config(yaml, 1)
+  end
+
+  def setup_logging(env)
+    NewRelic::Agent.logger = NewRelic::Agent::AgentLogger.new(NewRelic::Agent.config)
+    NewRelic::Agent.logger.info("Running Capistrano from '#{env}' environment for application '#{@appname}'")
   end
 
   # Run the Deployment upload in New Relic via Active Resource.
