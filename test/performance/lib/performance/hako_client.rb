@@ -3,12 +3,10 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'json'
-require 'httparty'
 
 module Performance
   class HakoClient
-    include HTTParty
-    base_uri 'http://hako.pdx.vm.datanerd.us'
+    BASE_URI = 'http://hako.pdx.vm.datanerd.us'
 
     def initialize(token)
       @token = token
@@ -16,11 +14,16 @@ module Performance
 
     def submit(result)
       body = JSON.dump('result' => result.to_h)
-      headers = {
-        "Authorization" => "Token token=\"#{@token}\"",
-        "Content-Type"  => "application/json"
-      }
-      self.class.post('/api/results', :body => body, :headers => headers)
+
+      uri = URI(BASE_URI + "/api/results")
+      req = Net::HTTP::Post.new(uri.to_s)
+      req.body = body
+      req.content_type = 'application/json'
+      req['Authorization'] = "Token token=\"#{@token}\""
+
+      Net::HTTP.start(uri.host, uri.port) do |conn|
+        conn.request(req)
+      end
     end
   end
 end

@@ -14,7 +14,8 @@ module Performance
       client = HakoClient.new(@token)
       @results.each do |result|
         rsp = client.submit(result)
-        if rsp.success?
+        case rsp
+        when Net::HTTPSuccess
           Performance.logger.debug("Successfully posted result to Hako")
         else
           Performance.logger.error("Failed to post results to Hako: #{rsp.inspect}")
