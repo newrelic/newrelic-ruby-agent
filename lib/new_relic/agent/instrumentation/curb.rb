@@ -5,8 +5,11 @@
 DependencyDetection.defer do
   named :curb
 
+  CURB_MIN_VERSION = ::NewRelic::VersionNumber.new("0.8.1")
+
   depends_on do
-    defined?(Curl)
+    defined?(::Curl) && defined?(::Curl::CURB_VERSION) &&
+      ::NewRelic::VersionNumber.new(::Curl::CURB_VERSION) >= CURB_MIN_VERSION
   end
 
   executes do
