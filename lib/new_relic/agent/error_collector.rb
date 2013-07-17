@@ -272,10 +272,15 @@ module NewRelic
         ::NewRelic::Agent.logger.warn("Failure when capturing error '#{exception}':", e)
       end
 
-      # This method is intended for internal use and has special logic for allowing
-      # an agent error to be recorded even if we've hit the queue limit for app
-      # errors. It takes care to only put one instance a given agent exception
-      # type, and is intended for diagnostics in difficult to debug support cases.
+      # *Use sparingly for difficult to track bugs.*
+      #
+      # Track internal agent errors for communication back to New Relic.
+      # To use it, make a subclass of StandardError for your scenario,
+      # then pass an instance of it to this method when your problem occurs.
+      #
+      # Limits are treated differently for these errors. We only gather one per
+      # class per harvest, disregarding (and not impacting) the app error queue
+      # limit.
       def notice_agent_error(exception)
         return if @errors.any? { |err| err.exception_class_constant == exception.class }
 
