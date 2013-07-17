@@ -126,36 +126,25 @@ class CurbTest < MiniTest::Unit::TestCase
     end
   end
 
-  # based on this example in the Curb readme:
-  # https://github.com/taf2/curb#multi-interface-advanced
-  def test_works_with_multi_perform
-    results = []
+  def test_block_passed_to_multi_perform_should_be_called
+    successes = 0
+    num_requests = 2
+    perform_block_called = false
 
     in_transaction("test") do
       multi = Curl::Multi.new
-      successes = 0
-      perform_block_called = false
 
-      [default_url, default_url].each do |url|
-        c = Curl::Easy.new(url) do|curl|
-          curl.on_body { |data| results << data; data.size }
-          curl.on_success { |easy| successes += 1 }
+      num_requests.times do |i|
+        req = Curl::Easy.new(default_url) do |easy|
+          easy.on_success { |curl| successes += 1 }
         end
-        multi.add(c)
+        multi.add(req)
       end
 
-      multi.perform do
-        perform_block_called = true
-      end
+      multi.perform { perform_block_called = true }
 
-      assert_equal(2, results.size)
-      assert_equal(2, successes)
-      results.each do |res|
-        assert_match %r/<head>/i, res
-      end
-
-      assert(perform_block_called)
-
+      assert_equal(num_requests, successes)
+      assert(perform_block_called, "Block passed to Curl::Multi.perform should have been called")
       last_segment = find_last_transaction_segment()
       assert_equal "External/Multiple/Curb::Multi/perform", last_segment.metric_name
     end
