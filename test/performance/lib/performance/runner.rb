@@ -101,6 +101,9 @@ module Performance
       if @options[:name]
         filter = Regexp.new(@options[:name])
         methods = methods.select { |m| m.match(filter) }
+      elsif @options[:identifier]
+        suite, method = @options[:identifier].split('#')
+        methods = methods.select { |m| m == method }
       end
       methods
     end
