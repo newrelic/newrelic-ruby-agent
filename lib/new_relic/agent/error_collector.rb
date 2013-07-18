@@ -287,14 +287,14 @@ module NewRelic
         # Log 'em all!
         NewRelic::Agent.logger.info(exception)
 
-        # Already seen this class once? Bail!
-        return if @errors.any? { |err| err.exception_class_constant == exception.class }
-
-        trace = exception.backtrace || caller.dup
-        noticed_error = NewRelic::NoticedError.new("NewRelic/AgentError",
-                                                   {:stack_trace => trace},
-                                                   exception)
         @lock.synchronize do
+          # Already seen this class once? Bail!
+          return if @errors.any? { |err| err.exception_class_constant == exception.class }
+
+          trace = exception.backtrace || caller.dup
+          noticed_error = NewRelic::NoticedError.new("NewRelic/AgentError",
+                                                     {:stack_trace => trace},
+                                                     exception)
           @errors << noticed_error
         end
       end
