@@ -6,25 +6,20 @@ require 'set'
 require 'new_relic/version'
 
 module NewRelic
-  # An instance of LocalEnvironment is responsible for determining
-  # three things:
+  # An instance of LocalEnvironment is responsible for determining the 'dispatcher'
+  # in use by the current process.
   #
-  # * Dispatcher - A supported dispatcher, or nil (:mongrel, :thin, :passenger, :webrick, etc)
-  # * Dispatcher Instance ID, which distinguishes agents on a single host from each other
+  # A dispatcher might be a recognized web server such as unicorn or passenger,
+  # a background job processor such as resque or sidekiq, or nil for unknown.
   #
-  # If the environment can't be determined, it will be set to
-  # nil and dispatcher_instance_id will have nil.
+  # If the environment can't be determined, it will be set to nil.
   #
   # NewRelic::LocalEnvironment should be accessed through NewRelic::Control#env (via the NewRelic::Control singleton).
   class LocalEnvironment
-    # mongrel, thin, webrick, or possibly nil
     def discovered_dispatcher
       discover_dispatcher unless @discovered_dispatcher
       @discovered_dispatcher
     end
-
-    # used to distinguish instances of a dispatcher from each other, may be nil
-    attr_writer :dispatcher_instance_id
 
     def initialize
       # Extend self with any any submodules of LocalEnvironment.  These can override
@@ -35,18 +30,6 @@ module NewRelic
       end
 
       discover_dispatcher
-    end
-
-
-    # An instance id pulled from either @dispatcher_instance_id or by
-    # splitting out the first part of the running file
-    def dispatcher_instance_id
-      if @dispatcher_instance_id.nil?
-        if @discovered_dispatcher.nil?
-          @dispatcher_instance_id = File.basename($0).split(".").first
-        end
-      end
-      @dispatcher_instance_id
     end
 
     # Runs through all the objects in ObjectSpace to find the first one that
@@ -113,11 +96,6 @@ module NewRelic
     def check_for_webrick
       return unless defined?(::WEBrick) && defined?(::WEBrick::VERSION)
       @discovered_dispatcher = :webrick
-      if defined?(::OPTIONS) && OPTIONS.respond_to?(:fetch)
-        # OPTIONS is set by script/server
-        @dispatcher_instance_id = OPTIONS.fetch(:port)
-      end
-      @dispatcher_instance_id = default_port unless @dispatcher_instance_id
     end
 
     def check_for_fastcgi
@@ -132,18 +110,7 @@ module NewRelic
 
       # Get the port from the server if it's started
       if mongrel && mongrel.respond_to?(:port)
-        @dispatcher_instance_id = mongrel.port.to_s
       end
-
-      # Get the port from the configurator if one was created
-      if NewRelic::LanguageSupport.object_space_enabled? && @dispatcher_instance_id.nil? && defined?(::Mongrel::Configurator)
-        ObjectSpace.each_object(Mongrel::Configurator) do |mongrel|
-          @dispatcher_instance_id = mongrel.defaults[:port] && mongrel.defaults[:port].to_s
-        end
-      end
-
-      # Still can't find the port.  Let's look at ARGV to fall back
-      @dispatcher_instance_id = default_port if @dispatcher_instance_id.nil?
 
       # Might not have server yet, so allow one more check later on first request
       @looked_for_mongrel = false
@@ -194,21 +161,10 @@ module NewRelic
         # Same issue as above- we assume only one instance per process
         ObjectSpace.each_object(Thin::Server) do |thin_dispatcher|
           @discovered_dispatcher = :thin
-          backend = thin_dispatcher.backend
-          # We need a way to uniquely identify and distinguish agents.  The port
-          # works for this.  When using sockets, use the socket file name.
-          if backend.respond_to? :port
-            @dispatcher_instance_id = backend.port
-          elsif backend.respond_to? :socket
-            @dispatcher_instance_id = backend.socket
-          else
-            raise "Unknown thin backend: #{backend}"
-          end
-        end # each thin instance
+        end
       end
       if defined?(::Thin) && defined?(::Thin::VERSION) && !@discovered_dispatcher
         @discovered_dispatcher = :thin
-        @dispatcher_instance_id = default_port
       end
     end
 
@@ -224,24 +180,11 @@ module NewRelic
       end
     end
 
-
-    def default_port
-      require 'optparse'
-      # If nothing else is found, use the 3000 default
-      default_port = 3000
-      OptionParser.new do |opts|
-        opts.on("-p", "--port=port", String) { | p | default_port = p }
-        opts.parse(ARGV.clone) rescue nil
-      end
-      default_port
-    end
-
     public
     # outputs a human-readable description
     def to_s
       s = "LocalEnvironment["
       s << ";dispatcher=#{@discovered_dispatcher}" if @discovered_dispatcher
-      s << ";instance=#{@dispatcher_instance_id}" if @dispatcher_instance_id
       s << "]"
     end
 
