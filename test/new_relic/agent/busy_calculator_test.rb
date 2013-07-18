@@ -68,6 +68,8 @@ class NewRelic::Agent::BusyCalculatorTest < Test::Unit::TestCase
     # Get busy for 8 - 2 seconds
     NewRelic::Agent::BusyCalculator.dispatcher_finish(now - 2.0)
     worker.join
+
+    NewRelic::Agent::BusyCalculator.stubs(:time_now).returns(now - 1.0)
     NewRelic::Agent::BusyCalculator.harvest_busy
 
     assert_equal 1, @instance_busy.call_count
