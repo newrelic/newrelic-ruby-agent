@@ -12,6 +12,9 @@
 #
 # This class makes no provisions for safe usage from multiple threads, such
 # measures should be externally provided.
+
+require 'new_relic/agent/internal_agent_error'
+
 module NewRelic
   module Agent
     class StatsHash < ::Hash
@@ -31,7 +34,7 @@ module NewRelic
         Hash[self] == Hash[other]
       end
 
-      class CorruptedDefaultProcError < StandardError
+      class CorruptedDefaultProcError < NewRelic::Agent::InternalAgentError
         def initialize(hash, metric_spec)
           super("Corrupted default proc for StatsHash. Falling back adding #{metric_spec.inspect}")
         end
@@ -73,7 +76,7 @@ module NewRelic
         end
       end
 
-      class StatsMergerError < StandardError
+      class StatsMergerError < NewRelic::Agent::InternalAgentError
         def initialize(key, destination, source, original_exception)
           super("Failure when merging stats '#{key}'. In Hash: #{destination.inspect_full}. Merging: #{source.inspect_full}. Original exception: #{original_exception.class} #{original_exception.message}")
           set_backtrace(original_exception.backtrace)

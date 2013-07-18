@@ -230,7 +230,7 @@ module NewRelic
         # checks the size of the error queue to make sure we are under
         # the maximum limit, and logs a warning if we are over the limit.
         def over_queue_limit?(message)
-          over_limit = (@errors.select{|err| !err.agent_error}.length >= MAX_ERROR_QUEUE_LENGTH)
+          over_limit = (@errors.reject{|err| err.exception_class_constant < NewRelic::Agent::InternalAgentError}.length >= MAX_ERROR_QUEUE_LENGTH)
           ::NewRelic::Agent.logger.warn("The error reporting queue has reached #{MAX_ERROR_QUEUE_LENGTH}. The error detail for this and subsequent errors will not be transmitted to New Relic until the queued errors have been sent: #{message}") if over_limit
           over_limit
         end
@@ -275,25 +275,25 @@ module NewRelic
       # *Use sparingly for difficult to track bugs.*
       #
       # Track internal agent errors for communication back to New Relic.
-      # To use it, make a subclass of StandardError for your scenario,
+      # To use, make a specific subclass of NewRelic::Agent::InternalAgentError,
       # then pass an instance of it to this method when your problem occurs.
       #
       # Limits are treated differently for these errors. We only gather one per
       # class per harvest, disregarding (and not impacting) the app error queue
       # limit.
       def notice_agent_error(exception)
+        return unless exception.class < NewRelic::Agent::InternalAgentError
+
         # Log 'em all!
         NewRelic::Agent.logger.info(exception)
 
+        # Already seen this class once? Bail!
         return if @errors.any? { |err| err.exception_class_constant == exception.class }
 
         trace = exception.backtrace || caller.dup
         noticed_error = NewRelic::NoticedError.new("NewRelic/AgentError",
                                                    {:stack_trace => trace},
                                                    exception)
-        noticed_error.agent_error = true
-        noticed_error.message = "Ruby agent internal error. Please contact support referencing this error.\n" + noticed_error.message
-
         @lock.synchronize do
           @errors << noticed_error
         end

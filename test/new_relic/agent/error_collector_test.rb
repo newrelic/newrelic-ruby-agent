@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require 'new_relic/agent/internal_agent_error'
 
 class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
   def setup
@@ -211,10 +212,10 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
   end
 
 
-  class DifficultToDebugAgentError < StandardError
+  class DifficultToDebugAgentError < NewRelic::Agent::InternalAgentError
   end
 
-  class AnotherToughAgentError < StandardError
+  class AnotherToughAgentError < NewRelic::Agent::InternalAgentError
   end
 
   def test_notices_agent_error

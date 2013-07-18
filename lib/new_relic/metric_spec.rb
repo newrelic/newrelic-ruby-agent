@@ -2,6 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'new_relic/agent/internal_agent_error'
+
 # this struct uniquely defines a metric, optionally inside
 # the call scope of another metric
 class NewRelic::MetricSpec
@@ -23,7 +25,7 @@ class NewRelic::MetricSpec
     end
   end
 
-  class InvalidScopeSettingError < StandardError
+  class InvalidScopeSettingError < NewRelic::Agent::InternalAgentError
     def initialize(name, scope)
       super("Attempted to set scope for #{name} to #{scope.inspect}, ignoring.")
     end
