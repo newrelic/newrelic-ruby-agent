@@ -282,6 +282,9 @@ module NewRelic
       # class per harvest, disregarding (and not impacting) the app error queue
       # limit.
       def notice_agent_error(exception)
+        # Log 'em all!
+        NewRelic::Agent.logger.info(exception)
+
         return if @errors.any? { |err| err.exception_class_constant == exception.class }
 
         trace = exception.backtrace || caller.dup
