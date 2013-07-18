@@ -474,10 +474,19 @@ module NewRelic
 
         include Start
 
+        def defer_for_delayed_job?
+          NewRelic::Agent.config[:dispatcher] == :delayed_job &&
+            !NewRelic::DelayedJobInjection.worker_name
+        end
 
         # Check to see if the agent should start, returning +true+ if it should.
         def agent_should_start?
           return false if already_started? || disabled?
+
+          if defer_for_delayed_job?
+            ::NewRelic::Agent.logger.debug "Deferring startup for DelayedJob"
+            return false
+          end
 
           if defer_for_resque?
             ::NewRelic::Agent.logger.debug "Deferring startup for Resque in case it daemonizes"
