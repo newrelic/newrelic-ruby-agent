@@ -4,14 +4,15 @@
 
   * HTTPClient and Curb support
 
-  The Ruby agent now supports the HTTPClient and Curb HTTP libraries! For more
+  The Ruby agent now supports the HTTPClient and Curb HTTP libraries! Cross
+  application tracing and more is fully supported for these libraries. For more
   details see https://newrelic.com/docs/ruby/ruby-http-clients.
 
   * Sinatra startup improvements
 
   In earlier agent versions, newrelic_rpm had to be required after Sinatra to
   get instrumentation. Now the agent should start when your Sinatra app starts
-  up in in rackup, thin, unicorn, or similar web servers.
+  up in rackup, thin, unicorn, or similar web servers.
 
   * SSL certificate verification
 
