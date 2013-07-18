@@ -58,13 +58,13 @@ class HTTPClientTest < MiniTest::Unit::TestCase
       HTTPClient::Connection.stubs(:new).returns(evil_connection)
 
       begin
-        get_response('http://newrelic.com')
+        get_response(default_url)
       rescue => e
         raise e unless e == test_exception
       end
 
       last_segment = find_last_transaction_segment()
-      assert_equal("External/newrelic.com/HTTPClient/GET", last_segment.metric_name)
+      assert_equal("External/localhost/HTTPClient/GET", last_segment.metric_name)
     end
   end
 end
