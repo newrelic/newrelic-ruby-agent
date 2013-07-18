@@ -113,6 +113,7 @@ module NewRelic
         :disable_memcache_instrumentation     => false,
         :disable_mobile_headers               => true,
 
+        :capture_params        => false,
         :capture_memcache_keys => false,
         :textmate              => false,
 
