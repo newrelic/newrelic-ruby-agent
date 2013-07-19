@@ -14,6 +14,11 @@
   get instrumentation. Now the agent should start when your Sinatra app starts
   up in rackup, thin, unicorn, or similar web servers.
 
+  * Puma clustered mode support
+
+  Clustered mode in Puma was not reporting data without manually adding a hook
+  to Puma's configuration. The agent will now automatically add this hook.
+
   * SSL certificate verification
 
   Early versions of the agent's SSL support provided an option to skip
