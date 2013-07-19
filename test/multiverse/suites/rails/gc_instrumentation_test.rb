@@ -52,13 +52,7 @@ class GCRailsInstrumentationTest < ActionController::TestCase
 
   def assert_in_range(duration, gc_time)
     assert gc_time > 0.0, "GC Time wasn't recorded!"
-
-    # This is a guess for a reasonable threshold here.
-    # Since these are timing based, we can revise or ditch as evidence ditacts
-    # One CI failure we saw at least had duration=0.314 and gc_time=0.088
-    ratio = gc_time / duration
-    assert(ratio > 0.1 && ratio < 1.0,
-      "Problem with GC/duration ratio. #{gc_time}/#{duration} = #{ratio} not between 0.1 and 1.0")
+    assert gc_time < duration, "GC Time can't be more than elapsed!"
   end
 
   def get_call_time(name, scope=nil)
