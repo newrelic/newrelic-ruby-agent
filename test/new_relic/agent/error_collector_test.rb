@@ -230,7 +230,7 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
     assert_equal 1, @error_collector.errors.size
   end
 
-  def test_only_notices_agent_error_per_type
+  def test_only_notices_agent_error_per_type_allows_other_types
     @error_collector.notice_agent_error(DifficultToDebugAgentError.new)
     @error_collector.notice_agent_error(DifficultToDebugAgentError.new)
     @error_collector.notice_agent_error(AnotherToughAgentError.new)
