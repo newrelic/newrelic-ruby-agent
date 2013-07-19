@@ -17,7 +17,7 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
   def test_samples_on_transaction_finished_event
     with_sampler_config do
       advance_time( 0.60 )
-      @event_listener.notify( :transaction_finished, 'Controller/foo/bar', 0.095 )
+      @event_listener.notify( :transaction_finished, 'Controller/foo/bar', Time.now.to_f, 0.095 )
 
       assert_equal 1, @sampler.samples.length
     end
@@ -26,7 +26,7 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
   def test_samples_on_transaction_finished_event_include_options
     with_sampler_config do
       advance_time( 0.60 )
-      @event_listener.notify( :transaction_finished, 'Controller/foo/bar', 0.095, :foo => :bar )
+      @event_listener.notify( :transaction_finished, 'Controller/foo/bar', Time.now.to_f, 0.095, :foo => :bar )
 
       assert_equal :bar, @sampler.samples.first[:foo]
     end
@@ -37,7 +37,7 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
       # 240 requests over 6 seconds => 120 samples
       # with_debug_logging do
       241.times do
-        @event_listener.notify( :transaction_finished, 'Controller/foo/bar', 0.200 )
+        @event_listener.notify( :transaction_finished, 'Controller/foo/bar', Time.now.to_f, 0.200 )
         advance_time( 0.025 )
       end
       # end
@@ -57,14 +57,14 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
   def test_downsamples_and_reduces_sample_rate_when_throttled
     with_sampler_config( :'request_sampler.sample_rate_ms' => 50 ) do
       240.times do
-        @event_listener.notify( :transaction_finished, 'Controller/foo/bar', 0.200 )
+        @event_listener.notify( :transaction_finished, 'Controller/foo/bar', Time.now.to_f, 0.200 )
         advance_time( 0.025 )
       end
 
       @sampler.throttle( 2 )
 
       241.times do
-        @event_listener.notify( :transaction_finished, 'Controller/foo/bar', 0.200 )
+        @event_listener.notify( :transaction_finished, 'Controller/foo/bar', Time.now.to_f, 0.200 )
         advance_time( 0.025 )
       end
 
@@ -83,21 +83,21 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
   def test_downsamples_and_reduces_sample_rate_when_throttled_multiple_times
     with_sampler_config( :'request_sampler.sample_rate_ms' => 50 ) do
       240.times do
-        @event_listener.notify( :transaction_finished, 'Controller/foo/bar', 0.200 )
+        @event_listener.notify( :transaction_finished, 'Controller/foo/bar', Time.now.to_f, 0.200 )
         advance_time( 0.025 )
       end
 
       @sampler.throttle( 2 )
 
       240.times do
-        @event_listener.notify( :transaction_finished, 'Controller/foo/bar', 0.200 )
+        @event_listener.notify( :transaction_finished, 'Controller/foo/bar', Time.now.to_f, 0.200 )
         advance_time( 0.025 )
       end
 
       @sampler.throttle( 3 )
 
       241.times do
-        @event_listener.notify( :transaction_finished, 'Controller/foo/bar', 0.200 )
+        @event_listener.notify( :transaction_finished, 'Controller/foo/bar', Time.now.to_f, 0.200 )
         advance_time( 0.025 )
       end
 
@@ -115,7 +115,7 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
 
   def test_can_disable_sampling
     with_sampler_config( :'request_sampler.enabled' => false ) do
-      @event_listener.notify( :transaction_finished, 'Controller/foo/bar', 0.200 )
+      @event_listener.notify( :transaction_finished, 'Controller/foo/bar', Time.now.to_f, 0.200 )
       assert @sampler.samples.empty?
     end
   end
@@ -136,7 +136,7 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
     freeze_time
     with_sampler_config( :'request_sampler.sample_rate_ms' => 60_000 ) do
       15.times do
-        @event_listener.notify( :transaction_finished, 'Controller/foo/bar', 0.1)
+        @event_listener.notify( :transaction_finished, 'Controller/foo/bar', Time.now.to_f, 0.1)
         advance_time(60.001)
       end
       assert_equal(10, @sampler.samples.size)

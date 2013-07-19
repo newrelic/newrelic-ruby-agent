@@ -146,11 +146,12 @@ class NewRelic::Agent::RequestSampler
 
 
   # Event handler for the :transaction_finished event.
-  def on_transaction_finished( metric, duration, options={} )
+  def on_transaction_finished( metric, start_timestamp, duration, options={} )
     return unless @enabled
     self << {
-      NAME_KEY     => string(metric),
-      DURATION_KEY => float(duration)
+      TIMESTAMP_KEY => float(start_timestamp),
+      NAME_KEY      => string(metric),
+      DURATION_KEY  => float(duration)
     }.merge(options)
   end
 
@@ -234,8 +235,6 @@ class NewRelic::Agent::RequestSampler
     @last_sample_taken = Time.now
 
     sample[TYPE_KEY]      = SAMPLE_TYPE
-    sample[TIMESTAMP_KEY] = @last_sample_taken
-
     @samples << sample
   end
 
