@@ -18,7 +18,6 @@ end
 
 runner_options = {
   :agent_path => repo_path,
-  :dir => File.expand_path(File.join(File.dirname(__FILE__), '..', 'suites')),
   :reporter_classes => ['HakoReporter'],
   :isolate          => true,
   :tags => {

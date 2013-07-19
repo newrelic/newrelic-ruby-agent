@@ -14,6 +14,7 @@ module Performance
       :reporter_classes => ['ConsoleReporter'],
       :brief            => false,
       :tags             => {},
+      :dir              => File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'suites')),
       :agent_path       => File.join(File.dirname(__FILE__), '..', '..', '..', '..')
     }
 
@@ -163,6 +164,8 @@ module Performance
       if @options[:identifier]
         suite, method = @options[:identifier].split('#')
         TestCase.subclasses.select { |cls| cls.name == suite }
+      elsif @options[:suite]
+        TestCase.subclasses.select { |cls| cls.name == @options[:suite] }
       else
         TestCase.subclasses
       end

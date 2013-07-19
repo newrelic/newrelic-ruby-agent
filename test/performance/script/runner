@@ -71,8 +71,6 @@ parser = OptionParser.new do |opts|
 end
 parser.parse!
 
-options[:dir] = File.expand_path(File.join(File.dirname(__FILE__), '..', 'suites'))
-
 runner = Performance::Runner.new(options)
 
 if target_versions

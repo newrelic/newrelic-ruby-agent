@@ -41,8 +41,12 @@ namespace :test do
   end
 
   desc "Run agent performance tests"
-  task 'performance' do
-    ruby "#{agent_home}/test/performance/script/runner"
+  task :performance, [:suite, :name] => [] do |t, args|
+    require File.expand_path(File.join(File.dirname(__FILE__), 'test', 'performance', 'lib', 'performance'))
+    options = {}
+    options[:suite] = args[:suite] if args[:suite]
+    options[:name]  = args[:name]  if args[:name]
+    Performance::Runner.new(options).run_and_report
   end
 
   Rake::TestTask.new(:intentional_fail) do |t|
