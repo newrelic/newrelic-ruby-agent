@@ -49,7 +49,7 @@ class TransactionTracingPerfTests < Performance::TestCase
 
   def setup
     @dummy = klass(true).new
-    NewRelic::Agent.manual_start #(:developer_mode => false)
+    NewRelic::Agent.manual_start(:developer_mode => false)
   end
 
   def teardown
