@@ -10,12 +10,13 @@ module Performance
 
     DEFAULTS = {
       :instrumentors    => [],
+      :inline           => false,
       :iterations       => 10000,
       :reporter_classes => ['ConsoleReporter'],
       :brief            => false,
       :tags             => {},
       :dir              => File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'suites')),
-      :agent_path       => File.join(File.dirname(__FILE__), '..', '..', '..', '..')
+      :agent_path       => ENV['AGENT_PATH'] || File.join(File.dirname(__FILE__), '..', '..', '..', '..')
     }
 
     def initialize(options={})
@@ -127,8 +128,8 @@ module Performance
     def run_test_subprocess(test_case, method)
       test_case_name = test_case.class.name
       test_identifier = "#{test_case_name}##{method}"
-      runner_script = File.join(File.dirname($0), 'runner')
-      cmd = "#{runner_script} -T #{test_identifier} -j -q"
+      runner_script = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'script', 'runner'))
+      cmd = "#{runner_script} -T #{test_identifier} -j -q -I"
       output = nil
       IO.popen(cmd) do |io|
         output = io.read
@@ -142,6 +143,7 @@ module Performance
     def run_test_inline(test_case, method)
       begin
         load_newrelic_rpm
+        GC.start
         test_case.run(method)
       rescue => e
         result = Result.new(test_case.class.name, method)
@@ -152,10 +154,10 @@ module Performance
 
     def run_test_case(test_case)
       methods_for_test_case(test_case).map do |method|
-        if @options[:isolate]
-          run_test_subprocess(test_case, method)
-        else
+        if @options[:inline]
           run_test_inline(test_case, method)
+        else
+          run_test_subprocess(test_case, method)
         end
       end
     end

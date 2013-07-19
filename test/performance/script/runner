@@ -28,8 +28,8 @@ parser = OptionParser.new do |opts|
   opts.on("-N", "--iterations=NUM", "Change the number of iterations for each test") do |iterations|
     options[:iterations] = iterations.to_i
   end
-  opts.on("-I", "--isolate", "Isolate each test into a sub-invocation") do |i|
-    options[:isolate] = true
+  opts.on("-I", "--inline", "Run tests inline - do not isolate each test into a sub-invocation") do |i|
+    options[:inline] = true
   end
   opts.on("-j", "--json", "Produce JSON output") do |q|
     options[:reporter_classes] = ['JSONReporter']
