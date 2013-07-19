@@ -7,7 +7,8 @@ require 'new_relic/helper'
 # This class encapsulates an error that was noticed by New Relic in a managed app.
 class NewRelic::NoticedError
   extend NewRelic::CollectionHelper
-  attr_accessor :path, :timestamp, :params, :exception_class_name, :exception_class_constant, :message
+  attr_accessor :path, :timestamp, :params, :message,
+                :exception_class_name, :exception_class_constant
   attr_reader :exception_id
 
   STRIPPED_EXCEPTION_REPLACEMENT_MESSAGE = "Message removed by New Relic 'strip_exception_messages' setting"

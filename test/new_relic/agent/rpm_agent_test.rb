@@ -2,10 +2,9 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-ENV['SKIP_RAILS'] = 'true'
 require File.expand_path('../../../test_helper', __FILE__)
 
-class NewRelic::Agent::RpmAgentTest < Test::Unit::TestCase # ActiveSupport::TestCase
+class NewRelic::Agent::RpmAgentTest < Test::Unit::TestCase
   def setup
     NewRelic::Agent.manual_start
     @agent = NewRelic::Agent.instance
