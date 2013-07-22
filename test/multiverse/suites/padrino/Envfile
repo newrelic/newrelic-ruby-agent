@@ -6,11 +6,13 @@ gemfile <<-RB
   # Gemspec from rubygems on this version gets illformed warnings on 1.8.7
   gem 'http_router', '0.11.0', :git => 'git://github.com/joshbuddy/http_router.git'
 
+  gem 'activesupport', '~> 3'
   gem 'padrino', '~> 0.11.0'
   gem 'rack-test', :require => 'rack/test'
 RB
 
 gemfile <<-RB
+  gem 'activesupport', '~> 3'
   gem 'padrino', '~> 0.10.0'
   gem 'rack-test', :require => 'rack/test'
 RB
