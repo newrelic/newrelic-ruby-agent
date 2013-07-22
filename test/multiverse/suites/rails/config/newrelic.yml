@@ -4,7 +4,6 @@ common: &default_settings
   port: <%= $collector && $collector.port %>
   app_name: Rails 3 view test ap
   enabled: true
-  log_level: debug
   ssl: false
   apdex_t: 1.0
   capture_params: true

@@ -17,6 +17,5 @@ development:
     enabled: true
     stack_trace_threshold: 0.5
   capture_params: false
-  log_level: debug
   browser_monitoring:
     auto_instrument: true
