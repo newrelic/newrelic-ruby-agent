@@ -297,6 +297,8 @@ module NewRelic
                                                      exception)
           @errors << noticed_error
         end
+      rescue => e
+        NewRelic::Agent.logger.info("Unable to capture internal agent error due to an exception:", e)
       end
 
       # Get the errors currently queued up.  Unsent errors are left
