@@ -158,7 +158,7 @@ module NewRelic
     end
 
     def check_for_delayed_job
-      if defined?(::Delayed) && defined?(::Delayed::Worker) && $0 =~ /delayed_job$/
+      if $0 =~ /delayed_job$/
         @discovered_dispatcher = :delayed_job
       end
     end
