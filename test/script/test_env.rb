@@ -21,7 +21,11 @@ tests_to_run.each do |dir|
     puts red(bundling) unless $?.success?
 
     puts "Starting tests..."
-    puts `bundle exec rake`
+    IO.popen("cd #{dir} && bundle exec rake") do |io|
+      until io.eof do
+        print io.read(1)
+      end
+    end
 
     overall_status = $?.exitstatus if overall_status == 0 && !($?.success?)
   end
