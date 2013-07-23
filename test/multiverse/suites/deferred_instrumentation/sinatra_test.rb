@@ -91,4 +91,13 @@ class DeferredSinatraTest < MiniTest::Unit::TestCase
     # Can't use 'newrelic_ignore' if newrelic was loaded before sinatra, as the
     # instrumentation doesn't load until Rack is building the app to run it.
   end
+
+
+  # (RUBY-1169)
+  def test_only_tries_deferred_detection_once
+    Rack::Builder.new( DeferredSinatraTestApp ).to_app
+    ::DependencyDetection.expects( :detect! ).never
+    Rack::Builder.new( DeferredSinatraTestApp ).to_app
+  end
+
 end

@@ -116,9 +116,18 @@ DependencyDetection.defer do
   executes do
     class ::Rack::Builder
 
+      class << self
+        attr_accessor :_nr_deferred_detection_ran
+      end
+      self._nr_deferred_detection_ran = false
+
       def to_app_with_newrelic_deferred_dependency_detection
-        NewRelic::Agent.logger.info "Doing deferred dependency-detection before Rack startup"
-        DependencyDetection.detect!
+        unless Rack::Builder._nr_deferred_detection_ran
+          NewRelic::Agent.logger.info "Doing deferred dependency-detection before Rack startup"
+          DependencyDetection.detect!
+          Rack::Builder._nr_deferred_detection_ran = true
+        end
+
         to_app_without_newrelic
       end
 
