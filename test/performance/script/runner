@@ -59,14 +59,10 @@ parser = OptionParser.new do |opts|
   opts.on("-c", "--compare=VERSIONS", "Run tests against the specified VERSIONS of the agent. Use with -A") do |versions|
     target_versions = versions.split(',')
   end
-  opts.on("-m", "--metadata=METADATA", "Attach metadata to the run. Format: 'key1:value1,key2:value2'") do |tags_string|
-    tags = {}
-    pairs = tags_string.split(",")
-    pairs.each do |pair|
-      key, val = pair.split(":")
-      tags[key] = val
-    end
-    options[:tags] = tags
+  opts.on("-m", "--metadata=METADATA", "Attach metadata to the run. Format: 'key:value'. May be specified multiple times.") do |tag_string|
+    key, value = tag_string.split(":", 2)
+    options[:tags] ||= {}
+    options[:tags][key] = value
   end
 end
 parser.parse!
