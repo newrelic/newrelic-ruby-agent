@@ -129,7 +129,7 @@ module Performance
       test_case_name = test_case.class.name
       test_identifier = "#{test_case_name}##{method}"
       runner_script = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'script', 'runner'))
-      cmd = "#{runner_script} -T #{test_identifier} -j -q -I"
+      cmd = "#{runner_script} -T #{test_identifier} -N #{@options[:iterations]} -A #{@options[:agent_path]} -j -q -I"
       output = nil
       IO.popen(cmd) do |io|
         output = io.read
