@@ -129,7 +129,7 @@ class NewRelic::Agent::ErrorCollector::NoticeErrorTest < Test::Unit::TestCase
   end
 
   def test_over_queue_limit_positive
-    @errors = %w(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21)
+    @errors = (1..21).map{|_| NewRelic::NoticedError.new("", {}, nil)}
     expects_logging(:warn, includes('The error reporting queue has reached 20'))
     assert over_queue_limit?('hooray')
   end

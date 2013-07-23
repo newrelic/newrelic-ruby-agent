@@ -100,6 +100,15 @@ module NewRelic
         "#<NewRelic::Agent::Stats #{to_s} >"
       end
 
+      # Concerned about implicit usage of inspect relying on stats format, so
+      # putting back a version to get full inspection as separate method
+      def inspect_full
+        variables = instance_variables.map do |ivar|
+          "#{ivar.to_s}=#{instance_variable_get(ivar).inspect}"
+        end.join(" ")
+        "#<NewRelic::Agent::Stats #{variables}>"
+      end
+
       def ==(other)
         other.class == self.class &&
         (

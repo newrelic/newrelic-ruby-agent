@@ -7,6 +7,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..', '..','test_helpe
 class NewRelic::Agent::StatsHashTest < Test::Unit::TestCase
   def setup
     @hash = NewRelic::Agent::StatsHash.new
+    NewRelic::Agent.instance.error_collector.errors.clear
   end
 
   def test_creates_default_entries
@@ -109,10 +110,87 @@ class NewRelic::Agent::StatsHashTest < Test::Unit::TestCase
   end
 
   def test_marshal_dump
-    hash = NewRelic::Agent::StatsHash.new()
-    hash.record('foo', 1)
-    hash.record('bar', 2)
-    copy = Marshal.load(Marshal.dump(hash))
-    assert_equal(hash, copy)
+    @hash.record('foo', 1)
+    @hash.record('bar', 2)
+    copy = Marshal.load(Marshal.dump(@hash))
+    assert_equal(@hash, copy)
   end
+
+  def test_borked_default_proc_can_record_metric
+    fake_borked_default_proc(@hash)
+
+    @hash.record(DEFAULT_SPEC, 1)
+
+    assert_equal(1, @hash.fetch(DEFAULT_SPEC, nil).call_count)
+  end
+
+  def test_borked_default_proc_notices_agent_error
+    fake_borked_default_proc(@hash)
+
+    @hash.record(DEFAULT_SPEC, 1)
+
+    assert_has_error NewRelic::Agent::StatsHash::CorruptedDefaultProcError
+  end
+
+  # We can only fix up the default proc on Rubies that let us set it
+  if {}.respond_to?(:default_proc=)
+    def test_borked_default_proc_heals_thyself
+      fake_borked_default_proc(@hash)
+
+      @hash.record(DEFAULT_SPEC, 1)
+      NewRelic::Agent.instance.error_collector.errors.clear
+
+      @hash.record(NewRelic::MetricSpec.new('something/else/entirely'), 1)
+      assert_equal 0, NewRelic::Agent.instance.error_collector.errors.size
+    end
+  end
+
+  STAT_SETTERS = [:call_count=, :min_call_time=, :max_call_time=, :total_call_time=, :total_exclusive_time=, :sum_of_squares=]
+  DEFAULT_SPEC = NewRelic::MetricSpec.new('foo')
+
+  STAT_SETTERS.each do |setter|
+    define_method("test_merge_allows_nil_destination_for_#{setter.to_s.gsub('=', '')}") do
+      dest = NewRelic::Agent::Stats.new
+      dest.send(setter, nil)
+      expected = dest.dup
+
+      @hash[DEFAULT_SPEC] = dest
+
+      incoming = NewRelic::Agent::StatsHash.new
+      incoming[DEFAULT_SPEC] = NewRelic::Agent::Stats.new
+
+      @hash.merge!(incoming)
+
+      assert_equal expected, @hash[DEFAULT_SPEC]
+      assert_has_error NewRelic::Agent::StatsHash::StatsMergerError
+    end
+  end
+
+  STAT_SETTERS.each do |setter|
+    define_method("test_merge_allows_nil_source_for_#{setter.to_s.gsub('=', '')}") do
+      dest = NewRelic::Agent::Stats.new
+      expected = dest.dup
+
+      @hash[DEFAULT_SPEC] = dest
+
+      source = NewRelic::Agent::Stats.new
+      source.send(setter, nil)
+      incoming = NewRelic::Agent::StatsHash.new
+      incoming[DEFAULT_SPEC] = source
+
+      @hash.merge!(incoming)
+
+      assert_equal expected, @hash[DEFAULT_SPEC]
+    end
+  end
+
+  def fake_borked_default_proc(hash)
+    exception = NoMethodError.new("borked default proc gives a NoMethodError on `yield'")
+    if hash.respond_to?(:default_proc=)
+      hash.default_proc = Proc.new { raise exception }
+    else
+      hash.stubs(:[]).raises(exception)
+    end
+  end
+
 end

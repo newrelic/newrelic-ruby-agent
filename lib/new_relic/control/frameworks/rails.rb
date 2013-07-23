@@ -49,8 +49,7 @@ module NewRelic
           if rails_config && ::Rails.configuration.respond_to?(:after_initialize)
             rails_config.after_initialize do
               # This will insure we load all the instrumentation as late as possible.  If the agent
-              # is not enabled, it will load a limited amount of instrumentation.  See
-              # delayed_job_injection.rb
+              # is not enabled, it will load a limited amount of instrumentation.
               DependencyDetection.detect!
             end
           end

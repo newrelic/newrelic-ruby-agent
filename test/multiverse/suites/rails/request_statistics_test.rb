@@ -58,7 +58,7 @@ class RequestStatsTest < ActionController::TestCase
       assert_encoding 'utf-8', sample['name']
       assert_equal 'Transaction', sample['type']
       assert_kind_of Float, sample['duration']
-      assert_valid_time sample['timestamp']
+      assert_kind_of Float, sample['timestamp']
     end
   end
 
@@ -74,11 +74,6 @@ class RequestStatsTest < ActionController::TestCase
     msg = "Expected encoding of %p to be %p, but it was %p" %
       [ string, expected_encoding, string.encoding ]
     assert_equal( expected_encoding, string.encoding, msg )
-  end
-
-  def assert_valid_time( object )
-    return if object.is_a?( Time )
-    assert_kind_of Time, Time.parse(object.to_s) rescue object
   end
 
 end

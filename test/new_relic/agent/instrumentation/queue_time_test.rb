@@ -6,19 +6,23 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'te
 class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
   include NewRelic::Agent::Instrumentation
 
+  def setup
+    freeze_time
+  end
+
   def test_parse_frontend_timestamp_given_queue_start_header
     header = { 'HTTP_X_QUEUE_START' => format_header_time(Time.now - 60) }
-    assert_in_delta(seconds_ago(60), QueueTime.parse_frontend_timestamp(header), 0.1)
+    assert_in_delta(seconds_ago(60), QueueTime.parse_frontend_timestamp(header), 0.001)
   end
 
   def test_parse_frontend_timestamp_given_request_start_header
     header = { 'HTTP_X_REQUEST_START' => format_header_time(Time.now - 60) }
-    assert_in_delta(seconds_ago(60), QueueTime.parse_frontend_timestamp(header), 0.1)
+    assert_in_delta(seconds_ago(60), QueueTime.parse_frontend_timestamp(header), 0.001)
   end
 
   def test_parse_frontend_timestamp_given_middleware_start_header
     header = { 'HTTP_X_MIDDLEWARE_START' => format_header_time(Time.now - 60) }
-    assert_in_delta(seconds_ago(60), QueueTime.parse_frontend_timestamp(header), 0.1)
+    assert_in_delta(seconds_ago(60), QueueTime.parse_frontend_timestamp(header), 0.001)
   end
 
   def test_parse_frontend_timestamp_from_earliest_header
@@ -26,7 +30,7 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
                 'HTTP_X_QUEUE_START'      => format_header_time(Time.now - 62),
                 'HTTP_X_MIDDLEWARE_START' => format_header_time(Time.now - 61)}
 
-    assert_in_delta(seconds_ago(63), QueueTime.parse_frontend_timestamp(headers), 0.1)
+    assert_in_delta(seconds_ago(63), QueueTime.parse_frontend_timestamp(headers), 0.001)
   end
 
   def test_parse_frontend_timestamp_from_earliest_header_out_of_order
@@ -34,39 +38,40 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Test::Unit::TestCase
                 'HTTP_X_REQUEST_START'    => format_header_time(Time.now - 62),
                 'HTTP_X_QUEUE_START'      => format_header_time(Time.now - 61) }
 
-    assert_in_delta(seconds_ago(63), QueueTime.parse_frontend_timestamp(headers), 0.1)
+    assert_in_delta(seconds_ago(63), QueueTime.parse_frontend_timestamp(headers), 0.001)
   end
 
   def test_parse_frontend_timestamp_from_header_in_seconds
     header = { 'HTTP_X_QUEUE_START' => "t=#{Time.now.to_f - 60}" }
-    assert_in_delta(seconds_ago(60), QueueTime.parse_frontend_timestamp(header), 0.1)
+    assert_in_delta(seconds_ago(60), QueueTime.parse_frontend_timestamp(header), 0.001)
   end
 
   def test_parse_frontend_timestamp_from_header_in_milliseconds
     header = { 'HTTP_X_QUEUE_START' => "t=#{(Time.now.to_f - 60) * 1_000}" }
-    assert_in_delta(seconds_ago(60), QueueTime.parse_frontend_timestamp(header), 0.1)
+    assert_in_delta(seconds_ago(60), QueueTime.parse_frontend_timestamp(header), 0.001)
   end
 
   def test_parse_frontend_timestamp_from_header_with_multiple_servers
     now = Time.now.to_f
     header = { 'HTTP_X_QUEUE_START' => "servera t=#{now - 60}, serverb t=#{now - 30}" }
-    assert_in_delta(seconds_ago(60), QueueTime.parse_frontend_timestamp(header), 0.1)
+    assert_in_delta(seconds_ago(60), QueueTime.parse_frontend_timestamp(header), 0.001)
   end
 
   def test_parse_frontend_timestamp_from_header_missing_t_equals
     header = { 'HTTP_X_REQUEST_START' => (Time.now.to_f - 60).to_s }
-    assert_in_delta(seconds_ago(60), QueueTime.parse_frontend_timestamp(header), 0.1)
+    sleep 2
+    assert_in_delta(seconds_ago(60), QueueTime.parse_frontend_timestamp(header), 0.001)
   end
 
   def test_parse_frontend_timestamp_from_header_negative
     now = Time.now
     the_future = Time.at(now.to_f + 60)
     header = { 'HTTP_X_REQUEST_START' => the_future.to_f.to_s }
-    assert_in_delta(now, QueueTime.parse_frontend_timestamp(header, now), 0.1)
+    assert_in_delta(now, QueueTime.parse_frontend_timestamp(header, now), 0.001)
   end
 
   def test_recording_queue_time_metric
-    assert_metric_value_in_delta(60, 'WebFrontend/QueueTime', 0.1) do
+    assert_metric_value_in_delta(60, 'WebFrontend/QueueTime', 0.001) do
       QueueTime.record_frontend_metrics(Time.at(Time.now.to_f - 60))
     end
   end

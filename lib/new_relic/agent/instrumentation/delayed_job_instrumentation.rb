@@ -12,36 +12,46 @@ DependencyDetection.defer do
   end
 
   depends_on do
-    # double check because of old JRuby bug
-    defined?(::Delayed) && defined?(::Delayed::Job) &&
-      Delayed::Job.method_defined?(:invoke_job)
+    defined?(::Delayed) && defined?(::Delayed::Worker) && !NewRelic::Agent.config[:disable_dj]
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing DelayedJob instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing DelayedJob instrumentation [part 1/2]'
   end
 
   executes do
-    Delayed::Job.class_eval do
-      include NewRelic::Agent::Instrumentation::ControllerInstrumentation
-      if self.instance_methods.include?('name') || self.instance_methods.include?(:name)
-        add_transaction_tracer "invoke_job", :category => 'OtherTransaction/DelayedJob', :path => '#{self.name}'
-      else
-        add_transaction_tracer "invoke_job", :category => 'OtherTransaction/DelayedJob'
+    Delayed::Worker.class_eval do
+      def initialize_with_new_relic(*args)
+        initialize_without_new_relic(*args)
+        worker_name = case
+                      when self.respond_to?(:name) then self.name
+                      when self.class.respond_to?(:default_name) then self.class.default_name
+                      end
+        NewRelic::DelayedJobInjection.worker_name = worker_name
+
+        if defined?(::Delayed::Job) && ::Delayed::Job.method_defined?(:invoke_job)
+          ::NewRelic::Agent.logger.info 'Installing DelayedJob instrumentation [part 2/2]'
+          install_newrelic_job_tracer
+
+          dispatcher_instance_id = worker_name || "host:#{Socket.gethostname} pid:#{Process.pid}" rescue "pid:#{Process.pid}"
+          NewRelic::Control.instance.init_plugin :dispatcher => :delayed_job, :dispatcher_instance_id => dispatcher_instance_id
+        else
+          NewRelic::Agent.logger.warn("Did not find a Delayed::Job class responding to invoke_job, aborting DJ instrumentation")
+        end
       end
-    end
-  end
 
-  executes do
-    Delayed::Job.instance_eval do
-      # alias_method is for instance, not class methods. But we still want to
-      # call any existing class method we're redefining, so do it the hard way.
-      @original_after_fork = method(:after_fork) if respond_to?(:after_fork)
+      alias initialize_without_new_relic initialize
+      alias initialize initialize_with_new_relic
 
-      def after_fork
-        NewRelic::Agent.after_fork(:force_reconnect => true)
-        @original_after_fork.call() if @original_after_fork
-        super
+      def install_newrelic_job_tracer
+        Delayed::Job.class_eval do
+          include NewRelic::Agent::Instrumentation::ControllerInstrumentation
+          if self.instance_methods.include?('name') || self.instance_methods.include?(:name)
+            add_transaction_tracer "invoke_job", :category => 'OtherTransaction/DelayedJob', :path => '#{self.name}'
+          else
+            add_transaction_tracer "invoke_job", :category => 'OtherTransaction/DelayedJob'
+          end
+        end
       end
     end
   end

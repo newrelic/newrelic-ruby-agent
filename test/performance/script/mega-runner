@@ -1,0 +1,37 @@
+#!/usr/bin/env ruby
+
+require 'json'
+require File.join(File.dirname(__FILE__), '..', 'lib', 'performance')
+
+start_commit = ARGV[0]
+stop_commit  = ARGV[1]
+repo_path    = ARGV[2]
+
+def commits_between(start_commit, stop_commit, repo)
+  output = `cd #{repo} && git log --reverse --pretty=%H #{start_commit}..#{stop_commit}`
+  output.split("\n")
+end
+
+def checkout_commit(commit, repo)
+  system("cd #{repo} && git checkout #{commit} >/dev/null 2>&1")
+end
+
+runner_options = {
+  :agent_path => repo_path,
+  :reporter_classes => ['HakoReporter'],
+  :isolate          => true,
+  :tags => {
+    :run_id => 'ben-perf-test'
+  }
+}
+commits = commits_between(start_commit, stop_commit, repo_path)
+
+Performance.logger.info "Testing #{commits.size} commits"
+commits.each_with_index do |commit, i|
+  checkout_commit(commit, repo_path)
+  runner_options[:tags][:sequence_number] = i
+  runner = Performance::Runner.new(runner_options)
+  t0 = Time.now
+  results = runner.run_all_test_cases
+  runner.report_results(results, Time.now - t0)
+end
