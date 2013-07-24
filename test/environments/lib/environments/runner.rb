@@ -10,6 +10,18 @@ module Environments
   class Runner
     include Multiverse::Color
 
+    BLACKLIST = {
+      "1.8.6"       => ["rails30", "rails31", "rails32", "rails40", "norails"],
+      "1.8.7"       => ["rails40"],
+      "ree"         => ["rails40"],
+      "1.9.1"       => ["rails21", "rails22", "rails30", "rails31", "rails32", "rails40", "norails"],
+      "1.9.2"       => ["rails21", "rails22", "rails40"],
+      "1.9.3"       => ["rails21", "rails22"],
+      "2.0.0"       => ["rails21", "rails22", "rails23"],
+      "jruby-1.6.8" => ["rails40"],
+      "jruby-1.7.3" => ["rails21", "rails22", "rails23", "rails40"],
+    }
+
     attr_reader :envs
 
     def initialize(envs)
@@ -23,10 +35,10 @@ module Environments
     def run_and_report
       overall_status = 0
 
-      puts yellow("Tests to run:\n\t#{tests_to_run.map{|s|s.gsub(env_root + "/", "")}.join("\n\t")}\n")
+      puts yellow("Tests to run:\n\t#{tests_to_run.map{|s|s.gsub(env_root + "/", "")}.join("\n\t")}")
       tests_to_run.each do |dir|
         Bundler.with_clean_env do
-          puts yellow("Running tests for #{dir}")
+          puts "", yellow("Running tests for #{File.expand_path(dir)}")
           bundle(dir)
           status = run(dir)
           overall_status = status.exitstatus if overall_status == 0 && !(status.success?)
@@ -37,11 +49,27 @@ module Environments
     end
 
     def tests_to_run
+      dirs = potential_directories
+
+      version = RUBY_VERSION
+      version = "ree" if defined?(RUBY_DESCRIPTION) && RUBY_DESCRIPTION =~ /Ruby Enterprise Edition/
+      version = "jruby-#{JRUBY_VERSION}" if defined?(JRUBY_VERSION)
+
+      blacklist = BLACKLIST[version] || []
+      blacklist.each do |blacklisted|
+        dirs.delete_if {|d| File.basename(d) == blacklisted }
+      end
+
+      dirs
+    end
+
+    def potential_directories
       original_dirs = Dir["#{env_root}/*"].reject { |d| File.basename(d) == "lib"}
 
+      return original_dirs if envs.empty?
       dirs = []
       envs.each do |dir|
-        dirs.concat(original_dirs.select { |d| File.basename(d).start_with?(dir) })
+        dirs.concat(original_dirs.select { |d| File.basename(d).index(dir) == 0 })
       end
       dirs
     end
