@@ -34,15 +34,26 @@ module Environments
 
     def run_and_report
       overall_status = 0
+      failures = []
 
       puts yellow("Tests to run:\n\t#{tests_to_run.map{|s|s.gsub(env_root + "/", "")}.join("\n\t")}")
       tests_to_run.each do |dir|
         Bundler.with_clean_env do
-          puts "", yellow("Running tests for #{File.expand_path(dir)}")
+          dir = File.expand_path(dir)
+          puts "", yellow("Running tests for #{dir}")
           bundle(dir)
           status = run(dir)
-          overall_status = status.exitstatus if overall_status == 0 && !(status.success?)
+          if !status.success?
+            overall_status += 1
+            failures << dir
+          end
         end
+      end
+
+      if overall_status == 0
+        puts green("All good to go. Yippy!")
+      else
+        puts red("Oh no, #{overall_status} environments failed!"), "", red(failures.join("\n"))
       end
 
       exit(overall_status)
