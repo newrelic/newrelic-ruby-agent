@@ -25,7 +25,7 @@ class NewRelic::Rack::DeferredInstrumentationTest < Test::Unit::TestCase
     require path2
 
     builder = ::Rack::Builder.new do
-      run TestApp.new
+      run(::NewRelic::Rack::DeferredInstrumentationTest::TestApp.new)
     end
 
     assert_nothing_raised do
