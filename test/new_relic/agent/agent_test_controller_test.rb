@@ -48,6 +48,9 @@ class NewRelic::Agent::AgentTestControllerTest < ActionController::TestCase
     end
     @engine = @agent.stats_engine
 
+    # Errors on Rails 3.1 tests about ActionDispatcher::Request missing recycle!
+    @request.stubs(:recycle!)
+
     # ActiveSupport testing keeps blowing away my subscribers on
     # teardown for some reason.  Have to keep putting it back.
     NewRelic::Agent.instance.events.subscribe(:before_call) do |env|
