@@ -109,17 +109,17 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
       get '/error/controller_error'
     end
 
-    assert_errors_reported('this is an uncaught controller error', 20, 40)
+    assert_errors_reported('this is an uncaught controller error', 20, 40, nil, 40)
   end
 
   def test_should_capture_manually_noticed_error
     NewRelic::Agent.notice_error(RuntimeError.new('this is a noticed error'))
-    assert_error_reported_once('this is a noticed error')
+    assert_error_reported_once('this is a noticed error', nil, nil)
   end
 
   def test_should_capture_routing_error
     get '/bad_route'
-    assert_error_reported_once('this is an uncaught routing error')
+    assert_error_reported_once('this is an uncaught routing error', nil, nil)
   end
 
   def test_should_apply_parameter_filtering
@@ -171,28 +171,32 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
 
   def test_should_capture_errors_raised_in_middleware_before_call
     get '/error/middleware_error/before'
-    assert_error_reported_once('middleware error')
+    assert_error_reported_once('middleware error', nil, nil)
   end
 
   def test_should_capture_errors_raised_in_middleware_after_call
     get '/error/middleware_error/after'
-    assert_error_reported_once('middleware error')
+    assert_error_reported_once('middleware error', nil, nil)
   end
 
  protected
 
-  def assert_errors_reported(message, queued_count, total_count=queued_count, txn_name=nil)
+  def assert_errors_reported(message, queued_count, total_count=queued_count, txn_name=nil, apdex_f=1)
     expected = { :call_count => total_count }
     assert_metrics_recorded("Errors/all" => expected)
     assert_metrics_recorded("Errors/#{txn_name}" => expected) if txn_name
+
+    unless apdex_f.nil?
+      assert_metrics_recorded("Apdex" => { :apdex_f => apdex_f })
+    end
 
     assert_equal(queued_count,
       @error_collector.errors.select{|error| error.message == message}.size,
       "Wrong number of errors with message #{message.inspect} found")
   end
 
-  def assert_error_reported_once(message, txn_name=nil)
-    assert_errors_reported(message, 1, 1, txn_name)
+  def assert_error_reported_once(message, txn_name=nil, apdex_f=1)
+    assert_errors_reported(message, 1, 1, txn_name, apdex_f)
   end
 end
 

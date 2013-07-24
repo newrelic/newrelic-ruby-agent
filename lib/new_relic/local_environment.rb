@@ -70,6 +70,12 @@ module NewRelic
       @mongrel
     end
 
+    # Setter for testing
+    def mongrel=(m)
+      @looked_for_mongrel = true
+      @mongrel = m
+    end
+
     private
 
     # Although you can override the dispatcher with NEWRELIC_DISPATCHER this
