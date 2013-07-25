@@ -25,11 +25,12 @@ make_notify_task = Proc.new do
 
       begin
         # allow overrides to be defined for revision, description, changelog, appname, and user
-        rev         = fetch(:newrelic_revision)  if exists?(:newrelic_revision)
-        description = fetch(:newrelic_desc)      if exists?(:newrelic_desc)
-        changelog   = fetch(:newrelic_changelog) if exists?(:newrelic_changelog)
-        appname     = fetch(:newrelic_appname)   if exists?(:newrelic_appname)
-        user        = fetch(:newrelic_user)      if exists?(:newrelic_user)
+        rev         = fetch(:newrelic_revision)    if exists?(:newrelic_revision)
+        description = fetch(:newrelic_desc)        if exists?(:newrelic_desc)
+        changelog   = fetch(:newrelic_changelog)   if exists?(:newrelic_changelog)
+        appname     = fetch(:newrelic_appname)     if exists?(:newrelic_appname)
+        user        = fetch(:newrelic_user)        if exists?(:newrelic_user)
+        license_key = fetch(:newrelic_license_key) if exists?(:newrelic_license_key)
 
         if !changelog
           logger.debug "Getting log of changes for New Relic Deployment details"
@@ -61,7 +62,8 @@ make_notify_task = Proc.new do
           :changelog   => changelog,
           :description => description,
           :appname     => appname,
-          :user        => user
+          :user        => user,
+          :license_key => license_key
         }
 
         logger.debug "Uploading deployment to New Relic"
