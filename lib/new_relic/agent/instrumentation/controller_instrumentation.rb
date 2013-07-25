@@ -310,7 +310,7 @@ module NewRelic
             return yield if !(NewRelic::Agent.is_execution_traced? || options[:force])
             options[:metric] = true if options[:metric].nil?
             options[:deduct_call_time_from_parent] = true if options[:deduct_call_time_from_parent].nil?
-            _, expected_scope = NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScoped.trace_execution_scoped_header(options, txn.start_time.to_f)
+            _, expected_scope = NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_header(options, txn.start_time.to_f)
 
             begin
               NewRelic::Agent::BusyCalculator.dispatcher_start txn.start_time
@@ -337,7 +337,7 @@ module NewRelic
             metric_names = Array(recorded_metrics(txn))
             txn_name = metric_names.shift
 
-            NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScoped.trace_execution_scoped_footer(txn.start_time.to_f, txn_name, metric_names, expected_scope, options, end_time.to_f)
+            NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_footer(txn.start_time.to_f, txn_name, metric_names, expected_scope, options, end_time.to_f)
             NewRelic::Agent::BusyCalculator.dispatcher_finish(end_time)
             txn.record_apdex(end_time) unless ignore_apdex?
             txn = Transaction.stop(txn_name, end_time)

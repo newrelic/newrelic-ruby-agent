@@ -41,240 +41,236 @@ module NewRelic
 
       def self.included clazz #:nodoc:
         clazz.extend ClassMethods
-        clazz.send :include, InstanceMethods
+        #clazz.send :include, InstanceMethods
       end
 
       def self.extended clazz #:nodoc:
         clazz.extend ClassMethods
-        clazz.extend InstanceMethods
+        #clazz.extend InstanceMethods
       end
 
-      # Defines modules used at instrumentation runtime, to do the
-      # actual tracing of time spent
-      module InstanceMethods
-        # Deprecated: original method preserved for API backward compatibility.
-        # Use either #trace_execution_scoped or #trace_execution_unscoped
-        def trace_method_execution(metric_names, push_scope, produce_metric, deduct_call_time_from_parent, &block) #:nodoc:
-          if push_scope
-            trace_execution_scoped(metric_names, :metric => produce_metric,
-                                   :deduct_call_time_from_parent => deduct_call_time_from_parent, &block)
+      # Deprecated: original method preserved for API backward compatibility.
+      # Use either #trace_execution_scoped or #trace_execution_unscoped
+      def trace_method_execution(metric_names, push_scope, produce_metric, deduct_call_time_from_parent, &block) #:nodoc:
+        if push_scope
+          trace_execution_scoped(metric_names, :metric => produce_metric,
+                                 :deduct_call_time_from_parent => deduct_call_time_from_parent, &block)
+        else
+          trace_execution_unscoped(metric_names, &block)
+        end
+      end
+
+      # Trace a given block with stats assigned to the given metric_name.  It does not
+      # provide scoped measurements, meaning whatever is being traced will not 'blame the
+      # Controller'--that is to say appear in the breakdown chart.
+      # This is code is inlined in #add_method_tracer.
+      # * <tt>metric_names</tt> is a single name or an array of names of metrics
+      # * <tt>:force => true</tt> will force the metric to be captured even when
+      #   tracing is disabled with NewRelic::Agent#disable_all_tracing
+      #
+      def trace_execution_unscoped(metric_names, options={})
+        return yield unless NewRelic::Agent.is_execution_traced?
+        t0 = Time.now
+        begin
+          NewRelic::Agent.instance.push_trace_execution_flag(true) if options[:force]
+          yield
+        ensure
+          NewRelic::Agent.instance.pop_trace_execution_flag if options[:force]
+          duration = (Time.now - t0).to_f              # for some reason this is 3 usec faster than Time - Time
+          stat_engine.record_metrics(metric_names, duration)
+        end
+      end
+
+      # Deprecated. Use #trace_execution_scoped, a version with an options hash.
+      def trace_method_execution_with_scope(metric_names, produce_metric, deduct_call_time_from_parent, scoped_metric_only=false, &block) #:nodoc:
+        trace_execution_scoped(metric_names,
+                               :metric => produce_metric,
+                               :deduct_call_time_from_parent => deduct_call_time_from_parent,
+                               :scoped_metric_only => scoped_metric_only, &block)
+      end
+
+      alias trace_method_execution_no_scope trace_execution_unscoped #:nodoc:
+
+      # Refactored out of the previous trace_execution_scoped
+      # method, most methods in this module relate to code used in
+      # the #trace_execution_scoped method in this module
+      module TraceExecutionScoped
+        extend self
+
+        # Shorthand to return the NewRelic::Agent.instance
+        def agent_instance
+          NewRelic::Agent.instance
+        end
+
+        # Shorthand to return the status of tracing
+        def traced?
+          NewRelic::Agent.is_execution_traced?
+        end
+
+        # Tracing is disabled if we are not in a traced context and
+        # no force option is supplied
+        def trace_disabled?(options)
+          !(traced? || options[:force])
+        end
+
+        # Shorthand to return the current statistics engine
+        def stat_engine
+          agent_instance.stats_engine
+        end
+
+        # returns a scoped metric stat for the specified name
+        def get_stats_scoped(first_name, scoped_metric_only)
+          stat_engine.get_stats(first_name, true, scoped_metric_only)
+        end
+        # Shorthand method to get stats from the stat engine
+        def get_stats_unscoped(name)
+          stat_engine.get_stats_no_scope(name)
+        end
+
+        # Helper for setting a hash key if the hash key is nil,
+        # instead of the default ||= behavior which sets if it is
+        # false as well
+        def set_if_nil(hash, key)
+          hash[key] = true if hash[key].nil?
+        end
+
+        # delegates to #agent_instance to push a trace execution
+        # flag, only if execution of this metric is forced.
+        #
+        # This causes everything scoped inside this metric to be
+        # recorded, even if the parent transaction is generally not.
+        def push_flag!(forced)
+          agent_instance.push_trace_execution_flag(true) if forced
+        end
+
+        # delegates to #agent_instance to pop the trace execution
+        # flag, only if execution of this metric is
+        # forced. otherwise this is taken care of for us
+        # automatically.
+        #
+        # This ends the forced recording of metrics within the
+        # #trace_execution_scoped block
+        def pop_flag!(forced)
+          agent_instance.pop_trace_execution_flag if forced
+        end
+
+        # helper for logging errors to the newrelic_agent.log
+        # properly. Logs the error at error level
+        def log_errors(code_area)
+          yield
+        rescue => e
+          ::NewRelic::Agent.logger.error("Caught exception in #{code_area}.", e)
+        end
+
+        # provides the header for our traced execution scoped
+        # method - gets the initial time, sets the tracing flag if
+        # needed, and pushes the scope onto the metric stack
+        # logs any errors that occur and returns the start time and
+        # the scope so that we can check for it later, to maintain
+        # sanity. If the scope stack becomes unbalanced, this
+        # transaction loses meaning.
+        def trace_execution_scoped_header(options, t0=Time.now.to_f)
+          scope = log_errors("trace_execution_scoped header") do
+            push_flag!(options[:force])
+            scope = stat_engine.push_scope(:method_tracer, t0, options[:deduct_call_time_from_parent])
+          end
+          # needed in case we have an error, above, to always return
+          # the start time.
+          [t0, scope]
+        end
+
+        def metrics_for_current_transaction(first_name, other_names, options)
+          metrics = []
+
+          if !options[:scoped_metric_only]
+            metrics += other_names.map { |n| NewRelic::MetricSpec.new(n) }
+          end
+
+          if options[:metric]
+            if !options[:scoped_metric_only]
+              metrics << NewRelic::MetricSpec.new(first_name)
+            end
+            if in_transaction? && !options[:transaction]
+              metrics << NewRelic::MetricSpec.new(first_name, StatsEngine::MetricStats::SCOPE_PLACEHOLDER)
+            end
+          end
+
+          metrics
+        end
+
+        def in_transaction?
+          NewRelic::Agent::Transaction.in_transaction?
+        end
+
+        def has_parent?
+          !NewRelic::Agent::Transaction.parent.nil?
+        end
+
+        def metrics_for_parent_transaction(first_name, options)
+          if has_parent? && options[:metric] && options[:transaction]
+            [NewRelic::MetricSpec.new(first_name, StatsEngine::MetricStats::SCOPE_PLACEHOLDER)]
           else
-            trace_execution_unscoped(metric_names, &block)
+            []
           end
         end
 
-        # Trace a given block with stats assigned to the given metric_name.  It does not
-        # provide scoped measurements, meaning whatever is being traced will not 'blame the
-        # Controller'--that is to say appear in the breakdown chart.
-        # This is code is inlined in #add_method_tracer.
-        # * <tt>metric_names</tt> is a single name or an array of names of metrics
-        # * <tt>:force => true</tt> will force the metric to be captured even when
-        #   tracing is disabled with NewRelic::Agent#disable_all_tracing
+        def record_metrics(first_name, other_names, duration, exclusive, options)
+          metrics = metrics_for_current_transaction(first_name, other_names, options)
+          stat_engine.record_metrics_internal(metrics, duration, exclusive)
+
+          parent_metrics = metrics_for_parent_transaction(first_name, options)
+          parent_metrics.each do |metric|
+            parent_txn = NewRelic::Agent::Transaction.parent
+            parent_txn.stats_hash.record(metric, duration, exclusive)
+          end
+        end
+
+        # Handles the end of the #trace_execution_scoped method -
+        # calculating the time taken, popping the tracing flag if
+        # needed, deducting time taken by children, and tracing the
+        # subsidiary unscoped metrics if any
         #
-        def trace_execution_unscoped(metric_names, options={})
-          return yield unless NewRelic::Agent.is_execution_traced?
-          t0 = Time.now
+        # this method fails safely if the header does not manage to
+        # push the scope onto the stack - it simply does not trace
+        # any metrics.
+        def trace_execution_scoped_footer(t0, first_name, metric_names, expected_scope, options, t1=Time.now.to_f)
+          log_errors("trace_method_execution footer") do
+            pop_flag!(options[:force])
+            if expected_scope
+              scope = stat_engine.pop_scope(expected_scope, first_name, t1)
+              duration = t1 - t0
+              exclusive = duration - scope.children_time
+              record_metrics(first_name, metric_names, duration, exclusive, options)
+            end
+          end
+        end
+
+        # Trace a given block with stats and keep track of the caller.
+        # See NewRelic::Agent::MethodTracer::ClassMethods#add_method_tracer for a description of the arguments.
+        # +metric_names+ is either a single name or an array of metric names.
+        # If more than one metric is passed, the +produce_metric+ option only applies to the first.  The
+        # others are always recorded.  Only the first metric is pushed onto the scope stack.
+        #
+        # Generally you pass an array of metric names if you want to record the metric under additional
+        # categories, but generally this *should never ever be done*.  Most of the time you can aggregate
+        # on the server.
+        def trace_execution_scoped(metric_names, options={})
+          return yield if trace_disabled?(options)
+          set_if_nil(options, :metric)
+          set_if_nil(options, :deduct_call_time_from_parent)
+          metric_names = Array(metric_names)
+          first_name = metric_names.shift
+          start_time, expected_scope = trace_execution_scoped_header(options)
           begin
-            NewRelic::Agent.instance.push_trace_execution_flag(true) if options[:force]
             yield
           ensure
-            NewRelic::Agent.instance.pop_trace_execution_flag if options[:force]
-            duration = (Time.now - t0).to_f              # for some reason this is 3 usec faster than Time - Time
-            stat_engine.record_metrics(metric_names, duration)
+            trace_execution_scoped_footer(start_time, first_name, metric_names, expected_scope, options)
           end
         end
-
-        # Deprecated. Use #trace_execution_scoped, a version with an options hash.
-        def trace_method_execution_with_scope(metric_names, produce_metric, deduct_call_time_from_parent, scoped_metric_only=false, &block) #:nodoc:
-          trace_execution_scoped(metric_names,
-                                 :metric => produce_metric,
-                                 :deduct_call_time_from_parent => deduct_call_time_from_parent,
-                                 :scoped_metric_only => scoped_metric_only, &block)
-        end
-
-        alias trace_method_execution_no_scope trace_execution_unscoped #:nodoc:
-
-        # Refactored out of the previous trace_execution_scoped
-        # method, most methods in this module relate to code used in
-        # the #trace_execution_scoped method in this module
-        module TraceExecutionScoped
-          extend self
-
-          # Shorthand to return the NewRelic::Agent.instance
-          def agent_instance
-            NewRelic::Agent.instance
-          end
-
-          # Shorthand to return the status of tracing
-          def traced?
-            NewRelic::Agent.is_execution_traced?
-          end
-
-          # Tracing is disabled if we are not in a traced context and
-          # no force option is supplied
-          def trace_disabled?(options)
-            !(traced? || options[:force])
-          end
-
-          # Shorthand to return the current statistics engine
-          def stat_engine
-            agent_instance.stats_engine
-          end
-
-          # returns a scoped metric stat for the specified name
-          def get_stats_scoped(first_name, scoped_metric_only)
-            stat_engine.get_stats(first_name, true, scoped_metric_only)
-          end
-          # Shorthand method to get stats from the stat engine
-          def get_stats_unscoped(name)
-            stat_engine.get_stats_no_scope(name)
-          end
-
-          # Helper for setting a hash key if the hash key is nil,
-          # instead of the default ||= behavior which sets if it is
-          # false as well
-          def set_if_nil(hash, key)
-            hash[key] = true if hash[key].nil?
-          end
-
-          # delegates to #agent_instance to push a trace execution
-          # flag, only if execution of this metric is forced.
-          #
-          # This causes everything scoped inside this metric to be
-          # recorded, even if the parent transaction is generally not.
-          def push_flag!(forced)
-            agent_instance.push_trace_execution_flag(true) if forced
-          end
-
-          # delegates to #agent_instance to pop the trace execution
-          # flag, only if execution of this metric is
-          # forced. otherwise this is taken care of for us
-          # automatically.
-          #
-          # This ends the forced recording of metrics within the
-          # #trace_execution_scoped block
-          def pop_flag!(forced)
-            agent_instance.pop_trace_execution_flag if forced
-          end
-
-          # helper for logging errors to the newrelic_agent.log
-          # properly. Logs the error at error level
-          def log_errors(code_area)
-            yield
-          rescue => e
-            ::NewRelic::Agent.logger.error("Caught exception in #{code_area}.", e)
-          end
-
-          # provides the header for our traced execution scoped
-          # method - gets the initial time, sets the tracing flag if
-          # needed, and pushes the scope onto the metric stack
-          # logs any errors that occur and returns the start time and
-          # the scope so that we can check for it later, to maintain
-          # sanity. If the scope stack becomes unbalanced, this
-          # transaction loses meaning.
-          def trace_execution_scoped_header(options, t0=Time.now.to_f)
-            scope = log_errors("trace_execution_scoped header") do
-              push_flag!(options[:force])
-              scope = stat_engine.push_scope(:method_tracer, t0, options[:deduct_call_time_from_parent])
-            end
-            # needed in case we have an error, above, to always return
-            # the start time.
-            [t0, scope]
-          end
-
-          def metrics_for_current_transaction(first_name, other_names, options)
-            metrics = []
-
-            if !options[:scoped_metric_only]
-              metrics += other_names.map { |n| NewRelic::MetricSpec.new(n) }
-            end
-
-            if options[:metric]
-              if !options[:scoped_metric_only]
-                metrics << NewRelic::MetricSpec.new(first_name)
-              end
-              if in_transaction? && !options[:transaction]
-                metrics << NewRelic::MetricSpec.new(first_name, StatsEngine::MetricStats::SCOPE_PLACEHOLDER)
-              end
-            end
-
-            metrics
-          end
-
-          def in_transaction?
-            NewRelic::Agent::Transaction.in_transaction?
-          end
-
-          def has_parent?
-            !NewRelic::Agent::Transaction.parent.nil?
-          end
-
-          def metrics_for_parent_transaction(first_name, options)
-            if has_parent? && options[:metric] && options[:transaction]
-              [NewRelic::MetricSpec.new(first_name, StatsEngine::MetricStats::SCOPE_PLACEHOLDER)]
-            else
-              []
-            end
-          end
-
-          def record_metrics(first_name, other_names, duration, exclusive, options)
-            metrics = metrics_for_current_transaction(first_name, other_names, options)
-            stat_engine.record_metrics_internal(metrics, duration, exclusive)
-
-            parent_metrics = metrics_for_parent_transaction(first_name, options)
-            parent_metrics.each do |metric|
-              parent_txn = NewRelic::Agent::Transaction.parent
-              parent_txn.stats_hash.record(metric, duration, exclusive)
-            end
-          end
-
-          # Handles the end of the #trace_execution_scoped method -
-          # calculating the time taken, popping the tracing flag if
-          # needed, deducting time taken by children, and tracing the
-          # subsidiary unscoped metrics if any
-          #
-          # this method fails safely if the header does not manage to
-          # push the scope onto the stack - it simply does not trace
-          # any metrics.
-          def trace_execution_scoped_footer(t0, first_name, metric_names, expected_scope, options, t1=Time.now.to_f)
-            log_errors("trace_method_execution footer") do
-              pop_flag!(options[:force])
-              if expected_scope
-                scope = stat_engine.pop_scope(expected_scope, first_name, t1)
-                duration = t1 - t0
-                exclusive = duration - scope.children_time
-                record_metrics(first_name, metric_names, duration, exclusive, options)
-              end
-            end
-          end
-
-          # Trace a given block with stats and keep track of the caller.
-          # See NewRelic::Agent::MethodTracer::ClassMethods#add_method_tracer for a description of the arguments.
-          # +metric_names+ is either a single name or an array of metric names.
-          # If more than one metric is passed, the +produce_metric+ option only applies to the first.  The
-          # others are always recorded.  Only the first metric is pushed onto the scope stack.
-          #
-          # Generally you pass an array of metric names if you want to record the metric under additional
-          # categories, but generally this *should never ever be done*.  Most of the time you can aggregate
-          # on the server.
-          def trace_execution_scoped(metric_names, options={})
-            return yield if trace_disabled?(options)
-            set_if_nil(options, :metric)
-            set_if_nil(options, :deduct_call_time_from_parent)
-            metric_names = Array(metric_names)
-            first_name = metric_names.shift
-            start_time, expected_scope = trace_execution_scoped_header(options)
-            begin
-              yield
-            ensure
-              trace_execution_scoped_footer(start_time, first_name, metric_names, expected_scope, options)
-            end
-          end
-
-        end
-        include TraceExecutionScoped
 
       end
+      include TraceExecutionScoped
+
 
       # Defines methods used at the class level, for adding instrumentation
       module ClassMethods
