@@ -4,7 +4,7 @@
 
 require File.join(File.dirname(__FILE__), 'boot')
 
-GC.enable_stats if GC.respond_to?(:enable_stats) 
+GC.enable_stats if GC.respond_to?(:enable_stats)
 
 Rails::Initializer.run do |config|
   config.gem "newrelic_rpm"
