@@ -120,8 +120,18 @@ module Performance
         $:.unshift(path)
         require "newrelic_rpm"
         @newrelic_rpm_version = NewRelic::VERSION::STRING
-        @newrelic_rpm_git_sha = %x((cd '#{path}' && git log --pretty='%h' -n 1)).strip
+        @newrelic_rpm_git_sha = find_newrelic_rpm_git_sha(path)
         @loaded_newrelic_rpm = true
+      end
+    end
+
+    def find_newrelic_rpm_git_sha(path)
+      build_file_path = File.join(path, 'new_relic', 'build.rb')
+      if File.exist?(build_file_path)
+        build_file_contents = File.read(build_file_path)
+        return $1.strip if build_file_contents =~ /GITSHA: (.*)/
+      else
+        %x((cd '#{path}' && git log --pretty='%h' -n 1)).strip
       end
     end
 

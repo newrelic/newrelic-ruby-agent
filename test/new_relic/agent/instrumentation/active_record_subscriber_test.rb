@@ -2,7 +2,9 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-if defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i >= 4 && !NewRelic::LanguageSupport.using_engine?('jruby')
+MIN_RAILS_VERSION = 4
+
+if defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i >= MIN_RAILS_VERSION && !NewRelic::LanguageSupport.using_engine?('jruby')
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 require 'new_relic/agent/instrumentation/active_record_subscriber'
@@ -131,5 +133,5 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit:
 end
 
 else
-  puts "Skipping tests in #{__FILE__} because Rails is unavailable"
+  puts "Skipping tests in #{__FILE__} because Rails >= #{MIN_RAILS_VERSION} is unavailable"
 end
