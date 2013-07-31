@@ -68,6 +68,30 @@ class NewRelic::Agent::SampledBufferTest < Test::Unit::TestCase
     end
   end
 
+  def test_should_discard_items_as_needed_when_capacity_is_reset
+    buffer = NewRelic::Agent::SampledBuffer.new(10)
+    10.times { |i| buffer << i }
+
+    buffer.capacity = 5
+    assert_equal(5, buffer.size)
+
+    # We should have 5 unique values that were all in our original set of 0-9
+    assert_equal(5, buffer.to_a.uniq.size)
+    allowed_values = (0..9).to_a
+    buffer.to_a.each do |v|
+      assert_includes(allowed_values, v)
+    end
+  end
+
+  def test_should_not_discard_items_if_not_needed_when_capacity_is_reset
+    buffer = NewRelic::Agent::SampledBuffer.new(10)
+    10.times { |i| buffer << i }
+
+    buffer.capacity = 20
+    assert_equal(10, buffer.size)
+    assert_equal((0..9).to_a, buffer.to_a)
+  end
+
   def test_should_not_exceed_capacity
     buffer = NewRelic::Agent::SampledBuffer.new(100)
     200.times { |i| buffer << i }

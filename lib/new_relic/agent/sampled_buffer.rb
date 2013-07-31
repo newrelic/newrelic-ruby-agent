@@ -10,8 +10,7 @@
 module NewRelic
   module Agent
     class SampledBuffer
-      attr_accessor :capacity
-      attr_reader :seen, :seen_lifetime, :captured_lifetime
+      attr_reader :seen, :capacity, :seen_lifetime, :captured_lifetime
 
       def initialize(capacity)
         @items = []
@@ -23,8 +22,8 @@ module NewRelic
 
       def reset
         @captured_lifetime += @items.size
-        @items = []
         @seen_lifetime += @seen
+        @items = []
         @seen = 0
       end
 
@@ -53,6 +52,13 @@ module NewRelic
 
       def to_a
         @items
+      end
+
+      def capacity=(new_capacity)
+        @capacity = new_capacity
+        old_items = @items
+        @items = []
+        old_items.each { |i| self << i }
       end
 
       def sample_rate

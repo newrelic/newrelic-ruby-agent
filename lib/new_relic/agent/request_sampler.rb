@@ -26,8 +26,6 @@ class NewRelic::Agent::RequestSampler
   NAME_KEY                 = 'name'
   DURATION_KEY             = 'duration'
 
-  # Create a new RequestSampler that will keep samples added to it every
-  # +sample_rate_ms+ milliseconds.
   def initialize( event_listener )
     super()
 
