@@ -50,7 +50,7 @@ class NewRelic::Agent::SampledBufferTest < Test::Unit::TestCase
   # that each item is included ~50% of the time.
   # 
   # Because of the non-determinism, it is possible that we'll want to disable
-  # this test. That said, I've thus far been unsuccessfuly in making it fail, so
+  # this test. That said, I've thus far been unsuccessful in making it fail, so
   # I'm leaving it here for now.
   def test_should_sample_evenly
     buffer = NewRelic::Agent::SampledBuffer.new(5)
