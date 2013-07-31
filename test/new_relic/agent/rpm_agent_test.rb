@@ -33,6 +33,10 @@ class NewRelic::Agent::RpmAgentTest < Test::Unit::TestCase
       nil
     end
     NewRelic::Agent.notice_error(StandardError.new("message"), :request_params => {:x => "y"})
+
+    # Clean up after ourselves
+    NewRelic::Agent.instance.error_collector.instance_variable_set(:@ignore_filter, nil)
+
     assert(ignore_called)
   end
 

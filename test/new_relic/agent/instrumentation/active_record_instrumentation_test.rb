@@ -23,6 +23,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
   def setup
     super
     NewRelic::Agent.manual_start
+    ActiveRecord::Base.establish_connection unless ActiveRecord::Base.connection.active?
     ActiveRecordFixtures.setup
     NewRelic::Agent.instance.transaction_sampler.reset!
     NewRelic::Agent.instance.stats_engine.clear_stats

@@ -7,7 +7,7 @@ require 'base64'
 require 'thread'
 require 'timeout'
 require 'zlib'
-require 'new_relic/agent/threaded_test'
+require 'new_relic/agent/threaded_test_case'
 require 'new_relic/agent/thread_profiler'
 
 START_COMMAND = [[666,{

@@ -253,7 +253,7 @@ module NewRelic
 
         # This method should NOT increment error counts, since that has already
         # been counted in the child
-        assert_equal 0, NewRelic::Agent.get_stats("Errors/all").call_count
+        assert_equal 0, @agent.stats_engine.get_stats("Errors/all").call_count
       end
 
       def test_connect_retries_on_timeout

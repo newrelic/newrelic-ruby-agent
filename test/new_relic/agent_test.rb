@@ -83,10 +83,8 @@ module NewRelic
     end
 
     def test_manual_start_starts_channel_listener
-      NewRelic::Agent::PipeChannelManager.listener.stop
+      NewRelic::Agent::PipeChannelManager.listener.expects(:start).at_least_once
       NewRelic::Agent.manual_start(:start_channel_listener => true)
-      assert NewRelic::Agent::PipeChannelManager.listener.started?
-      NewRelic::Agent::PipeChannelManager.listener.stop
       NewRelic::Agent.shutdown
     end
 

@@ -49,6 +49,12 @@ namespace :test do
     Performance::Runner.new(options).run_and_report
   end
 
+  desc "Run agent within existing mini environments"
+  task :env, [:env1, :env2, :env3, :env4, :env5, :env6] => [] do |t, args|
+    require File.expand_path(File.join(File.dirname(__FILE__), 'test', 'environments', 'lib', 'environments', 'runner'))
+    Environments::Runner.new(args.map{|_,v| v}).run_and_report
+  end
+
   Rake::TestTask.new(:intentional_fail) do |t|
     t.libs << "#{agent_home}/test"
     t.libs << "#{agent_home}/lib"
