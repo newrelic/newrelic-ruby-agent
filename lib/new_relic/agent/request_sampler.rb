@@ -65,7 +65,7 @@ class NewRelic::Agent::RequestSampler
 
     if @enabled
       record_sampling_rate(
-        request_count, sample_count, 
+        request_count, sample_count,
         request_count_lifetime, sample_count_lifetime
       )
     end
@@ -116,4 +116,3 @@ class NewRelic::Agent::RequestSampler
     notify_full if is_full && !@notified_full
   end
 end
- 
