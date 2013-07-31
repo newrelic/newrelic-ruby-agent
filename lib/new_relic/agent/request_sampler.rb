@@ -52,28 +52,29 @@ class NewRelic::Agent::RequestSampler
   def reset
     NewRelic::Agent.logger.debug "Resetting RequestSampler"
 
-    sample_count, request_count, sample_count_lifetime, request_count_lifetime = 0
+    sample_count, request_count = 0
 
     self.synchronize do
       sample_count = @samples.size
       request_count = @samples.seen
       @samples.reset
-      sample_count_lifetime = @samples.captured_lifetime
-      request_count_lifetime = @samples.seen_lifetime
       @notified_full = false
     end
 
-    if @enabled
-      record_sampling_rate(
-        request_count, sample_count,
-        request_count_lifetime, sample_count_lifetime
-      )
-    end
+    record_sampling_rate(request_count, sample_count) if @enabled
   end
 
-  def record_sampling_rate(request_count, sample_count, request_count_lifetime, sample_count_lifetime)
-    NewRelic::Agent.logger.debug("Sampled #{sample_count} / #{request_count} (%.1f %%) requests this cycle" % (sample_count.to_f / request_count * 100.0))
-    NewRelic::Agent.logger.debug("Sampled #{sample_count_lifetime} / #{request_count_lifetime} (%.1f %%) requests since startup" % (sample_count_lifetime.to_f / request_count_lifetime * 100.0))
+  def record_sampling_rate(request_count, sample_count)
+    request_count_lifetime = @samples.seen_lifetime
+    sample_count_lifetime = @samples.captured_lifetime
+    NewRelic::Agent.logger.debug("Sampled %d / %d (%.1f %%) requests this cycle, %d / %d (%.1f %%) since startup" % [
+      sample_count,
+      request_count,
+      (sample_count.to_f / request_count * 100.0),
+      sample_count_lifetime,
+      request_count_lifetime,
+      (sample_count_lifetime.to_f / request_count_lifetime * 100.0)
+    ])
 
     engine = NewRelic::Agent.instance.stats_engine
     engine.record_supportability_metric_count("RequestSampler/requests", request_count)
