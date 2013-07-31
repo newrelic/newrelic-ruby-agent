@@ -68,6 +68,17 @@ class NewRelic::Agent::SampledBufferTest < Test::Unit::TestCase
     end
   end
 
+  def test_to_a_should_dup_the_returned_array
+    buffer = NewRelic::Agent::SampledBuffer.new(10)
+
+    5.times { |i| buffer << i }
+
+    items = buffer.to_a
+    items << 'noodles'
+
+    assert_equal([0, 1, 2, 3, 4], buffer.to_a)
+  end
+
   def test_should_discard_items_as_needed_when_capacity_is_reset
     buffer = NewRelic::Agent::SampledBuffer.new(10)
     10.times { |i| buffer << i }

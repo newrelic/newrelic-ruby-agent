@@ -44,7 +44,7 @@ class NewRelic::Agent::RequestSampler
 
   ### Fetch a copy of the sampler's gathered samples. (Synchronized)
   def samples
-    return self.synchronize { @samples.to_a.dup }
+    return self.synchronize { @samples.to_a }
   end
 
 

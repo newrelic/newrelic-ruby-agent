@@ -51,7 +51,7 @@ module NewRelic
       end
 
       def to_a
-        @items
+        @items.dup
       end
 
       def capacity=(new_capacity)
