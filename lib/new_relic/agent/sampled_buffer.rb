@@ -31,6 +31,11 @@ module NewRelic
         @items.size >= @capacity
       end
 
+      # Like '<<', but returns the value of full?
+      def append(x)
+        (self << x).full?
+      end
+
       def <<(x)
         @seen += 1
         if @items.size < @capacity

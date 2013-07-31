@@ -84,7 +84,7 @@ class NewRelic::Agent::RequestSampler
   def register_config_callbacks
     NewRelic::Agent.config.register_callback(CAPACITY_KEY) do |capacity|
       NewRelic::Agent.logger.debug "RequestSampler capacity set to #{capacity}"
-      synchronize { @samples.capacity = capacity }
+      self.synchronize { @samples.capacity = capacity }
       self.reset
     end
 
@@ -109,11 +109,7 @@ class NewRelic::Agent::RequestSampler
       TYPE_KEY      => SAMPLE_TYPE
     }.merge(options)
 
-    is_full = synchronize do
-      @samples << sample
-      @samples.full?
-    end
-
+    is_full = self.synchronize { @samples.append(sample) }
     notify_full if is_full && !@notified_full
   end
 end

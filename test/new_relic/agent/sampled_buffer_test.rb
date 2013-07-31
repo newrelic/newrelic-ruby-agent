@@ -79,6 +79,18 @@ class NewRelic::Agent::SampledBufferTest < Test::Unit::TestCase
     assert_equal([0, 1, 2, 3, 4], buffer.to_a)
   end
 
+  def test_append_should_return_true_when_buffer_is_full
+    buffer = NewRelic::Agent::SampledBuffer.new(5)
+
+    4.times do |i|
+      assert_equal(false, buffer.append(i), "SampledBuffer#append should return false until buffer is full")
+    end
+
+    4.times do |i|
+      assert_equal(true, buffer.append('lava'), "SampledBuffer#append should return true once buffer is full")
+    end
+  end
+
   def test_should_discard_items_as_needed_when_capacity_is_reset
     buffer = NewRelic::Agent::SampledBuffer.new(10)
     10.times { |i| buffer << i }
