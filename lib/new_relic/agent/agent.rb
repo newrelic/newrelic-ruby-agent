@@ -977,21 +977,10 @@ module NewRelic
         # unnecessary overhead of running explains on fast queries.)
         def harvest_and_send_slowest_sample
           harvest_transaction_traces
-          unless @traces.empty?
-            now = Time.now
-            ::NewRelic::Agent.logger.debug "Sending (#{@traces.length}) transaction traces"
 
+          unless @traces.empty?
             begin
-              options = { :keep_backtraces => true }
-              if !(NewRelic::Agent::Database.record_sql_method == :off)
-                options[:record_sql] = NewRelic::Agent::Database.record_sql_method
-              end
-              if Agent.config[:'transaction_tracer.explain_enabled']
-                options[:explain_sql] = Agent.config[:'transaction_tracer.explain_threshold']
-              end
-              traces = @traces.map {|trace| trace.prepare_to_send(options) }
-              @service.transaction_sample_data(traces)
-              ::NewRelic::Agent.logger.debug "Sent slowest sample (#{@service.agent_id}) in #{Time.now - now} seconds"
+              send_slowest_sample
             rescue UnrecoverableServerException => e
               ::NewRelic::Agent.logger.debug e.message
             end
@@ -1001,6 +990,25 @@ module NewRelic
           # the slowest sample around - it has been sent already and we
           # can clear the collection and move on
           @traces = nil
+        end
+
+        def send_slowest_sample
+          start_time = Time.now
+          ::NewRelic::Agent.logger.debug "Sending (#{@traces.length}) transaction traces"
+
+          options = { :keep_backtraces => true }
+          unless NewRelic::Agent::Database.record_sql_method == :off
+            options[:record_sql] = NewRelic::Agent::Database.record_sql_method
+          end
+
+          if Agent.config[:'transaction_tracer.explain_enabled']
+            options[:explain_sql] = Agent.config[:'transaction_tracer.explain_threshold']
+          end
+
+          traces = @traces.map {|trace| trace.prepare_to_send(options) }
+
+          @service.transaction_sample_data(traces)
+          ::NewRelic::Agent.logger.debug "Sent slowest sample (#{@service.agent_id}) in #{Time.now - start_time} seconds"
         end
 
         def harvest_and_send_thread_profile(disconnecting=false)
