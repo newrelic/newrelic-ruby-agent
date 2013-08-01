@@ -90,44 +90,42 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
   end
 
   def test_children_time
-    t1 = Time.now
-
+    t1 = freeze_time
     expected1 = @engine.push_scope(:a)
-    sleep 0.001
+    advance_time(0.001)
     t2 = Time.now
 
     expected2 = @engine.push_scope(:b)
-    sleep 0.002
+    advance_time(0.002)
     t3 = Time.now
 
     expected = @engine.push_scope(:c)
-    sleep 0.003
+    advance_time(0.003)
     scope = @engine.pop_scope(expected, "metric c")
 
     t4 = Time.now
+    assert_equal 0, scope.children_time
 
-    check_time_approximate 0, scope.children_time
-
-    sleep 0.001
+    advance_time(0.001)
     t5 = Time.now
 
     expected = @engine.push_scope(:d)
-    sleep 0.002
+    advance_time(0.002)
     scope = @engine.pop_scope(expected, "metric d")
 
     t6 = Time.now
 
-    check_time_approximate 0, scope.children_time
+    assert_equal 0, scope.children_time
 
     scope = @engine.pop_scope(expected2, "metric b")
     assert_equal 'metric b', scope.name
 
-    check_time_approximate((t4 - t3) + (t6 - t5), scope.children_time)
+    assert_in_delta((t4 - t3) + (t6 - t5), scope.children_time, 0.0001)
 
     scope = @engine.pop_scope(expected1, "metric a")
     assert_equal scope.name, 'metric a'
 
-    check_time_approximate((t6 - t2), scope.children_time)
+    assert_in_delta((t6 - t2), scope.children_time, 0.0001)
   end
 
   def test_simple_start_transaction
@@ -186,10 +184,5 @@ class NewRelic::Agent::StatsEngineTest < Test::Unit::TestCase
     with_config(opts) do
       assert_equal expected, @engine.sampler_enabled?
     end
-  end
-
-  private
-  def check_time_approximate(expected, actual)
-    assert((expected - actual).abs < 0.1, "Expected between #{expected - 0.1} and #{expected + 0.1}, got #{actual}")
   end
 end
