@@ -41,12 +41,10 @@ module NewRelic
 
       def self.included clazz #:nodoc:
         clazz.extend ClassMethods
-        #clazz.send :include, InstanceMethods
       end
 
       def self.extended clazz #:nodoc:
         clazz.extend ClassMethods
-        #clazz.extend InstanceMethods
       end
 
       # Deprecated: original method preserved for API backward compatibility.
