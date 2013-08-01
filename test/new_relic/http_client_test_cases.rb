@@ -122,6 +122,20 @@ module HttpClientTestCases
     ])
   end
 
+  def test_get_with_host_header
+    uri = default_uri
+    uri.host = '127.0.0.1'
+    res = get_response(uri.to_s, 'Host' => 'test.local')
+
+    assert_match %r/<head>/i, body(res)
+    assert_metrics_recorded([
+      "External/all",
+      "External/test.local/#{client_name}/GET",
+      "External/allOther",
+      "External/test.local/all"
+    ])
+  end
+
   # Only some HTTP clients support explicit connection reuse, so this test
   # checks whether the host responds to get_response_multi before executing.
   def test_get_with_reused_connection
