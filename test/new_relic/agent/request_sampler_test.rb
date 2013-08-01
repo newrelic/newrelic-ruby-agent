@@ -39,15 +39,15 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
     end
   end
 
-  def test_limits_total_number_of_samples_to_capacity
-    with_sampler_config( :'request_sampler.capacity' => 100 ) do
+  def test_limits_total_number_of_samples_to_max_samples
+    with_sampler_config( :'request_sampler.max_samples' => 100 ) do
       150.times { generate_request }
       assert_equal 100, @sampler.samples.size
     end
   end
 
   def test_resets_limits_on_reset
-    with_sampler_config( :'request_sampler.capacity' => 100 ) do
+    with_sampler_config( :'request_sampler.max_samples' => 100 ) do
       50.times { generate_request('before') }
       samples_before = @sampler.samples
       assert_equal 50, samples_before.size
@@ -63,7 +63,7 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
   end
 
   def test_does_not_drop_samples_when_used_from_multiple_threads
-    with_sampler_config( :'request_sampler.capacity' => 100 * 100 ) do
+    with_sampler_config( :'request_sampler.max_samples' => 100 * 100 ) do
       threads = []
       25.times do
         threads << Thread.new do
@@ -88,7 +88,7 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
     defaults =
     {
       :'request_sampler.enabled' => true,
-      :'request_sampler.capacity' => 100
+      :'request_sampler.max_samples' => 100
     }
 
     defaults.merge!(options)

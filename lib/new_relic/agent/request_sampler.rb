@@ -14,7 +14,7 @@ class NewRelic::Agent::RequestSampler
 
   # The namespace and keys of config values
   CONFIG_NAMESPACE = 'request_sampler'
-  CAPACITY_KEY     = "#{CONFIG_NAMESPACE}.capacity".to_sym
+  MAX_SAMPLES_KEY  = "#{CONFIG_NAMESPACE}.max_samples".to_sym
   ENABLED_KEY      = "#{CONFIG_NAMESPACE}.enabled".to_sym
 
   # The type field of the sample
@@ -30,7 +30,7 @@ class NewRelic::Agent::RequestSampler
     super()
 
     @enabled       = false
-    @samples       = ::NewRelic::Agent::SampledBuffer.new(NewRelic::Agent.config[CAPACITY_KEY])
+    @samples       = ::NewRelic::Agent::SampledBuffer.new(NewRelic::Agent.config[MAX_SAMPLES_KEY])
     @notified_full = false
 
     event_listener.subscribe( :transaction_finished, &method(:on_transaction_finished) )
@@ -82,9 +82,9 @@ class NewRelic::Agent::RequestSampler
   end
 
   def register_config_callbacks
-    NewRelic::Agent.config.register_callback(CAPACITY_KEY) do |capacity|
-      NewRelic::Agent.logger.debug "RequestSampler capacity set to #{capacity}"
-      self.synchronize { @samples.capacity = capacity }
+    NewRelic::Agent.config.register_callback(MAX_SAMPLES_KEY) do |max_samples|
+      NewRelic::Agent.logger.debug "RequestSampler max_samples set to #{max_samples}"
+      self.synchronize { @samples.capacity = max_samples }
       self.reset
     end
 
