@@ -4,6 +4,9 @@
 
 # https://newrelic.atlassian.net/browse/RUBY-927
 
+# Mongrel is only supported on older versions, so don't check for queue depth
+if Rails::VERSION::MAJOR.to_i < 4
+
 require 'rails/test_help'
 require './app'
 require 'multiverse_helpers'
@@ -31,10 +34,11 @@ class MongrelQueueDepthTest < ActionDispatch::IntegrationTest
 
     get('/mongrel/deep')
 
-    puts NewRelic::Agent.instance.stats_engine.get_stats('Mongrel/Queue Length').inspect_full
     assert_metrics_recorded(['HttpDispatcher'])
     assert_metrics_recorded('Mongrel/Queue Length' => {:call_count => 1, :total_call_time => 9.0})
     assert_metrics_not_recorded(['WebFrontend/Mongrel/Average Queue Time'])
   end
+
+end
 
 end

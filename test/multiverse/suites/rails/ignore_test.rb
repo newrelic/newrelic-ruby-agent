@@ -14,8 +14,13 @@ class IgnoredController < ApplicationController
   newrelic_ignore :only => :action_to_ignore
   newrelic_ignore_apdex :only => :action_to_ignore_apdex
 
-  def action_to_ignore; end
-  def action_to_ignore_apdex; end
+  def action_to_ignore
+    render :text => "Ignore this"
+  end
+
+  def action_to_ignore_apdex
+    render :text => "This too"
+  end
 end
 
 class IgnoredActionsTest < ActionDispatch::IntegrationTest
