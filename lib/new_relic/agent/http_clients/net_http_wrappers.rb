@@ -17,8 +17,7 @@ module NewRelic
 
         def host
           if hostname = self['host']
-            idx = hostname.index(':')
-            idx ? hostname[0,idx] : hostname
+            hostname.split(':').first
           else
             @connection.address
           end
