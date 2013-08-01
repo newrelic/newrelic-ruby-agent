@@ -71,7 +71,7 @@ module NewRelic
         # An artifact of earlier implementation, we put both #add_method_tracer and #trace_execution
         # methods in the module methods.
         Module.send :include, NewRelic::Agent::MethodTracer::ClassMethods
-        Module.send :include, NewRelic::Agent::MethodTracer::InstanceMethods
+        Module.send :include, NewRelic::Agent::MethodTracer
         init_config(options)
         NewRelic::Agent.agent = NewRelic::Agent::Agent.instance
         if Agent.config[:agent_enabled] && !NewRelic::Agent.instance.started?
