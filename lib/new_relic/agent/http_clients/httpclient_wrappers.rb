@@ -43,7 +43,11 @@ module NewRelic
         end
 
         def host
-          uri.host.to_s
+          if hostname = (self['host'] || self['Host'])
+            hostname.split(':').first
+          else
+            uri.host.to_s
+          end
         end
 
         def [](key)

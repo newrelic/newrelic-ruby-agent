@@ -37,8 +37,7 @@ module NewRelic
 
         def host
           if hostname = (self['host'] || self['Host'])
-            idx = hostname.index(':')
-            idx ? hostname[0,idx] : hostname
+            hostname.split(':').first
           else
             @datum[:host]
           end

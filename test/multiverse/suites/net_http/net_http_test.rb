@@ -20,7 +20,7 @@ class NetHttpTest < MiniTest::Unit::TestCase
     "Net::HTTP"
   end
 
-  def get_response(url=nil, headers=nil)
+  def get_response(url=nil, headers={})
     uri = default_uri
     uri = URI.parse(url) unless url.nil?
     path = uri.path.empty? ? '/' : uri.path
