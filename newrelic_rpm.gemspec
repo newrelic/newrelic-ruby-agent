@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.name = "newrelic_rpm"
   s.version = NewRelic::VERSION::STRING
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
-  s.authors = [ "Jason Clark", "Sam Goldstein", "Michael Granger", "Jon Guymon", "Ben Weintraub" ]
+  s.authors = [ "Jason Clark", "Sam Goldstein", "Michael Granger", "Jonan Scheffler", "Ben Weintraub" ]
   s.date = Time.now.strftime('%Y-%m-%d')
   s.description = <<-EOS
 New Relic is a performance management system, developed by New Relic,
