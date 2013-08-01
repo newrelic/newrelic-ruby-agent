@@ -1,4 +1,9 @@
-require "pry"
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
+# This spec will illuminate files with trailing white space
+# as well as files with hard tab characters.
 if defined?(Encoding) && Encoding.default_external != "UTF-8"
   Encoding.default_external = "UTF-8"
 end
