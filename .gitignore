@@ -22,4 +22,3 @@ lib/new_relic/build.rb
 .pryrc
 .tm_properties
 .bundle
-/bin/
