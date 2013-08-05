@@ -240,10 +240,6 @@ EOF
         to_prune.each { |n| n.to_prune = true }
       end
 
-      def self.flattened_nodes(nodes)
-        nodes.map { |n| [n, flattened_nodes(n.children)] }.flatten
-      end
-
       def self.parse_backtrace(trace)
         trace.map do |line|
           line =~ /(.*)\:(\d+)\:in `(.*)'/
