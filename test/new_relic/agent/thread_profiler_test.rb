@@ -10,35 +10,28 @@ require 'zlib'
 require 'new_relic/agent/threaded_test_case'
 require 'new_relic/agent/thread_profiler'
 
-START_COMMAND = [[666,{
-    "name" => "start_profiler",
-    "arguments" => {
-      "profile_id" => 42,
-      "sample_period" => 0.02,
-      "duration" => 0.025,
-      "only_runnable_threads" => false,
-      "only_request_threads" => false,
-      "profile_agent_code" => false,
-    }
-  }]]
+COMMAND_ID = 666
 
-STOP_COMMAND = [[666,{
-    "name" => "stop_profiler",
-    "arguments" => {
+START_NAME = "start_profiler"
+START_ARGS = {
+  "profile_id" => 42,
+  "sample_period" => 0.02,
+  "duration" => 0.025,
+  "only_runnable_threads" => false,
+  "only_request_threads" => false,
+  "profile_agent_code" => false,
+}
+
+STOP_NAME = "stop_profiler"
+STOP_ARGS = {
       "profile_id" => 42,
       "report_data" => true,
     }
-  }]]
 
-STOP_AND_DISCARD_COMMAND = [[666,{
-    "name" => "stop_profiler",
-    "arguments" => {
-      "profile_id" => 42,
-      "report_data" => false,
-    }
-  }]]
-
-NO_COMMAND = []
+STOP_AND_DISCARD_ARGS = {
+  "profile_id" => 42,
+  "report_data" => false,
+}
 
 if !NewRelic::Agent::ThreadProfiler.is_supported?
 
@@ -63,7 +56,9 @@ class ThreadProfilerUnsupportedTest < Test::Unit::TestCase
 
   def test_wont_start_and_reports_error
     errors = nil
-    @profiler.respond_to_commands(START_COMMAND) { |_, err| errors = err }
+    @profiler.respond_to_start(COMMAND_ID, START_NAME, START_ARGS) do |_, err|
+      errors = err
+    end
     assert_equal false, errors.nil?
     assert_equal false, @profiler.running?
   end
@@ -121,44 +116,42 @@ class ThreadProfilerTest < ThreadedTest
     assert_equal false, @profiler.running?
   end
 
-  def test_respond_to_commands_with_no_commands_doesnt_run
-    @profiler.respond_to_commands(NO_COMMAND)
-    assert_equal false, @profiler.running?
-  end
-
-  def test_respond_to_commands_starts_running
-    @profiler.respond_to_commands(START_COMMAND) {|_, err| start_error = err}
+  def test_respond_to_start_starts_running
+    @profiler.respond_to_start(COMMAND_ID, START_NAME, START_ARGS)
     assert_equal true, @profiler.running?
   end
 
-  def test_respond_to_commands_stops
+  def test_respond_to_stop
     @profiler.start(0, 0, 0, true)
     assert @profiler.running?
 
-    @profiler.respond_to_commands(STOP_COMMAND)
+    @profiler.respond_to_stop(COMMAND_ID, STOP_NAME, STOP_ARGS)
     assert_equal true, @profiler.profile.finished?
   end
 
-  def test_respond_to_commands_stops_and_discards
+  def test_respond_to_stop_and_discard
     @profiler.start(0, 0, 0, true)
     assert @profiler.running?
 
-    @profiler.respond_to_commands(STOP_AND_DISCARD_COMMAND)
+    @profiler.respond_to_stop(COMMAND_ID, STOP_NAME, STOP_AND_DISCARD_ARGS)
     assert_nil @profiler.profile
   end
 
-  def test_respond_to_commands_wont_start_second_profile
+  def test_respond_to_start_wont_start_second_profile
     @profiler.start(0, 0, 0, true)
     original_profile = @profiler.profile
 
-    @profiler.respond_to_commands(START_COMMAND)
+    @profiler.respond_to_start(COMMAND_ID, START_NAME, START_ARGS)
 
     assert_equal original_profile, @profiler.profile
   end
 
   def test_response_to_commands_start_notifies_of_result
     saw_command_id = nil
-    @profiler.respond_to_commands(START_COMMAND) { |id, err| saw_command_id = id }
+    @profiler.respond_to_start(COMMAND_ID, START_NAME, START_ARGS) do |id, _|
+      saw_command_id = id
+    end
+
     assert_equal 666, saw_command_id
   end
 
@@ -166,8 +159,11 @@ class ThreadProfilerTest < ThreadedTest
     saw_command_id = nil
     error = nil
 
-    @profiler.respond_to_commands(START_COMMAND)
-    @profiler.respond_to_commands(START_COMMAND) { |id, err| saw_command_id = id; error = err }
+    @profiler.respond_to_start(COMMAND_ID, START_NAME, START_ARGS)
+    @profiler.respond_to_start(COMMAND_ID, START_NAME, START_ARGS) do |id, err|
+      saw_command_id = id
+      error = err
+    end
 
     assert_equal 666, saw_command_id
     assert_not_nil error
@@ -176,29 +172,17 @@ class ThreadProfilerTest < ThreadedTest
   def test_response_to_commands_stop_notifies_of_result
     saw_command_id = nil
     @profiler.start(0,0, 0, true)
-    @profiler.respond_to_commands(STOP_COMMAND) { |id, err| saw_command_id = id }
+    @profiler.respond_to_stop(COMMAND_ID, STOP_NAME, STOP_ARGS) do |id, _|
+      saw_command_id = id
+    end
     assert_equal 666, saw_command_id
   end
 
   def test_command_attributes_passed_along
-    @profiler.respond_to_commands(START_COMMAND)
+    @profiler.respond_to_start(COMMAND_ID, START_NAME, START_ARGS)
     assert_equal 42,  @profiler.profile.profile_id
     assert_equal 0.02, @profiler.profile.interval
     assert_equal false, @profiler.profile.profile_agent_code
-  end
-
-  def test_missing_name_in_command
-    command = [[666,{ "arguments" => {} } ]]
-    @profiler.respond_to_commands(command)
-
-    assert_equal false, @profiler.running?
-  end
-
-  def test_malformed_agent_command
-    command = [[666]]
-    @profiler.respond_to_commands(command)
-
-    assert_equal false, @profiler.running?
   end
 
 end

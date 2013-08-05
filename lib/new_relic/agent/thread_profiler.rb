@@ -38,27 +38,10 @@ module NewRelic
         profile
       end
 
-      def respond_to_commands(commands, &notify_results)
-        return if commands.empty? || commands.first.size < 2
+      def unsupported?(command_id, &results_callback)
+        return false if ThreadProfiler.is_supported?
 
-        # Doesn't deal with multiple commands in the return set  as
-        # we currently only have start/stop of thread profiling
-        command_id = commands.first[0]
-        command = commands.first[1]
-
-        name = command["name"]
-        arguments = command["arguments"]
-
-        if (ThreadProfiler.is_supported?)
-          case name
-            when "start_profiler"
-              start_unless_running_and_notify(command_id, arguments, &notify_results)
-
-            when "stop_profiler"
-              stop_and_notify(command_id, arguments, &notify_results)
-          end
-        else
-          msg = <<-EOF
+        msg = <<-EOF
 Thread profiling is only supported on 1.9.2 and greater versions of Ruby.
 We detected running agents capable of profiling, but the profile started with
 an agent running Ruby #{RUBY_VERSION}.
@@ -66,9 +49,19 @@ an agent running Ruby #{RUBY_VERSION}.
 Profiling again might select an appropriate agent, but we recommend running a
 consistent version of Ruby across your application for better results.
 EOF
-          ::NewRelic::Agent.logger.debug(msg)
-          notify_results.call(command_id, msg) if !notify_results.nil?
-        end
+        NewRelic::Agent.logger.debug(msg)
+        results_callback.call(command_id, msg) if !results_callback.nil?
+        true
+      end
+
+      def respond_to_start(command_id, name, arguments, &results_callback)
+        return if unsupported?(command_id, &results_callback)
+        start_unless_running_and_notify(command_id, arguments, &results_callback)
+      end
+
+      def respond_to_stop(command_id, name, arguments, &results_callback)
+        return if unsupported?(command_id, &results_callback)
+        stop_and_notify(command_id, arguments, &results_callback)
       end
 
       def running?

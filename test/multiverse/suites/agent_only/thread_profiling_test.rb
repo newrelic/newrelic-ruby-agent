@@ -15,7 +15,7 @@ class ThreadProfilingTest < MiniTest::Unit::TestCase
 
   setup_and_teardown_agent(:'thread_profiler.enabled' => true, :force_send => true) do |collector|
     collector.stub('connect', {"agent_run_id" => 666 })
-    collector.stub('get_agent_commands', START_COMMAND)
+    collector.stub('get_agent_commands', [])
     collector.stub('agent_command_results', [])
   end
 
@@ -37,7 +37,7 @@ class ThreadProfilingTest < MiniTest::Unit::TestCase
       "arguments" => {
         "profile_id" => -1,
         "sample_period" => 0.01,
-        "duration" => 0.5,
+        "duration" => 0.75,
         "only_runnable_threads" => false,
         "only_request_threads" => false,
         "profile_agent_code" => true
@@ -60,7 +60,7 @@ class ThreadProfilingTest < MiniTest::Unit::TestCase
   # go only let a few cycles through, so we check less than 10
 
   def test_thread_profiling
-    agent.send(:check_for_agent_commands)
+    issue_command(START_COMMAND)
 
     run_thread { NewRelic::Agent::Transaction.start(:controller, :request => stub) }
     run_thread { NewRelic::Agent::Transaction.start(:task) }
@@ -78,16 +78,19 @@ class ThreadProfilingTest < MiniTest::Unit::TestCase
   end
 
   def test_thread_profiling_can_stop
-    agent.send(:check_for_agent_commands)
-
-    $collector.mock['get_agent_commands'] = [200, {'return_value' => STOP_COMMAND}]
-    agent.send(:check_for_agent_commands)
+    issue_command(START_COMMAND)
+    issue_command(STOP_COMMAND)
 
     let_it_finish
 
     profile_data = $collector.calls_for('profile_data')[0]
     assert_equal('666', profile_data.run_id, "Missing run_id, profile_data was #{profile_data.inspect}")
     assert(profile_data.poll_count < 50, "Expected poll_count < 50, but was #{profile_data.poll_count}")
+  end
+
+  def issue_command(cmd)
+    $collector.stub('get_agent_commands', cmd)
+    agent.send(:check_for_agent_commands)
   end
 
   # Runs a thread we expect to span entire test and be killed at the end

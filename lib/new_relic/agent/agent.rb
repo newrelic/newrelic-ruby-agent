@@ -13,6 +13,7 @@ require 'new_relic/agent/new_relic_service'
 require 'new_relic/agent/pipe_service'
 require 'new_relic/agent/configuration/manager'
 require 'new_relic/agent/database'
+require 'new_relic/agent/agent_commands'
 require 'new_relic/agent/thread_profiler'
 require 'new_relic/agent/event_listener'
 require 'new_relic/agent/cross_app_monitor'
@@ -38,6 +39,7 @@ module NewRelic
         @transaction_sampler   = NewRelic::Agent::TransactionSampler.new
         @sql_sampler           = NewRelic::Agent::SqlSampler.new
         @thread_profiler       = NewRelic::Agent::ThreadProfiler.new
+        @agent_commands        = NewRelic::Agent::AgentCommands.new(@thread_profiler)
         @cross_app_monitor     = NewRelic::Agent::CrossAppMonitor.new(@events)
         @error_collector       = NewRelic::Agent::ErrorCollector.new
         @transaction_rules     = NewRelic::Agent::RulesEngine.new
@@ -1063,12 +1065,7 @@ module NewRelic
         end
 
         def check_for_agent_commands
-          commands = @service.get_agent_commands
-          ::NewRelic::Agent.logger.debug "Received get_agent_commands = #{commands.inspect}"
-
-          @thread_profiler.respond_to_commands(commands) do |command_id, error|
-            @service.agent_command_results(command_id, error)
-          end
+          @agent_commands.check_for_agent_commands(@service)
         end
 
         def transmit_data(disconnecting=false)
