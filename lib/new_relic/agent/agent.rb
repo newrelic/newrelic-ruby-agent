@@ -1079,9 +1079,9 @@ module NewRelic
             harvest_and_send_slowest_sql
             harvest_and_send_timeslice_data
             harvest_and_send_analytic_event_data
-            harvest_and_send_thread_profile(disconnecting)
 
             check_for_agent_commands
+            harvest_and_send_thread_profile(disconnecting)
           end
         rescue EOFError => e
           ::NewRelic::Agent.logger.warn("EOFError after #{Time.now - now}s when transmitting data to New Relic Service.")
