@@ -99,7 +99,7 @@ class ThreadProfilerTest < ThreadedTestCase
     @profiler.stop(true)
 
     assert @profiler.finished?
-    assert_not_nil @profiler.profile
+    assert_not_nil @profiler.harvest
   end
 
   def test_can_stop_a_running_profile_and_discard
@@ -108,7 +108,7 @@ class ThreadProfilerTest < ThreadedTestCase
 
     @profiler.stop(false)
 
-    assert_nil @profiler.profile
+    assert_nil @profiler.harvest
   end
 
   def test_wont_crash_if_stopping_when_not_started
@@ -126,7 +126,7 @@ class ThreadProfilerTest < ThreadedTestCase
     assert @profiler.running?
 
     @profiler.respond_to_stop(COMMAND_ID, STOP_NAME, STOP_ARGS)
-    assert_equal true, @profiler.profile.finished?
+    assert_equal true, @profiler.finished?
   end
 
   def test_respond_to_stop_and_discard
@@ -134,16 +134,16 @@ class ThreadProfilerTest < ThreadedTestCase
     assert @profiler.running?
 
     @profiler.respond_to_stop(COMMAND_ID, STOP_NAME, STOP_AND_DISCARD_ARGS)
-    assert_nil @profiler.profile
+    assert_nil @profiler.harvest
   end
 
   def test_respond_to_start_wont_start_second_profile
     @profiler.start(0, 0, 0, true)
-    original_profile = @profiler.profile
+    original_profile = @profiler.instance_variable_get(:@profile)
 
     @profiler.respond_to_start(COMMAND_ID, START_NAME, START_ARGS)
 
-    assert_equal original_profile, @profiler.profile
+    assert_equal original_profile, @profiler.harvest
   end
 
   def test_response_to_commands_start_notifies_of_result
@@ -180,9 +180,10 @@ class ThreadProfilerTest < ThreadedTestCase
 
   def test_command_attributes_passed_along
     @profiler.respond_to_start(COMMAND_ID, START_NAME, START_ARGS)
-    assert_equal 42,  @profiler.profile.profile_id
-    assert_equal 0.02, @profiler.profile.interval
-    assert_equal false, @profiler.profile.profile_agent_code
+    profile = @profiler.harvest
+    assert_equal 42,  profile.profile_id
+    assert_equal 0.02, profile.interval
+    assert_equal false, profile.profile_agent_code
   end
 
 end

@@ -66,7 +66,7 @@ module NewRelic
             end
 
             mark_done
-            ::NewRelic::Agent.logger.debug("Finished thread profile. #{@sample_count} backtraces, #{@failure_count} failures. Will send with next harvest.")
+            NewRelic::Agent.logger.debug("Finished thread profile. #{@sample_count} backtraces, #{@failure_count} failures. Will send with next harvest.")
             NewRelic::Agent.instance.stats_engine.
               record_supportability_metric_count("ThreadProfiler/BacktraceFailures", @failure_count)
           end
@@ -75,7 +75,7 @@ module NewRelic
         def stop
           @worker_loop.stop
           mark_done
-          ::NewRelic::Agent.logger.debug("Stopping thread profile.")
+          NewRelic::Agent.logger.debug("Stopping thread profile.")
         end
 
         def aggregate(trace, trees=@traces[:request], parent=nil)
