@@ -233,12 +233,11 @@ class NewRelicServiceTest < Test::Unit::TestCase
     assert_equal 'some analytic events', response
   end
 
-
-# Thread profiling only available in certain versions
-if NewRelic::Agent::ThreadProfiler.is_supported?
+  # Although thread profiling is only available in some circumstances, the
+  # service communication doesn't care about that at all
   def test_profile_data
     @http_handle.respond_to(:profile_data, 'profile' => 123)
-    response = @service.profile_data(NewRelic::Agent::ThreadProfile.new(0, 0, 0, true))
+    response = @service.profile_data([])
     assert_equal({ "profile" => 123 }, response)
   end
 
@@ -269,7 +268,6 @@ if NewRelic::Agent::ThreadProfiler.is_supported?
     response = @service.agent_command_results(4200, 'Boo!')
     assert_equal [123], response
   end
-end
 
   def test_request_timeout
     with_config(:timeout => 600) do
