@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/agent/worker_loop'
+require 'new_relic/agent/threading/backtrace_node'
 
 # Intent is for this to be a data structure for representing a thread profile
 # TODO: Get rid of the running/sampling in this class, externalize it elsewhere
@@ -79,7 +80,7 @@ module NewRelic
 
         def aggregate(trace, trees=@traces[:request], parent=nil)
           return nil if trace.nil? || trace.empty?
-          node = Node.new(trace.last)
+          node = Threading::BacktraceNode.new(trace.last)
           existing = trees.find {|n| n == node}
 
           if existing.nil?
@@ -107,7 +108,7 @@ module NewRelic
 
           mark_for_pruning(@flattened_nodes, count_to_keep)
 
-          traces.each { |_, nodes| Node.prune!(nodes) }
+          traces.each { |_, nodes| Threading::BacktraceNode.prune!(nodes) }
         end
 
         THREAD_PROFILER_NODES = 20_000
@@ -157,66 +158,6 @@ module NewRelic
           trace.map do |line|
             line =~ /(.*)\:(\d+)\:in `(.*)'/
               { :method => $3, :line_no => $2.to_i, :file => $1 }
-          end
-        end
-
-        class Node
-          attr_reader :file, :method, :line_no, :children
-          attr_accessor :runnable_count, :to_prune, :depth
-
-          def initialize(line, parent=nil)
-            line =~ /(.*)\:(\d+)\:in `(.*)'/
-              @file = $1
-            @method = $3
-            @line_no = $2.to_i
-            @children = []
-            @runnable_count = 0
-            @to_prune = false
-            @depth = 0
-
-            parent.add_child(self) if parent
-          end
-
-          def ==(other)
-            @file == other.file &&
-              @method == other.method &&
-              @line_no == other.line_no
-          end
-
-          def total_count
-            @runnable_count
-          end
-
-          # Descending order on count, ascending on depth of nodes
-          def order_for_pruning(y)
-            [-runnable_count, depth] <=> [-y.runnable_count, y.depth]
-          end
-
-          include NewRelic::Coerce
-
-          def to_array
-            [[
-              string(@file),
-              string(@method),
-              int(@line_no)
-            ],
-              int(@runnable_count),
-              0,
-              @children.map {|c| c.to_array}]
-          end
-
-          def add_child(child)
-            child.depth = @depth + 1
-            @children << child unless @children.include? child
-          end
-
-          def prune!
-            Node.prune!(@children)
-          end
-
-          def self.prune!(kids)
-            kids.delete_if { |child| child.to_prune }
-            kids.each { |child| child.prune! }
           end
         end
 

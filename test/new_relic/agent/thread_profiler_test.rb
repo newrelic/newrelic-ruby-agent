@@ -7,7 +7,7 @@ require 'base64'
 require 'thread'
 require 'timeout'
 require 'zlib'
-require 'new_relic/agent/threaded_test_case'
+require 'new_relic/agent/threading/threaded_test_case'
 require 'new_relic/agent/thread_profiler'
 
 COMMAND_ID = 666
@@ -69,7 +69,7 @@ else
 
 require 'json'
 
-class ThreadProfilerTest < ThreadedTest
+class ThreadProfilerTest < ThreadedTestCase
   def setup
     super
     @profiler = NewRelic::Agent::ThreadProfiler.new
