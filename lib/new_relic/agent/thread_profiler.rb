@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/thread'
+require 'new_relic/agent/threading/agent_thread'
 require 'new_relic/agent/worker_loop'
 
 module NewRelic
@@ -128,7 +128,7 @@ EOF
       end
 
       def run
-        AgentThread.new('Thread Profiler') do
+        Threading::AgentThread.new('Thread Profiler') do
           @start_time = now_in_millis
 
           @worker_loop.run(@interval) do
@@ -136,10 +136,10 @@ EOF
               record_supportability_metric_timed("ThreadProfiler/PollingTime") do
 
               @poll_count += 1
-              AgentThread.list.each do |t|
-                bucket = AgentThread.bucket_thread(t, @profile_agent_code)
+              Threading::AgentThread.list.each do |t|
+                bucket = Threading::AgentThread.bucket_thread(t, @profile_agent_code)
                 if bucket != :ignore
-                  backtrace = AgentThread.scrub_backtrace(t, @profile_agent_code)
+                  backtrace = Threading::AgentThread.scrub_backtrace(t, @profile_agent_code)
                   if backtrace.nil?
                     @failure_count += 1
                   else

@@ -4,7 +4,7 @@
 
 class ThreadedTest < Test::Unit::TestCase
   def setup
-    @original_thread_class = NewRelic::Agent::AgentThread
+    @original_thread_class = NewRelic::Agent::Threading::AgentThread
     swap_thread_class(FakeThread)
   end
 
@@ -22,8 +22,10 @@ class ThreadedTest < Test::Unit::TestCase
   private
 
   def swap_thread_class(klass)
-    NewRelic::Agent.send(:remove_const, "AgentThread") if NewRelic::Agent.const_defined?("AgentThread")
-    NewRelic::Agent.const_set("AgentThread", klass)
+    if NewRelic::Agent::Threading.const_defined?("AgentThread")
+      NewRelic::Agent::Threading.send(:remove_const, "AgentThread")
+    end
+    NewRelic::Agent::Threading.const_set("AgentThread", klass)
   end
 end
 

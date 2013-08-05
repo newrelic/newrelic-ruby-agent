@@ -3,23 +3,23 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
-require 'new_relic/agent/thread'
+require 'new_relic/agent/threading/agent_thread'
 
 class ThreadTest < Test::Unit::TestCase
 
   def test_sets_label
-    t = NewRelic::Agent::AgentThread.new("labelled") {}
+    t = NewRelic::Agent::Threading::AgentThread.new("labelled") {}
     assert_equal "labelled", t[:newrelic_label]
   end
 
   def test_bucket_thread_as_agent_when_profiling
-    t = NewRelic::Agent::AgentThread.new("labelled") {}
-    assert_equal :agent, NewRelic::Agent::AgentThread.bucket_thread(t, true)
+    t = NewRelic::Agent::Threading::AgentThread.new("labelled") {}
+    assert_equal :agent, NewRelic::Agent::Threading::AgentThread.bucket_thread(t, true)
   end
 
   def test_bucket_thread_as_agent_when_not_profiling
-    t = NewRelic::Agent::AgentThread.new("labelled") {}
-    assert_equal :ignore, NewRelic::Agent::AgentThread.bucket_thread(t, false)
+    t = NewRelic::Agent::Threading::AgentThread.new("labelled") {}
+    assert_equal :ignore, NewRelic::Agent::Threading::AgentThread.bucket_thread(t, false)
   end
 
   def test_bucket_thread_as_request
@@ -28,7 +28,7 @@ class ThreadTest < Test::Unit::TestCase
     txn.request = "has a request"
     t[:newrelic_transaction] = [txn]
 
-    assert_equal :request, NewRelic::Agent::AgentThread.bucket_thread(t, DONT_CARE)
+    assert_equal :request, NewRelic::Agent::Threading::AgentThread.bucket_thread(t, DONT_CARE)
   end
 
   def test_bucket_thread_as_background
@@ -36,25 +36,25 @@ class ThreadTest < Test::Unit::TestCase
     txn = NewRelic::Agent::Transaction.new
     t[:newrelic_transaction] = [txn]
 
-    assert_equal :background, NewRelic::Agent::AgentThread.bucket_thread(t, DONT_CARE)
+    assert_equal :background, NewRelic::Agent::Threading::AgentThread.bucket_thread(t, DONT_CARE)
   end
 
   def test_bucket_thread_as_other_if_nil_txn
     t = ::Thread.new {}
     t[:newrelic_transaction] = []
 
-    assert_equal :other, NewRelic::Agent::AgentThread.bucket_thread(t, DONT_CARE)
+    assert_equal :other, NewRelic::Agent::Threading::AgentThread.bucket_thread(t, DONT_CARE)
   end
 
   def test_bucket_thread_as_other
     t = ::Thread.new {}
-    assert_equal :other, NewRelic::Agent::AgentThread.bucket_thread(t, DONT_CARE)
+    assert_equal :other, NewRelic::Agent::Threading::AgentThread.bucket_thread(t, DONT_CARE)
   end
 
   def test_runs_block
     called = false
 
-    t = NewRelic::Agent::AgentThread.new("labelled") { called = true }
+    t = NewRelic::Agent::Threading::AgentThread.new("labelled") { called = true }
     t.join
 
     assert called
@@ -67,12 +67,12 @@ class ThreadTest < Test::Unit::TestCase
     ]
 
   def test_scrubs_backtrace_when_not_profiling_agent_code
-    result = NewRelic::Agent::AgentThread.scrub_backtrace(stub(:backtrace => TRACE), false)
+    result = NewRelic::Agent::Threading::AgentThread.scrub_backtrace(stub(:backtrace => TRACE), false)
     assert_equal [TRACE[0], TRACE[2]], result
   end
 
   def test_doesnt_scrub_backtrace_when_profiling_agent_code
-    result = NewRelic::Agent::AgentThread.scrub_backtrace(stub(:backtrace => TRACE), true)
+    result = NewRelic::Agent::Threading::AgentThread.scrub_backtrace(stub(:backtrace => TRACE), true)
     assert_equal TRACE, result
   end
 
@@ -80,12 +80,12 @@ class ThreadTest < Test::Unit::TestCase
     dummy_thread = stub
     dummy_thread.stubs(:backtrace).raises(StandardError.new('nah'))
     assert_nothing_raised do
-      NewRelic::Agent::AgentThread.scrub_backtrace(dummy_thread, true)
+      NewRelic::Agent::Threading::AgentThread.scrub_backtrace(dummy_thread, true)
     end
   end
 
   def test_scrub_backtrace_handles_nil_backtrace
-    bt = NewRelic::Agent::AgentThread.scrub_backtrace(stub(:backtrace => nil), false)
+    bt = NewRelic::Agent::Threading::AgentThread.scrub_backtrace(stub(:backtrace => nil), false)
     assert_nil(bt)
   end
 
