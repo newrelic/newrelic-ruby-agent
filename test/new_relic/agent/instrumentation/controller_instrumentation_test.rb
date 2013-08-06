@@ -7,6 +7,18 @@ class NewRelic::Agent::Instrumentation::ControllerInstrumentationTest < Test::Un
   require 'new_relic/agent/instrumentation/controller_instrumentation'
   class TestObject
     include NewRelic::Agent::Instrumentation::ControllerInstrumentation
+
+    def public_transaction(*args); end
+
+    protected
+    def protected_transaction(*args); end
+
+    private
+    def private_transaction(*args); end
+
+    add_transaction_tracer :public_transaction
+    add_transaction_tracer :protected_transaction
+    add_transaction_tracer :private_transaction
   end
 
   def setup
@@ -93,5 +105,15 @@ class NewRelic::Agent::Instrumentation::ControllerInstrumentationTest < Test::Un
   def test_transaction_path_name_with_overridden_class_name
     result = @txn_namer.path_name(:name => "perform", :class_name => 'Resque')
     assert_equal("Resque/perform", result)
+  end
+
+  def test_add_transaction_tracer_should_not_double_instrument
+    TestObject.expects(:alias_method).never
+    TestObject.class_eval do
+      add_transaction_tracer :public_transaction
+      add_transaction_tracer :protected_transaction
+      add_transaction_tracer :private_transaction
+    end
+    obj = TestObject.new
   end
 end
