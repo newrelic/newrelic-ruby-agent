@@ -32,6 +32,15 @@ module NewRelic
       end
     end
 
+    def instance_methods_include?(klass, method_name)
+      method_name_sym = method_name.to_sym
+      (
+        klass.instance_methods.map{ |s| s.to_sym }.include?(method_name_sym)          ||
+        klass.protected_instance_methods.map{ |s|s.to_sym }.include?(method_name_sym) ||
+        klass.private_instance_methods.map{ |s|s.to_sym }.include?(method_name_sym)
+      )
+    end
+
     def time_to_millis(time)
       (time.to_f * 1000).round
     end
