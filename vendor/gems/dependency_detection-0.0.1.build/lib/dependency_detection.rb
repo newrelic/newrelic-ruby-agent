@@ -17,7 +17,7 @@ module DependencyDetection
       seen_names = @items.map { |i| i.name }.compact
       if seen_names.include?(item.name)
         NewRelic::Agent.logger.warn("Refusing to re-register DependencyDetection block with name '#{item.name}'")
-        return item
+        return @items
       end
     end
 
