@@ -97,14 +97,7 @@ module NewRelic
             begin
               require 'new_relic/rack/developer_mode'
               rails_config.middleware.use NewRelic::Rack::DeveloperMode
-
-              # inform user that the dev edition is available if we are running inside
-              # a webserver process
-              if @local_env.dispatcher_instance_id
-                port = @local_env.dispatcher_instance_id.to_s =~ /^\d+/ ? ":#{local_env.dispatcher_instance_id}" : ":port"
-                ::NewRelic::Agent.logger.debug("NewRelic Agent Developer Mode enabled.")
-                ::NewRelic::Agent.logger.debug("To view performance information, go to http://localhost#{port}/newrelic")
-              end
+              ::NewRelic::Agent.logger.info("New Relic Agent Developer Mode enabled.")
             rescue => e
               ::NewRelic::Agent.logger.warn("Error installing New Relic Developer Mode", e)
             end

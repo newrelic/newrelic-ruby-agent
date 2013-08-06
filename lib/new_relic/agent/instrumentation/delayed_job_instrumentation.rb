@@ -32,9 +32,7 @@ DependencyDetection.defer do
         if defined?(::Delayed::Job) && ::Delayed::Job.method_defined?(:invoke_job)
           ::NewRelic::Agent.logger.info 'Installing DelayedJob instrumentation [part 2/2]'
           install_newrelic_job_tracer
-
-          dispatcher_instance_id = worker_name || "host:#{Socket.gethostname} pid:#{Process.pid}" rescue "pid:#{Process.pid}"
-          NewRelic::Control.instance.init_plugin :dispatcher => :delayed_job, :dispatcher_instance_id => dispatcher_instance_id
+          NewRelic::Control.instance.init_plugin :dispatcher => :delayed_job
         else
           NewRelic::Agent.logger.warn("Did not find a Delayed::Job class responding to invoke_job, aborting DJ instrumentation")
         end

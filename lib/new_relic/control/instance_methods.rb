@@ -64,7 +64,6 @@ module NewRelic
 
         # Merge the stringified options into the config as overrides:
         environment_name = options.delete(:env) and self.env = environment_name
-        dispatcher_instance_id = options.delete(:dispatcher_instance_id) and @local_env.dispatcher_instance_id = dispatcher_instance_id
 
         NewRelic::Agent::PipeChannelManager.listener.start if options.delete(:start_channel_listener)
 
