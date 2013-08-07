@@ -22,8 +22,6 @@ module NewRelic
         def notice_scope_empty(*args); end
       end
 
-      BUILDER_KEY = :transaction_sample_builder
-
       attr_accessor :random_sampling, :sampling_rate
       attr_accessor :slow_capture_threshold
       attr_reader :samples, :last_sample, :disabled
@@ -447,19 +445,19 @@ module NewRelic
         if !enabled? || !NewRelic::Agent.is_transaction_traced? || !NewRelic::Agent.is_execution_traced?
           clear_builder
         else
-          Thread::current[BUILDER_KEY] ||= TransactionSampleBuilder.new(time)
+          TransactionState.get.transaction_sample_builder ||= TransactionSampleBuilder.new(time)
         end
       end
 
       # The current thread-local transaction sample builder
       def builder
-        Thread::current[BUILDER_KEY]
+        TransactionState.get.transaction_sample_builder
       end
 
       # Sets the thread local variable storing the transaction sample
       # builder to nil to clear it
       def clear_builder
-        Thread::current[BUILDER_KEY] = nil
+        TransactionState.get.transaction_sample_builder = nil
       end
 
     end

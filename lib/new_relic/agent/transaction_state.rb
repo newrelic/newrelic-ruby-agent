@@ -60,8 +60,8 @@ module NewRelic
       # Sql Sampler Transaction Data
       attr_accessor :sql_sampler_transaction_data
 
-      # Current transaction
-      attr_accessor :current_transaction_stack
+      # Current transaction and related
+      attr_accessor :current_transaction_stack, :transaction_sample_builder
     end
   end
 end

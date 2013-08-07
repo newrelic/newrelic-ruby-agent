@@ -40,7 +40,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
   def teardown
     super
-    Thread.current[:transaction_sample_builder] = nil
+    NewRelic::Agent::TransactionState.clear
     NewRelic::Agent.config.remove_config(@test_config)
     NewRelic::Agent.instance.instance_variable_set(:@transaction_sampler, @old_sampler)
   end
@@ -599,39 +599,39 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   def test_start_builder_default
     NewRelic::Agent.expects(:is_execution_traced?).returns(true)
     @sampler.send(:start_builder)
-    assert(Thread.current[:transaction_sample_builder] \
+    assert(NewRelic::Agent::TransactionState.get.transaction_sample_builder \
              .is_a?(NewRelic::Agent::TransactionSampleBuilder),
            "should set up a new builder by default")
   end
 
   def test_start_builder_disabled
-    Thread.current[:transaction_sample_builder] = 'not nil.'
+    NewRelic::Agent::TransactionState.get.transaction_sample_builder = 'not nil.'
     with_config(:'transaction_tracer.enabled' => false,
                 :developer_mode => false) do
       @sampler.send(:start_builder)
-      assert_equal(nil, Thread.current[:transaction_sample_builder],
+      assert_equal(nil, NewRelic::Agent::TransactionState.get.transaction_sample_builder,
                    "should clear the transaction builder when disabled")
     end
   end
 
   def test_start_builder_dont_replace_existing_builder
     fake_builder = mock('transaction sample builder')
-    Thread.current[:transaction_sample_builder] = fake_builder
+    NewRelic::Agent::TransactionState.get.transaction_sample_builder = fake_builder
     @sampler.send(:start_builder)
-    assert_equal(fake_builder, Thread.current[:transaction_sample_builder],
+    assert_equal(fake_builder, NewRelic::Agent::TransactionState.get.transaction_sample_builder,
                  "should not overwrite an existing transaction sample builder")
-    Thread.current[:transaction_sample_builder] = nil
+    NewRelic::Agent::TransactionState.get.transaction_sample_builder = nil
   end
 
   def test_builder
-    Thread.current[:transaction_sample_builder] = 'shamalamadingdong, brother.'
+    NewRelic::Agent::TransactionState.get.transaction_sample_builder = 'shamalamadingdong, brother.'
     assert_equal('shamalamadingdong, brother.', @sampler.send(:builder),
                  'should return the value from the thread local variable')
-    Thread.current[:transaction_sample_builder] = nil
+    NewRelic::Agent::TransactionState.get.transaction_sample_builder = nil
   end
 
   def test_clear_builder
-    Thread.current[:transaction_sample_builder] = 'shamalamadingdong, brother.'
+    NewRelic::Agent::TransactionState.get.transaction_sample_builder = 'shamalamadingdong, brother.'
     assert_equal(nil, @sampler.send(:clear_builder), 'should clear the thread local variable')
   end
 
