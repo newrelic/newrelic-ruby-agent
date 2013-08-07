@@ -63,7 +63,7 @@ class NewRelic::Agent::SampledBufferTest < Test::Unit::TestCase
     end
 
     (0...10).each do |v|
-      num_results_including_v = results.count { |r| r.include?(v) }
+      num_results_including_v = results.select { |r| r.include?(v) }.size
       assert_in_delta(0.5, num_results_including_v.to_f / results.size, 0.05)
     end
   end
