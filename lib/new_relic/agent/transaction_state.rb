@@ -23,6 +23,22 @@ module NewRelic
       # on thread local until then.
       attr_accessor :client_cross_app_id, :referring_transaction_info
 
+      # Execution tracing on current thread
+      attr_accessor :untraced
+
+      def push_traced(should_trace)
+        @untraced ||= []
+        @untraced << should_trace
+      end
+
+      def pop_traced
+        @untraced.pop if @untraced
+      end
+
+      def is_traced?
+        @untraced.nil? || @untraced.last != false
+      end
+
     end
   end
 end
