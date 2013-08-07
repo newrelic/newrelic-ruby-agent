@@ -4,7 +4,7 @@
 require 'new_relic/agent/instrumentation/active_record_subscriber'
 
 DependencyDetection.defer do
-  @name = :active_record
+  named :active_record_4
 
   depends_on do
     defined?(::ActiveRecord) && defined?(::ActiveRecord::Base) &&
