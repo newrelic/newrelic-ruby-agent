@@ -16,7 +16,7 @@ module NewRelic
         end
 
         def host
-          self.uri.host
+          self["host"] || self["Host"] || self.uri.host
         end
 
         def method

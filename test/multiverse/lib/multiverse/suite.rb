@@ -150,23 +150,35 @@ module Multiverse
       environments.after.call if environments.after
     end
 
+    def with_clean_env
+      if defined?(Bundler)
+        # clear $BUNDLE_GEMFILE and $RUBYOPT so that the ruby subprocess can run
+        # in the context of another bundle.
+        Bundler.with_clean_env { yield }
+      else
+        yield
+      end
+    end
+
     def execute_with_pipe(env)
       Thread.new do
-        suite = File.basename(directory)
-        IO.popen("#{__FILE__} #{directory} #{env} '#{seed}' '#{names.join(",")}'") do |io|
-          OutputCollector.write(suite, env, yellow("Running #{suite.inspect} for Envfile entry #{env}\n"))
-          OutputCollector.write(suite, env, yellow("Starting tests in child PID #{io.pid}\n"))
-          until io.eof do
-            chars = io.read
-            OutputCollector.write(suite, env, chars)
+        with_clean_env do
+          suite = File.basename(directory)
+          IO.popen("#{__FILE__} #{directory} #{env} '#{seed}' '#{names.join(",")}'") do |io|
+            OutputCollector.write(suite, env, yellow("Running #{suite.inspect} for Envfile entry #{env}\n"))
+            OutputCollector.write(suite, env, yellow("Starting tests in child PID #{io.pid}\n"))
+            until io.eof do
+              chars = io.read
+              OutputCollector.write(suite, env, chars)
+            end
+            OutputCollector.suite_report(suite, env)
           end
-          OutputCollector.suite_report(suite, env)
-        end
 
-        if $? != 0
-          OutputCollector.failed(suite, env)
+          if $? != 0
+            OutputCollector.failed(suite, env)
+          end
+          Multiverse::Runner.notice_exit_status $?
         end
-        Multiverse::Runner.notice_exit_status $?
       end
     end
 

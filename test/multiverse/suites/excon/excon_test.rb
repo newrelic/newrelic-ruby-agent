@@ -16,8 +16,8 @@ class ExconTest < MiniTest::Unit::TestCase
     "Excon"
   end
 
-  def get_response(url=nil)
-    Excon.get(url || default_url)
+  def get_response(url=nil, headers=nil)
+    Excon.get(url || default_url, :headers => (headers || {}))
   end
 
   def get_response_multi(url, n)

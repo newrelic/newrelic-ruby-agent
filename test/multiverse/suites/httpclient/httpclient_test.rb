@@ -16,8 +16,8 @@ class HTTPClientTest < MiniTest::Unit::TestCase
     "HTTPClient"
   end
 
-  def get_response(url=nil)
-    HTTPClient.get(url || default_url)
+  def get_response(url=nil, headers=nil)
+    HTTPClient.get(url || default_url, :header => headers)
   end
 
   def head_response

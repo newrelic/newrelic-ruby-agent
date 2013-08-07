@@ -94,7 +94,7 @@ class CurbTest < MiniTest::Unit::TestCase
   #   def self.head_response
   #     Curl.head( default_url )
   #   end
-  # 
+  #
   #   test_head
   # end
 
@@ -158,11 +158,14 @@ class CurbTest < MiniTest::Unit::TestCase
     "Curb"
   end
 
-  def get_response(url=nil)
+  def get_response(url=nil, headers=nil)
     if @get_response_proc
       @get_response_proc.call(url)
     else
-      Curl::Easy.http_get( url || default_url )
+      easy = Curl::Easy.new( url || default_url )
+      easy.headers = headers unless headers.nil?
+      easy.http_get
+      easy
     end
   end
 
