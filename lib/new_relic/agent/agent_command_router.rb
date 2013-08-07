@@ -10,7 +10,7 @@
 
 module NewRelic
   module Agent
-    class AgentCommands
+    class AgentCommandRouter
       attr_reader :thread_profiler
 
       def initialize(thread_profiler=nil)

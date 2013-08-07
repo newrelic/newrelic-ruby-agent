@@ -3,9 +3,9 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
-require 'new_relic/agent/agent_commands'
+require 'new_relic/agent/agent_command_router'
 
-class AgentCommandsTest < Test::Unit::TestCase
+class AgentCommandRouterTest < Test::Unit::TestCase
 
   DEFAULT_ARGS = {
     "profile_id" => 42
@@ -26,7 +26,7 @@ class AgentCommandsTest < Test::Unit::TestCase
   def setup
     @service = stub(:agent_command_results)
 
-    @agent_commands = NewRelic::Agent::AgentCommands.new
+    @agent_commands = NewRelic::Agent::AgentCommandRouter.new
 
     @handler = TestHandler.new
     @agent_commands.add_handler("bazzle", @handler, :respond_to_bazzle)
