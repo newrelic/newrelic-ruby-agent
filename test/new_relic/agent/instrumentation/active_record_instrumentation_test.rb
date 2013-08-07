@@ -36,7 +36,6 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
     super
     NewRelic::Agent::TransactionInfo.reset
     NewRelic::Agent::TransactionState.clear
-    Thread::current[:newrelic_scope_name] = nil
     NewRelic::Agent.shutdown
   end
 

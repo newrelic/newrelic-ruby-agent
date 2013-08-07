@@ -57,7 +57,7 @@ module NewRelic
           end
 
           def scope_stack
-            Thread::current[:newrelic_scope_stack] ||= []
+            NewRelic::Agent::TransactionState.get.scope_stack ||= []
           end
         end
 
