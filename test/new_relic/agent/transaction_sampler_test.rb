@@ -25,7 +25,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   end
 
   def setup
-    Thread::current[:record_sql] = nil
+    NewRelic::Agent::TransactionState.clear
     agent = NewRelic::Agent.instance
     stats_engine = NewRelic::Agent::StatsEngine.new
     agent.stubs(:stats_engine).returns(stats_engine)
@@ -420,13 +420,13 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   end
 
   def test_notice_sql_recording_sql
-    Thread.current[:record_sql] = true
+    NewRelic::Agent::TransactionState.get.record_sql = true
     @sampler.expects(:notice_extra_data).with('some sql', 1.0, :sql)
     @sampler.notice_sql('some sql', {:config => 'a config'}, 1.0)
   end
 
   def test_notice_sql_not_recording
-    Thread.current[:record_sql] = false
+    NewRelic::Agent::TransactionState.get.record_sql = false
     @sampler.expects(:notice_extra_data).with('some sql', 1.0, :sql).never # <--- important
     @sampler.notice_sql('some sql', {:config => 'a config'}, 1.0)
   end
@@ -813,7 +813,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   def test_record_sql_off
     @sampler.notice_first_scope_push Time.now.to_f
 
-    Thread::current[:record_sql] = false
+    NewRelic::Agent::TransactionState.get.record_sql = false
 
     @sampler.notice_sql("test", {}, 0)
 

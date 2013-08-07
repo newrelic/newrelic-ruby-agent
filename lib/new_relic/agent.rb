@@ -396,7 +396,7 @@ module NewRelic
     # helper method to check the thread local to determine whether sql
     # is being recorded or not
     def is_sql_recorded?
-      Thread::current[:record_sql] != false
+      NewRelic::Agent::TransactionState.get.is_sql_recorded?
     end
 
     # Set a filter to be applied to errors that the Ruby Agent will

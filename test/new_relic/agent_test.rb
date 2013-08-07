@@ -154,17 +154,17 @@ module NewRelic
     end
 
     def test_is_sql_recorded_true
-      Thread.current[:record_sql] = true
+      NewRelic::Agent::TransactionState.get.record_sql = true
       assert_equal(true, NewRelic::Agent.is_sql_recorded?, 'should be true since the thread local is set')
     end
 
     def test_is_sql_recorded_blank
-      Thread.current[:record_sql] = nil
+      NewRelic::Agent::TransactionState.get.record_sql = nil
       assert_equal(true, NewRelic::Agent.is_sql_recorded?, 'should be true since the thread local is not set')
     end
 
     def test_is_sql_recorded_false
-      Thread.current[:record_sql] = false
+      NewRelic::Agent::TransactionState.get.record_sql = false
       assert_equal(false, NewRelic::Agent.is_sql_recorded?, 'should be false since the thread local is false')
     end
 
