@@ -14,7 +14,7 @@ module NewRelic
       attr_reader :thread_profiler
 
       def initialize(thread_profiler=nil)
-        @handlers = Hash.new { |*_| [self, :unrecognized_agent_command] }
+        @handlers = Hash.new { |*| [self, :unrecognized_agent_command] }
 
         add_handler("start_profiler", thread_profiler, :handle_start_command)
         add_handler("stop_profiler",  thread_profiler, :handle_stop_command)
