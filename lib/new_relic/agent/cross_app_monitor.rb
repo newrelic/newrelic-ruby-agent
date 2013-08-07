@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/rack/agent_hooks'
-require 'new_relic/agent/thread'
+require 'new_relic/agent/threading/agent_thread'
 
 module NewRelic
   module Agent
@@ -101,15 +101,15 @@ module NewRelic
       end
 
       def save_client_cross_app_id(request_headers)
-        NewRelic::Agent::AgentThread.current[THREAD_ID_KEY] = decoded_id(request_headers)
+        NewRelic::Agent::Threading::AgentThread.current[THREAD_ID_KEY] = decoded_id(request_headers)
       end
 
       def clear_client_cross_app_id
-        NewRelic::Agent::AgentThread.current[THREAD_ID_KEY] = nil
+        NewRelic::Agent::Threading::AgentThread.current[THREAD_ID_KEY] = nil
       end
 
       def client_cross_app_id
-        NewRelic::Agent::AgentThread.current[THREAD_ID_KEY]
+        NewRelic::Agent::Threading::AgentThread.current[THREAD_ID_KEY]
       end
 
       def save_referring_transaction_info(request_headers)
@@ -119,20 +119,20 @@ module NewRelic
         txn_info = NewRelic.json_load( txn_header )
         NewRelic::Agent.logger.debug "Referring txn_info: %p" % [ txn_info ]
 
-        NewRelic::Agent::AgentThread.current[THREAD_TXN_KEY] = txn_info
+        NewRelic::Agent::Threading::AgentThread.current[THREAD_TXN_KEY] = txn_info
       end
 
       def clear_referring_transaction_info
-        NewRelic::Agent::AgentThread.current[THREAD_TXN_KEY] = nil
+        NewRelic::Agent::Threading::AgentThread.current[THREAD_TXN_KEY] = nil
       end
 
       def client_referring_transaction_guid
-        info = NewRelic::Agent::AgentThread.current[THREAD_TXN_KEY] or return nil
+        info = NewRelic::Agent::Threading::AgentThread.current[THREAD_TXN_KEY] or return nil
         return info[0]
       end
 
       def client_referring_transaction_record_flag
-        info = NewRelic::Agent::AgentThread.current[THREAD_TXN_KEY] or return nil
+        info = NewRelic::Agent::Threading::AgentThread.current[THREAD_TXN_KEY] or return nil
         return info[1]
       end
 

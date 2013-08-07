@@ -2,31 +2,6 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-class ThreadedTest < Test::Unit::TestCase
-  def setup
-    @original_thread_class = NewRelic::Agent::AgentThread
-    swap_thread_class(FakeThread)
-  end
-
-  def teardown
-    swap_thread_class(@original_thread_class)
-    @original_thread_class = nil
-
-    FakeThread.list.clear
-  end
-
-  def default_test
-    # no-op to keep quiet....
-  end
-
-  private
-
-  def swap_thread_class(klass)
-    NewRelic::Agent.send(:remove_const, "AgentThread") if NewRelic::Agent.const_defined?("AgentThread")
-    NewRelic::Agent.const_set("AgentThread", klass)
-  end
-end
-
 class FakeThread
   @@list = []
 

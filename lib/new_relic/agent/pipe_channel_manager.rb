@@ -116,7 +116,7 @@ module NewRelic
         def start
           return if @started == true
           @started = true
-          @thread = NewRelic::Agent::AgentThread.new('Pipe Channel Manager') do
+          @thread = NewRelic::Agent::Threading::AgentThread.new('Pipe Channel Manager') do
             now = nil
             loop do
               clean_up_pipes

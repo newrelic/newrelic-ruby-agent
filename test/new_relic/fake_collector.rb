@@ -27,6 +27,7 @@ module NewRelic
         'sql_trace_data'          => [200, {'return_value' => nil}],
         'transaction_sample_data' => [200, {'return_value' => nil}],
         'error_data'              => [200, {'return_value' => nil}],
+        'profile_data'            => [200, {'return_value' => nil}],
         'shutdown'                => [200, {'return_value' => nil}],
         'analytic_event_data'     => [200, {'return_value' => nil}]
       }

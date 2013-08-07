@@ -21,7 +21,7 @@ module NewRelic
       #
 
       def with_profile(opts)
-        profile = NewRelic::Agent::ThreadProfile.new(-1, 0, 0, true)
+        profile = NewRelic::Agent::Threading::ThreadProfile.new(-1, 0, 0, true)
         profile.aggregate(["chunky.rb:42:in `bacon'"], profile.traces[:other])
         profile.instance_variable_set(:@finished, opts[:finished])
 
