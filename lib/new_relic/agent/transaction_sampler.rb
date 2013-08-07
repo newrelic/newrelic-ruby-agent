@@ -301,8 +301,7 @@ module NewRelic
       # Appends a backtrace to a segment if that segment took longer
       # than the specified duration
       def append_backtrace(segment, duration)
-        if (duration >= Agent.config[:'transaction_tracer.stack_trace_threshold'] ||
-            Thread.current[:capture_deep_tt])
+        if duration >= Agent.config[:'transaction_tracer.stack_trace_threshold']
           segment[:backtrace] = caller.join("\n")
         end
       end

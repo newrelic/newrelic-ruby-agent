@@ -8,7 +8,7 @@ module NewRelic
   module Agent
     class TransactionInfo
 
-      attr_accessor :token, :capture_deep_tt, :request, :transaction
+      attr_accessor :token, :request, :transaction
       attr_reader :start_time
 
       def initialize
