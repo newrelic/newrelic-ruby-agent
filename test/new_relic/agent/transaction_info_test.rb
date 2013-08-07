@@ -61,9 +61,9 @@ class NewRelic::Agent::TransactionInfoTest < Test::Unit::TestCase
       :apdex_t => 2.0 }
 
     with_config(config, :do_not_cast => true) do
-      txn_info.transaction = stub(:name => 'Controller/foo/bar')
+      NewRelic::Agent::TransactionState.get.request_transaction = stub(:name => 'Controller/foo/bar')
       assert_equal 1.5, txn_info.apdex_t
-      txn_info.transaction = stub(:name => 'Controller/some/other')
+      NewRelic::Agent::TransactionState.get.request_transaction = stub(:name => 'Controller/some/other')
       assert_equal 2.0, txn_info.apdex_t
     end
   end
@@ -74,9 +74,9 @@ class NewRelic::Agent::TransactionInfoTest < Test::Unit::TestCase
       :apdex_t => 2.0 }
 
     with_config(config, :do_not_cast => true) do
-      txn_info.transaction = stub(:name => 'Controller/foo/bar')
+      NewRelic::Agent::TransactionState.get.request_transaction = stub(:name => 'Controller/foo/bar')
       assert_equal 6.0, txn_info.transaction_trace_threshold
-      txn_info.transaction = stub(:name => 'Controller/some/other')
+      NewRelic::Agent::TransactionState.get.request_transaction = stub(:name => 'Controller/some/other')
       assert_equal 8.0, txn_info.transaction_trace_threshold
     end
   end
@@ -90,9 +90,9 @@ class NewRelic::Agent::TransactionInfoTest < Test::Unit::TestCase
     }
 
     with_config(config, :do_not_cast => true) do
-      txn_info.transaction = stub(:name => 'Controller/foo/bar')
+      NewRelic::Agent::TransactionState.get.request_transaction = stub(:name => 'Controller/foo/bar')
       assert_equal 4.0, txn_info.transaction_trace_threshold
-      txn_info.transaction = stub(:name => 'Controller/some/other')
+      NewRelic::Agent::TransactionState.get.request_transaction = stub(:name => 'Controller/some/other')
       assert_equal 4.0, txn_info.transaction_trace_threshold
     end
   end

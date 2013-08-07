@@ -220,10 +220,10 @@ class NewRelic::Agent::TransationSampleBuilderTest < Test::Unit::TestCase
   end
 
   def test_finish_trace_records_threshold
-    NewRelic::Agent::TransactionInfo.get.stubs(:transaction_trace_threshold) \
-      .returns(2.0)
-    @builder.finish_trace
-    assert_equal 2.0, @builder.sample.threshold
+    with_config(:'transaction_tracer.transaction_threshold' => 2.0) do
+      @builder.finish_trace
+      assert_equal 2.0, @builder.sample.threshold
+    end
   end
 
   # regression

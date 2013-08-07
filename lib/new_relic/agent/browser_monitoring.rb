@@ -179,7 +179,7 @@ module NewRelic
       end
 
       def tt_token
-        return NewRelic::Agent::TransactionInfo.get.token
+        return NewRelic::Agent::TransactionState.get.request_token
       end
 
       def footer_js_string(config)

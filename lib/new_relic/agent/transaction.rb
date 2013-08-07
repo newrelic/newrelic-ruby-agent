@@ -104,7 +104,7 @@ module NewRelic
         @request = options[:request]
         @exceptions = {}
         @stats_hash = StatsHash.new
-        TransactionInfo.get.transaction = self
+        TransactionState.get.request_transaction = self
       end
 
       def name=(name)

@@ -31,7 +31,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
   end
 
   def teardown
-    NewRelic::Agent::TransactionInfo.clear
+    NewRelic::Agent::TransactionState.clear
     NewRelic::Agent.config.remove_config(@config)
     mocha_teardown
   end
@@ -104,6 +104,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
 
   def test_browser_timing_footer
     with_config(:license_key => 'a' * 13) do
+      NewRelic::Agent::TransactionInfo.reset
       browser_timing_header
       footer = browser_timing_footer
       snippet = '<script type="text/javascript">if (!NREUMQ.f) { NREUMQ.f=function() {
@@ -134,6 +135,7 @@ var e=document.createElement("script");'
   end
 
   def test_browser_timing_footer_with_rum_enabled_not_specified
+    NewRelic::Agent::TransactionInfo.reset
     browser_timing_header
 
     license_bytes = [];
@@ -205,20 +207,16 @@ var e=document.createElement("script");'
   end
 
   def test_browser_monitoring_transaction_name_basic
-    mock = stub_everything('transaction info')
-    NewRelic::Agent::TransactionInfo.set(mock)
     txn = NewRelic::Agent::Transaction.new
     txn.name = 'a transaction name'
-    mock.stubs(:transaction).returns(txn)
+    NewRelic::Agent::TransactionState.get.request_transaction = txn
 
     assert_equal('a transaction name', browser_monitoring_transaction_name, "should take the value from the thread local")
   end
 
   def test_browser_monitoring_transaction_name_empty
-    mock = mock('transaction sample')
-    NewRelic::Agent::TransactionInfo.set(mock)
+    NewRelic::Agent::TransactionState.get.request_transaction = stub(:name => '')
 
-    mock.stubs(:transaction).returns(stub(:name => ''))
     assert_equal('', browser_monitoring_transaction_name, "should take the value even when it is empty")
   end
 
@@ -238,12 +236,7 @@ var e=document.createElement("script");'
   end
 
   def test_browser_monitoring_start_time
-    mock = mock('transaction info')
-
-    NewRelic::Agent::TransactionInfo.set(mock)
-
-    mock.stubs(:start_time).returns(Time.at(100))
-    mock.stubs(:guid).returns('ABC')
+    NewRelic::Agent::TransactionState.get.request_start = Time.at(100)
     assert_equal(Time.at(100), browser_monitoring_start_time, "should take the value from the thread local")
   end
 
@@ -291,6 +284,7 @@ var e=document.createElement("script");'
   end
 
   def test_footer_js_string_basic
+    $bedug = true
     # mocking this because JRuby thinks that Time.now - Time.now
     # always takes at least 1ms
     self.expects(:browser_monitoring_app_time).returns(0)
@@ -301,14 +295,9 @@ var e=document.createElement("script");'
       txn.expects(:queue_time).returns(0)
       txn.name = 'most recent transaction'
 
-      sample = stub_everything('transaction info',
-                               :start_time => Time.at(100),
-                               :guid => 'ABC',
-                               :transaction => txn,
-                               :include_guid? => true,
-                               :duration => 12.0,
-                               :token => '0123456789ABCDEF')
-      NewRelic::Agent::TransactionInfo.set(sample)
+      NewRelic::Agent::TransactionState.get.reset_request(stub, '0123456789ABCDEF')
+      NewRelic::Agent::TransactionState.get.request_start -= 10
+      NewRelic::Agent::TransactionState.get.request_guid = 'ABC'
 
       self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'most recent transaction').returns('most recent transaction')
       self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'user').returns('user')
@@ -410,10 +399,8 @@ var e=document.createElement("script");'
     response = Rack::Response.new
     txn = NewRelic::Agent::Transaction.new
     txn.name = 'a transaction name'
-    txn_data = OpenStruct.new(:transaction => txn,
-                              :start_time => 5,
-                              :force_persist_sample? => false)
-    NewRelic::Agent::TransactionInfo.set(txn_data)
+    NewRelic::Agent::TransactionState.get.request_transaction = txn
+    NewRelic::Agent::TransactionState.get.request_start = 5
     NewRelic::Agent::BrowserMonitoring.insert_mobile_response_header(request, response)
     response
   end

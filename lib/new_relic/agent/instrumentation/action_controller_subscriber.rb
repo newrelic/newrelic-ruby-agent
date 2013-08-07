@@ -23,7 +23,7 @@ module NewRelic
         end
 
         def start(name, id, payload)
-          payload[:request] = TransactionInfo.get.request
+          payload[:request] = TransactionState.get.request
           event = ControllerEvent.new(name, Time.now, nil, id, payload)
           push_event(event)
 

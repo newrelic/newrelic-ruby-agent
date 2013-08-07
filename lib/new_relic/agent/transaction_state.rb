@@ -70,6 +70,19 @@ module NewRelic
         @scope_stack = nil
         @scope_name = nil
       end
+
+      # Request data
+      attr_accessor :request, :request_start, :request_transaction,
+                    :request_token, :request_guid, :request_ignore_enduser
+
+      def reset_request(request, token)
+        @request = request
+        @request_start = Time.now
+        @request_transaction = Transaction.current
+        @request_token = token
+        @request_guid = ""
+        @request_ignore_enduser = false
+      end
     end
   end
 end

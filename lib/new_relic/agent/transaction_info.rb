@@ -8,14 +8,16 @@ module NewRelic
   module Agent
     class TransactionInfo
 
-      attr_accessor :token, :request, :transaction
-      attr_reader :start_time
+      def token
+        TransactionState.get.request_token
+      end
 
-      def initialize
-        @guid = ""
-        @start_time = Time.now
-        @ignore_end_user = false
-        @transaction = Transaction.current
+      def transaction
+        TransactionState.get.request_transaction
+      end
+
+      def start_time
+        TransactionState.get.request_start
       end
 
       def force_persist_sample?(sample)
@@ -27,28 +29,28 @@ module NewRelic
       end
 
       def guid
-        @guid
+        TransactionState.get.request_guid
       end
 
       def guid=(value)
-        @guid = value
+        TransactionState.get.request_guid = value
       end
 
       def duration
-        Time.now - start_time
+        Time.now - self.start_time
       end
 
       def ignore_end_user?
-        @ignore_end_user
+        TransactionState.get.request_ignore_enduser
       end
 
       def ignore_end_user=(value)
-        @ignore_end_user = value
+        TransactionState.get.request_ignore_enduser = value
       end
 
       def apdex_t
         (Agent.config[:web_transactions_apdex] &&
-         Agent.config[:web_transactions_apdex][@transaction.name]) ||
+         Agent.config[:web_transactions_apdex][self.transaction.name]) ||
           Agent.config[:apdex_t]
       end
 
@@ -62,25 +64,13 @@ module NewRelic
       end
 
       def self.get()
-        Thread.current[:newrelic_transaction_info] ||= TransactionInfo.new
-      end
-
-      def self.set(instance)
-        Thread.current[:newrelic_transaction_info] = instance
-      end
-
-      def self.clear
-        Thread.current[:newrelic_transaction_info] = nil
+        TransactionInfo.new
       end
 
       # clears any existing transaction info object and initializes a new one.
       # This starts the timer for the transaction.
       def self.reset(request=nil)
-        clear
-        instance = get
-        instance.token = get_token(request)
-        instance.request = request
-        instance.transaction = Transaction.current
+        TransactionState.get.reset_request(request, get_token(request))
       end
 
       def self.get_token(request)
