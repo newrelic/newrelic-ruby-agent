@@ -14,12 +14,12 @@ module NewRelic
         RUBY_VERSION >= "1.9.2"
       end
 
-      def respond_to_start(command_id, name, arguments, &results_callback)
+      def handle_start_command(command_id, name, arguments, &results_callback)
         return if unsupported?(command_id, &results_callback)
         start_unless_running_and_notify(command_id, arguments, &results_callback)
       end
 
-      def respond_to_stop(command_id, name, arguments, &results_callback)
+      def handle_stop_command(command_id, name, arguments, &results_callback)
         return if unsupported?(command_id, &results_callback)
         stop_and_notify(command_id, arguments, &results_callback)
       end

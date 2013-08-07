@@ -56,7 +56,7 @@ class ThreadProfilerUnsupportedTest < Test::Unit::TestCase
 
   def test_wont_start_and_reports_error
     errors = nil
-    @profiler.respond_to_start(COMMAND_ID, START_NAME, START_ARGS) do |_, err|
+    @profiler.handle_start_command(COMMAND_ID, START_NAME, START_ARGS) do |_, err|
       errors = err
     end
     assert_equal false, errors.nil?
@@ -116,39 +116,39 @@ class ThreadProfilerTest < ThreadedTestCase
     assert_equal false, @profiler.running?
   end
 
-  def test_respond_to_start_starts_running
-    @profiler.respond_to_start(COMMAND_ID, START_NAME, START_ARGS)
+  def test_handle_start_command_starts_running
+    @profiler.handle_start_command(COMMAND_ID, START_NAME, START_ARGS)
     assert_equal true, @profiler.running?
   end
 
-  def test_respond_to_stop
+  def test_handle_stop_command
     @profiler.start(0, 0, 0, true)
     assert @profiler.running?
 
-    @profiler.respond_to_stop(COMMAND_ID, STOP_NAME, STOP_ARGS)
+    @profiler.handle_stop_command(COMMAND_ID, STOP_NAME, STOP_ARGS)
     assert_equal true, @profiler.finished?
   end
 
-  def test_respond_to_stop_and_discard
+  def test_handle_stop_command_and_discard
     @profiler.start(0, 0, 0, true)
     assert @profiler.running?
 
-    @profiler.respond_to_stop(COMMAND_ID, STOP_NAME, STOP_AND_DISCARD_ARGS)
+    @profiler.handle_stop_command(COMMAND_ID, STOP_NAME, STOP_AND_DISCARD_ARGS)
     assert_nil @profiler.harvest
   end
 
-  def test_respond_to_start_wont_start_second_profile
+  def test_handle_start_command_wont_start_second_profile
     @profiler.start(0, 0, 0, true)
     original_profile = @profiler.instance_variable_get(:@profile)
 
-    @profiler.respond_to_start(COMMAND_ID, START_NAME, START_ARGS)
+    @profiler.handle_start_command(COMMAND_ID, START_NAME, START_ARGS)
 
     assert_equal original_profile, @profiler.harvest
   end
 
   def test_response_to_commands_start_notifies_of_result
     saw_command_id = nil
-    @profiler.respond_to_start(COMMAND_ID, START_NAME, START_ARGS) do |id, _|
+    @profiler.handle_start_command(COMMAND_ID, START_NAME, START_ARGS) do |id, _|
       saw_command_id = id
     end
 
@@ -159,8 +159,8 @@ class ThreadProfilerTest < ThreadedTestCase
     saw_command_id = nil
     error = nil
 
-    @profiler.respond_to_start(COMMAND_ID, START_NAME, START_ARGS)
-    @profiler.respond_to_start(COMMAND_ID, START_NAME, START_ARGS) do |id, err|
+    @profiler.handle_start_command(COMMAND_ID, START_NAME, START_ARGS)
+    @profiler.handle_start_command(COMMAND_ID, START_NAME, START_ARGS) do |id, err|
       saw_command_id = id
       error = err
     end
@@ -172,14 +172,14 @@ class ThreadProfilerTest < ThreadedTestCase
   def test_response_to_commands_stop_notifies_of_result
     saw_command_id = nil
     @profiler.start(0,0, 0, true)
-    @profiler.respond_to_stop(COMMAND_ID, STOP_NAME, STOP_ARGS) do |id, _|
+    @profiler.handle_stop_command(COMMAND_ID, STOP_NAME, STOP_ARGS) do |id, _|
       saw_command_id = id
     end
     assert_equal 666, saw_command_id
   end
 
   def test_command_attributes_passed_along
-    @profiler.respond_to_start(COMMAND_ID, START_NAME, START_ARGS)
+    @profiler.handle_start_command(COMMAND_ID, START_NAME, START_ARGS)
     profile = @profiler.harvest
     assert_equal 42,  profile.profile_id
     assert_equal 0.02, profile.interval

@@ -14,10 +14,10 @@ module NewRelic
       attr_reader :thread_profiler
 
       def initialize(thread_profiler=nil)
-        @handlers = Hash.new { |_| [self, :unrecognized_agent_command] }
+        @handlers = Hash.new { |*_| [self, :unrecognized_agent_command] }
 
-        add_handler("start_profiler", thread_profiler, :respond_to_start)
-        add_handler("stop_profiler",  thread_profiler, :respond_to_stop)
+        add_handler("start_profiler", thread_profiler, :handle_start_command)
+        add_handler("stop_profiler",  thread_profiler, :handle_stop_command)
       end
 
       def add_handler(name, handler, message)
@@ -30,13 +30,13 @@ module NewRelic
 
         commands.each do |cmd|
           # TODO: Aggregate results from multiple commands in same batch to send back?
-          respond_to(cmd) do |command_id, error|
+          route_command(cmd) do |command_id, error|
             service.agent_command_results(command_id, error)
           end
         end
       end
 
-      def respond_to(incoming_command, &results_callback)
+      def route_command(incoming_command, &results_callback)
         #TODO: Validate command format?
         command_id, command = incoming_command
 

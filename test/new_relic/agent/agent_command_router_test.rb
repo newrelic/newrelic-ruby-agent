@@ -29,8 +29,8 @@ class AgentCommandRouterTest < Test::Unit::TestCase
     @agent_commands = NewRelic::Agent::AgentCommandRouter.new
 
     @handler = TestHandler.new
-    @agent_commands.add_handler("bazzle", @handler, :respond_to_bazzle)
-    @agent_commands.add_handler("boom",   @handler, :respond_to_boom)
+    @agent_commands.add_handler("bazzle", @handler, :handle_bazzle_command)
+    @agent_commands.add_handler("boom",   @handler, :handle_boom_command)
   end
 
   def test_check_for_agent_commands_dispatches_command
@@ -64,13 +64,13 @@ class AgentCommandRouterTest < Test::Unit::TestCase
   end
 
   def test_responds_to_message
-    @agent_commands.respond_to(BAZZLE)
+    @agent_commands.route_command(BAZZLE)
     assert_equal 1, @handler.calls.size
   end
 
   def test_responds_to_message_with_callback
     called = false
-    @agent_commands.respond_to(BAZZLE) { |*_| called = true}
+    @agent_commands.route_command(BAZZLE) { |*_| called = true}
     assert called
   end
 
@@ -83,12 +83,12 @@ class AgentCommandRouterTest < Test::Unit::TestCase
       @calls = []
     end
 
-    def respond_to_bazzle(command_id, name, arguments, &results_callback)
+    def handle_bazzle_command(command_id, name, arguments, &results_callback)
       calls << [command_id, name, arguments]
       results_callback.call(command_id) unless results_callback.nil?
     end
 
-    def respond_to_boom(command_id, name, arguments, &results_callback)
+    def handle_boom_command(command_id, name, arguments, &results_callback)
       calls << [command_id, name, arguments]
       results_callback.call(command_id, "BOOOOOM") unless results_callback.nil?
     end
