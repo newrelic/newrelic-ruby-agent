@@ -27,7 +27,9 @@ module NewRelic::Agent::Threading
       t = ::Thread.new {}
       txn = NewRelic::Agent::Transaction.new
       txn.request = "has a request"
-      t[:newrelic_transaction] = [txn]
+
+      ts = NewRelic::Agent::TransactionState.for(t)
+      ts.current_transaction_stack = [txn]
 
       assert_equal :request, AgentThread.bucket_thread(t, DONT_CARE)
     end
@@ -35,14 +37,16 @@ module NewRelic::Agent::Threading
     def test_bucket_thread_as_background
       t = ::Thread.new {}
       txn = NewRelic::Agent::Transaction.new
-      t[:newrelic_transaction] = [txn]
+      ts = NewRelic::Agent::TransactionState.for(t)
+      ts.current_transaction_stack = [txn]
 
       assert_equal :background, AgentThread.bucket_thread(t, DONT_CARE)
     end
 
     def test_bucket_thread_as_other_if_nil_txn
       t = ::Thread.new {}
-      t[:newrelic_transaction] = []
+      ts = NewRelic::Agent::TransactionState.for(t)
+      ts.current_transaction_stack = []
 
       assert_equal :other, AgentThread.bucket_thread(t, DONT_CARE)
     end

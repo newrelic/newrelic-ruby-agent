@@ -9,7 +9,11 @@ module NewRelic
     class TransactionState
 
       def self.get
-        Thread.current[:newrelic_transaction_state] ||= TransactionState.new
+        self.for(Thread.current)
+      end
+
+      def self.for(thread)
+        thread[:newrelic_transaction_state] ||= TransactionState.new
       end
 
       def self.clear
@@ -55,6 +59,9 @@ module NewRelic
 
       # Sql Sampler Transaction Data
       attr_accessor :sql_sampler_transaction_data
+
+      # Current transaction
+      attr_accessor :current_transaction_stack
     end
   end
 end
