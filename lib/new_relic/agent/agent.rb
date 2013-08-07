@@ -8,6 +8,7 @@ require 'net/http'
 require 'logger'
 require 'zlib'
 require 'stringio'
+require 'new_relic/agent/sampled_buffer'
 require 'new_relic/agent/autostart'
 require 'new_relic/agent/new_relic_service'
 require 'new_relic/agent/pipe_service'
@@ -1058,10 +1059,6 @@ module NewRelic
           samples = @request_sampler.samples
           @service.analytic_event_data(samples) unless samples.empty?
           @request_sampler.reset
-        rescue => e
-          NewRelic::Agent.logger.debug "Failed to sent analytics; throttling to conserve memory"
-          @request_sampler.throttle
-          raise
         end
 
         def check_for_agent_commands

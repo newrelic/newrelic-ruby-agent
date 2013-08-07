@@ -251,7 +251,7 @@ module NewRelic
       def invoke_remote(method, *args)
         now = Time.now
 
-        data = nil
+        data, size = nil
         begin
           data = @marshaller.dump(args)
         rescue JsonError
@@ -260,6 +260,7 @@ module NewRelic
         end
 
         data, encoding = compress_request_if_needed(data)
+        size = data.size
 
         uri = remote_method_uri(method, @marshaller.format)
         full_uri = "#{@collector}#{uri}"
@@ -274,13 +275,17 @@ module NewRelic
         ::NewRelic::Agent.logger.debug e.message
         raise
       ensure
-        record_supportability_metrics(method, now)
+        record_supportability_metrics(method, now, size)
       end
 
-      def record_supportability_metrics(method, now)
+      def record_supportability_metrics(method, now, size)
         duration = (Time.now - now).to_f
         NewRelic::Agent.record_metric('Supportability/invoke_remote', duration)
         NewRelic::Agent.record_metric('Supportability/invoke_remote/' + method.to_s, duration)
+        if size
+          NewRelic::Agent.record_metric('Supportability/invoke_remote_size', size)
+          NewRelic::Agent.record_metric('Supportability/invoke_remote_size/' + method.to_s, size)
+        end
       end
 
       # Raises an UnrecoverableServerException if the post_string is longer
