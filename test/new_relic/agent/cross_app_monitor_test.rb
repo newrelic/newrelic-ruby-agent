@@ -42,8 +42,6 @@ module NewRelic::Agent
       NewRelic::Agent.config.apply_config( @config )
       @monitor.register_event_listeners
       NewRelic::Agent::TransactionInfo.get.guid = TRANSACTION_GUID
-
-      # NewRelic::Agent.logger = NewRelic::Agent::AgentLogger.new( {:log_level => 'debug'}, '', Logger.new($stderr) )
     end
 
     def teardown
