@@ -57,15 +57,15 @@ module NewRelic
       end
 
       def create_transaction_data
-        Thread.current[:new_relic_sql_data] = TransactionSqlData.new
+        TransactionState.get.sql_sampler_transaction_data = TransactionSqlData.new
       end
 
       def transaction_data
-        Thread.current[:new_relic_sql_data]
+        TransactionState.get.sql_sampler_transaction_data
       end
 
       def clear_transaction_data
-        Thread.current[:new_relic_sql_data] = nil
+        TransactionState.get.sql_sampler_transaction_data = nil
       end
 
       # This is called when we are done with the transaction.
