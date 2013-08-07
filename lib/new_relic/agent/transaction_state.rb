@@ -49,6 +49,9 @@ module NewRelic
       def is_sql_recorded?
         @record_sql != false
       end
+
+      # Busy calculator
+      attr_accessor :busy_entries
     end
   end
 end
