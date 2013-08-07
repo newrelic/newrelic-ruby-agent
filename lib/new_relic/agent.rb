@@ -390,7 +390,7 @@ module NewRelic
     # helper method to check the thread local to determine whether the
     # transaction in progress is traced or not
     def is_transaction_traced?
-      Thread::current[:record_tt] != false
+      NewRelic::Agent::TransactionState.get.is_transaction_traced?
     end
 
     # helper method to check the thread local to determine whether sql

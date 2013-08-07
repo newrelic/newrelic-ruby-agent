@@ -597,7 +597,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   end
 
   def test_start_builder_default
-    Thread.current[:record_tt] = true
     NewRelic::Agent.expects(:is_execution_traced?).returns(true)
     @sampler.send(:start_builder)
     assert(Thread.current[:transaction_sample_builder] \

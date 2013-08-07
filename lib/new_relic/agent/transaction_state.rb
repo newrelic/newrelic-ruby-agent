@@ -39,6 +39,12 @@ module NewRelic
         @untraced.nil? || @untraced.last != false
       end
 
+      # TT's
+      attr_accessor :record_tt
+
+      def is_transaction_traced?
+        @record_tt != false
+      end
     end
   end
 end

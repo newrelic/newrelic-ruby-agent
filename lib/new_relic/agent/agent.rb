@@ -277,8 +277,8 @@ module NewRelic
         # should not record transaction traces in the current
         # thread. Returns the previous value, if there is one
         def set_record_tt(should_record)
-          prev = Thread::current[:record_tt]
-          Thread::current[:record_tt] = should_record
+          prev = TransactionState.get.record_tt
+          TransactionState.get.record_tt = should_record
           prev.nil? || prev
         end
 
