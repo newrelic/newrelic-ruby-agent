@@ -2,6 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'new_relic/agent/browser_token'
+
 module NewRelic
   module Agent
     # This is THE location to store thread local information during a transaction
@@ -75,11 +77,11 @@ module NewRelic
       attr_accessor :request, :request_start, :request_transaction,
                     :request_token, :request_guid, :request_ignore_enduser
 
-      def reset_request(request, token)
+      def reset_request(request)
         @request = request
         @request_start = Time.now
         @request_transaction = Transaction.current
-        @request_token = token
+        @request_token = BrowserToken.get_token(request)
         @request_guid = ""
         @request_ignore_enduser = false
       end

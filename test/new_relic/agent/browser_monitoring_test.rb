@@ -295,8 +295,9 @@ var e=document.createElement("script");'
       txn.expects(:queue_time).returns(0)
       txn.name = 'most recent transaction'
 
-      NewRelic::Agent::TransactionState.get.reset_request(stub, '0123456789ABCDEF')
+      NewRelic::Agent::TransactionState.get.reset_request(nil)
       NewRelic::Agent::TransactionState.get.request_start -= 10
+      NewRelic::Agent::TransactionState.get.request_token = '0123456789ABCDEF'
       NewRelic::Agent::TransactionState.get.request_guid = 'ABC'
 
       self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'most recent transaction').returns('most recent transaction')
