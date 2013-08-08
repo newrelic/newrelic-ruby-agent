@@ -176,7 +176,7 @@ module NewRelic
 
         sampler_methods.each{|sym| send(sym, sample) }
 
-        if NewRelic::Agent::TransactionInfo.get.force_persist_sample?(sample)
+        if sample.force_persist_sample?
           store_force_persist(sample)
         end
       end

@@ -209,7 +209,7 @@ module NewRelic
       end
 
       def transaction_guid
-        NewRelic::Agent::TransactionInfo.get.guid
+        NewRelic::Agent::TransactionState.get.request_guid
       end
 
       private

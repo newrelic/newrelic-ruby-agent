@@ -90,7 +90,7 @@ module NewRelic
       end
 
       def current_transaction
-        NewRelic::Agent::TransactionInfo.get.transaction || @@dummy_txn
+        NewRelic::Agent::TransactionState.get.transaction || @@dummy_txn
       end
 
       def clamp_to_positive(value)
@@ -99,13 +99,13 @@ module NewRelic
       end
 
       def browser_monitoring_start_time
-        NewRelic::Agent::TransactionInfo.get.start_time
+        NewRelic::Agent::TransactionState.get.transaction_start_time
       end
 
       def self.timings
         NewRelic::Agent::Instrumentation::BrowserMonitoringTimings.new(
           current_transaction.queue_time,
-          NewRelic::Agent::TransactionInfo.get)
+          NewRelic::Agent::TransactionState.get)
       end
 
       def insert_mobile_response_header(request, response)
@@ -152,7 +152,7 @@ module NewRelic
         elsif ! NewRelic::Agent.is_execution_traced?
           ::NewRelic::Agent.logger.debug "Execution is not traced. Skipping browser instrumentation."
           false
-        elsif NewRelic::Agent::TransactionInfo.get.ignore_end_user?
+        elsif NewRelic::Agent::TransactionState.get.request_ignore_enduser
           ::NewRelic::Agent.logger.debug "Ignore end user for this transaction is set. Skipping browser instrumentation."
           false
         else
@@ -173,9 +173,13 @@ module NewRelic
       end
 
       def tt_guid
-        transaction = NewRelic::Agent::TransactionInfo.get
-        return transaction.guid if transaction.include_guid?
+        state = NewRelic::Agent::TransactionState.get
+        return state.request_guid if include_guid?(state)
         ""
+      end
+
+      def include_guid?(state)
+        state.request_token && state.duration > Transaction.apdex_t_for(state.transaction)
       end
 
       def tt_token

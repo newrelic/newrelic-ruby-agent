@@ -5,7 +5,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require "new_relic/agent/browser_monitoring"
 require "new_relic/rack/browser_monitoring"
-require 'ostruct'
 
 class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
   include NewRelic::Agent::BrowserMonitoring
@@ -104,7 +103,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
 
   def test_browser_timing_footer
     with_config(:license_key => 'a' * 13) do
-      NewRelic::Agent::TransactionInfo.reset
+      NewRelic::Agent::TransactionState.reset
       browser_timing_header
       footer = browser_timing_footer
       snippet = '<script type="text/javascript">if (!NREUMQ.f) { NREUMQ.f=function() {
@@ -135,7 +134,7 @@ var e=document.createElement("script");'
   end
 
   def test_browser_timing_footer_with_rum_enabled_not_specified
-    NewRelic::Agent::TransactionInfo.reset
+    NewRelic::Agent::TransactionState.reset
     browser_timing_header
 
     license_bytes = [];
@@ -209,13 +208,13 @@ var e=document.createElement("script");'
   def test_browser_monitoring_transaction_name_basic
     txn = NewRelic::Agent::Transaction.new
     txn.name = 'a transaction name'
-    NewRelic::Agent::TransactionState.get.request_transaction = txn
+    NewRelic::Agent::TransactionState.get.transaction = txn
 
     assert_equal('a transaction name', browser_monitoring_transaction_name, "should take the value from the thread local")
   end
 
   def test_browser_monitoring_transaction_name_empty
-    NewRelic::Agent::TransactionState.get.request_transaction = stub(:name => '')
+    NewRelic::Agent::TransactionState.get.transaction = stub(:name => '')
 
     assert_equal('', browser_monitoring_transaction_name, "should take the value even when it is empty")
   end
@@ -236,7 +235,7 @@ var e=document.createElement("script");'
   end
 
   def test_browser_monitoring_start_time
-    NewRelic::Agent::TransactionState.get.request_start = Time.at(100)
+    NewRelic::Agent::TransactionState.get.transaction_start_time = Time.at(100)
     assert_equal(Time.at(100), browser_monitoring_start_time, "should take the value from the thread local")
   end
 
@@ -295,8 +294,8 @@ var e=document.createElement("script");'
       txn.expects(:queue_time).returns(0)
       txn.name = 'most recent transaction'
 
-      NewRelic::Agent::TransactionState.get.reset_request(nil)
-      NewRelic::Agent::TransactionState.get.request_start -= 10
+      NewRelic::Agent::TransactionState.get.reset(nil)
+      NewRelic::Agent::TransactionState.get.transaction_start_time -= 10
       NewRelic::Agent::TransactionState.get.request_token = '0123456789ABCDEF'
       NewRelic::Agent::TransactionState.get.request_guid = 'ABC'
 
@@ -400,8 +399,8 @@ var e=document.createElement("script");'
     response = Rack::Response.new
     txn = NewRelic::Agent::Transaction.new
     txn.name = 'a transaction name'
-    NewRelic::Agent::TransactionState.get.request_transaction = txn
-    NewRelic::Agent::TransactionState.get.request_start = 5
+    NewRelic::Agent::TransactionState.get.transaction = txn
+    NewRelic::Agent::TransactionState.get.transaction_start_time = 5
     NewRelic::Agent::BrowserMonitoring.insert_mobile_response_header(request, response)
     response
   end

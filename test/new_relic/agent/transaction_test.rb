@@ -87,6 +87,21 @@ class NewRelic::Agent::TransactionTest < Test::Unit::TestCase
     assert_equal(:apdex_f, bucket)
   end
 
+  def test_has_correct_apdex_t_for_tansaction
+    config = {
+      :web_transactions_apdex => {'Controller/foo/bar' => 1.5},
+      :apdex_t => 2.0
+    }
+
+    with_config(config, :do_not_cast => true) do
+      txn.name = 'Controller/foo/bar'
+      assert_equal 1.5, NewRelic::Agent::Transaction.apdex_t_for(txn)
+
+      txn.name = 'Controller/some/other'
+      assert_equal 2.0, NewRelic::Agent::Transaction.apdex_t_for(txn)
+    end
+  end
+
   def test_update_apdex_records_correct_apdex_for_key_transaction
     config = {
       :web_transactions_apdex => {

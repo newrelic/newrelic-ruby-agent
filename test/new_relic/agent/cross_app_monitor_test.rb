@@ -41,7 +41,7 @@ module NewRelic::Agent
 
       NewRelic::Agent.config.apply_config( @config )
       @monitor.register_event_listeners
-      NewRelic::Agent::TransactionInfo.get.guid = TRANSACTION_GUID
+      NewRelic::Agent::TransactionState.get.request_guid = TRANSACTION_GUID
     end
 
     def teardown

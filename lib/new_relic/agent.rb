@@ -95,7 +95,6 @@ module NewRelic
     require 'new_relic/agent/sampler'
     require 'new_relic/agent/database'
     require 'new_relic/agent/pipe_channel_manager'
-    require 'new_relic/agent/transaction_info'
     require 'new_relic/agent/configuration'
     require 'new_relic/agent/rules_engine'
     require 'new_relic/agent/http_clients/uri_util'

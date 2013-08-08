@@ -14,7 +14,7 @@ module NewRelic
             @start_time_in_seconds = 0.0
           else
             @transaction_name = transaction.transaction.name
-            @start_time_in_seconds = transaction.start_time.to_i
+            @start_time_in_seconds = transaction.transaction_start_time.to_i
           end
 
           @queue_time_in_seconds = clamp_to_positive(queue_time_in_seconds)

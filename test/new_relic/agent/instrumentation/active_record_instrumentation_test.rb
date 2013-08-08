@@ -34,8 +34,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
 
   def teardown
     super
-    NewRelic::Agent::TransactionInfo.reset
-    NewRelic::Agent::TransactionState.clear
+    NewRelic::Agent::TransactionState.reset
     NewRelic::Agent.shutdown
   end
 

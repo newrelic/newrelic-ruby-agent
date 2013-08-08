@@ -9,10 +9,10 @@ module NewRelic::Agent::Instrumentation
 
     def setup
       Time.stubs(:now).returns(Time.at(2000))
-      @transaction = stub(
-        :transaction => stub(:name => "Name"),
-        :start_time => 0
-      )
+
+      @transaction = NewRelic::Agent::TransactionState.new
+      @transaction.transaction = stub(:name => "Name")
+      @transaction.transaction_start_time = 0
     end
 
     def test_queue_time_in_millis

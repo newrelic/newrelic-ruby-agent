@@ -18,7 +18,7 @@ module NewRelic
                         Agent.logger.debug("Error creating Rack::Request object: #{e}")
                         nil
                       end
-            TransactionInfo.reset(request)
+            TransactionState.reset(request)
           end
         end
 
@@ -66,7 +66,7 @@ module NewRelic
         end
 
         def set_enduser_ignore
-          TransactionInfo.get.ignore_end_user = true
+          TransactionState.get.request_ignore_enduser = true
         end
 
         def record_metrics(event)

@@ -234,6 +234,23 @@ class NewRelic::Agent::TransationSampleBuilderTest < Test::Unit::TestCase
     end
   end
 
+  def test_has_correct_transaction_trace_threshold_when_default
+      NewRelic::Agent::Transaction.stubs(:apdex_t_for).returns(1.5)
+      assert_equal 6.0, @builder.transaction_trace_threshold
+
+      NewRelic::Agent::Transaction.stubs(:apdex_t_for).returns(2.0)
+      assert_equal 8.0, @builder.transaction_trace_threshold
+  end
+
+  def test_has_correct_transaction_trace_threshold_when_specified
+    config = { :'transaction_tracer.transaction_threshold' => 4.0 }
+
+    with_config(config, :do_not_cast => true) do
+      NewRelic::Agent::Transaction.stubs(:apdex_t_for).returns(1.5)
+      assert_equal 4.0, @builder.transaction_trace_threshold
+    end
+  end
+
   def validate_builder(check_names = true)
     validate_segment @builder.sample.root_segment, check_names
   end

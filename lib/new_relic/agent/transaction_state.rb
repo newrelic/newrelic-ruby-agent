@@ -6,6 +6,7 @@ require 'new_relic/agent/browser_token'
 
 module NewRelic
   module Agent
+
     # This is THE location to store thread local information during a transaction
     # Need a new piece of data? Add a method here, NOT a new thread local variable.
     class TransactionState
@@ -22,12 +23,35 @@ module NewRelic
         Thread.current[:newrelic_transaction_state] = nil
       end
 
+      # This starts the timer for the transaction.
+      def self.reset(request=nil)
+        self.get.reset(request)
+      end
+
+      def reset(request)
+        @transaction_start_time = Time.now
+        @transaction = Transaction.current
+
+        @request = request
+        @request_token = BrowserToken.get_token(request)
+        @request_guid = ""
+        @request_ignore_enduser = false
+      end
+
       # Cross app tracing
-      #
-      # Because we aren't in the right spot when our transaction actually
-      # starts, hold client_cross_app_id and referring transaction guid info
-      # on thread local until then.
+      # Because we need values from headers before the transaction actually starts
       attr_accessor :client_cross_app_id, :referring_transaction_info
+
+      # Request data
+      attr_accessor :request, :request_token, :request_guid, :request_ignore_enduser
+
+      # Current transaction stack and sample building
+      attr_accessor :transaction, :transaction_start_time,
+                    :current_transaction_stack, :transaction_sample_builder
+
+      def duration
+        Time.now - self.transaction_start_time
+      end
 
       # Execution tracing on current thread
       attr_accessor :untraced
@@ -62,9 +86,6 @@ module NewRelic
       # Sql Sampler Transaction Data
       attr_accessor :sql_sampler_transaction_data
 
-      # Current transaction stack and sample building
-      attr_accessor :current_transaction_stack, :transaction_sample_builder
-
       # Scope stack and name tracking from NewRelic::StatsEngine::Transactions
       attr_accessor :scope_stack, :scope_name
 
@@ -73,18 +94,6 @@ module NewRelic
         @scope_name = nil
       end
 
-      # Request data
-      attr_accessor :request, :request_start, :request_transaction,
-                    :request_token, :request_guid, :request_ignore_enduser
-
-      def reset_request(request)
-        @request = request
-        @request_start = Time.now
-        @request_transaction = Transaction.current
-        @request_token = BrowserToken.get_token(request)
-        @request_guid = ""
-        @request_ignore_enduser = false
-      end
     end
   end
 end

@@ -112,9 +112,8 @@ module NewRelic
           if options[:metric] && options[:metric] != ::NewRelic::Agent::UNKNOWN_METRIC
             "Errors/#{options[:metric]}"
           else
-            txn_info = TransactionInfo.get
-            if txn_info && txn_info.transaction
-              "Errors/#{txn_info.transaction.name}"
+            if txn = TransactionState.get.transaction
+              "Errors/#{txn.name}"
             end
           end
         end
