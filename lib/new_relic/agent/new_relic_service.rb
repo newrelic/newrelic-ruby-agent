@@ -491,8 +491,7 @@ module NewRelic
         end
 
         def load(data)
-          return unless data && data != ''
-          return_value(JSON.load(data))
+          return_value(JSON.load(data)) if data && data != ''
         rescue => e
           ::NewRelic::Agent.logger.debug "#{e.class.name} : #{e.message} encountered loading collector response: #{data}"
           raise
