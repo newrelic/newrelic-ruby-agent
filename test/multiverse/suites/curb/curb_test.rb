@@ -79,6 +79,17 @@ class CurbTest < MiniTest::Unit::TestCase
       "Found some header lines appearing multiple times in header_str:\n#{header_str}")
   end
 
+  def test_get_via_multi_preserves_header_str
+    header_str = nil
+
+    Curl::Multi.get( [default_url] ) do |easy|
+      header_str = easy.header_str
+    end
+
+    assert_match(/^HTTP\/1\.1 200 OK\s+$/, header_str)
+    assert_match(/^Content-Length: \d+\s+$/, header_str)
+  end
+
   def test_get_doesnt_destroy_ability_to_call_status
     status_code = Curl.get( default_url ).status.to_i
     assert_equal(200, status_code)
