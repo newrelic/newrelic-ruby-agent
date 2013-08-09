@@ -66,5 +66,15 @@ module NewRelic::Agent::Instrumentation
       assert_equal 0.0, t.start_time_in_millis
     end
 
+    # If (for example) an action is ignored, we might still look for the
+    # timings for things like CAT
+    def test_without_transaction_in_state
+      @transaction.transaction = nil
+      t = BrowserMonitoringTimings.new(1000, @transaction)
+
+      assert_nil t.transaction_name
+      assert_equal 1_000, t.queue_time_in_seconds
+    end
+
   end
 end
