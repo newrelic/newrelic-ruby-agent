@@ -354,11 +354,12 @@ module NewRelic
       def decompress_response(response)
         if response['content-encoding'] != 'gzip'
           ::NewRelic::Agent.logger.debug "Uncompressed content returned"
-          return response.body
+          response.body
+        else
+          ::NewRelic::Agent.logger.debug "Decompressing return value"
+          i = Zlib::GzipReader.new(StringIO.new(response.body))
+          i.read
         end
-        ::NewRelic::Agent.logger.debug "Decompressing return value"
-        i = Zlib::GzipReader.new(StringIO.new(response.body))
-        i.read
       end
 
       # Sets the user agent for connections to the server, to
