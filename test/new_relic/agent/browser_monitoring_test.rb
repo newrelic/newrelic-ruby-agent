@@ -6,6 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 require "new_relic/agent/browser_monitoring"
 require "new_relic/rack/browser_monitoring"
 require 'ostruct'
+require 'base64'
 
 class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
   include NewRelic::Agent::BrowserMonitoring
@@ -353,6 +354,17 @@ var e=document.createElement("script");'
     NewRelic::Agent.instance.beacon_configuration.expects(:license_bytes).returns(key)
     output = obfuscate(NewRelic::Agent.instance.beacon_configuration, text)
     assert_equal('YCJrZXV2fih5Y25vaCFtZSR2a2ZkZSp/aXV1YyNsZHZ3cSl6YmluZCJsYiV1amllZit4aHl2YiRtZ3d4cCp7ZWhiZyNrYyZ0ZWhmZyx5ZHp3ZSVuZnh5cyt8ZGRhZiRqYCd7ZGtnYC11Z3twZCZvaXl6cix9aGdgYSVpYSh6Z2pgYSF2Znxx', output, "should output obfuscated text")
+  end
+
+  def test_obfuscate_utf8
+    text = "foooooééoooo - blah"
+    key = (1..40).to_a
+    NewRelic::Agent.instance.beacon_configuration.expects(:license_bytes).returns(key).at_least_once
+    output = obfuscate(NewRelic::Agent.instance.beacon_configuration, text)
+    assert_equal('Z21sa2ppxKHKo2RjYm4iLiRnamZg', output, "should output obfuscated text")
+
+    unoutput = obfuscate(NewRelic::Agent.instance.beacon_configuration, Base64.decode64(output))
+    assert_equal Base64.encode64(text).gsub("\n", ''), unoutput
   end
 
   def test_no_mobile_response_header_if_no_mobile_request_header_given
