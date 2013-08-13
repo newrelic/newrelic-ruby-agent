@@ -88,8 +88,12 @@ class AutostartTest < Test::Unit::TestCase
     assert_equal ::Outer::Included, NewRelic::Agent::Autostart.constant_is_defined?("Outer::Included")
   end
 
-  def test_shouldnt_look_outside_module
+  def test_shouldnt_look_outside_module_for_class
     assert_equal false, NewRelic::Agent::Autostart.constant_is_defined?("Outer::Excluded")
+  end
+
+  def test_shouldnt_look_outside_module_for_module
+    assert_equal false, NewRelic::Agent::Autostart.constant_is_defined?("Outer::Outer")
   end
 
 end

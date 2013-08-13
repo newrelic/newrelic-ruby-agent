@@ -40,7 +40,7 @@ module NewRelic
             # in the constant make sure we found the one in our namespace.
             #
             # Can't help if the constant isn't a class...
-            if result.is_a?(Class)
+            if result.is_a?(Module)
               expected_name = "#{namespace}::#{name}".gsub("Object::", "")
               return false unless expected_name == result.to_s
             end
