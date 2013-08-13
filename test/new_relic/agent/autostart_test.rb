@@ -84,6 +84,11 @@ class AutostartTest < Test::Unit::TestCase
   class ::Excluded
   end
 
+  module ::ContainsAnObject
+    class ContainedObject
+    end
+  end
+
   def test_should_look_within_module
     assert_equal ::Outer::Included, NewRelic::Agent::Autostart.constant_is_defined?("Outer::Included")
   end
@@ -94,6 +99,11 @@ class AutostartTest < Test::Unit::TestCase
 
   def test_shouldnt_look_outside_module_for_module
     assert_equal false, NewRelic::Agent::Autostart.constant_is_defined?("Outer::Outer")
+  end
+
+  def test_should_allow_object_in_module_names
+    assert_equal ::ContainsAnObject::ContainedObject,
+                  NewRelic::Agent::Autostart.constant_is_defined?("ContainsAnObject::ContainedObject")
   end
 
 end
