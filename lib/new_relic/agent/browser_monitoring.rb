@@ -67,6 +67,9 @@ module NewRelic
 
       def obfuscate(config, text)
         obfuscated = ""
+        if defined?(::Encoding::ASCII_8BIT)
+          obfuscated.force_encoding(::Encoding::ASCII_8BIT)
+        end
         key_bytes = config.license_bytes
         index = 0
         text.each_byte{|byte|
