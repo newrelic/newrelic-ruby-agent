@@ -111,7 +111,7 @@ module NewRelic
 
         def flattened
           @config_stack.reverse.inject({}) do |flat,layer|
-            thawed_layer = layer.dup
+            thawed_layer = layer.to_hash.dup
             thawed_layer.each do |k,v|
               begin
                 thawed_layer[k] = instance_eval(&v) if v.respond_to?(:call)
@@ -121,7 +121,7 @@ module NewRelic
               end
               thawed_layer.delete(:config)
             end
-            flat.merge(thawed_layer)
+            flat.merge(thawed_layer.to_hash)
           end
         end
 
@@ -146,7 +146,7 @@ module NewRelic
 
         # Generally only useful during initial construction and tests
         def reset_to_defaults
-          @config_stack = [ EnvironmentSource.new, DEFAULTS ]
+          @config_stack = [ EnvironmentSource.new, DefaultSource.new ]
           reset_cache
         end
 

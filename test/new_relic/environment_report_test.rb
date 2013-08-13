@@ -100,4 +100,19 @@ class EnvironmentReportTest < Test::Unit::TestCase
       assert NewRelic::EnvironmentReport.registered_reporters.has_key?(key), "Expected logic for #{key.inspect} in EnvironmentReport."
     end
   end
+
+  class EvilString < String
+    def method_missing(method, *args)
+      raise "#{method}, #{args}".inspect
+    end
+  end
+  def test_stringifies_descendants_of_string
+    ::NewRelic::EnvironmentReport.report_on('EvilString') do
+      EvilString.new('BOOM')
+    end
+    er = ::NewRelic::EnvironmentReport.new
+    er.data.each do |datum|
+      JSON.dump(datum)
+    end
+  end
 end

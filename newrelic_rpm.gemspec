@@ -50,6 +50,7 @@ EOS
   s.add_development_dependency 'activerecord-jdbcsqlite3-adapter' if RUBY_PLATFORM == 'java'
   s.add_development_dependency 'jruby-openssl' if RUBY_PLATFORM == 'java'
   s.add_development_dependency 'sequel', '~> 3.46.0'
+  s.add_development_dependency 'pry'
   s.add_development_dependency 'guard'
   s.add_development_dependency 'guard-test'
   s.add_development_dependency 'rb-fsevent', '~> 0.9.1'
