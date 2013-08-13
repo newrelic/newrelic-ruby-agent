@@ -42,7 +42,7 @@ module NewRelic
             # Can't help if the constant isn't a class...
             if result.is_a?(Class)
               expected_name = "#{namespace}::#{name}".gsub("Object::", "")
-              raise NameError.new unless expected_name == result.to_s
+              return false unless expected_name == result.to_s
             end
 
             result
