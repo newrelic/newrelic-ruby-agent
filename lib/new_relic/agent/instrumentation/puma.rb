@@ -8,7 +8,8 @@ DependencyDetection.defer do
   depends_on do
     defined?(::Puma) &&
       defined?(::Puma::Const::VERSION) &&
-      NewRelic::VersionNumber.new(::Puma::Const::VERSION) > NewRelic::VersionNumber.new("2.0.0")
+      NewRelic::VersionNumber.new(::Puma::Const::VERSION) > NewRelic::VersionNumber.new("2.0.0") &&
+      ::Puma.respond_to?(:cli_config)
   end
 
   executes do
