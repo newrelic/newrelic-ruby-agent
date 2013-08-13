@@ -39,6 +39,8 @@ module NewRelic::Rack
         !headers['Content-Disposition'].to_s.include?('attachment')
     end
 
+    X_UA_COMPATIBLE_RE = /<\s*meta[^>]+http-equiv=['"]x-ua-compatible['"][^>]*>/im.freeze
+
     def autoinstrument_source(response, headers)
       source = nil
       response.each {|fragment| source ? (source << fragment.to_s) : (source = fragment.to_s)}
@@ -53,12 +55,13 @@ module NewRelic::Rack
         footer = NewRelic::Agent.browser_timing_footer
         header = NewRelic::Agent.browser_timing_header
 
-        x_ua_compatible_found = beginning_of_source.include?('X-UA-Compatible')
+        match = X_UA_COMPATIBLE_RE.match(beginning_of_source)
+        x_ua_compatible_position = match.end(0) if match
 
-        head_pos = if x_ua_compatible_found
-          # put at end of header if X-UA-Compatible meta tag found
-          ::NewRelic::Agent.logger.debug "Detected X-UA-Compatible meta tag. Attempting to insert RUM header at end of head."
-          beginning_of_source.index("</head>")
+        head_pos = if x_ua_compatible_position
+          # put after X-UA-Compatible meta tag if found
+          ::NewRelic::Agent.logger.debug "Detected X-UA-Compatible meta tag. Attempting to insert RUM header after meta tag."
+          x_ua_compatible_position
         elsif head_open = beginning_of_source.index("<head")
           ::NewRelic::Agent.logger.debug "Attempting to insert RUM header at beginning of head."
           # put at the beginning of the header
