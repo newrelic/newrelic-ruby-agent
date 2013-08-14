@@ -18,10 +18,6 @@ class NewRelic::Agent::Transaction::PopTest < Test::Unit::TestCase
     @sql_sampler = mock('sql sampler')
   end
 
-  def teardown
-    Thread.current[:newrelic_transaction] = nil
-  end
-
   def test_log_underflow
     expects_logging(:error, regexp_matches(/Underflow in transaction: /))
     log_underflow
@@ -52,13 +48,6 @@ class NewRelic::Agent::Transaction::PopTest < Test::Unit::TestCase
     assert_equal nil, normal_cpu_burn
   end
 
-  # def test_jruby_cpu_burn_positive
-  #   @jruby_cpu_start = 3
-  #   self.expects(:jruby_cpu_time).returns(4)
-  #   self.expects(:record_jruby_cpu_burn).with(1)
-  #   assert_equal 1, jruby_cpu_burn
-  # end
-
   def test_jruby_cpu_burn_negative
     @jruby_cpu_start = nil
     self.expects(:jruby_cpu_time).never
@@ -81,11 +70,6 @@ class NewRelic::Agent::Transaction::PopTest < Test::Unit::TestCase
     self.expects(:normal_cpu_burn).returns(nil)
     self.expects(:jruby_cpu_burn).returns(2)
     assert_equal 2, cpu_burn
-  end
-
-  def test_traced
-    NewRelic::Agent.expects(:is_execution_traced?)
-    traced?
   end
 
   def test_current_stack_metric

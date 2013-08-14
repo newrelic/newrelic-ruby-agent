@@ -269,8 +269,8 @@ module NewRelic
         # should not record sql in the current thread. Returns the
         # previous value, if there is one
         def set_record_sql(should_record)
-          prev = Thread::current[:record_sql]
-          Thread::current[:record_sql] = should_record
+          prev = TransactionState.get.record_sql
+          TransactionState.get.record_sql = should_record
           prev.nil? || prev
         end
 
@@ -278,8 +278,8 @@ module NewRelic
         # should not record transaction traces in the current
         # thread. Returns the previous value, if there is one
         def set_record_tt(should_record)
-          prev = Thread::current[:record_tt]
-          Thread::current[:record_tt] = should_record
+          prev = TransactionState.get.record_tt
+          TransactionState.get.record_tt = should_record
           prev.nil? || prev
         end
 
@@ -288,18 +288,13 @@ module NewRelic
         # children of a transaction without affecting the tracing of
         # the whole transaction
         def push_trace_execution_flag(should_trace=false)
-          value = Thread.current[:newrelic_untraced]
-          if (value.nil?)
-            Thread.current[:newrelic_untraced] = []
-          end
-
-          Thread.current[:newrelic_untraced] << should_trace
+          TransactionState.get.push_traced(should_trace)
         end
 
         # Pop the current trace execution status.  Restore trace execution status
         # to what it was before we pushed the current flag.
         def pop_trace_execution_flag
-          Thread.current[:newrelic_untraced].pop if Thread.current[:newrelic_untraced]
+          TransactionState.get.pop_traced
         end
 
         # Herein lies the corpse of the former 'start' method. May

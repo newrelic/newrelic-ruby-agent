@@ -31,7 +31,7 @@ module NewRelic
       @root_segment = create_segment 0.0, "ROOT"
 
       @guid = generate_guid
-      NewRelic::Agent::TransactionInfo.get.guid = @guid
+      NewRelic::Agent::TransactionState.get.request_guid = @guid
     end
 
     def count_segments
@@ -187,6 +187,11 @@ module NewRelic
       @params = params
     end
 
+    def force_persist_sample?
+      NewRelic::Agent::TransactionState.get.request_token &&
+        self.duration > NewRelic::Agent::Transaction.apdex_t_for_current
+    end
+
   private
 
     HEX_DIGITS = (0..15).map{|i| i.to_s(16)}
@@ -268,6 +273,5 @@ module NewRelic
         target_called_segment.end_trace(source_called_segment.exit_timestamp)
       end
     end
-
   end
 end

@@ -94,12 +94,12 @@ module Agent
       # names in the future if the traced application does more than service http request
       # via controller actions
       def scope_name=(transaction)
-        Thread::current[:newrelic_scope_name] = transaction
+        NewRelic::Agent::TransactionState.get.scope_name = transaction
       end
 
       # Returns the current scope name from the thread local
       def scope_name
-        Thread::current[:newrelic_scope_name]
+        NewRelic::Agent::TransactionState.get.scope_name
       end
 
       # Start a new transaction, unless one is already in progress
@@ -115,8 +115,7 @@ module Agent
         stack = scope_stack
 
         if stack && stack.empty?
-          Thread::current[:newrelic_scope_stack] = nil
-          Thread::current[:newrelic_scope_name] = nil
+          NewRelic::Agent::TransactionState.get.clear_scope_stack_and_name
         end
       end
 
@@ -126,7 +125,7 @@ module Agent
 
       # Returns the current scope stack, memoized to a thread local variable
       def scope_stack
-        Thread::current[:newrelic_scope_stack] ||= []
+        NewRelic::Agent::TransactionState.get.scope_stack ||= []
       end
     end
   end

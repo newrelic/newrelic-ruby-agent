@@ -220,10 +220,10 @@ class NewRelic::Agent::TransationSampleBuilderTest < Test::Unit::TestCase
   end
 
   def test_finish_trace_records_threshold
-    NewRelic::Agent::TransactionInfo.get.stubs(:transaction_trace_threshold) \
-      .returns(2.0)
-    @builder.finish_trace
-    assert_equal 2.0, @builder.sample.threshold
+    with_config(:'transaction_tracer.transaction_threshold' => 2.0) do
+      @builder.finish_trace
+      assert_equal 2.0, @builder.sample.threshold
+    end
   end
 
   # regression
@@ -231,6 +231,23 @@ class NewRelic::Agent::TransationSampleBuilderTest < Test::Unit::TestCase
     with_config(:'transaction_tracer.limit_segments' => 3) do
       expects_logging(:debug, includes("Segment limit"))
       8.times {|i| build_segment i.to_s }
+    end
+  end
+
+  def test_has_correct_transaction_trace_threshold_when_default
+      NewRelic::Agent::Transaction.stubs(:apdex_t_for).returns(1.5)
+      assert_equal 6.0, @builder.transaction_trace_threshold
+
+      NewRelic::Agent::Transaction.stubs(:apdex_t_for).returns(2.0)
+      assert_equal 8.0, @builder.transaction_trace_threshold
+  end
+
+  def test_has_correct_transaction_trace_threshold_when_specified
+    config = { :'transaction_tracer.transaction_threshold' => 4.0 }
+
+    with_config(config, :do_not_cast => true) do
+      NewRelic::Agent::Transaction.stubs(:apdex_t_for).returns(1.5)
+      assert_equal 4.0, @builder.transaction_trace_threshold
     end
   end
 

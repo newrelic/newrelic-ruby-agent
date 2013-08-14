@@ -301,6 +301,20 @@ class NewRelic::Agent::ErrorCollectorTest < Test::Unit::TestCase
     assert err.message.include?("Ruby agent internal error")
   end
 
+  def test_blamed_metric_from_options
+    assert_equal "Errors/boo", @error_collector.blamed_metric_name(:metric => "boo")
+  end
+
+  def test_blamed_metric_from_transaction
+    NewRelic::Agent::TransactionState.get.transaction = stub(:name => "Controller/foo/bar")
+    assert_equal "Errors/Controller/foo/bar", @error_collector.blamed_metric_name({})
+  end
+
+  def test_blamed_metric_with_no_transaction
+    NewRelic::Agent::TransactionState.get.transaction = nil
+    assert_nil @error_collector.blamed_metric_name({})
+  end
+
   private
 
   def expects_error_count_increase(increase)

@@ -91,7 +91,7 @@ class NewRelic::Agent::BusyCalculatorTest < Test::Unit::TestCase
   end
 
   def test_finishing_without_starting_doesnt_raise
-    Thread.current[:busy_entries] = nil
+    NewRelic::Agent::TransactionState.clear
     assert_nothing_raised do
       NewRelic::Agent::BusyCalculator.dispatcher_finish
     end

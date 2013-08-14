@@ -43,7 +43,7 @@ module HttpClientTestCases
     end
 
     @engine = NewRelic::Agent.instance.stats_engine
-    NewRelic::Agent::TransactionInfo.get.guid = TRANSACTION_GUID
+    NewRelic::Agent::TransactionState.get.request_guid = TRANSACTION_GUID
   end
 
   # Helpers to support shared tests

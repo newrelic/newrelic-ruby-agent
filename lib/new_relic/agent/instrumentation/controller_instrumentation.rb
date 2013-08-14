@@ -296,7 +296,7 @@ module NewRelic
         # path.  This form is deprecated.
         def perform_action_with_newrelic_trace(*args, &block)
           request = newrelic_request(args)
-          NewRelic::Agent::TransactionInfo.reset(request)
+          NewRelic::Agent::TransactionState.reset(request)
 
           # Skip instrumentation based on the value of 'do_not_trace' and if
           # we aren't calling directly with a block.
@@ -348,7 +348,7 @@ module NewRelic
             txn.record_apdex(end_time) unless ignore_apdex?
             txn = Transaction.stop(txn_name, end_time)
 
-            NewRelic::Agent::TransactionInfo.get.ignore_end_user = true if ignore_enduser?
+            NewRelic::Agent::TransactionState.get.request_ignore_enduser = true if ignore_enduser?
           end
         end
 
