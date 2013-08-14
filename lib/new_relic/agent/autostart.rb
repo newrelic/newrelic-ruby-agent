@@ -24,10 +24,8 @@ module NewRelic
       # 'autostart.blacklisted_executables' and
       # 'autostart.blacklisted_rake_tasks'
       def agent_should_start?
-          !::NewRelic::Agent.config['autostart.blacklisted_constants'] \
-            .split(/\s*,\s*/).any?{ |name| constant_is_defined?(name) } &&
-          !::NewRelic::Agent.config['autostart.blacklisted_executables'] \
-            .split(/\s*,\s*/).any?{ |bin| File.basename($0) == bin } &&
+          !blacklisted?('autostart.blacklisted_constants') { |name| constant_is_defined?(name) } &&
+          !blacklisted?('autostart.blacklisted_executables') { |bin| File.basename($0) == bin } &&
           !in_blacklisted_rake_task?
       end
 
@@ -36,11 +34,26 @@ module NewRelic
       def constant_is_defined?(const_name)
         const_name.to_s.sub(/\A::/,'').split('::').inject(Object) do |namespace, name|
           begin
-            namespace.const_get(name)
+            result = namespace.const_get(name)
+
+            # const_get looks up the inheritence chain, so if it's a class
+            # in the constant make sure we found the one in our namespace.
+            #
+            # Can't help if the constant isn't a class...
+            if result.is_a?(Module)
+              expected_name = "#{namespace}::#{name}".gsub(/^Object::/, "")
+              return false unless expected_name == result.to_s
+            end
+
+            result
           rescue NameError
             false
           end
         end
+      end
+
+      def blacklisted?(key, &block)
+        ::NewRelic::Agent.config[key].split(/\s*,\s*/).any?(&block)
       end
 
       def in_blacklisted_rake_task?
