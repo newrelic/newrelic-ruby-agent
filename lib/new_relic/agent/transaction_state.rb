@@ -124,12 +124,11 @@ module NewRelic
       # Sql Sampler Transaction Data
       attr_accessor :sql_sampler_transaction_data
 
-      # Scope stack and name tracking from NewRelic::StatsEngine::Transactions
-      attr_accessor :scope_stack, :scope_name
+      # Scope stack tracking from NewRelic::StatsEngine::Transactions
+      attr_accessor :scope_stack
 
-      def clear_scope_stack_and_name
+      def clear_stats_scope_stack
         @scope_stack = nil
-        @scope_name = nil
       end
 
     end

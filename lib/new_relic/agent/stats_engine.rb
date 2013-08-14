@@ -18,7 +18,7 @@ module NewRelic
 
       def initialize
         # Makes the unit tests happy
-        NewRelic::Agent::TransactionState.get.clear_scope_stack_and_name
+        NewRelic::Agent::TransactionState.get.clear_stats_scope_stack
         @stats_lock = Mutex.new
         @stats_hash = StatsHash.new
       end
