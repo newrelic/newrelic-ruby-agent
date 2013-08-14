@@ -56,7 +56,7 @@ class ThreadProfilerUnsupportedTest < Test::Unit::TestCase
 
   def test_wont_start_and_reports_error
     errors = nil
-    @profiler.handle_start_command(COMMAND_ID, START_NAME, START_ARGS) do |_, err|
+    @profiler.handle_start_command(START_ARGS) do |_, err|
       errors = err
     end
     assert_equal false, errors.nil?
@@ -117,7 +117,7 @@ class ThreadProfilerTest < ThreadedTestCase
   end
 
   def test_handle_start_command_starts_running
-    @profiler.handle_start_command(COMMAND_ID, START_NAME, START_ARGS)
+    @profiler.handle_start_command(START_ARGS)
     assert_equal true, @profiler.running?
   end
 
@@ -125,7 +125,7 @@ class ThreadProfilerTest < ThreadedTestCase
     @profiler.start(0, 0, 0, true)
     assert @profiler.running?
 
-    @profiler.handle_stop_command(COMMAND_ID, STOP_NAME, STOP_ARGS)
+    @profiler.handle_stop_command(STOP_ARGS)
     assert_equal true, @profiler.finished?
   end
 
@@ -133,53 +133,32 @@ class ThreadProfilerTest < ThreadedTestCase
     @profiler.start(0, 0, 0, true)
     assert @profiler.running?
 
-    @profiler.handle_stop_command(COMMAND_ID, STOP_NAME, STOP_AND_DISCARD_ARGS)
+    @profiler.handle_stop_command(STOP_AND_DISCARD_ARGS)
     assert_nil @profiler.harvest
   end
 
   def test_handle_start_command_wont_start_second_profile
-    @profiler.start(0, 0, 0, true)
+    @profiler.handle_start_command(START_ARGS)
     original_profile = @profiler.instance_variable_get(:@profile)
 
-    @profiler.handle_start_command(COMMAND_ID, START_NAME, START_ARGS)
+    begin
+      @profiler.handle_start_command(START_ARGS)
+    rescue NewRelic::Agent::AgentCommandRouter::AgentCommandError
+    end
 
     assert_equal original_profile, @profiler.harvest
   end
 
-  def test_response_to_commands_start_notifies_of_result
-    saw_command_id = nil
-    @profiler.handle_start_command(COMMAND_ID, START_NAME, START_ARGS) do |id, _|
-      saw_command_id = id
+  def test_start_command_sent_twice_raises_error
+    @profiler.handle_start_command(START_ARGS)
+
+    assert_raise NewRelic::Agent::AgentCommandRouter::AgentCommandError do
+      @profiler.handle_start_command(START_ARGS)
     end
-
-    assert_equal 666, saw_command_id
-  end
-
-  def test_response_to_commands_start_notifies_of_error
-    saw_command_id = nil
-    error = nil
-
-    @profiler.handle_start_command(COMMAND_ID, START_NAME, START_ARGS)
-    @profiler.handle_start_command(COMMAND_ID, START_NAME, START_ARGS) do |id, err|
-      saw_command_id = id
-      error = err
-    end
-
-    assert_equal 666, saw_command_id
-    assert_not_nil error
-  end
-
-  def test_response_to_commands_stop_notifies_of_result
-    saw_command_id = nil
-    @profiler.start(0,0, 0, true)
-    @profiler.handle_stop_command(COMMAND_ID, STOP_NAME, STOP_ARGS) do |id, _|
-      saw_command_id = id
-    end
-    assert_equal 666, saw_command_id
   end
 
   def test_command_attributes_passed_along
-    @profiler.handle_start_command(COMMAND_ID, START_NAME, START_ARGS)
+    @profiler.handle_start_command(START_ARGS)
     profile = @profiler.harvest
     assert_equal 42,  profile.profile_id
     assert_equal 0.02, profile.interval

@@ -33,6 +33,10 @@ module NewRelic
       extend NewRelic::Agent::Configuration::Instance
 
       def initialize
+        if Agent.config[:monitor_mode]
+          @service = NewRelic::Agent::NewRelicService.new
+        end
+
         @launch_time = Time.now
 
         @events                = NewRelic::Agent::EventListener.new
@@ -40,7 +44,7 @@ module NewRelic
         @transaction_sampler   = NewRelic::Agent::TransactionSampler.new
         @sql_sampler           = NewRelic::Agent::SqlSampler.new
         @thread_profiler       = NewRelic::Agent::ThreadProfiler.new
-        @agent_commands        = NewRelic::Agent::AgentCommandRouter.new(@thread_profiler)
+        @agent_command_router  = NewRelic::Agent::AgentCommandRouter.new(@service, @thread_profiler)
         @cross_app_monitor     = NewRelic::Agent::CrossAppMonitor.new(@events)
         @error_collector       = NewRelic::Agent::ErrorCollector.new
         @transaction_rules     = NewRelic::Agent::RulesEngine.new
@@ -57,9 +61,6 @@ module NewRelic
 
         # FIXME: temporary work around for RUBY-839
         # This should be handled with a configuration callback
-        if Agent.config[:monitor_mode]
-          @service = NewRelic::Agent::NewRelicService.new
-        end
       end
 
       # contains all the class-level methods for NewRelic::Agent::Agent
@@ -84,6 +85,7 @@ module NewRelic
         attr_reader :sql_sampler
         # begins a thread profile session when instructed by agent commands
         attr_reader :thread_profiler
+        attr_reader :agent_command_router
         # error collector is a simple collection of recorded errors
         attr_reader :error_collector
         attr_reader :harvest_samplers
@@ -1061,8 +1063,8 @@ module NewRelic
           @request_sampler.reset
         end
 
-        def check_for_agent_commands
-          @agent_commands.check_for_agent_commands(@service)
+        def handle_agent_commands
+          @agent_command_router.handle_agent_commands
         end
 
         def transmit_data(disconnecting=false)
@@ -1077,7 +1079,7 @@ module NewRelic
             harvest_and_send_timeslice_data
             harvest_and_send_analytic_event_data
 
-            check_for_agent_commands
+            handle_agent_commands
             harvest_and_send_thread_profile(disconnecting)
           end
         rescue EOFError => e

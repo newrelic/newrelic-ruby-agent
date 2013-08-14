@@ -11,40 +11,57 @@
 module NewRelic
   module Agent
     class AgentCommandRouter
-      attr_reader :thread_profiler
+      attr_reader :service, :handlers
 
-      def initialize(thread_profiler=nil)
+      def initialize(service, thread_profiler)
+        @service = service
+
         @handlers = Hash.new { |*| [self, :unrecognized_agent_command] }
 
-        add_handler("start_profiler", thread_profiler, :handle_start_command)
-        add_handler("stop_profiler",  thread_profiler, :handle_stop_command)
+        @handlers['start_profiler'] = Proc.new { |args| thread_profiler.handle_start_command(args) }
+        @handlers['stop_profiler'] = Proc.new { |args| thread_profiler.handle_stop_command(args) }
       end
 
-      def add_handler(name, handler, message)
-        @handlers[name] = [handler, message]
+      def handle_agent_commands
+        results = invoke_commands(get_agent_commands)
+        service.agent_command_results(results)
       end
 
-      def check_for_agent_commands(service)
+      def get_agent_commands
         commands = service.get_agent_commands
         NewRelic::Agent.logger.debug "Received get_agent_commands = #{commands.inspect}"
-
-        commands.each do |cmd|
-          # TODO: Aggregate results from multiple commands in same batch to send back?
-          route_command(cmd) do |command_id, error|
-            service.agent_command_results(command_id, error)
-          end
-        end
+        commands
       end
 
-      def route_command(incoming_command, &results_callback)
-        #TODO: Validate command format?
-        command_id, command = incoming_command
+      class AgentCommandError < StandardError
+      end
 
+      def invoke_commands(commands_with_ids)
+        results = {}
+
+        commands_with_ids.each do |command_id, command|
+          result = {}
+
+          begin
+            invoke_command(command)
+          rescue AgentCommandError => e
+            result['error'] = e.message
+          end
+
+          results[command_id.to_s] = result
+        end
+
+        results
+      end
+
+      def select_handler(command)
         name = command["name"]
-        arguments = command["arguments"]
+        @handlers[name]
+      end
 
-        handler, message = @handlers[name]
-        handler.send(message, command_id, name, arguments, &results_callback)
+      def invoke_command(command)
+        handler = select_handler(command)
+        handler.call(command['arguments'])
       end
 
       def unrecognized_agent_command(command_id, name, arguments)

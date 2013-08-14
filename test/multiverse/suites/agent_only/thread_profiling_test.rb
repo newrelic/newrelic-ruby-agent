@@ -90,7 +90,7 @@ class ThreadProfilingTest < MiniTest::Unit::TestCase
 
   def issue_command(cmd)
     $collector.stub('get_agent_commands', cmd)
-    agent.send(:check_for_agent_commands)
+    agent.send(:handle_agent_commands)
   end
 
   # Runs a thread we expect to span entire test and be killed at the end

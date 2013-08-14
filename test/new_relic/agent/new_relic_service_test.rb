@@ -259,14 +259,8 @@ class NewRelicServiceTest < Test::Unit::TestCase
 
   def test_agent_command_results
     @http_handle.respond_to(:agent_command_results, {})
-    response = @service.agent_command_results(4200)
+    response = @service.agent_command_results({'1' => {}})
     assert_equal({}, response)
-  end
-
-  def test_agent_command_results_with_errors
-    @http_handle.respond_to(:agent_command_results, [123])
-    response = @service.agent_command_results(4200, 'Boo!')
-    assert_equal [123], response
   end
 
   def test_request_timeout

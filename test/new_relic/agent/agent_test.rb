@@ -13,6 +13,7 @@ module NewRelic
         super
         @agent = NewRelic::Agent::Agent.new
         @agent.service = default_service
+        @agent.agent_command_router.stubs(:service).returns(@agent.service)
         @agent.stubs(:start_worker_thread)
       end
 
@@ -173,9 +174,9 @@ module NewRelic
         assert_equal([], @agent.send(:harvest_errors), 'should return errors')
       end
 
-      def test_check_for_agent_commands
+      def test_handle_for_agent_commands
         @agent.service.expects(:get_agent_commands).returns([]).once
-        @agent.send :check_for_agent_commands
+        @agent.send :handle_agent_commands
       end
 
       def test_merge_data_from_empty

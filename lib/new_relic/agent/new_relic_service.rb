@@ -137,11 +137,8 @@ module NewRelic
         invoke_remote(:get_agent_commands, @agent_id)
       end
 
-      def agent_command_results(command_id, error=nil)
-        results = {}
-        results["error"] = error unless error.nil?
-
-        invoke_remote(:agent_command_results, @agent_id, { command_id.to_s => results })
+      def agent_command_results(results)
+        invoke_remote(:agent_command_results, @agent_id, results)
       end
 
       # Send fine-grained analytic data to the collector.
