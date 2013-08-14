@@ -106,7 +106,7 @@ module Agent
 
       # Returns the current scope stack, memoized to a thread local variable
       def scope_stack
-        NewRelic::Agent::TransactionState.get.scope_stack ||= []
+        NewRelic::Agent::TransactionState.get.stats_scope_stack
       end
     end
   end
