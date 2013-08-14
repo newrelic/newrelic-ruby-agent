@@ -182,7 +182,7 @@ module NewRelic
       end
 
       def include_guid?(state)
-        state.request_token && state.duration > Transaction.apdex_t_for(state.transaction)
+        state.request_token && state.duration > state.transaction.apdex_t
       end
 
       def tt_token

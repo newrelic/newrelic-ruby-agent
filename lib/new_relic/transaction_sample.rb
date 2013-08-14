@@ -189,7 +189,7 @@ module NewRelic
 
     def force_persist_sample?
       NewRelic::Agent::TransactionState.get.request_token &&
-        self.duration > NewRelic::Agent::Transaction.apdex_t_for_current
+        self.duration > NewRelic::Agent::TransactionState.get.transaction.apdex_t
     end
 
   private

@@ -290,7 +290,6 @@ module NewRelic
         return unless recording_web_transaction? && NewRelic::Agent.is_execution_traced?
 
         freeze_name
-        apdex_t = Transaction.apdex_t_for(self)
         action_duration = end_time - start_time
         total_duration  = end_time - apdex_start
         is_error = is_error.nil? ? !exceptions.empty? : is_error
@@ -303,15 +302,13 @@ module NewRelic
         @stats_hash.record(txn_apdex_metric, apdex_bucket_txn, apdex_t)
       end
 
-      def self.apdex_t_for(transaction)
-        (!transaction.nil? &&
-         Agent.config[:web_transactions_apdex] &&
-         Agent.config[:web_transactions_apdex][transaction.name]) ||
-          Agent.config[:apdex_t]
+      def apdex_t
+        transaction_specific_apdex_t || Agent.config[:apdex_t]
       end
 
-      def self.apdex_t_for_current
-        Transaction.apdex_t_for(NewRelic::Agent::TransactionState.get.transaction)
+      def transaction_specific_apdex_t
+        key = :web_transactions_apdex
+        Agent.config[key] && Agent.config[key][self.name]
       end
 
       # Yield to a block that is run with a database metric name context.  This means
