@@ -67,19 +67,19 @@ module NewRelic
         Time.now - self.transaction_start_time
       end
 
-      def self.is_background_transaction?(thread)
-        state_for(thread).is_background_transaction?
+      def self.in_background_transaction?(thread)
+        state_for(thread).in_background_transaction?
       end
 
-      def self.is_request_transaction?(thread)
-        state_for(thread).is_request_transaction?
+      def self.in_request_transaction?(thread)
+        state_for(thread).in_request_transaction?
       end
 
-      def is_background_transaction?
+      def in_background_transaction?
         !current_transaction.nil? && current_transaction.request.nil?
       end
 
-      def is_request_transaction?
+      def in_request_transaction?
         !current_transaction.nil? && !current_transaction.request.nil?
       end
 

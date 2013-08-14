@@ -16,33 +16,33 @@ module NewRelic::Agent
 
     def test_without_transaction_stack_on_thread
       state.current_transaction_stack = nil
-      assert_equal false, state.is_background_transaction?
-      assert_equal false, state.is_request_transaction?
+      assert_equal false, state.in_background_transaction?
+      assert_equal false, state.in_request_transaction?
     end
 
-    def test_is_background_transaction
+    def test_in_background_transaction
       state.current_transaction_stack = [NewRelic::Agent::Transaction.new]
 
-      assert state.is_background_transaction?
+      assert state.in_background_transaction?
     end
 
-    def test_is_request_tranasction
+    def test_in_request_tranasction
       transaction = NewRelic::Agent::Transaction.new
       transaction.request = stub()
 
       state.current_transaction_stack = [transaction]
 
-      assert state.is_request_transaction?
+      assert state.in_request_transaction?
     end
 
-    def test_is_request_transaction_checks_last
+    def test_in_request_transaction_checks_last
       earlier_transaction = NewRelic::Agent::Transaction.new
       transaction = NewRelic::Agent::Transaction.new
       transaction.request = stub()
 
       state.current_transaction_stack = [earlier_transaction, transaction]
 
-      assert state.is_request_transaction?
+      assert state.in_request_transaction?
     end
   end
 end

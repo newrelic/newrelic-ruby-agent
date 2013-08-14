@@ -16,9 +16,9 @@ module NewRelic
         def self.bucket_thread(thread, profile_agent_code)
           if thread.key?(:newrelic_label)
             profile_agent_code ? :agent : :ignore
-          elsif TransactionState.is_background_transaction?(thread)
+          elsif TransactionState.in_background_transaction?(thread)
             :background
-          elsif TransactionState.is_request_transaction?(thread)
+          elsif TransactionState.in_request_transaction?(thread)
             :request
           else
             :other
