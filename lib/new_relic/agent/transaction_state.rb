@@ -38,7 +38,11 @@ module NewRelic
       end
 
       def reset(request)
-        @transaction_start_time = Time.now
+        # We almost always want to use the transaction time, but in case it's
+        # not available, we track the last reset. No accessor, as only the
+        # TransactionState class should use it.
+        @last_reset_time = Time.now
+
         @transaction = Transaction.current
 
         @request = request
@@ -55,7 +59,7 @@ module NewRelic
       attr_accessor :request, :request_token, :request_guid, :request_ignore_enduser
 
       # Current transaction stack and sample building
-      attr_accessor :transaction, :transaction_start_time, :transaction_sample_builder
+      attr_accessor :transaction, :transaction_sample_builder
       attr_writer   :current_transaction_stack
 
       # Returns and initializes the transaction stack if necessary
@@ -67,8 +71,12 @@ module NewRelic
         @current_transaction_stack ||= []
       end
 
-      def duration
-        Time.now - self.transaction_start_time
+      def transaction_start_time
+        if transaction.nil?
+          @last_reset_time
+        else
+          transaction.start_time
+        end
       end
 
       def self.in_background_transaction?(thread)

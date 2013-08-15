@@ -28,6 +28,11 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     NewRelic::Agent.instance.instance_eval do
       @beacon_configuration = NewRelic::Agent::BeaconConfiguration.new
     end
+
+    # By default we expect our transaction to have a start time
+    # All sorts of basics don't output without this setup initially
+    NewRelic::Agent::TransactionState.reset(nil)
+    current_transaction.start_time = Time.now
   end
 
   def teardown
@@ -40,7 +45,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     assert NewRelic::Agent.config[:'browser_monitoring.auto_instrument']
   end
 
-  def test_browser_monitoring_start_time_is_reset_each_request_when_auto_instrument_is_disabled
+  def test_start_time_reset_each_request_when_auto_instrument_is_disabled
     controller = Object.new
     def controller.perform_action_without_newrelic_trace(method, options={});
       # noop; instrument me
@@ -51,9 +56,10 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
 
     with_config(:'browser_monitoring.auto_instrument' => false) do
       controller.perform_action_with_newrelic_trace(:index)
-      first_request_start_time = controller.send(:browser_monitoring_start_time)
+      first_request_start_time = current_transaction.start_time
+
       controller.perform_action_with_newrelic_trace(:index)
-      second_request_start_time = controller.send(:browser_monitoring_start_time)
+      second_request_start_time = current_transaction.start_time
 
       # assert that these aren't the same time object
       # the start time should be reinitialized each request to the controller
@@ -191,13 +197,12 @@ var e=document.createElement("script");'
   end
 
   def test_generate_footer_js_null_case
-    self.expects(:browser_monitoring_start_time).returns(nil)
+    current_transaction.start_time = nil
     assert_equal('', generate_footer_js(NewRelic::Agent.instance.beacon_configuration), "should not send javascript when there is no start time")
   end
 
   def test_generate_footer_js_with_start_time
     with_config(:browser_key => 'a' * 40) do
-      self.expects(:browser_monitoring_start_time).returns(Time.at(100))
       fake_bc = mock('beacon configuration')
       NewRelic::Agent.instance.stubs(:beacon_configuration).returns(fake_bc)
       self.expects(:footer_js_string).with(NewRelic::Agent.instance.beacon_configuration).returns('footer js')
@@ -215,7 +220,9 @@ var e=document.createElement("script");'
   end
 
   def test_browser_monitoring_transaction_name_empty
-    NewRelic::Agent::TransactionState.get.transaction = stub(:name => '')
+    txn = NewRelic::Agent::Transaction.new
+    txn.name = ''
+    NewRelic::Agent::TransactionState.get.transaction = txn
 
     assert_equal('', browser_monitoring_transaction_name, "should take the value even when it is empty")
   end
@@ -235,68 +242,17 @@ var e=document.createElement("script");'
     end
   end
 
-  def test_browser_monitoring_start_time
-    NewRelic::Agent::TransactionState.get.transaction_start_time = Time.at(100)
-    assert_equal(Time.at(100), browser_monitoring_start_time, "should take the value from the thread local")
-  end
-
-  def test_clamp_to_positive
-    assert_equal(0.0, clamp_to_positive(-1), "should clamp a negative value to zero")
-    assert_equal(1232, clamp_to_positive(1232), "should pass through the value when it is positive")
-    assert_equal(0, clamp_to_positive(0), "should not mess with zero when passing it through")
-  end
-
-  def test_browser_monitoring_app_time_nonzero
-    start = Time.now
-    self.expects(:browser_monitoring_start_time).returns(start - 1)
-    Time.stubs(:now).returns(start)
-    assert_equal(1000, browser_monitoring_app_time, 'should return a rounded time')
-  end
-
-  def test_browser_monitoring_queue_time_nil
-    assert_equal(0.0, browser_monitoring_queue_time, 'should return zero when there is no queue time')
-  end
-
-  def test_browser_monitoring_queue_time_zero
-    in_transaction do
-      NewRelic::Agent::Transaction.current.expects(:queue_time).returns(0.0)
-      assert_equal(0.0, browser_monitoring_queue_time,
-                   'should return zero when there is zero queue time')
-    end
-  end
-
-  def test_browser_monitoring_queue_time_ducks
-    in_transaction do
-      NewRelic::Agent::Transaction.current.expects(:queue_time) \
-        .returns('a duck')
-      assert_equal(0.0, browser_monitoring_queue_time,
-                   'should return zero when there is an incorrect queue time')
-    end
-  end
-
-  def test_browser_monitoring_queue_time_nonzero
-    in_transaction do
-      NewRelic::Agent::Transaction.current.expects(:queue_time) \
-        .returns(3.00002)
-      assert_equal(3000, browser_monitoring_queue_time,
-                   'should return a rounded time')
-    end
-  end
-
   def test_footer_js_string_basic
-    $bedug = true
-    # mocking this because JRuby thinks that Time.now - Time.now
-    # always takes at least 1ms
-    self.expects(:browser_monitoring_app_time).returns(0)
+    freeze_time
     in_transaction do
       txn = NewRelic::Agent::Transaction.current
       user_attributes = {:user => "user", :account => "account", :product => "product"}
-      txn.expects(:user_attributes).returns(user_attributes).at_least_once
-      txn.expects(:queue_time).returns(0)
+      txn.stubs(:user_attributes).returns(user_attributes)
+      txn.stubs(:queue_time).returns(0)
+      txn.stubs(:start_time).returns(Time.now - 10)
       txn.name = 'most recent transaction'
 
       NewRelic::Agent::TransactionState.get.reset(nil)
-      NewRelic::Agent::TransactionState.get.transaction_start_time -= 10
       NewRelic::Agent::TransactionState.get.request_token = '0123456789ABCDEF'
       NewRelic::Agent::TransactionState.get.request_guid = 'ABC'
 
@@ -306,7 +262,7 @@ var e=document.createElement("script");'
       self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'product').returns('product')
 
       value = footer_js_string(NewRelic::Agent.instance.beacon_configuration)
-      assert_equal(%'<script type="text/javascript">if (!NREUMQ.f) { NREUMQ.f=function() {\nNREUMQ.push(["load",new Date().getTime()]);\nvar e=document.createElement("script");\ne.type="text/javascript";\ne.src=(("http:"===document.location.protocol)?"http:":"https:") + "//" +\n  "this_is_my_file";\ndocument.body.appendChild(e);\nif(NREUMQ.a)NREUMQ.a();\n};\nNREUMQ.a=window.onload;window.onload=NREUMQ.f;\n};\nNREUMQ.push(["nrfj","beacon","browserKey","5, 6","most recent transaction",0,0,new Date().getTime(),"ABC","0123456789ABCDEF","user","account","product"]);</script>', value, "should return the javascript given some default values")
+      assert_equal(%'<script type="text/javascript">if (!NREUMQ.f) { NREUMQ.f=function() {\nNREUMQ.push(["load",new Date().getTime()]);\nvar e=document.createElement("script");\ne.type="text/javascript";\ne.src=(("http:"===document.location.protocol)?"http:":"https:") + "//" +\n  "this_is_my_file";\ndocument.body.appendChild(e);\nif(NREUMQ.a)NREUMQ.a();\n};\nNREUMQ.a=window.onload;window.onload=NREUMQ.f;\n};\nNREUMQ.push(["nrfj","beacon","browserKey","5, 6","most recent transaction",0,10000,new Date().getTime(),"ABC","0123456789ABCDEF","user","account","product"]);</script>', value, "should return the javascript given some default values")
     end
   end
 
@@ -391,7 +347,7 @@ var e=document.createElement("script");'
     response = mobile_transaction
     txn_name = obfuscate(NewRelic::Agent.instance.beacon_configuration,
                          browser_monitoring_transaction_name)
-    expected_payload = %|["5, 6","#{txn_name}",#{browser_monitoring_queue_time},#{browser_monitoring_app_time}]|
+    expected_payload = %|["5, 6","#{txn_name}",#{current_timings.queue_time_in_millis},#{current_timings.app_time_in_millis}]|
 
     assert_equal expected_payload, response['X-NewRelic-App-Server-Metrics'].strip
   end
@@ -411,8 +367,8 @@ var e=document.createElement("script");'
     response = Rack::Response.new
     txn = NewRelic::Agent::Transaction.new
     txn.name = 'a transaction name'
+    txn.start_time = Time.at(5)
     NewRelic::Agent::TransactionState.get.transaction = txn
-    NewRelic::Agent::TransactionState.get.transaction_start_time = 5
     NewRelic::Agent::BrowserMonitoring.insert_mobile_response_header(request, response)
     response
   end
