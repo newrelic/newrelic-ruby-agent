@@ -15,24 +15,18 @@ module NewRelic
       end
 
       def handle_start_command(options)
-        unsupported?
-        start_unless_running_and_notify(options)
+        raise_unsupported_error unless ThreadProfiler.is_supported?
+        raise_already_started_error if running?
+        start(options)
       end
 
       def handle_stop_command(options)
-        unsupported?
         stop_and_notify(options)
       end
 
-      def start(profile_id, duration, interval, profile_agent_code)
-        if !ThreadProfiler.is_supported?
-          NewRelic::Agent.logger.debug("Not starting thread profile as it isn't supported on this environment")
-          @profile = nil
-        else
-          NewRelic::Agent.logger.debug("Starting thread profile. profile_id=#{profile_id}, duration=#{duration}")
-          @profile = Threading::ThreadProfile.new(profile_id, duration, interval, profile_agent_code)
-          @profile.run
-        end
+      def start(arguments)
+        @profile = Threading::ThreadProfile.new(arguments)
+        @profile.run
       end
 
       def stop(report_data)
@@ -56,30 +50,22 @@ module NewRelic
 
       private
 
-      def start_unless_running_and_notify(arguments)
-        profile_id = arguments.fetch("profile_id", -1)
-        duration =   arguments.fetch("duration", 120)
-        interval =   arguments.fetch("sample_period", 0.1)
-        profile_agent_code = arguments.fetch("profile_agent_code", true)
-
-        if running?
-          msg = "Profile already in progress. Ignoring agent command to start another."
-          NewRelic::Agent.logger.debug(msg)
-          raise NewRelic::Agent::AgentCommandRouter::AgentCommandError.new(msg)
-        else
-          start(profile_id, duration, interval, profile_agent_code)
-        end
-      end
-
       def stop_and_notify(arguments)
         report_data = arguments.fetch("report_data", true)
         stop(report_data)
-        yield(command_id) if block_given?
       end
 
-      def unsupported?
-        return false if ThreadProfiler.is_supported?
+      def raise_command_error(msg)
+        NewRelic::Agent.logger.debug(msg)
+        raise NewRelic::Agent::AgentCommandRouter::AgentCommandError.new(msg)
+      end
 
+      def raise_already_started_error
+        msg = "Profile already in progress. Ignoring agent command to start another."
+        raise_command_error(msg)
+      end
+
+      def raise_unsupported_error
         msg = <<-EOF
 Thread profiling is only supported on 1.9.2 and greater versions of Ruby.
 We detected running agents capable of profiling, but the profile started with
@@ -88,9 +74,7 @@ an agent running Ruby #{RUBY_VERSION}.
 Profiling again might select an appropriate agent, but we recommend running a
 consistent version of Ruby across your application for better results.
 EOF
-        NewRelic::Agent.logger.debug(msg)
-        raise NewRelic::Agent::AgentCommandRouter::AgentCommandError.new(msg)
-        true
+        raise_command_error(msg)
       end
 
     end

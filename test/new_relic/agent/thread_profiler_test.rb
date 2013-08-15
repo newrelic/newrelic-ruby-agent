@@ -10,9 +10,6 @@ require 'zlib'
 require 'new_relic/agent/threading/threaded_test_case'
 require 'new_relic/agent/thread_profiler'
 
-COMMAND_ID = 666
-
-START_NAME = "start_profiler"
 START_ARGS = {
   "profile_id" => 42,
   "sample_period" => 0.02,
@@ -21,12 +18,10 @@ START_ARGS = {
   "only_request_threads" => false,
   "profile_agent_code" => false,
 }
-
-STOP_NAME = "stop_profiler"
 STOP_ARGS = {
-      "profile_id" => 42,
-      "report_data" => true,
-    }
+  "profile_id" => 42,
+  "report_data" => true,
+}
 
 STOP_AND_DISCARD_ARGS = {
   "profile_id" => 42,
@@ -45,12 +40,12 @@ class ThreadProfilerUnsupportedTest < Test::Unit::TestCase
   end
 
   def test_wont_start_when_not_supported
-    @profiler.start(0, 0, 0, true)
+    @profiler.start(START_ARGS)
     assert_equal false, @profiler.running?
   end
 
   def test_stop_is_safe_when_not_supported
-    @profiler.start(0, 0, 0, true)
+    @profiler.start(START_ARGS)
     @profiler.stop(true)
   end
 
@@ -84,7 +79,7 @@ class ThreadProfilerTest < ThreadedTestCase
   end
 
   def test_is_running
-    @profiler.start(0, 0, 0, true)
+    @profiler.start(START_ARGS)
     assert @profiler.running?
   end
 
@@ -93,7 +88,7 @@ class ThreadProfilerTest < ThreadedTestCase
   end
 
   def test_can_stop_a_running_profile
-    @profiler.start(0, 0, 0, true)
+    @profiler.start(START_ARGS)
     assert @profiler.running?
 
     @profiler.stop(true)
@@ -103,7 +98,7 @@ class ThreadProfilerTest < ThreadedTestCase
   end
 
   def test_can_stop_a_running_profile_and_discard
-    @profiler.start(0, 0, 0, true)
+    @profiler.start(START_ARGS)
     assert @profiler.running?
 
     @profiler.stop(false)
@@ -122,7 +117,7 @@ class ThreadProfilerTest < ThreadedTestCase
   end
 
   def test_handle_stop_command
-    @profiler.start(0, 0, 0, true)
+    @profiler.start(START_ARGS)
     assert @profiler.running?
 
     @profiler.handle_stop_command(STOP_ARGS)
@@ -130,7 +125,7 @@ class ThreadProfilerTest < ThreadedTestCase
   end
 
   def test_handle_stop_command_and_discard
-    @profiler.start(0, 0, 0, true)
+    @profiler.start(START_ARGS)
     assert @profiler.running?
 
     @profiler.handle_stop_command(STOP_AND_DISCARD_ARGS)

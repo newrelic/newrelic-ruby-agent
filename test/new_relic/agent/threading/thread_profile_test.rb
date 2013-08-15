@@ -21,10 +21,10 @@ if NewRelic::Agent::ThreadProfiler.is_supported?
           "irb:12:in `<main>'"
         ]
 
+        @profile = ThreadProfile.new({})
+
         # Run the worker_loop for the thread profile based on two iterations
         # This takes time fussiness out of the equation and keeps the tests stable
-        ignored_duration = 666
-        @profile = ThreadProfile.new(-1, ignored_duration, 0.01, true)
         @profile.instance_variable_set(:@worker_loop, NewRelic::Agent::WorkerLoop.new(:limit => 2))
       end
 
@@ -258,6 +258,7 @@ if NewRelic::Agent::ThreadProfiler.is_supported?
       WELL_KNOWN_TRACE_ENCODED = "eJy9klFPwjAUhf/LfW7WDQTUGBPUiYkGdAxelqXZRpGGrm1uS8xi/O924JQX\n9Un7dm77ndN7c19hlt7FCZxnWQZug7xYMYN6LSTHwDRA4KLWq53kl0CinEQh\nCUmW5zmBJH5axPPUk16MJ/E0/cGk0lLyyrGPS+uKamu943DQeX5HMtypz5In\nwv6vRCeZ1NoAGQ2PCDpvrOM1fRAlFtjQWyxq/qJxa+lj4zZaBeuuQpccrdDK\n0l4wolKU1OxftOoQLNTzIdL/EcjJafjnQYyVWjvrsDBMKNVOZBD1/jO27fPs\naBG+DoGr8fX9JJktpjftVry9A9unzGo=\n"
 
       def test_to_collector_array
+        @profile.instance_variable_set(:@profile_id, "-1")
         @profile.instance_variable_set(:@start_time, 1350403938892.524)
         @profile.instance_variable_set(:@stop_time, 1350403939904.375)
         @profile.instance_variable_set(:@poll_count, 10)
