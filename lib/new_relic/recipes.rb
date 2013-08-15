@@ -21,7 +21,7 @@ make_notify_task = Proc.new do
     task :notice_deployment, :roles => :app, :except => {:no_release => true } do
       rails_env = fetch(:newrelic_rails_env, fetch(:rails_env, "production"))
 
-      require File.join(File.dirname(__FILE__), 'command.rb')
+      require File.join(File.dirname(__FILE__), 'cli', 'command.rb')
 
       begin
         # allow overrides to be defined for revision, description, changelog, appname, and user
@@ -49,11 +49,11 @@ make_notify_task = Proc.new do
         }
 
         logger.debug "Uploading deployment to New Relic"
-        deployment = NewRelic::Command::Deployments.new deploy_options
+        deployment = NewRelic::Cli::Deployments.new deploy_options
         deployment.run
         logger.info "Uploaded deployment information to New Relic"
 
-      rescue NewRelic::Command::CommandFailure => e
+      rescue NewRelic::Cli::Command::CommandFailure => e
         logger.info e.message
 
       rescue Capistrano::CommandError

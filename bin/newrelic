@@ -3,10 +3,10 @@
 # pass the name of the command as an argument
 
 $LOAD_PATH << File.expand_path(File.join(File.dirname(__FILE__), '..','lib'))
-require 'new_relic/command'
+require 'new_relic/cli/command'
 begin
-  NewRelic::Command.run
-rescue NewRelic::Command::CommandFailure => failure
+  NewRelic::Cli::Command.run
+rescue NewRelic::Cli::Command::CommandFailure => failure
   STDERR.puts failure.message
   STDERR.puts failure.options if failure.options
   exit 1

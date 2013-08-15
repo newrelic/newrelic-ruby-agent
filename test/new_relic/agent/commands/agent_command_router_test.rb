@@ -2,8 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
-require 'new_relic/agent/agent_command_router'
+require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require 'new_relic/agent/commands/agent_command_router'
 
 class AgentCommandRouterTest < Test::Unit::TestCase
 
@@ -26,7 +26,7 @@ class AgentCommandRouterTest < Test::Unit::TestCase
   def setup
     @service = stub(:agent_command_results)
 
-    @agent_commands = NewRelic::Agent::AgentCommandRouter.new(@service, nil)
+    @agent_commands = NewRelic::Agent::Commands::AgentCommandRouter.new(@service, nil)
 
     @handler = TestHandler.new
     @agent_commands.handlers["bazzle"] = Proc.new { |args| @handler.handle_bazzle_command(args) }
@@ -73,7 +73,7 @@ class AgentCommandRouterTest < Test::Unit::TestCase
 
     def handle_boom_command(command)
       calls << command
-      raise NewRelic::Agent::AgentCommandRouter::AgentCommandError.new("BOOOOOM")
+      raise NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError.new("BOOOOOM")
     end
   end
 

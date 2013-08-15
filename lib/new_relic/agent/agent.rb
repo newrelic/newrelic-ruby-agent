@@ -14,8 +14,8 @@ require 'new_relic/agent/new_relic_service'
 require 'new_relic/agent/pipe_service'
 require 'new_relic/agent/configuration/manager'
 require 'new_relic/agent/database'
-require 'new_relic/agent/agent_command_router'
-require 'new_relic/agent/thread_profiler'
+require 'new_relic/agent/commands/agent_command_router'
+require 'new_relic/agent/commands/thread_profiler'
 require 'new_relic/agent/event_listener'
 require 'new_relic/agent/cross_app_monitor'
 require 'new_relic/agent/request_sampler'
@@ -43,8 +43,8 @@ module NewRelic
         @stats_engine          = NewRelic::Agent::StatsEngine.new
         @transaction_sampler   = NewRelic::Agent::TransactionSampler.new
         @sql_sampler           = NewRelic::Agent::SqlSampler.new
-        @thread_profiler       = NewRelic::Agent::ThreadProfiler.new
-        @agent_command_router  = NewRelic::Agent::AgentCommandRouter.new(@service, @thread_profiler)
+        @thread_profiler       = NewRelic::Agent::Commands::ThreadProfiler.new
+        @agent_command_router  = NewRelic::Agent::Commands::AgentCommandRouter.new(@service, @thread_profiler)
         @cross_app_monitor     = NewRelic::Agent::CrossAppMonitor.new(@events)
         @error_collector       = NewRelic::Agent::ErrorCollector.new
         @transaction_rules     = NewRelic::Agent::RulesEngine.new

@@ -6,7 +6,7 @@ require 'fileutils'
 require 'new_relic/version'
 require 'erb'
 
-class NewRelic::Command::Install < NewRelic::Command
+class NewRelic::Cli::Install < NewRelic::Cli::Command
 
   NO_LICENSE_KEY = "<PASTE LICENSE KEY HERE>"
 
@@ -40,7 +40,7 @@ class NewRelic::Command::Install < NewRelic::Command
   def run
     dest_file = File.expand_path(@dest_dir + "/newrelic.yml")
     if File.exist?(dest_file)
-      raise NewRelic::Command::CommandFailure, "newrelic.yml file already exists.  Move it out of the way."
+      raise NewRelic::Cli::Command::CommandFailure, "newrelic.yml file already exists.  Move it out of the way."
     end
     File.open(dest_file, 'w') { | out | out.puts(content) }
 

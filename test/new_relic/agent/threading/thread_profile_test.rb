@@ -7,7 +7,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_h
 require 'new_relic/agent/threading/thread_profile'
 require 'new_relic/agent/threading/threaded_test_case'
 
-if NewRelic::Agent::ThreadProfiler.is_supported?
+if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
 
   module NewRelic::Agent::Threading
     class ThreadProfileTest < ThreadedTestCase
