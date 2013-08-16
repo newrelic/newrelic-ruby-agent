@@ -15,18 +15,19 @@ module NewRelic
           RUBY_VERSION >= "1.9.2"
         end
 
-        def handle_start_command(options)
+        def handle_start_command(agent_command)
           raise_unsupported_error unless ThreadProfiler.is_supported?
           raise_already_started_error if running?
-          start(options)
+          start(agent_command)
         end
 
-        def handle_stop_command(options)
-          stop_and_notify(options)
+        def handle_stop_command(agent_command)
+          report_data = agent_command.arguments.fetch("report_data", true)
+          stop(report_data)
         end
 
-        def start(arguments)
-          @profile = Threading::ThreadProfile.new(arguments)
+        def start(agent_command)
+          @profile = Threading::ThreadProfile.new(agent_command)
           @profile.run
         end
 
@@ -51,11 +52,6 @@ module NewRelic
 
         private
 
-        def stop_and_notify(arguments)
-          report_data = arguments.fetch("report_data", true)
-          stop(report_data)
-        end
-
         def raise_command_error(msg)
           NewRelic::Agent.logger.debug(msg)
           raise NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError.new(msg)
@@ -79,7 +75,6 @@ consistent version of Ruby across your application for better results.
         end
 
       end
-
     end
   end
 end

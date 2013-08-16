@@ -21,7 +21,8 @@ module NewRelic
           :poll_count, :sample_count,
           :start_time, :stop_time
 
-        def initialize(arguments)
+        def initialize(agent_command)
+          arguments = agent_command.arguments
           @profile_id = arguments.fetch('profile_id', -1)
           @profile_agent_code = arguments.fetch('profile_agent_code', true)
 

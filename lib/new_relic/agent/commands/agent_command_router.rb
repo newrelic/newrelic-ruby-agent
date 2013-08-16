@@ -8,6 +8,8 @@
 # This could be evented further, but we eventually need direct access to things
 # like the ThreadProfiler, so it's simpler to just keep it together here.
 
+require 'new_relic/agent/commands/agent_command'
+
 module NewRelic
   module Agent
     module Commands
@@ -37,32 +39,32 @@ module NewRelic
         class AgentCommandError < StandardError
         end
 
-        def invoke_commands(commands_with_ids)
+        def invoke_commands(collector_commands)
           results = {}
 
-          commands_with_ids.each do |command_id, command|
+          collector_commands.each do |collector_command|
             result = {}
+            agent_command = NewRelic::Agent::Commands::AgentCommand.new(collector_command)
 
             begin
-              invoke_command(command)
+              invoke_command(agent_command)
             rescue AgentCommandError => e
               result['error'] = e.message
             end
 
-            results[command_id.to_s] = result
+            results[agent_command.id.to_s] = result
           end
 
           results
         end
 
-        def select_handler(command)
-          name = command["name"]
-          @handlers[name]
+        def select_handler(agent_command)
+          @handlers[agent_command.name]
         end
 
-        def invoke_command(command)
-          handler = select_handler(command)
-          handler.call(command['arguments'])
+        def invoke_command(agent_command)
+          handler = select_handler(agent_command)
+          handler.call(agent_command)
         end
 
         def unrecognized_agent_command(command_id, name, arguments)

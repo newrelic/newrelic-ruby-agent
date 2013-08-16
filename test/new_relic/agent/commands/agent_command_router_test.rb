@@ -68,11 +68,10 @@ class AgentCommandRouterTest < Test::Unit::TestCase
     end
 
     def handle_bazzle_command(command)
-      calls << command
+      calls << command.arguments
     end
 
     def handle_boom_command(command)
-      calls << command
       raise NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError.new("BOOOOOM")
     end
   end

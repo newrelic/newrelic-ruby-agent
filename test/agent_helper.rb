@@ -304,3 +304,7 @@ def with_debug_logging
 ensure
   NewRelic::Agent.logger = orig_logger
 end
+
+def create_agent_command(args = {})
+  NewRelic::Agent::Commands::AgentCommand.new([-1, { "name" => "command_name", "arguments" => args}])
+end

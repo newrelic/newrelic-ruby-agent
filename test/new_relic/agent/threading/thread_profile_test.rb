@@ -21,7 +21,7 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
           "irb:12:in `<main>'"
         ]
 
-        @profile = ThreadProfile.new({})
+        @profile = ThreadProfile.new(create_agent_command)
 
         # Run the worker_loop for the thread profile based on two iterations
         # This takes time fussiness out of the equation and keeps the tests stable
