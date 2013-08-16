@@ -10,7 +10,7 @@ module NewRelic
         alias_method :active?, :active
 
         def initialize(raw_session)
-          @id = raw_session["xray_id"]
+          @id = raw_session["x_ray_id"]
         end
 
         def activate

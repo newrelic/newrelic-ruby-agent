@@ -9,6 +9,7 @@
 # like the ThreadProfiler, so it's simpler to just keep it together here.
 
 require 'new_relic/agent/commands/agent_command'
+require 'new_relic/agent/commands/xray_sessions'
 
 module NewRelic
   module Agent
@@ -16,13 +17,19 @@ module NewRelic
       class AgentCommandRouter
         attr_reader :service, :handlers
 
+        # Keep XraySessions here rather than cluttering Agent with it
+        attr_reader :xray_sessions
+
         def initialize(service, thread_profiler)
           @service = service
+
+          @xray_sessions = XraySessions.new(service)
 
           @handlers    = Hash.new { |*| Proc.new { |cmd| self.unrecognized_agent_command(cmd) } }
 
           @handlers['start_profiler'] = Proc.new { |cmd| thread_profiler.handle_start_command(cmd) }
           @handlers['stop_profiler']  = Proc.new { |cmd| thread_profiler.handle_stop_command(cmd) }
+          @handlers['active_xray_sessions'] = Proc.new { |cmd| xray_sessions.handle_active_xray_sessions(cmd) }
         end
 
         def handle_agent_commands
@@ -40,7 +47,7 @@ module NewRelic
           results = {}
 
           collector_commands.each do |collector_command|
-            agent_command = NewRelic::Agent::Commands::AgentCommand.new(collector_command)
+            agent_command = AgentCommand.new(collector_command)
             results[agent_command.id.to_s] = invoke_command(agent_command)
           end
 

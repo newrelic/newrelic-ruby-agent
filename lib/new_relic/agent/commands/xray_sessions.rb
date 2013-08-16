@@ -14,40 +14,67 @@ module NewRelic
         attr_reader :sessions
         def_delegators :@sessions, :[], :include?
 
-        def initialize
+        def initialize(service)
+          @service = service
           @sessions = {}
         end
 
-        def active_sessions(raw_sessions)
-          incoming_sessions = raw_sessions.map {|raw| XraySession.new(raw)}
-          add_active_sessions(incoming_sessions)
-          remove_inactive_sessions(incoming_sessions)
+        def handle_active_xray_sessions(agent_command)
+          incoming_ids = agent_command.arguments["xray_ids"]
+          activate_sessions(incoming_ids)
+          deactivate_sessions(incoming_ids)
         end
+
 
         private
 
-        def add_active_sessions(incoming_sessions)
-          incoming_sessions.each do |incoming_session|
-            if !sessions.include?(incoming_session.id)
-              sessions[incoming_session.id] = incoming_session
-              incoming_session.activate
-            end
+        attr_reader :service
+
+        # Session activation
+
+        def activate_sessions(incoming_ids)
+          ids_to_activate = select_to_add(incoming_ids)
+          lookup_metadata_for(ids_to_activate).each do |raw|
+            add_session(XraySession.new(raw))
           end
         end
 
-        def remove_inactive_sessions(incoming_sessions)
-          inactive_sessions = find_inactive_sessions(incoming_sessions)
-          inactive_sessions.each do |inactive_session|
-            sessions.delete(inactive_session.id)
-            inactive_session.deactivate
+        def select_to_add(incoming_ids)
+          incoming_ids.reject {|id| sessions.include?(id)}
+        end
+
+        def lookup_metadata_for(ids_to_activate)
+          return [] if ids_to_activate.empty?
+
+          NewRelic::Agent.logger.debug("Retrieving metadata for X-Ray sessions #{ids_to_activate.inspect}")
+          @service.get_xray_metadata(ids_to_activate)
+        end
+
+        def add_session(session)
+          NewRelic::Agent.logger.debug("Adding X-Ray session #{session.inspect}")
+          sessions[session.id] = session
+          session.activate
+        end
+
+        # Session deactivations
+
+        def deactivate_sessions(incoming_ids)
+          select_to_remove(incoming_ids).each do |inactive_session|
+            remove_session(inactive_session)
           end
         end
 
-        def find_inactive_sessions(incoming_sessions)
-          active_keys = incoming_sessions.map {|s| s.id}
-          inactive_pairs = sessions.reject {|k, _| active_keys.include?(k)}
+        def select_to_remove(incoming_ids)
+          inactive_pairs = sessions.reject {|k, _| incoming_ids.include?(k)}
           inactive_pairs.map {|p| p.last}
         end
+
+        def remove_session(session)
+          NewRelic::Agent.logger.debug("Removing X-Ray session #{session.inspect}")
+          sessions.delete(session.id)
+          session.deactivate
+        end
+
       end
     end
   end
