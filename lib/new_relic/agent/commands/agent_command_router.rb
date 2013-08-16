@@ -36,35 +36,47 @@ module NewRelic
           commands
         end
 
-        class AgentCommandError < StandardError
-        end
-
         def invoke_commands(collector_commands)
           results = {}
 
           collector_commands.each do |collector_command|
-            result = {}
             agent_command = NewRelic::Agent::Commands::AgentCommand.new(collector_command)
-
-            begin
-              invoke_command(agent_command)
-            rescue AgentCommandError => e
-              result['error'] = e.message
-            end
-
-            results[agent_command.id.to_s] = result
+            results[agent_command.id.to_s] = invoke_command(agent_command)
           end
 
           results
         end
 
-        def select_handler(agent_command)
-          @handlers[agent_command.name]
+        class AgentCommandError < StandardError
         end
 
         def invoke_command(agent_command)
+          begin
+            call_handler_for(agent_command)
+            return success
+          rescue AgentCommandError => e
+            error(e)
+          end
+        end
+
+        SUCCESS_RESULT = {}.freeze
+        ERROR_KEY = "error"
+
+        def success
+          SUCCESS_RESULT
+        end
+
+        def error(err)
+          { ERROR_KEY => err.message}
+        end
+
+        def call_handler_for(agent_command)
           handler = select_handler(agent_command)
           handler.call(agent_command)
+        end
+
+        def select_handler(agent_command)
+          @handlers[agent_command.name]
         end
 
         def unrecognized_agent_command(agent_command)
