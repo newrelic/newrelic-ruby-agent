@@ -19,10 +19,10 @@ module NewRelic
         def initialize(service, thread_profiler)
           @service = service
 
-          @handlers = Hash.new { |*| [self, :unrecognized_agent_command] }
+          @handlers    = Hash.new { |*| Proc.new { |cmd| self.unrecognized_agent_command(cmd) } }
 
-          @handlers['start_profiler'] = Proc.new { |args| thread_profiler.handle_start_command(args) }
-          @handlers['stop_profiler'] = Proc.new { |args| thread_profiler.handle_stop_command(args) }
+          @handlers['start_profiler'] = Proc.new { |cmd| thread_profiler.handle_start_command(cmd) }
+          @handlers['stop_profiler']  = Proc.new { |cmd| thread_profiler.handle_stop_command(cmd) }
         end
 
         def handle_agent_commands
@@ -67,8 +67,8 @@ module NewRelic
           handler.call(agent_command)
         end
 
-        def unrecognized_agent_command(command_id, name, arguments)
-          NewRelic::Agent.logger.debug("Unrecognized agent command #{name}")
+        def unrecognized_agent_command(agent_command)
+          NewRelic::Agent.logger.debug("Unrecognized agent command #{agent_command.inspect}")
         end
       end
     end

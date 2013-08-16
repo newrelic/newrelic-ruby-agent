@@ -23,6 +23,12 @@ class AgentCommandRouterTest < Test::Unit::TestCase
     "arguments" => DEFAULT_ARGS
   }]
 
+  UNRECOGNIZED_ID = 42
+  UNRECOGNIZED = [UNRECOGNIZED_ID, {
+    "name" => "JIBBERISH",
+    "arguments" => {}
+  }]
+
   def setup
     @service = stub(:agent_command_results)
 
@@ -55,6 +61,12 @@ class AgentCommandRouterTest < Test::Unit::TestCase
     with_commands(BAZZLE, BOOM)
     @service.expects(:agent_command_results).with({ BAZZLE_ID.to_s => {},
                                                     BOOM_ID.to_s => { "error" => "BOOOOOM" }})
+    @agent_commands.handle_agent_commands
+  end
+
+  def test_unrecognized_commands
+    with_commands(UNRECOGNIZED)
+    expects_logging(:debug, regexp_matches(/unrecognized/i))
     @agent_commands.handle_agent_commands
   end
 
