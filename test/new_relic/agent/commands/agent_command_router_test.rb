@@ -29,66 +29,70 @@ class AgentCommandRouterTest < Test::Unit::TestCase
     "arguments" => {}
   }]
 
+  attr_reader :service, :agent_commands, :calls
+
   def setup
-    @service = stub(:agent_command_results)
+    @service = stub
+    @calls = []
 
     @agent_commands = NewRelic::Agent::Commands::AgentCommandRouter.new(@service, nil)
-
-    @handler = TestHandler.new
-    @agent_commands.handlers["bazzle"] = Proc.new { |args| @handler.handle_bazzle_command(args) }
-    @agent_commands.handlers["boom"] = Proc.new { |args| @handler.handle_boom_command(args) }
+    @agent_commands.handlers["bazzle"] = Proc.new { |args| handle_bazzle_command(args) }
+    @agent_commands.handlers["boom"]   = Proc.new { |args| handle_boom_command(args) }
   end
 
   def test_handle_agent_commands_dispatches_command
-    with_commands(BAZZLE)
-    @agent_commands.handle_agent_commands
-    assert_equal [DEFAULT_ARGS], @handler.calls
+    service.stubs(:get_agent_commands).returns([BAZZLE])
+    service.stubs(:agent_command_results)
+
+    agent_commands.handle_agent_commands
+
+    assert_equal [DEFAULT_ARGS], calls
   end
 
   def test_handle_agent_commands_generates_results
-    with_commands(BAZZLE)
-    @service.expects(:agent_command_results).with({ BAZZLE_ID.to_s => {} })
-    @agent_commands.handle_agent_commands
+    service.stubs(:get_agent_commands).returns([BAZZLE])
+    service.expects(:agent_command_results).with({ BAZZLE_ID.to_s => {} })
+
+    agent_commands.handle_agent_commands
   end
 
   def test_handle_agent_commands_dispatches_with_error
-    with_commands(BOOM)
-    @service.expects(:agent_command_results).with({ BOOM_ID.to_s => { "error" => "BOOOOOM" }})
-    @agent_commands.handle_agent_commands
+    service.stubs(:get_agent_commands).returns([BOOM])
+    service.expects(:agent_command_results).with({ BOOM_ID.to_s => { "error" => "BOOOOOM" }})
+
+    agent_commands.handle_agent_commands
   end
 
   def test_handle_agent_commands_allows_multiple
-    with_commands(BAZZLE, BOOM)
-    @service.expects(:agent_command_results).with({ BAZZLE_ID.to_s => {},
-                                                    BOOM_ID.to_s => { "error" => "BOOOOOM" }})
-    @agent_commands.handle_agent_commands
+    service.stubs(:get_agent_commands).returns([BAZZLE, BOOM])
+    service.expects(:agent_command_results).with({ BAZZLE_ID.to_s => {},
+                                                   BOOM_ID.to_s => { "error" => "BOOOOOM" }})
+    agent_commands.handle_agent_commands
+  end
+
+  def test_handle_agent_commands_doesnt_call_results_if_no_commands
+    service.stubs(:get_agent_commands).returns([])
+    service.expects(:agent_command_results).never
+
+    agent_commands.handle_agent_commands
   end
 
   def test_unrecognized_commands
-    with_commands(UNRECOGNIZED)
+    service.stubs(:get_agent_commands).returns([UNRECOGNIZED])
+    service.stubs(:agent_command_results)
+
     expects_logging(:debug, regexp_matches(/unrecognized/i))
-    @agent_commands.handle_agent_commands
+
+    agent_commands.handle_agent_commands
   end
 
   # Helpers
 
-  class TestHandler
-    attr_accessor :calls
-
-    def initialize
-      @calls = []
-    end
-
-    def handle_bazzle_command(command)
-      calls << command.arguments
-    end
-
-    def handle_boom_command(command)
-      raise NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError.new("BOOOOOM")
-    end
+  def handle_bazzle_command(command)
+    calls << command.arguments
   end
 
-  def with_commands(*cmds)
-    @service.stubs(:get_agent_commands).returns(cmds)
+  def handle_boom_command(command)
+    raise NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError.new("BOOOOOM")
   end
 end

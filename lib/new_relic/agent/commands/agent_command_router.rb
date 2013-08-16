@@ -27,7 +27,7 @@ module NewRelic
 
         def handle_agent_commands
           results = invoke_commands(get_agent_commands)
-          service.agent_command_results(results)
+          service.agent_command_results(results) unless results.empty?
         end
 
         def get_agent_commands
