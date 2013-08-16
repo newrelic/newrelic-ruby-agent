@@ -1,5 +1,5 @@
 # encoding: utf-8
-#k This file is distributed under New Relic's license terms.
+# This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/agent/threading/agent_thread'
