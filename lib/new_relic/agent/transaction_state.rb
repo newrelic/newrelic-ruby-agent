@@ -33,6 +33,10 @@ module NewRelic
         self.get.reset(request)
       end
 
+      def initialize
+        @stats_scope_stack = []
+      end
+
       def reset(request)
         @transaction_start_time = Time.now
         @transaction = Transaction.current
@@ -124,12 +128,12 @@ module NewRelic
       # Sql Sampler Transaction Data
       attr_accessor :sql_sampler_transaction_data
 
-      # Scope stack and name tracking from NewRelic::StatsEngine::Transactions
-      attr_accessor :scope_stack, :scope_name
+      # Scope stack tracking from NewRelic::StatsEngine::Transactions
+      # Should not be nil--this class manages its initialization and resetting
+      attr_accessor :stats_scope_stack
 
-      def clear_scope_stack_and_name
-        @scope_stack = nil
-        @scope_name = nil
+      def clear_stats_scope_stack
+        @stats_scope_stack = []
       end
 
     end

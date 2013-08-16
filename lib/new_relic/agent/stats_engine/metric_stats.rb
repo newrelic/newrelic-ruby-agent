@@ -59,10 +59,9 @@ module NewRelic
           get_stats(metric_name, false)
         end
 
-        # If use_scope is true, two chained metrics are created, one with scope and one without
         # If scoped_metric_only is true, only a scoped metric is created (used by rendering metrics which by definition are per controller only)
-        def get_stats(metric_name, use_scope = true, scoped_metric_only = false, scope = nil)
-          scope ||= scope_name if use_scope
+        # Leaving second, unused parameter for compatibility
+        def get_stats(metric_name, _ = true, scoped_metric_only = false, scope = nil)
           stats = nil
           with_stats_lock do
             if scoped_metric_only

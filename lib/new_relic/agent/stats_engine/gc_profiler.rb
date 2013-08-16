@@ -57,7 +57,7 @@ module NewRelic
           end
 
           def scope_stack
-            NewRelic::Agent::TransactionState.get.scope_stack ||= []
+            NewRelic::Agent::TransactionState.get.stats_scope_stack
           end
         end
 

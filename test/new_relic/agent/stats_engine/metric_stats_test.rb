@@ -136,7 +136,6 @@ class NewRelic::Agent::MetricStatsTest < Test::Unit::TestCase
 
   def test_record_metrics_elides_scoped_metric_if_not_in_transaction
     @engine.clear_stats
-    @engine.stubs(:scope_name).returns(nil)
     @engine.record_metrics('foo', 42, :scoped => true)
     unscoped_stats = @engine.get_stats('foo', false)
     assert_equal(1, unscoped_stats.call_count)
