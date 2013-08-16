@@ -12,12 +12,17 @@ module NewRelic
     class TransactionState
 
       def self.get
-        self.for(Thread.current)
+        state_for(Thread.current)
       end
 
-      def self.for(thread)
+      # This method should only be used by TransactionState for access to the
+      # current thread's state or to provide read-only accessors for other threads
+      #
+      # If ever exposed, this requires additional synchronization
+      def self.state_for(thread)
         thread[:newrelic_transaction_state] ||= TransactionState.new
       end
+      private_class_method :state_for
 
       def self.clear
         Thread.current[:newrelic_transaction_state] = nil
@@ -46,11 +51,44 @@ module NewRelic
       attr_accessor :request, :request_token, :request_guid, :request_ignore_enduser
 
       # Current transaction stack and sample building
-      attr_accessor :transaction, :transaction_start_time,
-                    :current_transaction_stack, :transaction_sample_builder
+      attr_accessor :transaction, :transaction_start_time, :transaction_sample_builder
+      attr_writer   :current_transaction_stack
+
+      # Returns and initializes the transaction stack if necessary
+      #
+      # We don't default in the initializer so non-transaction threads retain
+      # a nil stack, and methods in this class use has_current_transction?
+      # instead of this accessor to see if we're a transaction thread or not
+      def current_transaction_stack
+        @current_transaction_stack ||= []
+      end
 
       def duration
         Time.now - self.transaction_start_time
+      end
+
+      def self.in_background_transaction?(thread)
+        state_for(thread).in_background_transaction?
+      end
+
+      def self.in_request_transaction?(thread)
+        state_for(thread).in_request_transaction?
+      end
+
+      def in_background_transaction?
+        !current_transaction.nil? && current_transaction.request.nil?
+      end
+
+      def in_request_transaction?
+        !current_transaction.nil? && !current_transaction.request.nil?
+      end
+
+      def current_transaction
+        current_transaction_stack.last if has_current_transaction?
+      end
+
+      def has_current_transaction?
+        !@current_transaction_stack.nil?
       end
 
       # Execution tracing on current thread

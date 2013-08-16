@@ -54,7 +54,7 @@ module NewRelic
       end
 
       def self.stack
-        TransactionState.get.current_transaction_stack ||= []
+        TransactionState.get.current_transaction_stack
       end
 
       def self.in_transaction?
