@@ -2,7 +2,7 @@ suite_condition("Excon not supported in 1.8.6") do
   RUBY_VERSION != '1.8.6'
 end
 
-excon_versions = %w(0.24.0 0.19.0 0.18.0 0.10.0)
+excon_versions = %w(0.25.0 0.24.0 0.19.0 0.18.0 0.10.0)
 
 excon_versions.each do |excon_version|
   gemfile <<-RB
