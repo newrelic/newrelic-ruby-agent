@@ -73,9 +73,13 @@ DependencyDetection.defer do
 
       # We override this method in order to ensure access to header_str even
       # though we use an on_header callback
-      def header_str
-        self._nr_header_str
+      def nr_header_str
+        self._nr_header_str || self.origin_header_str
       end
+
+      alias_method :origin_header_str, :header_str
+      alias_method :header_str, :nr_header_str
+
     end # class Curl::Easy
 
 

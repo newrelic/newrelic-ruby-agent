@@ -109,16 +109,23 @@ class CurbTest < MiniTest::Unit::TestCase
 
 
   def test_works_with_parallel_fetches
+    header_results = []
     results = []
     other_url = "http://localhost:#{$fake_server.port}/"
 
     in_transaction("test") do
       Curl::Multi.get( [default_url,other_url] ) do |easy|
+        header_results << easy.header_str
         results << easy.body_str
       end
 
       results.each do |res|
         assert_match %r/<head>/i, res
+      end
+
+      header_results.each do |res|
+        assert_match(/^HTTP\/1\.1 200 OK\s+$/, res)
+        assert_match(/^Content-Length: \d+\s+$/, res)
       end
 
       last_segment = find_last_transaction_segment()
