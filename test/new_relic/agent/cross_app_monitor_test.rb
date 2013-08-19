@@ -64,7 +64,7 @@ module NewRelic::Agent
     end
 
     def test_encodes_transaction_name
-      NewRelic::Agent::Transaction.stubs(:timings).returns(stub(
+      NewRelic::Agent::TransactionState.any_instance.stubs(:timings).returns(stub(
           :transaction_name => "\"'goo",
           :queue_time_in_seconds => QUEUE_TIME,
           :app_time_in_seconds => APP_TIME))
@@ -226,7 +226,7 @@ module NewRelic::Agent
     end
 
     def with_default_timings
-      NewRelic::Agent::Transaction.stubs(:timings).returns(stub(
+      NewRelic::Agent::TransactionState.any_instance.stubs(:timings).returns(stub(
           :transaction_name => TRANSACTION_NAME,
           :queue_time_in_seconds => QUEUE_TIME,
           :app_time_in_seconds => APP_TIME))

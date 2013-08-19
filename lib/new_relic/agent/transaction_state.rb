@@ -44,11 +44,16 @@ module NewRelic
         @last_reset_time = Time.now
 
         @transaction = Transaction.current
+        @timings = nil
 
         @request = request
         @request_token = BrowserToken.get_token(request)
         @request_guid = ""
         @request_ignore_enduser = false
+      end
+
+      def timings
+        @timings ||= TransactionTimings.new(transaction_queue_time, transaction_start_time, transaction_name)
       end
 
       # Cross app tracing
@@ -77,6 +82,14 @@ module NewRelic
         else
           transaction.start_time
         end
+      end
+
+      def transaction_queue_time
+        transaction.nil? ? 0.0 : transaction.queue_time
+      end
+
+      def transaction_name
+        transaction.nil? ? nil : transaction.name
       end
 
       def self.in_background_transaction?(thread)

@@ -98,7 +98,7 @@ module NewRelic
       end
 
       def current_timings
-        current_transaction.timings
+        NewRelic::Agent::TransactionState.get.timings
       end
 
       def insert_mobile_response_header(request, response)
@@ -173,7 +173,7 @@ module NewRelic
 
       def include_guid?(state)
         state.request_token &&
-          state.transaction.timings.app_time_in_seconds > state.transaction.apdex_t
+          state.timings.app_time_in_seconds > state.transaction.apdex_t
       end
 
       def tt_token

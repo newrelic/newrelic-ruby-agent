@@ -6,18 +6,12 @@ module NewRelic
   module Agent
     class TransactionTimings
 
-      def initialize(queue_time_in_seconds, state)
+      def initialize(queue_time_in_seconds, start_time_in_seconds, transaction_name)
         @now = Time.now.to_f
-        if state.nil?
-          @start_time_in_seconds = 0.0
-        else
-          @start_time_in_seconds = state.transaction_start_time.to_f
-          if !state.transaction.nil?
-            @transaction_name = state.transaction.name
-          end
-        end
-
         @queue_time_in_seconds = clamp_to_positive(queue_time_in_seconds.to_f)
+        @start_time_in_seconds = clamp_to_positive(start_time_in_seconds.to_f)
+
+        @transaction_name = transaction_name
       end
 
       attr_reader :transaction_name,

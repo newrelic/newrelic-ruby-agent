@@ -31,17 +31,6 @@ module NewRelic
       # as a Rack::Request or an ActionController::AbstractRequest.
       attr_accessor :request
 
-      # Primary source for timings of this transaction.
-      # Used by CAT, RUM and potentially others. Snapshots on first call to it.
-      def timings
-        @timings ||= NewRelic::Agent::TransactionTimings.new(queue_time, NewRelic::Agent::TransactionState.get)
-      end
-
-      def self.timings
-        return current.timings unless current.nil?
-        NewRelic::Agent::TransactionTimings.new(0.0, NewRelic::Agent::TransactionState.get)
-      end
-
       # Return the currently active transaction, or nil.
       def self.current
         self.stack.last
