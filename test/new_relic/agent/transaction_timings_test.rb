@@ -70,22 +70,6 @@ module NewRelic::Agent
       assert_equal "Name", t.transaction_name
     end
 
-    #def test_defaults_to_transaction_info
-    #  t = TransactionTimings.new(1000, nil)
-    #  assert_equal nil, t.transaction_name
-    #  assert_equal 0.0, t.start_time_in_millis
-    #end
-
-    # If (for example) an action is ignored, we might still look for the
-    # timings for things like CAT
-    #def test_without_transaction_in_state
-    #  @name.transaction = nil
-    #  t = TransactionTimings.new(1000, @start_time, @name)
-
-    #  assert_nil t.transaction_name
-    #  assert_equal 1_000, t.queue_time_in_seconds
-    #end
-
     def test_clamp_to_positive
       t = TransactionTimings.new(nil, nil, nil)
       assert_equal(0.0, t.clamp_to_positive(-1), "should clamp a negative value to zero")
