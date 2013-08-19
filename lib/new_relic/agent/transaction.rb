@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/agent/transaction/pop'
+require 'new_relic/agent/transaction_timings'
 
 # A struct holding the information required to measure a controller
 # action.  This is put on the thread local.  Handles the issue of
@@ -29,7 +30,6 @@ module NewRelic
       # get the URI and referer.  The request is interpreted loosely
       # as a Rack::Request or an ActionController::AbstractRequest.
       attr_accessor :request
-
 
       # Return the currently active transaction, or nil.
       def self.current

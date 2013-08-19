@@ -4,12 +4,17 @@
 
 require 'base64'
 require 'new_relic/agent/beacon_configuration'
+require 'new_relic/agent/transaction_timings'
+
 module NewRelic
   module Agent
     # This module contains support for Real User Monitoring - the
     # javascript generation and configuration
     module BrowserMonitoring
       class DummyTransaction
+
+        attr_accessor :start_time
+
         def initialize
           @attributes = {}
         end
@@ -20,6 +25,10 @@ module NewRelic
 
         def queue_time
           0.0
+        end
+
+        def timings
+          NewRelic::Agent::TransactionTimings.new(0.0, NewRelic::Agent::TransactionState.get)
         end
 
         def name
@@ -81,34 +90,15 @@ module NewRelic
       end
 
       def browser_monitoring_transaction_name
-        current_transaction.name || ::NewRelic::Agent::UNKNOWN_METRIC
-      end
-
-      def browser_monitoring_queue_time
-        clamp_to_positive((current_transaction.queue_time.to_f * 1000.0).round)
-      end
-
-      def browser_monitoring_app_time
-        clamp_to_positive(((Time.now - browser_monitoring_start_time).to_f * 1000.0).round)
+        current_timings.transaction_name || ::NewRelic::Agent::UNKNOWN_METRIC
       end
 
       def current_transaction
         NewRelic::Agent::TransactionState.get.transaction || @@dummy_txn
       end
 
-      def clamp_to_positive(value)
-        return 0.0 if value < 0
-        value
-      end
-
-      def browser_monitoring_start_time
-        NewRelic::Agent::TransactionState.get.transaction_start_time
-      end
-
-      def self.timings
-        NewRelic::Agent::Instrumentation::BrowserMonitoringTimings.new(
-          current_transaction.queue_time,
-          NewRelic::Agent::TransactionState.get)
+      def current_timings
+        NewRelic::Agent::TransactionState.get.timings
       end
 
       def insert_mobile_response_header(request, response)
@@ -119,7 +109,7 @@ module NewRelic
 
           response['X-NewRelic-Beacon-Url'] = beacon_url(request)
 
-          payload = %[ ["#{Agent.config[:application_id]}","#{obfuscate(config, browser_monitoring_transaction_name)}",#{browser_monitoring_queue_time},#{browser_monitoring_app_time}] ]
+          payload = %[ ["#{Agent.config[:application_id]}","#{obfuscate(config, browser_monitoring_transaction_name)}",#{current_timings.queue_time_in_millis},#{current_timings.app_time_in_millis}] ]
           response['X-NewRelic-App-Server-Metrics'] = payload
         end
       end
@@ -164,7 +154,7 @@ module NewRelic
       end
 
       def generate_footer_js(config)
-        if browser_monitoring_start_time
+        if current_transaction.start_time
           footer_js_string(config)
         else
           ''
@@ -182,7 +172,8 @@ module NewRelic
       end
 
       def include_guid?(state)
-        state.request_token && state.duration > state.transaction.apdex_t
+        state.request_token &&
+          state.timings.app_time_in_seconds > state.transaction.apdex_t
       end
 
       def tt_token
@@ -196,7 +187,7 @@ module NewRelic
         account = obfuscate(config, transaction_attribute(:account))
         product = obfuscate(config, transaction_attribute(:product))
 
-        html_safe_if_needed(%'<script type="text/javascript">#{config.browser_timing_static_footer}NREUMQ.push(["#{config.finish_command}","#{Agent.config[:beacon]}","#{Agent.config[:browser_key]}","#{Agent.config[:application_id]}","#{obfuscated_transaction_name}",#{browser_monitoring_queue_time},#{browser_monitoring_app_time},new Date().getTime(),"#{tt_guid}","#{tt_token}","#{user}","#{account}","#{product}"]);</script>')
+        html_safe_if_needed(%'<script type="text/javascript">#{config.browser_timing_static_footer}NREUMQ.push(["#{config.finish_command}","#{Agent.config[:beacon]}","#{Agent.config[:browser_key]}","#{Agent.config[:application_id]}","#{obfuscated_transaction_name}",#{current_timings.queue_time_in_millis},#{current_timings.app_time_in_millis},new Date().getTime(),"#{tt_guid}","#{tt_token}","#{user}","#{account}","#{product}"]);</script>')
       end
 
       def html_safe_if_needed(string)

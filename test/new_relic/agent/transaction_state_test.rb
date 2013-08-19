@@ -44,5 +44,32 @@ module NewRelic::Agent
 
       assert state.in_request_transaction?
     end
+
+    def test_timings_without_transaction
+      freeze_time
+
+      state.reset(nil)
+      timings = state.timings
+
+      assert_equal 0.0, timings.queue_time_in_seconds
+      assert_equal 0.0, timings.app_time_in_seconds
+      assert_equal nil, timings.transaction_name
+    end
+
+    def test_timings_with_transaction
+      earliest_time = freeze_time
+      transaction = NewRelic::Agent::Transaction.new
+      transaction.apdex_start = earliest_time
+      transaction.start_time = earliest_time + 5
+      transaction.name = "Transaction/name"
+      state.transaction = transaction
+
+      advance_time(10.0)
+      timings = state.timings
+
+      assert_equal 5.0, timings.queue_time_in_seconds
+      assert_equal 5.0, timings.app_time_in_seconds
+      assert_equal transaction.name, timings.transaction_name
+    end
   end
 end
