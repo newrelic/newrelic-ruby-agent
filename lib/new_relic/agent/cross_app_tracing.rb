@@ -103,7 +103,7 @@ module NewRelic
 
             # Add TT custom parameters
             segment.name = scoped_metric
-            add_transaction_trace_parameters(request, response) if response
+            add_transaction_trace_parameters(request, response)
           end
         ensure
           # We always need to pop the scope stack to avoid an inconsistent
@@ -151,7 +151,7 @@ module NewRelic
       def add_transaction_trace_parameters(request, response)
         filtered_uri = ::NewRelic::Agent::HTTPClients::URIUtil.filter_uri(request.uri)
         transaction_sampler.add_segment_parameters(:uri => filtered_uri)
-        if response_is_crossapp?( response )
+        if response && response_is_crossapp?( response )
           add_cat_transaction_trace_parameters( response )
         end
       end
