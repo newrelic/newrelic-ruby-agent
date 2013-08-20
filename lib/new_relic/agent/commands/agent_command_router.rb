@@ -17,12 +17,12 @@ module NewRelic
       class AgentCommandRouter
         attr_reader :service, :handlers
 
-        # Keep XraySessions here rather than cluttering Agent with it
-        attr_reader :xray_sessions
+        attr_accessor :thread_profiler, :xray_sessions
 
-        def initialize(service, thread_profiler)
+        def initialize(service)
           @service = service
 
+          @thread_profiler = ThreadProfiler.new
           @xray_sessions = XraySessions.new(service)
 
           @handlers    = Hash.new { |*| Proc.new { |cmd| self.unrecognized_agent_command(cmd) } }
@@ -35,6 +35,20 @@ module NewRelic
         def handle_agent_commands
           results = invoke_commands(get_agent_commands)
           service.agent_command_results(results) unless results.empty?
+        end
+
+        NO_PROFILES_TO_SEND = {}.freeze
+
+        def harvest_data_to_send(disconnecting)
+          thread_profiler.stop(true) if disconnecting
+
+          if @thread_profiler.finished?
+            profile = thread_profiler.harvest
+            ::NewRelic::Agent.logger.debug "Sending thread profile #{profile.profile_id}"
+            {:profile_data => profile}
+          else
+            NO_PROFILES_TO_SEND
+          end
         end
 
         def get_agent_commands

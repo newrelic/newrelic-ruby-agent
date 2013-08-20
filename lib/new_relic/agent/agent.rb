@@ -15,7 +15,6 @@ require 'new_relic/agent/pipe_service'
 require 'new_relic/agent/configuration/manager'
 require 'new_relic/agent/database'
 require 'new_relic/agent/commands/agent_command_router'
-require 'new_relic/agent/commands/thread_profiler'
 require 'new_relic/agent/event_listener'
 require 'new_relic/agent/cross_app_monitor'
 require 'new_relic/agent/request_sampler'
@@ -43,8 +42,7 @@ module NewRelic
         @stats_engine          = NewRelic::Agent::StatsEngine.new
         @transaction_sampler   = NewRelic::Agent::TransactionSampler.new
         @sql_sampler           = NewRelic::Agent::SqlSampler.new
-        @thread_profiler       = NewRelic::Agent::Commands::ThreadProfiler.new
-        @agent_command_router  = NewRelic::Agent::Commands::AgentCommandRouter.new(@service, @thread_profiler)
+        @agent_command_router  = NewRelic::Agent::Commands::AgentCommandRouter.new(@service)
         @cross_app_monitor     = NewRelic::Agent::CrossAppMonitor.new(@events)
         @error_collector       = NewRelic::Agent::ErrorCollector.new
         @transaction_rules     = NewRelic::Agent::RulesEngine.new
@@ -83,9 +81,12 @@ module NewRelic
         # the transaction sampler that handles recording transactions
         attr_reader :transaction_sampler
         attr_reader :sql_sampler
-        # begins a thread profile session when instructed by agent commands
-        attr_reader :thread_profiler
+        # manages agent commands we receive from the collector, and the handlers
         attr_reader :agent_command_router
+
+        def thread_profiler
+          agent_command_router.thread_profiler
+        end
         # error collector is a simple collection of recorded errors
         attr_reader :error_collector
         attr_reader :harvest_samplers
@@ -1016,14 +1017,10 @@ module NewRelic
           ::NewRelic::Agent.logger.debug "Sent slowest sample (#{@service.agent_id}) in #{Time.now - start_time} seconds"
         end
 
-        def harvest_and_send_thread_profile(disconnecting=false)
-          @thread_profiler.stop(true) if disconnecting
-
-          if @thread_profiler.finished?
-            profile = @thread_profiler.harvest
-
-            ::NewRelic::Agent.logger.debug "Sending thread profile #{profile.profile_id}"
-            @service.profile_data(profile)
+        def harvest_and_send_for_agent_commands(disconnecting=false)
+          data = @agent_command_router.harvest_data_to_send(disconnecting)
+          data.each do |service_method, payload|
+            @service.send(service_method, payload)
           end
         end
 
@@ -1080,7 +1077,7 @@ module NewRelic
             harvest_and_send_analytic_event_data
 
             handle_agent_commands
-            harvest_and_send_thread_profile(disconnecting)
+            harvest_and_send_for_agent_commands(disconnecting)
           end
         rescue EOFError => e
           ::NewRelic::Agent.logger.warn("EOFError after #{Time.now - now}s when transmitting data to New Relic Service.")

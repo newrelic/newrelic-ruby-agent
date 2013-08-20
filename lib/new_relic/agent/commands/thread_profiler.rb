@@ -11,6 +11,8 @@ module NewRelic
 
       class ThreadProfiler
 
+        attr_accessor :profile
+
         def self.is_supported?
           RUBY_VERSION >= "1.9.2"
         end
