@@ -188,16 +188,12 @@ module NewRelic
             if !options[:scoped_metric_only]
               metrics << NewRelic::MetricSpec.new(first_name)
             end
-            if in_transaction? && !options[:transaction]
+            if NewRelic::Agent::Transaction.in_transaction? && !options[:transaction]
               metrics << NewRelic::MetricSpec.new(first_name, StatsEngine::MetricStats::SCOPE_PLACEHOLDER)
             end
           end
 
           metrics
-        end
-
-        def in_transaction?
-          NewRelic::Agent::Transaction.in_transaction?
         end
 
         def has_parent?
