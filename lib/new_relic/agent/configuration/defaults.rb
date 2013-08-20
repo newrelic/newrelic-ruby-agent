@@ -190,36 +190,36 @@ module NewRelic
         :config_path => {
           :default => DefaultSource.config_path,
           :public => true,
-          :description => 'Path to newrelic.yml (determined from a collection of predefined paths).'
+          :description => "Path to newrelic.yml. When omitted the agent will check (in order) 'config/newrelic.yml', 'newrelic.yml', $HOME/.newrelic/newrelic.yml' and $HOME/newrelic.yml."
         },
         :app_name => {
           :default => DefaultSource.app_name,
-          :public => true, :description => 'Application name.'
+          :public => true, :description => "Semicolon delimited list of application names where metrics will be recorded in the dashboard (e.g. 'MyApplication' or 'MyAppStaging;Instance1')."
         },
         :dispatcher => {
           :default => DefaultSource.dispatcher,
-          :public => true,
-          :description => 'Dispatcher.'
+          :public => false,
+          :description => 'Autodetected application component that reports metrics to New Relic.'
         },
         :framework => {
           :default => DefaultSource.framework,
-          :public => true,
-          :description => 'Framework.'
+          :public => false,
+          :description => 'Autodetected application framework used to enable framework-specific functionality.'
         },
         :enabled => {
           :default => true,
-          :public => true,
-          :description => 'FIXME'
+          :public => false,
+          :description => 'Boolean value to enable or disable the agent.'
         },
         :monitor_mode => {
           :default => DefaultSource.monitor_mode,
-          :public => true,
-          :description => 'FIXME'
+          :public => false,
+          :description => 'Boolean value to enable or disable the transmission of data to the New Relic data collection service.'
         },
         :agent_enabled => {
           :default => DefaultSource.agent_enabled,
           :public => true,
-          :description => 'Determines whether or not the agent will try to start and report data.'
+          :description => 'Boolean value to enable or disable the agent.'
         },
         :'autostart.blacklisted_constants' => {
           :default => 'Rails::Console',
@@ -229,46 +229,46 @@ module NewRelic
         :'autostart.blacklisted_executables' => {
           :default => 'irb,rspec',
           :public => true,
-          :description => "Comma separated list of executables that won't trigger when agents start. e.g. 'rake,my_ruby_script.rb'"
+          :description => "Comma delimited list of executables that not be instrumented by the agent (e.g. 'rake,my_ruby_script.rb')."
         },
         :'autostart.blacklisted_rake_tasks' => {
           :default => DefaultSource.autostart_blacklisted_rake_tasks,
           :public => true,
-          :description => 'FIXME'
+          :description => "Comma delimited list of rake tasks that should not be instrumented by the agent (e.g. 'assets:precompile,db:migrate')."
         },
         :developer_mode => { :default => DefaultSource.developer_mode,
           :public => true,
-          :description => 'FIXME'
+          :description => "Boolean value to enable or disable developer mode, a local analytics package built into the agent for rack applications. Access developer mode analytics by visiting '/newrelic' in your application."
         },
         :developer => {
           :default => false,
-          :public => true,
-          :description => 'FIXME'
+          :public => false,
+          :description => 'Alternative method of enabling developer_mode.'
         },
         :apdex_t => {
           :default => 0.5,
           :public => true,
-          :description => 'FIXME'
+          :description => 'Threshold at which New Relic will begin alerting you. By default you will receive alerts when your Apdex score drops below 0.5, or more than half of your users are experiencing degraded application performance.'
         },
         :monitor_daemons => {
           :default => false,
-          :public => true,
-          :description => 'FIXME'
+          :public => false,
+          :description => 'Boolean value that enables the agent for background processes. No longer necessary as the agent now automatically instruments background processes.'
         },
         :multi_homed => {
           :default => false,
-          :public => true,
-          :description => 'FIXME'
+          :public => false,
+          :description => 'Boolean value that allows instrumentation for multiple applications on the same host bound to different interfaces serving the same port.'
         },
         :high_security => {
           :default => false,
           :public => true,
-          :description => 'FIXME'
+          :description => 'Boolean value that enables several security features designed to protect data in an enterprise setting.'
         },
         :'strip_exception_messages.enabled' => {
           :default => DefaultSource.strip_exception_messages_enabled,
           :public => true,
-          :description => 'Strip messages from all exceptions that are not specified in the whitelist.'
+          :description => 'Boolean value that strips messages from all exceptions that are not specified in the whitelist. Enabled automatically in high security mode.'
         },
         :'strip_exception_messages.whitelist' => {
           :default => '',
@@ -277,161 +277,161 @@ module NewRelic
         },
         :host => {
           :default => 'collector.newrelic.com',
-          :public => true,
-          :description => 'FIXME'
+          :public => false,
+          :description => "URI for New Relic's data collection service."
         },
         :api_host => {
           :default => 'rpm.newrelic.com',
-          :public => true,
-          :description => 'FIXME'
+          :public => false,
+          :description => 'API host for New Relic.'
         },
         :port => {
           :default => DefaultSource.port,
-          :public => true,
-          :description => 'FIXME'
+          :public => false,
+          :description => 'Port for use connecting to the New Relic data collection service.'
         },
         :api_port => {
           :default => DefaultSource.api_port,
-          :public => true,
-          :description => 'FIXME'
+          :public => false,
+          :description => 'Port for use connecting to the API host for New Relic.'
         },
         :ssl => {
           :default => true,
           :public => true,
-          :description => 'FIXME'
+          :description => "Boolean value to enable SSL for transmissions to New Relic's data collection service."
         },
         :sync_startup => {
           :default => false,
           :public => true,
-          :description => 'FIXME'
+          :description => 'Boolean value to force the agent to connect to New Relic synchronously when your application starts.'
         },
         :send_data_on_exit => {
           :default => true,
           :public => true,
-          :description => 'FIXME'
+          :description => 'Boolean value that installs an exit handler to send data to New Relic before shutting down.'
         },
         :post_size_limit => { :default => 2 * 1024 * 1024, # 2MB
-          :public => true,
-          :description => 'FIXME'
+          :public => false,
+          :description => 'Maximum number of bytes to send to the New Relic data collection service.'
         },
         :timeout => { :default => 2 * 60, # 2 minutes
           :public => true,
-          :description => 'FIXME'
+          :description => "Maximum number of seconds to try and contact New Relic's data collection service."
         },
         :force_send => {
           :default => false,
           :public => true,
-          :description => 'FIXME'
+          :description => 'Boolean value that forces the agent to send data when shutting down.'
         },
         :send_environment_info => {
           :default => true,
           :public => true,
-          :description => 'FIXME'
+          :description => "Boolean value to enable transmission of the application environment information to New Relic's data collection service."
         },
         :start_channel_listener => {
           :default => false,
-          :public => true,
-          :description => 'FIXME'
+          :public => false,
+          :description => 'Boolean value to spawn a background thread that listens for connections from child processes. Primarily used for Resque instrumentation.'
         },
         :data_report_period => {
           :default => 60,
           :public => true,
-          :description => 'FIXME'
+          :description => 'Number of seconds betwixt connections to the New Relic data collection service.'
         },
         :keep_retrying => {
           :default => true,
           :public => true,
-          :description => 'FIXME'
+          :description => 'Boolean value to retry connection to the New Relic data collection service.'
         },
         :report_instance_busy => {
           :default => true,
           :public => true,
-          :description => 'FIXME'
+          :description => 'Boolean value to enable the transmission of duty cycle metrics to the New Relic data collection service.'
         },
         :log_file_name => {
           :default => 'newrelic_agent.log',
           :public => true,
-          :description => 'FIXME'
+          :description => 'Name of the agent log file.'
         },
         :log_file_path => {
           :default => 'log/',
           :public => true,
-          :description => 'FIXME'
+          :description => 'Path to the agent log file, excluding the filename.'
         },
         :log_level => {
           :default => 'info',
           :public => true,
-          :description => 'FIXME'
+          :description => 'Log level to use for agent logging: error, warn, info or debug.'
         },
         :'audit_log.enabled' => {
           :default => false,
           :public => true,
-          :description => 'FIXME'
+          :description => 'Boolean value to enable the audit log, a log of communications with the New Relic data collection service.'
         },
         :'audit_log.path' => {
           :default => DefaultSource.audit_log_path,
           :public => true,
-          :description => 'FIXME'
+          :description => 'Path to the audit log file, excluding the filename.'
         },
         :disable_samplers => {
           :default => false,
           :public => true,
-          :description => 'Disable samplers.'
+          :description => 'Boolean value to enable collection of sampler metrics, metrics that are not event based (e.g. CPU time or memory usage).'
         },
         :disable_resque => {
           :default => false,
           :public => true,
-          :description => 'Disable resque.'
+          :description => 'Boolean value to disable resque instrumentation.'
         },
         :disable_dj => {
           :default => false,
           :public => true,
-          :description => 'Disable delayed job.'
+          :description => 'Boolean value to disable delayed job instrumentation.'
         },
         :disable_sinatra => {
           :default => false,
           :public => true,
-          :description => 'Disable sinatra.'
+          :description => 'Boolean value to disable sinatra instrumentation.'
         },
         :disable_sinatra_auto_middleware => {
           :default => false,
           :public => true,
-          :description => 'Disable sinatra automatic middleware.'
+          :description => 'Boolean value to disable the agent middleware for sinatra. The middleware is responsible for instrumenting some advanced feature support for sinatra (e.g. Cross-application tracing, Real User Monitoring, Error collection).'
         },
         :disable_view_instrumentation => {
           :default => false,
           :public => true,
-          :description => 'Disable views.'
+          :description => 'Boolean value to disable view instrumentation.'
         },
         :disable_backtrace_cleanup => {
           :default => false,
           :public => true,
-          :description => 'Disable backtrace cleanup.'
+          :description => 'Boolean value to disable the removal of the gem path (newrelic_rpm) from backtraces.'
         },
         :disable_harvest_thread => {
           :default => false,
-          :public => true,
-          :description => 'This disables the samplers'
+          :public => false,
+          :description => 'Boolean value disable the harvest thread entirely.'
         },
         :skip_ar_instrumentation => {
           :default => false,
-          :public => true,
-          :description => 'This disables the samplers'
+          :public => false,
+          :description => 'Boolean value to disable the active record instrumentation.'
         },
         :disable_activerecord_instrumentation => {
           :default => DefaultSource.disable_activerecord_instrumentation,
           :public => true,
-          :description => 'Disable ActiveRecord.'
+          :description => 'Boolean value to disable the active record instrumentation.'
         },
         :disable_memcache_instrumentation => {
           :default => false,
           :public => true,
-          :description => 'Disable memcache.'
+          :description => 'Boolean value to disable memcache instrumentation.'
         },
         :disable_mobile_headers => {
           :default => true,
-          :public => true,
-          :description => 'Disable mobile headers'
+          :public => false,
+          :description => 'Boolean value to disable the injection of mobile response headers when mobile headers are present in the incoming request.'
         },
         :capture_params => {
           :default => false,
