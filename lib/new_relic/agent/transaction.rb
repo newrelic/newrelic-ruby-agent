@@ -107,6 +107,10 @@ module NewRelic
         TransactionState.get.transaction = self
       end
 
+      def noticed_error_ids
+        @noticed_error_ids ||= []
+      end
+
       def name=(name)
         if !@name_frozen
           @name = name
