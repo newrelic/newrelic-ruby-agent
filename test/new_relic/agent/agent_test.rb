@@ -134,7 +134,7 @@ module NewRelic
 
       def test_handle_for_agent_commands
         @agent.service.expects(:get_agent_commands).returns([]).once
-        @agent.send :handle_agent_commands
+        @agent.send :check_for_and_handle_agent_commands
       end
 
       def test_harvest_and_send_for_agent_commands

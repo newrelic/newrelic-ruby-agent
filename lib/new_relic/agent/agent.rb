@@ -1060,8 +1060,8 @@ module NewRelic
           @request_sampler.reset
         end
 
-        def handle_agent_commands
-          @agent_command_router.handle_agent_commands
+        def check_for_and_handle_agent_commands
+          @agent_command_router.check_for_and_handle_agent_commands
         end
 
         def transmit_data(disconnecting=false)
@@ -1076,7 +1076,7 @@ module NewRelic
             harvest_and_send_timeslice_data
             harvest_and_send_analytic_event_data
 
-            handle_agent_commands
+            check_for_and_handle_agent_commands
             harvest_and_send_for_agent_commands(disconnecting)
           end
         rescue EOFError => e

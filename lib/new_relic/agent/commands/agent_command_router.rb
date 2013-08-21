@@ -32,7 +32,7 @@ module NewRelic
           @handlers['active_xray_sessions'] = Proc.new { |cmd| xray_sessions.handle_active_xray_sessions(cmd) }
         end
 
-        def handle_agent_commands
+        def check_for_and_handle_agent_commands
           results = invoke_commands(get_agent_commands)
           service.agent_command_results(results) unless results.empty?
         end
