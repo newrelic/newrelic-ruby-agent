@@ -11,6 +11,7 @@ module NewRelic::Agent::Configuration
     def setup
       @original_env = {}
       @original_env.replace(ENV)
+      @environment_source = EnvironmentSource.new
     end
 
     def teardown
@@ -92,6 +93,56 @@ module NewRelic::Agent::Configuration
       assert_equal 'STDOUT', source[:log_file_path]
     end
 
+    def test_set_values_from_new_relic_environment_variables
+      keys = %w(NEW_RELIC_IS_RAD NEWRELIC_IS_MAGIC NR_IS_SUPER)
+      keys.each { |key| ENV[key] = 'true' }
+
+      expected_source = EnvironmentSource.new
+
+      [:is_rad, :is_magic, :is_super].each do |key|
+        assert_equal 'true', expected_source[key]
+      end
+    end
+
+    def test_set_value_from_environment_variable
+      ENV['NEW_RELIC_IS_RAD'] = 'super rad'
+      @environment_source.set_value_from_environment_variable('NEW_RELIC_IS_RAD')
+      assert_equal @environment_source[:is_rad], 'super rad'
+    end
+
+    def test_set_key_with_new_relic_prefix
+      ENV['NEW_RELIC_NUKE_IT_FROM_ORBIT'] = 'true'
+      assert_equal 'true', EnvironmentSource.new[:nuke_it_from_orbit]
+    end
+
+    def test_set_key_with_newrelic_prefix
+      ENV['NEWRELIC_NUKE_IT_FROM_ORBIT'] = 'true'
+      assert_equal 'true', EnvironmentSource.new[:nuke_it_from_orbit]
+    end
+
+    def test_set_key_with_nr_prefix
+      ENV['NR_NUKE_IT_FROM_ORBIT'] = 'true'
+      assert_equal 'true', EnvironmentSource.new[:nuke_it_from_orbit]
+    end
+
+    def test_does_not_set_key_without_new_relic_related_prefix
+      ENV['NUKE_IT_FROM_ORBIT'] = 'true'
+      assert_nil EnvironmentSource.new[:nuke_it_from_orbit]
+    end
+
+    def test_convert_environment_key_to_config_key
+      result = @environment_source.convert_environment_key_to_config_key('NEW_RELIC_IS_RAD')
+      assert_equal :is_rad, result
+    end
+
+    def test_collect_new_relic_environment_variable_keys
+      keys = %w(NEW_RELIC_IS_RAD NEWRELIC_IS_MAGIC NR_IS_SUPER)
+      keys.each { |key| ENV[key] = 'true' }
+
+      result = @environment_source.collect_new_relic_environment_variable_keys
+      assert_equal keys, result
+    end
+
     def assert_applied_string(env_var, config_var)
       ENV[env_var] = 'test value'
       assert_equal 'test value', EnvironmentSource.new[config_var.to_sym]
@@ -102,6 +153,10 @@ module NewRelic::Agent::Configuration
       ENV[env_var] = 'test value'
       assert_equal :'test value', EnvironmentSource.new[config_var.to_sym]
       ENV.delete(env_var)
+    end
+
+    def random_configuration_key
+      DefaultSource.new.keys.sample
     end
   end
 end

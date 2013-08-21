@@ -6,36 +6,41 @@ module NewRelic
   module Agent
     module Configuration
       class EnvironmentSource < DottedHash
+        SUPPORTED_PREFIXES = /new_relic_|newrelic_|nr_/i
+
+        STRING_MAP = {
+          'NRCONFIG'              => :config_path,
+          'NEW_RELIC_LICENSE_KEY' => :license_key,
+          'NEWRELIC_LICENSE_KEY'  => :license_key,
+          'NEW_RELIC_APP_NAME'    => :app_name,
+          'NEWRELIC_APP_NAME'     => :app_name,
+          'NEW_RELIC_HOST'        => :host,
+          'NEW_RELIC_PORT'        => :port
+        }
+        SYMBOL_MAP = {
+          'NEW_RELIC_DISPATCHER'  => :dispatcher,
+          'NEWRELIC_DISPATCHER'   => :dispatcher,
+          'NEW_RELIC_FRAMEWORK'   => :framework,
+          'NEWRELIC_FRAMEWORK'    => :framework
+        }
+        BOOLEAN_MAP = {
+          'NEWRELIC_ENABLE'   => :agent_enabled,
+          'NEWRELIC_ENABLED'  => :agent_enabled,
+          'NEW_RELIC_ENABLE'  => :agent_enabled,
+          'NEW_RELIC_ENABLED' => :agent_enabled,
+          'NEWRELIC_DISABLE_HARVEST_THREAD'  => :disable_harvest_thread,
+          'NEW_RELIC_DISABLE_HARVEST_THREAD' => :disable_harvest_thread
+        }
         def initialize
-          string_map = {
-            'NRCONFIG'              => :config_path,
-            'NEW_RELIC_LICENSE_KEY' => :license_key,
-            'NEWRELIC_LICENSE_KEY'  => :license_key,
-            'NEW_RELIC_APP_NAME'    => :app_name,
-            'NEWRELIC_APP_NAME'     => :app_name,
-            'NEW_RELIC_HOST'        => :host,
-            'NEW_RELIC_PORT'        => :port
-          }.each do |key, val|
+          STRING_MAP.each do |key, val|
             self[val] = ENV[key] if ENV[key]
           end
 
-          symbol_map = {
-            'NEW_RELIC_DISPATCHER'  => :dispatcher,
-            'NEWRELIC_DISPATCHER'   => :dispatcher,
-            'NEW_RELIC_FRAMEWORK'   => :framework,
-            'NEWRELIC_FRAMEWORK'    => :framework
-          }.each do |key, val|
+          SYMBOL_MAP.each do |key, val|
             self[val] = ENV[key].intern if ENV[key]
           end
 
-          boolean_map = {
-            'NEWRELIC_ENABLE'   => :agent_enabled,
-            'NEWRELIC_ENABLED'  => :agent_enabled,
-            'NEW_RELIC_ENABLE'  => :agent_enabled,
-            'NEW_RELIC_ENABLED' => :agent_enabled,
-            'NEWRELIC_DISABLE_HARVEST_THREAD'  => :disable_harvest_thread,
-            'NEW_RELIC_DISABLE_HARVEST_THREAD' => :disable_harvest_thread
-          }.each do |key, val|
+          BOOLEAN_MAP.each do |key, val|
             if ENV[key].to_s =~ /false|off|no/i
               self[val] = false
             elsif ENV[key] != nil
@@ -51,7 +56,38 @@ module NewRelic
               self[:log_file_name] = File.basename(ENV['NEW_RELIC_LOG'])
             end
           end
+
+          set_values_from_new_relic_environment_variables
         end
+
+        def set_values_from_new_relic_environment_variables
+          nr_env_var_keys = collect_new_relic_environment_variable_keys
+
+          nr_env_var_keys.each do |key|
+            set_value_from_environment_variable(key)
+          end
+        end
+
+        def set_value_from_environment_variable(key)
+          config_key = convert_environment_key_to_config_key(key)
+
+          # Only set keys that haven't been set by the previous map loops
+          # TODO: Use default aliases to replace map loops
+          self[config_key] = ENV[key] if self[config_key].nil?
+        end
+
+        def convert_environment_key_to_config_key(key)
+          key.gsub(SUPPORTED_PREFIXES, '').downcase.to_sym
+        end
+
+        def collect_new_relic_environment_variable_keys
+          ENV.keys.select do |key|
+            if key.match(SUPPORTED_PREFIXES)
+              key
+            end
+          end
+        end
+
       end
     end
   end
