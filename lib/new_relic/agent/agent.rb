@@ -14,8 +14,8 @@ require 'new_relic/agent/new_relic_service'
 require 'new_relic/agent/pipe_service'
 require 'new_relic/agent/configuration/manager'
 require 'new_relic/agent/database'
-require 'new_relic/agent/agent_command_router'
-require 'new_relic/agent/thread_profiler'
+require 'new_relic/agent/commands/agent_command_router'
+require 'new_relic/agent/commands/thread_profiler'
 require 'new_relic/agent/event_listener'
 require 'new_relic/agent/cross_app_monitor'
 require 'new_relic/agent/request_sampler'
@@ -33,14 +33,20 @@ module NewRelic
       extend NewRelic::Agent::Configuration::Instance
 
       def initialize
+        # FIXME: temporary work around for RUBY-839
+        # This should be handled with a configuration callback
+        if Agent.config[:monitor_mode]
+          @service = NewRelic::Agent::NewRelicService.new
+        end
+
         @launch_time = Time.now
 
         @events                = NewRelic::Agent::EventListener.new
         @stats_engine          = NewRelic::Agent::StatsEngine.new
         @transaction_sampler   = NewRelic::Agent::TransactionSampler.new
         @sql_sampler           = NewRelic::Agent::SqlSampler.new
-        @thread_profiler       = NewRelic::Agent::ThreadProfiler.new
-        @agent_commands        = NewRelic::Agent::AgentCommandRouter.new(@thread_profiler)
+        @thread_profiler       = NewRelic::Agent::Commands::ThreadProfiler.new
+        @agent_command_router  = NewRelic::Agent::Commands::AgentCommandRouter.new(@service, @thread_profiler)
         @cross_app_monitor     = NewRelic::Agent::CrossAppMonitor.new(@events)
         @error_collector       = NewRelic::Agent::ErrorCollector.new
         @transaction_rules     = NewRelic::Agent::RulesEngine.new
@@ -54,12 +60,6 @@ module NewRelic
 
         @last_harvest_time = Time.now
         @obfuscator = lambda {|sql| NewRelic::Agent::Database.default_sql_obfuscator(sql) }
-
-        # FIXME: temporary work around for RUBY-839
-        # This should be handled with a configuration callback
-        if Agent.config[:monitor_mode]
-          @service = NewRelic::Agent::NewRelicService.new
-        end
       end
 
       # contains all the class-level methods for NewRelic::Agent::Agent
@@ -84,6 +84,7 @@ module NewRelic
         attr_reader :sql_sampler
         # begins a thread profile session when instructed by agent commands
         attr_reader :thread_profiler
+        attr_reader :agent_command_router
         # error collector is a simple collection of recorded errors
         attr_reader :error_collector
         attr_reader :harvest_samplers
@@ -1056,8 +1057,8 @@ module NewRelic
           @request_sampler.reset
         end
 
-        def check_for_agent_commands
-          @agent_commands.check_for_agent_commands(@service)
+        def handle_agent_commands
+          @agent_command_router.handle_agent_commands
         end
 
         def transmit_data(disconnecting=false)
@@ -1072,7 +1073,7 @@ module NewRelic
             harvest_and_send_timeslice_data
             harvest_and_send_analytic_event_data
 
-            check_for_agent_commands
+            handle_agent_commands
             harvest_and_send_thread_profile(disconnecting)
           end
         rescue EOFError => e

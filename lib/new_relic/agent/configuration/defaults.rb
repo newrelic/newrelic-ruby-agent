@@ -145,7 +145,7 @@ module NewRelic
         :trusted_account_ids                => [],
         :"cross_application_tracer.enabled" => true,
 
-        :'thread_profiler.enabled' => Proc.new { NewRelic::Agent::ThreadProfiler.is_supported? },
+        :'thread_profiler.enabled' => Proc.new { NewRelic::Agent::Commands::ThreadProfiler.is_supported? },
 
         :marshaller => Proc.new { NewRelic::Agent::NewRelicService::JsonMarshaller.is_supported? ? 'json' : 'pruby' },
 

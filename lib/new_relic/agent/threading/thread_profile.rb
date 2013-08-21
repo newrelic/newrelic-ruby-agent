@@ -16,16 +16,19 @@ module NewRelic
 
         attr_reader :profile_id,
           :traces,
-          :profile_agent_code, :interval,
+          :profile_agent_code,
+          :interval, :duration,
           :poll_count, :sample_count,
           :start_time, :stop_time
 
-        def initialize(profile_id, duration, interval, profile_agent_code)
-          @profile_id = profile_id
-          @profile_agent_code = profile_agent_code
+        def initialize(agent_command)
+          arguments = agent_command.arguments
+          @profile_id = arguments.fetch('profile_id', -1)
+          @profile_agent_code = arguments.fetch('profile_agent_code', true)
 
+          @duration = arguments.fetch('duration', 120)
           @worker_loop = NewRelic::Agent::WorkerLoop.new(:duration => duration)
-          @interval = interval
+          @interval = arguments.fetch('sample_period', 0.1)
           @finished = false
 
           @traces = {
@@ -42,6 +45,8 @@ module NewRelic
         end
 
         def run
+          NewRelic::Agent.logger.debug("Starting thread profile. profile_id=#{profile_id}, duration=#{duration}")
+
           Threading::AgentThread.new('Thread Profiler') do
             @start_time = now_in_millis
 

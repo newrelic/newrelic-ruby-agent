@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
-require 'new_relic/agent/thread_profiler'
+require 'new_relic/agent/commands/thread_profiler'
 
 # Tests of HTTP Keep Alive implementation that require a different setup and
 # set of mocks.
@@ -259,14 +259,8 @@ class NewRelicServiceTest < Test::Unit::TestCase
 
   def test_agent_command_results
     @http_handle.respond_to(:agent_command_results, {})
-    response = @service.agent_command_results(4200)
+    response = @service.agent_command_results({'1' => {}})
     assert_equal({}, response)
-  end
-
-  def test_agent_command_results_with_errors
-    @http_handle.respond_to(:agent_command_results, [123])
-    response = @service.agent_command_results(4200, 'Boo!')
-    assert_equal [123], response
   end
 
   def test_request_timeout

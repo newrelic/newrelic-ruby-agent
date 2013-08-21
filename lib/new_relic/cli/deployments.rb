@@ -14,7 +14,7 @@ require 'rexml/document'
 # it won't load it twice, something it does when run inside a test
 require 'new_relic/control' unless defined? NewRelic::Control
 
-class NewRelic::Command::Deployments < NewRelic::Command
+class NewRelic::Cli::Deployments < NewRelic::Cli::Command
   attr_reader :control
   def self.command; "deployments"; end
 
@@ -85,18 +85,18 @@ class NewRelic::Command::Deployments < NewRelic::Command
         info "Recorded deployment to '#{@appname}' (#{@description || Time.now })"
       else
         err_string = REXML::Document.new(response.body).elements['errors/error'].map(&:to_s).join("; ") rescue  response.message
-        raise NewRelic::Command::CommandFailure, "Deployment not recorded: #{err_string}"
+        raise NewRelic::Cli::Command::CommandFailure, "Deployment not recorded: #{err_string}"
       end
     rescue SystemCallError, SocketError => e
       # These include Errno connection errors
       err_string = "Transient error attempting to connect to #{control.api_server} (#{e})"
-      raise NewRelic::Command::CommandFailure.new(err_string)
-    rescue NewRelic::Command::CommandFailure
+      raise NewRelic::Cli::Command::CommandFailure.new(err_string)
+    rescue NewRelic::Cli::Command::CommandFailure
       raise
     rescue => e
       err "Unexpected error attempting to connect to #{control.api_server}"
       info "#{e}: #{e.backtrace.join("\n   ")}"
-      raise NewRelic::Command::CommandFailure.new(e.to_s)
+      raise NewRelic::Cli::Command::CommandFailure.new(e.to_s)
     end
   end
 

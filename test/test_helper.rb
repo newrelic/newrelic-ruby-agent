@@ -87,6 +87,7 @@ def default_service(stubbed_method_overrides = {})
     :transaction_sample_data => nil,
     :sql_trace_data => nil,
     :get_agent_commands => [],
+    :agent_command_results => nil,
     :analytic_event_data => nil
   }
 
