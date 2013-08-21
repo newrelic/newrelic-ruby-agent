@@ -39,6 +39,17 @@ class ErrorController < ApplicationController
     raise ServerIgnoredError.new('this is a server ignored error')
   end
 
+  def frozen_error
+    e = RuntimeError.new("frozen errors make a refreshing treat on a hot summer day")
+    e.freeze
+    raise e
+  end
+
+  def string_noticed_error
+    NewRelic::Agent.notice_error("trilobites died out millions of years ago")
+    render :text => 'trilobites'
+  end
+
   def noticed_error
     newrelic_notice_error(RuntimeError.new('this error should be noticed'))
     render :text => "Shoulda noticed an error"
@@ -100,6 +111,18 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
     get '/error/noticed_error'
     assert_error_reported_once('this error should be noticed',
                                'Controller/error/noticed_error')
+  end
+
+  def test_should_capture_frozen_errors
+    get '/error/frozen_error'
+    assert_error_reported_once("frozen errors make a refreshing treat on a hot summer day",
+                               "Controller/error/frozen_error")
+  end
+
+  def test_should_capture_string_noticed_errors
+    get '/error/string_noticed_error'
+    assert_error_reported_once("trilobites died out millions of years ago",
+                               "Controller/error/string_noticed_error")
   end
 
   # Important choice of controllor_error, since this goes through both the

@@ -92,6 +92,10 @@ module NewRelic
         transaction.nil? ? nil : transaction.name
       end
 
+      def transaction_noticed_error_ids
+        transaction.nil? ? [] : transaction.noticed_error_ids
+      end
+
       def self.in_background_transaction?(thread)
         state_for(thread).in_background_transaction?
       end
