@@ -196,7 +196,11 @@ module NewRelic
         account = obfuscate(config, transaction_attribute(:account))
         product = obfuscate(config, transaction_attribute(:product))
 
-        html_safe_if_needed(%'<script type="text/javascript">#{config.browser_timing_static_footer}NREUMQ.push(["#{config.finish_command}","#{Agent.config[:beacon]}","#{Agent.config[:browser_key]}","#{Agent.config[:application_id]}","#{obfuscated_transaction_name}",#{browser_monitoring_queue_time},#{browser_monitoring_app_time},new Date().getTime(),"#{tt_guid}","#{tt_token}","#{user}","#{account}","#{product}"]);</script>')
+        # This is slightly varied from other agents' RUM footer to ensure that
+        # NREUMQ is defined. Our experimental header placement has some holes
+        # where it could end up in a comment and not define NREUMQ as the footer
+        # assumes. We protect against that here.
+        html_safe_if_needed(%'<script type="text/javascript">if (typeof NREUMQ != "undefined") { #{config.browser_timing_static_footer}NREUMQ.push(["#{config.finish_command}","#{Agent.config[:beacon]}","#{Agent.config[:browser_key]}","#{Agent.config[:application_id]}","#{obfuscated_transaction_name}",#{browser_monitoring_queue_time},#{browser_monitoring_app_time},new Date().getTime(),"#{tt_guid}","#{tt_token}","#{user}","#{account}","#{product}"]);}</script>')
       end
 
       def html_safe_if_needed(string)
