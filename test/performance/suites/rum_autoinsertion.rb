@@ -2,13 +2,15 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent'
-require 'new_relic/rack/browser_monitoring'
-
 class RumAutoInsertion < Performance::TestCase
   attr_reader :browser_monitor, :html, :html_with_meta, :html_with_meta_after
 
   def setup
+    # Don't require until we're actually running tests to avoid weirdness in
+    # the parent runner process...
+    require 'new_relic/agent'
+    require 'new_relic/rack/browser_monitoring'
+
     NewRelic::Agent.manual_start
     @config = {
       :beacon                 => 'beacon',
@@ -26,9 +28,9 @@ class RumAutoInsertion < Performance::TestCase
     end
 
     @browser_monitor = NewRelic::Rack::BrowserMonitoring.new(nil)
-    @html = "<html><head>#{'<script>alert("boo");</script>' * 1_0}</head><body></body></html>"
-    @html_with_meta = "<html><head><meta http-equiv='X-UA-Compatible' content='IE=7'/>#{'<script>alert("boo");</script>' * 1_0}</head><body></body></html>"
-    @html_with_meta_after = "<html><head>#{'<script>alert("boo");</script>' * 10_000}<meta http-equiv='X-UA-Compatible' content='IE=7'/></head><body></body></html>"
+    @html = "<html><head>#{'<script>alert("boo");</script>' * 1_000}</head><body></body></html>"
+    @html_with_meta = "<html><head><meta http-equiv='X-UA-Compatible' content='IE=7'/>#{'<script>alert("boo");</script>' * 1_000}</head><body></body></html>"
+    @html_with_meta_after = "<html><head>#{'<script>alert("boo");</script>' * 1_000}<meta http-equiv='X-UA-Compatible' content='IE=7'/></head><body></body></html>"
   end
 
   def teardown
