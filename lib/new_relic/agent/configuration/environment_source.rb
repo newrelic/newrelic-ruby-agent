@@ -6,51 +6,11 @@ module NewRelic
   module Agent
     module Configuration
       class EnvironmentSource < DottedHash
-        SUPPORTED_PREFIXES = /^new_relic_|newrelic_|nr_|new_relic|newrelic|nr/i
-
-        STRING_MAP = {
-          'NRCONFIG'              => :config_path,
-          'NEW_RELIC_LICENSE_KEY' => :license_key,
-          'NEWRELIC_LICENSE_KEY'  => :license_key,
-          'NEW_RELIC_APP_NAME'    => :app_name,
-          'NEWRELIC_APP_NAME'     => :app_name,
-          'NEW_RELIC_HOST'        => :host,
-          'NEW_RELIC_PORT'        => :port
-        }
-        SYMBOL_MAP = {
-          'NEW_RELIC_DISPATCHER'  => :dispatcher,
-          'NEWRELIC_DISPATCHER'   => :dispatcher,
-          'NEW_RELIC_FRAMEWORK'   => :framework,
-          'NEWRELIC_FRAMEWORK'    => :framework
-        }
-        BOOLEAN_MAP = {
-          'NEWRELIC_ENABLE'   => :agent_enabled,
-          'NEWRELIC_ENABLED'  => :agent_enabled,
-          'NEW_RELIC_ENABLE'  => :agent_enabled,
-          'NEW_RELIC_ENABLED' => :agent_enabled,
-          'NEWRELIC_DISABLE_HARVEST_THREAD'  => :disable_harvest_thread,
-          'NEW_RELIC_DISABLE_HARVEST_THREAD' => :disable_harvest_thread
-        }
+        SUPPORTED_PREFIXES = /^new_relic_|newrelic_|new_relic|newrelic/i
 
         attr_reader :alias_map, :config_types
 
         def initialize
-          STRING_MAP.each do |key, val|
-            self[val] = ENV[key] if ENV[key]
-          end
-
-          SYMBOL_MAP.each do |key, val|
-            self[val] = ENV[key].intern if ENV[key]
-          end
-
-          BOOLEAN_MAP.each do |key, val|
-            if ENV[key].to_s =~ /false|off|no/i
-              self[val] = false
-            elsif ENV[key] != nil
-              self[val] = true
-            end
-          end
-
           if ENV['NEW_RELIC_LOG']
             if ENV['NEW_RELIC_LOG'].upcase == 'STDOUT'
               self[:log_file_path] = self[:log_file_name] = 'STDOUT'
@@ -103,6 +63,8 @@ module NewRelic
             self[config_key] = value.to_i
           elsif type == Float
             self[config_key] = value.to_f
+          elsif type == Symbol
+            self[config_key] = value.to_sym
           elsif type == NewRelic::Agent::Configuration::Boolean
             if value =~ /false|off|no/i
               self[config_key] = false

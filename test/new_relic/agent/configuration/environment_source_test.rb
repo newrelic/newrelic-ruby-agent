@@ -25,7 +25,10 @@ module NewRelic::Agent::Configuration
       assert_applied_string 'NEW_RELIC_APP_NAME', 'app_name'
       assert_applied_string 'NEWRELIC_APP_NAME', 'app_name'
       assert_applied_string 'NEW_RELIC_HOST', 'host'
-      assert_applied_string 'NEW_RELIC_PORT', 'port'
+    end
+
+    def test_environment_fixnums_are_applied
+      assert_applied_fixnum 'NEW_RELIC_PORT', 'port'
     end
 
     def test_environment_symbols_are_applied
@@ -38,21 +41,21 @@ module NewRelic::Agent::Configuration
     %w| NEWRELIC_ENABLE NEWRELIC_ENABLED NEW_RELIC_ENABLE NEW_RELIC_ENABLED |.each do |var|
       define_method("test_environment_booleans_truths_are_applied_to_#{var}") do
         ENV[var] = 'true'
-        assert EnvironmentSource.new[:agent_enabled]
+        assert EnvironmentSource.new[:enabled]
         ENV[var] = 'on'
-        assert EnvironmentSource.new[:agent_enabled]
+        assert EnvironmentSource.new[:enabled]
         ENV[var] = 'yes'
-        assert EnvironmentSource.new[:agent_enabled]
+        assert EnvironmentSource.new[:enabled]
         ENV.delete(var)
       end
 
       define_method("test_environment_booleans_falsehoods_are_applied_to_#{var}") do
         ENV[var] = 'false'
-        assert !EnvironmentSource.new[:agent_enabled]
+        assert !EnvironmentSource.new[:enabled]
         ENV[var] = 'off'
-        assert !EnvironmentSource.new[:agent_enabled]
+        assert !EnvironmentSource.new[:enabled]
         ENV[var] = 'no'
-        assert !EnvironmentSource.new[:agent_enabled]
+        assert !EnvironmentSource.new[:enabled]
         ENV.delete(var)
       end
     end
@@ -94,12 +97,12 @@ module NewRelic::Agent::Configuration
     end
 
     def test_set_values_from_new_relic_environment_variables
-      keys = %w(NEW_RELIC_IS_RAD NEWRELIC_IS_MAGIC NR_IS_SUPER)
+      keys = %w(NEW_RELIC_IS_RAD NEWRELIC_IS_MAGIC)
       keys.each { |key| ENV[key] = 'true' }
 
       expected_source = EnvironmentSource.new
 
-      [:is_rad, :is_magic, :is_super].each do |key|
+      [:is_rad, :is_magic].each do |key|
         assert_equal 'true', expected_source[key]
       end
     end
@@ -136,16 +139,6 @@ module NewRelic::Agent::Configuration
       assert_equal 'true', EnvironmentSource.new[:nuke_it_from_orbit]
     end
 
-    def test_set_key_with_nr_prefix
-      ENV['NR_NUKE_IT_FROM_ORBIT'] = 'true'
-      assert_equal 'true', EnvironmentSource.new[:nuke_it_from_orbit]
-    end
-
-    def test_set_key_with_nr_prefix_and_no_underscore
-      ENV['NRNUKE_IT_FROM_ORBIT'] = 'true'
-      assert_equal 'true', EnvironmentSource.new[:nuke_it_from_orbit]
-    end
-
     def test_does_not_set_key_without_new_relic_related_prefix
       ENV['NUKE_IT_FROM_ORBIT'] = 'true'
       assert_nil EnvironmentSource.new[:nuke_it_from_orbit]
@@ -158,7 +151,7 @@ module NewRelic::Agent::Configuration
 
     def test_convert_environment_key_to_config_key_respects_aliases
       aliased_config_settings = []
-      prefixes = ['NEW_RELIC_', 'NEW_RELIC', 'NEWRELIC_', 'NEWRELIC', 'NR_', 'NR']
+      prefixes = ['NEW_RELIC_', 'NEW_RELIC', 'NEWRELIC_', 'NEWRELIC']
 
       NewRelic::Agent::Configuration::DEFAULTS.each do |config_setting, value|
         next unless value[:aliases]
@@ -175,7 +168,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_collect_new_relic_environment_variable_keys
-      keys = %w(NEW_RELIC_IS_RAD NEWRELIC_IS_MAGIC NR_IS_SUPER)
+      keys = %w(NEW_RELIC_IS_RAD NEWRELIC_IS_MAGIC)
       keys.each { |key| ENV[key] = 'true' }
 
       result = @environment_source.collect_new_relic_environment_variable_keys
@@ -195,7 +188,7 @@ module NewRelic::Agent::Configuration
     end
 
     def assert_applied_fixnum(env_var, config_var)
-      ENV[env_var] = 3000
+      ENV[env_var] = '3000'
       assert_equal 3000, EnvironmentSource.new[config_var.to_sym]
       ENV.delete(env_var)
     end

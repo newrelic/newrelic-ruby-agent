@@ -205,19 +205,20 @@ module NewRelic
         :dispatcher => {
           :default => DefaultSource.dispatcher,
           :public => false,
-          :type => String,
+          :type => Symbol,
           :description => 'Autodetected application component that reports metrics to New Relic.'
         },
         :framework => {
           :default => DefaultSource.framework,
           :public => false,
-          :type => String,
+          :type => Symbol,
           :description => 'Autodetected application framework used to enable framework-specific functionality.'
         },
         :enabled => {
           :default => true,
           :public => false,
           :type => Boolean,
+          :aliases => [:enable],
           :description => 'Boolean value to enable or disable the agent.'
         },
         :monitor_mode => {
