@@ -53,9 +53,9 @@ module NewRelic
         end
 
         def replace_or_add_config(source, level=0)
-          idx = @config_stack.map{|s| s.class}.index(source.class)
-          @config_stack.delete_at(idx) if idx
-          apply_config(source, idx || level)
+          index = @config_stack.map{|s| s.class}.index(source.class)
+          @config_stack.delete_at(index) if index
+          apply_config(source, index || level)
         end
 
         def source(key)

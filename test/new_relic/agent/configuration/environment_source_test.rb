@@ -110,8 +110,19 @@ module NewRelic::Agent::Configuration
       assert_equal @environment_source[:is_rad], 'super rad'
     end
 
+    def test_set_key_by_type_uses_the_default_type
+      ENV['NEW_RELIC_TEST'] = 'true'
+      @environment_source.set_key_by_type(:enabled, 'NEW_RELIC_TEST')
+      assert_equal true, @environment_source[:enabled]
+    end
+
     def test_set_key_with_new_relic_prefix
       ENV['NEW_RELIC_NUKE_IT_FROM_ORBIT'] = 'true'
+      assert_equal 'true', EnvironmentSource.new[:nuke_it_from_orbit]
+    end
+
+    def test_set_key_with_new_relic_prefix_and_no_underscore
+      ENV['NEW_RELICNUKE_IT_FROM_ORBIT'] = 'true'
       assert_equal 'true', EnvironmentSource.new[:nuke_it_from_orbit]
     end
 
@@ -120,8 +131,18 @@ module NewRelic::Agent::Configuration
       assert_equal 'true', EnvironmentSource.new[:nuke_it_from_orbit]
     end
 
+    def test_set_key_with_newrelic_prefix_and_no_underscore
+      ENV['NEWRELICNUKE_IT_FROM_ORBIT'] = 'true'
+      assert_equal 'true', EnvironmentSource.new[:nuke_it_from_orbit]
+    end
+
     def test_set_key_with_nr_prefix
       ENV['NR_NUKE_IT_FROM_ORBIT'] = 'true'
+      assert_equal 'true', EnvironmentSource.new[:nuke_it_from_orbit]
+    end
+
+    def test_set_key_with_nr_prefix_and_no_underscore
+      ENV['NRNUKE_IT_FROM_ORBIT'] = 'true'
       assert_equal 'true', EnvironmentSource.new[:nuke_it_from_orbit]
     end
 
@@ -133,6 +154,24 @@ module NewRelic::Agent::Configuration
     def test_convert_environment_key_to_config_key
       result = @environment_source.convert_environment_key_to_config_key('NEW_RELIC_IS_RAD')
       assert_equal :is_rad, result
+    end
+
+    def test_convert_environment_key_to_config_key_respects_aliases
+      aliased_config_settings = []
+      prefixes = ['NEW_RELIC_', 'NEW_RELIC', 'NEWRELIC_', 'NEWRELIC', 'NR_', 'NR']
+
+      NewRelic::Agent::Configuration::DEFAULTS.each do |config_setting, value|
+        next unless value[:aliases]
+        aliased_config_settings << config_setting
+        prefixed_key = prefixes.sample + value[:aliases].sample.to_s.upcase
+
+        ENV[prefixed_key] = config_setting.to_s
+      end
+
+      aliased_config_settings.each do |config_setting|
+        result = EnvironmentSource.new[config_setting]
+        assert_equal config_setting.to_s, result, "Config setting: #{config_setting}"
+      end
     end
 
     def test_collect_new_relic_environment_variable_keys
@@ -155,8 +194,11 @@ module NewRelic::Agent::Configuration
       ENV.delete(env_var)
     end
 
-    def random_configuration_key
-      DefaultSource.new.keys.sample
+    def assert_applied_fixnum(env_var, config_var)
+      ENV[env_var] = 3000
+      assert_equal 3000, EnvironmentSource.new[config_var.to_sym]
+      ENV.delete(env_var)
     end
+
   end
 end

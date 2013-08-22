@@ -13,20 +13,20 @@ module NewRelic::Agent::Configuration
 
     def test_default_values_have_a_public_setting
       @default_source.each do |config_setting, config_value|
-        assert_not_nil config_value[:public]
+        assert_not_nil config_value[:public], "Config setting: #{config_setting}"
       end
     end
 
     def test_default_values_have_types
       @default_source.each do |config_setting, config_value|
-        assert_not_nil config_value[:type]
+        assert_not_nil config_value[:type], "Config setting: #{config_setting}"
       end
     end
 
     def test_default_values_have_descriptions
       @default_source.each do |config_setting, config_value|
         assert_not_nil config_value[:description]
-        assert config_value[:description].length > 0
+        assert config_value[:description].length > 0, "Config setting: #{config_setting}"
       end
     end
 
@@ -38,7 +38,7 @@ module NewRelic::Agent::Configuration
         value_class = get_config_value_class(default_value)
 
         unless value_class == Proc
-          assert_equal expected_type, value_class, "Setting: #{config_setting}"
+          assert_equal expected_type, value_class, "Config setting: #{config_setting}"
         end
       end
     end
