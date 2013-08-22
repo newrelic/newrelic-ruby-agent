@@ -107,6 +107,9 @@ EOL
 
   source_files = Dir[File.join(File.dirname(__FILE__), "..", "..", "rum", "*.source.html")]
 
+  RUM_HEADER = "|||I AM THE RUM HEADER|||"
+  RUM_FOOTER = "|||I AM THE RUM FOOTER|||"
+
   source_files.each do |source_file|
     source_filename = File.basename(source_file).gsub(".", "_")
     source_html = File.read(source_file)
@@ -115,6 +118,9 @@ EOL
 
     define_method("test_#{source_filename}") do
       TestApp.doc = source_html
+      NewRelic::Agent.instance.stubs(:browser_timing_header).returns(RUM_HEADER)
+      NewRelic::Agent.instance.stubs(:browser_timing_footer).returns(RUM_FOOTER)
+
       get '/'
 
       expected_content = File.read(result_file)
@@ -123,7 +129,7 @@ EOL
 
     define_method("test_dont_touch_#{source_filename}") do
       TestApp.doc = source_html
-      NewRelic::Agent.stubs(:is_transaction_traced?).returns(false)
+      NewRelic::Rack::BrowserMonitoring.any_instance.stubs(:should_instrument?).returns(false)
 
       get '/'
 
