@@ -21,7 +21,13 @@ module NewRelic
           @defaults[key][:default]
         end
 
-        def_delegators :@defaults, :has_key?, :each, :merge, :delete, :to_hash, :keys
+        def to_hash
+          result = {}
+          @defaults.each { |k,v| result[k] = v[:default] }
+          result
+        end
+
+        def_delegators :@defaults, :has_key?, :each, :merge, :delete, :keys
 
         def self.config_path
           Proc.new {
@@ -86,7 +92,7 @@ module NewRelic
         end
 
         def self.thread_profiler_enabled
-          Proc.new { NewRelic::Agent::ThreadProfiler.is_supported? }
+          Proc.new { NewRelic::Agent::Commands::ThreadProfiler.is_supported? }
         end
 
         def self.browser_monitoring_auto_instrument
@@ -193,7 +199,6 @@ module NewRelic
           :default => DefaultSource.config_path,
           :public => true,
           :type => String,
-          :aliases => [:config],
           :description => "Path to newrelic.yml. When omitted the agent will check (in order) 'config/newrelic.yml', 'newrelic.yml', $HOME/.newrelic/newrelic.yml' and $HOME/newrelic.yml."
         },
         :app_name => {

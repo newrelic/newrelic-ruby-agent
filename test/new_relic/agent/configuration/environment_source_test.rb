@@ -98,12 +98,12 @@ module NewRelic::Agent::Configuration
 
     def test_set_values_from_new_relic_environment_variables
       keys = %w(NEW_RELIC_IS_RAD NEWRELIC_IS_MAGIC)
-      keys.each { |key| ENV[key] = 'true' }
+      keys.each { |key| ENV[key] = 'skywizards' }
 
       expected_source = EnvironmentSource.new
 
       [:is_rad, :is_magic].each do |key|
-        assert_equal 'true', expected_source[key]
+        assert_equal 'skywizards', expected_source[key]
       end
     end
 
@@ -120,27 +120,23 @@ module NewRelic::Agent::Configuration
     end
 
     def test_set_key_with_new_relic_prefix
-      ENV['NEW_RELIC_NUKE_IT_FROM_ORBIT'] = 'true'
-      assert_equal 'true', EnvironmentSource.new[:nuke_it_from_orbit]
+      assert_applied_string('NEW_RELIC_NUKE_IT_FROM_ORBIT', :nuke_it_from_orbit)
     end
 
     def test_set_key_with_new_relic_prefix_and_no_underscore
-      ENV['NEW_RELICNUKE_IT_FROM_ORBIT'] = 'true'
-      assert_equal 'true', EnvironmentSource.new[:nuke_it_from_orbit]
+      assert_applied_string('NEW_RELICNUKE_IT_FROM_ORBIT', :nuke_it_from_orbit)
     end
 
     def test_set_key_with_newrelic_prefix
-      ENV['NEWRELIC_NUKE_IT_FROM_ORBIT'] = 'true'
-      assert_equal 'true', EnvironmentSource.new[:nuke_it_from_orbit]
+      assert_applied_string('NEWRELIC_NUKE_IT_FROM_ORBIT', :nuke_it_from_orbit)
     end
 
     def test_set_key_with_newrelic_prefix_and_no_underscore
-      ENV['NEWRELICNUKE_IT_FROM_ORBIT'] = 'true'
-      assert_equal 'true', EnvironmentSource.new[:nuke_it_from_orbit]
+      assert_applied_string('NEWRELICNUKE_IT_FROM_ORBIT', :nuke_it_from_orbit)
     end
 
     def test_does_not_set_key_without_new_relic_related_prefix
-      ENV['NUKE_IT_FROM_ORBIT'] = 'true'
+      ENV['NUKE_IT_FROM_ORBIT'] = 'boom'
       assert_nil EnvironmentSource.new[:nuke_it_from_orbit]
     end
 
@@ -150,21 +146,11 @@ module NewRelic::Agent::Configuration
     end
 
     def test_convert_environment_key_to_config_key_respects_aliases
-      aliased_config_settings = []
-      prefixes = ['NEW_RELIC_', 'NEW_RELIC', 'NEWRELIC_', 'NEWRELIC']
+      assert_applied_boolean('NEWRELIC_ENABLE', :enabled)
+    end
 
-      NewRelic::Agent::Configuration::DEFAULTS.each do |config_setting, value|
-        next unless value[:aliases]
-        aliased_config_settings << config_setting
-        prefixed_key = prefixes.sample + value[:aliases].sample.to_s.upcase
-
-        ENV[prefixed_key] = config_setting.to_s
-      end
-
-      aliased_config_settings.each do |config_setting|
-        result = EnvironmentSource.new[config_setting]
-        assert_equal config_setting.to_s, result, "Config setting: #{config_setting}"
-      end
+    def test_convert_environment_key_to_config_key_allows_underscores_as_dots
+      assert_applied_string('NEW_RELIC_AUDIT_LOG_PATH', :'audit_log.path')
     end
 
     def test_collect_new_relic_environment_variable_keys
@@ -190,6 +176,12 @@ module NewRelic::Agent::Configuration
     def assert_applied_fixnum(env_var, config_var)
       ENV[env_var] = '3000'
       assert_equal 3000, EnvironmentSource.new[config_var.to_sym]
+      ENV.delete(env_var)
+    end
+
+    def assert_applied_boolean(env_var, config_var)
+      ENV[env_var] = 'true'
+      assert_equal true, EnvironmentSource.new[config_var.to_sym]
       ENV.delete(env_var)
     end
 

@@ -8,9 +8,38 @@ module NewRelic
       class EnvironmentSource < DottedHash
         SUPPORTED_PREFIXES = /^new_relic_|newrelic_|new_relic|newrelic/i
 
-        attr_reader :alias_map, :config_types
+        attr_accessor :alias_map, :type_map
 
         def initialize
+          set_log_file
+          set_config_file
+
+          @alias_map = {}
+          @type_map = {}
+
+          DEFAULTS.each do |config_setting, value|
+            self.type_map[config_setting] = value[:type]
+            set_aliases(config_setting, value)
+          end
+
+          set_values_from_new_relic_environment_variables
+        end
+
+        def set_aliases(config_setting, value)
+          set_dotted_alias(config_setting) if config_setting.match(/\./)
+
+          return unless value[:aliases]
+          value[:aliases].each do |config_alias|
+            self.alias_map[config_alias] = config_setting
+          end
+        end
+
+        def set_dotted_alias(config_setting)
+          config_alias = config_setting.to_s.gsub(/\./,'_').to_sym
+          self.alias_map[config_alias] = config_setting
+        end
+
+        def set_log_file
           if ENV['NEW_RELIC_LOG']
             if ENV['NEW_RELIC_LOG'].upcase == 'STDOUT'
               self[:log_file_path] = self[:log_file_name] = 'STDOUT'
@@ -19,20 +48,10 @@ module NewRelic
               self[:log_file_name] = File.basename(ENV['NEW_RELIC_LOG'])
             end
           end
+        end
 
-          @alias_map = {}
-          @config_types = {}
-          DEFAULTS.each do |config_setting, value|
-            @config_types[config_setting] = value[:type]
-
-            next unless value[:aliases]
-
-            value[:aliases].each do |config_alias|
-              @alias_map[config_alias] = config_setting
-            end
-          end
-
-          set_values_from_new_relic_environment_variables
+        def set_config_file
+          self[:config_path] = ENV['NRCONFIG']
         end
 
         def set_values_from_new_relic_environment_variables
@@ -45,9 +64,6 @@ module NewRelic
 
         def set_value_from_environment_variable(key)
           config_key = convert_environment_key_to_config_key(key)
-
-          # Only set keys that haven't been set by the previous map loops
-          # TODO: Use default aliases to replace map loops
           set_key_by_type(config_key, key)
         end
 
@@ -55,7 +71,7 @@ module NewRelic
           self[config_key] = ENV[environment_key] if self[config_key].nil?
 
           value = ENV[environment_key]
-          type = self.config_types[config_key]
+          type = self.type_map[config_key]
 
           if type == String
             self[config_key] = value
