@@ -83,10 +83,6 @@ module NewRelic
         attr_reader :sql_sampler
         # manages agent commands we receive from the collector, and the handlers
         attr_reader :agent_command_router
-
-        def thread_profiler
-          agent_command_router.thread_profiler
-        end
         # error collector is a simple collection of recorded errors
         attr_reader :error_collector
         attr_reader :harvest_samplers

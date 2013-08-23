@@ -23,7 +23,7 @@ class ThreadProfilingTest < MiniTest::Unit::TestCase
     agent.service.request_timeout = 0.5
     agent.service.agent_id = 666
 
-    @thread_profiler = agent.thread_profiler
+    @thread_profiler = agent.agent_command_router.thread_profiler
     @threads = []
   end
 
