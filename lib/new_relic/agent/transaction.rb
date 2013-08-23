@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/agent/transaction/pop'
+require 'new_relic/agent/transaction_timings'
 
 # A struct holding the information required to measure a controller
 # action.  This is put on the thread local.  Handles the issue of
@@ -30,7 +31,6 @@ module NewRelic
       # as a Rack::Request or an ActionController::AbstractRequest.
       attr_accessor :request
 
-
       # Return the currently active transaction, or nil.
       def self.current
         self.stack.last
@@ -54,7 +54,7 @@ module NewRelic
       end
 
       def self.stack
-        Thread.current[:newrelic_transaction] ||= []
+        TransactionState.get.current_transaction_stack
       end
 
       def self.in_transaction?
@@ -104,7 +104,11 @@ module NewRelic
         @request = options[:request]
         @exceptions = {}
         @stats_hash = StatsHash.new
-        TransactionInfo.get.transaction = self
+        TransactionState.get.transaction = self
+      end
+
+      def noticed_error_ids
+        @noticed_error_ids ||= []
       end
 
       def name=(name)
@@ -290,7 +294,6 @@ module NewRelic
         return unless recording_web_transaction? && NewRelic::Agent.is_execution_traced?
 
         freeze_name
-        apdex_t = TransactionInfo.get.apdex_t
         action_duration = end_time - start_time
         total_duration  = end_time - apdex_start
         is_error = is_error.nil? ? !exceptions.empty? : is_error
@@ -301,6 +304,15 @@ module NewRelic
         @stats_hash.record(APDEX_METRIC_SPEC, apdex_bucket_global, apdex_t)
         txn_apdex_metric = NewRelic::MetricSpec.new(@name.gsub(/^[^\/]+\//, 'Apdex/'))
         @stats_hash.record(txn_apdex_metric, apdex_bucket_txn, apdex_t)
+      end
+
+      def apdex_t
+        transaction_specific_apdex_t || Agent.config[:apdex_t]
+      end
+
+      def transaction_specific_apdex_t
+        key = :web_transactions_apdex
+        Agent.config[key] && Agent.config[key][self.name]
       end
 
       # Yield to a block that is run with a database metric name context.  This means

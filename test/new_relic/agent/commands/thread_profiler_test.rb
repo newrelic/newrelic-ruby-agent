@@ -56,11 +56,6 @@ if !NewRelic::Agent::Commands::ThreadProfiler.is_supported?
       assert_equal false, NewRelic::Agent::Commands::ThreadProfiler.is_supported?
     end
 
-    def test_wont_start_when_not_supported
-      @profiler.start(start_command)
-      assert_equal false, @profiler.running?
-    end
-
     def test_stop_is_safe_when_not_supported
       @profiler.start(start_command)
       @profiler.stop(true)
@@ -68,10 +63,9 @@ if !NewRelic::Agent::Commands::ThreadProfiler.is_supported?
 
     def test_wont_start_and_reports_error
       errors = nil
-      @profiler.handle_start_command(start_command) do |_, err|
-        errors = err
+      assert_raise NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError do
+        @profiler.handle_start_command(start_command)
       end
-      assert_equal false, errors.nil?
       assert_equal false, @profiler.running?
     end
 

@@ -79,8 +79,8 @@ module Performance
       result.tags.merge! hash['tags']
       result.exception = hash['exception']
       result.elapsed = elapsed
-      result.timer.start_timestamp = Time.iso8601(hash['started_at'])
-      result.timer.stop_timestamp = Time.iso8601(hash['finished_at'])
+      result.timer.start_timestamp = Time.iso8601(hash['started_at']) if hash['started_at']
+      result.timer.stop_timestamp = Time.iso8601(hash['finished_at']) if hash['finished_at']
       result
     end
 

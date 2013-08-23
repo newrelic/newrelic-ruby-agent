@@ -15,10 +15,11 @@ module NewRelic
 
         def self.bucket_thread(thread, profile_agent_code)
           if thread.key?(:newrelic_label)
-            return profile_agent_code ? :agent : :ignore
-          elsif thread[:newrelic_transaction].respond_to?(:last) &&
-            thread[:newrelic_transaction].last
-            thread[:newrelic_transaction].last.request.nil? ? :background : :request
+            profile_agent_code ? :agent : :ignore
+          elsif TransactionState.in_background_transaction?(thread)
+            :background
+          elsif TransactionState.in_request_transaction?(thread)
+            :request
           else
             :other
           end

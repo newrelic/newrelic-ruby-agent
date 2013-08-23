@@ -29,8 +29,6 @@ module Agent
         def end_transaction; end
         def push_scope(*args); end
         def transaction_sampler=(*args); end
-        def scope_name=(*args); end
-        def scope_name; end
         def pop_scope(*args); end
       end
 
@@ -85,23 +83,6 @@ module Agent
         NewRelic::Agent.logger.warn("NewRelic::Agent::StatsEngine#transaction_sampler is deprecated")
       end
 
-      # set the name of the transaction for the current thread, which will be used
-      # to define the scope of all traced methods called on this thread until the
-      # scope stack is empty.
-      #
-      # currently the transaction name is the name of the controller action that
-      # is invoked via the dispatcher, but conceivably we could use other transaction
-      # names in the future if the traced application does more than service http request
-      # via controller actions
-      def scope_name=(transaction)
-        Thread::current[:newrelic_scope_name] = transaction
-      end
-
-      # Returns the current scope name from the thread local
-      def scope_name
-        Thread::current[:newrelic_scope_name]
-      end
-
       # Start a new transaction, unless one is already in progress
       def start_transaction
         NewRelic::Agent.instance.events.notify(:start_transaction)
@@ -115,8 +96,7 @@ module Agent
         stack = scope_stack
 
         if stack && stack.empty?
-          Thread::current[:newrelic_scope_stack] = nil
-          Thread::current[:newrelic_scope_name] = nil
+          NewRelic::Agent::TransactionState.get.clear_stats_scope_stack
         end
       end
 
@@ -126,7 +106,7 @@ module Agent
 
       # Returns the current scope stack, memoized to a thread local variable
       def scope_stack
-        Thread::current[:newrelic_scope_stack] ||= []
+        NewRelic::Agent::TransactionState.get.stats_scope_stack
       end
     end
   end

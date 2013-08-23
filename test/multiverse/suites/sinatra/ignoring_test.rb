@@ -129,7 +129,7 @@ class SinatraIgnoreTest < SinatraTestCase
   def test_ignore_enduser
     get_and_assert_ok '/no_enduser'
 
-    assert NewRelic::Agent::TransactionInfo.get.ignore_end_user?
+    assert NewRelic::Agent::TransactionState.get.request_ignore_enduser
     assert_metrics_recorded([
       "Controller/Sinatra/#{app_name}/GET no_enduser",
       "Apdex/Sinatra/#{app_name}/GET no_enduser"])
@@ -183,6 +183,6 @@ class SinatraIgnoreApdexAndEndUserTest < SinatraTestCase
 
   def test_ignores_enduser
     get_and_assert_ok '/'
-    assert NewRelic::Agent::TransactionInfo.get.ignore_end_user?
+    assert NewRelic::Agent::TransactionState.get.request_ignore_enduser
   end
 end

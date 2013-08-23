@@ -44,6 +44,22 @@ class ExconTest < MiniTest::Unit::TestCase
     NewRelic::Agent::HTTPClients::ExconHTTPResponse.new(Excon::Response.new(:headers => headers))
   end
 
+  def test_still_records_tt_node_when_request_fails_with_idempotent_set
+    target_url = "#{default_url}/idempotent_test"
+
+    in_transaction do
+      conn = Excon.new("#{target_url}?status=404")
+      assert_raises(Excon::Errors::NotFound) do
+        conn.get(:expects => 200, :idempotent => true)
+      end
+    end
+
+    tt = NewRelic::Agent.agent.transaction_sampler.last_sample
+    segment = tt.root_segment.called_segments.first
+    assert_equal("External/localhost/Excon/GET", segment.metric_name)
+    assert_equal(target_url, segment.params[:uri])
+  end
+
   def test_still_records_tt_node_when_request_expects_different_response_code
     in_transaction do
       conn = Excon.new("#{default_url}?status=500")

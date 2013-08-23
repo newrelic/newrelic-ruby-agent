@@ -20,10 +20,6 @@ module NewRelic
       # memory and data retention
       MAX_ERROR_QUEUE_LENGTH = 20 unless defined? MAX_ERROR_QUEUE_LENGTH
 
-      # This ivar is used to tag exceptions that we've alreday seen, so that we
-      # don't double-count them.
-      EXCEPTION_TAG_IVAR = :@__new_relic_exception_tag
-
       attr_accessor :errors
 
       # Returns a new error collector
@@ -101,20 +97,21 @@ module NewRelic
         end
 
         def seen?(exception)
-          exception.instance_variable_get(EXCEPTION_TAG_IVAR)
+          error_ids = TransactionState.get.transaction_noticed_error_ids
+          error_ids.include?(exception.object_id)
         end
 
         def tag_as_seen(exception)
-          exception.instance_variable_set(EXCEPTION_TAG_IVAR, true)
+          txn = Transaction.current
+          txn.noticed_error_ids << exception.object_id if txn
         end
 
         def blamed_metric_name(options)
           if options[:metric] && options[:metric] != ::NewRelic::Agent::UNKNOWN_METRIC
             "Errors/#{options[:metric]}"
           else
-            txn_info = TransactionInfo.get
-            if txn_info && txn_info.transaction
-              "Errors/#{txn_info.transaction.name}"
+            if txn = TransactionState.get.transaction
+              "Errors/#{txn.name}"
             end
           end
         end
@@ -264,7 +261,7 @@ module NewRelic
         return if should_exit_notice_error?(exception)
         increment_error_count!(exception, options)
         NewRelic::Agent.instance.events.notify(:notice_error, exception, options)
-        action_path     = fetch_from_options(options, :metric, (NewRelic::Agent.instance.stats_engine.scope_name || ''))
+        action_path     = fetch_from_options(options, :metric, "")
         exception_options = error_params_from_options(options).merge(exception_info(exception))
         add_to_error_queue(NewRelic::NoticedError.new(action_path, exception_options, exception))
         exception

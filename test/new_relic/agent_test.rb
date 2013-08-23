@@ -19,7 +19,7 @@ module NewRelic
 
     def teardown
       super
-      Thread.current[:newrelic_untraced] = nil
+      NewRelic::Agent::TransactionState.clear
     end
 
     def test_shutdown
@@ -139,52 +139,52 @@ module NewRelic
     end
 
     def test_is_transaction_traced_true
-      Thread.current[:record_tt] = true
+      NewRelic::Agent::TransactionState.get.record_tt = true
       assert_equal(true, NewRelic::Agent.is_transaction_traced?, 'should be true since the thread local is set')
     end
 
     def test_is_transaction_traced_blank
-      Thread.current[:record_tt] = nil
+      NewRelic::Agent::TransactionState.get.record_tt = nil
       assert_equal(true, NewRelic::Agent.is_transaction_traced?, 'should be true since the thread local is not set')
     end
 
     def test_is_transaction_traced_false
-      Thread.current[:record_tt] = false
+      NewRelic::Agent::TransactionState.get.record_tt = false
       assert_equal(false, NewRelic::Agent.is_transaction_traced?, 'should be false since the thread local is false')
     end
 
     def test_is_sql_recorded_true
-      Thread.current[:record_sql] = true
+      NewRelic::Agent::TransactionState.get.record_sql = true
       assert_equal(true, NewRelic::Agent.is_sql_recorded?, 'should be true since the thread local is set')
     end
 
     def test_is_sql_recorded_blank
-      Thread.current[:record_sql] = nil
+      NewRelic::Agent::TransactionState.get.record_sql = nil
       assert_equal(true, NewRelic::Agent.is_sql_recorded?, 'should be true since the thread local is not set')
     end
 
     def test_is_sql_recorded_false
-      Thread.current[:record_sql] = false
+      NewRelic::Agent::TransactionState.get.record_sql = false
       assert_equal(false, NewRelic::Agent.is_sql_recorded?, 'should be false since the thread local is false')
     end
 
     def test_is_execution_traced_true
-      Thread.current[:newrelic_untraced] = [true, true]
+      NewRelic::Agent::TransactionState.get.untraced = [true, true]
       assert_equal(true, NewRelic::Agent.is_execution_traced?, 'should be true since the thread local is set')
     end
 
     def test_is_execution_traced_blank
-      Thread.current[:newrelic_untraced] = nil
+      NewRelic::Agent::TransactionState.get.untraced = nil
       assert_equal(true, NewRelic::Agent.is_execution_traced?, 'should be true since the thread local is not set')
     end
 
     def test_is_execution_traced_empty
-      Thread.current[:newrelic_untraced] = []
+      NewRelic::Agent::TransactionState.get.untraced = []
       assert_equal(true, NewRelic::Agent.is_execution_traced?, 'should be true since the thread local is an empty array')
     end
 
     def test_is_execution_traced_false
-      Thread.current[:newrelic_untraced] = [true, false]
+      NewRelic::Agent::TransactionState.get.untraced = [true, false]
       assert_equal(false, NewRelic::Agent.is_execution_traced?, 'should be false since the thread local stack has the last element false')
     end
 

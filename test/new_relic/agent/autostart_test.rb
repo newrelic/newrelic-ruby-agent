@@ -14,13 +14,20 @@ class AutostartTest < Test::Unit::TestCase
   if defined?(::Rails)
     def test_agent_wont_autostart_if_RAILS_CONSOLE_constant_is_defined
       assert !defined?(::Rails::Console), "precondition: Rails::Console shouldn't be defined"
-      Rails.const_set(:Console, true)
+      Rails.const_set(:Console, Class.new)
       assert ! ::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't autostart in Rails Console session"
     ensure
       Rails.send(:remove_const, :Console)
     end
   else
     puts "Skipping tests in #{__FILE__} because Rails is unavailable"
+  end
+
+  def test_agent_will_autostart_if_global_CONSOLE_constant_is_defined
+    Object.const_set(:Console, Class.new)
+    assert ::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't find ::Console"
+  ensure
+    Object.send(:remove_const, :Console)
   end
 
   def test_agent_wont_start_if_dollar_0_is_irb
@@ -68,4 +75,35 @@ class AutostartTest < Test::Unit::TestCase
       assert ! ::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't during blacklisted rake task"
     end
   end
+
+  module ::Outer
+    class Included
+    end
+  end
+
+  class ::Excluded
+  end
+
+  module ::ContainsAnObject
+    class ContainedObject
+    end
+  end
+
+  def test_should_look_within_module
+    assert_equal ::Outer::Included, NewRelic::Agent::Autostart.constant_is_defined?("Outer::Included")
+  end
+
+  def test_shouldnt_look_outside_module_for_class
+    assert_equal false, NewRelic::Agent::Autostart.constant_is_defined?("Outer::Excluded")
+  end
+
+  def test_shouldnt_look_outside_module_for_module
+    assert_equal false, NewRelic::Agent::Autostart.constant_is_defined?("Outer::Outer")
+  end
+
+  def test_should_allow_object_in_module_names
+    assert_equal ::ContainsAnObject::ContainedObject,
+                  NewRelic::Agent::Autostart.constant_is_defined?("ContainsAnObject::ContainedObject")
+  end
+
 end
