@@ -35,6 +35,7 @@ module NewRelic
         def activate_sessions(incoming_ids)
           ids_to_activate = select_to_add(incoming_ids)
           lookup_metadata_for(ids_to_activate).each do |raw|
+            NewRelic::Agent.logger.debug("Adding new session for #{raw.inspect}")
             add_session(XraySession.new(raw))
           end
         end
