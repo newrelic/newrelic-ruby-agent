@@ -75,7 +75,11 @@ module NewRelic::Agent::Commands
     end
 
     def test_doesnt_recall_metadata_for_already_active_sessions
-      @service.unstub(:get_xray_metadata)
+      # unstub fails on certain mocha/rails versions (rails23 env)
+      # replace the service instead to let us expect to never get the call...
+      @service = stub
+      @sessions.send(:service=, @service)
+
       @service.stubs(:get_xray_metadata).with([FIRST_ID]).returns([FIRST_METADATA])
       @service.stubs(:get_xray_metadata).with([SECOND_ID]).returns([SECOND_METADATA])
 

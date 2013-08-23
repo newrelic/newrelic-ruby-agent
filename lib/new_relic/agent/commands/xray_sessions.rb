@@ -28,7 +28,7 @@ module NewRelic
 
         private
 
-        attr_reader :service
+        attr_accessor :service
 
         # Session activation
 
