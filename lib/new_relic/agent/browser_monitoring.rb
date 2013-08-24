@@ -39,11 +39,7 @@ module NewRelic
       # page as is reasonably possible - that is, before any style or
       # javascript inclusions, but after any header-related meta tags
       def browser_timing_header
-        if insert_js?
-          NewRelic::Agent.instance.beacon_configuration.browser_timing_header
-        else
-          ""
-        end
+        insert_js? ? header_js_string : ""
       end
 
       # This method returns a string suitable for inclusion in a page
@@ -189,6 +185,14 @@ module NewRelic
         return NewRelic::Agent::TransactionState.get.request_token
       end
 
+      # NOTE: This method may be overridden for internal prototyping, so should
+      # remain stable.
+      def header_js_string
+        NewRelic::Agent.instance.beacon_configuration.browser_timing_header
+      end
+
+      # NOTE: This method may be overridden for internal prototyping, so should
+      # remain stable.
       def footer_js_string(config)
         obfuscated_transaction_name = obfuscate(config, browser_monitoring_transaction_name)
 
