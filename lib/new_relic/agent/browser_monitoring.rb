@@ -48,11 +48,7 @@ module NewRelic
       # page as is reasonably possible - that is, before any style or
       # javascript inclusions, but after any header-related meta tags
       def browser_timing_header
-        if insert_js?
-          NewRelic::Agent.instance.beacon_configuration.browser_timing_header
-        else
-          ""
-        end
+        insert_js? ? header_js_string : ""
       end
 
       # This method returns a string suitable for inclusion in a page
@@ -180,6 +176,14 @@ module NewRelic
         return NewRelic::Agent::TransactionState.get.request_token
       end
 
+      # NOTE: This method may be overridden for internal prototyping, so should
+      # remain stable.
+      def header_js_string
+        NewRelic::Agent.instance.beacon_configuration.browser_timing_header
+      end
+
+      # NOTE: This method may be overridden for internal prototyping, so should
+      # remain stable.
       def footer_js_string(config)
         obfuscated_transaction_name = obfuscate(config, browser_monitoring_transaction_name)
 
@@ -187,7 +191,11 @@ module NewRelic
         account = obfuscate(config, transaction_attribute(:account))
         product = obfuscate(config, transaction_attribute(:product))
 
-        html_safe_if_needed(%'<script type="text/javascript">#{config.browser_timing_static_footer}NREUMQ.push(["#{config.finish_command}","#{Agent.config[:beacon]}","#{Agent.config[:browser_key]}","#{Agent.config[:application_id]}","#{obfuscated_transaction_name}",#{current_timings.queue_time_in_millis},#{current_timings.app_time_in_millis},new Date().getTime(),"#{tt_guid}","#{tt_token}","#{user}","#{account}","#{product}"]);</script>')
+        # This is slightly varied from other agents' RUM footer to ensure that
+        # NREUMQ is defined. Our experimental header placement has some holes
+        # where it could end up in a comment and not define NREUMQ as the footer
+        # assumes. We protect against that here.
+        html_safe_if_needed(%'<script type="text/javascript">if (typeof NREUMQ !== "undefined") { #{config.browser_timing_static_footer}NREUMQ.push(["#{config.finish_command}","#{Agent.config[:beacon]}","#{Agent.config[:browser_key]}","#{Agent.config[:application_id]}","#{obfuscated_transaction_name}",#{current_timings.queue_time_in_millis},#{current_timings.app_time_in_millis},new Date().getTime(),"#{tt_guid}","#{tt_token}","#{user}","#{account}","#{product}"]);}</script>')
       end
 
       def html_safe_if_needed(string)

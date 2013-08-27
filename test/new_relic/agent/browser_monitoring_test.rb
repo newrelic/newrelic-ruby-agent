@@ -113,7 +113,7 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
       NewRelic::Agent::TransactionState.reset
       browser_timing_header
       footer = browser_timing_footer
-      snippet = '<script type="text/javascript">if (!NREUMQ.f) { NREUMQ.f=function() {
+      snippet = '<script type="text/javascript">if (typeof NREUMQ !== "undefined") { if (!NREUMQ.f) { NREUMQ.f=function() {
 NREUMQ.push(["load",new Date().getTime()]);
 var e=document.createElement("script");'
       assert(footer.include?(snippet),
@@ -150,10 +150,10 @@ var e=document.createElement("script");'
     config.expects(:license_bytes).returns(license_bytes).at_least_once
     NewRelic::Agent.instance.stubs(:beacon_configuration).returns(config).at_least_once
     footer = browser_timing_footer
-    beginning_snippet = '<script type="text/javascript">if (!NREUMQ.f) { NREUMQ.f=function() {
+    beginning_snippet = '<script type="text/javascript">if (typeof NREUMQ !== "undefined") { if (!NREUMQ.f) { NREUMQ.f=function() {
 NREUMQ.push(["load",new Date().getTime()]);
 var e=document.createElement("script");'
-    ending_snippet = "]);</script>"
+    ending_snippet = "]);}</script>"
     assert(footer.include?(beginning_snippet),
            "expected footer to include beginning snippet: #{beginning_snippet}, but was #{footer}")
     assert(footer.include?(ending_snippet),
@@ -262,7 +262,7 @@ var e=document.createElement("script");'
       self.expects(:obfuscate).with(NewRelic::Agent.instance.beacon_configuration, 'product').returns('product')
 
       value = footer_js_string(NewRelic::Agent.instance.beacon_configuration)
-      assert_equal(%'<script type="text/javascript">if (!NREUMQ.f) { NREUMQ.f=function() {\nNREUMQ.push(["load",new Date().getTime()]);\nvar e=document.createElement("script");\ne.type="text/javascript";\ne.src=(("http:"===document.location.protocol)?"http:":"https:") + "//" +\n  "this_is_my_file";\ndocument.body.appendChild(e);\nif(NREUMQ.a)NREUMQ.a();\n};\nNREUMQ.a=window.onload;window.onload=NREUMQ.f;\n};\nNREUMQ.push(["nrfj","beacon","browserKey","5, 6","most recent transaction",0,10000,new Date().getTime(),"ABC","0123456789ABCDEF","user","account","product"]);</script>', value, "should return the javascript given some default values")
+      assert_equal(%'<script type="text/javascript">if (typeof NREUMQ !== "undefined") { if (!NREUMQ.f) { NREUMQ.f=function() {\nNREUMQ.push(["load",new Date().getTime()]);\nvar e=document.createElement("script");\ne.type="text/javascript";\ne.src=(("http:"===document.location.protocol)?"http:":"https:") + "//" +\n  "this_is_my_file";\ndocument.body.appendChild(e);\nif(NREUMQ.a)NREUMQ.a();\n};\nNREUMQ.a=window.onload;window.onload=NREUMQ.f;\n};\nNREUMQ.push(["nrfj","beacon","browserKey","5, 6","most recent transaction",0,10000,new Date().getTime(),"ABC","0123456789ABCDEF","user","account","product"]);}</script>', value, "should return the javascript given some default values")
     end
   end
 
