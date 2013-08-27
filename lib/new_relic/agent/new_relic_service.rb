@@ -170,16 +170,21 @@ module NewRelic
 
         # Immediately open a TCP connection to the server and leave it open for
         # multiple requests.
-        ::NewRelic::Agent.logger.debug("Opening TCP connection to #{http.address}:#{http.port}")
-        http.start
         begin
+          t0 = Time.now
+          ::NewRelic::Agent.logger.debug("Opening TCP connection to #{http.address}:#{http.port}")
+          NewRelic::TimerLib.timeout(@request_timeout) { http.start }
           @shared_tcp_connection = http
           block.call
+        rescue Timeout::Error
+          elapsed = Time.now - t0
+          ::NewRelic::Agent.logger.warn "Timed out opening connection to #{http.address}:#{http.port} after #{elapsed} seconds. If this problem persists, please see http://status.newrelic.com"
+          raise
         ensure
           @shared_tcp_connection = nil
           # Close the TCP socket
           ::NewRelic::Agent.logger.debug("Closing TCP connection to #{http.address}:#{http.port}")
-          http.finish
+          http.finish if http.started?
         end
       end
 
