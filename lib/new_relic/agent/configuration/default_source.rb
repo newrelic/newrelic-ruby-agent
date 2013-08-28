@@ -12,22 +12,19 @@ module NewRelic
         attr_reader :defaults
 
         extend Forwardable
+        def_delegators :@defaults, :has_key?, :each, :merge, :delete, :keys, :[], :to_hash
 
         def initialize
-          @defaults = ::NewRelic::Agent::Configuration::DEFAULTS
+          @defaults = default_values
         end
 
-        def [](key)
-          @defaults[key][:default]
-        end
-
-        def to_hash
+        def default_values
           result = {}
-          @defaults.each { |k,v| result[k] = v[:default] }
+          ::NewRelic::Agent::Configuration::DEFAULTS.each do |key, value|
+            result[key] = value[:default]
+          end
           result
         end
-
-        def_delegators :@defaults, :has_key?, :each, :merge, :delete, :keys
 
         def self.config_path
           Proc.new {
