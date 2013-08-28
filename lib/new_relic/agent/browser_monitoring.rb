@@ -48,7 +48,12 @@ module NewRelic
       # page as is reasonably possible - that is, before any style or
       # javascript inclusions, but after any header-related meta tags
       def browser_timing_header
-        insert_js? ? header_js_string : ""
+        if insert_js?
+          NewRelic::Agent::Transaction.freeze_name
+          generate_header_js(NewRelic::Agent.instance.beacon_configuration)
+        else
+          ""
+        end
       end
 
       # This method returns a string suitable for inclusion in a page
@@ -149,6 +154,14 @@ module NewRelic
         end
       end
 
+      def generate_header_js(config)
+        if current_transaction.start_time
+          header_js_string(config)
+        else
+          ''
+        end
+      end
+
       def generate_footer_js(config)
         if current_transaction.start_time
           footer_js_string(config)
@@ -178,7 +191,7 @@ module NewRelic
 
       # NOTE: This method may be overridden for internal prototyping, so should
       # remain stable.
-      def header_js_string
+      def header_js_string(config)
         NewRelic::Agent.instance.beacon_configuration.browser_timing_header
       end
 
