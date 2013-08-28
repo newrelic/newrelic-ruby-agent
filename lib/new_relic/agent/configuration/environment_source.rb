@@ -51,7 +51,7 @@ module NewRelic
         end
 
         def set_config_file
-          self[:config_path] = ENV['NRCONFIG']
+          self[:config_path] = ENV['NRCONFIG'] if ENV['NRCONFIG']
         end
 
         def set_values_from_new_relic_environment_variables
