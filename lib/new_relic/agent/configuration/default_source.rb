@@ -222,31 +222,31 @@ module NewRelic
           :public => false,
           :type => Boolean,
           :aliases => [:enable],
-          :description => 'Boolean value to enable or disable the agent.'
+          :description => 'Enable or disable the agent.'
         },
         :monitor_mode => {
           :default => DefaultSource.monitor_mode,
           :public => false,
           :type => Boolean,
-          :description => 'Boolean value to enable or disable the transmission of data to the New Relic data collection service.'
+          :description => 'Enable or disable transmission of data to the New Relic data collection service.'
         },
         :agent_enabled => {
           :default => DefaultSource.agent_enabled,
           :public => true,
           :type => Boolean,
-          :description => 'Boolean value to enable or disable the agent.'
+          :description => 'Enable or disable the agent.'
         },
         :'autostart.blacklisted_constants' => {
           :default => 'Rails::Console',
           :public => true,
           :type => String,
-          :description => "Don't autostart the agent if we're in IRB or Rails console. This config option accepts a comma separated list of constants."
+          :description => "Comma delimited list of constants whose presence should prevent the agent from automatically starting (e.g. 'Rails::Console, UninstrumentedBackgroundJob')."
         },
         :'autostart.blacklisted_executables' => {
           :default => 'irb,rspec',
           :public => true,
           :type => String,
-          :description => "Comma delimited list of executables that not be instrumented by the agent (e.g. 'rake,my_ruby_script.rb')."
+          :description => "Comma delimited list of executables that should not be instrumented by the agent (e.g. 'rake,my_ruby_script.rb')."
         },
         :'autostart.blacklisted_rake_tasks' => {
           :default => AUTOSTART_BLACKLISTED_RAKE_TASKS,
@@ -254,10 +254,11 @@ module NewRelic
           :type => String,
           :description => "Comma delimited list of rake tasks that should not be instrumented by the agent (e.g. 'assets:precompile,db:migrate')."
         },
-        :developer_mode => { :default => DefaultSource.developer_mode,
+        :developer_mode => {
+          :default => DefaultSource.developer_mode,
           :public => true,
           :type => Boolean,
-          :description => "Boolean value to enable or disable developer mode, a local analytics package built into the agent for rack applications. Access developer mode analytics by visiting '/newrelic' in your application."
+          :description => "Enable or disable developer mode, a local analytics package built into the agent for rack applications. Access developer mode analytics by visiting '/newrelic' in your application."
         },
         :developer => {
           :default => false,
@@ -269,43 +270,43 @@ module NewRelic
           :default => 0.5,
           :public => true,
           :type => Float,
-          :description => 'Threshold at which New Relic will begin alerting you. By default you will receive alerts when your Apdex score drops below 0.5, or more than half of your users are experiencing degraded application performance.'
+          :description => 'Threshold at which New Relic will begin alerting. By default the agent will send alerts when the Apdex score drops below 0.5, or when more than half of users are experiencing degraded application performance.'
         },
         :monitor_daemons => {
           :default => false,
           :public => false,
           :type => Boolean,
-          :description => 'Boolean value that enables the agent for background processes. No longer necessary as the agent now automatically instruments background processes.'
+          :description => 'Enables or disables the agent for background processes. No longer necessary as the agent now automatically instruments background processes.'
         },
         :multi_homed => {
           :default => false,
           :public => false,
           :type => Boolean,
-          :description => 'Boolean value that allows instrumentation for multiple applications on the same host bound to different interfaces serving the same port.'
+          :description => 'Enable or disable instrumentation for multiple applications on the same host bound to different interfaces serving the same port.'
         },
         :high_security => {
           :default => false,
           :public => true,
           :type => Boolean,
-          :description => 'Boolean value that enables several security features designed to protect data in an enterprise setting.'
+          :description => 'Enable or disable security features designed to protect data in an enterprise setting.'
         },
         :'strip_exception_messages.enabled' => {
           :default => DefaultSource.strip_exception_messages_enabled,
           :public => true,
           :type => Boolean,
-          :description => 'Boolean value that strips messages from all exceptions that are not specified in the whitelist. Enabled automatically in high security mode.'
+          :description => 'Enable or disable the stripping of messages from all exceptions that are not specified in the whitelist. Enabled automatically in high security mode.'
         },
         :'strip_exception_messages.whitelist' => {
           :default => '',
           :public => true,
           :type => String,
-          :description => "Comma separated list of exceptions that should show messages when strip_exception_messages is enabled (e.g. 'NewException, RelicException')."
+          :description => "Comma delimited list of exceptions that should not have their messages stripped when strip_exception_messages is enabled (e.g. 'ImportantException, PreserveMessageException')."
         },
         :host => {
           :default => 'collector.newrelic.com',
           :public => false,
           :type => String,
-          :description => "URI for New Relic's data collection service."
+          :description => "URI for the New Relic data collection service."
         },
         :api_host => {
           :default => 'rpm.newrelic.com',
@@ -317,31 +318,31 @@ module NewRelic
           :default => DefaultSource.port,
           :public => false,
           :type => Fixnum,
-          :description => 'Port for use connecting to the New Relic data collection service.'
+          :description => 'Port for the New Relic data collection service.'
         },
         :api_port => {
           :default => DefaultSource.api_port,
           :public => false,
           :type => Fixnum,
-          :description => 'Port for use connecting to the API host for New Relic.'
+          :description => 'Port for the New Relic API host.'
         },
         :ssl => {
           :default => true,
           :public => true,
           :type => Boolean,
-          :description => "Boolean value to enable SSL for transmissions to New Relic's data collection service."
+          :description => "Enable or disable SSL for transmissions to the New Relic data collection service."
         },
         :sync_startup => {
           :default => false,
           :public => true,
           :type => Boolean,
-          :description => 'Boolean value to force the agent to connect to New Relic synchronously when your application starts.'
+          :description => 'Enable or disable synchronous connection to the New Relic data collection service during application startup.'
         },
         :send_data_on_exit => {
           :default => true,
           :public => true,
           :type => Boolean,
-          :description => 'Boolean value that installs an exit handler to send data to New Relic before shutting down.'
+          :description => 'Enable or disable the exit handler that sends data to the New Relic data collection service before shutting down.'
         },
         :post_size_limit => {
           :default => 2 * 1024 * 1024, # 2MB
@@ -353,25 +354,25 @@ module NewRelic
           :default => 2 * 60, # 2 minutes
           :public => true,
           :type => Fixnum,
-          :description => "Maximum number of seconds to try and contact New Relic's data collection service."
+          :description => 'Maximum number of seconds to try and contact the New Relic data collection service.'
         },
         :force_send => {
           :default => false,
           :public => true,
           :type => Boolean,
-          :description => 'Boolean value that forces the agent to send data when shutting down.'
+          :description => 'Enable or disable the forced sending of data to the New Relic data collection service when shutting down.'
         },
         :send_environment_info => {
           :default => true,
           :public => true,
           :type => Boolean,
-          :description => "Boolean value to enable transmission of the application environment information to New Relic's data collection service."
+          :description => 'Enable or disable transmission of application environment information to the New Relic data collection service.'
         },
         :start_channel_listener => {
           :default => false,
           :public => false,
           :type => Boolean,
-          :description => 'Boolean value to spawn a background thread that listens for connections from child processes. Primarily used for Resque instrumentation.'
+          :description => 'Enable or disable spawning of a background thread that listens for connections from child processes. Primarily used for Resque instrumentation.'
         },
         :data_report_period => {
           :default => 60,
@@ -383,19 +384,19 @@ module NewRelic
           :default => true,
           :public => true,
           :type => Boolean,
-          :description => 'Boolean value to retry connection to the New Relic data collection service.'
+          :description => 'Enable or disable retrying failed connections to the New Relic data collection service.'
         },
         :report_instance_busy => {
           :default => true,
-          :public => true,
+          :public => false,
           :type => Boolean,
-          :description => 'Boolean value to enable the transmission of duty cycle metrics to the New Relic data collection service.'
+          :description => 'Enable or disable transmission of metrics recording the percentage of time application instances spend servicing requests (duty cycle metrics).'
         },
         :log_file_name => {
           :default => 'newrelic_agent.log',
           :public => true,
           :type => String,
-          :description => 'Name of the agent log file.'
+          :description => 'Filename of the agent log file.'
         },
         :log_file_path => {
           :default => 'log/',
@@ -407,13 +408,13 @@ module NewRelic
           :default => 'info',
           :public => true,
           :type => String,
-          :description => 'Log level to use for agent logging: error, warn, info or debug.'
+          :description => 'Log level for agent logging: error, warn, info or debug.'
         },
         :'audit_log.enabled' => {
           :default => false,
           :public => true,
           :type => Boolean,
-          :description => 'Boolean value to enable the audit log, a log of communications with the New Relic data collection service.'
+          :description => 'Enable or disable the audit log, a log of communications with the New Relic data collection service.'
         },
         :'audit_log.path' => {
           :default => DefaultSource.audit_log_path,
@@ -425,253 +426,253 @@ module NewRelic
           :default => false,
           :public => true,
           :type => Boolean,
-          :description => 'Boolean value to enable collection of sampler metrics, metrics that are not event based (e.g. CPU time or memory usage).'
+          :description => 'Enable or disable the collection of sampler metrics, metrics that are not event based (e.g. CPU time or memory usage).'
         },
         :disable_resque => {
           :default => false,
           :public => true,
           :type => Boolean,
-          :description => 'Boolean value to disable resque instrumentation.'
+          :description => 'Enable or disable resque instrumentation.'
         },
         :disable_dj => {
           :default => false,
           :public => true,
           :type => Boolean,
-          :description => 'Boolean value to disable delayed job instrumentation.'
+          :description => 'Enable or disable delayed job instrumentation.'
         },
         :disable_sinatra => {
           :default => false,
           :public => true,
           :type => Boolean,
-          :description => 'Boolean value to disable sinatra instrumentation.'
+          :description => 'Enable or disable sinatra instrumentation.'
         },
         :disable_sinatra_auto_middleware => {
           :default => false,
           :public => true,
           :type => Boolean,
-          :description => 'Boolean value to disable the agent middleware for sinatra. The middleware is responsible for instrumenting some advanced feature support for sinatra (e.g. Cross-application tracing, Real User Monitoring, Error collection).'
+          :description => 'Enable or disable agent middleware for sinatra. This middleware is responsible for instrumenting advanced feature support for sinatra (e.g. Cross-application tracing, Real User Monitoring, Error collection).'
         },
         :disable_view_instrumentation => {
           :default => false,
           :public => true,
           :type => Boolean,
-          :description => 'Boolean value to disable view instrumentation.'
+          :description => 'Enable or disable view instrumentation.'
         },
         :disable_backtrace_cleanup => {
           :default => false,
           :public => true,
           :type => Boolean,
-          :description => 'Boolean value to disable the removal of the gem path (newrelic_rpm) from backtraces.'
+          :description => 'Enable or disable removal of newrelic_rpm from backtraces.'
         },
         :disable_harvest_thread => {
           :default => false,
           :public => false,
           :type => Boolean,
-          :description => 'Boolean value disable the harvest thread entirely.'
+          :description => 'Enable or disable the harvest thread.'
         },
         :skip_ar_instrumentation => {
           :default => false,
           :public => false,
           :type => Boolean,
-          :description => 'Boolean value to disable the active record instrumentation.'
+          :description => 'Enable or disable active record instrumentation.'
         },
         :disable_activerecord_instrumentation => {
           :default => DefaultSource.disable_activerecord_instrumentation,
           :public => true,
           :type => Boolean,
-          :description => 'Boolean value to disable the active record instrumentation.'
+          :description => 'Enable or disable active record instrumentation.'
         },
         :disable_memcache_instrumentation => {
           :default => false,
           :public => true,
           :type => Boolean,
-          :description => 'Boolean value to disable memcache instrumentation.'
+          :description => 'Enable or disable memcache instrumentation.'
         },
         :disable_mobile_headers => {
           :default => true,
           :public => false,
           :type => Boolean,
-          :description => 'Boolean value to disable the injection of mobile response headers when mobile headers are present in the incoming request.'
+          :description => 'Enable or disable injection of mobile response headers when mobile headers are present in the incoming request.'
         },
         :capture_params => {
           :default => false,
           :public => true,
           :type => Boolean,
-          :description => 'Capture params.'
+          :description => 'Enable or disable capturing and attachment of HTTP request parameters to transaction traces and traced errors.'
         },
         :capture_memcache_keys => {
           :default => false,
           :public => true,
           :type => Boolean,
-          :description => 'Capture memcache keys.'
+          :description => 'Enable or disable capturing and attachment of memcache keys to transaction traces.'
         },
         :textmate => {
           :default => false,
-          :public => true,
+          :public => false,
           :type => Boolean,
-          :description => 'Enable Textmate integration.'
+          :description => 'Enables Textmate integration.'
         },
         :'transaction_tracer.enabled' => {
           :default => true,
           :public => true,
           :type => Boolean,
-          :description => 'Enable transaction tracer.'
+          :description => 'Enable or disable transaction tracer.'
         },
         :'transaction_tracer.transaction_threshold' => {
           :default => DefaultSource.transaction_tracer_transaction_threshold,
           :public => true,
           :type => Float,
-          :description => 'After this threshold we will generate a transaction trace.'
+          :description => 'Transaction traces will be generated for transactions that exceed this threshold.'
         },
         :'transaction_tracer.stack_trace_threshold' => {
           :default => 0.5,
           :public => true,
           :type => Float,
-          :description => 'After this threshold we will generate a stack trace for a slow transaction.'
+          :description => 'Stack traces will be included in transaction trace segments with durations that exceed this threshold.'
         },
         :'transaction_tracer.explain_threshold' => {
           :default => 0.5,
           :public => true,
           :type => Float,
-          :description => 'After this threshold we will run an explain on a query within a transaction.'
+          :description => 'Explain plans will be generated and included in transaction trace segments with durations that exceed this threshold.'
         },
         :'transaction_tracer.explain_enabled' => {
           :default => true,
           :public => true,
           :type => Boolean,
-          :description => 'FIXME'
+          :description => 'Enable or disable the generation and inclusion of explain queries in transaction trace segments.'
         },
         :'transaction_tracer.record_sql' => {
           :default => 'obfuscated',
           :public => true,
           :type => String,
-          :description => 'FIXME'
+          :description => "Obfuscation level for sql queries reported in transaction trace segments (e.g. 'obfuscated', 'raw', 'none')."
         },
         :'transaction_tracer.limit_segments' => {
           :default => 4000,
           :public => true,
           :type => Fixnum,
-          :description => 'FIXME'
+          :description => 'Maximum number of transaction trace segments to record in a single transaction trace.'
         },
         :'transaction_tracer.random_sample' => {
           :default => false,
-          :public => true,
+          :public => false,
           :type => Boolean,
-          :description => 'FIXME'
+          :description => 'Enable or disable the collection of a random transaction trace during each harvest cycle in addition to the longest transaction trace.'
         },
         :sample_rate => {
           :default => 10,
-          :public => true,
+          :public => false,
           :type => Fixnum,
-          :description => 'FIXME'
+          :description => 'Number of harvests between random transaction trace samples in the transaction sampler.'
         },
         :'slow_sql.enabled' => {
           :default => DefaultSource.slow_sql_enabled,
           :public => true,
           :type => Boolean,
-          :description => 'FIXME'
+          :description => 'Enable or disable collection of slow sql queries.'
         },
         :'slow_sql.stack_trace_threshold' => {
           :default => DefaultSource.slow_sql_stack_trace_threshold,
           :public => true,
           :type => Float,
-          :description => 'FIXME'
+          :description => 'Stack traces will be generated and included in slow sql queries with durations that exceed this threshold.'
         },
         :'slow_sql.explain_threshold' => {
           :default => DefaultSource.slow_sql_explain_threshold,
           :public => true,
           :type => Float,
-          :description => 'FIXME'
+          :description => 'Explain plans will be generated and included in slow sql queries with durations that exceed this threshold.'
         },
         :'slow_sql.explain_enabled' => {
           :default => DefaultSource.slow_sql_explain_enabled,
           :public => true,
           :type => Boolean,
-          :description => 'FIXME'
+          :description => 'Enable or disable the generation and inclusion of explain plans in slow sql queries.'
         },
         :'slow_sql.record_sql' => {
           :default => DefaultSource.slow_sql_record_sql,
           :public => true,
           :type => String,
-          :description => 'FIXME'
+          :description => 'Obfuscation level for slow sql queries (e.g. 'obfuscated', 'raw', 'none').'
         },
         :'error_collector.enabled' => {
           :default => true,
           :public => true,
           :type => Boolean,
-          :description => 'FIXME'
+          :description => 'Enable or disable recording of traced errors and error count metrics.'
         },
         :'error_collector.capture_source' => {
           :default => true,
           :public => true,
           :type => Boolean,
-          :description => 'FIXME'
+          :description => 'Enable or disable collection of source code for errors that support it.'
         },
         :'error_collector.ignore_errors' => {
           :default => 'ActionController::RoutingError,Sinatra::NotFound',
           :public => true,
           :type => String,
-          :description => 'FIXME'
+          :description => 'Comma delimited list of error classes that should be ignored.'
         },
         :'rum.enabled' => {
           :default => true,
           :public => true,
           :type => Boolean,
-          :description => 'FIXME'
+          :description => 'Enable or disable real user monitoring.'
         },
         :'rum.jsonp' => {
           :default => true,
-          :public => true,
+          :public => false,
           :type => Boolean,
-          :description => 'FIXME'
+          :description => 'Enable or disable jsonp as the default means of communicating with the beacon.'
         },
         :'rum.load_episodes_file' => {
           :default => true,
-          :public => true,
+          :public => false,
           :type => Boolean,
-          :description => 'FIXME'
+          :description => 'Enable or disable real user monitoring.'
         },
         :'browser_monitoring.auto_instrument' => {
           :default => DefaultSource.browser_monitoring_auto_instrument,
           :public => true,
           :type => Boolean,
-          :description => 'FIXME'
+          :description => 'Enable or disable automatic insertion of the real user monitoring header and footer into outgoing responses.'
         },
         :trusted_account_ids => {
           :default => [],
-          :public => true,
+          :public => false,
           :type => Array,
-          :description => 'FIXME'
+          :description => 'List of trusted New Relic account IDs for the purposes of cross-application tracing. Inbound requests from applications including cross-application headers that do not come from an account in this list will be ignored.'
         },
         :"cross_application_tracer.enabled" => {
           :default => true,
           :public => true,
           :type => Boolean,
-          :description => 'FIXME'
+          :description => 'Enable or disable cross-application tracing.'
         },
         :'thread_profiler.enabled' => {
           :default => DefaultSource.thread_profiler_enabled,
           :public => true,
           :type => Boolean,
-          :description => 'FIXME'
+          :description => 'Enable or disable the thread profiler.'
         },
         :marshaller => {
           :default => DefaultSource.marshaller,
           :public => true,
           :type => String,
-          :description => 'FIXME'
+          :description => 'Marshaller to use when marshalling data for transmission to the New Relic data collection service (e.g json, pruby).'
         },
         :'request_sampler.enabled' => {
           :default => true,
           :public => true,
           :type => Boolean,
-          :description => 'FIXME'
+          :description => 'Enable or disable the request sampler.'
         },
         :'request_sampler.max_samples' => {
           :default => 1200,
-          :public => true,
+          :public => false,
           :type => Fixnum,
-          :description => 'FIXME'
+          :description => 'Maximum number of request events recorded by the request sampler in a single harvest.'
         },
       }.freeze
 
