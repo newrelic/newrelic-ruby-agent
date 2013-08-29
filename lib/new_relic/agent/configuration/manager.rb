@@ -14,7 +14,7 @@ module NewRelic
     module Configuration
       class Manager
         extend Forwardable
-        def_delegators :@cache, :[], :has_key?
+        def_delegators :@cache, :[], :has_key?, :keys
         attr_reader :config_stack, :stripped_exceptions_whitelist
 
         def initialize

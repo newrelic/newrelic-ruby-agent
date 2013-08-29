@@ -8,6 +8,7 @@ module NewRelic
   module Agent
     module Configuration
       class Boolean; end
+
       class DefaultSource
         attr_reader :defaults
 
@@ -291,7 +292,7 @@ module NewRelic
         :'strip_exception_messages.enabled' => {
           :default => DefaultSource.strip_exception_messages_enabled,
           :public => true,
-          :type => String,
+          :type => Boolean,
           :description => 'Boolean value that strips messages from all exceptions that are not specified in the whitelist. Enabled automatically in high security mode.'
         },
         :'strip_exception_messages.whitelist' => {
@@ -477,7 +478,7 @@ module NewRelic
         :disable_activerecord_instrumentation => {
           :default => DefaultSource.disable_activerecord_instrumentation,
           :public => true,
-          :type => String,
+          :type => Boolean,
           :description => 'Boolean value to disable the active record instrumentation.'
         },
         :disable_memcache_instrumentation => {
@@ -519,20 +520,20 @@ module NewRelic
         :'transaction_tracer.transaction_threshold' => {
           :default => DefaultSource.transaction_tracer_transaction_threshold,
           :public => true,
-          :type => String,
-          :description => 'Transaction tracer transaction threshold.'
+          :type => Float,
+          :description => 'After this threshold we will generate a transaction trace.'
         },
         :'transaction_tracer.stack_trace_threshold' => {
           :default => 0.5,
           :public => true,
           :type => Float,
-          :description => 'Transaction tracer explain threshold.'
+          :description => 'After this threshold we will generate a stack trace for a slow transaction.'
         },
         :'transaction_tracer.explain_threshold' => {
           :default => 0.5,
           :public => true,
           :type => Float,
-          :description => 'FIXME'
+          :description => 'After this threshold we will run an explain on a query within a transaction.'
         },
         :'transaction_tracer.explain_enabled' => {
           :default => true,

@@ -32,15 +32,11 @@ module NewRelic::Agent::Configuration
     end
 
     def test_declared_types_match_default_values
-      @defaults.each do |config_setting, config_value|
-        default_value = config_value[:default]
-        expected_type = config_value[:type]
+      NewRelic::Control.instance.local_env.stubs(:discovered_dispatcher).returns(:unicorn)
 
-        value_class = get_config_value_class(default_value)
-
-        unless value_class == Proc
-          assert_equal expected_type, value_class, "Config setting: #{config_setting}"
-        end
+      @default_source.keys.each do |key|
+        default_value_class = get_config_value_class(fetch_config_value(key))
+        assert_equal @defaults[key][:type], default_value_class, "Config setting #{key} does not have the correct type."
       end
     end
 
@@ -50,6 +46,26 @@ module NewRelic::Agent::Configuration
       @defaults.each do |key, value|
         assert_equal value[:default], default_values[key]
       end
+    end
+
+    def fetch_config_value(key)
+      accessor = key.to_sym
+      config = @default_source
+
+      if config.has_key?(accessor)
+        if config[accessor].respond_to?(:call)
+          value = config[accessor]
+
+          while value.respond_to?(:call)
+            value = config.instance_eval(&value)
+          end
+
+          return value
+        else
+          return config[accessor]
+        end
+      end
+      nil
     end
 
     def get_config_value_class(value)
