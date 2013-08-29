@@ -31,24 +31,20 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit:
   end
 
   def test_records_metrics_for_simple_find
-    t1 = Time.now
-    t0 = t1 - 2
-    @subscriber.call('sql.active_record', t0, t1, :id, @params)
+    freeze_time
+
+    simulate_query(2)
 
     metric_name = 'ActiveRecord/NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order/find'
-
-    metric = @stats_engine.lookup_stats(metric_name)
-    assert_equal(1, metric.call_count)
-    assert_equal(2.0, metric.total_call_time)
+    assert_metrics_recorded(
+      metric_name => { :call_count => 1, :total_call_time => 2.0 }
+    )
   end
 
   def test_records_scoped_metrics
-    t1 = Time.now
-    t0 = t1 - 2
+    freeze_time
 
-    in_transaction('test_txn') do
-      @subscriber.call('sql.active_record', t0, t1, :id, @params)
-    end
+    in_transaction('test_txn') { simulate_query(2) }
 
     metric_name = 'ActiveRecord/NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order/find'
     assert_metrics_recorded(
@@ -57,24 +53,18 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit:
   end
 
   def test_records_nothing_if_tracing_disabled
-    t1 = Time.now
-    t0 = t1 - 2
+    freeze_time
 
-    NewRelic::Agent.disable_all_tracing do
-      @subscriber.call('sql.active_record', t0, t1, :id, @params)
-    end
+    NewRelic::Agent.disable_all_tracing { simulate_query(2) }
 
     metric_name = 'ActiveRecord/NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order/find'
     assert_metrics_not_recorded([metric_name])
   end
 
   def test_records_rollup_metrics
-    t1 = Time.now
-    t0 = t1 - 2
+    freeze_time
 
-    in_web_transaction do
-      @subscriber.call('sql.active_record', t0, t1, :id, @params)
-    end
+    in_web_transaction { simulate_query(2) }
 
     assert_metrics_recorded(
       'ActiveRecord/find' => { :call_count => 1, :total_call_time => 2 },
@@ -83,10 +73,9 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit:
   end
 
   def test_records_remote_service_metric
-    t1 = Time.now
-    t0 = t1 - 2
+    freeze_time
 
-    @subscriber.call('sql.active_record', t0, t1, :id, @params)
+    simulate_query(2)
 
     assert_metrics_recorded(
       'RemoteService/sql/mysql/server' => { :call_count => 1, :total_call_time => 2.0 }
@@ -94,8 +83,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit:
   end
 
   def test_creates_txn_segment
-    t1 = Time.now
-    t0 = t1 - 2
+    freeze_time
 
     NewRelic::Agent.manual_start
     @stats_engine.start_transaction
@@ -103,7 +91,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit:
     sampler.notice_first_scope_push(Time.now.to_f)
     sampler.notice_transaction('/path', {})
     sampler.notice_push_scope('Controller/sandwiches/index')
-    @subscriber.call('sql.active_record', t0, t1, :id, @params)
+    simulate_query(2)
     sampler.notice_pop_scope('Controller/sandwiches/index')
     sampler.notice_scope_empty(stub('txn', :name => '/path', :custom_parameters => {}))
 
@@ -121,14 +109,24 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Test::Unit:
     NewRelic::Agent.manual_start
     sampler = NewRelic::Agent.instance.sql_sampler
     sampler.notice_first_scope_push nil
-    t1 = Time.now
-    t0 = t1 - 2
+    freeze_time
 
-    @subscriber.call('sql.active_record', t0, t1, :id, @params)
+    simulate_query(2)
 
     assert_equal 'SELECT * FROM sandwiches', sampler.transaction_data.sql_data[0].sql
   ensure
     NewRelic::Agent.shutdown
+  end
+
+  def test_should_not_raise_due_to_an_exception_during_instrumentation_callback
+    @subscriber.stubs(:record_metrics).raises(StandardError)
+    assert_nothing_raised { simulate_query }
+  end
+
+  def simulate_query(duration=nil)
+    @subscriber.start('sql.active_record', :id, @params)
+    advance_time(duration) if duration
+    @subscriber.finish('sql.active_record', :id, @params)
   end
 end
 

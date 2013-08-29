@@ -17,6 +17,8 @@ module NewRelic
             event.scope = NewRelic::Agent.instance.stats_engine \
               .push_scope(:action_view, event.time)
           end
+        rescue => e
+          log_notification_error(e, name, 'start')
         end
 
         def finish(name, id, payload)
@@ -27,6 +29,8 @@ module NewRelic
             NewRelic::Agent.instance.stats_engine \
               .pop_scope(event.scope, event.metric_name, event.end)
           end
+        rescue => e
+          log_notification_error(e, name, 'finish')
         end
 
         def record_metrics(event)
