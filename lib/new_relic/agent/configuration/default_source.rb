@@ -36,9 +36,10 @@ module NewRelic
               files << File.join(ENV["HOME"], ".newrelic", "newrelic.yml")
               files << File.join(ENV["HOME"], "newrelic.yml")
             end
-            files.detect do |file|
+            found_path = files.detect do |file|
               File.expand_path(file) if File.exists? file
             end
+            found_path || ""
           }
         end
 
