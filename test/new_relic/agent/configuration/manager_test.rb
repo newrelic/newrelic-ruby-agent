@@ -72,6 +72,21 @@ module NewRelic::Agent::Configuration
       @manager.remove_config(source)
     end
 
+    def test_manager_resolves_nested_procs_from_default_source
+      source = {
+        :foo    => Proc.new { self[:bar] },
+        :bar    => Proc.new { self[:baz] },
+        :baz    => Proc.new { 'Russian Nesting Dolls!' }
+      }
+      @manager.apply_config(source)
+
+      source.keys.each do |key|
+        assert_equal 'Russian Nesting Dolls!', @manager[key]
+      end
+
+      @manager.remove_config(source)
+    end
+
     def test_should_not_apply_removed_sources
       test_source = TestSource.new
       @manager.apply_config(test_source)

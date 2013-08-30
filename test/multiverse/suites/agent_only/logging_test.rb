@@ -104,9 +104,15 @@ class LoggingTest < MiniTest::Unit::TestCase
       "Agent configured not to send data in this environment.")
   end
 
-  def test_logs_mising_license_key
+  def test_logs_missing_license_key
     running_agent_writes_to_log(
       { :license_key => false },
+      "No license key found in newrelic.yml config.")
+  end
+
+  def test_logs_blank_license_key
+    running_agent_writes_to_log(
+      { :license_key => '' },
       "No license key found in newrelic.yml config.")
   end
 

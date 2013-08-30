@@ -334,8 +334,12 @@ module NewRelic
           # assist with proper dispatcher detection
           def log_dispatcher
             dispatcher_name = Agent.config[:dispatcher].to_s
-            return if log_if(dispatcher_name.empty?, :info, "No known dispatcher detected.")
-            ::NewRelic::Agent.logger.info "Dispatcher: #{dispatcher_name}"
+
+            if dispatcher_name.empty?
+              ::NewRelic::Agent.logger.info 'No known dispatcher detected.'
+            else
+              ::NewRelic::Agent.logger.info "Dispatcher: #{dispatcher_name}"
+            end
           end
 
           def log_app_name
@@ -399,35 +403,27 @@ module NewRelic
             ::NewRelic::Agent.logger.debug "New Relic Ruby Agent #{NewRelic::VERSION::STRING} Initialized: pid = #{$$}"
           end
 
-          # A helper method that logs a condition if that condition is
-          # true. Mentally cleaner than having every method set a
-          # local and log if it is true
-          def log_if(boolean, level, message)
-            ::NewRelic::Agent.logger.send(level, message) if boolean
-            boolean
-          end
-
-          # A helper method that logs a condition unless that
-          # condition is true. Mentally cleaner than having every
-          # method set a local and log unless it is true
-          def log_unless(boolean, level, message)
-            ::NewRelic::Agent.logger.send(level, message) unless boolean
-            boolean
-          end
-
           # Warn the user if they have configured their agent not to
           # send data, that way we can see this clearly in the log file
           def monitoring?
-            log_unless(Agent.config[:monitor_mode], :warn,
-                       "Agent configured not to send data in this environment.")
+            if Agent.config[:monitor_mode]
+              true
+            else
+              ::NewRelic::Agent.logger.warn('Agent configured not to send data in this environment.')
+              false
+            end
           end
 
           # Tell the user when the license key is missing so they can
           # fix it by adding it to the file
           def has_license_key?
-            log_unless(Agent.config[:license_key], :warn,
-                       "No license key found in newrelic.yml config. " +
-                       "This often means your newrelic.yml is missing a section for the running environment '#{NewRelic::Control.instance.env}'")
+            if Agent.config[:license_key] && Agent.config[:license_key].length > 0
+              true
+            else
+              ::NewRelic::Agent.logger.warn("No license key found in newrelic.yml config. " +
+                "This often means your newrelic.yml is missing a section for the running environment '#{NewRelic::Control.instance.env}'")
+              false
+            end
           end
 
           # A correct license key exists and is of the proper length
@@ -439,15 +435,25 @@ module NewRelic
           # usually looks something like a SHA1 hash
           def correct_license_length
             key = Agent.config[:license_key]
-            log_unless((key.length == 40), :error, "Invalid license key: #{key}")
+
+            if key.length == 40
+              true
+            else
+              ::NewRelic::Agent.logger.error("Invalid license key: #{key}")
+              false
+            end
           end
 
           # If we're using a dispatcher that forks before serving
           # requests, we need to wait until the children are forked
           # before connecting, otherwise the parent process sends odd data
           def using_forking_dispatcher?
-            log_if([:passenger, :rainbows, :unicorn].include?(Agent.config[:dispatcher]),
-                   :info, "Connecting workers after forking.")
+            if [:passenger, :rainbows, :unicorn].include? Agent.config[:dispatcher]
+              ::NewRelic::Agent.logger.info 'Connecting workers after forking.'
+              true
+            else
+              false
+            end
           end
 
           # Return true if we're using resque and it hasn't had a chance to (potentially)
