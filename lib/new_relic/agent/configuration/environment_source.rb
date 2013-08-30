@@ -6,7 +6,7 @@ module NewRelic
   module Agent
     module Configuration
       class EnvironmentSource < DottedHash
-        SUPPORTED_PREFIXES = /^new_relic_|newrelic_|new_relic|newrelic/i
+        SUPPORTED_PREFIXES = /^new_relic_|newrelic_/i
 
         attr_accessor :alias_map, :type_map
 
@@ -26,7 +26,7 @@ module NewRelic
         end
 
         def set_aliases(config_setting, value)
-          set_dotted_alias(config_setting) if config_setting.match(/\./)
+          set_dotted_alias(config_setting)
 
           return unless value[:aliases]
           value[:aliases].each do |config_alias|
@@ -34,9 +34,13 @@ module NewRelic
           end
         end
 
-        def set_dotted_alias(config_setting)
-          config_alias = config_setting.to_s.gsub(/\./,'_').to_sym
-          self.alias_map[config_alias] = config_setting
+        def set_dotted_alias(original_config_setting)
+          config_setting = original_config_setting.to_s
+
+          if config_setting.include? '.'
+            config_alias = config_setting.gsub(/\./,'_').to_sym
+            self.alias_map[config_alias] = original_config_setting
+          end
         end
 
         def set_log_file
@@ -68,8 +72,6 @@ module NewRelic
         end
 
         def set_key_by_type(config_key, environment_key)
-          self[config_key] = ENV[environment_key] if self[config_key].nil?
-
           value = ENV[environment_key]
           type = self.type_map[config_key]
 
@@ -87,6 +89,9 @@ module NewRelic
             elsif value != nil
               self[config_key] = true
             end
+          else
+            ::NewRelic::Agent.logger.info("Configuration setting #{config_key} does not have a default.")
+            self[config_key] = value
           end
         end
 

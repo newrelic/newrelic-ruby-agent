@@ -193,6 +193,24 @@ module NewRelic
       ].join(',').freeze
 
       DEFAULTS = {
+        :license_key => {
+          :default => '',
+          :public => true,
+          :type => String,
+          :description => "New Relic license key."
+        },
+        :log => {
+          :default => '',
+          :public => false,
+          :type => String,
+          :description => "Override to set log file name and path to STDOUT."
+        },
+        :omit_fake_collector => {
+          :default => false,
+          :public => false,
+          :type => Boolean,
+          :description => "Override to omit fake collector in multiverse tests."
+        },
         :config_path => {
           :default => DefaultSource.config_path,
           :public => true,
@@ -594,7 +612,7 @@ module NewRelic
           :default => DefaultSource.slow_sql_record_sql,
           :public => true,
           :type => String,
-          :description => 'Obfuscation level for slow sql queries (e.g. 'obfuscated', 'raw', 'none').'
+          :description => "Obfuscation level for slow sql queries (e.g. 'obfuscated', 'raw', 'none')."
         },
         :'error_collector.enabled' => {
           :default => true,

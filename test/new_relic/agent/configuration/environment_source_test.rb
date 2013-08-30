@@ -97,20 +97,20 @@ module NewRelic::Agent::Configuration
     end
 
     def test_set_values_from_new_relic_environment_variables
-      keys = %w(NEW_RELIC_IS_RAD NEWRELIC_IS_MAGIC)
+      keys = %w(NEW_RELIC_LICENSE_KEY NEWRELIC_CONFIG_PATH)
       keys.each { |key| ENV[key] = 'skywizards' }
 
       expected_source = EnvironmentSource.new
 
-      [:is_rad, :is_magic].each do |key|
+      [:license_key, :config_path].each do |key|
         assert_equal 'skywizards', expected_source[key]
       end
     end
 
     def test_set_value_from_environment_variable
-      ENV['NEW_RELIC_IS_RAD'] = 'super rad'
-      @environment_source.set_value_from_environment_variable('NEW_RELIC_IS_RAD')
-      assert_equal @environment_source[:is_rad], 'super rad'
+      ENV['NEW_RELIC_LICENSE_KEY'] = 'super rad'
+      @environment_source.set_value_from_environment_variable('NEW_RELIC_LICENSE_KEY')
+      assert_equal @environment_source[:license_key], 'super rad'
     end
 
     def test_set_key_by_type_uses_the_default_type
@@ -120,24 +120,16 @@ module NewRelic::Agent::Configuration
     end
 
     def test_set_key_with_new_relic_prefix
-      assert_applied_string('NEW_RELIC_NUKE_IT_FROM_ORBIT', :nuke_it_from_orbit)
-    end
-
-    def test_set_key_with_new_relic_prefix_and_no_underscore
-      assert_applied_string('NEW_RELICNUKE_IT_FROM_ORBIT', :nuke_it_from_orbit)
+      assert_applied_string('NEW_RELIC_LICENSE_KEY', :license_key)
     end
 
     def test_set_key_with_newrelic_prefix
-      assert_applied_string('NEWRELIC_NUKE_IT_FROM_ORBIT', :nuke_it_from_orbit)
-    end
-
-    def test_set_key_with_newrelic_prefix_and_no_underscore
-      assert_applied_string('NEWRELICNUKE_IT_FROM_ORBIT', :nuke_it_from_orbit)
+      assert_applied_string('NEWRELIC_LICENSE_KEY', :license_key)
     end
 
     def test_does_not_set_key_without_new_relic_related_prefix
-      ENV['NUKE_IT_FROM_ORBIT'] = 'boom'
-      assert_nil EnvironmentSource.new[:nuke_it_from_orbit]
+      ENV['CONFIG_PATH'] = 'boom'
+      assert_not_equal 'boom', EnvironmentSource.new[:config_path]
     end
 
     def test_convert_environment_key_to_config_key
