@@ -173,26 +173,6 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
     end
   end
 
-  def test_log_unless_positive
-    # should not log
-    assert log_unless(true, :warn, "DURRR")
-  end
-
-  def test_log_unless_negative
-    # should log
-    expects_logging(:warn, "DURRR")
-    assert !log_unless(false, :warn, "DURRR")
-  end
-
-  def test_log_if_positive
-    expects_logging(:warn, "WHEE")
-    assert log_if(true, :warn, "WHEE")
-  end
-
-  def test_log_if_negative
-    assert !log_if(false, :warn, "WHEE")
-  end
-
   private
 
   def mocked_control
