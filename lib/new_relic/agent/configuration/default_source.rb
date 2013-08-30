@@ -377,13 +377,13 @@ module NewRelic
         },
         :force_send => {
           :default => false,
-          :public => true,
+          :public => false,
           :type => Boolean,
           :description => 'Enable or disable the forced sending of data to the New Relic data collection service when shutting down.'
         },
         :send_environment_info => {
           :default => true,
-          :public => true,
+          :public => false,
           :type => Boolean,
           :description => 'Enable or disable transmission of application environment information to the New Relic data collection service.'
         },
@@ -395,15 +395,15 @@ module NewRelic
         },
         :data_report_period => {
           :default => 60,
-          :public => true,
+          :public => false,
           :type => Fixnum,
           :description => 'Number of seconds betwixt connections to the New Relic data collection service.'
         },
         :keep_retrying => {
           :default => true,
-          :public => true,
+          :public => false,
           :type => Boolean,
-          :description => 'Enable or disable retrying failed connections to the New Relic data collection service.'
+          :description => '(Deprecated) Enable or disable retrying failed connections to the New Relic data collection service.'
         },
         :report_instance_busy => {
           :default => true,
@@ -439,7 +439,7 @@ module NewRelic
           :default => DefaultSource.audit_log_path,
           :public => true,
           :type => String,
-          :description => 'Path to the audit log file, excluding the filename.'
+          :description => 'Path to the audit log file (including the filename).'
         },
         :disable_samplers => {
           :default => false,
