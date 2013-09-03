@@ -12,6 +12,12 @@
   All settings in newrelic.yml can now be configured via environment variables.
   See https://newrelic.com/docs/ruby/ruby-agent-configuration for full details.
 
+  * Fix compatibility issues with excon and curb instrumentation
+
+  This release of the agent fixes a warning seen under certain circumstances
+  with the excon gem (most notably, when excon was used by fog), as well as
+  a bug with the curb instrumentation that conflicted with the  feedzirra gem.
+
   * Allow license key to be set by Capistrano variables
 
   A license key can be passed via a Capistrano variable where previously it
