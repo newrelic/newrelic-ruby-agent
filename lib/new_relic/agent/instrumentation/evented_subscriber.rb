@@ -33,10 +33,19 @@ module NewRelic
           pop_event(id)
         end
 
+        def log_notification_error(error, name, event_type)
+          # These are important enough failures that we want the backtraces
+          # logged at error level, hence the explicit log_exception call.
+          NewRelic::Agent.logger.error("Error during #{event_type} callback for event '#{name}':")
+          NewRelic::Agent.logger.log_exception(:error, error)
+        end
+
         def push_event(event)
           parent = event_stack[event.transaction_id].last
-          event.parent = parent
-          parent << event if parent
+          if parent && event.respond_to?(:parent=)
+            event.parent = parent
+            parent << event
+          end
           event_stack[event.transaction_id].push event
         end
 
