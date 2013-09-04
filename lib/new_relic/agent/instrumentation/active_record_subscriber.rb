@@ -2,6 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 require 'new_relic/agent/instrumentation/active_record_helper'
+require 'new_relic/agent/instrumentation/evented_subscriber'
 
 # Listen for ActiveSupport::Notifications events for ActiveRecord query
 # events.  Write metric data, transaction trace segments and slow sql
