@@ -90,7 +90,8 @@ module NewRelic
               self[config_key] = true
             end
           else
-            ::NewRelic::Agent.logger.info("Configuration setting #{config_key} does not have a default.")
+            ::NewRelic::Agent.logger.info("#{environment_key} does not have a corresponding configuration setting (#{config_key} does not exist).")
+            ::NewRelic::Agent.logger.info("Run `rake newrelic:config:docs` to see a list of available configuration settings.")
             self[config_key] = value
           end
         end
