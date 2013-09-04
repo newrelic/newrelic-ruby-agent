@@ -116,6 +116,12 @@ class LoggingTest < MiniTest::Unit::TestCase
       "No license key found in newrelic.yml config.")
   end
 
+  def test_logs_invalid_license_key
+    running_agent_writes_to_log(
+      { :license_key => 'a' * 30 },
+      "Invalid license key: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+  end
+
   def test_logs_unknown_config_setting_from_environment
     env_var = 'NEW_RELIC_TOTORO'
     setting = env_var.gsub(/NEW_RELIC_|NEWRELIC_/,'').downcase
@@ -125,18 +131,6 @@ class LoggingTest < MiniTest::Unit::TestCase
       NewRelic::Agent::Configuration::EnvironmentSource.new
       ENV.delete(env_var)
     end
-  end
-
-  def test_logs_blank_license_key
-    running_agent_writes_to_log(
-      { :license_key => '' },
-      "No license key found in newrelic.yml config.")
-  end
-
-  def test_logs_invalid_license_key
-    running_agent_writes_to_log(
-      { :license_key => 'a' * 30 },
-      "Invalid license key: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
   end
 
   def test_logs_forking_workers
