@@ -259,8 +259,8 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
 
       def test_to_collector_array
         @profile.instance_variable_set(:@profile_id, "-1")
-        @profile.instance_variable_set(:@start_time, 1350403938892.524)
-        @profile.instance_variable_set(:@stop_time, 1350403939904.375)
+        @profile.stubs(:start_time).returns(1350403938892.524)
+        @profile.stubs(:stop_time).returns(1350403939904.375)
         @profile.instance_variable_set(:@poll_count, 10)
         @profile.instance_variable_set(:@sample_count, 2)
 

@@ -18,8 +18,7 @@ module NewRelic
           :traces,
           :profile_agent_code,
           :interval, :duration,
-          :poll_count, :sample_count,
-          :start_time, :stop_time
+          :poll_count, :sample_count
 
         def initialize(agent_command)
           arguments = agent_command.arguments
@@ -44,30 +43,32 @@ module NewRelic
           @failure_count = 0
         end
 
+        def collect_thread_backtrace(thread)
+          bucket = Threading::AgentThread.bucket_thread(thread, @profile_agent_code)
+          if bucket != :ignore
+            backtrace = Threading::AgentThread.scrub_backtrace(thread, @profile_agent_code)
+            if backtrace.nil?
+              @failure_count += 1
+            else
+              @sample_count += 1
+              aggregate(backtrace, @traces[bucket])
+            end
+          end
+        end
+
         def run
           NewRelic::Agent.logger.debug("Starting thread profile. profile_id=#{profile_id}, duration=#{duration}")
 
           Threading::AgentThread.new('Thread Profiler') do
-            @start_time = now_in_millis
-
             @worker_loop.run(@interval) do
               NewRelic::Agent.instance.stats_engine.
                 record_supportability_metric_timed("ThreadProfiler/PollingTime") do
 
                 @poll_count += 1
                 Threading::AgentThread.list.each do |t|
-                  bucket = Threading::AgentThread.bucket_thread(t, @profile_agent_code)
-                  if bucket != :ignore
-                    backtrace = Threading::AgentThread.scrub_backtrace(t, @profile_agent_code)
-                    if backtrace.nil?
-                      @failure_count += 1
-                    else
-                      @sample_count += 1
-                      aggregate(backtrace, @traces[bucket])
-                    end
-                  end
+                  collect_thread_backtrace(t)
                 end
-                end
+              end
             end
 
             mark_done
@@ -120,6 +121,14 @@ module NewRelic
 
         include NewRelic::Coerce
 
+        def start_time
+          @worker_loop.start_time
+        end
+
+        def stop_time
+          @worker_loop.stop_time
+        end
+
         def to_collector_array(encoder)
           prune!(THREAD_PROFILER_NODES)
 
@@ -132,8 +141,8 @@ module NewRelic
 
           [[
             int(@profile_id),
-            float(@start_time),
-            float(@stop_time),
+            float(start_time),
+            float(stop_time),
             int(@poll_count),
             string(encoder.encode(traces)),
             int(@sample_count),
@@ -151,7 +160,6 @@ module NewRelic
 
         def mark_done
           @finished = true
-          @stop_time = now_in_millis
         end
 
         def mark_for_pruning(nodes, count_to_keep)
