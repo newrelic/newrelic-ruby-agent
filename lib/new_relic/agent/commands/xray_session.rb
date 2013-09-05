@@ -13,7 +13,7 @@ module NewRelic
         alias_method :active?, :active
 
         def initialize(raw_session)
-          @id                    = raw_session["x_ray_id"]
+          @id                    = raw_session.fetch("x_ray_id", nil)
           @xray_session_name     = raw_session.fetch("xray_session_name", "")
           @key_transaction_name  = raw_session.fetch("key_transaction_name", "")
           @requested_trace_count = raw_session.fetch("requested_trace_count", 100)

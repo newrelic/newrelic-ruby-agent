@@ -33,15 +33,11 @@ module NewRelic
         # Session activation
 
         def activate_sessions(incoming_ids)
-          ids_to_activate = select_to_add(incoming_ids)
+          ids_to_activate = incoming_ids - sessions.keys
           lookup_metadata_for(ids_to_activate).each do |raw|
             NewRelic::Agent.logger.debug("Adding new session for #{raw.inspect}")
             add_session(XraySession.new(raw))
           end
-        end
-
-        def select_to_add(incoming_ids)
-          incoming_ids.reject {|id| sessions.include?(id)}
         end
 
         def lookup_metadata_for(ids_to_activate)
@@ -57,22 +53,19 @@ module NewRelic
           session.activate
         end
 
-        # Session deactivations
+        # Session deactivation
 
         def deactivate_sessions(incoming_ids)
-          select_to_remove(incoming_ids).each do |inactive_session|
-            remove_session(inactive_session)
+          ids_to_remove = sessions.keys - incoming_ids
+          ids_to_remove.each do |session_id|
+            remove_session_by_id(session_id)
           end
         end
 
-        def select_to_remove(incoming_ids)
-          inactive_pairs = sessions.reject {|k, _| incoming_ids.include?(k)}
-          inactive_pairs.map {|p| p.last}
-        end
-
-        def remove_session(session)
+        def remove_session_by_id(id)
+          session = sessions.delete(id)
           NewRelic::Agent.logger.debug("Removing X-Ray session #{session.inspect}")
-          sessions.delete(session.id)
+
           session.deactivate
         end
 
