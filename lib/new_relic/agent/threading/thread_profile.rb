@@ -45,14 +45,15 @@ module NewRelic
 
         def collect_thread_backtrace(thread)
           bucket = Threading::AgentThread.bucket_thread(thread, @profile_agent_code)
-          if bucket != :ignore
-            backtrace = Threading::AgentThread.scrub_backtrace(thread, @profile_agent_code)
-            if backtrace.nil?
-              @failure_count += 1
-            else
-              @sample_count += 1
-              aggregate(backtrace, @traces[bucket])
-            end
+          return if bucket == :ignore
+
+          backtrace = Threading::AgentThread.scrub_backtrace(thread, @profile_agent_code)
+
+          if backtrace
+            @sample_count += 1
+            aggregate(backtrace, @traces[bucket])
+          else
+            @failure_count += 1
           end
         end
 
