@@ -1,0 +1,102 @@
+#!/usr/bin/env ruby
+
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
+require 'optparse'
+require 'rubygems'
+require 'httparty'
+require 'tmpdir'
+require 'json'
+
+require File.join(File.dirname(__FILE__), '..', 'lib', 'performance')
+
+GEM_NAME = 'newrelic_rpm'
+
+class GemWorkspace
+  attr_reader :path
+
+  def initialize(path=nil)
+    @path = File.expand_path(path || Dir.mktmpdir)
+    FileUtils.mkdir_p(gems_dir)
+    FileUtils.mkdir_p(extracted_gems_dir)
+  end
+
+  def gems_dir
+    File.join(@path, 'gems')
+  end
+
+  def extracted_gems_dir
+    File.join(@path, 'extracted_gems')
+  end
+end
+
+class FetchedGem
+  attr_reader :name, :version
+
+  def initialize(workspace, name, version)
+    @workspace = workspace
+    @name = name
+    @version = version
+  end
+
+  def gem_filename
+    "#{@name}-#{@version}.gem"
+  end
+
+  def path
+    File.join(@workspace.gems_dir, gem_filename)
+  end
+
+  def extracted_path
+    File.join(@workspace.extracted_gems_dir, gem_filename.gsub(/\.gem$/, ''))
+  end
+
+  def uri
+    "https://rubygems.org/downloads/#{gem_filename}"
+  end
+
+  def fetch!
+    File.open(path, "w") do |f|
+      rsp = HTTParty.get(uri)
+      f.write(rsp.body)
+    end
+  end
+
+  def fetched?
+    File.exist?(path)
+  end
+
+  def git_sha
+    `git rev-parse #{@version}`.strip
+  end
+
+  def extract!
+    fetch! unless fetched?
+    cmd = "cd #{@workspace.extracted_gems_dir} && gem unpack '#{path}'"
+    system(cmd)
+  end
+end
+
+versions_url = "https://rubygems.org/api/v1/versions/#{GEM_NAME}.json"
+result = Net::HTTP.get(URI.parse(versions_url))
+
+gem_versions = JSON.parse(result)
+ga_gem_versions = gem_versions.reject { |v| v['prerelease'] }
+
+workspace = GemWorkspace.new(ARGV.first)
+ga_gem_versions.each do |version|
+  gem = FetchedGem.new(workspace, GEM_NAME, version['number'])
+  gem.extract!
+  options = {
+    :agent_path => gem.extracted_path,
+    :reporter_classes => ["ConsoleReporter", "HakoReporter"],
+    :tags => {
+      :series => 'baseline',
+      :newrelic_rpm_git_sha => gem.git_sha
+    }
+  }
+  runner = Performance::Runner.new(options)
+  runner.run_and_report
+end

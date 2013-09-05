@@ -11,6 +11,7 @@ module NewRelic::Agent::Configuration
     def setup
       @original_env = {}
       @original_env.replace(ENV)
+      @environment_source = EnvironmentSource.new
     end
 
     def teardown
@@ -24,7 +25,10 @@ module NewRelic::Agent::Configuration
       assert_applied_string 'NEW_RELIC_APP_NAME', 'app_name'
       assert_applied_string 'NEWRELIC_APP_NAME', 'app_name'
       assert_applied_string 'NEW_RELIC_HOST', 'host'
-      assert_applied_string 'NEW_RELIC_PORT', 'port'
+    end
+
+    def test_environment_fixnums_are_applied
+      assert_applied_fixnum 'NEW_RELIC_PORT', 'port'
     end
 
     def test_environment_symbols_are_applied
@@ -37,21 +41,21 @@ module NewRelic::Agent::Configuration
     %w| NEWRELIC_ENABLE NEWRELIC_ENABLED NEW_RELIC_ENABLE NEW_RELIC_ENABLED |.each do |var|
       define_method("test_environment_booleans_truths_are_applied_to_#{var}") do
         ENV[var] = 'true'
-        assert EnvironmentSource.new[:agent_enabled]
+        assert EnvironmentSource.new[:enabled]
         ENV[var] = 'on'
-        assert EnvironmentSource.new[:agent_enabled]
+        assert EnvironmentSource.new[:enabled]
         ENV[var] = 'yes'
-        assert EnvironmentSource.new[:agent_enabled]
+        assert EnvironmentSource.new[:enabled]
         ENV.delete(var)
       end
 
       define_method("test_environment_booleans_falsehoods_are_applied_to_#{var}") do
         ENV[var] = 'false'
-        assert !EnvironmentSource.new[:agent_enabled]
+        assert !EnvironmentSource.new[:enabled]
         ENV[var] = 'off'
-        assert !EnvironmentSource.new[:agent_enabled]
+        assert !EnvironmentSource.new[:enabled]
         ENV[var] = 'no'
-        assert !EnvironmentSource.new[:agent_enabled]
+        assert !EnvironmentSource.new[:enabled]
         ENV.delete(var)
       end
     end
@@ -92,6 +96,63 @@ module NewRelic::Agent::Configuration
       assert_equal 'STDOUT', source[:log_file_path]
     end
 
+    def test_set_values_from_new_relic_environment_variables
+      keys = %w(NEW_RELIC_LICENSE_KEY NEWRELIC_CONFIG_PATH)
+      keys.each { |key| ENV[key] = 'skywizards' }
+
+      expected_source = EnvironmentSource.new
+
+      [:license_key, :config_path].each do |key|
+        assert_equal 'skywizards', expected_source[key]
+      end
+    end
+
+    def test_set_value_from_environment_variable
+      ENV['NEW_RELIC_LICENSE_KEY'] = 'super rad'
+      @environment_source.set_value_from_environment_variable('NEW_RELIC_LICENSE_KEY')
+      assert_equal @environment_source[:license_key], 'super rad'
+    end
+
+    def test_set_key_by_type_uses_the_default_type
+      ENV['NEW_RELIC_TEST'] = 'true'
+      @environment_source.set_key_by_type(:enabled, 'NEW_RELIC_TEST')
+      assert_equal true, @environment_source[:enabled]
+    end
+
+    def test_set_key_with_new_relic_prefix
+      assert_applied_string('NEW_RELIC_LICENSE_KEY', :license_key)
+    end
+
+    def test_set_key_with_newrelic_prefix
+      assert_applied_string('NEWRELIC_LICENSE_KEY', :license_key)
+    end
+
+    def test_does_not_set_key_without_new_relic_related_prefix
+      ENV['CONFIG_PATH'] = 'boom'
+      assert_not_equal 'boom', EnvironmentSource.new[:config_path]
+    end
+
+    def test_convert_environment_key_to_config_key
+      result = @environment_source.convert_environment_key_to_config_key('NEW_RELIC_IS_RAD')
+      assert_equal :is_rad, result
+    end
+
+    def test_convert_environment_key_to_config_key_respects_aliases
+      assert_applied_boolean('NEWRELIC_ENABLE', :enabled)
+    end
+
+    def test_convert_environment_key_to_config_key_allows_underscores_as_dots
+      assert_applied_string('NEW_RELIC_AUDIT_LOG_PATH', :'audit_log.path')
+    end
+
+    def test_collect_new_relic_environment_variable_keys
+      keys = %w(NEW_RELIC_IS_RAD NEWRELIC_IS_MAGIC)
+      keys.each { |key| ENV[key] = 'true' }
+
+      result = @environment_source.collect_new_relic_environment_variable_keys
+      assert_equal keys, result
+    end
+
     def assert_applied_string(env_var, config_var)
       ENV[env_var] = 'test value'
       assert_equal 'test value', EnvironmentSource.new[config_var.to_sym]
@@ -103,5 +164,18 @@ module NewRelic::Agent::Configuration
       assert_equal :'test value', EnvironmentSource.new[config_var.to_sym]
       ENV.delete(env_var)
     end
+
+    def assert_applied_fixnum(env_var, config_var)
+      ENV[env_var] = '3000'
+      assert_equal 3000, EnvironmentSource.new[config_var.to_sym]
+      ENV.delete(env_var)
+    end
+
+    def assert_applied_boolean(env_var, config_var)
+      ENV[env_var] = 'true'
+      assert_equal true, EnvironmentSource.new[config_var.to_sym]
+      ENV.delete(env_var)
+    end
+
   end
 end

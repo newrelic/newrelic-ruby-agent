@@ -3,7 +3,8 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/rack/agent_hooks'
-require 'new_relic/agent/thread'
+require 'new_relic/agent/transaction_state'
+require 'new_relic/agent/threading/agent_thread'
 
 module NewRelic
   module Agent
@@ -20,14 +21,6 @@ module NewRelic
         #{NEWRELIC_ID_HEADER} HTTP_X_NEWRELIC_ID X_NEWRELIC_ID
       }
       CONTENT_LENGTH_HEADER_KEYS = %w{Content-Length HTTP_CONTENT_LENGTH CONTENT_LENGTH}
-
-      # Because we aren't in the right spot when our transaction actually
-      # starts, hold client_cross_app_id we get thread local until then.
-      THREAD_ID_KEY = :newrelic_client_cross_app_id
-
-      # Same for the referring transaction guid
-      THREAD_TXN_KEY = :newrelic_cross_app_referring_txn_info
-
 
       # Functions for obfuscating and unobfuscating header values
       module EncodingFunctions
@@ -101,15 +94,15 @@ module NewRelic
       end
 
       def save_client_cross_app_id(request_headers)
-        NewRelic::Agent::AgentThread.current[THREAD_ID_KEY] = decoded_id(request_headers)
+        TransactionState.get.client_cross_app_id = decoded_id(request_headers)
       end
 
       def clear_client_cross_app_id
-        NewRelic::Agent::AgentThread.current[THREAD_ID_KEY] = nil
+        TransactionState.get.client_cross_app_id = nil
       end
 
       def client_cross_app_id
-        NewRelic::Agent::AgentThread.current[THREAD_ID_KEY]
+        TransactionState.get.client_cross_app_id
       end
 
       def save_referring_transaction_info(request_headers)
@@ -119,27 +112,23 @@ module NewRelic
         txn_info = NewRelic.json_load( txn_header )
         NewRelic::Agent.logger.debug "Referring txn_info: %p" % [ txn_info ]
 
-        NewRelic::Agent::AgentThread.current[THREAD_TXN_KEY] = txn_info
-      end
-
-      def clear_referring_transaction_info
-        NewRelic::Agent::AgentThread.current[THREAD_TXN_KEY] = nil
+        TransactionState.get.referring_transaction_info = txn_info
       end
 
       def client_referring_transaction_guid
-        info = NewRelic::Agent::AgentThread.current[THREAD_TXN_KEY] or return nil
+        info = TransactionState.get.referring_transaction_info or return nil
         return info[0]
       end
 
       def client_referring_transaction_record_flag
-        info = NewRelic::Agent::AgentThread.current[THREAD_TXN_KEY] or return nil
+        info = TransactionState.get.referring_transaction_info or return nil
         return info[1]
       end
 
       def insert_response_header(request_headers, response_headers)
         unless client_cross_app_id.nil?
           NewRelic::Agent::Transaction.freeze_name
-          timings = NewRelic::Agent::BrowserMonitoring.timings
+          timings = NewRelic::Agent::TransactionState.get.timings
           content_length = content_length_from_request(request_headers)
 
           set_response_headers(response_headers, timings, content_length)
@@ -220,7 +209,7 @@ module NewRelic
       end
 
       def transaction_guid
-        NewRelic::Agent::TransactionInfo.get.guid
+        NewRelic::Agent::TransactionState.get.request_guid
       end
 
       private

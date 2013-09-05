@@ -1,0 +1,19 @@
+source 'http://rubygems.org'
+
+gem 'test-unit'
+gem 'rails', '~>3.0.0'
+gem 'newrelic_rpm', :path => '../../..'
+gem "mocha"
+gem 'rack'
+gem 'rack-test'
+
+if (RUBY_PLATFORM == 'java')
+  gem "activerecord-jdbcmysql-adapter", '1.2.5'
+  gem "activerecord-jdbcsqlite3-adapter", '1.2.5'
+  gem "jruby-openssl"
+else
+  gem "mysql"
+  gem "sqlite3-ruby"
+end
+
+gem 'sequel', '~> 3.46.0'

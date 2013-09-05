@@ -1,0 +1,31 @@
+# Shared properties for mysql db
+mysql: &mysql
+  adapter: mysql
+  socket: <%= (`uname -s` =~ /Linux/ ) ? "" :"/tmp/mysql.sock" %>
+  username: root
+  host: localhost
+  database: rails_blog
+
+# Shared properties for postgres.  This won't work with our schema but
+# Does work with agent tests
+sqlite3: &sqlite3
+<% if defined?(JRuby) %>
+  adapter: jdbcsqlite3
+<% else %>
+  adapter: sqlite3
+<% end %>
+  database: db/all.sqlite3
+  pool: 5
+  timeout: 5000
+  host: localhost
+  
+# SQLite version 3.x
+#   gem install sqlite3-ruby (not necessary on OS X Leopard)
+development:
+  <<: *sqlite3
+
+test:
+  <<: *mysql
+
+production:
+  <<: *mysql

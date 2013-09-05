@@ -96,44 +96,45 @@ EOL
     assert !app.should_instrument?({NewRelic::Rack::BrowserMonitoring::ALREADY_INSTRUMENTED_KEY => true}, 200, {'Content-Type' => 'text/html'})
   end
 
-  def test_insert_timing_header_right_after_open_head_if_no_meta_tags
-    get '/'
-
-    assert(last_response.body.include?("head>#{NewRelic::Agent.browser_timing_header}"),
-           last_response.body)
-    TestApp.doc = nil
-  end
-
   def test_insert_header_should_mark_environment
     get '/'
     assert last_request.env.key?(NewRelic::Rack::BrowserMonitoring::ALREADY_INSTRUMENTED_KEY)
-    TestApp.doc = nil
   end
 
-  def test_insert_timing_header_right_before_head_close_if_ua_compatible_found
-    TestApp.doc = <<-EOL
-<html>
-  <head>
-    <title>im a title</title>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
-    <script>
-      junk
-    </script>
-  </head>
-  <body>im some body text</body>
-</html>
-EOL
-    get '/'
+  # RUM header auto-insertion testing
+  # We read *.source.html files from the test/rum directory, and then
+  # compare the results of them to *.result.html files.
 
-    assert(last_response.body.include?("#{NewRelic::Agent.browser_timing_header}</head>"),
-           last_response.body)
-  end
+  source_files = Dir[File.join(File.dirname(__FILE__), "..", "..", "rum", "*.source.html")]
 
-  def test_insert_timing_footer_right_before_html_body_close
-    get '/'
+  RUM_HEADER = "|||I AM THE RUM HEADER|||"
+  RUM_FOOTER = "|||I AM THE RUM FOOTER|||"
 
-    assert_match(/.*NREUMQ\.push.*new Date\(\)\.getTime\(\),"","","","",""\]\);<\/script><\/body>/,
-                 last_response.body)
+  source_files.each do |source_file|
+    source_filename = File.basename(source_file).gsub(".", "_")
+    source_html = File.read(source_file)
+
+    result_file = source_file.gsub(".source.", ".result.")
+
+    define_method("test_#{source_filename}") do
+      TestApp.doc = source_html
+      NewRelic::Agent.instance.stubs(:browser_timing_header).returns(RUM_HEADER)
+      NewRelic::Agent.instance.stubs(:browser_timing_footer).returns(RUM_FOOTER)
+
+      get '/'
+
+      expected_content = File.read(result_file)
+      assert_equal(expected_content, last_response.body)
+    end
+
+    define_method("test_dont_touch_#{source_filename}") do
+      TestApp.doc = source_html
+      NewRelic::Rack::BrowserMonitoring.any_instance.stubs(:should_instrument?).returns(false)
+
+      get '/'
+
+      assert_equal(source_html, last_response.body)
+    end
   end
 
   def test_should_not_throw_exception_on_empty_reponse

@@ -80,6 +80,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
 
     def test_listener_merges_error_traces
       sampler = NewRelic::Agent.agent.error_collector
+      sampler.errors.clear
       sampler.notice_error(Exception.new("message"), :uri => '/myurl/',
                            :metric => 'path', :referer => 'test_referer',
                            :request_params => {:x => 'y'})

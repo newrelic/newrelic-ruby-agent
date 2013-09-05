@@ -36,7 +36,11 @@ module NewRelic
         end
 
         def host
-          @datum[:host]
+          if hostname = (self['host'] || self['Host'])
+            hostname.split(':').first
+          else
+            @datum[:host]
+          end
         end
 
         def method

@@ -1,0 +1,16 @@
+.bundle
+test/reports/
+coverage/
+.idea/
+tmp/
+.project
+**/db/*.sqlite3
+**/vendor/plugins
+.DS_Store
+.DS\_Store
+.svn/
+*~
+pkg/
+/tmp
+**/log/*.log
+**/tmp/**/*

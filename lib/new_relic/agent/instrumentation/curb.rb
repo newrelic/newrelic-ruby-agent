@@ -73,9 +73,18 @@ DependencyDetection.defer do
 
       # We override this method in order to ensure access to header_str even
       # though we use an on_header callback
-      def header_str
-        self._nr_header_str
+      def header_str_with_newrelic
+        if self._nr_serial
+          self._nr_header_str
+        else
+          # Since we didn't install a header callback for a non-serial request,
+          # just fall back to the original implementation.
+          header_str_without_newrelic
+        end
       end
+
+      alias_method :header_str_without_newrelic, :header_str
+      alias_method :header_str, :header_str_with_newrelic
     end # class Curl::Easy
 
 

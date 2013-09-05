@@ -31,4 +31,15 @@ class SequelTest < MiniTest::Unit::TestCase
     assert u.is_a?( User ), "#{u} isn't a User"
   end
 
+  # The oldest version of Sequel that we test against does not define a VERSION
+  # constant, or the in_transaction? method, so skip this test for that version.
+  if DB.respond_to?(:in_transaction?)
+    def test_should_not_clobber_in_transaction
+      require 'newrelic_rpm'
+
+      DB.transaction do
+        assert_equal(true, DB.in_transaction?)
+      end
+    end
+  end
 end

@@ -6,43 +6,44 @@ module NewRelic
   module Agent
     module Configuration
       class EnvironmentSource < DottedHash
+        SUPPORTED_PREFIXES = /^new_relic_|newrelic_/i
+
+        attr_accessor :alias_map, :type_map
+
         def initialize
-          string_map = {
-            'NRCONFIG'              => :config_path,
-            'NEW_RELIC_LICENSE_KEY' => :license_key,
-            'NEWRELIC_LICENSE_KEY'  => :license_key,
-            'NEW_RELIC_APP_NAME'    => :app_name,
-            'NEWRELIC_APP_NAME'     => :app_name,
-            'NEW_RELIC_HOST'        => :host,
-            'NEW_RELIC_PORT'        => :port
-          }.each do |key, val|
-            self[val] = ENV[key] if ENV[key]
+          set_log_file
+          set_config_file
+
+          @alias_map = {}
+          @type_map = {}
+
+          DEFAULTS.each do |config_setting, value|
+            self.type_map[config_setting] = value[:type]
+            set_aliases(config_setting, value)
           end
 
-          symbol_map = {
-            'NEW_RELIC_DISPATCHER'  => :dispatcher,
-            'NEWRELIC_DISPATCHER'   => :dispatcher,
-            'NEW_RELIC_FRAMEWORK'   => :framework,
-            'NEWRELIC_FRAMEWORK'    => :framework
-          }.each do |key, val|
-            self[val] = ENV[key].intern if ENV[key]
-          end
+          set_values_from_new_relic_environment_variables
+        end
 
-          boolean_map = {
-            'NEWRELIC_ENABLE'   => :agent_enabled,
-            'NEWRELIC_ENABLED'  => :agent_enabled,
-            'NEW_RELIC_ENABLE'  => :agent_enabled,
-            'NEW_RELIC_ENABLED' => :agent_enabled,
-            'NEWRELIC_DISABLE_HARVEST_THREAD'  => :disable_harvest_thread,
-            'NEW_RELIC_DISABLE_HARVEST_THREAD' => :disable_harvest_thread
-          }.each do |key, val|
-            if ENV[key].to_s =~ /false|off|no/i
-              self[val] = false
-            elsif ENV[key] != nil
-              self[val] = true
-            end
-          end
+        def set_aliases(config_setting, value)
+          set_dotted_alias(config_setting)
 
+          return unless value[:aliases]
+          value[:aliases].each do |config_alias|
+            self.alias_map[config_alias] = config_setting
+          end
+        end
+
+        def set_dotted_alias(original_config_setting)
+          config_setting = original_config_setting.to_s
+
+          if config_setting.include? '.'
+            config_alias = config_setting.gsub(/\./,'_').to_sym
+            self.alias_map[config_alias] = original_config_setting
+          end
+        end
+
+        def set_log_file
           if ENV['NEW_RELIC_LOG']
             if ENV['NEW_RELIC_LOG'].upcase == 'STDOUT'
               self[:log_file_path] = self[:log_file_name] = 'STDOUT'
@@ -52,6 +53,58 @@ module NewRelic
             end
           end
         end
+
+        def set_config_file
+          self[:config_path] = ENV['NRCONFIG'] if ENV['NRCONFIG']
+        end
+
+        def set_values_from_new_relic_environment_variables
+          nr_env_var_keys = collect_new_relic_environment_variable_keys
+
+          nr_env_var_keys.each do |key|
+            set_value_from_environment_variable(key)
+          end
+        end
+
+        def set_value_from_environment_variable(key)
+          config_key = convert_environment_key_to_config_key(key)
+          set_key_by_type(config_key, key)
+        end
+
+        def set_key_by_type(config_key, environment_key)
+          value = ENV[environment_key]
+          type = self.type_map[config_key]
+
+          if type == String
+            self[config_key] = value
+          elsif type == Fixnum
+            self[config_key] = value.to_i
+          elsif type == Float
+            self[config_key] = value.to_f
+          elsif type == Symbol
+            self[config_key] = value.to_sym
+          elsif type == NewRelic::Agent::Configuration::Boolean
+            if value =~ /false|off|no/i
+              self[config_key] = false
+            elsif value != nil
+              self[config_key] = true
+            end
+          else
+            ::NewRelic::Agent.logger.info("#{environment_key} does not have a corresponding configuration setting (#{config_key} does not exist).")
+            ::NewRelic::Agent.logger.info("Run `rake newrelic:config:docs` or visit https://newrelic.com/docs/ruby/ruby-agent-configuration to see a list of available configuration settings.")
+            self[config_key] = value
+          end
+        end
+
+        def convert_environment_key_to_config_key(key)
+          stripped_key = key.gsub(SUPPORTED_PREFIXES, '').downcase.to_sym
+          self.alias_map[stripped_key] || stripped_key
+        end
+
+        def collect_new_relic_environment_variable_keys
+          ENV.keys.select { |key| key.match(SUPPORTED_PREFIXES) }
+        end
+
       end
     end
   end

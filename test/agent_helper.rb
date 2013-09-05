@@ -295,15 +295,6 @@ ensure
   parent.const_set(const_name, removed_constant) if removed_constant
 end
 
-def internet_connection?
-  if ENV['NO_INTERNET']
-    puts " - No internet connection, skipping"
-    false
-  else
-    true
-  end
-end
-
 def with_debug_logging
   orig_logger = NewRelic::Agent.logger
   $stderr.puts '', '---', ''
@@ -312,4 +303,8 @@ def with_debug_logging
   yield
 ensure
   NewRelic::Agent.logger = orig_logger
+end
+
+def create_agent_command(args = {})
+  NewRelic::Agent::Commands::AgentCommand.new([-1, { "name" => "command_name", "arguments" => args}])
 end

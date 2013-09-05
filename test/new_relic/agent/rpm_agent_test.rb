@@ -33,6 +33,10 @@ class NewRelic::Agent::RpmAgentTest < Test::Unit::TestCase
       nil
     end
     NewRelic::Agent.notice_error(StandardError.new("message"), :request_params => {:x => "y"})
+
+    # Clean up after ourselves
+    NewRelic::Agent.instance.error_collector.instance_variable_set(:@ignore_filter, nil)
+
     assert(ignore_called)
   end
 
@@ -72,17 +76,15 @@ class NewRelic::Agent::RpmAgentTest < Test::Unit::TestCase
   end
 
   def test_manual_overrides
-    NewRelic::Agent.manual_start :app_name => "testjobs", :dispatcher_instance_id => "mailer"
+    NewRelic::Agent.manual_start :app_name => "testjobs"
     assert_equal "testjobs", NewRelic::Agent.config.app_names[0]
-    assert_equal "mailer", NewRelic::Control.instance.local_env.dispatcher_instance_id
     NewRelic::Agent.shutdown
   end
 
   def test_agent_restart
-    NewRelic::Agent.manual_start :app_name => "noapp", :dispatcher_instance_id => ""
-    NewRelic::Agent.manual_start :app_name => "testjobs", :dispatcher_instance_id => "mailer"
+    NewRelic::Agent.manual_start :app_name => "noapp"
+    NewRelic::Agent.manual_start :app_name => "testjobs"
     assert_equal "testjobs", NewRelic::Agent.config.app_names[0]
-    assert_equal "mailer", NewRelic::Control.instance.local_env.dispatcher_instance_id
     NewRelic::Agent.shutdown
   end
 

@@ -64,14 +64,13 @@ module NewRelic
 
         # Merge the stringified options into the config as overrides:
         environment_name = options.delete(:env) and self.env = environment_name
-        dispatcher_instance_id = options.delete(:dispatcher_instance_id) and @local_env.dispatcher_instance_id = dispatcher_instance_id
 
         NewRelic::Agent::PipeChannelManager.listener.start if options.delete(:start_channel_listener)
 
         # An artifact of earlier implementation, we put both #add_method_tracer and #trace_execution
         # methods in the module methods.
         Module.send :include, NewRelic::Agent::MethodTracer::ClassMethods
-        Module.send :include, NewRelic::Agent::MethodTracer::InstanceMethods
+        Module.send :include, NewRelic::Agent::MethodTracer
         init_config(options)
         NewRelic::Agent.agent = NewRelic::Agent::Agent.instance
         if Agent.config[:agent_enabled] && !NewRelic::Agent.instance.started?

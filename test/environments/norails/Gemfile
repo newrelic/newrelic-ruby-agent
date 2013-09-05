@@ -1,0 +1,11 @@
+source 'http://rubygems.org'
+
+gem 'rake'
+
+gem "mocha", '~>0.13.0', :require => false
+gem 'rack'
+gem 'rack-test'
+
+gem 'sequel', '~> 3.46.0'
+
+gem "newrelic_rpm", :path => "../../.."

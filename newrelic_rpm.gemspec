@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.name = "newrelic_rpm"
   s.version = NewRelic::VERSION::STRING
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
-  s.authors = [ "Jason Clark", "Sam Goldstein", "Michael Granger", "Jon Guymon", "Ben Weintraub" ]
+  s.authors = [ "Jason Clark", "Sam Goldstein", "Michael Granger", "Jonan Scheffler", "Ben Weintraub" ]
   s.date = Time.now.strftime('%Y-%m-%d')
   s.description = <<-EOS
 New Relic is a performance management system, developed by New Relic,
@@ -50,6 +50,10 @@ EOS
   s.add_development_dependency 'activerecord-jdbcsqlite3-adapter' if RUBY_PLATFORM == 'java'
   s.add_development_dependency 'jruby-openssl' if RUBY_PLATFORM == 'java'
   s.add_development_dependency 'sequel', '~> 3.46.0'
+  s.add_development_dependency 'pry'
+  s.add_development_dependency 'guard'
+  s.add_development_dependency 'guard-test'
+  s.add_development_dependency 'rb-fsevent', '~> 0.9.1'
 
   # Only sign with our private key if you can find it
   signing_key_path = File.expand_path('~/.ssh/newrelic_rpm-private_key.pem')

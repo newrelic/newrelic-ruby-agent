@@ -3,9 +3,9 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'forwardable'
-require 'new_relic/agent/configuration/defaults'
 require 'new_relic/agent/configuration/mask_defaults'
 require 'new_relic/agent/configuration/yaml_source'
+require 'new_relic/agent/configuration/default_source'
 require 'new_relic/agent/configuration/server_source'
 require 'new_relic/agent/configuration/environment_source'
 
@@ -14,7 +14,7 @@ module NewRelic
     module Configuration
       class Manager
         extend Forwardable
-        def_delegators :@cache, :[], :has_key?
+        def_delegators :@cache, :[], :has_key?, :keys
         attr_reader :config_stack, :stripped_exceptions_whitelist
 
         def initialize
@@ -53,9 +53,9 @@ module NewRelic
         end
 
         def replace_or_add_config(source, level=0)
-          idx = @config_stack.map{|s| s.class}.index(source.class)
-          @config_stack.delete_at(idx) if idx
-          apply_config(source, idx || level)
+          index = @config_stack.map{|s| s.class}.index(source.class)
+          @config_stack.delete_at(index) if index
+          apply_config(source, index || level)
         end
 
         def source(key)
@@ -111,7 +111,7 @@ module NewRelic
 
         def flattened
           @config_stack.reverse.inject({}) do |flat,layer|
-            thawed_layer = layer.dup
+            thawed_layer = layer.to_hash.dup
             thawed_layer.each do |k,v|
               begin
                 thawed_layer[k] = instance_eval(&v) if v.respond_to?(:call)
@@ -121,7 +121,7 @@ module NewRelic
               end
               thawed_layer.delete(:config)
             end
-            flat.merge(thawed_layer)
+            flat.merge(thawed_layer.to_hash)
           end
         end
 
@@ -146,7 +146,7 @@ module NewRelic
 
         # Generally only useful during initial construction and tests
         def reset_to_defaults
-          @config_stack = [ EnvironmentSource.new, DEFAULTS ]
+          @config_stack = [ EnvironmentSource.new, DefaultSource.new ]
           reset_cache
         end
 

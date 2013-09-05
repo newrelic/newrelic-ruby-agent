@@ -32,87 +32,6 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
     end
   end
 
-  def test_samples_at_the_correct_rate
-    with_sampler_config( :'request_sampler.sample_rate_ms' => 50 ) do
-      # 240 requests over 6 seconds => 120 samples
-      # with_debug_logging do
-      241.times do
-        @event_listener.notify( :transaction_finished, 'Controller/foo/bar', Time.now.to_f, 0.200 )
-        advance_time( 0.025 )
-      end
-      # end
-
-      assert_equal 120, @sampler.samples.length
-      @sampler.samples.each do |sample|
-        assert_is_valid_transaction_sample( sample )
-      end
-      @sampler.samples.each_with_index do |sample, i|
-        next if i.zero?
-        seconds = sample['timestamp'] - @sampler.samples[i-1]['timestamp']
-        assert_in_delta( seconds, 0.050, 0.001 )
-      end
-    end
-  end
-
-  def test_downsamples_and_reduces_sample_rate_when_throttled
-    with_sampler_config( :'request_sampler.sample_rate_ms' => 50 ) do
-      240.times do
-        @event_listener.notify( :transaction_finished, 'Controller/foo/bar', Time.now.to_f, 0.200 )
-        advance_time( 0.025 )
-      end
-
-      @sampler.throttle( 2 )
-
-      241.times do
-        @event_listener.notify( :transaction_finished, 'Controller/foo/bar', Time.now.to_f, 0.200 )
-        advance_time( 0.025 )
-      end
-
-      assert_equal 120, @sampler.samples.length
-      @sampler.samples.each do |sample|
-        assert_is_valid_transaction_sample( sample )
-      end
-      @sampler.samples.each_with_index do |sample, i|
-        next if i.zero?
-        seconds = sample['timestamp'] - @sampler.samples[i-1]['timestamp']
-        assert_in_delta( seconds, 0.100, 0.026 )
-      end
-    end
-  end
-
-  def test_downsamples_and_reduces_sample_rate_when_throttled_multiple_times
-    with_sampler_config( :'request_sampler.sample_rate_ms' => 50 ) do
-      240.times do
-        @event_listener.notify( :transaction_finished, 'Controller/foo/bar', Time.now.to_f, 0.200 )
-        advance_time( 0.025 )
-      end
-
-      @sampler.throttle( 2 )
-
-      240.times do
-        @event_listener.notify( :transaction_finished, 'Controller/foo/bar', Time.now.to_f, 0.200 )
-        advance_time( 0.025 )
-      end
-
-      @sampler.throttle( 3 )
-
-      241.times do
-        @event_listener.notify( :transaction_finished, 'Controller/foo/bar', Time.now.to_f, 0.200 )
-        advance_time( 0.025 )
-      end
-
-      assert_equal 120, @sampler.samples.length
-      @sampler.samples.each do |sample|
-        assert_is_valid_transaction_sample( sample )
-      end
-      @sampler.samples.each_with_index do |sample, i|
-        next if i.zero?
-        seconds = sample['timestamp'] - @sampler.samples[i-1]['timestamp']
-        assert_in_delta( seconds, 0.150, 0.051 )
-      end
-    end
-  end
-
   def test_can_disable_sampling
     with_sampler_config( :'request_sampler.enabled' => false ) do
       @event_listener.notify( :transaction_finished, 'Controller/foo/bar', Time.now.to_f, 0.200 )
@@ -120,26 +39,40 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
     end
   end
 
-  def test_allows_sample_rates_as_frequent_as_25ms
-    with_config( :'request_sampler.sample_rate_ms' => 25 ) do
-      assert_equal 25, @sampler.normal_sample_rate_ms
+  def test_limits_total_number_of_samples_to_max_samples
+    with_sampler_config( :'request_sampler.max_samples' => 100 ) do
+      150.times { generate_request }
+      assert_equal 100, @sampler.samples.size
     end
   end
 
-  def test_resets_sample_rates_more_frequent_than_25ms_to_25ms
-    with_config( :'request_sampler.sample_rate_ms' => 1 ) do
-      assert_equal 25, @sampler.normal_sample_rate_ms
+  def test_resets_limits_on_reset
+    with_sampler_config( :'request_sampler.max_samples' => 100 ) do
+      50.times { generate_request('before') }
+      samples_before = @sampler.samples
+      assert_equal 50, samples_before.size
+
+      @sampler.reset
+
+      150.times { generate_request('after') }
+      samples_after = @sampler.samples
+      assert_equal 100, samples_after.size
+
+      assert_equal 0, (samples_before & samples_after).size
     end
   end
 
-  def test_limits_total_sample_count_even_without_throttle
-    freeze_time
-    with_sampler_config( :'request_sampler.sample_rate_ms' => 60_000 ) do
-      15.times do
-        @event_listener.notify( :transaction_finished, 'Controller/foo/bar', Time.now.to_f, 0.1)
-        advance_time(60.001)
+  def test_does_not_drop_samples_when_used_from_multiple_threads
+    with_sampler_config( :'request_sampler.max_samples' => 100 * 100 ) do
+      threads = []
+      25.times do
+        threads << Thread.new do
+          100.times { generate_request }
+        end
       end
-      assert_equal(10, @sampler.samples.size)
+      threads.each { |t| t.join }
+
+      assert_equal(25 * 100, @sampler.samples.size)
     end
   end
 
@@ -147,11 +80,15 @@ class NewRelic::Agent::RequestSamplerTest < Test::Unit::TestCase
   # Helpers
   #
 
+  def generate_request(name='whatever')
+    @event_listener.notify( :transaction_finished, "Controller/#{name}", Time.now.to_f, 0.1)
+  end
+
   def with_sampler_config(options = {})
     defaults =
     {
       :'request_sampler.enabled' => true,
-      :'request_sampler.sample_rate_ms' => 50
+      :'request_sampler.max_samples' => 100
     }
 
     defaults.merge!(options)

@@ -110,11 +110,21 @@ module NewRelic
         @sample.params[:custom_params] ||= {}
         @sample.params[:custom_params].merge!(normalize_params(custom_params))
 
-        txn_info = NewRelic::Agent::TransactionInfo.get
-        @sample.force_persist = txn_info.force_persist_sample?(sample)
-        @sample.threshold = txn_info.transaction_trace_threshold
+        @sample.force_persist = sample.force_persist_sample?
+        @sample.threshold = transaction_trace_threshold
         @sample.freeze
         @current_segment = nil
+      end
+
+      TT_THRESHOLD_KEY = :'transaction_tracer.transaction_threshold'
+
+      def transaction_trace_threshold
+        source_class = Agent.config.source(TT_THRESHOLD_KEY).class
+        if source_class == Configuration::DefaultSource && TransactionState.get.transaction
+          TransactionState.get.transaction.apdex_t * 4
+        else
+          Agent.config[TT_THRESHOLD_KEY]
+        end
       end
 
       def scope_depth

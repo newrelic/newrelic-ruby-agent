@@ -51,10 +51,11 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
   end
 
   def test_check_config_and_start_agent_normal
+
     self.expects(:generate_environment_report)
     self.expects(:start_worker_thread)
     self.expects(:install_exit_handler)
-    with_config(:sync_startup => false, :monitor_mode => true, :license_key => 'a' * 40) do
+    with_config(:dispatcher => 'test', :sync_startup => false, :monitor_mode => true, :license_key => 'a' * 40) do
       check_config_and_start_agent
     end
   end
@@ -64,7 +65,7 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
     self.expects(:connect_in_foreground)
     self.expects(:start_worker_thread)
     self.expects(:install_exit_handler)
-    with_config(:sync_startup => true, :monitor_mode => true, :license_key => 'a' * 40) do
+    with_config(:dispatcher => 'test', :sync_startup => true, :monitor_mode => true, :license_key => 'a' * 40) do
       check_config_and_start_agent
     end
   end
@@ -170,26 +171,6 @@ class NewRelic::Agent::Agent::StartTest < Test::Unit::TestCase
     with_config(:dispatcher => :frobnitz) do
       assert !using_forking_dispatcher?
     end
-  end
-
-  def test_log_unless_positive
-    # should not log
-    assert log_unless(true, :warn, "DURRR")
-  end
-
-  def test_log_unless_negative
-    # should log
-    expects_logging(:warn, "DURRR")
-    assert !log_unless(false, :warn, "DURRR")
-  end
-
-  def test_log_if_positive
-    expects_logging(:warn, "WHEE")
-    assert log_if(true, :warn, "WHEE")
-  end
-
-  def test_log_if_negative
-    assert !log_if(false, :warn, "WHEE")
   end
 
   private

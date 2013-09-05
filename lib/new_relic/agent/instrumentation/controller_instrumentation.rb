@@ -150,6 +150,14 @@ module NewRelic
             traced_method, punctuation = method.to_s.sub(/([?!=])$/, ''), $1
             visibility = NewRelic::Helper.instance_method_visibility self, method
 
+            without_method_name = "#{traced_method.to_s}_without_newrelic_transaction_trace#{punctuation}"
+            with_method_name = "#{traced_method.to_s}_with_newrelic_transaction_trace#{punctuation}"
+
+            if NewRelic::Helper.instance_methods_include?(self, with_method_name)
+              ::NewRelic::Agent.logger.warn("Transaction tracer already in place for class = #{self.name}, method = #{method.to_s}, skipping")
+              return
+            end
+
             class_eval <<-EOC
               def #{traced_method.to_s}_with_newrelic_transaction_trace#{punctuation}(*args, &block)
                 perform_action_with_newrelic_trace(#{options_arg.join(',')}) do
@@ -157,8 +165,6 @@ module NewRelic
                  end
               end
             EOC
-            without_method_name = "#{traced_method.to_s}_without_newrelic_transaction_trace#{punctuation}"
-            with_method_name = "#{traced_method.to_s}_with_newrelic_transaction_trace#{punctuation}"
             alias_method without_method_name, method.to_s
             alias_method method.to_s, with_method_name
             send visibility, method
@@ -290,7 +296,7 @@ module NewRelic
         # path.  This form is deprecated.
         def perform_action_with_newrelic_trace(*args, &block)
           request = newrelic_request(args)
-          NewRelic::Agent::TransactionInfo.reset(request)
+          NewRelic::Agent::TransactionState.reset(request)
 
           # Skip instrumentation based on the value of 'do_not_trace' and if
           # we aren't calling directly with a block.
@@ -310,7 +316,7 @@ module NewRelic
             return yield if !(NewRelic::Agent.is_execution_traced? || options[:force])
             options[:metric] = true if options[:metric].nil?
             options[:deduct_call_time_from_parent] = true if options[:deduct_call_time_from_parent].nil?
-            _, expected_scope = NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScoped.trace_execution_scoped_header(options, txn.start_time.to_f)
+            _, expected_scope = NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_header(options, txn.start_time.to_f)
 
             begin
               NewRelic::Agent::BusyCalculator.dispatcher_start txn.start_time
@@ -337,12 +343,12 @@ module NewRelic
             metric_names = Array(recorded_metrics(txn))
             txn_name = metric_names.shift
 
-            NewRelic::Agent::MethodTracer::InstanceMethods::TraceExecutionScoped.trace_execution_scoped_footer(txn.start_time.to_f, txn_name, metric_names, expected_scope, options, end_time.to_f)
+            NewRelic::Agent::MethodTracer::TraceExecutionScoped.trace_execution_scoped_footer(txn.start_time.to_f, txn_name, metric_names, expected_scope, options, end_time.to_f)
             NewRelic::Agent::BusyCalculator.dispatcher_finish(end_time)
             txn.record_apdex(end_time) unless ignore_apdex?
             txn = Transaction.stop(txn_name, end_time)
 
-            NewRelic::Agent::TransactionInfo.get.ignore_end_user = true if ignore_enduser?
+            NewRelic::Agent::TransactionState.get.request_ignore_enduser = true if ignore_enduser?
           end
         end
 

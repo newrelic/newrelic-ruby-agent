@@ -2,6 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 require 'new_relic/agent/instrumentation/active_record_helper'
+require 'new_relic/agent/instrumentation/evented_subscriber'
 
 # Listen for ActiveSupport::Notifications events for ActiveRecord query
 # events.  Write metric data, transaction trace segments and slow sql
@@ -9,22 +10,21 @@ require 'new_relic/agent/instrumentation/active_record_helper'
 module NewRelic
   module Agent
     module Instrumentation
-      class ActiveRecordSubscriber
-        include NewRelic::Agent::Instrumentation
-
-        def self.subscribed?
-          # TODO: need to talk to Rails core about an API for this,
-          # rather than digging through Listener ivars
-          ActiveSupport::Notifications.notifier.listeners_for('sql.active_record') \
-            .find{|l| l.instance_variable_get(:@delegate).class == self }
+      class ActiveRecordSubscriber < EventedSubscriber
+        def start(name, id, payload)
+          return unless NewRelic::Agent.is_execution_traced?
+          super
+        rescue => e
+          log_notification_error(e, name, 'start')
         end
 
-        def call(*args)
+        def finish(name, id, payload)
           return unless NewRelic::Agent.is_execution_traced?
-
-          event = ActiveSupport::Notifications::Event.new(*args)
+          event = pop_event(id)
           record_metrics(event)
           notice_sql(event)
+        rescue => e
+          log_notification_error(e, name, 'finish')
         end
 
         def get_explain_plan( config, query )

@@ -124,4 +124,18 @@ class DependencyDetectionTest < Test::Unit::TestCase
     assert_falsy( ran_second_block )
   end
 
+  def test_defer_should_be_idempotent_when_given_same_name
+    run_count = 0
+
+    2.times do
+      DependencyDetection.defer do
+        named :foobar
+        executes { run_count += 1 }
+      end
+    end
+
+    DependencyDetection.detect!
+
+    assert_equal(1, run_count)
+  end
 end

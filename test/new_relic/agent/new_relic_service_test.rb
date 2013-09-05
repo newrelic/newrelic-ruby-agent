@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
-require 'new_relic/agent/thread_profiler'
+require 'new_relic/agent/commands/thread_profiler'
 
 # Tests of HTTP Keep Alive implementation that require a different setup and
 # set of mocks.
@@ -106,42 +106,6 @@ class NewRelicServiceTest < Test::Unit::TestCase
   def test_cert_file_path
     assert @service.cert_file_path
     assert_equal File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'cert', 'cacert.pem')), @service.cert_file_path
-  end
-
-  # This test does not actually use the ruby agent in any way - it's
-  # testing that the CA file we ship actually validates our server's
-  # certificate.
-  def test_cert_file
-    if internet_connection?
-      require 'socket'
-      require 'openssl'
-
-      s   = TCPSocket.new 'collector.newrelic.com', 443
-      ctx = OpenSSL::SSL::SSLContext.new
-      ctx.ca_file = @service.cert_file_path
-      ctx.verify_mode = OpenSSL::SSL::VERIFY_PEER
-      s   = OpenSSL::SSL::SSLSocket.new s, ctx
-      s.connect
-    # should not raise an error
-    end
-  end
-
-  # see above, but for staging, as well. This allows us to test new
-  # certificates in a non-customer-facing place before setting them
-  # live.
-  def test_staging_cert_file
-    if internet_connection?
-      require 'socket'
-      require 'openssl'
-
-      s   = TCPSocket.new 'staging-collector.newrelic.com', 443
-      ctx = OpenSSL::SSL::SSLContext.new
-      ctx.ca_file = @service.cert_file_path
-      ctx.verify_mode = OpenSSL::SSL::VERIFY_PEER
-      s   = OpenSSL::SSL::SSLSocket.new s, ctx
-      s.connect
-      # should not raise an error
-    end
   end
 
   def test_initialize_uses_correct_license_key_settings
@@ -269,12 +233,11 @@ class NewRelicServiceTest < Test::Unit::TestCase
     assert_equal 'some analytic events', response
   end
 
-
-# Thread profiling only available in certain versions
-if NewRelic::Agent::ThreadProfiler.is_supported?
+  # Although thread profiling is only available in some circumstances, the
+  # service communication doesn't care about that at all
   def test_profile_data
     @http_handle.respond_to(:profile_data, 'profile' => 123)
-    response = @service.profile_data(NewRelic::Agent::ThreadProfile.new(0, 0, 0, true))
+    response = @service.profile_data([])
     assert_equal({ "profile" => 123 }, response)
   end
 
@@ -296,16 +259,9 @@ if NewRelic::Agent::ThreadProfiler.is_supported?
 
   def test_agent_command_results
     @http_handle.respond_to(:agent_command_results, {})
-    response = @service.agent_command_results(4200)
+    response = @service.agent_command_results({'1' => {}})
     assert_equal({}, response)
   end
-
-  def test_agent_command_results_with_errors
-    @http_handle.respond_to(:agent_command_results, [123])
-    response = @service.agent_command_results(4200, 'Boo!')
-    assert_equal [123], response
-  end
-end
 
   def test_request_timeout
     with_config(:timeout => 600) do

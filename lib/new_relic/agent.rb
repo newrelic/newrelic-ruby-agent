@@ -89,13 +89,12 @@ module NewRelic
     require 'new_relic/agent/stats_engine'
     require 'new_relic/agent/transaction_sampler'
     require 'new_relic/agent/sql_sampler'
-    require 'new_relic/agent/thread_profiler'
+    require 'new_relic/agent/commands/thread_profiler'
     require 'new_relic/agent/error_collector'
     require 'new_relic/agent/busy_calculator'
     require 'new_relic/agent/sampler'
     require 'new_relic/agent/database'
     require 'new_relic/agent/pipe_channel_manager'
-    require 'new_relic/agent/transaction_info'
     require 'new_relic/agent/configuration'
     require 'new_relic/agent/rules_engine'
     require 'new_relic/agent/http_clients/uri_util'
@@ -384,20 +383,19 @@ module NewRelic
 
     # Check to see if we are capturing metrics currently on this thread.
     def is_execution_traced?
-      untraced = Thread.current[:newrelic_untraced]
-      untraced.nil? || untraced.last != false
+      NewRelic::Agent::TransactionState.get.is_traced?
     end
 
     # helper method to check the thread local to determine whether the
     # transaction in progress is traced or not
     def is_transaction_traced?
-      Thread::current[:record_tt] != false
+      NewRelic::Agent::TransactionState.get.is_transaction_traced?
     end
 
     # helper method to check the thread local to determine whether sql
     # is being recorded or not
     def is_sql_recorded?
-      Thread::current[:record_sql] != false
+      NewRelic::Agent::TransactionState.get.is_sql_recorded?
     end
 
     # Set a filter to be applied to errors that the Ruby Agent will

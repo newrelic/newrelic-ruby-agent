@@ -23,6 +23,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
   def setup
     super
     NewRelic::Agent.manual_start
+    ActiveRecord::Base.establish_connection unless ActiveRecord::Base.connection.active?
     ActiveRecordFixtures.setup
     NewRelic::Agent.instance.transaction_sampler.reset!
     NewRelic::Agent.instance.stats_engine.clear_stats
@@ -33,8 +34,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
 
   def teardown
     super
-    NewRelic::Agent::TransactionInfo.reset
-    Thread::current[:newrelic_scope_name] = nil
+    NewRelic::Agent::TransactionState.reset
     NewRelic::Agent.shutdown
   end
 
@@ -299,7 +299,6 @@ class NewRelic::Agent::Instrumentation::ActiveRecordInstrumentationTest < Test::
 
   def test_direct_sql
     assert_nil NewRelic::Agent::Transaction.current
-    assert_nil NewRelic::Agent.instance.stats_engine.scope_name
     assert_equal 0, NewRelic::Agent.instance.stats_engine.metrics.size, NewRelic::Agent.instance.stats_engine.metrics.inspect
 
     expected_metrics = %W[

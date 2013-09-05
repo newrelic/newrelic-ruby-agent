@@ -104,6 +104,7 @@ class NewRelic::MetricDataTest < Test::Unit::TestCase
     assert((spec.hash ^ stats.hash) == md1.hash, "expected #{spec.hash ^ stats.hash} to equal #{md1.hash}")
   end
 
+  if {}.respond_to?(:to_json)
   def test_to_json_no_metric_id
     md = NewRelic::MetricData.new(NewRelic::MetricSpec.new('Custom/test/method', ''), NewRelic::Agent::Stats.new, nil)
     json = md.to_json
@@ -114,6 +115,9 @@ class NewRelic::MetricDataTest < Test::Unit::TestCase
   def test_to_json_with_metric_id
     md = NewRelic::MetricData.new(NewRelic::MetricSpec.new('Custom/test/method', ''), NewRelic::Agent::Stats.new, 12345)
     assert_equal('{"metric_spec":null,"stats":{"total_exclusive_time":0.0,"min_call_time":0.0,"call_count":0,"sum_of_squares":0.0,"total_call_time":0.0,"max_call_time":0.0},"metric_id":12345}', md.to_json, "should not include the metric spec and should have a metric_id")
+  end
+  else
+    puts "Skipping tests in #{__FILE__} because Hash#to_json not available"
   end
 
   def test_to_s_with_metric_spec

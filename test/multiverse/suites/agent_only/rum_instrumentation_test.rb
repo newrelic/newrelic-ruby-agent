@@ -43,19 +43,12 @@ class RumAutoTest < MiniTest::Unit::TestCase
     assert(last_response.body.include?('<html><script type="text/javascript">var NREUMQ=NREUMQ||[];NREUMQ.push(["mark","firstbyte",new Date().getTime()]);</script><body>'))
   end
 
-  def test_autoinstrumentation_with_X_UA_Compatible_puts_header_at_end_of_head
+  def test_autoinstrumentation_with_X_UA_Compatible_puts_header_after_meta_tag
     @inner_app.response = '<html><head><meta http-equiv="X-UA-Compatible" content="IE=8;FF=3;OtherUA=4" /></head><body><p>Hello World</p></body></html>'
     get '/'
     assert(last_response.body.include?(
       '<html><head><meta http-equiv="X-UA-Compatible" content="IE=8;FF=3;OtherUA=4" /><script type="text/javascript">var NREUMQ=NREUMQ||[];NREUMQ.push(["mark","firstbyte",new Date().getTime()]);</script></head><body>'
     ))
-  end
-
-  # regression
-  def test_autoinstrumentation_fails_gracefully_with_X_UA_Compatible_and_no_close_head_tag_puts_header_before_body_tag
-    @inner_app.response = '<html><head><meta http-equiv="X-UA-Compatible" content="IE=8;FF=3;OtherUA=4" /><body><p>Hello World</p></body></html>'
-    get '/'
-    assert(!last_response.body.include?(%'NREUMQ'))
   end
 
   def test_autoinstrumentation_doesnt_run_for_crazy_shit_like_this

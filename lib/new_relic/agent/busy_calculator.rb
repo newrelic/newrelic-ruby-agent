@@ -2,6 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'new_relic/agent/transaction_state'
+
 module NewRelic
   module Agent
     # This module supports calculation of actual time spent processing requests over the course of
@@ -23,8 +25,8 @@ module NewRelic
       # transactions - used for a rough estimate of what percentage of
       # wall clock time is spent processing requests
       def dispatcher_start(time)
-        Thread.current[:busy_entries] ||= 0
-        callers = Thread.current[:busy_entries] += 1
+        TransactionState.get.busy_entries ||= 0
+        callers = TransactionState.get.busy_entries += 1
         return if callers > 1
         @lock.synchronize do
           @entrypoint_stack.push time
@@ -36,10 +38,10 @@ module NewRelic
       # data to the server
       def dispatcher_finish(end_time = nil)
         # If #dispatcher_start hasn't been called at least once, abort early
-        return unless Thread.current[:busy_entries]
+        return unless TransactionState.get.busy_entries
 
         end_time ||= time_now
-        callers = Thread.current[:busy_entries] -= 1
+        callers = TransactionState.get.busy_entries -= 1
 
         # Ignore nested calls
         return if callers > 0
@@ -63,7 +65,7 @@ module NewRelic
       # but only reset the recursion counter for this thread.
       def reset
         @entrypoint_stack = []
-        Thread.current[:busy_entries] = 0
+        TransactionState.get.busy_entries = 0
         @lock ||= Mutex.new
         @accumulator = 0
         @harvest_start = time_now

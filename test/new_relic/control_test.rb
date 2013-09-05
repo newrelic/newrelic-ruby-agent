@@ -28,7 +28,6 @@ class NewRelic::ControlTest < Test::Unit::TestCase
       assert_equal :test, control.app
     end
     assert_equal :test, control.framework
-    assert_match /test/i, control.local_env.dispatcher_instance_id
     assert("" == NewRelic::Agent.config[:dispatcher].to_s,
            "Expected dispatcher to be empty, but was #{NewRelic::Agent.config[:dispatcher].to_s}")
     assert !NewRelic::Agent.config[:monitor_mode]
@@ -47,7 +46,7 @@ class NewRelic::ControlTest < Test::Unit::TestCase
   end
 
   def test_info
-    NewRelic::Agent.manual_start(:dispatcher_instance_id => 'test')
+    NewRelic::Agent.manual_start
     if defined?(Rails)
       assert_match /jdbc|postgres|mysql|sqlite/, NewRelic::EnvironmentReport.new["Database adapter"]
     end

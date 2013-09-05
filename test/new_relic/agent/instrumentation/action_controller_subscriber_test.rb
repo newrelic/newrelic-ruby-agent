@@ -132,7 +132,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Test::U
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
-    assert NewRelic::Agent::TransactionInfo.get.ignore_end_user?
+    assert NewRelic::Agent::TransactionState.get.request_ignore_enduser
   end
 
   def test_record_busy_time

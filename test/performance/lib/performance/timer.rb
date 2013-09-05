@@ -4,9 +4,11 @@
 
 module Performance
   class Timer
+    attr_accessor :start_timestamp, :stop_timestamp
+
     def initialize
       @start_timestamp = nil
-      @end_timestamp = nil
+      @stop_timestamp = nil
     end
 
     def start(t=Time.now)
@@ -33,6 +35,10 @@ module Performance
       else
         nil
       end
+    end
+
+    def inspect
+      "<Performance::Timer @start_timestamp=#{start_timestamp.inspect}, @stop_timestamp=#{stop_timestamp.inspect}, elapsed=#{elapsed}>"
     end
   end
 end

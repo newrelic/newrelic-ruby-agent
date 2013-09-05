@@ -6,10 +6,21 @@ require 'dependency_detection/version'
 module DependencyDetection
 
   module_function
+
   @items = []
+
   def defer(&block)
     item = Dependent.new
     item.instance_eval(&block)
+
+    if item.name
+      seen_names = @items.map { |i| i.name }.compact
+      if seen_names.include?(item.name)
+        NewRelic::Agent.logger.warn("Refusing to re-register DependencyDetection block with name '#{item.name}'")
+        return @items
+      end
+    end
+
     @items << item
   end
 

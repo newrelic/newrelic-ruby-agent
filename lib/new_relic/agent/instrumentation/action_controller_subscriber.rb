@@ -18,12 +18,12 @@ module NewRelic
                         Agent.logger.debug("Error creating Rack::Request object: #{e}")
                         nil
                       end
-            TransactionInfo.reset(request)
+            TransactionState.reset(request)
           end
         end
 
         def start(name, id, payload)
-          payload[:request] = TransactionInfo.get.request
+          payload[:request] = TransactionState.get.request
           event = ControllerEvent.new(name, Time.now, nil, id, payload)
           push_event(event)
 
@@ -35,7 +35,7 @@ module NewRelic
             NewRelic::Agent.instance.push_trace_execution_flag(false)
           end
         rescue => e
-          handle_tracing_error('ActionControllerSubscriber#start', e)
+          log_notification_error(e, name, 'start')
         end
 
         def finish(name, id, payload)
@@ -55,18 +55,11 @@ module NewRelic
             Agent.instance.pop_trace_execution_flag
           end
         rescue => e
-          handle_tracing_error('ActionControllerSubscriber#finish', e)
-        end
-
-        def handle_tracing_error(identifier, e)
-          # This is an important enough failure that we want the backtrace logged
-          # at error level, hence the explicit log_exception call.
-          NewRelic::Agent.logger.error("Tracing error during #{identifier}:")
-          NewRelic::Agent.logger.log_exception(:error, e)
+          log_notification_error(e, name, 'finish')
         end
 
         def set_enduser_ignore
-          TransactionInfo.get.ignore_end_user = true
+          TransactionState.get.request_ignore_enduser = true
         end
 
         def record_metrics(event)

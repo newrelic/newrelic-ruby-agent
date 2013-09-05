@@ -30,17 +30,10 @@ module NewRelic
           NewRelic::Agent.record_metric("Workers/DelayedJob/locked_jobs", value)
         end
 
-        def local_env
-          NewRelic::Control.instance.local_env
-        end
-
-        def worker_name
-          local_env.dispatcher_instance_id
-        end
-
         def failed_jobs
           Delayed::Job.count(:conditions => 'failed_at is not NULL')
         end
+
         def locked_jobs
           Delayed::Job.count(:conditions => 'locked_by is not NULL')
         end

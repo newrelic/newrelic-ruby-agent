@@ -104,9 +104,15 @@ class LoggingTest < MiniTest::Unit::TestCase
       "Agent configured not to send data in this environment.")
   end
 
-  def test_logs_mising_license_key
+  def test_logs_missing_license_key
     running_agent_writes_to_log(
       { :license_key => false },
+      "No license key found in newrelic.yml config.")
+  end
+
+  def test_logs_blank_license_key
+    running_agent_writes_to_log(
+      { :license_key => '' },
       "No license key found in newrelic.yml config.")
   end
 
@@ -114,6 +120,17 @@ class LoggingTest < MiniTest::Unit::TestCase
     running_agent_writes_to_log(
       { :license_key => 'a' * 30 },
       "Invalid license key: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+  end
+
+  def test_logs_unknown_config_setting_from_environment
+    env_var = 'NEW_RELIC_TOTORO'
+    setting = env_var.gsub(/NEW_RELIC_|NEWRELIC_/,'').downcase
+
+    running_agent_writes_to_log({}, "#{env_var} does not have a corresponding configuration setting (#{setting} does not exist).") do
+      ENV[env_var] = 'Ponyo'
+      NewRelic::Agent::Configuration::EnvironmentSource.new
+      ENV.delete(env_var)
+    end
   end
 
   def test_logs_forking_workers
