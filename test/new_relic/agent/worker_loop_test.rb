@@ -10,6 +10,14 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
     @test_start_time = Time.now
   end
 
+  def test_records_start_and_stop_times
+    start_time = freeze_time
+    worker_loop = NewRelic::Agent::WorkerLoop.new(:limit => 2)
+    worker_loop.run(0) { advance_time(1.0) }
+    assert_equal(start_time, worker_loop.start_time)
+    assert_equal(start_time + 2.0, worker_loop.stop_time)
+  end
+
   def test_add_task
     @x = false
     @worker_loop.run(0) do
@@ -20,18 +28,18 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
   end
 
   def test_with_duration
-    worker_loop = NewRelic::Agent::WorkerLoop.new(:duration => 0.1)
+    freeze_time
 
-    # Advance in small increments vs our period so time will pass over the
-    # nasty multiple calls to Time.now that WorkerLoop makes
-    Time.stubs(:now).returns(*ticks(0, 0.12, 0.005))
+    period = 5.0
+    worker_loop = NewRelic::Agent::WorkerLoop.new(:duration => 16.0)
 
-    count = 0
-    worker_loop.run(0.04) do
-      count += 1
+    def worker_loop.sleep(duration)
+      advance_time(duration)
     end
 
-    assert_equal 2, count
+    count = 0
+    worker_loop.run(period) { count += 1 }
+    assert_equal 3, count
   end
 
   def test_duration_clock_starts_with_run
