@@ -5,6 +5,7 @@
 require 'new_relic/agent'
 require 'new_relic/control'
 require 'new_relic/agent/transaction_sample_builder'
+require 'new_relic/agent/transaction/developer_mode_tracer'
 
 module NewRelic
   module Agent
@@ -23,15 +24,15 @@ module NewRelic
       end
 
       attr_accessor :slow_capture_threshold
-      attr_reader :samples, :last_sample, :disabled
+      attr_reader :last_sample, :slowest_sample, :disabled, :dev_mode_tracer
 
       def initialize
+        @tracers = []
 
-        # @samples is an array of recent samples up to @max_samples in
-        # size - it's only used by developer mode
-        @samples = []
+        @dev_mode_tracer = NewRelic::Agent::Transaction::DeveloperModeTracer.new
+        @tracers << @dev_mode_tracer
+
         @force_persist = []
-        @max_samples = 100
 
         # This lock is used to synchronize access to the @last_sample
         # and related variables. It can become necessary on JRuby or
@@ -81,28 +82,8 @@ module NewRelic
         return unless builder
 
         segment = builder.trace_entry(time.to_f)
-
-        capture_segment_trace if Agent.config[:developer_mode]
-
+        @tracers.each { |tracer| tracer.visit_segment(segment) }
         return segment
-      end
-
-      # in developer mode, capture the stack trace with the segment.
-      # this is cpu and memory expensive and therefore should not be
-      # turned on in production mode
-      def capture_segment_trace
-        return unless Agent.config[:developer_mode]
-        segment = builder.current_segment
-        if segment
-          # Strip stack frames off the top that match /new_relic/agent/
-          trace = caller
-          while trace.first =~/\/lib\/new_relic\/agent\//
-            trace.shift
-          end
-
-          trace = trace[0..39] if trace.length > 40
-          segment[:backtrace] = trace
-        end
       end
 
       # Defaults to zero, otherwise delegated to the transaction
@@ -145,16 +126,13 @@ module NewRelic
         end
       end
 
-      # Samples can be stored in two places: the developer mode @samples array,
-      # and the @slowest_sample variable if it is slower than the current
-      # occupant of that slot
+      # Delegates to our tracers and manages the @slowest_sample
       def store_sample(sample)
-        sampler_methods = [ :store_slowest_sample ]
-        if Agent.config[:developer_mode]
-          sampler_methods << :store_sample_for_developer_mode
-        end
+        store_slowest_sample(sample)
 
-        sampler_methods.each{|sym| send(sym, sample) }
+        @tracers.each do |tracer|
+          tracer.store(sample)
+        end
 
         if sample.force_persist_sample?
           store_force_persist(sample)
@@ -169,15 +147,6 @@ module NewRelic
           @force_persist.sort! {|a,b| b.duration <=> a.duration}
           @force_persist = @force_persist[0..14]
         end
-      end
-
-      # Samples take up a ton of memory, so we only store a lot of
-      # them in developer mode - we truncate to @max_samples
-      def store_sample_for_developer_mode(sample)
-        return unless Agent.config[:developer_mode]
-        @samples = [] unless @samples
-        @samples << sample
-        truncate_samples
       end
 
       # Sets @slowest_sample to the passed in sample if it is slower
@@ -195,13 +164,6 @@ module NewRelic
         old_sample.nil? || (new_sample.duration > old_sample.duration)
       end
 
-      # Smashes the @samples array down to the length of @max_samples
-      # by taking the last @max_samples elements of the array
-      def truncate_samples
-        if @samples.length > @max_samples
-          @samples = @samples[-@max_samples..-1]
-        end
-      end
 
       # Delegates to the builder to store the uri, and
       # parameters if the sampler is active
@@ -321,9 +283,7 @@ module NewRelic
         @force_persist = []
       end
 
-      # Returns an array of slow samples, with one element.  The sample
-      # returned will be the slowest sample among those available during this
-      # harvest
+      # Returns an array of the slowest sample + force persisted samples
       def add_samples_to(result)
         # pull out force persist
         force_persist = result.select {|sample| sample.force_persist} || []
@@ -382,7 +342,7 @@ module NewRelic
 
       # reset samples without rebooting the web server
       def reset!
-        @samples = []
+        @tracers.each { |tracer| tracer.reset! }
         @last_sample = nil
         @slowest_sample = nil
       end

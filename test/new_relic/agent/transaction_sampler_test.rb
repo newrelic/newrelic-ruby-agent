@@ -45,19 +45,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     NewRelic::Agent.instance.instance_variable_set(:@transaction_sampler, @old_sampler)
   end
 
-  def test_initialize
-    defaults =      {
-      :samples => [],
-      :max_samples => 100,
-    }
-    defaults.each do |variable, default_value|
-      assert_equal(default_value, @sampler.instance_variable_get('@' + variable.to_s))
-    end
-
-    lock = @sampler.instance_variable_get('@samples_lock')
-    assert(lock.is_a?(Mutex), "Samples lock should be a mutex, is: #{lock.inspect}")
-  end
-
   def test_current_sample_id_default
     builder = mock('builder')
     builder.expects(:sample_id).returns(11111)
@@ -95,15 +82,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
       @sampler.expects(:builder).returns(builder).twice
       @sampler.notice_push_scope(Time.at(100))
     end
-  end
-
-  def test_notice_push_scope_in_dev_mode
-    builder = mock('builder')
-    builder.expects(:trace_entry).with(100.0)
-    @sampler.expects(:builder).returns(builder).twice
-    @sampler.expects(:capture_segment_trace)
-
-    @sampler.notice_push_scope(Time.at(100))
   end
 
   def test_scope_depth_no_builder
@@ -189,21 +167,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     assert_equal(sample, @sampler.instance_variable_get('@last_sample'))
   end
 
-  def test_store_sample_for_developer_mode_in_dev_mode
-    sample = mock('sample')
-    @sampler.expects(:truncate_samples)
-    @sampler.store_sample_for_developer_mode(sample)
-    assert_equal([sample], @sampler.instance_variable_get('@samples'))
-  end
-
-  def test_store_sample_for_developer_mode_no_dev
-    with_config(:developer_mode => false) do
-      sample = mock('sample')
-      @sampler.store_sample_for_developer_mode(sample)
-      assert_equal([], @sampler.instance_variable_get('@samples'))
-    end
-  end
-
   def test_store_slowest_sample_new_is_slowest
     old_sample = stub('old_sample', :duration => 3.0, :threshold => 1.0)
     new_sample = stub('new_sample', :duration => 4.0, :threshold => 1.0)
@@ -254,27 +217,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     old_sample.expects(:duration).returns(0.5)
     new_sample.expects(:duration).returns(1.0)
     assert_equal(true, @sampler.slowest_sample?(old_sample, new_sample))
-  end
-
-  def test_truncate_samples_no_samples
-    @sampler.instance_eval { @max_samples = 10 }
-    @sampler.instance_eval { @samples = [] }
-    @sampler.truncate_samples
-    assert_equal([], @sampler.instance_variable_get('@samples'))
-  end
-
-  def test_truncate_samples_equal_samples
-    @sampler.instance_eval { @max_samples = 2 }
-    @sampler.instance_eval { @samples = [1, 2] }
-    @sampler.truncate_samples
-    assert_equal([1, 2], @sampler.instance_variable_get('@samples'))
-  end
-
-  def test_truncate_samples_extra_samples
-    @sampler.instance_eval { @max_samples = 2 }
-    @sampler.instance_eval { @samples = [1, 2, 3] }
-    @sampler.truncate_samples
-    assert_equal([2, 3], @sampler.instance_variable_get('@samples'))
   end
 
   def test_ignore_transaction_no_builder
@@ -541,17 +483,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   # unit tests per se - some overlap with the tests above, but
   # generally usefully so
 
-  def test_multiple_samples
-    run_sample_trace
-    run_sample_trace
-    run_sample_trace
-    run_sample_trace
-
-    samples = @sampler.samples
-    assert_equal 4, samples.length
-    assert_equal "a", samples.first.root_segment.called_segments[0].metric_name
-    assert_equal "a", samples.last.root_segment.called_segments[0].metric_name
-  end
 
   def test_sample_tree
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
@@ -815,7 +746,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
         @sampler.notice_pop_scope "a11"
         @sampler.notice_pop_scope "a1"
       end
-      assert_equal 3, @sampler.samples[0].count_segments
+      assert_equal 3, @sampler.last_sample.count_segments
     end
   end
 

@@ -44,7 +44,7 @@ class DeveloperModeTest < Test::Unit::TestCase
   end
 
   def test_show_sample_summary_displays_sample_details
-    get "/newrelic/show_sample_summary?id=#{@sampler.samples[0].sample_id}"
+    get "/newrelic/show_sample_summary?id=#{@sampler.dev_mode_tracer.samples[0].sample_id}"
 
     assert last_response.ok?
     assert last_response.body.include?('/here')
@@ -53,7 +53,7 @@ class DeveloperModeTest < Test::Unit::TestCase
   end
 
   def test_explain_sql_displays_query_plan
-    sample = @sampler.samples[0]
+    sample = @sampler.dev_mode_tracer.samples[0]
     sql_segment = sample.sql_segments[0]
     explain_results = NewRelic::Agent::Database.process_resultset(example_explain_as_hashes)
 
