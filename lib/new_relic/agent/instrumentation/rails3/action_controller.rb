@@ -168,17 +168,18 @@ DependencyDetection.defer do
     ActionView::PartialRenderer.class_eval do
       include NewRelic::Agent::MethodTracer
 
-      def render_with_newrelic(*args, &block)
-        setup(*args, &block)
-        identifier = find_partial ? find_partial.identifier : nil
-        str = "View/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.template_metric(identifier)}/Partial"
-        trace_execution_scoped str do
-          render_without_newrelic(*args, &block)
+      def instrument_with_newrelic(name, payload = {}, &block)
+        identifier = payload[:identifier]
+        identifier = nil if identifier == "collection"
+
+        scope_name = "View/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.template_metric(identifier)}/Partial"
+        trace_execution_scoped(scope_name) do
+          instrument_without_newrelic(name, payload, &block)
         end
       end
 
-      alias_method :render_without_newrelic, :render
-      alias_method :render, :render_with_newrelic
+      alias_method :instrument_without_newrelic, :instrument
+      alias_method :instrument, :instrument_with_newrelic
     end
   end
 end
