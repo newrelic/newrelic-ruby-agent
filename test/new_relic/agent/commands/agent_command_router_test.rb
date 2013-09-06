@@ -128,7 +128,7 @@ class AgentCommandRouterTest < Test::Unit::TestCase
 
   def with_profile(opts)
     profile = NewRelic::Agent::Threading::ThreadProfile.new(create_agent_command)
-    profile.aggregate(["chunky.rb:42:in `bacon'"], profile.traces[:other])
+    profile.aggregate(["chunky.rb:42:in `bacon'"], :other)
     profile.stop if opts[:finished]
 
     agent_commands.thread_profiler.profile = profile
