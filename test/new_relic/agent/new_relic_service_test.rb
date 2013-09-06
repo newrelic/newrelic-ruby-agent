@@ -15,12 +15,14 @@ class NewRelicServiceKeepAliveTest < Test::Unit::TestCase
   end
 
   def stub_net_http_handle(overrides = {})
-    stub('http_handle', :start => true, :finish => true, :address => '10.10.10.10', :port => 30303, :started? => true)
+    defaults = { :start => true, :finish => true, :address => '10.10.10.10', :port => 30303, :started? => true }
+    stub('http_handle', defaults.merge(overrides))
   end
 
   def test_session_handles_timeouts_opening_connection_gracefully
-    conn = stub_net_http_handle
+    conn = stub_net_http_handle(:started? => false)
     conn.stubs(:start).raises(Timeout::Error)
+    conn.stubs(:finish).raises(RuntimeError)
     @service.stubs(:create_http_connection).returns(conn)
 
     block_ran = false
