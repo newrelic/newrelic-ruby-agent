@@ -6,6 +6,7 @@ require 'new_relic/agent'
 require 'new_relic/control'
 require 'new_relic/agent/transaction_sample_builder'
 require 'new_relic/agent/transaction/developer_mode_tracer'
+require 'new_relic/agent/transaction/slowest_sample_tracer'
 
 module NewRelic
   module Agent
@@ -24,13 +25,14 @@ module NewRelic
       end
 
       attr_accessor :slow_capture_threshold
-      attr_reader :last_sample, :slowest_sample, :disabled, :dev_mode_tracer
+      attr_reader :last_sample, :disabled, :dev_mode_tracer, :tracers
 
       def initialize
-        @tracers = []
-
         @dev_mode_tracer = NewRelic::Agent::Transaction::DeveloperModeTracer.new
+
+        @tracers = []
         @tracers << @dev_mode_tracer
+        @tracers << NewRelic::Agent::Transaction::SlowestSampleTracer.new
 
         @force_persist = []
 
@@ -126,10 +128,7 @@ module NewRelic
         end
       end
 
-      # Delegates to our tracers and manages the @slowest_sample
       def store_sample(sample)
-        store_slowest_sample(sample)
-
         @tracers.each do |tracer|
           tracer.store(sample)
         end
@@ -148,22 +147,6 @@ module NewRelic
           @force_persist = @force_persist[0..14]
         end
       end
-
-      # Sets @slowest_sample to the passed in sample if it is slower
-      # than the current sample in @slowest_sample
-      def store_slowest_sample(sample)
-        if slowest_sample?(@slowest_sample, sample) && sample.threshold &&
-            sample.duration >= sample.threshold
-          @slowest_sample = sample
-        end
-      end
-
-      # Checks to see if the old sample exists, or if its duration is
-      # less than the new sample
-      def slowest_sample?(old_sample, new_sample)
-        old_sample.nil? || (new_sample.duration > old_sample.duration)
-      end
-
 
       # Delegates to the builder to store the uri, and
       # parameters if the sampler is active
@@ -291,7 +274,9 @@ module NewRelic
 
         force_persist.each {|sample| store_force_persist(sample)}
 
-        result << @slowest_sample if @slowest_sample
+        @tracers.each do |tracer|
+          result.concat(tracer.harvest_samples)
+        end
 
         result.compact!
         result = result.sort_by { |x| x.duration }
@@ -314,7 +299,6 @@ module NewRelic
           result = add_samples_to(result)
 
           # clear previous transaction samples
-          @slowest_sample = nil
           @last_sample = nil
         end
 
@@ -344,7 +328,6 @@ module NewRelic
       def reset!
         @tracers.each { |tracer| tracer.reset! }
         @last_sample = nil
-        @slowest_sample = nil
       end
 
       # Checks to see if the transaction sampler is disabled, if

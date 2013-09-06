@@ -28,7 +28,7 @@ class MarshalingTest < MiniTest::Unit::TestCase
     sampler.notice_scope_empty(OpenStruct.new(:name => 'path',
                                                :custom_parameters => {}))
 
-    expected_sample = sampler.instance_variable_get(:@slowest_sample)
+    expected_sample = sampler.last_sample
 
     agent.service.connect
     agent.send(:harvest_and_send_slowest_sample)

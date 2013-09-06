@@ -167,58 +167,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     assert_equal(sample, @sampler.instance_variable_get('@last_sample'))
   end
 
-  def test_store_slowest_sample_new_is_slowest
-    old_sample = stub('old_sample', :duration => 3.0, :threshold => 1.0)
-    new_sample = stub('new_sample', :duration => 4.0, :threshold => 1.0)
-    @sampler.instance_eval { @slowest_sample = old_sample }
-
-    @sampler.store_slowest_sample(new_sample)
-
-    assert_equal(new_sample, @sampler.instance_variable_get('@slowest_sample'))
-  end
-
-  def test_store_slowest_sample_not_slowest
-    old_sample = mock('old_sample')
-    new_sample = mock('new_sample')
-    @sampler.instance_eval { @slowest_sample = old_sample }
-    @sampler.expects(:slowest_sample?).with(old_sample, new_sample).returns(false)
-
-    @sampler.store_slowest_sample(new_sample)
-
-    assert_equal(old_sample, @sampler.instance_variable_get('@slowest_sample'))
-  end
-
-  def test_store_slowest_sample_does_not_store_if_faster_than_threshold
-    old_sample = stub('old_sample', :duration => 1.0, :threshold => 0.5)
-    new_sample = stub('new_sample', :duration => 2.0, :threshold => 4.0)
-    @sampler.instance_eval { @slowest_sample = old_sample }
-    @sampler.store_slowest_sample(new_sample)
-
-    assert_equal(old_sample, @sampler.instance_variable_get('@slowest_sample'))
-  end
-
-  def test_slowest_sample_no_sample
-    old_sample = nil
-    new_sample = mock('new_sample')
-    assert_equal(true, @sampler.slowest_sample?(old_sample, new_sample))
-  end
-
-  def test_slowest_sample_faster_sample
-    old_sample = mock('old_sample')
-    new_sample = mock('new_sample')
-    old_sample.expects(:duration).returns(1.0)
-    new_sample.expects(:duration).returns(0.5)
-    assert_equal(false, @sampler.slowest_sample?(old_sample, new_sample))
-  end
-
-  def test_slowest_sample_slower_sample
-    old_sample = mock('old_sample')
-    new_sample = mock('new_sample')
-    old_sample.expects(:duration).returns(0.5)
-    new_sample.expects(:duration).returns(1.0)
-    assert_equal(true, @sampler.slowest_sample?(old_sample, new_sample))
-  end
-
   def test_ignore_transaction_no_builder
     @sampler.expects(:builder).returns(nil).once
     @sampler.ignore_transaction
@@ -355,7 +303,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   def test_harvest_defaults
     # making sure the sampler clears out the old samples
     @sampler.instance_eval do
-      @slowest_sample = 'a sample'
       @last_sample = 'a sample'
     end
 
@@ -364,7 +311,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     assert_equal([], @sampler.harvest)
 
     # make sure the samples have been cleared
-    assert_equal(nil, @sampler.instance_variable_get('@slowest_sample'))
     assert_equal(nil, @sampler.instance_variable_get('@last_sample'))
   end
 
@@ -378,7 +324,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
   def test_add_samples_to_no_data
     result = []
-    @sampler.instance_eval { @slowest_sample = nil }
     assert_equal([], @sampler.add_samples_to(result))
   end
 
@@ -387,7 +332,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     sample.expects(:duration).returns(1).at_least_once
     sample.stubs(:force_persist).returns(false)
     result = [sample]
-    @sampler.instance_eval { @slowest_sample = nil }
     assert_equal([sample], @sampler.add_samples_to(result))
   end
 
@@ -395,7 +339,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     sample = mock('sample')
     sample.expects(:duration).returns(2.5).at_least_once
     result = []
-    @sampler.instance_variable_set(:@slowest_sample, sample)
+    @sampler.tracers << stub(:harvest_samples => [sample])
     with_config(:'transaction_tracer.transaction_threshold' => 2) do
       assert_equal([sample], @sampler.add_samples_to(result))
     end
@@ -408,7 +352,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     faster_sample.expects(:duration).returns(5.0).at_least_once
     faster_sample.stubs(:force_persist).returns(false)
     result = [faster_sample]
-    @sampler.instance_eval { @slowest_sample = slower_sample }
+    @sampler.tracers << stub(:harvest_samples => [slower_sample])
     assert_equal([slower_sample], @sampler.add_samples_to(result))
   end
 
@@ -420,7 +364,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     faster_sample = mock('faster')
     faster_sample.expects(:duration).returns(5.0).at_least_once
     result = [slower_sample]
-    @sampler.instance_eval { @slowest_sample = faster_sample }
+    @sampler.tracers << stub(:harvest_samples => [faster_sample])
     assert_equal([slower_sample], @sampler.add_samples_to(result))
   end
 

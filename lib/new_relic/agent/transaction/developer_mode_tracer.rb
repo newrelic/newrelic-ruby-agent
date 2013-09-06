@@ -18,6 +18,12 @@ module NewRelic
           @samples = []
         end
 
+        NO_SAMPLES = [].freeze
+
+        def harvest_samples
+          NO_SAMPLES
+        end
+
         def enabled?
           Agent.config[:developer_mode]
         end
