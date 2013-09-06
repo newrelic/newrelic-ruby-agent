@@ -22,7 +22,6 @@ module NewRelic
         def notice_scope_empty(*args); end
       end
 
-      attr_accessor :random_sampling, :sampling_rate
       attr_accessor :slow_capture_threshold
       attr_reader :samples, :last_sample, :disabled
 
@@ -33,12 +32,6 @@ module NewRelic
         @samples = []
         @force_persist = []
         @max_samples = 100
-
-        # @harvest_count is a count of harvests used for random
-        # sampling - we pull 1 @random_sample in every @sampling_rate harvests
-        @harvest_count = 0
-        @random_sample = nil
-        @sampling_rate = Agent.config[:sample_rate]
 
         # This lock is used to synchronize access to the @last_sample
         # and related variables. It can become necessary on JRuby or
@@ -70,15 +63,6 @@ module NewRelic
       def enabled?
         Agent.config[:'transaction_tracer.enabled'] || Agent.config[:developer_mode]
       end
-
-      # Set with an integer value n, this takes one in every n
-      # harvested samples. It also resets the harvest count to a
-      # random integer between 0 and (n-1)
-      def sampling_rate=(val)
-        @sampling_rate = val.to_i
-        @harvest_count = rand(val.to_i).to_i
-      end
-
 
       # Creates a new transaction sample builder, unless the
       # transaction sampler is disabled. Takes a time parameter for
@@ -161,17 +145,13 @@ module NewRelic
         end
       end
 
-      # Samples can be stored in three places: the random sample
-      # variable, when random sampling is active, the developer mode
-      # @samples array, and the @slowest_sample variable if it is
-      # slower than the current occupant of that slot
+      # Samples can be stored in two places: the developer mode @samples array,
+      # and the @slowest_sample variable if it is slower than the current
+      # occupant of that slot
       def store_sample(sample)
         sampler_methods = [ :store_slowest_sample ]
         if Agent.config[:developer_mode]
           sampler_methods << :store_sample_for_developer_mode
-        end
-        if Agent.config[:'transaction_tracer.random_sample']
-          sampler_methods << :store_random_sample
         end
 
         sampler_methods.each{|sym| send(sym, sample) }
@@ -179,13 +159,6 @@ module NewRelic
         if sample.force_persist_sample?
           store_force_persist(sample)
         end
-      end
-
-      # Only active when random sampling is true - this is very rarely
-      # used. Always store the most recent sample so that random
-      # sampling can pick a few of the samples to store, upon harvest
-      def store_random_sample(sample)
-        @random_sample = sample if Agent.config[:'transaction_tracer.random_sample']
       end
 
       def store_force_persist(sample)
@@ -343,32 +316,14 @@ module NewRelic
         params.each { |k,v| builder.current_segment[k] = v }
       end
 
-      # Every 1/n harvests, adds the most recent sample to the harvest
-      # array if it exists. Makes sure that the random sample is not
-      # also the slowest sample for this harvest by `uniq!`ing the
-      # result array
-      #
-      # random sampling is very, very seldom used
-      def add_random_sample_to(result)
-        return unless @random_sample &&
-          Agent.config[:sample_rate] && Agent.config[:sample_rate].to_i > 0
-        @harvest_count += 1
-        if (@harvest_count.to_i % Agent.config[:sample_rate].to_i) == 0
-          result << @random_sample if @random_sample
-          @harvest_count = 0
-        end
-        nil # don't assume this method returns anything
-      end
-
       def add_force_persist_to(result)
         result.concat(@force_persist)
         @force_persist = []
       end
 
-      # Returns an array of slow samples, with either one or two
-      # elements - one element unless random sampling is enabled. The
-      # sample returned will be the slowest sample among those
-      # available during this harvest
+      # Returns an array of slow samples, with one element.  The sample
+      # returned will be the slowest sample among those available during this
+      # harvest
       def add_samples_to(result)
         # pull out force persist
         force_persist = result.select {|sample| sample.force_persist} || []
@@ -382,7 +337,6 @@ module NewRelic
         result = result.sort_by { |x| x.duration }
         result = result[-1..-1] || []               # take the slowest sample
 
-        add_random_sample_to(result)
         add_force_persist_to(result)
 
         result.uniq
@@ -401,7 +355,6 @@ module NewRelic
 
           # clear previous transaction samples
           @slowest_sample = nil
-          @random_sample = nil
           @last_sample = nil
         end
 
@@ -431,7 +384,6 @@ module NewRelic
       def reset!
         @samples = []
         @last_sample = nil
-        @random_sample = nil
         @slowest_sample = nil
       end
 

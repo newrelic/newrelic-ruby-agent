@@ -48,9 +48,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   def test_initialize
     defaults =      {
       :samples => [],
-      :harvest_count => 0,
       :max_samples => 100,
-      :random_sample => nil,
     }
     defaults.each do |variable, default_value|
       assert_equal(default_value, @sampler.instance_variable_get('@' + variable.to_s))
@@ -70,20 +68,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   def test_current_sample_id_no_builder
     @sampler.expects(:builder).returns(nil)
     assert_equal(nil, @sampler.current_sample_id)
-  end
-
-  def test_sampling_rate_equals_default
-    @sampler.sampling_rate = 1
-    assert_equal(1, @sampler.instance_variable_get('@sampling_rate'))
-    # rand(1) is always zero, so we can be sure here
-    assert_equal(0, @sampler.instance_variable_get('@harvest_count'))
-  end
-
-  def test_sampling_rate_equals_with_a_float
-    @sampler.sampling_rate = 5.5
-    assert_equal(5, @sampler.instance_variable_get('@sampling_rate'))
-    harvest_count = @sampler.instance_variable_get('@harvest_count')
-    assert((0..4).include?(harvest_count), "should be in the range 0..4")
   end
 
   def test_notice_first_scope_push_default
@@ -203,23 +187,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     @sampler.notice_scope_empty(@txn, Time.at(100))
 
     assert_equal(sample, @sampler.instance_variable_get('@last_sample'))
-  end
-
-  def test_store_random_sample_no_random_sampling
-    with_config(:'transaction_tracer.random_sample' => false) do
-      assert_equal(nil, @sampler.instance_variable_get('@random_sample'))
-      @sampler.store_random_sample(mock('sample'))
-      assert_equal(nil, @sampler.instance_variable_get('@random_sample'))
-    end
-  end
-
-  def test_store_random_sample_random_sampling
-    with_config(:'transaction_tracer.random_sample' => true) do
-      sample = mock('sample')
-      assert_equal(nil, @sampler.instance_variable_get('@random_sample'))
-      @sampler.store_random_sample(sample)
-      assert_equal(sample, @sampler.instance_variable_get('@random_sample'))
-    end
   end
 
   def test_store_sample_for_developer_mode_in_dev_mode
@@ -447,7 +414,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     # making sure the sampler clears out the old samples
     @sampler.instance_eval do
       @slowest_sample = 'a sample'
-      @random_sample = 'a sample'
       @last_sample = 'a sample'
     end
 
@@ -457,7 +423,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
     # make sure the samples have been cleared
     assert_equal(nil, @sampler.instance_variable_get('@slowest_sample'))
-    assert_equal(nil, @sampler.instance_variable_get('@random_sample'))
     assert_equal(nil, @sampler.instance_variable_get('@last_sample'))
   end
 
@@ -469,68 +434,9 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     end
   end
 
-  def test_add_random_sample_to_not_random_sampling
-    @sampler.instance_eval { @random_sampling = false }
-    result = []
-    @sampler.add_random_sample_to(result)
-    assert_equal([], result, "should not add anything to the array if we are not random sampling")
-  end
-
-  def test_add_random_sample_to_no_random_sample
-    @sampler.instance_eval { @random_sampling = true }
-    @sampler.instance_eval {
-      @harvest_count = 1
-      @sampling_rate = 2
-      @random_sample = nil
-    }
-    result = []
-    @sampler.add_random_sample_to(result)
-    assert_equal([], result, "should not add sample to the array when it is nil")
-  end
-
-  def test_add_random_sample_to_not_active
-    @sampler.instance_eval { @random_sampling = true }
-    sample = mock('sample')
-    @sampler.instance_eval {
-      @harvest_count = 4
-      @sampling_rate = 40 # 4 % 40 = 4, so the sample should not be added
-      @random_sample = sample
-    }
-    result = []
-    @sampler.add_random_sample_to(result)
-    assert_equal([], result, "should not add samples to the array when harvest count is not moduli sampling rate")
-  end
-
-  def test_add_random_sample_to_activated
-    with_config(:'transaction_tracer.random_sample' => true, :sample_rate => 1) do
-      sample = mock('sample')
-      @sampler.instance_eval {
-        @harvest_count = 3
-        @random_sample = sample
-      }
-      result = []
-      @sampler.add_random_sample_to(result)
-      assert_equal([sample], result, "should add the random sample to the array")
-    end
-  end
-
-  def test_add_random_sample_to_sampling_rate_zero
-    @sampler.instance_eval { @random_sampling = true }
-    sample = mock('sample')
-    @sampler.instance_eval {
-      @harvest_count = 3
-      @sampling_rate = 0
-      @random_sample = sample
-    }
-    result = []
-    @sampler.add_random_sample_to(result)
-    assert_equal([], result, "should not add the sample to the array")
-  end
-
   def test_add_samples_to_no_data
     result = []
     @sampler.instance_eval { @slowest_sample = nil }
-    @sampler.expects(:add_random_sample_to).with([])
     assert_equal([], @sampler.add_samples_to(result))
   end
 
@@ -540,7 +446,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     sample.stubs(:force_persist).returns(false)
     result = [sample]
     @sampler.instance_eval { @slowest_sample = nil }
-    @sampler.expects(:add_random_sample_to).with([sample])
     assert_equal([sample], @sampler.add_samples_to(result))
   end
 
@@ -549,7 +454,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     sample.expects(:duration).returns(2.5).at_least_once
     result = []
     @sampler.instance_variable_set(:@slowest_sample, sample)
-    @sampler.expects(:add_random_sample_to).with([sample])
     with_config(:'transaction_tracer.transaction_threshold' => 2) do
       assert_equal([sample], @sampler.add_samples_to(result))
     end
@@ -563,7 +467,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     faster_sample.stubs(:force_persist).returns(false)
     result = [faster_sample]
     @sampler.instance_eval { @slowest_sample = slower_sample }
-    @sampler.expects(:add_random_sample_to).with([slower_sample])
     assert_equal([slower_sample], @sampler.add_samples_to(result))
   end
 
@@ -576,7 +479,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     faster_sample.expects(:duration).returns(5.0).at_least_once
     result = [slower_sample]
     @sampler.instance_eval { @slowest_sample = faster_sample }
-    @sampler.expects(:add_random_sample_to).with([slower_sample])
     assert_equal([slower_sample], @sampler.add_samples_to(result))
   end
 

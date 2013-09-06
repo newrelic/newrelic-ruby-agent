@@ -106,16 +106,6 @@ class NewRelic::Agent::Agent::ConnectTest < Test::Unit::TestCase
     end
   end
 
-  def test_configure_transaction_tracer_with_random_sampling
-    with_config(:'transaction_tracer.transaction_threshold' => 5,
-                :'transaction_tracer.random_sample' => true) do
-      sample = make_sql_transaction
-      @transaction_sampler.store_sample(sample)
-
-      assert_equal sample, @transaction_sampler.instance_variable_get(:@random_sample)
-    end
-  end
-
   def test_configure_transaction_tracer_positive
     with_config(:'transaction_tracer.enabled' => true) do
       assert @transaction_sampler.enabled?
