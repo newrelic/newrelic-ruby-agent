@@ -45,18 +45,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     NewRelic::Agent.instance.instance_variable_set(:@transaction_sampler, @old_sampler)
   end
 
-  def test_current_sample_id_default
-    builder = mock('builder')
-    builder.expects(:sample_id).returns(11111)
-    @sampler.expects(:builder).returns(builder)
-    assert_equal(11111, @sampler.current_sample_id)
-  end
-
-  def test_current_sample_id_no_builder
-    @sampler.expects(:builder).returns(nil)
-    assert_equal(nil, @sampler.current_sample_id)
-  end
-
   def test_notice_first_scope_push_default
     @sampler.expects(:start_builder).with(100.0)
     @sampler.notice_first_scope_push(Time.at(100))
@@ -82,19 +70,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
       @sampler.expects(:builder).returns(builder).twice
       @sampler.notice_push_scope(Time.at(100))
     end
-  end
-
-  def test_scope_depth_no_builder
-    @sampler.expects(:builder).returns(nil)
-    assert_equal(0, @sampler.scope_depth, "should default to zero with no builder")
-  end
-
-  def test_scope_depth_with_builder
-    builder = mock('builder')
-    builder.expects(:scope_depth).returns('scope_depth')
-    @sampler.expects(:builder).returns(builder).twice
-
-    assert_equal('scope_depth', @sampler.scope_depth, "should delegate scope depth to the builder")
   end
 
   def test_notice_pop_scope_no_builder
@@ -323,65 +298,96 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   end
 
   def test_add_samples_to_no_data
-    result = []
-    assert_equal([], @sampler.add_samples_to(result))
+    previous = []
+    assert_equal([], @sampler.add_samples_to(previous))
   end
 
-  def test_add_samples_to_one_result
-    sample = mock('sample')
-    sample.expects(:duration).returns(1).at_least_once
-    sample.stubs(:force_persist).returns(false)
-    result = [sample]
-    assert_equal([sample], @sampler.add_samples_to(result))
+  def test_add_samples_holds_onto_previous_result
+    sample = stub(:duration => 1, :force_persist => false)
+    previous = [sample]
+    assert_equal([sample], @sampler.add_samples_to(previous))
+  end
+
+  def test_add_samples_avoids_dups_from_previous
+    sample = stub(:duration => 1, :force_persist => false)
+    previous = [sample, sample]
+    assert_equal([sample], @sampler.add_samples_to(previous))
+  end
+
+  def test_add_samples_to_avoids_dups_from_harvested_samples
+    sample = stub(:duration => 2.5, :force_persist => false)
+    @sampler.tracers << stub(:harvest_samples => [sample])
+    @sampler.tracers << stub(:harvest_samples => [sample])
+
+    assert_equal([sample], @sampler.add_samples_to([]))
+  end
+
+  def test_add_samples_avoids_dups_from_forced
+    sample = stub(:duration => 1, :force_persist => true)
+    previous = [sample, sample]
+    assert_equal([sample], @sampler.add_samples_to(previous))
   end
 
   def test_add_samples_to_adding_slowest
-    sample = mock('sample')
-    sample.expects(:duration).returns(2.5).at_least_once
-    result = []
+    sample = stub(:duration => 2.5, :force_persist => false)
     @sampler.tracers << stub(:harvest_samples => [sample])
-    with_config(:'transaction_tracer.transaction_threshold' => 2) do
-      assert_equal([sample], @sampler.add_samples_to(result))
-    end
+
+    assert_equal([sample], @sampler.add_samples_to([]))
   end
 
-  def test_add_samples_to_two_sample_enter_one_sample_leave
-    slower_sample = mock('slower')
-    slower_sample.expects(:duration).returns(10.0).at_least_once
-    faster_sample = mock('faster')
-    faster_sample.expects(:duration).returns(5.0).at_least_once
-    faster_sample.stubs(:force_persist).returns(false)
-    result = [faster_sample]
+  def test_add_samples_to_new_slower_sample_replaces_older
+    slower_sample = stub(:duration => 10.0, :force_persist => false)
     @sampler.tracers << stub(:harvest_samples => [slower_sample])
-    assert_equal([slower_sample], @sampler.add_samples_to(result))
+
+    faster_sample = stub(:duration => 5.0, :force_persist => false)
+    previous = [faster_sample]
+
+    assert_equal([slower_sample], @sampler.add_samples_to(previous))
   end
 
   def test_add_samples_to_keep_older_slower_sample
-    slower_sample = mock('slower')
-    slower_sample.expects(:duration).returns(10.0).at_least_once
-    slower_sample.stubs(:force_persist).returns(false)
-
-    faster_sample = mock('faster')
-    faster_sample.expects(:duration).returns(5.0).at_least_once
-    result = [slower_sample]
+    faster_sample = stub('faster', :duration => 5.0, :force_persist => false)
     @sampler.tracers << stub(:harvest_samples => [faster_sample])
-    assert_equal([slower_sample], @sampler.add_samples_to(result))
+
+    slower_sample = stub('slower', :duration => 10.0, :force_persist => false)
+    previous = [slower_sample]
+
+    assert_equal([slower_sample], @sampler.add_samples_to(previous))
   end
 
-  def test_keep_force_persist
-    sample1 = mock('regular')
-    sample1.stubs(:duration).returns(10)
-    sample1.stubs(:force_persist).returns(false)
+  def test_add_samples_to_keep_force_persist_in_previous_results
+    unforced_sample = stub(:duration => 10, :force_persist => false)
+    forced_sample = stub(:duration => 1, :force_persist => true)
 
-    sample2 = mock('force_persist')
-    sample2.stubs(:duration).returns(1)
-    sample2.stubs(:force_persist).returns(true)
+    result = @sampler.add_samples_to([unforced_sample, forced_sample])
 
-    result = @sampler.add_samples_to([sample1,sample2])
+    assert_includes(result, unforced_sample)
+    assert_includes(result, forced_sample)
+  end
 
-    assert_equal 2, result.length
-    assert_equal sample1, result[0]
-    assert_equal sample2, result[1]
+  def test_add_samples_to_keeps_force_persist_in_new_results
+    forced_sample = stub(:duration => 1, :force_persist => true)
+    @sampler.tracers << stub(:harvest_samples => [forced_sample])
+
+    unforced_sample = stub(:duration => 10, :force_persist => false)
+    @sampler.tracers << stub(:harvest_samples => [unforced_sample])
+
+    result = @sampler.add_samples_to([])
+
+    assert_includes(result, unforced_sample)
+    assert_includes(result, forced_sample)
+  end
+
+  def test_add_samples_to_keeps_forced_from_new_and_previous_results
+    new_forced = stub(:duration => 1, :force_persist => true)
+    @sampler.tracers << stub(:harvest_samples => [new_forced])
+
+    old_forced = stub(:duration => 1, :force_persist => true)
+
+    result = @sampler.add_samples_to([old_forced])
+
+    assert_includes(result, new_forced)
+    assert_includes(result, old_forced)
   end
 
   def test_start_builder_default
@@ -430,7 +436,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
   def test_sample_tree
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-      assert_equal 0, @sampler.scope_depth
       @sampler.notice_first_scope_push Time.now.to_f
       @sampler.notice_transaction(nil, {})
       @sampler.notice_push_scope
@@ -455,7 +460,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     # These are effectively Garbage Collects, detected each time GC.time is
     # called by the transaction sampler.  One time value in seconds for each call.
     MockGCStats.mock_values = [0,0,0,1,0,0,1,0,0,0,0,0,0,0,0]
-    assert_equal 0, @sampler.scope_depth
 
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
       @sampler.notice_first_scope_push Time.now.to_f
@@ -479,13 +483,6 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   ensure
     MockGCStats.mock_values = []
   end
-
-  def test_sample_id
-    run_sample_trace do
-      assert((@sampler.current_sample_id && @sampler.current_sample_id != 0), @sampler.current_sample_id.to_s + ' should not be zero')
-    end
-  end
-
 
   # NB this test occasionally fails due to a GC during one of the
   # sample traces, for example. It's unfortunate, but we can't
@@ -547,17 +544,16 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
   def test_sample_with_parallel_paths
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-      assert_equal 0, @sampler.scope_depth
       @sampler.notice_first_scope_push Time.now.to_f
       @sampler.notice_transaction(nil, {})
       @sampler.notice_push_scope
 
-      assert_equal 1, @sampler.scope_depth
+      assert_equal 1, @sampler.builder.scope_depth
 
       @sampler.notice_pop_scope "a"
       @sampler.notice_scope_empty(@txn)
 
-      assert_equal 0, @sampler.scope_depth
+      assert_nil @sampler.builder
 
       @sampler.notice_first_scope_push Time.now.to_f
       @sampler.notice_transaction(nil, {})
@@ -565,9 +561,9 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
       @sampler.notice_pop_scope "a"
       @sampler.notice_scope_empty(@txn)
 
-      assert_equal 0, @sampler.scope_depth
-      sample = @sampler.harvest(nil).first
-      assert_equal "ROOT{a}", sample.to_s_compact
+      assert_nil @sampler.builder
+
+      assert_equal "ROOT{a}", @sampler.last_sample.to_s_compact
     end
   end
 

@@ -2,10 +2,12 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'new_relic/agent/transaction/transaction_tracer'
+
 module NewRelic
   module Agent
     class Transaction
-      class SlowestSampleTracer
+      class SlowestSampleTracer < TransactionTracer
         attr_accessor :slowest_sample
 
         def initialize
@@ -15,8 +17,6 @@ module NewRelic
         def reset!
           @slowest_sample = nil
         end
-
-        NO_SAMPLES = [].freeze
 
         def harvest_samples
           @slowest_sample ? [@slowest_sample] : NO_SAMPLES
@@ -36,10 +36,6 @@ module NewRelic
 
         def exceeds_threshold?(sample)
           sample.threshold && sample.duration >= sample.threshold
-        end
-
-        def visit_segment(*)
-          # no op
         end
       end
     end

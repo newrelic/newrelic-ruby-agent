@@ -2,10 +2,12 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'new_relic/agent/transaction/transaction_tracer'
+
 module NewRelic
   module Agent
     class Transaction
-      class DeveloperModeTracer
+      class DeveloperModeTracer < TransactionTracer
         attr_accessor :max_samples
         attr_reader   :samples
 
@@ -17,8 +19,6 @@ module NewRelic
         def reset!
           @samples = []
         end
-
-        NO_SAMPLES = [].freeze
 
         def harvest_samples
           NO_SAMPLES

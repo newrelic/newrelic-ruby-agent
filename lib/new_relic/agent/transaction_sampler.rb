@@ -6,6 +6,7 @@ require 'new_relic/agent'
 require 'new_relic/control'
 require 'new_relic/agent/transaction_sample_builder'
 require 'new_relic/agent/transaction/developer_mode_tracer'
+require 'new_relic/agent/transaction/force_persist_tracer'
 require 'new_relic/agent/transaction/slowest_sample_tracer'
 
 module NewRelic
@@ -24,8 +25,7 @@ module NewRelic
         def notice_scope_empty(*args); end
       end
 
-      attr_accessor :slow_capture_threshold
-      attr_reader :last_sample, :disabled, :dev_mode_tracer, :tracers
+      attr_reader :last_sample, :dev_mode_tracer, :tracers
 
       def initialize
         @dev_mode_tracer = NewRelic::Agent::Transaction::DeveloperModeTracer.new
@@ -33,8 +33,7 @@ module NewRelic
         @tracers = []
         @tracers << @dev_mode_tracer
         @tracers << NewRelic::Agent::Transaction::SlowestSampleTracer.new
-
-        @force_persist = []
+        @tracers << NewRelic::Agent::Transaction::ForcePersistTracer.new
 
         # This lock is used to synchronize access to the @last_sample
         # and related variables. It can become necessary on JRuby or
@@ -55,12 +54,6 @@ module NewRelic
             ::NewRelic::Agent.logger.warn("Agent is configured to send raw SQL to the service")
           end
         end
-      end
-
-      # Returns the current sample id, delegated from `builder`
-      def current_sample_id
-        b=builder
-        b and b.sample_id
       end
 
       def enabled?
@@ -86,14 +79,6 @@ module NewRelic
         segment = builder.trace_entry(time.to_f)
         @tracers.each { |tracer| tracer.visit_segment(segment) }
         return segment
-      end
-
-      # Defaults to zero, otherwise delegated to the transaction
-      # sample builder
-      def scope_depth
-        return 0 unless builder
-
-        builder.scope_depth
       end
 
       # Informs the transaction sample builder about the end of a
@@ -131,20 +116,6 @@ module NewRelic
       def store_sample(sample)
         @tracers.each do |tracer|
           tracer.store(sample)
-        end
-
-        if sample.force_persist_sample?
-          store_force_persist(sample)
-        end
-      end
-
-      def store_force_persist(sample)
-        @force_persist << sample
-
-        # WARNING - this clamp should be configurable
-        if @force_persist.length > 15
-          @force_persist.sort! {|a,b| b.duration <=> a.duration}
-          @force_persist = @force_persist[0..14]
         end
       end
 
@@ -247,8 +218,7 @@ module NewRelic
         statement
       end
 
-      # Adds non-sql metadata to a segment - generally the memcached
-      # key
+      # Adds non-sql metadata to a segment - generally the memcached key
       #
       # duration is seconds, float value.
       def notice_nosql(key, duration)
@@ -261,30 +231,35 @@ module NewRelic
         params.each { |k,v| builder.current_segment[k] = v }
       end
 
-      def add_force_persist_to(result)
-        result.concat(@force_persist)
-        @force_persist = []
-      end
-
       # Returns an array of the slowest sample + force persisted samples
       def add_samples_to(result)
-        # pull out force persist
-        force_persist = result.select {|sample| sample.force_persist} || []
-        result.reject! {|sample| sample.force_persist}
-
-        force_persist.each {|sample| store_force_persist(sample)}
-
-        @tracers.each do |tracer|
-          result.concat(tracer.harvest_samples)
-        end
-
+        result.concat(harvest_from_tracers)
         result.compact!
-        result = result.sort_by { |x| x.duration }
-        result = result[-1..-1] || []               # take the slowest sample
+        choose_slowest_and_forced_samples(result)
+      end
 
-        add_force_persist_to(result)
+      def choose_slowest_and_forced_samples(result)
+        slowest_sample = find_slowest_sample(result)
 
+        result = select_forced(result)
+        result << slowest_sample unless slowest_sample.nil?
         result.uniq
+      end
+
+      def harvest_from_tracers
+        @tracers.map {|tracer| tracer.harvest_samples}.flatten
+      end
+
+      def select_unforced(samples)
+        samples.select {|sample| !sample.force_persist}
+      end
+
+      def select_forced(samples)
+        samples - select_unforced(samples)
+      end
+
+      def find_slowest_sample(samples)
+        select_unforced(samples).max {|a,b| a.duration <=> b.duration}
       end
 
       # get the set of collected samples, merging into previous samples,
@@ -297,8 +272,6 @@ module NewRelic
 
         @samples_lock.synchronize do
           result = add_samples_to(result)
-
-          # clear previous transaction samples
           @last_sample = nil
         end
 
