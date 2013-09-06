@@ -28,6 +28,23 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
         @profile.instance_variable_set(:@worker_loop, NewRelic::Agent::WorkerLoop.new(:limit => 2))
       end
 
+      def assert_thread_profiles_equal(a, b, original_a=a, original_b=b)
+        message = "Thread profiles did not match.\n\n"
+        message << "Expected tree:\n#{original_a.dump_string}\n\n"
+        message << "Actual tree:\n#{original_b.dump_string}\n"
+        assert_equal(a, b, message)
+        assert_equal(a.children, b.children, message)
+        a.children.zip(b.children) do |a_child, b_child|
+          assert_thread_profiles_equal(a_child, b_child, a, b)
+        end
+      end
+
+      def create_node(frame, parent=nil, runnable_count=0)
+        node = BacktraceNode.new(frame, parent)
+        node.runnable_count = runnable_count
+        node
+      end
+
       # Running Tests
       def test_profiler_collects_backtrace_from_every_thread
         FakeThread.list << FakeThread.new
@@ -46,7 +63,7 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
 
           @profile.run
 
-          assert_equal 1, @profile.traces[:request].size
+          assert_equal 1, @profile.traces[:request].children.size
       end
 
       def test_profiler_collects_into_background_bucket
@@ -56,7 +73,7 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
 
           @profile.run
 
-          assert_equal 1, @profile.traces[:background].size
+          assert_equal 1, @profile.traces[:background].children.size
       end
 
       def test_profiler_collects_into_other_bucket
@@ -66,7 +83,7 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
 
           @profile.run
 
-          assert_equal 1, @profile.traces[:other].size
+          assert_equal 1, @profile.traces[:other].children.size
       end
 
       def test_profiler_collects_into_agent_bucket
@@ -76,7 +93,7 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
 
           @profile.run
 
-          assert_equal 1, @profile.traces[:agent].size
+          assert_equal 1, @profile.traces[:agent].children.size
       end
 
       def test_profiler_ignores_agent_threads_when_told_to
@@ -87,7 +104,7 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
           @profile.run
 
           @profile.traces.each do |key, trace|
-            assert trace.empty?, "Trace :#{key} should have been empty"
+            assert_empty trace, "Trace :#{key} should have been empty"
           end
       end
 
@@ -99,7 +116,7 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
 
           @profile.run
 
-          assert_equal [], @profile.traces[:agent].first.children
+          assert_equal [], @profile.traces[:agent].children.first.children
       end
 
       def test_profile_can_be_stopped
@@ -114,7 +131,7 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
 
         assert_equal 0, @profile.poll_count
         @profile.traces.each do |key, trace|
-          assert_equal [], trace, "Trace for :#{key} should have been empty"
+          assert_empty trace, "Trace for :#{key} should have been empty"
         end
       end
 
@@ -133,80 +150,75 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
         assert @profile.finished?
       end
 
-      # Parsing and Aggregation Tests
-      def test_parse_backtrace
-        trace = [
-          "/Users/jclark/.rbenv/versions/1.9.3-p194/lib/ruby/1.9.1/irb.rb:69:in `catch'",
-          "/Users/jclark/.rbenv/versions/1.9.3-p194/lib/ruby/1.9.1/irb.rb:69:in `start'",
-          "/Users/jclark/.rbenv/versions/1.9.3/bin/irb:12:in `<main>'"
-        ]
-
-        result = ThreadProfile.parse_backtrace(trace)
-        assert_equal({ :method => 'catch',
-                     :file => '/Users/jclark/.rbenv/versions/1.9.3-p194/lib/ruby/1.9.1/irb.rb',
-                     :line_no => 69 }, result[0])
-        assert_equal({ :method => 'start',
-                     :file => '/Users/jclark/.rbenv/versions/1.9.3-p194/lib/ruby/1.9.1/irb.rb',
-                     :line_no => 69 }, result[1])
-        assert_equal({ :method => '<main>',
-                     :file => '/Users/jclark/.rbenv/versions/1.9.3/bin/irb',
-                     :line_no => 12 }, result[2])
-      end
-
       def test_aggregate_empty_trace
-        result = @profile.aggregate([])
-        assert_nil result
-      end
-
-      def test_aggregate_nil_trace
-        result = @profile.aggregate(nil)
-        assert_nil result
+        @profile.aggregate([], :request)
+        assert_empty @profile.traces[:request].children
       end
 
       def test_aggregate_builds_tree_from_first_trace
-        result = @profile.aggregate(@single_trace)
+        @profile.aggregate(@single_trace, :request)
 
-        tree = BacktraceNode.new(@single_trace[-1])
-        child = BacktraceNode.new(@single_trace[-2], tree)
-        BacktraceNode.new(@single_trace[-3], child)
+        root = BacktraceNode.new(nil)
+        tree = create_node(@single_trace[-1], root, 1)
+        child = create_node(@single_trace[-2], tree, 1)
+        create_node(@single_trace[-3], child, 1)
 
-        assert_equal tree, result
+        assert_thread_profiles_equal root, @profile.traces[:request]
       end
 
       def test_aggregate_builds_tree_from_overlapping_traces
-        result = @profile.aggregate(@single_trace)
-        result = @profile.aggregate(@single_trace, [result])
+        @profile.aggregate(@single_trace, :request)
+        @profile.aggregate(@single_trace, :request)
 
-        tree = BacktraceNode.new(@single_trace[-1])
-        tree.runnable_count += 1
-        child = BacktraceNode.new(@single_trace[-2], tree)
-        child.runnable_count += 1
-        grand = BacktraceNode.new(@single_trace[-3], child)
-        grand.runnable_count += 1
+        root = BacktraceNode.new(nil)
+        tree = create_node(@single_trace[-1], root, 2)
+        child = create_node(@single_trace[-2], tree, 2)
+        create_node(@single_trace[-3], child, 2)
 
-        assert_equal tree, result
+        assert_thread_profiles_equal root, @profile.traces[:request]
       end
 
       def test_aggregate_builds_tree_from_diverging_traces
-        other_trace = [
-          "irb.rb:69:in `catch'",
-          "chunky_bacon.rb:42:in `start'",
-          "irb:12:in `<main>'"
+        backtrace1 = [
+          "baz.rb:3:in `baz'",
+          "bar.rb:2:in `bar'",
+          "foo.rb:1:in `foo'"
         ]
 
-        result = @profile.aggregate(@single_trace)
-        result = @profile.aggregate(@single_trace, [result])
+        backtrace2 = [
+          "wiggle.rb:3:in `wiggle'",
+          "qux.rb:2:in `qux'",
+          "foo.rb:1:in `foo'"
+        ]
 
-        tree = BacktraceNode.new(@single_trace[-1])
-        tree.runnable_count += 1
+        @profile.aggregate(backtrace1, :request)
+        @profile.aggregate(backtrace2, :request)
 
-        child = BacktraceNode.new(@single_trace[-2], tree)
-        grand = BacktraceNode.new(@single_trace[-3], child)
+        root = BacktraceNode.new(nil)
 
-        other_child = BacktraceNode.new(other_trace[-2], tree)
-        other_grand = BacktraceNode.new(other_trace[-3], other_child)
+        tree = create_node(backtrace1.last, root, 2)
 
-        assert_equal tree, result
+        bar_node = create_node(backtrace1[1], tree, 1)
+        create_node(backtrace1[0], bar_node, 1)
+
+        qux_node = create_node(backtrace2[1], tree, 1)
+        create_node(backtrace2[0], qux_node, 1)
+
+        result = @profile.traces[:request]
+        assert_thread_profiles_equal(root, result)
+      end
+
+      def test_aggregate_doesnt_create_duplicate_children
+        @profile.aggregate(@single_trace, :request)
+        @profile.aggregate(@single_trace, :request)
+
+        root = BacktraceNode.new(nil)
+        tree = create_node(@single_trace[-1], root, 2)
+        child = create_node(@single_trace[-2], tree, 2)
+        grand = create_node(@single_trace[-3], child, 2)
+
+        result = @profile.traces[:request]
+        assert_thread_profiles_equal(root, result)
       end
 
       def test_prune_tree
@@ -214,36 +226,36 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
 
         t = @profile.prune!(1)
 
-        assert_equal 0, @profile.traces[:request].first.children.size
+        assert_equal 0, @profile.traces[:request].children.first.children.size
       end
 
       def test_prune_keeps_highest_counts
-        @profile.aggregate(@single_trace, @profile.traces[:request])
-        @profile.aggregate(@single_trace, @profile.traces[:other])
-        @profile.aggregate(@single_trace, @profile.traces[:other])
+        @profile.aggregate(@single_trace, :request)
+        @profile.aggregate(@single_trace, :other)
+        @profile.aggregate(@single_trace, :other)
 
         @profile.prune!(1)
 
-        assert_equal [], @profile.traces[:request]
-        assert_equal 1, @profile.traces[:other].size
-        assert_equal [], @profile.traces[:other][0].children
+        assert_empty @profile.traces[:request]
+        assert_equal 1, @profile.traces[:other].children.size
+        assert_equal [], @profile.traces[:other].children.first.children
       end
 
       def test_prune_keeps_highest_count_then_depths
-        @profile.aggregate(@single_trace, @profile.traces[:request])
-        @profile.aggregate(@single_trace, @profile.traces[:other])
+        @profile.aggregate(@single_trace, :request)
+        @profile.aggregate(@single_trace, :other)
 
         @profile.prune!(2)
 
-        assert_equal 1, @profile.traces[:request].size
-        assert_equal 1, @profile.traces[:other].size
-        assert_equal [], @profile.traces[:request][0].children
-        assert_equal [], @profile.traces[:other][0].children
+        assert_equal 1, @profile.traces[:request].children.size
+        assert_equal 1, @profile.traces[:other].children.size
+        assert_equal [], @profile.traces[:request].children.first.children
+        assert_equal [], @profile.traces[:other].children.first.children
       end
 
       def build_well_known_trace
         trace = ["thread_profiler.py:1:in `<module>'"]
-        10.times { @profile.aggregate(trace, @profile.traces[:other]) }
+        10.times { @profile.aggregate(trace, :other) }
 
         trace = [
           "/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/threading.py:489:in `__bootstrap'",
@@ -252,7 +264,7 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
           "thread_profiler.py:76:in `_profiler_loop'",
           "thread_profiler.py:103:in `_run_profiler'",
           "thread_profiler.py:165:in `collect_thread_stacks'"]
-          10.times { @profile.aggregate(trace, @profile.traces[:agent]) }
+          10.times { @profile.aggregate(trace, :agent) }
       end
 
       WELL_KNOWN_TRACE_ENCODED = "eJy9klFPwjAUhf/LfW7WDQTUGBPUiYkGdAxelqXZRpGGrm1uS8xi/O924JQX\n9Un7dm77ndN7c19hlt7FCZxnWQZug7xYMYN6LSTHwDRA4KLWq53kl0CinEQh\nCUmW5zmBJH5axPPUk16MJ/E0/cGk0lLyyrGPS+uKamu943DQeX5HMtypz5In\nwv6vRCeZ1NoAGQ2PCDpvrOM1fRAlFtjQWyxq/qJxa+lj4zZaBeuuQpccrdDK\n0l4wolKU1OxftOoQLNTzIdL/EcjJafjnQYyVWjvrsDBMKNVOZBD1/jO27fPs\naBG+DoGr8fX9JJktpjftVry9A9unzGo=\n"

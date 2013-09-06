@@ -8,25 +8,54 @@ module NewRelic
 
       class BacktraceNode
         attr_reader :file, :method, :line_no, :children
-        attr_accessor :runnable_count, :to_prune, :depth
+        attr_accessor :runnable_count, :depth
 
         def initialize(line, parent=nil)
-          line =~ /(.*)\:(\d+)\:in `(.*)'/
-            @file = $1
-          @method = $3
-          @line_no = $2.to_i
+          if line
+            parse_backtrace_frame(line)
+            @root = false
+          else
+            @root = true
+          end
+
           @children = []
           @runnable_count = 0
-          @to_prune = false
           @depth = 0
 
-          parent.add_child(self) if parent
+          parent.add_child_unless_present(self) if parent
+        end
+
+        def root?
+          @root
+        end
+
+        def empty?
+          root? && @children.empty?
+        end
+
+        def find(target)
+          @children.find { |child| child =~ target }
+        end
+
+        def =~(other)
+          (
+            root? && other.root? ||
+            (
+              @file == other.file &&
+              @method == other.method &&
+              @line_no == other.line_no
+            )
+          )
         end
 
         def ==(other)
-          @file == other.file &&
-            @method == other.method &&
-            @line_no == other.line_no
+          (
+            self =~ other &&
+            (
+              @depth == other.depth &&
+              @runnable_count == other.runnable_count
+            )
+          )
         end
 
         def total_count
@@ -34,35 +63,54 @@ module NewRelic
         end
 
         # Descending order on count, ascending on depth of nodes
-        def order_for_pruning(y)
-          [-runnable_count, depth] <=> [-y.runnable_count, y.depth]
+        def <=>(other)
+          [-runnable_count, depth] <=> [-other.runnable_count, other.depth]
+        end
+
+        def flatten
+          initial = root? ? [] : [self]
+          @children.inject(initial) { |all, child| all.concat(child.flatten) }
         end
 
         include NewRelic::Coerce
 
         def to_array
-          [[
-            string(@file),
-            string(@method),
-            int(@line_no)
-          ],
+          child_arrays = @children.map { |c| c.to_array }
+          return child_arrays if root?
+          [
+            [
+              string(@file),
+              string(@method),
+              int(@line_no)
+            ],
             int(@runnable_count),
             0,
-            @children.map {|c| c.to_array}]
+            child_arrays
+          ]
         end
 
-        def add_child(child)
+        def add_child_unless_present(child)
           child.depth = @depth + 1
           @children << child unless @children.include? child
         end
 
-        def prune!
-          BacktraceNode.prune!(@children)
+        def prune!(targets)
+          @children.delete_if { |child| targets.include?(child) }
+          @children.each { |child| child.prune!(targets) }
         end
 
-        def self.prune!(kids)
-          kids.delete_if { |child| child.to_prune }
-          kids.each { |child| child.prune! }
+        def dump_string(indent=0)
+          result = "#{" " * indent}#<BacktraceNode:#{object_id} [#{@runnable_count}] #{@file}:#{@line_no} in #{@method}>"
+          child_results = @children.map { |c| c.dump_string(indent+2) }.join("\n")
+          result << "\n" unless child_results.empty?
+          result << child_results
+        end
+
+        def parse_backtrace_frame(frame)
+          frame =~ /(.*)\:(\d+)\:in `(.*)'/
+          @file = $1
+          @method = $3
+          @line_no = $2.to_i
         end
       end
 

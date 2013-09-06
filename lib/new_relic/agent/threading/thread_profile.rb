@@ -2,6 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'set'
 require 'new_relic/agent/worker_loop'
 require 'new_relic/agent/threading/backtrace_node'
 
@@ -31,12 +32,11 @@ module NewRelic
           @finished = false
 
           @traces = {
-            :agent => [],
-            :background => [],
-            :other => [],
-            :request => []
+            :agent      => BacktraceNode.new(nil),
+            :background => BacktraceNode.new(nil),
+            :other      => BacktraceNode.new(nil),
+            :request    => BacktraceNode.new(nil)
           }
-          @flattened_nodes = []
 
           @poll_count = 0
           @sample_count = 0
@@ -51,7 +51,7 @@ module NewRelic
 
           if backtrace
             @sample_count += 1
-            aggregate(backtrace, @traces[bucket])
+            aggregate(backtrace, bucket)
           else
             @failure_count += 1
           end
@@ -85,37 +85,33 @@ module NewRelic
           NewRelic::Agent.logger.debug("Stopping thread profile.")
         end
 
-        def aggregate(trace, trees=@traces[:request], parent=nil)
-          return nil if trace.nil? || trace.empty?
-          node = Threading::BacktraceNode.new(trace.last)
-          existing = trees.find {|n| n == node}
+        def aggregate(backtrace, bucket=:request)
+          current = @traces[bucket]
 
-          if existing.nil?
-            existing = node
-            @flattened_nodes << node
+          backtrace.reverse_each do |frame|
+            node = Threading::BacktraceNode.new(frame)
+
+            existing_node = current.find(node)
+            if existing_node
+              node = existing_node
+            else
+              current.add_child_unless_present(node)
+            end
+
+            node.runnable_count += 1
+            current = node
           end
-
-          if parent
-            parent.add_child(node)
-          else
-            trees << node unless trees.include? node
-          end
-
-          existing.runnable_count += 1
-          aggregate(trace[0..-2], existing.children, existing)
-
-          existing
         end
 
         def prune!(count_to_keep)
-          @flattened_nodes.sort!(&:order_for_pruning)
+          all_nodes = @traces.values.map(&:flatten).flatten
 
           NewRelic::Agent.instance.stats_engine.
-            record_supportability_metric_count("ThreadProfiler/NodeCount", @flattened_nodes.size)
+            record_supportability_metric_count("ThreadProfiler/NodeCount", all_nodes.size)
 
-          mark_for_pruning(@flattened_nodes, count_to_keep)
-
-          traces.each { |_, nodes| Threading::BacktraceNode.prune!(nodes) }
+          all_nodes.sort!
+          nodes_to_prune = Set.new(all_nodes[count_to_keep..-1] || [])
+          traces.values.each { |root| root.prune!(nodes_to_prune) }
         end
 
         THREAD_PROFILER_NODES = 20_000
@@ -134,10 +130,10 @@ module NewRelic
           prune!(THREAD_PROFILER_NODES)
 
           traces = {
-            "OTHER" => @traces[:other].map{|t| t.to_array },
-            "REQUEST" => @traces[:request].map{|t| t.to_array },
-            "AGENT" => @traces[:agent].map{|t| t.to_array },
-            "BACKGROUND" => @traces[:background].map{|t| t.to_array }
+            "OTHER" => @traces[:other].to_array,
+            "REQUEST" => @traces[:request].to_array,
+            "AGENT" => @traces[:agent].to_array,
+            "BACKGROUND" => @traces[:background].to_array
           }
 
           [[
@@ -151,10 +147,6 @@ module NewRelic
           ]]
         end
 
-        def now_in_millis
-          Time.now.to_f * 1_000
-        end
-
         def finished?
           @finished
         end
@@ -162,19 +154,6 @@ module NewRelic
         def mark_done
           @finished = true
         end
-
-        def mark_for_pruning(nodes, count_to_keep)
-          to_prune = nodes[count_to_keep..-1] || []
-          to_prune.each { |n| n.to_prune = true }
-        end
-
-        def self.parse_backtrace(trace)
-          trace.map do |line|
-            line =~ /(.*)\:(\d+)\:in `(.*)'/
-              { :method => $3, :line_no => $2.to_i, :file => $1 }
-          end
-        end
-
       end
     end
   end

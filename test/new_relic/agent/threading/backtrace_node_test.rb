@@ -55,8 +55,8 @@ module NewRelic::Agent::Threading
       parent = BacktraceNode.new(SINGLE_LINE)
       child = BacktraceNode.new(SINGLE_LINE)
 
-      parent.add_child(child)
-      parent.add_child(child)
+      parent.add_child_unless_present(child)
+      parent.add_child_unless_present(child)
 
       assert_equal 1, parent.children.size
     end
