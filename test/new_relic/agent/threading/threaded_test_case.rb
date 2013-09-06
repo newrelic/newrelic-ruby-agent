@@ -17,10 +17,6 @@ class ThreadedTestCase < Test::Unit::TestCase
     FakeThread.list.clear
   end
 
-  def default_test
-    # no-op to keep quiet....
-  end
-
   private
 
   def swap_thread_class(klass)
@@ -30,4 +26,3 @@ class ThreadedTestCase < Test::Unit::TestCase
     NewRelic::Agent::Threading.const_set("AgentThread", klass)
   end
 end
-
