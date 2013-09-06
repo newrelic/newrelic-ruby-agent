@@ -51,7 +51,7 @@ module NewRelic
 
           if backtrace
             @sample_count += 1
-            aggregate(backtrace, bucket)
+            aggregate(backtrace, bucket || :request)
           else
             @failure_count += 1
           end
@@ -66,6 +66,7 @@ module NewRelic
                 record_supportability_metric_timed("ThreadProfiler/PollingTime") do
 
                 @poll_count += 1
+
                 Threading::AgentThread.list.each do |t|
                   collect_thread_backtrace(t)
                 end
@@ -85,25 +86,11 @@ module NewRelic
           NewRelic::Agent.logger.debug("Stopping thread profile.")
         end
 
-        def aggregate(backtrace, bucket=:request)
-          current = @traces[bucket]
-
-          backtrace.reverse_each do |frame|
-            node = Threading::BacktraceNode.new(frame)
-
-            existing_node = current.find(node)
-            if existing_node
-              node = existing_node
-            else
-              current.add_child_unless_present(node)
-            end
-
-            node.runnable_count += 1
-            current = node
-          end
+        def aggregate(backtrace, bucket)
+          @traces[bucket].aggregate(backtrace)
         end
 
-        def prune!(count_to_keep)
+        def truncate_to_node_count!(count_to_keep)
           all_nodes = @traces.values.map(&:flatten).flatten
 
           NewRelic::Agent.instance.stats_engine.
@@ -127,7 +114,7 @@ module NewRelic
         end
 
         def to_collector_array(encoder)
-          prune!(THREAD_PROFILER_NODES)
+          truncate_to_node_count!(THREAD_PROFILER_NODES)
 
           traces = {
             "OTHER" => @traces[:other].to_array,

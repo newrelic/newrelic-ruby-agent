@@ -28,23 +28,6 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
         @profile.instance_variable_set(:@worker_loop, NewRelic::Agent::WorkerLoop.new(:limit => 2))
       end
 
-      def assert_thread_profiles_equal(a, b, original_a=a, original_b=b)
-        message = "Thread profiles did not match.\n\n"
-        message << "Expected tree:\n#{original_a.dump_string}\n\n"
-        message << "Actual tree:\n#{original_b.dump_string}\n"
-        assert_equal(a, b, message)
-        assert_equal(a.children, b.children, message)
-        a.children.zip(b.children) do |a_child, b_child|
-          assert_thread_profiles_equal(a_child, b_child, a, b)
-        end
-      end
-
-      def create_node(frame, parent=nil, runnable_count=0)
-        node = BacktraceNode.new(frame, parent)
-        node.runnable_count = runnable_count
-        node
-      end
-
       # Running Tests
       def test_profiler_collects_backtrace_from_every_thread
         FakeThread.list << FakeThread.new
@@ -150,81 +133,10 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
         assert @profile.finished?
       end
 
-      def test_aggregate_empty_trace
-        @profile.aggregate([], :request)
-        assert_empty @profile.traces[:request].children
-      end
-
-      def test_aggregate_builds_tree_from_first_trace
-        @profile.aggregate(@single_trace, :request)
-
-        root = BacktraceNode.new(nil)
-        tree = create_node(@single_trace[-1], root, 1)
-        child = create_node(@single_trace[-2], tree, 1)
-        create_node(@single_trace[-3], child, 1)
-
-        assert_thread_profiles_equal root, @profile.traces[:request]
-      end
-
-      def test_aggregate_builds_tree_from_overlapping_traces
-        @profile.aggregate(@single_trace, :request)
-        @profile.aggregate(@single_trace, :request)
-
-        root = BacktraceNode.new(nil)
-        tree = create_node(@single_trace[-1], root, 2)
-        child = create_node(@single_trace[-2], tree, 2)
-        create_node(@single_trace[-3], child, 2)
-
-        assert_thread_profiles_equal root, @profile.traces[:request]
-      end
-
-      def test_aggregate_builds_tree_from_diverging_traces
-        backtrace1 = [
-          "baz.rb:3:in `baz'",
-          "bar.rb:2:in `bar'",
-          "foo.rb:1:in `foo'"
-        ]
-
-        backtrace2 = [
-          "wiggle.rb:3:in `wiggle'",
-          "qux.rb:2:in `qux'",
-          "foo.rb:1:in `foo'"
-        ]
-
-        @profile.aggregate(backtrace1, :request)
-        @profile.aggregate(backtrace2, :request)
-
-        root = BacktraceNode.new(nil)
-
-        tree = create_node(backtrace1.last, root, 2)
-
-        bar_node = create_node(backtrace1[1], tree, 1)
-        create_node(backtrace1[0], bar_node, 1)
-
-        qux_node = create_node(backtrace2[1], tree, 1)
-        create_node(backtrace2[0], qux_node, 1)
-
-        result = @profile.traces[:request]
-        assert_thread_profiles_equal(root, result)
-      end
-
-      def test_aggregate_doesnt_create_duplicate_children
-        @profile.aggregate(@single_trace, :request)
-        @profile.aggregate(@single_trace, :request)
-
-        root = BacktraceNode.new(nil)
-        tree = create_node(@single_trace[-1], root, 2)
-        child = create_node(@single_trace[-2], tree, 2)
-        grand = create_node(@single_trace[-3], child, 2)
-
-        result = @profile.traces[:request]
-        assert_thread_profiles_equal(root, result)
-      end
-
       def test_prune_tree
-        @profile.aggregate(@single_trace)
+        @profile.aggregate(@single_trace, :request)
 
-        t = @profile.prune!(1)
+        @profile.truncate_to_node_count!(1)
 
         assert_equal 0, @profile.traces[:request].children.first.children.size
       end
@@ -234,7 +146,7 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
         @profile.aggregate(@single_trace, :other)
         @profile.aggregate(@single_trace, :other)
 
-        @profile.prune!(1)
+        @profile.truncate_to_node_count!(1)
 
         assert_empty @profile.traces[:request]
         assert_equal 1, @profile.traces[:other].children.size
@@ -245,7 +157,7 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
         @profile.aggregate(@single_trace, :request)
         @profile.aggregate(@single_trace, :other)
 
-        @profile.prune!(2)
+        @profile.truncate_to_node_count!(2)
 
         assert_equal 1, @profile.traces[:request].children.size
         assert_equal 1, @profile.traces[:other].children.size

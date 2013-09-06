@@ -62,13 +62,31 @@ module NewRelic
           @runnable_count
         end
 
+        def aggregate(backtrace)
+          current = self
+
+          backtrace.reverse_each do |frame|
+            node = Threading::BacktraceNode.new(frame)
+
+            existing_node = current.find(node)
+            if existing_node
+              node = existing_node
+            else
+              current.add_child_unless_present(node)
+            end
+
+            node.runnable_count += 1
+            current = node
+          end
+        end
+
         # Descending order on count, ascending on depth of nodes
         def <=>(other)
           [-runnable_count, depth] <=> [-other.runnable_count, other.depth]
         end
 
         def flatten
-          initial = root? ? [] : [self]
+          initial = self.root? ? [] : [self]
           @children.inject(initial) { |all, child| all.concat(child.flatten) }
         end
 

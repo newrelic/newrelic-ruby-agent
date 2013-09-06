@@ -9,6 +9,32 @@ module NewRelic::Agent::Threading
   class BacktraceNodeTest < Test::Unit::TestCase
     SINGLE_LINE = "irb.rb:69:in `catch'"
 
+    def setup
+      @node = BacktraceNode.new(nil)
+      @single_trace = [
+        "irb.rb:69:in `catch'",
+        "irb.rb:69:in `start'",
+        "irb:12:in `<main>'"
+      ]
+    end
+
+    def assert_backtrace_trees_equal(a, b, original_a=a, original_b=b)
+      message = "Thread profiles did not match.\n\n"
+      message << "Expected tree:\n#{original_a.dump_string}\n\n"
+      message << "Actual tree:\n#{original_b.dump_string}\n"
+      assert_equal(a, b, message)
+      assert_equal(a.children, b.children, message)
+      a.children.zip(b.children) do |a_child, b_child|
+        assert_backtrace_trees_equal(a_child, b_child, a, b)
+      end
+    end
+
+    def create_node(frame, parent=nil, runnable_count=0)
+      node = BacktraceNode.new(frame, parent)
+      node.runnable_count = runnable_count
+      node
+    end
+
     def test_single_node_converts_to_array
       line = "irb.rb:69:in `catch'"
       node = BacktraceNode.new(line)
@@ -24,7 +50,7 @@ module NewRelic::Agent::Threading
       line = "irb.rb:69:in `catch'"
       child_line = "bacon.rb:42:in `yum'"
       node = BacktraceNode.new(line)
-      child = BacktraceNode.new(child_line, node)
+      BacktraceNode.new(child_line, node)
 
       assert_equal([
                    ["irb.rb", "catch", 69],
@@ -65,7 +91,7 @@ module NewRelic::Agent::Threading
       parent = BacktraceNode.new(SINGLE_LINE)
       child = BacktraceNode.new(SINGLE_LINE, parent)
 
-      parent.prune!
+      parent.prune!([])
 
       assert_equal [child], parent.children
     end
@@ -74,8 +100,7 @@ module NewRelic::Agent::Threading
       parent = BacktraceNode.new(SINGLE_LINE)
       child = BacktraceNode.new(SINGLE_LINE, parent)
 
-      child.to_prune = true
-      parent.prune!
+      parent.prune!([child])
 
       assert_equal [], parent.children
     end
@@ -85,12 +110,79 @@ module NewRelic::Agent::Threading
       child = BacktraceNode.new(SINGLE_LINE, parent)
       grandchild = BacktraceNode.new(SINGLE_LINE, child)
 
-      grandchild.to_prune = true
-      parent.prune!
+      parent.prune!([grandchild])
 
       assert_equal [child], parent.children
       assert_equal [], child.children
     end
 
+    def test_aggregate_empty_trace
+      @node.aggregate([])
+      assert_empty @node
+    end
+
+    def test_aggregate_builds_tree_from_first_trace
+      @node.aggregate(@single_trace)
+
+      root = BacktraceNode.new(nil)
+      tree = create_node(@single_trace[-1], root, 1)
+      child = create_node(@single_trace[-2], tree, 1)
+      create_node(@single_trace[-3], child, 1)
+
+      assert_backtrace_trees_equal root, @node
+    end
+
+    def test_aggregate_builds_tree_from_overlapping_traces
+      @node.aggregate(@single_trace)
+      @node.aggregate(@single_trace)
+
+      root = BacktraceNode.new(nil)
+      tree = create_node(@single_trace[-1], root, 2)
+      child = create_node(@single_trace[-2], tree, 2)
+      create_node(@single_trace[-3], child, 2)
+
+      assert_backtrace_trees_equal root, @node
+    end
+
+    def test_aggregate_builds_tree_from_diverging_traces
+      backtrace1 = [
+        "baz.rb:3:in `baz'",
+        "bar.rb:2:in `bar'",
+        "foo.rb:1:in `foo'"
+      ]
+
+      backtrace2 = [
+        "wiggle.rb:3:in `wiggle'",
+        "qux.rb:2:in `qux'",
+        "foo.rb:1:in `foo'"
+      ]
+
+      @node.aggregate(backtrace1)
+      @node.aggregate(backtrace2)
+
+      root = BacktraceNode.new(nil)
+
+      tree = create_node(backtrace1.last, root, 2)
+
+      bar_node = create_node(backtrace1[1], tree, 1)
+      create_node(backtrace1[0], bar_node, 1)
+
+      qux_node = create_node(backtrace2[1], tree, 1)
+      create_node(backtrace2[0], qux_node, 1)
+
+      assert_backtrace_trees_equal(root, @node)
+    end
+
+    def test_aggregate_doesnt_create_duplicate_children
+      @node.aggregate(@single_trace)
+      @node.aggregate(@single_trace)
+
+      root = BacktraceNode.new(nil)
+      tree = create_node(@single_trace[-1], root, 2)
+      child = create_node(@single_trace[-2], tree, 2)
+      create_node(@single_trace[-3], child, 2)
+
+      assert_backtrace_trees_equal(root, @node)
+    end 
   end
 end
