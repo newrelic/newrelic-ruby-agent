@@ -153,6 +153,7 @@ module NewRelic
         'assets:clobber',
         'assets:environment',
         'assets:precompile',
+        'assets:precompile:all',
         'db:create',
         'db:drop',
         'db:fixtures:load',
