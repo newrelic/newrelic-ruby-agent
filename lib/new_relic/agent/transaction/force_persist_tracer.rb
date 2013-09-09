@@ -10,6 +10,8 @@ module NewRelic
       class ForcePersistTracer < TransactionTracer
         attr_accessor :samples
 
+        MAX_SAMPLES = 15
+
         def initialize
           @samples = []
         end
@@ -30,9 +32,8 @@ module NewRelic
         end
 
         def truncate_samples
-          if @samples.length > 15
-            @samples.sort! {|a,b| b.duration <=> a.duration}
-            @samples = @samples.last(15)
+          if @samples.length > MAX_SAMPLES
+            @samples = @samples.sort_by{ |s| s.duration }.last(MAX_SAMPLES)
           end
         end
       end

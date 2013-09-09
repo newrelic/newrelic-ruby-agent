@@ -4,63 +4,61 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 
-class DeveloperModeTracerTest < Test::Unit::TestCase
-  def setup
-    @tracer = NewRelic::Agent::Transaction::DeveloperModeTracer.new
-  end
+class NewRelic::Agent::Transaction
+  class DeveloperModeTracerTest < Test::Unit::TestCase
+    def setup
+      @tracer = DeveloperModeTracer.new
+    end
 
-  def test_store_sample_for_developer_mode_in_dev_mode
-    with_config(:developer_mode => true) do
+    def test_store_sample_for_developer_mode_in_dev_mode
+      with_config(:developer_mode => true) do
+        sample = stub
+        @tracer.store(sample)
+        assert_equal([sample], @tracer.samples)
+      end
+    end
+
+    def test_store_sample_for_developer_mode_not_in_dev_mode
+      with_config(:developer_mode => false) do
+        @tracer.store(stub)
+        assert(@tracer.samples.empty?)
+      end
+    end
+
+    def test_stores_up_to_truncate_max
       sample = stub
-      @tracer.store(sample)
-      assert_equal([sample], @tracer.samples)
+      DeveloperModeTracer::MAX_SAMPLES.times { @tracer.store(sample) }
+
+      assert_equal(Array.new(DeveloperModeTracer::MAX_SAMPLES, sample), @tracer.samples)
     end
-  end
 
-  def test_store_sample_for_developer_mode_not_in_dev_mode
-    with_config(:developer_mode => false) do
-      @tracer.store(stub)
-      assert(@tracer.samples.empty?)
+    def test_stores_and_truncates
+      sample = stub
+      (DeveloperModeTracer::MAX_SAMPLES * 2).times { @tracer.store(sample) }
+
+      assert_equal(Array.new(DeveloperModeTracer::MAX_SAMPLES, sample), @tracer.samples)
     end
-  end
 
-  def test_stores_up_to_truncate_max
-    @tracer.max_samples = 10
-
-    sample = stub
-    10.times { @tracer.store(sample) }
-
-    assert_equal(Array.new(10, sample), @tracer.samples)
-  end
-
-  def test_stores_and_truncates
-    @tracer.max_samples = 10
-
-    sample = stub
-    100.times { @tracer.store(sample) }
-
-    assert_equal(Array.new(10, sample), @tracer.samples)
-  end
-
-  def test_visit_segment_takes_backtraces_in_dev_mode
-    with_config(:developer_mode => true) do
-      segment = {}
-      @tracer.visit_segment(segment)
-      assert segment[:backtrace].any? {|trace_line| trace_line.include?(__FILE__)}
+    def test_visit_segment_takes_backtraces_in_dev_mode
+      with_config(:developer_mode => true) do
+        segment = {}
+        @tracer.visit_segment(segment)
+        assert segment[:backtrace].any? {|trace_line| trace_line.include?(__FILE__)}
+      end
     end
-  end
 
-  def test_visit_segment_takes_backtraces_not_in_dev_mode
-    with_config(:developer_mode => false) do
-      segment = {}
-      @tracer.visit_segment(segment)
-      assert_nil segment[:backtrace]
+    def test_visit_segment_takes_backtraces_not_in_dev_mode
+      with_config(:developer_mode => false) do
+        segment = {}
+        @tracer.visit_segment(segment)
+        assert_nil segment[:backtrace]
+      end
     end
-  end
 
-  def test_visit_segment_safe_against_nils
-    with_config(:developer_mode => true) do
-      @tracer.visit_segment(nil)
+    def test_visit_segment_safe_against_nils
+      with_config(:developer_mode => true) do
+        @tracer.visit_segment(nil)
+      end
     end
   end
 end

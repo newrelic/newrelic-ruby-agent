@@ -297,10 +297,12 @@ module NewRelic
         tts[0..(limit-1)]
       end
 
-      # reset samples without rebooting the web server
+      # reset samples without rebooting the web server (used by dev mode)
       def reset!
-        @tracers.each { |tracer| tracer.reset! }
-        @last_sample = nil
+        @samples_lock.synchronize do
+          @tracers.each { |tracer| tracer.reset! }
+          @last_sample = nil
+        end
       end
 
       # Checks to see if the transaction sampler is disabled, if

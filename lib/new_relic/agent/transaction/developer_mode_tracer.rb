@@ -8,12 +8,12 @@ module NewRelic
   module Agent
     class Transaction
       class DeveloperModeTracer < TransactionTracer
-        attr_accessor :max_samples
         attr_reader   :samples
+
+        MAX_SAMPLES = 100
 
         def initialize
           @samples = []
-          @max_samples = 100
         end
 
         def reset!
@@ -31,14 +31,13 @@ module NewRelic
         def store(sample)
           return unless enabled?
 
-          @samples ||= []
           @samples << sample
           truncate_samples
         end
 
         def truncate_samples
-          if @samples.length > @max_samples
-            @samples = @samples.last(@max_samples)
+          if @samples.length > MAX_SAMPLES
+            @samples = @samples.last(MAX_SAMPLES)
           end
         end
 
