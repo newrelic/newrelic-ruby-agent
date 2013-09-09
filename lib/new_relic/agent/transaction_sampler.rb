@@ -5,9 +5,9 @@
 require 'new_relic/agent'
 require 'new_relic/control'
 require 'new_relic/agent/transaction_sample_builder'
-require 'new_relic/agent/transaction/developer_mode_tracer'
-require 'new_relic/agent/transaction/force_persist_tracer'
-require 'new_relic/agent/transaction/slowest_sample_tracer'
+require 'new_relic/agent/transaction/developer_mode_sample_buffer'
+require 'new_relic/agent/transaction/force_persist_sample_buffer'
+require 'new_relic/agent/transaction/slowest_sample_buffer'
 
 module NewRelic
   module Agent
@@ -25,15 +25,15 @@ module NewRelic
         def notice_scope_empty(*args); end
       end
 
-      attr_reader :last_sample, :dev_mode_tracer, :tracers
+      attr_reader :last_sample, :dev_mode_sample_buffer, :sample_buffers
 
       def initialize
-        @dev_mode_tracer = NewRelic::Agent::Transaction::DeveloperModeTracer.new
+        @dev_mode_sample_buffer = NewRelic::Agent::Transaction::DeveloperModeSampleBuffer.new
 
-        @tracers = []
-        @tracers << @dev_mode_tracer
-        @tracers << NewRelic::Agent::Transaction::SlowestSampleTracer.new
-        @tracers << NewRelic::Agent::Transaction::ForcePersistTracer.new
+        @sample_buffers = []
+        @sample_buffers << @dev_mode_sample_buffer
+        @sample_buffers << NewRelic::Agent::Transaction::SlowestSampleBuffer.new
+        @sample_buffers << NewRelic::Agent::Transaction::ForcePersistSampleBuffer.new
 
         # This lock is used to synchronize access to the @last_sample
         # and related variables. It can become necessary on JRuby or
@@ -77,7 +77,7 @@ module NewRelic
         return unless builder
 
         segment = builder.trace_entry(time.to_f)
-        @tracers.each { |tracer| tracer.visit_segment(segment) }
+        @sample_buffers.each { |sample_buffer| sample_buffer.visit_segment(segment) }
         return segment
       end
 
@@ -114,8 +114,8 @@ module NewRelic
       end
 
       def store_sample(sample)
-        @tracers.each do |tracer|
-          tracer.store(sample)
+        @sample_buffers.each do |sample_buffer|
+          sample_buffer.store(sample)
         end
       end
 
@@ -233,7 +233,7 @@ module NewRelic
 
       # Returns an array of the slowest sample + force persisted samples
       def add_samples_to(result)
-        result.concat(harvest_from_tracers)
+        result.concat(harvest_from_sample_buffers)
         result.compact!
         choose_slowest_and_forced_samples(result)
       end
@@ -246,8 +246,8 @@ module NewRelic
         result.uniq
       end
 
-      def harvest_from_tracers
-        @tracers.map {|tracer| tracer.harvest_samples}.flatten
+      def harvest_from_sample_buffers
+        @sample_buffers.map {|sample_buffer| sample_buffer.harvest_samples}.flatten
       end
 
       def select_unforced(samples)
@@ -300,7 +300,7 @@ module NewRelic
       # reset samples without rebooting the web server (used by dev mode)
       def reset!
         @samples_lock.synchronize do
-          @tracers.each { |tracer| tracer.reset! }
+          @sample_buffers.each { |sample_buffer| sample_buffer.reset! }
           @last_sample = nil
         end
       end

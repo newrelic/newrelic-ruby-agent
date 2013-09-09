@@ -2,22 +2,14 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/transaction/transaction_tracer'
+require 'new_relic/agent/transaction/transaction_sample_buffer'
 
 module NewRelic
   module Agent
     class Transaction
-      class DeveloperModeTracer < TransactionTracer
-        attr_reader   :samples
-
-        MAX_SAMPLES = 100
-
-        def initialize
-          @samples = []
-        end
-
-        def reset!
-          @samples = []
+      class DeveloperModeSampleBuffer < TransactionSampleBuffer
+        def max_samples
+          100
         end
 
         def harvest_samples
@@ -28,17 +20,9 @@ module NewRelic
           Agent.config[:developer_mode]
         end
 
-        def store(sample)
-          return unless enabled?
-
-          @samples << sample
-          truncate_samples
-        end
-
-        def truncate_samples
-          if @samples.length > MAX_SAMPLES
-            @samples = @samples.last(MAX_SAMPLES)
-          end
+        # Leave samples in their arrival order
+        def sort_for_truncation
+          nil
         end
 
         # Captures the stack trace for a segment

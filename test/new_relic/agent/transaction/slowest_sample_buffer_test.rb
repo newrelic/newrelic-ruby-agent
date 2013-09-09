@@ -5,63 +5,63 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 
 class NewRelic::Agent::Transaction
-  class SlowestSampleTracerTest < Test::Unit::TestCase
+  class SlowestSampleBufferTest < Test::Unit::TestCase
     def setup
-      @tracer = SlowestSampleTracer.new
+      @buffer = SlowestSampleBuffer.new
     end
 
     def test_store_sample
       sample = stub(:duration => 2.0, :threshold => 1.0)
-      @tracer.store(sample)
-      assert_equal(sample, @tracer.slowest_sample)
+      @buffer.store(sample)
+      assert_equal([sample], @buffer.samples)
     end
 
     def test_store_new_is_slowest
       old_sample = stub(:duration => 3.0, :threshold => 1.0)
       new_sample = stub(:duration => 4.0, :threshold => 1.0)
 
-      @tracer.store(old_sample)
-      @tracer.store(new_sample)
+      @buffer.store(old_sample)
+      @buffer.store(new_sample)
 
-      assert_equal(new_sample, @tracer.slowest_sample)
+      assert_equal([new_sample], @buffer.samples)
     end
 
     def test_store_new_is_faster
       old_sample = stub(:duration => 4.0, :threshold => 1.0)
       new_sample = stub(:duration => 3.0, :threshold => 1.0)
 
-      @tracer.store(old_sample)
-      @tracer.store(new_sample)
+      @buffer.store(old_sample)
+      @buffer.store(new_sample)
 
-      assert_equal(old_sample, @tracer.slowest_sample)
+      assert_equal([old_sample], @buffer.samples)
     end
 
     def test_store_does_not_store_if_faster_than_threshold
-      old_sample = stub(:duration => 1.0, :threshold => 0.5)
-      new_sample = stub(:duration => 2.0, :threshold => 4.0)
+      old_sample = stub('old', :duration => 1.0, :threshold => 0.5)
+      new_sample = stub('new', :duration => 2.0, :threshold => 4.0)
 
-      @tracer.store(old_sample)
-      @tracer.store(new_sample)
+      @buffer.store(old_sample)
+      @buffer.store(new_sample)
 
-      assert_equal(old_sample, @tracer.slowest_sample)
+      assert_equal([old_sample], @buffer.samples)
     end
 
     def test_harvest_samples
       sample = stub(:duration => 1.0, :threshold => 1.0)
-      @tracer.store(sample)
+      @buffer.store(sample)
 
-      harvested = @tracer.harvest_samples
+      harvested = @buffer.harvest_samples
 
       assert_equal([sample], harvested)
     end
 
     def test_harvest_samples_resets
       sample = stub(:duration => 1.0, :threshold => 1.0)
-      @tracer.store(sample)
+      @buffer.store(sample)
 
-      @tracer.harvest_samples
+      @buffer.harvest_samples
 
-      assert_nil(@tracer.slowest_sample)
+      assert(@buffer.samples.empty?)
     end
   end
 end

@@ -316,8 +316,8 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
   def test_add_samples_to_avoids_dups_from_harvested_samples
     sample = stub(:duration => 2.5, :force_persist => false)
-    @sampler.tracers << stub(:harvest_samples => [sample])
-    @sampler.tracers << stub(:harvest_samples => [sample])
+    @sampler.sample_buffers << stub(:harvest_samples => [sample])
+    @sampler.sample_buffers << stub(:harvest_samples => [sample])
 
     assert_equal([sample], @sampler.add_samples_to([]))
   end
@@ -330,14 +330,14 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
   def test_add_samples_to_adding_slowest
     sample = stub(:duration => 2.5, :force_persist => false)
-    @sampler.tracers << stub(:harvest_samples => [sample])
+    @sampler.sample_buffers << stub(:harvest_samples => [sample])
 
     assert_equal([sample], @sampler.add_samples_to([]))
   end
 
   def test_add_samples_to_new_slower_sample_replaces_older
     slower_sample = stub(:duration => 10.0, :force_persist => false)
-    @sampler.tracers << stub(:harvest_samples => [slower_sample])
+    @sampler.sample_buffers << stub(:harvest_samples => [slower_sample])
 
     faster_sample = stub(:duration => 5.0, :force_persist => false)
     previous = [faster_sample]
@@ -347,7 +347,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
   def test_add_samples_to_keep_older_slower_sample
     faster_sample = stub('faster', :duration => 5.0, :force_persist => false)
-    @sampler.tracers << stub(:harvest_samples => [faster_sample])
+    @sampler.sample_buffers << stub(:harvest_samples => [faster_sample])
 
     slower_sample = stub('slower', :duration => 10.0, :force_persist => false)
     previous = [slower_sample]
@@ -367,10 +367,10 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
   def test_add_samples_to_keeps_force_persist_in_new_results
     forced_sample = stub(:duration => 1, :force_persist => true)
-    @sampler.tracers << stub(:harvest_samples => [forced_sample])
+    @sampler.sample_buffers << stub(:harvest_samples => [forced_sample])
 
     unforced_sample = stub(:duration => 10, :force_persist => false)
-    @sampler.tracers << stub(:harvest_samples => [unforced_sample])
+    @sampler.sample_buffers << stub(:harvest_samples => [unforced_sample])
 
     result = @sampler.add_samples_to([])
 
@@ -380,7 +380,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
   def test_add_samples_to_keeps_forced_from_new_and_previous_results
     new_forced = stub(:duration => 1, :force_persist => true)
-    @sampler.tracers << stub(:harvest_samples => [new_forced])
+    @sampler.sample_buffers << stub(:harvest_samples => [new_forced])
 
     old_forced = stub(:duration => 1, :force_persist => true)
 
