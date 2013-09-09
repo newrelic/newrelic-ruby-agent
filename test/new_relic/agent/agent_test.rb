@@ -3,7 +3,6 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
-require 'new_relic/agent/commands/thread_profiler'
 
 module NewRelic
   module Agent
@@ -16,23 +15,6 @@ module NewRelic
         @agent.agent_command_router.stubs(:service).returns(@agent.service)
         @agent.stubs(:start_worker_thread)
       end
-
-      #
-      # Helpers
-      #
-
-      def with_profile(opts)
-        profile = NewRelic::Agent::Threading::ThreadProfile.new(create_agent_command)
-        profile.aggregate(["chunky.rb:42:in `bacon'"], profile.traces[:other])
-        profile.instance_variable_set(:@finished, opts[:finished])
-
-        @agent.thread_profiler.instance_variable_set(:@profile, profile)
-        profile
-      end
-
-      #
-      # Tests
-      #
 
       def test_after_fork_reporting_to_channel
         @agent.stubs(:connected?).returns(true)
@@ -115,30 +97,6 @@ module NewRelic
         end
       end
 
-      def test_graceful_shutdown_ends_thread_profiling
-        @agent.thread_profiler.expects(:stop).once
-        @agent.stubs(:connected?).returns(true)
-        @agent.send(:graceful_disconnect)
-      end
-
-      def test_harvest_and_send_thread_profile
-        profile = with_profile(:finished => true)
-        @agent.service.expects(:profile_data).with(any_parameters)
-        @agent.send(:harvest_and_send_thread_profile, false)
-      end
-
-      def test_harvest_and_send_thread_profile_when_not_finished
-        with_profile(:finished => false)
-        @agent.service.expects(:profile_data).never
-        @agent.send(:harvest_and_send_thread_profile, false)
-      end
-
-      def test_harvest_and_send_thread_profile_when_not_finished_but_disconnecting
-        profile = with_profile(:finished => false)
-        @agent.service.expects(:profile_data).with(any_parameters)
-        @agent.send(:harvest_and_send_thread_profile, true)
-      end
-
       def test_harvest_timeslice_data
         assert_equal({}, @agent.send(:harvest_timeslice_data),
                      'should return timeslice data')
@@ -176,7 +134,13 @@ module NewRelic
 
       def test_handle_for_agent_commands
         @agent.service.expects(:get_agent_commands).returns([]).once
-        @agent.send :handle_agent_commands
+        @agent.send :check_for_and_handle_agent_commands
+      end
+
+      def test_harvest_and_send_for_agent_commands
+        @agent.service.expects(:profile_data).with(any_parameters)
+        @agent.agent_command_router.stubs(:harvest_data_to_send).returns({:profile_data => Object.new})
+        @agent.send :harvest_and_send_for_agent_commands
       end
 
       def test_merge_data_from_empty

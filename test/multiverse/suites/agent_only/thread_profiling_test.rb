@@ -23,7 +23,7 @@ class ThreadProfilingTest < MiniTest::Unit::TestCase
     agent.service.request_timeout = 0.5
     agent.service.agent_id = 666
 
-    @thread_profiler = agent.thread_profiler
+    @thread_profiler = agent.agent_command_router.thread_profiler
     @threads = []
   end
 
@@ -90,7 +90,7 @@ class ThreadProfilingTest < MiniTest::Unit::TestCase
 
   def issue_command(cmd)
     $collector.stub('get_agent_commands', cmd)
-    agent.send(:handle_agent_commands)
+    agent.send(:check_for_and_handle_agent_commands)
   end
 
   # Runs a thread we expect to span entire test and be killed at the end

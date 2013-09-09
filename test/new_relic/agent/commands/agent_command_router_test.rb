@@ -35,46 +35,48 @@ class AgentCommandRouterTest < Test::Unit::TestCase
     @service = stub
     @calls = []
 
-    @agent_commands = NewRelic::Agent::Commands::AgentCommandRouter.new(@service, nil)
+    @agent_commands = NewRelic::Agent::Commands::AgentCommandRouter.new(@service)
     @agent_commands.handlers["bazzle"] = Proc.new { |args| handle_bazzle_command(args) }
     @agent_commands.handlers["boom"]   = Proc.new { |args| handle_boom_command(args) }
   end
 
-  def test_handle_agent_commands_dispatches_command
+  # General command routing
+
+  def test_check_for_and_handle_agent_commands_dispatches_command
     service.stubs(:get_agent_commands).returns([BAZZLE])
     service.stubs(:agent_command_results)
 
-    agent_commands.handle_agent_commands
+    agent_commands.check_for_and_handle_agent_commands
 
     assert_equal [DEFAULT_ARGS], calls
   end
 
-  def test_handle_agent_commands_generates_results
+  def test_check_for_and_handle_agent_commands_generates_results
     service.stubs(:get_agent_commands).returns([BAZZLE])
     service.expects(:agent_command_results).with({ BAZZLE_ID.to_s => {} })
 
-    agent_commands.handle_agent_commands
+    agent_commands.check_for_and_handle_agent_commands
   end
 
-  def test_handle_agent_commands_dispatches_with_error
+  def test_check_for_and_handle_agent_commands_dispatches_with_error
     service.stubs(:get_agent_commands).returns([BOOM])
     service.expects(:agent_command_results).with({ BOOM_ID.to_s => { "error" => "BOOOOOM" }})
 
-    agent_commands.handle_agent_commands
+    agent_commands.check_for_and_handle_agent_commands
   end
 
-  def test_handle_agent_commands_allows_multiple
+  def test_check_for_and_handle_agent_commands_allows_multiple
     service.stubs(:get_agent_commands).returns([BAZZLE, BOOM])
     service.expects(:agent_command_results).with({ BAZZLE_ID.to_s => {},
                                                    BOOM_ID.to_s => { "error" => "BOOOOOM" }})
-    agent_commands.handle_agent_commands
+    agent_commands.check_for_and_handle_agent_commands
   end
 
-  def test_handle_agent_commands_doesnt_call_results_if_no_commands
+  def test_check_for_and_handle_agent_commands_doesnt_call_results_if_no_commands
     service.stubs(:get_agent_commands).returns([])
     service.expects(:agent_command_results).never
 
-    agent_commands.handle_agent_commands
+    agent_commands.check_for_and_handle_agent_commands
   end
 
   def test_unrecognized_commands
@@ -83,7 +85,35 @@ class AgentCommandRouterTest < Test::Unit::TestCase
 
     expects_logging(:debug, regexp_matches(/unrecognized/i))
 
-    agent_commands.handle_agent_commands
+    agent_commands.check_for_and_handle_agent_commands
+  end
+
+  # Harvesting tests
+
+  DISCONNECTING = true
+  NOT_DISCONNECTING = false
+
+  def test_harvest_data_to_send_not_started
+    result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
+    assert_equal({}, result)
+  end
+
+  def test_harvest_data_to_send_with_profile_in_progress
+    with_profile(:finished => false)
+    result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
+    assert_equal({}, result)
+  end
+
+  def test_harvest_data_to_send_with_profile_completed
+    expected_profile = with_profile(:finished => true)
+    result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
+    assert_equal({:profile_data => expected_profile}, result)
+  end
+
+  def test_harvest_data_to_send_with_profile_in_progress_but_disconnecting
+    expected_profile = with_profile(:finished => false)
+    result = agent_commands.harvest_data_to_send(DISCONNECTING)
+    assert_equal({:profile_data => expected_profile}, result)
   end
 
   # Helpers
@@ -95,4 +125,14 @@ class AgentCommandRouterTest < Test::Unit::TestCase
   def handle_boom_command(command)
     raise NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError.new("BOOOOOM")
   end
+
+  def with_profile(opts)
+    profile = NewRelic::Agent::Threading::ThreadProfile.new(create_agent_command)
+    profile.aggregate(["chunky.rb:42:in `bacon'"], profile.traces[:other])
+    profile.stop if opts[:finished]
+
+    agent_commands.thread_profiler.profile = profile
+    profile
+  end
+
 end
