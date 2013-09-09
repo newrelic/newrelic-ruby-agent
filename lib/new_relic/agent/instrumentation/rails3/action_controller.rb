@@ -170,8 +170,6 @@ DependencyDetection.defer do
 
       def instrument_with_newrelic(name, payload = {}, &block)
         identifier = payload[:identifier]
-        identifier = nil if identifier == "collection"
-
         scope_name = "View/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.template_metric(identifier)}/Partial"
         trace_execution_scoped(scope_name) do
           instrument_without_newrelic(name, payload, &block)
