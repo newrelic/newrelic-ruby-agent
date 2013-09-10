@@ -21,6 +21,11 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
         super
       end
 
+      def create_client(name, overrides={})
+        defaults = { :finished? => false, :requested_period => 0 }
+        stub(name, defaults.merge(overrides))
+      end
+
       def test_starts_when_the_first_client_is_added
         assert_false @service.running?
 
@@ -95,14 +100,35 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
           :bucket => :differenter_request,
           :backtrace => alsofaketrace)
 
-        carebear = mock('carebear')
+        carebear = create_client('carebear')
         carebear.expects(:aggregate).with(faketrace, :request)
         carebear.expects(:aggregate).with(alsofaketrace, :differenter_request)
         carebear.stubs(:finished?).returns(false, true)
 
-        @service.period = 0
         @service.add_client(carebear)
         @service.wait
+      end
+
+      def test_minimum_client_period_determines_the_minimum_period_of_all_clients
+        @service.stubs(:worker_loop).returns(stub(:run => nil, :stop => nil))
+        @service.add_client(create_client(requested_period: 42))
+        @service.add_client(create_client(requested_period: 77))
+        assert_equal 42, @service.minimum_client_period
+      end
+
+      def test_poll_adjusts_worker_loop_period_to_minimum_client_period
+        dummy_loop = stub(:run => nil, :stop => nil)
+        @service.stubs(:worker_loop).returns(dummy_loop)
+
+        first_client = create_client('first_client', :requested_period => 42)
+        @service.add_client(first_client)
+        dummy_loop.expects(:period=).with(42)
+        @service.poll
+
+        second_client = create_client('second_client', :requested_period => 7)
+        @service.add_client(second_client)
+        dummy_loop.expects(:period=).with(7)
+        @service.poll
       end
 
     end

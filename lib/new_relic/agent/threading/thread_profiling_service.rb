@@ -6,31 +6,34 @@ module NewRelic
   module Agent
     module Threading
       class ThreadProfilingService
-        attr_accessor :worker_thread, :period
+        attr_reader :worker_loop
+        attr_accessor :worker_thread
 
         def initialize
           @clients = []
           @finished_clients = []
 
-          @period = 42
           @running = false
-          @worker_loop = nil
+          @worker_loop = NewRelic::Agent::WorkerLoop.new
           @worker_thread = nil
         end
 
         def start
           return if @running
           @running = true
-          @worker_loop = NewRelic::Agent::WorkerLoop.new
           @worker_thread = Thread.new do
-            @worker_loop.run(@period, &method(:poll))
+            worker_loop.run(minimum_client_period, &method(:poll))
           end
         end
 
         def stop
           return unless @running
           @running = false
-          @worker_loop.stop
+          worker_loop.stop
+        end
+
+        def minimum_client_period
+          @clients.map(&:requested_period).min
         end
 
         def running?
@@ -75,6 +78,12 @@ module NewRelic
               client.aggregate(backtrace, bucket)
             end
           end
+
+          adjust_worker_loop_period
+        end
+
+        def adjust_worker_loop_period
+          worker_loop.period = minimum_client_period
         end
 
       end

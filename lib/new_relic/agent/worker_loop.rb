@@ -11,6 +11,7 @@ module NewRelic
     class WorkerLoop
 
       attr_reader :start_time, :stop_time
+      attr_accessor :period
 
       # Optional argument :duration (in seconds) for how long the worker loop runs
       # or :limit (integer) for max number of iterations

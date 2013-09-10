@@ -89,6 +89,16 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
     end
   end
 
+  def test_dynamically_adjusts_the_period_once_the_loop_has_been_started
+    freeze_time
+
+    worker_loop = NewRelic::Agent::WorkerLoop.new(:limit => 2)
+
+    worker_loop.expects(:sleep).with(5.0)
+    worker_loop.expects(:sleep).with(7.0)
+    worker_loop.run(5.0) { advance_time(5.0); worker_loop.period = 7.0 }
+  end
+
   def ticks(start, finish, step)
     (start..finish).step(step).map{|i| Time.at(i)}
   end
