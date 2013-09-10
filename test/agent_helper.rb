@@ -97,6 +97,11 @@ unless defined?( assert_not_includes )
   end
 end
 
+def assert_equal_unordered(left, right)
+  assert_equal(left.length, right.length)
+  left.each { |element| assert_includes(right, element) }
+end
+
 def compare_metrics(expected, actual)
   actual.delete_if {|a| a.include?('GC/cumulative') } # in case we are in REE
   assert_equal(expected.to_a.sort, actual.to_a.sort, "extra: #{(actual - expected).to_a.inspect}; missing: #{(expected - actual).to_a.inspect}")

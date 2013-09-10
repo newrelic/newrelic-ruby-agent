@@ -952,7 +952,6 @@ module NewRelic
         # transaction threshold
         def harvest_transaction_traces
           @traces = @transaction_sampler.harvest(@traces)
-          @traces
         end
 
         def harvest_and_send_slowest_sql

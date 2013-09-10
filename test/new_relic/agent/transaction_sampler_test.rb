@@ -281,7 +281,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
       @last_sample = 'a sample'
     end
 
-    @sampler.expects(:add_samples_to).with([]).returns([])
+    @sampler.expects(:choose_samples).with([]).returns([])
 
     assert_equal([], @sampler.harvest)
 
@@ -292,102 +292,133 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   def test_harvest_with_previous_samples
     with_config(:'transaction_tracer.limit_segments' => 2000) do
       sample = mock('sample')
-      @sampler.expects(:add_samples_to).with([sample]).returns([sample])
+      @sampler.expects(:choose_samples).with([sample]).returns([sample])
       assert_equal([sample], @sampler.harvest([sample]))
     end
   end
 
-  def test_add_samples_to_no_data
+  def test_harvest_no_data
     previous = []
-    assert_equal([], @sampler.add_samples_to(previous))
+    assert_equal([], @sampler.harvest(previous))
   end
 
   def test_add_samples_holds_onto_previous_result
-    sample = stub(:duration => 1, :force_persist => false)
+    sample = sample_with(:duration => 1)
     previous = [sample]
-    assert_equal([sample], @sampler.add_samples_to(previous))
+    assert_equal([sample], @sampler.harvest(previous))
   end
 
   def test_add_samples_avoids_dups_from_previous
-    sample = stub(:duration => 1, :force_persist => false)
+    sample = sample_with(:duration => 1)
     previous = [sample, sample]
-    assert_equal([sample], @sampler.add_samples_to(previous))
+    assert_equal([sample], @sampler.harvest(previous))
   end
 
-  def test_add_samples_to_avoids_dups_from_harvested_samples
-    sample = stub(:duration => 2.5, :force_persist => false)
-    @sampler.sample_buffers << stub(:harvest_samples => [sample])
-    @sampler.sample_buffers << stub(:harvest_samples => [sample])
+  def test_harvest_avoids_dups_from_harvested_samples
+    sample = sample_with(:duration => 2.5, :force_persist => false)
+    @sampler.store_sample(sample)
+    @sampler.store_sample(sample)
 
-    assert_equal([sample], @sampler.add_samples_to([]))
+    assert_equal([sample], @sampler.harvest([]))
   end
 
   def test_add_samples_avoids_dups_from_forced
-    sample = stub(:duration => 1, :force_persist => true)
+    sample = sample_with(:duration => 1, :force_persist => true)
     previous = [sample, sample]
-    assert_equal([sample], @sampler.add_samples_to(previous))
+    assert_equal([sample], @sampler.harvest(previous))
   end
 
-  def test_add_samples_to_adding_slowest
-    sample = stub(:duration => 2.5, :force_persist => false)
-    @sampler.sample_buffers << stub(:harvest_samples => [sample])
+  def test_harvest_adding_slowest
+    sample = sample_with(:duration => 2.5, :force_persist => false)
+    @sampler.store_sample(sample)
 
-    assert_equal([sample], @sampler.add_samples_to([]))
+    assert_equal([sample], @sampler.harvest([]))
   end
 
-  def test_add_samples_to_new_slower_sample_replaces_older
-    slower_sample = stub(:duration => 10.0, :force_persist => false)
-    @sampler.sample_buffers << stub(:harvest_samples => [slower_sample])
-
-    faster_sample = stub(:duration => 5.0, :force_persist => false)
+  def test_harvest_new_slower_sample_replaces_older
+    faster_sample = sample_with(:duration => 5.0)
     previous = [faster_sample]
 
-    assert_equal([slower_sample], @sampler.add_samples_to(previous))
+    slower_sample = sample_with(:duration => 10.0)
+    @sampler.store_sample(slower_sample)
+
+    assert_equal([slower_sample], @sampler.harvest(previous))
   end
 
-  def test_add_samples_to_keep_older_slower_sample
-    faster_sample = stub('faster', :duration => 5.0, :force_persist => false)
-    @sampler.sample_buffers << stub(:harvest_samples => [faster_sample])
+  def test_harvest_keep_older_slower_sample
+    faster_sample = sample_with(:duration => 5.0)
+    @sampler.store_sample(faster_sample)
 
-    slower_sample = stub('slower', :duration => 10.0, :force_persist => false)
+    slower_sample = sample_with(:duration => 10.0)
     previous = [slower_sample]
 
-    assert_equal([slower_sample], @sampler.add_samples_to(previous))
+    assert_equal([slower_sample], @sampler.harvest(previous))
   end
 
-  def test_add_samples_to_keep_force_persist_in_previous_results
-    unforced_sample = stub(:duration => 10, :force_persist => false)
-    forced_sample = stub(:duration => 1, :force_persist => true)
+  def test_harvest_keep_force_persist_in_previous_results
+    unforced_sample = sample_with(:duration => 10, :force_persist => false)
+    forced_sample = sample_with(:duration => 1, :force_persist => true)
 
-    result = @sampler.add_samples_to([unforced_sample, forced_sample])
+    result = @sampler.harvest([unforced_sample, forced_sample])
 
     assert_includes(result, unforced_sample)
     assert_includes(result, forced_sample)
   end
 
-  def test_add_samples_to_keeps_force_persist_in_new_results
-    forced_sample = stub(:duration => 1, :force_persist => true)
-    @sampler.sample_buffers << stub(:harvest_samples => [forced_sample])
+  def test_harvest_keeps_force_persist_in_new_results
+    forced_sample = sample_with(:duration => 1, :force_persist => true)
+    @sampler.store_sample(forced_sample)
 
-    unforced_sample = stub(:duration => 10, :force_persist => false)
-    @sampler.sample_buffers << stub(:harvest_samples => [unforced_sample])
+    unforced_sample = sample_with(:duration => 10, :force_persist => false)
+    @sampler.store_sample(unforced_sample)
 
-    result = @sampler.add_samples_to([])
+    result = @sampler.harvest([])
 
     assert_includes(result, unforced_sample)
     assert_includes(result, forced_sample)
   end
 
-  def test_add_samples_to_keeps_forced_from_new_and_previous_results
-    new_forced = stub(:duration => 1, :force_persist => true)
-    @sampler.sample_buffers << stub(:harvest_samples => [new_forced])
+  def test_harvest_keeps_forced_from_new_and_previous_results
+    new_forced = sample_with(:duration => 1, :force_persist => true)
+    @sampler.store_sample(new_forced)
 
-    old_forced = stub(:duration => 1, :force_persist => true)
+    old_forced = sample_with(:duration => 1, :force_persist => true)
 
-    result = @sampler.add_samples_to([old_forced])
+    result = @sampler.harvest([old_forced])
 
     assert_includes(result, new_forced)
     assert_includes(result, old_forced)
+  end
+
+  FORCE_PERSIST_MAX = NewRelic::Agent::Transaction::ForcePersistSampleBuffer::MAX_SAMPLES
+  SLOWEST_SAMPLE_MAX = NewRelic::Agent::Transaction::SlowestSampleBuffer::MAX_SAMPLES
+
+  def test_harvest_respects_limits_from_previous
+    slowest = sample_with(:duration => 10.0)
+    previous = [slowest]
+
+    forced_samples = generate_samples(100, true)
+    previous.concat(forced_samples)
+
+    result = @sampler.harvest(previous)
+
+    expected = [slowest].concat(forced_samples.last(FORCE_PERSIST_MAX))
+    assert_equal_unordered(expected, result)
+  end
+
+  def test_harvest_respects_limits_from_current_traces
+    slowest = sample_with(:duration => 10.0)
+    @sampler.store_sample(slowest)
+
+    forced_samples = generate_samples(100, true)
+    forced_samples.each do |forced|
+      @sampler.store_sample(forced)
+    end
+
+    result = @sampler.harvest([])
+
+    expected = [slowest].concat(forced_samples.last(FORCE_PERSIST_MAX))
+    assert_equal_unordered(expected, result)
   end
 
   def test_start_builder_default
@@ -503,12 +534,12 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
       # 1 second duration
       run_sample_trace(0,1)
-      not_as_slow = @sampler.harvest(slowest)[0]
+      not_as_slow = @sampler.harvest([slowest])[0]
       assert((not_as_slow == slowest), "Should re-harvest the same transaction since it should be slower than the new transaction - expected #{slowest.inspect} but got #{not_as_slow.inspect}")
 
       run_sample_trace(0,10)
 
-      new_slowest = @sampler.harvest(slowest)[0]
+      new_slowest = @sampler.harvest([slowest])[0]
       assert((new_slowest != slowest), "Should not harvest the same trace since the new one should be slower")
       assert_equal(new_slowest.duration.round, 10, "Slowest duration must be = 10, but was: #{new_slowest.duration.inspect}")
     end
@@ -767,6 +798,20 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
   end
 
   private
+
+  SAMPLE_DEFAULTS = {:threshold => 1.0, :force_persist => false}
+
+  def sample_with(incoming_opts = {})
+    opts = SAMPLE_DEFAULTS.dup
+    opts.merge!(incoming_opts)
+    stub(opts.inspect, opts)
+  end
+
+  def generate_samples(count, force_persist = false)
+    (1..count).map do |millis|
+      sample_with(:duration => (millis / 1000.0), :force_persist => force_persist)
+    end
+  end
 
   def run_long_sample_trace(n)
     @sampler.notice_transaction(nil, {})

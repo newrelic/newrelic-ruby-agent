@@ -38,6 +38,14 @@ module NewRelic
           truncate_samples
         end
 
+        def store_previous(previous_samples)
+          return unless enabled?
+          previous_samples.each do |sample|
+            @samples << sample if allow_sample?(sample)
+          end
+          truncate_samples
+        end
+
         def sort_for_truncation
           @default_sort_for_truncation ||= Proc.new { |s| s.duration }
         end

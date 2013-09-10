@@ -60,5 +60,10 @@ class NewRelic::Agent::Transaction
         @buffer.visit_segment(nil)
       end
     end
+
+    def test_doesnt_store_previous
+      @buffer.store_previous([stub])
+      assert @buffer.samples.empty?
+    end
   end
 end

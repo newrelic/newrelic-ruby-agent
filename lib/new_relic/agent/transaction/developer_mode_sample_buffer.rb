@@ -8,8 +8,11 @@ module NewRelic
   module Agent
     class Transaction
       class DeveloperModeSampleBuffer < TransactionSampleBuffer
+
+        MAX_SAMPLES = 100
+
         def max_samples
-          100
+          MAX_SAMPLES
         end
 
         def harvest_samples
@@ -23,6 +26,11 @@ module NewRelic
         # Leave samples in their arrival order
         def sort_for_truncation
           nil
+        end
+
+        # We don't hold onto previously trapped transactions on harvest
+        # We've already got all the traces we want, thank you!
+        def store_previous(*)
         end
 
         # Captures the stack trace for a segment
