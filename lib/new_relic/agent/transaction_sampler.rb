@@ -247,7 +247,10 @@ module NewRelic
       end
 
       def harvest_from_sample_buffers
-        @sample_buffers.map {|sample_buffer| sample_buffer.harvest_samples}.flatten
+        # Was using map + flatten, but ran into mocking issues on 1.9.2 :/
+        result = []
+        @sample_buffers.each {|buffer| result.concat(buffer.harvest_samples)}
+        result
       end
 
       def select_unforced(samples)
