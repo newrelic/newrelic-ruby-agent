@@ -141,6 +141,10 @@ module NewRelic
         invoke_remote(:agent_command_results, @agent_id, results)
       end
 
+      def get_xray_metadata(xray_ids)
+        invoke_remote(:get_xray_metadata, @agent_id, *xray_ids)
+      end
+
       # Send fine-grained analytic data to the collector.
       def analytic_event_data(data)
         data.collect! {|hash| [hash] }

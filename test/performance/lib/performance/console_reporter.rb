@@ -24,7 +24,7 @@ module Performance
         puts "#{result.identifier}: #{result.elapsed} s"
         unless @options[:brief]
           result.measurements.each do |key, value|
-            puts "  #{key}: #{value}"
+            puts "  %s: %g" % [key, value]
           end
         end
         unless result.artifacts.empty?

@@ -8,10 +8,10 @@ module NewRelic
       class AgentCommand
         attr_reader :id, :name, :arguments
 
-        def initialize(collector_command)
-          @id        = collector_command[0]
-          @name      = collector_command[1]["name"]
-          @arguments = collector_command[1]["arguments"]
+        def initialize(raw_collector_command)
+          @id        = raw_collector_command[0]
+          @name      = raw_collector_command[1]["name"]
+          @arguments = raw_collector_command[1]["arguments"]
         end
       end
     end

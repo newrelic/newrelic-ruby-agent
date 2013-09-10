@@ -173,19 +173,18 @@ class HamlRenderTest < ViewControllerTest
 end
 
 class MissingTemplateTest < ViewControllerTest
-  # Rails 3.0 has different behavior for rendering an empty array.  We're okay with this.
-  if Rails::VERSION::MAJOR.to_i == 3 && Rails::VERSION::MINOR.to_i == 0
-    test "should create an proper metric when the template is unknown" do
-      get :no_template
-      sample = NewRelic::Agent.agent.transaction_sampler.last_sample
-      text_segment = sample.root_segment.called_segments.first.called_segments.first
+  test "should create an proper metric when the template is unknown" do
+    get :no_template
+    sample = NewRelic::Agent.agent.transaction_sampler.samples.last
+    text_segment = sample.root_segment.called_segments.first.called_segments.first
+
+    # Different versions have significant difference in handling, but we're
+    # happy enough with what each of them does in the unknown case
+    if Rails::VERSION::MAJOR.to_i == 3 && Rails::VERSION::MINOR.to_i == 0
       assert_nil text_segment
-    end
-  else
-    test "should create an proper metric when the template is unknown" do
-      get :no_template
-      sample = NewRelic::Agent.agent.transaction_sampler.last_sample
-      text_segment = sample.root_segment.called_segments.first.called_segments.first
+    elsif Rails::VERSION::MAJOR.to_i == 3
+      assert_equal 'View/collection/Partial', text_segment.metric_name
+    else
       assert_equal 'View/(unknown)/Partial', text_segment.metric_name
     end
   end
