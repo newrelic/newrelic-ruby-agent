@@ -241,7 +241,7 @@ module NewRelic
       end
 
       def get_samples
-        @samples = NewRelic::Agent.instance.transaction_sampler.samples.select do |sample|
+        @samples = NewRelic::Agent.instance.transaction_sampler.dev_mode_sample_buffer.samples.select do |sample|
           sample.params[:path] != nil
         end
 

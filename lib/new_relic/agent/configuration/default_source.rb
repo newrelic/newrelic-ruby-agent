@@ -574,18 +574,6 @@ module NewRelic
           :type => Fixnum,
           :description => 'Maximum number of transaction trace segments to record in a single transaction trace.'
         },
-        :'transaction_tracer.random_sample' => {
-          :default => false,
-          :public => false,
-          :type => Boolean,
-          :description => 'Enable or disable the collection of a random transaction trace during each harvest cycle in addition to the longest transaction trace.'
-        },
-        :sample_rate => {
-          :default => 10,
-          :public => false,
-          :type => Fixnum,
-          :description => 'Number of harvests between random transaction trace samples in the transaction sampler.'
-        },
         :'slow_sql.enabled' => {
           :default => DefaultSource.slow_sql_enabled,
           :public => true,

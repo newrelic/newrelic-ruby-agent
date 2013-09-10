@@ -70,6 +70,8 @@ module MultiverseHelpers
       Thread.current[key] = nil
     end
 
+    NewRelic::Agent.instance.transaction_sampler.reset!
+
     NewRelic::Agent.shutdown
   end
 

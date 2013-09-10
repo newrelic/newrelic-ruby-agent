@@ -121,13 +121,13 @@ end
 class NormalishRenderTest < ViewControllerTest
   test "should count all the template and partial segments" do
     get :template_render_with_3_partial_renders
-    sample = NewRelic::Agent.agent.transaction_sampler.samples.last
+    sample = NewRelic::Agent.agent.transaction_sampler.last_sample
     assert_equal 5, sample.count_segments, "should be a node for the controller action, the template, and 3 partials (5)"
   end
 
   test "should have 3 segments with the metric name 'View/views/_a_partial.html.erb/Partial'" do
     get :template_render_with_3_partial_renders
-    sample = NewRelic::Agent.agent.transaction_sampler.samples.last
+    sample = NewRelic::Agent.agent.transaction_sampler.last_sample
 
     partial_segments = sample.root_segment.called_segments.first.called_segments.first.called_segments
     assert_equal 3, partial_segments.size, "sanity check"
@@ -141,13 +141,13 @@ class TextRenderTest < ViewControllerTest
   if Rails::VERSION::MAJOR.to_i == 3 && Rails::VERSION::MINOR.to_i == 0
     test "should not instrument rendering of text" do
       get :text_render
-      sample = NewRelic::Agent.agent.transaction_sampler.samples.last
+      sample = NewRelic::Agent.agent.transaction_sampler.last_sample
       assert_equal [], sample.root_segment.called_segments.first.called_segments
     end
   else
     test "should create a metric for the rendered text" do
       get :text_render
-      sample = NewRelic::Agent.agent.transaction_sampler.samples.last
+      sample = NewRelic::Agent.agent.transaction_sampler.last_sample
       text_segment = sample.root_segment.called_segments.first.called_segments.first
       assert_equal 'View/text template/Rendering', text_segment.metric_name
     end
@@ -157,7 +157,7 @@ end
 class InlineTemplateRenderTest < ViewControllerTest
   test "should create a metric for the rendered inline template" do
     get :inline_render
-    sample = NewRelic::Agent.agent.transaction_sampler.samples.last
+    sample = NewRelic::Agent.agent.transaction_sampler.last_sample
     text_segment = sample.root_segment.called_segments.first.called_segments.first
     assert_equal 'View/inline template/Rendering', text_segment.metric_name
   end
@@ -166,7 +166,7 @@ end
 class HamlRenderTest < ViewControllerTest
   test "should create a metric for the rendered haml template" do
     get :haml_render
-    sample = NewRelic::Agent.agent.transaction_sampler.samples.last
+    sample = NewRelic::Agent.agent.transaction_sampler.last_sample
     text_segment = sample.root_segment.called_segments.first.called_segments.first
     assert_equal 'View/views/haml_view.html.haml/Rendering', text_segment.metric_name
   end
@@ -193,7 +193,7 @@ end
 class CollectionTemplateTest < ViewControllerTest
   test "should create a proper metric when we render a collection" do
     get :collection_render
-    sample = NewRelic::Agent.agent.transaction_sampler.samples.last
+    sample = NewRelic::Agent.agent.transaction_sampler.last_sample
     text_segment = sample.root_segment.called_segments.first.called_segments.first
     assert_equal "View/foos/_foo.html.haml/Partial", text_segment.metric_name
   end
@@ -203,7 +203,7 @@ class UninstrumentedRendersTest < ViewControllerTest
   [:js_render, :xml_render, :proc_render, :json_render ].each do |action|
     test "should not instrument rendering of #{action.inspect}" do
       get action
-      sample = NewRelic::Agent.agent.transaction_sampler.samples.last
+      sample = NewRelic::Agent.agent.transaction_sampler.last_sample
       assert_equal [], sample.root_segment.called_segments.first.called_segments
     end
   end
@@ -212,7 +212,7 @@ end
 class FileRenderTest < ViewControllerTest
   test "should create a metric for rendered file that does not include the filename so it doesn't metric explode" do
     get :file_render
-    sample = NewRelic::Agent.agent.transaction_sampler.samples.last
+    sample = NewRelic::Agent.agent.transaction_sampler.last_sample
     text_segment = sample.root_segment.called_segments.first.called_segments.first
     assert_equal 'View/file/Rendering', text_segment.metric_name
   end

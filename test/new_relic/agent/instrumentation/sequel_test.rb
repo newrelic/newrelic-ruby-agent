@@ -295,7 +295,7 @@ class NewRelic::Agent::Instrumentation::SequelInstrumentationTest < Test::Unit::
 
     sampler.notice_pop_scope "Controller/sandwiches/index"
     sampler.notice_scope_empty(stub('txn', :name => '/', :custom_parameters => {}))
-    sampler.samples
+    [sampler.last_sample]
   end
 
   def last_segment_for(options={})

@@ -229,7 +229,7 @@ module TransactionSampleTestHelper
     sampler.notice_pop_scope "a"
     sampler.notice_scope_empty(stub('txn', :name => '/path', :custom_parameters => {}))
 
-    sampler.samples[0]
+    sampler.last_sample
   end
 
   def run_sample_trace_on(sampler, path='/path')
@@ -246,6 +246,6 @@ module TransactionSampleTestHelper
     sampler.notice_pop_scope "lew"
     sampler.notice_pop_scope "Controller/sandwiches/index"
     sampler.notice_scope_empty(stub('txn', :name => path, :custom_parameters => {}))
-    sampler.samples[0]
+    sampler.last_sample
   end
 end
