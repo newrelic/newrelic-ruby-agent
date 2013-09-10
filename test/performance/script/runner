@@ -22,6 +22,9 @@ parser = OptionParser.new do |opts|
   opts.on("-i", "--instrumentor=NAME", "Use the named instrumentor") do |name|
     options[:instrumentors] = [name]
   end
+  opts.on("-s", "--suite=NAME", "Filter to just run a single test suite") do |name|
+    options[:suite] = name
+  end
   opts.on("-n", "--name=NAME", "Filter tests to those matching NAME") do |name|
     options[:name] = name
   end
