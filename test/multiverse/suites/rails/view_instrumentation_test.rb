@@ -175,7 +175,7 @@ end
 class MissingTemplateTest < ViewControllerTest
   test "should create an proper metric when the template is unknown" do
     get :no_template
-    sample = NewRelic::Agent.agent.transaction_sampler.samples.last
+    sample = NewRelic::Agent.agent.transaction_sampler.last_sample
     text_segment = sample.root_segment.called_segments.first.called_segments.first
 
     # Different versions have significant difference in handling, but we're
