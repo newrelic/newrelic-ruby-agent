@@ -28,29 +28,6 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
         @profile.instance_variable_set(:@worker_loop, NewRelic::Agent::WorkerLoop.new(:limit => 2))
       end
 
-      def test_profiler_ignores_agent_threads_when_told_to
-        FakeThread.list << FakeThread.new(
-          :bucket => :ignore,
-          :backtrace => @single_trace)
-
-          @profile.run
-
-          @profile.traces.each do |key, trace|
-            assert_empty trace, "Trace :#{key} should have been empty"
-          end
-      end
-
-      def test_profiler_tries_to_scrub_backtraces
-        FakeThread.list << FakeThread.new(
-          :bucket => :agent,
-          :backtrace => @single_trace,
-          :scrubbed_backtrace => @single_trace[0..0])
-
-          @profile.run
-
-          assert_equal [], @profile.traces[:agent].children.first.children
-      end
-
       def test_finished
         freeze_time
         @profile = ThreadProfile.new(create_agent_command('duration' => 7.0))

@@ -104,7 +104,7 @@ module NewRelic
         end
 
         def mark_done
-          @marked_done true
+          @marked_done = true
         end
       end
     end

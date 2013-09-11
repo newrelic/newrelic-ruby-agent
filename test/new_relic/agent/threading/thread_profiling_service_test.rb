@@ -131,6 +131,23 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
         @service.wait
       end
 
+      def test_poll_forwards_scrubbed_backtraces_to_clients_instead_of_raw
+        raw_backtarce = mock('raw')
+        scrubbed_backtrace = mock('scrubbed')
+
+        FakeThread.list << FakeThread.new(
+          :bucket => :agent,
+          :backtrace => raw_backtarce,
+          :scrubbed_backtrace => scrubbed_backtrace)
+
+        $debug = true
+        client = create_client('client')
+        client.expects(:aggregate).with(scrubbed_backtrace, :agent)
+
+        @service.add_client(client)
+        @service.wait
+      end
+
       def test_minimum_client_period_determines_the_minimum_period_of_all_clients
         @service.stubs(:worker_loop).returns(stub(:run => nil, :stop => nil))
         @service.add_client(create_client(requested_period: 42))
