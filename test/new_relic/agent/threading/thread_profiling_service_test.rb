@@ -12,6 +12,7 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
   module NewRelic::Agent::Threading
     class ThreadProfilingServiceTest < ThreadedTestCase
       def setup
+        NewRelic::Agent.instance.stats_engine.clear_stats
         @service = ThreadProfilingService.new
         super
       end
@@ -22,7 +23,13 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
       end
 
       def create_client(name, overrides={})
-        defaults = { :finished? => false, :requested_period => 0 }
+        defaults = {
+          :finished? => false,
+          :requested_period => 0,
+          :aggregate => nil,
+          :increment_poll_count => nil
+        }
+
         stub(name, defaults.merge(overrides))
       end
 
@@ -129,6 +136,32 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
         @service.add_client(second_client)
         dummy_loop.expects(:period=).with(7)
         @service.poll
+      end
+
+      def test_service_increments_client_poll_counts
+        three = create_client('3')
+        three.stubs(:finished?).returns(false, false, false, true)
+
+        three.expects(:increment_poll_count).times(3)
+        @service.add_client(three)
+        @service.wait
+      end
+
+      def test_poll_records_polling_time
+        freeze_time
+        client = create_client('polling_time')
+        client.stubs(:finished?).returns(false, true)
+        @service.add_client(client)
+
+        def client.increment_poll_count
+          advance_time(5.0)
+        end
+
+        @service.wait
+        expected = { :call_count => 1, :total_call_time => 5}
+        assert_metrics_recorded(
+          { 'Supportability/ThreadProfiler/PollingTime' => expected }
+        )
       end
 
     end

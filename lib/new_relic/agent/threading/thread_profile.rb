@@ -15,11 +15,8 @@ module NewRelic
 
       class ThreadProfile
 
-        attr_reader :profile_id,
-          :traces,
-          :profile_agent_code,
-          :interval, :duration,
-          :poll_count, :sample_count
+        attr_reader :profile_id, :traces, :profile_agent_code, :interval,
+          :duration, :poll_count, :sample_count, :failure_count
 
         def initialize(agent_command)
           arguments = agent_command.arguments
@@ -43,51 +40,23 @@ module NewRelic
           @failure_count = 0
         end
 
-        def collect_thread_backtrace(thread)
-          bucket = Threading::AgentThread.bucket_thread(thread, @profile_agent_code)
-          return if bucket == :ignore
-
-          backtrace = Threading::AgentThread.scrub_backtrace(thread, @profile_agent_code)
-
-          if backtrace
-            @sample_count += 1
-            aggregate(backtrace, bucket || :request)
-          else
-            @failure_count += 1
-          end
-        end
-
-        def run
-          NewRelic::Agent.logger.debug("Starting thread profile. profile_id=#{profile_id}, duration=#{duration}")
-
-          Threading::AgentThread.new('Thread Profiler') do
-            @worker_loop.run(@interval) do
-              NewRelic::Agent.instance.stats_engine.
-                record_supportability_metric_timed("ThreadProfiler/PollingTime") do
-
-                @poll_count += 1
-
-                Threading::AgentThread.list.each do |t|
-                  collect_thread_backtrace(t)
-                end
-              end
-            end
-
-            mark_done
-            NewRelic::Agent.logger.debug("Finished thread profile. #{@sample_count} backtraces, #{@failure_count} failures. Will send with next harvest.")
-            NewRelic::Agent.instance.stats_engine.
-              record_supportability_metric_count("ThreadProfiler/BacktraceFailures", @failure_count)
-          end
-        end
-
         def stop
           @worker_loop.stop
           mark_done
           NewRelic::Agent.logger.debug("Stopping thread profile.")
         end
 
+        def increment_poll_count
+          @poll_count += 1
+        end
+
         def aggregate(backtrace, bucket)
-          @traces[bucket].aggregate(backtrace)
+          if backtrace.nil?
+            @failure_count += 1
+          else
+            @sample_count += 1
+            @traces[bucket].aggregate(backtrace)
+          end
         end
 
         def truncate_to_node_count!(count_to_keep)

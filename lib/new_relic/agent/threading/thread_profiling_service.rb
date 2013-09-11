@@ -69,9 +69,14 @@ module NewRelic
         end
 
         def poll
-          @finished_clients += @clients.select(&:finished?)
-          @clients -= @finished_clients
-          stop if @clients.empty?
+          poll_start = Time.now
+
+          prune_finished_clients
+
+          if @clients.empty?
+            stop
+            return
+          end
 
           each_backtrace_with_bucket do |backtrace, bucket|
             @clients.each do |client|
@@ -79,7 +84,22 @@ module NewRelic
             end
           end
 
+          increment_client_poll_counts
           adjust_worker_loop_period
+          record_polling_time(Time.now - poll_start)
+        end
+
+        def prune_finished_clients
+          @finished_clients += @clients.select(&:finished?)
+          @clients -= @finished_clients
+        end
+
+        def record_polling_time(duration)
+          NewRelic::Agent.record_metric('Supportability/ThreadProfiler/PollingTime', duration)
+        end
+
+        def increment_client_poll_counts
+          @clients.map(&:increment_poll_count)
         end
 
         def adjust_worker_loop_period

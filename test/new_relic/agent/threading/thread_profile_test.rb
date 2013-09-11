@@ -182,13 +182,12 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
       WELL_KNOWN_TRACE_ENCODED = "eJy9klFPwjAUhf/LfW7WDQTUGBPUiYkGdAxelqXZRpGGrm1uS8xi/O924JQX\n9Un7dm77ndN7c19hlt7FCZxnWQZug7xYMYN6LSTHwDRA4KLWq53kl0CinEQh\nCUmW5zmBJH5axPPUk16MJ/E0/cGk0lLyyrGPS+uKamu943DQeX5HMtypz5In\nwv6vRCeZ1NoAGQ2PCDpvrOM1fRAlFtjQWyxq/qJxa+lj4zZaBeuuQpccrdDK\n0l4wolKU1OxftOoQLNTzIdL/EcjJafjnQYyVWjvrsDBMKNVOZBD1/jO27fPs\naBG+DoGr8fX9JJktpjftVry9A9unzGo=\n"
 
       def test_to_collector_array
+        build_well_known_trace
         @profile.instance_variable_set(:@profile_id, "-1")
         @profile.stubs(:start_time).returns(1350403938892.524)
         @profile.stubs(:stop_time).returns(1350403939904.375)
         @profile.instance_variable_set(:@poll_count, 10)
         @profile.instance_variable_set(:@sample_count, 2)
-
-        build_well_known_trace
 
         expected = [[
           -1,
@@ -205,13 +204,12 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
       end
 
       def test_to_collector_array_with_bad_values
+        build_well_known_trace
         @profile.instance_variable_set(:@profile_id, "-1")
         @profile.instance_variable_set(:@start_time, "")
         @profile.instance_variable_set(:@stop_time, nil)
         @profile.instance_variable_set(:@poll_count, Rational(10, 1))
         @profile.instance_variable_set(:@sample_count, nil)
-
-        build_well_known_trace
 
         expected = [[
           -1,
@@ -225,6 +223,24 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
 
         marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
         assert_equal expected, @profile.to_collector_array(marshaller.default_encoder)
+      end
+
+      def test_aggregate_should_increment_only_sample_count
+        sample_count = @profile.sample_count
+        failure_count = @profile.failure_count
+        @profile.aggregate(@single_trace, :request)
+
+        assert_equal sample_count + 1, @profile.sample_count
+        assert_equal failure_count, @profile.failure_count
+      end
+
+      def test_aggregate_increments_only_the_failure_count_with_nil_backtrace
+        sample_count = @profile.sample_count
+        failure_count = @profile.failure_count
+        @profile.aggregate(nil, :request)
+
+        assert_equal sample_count, @profile.sample_count
+        assert_equal failure_count + 1, @profile.failure_count
       end
     end
 
