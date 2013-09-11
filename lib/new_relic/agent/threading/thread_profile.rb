@@ -17,7 +17,7 @@ module NewRelic
 
         attr_reader :profile_id, :traces, :profile_agent_code, :interval,
           :duration, :poll_count, :sample_count, :failure_count,
-          :first_aggregated_at, :last_aggregated_at
+          :created_at, :last_aggregated_at
 
         def initialize(agent_command)
           arguments = agent_command.arguments
@@ -39,7 +39,7 @@ module NewRelic
           @sample_count = 0
           @failure_count = 0
 
-          @first_aggregated_at = nil
+          @created_at = Time.now
           @last_aggregated_at = nil
         end
 
@@ -60,13 +60,7 @@ module NewRelic
             @traces[bucket].aggregate(backtrace)
           end
 
-          update_aggregated_at_timestamps
-        end
-
-        def update_aggregated_at_timestamps
-          time = Time.now
-          @first_aggregated_at ||= time
-          @last_aggregated_at = time
+          @last_aggregated_at = Time.now
         end
 
         def truncate_to_node_count!(count_to_keep)
@@ -96,7 +90,7 @@ module NewRelic
 
           [[
             int(@profile_id),
-            float(self.first_aggregated_at),
+            float(self.created_at),
             float(self.last_aggregated_at),
             int(@poll_count),
             string(encoder.encode(traces)),
@@ -106,11 +100,11 @@ module NewRelic
         end
 
         def finished?
-          @finished
+          @marked_done || Time.now > self.created_at + @duration
         end
 
         def mark_done
-          @finished = true
+          @marked_done true
         end
       end
     end

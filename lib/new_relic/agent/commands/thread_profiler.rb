@@ -34,7 +34,7 @@ module NewRelic
         end
 
         def stop(report_data)
-          @profile.stop unless @profile.nil?
+          @profile.mark_done unless @profile.nil?
           @profile = nil if !report_data
         end
 

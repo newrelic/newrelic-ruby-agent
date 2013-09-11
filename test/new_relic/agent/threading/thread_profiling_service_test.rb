@@ -30,7 +30,9 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
           :increment_poll_count => nil
         }
 
-        stub(name, defaults.merge(overrides))
+        client = stub(name, defaults.merge(overrides))
+        client.stubs(:finished?).returns(false, true)
+        client
       end
 
       def test_starts_when_the_first_client_is_added
@@ -110,9 +112,22 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
         carebear = create_client('carebear')
         carebear.expects(:aggregate).with(faketrace, :request)
         carebear.expects(:aggregate).with(alsofaketrace, :differenter_request)
-        carebear.stubs(:finished?).returns(false, true)
 
         @service.add_client(carebear)
+        @service.wait
+      end
+
+      def test_poll_does_not_forward_ignored_backtraces_to_clients
+        faketrace = mock('faketrace')
+        FakeThread.list << FakeThread.new(
+          :bucket => :ignore,
+          :backtrace => faketrace)
+
+        ignorant_client = create_client('ignorant')
+        ignorant_client.expects(:aggregate).never
+
+
+        @service.add_client(ignorant_client)
         @service.wait
       end
 
@@ -150,7 +165,6 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
       def test_poll_records_polling_time
         freeze_time
         client = create_client('polling_time')
-        client.stubs(:finished?).returns(false, true)
         @service.add_client(client)
 
         def client.increment_poll_count

@@ -28,57 +28,6 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
         @profile.instance_variable_set(:@worker_loop, NewRelic::Agent::WorkerLoop.new(:limit => 2))
       end
 
-      # Running Tests
-      def test_profiler_collects_backtrace_from_every_thread
-        FakeThread.list << FakeThread.new
-        FakeThread.list << FakeThread.new
-
-        @profile.run
-
-        assert_equal 2, @profile.poll_count
-        assert_equal 4, @profile.sample_count
-      end
-
-      def test_profiler_collects_into_request_bucket
-        FakeThread.list << FakeThread.new(
-          :bucket => :request,
-          :backtrace => @single_trace)
-
-          @profile.run
-
-          assert_equal 1, @profile.traces[:request].children.size
-      end
-
-      def test_profiler_collects_into_background_bucket
-        FakeThread.list << FakeThread.new(
-          :bucket => :background,
-          :backtrace => @single_trace)
-
-          @profile.run
-
-          assert_equal 1, @profile.traces[:background].children.size
-      end
-
-      def test_profiler_collects_into_other_bucket
-        FakeThread.list << FakeThread.new(
-          :bucket => :other,
-          :backtrace => @single_trace)
-
-          @profile.run
-
-          assert_equal 1, @profile.traces[:other].children.size
-      end
-
-      def test_profiler_collects_into_agent_bucket
-        FakeThread.list << FakeThread.new(
-          :bucket => :agent,
-          :backtrace => @single_trace)
-
-          @profile.run
-
-          assert_equal 1, @profile.traces[:agent].children.size
-      end
-
       def test_profiler_ignores_agent_threads_when_told_to
         FakeThread.list << FakeThread.new(
           :bucket => :ignore,
@@ -103,10 +52,14 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
       end
 
       def test_finished
+        freeze_time
+        @profile = ThreadProfile.new(create_agent_command('duration' => 7.0))
         assert !@profile.finished?
 
-        @profile.run.join
+        advance_time(5.0)
+        assert !@profile.finished?
 
+        advance_time(5.0)
         assert @profile.finished?
       end
 
@@ -161,7 +114,7 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
       def test_to_collector_array
         build_well_known_trace
         @profile.instance_variable_set(:@profile_id, "-1")
-        @profile.stubs(:first_aggregated_at).returns(1350403938892.524)
+        @profile.stubs(:created_at).returns(1350403938892.524)
         @profile.stubs(:last_aggregated_at).returns(1350403939904.375)
         @profile.instance_variable_set(:@poll_count, 10)
         @profile.instance_variable_set(:@sample_count, 2)
@@ -183,7 +136,7 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
       def test_to_collector_array_with_bad_values
         build_well_known_trace
         @profile.instance_variable_set(:@profile_id, "-1")
-        @profile.stubs(:first_aggregated_at).returns('')
+        @profile.stubs(:created_at).returns('')
         @profile.stubs(:last_aggregated_at).returns(nil)
         @profile.instance_variable_set(:@poll_count, Rational(10, 1))
         @profile.instance_variable_set(:@sample_count, nil)
@@ -220,16 +173,18 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
         assert_equal failure_count + 1, @profile.failure_count
       end
 
-      def test_aggregate_updates_first_aggregated_at_timestamp
+      def test_aggregate_updates_created_at_timestamp
         expected = freeze_time
+        @profile = ThreadProfile.new(create_agent_command)
+
         @profile.aggregate(@single_trace, :request)
-        t0 = @profile.first_aggregated_at
+        t0 = @profile.created_at
 
         advance_time(5.0)
         @profile.aggregate(@single_trace, :request)
 
         assert_equal expected, t0
-        assert_equal expected, @profile.first_aggregated_at
+        assert_equal expected, @profile.created_at
       end
 
       def test_aggregate_updates_last_aggregated_at_timestamp
