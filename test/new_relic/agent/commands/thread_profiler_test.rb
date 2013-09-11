@@ -49,7 +49,8 @@ if !NewRelic::Agent::Commands::ThreadProfiler.is_supported?
     include ThreadProfilerTestHelpers
 
     def setup
-      @profiler = NewRelic::Agent::Commands::ThreadProfiler.new
+      thread_profiling_service = NewRelic::Agent::Threading::ThreadProfilingService.new
+      @profiler = NewRelic::Agent::Commands::ThreadProfiler.new(thread_profiling_service)
     end
 
     def test_thread_profiling_isnt_supported
@@ -80,7 +81,8 @@ else
 
     def setup
       super
-      @profiler = NewRelic::Agent::Commands::ThreadProfiler.new
+      thread_profiling_service = NewRelic::Agent::Threading::ThreadProfilingService.new
+      @profiler = NewRelic::Agent::Commands::ThreadProfiler.new(thread_profiling_service)
     end
 
     def test_is_supported

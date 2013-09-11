@@ -13,6 +13,10 @@ module NewRelic
 
         attr_accessor :profile
 
+        def initialize(thread_profiling_service)
+          @thread_profiling_service = thread_profiling_service
+        end
+
         def self.is_supported?
           RUBY_VERSION >= "1.9.2"
         end
@@ -30,7 +34,7 @@ module NewRelic
 
         def start(agent_command)
           @profile = Threading::ThreadProfile.new(agent_command)
-          @profile.run
+          @thread_profiling_service.add_client(@profile)
         end
 
         def stop(report_data)
