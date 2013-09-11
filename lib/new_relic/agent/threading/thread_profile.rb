@@ -16,7 +16,8 @@ module NewRelic
       class ThreadProfile
 
         attr_reader :profile_id, :traces, :profile_agent_code, :interval,
-          :duration, :poll_count, :sample_count, :failure_count
+          :duration, :poll_count, :sample_count, :failure_count,
+          :first_aggregated_at, :last_aggregated_at
 
         def initialize(agent_command)
           arguments = agent_command.arguments
@@ -24,7 +25,6 @@ module NewRelic
           @profile_agent_code = arguments.fetch('profile_agent_code', true)
 
           @duration = arguments.fetch('duration', 120)
-          @worker_loop = NewRelic::Agent::WorkerLoop.new(:duration => duration)
           @interval = arguments.fetch('sample_period', 0.1)
           @finished = false
 
@@ -38,10 +38,12 @@ module NewRelic
           @poll_count = 0
           @sample_count = 0
           @failure_count = 0
+
+          @first_aggregated_at = nil
+          @last_aggregated_at = nil
         end
 
         def stop
-          @worker_loop.stop
           mark_done
           NewRelic::Agent.logger.debug("Stopping thread profile.")
         end
@@ -57,6 +59,14 @@ module NewRelic
             @sample_count += 1
             @traces[bucket].aggregate(backtrace)
           end
+
+          update_aggregated_at_timestamps
+        end
+
+        def update_aggregated_at_timestamps
+          time = Time.now
+          @first_aggregated_at ||= time
+          @last_aggregated_at = time
         end
 
         def truncate_to_node_count!(count_to_keep)
@@ -74,14 +84,6 @@ module NewRelic
 
         include NewRelic::Coerce
 
-        def start_time
-          @worker_loop.start_time
-        end
-
-        def stop_time
-          @worker_loop.stop_time
-        end
-
         def to_collector_array(encoder)
           truncate_to_node_count!(THREAD_PROFILER_NODES)
 
@@ -94,8 +96,8 @@ module NewRelic
 
           [[
             int(@profile_id),
-            float(start_time),
-            float(stop_time),
+            float(self.first_aggregated_at),
+            float(self.last_aggregated_at),
             int(@poll_count),
             string(encoder.encode(traces)),
             int(@sample_count),
