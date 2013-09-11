@@ -514,12 +514,6 @@ module NewRelic
           :type => Boolean,
           :description => 'Enable or disable memcache instrumentation.'
         },
-        :disable_mobile_headers => {
-          :default => true,
-          :public => false,
-          :type => Boolean,
-          :description => 'Enable or disable injection of mobile response headers when mobile headers are present in the incoming request.'
-        },
         :capture_params => {
           :default => false,
           :public => true,

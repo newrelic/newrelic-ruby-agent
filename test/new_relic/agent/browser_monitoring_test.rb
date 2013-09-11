@@ -15,7 +15,6 @@ class NewRelic::Agent::BrowserMonitoringTest < Test::Unit::TestCase
     NewRelic::Agent.manual_start
     @config = {
       :beacon                 => 'beacon',
-      :disable_mobile_headers => false,
       :browser_key            => 'browserKey',
       :application_id         => '5, 6', # collector can return app multiple ids
       :'rum.enabled'          => true,
@@ -312,46 +311,6 @@ var e=document.createElement("script");'
     assert_equal Base64.encode64(text).gsub("\n", ''), unoutput
   end
 
-  def test_no_mobile_response_header_if_no_mobile_request_header_given
-    request = Rack::Request.new({})
-    response = Rack::Response.new
-
-    NewRelic::Agent::BrowserMonitoring.insert_mobile_response_header(request, response)
-    assert_nil response['X-NewRelic-Beacon-Url']
-  end
-
-  def test_no_mobile_response_header_if_mobile_request_header_is_false
-    request = Rack::Request.new('HTTP_X_NEWRELIC_MOBILE_TRACE' => 'false')
-    response = Rack::Response.new
-
-    NewRelic::Agent::BrowserMonitoring.insert_mobile_response_header(request, response)
-    assert_nil response['X-NewRelic-Beacon-Url']
-  end
-
-  def test_place_beacon_url_header_when_given_mobile_request_header
-    response = mobile_transaction
-    assert_equal('http://beacon/mobile/1/browserKey',
-                 response['X-NewRelic-Beacon-Url'])
-  end
-
-  def test_place_beacon_url_header_when_given_mobile_request_header_with_https
-    request = Rack::Request.new('X_NEWRELIC_MOBILE_TRACE' => 'true',
-                                'rack.url_scheme' => 'https')
-    response = mobile_transaction(request)
-    assert_equal('https://beacon/mobile/1/browserKey',
-                 response['X-NewRelic-Beacon-Url'])
-  end
-
-  def test_place_beacon_payload_head_when_given_mobile_request_header
-    Time.stubs(:now).returns(Time.at(6))
-    response = mobile_transaction
-    txn_name = obfuscate(NewRelic::Agent.instance.beacon_configuration,
-                         browser_monitoring_transaction_name)
-    expected_payload = %|["5, 6","#{txn_name}",#{current_timings.queue_time_in_millis},#{current_timings.app_time_in_millis}]|
-
-    assert_equal expected_payload, response['X-NewRelic-App-Server-Metrics'].strip
-  end
-
   def test_freezes_transaction_name_when_footer_is_written
     with_config(:license_key => 'a' * 13) do
       in_transaction do
@@ -360,16 +319,5 @@ var e=document.createElement("script");'
         assert NewRelic::Agent::Transaction.current.name_frozen?
       end
     end
-  end
-
-  def mobile_transaction(request=nil)
-    request ||= Rack::Request.new('X-NewRelic-Mobile-Trace' => 'true')
-    response = Rack::Response.new
-    txn = NewRelic::Agent::Transaction.new
-    txn.name = 'a transaction name'
-    txn.start_time = Time.at(5)
-    NewRelic::Agent::TransactionState.get.transaction = txn
-    NewRelic::Agent::BrowserMonitoring.insert_mobile_response_header(request, response)
-    response
   end
 end
