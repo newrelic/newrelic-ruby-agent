@@ -72,6 +72,7 @@ EOL
     mocha_teardown
     TestApp.doc = nil
     NewRelic::Agent.config.remove_config(@config)
+    NewRelic::Agent.agent.transaction_sampler.reset!
   end
 
   def test_make_sure_header_is_set
