@@ -6,11 +6,12 @@ module NewRelic
   module Agent
     module Threading
       class ThreadProfilingService
-        attr_reader :worker_loop
+        attr_reader :worker_loop, :clients
         attr_accessor :worker_thread, :profile_agent_code
 
         def initialize
           @clients = []
+          @clients_lock = Mutex.new
 
           @running = false
           @profile_agent_code = false
@@ -33,7 +34,9 @@ module NewRelic
         end
 
         def minimum_client_period
-          @clients.map(&:requested_period).min
+          @clients_lock.synchronize do
+            @clients.map(&:requested_period).min
+          end
         end
 
         def running?
@@ -41,14 +44,11 @@ module NewRelic
         end
 
         def add_client(client)
-          @clients << client
-          start
-          client
-        end
+          @clients_lock.synchronize do
+            @clients << client
+          end
 
-        def remove_client(client)
-          @clients.delete(client)
-          stop if @clients.empty?
+          start
           client
         end
 
@@ -71,34 +71,29 @@ module NewRelic
         def poll
           poll_start = Time.now
 
-          @clients.reject!(&:finished?)
+          @clients_lock.synchronize do
+            @clients.reject!(&:finished?)
 
-          if @clients.empty?
-            stop
-            return
-          end
-
-          each_backtrace_with_bucket do |backtrace, bucket|
-            @clients.each do |client|
-              client.aggregate(backtrace, bucket)
+            if @clients.empty?
+              stop
+              return
             end
+
+            each_backtrace_with_bucket do |backtrace, bucket|
+              @clients.each do |client|
+                client.aggregate(backtrace, bucket)
+              end
+            end
+
+            @clients.map(&:increment_poll_count)
           end
 
-          increment_client_poll_counts
-          adjust_worker_loop_period
+          worker_loop.period = minimum_client_period
           record_polling_time(Time.now - poll_start)
         end
 
         def record_polling_time(duration)
           NewRelic::Agent.record_metric('Supportability/ThreadProfiler/PollingTime', duration)
-        end
-
-        def increment_client_poll_counts
-          @clients.map(&:increment_poll_count)
-        end
-
-        def adjust_worker_loop_period
-          worker_loop.period = minimum_client_period
         end
 
       end

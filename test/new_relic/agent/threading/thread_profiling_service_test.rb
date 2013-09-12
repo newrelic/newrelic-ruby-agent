@@ -10,7 +10,30 @@ require 'new_relic/agent/threading/threaded_test_case'
 if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
 
   module NewRelic::Agent::Threading
+    module ThreadProfilingServiceTestHelpers
+      def create_client(name, overrides={})
+        defaults = {
+          :finished? => false,
+          :requested_period => 0,
+          :aggregate => nil,
+          :increment_poll_count => nil
+        }
+
+        client = stub(name, defaults.merge(overrides))
+        client.stubs(:finished?).returns(false, true) unless overrides.has_key? :finished?
+        client
+      end
+
+      def fake_worker_loop(service)
+        dummy_loop = stub(:run => nil, :stop => nil, :period= => nil)
+        service.stubs(:worker_loop).returns(dummy_loop)
+        dummy_loop
+      end
+    end
+
     class ThreadProfilingServiceTest < ThreadedTestCase
+      include ThreadProfilingServiceTestHelpers
+
       def setup
         NewRelic::Agent.instance.stats_engine.clear_stats
         @service = ThreadProfilingService.new
@@ -33,12 +56,6 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
         client = stub(name, defaults.merge(overrides))
         client.stubs(:finished?).returns(false, true) unless overrides[:finished?]
         client
-      end
-
-      def fake_worker_loop(service)
-        dummy_loop = stub(:run => nil, :stop => nil, :period= => nil)
-        service.stubs(:worker_loop).returns(dummy_loop)
-        dummy_loop
       end
 
       def test_starts_when_the_first_client_is_added
@@ -151,13 +168,6 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
         @service.wait
       end
 
-      def test_minimum_client_period_determines_the_minimum_period_of_all_clients
-        @service.stubs(:worker_loop).returns(stub(:run => nil, :stop => nil))
-        @service.add_client(create_client(requested_period: 42))
-        @service.add_client(create_client(requested_period: 77))
-        assert_equal 42, @service.minimum_client_period
-      end
-
       def test_poll_adjusts_worker_loop_period_to_minimum_client_period
         dummy_loop = fake_worker_loop(@service)
 
@@ -199,5 +209,34 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
       end
 
     end
+
+    # These tests do not use ThreadedTestCase as FakeThread is synchronous and
+    # prevents the detection of concurrency issues.
+    class ThreadProfilingServiceConcurrencyTest < Test::Unit::TestCase
+      include ThreadProfilingServiceTestHelpers
+
+      def setup
+        NewRelic::Agent.instance.stats_engine.clear_stats
+        @service = ThreadProfilingService.new
+      end
+
+      def teardown
+        @service.stop
+      end
+
+      def test_adding_clients_is_thread_safe
+        propagating_worker_loop = NewRelic::Agent::WorkerLoop.new(:propagate_errors => true)
+
+        @service.stubs(:worker_loop).returns(propagating_worker_loop)
+        long_client = create_client('long_client', :finished? => false)
+
+        @service.add_client(long_client)
+
+        1000.times do
+          @service.add_client(create_client('short_client', :requested_period => 0))
+        end
+      end
+    end
+
   end
 end
