@@ -15,8 +15,8 @@ module NewRelic
 
   class TransactionSample
 
-    attr_accessor(:params, :root_segment, :profile, :force_persist, :guid,
-                  :threshold)
+    attr_accessor :params, :root_segment, :profile, :force_persist, :guid,
+                  :threshold, :finished, :xray_session_id
     attr_reader :root_segment, :params, :sample_id
 
     @@start_time = Time.now
@@ -71,12 +71,14 @@ module NewRelic
       trace_tree = encoder.encode(self.to_array)
       [ Helper.time_to_millis(@start_time),
         Helper.time_to_millis(duration),
-        string(@params[:path]),
+        string(transaction_name),
         string(@params[:uri]),
         trace_tree,
         string(@guid),
         nil,
-        !!@force_persist ]
+        forced?,
+        xray_session_id
+      ]
     end
 
     def start_time
@@ -87,9 +89,21 @@ module NewRelic
       @root_segment.path_string
     end
 
+    def transaction_name
+      @params[:path]
+    end
+
+    def transaction_name=(new_name)
+      @params[:path] = new_name
+    end
+
+    def forced?
+      !!@force_persist || !xray_session_id.nil?
+    end
+
     # relative_timestamp is seconds since the start of the transaction
     def create_segment(relative_timestamp, metric_name=nil, segment_id = nil)
-      raise TypeError.new("Frozen Transaction Sample") if frozen?
+      raise TypeError.new("Frozen Transaction Sample") if finished
       @params[:segment_count] += 1
       @segment_count += 1
       NewRelic::TransactionSample::Segment.new(relative_timestamp, metric_name, segment_id)
@@ -176,6 +190,7 @@ module NewRelic
       sample.params.merge! self.params
       sample.guid = self.guid
       sample.force_persist = self.force_persist if self.force_persist
+      sample.xray_session_id = self.xray_session_id
 
       build_segment_for_transfer(sample, @root_segment, sample.root_segment, options)
 

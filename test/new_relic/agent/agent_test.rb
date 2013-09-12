@@ -89,6 +89,7 @@ module NewRelic
                     :'transaction_tracer.record_sql' => 'raw') do
           trace = stub('transaction trace',
                        :duration => 2.0, :threshold => 1.0,
+                       :transaction_name => nil,
                        :force_persist => true,
                        :truncate => 4000)
           trace.expects(:prepare_to_send).with(:record_sql => :raw,

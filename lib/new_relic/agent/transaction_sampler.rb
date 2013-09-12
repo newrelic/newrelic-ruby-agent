@@ -8,6 +8,7 @@ require 'new_relic/agent/transaction_sample_builder'
 require 'new_relic/agent/transaction/developer_mode_sample_buffer'
 require 'new_relic/agent/transaction/force_persist_sample_buffer'
 require 'new_relic/agent/transaction/slowest_sample_buffer'
+require 'new_relic/agent/transaction/xray_sample_buffer'
 
 module NewRelic
   module Agent
@@ -25,13 +26,15 @@ module NewRelic
         def notice_scope_empty(*args); end
       end
 
-      attr_reader :last_sample, :dev_mode_sample_buffer
+      attr_reader :last_sample, :dev_mode_sample_buffer, :xray_sample_buffer
 
       def initialize
         @dev_mode_sample_buffer = NewRelic::Agent::Transaction::DeveloperModeSampleBuffer.new
+        @xray_sample_buffer = NewRelic::Agent::Transaction::XraySampleBuffer.new
 
         @sample_buffers = []
         @sample_buffers << @dev_mode_sample_buffer
+        @sample_buffers << @xray_sample_buffer
         @sample_buffers << NewRelic::Agent::Transaction::SlowestSampleBuffer.new
         @sample_buffers << NewRelic::Agent::Transaction::ForcePersistSampleBuffer.new
 
@@ -85,7 +88,7 @@ module NewRelic
       # traced scope
       def notice_pop_scope(scope, time = Time.now)
         return unless builder
-        raise "frozen already???" if builder.sample.frozen?
+        raise "finished already???" if builder.sample.finished
         builder.trace_exit(scope, time.to_f)
       end
 

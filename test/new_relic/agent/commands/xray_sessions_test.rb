@@ -111,6 +111,18 @@ module NewRelic::Agent::Commands
       assert_equal FIRST_ID, session.id
     end
 
+    def test_can_find_session_id_by_transaction_name
+      handle_command_for(FIRST_ID)
+
+      result = sessions.session_id_for_transaction_name(FIRST_TRANSACTION_NAME)
+      assert_equal(FIRST_ID, result)
+    end
+
+    def test_can_find_session_id_by_missing_transaction_name
+      result = sessions.session_id_for_transaction_name("MISSING")
+      assert_nil result
+    end
+
     def test_adding_a_session_actives_it
 
       handle_command_for(FIRST_ID)

@@ -77,11 +77,11 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     assert_equal(nil, @sampler.notice_pop_scope('a scope', Time.at(100)))
   end
 
-  def test_notice_pop_scope_with_frozen_sample
+  def test_notice_pop_scope_with_finished_sample
     builder = mock('builder')
     sample = mock('sample')
     builder.expects(:sample).returns(sample)
-    sample.expects(:frozen?).returns(true)
+    sample.expects(:finished).returns(true)
     @sampler.expects(:builder).returns(builder).twice
 
     assert_raise(RuntimeError) do
@@ -94,7 +94,7 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     builder.expects(:trace_exit).with('a scope', 100.0)
     sample = mock('sample')
     builder.expects(:sample).returns(sample)
-    sample.expects(:frozen?).returns(false)
+    sample.expects(:finished).returns(false)
     @sampler.expects(:builder).returns(builder).times(3)
 
     @sampler.notice_pop_scope('a scope', Time.at(100))
@@ -392,17 +392,27 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
   FORCE_PERSIST_MAX = NewRelic::Agent::Transaction::ForcePersistSampleBuffer::MAX_SAMPLES
   SLOWEST_SAMPLE_MAX = NewRelic::Agent::Transaction::SlowestSampleBuffer::MAX_SAMPLES
+  XRAY_SAMPLE_MAX = NewRelic::Agent::Transaction::XraySampleBuffer::MAX_SAMPLES
 
   def test_harvest_respects_limits_from_previous
     slowest = sample_with(:duration => 10.0)
     previous = [slowest]
 
-    forced_samples = generate_samples(100, true)
+    forced_samples = generate_samples(100, :force_persist => true)
     previous.concat(forced_samples)
 
-    result = @sampler.harvest(previous)
+    xray_samples = generate_samples(100, :transaction_name => "Active/xray")
+    previous.concat(xray_samples)
 
-    expected = [slowest].concat(forced_samples.last(FORCE_PERSIST_MAX))
+    result = nil
+    with_active_xray_session("Active/xray") do
+      result = @sampler.harvest(previous)
+    end
+
+    expected = [slowest]
+    expected = expected.concat(forced_samples.last(FORCE_PERSIST_MAX))
+    expected = expected.concat(xray_samples.first(XRAY_SAMPLE_MAX))
+
     assert_equal_unordered(expected, result)
   end
 
@@ -410,14 +420,23 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     slowest = sample_with(:duration => 10.0)
     @sampler.store_sample(slowest)
 
-    forced_samples = generate_samples(100, true)
+    forced_samples = generate_samples(100, :force_persist => true)
     forced_samples.each do |forced|
       @sampler.store_sample(forced)
     end
 
+    xray_samples = generate_samples(100, :transaction_name => "Active/xray")
+    with_active_xray_session("Active/xray") do
+      xray_samples.each do |xrayed|
+        @sampler.store_sample(xrayed)
+      end
+    end
+
     result = @sampler.harvest([])
 
-    expected = [slowest].concat(forced_samples.last(FORCE_PERSIST_MAX))
+    expected = [slowest]
+    expected = expected.concat(forced_samples.last(FORCE_PERSIST_MAX))
+    expected = expected.concat(xray_samples.first(XRAY_SAMPLE_MAX))
     assert_equal_unordered(expected, result)
   end
 
@@ -799,18 +818,44 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
 
   private
 
-  SAMPLE_DEFAULTS = {:threshold => 1.0, :force_persist => false}
+  SAMPLE_DEFAULTS = {
+    :threshold => 1.0,
+    :force_persist => false,
+    :transaction_name => nil
+  }
 
   def sample_with(incoming_opts = {})
     opts = SAMPLE_DEFAULTS.dup
     opts.merge!(incoming_opts)
-    stub(opts.inspect, opts)
+
+    sample = NewRelic::TransactionSample.new
+    sample.threshold = opts[:threshold]
+    sample.force_persist = opts[:force_persist]
+    sample.transaction_name = opts[:transaction_name]
+    sample.stubs(:duration).returns(opts[:duration])
+    sample
   end
 
-  def generate_samples(count, force_persist = false)
+  def generate_samples(count, opts = {})
     (1..count).map do |millis|
-      sample_with(:duration => (millis / 1000.0), :force_persist => force_persist)
+      sample_with(opts.merge(:duration => (millis / 1000.0)))
     end
+  end
+
+  def with_active_xray_session(name)
+    xray_session_id = 1234
+    xray_session = NewRelic::Agent::Commands::XraySession.new({
+      "x_ray_id" => xray_session_id,
+      "key_transaction_name" => name
+    })
+
+    xray_sessions = NewRelic::Agent.instance.agent_command_router.xray_sessions
+    xray_sessions.send(:add_session, xray_session)
+    @sampler.xray_sample_buffer.xray_sessions = xray_sessions
+
+    yield
+  ensure
+    xray_sessions.send(:remove_session_by_id, xray_session_id)
   end
 
   def run_long_sample_trace(n)

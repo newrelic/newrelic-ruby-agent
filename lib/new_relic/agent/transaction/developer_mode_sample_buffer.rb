@@ -23,9 +23,9 @@ module NewRelic
           Agent.config[:developer_mode]
         end
 
-        # Leave samples in their arrival order
-        def sort_for_truncation
-          nil
+        # Truncate to the last max_samples we've received
+        def truncate_samples
+          @samples = @samples.last(max_samples)
         end
 
         # We don't hold onto previously trapped transactions on harvest

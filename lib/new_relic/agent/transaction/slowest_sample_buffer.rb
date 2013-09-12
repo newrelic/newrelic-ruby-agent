@@ -18,6 +18,7 @@ module NewRelic
         def allow_sample?(sample)
           sample.threshold && sample.duration >= sample.threshold
         end
+
       end
     end
   end
