@@ -116,11 +116,13 @@ module NewRelic
           @name = name
         else
           NewRelic::Agent.logger.warn("Attempted to rename transaction to '#{name}' after transaction name was already frozen as '#{@name}'.")
+          NewRelic::Agent.logger.warn("Name was previously frozen via #{@freeze_name_backtrace.join("\n")}") if @freeze_name_backtrace
         end
       end
 
       def freeze_name
         return if name_frozen?
+        @freeze_name_backtrace = caller
         @name = NewRelic::Agent.instance.transaction_rules.rename(@name)
         @name_frozen = true
       end
