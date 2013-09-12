@@ -31,46 +31,49 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
         }
 
         client = stub(name, defaults.merge(overrides))
-        client.stubs(:finished?).returns(false, true)
+        client.stubs(:finished?).returns(false, true) unless overrides[:finished?]
         client
       end
 
+      def fake_worker_loop(service)
+        dummy_loop = stub(:run => nil, :stop => nil, :period= => nil)
+        service.stubs(:worker_loop).returns(dummy_loop)
+        dummy_loop
+      end
+
       def test_starts_when_the_first_client_is_added
-        assert_false @service.running?
+        fake_worker_loop(@service)
 
-        first_client = @service.add_client(mock)
-
+        client = @service.add_client(create_client('client', :finished? => false))
         assert @service.running?
       end
 
       def test_stops_without_clients
-        first_client = @service.add_client(mock)
+        fake_worker_loop(@service)
 
-        assert_true @service.running?
+        client = @service.add_client(create_client('client', :finished? => false))
+        assert @service.running?
 
-        @service.remove_client(first_client)
+        client.stubs(:finished?).returns(true)
+        @service.poll
+
         assert_false @service.running?
       end
 
-      def test_runs_until_all_clients_have_been_removed
-        first_client = @service.add_client(mock)
-        second_client = @service.add_client(mock)
-        assert_true @service.running?
+      def test_poll_stops_the_worker_loop_only_when_all_clients_are_finished
+        dummy_loop = fake_worker_loop(@service)
 
-        @service.remove_client(first_client)
+        first_client = @service.add_client(create_client('client1', :finished? => false))
+        second_client = @service.add_client(create_client('client2', :finished? => false))
         assert @service.running?
 
-        @service.remove_client(second_client)
-        assert_false @service.running?
-      end
-
-      def test_start_sets_running_to_true
-        @service.start
+        first_client.stubs(:finished?).returns(true)
+        @service.poll
         assert @service.running?
-      end
 
-      def test_stop_sets_running_to_false
-        @service.stop
+        second_client.stubs(:finished?).returns(true)
+        dummy_loop.expects(:stop)
+        @service.poll
         assert_false @service.running?
       end
 
@@ -156,8 +159,7 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
       end
 
       def test_poll_adjusts_worker_loop_period_to_minimum_client_period
-        dummy_loop = stub(:run => nil, :stop => nil)
-        @service.stubs(:worker_loop).returns(dummy_loop)
+        dummy_loop = fake_worker_loop(@service)
 
         first_client = create_client('first_client', :requested_period => 42)
         @service.add_client(first_client)
@@ -182,11 +184,12 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
       def test_poll_records_polling_time
         freeze_time
         client = create_client('polling_time')
-        @service.add_client(client)
 
         def client.increment_poll_count
           advance_time(5.0)
         end
+
+        @service.add_client(client)
 
         @service.wait
         expected = { :call_count => 1, :total_call_time => 5}

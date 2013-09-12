@@ -6,11 +6,13 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_h
 
 require 'new_relic/agent/threading/thread_profile'
 require 'new_relic/agent/threading/threaded_test_case'
+require 'new_relic/agent/threading/thread_profiling_client_test'
 
 if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
 
   module NewRelic::Agent::Threading
     class ThreadProfileTest < ThreadedTestCase
+      include ThreadProfilingClientTests
 
       def setup
         super
@@ -26,6 +28,10 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
         # Run the worker_loop for the thread profile based on two iterations
         # This takes time fussiness out of the equation and keeps the tests stable
         @profile.instance_variable_set(:@worker_loop, NewRelic::Agent::WorkerLoop.new(:limit => 2))
+      end
+
+      def target_for_shared_client_tests
+        @profile
       end
 
       def test_finished

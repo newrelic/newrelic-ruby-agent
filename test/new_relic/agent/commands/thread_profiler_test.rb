@@ -172,7 +172,6 @@ else
       profile = @profiler.harvest
       assert_equal 42,  profile.profile_id
       assert_equal 0.02, profile.interval
-      assert_equal false, profile.profile_agent_code
     end
 
   end

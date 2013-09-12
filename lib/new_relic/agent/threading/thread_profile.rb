@@ -15,15 +15,13 @@ module NewRelic
 
       class ThreadProfile
 
-        attr_reader :profile_id, :traces, :profile_agent_code, :interval,
+        attr_reader :profile_id, :traces, :interval,
           :duration, :poll_count, :sample_count, :failure_count,
           :created_at, :last_aggregated_at
 
         def initialize(agent_command)
           arguments = agent_command.arguments
           @profile_id = arguments.fetch('profile_id', -1)
-          @profile_agent_code = arguments.fetch('profile_agent_code', true)
-
           @duration = arguments.fetch('duration', 120)
           @interval = arguments.fetch('sample_period', 0.1)
           @finished = false
@@ -46,6 +44,10 @@ module NewRelic
         def stop
           mark_done
           NewRelic::Agent.logger.debug("Stopping thread profile.")
+        end
+
+        def requested_period
+          @interval
         end
 
         def increment_poll_count

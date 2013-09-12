@@ -7,13 +7,13 @@ module NewRelic
     module Threading
       class ThreadProfilingService
         attr_reader :worker_loop
-        attr_accessor :worker_thread
+        attr_accessor :worker_thread, :profile_agent_code
 
         def initialize
           @clients = []
-          @finished_clients = []
 
           @running = false
+          @profile_agent_code = false
           @worker_loop = NewRelic::Agent::WorkerLoop.new
           @worker_thread = nil
         end
@@ -21,7 +21,7 @@ module NewRelic
         def start
           return if @running
           @running = true
-          @worker_thread = Thread.new do
+          @worker_thread = AgentThread.new('thread_profiling_service_worker') do
             worker_loop.run(minimum_client_period, &method(:poll))
           end
         end
@@ -71,7 +71,7 @@ module NewRelic
         def poll
           poll_start = Time.now
 
-          prune_finished_clients
+          @clients.reject!(&:finished?)
 
           if @clients.empty?
             stop
@@ -87,11 +87,6 @@ module NewRelic
           increment_client_poll_counts
           adjust_worker_loop_period
           record_polling_time(Time.now - poll_start)
-        end
-
-        def prune_finished_clients
-          @finished_clients += @clients.select(&:finished?)
-          @clients -= @finished_clients
         end
 
         def record_polling_time(duration)
