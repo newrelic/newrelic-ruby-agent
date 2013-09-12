@@ -24,6 +24,7 @@ module NewRelic
         @iterations = 0
         @start_time = nil
         @stop_time = nil
+        @propagate_errors = opts.fetch(:propagate_errors, false)
       end
 
       # returns a class-level memoized mutex to make sure we don't run overlapping
@@ -80,26 +81,30 @@ module NewRelic
       # possible errors. Also updates the execution time so that the
       # next run occurs on schedule, even if we execute at some odd time
       def run_task
-        begin
-          lock.synchronize do
-            @task.call
+        if @propagate_errors
+          @task.call
+        else
+          begin
+            lock.synchronize do
+              @task.call
+            end
+          rescue ServerError => e
+            ::NewRelic::Agent.logger.debug "Server Error:", e
+          rescue NewRelic::Agent::ForceRestartException, NewRelic::Agent::ForceDisconnectException
+            # blow out the loop
+            raise
+          rescue RuntimeError => e
+            # This is probably a server error which has been logged in the server along
+            # with your account name.
+            ::NewRelic::Agent.logger.error "Error running task in worker loop, likely a server error:", e
+          rescue Timeout::Error, NewRelic::Agent::ServerConnectionException
+            # Want to ignore these because they are handled already
+          rescue SystemExit, NoMemoryError, SignalException
+            raise
+          rescue => e
+            # Don't blow out the stack for anything that hasn't already propagated
+            ::NewRelic::Agent.logger.error "Error running task in Agent Worker Loop:", e
           end
-        rescue ServerError => e
-          ::NewRelic::Agent.logger.debug "Server Error:", e
-        rescue NewRelic::Agent::ForceRestartException, NewRelic::Agent::ForceDisconnectException
-          # blow out the loop
-          raise
-        rescue RuntimeError => e
-          # This is probably a server error which has been logged in the server along
-          # with your account name.
-          ::NewRelic::Agent.logger.error "Error running task in worker loop, likely a server error:", e
-        rescue Timeout::Error, NewRelic::Agent::ServerConnectionException
-          # Want to ignore these because they are handled already
-        rescue SystemExit, NoMemoryError, SignalException
-          raise
-        rescue => e
-          # Don't blow out the stack for anything that hasn't already propagated
-          ::NewRelic::Agent.logger.error "Error running task in Agent Worker Loop:", e
         end
       end
     end

@@ -70,13 +70,13 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
     assert done
   end
 
-  class BadBoy < StandardError; end
+  class Supernova < StandardError; end
 
   def test_task_error__exception
     expects_logging(:error, any_parameters)
     @worker_loop.run(0) do
       @worker_loop.stop
-      raise BadBoy, "oops"
+      raise Supernova, "oops"
     end
   end
 
@@ -86,6 +86,19 @@ class NewRelic::Agent::WorkerLoopTest < Test::Unit::TestCase
     @worker_loop.run(0) do
       @worker_loop.stop
       raise NewRelic::Agent::ServerError, "Runtime Error Test"
+    end
+  end
+
+  def test_worker_loop_propagates_errors_given_the_option
+    @worker_loop = NewRelic::Agent::WorkerLoop.new(
+      :limit => 2,
+      :propagate_errors => true
+    )
+
+    assert_raises Supernova do
+      @worker_loop.run(0) do
+        raise Supernova
+      end
     end
   end
 
