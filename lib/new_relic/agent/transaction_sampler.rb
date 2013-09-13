@@ -8,6 +8,7 @@ require 'new_relic/agent/transaction_sample_builder'
 require 'new_relic/agent/transaction/developer_mode_sample_buffer'
 require 'new_relic/agent/transaction/force_persist_sample_buffer'
 require 'new_relic/agent/transaction/slowest_sample_buffer'
+require 'new_relic/agent/transaction/xray_sample_buffer'
 
 module NewRelic
   module Agent
@@ -25,13 +26,15 @@ module NewRelic
         def notice_scope_empty(*args); end
       end
 
-      attr_reader :last_sample, :dev_mode_sample_buffer, :sample_buffers
+      attr_reader :last_sample, :dev_mode_sample_buffer, :xray_sample_buffer
 
       def initialize
         @dev_mode_sample_buffer = NewRelic::Agent::Transaction::DeveloperModeSampleBuffer.new
+        @xray_sample_buffer = NewRelic::Agent::Transaction::XraySampleBuffer.new
 
         @sample_buffers = []
         @sample_buffers << @dev_mode_sample_buffer
+        @sample_buffers << @xray_sample_buffer
         @sample_buffers << NewRelic::Agent::Transaction::SlowestSampleBuffer.new
         @sample_buffers << NewRelic::Agent::Transaction::ForcePersistSampleBuffer.new
 
@@ -85,7 +88,7 @@ module NewRelic
       # traced scope
       def notice_pop_scope(scope, time = Time.now)
         return unless builder
-        raise "frozen already???" if builder.sample.frozen?
+        raise "finished already???" if builder.sample.finished
         builder.trace_exit(scope, time.to_f)
       end
 
@@ -231,80 +234,49 @@ module NewRelic
         params.each { |k,v| builder.current_segment[k] = v }
       end
 
-      # Returns an array of the slowest sample + force persisted samples
-      def add_samples_to(result)
-        result.concat(harvest_from_sample_buffers)
-        result.compact!
-        choose_slowest_and_forced_samples(result)
+      # Gather transaction traces that we'd like to transmit to the server.
+      # choose_samples is responsible for determining the contents of that
+      # transmission, along with limits and ordering.
+      def harvest(previous=[])
+        return [] if !enabled?
+
+        # If no unsent transactions from last time, we explicitly pass nil!
+        previous ||= []
+
+        @samples_lock.synchronize do
+          @last_sample = nil
+          choose_samples(previous)
+        end
       end
 
-      def choose_slowest_and_forced_samples(result)
-        slowest_sample = find_slowest_sample(result)
+      # Runs previously untransmitted samples into buffers, then chooses what
+      # to send based on each buffer's internal logic
+      def choose_samples(previous_samples)
+        append_previous_samples_to_buffers(previous_samples)
+        harvest_from_sample_buffers
+      end
 
-        result = select_forced(result)
-        result << slowest_sample unless slowest_sample.nil?
-        result.uniq
+      # Previous samples are added to buffers to enforce limiting rules
+      def append_previous_samples_to_buffers(previous_samples)
+        @sample_buffers.each do |buffer|
+          buffer.store_previous(previous_samples)
+        end
       end
 
       def harvest_from_sample_buffers
-        # Was using map + flatten, but ran into mocking issues on 1.9.2 :/
+        # map + flatten hit mocking issues calling to_ary on 1.9.2.  We only
+        # want a single level flatten anyway, but, as you probably already
+        # know, Ruby 1.8.6 :/
         result = []
         @sample_buffers.each {|buffer| result.concat(buffer.harvest_samples)}
-        result
-      end
-
-      def select_unforced(samples)
-        samples.select {|sample| !sample.force_persist}
-      end
-
-      def select_forced(samples)
-        samples - select_unforced(samples)
-      end
-
-      def find_slowest_sample(samples)
-        select_unforced(samples).max {|a,b| a.duration <=> b.duration}
-      end
-
-      # get the set of collected samples, merging into previous samples,
-      # and clear the collected sample list. Truncates samples to a
-      # specified segment_limit to save memory and bandwith
-      # transmitting samples to the server.
-      def harvest(previous=[])
-        return [] if !enabled?
-        result = Array(previous)
-
-        @samples_lock.synchronize do
-          result = add_samples_to(result)
-          @last_sample = nil
-        end
-
-        # Clamp the number of TTs we'll keep in memory and send
-        result = clamp_number_tts(result, 20) if result.length > 20
-        result
-      end
-
-      # JON - THIS CODE NEEDS A UNIT TEST
-      def clamp_number_tts(tts, limit)
-        tts.sort! do |a,b|
-          if a.force_persist && b.force_persist
-            b.duration <=> a.duration
-          elsif a.force_persist
-            -1
-          elsif b.force_persist
-            1
-          else
-            b.duration <=> a.duration
-          end
-        end
-
-        tts[0..(limit-1)]
+        result.uniq
       end
 
       # reset samples without rebooting the web server (used by dev mode)
       def reset!
         @samples_lock.synchronize do
-          @sample_buffers.each { |sample_buffer| sample_buffer.reset! }
           @last_sample = nil
+          @sample_buffers.each { |sample_buffer| sample_buffer.reset! }
         end
       end
 

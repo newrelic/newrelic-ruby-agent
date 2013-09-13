@@ -31,6 +31,19 @@ class CoerceTest < Test::Unit::TestCase
     int("not valid", "HERE")
   end
 
+  def test_int_coerce_or_nil
+    assert_equal 1, int_or_nil(1)
+    assert_equal 1, int_or_nil("1")
+    assert_equal 1, int_or_nil(1.0)
+    assert_equal 1, int_or_nil(Rational(1, 1))
+    assert_equal nil, int_or_nil("invalid")
+    assert_equal nil, int_or_nil(nil)
+  end
+
+  def test_int_or_nil_coerce_logs_with_context
+    expects_logging(:warn, all_of(includes("HERE"), includes("Integer")), anything)
+    int_or_nil("not valid", "HERE")
+  end
 
   def test_float_coerce
     assert_equal 1.0, float(1.0)

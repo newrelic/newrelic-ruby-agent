@@ -8,13 +8,17 @@ module NewRelic
   module Agent
     class Transaction
       class SlowestSampleBuffer < TransactionSampleBuffer
+
+        MAX_SAMPLES = 1
+
         def max_samples
-          1
+          MAX_SAMPLES
         end
 
         def allow_sample?(sample)
           sample.threshold && sample.duration >= sample.threshold
         end
+
       end
     end
   end

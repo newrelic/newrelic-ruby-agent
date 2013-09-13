@@ -17,6 +17,14 @@ module NewRelic
       0
     end
 
+    def int_or_nil(value, context=nil)
+      return nil if value.nil?
+      Integer(value)
+    rescue => error
+      log_failure(value, Integer, context, error)
+      nil
+    end
+
     def float(value, context=nil)
       result = Float(value)
       raise "Value #{result.inspect} is not finite." unless result.finite?

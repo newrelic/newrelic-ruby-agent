@@ -178,6 +178,13 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
     assert(s.timestamp.instance_of?(Float), "s.timestamp should be a Float, but is #{s.timestamp.class.inspect}")
   end
 
+  def test_xray_session_id
+    @t.xray_session_id = 123
+    s = @t.prepare_to_send
+    assert_equal(123, s.xray_session_id)
+  end
+
+
   def test_count_segments
     transaction = run_sample_trace_on(NewRelic::Agent::TransactionSampler.new) do |sampler|
       sampler.notice_push_scope "level0"
@@ -221,21 +228,31 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
                       (@t.duration * 1000).round,
                       @t.params[:path], @t.params[:uri],
                       trace_tree,
-                      @t.guid, nil, !!@t.force_persist]
+                      @t.guid, nil, !!@t.force_persist, @t.xray_session_id]
 
     assert_equal expected_array, @t.to_collector_array(@marshaller.default_encoder)
+  end
+
+  FORCE_PERSIST_POSITION = 7
+
+  def test_to_collector_array_forces_xrays
+    @t.force_persist = false
+    @t.xray_session_id = 123
+    result = @t.to_collector_array(@marshaller.default_encoder)
+    assert_equal true, result[FORCE_PERSIST_POSITION]
   end
 
   def test_to_collector_array_with_bad_values
     transaction = NewRelic::TransactionSample.new(nil)
     transaction.root_segment.end_trace(Rational(10, 1))
+    transaction.xray_session_id = "booooooo"
 
     expected = [
       0, 10_000,
       nil, nil,
       trace_tree(transaction),
       transaction.guid,
-      nil, false]
+      nil, false, nil]
 
     assert_equal expected, transaction.to_collector_array(@marshaller.default_encoder)
   end

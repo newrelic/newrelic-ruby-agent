@@ -25,6 +25,10 @@ module NewRelic
           deactivate_sessions(incoming_ids)
         end
 
+        def session_id_for_transaction_name(name)
+          sessions.keys.find { |id| sessions[id].key_transaction_name == name }
+        end
+
 
         private
 

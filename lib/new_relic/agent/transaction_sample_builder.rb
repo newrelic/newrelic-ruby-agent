@@ -100,10 +100,10 @@ module NewRelic
       end
 
       def finish_trace(time=Time.now.to_f, custom_params={})
-        # This should never get called twice, but in a rare case that we can't reproduce in house it does.
-        # log forensics and return gracefully
-        if @sample.frozen?
-          ::NewRelic::Agent.logger.error "Unexpected double-freeze of Transaction Trace Object: \n#{@sample.to_s}"
+        # Should never get called twice, but in a rare case that we can't
+        # reproduce in house it does.  log forensics and return gracefully
+        if @sample.finished
+          ::NewRelic::Agent.logger.error "Unexpected double-finish_trace of Transaction Trace Object: \n#{@sample.to_s}"
           return
         end
         @sample.root_segment.end_trace(time.to_f - @sample_start)
@@ -112,7 +112,7 @@ module NewRelic
 
         @sample.force_persist = sample.force_persist_sample?
         @sample.threshold = transaction_trace_threshold
-        @sample.freeze
+        @sample.finished = true
         @current_segment = nil
       end
 
@@ -139,10 +139,6 @@ module NewRelic
         depth
       end
 
-      def freeze
-        @sample.freeze unless sample.frozen?
-      end
-
       def set_profile(profile)
         @sample.profile = profile
       end
@@ -159,7 +155,7 @@ module NewRelic
       end
 
       def set_transaction_name(name)
-        @sample.params[:path] = name
+        @sample.transaction_name = name
       end
 
       def set_transaction_cpu_time(cpu_time)

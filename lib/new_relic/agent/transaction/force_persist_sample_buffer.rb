@@ -8,13 +8,17 @@ module NewRelic
   module Agent
     class Transaction
       class ForcePersistSampleBuffer < TransactionSampleBuffer
+
+        MAX_SAMPLES = 10
+
         def max_samples
-          15
+          MAX_SAMPLES
         end
 
         def allow_sample?(sample)
           sample.force_persist
         end
+
       end
     end
   end

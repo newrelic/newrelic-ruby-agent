@@ -34,24 +34,52 @@ module NewRelic
 
         def store(sample)
           return unless enabled?
-          @samples << sample if allow_sample?(sample)
-          truncate_samples
-        end
-
-        def sort_for_truncation
-          @default_sort_for_truncation ||= Proc.new { |s| s.duration }
-        end
-
-        def truncate_samples
-          if @samples.length > max_samples
-            @samples = @samples.sort_by(&sort_for_truncation) unless sort_for_truncation.nil?
-            @samples = @samples.last(max_samples)
+          if allow_sample?(sample)
+            add_sample(sample)
+            truncate_samples_if_needed
           end
         end
 
+        def store_previous(previous_samples)
+          return unless enabled?
+          previous_samples.each do |sample|
+            add_sample(sample) if allow_sample?(sample)
+          end
+          truncate_samples_if_needed
+        end
+
+        def truncate_samples_if_needed
+          truncate_samples if full?
+        end
+
+        def full?
+          @samples.length >= max_samples
+        end
+
+        # Our default truncation strategy is to keep max_samples worth of the
+        # longest samples. Override this method for alternate behavior.
+        #
+        # This doesn't use the more convenient #last and #sort_by to avoid
+        # additional array allocations (and abundant alliteration)
+        def truncate_samples
+          @samples.sort!{|a,b| a.duration <=> b.duration}
+          @samples.slice!(0..-(max_samples + 1))
+        end
+
+        # When pushing a scope different sample buffers potentially want to
+        # know about what's happening to annotate the incoming segments
         def visit_segment(*)
           # no-op
         end
+
+        private
+
+        # If a buffer needs to modify an added sample, override this method.
+        # Bounds checking, allowing samples and truncation belongs elsewhere.
+        def add_sample(sample)
+          @samples << sample
+        end
+
       end
     end
   end
