@@ -24,6 +24,7 @@ module NewRelic
           @profile_id = arguments.fetch('profile_id', -1)
           @duration = arguments.fetch('duration', 120)
           @interval = arguments.fetch('sample_period', 0.1)
+          @xray_id = arguments.fetch('x_ray_id', nil)
           @finished = false
 
           @traces = {
@@ -80,7 +81,7 @@ module NewRelic
 
         include NewRelic::Coerce
 
-        def to_collector_array(encoder)
+        def generate_traces
           truncate_to_node_count!(THREAD_PROFILER_NODES)
 
           traces = {
@@ -89,16 +90,19 @@ module NewRelic
             "AGENT" => @traces[:agent].to_array,
             "BACKGROUND" => @traces[:background].to_array
           }
+        end
 
-          [[
-            int(@profile_id),
-            float(self.created_at),
-            float(self.last_aggregated_at),
-            int(@poll_count),
-            string(encoder.encode(traces)),
-            int(@sample_count),
-            0
-          ]]
+        def to_collector_array(encoder)
+          result = []
+          result << int(@profile_id)
+          result << float(self.created_at)
+          result << float(self.last_aggregated_at)
+          result << int(@poll_count)
+          result << string(encoder.encode(generate_traces))
+          result << int(@sample_count)
+          result << 0 # runnable thread count, which we don't track
+          result << int(@xray_id) unless @xray_id.nil?
+          [result]
         end
 
         def finished?

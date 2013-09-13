@@ -78,7 +78,9 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
         assert_equal [], @profile.traces[:other].children.first.children
       end
 
-      def build_well_known_trace
+      def build_well_known_trace(args={})
+        @profile = ThreadProfile.new(create_agent_command(args))
+
         trace = ["thread_profiler.py:1:in `<module>'"]
         10.times { @profile.aggregate(trace, :other) }
 
@@ -90,25 +92,24 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
           "thread_profiler.py:103:in `_run_profiler'",
           "thread_profiler.py:165:in `collect_thread_stacks'"]
           10.times { @profile.aggregate(trace, :agent) }
+
+        @profile.increment_poll_count
       end
 
       WELL_KNOWN_TRACE_ENCODED = "eJy9klFPwjAUhf/LfW7WDQTUGBPUiYkGdAxelqXZRpGGrm1uS8xi/O924JQX\n9Un7dm77ndN7c19hlt7FCZxnWQZug7xYMYN6LSTHwDRA4KLWq53kl0CinEQh\nCUmW5zmBJH5axPPUk16MJ/E0/cGk0lLyyrGPS+uKamu943DQeX5HMtypz5In\nwv6vRCeZ1NoAGQ2PCDpvrOM1fRAlFtjQWyxq/qJxa+lj4zZaBeuuQpccrdDK\n0l4wolKU1OxftOoQLNTzIdL/EcjJafjnQYyVWjvrsDBMKNVOZBD1/jO27fPs\naBG+DoGr8fX9JJktpjftVry9A9unzGo=\n"
 
       def test_to_collector_array
-        build_well_known_trace
-        @profile.instance_variable_set(:@profile_id, "-1")
+        build_well_known_trace('profile_id' => 333)
         @profile.stubs(:created_at).returns(1350403938892.524)
         @profile.stubs(:last_aggregated_at).returns(1350403939904.375)
-        @profile.instance_variable_set(:@poll_count, 10)
-        @profile.instance_variable_set(:@sample_count, 2)
 
         expected = [[
-          -1,
+          333,
           1350403938892.524,
           1350403939904.375,
-          10,
+          1,
           WELL_KNOWN_TRACE_ENCODED,
-          2,
+          20,
           0
         ]]
 
@@ -116,9 +117,28 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
         assert_equal expected, @profile.to_collector_array(marshaller.default_encoder)
       end
 
+      def test_to_collector_array_with_xray_session_id
+        build_well_known_trace('profile_id' => -1, 'x_ray_id' => 4242)
+        @profile.stubs(:created_at).returns(1350403938892.524)
+        @profile.stubs(:last_aggregated_at).returns(1350403939904.375)
+
+        expected = [[
+          -1,
+          1350403938892.524,
+          1350403939904.375,
+          1,
+          WELL_KNOWN_TRACE_ENCODED,
+          20,
+          0,
+          4242
+        ]]
+
+        marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+        assert_equal expected, @profile.to_collector_array(marshaller.default_encoder)
+      end
+
       def test_to_collector_array_with_bad_values
-        build_well_known_trace
-        @profile.instance_variable_set(:@profile_id, "-1")
+        build_well_known_trace(:profile_id => -1)
         @profile.stubs(:created_at).returns('')
         @profile.stubs(:last_aggregated_at).returns(nil)
         @profile.instance_variable_set(:@poll_count, Rational(10, 1))
