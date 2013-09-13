@@ -33,7 +33,7 @@ module NewRelic
         end
 
         def start(agent_command)
-          @profile = Threading::ThreadProfile.new(agent_command)
+          @profile = Threading::ThreadProfile.new(agent_command.arguments)
           profile_agent_code = agent_command.arguments.fetch('profile_agent_code', false)
           @thread_profiling_service.profile_agent_code = profile_agent_code
           @thread_profiling_service.add_client(@profile)

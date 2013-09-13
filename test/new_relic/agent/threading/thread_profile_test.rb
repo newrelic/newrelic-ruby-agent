@@ -23,7 +23,7 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
           "irb:12:in `<main>'"
         ]
 
-        @profile = ThreadProfile.new(create_agent_command)
+        @profile = ThreadProfile.new
 
         # Run the worker_loop for the thread profile based on two iterations
         # This takes time fussiness out of the equation and keeps the tests stable
@@ -36,7 +36,7 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
 
       def test_finished
         freeze_time
-        @profile = ThreadProfile.new(create_agent_command('duration' => 7.0))
+        @profile = ThreadProfile.new('duration' => 7.0)
         assert !@profile.finished?
 
         advance_time(5.0)
@@ -79,7 +79,7 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
       end
 
       def build_well_known_trace(args={})
-        @profile = ThreadProfile.new(create_agent_command(args))
+        @profile = ThreadProfile.new(args)
 
         trace = ["thread_profiler.py:1:in `<module>'"]
         10.times { @profile.aggregate(trace, :other) }
@@ -178,7 +178,7 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
 
       def test_aggregate_updates_created_at_timestamp
         expected = freeze_time
-        @profile = ThreadProfile.new(create_agent_command)
+        @profile = ThreadProfile.new
 
         @profile.aggregate(@single_trace, :request)
         t0 = @profile.created_at

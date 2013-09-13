@@ -19,12 +19,11 @@ module NewRelic
           :duration, :poll_count, :sample_count, :failure_count,
           :created_at, :last_aggregated_at
 
-        def initialize(agent_command)
-          arguments = agent_command.arguments
-          @profile_id = arguments.fetch('profile_id', -1)
-          @duration = arguments.fetch('duration', 120)
-          @interval = arguments.fetch('sample_period', 0.1)
-          @xray_id = arguments.fetch('x_ray_id', nil)
+        def initialize(command_arguments={})
+          @profile_id = command_arguments.fetch('profile_id', -1)
+          @duration = command_arguments.fetch('duration', 120)
+          @interval = command_arguments.fetch('sample_period', 0.1)
+          @xray_id = command_arguments.fetch('x_ray_id', nil)
           @finished = false
 
           @traces = {
