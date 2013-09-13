@@ -1,5 +1,13 @@
 # New Relic Ruby Agent Release Notes #
 
+## v3.6.8 ##
+
+  * CPU metrics re-enabled for JRuby >= 1.7.0
+
+  To work around a JRuby bug, the Ruby agent stopped gathering CPU metrics on
+  that platform.  With the bug fixed, the agent can gather those metrics again.
+  Thanks Bram de Vries for the contribution!
+
 ## v3.6.7 ##
 
   * Resque-pool support
