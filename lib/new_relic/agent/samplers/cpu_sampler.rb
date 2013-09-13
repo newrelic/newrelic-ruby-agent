@@ -36,9 +36,12 @@ module NewRelic
         end
 
         def self.supported_on_this_platform?
-          # Process.times on JRuby reports wall clock elapsed time,
-          # not actual cpu time used, so we cannot use this sampler there.
-          not defined?(JRuby)
+          # Process.times on JRuby < 1.7.0 reports wall clock elapsed time,
+          # not actual cpu time used, so this sampler can only be used on JRuby >= 1.7.0.
+          if defined?(JRuby)
+            return JRUBY_VERSION >= '1.7.0'
+          end
+          true
         end
 
         def poll
