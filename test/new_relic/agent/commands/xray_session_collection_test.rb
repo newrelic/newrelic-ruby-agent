@@ -3,10 +3,10 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
-require 'new_relic/agent/commands/xray_sessions'
+require 'new_relic/agent/commands/xray_session_collection'
 
 module NewRelic::Agent::Commands
-  class XraySessionsTest < Test::Unit::TestCase
+  class XraySessionCollectionTest < Test::Unit::TestCase
 
     attr_reader :sessions, :service
 
@@ -33,7 +33,7 @@ module NewRelic::Agent::Commands
 
     def setup
       @service  = stub
-      @sessions = NewRelic::Agent::Commands::XraySessions.new(@service)
+      @sessions = NewRelic::Agent::Commands::XraySessionCollection.new(@service)
 
       @service.stubs(:get_xray_metadata).with([FIRST_ID]).returns([FIRST_METADATA])
       @service.stubs(:get_xray_metadata).with([SECOND_ID]).returns([SECOND_METADATA])

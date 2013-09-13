@@ -849,13 +849,13 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
       "key_transaction_name" => name
     })
 
-    xray_sessions = NewRelic::Agent.instance.agent_command_router.xray_sessions
-    xray_sessions.send(:add_session, xray_session)
-    @sampler.xray_sample_buffer.xray_sessions = xray_sessions
+    xray_session_collection = NewRelic::Agent.instance.agent_command_router.xray_session_collection
+    xray_session_collection.send(:add_session, xray_session)
+    @sampler.xray_sample_buffer.xray_session_collection = xray_session_collection
 
     yield
   ensure
-    xray_sessions.send(:remove_session_by_id, xray_session_id)
+    xray_session_collection.send(:remove_session_by_id, xray_session_id)
   end
 
   def run_long_sample_trace(n)

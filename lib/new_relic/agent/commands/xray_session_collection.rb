@@ -8,7 +8,7 @@ require 'new_relic/agent/commands/xray_session'
 module NewRelic
   module Agent
     module Commands
-      class XraySessions
+      class XraySessionCollection
         extend Forwardable
 
         attr_reader :sessions

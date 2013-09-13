@@ -9,7 +9,7 @@
 # like the ThreadProfiler, so it's simpler to just keep it together here.
 
 require 'new_relic/agent/commands/agent_command'
-require 'new_relic/agent/commands/xray_sessions'
+require 'new_relic/agent/commands/xray_session_collection'
 require 'new_relic/agent/threading/thread_profiling_service'
 
 module NewRelic
@@ -18,20 +18,20 @@ module NewRelic
       class AgentCommandRouter
         attr_reader :handlers, :new_relic_service
 
-        attr_accessor :thread_profiler, :xray_sessions
+        attr_accessor :thread_profiler, :xray_session_collection
 
         def initialize(new_relic_service)
           @new_relic_service = new_relic_service
           @thread_profiling_service = Threading::ThreadProfilingService.new
 
           @thread_profiler = ThreadProfiler.new(@thread_profiling_service)
-          @xray_sessions = XraySessions.new(@new_relic_service)
+          @xray_session_collection = XraySessionCollection.new(@new_relic_service)
 
           @handlers    = Hash.new { |*| Proc.new { |cmd| self.unrecognized_agent_command(cmd) } }
 
           @handlers['start_profiler'] = Proc.new { |cmd| thread_profiler.handle_start_command(cmd) }
           @handlers['stop_profiler']  = Proc.new { |cmd| thread_profiler.handle_stop_command(cmd) }
-          @handlers['active_xray_sessions'] = Proc.new { |cmd| xray_sessions.handle_active_xray_sessions(cmd) }
+          @handlers['active_xray_sessions'] = Proc.new { |cmd| xray_session_collection.handle_active_xray_sessions(cmd) }
         end
 
         def check_for_and_handle_agent_commands
