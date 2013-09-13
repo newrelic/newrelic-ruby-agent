@@ -85,7 +85,7 @@ module NewRelic
               end
             end
 
-            @clients.map(&:increment_poll_count)
+            @clients.each(&:increment_poll_count)
           end
 
           worker_loop.period = minimum_client_period
