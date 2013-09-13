@@ -77,7 +77,7 @@ module NewRelic
         string(@guid),
         nil,
         forced?,
-        xray_session_id
+        int_or_nil(xray_session_id)
       ]
     end
 
@@ -98,7 +98,7 @@ module NewRelic
     end
 
     def forced?
-      !!@force_persist || !xray_session_id.nil?
+      !!@force_persist || !int_or_nil(xray_session_id).nil?
     end
 
     # relative_timestamp is seconds since the start of the transaction

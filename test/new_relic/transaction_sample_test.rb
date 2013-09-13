@@ -245,6 +245,7 @@ class NewRelic::TransactionSampleTest < Test::Unit::TestCase
   def test_to_collector_array_with_bad_values
     transaction = NewRelic::TransactionSample.new(nil)
     transaction.root_segment.end_trace(Rational(10, 1))
+    transaction.xray_session_id = "booooooo"
 
     expected = [
       0, 10_000,
