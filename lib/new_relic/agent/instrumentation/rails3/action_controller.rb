@@ -132,7 +132,7 @@ end
 DependencyDetection.defer do
   @name = :rails31_view
 
-  # We can't be sure that this wil work with future versions of Rails 3.
+  # We can't be sure that this will work with future versions of Rails 3.
   # Currently enabled for Rails 3.1 and 3.2
   depends_on do
     defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i == 3 && ([1,2].member?(::Rails::VERSION::MINOR.to_i))
@@ -155,8 +155,8 @@ DependencyDetection.defer do
         # This is needed for rails 3.2 compatibility
         @details = extract_details(options) if respond_to? :extract_details, true
         identifier = determine_template(options) ? determine_template(options).identifier : nil
-        str = "View/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.template_metric(identifier, options)}/Rendering"
-        trace_execution_scoped str do
+        scope_name = "View/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.template_metric(identifier, options)}/Rendering"
+        trace_execution_scoped scope_name do
           render_without_newrelic(context, options)
         end
       end
@@ -168,17 +168,16 @@ DependencyDetection.defer do
     ActionView::PartialRenderer.class_eval do
       include NewRelic::Agent::MethodTracer
 
-      def render_with_newrelic(*args, &block)
-        setup(*args, &block)
-        identifier = find_partial ? find_partial.identifier : nil
-        str = "View/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.template_metric(identifier)}/Partial"
-        trace_execution_scoped str do
-          render_without_newrelic(*args, &block)
+      def instrument_with_newrelic(name, payload = {}, &block)
+        identifier = payload[:identifier]
+        scope_name = "View/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.template_metric(identifier)}/Partial"
+        trace_execution_scoped(scope_name) do
+          instrument_without_newrelic(name, payload, &block)
         end
       end
 
-      alias_method :render_without_newrelic, :render
-      alias_method :render, :render_with_newrelic
+      alias_method :instrument_without_newrelic, :instrument
+      alias_method :instrument, :instrument_with_newrelic
     end
   end
 end

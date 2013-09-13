@@ -5,6 +5,10 @@
 require 'new_relic/agent'
 require 'new_relic/control'
 require 'new_relic/agent/transaction_sample_builder'
+require 'new_relic/agent/transaction/developer_mode_sample_buffer'
+require 'new_relic/agent/transaction/force_persist_sample_buffer'
+require 'new_relic/agent/transaction/slowest_sample_buffer'
+require 'new_relic/agent/transaction/xray_sample_buffer'
 
 module NewRelic
   module Agent
@@ -22,23 +26,17 @@ module NewRelic
         def notice_scope_empty(*args); end
       end
 
-      attr_accessor :random_sampling, :sampling_rate
-      attr_accessor :slow_capture_threshold
-      attr_reader :samples, :last_sample, :disabled
+      attr_reader :last_sample, :dev_mode_sample_buffer, :xray_sample_buffer
 
       def initialize
+        @dev_mode_sample_buffer = NewRelic::Agent::Transaction::DeveloperModeSampleBuffer.new
+        @xray_sample_buffer = NewRelic::Agent::Transaction::XraySampleBuffer.new
 
-        # @samples is an array of recent samples up to @max_samples in
-        # size - it's only used by developer mode
-        @samples = []
-        @force_persist = []
-        @max_samples = 100
-
-        # @harvest_count is a count of harvests used for random
-        # sampling - we pull 1 @random_sample in every @sampling_rate harvests
-        @harvest_count = 0
-        @random_sample = nil
-        @sampling_rate = Agent.config[:sample_rate]
+        @sample_buffers = []
+        @sample_buffers << @dev_mode_sample_buffer
+        @sample_buffers << @xray_sample_buffer
+        @sample_buffers << NewRelic::Agent::Transaction::SlowestSampleBuffer.new
+        @sample_buffers << NewRelic::Agent::Transaction::ForcePersistSampleBuffer.new
 
         # This lock is used to synchronize access to the @last_sample
         # and related variables. It can become necessary on JRuby or
@@ -61,24 +59,9 @@ module NewRelic
         end
       end
 
-      # Returns the current sample id, delegated from `builder`
-      def current_sample_id
-        b=builder
-        b and b.sample_id
-      end
-
       def enabled?
         Agent.config[:'transaction_tracer.enabled'] || Agent.config[:developer_mode]
       end
-
-      # Set with an integer value n, this takes one in every n
-      # harvested samples. It also resets the harvest count to a
-      # random integer between 0 and (n-1)
-      def sampling_rate=(val)
-        @sampling_rate = val.to_i
-        @harvest_count = rand(val.to_i).to_i
-      end
-
 
       # Creates a new transaction sample builder, unless the
       # transaction sampler is disabled. Takes a time parameter for
@@ -97,43 +80,15 @@ module NewRelic
         return unless builder
 
         segment = builder.trace_entry(time.to_f)
-
-        capture_segment_trace if Agent.config[:developer_mode]
-
+        @sample_buffers.each { |sample_buffer| sample_buffer.visit_segment(segment) }
         return segment
-      end
-
-      # in developer mode, capture the stack trace with the segment.
-      # this is cpu and memory expensive and therefore should not be
-      # turned on in production mode
-      def capture_segment_trace
-        return unless Agent.config[:developer_mode]
-        segment = builder.current_segment
-        if segment
-          # Strip stack frames off the top that match /new_relic/agent/
-          trace = caller
-          while trace.first =~/\/lib\/new_relic\/agent\//
-            trace.shift
-          end
-
-          trace = trace[0..39] if trace.length > 40
-          segment[:backtrace] = trace
-        end
-      end
-
-      # Defaults to zero, otherwise delegated to the transaction
-      # sample builder
-      def scope_depth
-        return 0 unless builder
-
-        builder.scope_depth
       end
 
       # Informs the transaction sample builder about the end of a
       # traced scope
       def notice_pop_scope(scope, time = Time.now)
         return unless builder
-        raise "frozen already???" if builder.sample.frozen?
+        raise "finished already???" if builder.sample.finished
         builder.trace_exit(scope, time.to_f)
       end
 
@@ -161,72 +116,9 @@ module NewRelic
         end
       end
 
-      # Samples can be stored in three places: the random sample
-      # variable, when random sampling is active, the developer mode
-      # @samples array, and the @slowest_sample variable if it is
-      # slower than the current occupant of that slot
       def store_sample(sample)
-        sampler_methods = [ :store_slowest_sample ]
-        if Agent.config[:developer_mode]
-          sampler_methods << :store_sample_for_developer_mode
-        end
-        if Agent.config[:'transaction_tracer.random_sample']
-          sampler_methods << :store_random_sample
-        end
-
-        sampler_methods.each{|sym| send(sym, sample) }
-
-        if sample.force_persist_sample?
-          store_force_persist(sample)
-        end
-      end
-
-      # Only active when random sampling is true - this is very rarely
-      # used. Always store the most recent sample so that random
-      # sampling can pick a few of the samples to store, upon harvest
-      def store_random_sample(sample)
-        @random_sample = sample if Agent.config[:'transaction_tracer.random_sample']
-      end
-
-      def store_force_persist(sample)
-        @force_persist << sample
-
-        # WARNING - this clamp should be configurable
-        if @force_persist.length > 15
-          @force_persist.sort! {|a,b| b.duration <=> a.duration}
-          @force_persist = @force_persist[0..14]
-        end
-      end
-
-      # Samples take up a ton of memory, so we only store a lot of
-      # them in developer mode - we truncate to @max_samples
-      def store_sample_for_developer_mode(sample)
-        return unless Agent.config[:developer_mode]
-        @samples = [] unless @samples
-        @samples << sample
-        truncate_samples
-      end
-
-      # Sets @slowest_sample to the passed in sample if it is slower
-      # than the current sample in @slowest_sample
-      def store_slowest_sample(sample)
-        if slowest_sample?(@slowest_sample, sample) && sample.threshold &&
-            sample.duration >= sample.threshold
-          @slowest_sample = sample
-        end
-      end
-
-      # Checks to see if the old sample exists, or if its duration is
-      # less than the new sample
-      def slowest_sample?(old_sample, new_sample)
-        old_sample.nil? || (new_sample.duration > old_sample.duration)
-      end
-
-      # Smashes the @samples array down to the length of @max_samples
-      # by taking the last @max_samples elements of the array
-      def truncate_samples
-        if @samples.length > @max_samples
-          @samples = @samples[-@max_samples..-1]
+        @sample_buffers.each do |sample_buffer|
+          sample_buffer.store(sample)
         end
       end
 
@@ -329,8 +221,7 @@ module NewRelic
         statement
       end
 
-      # Adds non-sql metadata to a segment - generally the memcached
-      # key
+      # Adds non-sql metadata to a segment - generally the memcached key
       #
       # duration is seconds, float value.
       def notice_nosql(key, duration)
@@ -343,96 +234,50 @@ module NewRelic
         params.each { |k,v| builder.current_segment[k] = v }
       end
 
-      # Every 1/n harvests, adds the most recent sample to the harvest
-      # array if it exists. Makes sure that the random sample is not
-      # also the slowest sample for this harvest by `uniq!`ing the
-      # result array
-      #
-      # random sampling is very, very seldom used
-      def add_random_sample_to(result)
-        return unless @random_sample &&
-          Agent.config[:sample_rate] && Agent.config[:sample_rate].to_i > 0
-        @harvest_count += 1
-        if (@harvest_count.to_i % Agent.config[:sample_rate].to_i) == 0
-          result << @random_sample if @random_sample
-          @harvest_count = 0
+      # Gather transaction traces that we'd like to transmit to the server.
+      # choose_samples is responsible for determining the contents of that
+      # transmission, along with limits and ordering.
+      def harvest(previous=[])
+        return [] if !enabled?
+
+        # If no unsent transactions from last time, we explicitly pass nil!
+        previous ||= []
+
+        @samples_lock.synchronize do
+          @last_sample = nil
+          choose_samples(previous)
         end
-        nil # don't assume this method returns anything
       end
 
-      def add_force_persist_to(result)
-        result.concat(@force_persist)
-        @force_persist = []
+      # Runs previously untransmitted samples into buffers, then chooses what
+      # to send based on each buffer's internal logic
+      def choose_samples(previous_samples)
+        append_previous_samples_to_buffers(previous_samples)
+        harvest_from_sample_buffers
       end
 
-      # Returns an array of slow samples, with either one or two
-      # elements - one element unless random sampling is enabled. The
-      # sample returned will be the slowest sample among those
-      # available during this harvest
-      def add_samples_to(result)
-        # pull out force persist
-        force_persist = result.select {|sample| sample.force_persist} || []
-        result.reject! {|sample| sample.force_persist}
+      # Previous samples are added to buffers to enforce limiting rules
+      def append_previous_samples_to_buffers(previous_samples)
+        @sample_buffers.each do |buffer|
+          buffer.store_previous(previous_samples)
+        end
+      end
 
-        force_persist.each {|sample| store_force_persist(sample)}
-
-        result << @slowest_sample if @slowest_sample
-
-        result.compact!
-        result = result.sort_by { |x| x.duration }
-        result = result[-1..-1] || []               # take the slowest sample
-
-        add_random_sample_to(result)
-        add_force_persist_to(result)
-
+      def harvest_from_sample_buffers
+        # map + flatten hit mocking issues calling to_ary on 1.9.2.  We only
+        # want a single level flatten anyway, but, as you probably already
+        # know, Ruby 1.8.6 :/
+        result = []
+        @sample_buffers.each {|buffer| result.concat(buffer.harvest_samples)}
         result.uniq
       end
 
-      # get the set of collected samples, merging into previous samples,
-      # and clear the collected sample list. Truncates samples to a
-      # specified segment_limit to save memory and bandwith
-      # transmitting samples to the server.
-      def harvest(previous=[])
-        return [] if !enabled?
-        result = Array(previous)
-
-        @samples_lock.synchronize do
-          result = add_samples_to(result)
-
-          # clear previous transaction samples
-          @slowest_sample = nil
-          @random_sample = nil
-          @last_sample = nil
-        end
-
-        # Clamp the number of TTs we'll keep in memory and send
-        result = clamp_number_tts(result, 20) if result.length > 20
-        result
-      end
-
-      # JON - THIS CODE NEEDS A UNIT TEST
-      def clamp_number_tts(tts, limit)
-        tts.sort! do |a,b|
-          if a.force_persist && b.force_persist
-            b.duration <=> a.duration
-          elsif a.force_persist
-            -1
-          elsif b.force_persist
-            1
-          else
-            b.duration <=> a.duration
-          end
-        end
-
-        tts[0..(limit-1)]
-      end
-
-      # reset samples without rebooting the web server
+      # reset samples without rebooting the web server (used by dev mode)
       def reset!
-        @samples = []
-        @last_sample = nil
-        @random_sample = nil
-        @slowest_sample = nil
+        @samples_lock.synchronize do
+          @last_sample = nil
+          @sample_buffers.each { |sample_buffer| sample_buffer.reset! }
+        end
       end
 
       # Checks to see if the transaction sampler is disabled, if

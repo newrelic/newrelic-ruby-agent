@@ -57,7 +57,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
     def test_listener_merges_transaction_traces
       sampler = NewRelic::Agent.agent.transaction_sampler
       run_sample_trace_on(sampler)
-      NewRelic::Agent.agent.merge_data_from([nil, [sampler.samples], nil])
+      NewRelic::Agent.agent.merge_data_from([nil, [[sampler.last_sample]], nil])
 
       assert_equal(1, NewRelic::Agent.agent.unsent_traces_size)
 
@@ -65,11 +65,9 @@ class NewRelic::Agent::PipeChannelManagerTest < Test::Unit::TestCase
 
       pid = Process.fork do
         NewRelic::Agent.after_fork
-        new_sampler = NewRelic::Agent::TransactionSampler.new
-        sample = run_sample_trace_on(new_sampler)
-        new_sampler.store_force_persist(sample)
         with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-          listener.pipes[667].write(:transaction_traces => new_sampler.harvest([]))
+          sample = run_sample_trace_on(sampler)
+          listener.pipes[667].write(:transaction_traces => sampler.harvest([]))
         end
       end
       Process.wait(pid)

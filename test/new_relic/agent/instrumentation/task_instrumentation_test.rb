@@ -105,7 +105,6 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Test::Unit::Te
   def test_transaction
     run_task_outer(10)
 
-    assert_equal 0, @agent.transaction_sampler.scope_depth, "existing unfinished sample"
     assert_metrics_recorded({
       'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/outer_task'   => { :call_count => 1 },
       'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0' => { :call_count => 2 }
