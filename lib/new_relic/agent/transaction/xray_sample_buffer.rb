@@ -26,13 +26,19 @@ module NewRelic
         end
 
         def allow_sample?(sample)
-          xray_session_id = xray_sessions.session_id_for_transaction_name(sample.transaction_name)
-          if samples.length < max_samples && !!xray_session_id
-            sample.xray_session_id = xray_session_id
-            true
-          else
-            false
-          end
+          !full? && !lookup_session_id(sample).nil?
+        end
+
+
+        private
+
+        def add_sample(sample)
+          super(sample)
+          sample.xray_session_id = lookup_session_id(sample)
+        end
+
+        def lookup_session_id(sample)
+          xray_sessions.session_id_for_transaction_name(sample.transaction_name)
         end
 
       end
