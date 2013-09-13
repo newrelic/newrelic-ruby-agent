@@ -29,11 +29,12 @@ module NewRelic::Agent::Commands
     }
 
     SECOND_ID = 42
-    SECOND_METADATA = {"x_ray_id" => SECOND_ID}
+    SECOND_METADATA = { "x_ray_id" => SECOND_ID }
 
     def setup
       @service  = stub
-      @sessions = NewRelic::Agent::Commands::XraySessionCollection.new(@service)
+      @thread_profiling_service = stub
+      @sessions = NewRelic::Agent::Commands::XraySessionCollection.new(@service, @thread_profiling_service)
 
       @service.stubs(:get_xray_metadata).with([FIRST_ID]).returns([FIRST_METADATA])
       @service.stubs(:get_xray_metadata).with([SECOND_ID]).returns([SECOND_METADATA])
@@ -41,10 +42,38 @@ module NewRelic::Agent::Commands
     end
 
     def test_can_add_sessions
+      @thread_profiling_service.stubs(:add_client)
+
       handle_command_for(FIRST_ID, SECOND_ID)
 
       assert sessions.include?(FIRST_ID)
       assert sessions.include?(SECOND_ID)
+    end
+
+    def _test_adding_sessions_registers_them_as_thread_profiling_clients
+      xray_id = 333
+      xray_metadata = {
+        'x_ray_id'     => xray_id,
+        'run_profiler' => true
+      }
+      @service.stubs(:get_xray_metadata).with([xray_id]).returns([xray_metadata])
+
+      @thread_profiling_service.expects(:add_client).with(instance_of(XraySession))
+      handle_command_for(xray_id)
+    end
+
+    def test_adding_sessions_does_not_register_them_as_thread_profiling_clients_unless_run_profiler_set
+      $debug = true
+      xray_id = 333
+      xray_metadata = {
+        'x_ray_id'     => xray_id,
+        'run_profiler' => false
+      }
+      @service.stubs(:get_xray_metadata).with([xray_id]).returns([xray_metadata])
+
+      @thread_profiling_service.expects(:add_client).never
+      handle_command_for(xray_id)
+      $debug = false
     end
 
     def test_creates_a_session_from_collector_metadata
@@ -62,6 +91,8 @@ module NewRelic::Agent::Commands
     end
 
     def test_defaults_out_properties_for_session_missing_metadata
+      @thread_profiling_service.stubs(:add_client)
+
       handle_command_for(SECOND_ID)
 
       session = sessions[SECOND_ID]
@@ -78,12 +109,14 @@ module NewRelic::Agent::Commands
       # unstub fails on certain mocha/rails versions (rails23 env)
       # replace the service instead to let us expect to never get the call...
       @service = stub
-      @sessions.send(:service=, @service)
+      @sessions.send(:new_relic_service=, @service)
 
       @service.stubs(:get_xray_metadata).with([FIRST_ID]).returns([FIRST_METADATA])
       @service.stubs(:get_xray_metadata).with([SECOND_ID]).returns([SECOND_METADATA])
 
       @service.expects(:get_xray_metadata).with([FIRST_ID, SECOND_ID]).never
+
+      @thread_profiling_service.stubs(:add_client)
 
       handle_command_for(FIRST_ID)
       handle_command_for(FIRST_ID, SECOND_ID)
@@ -132,6 +165,7 @@ module NewRelic::Agent::Commands
     end
 
     def test_removes_inactive_sessions
+      @thread_profiling_service.stubs(:add_client)
 
       handle_command_for(FIRST_ID, SECOND_ID)
       handle_command_for(FIRST_ID)

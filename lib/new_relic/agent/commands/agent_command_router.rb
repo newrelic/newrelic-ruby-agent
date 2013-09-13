@@ -25,7 +25,7 @@ module NewRelic
           @thread_profiling_service = Threading::ThreadProfilingService.new
 
           @thread_profiler = ThreadProfiler.new(@thread_profiling_service)
-          @xray_session_collection = XraySessionCollection.new(@new_relic_service)
+          @xray_session_collection = XraySessionCollection.new(@new_relic_service, @thread_profiling_service)
 
           @handlers    = Hash.new { |*| Proc.new { |cmd| self.unrecognized_agent_command(cmd) } }
 
