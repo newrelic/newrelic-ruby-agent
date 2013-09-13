@@ -131,7 +131,7 @@ class AgentCommandRouterTest < Test::Unit::TestCase
     profile.aggregate(["chunky.rb:42:in `bacon'"], :other)
     profile.stop if opts[:finished]
 
-    agent_commands.thread_profiler.profile = profile
+    agent_commands.thread_profiler_session.profile = profile
     profile
   end
 

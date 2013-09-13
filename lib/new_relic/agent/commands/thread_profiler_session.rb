@@ -9,7 +9,7 @@ module NewRelic
   module Agent
     module Commands
 
-      class ThreadProfiler
+      class ThreadProfilerSession
 
         attr_accessor :profile
 
@@ -22,7 +22,7 @@ module NewRelic
         end
 
         def handle_start_command(agent_command)
-          raise_unsupported_error unless ThreadProfiler.is_supported?
+          raise_unsupported_error unless self.class.is_supported?
           raise_already_started_error if running?
           start(agent_command)
         end

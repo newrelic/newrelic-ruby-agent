@@ -23,7 +23,7 @@ class ThreadProfilingTest < MiniTest::Unit::TestCase
     agent.service.request_timeout = 0.5
     agent.service.agent_id = 666
 
-    @thread_profiler = agent.agent_command_router.thread_profiler
+    @thread_profiler_session = agent.agent_command_router.thread_profiler_session
     @threads = []
   end
 
@@ -103,7 +103,7 @@ class ThreadProfilingTest < MiniTest::Unit::TestCase
 
   def let_it_finish
     Timeout.timeout(5) do
-      until @thread_profiler.finished?
+      until @thread_profiler_session.finished?
         sleep(0.1)
       end
     end

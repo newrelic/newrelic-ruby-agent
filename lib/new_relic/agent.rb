@@ -89,7 +89,7 @@ module NewRelic
     require 'new_relic/agent/stats_engine'
     require 'new_relic/agent/transaction_sampler'
     require 'new_relic/agent/sql_sampler'
-    require 'new_relic/agent/commands/thread_profiler'
+    require 'new_relic/agent/commands/thread_profiler_session'
     require 'new_relic/agent/error_collector'
     require 'new_relic/agent/busy_calculator'
     require 'new_relic/agent/sampler'

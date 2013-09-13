@@ -8,7 +8,7 @@ require 'new_relic/agent/threading/thread_profile'
 require 'new_relic/agent/threading/threaded_test_case'
 require 'new_relic/agent/threading/thread_profiling_client_test'
 
-if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
+if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
 
   module NewRelic::Agent::Threading
     class ThreadProfileTest < ThreadedTestCase
