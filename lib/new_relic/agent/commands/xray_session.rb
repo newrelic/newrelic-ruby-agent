@@ -8,7 +8,8 @@ module NewRelic
       class XraySession
         attr_reader :id, :active
         attr_reader :xray_session_name, :key_transaction_name, :run_profiler,
-                    :requested_trace_count, :duration, :sample_period
+                    :requested_trace_count, :duration, :sample_period,
+                    :thread_profile
 
         alias_method :active?, :active
 
@@ -20,6 +21,10 @@ module NewRelic
           @duration              = raw_session.fetch("duration", 86400)
           @sample_period         = raw_session.fetch("sample_period", 0.1)
           @run_profiler          = raw_session.fetch("run_profiler", true)
+
+          if @run_profiler
+            @thread_profile = NewRelic::Agent::Threading::ThreadProfile.new(raw_session)
+          end
         end
 
         def activate

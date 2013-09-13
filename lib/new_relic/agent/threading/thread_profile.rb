@@ -17,7 +17,7 @@ module NewRelic
 
         attr_reader :profile_id, :traces, :interval,
           :duration, :poll_count, :sample_count, :failure_count,
-          :created_at, :last_aggregated_at
+          :created_at, :last_aggregated_at, :xray_id
 
         def initialize(command_arguments={})
           @profile_id = command_arguments.fetch('profile_id', -1)
