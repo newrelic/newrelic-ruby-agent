@@ -10,7 +10,6 @@ module NewRelic
     # A task is a proc or block with a specified call period in seconds.
     class WorkerLoop
 
-      attr_reader :start_time, :stop_time
       attr_accessor :period
 
       # Optional argument :duration (in seconds) for how long the worker loop runs
@@ -22,8 +21,6 @@ module NewRelic
         @duration = opts[:duration] if opts[:duration]
         @limit = opts[:limit] if opts[:limit]
         @iterations = 0
-        @start_time = nil
-        @stop_time = nil
         @propagate_errors = opts.fetch(:propagate_errors, false)
       end
 
@@ -37,7 +34,6 @@ module NewRelic
       # that runs this worker loop.  This will run the task immediately.
       def run(period=nil, &block)
         now = Time.now
-        @start_time = now
         @deadline = now + @duration if @duration
         @period = period if period
         @next_invocation_time = (now + @period)
@@ -48,7 +44,6 @@ module NewRelic
           run_task if keep_running?
           @iterations += 1
         end
-        @stop_time = Time.now
       end
 
       def schedule_next_invocation
