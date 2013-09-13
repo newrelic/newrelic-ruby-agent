@@ -119,7 +119,7 @@ module NewRelic::Agent::Threading
 
     def test_aggregate_empty_trace
       @node.aggregate([])
-      assert_empty @node
+      assert @node.empty?
     end
 
     def test_aggregate_builds_tree_from_first_trace
