@@ -4,9 +4,16 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 require 'new_relic/agent/commands/xray_session'
+require 'new_relic/agent/threading/thread_profiling_client_test'
 
 module NewRelic::Agent::Commands
   class XraySessionTest < Test::Unit::TestCase
+
+    def target_for_shared_client_tests
+      XraySession.new('run_profiler' => true)
+    end
+
+    include NewRelic::Agent::Threading::ThreadProfilingClientTests
 
     def test_creates_thread_profile_if_run_profiler_is_true
       session = XraySession.new('run_profiler' => true)
