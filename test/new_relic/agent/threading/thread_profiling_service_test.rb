@@ -74,7 +74,7 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
         client.stubs(:finished?).returns(true)
         @service.poll
 
-        assert_false @service.running?
+        assert_equal false, @service.running?
       end
 
       def test_poll_stops_the_worker_loop_only_when_all_clients_are_finished
@@ -91,7 +91,7 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
         second_client.stubs(:finished?).returns(true)
         dummy_loop.expects(:stop)
         @service.poll
-        assert_false @service.running?
+        assert_equal false, @service.running?
       end
 
       def test_wait_sets_thread_to_nil
