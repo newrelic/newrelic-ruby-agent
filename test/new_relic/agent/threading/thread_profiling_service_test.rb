@@ -31,18 +31,19 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
       end
     end
 
-    class ThreadProfilingServiceTest < ThreadedTestCase
+    class ThreadProfilingServiceTest < Test::Unit::TestCase
+      include ThreadedTestCase
       include ThreadProfilingServiceTestHelpers
 
       def setup
         NewRelic::Agent.instance.stats_engine.clear_stats
         @service = ThreadProfilingService.new
-        super
+        setup_fake_threads
       end
 
       def teardown
         @service.stop
-        super
+        teardown_fake_threads
       end
 
       def create_client(name, overrides={})

@@ -76,13 +76,18 @@ else
 
   require 'json'
 
-  class ThreadProfilerSessionTest < ThreadedTestCase
+  class ThreadProfilerSessionTest < Test::Unit::TestCase
+    include ThreadedTestCase
     include ThreadProfilerSessionTestHelpers
 
     def setup
-      super
+      setup_fake_threads
       thread_profiling_service = NewRelic::Agent::Threading::ThreadProfilingService.new
       @profiler = NewRelic::Agent::Commands::ThreadProfilerSession.new(thread_profiling_service)
+    end
+
+    def teardown
+      teardown_fake_threads
     end
 
     def test_is_supported

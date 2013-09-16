@@ -4,13 +4,13 @@
 
 require 'new_relic/agent/threading/fake_thread'
 
-class ThreadedTestCase < Test::Unit::TestCase
-  def setup
+module ThreadedTestCase
+  def setup_fake_threads
     @original_thread_class = NewRelic::Agent::Threading::AgentThread
     swap_thread_class(FakeThread)
   end
 
-  def teardown
+  def teardown_fake_threads
     swap_thread_class(@original_thread_class)
     @original_thread_class = nil
 

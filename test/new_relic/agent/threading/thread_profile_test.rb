@@ -11,11 +11,12 @@ require 'new_relic/agent/threading/thread_profiling_client_test'
 if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
 
   module NewRelic::Agent::Threading
-    class ThreadProfileTest < ThreadedTestCase
+    class ThreadProfileTest < Test::Unit::TestCase
       include ThreadProfilingClientTests
+      include ThreadedTestCase
 
       def setup
-        super
+        setup_fake_threads
 
         @single_trace = [
           "irb.rb:69:in `catch'",
@@ -28,6 +29,10 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
         # Run the worker_loop for the thread profile based on two iterations
         # This takes time fussiness out of the equation and keeps the tests stable
         @profile.instance_variable_set(:@worker_loop, NewRelic::Agent::WorkerLoop.new(:limit => 2))
+      end
+
+      def teardown
+        teardown_fake_threads
       end
 
       def target_for_shared_client_tests
