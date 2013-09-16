@@ -95,12 +95,6 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
         assert_equal false, @service.running?
       end
 
-      def test_wait_sets_thread_to_nil
-        @service.worker_thread = mock(:join)
-        @service.wait
-        assert_nil @service.worker_thread
-      end
-
       def test_each_backtrace_with_bucket
         faketrace, alsofaketrace = mock, mock
 
@@ -121,6 +115,7 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
       end
 
       def test_poll_forwards_backtraces_to_clients
+        fake_worker_loop(@service)
         faketrace, alsofaketrace = mock('faketrace'), mock('alsofaketrace')
 
         FakeThread.list << FakeThread.new(
@@ -135,10 +130,11 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
         carebear.expects(:aggregate).with(alsofaketrace, :differenter_request)
 
         @service.add_client(carebear)
-        @service.wait
+        @service.poll
       end
 
       def test_poll_does_not_forward_ignored_backtraces_to_clients
+        fake_worker_loop(@service)
         faketrace = mock('faketrace')
         FakeThread.list << FakeThread.new(
           :bucket => :ignore,
@@ -149,10 +145,11 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
 
 
         @service.add_client(ignorant_client)
-        @service.wait
+        @service.poll
       end
 
       def test_poll_forwards_scrubbed_backtraces_to_clients_instead_of_raw
+        fake_worker_loop(@service)
         raw_backtarce = mock('raw')
         scrubbed_backtrace = mock('scrubbed')
 
@@ -166,7 +163,7 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
         client.expects(:aggregate).with(scrubbed_backtrace, :agent)
 
         @service.add_client(client)
-        @service.wait
+        @service.poll
       end
 
       def test_poll_adjusts_worker_loop_period_to_minimum_client_period
@@ -184,15 +181,18 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
       end
 
       def test_service_increments_client_poll_counts
+        fake_worker_loop(@service)
         three = create_client('3')
         three.stubs(:finished?).returns(false, false, false, true)
 
         three.expects(:increment_poll_count).times(3)
         @service.add_client(three)
-        @service.wait
+        4.times { @service.poll }
       end
 
       def test_poll_records_polling_time
+        fake_worker_loop(@service)
+
         freeze_time
         client = create_client('polling_time')
 
@@ -201,8 +201,8 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
         end
 
         @service.add_client(client)
+        @service.poll
 
-        @service.wait
         expected = { :call_count => 1, :total_call_time => 5}
         assert_metrics_recorded(
           { 'Supportability/ThreadProfiler/PollingTime' => expected }

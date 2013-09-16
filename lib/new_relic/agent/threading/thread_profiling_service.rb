@@ -53,12 +53,6 @@ module NewRelic
           client
         end
 
-        def wait
-          self.worker_thread.join if self.worker_thread
-          self.worker_thread = nil
-          stop
-        end
-
         def each_backtrace_with_bucket
           AgentThread.list.each do |thread|
             bucket = Threading::AgentThread.bucket_thread(thread, @profile_agent_code)
