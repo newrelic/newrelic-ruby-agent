@@ -16,13 +16,14 @@ module NewRelic
           @running = false
           @profile_agent_code = false
           @worker_loop = NewRelic::Agent::WorkerLoop.new
-          @worker_thread = nil
+
+          self.worker_thread = nil
         end
 
         def start
           return if @running
           @running = true
-          @worker_thread = AgentThread.new('thread_profiling_service_worker') do
+          self.worker_thread = AgentThread.new('thread_profiling_service_worker') do
             self.worker_loop.run(minimum_client_period, &method(:poll))
           end
         end
