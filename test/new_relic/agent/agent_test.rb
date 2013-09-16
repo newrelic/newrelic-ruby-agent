@@ -12,7 +12,7 @@ module NewRelic
         super
         @agent = NewRelic::Agent::Agent.new
         @agent.service = default_service
-        @agent.agent_command_router.stubs(:service).returns(@agent.service)
+        @agent.agent_command_router.stubs(:new_relic_service).returns(@agent.service)
         @agent.stubs(:start_worker_thread)
       end
 

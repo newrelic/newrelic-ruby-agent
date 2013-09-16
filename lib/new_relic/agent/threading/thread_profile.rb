@@ -2,6 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'set'
 require 'new_relic/agent/worker_loop'
 require 'new_relic/agent/threading/backtrace_node'
 
@@ -14,106 +15,65 @@ module NewRelic
 
       class ThreadProfile
 
-        attr_reader :profile_id,
-          :traces,
-          :profile_agent_code,
-          :interval, :duration,
-          :poll_count, :sample_count,
-          :start_time, :stop_time
+        attr_reader :profile_id, :traces, :interval,
+          :duration, :poll_count, :sample_count, :failure_count,
+          :created_at, :last_aggregated_at
 
         def initialize(agent_command)
           arguments = agent_command.arguments
           @profile_id = arguments.fetch('profile_id', -1)
-          @profile_agent_code = arguments.fetch('profile_agent_code', true)
-
           @duration = arguments.fetch('duration', 120)
-          @worker_loop = NewRelic::Agent::WorkerLoop.new(:duration => duration)
           @interval = arguments.fetch('sample_period', 0.1)
           @finished = false
 
           @traces = {
-            :agent => [],
-            :background => [],
-            :other => [],
-            :request => []
+            :agent      => BacktraceNode.new(nil),
+            :background => BacktraceNode.new(nil),
+            :other      => BacktraceNode.new(nil),
+            :request    => BacktraceNode.new(nil)
           }
-          @flattened_nodes = []
 
           @poll_count = 0
           @sample_count = 0
           @failure_count = 0
-        end
 
-        def run
-          NewRelic::Agent.logger.debug("Starting thread profile. profile_id=#{profile_id}, duration=#{duration}")
-
-          Threading::AgentThread.new('Thread Profiler') do
-            @start_time = now_in_millis
-
-            @worker_loop.run(@interval) do
-              NewRelic::Agent.instance.stats_engine.
-                record_supportability_metric_timed("ThreadProfiler/PollingTime") do
-
-                @poll_count += 1
-                Threading::AgentThread.list.each do |t|
-                  bucket = Threading::AgentThread.bucket_thread(t, @profile_agent_code)
-                  if bucket != :ignore
-                    backtrace = Threading::AgentThread.scrub_backtrace(t, @profile_agent_code)
-                    if backtrace.nil?
-                      @failure_count += 1
-                    else
-                      @sample_count += 1
-                      aggregate(backtrace, @traces[bucket])
-                    end
-                  end
-                end
-                end
-            end
-
-            mark_done
-            NewRelic::Agent.logger.debug("Finished thread profile. #{@sample_count} backtraces, #{@failure_count} failures. Will send with next harvest.")
-            NewRelic::Agent.instance.stats_engine.
-              record_supportability_metric_count("ThreadProfiler/BacktraceFailures", @failure_count)
-          end
+          @created_at = Time.now
+          @last_aggregated_at = nil
         end
 
         def stop
-          @worker_loop.stop
           mark_done
           NewRelic::Agent.logger.debug("Stopping thread profile.")
         end
 
-        def aggregate(trace, trees=@traces[:request], parent=nil)
-          return nil if trace.nil? || trace.empty?
-          node = Threading::BacktraceNode.new(trace.last)
-          existing = trees.find {|n| n == node}
-
-          if existing.nil?
-            existing = node
-            @flattened_nodes << node
-          end
-
-          if parent
-            parent.add_child(node)
-          else
-            trees << node unless trees.include? node
-          end
-
-          existing.runnable_count += 1
-          aggregate(trace[0..-2], existing.children, existing)
-
-          existing
+        def requested_period
+          @interval
         end
 
-        def prune!(count_to_keep)
-          @flattened_nodes.sort!(&:order_for_pruning)
+        def increment_poll_count
+          @poll_count += 1
+        end
+
+        def aggregate(backtrace, bucket)
+          if backtrace.nil?
+            @failure_count += 1
+          else
+            @sample_count += 1
+            @traces[bucket].aggregate(backtrace)
+          end
+
+          @last_aggregated_at = Time.now
+        end
+
+        def truncate_to_node_count!(count_to_keep)
+          all_nodes = @traces.values.map(&:flatten).flatten
 
           NewRelic::Agent.instance.stats_engine.
-            record_supportability_metric_count("ThreadProfiler/NodeCount", @flattened_nodes.size)
+            record_supportability_metric_count("ThreadProfiler/NodeCount", all_nodes.size)
 
-          mark_for_pruning(@flattened_nodes, count_to_keep)
-
-          traces.each { |_, nodes| Threading::BacktraceNode.prune!(nodes) }
+          all_nodes.sort!
+          nodes_to_prune = Set.new(all_nodes[count_to_keep..-1] || [])
+          traces.values.each { |root| root.prune!(nodes_to_prune) }
         end
 
         THREAD_PROFILER_NODES = 20_000
@@ -121,19 +81,19 @@ module NewRelic
         include NewRelic::Coerce
 
         def to_collector_array(encoder)
-          prune!(THREAD_PROFILER_NODES)
+          truncate_to_node_count!(THREAD_PROFILER_NODES)
 
           traces = {
-            "OTHER" => @traces[:other].map{|t| t.to_array },
-            "REQUEST" => @traces[:request].map{|t| t.to_array },
-            "AGENT" => @traces[:agent].map{|t| t.to_array },
-            "BACKGROUND" => @traces[:background].map{|t| t.to_array }
+            "OTHER" => @traces[:other].to_array,
+            "REQUEST" => @traces[:request].to_array,
+            "AGENT" => @traces[:agent].to_array,
+            "BACKGROUND" => @traces[:background].to_array
           }
 
           [[
             int(@profile_id),
-            float(@start_time),
-            float(@stop_time),
+            float(self.created_at),
+            float(self.last_aggregated_at),
             int(@poll_count),
             string(encoder.encode(traces)),
             int(@sample_count),
@@ -141,31 +101,13 @@ module NewRelic
           ]]
         end
 
-        def now_in_millis
-          Time.now.to_f * 1_000
-        end
-
         def finished?
-          @finished
+          @marked_done || Time.now > self.created_at + @duration
         end
 
         def mark_done
-          @finished = true
-          @stop_time = now_in_millis
+          @marked_done = true
         end
-
-        def mark_for_pruning(nodes, count_to_keep)
-          to_prune = nodes[count_to_keep..-1] || []
-          to_prune.each { |n| n.to_prune = true }
-        end
-
-        def self.parse_backtrace(trace)
-          trace.map do |line|
-            line =~ /(.*)\:(\d+)\:in `(.*)'/
-              { :method => $3, :line_no => $2.to_i, :file => $1 }
-          end
-        end
-
       end
     end
   end

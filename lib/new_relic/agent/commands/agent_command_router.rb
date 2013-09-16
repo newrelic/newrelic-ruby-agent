@@ -10,20 +10,22 @@
 
 require 'new_relic/agent/commands/agent_command'
 require 'new_relic/agent/commands/xray_sessions'
+require 'new_relic/agent/threading/thread_profiling_service'
 
 module NewRelic
   module Agent
     module Commands
       class AgentCommandRouter
-        attr_reader :service, :handlers
+        attr_reader :handlers, :new_relic_service
 
         attr_accessor :thread_profiler, :xray_sessions
 
-        def initialize(service)
-          @service = service
+        def initialize(new_relic_service)
+          @new_relic_service = new_relic_service
+          @thread_profiling_service = Threading::ThreadProfilingService.new
 
-          @thread_profiler = ThreadProfiler.new
-          @xray_sessions = XraySessions.new(service)
+          @thread_profiler = ThreadProfiler.new(@thread_profiling_service)
+          @xray_sessions = XraySessions.new(@new_relic_service)
 
           @handlers    = Hash.new { |*| Proc.new { |cmd| self.unrecognized_agent_command(cmd) } }
 
@@ -34,7 +36,7 @@ module NewRelic
 
         def check_for_and_handle_agent_commands
           results = invoke_commands(get_agent_commands)
-          service.agent_command_results(results) unless results.empty?
+          new_relic_service.agent_command_results(results) unless results.empty?
         end
 
         NO_PROFILES_TO_SEND = {}.freeze
@@ -52,7 +54,7 @@ module NewRelic
         end
 
         def get_agent_commands
-          commands = service.get_agent_commands
+          commands = new_relic_service.get_agent_commands
           NewRelic::Agent.logger.debug "Received get_agent_commands = #{commands.inspect}"
           commands
         end
