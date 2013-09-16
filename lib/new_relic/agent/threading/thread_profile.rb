@@ -61,7 +61,7 @@ module NewRelic
         end
 
         def truncate_to_node_count!(count_to_keep)
-          all_nodes = @traces.values.map(&:flatten).flatten
+          all_nodes = @traces.values.map { |n| n.flatten }.flatten
 
           NewRelic::Agent.instance.stats_engine.
             record_supportability_metric_count("ThreadProfiler/NodeCount", all_nodes.size)

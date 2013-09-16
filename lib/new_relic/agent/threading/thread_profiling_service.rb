@@ -35,7 +35,7 @@ module NewRelic
 
         def minimum_client_period
           @clients_lock.synchronize do
-            @clients.map(&:requested_period).min
+            @clients.map { |c| c.requested_period }.min
           end
         end
 
@@ -72,7 +72,7 @@ module NewRelic
           poll_start = Time.now
 
           @clients_lock.synchronize do
-            @clients.reject!(&:finished?)
+            @clients.reject! { |c| c.finished? }
 
             if @clients.empty?
               stop
@@ -85,7 +85,7 @@ module NewRelic
               end
             end
 
-            @clients.each(&:increment_poll_count)
+            @clients.each { |c| c.increment_poll_count }
           end
 
           self.worker_loop.period = minimum_client_period
