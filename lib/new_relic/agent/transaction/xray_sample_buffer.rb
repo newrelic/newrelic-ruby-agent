@@ -38,7 +38,7 @@ module NewRelic
         end
 
         def lookup_session_id(sample)
-          xray_sessions.session_id_for_transaction_name(sample.transaction_name)
+          xray_session_collection.session_id_for_transaction_name(sample.transaction_name)
         end
 
       end

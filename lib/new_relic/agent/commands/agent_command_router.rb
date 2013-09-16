@@ -29,8 +29,8 @@ module NewRelic
 
           @handlers    = Hash.new { |*| Proc.new { |cmd| self.unrecognized_agent_command(cmd) } }
 
-          @handlers['start_profiler'] = Proc.new { |cmd| thread_profiler.handle_start_command(cmd) }
-          @handlers['stop_profiler']  = Proc.new { |cmd| thread_profiler.handle_stop_command(cmd) }
+          @handlers['start_profiler'] = Proc.new { |cmd| thread_profiler_session.handle_start_command(cmd) }
+          @handlers['stop_profiler']  = Proc.new { |cmd| thread_profiler_session.handle_stop_command(cmd) }
           @handlers['active_xray_sessions'] = Proc.new { |cmd| xray_session_collection.handle_active_xray_sessions(cmd) }
         end
 
