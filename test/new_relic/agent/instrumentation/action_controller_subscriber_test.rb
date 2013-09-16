@@ -40,6 +40,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Test::U
     @stats_engine = NewRelic::Agent.instance.stats_engine
     @stats_engine.clear_stats
     NewRelic::Agent.manual_start
+    NewRelic::Agent::TransactionState.clear
   end
 
   def teardown
@@ -100,6 +101,21 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Test::U
     assert_metrics_recorded(
       ['Controller/test/child', 'Controller/test/index'] => { :call_count => 1 }
     )
+  end
+
+  def test_sets_default_transaction_name_on_start
+    @subscriber.start('process_action.action_controller', :id, @entry_payload)
+    assert_equal 'Controller/test/index', NewRelic::Agent::Transaction.current.name
+  ensure
+    @subscriber.finish('process_action.action_controller', :id, @entry_payload)
+  end
+
+  def test_default_transaction_name_can_be_reset
+    @subscriber.start('process_action.action_controller', :id, @entry_payload)
+    NewRelic::Agent.set_transaction_name('something/else')
+    assert_equal 'Controller/something/else', NewRelic::Agent::Transaction.current.name
+  ensure
+    @subscriber.finish('process_action.action_controller', :id, @entry_payload)
   end
 
   def test_record_nothing_for_ignored_action

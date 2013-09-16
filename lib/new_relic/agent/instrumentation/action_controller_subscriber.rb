@@ -99,6 +99,8 @@ module NewRelic
                                   :request => event.payload[:request],
                                   :filtered_params => filter(event.payload[:params]))
           txn.apdex_start = (event.queue_start || event.time)
+          txn.name = event.metric_name
+
           event.scope = Agent.instance.stats_engine \
             .push_scope(:action_controller, event.time)
         end
