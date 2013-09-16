@@ -34,8 +34,14 @@ module NewRelic
 
         def start(agent_command)
           @profile = Threading::ThreadProfile.new(agent_command.arguments)
+
+          # This should really be a per-client setting rather than a global
+          # setting for whole ThreadProfilingService. We're relying here on the
+          # fact that we are the only client to set the profile_agent_code
+          # setting. This (at present) only an internal setting.
           profile_agent_code = agent_command.arguments.fetch('profile_agent_code', false)
           @thread_profiling_service.profile_agent_code = profile_agent_code
+
           @thread_profiling_service.add_client(@profile)
         end
 
