@@ -77,8 +77,7 @@ module NewRelic
 
         def generate_traces
           truncate_to_node_count!(THREAD_PROFILER_NODES)
-
-          traces = {
+          {
             "OTHER" => @traces[:other].to_array,
             "REQUEST" => @traces[:request].to_array,
             "AGENT" => @traces[:agent].to_array,
@@ -87,14 +86,15 @@ module NewRelic
         end
 
         def to_collector_array(encoder)
-          result = []
-          result << int(@profile_id)
-          result << float(self.created_at)
-          result << float(self.last_aggregated_at)
-          result << int(@poll_count)
-          result << string(encoder.encode(generate_traces))
-          result << int(@sample_count)
-          result << 0 # runnable thread count, which we don't track
+          result = [
+            int(@profile_id),
+            float(self.created_at),
+            float(self.last_aggregated_at),
+            int(@poll_count),
+            string(encoder.encode(generate_traces)),
+            int(@sample_count),
+            0 # runnable thread count, which we don't track
+          ]
           result << int(@xray_id) unless @xray_id.nil?
           [result]
         end
