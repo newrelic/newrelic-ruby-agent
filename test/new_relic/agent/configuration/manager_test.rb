@@ -153,7 +153,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_config_masks_thread_profiler
-      supported = NewRelic::Agent::Commands::ThreadProfiler.is_supported?
+      supported = NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
       reported_config = @manager.to_collector_hash
 
       if supported

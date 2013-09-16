@@ -11,12 +11,12 @@ class NewRelic::Agent::Transaction
     MATCHING_TRANSACTION = "Matching/transaction/name"
 
     def setup
-      @xray_sessions = stub
-      @xray_sessions.stubs(:session_id_for_transaction_name).with(any_parameters).returns(nil)
-      @xray_sessions.stubs(:session_id_for_transaction_name).with(MATCHING_TRANSACTION).returns(XRAY_SESSION_ID)
+      @xray_session_collection = stub
+      @xray_session_collection.stubs(:session_id_for_transaction_name).with(any_parameters).returns(nil)
+      @xray_session_collection.stubs(:session_id_for_transaction_name).with(MATCHING_TRANSACTION).returns(XRAY_SESSION_ID)
 
       @buffer = XraySampleBuffer.new
-      @buffer.xray_sessions = @xray_sessions
+      @buffer.xray_session_collection = @xray_session_collection
     end
 
     def test_doesnt_store_if_not_matching_transaction

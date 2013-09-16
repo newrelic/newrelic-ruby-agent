@@ -8,14 +8,15 @@ require 'new_relic/agent/threading/thread_profile'
 require 'new_relic/agent/threading/threaded_test_case'
 require 'new_relic/agent/threading/thread_profiling_client_test'
 
-if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
+if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
 
   module NewRelic::Agent::Threading
-    class ThreadProfileTest < ThreadedTestCase
+    class ThreadProfileTest < Test::Unit::TestCase
       include ThreadProfilingClientTests
+      include ThreadedTestCase
 
       def setup
-        super
+        setup_fake_threads
 
         @single_trace = [
           "irb.rb:69:in `catch'",
@@ -23,11 +24,15 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
           "irb:12:in `<main>'"
         ]
 
-        @profile = ThreadProfile.new(create_agent_command)
+        @profile = ThreadProfile.new
 
         # Run the worker_loop for the thread profile based on two iterations
         # This takes time fussiness out of the equation and keeps the tests stable
         @profile.instance_variable_set(:@worker_loop, NewRelic::Agent::WorkerLoop.new(:limit => 2))
+      end
+
+      def teardown
+        teardown_fake_threads
       end
 
       def target_for_shared_client_tests
@@ -36,7 +41,7 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
 
       def test_finished
         freeze_time
-        @profile = ThreadProfile.new(create_agent_command('duration' => 7.0))
+        @profile = ThreadProfile.new('duration' => 7.0)
         assert !@profile.finished?
 
         advance_time(5.0)
@@ -78,7 +83,9 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
         assert_equal [], @profile.traces[:other].children.first.children
       end
 
-      def build_well_known_trace
+      def build_well_known_trace(args={})
+        @profile = ThreadProfile.new(args)
+
         trace = ["thread_profiler.py:1:in `<module>'"]
         10.times { @profile.aggregate(trace, :other) }
 
@@ -90,25 +97,24 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
           "thread_profiler.py:103:in `_run_profiler'",
           "thread_profiler.py:165:in `collect_thread_stacks'"]
           10.times { @profile.aggregate(trace, :agent) }
+
+        @profile.increment_poll_count
       end
 
       WELL_KNOWN_TRACE_ENCODED = "eJy9klFPwjAUhf/LfW7WDQTUGBPUiYkGdAxelqXZRpGGrm1uS8xi/O924JQX\n9Un7dm77ndN7c19hlt7FCZxnWQZug7xYMYN6LSTHwDRA4KLWq53kl0CinEQh\nCUmW5zmBJH5axPPUk16MJ/E0/cGk0lLyyrGPS+uKamu943DQeX5HMtypz5In\nwv6vRCeZ1NoAGQ2PCDpvrOM1fRAlFtjQWyxq/qJxa+lj4zZaBeuuQpccrdDK\n0l4wolKU1OxftOoQLNTzIdL/EcjJafjnQYyVWjvrsDBMKNVOZBD1/jO27fPs\naBG+DoGr8fX9JJktpjftVry9A9unzGo=\n"
 
       def test_to_collector_array
-        build_well_known_trace
-        @profile.instance_variable_set(:@profile_id, "-1")
+        build_well_known_trace('profile_id' => 333)
         @profile.stubs(:created_at).returns(1350403938892.524)
         @profile.stubs(:last_aggregated_at).returns(1350403939904.375)
-        @profile.instance_variable_set(:@poll_count, 10)
-        @profile.instance_variable_set(:@sample_count, 2)
 
         expected = [[
-          -1,
+          333,
           1350403938892.524,
           1350403939904.375,
-          10,
+          1,
           WELL_KNOWN_TRACE_ENCODED,
-          2,
+          20,
           0
         ]]
 
@@ -116,9 +122,28 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
         assert_equal expected, @profile.to_collector_array(marshaller.default_encoder)
       end
 
+      def test_to_collector_array_with_xray_session_id
+        build_well_known_trace('profile_id' => -1, 'x_ray_id' => 4242)
+        @profile.stubs(:created_at).returns(1350403938892.524)
+        @profile.stubs(:last_aggregated_at).returns(1350403939904.375)
+
+        expected = [[
+          -1,
+          1350403938892.524,
+          1350403939904.375,
+          1,
+          WELL_KNOWN_TRACE_ENCODED,
+          20,
+          0,
+          4242
+        ]]
+
+        marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+        assert_equal expected, @profile.to_collector_array(marshaller.default_encoder)
+      end
+
       def test_to_collector_array_with_bad_values
-        build_well_known_trace
-        @profile.instance_variable_set(:@profile_id, "-1")
+        build_well_known_trace(:profile_id => -1)
         @profile.stubs(:created_at).returns('')
         @profile.stubs(:last_aggregated_at).returns(nil)
         @profile.instance_variable_set(:@poll_count, Rational(10, 1))
@@ -158,7 +183,7 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
 
       def test_aggregate_updates_created_at_timestamp
         expected = freeze_time
-        @profile = ThreadProfile.new(create_agent_command)
+        @profile = ThreadProfile.new
 
         @profile.aggregate(@single_trace, :request)
         t0 = @profile.created_at

@@ -17,13 +17,13 @@ module NewRelic
 
         attr_reader :profile_id, :traces, :interval,
           :duration, :poll_count, :sample_count, :failure_count,
-          :created_at, :last_aggregated_at
+          :created_at, :last_aggregated_at, :xray_id
 
-        def initialize(agent_command)
-          arguments = agent_command.arguments
-          @profile_id = arguments.fetch('profile_id', -1)
-          @duration = arguments.fetch('duration', 120)
-          @interval = arguments.fetch('sample_period', 0.1)
+        def initialize(command_arguments={})
+          @profile_id = command_arguments.fetch('profile_id', -1)
+          @duration = command_arguments.fetch('duration', 120)
+          @interval = command_arguments.fetch('sample_period', 0.1)
+          @xray_id = command_arguments.fetch('x_ray_id', nil)
           @finished = false
 
           @traces = {
@@ -39,11 +39,6 @@ module NewRelic
 
           @created_at = Time.now
           @last_aggregated_at = nil
-        end
-
-        def stop
-          mark_done
-          NewRelic::Agent.logger.debug("Stopping thread profile.")
         end
 
         def requested_period
@@ -66,7 +61,7 @@ module NewRelic
         end
 
         def truncate_to_node_count!(count_to_keep)
-          all_nodes = @traces.values.map(&:flatten).flatten
+          all_nodes = @traces.values.map { |n| n.flatten }.flatten
 
           NewRelic::Agent.instance.stats_engine.
             record_supportability_metric_count("ThreadProfiler/NodeCount", all_nodes.size)
@@ -80,25 +75,28 @@ module NewRelic
 
         include NewRelic::Coerce
 
-        def to_collector_array(encoder)
+        def generate_traces
           truncate_to_node_count!(THREAD_PROFILER_NODES)
-
-          traces = {
+          {
             "OTHER" => @traces[:other].to_array,
             "REQUEST" => @traces[:request].to_array,
             "AGENT" => @traces[:agent].to_array,
             "BACKGROUND" => @traces[:background].to_array
           }
+        end
 
-          [[
+        def to_collector_array(encoder)
+          result = [
             int(@profile_id),
             float(self.created_at),
             float(self.last_aggregated_at),
             int(@poll_count),
-            string(encoder.encode(traces)),
+            string(encoder.encode(generate_traces)),
             int(@sample_count),
-            0
-          ]]
+            0 # runnable thread count, which we don't track
+          ]
+          result << int(@xray_id) unless @xray_id.nil?
+          [result]
         end
 
         def finished?

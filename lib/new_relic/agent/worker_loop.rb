@@ -24,11 +24,6 @@ module NewRelic
         @propagate_errors = opts.fetch(:propagate_errors, false)
       end
 
-      # returns a class-level memoized mutex to make sure we don't run overlapping
-      def lock
-        @@lock ||= Mutex.new
-      end
-
       # Run infinitely, calling the registered tasks at their specified
       # call periods.  The caller is responsible for creating the thread
       # that runs this worker loop.  This will run the task immediately.
@@ -80,9 +75,7 @@ module NewRelic
           @task.call
         else
           begin
-            lock.synchronize do
-              @task.call
-            end
+            @task.call
           rescue ServerError => e
             ::NewRelic::Agent.logger.debug "Server Error:", e
           rescue NewRelic::Agent::ForceRestartException, NewRelic::Agent::ForceDisconnectException

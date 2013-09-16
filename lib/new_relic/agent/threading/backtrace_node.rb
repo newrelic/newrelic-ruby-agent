@@ -10,7 +10,7 @@ module NewRelic
         attr_reader :file, :method, :line_no, :children
         attr_accessor :runnable_count, :depth
 
-        def initialize(line, parent=nil)
+        def initialize(line)
           if line
             parse_backtrace_frame(line)
             @root = false
@@ -21,8 +21,6 @@ module NewRelic
           @children = []
           @runnable_count = 0
           @depth = 0
-
-          parent.add_child_unless_present(self) if parent
         end
 
         def root?

@@ -8,10 +8,10 @@ require 'thread'
 require 'timeout'
 require 'zlib'
 require 'new_relic/agent/threading/threaded_test_case'
-require 'new_relic/agent/commands/thread_profiler'
+require 'new_relic/agent/commands/thread_profiler_session'
 #require 'test/new_relic/agent/commands/agent_command_test'
 
-module ThreadProfilerTestHelpers
+module ThreadProfilerSessionTestHelpers
   START = {
     "profile_id" => 42,
     "sample_period" => 0.02,
@@ -43,18 +43,18 @@ module ThreadProfilerTestHelpers
   end
 end
 
-if !NewRelic::Agent::Commands::ThreadProfiler.is_supported?
+if !NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
 
   class ThreadProfilerUnsupportedTest < Test::Unit::TestCase
-    include ThreadProfilerTestHelpers
+    include ThreadProfilerSessionTestHelpers
 
     def setup
       thread_profiling_service = NewRelic::Agent::Threading::ThreadProfilingService.new
-      @profiler = NewRelic::Agent::Commands::ThreadProfiler.new(thread_profiling_service)
+      @profiler = NewRelic::Agent::Commands::ThreadProfilerSession.new(thread_profiling_service)
     end
 
     def test_thread_profiling_isnt_supported
-      assert_equal false, NewRelic::Agent::Commands::ThreadProfiler.is_supported?
+      assert_equal false, NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
     end
 
     def test_stop_is_safe_when_not_supported
@@ -76,17 +76,22 @@ else
 
   require 'json'
 
-  class ThreadProfilerTest < ThreadedTestCase
-    include ThreadProfilerTestHelpers
+  class ThreadProfilerSessionTest < Test::Unit::TestCase
+    include ThreadedTestCase
+    include ThreadProfilerSessionTestHelpers
 
     def setup
-      super
+      setup_fake_threads
       thread_profiling_service = NewRelic::Agent::Threading::ThreadProfilingService.new
-      @profiler = NewRelic::Agent::Commands::ThreadProfiler.new(thread_profiling_service)
+      @profiler = NewRelic::Agent::Commands::ThreadProfilerSession.new(thread_profiling_service)
+    end
+
+    def teardown
+      teardown_fake_threads
     end
 
     def test_is_supported
-      assert NewRelic::Agent::Commands::ThreadProfiler.is_supported?
+      assert NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
     end
 
     def test_is_not_running

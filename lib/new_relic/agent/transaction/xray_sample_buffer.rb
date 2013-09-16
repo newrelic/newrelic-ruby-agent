@@ -9,10 +9,10 @@ module NewRelic
     class Transaction
       class XraySampleBuffer < TransactionSampleBuffer
 
-        attr_writer :xray_sessions
+        attr_writer :xray_session_collection
 
-        def xray_sessions
-          @xray_sessions ||= NewRelic::Agent.instance.agent_command_router.xray_sessions
+        def xray_session_collection
+          @xray_session_collection ||= NewRelic::Agent.instance.agent_command_router.xray_session_collection
         end
 
         MAX_SAMPLES = 10

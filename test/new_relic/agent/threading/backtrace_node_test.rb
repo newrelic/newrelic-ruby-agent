@@ -30,7 +30,8 @@ module NewRelic::Agent::Threading
     end
 
     def create_node(frame, parent=nil, runnable_count=0)
-      node = BacktraceNode.new(frame, parent)
+      node = BacktraceNode.new(frame)
+      parent.add_child_unless_present(node) if parent
       node.runnable_count = runnable_count
       node
     end
@@ -49,8 +50,8 @@ module NewRelic::Agent::Threading
     def test_multiple_nodes_converts_to_array
       line = "irb.rb:69:in `catch'"
       child_line = "bacon.rb:42:in `yum'"
-      node = BacktraceNode.new(line)
-      BacktraceNode.new(child_line, node)
+      node = create_node(line)
+      create_node(child_line, node)
 
       assert_equal([
                    ["irb.rb", "catch", 69],
@@ -88,8 +89,8 @@ module NewRelic::Agent::Threading
     end
 
     def test_prune_keeps_children
-      parent = BacktraceNode.new(SINGLE_LINE)
-      child = BacktraceNode.new(SINGLE_LINE, parent)
+      parent = create_node(SINGLE_LINE)
+      child = create_node(SINGLE_LINE, parent)
 
       parent.prune!([])
 
@@ -97,8 +98,8 @@ module NewRelic::Agent::Threading
     end
 
     def test_prune_removes_children
-      parent = BacktraceNode.new(SINGLE_LINE)
-      child = BacktraceNode.new(SINGLE_LINE, parent)
+      parent = create_node(SINGLE_LINE)
+      child = create_node(SINGLE_LINE, parent)
 
       parent.prune!([child])
 
@@ -106,9 +107,9 @@ module NewRelic::Agent::Threading
     end
 
     def test_prune_removes_grandchildren
-      parent = BacktraceNode.new(SINGLE_LINE)
-      child = BacktraceNode.new(SINGLE_LINE, parent)
-      grandchild = BacktraceNode.new(SINGLE_LINE, child)
+      parent = create_node(SINGLE_LINE)
+      child = create_node(SINGLE_LINE, parent)
+      grandchild = create_node(SINGLE_LINE, child)
 
       parent.prune!([grandchild])
 
@@ -118,7 +119,7 @@ module NewRelic::Agent::Threading
 
     def test_aggregate_empty_trace
       @node.aggregate([])
-      assert_empty @node
+      assert @node.empty?
     end
 
     def test_aggregate_builds_tree_from_first_trace

@@ -7,7 +7,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_h
 require 'new_relic/agent/threading/thread_profiling_service'
 require 'new_relic/agent/threading/threaded_test_case'
 
-if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
+if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
 
   module NewRelic::Agent::Threading
     module ThreadProfilingServiceTestHelpers
@@ -31,18 +31,19 @@ if NewRelic::Agent::Commands::ThreadProfiler.is_supported?
       end
     end
 
-    class ThreadProfilingServiceTest < ThreadedTestCase
+    class ThreadProfilingServiceTest < Test::Unit::TestCase
+      include ThreadedTestCase
       include ThreadProfilingServiceTestHelpers
 
       def setup
         NewRelic::Agent.instance.stats_engine.clear_stats
         @service = ThreadProfilingService.new
-        super
+        setup_fake_threads
       end
 
       def teardown
         @service.stop
-        super
+        teardown_fake_threads
       end
 
       def create_client(name, overrides={})

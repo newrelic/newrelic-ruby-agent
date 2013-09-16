@@ -16,26 +16,27 @@ module NewRelic
           @running = false
           @profile_agent_code = false
           @worker_loop = NewRelic::Agent::WorkerLoop.new
-          @worker_thread = nil
+
+          self.worker_thread = nil
         end
 
         def start
           return if @running
           @running = true
-          @worker_thread = AgentThread.new('thread_profiling_service_worker') do
-            worker_loop.run(minimum_client_period, &method(:poll))
+          self.worker_thread = AgentThread.new('thread_profiling_service_worker') do
+            self.worker_loop.run(minimum_client_period, &method(:poll))
           end
         end
 
         def stop
           return unless @running
           @running = false
-          worker_loop.stop
+          self.worker_loop.stop
         end
 
         def minimum_client_period
           @clients_lock.synchronize do
-            @clients.map(&:requested_period).min
+            @clients.map { |c| c.requested_period }.min
           end
         end
 
@@ -59,7 +60,7 @@ module NewRelic
         end
 
         def each_backtrace_with_bucket
-          Threading::AgentThread.list.each do |thread|
+          AgentThread.list.each do |thread|
             bucket = Threading::AgentThread.bucket_thread(thread, @profile_agent_code)
             next if bucket == :ignore
 
@@ -72,7 +73,7 @@ module NewRelic
           poll_start = Time.now
 
           @clients_lock.synchronize do
-            @clients.reject!(&:finished?)
+            @clients.reject! { |c| c.finished? }
 
             if @clients.empty?
               stop
@@ -85,10 +86,10 @@ module NewRelic
               end
             end
 
-            @clients.map(&:increment_poll_count)
+            @clients.each { |c| c.increment_poll_count }
           end
 
-          worker_loop.period = minimum_client_period
+          self.worker_loop.period = minimum_client_period
           record_polling_time(Time.now - poll_start)
         end
 
