@@ -46,6 +46,7 @@ module NewRelic
         end
 
         def stop(report_data)
+          NewRelic::Agent.logger.debug("Stopping thread profile.")
           @profile.mark_done unless @profile.nil?
           @profile = nil if !report_data
         end

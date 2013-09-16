@@ -41,11 +41,6 @@ module NewRelic
           @last_aggregated_at = nil
         end
 
-        def stop
-          mark_done
-          NewRelic::Agent.logger.debug("Stopping thread profile.")
-        end
-
         def requested_period
           @interval
         end
