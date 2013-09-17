@@ -33,7 +33,8 @@ module NewRelic::Agent::Commands
 
     def setup
       @service  = stub
-      @thread_profiling_service = stub
+      @thread_profiling_service = NewRelic::Agent::Threading::ThreadProfilingService.new
+      @thread_profiling_service.worker_loop.stubs(:run)
       @sessions = NewRelic::Agent::Commands::XraySessionCollection.new(@service, @thread_profiling_service)
 
       @service.stubs(:get_xray_metadata).with([FIRST_ID]).returns([FIRST_METADATA])
@@ -41,39 +42,41 @@ module NewRelic::Agent::Commands
       @service.stubs(:get_xray_metadata).with([FIRST_ID, SECOND_ID]).returns([FIRST_METADATA, SECOND_METADATA])
     end
 
-    def test_can_add_sessions
-      @thread_profiling_service.stubs(:add_client)
+    def teardown
+      @thread_profiling_service.worker_thread.join if @thread_profiling_service.worker_thread
+    end
 
+    def test_can_add_sessions
       handle_command_for(FIRST_ID, SECOND_ID)
 
       assert sessions.include?(FIRST_ID)
       assert sessions.include?(SECOND_ID)
     end
 
-    def _test_adding_sessions_registers_them_as_thread_profiling_clients
+    def test_adding_sessions_registers_them_as_thread_profiling_clients
       xray_id = 333
       xray_metadata = {
         'x_ray_id'     => xray_id,
-        'run_profiler' => true
+        'run_profiler' => true,
+        'key_transaction_name' => 'foo'
       }
       @service.stubs(:get_xray_metadata).with([xray_id]).returns([xray_metadata])
 
-      @thread_profiling_service.expects(:add_client).with(instance_of(XraySession))
+      @thread_profiling_service.expects(:subscribe).with('foo', xray_metadata)
       handle_command_for(xray_id)
     end
 
     def test_adding_sessions_does_not_register_them_as_thread_profiling_clients_unless_run_profiler_set
-      $debug = true
       xray_id = 333
       xray_metadata = {
         'x_ray_id'     => xray_id,
-        'run_profiler' => false
+        'run_profiler' => false,
+        'key_transaction_name' => 'foo'
       }
       @service.stubs(:get_xray_metadata).with([xray_id]).returns([xray_metadata])
 
-      @thread_profiling_service.expects(:add_client).never
+      @thread_profiling_service.expects(:subscribe).never
       handle_command_for(xray_id)
-      $debug = false
     end
 
     def test_creates_a_session_from_collector_metadata
@@ -91,8 +94,6 @@ module NewRelic::Agent::Commands
     end
 
     def test_defaults_out_properties_for_session_missing_metadata
-      @thread_profiling_service.stubs(:add_client)
-
       handle_command_for(SECOND_ID)
 
       session = sessions[SECOND_ID]
@@ -115,8 +116,6 @@ module NewRelic::Agent::Commands
       @service.stubs(:get_xray_metadata).with([SECOND_ID]).returns([SECOND_METADATA])
 
       @service.expects(:get_xray_metadata).with([FIRST_ID, SECOND_ID]).never
-
-      @thread_profiling_service.stubs(:add_client)
 
       handle_command_for(FIRST_ID)
       handle_command_for(FIRST_ID, SECOND_ID)
@@ -165,8 +164,6 @@ module NewRelic::Agent::Commands
     end
 
     def test_removes_inactive_sessions
-      @thread_profiling_service.stubs(:add_client)
-
       handle_command_for(FIRST_ID, SECOND_ID)
       handle_command_for(FIRST_ID)
 

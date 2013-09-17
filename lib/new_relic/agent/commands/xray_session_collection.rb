@@ -56,7 +56,9 @@ module NewRelic
           NewRelic::Agent.logger.debug("Adding X-Ray session #{session.inspect}")
           sessions[session.id] = session
           session.activate
-          @thread_profiling_service.add_client(session) if session.thread_profile
+          if session.run_profiler?
+            @thread_profiling_service.subscribe(session.key_transaction_name, session.command_arguments)
+          end
         end
 
         # Session deactivation

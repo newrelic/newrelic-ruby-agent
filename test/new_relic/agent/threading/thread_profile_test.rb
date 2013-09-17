@@ -6,13 +6,11 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_h
 
 require 'new_relic/agent/threading/thread_profile'
 require 'new_relic/agent/threading/threaded_test_case'
-require 'new_relic/agent/threading/thread_profiling_client_test'
 
 if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
 
   module NewRelic::Agent::Threading
     class ThreadProfileTest < Test::Unit::TestCase
-      include ThreadProfilingClientTests
       include ThreadedTestCase
 
       def setup
@@ -37,18 +35,6 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
 
       def target_for_shared_client_tests
         @profile
-      end
-
-      def test_finished
-        freeze_time
-        @profile = ThreadProfile.new('duration' => 7.0)
-        assert !@profile.finished?
-
-        advance_time(5.0)
-        assert !@profile.finished?
-
-        advance_time(5.0)
-        assert @profile.finished?
       end
 
       def test_prune_tree

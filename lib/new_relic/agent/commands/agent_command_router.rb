@@ -18,7 +18,8 @@ module NewRelic
       class AgentCommandRouter
         attr_reader :handlers, :new_relic_service
 
-        attr_accessor :thread_profiler_session, :xray_session_collection
+        attr_accessor :thread_profiler_session, :thread_profiling_service,
+                      :xray_session_collection
 
         def initialize(new_relic_service)
           @new_relic_service = new_relic_service
@@ -42,10 +43,10 @@ module NewRelic
         NO_PROFILES_TO_SEND = {}.freeze
 
         def harvest_data_to_send(disconnecting)
-          self.thread_profiler_session.stop(true) if disconnecting
-
-          if self.thread_profiler_session.finished?
+          if disconnecting || self.thread_profiler_session.finished?
+            self.thread_profiler_session.stop(true)
             profile = self.thread_profiler_session.harvest
+
             ::NewRelic::Agent.logger.debug "Sending thread profile #{profile.profile_id}"
             {:profile_data => profile}
           else

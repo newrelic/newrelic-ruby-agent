@@ -846,7 +846,8 @@ class NewRelic::Agent::TransactionSamplerTest < Test::Unit::TestCase
     xray_session_id = 1234
     xray_session = NewRelic::Agent::Commands::XraySession.new({
       "x_ray_id" => xray_session_id,
-      "key_transaction_name" => name
+      "key_transaction_name" => name,
+      "run_profiler" => false
     })
 
     xray_session_collection = NewRelic::Agent.instance.agent_command_router.xray_session_collection

@@ -11,21 +11,10 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
 
   module NewRelic::Agent::Threading
     module ThreadProfilingServiceTestHelpers
-      def create_client(name, overrides={})
-        defaults = {
-          :finished? => false,
-          :requested_period => 0,
-          :aggregate => nil,
-          :increment_poll_count => nil
-        }
-
-        client = stub(name, defaults.merge(overrides))
-        client.stubs(:finished?).returns(false, true) unless overrides.has_key? :finished?
-        client
-      end
-
       def fake_worker_loop(service)
-        dummy_loop = stub(:run => nil, :stop => nil, :period= => nil)
+        dummy_loop = NewRelic::Agent::WorkerLoop.new
+        dummy_loop.stubs(:run).returns(nil)
+        dummy_loop.stubs(:stop).returns(nil)
         service.stubs(:worker_loop).returns(dummy_loop)
         dummy_loop
       end
@@ -42,57 +31,177 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
       end
 
       def teardown
+        NewRelic::Agent.instance.stats_engine.clear_stats
         @service.stop
         teardown_fake_threads
       end
 
-      def create_client(name, overrides={})
-        defaults = {
-          :finished? => false,
-          :requested_period => 0,
-          :aggregate => nil,
-          :increment_poll_count => nil
-        }
-
-        client = stub(name, defaults.merge(overrides))
-        client.stubs(:finished?).returns(false, true) unless overrides[:finished?]
-        client
-      end
-
-      def test_starts_when_the_first_client_is_added
+      def test_starts_when_the_first_subscription_is_added
         fake_worker_loop(@service)
 
-        client = @service.add_client(create_client('client', :finished? => false))
+        @service.subscribe(ThreadProfilingService::ALL_TRANSACTIONS)
         assert @service.running?
       end
 
-      def test_stops_without_clients
+      def test_stops_when_subscription_is_removed
         fake_worker_loop(@service)
 
-        client = @service.add_client(create_client('client', :finished? => false))
+        @service.subscribe(ThreadProfilingService::ALL_TRANSACTIONS)
         assert @service.running?
 
-        client.stubs(:finished?).returns(true)
+        @service.unsubscribe(ThreadProfilingService::ALL_TRANSACTIONS)
+        assert !@service.running?
+      end
+
+      def test_stops_only_once_all_subscriptions_are_removed
+        fake_worker_loop(@service)
+
+        @service.subscribe('foo')
+        @service.subscribe('bar')
+        assert @service.running?
+
+        @service.unsubscribe('bar')
+        assert @service.running?
+
+        @service.unsubscribe('foo')
+        assert !@service.running?
+      end
+
+      def test_harvest_returns_thread_profiles
+        fake_worker_loop(@service)
+
+        profile = @service.subscribe('foo')
+        harvested_profile = @service.harvest('foo')
+        assert_same(profile, harvested_profile)
+      end
+
+      def test_harvest_resets_thread_profiles
+        fake_worker_loop(@service)
+
+        @service.subscribe('foo')
+        profile1 = @service.harvest('foo')
+        profile2 = @service.harvest('foo')
+
+        assert(profile1)
+        assert(profile2)
+        assert_not_same(profile1, profile2)
+      end
+
+      def test_harvest_passes_on_original_args_to_new_thread_profiles
+        fake_worker_loop(@service)
+
+        args = { 'profile_id' => 42, 'duration' => 99, 'sample_period' => 0.1 }
+        @service.subscribe('foo', args)
+        @service.harvest('foo')
+        profile = @service.harvest('foo')
+
+        assert_equal(args, profile.command_arguments)
+      end
+
+      def test_harvest_returns_nil_if_never_subscribed
+        fake_worker_loop(@service)
+
+        profile = @service.harvest('diggle')
+        assert_nil(profile)
+      end
+
+      def test_poll_forwards_backtraces_to_subscribed_profiles
+        fake_worker_loop(@service)
+
+        bt0, bt1 = mock('bt0'), mock('bt1')
+
+        FakeThread.list << FakeThread.new(
+          :bucket => :request,
+          :backtrace => bt0)
+        FakeThread.list << FakeThread.new(
+          :bucket => :differenter_request,
+          :backtrace => bt1)
+
+        profile = @service.subscribe(ThreadProfilingService::ALL_TRANSACTIONS)
+        profile.expects(:aggregate).with(bt0, :request)
+        profile.expects(:aggregate).with(bt1, :differenter_request)
+
         @service.poll
-
-        assert_equal false, @service.running?
       end
 
-      def test_poll_stops_the_worker_loop_only_when_all_clients_are_finished
+      def test_poll_does_not_forward_ignored_backtraces_to_profiles
+        fake_worker_loop(@service)
+
+        faketrace = mock('faketrace')
+        FakeThread.list << FakeThread.new(
+          :bucket => :ignore,
+          :backtrace => faketrace)
+
+        profile = @service.subscribe(ThreadProfilingService::ALL_TRANSACTIONS)
+        profile.expects(:aggregate).never
+
+        @service.poll
+      end
+
+      def test_poll_scrubs_backtraces_before_forwarding_to_profiles
+        fake_worker_loop(@service)
+        raw_backtarce = mock('raw')
+        scrubbed_backtrace = mock('scrubbed')
+
+        FakeThread.list << FakeThread.new(
+          :bucket => :agent,
+          :backtrace => raw_backtarce,
+          :scrubbed_backtrace => scrubbed_backtrace)
+
+        profile = @service.subscribe(ThreadProfilingService::ALL_TRANSACTIONS)
+        profile.expects(:aggregate).with(scrubbed_backtrace, :agent)
+
+        @service.poll
+      end
+
+      def test_subscribe_adjusts_worker_loop_period
         dummy_loop = fake_worker_loop(@service)
 
-        first_client = @service.add_client(create_client('client1', :finished? => false))
-        second_client = @service.add_client(create_client('client2', :finished? => false))
-        assert @service.running?
+        @service.subscribe('foo', 'sample_period' => 10)
+        assert_equal(10, dummy_loop.period)
 
-        first_client.stubs(:finished?).returns(true)
-        @service.poll
-        assert @service.running?
+        @service.subscribe('bar', 'sample_period' => 5)
+        assert_equal(5, dummy_loop.period)
+      end
 
-        second_client.stubs(:finished?).returns(true)
-        dummy_loop.expects(:stop)
+      def test_unsubscribe_adjusts_worker_loop_period
+        dummy_loop = fake_worker_loop(@service)
+
+        @service.subscribe('foo', 'sample_period' => 10)
+        @service.subscribe('bar', 'sample_period' => 5)
+        @service.unsubscribe('bar')
+
+        assert_equal(10, dummy_loop.period)
+      end
+
+      def test_service_increments_profile_poll_counts
+        fake_worker_loop(@service)
+
+        profile = @service.subscribe(ThreadProfilingService::ALL_TRANSACTIONS)
+        5.times { @service.poll }
+        assert_equal(5, profile.poll_count)
+
+        @service.unsubscribe(ThreadProfilingService::ALL_TRANSACTIONS)
+        5.times { @service.poll }
+        assert_equal(5, profile.poll_count)
+      end
+
+      def test_poll_records_polling_time
+        fake_worker_loop(@service)
+
+        freeze_time
+
+        profile = @service.subscribe('foo')
+        def profile.increment_poll_count
+          advance_time(5.0)
+        end
+
         @service.poll
-        assert_equal false, @service.running?
+
+        expected = { :call_count => 1, :total_call_time => 5}
+        assert_metrics_recorded(
+          { 'Supportability/ThreadProfiler/PollingTime' => expected }
+        )
       end
 
       def test_each_backtrace_with_bucket
@@ -114,101 +223,6 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
         assert_equal expected, backtrabuckets
       end
 
-      def test_poll_forwards_backtraces_to_clients
-        fake_worker_loop(@service)
-        faketrace, alsofaketrace = mock('faketrace'), mock('alsofaketrace')
-
-        FakeThread.list << FakeThread.new(
-          :bucket => :request,
-          :backtrace => faketrace)
-        FakeThread.list << FakeThread.new(
-          :bucket => :differenter_request,
-          :backtrace => alsofaketrace)
-
-        carebear = create_client('carebear')
-        carebear.expects(:aggregate).with(faketrace, :request)
-        carebear.expects(:aggregate).with(alsofaketrace, :differenter_request)
-
-        @service.add_client(carebear)
-        @service.poll
-      end
-
-      def test_poll_does_not_forward_ignored_backtraces_to_clients
-        fake_worker_loop(@service)
-        faketrace = mock('faketrace')
-        FakeThread.list << FakeThread.new(
-          :bucket => :ignore,
-          :backtrace => faketrace)
-
-        ignorant_client = create_client('ignorant')
-        ignorant_client.expects(:aggregate).never
-
-
-        @service.add_client(ignorant_client)
-        @service.poll
-      end
-
-      def test_poll_forwards_scrubbed_backtraces_to_clients_instead_of_raw
-        fake_worker_loop(@service)
-        raw_backtarce = mock('raw')
-        scrubbed_backtrace = mock('scrubbed')
-
-        FakeThread.list << FakeThread.new(
-          :bucket => :agent,
-          :backtrace => raw_backtarce,
-          :scrubbed_backtrace => scrubbed_backtrace)
-
-        $debug = true
-        client = create_client('client')
-        client.expects(:aggregate).with(scrubbed_backtrace, :agent)
-
-        @service.add_client(client)
-        @service.poll
-      end
-
-      def test_poll_adjusts_worker_loop_period_to_minimum_client_period
-        dummy_loop = fake_worker_loop(@service)
-
-        first_client = create_client('first_client', :requested_period => 42)
-        @service.add_client(first_client)
-        dummy_loop.expects(:period=).with(42)
-        @service.poll
-
-        second_client = create_client('second_client', :requested_period => 7)
-        @service.add_client(second_client)
-        dummy_loop.expects(:period=).with(7)
-        @service.poll
-      end
-
-      def test_service_increments_client_poll_counts
-        fake_worker_loop(@service)
-        three = create_client('3')
-        three.stubs(:finished?).returns(false, false, false, true)
-
-        three.expects(:increment_poll_count).times(3)
-        @service.add_client(three)
-        4.times { @service.poll }
-      end
-
-      def test_poll_records_polling_time
-        fake_worker_loop(@service)
-
-        freeze_time
-        client = create_client('polling_time')
-
-        def client.increment_poll_count
-          advance_time(5.0)
-        end
-
-        @service.add_client(client)
-        @service.poll
-
-        expected = { :call_count => 1, :total_call_time => 5}
-        assert_metrics_recorded(
-          { 'Supportability/ThreadProfiler/PollingTime' => expected }
-        )
-      end
-
     end
 
     # These tests do not use ThreadedTestCase as FakeThread is synchronous and
@@ -225,17 +239,20 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
         @service.stop
       end
 
-      def test_adding_clients_is_thread_safe
+      def test_adding_subscriptions_is_thread_safe
         propagating_worker_loop = NewRelic::Agent::WorkerLoop.new(:propagate_errors => true)
-
         @service.stubs(:worker_loop).returns(propagating_worker_loop)
-        long_client = create_client('long_client', :finished? => false)
 
-        @service.add_client(long_client)
+        @service.subscribe('foo')
 
         1000.times do
-          @service.add_client(create_client('short_client', :requested_period => 0))
+          @service.subscribe(ThreadProfilingService::ALL_TRANSACTIONS)
+          @service.unsubscribe(ThreadProfilingService::ALL_TRANSACTIONS)
         end
+
+        @service.unsubscribe('foo')
+
+        @service.worker_thread.join
       end
     end
 

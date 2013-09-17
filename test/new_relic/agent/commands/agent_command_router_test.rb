@@ -40,6 +40,10 @@ class AgentCommandRouterTest < Test::Unit::TestCase
     @agent_commands.handlers["boom"]   = Proc.new { |args| handle_boom_command(args) }
   end
 
+  def teardown
+    agent_commands.thread_profiling_service.worker_thread.join if agent_commands.thread_profiling_service.worker_thread
+  end
+
   # General command routing
 
   def test_check_for_and_handle_agent_commands_dispatches_command
@@ -99,22 +103,46 @@ class AgentCommandRouterTest < Test::Unit::TestCase
   end
 
   def test_harvest_data_to_send_with_profile_in_progress
-    with_profile(:finished => false)
+    start_profile
+
     result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
     assert_equal({}, result)
   end
 
   def test_harvest_data_to_send_with_profile_completed
-    expected_profile = with_profile(:finished => true)
+    start_profile
+
+    advance_time(1.1)
     result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
-    assert_equal({:profile_data => expected_profile}, result)
+
+    assert_not_nil result[:profile_data]
+  end
+
+  def test_can_stop_multiple_times_safely
+    start_profile
+
+    advance_time(1.1)
+    agent_commands.thread_profiler_session.stop(true)
+
+    result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
+    assert_not_nil result[:profile_data]
+  end
+
+  def test_transmits_after_forced_stop
+    start_profile
+
+    agent_commands.thread_profiler_session.stop(true)
+
+    result = agent_commands.harvest_data_to_send(NOT_DISCONNECTING)
+    assert_not_nil result[:profile_data]
   end
 
   def test_harvest_data_to_send_with_profile_in_progress_but_disconnecting
-    expected_profile = with_profile(:finished => false)
+    start_profile
     result = agent_commands.harvest_data_to_send(DISCONNECTING)
-    assert_equal({:profile_data => expected_profile}, result)
+    assert_not_nil result[:profile_data]
   end
+
 
   # Helpers
 
@@ -126,13 +154,11 @@ class AgentCommandRouterTest < Test::Unit::TestCase
     raise NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError.new("BOOOOOM")
   end
 
-  def with_profile(opts)
-    profile = NewRelic::Agent::Threading::ThreadProfile.new
-    profile.aggregate(["chunky.rb:42:in `bacon'"], :other)
-    profile.mark_done if opts[:finished]
-
-    agent_commands.thread_profiler_session.profile = profile
-    profile
+  def start_profile
+    freeze_time
+    args = { 'duration' => 1.0 }
+    agent_commands.thread_profiler_session.start(create_agent_command(args))
+    agent_commands.thread_profiling_service.worker_loop.stubs(:run)
   end
 
 end

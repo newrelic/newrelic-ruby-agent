@@ -6,25 +6,24 @@ module NewRelic
   module Agent
     module Threading
       class ThreadProfilingService
-        attr_reader :worker_loop, :clients
+        ALL_TRANSACTIONS = "**ALL**".freeze
+
+        attr_reader :worker_loop
         attr_accessor :worker_thread, :profile_agent_code
 
         def initialize
-          @clients = []
-          @clients_lock = Mutex.new
+          @profiles = {}
 
           @running = false
           @profile_agent_code = false
           @worker_loop = NewRelic::Agent::WorkerLoop.new
-
-          self.worker_thread = nil
         end
 
         def start
           return if @running
           @running = true
           self.worker_thread = AgentThread.new('thread_profiling_service_worker') do
-            self.worker_loop.run(minimum_client_period, &method(:poll))
+            self.worker_loop.run(effective_profiling_period, &method(:poll))
           end
         end
 
@@ -34,23 +33,42 @@ module NewRelic
           self.worker_loop.stop
         end
 
-        def minimum_client_period
-          @clients_lock.synchronize do
-            @clients.map { |c| c.requested_period }.min
-          end
+        def effective_profiling_period
+          @profiles.values.map { |p| p.requested_period }.min
         end
 
         def running?
           @running
         end
 
-        def add_client(client)
-          @clients_lock.synchronize do
-            @clients << client
-          end
-
+        def subscribe(transaction_name, command_arguments={})
           start
-          client
+          profile = ThreadProfile.new(command_arguments)
+
+          current_period = self.worker_loop.period
+          self.worker_loop.period = [current_period, profile.requested_period].min
+          @profiles[transaction_name] = profile
+        end
+
+        def unsubscribe(transaction_name)
+          @profiles.delete(transaction_name)
+          if @profiles.empty?
+            stop
+          else
+            self.worker_loop.period = effective_profiling_period
+          end
+        end
+
+        def subscribed?(transaction_name)
+          @profiles.has_key?(transaction_name)
+        end
+
+        def harvest(transaction_name)
+          if @profiles[transaction_name]
+            profile = @profiles.delete(transaction_name)
+            @profiles[transaction_name] = ThreadProfile.new(profile.command_arguments)
+            profile
+          end
         end
 
         def each_backtrace_with_bucket
@@ -66,24 +84,13 @@ module NewRelic
         def poll
           poll_start = Time.now
 
-          @clients_lock.synchronize do
-            @clients.reject! { |c| c.finished? }
-
-            if @clients.empty?
-              stop
-              return
+          each_backtrace_with_bucket do |backtrace, bucket|
+            if @profiles[ALL_TRANSACTIONS]
+              @profiles[ALL_TRANSACTIONS].aggregate(backtrace, bucket)
             end
-
-            each_backtrace_with_bucket do |backtrace, bucket|
-              @clients.each do |client|
-                client.aggregate(backtrace, bucket)
-              end
-            end
-
-            @clients.each { |c| c.increment_poll_count }
           end
 
-          self.worker_loop.period = minimum_client_period
+          @profiles.values.each { |c| c.increment_poll_count }
           record_polling_time(Time.now - poll_start)
         end
 

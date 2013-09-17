@@ -7,7 +7,6 @@ require 'new_relic/agent/worker_loop'
 require 'new_relic/agent/threading/backtrace_node'
 
 # Intent is for this to be a data structure for representing a thread profile
-# TODO: Get rid of the running/sampling in this class, externalize it elsewhere
 
 module NewRelic
   module Agent
@@ -15,14 +14,15 @@ module NewRelic
 
       class ThreadProfile
 
-        attr_reader :profile_id, :traces, :interval,
+        attr_reader :profile_id, :traces, :sample_period,
           :duration, :poll_count, :sample_count, :failure_count,
-          :created_at, :last_aggregated_at, :xray_id
+          :created_at, :last_aggregated_at, :xray_id, :command_arguments
 
         def initialize(command_arguments={})
+          @command_arguments = command_arguments
           @profile_id = command_arguments.fetch('profile_id', -1)
           @duration = command_arguments.fetch('duration', 120)
-          @interval = command_arguments.fetch('sample_period', 0.1)
+          @sample_period = command_arguments.fetch('sample_period', 0.1)
           @xray_id = command_arguments.fetch('x_ray_id', nil)
           @finished = false
 
@@ -42,7 +42,7 @@ module NewRelic
         end
 
         def requested_period
-          @interval
+          @sample_period
         end
 
         def increment_poll_count
@@ -97,14 +97,6 @@ module NewRelic
           ]
           result << int(@xray_id) unless @xray_id.nil?
           [result]
-        end
-
-        def finished?
-          @marked_done || Time.now > self.created_at + @duration
-        end
-
-        def mark_done
-          @marked_done = true
         end
       end
     end
