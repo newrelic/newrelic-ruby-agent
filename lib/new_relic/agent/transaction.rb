@@ -183,8 +183,8 @@ module NewRelic
 
       # Unwind one stack level.  It knows if it's back at the outermost caller and
       # does the appropriate wrapup of the context.
-      def stop(metric=::NewRelic::Agent::UNKNOWN_METRIC, end_time=Time.now)
-        @name = metric unless name_set? || name_frozen?
+      def stop(fallback_name=::NewRelic::Agent::UNKNOWN_METRIC, end_time=Time.now)
+        @name = fallback_name unless name_set? || name_frozen?
         freeze_name
         log_underflow if @type.nil?
 
