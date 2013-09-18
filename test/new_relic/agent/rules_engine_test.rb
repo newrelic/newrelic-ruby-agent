@@ -25,6 +25,12 @@ class RulesEngineTest < Test::Unit::TestCase
     assert_equal(['foo/*/bar/22', true], rule.apply('foo/1/bar/22'))
   end
 
+  def test_rules_can_apply_to_frozen_strings
+    rule = NewRelic::Agent::RulesEngine::Rule.new('match_expression' => '[0-9]+',
+                                                  'replacement'      => '*')
+    assert_equal(['foo/*/bar/22', true], rule.apply('foo/1/bar/22'.freeze))
+  end
+
   def test_rule_applies_grouping_with_replacements
     rule = NewRelic::Agent::RulesEngine::Rule.new('match_expression' => '([0-9]+)',
                                                   'replacement'      => '\\1\\1')
