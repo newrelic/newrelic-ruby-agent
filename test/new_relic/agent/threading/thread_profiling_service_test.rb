@@ -249,9 +249,9 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
       def test_adding_subscriptions_is_thread_safe
         @service.worker_loop.propagate_errors = true
 
-        @service.subscribe('foo')
+        @service.subscribe('foo', { 'sample_period' => 0.01 })
 
-        1000.times do
+        10000.times do
           @service.subscribe(ThreadProfilingService::ALL_TRANSACTIONS)
           @service.unsubscribe(ThreadProfilingService::ALL_TRANSACTIONS)
         end
