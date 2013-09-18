@@ -11,8 +11,6 @@ module NewRelic
 
       class ThreadProfilerSession
 
-        attr_accessor :profile
-
         def initialize(thread_profiling_service)
           @thread_profiling_service = thread_profiling_service
         end
@@ -33,18 +31,9 @@ module NewRelic
         end
 
         def start(agent_command)
-          command_arguments = agent_command.arguments
-
-          # This should really be a per-client setting rather than a global
-          # setting for whole ThreadProfilingService. We're relying here on the
-          # fact that we are the only client to set the profile_agent_code
-          # setting. This (at present) only an internal setting.
-          profile_agent_code = command_arguments.fetch('profile_agent_code', false)
-          @thread_profiling_service.profile_agent_code = profile_agent_code
-
           profile = @thread_profiling_service.subscribe(
             NewRelic::Agent::Threading::ThreadProfilingService::ALL_TRANSACTIONS,
-            command_arguments
+            agent_command.arguments
           )
 
           @started_at = Time.now

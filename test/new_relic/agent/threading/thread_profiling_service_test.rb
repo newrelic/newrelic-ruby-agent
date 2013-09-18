@@ -174,6 +174,13 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
         assert_equal(10, dummy_loop.period)
       end
 
+      def test_subscribe_sets_profile_agent_code
+        fake_worker_loop(@service)
+
+        @service.subscribe('foo', 'profile_agent_code' => true)
+        assert @service.profile_agent_code
+      end
+
       def test_service_increments_profile_poll_counts
         fake_worker_loop(@service)
 

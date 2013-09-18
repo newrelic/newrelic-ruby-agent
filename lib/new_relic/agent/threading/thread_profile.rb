@@ -16,15 +16,18 @@ module NewRelic
 
         attr_reader :profile_id, :traces, :sample_period,
           :duration, :poll_count, :sample_count, :failure_count,
-          :created_at, :last_aggregated_at, :xray_id, :command_arguments
+          :created_at, :last_aggregated_at, :xray_id, :command_arguments,
+          :profile_agent_code
 
         def initialize(command_arguments={})
-          @command_arguments = command_arguments
-          @profile_id = command_arguments.fetch('profile_id', -1)
-          @duration = command_arguments.fetch('duration', 120)
-          @sample_period = command_arguments.fetch('sample_period', 0.1)
-          @xray_id = command_arguments.fetch('x_ray_id', nil)
+          @command_arguments  = command_arguments
+          @profile_id         = command_arguments.fetch('profile_id', -1)
+          @duration           = command_arguments.fetch('duration', 120)
+          @sample_period      = command_arguments.fetch('sample_period', 0.1)
+          @profile_agent_code = command_arguments.fetch('profile_agent_code', false)
+          @xray_id            = command_arguments.fetch('x_ray_id', nil)
           @finished = false
+
 
           @traces = {
             :agent      => BacktraceNode.new(nil),

@@ -45,8 +45,14 @@ module NewRelic
           start
           profile = ThreadProfile.new(command_arguments)
 
+          # Revise once X-Rays come along! They won't have the
+          # profile_agent_code parameter but also shouldn't tromp if it's set
+          # because of thread profiling
+          self.profile_agent_code = profile.profile_agent_code
+
           current_period = self.worker_loop.period
           self.worker_loop.period = [current_period, profile.requested_period].min
+
           @profiles[transaction_name] = profile
         end
 
