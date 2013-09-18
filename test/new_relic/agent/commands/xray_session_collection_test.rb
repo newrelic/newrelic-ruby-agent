@@ -16,7 +16,7 @@ module NewRelic::Agent::Commands
     FIRST_REQUESTED_TRACE_COUNT = 10
     FIRST_DURATION = 600
     FIRST_SAMPLE_PERIOD = 0.2
-    FIRST_RUN_PROFILER = false
+    FIRST_RUN_PROFILER = true
 
     FIRST_METADATA  = {
       "x_ray_id"              => FIRST_ID,
@@ -29,7 +29,13 @@ module NewRelic::Agent::Commands
     }
 
     SECOND_ID = 42
-    SECOND_METADATA = { "x_ray_id" => SECOND_ID }
+    SECOND_TRANSACTION_NAME = "Controller/blogs/show"
+
+    SECOND_METADATA = {
+      "x_ray_id"             => SECOND_ID,
+      "key_transaction_name" => SECOND_TRANSACTION_NAME,
+      "run_profiler"         => true
+    }
 
     def setup
       @service  = stub
@@ -195,6 +201,17 @@ module NewRelic::Agent::Commands
       assert_equal false, session.active?
     end
 
+    def test_harvest_thread_profiles_pulls_data_from_profiling_service
+      handle_command_for(FIRST_ID, SECOND_ID)
+
+      profile0, profile1 = mock('profile0'), mock('profile1')
+
+      @thread_profiling_service.expects(:harvest).with(FIRST_TRANSACTION_NAME).returns(profile0)
+      @thread_profiling_service.expects(:harvest).with(SECOND_TRANSACTION_NAME).returns(profile1)
+
+      profiles = @sessions.harvest_thread_profiles
+      assert_equal_unordered([profile0, profile1], profiles)
+    end
 
     # Helpers
 

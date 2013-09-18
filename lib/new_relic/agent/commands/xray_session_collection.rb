@@ -30,10 +30,20 @@ module NewRelic
           sessions.keys.find { |id| sessions[id].key_transaction_name == name }
         end
 
+        def harvest_thread_profiles
+          profiles = active_thread_profiling_sessions.map do |session|
+            @thread_profiling_service.harvest(session.key_transaction_name)
+          end
+          profiles.compact
+        end
 
         private
 
         attr_accessor :new_relic_service
+
+        def active_thread_profiling_sessions
+          sessions.values.select { |s| s.active? && s.run_profiler? }
+        end
 
         # Session activation
 
