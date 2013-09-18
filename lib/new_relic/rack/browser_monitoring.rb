@@ -89,8 +89,20 @@ module NewRelic::Rack
           end
         end
       end
-      headers['Content-Length'] = source.length.to_s if headers['Content-Length']
+
+      if headers['Content-Length']
+        headers['Content-Length'] = calculate_content_length(source).to_s
+      end
+
       source
+    end
+
+    def calculate_content_length(source)
+      if source.respond_to?(:bytesize)
+        source.bytesize
+      else
+        source.length
+      end
     end
   end
 
