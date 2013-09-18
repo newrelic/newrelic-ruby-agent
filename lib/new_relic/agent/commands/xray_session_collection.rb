@@ -72,9 +72,14 @@ module NewRelic
 
         def remove_session_by_id(id)
           session = sessions.delete(id)
-          NewRelic::Agent.logger.debug("Removing X-Ray session #{session.inspect}")
 
-          session.deactivate
+          if session
+            NewRelic::Agent.logger.debug("Removing X-Ray session #{session.inspect}")
+            if session.run_profiler?
+              @thread_profiling_service.unsubscribe(session.key_transaction_name)
+            end
+            session.deactivate
+          end
         end
 
       end

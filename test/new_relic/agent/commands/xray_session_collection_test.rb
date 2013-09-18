@@ -79,6 +79,20 @@ module NewRelic::Agent::Commands
       handle_command_for(xray_id)
     end
 
+    def test_removing_sessions_unsubscribes_from_thread_profiling_service
+      xray_id = 333
+      xray_metadata = {
+        'x_ray_id'     => xray_id,
+        'run_profiler' => true,
+        'key_transaction_name' => 'foo'
+      }
+      @service.stubs(:get_xray_metadata).with([xray_id]).returns([xray_metadata])
+      handle_command_for(xray_id)
+
+      @thread_profiling_service.expects(:unsubscribe).with('foo')
+      @sessions.handle_active_xray_sessions(create_agent_command('xray_ids' => []))
+    end
+
     def test_creates_a_session_from_collector_metadata
       handle_command_for(FIRST_ID)
 
