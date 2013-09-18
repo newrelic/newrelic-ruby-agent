@@ -48,7 +48,7 @@ module NewRelic
             profile = self.thread_profiler_session.harvest
 
             ::NewRelic::Agent.logger.debug "Sending thread profile #{profile.profile_id}"
-            {:profile_data => profile}
+            {:profile_data => [profile]}
           else
             NO_PROFILES_TO_SEND
           end

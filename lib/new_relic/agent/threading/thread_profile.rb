@@ -99,7 +99,7 @@ module NewRelic
             0 # runnable thread count, which we don't track
           ]
           result << int(@xray_id) unless @xray_id.nil?
-          [result]
+          result
         end
       end
     end

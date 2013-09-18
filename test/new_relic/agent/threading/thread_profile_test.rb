@@ -94,7 +94,7 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
         @profile.stubs(:created_at).returns(1350403938892.524)
         @profile.stubs(:last_aggregated_at).returns(1350403939904.375)
 
-        expected = [[
+        expected = [
           333,
           1350403938892.524,
           1350403939904.375,
@@ -102,7 +102,7 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
           WELL_KNOWN_TRACE_ENCODED,
           20,
           0
-        ]]
+        ]
 
         marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
         assert_equal expected, @profile.to_collector_array(marshaller.default_encoder)
@@ -113,7 +113,7 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
         @profile.stubs(:created_at).returns(1350403938892.524)
         @profile.stubs(:last_aggregated_at).returns(1350403939904.375)
 
-        expected = [[
+        expected = [
           -1,
           1350403938892.524,
           1350403939904.375,
@@ -122,7 +122,7 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
           20,
           0,
           4242
-        ]]
+        ]
 
         marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
         assert_equal expected, @profile.to_collector_array(marshaller.default_encoder)
@@ -135,7 +135,7 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
         @profile.instance_variable_set(:@poll_count, Rational(10, 1))
         @profile.instance_variable_set(:@sample_count, nil)
 
-        expected = [[
+        expected = [
           -1,
           0.0,
           0.0,
@@ -143,7 +143,7 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
           WELL_KNOWN_TRACE_ENCODED,
           0,
           0
-        ]]
+        ]
 
         marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
         assert_equal expected, @profile.to_collector_array(marshaller.default_encoder)
