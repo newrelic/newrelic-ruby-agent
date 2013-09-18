@@ -247,8 +247,7 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
       end
 
       def test_adding_subscriptions_is_thread_safe
-        propagating_worker_loop = NewRelic::Agent::WorkerLoop.new(:propagate_errors => true)
-        @service.stubs(:worker_loop).returns(propagating_worker_loop)
+        @service.worker_loop.propagate_errors = true
 
         @service.subscribe('foo')
 

@@ -10,7 +10,7 @@ module NewRelic
     # A task is a proc or block with a specified call period in seconds.
     class WorkerLoop
 
-      attr_accessor :period
+      attr_accessor :period, :propagate_errors
 
       # Optional argument :duration (in seconds) for how long the worker loop runs
       # or :limit (integer) for max number of iterations

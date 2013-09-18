@@ -157,8 +157,8 @@ class AgentCommandRouterTest < Test::Unit::TestCase
   def start_profile
     freeze_time
     args = { 'duration' => 1.0 }
-    agent_commands.thread_profiler_session.start(create_agent_command(args))
     agent_commands.thread_profiling_service.worker_loop.stubs(:run)
+    agent_commands.thread_profiler_session.start(create_agent_command(args))
   end
 
 end
