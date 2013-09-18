@@ -9,12 +9,15 @@ module NewRelic
         DEFAULT_PERIOD_IN_SECONDS = 0.1
         ALL_TRANSACTIONS = "**ALL**".freeze
 
-        attr_reader :worker_loop
+        attr_reader :worker_loop, :buffer
         attr_accessor :worker_thread, :profile_agent_code
 
         def initialize
           @profiles = {}
-          @lock = Mutex.new
+          @buffer = {}
+
+          # synchronizes access to @profiles and @buffer above
+          @lock = Mutex.new 
 
           @running = false
           @profile_agent_code = false
@@ -70,36 +73,21 @@ module NewRelic
           end
         end
 
-        # Internals
-
-        def poll
-          poll_start = Time.now
-
+        def on_transaction_finished(name, start, duration, options={}, thread=Thread.current)
           @lock.synchronize do
-            each_backtrace_with_bucket do |backtrace, bucket|
-              if @profiles[ALL_TRANSACTIONS]
-                @profiles[ALL_TRANSACTIONS].aggregate(backtrace, bucket)
+            backtraces = @buffer.delete(thread)
+            if backtraces && @profiles.has_key?(name)
+              end_time = start + duration
+              backtraces.each do |(timestamp, backtrace)|
+                if timestamp >= start && timestamp < end_time
+                  @profiles[name].aggregate(backtrace, :request)
+                end
               end
             end
-            @profiles.values.each { |c| c.increment_poll_count }
-          end
-
-          record_polling_time(Time.now - poll_start)
-        end
-
-        def each_backtrace_with_bucket
-          AgentThread.list.each do |thread|
-            bucket = Threading::AgentThread.bucket_thread(thread, @profile_agent_code)
-            next if bucket == :ignore
-
-            backtrace = Threading::AgentThread.scrub_backtrace(thread, @profile_agent_code)
-            yield backtrace, bucket
           end
         end
 
-        def record_polling_time(duration)
-          NewRelic::Agent.record_metric('Supportability/ThreadProfiler/PollingTime', duration)
-        end
+        # Internals
 
         def start
           return if @running
@@ -118,10 +106,66 @@ module NewRelic
           self.worker_loop.stop
         end
 
-        # This should only be called with @lock held, since it touches @profiles
-        # but does not acquire the lock itself.
+        def poll
+          poll_start = Time.now
+
+          @lock.synchronize do
+            AgentThread.list.each do |thread|
+              sample_thread(thread)
+            end
+            @profiles.values.each { |c| c.increment_poll_count }
+          end
+
+          record_polling_time(Time.now - poll_start)
+        end
+
+        # This method is expected to be called with @lock held.
+        def should_buffer?(bucket)
+          bucket == :request && @profiles.keys.any? { |k| k != ALL_TRANSACTIONS }
+        end
+
+        # This method is expected to be called with @lock held.
+        def need_backtrace?(bucket)
+          (
+            bucket != :ignore &&
+            (@profiles[ALL_TRANSACTIONS] || should_buffer?(bucket))
+          )
+        end
+
+        # This method is expected to be called with @lock held.
+        def buffer_backtrace_for_thread(thread, timestamp, backtrace, bucket)
+          if should_buffer?(bucket)
+            @buffer[thread] ||= []
+            @buffer[thread] << [timestamp, backtrace]
+          end
+        end
+
+        # This method is expected to be called with @lock held.
+        def aggregate_global_backtrace(backtrace, bucket)
+          if @profiles[ALL_TRANSACTIONS]
+            @profiles[ALL_TRANSACTIONS].aggregate(backtrace, bucket)
+          end
+        end
+
+        # This method is expected to be called with @lock held.
+        def sample_thread(thread)
+          bucket = AgentThread.bucket_thread(thread, @profile_agent_code)
+
+          if need_backtrace?(bucket)
+            timestamp = Time.now
+            backtrace = AgentThread.scrub_backtrace(thread, @profile_agent_code)
+            aggregate_global_backtrace(backtrace, bucket)
+            buffer_backtrace_for_thread(thread, timestamp, backtrace, bucket)
+          end
+        end
+
+        # This method is expected to be called with @lock held.
         def effective_profiling_period
           @profiles.values.map { |p| p.requested_period }.min
+        end
+
+        def record_polling_time(duration)
+          NewRelic::Agent.record_metric('Supportability/ThreadProfiler/PollingTime', duration)
         end
 
       end

@@ -10,19 +10,8 @@ require 'new_relic/agent/threading/threaded_test_case'
 if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
 
   module NewRelic::Agent::Threading
-    module ThreadProfilingServiceTestHelpers
-      def fake_worker_loop(service)
-        dummy_loop = NewRelic::Agent::WorkerLoop.new
-        dummy_loop.stubs(:run).returns(nil)
-        dummy_loop.stubs(:stop).returns(nil)
-        service.stubs(:worker_loop).returns(dummy_loop)
-        dummy_loop
-      end
-    end
-
     class ThreadProfilingServiceTest < Test::Unit::TestCase
       include ThreadedTestCase
-      include ThreadProfilingServiceTestHelpers
 
       def setup
         NewRelic::Agent.instance.stats_engine.clear_stats
@@ -181,6 +170,113 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
         assert @service.profile_agent_code
       end
 
+      def test_sample_thread_does_not_backtrace_if_no_subscriptions
+        thread = fake_thread(:bucket => :request)
+        thread.expects(:backtrace).never
+        @service.sample_thread(thread)
+      end
+
+      def test_sample_thread_does_not_backtrace_if_ignored
+        thread = fake_thread(:bucket => :ignore)
+        thread.expects(:backtrace).never
+        @service.sample_thread(thread)
+      end
+
+      def test_sample_thread_does_not_backtrace_if_no_relevant_subscriptions
+        fake_worker_loop(@service)
+        @service.subscribe('foo')
+
+        thread = fake_thread(:bucket => :other)
+        thread.expects(:backtrace).never
+        @service.sample_thread(thread)
+      end
+
+      def test_on_transaction_finished_always_clears_buffer_for_current_thread
+        fake_worker_loop(@service)
+
+        thread = fake_thread(:bucket => :request)
+        @service.subscribe('foo')
+        @service.poll
+
+        @service.on_transaction_finished('bar', Time.at(0), 1, {}, thread)
+        assert @service.buffer.empty?
+      end
+
+      def test_on_transaction_finished_aggregates_backtraces_to_subscribed_profile
+        fake_worker_loop(@service)
+
+        thread = fake_thread(:bucket => :request)
+        profile = @service.subscribe('foo')
+
+        t0 = freeze_time
+        @service.poll
+
+        profile.expects(:aggregate).with(thread.backtrace, :request)
+        @service.on_transaction_finished('foo', t0, 1, {}, thread)
+      end
+
+      def test_on_transaction_finished_does_not_aggregate_backtraces_to_non_subscribed_profiles
+        fake_worker_loop(@service)
+
+        thread = fake_thread(:bucket => :request)
+        profile = @service.subscribe('foo')
+
+        t0 = freeze_time
+        @service.poll
+
+        profile.expects(:aggregate).never
+        @service.on_transaction_finished('bar', t0, 1, {}, thread)
+      end
+
+      def test_on_transaction_finished_delivers_buffered_backtraces_for_correct_thread
+        fake_worker_loop(@service)
+
+        thread0 = fake_thread(:bucket => :request)
+        thread1 = fake_thread(:bucket => :request)
+
+        profile = @service.subscribe('foo')
+
+        t0 = freeze_time
+        @service.poll
+
+        profile.expects(:aggregate).with(thread0.backtrace, :request).once
+        profile.expects(:aggregate).with(thread1.backtrace, :request).once
+
+        @service.on_transaction_finished('foo', t0, 1, {}, thread0)
+        @service.on_transaction_finished('foo', t0, 1, {}, thread1)
+      end
+
+      def test_on_transaction_finished_only_delivers_backtraces_within_transaction_time_window
+        fake_worker_loop(@service)
+
+        thread = fake_thread(:bucket => :request)
+
+        profile = @service.subscribe('foo')
+
+        t0 = freeze_time
+        4.times do
+          @service.poll
+          advance_time(1.0)
+        end
+
+        profile.expects(:aggregate).with(thread.backtrace, :request).times(2)
+        @service.on_transaction_finished('foo', t0 + 1, 2.0, {}, thread)
+      end
+
+      def test_does_not_deliver_non_request_backtraces_to_subscribed_profiles
+        fake_worker_loop(@service)
+
+        thread = fake_thread(:bucket => :other)
+
+        profile = @service.subscribe('foo')
+
+        t0 = freeze_time
+        @service.poll
+
+        profile.expects(:aggregate).never
+        @service.on_transaction_finished('foo', t0, 1, {}, thread)
+      end
+
       def test_service_increments_profile_poll_counts
         fake_worker_loop(@service)
 
@@ -211,32 +307,27 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
         )
       end
 
-      def test_each_backtrace_with_bucket
-        faketrace, alsofaketrace = mock, mock
-
-        FakeThread.list << FakeThread.new(
-          :bucket => :request,
-          :backtrace => faketrace)
-        FakeThread.list << FakeThread.new(
-          :bucket => :differenter_request,
-          :backtrace => alsofaketrace)
-
-        backtrabuckets = []
-        @service.each_backtrace_with_bucket do |backtrace, bucket|
-          backtrabuckets << [backtrace, bucket]
-        end
-
-        expected = [[faketrace, :request], [alsofaketrace, :differenter_request]]
-        assert_equal expected, backtrabuckets
+      def fake_worker_loop(service)
+        dummy_loop = NewRelic::Agent::WorkerLoop.new
+        dummy_loop.stubs(:run).returns(nil)
+        dummy_loop.stubs(:stop).returns(nil)
+        service.stubs(:worker_loop).returns(dummy_loop)
+        dummy_loop
       end
 
+      def fake_thread(opts={})
+        defaults = {
+          :backtrace => mock('backtrace')
+        }
+        thread = FakeThread.new(defaults.merge(opts))
+        FakeThread.list << thread
+        thread
+      end
     end
 
     # These tests do not use ThreadedTestCase as FakeThread is synchronous and
     # prevents the detection of concurrency issues.
     class ThreadProfilingServiceConcurrencyTest < Test::Unit::TestCase
-      include ThreadProfilingServiceTestHelpers
-
       def setup
         NewRelic::Agent.instance.stats_engine.clear_stats
         @service = ThreadProfilingService.new
