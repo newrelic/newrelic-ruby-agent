@@ -15,7 +15,8 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
 
       def setup
         NewRelic::Agent.instance.stats_engine.clear_stats
-        @service = ThreadProfilingService.new
+        @event_listener = NewRelic::Agent::EventListener.new
+        @service = ThreadProfilingService.new(@event_listener)
         setup_fake_threads
       end
 
@@ -275,6 +276,23 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
 
         profile.expects(:aggregate).never
         @service.on_transaction_finished('foo', t0, 1, {}, thread)
+      end
+
+      def test_subscribe_sets_up_transaction_finished_subscription
+        fake_worker_loop(@service)
+
+        Thread.current[:bucket] = :request
+        FakeThread.list << Thread.current
+
+        profile = @service.subscribe('foo')
+
+        t0 = freeze_time
+        @service.poll
+
+        profile.expects(:aggregate).once
+        @event_listener.notify(:transaction_finished, 'foo', t0, 1.0, {})
+      ensure
+        Thread.current[:bucket] = nil
       end
 
       def test_service_increments_profile_poll_counts

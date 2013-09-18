@@ -21,9 +21,9 @@ module NewRelic
         attr_accessor :thread_profiler_session, :thread_profiling_service,
                       :xray_session_collection
 
-        def initialize(new_relic_service)
+        def initialize(new_relic_service, event_listener=nil)
           @new_relic_service = new_relic_service
-          @thread_profiling_service = Threading::ThreadProfilingService.new
+          @thread_profiling_service = Threading::ThreadProfilingService.new(event_listener)
 
           @thread_profiler_session = ThreadProfilerSession.new(@thread_profiling_service)
           @xray_session_collection = XraySessionCollection.new(@new_relic_service, @thread_profiling_service)

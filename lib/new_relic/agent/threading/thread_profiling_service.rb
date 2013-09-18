@@ -12,7 +12,7 @@ module NewRelic
         attr_reader :worker_loop, :buffer
         attr_accessor :worker_thread, :profile_agent_code
 
-        def initialize
+        def initialize(event_listener=nil)
           @profiles = {}
           @buffer = {}
 
@@ -22,6 +22,10 @@ module NewRelic
           @running = false
           @profile_agent_code = false
           @worker_loop = NewRelic::Agent::WorkerLoop.new
+
+          if event_listener
+            event_listener.subscribe(:transaction_finished, &method(:on_transaction_finished))
+          end
         end
 
         # Public interface
