@@ -38,14 +38,14 @@ module NewRelic::Agent::Commands
     }
 
     def setup
-      @service  = stub
+      @new_relic_service  = stub
       @backtrace_service = NewRelic::Agent::Threading::BacktraceService.new
       @backtrace_service.worker_loop.stubs(:run)
-      @sessions = NewRelic::Agent::Commands::XraySessionCollection.new(@service, @backtrace_service)
+      @sessions = NewRelic::Agent::Commands::XraySessionCollection.new(@new_relic_service, @backtrace_service)
 
-      @service.stubs(:get_xray_metadata).with([FIRST_ID]).returns([FIRST_METADATA])
-      @service.stubs(:get_xray_metadata).with([SECOND_ID]).returns([SECOND_METADATA])
-      @service.stubs(:get_xray_metadata).with([FIRST_ID, SECOND_ID]).returns([FIRST_METADATA, SECOND_METADATA])
+      @new_relic_service.stubs(:get_xray_metadata).with([FIRST_ID]).returns([FIRST_METADATA])
+      @new_relic_service.stubs(:get_xray_metadata).with([SECOND_ID]).returns([SECOND_METADATA])
+      @new_relic_service.stubs(:get_xray_metadata).with([FIRST_ID, SECOND_ID]).returns([FIRST_METADATA, SECOND_METADATA])
     end
 
     def teardown
@@ -66,7 +66,7 @@ module NewRelic::Agent::Commands
         'run_profiler' => true,
         'key_transaction_name' => 'foo'
       }
-      @service.stubs(:get_xray_metadata).with([xray_id]).returns([xray_metadata])
+      @new_relic_service.stubs(:get_xray_metadata).with([xray_id]).returns([xray_metadata])
 
       @backtrace_service.expects(:subscribe).with('foo', xray_metadata)
       handle_command_for(xray_id)
@@ -79,7 +79,7 @@ module NewRelic::Agent::Commands
         'run_profiler' => false,
         'key_transaction_name' => 'foo'
       }
-      @service.stubs(:get_xray_metadata).with([xray_id]).returns([xray_metadata])
+      @new_relic_service.stubs(:get_xray_metadata).with([xray_id]).returns([xray_metadata])
 
       @backtrace_service.expects(:subscribe).never
       handle_command_for(xray_id)
@@ -92,7 +92,7 @@ module NewRelic::Agent::Commands
         'run_profiler' => true,
         'key_transaction_name' => 'foo'
       }
-      @service.stubs(:get_xray_metadata).with([xray_id]).returns([xray_metadata])
+      @new_relic_service.stubs(:get_xray_metadata).with([xray_id]).returns([xray_metadata])
       handle_command_for(xray_id)
 
       @backtrace_service.expects(:unsubscribe).with('foo')
@@ -129,13 +129,13 @@ module NewRelic::Agent::Commands
     def test_doesnt_recall_metadata_for_already_active_sessions
       # unstub fails on certain mocha/rails versions (rails23 env)
       # replace the service instead to let us expect to never get the call...
-      @service = stub
-      @sessions.send(:new_relic_service=, @service)
+      @new_relic_service = stub
+      @sessions.send(:new_relic_service=, @new_relic_service)
 
-      @service.stubs(:get_xray_metadata).with([FIRST_ID]).returns([FIRST_METADATA])
-      @service.stubs(:get_xray_metadata).with([SECOND_ID]).returns([SECOND_METADATA])
+      @new_relic_service.stubs(:get_xray_metadata).with([FIRST_ID]).returns([FIRST_METADATA])
+      @new_relic_service.stubs(:get_xray_metadata).with([SECOND_ID]).returns([SECOND_METADATA])
 
-      @service.expects(:get_xray_metadata).with([FIRST_ID, SECOND_ID]).never
+      @new_relic_service.expects(:get_xray_metadata).with([FIRST_ID, SECOND_ID]).never
 
       handle_command_for(FIRST_ID)
       handle_command_for(FIRST_ID, SECOND_ID)
@@ -145,7 +145,6 @@ module NewRelic::Agent::Commands
     end
 
     def test_adding_doesnt_replace_session_object
-
       handle_command_for(FIRST_ID)
       expected = sessions[FIRST_ID]
 
@@ -156,7 +155,6 @@ module NewRelic::Agent::Commands
     end
 
     def test_can_access_session
-
       handle_command_for(FIRST_ID)
 
       session = sessions[FIRST_ID]
@@ -176,7 +174,6 @@ module NewRelic::Agent::Commands
     end
 
     def test_adding_a_session_actives_it
-
       handle_command_for(FIRST_ID)
 
       session = sessions[FIRST_ID]
@@ -192,7 +189,6 @@ module NewRelic::Agent::Commands
     end
 
     def test_removing_inactive_sessions_deactivates_them
-
       handle_command_for(FIRST_ID)
       session = sessions[FIRST_ID]
 
@@ -211,6 +207,22 @@ module NewRelic::Agent::Commands
 
       profiles = @sessions.harvest_thread_profiles
       assert_equal_unordered([profile0, profile1], profiles)
+    end
+
+    def test_concurrency_on_access_to_sessions
+      harvest_thread = Thread.new do
+        Thread.current.abort_on_exception = true
+        500.times do
+          handle_command_for(FIRST_ID)
+          handle_command_for()
+        end
+      end
+
+      500.times do
+        sessions.session_id_for_transaction_name(FIRST_TRANSACTION_NAME)
+      end
+
+      harvest_thread.join
     end
 
     # Helpers
