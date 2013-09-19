@@ -162,6 +162,17 @@ EOL
       assert(last_response.body.include?(guid), last_response.body)
     end
   end
+
+  def test_calculate_content_length_accounts_for_multibyte_characters_for_186
+    String.stubs(:respond_to?).with(:bytesize).returns(false)
+    browser_monitoring = NewRelic::Rack::BrowserMonitoring.new(mock('app'))
+    assert_equal 24, browser_monitoring.calculate_content_length("猿も木から落ちる")
+  end
+
+  def test_calculate_content_length_accounts_for_multibyte_characters_for_modern_ruby
+    browser_monitoring = NewRelic::Rack::BrowserMonitoring.new(mock('app'))
+    assert_equal 18, browser_monitoring.calculate_content_length("七転び八起き")
+  end
 end
 else
   puts "Skipping tests in #{__FILE__} because Rails is unavailable (or too old)"
