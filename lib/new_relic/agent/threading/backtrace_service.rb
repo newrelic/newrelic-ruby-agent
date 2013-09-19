@@ -137,11 +137,15 @@ module NewRelic
           )
         end
 
+        MAX_BUFFER_LENGTH = 500
+
         # This method is expected to be called with @lock held.
         def buffer_backtrace_for_thread(thread, timestamp, backtrace, bucket)
           if should_buffer?(bucket)
             @buffer[thread] ||= []
-            @buffer[thread] << [timestamp, backtrace]
+            if @buffer[thread].length < MAX_BUFFER_LENGTH
+              @buffer[thread] << [timestamp, backtrace]
+            end
           end
         end
 

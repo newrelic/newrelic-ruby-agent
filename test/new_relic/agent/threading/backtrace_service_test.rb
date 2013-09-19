@@ -335,6 +335,21 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
         )
       end
 
+      def test_buffer_backtrace_for_thread_should_limit_buffer_size
+        fake_worker_loop(@service)
+
+        @service.subscribe('foo')
+
+        thread = stub
+        BacktraceService::MAX_BUFFER_LENGTH.times do
+          @service.buffer_backtrace_for_thread(thread, Time.now.to_f, stub, :request)
+        end
+        assert_equal BacktraceService::MAX_BUFFER_LENGTH, @service.buffer[thread].length
+
+        @service.buffer_backtrace_for_thread(thread, Time.now.to_f, stub, :request)
+        assert_equal BacktraceService::MAX_BUFFER_LENGTH, @service.buffer[thread].length
+      end
+
       def fake_worker_loop(service)
         dummy_loop = NewRelic::Agent::WorkerLoop.new
         dummy_loop.stubs(:run).returns(nil)
