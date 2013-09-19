@@ -6,7 +6,6 @@ module NewRelic
   module Agent
     module Threading
       class BacktraceService
-        DEFAULT_PERIOD_IN_SECONDS = 0.1
         ALL_TRANSACTIONS = "**ALL**".freeze
 
         attr_reader :worker_loop, :buffer
@@ -35,7 +34,6 @@ module NewRelic
         end
 
         def subscribe(transaction_name, command_arguments={})
-          start
           profile = ThreadProfile.new(command_arguments)
 
           # Revise once X-Rays come along! They won't have the
@@ -44,10 +42,12 @@ module NewRelic
           self.profile_agent_code = profile.profile_agent_code
 
           @lock.synchronize do
-            current_period = self.worker_loop.period
-            self.worker_loop.period = [current_period, profile.requested_period].min
             @profiles[transaction_name] = profile
+            self.worker_loop.period = effective_profiling_period
           end
+
+          start
+          profile
         end
 
         def unsubscribe(transaction_name)
@@ -98,10 +98,9 @@ module NewRelic
           return if @running
           @running = true
           self.worker_thread = AgentThread.new('Backtrace Service') do
-            # This default period should be immediately reset by the code at the
-            # end of #subscribe above, we're using the default here to avoid
-            # touching @profiles without holding the lock.
-            self.worker_loop.run(DEFAULT_PERIOD_IN_SECONDS, &method(:poll))
+            # Passing nil for the period here because we expect it to have
+            # been set already.
+            self.worker_loop.run(&method(:poll))
           end
         end
 
