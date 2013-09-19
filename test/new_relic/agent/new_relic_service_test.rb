@@ -33,7 +33,7 @@ class NewRelicServiceKeepAliveTest < Test::Unit::TestCase
       end
     end
 
-    assert_false(block_ran, "Expected block passed to #session to have not run")
+    assert(!block_ran, "Expected block passed to #session to have not run")
   end
 
   def test_session_block_reuses_http_handle
