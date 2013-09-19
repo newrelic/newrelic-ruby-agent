@@ -71,6 +71,7 @@ module NewRelic
           @lock.synchronize do
             if @profiles[transaction_name]
               profile = @profiles.delete(transaction_name)
+              profile.finished_at = Time.now
               @profiles[transaction_name] = ThreadProfile.new(profile.command_arguments)
               profile
             end
@@ -156,7 +157,7 @@ module NewRelic
           bucket = AgentThread.bucket_thread(thread, @profile_agent_code)
 
           if need_backtrace?(bucket)
-            timestamp = Time.now
+            timestamp = Time.now.to_f
             backtrace = AgentThread.scrub_backtrace(thread, @profile_agent_code)
             aggregate_global_backtrace(backtrace, bucket)
             buffer_backtrace_for_thread(thread, timestamp, backtrace, bucket)

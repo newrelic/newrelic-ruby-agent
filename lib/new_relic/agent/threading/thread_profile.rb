@@ -16,8 +16,8 @@ module NewRelic
 
         attr_reader :profile_id, :traces, :sample_period,
           :duration, :poll_count, :sample_count, :failure_count,
-          :created_at, :last_aggregated_at, :xray_id, :command_arguments,
-          :profile_agent_code
+          :created_at, :xray_id, :command_arguments, :profile_agent_code
+        attr_accessor :finished_at
 
         def initialize(command_arguments={})
           @command_arguments  = command_arguments
@@ -41,7 +41,6 @@ module NewRelic
           @failure_count = 0
 
           @created_at = Time.now
-          @last_aggregated_at = nil
         end
 
         def requested_period
@@ -59,8 +58,6 @@ module NewRelic
             @sample_count += 1
             @traces[bucket].aggregate(backtrace)
           end
-
-          @last_aggregated_at = Time.now
         end
 
         def truncate_to_node_count!(count_to_keep)
@@ -92,7 +89,7 @@ module NewRelic
           result = [
             int(@profile_id),
             float(self.created_at),
-            float(self.last_aggregated_at),
+            float(self.finished_at),
             int(@poll_count),
             string(encoder.encode(generate_traces)),
             int(@sample_count),

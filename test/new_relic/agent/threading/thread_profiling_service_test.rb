@@ -88,6 +88,16 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
         assert_equal(args, profile.command_arguments)
       end
 
+      def test_harvest_sets_finished_at_on_returned_thread_profile
+        fake_worker_loop(@service)
+
+        t0 = freeze_time
+        @service.subscribe('foo')
+        harvested_profile = @service.harvest('foo')
+
+        assert_equal t0, harvested_profile.finished_at
+      end
+
       def test_harvest_returns_nil_if_never_subscribed
         fake_worker_loop(@service)
 
@@ -199,7 +209,7 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
         @service.subscribe('foo')
         @service.poll
 
-        @service.on_transaction_finished('bar', Time.at(0), 1, {}, thread)
+        @service.on_transaction_finished('bar', 0.0, 1, {}, thread)
         assert @service.buffer.empty?
       end
 
@@ -213,7 +223,7 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
         @service.poll
 
         profile.expects(:aggregate).with(thread.backtrace, :request)
-        @service.on_transaction_finished('foo', t0, 1, {}, thread)
+        @service.on_transaction_finished('foo', t0.to_f, 1, {}, thread)
       end
 
       def test_on_transaction_finished_does_not_aggregate_backtraces_to_non_subscribed_profiles
@@ -226,7 +236,7 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
         @service.poll
 
         profile.expects(:aggregate).never
-        @service.on_transaction_finished('bar', t0, 1, {}, thread)
+        @service.on_transaction_finished('bar', t0.to_f, 1, {}, thread)
       end
 
       def test_on_transaction_finished_delivers_buffered_backtraces_for_correct_thread
@@ -243,8 +253,8 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
         profile.expects(:aggregate).with(thread0.backtrace, :request).once
         profile.expects(:aggregate).with(thread1.backtrace, :request).once
 
-        @service.on_transaction_finished('foo', t0, 1, {}, thread0)
-        @service.on_transaction_finished('foo', t0, 1, {}, thread1)
+        @service.on_transaction_finished('foo', t0.to_f, 1, {}, thread0)
+        @service.on_transaction_finished('foo', t0.to_f, 1, {}, thread1)
       end
 
       def test_on_transaction_finished_only_delivers_backtraces_within_transaction_time_window
@@ -261,7 +271,7 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
         end
 
         profile.expects(:aggregate).with(thread.backtrace, :request).times(2)
-        @service.on_transaction_finished('foo', t0 + 1, 2.0, {}, thread)
+        @service.on_transaction_finished('foo', (t0 + 1).to_f, 2.0, {}, thread)
       end
 
       def test_does_not_deliver_non_request_backtraces_to_subscribed_profiles
@@ -275,7 +285,7 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
         @service.poll
 
         profile.expects(:aggregate).never
-        @service.on_transaction_finished('foo', t0, 1, {}, thread)
+        @service.on_transaction_finished('foo', t0.to_f, 1, {}, thread)
       end
 
       def test_subscribe_sets_up_transaction_finished_subscription
@@ -290,7 +300,7 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
         @service.poll
 
         profile.expects(:aggregate).once
-        @event_listener.notify(:transaction_finished, 'foo', t0, 1.0, {})
+        @event_listener.notify(:transaction_finished, 'foo', t0.to_f, 1.0, {})
       ensure
         Thread.current[:bucket] = nil
       end

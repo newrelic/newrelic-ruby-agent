@@ -92,7 +92,7 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
       def test_to_collector_array
         build_well_known_trace('profile_id' => 333)
         @profile.stubs(:created_at).returns(1350403938892.524)
-        @profile.stubs(:last_aggregated_at).returns(1350403939904.375)
+        @profile.finished_at = 1350403939904.375
 
         expected = [
           333,
@@ -111,7 +111,7 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
       def test_to_collector_array_with_xray_session_id
         build_well_known_trace('profile_id' => -1, 'x_ray_id' => 4242)
         @profile.stubs(:created_at).returns(1350403938892.524)
-        @profile.stubs(:last_aggregated_at).returns(1350403939904.375)
+        @profile.finished_at = 1350403939904.375
 
         expected = [
           -1,
@@ -131,7 +131,7 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
       def test_to_collector_array_with_bad_values
         build_well_known_trace(:profile_id => -1)
         @profile.stubs(:created_at).returns('')
-        @profile.stubs(:last_aggregated_at).returns(nil)
+        @profile.finished_at = nil
         @profile.instance_variable_set(:@poll_count, Rational(10, 1))
         @profile.instance_variable_set(:@sample_count, nil)
 
@@ -179,18 +179,6 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
 
         assert_equal expected, t0
         assert_equal expected, @profile.created_at
-      end
-
-      def test_aggregate_updates_last_aggregated_at_timestamp
-        expected = freeze_time
-        @profile.aggregate(@single_trace, :request)
-        t0 = @profile.last_aggregated_at
-
-        advance_time(5.0)
-        @profile.aggregate(@single_trace, :request)
-
-        assert_equal expected, t0
-        assert_equal expected + 5.0, @profile.last_aggregated_at
       end
     end
 
