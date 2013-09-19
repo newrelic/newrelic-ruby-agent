@@ -15,7 +15,7 @@ module NewRelic
       class ThreadProfile
 
         attr_reader :profile_id, :traces, :sample_period,
-          :duration, :poll_count, :sample_count, :failure_count,
+          :duration, :poll_count, :backtrace_count, :failure_count,
           :created_at, :xray_id, :command_arguments, :profile_agent_code
         attr_accessor :finished_at
 
@@ -28,7 +28,6 @@ module NewRelic
           @xray_id            = command_arguments.fetch('x_ray_id', nil)
           @finished = false
 
-
           @traces = {
             :agent      => BacktraceNode.new(nil),
             :background => BacktraceNode.new(nil),
@@ -37,7 +36,7 @@ module NewRelic
           }
 
           @poll_count = 0
-          @sample_count = 0
+          @backtrace_count = 0
           @failure_count = 0
 
           @created_at = Time.now
@@ -51,11 +50,19 @@ module NewRelic
           @poll_count += 1
         end
 
+        def sample_count
+          xray? ? @backtrace_count : @poll_count
+        end
+
+        def xray?
+          !!@xray_id
+        end
+
         def aggregate(backtrace, bucket)
           if backtrace.nil?
             @failure_count += 1
           else
-            @sample_count += 1
+            @backtrace_count += 1
             @traces[bucket].aggregate(backtrace)
           end
         end
@@ -87,15 +94,15 @@ module NewRelic
 
         def to_collector_array(encoder)
           result = [
-            int(@profile_id),
+            int(self.profile_id),
             float(self.created_at),
             float(self.finished_at),
-            int(@poll_count),
+            int(self.sample_count),
             string(encoder.encode(generate_traces)),
-            int(@sample_count),
+            int(self.backtrace_count),
             0 # runnable thread count, which we don't track
           ]
-          result << int(@xray_id) unless @xray_id.nil?
+          result << int(@xray_id) if xray?
           result
         end
       end
