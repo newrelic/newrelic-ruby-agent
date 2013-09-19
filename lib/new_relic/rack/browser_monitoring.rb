@@ -97,6 +97,8 @@ module NewRelic::Rack
       source
     end
 
+    # String does not respond to 'bytesize' in 1.8.6. Fortunately String#length
+    # returns bytes rather than characters in 1.8.6 so we can use that instead.
     def calculate_content_length(source)
       if source.respond_to?(:bytesize)
         source.bytesize

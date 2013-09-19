@@ -164,9 +164,6 @@ EOL
   end
 
   def test_calculate_content_length_accounts_for_multibyte_characters_for_186
-    # String does not respond to 'bytesize' in 1.8.6. String#length returns the
-    # length in bytes rather than characters.
-
     String.stubs(:respond_to?).with(:bytesize).returns(false)
     browser_monitoring = NewRelic::Rack::BrowserMonitoring.new(mock('app'))
     assert_equal 24, browser_monitoring.calculate_content_length("猿も木から落ちる")
