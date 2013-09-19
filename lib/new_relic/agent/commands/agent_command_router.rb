@@ -43,15 +43,40 @@ module NewRelic
         NO_PROFILES_TO_SEND = {}.freeze
 
         def harvest_data_to_send(disconnecting)
+          profiles = []
+          profiles += harvest_from_xray_session_collection
+          profiles += harvest_from_thread_profiler_session(disconnecting)
+
+          format_harvest_data(profiles)
+        end
+
+        def harvest_from_xray_session_collection
+          self.xray_session_collection.harvest_thread_profiles
+        end
+
+        def harvest_from_thread_profiler_session(disconnecting)
           if disconnecting || self.thread_profiler_session.finished?
             self.thread_profiler_session.stop(true)
-            profile = self.thread_profiler_session.harvest
-
-            ::NewRelic::Agent.logger.debug "Sending thread profile #{profile.profile_id}"
-            {:profile_data => [profile]}
+            [self.thread_profiler_session.harvest]
           else
-            NO_PROFILES_TO_SEND
+            []
           end
+        end
+
+        def format_harvest_data(profiles)
+          if profiles.empty?
+            NO_PROFILES_TO_SEND
+          else
+            log_profiles(profiles)
+            {:profile_data => profiles}
+          end
+        end
+
+        def log_profiles(profiles)
+          profile_descriptors = profiles.map do |p|
+            p.xray_id ? "xray_id: #{p.xray_id}" : "profile_id: #{p.profile_id}"
+          end
+          ::NewRelic::Agent.logger.debug "Sending thread profiles #{profile_descriptors.join(", ")}"
         end
 
         def get_agent_commands

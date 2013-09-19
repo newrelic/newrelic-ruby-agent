@@ -17,7 +17,7 @@ module NewRelic
           @buffer = {}
 
           # synchronizes access to @profiles and @buffer above
-          @lock = Mutex.new 
+          @lock = Mutex.new
 
           @running = false
           @profile_agent_code = false

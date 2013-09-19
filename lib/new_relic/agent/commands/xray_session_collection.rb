@@ -37,7 +37,8 @@ module NewRelic
           profiles.compact
         end
 
-        private
+
+        ## Internals
 
         attr_accessor :new_relic_service
 
