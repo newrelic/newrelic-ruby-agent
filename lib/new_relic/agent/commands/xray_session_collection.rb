@@ -14,9 +14,9 @@ module NewRelic
         attr_reader :sessions
         def_delegators :@sessions, :[], :include?
 
-        def initialize(new_relic_service, thread_profiling_service)
+        def initialize(new_relic_service, backtrace_service)
           @new_relic_service = new_relic_service
-          @thread_profiling_service = thread_profiling_service
+          @backtrace_service = backtrace_service
           @sessions = {}
         end
 
@@ -32,7 +32,7 @@ module NewRelic
 
         def harvest_thread_profiles
           profiles = active_thread_profiling_sessions.map do |session|
-            @thread_profiling_service.harvest(session.key_transaction_name)
+            @backtrace_service.harvest(session.key_transaction_name)
           end
           profiles.compact
         end
@@ -68,7 +68,7 @@ module NewRelic
           sessions[session.id] = session
           session.activate
           if session.run_profiler?
-            @thread_profiling_service.subscribe(session.key_transaction_name, session.command_arguments)
+            @backtrace_service.subscribe(session.key_transaction_name, session.command_arguments)
           end
         end
 
@@ -87,7 +87,7 @@ module NewRelic
           if session
             NewRelic::Agent.logger.debug("Removing X-Ray session #{session.inspect}")
             if session.run_profiler?
-              @thread_profiling_service.unsubscribe(session.key_transaction_name)
+              @backtrace_service.unsubscribe(session.key_transaction_name)
             end
             session.deactivate
           end

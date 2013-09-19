@@ -4,19 +4,19 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 
-require 'new_relic/agent/threading/thread_profiling_service'
+require 'new_relic/agent/threading/backtrace_service'
 require 'new_relic/agent/threading/threaded_test_case'
 
 if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
 
   module NewRelic::Agent::Threading
-    class ThreadProfilingServiceTest < Test::Unit::TestCase
+    class BacktraceServiceTest < Test::Unit::TestCase
       include ThreadedTestCase
 
       def setup
         NewRelic::Agent.instance.stats_engine.clear_stats
         @event_listener = NewRelic::Agent::EventListener.new
-        @service = ThreadProfilingService.new(@event_listener)
+        @service = BacktraceService.new(@event_listener)
         setup_fake_threads
       end
 
@@ -29,17 +29,17 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
       def test_starts_when_the_first_subscription_is_added
         fake_worker_loop(@service)
 
-        @service.subscribe(ThreadProfilingService::ALL_TRANSACTIONS)
+        @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
         assert @service.running?
       end
 
       def test_stops_when_subscription_is_removed
         fake_worker_loop(@service)
 
-        @service.subscribe(ThreadProfilingService::ALL_TRANSACTIONS)
+        @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
         assert @service.running?
 
-        @service.unsubscribe(ThreadProfilingService::ALL_TRANSACTIONS)
+        @service.unsubscribe(BacktraceService::ALL_TRANSACTIONS)
         assert !@service.running?
       end
 
@@ -117,7 +117,7 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
           :bucket => :differenter_request,
           :backtrace => bt1)
 
-        profile = @service.subscribe(ThreadProfilingService::ALL_TRANSACTIONS)
+        profile = @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
         profile.expects(:aggregate).with(bt0, :request)
         profile.expects(:aggregate).with(bt1, :differenter_request)
 
@@ -132,7 +132,7 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
           :bucket => :ignore,
           :backtrace => faketrace)
 
-        profile = @service.subscribe(ThreadProfilingService::ALL_TRANSACTIONS)
+        profile = @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
         profile.expects(:aggregate).never
 
         @service.poll
@@ -148,7 +148,7 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
           :backtrace => raw_backtarce,
           :scrubbed_backtrace => scrubbed_backtrace)
 
-        profile = @service.subscribe(ThreadProfilingService::ALL_TRANSACTIONS)
+        profile = @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
         profile.expects(:aggregate).with(scrubbed_backtrace, :agent)
 
         @service.poll
@@ -308,11 +308,11 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
       def test_service_increments_profile_poll_counts
         fake_worker_loop(@service)
 
-        profile = @service.subscribe(ThreadProfilingService::ALL_TRANSACTIONS)
+        profile = @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
         5.times { @service.poll }
         assert_equal(5, profile.poll_count)
 
-        @service.unsubscribe(ThreadProfilingService::ALL_TRANSACTIONS)
+        @service.unsubscribe(BacktraceService::ALL_TRANSACTIONS)
         5.times { @service.poll }
         assert_equal(5, profile.poll_count)
       end
@@ -355,10 +355,10 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
 
     # These tests do not use ThreadedTestCase as FakeThread is synchronous and
     # prevents the detection of concurrency issues.
-    class ThreadProfilingServiceConcurrencyTest < Test::Unit::TestCase
+    class BacktraceServiceConcurrencyTest < Test::Unit::TestCase
       def setup
         NewRelic::Agent.instance.stats_engine.clear_stats
-        @service = ThreadProfilingService.new
+        @service = BacktraceService.new
       end
 
       def teardown
@@ -371,8 +371,8 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
         @service.subscribe('foo', { 'sample_period' => 0.01 })
 
         10000.times do
-          @service.subscribe(ThreadProfilingService::ALL_TRANSACTIONS)
-          @service.unsubscribe(ThreadProfilingService::ALL_TRANSACTIONS)
+          @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
+          @service.unsubscribe(BacktraceService::ALL_TRANSACTIONS)
         end
 
         @service.unsubscribe('foo')

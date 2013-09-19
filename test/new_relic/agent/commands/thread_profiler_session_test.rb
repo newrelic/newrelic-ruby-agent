@@ -48,8 +48,8 @@ if !NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
     include ThreadProfilerSessionTestHelpers
 
     def setup
-      thread_profiling_service = NewRelic::Agent::Threading::ThreadProfilingService.new
-      @profiler = NewRelic::Agent::Commands::ThreadProfilerSession.new(thread_profiling_service)
+      backtrace_service = NewRelic::Agent::Threading::BacktraceService.new
+      @profiler = NewRelic::Agent::Commands::ThreadProfilerSession.new(backtrace_service)
     end
 
     def test_thread_profiling_isnt_supported
@@ -81,9 +81,9 @@ else
 
     def setup
       setup_fake_threads
-      thread_profiling_service = NewRelic::Agent::Threading::ThreadProfilingService.new
-      thread_profiling_service.worker_loop.stubs(:run).returns(nil)
-      @profiler = NewRelic::Agent::Commands::ThreadProfilerSession.new(thread_profiling_service)
+      backtrace_service = NewRelic::Agent::Threading::BacktraceService.new
+      backtrace_service.worker_loop.stubs(:run).returns(nil)
+      @profiler = NewRelic::Agent::Commands::ThreadProfilerSession.new(backtrace_service)
     end
 
     def teardown

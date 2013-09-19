@@ -39,9 +39,9 @@ module NewRelic::Agent::Commands
 
     def setup
       @service  = stub
-      @thread_profiling_service = NewRelic::Agent::Threading::ThreadProfilingService.new
-      @thread_profiling_service.worker_loop.stubs(:run)
-      @sessions = NewRelic::Agent::Commands::XraySessionCollection.new(@service, @thread_profiling_service)
+      @backtrace_service = NewRelic::Agent::Threading::BacktraceService.new
+      @backtrace_service.worker_loop.stubs(:run)
+      @sessions = NewRelic::Agent::Commands::XraySessionCollection.new(@service, @backtrace_service)
 
       @service.stubs(:get_xray_metadata).with([FIRST_ID]).returns([FIRST_METADATA])
       @service.stubs(:get_xray_metadata).with([SECOND_ID]).returns([SECOND_METADATA])
@@ -49,7 +49,7 @@ module NewRelic::Agent::Commands
     end
 
     def teardown
-      @thread_profiling_service.worker_thread.join if @thread_profiling_service.worker_thread
+      @backtrace_service.worker_thread.join if @backtrace_service.worker_thread
     end
 
     def test_can_add_sessions
@@ -68,7 +68,7 @@ module NewRelic::Agent::Commands
       }
       @service.stubs(:get_xray_metadata).with([xray_id]).returns([xray_metadata])
 
-      @thread_profiling_service.expects(:subscribe).with('foo', xray_metadata)
+      @backtrace_service.expects(:subscribe).with('foo', xray_metadata)
       handle_command_for(xray_id)
     end
 
@@ -81,11 +81,11 @@ module NewRelic::Agent::Commands
       }
       @service.stubs(:get_xray_metadata).with([xray_id]).returns([xray_metadata])
 
-      @thread_profiling_service.expects(:subscribe).never
+      @backtrace_service.expects(:subscribe).never
       handle_command_for(xray_id)
     end
 
-    def test_removing_sessions_unsubscribes_from_thread_profiling_service
+    def test_removing_sessions_unsubscribes_from_backtrace_service
       xray_id = 333
       xray_metadata = {
         'x_ray_id'     => xray_id,
@@ -95,7 +95,7 @@ module NewRelic::Agent::Commands
       @service.stubs(:get_xray_metadata).with([xray_id]).returns([xray_metadata])
       handle_command_for(xray_id)
 
-      @thread_profiling_service.expects(:unsubscribe).with('foo')
+      @backtrace_service.expects(:unsubscribe).with('foo')
       @sessions.handle_active_xray_sessions(create_agent_command('xray_ids' => []))
     end
 
@@ -201,13 +201,13 @@ module NewRelic::Agent::Commands
       assert_equal false, session.active?
     end
 
-    def test_harvest_thread_profiles_pulls_data_from_profiling_service
+    def test_harvest_thread_profiles_pulls_data_from_backtrace_service
       handle_command_for(FIRST_ID, SECOND_ID)
 
       profile0, profile1 = mock('profile0'), mock('profile1')
 
-      @thread_profiling_service.expects(:harvest).with(FIRST_TRANSACTION_NAME).returns(profile0)
-      @thread_profiling_service.expects(:harvest).with(SECOND_TRANSACTION_NAME).returns(profile1)
+      @backtrace_service.expects(:harvest).with(FIRST_TRANSACTION_NAME).returns(profile0)
+      @backtrace_service.expects(:harvest).with(SECOND_TRANSACTION_NAME).returns(profile1)
 
       profiles = @sessions.harvest_thread_profiles
       assert_equal_unordered([profile0, profile1], profiles)

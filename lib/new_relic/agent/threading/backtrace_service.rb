@@ -5,7 +5,7 @@
 module NewRelic
   module Agent
     module Threading
-      class ThreadProfilingService
+      class BacktraceService
         DEFAULT_PERIOD_IN_SECONDS = 0.1
         ALL_TRANSACTIONS = "**ALL**".freeze
 
@@ -97,7 +97,7 @@ module NewRelic
         def start
           return if @running
           @running = true
-          self.worker_thread = AgentThread.new('thread_profiling_service_worker') do
+          self.worker_thread = AgentThread.new('Backtrace Service') do
             # This default period should be immediately reset by the code at the
             # end of #subscribe above, we're using the default here to avoid
             # touching @profiles without holding the lock.

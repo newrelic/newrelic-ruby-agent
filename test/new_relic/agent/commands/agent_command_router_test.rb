@@ -42,7 +42,7 @@ class AgentCommandRouterTest < Test::Unit::TestCase
   end
 
   def teardown
-    agent_commands.thread_profiling_service.worker_thread.join if agent_commands.thread_profiling_service.worker_thread
+    agent_commands.backtrace_service.worker_thread.join if agent_commands.backtrace_service.worker_thread
   end
 
   # General command routing
@@ -189,7 +189,7 @@ class AgentCommandRouterTest < Test::Unit::TestCase
 
   def start_profile(args={})
     freeze_time
-    agent_commands.thread_profiling_service.worker_loop.stubs(:run)
+    agent_commands.backtrace_service.worker_loop.stubs(:run)
     agent_commands.thread_profiler_session.start(create_agent_command(args))
   end
 
@@ -197,7 +197,7 @@ class AgentCommandRouterTest < Test::Unit::TestCase
     args = { 'x_ray_id' => id }
     session = NewRelic::Agent::Commands::XraySession.new(args)
 
-    agent_commands.thread_profiling_service.worker_loop.stubs(:run)
+    agent_commands.backtrace_service.worker_loop.stubs(:run)
     agent_commands.xray_session_collection.add_session(session)
   end
 

@@ -11,8 +11,8 @@ module NewRelic
 
       class ThreadProfilerSession
 
-        def initialize(thread_profiling_service)
-          @thread_profiling_service = thread_profiling_service
+        def initialize(backtrace_service)
+          @backtrace_service = backtrace_service
         end
 
         def self.is_supported?
@@ -31,8 +31,8 @@ module NewRelic
         end
 
         def start(agent_command)
-          profile = @thread_profiling_service.subscribe(
-            NewRelic::Agent::Threading::ThreadProfilingService::ALL_TRANSACTIONS,
+          profile = @backtrace_service.subscribe(
+            NewRelic::Agent::Threading::BacktraceService::ALL_TRANSACTIONS,
             agent_command.arguments
           )
 
@@ -43,20 +43,20 @@ module NewRelic
         def stop(report_data)
           return unless running?
           NewRelic::Agent.logger.debug("Stopping thread profile.")
-          @finished_profile = @thread_profiling_service.harvest(NewRelic::Agent::Threading::ThreadProfilingService::ALL_TRANSACTIONS)
-          @thread_profiling_service.unsubscribe(NewRelic::Agent::Threading::ThreadProfilingService::ALL_TRANSACTIONS)
+          @finished_profile = @backtrace_service.harvest(NewRelic::Agent::Threading::BacktraceService::ALL_TRANSACTIONS)
+          @backtrace_service.unsubscribe(NewRelic::Agent::Threading::BacktraceService::ALL_TRANSACTIONS)
           @finished_profile = nil if !report_data
         end
 
         def harvest
           profile = @finished_profile
-          @thread_profiling_service.profile_agent_code = false
+          @backtrace_service.profile_agent_code = false
           @finished_profile = nil
           profile
         end
 
         def running?
-          @thread_profiling_service.subscribed?(NewRelic::Agent::Threading::ThreadProfilingService::ALL_TRANSACTIONS)
+          @backtrace_service.subscribed?(NewRelic::Agent::Threading::BacktraceService::ALL_TRANSACTIONS)
         end
 
         def finished?
