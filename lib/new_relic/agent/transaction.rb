@@ -119,6 +119,10 @@ module NewRelic
         end
       end
 
+      def name_set?
+        @name && @name != NewRelic::Agent::UNKNOWN_METRIC
+      end
+
       def freeze_name
         return if name_frozen?
         @name = NewRelic::Agent.instance.transaction_rules.rename(@name)
@@ -144,6 +148,8 @@ module NewRelic
       # Indicate that we are entering a measured controller action or task.
       # Make sure you unwind every push with a pop call.
       def start(transaction_type)
+        @name = NewRelic::Agent::UNKNOWN_METRIC
+
         transaction_sampler.notice_first_scope_push(start_time)
         sql_sampler.notice_first_scope_push(start_time)
 
@@ -177,8 +183,8 @@ module NewRelic
 
       # Unwind one stack level.  It knows if it's back at the outermost caller and
       # does the appropriate wrapup of the context.
-      def stop(metric=::NewRelic::Agent::UNKNOWN_METRIC, end_time=Time.now)
-        @name ||= metric unless name_frozen?
+      def stop(fallback_name=::NewRelic::Agent::UNKNOWN_METRIC, end_time=Time.now)
+        @name = fallback_name unless name_set? || name_frozen?
         freeze_name
         log_underflow if @type.nil?
 

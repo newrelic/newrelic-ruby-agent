@@ -168,6 +168,30 @@ class NewRelic::Agent::TransactionTest < Test::Unit::TestCase
     )
   end
 
+  def test_stop_sets_name
+    NewRelic::Agent::Transaction.start(:controller)
+    txn = NewRelic::Agent::Transaction.stop('new_name')
+    assert_equal 'new_name', txn.name
+  end
+
+  def test_name_is_unset_if_nil
+    txn = NewRelic::Agent::Transaction.new
+    txn.name = nil
+    assert !txn.name_set?
+  end
+
+  def test_name_is_unset_if_unknown
+    txn = NewRelic::Agent::Transaction.new
+    txn.name = NewRelic::Agent::UNKNOWN_METRIC
+    assert !txn.name_set?
+  end
+
+  def test_name_set_if_anything_else
+    txn = NewRelic::Agent::Transaction.new
+    txn.name = "anything else"
+    assert txn.name_set?
+  end
+
   def test_start_adds_controller_context_to_txn_stack
     NewRelic::Agent::Transaction.start(:controller)
     assert_equal 1, NewRelic::Agent::Transaction.stack.size
