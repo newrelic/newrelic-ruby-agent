@@ -1,0 +1,14 @@
+=========================================
+<%= title %>
+=========================================
+<% for version in versions %>
+<%= version.name %>
+
+Supported:    <%= version_list(version.supported) %>
+Deprecated:   <%= version_list(version.deprecated) %>
+Experimental: <%= version_list(version.experimental) %>
+<% if version.notes %>Notes:<% for note in version.notes %>
+  <%= note %><% end %>
+<% end %>
+------------------------------------
+<% end %>
