@@ -31,19 +31,13 @@ module NewRelic
           root? && @children.empty?
         end
 
-        def find(target)
-          @children.find { |child| child =~ target }
-        end
-
-        def =~(other)
-          (
-            root? && other.root? || @raw_line == other.raw_line
-          )
+        def find(raw_line)
+          @children.find { |child| child.raw_line == raw_line }
         end
 
         def ==(other)
           (
-            self =~ other &&
+            (root? && other.root? || @raw_line == other.raw_line) &&
             (
               @depth == other.depth &&
               @runnable_count == other.runnable_count
@@ -59,12 +53,11 @@ module NewRelic
           current = self
 
           backtrace.reverse_each do |frame|
-            node = Threading::BacktraceNode.new(frame)
-
-            existing_node = current.find(node)
+            existing_node = current.find(frame)
             if existing_node
               node = existing_node
             else
+              node = Threading::BacktraceNode.new(frame)
               current.add_child_unless_present(node)
             end
 
