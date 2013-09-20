@@ -7,12 +7,12 @@ module NewRelic
     module Threading
 
       class BacktraceNode
-        attr_reader :file, :method, :line_no, :children
+        attr_reader :file, :method, :line_no, :children, :raw_line
         attr_accessor :runnable_count, :depth
 
         def initialize(line)
           if line
-            parse_backtrace_frame(line)
+            @raw_line = line
             @root = false
           else
             @root = true
@@ -37,12 +37,7 @@ module NewRelic
 
         def =~(other)
           (
-            root? && other.root? ||
-            (
-              @file == other.file &&
-              @method == other.method &&
-              @line_no == other.line_no
-            )
+            root? && other.root? || @raw_line == other.raw_line
           )
         end
 
@@ -93,6 +88,7 @@ module NewRelic
         def to_array
           child_arrays = @children.map { |c| c.to_array }
           return child_arrays if root?
+          parse_backtrace_frame(@raw_line)
           [
             [
               string(@file),
@@ -124,9 +120,9 @@ module NewRelic
 
         def parse_backtrace_frame(frame)
           frame =~ /(.*)\:(\d+)\:in `(.*)'/
-          @file = $1
-          @method = $3
-          @line_no = $2.to_i
+          @file ||= $1
+          @method ||= $3
+          @line_no ||= $2
         end
       end
 
