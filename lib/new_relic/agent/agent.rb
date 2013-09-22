@@ -46,7 +46,7 @@ module NewRelic
         @transaction_sampler   = NewRelic::Agent::TransactionSampler.new
         @sql_sampler           = NewRelic::Agent::SqlSampler.new
         @thread_profiler       = NewRelic::Agent::Commands::ThreadProfiler.new
-        @agent_command_router  = NewRelic::Agent::Commands::AgentCommandRouter.new(@service, @thread_profiler)
+        @agent_command_router  = NewRelic::Agent::Commands::AgentCommandRouter.new(@thread_profiler)
         @cross_app_monitor     = NewRelic::Agent::CrossAppMonitor.new(@events)
         @error_collector       = NewRelic::Agent::ErrorCollector.new
         @transaction_rules     = NewRelic::Agent::RulesEngine.new

@@ -14,24 +14,25 @@ module NewRelic
   module Agent
     module Commands
       class AgentCommandRouter
-        attr_reader :service, :handlers
+        attr_reader :handlers
 
-        def initialize(service, thread_profiler)
-          @service = service
-
+        def initialize(thread_profiler)
           @handlers    = Hash.new { |*| Proc.new { |cmd| self.unrecognized_agent_command(cmd) } }
-
           @handlers['start_profiler'] = Proc.new { |cmd| thread_profiler.handle_start_command(cmd) }
           @handlers['stop_profiler']  = Proc.new { |cmd| thread_profiler.handle_stop_command(cmd) }
         end
 
+        def new_relic_service
+          NewRelic::Agent.instance.service
+        end
+
         def handle_agent_commands
           results = invoke_commands(get_agent_commands)
-          service.agent_command_results(results) unless results.empty?
+          new_relic_service.agent_command_results(results) unless results.empty?
         end
 
         def get_agent_commands
-          commands = service.get_agent_commands
+          commands = new_relic_service.get_agent_commands
           NewRelic::Agent.logger.debug "Received get_agent_commands = #{commands.inspect}"
           commands
         end
