@@ -20,6 +20,22 @@
   All settings in newrelic.yml can now be configured via environment variables.
   See https://newrelic.com/docs/ruby/ruby-agent-configuration for full details.
 
+  * Additional locking option for Resque (3.6.7.159)
+
+  There have been reports of worker process deadlocks in Resque when using the
+  Ruby agent. An optional lock is now available to avoid those deadlocks. See
+  https://newrelic.com/docs/ruby/resque-instrumentation for more details.
+
+  * HTTP connection setup timeout (3.6.7.159)
+
+  HTTP initialization in the agent lacked an appropriate timeout,
+  leading to dropouts in reporting under certain network error conditions.
+
+  * Unnecessary requests from Resque jobs (3.6.7.159)
+
+  An issue causing Resque jobs to unnecessarily make requests against New Relic
+  servers was fixed.
+
   * Fix compatibility issues with excon and curb instrumentation
 
   This release of the agent fixes a warning seen under certain circumstances

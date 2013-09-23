@@ -44,7 +44,7 @@ module NewRelic
         @stats_engine          = NewRelic::Agent::StatsEngine.new
         @transaction_sampler   = NewRelic::Agent::TransactionSampler.new
         @sql_sampler           = NewRelic::Agent::SqlSampler.new
-        @agent_command_router  = NewRelic::Agent::Commands::AgentCommandRouter.new(@service)
+        @agent_command_router  = NewRelic::Agent::Commands::AgentCommandRouter.new
         @cross_app_monitor     = NewRelic::Agent::CrossAppMonitor.new(@events)
         @error_collector       = NewRelic::Agent::ErrorCollector.new
         @transaction_rules     = NewRelic::Agent::RulesEngine.new
@@ -534,6 +534,7 @@ module NewRelic
         # might be holding locks for background thread that aren't there anymore.
         def reset_objects_with_locks
           @stats_engine = NewRelic::Agent::StatsEngine.new
+          reset_harvest_locks
         end
 
         def add_harvest_sampler(subclass)
@@ -551,6 +552,34 @@ module NewRelic
           def log_worker_loop_start
             ::NewRelic::Agent.logger.debug "Reporting performance data every #{Agent.config[:data_report_period]} seconds."
             ::NewRelic::Agent.logger.debug "Running worker loop"
+          end
+
+          # Accessor for the harvest lock
+          def harvest_lock
+            return nil if @worker_loop.nil?
+            @worker_loop.lock
+          end
+
+          # Synchronize with the harvest loop. If the harvest thread has taken
+          # a lock (DNS lookups, backticks, agent-owned locks, etc), and we
+          # fork while locked, this can deadlock child processes. For more
+          # details, see https://github.com/resque/resque/issues/1101
+          def synchronize_with_harvest
+            if harvest_lock
+              harvest_lock.synchronize do
+                yield
+              end
+            else
+              yield
+            end
+          end
+
+          # Some forking cases (like Resque) end up with harvest lock from the
+          # parent process orphaned in the child. Let it go before we proceed.
+          def reset_harvest_locks
+            return if harvest_lock.nil?
+
+            harvest_lock.unlock if harvest_lock.locked?
           end
 
           # Creates the worker loop and loads it with the instructions
