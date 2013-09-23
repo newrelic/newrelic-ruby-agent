@@ -26,7 +26,7 @@ module NewRelic
           @thread_profiling_service = Threading::ThreadProfilingService.new
 
           @thread_profiler_session = ThreadProfilerSession.new(@thread_profiling_service)
-          @xray_session_collection = XraySessionCollection.new(@new_relic_service, @thread_profiling_service)
+          @xray_session_collection = XraySessionCollection.new(@thread_profiling_service)
 
           @handlers['start_profiler'] = Proc.new { |cmd| thread_profiler_session.handle_start_command(cmd) }
           @handlers['stop_profiler']  = Proc.new { |cmd| thread_profiler_session.handle_stop_command(cmd) }

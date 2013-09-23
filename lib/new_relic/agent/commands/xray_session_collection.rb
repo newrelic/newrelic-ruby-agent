@@ -14,8 +14,7 @@ module NewRelic
         attr_reader :sessions
         def_delegators :@sessions, :[], :include?
 
-        def initialize(new_relic_service, thread_profiling_service)
-          @new_relic_service = new_relic_service
+        def initialize(thread_profiling_service)
           @thread_profiling_service = thread_profiling_service
           @sessions = {}
         end
@@ -33,7 +32,9 @@ module NewRelic
 
         private
 
-        attr_accessor :new_relic_service
+        def new_relic_service
+          NewRelic::Agent.instance.service
+        end
 
         # Session activation
 
@@ -49,7 +50,7 @@ module NewRelic
           return [] if ids_to_activate.empty?
 
           NewRelic::Agent.logger.debug("Retrieving metadata for X-Ray sessions #{ids_to_activate.inspect}")
-          @new_relic_service.get_xray_metadata(ids_to_activate)
+          new_relic_service.get_xray_metadata(ids_to_activate)
         end
 
         def add_session(session)
