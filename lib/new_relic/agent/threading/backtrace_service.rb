@@ -35,11 +35,10 @@ module NewRelic
 
         def subscribe(transaction_name, command_arguments={})
           profile = ThreadProfile.new(command_arguments)
-          self.profile_agent_code = profile.profile_agent_code
 
           @lock.synchronize do
             @profiles[transaction_name] = profile
-            self.worker_loop.period = effective_profiling_period
+            update_values_from_profiles
           end
 
           start
@@ -52,9 +51,14 @@ module NewRelic
             if @profiles.empty?
               stop
             else
-              self.worker_loop.period = effective_profiling_period
+              update_values_from_profiles
             end
           end
+        end
+
+        def update_values_from_profiles
+          self.worker_loop.period = effective_profiling_period
+          self.profile_agent_code = should_profile_agent_code?
         end
 
         def subscribed?(transaction_name)
@@ -166,6 +170,11 @@ module NewRelic
         # This method is expected to be called with @lock held.
         def effective_profiling_period
           @profiles.values.map { |p| p.requested_period }.min
+        end
+
+        # This method is expected to be called with @lock held.
+        def should_profile_agent_code?
+          @profiles.values.any? { |p| p.profile_agent_code }
         end
 
         def record_polling_time(duration)

@@ -181,6 +181,33 @@ if NewRelic::Agent::Commands::ThreadProfilerSession.is_supported?
         assert @service.profile_agent_code
       end
 
+      def test_subscribe_sets_profile_agent_code_for_multiple_profiles
+        fake_worker_loop(@service)
+
+        @service.subscribe('foo', 'profile_agent_code' => true)
+        @service.subscribe('bar', 'profile_agent_code' => false)
+        assert @service.profile_agent_code
+      end
+
+      def test_subscribe_sets_profile_agent_code_when_missing
+        fake_worker_loop(@service)
+
+        @service.subscribe('foo')
+        @service.subscribe('bar')
+        assert !@service.profile_agent_code
+      end
+
+      def test_unsubscribe_sets_profile_agent_code
+        fake_worker_loop(@service)
+
+        @service.subscribe('foo', 'profile_agent_code' => true)
+        @service.subscribe('bar', 'profile_agent_code' => false)
+        assert @service.profile_agent_code
+
+        @service.unsubscribe('foo')
+        assert !@service.profile_agent_code
+      end
+
       def test_sample_thread_does_not_backtrace_if_no_subscriptions
         thread = fake_thread(:bucket => :request)
         thread.expects(:backtrace).never
