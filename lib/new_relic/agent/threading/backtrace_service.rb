@@ -35,10 +35,6 @@ module NewRelic
 
         def subscribe(transaction_name, command_arguments={})
           profile = ThreadProfile.new(command_arguments)
-
-          # Revise once X-Rays come along! They won't have the
-          # profile_agent_code parameter but also shouldn't tromp if it's set
-          # because of thread profiling
           self.profile_agent_code = profile.profile_agent_code
 
           @lock.synchronize do
