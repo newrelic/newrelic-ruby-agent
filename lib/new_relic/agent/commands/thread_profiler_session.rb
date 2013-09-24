@@ -52,6 +52,7 @@ module NewRelic
           profile = @finished_profile
           @backtrace_service.profile_agent_code = false
           @finished_profile = nil
+          @started_at = nil
           profile
         end
 
@@ -59,7 +60,7 @@ module NewRelic
           @backtrace_service.subscribed?(NewRelic::Agent::Threading::BacktraceService::ALL_TRANSACTIONS)
         end
 
-        def finished?
+        def ready_to_harvest?
           @started_at && (Time.now > @started_at + @duration) || stopped?
         end
 
