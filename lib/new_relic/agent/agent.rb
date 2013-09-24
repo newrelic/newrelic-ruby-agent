@@ -561,11 +561,7 @@ module NewRelic
           # fork while locked, this can deadlock child processes. For more
           # details, see https://github.com/resque/resque/issues/1101
           def synchronize_with_harvest
-            if harvest_lock
-              harvest_lock.synchronize do
-                yield
-              end
-            else
+            harvest_lock.synchronize do
               yield
             end
           end
@@ -1085,6 +1081,7 @@ module NewRelic
         end
 
         def transmit_data(disconnecting=false)
+          harvest_lock.lock
           now = Time.now
           ::NewRelic::Agent.logger.debug "Sending data to New Relic Service"
 
@@ -1111,6 +1108,7 @@ module NewRelic
           end
           raise e
         ensure
+          harvest_lock.unlock
           NewRelic::Agent::Database.close_connections
           duration = (Time.now - now).to_f
           @stats_engine.record_metrics('Supportability/Harvest', duration)
