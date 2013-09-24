@@ -6,7 +6,7 @@ require 'set'
 require 'new_relic/agent/worker_loop'
 require 'new_relic/agent/threading/backtrace_node'
 
-# Intent is for this to be a data structure for representing a thread profile
+# Data structure for representing a thread profile
 
 module NewRelic
   module Agent
@@ -105,6 +105,17 @@ module NewRelic
           result << int(@xray_id) if xray?
           result
         end
+
+        def to_log_description
+          id = if xray?
+                 "@xray_id: #{xray_id}"
+               else
+                 "@profile_id: #{profile_id}"
+               end
+
+          "#<ThreadProfile:#{object_id} #{id} @command_arguments=#{@command_arguments.inspect}>"
+        end
+
       end
     end
   end

@@ -94,8 +94,7 @@ module NewRelic
           return if @running
           @running = true
           self.worker_thread = AgentThread.new('Backtrace Service') do
-            # Passing nil for the period here because we expect it to have
-            # been set already.
+            # Not passing period because we expect it's already been set.
             self.worker_loop.run(&method(:poll))
           end
         end
