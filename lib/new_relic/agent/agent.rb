@@ -57,6 +57,7 @@ module NewRelic
         @environment_report = nil
 
         @last_harvest_time = Time.now
+        @harvest_lock = Mutex.new
         @obfuscator = lambda {|sql| NewRelic::Agent::Database.default_sql_obfuscator(sql) }
       end
 
@@ -106,6 +107,7 @@ module NewRelic
         # the latter during harvest.
         attr_reader :transaction_rules
         attr_reader :metric_rules
+        attr_reader :harvest_lock
 
         # Returns the length of the unsent errors array, if it exists,
         # otherwise nil
@@ -552,12 +554,6 @@ module NewRelic
           def log_worker_loop_start
             ::NewRelic::Agent.logger.debug "Reporting performance data every #{Agent.config[:data_report_period]} seconds."
             ::NewRelic::Agent.logger.debug "Running worker loop"
-          end
-
-          # Accessor for the harvest lock
-          def harvest_lock
-            return nil if @worker_loop.nil?
-            @worker_loop.lock
           end
 
           # Synchronize with the harvest loop. If the harvest thread has taken
